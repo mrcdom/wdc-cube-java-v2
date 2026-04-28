@@ -114,6 +114,15 @@ export class FlushRequestContext {
     const socket = (this.socket = new WebSocket(url, ['wdc']))
     ;(socket as unknown as Record<string, unknown>).withCredentials = true
 
+    const handleDisconnect = (cause: unknown) => {
+      this.socket = null
+      app.isConnected = false
+      this.stopKeepAliveChecks()
+      this.userRequestIds.clear()
+      this.setSubmitting(false)
+      app.reconnectController.reconnect(cause)
+    }
+
     socket.onopen = () => {
       app.isConnected = true
       app.reconnectController.reset()
@@ -131,10 +140,11 @@ export class FlushRequestContext {
     }
 
     socket.onerror = (error) => {
-      app.isConnected = false
-      this.stopKeepAliveChecks()
-      this.setSubmitting(false)
-      app.reconnectController.reconnect(error)
+      handleDisconnect(error)
+    }
+
+    socket.onclose = (event) => {
+      handleDisconnect(event)
     }
 
     // Log messages from the server
@@ -165,15 +175,6 @@ export class FlushRequestContext {
 
       me.flush()
       me.setSubmitting(me.userRequestIds.size > 0)
-    }
-
-    socket.onerror = (error) => {
-      app.isConnected = false
-      this.stopKeepAliveChecks()
-      this.userRequestIds.clear()
-      this.userRequestIds.clear()
-      this.setSubmitting(false)
-      app.reconnectController.reconnect(error)
     }
   }
 
