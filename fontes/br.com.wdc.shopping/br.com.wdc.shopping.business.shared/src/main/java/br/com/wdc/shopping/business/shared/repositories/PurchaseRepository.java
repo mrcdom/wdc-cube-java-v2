@@ -9,12 +9,14 @@ import br.com.wdc.shopping.business.shared.model.Purchase;
 public interface PurchaseRepository {
 
     AtomicReference<PurchaseRepository> BEAN = new AtomicReference<>();
-    
+
     boolean insert(Purchase purchase);
-    
+
     boolean insertOrUpdate(Purchase purchase);
 
     boolean update(Purchase newPurchase, Purchase oldPurchase);
+
+    int delete(PurchaseCriteria criteria);
 
     int count(PurchaseCriteria criteria);
 

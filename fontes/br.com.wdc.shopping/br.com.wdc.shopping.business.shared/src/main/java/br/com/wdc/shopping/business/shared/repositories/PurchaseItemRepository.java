@@ -16,6 +16,8 @@ public interface PurchaseItemRepository {
 
     boolean update(PurchaseItem newPurchaseItem, PurchaseItem oldPurchaseItem);
     
+    int delete(PurchaseItemCriteria criteria);
+    
     int count(PurchaseItemCriteria criteria);
 
     List<PurchaseItem> fetch(PurchaseItemCriteria criteria);

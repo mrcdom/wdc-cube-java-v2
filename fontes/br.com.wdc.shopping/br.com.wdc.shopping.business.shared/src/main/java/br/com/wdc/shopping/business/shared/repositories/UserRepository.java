@@ -16,6 +16,8 @@ public interface UserRepository {
 
     boolean insertOrUpdate(User user);
 
+    int delete(UserCriteria criteria);
+
     int count(UserCriteria criteria);
 
     List<User> fetch(UserCriteria criteria);

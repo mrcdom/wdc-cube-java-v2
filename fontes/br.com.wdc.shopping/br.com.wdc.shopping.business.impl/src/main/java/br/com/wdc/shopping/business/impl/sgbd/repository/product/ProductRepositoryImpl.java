@@ -43,6 +43,15 @@ public class ProductRepositoryImpl extends BaseRepository implements ProductRepo
             throw readException(caught);
         }
     }
+    
+    @Override
+    public int delete(ProductCriteria criteria) {
+        try (var tx = TransactionContext.begin(dataSource())) {
+            return DeleteProductsCmd.byCriteria(tx.connection(), criteria);
+        } catch (Exception caught) {
+            throw readException(caught);
+        }
+    }
 
     @Override
     public int count(ProductCriteria criteria) {

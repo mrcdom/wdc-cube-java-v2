@@ -42,6 +42,15 @@ public class PurchaseItemRepositoryImpl extends BaseRepository implements Purcha
             throw writeException(caught);
         }
     }
+    
+    @Override
+    public int delete(PurchaseItemCriteria criteria) {
+        try (var tx = TransactionContext.begin(dataSource())) {
+            return DeletePurchaseItemsCmd.byCriteria(tx.connection(), criteria);
+        } catch (Exception caught) {
+            throw writeException(caught);
+        }
+    }
 
     @Override
     public int count(PurchaseItemCriteria criteria) {

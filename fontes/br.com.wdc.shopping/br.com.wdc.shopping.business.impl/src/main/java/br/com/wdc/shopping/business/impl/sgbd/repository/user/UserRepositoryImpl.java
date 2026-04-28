@@ -44,6 +44,15 @@ public class UserRepositoryImpl extends BaseRepository implements UserRepository
     }
 
     @Override
+    public int delete(UserCriteria criteria) {
+        try (var tx = TransactionContext.begin(dataSource())) {
+            return DeleteUsersCmd.byCriteria(tx.connection(), criteria);
+        } catch (Exception caught) {
+            throw readException(caught);
+        }
+    }
+
+    @Override
     public int count(UserCriteria criteria) {
         try (var tx = TransactionContext.begin(dataSource())) {
             return CountUsersCmd.byCriteria(tx.connection(), criteria);

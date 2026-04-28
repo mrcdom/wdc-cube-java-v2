@@ -40,6 +40,15 @@ public class PurchaseRepositoryImpl extends BaseRepository implements PurchaseRe
         // TODO Auto-generated method stub
         return false;
     }
+    
+    @Override
+    public int delete(PurchaseCriteria criteria) {
+        try (var tx = TransactionContext.begin(dataSource())) {
+            return DeletePurchasesCmd.byCriteria(tx.connection(), criteria);
+        } catch (Exception caught) {
+            throw readException(caught);
+        }
+    }
 
     @Override
     public int count(PurchaseCriteria criteria) {
