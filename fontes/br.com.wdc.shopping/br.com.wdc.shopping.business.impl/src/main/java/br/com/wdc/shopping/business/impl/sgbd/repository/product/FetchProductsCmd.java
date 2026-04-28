@@ -157,10 +157,21 @@ public class FetchProductsCmd extends BaseCommand {
                 return bean;
             });
 
-            product.name = row.name();
-            product.description = row.description();
-            product.image = row.image();
-            product.price = CoerceUtils.asDouble(row.price());
+            if (product.name == null) {
+                product.name = row.name();
+            }
+
+            if (product.description == null) {
+                product.description = row.description();
+            }
+
+            if (product.image == null) {
+                product.image = row.image();
+            }
+
+            if (product.price == null) {
+                product.price = CoerceUtils.asDouble(row.price());
+            }
 
             return product;
         } catch (IOException caught) {

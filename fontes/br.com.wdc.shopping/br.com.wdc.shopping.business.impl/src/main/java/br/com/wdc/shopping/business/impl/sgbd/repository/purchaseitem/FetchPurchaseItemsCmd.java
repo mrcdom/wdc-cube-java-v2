@@ -309,10 +309,15 @@ public class FetchPurchaseItemsCmd extends BaseCommand {
                 return bean;
             });
 
-            purchaseItem.amount = row.amount();
-            purchaseItem.price = CoerceUtils.asDouble(row.price());
+            if (purchaseItem.amount == null) {
+                purchaseItem.amount = row.amount();
+            }
 
-            if (row.purchaseId() != null) {
+            if (purchaseItem.price == null) {
+                purchaseItem.price = CoerceUtils.asDouble(row.price());
+            }
+
+            if (row.purchaseId() != null && purchaseItem.purchase == null) {
                 purchaseItem.purchase = purchaceMap.get(row.purchaseId());
                 if (purchaseItem.purchase == null) {
                     purchaseItem.purchase = new Purchase();
@@ -326,7 +331,7 @@ public class FetchPurchaseItemsCmd extends BaseCommand {
                 purchaseItem.purchase.items.add(purchaseItem);
             }
 
-            if (row.productId() != null) {
+            if (row.productId() != null && purchaseItem.product == null) {
                 purchaseItem.product = productMap.get(row.productId());
                 if (purchaseItem.product == null) {
                     purchaseItem.product = new Product();

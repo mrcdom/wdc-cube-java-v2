@@ -301,9 +301,11 @@ public class FetchPurchaseCmd extends BaseCommand {
                 return bean;
             });
 
-            purchase.buyDate = row.buyDate();
+            if (purchase.buyDate == null) {
+                purchase.buyDate = row.buyDate();
+            }
 
-            if (row.userId() != null) {
+            if (row.userId() != null && purchase.user == null) {
                 purchase.user = userMap.get(row.userId());
                 if (purchase.user == null) {
                     purchase.user = new User();

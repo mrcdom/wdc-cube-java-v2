@@ -152,9 +152,17 @@ public class FetchUsersCmd extends BaseCommand {
                 return bean;
             });
 
-            user.userName = row.userName();
-            user.password = row.password();
-            user.name = row.name();
+            if (user.userName == null) {
+                user.userName = row.userName();
+            }
+
+            if (user.password == null) {
+                user.password = row.password();
+            }
+
+            if (user.name == null) {
+                user.name = row.name();
+            }
             return user;
         } catch (IOException caught) {
             throw new UncheckedIOException(caught);
