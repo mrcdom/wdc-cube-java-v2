@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES2024",
+    "lib": ["ES2024", "DOM"],
+    "moduleResolution": "bundler",
+    "jsx": "react",
+    "experimentalDecorators": true,
+    "isolatedModules": true,
+    //"jsxImportSource": "preact"
+    "paths": {
+      "@root/*": ["./src/scripts/*"]
+    }
+  }
+}

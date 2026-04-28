@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<name>WeDoCode Shopping :: root</name>
+	<description>Cube MVP architectural reference — Java 26 + React 19 e-commerce demo</description>
+	<url>https://github.com/mrcdom/wdc-cube-java-v2</url>
+	<inceptionYear>2026</inceptionYear>
+
+	<scm>
+		<url>https://github.com/mrcdom/wdc-cube-java-v2</url>
+		<connection>scm:git:https://github.com/mrcdom/wdc-cube-java-v2.git</connection>
+		<developerConnection>scm:git:git@github.com:mrcdom/wdc-cube-java-v2.git</developerConnection>
+	</scm>
+
+	<groupId>br.com.wdc</groupId>
+	<artifactId>br.com.wdc.selecao</artifactId>
+	<version>2.0.0</version>
+
+	<packaging>pom</packaging>
+
+	<licenses>
+		<license>
+			<name>MIT License</name>
+			<url>https://opensource.org/licenses/MIT</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<organization>
+		<name>WeDoCode Consultoria LTDA</name>
+		<url>https://wedocode.com.br</url>
+	</organization>
+
+	<developers>
+		<developer>
+			<name>Marcelo Domingos</name>
+			<organization>WeDoCode Consultoria LTDA</organization>
+			<organizationUrl>https://wedocode.com.br</organizationUrl>
+		</developer>
+	</developers>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+		<maven.compiler.source>26</maven.compiler.source>
+		<maven.compiler.target>26</maven.compiler.target>
+	</properties>
+
+	<distributionManagement>
+		<repository>
+			<id>artifactory-wedocode-release</id>
+			<name>libs-release-local</name>
+			<url>${repo.url}/libs-release-local</url>
+		</repository>
+		<snapshotRepository>
+			<id>artifactory-wedocode-snapshot</id>
+			<name>libs-snapshot-local</name>
+			<url>${repo.url}/libs-snapshot-local</url>
+		</snapshotRepository>
+	</distributionManagement>
+
+	<modules>
+		<module>br.com.wdc.framework</module>
+		<module>br.com.wdc.shopping</module>
+	</modules>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-war-plugin</artifactId>
+					<version>3.5.1</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>4.0.0-beta-4</version>
+					<configuration>
+						<release>26</release>
+						<enablePreview>true</enablePreview>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+</project>

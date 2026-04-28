@@ -1,0 +1,43 @@
+{
+  "name": "wdc-shopping-react",
+  "license": "MIT",
+  "author": "Marcelo Domingos <WeDoCode Consultoria LTDA>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mrcdom/wdc-cube-java-v2.git",
+    "directory": "fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.react/br.com.wdc.shopping.view.react.client"
+  },
+  "source": "src/index.html",
+  "targets": {
+    "default": {
+      "distDir": "../br.com.wdc.shopping.view.react.skeleton/src/main/resources/META-INF/resources"
+    }
+  },
+  "alias": {
+    "@root/*": "./src/scripts/$1"
+  },
+  "scripts": {
+    "start": "parcel watch --public-url ./",
+    "watch": "parcel watch --public-url ./",
+    "build": "parcel build --public-url ./",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.3",
+    "@types/react-dom": "^19.0.2",
+    "parcel": "^2.13.3",
+    "prettier": "^3.8.2",
+    "process": "^0.11.10"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^9.0.0",
+    "@mui/material": "^9.0.0",
+    "history": "^5.3.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "universal-cookie": "^7.2.2"
+  }
+}

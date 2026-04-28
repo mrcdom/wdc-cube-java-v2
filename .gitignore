@@ -1,0 +1,30 @@
+# macOS
+.DS_Store
+
+# IDEs and local run configs
+.idea/
+.vscode/
+*.iml
+.project
+.classpath
+.settings/
+.metadata/
+.run/
+
+# Eclipse workspace files
+.ecp-cube-v2/
+.mtj.tmp/
+settings/
+
+# Build outputs and generated files
+target/
+dist/
+node_modules/
+.parcel-cache/
+*.class
+*.log
+*.ctxt
+*.jasper
+hs_err_pid*
+**/work/data/*.mv.db
+**/work/data/*.trace.db
