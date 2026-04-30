@@ -38,6 +38,14 @@ public abstract class DbTable {
 		return basePath;
 	}
 
+	protected DbField mkTinyint(String name, boolean nullable) {
+		return new DbField(name, alias, basePath + name, JDBCType.TINYINT, false, 0, 0, nullable);
+	}
+
+	protected DbField mkSmallint(String name, boolean nullable) {
+		return new DbField(name, alias, basePath + name, JDBCType.SMALLINT, false, 0, 0, nullable);
+	}
+
 	protected DbField mkInt(String name, boolean nullable) {
 		return new DbField(name, alias, basePath + name, JDBCType.INTEGER, false, 0, 0, nullable);
 	}
@@ -48,6 +56,22 @@ public abstract class DbTable {
 
 	protected DbField mkNumeric(String name, int precision, int scale, boolean nullable) {
 		return new DbField(name, alias, basePath + name, JDBCType.NUMERIC, false, precision, scale, nullable);
+	}
+
+	protected DbField mkDecimal(String name, int precision, int scale, boolean nullable) {
+		return new DbField(name, alias, basePath + name, JDBCType.DECIMAL, false, precision, scale, nullable);
+	}
+
+	protected DbField mkFloat(String name, boolean nullable) {
+		return new DbField(name, alias, basePath + name, JDBCType.FLOAT, false, 0, 0, nullable);
+	}
+
+	protected DbField mkDouble(String name, boolean nullable) {
+		return new DbField(name, alias, basePath + name, JDBCType.DOUBLE, false, 0, 0, nullable);
+	}
+
+	protected DbField mkBoolean(String name, boolean nullable) {
+		return new DbField(name, alias, basePath + name, JDBCType.BOOLEAN, false, 0, 0, nullable);
 	}
 
 	protected DbField mkChar(String name, int length, boolean nullable) {
@@ -66,12 +90,48 @@ public abstract class DbTable {
 		return new DbField(name, alias, basePath + name, JDBCType.VARCHAR, true, length, 0, nullable);
 	}
 
+	protected DbField mkNChar(String name, int length, boolean nullable) {
+		return new DbField(name, alias, basePath + name, JDBCType.NCHAR, false, length, 0, nullable);
+	}
+
+	protected DbField mkNCharIgnoreCase(String name, int length, boolean nullable) {
+		return new DbField(name, alias, basePath + name, JDBCType.NCHAR, true, length, 0, nullable);
+	}
+
+	protected DbField mkNVarChar(String name, int length, boolean nullable) {
+		return new DbField(name, alias, basePath + name, JDBCType.NVARCHAR, false, length, 0, nullable);
+	}
+
+	protected DbField mkNVarCharIgnoreCase(String name, int length, boolean nullable) {
+		return new DbField(name, alias, basePath + name, JDBCType.NVARCHAR, true, length, 0, nullable);
+	}
+
 	protected DbField mkBinary(String name, int length, boolean nullable) {
 		return new DbField(name, alias, basePath + name, JDBCType.BINARY, false, length, 0, nullable);
 	}
 
+	protected DbField mkVarBinary(String name, int length, boolean nullable) {
+		return new DbField(name, alias, basePath + name, JDBCType.VARBINARY, false, length, 0, nullable);
+	}
+
 	protected DbField mkDate(String name, boolean nullable) {
 		return new DbField(name, alias, basePath + name, JDBCType.DATE, false, 0, 0, nullable);
+	}
+
+	protected DbField mkTime(String name, boolean nullable) {
+		return new DbField(name, alias, basePath + name, JDBCType.TIME, false, 0, 0, nullable);
+	}
+
+	protected DbField mkTimestamp(String name, boolean nullable) {
+		return new DbField(name, alias, basePath + name, JDBCType.TIMESTAMP, false, 0, 0, nullable);
+	}
+
+	protected DbField mkClob(String name, boolean nullable) {
+		return new DbField(name, alias, basePath + name, JDBCType.CLOB, false, 0, 0, nullable);
+	}
+
+	protected DbField mkBlob(String name, boolean nullable) {
+		return new DbField(name, alias, basePath + name, JDBCType.BLOB, false, 0, 0, nullable);
 	}
 
 }

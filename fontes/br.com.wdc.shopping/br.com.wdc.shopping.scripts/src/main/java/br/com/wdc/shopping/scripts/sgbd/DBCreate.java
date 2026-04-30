@@ -12,6 +12,7 @@ import br.com.wdc.shopping.persistence.schema.EnProduct;
 import br.com.wdc.shopping.persistence.schema.EnPurchase;
 import br.com.wdc.shopping.persistence.schema.EnPurchaseItem;
 import br.com.wdc.shopping.persistence.schema.EnUser;
+import br.com.wdc.shopping.scripts.sgbd.schema.EnMigrationLog;
 
 public class DBCreate {
 
@@ -31,6 +32,11 @@ public class DBCreate {
 
 	public DBCreate run() throws SQLException {
 		var tableMap = this.loadTableMap(this.connection.getMetaData());
+
+		var enMigrationLog = EnMigrationLog.INSTANCE;
+		if (!tableMap.containsKey("PUBLIC." + enMigrationLog.tableName())) {
+			this.createTableMigrationLog();
+		}
 
 		var enUser = EnUser.INSTANCE;
 		if (!tableMap.containsKey("PUBLIC." + enUser.tableName())) {
@@ -116,6 +122,15 @@ public class DBCreate {
 		try (var stmt = this.connection.createStatement()) {
 			stmt.execute(enPurchaseItem.createTableSql());
 			stmt.execute(enPurchaseItem.createSequeceSql());
+		}
+	}
+
+	private void createTableMigrationLog() throws SQLException {
+		var enMigrationLog = EnMigrationLog.INSTANCE;
+
+		try (var stmt = this.connection.createStatement()) {
+			stmt.execute(enMigrationLog.createTableSql());
+			stmt.execute(enMigrationLog.createSequeceSql());
 		}
 	}
 

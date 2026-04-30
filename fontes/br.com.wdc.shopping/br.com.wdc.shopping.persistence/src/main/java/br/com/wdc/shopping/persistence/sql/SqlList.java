@@ -37,6 +37,16 @@ public class SqlList extends ArrayList<String> {
         this.add(StringUtils.join(itens, ' '));
         return this;
     }
+    
+    @Override
+    public int hashCode() {
+    	return super.hashCode();
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+    	return super.equals(o);
+    }
 
     // :: Projection
 
@@ -161,6 +171,18 @@ public class SqlList extends ArrayList<String> {
         var columnIndex = ++this.projectionCount;
         this.ln(projectionToLn(columnIndex, itens));
         return rs -> rs.getTimestamp(columnIndex);
+    }
+
+    public ThrowingFunction<ResultSet, java.sql.Clob> clobColumn(Object... itens) {
+        var columnIndex = ++this.projectionCount;
+        this.ln(projectionToLn(columnIndex, itens));
+        return rs -> rs.getClob(columnIndex);
+    }
+
+    public ThrowingFunction<ResultSet, java.sql.Blob> blobColumn(Object... itens) {
+        var columnIndex = ++this.projectionCount;
+        this.ln(projectionToLn(columnIndex, itens));
+        return rs -> rs.getBlob(columnIndex);
     }
 
     public String toText() {
