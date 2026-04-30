@@ -4,12 +4,12 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import br.com.wdc.shopping.business.shared.exception.InvalidCartItemException;
-import br.com.wdc.shopping.business.shared.model.Product;
-import br.com.wdc.shopping.business.shared.model.Purchase;
-import br.com.wdc.shopping.business.shared.model.PurchaseItem;
-import br.com.wdc.shopping.business.shared.model.User;
-import br.com.wdc.shopping.business.shared.repositories.PurchaseRepository;
+import br.com.wdc.shopping.domain.exception.InvalidCartItemException;
+import br.com.wdc.shopping.domain.model.Product;
+import br.com.wdc.shopping.domain.model.Purchase;
+import br.com.wdc.shopping.domain.model.PurchaseItem;
+import br.com.wdc.shopping.domain.model.User;
+import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.structs.CartItem;
 
 public enum CartService {

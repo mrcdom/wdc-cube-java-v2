@@ -9,7 +9,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import br.com.wdc.shopping.business.shared.config.AppConfig;
+import br.com.wdc.shopping.domain.config.AppConfig;
 import br.com.wdc.shopping.view.react.controller.DispatcherController;
 import br.com.wdc.shopping.view.react.controller.ImageController;
 import br.com.wdc.shopping.view.react.controller.IndexHtmlController;

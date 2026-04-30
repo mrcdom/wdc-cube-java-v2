@@ -26,7 +26,7 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <version>${project.version}</version>
-            <artifactId>br.com.wdc.shopping.business.impl</artifactId>
+            <artifactId>br.com.wdc.shopping.persistence</artifactId>
         </dependency>
 
         <dependency>

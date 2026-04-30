@@ -2,9 +2,9 @@ package br.com.wdc.shopping.presentation.presenter.restricted.home;
 
 import java.util.List;
 
-import br.com.wdc.shopping.business.shared.criteria.PurchaseCriteria;
-import br.com.wdc.shopping.business.shared.criteria.PurchaseCriteria.OrderBy;
-import br.com.wdc.shopping.business.shared.repositories.PurchaseRepository;
+import br.com.wdc.shopping.domain.criteria.PurchaseCriteria;
+import br.com.wdc.shopping.domain.criteria.PurchaseCriteria.OrderBy;
+import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
 
 public enum HomeService {

@@ -6,7 +6,7 @@ Camada de apresentação do sistema Shopping, implementada com o padrão **Cube 
 
 | Artefato | Papel |
 |----------|-------|
-| `br.com.wdc.shopping.business.shared` | Modelos de domínio, repositórios, critérios |
+| `br.com.wdc.shopping.domain` | Modelos de domínio, repositórios, critérios |
 | `br.com.wdc.framework.cube` | Motor Cube MVP (presenters, views, navegação) |
 | `slf4j-api` | Logging |
 | `jsr305` | Anotações `@Nullable` (scope provided) |

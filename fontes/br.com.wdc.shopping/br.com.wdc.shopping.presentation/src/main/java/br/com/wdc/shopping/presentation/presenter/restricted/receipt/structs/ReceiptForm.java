@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import br.com.wdc.shopping.business.shared.model.Purchase;
-import br.com.wdc.shopping.business.shared.utils.ProjectionValues;
+import br.com.wdc.shopping.domain.model.Purchase;
+import br.com.wdc.shopping.domain.utils.ProjectionValues;
 
 public class ReceiptForm implements Serializable {
 

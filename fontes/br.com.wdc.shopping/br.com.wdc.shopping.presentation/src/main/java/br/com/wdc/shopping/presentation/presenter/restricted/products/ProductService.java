@@ -2,8 +2,8 @@ package br.com.wdc.shopping.presentation.presenter.restricted.products;
 
 import java.util.List;
 
-import br.com.wdc.shopping.business.shared.criteria.ProductCriteria;
-import br.com.wdc.shopping.business.shared.repositories.ProductRepository;
+import br.com.wdc.shopping.domain.criteria.ProductCriteria;
+import br.com.wdc.shopping.domain.repositories.ProductRepository;
 import br.com.wdc.shopping.presentation.exception.ProductNotFoundException;
 import br.com.wdc.shopping.presentation.exception.WrongParametersException;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;

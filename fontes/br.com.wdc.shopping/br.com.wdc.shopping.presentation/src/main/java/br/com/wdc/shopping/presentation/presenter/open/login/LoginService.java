@@ -1,7 +1,7 @@
 package br.com.wdc.shopping.presentation.presenter.open.login;
 
-import br.com.wdc.shopping.business.shared.criteria.UserCriteria;
-import br.com.wdc.shopping.business.shared.repositories.UserRepository;
+import br.com.wdc.shopping.domain.criteria.UserCriteria;
+import br.com.wdc.shopping.domain.repositories.UserRepository;
 import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
 
 public enum LoginService {

@@ -1,6 +1,6 @@
 package br.com.wdc.shopping.presentation.presenter.restricted.receipt;
 
-import br.com.wdc.shopping.business.shared.repositories.PurchaseRepository;
+import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
 import br.com.wdc.shopping.presentation.exception.WrongParametersException;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptForm;
 

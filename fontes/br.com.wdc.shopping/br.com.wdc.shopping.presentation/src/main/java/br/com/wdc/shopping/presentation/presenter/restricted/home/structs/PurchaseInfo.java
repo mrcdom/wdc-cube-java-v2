@@ -9,10 +9,10 @@ import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
-import br.com.wdc.shopping.business.shared.model.Product;
-import br.com.wdc.shopping.business.shared.model.Purchase;
-import br.com.wdc.shopping.business.shared.model.PurchaseItem;
-import br.com.wdc.shopping.business.shared.utils.ProjectionValues;
+import br.com.wdc.shopping.domain.model.Product;
+import br.com.wdc.shopping.domain.model.Purchase;
+import br.com.wdc.shopping.domain.model.PurchaseItem;
+import br.com.wdc.shopping.domain.utils.ProjectionValues;
 
 public class PurchaseInfo implements Serializable {
 

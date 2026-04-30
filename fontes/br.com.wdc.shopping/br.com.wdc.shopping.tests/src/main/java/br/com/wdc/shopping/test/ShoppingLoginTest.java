@@ -5,7 +5,7 @@ import org.junit.Test;
 
 import org.apache.commons.lang3.StringUtils;
 
-import br.com.wdc.shopping.business.impl.sgbd.ddl.scripts.DBReset;
+import br.com.wdc.shopping.persistence.sgbd.ddl.scripts.DBReset;
 import br.com.wdc.shopping.presentation.presenter.Routes;
 import br.com.wdc.shopping.test.mock.viewimpl.LoginViewMock;
 import br.com.wdc.shopping.test.mock.viewimpl.RestrictedViewMock;

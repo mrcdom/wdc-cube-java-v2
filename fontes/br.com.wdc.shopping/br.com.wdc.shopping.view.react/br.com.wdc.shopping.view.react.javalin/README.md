@@ -66,7 +66,7 @@ Any request path that:
 `ApplicationReactImpl` instances are created on-demand and managed in `ConcurrentHashMap<String, ApplicationReactImpl>` with automatic TTL-based expiration. A background thread runs every 60 seconds to clean up expired sessions.
 
 ### Logging
-All requests and errors are logged via SLF4J + Logback (configured in `br.com.wdc.shopping.business.impl` module resources).
+All requests and errors are logged via SLF4J + Logback (configured in `br.com.wdc.shopping.persistence` module resources).
 
 ## Technical Details
 
@@ -81,7 +81,7 @@ All requests and errors are logged via SLF4J + Logback (configured in `br.com.wd
 Core dependencies:
 - `br.com.wdc.shopping.view.react.stub` - REST endpoints and application logic
 - `br.com.wdc.shopping.presentation` - Business logic
-- `br.com.wdc.shopping.business.impl` - Database and persistence layer
+- `br.com.wdc.shopping.persistence` - Database and persistence layer
 - Javalin 6.4.0 - Web framework
 - SLF4J + Logback - Logging
 - Jakarta servlet/websocket APIs (provided scope)

@@ -3,8 +3,8 @@ package br.com.wdc.shopping.presentation.presenter.restricted.products.structs;
 import java.io.Serializable;
 import java.util.Optional;
 
-import br.com.wdc.shopping.business.shared.model.Product;
-import br.com.wdc.shopping.business.shared.utils.ProjectionValues;
+import br.com.wdc.shopping.domain.model.Product;
+import br.com.wdc.shopping.domain.utils.ProjectionValues;
 
 public class ProductInfo implements Serializable {
 

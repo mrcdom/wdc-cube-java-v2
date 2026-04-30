@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.function.ThrowingRunnable;
-import br.com.wdc.shopping.business.shared.exception.InvalidCartItemException;
+import br.com.wdc.shopping.domain.exception.InvalidCartItemException;
 import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.structs.CartItem;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;

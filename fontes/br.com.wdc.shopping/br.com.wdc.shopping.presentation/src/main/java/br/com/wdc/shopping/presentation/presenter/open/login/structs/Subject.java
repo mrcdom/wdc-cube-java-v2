@@ -2,8 +2,8 @@ package br.com.wdc.shopping.presentation.presenter.open.login.structs;
 
 import java.io.Serializable;
 
-import br.com.wdc.shopping.business.shared.model.User;
-import br.com.wdc.shopping.business.shared.utils.ProjectionValues;
+import br.com.wdc.shopping.domain.model.User;
+import br.com.wdc.shopping.domain.utils.ProjectionValues;
 
 public class Subject implements Serializable {
 

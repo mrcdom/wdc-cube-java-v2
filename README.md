@@ -24,10 +24,10 @@ Este projeto serve como **referência arquitetural** para novos projetos, demons
 │                   Presentation                          │
 │     Presenters hierárquicos + ViewStates serializáveis  │
 ├─────────────────────────────────────────────────────────┤
-│                  Business (impl)                        │
+│                   Persistence                           │
 │        Repositories + Command Pattern (SQL)             │
 ├─────────────────────────────────────────────────────────┤
-│                Business (shared)                        │
+│                     Domain                              │
 │      Modelos de domínio + Contratos + Configuração      │
 ├─────────────────────────────────────────────────────────┤
 │                    H2 Database                          │
@@ -53,9 +53,8 @@ fontes/
 │   └── br.com.wdc.framework.dependencies/ # BOM — gerenciamento centralizado de versões
 │
 └── br.com.wdc.shopping/                   # Aplicação Shopping
-    ├── br.com.wdc.shopping.business/           # Interfaces de serviço
-    ├── br.com.wdc.shopping.business.shared/    # Modelos, repositórios, critérios, config
-    ├── br.com.wdc.shopping.business.impl/      # Persistência (H2 + JDBI + Command Pattern)
+    ├── br.com.wdc.shopping.domain/             # Modelos, repositórios, critérios, config
+    ├── br.com.wdc.shopping.persistence/        # Persistência (H2 + JDBI + Command Pattern)
     ├── br.com.wdc.shopping.presentation/       # Presenters, ViewStates, navegação, DTOs
     ├── br.com.wdc.shopping.tests/              # Testes unitários e de workflow
     ├── br.com.wdc.shopping.view.react/         # 📄 [README](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.react/README.md)
@@ -78,8 +77,8 @@ fontes/
 
 | Módulo | Descrição |
 |--------|-----------|
-| **business.shared** | Modelos de domínio (`User`, `Product`, `Purchase`, `PurchaseItem`), interfaces de repositório, classes de critérios para consultas, hierarquia de exceções (`BusinessException`) |
-| **business.impl** | Implementação de persistência com Command Pattern SQL (`InsertRowUserCmd`, `FetchProductsCmd`, etc.), `BaseRepository`, `BaseCommand`, DSL SQL (`SqlKeywords`), scripts DDL para H2 |
+| **domain** | Modelos de domínio (`User`, `Product`, `Purchase`, `PurchaseItem`), interfaces de repositório, classes de critérios para consultas, hierarquia de exceções (`BusinessException`) |
+| **persistence** | Implementação de persistência com Command Pattern SQL (`InsertRowUserCmd`, `FetchProductsCmd`, etc.), `BaseRepository`, `BaseCommand`, DSL SQL (`SqlKeywords`), scripts DDL para H2 |
 | **presentation** | `ShoppingApplication`, hierarquia de presenters (Root → Login \| Home → Products/Purchases/Product/Cart/Receipt), ViewStates serializáveis, `CartManager`, `LoginService`, sistema de rotas e navegação |
 
 ### Shopping — Frontend (View Implementations)

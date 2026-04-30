@@ -1,0 +1,27 @@
+package br.com.wdc.shopping.domain.repositories;
+
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+
+import br.com.wdc.shopping.domain.criteria.PurchaseCriteria;
+import br.com.wdc.shopping.domain.model.Purchase;
+
+public interface PurchaseRepository {
+
+    AtomicReference<PurchaseRepository> BEAN = new AtomicReference<>();
+
+    boolean insert(Purchase purchase);
+
+    boolean insertOrUpdate(Purchase purchase);
+
+    boolean update(Purchase newPurchase, Purchase oldPurchase);
+
+    int delete(PurchaseCriteria criteria);
+
+    int count(PurchaseCriteria criteria);
+
+    List<Purchase> fetch(PurchaseCriteria criteria);
+
+    Purchase fetchById(Long purchaseId, Purchase projection);
+
+}

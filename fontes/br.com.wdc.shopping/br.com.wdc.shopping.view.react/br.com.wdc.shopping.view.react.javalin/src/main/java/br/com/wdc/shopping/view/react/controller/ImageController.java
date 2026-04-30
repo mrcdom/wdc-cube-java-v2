@@ -3,7 +3,7 @@ package br.com.wdc.shopping.view.react.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import br.com.wdc.shopping.business.shared.repositories.ProductRepository;
+import br.com.wdc.shopping.domain.repositories.ProductRepository;
 import io.javalin.config.JavalinConfig;
 import io.javalin.http.Context;
 
