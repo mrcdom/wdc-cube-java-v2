@@ -11,6 +11,7 @@ import br.com.wdc.shopping.view.jfx.util.ResourceCatalog;
 import javafx.event.ActionEvent;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
@@ -166,21 +167,26 @@ public class HomeViewJfx extends AbstractViewJfx<HomePresenter> {
         });
 
         // Default content (products + purchases side by side)
-        this.defaultContentPane = new HBox(10);
+        this.defaultContentPane = new HBox(16);
         this.defaultContentPane.getStyleClass().add("home-default-content");
 
         this.purchasesPanelSlot = new StackPane();
         this.productsPanelSlot = new StackPane();
         HBox.setHgrow(this.productsPanelSlot, Priority.ALWAYS);
 
-        this.defaultContentPane.getChildren().addAll(this.purchasesPanelSlot, this.productsPanelSlot);
+        this.defaultContentPane.getChildren().addAll(this.productsPanelSlot, this.purchasesPanelSlot);
 
-        // Content pane
-        dom.stackPane(pane -> {
-            VBox.setVgrow(pane, Priority.ALWAYS);
-            this.contentPane = pane;
-            pane.getChildren().add(this.defaultContentPane);
-        });
+        // Content pane wrapped in ScrollPane
+        this.contentPane = new StackPane();
+        this.contentPane.setPadding(new javafx.geometry.Insets(16));
+        this.contentPane.getChildren().add(this.defaultContentPane);
+
+        var scrollPane = new ScrollPane(this.contentPane);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        VBox.setVgrow(scrollPane, Priority.ALWAYS);
+        pane0.getChildren().add(scrollPane);
     }
 
     private void emitExit(ActionEvent evt) {

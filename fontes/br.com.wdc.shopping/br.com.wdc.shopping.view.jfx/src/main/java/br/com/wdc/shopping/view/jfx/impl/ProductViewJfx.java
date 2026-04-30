@@ -102,6 +102,7 @@ public class ProductViewJfx extends AbstractViewJfx<ProductPresenter> {
     @SuppressWarnings("unused")
     private void initialRender(JfxDom dom, VBox pane0) {
         pane0.getStyleClass().add("product-form");
+        pane0.setMaxWidth(900);
 
         dom.textFlow(pane1 -> {
             pane1.getStyleClass().add("breadcrumbs");
@@ -117,15 +118,20 @@ public class ProductViewJfx extends AbstractViewJfx<ProductPresenter> {
 
         dom.hbox(_ -> {
             dom.vbox(_ -> {
-                dom.img(img -> {
-                    this.imageElm = img;
-                    this.imageElm.setImage(ResourceCatalog.getImage(this.state.product.image));
-                    this.imageOldValue = this.state.product.image;
-                    img.setFitWidth(351);
-                    img.setFitHeight(342);
+                dom.stackPane(imgPane -> {
+                    imgPane.setStyle("-fx-border-color: #e0e0e0; -fx-border-width: 1; -fx-border-radius: 4; -fx-background-color: #fafafa; -fx-background-radius: 4; -fx-padding: 8;");
+
+                    dom.img(img -> {
+                        this.imageElm = img;
+                        this.imageElm.setImage(ResourceCatalog.getImage(this.state.product.image));
+                        this.imageOldValue = this.state.product.image;
+                        img.setFitWidth(300);
+                        img.setFitHeight(300);
+                        img.setPreserveRatio(true);
+                    });
                 });
 
-                dom.vSpacer();
+                dom.vSpacer(16);
 
                 dom.button(button -> {
                     button.getStyleClass().add("back-button");
@@ -190,7 +196,7 @@ public class ProductViewJfx extends AbstractViewJfx<ProductPresenter> {
 
                     dom.button(button -> {
                         button.getStyleClass().add("buy-button");
-                        button.setText("COMPRAR");
+                        button.setText("Adicionar ao carrinho");
                         button.setOnAction(this::emitBuyClicked);
                     });
                 });

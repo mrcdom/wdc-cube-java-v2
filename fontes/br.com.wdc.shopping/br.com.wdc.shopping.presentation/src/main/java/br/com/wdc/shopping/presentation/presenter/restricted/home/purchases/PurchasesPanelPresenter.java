@@ -19,7 +19,7 @@ public class PurchasesPanelPresenter extends AbstractChildPresenter<ShoppingAppl
 
     // :: Public Class Fields
 
-    public static final int DEFAULT_PAGE_SIZE = 2;
+    public static final int DEFAULT_PAGE_SIZE = 3;
     public static Function<PurchasesPanelPresenter, CubeView> createView;
 
     // :: Public Instance Fields

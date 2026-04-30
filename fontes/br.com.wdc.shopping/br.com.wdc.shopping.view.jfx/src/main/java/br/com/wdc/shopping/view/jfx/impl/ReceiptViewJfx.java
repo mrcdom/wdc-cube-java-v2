@@ -60,6 +60,7 @@ public class ReceiptViewJfx extends AbstractViewJfx<ReceiptPresenter> {
 
     private void initialRender(JfxDom dom, VBox pane0) {
         pane0.getStyleClass().add("receipt-form");
+        pane0.setMaxWidth(900);
 
         dom.label(label -> {
             label.getStyleClass().add("success-lbl");

@@ -109,6 +109,10 @@ public class CartManager {
         var purchaseId = CartService.BEAN.purchase(subject.getId(), this.cart);
         this.clear();
 
+        for (var listener : new ArrayList<>(this.changeListenerMap.values())) {
+            listener.run();
+        }
+
         for (var listener : new ArrayList<>(this.commitListenerMap.values())) {
             listener.run();
         }

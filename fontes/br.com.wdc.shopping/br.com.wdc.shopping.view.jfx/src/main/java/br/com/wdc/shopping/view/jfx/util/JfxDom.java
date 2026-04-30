@@ -10,8 +10,10 @@ import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
@@ -209,6 +211,31 @@ public class JfxDom {
             var elm = new Region();
             this.currentParent = null;
             elm.setMinHeight(height);
+            this.getChildren(oldParent).add(elm);
+            return elm;
+        } finally {
+            this.currentParent = oldParent;
+        }
+    }
+
+    public FlowPane flowPane(Consumer<FlowPane> fnUpdate) {
+        var oldParent = this.currentParent;
+        try {
+            var elm = new FlowPane();
+            this.currentParent = elm;
+            fnUpdate.accept(elm);
+            this.getChildren(oldParent).add(elm);
+            return elm;
+        } finally {
+            this.currentParent = oldParent;
+        }
+    }
+
+    public ScrollPane scrollPane(Consumer<ScrollPane> fnUpdate) {
+        var oldParent = this.currentParent;
+        try {
+            var elm = new ScrollPane();
+            fnUpdate.accept(elm);
             this.getChildren(oldParent).add(elm);
             return elm;
         } finally {

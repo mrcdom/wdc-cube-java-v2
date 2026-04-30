@@ -9,7 +9,6 @@ import br.com.wdc.shopping.view.jfx.AbstractViewJfx;
 import br.com.wdc.shopping.view.jfx.ShoppingJfxApplication;
 import br.com.wdc.shopping.view.jfx.util.JfxDom;
 import br.com.wdc.shopping.view.jfx.util.ResourceCatalog;
-import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
@@ -62,17 +61,24 @@ public class ProductItemViewJfx extends AbstractViewJfx<ProductsPanelPresenter> 
     }
 
     private void initialRender(JfxDom dom, StackPane pane0) {
+        pane0.setMinWidth(200);
+        pane0.setMaxWidth(200);
+
         dom.vbox(pane1 -> {
-            StackPane.setMargin(pane1, new Insets(10));
             pane1.getStyleClass().add("product-selection-item");
             pane1.setOnMouseClicked(this::emitClicked);
 
-            dom.img(img -> {
-                img.setFitWidth(194);
-                img.setFitHeight(152);
-                this.imageElm = img;
-                this.imageElm.setImage(ResourceCatalog.getImage(this.state.image));
-                this.imageOldValue = this.state.image;
+            dom.stackPane(imagePane -> {
+                imagePane.getStyleClass().add("image-pane");
+
+                dom.img(img -> {
+                    img.setFitWidth(180);
+                    img.setFitHeight(140);
+                    img.setPreserveRatio(true);
+                    this.imageElm = img;
+                    this.imageElm.setImage(ResourceCatalog.getImage(this.state.image));
+                    this.imageOldValue = this.state.image;
+                });
             });
 
             dom.vbox(pane2 -> {

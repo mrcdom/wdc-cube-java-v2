@@ -60,49 +60,71 @@ public class LoginViewJfx extends AbstractViewJfx<LoginPresenter> {
 
         dom.vbox(pane1 -> {
             pane1.getStyleClass().add("login-card");
-            pane1.setAlignment(Pos.CENTER);
-            pane1.setMaxWidth(500);
+            pane1.setMaxWidth(400);
 
-            dom.img(img -> {
-                img.setImage(ResourceCatalog.getImage("images/big_logo.png"));
-                img.setPreserveRatio(true);
-                img.setFitWidth(312);
+            // Header: logo + title
+            dom.vbox(header -> {
+                header.getStyleClass().add("login-header");
+
+                dom.img(img -> {
+                    img.setImage(ResourceCatalog.getImage("images/big_logo.png"));
+                    img.setPreserveRatio(true);
+                    img.setFitWidth(200);
+                });
+
+                dom.label(label -> {
+                    label.getStyleClass().add("login-title");
+                    label.setText("Bem-vindo!");
+                });
+
+                dom.label(label -> {
+                    label.getStyleClass().add("login-subtitle");
+                    label.setText("Informe suas credenciais para acessar o sistema");
+                });
             });
 
-            dom.label(label -> {
-                label.setText("Usuário:");
-                label.getStyleClass().add("field-label");
-            });
+            // Fields
+            dom.vbox(fields -> {
+                fields.getStyleClass().add("login-fields");
 
-            dom.textField(field -> {
-                this.userNameField = field;
-                field.setPromptText("Usuário");
-                field.getStyleClass().add("login-field");
-            });
+                dom.label(label -> {
+                    label.setText("Usuário");
+                    label.getStyleClass().add("field-label");
+                });
 
-            dom.label(label -> {
-                label.setText("Senha:");
-                label.getStyleClass().add("field-label");
-            });
+                dom.textField(field -> {
+                    this.userNameField = field;
+                    field.setPromptText("Digite seu usuário");
+                    field.getStyleClass().add("login-field");
+                });
 
-            dom.passwordField(field -> {
-                this.passwordField = field;
-                field.setPromptText("Senha");
-                field.getStyleClass().add("login-field");
-                field.setOnAction(this::emitEnter);
-            });
+                dom.label(label -> {
+                    label.setText("Senha");
+                    label.getStyleClass().add("field-label");
+                });
 
-            dom.label(label -> {
-                this.errorElm = label;
-                this.errorElm.getStyleClass().add("error");
-                this.errorElm.setVisible(false);
-                this.errorElm.setManaged(false);
-            });
+                dom.passwordField(field -> {
+                    this.passwordField = field;
+                    field.setPromptText("Digite sua senha");
+                    field.getStyleClass().add("login-field");
+                    field.setOnAction(this::emitEnter);
+                });
 
-            dom.button(button -> {
-                button.getStyleClass().add("login-button");
-                button.setText("ENTRAR");
-                button.setOnAction(this::emitEnter);
+                dom.label(label -> {
+                    this.errorElm = label;
+                    this.errorElm.getStyleClass().add("error");
+                    this.errorElm.setVisible(false);
+                    this.errorElm.setManaged(false);
+                });
+
+                dom.vSpacer(12);
+
+                dom.button(button -> {
+                    button.getStyleClass().add("login-button");
+                    button.setText("ENTRAR");
+                    button.setMaxWidth(Double.MAX_VALUE);
+                    button.setOnAction(this::emitEnter);
+                });
             });
         });
     }

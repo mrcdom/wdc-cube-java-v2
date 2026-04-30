@@ -77,6 +77,7 @@ public class CartViewJfx extends AbstractViewJfx<CartPresenter> {
     @SuppressWarnings("unused")
     private void initialRender(JfxDom dom, VBox pane0) {
         pane0.getStyleClass().add("cart-form");
+        pane0.setMaxWidth(900);
 
         dom.hbox(pane1 -> {
             pane1.getStyleClass().add("cart-logo-pane");

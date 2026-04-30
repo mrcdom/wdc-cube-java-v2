@@ -11,6 +11,7 @@ import br.com.wdc.shopping.view.jfx.AbstractViewJfx;
 import br.com.wdc.shopping.view.jfx.ShoppingJfxApplication;
 import br.com.wdc.shopping.view.jfx.impl.home.ProductItemViewJfx;
 import br.com.wdc.shopping.view.jfx.util.JfxDom;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 
 public class ProductsPanelViewJfx extends AbstractViewJfx<ProductsPanelPresenter> {
@@ -44,7 +45,9 @@ public class ProductsPanelViewJfx extends AbstractViewJfx<ProductsPanelPresenter
             label.setText("PRODUTOS");
         });
 
-        dom.textFlow(pane1 -> {
+        dom.flowPane(pane1 -> {
+            pane1.setHgap(12);
+            pane1.setVgap(12);
             this.contentSlot = this.newListSlot(pane1, this::newItemView, this::updateItem);
         });
     }
