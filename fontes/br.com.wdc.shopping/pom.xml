@@ -41,7 +41,6 @@
 	</dependencyManagement>
 
 	<modules>
-		<module>br.com.wdc.shopping.business</module>
 		<module>br.com.wdc.shopping.business.shared</module>
 		<module>br.com.wdc.shopping.business.impl</module>
 
