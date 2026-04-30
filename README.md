@@ -158,7 +158,7 @@ cd br.com.wdc.shopping/br.com.wdc.shopping.view.jfx
 mvn javafx:run
 ```
 
-Ou via IDE usando a classe `Launcher.java` (não requer module-path configurado).
+Ou via IDE usando a classe `ShoppingJfxLauncher.java` (não requer module-path configurado).
 
 ## Testes
 

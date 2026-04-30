@@ -65,7 +65,7 @@ br.com.wdc.shopping.view.jfx/
 │   ├── ShoppingJfxMain.java          # Entry point (JavaFX Application)
 │   ├── ShoppingJfxApplication.java   # CubeApplication + AnimationTimer + view factories
 │   ├── AbstractViewJfx.java          # Base: CubeView → dirty-marking + list slot sync
-│   ├── Launcher.java                 # IDE-friendly launcher (sem module-path)
+│   ├── ShoppingJfxLauncher.java      # IDE-friendly launcher (sem module-path)
 │   ├── util/
 │   │   ├── JfxDom.java              # DSL fluente para construção de cenas JavaFX
 │   │   └── ResourceCatalog.java     # Cache de imagens compartilhadas
@@ -125,7 +125,7 @@ cd fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.jfx
 mvn javafx:run
 ```
 
-Ou via IDE usando a classe `Launcher.java` (não requer module-path configurado).
+Ou via IDE usando a classe `ShoppingJfxLauncher.java` (não requer module-path configurado).
 
 ## Configuração
 
