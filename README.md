@@ -56,6 +56,7 @@ fontes/
     ├── br.com.wdc.shopping.domain/             # Modelos, repositórios, critérios, config
     ├── br.com.wdc.shopping.persistence/        # Persistência (H2 + JDBI + Command Pattern)
     ├── br.com.wdc.shopping.presentation/       # Presenters, ViewStates, navegação, DTOs
+    ├── br.com.wdc.shopping.scripts/            # Scripts DDL (DBCreate, DBReset)
     ├── br.com.wdc.shopping.tests/              # Testes unitários e de workflow
     ├── br.com.wdc.shopping.view.react/         # 📄 [README](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.react/README.md)
     │   ├── br.com.wdc.shopping.view.react.client/    # Frontend React/TypeScript

@@ -1,6 +1,6 @@
 # WeDoCode Shopping React - Javalin Server
 
-Standalone HTTP server built with [Javalin 6.4.0](https://javalin.io) for serving the React frontend and managing backend session state.
+Standalone HTTP server built with [Javalin 7.1.0](https://javalin.io) for serving the React frontend and managing backend session state.
 
 ## Overview
 
@@ -70,7 +70,7 @@ All requests and errors are logged via SLF4J + Logback (configured in `br.com.wd
 
 ## Technical Details
 
-- **Framework**: Javalin 6.4.0
+- **Framework**: Javalin 7.1.0
 - **Java Version**: 26 (minimum)
 - **Fat JAR Size**: ~11 MB (all dependencies included)
 - **Assembly Method**: maven-shade-plugin with manifest configuration
@@ -79,10 +79,11 @@ All requests and errors are logged via SLF4J + Logback (configured in `br.com.wd
 ## Dependencies
 
 Core dependencies:
-- `br.com.wdc.shopping.view.react.stub` - REST endpoints and application logic
-- `br.com.wdc.shopping.presentation` - Business logic
+- `br.com.wdc.shopping.view.react.skeleton` - View implementations, security, WebSocket SPI
+- `br.com.wdc.shopping.presentation` - Presenters and business logic
 - `br.com.wdc.shopping.persistence` - Database and persistence layer
-- Javalin 6.4.0 - Web framework
+- `br.com.wdc.shopping.scripts` - DDL scripts (DBCreate, DBReset)
+- Javalin 7.1.0 - Web framework
 - SLF4J + Logback - Logging
 - Jakarta servlet/websocket APIs (provided scope)
 

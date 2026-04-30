@@ -22,7 +22,7 @@ Este módulo demonstra que essa separação permite uma abordagem de **visualiza
 │     Presenters + ViewStates (Cube MVP)          │
 │     (compartilhados com a versão JFX)           │
 ├─────────────────────────────────────────────────┤
-│         Business Layer + H2 Database            │
+│       Domain + Persistence + H2 Database        │
 └─────────────────────────────────────────────────┘
 ```
 

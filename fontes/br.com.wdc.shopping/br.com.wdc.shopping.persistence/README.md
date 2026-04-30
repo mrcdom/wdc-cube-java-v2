@@ -18,72 +18,66 @@ Camada de persistência do sistema Shopping. Implementa os repositórios definid
 ```
 br.com.wdc.shopping.persistence
 │
-├── concurrent/                                # Adaptadores de concorrência
-│   ├── ScheduledExecutorAdapter.java          # Adapta ScheduledExecutorService → ScheduledExecutor
-│   └── ScheduledExecutorServiceDelegate.java  # Delegate para ScheduledExecutorService
+├── RepositoryBootstrap.java                   # Inicializa os BEANs estáticos dos repositórios
 │
-└── sgbd/
-    ├── dsl/                                   # DSL SQL
-    │   ├── SqlKeywords.java                   # Constantes e funções SQL (SELECT, WHERE, AND, ...)
-    │   └── SqlList.java                       # Builder de SQL com projeção tipada (ResultSet → tipo)
+├── concurrent/                                # Adaptadores de concorrência
+│   └── ScheduledExecutorAdapter.java          # Adapta ScheduledExecutorService → ScheduledExecutor
+│
+├── sql/                                       # DSL SQL e utilitários
+│   ├── SqlKeywords.java                       # Constantes e funções SQL (SELECT, WHERE, AND, ...)
+│   ├── SqlList.java                           # Builder de SQL com projeção tipada (ResultSet → tipo)
+│   └── SqlUtils.java                          # Utilitários (sequences, JSON fields, comma helper)
+│
+├── schema/                                    # Definições de tabelas (entidades)
+│   ├── EnUser.java                            # Tabela EN_USER + Row + sequence SQ_USER
+│   ├── EnProduct.java                         # Tabela EN_PRODUCT + Row + sequence SQ_PRODUCT
+│   ├── EnPurchase.java                        # Tabela EN_PURCHASE + Row + sequence SQ_PURCHASE
+│   ├── EnPurchaseItem.java                    # Tabela EN_PURCHASE_ITEM + Row + sequence SQ_PURCHASE_ITEM
+│   └── support/                               # Infraestrutura de suporte ao schema
+│       ├── DbTable.java                       # Base para definição de tabelas (DDL)
+│       ├── DbField.java                       # Metadado de coluna (nome, tipo, nullable, etc.)
+│       └── BaseRow.java                       # Base para row objects (change tracking)
+│
+└── repository/                                # Implementações de repositórios
+    ├── BaseRepository.java                    # Base para repositórios (DataSource + exceções)
+    ├── BaseCommand.java                       # Base para comandos SQL (parâmetros bind)
+    ├── BaseApplyCriteria.java                 # Base para aplicadores de critérios
     │
-    ├── utils/                                 # Classes base reutilizáveis
-    │   ├── DbTable.java                       # Base para definição de tabelas (DDL)
-    │   ├── DbField.java                       # Metadado de coluna (nome, tipo, nullable, etc.)
-    │   ├── BaseRow.java                       # Base para row objects (change tracking)
-    │   ├── BaseRepository.java                # Base para repositórios (DataSource + exceções)
-    │   ├── BaseCommand.java                   # Base para comandos SQL (parâmetros bind)
-    │   ├── BaseApplyCriteria.java             # Base para aplicadores de critérios
-    │   └── SqlUtils.java                      # Utilitários (sequences, JSON fields, comma helper)
+    ├── user/                                  # Repositório de usuários
+    │   ├── UserRepositoryImpl.java            # Implementa UserRepository
+    │   ├── InsertRowUserCmd.java              # INSERT
+    │   ├── UpdateRowUserCmd.java              # UPDATE
+    │   ├── FetchUsersCmd.java                 # SELECT (com projeção e CTE)
+    │   ├── CountUsersCmd.java                 # COUNT
+    │   ├── DeleteUsersCmd.java                # DELETE
+    │   └── ApplyUserCriteria.java             # Aplica UserCriteria → cláusulas WHERE
     │
-    ├── ddl/                                   # Definição de esquema
-    │   ├── tables/                            # Definições de tabela
-    │   │   ├── EnUser.java                    # Tabela EN_USER + Row + sequence SQ_USER
-    │   │   ├── EnProduct.java                 # Tabela EN_PRODUCT + Row + sequence SQ_PRODUCT
-    │   │   ├── EnPurchase.java                # Tabela EN_PURCHASE + Row + sequence SQ_PURCHASE
-    │   │   └── EnPurchaseItem.java            # Tabela EN_PURCHASE_ITEM + Row + sequence SQ_PURCHASE_ITEM
-    │   └── scripts/
-    │       ├── DBCreate.java                  # Criação do esquema (idempotente)
-    │       └── DBReset.java                   # Reset de dados (carga inicial)
+    ├── product/                               # Repositório de produtos
+    │   ├── ProductRepositoryImpl.java
+    │   ├── InsertProductRowCmd.java
+    │   ├── UpdateProductRowCmd.java
+    │   ├── FetchProductsCmd.java
+    │   ├── CountProductsCmd.java
+    │   ├── DeleteProductsCmd.java
+    │   └── ApplyProductCriteria.java
     │
-    └── repository/                            # Implementações de repositórios
-        ├── RepositoryBootstrap.java           # Inicializa os BEANs estáticos
-        │
-        ├── user/                              # Repositório de usuários
-        │   ├── UserRepositoryImpl.java        # Implementa UserRepository
-        │   ├── InsertRowUserCmd.java           # INSERT
-        │   ├── UpdateRowUserCmd.java           # UPDATE
-        │   ├── FetchUsersCmd.java              # SELECT (com projeção e CTE)
-        │   ├── CountUsersCmd.java              # COUNT
-        │   ├── DeleteUsersCmd.java             # DELETE
-        │   └── ApplyUserCriteria.java          # Aplica UserCriteria → cláusulas WHERE
-        │
-        ├── product/                           # Repositório de produtos
-        │   ├── ProductRepositoryImpl.java
-        │   ├── InsertProductRowCmd.java
-        │   ├── UpdateProductRowCmd.java
-        │   ├── FetchProductsCmd.java
-        │   ├── CountProductsCmd.java
-        │   ├── DeleteProductsCmd.java
-        │   └── ApplyProductCriteria.java
-        │
-        ├── purchase/                          # Repositório de compras
-        │   ├── PurchaseRepositoryImpl.java
-        │   ├── InsertRowPurchaseCmd.java
-        │   ├── UpdateRowPurchaseCmd.java
-        │   ├── FetchPurchaseCmd.java
-        │   ├── CountPurchasesCmd.java
-        │   ├── DeletePurchasesCmd.java
-        │   └── ApplyPurshaseCriteria.java
-        │
-        └── purchaseitem/                      # Repositório de itens de compra
-            ├── PurchaseItemRepositoryImpl.java
-            ├── InsertRowPurchaseItemCmd.java
-            ├── UpdateRowPurchaseItemCmd.java
-            ├── FetchPurchaseItemsCmd.java
-            ├── CountPurchaseItemsCmd.java
-            ├── DeletePurchaseItemsCmd.java
-            └── ApplyPurshaseItemCriteria.java
+    ├── purchase/                              # Repositório de compras
+    │   ├── PurchaseRepositoryImpl.java
+    │   ├── InsertRowPurchaseCmd.java
+    │   ├── UpdateRowPurchaseCmd.java
+    │   ├── FetchPurchaseCmd.java
+    │   ├── CountPurchasesCmd.java
+    │   ├── DeletePurchasesCmd.java
+    │   └── ApplyPurshaseCriteria.java
+    │
+    └── purchaseitem/                          # Repositório de itens de compra
+        ├── PurchaseItemRepositoryImpl.java
+        ├── InsertRowPurchaseItemCmd.java
+        ├── UpdateRowPurchaseItemCmd.java
+        ├── FetchPurchaseItemsCmd.java
+        ├── CountPurchaseItemsCmd.java
+        ├── DeletePurchaseItemsCmd.java
+        └── ApplyPurshaseItemCriteria.java
 ```
 
 ## Arquitetura
