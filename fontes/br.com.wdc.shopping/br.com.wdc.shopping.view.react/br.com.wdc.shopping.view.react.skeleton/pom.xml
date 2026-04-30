@@ -44,9 +44,6 @@
             <resource>
                 <directory>${basedir}/src/main/resources</directory>
             </resource>
-            <resource>
-                <directory>${basedir}/src/main/resources_statics</directory>
-            </resource>
         </resources>
     </build>
 </project>
