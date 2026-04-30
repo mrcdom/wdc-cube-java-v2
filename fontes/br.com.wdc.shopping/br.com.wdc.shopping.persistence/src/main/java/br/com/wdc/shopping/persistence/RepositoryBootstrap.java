@@ -13,13 +13,13 @@ public class RepositoryBootstrap {
 
     public static void initialize() {
         UserRepository.BEAN
-                .set(new br.com.wdc.shopping.persistence.sgbd.repository.user.UserRepositoryImpl());
+                .set(new br.com.wdc.shopping.persistence.repository.user.UserRepositoryImpl());
         ProductRepository.BEAN
-                .set(new br.com.wdc.shopping.persistence.sgbd.repository.product.ProductRepositoryImpl());
+                .set(new br.com.wdc.shopping.persistence.repository.product.ProductRepositoryImpl());
         PurchaseRepository.BEAN
-                .set(new br.com.wdc.shopping.persistence.sgbd.repository.purchase.PurchaseRepositoryImpl());
+                .set(new br.com.wdc.shopping.persistence.repository.purchase.PurchaseRepositoryImpl());
         PurchaseItemRepository.BEAN
-                .set(new br.com.wdc.shopping.persistence.sgbd.repository.purchaseitem.PurchaseItemRepositoryImpl());
+                .set(new br.com.wdc.shopping.persistence.repository.purchaseitem.PurchaseItemRepositoryImpl());
     }
 
     public static void release() {

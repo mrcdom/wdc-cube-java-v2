@@ -8,10 +8,10 @@ import java.util.TreeMap;
 
 import org.apache.commons.lang3.StringUtils;
 
-import br.com.wdc.shopping.persistence.sgbd.tables.EnProduct;
-import br.com.wdc.shopping.persistence.sgbd.tables.EnPurchase;
-import br.com.wdc.shopping.persistence.sgbd.tables.EnPurchaseItem;
-import br.com.wdc.shopping.persistence.sgbd.tables.EnUser;
+import br.com.wdc.shopping.persistence.schema.EnProduct;
+import br.com.wdc.shopping.persistence.schema.EnPurchase;
+import br.com.wdc.shopping.persistence.schema.EnPurchaseItem;
+import br.com.wdc.shopping.persistence.schema.EnUser;
 
 public class DBCreate {
 

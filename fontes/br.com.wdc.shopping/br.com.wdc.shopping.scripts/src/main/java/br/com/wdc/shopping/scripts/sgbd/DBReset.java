@@ -16,14 +16,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
-import br.com.wdc.shopping.persistence.sgbd.repository.product.InsertProductRowCmd;
-import br.com.wdc.shopping.persistence.sgbd.repository.purchase.InsertRowPurchaseCmd;
-import br.com.wdc.shopping.persistence.sgbd.repository.purchaseitem.InsertRowPurchaseItemCmd;
-import br.com.wdc.shopping.persistence.sgbd.repository.user.InsertRowUserCmd;
-import br.com.wdc.shopping.persistence.sgbd.tables.EnProduct;
-import br.com.wdc.shopping.persistence.sgbd.tables.EnPurchase;
-import br.com.wdc.shopping.persistence.sgbd.tables.EnPurchaseItem;
-import br.com.wdc.shopping.persistence.sgbd.tables.EnUser;
+import br.com.wdc.shopping.persistence.repository.product.InsertProductRowCmd;
+import br.com.wdc.shopping.persistence.repository.purchase.InsertRowPurchaseCmd;
+import br.com.wdc.shopping.persistence.repository.purchaseitem.InsertRowPurchaseItemCmd;
+import br.com.wdc.shopping.persistence.repository.user.InsertRowUserCmd;
+import br.com.wdc.shopping.persistence.schema.EnProduct;
+import br.com.wdc.shopping.persistence.schema.EnPurchase;
+import br.com.wdc.shopping.persistence.schema.EnPurchaseItem;
+import br.com.wdc.shopping.persistence.schema.EnUser;
 
 @SuppressWarnings("java:S3008")
 public class DBReset {
