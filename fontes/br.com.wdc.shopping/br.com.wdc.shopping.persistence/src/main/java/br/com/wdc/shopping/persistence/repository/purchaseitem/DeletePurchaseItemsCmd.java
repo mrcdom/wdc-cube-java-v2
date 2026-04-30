@@ -28,11 +28,11 @@ public class DeletePurchaseItemsCmd extends BaseCommand {
             criteria = new PurchaseItemCriteria();
         }
 
-        var en = new EnPurchaseItem("pi");
+        var en = EnPurchaseItem.INSTANCE;
 
         var sql = new SqlList();
         sql.ln(DELETE);
-        sql.ln(FROM, en.tableRef());
+        sql.ln(FROM, en.tableName());
         sql.ln(WHERE_TRUE);
 
         var applier = new ApplyPurshaseItemCriteria(this);

@@ -236,7 +236,10 @@ public class FetchPurchaseItemsCmd extends BaseCommand {
     protected Product productPrj;
 
     private SqlList cteProduct(Product prj, EnPurchaseItem superEn) {
-        return new FetchProductsCmd().cteProduct(null, prj, superEn.alias(), superEn.productId);
+        var child = new FetchProductsCmd();
+        var sql = child.cteProduct(null, prj, superEn.alias(), superEn.productId);
+        child.transferParamsTo(this);
+        return sql;
     }
 
     protected EnPurchase ctePurchase;
@@ -250,14 +253,20 @@ public class FetchPurchaseItemsCmd extends BaseCommand {
             prj.user.id = pv.i64;
         }
 
-        return new FetchPurchaseCmd().ctePurchase(null, prj, superEn.alias(), superEn.purchaseId);
+        var child = new FetchPurchaseCmd();
+        var sql = child.ctePurchase(null, prj, superEn.alias(), superEn.purchaseId);
+        child.transferParamsTo(this);
+        return sql;
     }
 
     protected EnUser cteUser;
     protected User userPrj;
 
     private SqlList cteUser(User prj, EnPurchase superEn) {
-        return new FetchUsersCmd().cteUser(null, prj, superEn.alias(), superEn.userId);
+        var child = new FetchUsersCmd();
+        var sql = child.cteUser(null, prj, superEn.alias(), superEn.userId);
+        child.transferParamsTo(this);
+        return sql;
     }
 
     // :: Public Class API

@@ -41,24 +41,24 @@ public class UpdateRowPurchaseItemCmd extends BaseCommand {
         var hasChanges = false;
 
         var purchaseId = newBean.purchase != null ? newBean.purchase.id : null;
-        if (Objects.equals(row.purchaseId(), purchaseId)) {
+        if (!Objects.equals(row.purchaseId(), purchaseId)) {
             row.purchaseId(purchaseId);
             hasChanges = true;
         }
 
         var productId = newBean.product != null ? newBean.product.id : null;
-        if (Objects.equals(row.productId(), productId)) {
+        if (!Objects.equals(row.productId(), productId)) {
             row.productId(productId);
             hasChanges = true;
         }
 
-        if (Objects.equals(row.amount(), newBean.amount)) {
+        if (!Objects.equals(row.amount(), newBean.amount)) {
             row.amount(newBean.amount);
             hasChanges = true;
         }
 
         var newPrice = newBean.price != null ? BigDecimal.valueOf(newBean.price) : null;
-        if (Objects.equals(row.price(), newPrice)) {
+        if (!Objects.equals(row.price(), newPrice)) {
             row.price(newPrice);
             hasChanges = true;
         }

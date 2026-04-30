@@ -41,12 +41,12 @@ public class UpdateRowPurchaseCmd extends BaseCommand {
         var hasChanges = false;
 
         var userId = newBean.user != null ? newBean.user.id : null;
-        if (Objects.equals(row.userId(), userId)) {
+        if (!Objects.equals(row.userId(), userId)) {
             row.userId(userId);
             hasChanges = true;
         }
 
-        if (Objects.equals(row.buyDate(), newBean.buyDate)) {
+        if (!Objects.equals(row.buyDate(), newBean.buyDate)) {
             row.buyDate(newBean.buyDate);
             hasChanges = true;
         }

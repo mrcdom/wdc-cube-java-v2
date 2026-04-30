@@ -37,8 +37,11 @@ public class PurchaseRepositoryImpl extends BaseRepository implements PurchaseRe
 
     @Override
     public boolean update(Purchase newPurchase, Purchase oldPurchase) {
-        // TODO Auto-generated method stub
-        return false;
+        try (var tx = TransactionContext.begin(dataSource())) {
+            return UpdateRowPurchaseCmd.run(tx.connection(), newPurchase, oldPurchase);
+        } catch (Exception caught) {
+            throw writeException(caught);
+        }
     }
     
     @Override

@@ -39,17 +39,17 @@ public class UpdateRowUserCmd extends BaseCommand {
 
         var hasChanges = false;
 
-        if (Objects.equals(row.userName(), newBean.userName)) {
+        if (!Objects.equals(row.userName(), newBean.userName)) {
             row.userName(newBean.userName);
             hasChanges = true;
         }
 
-        if (Objects.equals(row.password(), newBean.password)) {
+        if (!Objects.equals(row.password(), newBean.password)) {
             row.password(newBean.password);
             hasChanges = true;
         }
 
-        if (Objects.equals(row.name(), newBean.name)) {
+        if (!Objects.equals(row.name(), newBean.name)) {
             row.name(newBean.name);
             hasChanges = true;
         }

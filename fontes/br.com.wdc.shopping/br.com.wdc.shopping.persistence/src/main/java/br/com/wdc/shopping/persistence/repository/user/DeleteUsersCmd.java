@@ -24,7 +24,7 @@ public class DeleteUsersCmd extends BaseCommand {
     }
 
     public int execute(Connection connection, UserCriteria criteria) {
-        var en = new EnUser("u");
+        var en = EnUser.INSTANCE;
 
         var sql = new SqlList();
         sql.ln(DELETE);

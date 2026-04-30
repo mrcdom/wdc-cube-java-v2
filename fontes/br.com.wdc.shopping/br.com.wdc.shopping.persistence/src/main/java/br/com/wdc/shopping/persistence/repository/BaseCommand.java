@@ -32,4 +32,10 @@ public class BaseCommand implements SqlKeywords {
         return paramsList == null || paramsList.isEmpty();
     }
 
+    public void transferParamsTo(BaseCommand target) {
+        if (this.paramsList != null) {
+            this.paramsList.forEach(p -> target.param(p.getKey(), p.getValue()));
+        }
+    }
+
 }

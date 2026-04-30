@@ -41,23 +41,23 @@ public class UpdateProductRowCmd extends BaseCommand {
 
         var hasChanges = false;
 
-        if (Objects.equals(row.name(), newBean.name)) {
+        if (!Objects.equals(row.name(), newBean.name)) {
             row.name(newBean.name);
             hasChanges = true;
         }
 
         var newPrice = CoerceUtils.asBigDecimal(newBean.price);
-        if (Objects.equals(row.price(), newPrice)) {
+        if (!Objects.equals(row.price(), newPrice)) {
             row.price(newPrice);
             hasChanges = true;
         }
 
-        if (Objects.equals(row.description(), newBean.description)) {
+        if (!Objects.equals(row.description(), newBean.description)) {
             row.description(newBean.description);
             hasChanges = true;
         }
 
-        if (Arrays.equals(row.image(), newBean.image)) {
+        if (!Arrays.equals(row.image(), newBean.image)) {
             row.image(newBean.image);
             hasChanges = true;
         }

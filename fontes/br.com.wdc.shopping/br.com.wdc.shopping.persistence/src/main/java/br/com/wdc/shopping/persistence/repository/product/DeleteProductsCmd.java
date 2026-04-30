@@ -31,11 +31,11 @@ public class DeleteProductsCmd extends BaseCommand {
             throw new AssertionError("Missing primary key");
         }
 
-        var p = new EnProduct("p");
+        var p = EnProduct.INSTANCE;
 
         var sql = new SqlList();
         sql.ln(DELETE);
-        sql.ln(FROM, p.tableRef());
+        sql.ln(FROM, p.tableName());
         sql.ln(WHERE_TRUE);
 
         var applier = new ApplyProductCriteria(this);

@@ -25,11 +25,11 @@ public class DeletePurchasesCmd extends BaseCommand {
     // :: Action
 
     public int execute(Connection connection, PurchaseCriteria criteria) {
-        var en = new EnPurchase("b");
+        var en = EnPurchase.INSTANCE;
 
         var sql = new SqlList();
         sql.ln(DELETE);
-        sql.ln(FROM, en.tableRef());
+        sql.ln(FROM, en.tableName());
         sql.ln(WHERE_TRUE);
 
         var applier = new ApplyPurshaseCriteria(this);
