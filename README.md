@@ -8,15 +8,15 @@ Este projeto serve como **referência arquitetural** para novos projetos, demons
 
 ```
 ┌──────────────────────────────┐  ┌────────────────────────────┐
-│     React 19 + MUI 9        │  │     JavaFX 24 + CSS        │
+│     React 19 + MUI 9         │  │     JavaFX 24 + CSS        │
 │   (Browser / WebSocket)      │  │   (Desktop / JVM local)    │
 └──────────────┬───────────────┘  └─────────────┬──────────────┘
-               │ WebSocket (JSON delta)          │ Acesso direto em memória
-               ▼                                 ▼
+               │ WebSocket (JSON delta)         │ Acesso direto em memória
+               ▼                                ▼
 ┌──────────────────────────────┐  ┌────────────────────────────┐
 │   Javalin 7 + Virtual Threads│  │  ShoppingJfxApplication    │
-│   (Jetty 12 / porta 8080)   │  │  (AnimationTimer 16ms)     │
-└──────────────┬───────────────┘  └─────────────┬──────────────┘
+│   (Jetty 12 / porta 8080)    │  │  (AnimationTimer 16ms)     │
+└──────────────┬───────────────┘  └──────────────┬─────────────┘
                │                                 │
                └────────────────┬────────────────┘
                                 ▼
