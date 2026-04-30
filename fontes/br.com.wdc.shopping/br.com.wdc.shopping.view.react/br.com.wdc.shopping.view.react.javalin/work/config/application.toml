@@ -1,0 +1,22 @@
+# WeDoCode Shopping - Application Configuration
+# Place this file at: work/config/application.toml
+
+[app]
+# Base directory for runtime data (config, data, log, temp)
+# Default: "work" relative to working directory
+# basedir = "/opt/wedocode-shopping"
+
+[database]
+# JDBC URL. Default: H2 file database in the data directory
+# url = "jdbc:h2:file:/path/to/wedocode-shopping;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+
+# Database credentials
+# username = "sa"
+# password = "sa"
+
+# Reset database on startup (drops and recreates all tables)
+# reset = false
+
+[server]
+# HTTP port (Javalin only)
+# port = 8080

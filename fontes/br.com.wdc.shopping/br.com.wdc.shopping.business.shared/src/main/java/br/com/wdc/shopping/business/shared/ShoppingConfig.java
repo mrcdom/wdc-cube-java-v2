@@ -1,6 +1,12 @@
 package br.com.wdc.shopping.business.shared;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import br.com.wdc.shopping.business.shared.config.AppConfig;
 
 public class ShoppingConfig {
 
@@ -15,7 +21,7 @@ public class ShoppingConfig {
     private static Path tempDir;
 
     private ShoppingConfig() {
-    	super();
+        super();
     }
 
     public static final Path getBaseDir() {
@@ -39,10 +45,10 @@ public class ShoppingConfig {
     }
 
     public static class Internals {
-    	
-    	private Internals() {
-    		super();
-    	}
+
+        private Internals() {
+            super();
+        }
 
         public static void setBaseDir(Path path) {
             ShoppingConfig.baseDir = path;
@@ -62,6 +68,39 @@ public class ShoppingConfig {
 
         public static void setTempDir(Path path) {
             ShoppingConfig.tempDir = path;
+        }
+
+        public static void configure(AppConfig config) {
+            try {
+                Path baseDir = resolveRuntimeBaseDir(config);
+                Path configDir = createDirectory(baseDir.resolve("config"));
+                Path dataDir = createDirectory(baseDir.resolve("data"));
+                Path logDir = createDirectory(baseDir.resolve("log"));
+                Path tempDir = createDirectory(baseDir.resolve("temp"));
+
+                ShoppingConfig.Internals.setBaseDir(baseDir);
+                ShoppingConfig.Internals.setConfigDir(configDir);
+                ShoppingConfig.Internals.setDataDir(dataDir);
+                ShoppingConfig.Internals.setLogDir(logDir);
+                ShoppingConfig.Internals.setTempDir(tempDir);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+
+        private static Path createDirectory(Path dir) throws IOException {
+            if (!Files.exists(dir)) {
+                Files.createDirectories(dir);
+            }
+            return dir;
+        }
+
+        private static Path resolveRuntimeBaseDir(AppConfig config) throws IOException {
+            String configuredDir = config.get("app.basedir");
+            Path baseDir = configuredDir != null && !configuredDir.isBlank()
+                    ? Paths.get(configuredDir)
+                    : Paths.get("work");
+            return createDirectory(baseDir.toAbsolutePath().normalize());
         }
 
     }

@@ -1,8 +1,6 @@
 package br.com.wdc.shopping.view.jfx;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -16,6 +14,7 @@ import br.com.wdc.framework.commons.sql.SqlDataSourceDelegate;
 import br.com.wdc.shopping.business.impl.RepositoryBootstrap;
 import br.com.wdc.shopping.business.impl.sgbd.ddl.scripts.DBCreate;
 import br.com.wdc.shopping.business.shared.ShoppingConfig;
+import br.com.wdc.shopping.business.shared.config.AppConfig;
 import br.com.wdc.shopping.presentation.presenter.Routes;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -35,26 +34,22 @@ public class ShoppingJfxMain extends Application {
 
     @Override
     public void init() throws Exception {
-        Path baseDir = resolveRuntimeBaseDir();
-        ShoppingConfig.Internals.setBaseDir(baseDir);
-        ShoppingConfig.Internals.setConfigDir(createDir(baseDir.resolve("config")));
-        ShoppingConfig.Internals.setDataDir(createDir(baseDir.resolve("data")));
-        ShoppingConfig.Internals.setLogDir(createDir(baseDir.resolve("log")));
-        ShoppingConfig.Internals.setTempDir(createDir(baseDir.resolve("temp")));
+        var config = AppConfig.load();
+        ShoppingConfig.Internals.configure(config);
 
         this.executorService = Executors.newScheduledThreadPool(2);
         ScheduledExecutor.BEAN.set(new ScheduledExecutorJfxAdapter(this.executorService));
 
         var dataDir = ShoppingConfig.getDataDir();
         var dataSource = new JdbcDataSource();
-        dataSource.setURL("jdbc:h2:" + dataDir.resolve("wedocode-shopping").toAbsolutePath());
-        dataSource.setUser("sa");
-        dataSource.setPassword("sa");
+        dataSource.setURL(resolveJdbcUrl(config, dataDir));
+        dataSource.setUser(config.get("database.username", "sa"));
+        dataSource.setPassword(config.get("database.password", "sa"));
         SqlDataSource.BEAN.set(new SqlDataSourceDelegate(dataSource));
 
         try (var connection = dataSource.getConnection()) {
             var command = new DBCreate().withConnection(connection);
-            if (Boolean.getBoolean("wedocode.shopping.db.reset")) {
+            if (config.getBoolean("database.reset", false)) {
                 command.withReset();
             }
             command.run();
@@ -99,18 +94,12 @@ public class ShoppingJfxMain extends Application {
         SqlDataSource.BEAN.set(null);
     }
 
-    private static Path resolveRuntimeBaseDir() {
-        var dir = System.getProperty("wedocode.shopping.basedir");
-        if (dir != null && !dir.isBlank()) {
-            return Paths.get(dir);
+    private static String resolveJdbcUrl(AppConfig config, Path dataDir) {
+        var url = config.get("database.url");
+        if (url != null && !url.isBlank()) {
+            return url;
         }
-        return Paths.get(System.getProperty("user.dir"), "work");
+        return "jdbc:h2:file:" + dataDir.resolve("wedocode-shopping").toAbsolutePath();
     }
 
-    private static Path createDir(Path path) throws Exception {
-        if (!Files.exists(path)) {
-            Files.createDirectories(path);
-        }
-        return path;
-    }
 }

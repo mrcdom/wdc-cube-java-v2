@@ -9,6 +9,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import br.com.wdc.shopping.business.shared.config.AppConfig;
 import br.com.wdc.shopping.view.react.controller.DispatcherController;
 import br.com.wdc.shopping.view.react.controller.ImageController;
 import br.com.wdc.shopping.view.react.controller.IndexHtmlController;
@@ -207,9 +208,10 @@ public class JavalinApplication {
      * Entry point for the application.
      */
     public static void main(String[] args) {
-        int port = DEFAULT_PORT;
+        var config = AppConfig.load();
+        int port = config.getInt("server.port", DEFAULT_PORT);
 
-        // Parse port from command line arguments if provided
+        // Parse port from command line arguments if provided (overrides config)
         if (args.length > 0) {
             try {
                 port = Integer.parseInt(args[0]);
@@ -218,7 +220,7 @@ public class JavalinApplication {
             }
         }
 
-        // Check for port environment variable
+        // Check for port environment variable (overrides config and args)
         String portEnv = System.getenv("SERVER_PORT");
         if (portEnv != null && !portEnv.isBlank()) {
             try {

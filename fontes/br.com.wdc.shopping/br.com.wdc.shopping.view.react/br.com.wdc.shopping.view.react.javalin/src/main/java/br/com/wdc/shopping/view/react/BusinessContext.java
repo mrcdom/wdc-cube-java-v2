@@ -1,9 +1,6 @@
 package br.com.wdc.shopping.view.react;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.concurrent.ScheduledExecutorService;
 
 import org.h2.jdbcx.JdbcDataSource;
@@ -17,6 +14,7 @@ import br.com.wdc.shopping.business.impl.RepositoryBootstrap;
 import br.com.wdc.shopping.business.impl.concurrent.ScheduledExecutorAdapter;
 import br.com.wdc.shopping.business.impl.sgbd.ddl.scripts.DBCreate;
 import br.com.wdc.shopping.business.shared.ShoppingConfig;
+import br.com.wdc.shopping.business.shared.config.AppConfig;
 
 public class BusinessContext {
 
@@ -26,25 +24,14 @@ public class BusinessContext {
 
     public void stop() {
         RepositoryBootstrap.release();
-    	ScheduledExecutor.BEAN.set(null);
-    	SqlDataSource.BEAN.set(null);
+        ScheduledExecutor.BEAN.set(null);
+        SqlDataSource.BEAN.set(null);
     }
 
     public void start() {
-        
-
         try {
-            Path baseDir = resolveRuntimeBaseDir();
-            Path configDir = createDirectory(baseDir.resolve("config"));
-            Path dataDir = createDirectory(baseDir.resolve("data"));
-            Path logDir = createDirectory(baseDir.resolve("log"));
-            Path tempDir = createDirectory(baseDir.resolve("temp"));
-
-            ShoppingConfig.Internals.setBaseDir(baseDir);
-            ShoppingConfig.Internals.setConfigDir(configDir);
-            ShoppingConfig.Internals.setDataDir(dataDir);
-            ShoppingConfig.Internals.setLogDir(logDir);
-            ShoppingConfig.Internals.setTempDir(tempDir);
+            var config = AppConfig.load();
+            ShoppingConfig.Internals.configure(config);
 
             // Initialize centralized scheduled tasks manager with Virtual Thread executor
             var scheduledExecutor = createScheduledExecutor();
@@ -53,15 +40,15 @@ public class BusinessContext {
             ScheduledExecutor.BEAN.set(new ScheduledExecutorAdapter(scheduledExecutor));
 
             JdbcDataSource dataSource = new JdbcDataSource();
-            dataSource.setURL(resolveJdbcUrl(dataDir));
-            dataSource.setUser(System.getProperty("wedocode.shopping.jdbc.username", "sa"));
-            dataSource.setPassword(System.getProperty("wedocode.shopping.jdbc.password", "sa"));
+            dataSource.setURL(resolveJdbcUrl(config, ShoppingConfig.getDataDir()));
+            dataSource.setUser(config.get("database.username", "sa"));
+            dataSource.setPassword(config.get("database.password", "sa"));
 
             SqlDataSource.BEAN.set(new SqlDataSourceDelegate(dataSource));
 
             try (var connection = dataSource.getConnection()) {
                 var command = new DBCreate().withConnection(connection);
-                if (Boolean.getBoolean("wedocode.shopping.db.reset")) {
+                if (config.getBoolean("database.reset", false)) {
                     command.withReset();
                 }
                 command.run();
@@ -75,30 +62,13 @@ public class BusinessContext {
         }
     }
 
-    private static String resolveJdbcUrl(Path dataDir) {
-        String configuredUrl = System.getProperty("wedocode.shopping.jdbc.url");
+    private static String resolveJdbcUrl(AppConfig config, Path dataDir) {
+        String configuredUrl = config.get("database.url");
         if (configuredUrl != null && !configuredUrl.isBlank()) {
             return configuredUrl;
         }
-        var jdbcUrl = "jdbc:h2:file:" + dataDir.resolve(DEFAULT_DB_NAME).toAbsolutePath()
+        return "jdbc:h2:file:" + dataDir.resolve(DEFAULT_DB_NAME).toAbsolutePath()
                 + ";DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE";
-        
-        System.out.println(jdbcUrl);
-        
-        return jdbcUrl;
-    }
-
-    private static Path createDirectory(Path dir) throws IOException {
-        Files.createDirectories(dir);
-        return dir;
-    }
-
-    private static Path resolveRuntimeBaseDir() throws IOException {
-        String configuredDir = System.getProperty("wedocode.shopping.runtime.dir");
-        Path baseDir = configuredDir != null && !configuredDir.isBlank()
-                ? Paths.get(configuredDir)
-                : Paths.get("work");
-        return createDirectory(baseDir.toAbsolutePath().normalize());
     }
 
     /**
