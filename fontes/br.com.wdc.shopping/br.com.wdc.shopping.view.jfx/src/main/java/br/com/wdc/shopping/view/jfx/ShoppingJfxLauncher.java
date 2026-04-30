@@ -5,7 +5,7 @@ package br.com.wdc.shopping.view.jfx;
  * check, allowing the app to run from IDEs (like Eclipse) where JavaFX jars are on the classpath instead of the module
  * path.
  */
-public class Launcher {
+public class ShoppingJfxLauncher {
 
     public static void main(String[] args) {
         ShoppingJfxMain.main(args);
