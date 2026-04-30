@@ -22,6 +22,8 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.stream.JsonWriter;
 
 import br.com.wdc.framework.commons.codec.Base62;
+import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
+import br.com.wdc.framework.commons.function.Registration;
 import br.com.wdc.framework.commons.function.ThrowingRunnable;
 import br.com.wdc.framework.commons.gson.JsonExtensibleObjectOutput;
 import br.com.wdc.framework.commons.lang.CoerceUtils;
@@ -46,6 +48,8 @@ public class ApplicationReactImpl extends ShoppingApplication {
     private static final Logger LOG = LoggerFactory.getLogger(ApplicationReactImpl.class);
 
     public static final Duration DEFAULT_TIME_SPAN = Duration.ofMinutes(3);
+
+    private static final Duration PUSH_DELAY = Duration.ofMillis(200);
 
     static {
         RootPresenter.createView = RootReactViewImpl::new;
@@ -155,6 +159,9 @@ public class ApplicationReactImpl extends ShoppingApplication {
     private BrowserReactViewImpl browserView;
     private int instanceIdGen = 1;
 
+    private transient volatile boolean requestInProgress;
+    private transient volatile Registration pushRegistration = Registration.noop();
+
     protected void postConstruct() {
         this.dataSecurity = new DataSecurity();
         this.browserView = new BrowserReactViewImpl(this);
@@ -167,6 +174,8 @@ public class ApplicationReactImpl extends ShoppingApplication {
     public void release() {
         try {
             try {
+                this.pushRegistration.remove();
+                this.pushRegistration = Registration.noop();
                 this.browserView.release();
                 this.removeInstanceAction.runThrows();
                 this.removeInstanceAction = ThrowingRunnable.noop();
@@ -299,8 +308,11 @@ public class ApplicationReactImpl extends ShoppingApplication {
         return this.viewMap.remove(stateId);
     }
 
-    public void markDirty(GenericViewImpl view) {
+    public synchronized void markDirty(GenericViewImpl view) {
         this.dirtyViewMap.put(view.instanceId(), view);
+        if (!this.requestInProgress && this.wsSession != null) {
+            this.schedulePush();
+        }
     }
 
     public void updateAllViews() {
@@ -312,12 +324,14 @@ public class ApplicationReactImpl extends ShoppingApplication {
         this.browserView.alertUnexpectedError(message, e);
     }
 
-    public void beginRequest() {
-        // NOOP
+    public synchronized void beginRequest() {
+        this.requestInProgress = true;
+        this.pushRegistration.remove();
+        this.pushRegistration = Registration.noop();
     }
 
-    public void endRequest() {
-        // NOOP
+    public synchronized void endRequest() {
+        this.requestInProgress = false;
     }
 
     public void sendResponse(Map<String, Object> request) throws Exception {
@@ -339,6 +353,32 @@ public class ApplicationReactImpl extends ShoppingApplication {
     }
 
     // :: Internal
+
+    private void schedulePush() {
+        if (this.pushRegistration != Registration.noop()) {
+            return;
+        }
+        var scheduler = ScheduledExecutor.BEAN.get();
+        if (scheduler == null) {
+            return;
+        }
+        this.pushRegistration = scheduler.schedule(this::executePush, PUSH_DELAY);
+    }
+
+    private void executePush() {
+        synchronized (this) {
+            this.pushRegistration = Registration.noop();
+            if (this.requestInProgress || this.dirtyViewMap.isEmpty() || this.wsSession == null) {
+                return;
+            }
+        }
+        try {
+            var pushRequest = Map.<String, Object>of("requestId", this.lastRequestId);
+            new ResponsePhaseBhv(this).run(pushRequest);
+        } catch (Exception e) {
+            LOG.error("Error during server push", e);
+        }
+    }
 
     protected void sendTextToClient(String text) {
         if (this.wsSession == null) {
