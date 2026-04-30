@@ -1,8 +1,8 @@
 package br.com.wdc.shopping.persistence.sgbd.repository.purchaseitem;
 
-import br.com.wdc.shopping.persistence.sgbd.ddl.tables.EnPurchase;
-import br.com.wdc.shopping.persistence.sgbd.ddl.tables.EnPurchaseItem;
 import br.com.wdc.shopping.persistence.sgbd.dsl.SqlList;
+import br.com.wdc.shopping.persistence.sgbd.tables.EnPurchase;
+import br.com.wdc.shopping.persistence.sgbd.tables.EnPurchaseItem;
 import br.com.wdc.shopping.persistence.sgbd.utils.BaseApplyCriteria;
 import br.com.wdc.shopping.persistence.sgbd.utils.BaseCommand;
 import br.com.wdc.shopping.domain.criteria.PurchaseItemCriteria;

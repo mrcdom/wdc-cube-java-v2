@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.persistence.sgbd.ddl.scripts;
+package br.com.wdc.shopping.scripts.sgbd;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,14 +16,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
-import br.com.wdc.shopping.persistence.sgbd.ddl.tables.EnProduct;
-import br.com.wdc.shopping.persistence.sgbd.ddl.tables.EnPurchase;
-import br.com.wdc.shopping.persistence.sgbd.ddl.tables.EnPurchaseItem;
-import br.com.wdc.shopping.persistence.sgbd.ddl.tables.EnUser;
 import br.com.wdc.shopping.persistence.sgbd.repository.product.InsertProductRowCmd;
 import br.com.wdc.shopping.persistence.sgbd.repository.purchase.InsertRowPurchaseCmd;
 import br.com.wdc.shopping.persistence.sgbd.repository.purchaseitem.InsertRowPurchaseItemCmd;
 import br.com.wdc.shopping.persistence.sgbd.repository.user.InsertRowUserCmd;
+import br.com.wdc.shopping.persistence.sgbd.tables.EnProduct;
+import br.com.wdc.shopping.persistence.sgbd.tables.EnPurchase;
+import br.com.wdc.shopping.persistence.sgbd.tables.EnPurchaseItem;
+import br.com.wdc.shopping.persistence.sgbd.tables.EnUser;
 
 @SuppressWarnings("java:S3008")
 public class DBReset {
@@ -132,7 +132,7 @@ public class DBReset {
 			this.c = c;
 		}
 
-		void addUser(long id, String userName, String password, String name) throws SQLException {
+		void addUser(long id, String userName, String password, String name) {
 			var row = new EnUser.Row();
 			row.id(id);
 			row.userName(userName);
@@ -145,7 +145,7 @@ public class DBReset {
 			new InsertRowUserCmd().execute(c, row);
 		}
 
-		void addProduct(long id, String name, double price, String description, String image) throws SQLException {
+		void addProduct(long id, String name, double price, String description, String image) {
 			var row = new EnProduct.Row();
 			row.id(id);
 			row.name(name);
@@ -163,7 +163,7 @@ public class DBReset {
 			new InsertProductRowCmd().execute(c, row);
 		}
 
-		public void addPurchase(long id, long userId, int[] date) throws SQLException {
+		public void addPurchase(long id, long userId, int[] date) {
 			var row = new EnPurchase.Row();
 			row.id(id);
 			row.userId(userId);
@@ -177,7 +177,7 @@ public class DBReset {
 			new InsertRowPurchaseCmd().execute(c, row);
 		}
 
-		public void addPurchaseItem(long id, long purchaseId, long productId, int amount, double price) throws SQLException {
+		public void addPurchaseItem(long id, long purchaseId, long productId, int amount, double price) {
 			var row = new EnPurchaseItem.Row();
 			row.id(id);
 			row.purchaseId(purchaseId);

@@ -11,7 +11,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import br.com.wdc.framework.commons.util.LambdaUtils;
-import br.com.wdc.shopping.persistence.sgbd.ddl.scripts.DBReset;
 import br.com.wdc.shopping.domain.criteria.ProductCriteria;
 import br.com.wdc.shopping.domain.criteria.PurchaseCriteria;
 import br.com.wdc.shopping.domain.criteria.PurchaseCriteria.OrderBy;
@@ -31,6 +30,7 @@ import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductSer
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptService;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptForm;
+import br.com.wdc.shopping.scripts.sgbd.DBReset;
 import br.com.wdc.shopping.test.util.BaseBusinessTest;
 
 public class ShoppingServiceTest extends BaseBusinessTest {

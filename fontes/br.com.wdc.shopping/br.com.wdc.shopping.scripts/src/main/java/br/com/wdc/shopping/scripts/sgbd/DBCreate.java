@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.persistence.sgbd.ddl.scripts;
+package br.com.wdc.shopping.scripts.sgbd;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -8,12 +8,11 @@ import java.util.TreeMap;
 
 import org.apache.commons.lang3.StringUtils;
 
-import br.com.wdc.shopping.persistence.sgbd.ddl.tables.EnProduct;
-import br.com.wdc.shopping.persistence.sgbd.ddl.tables.EnPurchase;
-import br.com.wdc.shopping.persistence.sgbd.ddl.tables.EnPurchaseItem;
-import br.com.wdc.shopping.persistence.sgbd.ddl.tables.EnUser;
+import br.com.wdc.shopping.persistence.sgbd.tables.EnProduct;
+import br.com.wdc.shopping.persistence.sgbd.tables.EnPurchase;
+import br.com.wdc.shopping.persistence.sgbd.tables.EnPurchaseItem;
+import br.com.wdc.shopping.persistence.sgbd.tables.EnUser;
 
-@SuppressWarnings("java:S1192")
 public class DBCreate {
 
 	private Connection connection;

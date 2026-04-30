@@ -7,8 +7,8 @@ import java.security.NoSuchAlgorithmException;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import br.com.wdc.shopping.persistence.sgbd.ddl.tables.EnUser;
 import br.com.wdc.shopping.persistence.sgbd.dsl.SqlList;
+import br.com.wdc.shopping.persistence.sgbd.tables.EnUser;
 import br.com.wdc.shopping.persistence.sgbd.utils.BaseApplyCriteria;
 import br.com.wdc.shopping.persistence.sgbd.utils.BaseCommand;
 import br.com.wdc.shopping.domain.criteria.UserCriteria;

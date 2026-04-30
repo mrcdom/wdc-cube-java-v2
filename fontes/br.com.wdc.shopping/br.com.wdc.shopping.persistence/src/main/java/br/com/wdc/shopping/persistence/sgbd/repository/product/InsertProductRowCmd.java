@@ -7,8 +7,8 @@ import java.util.ArrayList;
 import org.apache.commons.lang3.StringUtils;
 import org.jdbi.v3.core.Jdbi;
 
-import br.com.wdc.shopping.persistence.sgbd.ddl.tables.EnProduct;
 import br.com.wdc.shopping.persistence.sgbd.dsl.SqlList;
+import br.com.wdc.shopping.persistence.sgbd.tables.EnProduct;
 import br.com.wdc.shopping.persistence.sgbd.utils.BaseCommand;
 import br.com.wdc.shopping.domain.model.Product;
 

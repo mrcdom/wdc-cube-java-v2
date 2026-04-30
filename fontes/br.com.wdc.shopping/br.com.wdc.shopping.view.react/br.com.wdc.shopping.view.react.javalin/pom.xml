@@ -28,6 +28,11 @@
             <artifactId>br.com.wdc.shopping.view.react.skeleton</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <version>${project.version}</version>
+            <artifactId>br.com.wdc.shopping.scripts</artifactId>
+        </dependency>
 
         <!-- Javalin HTTP framework -->
         <dependency>

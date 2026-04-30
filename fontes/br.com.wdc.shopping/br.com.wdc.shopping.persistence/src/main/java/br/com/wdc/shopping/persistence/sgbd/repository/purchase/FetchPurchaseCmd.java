@@ -15,14 +15,14 @@ import com.google.gson.stream.JsonReader;
 
 import br.com.wdc.framework.commons.function.ThrowingConsumer;
 import br.com.wdc.framework.commons.function.ThrowingRunnable;
-import br.com.wdc.shopping.persistence.sgbd.ddl.tables.EnProduct;
-import br.com.wdc.shopping.persistence.sgbd.ddl.tables.EnPurchase;
-import br.com.wdc.shopping.persistence.sgbd.ddl.tables.EnPurchaseItem;
-import br.com.wdc.shopping.persistence.sgbd.ddl.tables.EnUser;
 import br.com.wdc.shopping.persistence.sgbd.dsl.SqlList;
 import br.com.wdc.shopping.persistence.sgbd.repository.product.FetchProductsCmd;
 import br.com.wdc.shopping.persistence.sgbd.repository.purchaseitem.FetchPurchaseItemsCmd;
 import br.com.wdc.shopping.persistence.sgbd.repository.user.FetchUsersCmd;
+import br.com.wdc.shopping.persistence.sgbd.tables.EnProduct;
+import br.com.wdc.shopping.persistence.sgbd.tables.EnPurchase;
+import br.com.wdc.shopping.persistence.sgbd.tables.EnPurchaseItem;
+import br.com.wdc.shopping.persistence.sgbd.tables.EnUser;
 import br.com.wdc.shopping.persistence.sgbd.utils.BaseCommand;
 import br.com.wdc.shopping.persistence.sgbd.utils.DbField;
 import br.com.wdc.shopping.persistence.sgbd.utils.SqlUtils;

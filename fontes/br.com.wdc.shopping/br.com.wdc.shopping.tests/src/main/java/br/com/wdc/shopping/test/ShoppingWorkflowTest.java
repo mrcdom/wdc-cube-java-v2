@@ -3,8 +3,8 @@ package br.com.wdc.shopping.test;
 import org.junit.Assert;
 import org.junit.Test;
 
-import br.com.wdc.shopping.persistence.sgbd.ddl.scripts.DBReset;
 import br.com.wdc.shopping.presentation.presenter.Routes;
+import br.com.wdc.shopping.scripts.sgbd.DBReset;
 import br.com.wdc.shopping.test.mock.viewimpl.CartViewMock;
 import br.com.wdc.shopping.test.mock.viewimpl.LoginViewMock;
 import br.com.wdc.shopping.test.mock.viewimpl.ProductViewMock;

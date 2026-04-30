@@ -11,11 +11,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>br.com.wdc.shopping.view.jfx</artifactId>
-
-    <properties>
-        <javafx.version>24.0.1</javafx.version>
-    </properties>
+    <artifactId>br.com.wdc.shopping.scripts</artifactId>
 
     <dependencies>
         <dependency>
@@ -28,29 +24,11 @@
             <version>${project.version}</version>
             <artifactId>br.com.wdc.shopping.persistence</artifactId>
         </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <version>${project.version}</version>
-            <artifactId>br.com.wdc.shopping.scripts</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
         </dependency>
-
-        <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-controls</artifactId>
-            <version>${javafx.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.jsoup</groupId>
-            <artifactId>jsoup</artifactId>
-            <version>1.18.3</version>
-        </dependency>
-
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -60,21 +38,4 @@
             <artifactId>logback-classic</artifactId>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.openjfx</groupId>
-                <artifactId>javafx-maven-plugin</artifactId>
-                <version>0.0.8</version>
-                <configuration>
-                    <mainClass>br.com.wdc.shopping.view.jfx.ShoppingJfxMain</mainClass>
-                    <options>
-                        <option>--enable-preview</option>
-                        <option>--enable-native-access=javafx.graphics</option>
-                    </options>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 </project>

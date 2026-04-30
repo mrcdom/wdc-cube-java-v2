@@ -46,6 +46,7 @@
 
 		<module>br.com.wdc.shopping.presentation</module>
 
+		<module>br.com.wdc.shopping.scripts</module>
 		<module>br.com.wdc.shopping.view.react</module>
 		<module>br.com.wdc.shopping.view.jfx</module>
 

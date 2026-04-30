@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.persistence.sgbd.ddl.tables;
+package br.com.wdc.shopping.persistence.sgbd.tables;
 
 import java.io.IOException;
 import java.io.PrintWriter;
