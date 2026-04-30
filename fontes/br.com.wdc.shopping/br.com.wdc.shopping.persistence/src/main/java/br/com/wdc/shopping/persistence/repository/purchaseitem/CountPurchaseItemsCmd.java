@@ -4,10 +4,10 @@ import java.sql.Connection;
 
 import org.jdbi.v3.core.Jdbi;
 
-import br.com.wdc.shopping.persistence.sql.SqlList;
-import br.com.wdc.shopping.persistence.schema.EnPurchaseItem;
-import br.com.wdc.shopping.persistence.repository.BaseCommand;
 import br.com.wdc.shopping.domain.criteria.PurchaseItemCriteria;
+import br.com.wdc.shopping.persistence.repository.BaseCommand;
+import br.com.wdc.shopping.persistence.schema.EnPurchaseItem;
+import br.com.wdc.shopping.persistence.sql.SqlList;
 
 public class CountPurchaseItemsCmd extends BaseCommand {
 

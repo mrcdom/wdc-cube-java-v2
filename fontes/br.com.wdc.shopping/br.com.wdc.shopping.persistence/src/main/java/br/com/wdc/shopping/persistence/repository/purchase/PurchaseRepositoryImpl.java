@@ -3,10 +3,10 @@ package br.com.wdc.shopping.persistence.repository.purchase;
 import java.util.List;
 
 import br.com.wdc.framework.commons.util.TransactionContext;
-import br.com.wdc.shopping.persistence.repository.BaseRepository;
 import br.com.wdc.shopping.domain.criteria.PurchaseCriteria;
 import br.com.wdc.shopping.domain.model.Purchase;
 import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
+import br.com.wdc.shopping.persistence.repository.BaseRepository;
 
 public class PurchaseRepositoryImpl extends BaseRepository implements PurchaseRepository {
 

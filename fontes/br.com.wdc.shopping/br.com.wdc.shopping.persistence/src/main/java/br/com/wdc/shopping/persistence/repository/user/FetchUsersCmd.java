@@ -13,14 +13,14 @@ import org.jdbi.v3.core.Jdbi;
 
 import com.google.gson.stream.JsonReader;
 
-import br.com.wdc.shopping.persistence.sql.SqlList;
-import br.com.wdc.shopping.persistence.schema.EnUser;
-import br.com.wdc.shopping.persistence.repository.BaseCommand;
-import br.com.wdc.shopping.persistence.schema.DbField;
-import br.com.wdc.shopping.persistence.sql.SqlUtils;
 import br.com.wdc.shopping.domain.criteria.UserCriteria;
 import br.com.wdc.shopping.domain.model.User;
 import br.com.wdc.shopping.domain.utils.ProjectionValues;
+import br.com.wdc.shopping.persistence.repository.BaseCommand;
+import br.com.wdc.shopping.persistence.schema.support.DbField;
+import br.com.wdc.shopping.persistence.schema.EnUser;
+import br.com.wdc.shopping.persistence.sql.SqlList;
+import br.com.wdc.shopping.persistence.sql.SqlUtils;
 
 public class FetchUsersCmd extends BaseCommand {
 

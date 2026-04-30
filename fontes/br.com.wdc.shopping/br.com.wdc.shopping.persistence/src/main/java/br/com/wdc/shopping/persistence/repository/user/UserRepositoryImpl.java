@@ -3,10 +3,10 @@ package br.com.wdc.shopping.persistence.repository.user;
 import java.util.List;
 
 import br.com.wdc.framework.commons.util.TransactionContext;
-import br.com.wdc.shopping.persistence.repository.BaseRepository;
 import br.com.wdc.shopping.domain.criteria.UserCriteria;
 import br.com.wdc.shopping.domain.model.User;
 import br.com.wdc.shopping.domain.repositories.UserRepository;
+import br.com.wdc.shopping.persistence.repository.BaseRepository;
 
 public class UserRepositoryImpl extends BaseRepository implements UserRepository {
 

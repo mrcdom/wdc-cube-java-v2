@@ -7,11 +7,11 @@ import java.security.NoSuchAlgorithmException;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import br.com.wdc.shopping.persistence.sql.SqlList;
-import br.com.wdc.shopping.persistence.schema.EnUser;
+import br.com.wdc.shopping.domain.criteria.UserCriteria;
 import br.com.wdc.shopping.persistence.repository.BaseApplyCriteria;
 import br.com.wdc.shopping.persistence.repository.BaseCommand;
-import br.com.wdc.shopping.domain.criteria.UserCriteria;
+import br.com.wdc.shopping.persistence.schema.EnUser;
+import br.com.wdc.shopping.persistence.sql.SqlList;
 
 public class ApplyUserCriteria extends BaseApplyCriteria {
 

@@ -1,5 +1,7 @@
 package br.com.wdc.shopping.persistence.schema;
 
+import br.com.wdc.shopping.persistence.schema.support.*;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
@@ -14,9 +16,6 @@ import com.google.gson.stream.JsonReader;
 
 import br.com.wdc.framework.commons.gson.JsonCoerceUtils;
 import br.com.wdc.framework.commons.gson.JsonReaderHelper;
-import br.com.wdc.shopping.persistence.schema.BaseRow;
-import br.com.wdc.shopping.persistence.schema.DbField;
-import br.com.wdc.shopping.persistence.schema.DbTable;
 import br.com.wdc.shopping.persistence.sql.SqlUtils;
 
 public class EnProduct extends DbTable {

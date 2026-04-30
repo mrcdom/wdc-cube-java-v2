@@ -3,11 +3,11 @@ package br.com.wdc.shopping.persistence.repository.product;
 import java.util.List;
 
 import br.com.wdc.framework.commons.util.TransactionContext;
-import br.com.wdc.shopping.persistence.repository.BaseRepository;
 import br.com.wdc.shopping.domain.criteria.ProductCriteria;
 import br.com.wdc.shopping.domain.model.Product;
 import br.com.wdc.shopping.domain.repositories.ProductRepository;
 import br.com.wdc.shopping.domain.utils.ProjectionValues;
+import br.com.wdc.shopping.persistence.repository.BaseRepository;
 
 public class ProductRepositoryImpl extends BaseRepository implements ProductRepository {
 

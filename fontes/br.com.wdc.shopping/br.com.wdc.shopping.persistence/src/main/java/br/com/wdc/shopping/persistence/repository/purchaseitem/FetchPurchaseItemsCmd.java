@@ -16,23 +16,23 @@ import com.google.gson.stream.JsonReader;
 import br.com.wdc.framework.commons.function.ThrowingConsumer;
 import br.com.wdc.framework.commons.function.ThrowingRunnable;
 import br.com.wdc.framework.commons.lang.CoerceUtils;
-import br.com.wdc.shopping.persistence.sql.SqlList;
-import br.com.wdc.shopping.persistence.repository.product.FetchProductsCmd;
-import br.com.wdc.shopping.persistence.repository.purchase.FetchPurchaseCmd;
-import br.com.wdc.shopping.persistence.repository.user.FetchUsersCmd;
-import br.com.wdc.shopping.persistence.schema.EnProduct;
-import br.com.wdc.shopping.persistence.schema.EnPurchase;
-import br.com.wdc.shopping.persistence.schema.EnPurchaseItem;
-import br.com.wdc.shopping.persistence.schema.EnUser;
-import br.com.wdc.shopping.persistence.repository.BaseCommand;
-import br.com.wdc.shopping.persistence.schema.DbField;
-import br.com.wdc.shopping.persistence.sql.SqlUtils;
 import br.com.wdc.shopping.domain.criteria.PurchaseItemCriteria;
 import br.com.wdc.shopping.domain.model.Product;
 import br.com.wdc.shopping.domain.model.Purchase;
 import br.com.wdc.shopping.domain.model.PurchaseItem;
 import br.com.wdc.shopping.domain.model.User;
 import br.com.wdc.shopping.domain.utils.ProjectionValues;
+import br.com.wdc.shopping.persistence.repository.BaseCommand;
+import br.com.wdc.shopping.persistence.repository.product.FetchProductsCmd;
+import br.com.wdc.shopping.persistence.repository.purchase.FetchPurchaseCmd;
+import br.com.wdc.shopping.persistence.repository.user.FetchUsersCmd;
+import br.com.wdc.shopping.persistence.schema.support.DbField;
+import br.com.wdc.shopping.persistence.schema.EnProduct;
+import br.com.wdc.shopping.persistence.schema.EnPurchase;
+import br.com.wdc.shopping.persistence.schema.EnPurchaseItem;
+import br.com.wdc.shopping.persistence.schema.EnUser;
+import br.com.wdc.shopping.persistence.sql.SqlList;
+import br.com.wdc.shopping.persistence.sql.SqlUtils;
 
 public class FetchPurchaseItemsCmd extends BaseCommand {
 

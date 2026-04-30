@@ -6,11 +6,11 @@ import java.util.Objects;
 
 import org.jdbi.v3.core.Jdbi;
 
-import br.com.wdc.shopping.persistence.sql.SqlList;
-import br.com.wdc.shopping.persistence.schema.EnPurchaseItem;
-import br.com.wdc.shopping.persistence.repository.BaseCommand;
-import br.com.wdc.shopping.persistence.sql.SqlUtils;
 import br.com.wdc.shopping.domain.model.PurchaseItem;
+import br.com.wdc.shopping.persistence.repository.BaseCommand;
+import br.com.wdc.shopping.persistence.schema.EnPurchaseItem;
+import br.com.wdc.shopping.persistence.sql.SqlList;
+import br.com.wdc.shopping.persistence.sql.SqlUtils;
 
 public class UpdateRowPurchaseItemCmd extends BaseCommand {
 

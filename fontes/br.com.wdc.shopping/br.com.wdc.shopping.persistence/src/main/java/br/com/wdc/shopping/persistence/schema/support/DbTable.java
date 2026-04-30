@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.persistence.schema;
+package br.com.wdc.shopping.persistence.schema.support;
 
 import java.sql.JDBCType;
 import java.util.List;

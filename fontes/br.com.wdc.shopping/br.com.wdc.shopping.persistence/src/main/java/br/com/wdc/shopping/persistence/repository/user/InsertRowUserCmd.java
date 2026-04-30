@@ -6,10 +6,10 @@ import java.util.ArrayList;
 import org.apache.commons.lang3.StringUtils;
 import org.jdbi.v3.core.Jdbi;
 
-import br.com.wdc.shopping.persistence.sql.SqlList;
-import br.com.wdc.shopping.persistence.schema.EnUser;
-import br.com.wdc.shopping.persistence.repository.BaseCommand;
 import br.com.wdc.shopping.domain.model.User;
+import br.com.wdc.shopping.persistence.repository.BaseCommand;
+import br.com.wdc.shopping.persistence.schema.EnUser;
+import br.com.wdc.shopping.persistence.sql.SqlList;
 
 public class InsertRowUserCmd extends BaseCommand {
 

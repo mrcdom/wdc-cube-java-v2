@@ -1,11 +1,11 @@
 package br.com.wdc.shopping.persistence.repository.purchaseitem;
 
-import br.com.wdc.shopping.persistence.sql.SqlList;
-import br.com.wdc.shopping.persistence.schema.EnPurchase;
-import br.com.wdc.shopping.persistence.schema.EnPurchaseItem;
+import br.com.wdc.shopping.domain.criteria.PurchaseItemCriteria;
 import br.com.wdc.shopping.persistence.repository.BaseApplyCriteria;
 import br.com.wdc.shopping.persistence.repository.BaseCommand;
-import br.com.wdc.shopping.domain.criteria.PurchaseItemCriteria;
+import br.com.wdc.shopping.persistence.schema.EnPurchase;
+import br.com.wdc.shopping.persistence.schema.EnPurchaseItem;
+import br.com.wdc.shopping.persistence.sql.SqlList;
 
 public class ApplyPurshaseItemCriteria extends BaseApplyCriteria {
 

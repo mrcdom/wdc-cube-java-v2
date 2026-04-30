@@ -10,7 +10,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.mutable.MutableObject;
 
 import br.com.wdc.framework.commons.util.Defer;
-import br.com.wdc.shopping.persistence.schema.DbField;
+import br.com.wdc.shopping.persistence.schema.support.DbField;
 
 public class SqlUtils {
 
