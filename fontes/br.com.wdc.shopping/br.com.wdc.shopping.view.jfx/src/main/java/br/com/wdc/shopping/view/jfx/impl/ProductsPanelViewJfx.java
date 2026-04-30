@@ -11,7 +11,6 @@ import br.com.wdc.shopping.view.jfx.AbstractViewJfx;
 import br.com.wdc.shopping.view.jfx.ShoppingJfxApplication;
 import br.com.wdc.shopping.view.jfx.impl.home.ProductItemViewJfx;
 import br.com.wdc.shopping.view.jfx.util.JfxDom;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 
 public class ProductsPanelViewJfx extends AbstractViewJfx<ProductsPanelPresenter> {
