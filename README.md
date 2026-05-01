@@ -2,23 +2,23 @@
 
 Proposta arquitetural para construção de aplicações utilizando o padrão **Cube MVP** — uma variação do Model-View-Presenter com presenters hierárquicos, navegação por intents e serialização de estado das views.
 
-Este projeto serve como **referência arquitetural** para novos projetos, demonstrando a implementação completa de um sistema de e-commerce (Shopping) com backend Java e **duas implementações de frontend independentes** — React (web/remoto) e JavaFX (desktop/local) — provando que a camada de visualização é totalmente desacoplada da lógica de apresentação.
+Este projeto serve como **referência arquitetural** para novos projetos, demonstrando a implementação completa de um sistema de e-commerce (Shopping) com backend Java e **três implementações de frontend independentes** — React (web/remoto), JavaFX (desktop/local) e Android (mobile/Compose) — provando que a camada de visualização é totalmente desacoplada da lógica de apresentação.
 
 ## Visão Geral da Arquitetura
 
 ```
-┌──────────────────────────────┐  ┌────────────────────────────┐
-│     React 19 + MUI 9         │  │     JavaFX 24 + CSS        │
-│   (Browser / WebSocket)      │  │   (Desktop / JVM local)    │
-└──────────────┬───────────────┘  └─────────────┬──────────────┘
-               │ WebSocket (JSON delta)         │ Acesso direto em memória
-               ▼                                ▼
-┌──────────────────────────────┐  ┌────────────────────────────┐
-│   Javalin 7 + Virtual Threads│  │  ShoppingJfxApplication    │
-│   (Jetty 12 / porta 8080)    │  │  (AnimationTimer 16ms)     │
-└──────────────┬───────────────┘  └──────────────┬─────────────┘
-               │                                 │
-               └────────────────┬────────────────┘
+┌──────────────────────────────┐  ┌────────────────────────────┐  ┌────────────────────────────┐
+│     React 19 + MUI 9         │  │     JavaFX 24 + CSS        │  │  Kotlin + Jetpack Compose  │
+│   (Browser / WebSocket)      │  │   (Desktop / JVM local)    │  │  (Android / embarcado)     │
+└──────────────┬───────────────┘  └─────────────┬──────────────┘  └─────────────┬──────────────┘
+               │ WebSocket (JSON delta)         │ Acesso direto em memória     │ Acesso direto em memória
+               ▼                                ▼                              ▼
+┌──────────────────────────────┐  ┌────────────────────────────┐  ┌────────────────────────────┐
+│   Javalin 7 + Virtual Threads│  │  ShoppingJfxApplication    │  │  ShoppingAndroidApplication│
+│   (Jetty 12 / porta 8080)    │  │  (AnimationTimer 16ms)     │  │  (Choreographer vsync)     │
+└──────────────┬───────────────┘  └──────────────┬─────────────┘  └──────────────┬─────────────┘
+               │                                 │                               │
+               └────────────────┬────────────────┴───────────────────────────────┘
                                 ▼
 ┌─────────────────────────────────────────────────────────┐
 │                   Presentation                          │
@@ -36,7 +36,7 @@ Este projeto serve como **referência arquitetural** para novos projetos, demons
 
 **Características principais:**
 
-- **Independência de visualização** — mesmos Presenters/ViewStates alimentam React (web) e JavaFX (desktop)
+- **Independência de visualização** — mesmos Presenters/ViewStates alimentam React (web), JavaFX (desktop) e Android (mobile)
 - **Sem frameworks de DI** — injeção via `AtomicReference<T> BEAN` (service locator estático)
 - **Virtual Threads** (Java 26) — conexões WebSocket com consumo mínimo de memória
 - **Segurança** — RSA + PBKDF2 + AES-GCM para troca de dados entre cliente e servidor
@@ -58,12 +58,16 @@ fontes/
     ├── br.com.wdc.shopping.presentation/       # Presenters, ViewStates, navegação, DTOs
     ├── br.com.wdc.shopping.scripts/            # Scripts DDL (DBCreate, DBReset)
     ├── br.com.wdc.shopping.tests/              # Testes unitários e de workflow
+    ├── br.com.wdc.shopping.api/                # REST API controllers (Javalin)
+    ├── br.com.wdc.shopping.api-client/         # REST client (OkHttp + Gson) para Android
     ├── br.com.wdc.shopping.view.react/         # 📄 [README](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.react/README.md)
     │   ├── br.com.wdc.shopping.view.react.client/    # Frontend React/TypeScript
     │   ├── br.com.wdc.shopping.view.react.javalin/   # Servidor Javalin (fat JAR)
     │   └── br.com.wdc.shopping.view.react.skeleton/  # Implementações de view + segurança
-    └── br.com.wdc.shopping.view.jfx/           # 📄 [README](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.jfx/README.md)
-                                                # Frontend JavaFX desktop
+    ├── br.com.wdc.shopping.view.jfx/           # 📄 [README](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.jfx/README.md)
+    │                                           # Frontend JavaFX desktop
+    └── br.com.wdc.shopping.view.android/       # 📄 [README](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.android/README.md)
+                                                # Frontend Android (Kotlin + Jetpack Compose)
 ```
 
 ### Framework
@@ -93,6 +97,9 @@ fontes/
 | **view.react.javalin** | Servidor Javalin 7 com Virtual Threads, WebSocket dispatcher, controllers REST, banco H2 embarcado. Gera fat JAR (~11 MB) |
 | **view.react.skeleton** | Implementações de view para o servidor (`GenericViewImpl`), segurança (`AppSecurity` — RSA/PBKDF2/AES-GCM, `DataSecurity`), SPI de WebSocket |
 | **view.jfx** | Visualização desktop com JavaFX 24 + CSS Material-inspired — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.jfx/README.md) |
+| **view.android** | App Android nativo com Kotlin + Jetpack Compose + Material 3 — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.android/README.md) |
+| **api** | Controllers REST (Javalin) para expor repositórios como endpoints HTTP (usado pelo Android em modo remoto) |
+| **api-client** | Client REST (OkHttp + Gson) que implementa as interfaces de repositório via HTTP |
 
 ## Pré-requisitos
 
@@ -159,6 +166,17 @@ mvn javafx:run
 ```
 
 Ou via IDE usando a classe `ShoppingJfxLauncher.java` (não requer module-path configurado).
+
+### Versão Android (Mobile)
+
+```bash
+# Compile as dependências Java para mavenLocal com perfil Android-compat
+cd fontes
+./build-android-deps.sh
+
+# Abra fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.android no Android Studio
+# Sync Gradle → Build → Run
+```
 
 ## Testes
 
@@ -232,6 +250,9 @@ Cada presenter possui um **ViewState** serializável que é transmitido ao front
 | Servidor HTTP | Javalin | 7.1.0 |
 | Servlet Container | Jetty | 12 |
 | Desktop UI | JavaFX | 24.0.1 |
+| Mobile UI | Jetpack Compose + Material 3 | 2024.12 |
+| Mobile Language | Kotlin | 2.1 |
+| Image Loading | Coil | 2.7 |
 | Banco de dados | H2 | 2.4.240 |
 | Acesso a dados | JDBI | 3.52.1 |
 | Serialização | Gson | 2.13.2 |

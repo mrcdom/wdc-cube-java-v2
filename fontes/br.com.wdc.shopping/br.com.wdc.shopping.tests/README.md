@@ -6,10 +6,20 @@ Módulo de **testes automatizados** da aplicação Shopping. Contém testes que 
 
 ```
 src/main/java/br/com/wdc/shopping/test/
-├── UserRepositoryTest.java            — CRUD completo do UserRepository (17 testes)
-├── ProductRepositoryTest.java         — CRUD completo do ProductRepository (19 testes)
-├── PurchaseRepositoryTest.java        — CRUD completo do PurchaseRepository (20 testes)
-├── PurchaseItemRepositoryTest.java    — CRUD completo do PurchaseItemRepository (23 testes)
+├── repository/
+│   ├── AbstractProductRepositoryTest.java      — Base: CRUD ProductRepository (19 testes)
+│   ├── AbstractPurchaseRepositoryTest.java      — Base: CRUD PurchaseRepository (20 testes)
+│   ├── AbstractPurchaseItemRepositoryTest.java  — Base: CRUD PurchaseItemRepository (23 testes)
+│   ├── AbstractUserRepositoryTest.java          — Base: CRUD UserRepository (17 testes)
+│   ├── ProductRepositoryTest.java               — Testes com repositório SQL local (H2)
+│   ├── PurchaseRepositoryTest.java              — Testes com repositório SQL local (H2)
+│   ├── PurchaseItemRepositoryTest.java          — Testes com repositório SQL local (H2)
+│   ├── UserRepositoryTest.java                  — Testes com repositório SQL local (H2)
+│   ├── RestProductRepositoryTest.java           — Testes com repositório REST (via API)
+│   ├── RestPurchaseRepositoryTest.java          — Testes com repositório REST (via API)
+│   ├── RestPurchaseItemRepositoryTest.java      — Testes com repositório REST (via API)
+│   └── RestUserRepositoryTest.java              — Testes com repositório REST (via API)
+│
 ├── ShoppingLoginTest.java             — Testes de fluxo de login
 ├── ShoppingServiceTest.java           — Testes de serviços de negócio (queries, projeções)
 ├── ShoppingWorkflowTest.java          — Teste de workflow completo na camada de apresentação
@@ -29,7 +39,10 @@ src/main/java/br/com/wdc/shopping/test/
 │
 └── util/
     ├── BaseBusinessTest.java                   — Setup: H2 in-memory, DataSource, repositórios
+    ├── BaseRestApiTest.java                    — Setup: Javalin server + REST client para testes de API
     ├── BasePresentationTest.java               — Setup: BaseBusinessTest + ShoppingApplicationMock
+    ├── ResetDatabaseRule.java                  — JUnit Rule: executa DBReset entre testes
+    ├── TestEnvironment.java                    — Configuração de ambiente de teste
     ├── ScheduledExecutorForTest.java           — Interface de executor para testes
     ├── ScheduledExecutorForTestAsync.java      — Executor assíncrono
     ├── ScheduledExecutorForTestSyncDirect.java — Executor síncrono direto
@@ -38,9 +51,17 @@ src/main/java/br/com/wdc/shopping/test/
 
 ## Abordagem
 
-### Testes de repositório (`*RepositoryTest`)
+### Testes de repositório (`repository/`)
 
-Exercitam diretamente cada operação de cada repositório — `insert`, `update`, `insertOrUpdate`, `delete`, `count`, `fetch`, `fetchById` — incluindo:
+Os testes de repositório seguem uma hierarquia **Abstract → Concreto**:
+
+- **`Abstract*RepositoryTest`** — define todos os cenários de teste (insert, update, delete, fetch, projeções, paginação, critérios, casos de borda)
+- **`*RepositoryTest`** — estende o abstrato usando repositórios SQL locais (H2 in-memory via JDBI)
+- **`Rest*RepositoryTest`** — estende o abstrato usando repositórios REST (OkHttp + Gson → Javalin → H2)
+
+Isso garante que ambas as implementações (SQL direta e REST) passam exatamente pelos mesmos testes de contrato.
+
+Cenários cobertos:
 
 - **Projeções** (`ProjectionValues`) para verificar que apenas campos solicitados são retornados
 - **Critérios de filtro** (por ID, por campos específicos, por FK)
@@ -49,12 +70,12 @@ Exercitam diretamente cada operação de cada repositório — `insert`, `update
 
 Cada teste parte de um banco limpo com dados de seed (`DBReset`), garantindo determinismo.
 
-| Classe | Repositório | Testes |
-|---|---|---|
-| `UserRepositoryTest` | `UserRepository` | 17 |
-| `ProductRepositoryTest` | `ProductRepository` + `fetchImage` | 19 |
-| `PurchaseRepositoryTest` | `PurchaseRepository` | 20 |
-| `PurchaseItemRepositoryTest` | `PurchaseItemRepository` | 23 |
+| Classe base | Repositório | Testes | Implementações |
+|---|---|---|---|
+| `AbstractUserRepositoryTest` | `UserRepository` | 17 | SQL, REST |
+| `AbstractProductRepositoryTest` | `ProductRepository` + `fetchImage` | 19 | SQL, REST |
+| `AbstractPurchaseRepositoryTest` | `PurchaseRepository` | 20 | SQL, REST |
+| `AbstractPurchaseItemRepositoryTest` | `PurchaseItemRepository` | 23 | SQL, REST |
 
 ### Testes de serviço (`ShoppingServiceTest`)
 
@@ -126,9 +147,12 @@ Cada mock (`LoginViewMock`, `CartViewMock`, etc.) estende `AbstractViewMock<P>` 
 
 ## Dependências
 
-- `br.com.wdc.shopping.persistence` — repositórios reais
+- `br.com.wdc.shopping.persistence` — repositórios SQL reais
 - `br.com.wdc.shopping.presentation` — presenters e serviços reais
 - `br.com.wdc.shopping.scripts` — `DBCreate` / `DBReset` para setup do banco
+- `br.com.wdc.shopping.api` — controllers REST (para testes REST)
+- `br.com.wdc.shopping.api-client` — client REST (OkHttp + Gson)
 - H2 Database — banco in-memory
+- Javalin — servidor HTTP embarcado para testes REST
 - JUnit 4 — framework de testes
 - Logback — logging nos testes

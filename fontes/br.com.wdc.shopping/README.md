@@ -1,8 +1,8 @@
 # 🛒 WeDoCode Shopping
 
-Um **sistema de e-commerce completo** construído com arquitetura **Cube MVP**, demonstrando como a mesma lógica de negócio pode alimentar interfaces totalmente diferentes — **React (web)** e **JavaFX (desktop)** — sem duplicar uma única linha de código de apresentação.
+Um **sistema de e-commerce completo** construído com arquitetura **Cube MVP**, demonstrando como a mesma lógica de negócio pode alimentar interfaces totalmente diferentes — **React (web)**, **JavaFX (desktop)** e **Android (mobile)** — sem duplicar uma única linha de código de apresentação.
 
-> **Dois frontends. Mesma alma.**
+> **Três frontends. Mesma alma.**
 
 ---
 
@@ -93,11 +93,26 @@ Mesma aplicação, mesmo banco, mesma lógica — apenas a interface muda.
 
 ---
 
+## Ou rode a versão Mobile (Android)
+
+```bash
+# Compile dependências Java para mavenLocal
+cd fontes && ./build-android-deps.sh
+
+# Abra no Android Studio:
+# fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.android/
+# Sync Gradle → Build → Run no emulador
+```
+
+App nativo Android com Jetpack Compose + Material 3. Mesmos presenters, mesmo domínio.
+
+---
+
 ## Arquitetura em camadas
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│            React 19 + MUI 9  │  JavaFX 24 + CSS         │
+│  React 19 + MUI 9  │  JavaFX 24 + CSS  │  Compose + M3  │
 ├─────────────────────────────────────────────────────────┤
 │              Presentation (Cube MVP)                    │
 │       Presenters + ViewStates + Navegação               │
@@ -122,6 +137,9 @@ Mesma aplicação, mesmo banco, mesma lógica — apenas a interface muda.
 | [`scripts`](br.com.wdc.shopping.scripts/) | Scripts DDL (DBCreate, DBReset) |
 | [`view.react`](br.com.wdc.shopping.view.react/) | Frontend web completo (React + Javalin + WebSocket) |
 | [`view.jfx`](br.com.wdc.shopping.view.jfx/) | Frontend desktop (JavaFX 24 + CSS Material) |
+| [`view.android`](br.com.wdc.shopping.view.android/) | Frontend mobile (Kotlin + Jetpack Compose + Material 3) |
+| [`api`](br.com.wdc.shopping.api/) | Controllers REST (Javalin) para expor repositórios via HTTP |
+| [`api-client`](br.com.wdc.shopping.api-client/) | Client REST (OkHttp + Gson) que implementa repositórios via HTTP |
 | [`tests`](br.com.wdc.shopping.tests/) | Testes de workflow e repositórios |
 
 ---
@@ -129,7 +147,7 @@ Mesma aplicação, mesmo banco, mesma lógica — apenas a interface muda.
 ## Por que explorar este projeto?
 
 - **Sem Spring, sem CDI, sem magia** — injeção via `AtomicReference<T> BEAN`, 100% explícito
-- **Separação real de concerns** — troque a UI inteira sem tocar em lógica
+- **Separação real de concerns** — troque a UI inteira sem tocar em lógica (3 frontends provam isso)
 - **Padrões sólidos** — Command, Repository, Presenter, ViewState
 - **Tecnologia moderna** — Java 26, Virtual Threads, React 19, TypeScript
 - **Código limpo** — ~3.5s de build completo, zero warnings

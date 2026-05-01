@@ -56,8 +56,6 @@ O **Cube MVP** resolve isso com uma separação radical:
   <img src="docs/screenshots/error.png" width="220" alt="Tratamento de Erro"/>
 </p>
 
-> **Para gerar os screenshots:** execute o app no emulador e use `adb exec-out screencap -p > docs/screenshots/<nome>.png`
-
 ---
 
 ## Arquitetura do App
