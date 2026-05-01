@@ -9,7 +9,6 @@ import br.com.wdc.framework.cube.AbstractChildPresenter;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeService;
 
 public class PurchasesPanelPresenter extends AbstractChildPresenter<ShoppingApplication> {
 
@@ -27,11 +26,16 @@ public class PurchasesPanelPresenter extends AbstractChildPresenter<ShoppingAppl
     public final HomePresenter owner;
     public final PurchasesPanelViewState state = new PurchasesPanelViewState();
 
-    // :: Contructor
+    // :: Internal Instance Fields
+
+    private final PurchasesPanelService purchasesPanelService;
+
+    // :: Constructor
 
     public PurchasesPanelPresenter(ShoppingApplication app, HomePresenter owner) {
         super(app);
         this.owner = owner;
+        this.purchasesPanelService = new PurchasesPanelService(app);
     }
 
     // :: Life cycle
@@ -67,11 +71,9 @@ public class PurchasesPanelPresenter extends AbstractChildPresenter<ShoppingAppl
 
     public void loadPurchases() {
         try {
-            var service = HomeService.BEAN;
-
             var subject = this.app.getSubject();
             if (subject != null) {
-                this.state.totalCount = service.countPurchasesOfUser(subject.getId());
+                this.state.totalCount = purchasesPanelService.countPurchasesOfUser(subject.getId());
 
                 int totalPages = Math.max(1, (int) Math.ceil((double) this.state.totalCount / this.state.pageSize));
                 if (this.state.page >= totalPages) {
@@ -79,7 +81,7 @@ public class PurchasesPanelPresenter extends AbstractChildPresenter<ShoppingAppl
                 }
 
                 int offset = this.state.page * this.state.pageSize;
-                this.state.purchases = service.loadPurchasesOfUser(subject.getId(), offset, this.state.pageSize);
+                this.state.purchases = purchasesPanelService.loadPurchasesOfUser(subject.getId(), offset, this.state.pageSize);
                 this.update();
             }
         } catch (Exception caught) {

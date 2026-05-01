@@ -139,6 +139,10 @@ public class FetchUsersCmd extends BaseCommand {
             fields.add(en.name);
         }
 
+        if (prj.roles != null) {
+            fields.add(en.roles);
+        }
+
         return fields;
     }
 
@@ -162,6 +166,10 @@ public class FetchUsersCmd extends BaseCommand {
 
             if (user.name == null) {
                 user.name = row.name();
+            }
+
+            if (user.roles == null) {
+                user.roles = row.roles();
             }
             return user;
         } catch (IOException caught) {

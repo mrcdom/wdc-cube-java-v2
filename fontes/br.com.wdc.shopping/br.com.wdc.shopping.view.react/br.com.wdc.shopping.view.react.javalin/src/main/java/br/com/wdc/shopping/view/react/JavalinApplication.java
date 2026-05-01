@@ -48,6 +48,7 @@ public class JavalinApplication {
 
     public JavalinApplication(int port) {
         this.port = port;
+        this.businessContext.start();
         this.app = createJavalinApp();
     }
 
@@ -105,8 +106,7 @@ public class JavalinApplication {
         ImageController.configure(config);
 
         // Repository REST API for Android (and other REST clients)
-        RepositoryApiRoutes.configure(config);
-
+		RepositoryApiRoutes.configure(config);
         // Force the SPA root through /index.html so bootstrap cookies are always issued
         // before the frontend constructor tries to read app_id and app_skey.
         config.routes.get("/", ctx -> ctx.redirect("/index.html"));
@@ -182,7 +182,6 @@ public class JavalinApplication {
      */
     public void start() {
         try {
-            businessContext.start();
             app.start(port);
             LOG.info("Javalin server started on port {}", port);
             LOG.info("Static files served from {}: {}", staticFilesSettings.location, staticFilesSettings.directory);

@@ -69,7 +69,7 @@ public class ShoppingLoginTest extends BasePresentationTest {
 
         // Pagination metadata
         Assert.assertEquals(0, purchasesState.page);
-        Assert.assertEquals(2, purchasesState.pageSize);
+        Assert.assertEquals(3, purchasesState.pageSize);
         Assert.assertEquals(2, purchasesState.totalCount);
 
         Assert.assertEquals(2, purchasesState.purchases.size());
@@ -88,16 +88,16 @@ public class ShoppingLoginTest extends BasePresentationTest {
         Assert.assertEquals(4, productsState.products.size());
 
         Assert.assertEquals(DBReset.CAFETEIRA_ID, Long.valueOf(productsState.products.get(0).id));
-        Assert.assertNull(productsState.products.get(0).description);
+        Assert.assertEquals("unknown", productsState.products.get(0).description);
 
         Assert.assertEquals(DBReset.BOLA_WILSON_ID, Long.valueOf(productsState.products.get(1).id));
-        Assert.assertNull(productsState.products.get(1).description);
+        Assert.assertEquals("unknown", productsState.products.get(1).description);
 
         Assert.assertEquals(DBReset.FITA_VEDA_ROSCA_ID, Long.valueOf(productsState.products.get(2).id));
-        Assert.assertNull(productsState.products.get(2).description);
+        Assert.assertEquals("unknown", productsState.products.get(2).description);
 
         Assert.assertEquals(DBReset.PEN_DRIVE2GB_ID, Long.valueOf(productsState.products.get(3).id));
-        Assert.assertNull(productsState.products.get(3).description);
+        Assert.assertEquals("unknown", productsState.products.get(3).description);
     }
 
 }

@@ -24,7 +24,7 @@ import br.com.wdc.shopping.domain.repositories.PurchaseItemRepository;
 import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
 import br.com.wdc.shopping.domain.utils.ProjectionValues;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginService;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeService;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelService;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductService;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
@@ -67,7 +67,7 @@ public class ShoppingServiceTest extends BaseBusinessTest {
 
     @Test
     public void test() {
-        var subject = LoginService.BEAN.fetchSubject("admin", "admin");
+        var subject = new LoginService(null).fetchSubject("admin", "admin");
         Assert.assertNotNull("Missing subject", subject);
 
         Assert.assertTrue("Subject.id must be a Long type", subject.getId() instanceof Long);
@@ -93,7 +93,7 @@ public class ShoppingServiceTest extends BaseBusinessTest {
             Assert.assertTrue("Product price must be grater than or equal to 0.0", produto.price >= 0.0);
             Assert.assertTrue("Product description can not be empty", StringUtils.isNotBlank(produto.description));
 
-            final ProductInfo mesmoProduto = ProductService.BEAN.loadProductById(produto.id);
+            final ProductInfo mesmoProduto = new ProductService(ProductRepository.BEAN.get()).loadProductById(produto.id);
             Assert.assertEquals(produto.id, mesmoProduto.id);
             Assert.assertEquals(produto.name, mesmoProduto.name);
             Assert.assertEquals(produto.image, mesmoProduto.image);
@@ -101,7 +101,9 @@ public class ShoppingServiceTest extends BaseBusinessTest {
             Assert.assertEquals(produto.description, mesmoProduto.description);
         }
 
-        List<PurchaseInfo> compras = HomeService.BEAN.loadPurchases(new PurchaseCriteria()
+        var homeService = new PurchasesPanelService(PurchaseRepository.BEAN.get());
+
+        List<PurchaseInfo> compras = homeService.loadPurchases(new PurchaseCriteria()
                 .withOrderBy(OrderBy.ACENDING));
 
         Assert.assertNotNull(compras);
@@ -141,7 +143,7 @@ public class ShoppingServiceTest extends BaseBusinessTest {
         final long idCompra = purchase.id;
         Assert.assertEquals(DBReset.ADMIN_SECOND_PURCHASE_ID + 1, idCompra);
 
-        compras = HomeService.BEAN.loadPurchasesOfUser(userId);
+        compras = homeService.loadPurchasesOfUser(userId);
 
         Assert.assertNotNull(compras);
         Assert.assertEquals(3, compras.size());
@@ -151,7 +153,7 @@ public class ShoppingServiceTest extends BaseBusinessTest {
         Assert.assertEquals(2, ultimaCompra.items.size());
         Assert.assertEquals(Double.valueOf(60.0), Double.valueOf(ultimaCompra.total));
 
-        final ReceiptForm recibo = ReceiptService.BEAN.loadReceipt(idCompra);
+        final ReceiptForm recibo = new ReceiptService(PurchaseRepository.BEAN.get()).loadReceipt(idCompra);
         Assert.assertNotNull(recibo);
         Assert.assertEquals(Double.valueOf(60), recibo.total);
         Assert.assertEquals(2, recibo.items.size());

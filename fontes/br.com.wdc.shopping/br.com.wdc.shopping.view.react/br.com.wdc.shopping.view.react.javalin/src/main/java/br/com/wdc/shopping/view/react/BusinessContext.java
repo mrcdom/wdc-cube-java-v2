@@ -56,6 +56,11 @@ public class BusinessContext {
 
             RepositoryBootstrap.initialize();
 
+            var jwtSecret = ShoppingConfig.getJwtSecret();
+            if (jwtSecret != null && !jwtSecret.isBlank()) {
+                RepositoryBootstrap.initializeSecurity(jwtSecret);
+            }
+
             LOG.info("Shopping backend context initialized with database {}", dataSource.getURL());
         } catch (Exception e) {
             throw new IllegalStateException("Failed to initialize shopping backend context", e);

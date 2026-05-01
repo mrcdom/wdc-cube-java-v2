@@ -17,33 +17,40 @@
 			<groupId>${project.groupId}</groupId>
 			<version>${project.version}</version>
 			<artifactId>br.com.wdc.shopping.persistence</artifactId>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<version>${project.version}</version>
 			<artifactId>br.com.wdc.shopping.presentation</artifactId>
+			<scope>test</scope>
 		</dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <version>${project.version}</version>
-            <artifactId>br.com.wdc.shopping.scripts</artifactId>
-        </dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<version>${project.version}</version>
+			<artifactId>br.com.wdc.shopping.scripts</artifactId>
+			<scope>test</scope>
+		</dependency>
 
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.tomcat</groupId>
 			<artifactId>dbcp</artifactId>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
+			<scope>test</scope>
 		</dependency>
 
 		<!-- REST API server + client for integration tests -->
@@ -51,16 +58,32 @@
 			<groupId>${project.groupId}</groupId>
 			<artifactId>br.com.wdc.shopping.api</artifactId>
 			<version>${project.version}</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>br.com.wdc.shopping.api-client</artifactId>
 			<version>${project.version}</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>io.javalin</groupId>
 			<artifactId>javalin</artifactId>
 			<version>7.1.0</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.5.5</version>
+				<configuration>
+					<argLine>--enable-preview</argLine>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 </project>

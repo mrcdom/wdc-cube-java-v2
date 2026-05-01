@@ -16,3 +16,7 @@
 
 # Reset database on startup (drops and recreates all tables)
 # reset = false
+
+[security]
+# JWT secret for API authentication (not used in JFX mode)
+# jwt.secret = "change-in-production"

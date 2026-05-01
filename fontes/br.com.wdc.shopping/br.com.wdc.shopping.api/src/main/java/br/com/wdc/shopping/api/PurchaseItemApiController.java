@@ -76,13 +76,15 @@ public class PurchaseItemApiController {
 
 	private void delete(Context ctx) throws Exception {
 		var body = ApiObjectMapper.get().readTree(ctx.body());
-		int count = repo().delete(parseCriteria(body));
+		var criteria = parseCriteria(body);
+		int count = repo().delete(criteria);
 		json(ctx, Map.of("count", count));
 	}
 
 	private void count(Context ctx) throws Exception {
 		var body = ApiObjectMapper.get().readTree(ctx.body());
-		int count = repo().count(parseCriteria(body));
+		var criteria = parseCriteria(body);
+		int count = repo().count(criteria);
 		json(ctx, Map.of("count", count));
 	}
 

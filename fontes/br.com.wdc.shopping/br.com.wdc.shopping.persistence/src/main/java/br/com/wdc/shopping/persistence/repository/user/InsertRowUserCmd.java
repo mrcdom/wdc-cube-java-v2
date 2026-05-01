@@ -28,6 +28,10 @@ public class InsertRowUserCmd extends BaseCommand {
         if (bean.name != null) {
             row.name(bean.name);
         }
+
+        if (bean.roles != null) {
+            row.roles(bean.roles);
+        }
         
         var inserted = new InsertRowUserCmd().execute(connection, row) > 0;
         bean.id = row.id();
@@ -61,6 +65,11 @@ public class InsertRowUserCmd extends BaseCommand {
         if (row.isNameChanged()) {
             sql.ln(',', en.name);
             places.add(param("name", row.name()));
+        }
+
+        if (row.isRolesChanged()) {
+            sql.ln(',', en.roles);
+            places.add(param("roles", row.roles()));
         }
 
         sql.add(")");

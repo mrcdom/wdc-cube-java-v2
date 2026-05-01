@@ -27,6 +27,8 @@ import okhttp3.RequestBody;
 /**
  * Configuração HTTP compartilhada para os REST repositories.
  * Encapsula OkHttpClient + Gson com adaptador de OffsetDateTime.
+ * <p>
+ * Suporta autenticação via Bearer token quando um {@link RestAuthClient} está vinculado.
  */
 public class RestConfig {
 
@@ -35,6 +37,7 @@ public class RestConfig {
     private final String baseUrl;
     private final OkHttpClient client;
     private final Gson gson;
+    private volatile RestAuthClient authClient;
 
     public RestConfig(String baseUrl) {
         this.baseUrl = baseUrl;
@@ -53,14 +56,21 @@ public class RestConfig {
         return gson;
     }
 
-    public JsonObject postJson(String path, JsonObject body) {
-        var requestBody = RequestBody.create(body.toString(), JSON_MEDIA_TYPE);
-        var request = new Request.Builder()
-                .url(baseUrl + path)
-                .post(requestBody)
-                .build();
+    public void setAuthClient(RestAuthClient authClient) {
+        this.authClient = authClient;
+    }
 
-        try (var response = client.newCall(request).execute()) {
+    public RestAuthClient authClient() {
+        return authClient;
+    }
+
+    public JsonObject postJson(String path, JsonObject body) {
+        var requestBuilder = new Request.Builder()
+                .url(baseUrl + path)
+                .post(RequestBody.create(body.toString(), JSON_MEDIA_TYPE));
+        addAuthHeader(requestBuilder);
+
+        try (var response = client.newCall(requestBuilder.build()).execute()) {
             var responseBody = response.body() != null ? response.body().string() : null;
             if (!response.isSuccessful()) {
                 throw new BusinessException("HTTP " + response.code() + ": " + responseBody);
@@ -74,13 +84,12 @@ public class RestConfig {
     }
 
     public JsonObject postJsonNullable(String path, JsonObject body) {
-        var requestBody = RequestBody.create(body.toString(), JSON_MEDIA_TYPE);
-        var request = new Request.Builder()
+        var requestBuilder = new Request.Builder()
                 .url(baseUrl + path)
-                .post(requestBody)
-                .build();
+                .post(RequestBody.create(body.toString(), JSON_MEDIA_TYPE));
+        addAuthHeader(requestBuilder);
 
-        try (var response = client.newCall(request).execute()) {
+        try (var response = client.newCall(requestBuilder.build()).execute()) {
             if (response.code() == 404) {
                 return null;
             }
@@ -96,13 +105,80 @@ public class RestConfig {
         }
     }
 
-    public byte[] getBytes(String path) {
+    /**
+     * POST sem autenticação (para endpoints públicos como /api/auth/*).
+     */
+    public JsonObject postJsonPublic(String path, JsonObject body) {
+        var request = new Request.Builder()
+                .url(baseUrl + path)
+                .post(RequestBody.create(body.toString(), JSON_MEDIA_TYPE))
+                .build();
+
+        try (var response = client.newCall(request).execute()) {
+            var responseBody = response.body() != null ? response.body().string() : null;
+            if (!response.isSuccessful()) {
+                throw new BusinessException("HTTP " + response.code() + ": " + responseBody);
+            }
+            return JsonParser.parseString(responseBody).getAsJsonObject();
+        } catch (BusinessException e) {
+            throw e;
+        } catch (IOException e) {
+            throw BusinessException.wrap("POST " + path, e);
+        }
+    }
+
+    /**
+     * POST com token explícito (para logout).
+     */
+    public JsonObject postJsonWithAuth(String path, JsonObject body, String token) {
+        var request = new Request.Builder()
+                .url(baseUrl + path)
+                .post(RequestBody.create(body.toString(), JSON_MEDIA_TYPE))
+                .header("Authorization", "Bearer " + token)
+                .build();
+
+        try (var response = client.newCall(request).execute()) {
+            var responseBody = response.body() != null ? response.body().string() : null;
+            if (!response.isSuccessful()) {
+                throw new BusinessException("HTTP " + response.code() + ": " + responseBody);
+            }
+            return JsonParser.parseString(responseBody).getAsJsonObject();
+        } catch (BusinessException e) {
+            throw e;
+        } catch (IOException e) {
+            throw BusinessException.wrap("POST " + path, e);
+        }
+    }
+
+    /**
+     * GET sem autenticação (para endpoints públicos como /api/auth/challenge).
+     */
+    public JsonObject getJson(String path) {
         var request = new Request.Builder()
                 .url(baseUrl + path)
                 .get()
                 .build();
 
         try (var response = client.newCall(request).execute()) {
+            var responseBody = response.body() != null ? response.body().string() : null;
+            if (!response.isSuccessful()) {
+                throw new BusinessException("HTTP " + response.code() + ": " + responseBody);
+            }
+            return JsonParser.parseString(responseBody).getAsJsonObject();
+        } catch (BusinessException e) {
+            throw e;
+        } catch (IOException e) {
+            throw BusinessException.wrap("GET " + path, e);
+        }
+    }
+
+    public byte[] getBytes(String path) {
+        var requestBuilder = new Request.Builder()
+                .url(baseUrl + path)
+                .get();
+        addAuthHeader(requestBuilder);
+
+        try (var response = client.newCall(requestBuilder.build()).execute()) {
             if (response.code() == 404 || response.code() == 204) {
                 return null;
             }
@@ -118,13 +194,12 @@ public class RestConfig {
     }
 
     public boolean putBytes(String path, byte[] data) {
-        var requestBody = RequestBody.create(data, MediaType.parse("application/octet-stream"));
-        var request = new Request.Builder()
+        var requestBuilder = new Request.Builder()
                 .url(baseUrl + path)
-                .put(requestBody)
-                .build();
+                .put(RequestBody.create(data, MediaType.parse("application/octet-stream")));
+        addAuthHeader(requestBuilder);
 
-        try (var response = client.newCall(request).execute()) {
+        try (var response = client.newCall(requestBuilder.build()).execute()) {
             if (!response.isSuccessful()) {
                 throw new BusinessException("HTTP " + response.code());
             }
@@ -141,6 +216,12 @@ public class RestConfig {
     public void addProjection(JsonObject body, Object projection) {
         if (projection != null) {
             body.add("projection", gson.toJsonTree(projection));
+        }
+    }
+
+    private void addAuthHeader(Request.Builder builder) {
+        if (authClient != null && authClient.accessToken() != null) {
+            builder.header("Authorization", "Bearer " + authClient.accessToken());
         }
     }
 

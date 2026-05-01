@@ -33,6 +33,7 @@ public class ReceiptPresenter extends AbstractCubePresenter<ShoppingApplication>
 
     // :: Internal Instance Fields
 
+    private final ReceiptService receiptService;
     private Long purchaseId;
     private CubeViewSlot ownerSlot;
 
@@ -40,6 +41,7 @@ public class ReceiptPresenter extends AbstractCubePresenter<ShoppingApplication>
 
     public ReceiptPresenter(ShoppingApplication app) {
         super(app);
+        this.receiptService = new ReceiptService(app);
     }
 
     // :: Cube API
@@ -100,7 +102,7 @@ public class ReceiptPresenter extends AbstractCubePresenter<ShoppingApplication>
     // :: Data Loaders
 
     private ReceiptForm loadReceipt(Long purchaseId) {
-        var receipt = ReceiptService.BEAN.loadReceipt(purchaseId);
+        var receipt = receiptService.loadReceipt(purchaseId);
         if (receipt == null) {
             throw new PurchaseNotFoundException();
         }

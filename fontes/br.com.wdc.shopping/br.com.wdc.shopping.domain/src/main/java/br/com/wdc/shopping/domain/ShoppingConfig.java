@@ -20,6 +20,8 @@ public class ShoppingConfig {
 
     private static Path tempDir;
 
+    private static String jwtSecret;
+
     private ShoppingConfig() {
         super();
     }
@@ -42,6 +44,10 @@ public class ShoppingConfig {
 
     public static final Path getTempDir() {
         return tempDir;
+    }
+
+    public static final String getJwtSecret() {
+        return jwtSecret;
     }
 
     public static class Internals {
@@ -70,6 +76,10 @@ public class ShoppingConfig {
             ShoppingConfig.tempDir = path;
         }
 
+        public static void setJwtSecret(String secret) {
+            ShoppingConfig.jwtSecret = secret;
+        }
+
         public static void configure(AppConfig config) {
             try {
                 Path baseDir = resolveRuntimeBaseDir(config);
@@ -83,6 +93,9 @@ public class ShoppingConfig {
                 ShoppingConfig.Internals.setDataDir(dataDir);
                 ShoppingConfig.Internals.setLogDir(logDir);
                 ShoppingConfig.Internals.setTempDir(tempDir);
+
+                var jwt = config.get("security.jwt.secret");
+                ShoppingConfig.Internals.setJwtSecret(jwt);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }

@@ -1,23 +1,32 @@
-package br.com.wdc.shopping.presentation.presenter.restricted.home;
+package br.com.wdc.shopping.presentation.presenter.restricted.home.purchases;
 
 import java.util.List;
 
 import br.com.wdc.shopping.domain.criteria.PurchaseCriteria;
 import br.com.wdc.shopping.domain.criteria.PurchaseCriteria.OrderBy;
 import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
+import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
 
-public enum HomeService {
-    BEAN;
+public class PurchasesPanelService {
+
+    private final PurchaseRepository repo;
+
+    public PurchasesPanelService(ShoppingApplication app) {
+        this.repo = app.getPurchaseRepository();
+    }
+
+    public PurchasesPanelService(PurchaseRepository repo) {
+        this.repo = repo;
+    }
 
     public List<PurchaseInfo> loadPurchases(PurchaseCriteria criteria) {
-        return PurchaseRepository.BEAN.get()
-                .fetch(criteria.withProjection(PurchaseInfo.projectionWithItens()))
+        return repo.fetch(criteria.withProjection(PurchaseInfo.projectionWithItens()))
                 .stream().map(PurchaseInfo::create).toList();
     }
 
     public int countPurchasesOfUser(Long userId) {
-        return PurchaseRepository.BEAN.get().count(new PurchaseCriteria().withUserId(userId));
+        return repo.count(new PurchaseCriteria().withUserId(userId));
     }
 
     public List<PurchaseInfo> loadPurchasesOfUser(Long userId) {
@@ -29,7 +38,7 @@ public enum HomeService {
             throw new AssertionError("userId is required");
         }
 
-        return PurchaseRepository.BEAN.get().fetch(new PurchaseCriteria()
+        return repo.fetch(new PurchaseCriteria()
                 .withUserId(userId)
                 .withProjection(PurchaseInfo.projectionWithItens())
                 .withOrderBy(OrderBy.DESCENDING)

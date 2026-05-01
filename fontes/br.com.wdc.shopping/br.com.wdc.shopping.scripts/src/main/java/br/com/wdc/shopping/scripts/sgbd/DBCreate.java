@@ -65,6 +65,11 @@ public class DBCreate {
 		if (this.mustResetDb) {
 			DBReset.run(this.connection);
 		}
+
+		// Run pending migrations
+		new MigrationRunner(this.connection)
+				.run(new Migration_0001_AddUserRoles(this.connection));
+
 		return this;
 	}
 

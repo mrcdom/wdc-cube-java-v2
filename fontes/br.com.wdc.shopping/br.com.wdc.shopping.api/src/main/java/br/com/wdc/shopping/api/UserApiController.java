@@ -1,17 +1,26 @@
 package br.com.wdc.shopping.api;
 
+import java.security.PrivateKey;
+import java.util.Base64;
 import java.util.Map;
+
+import javax.crypto.Cipher;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 import br.com.wdc.shopping.domain.criteria.UserCriteria;
 import br.com.wdc.shopping.domain.model.User;
 import br.com.wdc.shopping.domain.repositories.UserRepository;
-import br.com.wdc.shopping.domain.utils.ProjectionValues;
+import br.com.wdc.shopping.domain.security.SecurityContextHolder;
 import io.javalin.config.JavalinConfig;
 import io.javalin.http.Context;
 
 public class UserApiController {
+
+	private static final Logger LOG = LoggerFactory.getLogger(UserApiController.class);
 
 	static void configure(JavalinConfig config) {
 		var ctrl = new UserApiController();
@@ -29,19 +38,10 @@ public class UserApiController {
 		return UserRepository.BEAN.get();
 	}
 
-	private static User fullProjection() {
-		var pv = ProjectionValues.INSTANCE;
-		var prj = new User();
-		prj.id = pv.i64;
-		prj.userName = pv.str;
-		prj.password = pv.str;
-		prj.name = pv.str;
-		return prj;
-	}
-
 	private void insert(Context ctx) throws Exception {
 		var mapper = ApiObjectMapper.get();
 		var user = mapper.readValue(ctx.body(), User.class);
+		decryptPasswordIfPresent(user);
 		boolean success = repo().insert(user);
 		json(ctx, Map.of("success", success, "id", user.id != null ? user.id : -1));
 	}
@@ -51,6 +51,7 @@ public class UserApiController {
 		var body = mapper.readTree(ctx.body());
 		var newEntity = mapper.treeToValue(body.get("newEntity"), User.class);
 		var oldEntity = mapper.treeToValue(body.get("oldEntity"), User.class);
+		decryptPasswordIfPresent(newEntity);
 		boolean success = repo().update(newEntity, oldEntity);
 		json(ctx, Map.of("success", success));
 	}
@@ -58,19 +59,22 @@ public class UserApiController {
 	private void upsert(Context ctx) throws Exception {
 		var mapper = ApiObjectMapper.get();
 		var user = mapper.readValue(ctx.body(), User.class);
+		decryptPasswordIfPresent(user);
 		boolean success = repo().insertOrUpdate(user);
 		json(ctx, Map.of("success", success, "id", user.id != null ? user.id : -1));
 	}
 
 	private void delete(Context ctx) throws Exception {
 		var body = ApiObjectMapper.get().readTree(ctx.body());
-		int count = repo().delete(parseCriteria(body));
+		var criteria = parseCriteria(body);
+		int count = repo().delete(criteria);
 		json(ctx, Map.of("count", count));
 	}
 
 	private void count(Context ctx) throws Exception {
 		var body = ApiObjectMapper.get().readTree(ctx.body());
-		int count = repo().count(parseCriteria(body));
+		var criteria = parseCriteria(body);
+		int count = repo().count(criteria);
 		json(ctx, Map.of("count", count));
 	}
 
@@ -78,14 +82,14 @@ public class UserApiController {
 		var body = ApiObjectMapper.get().readTree(ctx.body());
 		var criteria = parseCriteria(body);
 		var projection = ApiObjectMapper.parseProjection(body, User.class);
-		criteria.withProjection(projection != null ? projection : fullProjection());
+		criteria.withProjection(projection);
 		var items = repo().fetch(criteria);
 		json(ctx, Map.of("items", items));
 	}
 
 	private void fetchById(Context ctx) throws Exception {
 		Long id = Long.parseLong(ctx.pathParam("id"));
-		var result = repo().fetchById(id, fullProjection());
+		var result = repo().fetchById(id, null);
 		if (result == null) {
 			ctx.status(404).json(Map.of("error", "Not found"));
 			return;
@@ -97,13 +101,38 @@ public class UserApiController {
 		var body = ApiObjectMapper.get().readTree(ctx.body());
 		Long id = body.get("id").asLong();
 		var projection = ApiObjectMapper.parseProjection(body, User.class);
-		var result = repo().fetchById(id, projection != null ? projection : fullProjection());
+		var result = repo().fetchById(id, projection);
 		if (result == null) {
 			ctx.status(404).json(Map.of("error", "Not found"));
 			return;
 		}
 		json(ctx, result);
 	}
+
+	// :: Transport-level helpers
+
+	/**
+	 * Decripta a senha se presente e criptografada com RSA (chave da sessão).
+	 */
+	private static void decryptPasswordIfPresent(User user) {
+		var sc = SecurityContextHolder.get();
+		if (sc != null && user.password != null && !user.password.isBlank()) {
+			try {
+				user.password = rsaDecrypt(user.password, sc.privateKey());
+			} catch (Exception e) {
+				LOG.debug("Password not RSA-encrypted or decryption failed, using as-is");
+			}
+		}
+	}
+
+	private static String rsaDecrypt(String encryptedBase64, PrivateKey privateKey) throws Exception {
+		var cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");
+		cipher.init(Cipher.DECRYPT_MODE, privateKey);
+		var decrypted = cipher.doFinal(Base64.getDecoder().decode(encryptedBase64));
+		return new String(decrypted, java.nio.charset.StandardCharsets.UTF_8);
+	}
+
+	// :: Parsing
 
 	private static UserCriteria parseCriteria(JsonNode body) {
 		var criteria = new UserCriteria();

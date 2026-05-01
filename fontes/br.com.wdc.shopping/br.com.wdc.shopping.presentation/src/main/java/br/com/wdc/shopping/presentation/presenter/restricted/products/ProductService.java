@@ -4,21 +4,29 @@ import java.util.List;
 
 import br.com.wdc.shopping.domain.criteria.ProductCriteria;
 import br.com.wdc.shopping.domain.repositories.ProductRepository;
+import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.exception.ProductNotFoundException;
 import br.com.wdc.shopping.presentation.exception.WrongParametersException;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
 
-public enum ProductService {
-    BEAN;
+public class ProductService {
+
+    private final ProductRepository repo;
+
+    public ProductService(ShoppingApplication app) {
+        this.repo = app.getProductRepository();
+    }
+
+    public ProductService(ProductRepository repo) {
+        this.repo = repo;
+    }
 
     public ProductInfo loadProductById(Long productId) {
-        var shoppingService = ProductRepository.BEAN.get();
-
         if (productId == null) {
             throw new WrongParametersException();
         }
 
-        var product = shoppingService.fetchById(productId, ProductInfo.projection());
+        var product = repo.fetchById(productId, ProductInfo.projection());
         if (product == null) {
             throw new ProductNotFoundException();
         }
@@ -26,16 +34,13 @@ public enum ProductService {
     }
 
     public List<ProductInfo> loadProductsWithoutDescription(int limit) {
-        var shoppingService = ProductRepository.BEAN.get();
-
         var criteria = new ProductCriteria()
                 .withProjection(ProductInfo.projection())
-                .withLimit(limit); // safe limit (paging implementation is required)
+                .withLimit(limit);
 
-        // This long description will not be shown
         criteria.projection().description = null;
 
-        return shoppingService.fetch(criteria)
+        return repo.fetch(criteria)
                 .stream().map(ProductInfo::create).toList();
     }
 }

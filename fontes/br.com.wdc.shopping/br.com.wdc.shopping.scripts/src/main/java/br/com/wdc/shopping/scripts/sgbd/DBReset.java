@@ -69,9 +69,9 @@ public class DBReset {
 		 */
 
 		id = 0;
-		bhv.addUser(DBReset.ADMIN_ID = id++, "admin", "admin", "João da Silva");
-		bhv.addUser(DBReset.FULANO_ID = id++, "fulano", "fulano", "Fulano de Tal");
-		bhv.addUser(DBReset.BEOTRANO_ID = id++, "beotrano", "beotrano", "Beotrano de Alguma Coisa");
+		bhv.addUser(DBReset.ADMIN_ID = id++, "admin", "admin", "João da Silva", "ADMIN");
+		bhv.addUser(DBReset.FULANO_ID = id++, "fulano", "fulano", "Fulano de Tal", "CUSTOMER");
+		bhv.addUser(DBReset.BEOTRANO_ID = id++, "beotrano", "beotrano", "Beotrano de Alguma Coisa", "CUSTOMER");
 		EnUser.INSTANCE.alterSeqUser(c, id);
 
 		/*
@@ -132,7 +132,7 @@ public class DBReset {
 			this.c = c;
 		}
 
-		void addUser(long id, String userName, String password, String name) {
+		void addUser(long id, String userName, String password, String name, String roles) {
 			var row = new EnUser.Row();
 			row.id(id);
 			row.userName(userName);
@@ -141,6 +141,7 @@ public class DBReset {
 				row.password(pwd);
 			}
 			row.name(name);
+			row.roles(roles);
 
 			new InsertRowUserCmd().execute(c, row);
 		}

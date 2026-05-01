@@ -30,12 +30,14 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     // :: Internal Instance Fields
 
+    private final LoginService loginService;
     private CubeViewSlot ownerSlot;
 
     // :: Constructor
 
     public LoginPresenter(ShoppingApplication app) {
         super(app);
+        this.loginService = new LoginService(app);
     }
 
     // :: Cube API
@@ -70,7 +72,7 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     public void onEnter() {
         try {
-            var subject = LoginService.BEAN.fetchSubject(state.userName, state.password);
+            var subject = loginService.fetchSubject(state.userName, state.password);
 
             if (subject == null || subject.getId() == null) {
                 app.setSubject(null);

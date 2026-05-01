@@ -104,7 +104,7 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
             this.purchasesPanel = new PurchasesPanelPresenter(this.app, this);
             this.state.purchasesPanelView = this.purchasesPanel.initialize();
 
-            this.cart = new CartManager();
+            this.cart = new CartManager(app);
             this.onCartCommitListenerRemover = this.cart.addCommitListener(this::onCartCommited);
             this.onCartChangeListenerRemover = this.cart.addChangeListener(this::onCartChanged);
             this.app.setCart(this.cart);

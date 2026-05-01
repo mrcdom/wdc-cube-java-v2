@@ -32,12 +32,14 @@ public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication>
 
     // :: Internal Instance Fields
 
+    private final ProductService productService;
     private CubeViewSlot ownerSlot;
 
     // Constructor
 
     public ProductPresenter(ShoppingApplication app) {
         super(app);
+        this.productService = new ProductService(app);
     }
 
     // :: Cube API
@@ -52,7 +54,7 @@ public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication>
         }
 
         if (this.state.product == null || !Objects.equals(newProductId, oldProductId)) {
-            var product = ProductService.BEAN.loadProductById(newProductId);
+            var product = productService.loadProductById(newProductId);
             this.state.product = product;
             this.update();
         }

@@ -54,6 +54,11 @@ public class UpdateRowUserCmd extends BaseCommand {
             hasChanges = true;
         }
 
+        if (!Objects.equals(row.roles(), newBean.roles)) {
+            row.roles(newBean.roles);
+            hasChanges = true;
+        }
+
         if (hasChanges) {
             return new UpdateRowUserCmd().execute(connection, row) > 0;
         }
@@ -81,6 +86,10 @@ public class UpdateRowUserCmd extends BaseCommand {
             sql.ln(comma.get(), en.name, EQUAL, param("name", row.name()));
         }
 
+        if (row.isRolesChanged()) {
+            sql.ln(comma.get(), en.roles, EQUAL, param("roles", row.roles()));
+        }
+
         if (paramsIsEmpty()) {
             return 0;
         }
@@ -104,6 +113,7 @@ public class UpdateRowUserCmd extends BaseCommand {
         row.userName(bean.userName);
         row.password(bean.password);
         row.name(bean.name);
+        row.roles(bean.roles);
         return row;
     }
 

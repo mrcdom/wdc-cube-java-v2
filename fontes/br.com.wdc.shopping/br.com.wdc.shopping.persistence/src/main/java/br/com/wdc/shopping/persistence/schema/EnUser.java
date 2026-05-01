@@ -24,6 +24,7 @@ public class EnUser extends DbTable {
     public final DbField userName;
     public final DbField password;
     public final DbField name;
+    public final DbField roles;
 
     private final List<DbField> fields;
 
@@ -34,8 +35,9 @@ public class EnUser extends DbTable {
         this.userName = mkVarChar("USERNAME", 255, false);
         this.password = mkChar("PASSWORD", 32, false);
         this.name = mkVarChar("NAME", 255, false);
+        this.roles = mkVarChar("ROLES", 255, true);
 
-        this.fields = Arrays.asList(id, userName, password, name);
+        this.fields = Arrays.asList(id, userName, password, name, roles);
     }
 
     @Override
@@ -60,6 +62,7 @@ public class EnUser extends DbTable {
             out.println("," + this.userName.declaration());
             out.println("," + this.password.declaration());
             out.println("," + this.name.declaration());
+            out.println("," + this.roles.declaration());
             out.println(",CONSTRAINT PK_" + baseName + " PRIMARY KEY (" + this.id.name() + ")");
             out.println(")");
         }
@@ -157,6 +160,25 @@ public class EnUser extends DbTable {
             return nameChanged;
         }
 
+        // :: ROLES
+
+        private String roles;
+        private boolean rolesChanged;
+
+        public String roles() {
+            return this.roles;
+        }
+
+        public Row roles(String value) {
+            this.roles = value;
+            this.rolesChanged = true;
+            return this;
+        }
+
+        public boolean isRolesChanged() {
+            return rolesChanged;
+        }
+
         // :: BaseRow API
 
         @Override
@@ -165,6 +187,7 @@ public class EnUser extends DbTable {
             this.userNameChanged = false;
             this.passwordChanged = false;
             this.nameChanged = false;
+            this.rolesChanged = false;
         }
 
         public static Row parseJson(JsonReader reader) throws IOException {
@@ -177,6 +200,7 @@ public class EnUser extends DbTable {
                 obj0.put(en.userName.name(), () -> row.userName(JsonCoerceUtils.asString(reader)));
                 obj0.put(en.password.name(), () -> row.password(JsonCoerceUtils.asString(reader)));
                 obj0.put(en.name.name(), () -> row.name(JsonCoerceUtils.asString(reader)));
+                obj0.put(en.roles.name(), () -> row.roles(JsonCoerceUtils.asString(reader)));
             });
 
             return row;

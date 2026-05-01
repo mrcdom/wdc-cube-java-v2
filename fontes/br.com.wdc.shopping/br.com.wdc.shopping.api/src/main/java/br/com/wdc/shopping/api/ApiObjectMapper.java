@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -59,6 +60,7 @@ public final class ApiObjectMapper {
 
 		mapper.addMixIn(br.com.wdc.shopping.domain.model.PurchaseItem.class, PurchaseItemMixin.class);
 		mapper.addMixIn(br.com.wdc.shopping.domain.model.Product.class, ProductMixin.class);
+		mapper.addMixIn(br.com.wdc.shopping.domain.model.User.class, UserMixin.class);
 
 		return mapper;
 	}
@@ -85,5 +87,10 @@ public final class ApiObjectMapper {
 	abstract static class ProductMixin {
 		@JsonIgnore
 		public byte[] image;
+	}
+
+	abstract static class UserMixin {
+		@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+		public String password;
 	}
 }

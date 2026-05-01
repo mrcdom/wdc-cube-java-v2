@@ -21,16 +21,21 @@ public class ProductsPanelPresenter extends AbstractChildPresenter<ShoppingAppli
 
     public static Function<ProductsPanelPresenter, CubeView> createView;
 
-    // :: Public Instance Fieldd
+    // :: Public Instance Fields
 
     public final HomePresenter owner;
     public final ProductsPanelViewState state = new ProductsPanelViewState();
+
+    // :: Internal Instance Fields
+
+    private final ProductService productService;
 
     // :: Constructor
 
     public ProductsPanelPresenter(ShoppingApplication app, HomePresenter owner) {
         super(app);
         this.owner = owner;
+        this.productService = new ProductService(app);
     }
 
     // :: Life cycle
@@ -55,7 +60,7 @@ public class ProductsPanelPresenter extends AbstractChildPresenter<ShoppingAppli
 
     public void loadProducts() {
         try {
-            this.state.products = ProductService.BEAN.loadProductsWithoutDescription(1000);
+            this.state.products = productService.loadProductsWithoutDescription(1000);
             this.update();
         } catch (Exception caught) {
             LOG.error("Failed to load products", caught);
