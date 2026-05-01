@@ -63,9 +63,7 @@ public class PurchasesPanelViewJfx extends AbstractViewJfx<PurchasesPanelPresent
                 btn.setOnAction(this::emitPrevPage);
             });
 
-            dom.label(label -> {
-                this.pageInfoElm = label;
-            });
+            dom.label(label -> this.pageInfoElm = label);
 
             dom.button(btn -> {
                 btn.setText("Próxima >");

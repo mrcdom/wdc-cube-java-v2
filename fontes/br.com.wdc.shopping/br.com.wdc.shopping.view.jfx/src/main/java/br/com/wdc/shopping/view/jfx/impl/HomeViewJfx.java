@@ -56,17 +56,15 @@ public class HomeViewJfx extends AbstractViewJfx<HomePresenter> {
         }
 
         // Update products panel
-        if (this.state.productsPanelView instanceof AbstractViewJfx<?> ppv) {
-            if (ppv.getElement().getParent() != this.productsPanelSlot) {
-                this.productsPanelSlot.getChildren().setAll(ppv.getElement());
-            }
+        if (this.state.productsPanelView instanceof AbstractViewJfx<?> ppv
+                && ppv.getElement().getParent() != this.productsPanelSlot) {
+            this.productsPanelSlot.getChildren().setAll(ppv.getElement());
         }
 
         // Update purchases panel
-        if (this.state.purchasesPanelView instanceof AbstractViewJfx<?> ppv) {
-            if (ppv.getElement().getParent() != this.purchasesPanelSlot) {
-                this.purchasesPanelSlot.getChildren().setAll(ppv.getElement());
-            }
+        if (this.state.purchasesPanelView instanceof AbstractViewJfx<?> ppv
+                && ppv.getElement().getParent() != this.purchasesPanelSlot) {
+            this.purchasesPanelSlot.getChildren().setAll(ppv.getElement());
         }
 
         // Update content slot
@@ -99,7 +97,6 @@ public class HomeViewJfx extends AbstractViewJfx<HomePresenter> {
         }
     }
 
-    @SuppressWarnings("unused")
     private void initialRender(JfxDom dom, VBox pane0) {
         pane0.getStyleClass().add("home-view");
 

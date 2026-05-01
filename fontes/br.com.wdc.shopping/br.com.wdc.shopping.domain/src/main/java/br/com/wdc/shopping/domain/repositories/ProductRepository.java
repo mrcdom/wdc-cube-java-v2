@@ -26,4 +26,6 @@ public interface ProductRepository {
 
     byte[] fetchImage(Long productId);
 
+    boolean updateImage(Long productId, byte[] image);
+
 }

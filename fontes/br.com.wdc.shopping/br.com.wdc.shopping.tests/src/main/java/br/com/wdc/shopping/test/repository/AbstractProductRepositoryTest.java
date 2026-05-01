@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.test;
+package br.com.wdc.shopping.test.repository;
 
 import static org.junit.Assert.*;
 
@@ -12,13 +12,10 @@ import br.com.wdc.shopping.domain.model.Product;
 import br.com.wdc.shopping.domain.repositories.ProductRepository;
 import br.com.wdc.shopping.domain.utils.ProjectionValues;
 import br.com.wdc.shopping.scripts.sgbd.DBReset;
-import br.com.wdc.shopping.test.util.BaseBusinessTest;
 
-public class ProductRepositoryTest extends BaseBusinessTest {
+public abstract class AbstractProductRepositoryTest {
 
-	private ProductRepository repo() {
-		return ProductRepository.BEAN.get();
-	}
+	protected abstract ProductRepository repo();
 
 	// :: fetch
 
@@ -205,7 +202,6 @@ public class ProductRepositoryTest extends BaseBusinessTest {
 
 	@Test
 	public void deleteByProductId() {
-		// PEN_DRIVE2GB is not referenced by any purchase item
 		int deleted = repo().delete(new ProductCriteria().withProductId(DBReset.PEN_DRIVE2GB_ID));
 		assertEquals(1, deleted);
 		assertEquals(3, repo().count(new ProductCriteria()));

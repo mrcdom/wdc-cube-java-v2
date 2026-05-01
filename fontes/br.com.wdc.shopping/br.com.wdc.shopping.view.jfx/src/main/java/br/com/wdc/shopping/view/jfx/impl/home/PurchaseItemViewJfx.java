@@ -69,16 +69,13 @@ public class PurchaseItemViewJfx extends AbstractViewJfx<PurchasesPanelPresenter
         }
     }
 
-    @SuppressWarnings("unused")
     private void initialRender(JfxDom dom, VBox pane0) {
         pane0.getStyleClass().add("purchase-item");
 
         dom.hbox(pane1 -> {
             pane1.getStyleClass().add("order-pnl");
 
-            dom.label(label -> {
-                label.setText("Compra");
-            });
+            dom.label(label -> label.setText("Compra"));
 
             dom.label(label -> {
                 this.idElm = label;
@@ -90,9 +87,7 @@ public class PurchaseItemViewJfx extends AbstractViewJfx<PurchasesPanelPresenter
         dom.vbox(pane1 -> {
             pane1.getStyleClass().add("order-info");
 
-            dom.label(label -> {
-                label.setText("Data da compra:");
-            });
+            dom.label(label -> label.setText("Data da compra:"));
 
             dom.label(label -> {
                 this.dateElm = label;
@@ -100,9 +95,7 @@ public class PurchaseItemViewJfx extends AbstractViewJfx<PurchasesPanelPresenter
                 this.dateOldValue = this.state.date;
             });
 
-            dom.label(label -> {
-                label.setText("Itens adquiridos:");
-            });
+            dom.label(label -> label.setText("Itens adquiridos:"));
 
             dom.label(label -> {
                 label.setWrapText(true);

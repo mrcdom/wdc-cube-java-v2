@@ -1,0 +1,79 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Background circle -->
+    <path
+        android:fillColor="#1565C0"
+        android:pathData="M54,54m-44,0a44,44 0,1 1,88 0a44,44 0,1 1,-88 0" />
+
+    <!-- Inner ring accent -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#42A5F5"
+        android:strokeWidth="1.5"
+        android:pathData="M54,54m-38,0a38,38 0,1 1,76 0a38,38 0,1 1,-76 0" />
+
+    <!-- Shopping cart body -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M30,36 L36,36 L42,56 L72,56 L76,42 L40,42" />
+
+    <!-- Cart wheels -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M46,62m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M66,62m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
+
+    <!-- "WDC" text inside cart area -->
+    <path
+        android:fillColor="#E3F2FD"
+        android:pathData="M44,47 L46.5,52 L49,47 L51.5,52 L54,47"
+        android:strokeColor="#E3F2FD"
+        android:strokeWidth="1.2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#E3F2FD"
+        android:strokeWidth="1.2"
+        android:strokeLineCap="round"
+        android:pathData="M57,47 L57,52 Q57,53 59.5,53 Q62,53 62,52 L62,47" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#E3F2FD"
+        android:strokeWidth="1.2"
+        android:strokeLineCap="round"
+        android:pathData="M65,53 Q65,47 68,47 Q71,47 71,50 Q71,53 68,53" />
+
+    <!-- Small code brackets < /> -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#90CAF9"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M38,72 L34,75 L38,78" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#90CAF9"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:pathData="M42,71 L40,79" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#90CAF9"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M44,72 L48,75 L44,78" />
+
+</vector>

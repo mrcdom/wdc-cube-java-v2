@@ -9,6 +9,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import br.com.wdc.shopping.api.RepositoryApiRoutes;
 import br.com.wdc.shopping.domain.config.AppConfig;
 import br.com.wdc.shopping.view.react.controller.DispatcherController;
 import br.com.wdc.shopping.view.react.controller.ImageController;
@@ -102,6 +103,9 @@ public class JavalinApplication {
         // Health check endpoint
         StatusController.configure(config);
         ImageController.configure(config);
+
+        // Repository REST API for Android (and other REST clients)
+        RepositoryApiRoutes.configure(config);
 
         // Force the SPA root through /index.html so bootstrap cookies are always issued
         // before the frontend constructor tries to read app_id and app_skey.

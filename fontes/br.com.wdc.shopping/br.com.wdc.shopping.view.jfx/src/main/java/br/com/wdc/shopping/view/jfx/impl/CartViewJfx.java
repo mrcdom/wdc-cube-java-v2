@@ -74,7 +74,6 @@ public class CartViewJfx extends AbstractViewJfx<CartPresenter> {
         }
     }
 
-    @SuppressWarnings("unused")
     private void initialRender(JfxDom dom, VBox pane0) {
         pane0.getStyleClass().add("cart-form");
         pane0.setMaxWidth(900);
@@ -88,9 +87,7 @@ public class CartViewJfx extends AbstractViewJfx<CartPresenter> {
                 img.setFitHeight(24);
             });
 
-            dom.label(label -> {
-                label.setText("Carrinho");
-            });
+            dom.label(label -> label.setText("Carrinho"));
 
             dom.label(label -> {
                 this.itemSizeElm = label;

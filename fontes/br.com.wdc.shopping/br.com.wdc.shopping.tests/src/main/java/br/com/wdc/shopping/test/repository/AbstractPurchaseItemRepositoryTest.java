@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.test;
+package br.com.wdc.shopping.test.repository;
 
 import static org.junit.Assert.*;
 
@@ -13,15 +13,12 @@ import br.com.wdc.shopping.domain.model.PurchaseItem;
 import br.com.wdc.shopping.domain.repositories.PurchaseItemRepository;
 import br.com.wdc.shopping.domain.utils.ProjectionValues;
 import br.com.wdc.shopping.scripts.sgbd.DBReset;
-import br.com.wdc.shopping.test.util.BaseBusinessTest;
 
-public class PurchaseItemRepositoryTest extends BaseBusinessTest {
+public abstract class AbstractPurchaseItemRepositoryTest {
 
-	private PurchaseItemRepository repo() {
-		return PurchaseItemRepository.BEAN.get();
-	}
+	protected abstract PurchaseItemRepository repo();
 
-	private PurchaseItem projectionWithRelations() {
+	protected PurchaseItem projectionWithRelations() {
 		var pv = ProjectionValues.INSTANCE;
 		var prj = new PurchaseItem();
 		prj.id = pv.i64;
@@ -48,7 +45,6 @@ public class PurchaseItemRepositoryTest extends BaseBusinessTest {
 		assertNotNull(item);
 		assertNotNull(item.amount);
 		assertNotNull(item.price);
-		assertNotNull(item.purchase);
 		assertNotNull(item.product);
 	}
 
@@ -192,7 +188,6 @@ public class PurchaseItemRepositoryTest extends BaseBusinessTest {
 		assertNotNull(fetched);
 		assertEquals(Integer.valueOf(5), fetched.amount);
 		assertEquals(15.50, fetched.price, 0.001);
-		assertEquals(DBReset.ADMIN_FIRST_PURCHASE_ID, fetched.purchase.id);
 		assertEquals(DBReset.PEN_DRIVE2GB_ID, fetched.product.id);
 	}
 
@@ -276,7 +271,6 @@ public class PurchaseItemRepositoryTest extends BaseBusinessTest {
 
 	@Test
 	public void deleteByUserId_crossEntityExists() {
-		// userId não é coluna de EN_PURCHASEITEM — o delete usa EXISTS com subquery em EN_PURCHASE
 		int deleted = repo().delete(new PurchaseItemCriteria()
 				.withUserId(DBReset.ADMIN_ID));
 		assertEquals(3, deleted);

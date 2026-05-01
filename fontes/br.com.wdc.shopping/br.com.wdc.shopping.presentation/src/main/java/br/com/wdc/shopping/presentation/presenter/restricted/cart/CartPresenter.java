@@ -1,11 +1,14 @@
 package br.com.wdc.shopping.presentation.presenter.restricted.cart;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
+import br.com.wdc.framework.commons.function.Registration;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.CubeView;
@@ -35,6 +38,7 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     private CartManager cart;
     private CubeViewSlot ownerSlot;
+    private Registration pendingErrorClear;
 
     // :: Constructor
 
@@ -86,6 +90,9 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
             if (!found) {
                 this.alertProductNotFound();
                 LOG.warn("onModifyQuantity.alertProductNotFound: {}", this.state.errorMessage);
+            } else {
+                this.state.items = this.cart.getCartItems();
+                this.update();
             }
         } catch (Exception caught) {
             this.app.alertUnexpectedError(LOG, "Removing a prouduct", caught);
@@ -155,40 +162,57 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     // :: Message Methods
 
+    private void clearErrorAfterDelay() {
+        if (this.pendingErrorClear != null) {
+            this.pendingErrorClear.remove();
+        }
+        this.pendingErrorClear = ScheduledExecutor.BEAN.get().schedule(() -> {
+            this.state.errorCode = 0;
+            this.state.errorMessage = null;
+            this.update();
+        }, Duration.ofSeconds(3));
+    }
+
     protected void alertThereIsItemWhichValueIsLessThanOne() {
         this.state.errorCode = 1;
         this.state.errorMessage = "Deve existir pelo menos um item no carrinhro para se efetivar uma compra";
         this.update();
+        this.clearErrorAfterDelay();
     }
 
     protected void alertProductNotFound() {
         this.state.errorCode = 2;
         this.state.errorMessage = "Produdo não localizado na base dados.";
         this.update();
+        this.clearErrorAfterDelay();
     }
 
     protected void alertPurchaseOfEmptyCart() {
         this.state.errorCode = 3;
         this.state.errorMessage = "Existem produtos com menos de um item na quantidade. Impossível comprar.";
         this.update();
+        this.clearErrorAfterDelay();
     }
 
     protected void alertDatabaseOffline() {
         this.state.errorCode = 4;
         this.state.errorMessage = "O banco de dados encontra-se fora do ar no momento. Aguarde alguns instantes e tente novamente.";
         this.update();
+        this.clearErrorAfterDelay();
     }
 
     protected void errorCodigoDeProdutoMalFormatado() {
         this.state.errorCode = 5;
         this.state.errorMessage = "Código do produto mal formado.";
         this.update();
+        this.clearErrorAfterDelay();
     }
 
     protected void errorValorQuantidadeMalFormatado() {
         this.state.errorCode = 6;
         this.state.errorMessage = "Valor da quantiade está mal formado.";
         this.update();
+        this.clearErrorAfterDelay();
     }
 
 }

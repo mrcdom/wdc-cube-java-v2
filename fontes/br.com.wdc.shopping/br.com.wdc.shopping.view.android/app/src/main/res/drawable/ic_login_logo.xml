@@ -1,0 +1,154 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="240dp"
+    android:height="200dp"
+    android:viewportWidth="240"
+    android:viewportHeight="200">
+
+    <!-- Large shopping cart -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#1565C0"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M40,40 L55,40 L70,90 L170,90 L180,55 L65,55" />
+
+    <!-- Cart handle -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#1565C0"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:pathData="M40,40 L30,30" />
+
+    <!-- Cart wheels -->
+    <path
+        android:fillColor="#1565C0"
+        android:pathData="M82,100m-7,0a7,7 0,1 1,14 0a7,7 0,1 1,-14 0" />
+    <path
+        android:fillColor="#1565C0"
+        android:pathData="M155,100m-7,0a7,7 0,1 1,14 0a7,7 0,1 1,-14 0" />
+    <!-- Wheel inner circles -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M82,100m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M155,100m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
+
+    <!-- Code brackets in the cart < /> -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#42A5F5"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M95,62 L85,72 L95,82" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#42A5F5"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M110,60 L105,84" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#42A5F5"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M120,62 L130,72 L120,82" />
+
+    <!-- Small items peeking from cart top -->
+    <path
+        android:fillColor="#90CAF9"
+        android:pathData="M140,50 L150,50 L150,55 L140,55 Z" />
+    <path
+        android:fillColor="#64B5F6"
+        android:pathData="M155,45 L165,45 L165,55 L155,55 Z" />
+
+    <!-- "WeDoCode" text -->
+    <!-- W -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#1565C0"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M30,130 L38,155 L46,140 L54,155 L62,130" />
+    <!-- e -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#1565C0"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M66,145 L76,145 Q76,138 71,138 Q66,138 66,145 Q66,155 76,152" />
+    <!-- D -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#1565C0"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:pathData="M82,130 L82,155 M82,130 Q98,130 98,142.5 Q98,155 82,155" />
+    <!-- o -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#1565C0"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M108,146.5m-7,0a7,8.5 0,1 1,14 0a7,8.5 0,1 1,-14 0" />
+    <!-- C -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#42A5F5"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:pathData="M134,133 Q120,133 120,142.5 Q120,155 134,155" />
+    <!-- o -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#42A5F5"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M145,146.5m-7,0a7,8.5 0,1 1,14 0a7,8.5 0,1 1,-14 0" />
+    <!-- d -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#42A5F5"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M163,146.5m-7,0a7,8.5 0,1 1,14 0a7,8.5 0,1 1,-14 0" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#42A5F5"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M170,130 L170,155" />
+    <!-- e -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#42A5F5"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M176,145 L186,145 Q186,138 181,138 Q176,138 176,145 Q176,155 186,152" />
+
+    <!-- Tagline "Shopping" -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#90CAF9"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:pathData="M30,168 L210,168" />
+    <!-- Small decorative dots -->
+    <path
+        android:fillColor="#42A5F5"
+        android:pathData="M90,175m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0" />
+    <path
+        android:fillColor="#1565C0"
+        android:pathData="M100,175m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0" />
+    <path
+        android:fillColor="#42A5F5"
+        android:pathData="M110,175m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0" />
+
+</vector>

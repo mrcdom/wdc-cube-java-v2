@@ -5,7 +5,6 @@ import br.com.wdc.shopping.persistence.schema.support.*;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.util.Arrays;
 import java.util.List;
@@ -36,7 +35,7 @@ public class EnProduct extends DbTable {
         this.id = mkBigint("ID", false);
         this.name = mkVarCharIgnoreCase("NAME", 1000000, false);
         this.price = mkNumeric("PRICE", 20, 2, false);
-        this.description = mkBinary("DESCRIPTION", 1000000, false);
+        this.description = mkVarChar("DESCRIPTION", 1000000, false);
         this.image = mkBinary("IMAGE", 1000000, true);
 
         this.fields = Arrays.asList(id, name, price, description, image);
@@ -201,12 +200,7 @@ public class EnProduct extends DbTable {
                 obj0.put(en.id.name(), () -> row.id(JsonCoerceUtils.asLong(reader)));
                 obj0.put(en.name.name(), () -> row.name(JsonCoerceUtils.asString(reader)));
                 obj0.put(en.price.name(), () -> row.price(JsonCoerceUtils.asBigDecimal(reader)));
-                obj0.put(en.description.name(), () -> {
-                    var bytes = JsonCoerceUtils.asByteArrayFromHex(reader);
-                    if (bytes != null) {
-                        row.description(new String(bytes, StandardCharsets.UTF_8));
-                    }
-                });
+                obj0.put(en.description.name(), () -> row.description(JsonCoerceUtils.asString(reader)));
                 obj0.put(en.image.name(), () -> row.image(JsonCoerceUtils.asByteArrayFromHex(reader)));
             });
             

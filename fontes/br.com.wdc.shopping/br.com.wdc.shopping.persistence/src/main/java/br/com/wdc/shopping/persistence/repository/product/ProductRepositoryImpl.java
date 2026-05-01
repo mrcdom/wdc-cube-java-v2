@@ -93,4 +93,16 @@ public class ProductRepositoryImpl extends BaseRepository implements ProductRepo
         }
     }
 
+    @Override
+    public boolean updateImage(Long productId, byte[] image) {
+        try (var tx = TransactionContext.begin(dataSource())) {
+            var product = new Product();
+            product.id = productId;
+            product.image = image;
+            return UpdateProductRowCmd.run(tx.connection(), product);
+        } catch (Exception caught) {
+            throw readException(caught);
+        }
+    }
+
 }

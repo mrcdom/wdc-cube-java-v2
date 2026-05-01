@@ -1,8 +1,9 @@
 package br.com.wdc.shopping.view.jfx.impl;
 
 import java.text.NumberFormat;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.Objects;
-import java.util.Stack;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.TextNode;
@@ -99,7 +100,6 @@ public class ProductViewJfx extends AbstractViewJfx<ProductPresenter> {
         }
     }
 
-    @SuppressWarnings("unused")
     private void initialRender(JfxDom dom, VBox pane0) {
         pane0.getStyleClass().add("product-form");
         pane0.setMaxWidth(900);
@@ -229,7 +229,7 @@ public class ProductViewJfx extends AbstractViewJfx<ProductPresenter> {
 
     private static class SimpleHtmlRenderer implements NodeVisitor {
 
-        private final Stack<Pane> stack = new Stack<>();
+        private final Deque<Pane> stack = new LinkedList<>();
 
         SimpleHtmlRenderer(Pane pane) {
             this.stack.push(pane);

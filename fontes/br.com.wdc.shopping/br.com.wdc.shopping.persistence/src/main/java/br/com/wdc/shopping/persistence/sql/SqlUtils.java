@@ -72,6 +72,12 @@ public class SqlUtils {
                 sb.append("RAWTOHEX(");
                 sb.append(field.path());
                 sb.append(")");
+            } else if (field.type() == JDBCType.VARCHAR) {
+                // H2 JSON_OBJECT tries to parse VARCHAR values as JSON;
+                // CAST ensures the value is treated as a plain string.
+                sb.append("CAST(");
+                sb.append(field.path());
+                sb.append(" AS VARCHAR)");
             } else {
                 sb.append(field.path());
             }

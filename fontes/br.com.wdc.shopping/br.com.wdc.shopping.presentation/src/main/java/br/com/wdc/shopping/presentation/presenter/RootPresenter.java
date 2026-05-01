@@ -85,7 +85,11 @@ public class RootPresenter extends AbstractCubePresenter<ShoppingApplication> {
             this.state.errorMessage = message + ": " + caught.getMessage();
         }
         this.update();
-        logger.error(this.state.errorMessage, caught);
+        if (logger != null) {
+            logger.error(this.state.errorMessage, caught);
+        } else {
+            LOG.error(this.state.errorMessage, caught);
+        }
     }
 
     // :: Slots

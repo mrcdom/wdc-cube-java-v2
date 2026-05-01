@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.test;
+package br.com.wdc.shopping.test.repository;
 
 import static org.junit.Assert.*;
 
@@ -11,13 +11,10 @@ import br.com.wdc.shopping.domain.model.User;
 import br.com.wdc.shopping.domain.repositories.UserRepository;
 import br.com.wdc.shopping.domain.utils.ProjectionValues;
 import br.com.wdc.shopping.scripts.sgbd.DBReset;
-import br.com.wdc.shopping.test.util.BaseBusinessTest;
 
-public class UserRepositoryTest extends BaseBusinessTest {
+public abstract class AbstractUserRepositoryTest {
 
-	private UserRepository repo() {
-		return UserRepository.BEAN.get();
-	}
+	protected abstract UserRepository repo();
 
 	// :: fetch
 

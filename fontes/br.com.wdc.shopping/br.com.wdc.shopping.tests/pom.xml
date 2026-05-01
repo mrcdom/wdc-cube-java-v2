@@ -45,5 +45,22 @@
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 		</dependency>
+
+		<!-- REST API server + client for integration tests -->
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>br.com.wdc.shopping.api</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>br.com.wdc.shopping.api-client</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.javalin</groupId>
+			<artifactId>javalin</artifactId>
+			<version>7.1.0</version>
+		</dependency>
 	</dependencies>
 </project>

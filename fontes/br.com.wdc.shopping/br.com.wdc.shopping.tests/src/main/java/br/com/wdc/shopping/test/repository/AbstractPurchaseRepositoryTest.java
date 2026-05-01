@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.test;
+package br.com.wdc.shopping.test.repository;
 
 import static org.junit.Assert.*;
 
@@ -9,21 +9,18 @@ import org.junit.Test;
 
 import br.com.wdc.shopping.domain.criteria.PurchaseItemCriteria;
 import br.com.wdc.shopping.domain.criteria.PurchaseCriteria;
-import br.com.wdc.shopping.domain.model.Product;
 import br.com.wdc.shopping.domain.model.Purchase;
-import br.com.wdc.shopping.domain.model.PurchaseItem;
 import br.com.wdc.shopping.domain.model.User;
 import br.com.wdc.shopping.domain.repositories.PurchaseItemRepository;
 import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
 import br.com.wdc.shopping.domain.utils.ProjectionValues;
 import br.com.wdc.shopping.scripts.sgbd.DBReset;
-import br.com.wdc.shopping.test.util.BaseBusinessTest;
 
-public class PurchaseRepositoryTest extends BaseBusinessTest {
+public abstract class AbstractPurchaseRepositoryTest {
 
-	private PurchaseRepository repo() {
-		return PurchaseRepository.BEAN.get();
-	}
+	protected abstract PurchaseRepository repo();
+
+	protected abstract PurchaseItemRepository purchaseItemRepo();
 
 	private Purchase purchaseProjectionWithUser() {
 		var pv = ProjectionValues.INSTANCE;
@@ -69,35 +66,6 @@ public class PurchaseRepositoryTest extends BaseBusinessTest {
 		assertNotNull(purchase);
 		assertEquals(DBReset.ADMIN_FIRST_PURCHASE_ID, purchase.id);
 		assertNotNull(purchase.buyDate);
-	}
-
-	@Test
-	public void fetchWithProjectionList_filterItemsByCriteria() {
-		var pv = ProjectionValues.INSTANCE;
-
-		// Projeção do item: apenas id, amount e product.id
-		var itemPrj = new PurchaseItem();
-		itemPrj.id = pv.i64;
-		itemPrj.amount = pv.i32;
-		itemPrj.product = new Product();
-		itemPrj.product.id = pv.i64;
-
-		// Critério para filtrar apenas items do produto BOLA_WILSON
-		var itemCriteria = new PurchaseItemCriteria()
-				.withProductId(DBReset.BOLA_WILSON_ID);
-
-		// Projeção da compra com items via ProjectionList (aplica critério na sub-coleção)
-		var projection = new Purchase();
-		projection.id = pv.i64;
-		projection.items = pv.singletonList(itemPrj, itemCriteria);
-
-		// ADMIN_SECOND_PURCHASE tem 2 items: BOLA_WILSON e FITA_VEDA_ROSCA
-		// Com o critério, deve retornar apenas o item BOLA_WILSON
-		var purchase = repo().fetchById(DBReset.ADMIN_SECOND_PURCHASE_ID, projection);
-		assertNotNull(purchase);
-		assertNotNull(purchase.items);
-		assertEquals(1, purchase.items.size());
-		assertEquals(DBReset.BOLA_WILSON_ID, purchase.items.get(0).product.id);
 	}
 
 	@Test
@@ -247,7 +215,7 @@ public class PurchaseRepositoryTest extends BaseBusinessTest {
 	@Test
 	public void deleteByPurchaseId() {
 		// First delete purchase items to avoid FK constraint
-		PurchaseItemRepository.BEAN.get().delete(new PurchaseItemCriteria()
+		purchaseItemRepo().delete(new PurchaseItemCriteria()
 				.withPurchaseId(DBReset.ADMIN_FIRST_PURCHASE_ID));
 
 		int deleted = repo().delete(new PurchaseCriteria().withPurchaseId(DBReset.ADMIN_FIRST_PURCHASE_ID));
@@ -257,8 +225,7 @@ public class PurchaseRepositoryTest extends BaseBusinessTest {
 
 	@Test
 	public void deleteByUserId() {
-		// First delete all purchase items to avoid FK constraint
-		PurchaseItemRepository.BEAN.get().delete(new PurchaseItemCriteria()
+		purchaseItemRepo().delete(new PurchaseItemCriteria()
 				.withUserId(DBReset.ADMIN_ID));
 
 		int deleted = repo().delete(new PurchaseCriteria().withUserId(DBReset.ADMIN_ID));

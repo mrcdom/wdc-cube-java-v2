@@ -21,7 +21,8 @@ fontes/
     ├── br.com.wdc.shopping.scripts/         → Scripts SGBD (seed, reset, DDL)
     ├── br.com.wdc.shopping.tests/           → Testes automatizados (JUnit 4)
     ├── br.com.wdc.shopping.view.react/      → Frontend web (React 19 + Javalin + Virtual Threads)
-    └── br.com.wdc.shopping.view.jfx/        → Frontend desktop (JavaFX)
+    ├── br.com.wdc.shopping.view.jfx/        → Frontend desktop (JavaFX)
+    └── br.com.wdc.shopping.view.android/    → Frontend mobile (Kotlin + Jetpack Compose)
 ```
 
 ---
@@ -45,6 +46,7 @@ fontes/
 | **tests** | Teste | Suíte de testes JUnit 4 para repositórios (82 testes) e integração de serviços. |
 | **view.react** | UI (Web) | Frontend React 19 + Material UI, servidor Javalin com Virtual Threads, comunicação segura RSA+AES-GCM. |
 | **view.jfx** | UI (Desktop) | Frontend JavaFX que reutiliza os mesmos presenters da versão web. |
+| **view.android** | UI (Mobile) | App Android nativo (Kotlin + Jetpack Compose) no modelo embarcado — roda toda a stack localmente (H2 + repositórios + presenters). |
 
 ---
 
