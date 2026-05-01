@@ -164,26 +164,34 @@ public class HomeViewJfx extends AbstractViewJfx<HomePresenter> {
         });
 
         // Default content (products + purchases side by side)
-        this.defaultContentPane = new HBox(16);
-        this.defaultContentPane.getStyleClass().add("home-default-content");
+        dom.hbox(defaultContent -> {
+            this.defaultContentPane = defaultContent;
+            defaultContent.setSpacing(16);
+            defaultContent.getStyleClass().add("home-default-content");
 
-        this.purchasesPanelSlot = new StackPane();
-        this.productsPanelSlot = new StackPane();
-        HBox.setHgrow(this.productsPanelSlot, Priority.ALWAYS);
+            dom.stackPane(slot -> {
+                this.productsPanelSlot = slot;
+                HBox.setHgrow(slot, Priority.ALWAYS);
+            });
 
-        this.defaultContentPane.getChildren().addAll(this.productsPanelSlot, this.purchasesPanelSlot);
+            dom.stackPane(slot -> {
+                this.purchasesPanelSlot = slot;
+            });
+        });
 
         // Content pane wrapped in ScrollPane
-        this.contentPane = new StackPane();
-        this.contentPane.setPadding(new javafx.geometry.Insets(16));
-        this.contentPane.getChildren().add(this.defaultContentPane);
+        dom.scrollPane(scroll -> {
+            scroll.setFitToWidth(true);
+            scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+            scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+            VBox.setVgrow(scroll, Priority.ALWAYS);
 
-        var scrollPane = new ScrollPane(this.contentPane);
-        scrollPane.setFitToWidth(true);
-        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        VBox.setVgrow(scrollPane, Priority.ALWAYS);
-        pane0.getChildren().add(scrollPane);
+            dom.stackPane(content -> {
+                this.contentPane = content;
+                content.setPadding(new javafx.geometry.Insets(16));
+                content.getChildren().add(this.defaultContentPane);
+            });
+        });
     }
 
     private void emitExit(ActionEvent evt) {

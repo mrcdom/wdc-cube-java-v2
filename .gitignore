@@ -28,3 +28,14 @@ node_modules/
 hs_err_pid*
 **/work/data/*.mv.db
 **/work/data/*.trace.db
+
+# Vaadin generated files
+**/frontend/generated/
+**/vite.generated.ts
+**/vite.config.ts
+**/tsconfig.json
+**/types.d.ts
+**/pnpmfile.cjs
+**/pnpm-lock.yaml
+**/package.json
+**/package-lock.json

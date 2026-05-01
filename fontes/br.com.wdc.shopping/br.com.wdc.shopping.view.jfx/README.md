@@ -8,12 +8,13 @@ A arquitetura Cube MVP separa rigorosamente os **Presenters** (que controlam est
 
 Este módulo prova que essa separação é real e não apenas teórica:
 
-| Aspecto | React (remoto) | JavaFX (desktop) |
-|---------|-----------------|-------------------|
-| **Onde roda** | Browser via WebSocket | JVM local (JavaFX Application Thread) |
-| **Tecnologia de UI** | React 19 + MUI 9 | JavaFX 24 + CSS |
-| **Transporte de estado** | Serialização JSON via WebSocket | Acesso direto aos ViewStates em memória |
-| **Ciclo de render** | Virtual DOM + reconciliação React | AnimationTimer com dirty-check (16ms) |
+| Aspecto | React (remoto) | Vaadin (server-side) | JavaFX (desktop) |
+|---------|-----------------|----------------------|-------------------|
+| **Onde roda** | Browser via WebSocket | Browser via Server Push | JVM local (JavaFX Application Thread) |
+| **Tecnologia de UI** | React 19 + MUI 9 | Vaadin 24 + Lumo | JavaFX 24 + CSS |
+| **Transporte de estado** | Serialização JSON via WebSocket | Atmosphere (WebSocket/Push) | Acesso direto aos ViewStates em memória |
+| **Ciclo de render** | Virtual DOM + reconciliação React | Server-push automático | AnimationTimer com dirty-check (16ms) |
+| **Código de UI** | TypeScript | Java | Java |
 
 Ambas as implementações utilizam **exatamente os mesmos Presenters, ViewStates e regras de negócio**. Apenas a camada de visualização muda.
 
@@ -146,4 +147,4 @@ Resolução: system property `shopping.config.file` → fallback para `work/conf
 
 ## Conclusão
 
-A existência deste módulo lado a lado com a versão React valida o princípio central da arquitetura Cube MVP: **os ViewStates são contratos estáveis entre Presenters e Views, permitindo trocar a tecnologia de visualização sem alterar uma linha de lógica de negócio ou apresentação**.
+A existência deste módulo lado a lado com as versões React, Vaadin e Android valida o princípio central da arquitetura Cube MVP: **os ViewStates são contratos estáveis entre Presenters e Views, permitindo trocar a tecnologia de visualização sem alterar uma linha de lógica de negócio ou apresentação**.

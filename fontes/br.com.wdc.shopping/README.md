@@ -1,8 +1,8 @@
 # 🛒 WeDoCode Shopping
 
-Um **sistema de e-commerce completo** construído com arquitetura **Cube MVP**, demonstrando como a mesma lógica de negócio pode alimentar interfaces totalmente diferentes — **React (web)**, **JavaFX (desktop)** e **Android (mobile)** — sem duplicar uma única linha de código de apresentação.
+Um **sistema de e-commerce completo** construído com arquitetura **Cube MVP**, demonstrando como a mesma lógica de negócio pode alimentar interfaces totalmente diferentes — **React (web)**, **Vaadin (web server-side)**, **JavaFX (desktop)** e **Android (mobile)** — sem duplicar uma única linha de código de apresentação.
 
-> **Três frontends. Mesma alma.**
+> **Quatro frontends. Mesma alma.**
 
 ---
 
@@ -93,6 +93,19 @@ Mesma aplicação, mesmo banco, mesma lógica — apenas a interface muda.
 
 ---
 
+## Ou rode a versão Web Server-Side (Vaadin)
+
+```bash
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-26.jdk/Contents/Home
+cd br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin
+java --enable-preview -cp "$(mvn -q dependency:build-classpath -Dmdep.outputFile=/dev/stdout):target/classes" \
+  br.com.wdc.shopping.view.vaadin.ShoppingVaadinMain
+```
+
+Abra **http://localhost:8090**. UI inteiramente server-side com Vaadin 24 + Lumo theme. Mesmos presenters, mesmo domínio.
+
+---
+
 ## Ou rode a versão Mobile (Android)
 
 ```bash
@@ -111,20 +124,20 @@ App nativo Android com Jetpack Compose + Material 3. Mesmos presenters, mesmo do
 ## Arquitetura em camadas
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│  React 19 + MUI 9  │  JavaFX 24 + CSS  │  Compose + M3  │
-├─────────────────────────────────────────────────────────┤
-│              Presentation (Cube MVP)                    │
-│       Presenters + ViewStates + Navegação               │
-├─────────────────────────────────────────────────────────┤
-│                   Persistence                           │
-│       Repositories + Command Pattern SQL                │
-├─────────────────────────────────────────────────────────┤
-│                     Domain                              │
-│       Modelos + Contratos + Configuração                │
-├─────────────────────────────────────────────────────────┤
-│                   H2 Database                           │
-└─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  React 19 + MUI 9  │ Vaadin 24 + Lumo │ JavaFX 24 + CSS  │  Compose + M3  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│              Presentation (Cube MVP)                                        │
+│       Presenters + ViewStates + Navegação                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                   Persistence                                              │
+│       Repositories + Command Pattern SQL                                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                     Domain                                                 │
+│       Modelos + Contratos + Configuração                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                   H2 Database                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Módulos
@@ -136,6 +149,7 @@ App nativo Android com Jetpack Compose + Material 3. Mesmos presenters, mesmo do
 | [`presentation`](br.com.wdc.shopping.presentation/) | Presenters hierárquicos, ViewStates, serviços, navegação |
 | [`scripts`](br.com.wdc.shopping.scripts/) | Scripts DDL (DBCreate, DBReset) |
 | [`view.react`](br.com.wdc.shopping.view.react/) | Frontend web completo (React + Javalin + WebSocket) |
+| [`view.vaadin`](br.com.wdc.shopping.view.vaadin/) | Frontend web server-side (Vaadin 24 + Jetty 12 + Lumo theme) |
 | [`view.jfx`](br.com.wdc.shopping.view.jfx/) | Frontend desktop (JavaFX 24 + CSS Material) |
 | [`view.android`](br.com.wdc.shopping.view.android/) | Frontend mobile (Kotlin + Jetpack Compose + Material 3) |
 | [`api`](br.com.wdc.shopping.api/) | Controllers REST (Javalin) para expor repositórios via HTTP |
@@ -147,9 +161,9 @@ App nativo Android com Jetpack Compose + Material 3. Mesmos presenters, mesmo do
 ## Por que explorar este projeto?
 
 - **Sem Spring, sem CDI, sem magia** — injeção via `AtomicReference<T> BEAN`, 100% explícito
-- **Separação real de concerns** — troque a UI inteira sem tocar em lógica (3 frontends provam isso)
+- **Separação real de concerns** — troque a UI inteira sem tocar em lógica (4 frontends provam isso)
 - **Padrões sólidos** — Command, Repository, Presenter, ViewState
-- **Tecnologia moderna** — Java 26, Virtual Threads, React 19, TypeScript
+- **Tecnologia moderna** — Java 26, Virtual Threads, React 19, Vaadin 24, TypeScript
 - **Código limpo** — ~3.5s de build completo, zero warnings
 - **Segurança real** — RSA + PBKDF2 + AES-GCM (não apenas demonstrativo)
 

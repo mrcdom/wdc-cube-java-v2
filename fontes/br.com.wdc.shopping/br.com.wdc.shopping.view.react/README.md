@@ -26,16 +26,17 @@ Este módulo demonstra que essa separação permite uma abordagem de **visualiza
 └─────────────────────────────────────────────────┘
 ```
 
-## Comparação com a versão JFX
+## Comparação com as outras versões
 
-| Aspecto | React (este módulo) | JFX (desktop) |
-|---------|---------------------|---------------|
-| **Onde roda a UI** | Browser remoto | JVM local |
-| **Transporte** | WebSocket (JSON delta) | Acesso direto em memória |
-| **Segurança** | RSA + AES-GCM + URL signing | N/A (processo local) |
-| **Escalabilidade** | Virtual Threads (~1K por conexão) | Instância única |
-| **Presenters** | Mesmos | Mesmos |
-| **ViewStates** | Mesmos | Mesmos |
+| Aspecto | React (este módulo) | Vaadin (server-side) | JFX (desktop) |
+|---------|---------------------|----------------------|---------------|
+| **Onde roda a UI** | Browser remoto | Browser via Server Push | JVM local |
+| **Transporte** | WebSocket (JSON delta) | Atmosphere (WebSocket/Push) | Acesso direto em memória |
+| **Segurança** | RSA + AES-GCM + URL signing | HMAC-SHA256 URL signing | N/A (processo local) |
+| **Escalabilidade** | Virtual Threads (~1K por conexão) | Server Push automático | Instância única |
+| **Código de UI** | TypeScript | Java | Java |
+| **Presenters** | Mesmos | Mesmos | Mesmos |
+| **ViewStates** | Mesmos | Mesmos | Mesmos |
 
 ## Estrutura de submódulos
 

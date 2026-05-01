@@ -2,24 +2,26 @@
 
 Proposta arquitetural para construção de aplicações utilizando o padrão **Cube MVP** — uma variação do Model-View-Presenter com presenters hierárquicos, navegação por intents e serialização de estado das views.
 
-Este projeto serve como **referência arquitetural** para novos projetos, demonstrando a implementação completa de um sistema de e-commerce (Shopping) com backend Java e **três implementações de frontend independentes** — React (web/remoto), JavaFX (desktop/local) e Android (mobile/Compose) — provando que a camada de visualização é totalmente desacoplada da lógica de apresentação.
+Este projeto serve como **referência arquitetural** para novos projetos, demonstrando a implementação completa de um sistema de e-commerce (Shopping) com backend Java e **quatro implementações de frontend independentes** — React (web/remoto), Vaadin (web/server-side), JavaFX (desktop/local) e Android (mobile/Compose) — provando que a camada de visualização é totalmente desacoplada da lógica de apresentação.
 
 ## Visão Geral da Arquitetura
 
 ```
-┌──────────────────────────────┐  ┌────────────────────────────┐  ┌────────────────────────────┐
-│     React 19 + MUI 9         │  │     JavaFX 24 + CSS        │  │  Kotlin + Jetpack Compose  │
-│   (Browser / WebSocket)      │  │   (Desktop / JVM local)    │  │  (Android / embarcado)     │
-└──────────────┬───────────────┘  └─────────────┬──────────────┘  └─────────────┬──────────────┘
-               │ WebSocket (JSON delta)         │ Acesso direto em memória     │ Acesso direto em memória
-               ▼                                ▼                              ▼
-┌──────────────────────────────┐  ┌────────────────────────────┐  ┌────────────────────────────┐
-│   Javalin 7 + Virtual Threads│  │  ShoppingJfxApplication    │  │  ShoppingAndroidApplication│
-│   (Jetty 12 / porta 8080)    │  │  (AnimationTimer 16ms)     │  │  (Choreographer vsync)     │
-└──────────────┬───────────────┘  └──────────────┬─────────────┘  └──────────────┬─────────────┘
-               │                                 │                               │
-               └────────────────┬────────────────┴───────────────────────────────┘
-                                ▼
+┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
+│  React 19 + MUI  │  │  Vaadin 24 +     │  │  JavaFX 24 +     │  │  Kotlin +        │
+│  (Browser / WS)  │  │  Lumo (Browser / │  │  CSS (Desktop /  │  │  Jetpack Compose  │
+│                  │  │  Server Push)    │  │  JVM local)      │  │  (Android)       │
+└────────┬─────────┘  └────────┬─────────┘  └────────┬─────────┘  └────────┬─────────┘
+         │ WebSocket            │ Atmosphere           │ Direto              │ Direto
+         │ (JSON delta)         │ (Server Push)        │ em memória          │ em memória
+         ▼                     ▼                      ▼                     ▼
+┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
+│  Javalin 7 +     │  │  Jetty 12 +      │  │  ShoppingJfx     │  │  ShoppingAndroid │
+│  Virtual Threads │  │  Vaadin Servlet  │  │  Application     │  │  Application     │
+└────────┬─────────┘  └────────┬─────────┘  └────────┬─────────┘  └────────┬─────────┘
+         │                     │                      │                     │
+         └─────────────┬───────┴──────────────────────┴─────────────────────┘
+                       ▼
 ┌─────────────────────────────────────────────────────────┐
 │                   Presentation                          │
 │     Presenters hierárquicos + ViewStates serializáveis  │
@@ -40,7 +42,7 @@ Este projeto serve como **referência arquitetural** para novos projetos, demons
 
 **Características principais:**
 
-- **Independência de visualização** — mesmos Presenters/ViewStates alimentam React (web), JavaFX (desktop) e Android (mobile)
+- **Independência de visualização** — mesmos Presenters/ViewStates alimentam React (web), Vaadin (web server-side), JavaFX (desktop) e Android (mobile)
 - **Sem frameworks de DI** — injeção via `AtomicReference<T> BEAN` (service locator estático); services recebem dependências no construtor
 - **Virtual Threads** (Java 26) — conexões WebSocket com consumo mínimo de memória
 - **Segurança RBAC** — autenticação HMAC challenge-response com JWT, controle de acesso por papéis (ADMIN, CUSTOMER, MANAGER), repositórios decorados com verificação de permissões
@@ -69,6 +71,8 @@ fontes/
     │   ├── br.com.wdc.shopping.view.react.client/    # Frontend React/TypeScript
     │   ├── br.com.wdc.shopping.view.react.javalin/   # Servidor Javalin (fat JAR)
     │   └── br.com.wdc.shopping.view.react.skeleton/  # Implementações de view + segurança
+    ├── br.com.wdc.shopping.view.vaadin/        # 📄 [README](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin/README.md)
+    │                                           # Frontend Vaadin 24 (server-side, Lumo theme)
     ├── br.com.wdc.shopping.view.jfx/           # 📄 [README](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.jfx/README.md)
     │                                           # Frontend JavaFX desktop
     └── br.com.wdc.shopping.view.android/       # 📄 [README](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.android/README.md)
@@ -93,7 +97,7 @@ fontes/
 
 ### Shopping — Frontend (View Implementations)
 
-> **Princípio central:** ambas as implementações usam exatamente os mesmos Presenters, ViewStates e regras de negócio. Apenas a camada de renderização muda.
+> **Princípio central:** todas as implementações usam exatamente os mesmos Presenters, ViewStates e regras de negócio. Apenas a camada de renderização muda.
 
 | Módulo | Descrição |
 |--------|-----------|
@@ -101,6 +105,7 @@ fontes/
 | **view.react.client** | SPA em React 19 + TypeScript + MUI 9, bundled via Parcel. Comunicação WebSocket bidirecional, gerenciamento de reconexão, segurança client-side |
 | **view.react.javalin** | Servidor Javalin 7 com Virtual Threads, WebSocket dispatcher, controllers REST, banco H2 embarcado. Gera fat JAR (~11 MB) |
 | **view.react.skeleton** | Implementações de view para o servidor (`GenericViewImpl`), segurança (`AppSecurity` — RSA/PBKDF2/AES-GCM, `DataSecurity`), SPI de WebSocket |
+| **view.vaadin** | Visualização web server-side com Vaadin 24 + Lumo theme + Jetty 12 embarcado — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin/README.md) |
 | **view.jfx** | Visualização desktop com JavaFX 24 + CSS Material-inspired — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.jfx/README.md) |
 | **view.android** | App Android nativo com Kotlin + Jetpack Compose + Material 3 — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.android/README.md) |
 | **api** | Controllers REST (Javalin) para expor repositórios como endpoints HTTP, filtro de segurança JWT (`SecurityFilter`), endpoints de autenticação (`AuthApiController`) |
@@ -159,6 +164,20 @@ java --enable-preview -jar target/br.com.wdc.shopping.view.react.javalin-1.0.0.j
 - **Aplicação:** http://localhost:8080
 - **Health check:** http://localhost:8080/health
 - **Porta padrão:** 8080 (configurável via `work/config/application.toml`, argumento CLI ou variável `SERVER_PORT`)
+
+### Versão Vaadin (Web — Server-Side)
+
+```bash
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-26.jdk/Contents/Home
+export PATH="$JAVA_HOME/bin:$PATH"
+
+cd br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin
+java --enable-preview -cp "$(mvn -q dependency:build-classpath -Dmdep.outputFile=/dev/stdout):target/classes" \
+  br.com.wdc.shopping.view.vaadin.ShoppingVaadinMain
+```
+
+- **Aplicação:** http://localhost:8090
+- UI inteiramente server-side — sem código JavaScript/TypeScript customizado
 
 ### Versão JavaFX (Desktop)
 
@@ -312,6 +331,7 @@ Cada presenter possui um **ViewState** serializável que é transmitido ao front
 | Linguagem | Java (Oracle/Temurin) | 26 |
 | Build | Maven | 3.9+ |
 | Servidor HTTP | Javalin | 7.1.0 |
+| Web UI (server-side) | Vaadin | 24.6.3 |
 | Servlet Container | Jetty | 12 |
 | Desktop UI | JavaFX | 24.0.1 |
 | Mobile UI | Jetpack Compose + Material 3 | 2024.12 |
