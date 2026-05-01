@@ -23,6 +23,18 @@ br.com.wdc.shopping.persistence
 ├── concurrent/                                # Adaptadores de concorrência
 │   └── ScheduledExecutorAdapter.java          # Adapta ScheduledExecutorService → ScheduledExecutor
 │
+├── security/                                  # Segurança RBAC — decorators e infraestrutura
+│   ├── AccessContext.java                     # Contexto de acesso (userId, permissions)
+│   ├── AccessContextCache.java                # Cache de AccessContext por userId
+│   ├── AuthenticationServiceImpl.java         # Implementação de AuthenticationService (HMAC + JWT)
+│   ├── JwtUtil.java                           # Criação e validação de tokens JWT (HMAC-SHA256)
+│   ├── NonceStore.java                        # Armazena nonces de uso único com TTL
+│   ├── SecurityEnforcer.java                  # Verifica permissões e restringe escopo ao userId
+│   ├── SecuredUserRepository.java             # Decorator: verifica permissão user:* antes de operar
+│   ├── SecuredProductRepository.java          # Decorator: verifica permissão product:* antes de operar
+│   ├── SecuredPurchaseRepository.java         # Decorator: restringe escopo de compras ao userId
+│   └── SecuredPurchaseItemRepository.java     # Decorator: restringe escopo de itens ao userId
+│
 ├── sql/                                       # DSL SQL e utilitários
 │   ├── SqlKeywords.java                       # Constantes e funções SQL (SELECT, WHERE, AND, ...)
 │   ├── SqlList.java                           # Builder de SQL com projeção tipada (ResultSet → tipo)
@@ -92,6 +104,7 @@ br.com.wdc.shopping.persistence
 | **Row (Change Tracking)** | `EnXxx.Row extends BaseRow` | Rastreia quais campos foram modificados para UPDATE parcial |
 | **Table Metadata** | `EnXxx extends DbTable` | Define esquema (colunas, tipos, DDL, sequences) |
 | **SQL DSL** | `SqlList` + `SqlKeywords` | Construção programática de SQL legível |
+| **Decorator (Security)** | `SecuredXxxRepository` | Envolve repositórios com verificação de permissões RBAC |
 
 ### Fluxo de uma Consulta
 
@@ -235,15 +248,20 @@ var fJsonData = sql.strColumn(SqlUtils.toJsonField(fields), AS, "json_data");
 
 ### RepositoryBootstrap
 
-Inicializa todos os `BEAN` estáticos dos repositórios:
+Inicializa todos os `BEAN` estáticos dos repositórios. Possui dois modos:
 
 ```java
+// Modo básico (sem segurança — testes locais)
 RepositoryBootstrap.initialize();
-// UserRepository.BEAN → UserRepositoryImpl
-// ProductRepository.BEAN → ProductRepositoryImpl
-// PurchaseRepository.BEAN → PurchaseRepositoryImpl
-// PurchaseItemRepository.BEAN → PurchaseItemRepositoryImpl
+
+// Modo com segurança RBAC (produção)
+RepositoryBootstrap.initialize();
+RepositoryBootstrap.initializeSecurity(jwtSecret);
+// Envolve cada repositório com SecuredXxxRepository
+// Cria AuthenticationServiceImpl com JwtUtil + NonceStore
 ```
+
+Quando `initializeSecurity()` é chamado com um `jwtSecret` não-vazio, os repositórios são decorados com `Secured*Repository` que verificam permissões e restringem escopo ao userId do usuário autenticado (para não-admins).
 
 ### DBCreate / DBReset
 

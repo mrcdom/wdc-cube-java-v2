@@ -36,7 +36,7 @@ br.com.wdc.shopping.presentation
     ├── open/login/                    # Área pública
     │   ├── LoginPresenter.java        # Presenter de login
     │   ├── LoginViewState.java        # Estado da tela de login
-    │   ├── LoginService.java          # Serviço de autenticação
+    │   ├── LoginService.java          # Serviço de autenticação (HMAC challenge-response)
     │   └── structs/
     │       └── Subject.java           # Usuário autenticado (DTO)
     │
@@ -44,7 +44,6 @@ br.com.wdc.shopping.presentation
         ├── home/
         │   ├── HomePresenter.java     # Presenter principal (container)
         │   ├── HomeViewState.java     # Estado da tela principal
-        │   ├── HomeService.java       # Serviço de compras/consultas
         │   ├── structs/
         │   │   └── PurchaseInfo.java  # DTO de compra resumida
         │   ├── products/
@@ -52,7 +51,8 @@ br.com.wdc.shopping.presentation
         │   │   └── ProductsPanelViewState.java   # Estado do painel
         │   └── purchases/
         │       ├── PurchasesPanelPresenter.java  # Painel de compras (child)
-        │       └── PurchasesPanelViewState.java  # Estado do painel
+        │       ├── PurchasesPanelViewState.java  # Estado do painel
+        │       └── PurchasesPanelService.java    # Serviço de consultas de compras
         │
         ├── products/
         │   ├── ProductPresenter.java  # Detalhe de produto
@@ -64,8 +64,7 @@ br.com.wdc.shopping.presentation
         ├── cart/
         │   ├── CartPresenter.java     # Carrinho de compras
         │   ├── CartViewState.java     # Estado do carrinho
-        │   ├── CartManager.java       # Lógica do carrinho (in-memory)
-        │   ├── CartService.java       # Serviço de efetivação de compra
+        │   ├── CartManager.java       # Lógica do carrinho (in-memory) + efetivação de compra
         │   └── structs/
         │       └── CartItem.java      # DTO de item do carrinho
         │
@@ -156,7 +155,9 @@ RootPresenter (AbstractCubePresenter)
 Classe abstrata que estende `CubeApplication`. Mantém o estado global:
 
 - `subject` — usuário autenticado (`Subject`)
+- `securityContext` — contexto de segurança (`SecurityContext`) com roles e permissões
 - `cart` — carrinho de compras (`CartManager`)
+- Proxy delegates (via `SecurityContextDelegate`) para repositórios — propagam `SecurityContext` para a thread corrente em cada chamada
 - `go(String)` / `go(CubeIntent)` — navegação programática
 - `alertUnexpectedError(...)` — exibição de erros via `RootPresenter`
 
@@ -182,14 +183,13 @@ public class ProductViewState implements ViewState {
 
 ### Services
 
-Serviços são implementados como `enum` singleton (`BEAN`), fazendo a ponte entre a camada de apresentação e os repositórios da camada de negócio:
+Serviços são classes com injeção de dependências via construtor (`ShoppingApplication` ou repositório específico), fazendo a ponte entre a camada de apresentação e os repositórios:
 
 | Serviço | Responsabilidade |
-|---------|-----------------|
-| `LoginService` | Autenticação (busca `Subject` por user/password) |
+|---------|------------------|
+| `LoginService` | Autenticação via HMAC challenge-response (usa `AuthenticationService`) |
 | `ProductService` | Carga de produtos (por ID, lista sem descrição) |
-| `HomeService` | Consulta de compras (paginação, contagem) |
-| `CartService` | Efetivação de compra (persiste `Purchase` + `PurchaseItem`) |
+| `PurchasesPanelService` | Consulta de compras (paginação, contagem) |
 | `ReceiptService` | Carga de recibos |
 
 ### DTOs (structs)
@@ -221,7 +221,7 @@ Gerenciador de carrinho in-memory com sistema de eventos:
 - `addProduct(ProductInfo, quantity)` — adiciona ou incrementa item
 - `modifyProductQuantity(productId, quantity)` — altera quantidade
 - `removeProduct(productId)` — remove item
-- `commit(Subject)` — persiste a compra via `CartService`
+- `commit(Subject)` — persiste a compra diretamente via repositórios
 - `addCommitListener(Runnable)` / `addChangeListener(Runnable)` — listeners para recarregar painéis
 
 ## Convenções
@@ -233,7 +233,7 @@ Cada feature segue a estrutura:
 presenter/restricted/<feature>/
 ├── <Feature>Presenter.java      # Presenter
 ├── <Feature>ViewState.java      # Estado serializável
-├── <Feature>Service.java        # Serviço (enum BEAN)
+├── <Feature>Service.java        # Serviço (classe com injeção via construtor)
 └── structs/
     └── <FeatureDTO>.java        # DTOs
 ```

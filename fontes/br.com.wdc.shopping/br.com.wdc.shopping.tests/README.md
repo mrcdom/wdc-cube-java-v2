@@ -5,7 +5,7 @@ Módulo de **testes automatizados** da aplicação Shopping. Contém testes que 
 ## Estrutura
 
 ```
-src/main/java/br/com/wdc/shopping/test/
+src/test/java/br/com/wdc/shopping/test/
 ├── repository/
 │   ├── AbstractProductRepositoryTest.java      — Base: CRUD ProductRepository (19 testes)
 │   ├── AbstractPurchaseRepositoryTest.java      — Base: CRUD PurchaseRepository (20 testes)

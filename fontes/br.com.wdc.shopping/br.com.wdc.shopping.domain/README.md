@@ -31,8 +31,18 @@ src/main/java/br/com/wdc/shopping/domain/
 │
 ├── exception/                       — Exceções de negócio
 │   ├── BusinessException.java       — Base para exceções de negócio
+│   ├── AccessDeniedException.java   — Acesso negado (permissão insuficiente)
 │   ├── InvalidCartItemException.java
 │   └── OfflineException.java
+│
+├── security/                        — Contratos e modelos de segurança (RBAC)
+│   ├── AuthenticationService.java   — Contrato de autenticação (challenge + login)
+│   ├── AuthResult.java              — Resultado de login (tokens, publicKey, expiresAt)
+│   ├── ChallengeResult.java         — Resultado de challenge (nonce, expiresAt)
+│   ├── PasswordUtil.java            — HMAC-SHA256 digest para autenticação
+│   ├── Role.java                    — Enum de papéis (ADMIN, CUSTOMER, MANAGER) com permissões
+│   ├── SecurityContext.java         — Contexto de segurança do usuário autenticado
+│   └── SecurityContextHolder.java   — ThreadLocal para propagação do SecurityContext
 │
 └── utils/                           — Utilitários de projeção
     ├── ProjectionValues.java        — Valores sentinela para indicar campos desejados
@@ -46,12 +56,13 @@ src/main/java/br/com/wdc/shopping/domain/
 - **Modelos simples** — POJOs com campos públicos, sem anotações de persistência
 - **Repositórios como interfaces** — registrados via `AtomicReference<XxxRepository> BEAN` (Service Locator leve)
 - **Critérios tipados** — cada entidade tem seu `XxxCriteria` com filtros, projeção, paginação e ordenação
+- **Segurança declarativa** — `Role` enum define permissões no formato `entity:operation`; `SecurityContextHolder` propaga contexto via ThreadLocal
 
 ## Modelos
 
 | Modelo | Campos principais |
 |--------|-------------------|
-| `User` | `id`, `userName`, `password`, `name` |
+| `User` | `id`, `userName`, `password`, `name`, `roles` |
 | `Product` | `id`, `name`, `price`, `description`, `image` |
 | `Purchase` | `id`, `buyDate`, `user`, `items` |
 | `PurchaseItem` | `id`, `amount`, `price`, `purchase`, `product` |
@@ -96,6 +107,21 @@ O mecanismo de projeção permite indicar quais campos devem ser carregados. Um 
 ## Configuração
 
 `AppConfig` carrega configurações de `work/config/application.toml` (ou caminho definido via `-Dshopping.config.file`). `ShoppingConfig` resolve os diretórios padrão da aplicação (`config/`, `data/`, `log/`, `temp/`).
+
+## Segurança (RBAC)
+
+O pacote `security/` define os contratos de autenticação e autorização:
+
+| Classe | Responsabilidade |
+|--------|-----------------|
+| `Role` | Enum com papéis (ADMIN, CUSTOMER, MANAGER) e suas permissões no formato `entity:operation` |
+| `SecurityContext` | Contexto imutável do usuário autenticado (userId, userName, roles, permissions) |
+| `SecurityContextHolder` | ThreadLocal para propagação do contexto entre camadas |
+| `AuthenticationService` | Contrato de autenticação: `challenge()` → `ChallengeResult`, `login(user, digest, nonce)` → `AuthResult` |
+| `PasswordUtil` | HMAC-SHA256 para gerar digest de autenticação sem trafegar senha em texto plano |
+| `AccessDeniedException` | Exceção lançada quando o usuário não possui permissão para a operação |
+
+O modelo é **allow-wins**: a permissão efetiva é a união de todos os papéis do usuário.
 
 ## Dependências
 

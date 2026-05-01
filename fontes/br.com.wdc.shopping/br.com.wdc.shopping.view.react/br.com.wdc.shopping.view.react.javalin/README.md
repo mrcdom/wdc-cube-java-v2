@@ -48,7 +48,10 @@ After starting the server:
 
 - **Frontend**: http://localhost:8080
 - **Health Check**: http://localhost:8080/health
-- **API Endpoints**: http://localhost:8080/api/* (depends on stub module routes)
+- **Auth Challenge**: http://localhost:8080/api/auth/challenge (GET)
+- **Auth Login**: http://localhost:8080/api/auth/login (POST)
+- **Repository API**: http://localhost:8080/api/repo/* (Bearer JWT required)
+- **Product Images**: http://localhost:8080/api/repo/product/image/* (public, no auth)
 
 ## Features
 
@@ -103,11 +106,32 @@ ExecStart=/usr/bin/java -jar /opt/app/br.com.wdc.shopping.view.react.javalin-1.0
 Environment="SERVER_PORT=8080"
 ```
 
+## Security
+
+When `security.jwt.secret` is configured in `application.toml`, the server enables full RBAC authentication:
+
+### Authentication Flow
+
+1. Client requests a challenge nonce via `GET /api/auth/challenge`
+2. Client computes `HMAC-SHA256(key=MD5(password), data=userName+nonce)`
+3. Client sends `POST /api/auth/login` with `{userName, digest, nonce}`
+4. Server validates and returns `{accessToken, refreshToken, publicKey, expiresAt}`
+5. All subsequent `/api/repo/*` requests must include `Authorization: Bearer <accessToken>`
+
+### SecurityFilter
+
+`SecurityFilter` intercepts all `/api/repo/*` requests:
+- Validates JWT Bearer token
+- Populates `SecurityContextHolder` with user context (userId, roles, permissions)
+- Public routes (e.g., product images) bypass authentication
+- Returns 401 for missing/invalid tokens, 403 for insufficient permissions
+
+### Startup Order
+
+`BusinessContext.start()` is called in the `JavalinApplication` constructor **before** `createJavalinApp()`, ensuring `AuthenticationService.BEAN` is populated when auth routes are registered.
+
 ## Future Enhancements
 
-- WebSocket support for real-time React↔Backend communication
-- Custom API route configuration
-- Request/response middleware chain
-- CORS configuration
-- Authentication/Authorization filters
 - Metrics and monitoring endpoints
+- CORS configuration
+- Request/response middleware chain

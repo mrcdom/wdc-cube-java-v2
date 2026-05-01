@@ -16,6 +16,7 @@ src/main/java/br/com/wdc/shopping/scripts/sgbd/
 ├── DBCreate.java        — Cria tabelas e sequências caso não existam
 ├── DBReset.java         — Popula o banco com dados de referência (seed)
 ├── MigrationRunner.java — Executa migrações e registra steps já executados
+├── Migration_0001_AddUserRoles.java — Adiciona coluna ROLES à tabela EN_USER
 └── schema/
     └── EnMigrationLog.java — Definição da tabela EN_MIGRATION_LOG
 ```

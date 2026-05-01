@@ -147,9 +147,10 @@ O presenter **não sabe** que está rodando no Android. Ele apenas chama `slot.s
 |--------|-----------|
 | **UI** | Jetpack Compose + Material 3 |
 | **Apresentação** | Cube MVP (presenters Java puros) |
-| **Imagens** | Coil 2.7 (async loading + cache) |
+| **Imagens** | Coil 2.7 (async loading + cache) — endpoints de imagem são públicos (sem auth) |
 | **HTML** | Parser leve → AnnotatedString (bullets, quebras de linha) |
 | **Persistência** | H2 Database embarcado + JDBI |
+| **Autenticação** | HMAC challenge-response via REST + Bearer JWT (`RestAuthenticationService`) |
 | **Threading** | ScheduledExecutorService + Choreographer vsync |
 | **Linguagem** | Kotlin 2.1 (view) + Java 26 (domínio/apresentação) |
 | **Min SDK** | API 26 (Android 8.0) |

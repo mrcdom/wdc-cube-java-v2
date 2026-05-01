@@ -23,6 +23,10 @@ Este projeto serve como **referência arquitetural** para novos projetos, demons
 ┌─────────────────────────────────────────────────────────┐
 │                   Presentation                          │
 │     Presenters hierárquicos + ViewStates serializáveis  │
+│     Services com injeção via construtor                 │
+├─────────────────────────────────────────────────────────┤
+│                   Security (RBAC)                       │
+│  HMAC challenge-response + JWT + Secured Repositories   │
 ├─────────────────────────────────────────────────────────┤
 │                   Persistence                           │
 │        Repositories + Command Pattern (SQL)             │
@@ -37,11 +41,12 @@ Este projeto serve como **referência arquitetural** para novos projetos, demons
 **Características principais:**
 
 - **Independência de visualização** — mesmos Presenters/ViewStates alimentam React (web), JavaFX (desktop) e Android (mobile)
-- **Sem frameworks de DI** — injeção via `AtomicReference<T> BEAN` (service locator estático)
+- **Sem frameworks de DI** — injeção via `AtomicReference<T> BEAN` (service locator estático); services recebem dependências no construtor
 - **Virtual Threads** (Java 26) — conexões WebSocket com consumo mínimo de memória
-- **Segurança** — RSA + PBKDF2 + AES-GCM para troca de dados entre cliente e servidor
+- **Segurança RBAC** — autenticação HMAC challenge-response com JWT, controle de acesso por papéis (ADMIN, CUSTOMER, MANAGER), repositórios decorados com verificação de permissões
+- **Segurança de transporte** — RSA + PBKDF2 + AES-GCM para troca de dados entre cliente React e servidor
 - **Comunicação em tempo real** — WebSocket bidirecional com keep-alive automático
-- **Configuração externa** — TOML para ambas as implementações
+- **Configuração externa** — TOML para todas as implementações
 
 ## Estrutura de Módulos
 
@@ -82,9 +87,9 @@ fontes/
 
 | Módulo | Descrição |
 |--------|-----------|
-| **domain** | Modelos de domínio (`User`, `Product`, `Purchase`, `PurchaseItem`), interfaces de repositório, classes de critérios para consultas, hierarquia de exceções (`BusinessException`) |
-| **persistence** | Implementação de persistência com Command Pattern SQL (`InsertRowUserCmd`, `FetchProductsCmd`, etc.), `BaseRepository`, `BaseCommand`, DSL SQL (`SqlKeywords`), scripts DDL para H2 |
-| **presentation** | `ShoppingApplication`, hierarquia de presenters (Root → Login \| Home → Products/Purchases/Product/Cart/Receipt), ViewStates serializáveis, `CartManager`, `LoginService`, sistema de rotas e navegação |
+| **domain** | Modelos de domínio (`User`, `Product`, `Purchase`, `PurchaseItem`), interfaces de repositório, classes de critérios para consultas, hierarquia de exceções (`BusinessException`), contratos de segurança (`SecurityContext`, `AuthenticationService`, `Role`) |
+| **persistence** | Implementação de persistência com Command Pattern SQL (`InsertRowUserCmd`, `FetchProductsCmd`, etc.), `BaseRepository`, `BaseCommand`, DSL SQL (`SqlKeywords`), scripts DDL para H2, **decorators de segurança** (`SecuredUserRepository`, etc.) que verificam permissões RBAC |
+| **presentation** | `ShoppingApplication` com proxy delegates de SecurityContext, hierarquia de presenters (Root → Login \| Home → Products/Purchases/Product/Cart/Receipt), ViewStates serializáveis, services com injeção via construtor, `CartManager`, sistema de rotas e navegação |
 
 ### Shopping — Frontend (View Implementations)
 
@@ -98,8 +103,8 @@ fontes/
 | **view.react.skeleton** | Implementações de view para o servidor (`GenericViewImpl`), segurança (`AppSecurity` — RSA/PBKDF2/AES-GCM, `DataSecurity`), SPI de WebSocket |
 | **view.jfx** | Visualização desktop com JavaFX 24 + CSS Material-inspired — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.jfx/README.md) |
 | **view.android** | App Android nativo com Kotlin + Jetpack Compose + Material 3 — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.android/README.md) |
-| **api** | Controllers REST (Javalin) para expor repositórios como endpoints HTTP (usado pelo Android em modo remoto) |
-| **api-client** | Client REST (OkHttp + Gson) que implementa as interfaces de repositório via HTTP |
+| **api** | Controllers REST (Javalin) para expor repositórios como endpoints HTTP, filtro de segurança JWT (`SecurityFilter`), endpoints de autenticação (`AuthApiController`) |
+| **api-client** | Client REST (OkHttp + Gson) que implementa as interfaces de repositório e `AuthenticationService` via HTTP, com Bearer token automático |
 
 ## Pré-requisitos
 
@@ -208,9 +213,68 @@ Ambas as implementações usam o arquivo `work/config/application.toml` para con
 
 [server]
 # port = 8080    # apenas Javalin
+
+[security]
+# jwt.secret = "sua-chave-secreta"   # habilita autenticação JWT na API REST
 ```
 
 Resolução: system property `shopping.config.file` → fallback para `work/config/application.toml`.
+
+## Segurança (RBAC)
+
+O sistema implementa autenticação e autorização em múltiplas camadas:
+
+### Autenticação — HMAC Challenge-Response
+
+```
+Client                            Server
+  │                                 │
+  │──── GET /api/auth/challenge ───→│  Gera nonce com TTL
+  │←─── { nonce, expiresAt } ──────│
+  │                                 │
+  │  passwordHash = MD5(password)   │
+  │  digest = HMAC-SHA256(          │
+  │    key=passwordHash,            │
+  │    data=userName+nonce)         │
+  │                                 │
+  │──── POST /api/auth/login ─────→│  Valida digest + nonce
+  │     { userName, digest, nonce } │  Cria sessão + JWT
+  │←─── { accessToken,             │
+  │       refreshToken,             │
+  │       publicKey, expiresAt } ──│
+  │                                 │
+  │──── Bearer token em /api/repo/* │  SecurityFilter valida JWT
+```
+
+A senha nunca trafega em texto plano — apenas o digest HMAC-SHA256 com nonce de uso único.
+
+### Autorização — Papéis e Permissões
+
+| Papel | Permissões |
+|-------|-----------|
+| **ADMIN** | `user:*`, `product:*`, `purchase:*`, `purchase-item:*`, `data:all` |
+| **CUSTOMER** | `product:read`, `purchase:read/write`, `purchase-item:read/write` |
+| **MANAGER** | `product:read/write`, `purchase:read`, `purchase-item:read` |
+
+Modelo **allow-wins**: permissão efetiva = união de todos os papéis do usuário.
+
+### Camadas de Segurança
+
+| Camada | Componente | Responsabilidade |
+|--------|-----------|-----------------|
+| **HTTP** | `SecurityFilter` | Valida Bearer JWT, popula `SecurityContextHolder` |
+| **Repositório** | `SecuredXxxRepository` | Verifica permissões, restringe escopo ao userId (non-admin) |
+| **Apresentação** | `SecurityContextDelegate` (proxy) | Propaga `SecurityContext` para a thread corrente em cada chamada |
+| **Transporte** | `AppSecurity` (React) | RSA + PBKDF2 + AES-GCM para dados sensíveis via WebSocket |
+
+### Configuração
+
+```toml
+[security]
+jwt.secret = "sua-chave-secreta-aqui"
+```
+
+Se `jwt.secret` não estiver configurado, a API opera sem autenticação (modo desenvolvimento/testes locais).
 
 ## Padrão Cube MVP
 
