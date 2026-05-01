@@ -15,12 +15,12 @@ O **Cube MVP** resolve isso com uma separação radical:
 │                      Camada de Apresentação                      │
 │         (Java puro — sem dependência de UI framework)            │
 │                                                                  │
-│   Presenters  ←→  ViewState  ←→  CubeNavigation  ←→  Routes     │
+│   Presenters  ←→  ViewState  ←→  CubeNavigation  ←→  Routes      │
 └──────────┬───────────────────────────────────────────────────────┘
            │  interface CubeView { update(), release() }
            │  interface CubeViewSlot { setView(CubeView) }
            │
-┌──────────▼────────┐  ┌──────────────────┐  ┌────────────────────┐
+┌──────────▼─────────┐  ┌──────────────────┐  ┌────────────────────┐
 │   Android/Compose  │  │   JavaFX/FXML    │  │   React/TypeScript │
 │   (este projeto)   │  │   (view.jfx)     │  │   (view.react)     │
 └────────────────────┘  └──────────────────┘  └────────────────────┘
