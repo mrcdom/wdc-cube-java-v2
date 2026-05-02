@@ -1,14 +1,10 @@
 package br.com.wdc.shopping.view.swing.impl;
 
-import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.util.Objects;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
@@ -21,6 +17,7 @@ import br.com.wdc.shopping.view.swing.AbstractViewSwing;
 import br.com.wdc.shopping.view.swing.ShoppingSwingApplication;
 import br.com.wdc.shopping.view.swing.util.ResourceCatalog;
 import br.com.wdc.shopping.view.swing.util.Styles;
+import br.com.wdc.shopping.view.swing.util.SwingDom;
 
 public class LoginViewSwing extends AbstractViewSwing<LoginPresenter> {
 
@@ -32,7 +29,7 @@ public class LoginViewSwing extends AbstractViewSwing<LoginPresenter> {
     private JLabel errorElm;
 
     public LoginViewSwing(ShoppingSwingApplication app, LoginPresenter presenter) {
-        super("login", app, presenter, new JPanel(new BorderLayout()));
+        super("login", app, presenter, new JPanel(new java.awt.GridBagLayout()));
         this.state = presenter.state;
     }
 
@@ -47,7 +44,7 @@ public class LoginViewSwing extends AbstractViewSwing<LoginPresenter> {
     @Override
     public void doUpdate() {
         if (this.notRendered) {
-            initialRender();
+            SwingDom.render(this.element, this::initialRender);
             this.notRendered = false;
         }
 
@@ -68,117 +65,127 @@ public class LoginViewSwing extends AbstractViewSwing<LoginPresenter> {
         }
     }
 
-    private void initialRender() {
-        this.element.setOpaque(true);
-        this.element.setBackground(Styles.BG_LOGIN_GRADIENT_TOP);
-        this.element.setBorder(new EmptyBorder(40, 40, 40, 40));
+    private void initialRender(SwingDom dom, JPanel pane0) {
+        pane0.setOpaque(true);
+        pane0.setBackground(Styles.BG_LOGIN_GRADIENT_TOP);
+        pane0.setBorder(new EmptyBorder(40, 40, 40, 40));
 
-        // Card
-        var card = new JPanel();
-        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBackground(Styles.BG_WHITE);
-        card.setBorder(BorderFactory.createCompoundBorder(
-                Styles.createCardBorder(),
-                new EmptyBorder(36, 48, 32, 48)));
-        card.setMaximumSize(new Dimension(440, Integer.MAX_VALUE));
-        card.setPreferredSize(new Dimension(440, 520));
+        dom.vbox(card -> {
+            card.setBackground(Styles.BG_WHITE);
+            card.setOpaque(true);
+            card.setBorder(BorderFactory.createCompoundBorder(
+                    Styles.createCardBorder(),
+                    new EmptyBorder(36, 48, 32, 48)));
+            card.setMaximumSize(new Dimension(440, Integer.MAX_VALUE));
+            card.setPreferredSize(new Dimension(440, 520));
 
-        // Center the card
-        var wrapper = new JPanel(new java.awt.GridBagLayout());
-        wrapper.setOpaque(false);
-        wrapper.add(card);
-        this.element.add(wrapper, BorderLayout.CENTER);
+            // Logo
+            dom.img(logo -> {
+                logo.setIcon(ResourceCatalog.getScaledImage("images/big_logo.png", 160, -1));
+                logo.setAlignmentX(Component.LEFT_ALIGNMENT);
+                logo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
+            });
 
-        // All children use LEFT_ALIGNMENT so BoxLayout stretches them to full width
-        // Text centering is done via JLabel.setHorizontalAlignment(CENTER)
+            dom.vSpacer(12);
 
-        // Logo
-        var logo = new JLabel(ResourceCatalog.getScaledImage("images/big_logo.png", 160, -1));
-        logo.setAlignmentX(JLabel.LEFT_ALIGNMENT);
-        logo.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        logo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
-        card.add(logo);
-        card.add(Box.createRigidArea(new Dimension(0, 12)));
+            dom.label(title -> {
+                title.setText("Bem-vindo!");
+                title.setFont(Styles.FONT_LOGIN_TITLE);
+                title.setForeground(Styles.FG_TEXT_DARK);
+                title.setAlignmentX(Component.LEFT_ALIGNMENT);
+                title.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+                title.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+            });
 
-        var title = new JLabel("Bem-vindo!");
-        title.setFont(Styles.FONT_LOGIN_TITLE);
-        title.setForeground(Styles.FG_TEXT_DARK);
-        title.setAlignmentX(JLabel.LEFT_ALIGNMENT);
-        title.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        title.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
-        card.add(title);
-        card.add(Box.createRigidArea(new Dimension(0, 4)));
+            dom.vSpacer(4);
 
-        var subtitle = new JLabel("Informe suas credenciais para acessar o sistema");
-        subtitle.setFont(Styles.FONT_SUBTITLE);
-        subtitle.setForeground(Styles.FG_TEXT_SUBTLE);
-        subtitle.setAlignmentX(JLabel.LEFT_ALIGNMENT);
-        subtitle.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        subtitle.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
-        card.add(subtitle);
-        card.add(Box.createRigidArea(new Dimension(0, 24)));
+            dom.label(subtitle -> {
+                subtitle.setText("Informe suas credenciais para acessar o sistema");
+                subtitle.setFont(Styles.FONT_SUBTITLE);
+                subtitle.setForeground(Styles.FG_TEXT_SUBTLE);
+                subtitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+                subtitle.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+                subtitle.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
+            });
 
-        // Thin separator
-        var separator = new JPanel();
-        separator.setBackground(Styles.BORDER_LIGHT);
-        separator.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
-        separator.setAlignmentX(JPanel.LEFT_ALIGNMENT);
-        card.add(separator);
-        card.add(Box.createRigidArea(new Dimension(0, 20)));
+            dom.vSpacer(24);
 
-        // Fields
-        var userLabel = new JLabel("Usuário");
-        userLabel.setFont(Styles.FONT_FIELD_LABEL);
-        userLabel.setForeground(new java.awt.Color(0x555555));
-        userLabel.setAlignmentX(JLabel.LEFT_ALIGNMENT);
-        userLabel.setBorder(new EmptyBorder(0, 2, 4, 2));
-        card.add(userLabel);
+            // Thin separator
+            var separator = new JPanel();
+            separator.setBackground(Styles.BORDER_LIGHT);
+            separator.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
+            separator.setAlignmentX(Component.LEFT_ALIGNMENT);
+            card.add(separator);
 
-        this.userNameField = new JTextField();
-        Styles.styleField(this.userNameField);
-        this.userNameField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
-        this.userNameField.setAlignmentX(JTextField.LEFT_ALIGNMENT);
-        card.add(this.userNameField);
-        card.add(Box.createRigidArea(new Dimension(0, 12)));
+            dom.vSpacer(20);
 
-        var passLabel = new JLabel("Senha");
-        passLabel.setFont(Styles.FONT_FIELD_LABEL);
-        passLabel.setForeground(new java.awt.Color(0x555555));
-        passLabel.setAlignmentX(JLabel.LEFT_ALIGNMENT);
-        passLabel.setBorder(new EmptyBorder(0, 2, 4, 2));
-        card.add(passLabel);
+            // Fields
+            dom.label(userLabel -> {
+                userLabel.setText("Usuário");
+                userLabel.setFont(Styles.FONT_FIELD_LABEL);
+                userLabel.setForeground(new java.awt.Color(0x555555));
+                userLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+                userLabel.setBorder(new EmptyBorder(0, 2, 4, 2));
+            });
 
-        this.passwordField = new JPasswordField();
-        Styles.styleField(this.passwordField);
-        this.passwordField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
-        this.passwordField.setAlignmentX(JPasswordField.LEFT_ALIGNMENT);
-        this.passwordField.addActionListener(_ -> emitEnter());
-        card.add(this.passwordField);
+            dom.textField(field -> {
+                this.userNameField = field;
+                Styles.styleField(field);
+                field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+                field.setAlignmentX(Component.LEFT_ALIGNMENT);
+            });
 
-        // Error
-        this.errorElm = new JLabel();
-        Styles.styleErrorLabel(this.errorElm);
-        this.errorElm.setAlignmentX(JLabel.LEFT_ALIGNMENT);
-        this.errorElm.setVisible(false);
-        this.errorElm.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Styles.BORDER_ERROR, 1),
-                new EmptyBorder(8, 8, 8, 8)));
-        card.add(Box.createRigidArea(new Dimension(0, 6)));
-        card.add(this.errorElm);
+            dom.vSpacer(12);
 
-        card.add(Box.createRigidArea(new Dimension(0, 20)));
+            dom.label(passLabel -> {
+                passLabel.setText("Senha");
+                passLabel.setFont(Styles.FONT_FIELD_LABEL);
+                passLabel.setForeground(new java.awt.Color(0x555555));
+                passLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+                passLabel.setBorder(new EmptyBorder(0, 2, 4, 2));
+            });
 
-        var loginBtn = new JButton("ENTRAR");
-        Styles.stylePrimaryButton(loginBtn);
-        loginBtn.setPreferredSize(new Dimension(200, 44));
+            dom.passwordField(field -> {
+                this.passwordField = field;
+                Styles.styleField(field);
+                field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+                field.setAlignmentX(Component.LEFT_ALIGNMENT);
+                field.addActionListener(_ -> emitEnter());
+            });
 
-        var btnWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
-        btnWrapper.setOpaque(false);
-        btnWrapper.setAlignmentX(JPanel.LEFT_ALIGNMENT);
-        btnWrapper.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
-        loginBtn.addActionListener(_ -> emitEnter());
-        btnWrapper.add(loginBtn);
-        card.add(btnWrapper);
+            dom.vSpacer(6);
+
+            // Error
+            dom.label(errorLabel -> {
+                this.errorElm = errorLabel;
+                Styles.styleErrorLabel(errorLabel);
+                errorLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+                errorLabel.setVisible(false);
+                errorLabel.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(Styles.BORDER_ERROR, 1),
+                        new EmptyBorder(8, 8, 8, 8)));
+            });
+
+            dom.vSpacer(20);
+
+            // Button (centered)
+            dom.hbox(btnRow -> {
+                btnRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+                btnRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
+
+                dom.hSpacer();
+
+                dom.button(loginBtn -> {
+                    loginBtn.setText("ENTRAR");
+                    Styles.stylePrimaryButton(loginBtn);
+                    loginBtn.setPreferredSize(new Dimension(200, 44));
+                    loginBtn.setMaximumSize(new Dimension(200, 44));
+                    loginBtn.addActionListener(_ -> emitEnter());
+                });
+
+                dom.hSpacer();
+            });
+        });
     }
 
     private void emitEnter() {

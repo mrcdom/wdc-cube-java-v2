@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -20,6 +19,7 @@ import br.com.wdc.shopping.view.swing.AbstractViewSwing;
 import br.com.wdc.shopping.view.swing.ShoppingSwingApplication;
 import br.com.wdc.shopping.view.swing.impl.home.PurchaseItemViewSwing;
 import br.com.wdc.shopping.view.swing.util.Styles;
+import br.com.wdc.shopping.view.swing.util.SwingDom;
 
 public class PurchasesPanelViewSwing extends AbstractViewSwing<PurchasesPanelPresenter> {
 
@@ -54,7 +54,7 @@ public class PurchasesPanelViewSwing extends AbstractViewSwing<PurchasesPanelPre
     @Override
     public void doUpdate() {
         if (this.notRendered) {
-            initialRender();
+            SwingDom.render(this.element, this::initialRender);
             this.notRendered = false;
         }
         this.contentSlot.accept(this.state.purchases, this.viewList);
@@ -75,61 +75,67 @@ public class PurchasesPanelViewSwing extends AbstractViewSwing<PurchasesPanelPre
         this.paginationPanel.setVisible(totalPages > 1);
     }
 
-    private void initialRender() {
-        this.element.setOpaque(true);
-        this.element.setBackground(Styles.BG_PURCHASES_PANEL);
-        this.element.setBorder(new EmptyBorder(12, 12, 12, 12));
-        this.element.setPreferredSize(new Dimension(230, 0));
-        this.element.setMinimumSize(new Dimension(230, 0));
-        this.element.setMaximumSize(new Dimension(230, Integer.MAX_VALUE));
+    private void initialRender(SwingDom dom, JPanel pane0) {
+        pane0.setOpaque(true);
+        pane0.setBackground(Styles.BG_PURCHASES_PANEL);
+        pane0.setBorder(new EmptyBorder(12, 12, 12, 12));
+        pane0.setPreferredSize(new Dimension(230, 0));
+        pane0.setMinimumSize(new Dimension(230, 0));
+        pane0.setMaximumSize(new Dimension(230, Integer.MAX_VALUE));
 
-        var caption = new JLabel("Seu histórico de compras");
-        caption.setForeground(Styles.FG_WHITE);
-        caption.setFont(Styles.FONT_SMALL_BOLD);
-        caption.setBorder(new EmptyBorder(0, 0, 12, 0));
-        this.element.add(caption, BorderLayout.NORTH);
+        dom.constraints(BorderLayout.NORTH).label(caption -> {
+            caption.setText("Seu histórico de compras");
+            caption.setForeground(Styles.FG_WHITE);
+            caption.setFont(Styles.FONT_SMALL_BOLD);
+            caption.setBorder(new EmptyBorder(0, 0, 12, 0));
+        });
 
-        var contentBox = new JPanel();
-        contentBox.setLayout(new BoxLayout(contentBox, BoxLayout.Y_AXIS));
-        contentBox.setOpaque(false);
-        contentBox.setBorder(new EmptyBorder(0, 0, 0, 0));
-        this.contentSlot = this.newListSlot(contentBox, this::newItemView, this::updateItem);
-        this.element.add(contentBox, BorderLayout.CENTER);
+        dom.constraints(BorderLayout.CENTER).vbox(contentBox -> {
+            contentBox.setBorder(new EmptyBorder(0, 0, 0, 0));
+            this.contentSlot = this.newListSlot(contentBox, this::newItemView, this::updateItem);
+        });
 
-        // Pagination — use BorderLayout to guarantee all 3 components fit
-        var pagination = new JPanel(new BorderLayout(4, 0));
-        pagination.setOpaque(false);
-        pagination.setBorder(new EmptyBorder(10, 0, 0, 0));
+        // Pagination
+        dom.constraints(BorderLayout.SOUTH).hbox(pagination -> {
+            pagination.setBorder(new EmptyBorder(10, 0, 0, 0));
+            this.paginationPanel = pagination;
 
-        this.prevButton = new JButton("\u25C0");
-        this.prevButton.setFont(Styles.FONT_SMALL);
-        this.prevButton.setForeground(Styles.FG_WHITE);
-        this.prevButton.setBackground(new Color(255, 255, 255, 38));
-        this.prevButton.setFocusPainted(false);
-        this.prevButton.setBorderPainted(false);
-        this.prevButton.setOpaque(true);
-        this.prevButton.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-        this.prevButton.addActionListener(_ -> safeAction("Previous page", () -> this.presenter.onPageChange(this.state.page - 1)));
-        pagination.add(this.prevButton, BorderLayout.WEST);
+            dom.button(prevBtn -> {
+                this.prevButton = prevBtn;
+                prevBtn.setText("\u25C0");
+                prevBtn.setFont(Styles.FONT_SMALL);
+                prevBtn.setForeground(Styles.FG_WHITE);
+                prevBtn.setBackground(new Color(255, 255, 255, 38));
+                prevBtn.setFocusPainted(false);
+                prevBtn.setBorderPainted(false);
+                prevBtn.setOpaque(true);
+                prevBtn.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+                prevBtn.addActionListener(_ -> safeAction("Previous page", () -> this.presenter.onPageChange(this.state.page - 1)));
+            });
 
-        this.pageInfoElm = new JLabel("", javax.swing.SwingConstants.CENTER);
-        this.pageInfoElm.setForeground(Styles.FG_WHITE);
-        this.pageInfoElm.setFont(Styles.FONT_SMALL);
-        pagination.add(this.pageInfoElm, BorderLayout.CENTER);
+            dom.hSpacer();
 
-        this.nextButton = new JButton("\u25B6");
-        this.nextButton.setFont(Styles.FONT_SMALL);
-        this.nextButton.setForeground(Styles.FG_WHITE);
-        this.nextButton.setBackground(new Color(255, 255, 255, 38));
-        this.nextButton.setFocusPainted(false);
-        this.nextButton.setBorderPainted(false);
-        this.nextButton.setOpaque(true);
-        this.nextButton.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-        this.nextButton.addActionListener(_ -> safeAction("Next page", () -> this.presenter.onPageChange(this.state.page + 1)));
-        pagination.add(this.nextButton, BorderLayout.EAST);
+            dom.label(pageInfo -> {
+                this.pageInfoElm = pageInfo;
+                pageInfo.setForeground(Styles.FG_WHITE);
+                pageInfo.setFont(Styles.FONT_SMALL);
+            });
 
-        this.paginationPanel = pagination;
-        this.element.add(pagination, BorderLayout.SOUTH);
+            dom.hSpacer();
+
+            dom.button(nextBtn -> {
+                this.nextButton = nextBtn;
+                nextBtn.setText("\u25B6");
+                nextBtn.setFont(Styles.FONT_SMALL);
+                nextBtn.setForeground(Styles.FG_WHITE);
+                nextBtn.setBackground(new Color(255, 255, 255, 38));
+                nextBtn.setFocusPainted(false);
+                nextBtn.setBorderPainted(false);
+                nextBtn.setOpaque(true);
+                nextBtn.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+                nextBtn.addActionListener(_ -> safeAction("Next page", () -> this.presenter.onPageChange(this.state.page + 1)));
+            });
+        });
     }
 
     private PurchaseItemViewSwing newItemView() {

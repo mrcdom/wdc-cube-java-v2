@@ -2,7 +2,6 @@ package br.com.wdc.shopping.view.swing.impl.receipt;
 
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.text.NumberFormat;
 import java.util.Objects;
@@ -17,6 +16,7 @@ import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.Rec
 import br.com.wdc.shopping.view.swing.AbstractViewSwing;
 import br.com.wdc.shopping.view.swing.ShoppingSwingApplication;
 import br.com.wdc.shopping.view.swing.util.Styles;
+import br.com.wdc.shopping.view.swing.util.SwingDom;
 
 public class ReceiptItemViewSwing extends AbstractViewSwing<ReceiptPresenter> {
 
@@ -31,7 +31,7 @@ public class ReceiptItemViewSwing extends AbstractViewSwing<ReceiptPresenter> {
     private int quantityOldValue;
 
     public ReceiptItemViewSwing(ShoppingSwingApplication app, ReceiptPresenter presenter, int idx) {
-        super("receipt-item-" + idx, app, presenter, new JPanel(new GridBagLayout()));
+        super("receipt-item-" + idx, app, presenter, new JPanel());
     }
 
     public void setState(ReceiptItem state, boolean scheduleUpdate) {
@@ -55,7 +55,7 @@ public class ReceiptItemViewSwing extends AbstractViewSwing<ReceiptPresenter> {
     @Override
     public void doUpdate() {
         if (this.notRendered) {
-            initialRender();
+            SwingDom.render(this.element, this::initialRender);
             this.notRendered = false;
         }
 
@@ -75,38 +75,42 @@ public class ReceiptItemViewSwing extends AbstractViewSwing<ReceiptPresenter> {
         }
     }
 
-    private void initialRender() {
-        this.element.setOpaque(false);
-        this.element.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(0, 0, 1, 0, Styles.BORDER_SUBTLE),
-                new EmptyBorder(6, 0, 6, 0)));
-        this.element.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+    private void initialRender(SwingDom dom, JPanel pane0) {
+        dom.gridBagPane(grid -> {
+            grid.setOpaque(false);
+            grid.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createMatteBorder(0, 0, 1, 0, Styles.BORDER_SUBTLE),
+                    new EmptyBorder(6, 0, 6, 0)));
+            grid.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
 
-        var gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(0, 0, 0, 8);
+            var gbc = new GridBagConstraints();
+            gbc.fill = GridBagConstraints.HORIZONTAL;
+            gbc.anchor = GridBagConstraints.WEST;
+            gbc.insets = new Insets(0, 0, 0, 8);
 
-        this.descriptionElm = new JLabel(this.state.description);
-        this.descriptionElm.setFont(Styles.FONT_RECEIPT_MONO);
-        this.descriptionOldValue = this.state.description;
-        gbc.gridx = 0;
-        gbc.weightx = 1.0;
-        this.element.add(this.descriptionElm, gbc);
+            gbc.gridx = 0; gbc.weightx = 1.0;
+            dom.constraints(gbc.clone()).label(lbl -> {
+                this.descriptionElm = lbl;
+                lbl.setText(this.state.description);
+                lbl.setFont(Styles.FONT_RECEIPT_MONO);
+                this.descriptionOldValue = this.state.description;
+            });
 
-        this.priceElm = new JLabel(NumberFormat.getCurrencyInstance().format(this.state.value));
-        this.priceElm.setFont(Styles.FONT_RECEIPT_MONO);
-        this.priceOldValue = this.state.value;
-        gbc.gridx = 1;
-        gbc.weightx = 0;
-        gbc.ipadx = 80;
-        this.element.add(this.priceElm, gbc);
+            gbc.gridx = 1; gbc.weightx = 0; gbc.ipadx = 80;
+            dom.constraints(gbc.clone()).label(lbl -> {
+                this.priceElm = lbl;
+                lbl.setText(NumberFormat.getCurrencyInstance().format(this.state.value));
+                lbl.setFont(Styles.FONT_RECEIPT_MONO);
+                this.priceOldValue = this.state.value;
+            });
 
-        this.quantityElm = new JLabel(String.valueOf(this.state.quantity));
-        this.quantityElm.setFont(Styles.FONT_RECEIPT_MONO);
-        this.quantityOldValue = this.state.quantity;
-        gbc.gridx = 2;
-        gbc.ipadx = 40;
-        this.element.add(this.quantityElm, gbc);
+            gbc.gridx = 2; gbc.ipadx = 40;
+            dom.constraints(gbc.clone()).label(lbl -> {
+                this.quantityElm = lbl;
+                lbl.setText(String.valueOf(this.state.quantity));
+                lbl.setFont(Styles.FONT_RECEIPT_MONO);
+                this.quantityOldValue = this.state.quantity;
+            });
+        });
     }
 }

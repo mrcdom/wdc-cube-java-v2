@@ -5,12 +5,8 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.util.Objects;
 
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
 
@@ -21,6 +17,8 @@ import br.com.wdc.shopping.view.swing.ShoppingSwingApplication;
 import br.com.wdc.shopping.view.swing.util.ResourceCatalog;
 import br.com.wdc.shopping.view.swing.util.StackPanel;
 import br.com.wdc.shopping.view.swing.util.Styles;
+import br.com.wdc.shopping.view.swing.util.SwingDom;
+import br.com.wdc.shopping.view.swing.util.SwingUtils;
 
 public class HomeViewSwing extends AbstractViewSwing<HomePresenter> {
 
@@ -61,7 +59,7 @@ public class HomeViewSwing extends AbstractViewSwing<HomePresenter> {
     @Override
     public void doUpdate() {
         if (this.notRendered) {
-            initialRender();
+            SwingDom.render(this.element, this::initialRender);
             this.notRendered = false;
         }
 
@@ -78,33 +76,21 @@ public class HomeViewSwing extends AbstractViewSwing<HomePresenter> {
         // Update products panel
         if (this.state.productsPanelView instanceof AbstractViewSwing<?> ppv
                 && ppv.getElement().getParent() != this.productsPanelSlot) {
-            this.productsPanelSlot.removeAll();
-            this.productsPanelSlot.add(ppv.getElement());
-            this.productsPanelSlot.revalidate();
-            this.productsPanelSlot.repaint();
+        	SwingUtils.replaceContent(this.productsPanelSlot, ppv.getElement());
         }
 
         // Update purchases panel
         if (this.state.purchasesPanelView instanceof AbstractViewSwing<?> ppv
                 && ppv.getElement().getParent() != this.purchasesPanelSlot) {
-            this.purchasesPanelSlot.removeAll();
-            this.purchasesPanelSlot.add(ppv.getElement());
-            this.purchasesPanelSlot.revalidate();
-            this.purchasesPanelSlot.repaint();
+        	SwingUtils.replaceContent(this.purchasesPanelSlot, ppv.getElement());
         }
 
         // Update content slot
         var newContentView = this.state.contentView instanceof AbstractViewSwing<?> v ? v : null;
         if (this.currentContentView != newContentView) {
-            this.contentPane.removeAll();
-            if (newContentView != null) {
-                this.contentPane.add(newContentView.getElement());
-            } else {
-                this.contentPane.add(this.defaultContentPane);
-            }
+        	SwingUtils.replaceContent(this.contentPane,
+                    newContentView != null ? newContentView.getElement() : this.defaultContentPane);
             this.currentContentView = newContentView;
-            this.contentPane.revalidate();
-            this.contentPane.repaint();
         }
 
         // Error
@@ -124,115 +110,129 @@ public class HomeViewSwing extends AbstractViewSwing<HomePresenter> {
         }
     }
 
-    private void initialRender() {
-        this.element.setBackground(Styles.BG_PAGE);
+	@SuppressWarnings("unused")
+	private void initialRender(SwingDom dom, JPanel pane0) {
+        pane0.setBackground(Styles.BG_PAGE);
 
         // Header
-        var header = new JPanel();
-        header.setLayout(new BoxLayout(header, BoxLayout.X_AXIS));
-        header.setBackground(Styles.BG_HEADER);
-        header.setBorder(new EmptyBorder(8, 16, 8, 16));
-        header.setPreferredSize(new Dimension(0, 56));
-        header.setMaximumSize(new Dimension(Integer.MAX_VALUE, 56));
+        dom.constraints(BorderLayout.NORTH).hbox(header -> {
+            header.setOpaque(true);
+            header.setBackground(Styles.BG_HEADER);
+            header.setBorder(new EmptyBorder(8, 16, 8, 16));
+            header.setPreferredSize(new Dimension(0, 56));
+            header.setMaximumSize(new Dimension(Integer.MAX_VALUE, 56));
 
-        var logo = new JLabel(ResourceCatalog.getScaledImage("images/logo.png", -1, 30));
-        logo.setAlignmentY(0.5f);
-        if (this.app.isDevMode()) {
-            logo.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            logo.setToolTipText("Dev: Reconstruir todas as views");
-            logo.addMouseListener(new java.awt.event.MouseAdapter() {
-                @Override
-                public void mouseClicked(java.awt.event.MouseEvent e) {
-                    safeAction("Rebuild all views", app::rebuildAllViews);
+            dom.img(logo -> {
+                logo.setIcon(ResourceCatalog.getScaledImage("images/logo.png", -1, 30));
+                logo.setAlignmentY(0.5f);
+                if (this.app.isDevMode()) {
+                    logo.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                    logo.setToolTipText("Dev: Reconstruir todas as views");
+                    logo.addMouseListener(new java.awt.event.MouseAdapter() {
+                        @Override
+                        public void mouseClicked(java.awt.event.MouseEvent e) {
+                            safeAction("Rebuild all views", app::rebuildAllViews);
+                        }
+                    });
                 }
             });
-        }
-        header.add(logo);
-        header.add(Box.createHorizontalGlue());
 
-        this.nickNameElm = new JLabel("Bem-vindo, " + this.state.nickName + "!");
-        this.nickNameElm.setForeground(Styles.FG_WHITE_DIM);
-        this.nickNameElm.setFont(Styles.FONT_DEFAULT);
-        this.nickNameElm.setAlignmentY(0.5f);
-        this.nickNameOldValue = this.state.nickName;
-        header.add(this.nickNameElm);
-        header.add(Box.createRigidArea(new Dimension(10, 0)));
+            dom.hSpacer();
 
-        // Cart button
-        var cartBtn = new JPanel();
-        cartBtn.setLayout(new BoxLayout(cartBtn, BoxLayout.X_AXIS));
-        cartBtn.setOpaque(false);
-        cartBtn.setAlignmentY(0.5f);
-        cartBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        cartBtn.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseClicked(java.awt.event.MouseEvent e) {
-                safeAction("Open cart", presenter::onOpenCart);
-            }
+            dom.label(label -> {
+                this.nickNameElm = label;
+                label.setText("Bem-vindo, " + this.state.nickName + "!");
+                label.setForeground(Styles.FG_WHITE_DIM);
+                label.setFont(Styles.FONT_DEFAULT);
+                label.setAlignmentY(0.5f);
+                this.nickNameOldValue = this.state.nickName;
+            });
+
+            dom.hSpacer(10);
+
+            // Cart button
+            dom.hbox(cartBtn -> {
+                cartBtn.setAlignmentY(0.5f);
+                cartBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                cartBtn.addMouseListener(new java.awt.event.MouseAdapter() {
+                    @Override
+                    public void mouseClicked(java.awt.event.MouseEvent e) {
+                        safeAction("Open cart", presenter::onOpenCart);
+                    }
+                });
+
+                dom.img(img -> {
+                    img.setIcon(ResourceCatalog.getScaledImage("images/carrinho.png", 24, 24));
+                    img.setAlignmentY(0.5f);
+                });
+
+                dom.hSpacer(6);
+
+                dom.label(label -> {
+                    label.setText("Carrinho");
+                    label.setForeground(Styles.FG_WHITE);
+                    label.setFont(new java.awt.Font(java.awt.Font.SANS_SERIF, java.awt.Font.BOLD, 13));
+                    label.setAlignmentY(0.5f);
+                });
+
+                dom.hSpacer(4);
+
+                dom.label(label -> {
+                    this.cartCountElm = label;
+                    label.setText("[" + this.state.cartItemCount + "]");
+                    label.setForeground(Styles.FG_RED);
+                    label.setFont(new java.awt.Font(java.awt.Font.SANS_SERIF, java.awt.Font.BOLD, 13));
+                    label.setAlignmentY(0.5f);
+                    this.cartCountOldValue = this.state.cartItemCount;
+                });
+            });
+
+            dom.hSpacer(10);
+
+            dom.button(exitBtn -> {
+                exitBtn.setText("SAIR");
+                Styles.styleHeaderButton(exitBtn);
+                exitBtn.setAlignmentY(0.5f);
+                exitBtn.addActionListener(_ -> safeAction("Exit", this.presenter::onExit));
+            });
         });
 
-        var cartIcon = new JLabel(ResourceCatalog.getScaledImage("images/carrinho.png", 24, 24));
-        cartIcon.setAlignmentY(0.5f);
-        cartBtn.add(cartIcon);
-        cartBtn.add(Box.createRigidArea(new Dimension(6, 0)));
+        // Center: error + scroll
+        dom.constraints(BorderLayout.CENTER).borderPane(center -> {
+            // Error
+            dom.constraints(BorderLayout.NORTH).label(errorLbl -> {
+                this.errorElm = errorLbl;
+                Styles.styleErrorLabel(errorLbl);
+                errorLbl.setVisible(false);
+            });
 
-        var cartLabel = new JLabel("Carrinho");
-        cartLabel.setForeground(Styles.FG_WHITE);
-        cartLabel.setFont(new java.awt.Font(java.awt.Font.SANS_SERIF, java.awt.Font.BOLD, 13));
-        cartLabel.setAlignmentY(0.5f);
-        cartBtn.add(cartLabel);
-        cartBtn.add(Box.createRigidArea(new Dimension(4, 0)));
+            // Default content (products + purchases side by side)
+            dom.hbox(defaultContent -> {
+                this.defaultContentPane = defaultContent;
 
-        this.cartCountElm = new JLabel("[" + this.state.cartItemCount + "]");
-        this.cartCountElm.setForeground(Styles.FG_RED);
-        this.cartCountElm.setFont(new java.awt.Font(java.awt.Font.SANS_SERIF, java.awt.Font.BOLD, 13));
-        this.cartCountElm.setAlignmentY(0.5f);
-        this.cartCountOldValue = this.state.cartItemCount;
-        cartBtn.add(this.cartCountElm);
-        header.add(cartBtn);
-        header.add(Box.createRigidArea(new Dimension(10, 0)));
+                dom.stackPane(slot -> this.productsPanelSlot = (StackPanel) slot);
 
-        var exitBtn = new JButton("SAIR");
-        Styles.styleHeaderButton(exitBtn);
-        exitBtn.setAlignmentY(0.5f);
-        exitBtn.addActionListener(_ -> safeAction("Exit", this.presenter::onExit));
-        header.add(exitBtn);
+                dom.hSpacer(16);
 
-        this.element.add(header, BorderLayout.NORTH);
+                dom.stackPane(slot -> {
+                    this.purchasesPanelSlot = (StackPanel) slot;
+                    slot.setPreferredSize(new Dimension(230, 0));
+                    slot.setMaximumSize(new Dimension(230, Integer.MAX_VALUE));
+                });
+            });
 
-        // Error label
-        this.errorElm = new JLabel();
-        Styles.styleErrorLabel(this.errorElm);
-        this.errorElm.setVisible(false);
+            // Content pane wrapped in ScrollPane
+            dom.constraints(BorderLayout.CENTER).scrollPane(scroll -> {
+                scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+                scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+                scroll.getViewport().setOpaque(true);
+                scroll.getViewport().setBackground(Styles.BG_PAGE);
 
-        // Default content (products + purchases side by side)
-        this.defaultContentPane = new JPanel(new BorderLayout(16, 0));
-        this.defaultContentPane.setOpaque(false);
-
-        this.productsPanelSlot = new StackPanel();
-        this.defaultContentPane.add(this.productsPanelSlot, BorderLayout.CENTER);
-
-        this.purchasesPanelSlot = new StackPanel();
-        this.purchasesPanelSlot.setPreferredSize(new Dimension(230, 0));
-        this.defaultContentPane.add(this.purchasesPanelSlot, BorderLayout.EAST);
-
-        // Content pane wrapped in scroll
-        this.contentPane = new StackPanel();
-        this.contentPane.setBorder(new EmptyBorder(16, 16, 16, 16));
-        this.contentPane.add(this.defaultContentPane);
-
-        var scrollPane = new JScrollPane(this.contentPane);
-        scrollPane.setBorder(null);
-        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-        scrollPane.getViewport().setBackground(Styles.BG_PAGE);
-
-        // Center panel holds error + scroll
-        var center = new JPanel(new BorderLayout());
-        center.setOpaque(false);
-        center.add(this.errorElm, BorderLayout.NORTH);
-        center.add(scrollPane, BorderLayout.CENTER);
-
-        this.element.add(center, BorderLayout.CENTER);
+                this.contentPane = new StackPanel();
+                this.contentPane.setBorder(new EmptyBorder(16, 16, 16, 16));
+                this.contentPane.add(this.defaultContentPane);
+                scroll.setViewportView(this.contentPane);
+            });
+        });
     }
 }

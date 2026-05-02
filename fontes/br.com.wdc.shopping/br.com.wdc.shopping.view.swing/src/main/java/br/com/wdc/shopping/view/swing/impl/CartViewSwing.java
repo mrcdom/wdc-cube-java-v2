@@ -1,8 +1,8 @@
 package br.com.wdc.shopping.view.swing.impl;
 
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -11,9 +11,7 @@ import java.util.Objects;
 import java.util.function.BiConsumer;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
@@ -26,6 +24,7 @@ import br.com.wdc.shopping.view.swing.ShoppingSwingApplication;
 import br.com.wdc.shopping.view.swing.impl.cart.CartItemViewSwing;
 import br.com.wdc.shopping.view.swing.util.ResourceCatalog;
 import br.com.wdc.shopping.view.swing.util.Styles;
+import br.com.wdc.shopping.view.swing.util.SwingDom;
 
 public class CartViewSwing extends AbstractViewSwing<CartPresenter> {
 
@@ -63,7 +62,7 @@ public class CartViewSwing extends AbstractViewSwing<CartPresenter> {
     @Override
     public void doUpdate() {
         if (this.notRendered) {
-            initialRender();
+            SwingDom.render(this.element, this::initialRender);
             this.notRendered = false;
         }
 
@@ -96,140 +95,139 @@ public class CartViewSwing extends AbstractViewSwing<CartPresenter> {
         }
     }
 
-    private void initialRender() {
-        this.element.setOpaque(true);
-        this.element.setBackground(Styles.BG_WHITE);
-        this.element.setBorder(Styles.BORDER_EMPTY_24);
-        this.element.setMaximumSize(new Dimension(900, Integer.MAX_VALUE));
+    private void initialRender(SwingDom dom, JPanel pane0) {
+        pane0.setOpaque(true);
+        pane0.setBackground(Styles.BG_WHITE);
+        pane0.setBorder(Styles.BORDER_EMPTY_24);
+        pane0.setMaximumSize(new Dimension(900, Integer.MAX_VALUE));
 
         // Logo pane
-        var logoPnl = new JPanel();
-        logoPnl.setLayout(new BoxLayout(logoPnl, BoxLayout.X_AXIS));
-        logoPnl.setOpaque(false);
-        logoPnl.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+        dom.hbox(logoPnl -> {
+            logoPnl.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        var cartIcon = new JLabel(ResourceCatalog.getScaledImage("images/carrinho.png", 24, 24));
-        logoPnl.add(cartIcon);
-        logoPnl.add(Box.createRigidArea(new Dimension(8, 0)));
-        logoPnl.add(new JLabel("Carrinho"));
-        logoPnl.add(Box.createRigidArea(new Dimension(4, 0)));
-        this.itemSizeElm = new JLabel("[" + this.state.items.size() + "]");
-        this.itemSizeOldValue = this.state.items.size();
-        logoPnl.add(this.itemSizeElm);
-        logoPnl.add(Box.createHorizontalGlue());
-        this.element.add(logoPnl);
-        this.element.add(Box.createRigidArea(new Dimension(0, 12)));
+            dom.img(img -> img.setIcon(ResourceCatalog.getScaledImage("images/carrinho.png", 24, 24)));
+            dom.hSpacer(8);
+            dom.label(lbl -> lbl.setText("Carrinho"));
+            dom.hSpacer(4);
+            dom.label(lbl -> {
+                this.itemSizeElm = lbl;
+                lbl.setText("[" + this.state.items.size() + "]");
+                this.itemSizeOldValue = this.state.items.size();
+            });
+            dom.hSpacer();
+        });
 
-        var titleLbl = new JLabel("LISTA DE PRODUTOS");
-        titleLbl.setFont(Styles.FONT_TITLE);
-        titleLbl.setForeground(Styles.FG_TEXT_LIGHT);
-        titleLbl.setAlignmentX(JLabel.LEFT_ALIGNMENT);
-        this.element.add(titleLbl);
-        this.element.add(Box.createRigidArea(new Dimension(0, 12)));
+        dom.vSpacer(12);
+
+        dom.label(titleLbl -> {
+            titleLbl.setText("LISTA DE PRODUTOS");
+            titleLbl.setFont(Styles.FONT_TITLE);
+            titleLbl.setForeground(Styles.FG_TEXT_LIGHT);
+            titleLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
+        });
+
+        dom.vSpacer(12);
 
         // Content panel with border
-        var content = new JPanel();
-        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
-        content.setOpaque(false);
-        content.setBorder(BorderFactory.createLineBorder(Styles.BORDER_LIGHT, 1));
-        content.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+        dom.vbox(content -> {
+            content.setOpaque(true);
+            content.setBorder(BorderFactory.createLineBorder(Styles.BORDER_LIGHT, 1));
+            content.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // Table header
-        var headerRow = new JPanel(new GridBagLayout());
-        headerRow.setBackground(Styles.BG_TABLE_HEADER);
-        headerRow.setOpaque(true);
-        headerRow.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(0, 0, 1, 0, Styles.BORDER_LIGHT),
-                new EmptyBorder(12, 16, 12, 16)));
-        headerRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
+            // Table header
+            dom.gridBagPane(headerRow -> {
+                headerRow.setBackground(Styles.BG_TABLE_HEADER);
+                headerRow.setOpaque(true);
+                headerRow.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createMatteBorder(0, 0, 1, 0, Styles.BORDER_LIGHT),
+                        new EmptyBorder(12, 16, 12, 16)));
+                headerRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
 
-        var gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(0, 0, 0, 8);
+                var gbc = new GridBagConstraints();
+                gbc.fill = GridBagConstraints.HORIZONTAL;
+                gbc.anchor = GridBagConstraints.WEST;
+                gbc.insets = new Insets(0, 0, 0, 8);
 
-        var h1 = new JLabel("ITEM");
-        h1.setFont(Styles.FONT_TABLE_HEADER);
-        h1.setForeground(Styles.FG_TEXT);
-        gbc.gridx = 0;
-        gbc.weightx = 1.0;
-        headerRow.add(h1, gbc);
+                gbc.gridx = 0; gbc.weightx = 1.0;
+                dom.constraints(gbc.clone()).label(h1 -> {
+                    h1.setText("ITEM");
+                    h1.setFont(Styles.FONT_TABLE_HEADER);
+                    h1.setForeground(Styles.FG_TEXT);
+                });
 
-        var h2 = new JLabel("VALOR");
-        h2.setFont(Styles.FONT_TABLE_HEADER);
-        h2.setForeground(Styles.FG_TEXT);
-        gbc.gridx = 1;
-        gbc.weightx = 0;
-        gbc.ipadx = 80;
-        headerRow.add(h2, gbc);
+                gbc.gridx = 1; gbc.weightx = 0; gbc.ipadx = 80;
+                dom.constraints(gbc.clone()).label(h2 -> {
+                    h2.setText("VALOR");
+                    h2.setFont(Styles.FONT_TABLE_HEADER);
+                    h2.setForeground(Styles.FG_TEXT);
+                });
 
-        var h3 = new JLabel("QUANTIDADE");
-        h3.setFont(Styles.FONT_TABLE_HEADER);
-        h3.setForeground(Styles.FG_TEXT);
-        gbc.gridx = 2;
-        gbc.ipadx = 40;
-        headerRow.add(h3, gbc);
+                gbc.gridx = 2; gbc.ipadx = 40;
+                dom.constraints(gbc.clone()).label(h3 -> {
+                    h3.setText("QUANTIDADE");
+                    h3.setFont(Styles.FONT_TABLE_HEADER);
+                    h3.setForeground(Styles.FG_TEXT);
+                });
+            });
 
-        content.add(headerRow);
+            // Items container
+            dom.vbox(tbody -> this.itemsSlot = this.newListSlot(tbody, this::newItemView, this::updateItem));
 
-        // Items container
-        var tbody = new JPanel();
-        tbody.setLayout(new BoxLayout(tbody, BoxLayout.Y_AXIS));
-        tbody.setOpaque(false);
-        this.itemsSlot = this.newListSlot(tbody, this::newItemView, this::updateItem);
-        content.add(tbody);
+            // Footer
+            dom.hbox(footer -> {
+                footer.setBackground(Styles.BG_TABLE_FOOTER);
+                footer.setOpaque(true);
+                footer.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createMatteBorder(1, 0, 0, 0, Styles.BORDER_LIGHT),
+                        new EmptyBorder(12, 16, 12, 16)));
+                footer.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
 
-        // Footer
-        var footer = new JPanel();
-        footer.setLayout(new BoxLayout(footer, BoxLayout.X_AXIS));
-        footer.setBackground(Styles.BG_TABLE_FOOTER);
-        footer.setOpaque(true);
-        footer.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(1, 0, 0, 0, Styles.BORDER_LIGHT),
-                new EmptyBorder(12, 16, 12, 16)));
-        footer.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
+                dom.hSpacer();
+                dom.label(lbl -> {
+                    lbl.setText("VALOR TOTAL: ");
+                    lbl.setFont(Styles.FONT_TABLE_HEADER);
+                    lbl.setForeground(Styles.FG_TEXT);
+                });
+                dom.label(lbl -> {
+                    this.totalCostElm = lbl;
+                    lbl.setText(this.formatCurrency(this.computeTotalCost()));
+                    lbl.setFont(Styles.FONT_TABLE_HEADER);
+                    lbl.setForeground(Styles.FG_TEXT_DARK);
+                    this.totalCostOldValue = this.computeTotalCost();
+                });
+            });
+        });
 
-        footer.add(Box.createHorizontalGlue());
-        var totalLabel = new JLabel("VALOR TOTAL: ");
-        totalLabel.setFont(Styles.FONT_TABLE_HEADER);
-        totalLabel.setForeground(Styles.FG_TEXT);
-        footer.add(totalLabel);
-        this.totalCostElm = new JLabel(this.formatCurrency(this.computeTotalCost()));
-        this.totalCostElm.setFont(Styles.FONT_TABLE_HEADER);
-        this.totalCostElm.setForeground(Styles.FG_TEXT_DARK);
-        this.totalCostOldValue = this.computeTotalCost();
-        footer.add(this.totalCostElm);
-        content.add(footer);
-
-        this.element.add(content);
-        this.element.add(Box.createRigidArea(new Dimension(0, 12)));
+        dom.vSpacer(12);
 
         // Error
-        this.errorElm = new JLabel();
-        Styles.styleErrorLabel(this.errorElm);
-        this.errorElm.setVisible(false);
-        this.errorElm.setAlignmentX(JLabel.LEFT_ALIGNMENT);
-        this.element.add(this.errorElm);
-        this.element.add(Box.createRigidArea(new Dimension(0, 12)));
+        dom.label(errorLabel -> {
+            this.errorElm = errorLabel;
+            Styles.styleErrorLabel(errorLabel);
+            errorLabel.setVisible(false);
+            errorLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        });
+
+        dom.vSpacer(12);
 
         // Buttons row
-        var btnRow = new JPanel();
-        btnRow.setLayout(new BoxLayout(btnRow, BoxLayout.X_AXIS));
-        btnRow.setOpaque(false);
-        btnRow.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+        dom.hbox(btnRow -> {
+            btnRow.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        var backBtn = new JButton("< VOLTAR");
-        Styles.styleOutlineButton(backBtn, Styles.FG_PRIMARY);
-        backBtn.addActionListener(_ -> safeAction("Open products", this.presenter::onOpenProducts));
-        btnRow.add(backBtn);
+            dom.button(backBtn -> {
+                backBtn.setText("< VOLTAR");
+                Styles.styleOutlineButton(backBtn, Styles.FG_PRIMARY);
+                backBtn.addActionListener(_ -> safeAction("Open products", this.presenter::onOpenProducts));
+            });
 
-        btnRow.add(Box.createHorizontalGlue());
+            dom.hSpacer();
 
-        var buyBtn = new JButton("FINALIZAR PEDIDO");
-        Styles.styleOrangeButton(buyBtn);
-        buyBtn.addActionListener(_ -> safeAction("Buy", this.presenter::onBuy));
-        btnRow.add(buyBtn);
-        this.element.add(btnRow);
+            dom.button(buyBtn -> {
+                buyBtn.setText("FINALIZAR PEDIDO");
+                Styles.styleOrangeButton(buyBtn);
+                buyBtn.addActionListener(_ -> safeAction("Buy", this.presenter::onBuy));
+            });
+        });
     }
 
     private double computeTotalCost() {

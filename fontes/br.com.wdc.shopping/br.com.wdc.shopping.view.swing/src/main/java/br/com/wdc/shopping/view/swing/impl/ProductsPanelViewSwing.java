@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
@@ -16,7 +15,7 @@ import br.com.wdc.shopping.view.swing.AbstractViewSwing;
 import br.com.wdc.shopping.view.swing.ShoppingSwingApplication;
 import br.com.wdc.shopping.view.swing.impl.home.ProductItemViewSwing;
 import br.com.wdc.shopping.view.swing.util.Styles;
-import br.com.wdc.shopping.view.swing.util.WrapPanel;
+import br.com.wdc.shopping.view.swing.util.SwingDom;
 
 public class ProductsPanelViewSwing extends AbstractViewSwing<ProductsPanelPresenter> {
 
@@ -43,27 +42,28 @@ public class ProductsPanelViewSwing extends AbstractViewSwing<ProductsPanelPrese
     @Override
     public void doUpdate() {
         if (this.notRendered) {
-            initialRender();
+            SwingDom.render(this.element, this::initialRender);
             this.notRendered = false;
         }
         this.contentSlot.accept(this.state.products, this.itemViewList);
     }
 
-    private void initialRender() {
-        this.element.setOpaque(false);
-        this.element.setBorder(new EmptyBorder(8, 8, 8, 8));
+    private void initialRender(SwingDom dom, JPanel pane0) {
+        pane0.setOpaque(false);
+        pane0.setBorder(new EmptyBorder(8, 8, 8, 8));
 
-        var caption = new JLabel("PRODUTOS");
-        caption.setFont(Styles.FONT_TITLE);
-        caption.setForeground(Styles.FG_TEXT);
-        caption.setBorder(new EmptyBorder(8, 4, 12, 4));
-        this.element.add(caption, BorderLayout.NORTH);
+        dom.constraints(BorderLayout.NORTH).label(caption -> {
+            caption.setText("PRODUTOS");
+            caption.setFont(Styles.FONT_TITLE);
+            caption.setForeground(Styles.FG_TEXT);
+            caption.setBorder(new EmptyBorder(8, 4, 12, 4));
+        });
 
-        var flowPane = new WrapPanel();
-        flowPane.setHgap(12);
-        flowPane.setVgap(12);
-        this.contentSlot = this.newListSlot(flowPane, this::newItemView, this::updateItem);
-        this.element.add(flowPane, BorderLayout.CENTER);
+        dom.constraints(BorderLayout.CENTER).flowPane(flowPane -> {
+            flowPane.setHgap(12);
+            flowPane.setVgap(12);
+            this.contentSlot = this.newListSlot(flowPane, this::newItemView, this::updateItem);
+        });
     }
 
     private ProductItemViewSwing newItemView() {

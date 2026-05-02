@@ -1,8 +1,10 @@
 package br.com.wdc.shopping.view.swing.util;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.GridBagLayout;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -19,6 +21,7 @@ import javax.swing.JTextPane;
 public class SwingDom {
 
     private Container currentParent;
+    private Object pendingConstraints;
 
     private SwingDom(Container root) {
         this.currentParent = root;
@@ -29,15 +32,32 @@ public class SwingDom {
         renderer.accept(dom, root);
     }
 
+    public SwingDom constraints(Object constraints) {
+        this.pendingConstraints = constraints;
+        return this;
+    }
+
+    private void addChild(Container parent, Component child) {
+        if (this.pendingConstraints != null) {
+            parent.add(child, this.pendingConstraints);
+            this.pendingConstraints = null;
+        } else {
+            parent.add(child);
+        }
+    }
+
     public JPanel vbox(Consumer<JPanel> fnUpdate) {
         var oldParent = this.currentParent;
+        var savedConstraints = this.pendingConstraints;
+        this.pendingConstraints = null;
         try {
             var elm = new JPanel();
             elm.setLayout(new BoxLayout(elm, BoxLayout.Y_AXIS));
             elm.setOpaque(false);
             this.currentParent = elm;
             fnUpdate.accept(elm);
-            oldParent.add(elm);
+            this.pendingConstraints = savedConstraints;
+            addChild(oldParent, elm);
             return elm;
         } finally {
             this.currentParent = oldParent;
@@ -46,13 +66,50 @@ public class SwingDom {
 
     public JPanel hbox(Consumer<JPanel> fnUpdate) {
         var oldParent = this.currentParent;
+        var savedConstraints = this.pendingConstraints;
+        this.pendingConstraints = null;
         try {
             var elm = new JPanel();
             elm.setLayout(new BoxLayout(elm, BoxLayout.X_AXIS));
             elm.setOpaque(false);
             this.currentParent = elm;
             fnUpdate.accept(elm);
-            oldParent.add(elm);
+            this.pendingConstraints = savedConstraints;
+            addChild(oldParent, elm);
+            return elm;
+        } finally {
+            this.currentParent = oldParent;
+        }
+    }
+
+    public JPanel gridBagPane(Consumer<JPanel> fnUpdate) {
+        var oldParent = this.currentParent;
+        var savedConstraints = this.pendingConstraints;
+        this.pendingConstraints = null;
+        try {
+            var elm = new JPanel(new GridBagLayout());
+            elm.setOpaque(false);
+            this.currentParent = elm;
+            fnUpdate.accept(elm);
+            this.pendingConstraints = savedConstraints;
+            addChild(oldParent, elm);
+            return elm;
+        } finally {
+            this.currentParent = oldParent;
+        }
+    }
+
+    public JPanel borderPane(Consumer<JPanel> fnUpdate) {
+        var oldParent = this.currentParent;
+        var savedConstraints = this.pendingConstraints;
+        this.pendingConstraints = null;
+        try {
+            var elm = new JPanel(new BorderLayout());
+            elm.setOpaque(false);
+            this.currentParent = elm;
+            fnUpdate.accept(elm);
+            this.pendingConstraints = savedConstraints;
+            addChild(oldParent, elm);
             return elm;
         } finally {
             this.currentParent = oldParent;
@@ -61,12 +118,15 @@ public class SwingDom {
 
     public JPanel stackPane(Consumer<JPanel> fnUpdate) {
         var oldParent = this.currentParent;
+        var savedConstraints = this.pendingConstraints;
+        this.pendingConstraints = null;
         try {
             var elm = new StackPanel();
             elm.setOpaque(false);
             this.currentParent = elm;
             fnUpdate.accept(elm);
-            oldParent.add(elm);
+            this.pendingConstraints = savedConstraints;
+            addChild(oldParent, elm);
             return elm;
         } finally {
             this.currentParent = oldParent;
@@ -76,7 +136,7 @@ public class SwingDom {
     public JLabel label(Consumer<JLabel> fnUpdate) {
         var elm = new JLabel();
         fnUpdate.accept(elm);
-        this.currentParent.add(elm);
+        addChild(this.currentParent, elm);
         return elm;
     }
 
@@ -84,28 +144,28 @@ public class SwingDom {
         var elm = new JLabel();
         elm.setHorizontalAlignment(JLabel.CENTER);
         fnUpdate.accept(elm);
-        this.currentParent.add(elm);
+        addChild(this.currentParent, elm);
         return elm;
     }
 
     public JTextField textField(Consumer<JTextField> fnUpdate) {
         var elm = new JTextField();
         fnUpdate.accept(elm);
-        this.currentParent.add(elm);
+        addChild(this.currentParent, elm);
         return elm;
     }
 
     public JPasswordField passwordField(Consumer<JPasswordField> fnUpdate) {
         var elm = new JPasswordField();
         fnUpdate.accept(elm);
-        this.currentParent.add(elm);
+        addChild(this.currentParent, elm);
         return elm;
     }
 
     public JButton button(Consumer<JButton> fnUpdate) {
         var elm = new JButton();
         fnUpdate.accept(elm);
-        this.currentParent.add(elm);
+        addChild(this.currentParent, elm);
         return elm;
     }
 
@@ -113,42 +173,45 @@ public class SwingDom {
         var elm = new JTextPane();
         elm.setEditable(false);
         fnUpdate.accept(elm);
-        this.currentParent.add(elm);
+        addChild(this.currentParent, elm);
         return elm;
     }
 
     public Component hSpacer() {
         var elm = Box.createHorizontalGlue();
-        this.currentParent.add(elm);
+        addChild(this.currentParent, elm);
         return elm;
     }
 
     public Component hSpacer(int width) {
         var elm = Box.createRigidArea(new Dimension(width, 0));
-        this.currentParent.add(elm);
+        addChild(this.currentParent, elm);
         return elm;
     }
 
     public Component vSpacer() {
         var elm = Box.createVerticalGlue();
-        this.currentParent.add(elm);
+        addChild(this.currentParent, elm);
         return elm;
     }
 
     public Component vSpacer(int height) {
         var elm = Box.createRigidArea(new Dimension(0, height));
-        this.currentParent.add(elm);
+        addChild(this.currentParent, elm);
         return elm;
     }
 
     public WrapPanel flowPane(Consumer<WrapPanel> fnUpdate) {
         var oldParent = this.currentParent;
+        var savedConstraints = this.pendingConstraints;
+        this.pendingConstraints = null;
         try {
             var elm = new WrapPanel();
             elm.setOpaque(false);
             this.currentParent = elm;
             fnUpdate.accept(elm);
-            oldParent.add(elm);
+            this.pendingConstraints = savedConstraints;
+            addChild(oldParent, elm);
             return elm;
         } finally {
             this.currentParent = oldParent;
@@ -156,12 +219,15 @@ public class SwingDom {
     }
 
     public JScrollPane scrollPane(Consumer<JScrollPane> fnUpdate) {
+        var savedConstraints = this.pendingConstraints;
+        this.pendingConstraints = null;
         var elm = new JScrollPane();
         elm.setBorder(null);
         elm.getViewport().setOpaque(false);
         elm.setOpaque(false);
         fnUpdate.accept(elm);
-        this.currentParent.add(elm);
+        this.pendingConstraints = savedConstraints;
+        addChild(this.currentParent, elm);
         return elm;
     }
 }

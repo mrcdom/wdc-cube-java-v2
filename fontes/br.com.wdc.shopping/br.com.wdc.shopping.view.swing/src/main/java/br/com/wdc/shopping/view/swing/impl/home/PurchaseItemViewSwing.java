@@ -1,6 +1,6 @@
 package br.com.wdc.shopping.view.swing.impl.home;
 
-import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.text.NumberFormat;
 import java.time.Instant;
@@ -8,9 +8,7 @@ import java.time.ZoneId;
 import java.util.Objects;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
@@ -20,6 +18,7 @@ import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.Purcha
 import br.com.wdc.shopping.view.swing.AbstractViewSwing;
 import br.com.wdc.shopping.view.swing.ShoppingSwingApplication;
 import br.com.wdc.shopping.view.swing.util.Styles;
+import br.com.wdc.shopping.view.swing.util.SwingDom;
 
 public class PurchaseItemViewSwing extends AbstractViewSwing<PurchasesPanelPresenter> {
 
@@ -36,7 +35,8 @@ public class PurchaseItemViewSwing extends AbstractViewSwing<PurchasesPanelPrese
     private double totalOldValue;
 
     public PurchaseItemViewSwing(ShoppingSwingApplication app, PurchasesPanelPresenter presenter, int idx) {
-        super("purchase-item-" + idx, app, presenter, new JPanel(new BorderLayout()));
+        super("purchase-item-" + idx, app, presenter, new JPanel());
+        this.element.setLayout(new BoxLayout(this.element, BoxLayout.Y_AXIS));
     }
 
     public void setState(PurchaseInfo state, boolean scheduleUpdate) {
@@ -62,7 +62,7 @@ public class PurchaseItemViewSwing extends AbstractViewSwing<PurchasesPanelPrese
     @Override
     public void doUpdate() {
         if (this.notRendered) {
-            initialRender();
+            SwingDom.render(this.element, this::initialRender);
             this.notRendered = false;
         }
 
@@ -88,67 +88,78 @@ public class PurchaseItemViewSwing extends AbstractViewSwing<PurchasesPanelPrese
         }
     }
 
-    private void initialRender() {
-        this.element.setOpaque(true);
-        this.element.setBackground(Styles.BG_WHITE);
-        this.element.setBorder(BorderFactory.createCompoundBorder(
+    private void initialRender(SwingDom dom, JPanel pane0) {
+        pane0.setOpaque(true);
+        pane0.setBackground(Styles.BG_WHITE);
+        pane0.setBorder(BorderFactory.createCompoundBorder(
                 new EmptyBorder(0, 0, 8, 0),
                 BorderFactory.createLineBorder(Styles.BORDER_LIGHT, 1)));
-        this.element.setMaximumSize(new Dimension(Integer.MAX_VALUE, 200));
+        pane0.setMaximumSize(new Dimension(Integer.MAX_VALUE, 200));
 
         // Order header
-        var orderPnl = new JPanel();
-        orderPnl.setLayout(new BoxLayout(orderPnl, BoxLayout.X_AXIS));
-        orderPnl.setBackground(Styles.BG_ORDER_HEADER);
-        orderPnl.setBorder(new EmptyBorder(6, 10, 6, 10));
+        dom.hbox(orderPnl -> {
+            orderPnl.setOpaque(true);
+            orderPnl.setBackground(Styles.BG_ORDER_HEADER);
+            orderPnl.setBorder(new EmptyBorder(6, 10, 6, 10));
 
-        var orderLabel = new JLabel("Compra");
-        orderLabel.setFont(Styles.FONT_SMALL_BOLD);
-        orderLabel.setForeground(Styles.FG_TEXT);
-        orderPnl.add(orderLabel);
-        orderPnl.add(Box.createRigidArea(new Dimension(4, 0)));
+            dom.label(lbl -> {
+                lbl.setText("Compra");
+                lbl.setFont(Styles.FONT_SMALL_BOLD);
+                lbl.setForeground(Styles.FG_TEXT);
+            });
 
-        this.idElm = new JLabel("#" + this.state.id);
-        this.idElm.setFont(Styles.FONT_SMALL_BOLD);
-        this.idElm.setForeground(Styles.FG_PRIMARY);
-        this.idOldValue = this.state.id;
-        orderPnl.add(this.idElm);
-        this.element.add(orderPnl, BorderLayout.NORTH);
+            dom.hSpacer(4);
+
+            dom.label(lbl -> {
+                this.idElm = lbl;
+                lbl.setText("#" + this.state.id);
+                lbl.setFont(Styles.FONT_SMALL_BOLD);
+                lbl.setForeground(Styles.FG_PRIMARY);
+                this.idOldValue = this.state.id;
+            });
+        });
 
         // Order info
-        var info = new JPanel();
-        info.setLayout(new BoxLayout(info, BoxLayout.Y_AXIS));
-        info.setOpaque(false);
-        info.setBorder(new EmptyBorder(8, 10, 8, 10));
+        dom.vbox(info -> {
+            info.setBorder(new EmptyBorder(8, 10, 8, 10));
 
-        this.dateElm = new JLabel(this.getDateStr());
-        this.dateElm.setFont(Styles.FONT_SMALL);
-        this.dateElm.setForeground(Styles.FG_TEXT_SUBTLE);
-        this.dateOldValue = this.state.date;
-        info.add(this.dateElm);
-        info.add(Box.createRigidArea(new Dimension(0, 4)));
+            dom.label(lbl -> {
+                this.dateElm = lbl;
+                lbl.setText(this.getDateStr());
+                lbl.setFont(Styles.FONT_SMALL);
+                lbl.setForeground(Styles.FG_TEXT_SUBTLE);
+                this.dateOldValue = this.state.date;
+            });
 
-        this.itemsElm = new JLabel("<html>" + this.getItemsStr() + "</html>");
-        this.itemsElm.setFont(Styles.FONT_SMALL);
-        this.itemsElm.setForeground(Styles.FG_TEXT);
-        this.itemsOldValue = this.itemsElm.getText();
-        info.add(this.itemsElm);
-        info.add(Box.createRigidArea(new Dimension(0, 4)));
+            dom.vSpacer(4);
 
-        this.totalElm = new JLabel(NumberFormat.getCurrencyInstance().format(this.state.total));
-        this.totalElm.setFont(Styles.FONT_SMALL_BOLD);
-        this.totalElm.setForeground(Styles.FG_TEXT_DARK);
-        this.totalOldValue = this.state.total;
-        info.add(this.totalElm);
-        info.add(Box.createRigidArea(new Dimension(0, 6)));
+            dom.label(lbl -> {
+                this.itemsElm = lbl;
+                lbl.setText("<html>" + this.getItemsStr() + "</html>");
+                lbl.setFont(Styles.FONT_SMALL);
+                lbl.setForeground(Styles.FG_TEXT);
+                this.itemsOldValue = lbl.getText();
+            });
 
-        var detailsBtn = new JButton("Ver detalhes");
-        Styles.styleLinkButton(detailsBtn, Styles.FG_PRIMARY);
-        detailsBtn.setAlignmentX(JButton.LEFT_ALIGNMENT);
-        detailsBtn.addActionListener(_ -> safeAction("Open receipt", () -> this.presenter.onOpenReceipt(this.state.id)));
-        info.add(detailsBtn);
+            dom.vSpacer(4);
 
-        this.element.add(info, BorderLayout.CENTER);
+            dom.label(lbl -> {
+                this.totalElm = lbl;
+                lbl.setText(NumberFormat.getCurrencyInstance().format(this.state.total));
+                lbl.setFont(Styles.FONT_SMALL_BOLD);
+                lbl.setForeground(Styles.FG_TEXT_DARK);
+                this.totalOldValue = this.state.total;
+            });
+
+            dom.vSpacer(6);
+
+            dom.button(detailsBtn -> {
+                detailsBtn.setText("Ver detalhes");
+                Styles.styleLinkButton(detailsBtn, Styles.FG_PRIMARY);
+                detailsBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
+                detailsBtn.addActionListener(_ -> safeAction("Open receipt", () -> this.presenter.onOpenReceipt(this.state.id)));
+            });
+        });
     }
 
     private String getDateStr() {

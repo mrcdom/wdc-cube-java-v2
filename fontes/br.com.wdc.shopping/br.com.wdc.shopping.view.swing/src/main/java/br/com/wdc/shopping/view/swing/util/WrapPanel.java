@@ -18,6 +18,8 @@ public class WrapPanel extends JPanel {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    private boolean pendingRevalidation = true;
+
     public WrapPanel() {
         super(new WrapLayout(FlowLayout.LEFT, 12, 12));
     }
@@ -28,6 +30,15 @@ public class WrapPanel extends JPanel {
 
     public void setVgap(int vgap) {
         ((WrapLayout) getLayout()).setVgap(vgap);
+    }
+
+    @Override
+    public void setBounds(int x, int y, int width, int height) {
+        super.setBounds(x, y, width, height);
+        if (pendingRevalidation && width > 0) {
+            pendingRevalidation = false;
+            javax.swing.SwingUtilities.invokeLater(this::revalidate);
+        }
     }
 
     private static class WrapLayout extends FlowLayout {
