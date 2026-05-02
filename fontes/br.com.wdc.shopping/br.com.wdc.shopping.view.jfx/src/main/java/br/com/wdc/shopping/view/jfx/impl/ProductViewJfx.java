@@ -205,17 +205,19 @@ public class ProductViewJfx extends AbstractViewJfx<ProductPresenter> {
     }
 
     private void emitBackClicked(ActionEvent evt) {
-        this.presenter.onOpenProducts();
+        safeAction("Open products", this.presenter::onOpenProducts);
     }
 
     private void emitBuyClicked(ActionEvent evt) {
-        var quantity = 1;
-        try {
-            quantity = Integer.parseInt(this.quantityElm.getText());
-        } catch (NumberFormatException caught) {
-            LOG.error("Trying to parse value: {}", this.quantityElm.getText(), caught);
-        }
-        this.presenter.onAddToCart(quantity);
+        safeAction("Add to cart", () -> {
+            var quantity = 1;
+            try {
+                quantity = Integer.parseInt(this.quantityElm.getText());
+            } catch (NumberFormatException caught) {
+                LOG.error("Trying to parse value: {}", this.quantityElm.getText(), caught);
+            }
+            this.presenter.onAddToCart(quantity);
+        });
     }
 
     private static void renderHtml(Pane pane, String htmlString) {

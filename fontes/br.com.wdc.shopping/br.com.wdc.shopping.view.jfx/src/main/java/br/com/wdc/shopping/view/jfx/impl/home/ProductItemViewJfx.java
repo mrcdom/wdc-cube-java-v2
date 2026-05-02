@@ -102,6 +102,6 @@ public class ProductItemViewJfx extends AbstractViewJfx<ProductsPanelPresenter> 
     }
 
     private void emitClicked(MouseEvent evt) {
-        this.presenter.onOpenProduct(this.state.id);
+        safeAction("Open product", () -> this.presenter.onOpenProduct(this.state.id));
     }
 }

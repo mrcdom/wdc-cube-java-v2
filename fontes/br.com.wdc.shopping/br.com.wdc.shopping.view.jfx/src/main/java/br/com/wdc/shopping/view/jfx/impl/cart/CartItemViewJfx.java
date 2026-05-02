@@ -102,6 +102,6 @@ public class CartItemViewJfx extends AbstractViewJfx<CartPresenter> {
     }
 
     private void emitDeleteClicked(MouseEvent evt) {
-        this.presenter.onRemoveProduct(this.state.id);
+        safeAction("Remove product", () -> this.presenter.onRemoveProduct(this.state.id));
     }
 }

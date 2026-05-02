@@ -4,11 +4,16 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import br.com.wdc.framework.cube.CubeView;
 import javafx.scene.Parent;
 import javafx.scene.layout.Pane;
 
 public abstract class AbstractViewJfx<P> implements CubeView {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractViewJfx.class);
 
     protected final String instanceId;
     protected final ShoppingJfxApplication app;
@@ -44,6 +49,14 @@ public abstract class AbstractViewJfx<P> implements CubeView {
     }
 
     public abstract void doUpdate();
+
+    protected void safeAction(String context, Runnable action) {
+        try {
+            action.run();
+        } catch (Exception caught) {
+            this.app.alertUnexpectedError(LOG, context, caught);
+        }
+    }
 
     protected <T, V extends AbstractViewJfx<?>> BiConsumer<List<T>, List<V>> newListSlot(
             Pane container, Supplier<V> factory, BiConsumer<V, T> updater) {

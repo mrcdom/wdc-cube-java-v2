@@ -82,10 +82,10 @@ public class PurchasesPanelViewJfx extends AbstractViewJfx<PurchasesPanelPresent
     }
 
     private void emitPrevPage(ActionEvent evt) {
-        this.presenter.onPageChange(this.state.page - 1);
+        safeAction("Previous page", () -> this.presenter.onPageChange(this.state.page - 1));
     }
 
     private void emitNextPage(ActionEvent evt) {
-        this.presenter.onPageChange(this.state.page + 1);
+        safeAction("Next page", () -> this.presenter.onPageChange(this.state.page + 1));
     }
 }

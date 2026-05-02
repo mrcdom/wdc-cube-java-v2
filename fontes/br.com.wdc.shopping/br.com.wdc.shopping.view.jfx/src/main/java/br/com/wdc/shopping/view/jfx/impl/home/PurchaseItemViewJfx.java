@@ -140,6 +140,6 @@ public class PurchaseItemViewJfx extends AbstractViewJfx<PurchasesPanelPresenter
     }
 
     private void emitDetailsClicked(ActionEvent evt) {
-        this.presenter.onOpenReceipt(this.state.id);
+        safeAction("Open receipt", () -> this.presenter.onOpenReceipt(this.state.id));
     }
 }

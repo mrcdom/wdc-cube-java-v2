@@ -188,10 +188,10 @@ public class CartViewJfx extends AbstractViewJfx<CartPresenter> {
     }
 
     private void emitBackClicked(ActionEvent evt) {
-        this.presenter.onOpenProducts();
+        safeAction("Open products", this.presenter::onOpenProducts);
     }
 
     private void emitCommitClicked(ActionEvent evt) {
-        this.presenter.onBuy();
+        safeAction("Buy", this.presenter::onBuy);
     }
 }

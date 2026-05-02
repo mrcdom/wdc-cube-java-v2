@@ -130,8 +130,10 @@ public class LoginViewJfx extends AbstractViewJfx<LoginPresenter> {
     }
 
     private void emitEnter(ActionEvent evt) {
-        this.state.userName = this.userNameField.getText();
-        this.state.password = this.passwordField.getText();
-        this.presenter.onEnter();
+        safeAction("Login", () -> {
+            this.state.userName = this.userNameField.getText();
+            this.state.password = this.passwordField.getText();
+            this.presenter.onEnter();
+        });
     }
 }

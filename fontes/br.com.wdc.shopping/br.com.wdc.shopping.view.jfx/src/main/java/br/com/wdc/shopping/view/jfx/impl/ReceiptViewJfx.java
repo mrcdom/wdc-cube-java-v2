@@ -142,6 +142,6 @@ public class ReceiptViewJfx extends AbstractViewJfx<ReceiptPresenter> {
     }
 
     private void emitBackClicked(ActionEvent evt) {
-        this.presenter.onOpenProducts();
+        safeAction("Open products", this.presenter::onOpenProducts);
     }
 }
