@@ -1,8 +1,8 @@
 # 🛒 WeDoCode Shopping
 
-Um **sistema de e-commerce completo** construído com arquitetura **Cube MVP**, demonstrando como a mesma lógica de negócio pode alimentar interfaces totalmente diferentes — **React (web)**, **Vaadin (web server-side)**, **JavaFX (desktop)** e **Android (mobile)** — sem duplicar uma única linha de código de apresentação.
+Um **sistema de e-commerce completo** construído com arquitetura **Cube MVP**, demonstrando como a mesma lógica de negócio pode alimentar interfaces totalmente diferentes — **React (web)**, **Vaadin (web server-side)**, **JavaFX (desktop)**, **Swing (desktop)** e **Android (mobile)** — sem duplicar uma única linha de código de apresentação.
 
-> **Quatro frontends. Mesma alma.**
+> **Cinco frontends. Mesma alma.**
 
 ---
 
@@ -106,6 +106,19 @@ Abra **http://localhost:8090**. UI inteiramente server-side com Vaadin 24 + Lumo
 
 ---
 
+## Ou rode a versão Desktop (Swing + FlatLaf)
+
+```bash
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-26.jdk/Contents/Home
+cd br.com.wdc.shopping/br.com.wdc.shopping.view.swing
+java --enable-preview -cp "$(mvn -q dependency:build-classpath -Dmdep.outputFile=/dev/stdout):target/classes" \
+  br.com.wdc.shopping.view.swing.ShoppingSwingMain
+```
+
+Aplicação desktop com Java Swing + FlatLaf (Material look-and-feel). Mesmos presenters, mesmo domínio, banco H2 embarcado.
+
+---
+
 ## Ou rode a versão Mobile (Android)
 
 ```bash
@@ -123,21 +136,22 @@ App nativo Android com Jetpack Compose + Material 3. Mesmos presenters, mesmo do
 
 ## Arquitetura em camadas
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  React 19 + MUI 9  │ Vaadin 24 + Lumo │ JavaFX 24 + CSS  │  Compose + M3  │
-├─────────────────────────────────────────────────────────────────────────────┤
-│              Presentation (Cube MVP)                                        │
-│       Presenters + ViewStates + Navegação                                    │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                   Persistence                                              │
-│       Repositories + Command Pattern SQL                                   │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                     Domain                                                 │
-│       Modelos + Contratos + Configuração                                    │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                   H2 Database                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph Views["Camada de Visualização — 5 implementações"]
+        R["React 19 + MUI 9"]
+        V["Vaadin 24 + Lumo"]
+        JFX["JavaFX 24 + CSS"]
+        SW["Swing + FlatLaf"]
+        AND["Compose + M3"]
+    end
+
+    P["Presentation · Cube MVP<br/><small>Presenters + ViewStates + Navegação</small>"]
+    PER["Persistence<br/><small>Repositories + Command Pattern SQL</small>"]
+    DOM["Domain<br/><small>Modelos + Contratos + Config</small>"]
+    DB[("H2 Database")]
+
+    R & V & JFX & SW & AND --> P --> PER --> DOM --> DB
 ```
 
 ## Módulos
@@ -151,6 +165,7 @@ App nativo Android com Jetpack Compose + Material 3. Mesmos presenters, mesmo do
 | [`view.react`](br.com.wdc.shopping.view.react/) | Frontend web completo (React + Javalin + WebSocket) |
 | [`view.vaadin`](br.com.wdc.shopping.view.vaadin/) | Frontend web server-side (Vaadin 24 + Jetty 12 + Lumo theme) |
 | [`view.jfx`](br.com.wdc.shopping.view.jfx/) | Frontend desktop (JavaFX 24 + CSS Material) |
+| [`view.swing`](br.com.wdc.shopping.view.swing/) | Frontend desktop (Java Swing + FlatLaf Material) |
 | [`view.android`](br.com.wdc.shopping.view.android/) | Frontend mobile (Kotlin + Jetpack Compose + Material 3) |
 | [`api`](br.com.wdc.shopping.api/) | Controllers REST (Javalin) para expor repositórios via HTTP |
 | [`api-client`](br.com.wdc.shopping.api-client/) | Client REST (OkHttp + Gson) que implementa repositórios via HTTP |

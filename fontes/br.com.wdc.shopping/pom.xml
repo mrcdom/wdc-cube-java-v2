@@ -52,6 +52,7 @@
 		<module>br.com.wdc.shopping.view.react</module>
 		<module>br.com.wdc.shopping.view.jfx</module>
 		<module>br.com.wdc.shopping.view.vaadin</module>
+		<module>br.com.wdc.shopping.view.swing</module>
 
 		<module>br.com.wdc.shopping.tests</module>
 	</modules>
