@@ -1,6 +1,5 @@
 package br.com.wdc.shopping.view.swing.util;
 
-import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 import java.util.Map;

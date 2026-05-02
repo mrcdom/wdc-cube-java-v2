@@ -4,8 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.text.NumberFormat;
-import java.util.Deque;
-import java.util.LinkedList;
 import java.util.Objects;
 
 import javax.swing.BorderFactory;

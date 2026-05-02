@@ -1,7 +1,6 @@
 package br.com.wdc.shopping.view.swing.impl.home;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.text.NumberFormat;

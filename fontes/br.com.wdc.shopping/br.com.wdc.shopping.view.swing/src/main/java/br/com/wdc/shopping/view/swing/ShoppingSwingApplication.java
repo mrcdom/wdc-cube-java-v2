@@ -3,7 +3,6 @@ package br.com.wdc.shopping.view.swing;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.swing.JPanel;
 import javax.swing.Timer;
 
 import org.slf4j.Logger;

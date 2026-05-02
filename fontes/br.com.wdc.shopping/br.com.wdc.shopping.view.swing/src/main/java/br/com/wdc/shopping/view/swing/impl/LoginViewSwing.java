@@ -21,7 +21,6 @@ import br.com.wdc.shopping.view.swing.AbstractViewSwing;
 import br.com.wdc.shopping.view.swing.ShoppingSwingApplication;
 import br.com.wdc.shopping.view.swing.util.ResourceCatalog;
 import br.com.wdc.shopping.view.swing.util.Styles;
-import br.com.wdc.shopping.view.swing.util.SwingDom;
 
 public class LoginViewSwing extends AbstractViewSwing<LoginPresenter> {
 

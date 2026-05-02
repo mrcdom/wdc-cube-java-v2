@@ -8,7 +8,6 @@ import java.awt.Insets;
 import java.io.Serial;
 
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 
 /**
  * A panel that wraps children to the next row when they exceed the available width,

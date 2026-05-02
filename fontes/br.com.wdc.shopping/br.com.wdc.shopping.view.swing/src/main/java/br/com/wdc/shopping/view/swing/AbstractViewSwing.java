@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-import javax.swing.JComponent;
 import javax.swing.JPanel;
 
 import org.slf4j.Logger;
