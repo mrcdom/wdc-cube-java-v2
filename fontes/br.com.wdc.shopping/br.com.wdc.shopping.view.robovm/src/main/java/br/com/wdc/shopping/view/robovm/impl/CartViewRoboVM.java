@@ -8,6 +8,7 @@ import org.robovm.apple.coregraphics.CGRect;
 import org.robovm.apple.coregraphics.CGSize;
 import org.robovm.apple.uikit.UIButton;
 import org.robovm.apple.uikit.UIColor;
+import org.robovm.apple.uikit.UIControlContentHorizontalAlignment;
 import org.robovm.apple.uikit.UIControlState;
 import org.robovm.apple.uikit.UIFont;
 import org.robovm.apple.uikit.UILabel;
@@ -110,7 +111,7 @@ public class CartViewRoboVM extends AbstractViewRoboVM<CartPresenter> {
             backLink.setTitle("\u2039 Produtos", UIControlState.Normal);
             backLink.setTitleColor(UIColor.white(), UIControlState.Normal);
             backLink.getTitleLabel().setFont(UIFont.getBoldSystemFont(17));
-            backLink.setContentHorizontalAlignment(org.robovm.apple.uikit.UIControlContentHorizontalAlignment.Left);
+            backLink.setContentHorizontalAlignment(UIControlContentHorizontalAlignment.Left);
             backLink.addOnTouchUpInsideListener((c, e) -> safeAction("products", presenter::onOpenProducts));
         });
 
@@ -182,7 +183,7 @@ public class CartViewRoboVM extends AbstractViewRoboVM<CartPresenter> {
                 browseBtn.getTitleLabel().setFont(UIFont.getBoldSystemFont(16));
                 browseBtn.setBackgroundColor(UIColor.fromRGBA(0.0, 0.48, 1.0, 1.0));
                 browseBtn.getLayer().setCornerRadius(10);
-                browseBtn.addOnTouchUpInsideListener((c, e) -> safeAction("products", () -> presenter.onOpenProducts()));
+                browseBtn.addOnTouchUpInsideListener((c, e) -> safeAction("products", presenter::onOpenProducts));
             });
         });
 

@@ -62,7 +62,7 @@ public class PurchasesPanelViewRoboVM extends AbstractViewRoboVM<PurchasesPanelP
         this.contentSlot.accept(this.state.purchases, this.itemViewList);
 
         // Update scroll content size
-        int count = this.itemViewList.size();
+        double count = this.itemViewList.size();
         scrollView.setContentSize(new CGSize(343, count * 44));
 
         // Update pagination label

@@ -7,6 +7,7 @@ import java.util.function.BiConsumer;
 import org.robovm.apple.coregraphics.CGRect;
 import org.robovm.apple.coregraphics.CGSize;
 import org.robovm.apple.uikit.UIColor;
+import org.robovm.apple.uikit.UIControlContentHorizontalAlignment;
 import org.robovm.apple.uikit.UIControlState;
 import org.robovm.apple.uikit.UIFont;
 import org.robovm.apple.uikit.UILabel;
@@ -72,7 +73,7 @@ public class ReceiptViewRoboVM extends AbstractViewRoboVM<ReceiptPresenter> {
         var receipt = state.receipt;
         if (receipt != null && receipt.items != null) {
             this.itemsSlot.accept(receipt.items, this.receiptItemViewList);
-            int count = this.receiptItemViewList.size();
+            double count = this.receiptItemViewList.size();
             itemsContainer.setContentSize(new CGSize(343, count * 44));
         }
 
@@ -93,7 +94,7 @@ public class ReceiptViewRoboVM extends AbstractViewRoboVM<ReceiptPresenter> {
             backLink.setTitle("‹ Produtos", UIControlState.Normal);
             backLink.setTitleColor(UIColor.white(), UIControlState.Normal);
             backLink.getTitleLabel().setFont(UIFont.getBoldSystemFont(17));
-            backLink.setContentHorizontalAlignment(org.robovm.apple.uikit.UIControlContentHorizontalAlignment.Left);
+            backLink.setContentHorizontalAlignment(UIControlContentHorizontalAlignment.Left);
             backLink.addOnTouchUpInsideListener((c, e) ->
                     safeAction("products", presenter::onOpenProducts));
         });

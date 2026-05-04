@@ -1,6 +1,7 @@
 package br.com.wdc.shopping.view.robovm.impl;
 
 import org.robovm.apple.coregraphics.CGRect;
+import org.robovm.apple.coregraphics.CGSize;
 import org.robovm.apple.uikit.NSTextAlignment;
 import org.robovm.apple.uikit.UIColor;
 import org.robovm.apple.uikit.UIControlState;
@@ -103,7 +104,7 @@ public class LoginViewRoboVM extends AbstractViewRoboVM<LoginPresenter> {
             welcome.setFont(UIFont.getBoldSystemFont(26));
             welcome.setTextColor(UIColor.white());
             welcome.setShadowColor(UIColor.fromRGBA(0.0, 0.0, 0.0, 0.3));
-            welcome.setShadowOffset(new org.robovm.apple.coregraphics.CGSize(0, 1));
+            welcome.setShadowOffset(new CGSize(0, 1));
             welcome.setTextAlignment(NSTextAlignment.Center);
         });
 

@@ -54,7 +54,7 @@ public class ProductsPanelViewRoboVM extends AbstractViewRoboVM<ProductsPanelPre
         this.contentSlot.accept(this.state.products, this.itemViewList);
 
         // Update scroll content size based on item count
-        int count = this.itemViewList.size();
+        double count = this.itemViewList.size();
         scrollView.setContentSize(new CGSize(343, count * 54));
     }
 
@@ -83,8 +83,7 @@ public class ProductsPanelViewRoboVM extends AbstractViewRoboVM<ProductsPanelPre
     }
 
     private ProductItemViewRoboVM newItemView() {
-        var view = new ProductItemViewRoboVM(this.app, this.presenter, this.itemIdx++);
-        return view;
+        return new ProductItemViewRoboVM(this.app, this.presenter, this.itemIdx++);
     }
 
     private void updateItem(ProductItemViewRoboVM itemView, ProductInfo item) {

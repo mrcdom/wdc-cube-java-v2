@@ -1,16 +1,17 @@
 package br.com.wdc.shopping.view.robovm.impl;
 
+import java.util.Objects;
+
 import org.robovm.apple.coregraphics.CGRect;
+import org.robovm.apple.uikit.NSTextAlignment;
 import org.robovm.apple.uikit.UIColor;
 import org.robovm.apple.uikit.UIControlState;
 import org.robovm.apple.uikit.UIFont;
 import org.robovm.apple.uikit.UIImage;
+import org.robovm.apple.uikit.UIImageView;
 import org.robovm.apple.uikit.UILabel;
-import org.robovm.apple.uikit.NSTextAlignment;
 import org.robovm.apple.uikit.UIView;
 import org.robovm.apple.uikit.UIViewContentMode;
-
-import java.util.Objects;
 
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
@@ -245,7 +246,7 @@ public class HomeViewRoboVM extends AbstractViewRoboVM<HomePresenter> {
 
         var patternImage = UIImage.getImage("doodle-pattern");
         if (patternImage != null) {
-            var imageView = new org.robovm.apple.uikit.UIImageView(new CGRect(0, 0, width, height));
+            var imageView = new UIImageView(new CGRect(0, 0, width, height));
             imageView.setImage(patternImage);
             imageView.setContentMode(UIViewContentMode.ScaleAspectFill);
             imageView.setAlpha(0.08);

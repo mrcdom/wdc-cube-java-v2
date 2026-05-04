@@ -5,6 +5,7 @@ import java.util.Objects;
 import org.robovm.apple.coregraphics.CGRect;
 import org.robovm.apple.coregraphics.CGSize;
 import org.robovm.apple.uikit.UIColor;
+import org.robovm.apple.uikit.UIControlContentHorizontalAlignment;
 import org.robovm.apple.uikit.UIControlState;
 import org.robovm.apple.uikit.UIFont;
 import org.robovm.apple.uikit.UILabel;
@@ -92,7 +93,7 @@ public class ProductViewRoboVM extends AbstractViewRoboVM<ProductPresenter> {
             backBtn.setTitle("\u2039 Produtos", UIControlState.Normal);
             backBtn.setTitleColor(UIColor.white(), UIControlState.Normal);
             backBtn.getTitleLabel().setFont(UIFont.getBoldSystemFont(17));
-            backBtn.setContentHorizontalAlignment(org.robovm.apple.uikit.UIControlContentHorizontalAlignment.Left);
+            backBtn.setContentHorizontalAlignment(UIControlContentHorizontalAlignment.Left);
             backBtn.addOnTouchUpInsideListener((c, e) ->
                     safeAction("back", presenter::onOpenProducts));
         });
