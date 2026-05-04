@@ -2,6 +2,7 @@ package br.com.wdc.shopping.domain.security;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -15,19 +16,19 @@ import java.util.stream.Collectors;
  */
 public enum Role {
 
-	ADMIN(Set.of(
+	ADMIN(newSet(
 			"user:*",
 			"product:*",
 			"purchase:*",
 			"purchase-item:*",
 			"data:all")),
 
-	CUSTOMER(Set.of(
+	CUSTOMER(newSet(
 			"product:read",
 			"purchase:read", "purchase:write",
 			"purchase-item:read", "purchase-item:write")),
 
-	MANAGER(Set.of(
+	MANAGER(newSet(
 			"product:read", "product:write",
 			"purchase:read",
 			"purchase-item:read"));
@@ -48,7 +49,7 @@ public enum Role {
 	public static Set<String> effectivePermissions(Set<Role> roles) {
 		return roles.stream()
 				.flatMap(r -> r.permissions.stream())
-				.collect(Collectors.toUnmodifiableSet());
+				.collect(Collectors.toSet());
 	}
 
 	/**
@@ -56,8 +57,8 @@ public enum Role {
 	 * Papéis desconhecidos são ignorados silenciosamente.
 	 */
 	public static Set<Role> parse(String rolesStr) {
-		if (rolesStr == null || rolesStr.isBlank()) {
-			return Set.of();
+		if (rolesStr == null || rolesStr.trim().isEmpty()) {
+			return Collections.emptySet();
 		}
 		return Arrays.stream(rolesStr.split(","))
 				.map(String::trim)
@@ -69,7 +70,7 @@ public enum Role {
 						return java.util.stream.Stream.empty();
 					}
 				})
-				.collect(Collectors.toUnmodifiableSet());
+				.collect(Collectors.toSet());
 	}
 
 	/**
@@ -85,5 +86,13 @@ public enum Role {
 	 */
 	public static boolean hasDataAll(Set<String> permissions) {
 		return permissions.contains("data:all");
+	}
+
+	private static Set<String> newSet(String... values) {
+		var set = new LinkedHashSet<String>();
+		for (var v : values) {
+			set.add(v);
+		}
+		return Collections.unmodifiableSet(set);
 	}
 }

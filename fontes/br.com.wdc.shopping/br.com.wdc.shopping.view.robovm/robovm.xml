@@ -1,0 +1,44 @@
+<config>
+    <executableName>ShoppingiOS</executableName>
+    <mainClass>br.com.wdc.shopping.view.robovm.ShoppingRoboVMMain</mainClass>
+    <os>ios</os>
+    <arch>arm64</arch>
+
+    <target>ios</target>
+    <iosInfoPList>Info.plist.xml</iosInfoPList>
+
+    <resources>
+        <resource>
+            <directory>src/main/resources</directory>
+        </resource>
+    </resources>
+
+    <forceLinkClasses>
+        <pattern>br.com.wdc.shopping.view.robovm.**</pattern>
+        <pattern>br.com.wdc.shopping.presentation.**</pattern>
+        <pattern>br.com.wdc.shopping.domain.**</pattern>
+        <pattern>br.com.wdc.shopping.api.client.**</pattern>
+        <pattern>br.com.wdc.framework.cube.**</pattern>
+        <pattern>org.slf4j.**</pattern>
+        <pattern>java.util.function.**</pattern>
+        <pattern>java.util.stream.**</pattern>
+        <pattern>java.util.Optional</pattern>
+        <pattern>java.util.Spliterator*</pattern>
+        <pattern>java.util.Comparators**</pattern>
+        <pattern>java.time.**</pattern>
+        <!-- Security/SSL providers (required for HttpURLConnection) -->
+        <pattern>com.android.org.conscrypt.**</pattern>
+        <pattern>com.android.org.bouncycastle.**</pattern>
+        <pattern>org.apache.harmony.security.**</pattern>
+        <!-- RoboVM internal HTTP stack (used by java.net.URL) -->
+        <pattern>com.android.okhttp.**</pattern>
+        <pattern>com.squareup.okhttp.**</pattern>
+    </forceLinkClasses>
+
+    <frameworks>
+        <framework>UIKit</framework>
+        <framework>CoreGraphics</framework>
+        <framework>Foundation</framework>
+        <framework>QuartzCore</framework>
+    </frameworks>
+</config>

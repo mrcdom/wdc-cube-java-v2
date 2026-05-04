@@ -1,7 +1,7 @@
 package br.com.wdc.shopping.view.vaadin;
 
+import java.io.File;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 
 import org.eclipse.jetty.ee10.servlet.ServletHolder;
@@ -98,11 +98,11 @@ public class ShoppingVaadinMain {
         server.join();
     }
 
-    private static String resolveJdbcUrl(AppConfig config, Path dataDir) {
+    private static String resolveJdbcUrl(AppConfig config, File dataDir) {
         var url = config.get("database.url");
         if (url != null && !url.isBlank()) {
             return url;
         }
-        return "jdbc:h2:file:" + dataDir.resolve("wedocode-shopping").toAbsolutePath();
+        return "jdbc:h2:file:" + new File(dataDir, "wedocode-shopping").getAbsolutePath();
     }
 }

@@ -1,7 +1,5 @@
 package br.com.wdc.shopping.api.client;
 
-import java.time.Instant;
-
 import com.google.gson.JsonObject;
 
 import br.com.wdc.shopping.domain.exception.BusinessException;
@@ -33,7 +31,7 @@ public class RestAuthenticationService implements AuthenticationService {
 	public ChallengeResult challenge() {
 		var json = config.getJson("/api/auth/challenge");
 		var nonce = json.get("nonce").getAsString();
-		var expiresAt = Instant.parse(json.get("expiresAt").getAsString());
+		var expiresAt = Iso8601Util.parseInstant(json.get("expiresAt").getAsString());
 		return new ChallengeResult(nonce, expiresAt);
 	}
 
@@ -124,7 +122,7 @@ public class RestAuthenticationService implements AuthenticationService {
 				json.get("userId").getAsLong(),
 				json.get("accessToken").getAsString(),
 				json.get("refreshToken").getAsString(),
-				Instant.parse(json.get("expiresAt").getAsString()),
+				Iso8601Util.parseInstant(json.get("expiresAt").getAsString()),
 				json.get("publicKey").getAsString());
 	}
 

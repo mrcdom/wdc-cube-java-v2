@@ -1,6 +1,8 @@
 package br.com.wdc.shopping.presentation.presenter.restricted.cart;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -131,7 +133,7 @@ public class CartManager {
         var purchase = new Purchase();
         purchase.user = new User();
         purchase.user.id = userId;
-        purchase.buyDate = OffsetDateTime.now();
+        purchase.buyDate = OffsetDateTime.ofInstant(Instant.now(), ZoneOffset.UTC);
 
         purchase.items = new ArrayList<>();
         for (var srcItem : request) {

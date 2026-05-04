@@ -1,5 +1,6 @@
 package br.com.wdc.shopping.test.util;
 
+import java.io.File;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 
@@ -92,12 +93,12 @@ public class TestEnvironment extends ExternalResource {
 		ds.setValidationQuery("SELECT 1 FROM DUAL");
 		datasource = ds;
 
-		var basePath = Paths.get("work");
+		var basePath = Paths.get("work").toFile();
 		ShoppingConfig.Internals.setBaseDir(basePath);
-		ShoppingConfig.Internals.setConfigDir(basePath.resolve("config"));
-		ShoppingConfig.Internals.setDataDir(basePath.resolve("data"));
-		ShoppingConfig.Internals.setLogDir(basePath.resolve("log"));
-		ShoppingConfig.Internals.setTempDir(basePath.resolve("temp"));
+		ShoppingConfig.Internals.setConfigDir(new File(basePath, "config"));
+		ShoppingConfig.Internals.setDataDir(new File(basePath, "data"));
+		ShoppingConfig.Internals.setLogDir(new File(basePath, "log"));
+		ShoppingConfig.Internals.setTempDir(new File(basePath, "temp"));
 
 		SqlDataSource.BEAN.set(new SqlDataSourceDelegate(ds));
 		ScheduledExecutor.BEAN.set(executor);

@@ -76,7 +76,7 @@ public class MapOrListOutput implements ExtensibleObjectOutput {
 
     @Override
     public ExtensibleObjectOutput name(int id, String name) {
-        this.current.name = name == null || name.isBlank() ? String.valueOf(id) : name;
+        this.current.name = name == null || name.trim().isEmpty() ? String.valueOf(id) : name;
         return this;
     }
 

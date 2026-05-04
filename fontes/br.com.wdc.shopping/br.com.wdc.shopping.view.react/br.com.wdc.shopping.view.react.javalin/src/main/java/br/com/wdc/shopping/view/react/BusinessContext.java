@@ -1,6 +1,6 @@
 package br.com.wdc.shopping.view.react;
 
-import java.nio.file.Path;
+import java.io.File;
 import java.util.concurrent.ScheduledExecutorService;
 
 import org.h2.jdbcx.JdbcDataSource;
@@ -67,12 +67,12 @@ public class BusinessContext {
         }
     }
 
-    private static String resolveJdbcUrl(AppConfig config, Path dataDir) {
+    private static String resolveJdbcUrl(AppConfig config, File dataDir) {
         String configuredUrl = config.get("database.url");
         if (configuredUrl != null && !configuredUrl.isBlank()) {
             return configuredUrl;
         }
-        return "jdbc:h2:file:" + dataDir.resolve(DEFAULT_DB_NAME).toAbsolutePath()
+        return "jdbc:h2:file:" + new File(dataDir, DEFAULT_DB_NAME).getAbsolutePath()
                 + ";DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE";
     }
 

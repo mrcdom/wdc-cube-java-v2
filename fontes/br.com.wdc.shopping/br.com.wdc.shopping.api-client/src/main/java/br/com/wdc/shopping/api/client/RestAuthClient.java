@@ -62,7 +62,7 @@ public class RestAuthClient {
 		this.publicKeyBase64 = loginResponse.get("publicKey").getAsString();
 
 		var expiresAtStr = loginResponse.get("expiresAt").getAsString();
-		this.expiresAtEpochSecond = java.time.Instant.parse(expiresAtStr).getEpochSecond();
+		this.expiresAtEpochSecond = Iso8601Util.parseEpochSecond(expiresAtStr);
 	}
 
 	/**
@@ -83,7 +83,7 @@ public class RestAuthClient {
 		this.publicKeyBase64 = response.get("publicKey").getAsString();
 
 		var expiresAtStr = response.get("expiresAt").getAsString();
-		this.expiresAtEpochSecond = java.time.Instant.parse(expiresAtStr).getEpochSecond();
+		this.expiresAtEpochSecond = Iso8601Util.parseEpochSecond(expiresAtStr);
 	}
 
 	/**

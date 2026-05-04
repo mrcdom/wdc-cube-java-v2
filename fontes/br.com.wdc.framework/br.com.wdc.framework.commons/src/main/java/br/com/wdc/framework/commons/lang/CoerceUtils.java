@@ -509,24 +509,24 @@ public class CoerceUtils {
         }
 
         if (v instanceof LocalDate dt) {
-            return java.util.Date.from(LocalDateTime.of(dt, LocalTime.MIN).toInstant(DateUtil.getSysZoneOffset()));
+            return dateFromInstant(LocalDateTime.of(dt, LocalTime.MIN).toInstant(DateUtil.getSysZoneOffset()));
         }
 
         if (v instanceof LocalDateTime dt) {
-            return java.util.Date.from(dt.toInstant(DateUtil.getSysZoneOffset()));
+            return dateFromInstant(dt.toInstant(DateUtil.getSysZoneOffset()));
         }
 
         if (v instanceof OffsetDateTime dt) {
-            return java.util.Date.from(dt.toInstant());
+            return dateFromInstant(dt.toInstant());
         }
 
         if (v instanceof ZonedDateTime dt) {
-            return java.util.Date.from(dt.toInstant());
+            return dateFromInstant(dt.toInstant());
         }
 
         if (v instanceof TemporalAccessor temporalAccessor) {
             LocalDateTime dt = LocalDateTime.from(temporalAccessor);
-            return java.util.Date.from(dt.toInstant(DateUtil.getSysZoneOffset()));
+            return dateFromInstant(dt.toInstant(DateUtil.getSysZoneOffset()));
         }
 
         if (v instanceof String str) {
@@ -534,7 +534,7 @@ public class CoerceUtils {
                 return defaultValue;
             }
             var parsed = parseFlexibleTemporal(str);
-            return java.util.Date.from(toInstant(parsed));
+            return dateFromInstant(toInstant(parsed));
         }
 
         throw new IllegalArgumentException(getErrorMessage(v));
@@ -953,6 +953,14 @@ public class CoerceUtils {
         return new java.sql.Date(dt.getTime()).toLocalDate();
     }
 
+    /**
+     * Replacement for {@code java.util.Date.from(Instant)} which doesn't work
+     * in RoboVM's AOT-compiled runtime despite being present in the patched jar.
+     */
+    private static java.util.Date dateFromInstant(Instant instant) {
+        return new java.util.Date(instant.toEpochMilli());
+    }
+
     private static LocalDateTime localDateTimeOf(java.util.Date dt) {
         return new java.sql.Timestamp(dt.getTime()).toLocalDateTime();
     }
@@ -979,7 +987,7 @@ public class CoerceUtils {
 
         // "yyyy-MM-dd HH:mm:ss" — space separator, no T
         if (!hasT && len >= 19 && str.charAt(10) == ' ') {
-            return LocalDateTime.parse(str, DATETIME_SPACE_FORMAT);
+            return LocalDateTime.parse(str, DateTimeFormatHolder.DATETIME_SPACE_FORMAT);
         }
 
         // From here on, all formats have 'T'
@@ -1013,7 +1021,11 @@ public class CoerceUtils {
         return parseFlexibleTemporalFallback(str);
     }
 
-    private static final DateTimeFormatter DATETIME_SPACE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    // Lazy holder to avoid DateTimeFormatter initialization in <clinit>
+    // (RoboVM AOT: AbstractChronology.<clinit> fails with serializable lambda cast)
+    private static class DateTimeFormatHolder {
+        static final DateTimeFormatter DATETIME_SPACE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    }
 
     private static TemporalAccessor parseFlexibleTemporalFallback(String str) {
         DateTimeParseException last = null;

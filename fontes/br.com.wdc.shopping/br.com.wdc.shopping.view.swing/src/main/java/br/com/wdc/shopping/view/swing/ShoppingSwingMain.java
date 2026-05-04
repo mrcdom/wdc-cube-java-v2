@@ -1,7 +1,7 @@
 package br.com.wdc.shopping.view.swing;
 
 import java.awt.Dimension;
-import java.nio.file.Path;
+import java.io.File;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -117,11 +117,11 @@ public class ShoppingSwingMain {
         SqlDataSource.BEAN.set(null);
     }
 
-    private static String resolveJdbcUrl(AppConfig config, Path dataDir) {
+    private static String resolveJdbcUrl(AppConfig config, File dataDir) {
         var url = config.get("database.url");
         if (url != null && !url.isBlank()) {
             return url;
         }
-        return "jdbc:h2:file:" + dataDir.resolve("wedocode-shopping").toAbsolutePath();
+        return "jdbc:h2:file:" + new File(dataDir, "wedocode-shopping").getAbsolutePath();
     }
 }

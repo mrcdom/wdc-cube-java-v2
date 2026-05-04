@@ -5,6 +5,7 @@ import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -21,15 +22,19 @@ public final class QueryStringParser {
 
     private static final Logger logger = Logger.getLogger(QueryStringParser.class.getName());
 
-    private static final Map<Class<?>, Function<String, Object>> NUMERIC_PARSERS = Map.of(
-            BigDecimal.class, BigDecimal::new,
-            Double.class, Double::valueOf,
-            Float.class, Float::valueOf,
-            BigInteger.class, BigInteger::new,
-            Long.class, Long::valueOf,
-            Integer.class, Integer::valueOf,
-            Short.class, Short::valueOf,
-            Byte.class, Byte::valueOf);
+    private static final Map<Class<?>, Function<String, Object>> NUMERIC_PARSERS;
+    static {
+        var m = new HashMap<Class<?>, Function<String, Object>>();
+        m.put(BigDecimal.class, BigDecimal::new);
+        m.put(Double.class, Double::valueOf);
+        m.put(Float.class, Float::valueOf);
+        m.put(BigInteger.class, BigInteger::new);
+        m.put(Long.class, Long::valueOf);
+        m.put(Integer.class, Integer::valueOf);
+        m.put(Short.class, Short::valueOf);
+        m.put(Byte.class, Byte::valueOf);
+        NUMERIC_PARSERS = java.util.Collections.unmodifiableMap(m);
+    }
 
     private QueryStringParser() {
 

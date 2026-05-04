@@ -1,9 +1,10 @@
 package br.com.wdc.shopping.domain.config;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -35,20 +36,20 @@ public final class AppConfig {
     }
 
     public static AppConfig load() {
-        var configPath = resolveConfigPath();
-        if (Files.exists(configPath)) {
-            LOG.info("Loading configuration from {}", configPath.toAbsolutePath());
+        var configFile = resolveConfigPath();
+        if (configFile.exists()) {
+            LOG.info("Loading configuration from {}", configFile.getAbsolutePath());
             try {
-                var content = Files.readString(configPath);
+                var content = readFileContent(configFile);
                 var props = parseToml(content);
                 return new AppConfig(props);
             } catch (IOException e) {
-                LOG.warn("Failed to read config file {}: {}", configPath, e.getMessage());
+                LOG.warn("Failed to read config file {}: {}", configFile, e.getMessage());
             }
         } else {
-            LOG.info("No config file found at {}, using defaults", configPath.toAbsolutePath());
+            LOG.info("No config file found at {}, using defaults", configFile.getAbsolutePath());
         }
-        return new AppConfig(Map.of());
+        return new AppConfig(Collections.emptyMap());
     }
 
     public String get(String key) {
@@ -81,12 +82,26 @@ public final class AppConfig {
         return "true".equalsIgnoreCase(value);
     }
 
-    private static Path resolveConfigPath() {
+    private static File resolveConfigPath() {
         var configured = System.getProperty(CONFIG_FILE_PROPERTY);
-        if (configured != null && !configured.isBlank()) {
-            return Paths.get(configured);
+        if (configured != null && !configured.trim().isEmpty()) {
+            return new File(configured);
         }
-        return Paths.get(DEFAULT_CONFIG_PATH);
+        return new File(DEFAULT_CONFIG_PATH);
+    }
+
+    private static String readFileContent(File file) throws IOException {
+        var sb = new StringBuilder();
+        try (var reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (sb.length() > 0) {
+                    sb.append('\n');
+                }
+                sb.append(line);
+            }
+        }
+        return sb.toString();
     }
 
     /**
@@ -104,14 +119,14 @@ public final class AppConfig {
         var currentSection = "";
 
         for (var rawLine : content.split("\n")) {
-            var line = rawLine.strip();
+            var line = rawLine.trim();
 
             if (line.isEmpty() || line.startsWith("#")) {
                 continue;
             }
 
             if (line.startsWith("[") && line.endsWith("]")) {
-                currentSection = line.substring(1, line.length() - 1).strip();
+                currentSection = line.substring(1, line.length() - 1).trim();
                 continue;
             }
 
@@ -120,8 +135,8 @@ public final class AppConfig {
                 continue;
             }
 
-            var key = line.substring(0, eqIdx).strip();
-            var value = line.substring(eqIdx + 1).strip();
+            var key = line.substring(0, eqIdx).trim();
+            var value = line.substring(eqIdx + 1).trim();
 
             // Remove surrounding quotes
             if (value.length() >= 2 && value.startsWith("\"") && value.endsWith("\"")) {

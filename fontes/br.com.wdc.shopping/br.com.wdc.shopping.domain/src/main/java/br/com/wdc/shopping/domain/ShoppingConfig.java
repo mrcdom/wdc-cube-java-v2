@@ -1,24 +1,22 @@
 package br.com.wdc.shopping.domain;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import br.com.wdc.shopping.domain.config.AppConfig;
 
 public class ShoppingConfig {
 
-    private static Path baseDir;
+    private static File baseDir;
 
-    private static Path configDir;
+    private static File configDir;
 
-    private static Path dataDir;
+    private static File dataDir;
 
-    private static Path logDir;
+    private static File logDir;
 
-    private static Path tempDir;
+    private static File tempDir;
 
     private static String jwtSecret;
 
@@ -26,23 +24,23 @@ public class ShoppingConfig {
         super();
     }
 
-    public static final Path getBaseDir() {
+    public static final File getBaseDir() {
         return baseDir;
     }
 
-    public static final Path getConfigDir() {
+    public static final File getConfigDir() {
         return configDir;
     }
 
-    public static final Path getDataDir() {
+    public static final File getDataDir() {
         return dataDir;
     }
 
-    public static final Path getLogDir() {
+    public static final File getLogDir() {
         return logDir;
     }
 
-    public static final Path getTempDir() {
+    public static final File getTempDir() {
         return tempDir;
     }
 
@@ -56,23 +54,23 @@ public class ShoppingConfig {
             super();
         }
 
-        public static void setBaseDir(Path path) {
+        public static void setBaseDir(File path) {
             ShoppingConfig.baseDir = path;
         }
 
-        public static void setConfigDir(Path path) {
+        public static void setConfigDir(File path) {
             ShoppingConfig.configDir = path;
         }
 
-        public static void setDataDir(Path path) {
+        public static void setDataDir(File path) {
             ShoppingConfig.dataDir = path;
         }
 
-        public static void setLogDir(Path path) {
+        public static void setLogDir(File path) {
             ShoppingConfig.logDir = path;
         }
 
-        public static void setTempDir(Path path) {
+        public static void setTempDir(File path) {
             ShoppingConfig.tempDir = path;
         }
 
@@ -82,11 +80,11 @@ public class ShoppingConfig {
 
         public static void configure(AppConfig config) {
             try {
-                Path baseDir = resolveRuntimeBaseDir(config);
-                Path configDir = createDirectory(baseDir.resolve("config"));
-                Path dataDir = createDirectory(baseDir.resolve("data"));
-                Path logDir = createDirectory(baseDir.resolve("log"));
-                Path tempDir = createDirectory(baseDir.resolve("temp"));
+                File baseDir = resolveRuntimeBaseDir(config);
+                File configDir = createDirectory(new File(baseDir, "config"));
+                File dataDir = createDirectory(new File(baseDir, "data"));
+                File logDir = createDirectory(new File(baseDir, "log"));
+                File tempDir = createDirectory(new File(baseDir, "temp"));
 
                 ShoppingConfig.Internals.setBaseDir(baseDir);
                 ShoppingConfig.Internals.setConfigDir(configDir);
@@ -101,19 +99,21 @@ public class ShoppingConfig {
             }
         }
 
-        private static Path createDirectory(Path dir) throws IOException {
-            if (!Files.exists(dir)) {
-                Files.createDirectories(dir);
+        private static File createDirectory(File dir) throws IOException {
+            if (!dir.exists()) {
+                if (!dir.mkdirs()) {
+                    throw new IOException("Failed to create directory: " + dir);
+                }
             }
             return dir;
         }
 
-        private static Path resolveRuntimeBaseDir(AppConfig config) throws IOException {
+        private static File resolveRuntimeBaseDir(AppConfig config) throws IOException {
             String configuredDir = config.get("app.basedir");
-            Path baseDir = configuredDir != null && !configuredDir.isBlank()
-                    ? Paths.get(configuredDir)
-                    : Paths.get("work");
-            return createDirectory(baseDir.toAbsolutePath().normalize());
+            File baseDir = configuredDir != null && !configuredDir.trim().isEmpty()
+                    ? new File(configuredDir)
+                    : new File("work");
+            return createDirectory(baseDir.getAbsoluteFile());
         }
 
     }

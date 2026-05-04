@@ -1,6 +1,7 @@
 package br.com.wdc.shopping.presentation.presenter.restricted.home.purchases;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import br.com.wdc.shopping.domain.criteria.PurchaseCriteria;
 import br.com.wdc.shopping.domain.criteria.PurchaseCriteria.OrderBy;
@@ -22,7 +23,7 @@ public class PurchasesPanelService {
 
     public List<PurchaseInfo> loadPurchases(PurchaseCriteria criteria) {
         return repo.fetch(criteria.withProjection(PurchaseInfo.projectionWithItens()))
-                .stream().map(PurchaseInfo::create).toList();
+                .stream().map(PurchaseInfo::create).collect(Collectors.toList());
     }
 
     public int countPurchasesOfUser(Long userId) {
@@ -44,6 +45,6 @@ public class PurchasesPanelService {
                 .withOrderBy(OrderBy.DESCENDING)
                 .withOffset(offset)
                 .withLimit(limit))
-                .stream().map(PurchaseInfo::create).toList();
+                .stream().map(PurchaseInfo::create).collect(Collectors.toList());
     }
 }

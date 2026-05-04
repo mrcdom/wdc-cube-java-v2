@@ -1,6 +1,7 @@
 package br.com.wdc.shopping.presentation.presenter.restricted.products;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import br.com.wdc.shopping.domain.criteria.ProductCriteria;
 import br.com.wdc.shopping.domain.repositories.ProductRepository;
@@ -41,6 +42,6 @@ public class ProductService {
         criteria.projection().description = null;
 
         return repo.fetch(criteria)
-                .stream().map(ProductInfo::create).toList();
+                .stream().map(ProductInfo::create).collect(Collectors.toList());
     }
 }
