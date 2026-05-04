@@ -1,8 +1,12 @@
 package br.com.wdc.shopping.view.robovm.impl;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.BiConsumer;
+
 import org.robovm.apple.coregraphics.CGRect;
+import org.robovm.apple.coregraphics.CGSize;
 import org.robovm.apple.uikit.UIButton;
-import org.robovm.apple.uikit.UIButtonType;
 import org.robovm.apple.uikit.UIColor;
 import org.robovm.apple.uikit.UIControlState;
 import org.robovm.apple.uikit.UIFont;
@@ -11,131 +15,56 @@ import org.robovm.apple.uikit.UIScrollView;
 import org.robovm.apple.uikit.UIView;
 import org.robovm.apple.uikit.NSTextAlignment;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.structs.CartItem;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.structs.CartItem;
 import br.com.wdc.shopping.view.robovm.AbstractViewRoboVM;
 import br.com.wdc.shopping.view.robovm.ShoppingRoboVMApplication;
+import br.com.wdc.shopping.view.robovm.impl.cart.CartItemViewRoboVM;
+import br.com.wdc.shopping.view.robovm.util.UIKitDom;
 
 public class CartViewRoboVM extends AbstractViewRoboVM<CartPresenter> {
 
     private final CartViewState state;
-    private boolean built;
 
+    private boolean notRendered = true;
+    private int itemIdx;
+    private List<CartItemViewRoboVM> cartItemViewList = new ArrayList<>();
+    private BiConsumer<List<CartItem>, List<CartItemViewRoboVM>> itemsSlot;
     private UIScrollView scrollView;
     private UILabel totalLabel;
+    private double totalOldValue;
     private UILabel errorLabel;
     private UIView emptyStateView;
     private UIButton buyButton;
+    private boolean emptyOldValue = false;
 
     public CartViewRoboVM(ShoppingRoboVMApplication app, CartPresenter presenter) {
         super("cart", app, presenter);
         this.state = presenter.state;
     }
 
-    private void buildUI() {
-        var container = new UIView(new CGRect(0, 0, 375, 600));
-        container.setBackgroundColor(UIColor.clear());
-
-        // Back link - white for doodle background
-        var backLink = new UIButton(UIButtonType.System);
-        backLink.setFrame(new CGRect(4, 4, 160, 44));
-        backLink.setTitle("‹ Produtos", UIControlState.Normal);
-        backLink.setTitleColor(UIColor.white(), UIControlState.Normal);
-        backLink.getTitleLabel().setFont(UIFont.getBoldSystemFont(17));
-        backLink.setContentHorizontalAlignment(org.robovm.apple.uikit.UIControlContentHorizontalAlignment.Left);
-        backLink.addOnTouchUpInsideListener((c, e) -> safeAction("products", () -> presenter.onOpenProducts()));
-        container.addSubview(backLink);
-
-        // Title - white for doodle background
-        var title = new UILabel(new CGRect(16, 52, 343, 32));
-        title.setText("Carrinho");
-        title.setFont(UIFont.getBoldSystemFont(28));
-        title.setTextColor(UIColor.white());
-        title.setShadowColor(UIColor.fromRGBA(0.0, 0.0, 0.0, 0.3));
-        title.setShadowOffset(new org.robovm.apple.coregraphics.CGSize(0, 1));
-        container.addSubview(title);
-
-        // Error label
-        errorLabel = new UILabel(new CGRect(16, 88, 343, 20));
-        errorLabel.setTextColor(UIColor.fromRGBA(1.0, 0.23, 0.19, 1.0));
-        errorLabel.setFont(UIFont.getSystemFont(14));
-        errorLabel.setHidden(true);
-        container.addSubview(errorLabel);
-
-        // Scroll view for items (white card)
-        scrollView = new UIScrollView(new CGRect(16, 116, 343, 340));
-        scrollView.getLayer().setCornerRadius(10);
-        scrollView.setClipsToBounds(true);
-        scrollView.setBackgroundColor(UIColor.white());
-        container.addSubview(scrollView);
-
-        // Empty state - shown when cart is empty
-        emptyStateView = new UIView(new CGRect(16, 116, 343, 340));
-        emptyStateView.setBackgroundColor(UIColor.white());
-        emptyStateView.getLayer().setCornerRadius(10);
-        emptyStateView.setHidden(true);
-
-        var emptyIcon = new UILabel(new CGRect(0, 60, 343, 60));
-        emptyIcon.setText("\uD83D\uDED2");
-        emptyIcon.setFont(UIFont.getSystemFont(50));
-        emptyIcon.setTextAlignment(NSTextAlignment.Center);
-        emptyStateView.addSubview(emptyIcon);
-
-        var emptyTitle = new UILabel(new CGRect(16, 130, 311, 28));
-        emptyTitle.setText("Seu carrinho est\u00E1 vazio");
-        emptyTitle.setFont(UIFont.getBoldSystemFont(20));
-        emptyTitle.setTextColor(UIColor.fromRGBA(0.56, 0.56, 0.58, 1.0));
-        emptyTitle.setTextAlignment(NSTextAlignment.Center);
-        emptyStateView.addSubview(emptyTitle);
-
-        var emptySubtitle = new UILabel(new CGRect(16, 164, 311, 22));
-        emptySubtitle.setText("Vamos \u00E0s compras!?");
-        emptySubtitle.setFont(UIFont.getSystemFont(16));
-        emptySubtitle.setTextColor(UIColor.fromRGBA(0.56, 0.56, 0.58, 1.0));
-        emptySubtitle.setTextAlignment(NSTextAlignment.Center);
-        emptyStateView.addSubview(emptySubtitle);
-
-        var browseButton = new UIButton(UIButtonType.System);
-        browseButton.setFrame(new CGRect(71, 210, 200, 44));
-        browseButton.setTitle("Ver Produtos", UIControlState.Normal);
-        browseButton.setTitleColor(UIColor.white(), UIControlState.Normal);
-        browseButton.getTitleLabel().setFont(UIFont.getBoldSystemFont(16));
-        browseButton.setBackgroundColor(UIColor.fromRGBA(0.0, 0.48, 1.0, 1.0));
-        browseButton.getLayer().setCornerRadius(10);
-        browseButton.addOnTouchUpInsideListener((c, e) -> safeAction("products", () -> presenter.onOpenProducts()));
-        emptyStateView.addSubview(browseButton);
-
-        container.addSubview(emptyStateView);
-
-        // Total label
-        totalLabel = new UILabel(new CGRect(16, 466, 343, 30));
-        totalLabel.setFont(UIFont.getBoldSystemFont(20));
-        totalLabel.setTextColor(UIColor.white());
-        totalLabel.setShadowColor(UIColor.fromRGBA(0.0, 0.0, 0.0, 0.3));
-        totalLabel.setShadowOffset(new org.robovm.apple.coregraphics.CGSize(0, 1));
-        totalLabel.setTextAlignment(NSTextAlignment.Right);
-        container.addSubview(totalLabel);
-
-        // Buy button - green iOS style
-        buyButton = new UIButton(UIButtonType.System);
-        buyButton.setFrame(new CGRect(16, 506, 343, 50));
-        buyButton.setTitle("Comprar", UIControlState.Normal);
-        buyButton.setTitleColor(UIColor.white(), UIControlState.Normal);
-        buyButton.getTitleLabel().setFont(UIFont.getBoldSystemFont(17));
-        buyButton.setBackgroundColor(UIColor.fromRGBA(0.20, 0.78, 0.35, 1.0));
-        buyButton.getLayer().setCornerRadius(10);
-        buyButton.addOnTouchUpInsideListener((c, e) -> safeAction("buy", () -> presenter.onBuy()));
-        container.addSubview(buyButton);
-
-        this.rootView = container;
-        this.built = true;
+    @Override
+    protected void onRebuild() {
+        this.notRendered = true;
+        this.itemIdx = 0;
+        this.cartItemViewList.clear();
+        this.itemsSlot = null;
+        this.scrollView = null;
+        this.totalLabel = null;
+        this.totalOldValue = 0;
+        this.errorLabel = null;
+        this.emptyStateView = null;
+        this.buyButton = null;
+        this.emptyOldValue = false;
     }
 
     @Override
     public void doUpdate() {
-        if (!built) {
-            buildUI();
+        if (this.notRendered) {
+            this.rootView = new UIView(new CGRect(0, 0, 375, 600));
+            UIKitDom.render(this.rootView, this::initialRender);
+            this.notRendered = false;
         }
 
         // Sync error
@@ -146,110 +75,155 @@ public class CartViewRoboVM extends AbstractViewRoboVM<CartPresenter> {
             state.errorMessage = null;
         }
 
-        // Render cart items
-        for (var sub : scrollView.getSubviews()) {
-            sub.removeFromSuperview();
-        }
-
         boolean isEmpty = state.items == null || state.items.isEmpty();
-        emptyStateView.setHidden(!isEmpty);
-        scrollView.setHidden(isEmpty);
-        totalLabel.setHidden(isEmpty);
-        buyButton.setHidden(isEmpty);
 
-        double totalValue = 0;
-        int yOffset = 0;
-
-        if (state.items != null) {
-            int count = state.items.size();
-            for (int idx = 0; idx < count; idx++) {
-                var item = state.items.get(idx);
-                var itemView = createCartItemView(item, yOffset, idx < count - 1);
-                scrollView.addSubview(itemView);
-                yOffset += 88;
-                totalValue += item.price * item.quantity;
-            }
+        if (this.emptyOldValue != isEmpty) {
+            emptyStateView.setHidden(!isEmpty);
+            scrollView.setHidden(isEmpty);
+            totalLabel.setHidden(isEmpty);
+            buyButton.setHidden(isEmpty);
+            this.emptyOldValue = isEmpty;
         }
 
-        scrollView.setContentSize(new org.robovm.apple.coregraphics.CGSize(343, yOffset));
-        totalLabel.setText(String.format("Total: R$ %.2f", totalValue));
+        // Sync items via slot
+        this.itemsSlot.accept(this.state.items, this.cartItemViewList);
+
+        // Update scroll content size
+        int count = this.cartItemViewList.size();
+        scrollView.setContentSize(new CGSize(343, count * 88));
+
+        // Update total
+        double totalValue = computeTotalCost();
+        if (totalValue != this.totalOldValue) {
+            totalLabel.setText(String.format("Total: R$ %.2f", totalValue));
+            this.totalOldValue = totalValue;
+        }
     }
 
-    private UIView createCartItemView(CartItem item, int yOffset, boolean showSeparator) {
-        var row = new UIView(new CGRect(0, yOffset, 343, 88));
+    private void initialRender(UIKitDom dom, UIView root) {
+        root.setBackgroundColor(UIColor.clear());
 
-        var nameLabel = new UILabel(new CGRect(16, 10, 230, 22));
-        nameLabel.setText(item.name);
-        nameLabel.setFont(UIFont.getSystemFont(17));
-        row.addSubview(nameLabel);
-
-        var priceLabel = new UILabel(new CGRect(16, 34, 120, 18));
-        priceLabel.setText(String.format("R$ %.2f", item.price));
-        priceLabel.setFont(UIFont.getSystemFont(15));
-        priceLabel.setTextColor(UIColor.fromRGBA(0.56, 0.56, 0.58, 1.0));
-        row.addSubview(priceLabel);
-
-        // Remove link - iOS text link style (right-aligned, top)
-        var removeButton = new UIButton(UIButtonType.System);
-        removeButton.setFrame(new CGRect(253, 10, 80, 30));
-        removeButton.setTitle("Remover", UIControlState.Normal);
-        removeButton.setTitleColor(UIColor.fromRGBA(1.0, 0.23, 0.19, 1.0), UIControlState.Normal);
-        removeButton.getTitleLabel().setFont(UIFont.getSystemFont(15));
-        removeButton.addOnTouchUpInsideListener((c, e) ->
-                safeAction("remove", () -> presenter.onRemoveProduct(item.id)));
-        row.addSubview(removeButton);
-
-        // Quantity: iOS stepper-like (segmented control style)
-        final var itemId = item.id;
-        final var currentQty = item.quantity;
-
-        var stepperBg = new UIView(new CGRect(16, 56, 130, 28));
-        stepperBg.setBackgroundColor(UIColor.fromRGBA(0.95, 0.95, 0.97, 1.0));
-        stepperBg.getLayer().setCornerRadius(7);
-        row.addSubview(stepperBg);
-
-        var minusButton = new UIButton(UIButtonType.System);
-        minusButton.setFrame(new CGRect(16, 56, 40, 28));
-        minusButton.setTitle("−", UIControlState.Normal);
-        minusButton.getTitleLabel().setFont(UIFont.getSystemFont(20));
-        minusButton.setTitleColor(UIColor.fromRGBA(0.0, 0.48, 1.0, 1.0), UIControlState.Normal);
-        minusButton.addOnTouchUpInsideListener((c, e) -> {
-            if (currentQty > 1) {
-                safeAction("qty-minus", () -> presenter.onModifyQuantity(itemId, currentQty - 1));
-            }
+        // Back link
+        dom.button(160, 44, backLink -> {
+            backLink.setFrame(new CGRect(4, 4, 160, 44));
+            backLink.setTitle("\u2039 Produtos", UIControlState.Normal);
+            backLink.setTitleColor(UIColor.white(), UIControlState.Normal);
+            backLink.getTitleLabel().setFont(UIFont.getBoldSystemFont(17));
+            backLink.setContentHorizontalAlignment(org.robovm.apple.uikit.UIControlContentHorizontalAlignment.Left);
+            backLink.addOnTouchUpInsideListener((c, e) -> safeAction("products", () -> presenter.onOpenProducts()));
         });
-        row.addSubview(minusButton);
 
-        var qtyLabel = new UILabel(new CGRect(56, 56, 50, 28));
-        qtyLabel.setText(String.valueOf(item.quantity));
-        qtyLabel.setFont(UIFont.getBoldSystemFont(17));
-        qtyLabel.setTextAlignment(NSTextAlignment.Center);
-        row.addSubview(qtyLabel);
+        // Title
+        dom.label(343, 32, title -> {
+            title.setFrame(new CGRect(16, 52, 343, 32));
+            title.setText("Carrinho");
+            title.setFont(UIFont.getBoldSystemFont(28));
+            title.setTextColor(UIColor.white());
+            title.setShadowColor(UIColor.fromRGBA(0.0, 0.0, 0.0, 0.3));
+            title.setShadowOffset(new CGSize(0, 1));
+        });
 
-        var plusButton = new UIButton(UIButtonType.System);
-        plusButton.setFrame(new CGRect(106, 56, 40, 28));
-        plusButton.setTitle("+", UIControlState.Normal);
-        plusButton.getTitleLabel().setFont(UIFont.getSystemFont(20));
-        plusButton.setTitleColor(UIColor.fromRGBA(0.0, 0.48, 1.0, 1.0), UIControlState.Normal);
-        plusButton.addOnTouchUpInsideListener((c, e) ->
-                safeAction("qty-plus", () -> presenter.onModifyQuantity(itemId, currentQty + 1)));
-        row.addSubview(plusButton);
+        // Error label
+        dom.label(343, 20, error -> {
+            this.errorLabel = error;
+            error.setFrame(new CGRect(16, 88, 343, 20));
+            error.setTextColor(UIColor.fromRGBA(1.0, 0.23, 0.19, 1.0));
+            error.setFont(UIFont.getSystemFont(14));
+            error.setHidden(true);
+        });
 
-        // Subtotal
-        var subtotalLabel = new UILabel(new CGRect(160, 58, 173, 24));
-        subtotalLabel.setText(String.format("= R$ %.2f", item.price * item.quantity));
-        subtotalLabel.setFont(UIFont.getSystemFont(15));
-        subtotalLabel.setTextColor(UIColor.fromRGBA(0.56, 0.56, 0.58, 1.0));
-        subtotalLabel.setTextAlignment(NSTextAlignment.Right);
-        row.addSubview(subtotalLabel);
+        // Items scroll view
+        dom.scrollView(343, 340, UIKitDom.LayoutMode.VBOX, sv -> {
+            this.scrollView = sv;
+            sv.setFrame(new CGRect(16, 116, 343, 340));
+            sv.getLayer().setCornerRadius(10);
+            sv.setClipsToBounds(true);
+            sv.setBackgroundColor(UIColor.white());
 
-        // Inset separator
-        if (showSeparator) {
-            var separator = new UIView(new CGRect(16, 87.5, 311, 0.5));
-            separator.setBackgroundColor(UIColor.fromRGBA(0.78, 0.78, 0.80, 1.0));
-            row.addSubview(separator);
+            this.itemsSlot = this.newListSlot(sv, this::newItemView, this::updateItem);
+        });
+
+        // Empty state
+        dom.absolute(343, 340, empty -> {
+            this.emptyStateView = empty;
+            empty.setFrame(new CGRect(16, 116, 343, 340));
+            empty.setBackgroundColor(UIColor.white());
+            empty.getLayer().setCornerRadius(10);
+            empty.setHidden(true);
+
+            dom.label(343, 60, icon -> {
+                icon.setFrame(new CGRect(0, 60, 343, 60));
+                icon.setText("\uD83D\uDED2");
+                icon.setFont(UIFont.getSystemFont(50));
+                icon.setTextAlignment(NSTextAlignment.Center);
+            });
+
+            dom.label(311, 28, t -> {
+                t.setFrame(new CGRect(16, 130, 311, 28));
+                t.setText("Seu carrinho est\u00E1 vazio");
+                t.setFont(UIFont.getBoldSystemFont(20));
+                t.setTextColor(UIColor.fromRGBA(0.56, 0.56, 0.58, 1.0));
+                t.setTextAlignment(NSTextAlignment.Center);
+            });
+
+            dom.label(311, 22, s -> {
+                s.setFrame(new CGRect(16, 164, 311, 22));
+                s.setText("Vamos \u00E0s compras!?");
+                s.setFont(UIFont.getSystemFont(16));
+                s.setTextColor(UIColor.fromRGBA(0.56, 0.56, 0.58, 1.0));
+                s.setTextAlignment(NSTextAlignment.Center);
+            });
+
+            dom.button(200, 44, browseBtn -> {
+                browseBtn.setFrame(new CGRect(71, 210, 200, 44));
+                browseBtn.setTitle("Ver Produtos", UIControlState.Normal);
+                browseBtn.setTitleColor(UIColor.white(), UIControlState.Normal);
+                browseBtn.getTitleLabel().setFont(UIFont.getBoldSystemFont(16));
+                browseBtn.setBackgroundColor(UIColor.fromRGBA(0.0, 0.48, 1.0, 1.0));
+                browseBtn.getLayer().setCornerRadius(10);
+                browseBtn.addOnTouchUpInsideListener((c, e) -> safeAction("products", () -> presenter.onOpenProducts()));
+            });
+        });
+
+        // Total label
+        dom.label(343, 30, total -> {
+            this.totalLabel = total;
+            total.setFrame(new CGRect(16, 466, 343, 30));
+            total.setFont(UIFont.getBoldSystemFont(20));
+            total.setTextColor(UIColor.white());
+            total.setShadowColor(UIColor.fromRGBA(0.0, 0.0, 0.0, 0.3));
+            total.setShadowOffset(new CGSize(0, 1));
+            total.setTextAlignment(NSTextAlignment.Right);
+        });
+
+        // Buy button
+        dom.button(343, 50, buy -> {
+            this.buyButton = buy;
+            buy.setFrame(new CGRect(16, 506, 343, 50));
+            buy.setTitle("Comprar", UIControlState.Normal);
+            buy.setTitleColor(UIColor.white(), UIControlState.Normal);
+            buy.getTitleLabel().setFont(UIFont.getBoldSystemFont(17));
+            buy.setBackgroundColor(UIColor.fromRGBA(0.20, 0.78, 0.35, 1.0));
+            buy.getLayer().setCornerRadius(10);
+            buy.addOnTouchUpInsideListener((c, e) -> safeAction("buy", () -> presenter.onBuy()));
+        });
+    }
+
+    private double computeTotalCost() {
+        if (state.items == null) return 0;
+        double total = 0;
+        for (var item : state.items) {
+            total += item.price * item.quantity;
         }
+        return total;
+    }
 
-        return row;
+    private CartItemViewRoboVM newItemView() {
+        return new CartItemViewRoboVM(this.app, this.presenter, this.itemIdx++);
+    }
+
+    private void updateItem(CartItemViewRoboVM itemView, CartItem item) {
+        itemView.setState(item, false);
+        itemView.doUpdate();
     }
 }
