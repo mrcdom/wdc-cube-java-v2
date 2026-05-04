@@ -21,7 +21,8 @@ public class UrlConnectionTransport implements HttpTransport {
 
     @Override
     public Response execute(String method, String url, Map<String, String> headers, byte[] body) throws IOException {
-        var connection = (HttpURLConnection) new URL(url).openConnection();
+        @SuppressWarnings("deprecation")
+		var connection = (HttpURLConnection) new URL(url).openConnection();
         try {
             connection.setRequestMethod(method);
             connection.setConnectTimeout(CONNECT_TIMEOUT);

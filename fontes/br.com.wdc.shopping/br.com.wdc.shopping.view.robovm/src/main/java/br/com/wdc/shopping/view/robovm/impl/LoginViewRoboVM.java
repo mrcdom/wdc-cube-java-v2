@@ -58,7 +58,8 @@ public class LoginViewRoboVM extends AbstractViewRoboVM<LoginPresenter> {
         }
     }
 
-    private void initialRender(UIKitDom dom, UIView root) {
+    @SuppressWarnings("unused")
+	private void initialRender(UIKitDom dom, UIView root) {
         // Doodle background
         dom.absolute(375, 812, doodleBg -> {
             doodleBg.setBackgroundColor(UIColor.fromRGBA(0.78, 0.80, 0.85, 1.0));

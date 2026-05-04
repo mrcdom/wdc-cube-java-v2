@@ -63,7 +63,6 @@ public class ReceiptItemViewRoboVM extends AbstractViewRoboVM<ReceiptPresenter> 
         }
 
         if (this.priceOldValue != this.state.value) {
-            double subtotal = this.state.value * this.state.quantity;
             priceLabel.setText(String.format("%d × R$ %.2f", this.state.quantity, this.state.value));
             this.priceOldValue = this.state.value;
         }
@@ -74,7 +73,6 @@ public class ReceiptItemViewRoboVM extends AbstractViewRoboVM<ReceiptPresenter> 
         }
     }
 
-    @SuppressWarnings("unused")
     private void initialRender(UIKitDom dom, UIView root) {
         dom.label(180, 20, desc -> {
             this.descriptionLabel = desc;

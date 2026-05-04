@@ -134,7 +134,8 @@ public class HomeViewRoboVM extends AbstractViewRoboVM<HomePresenter> {
         }
     }
 
-    private void initialRender(UIKitDom dom, UIView root) {
+    @SuppressWarnings("unused")
+	private void initialRender(UIKitDom dom, UIView root) {
         root.setBackgroundColor(UIColor.fromRGBA(0.95, 0.95, 0.97, 1.0));
 
         // Header bar
@@ -167,7 +168,7 @@ public class HomeViewRoboVM extends AbstractViewRoboVM<HomePresenter> {
                 exitBtn.setTitle("\u23FB", UIControlState.Normal);
                 exitBtn.setTitleColor(UIColor.fromRGBA(1.0, 1.0, 1.0, 0.7), UIControlState.Normal);
                 exitBtn.getTitleLabel().setFont(UIFont.getSystemFont(18));
-                exitBtn.addOnTouchUpInsideListener((c, e) -> safeAction("exit", () -> presenter.onExit()));
+                exitBtn.addOnTouchUpInsideListener((c, e) -> safeAction("exit", presenter::onExit));
             });
 
             // Cart button
@@ -175,7 +176,7 @@ public class HomeViewRoboVM extends AbstractViewRoboVM<HomePresenter> {
                 cartBtn.setFrame(new CGRect(315, 50, 56, 36));
                 cartBtn.setTitle("\uD83D\uDED2", UIControlState.Normal);
                 cartBtn.getTitleLabel().setFont(UIFont.getSystemFont(22));
-                cartBtn.addOnTouchUpInsideListener((c, e) -> safeAction("cart", () -> presenter.onOpenCart()));
+                cartBtn.addOnTouchUpInsideListener((c, e) -> safeAction("cart", presenter::onOpenCart));
             });
 
             // Cart badge

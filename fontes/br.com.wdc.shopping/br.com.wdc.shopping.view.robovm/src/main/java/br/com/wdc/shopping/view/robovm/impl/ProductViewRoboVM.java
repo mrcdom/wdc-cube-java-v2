@@ -1,5 +1,7 @@
 package br.com.wdc.shopping.view.robovm.impl;
 
+import java.util.Objects;
+
 import org.robovm.apple.coregraphics.CGRect;
 import org.robovm.apple.coregraphics.CGSize;
 import org.robovm.apple.uikit.UIColor;
@@ -7,9 +9,6 @@ import org.robovm.apple.uikit.UIControlState;
 import org.robovm.apple.uikit.UIFont;
 import org.robovm.apple.uikit.UILabel;
 import org.robovm.apple.uikit.UIScrollView;
-import org.robovm.apple.uikit.UIView;
-
-import java.util.Objects;
 
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductViewState;
@@ -83,7 +82,8 @@ public class ProductViewRoboVM extends AbstractViewRoboVM<ProductPresenter> {
         }
     }
 
-    private void initialRender(UIKitDom dom, UIScrollView root) {
+    @SuppressWarnings("unused")
+	private void initialRender(UIKitDom dom, UIScrollView root) {
         root.setBackgroundColor(UIColor.clear());
 
         // Back link
@@ -94,7 +94,7 @@ public class ProductViewRoboVM extends AbstractViewRoboVM<ProductPresenter> {
             backBtn.getTitleLabel().setFont(UIFont.getBoldSystemFont(17));
             backBtn.setContentHorizontalAlignment(org.robovm.apple.uikit.UIControlContentHorizontalAlignment.Left);
             backBtn.addOnTouchUpInsideListener((c, e) ->
-                    safeAction("back", () -> presenter.onOpenProducts()));
+                    safeAction("back", presenter::onOpenProducts));
         });
 
         // Error

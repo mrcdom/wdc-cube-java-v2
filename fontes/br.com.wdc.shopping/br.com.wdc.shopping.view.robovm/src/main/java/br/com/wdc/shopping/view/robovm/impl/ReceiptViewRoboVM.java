@@ -83,7 +83,8 @@ public class ReceiptViewRoboVM extends AbstractViewRoboVM<ReceiptPresenter> {
         }
     }
 
-    private void initialRender(UIKitDom dom, UIView root) {
+    @SuppressWarnings("unused")
+	private void initialRender(UIKitDom dom, UIView root) {
         root.setBackgroundColor(UIColor.clear());
 
         // Back link
@@ -94,7 +95,7 @@ public class ReceiptViewRoboVM extends AbstractViewRoboVM<ReceiptPresenter> {
             backLink.getTitleLabel().setFont(UIFont.getBoldSystemFont(17));
             backLink.setContentHorizontalAlignment(org.robovm.apple.uikit.UIControlContentHorizontalAlignment.Left);
             backLink.addOnTouchUpInsideListener((c, e) ->
-                    safeAction("products", () -> presenter.onOpenProducts()));
+                    safeAction("products", presenter::onOpenProducts));
         });
 
         // Title

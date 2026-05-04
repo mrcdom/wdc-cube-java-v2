@@ -32,7 +32,8 @@ public class ShoppingRoboVMMain extends UIApplicationDelegateAdapter {
     private ShoppingRoboVMApplication app;
     private ScheduledExecutorService executorService;
 
-    @Override
+    @SuppressWarnings("deprecation")
+	@Override
     public boolean didFinishLaunching(UIApplication application, UIApplicationLaunchOptions launchOptions) {
         try {
             initBackend();
@@ -100,7 +101,8 @@ public class ShoppingRoboVMMain extends UIApplicationDelegateAdapter {
         }
     }
 
-    public static void main(String[] args) {
+    @SuppressWarnings("unused")
+	public static void main(String[] args) {
         try (var pool = new NSAutoreleasePool()) {
             UIApplication.main(args, null, ShoppingRoboVMMain.class);
         }

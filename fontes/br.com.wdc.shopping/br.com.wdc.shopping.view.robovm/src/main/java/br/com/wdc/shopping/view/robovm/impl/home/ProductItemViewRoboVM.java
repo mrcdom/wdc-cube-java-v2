@@ -5,7 +5,6 @@ import java.util.Objects;
 import org.robovm.apple.coregraphics.CGRect;
 import org.robovm.apple.uikit.UIButtonType;
 import org.robovm.apple.uikit.UIColor;
-import org.robovm.apple.uikit.UIControlState;
 import org.robovm.apple.uikit.UIFont;
 import org.robovm.apple.uikit.UILabel;
 import org.robovm.apple.uikit.UIView;

@@ -8,7 +8,6 @@ import org.robovm.apple.coregraphics.CGSize;
 import org.robovm.apple.uikit.UIButton;
 import org.robovm.apple.uikit.UIButtonType;
 import org.robovm.apple.uikit.UIColor;
-import org.robovm.apple.uikit.UIFont;
 import org.robovm.apple.uikit.UIImageView;
 import org.robovm.apple.uikit.UILabel;
 import org.robovm.apple.uikit.UIScrollView;

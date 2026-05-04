@@ -74,7 +74,8 @@ public class PurchasesPanelViewRoboVM extends AbstractViewRoboVM<PurchasesPanelP
         }
     }
 
-    private void initialRender(UIKitDom dom, UIView root) {
+    @SuppressWarnings("unused")
+	private void initialRender(UIKitDom dom, UIView root) {
         root.setBackgroundColor(UIColor.clear());
 
         // Section header

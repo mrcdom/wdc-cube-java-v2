@@ -22,7 +22,8 @@ public final class RoboVMRenderLoop {
 
     private RoboVMRenderLoop() {}
 
-    public static void start(ShoppingRoboVMApplication application) {
+    @SuppressWarnings("unused")
+	public static void start(ShoppingRoboVMApplication application) {
         app = application;
         timer = new NSTimer(FRAME_INTERVAL_SEC, t -> {
             try {

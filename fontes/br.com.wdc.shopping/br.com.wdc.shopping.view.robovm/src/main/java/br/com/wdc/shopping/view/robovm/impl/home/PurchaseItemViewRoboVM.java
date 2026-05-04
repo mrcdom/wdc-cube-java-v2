@@ -4,12 +4,12 @@ import java.text.SimpleDateFormat;
 import java.util.Locale;
 
 import org.robovm.apple.coregraphics.CGRect;
+import org.robovm.apple.uikit.NSTextAlignment;
 import org.robovm.apple.uikit.UIButtonType;
 import org.robovm.apple.uikit.UIColor;
 import org.robovm.apple.uikit.UIFont;
 import org.robovm.apple.uikit.UILabel;
 import org.robovm.apple.uikit.UIView;
-import org.robovm.apple.uikit.NSTextAlignment;
 
 import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
@@ -19,7 +19,8 @@ import br.com.wdc.shopping.view.robovm.util.UIKitDom;
 
 public class PurchaseItemViewRoboVM extends AbstractViewRoboVM<PurchasesPanelPresenter> {
 
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy", new Locale("pt", "BR"));
+    @SuppressWarnings("deprecation")
+	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy", new Locale("pt", "BR"));
 
     private PurchaseInfo state;
 

@@ -1,7 +1,6 @@
 package br.com.wdc.shopping.view.robovm.impl;
 
 import org.robovm.apple.foundation.NSArray;
-import org.robovm.apple.uikit.UIView;
 import org.robovm.apple.uikit.UIViewController;
 
 import br.com.wdc.framework.cube.CubeView;
