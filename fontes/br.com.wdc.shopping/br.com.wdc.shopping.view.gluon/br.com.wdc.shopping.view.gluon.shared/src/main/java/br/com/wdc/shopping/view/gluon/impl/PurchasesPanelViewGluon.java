@@ -13,14 +13,15 @@ import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.Purc
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
 import br.com.wdc.shopping.view.gluon.AbstractViewGluon;
 import br.com.wdc.shopping.view.gluon.ShoppingGluonApplication;
+import br.com.wdc.shopping.view.gluon.theme.GluonColors;
+import br.com.wdc.shopping.view.gluon.util.GluonDom;
+import br.com.wdc.shopping.view.gluon.theme.GluonStyles;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPresenter> {
@@ -43,7 +44,7 @@ public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPre
     @Override
     public void doUpdate() {
         if (this.notRendered) {
-            buildUI();
+            GluonDom.render((VBox) this.element, this::buildUI);
             this.notRendered = false;
         }
         this.contentSlot.accept(this.state.purchases, this.viewList);
@@ -52,56 +53,66 @@ public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPre
         this.pageInfoElm.setText((this.state.page + 1) + " / " + totalPages);
     }
 
-    private void buildUI() {
-        var root = (VBox) this.element;
+    private void buildUI(GluonDom dom, VBox root) {
         root.setPadding(new Insets(16, 12, 8, 12));
         root.setSpacing(12);
-        root.setStyle("-fx-background-color: #f5f5f5;");
+        root.setStyle(GluonStyles.PAGE_BG);
 
-        var caption = new Label("Histórico de Compras");
-        caption.setStyle("-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #333;");
+        dom.vbox(headerBox -> {
+            headerBox.setSpacing(2);
 
-        var subtitle = new Label("Toque em uma compra para ver os detalhes");
-        subtitle.setStyle("-fx-font-size: 11; -fx-text-fill: #999;");
+            dom.label(caption -> {
+                caption.setText("Histórico de Compras");
+                caption.setStyle(GluonStyles.textBold(16, GluonColors.TEXT_DEFAULT));
+            });
 
-        var headerBox = new VBox(2, caption, subtitle);
+            dom.label(subtitle -> {
+                subtitle.setText("Toque em uma compra para ver os detalhes");
+                subtitle.setStyle(GluonStyles.TEXT_MUTED_STYLE);
+            });
+        });
 
-        var contentBox = new VBox(10);
-        contentBox.setPadding(new Insets(4, 0, 4, 0));
-        this.contentSlot = this.newListSlot(contentBox, this::newItemView, this::updateItem);
+        dom.scrollPane(sp -> {
+            VBox.setVgrow(sp, Priority.ALWAYS);
+            sp.setFitToWidth(true);
+            sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+            sp.setStyle(GluonStyles.SCROLL_TRANSPARENT);
 
-        var scrollPane = new ScrollPane(contentBox);
-        scrollPane.setFitToWidth(true);
-        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scrollPane.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
-        VBox.setVgrow(scrollPane, Priority.ALWAYS);
+            var contentBox = new VBox(10);
+            contentBox.setPadding(new Insets(4, 0, 4, 0));
+            sp.setContent(contentBox);
+            this.contentSlot = this.newListSlot(contentBox, this::newItemView, this::updateItem);
+        });
 
-        // Pagination - Material Design style
-        var prevBtn = new Button("◀");
-        prevBtn.setStyle("-fx-background-color: white; -fx-background-radius: 20; " +
-                "-fx-min-width: 36; -fx-min-height: 36; -fx-font-size: 12; " +
-                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 4, 0, 0, 1); -fx-cursor: hand;");
-        prevBtn.setOnAction(e -> safeAction("Prev page", () -> this.presenter.onPageChange(this.state.page - 1)));
+        // Pagination
+        dom.hbox(pagination -> {
+            pagination.setAlignment(Pos.CENTER);
+            pagination.setSpacing(12);
+            pagination.setPadding(new Insets(8, 4, 4, 4));
 
-        this.pageInfoElm = new Label("1 / 1");
-        this.pageInfoElm.setStyle("-fx-font-size: 13; -fx-text-fill: #666; -fx-font-weight: bold;");
+            dom.button(prevBtn -> {
+                prevBtn.setText("◀");
+                prevBtn.setStyle(GluonStyles.BTN_PAGINATION);
+                prevBtn.setOnAction(e -> safeAction("Prev page",
+                        () -> this.presenter.onPageChange(this.state.page - 1)));
+            });
 
-        var nextBtn = new Button("▶");
-        nextBtn.setStyle("-fx-background-color: white; -fx-background-radius: 20; " +
-                "-fx-min-width: 36; -fx-min-height: 36; -fx-font-size: 12; " +
-                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 4, 0, 0, 1); -fx-cursor: hand;");
-        nextBtn.setOnAction(e -> safeAction("Next page", () -> this.presenter.onPageChange(this.state.page + 1)));
+            dom.hSpacer();
 
-        var spacer1 = new Region();
-        HBox.setHgrow(spacer1, Priority.ALWAYS);
-        var spacer2 = new Region();
-        HBox.setHgrow(spacer2, Priority.ALWAYS);
+            this.pageInfoElm = dom.label(pageInfo -> {
+                pageInfo.setText("1 / 1");
+                pageInfo.setStyle(GluonStyles.PAGINATION_TEXT);
+            });
 
-        var pagination = new HBox(12, prevBtn, spacer1, this.pageInfoElm, spacer2, nextBtn);
-        pagination.setAlignment(Pos.CENTER);
-        pagination.setPadding(new Insets(8, 4, 4, 4));
+            dom.hSpacer();
 
-        root.getChildren().addAll(headerBox, scrollPane, pagination);
+            dom.button(nextBtn -> {
+                nextBtn.setText("▶");
+                nextBtn.setStyle(GluonStyles.BTN_PAGINATION);
+                nextBtn.setOnAction(e -> safeAction("Next page",
+                        () -> this.presenter.onPageChange(this.state.page + 1)));
+            });
+        });
     }
 
     private PurchaseItemView newItemView() {
@@ -134,7 +145,7 @@ public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPre
         @Override
         public void doUpdate() {
             if (this.notRendered) {
-                buildUI();
+                GluonDom.render((HBox) this.element, this::buildUI);
                 this.notRendered = false;
             }
             this.dateElm.setText(this.purchase.date > 0
@@ -142,34 +153,37 @@ public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPre
             this.totalElm.setText(NumberFormat.getCurrencyInstance().format(this.purchase.total));
         }
 
-        private void buildUI() {
-            var row = (HBox) this.element;
+        private void buildUI(GluonDom dom, HBox row) {
             row.setSpacing(12);
             row.setPadding(new Insets(14, 16, 14, 16));
             row.setAlignment(Pos.CENTER_LEFT);
-            row.setStyle("-fx-background-color: white; -fx-background-radius: 12; " +
-                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 6, 0, 0, 2); -fx-cursor: hand;");
+            row.setStyle(GluonStyles.CARD_CLICKABLE);
             row.setOnMouseClicked(e -> safeAction("Open receipt",
                     () -> this.presenter.onOpenReceipt(this.purchase.id)));
 
-            var icon = new Label("🧾");
-            icon.setStyle("-fx-font-size: 22;");
+            dom.label(icon -> {
+                icon.setText("🧾");
+                icon.setStyle(GluonStyles.fontSize(22));
+            });
 
-            this.dateElm = new Label();
-            this.dateElm.setStyle("-fx-font-size: 13; -fx-text-fill: #444;");
+            dom.vbox(dateBox -> {
+                dateBox.setSpacing(2);
 
-            var dateBox = new VBox(2, this.dateElm);
+                this.dateElm = dom.label(date -> {
+                    date.setStyle(GluonStyles.TEXT_BODY_STYLE);
+                });
+            });
 
-            var spacer = new Region();
-            HBox.setHgrow(spacer, Priority.ALWAYS);
+            dom.hSpacer();
 
-            this.totalElm = new Label();
-            this.totalElm.setStyle("-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #1976D2;");
+            this.totalElm = dom.label(total -> {
+                total.setStyle(GluonStyles.PRICE_SMALL);
+            });
 
-            var arrow = new Label("›");
-            arrow.setStyle("-fx-font-size: 20; -fx-text-fill: #ccc;");
-
-            row.getChildren().addAll(icon, dateBox, spacer, this.totalElm, arrow);
+            dom.label(arrow -> {
+                arrow.setText("›");
+                arrow.setStyle(GluonStyles.text(20, GluonColors.TEXT_PLACEHOLDER));
+            });
         }
     }
 }

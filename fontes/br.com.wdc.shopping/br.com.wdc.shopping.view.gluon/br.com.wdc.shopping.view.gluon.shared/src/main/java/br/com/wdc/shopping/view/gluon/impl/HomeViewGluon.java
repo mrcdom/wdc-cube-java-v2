@@ -7,13 +7,14 @@ import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeViewState;
 import br.com.wdc.shopping.view.gluon.AbstractViewGluon;
 import br.com.wdc.shopping.view.gluon.ShoppingGluonApplication;
+import br.com.wdc.shopping.view.gluon.util.GluonDom;
+import br.com.wdc.shopping.view.gluon.theme.GluonStyles;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
@@ -44,7 +45,7 @@ public class HomeViewGluon extends AbstractViewGluon<HomePresenter> {
     @Override
     public void doUpdate() {
         if (this.notRendered) {
-            buildUI();
+            GluonDom.render((VBox) this.element, this::buildUI);
             this.notRendered = false;
         }
 
@@ -96,96 +97,104 @@ public class HomeViewGluon extends AbstractViewGluon<HomePresenter> {
         }
     }
 
-    private void buildUI() {
-        var root = (VBox) this.element;
-        root.setStyle("-fx-background-color: #f5f5f5;");
+    private void buildUI(GluonDom dom, VBox root) {
+        root.setStyle(GluonStyles.PAGE_BG);
 
-        // AppBar - elevated with shadow
-        var appBar = new HBox(10);
-        appBar.setAlignment(Pos.CENTER_LEFT);
-        appBar.setPadding(new Insets(12, 16, 12, 16));
-        appBar.setStyle("-fx-background-color: #1976D2; " +
-                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 8, 0, 0, 2);");
+        // AppBar
+        dom.hbox(appBar -> {
+            appBar.setAlignment(Pos.CENTER_LEFT);
+            appBar.setSpacing(10);
+            appBar.setPadding(new Insets(12, 16, 12, 16));
+            appBar.setStyle(GluonStyles.APP_BAR_PRIMARY);
 
-        var greeting = new Label("Olá,");
-        greeting.setStyle("-fx-text-fill: rgba(255,255,255,0.8); -fx-font-size: 12;");
+            dom.vbox(userBox -> {
+                userBox.setSpacing(-2);
 
-        this.nickNameElm = new Label(this.state.nickName);
-        this.nickNameElm.setStyle("-fx-text-fill: white; -fx-font-size: 16; -fx-font-weight: bold;");
-        this.nickNameOldValue = this.state.nickName;
+                dom.label(greeting -> {
+                    greeting.setText("Olá,");
+                    greeting.setStyle(GluonStyles.TEXT_SMALL_WHITE);
+                });
 
-        var userBox = new VBox(-2, greeting, this.nickNameElm);
+                this.nickNameElm = dom.label(nick -> {
+                    nick.setText(this.state.nickName);
+                    nick.setStyle(GluonStyles.TEXT_WHITE_BOLD);
+                });
+                this.nickNameOldValue = this.state.nickName;
+            });
 
-        var spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
+            dom.hSpacer();
 
-        // Cart button with badge
-        this.cartCountElm = new Label(String.valueOf(this.state.cartItemCount));
-        this.cartCountElm.setStyle("-fx-background-color: #FF5252; -fx-text-fill: white; " +
-                "-fx-font-size: 10; -fx-font-weight: bold; -fx-padding: 2 6; " +
-                "-fx-background-radius: 10; -fx-min-width: 18; -fx-alignment: center;");
-        this.cartCountOldValue = this.state.cartItemCount;
+            // Cart button with badge
+            dom.hbox(cartBtnBox -> {
+                cartBtnBox.setAlignment(Pos.CENTER);
+                cartBtnBox.setSpacing(4);
+                cartBtnBox.setPadding(new Insets(6, 12, 6, 12));
+                cartBtnBox.setStyle(GluonStyles.CART_BTN_BOX);
+                cartBtnBox.setOnMouseClicked(e -> safeAction("Open cart", this.presenter::onOpenCart));
 
-        var cartIcon = new Label("\uD83D\uDED2");
-        cartIcon.setStyle("-fx-font-size: 18;");
+                dom.label(cartIcon -> {
+                    cartIcon.setText("\uD83D\uDED2");
+                    cartIcon.setStyle(GluonStyles.fontSize(18));
+                });
 
-        var cartBtnBox = new HBox(4, cartIcon, this.cartCountElm);
-        cartBtnBox.setAlignment(Pos.CENTER);
-        cartBtnBox.setPadding(new Insets(6, 12, 6, 12));
-        cartBtnBox.setStyle("-fx-background-color: rgba(255,255,255,0.15); -fx-background-radius: 20; -fx-cursor: hand;");
-        cartBtnBox.setOnMouseClicked(e -> safeAction("Open cart", this.presenter::onOpenCart));
+                this.cartCountElm = dom.label(badge -> {
+                    badge.setText(String.valueOf(this.state.cartItemCount));
+                    badge.setStyle(GluonStyles.BADGE_CART);
+                });
+                this.cartCountOldValue = this.state.cartItemCount;
+            });
 
-        var exitBtn = new Button("Sair");
-        exitBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: rgba(255,255,255,0.9); " +
-                "-fx-font-size: 12; -fx-padding: 6 10; -fx-cursor: hand;");
-        exitBtn.setOnAction(e -> safeAction("Exit", this.presenter::onExit));
-
-        appBar.getChildren().addAll(userBox, spacer, cartBtnBox, exitBtn);
+            dom.button(exitBtn -> {
+                exitBtn.setText("Sair");
+                exitBtn.setStyle(GluonStyles.BTN_GHOST_WHITE);
+                exitBtn.setOnAction(e -> safeAction("Exit", this.presenter::onExit));
+            });
+        });
 
         // Error label
-        this.errorElm = new Label();
-        this.errorElm.setStyle("-fx-text-fill: white; -fx-font-size: 12; -fx-padding: 8 16; " +
-                "-fx-background-color: #d32f2f;");
-        this.errorElm.setVisible(false);
-        this.errorElm.setManaged(false);
-        this.errorElm.setWrapText(true);
-        this.errorElm.setMaxWidth(Double.MAX_VALUE);
+        this.errorElm = dom.label(err -> {
+            err.setStyle(GluonStyles.ERROR_BAR);
+            err.setVisible(false);
+            err.setManaged(false);
+            err.setWrapText(true);
+            err.setMaxWidth(Double.MAX_VALUE);
+        });
 
-        // Panels (stacked - mobile shows one at a time)
-        this.productsPanelSlot = new StackPane();
-        this.purchasesPanelSlot = new StackPane();
-        this.purchasesPanelSlot.setVisible(false);
-        this.purchasesPanelSlot.setManaged(false);
+        // Content pane
+        this.contentPane = dom.stackPane(cp -> {
+            VBox.setVgrow(cp, Priority.ALWAYS);
+            this.defaultContentPane = dom.vbox(dp -> {
+                VBox.setVgrow(dp, Priority.ALWAYS);
+                this.productsPanelSlot = dom.stackPane(slot -> {});
+                this.purchasesPanelSlot = dom.stackPane(slot -> {
+                    slot.setVisible(false);
+                    slot.setManaged(false);
+                });
+            });
+        });
 
-        this.defaultContentPane = new VBox();
-        this.defaultContentPane.getChildren().addAll(this.productsPanelSlot, this.purchasesPanelSlot);
-        VBox.setVgrow(this.defaultContentPane, Priority.ALWAYS);
+        // Bottom navigation
+        dom.hbox(bottomNav -> {
+            bottomNav.setStyle(GluonStyles.BOTTOM_NAV);
 
-        // Content pane (for product detail, cart, receipt)
-        this.contentPane = new StackPane();
-        this.contentPane.getChildren().add(this.defaultContentPane);
-        VBox.setVgrow(this.contentPane, Priority.ALWAYS);
+            this.tabProductsBtn = dom.button(btn -> {
+                btn.setText("🏪  Produtos");
+                btn.setMaxWidth(Double.MAX_VALUE);
+                btn.setMinHeight(52);
+                HBox.setHgrow(btn, Priority.ALWAYS);
+                btn.setOnAction(e -> switchTab(true));
+            });
 
-        // Bottom navigation - Material Design style
-        this.tabProductsBtn = new Button("🏪  Produtos");
-        this.tabProductsBtn.setMaxWidth(Double.MAX_VALUE);
-        this.tabProductsBtn.setMinHeight(52);
-        HBox.setHgrow(this.tabProductsBtn, Priority.ALWAYS);
-        this.tabProductsBtn.setOnAction(e -> switchTab(true));
-
-        this.tabPurchasesBtn = new Button("📋  Histórico");
-        this.tabPurchasesBtn.setMaxWidth(Double.MAX_VALUE);
-        this.tabPurchasesBtn.setMinHeight(52);
-        HBox.setHgrow(this.tabPurchasesBtn, Priority.ALWAYS);
-        this.tabPurchasesBtn.setOnAction(e -> switchTab(false));
+            this.tabPurchasesBtn = dom.button(btn -> {
+                btn.setText("📋  Histórico");
+                btn.setMaxWidth(Double.MAX_VALUE);
+                btn.setMinHeight(52);
+                HBox.setHgrow(btn, Priority.ALWAYS);
+                btn.setOnAction(e -> switchTab(false));
+            });
+        });
 
         updateTabStyles();
-
-        var bottomNav = new HBox(this.tabProductsBtn, this.tabPurchasesBtn);
-        bottomNav.setStyle("-fx-background-color: white; " +
-                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 8, 0, 0, -2);");
-
-        root.getChildren().addAll(appBar, this.errorElm, this.contentPane, bottomNav);
     }
 
     private void switchTab(boolean showProducts) {
@@ -201,13 +210,7 @@ public class HomeViewGluon extends AbstractViewGluon<HomePresenter> {
     }
 
     private void updateTabStyles() {
-        var activeStyle = "-fx-background-color: white; -fx-text-fill: #1976D2; " +
-                "-fx-font-weight: bold; -fx-font-size: 13; -fx-background-radius: 0; " +
-                "-fx-border-color: transparent transparent #1976D2 transparent; -fx-border-width: 0 0 3 0;";
-        var inactiveStyle = "-fx-background-color: white; -fx-text-fill: #999; " +
-                "-fx-font-size: 13; -fx-background-radius: 0; " +
-                "-fx-border-color: transparent; -fx-border-width: 0 0 3 0;";
-        this.tabProductsBtn.setStyle(this.showingProducts ? activeStyle : inactiveStyle);
-        this.tabPurchasesBtn.setStyle(!this.showingProducts ? activeStyle : inactiveStyle);
+        this.tabProductsBtn.setStyle(this.showingProducts ? GluonStyles.TAB_ACTIVE : GluonStyles.TAB_INACTIVE);
+        this.tabPurchasesBtn.setStyle(!this.showingProducts ? GluonStyles.TAB_ACTIVE : GluonStyles.TAB_INACTIVE);
     }
 }

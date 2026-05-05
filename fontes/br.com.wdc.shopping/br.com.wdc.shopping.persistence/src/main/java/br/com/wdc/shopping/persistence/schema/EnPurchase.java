@@ -32,7 +32,7 @@ public class EnPurchase extends DbTable {
 
         this.id = mkBigint("ID", false);
         this.userId = mkBigint("USERID", false);
-        this.buyDate = mkDate("BUYDATE", false);
+        this.buyDate = mkTimestamp("BUYDATE", false);
 
         this.fields = Arrays.asList(id, userId, buyDate);
     }

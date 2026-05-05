@@ -13,14 +13,15 @@ import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptView
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptItem;
 import br.com.wdc.shopping.view.gluon.AbstractViewGluon;
 import br.com.wdc.shopping.view.gluon.ShoppingGluonApplication;
+import br.com.wdc.shopping.view.gluon.theme.GluonColors;
+import br.com.wdc.shopping.view.gluon.util.GluonDom;
+import br.com.wdc.shopping.view.gluon.theme.GluonStyles;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 public class ReceiptViewGluon extends AbstractViewGluon<ReceiptPresenter> {
@@ -45,18 +46,16 @@ public class ReceiptViewGluon extends AbstractViewGluon<ReceiptPresenter> {
     @Override
     public void doUpdate() {
         if (this.notRendered) {
-            buildUI();
+            GluonDom.render((VBox) this.element, this::buildUI);
             this.notRendered = false;
         }
 
-        // Success notification
         if (this.state.notifySuccess) {
             this.successElm.setVisible(true);
             this.successElm.setManaged(true);
             this.state.notifySuccess = false;
         }
 
-        // Receipt data
         if (this.state.receipt != null) {
             this.dateElm.setText(this.state.receipt.date != null
                     ? DATE_FMT.format(Instant.ofEpochMilli(this.state.receipt.date).atZone(ZoneId.systemDefault())) : "");
@@ -66,95 +65,107 @@ public class ReceiptViewGluon extends AbstractViewGluon<ReceiptPresenter> {
         }
     }
 
-    private void buildUI() {
-        var root = (VBox) this.element;
+    private void buildUI(GluonDom dom, VBox root) {
         root.setPadding(new Insets(0));
         root.setSpacing(0);
-        root.setStyle("-fx-background-color: #f5f5f5;");
+        root.setStyle(GluonStyles.PAGE_BG);
 
         // Header bar
-        var backBtn = new Button("← Voltar");
-        backBtn.setStyle("-fx-font-size: 13; -fx-background-color: transparent; -fx-text-fill: #1976D2; " +
-                "-fx-font-weight: bold; -fx-cursor: hand;");
-        backBtn.setOnAction(e -> safeAction("Back", this.presenter::onOpenProducts));
+        dom.hbox(headerBar -> {
+            headerBar.setAlignment(Pos.CENTER_LEFT);
+            headerBar.setSpacing(12);
+            headerBar.setPadding(new Insets(10, 16, 10, 16));
+            headerBar.setStyle(GluonStyles.HEADER_BAR);
 
-        var title = new Label("Comprovante");
-        title.setStyle("-fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: #333;");
+            dom.button(backBtn -> {
+                backBtn.setText("← Voltar");
+                backBtn.setStyle(GluonStyles.BACK_BUTTON);
+                backBtn.setOnAction(e -> safeAction("Back", this.presenter::onOpenProducts));
+            });
 
-        var headerSpacer = new Region();
-        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
+            dom.hSpacer();
 
-        var headerBar = new HBox(12, backBtn, headerSpacer, title);
-        headerBar.setAlignment(Pos.CENTER_LEFT);
-        headerBar.setPadding(new Insets(10, 16, 10, 16));
-        headerBar.setStyle("-fx-background-color: white; " +
-                "-fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0;");
+            dom.label(title -> {
+                title.setText("Comprovante");
+                title.setStyle(GluonStyles.PAGE_TITLE);
+            });
+        });
 
         // Success banner
-        this.successElm = new Label("✅  Compra realizada com sucesso!");
-        this.successElm.setMaxWidth(Double.MAX_VALUE);
-        this.successElm.setStyle("-fx-text-fill: #2E7D32; -fx-font-size: 13; -fx-font-weight: bold; " +
-                "-fx-padding: 12 16; -fx-background-color: #E8F5E9; " +
-                "-fx-border-color: #A5D6A7; -fx-border-width: 0 0 1 0;");
-        this.successElm.setVisible(false);
-        this.successElm.setManaged(false);
+        this.successElm = dom.label(success -> {
+            success.setText("✅  Compra realizada com sucesso!");
+            success.setMaxWidth(Double.MAX_VALUE);
+            success.setStyle(GluonStyles.SUCCESS_BANNER);
+            success.setVisible(false);
+            success.setManaged(false);
+        });
 
         // Receipt card
-        var receiptCard = new VBox(0);
-        receiptCard.setStyle("-fx-background-color: white; -fx-background-radius: 12; " +
-                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0, 0, 2);");
-        VBox.setMargin(receiptCard, new Insets(16, 12, 12, 12));
+        dom.vbox(card -> {
+            card.setSpacing(0);
+            card.setStyle(GluonStyles.CARD);
+            VBox.setMargin(card, new Insets(16, 12, 12, 12));
 
-        // Receipt header section
-        var receiptIcon = new Label("🧾");
-        receiptIcon.setStyle("-fx-font-size: 28;");
+            // Receipt header section
+            dom.vbox(receiptHeader -> {
+                receiptHeader.setAlignment(Pos.CENTER);
+                receiptHeader.setSpacing(4);
+                receiptHeader.setPadding(new Insets(20, 16, 12, 16));
+                receiptHeader.setStyle(GluonStyles.DIVIDER_BOTTOM);
 
-        var receiptTitle = new Label("Detalhes da Compra");
-        receiptTitle.setStyle("-fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: #333;");
+                dom.label(icon -> {
+                    icon.setText("🧾");
+                    icon.setStyle(GluonStyles.fontSize(28));
+                });
 
-        this.dateElm = new Label();
-        this.dateElm.setStyle("-fx-font-size: 12; -fx-text-fill: #888;");
+                dom.label(receiptTitle -> {
+                    receiptTitle.setText("Detalhes da Compra");
+                    receiptTitle.setStyle(GluonStyles.PAGE_TITLE);
+                });
 
-        var receiptHeader = new VBox(4, receiptIcon, receiptTitle, this.dateElm);
-        receiptHeader.setAlignment(Pos.CENTER);
-        receiptHeader.setPadding(new Insets(20, 16, 12, 16));
-        receiptHeader.setStyle("-fx-border-color: #f0f0f0; -fx-border-width: 0 0 1 0;");
+                this.dateElm = dom.label(date -> {
+                    date.setStyle(GluonStyles.TEXT_HINT_STYLE);
+                });
+            });
 
-        // Items section
-        var itemsLabel = new Label("Itens");
-        itemsLabel.setStyle("-fx-font-size: 12; -fx-font-weight: bold; -fx-text-fill: #999; " +
-                "-fx-padding: 12 16 6 16;");
+            // Items section
+            dom.scrollPane(sp -> {
+                VBox.setVgrow(sp, Priority.ALWAYS);
+                sp.setFitToWidth(true);
+                sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+                sp.setStyle(GluonStyles.SCROLL_TRANSPARENT);
 
-        var itemsBox = new VBox(0);
-        itemsBox.setPadding(new Insets(0, 12, 0, 12));
-        this.itemsSlot = this.newListSlot(itemsBox, this::newItemView, this::updateItem);
+                var itemsLabel = new Label("Itens");
+                itemsLabel.setStyle(GluonStyles.SECTION_CAPTION + " -fx-padding: 12 16 6 16;");
 
-        var scroll = new ScrollPane(new VBox(itemsLabel, itemsBox));
-        scroll.setFitToWidth(true);
-        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scroll.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
-        VBox.setVgrow(scroll, Priority.ALWAYS);
+                var itemsBox = new VBox(0);
+                itemsBox.setPadding(new Insets(0, 12, 0, 12));
+                this.itemsSlot = this.newListSlot(itemsBox, this::newItemView, this::updateItem);
 
-        // Total footer
-        var totalLabel = new Label("Total");
-        totalLabel.setStyle("-fx-font-size: 14; -fx-text-fill: #666;");
+                var scrollContent = new VBox(itemsLabel, itemsBox);
+                sp.setContent(scrollContent);
+            });
 
-        this.totalElm = new Label();
-        this.totalElm.setStyle("-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #1976D2;");
+            // Total footer
+            dom.hbox(totalRow -> {
+                totalRow.setAlignment(Pos.CENTER);
+                totalRow.setSpacing(8);
+                totalRow.setPadding(new Insets(14, 16, 14, 16));
+                totalRow.setStyle(GluonStyles.FOOTER_HIGHLIGHT);
 
-        var totalSpacer = new Region();
-        HBox.setHgrow(totalSpacer, Priority.ALWAYS);
+                dom.label(totalLabel -> {
+                    totalLabel.setText("Total");
+                    totalLabel.setStyle(GluonStyles.TEXT_PRICE_LABEL);
+                });
 
-        var totalRow = new HBox(8, totalLabel, totalSpacer, this.totalElm);
-        totalRow.setAlignment(Pos.CENTER);
-        totalRow.setPadding(new Insets(14, 16, 14, 16));
-        totalRow.setStyle("-fx-background-color: #F5F9FF; -fx-background-radius: 0 0 12 12; " +
-                "-fx-border-color: #E3F2FD; -fx-border-width: 1 0 0 0;");
+                dom.hSpacer();
 
-        receiptCard.getChildren().addAll(receiptHeader, scroll, totalRow);
-        VBox.setVgrow(receiptCard, Priority.ALWAYS);
-
-        root.getChildren().addAll(headerBar, this.successElm, receiptCard);
+                this.totalElm = dom.label(total -> {
+                    total.setStyle(GluonStyles.PRICE_MEDIUM);
+                });
+            });
+            VBox.setVgrow(card, Priority.ALWAYS);
+        });
     }
 
     private ReceiptItemView newItemView() {
@@ -188,7 +199,7 @@ public class ReceiptViewGluon extends AbstractViewGluon<ReceiptPresenter> {
         @Override
         public void doUpdate() {
             if (this.notRendered) {
-                buildUI();
+                GluonDom.render((HBox) this.element, this::buildUI);
                 this.notRendered = false;
             }
             this.descElm.setText(this.item.description != null ? this.item.description : "");
@@ -196,26 +207,24 @@ public class ReceiptViewGluon extends AbstractViewGluon<ReceiptPresenter> {
             this.qtyElm.setText("x" + this.item.quantity);
         }
 
-        private void buildUI() {
-            var row = (HBox) this.element;
+        private void buildUI(GluonDom dom, HBox row) {
             row.setSpacing(10);
             row.setPadding(new Insets(10, 4, 10, 4));
             row.setAlignment(Pos.CENTER_LEFT);
-            row.setStyle("-fx-border-color: #f0f0f0; -fx-border-width: 0 0 1 0;");
+            row.setStyle(GluonStyles.DIVIDER_BOTTOM);
 
-            this.qtyElm = new Label();
-            this.qtyElm.setStyle("-fx-font-size: 11; -fx-text-fill: white; -fx-font-weight: bold; " +
-                    "-fx-background-color: #90CAF9; -fx-background-radius: 4; " +
-                    "-fx-padding: 2 6; -fx-min-width: 28; -fx-alignment: center;");
+            this.qtyElm = dom.label(qty -> {
+                qty.setStyle(GluonStyles.BADGE_QUANTITY);
+            });
 
-            this.descElm = new Label();
-            this.descElm.setStyle("-fx-font-size: 13; -fx-text-fill: #444;");
-            HBox.setHgrow(this.descElm, Priority.ALWAYS);
+            this.descElm = dom.label(desc -> {
+                desc.setStyle(GluonStyles.TEXT_BODY_STYLE);
+                HBox.setHgrow(desc, Priority.ALWAYS);
+            });
 
-            this.priceElm = new Label();
-            this.priceElm.setStyle("-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #333;");
-
-            row.getChildren().addAll(this.qtyElm, this.descElm, this.priceElm);
+            this.priceElm = dom.label(price -> {
+                price.setStyle(GluonStyles.textBold(13, GluonColors.TEXT_DEFAULT));
+            });
         }
     }
 }

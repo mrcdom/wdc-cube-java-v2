@@ -10,6 +10,9 @@ import br.com.wdc.shopping.presentation.presenter.restricted.home.products.Produ
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
 import br.com.wdc.shopping.view.gluon.AbstractViewGluon;
 import br.com.wdc.shopping.view.gluon.ShoppingGluonApplication;
+import br.com.wdc.shopping.view.gluon.theme.GluonColors;
+import br.com.wdc.shopping.view.gluon.util.GluonDom;
+import br.com.wdc.shopping.view.gluon.theme.GluonStyles;
 import br.com.wdc.shopping.view.gluon.util.ResourceCatalog;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -37,32 +40,33 @@ public class ProductsPanelViewGluon extends AbstractViewGluon<ProductsPanelPrese
     @Override
     public void doUpdate() {
         if (this.notRendered) {
-            buildUI();
+            GluonDom.render((VBox) this.element, this::buildUI);
             this.notRendered = false;
         }
         this.contentSlot.accept(this.state.products, this.itemViewList);
     }
 
-    private void buildUI() {
-        var root = (VBox) this.element;
+    private void buildUI(GluonDom dom, VBox root) {
         root.setPadding(new Insets(8));
         root.setSpacing(8);
 
-        var caption = new Label("PRODUTOS");
-        caption.setStyle("-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #333;");
+        dom.label(caption -> {
+            caption.setText("PRODUTOS");
+            caption.setStyle(GluonStyles.SECTION_TITLE);
+        });
 
-        var flowPane = new FlowPane(8, 8);
-        flowPane.setPadding(new Insets(4));
-        this.contentSlot = this.newListSlot(flowPane, this::newItemView, this::updateItem);
+        dom.scrollPane(sp -> {
+            VBox.setVgrow(sp, Priority.ALWAYS);
+            sp.setFitToWidth(true);
+            sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+            sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+            sp.setStyle(GluonStyles.SCROLL_TRANSPARENT);
 
-        var scrollPane = new ScrollPane(flowPane);
-        scrollPane.setFitToWidth(true);
-        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scrollPane.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
-        VBox.setVgrow(scrollPane, Priority.ALWAYS);
-
-        root.getChildren().addAll(caption, scrollPane);
+            var flowPane = new FlowPane(8, 8);
+            flowPane.setPadding(new Insets(4));
+            sp.setContent(flowPane);
+            this.contentSlot = this.newListSlot(flowPane, this::newItemView, this::updateItem);
+        });
     }
 
     private ProductCardView newItemView() {
@@ -97,7 +101,7 @@ public class ProductsPanelViewGluon extends AbstractViewGluon<ProductsPanelPrese
         @Override
         public void doUpdate() {
             if (this.notRendered) {
-                buildUI();
+                GluonDom.render((VBox) this.element, this::buildUI);
                 this.notRendered = false;
             }
             if (this.product.image != null && !this.product.image.equals(this.imageOldValue)) {
@@ -110,31 +114,30 @@ public class ProductsPanelViewGluon extends AbstractViewGluon<ProductsPanelPrese
                     ? NumberFormat.getCurrencyInstance().format(this.product.price) : "");
         }
 
-        private void buildUI() {
-            var card = (VBox) this.element;
+        private void buildUI(GluonDom dom, VBox card) {
             card.setPrefWidth(140);
             card.setPadding(new Insets(8));
             card.setSpacing(4);
             card.setAlignment(Pos.CENTER);
-            card.setStyle("-fx-background-color: white; -fx-background-radius: 6; " +
-                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 4, 0, 0, 1); -fx-cursor: hand;");
+            card.setStyle(GluonStyles.CARD_SMALL);
             card.setOnMouseClicked(e -> safeAction("Open product",
                     () -> this.presenter.onOpenProduct(this.product.id)));
 
-            this.imageElm = new ImageView();
-            this.imageElm.setFitWidth(100);
-            this.imageElm.setFitHeight(100);
-            this.imageElm.setPreserveRatio(true);
+            this.imageElm = dom.imageView(img -> {
+                img.setFitWidth(100);
+                img.setFitHeight(100);
+                img.setPreserveRatio(true);
+            });
 
-            this.nameElm = new Label();
-            this.nameElm.setStyle("-fx-font-size: 12; -fx-font-weight: bold; -fx-text-fill: #333;");
-            this.nameElm.setWrapText(true);
-            this.nameElm.setMaxWidth(130);
+            this.nameElm = dom.label(name -> {
+                name.setStyle(GluonStyles.textBold(12, GluonColors.TEXT_DEFAULT));
+                name.setWrapText(true);
+                name.setMaxWidth(130);
+            });
 
-            this.priceElm = new Label();
-            this.priceElm.setStyle("-fx-font-size: 11; -fx-text-fill: #1976D2;");
-
-            card.getChildren().addAll(this.imageElm, this.nameElm, this.priceElm);
+            this.priceElm = dom.label(price -> {
+                price.setStyle(GluonStyles.text(11, GluonColors.PRIMARY));
+            });
         }
     }
 }

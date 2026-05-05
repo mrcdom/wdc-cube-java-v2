@@ -11,14 +11,15 @@ import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartViewState;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.structs.CartItem;
 import br.com.wdc.shopping.view.gluon.AbstractViewGluon;
 import br.com.wdc.shopping.view.gluon.ShoppingGluonApplication;
+import br.com.wdc.shopping.view.gluon.theme.GluonColors;
+import br.com.wdc.shopping.view.gluon.util.GluonDom;
+import br.com.wdc.shopping.view.gluon.theme.GluonStyles;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
@@ -43,7 +44,7 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
     @Override
     public void doUpdate() {
         if (this.notRendered) {
-            buildUI();
+            GluonDom.render((VBox) this.element, this::buildUI);
             this.notRendered = false;
         }
 
@@ -78,87 +79,109 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
         }
     }
 
-    private void buildUI() {
-        var root = (VBox) this.element;
+    private void buildUI(GluonDom dom, VBox root) {
         root.setPadding(new Insets(0));
         root.setSpacing(0);
-        root.setStyle("-fx-background-color: #f5f5f5;");
+        root.setStyle(GluonStyles.PAGE_BG);
 
-        // Header bar (consistent with Product and Receipt)
-        var backBtn = new Button("← Voltar");
-        backBtn.setStyle("-fx-font-size: 13; -fx-background-color: transparent; -fx-text-fill: #1976D2; " +
-                "-fx-font-weight: bold; -fx-cursor: hand;");
-        backBtn.setOnAction(e -> safeAction("Back", this.presenter::onOpenProducts));
+        // Header bar
+        dom.hbox(headerBar -> {
+            headerBar.setAlignment(Pos.CENTER_LEFT);
+            headerBar.setSpacing(12);
+            headerBar.setPadding(new Insets(10, 16, 10, 16));
+            headerBar.setStyle(GluonStyles.HEADER_BAR);
 
-        var headerTitle = new Label("Carrinho");
-        headerTitle.setStyle("-fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: #333;");
+            dom.button(backBtn -> {
+                backBtn.setText("← Voltar");
+                backBtn.setStyle(GluonStyles.BACK_BUTTON);
+                backBtn.setOnAction(e -> safeAction("Back", this.presenter::onOpenProducts));
+            });
 
-        var headerSpacer = new Region();
-        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
+            dom.hSpacer();
 
-        var headerBar = new HBox(12, backBtn, headerSpacer, headerTitle);
-        headerBar.setAlignment(Pos.CENTER_LEFT);
-        headerBar.setPadding(new Insets(10, 16, 10, 16));
-        headerBar.setStyle("-fx-background-color: white; " +
-                "-fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0;");
+            dom.label(headerTitle -> {
+                headerTitle.setText("Carrinho");
+                headerTitle.setStyle(GluonStyles.PAGE_TITLE);
+            });
+        });
 
         // Empty cart state
-        var emptyIcon = new Label("\uD83D\uDED2");
-        emptyIcon.setStyle("-fx-font-size: 48;");
-        var emptyMsg = new Label("Seu carrinho está vazio");
-        emptyMsg.setStyle("-fx-font-size: 14; -fx-text-fill: #666;");
-        var emptyHint = new Label("Vamos às compras!");
-        emptyHint.setStyle("-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #1976D2; -fx-cursor: hand; -fx-underline: true;");
-        emptyHint.setOnMouseClicked(e -> safeAction("Go shopping", this.presenter::onOpenProducts));
-        this.emptyPane = new VBox(8, emptyIcon, emptyMsg, emptyHint);
-        this.emptyPane.setAlignment(Pos.CENTER);
-        this.emptyPane.setPadding(new Insets(40, 0, 40, 0));
-        VBox.setVgrow(this.emptyPane, Priority.ALWAYS);
+        this.emptyPane = dom.vbox(empty -> {
+            empty.setAlignment(Pos.CENTER);
+            empty.setSpacing(8);
+            empty.setPadding(new Insets(40, 0, 40, 0));
+            VBox.setVgrow(empty, Priority.ALWAYS);
+
+            dom.label(icon -> {
+                icon.setText("\uD83D\uDED2");
+                icon.setStyle(GluonStyles.fontSize(48));
+            });
+
+            dom.label(msg -> {
+                msg.setText("Seu carrinho está vazio");
+                msg.setStyle(GluonStyles.TEXT_SECONDARY_STYLE);
+            });
+
+            dom.label(hint -> {
+                hint.setText("Vamos às compras!");
+                hint.setStyle(GluonStyles.LINK_BOLD);
+                hint.setOnMouseClicked(e -> safeAction("Go shopping", this.presenter::onOpenProducts));
+            });
+        });
 
         // Cart content
-        var itemsBox = new VBox(6);
-        this.itemsSlot = this.newListSlot(itemsBox, this::newItemView, this::updateItem);
+        this.contentPane = dom.vbox(content -> {
+            content.setSpacing(10);
+            content.setPadding(new Insets(12));
+            VBox.setVgrow(content, Priority.ALWAYS);
 
-        var scroll = new ScrollPane(itemsBox);
-        scroll.setFitToWidth(true);
-        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scroll.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
-        VBox.setVgrow(scroll, Priority.ALWAYS);
+            dom.scrollPane(sp -> {
+                VBox.setVgrow(sp, Priority.ALWAYS);
+                sp.setFitToWidth(true);
+                sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+                sp.setStyle(GluonStyles.SCROLL_TRANSPARENT);
 
-        // Footer
-        var totalLabel = new Label("TOTAL:");
-        totalLabel.setStyle("-fx-font-size: 14; -fx-font-weight: bold;");
+                var itemsBox = new VBox(6);
+                sp.setContent(itemsBox);
+                this.itemsSlot = this.newListSlot(itemsBox, this::newItemView, this::updateItem);
+            });
 
-        this.totalCostElm = new Label(NumberFormat.getCurrencyInstance().format(computeTotalCost()));
-        this.totalCostElm.setStyle("-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #1976D2;");
-        this.totalCostOldValue = computeTotalCost();
+            // Footer
+            dom.hbox(footerRow -> {
+                footerRow.setAlignment(Pos.CENTER);
+                footerRow.setSpacing(8);
+                footerRow.setPadding(new Insets(8, 0, 0, 0));
 
-        var spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
+                dom.label(totalLabel -> {
+                    totalLabel.setText("TOTAL:");
+                    totalLabel.setStyle(GluonStyles.textBold(14, GluonColors.TEXT_DEFAULT));
+                });
 
-        var footerRow = new HBox(8, totalLabel, spacer, this.totalCostElm);
-        footerRow.setAlignment(Pos.CENTER);
-        footerRow.setPadding(new Insets(8, 0, 0, 0));
+                dom.hSpacer();
 
-        // Error
-        this.errorElm = new Label();
-        this.errorElm.setStyle("-fx-text-fill: #d32f2f; -fx-font-size: 12;");
-        this.errorElm.setVisible(false);
-        this.errorElm.setManaged(false);
-        this.errorElm.setWrapText(true);
+                this.totalCostElm = dom.label(total -> {
+                    total.setText(NumberFormat.getCurrencyInstance().format(computeTotalCost()));
+                    total.setStyle(GluonStyles.PRICE_SMALL);
+                });
+                this.totalCostOldValue = computeTotalCost();
+            });
 
-        // Buy button
-        var buyBtn = new Button("FINALIZAR PEDIDO");
-        buyBtn.setMaxWidth(Double.MAX_VALUE);
-        buyBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; " +
-                "-fx-padding: 10 20; -fx-background-radius: 4;");
-        buyBtn.setOnAction(e -> safeAction("Buy", this.presenter::onBuy));
+            // Error
+            this.errorElm = dom.label(err -> {
+                err.setStyle(GluonStyles.ERROR_TEXT);
+                err.setVisible(false);
+                err.setManaged(false);
+                err.setWrapText(true);
+            });
 
-        this.contentPane = new VBox(10, scroll, footerRow, this.errorElm, buyBtn);
-        this.contentPane.setPadding(new Insets(12));
-        VBox.setVgrow(this.contentPane, Priority.ALWAYS);
-
-        root.getChildren().addAll(headerBar, this.emptyPane, this.contentPane);
+            // Buy button
+            dom.button(buyBtn -> {
+                buyBtn.setText("FINALIZAR PEDIDO");
+                buyBtn.setMaxWidth(Double.MAX_VALUE);
+                buyBtn.setStyle(GluonStyles.BTN_SUCCESS_BLOCK);
+                buyBtn.setOnAction(e -> safeAction("Buy", this.presenter::onBuy));
+            });
+        });
     }
 
     private double computeTotalCost() {
@@ -184,7 +207,6 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
         private Label nameElm;
         private Label priceElm;
         private Label qtyElm;
-        private Button removeBtn;
 
         CartItemView(ShoppingGluonApplication app, CartPresenter presenter, int idx) {
             super("cart-item-" + idx, app, presenter, new HBox());
@@ -198,7 +220,7 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
         @Override
         public void doUpdate() {
             if (this.notRendered) {
-                buildUI();
+                GluonDom.render((HBox) this.element, this::buildUI);
                 this.notRendered = false;
             }
             this.nameElm.setText(this.item.name != null ? this.item.name : "");
@@ -206,31 +228,31 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
             this.qtyElm.setText("x" + this.item.quantity);
         }
 
-        private void buildUI() {
-            var row = (HBox) this.element;
+        private void buildUI(GluonDom dom, HBox row) {
             row.setSpacing(8);
             row.setPadding(new Insets(8));
             row.setAlignment(Pos.CENTER_LEFT);
-            row.setStyle("-fx-background-color: white; -fx-background-radius: 4; " +
-                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 2, 0, 0, 1);");
+            row.setStyle(GluonStyles.CARD_ITEM);
 
-            this.nameElm = new Label();
-            this.nameElm.setStyle("-fx-font-size: 12; -fx-text-fill: #333;");
-            HBox.setHgrow(this.nameElm, Priority.ALWAYS);
+            this.nameElm = dom.label(name -> {
+                name.setStyle(GluonStyles.text(12, GluonColors.TEXT_DEFAULT));
+                HBox.setHgrow(name, Priority.ALWAYS);
+            });
 
-            this.priceElm = new Label();
-            this.priceElm.setStyle("-fx-font-size: 12; -fx-text-fill: #1976D2;");
+            this.qtyElm = dom.label(qty -> {
+                qty.setStyle(GluonStyles.text(12, GluonColors.TEXT_SECONDARY));
+            });
 
-            this.qtyElm = new Label();
-            this.qtyElm.setStyle("-fx-font-size: 12; -fx-text-fill: #666;");
+            this.priceElm = dom.label(price -> {
+                price.setStyle(GluonStyles.text(12, GluonColors.PRIMARY));
+            });
 
-            this.removeBtn = new Button("🗑");
-            this.removeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #d32f2f; " +
-                    "-fx-font-size: 14; -fx-padding: 2 6; -fx-cursor: hand;");
-            this.removeBtn.setOnAction(e -> safeAction("Remove",
-                    () -> this.presenter.onRemoveProduct(this.item.id)));
-
-            row.getChildren().addAll(this.nameElm, this.qtyElm, this.priceElm, this.removeBtn);
+            dom.button(btn -> {
+                btn.setText("🗑");
+                btn.setStyle(GluonStyles.BTN_DANGER_INLINE);
+                btn.setOnAction(e -> safeAction("Remove",
+                        () -> this.presenter.onRemoveProduct(this.item.id)));
+            });
         }
     }
 }

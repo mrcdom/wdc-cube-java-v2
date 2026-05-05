@@ -7,16 +7,16 @@ import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPre
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductViewState;
 import br.com.wdc.shopping.view.gluon.AbstractViewGluon;
 import br.com.wdc.shopping.view.gluon.ShoppingGluonApplication;
+import br.com.wdc.shopping.view.gluon.theme.GluonColors;
+import br.com.wdc.shopping.view.gluon.util.GluonDom;
+import br.com.wdc.shopping.view.gluon.theme.GluonStyles;
 import br.com.wdc.shopping.view.gluon.util.ResourceCatalog;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
@@ -46,7 +46,7 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
     @Override
     public void doUpdate() {
         if (this.notRendered) {
-            buildUI();
+            GluonDom.render((VBox) this.element, this::buildUI);
             this.notRendered = false;
         }
 
@@ -88,142 +88,154 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
         }
     }
 
-    private void buildUI() {
-        var root = (VBox) this.element;
+    private void buildUI(GluonDom dom, VBox root) {
         root.setPadding(new Insets(0));
         root.setSpacing(0);
-        root.setStyle("-fx-background-color: #f5f5f5;");
+        root.setStyle(GluonStyles.PAGE_BG);
 
         // Header bar
-        var backBtn = new Button("← Voltar");
-        backBtn.setStyle("-fx-font-size: 13; -fx-background-color: transparent; -fx-text-fill: #1976D2; " +
-                "-fx-font-weight: bold; -fx-cursor: hand;");
-        backBtn.setOnAction(e -> safeAction("Back", this.presenter::onOpenProducts));
+        dom.hbox(headerBar -> {
+            headerBar.setAlignment(Pos.CENTER_LEFT);
+            headerBar.setSpacing(12);
+            headerBar.setPadding(new Insets(10, 16, 10, 16));
+            headerBar.setStyle(GluonStyles.HEADER_BAR);
 
-        var headerTitle = new Label("Detalhes do Produto");
-        headerTitle.setStyle("-fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: #333;");
+            dom.button(backBtn -> {
+                backBtn.setText("← Voltar");
+                backBtn.setStyle(GluonStyles.BACK_BUTTON);
+                backBtn.setOnAction(e -> safeAction("Back", this.presenter::onOpenProducts));
+            });
 
-        var headerSpacer = new Region();
-        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
+            dom.hSpacer();
 
-        var headerBar = new HBox(12, backBtn, headerSpacer, headerTitle);
-        headerBar.setAlignment(Pos.CENTER_LEFT);
-        headerBar.setPadding(new Insets(10, 16, 10, 16));
-        headerBar.setStyle("-fx-background-color: white; " +
-                "-fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0;");
-
-        // Product image - hero section
-        this.imageElm = new ImageView();
-        this.imageElm.setFitWidth(220);
-        this.imageElm.setFitHeight(220);
-        this.imageElm.setPreserveRatio(true);
-        if (this.state.product != null && this.state.product.image != null) {
-            this.imageElm.setImage(ResourceCatalog.getImage(this.state.product.image));
-            this.imageOldValue = this.state.product.image;
-        }
-
-        var imageContainer = new VBox(this.imageElm);
-        imageContainer.setAlignment(Pos.CENTER);
-        imageContainer.setPadding(new Insets(20, 0, 16, 0));
-        imageContainer.setStyle("-fx-background-color: white;");
-
-        // Product info card
-        var infoCard = new VBox(14);
-        infoCard.setPadding(new Insets(24, 20, 20, 20));
-        infoCard.setStyle("-fx-background-color: white; -fx-background-radius: 16 16 0 0; " +
-                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0, 0, -2);");
-
-        // Product name
-        this.nameElm = new Label(this.state.product != null ? this.state.product.name : "");
-        this.nameElm.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #222;");
-        this.nameElm.setWrapText(true);
-        this.nameOldValue = this.state.product != null ? this.state.product.name : null;
-
-        // Price
-        this.priceElm = new Label(this.state.product != null
-                ? NumberFormat.getCurrencyInstance().format(this.state.product.price) : "");
-        this.priceElm.setStyle("-fx-font-size: 22; -fx-text-fill: #1976D2; -fx-font-weight: bold;");
-        this.priceOldValue = this.state.product != null ? this.state.product.price : 0;
-
-        // Quantity selector - custom −/+ buttons
-        var qtyLabel = new Label("Quantidade");
-        qtyLabel.setStyle("-fx-font-size: 12; -fx-text-fill: #888;");
-
-        var minusBtn = new Button("−");
-        minusBtn.setStyle("-fx-background-color: #f0f0f0; -fx-background-radius: 50; " +
-                "-fx-min-width: 32; -fx-min-height: 32; -fx-max-width: 32; -fx-max-height: 32; " +
-                "-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #555; -fx-cursor: hand;");
-        minusBtn.setOnAction(e -> {
-            if (this.quantity > 1) {
-                this.quantity--;
-                this.quantityLabel.setText(String.valueOf(this.quantity));
-            }
+            dom.label(headerTitle -> {
+                headerTitle.setText("Detalhes do Produto");
+                headerTitle.setStyle(GluonStyles.PAGE_TITLE);
+            });
         });
 
-        this.quantityLabel = new Label("1");
-        this.quantityLabel.setStyle("-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #333; " +
-                "-fx-min-width: 32; -fx-alignment: center;");
+        // Scrollable content
+        dom.scrollPane(sp -> {
+            VBox.setVgrow(sp, Priority.ALWAYS);
+            sp.setFitToWidth(true);
+            sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+            sp.setStyle(GluonStyles.SCROLL_TRANSPARENT);
 
-        var plusBtn = new Button("+");
-        plusBtn.setStyle("-fx-background-color: #f0f0f0; -fx-background-radius: 50; " +
-                "-fx-min-width: 32; -fx-min-height: 32; -fx-max-width: 32; -fx-max-height: 32; " +
-                "-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #555; -fx-cursor: hand;");
-        plusBtn.setOnAction(e -> {
-            if (this.quantity < 99) {
-                this.quantity++;
-                this.quantityLabel.setText(String.valueOf(this.quantity));
-            }
+            // Product image - hero section
+            dom.vbox(imageContainer -> {
+                imageContainer.setAlignment(Pos.CENTER);
+                imageContainer.setPadding(new Insets(20, 0, 16, 0));
+                imageContainer.setStyle(GluonStyles.BG_WHITE);
+
+                this.imageElm = dom.imageView(img -> {
+                    img.setFitWidth(220);
+                    img.setFitHeight(220);
+                    img.setPreserveRatio(true);
+                    if (this.state.product != null && this.state.product.image != null) {
+                        img.setImage(ResourceCatalog.getImage(this.state.product.image));
+                        this.imageOldValue = this.state.product.image;
+                    }
+                });
+            });
+
+            // Product info card
+            dom.vbox(card -> {
+                card.setSpacing(14);
+                card.setPadding(new Insets(24, 20, 20, 20));
+                card.setStyle(GluonStyles.CARD_TOP_ROUND);
+
+                this.nameElm = dom.label(name -> {
+                    name.setText(this.state.product != null ? this.state.product.name : "");
+                    name.setStyle(GluonStyles.textBold(20, GluonColors.TEXT_PRIMARY));
+                    name.setWrapText(true);
+                });
+                this.nameOldValue = this.state.product != null ? this.state.product.name : null;
+
+                this.priceElm = dom.label(price -> {
+                    price.setText(this.state.product != null
+                            ? NumberFormat.getCurrencyInstance().format(this.state.product.price) : "");
+                    price.setStyle(GluonStyles.PRICE_LARGE);
+                });
+                this.priceOldValue = this.state.product != null ? this.state.product.price : 0;
+
+                // Quantity selector + add button
+                dom.hbox(actionSection -> {
+                    actionSection.setAlignment(Pos.BOTTOM_LEFT);
+                    actionSection.setSpacing(16);
+                    actionSection.setPadding(new Insets(6, 0, 6, 0));
+
+                    dom.vbox(qtyBox -> {
+                        qtyBox.setSpacing(6);
+
+                        dom.label(qtyLabel -> {
+                            qtyLabel.setText("Quantidade");
+                            qtyLabel.setStyle(GluonStyles.TEXT_HINT_STYLE);
+                        });
+
+                        dom.hbox(qtyStepper -> {
+                            qtyStepper.setAlignment(Pos.CENTER);
+                            qtyStepper.setSpacing(8);
+                            qtyStepper.setPadding(new Insets(4, 8, 4, 8));
+                            qtyStepper.setStyle(GluonStyles.QTY_STEPPER);
+
+                            dom.button(minusBtn -> {
+                                minusBtn.setText("−");
+                                minusBtn.setStyle(GluonStyles.BTN_CIRCLE);
+                                minusBtn.setOnAction(e -> {
+                                    if (this.quantity > 1) {
+                                        this.quantity--;
+                                        this.quantityLabel.setText(String.valueOf(this.quantity));
+                                    }
+                                });
+                            });
+
+                            this.quantityLabel = dom.label(qty -> {
+                                qty.setText("1");
+                                qty.setStyle(GluonStyles.textBold(16, GluonColors.TEXT_DEFAULT) + " " +
+                                        "-fx-min-width: 32; -fx-alignment: center;");
+                            });
+
+                            dom.button(plusBtn -> {
+                                plusBtn.setText("+");
+                                plusBtn.setStyle(GluonStyles.BTN_CIRCLE);
+                                plusBtn.setOnAction(e -> {
+                                    if (this.quantity < 99) {
+                                        this.quantity++;
+                                        this.quantityLabel.setText(String.valueOf(this.quantity));
+                                    }
+                                });
+                            });
+                        });
+                    });
+
+                    dom.button(addBtn -> {
+                        addBtn.setText("🛒  Adicionar ao Carrinho");
+                        addBtn.setMaxWidth(220);
+                        addBtn.setStyle(GluonStyles.BTN_SUCCESS);
+                        addBtn.setOnAction(e -> emitBuy());
+                    });
+                });
+
+                this.errorElm = dom.label(err -> {
+                    err.setStyle(GluonStyles.ERROR_INLINE);
+                    err.setVisible(false);
+                    err.setManaged(false);
+                    err.setWrapText(true);
+                });
+
+                dom.label(descTitle -> {
+                    descTitle.setText("Descrição");
+                    descTitle.setStyle(GluonStyles.textBold(13, GluonColors.TEXT_SECONDARY) + " -fx-padding: 12 0 6 0;");
+                });
+
+                this.descriptionElm = dom.textFlow(tf -> {
+                    tf.setStyle(GluonStyles.fontSize(13) + " -fx-line-spacing: 3;");
+                });
+                renderDescription(this.state.product != null ? this.state.product.description : null);
+                this.descriptionOldValue = this.state.product != null ? this.state.product.description : null;
+                VBox.setVgrow(card, Priority.ALWAYS);
+            });
         });
-
-        var qtyStepper = new HBox(8, minusBtn, this.quantityLabel, plusBtn);
-        qtyStepper.setAlignment(Pos.CENTER);
-        qtyStepper.setPadding(new Insets(4, 8, 4, 8));
-        qtyStepper.setStyle("-fx-border-color: #e0e0e0; -fx-border-radius: 20; -fx-background-radius: 20; " +
-                "-fx-background-color: white;");
-
-        var qtyBox = new VBox(6, qtyLabel, qtyStepper);
-
-        var addBtn = new Button("🛒  Adicionar ao Carrinho");
-        addBtn.setMaxWidth(220);
-        addBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; " +
-                "-fx-font-weight: bold; -fx-font-size: 13; -fx-padding: 12 20; " +
-                "-fx-background-radius: 8; -fx-cursor: hand;");
-        addBtn.setOnAction(e -> emitBuy());
-
-        var actionSection = new HBox(16, qtyBox, addBtn);
-        actionSection.setAlignment(Pos.BOTTOM_LEFT);
-        actionSection.setPadding(new Insets(6, 0, 6, 0));
-
-        // Error
-        this.errorElm = new Label();
-        this.errorElm.setStyle("-fx-text-fill: white; -fx-font-size: 12; -fx-padding: 8 12; " +
-                "-fx-background-color: #d32f2f; -fx-background-radius: 6;");
-        this.errorElm.setVisible(false);
-        this.errorElm.setManaged(false);
-        this.errorElm.setWrapText(true);
-
-        // Description section
-        var descTitle = new Label("Descrição");
-        descTitle.setStyle("-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #666; -fx-padding: 12 0 6 0;");
-
-        this.descriptionElm = new TextFlow();
-        this.descriptionElm.setStyle("-fx-font-size: 13; -fx-line-spacing: 3;");
-        renderDescription(this.state.product != null ? this.state.product.description : null);
-        this.descriptionOldValue = this.state.product != null ? this.state.product.description : null;
-
-        infoCard.getChildren().addAll(this.nameElm, this.priceElm, actionSection,
-                this.errorElm, descTitle, this.descriptionElm);
-
-        var contentBox = new VBox(0, imageContainer, infoCard);
-        VBox.setVgrow(infoCard, Priority.ALWAYS);
-
-        var scroll = new ScrollPane(contentBox);
-        scroll.setFitToWidth(true);
-        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scroll.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
-        VBox.setVgrow(scroll, Priority.ALWAYS);
-
-        root.getChildren().addAll(headerBar, scroll);
     }
 
     private void emitBuy() {
@@ -235,7 +247,6 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
     private void renderDescription(String text) {
         this.descriptionElm.getChildren().clear();
         if (text != null && !text.isBlank()) {
-            // Simple: strip tags for mobile, show plain text
             var plain = text.replaceAll("<[^>]+>", " ").replaceAll("\\s+", " ").trim();
             this.descriptionElm.getChildren().add(new Text(plain));
         }

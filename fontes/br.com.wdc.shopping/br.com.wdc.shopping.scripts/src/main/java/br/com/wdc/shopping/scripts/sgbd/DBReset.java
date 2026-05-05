@@ -107,8 +107,8 @@ public class DBReset {
 		 */
 
 		id = 0;
-		bhv.addPurchase(DBReset.ADMIN_FIRST_PURCHASE_ID = id++, DBReset.ADMIN_ID, new int[] {2010, 1, 1});
-		bhv.addPurchase(DBReset.ADMIN_SECOND_PURCHASE_ID = id++, DBReset.ADMIN_ID, new int[] {2011, 4, 3});
+		bhv.addPurchase(DBReset.ADMIN_FIRST_PURCHASE_ID = id++, DBReset.ADMIN_ID, new int[] {2010, 1, 1, 14, 30});
+		bhv.addPurchase(DBReset.ADMIN_SECOND_PURCHASE_ID = id++, DBReset.ADMIN_ID, new int[] {2011, 4, 3, 9, 15});
 
 		EnPurchase.INSTANCE.alterSeqPurchase(c, id);
 
@@ -173,6 +173,15 @@ public class DBReset {
 				cal.set(Calendar.YEAR, date[0]);
 				cal.set(Calendar.MONTH, date[1] - 1);
 				cal.set(Calendar.DAY_OF_MONTH, date[2]);
+				if (date.length >= 5) {
+					cal.set(Calendar.HOUR_OF_DAY, date[3]);
+					cal.set(Calendar.MINUTE, date[4]);
+				} else {
+					cal.set(Calendar.HOUR_OF_DAY, 0);
+					cal.set(Calendar.MINUTE, 0);
+				}
+				cal.set(Calendar.SECOND, 0);
+				cal.set(Calendar.MILLISECOND, 0);
 				row.buyDate(CoerceUtils.asOffsetDateTime(cal.getTime()));
 			}
 			new InsertRowPurchaseCmd().execute(c, row);

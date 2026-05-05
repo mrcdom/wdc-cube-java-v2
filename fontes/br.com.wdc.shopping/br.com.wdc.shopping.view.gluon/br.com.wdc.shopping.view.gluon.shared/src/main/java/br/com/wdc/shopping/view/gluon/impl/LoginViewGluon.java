@@ -6,16 +6,15 @@ import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginViewState;
 import br.com.wdc.shopping.view.gluon.AbstractViewGluon;
 import br.com.wdc.shopping.view.gluon.ShoppingGluonApplication;
+import br.com.wdc.shopping.view.gluon.theme.GluonColors;
+import br.com.wdc.shopping.view.gluon.util.GluonDom;
+import br.com.wdc.shopping.view.gluon.theme.GluonStyles;
 import br.com.wdc.shopping.view.gluon.util.ResourceCatalog;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 public class LoginViewGluon extends AbstractViewGluon<LoginPresenter> {
@@ -35,7 +34,7 @@ public class LoginViewGluon extends AbstractViewGluon<LoginPresenter> {
     @Override
     public void doUpdate() {
         if (this.notRendered) {
-            buildUI();
+            GluonDom.render((VBox) this.element, this::buildUI);
             this.notRendered = false;
         }
 
@@ -57,86 +56,87 @@ public class LoginViewGluon extends AbstractViewGluon<LoginPresenter> {
         }
     }
 
-    private void buildUI() {
-        var root = (VBox) this.element;
+    private void buildUI(GluonDom dom, VBox root) {
         root.setAlignment(Pos.CENTER);
         root.setPadding(new Insets(0));
         root.setSpacing(0);
-        root.setStyle("-fx-background-color: linear-gradient(to bottom, #1976D2, #1565C0);");
+        root.setStyle(GluonStyles.LOGIN_GRADIENT);
 
-        // Top spacer
-        var topSpacer = new Region();
-        VBox.setVgrow(topSpacer, Priority.ALWAYS);
-
-        // Logo
-        var logoView = new ImageView(ResourceCatalog.getImage("images/big_logo.png"));
-        logoView.setFitWidth(160);
-        logoView.setPreserveRatio(true);
-
-        // App name
-        var appName = new Label("WDC Shopping");
-        appName.setStyle("-fx-font-size: 24; -fx-font-weight: bold; -fx-text-fill: white;");
-
-        var tagline = new Label("Sua loja favorita na palma da mão");
-        tagline.setStyle("-fx-font-size: 12; -fx-text-fill: rgba(255,255,255,0.8);");
+        dom.vSpacer();
 
         // Header section
-        var headerBox = new VBox(8, logoView, appName, tagline);
-        headerBox.setAlignment(Pos.CENTER);
-        headerBox.setPadding(new Insets(0, 24, 24, 24));
+        dom.vbox(headerBox -> {
+            headerBox.setAlignment(Pos.CENTER);
+            headerBox.setSpacing(8);
+            headerBox.setPadding(new Insets(0, 24, 24, 24));
+
+            dom.imageView(logo -> {
+                logo.setImage(ResourceCatalog.getImage("images/big_logo.png"));
+                logo.setFitWidth(160);
+                logo.setPreserveRatio(true);
+            });
+
+            dom.label(appName -> {
+                appName.setText("WDC Shopping");
+                appName.setStyle(GluonStyles.textBold(24, GluonColors.TEXT_ON_PRIMARY));
+            });
+
+            dom.label(tagline -> {
+                tagline.setText("Sua loja favorita na palma da mão");
+                tagline.setStyle(GluonStyles.TEXT_SMALL_WHITE);
+            });
+        });
 
         // Card form
-        var card = new VBox(14);
-        card.setMaxWidth(320);
-        card.setPadding(new Insets(28, 24, 28, 24));
-        card.setAlignment(Pos.CENTER_LEFT);
-        card.setStyle("-fx-background-color: white; -fx-background-radius: 16 16 0 0; " +
-                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 12, 0, 0, -2);");
+        dom.vbox(card -> {
+            card.setMaxWidth(320);
+            card.setSpacing(14);
+            card.setPadding(new Insets(28, 24, 28, 24));
+            card.setAlignment(Pos.CENTER_LEFT);
+            card.setStyle(GluonStyles.CARD_TOP_ROUND);
 
-        var formTitle = new Label("Entrar");
-        formTitle.setStyle("-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #333;");
+            dom.label(formTitle -> {
+                formTitle.setText("Entrar");
+                formTitle.setStyle(GluonStyles.textBold(18, GluonColors.TEXT_DEFAULT));
+            });
 
-        var formSubtitle = new Label("Informe suas credenciais para continuar");
-        formSubtitle.setStyle("-fx-font-size: 12; -fx-text-fill: #888;");
+            dom.label(formSubtitle -> {
+                formSubtitle.setText("Informe suas credenciais para continuar");
+                formSubtitle.setStyle(GluonStyles.TEXT_HINT_STYLE);
+            });
 
-        this.userNameField = new TextField();
-        this.userNameField.setPromptText("Usuário");
-        this.userNameField.setMaxWidth(Double.MAX_VALUE);
-        this.userNameField.setStyle("-fx-padding: 10; -fx-background-radius: 6; " +
-                "-fx-border-color: #e0e0e0; -fx-border-radius: 6; -fx-font-size: 13;");
+            this.userNameField = dom.textField(field -> {
+                field.setPromptText("Usuário");
+                field.setMaxWidth(Double.MAX_VALUE);
+                field.setStyle(GluonStyles.INPUT_FIELD);
+            });
 
-        this.passwordField = new PasswordField();
-        this.passwordField.setPromptText("Senha");
-        this.passwordField.setMaxWidth(Double.MAX_VALUE);
-        this.passwordField.setStyle("-fx-padding: 10; -fx-background-radius: 6; " +
-                "-fx-border-color: #e0e0e0; -fx-border-radius: 6; -fx-font-size: 13;");
-        this.passwordField.setOnAction(e -> emitEnter());
+            this.passwordField = dom.passwordField(field -> {
+                field.setPromptText("Senha");
+                field.setMaxWidth(Double.MAX_VALUE);
+                field.setStyle(GluonStyles.INPUT_FIELD);
+                field.setOnAction(e -> emitEnter());
+            });
 
-        this.errorElm = new Label();
-        this.errorElm.setStyle("-fx-text-fill: #d32f2f; -fx-font-size: 11; -fx-padding: 4 0 0 0;");
-        this.errorElm.setVisible(false);
-        this.errorElm.setManaged(false);
-        this.errorElm.setWrapText(true);
+            this.errorElm = dom.label(err -> {
+                err.setStyle(GluonStyles.ERROR_SMALL);
+                err.setVisible(false);
+                err.setManaged(false);
+                err.setWrapText(true);
+            });
 
-        var loginBtn = new Button("ENTRAR");
-        loginBtn.setMaxWidth(Double.MAX_VALUE);
-        loginBtn.setStyle("-fx-background-color: #1976D2; -fx-text-fill: white; " +
-                "-fx-font-weight: bold; -fx-font-size: 14; -fx-padding: 12 20; -fx-background-radius: 8; " +
-                "-fx-cursor: hand;");
-        loginBtn.setOnAction(e -> emitEnter());
+            dom.button(loginBtn -> {
+                loginBtn.setText("ENTRAR");
+                loginBtn.setMaxWidth(Double.MAX_VALUE);
+                loginBtn.setStyle(GluonStyles.BTN_PRIMARY);
+                loginBtn.setOnAction(e -> emitEnter());
+            });
 
-        var footerNote = new Label("demo: admin / admin");
-        footerNote.setStyle("-fx-font-size: 10; -fx-text-fill: #aaa;");
-
-        card.getChildren().addAll(formTitle, formSubtitle,
-                this.userNameField, this.passwordField,
-                this.errorElm, loginBtn, footerNote);
-
-        // Bottom spacer to push card down
-        var bottomSpacer = new Region();
-        bottomSpacer.setMinHeight(0);
-
-        root.getChildren().addAll(topSpacer, headerBox, card);
+            dom.label(footerNote -> {
+                footerNote.setText("demo: admin / admin");
+                footerNote.setStyle(GluonStyles.text(10, GluonColors.TEXT_DISABLED));
+            });
+        });
     }
 
     private void emitEnter() {
