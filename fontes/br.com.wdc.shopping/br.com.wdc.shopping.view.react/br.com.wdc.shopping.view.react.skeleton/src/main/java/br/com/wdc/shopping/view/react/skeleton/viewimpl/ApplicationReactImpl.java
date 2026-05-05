@@ -85,7 +85,7 @@ public class ApplicationReactImpl extends ShoppingApplication {
     }
 
     public static ApplicationReactImpl getOrCreate(String appId, Map<String, Object> request) {
-        return instanceMap.computeIfAbsent(appId, _ -> ApplicationReactImpl.createApp(appId, request));
+        return instanceMap.computeIfAbsent(appId, _ignored -> ApplicationReactImpl.createApp(appId, request));
     }
 
     private static ApplicationReactImpl createApp(String appId, Map<String, Object> request) {
@@ -316,7 +316,7 @@ public class ApplicationReactImpl extends ShoppingApplication {
     }
 
     public void updateAllViews() {
-        this.viewMap.forEach((_, v) -> this.markDirty(v));
+        this.viewMap.forEach((_ignored, v) -> this.markDirty(v));
     }
 
     @Override
@@ -567,7 +567,7 @@ public class ApplicationReactImpl extends ShoppingApplication {
         }
 
         private void commitComputedState() {
-            me.presenterMap.forEach((_, presenter) -> {
+            me.presenterMap.forEach((_ignored, presenter) -> {
                 try {
                     presenter.commitComputedState();
                 } catch (Exception cause) {

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>br.com.wdc.shopping</groupId>
+		<artifactId>br.com.wdc.shopping</artifactId>
+		<version>1.0.0</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+
+	<artifactId>br.com.wdc.shopping.view.gluon</artifactId>
+	<packaging>pom</packaging>
+
+	<properties>
+		<javafx.version>21.0.7</javafx.version>
+		<attach.version>4.0.22</attach.version>
+		<gluonfx.plugin.version>1.0.25</gluonfx.plugin.version>
+		<main.class>br.com.wdc.shopping.view.gluon.ShoppingGluonMain</main.class>
+	</properties>
+
+	<modules>
+		<module>br.com.wdc.shopping.view.gluon.shared</module>
+		<module>br.com.wdc.shopping.view.gluon.desktop</module>
+		<module>br.com.wdc.shopping.view.gluon.android</module>
+		<module>br.com.wdc.shopping.view.gluon.ios</module>
+	</modules>
+
+	<repositories>
+		<repository>
+			<id>gluon-releases</id>
+			<url>https://nexus.gluonhq.com/nexus/content/repositories/releases/</url>
+		</repository>
+	</repositories>
+</project>

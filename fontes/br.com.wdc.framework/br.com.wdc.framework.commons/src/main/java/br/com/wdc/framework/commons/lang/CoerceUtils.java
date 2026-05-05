@@ -1026,19 +1026,19 @@ public class CoerceUtils {
 
         try {
             return OffsetDateTime.parse(str);
-        } catch (DateTimeParseException _) {
+        } catch (DateTimeParseException ignored) {
             // continue
         }
 
         try {
             return LocalDateTime.parse(str);
-        } catch (DateTimeParseException _) {
+        } catch (DateTimeParseException ignored) {
             // continue
         }
 
         try {
             return LocalDate.parse(str);
-        } catch (DateTimeParseException _) {
+        } catch (DateTimeParseException ignored) {
             // continue
         }
 

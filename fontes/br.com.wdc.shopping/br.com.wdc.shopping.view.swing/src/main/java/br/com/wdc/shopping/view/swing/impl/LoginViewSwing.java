@@ -150,7 +150,7 @@ public class LoginViewSwing extends AbstractViewSwing<LoginPresenter> {
                 Styles.styleField(field);
                 field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
                 field.setAlignmentX(Component.LEFT_ALIGNMENT);
-                field.addActionListener(_ -> emitEnter());
+                field.addActionListener(_ignored -> emitEnter());
             });
 
             dom.vSpacer(6);
@@ -180,7 +180,7 @@ public class LoginViewSwing extends AbstractViewSwing<LoginPresenter> {
                     Styles.stylePrimaryButton(loginBtn);
                     loginBtn.setPreferredSize(new Dimension(200, 44));
                     loginBtn.setMaximumSize(new Dimension(200, 44));
-                    loginBtn.addActionListener(_ -> emitEnter());
+                    loginBtn.addActionListener(_ignored -> emitEnter());
                 });
 
                 dom.hSpacer();

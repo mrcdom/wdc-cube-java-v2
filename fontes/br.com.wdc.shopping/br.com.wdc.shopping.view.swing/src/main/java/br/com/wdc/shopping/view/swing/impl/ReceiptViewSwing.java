@@ -185,7 +185,7 @@ public class ReceiptViewSwing extends AbstractViewSwing<ReceiptPresenter> {
             backBtn.setText("< VOLTAR");
             Styles.styleOutlineButton(backBtn, Styles.FG_PRIMARY);
             backBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
-            backBtn.addActionListener(_ -> safeAction("Open products", this.presenter::onOpenProducts));
+            backBtn.addActionListener(_ignored -> safeAction("Open products", this.presenter::onOpenProducts));
         });
     }
 

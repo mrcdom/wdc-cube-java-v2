@@ -108,7 +108,7 @@ public class FetchPurchaseCmd extends BaseCommand {
             var query = handle.createQuery(sql.toText());
             this.applyParams(query);
 
-            query.map((rs, _) -> {
+            query.map((rs, _ignored) -> {
                 var cteId = rs.getInt(1);
                 var jsonData = rs.getString(2);
 

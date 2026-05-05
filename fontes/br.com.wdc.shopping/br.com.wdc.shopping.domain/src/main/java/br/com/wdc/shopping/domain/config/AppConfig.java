@@ -55,6 +55,12 @@ public final class AppConfig {
         return properties.get(key);
     }
 
+    public AppConfig withOverride(String key, String value) {
+        var copy = new LinkedHashMap<>(this.properties);
+        copy.put(key, value);
+        return new AppConfig(copy);
+    }
+
     public String get(String key, String defaultValue) {
         var value = properties.get(key);
         return value != null ? value : defaultValue;

@@ -54,7 +54,6 @@ public class LoginService {
                 .withUserId(authResult.userId())
                 .withProjection(Subject.projection())
                 .withLimit(1));
-
         return users.isEmpty() ? null : Subject.create(users.get(0));
     }
 

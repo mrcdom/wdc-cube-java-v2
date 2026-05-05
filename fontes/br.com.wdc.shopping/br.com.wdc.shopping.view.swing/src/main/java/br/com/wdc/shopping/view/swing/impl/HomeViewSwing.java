@@ -193,7 +193,7 @@ public class HomeViewSwing extends AbstractViewSwing<HomePresenter> {
                 exitBtn.setText("SAIR");
                 Styles.styleHeaderButton(exitBtn);
                 exitBtn.setAlignmentY(0.5f);
-                exitBtn.addActionListener(_ -> safeAction("Exit", this.presenter::onExit));
+                exitBtn.addActionListener(_ignored -> safeAction("Exit", this.presenter::onExit));
             });
         });
 

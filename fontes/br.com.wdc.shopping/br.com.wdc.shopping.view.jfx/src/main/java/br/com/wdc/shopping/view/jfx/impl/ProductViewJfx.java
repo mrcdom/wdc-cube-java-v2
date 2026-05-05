@@ -116,8 +116,8 @@ public class ProductViewJfx extends AbstractViewJfx<ProductPresenter> {
             });
         });
 
-        dom.hbox(_ -> {
-            dom.vbox(_ -> {
+        dom.hbox(_ignored -> {
+            dom.vbox(_ignored2 -> {
                 dom.stackPane(imgPane -> {
                     imgPane.setStyle("-fx-border-color: #e0e0e0; -fx-border-width: 1; -fx-border-radius: 4; -fx-background-color: #fafafa; -fx-background-radius: 4; -fx-padding: 8;");
 

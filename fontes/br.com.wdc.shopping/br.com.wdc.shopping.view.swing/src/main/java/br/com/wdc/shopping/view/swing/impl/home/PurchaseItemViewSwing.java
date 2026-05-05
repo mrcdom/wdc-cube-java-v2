@@ -157,7 +157,7 @@ public class PurchaseItemViewSwing extends AbstractViewSwing<PurchasesPanelPrese
                 detailsBtn.setText("Ver detalhes");
                 Styles.styleLinkButton(detailsBtn, Styles.FG_PRIMARY);
                 detailsBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
-                detailsBtn.addActionListener(_ -> safeAction("Open receipt", () -> this.presenter.onOpenReceipt(this.state.id)));
+                detailsBtn.addActionListener(_ignored -> safeAction("Open receipt", () -> this.presenter.onOpenReceipt(this.state.id)));
             });
         });
     }

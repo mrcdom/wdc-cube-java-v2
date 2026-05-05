@@ -153,7 +153,7 @@ public class CartViewJfx extends AbstractViewJfx<CartPresenter> {
             this.errorElm.setManaged(false);
         });
 
-        dom.hbox(_ -> {
+        dom.hbox(_ignored -> {
             dom.hSpacer();
 
             dom.button(button -> {

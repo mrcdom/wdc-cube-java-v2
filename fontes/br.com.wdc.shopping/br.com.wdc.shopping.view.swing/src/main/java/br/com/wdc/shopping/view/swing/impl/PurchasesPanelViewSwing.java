@@ -110,7 +110,7 @@ public class PurchasesPanelViewSwing extends AbstractViewSwing<PurchasesPanelPre
                 prevBtn.setBorderPainted(false);
                 prevBtn.setOpaque(true);
                 prevBtn.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-                prevBtn.addActionListener(_ -> safeAction("Previous page", () -> this.presenter.onPageChange(this.state.page - 1)));
+                prevBtn.addActionListener(_ignored -> safeAction("Previous page", () -> this.presenter.onPageChange(this.state.page - 1)));
             });
 
             dom.hSpacer();
@@ -133,7 +133,7 @@ public class PurchasesPanelViewSwing extends AbstractViewSwing<PurchasesPanelPre
                 nextBtn.setBorderPainted(false);
                 nextBtn.setOpaque(true);
                 nextBtn.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-                nextBtn.addActionListener(_ -> safeAction("Next page", () -> this.presenter.onPageChange(this.state.page + 1)));
+                nextBtn.addActionListener(_ignored -> safeAction("Next page", () -> this.presenter.onPageChange(this.state.page + 1)));
             });
         });
     }

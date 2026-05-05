@@ -125,7 +125,7 @@ public class HomeViewJfx extends AbstractViewJfx<HomePresenter> {
             dom.hbox(cartBtn -> {
                 cartBtn.getStyleClass().add("cart-button");
                 cartBtn.setAlignment(Pos.CENTER);
-                cartBtn.setOnMouseClicked(_ -> safeAction("Open cart", this.presenter::onOpenCart));
+                cartBtn.setOnMouseClicked(_ignored -> safeAction("Open cart", this.presenter::onOpenCart));
 
                 dom.img(img -> {
                     img.setImage(ResourceCatalog.getImage("images/carrinho.png"));

@@ -282,7 +282,7 @@ public class ProductViewSwing extends AbstractViewSwing<ProductPresenter> {
                     dom.button(backBtn -> {
                         backBtn.setText("< VOLTAR");
                         Styles.styleOutlineButton(backBtn, Styles.FG_PRIMARY);
-                        backBtn.addActionListener(_ -> safeAction("Open products", this.presenter::onOpenProducts));
+                        backBtn.addActionListener(_ignored -> safeAction("Open products", this.presenter::onOpenProducts));
                     });
 
                     dom.hSpacer();
@@ -291,7 +291,7 @@ public class ProductViewSwing extends AbstractViewSwing<ProductPresenter> {
                         buyBtn.setText("Adicionar ao carrinho");
                         Styles.styleOrangeButton(buyBtn);
                         buyBtn.setFont(Styles.FONT_BUTTON_LARGE);
-                        buyBtn.addActionListener(_ -> safeAction("Add to cart", () -> {
+                        buyBtn.addActionListener(_ignored -> safeAction("Add to cart", () -> {
                             var quantity = 1;
                             try {
                                 quantity = Integer.parseInt(this.quantityElm.getText().trim());

@@ -116,7 +116,7 @@ public class PurchaseItemViewJfx extends AbstractViewJfx<PurchasesPanelPresenter
                 });
             });
 
-            dom.hbox(_ -> {
+            dom.hbox(_ignored -> {
                 dom.hSpacer();
 
                 dom.button(button -> {

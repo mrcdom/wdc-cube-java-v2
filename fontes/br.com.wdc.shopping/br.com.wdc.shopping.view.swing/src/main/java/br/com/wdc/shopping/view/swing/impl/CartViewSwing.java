@@ -217,7 +217,7 @@ public class CartViewSwing extends AbstractViewSwing<CartPresenter> {
             dom.button(backBtn -> {
                 backBtn.setText("< VOLTAR");
                 Styles.styleOutlineButton(backBtn, Styles.FG_PRIMARY);
-                backBtn.addActionListener(_ -> safeAction("Open products", this.presenter::onOpenProducts));
+                backBtn.addActionListener(_ignored -> safeAction("Open products", this.presenter::onOpenProducts));
             });
 
             dom.hSpacer();
@@ -225,7 +225,7 @@ public class CartViewSwing extends AbstractViewSwing<CartPresenter> {
             dom.button(buyBtn -> {
                 buyBtn.setText("FINALIZAR PEDIDO");
                 Styles.styleOrangeButton(buyBtn);
-                buyBtn.addActionListener(_ -> safeAction("Buy", this.presenter::onBuy));
+                buyBtn.addActionListener(_ignored -> safeAction("Buy", this.presenter::onBuy));
             });
         });
     }

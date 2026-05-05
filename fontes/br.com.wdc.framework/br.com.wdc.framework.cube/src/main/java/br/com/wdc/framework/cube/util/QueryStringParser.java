@@ -105,7 +105,7 @@ public final class QueryStringParser {
         if (parser != null) {
             try {
                 return parser.apply(value);
-            } catch (NumberFormatException _) {
+            } catch (NumberFormatException ignored) {
                 return null;
             }
         }

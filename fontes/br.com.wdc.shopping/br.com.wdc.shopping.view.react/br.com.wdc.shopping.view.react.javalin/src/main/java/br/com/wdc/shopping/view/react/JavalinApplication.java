@@ -218,7 +218,7 @@ public class JavalinApplication {
         if (args.length > 0) {
             try {
                 port = Integer.parseInt(args[0]);
-            } catch (NumberFormatException _) {
+            } catch (NumberFormatException ignored) {
                 LOG.warn("Invalid port number: {}, using default {}", args[0], DEFAULT_PORT);
             }
         }
@@ -228,7 +228,7 @@ public class JavalinApplication {
         if (portEnv != null && !portEnv.isBlank()) {
             try {
                 port = Integer.parseInt(portEnv);
-            } catch (NumberFormatException _) {
+            } catch (NumberFormatException ignored) {
                 LOG.warn("Invalid SERVER_PORT environment variable: {}, using default {}", portEnv, DEFAULT_PORT);
             }
         }
@@ -248,7 +248,7 @@ public class JavalinApplication {
         // Keep JVM running
         try {
             Thread.currentThread().join();
-        } catch (@SuppressWarnings("java:S2142") InterruptedException _) {
+        } catch (@SuppressWarnings("java:S2142") InterruptedException ignored) {
             LOG.info("Main thread interrupted");
             server.stop();
         }

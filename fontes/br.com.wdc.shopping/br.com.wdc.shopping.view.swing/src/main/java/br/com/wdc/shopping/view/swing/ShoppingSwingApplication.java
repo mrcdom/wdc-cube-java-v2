@@ -68,7 +68,7 @@ public class ShoppingSwingApplication extends ShoppingApplication {
     }
 
     public void start() {
-        this.renderTimer = new Timer(FRAME_INTERVAL_MS, _ -> this.flushDirtyViews());
+        this.renderTimer = new Timer(FRAME_INTERVAL_MS, _ignored -> this.flushDirtyViews());
         this.renderTimer.start();
     }
 

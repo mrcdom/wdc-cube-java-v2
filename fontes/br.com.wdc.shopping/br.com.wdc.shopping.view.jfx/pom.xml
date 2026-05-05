@@ -14,7 +14,7 @@
     <artifactId>br.com.wdc.shopping.view.jfx</artifactId>
 
     <properties>
-        <javafx.version>24.0.1</javafx.version>
+        <javafx.version>21.0.7</javafx.version>
     </properties>
 
     <dependencies>
@@ -70,7 +70,6 @@
                 <configuration>
                     <mainClass>br.com.wdc.shopping.view.jfx.ShoppingJfxMain</mainClass>
                     <options>
-                        <option>--enable-preview</option>
                         <option>--enable-native-access=javafx.graphics</option>
                     </options>
                 </configuration>

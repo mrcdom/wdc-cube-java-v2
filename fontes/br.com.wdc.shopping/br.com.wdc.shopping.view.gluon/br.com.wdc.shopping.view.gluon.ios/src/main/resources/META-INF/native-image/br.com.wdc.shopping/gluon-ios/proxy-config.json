@@ -1,0 +1,6 @@
+[
+  { "interfaces": ["br.com.wdc.shopping.domain.repositories.UserRepository"] },
+  { "interfaces": ["br.com.wdc.shopping.domain.repositories.ProductRepository"] },
+  { "interfaces": ["br.com.wdc.shopping.domain.repositories.PurchaseRepository"] },
+  { "interfaces": ["br.com.wdc.shopping.domain.repositories.PurchaseItemRepository"] }
+]
