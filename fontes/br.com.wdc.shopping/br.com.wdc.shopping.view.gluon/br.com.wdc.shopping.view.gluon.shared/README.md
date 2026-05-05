@@ -19,7 +19,7 @@ static {
 }
 ```
 
-Isso permite que a camada de apresentação crie views sem conhecer a implementação concreta (JavaFX, Swing, React, etc).
+Isso permite que a camada de apresentação crie views sem conhecer a implementação concreta (Gluon, Swing, Vaadin, React, etc).
 
 ### 2. Render Loop via AnimationTimer (dirty-check)
 
