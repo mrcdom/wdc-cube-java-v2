@@ -30,14 +30,14 @@ import javafx.scene.layout.StackPane;
 public class ShoppingGluonApplication extends ShoppingApplication {
 
     static {
-        RootPresenter.createView = p -> new RootViewGluon((ShoppingGluonApplication) p.app, p);
-        LoginPresenter.createView = p -> new LoginViewGluon((ShoppingGluonApplication) p.app, p);
-        HomePresenter.createView = p -> new HomeViewGluon((ShoppingGluonApplication) p.app, p);
-        CartPresenter.createView = p -> new CartViewGluon((ShoppingGluonApplication) p.app, p);
-        ProductPresenter.createView = p -> new ProductViewGluon((ShoppingGluonApplication) p.app, p);
-        ReceiptPresenter.createView = p -> new ReceiptViewGluon((ShoppingGluonApplication) p.app, p);
-        ProductsPanelPresenter.createView = p -> new ProductsPanelViewGluon((ShoppingGluonApplication) p.app, p);
-        PurchasesPanelPresenter.createView = p -> new PurchasesPanelViewGluon((ShoppingGluonApplication) p.app, p);
+        RootPresenter.createView = RootViewGluon::new;
+        LoginPresenter.createView = LoginViewGluon::new;
+        HomePresenter.createView = HomeViewGluon::new;
+        CartPresenter.createView = CartViewGluon::new;
+        ProductPresenter.createView = ProductViewGluon::new;
+        ReceiptPresenter.createView = ReceiptViewGluon::new;
+        ProductsPanelPresenter.createView = ProductsPanelViewGluon::new;
+        PurchasesPanelPresenter.createView = PurchasesPanelViewGluon::new;
     }
 
     private static final long FRAME_INTERVAL_NS = 16_000_000L;

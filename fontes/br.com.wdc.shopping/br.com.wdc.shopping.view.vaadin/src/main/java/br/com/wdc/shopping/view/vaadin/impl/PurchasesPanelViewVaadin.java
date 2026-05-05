@@ -30,8 +30,8 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelP
     private Button prevButton;
     private Button nextButton;
 
-    public PurchasesPanelViewVaadin(ShoppingVaadinApplication app, PurchasesPanelPresenter presenter) {
-        super("purchases-panel", app, presenter, new VerticalLayout());
+    public PurchasesPanelViewVaadin(PurchasesPanelPresenter presenter) {
+        super("purchases-panel", (ShoppingVaadinApplication) presenter.app, presenter, new VerticalLayout());
         this.state = presenter.state;
     }
 

@@ -39,8 +39,8 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
     private String descriptionOldValue;
     private Label errorElm;
 
-    public ProductViewGluon(ShoppingGluonApplication app, ProductPresenter presenter) {
-        super("product", app, presenter, new VBox());
+    public ProductViewGluon(ProductPresenter presenter) {
+        super("product", (ShoppingGluonApplication) presenter.app, presenter, new VBox());
         this.state = presenter.state;
     }
 

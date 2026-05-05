@@ -27,8 +27,8 @@ public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptPresenter> {
     private Span totalElm;
     private double totalOldValue;
 
-    public ReceiptViewVaadin(ShoppingVaadinApplication app, ReceiptPresenter presenter) {
-        super("receipt", app, presenter, new VerticalLayout());
+    public ReceiptViewVaadin(ReceiptPresenter presenter) {
+        super("receipt", (ShoppingVaadinApplication) presenter.app, presenter, new VerticalLayout());
         this.state = presenter.state;
     }
 

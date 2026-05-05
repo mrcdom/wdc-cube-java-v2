@@ -32,8 +32,8 @@ public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
     private Span totalCostElm;
     private double totalCostOldValue;
 
-    public CartViewVaadin(ShoppingVaadinApplication app, CartPresenter presenter) {
-        super("cart", app, presenter, new VerticalLayout());
+    public CartViewVaadin(CartPresenter presenter) {
+        super("cart", (ShoppingVaadinApplication) presenter.app, presenter, new VerticalLayout());
         this.state = presenter.state;
     }
 

@@ -38,8 +38,8 @@ public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPre
     private BiConsumer<List<PurchaseInfo>, List<PurchaseItemView>> contentSlot;
     private Label pageInfoElm;
 
-    public PurchasesPanelViewGluon(ShoppingGluonApplication app, PurchasesPanelPresenter presenter) {
-        super("purchases-panel", app, presenter, new VBox());
+    public PurchasesPanelViewGluon(PurchasesPanelPresenter presenter) {
+        super("purchases-panel", (ShoppingGluonApplication) presenter.app, presenter, new VBox());
         this.state = presenter.state;
     }
 

@@ -18,8 +18,8 @@ public class LoginViewVaadin extends AbstractViewVaadin<LoginPresenter> {
     private boolean notRendered = true;
     private LoginForm loginForm;
 
-    public LoginViewVaadin(ShoppingVaadinApplication app, LoginPresenter presenter) {
-        super("login", app, presenter, new VerticalLayout());
+    public LoginViewVaadin(LoginPresenter presenter) {
+        super("login", (ShoppingVaadinApplication) presenter.app, presenter, new VerticalLayout());
         this.state = presenter.state;
     }
 

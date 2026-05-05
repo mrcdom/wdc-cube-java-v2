@@ -33,14 +33,14 @@ public class ShoppingSwingApplication extends ShoppingApplication {
     private static final Logger LOG = LoggerFactory.getLogger(ShoppingSwingApplication.class);
 
     static {
-        RootPresenter.createView = p -> new RootViewSwing((ShoppingSwingApplication) p.app, p);
-        LoginPresenter.createView = p -> new LoginViewSwing((ShoppingSwingApplication) p.app, p);
-        HomePresenter.createView = p -> new HomeViewSwing((ShoppingSwingApplication) p.app, p);
-        CartPresenter.createView = p -> new CartViewSwing((ShoppingSwingApplication) p.app, p);
-        ProductPresenter.createView = p -> new ProductViewSwing((ShoppingSwingApplication) p.app, p);
-        ReceiptPresenter.createView = p -> new ReceiptViewSwing((ShoppingSwingApplication) p.app, p);
-        ProductsPanelPresenter.createView = p -> new ProductsPanelViewSwing((ShoppingSwingApplication) p.app, p);
-        PurchasesPanelPresenter.createView = p -> new PurchasesPanelViewSwing((ShoppingSwingApplication) p.app, p);
+        RootPresenter.createView = RootViewSwing::new;
+        LoginPresenter.createView = LoginViewSwing::new;
+        HomePresenter.createView = HomeViewSwing::new;
+        CartPresenter.createView = CartViewSwing::new;
+        ProductPresenter.createView = ProductViewSwing::new;
+        ReceiptPresenter.createView = ReceiptViewSwing::new;
+        ProductsPanelPresenter.createView = ProductsPanelViewSwing::new;
+        PurchasesPanelPresenter.createView = PurchasesPanelViewSwing::new;
     }
 
     private static final int FRAME_INTERVAL_MS = 16; // ~60fps

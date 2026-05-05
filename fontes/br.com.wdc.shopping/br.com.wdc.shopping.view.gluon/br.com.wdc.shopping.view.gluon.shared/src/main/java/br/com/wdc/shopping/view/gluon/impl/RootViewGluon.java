@@ -11,8 +11,8 @@ public class RootViewGluon extends AbstractViewGluon<RootPresenter> {
     private final RootViewState state;
     private AbstractViewGluon<?> currentContentView;
 
-    public RootViewGluon(ShoppingGluonApplication app, RootPresenter presenter) {
-        super("root", app, presenter, new StackPane());
+    public RootViewGluon(RootPresenter presenter) {
+        super("root", (ShoppingGluonApplication) presenter.app, presenter, new StackPane());
         this.state = presenter.state;
     }
 

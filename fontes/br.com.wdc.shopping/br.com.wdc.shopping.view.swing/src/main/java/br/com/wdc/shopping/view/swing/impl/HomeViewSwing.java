@@ -36,8 +36,8 @@ public class HomeViewSwing extends AbstractViewSwing<HomePresenter> {
     private AbstractViewSwing<?> currentContentView;
     private JLabel errorElm;
 
-    public HomeViewSwing(ShoppingSwingApplication app, HomePresenter presenter) {
-        super("home", app, presenter, new JPanel(new BorderLayout()));
+    public HomeViewSwing(HomePresenter presenter) {
+        super("home", (ShoppingSwingApplication) presenter.app, presenter, new JPanel(new BorderLayout()));
         this.state = presenter.state;
     }
 

@@ -32,8 +32,8 @@ public class ProductsPanelViewGluon extends AbstractViewGluon<ProductsPanelPrese
     private List<ProductCardView> itemViewList = new ArrayList<>();
     private BiConsumer<List<ProductInfo>, List<ProductCardView>> contentSlot;
 
-    public ProductsPanelViewGluon(ShoppingGluonApplication app, ProductsPanelPresenter presenter) {
-        super("products-panel", app, presenter, new VBox());
+    public ProductsPanelViewGluon(ProductsPanelPresenter presenter) {
+        super("products-panel", (ShoppingGluonApplication) presenter.app, presenter, new VBox());
         this.state = presenter.state;
     }
 

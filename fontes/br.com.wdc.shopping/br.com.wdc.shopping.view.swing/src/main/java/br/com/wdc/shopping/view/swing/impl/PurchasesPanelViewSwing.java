@@ -34,8 +34,8 @@ public class PurchasesPanelViewSwing extends AbstractViewSwing<PurchasesPanelPre
     private JButton nextButton;
     private JPanel paginationPanel;
 
-    public PurchasesPanelViewSwing(ShoppingSwingApplication app, PurchasesPanelPresenter presenter) {
-        super("purchases-panel", app, presenter, new JPanel(new BorderLayout()));
+    public PurchasesPanelViewSwing(PurchasesPanelPresenter presenter) {
+        super("purchases-panel", (ShoppingSwingApplication) presenter.app, presenter, new JPanel(new BorderLayout()));
         this.state = presenter.state;
     }
 

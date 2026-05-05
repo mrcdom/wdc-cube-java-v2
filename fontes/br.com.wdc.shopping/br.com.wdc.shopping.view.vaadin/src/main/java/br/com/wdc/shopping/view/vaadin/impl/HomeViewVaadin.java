@@ -32,8 +32,8 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomePresenter> {
     private Div purchasesPanelSlot;
     private AbstractViewVaadin<?> currentContentView;
 
-    public HomeViewVaadin(ShoppingVaadinApplication app, HomePresenter presenter) {
-        super("home", app, presenter, new VerticalLayout());
+    public HomeViewVaadin(HomePresenter presenter) {
+        super("home", (ShoppingVaadinApplication) presenter.app, presenter, new VerticalLayout());
         this.state = presenter.state;
     }
 

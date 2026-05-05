@@ -36,8 +36,8 @@ public class ProductViewVaadin extends AbstractViewVaadin<ProductPresenter> {
     private Div descriptionElm;
     private String descriptionOldValue;
 
-    public ProductViewVaadin(ShoppingVaadinApplication app, ProductPresenter presenter) {
-        super("product", app, presenter, new VerticalLayout());
+    public ProductViewVaadin(ProductPresenter presenter) {
+        super("product", (ShoppingVaadinApplication) presenter.app, presenter, new VerticalLayout());
         this.state = presenter.state;
     }
 

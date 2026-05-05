@@ -40,8 +40,8 @@ public class CartViewSwing extends AbstractViewSwing<CartPresenter> {
     private double totalCostOldValue;
     private JLabel errorElm;
 
-    public CartViewSwing(ShoppingSwingApplication app, CartPresenter presenter) {
-        super("cart", app, presenter, new JPanel());
+    public CartViewSwing(CartPresenter presenter) {
+        super("cart", (ShoppingSwingApplication) presenter.app, presenter, new JPanel());
         this.element.setLayout(new BoxLayout(this.element, BoxLayout.Y_AXIS));
         this.state = presenter.state;
     }

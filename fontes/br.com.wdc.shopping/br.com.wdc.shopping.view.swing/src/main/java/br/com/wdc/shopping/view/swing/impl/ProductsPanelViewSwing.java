@@ -26,8 +26,8 @@ public class ProductsPanelViewSwing extends AbstractViewSwing<ProductsPanelPrese
     private List<ProductItemViewSwing> itemViewList = new ArrayList<>();
     private BiConsumer<List<ProductInfo>, List<ProductItemViewSwing>> contentSlot;
 
-    public ProductsPanelViewSwing(ShoppingSwingApplication app, ProductsPanelPresenter presenter) {
-        super("products-panel", app, presenter, new JPanel(new BorderLayout()));
+    public ProductsPanelViewSwing(ProductsPanelPresenter presenter) {
+        super("products-panel", (ShoppingSwingApplication) presenter.app, presenter, new JPanel(new BorderLayout()));
         this.state = presenter.state;
     }
 

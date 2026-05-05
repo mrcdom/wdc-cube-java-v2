@@ -37,8 +37,8 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
     private VBox emptyPane;
     private VBox contentPane;
 
-    public CartViewGluon(ShoppingGluonApplication app, CartPresenter presenter) {
-        super("cart", app, presenter, new VBox());
+    public CartViewGluon(CartPresenter presenter) {
+        super("cart", (ShoppingGluonApplication) presenter.app, presenter, new VBox());
         this.state = presenter.state;
     }
 

@@ -28,8 +28,8 @@ public class LoginViewSwing extends AbstractViewSwing<LoginPresenter> {
     private JPasswordField passwordField;
     private JLabel errorElm;
 
-    public LoginViewSwing(ShoppingSwingApplication app, LoginPresenter presenter) {
-        super("login", app, presenter, new JPanel(new java.awt.GridBagLayout()));
+    public LoginViewSwing(LoginPresenter presenter) {
+        super("login", (ShoppingSwingApplication) presenter.app, presenter, new JPanel(new java.awt.GridBagLayout()));
         this.state = presenter.state;
     }
 

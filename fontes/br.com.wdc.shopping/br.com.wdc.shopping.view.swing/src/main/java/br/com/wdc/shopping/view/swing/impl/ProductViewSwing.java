@@ -52,8 +52,8 @@ public class ProductViewSwing extends AbstractViewSwing<ProductPresenter> {
     private String descriptionOldValue;
     private JLabel errorElm;
 
-    public ProductViewSwing(ShoppingSwingApplication app, ProductPresenter presenter) {
-        super("product", app, presenter, new JPanel());
+    public ProductViewSwing(ProductPresenter presenter) {
+        super("product", (ShoppingSwingApplication) presenter.app, presenter, new JPanel());
         this.element.setLayout(new BoxLayout(this.element, BoxLayout.Y_AXIS));
         this.state = presenter.state;
     }

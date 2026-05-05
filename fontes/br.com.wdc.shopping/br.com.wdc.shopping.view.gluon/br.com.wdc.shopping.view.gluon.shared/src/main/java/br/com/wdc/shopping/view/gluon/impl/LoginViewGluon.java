@@ -26,8 +26,8 @@ public class LoginViewGluon extends AbstractViewGluon<LoginPresenter> {
     private PasswordField passwordField;
     private Label errorElm;
 
-    public LoginViewGluon(ShoppingGluonApplication app, LoginPresenter presenter) {
-        super("login", app, presenter, new VBox());
+    public LoginViewGluon(LoginPresenter presenter) {
+        super("login", (ShoppingGluonApplication) presenter.app, presenter, new VBox());
         this.state = presenter.state;
     }
 

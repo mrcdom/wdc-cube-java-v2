@@ -43,8 +43,8 @@ public class ReceiptViewGluon extends AbstractViewGluon<ReceiptPresenter> {
     private List<ReceiptItemView> viewList = new ArrayList<>();
     private BiConsumer<List<ReceiptItem>, List<ReceiptItemView>> itemsSlot;
 
-    public ReceiptViewGluon(ShoppingGluonApplication app, ReceiptPresenter presenter) {
-        super("receipt", app, presenter, new VBox());
+    public ReceiptViewGluon(ReceiptPresenter presenter) {
+        super("receipt", (ShoppingGluonApplication) presenter.app, presenter, new VBox());
         this.state = presenter.state;
     }
 

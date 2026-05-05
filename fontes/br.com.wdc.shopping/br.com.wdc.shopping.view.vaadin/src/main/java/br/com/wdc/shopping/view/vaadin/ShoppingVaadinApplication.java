@@ -38,14 +38,14 @@ public class ShoppingVaadinApplication extends ShoppingApplication {
     private static final Map<String, ShoppingVaadinApplication> APP_CACHE = new ConcurrentHashMap<>();
 
     static {
-        RootPresenter.createView = p -> new RootViewVaadin((ShoppingVaadinApplication) p.app, p);
-        LoginPresenter.createView = p -> new LoginViewVaadin((ShoppingVaadinApplication) p.app, p);
-        HomePresenter.createView = p -> new HomeViewVaadin((ShoppingVaadinApplication) p.app, p);
-        CartPresenter.createView = p -> new CartViewVaadin((ShoppingVaadinApplication) p.app, p);
-        ProductPresenter.createView = p -> new ProductViewVaadin((ShoppingVaadinApplication) p.app, p);
-        ReceiptPresenter.createView = p -> new ReceiptViewVaadin((ShoppingVaadinApplication) p.app, p);
-        ProductsPanelPresenter.createView = p -> new ProductsPanelViewVaadin((ShoppingVaadinApplication) p.app, p);
-        PurchasesPanelPresenter.createView = p -> new PurchasesPanelViewVaadin((ShoppingVaadinApplication) p.app, p);
+        RootPresenter.createView = RootViewVaadin::new;
+        LoginPresenter.createView = LoginViewVaadin::new;
+        HomePresenter.createView = HomeViewVaadin::new;
+        CartPresenter.createView = CartViewVaadin::new;
+        ProductPresenter.createView = ProductViewVaadin::new;
+        ReceiptPresenter.createView = ReceiptViewVaadin::new;
+        ProductsPanelPresenter.createView = ProductsPanelViewVaadin::new;
+        PurchasesPanelPresenter.createView = PurchasesPanelViewVaadin::new;
     }
 
     private UI ui;

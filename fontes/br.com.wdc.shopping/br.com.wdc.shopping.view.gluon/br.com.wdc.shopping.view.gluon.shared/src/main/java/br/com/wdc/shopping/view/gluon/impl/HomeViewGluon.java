@@ -39,8 +39,8 @@ public class HomeViewGluon extends AbstractViewGluon<HomePresenter> {
     private Button tabPurchasesBtn;
     private boolean showingProducts = true;
 
-    public HomeViewGluon(ShoppingGluonApplication app, HomePresenter presenter) {
-        super("home", app, presenter, new VBox());
+    public HomeViewGluon(HomePresenter presenter) {
+        super("home", (ShoppingGluonApplication) presenter.app, presenter, new VBox());
         this.state = presenter.state;
     }
 
