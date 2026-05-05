@@ -81,25 +81,6 @@ Aplicação desktop com Java Swing + FlatLaf (Material look-and-feel). Mesmos pr
 
 ---
 
-## Arquitetura em camadas
-
-```mermaid
-graph TD
-    subgraph Views["Camada de Visualização — 4 implementações"]
-        R["React 19 + MUI 9"]
-        V["Vaadin 24 + Lumo"]
-        SW["Swing + FlatLaf"]
-        GLN["Gluon + JavaFX"]
-    end
-
-    P["Presentation · Cube MVP<br/><small>Presenters + ViewStates + Navegação</small>"]
-    PER["Persistence<br/><small>Repositories + Command Pattern SQL</small>"]
-    DOM["Domain<br/><small>Modelos + Contratos + Config</small>"]
-    DB[("H2 Database")]
-
-    R & V & SW & GLN --> P --> PER --> DOM --> DB
-```
-
 ## Módulos
 
 | Módulo | Responsabilidade |
