@@ -35,7 +35,7 @@ graph TD
 | **Web (SPA)** | React 19 + TypeScript + MUI 9 | WebSocket (JSON delta) | `view.react` |
 | **Web (SSR)** | Vaadin 24 + Lumo | Server Push (Atmosphere) | `view.vaadin` |
 | **Desktop** | Swing + FlatLaf 3.5 | Direto em memória | `view.swing` |
-| **Multiplataforma** | JavaFX + Gluon Mobile | Direto em memória / H2 local | `view.gluon` |
+| **Multiplataforma** | JavaFX + Gluon Mobile | REST (OkHttp) | `view.gluon` |
 
 **Características principais:**
 

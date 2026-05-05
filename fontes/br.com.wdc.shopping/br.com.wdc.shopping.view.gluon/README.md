@@ -49,7 +49,7 @@ O Gluon Mobile permite escrever uma **única base de código JavaFX** que é com
 | **Runtime** | JVM HotSpot | GraalVM Native Image | GraalVM Native Image |
 | **Target** | `host` | `ios` / `ios-sim` | `android` |
 | **APIs nativas** | Gluon Attach (desktop) | Gluon Attach (iOS) | Gluon Attach (Android) |
-| **Persistência** | API REST (remota) | H2 local + scripts | H2 local + scripts |
+| **Persistência** | API REST (remota) | API REST (remota) | API REST (remota) |
 
 ## Estrutura de Módulos
 
