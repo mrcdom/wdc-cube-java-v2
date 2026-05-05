@@ -2,44 +2,6 @@
 
 Implementação **multiplataforma móvel** (iOS e Android) e **desktop** da aplicação **WeDoCode Shopping** utilizando [Gluon Mobile](https://gluonhq.com/) + JavaFX, com compilação nativa via GraalVM Native Image. Compartilha os mesmos Presenters, ViewStates e lógica de negócio das demais implementações (React, Vaadin, JavaFX, Swing) — apenas a camada de visualização é específica.
 
-## Screenshots
-
-### Login
-
-![Tela de Login](docs/screenshots/01-login.png)
-
-Card centralizado com campos de usuário/senha. Credenciais padrão: `admin` / `admin`.
-
-### Página Inicial — Produtos e Histórico
-
-![Página Inicial](docs/screenshots/02-home.png)
-
-Catálogo de produtos com cards clicáveis e histórico de compras com paginação.
-
-### Detalhe do Produto
-
-![Detalhe do Produto](docs/screenshots/03-product-detail.png)
-
-Imagem, descrição, seletor de quantidade e botão de adicionar ao carrinho.
-
-### Carrinho de Compras
-
-![Carrinho](docs/screenshots/04-cart.png)
-
-Lista de itens com preço, quantidade e remoção individual. Total calculado em tempo real.
-
-### Listagem de Compras
-
-![Listagem de Compras](docs/screenshots/06-purchases.png)
-
-Histórico de compras realizadas com paginação.
-
-### Recibo de Compra
-
-![Recibo](docs/screenshots/05-receipt.png)
-
-Confirmação de compra com recibo detalhado.
-
 ## Motivação
 
 O Gluon Mobile permite escrever uma **única base de código JavaFX** que é compilada nativamente para iOS, Android e Desktop (AOT via GraalVM). O módulo demonstra que a separação **Cube MVP** funciona inclusive em cenários de compilação ahead-of-time com acesso a APIs nativas de dispositivo (display, lifecycle, storage, statusbar).
@@ -155,3 +117,41 @@ graph TD
 ```
 
 O ciclo de atualização utiliza o `AnimationTimer` do JavaFX para sincronizar as mudanças de estado dos Presenters com a árvore de nós JavaFX, evitando atualizações redundantes via dirty-check.
+
+## Screenshots
+
+### Login
+
+![Tela de Login](docs/screenshots/01-login.png)
+
+Card centralizado com campos de usuário/senha. Credenciais padrão: `admin` / `admin`.
+
+### Página Inicial — Produtos e Histórico
+
+![Página Inicial](docs/screenshots/02-home.png)
+
+Catálogo de produtos com cards clicáveis e histórico de compras com paginação.
+
+### Detalhe do Produto
+
+![Detalhe do Produto](docs/screenshots/03-product-detail.png)
+
+Imagem, descrição, seletor de quantidade e botão de adicionar ao carrinho.
+
+### Carrinho de Compras
+
+![Carrinho](docs/screenshots/04-cart.png)
+
+Lista de itens com preço, quantidade e remoção individual. Total calculado em tempo real.
+
+### Listagem de Compras
+
+![Listagem de Compras](docs/screenshots/06-purchases.png)
+
+Histórico de compras realizadas com paginação.
+
+### Recibo de Compra
+
+![Recibo](docs/screenshots/05-receipt.png)
+
+Confirmação de compra com recibo detalhado.
