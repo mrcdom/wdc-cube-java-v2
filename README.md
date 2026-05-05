@@ -49,31 +49,38 @@ graph TD
 
 ## Estrutura de Módulos
 
-```
-fontes/
-├── br.com.wdc.framework/                  # Framework base
-│   ├── br.com.wdc.framework.commons/      # Utilitários, FP, serialização, SQL, crypto
-│   ├── br.com.wdc.framework.cube/         # Cube MVP: presenters, views, navegação
-│   └── br.com.wdc.framework.dependencies/ # BOM — gerenciamento centralizado de versões
-│
-└── br.com.wdc.shopping/                   # Aplicação Shopping
-    ├── br.com.wdc.shopping.domain/             # Modelos, repositórios, critérios, config
-    ├── br.com.wdc.shopping.persistence/        # Persistência (H2 + JDBI + Command Pattern)
-    ├── br.com.wdc.shopping.presentation/       # Presenters, ViewStates, navegação, DTOs
-    ├── br.com.wdc.shopping.scripts/            # Scripts DDL (DBCreate, DBReset)
-    ├── br.com.wdc.shopping.tests/              # Testes unitários e de workflow
-    ├── br.com.wdc.shopping.api/                # REST API controllers (Javalin)
-    ├── br.com.wdc.shopping.api-client/         # REST client (OkHttp + Gson) para Android
-    ├── br.com.wdc.shopping.view.react/         # 📄 [README](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.react/README.md)
-    │   ├── br.com.wdc.shopping.view.react.client/    # Frontend React/TypeScript
-    │   ├── br.com.wdc.shopping.view.react.javalin/   # Servidor Javalin (fat JAR)
-    │   └── br.com.wdc.shopping.view.react.skeleton/  # Implementações de view + segurança
-    ├── br.com.wdc.shopping.view.vaadin/        # 📄 [README](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin/README.md)
-    │                                           # Frontend Vaadin 24 (server-side, Lumo theme)
-    ├── br.com.wdc.shopping.view.swing/         # 📄 [README](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.swing/README.md)
-    │                                           # Frontend Swing desktop (FlatLaf)
-    └── br.com.wdc.shopping.view.gluon/         # 📄 [README](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/README.md)
-                                                # Frontend multiplataforma (JavaFX + Gluon — Desktop, iOS, Android)
+```mermaid
+graph TD
+    fontes["fontes/"]
+
+    subgraph Framework["br.com.wdc.framework"]
+        commons["commons<br/><small>Utilitários, FP, serialização, SQL, crypto</small>"]
+        cube["cube<br/><small>Cube MVP: presenters, views, navegação</small>"]
+        deps["dependencies<br/><small>BOM — versões centralizadas</small>"]
+    end
+
+    subgraph Shopping["br.com.wdc.shopping"]
+        domain["domain<br/><small>Modelos, repositórios, critérios</small>"]
+        persistence["persistence<br/><small>H2 + JDBI + Command Pattern</small>"]
+        presentation["presentation<br/><small>Presenters, ViewStates, navegação</small>"]
+        scripts["scripts<br/><small>DDL (DBCreate, DBReset)</small>"]
+        tests["tests<br/><small>Testes unitários e de workflow</small>"]
+        api["api<br/><small>REST controllers (Javalin)</small>"]
+        apiClient["api-client<br/><small>REST client (OkHttp + Gson)</small>"]
+
+        subgraph ViewReact["view.react"]
+            reactClient["client<br/><small>Frontend React/TypeScript</small>"]
+            reactJavalin["javalin<br/><small>Servidor (fat JAR)</small>"]
+            reactSkeleton["skeleton<br/><small>Views + segurança</small>"]
+        end
+
+        viewVaadin["view.vaadin<br/><small>Vaadin 24 server-side</small>"]
+        viewSwing["view.swing<br/><small>Swing + FlatLaf</small>"]
+        viewGluon["view.gluon<br/><small>JavaFX + Gluon (Desktop/iOS/Android)</small>"]
+    end
+
+    fontes --> Framework
+    fontes --> Shopping
 ```
 
 ### Framework
@@ -285,15 +292,16 @@ Se `jwt.secret` não estiver configurado, a API opera sem autenticação (modo d
 
 O Cube MVP organiza a aplicação em uma **hierarquia de presenters** com navegação baseada em **intents**:
 
-```
-RootPresenter (container)
-├── LoginPresenter (aberto)
-└── HomePresenter (restrito/autenticado)
-    ├── ProductsPanelPresenter (painel)
-    ├── PurchasesPanelPresenter (painel)
-    ├── ProductPresenter
-    ├── CartPresenter
-    └── ReceiptPresenter
+```mermaid
+graph TD
+    Root["RootPresenter (container)"]
+    Root --> Login["LoginPresenter (aberto)"]
+    Root --> Home["HomePresenter (restrito/autenticado)"]
+    Home --> ProductsPanel["ProductsPanelPresenter (painel)"]
+    Home --> PurchasesPanel["PurchasesPanelPresenter (painel)"]
+    Home --> Product["ProductPresenter"]
+    Home --> Cart["CartPresenter"]
+    Home --> Receipt["ReceiptPresenter"]
 ```
 
 Cada presenter possui um **ViewState** serializável que é transmitido ao frontend via WebSocket. O frontend renderiza com base no estado recebido e envia eventos de volta ao presenter correspondente.

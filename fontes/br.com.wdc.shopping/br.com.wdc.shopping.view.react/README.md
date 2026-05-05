@@ -8,22 +8,30 @@ Na arquitetura Cube MVP, os **Presenters** mantêm o estado da aplicação e exp
 
 Este módulo demonstra que essa separação permite uma abordagem de **visualização remota**: o estado da aplicação vive inteiramente no servidor Java, e o browser atua apenas como terminal de renderização. Toda lógica de negócio, navegação e controle de sessão permanece server-side.
 
-```
-┌─────────────────────────────────────────────────┐
-│           Browser (React 19 + MUI 9)            │
-│       Renderiza ViewStates recebidos via WS     │
-├─────────────────────────────────────────────────┤
-│              WebSocket bidirecional             │
-│      ↑ eventos/form data    ↓ delta states     │
-├─────────────────────────────────────────────────┤
-│         Javalin 7 + Virtual Threads            │
-│     ApplicationReactImpl (1 por sessão)         │
-├─────────────────────────────────────────────────┤
-│     Presenters + ViewStates (Cube MVP)          │
-│     (compartilhados com a versão JFX)           │
-├─────────────────────────────────────────────────┤
-│       Domain + Persistence + H2 Database        │
-└─────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph Browser["Browser (React 19 + MUI 9)"]
+        render["Renderiza ViewStates recebidos via WS"]
+    end
+
+    subgraph Transport["WebSocket bidirecional"]
+        up["↑ eventos / form data"]
+        down["↓ delta states"]
+    end
+
+    subgraph Server["Javalin 7 + Virtual Threads"]
+        app["ApplicationReactImpl (1 por sessão)"]
+    end
+
+    subgraph Core["Presenters + ViewStates (Cube MVP)"]
+        presenters["Compartilhados com demais implementações"]
+    end
+
+    subgraph Data["Domain + Persistence + H2 Database"]
+        db[("H2")]
+    end
+
+    Browser <--> Transport <--> Server --> Core --> Data
 ```
 
 ## Comparação com as outras versões
@@ -40,12 +48,13 @@ Este módulo demonstra que essa separação permite uma abordagem de **visualiza
 
 ## Estrutura de submódulos
 
-```
-br.com.wdc.shopping.view.react/
-├── br.com.wdc.shopping.view.react.client/      # Frontend React/TypeScript (Node.js)
-├── br.com.wdc.shopping.view.react.skeleton/    # View impls + serialização + segurança (Maven)
-├── br.com.wdc.shopping.view.react.javalin/     # Servidor HTTP/WebSocket (Maven)
-└── VIRTUAL_THREADS_STRATEGY.md                 # Documentação de Virtual Threads
+```mermaid
+graph TD
+    root["view.react/"]
+    root --> client["client<br/><small>Frontend React/TypeScript (Node.js)</small>"]
+    root --> skeleton["skeleton<br/><small>View impls + serialização + segurança (Maven)</small>"]
+    root --> javalin["javalin<br/><small>Servidor HTTP/WebSocket (Maven)</small>"]
+    root --> vts["VIRTUAL_THREADS_STRATEGY.md"]
 ```
 
 ### client (Node.js — Parcel)

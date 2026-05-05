@@ -99,31 +99,39 @@ Com `dev.mode = true`, clicar no **logo** no header da aplicação força a reco
 
 ## Estrutura
 
-```
-br.com.wdc.shopping.view.swing/
-├── src/main/java/.../view/swing/
-│   ├── ShoppingSwingMain.java          # Entry point
-│   ├── ShoppingSwingApplication.java   # App lifecycle + render loop (~60fps)
-│   ├── AbstractViewSwing.java          # Base view com dirty tracking + rebuild
-│   ├── impl/                           # Views por tela
-│   │   ├── RootViewSwing.java
-│   │   ├── LoginViewSwing.java
-│   │   ├── HomeViewSwing.java
-│   │   ├── ProductViewSwing.java
-│   │   ├── CartViewSwing.java
-│   │   ├── ReceiptViewSwing.java
-│   │   ├── ProductsPanelViewSwing.java
-│   │   ├── PurchasesPanelViewSwing.java
-│   │   ├── home/                       # Sub-views de itens
-│   │   ├── cart/
-│   │   └── receipt/
-│   └── util/                           # Utilitários
-│       ├── Styles.java                 # Cores, fontes, estilos
-│       ├── ResourceCatalog.java        # Cache de imagens
-│       ├── StackPanel.java             # Container single-child (Scrollable)
-│       └── WrapPanel.java              # FlowLayout com wrap
-├── src/main/resources/images/          # Recursos visuais
-└── work/config/application.toml        # Configuração
+```mermaid
+graph TD
+    root["view.swing/"]
+
+    subgraph Main["src/main/java/.../view/swing/"]
+        SwingMain["ShoppingSwingMain.java<br/><small>Entry point</small>"]
+        SwingApp["ShoppingSwingApplication.java<br/><small>Render loop ~60fps</small>"]
+        AbstractV["AbstractViewSwing.java<br/><small>Dirty tracking + rebuild</small>"]
+
+        subgraph Impl["impl/ — Views por tela"]
+            RootV["RootViewSwing"]
+            LoginV["LoginViewSwing"]
+            HomeV["HomeViewSwing"]
+            ProductV["ProductViewSwing"]
+            CartV["CartViewSwing"]
+            ReceiptV["ReceiptViewSwing"]
+            ProdPanelV["ProductsPanelViewSwing"]
+            PurchPanelV["PurchasesPanelViewSwing"]
+            SubViews["home/ cart/ receipt/<br/><small>Sub-views de itens</small>"]
+        end
+
+        subgraph Util["util/"]
+            Styles["Styles.java<br/><small>Cores, fontes</small>"]
+            ResCatalog["ResourceCatalog.java<br/><small>Cache de imagens</small>"]
+            StackPanel["StackPanel.java"]
+            WrapPanel["WrapPanel.java"]
+        end
+    end
+
+    subgraph Resources["Recursos"]
+        Images["src/main/resources/images/"]
+        Config["work/config/application.toml"]
+    end
 ```
 
 ## Arquitetura

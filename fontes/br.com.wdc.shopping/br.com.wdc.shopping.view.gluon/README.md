@@ -53,12 +53,13 @@ O Gluon Mobile permite escrever uma **única base de código JavaFX** que é com
 
 ## Estrutura de Módulos
 
-```
-br.com.wdc.shopping.view.gluon/           (POM agregador)
-├── br.com.wdc.shopping.view.gluon.shared/    UI compartilhada (views, theme, util)
-├── br.com.wdc.shopping.view.gluon.desktop/   Launcher desktop (JVM)
-├── br.com.wdc.shopping.view.gluon.android/   Launcher + dependências Android nativas
-└── br.com.wdc.shopping.view.gluon.ios/       Launcher + dependências iOS nativas
+```mermaid
+graph TD
+    root["view.gluon (POM agregador)"]
+    root --> shared["shared<br/><small>UI compartilhada (views, theme, util)</small>"]
+    root --> desktop["desktop<br/><small>Launcher JVM</small>"]
+    root --> android["android<br/><small>Launcher + deps Android nativas</small>"]
+    root --> ios["ios<br/><small>Launcher + deps iOS nativas</small>"]
 ```
 
 ### Módulo Shared
@@ -146,13 +147,11 @@ mvn gluonfx:build gluonfx:package
 
 Segue o padrão **Cube MVP** do projeto:
 
-```
-Presenter (presentation)
-    ↓ createView factory
-ViewImpl (view.gluon.impl)
-    extends AbstractViewGluon<P>
-        ↓ doUpdate()
-    JavaFX Nodes (renderização)
+```mermaid
+graph TD
+    P["Presenter (presentation)"]
+    P -->|"createView factory"| V["ViewImpl (view.gluon.impl)<br/><small>extends AbstractViewGluon&lt;P&gt;</small>"]
+    V -->|"doUpdate()"| N["JavaFX Nodes (renderização)"]
 ```
 
 O ciclo de atualização utiliza o `AnimationTimer` do JavaFX para sincronizar as mudanças de estado dos Presenters com a árvore de nós JavaFX, evitando atualizações redundantes via dirty-check.

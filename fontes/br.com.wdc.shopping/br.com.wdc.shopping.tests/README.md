@@ -4,49 +4,31 @@ Módulo de **testes automatizados** da aplicação Shopping. Contém testes que 
 
 ## Estrutura
 
-```
-src/test/java/br/com/wdc/shopping/test/
-├── repository/
-│   ├── AbstractProductRepositoryTest.java      — Base: CRUD ProductRepository (19 testes)
-│   ├── AbstractPurchaseRepositoryTest.java      — Base: CRUD PurchaseRepository (20 testes)
-│   ├── AbstractPurchaseItemRepositoryTest.java  — Base: CRUD PurchaseItemRepository (23 testes)
-│   ├── AbstractUserRepositoryTest.java          — Base: CRUD UserRepository (17 testes)
-│   ├── ProductRepositoryTest.java               — Testes com repositório SQL local (H2)
-│   ├── PurchaseRepositoryTest.java              — Testes com repositório SQL local (H2)
-│   ├── PurchaseItemRepositoryTest.java          — Testes com repositório SQL local (H2)
-│   ├── UserRepositoryTest.java                  — Testes com repositório SQL local (H2)
-│   ├── RestProductRepositoryTest.java           — Testes com repositório REST (via API)
-│   ├── RestPurchaseRepositoryTest.java          — Testes com repositório REST (via API)
-│   ├── RestPurchaseItemRepositoryTest.java      — Testes com repositório REST (via API)
-│   └── RestUserRepositoryTest.java              — Testes com repositório REST (via API)
-│
-├── ShoppingLoginTest.java             — Testes de fluxo de login
-├── ShoppingServiceTest.java           — Testes de serviços de negócio (queries, projeções)
-├── ShoppingWorkflowTest.java          — Teste de workflow completo na camada de apresentação
-│
-├── mock/
-│   ├── ShoppingApplicationMock.java   — Mock da aplicação (substitui ShoppingApplication)
-│   └── viewimpl/                      — Mocks de views (substituem implementações reais)
-│       ├── AbstractViewMock.java      — Base para todos os mocks de view
-│       ├── RootViewMock.java
-│       ├── LoginViewMock.java
-│       ├── RestrictedViewMock.java
-│       ├── CartViewMock.java
-│       ├── ProductViewMock.java
-│       ├── ProductsPanelViewMock.java
-│       ├── PurchasesPanelViewMock.java
-│       └── ReceiptViewMock.java
-│
-└── util/
-    ├── BaseBusinessTest.java                   — Setup: H2 in-memory, DataSource, repositórios
-    ├── BaseRestApiTest.java                    — Setup: Javalin server + REST client para testes de API
-    ├── BasePresentationTest.java               — Setup: BaseBusinessTest + ShoppingApplicationMock
-    ├── ResetDatabaseRule.java                  — JUnit Rule: executa DBReset entre testes
-    ├── TestEnvironment.java                    — Configuração de ambiente de teste
-    ├── ScheduledExecutorForTest.java           — Interface de executor para testes
-    ├── ScheduledExecutorForTestAsync.java      — Executor assíncrono
-    ├── ScheduledExecutorForTestSyncDirect.java — Executor síncrono direto
-    └── ScheduledExecutorForTestSyncDelayed.java— Executor síncrono com delay
+```mermaid
+graph TD
+    root["test/"]
+
+    root --> repository["repository/ — Testes de CRUD"]
+    repository --> AbstractTests["Abstract*RepositoryTest (bases)<br/><small>Product(19) Purchase(20) PurchaseItem(23) User(17)</small>"]
+    repository --> LocalTests["*RepositoryTest<br/><small>SQL local (H2)</small>"]
+    repository --> RestTests["Rest*RepositoryTest<br/><small>REST via API</small>"]
+
+    root --> LoginTest["ShoppingLoginTest.java<br/><small>Fluxo de login</small>"]
+    root --> ServiceTest["ShoppingServiceTest.java<br/><small>Queries e projeções</small>"]
+    root --> WorkflowTest["ShoppingWorkflowTest.java<br/><small>Workflow completo (presentation)</small>"]
+
+    root --> mock["mock/"]
+    mock --> AppMock["ShoppingApplicationMock.java"]
+    mock --> viewimpl["viewimpl/ — Mocks de views"]
+    viewimpl --> AbstractVM["AbstractViewMock (base)"]
+    viewimpl --> ViewMocks["Root, Login, Restricted, Cart,<br/>Product, ProductsPanel,<br/>PurchasesPanel, Receipt"]
+
+    root --> util["util/ — Setup de testes"]
+    util --> BaseBusiness["BaseBusinessTest<br/><small>H2 in-memory + repos</small>"]
+    util --> BaseRest["BaseRestApiTest<br/><small>Javalin + REST client</small>"]
+    util --> BasePresentation["BasePresentationTest<br/><small>+ ApplicationMock</small>"]
+    util --> Rules["ResetDatabaseRule, TestEnvironment"]
+    util --> Executors["ScheduledExecutorForTest*<br/><small>Sync/Async/Delayed</small>"]
 ```
 
 ## Abordagem

@@ -112,41 +112,42 @@ O Presenter nunca sabe qual tecnologia de UI está sendo usada.
 
 ## Estrutura
 
-```
-br.com.wdc.shopping.view.vaadin/
-├── src/main/java/.../view/vaadin/
-│   ├── ShoppingVaadinMain.java           # Entry point (Jetty embarcado)
-│   ├── ShoppingVaadinApplication.java    # CubeApplication + APP_CACHE + view factories
-│   ├── MainLayout.java                   # @Route("") + @Push — shell da aplicação
-│   ├── AbstractViewVaadin.java           # Base: CubeView + recreate() + list slot sync
-│   ├── AppServiceInitListener.java       # Configuração do Vaadin (CSS, etc.)
-│   ├── ScheduledExecutorVaadinAdapter.java
-│   ├── util/
-│   │   ├── VaadinDom.java               # DSL fluente para construção de componentes
-│   │   ├── IntentSigner.java            # HMAC-SHA256 + Base62 para URLs assinadas
-│   │   └── ResourceCatalog.java         # Cache de recursos de imagem
-│   └── impl/
-│       ├── RootViewVaadin.java
-│       ├── LoginViewVaadin.java          # LoginForm nativo
-│       ├── HomeViewVaadin.java           # Header + sidebar compras + conteúdo central
-│       ├── ProductsPanelViewVaadin.java  # Grid de cards de produtos
-│       ├── PurchasesPanelViewVaadin.java # Sidebar com histórico + paginação
-│       ├── ProductViewVaadin.java        # Detalhe do produto
-│       ├── CartViewVaadin.java           # Grid de itens do carrinho
-│       ├── ReceiptViewVaadin.java        # Grid de itens do recibo
-│       ├── home/
-│       │   ├── ProductItemViewVaadin.java
-│       │   └── PurchaseItemViewVaadin.java
-│       ├── cart/
-│       │   └── CartItemViewVaadin.java
-│       └── receipt/
-│           └── ReceiptItemViewVaadin.java
-├── src/main/resources/
-│   ├── META-INF/resources/
-│   │   ├── styles/app.css               # Tema Lumo customizado
-│   │   └── images/                      # Imagens (logo, produtos)
-│   └── logback.xml
-└── pom.xml
+```mermaid
+graph TD
+    root["view.vaadin/"]
+
+    subgraph Main["src/main/java/.../view/vaadin/"]
+        VaadinMain["ShoppingVaadinMain.java<br/><small>Entry point (Jetty)</small>"]
+        VaadinApp["ShoppingVaadinApplication.java<br/><small>CubeApp + view factories</small>"]
+        MainLayout["MainLayout.java<br/><small>@Route + @Push</small>"]
+        AbstractV["AbstractViewVaadin.java<br/><small>Base CubeView</small>"]
+        ServiceInit["AppServiceInitListener.java"]
+        SchedAdapter["ScheduledExecutorVaadinAdapter.java"]
+
+        subgraph Util["util/"]
+            VaadinDom["VaadinDom.java<br/><small>DSL fluente</small>"]
+            IntentSigner["IntentSigner.java<br/><small>HMAC-SHA256</small>"]
+            ResCatalog["ResourceCatalog.java"]
+        end
+
+        subgraph Impl["impl/"]
+            RootV["RootViewVaadin"]
+            LoginV["LoginViewVaadin"]
+            HomeV["HomeViewVaadin"]
+            ProductsPanelV["ProductsPanelViewVaadin"]
+            PurchasesPanelV["PurchasesPanelViewVaadin"]
+            ProductV["ProductViewVaadin"]
+            CartV["CartViewVaadin"]
+            ReceiptV["ReceiptViewVaadin"]
+            ItemViews["home/ cart/ receipt/<br/><small>*ItemViewVaadin</small>"]
+        end
+    end
+
+    subgraph Resources["src/main/resources/"]
+        CSS["styles/app.css<br/><small>Tema Lumo customizado</small>"]
+        Images["images/<br/><small>Logo, produtos</small>"]
+        Logback["logback.xml"]
+    end
 ```
 
 ## Dependências principais
