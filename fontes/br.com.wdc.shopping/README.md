@@ -19,48 +19,6 @@ Um **sistema de e-commerce completo** construído com arquitetura **Cube MVP**, 
 
 ---
 
-## Screenshots (versão React / Material UI)
-
-### Login
-
-![Tela de Login](docs/screenshots/01-login.png)
-
-Interface limpa e objetiva. Credenciais padrão: `admin` / `admin`.
-
----
-
-### Página Inicial — Produtos e Histórico
-
-![Página Inicial](docs/screenshots/02-home.png)
-
-Catálogo de produtos à direita com preços. Histórico de compras à esquerda com paginação e detalhamento.
-
----
-
-### Detalhe do Produto
-
-![Detalhe do Produto](docs/screenshots/03-product.png)
-
-Descrição completa, seletor de quantidade e botão de adicionar ao carrinho. Breadcrumb de navegação no topo.
-
----
-
-### Carrinho de Compras
-
-![Carrinho](docs/screenshots/04-cart.png)
-
-Tabela com itens, valores, quantidades e opção de remoção individual. Total calculado em tempo real.
-
----
-
-### Recibo de Compra
-
-![Recibo](docs/screenshots/05-receipt.png)
-
-Confirmação visual de compra efetuada com sucesso e recibo formatado para impressão.
-
----
-
 ## Rode em 3 comandos
 
 ```bash
