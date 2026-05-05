@@ -1,8 +1,5 @@
 package br.com.wdc.shopping.presentation;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -17,7 +14,6 @@ import br.com.wdc.shopping.domain.repositories.PurchaseItemRepository;
 import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
 import br.com.wdc.shopping.domain.repositories.UserRepository;
 import br.com.wdc.shopping.domain.security.SecurityContext;
-import br.com.wdc.shopping.domain.security.SecurityContextHolder;
 import br.com.wdc.shopping.presentation.function.GoAction;
 import br.com.wdc.shopping.presentation.presenter.RootPresenter;
 import br.com.wdc.shopping.presentation.presenter.Routes;
@@ -162,50 +158,15 @@ public abstract class ShoppingApplication extends CubeApplication {
     // :: Repository delegate factory
 
     /**
-     * Cria um proxy que envolve cada chamada ao repositório com o SecurityContext
-     * desta aplicação. Antes de delegar, seta o SecurityContextHolder na thread
-     * corrente; ao final, restaura o estado anterior.
+     * Cria (opcionalmente) um wrapper para o repositório que pode envolver cada chamada
+     * com o SecurityContext desta aplicação.
+     * <p>
+     * Implementação padrão retorna o delegate diretamente (sem proxy).
+     * Subclasses em ambientes multi-threaded (JVM desktop/server) devem override para usar
+     * {@link ProxyRepositoryWrapper#wrap(Class, Object, java.util.function.Supplier)}.
      */
-    @SuppressWarnings("unchecked")
-    private <T> T createDelegate(Class<T> repoInterface, T delegate) {
-        if (delegate == null) {
-            return null;
-        }
-        return (T) Proxy.newProxyInstance(
-                repoInterface.getClassLoader(),
-                new Class<?>[]{ repoInterface },
-                new SecurityContextDelegate(this, delegate));
-    }
-
-    private static final class SecurityContextDelegate implements InvocationHandler {
-
-        private final ShoppingApplication app;
-        private final Object delegate;
-
-        SecurityContextDelegate(ShoppingApplication app, Object delegate) {
-            this.app = app;
-            this.delegate = delegate;
-        }
-
-        @Override
-        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            var previous = SecurityContextHolder.get();
-            try {
-                var ctx = app.securityContext;
-                if (ctx != null) {
-                    SecurityContextHolder.set(ctx);
-                }
-                return method.invoke(delegate, args);
-            } catch (java.lang.reflect.InvocationTargetException e) {
-                throw e.getCause();
-            } finally {
-                if (previous != null) {
-                    SecurityContextHolder.set(previous);
-                } else {
-                    SecurityContextHolder.clear();
-                }
-            }
-        }
+    protected <T> T createDelegate(Class<T> repoInterface, T delegate) {
+        return delegate;
     }
 
 }

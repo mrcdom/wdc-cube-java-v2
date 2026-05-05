@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import br.com.wdc.framework.cube.AbstractCubePresenter;
+import br.com.wdc.shopping.presentation.ProxyRepositoryWrapper;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.RootPresenter;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
@@ -50,6 +51,11 @@ public class ShoppingSwingApplication extends ShoppingApplication {
     private final Map<String, Object> attributeMap = new ConcurrentHashMap<>();
     private Timer renderTimer;
     private boolean devMode;
+
+    @Override
+    protected <T> T createDelegate(Class<T> repoInterface, T delegate) {
+        return ProxyRepositoryWrapper.wrap(repoInterface, delegate, this::getSecurityContext);
+    }
 
     public boolean isDevMode() {
         return this.devMode;

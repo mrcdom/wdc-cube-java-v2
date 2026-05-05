@@ -12,6 +12,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Div;
 
 import br.com.wdc.framework.cube.AbstractCubePresenter;
+import br.com.wdc.shopping.presentation.ProxyRepositoryWrapper;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.RootPresenter;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
@@ -55,6 +56,11 @@ public class ShoppingVaadinApplication extends ShoppingApplication {
     private final AtomicBoolean navigatingFromBrowser = new AtomicBoolean(false);
     private final IntentSigner intentSigner = new IntentSigner();
     private String lastSignature;
+
+    @Override
+    protected <T> T createDelegate(Class<T> repoInterface, T delegate) {
+        return ProxyRepositoryWrapper.wrap(repoInterface, delegate, this::getSecurityContext);
+    }
 
     public ShoppingVaadinApplication(UI ui) {
         this.ui = ui;

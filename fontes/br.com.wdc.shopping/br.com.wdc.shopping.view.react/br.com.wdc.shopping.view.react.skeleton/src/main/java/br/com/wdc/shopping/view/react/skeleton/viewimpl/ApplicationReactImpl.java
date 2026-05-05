@@ -29,6 +29,7 @@ import br.com.wdc.framework.commons.gson.JsonExtensibleObjectOutput;
 import br.com.wdc.framework.commons.lang.CoerceUtils;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
 import br.com.wdc.framework.cube.CubeIntent;
+import br.com.wdc.shopping.presentation.ProxyRepositoryWrapper;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.RootPresenter;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
@@ -138,6 +139,11 @@ public class ApplicationReactImpl extends ShoppingApplication {
         this.id = id;
         this.removeInstanceAction = ThrowingRunnable.noop();
         this.postConstruct();
+    }
+
+    @Override
+    protected <T> T createDelegate(Class<T> repoInterface, T delegate) {
+        return ProxyRepositoryWrapper.wrap(repoInterface, delegate, this::getSecurityContext);
     }
 
     // :: Instance

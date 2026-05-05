@@ -14,6 +14,7 @@ import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.commons.sql.SqlDataSource;
 import br.com.wdc.framework.commons.sql.SqlDataSourceDelegate;
 import br.com.wdc.shopping.api.RepositoryApiRoutes;
+import br.com.wdc.shopping.api.client.OkHttpTransport;
 import br.com.wdc.shopping.api.client.RestConfig;
 import br.com.wdc.shopping.api.client.RestProductRepository;
 import br.com.wdc.shopping.api.client.RestPurchaseItemRepository;
@@ -86,7 +87,7 @@ public class BaseRestApiTest {
 		int actualPort = javalin.port();
 
 		// Cria instâncias REST client (não sobrescrevem os BEANs)
-		var restConfig = new RestConfig("http://localhost:" + actualPort);
+		var restConfig = new RestConfig(new OkHttpTransport("http://localhost:" + actualPort));
 		userRepo = new RestUserRepository(restConfig);
 		productRepo = new RestProductRepository(restConfig);
 		purchaseRepo = new RestPurchaseRepository(restConfig);

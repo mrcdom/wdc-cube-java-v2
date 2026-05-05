@@ -1,7 +1,6 @@
 package br.com.wdc.framework.cube.util;
 
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
@@ -127,21 +126,21 @@ public final class QueryStringParser {
             url.setParameter(name, value);
         } else if (oldValue.getClass().isArray()) {
             var arrayType = oldValue.getClass().getComponentType();
-            int arrayLength = Array.getLength(oldValue);
+            int arrayLength = ReflectArrayCompat.getLength(oldValue);
 
             if (arrayLength == 0) {
                 var array = ArrayUtils.newInstance(arrayType, 1);
-                Array.set(array, 0, castValueTo(value, arrayType));
+                ReflectArrayCompat.set(array, 0, castValueTo(value, arrayType));
             } else {
                 var array = ArrayUtils.newInstance(arrayType, arrayLength + 1);
                 System.arraycopy(oldValue, 0, array, 0, arrayLength);
-                Array.set(array, arrayLength, castValueTo(value, arrayType));
+                ReflectArrayCompat.set(array, arrayLength, castValueTo(value, arrayType));
             }
         } else {
             var arrayType = oldValue.getClass();
             var array = ArrayUtils.newInstance(arrayType, 2);
-            Array.set(array, 0, oldValue);
-            Array.set(array, 1, castValueTo(value, arrayType));
+            ReflectArrayCompat.set(array, 0, oldValue);
+            ReflectArrayCompat.set(array, 1, castValueTo(value, arrayType));
         }
     }
 

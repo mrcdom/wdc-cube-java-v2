@@ -6,6 +6,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import br.com.wdc.shopping.api.client.OkHttpTransport;
 import br.com.wdc.shopping.api.client.RestConfig;
 import br.com.wdc.shopping.api.client.RestRepositoryBootstrap;
 import br.com.wdc.shopping.domain.ShoppingConfig;
@@ -49,7 +50,7 @@ public class ShoppingGluonMain extends Application {
         this.executorService = Executors.newScheduledThreadPool(2);
 
         var apiUrl = config.get("api.url", DEFAULT_API_URL);
-        var restConfig = new RestConfig(apiUrl);
+        var restConfig = new RestConfig(new OkHttpTransport(apiUrl));
         RestRepositoryBootstrap.initialize(restConfig);
 
         LOG.info("Backend initialized with REST client → {}", apiUrl);

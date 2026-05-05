@@ -1,7 +1,6 @@
 package br.com.wdc.framework.commons.gson;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -44,14 +43,15 @@ public class JsonCoerceUtils {
             }
 
             if (jr.peek() == JsonToken.NUMBER) {
-                if (Holder.jrIsPeekLong(jr)) {
-                    return CoerceUtils.asString(jr.nextLong(), defaultValue);
+                String numStr = jr.nextString();
+                if (isIntegerFormat(numStr)) {
+                    return CoerceUtils.asString(Long.parseLong(numStr), defaultValue);
                 }
-                return CoerceUtils.asString(jr.nextDouble(), defaultValue);
+                return CoerceUtils.asString(Double.parseDouble(numStr), defaultValue);
             }
 
             throw new IOException("No valid value found. JsonReader.peek() = " + jr.peek());
-        } catch (IOException | IllegalAccessException e) {
+        } catch (IOException e) {
             return ExceptionUtils.rethrow(e);
         }
     }
@@ -111,14 +111,15 @@ public class JsonCoerceUtils {
             }
 
             if (jr.peek() == JsonToken.NUMBER) {
-                if (Holder.jrIsPeekLong(jr)) {
-                    return CoerceUtils.asBoolean(jr.nextLong(), defaultValue);
+                String numStr = jr.nextString();
+                if (isIntegerFormat(numStr)) {
+                    return CoerceUtils.asBoolean(Long.parseLong(numStr), defaultValue);
                 }
-                return CoerceUtils.asBoolean(jr.nextDouble(), defaultValue);
+                return CoerceUtils.asBoolean(Double.parseDouble(numStr), defaultValue);
             }
 
             throw newInvalidValueFound(jr);
-        } catch (IOException | IllegalAccessException e) {
+        } catch (IOException e) {
             return ExceptionUtils.rethrow(e);
         }
     }
@@ -607,14 +608,15 @@ public class JsonCoerceUtils {
             }
 
             if (jr.peek() == JsonToken.NUMBER) {
-                if (Holder.jrIsPeekLong(jr)) {
-                    return CoerceUtils.asByteArray(jr.nextLong(), defaultValue);
+                String numStr = jr.nextString();
+                if (isIntegerFormat(numStr)) {
+                    return CoerceUtils.asByteArray(Long.parseLong(numStr), defaultValue);
                 }
-                return CoerceUtils.asByteArray(jr.nextDouble(), defaultValue);
+                return CoerceUtils.asByteArray(Double.parseDouble(numStr), defaultValue);
             }
 
             throw newInvalidValueFound(jr);
-        } catch (IOException | IllegalAccessException e) {
+        } catch (IOException e) {
             return ExceptionUtils.rethrow(e);
         }
     }
@@ -639,19 +641,24 @@ public class JsonCoerceUtils {
             }
 
             if (jr.peek() == JsonToken.NUMBER) {
-                if (Holder.jrIsPeekLong(jr)) {
-                    return CoerceUtils.asByteArrayFromHex(jr.nextLong(), defaultValue);
+                String numStr = jr.nextString();
+                if (isIntegerFormat(numStr)) {
+                    return CoerceUtils.asByteArrayFromHex(Long.parseLong(numStr), defaultValue);
                 }
-                return CoerceUtils.asByteArrayFromHex(jr.nextDouble(), defaultValue);
+                return CoerceUtils.asByteArrayFromHex(Double.parseDouble(numStr), defaultValue);
             }
 
             throw newInvalidValueFound(jr);
-        } catch (IOException | IllegalAccessException e) {
+        } catch (IOException e) {
             return ExceptionUtils.rethrow(e);
         }
     }
 
     // :: Internals
+
+    private static boolean isIntegerFormat(String numStr) {
+        return numStr.indexOf('.') < 0 && numStr.indexOf('e') < 0 && numStr.indexOf('E') < 0;
+    }
 
     private static IOException newInvalidValueFound(JsonReader jr) {
         try {
@@ -662,33 +669,4 @@ public class JsonCoerceUtils {
 
     }
 
-    private static class Holder {
-
-        static final int PEEKED_LONG = 15;
-
-        static Field peekedField = findPeekedField();
-
-        private static Field findPeekedField() {
-            try {
-                return JsonReader.class.getDeclaredField("peeked");
-            } catch (NoSuchFieldException | SecurityException e) {
-                return ExceptionUtils.rethrow(e);
-            }
-        }
-
-        @SuppressWarnings({
-                // Infelizmente é necessario quebrar o acesso para podermos saber o tipo de número
-                // parseado. Importante para perforamnce dessa classe
-                "java:S3011"
-        })
-        static int jrPeekValue(JsonReader jr) throws IllegalAccessException {
-            peekedField.setAccessible(true);
-            return (Integer) peekedField.get(jr);
-        }
-
-        static boolean jrIsPeekLong(JsonReader jr) throws IllegalAccessException {
-            return jrPeekValue(jr) == PEEKED_LONG;
-        }
-
-    }
 }
