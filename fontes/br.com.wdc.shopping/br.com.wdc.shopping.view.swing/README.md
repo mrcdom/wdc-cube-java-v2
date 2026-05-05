@@ -2,38 +2,6 @@
 
 Frontend desktop do WeDoCode Shopping utilizando **Java Swing** com **FlatLaf** (Material Design look-and-feel). Compartilha os mesmos Presenters, ViewStates e lógica de negócio das demais implementações (React, Vaadin, Gluon) — apenas a camada de visualização é específica.
 
-## Screenshots
-
-### Login
-
-![Tela de Login](../docs/screenshots/01-login.png)
-
-Card centralizado com campos de usuário/senha. Credenciais padrão: `admin` / `admin`.
-
-### Página Inicial — Produtos e Histórico
-
-![Página Inicial](../docs/screenshots/02-home.png)
-
-Catálogo de produtos à esquerda com cards clicáveis. Histórico de compras à direita com paginação.
-
-### Detalhe do Produto
-
-![Detalhe do Produto](../docs/screenshots/03-product-detail.png)
-
-Imagem, descrição com HTML renderizado, seletor de quantidade e botão de adicionar ao carrinho. Breadcrumb de navegação no topo.
-
-### Carrinho de Compras
-
-![Carrinho](../docs/screenshots/04-cart.png)
-
-Tabela com itens, preço unitário, quantidade e remoção individual. Total calculado em tempo real.
-
-### Recibo de Compra
-
-![Recibo](../docs/screenshots/05-receipt.png)
-
-Confirmação de compra com recibo detalhado.
-
 ## Pré-requisitos
 
 - **Java 26** (com `--enable-preview`)
@@ -136,11 +104,181 @@ graph TD
 
 ## Arquitetura
 
-A aplicação usa o padrão **Cube MVP**:
+A aplicação usa o padrão **Cube MVP** com integração ao Swing via os mesmos mecanismos utilizados na versão Gluon:
 
-- **Presenters** (camada `presentation`) gerenciam estado e lógica de navegação
-- **ViewStates** armazenam dados exibidos pela UI
-- **Views Swing** (`AbstractViewSwing`) implementam `CubeView` e fazem binding unidirecional state → UI
-- **Render loop**: um `Timer` a ~60fps processa views marcadas como "dirty", chamando `doUpdate()` com diff incremental (só atualiza componentes cujo valor mudou)
+### 1. View Factories (registro estático)
+
+Cada Presenter declara um campo estático `createView` que é preenchido pelo `ShoppingSwingApplication` no bloco `static`:
+
+```java
+static {
+    RootPresenter.createView = p -> new RootViewSwing((ShoppingSwingApplication) p.app, p);
+    LoginPresenter.createView = p -> new LoginViewSwing((ShoppingSwingApplication) p.app, p);
+    HomePresenter.createView = p -> new HomeViewSwing((ShoppingSwingApplication) p.app, p);
+    // ...
+}
+```
+
+Isso permite que a camada de apresentação crie views sem conhecer a implementação concreta.
+
+### 2. Render Loop via javax.swing.Timer (dirty-check)
+
+A sincronização entre os ViewStates e os componentes Swing é feita por um `Timer` a ~60fps:
+
+```mermaid
+sequenceDiagram
+    participant P as Presenter
+    participant V as AbstractViewSwing
+    participant A as ShoppingSwingApplication
+    participant T as javax.swing.Timer
+
+    P->>V: view.update()
+    V->>A: markDirty(this)
+    Note over A: adiciona ao dirtyViewMap com timestamp
+    T->>A: flushDirtyViews()
+    A->>V: doUpdate()
+    Note over V: reconcilia estado → componentes Swing
+```
+
+O `Timer` dispara a cada 16ms na EDT (Event Dispatch Thread). Apenas views cujo timestamp ultrapassou o intervalo mínimo são atualizadas. Isso evita:
+
+- Múltiplas atualizações redundantes no mesmo frame
+- Overhead de reconciliação desnecessária
+- Conflitos entre threads de background e a EDT
+
+O `dirtyViewMap` é um `ConcurrentHashMap` porque `markDirty()` pode ser chamado de threads de background (callbacks do banco, timers, etc).
+
+### 3. Reconciliação incremental (doUpdate)
+
+Cada view implementa `doUpdate()` com **reconciliação campo-a-campo** — compara o valor anterior com o atual e só muta o componente Swing quando há diferença:
+
+```java
+@Override
+public void doUpdate() {
+    if (this.notRendered) {
+        SwingDom.render(this.element, this::buildUI);
+        this.notRendered = false;
+    }
+
+    if (!Objects.equals(this.oldNickName, this.state.nickName)) {
+        this.nickNameElm.setText(this.state.nickName);
+        this.oldNickName = this.state.nickName;
+    }
+    // ...
+}
+```
+
+### 4. SwingDom — DSL de Construção de UI
+
+Análogo ao `GluonDom`, o `SwingDom` é um builder fluente que constrói a árvore de componentes Swing de forma declarativa, mantendo o rastreamento do container pai via pilha implícita:
+
+```java
+SwingDom.render(this.element, (dom, root) -> {
+    dom.hbox(appBar -> {
+        dom.label(greeting -> greeting.setText("Olá,"));
+        dom.hSpacer();
+        dom.button(exitBtn -> {
+            exitBtn.setText("Sair");
+            exitBtn.addActionListener(e -> safeAction("Exit", presenter::onExit));
+        });
+    });
+});
+```
+
+**Diferenças em relação ao GluonDom:**
+
+| Aspecto | SwingDom | GluonDom |
+|---------|----------|----------|
+| Containers | `JPanel` com `BoxLayout` | `VBox`, `HBox`, `StackPane` |
+| Layout constraints | `.constraints(BorderLayout.CENTER)` | Propriedades diretas do nó |
+| Layouts extras | `gridBagPane`, `borderPane` | — |
+| Spacers | `Box.createHorizontalGlue()` | `Region` com `Priority.ALWAYS` |
+| Scroll | `JScrollPane` | `ScrollPane` |
+
+### 5. Sincronização de Listas (newListSlot)
+
+O mecanismo `newListSlot` sincroniza uma lista de dados (do ViewState) com componentes Swing filhos, sem recriação:
+
+```java
+// Na buildUI:
+this.contentSlot = this.newListSlot(container, this::newItemView, this::updateItem);
+
+// Na doUpdate:
+this.contentSlot.accept(this.state.products, this.itemViewList);
+```
+
+**Algoritmo (`syncListSlot`):**
+
+1. Se há views excedentes → remove do final (e do container)
+2. Se faltam views → cria via `factory` e adiciona ao container
+3. Para cada item → chama `updater(view, item)` para reconciliar
+4. `container.revalidate()` + `repaint()` ao final
+
+### 6. safeAction — Tratamento de Erros em Callbacks
+
+Todo evento de UI é encapsulado por `safeAction`:
+
+```java
+protected void safeAction(String context, Runnable action) {
+    try {
+        action.run();
+    } catch (Exception caught) {
+        this.app.alertUnexpectedError(LOG, context, caught);
+    }
+}
+```
+
+Captura exceções em listeners Swing, loga com contexto descritivo e exibe um diálogo de erro ao usuário.
+
+### 7. rebuild() e Modo Desenvolvimento
+
+Em `dev.mode = true`, clicar no logo do header invoca `rebuildAllViews()` que chama `rebuild()` em cada view — remove todos os filhos, reseta o flag `notRendered` e força novo `doUpdate()`. Útil para iterar no layout sem reiniciar a JVM.
+
+### Fluxo de Vida de uma View
+
+```mermaid
+stateDiagram-v2
+    [*] --> Created: Presenter.createView()
+    Created --> FirstUpdate: app.markDirty()
+    FirstUpdate --> Rendered: doUpdate() → buildUI via SwingDom
+    Rendered --> Dirty: presenter muda estado → view.update()
+    Dirty --> Reconciled: flushDirtyViews → doUpdate()
+    Reconciled --> Dirty: nova mudança
+    Reconciled --> Rebuilt: rebuild() (dev mode)
+    Rebuilt --> Dirty: novo buildUI
+    Reconciled --> [*]: presenter.release()
+```
 
 Isso permite que a mesma lógica de apresentação funcione em React, Vaadin, Gluon e Swing sem alteração.
+
+## Screenshots
+
+### Login
+
+![Tela de Login](../docs/screenshots/01-login.png)
+
+Card centralizado com campos de usuário/senha. Credenciais padrão: `admin` / `admin`.
+
+### Página Inicial — Produtos e Histórico
+
+![Página Inicial](../docs/screenshots/02-home.png)
+
+Catálogo de produtos à esquerda com cards clicáveis. Histórico de compras à direita com paginação.
+
+### Detalhe do Produto
+
+![Detalhe do Produto](../docs/screenshots/03-product-detail.png)
+
+Imagem, descrição com HTML renderizado, seletor de quantidade e botão de adicionar ao carrinho. Breadcrumb de navegação no topo.
+
+### Carrinho de Compras
+
+![Carrinho](../docs/screenshots/04-cart.png)
+
+Tabela com itens, preço unitário, quantidade e remoção individual. Total calculado em tempo real.
+
+### Recibo de Compra
+
+![Recibo](../docs/screenshots/05-receipt.png)
+
+Confirmação de compra com recibo detalhado.
