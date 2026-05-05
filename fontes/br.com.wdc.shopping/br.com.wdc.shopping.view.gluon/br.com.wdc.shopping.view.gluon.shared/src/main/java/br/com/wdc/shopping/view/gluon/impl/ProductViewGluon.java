@@ -8,6 +8,7 @@ import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductVie
 import br.com.wdc.shopping.view.gluon.AbstractViewGluon;
 import br.com.wdc.shopping.view.gluon.ShoppingGluonApplication;
 import br.com.wdc.shopping.view.gluon.theme.GluonColors;
+import br.com.wdc.shopping.view.gluon.theme.GluonIcons;
 import br.com.wdc.shopping.view.gluon.util.GluonDom;
 import br.com.wdc.shopping.view.gluon.theme.GluonStyles;
 import br.com.wdc.shopping.view.gluon.util.ResourceCatalog;
@@ -101,7 +102,8 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
             headerBar.setStyle(GluonStyles.HEADER_BAR);
 
             dom.button(backBtn -> {
-                backBtn.setText("← Voltar");
+                backBtn.setText("Voltar");
+                backBtn.setGraphic(GluonIcons.create(GluonIcons.ARROW_BACK, 14, GluonColors.PRIMARY));
                 backBtn.setStyle(GluonStyles.BACK_BUTTON);
                 backBtn.setOnAction(e -> safeAction("Back", this.presenter::onOpenProducts));
             });
@@ -179,7 +181,7 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
                             qtyStepper.setStyle(GluonStyles.QTY_STEPPER);
 
                             dom.button(minusBtn -> {
-                                minusBtn.setText("−");
+                                minusBtn.setGraphic(GluonIcons.create(GluonIcons.MINUS, 14, GluonColors.CONTROL_TEXT));
                                 minusBtn.setStyle(GluonStyles.BTN_CIRCLE);
                                 minusBtn.setOnAction(e -> {
                                     if (this.quantity > 1) {
@@ -196,7 +198,7 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
                             });
 
                             dom.button(plusBtn -> {
-                                plusBtn.setText("+");
+                                plusBtn.setGraphic(GluonIcons.create(GluonIcons.PLUS, 14, GluonColors.CONTROL_TEXT));
                                 plusBtn.setStyle(GluonStyles.BTN_CIRCLE);
                                 plusBtn.setOnAction(e -> {
                                     if (this.quantity < 99) {
@@ -209,7 +211,8 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
                     });
 
                     dom.button(addBtn -> {
-                        addBtn.setText("🛒  Adicionar ao Carrinho");
+                        addBtn.setText("Adicionar ao Carrinho");
+                        addBtn.setGraphic(GluonIcons.create(GluonIcons.SHOPPING_CART, 16, GluonColors.TEXT_ON_PRIMARY));
                         addBtn.setMaxWidth(220);
                         addBtn.setStyle(GluonStyles.BTN_SUCCESS);
                         addBtn.setOnAction(e -> emitBuy());

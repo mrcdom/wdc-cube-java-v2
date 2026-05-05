@@ -17,6 +17,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.SVGPath;
 import javafx.scene.text.TextFlow;
 
 public class GluonDom {
@@ -187,5 +188,10 @@ public class GluonDom {
     public <T extends Node> T node(T node) {
         addChild(this.currentParent, node);
         return node;
+    }
+
+    public SVGPath icon(SVGPath svgIcon) {
+        addChild(this.currentParent, svgIcon);
+        return svgIcon;
     }
 }

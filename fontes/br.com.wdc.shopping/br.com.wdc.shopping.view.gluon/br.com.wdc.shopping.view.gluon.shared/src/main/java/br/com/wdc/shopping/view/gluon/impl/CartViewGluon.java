@@ -12,6 +12,7 @@ import br.com.wdc.shopping.presentation.presenter.restricted.cart.structs.CartIt
 import br.com.wdc.shopping.view.gluon.AbstractViewGluon;
 import br.com.wdc.shopping.view.gluon.ShoppingGluonApplication;
 import br.com.wdc.shopping.view.gluon.theme.GluonColors;
+import br.com.wdc.shopping.view.gluon.theme.GluonIcons;
 import br.com.wdc.shopping.view.gluon.util.GluonDom;
 import br.com.wdc.shopping.view.gluon.theme.GluonStyles;
 import javafx.geometry.Insets;
@@ -92,7 +93,8 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
             headerBar.setStyle(GluonStyles.HEADER_BAR);
 
             dom.button(backBtn -> {
-                backBtn.setText("← Voltar");
+                backBtn.setText("Voltar");
+                backBtn.setGraphic(GluonIcons.create(GluonIcons.ARROW_BACK, 14, GluonColors.PRIMARY));
                 backBtn.setStyle(GluonStyles.BACK_BUTTON);
                 backBtn.setOnAction(e -> safeAction("Back", this.presenter::onOpenProducts));
             });
@@ -112,10 +114,7 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
             empty.setPadding(new Insets(40, 0, 40, 0));
             VBox.setVgrow(empty, Priority.ALWAYS);
 
-            dom.label(icon -> {
-                icon.setText("\uD83D\uDED2");
-                icon.setStyle(GluonStyles.fontSize(48));
-            });
+            dom.icon(GluonIcons.create(GluonIcons.SHOPPING_CART, 48, GluonColors.TEXT_PLACEHOLDER));
 
             dom.label(msg -> {
                 msg.setText("Seu carrinho está vazio");
@@ -248,7 +247,7 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
             });
 
             dom.button(btn -> {
-                btn.setText("🗑");
+                btn.setGraphic(GluonIcons.create(GluonIcons.DELETE, 16, GluonColors.ERROR));
                 btn.setStyle(GluonStyles.BTN_DANGER_INLINE);
                 btn.setOnAction(e -> safeAction("Remove",
                         () -> this.presenter.onRemoveProduct(this.item.id)));

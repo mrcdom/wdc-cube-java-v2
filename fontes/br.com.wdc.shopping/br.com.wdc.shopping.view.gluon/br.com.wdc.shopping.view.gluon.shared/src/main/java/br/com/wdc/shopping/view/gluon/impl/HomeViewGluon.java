@@ -8,6 +8,8 @@ import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeViewState;
 import br.com.wdc.shopping.view.gluon.AbstractViewGluon;
 import br.com.wdc.shopping.view.gluon.ShoppingGluonApplication;
 import br.com.wdc.shopping.view.gluon.util.GluonDom;
+import br.com.wdc.shopping.view.gluon.theme.GluonColors;
+import br.com.wdc.shopping.view.gluon.theme.GluonIcons;
 import br.com.wdc.shopping.view.gluon.theme.GluonStyles;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -132,10 +134,7 @@ public class HomeViewGluon extends AbstractViewGluon<HomePresenter> {
                 cartBtnBox.setStyle(GluonStyles.CART_BTN_BOX);
                 cartBtnBox.setOnMouseClicked(e -> safeAction("Open cart", this.presenter::onOpenCart));
 
-                dom.label(cartIcon -> {
-                    cartIcon.setText("\uD83D\uDED2");
-                    cartIcon.setStyle(GluonStyles.fontSize(18));
-                });
+                dom.icon(GluonIcons.create(GluonIcons.SHOPPING_CART, 18, GluonColors.TEXT_ON_PRIMARY));
 
                 this.cartCountElm = dom.label(badge -> {
                     badge.setText(String.valueOf(this.state.cartItemCount));
@@ -178,7 +177,8 @@ public class HomeViewGluon extends AbstractViewGluon<HomePresenter> {
             bottomNav.setStyle(GluonStyles.BOTTOM_NAV);
 
             this.tabProductsBtn = dom.button(btn -> {
-                btn.setText("🏪  Produtos");
+                btn.setText("Produtos");
+                btn.setGraphic(GluonIcons.create(GluonIcons.STORE, 16, GluonColors.PRIMARY));
                 btn.setMaxWidth(Double.MAX_VALUE);
                 btn.setMinHeight(52);
                 HBox.setHgrow(btn, Priority.ALWAYS);
@@ -186,7 +186,8 @@ public class HomeViewGluon extends AbstractViewGluon<HomePresenter> {
             });
 
             this.tabPurchasesBtn = dom.button(btn -> {
-                btn.setText("📋  Histórico");
+                btn.setText("Histórico");
+                btn.setGraphic(GluonIcons.create(GluonIcons.HISTORY, 16, GluonColors.TEXT_MUTED));
                 btn.setMaxWidth(Double.MAX_VALUE);
                 btn.setMinHeight(52);
                 HBox.setHgrow(btn, Priority.ALWAYS);

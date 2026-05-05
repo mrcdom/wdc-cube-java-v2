@@ -14,6 +14,7 @@ import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.Purcha
 import br.com.wdc.shopping.view.gluon.AbstractViewGluon;
 import br.com.wdc.shopping.view.gluon.ShoppingGluonApplication;
 import br.com.wdc.shopping.view.gluon.theme.GluonColors;
+import br.com.wdc.shopping.view.gluon.theme.GluonIcons;
 import br.com.wdc.shopping.view.gluon.util.GluonDom;
 import br.com.wdc.shopping.view.gluon.theme.GluonStyles;
 import javafx.geometry.Insets;
@@ -91,7 +92,7 @@ public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPre
             pagination.setPadding(new Insets(8, 4, 4, 4));
 
             dom.button(prevBtn -> {
-                prevBtn.setText("◀");
+                prevBtn.setGraphic(GluonIcons.create(GluonIcons.CHEVRON_LEFT, 16, GluonColors.TEXT_DEFAULT));
                 prevBtn.setStyle(GluonStyles.BTN_PAGINATION);
                 prevBtn.setOnAction(e -> safeAction("Prev page",
                         () -> this.presenter.onPageChange(this.state.page - 1)));
@@ -107,7 +108,7 @@ public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPre
             dom.hSpacer();
 
             dom.button(nextBtn -> {
-                nextBtn.setText("▶");
+                nextBtn.setGraphic(GluonIcons.create(GluonIcons.CHEVRON_RIGHT, 16, GluonColors.TEXT_DEFAULT));
                 nextBtn.setStyle(GluonStyles.BTN_PAGINATION);
                 nextBtn.setOnAction(e -> safeAction("Next page",
                         () -> this.presenter.onPageChange(this.state.page + 1)));
@@ -161,11 +162,6 @@ public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPre
             row.setOnMouseClicked(e -> safeAction("Open receipt",
                     () -> this.presenter.onOpenReceipt(this.purchase.id)));
 
-            dom.label(icon -> {
-                icon.setText("🧾");
-                icon.setStyle(GluonStyles.fontSize(22));
-            });
-
             dom.vbox(dateBox -> {
                 dateBox.setSpacing(2);
 
@@ -180,10 +176,7 @@ public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPre
                 total.setStyle(GluonStyles.PRICE_SMALL);
             });
 
-            dom.label(arrow -> {
-                arrow.setText("›");
-                arrow.setStyle(GluonStyles.text(20, GluonColors.TEXT_PLACEHOLDER));
-            });
+            dom.icon(GluonIcons.create(GluonIcons.CHEVRON_RIGHT, 16, GluonColors.TEXT_PLACEHOLDER));
         }
     }
 }

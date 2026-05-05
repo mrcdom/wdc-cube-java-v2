@@ -14,6 +14,7 @@ import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.Rec
 import br.com.wdc.shopping.view.gluon.AbstractViewGluon;
 import br.com.wdc.shopping.view.gluon.ShoppingGluonApplication;
 import br.com.wdc.shopping.view.gluon.theme.GluonColors;
+import br.com.wdc.shopping.view.gluon.theme.GluonIcons;
 import br.com.wdc.shopping.view.gluon.util.GluonDom;
 import br.com.wdc.shopping.view.gluon.theme.GluonStyles;
 import javafx.geometry.Insets;
@@ -78,7 +79,8 @@ public class ReceiptViewGluon extends AbstractViewGluon<ReceiptPresenter> {
             headerBar.setStyle(GluonStyles.HEADER_BAR);
 
             dom.button(backBtn -> {
-                backBtn.setText("← Voltar");
+                backBtn.setText("Voltar");
+                backBtn.setGraphic(GluonIcons.create(GluonIcons.ARROW_BACK, 14, GluonColors.PRIMARY));
                 backBtn.setStyle(GluonStyles.BACK_BUTTON);
                 backBtn.setOnAction(e -> safeAction("Back", this.presenter::onOpenProducts));
             });
@@ -93,7 +95,8 @@ public class ReceiptViewGluon extends AbstractViewGluon<ReceiptPresenter> {
 
         // Success banner
         this.successElm = dom.label(success -> {
-            success.setText("✅  Compra realizada com sucesso!");
+            success.setText("Compra realizada com sucesso!");
+            success.setGraphic(GluonIcons.create(GluonIcons.CHECK_CIRCLE, 16, GluonColors.SUCCESS_TEXT));
             success.setMaxWidth(Double.MAX_VALUE);
             success.setStyle(GluonStyles.SUCCESS_BANNER);
             success.setVisible(false);
@@ -112,11 +115,6 @@ public class ReceiptViewGluon extends AbstractViewGluon<ReceiptPresenter> {
                 receiptHeader.setSpacing(4);
                 receiptHeader.setPadding(new Insets(20, 16, 12, 16));
                 receiptHeader.setStyle(GluonStyles.DIVIDER_BOTTOM);
-
-                dom.label(icon -> {
-                    icon.setText("🧾");
-                    icon.setStyle(GluonStyles.fontSize(28));
-                });
 
                 dom.label(receiptTitle -> {
                     receiptTitle.setText("Detalhes da Compra");
