@@ -6,17 +6,7 @@ Implementação web (Vaadin 24) da aplicação **WeDoCode Shopping**, demonstran
 
 A arquitetura Cube MVP separa rigorosamente os **Presenters** (que controlam estado e navegação) dos **Views** (que renderizam a interface). Os Presenters expõem **ViewStates** — objetos simples com os dados que a view precisa exibir — e a view implementa a interface `CubeView` para se conectar ao ciclo de atualização.
 
-Este módulo é a terceira implementação de UI da aplicação Shopping, desta vez utilizando **Vaadin Flow** — um framework server-side que renderiza componentes nativos no browser sem necessidade de código JavaScript/TypeScript customizado.
-
-| Aspecto | React (remoto) | JavaFX (desktop) | Vaadin (este módulo) |
-|---------|-----------------|-------------------|----------------------|
-| **Onde roda** | Browser via WebSocket | JVM local | Browser via server-push |
-| **Tecnologia de UI** | React 19 + MUI 9 | JavaFX 24 + CSS | Vaadin 24 + Lumo Theme |
-| **Transporte** | WebSocket (JSON delta) | Direto em memória | Atmosphere (WebSocket/Push) |
-| **Ciclo de render** | Virtual DOM React | AnimationTimer (16ms) | Server-push automático |
-| **Código de UI** | TypeScript | Java | Java |
-
-Todas as implementações utilizam **exatamente os mesmos Presenters, ViewStates e regras de negócio**.
+Este módulo utiliza **Vaadin Flow** — um framework server-side que renderiza componentes nativos no browser sem necessidade de código JavaScript/TypeScript customizado. A UI roda inteiramente no servidor (Java), e o Vaadin cuida do transporte via Atmosphere (WebSocket/Push) para manter o browser sincronizado.
 
 ## Como funciona
 
@@ -60,7 +50,7 @@ O tema CSS utiliza **Lumo design tokens** (`var(--lumo-*)`) para manter a aparê
 
 ### DSL para construção de UI
 
-A classe `VaadinDom` fornece uma DSL fluente para construção programática de componentes, análoga ao `JfxDom` da versão JavaFX:
+A classe `VaadinDom` fornece uma DSL fluente para construção programática de componentes:
 
 ```java
 VaadinDom.render(rootLayout, (dom, pane) -> {
@@ -201,7 +191,7 @@ O `@Push(PushMode.AUTOMATIC)` no `MainLayout` habilita push via Atmosphere/WebSo
 
 ## Arquitetura de Integração Cube MVP
 
-A integração entre o Vaadin e a camada de apresentação (Cube MVP) segue o mesmo padrão das versões Gluon e Swing, com nuances específicas do modelo server-side:
+A integração entre o Vaadin e a camada de apresentação (Cube MVP) resolve o desafio de conectar um framework server-side push-based ao ciclo de atualização do Cube:
 
 ### 1. View Factories (registro estático)
 
@@ -216,9 +206,9 @@ static {
 }
 ```
 
-### 2. Render Loop via ui.access() (Server Push)
+### 2. Flush via ui.access() (Server Push)
 
-Diferente do Gluon (AnimationTimer ~60fps) e do Swing (javax.swing.Timer ~60fps), o Vaadin não usa polling periódico. Em vez disso, utiliza **server-push** via `@Push(PushMode.AUTOMATIC)`:
+O Vaadin não usa polling periódico. Em vez disso, utiliza **server-push** via `@Push(PushMode.AUTOMATIC)` para enviar atualizações ao browser sob demanda:
 
 ```mermaid
 sequenceDiagram
@@ -236,18 +226,18 @@ sequenceDiagram
     UI->>B: Push delta via WebSocket
 ```
 
-O `markDirty` agenda um `ui.access()` que executa `flushDirtyViews()` na thread do Vaadin, garantindo thread-safety sem necessidade de timer. Todas as views sujas são processadas de uma vez, e o Vaadin automaticamente envia as diferenças de DOM para o browser via Atmosphere/WebSocket.
+O `markDirty` agenda um `ui.access()` que executa `flushDirtyViews()` dentro do session lock do Vaadin, garantindo thread-safety sem necessidade de timer. Todas as views sujas são processadas de uma vez, e o Vaadin automaticamente envia as diferenças de DOM para o browser via Atmosphere/WebSocket.
 
-| Aspecto | Gluon/Swing | Vaadin |
-|---------|-------------|--------|
-| Trigger | Timer periódico (16ms) | `ui.access()` sob demanda |
-| Thread de UI | JavaFX App Thread / EDT | Vaadin session lock |
-| Transporte | Direto em memória | WebSocket push |
-| Throttling | Timestamp + threshold | Sem throttling (push imediato) |
+| Aspecto | Detalhe |
+|---------|--------|
+| **Trigger** | `ui.access()` sob demanda (não periódico) |
+| **Thread de UI** | Vaadin session lock |
+| **Transporte** | WebSocket push (Atmosphere) |
+| **Throttling** | Sem throttling — push imediato após cada flush |
 
 ### 3. Reconciliação incremental (doUpdate)
 
-Idêntico às outras implementações — cada view compara campo-a-campo o valor anterior com o atual:
+Cada view compara campo-a-campo o valor anterior com o atual e só muta o componente Vaadin quando há diferença:
 
 ```java
 @Override
@@ -290,7 +280,7 @@ VaadinDom.render(rootLayout, (dom, pane) -> {
 
 ### 5. Sincronização de Listas (newListSlot)
 
-Mesmo mecanismo das outras implementações — reutiliza views existentes, cria/remove conforme necessidade:
+O mecanismo `newListSlot` sincroniza uma lista de dados (do ViewState) com views filhas (componentes Vaadin), reutilizando instâncias existentes:
 
 ```java
 this.contentSlot = this.newListSlot(container, this::newItemView, this::updateItem);
@@ -317,7 +307,7 @@ Captura exceções em listeners Vaadin e exibe `Notification.show()` com a mensa
 
 ### 7. Restauração de Estado (F5 / refresh)
 
-Nuance exclusiva do Vaadin: ao pressionar F5, o browser destrói o WebSocket e os componentes Java são desconectados. A solução:
+No modelo server-side do Vaadin, ao pressionar F5 o browser destrói o WebSocket e os componentes Java ficam desconectados. A solução:
 
 ```mermaid
 sequenceDiagram
@@ -367,9 +357,7 @@ stateDiagram-v2
 
 ## Conclusão
 
-A existência deste módulo lado a lado com as versões React, Gluon e Swing valida o princípio central da arquitetura Cube MVP: **os ViewStates são contratos estáveis entre Presenters e Views, permitindo trocar a tecnologia de visualização sem alterar uma linha de lógica de negócio ou apresentação**.
-
-A versão Vaadin demonstra que a mesma arquitetura funciona tanto com frameworks que requerem código client-side (React) quanto com frameworks puramente server-side (Vaadin), mantendo a mesma separação de responsabilidades.
+O módulo Vaadin demonstra que o padrão Cube MVP integra-se naturalmente a um framework server-side push-based: os **Presenters controlam estado e navegação**, os **ViewStates expõem dados** e as **Views Vaadin reconciliam componentes** — tudo conectado pelo ciclo `markDirty → ui.access → doUpdate → push`.
 
 ## Screenshots
 
