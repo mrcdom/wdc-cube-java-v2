@@ -22,8 +22,8 @@ fontes/
     ├── br.com.wdc.shopping.tests/           → Testes automatizados (JUnit 4)
     ├── br.com.wdc.shopping.view.react/      → Frontend web (React 19 + Javalin + Virtual Threads)
     ├── br.com.wdc.shopping.view.vaadin/    → Frontend web server-side (Vaadin 24 + Jetty 12 + Lumo)
-    ├── br.com.wdc.shopping.view.jfx/        → Frontend desktop (JavaFX)
-    └── br.com.wdc.shopping.view.android/    → Frontend mobile (Kotlin + Jetpack Compose)
+    ├── br.com.wdc.shopping.view.swing/      → Frontend desktop (Java Swing + FlatLaf)
+    └── br.com.wdc.shopping.view.gluon/      → Frontend multiplataforma (JavaFX + Gluon — Desktop, iOS, Android)
 ```
 
 ---

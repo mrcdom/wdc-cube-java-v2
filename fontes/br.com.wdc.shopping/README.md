@@ -81,15 +81,19 @@ Abra **http://localhost:8080** e entre com `admin` / `admin`.
 
 ---
 
-## Ou rode a versão Desktop (JavaFX)
+## Ou rode a versão Gluon (Desktop / iOS / Android)
 
 ```bash
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-26.jdk/Contents/Home
-cd br.com.wdc.shopping/br.com.wdc.shopping.view.jfx
+# Desktop (JVM)
+cd br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/br.com.wdc.shopping.view.gluon.desktop
 mvn javafx:run
+
+# iOS (simulador)
+cd br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/br.com.wdc.shopping.view.gluon.ios
+./build-sim.sh
 ```
 
-Mesma aplicação, mesmo banco, mesma lógica — apenas a interface muda.
+Mesma aplicação, mesmo banco, mesma lógica — rodando nativamente em Desktop, iOS e Android via GraalVM.
 
 ---
 
@@ -119,31 +123,15 @@ Aplicação desktop com Java Swing + FlatLaf (Material look-and-feel). Mesmos pr
 
 ---
 
-## Ou rode a versão Mobile (Android)
-
-```bash
-# Compile dependências Java para mavenLocal
-cd fontes && ./build-android-deps.sh
-
-# Abra no Android Studio:
-# fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.android/
-# Sync Gradle → Build → Run no emulador
-```
-
-App nativo Android com Jetpack Compose + Material 3. Mesmos presenters, mesmo domínio.
-
----
-
 ## Arquitetura em camadas
 
 ```mermaid
 graph TD
-    subgraph Views["Camada de Visualização — 5 implementações"]
+    subgraph Views["Camada de Visualização — 4 implementações"]
         R["React 19 + MUI 9"]
         V["Vaadin 24 + Lumo"]
-        JFX["JavaFX 24 + CSS"]
         SW["Swing + FlatLaf"]
-        AND["Compose + M3"]
+        GLN["Gluon + JavaFX"]
     end
 
     P["Presentation · Cube MVP<br/><small>Presenters + ViewStates + Navegação</small>"]
@@ -151,7 +139,7 @@ graph TD
     DOM["Domain<br/><small>Modelos + Contratos + Config</small>"]
     DB[("H2 Database")]
 
-    R & V & JFX & SW & AND --> P --> PER --> DOM --> DB
+    R & V & SW & GLN --> P --> PER --> DOM --> DB
 ```
 
 ## Módulos
@@ -164,9 +152,8 @@ graph TD
 | [`scripts`](br.com.wdc.shopping.scripts/) | Scripts DDL (DBCreate, DBReset) |
 | [`view.react`](br.com.wdc.shopping.view.react/) | Frontend web completo (React + Javalin + WebSocket) |
 | [`view.vaadin`](br.com.wdc.shopping.view.vaadin/) | Frontend web server-side (Vaadin 24 + Jetty 12 + Lumo theme) |
-| [`view.jfx`](br.com.wdc.shopping.view.jfx/) | Frontend desktop (JavaFX 24 + CSS Material) |
 | [`view.swing`](br.com.wdc.shopping.view.swing/) | Frontend desktop (Java Swing + FlatLaf Material) |
-| [`view.android`](br.com.wdc.shopping.view.android/) | Frontend mobile (Kotlin + Jetpack Compose + Material 3) |
+| [`view.gluon`](br.com.wdc.shopping.view.gluon/) | Frontend multiplataforma (JavaFX + Gluon — Desktop, iOS, Android) |
 | [`api`](br.com.wdc.shopping.api/) | Controllers REST (Javalin) para expor repositórios via HTTP |
 | [`api-client`](br.com.wdc.shopping.api-client/) | Client REST (OkHttp + Gson) que implementa repositórios via HTTP |
 | [`tests`](br.com.wdc.shopping.tests/) | Testes de workflow e repositórios |
@@ -176,7 +163,7 @@ graph TD
 ## Por que explorar este projeto?
 
 - **Sem Spring, sem CDI, sem magia** — injeção via `AtomicReference<T> BEAN`, 100% explícito
-- **Separação real de concerns** — troque a UI inteira sem tocar em lógica (4 frontends provam isso)
+- **Separação real de concerns** — troque a UI inteira sem tocar em lógica (múltiplos frontends provam isso)
 - **Padrões sólidos** — Command, Repository, Presenter, ViewState
 - **Tecnologia moderna** — Java 26, Virtual Threads, React 19, Vaadin 24, TypeScript
 - **Código limpo** — ~3.5s de build completo, zero warnings

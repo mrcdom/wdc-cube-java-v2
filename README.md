@@ -11,9 +11,8 @@ graph TD
     subgraph Views["Camada de Visualização"]
         R["React 19 + MUI<br/><small>Browser / WebSocket</small>"]
         V["Vaadin 24 + Lumo<br/><small>Browser / Server Push</small>"]
-        JFX["JavaFX 24 + CSS<br/><small>Desktop / JVM</small>"]
         SW["Swing + FlatLaf<br/><small>Desktop / JVM</small>"]
-        AND["Compose + M3<br/><small>Android</small>"]
+        GLN["Gluon + JavaFX<br/><small>Desktop / iOS / Android</small>"]
     end
 
     subgraph Core["Camadas Compartilhadas"]
@@ -26,9 +25,8 @@ graph TD
 
     R --> P
     V --> P
-    JFX --> P
     SW --> P
-    AND --> P
+    GLN --> P
     P --> SEC --> PER --> DOM --> DB
 ```
 
@@ -36,13 +34,12 @@ graph TD
 |----------|-----------|------------|--------|
 | **Web (SPA)** | React 19 + TypeScript + MUI 9 | WebSocket (JSON delta) | `view.react` |
 | **Web (SSR)** | Vaadin 24 + Lumo | Server Push (Atmosphere) | `view.vaadin` |
-| **Desktop** | JavaFX 24 + CSS | Direto em memória | `view.jfx` |
 | **Desktop** | Swing + FlatLaf 3.5 | Direto em memória | `view.swing` |
-| **Mobile** | Kotlin + Jetpack Compose + M3 | REST (OkHttp) | `view.android` |
+| **Multiplataforma** | JavaFX + Gluon Mobile | Direto em memória / H2 local | `view.gluon` |
 
 **Características principais:**
 
-- **Independência de visualização** — mesmos Presenters/ViewStates alimentam React (web), Vaadin (web server-side), JavaFX (desktop), Swing (desktop) e Android (mobile)
+- **Independência de visualização** — mesmos Presenters/ViewStates alimentam React (web), Vaadin (web server-side), Swing (desktop) e Gluon (desktop/iOS/Android)
 - **Sem frameworks de DI** — injeção via `AtomicReference<T> BEAN` (service locator estático); services recebem dependências no construtor
 - **Virtual Threads** (Java 26) — conexões WebSocket com consumo mínimo de memória
 - **Segurança RBAC** — autenticação HMAC challenge-response com JWT, controle de acesso por papéis (ADMIN, CUSTOMER, MANAGER), repositórios decorados com verificação de permissões
@@ -73,12 +70,10 @@ fontes/
     │   └── br.com.wdc.shopping.view.react.skeleton/  # Implementações de view + segurança
     ├── br.com.wdc.shopping.view.vaadin/        # 📄 [README](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin/README.md)
     │                                           # Frontend Vaadin 24 (server-side, Lumo theme)
-    ├── br.com.wdc.shopping.view.jfx/           # 📄 [README](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.jfx/README.md)
-    │                                           # Frontend JavaFX desktop
     ├── br.com.wdc.shopping.view.swing/         # 📄 [README](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.swing/README.md)
     │                                           # Frontend Swing desktop (FlatLaf)
-    └── br.com.wdc.shopping.view.android/       # 📄 [README](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.android/README.md)
-                                                # Frontend Android (Kotlin + Jetpack Compose)
+    └── br.com.wdc.shopping.view.gluon/         # 📄 [README](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/README.md)
+                                                # Frontend multiplataforma (JavaFX + Gluon — Desktop, iOS, Android)
 ```
 
 ### Framework
@@ -108,9 +103,8 @@ fontes/
 | **view.react.javalin** | Servidor Javalin 7 com Virtual Threads, WebSocket dispatcher, controllers REST, banco H2 embarcado. Gera fat JAR (~11 MB) |
 | **view.react.skeleton** | Implementações de view para o servidor (`GenericViewImpl`), segurança (`AppSecurity` — RSA/PBKDF2/AES-GCM, `DataSecurity`), SPI de WebSocket |
 | **view.vaadin** | Visualização web server-side com Vaadin 24 + Lumo theme + Jetty 12 embarcado — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin/README.md) |
-| **view.jfx** | Visualização desktop com JavaFX 24 + CSS Material-inspired — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.jfx/README.md) |
 | **view.swing** | Visualização desktop com Swing + FlatLaf (Material look-and-feel) — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.swing/README.md) |
-| **view.android** | App Android nativo com Kotlin + Jetpack Compose + Material 3 — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.android/README.md) |
+| **view.gluon** | Multiplataforma (Desktop + iOS + Android) com JavaFX + Gluon Mobile + GraalVM Native Image — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/README.md) |
 | **api** | Controllers REST (Javalin) para expor repositórios como endpoints HTTP, filtro de segurança JWT (`SecurityFilter`), endpoints de autenticação (`AuthApiController`) |
 | **api-client** | Client REST (OkHttp + Gson) que implementa as interfaces de repositório e `AuthenticationService` via HTTP, com Bearer token automático |
 
@@ -182,27 +176,16 @@ java --enable-preview -cp "$(mvn -q dependency:build-classpath -Dmdep.outputFile
 - **Aplicação:** http://localhost:8090
 - UI inteiramente server-side — sem código JavaScript/TypeScript customizado
 
-### Versão JavaFX (Desktop)
+### Versão Gluon (Desktop / iOS / Android)
 
 ```bash
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-26.jdk/Contents/Home
-export PATH="$JAVA_HOME/bin:$PATH"
-
-cd br.com.wdc.shopping/br.com.wdc.shopping.view.jfx
+# Desktop (JVM)
+cd br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/br.com.wdc.shopping.view.gluon.desktop
 mvn javafx:run
-```
 
-Ou via IDE usando a classe `ShoppingJfxLauncher.java` (não requer module-path configurado).
-
-### Versão Android (Mobile)
-
-```bash
-# Compile as dependências Java para mavenLocal com perfil Android-compat
-cd fontes
-./build-android-deps.sh
-
-# Abra fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.android no Android Studio
-# Sync Gradle → Build → Run
+# iOS (simulador)
+cd br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/br.com.wdc.shopping.view.gluon.ios
+./build-sim.sh
 ```
 
 ## Testes
