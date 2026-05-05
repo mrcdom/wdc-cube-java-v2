@@ -72,16 +72,17 @@ VaadinDom.render(rootLayout, (dom, pane) -> {
 
 ```java
 static {
-    LoginPresenter.createView     = p -> new LoginViewVaadin(app, (LoginPresenter) p);
-    HomePresenter.createView      = p -> new HomeViewVaadin(app, (HomePresenter) p);
-    CartPresenter.createView      = p -> new CartViewVaadin(app, (CartPresenter) p);
-    ProductPresenter.createView   = p -> new ProductViewVaadin(app, (ProductPresenter) p);
-    ReceiptPresenter.createView   = p -> new ReceiptViewVaadin(app, (ReceiptPresenter) p);
+    RootPresenter.createView = RootViewVaadin::new;
+    LoginPresenter.createView = LoginViewVaadin::new;
+    HomePresenter.createView = HomeViewVaadin::new;
+    CartPresenter.createView = CartViewVaadin::new;
+    ProductPresenter.createView = ProductViewVaadin::new;
+    ReceiptPresenter.createView = ReceiptViewVaadin::new;
     // ...
 }
 ```
 
-O Presenter nunca sabe qual tecnologia de UI está sendo usada.
+Cada construtor de View recebe apenas o Presenter (que já carrega a referência `app`), permitindo o uso de method references. O Presenter nunca sabe qual tecnologia de UI está sendo usada.
 
 ## Estrutura
 
@@ -199,12 +200,14 @@ Cada Presenter declara um campo estático `createView` preenchido pelo `Shopping
 
 ```java
 static {
-    RootPresenter.createView = p -> new RootViewVaadin((ShoppingVaadinApplication) p.app, p);
-    LoginPresenter.createView = p -> new LoginViewVaadin((ShoppingVaadinApplication) p.app, p);
-    HomePresenter.createView = p -> new HomeViewVaadin((ShoppingVaadinApplication) p.app, p);
+    RootPresenter.createView = RootViewVaadin::new;
+    LoginPresenter.createView = LoginViewVaadin::new;
+    HomePresenter.createView = HomeViewVaadin::new;
     // ...
 }
 ```
+
+Cada construtor recebe apenas o Presenter e faz `(ShoppingVaadinApplication) presenter.app` internamente.
 
 ### 2. Flush via ui.access() (Server Push)
 

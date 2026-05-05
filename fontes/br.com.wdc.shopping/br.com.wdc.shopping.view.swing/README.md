@@ -112,12 +112,14 @@ Cada Presenter declara um campo estático `createView` que é preenchido pelo `S
 
 ```java
 static {
-    RootPresenter.createView = p -> new RootViewSwing((ShoppingSwingApplication) p.app, p);
-    LoginPresenter.createView = p -> new LoginViewSwing((ShoppingSwingApplication) p.app, p);
-    HomePresenter.createView = p -> new HomeViewSwing((ShoppingSwingApplication) p.app, p);
+    RootPresenter.createView = RootViewSwing::new;
+    LoginPresenter.createView = LoginViewSwing::new;
+    HomePresenter.createView = HomeViewSwing::new;
     // ...
 }
 ```
+
+Cada construtor de View recebe apenas o Presenter (que já carrega a referência `app`), permitindo o uso de method references.
 
 Isso permite que a camada de apresentação crie views sem conhecer a implementação concreta.
 

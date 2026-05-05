@@ -12,14 +12,14 @@ Cada Presenter do Cube declara um campo estático `createView` que é uma factor
 
 ```java
 static {
-    RootPresenter.createView = p -> new RootViewGluon((ShoppingGluonApplication) p.app, p);
-    LoginPresenter.createView = p -> new LoginViewGluon((ShoppingGluonApplication) p.app, p);
-    HomePresenter.createView = p -> new HomeViewGluon((ShoppingGluonApplication) p.app, p);
+    RootPresenter.createView = RootViewGluon::new;
+    LoginPresenter.createView = LoginViewGluon::new;
+    HomePresenter.createView = HomeViewGluon::new;
     // ...
 }
 ```
 
-Isso permite que a camada de apresentação crie views sem conhecer a implementação concreta (Gluon, Swing, Vaadin, React, etc).
+Cada construtor de View recebe apenas o Presenter (que já carrega a referência `app`), permitindo o uso de method references. Isso permite que a camada de apresentação crie views sem conhecer a implementação concreta (Gluon, Swing, Vaadin, React, etc).
 
 ### 2. Render Loop via AnimationTimer (dirty-check)
 
