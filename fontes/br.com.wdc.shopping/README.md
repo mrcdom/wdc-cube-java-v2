@@ -1,8 +1,8 @@
 # 🛒 WeDoCode Shopping
 
-Um **sistema de e-commerce completo** construído com arquitetura **Cube MVP**, demonstrando como a mesma lógica de negócio pode alimentar interfaces totalmente diferentes — **React (web)**, **Vaadin (web server-side)**, **JavaFX (desktop)**, **Swing (desktop)** e **Android (mobile)** — sem duplicar uma única linha de código de apresentação.
+Um **sistema de e-commerce completo** construído com arquitetura **Cube MVP**, demonstrando como a mesma lógica de negócio pode alimentar interfaces totalmente diferentes — **React (web)**, **Vaadin (web server-side)**, **Swing (desktop)** e **Gluon (desktop/iOS/Android)** — sem duplicar uma única linha de código de apresentação.
 
-> **Cinco frontends. Mesma alma.**
+> **Quatro frontends. Mesma alma.**
 
 ---
 

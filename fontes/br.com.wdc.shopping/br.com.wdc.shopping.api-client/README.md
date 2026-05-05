@@ -154,6 +154,6 @@ O módulo é usado por:
 
 | Consumidor | Contexto |
 |-----------|---------|
-| **Android** (`view.android`) | Modo remoto — acessa backend Javalin via rede |
+| **Gluon Desktop** (`view.gluon.desktop`) | Modo remoto — acessa backend Javalin via rede |
 | **Testes de integração** (`shopping.tests`) | `RestXxxRepositoryTest` valida API end-to-end |
 | **Javalin** (`view.react.javalin`) | Registra `RestAuthenticationService` para propagação de auth |

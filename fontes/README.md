@@ -47,8 +47,8 @@ fontes/
 | **tests** | Teste | Suíte de testes JUnit 4 para repositórios (82 testes) e integração de serviços. |
 | **view.react** | UI (Web) | Frontend React 19 + Material UI, servidor Javalin com Virtual Threads, comunicação segura RSA+AES-GCM. |
 | **view.vaadin** | UI (Web) | Frontend Vaadin 24 + Lumo theme, servidor Jetty 12 embarcado, UI puramente server-side com push automático. |
-| **view.jfx** | UI (Desktop) | Frontend JavaFX que reutiliza os mesmos presenters da versão web. |
-| **view.android** | UI (Mobile) | App Android nativo (Kotlin + Jetpack Compose) no modelo embarcado — roda toda a stack localmente (H2 + repositórios + presenters). |
+| **view.swing** | UI (Desktop) | Frontend Java Swing + FlatLaf (Material look-and-feel) que reutiliza os mesmos presenters. |
+| **view.gluon** | UI (Multiplataforma) | Frontend JavaFX + Gluon Mobile compilado nativamente para Desktop, iOS e Android via GraalVM. |
 
 ---
 

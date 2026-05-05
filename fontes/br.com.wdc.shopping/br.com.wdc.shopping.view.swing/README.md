@@ -1,6 +1,6 @@
 # WeDoCode Shopping — Swing Desktop
 
-Frontend desktop do WeDoCode Shopping utilizando **Java Swing** com **FlatLaf** (Material Design look-and-feel). Compartilha os mesmos Presenters, ViewStates e lógica de negócio das demais implementações (React, Vaadin, JavaFX, Android) — apenas a camada de visualização é específica.
+Frontend desktop do WeDoCode Shopping utilizando **Java Swing** com **FlatLaf** (Material Design look-and-feel). Compartilha os mesmos Presenters, ViewStates e lógica de negócio das demais implementações (React, Vaadin, Gluon) — apenas a camada de visualização é específica.
 
 ## Screenshots
 
@@ -135,4 +135,4 @@ A aplicação usa o padrão **Cube MVP**:
 - **Views Swing** (`AbstractViewSwing`) implementam `CubeView` e fazem binding unidirecional state → UI
 - **Render loop**: um `Timer` a ~60fps processa views marcadas como "dirty", chamando `doUpdate()` com diff incremental (só atualiza componentes cujo valor mudou)
 
-Isso permite que a mesma lógica de apresentação funcione em React, Vaadin, JavaFX, Android e Swing sem alteração.
+Isso permite que a mesma lógica de apresentação funcione em React, Vaadin, Gluon e Swing sem alteração.

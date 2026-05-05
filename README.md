@@ -2,7 +2,7 @@
 
 Proposta arquitetural para construção de aplicações utilizando o padrão **Cube MVP** — uma variação do Model-View-Presenter com presenters hierárquicos, navegação por intents e serialização de estado das views.
 
-Este projeto serve como **referência arquitetural** para novos projetos, demonstrando a implementação completa de um sistema de e-commerce (Shopping) com backend Java e **cinco implementações de frontend independentes** — React (web/remoto), Vaadin (web/server-side), JavaFX (desktop/local), Swing (desktop/local) e Android (mobile/Compose) — provando que a camada de visualização é totalmente desacoplada da lógica de apresentação.
+Este projeto serve como **referência arquitetural** para novos projetos, demonstrando a implementação completa de um sistema de e-commerce (Shopping) com backend Java e **quatro implementações de frontend independentes** — React (web/remoto), Vaadin (web/server-side), Swing (desktop) e Gluon (desktop/iOS/Android via GraalVM Native Image) — provando que a camada de visualização é totalmente desacoplada da lógica de apresentação.
 
 ## Visão Geral da Arquitetura
 
@@ -319,10 +319,8 @@ Cada presenter possui um **ViewState** serializável que é transmitido ao front
 | Servidor HTTP | Javalin | 7.1.0 |
 | Web UI (server-side) | Vaadin | 24.6.3 |
 | Servlet Container | Jetty | 12 |
-| Desktop UI | JavaFX | 24.0.1 |
-| Mobile UI | Jetpack Compose + Material 3 | 2024.12 |
-| Mobile Language | Kotlin | 2.1 |
-| Image Loading | Coil | 2.7 |
+| Desktop UI | JavaFX (via Gluon) | 21.0.7 |
+| Multiplataforma | Gluon Mobile + GraalVM Native Image | 1.0.25 |
 | Banco de dados | H2 | 2.4.240 |
 | Acesso a dados | JDBI | 3.52.1 |
 | Serialização | Gson | 2.13.2 |
