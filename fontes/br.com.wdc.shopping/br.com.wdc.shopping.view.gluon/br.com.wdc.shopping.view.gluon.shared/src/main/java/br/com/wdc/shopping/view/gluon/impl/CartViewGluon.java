@@ -134,14 +134,13 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
             content.setPadding(new Insets(12));
             VBox.setVgrow(content, Priority.ALWAYS);
 
-            dom.scrollPane(sp -> {
+            dom.scrollVBox((sp, itemsBox) -> {
                 VBox.setVgrow(sp, Priority.ALWAYS);
                 sp.setFitToWidth(true);
                 sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
                 sp.setStyle(GluonStyles.SCROLL_TRANSPARENT);
 
-                var itemsBox = new VBox(6);
-                sp.setContent(itemsBox);
+                itemsBox.setSpacing(6);
                 this.itemsSlot = this.newListSlot(itemsBox, this::newItemView, this::updateItem);
             });
 

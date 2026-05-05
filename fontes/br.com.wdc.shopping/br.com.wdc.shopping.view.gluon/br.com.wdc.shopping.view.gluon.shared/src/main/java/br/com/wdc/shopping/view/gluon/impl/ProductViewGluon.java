@@ -80,9 +80,11 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
             this.state.errorCode = 0;
             this.state.errorMessage = null;
         }
+
         if (!Objects.equals(this.errorElm.getText(), newErrorMessage)) {
             this.errorElm.setText(newErrorMessage);
         }
+
         if (this.errorElm.isVisible() != newErrorDisplay) {
             this.errorElm.setVisible(newErrorDisplay);
             this.errorElm.setManaged(newErrorDisplay);
@@ -117,7 +119,7 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
         });
 
         // Scrollable content
-        dom.scrollPane(sp -> {
+        dom.scrollVBox((sp, content) -> {
             VBox.setVgrow(sp, Priority.ALWAYS);
             sp.setFitToWidth(true);
             sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
@@ -155,7 +157,8 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
 
                 this.priceElm = dom.label(price -> {
                     price.setText(this.state.product != null
-                            ? NumberFormat.getCurrencyInstance().format(this.state.product.price) : "");
+                            ? NumberFormat.getCurrencyInstance().format(this.state.product.price)
+                            : "");
                     price.setStyle(GluonStyles.PRICE_LARGE);
                 });
                 this.priceOldValue = this.state.product != null ? this.state.product.price : 0;
@@ -228,7 +231,8 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
 
                 dom.label(descTitle -> {
                     descTitle.setText("Descrição");
-                    descTitle.setStyle(GluonStyles.textBold(13, GluonColors.TEXT_SECONDARY) + " -fx-padding: 12 0 6 0;");
+                    descTitle
+                            .setStyle(GluonStyles.textBold(13, GluonColors.TEXT_SECONDARY) + " -fx-padding: 12 0 6 0;");
                 });
 
                 this.descriptionElm = dom.textFlow(tf -> {

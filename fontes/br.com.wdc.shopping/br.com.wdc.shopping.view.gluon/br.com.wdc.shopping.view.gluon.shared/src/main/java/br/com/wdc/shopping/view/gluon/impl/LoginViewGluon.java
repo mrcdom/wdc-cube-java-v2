@@ -50,6 +50,7 @@ public class LoginViewGluon extends AbstractViewGluon<LoginPresenter> {
         if (!Objects.equals(this.errorElm.getText(), newErrorMessage)) {
             this.errorElm.setText(newErrorMessage);
         }
+
         if (this.errorElm.isVisible() != newErrorDisplay) {
             this.errorElm.setVisible(newErrorDisplay);
             this.errorElm.setManaged(newErrorDisplay);

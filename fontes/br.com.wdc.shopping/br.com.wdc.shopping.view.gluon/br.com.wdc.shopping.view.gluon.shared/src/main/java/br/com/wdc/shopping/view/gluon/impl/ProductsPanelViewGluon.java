@@ -3,6 +3,7 @@ package br.com.wdc.shopping.view.gluon.impl;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 
 import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter;
@@ -11,15 +12,14 @@ import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.Pr
 import br.com.wdc.shopping.view.gluon.AbstractViewGluon;
 import br.com.wdc.shopping.view.gluon.ShoppingGluonApplication;
 import br.com.wdc.shopping.view.gluon.theme.GluonColors;
-import br.com.wdc.shopping.view.gluon.util.GluonDom;
 import br.com.wdc.shopping.view.gluon.theme.GluonStyles;
+import br.com.wdc.shopping.view.gluon.util.GluonDom;
 import br.com.wdc.shopping.view.gluon.util.ResourceCatalog;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
@@ -55,16 +55,17 @@ public class ProductsPanelViewGluon extends AbstractViewGluon<ProductsPanelPrese
             caption.setStyle(GluonStyles.SECTION_TITLE);
         });
 
-        dom.scrollPane(sp -> {
+        dom.scrollFlowPane((sp, flowPane) -> {
             VBox.setVgrow(sp, Priority.ALWAYS);
             sp.setFitToWidth(true);
             sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
             sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
             sp.setStyle(GluonStyles.SCROLL_TRANSPARENT);
 
-            var flowPane = new FlowPane(8, 8);
+            flowPane.setHgap(8);
+            flowPane.setVgap(8);
             flowPane.setPadding(new Insets(4));
-            sp.setContent(flowPane);
+
             this.contentSlot = this.newListSlot(flowPane, this::newItemView, this::updateItem);
         });
     }
@@ -83,6 +84,8 @@ public class ProductsPanelViewGluon extends AbstractViewGluon<ProductsPanelPrese
     public static class ProductCardView extends AbstractViewGluon<ProductsPanelPresenter> {
 
         private ProductInfo product;
+        private String oldProductName;
+        private String oldProductPrice;
         private boolean notRendered = true;
         private ImageView imageElm;
         private String imageOldValue;
@@ -104,14 +107,26 @@ public class ProductsPanelViewGluon extends AbstractViewGluon<ProductsPanelPrese
                 GluonDom.render((VBox) this.element, this::buildUI);
                 this.notRendered = false;
             }
+
             if (this.product.image != null && !this.product.image.equals(this.imageOldValue)) {
                 var img = ResourceCatalog.getImage(this.product.image);
                 this.imageElm.setImage(img);
                 this.imageOldValue = this.product.image;
             }
-            this.nameElm.setText(this.product.name != null ? this.product.name : "");
-            this.priceElm.setText(this.product.price > 0
-                    ? NumberFormat.getCurrencyInstance().format(this.product.price) : "");
+
+            var newProductName = this.product.name != null ? this.product.name : "";
+            if (!Objects.equals(oldProductName, newProductName)) {
+                this.nameElm.setText(newProductName);
+                this.oldProductName = newProductName;
+            }
+
+            var newProductPrice = this.product.price > 0
+                    ? NumberFormat.getCurrencyInstance().format(this.product.price)
+                    : "";
+            if (!Objects.equals(oldProductPrice, newProductPrice)) {
+                this.priceElm.setText(newProductPrice);
+                this.oldProductPrice = newProductPrice;
+            }
         }
 
         private void buildUI(GluonDom dom, VBox card) {
@@ -120,8 +135,8 @@ public class ProductsPanelViewGluon extends AbstractViewGluon<ProductsPanelPrese
             card.setSpacing(4);
             card.setAlignment(Pos.CENTER);
             card.setStyle(GluonStyles.CARD_SMALL);
-            card.setOnMouseClicked(e -> safeAction("Open product",
-                    () -> this.presenter.onOpenProduct(this.product.id)));
+            card.setOnMouseClicked(
+                    e -> safeAction("Open product", () -> this.presenter.onOpenProduct(this.product.id)));
 
             this.imageElm = dom.imageView(img -> {
                 img.setFitWidth(100);

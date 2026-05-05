@@ -135,13 +135,27 @@ public class GluonDom {
         return elm;
     }
 
-    public ScrollPane scrollPane(Consumer<ScrollPane> fnUpdate) {
+    public ScrollPane scrollVBox(BiConsumer<ScrollPane, VBox> fnUpdate) {
         var oldParent = this.currentParent;
         try {
             var content = new VBox();
             var elm = new ScrollPane(content);
             this.currentParent = content;
-            fnUpdate.accept(elm);
+            fnUpdate.accept(elm, content);
+            addChild(oldParent, elm);
+            return elm;
+        } finally {
+            this.currentParent = oldParent;
+        }
+    }
+
+    public ScrollPane scrollFlowPane(BiConsumer<ScrollPane, FlowPane> fnUpdate) {
+        var oldParent = this.currentParent;
+        try {
+            var content = new FlowPane();
+            var elm = new ScrollPane(content);
+            this.currentParent = content;
+            fnUpdate.accept(elm, content);
             addChild(oldParent, elm);
             return elm;
         } finally {

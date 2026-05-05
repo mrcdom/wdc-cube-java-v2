@@ -5,7 +5,9 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
@@ -33,7 +35,9 @@ public class ReceiptViewGluon extends AbstractViewGluon<ReceiptPresenter> {
 
     private boolean notRendered = true;
     private Label dateElm;
+    private String dateOldValue;
     private Label totalElm;
+    private String totalOldValue;
     private Label successElm;
     private int itemIdx;
     private List<ReceiptItemView> viewList = new ArrayList<>();
@@ -57,13 +61,32 @@ public class ReceiptViewGluon extends AbstractViewGluon<ReceiptPresenter> {
             this.state.notifySuccess = false;
         }
 
+        var items = Collections.<ReceiptItem>emptyList();
+        var dateNewValue = this.dateOldValue;
+        var totalNewValue = this.totalOldValue;
         if (this.state.receipt != null) {
-            this.dateElm.setText(this.state.receipt.date != null
-                    ? DATE_FMT.format(Instant.ofEpochMilli(this.state.receipt.date).atZone(ZoneId.systemDefault())) : "");
-            this.totalElm.setText(NumberFormat.getCurrencyInstance().format(
-                    this.state.receipt.total != null ? this.state.receipt.total : 0));
-            this.itemsSlot.accept(this.state.receipt.items, this.viewList);
+            items = this.state.receipt.items;
+
+            dateNewValue = this.state.receipt.date != null
+                    ? DATE_FMT.format(Instant.ofEpochMilli(this.state.receipt.date).atZone(ZoneId.systemDefault()))
+                    : "";
+
+            totalNewValue = NumberFormat.getCurrencyInstance().format(this.state.receipt.total != null
+                    ? this.state.receipt.total
+                    : 0);
         }
+
+        if (!Objects.equals(dateOldValue, dateNewValue)) {
+            this.dateElm.setText(dateNewValue);
+            this.dateOldValue = dateNewValue;
+        }
+
+        if (!Objects.equals(totalOldValue, totalNewValue)) {
+            this.totalElm.setText(totalNewValue);
+            this.totalOldValue = totalNewValue;
+        }
+
+        this.itemsSlot.accept(items, this.viewList);
     }
 
     private void buildUI(GluonDom dom, VBox root) {
@@ -127,21 +150,22 @@ public class ReceiptViewGluon extends AbstractViewGluon<ReceiptPresenter> {
             });
 
             // Items section
-            dom.scrollPane(sp -> {
+            dom.scrollVBox((sp, scrollContent) -> {
                 VBox.setVgrow(sp, Priority.ALWAYS);
                 sp.setFitToWidth(true);
                 sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
                 sp.setStyle(GluonStyles.SCROLL_TRANSPARENT);
 
-                var itemsLabel = new Label("Itens");
-                itemsLabel.setStyle(GluonStyles.SECTION_CAPTION + " -fx-padding: 12 16 6 16;");
+                dom.label(itemsLabel -> {
+                    itemsLabel.setText("Itens");
+                    itemsLabel.setStyle(GluonStyles.SECTION_CAPTION + " -fx-padding: 12 16 6 16;");
+                });
 
-                var itemsBox = new VBox(0);
-                itemsBox.setPadding(new Insets(0, 12, 0, 12));
-                this.itemsSlot = this.newListSlot(itemsBox, this::newItemView, this::updateItem);
-
-                var scrollContent = new VBox(itemsLabel, itemsBox);
-                sp.setContent(scrollContent);
+                dom.vbox(itemsBox -> {
+                    itemsBox.setSpacing(0);
+                    itemsBox.setPadding(new Insets(0, 12, 0, 12));
+                    this.itemsSlot = this.newListSlot(itemsBox, this::newItemView, this::updateItem);
+                });
             });
 
             // Total footer

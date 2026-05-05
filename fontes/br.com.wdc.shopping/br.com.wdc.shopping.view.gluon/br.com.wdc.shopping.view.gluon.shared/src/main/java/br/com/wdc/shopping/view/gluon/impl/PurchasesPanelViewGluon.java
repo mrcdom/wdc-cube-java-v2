@@ -6,6 +6,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 
 import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter;
@@ -73,15 +74,14 @@ public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPre
             });
         });
 
-        dom.scrollPane(sp -> {
+        dom.scrollVBox((sp, contentBox) -> {
             VBox.setVgrow(sp, Priority.ALWAYS);
             sp.setFitToWidth(true);
             sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
             sp.setStyle(GluonStyles.SCROLL_TRANSPARENT);
 
-            var contentBox = new VBox(10);
+            contentBox.setSpacing(10);
             contentBox.setPadding(new Insets(4, 0, 4, 0));
-            sp.setContent(contentBox);
             this.contentSlot = this.newListSlot(contentBox, this::newItemView, this::updateItem);
         });
 
@@ -134,6 +134,9 @@ public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPre
         private Label dateElm;
         private Label totalElm;
 
+        private String dateOldValue;
+        private String totalOldValue;
+
         PurchaseItemView(ShoppingGluonApplication app, PurchasesPanelPresenter presenter, int idx) {
             super("purchase-item-" + idx, app, presenter, new HBox());
             this.purchase = new PurchaseInfo();
@@ -149,9 +152,20 @@ public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPre
                 GluonDom.render((HBox) this.element, this::buildUI);
                 this.notRendered = false;
             }
-            this.dateElm.setText(this.purchase.date > 0
-                    ? DATE_FMT.format(Instant.ofEpochMilli(this.purchase.date).atZone(ZoneId.systemDefault())) : "");
-            this.totalElm.setText(NumberFormat.getCurrencyInstance().format(this.purchase.total));
+
+            var dateNewValue = this.purchase.date > 0
+                    ? DATE_FMT.format(Instant.ofEpochMilli(this.purchase.date).atZone(ZoneId.systemDefault()))
+                    : "";
+            if (!Objects.equals(dateOldValue, dateNewValue)) {
+                this.dateElm.setText(dateNewValue);
+                this.dateOldValue = dateNewValue;
+            }
+
+            var totalNewValue = NumberFormat.getCurrencyInstance().format(this.purchase.total);
+            if (!Objects.equals(totalOldValue, totalNewValue)) {
+                this.totalElm.setText(totalNewValue);
+                this.totalOldValue = totalNewValue;
+            }
         }
 
         private void buildUI(GluonDom dom, HBox row) {
