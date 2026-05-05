@@ -54,6 +54,10 @@
 		</dependency>
 	</dependencies>
 
+	<properties>
+		<main.class>br.com.wdc.shopping.view.gluon.desktop.ShoppingGluonDesktopLauncher</main.class>
+	</properties>
+
 	<build>
 		<plugins>
 			<plugin>
@@ -62,6 +66,9 @@
 				<version>0.0.8</version>
 				<configuration>
 					<mainClass>${main.class}</mainClass>
+					<options>
+						<option>-Xdock:icon=${project.basedir}/src/main/resources/icon-256.png</option>
+					</options>
 				</configuration>
 			</plugin>
 			<plugin>

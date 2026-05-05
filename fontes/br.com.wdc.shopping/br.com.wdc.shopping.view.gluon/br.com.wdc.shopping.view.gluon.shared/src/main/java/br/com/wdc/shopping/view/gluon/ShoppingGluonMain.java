@@ -13,7 +13,6 @@ import br.com.wdc.shopping.domain.config.AppConfig;
 import br.com.wdc.shopping.presentation.presenter.Routes;
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
@@ -72,9 +71,6 @@ public class ShoppingGluonMain extends Application {
         var scene = new Scene(root, sceneWidth, sceneHeight);
 
         primaryStage.setTitle("WDC Shopping — Gluon Mobile");
-        if (isDesktop) {
-            loadDesktopIcons(primaryStage);
-        }
         primaryStage.setScene(scene);
         primaryStage.show();
 
@@ -106,14 +102,5 @@ public class ShoppingGluonMain extends Application {
     private static boolean isAndroid() {
         var os = System.getProperty("os.name", "").toLowerCase();
         return os.contains("android") || "android".equals(System.getProperty("javafx.platform"));
-    }
-
-    private static void loadDesktopIcons(Stage stage) {
-        for (var size : new String[]{"16", "32", "48", "256"}) {
-            var stream = ShoppingGluonMain.class.getResourceAsStream("/icon-" + size + ".png");
-            if (stream != null) {
-                stage.getIcons().add(new Image(stream));
-            }
-        }
     }
 }
