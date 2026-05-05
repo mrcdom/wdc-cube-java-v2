@@ -10,7 +10,7 @@ import br.com.wdc.shopping.view.gluon.ShoppingGluonMain;
  * Note: Android native builds require a <strong>Linux</strong> host (or CI with Linux).
  * </p>
  */
-public class AndroidLauncher {
+public class ShoppingGluonAndroidLauncher {
 
     public static void main(String[] args) {
         ShoppingGluonMain.main(args);

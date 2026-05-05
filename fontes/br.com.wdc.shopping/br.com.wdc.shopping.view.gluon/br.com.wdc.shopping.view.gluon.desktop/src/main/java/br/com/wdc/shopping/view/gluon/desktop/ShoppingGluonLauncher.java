@@ -8,7 +8,7 @@ import br.com.wdc.shopping.view.gluon.ShoppingGluonMain;
  * Run with: {@code mvn javafx:run} or {@code mvn gluonfx:run}
  * </p>
  */
-public class DesktopLauncher {
+public class ShoppingGluonLauncher {
 
     public static void main(String[] args) {
         ShoppingGluonMain.main(args);

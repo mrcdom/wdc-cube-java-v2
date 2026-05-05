@@ -10,7 +10,7 @@ import br.com.wdc.shopping.view.gluon.ShoppingGluonMain;
  * Note: iOS builds require <strong>macOS</strong> with Xcode installed.
  * </p>
  */
-public class IosLauncher {
+public class ShoppingGluonIosLauncher {
 
     public static void main(String[] args) {
         ShoppingGluonMain.main(args);
