@@ -18,7 +18,7 @@
     <description>Standalone Javalin-based HTTP server for React frontend and WebFlow backend integration</description>
 
     <properties>
-        <javalin.version>7.1.0</javalin.version>
+        <javalin.version>7.2.0</javalin.version>
     </properties>
 
     <dependencies>
@@ -57,12 +57,6 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-        </dependency>
-
-        <!-- Logging -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>

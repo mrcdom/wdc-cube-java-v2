@@ -2,7 +2,9 @@ package br.com.wdc.shopping.test.mock;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
+import br.com.wdc.framework.cube.CubePresenter;
 import br.com.wdc.shopping.presentation.ProxyRepositoryWrapper;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.RootPresenter;
@@ -39,6 +41,11 @@ public class ShoppingApplicationMock extends ShoppingApplication {
 
     public ShoppingApplicationMock() {
         // NOOP
+    }
+    
+    @Override
+    protected Map<Integer, CubePresenter> createPresenterMap() {
+        return new ConcurrentHashMap<>();
     }
 
     @Override

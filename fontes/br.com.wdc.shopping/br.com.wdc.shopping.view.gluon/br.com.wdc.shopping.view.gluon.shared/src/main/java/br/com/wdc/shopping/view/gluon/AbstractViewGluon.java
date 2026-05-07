@@ -4,8 +4,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 import br.com.wdc.framework.cube.CubeView;
 import javafx.scene.Parent;
@@ -13,7 +12,7 @@ import javafx.scene.layout.Pane;
 
 public abstract class AbstractViewGluon<P> implements CubeView {
 
-    private static final Logger LOG = LoggerFactory.getLogger(AbstractViewGluon.class);
+    private static final Log LOG = Log.getLogger(AbstractViewGluon.class);
 
     protected final String instanceId;
     protected final ShoppingGluonApplication app;

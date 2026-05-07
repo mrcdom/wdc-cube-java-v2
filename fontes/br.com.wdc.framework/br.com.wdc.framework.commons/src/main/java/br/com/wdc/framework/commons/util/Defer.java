@@ -1,6 +1,5 @@
 package br.com.wdc.framework.commons.util;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import br.com.wdc.framework.commons.function.ThrowingRunnable;
 
@@ -22,7 +21,7 @@ public class Defer implements AutoCloseable {
         try {
             this.actionStack.runThrows();
         } catch (Exception e) {
-            throw ExceptionUtils.asRuntimeException(e);
+            throw Rethrow.asRuntimeException(e);
         } finally {
             this.actionStack = ThrowingRunnable.noop();
         }

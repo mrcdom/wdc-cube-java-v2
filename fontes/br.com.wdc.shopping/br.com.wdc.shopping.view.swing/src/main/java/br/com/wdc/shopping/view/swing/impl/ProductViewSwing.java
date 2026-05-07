@@ -22,8 +22,7 @@ import javax.swing.text.StyledDocument;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.NodeVisitor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductViewState;
@@ -35,7 +34,7 @@ import br.com.wdc.shopping.view.swing.util.SwingDom;
 
 public class ProductViewSwing extends AbstractViewSwing<ProductPresenter> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ProductViewSwing.class);
+    private static final Log LOG = Log.getLogger(ProductViewSwing.class);
 
     private final ProductViewState state;
 

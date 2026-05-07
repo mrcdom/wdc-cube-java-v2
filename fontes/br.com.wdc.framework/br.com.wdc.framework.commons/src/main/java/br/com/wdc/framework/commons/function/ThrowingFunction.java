@@ -3,7 +3,8 @@ package br.com.wdc.framework.commons.function;
 import java.util.Objects;
 import java.util.function.Function;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
+import br.com.wdc.framework.commons.util.Rethrow;
+
 
 public interface ThrowingFunction<T, R> extends Function<T, R> {
 
@@ -17,7 +18,7 @@ public interface ThrowingFunction<T, R> extends Function<T, R> {
         try {
             return this.applyThrows(t);
         } catch (final Exception caught) {
-        	throw ExceptionUtils.asRuntimeException(caught);
+        	throw Rethrow.asRuntimeException(caught);
         }
     }
 

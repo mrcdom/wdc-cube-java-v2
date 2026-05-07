@@ -16,8 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.mutable.MutableBoolean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 import com.google.gson.stream.JsonWriter;
 
@@ -29,6 +28,7 @@ import br.com.wdc.framework.commons.gson.JsonExtensibleObjectOutput;
 import br.com.wdc.framework.commons.lang.CoerceUtils;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
 import br.com.wdc.framework.cube.CubeIntent;
+import br.com.wdc.framework.cube.CubePresenter;
 import br.com.wdc.shopping.presentation.ProxyRepositoryWrapper;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.RootPresenter;
@@ -46,7 +46,7 @@ import br.com.wdc.shopping.view.react.skeleton.util.GenericViewImpl;
 
 public class ApplicationReactImpl extends ShoppingApplication {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ApplicationReactImpl.class);
+    private static final Log LOG = Log.getLogger(ApplicationReactImpl.class);
 
     public static final Duration DEFAULT_TIME_SPAN = Duration.ofMinutes(3);
 
@@ -64,6 +64,11 @@ public class ApplicationReactImpl extends ShoppingApplication {
     }
 
     private static ConcurrentHashMap<String, ApplicationReactImpl> instanceMap = new ConcurrentHashMap<>();
+    
+    @Override
+    protected Map<Integer, CubePresenter> createPresenterMap() {
+        return new ConcurrentHashMap<>();
+    }
 
     public static ApplicationReactImpl get(String appId) {
         if (StringUtils.isBlank(appId)) {
@@ -326,7 +331,7 @@ public class ApplicationReactImpl extends ShoppingApplication {
     }
 
     @Override
-    public void alertUnexpectedError(Logger logger, String message, Throwable e) {
+    public void alertUnexpectedError(Log logger, String message, Throwable e) {
         this.browserView.alertUnexpectedError(message, e);
     }
 

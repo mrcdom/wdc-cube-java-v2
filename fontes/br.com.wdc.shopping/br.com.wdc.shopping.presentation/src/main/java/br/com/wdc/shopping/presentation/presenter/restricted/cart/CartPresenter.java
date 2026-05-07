@@ -4,8 +4,7 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.function.Function;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.commons.function.Registration;
@@ -24,7 +23,7 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     // :: Private Class Fields
 
-    private static final Logger LOG = LoggerFactory.getLogger(CartPresenter.class.getName());
+    private static final Log LOG = Log.getLogger(CartPresenter.class);
 
     // :: Public class Fields
 

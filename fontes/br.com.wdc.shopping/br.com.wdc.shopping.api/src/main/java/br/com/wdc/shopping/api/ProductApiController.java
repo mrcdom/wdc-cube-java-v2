@@ -2,8 +2,7 @@ package br.com.wdc.shopping.api;
 
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -17,7 +16,7 @@ import io.javalin.http.Context;
 
 public class ProductApiController {
 
-	private static final Logger LOG = LoggerFactory.getLogger(ProductApiController.class);
+	private static final Log LOG = Log.getLogger(ProductApiController.class);
 
 	static void configure(JavalinConfig config) {
 		var ctrl = new ProductApiController();

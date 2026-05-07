@@ -6,14 +6,13 @@ import java.util.function.Supplier;
 
 import javax.swing.JPanel;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 import br.com.wdc.framework.cube.CubeView;
 
 public abstract class AbstractViewSwing<P> implements CubeView {
 
-    private static final Logger LOG = LoggerFactory.getLogger(AbstractViewSwing.class);
+    private static final Log LOG = Log.getLogger(AbstractViewSwing.class);
 
     protected final String instanceId;
     protected final ShoppingSwingApplication app;

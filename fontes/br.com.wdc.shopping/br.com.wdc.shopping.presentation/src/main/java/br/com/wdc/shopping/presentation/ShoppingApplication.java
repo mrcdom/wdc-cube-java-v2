@@ -3,7 +3,7 @@ package br.com.wdc.shopping.presentation;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.slf4j.Logger;
+import br.com.wdc.framework.commons.log.Log;
 
 import br.com.wdc.framework.cube.CubeApplication;
 import br.com.wdc.framework.cube.CubeIntent;
@@ -112,7 +112,7 @@ public abstract class ShoppingApplication extends CubeApplication {
 
     // :: API
 
-    public void alertUnexpectedError(Logger logger, String message, Throwable e) {
+    public void alertUnexpectedError(Log logger, String message, Throwable e) {
         var rootPresenter = this.getRootPresenter();
         if (rootPresenter != null) {
             rootPresenter.alertUnexpectedError(logger, message, e);

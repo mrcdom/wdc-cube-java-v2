@@ -3,7 +3,8 @@ package br.com.wdc.framework.commons.function;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
+import br.com.wdc.framework.commons.util.Rethrow;
+
 
 public interface ThrowingConsumer<T> extends Consumer<T> {
 
@@ -17,7 +18,7 @@ public interface ThrowingConsumer<T> extends Consumer<T> {
         try {
             this.acceptThrows(t);
         } catch (final Exception caught) {
-        	throw ExceptionUtils.asRuntimeException(caught);
+        	throw Rethrow.asRuntimeException(caught);
         }
     }
 

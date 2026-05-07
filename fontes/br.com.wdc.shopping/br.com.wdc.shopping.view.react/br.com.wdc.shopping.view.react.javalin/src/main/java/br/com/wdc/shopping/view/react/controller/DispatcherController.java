@@ -1,7 +1,6 @@
 package br.com.wdc.shopping.view.react.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 import br.com.wdc.shopping.view.react.DispatcherHandler;
 import io.javalin.config.JavalinConfig;
@@ -12,7 +11,7 @@ import io.javalin.websocket.WsMessageContext;
 
 public class DispatcherController {
 
-	private static final Logger LOG = LoggerFactory.getLogger(DispatcherController.class);
+	private static final Log LOG = Log.getLogger(DispatcherController.class);
 
 	/**
 	 * Configures WebSocket dispatcher endpoint for frontend-backend communication.
@@ -48,7 +47,7 @@ public class DispatcherController {
 			String sessionId = ctx.pathParam("id");
 			DispatcherHandler handler = DispatcherHandler.getOrCreate(sessionId);
 			handler.onMessage(ctx);
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			LOG.error("Error during WebSocket message", e);
 		}
 	}

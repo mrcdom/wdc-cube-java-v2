@@ -14,8 +14,8 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
+			<groupId>br.com.wdc.framework</groupId>
+			<artifactId>br.com.wdc.framework.commons</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>

@@ -4,12 +4,13 @@ import java.nio.file.Path;
 import java.util.concurrent.ScheduledExecutorService;
 
 import org.h2.jdbcx.JdbcDataSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.commons.sql.SqlDataSource;
 import br.com.wdc.framework.commons.sql.SqlDataSourceDelegate;
+import br.com.wdc.shopping.domain.security.CryptoProvider;
+import br.com.wdc.shopping.domain.security.JceCryptoProvider;
 import br.com.wdc.shopping.persistence.RepositoryBootstrap;
 import br.com.wdc.shopping.persistence.concurrent.ScheduledExecutorAdapter;
 import br.com.wdc.shopping.scripts.sgbd.DBCreate;
@@ -18,7 +19,7 @@ import br.com.wdc.shopping.domain.config.AppConfig;
 
 public class BusinessContext {
 
-    private static final Logger LOG = LoggerFactory.getLogger(BusinessContext.class);
+    private static final Log LOG = Log.getLogger(BusinessContext.class);
 
     private static final String DEFAULT_DB_NAME = "wedocode-shopping";
 
@@ -26,12 +27,16 @@ public class BusinessContext {
         RepositoryBootstrap.release();
         ScheduledExecutor.BEAN.set(null);
         SqlDataSource.BEAN.set(null);
+        CryptoProvider.BEAN.set(null);
     }
 
     public void start() {
         try {
             var config = AppConfig.load();
             ShoppingConfig.Internals.configure(config);
+
+            // CryptoProvider é necessário para PasswordUtil (usado pela presentation layer no login)
+            CryptoProvider.BEAN.set(new JceCryptoProvider());
 
             // Initialize centralized scheduled tasks manager with Virtual Thread executor
             var scheduledExecutor = createScheduledExecutor();

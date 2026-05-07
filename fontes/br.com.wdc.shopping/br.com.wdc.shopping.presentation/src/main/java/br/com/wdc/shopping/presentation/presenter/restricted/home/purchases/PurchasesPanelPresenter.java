@@ -2,8 +2,7 @@ package br.com.wdc.shopping.presentation.presenter.restricted.home.purchases;
 
 import java.util.function.Function;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 import br.com.wdc.framework.cube.AbstractChildPresenter;
 import br.com.wdc.framework.cube.CubeView;
@@ -14,7 +13,7 @@ public class PurchasesPanelPresenter extends AbstractChildPresenter<ShoppingAppl
 
     // :: Private Class Fields
 
-    private static final Logger LOG = LoggerFactory.getLogger(PurchasesPanelPresenter.class);
+    private static final Log LOG = Log.getLogger(PurchasesPanelPresenter.class);
 
     // :: Public Class Fields
 

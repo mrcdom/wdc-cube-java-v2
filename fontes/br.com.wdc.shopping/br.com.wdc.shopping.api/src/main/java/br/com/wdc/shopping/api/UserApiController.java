@@ -6,8 +6,7 @@ import java.util.Map;
 
 import javax.crypto.Cipher;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -20,7 +19,7 @@ import io.javalin.http.Context;
 
 public class UserApiController {
 
-	private static final Logger LOG = LoggerFactory.getLogger(UserApiController.class);
+	private static final Log LOG = Log.getLogger(UserApiController.class);
 
 	static void configure(JavalinConfig config) {
 		var ctrl = new UserApiController();

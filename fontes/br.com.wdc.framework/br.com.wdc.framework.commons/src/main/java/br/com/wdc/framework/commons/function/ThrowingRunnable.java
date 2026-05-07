@@ -1,6 +1,6 @@
 package br.com.wdc.framework.commons.function;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
+import br.com.wdc.framework.commons.util.Rethrow;
 
 public interface ThrowingRunnable extends Runnable {
 
@@ -13,7 +13,7 @@ public interface ThrowingRunnable extends Runnable {
         try {
             runThrows();
         } catch (final Exception caught) {
-        	throw ExceptionUtils.asRuntimeException(caught);
+        	throw Rethrow.asRuntimeException(caught);
         }
     }
 

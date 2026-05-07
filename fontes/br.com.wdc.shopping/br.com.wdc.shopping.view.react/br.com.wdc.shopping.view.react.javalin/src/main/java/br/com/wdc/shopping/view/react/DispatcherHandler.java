@@ -5,8 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -29,7 +28,7 @@ import io.javalin.websocket.WsMessageContext;
  */
 public class DispatcherHandler {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DispatcherHandler.class);
+    private static final Log LOG = Log.getLogger(DispatcherHandler.class);
 
     private static final Gson GSON = new GsonBuilder()
             .serializeNulls()

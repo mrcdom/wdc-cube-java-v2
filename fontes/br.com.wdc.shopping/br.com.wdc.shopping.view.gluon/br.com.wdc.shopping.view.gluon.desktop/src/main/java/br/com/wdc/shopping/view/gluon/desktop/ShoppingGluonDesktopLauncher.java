@@ -1,5 +1,7 @@
 package br.com.wdc.shopping.view.gluon.desktop;
 
+import br.com.wdc.framework.commons.log.Log;
+import br.com.wdc.framework.commons.log.Slf4jLogFactory;
 import br.com.wdc.shopping.view.gluon.ShoppingGluonMain;
 import javafx.application.Application;
 import javafx.scene.image.Image;
@@ -15,6 +17,7 @@ import javafx.stage.Stage;
 public class ShoppingGluonDesktopLauncher {
 
     public static void main(String[] args) {
+        Log.setFactory(new Slf4jLogFactory());
         setDockIcon();
         Application.launch(DesktopShoppingGluonMain.class, args);
     }

@@ -497,36 +497,32 @@ public class CoerceUtils {
         }
 
         if (v instanceof java.util.Date dateValue) {
-            if (dateValue instanceof java.sql.Date sqlDateValue) {
-                return new java.util.Date(sqlDateValue.getTime());
+            // If it's a subclass (e.g. java.sql.Date, java.sql.Timestamp), normalize to java.util.Date
+            if (dateValue.getClass() != java.util.Date.class) {
+                return new java.util.Date(dateValue.getTime());
             }
-
-            if (dateValue instanceof java.sql.Timestamp sqlTimestampValue) {
-                return new java.util.Date(sqlTimestampValue.getTime());
-            }
-
             return dateValue;
         }
 
         if (v instanceof LocalDate dt) {
-            return java.util.Date.from(LocalDateTime.of(dt, LocalTime.MIN).toInstant(DateUtil.getSysZoneOffset()));
+            return new java.util.Date(LocalDateTime.of(dt, LocalTime.MIN).toInstant(DateUtil.getSysZoneOffset()).toEpochMilli());
         }
 
         if (v instanceof LocalDateTime dt) {
-            return java.util.Date.from(dt.toInstant(DateUtil.getSysZoneOffset()));
+            return new java.util.Date(dt.toInstant(DateUtil.getSysZoneOffset()).toEpochMilli());
         }
 
         if (v instanceof OffsetDateTime dt) {
-            return java.util.Date.from(dt.toInstant());
+            return new java.util.Date(dt.toInstant().toEpochMilli());
         }
 
         if (v instanceof ZonedDateTime dt) {
-            return java.util.Date.from(dt.toInstant());
+            return new java.util.Date(dt.toInstant().toEpochMilli());
         }
 
         if (v instanceof TemporalAccessor temporalAccessor) {
             LocalDateTime dt = LocalDateTime.from(temporalAccessor);
-            return java.util.Date.from(dt.toInstant(DateUtil.getSysZoneOffset()));
+            return new java.util.Date(dt.toInstant(DateUtil.getSysZoneOffset()).toEpochMilli());
         }
 
         if (v instanceof String str) {
@@ -534,7 +530,7 @@ public class CoerceUtils {
                 return defaultValue;
             }
             var parsed = parseFlexibleTemporal(str);
-            return java.util.Date.from(toInstant(parsed));
+            return new java.util.Date(toInstant(parsed).toEpochMilli());
         }
 
         throw new IllegalArgumentException(getErrorMessage(v));

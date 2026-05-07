@@ -5,11 +5,11 @@ import java.io.Flushable;
 import java.io.IOException;
 import java.util.Base64;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import com.google.gson.stream.JsonWriter;
 
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
+import br.com.wdc.framework.commons.util.Rethrow;
 
 public class JsonExtensibleObjectOutput implements ExtensibleObjectOutput, Closeable, Flushable {
 
@@ -30,7 +30,7 @@ public class JsonExtensibleObjectOutput implements ExtensibleObjectOutput, Close
         try {
             this.impl.close();
         } catch (IOException e) {
-            throw ExceptionUtils.asRuntimeException(e);
+            throw Rethrow.asRuntimeException(e);
         }
     }
 
@@ -39,7 +39,7 @@ public class JsonExtensibleObjectOutput implements ExtensibleObjectOutput, Close
         try {
             this.impl.flush();
         } catch (IOException e) {
-            throw ExceptionUtils.asRuntimeException(e);
+            throw Rethrow.asRuntimeException(e);
         }
     }
 
@@ -47,7 +47,7 @@ public class JsonExtensibleObjectOutput implements ExtensibleObjectOutput, Close
         try {
             impl.beginArray();
         } catch (IOException e) {
-            throw ExceptionUtils.asRuntimeException(e);
+            throw Rethrow.asRuntimeException(e);
         }
         return this;
     }
@@ -56,7 +56,7 @@ public class JsonExtensibleObjectOutput implements ExtensibleObjectOutput, Close
         try {
             impl.endArray();
         } catch (IOException e) {
-            throw ExceptionUtils.asRuntimeException(e);
+            throw Rethrow.asRuntimeException(e);
         }
         return this;
     }
@@ -65,7 +65,7 @@ public class JsonExtensibleObjectOutput implements ExtensibleObjectOutput, Close
         try {
             impl.beginObject();
         } catch (IOException e) {
-            throw ExceptionUtils.asRuntimeException(e);
+            throw Rethrow.asRuntimeException(e);
         }
         return this;
     }
@@ -74,7 +74,7 @@ public class JsonExtensibleObjectOutput implements ExtensibleObjectOutput, Close
         try {
             impl.endObject();
         } catch (IOException e) {
-            throw ExceptionUtils.asRuntimeException(e);
+            throw Rethrow.asRuntimeException(e);
         }
         return this;
     }
@@ -83,7 +83,7 @@ public class JsonExtensibleObjectOutput implements ExtensibleObjectOutput, Close
         try {
             impl.name(name);
         } catch (IOException e) {
-            throw ExceptionUtils.asRuntimeException(e);
+            throw Rethrow.asRuntimeException(e);
         }
         return this;
     }
@@ -96,7 +96,7 @@ public class JsonExtensibleObjectOutput implements ExtensibleObjectOutput, Close
                 impl.name(name);
             }
         } catch (IOException e) {
-            throw ExceptionUtils.asRuntimeException(e);
+            throw Rethrow.asRuntimeException(e);
         }
         return this;
     }
@@ -105,7 +105,7 @@ public class JsonExtensibleObjectOutput implements ExtensibleObjectOutput, Close
         try {
             impl.value(value);
         } catch (IOException e) {
-            throw ExceptionUtils.asRuntimeException(e);
+            throw Rethrow.asRuntimeException(e);
         }
         return this;
     }
@@ -118,7 +118,7 @@ public class JsonExtensibleObjectOutput implements ExtensibleObjectOutput, Close
             }
             impl.value(Base64.getEncoder().encodeToString(value));
         } catch (IOException e) {
-            throw ExceptionUtils.asRuntimeException(e);
+            throw Rethrow.asRuntimeException(e);
         }
         return this;
     }
@@ -127,7 +127,7 @@ public class JsonExtensibleObjectOutput implements ExtensibleObjectOutput, Close
         try {
             impl.nullValue();
         } catch (IOException e) {
-            throw ExceptionUtils.asRuntimeException(e);
+            throw Rethrow.asRuntimeException(e);
         }
         return this;
     }
@@ -136,7 +136,7 @@ public class JsonExtensibleObjectOutput implements ExtensibleObjectOutput, Close
         try {
             impl.value(value);
         } catch (IOException e) {
-            throw ExceptionUtils.asRuntimeException(e);
+            throw Rethrow.asRuntimeException(e);
         }
         return this;
     }
@@ -145,7 +145,7 @@ public class JsonExtensibleObjectOutput implements ExtensibleObjectOutput, Close
         try {
             impl.value(value);
         } catch (IOException e) {
-            throw ExceptionUtils.asRuntimeException(e);
+            throw Rethrow.asRuntimeException(e);
         }
         return this;
     }
@@ -154,7 +154,7 @@ public class JsonExtensibleObjectOutput implements ExtensibleObjectOutput, Close
         try {
             impl.value(value);
         } catch (IOException e) {
-            throw ExceptionUtils.asRuntimeException(e);
+            throw Rethrow.asRuntimeException(e);
         }
         return this;
     }
@@ -163,7 +163,7 @@ public class JsonExtensibleObjectOutput implements ExtensibleObjectOutput, Close
         try {
             impl.value(value);
         } catch (IOException e) {
-            throw ExceptionUtils.asRuntimeException(e);
+            throw Rethrow.asRuntimeException(e);
         }
         return this;
     }

@@ -3,7 +3,8 @@ package br.com.wdc.framework.commons.function;
 import java.util.Objects;
 import java.util.function.BiFunction;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
+import br.com.wdc.framework.commons.util.Rethrow;
+
 
 public interface ThrowingBiFunction<T, U, R> extends BiFunction<T, U, R> {
 
@@ -17,7 +18,7 @@ public interface ThrowingBiFunction<T, U, R> extends BiFunction<T, U, R> {
         try {
             return this.applyThrows(t, u);
         } catch (final Exception caught) {
-        	throw ExceptionUtils.asRuntimeException(caught);
+        	throw Rethrow.asRuntimeException(caught);
         }
     }
 

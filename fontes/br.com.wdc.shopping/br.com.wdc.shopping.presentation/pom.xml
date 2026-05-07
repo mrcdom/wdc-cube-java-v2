@@ -21,10 +21,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-        <dependency>
             <groupId>br.com.wdc.framework</groupId>
             <artifactId>br.com.wdc.framework.cube</artifactId>
         </dependency>

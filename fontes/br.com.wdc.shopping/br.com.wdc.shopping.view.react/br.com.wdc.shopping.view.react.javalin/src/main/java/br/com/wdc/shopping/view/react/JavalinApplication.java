@@ -6,8 +6,8 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
+import br.com.wdc.framework.commons.log.Slf4jLogFactory;
 
 import br.com.wdc.shopping.api.RepositoryApiRoutes;
 import br.com.wdc.shopping.domain.config.AppConfig;
@@ -28,7 +28,11 @@ import io.javalin.http.staticfiles.Location;
 @SuppressWarnings({ "java:S2139", "java:S1192" })
 public class JavalinApplication {
 
-    private static final Logger LOG = LoggerFactory.getLogger(JavalinApplication.class);
+    public static void main(String[] args) {
+        JavalinApplication.doMain(args);
+    }
+
+    private static final Log LOG;
 
     private static final String STATIC_FILES_DIR = "/META-INF/resources";
     private static final String STATIC_IMAGES_FILES_DIR = STATIC_FILES_DIR + "/images";
@@ -39,12 +43,15 @@ public class JavalinApplication {
     private static final int DEFAULT_PORT = 8080;
     private static final record StaticFilesSettings(String directory, Location location) {}
 
+    static {
+        Log.setFactory(new Slf4jLogFactory());
+        LOG = Log.getLogger(JavalinApplication.class);
+    }
+
     private final Javalin app;
     private final int port;
     private final BusinessContext businessContext = new BusinessContext();
     private final StaticFilesSettings staticFilesSettings = resolveStaticFilesSettings();
-
-    
 
     public JavalinApplication(int port) {
         this.port = port;
@@ -210,7 +217,7 @@ public class JavalinApplication {
     /**
      * Entry point for the application.
      */
-    public static void main(String[] args) {
+    public static void doMain(String[] args) {
         var config = AppConfig.load();
         int port = config.getInt("server.port", DEFAULT_PORT);
 

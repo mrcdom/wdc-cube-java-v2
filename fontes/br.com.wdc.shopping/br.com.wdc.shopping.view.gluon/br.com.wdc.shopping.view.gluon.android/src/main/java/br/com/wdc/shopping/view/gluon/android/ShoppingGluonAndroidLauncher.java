@@ -1,5 +1,7 @@
 package br.com.wdc.shopping.view.gluon.android;
 
+import br.com.wdc.framework.commons.log.JulLogFactory;
+import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.shopping.view.gluon.ShoppingGluonMain;
 
 /**
@@ -13,6 +15,7 @@ import br.com.wdc.shopping.view.gluon.ShoppingGluonMain;
 public class ShoppingGluonAndroidLauncher {
 
     public static void main(String[] args) {
+        Log.setFactory(new JulLogFactory());
         ShoppingGluonMain.main(args);
     }
 }

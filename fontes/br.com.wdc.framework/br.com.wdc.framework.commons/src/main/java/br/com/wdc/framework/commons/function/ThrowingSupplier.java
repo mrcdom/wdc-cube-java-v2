@@ -2,7 +2,8 @@ package br.com.wdc.framework.commons.function;
 
 import java.util.function.Supplier;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
+import br.com.wdc.framework.commons.util.Rethrow;
+
 
 public interface ThrowingSupplier<T> extends Supplier<T> {
 
@@ -16,7 +17,7 @@ public interface ThrowingSupplier<T> extends Supplier<T> {
         try {
             return getThrows();
         } catch (final Exception caught) {
-        	throw ExceptionUtils.asRuntimeException(caught);
+        	throw Rethrow.asRuntimeException(caught);
         }
     }
 

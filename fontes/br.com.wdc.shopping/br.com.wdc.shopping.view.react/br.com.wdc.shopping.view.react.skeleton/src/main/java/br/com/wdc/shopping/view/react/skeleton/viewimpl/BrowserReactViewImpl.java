@@ -1,12 +1,13 @@
 package br.com.wdc.shopping.view.react.skeleton.viewimpl;
 
+import br.com.wdc.framework.commons.log.Log;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.slf4j.LoggerFactory;
 
 import br.com.wdc.framework.commons.function.ThrowingRunnable;
 import br.com.wdc.framework.commons.lang.CoerceUtils;
@@ -71,7 +72,7 @@ public class BrowserReactViewImpl extends GenericViewImpl {
         try {
             app.safeGo(path);
         } catch (Exception e) {
-            var logger = LoggerFactory.getLogger(this.getClass());
+            var logger = Log.getLogger(this.getClass());
             logger.warn("onHistoryChanged", e);
         }
     }
@@ -103,7 +104,7 @@ public class BrowserReactViewImpl extends GenericViewImpl {
                 var path = CoerceUtils.asString(formData.get("p.path"));
                 this.onStart(path);
             } catch (Exception e) {
-                var logger = LoggerFactory.getLogger(this.getClass());
+                var logger = Log.getLogger(this.getClass());
                 logger.warn("onStart", e);
             }
         }

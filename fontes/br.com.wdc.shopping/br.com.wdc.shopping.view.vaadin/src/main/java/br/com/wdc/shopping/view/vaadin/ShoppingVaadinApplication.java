@@ -5,13 +5,12 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Div;
 
+import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
+import br.com.wdc.framework.cube.CubePresenter;
 import br.com.wdc.shopping.presentation.ProxyRepositoryWrapper;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.RootPresenter;
@@ -34,7 +33,7 @@ import br.com.wdc.shopping.view.vaadin.util.IntentSigner;
 
 public class ShoppingVaadinApplication extends ShoppingApplication {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ShoppingVaadinApplication.class);
+    private static final Log LOG = Log.getLogger(ShoppingVaadinApplication.class);
 
     private static final Map<String, ShoppingVaadinApplication> APP_CACHE = new ConcurrentHashMap<>();
 
@@ -56,6 +55,11 @@ public class ShoppingVaadinApplication extends ShoppingApplication {
     private final AtomicBoolean navigatingFromBrowser = new AtomicBoolean(false);
     private final IntentSigner intentSigner = new IntentSigner();
     private String lastSignature;
+
+    @Override
+    protected Map<Integer, CubePresenter> createPresenterMap() {
+        return new ConcurrentHashMap<>();
+    }
 
     @Override
     protected <T> T createDelegate(Class<T> repoInterface, T delegate) {

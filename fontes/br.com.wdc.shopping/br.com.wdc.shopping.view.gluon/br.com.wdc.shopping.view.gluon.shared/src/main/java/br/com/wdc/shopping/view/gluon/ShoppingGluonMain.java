@@ -3,8 +3,7 @@ package br.com.wdc.shopping.view.gluon;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 import br.com.wdc.shopping.api.client.OkHttpTransport;
 import br.com.wdc.shopping.api.client.RestConfig;
@@ -19,7 +18,7 @@ import javafx.stage.Stage;
 
 public class ShoppingGluonMain extends Application {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ShoppingGluonMain.class);
+    private static final Log LOG = Log.getLogger(ShoppingGluonMain.class);
 
     private static final String DEFAULT_API_URL = "http://localhost:8080";
 

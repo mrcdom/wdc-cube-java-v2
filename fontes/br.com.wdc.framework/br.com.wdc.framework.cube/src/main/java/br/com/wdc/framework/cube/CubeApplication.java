@@ -2,23 +2,22 @@ package br.com.wdc.framework.cube;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 public abstract class CubeApplication {
+    
+    private static final Log LOG = Log.getLogger(CubeApplication.class.getSimpleName());
 
-	static final Logger LOG = LoggerFactory.getLogger(CubeApplication.class);
-
-	protected ConcurrentHashMap<Integer, CubePresenter> presenterMap;
+	protected Map<Integer, CubePresenter> presenterMap;
 
 	protected CubePlace lastPlace;
 
 	protected String fragment;
 
 	protected CubeApplication() {
-		this.presenterMap = new ConcurrentHashMap<>();
+		this.presenterMap = this.createPresenterMap();
 	}
 
 	public void release() {
@@ -33,7 +32,7 @@ public abstract class CubeApplication {
 				try {
 					presenter.release();
 				} catch (Exception caught) {
-					LOG.error("releasing " + presenter.getClass(), caught);
+				    LOG.error("releasing " + presenter.getClass() + ": " + caught.getMessage());
 				}
 			}
 		}
@@ -56,7 +55,7 @@ public abstract class CubeApplication {
 			try {
 				presenter.commitComputedState();
 			} catch (Exception caught) {
-				LOG.error("Processing " + presenter.getClass().getSimpleName(), caught);
+			    LOG.error("Processing " + presenter.getClass().getSimpleName() + ": " + caught.getMessage());
 			}
 		}
 	}
@@ -99,5 +98,7 @@ public abstract class CubeApplication {
 	public abstract Object removeAttribute(String name);
 
 	public abstract void updateHistory();
+	
+	protected abstract Map<Integer, CubePresenter> createPresenterMap();
 
 }

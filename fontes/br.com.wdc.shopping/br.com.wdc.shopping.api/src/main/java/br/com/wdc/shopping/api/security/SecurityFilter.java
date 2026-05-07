@@ -2,8 +2,7 @@ package br.com.wdc.shopping.api.security;
 
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 import br.com.wdc.shopping.domain.security.AuthenticationService;
 import br.com.wdc.shopping.domain.security.SecurityContextHolder;
@@ -17,7 +16,7 @@ import io.javalin.http.Context;
  */
 public final class SecurityFilter {
 
-	private static final Logger LOG = LoggerFactory.getLogger(SecurityFilter.class);
+	private static final Log LOG = Log.getLogger(SecurityFilter.class);
 	private static final String BEARER_PREFIX = "Bearer ";
 
 	private final AuthenticationService authService;

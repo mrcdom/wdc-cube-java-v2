@@ -4,15 +4,14 @@ import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 import br.com.wdc.shopping.domain.repositories.ProductRepository;
 import javafx.scene.image.Image;
 
 public class ResourceCatalog {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ResourceCatalog.class);
+    private static final Log LOG = Log.getLogger(ResourceCatalog.class);
 
     private static final Map<String, Image> IMAGE_MAP = new HashMap<>();
 

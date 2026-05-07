@@ -2,11 +2,6 @@ package br.com.wdc.shopping.domain.security;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 
 /**
  * Utilitários de hashing para autenticação.
@@ -14,10 +9,11 @@ import javax.crypto.spec.SecretKeySpec;
  * Centraliza a lógica de hash de senha (MD5→base36) e HMAC-SHA256
  * usados no fluxo challenge-response. Pode ser consumido por qualquer
  * camada (presentation, api-client, persistence).
+ * <p>
+ * Requer que um {@link CryptoProvider} esteja registrado em
+ * {@code CryptoProvider.BEAN} antes do uso.
  */
 public final class PasswordUtil {
-
-	private static final String HMAC_ALGORITHM = "HmacSHA256";
 
 	private PasswordUtil() {
 	}
@@ -30,13 +26,13 @@ public final class PasswordUtil {
 	 * @return hash no formato base36
 	 */
 	public static String hashPassword(String plainPassword) {
-		try {
-			var md = MessageDigest.getInstance("MD5");
-			var digest = md.digest(plainPassword.getBytes(StandardCharsets.UTF_8));
-			return new BigInteger(digest).toString(36);
-		} catch (NoSuchAlgorithmException e) {
-			throw new AssertionError("MD5 not available", e);
+		byte[] input = plainPassword.getBytes(StandardCharsets.UTF_8);
+		var provider = CryptoProvider.BEAN.get();
+		if (provider == null) {
+			throw new IllegalStateException("CryptoProvider.BEAN not initialized");
 		}
+		byte[] digest = provider.md5(input);
+		return new BigInteger(digest).toString(36);
 	}
 
 	/**
@@ -47,14 +43,14 @@ public final class PasswordUtil {
 	 * @return hex-encoded HMAC
 	 */
 	public static String computeHmac(String key, String data) {
-		try {
-			var mac = Mac.getInstance(HMAC_ALGORITHM);
-			mac.init(new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), HMAC_ALGORITHM));
-			var hash = mac.doFinal(data.getBytes(StandardCharsets.UTF_8));
-			return bytesToHex(hash);
-		} catch (Exception e) {
-			throw new AssertionError("HMAC-SHA256 failed", e);
+		byte[] keyBytes = key.getBytes(StandardCharsets.UTF_8);
+		byte[] dataBytes = data.getBytes(StandardCharsets.UTF_8);
+		var provider = CryptoProvider.BEAN.get();
+		if (provider == null) {
+			throw new IllegalStateException("CryptoProvider.BEAN not initialized");
 		}
+		byte[] hash = provider.hmacSha256(keyBytes, dataBytes);
+		return bytesToHex(hash);
 	}
 
 	private static String bytesToHex(byte[] bytes) {

@@ -9,8 +9,8 @@ import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
 import org.h2.jdbcx.JdbcDataSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
+import br.com.wdc.framework.commons.log.Slf4jLogFactory;
 
 import com.formdev.flatlaf.FlatLightLaf;
 
@@ -19,6 +19,8 @@ import br.com.wdc.framework.commons.sql.SqlDataSource;
 import br.com.wdc.framework.commons.sql.SqlDataSourceDelegate;
 import br.com.wdc.shopping.domain.ShoppingConfig;
 import br.com.wdc.shopping.domain.config.AppConfig;
+import br.com.wdc.shopping.domain.security.CryptoProvider;
+import br.com.wdc.shopping.domain.security.JceCryptoProvider;
 import br.com.wdc.shopping.persistence.RepositoryBootstrap;
 import br.com.wdc.shopping.presentation.presenter.Routes;
 import br.com.wdc.shopping.scripts.sgbd.DBCreate;
@@ -27,7 +29,7 @@ import br.com.wdc.shopping.view.swing.util.Styles;
 
 public class ShoppingSwingMain {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ShoppingSwingMain.class);
+    private static final Log LOG = Log.getLogger(ShoppingSwingMain.class);
 
     private ScheduledExecutorService executorService;
     private ShoppingSwingApplication app;
@@ -35,6 +37,7 @@ public class ShoppingSwingMain {
     private boolean devMode;
 
     public static void main(String[] args) {
+        Log.setFactory(new Slf4jLogFactory());
         new ShoppingSwingMain().run();
     }
 
@@ -54,6 +57,8 @@ public class ShoppingSwingMain {
         var config = AppConfig.load();
         ShoppingConfig.Internals.configure(config);
         this.devMode = config.getBoolean("dev.mode", false);
+
+        CryptoProvider.BEAN.set(new JceCryptoProvider());
 
         this.executorService = Executors.newScheduledThreadPool(2);
         ScheduledExecutor.BEAN.set(new ScheduledExecutorSwingAdapter(this.executorService));

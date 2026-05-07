@@ -3,7 +3,8 @@ package br.com.wdc.framework.commons.function;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
+import br.com.wdc.framework.commons.util.Rethrow;
+
 
 public interface ThrowingBiConsumer<T, U> extends BiConsumer<T, U> {
 
@@ -17,7 +18,7 @@ public interface ThrowingBiConsumer<T, U> extends BiConsumer<T, U> {
         try {
             this.acceptThrows(t, u);
         } catch (final Exception caught) {
-        	throw ExceptionUtils.asRuntimeException(caught);
+        	throw Rethrow.asRuntimeException(caught);
         }
     }
 

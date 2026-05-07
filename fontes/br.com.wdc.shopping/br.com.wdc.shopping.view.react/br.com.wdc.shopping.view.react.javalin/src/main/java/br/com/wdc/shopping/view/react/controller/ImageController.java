@@ -1,7 +1,6 @@
 package br.com.wdc.shopping.view.react.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 import br.com.wdc.shopping.domain.repositories.ProductRepository;
 import io.javalin.config.JavalinConfig;
@@ -9,7 +8,7 @@ import io.javalin.http.Context;
 
 public class ImageController {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ImageController.class);
+    private static final Log LOG = Log.getLogger(ImageController.class);
 
     public static void configure(JavalinConfig config) {
         var controller = new ImageController();

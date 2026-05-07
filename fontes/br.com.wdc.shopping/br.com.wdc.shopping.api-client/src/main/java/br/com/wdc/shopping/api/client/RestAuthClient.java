@@ -11,7 +11,6 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 import br.com.wdc.shopping.domain.exception.BusinessException;
 
@@ -114,6 +113,10 @@ public class RestAuthClient {
 	public boolean isAuthenticated() {
 		return accessToken != null;
 	}
+	
+	public long getExpiresAtEpochSecond() {
+        return expiresAtEpochSecond;
+    }
 
 	/**
 	 * Define os tokens diretamente (usado por {@link RestAuthenticationService}).

@@ -3,10 +3,10 @@ package br.com.wdc.shopping.view.gluon;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 import br.com.wdc.framework.cube.AbstractCubePresenter;
+import br.com.wdc.framework.cube.CubePresenter;
 import br.com.wdc.shopping.presentation.ProxyRepositoryWrapper;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.RootPresenter;
@@ -47,6 +47,11 @@ public class ShoppingGluonApplication extends ShoppingApplication {
     private final Map<String, AbstractViewGluon<?>> dirtyViewMap = new ConcurrentHashMap<>();
     private final Map<String, Object> attributeMap = new ConcurrentHashMap<>();
     private AnimationTimer renderLoop;
+    
+    @Override
+    protected Map<Integer, CubePresenter> createPresenterMap() {
+        return new ConcurrentHashMap<>();
+    }
 
     @Override
     protected <T> T createDelegate(Class<T> repoInterface, T delegate) {
@@ -112,11 +117,11 @@ public class ShoppingGluonApplication extends ShoppingApplication {
     }
 
     @Override
-    public void alertUnexpectedError(Logger logger, String message, Throwable e) {
+    public void alertUnexpectedError(Log logger, String message, Throwable e) {
         if (logger != null) {
             logger.error(message, e);
         } else {
-            LoggerFactory.getLogger(ShoppingGluonApplication.class).error(message, e);
+            Log.getLogger(ShoppingGluonApplication.class).error(message, e);
         }
         var alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
         alert.setTitle("Erro");

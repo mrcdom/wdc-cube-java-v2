@@ -9,25 +9,35 @@ import org.eclipse.jetty.ee10.webapp.WebAppContext;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.h2.jdbcx.JdbcDataSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.vaadin.flow.server.VaadinServlet;
 
+import br.com.wdc.framework.commons.log.Log;
+import br.com.wdc.framework.commons.log.Slf4jLogFactory;
 import br.com.wdc.framework.commons.sql.SqlDataSource;
 import br.com.wdc.framework.commons.sql.SqlDataSourceDelegate;
 import br.com.wdc.shopping.domain.ShoppingConfig;
 import br.com.wdc.shopping.domain.config.AppConfig;
+import br.com.wdc.shopping.domain.security.CryptoProvider;
+import br.com.wdc.shopping.domain.security.JceCryptoProvider;
 import br.com.wdc.shopping.persistence.RepositoryBootstrap;
 import br.com.wdc.shopping.scripts.sgbd.DBCreate;
 
 public class ShoppingVaadinMain {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ShoppingVaadinMain.class);
+    private static final Log LOG;
+
+    static {
+        Log.setFactory(new Slf4jLogFactory());
+        LOG = Log.getLogger(ShoppingVaadinMain.class);
+    }
 
     public static void main(String[] args) throws Exception {
+
         var config = AppConfig.load();
         ShoppingConfig.Internals.configure(config);
+
+        CryptoProvider.BEAN.set(new JceCryptoProvider());
 
         var dataDir = ShoppingConfig.getDataDir();
         var dataSource = new JdbcDataSource();

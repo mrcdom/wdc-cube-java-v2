@@ -5,7 +5,9 @@ package br.com.wdc.shopping.domain.exception;
  */
 public class AccessDeniedException extends RuntimeException {
 
-	public AccessDeniedException(String message) {
+	private static final long serialVersionUID = -3885024981786952019L;
+
+    public AccessDeniedException(String message) {
 		super(message);
 	}
 

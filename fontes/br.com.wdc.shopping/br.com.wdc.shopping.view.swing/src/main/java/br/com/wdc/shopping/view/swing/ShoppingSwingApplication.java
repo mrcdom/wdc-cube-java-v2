@@ -5,10 +5,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.swing.Timer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 import br.com.wdc.framework.cube.AbstractCubePresenter;
+import br.com.wdc.framework.cube.CubePresenter;
 import br.com.wdc.shopping.presentation.ProxyRepositoryWrapper;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.RootPresenter;
@@ -31,7 +31,7 @@ import br.com.wdc.shopping.view.swing.util.StackPanel;
 
 public class ShoppingSwingApplication extends ShoppingApplication {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ShoppingSwingApplication.class);
+    private static final Log LOG = Log.getLogger(ShoppingSwingApplication.class);
 
     static {
         RootPresenter.createView = RootViewSwing::new;
@@ -51,6 +51,11 @@ public class ShoppingSwingApplication extends ShoppingApplication {
     private final Map<String, Object> attributeMap = new ConcurrentHashMap<>();
     private Timer renderTimer;
     private boolean devMode;
+
+    @Override
+    protected Map<Integer, CubePresenter> createPresenterMap() {
+        return new ConcurrentHashMap<>();
+    }
 
     @Override
     protected <T> T createDelegate(Class<T> repoInterface, T delegate) {

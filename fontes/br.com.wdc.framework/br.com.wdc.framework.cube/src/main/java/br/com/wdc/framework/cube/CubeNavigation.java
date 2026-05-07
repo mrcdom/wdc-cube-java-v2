@@ -2,19 +2,22 @@ package br.com.wdc.framework.cube;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
+import br.com.wdc.framework.commons.log.Log;
+import br.com.wdc.framework.commons.util.Rethrow;
 
 public class CubeNavigation<T extends CubeApplication> {
+    
+    private static final Log LOG = Log.getLogger(CubeNavigation.class.getSimpleName());
 
     protected final T app;
 
-    protected final ConcurrentHashMap<Integer, CubePresenter> curPresenterMap;
+    protected final Map<Integer, CubePresenter> curPresenterMap;
 
-    protected final ConcurrentHashMap<Integer, CubePresenter> newPresenterMap;
+    protected final Map<Integer, CubePresenter> newPresenterMap;
 
     protected int reflowCount;
 
@@ -31,7 +34,7 @@ public class CubeNavigation<T extends CubeApplication> {
         this.notInterruped = true;
         this.app = (T) app;
         this.curPresenterMap = app.presenterMap;
-        this.newPresenterMap = new ConcurrentHashMap<>();
+        this.newPresenterMap = new HashMap<>();
         this.steps = new ArrayList<>();
 
         this.sourceIntent = app.newIntent();
@@ -84,7 +87,7 @@ public class CubeNavigation<T extends CubeApplication> {
             return result;
         } catch (Exception caught) {
             rollback(caught);
-            throw ExceptionUtils.asRuntimeException(caught);
+            throw Rethrow.asRuntimeException(caught);
         }
     }
 
@@ -108,10 +111,10 @@ public class CubeNavigation<T extends CubeApplication> {
                     if (presenter != null) {
                         presenter.applyParameters(this.sourceIntent, false, i == iLast);
                     } else {
-                        CubeApplication.LOG.warn("Missing presenter for ID={}", presenter);
+                        LOG.debug("Missing presenter for ID=" + presenter);
                     }
                 } catch (Exception otherCaught) {
-                    CubeApplication.LOG.error("Restoring source state", caught);
+                    LOG.debug("Restoring source state: " + caught.getMessage());
                     caught.addSuppressed(otherCaught);
                 }
             }
@@ -157,7 +160,7 @@ public class CubeNavigation<T extends CubeApplication> {
                 try {
                     presenter.release();
                 } catch (Exception caught) {
-                    CubeApplication.LOG.error("Releasing presenter", caught);
+                    LOG.error("Releasing presenter: " + caught.getMessage());
                 }
             }
         }

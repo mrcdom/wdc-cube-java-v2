@@ -3,17 +3,18 @@ package br.com.wdc.framework.commons.gson;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
+import br.com.wdc.framework.commons.util.Rethrow;
 
 public class JsonCoerceUtils {
 
@@ -52,7 +53,7 @@ public class JsonCoerceUtils {
 
             throw new IOException("No valid value found. JsonReader.peek() = " + jr.peek());
         } catch (IOException e) {
-            return ExceptionUtils.rethrow(e);
+            throw Rethrow.asRuntimeException(e);
         }
     }
 
@@ -120,7 +121,7 @@ public class JsonCoerceUtils {
 
             throw newInvalidValueFound(jr);
         } catch (IOException e) {
-            return ExceptionUtils.rethrow(e);
+            throw Rethrow.asRuntimeException(e);
         }
     }
 
@@ -149,7 +150,7 @@ public class JsonCoerceUtils {
 
             throw newInvalidValueFound(jr);
         } catch (IOException e) {
-            return ExceptionUtils.rethrow(e);
+            throw Rethrow.asRuntimeException(e);
         }
     }
 
@@ -178,7 +179,7 @@ public class JsonCoerceUtils {
 
             throw newInvalidValueFound(jr);
         } catch (IOException e) {
-            return ExceptionUtils.rethrow(e);
+            throw Rethrow.asRuntimeException(e);
         }
     }
 
@@ -207,7 +208,7 @@ public class JsonCoerceUtils {
 
             throw newInvalidValueFound(jr);
         } catch (IOException e) {
-            return ExceptionUtils.rethrow(e);
+            throw Rethrow.asRuntimeException(e);
         }
     }
 
@@ -236,7 +237,7 @@ public class JsonCoerceUtils {
 
             throw newInvalidValueFound(jr);
         } catch (IOException e) {
-            return ExceptionUtils.rethrow(e);
+            throw Rethrow.asRuntimeException(e);
         }
     }
 
@@ -265,7 +266,7 @@ public class JsonCoerceUtils {
 
             throw newInvalidValueFound(jr);
         } catch (IOException e) {
-            return ExceptionUtils.rethrow(e);
+            throw Rethrow.asRuntimeException(e);
         }
     }
 
@@ -294,7 +295,7 @@ public class JsonCoerceUtils {
 
             throw newInvalidValueFound(jr);
         } catch (IOException e) {
-            return ExceptionUtils.rethrow(e);
+            throw Rethrow.asRuntimeException(e);
         }
     }
 
@@ -323,7 +324,7 @@ public class JsonCoerceUtils {
 
             throw newInvalidValueFound(jr);
         } catch (IOException e) {
-            return ExceptionUtils.rethrow(e);
+            throw Rethrow.asRuntimeException(e);
         }
     }
 
@@ -352,7 +353,7 @@ public class JsonCoerceUtils {
 
             throw newInvalidValueFound(jr);
         } catch (IOException e) {
-            return ExceptionUtils.rethrow(e);
+            throw Rethrow.asRuntimeException(e);
         }
     }
 
@@ -381,7 +382,7 @@ public class JsonCoerceUtils {
 
             throw newInvalidValueFound(jr);
         } catch (IOException e) {
-            return ExceptionUtils.rethrow(e);
+            throw Rethrow.asRuntimeException(e);
         }
     }
 
@@ -410,7 +411,7 @@ public class JsonCoerceUtils {
 
             throw newInvalidValueFound(jr);
         } catch (IOException e) {
-            return ExceptionUtils.rethrow(e);
+            throw Rethrow.asRuntimeException(e);
         }
     }
 
@@ -439,7 +440,7 @@ public class JsonCoerceUtils {
 
             throw newInvalidValueFound(jr);
         } catch (IOException e) {
-            return ExceptionUtils.rethrow(e);
+            throw Rethrow.asRuntimeException(e);
         }
     }
 
@@ -468,7 +469,7 @@ public class JsonCoerceUtils {
 
             throw newInvalidValueFound(jr);
         } catch (IOException e) {
-            return ExceptionUtils.rethrow(e);
+            throw Rethrow.asRuntimeException(e);
         }
     }
 
@@ -497,7 +498,7 @@ public class JsonCoerceUtils {
 
             throw newInvalidValueFound(jr);
         } catch (IOException e) {
-            return ExceptionUtils.rethrow(e);
+            throw Rethrow.asRuntimeException(e);
         }
     }
 
@@ -526,7 +527,7 @@ public class JsonCoerceUtils {
 
             throw newInvalidValueFound(jr);
         } catch (IOException e) {
-            return ExceptionUtils.rethrow(e);
+            throw Rethrow.asRuntimeException(e);
         }
     }
 
@@ -555,7 +556,7 @@ public class JsonCoerceUtils {
 
             throw newInvalidValueFound(jr);
         } catch (IOException e) {
-            return ExceptionUtils.rethrow(e);
+            throw Rethrow.asRuntimeException(e);
         }
     }
 
@@ -584,7 +585,7 @@ public class JsonCoerceUtils {
 
             throw newInvalidValueFound(jr);
         } catch (IOException e) {
-            return ExceptionUtils.rethrow(e);
+            throw Rethrow.asRuntimeException(e);
         }
     }
 
@@ -617,7 +618,7 @@ public class JsonCoerceUtils {
 
             throw newInvalidValueFound(jr);
         } catch (IOException e) {
-            return ExceptionUtils.rethrow(e);
+            throw Rethrow.asRuntimeException(e);
         }
     }
     
@@ -650,7 +651,7 @@ public class JsonCoerceUtils {
 
             throw newInvalidValueFound(jr);
         } catch (IOException e) {
-            return ExceptionUtils.rethrow(e);
+            throw Rethrow.asRuntimeException(e);
         }
     }
 

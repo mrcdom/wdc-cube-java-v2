@@ -12,8 +12,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 /**
  * Cache em memória de sessões autenticadas.
@@ -22,7 +21,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class AccessContextCache {
 
-	private static final Logger LOG = LoggerFactory.getLogger(AccessContextCache.class);
+	private static final Log LOG = Log.getLogger(AccessContextCache.class);
 
 	private static final int RSA_KEY_SIZE = 2048;
 	private static final Duration ACCESS_TOKEN_TTL = Duration.ofMinutes(30);
