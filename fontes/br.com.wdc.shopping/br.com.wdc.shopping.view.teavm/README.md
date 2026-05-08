@@ -67,29 +67,3 @@ dom.div("d-flex align-items-center gap-2", container -> {
 ```
 
 Isso gera HTML nativo com classes Bootstrap, sem Virtual DOM ou framework JavaScript adicional.
-
-## Screenshots
-
-### Login
-
-![Login](br.com.wdc.shopping.view.teavm.web/docs/screenshots/01-login.png)
-
-### Lista de Produtos
-
-![Produtos](br.com.wdc.shopping.view.teavm.web/docs/screenshots/02-products.png)
-
-### Detalhe do Produto
-
-![Detalhe do Produto](br.com.wdc.shopping.view.teavm.web/docs/screenshots/03-product-detail.png)
-
-### Carrinho
-
-![Carrinho](br.com.wdc.shopping.view.teavm.web/docs/screenshots/04-cart.png)
-
-### Recibo
-
-![Recibo](br.com.wdc.shopping.view.teavm.web/docs/screenshots/05-receipt.png)
-
-### Histórico de Compras
-
-![Histórico](br.com.wdc.shopping.view.teavm.web/docs/screenshots/06-history.png)
