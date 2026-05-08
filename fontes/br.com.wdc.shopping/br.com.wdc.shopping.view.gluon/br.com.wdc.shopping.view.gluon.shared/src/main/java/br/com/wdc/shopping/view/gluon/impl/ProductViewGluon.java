@@ -124,11 +124,14 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
             sp.setFitToWidth(true);
             sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
             sp.setStyle(GluonStyles.SCROLL_TRANSPARENT);
+            content.setPadding(new Insets(16));
+            content.setAlignment(Pos.TOP_CENTER);
 
             // Product info card
             dom.vbox(card -> {
                 card.setSpacing(14);
                 card.setPadding(new Insets(24, 20, 20, 20));
+                card.setMaxWidth(480);
                 card.setStyle(GluonStyles.CARD_TOP_ROUND);
 
                 this.nameElm = dom.label(name -> {
@@ -236,8 +239,6 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
                     err.setManaged(false);
                     err.setWrapText(true);
                 });
-
-                VBox.setVgrow(card, Priority.ALWAYS);
             });
         });
     }

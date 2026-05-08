@@ -120,6 +120,26 @@ case "$TARGET" in
         ;;
 
     android)
+        # Copy custom icons to the generated Android resources
+        ANDROID_RES="$SCRIPT_DIR/src-tauri/gen/android/app/src/main/res"
+        CUSTOM_ICONS="$SCRIPT_DIR/src-tauri/icons/android"
+        if [ -d "$CUSTOM_ICONS" ]; then
+            echo "    Copying custom Android icons..."
+            for density in mipmap-mdpi mipmap-hdpi mipmap-xhdpi mipmap-xxhdpi mipmap-xxxhdpi; do
+                if [ -d "$CUSTOM_ICONS/$density" ]; then
+                    cp -f "$CUSTOM_ICONS/$density/"* "$ANDROID_RES/$density/" 2>/dev/null || true
+                fi
+            done
+            # Adaptive icon XML + background color
+            if [ -d "$CUSTOM_ICONS/mipmap-anydpi-v26" ]; then
+                mkdir -p "$ANDROID_RES/mipmap-anydpi-v26"
+                cp -f "$CUSTOM_ICONS/mipmap-anydpi-v26/"* "$ANDROID_RES/mipmap-anydpi-v26/"
+            fi
+            if [ -f "$CUSTOM_ICONS/values/ic_launcher_background.xml" ]; then
+                cp -f "$CUSTOM_ICONS/values/ic_launcher_background.xml" "$ANDROID_RES/values/"
+            fi
+        fi
+
         cargo tauri android build --target aarch64 --debug 2>&1 | tail -10
         APK_PATH="$SCRIPT_DIR/src-tauri/gen/android/app/build/outputs/apk/universal/debug/app-universal-debug.apk"
         echo ""
