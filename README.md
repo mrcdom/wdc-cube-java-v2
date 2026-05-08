@@ -2,7 +2,7 @@
 
 Proposta arquitetural para construção de aplicações utilizando o padrão **Cube MVP** — uma variação do Model-View-Presenter com presenters hierárquicos, navegação por intents e serialização de estado das views.
 
-Este projeto serve como **referência arquitetural** para novos projetos, demonstrando a implementação completa de um sistema de e-commerce (Shopping) com backend Java e **quatro implementações de frontend independentes** — React (web/remoto), Vaadin (web/server-side), Swing (desktop) e Gluon (desktop/iOS/Android via GraalVM Native Image) — provando que a camada de visualização é totalmente desacoplada da lógica de apresentação.
+Este projeto serve como **referência arquitetural** para novos projetos, demonstrando a implementação completa de um sistema de e-commerce (Shopping) com backend Java e **cinco implementações de frontend independentes** — React (web/remoto), Vaadin (web/server-side), Swing (desktop), Gluon (desktop/iOS/Android via GraalVM Native Image) e TeaVM (web/desktop/Android/iOS via Tauri) — provando que a camada de visualização é totalmente desacoplada da lógica de apresentação.
 
 ## Visão Geral da Arquitetura
 
@@ -13,6 +13,7 @@ graph TD
         V["Vaadin 24 + Lumo<br/><small>Browser / Server Push</small>"]
         SW["Swing + FlatLaf<br/><small>Desktop / JVM</small>"]
         GLN["Gluon + JavaFX<br/><small>Desktop / iOS / Android</small>"]
+        TVM["TeaVM + Tauri<br/><small>Web / Desktop / Android / iOS</small>"]
     end
 
     subgraph Core["Camadas Compartilhadas"]
@@ -27,6 +28,7 @@ graph TD
     V --> P
     SW --> P
     GLN --> P
+    TVM --> P
     P --> SEC --> PER --> DOM --> DB
 ```
 
@@ -36,10 +38,11 @@ graph TD
 | **Web (SSR)** | Vaadin 24 + Lumo | Server Push (Atmosphere) | `view.vaadin` |
 | **Desktop** | Swing + FlatLaf 3.5 | Direto em memória | `view.swing` |
 | **Multiplataforma** | JavaFX + Gluon Mobile | REST (OkHttp) | `view.gluon` |
+| **Multiplataforma (TeaVM)** | TeaVM 0.14 + Tauri 2 + Bootstrap 5 | REST (OkHttp → JS) | `view.teavm` |
 
 **Características principais:**
 
-- **Independência de visualização** — mesmos Presenters/ViewStates alimentam React (web), Vaadin (web server-side), Swing (desktop) e Gluon (desktop/iOS/Android)
+- **Independência de visualização** — mesmos Presenters/ViewStates alimentam React (web), Vaadin (web server-side), Swing (desktop), Gluon (desktop/iOS/Android) e TeaVM (web/desktop/Android/iOS)
 - **Sem frameworks de DI** — injeção via `AtomicReference<T> BEAN` (service locator estático); services recebem dependências no construtor
 - **Virtual Threads** (Java 26) — conexões WebSocket com consumo mínimo de memória
 - **Segurança RBAC** — autenticação HMAC challenge-response com JWT, controle de acesso por papéis (ADMIN, CUSTOMER, MANAGER), repositórios decorados com verificação de permissões
@@ -77,6 +80,7 @@ graph TD
         viewVaadin["view.vaadin<br/><small>Vaadin 24 server-side</small>"]
         viewSwing["view.swing<br/><small>Swing + FlatLaf</small>"]
         viewGluon["view.gluon<br/><small>JavaFX + Gluon (Desktop/iOS/Android)</small>"]
+        viewTeavm["view.teavm<br/><small>TeaVM + Tauri (Web/Desktop/Android/iOS)</small>"]
     end
 
     fontes --> Framework
@@ -112,6 +116,7 @@ graph TD
 | **view.vaadin** | Visualização web server-side com Vaadin 24 + Lumo theme + Jetty 12 embarcado — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin/README.md) |
 | **view.swing** | Visualização desktop com Swing + FlatLaf (Material look-and-feel) — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.swing/README.md) |
 | **view.gluon** | Multiplataforma (Desktop + iOS + Android) com JavaFX + Gluon Mobile + GraalVM Native Image — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/README.md) |
+| **view.teavm** | Multiplataforma (Web + Desktop + Android + iOS) com TeaVM 0.14 + Tauri 2 + Bootstrap 5 — Java compilado para JS — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.teavm/README.md) |
 | **api** | Controllers REST (Javalin) para expor repositórios como endpoints HTTP, filtro de segurança JWT (`SecurityFilter`), endpoints de autenticação (`AuthApiController`) |
 | **api-client** | Client REST (OkHttp + Gson) que implementa as interfaces de repositório e `AuthenticationService` via HTTP, com Bearer token automático |
 

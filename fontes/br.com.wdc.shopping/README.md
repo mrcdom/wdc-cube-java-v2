@@ -1,8 +1,8 @@
 # 🛒 WeDoCode Shopping
 
-Um **sistema de e-commerce completo** construído com arquitetura **Cube MVP**, demonstrando como a mesma lógica de negócio pode alimentar interfaces totalmente diferentes — **React (web)**, **Vaadin (web server-side)**, **Swing (desktop)** e **Gluon (desktop/iOS/Android)** — sem duplicar uma única linha de código de apresentação.
+Um **sistema de e-commerce completo** construído com arquitetura **Cube MVP**, demonstrando como a mesma lógica de negócio pode alimentar interfaces totalmente diferentes — **React (web)**, **Vaadin (web server-side)**, **Swing (desktop)**, **Gluon (desktop/iOS/Android)** e **TeaVM (web/desktop/Android/iOS)** — sem duplicar uma única linha de código de apresentação.
 
-> **Quatro frontends. Mesma alma.**
+> **Cinco frontends. Mesma alma.**
 
 ---
 
@@ -81,6 +81,22 @@ Aplicação desktop com Java Swing + FlatLaf (Material look-and-feel). Mesmos pr
 
 ---
 
+## Ou rode a versão TeaVM (Web / Desktop / Android / iOS)
+
+```bash
+# Build TeaVM (compila Java → JavaScript)
+cd br.com.wdc.shopping/br.com.wdc.shopping.view.teavm
+bash build.sh
+
+# Desktop nativo (Tauri)
+cd br.com.wdc.shopping.view.teavm.native
+cargo tauri dev
+```
+
+Java compilado para JavaScript via TeaVM, empacotado como app nativo com Tauri 2. Mesmos presenters, mesmo domínio — rodando em 4 plataformas.
+
+---
+
 ## Módulos
 
 | Módulo | Responsabilidade |
@@ -93,6 +109,7 @@ Aplicação desktop com Java Swing + FlatLaf (Material look-and-feel). Mesmos pr
 | [`view.vaadin`](br.com.wdc.shopping.view.vaadin/) | Frontend web server-side (Vaadin 24 + Jetty 12 + Lumo theme) |
 | [`view.swing`](br.com.wdc.shopping.view.swing/) | Frontend desktop (Java Swing + FlatLaf Material) |
 | [`view.gluon`](br.com.wdc.shopping.view.gluon/) | Frontend multiplataforma (JavaFX + Gluon — Desktop, iOS, Android) |
+| [`view.teavm`](br.com.wdc.shopping.view.teavm/) | Frontend multiplataforma (TeaVM + Tauri — Web, Desktop, Android, iOS) |
 | [`api`](br.com.wdc.shopping.api/) | Controllers REST (Javalin) para expor repositórios via HTTP |
 | [`api-client`](br.com.wdc.shopping.api-client/) | Client REST (OkHttp + Gson) que implementa repositórios via HTTP |
 | [`tests`](br.com.wdc.shopping.tests/) | Testes de workflow e repositórios |

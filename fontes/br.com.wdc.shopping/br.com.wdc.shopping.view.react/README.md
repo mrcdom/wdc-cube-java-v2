@@ -36,13 +36,13 @@ graph TD
 
 ## Comparação com as outras versões
 
-| Aspecto | React (este módulo) | Vaadin (server-side) | JFX (desktop) |
-|---------|---------------------|----------------------|---------------|
-| **Onde roda a UI** | Browser remoto | Browser via Server Push | JVM local |
-| **Transporte** | WebSocket (JSON delta) | Atmosphere (WebSocket/Push) | Acesso direto em memória |
-| **Segurança** | RSA + AES-GCM + URL signing | HMAC-SHA256 URL signing | N/A (processo local) |
-| **Escalabilidade** | Virtual Threads (~1K por conexão) | Server Push automático | Instância única |
-| **Código de UI** | TypeScript | Java | Java |
+| Aspecto | React (este módulo) | Vaadin (server-side) | JFX (desktop) | TeaVM (multiplataforma) |
+|---------|---------------------|----------------------|---------------|------------------------|
+| **Onde roda a UI** | Browser remoto | Browser via Server Push | JVM local | Browser / WebView (Tauri) |
+| **Transporte** | WebSocket (JSON delta) | Atmosphere (WebSocket/Push) | Acesso direto em memória | REST (OkHttp → JS) |
+| **Segurança** | RSA + AES-GCM + URL signing | HMAC-SHA256 URL signing | N/A (processo local) | HMAC + JWT |
+| **Escalabilidade** | Virtual Threads (~1K por conexão) | Server Push automático | Instância única | Client-side (SPA) |
+| **Código de UI** | TypeScript | Java | Java | Java (compilado para JS) |
 | **Presenters** | Mesmos | Mesmos | Mesmos |
 | **ViewStates** | Mesmos | Mesmos | Mesmos |
 

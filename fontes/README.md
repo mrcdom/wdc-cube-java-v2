@@ -28,6 +28,7 @@ graph TD
         viewVaadin["view.vaadin — Vaadin 24 + Jetty 12 + Lumo"]
         viewSwing["view.swing — Java Swing + FlatLaf"]
         viewGluon["view.gluon — JavaFX + Gluon (Desktop, iOS, Android)"]
+        viewTeavm["view.teavm — TeaVM + Tauri (Web, Desktop, Android, iOS)"]
     end
 
     fontes --> pom
@@ -59,6 +60,7 @@ graph TD
 | **view.vaadin** | UI (Web) | Frontend Vaadin 24 + Lumo theme, servidor Jetty 12 embarcado, UI puramente server-side com push automático. |
 | **view.swing** | UI (Desktop) | Frontend Java Swing + FlatLaf (Material look-and-feel) que reutiliza os mesmos presenters. |
 | **view.gluon** | UI (Multiplataforma) | Frontend JavaFX + Gluon Mobile compilado nativamente para Desktop, iOS e Android via GraalVM. |
+| **view.teavm** | UI (Multiplataforma) | Frontend Java compilado para JavaScript via TeaVM 0.14, empacotado como app nativo (Desktop, Android, iOS) via Tauri 2. |
 
 ---
 
