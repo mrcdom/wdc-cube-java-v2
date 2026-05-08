@@ -135,13 +135,13 @@ graph TD
 
 ## Pré-requisitos
 
-- **Oracle JDK 26** com preview features habilitadas
+- **Java 21** (Temurin ou Microsoft JDK)
 - **Maven 3.9+**
 
 ## Build
 
 ```bash
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-26.jdk/Contents/Home
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home
 export PATH="$JAVA_HOME/bin:$PATH"
 
 # Build completo (a partir da raiz do projeto)
@@ -179,9 +179,9 @@ O arquivo `work/config/application.toml` permite configurar:
 
 ## Notas técnicas
 
-### Jetty + Java 26
+### Jetty + Java 21
 
-O Jetty 12 com Java 26 requer uma configuração especial do `WebAppContext` para evitar erros de ASM ao escanear classes com bytecode preview:
+O Jetty 12 com Java 21 requer uma configuração especial do `WebAppContext` para evitar erros de ASM ao escanear classes:
 
 - Um diretório WAR vazio é criado
 - O `ContainerIncludeJarPattern` é restrito a `.*vaadin.*\.jar$|.*flow.*\.jar$|.*atmosphere.*\.jar$`

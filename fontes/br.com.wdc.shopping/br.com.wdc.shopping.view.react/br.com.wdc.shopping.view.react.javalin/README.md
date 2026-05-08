@@ -1,6 +1,6 @@
 # WeDoCode Shopping React - Javalin Server
 
-Standalone HTTP server built with [Javalin 7.1.0](https://javalin.io) for serving the React frontend and managing backend session state.
+Standalone HTTP server built with [Javalin 7.2.0](https://javalin.io) for serving the React frontend and managing backend session state.
 
 ## Overview
 
@@ -86,7 +86,7 @@ Core dependencies:
 - `br.com.wdc.shopping.presentation` - Presenters and business logic
 - `br.com.wdc.shopping.persistence` - Database and persistence layer
 - `br.com.wdc.shopping.scripts` - DDL scripts (DBCreate, DBReset)
-- Javalin 7.1.0 - Web framework
+- Javalin 7.2.0 - Web framework
 - SLF4J + Logback - Logging
 - Jakarta servlet/websocket APIs (provided scope)
 
@@ -94,7 +94,7 @@ All versions managed by `br.com.wdc.framework.dependencies` BOM.
 
 ## Deployment
 
-The fat JAR can be deployed to any environment that has Java 26+ installed:
+The fat JAR can be deployed to any environment that has Java 21+ installed:
 
 ```bash
 # Copy JAR to server

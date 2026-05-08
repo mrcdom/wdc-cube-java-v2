@@ -4,20 +4,20 @@ Frontend desktop do WeDoCode Shopping utilizando **Java Swing** com **FlatLaf** 
 
 ## Pré-requisitos
 
-- **Java 26** (com `--enable-preview`)
+- **Java 21**
 - **Maven 3.9+**
 
 ## Como executar
 
 ```bash
 # 1. Build (a partir da raiz do projeto)
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-26.jdk/Contents/Home
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home
 cd fontes
 mvn -DskipTests compile -pl br.com.wdc.shopping/br.com.wdc.shopping.view.swing -am
 
 # 2. Execute
 cd br.com.wdc.shopping/br.com.wdc.shopping.view.swing
-java --enable-preview \
+java \
   -cp "$(mvn -q dependency:build-classpath -Dmdep.outputFile=/dev/stdout):target/classes" \
   br.com.wdc.shopping.view.swing.ShoppingSwingMain
 ```

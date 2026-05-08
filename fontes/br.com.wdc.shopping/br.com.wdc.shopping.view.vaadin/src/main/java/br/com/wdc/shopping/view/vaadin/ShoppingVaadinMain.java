@@ -65,13 +65,13 @@ public class ShoppingVaadinMain {
         var webapp = new WebAppContext();
         webapp.setContextPath("/");
 
-        // Point WAR to an empty temp dir to avoid scanning our Java 26 .class files
+        // Point WAR to an empty temp dir to avoid scanning our Java 21 .class files
         // (Jetty's embedded ASM does not support class file major version 70)
         var webRoot = Files.createTempDirectory("vaadin-war");
         webapp.setWar(webRoot.toString());
 
         // Only scan Vaadin/Flow/Atmosphere JARs (compiled with Java 17, ASM compatible)
-        // This avoids scanning project JARs/directories with Java 26 bytecode
+        // This avoids scanning project JARs/directories with Java 21 bytecode
         webapp.setAttribute(
                 "org.eclipse.jetty.server.webapp.ContainerIncludeJarPattern",
                 ".*vaadin.*\\.jar$|.*flow.*\\.jar$|.*atmosphere.*\\.jar$");

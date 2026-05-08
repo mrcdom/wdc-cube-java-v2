@@ -1,6 +1,6 @@
 # fontes/
 
-Raiz do código-fonte do projeto **WeDoCode Shopping** — um e-commerce de referência construído com a arquitetura **Cube MVP** sobre Java 26.
+Raiz do código-fonte do projeto **WeDoCode Shopping** — um e-commerce de referência construído com a arquitetura **Cube MVP** sobre Java 21.
 
 ---
 
@@ -43,7 +43,7 @@ graph TD
 
 | Módulo | Propósito |
 |--------|-----------|
-| **commons** | Interfaces funcionais (`ThrowingRunnable`, `ThrowingConsumer`, etc.), utilitários de uso geral. |
+| **commons** | Interfaces funcionais (`ThrowingRunnable`, `ThrowingConsumer`, etc.), logging multiplataforma (`Log` — facade leve com backends JUL e SLF4J), serialização extensível, abstrações SQL, criptografia, utilitários de uso geral. |
 | **cube** | Implementação do padrão arquitetural Cube MVP — gerenciamento de scopes hierárquicos, ciclo de vida de presenters e binding de views. |
 | **dependencies** | POM do tipo BOM que centraliza versões de dependências externas (JDBI, Gson, SLF4J, etc.). |
 
@@ -67,10 +67,10 @@ graph TD
 ## Build
 
 ```bash
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-26.jdk/Contents/Home
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home
 export PATH="$JAVA_HOME/bin:$PATH"
 cd fontes/
 mvn clean install
 ```
 
-Requisitos: **Java 26** (com `--enable-preview`) e **Maven 3.9+**.
+Requisitos: **Java 21** (LTS) e **Maven 3.9+**.

@@ -44,7 +44,7 @@ graph TD
 
 - **Independência de visualização** — mesmos Presenters/ViewStates alimentam React (web), Vaadin (web server-side), Swing (desktop), Gluon (desktop/iOS/Android) e TeaVM (web/desktop/Android/iOS)
 - **Sem frameworks de DI** — injeção via `AtomicReference<T> BEAN` (service locator estático); services recebem dependências no construtor
-- **Virtual Threads** (Java 26) — conexões WebSocket com consumo mínimo de memória
+- **Virtual Threads** (Java 21+) — conexões WebSocket com consumo mínimo de memória
 - **Segurança RBAC** — autenticação HMAC challenge-response com JWT, controle de acesso por papéis (ADMIN, CUSTOMER, MANAGER), repositórios decorados com verificação de permissões
 - **Segurança de transporte** — RSA + PBKDF2 + AES-GCM para troca de dados entre cliente React e servidor
 - **Comunicação em tempo real** — WebSocket bidirecional com keep-alive automático
@@ -57,7 +57,7 @@ graph TD
     fontes["fontes/"]
 
     subgraph Framework["br.com.wdc.framework"]
-        commons["commons<br/><small>Utilitários, FP, serialização, SQL, crypto</small>"]
+        commons["commons<br/><small>Utilitários, FP, serialização, SQL, crypto, log</small>"]
         cube["cube<br/><small>Cube MVP: presenters, views, navegação</small>"]
         deps["dependencies<br/><small>BOM — versões centralizadas</small>"]
     end
@@ -91,7 +91,7 @@ graph TD
 
 | Módulo | Descrição |
 |--------|-----------|
-| **framework.commons** | Interfaces funcionais com exceções checked (`ThrowingFunction`, `ThrowingConsumer`, etc.), serialização extensível, abstrações SQL (`SqlDataSource`), utilitários (`CoerceUtils`, `DateUtil`, `Defer`), criptografia (`RSA`, `Base62`) |
+| **framework.commons** | Interfaces funcionais com exceções checked (`ThrowingFunction`, `ThrowingConsumer`, etc.), serialização extensível, abstrações SQL (`SqlDataSource`), utilitários (`CoerceUtils`, `DateUtil`, `Defer`), criptografia (`RSA`, `Base62`), logging multiplataforma (`Log` — facade leve com backends JUL e SLF4J), concorrência (`ScheduledExecutor`) |
 | **framework.cube** | Motor do padrão Cube MVP: `CubeApplication`, `CubePresenter`, `AbstractCubePresenter`, `AbstractChildPresenter`, `CubeView`/`CubeViewSlot`, `ViewState`, `CubePlace`, `CubeIntent`, `CubeNavigation` |
 | **framework.dependencies** | POM do tipo BOM para gerenciamento centralizado de versões de dependências |
 
@@ -122,9 +122,9 @@ graph TD
 
 ## Pré-requisitos
 
-- **Java 26** com preview features
-  - **Oracle JDK 26** (arm64) — necessário para JavaFX em macOS Apple Silicon
-  - **Temurin 26** — suficiente para a versão React
+- **Java 21** (LTS)
+  - **Temurin 21** ou **Microsoft JDK 21** — recomendado
+  - JDK com suporte a JavaFX necessário para a versão Gluon
 - **Maven 3.9+**
 - **Node.js 20+** e **npm** (para o frontend React)
 
@@ -133,7 +133,7 @@ graph TD
 ### Backend (Java)
 
 ```bash
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-26.jdk/Contents/Home
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home
 export PATH="$JAVA_HOME/bin:$PATH"
 
 cd fontes
@@ -167,7 +167,7 @@ cd br.com.wdc.shopping/br.com.wdc.shopping.view.react/br.com.wdc.shopping.view.r
 ./start-server.sh [porta]
 
 # Ou diretamente
-java --enable-preview -jar target/br.com.wdc.shopping.view.react.javalin-1.0.0.jar [porta]
+java -jar target/br.com.wdc.shopping.view.react.javalin-1.0.0.jar [porta]
 ```
 
 - **Aplicação:** http://localhost:8080
@@ -177,11 +177,11 @@ java --enable-preview -jar target/br.com.wdc.shopping.view.react.javalin-1.0.0.j
 ### Versão Vaadin (Web — Server-Side)
 
 ```bash
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-26.jdk/Contents/Home
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home
 export PATH="$JAVA_HOME/bin:$PATH"
 
 cd br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin
-java --enable-preview -cp "$(mvn -q dependency:build-classpath -Dmdep.outputFile=/dev/stdout):target/classes" \
+java -cp "$(mvn -q dependency:build-classpath -Dmdep.outputFile=/dev/stdout):target/classes" \
   br.com.wdc.shopping.view.vaadin.ShoppingVaadinMain
 ```
 
@@ -327,9 +327,9 @@ Cada presenter possui um **ViewState** serializável que é transmitido ao front
 
 | Categoria | Tecnologia | Versão |
 |-----------|-----------|--------|
-| Linguagem | Java (Oracle/Temurin) | 26 |
+| Linguagem | Java (Temurin/Microsoft) | 21 |
 | Build | Maven | 3.9+ |
-| Servidor HTTP | Javalin | 7.1.0 |
+| Servidor HTTP | Javalin | 7.2.0 |
 | Web UI (server-side) | Vaadin | 24.6.3 |
 | Servlet Container | Jetty | 12 |
 | Desktop UI | JavaFX (via Gluon) | 21.0.7 |

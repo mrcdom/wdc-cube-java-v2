@@ -123,7 +123,7 @@ Apenas **views modificadas** são enviadas a cada resposta (delta updates), mini
 
 ## Pré-requisitos
 
-- **Java 26** (Oracle JDK ou Temurin)
+- **Java 21** (Temurin ou Microsoft JDK)
 - **Maven 3.9+**
 - **Node.js 20+** (para build do client)
 
@@ -143,7 +143,7 @@ cd fontes && mvn -q -DskipTests clean install
 ```bash
 # Servidor (porta 8080 por padrão)
 cd fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.react/br.com.wdc.shopping.view.react.javalin
-java --enable-preview -jar target/br.com.wdc.shopping.view.react.javalin-1.0.0.jar
+java -jar target/br.com.wdc.shopping.view.react.javalin-1.0.0.jar
 
 # Ou via script
 ./start-server.sh

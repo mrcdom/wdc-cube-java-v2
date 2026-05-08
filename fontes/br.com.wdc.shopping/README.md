@@ -14,7 +14,7 @@ Um **sistema de e-commerce completo** construído com arquitetura **Cube MVP**, 
 ✅ Histórico de compras paginado  
 ✅ Autenticação segura (RSA + AES-GCM na versão web)  
 ✅ Banco H2 embarcado — zero configuração para rodar  
-✅ Virtual Threads (Java 26) — servidor web ultra-leve  
+✅ Virtual Threads (Java 21+) — servidor web ultra-leve  
 ✅ Fat JAR (~11 MB) — deploy trivial
 
 ---
@@ -26,12 +26,12 @@ Um **sistema de e-commerce completo** construído com arquitetura **Cube MVP**, 
 git clone https://github.com/mrcdom/wdc-cube-java-v2.git
 cd wdc-cube-java-v2/fontes
 
-# 2. Build (requer Java 26 + Maven 3.9+)
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-26.jdk/Contents/Home
+# 2. Build (requer Java 21 + Maven 3.9+)
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home
 mvn clean package -DskipTests
 
 # 3. Execute
-java --enable-preview -jar \
+java -jar \
   br.com.wdc.shopping/br.com.wdc.shopping.view.react/br.com.wdc.shopping.view.react.javalin/target/br.com.wdc.shopping.view.react.javalin-1.0.0.jar
 ```
 
@@ -58,9 +58,9 @@ Mesma aplicação, mesmo banco, mesma lógica — rodando nativamente em Desktop
 ## Ou rode a versão Web Server-Side (Vaadin)
 
 ```bash
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-26.jdk/Contents/Home
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home
 cd br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin
-java --enable-preview -cp "$(mvn -q dependency:build-classpath -Dmdep.outputFile=/dev/stdout):target/classes" \
+java -cp "$(mvn -q dependency:build-classpath -Dmdep.outputFile=/dev/stdout):target/classes" \
   br.com.wdc.shopping.view.vaadin.ShoppingVaadinMain
 ```
 
@@ -71,9 +71,9 @@ Abra **http://localhost:8090**. UI inteiramente server-side com Vaadin 24 + Lumo
 ## Ou rode a versão Desktop (Swing + FlatLaf)
 
 ```bash
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-26.jdk/Contents/Home
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home
 cd br.com.wdc.shopping/br.com.wdc.shopping.view.swing
-java --enable-preview -cp "$(mvn -q dependency:build-classpath -Dmdep.outputFile=/dev/stdout):target/classes" \
+java -cp "$(mvn -q dependency:build-classpath -Dmdep.outputFile=/dev/stdout):target/classes" \
   br.com.wdc.shopping.view.swing.ShoppingSwingMain
 ```
 
@@ -121,7 +121,7 @@ Java compilado para JavaScript via TeaVM, empacotado como app nativo com Tauri 2
 - **Sem Spring, sem CDI, sem magia** — injeção via `AtomicReference<T> BEAN`, 100% explícito
 - **Separação real de concerns** — troque a UI inteira sem tocar em lógica (múltiplos frontends provam isso)
 - **Padrões sólidos** — Command, Repository, Presenter, ViewState
-- **Tecnologia moderna** — Java 26, Virtual Threads, React 19, Vaadin 24, TypeScript
+- **Tecnologia moderna** — Java 21, Virtual Threads, React 19, Vaadin 24, TypeScript
 - **Código limpo** — ~3.5s de build completo, zero warnings
 - **Segurança real** — RSA + PBKDF2 + AES-GCM (não apenas demonstrativo)
 

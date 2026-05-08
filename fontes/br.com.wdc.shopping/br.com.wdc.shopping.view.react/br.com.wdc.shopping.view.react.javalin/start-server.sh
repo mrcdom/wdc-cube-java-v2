@@ -10,7 +10,7 @@ PROJECT_ROOT="$SCRIPT_DIR/../.."
 
 # Ensure JAVA_HOME is set correctly
 if [ -z "$JAVA_HOME" ]; then
-    export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-26.jdk/Contents/Home
+    export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home
 fi
 
 # Check if Java is available
