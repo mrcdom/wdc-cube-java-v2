@@ -112,11 +112,26 @@ Segue o padrão **Cube MVP** do projeto:
 ```mermaid
 graph TD
     P["Presenter (presentation)"]
-    P -->|"createView factory"| V["ViewImpl (view.gluon.impl)<br/><small>extends AbstractViewGluon&lt;P&gt;</small>"]
-    V -->|"doUpdate()"| N["JavaFX Nodes (renderização)"]
+    P -->|"view.update()"| AV["AbstractViewGluon"]
+    AV -->|"markDirty(view)"| APP["ShoppingGluonApplication"]
+    APP -->|"dirtyViewMap + timestamp"| FLUSH["flushDirtyViews()"]
+    FLUSH -->|"≥ 16ms?"| DU["view.doUpdate()"]
+    DU -->|"reconcilia campos"| N["JavaFX Nodes"]
+    FLUSH -->|"< 16ms → re-agenda"| SCHED["Platform.runLater()"]
 ```
 
-O ciclo de atualização utiliza o `AnimationTimer` do JavaFX para sincronizar as mudanças de estado dos Presenters com a árvore de nós JavaFX, evitando atualizações redundantes via dirty-check.
+### Ciclo de atualização com throttling de 16ms
+
+O ciclo de atualização agrupa e limita as atualizações de views para evitar renderizações excessivas:
+
+1. O **Presenter** chama `view.update()` ao modificar o ViewState
+2. `AbstractViewGluon.update()` delega para `app.markDirty(view)`, que registra a view num `dirtyViewMap` com o timestamp atual (nanosegundos)
+3. `scheduleFlush()` agenda `flushDirtyViews()` via `Platform.runLater()` (uma única vez por ciclo)
+4. `flushDirtyViews()` percorre o mapa e só processa views cujo timestamp tenha **pelo menos 16ms de idade** (`FRAME_INTERVAL_NS = 16_000_000L`)
+5. Views que ainda não completaram os 16ms permanecem no mapa e são re-agendadas
+6. Cada `doUpdate()` faz reconciliação incremental — compara o valor antigo com o novo e só altera os nós JavaFX que realmente mudaram
+
+Esse mecanismo garante no máximo ~60 atualizações/segundo por view (alinhado ao frame rate de 60 FPS), agrupando múltiplas chamadas `update()` dentro da mesma janela de 16ms numa única reconciliação.
 
 ## Screenshots
 
