@@ -14,6 +14,7 @@ import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
+import Link from '@mui/material/Link'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import DeleteIcon from '@mui/icons-material/Delete'
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
@@ -97,9 +98,47 @@ class CartViewClass extends BaseViewClass<ViewProps, CartViewState> {
                 {items.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={4} align="center">
-                      <Typography color="text.secondary" variant="body2" sx={{ py: 2 }}>
-                        Carrinho vazio
-                      </Typography>
+                      <Box sx={{ py: 5, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="100"
+                          height="100"
+                          viewBox="0 0 64 64"
+                          style={{ marginBottom: 12 }}
+                        >
+                          <circle cx="32" cy="32" r="30" fill="#e3f2fd" />
+                          <path
+                            d="M16 18h4l3 14h18l3-10H24"
+                            fill="none"
+                            stroke="#1976d2"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <circle cx="25" cy="38" r="2.5" fill="#1976d2" />
+                          <circle cx="39" cy="38" r="2.5" fill="#1976d2" />
+                          <line
+                            x1="28"
+                            y1="26"
+                            x2="38"
+                            y2="26"
+                            stroke="#ff9800"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                        <Typography color="text.secondary" variant="body1" sx={{ mb: 1 }}>
+                          Seu carrinho está vazio
+                        </Typography>
+                        <Button
+                          variant="text"
+                          color="primary"
+                          onClick={this.emitClickVoltar}
+                          sx={{ textTransform: 'none', fontWeight: 'bold', fontSize: '1rem' }}
+                        >
+                          Vamos às compras!
+                        </Button>
+                      </Box>
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -143,10 +182,23 @@ class CartViewClass extends BaseViewClass<ViewProps, CartViewState> {
           )}
 
           {/* Actions */}
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
-            <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={this.emitClickVoltar}>
-              Voltar
-            </Button>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 3 }}>
+            <Link
+              component="button"
+              underline="always"
+              onClick={this.emitClickVoltar}
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 0.5,
+                color: '#1976d2',
+                fontSize: '0.875rem',
+                cursor: 'pointer',
+              }}
+            >
+              <ArrowBackIcon fontSize="small" />
+              Voltar aos produtos
+            </Link>
             {items.length > 0 && (
               <Button variant="contained" color="warning" onClick={this.emitClickFinalizar}>
                 Finalizar pedido &rarr;

@@ -252,6 +252,11 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
         if (this.state.contentView != view) {
             this.state.contentView = view;
             this.update();
+
+            // Reload purchases when returning to the main view
+            if (view == null && this.purchasesPanel != null) {
+                this.purchasesPanel.loadPurchases();
+            }
         }
     }
 

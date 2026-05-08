@@ -5,7 +5,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Objects;
 
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
@@ -73,53 +72,53 @@ public class PurchaseItemViewVaadin extends AbstractViewVaadin<PurchasesPanelPre
         pane0.addClassName("purchase-item");
         pane0.setPadding(false);
         pane0.setSpacing(false);
+        pane0.addClickListener(e -> safeAction("Open receipt", () -> this.presenter.onOpenReceipt(this.state.id)));
 
+        // Line 1: #id + date
         dom.horizontalLayout(pane1 -> {
             pane1.addClassName("order-pnl");
             pane1.setPadding(false);
             pane1.setSpacing(false);
-            dom.span(label -> label.setText("Compra"));
+            pane1.setWidthFull();
+            pane1.setJustifyContentMode(com.vaadin.flow.component.orderedlayout.FlexComponent.JustifyContentMode.BETWEEN);
+            pane1.setAlignItems(com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment.CENTER);
             dom.span(label -> {
                 this.idElm = label;
                 this.idElm.setText("#" + this.state.id);
                 this.idOldValue = this.state.id;
             });
-        });
-
-        dom.verticalLayout(pane1 -> {
-            pane1.addClassName("order-info");
-            pane1.setPadding(false);
-            pane1.setSpacing(false);
-            dom.span(label -> label.setText("Data da compra:"));
             dom.span(label -> {
                 this.dateElm = label;
                 this.dateElm.setText(this.getDateStr());
+                this.dateElm.getStyle().set("color", "var(--lumo-tertiary-text-color)").set("font-size", "0.7rem").set("font-weight", "normal");
                 this.dateOldValue = this.state.date;
             });
-            dom.span(label -> label.setText("Itens adquiridos:"));
+        });
+
+        // Line 2: items + total
+        dom.horizontalLayout(pane1 -> {
+            pane1.addClassName("order-info");
+            pane1.setPadding(false);
+            pane1.setSpacing(false);
+            pane1.setWidthFull();
+            pane1.setAlignItems(com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment.BASELINE);
+            pane1.getStyle().set("gap", "4px");
             dom.span(label -> {
                 this.itemsElm = label;
                 this.itemsElm.setText(this.getItemsStr());
+                this.itemsElm.getStyle()
+                        .set("flex", "1")
+                        .set("min-width", "0")
+                        .set("overflow", "hidden")
+                        .set("text-overflow", "ellipsis")
+                        .set("white-space", "nowrap");
                 this.itemsOldValue = this.itemsElm.getText();
             });
-
-            dom.horizontalLayout(pane2 -> {
-                pane2.addClassName("order-total");
-                pane2.setPadding(false);
-                pane2.setSpacing(false);
-                dom.span(text -> text.setText("Valor Total: "));
-                dom.span(text -> {
-                    this.totalElm = text;
-                    this.totalElm.setText(NumberFormat.getCurrencyInstance().format(this.state.total));
-                    this.totalOldValue = this.state.total;
-                });
-            });
-
-            dom.button(button -> {
-                button.setText("DETALHES");
-                button.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
-                button.getStyle().set("align-self", "flex-end").set("margin-top", "var(--lumo-space-xs)");
-                button.addClickListener(e -> safeAction("Open receipt", () -> this.presenter.onOpenReceipt(this.state.id)));
+            dom.span(label -> {
+                this.totalElm = label;
+                this.totalElm.setText(NumberFormat.getCurrencyInstance().format(this.state.total));
+                this.totalElm.getStyle().set("font-weight", "bold").set("white-space", "nowrap").set("color", "var(--lumo-body-text-color)");
+                this.totalOldValue = this.state.total;
             });
         });
     }
@@ -131,6 +130,7 @@ public class PurchaseItemViewVaadin extends AbstractViewVaadin<PurchasesPanelPre
 
     private String getItemsStr() {
         if (this.state.items == null || this.state.items.isEmpty()) return "";
-        return String.join("; ", this.state.items);
+        if (this.state.items.size() == 1) return this.state.items.get(0);
+        return this.state.items.get(0) + ", +" + (this.state.items.size() - 1) + "...";
     }
 }

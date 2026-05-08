@@ -4,10 +4,13 @@ import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
+import Divider from '@mui/material/Divider'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import app, { type ViewProps } from '@root/App'
 import { BaseViewClass } from '@root/utils/ViewUtils'
+import ShoppingLogo from './home/ShoppingLogo'
 
 // :: Actions
 
@@ -39,15 +42,54 @@ class LoginViewClass extends BaseViewClass<ViewProps, LoginViewState> {
           bgcolor: 'grey.100',
         }}
       >
-        <Card elevation={4} sx={{ width: 420, p: 2 }}>
-          <CardContent>
-            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
-              <Box component="img" src="images/big_logo.png" alt="Shopping Stela" sx={{ width: 240, height: 'auto' }} />
+        <Card
+          elevation={0}
+          sx={{
+            width: 400,
+            border: '1px solid',
+            borderColor: 'grey.200',
+            borderRadius: 3,
+            overflow: 'hidden',
+          }}
+        >
+          {/* Blue header with logo */}
+          <Box
+            sx={{
+              bgcolor: 'primary.main',
+              py: 3,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 1.5,
+            }}
+          >
+            <ShoppingLogo height={38} />
+          </Box>
+
+          <CardContent sx={{ p: 4 }}>
+            {/* Lock icon + title */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
+              <Box
+                sx={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: '50%',
+                  bgcolor: 'primary.main',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mb: 1.5,
+                }}
+              >
+                <LockOutlinedIcon sx={{ color: '#fff', fontSize: 22 }} />
+              </Box>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                Acesso ao sistema
+              </Typography>
             </Box>
-            <Typography variant="h5" align="center" gutterBottom sx={{ fontWeight: 'bold' }}>
-              Acesso ao sistema
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }} onKeyDown={this.onKeyDown}>
+
+            {/* Form */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }} onKeyDown={this.onKeyDown}>
               <TextField
                 inputRef={this.usrInputRef}
                 label="Usuário"
@@ -69,7 +111,7 @@ class LoginViewClass extends BaseViewClass<ViewProps, LoginViewState> {
                 size="small"
               />
               {!!state.errorMessage && (
-                <Alert severity="error" sx={{ mt: 1 }}>
+                <Alert severity="error" sx={{ mt: 0.5 }}>
                   {state.errorMessage}
                 </Alert>
               )}
@@ -79,11 +121,28 @@ class LoginViewClass extends BaseViewClass<ViewProps, LoginViewState> {
                 color="primary"
                 size="large"
                 fullWidth
-                sx={{ mt: 1 }}
+                sx={{ mt: 1, py: 1.2, borderRadius: 2, textTransform: 'none', fontWeight: 'bold', fontSize: '1rem' }}
                 onClick={this.emitOnEnter}
               >
-                LOGIN
+                Entrar
               </Button>
+            </Box>
+
+            {/* Demo credentials hint */}
+            <Divider sx={{ mt: 3, mb: 2 }} />
+            <Box
+              sx={{
+                bgcolor: 'grey.50',
+                border: '1px dashed',
+                borderColor: 'grey.300',
+                borderRadius: 2,
+                p: 1.5,
+                textAlign: 'center',
+              }}
+            >
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>
+                Acesso demo: usuário <strong>admin</strong> / senha <strong>admin</strong>
+              </Typography>
             </Box>
           </CardContent>
         </Card>

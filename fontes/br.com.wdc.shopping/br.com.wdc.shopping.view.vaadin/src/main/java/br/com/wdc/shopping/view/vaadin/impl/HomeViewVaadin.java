@@ -3,6 +3,7 @@ package br.com.wdc.shopping.view.vaadin.impl;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -66,7 +67,7 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomePresenter> {
         }
 
         if (this.nickNameOldValue == null || !this.nickNameOldValue.equals(this.state.nickName)) {
-            this.nickNameElm.setText("Bem-vindo, " + this.state.nickName + "!");
+            this.nickNameElm.setText("Olá, " + this.state.nickName);
             this.nickNameOldValue = this.state.nickName;
         }
 
@@ -126,84 +127,102 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomePresenter> {
             header.setAlignItems(FlexComponent.Alignment.CENTER);
             header.setPadding(true);
 
-            dom.image(img -> {
-                img.setSrc("images/logo.png");
-                img.setAlt("Logo");
-                img.setHeight("30px");
+            // Left: Exit + Welcome
+            dom.horizontalLayout(left -> {
+                left.setAlignItems(FlexComponent.Alignment.CENTER);
+                left.setSpacing(true);
+                left.setPadding(false);
+                left.getStyle().set("flex", "1");
+
+                // Exit button with icon
+                var exitIcon = VaadinIcon.POWER_OFF.create();
+                exitIcon.setSize("24px");
+                dom.button(button -> {
+                    button.addClassName("exit-button");
+                    button.setIcon(exitIcon);
+                    button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+                    button.getElement().setAttribute("title", "Sair");
+                    button.addClickListener(e -> safeAction("Exit", this.presenter::onExit));
+                });
+
+                dom.span(label -> {
+                    this.nickNameElm = label;
+                    label.addClassName("welcome-label");
+                    label.setText("Olá, " + this.state.nickName);
+                    this.nickNameOldValue = this.state.nickName;
+                });
             });
 
-            dom.hSpacer();
+            // Center: SVG Logo
+            dom.horizontalLayout(center -> {
+                center.setAlignItems(FlexComponent.Alignment.CENTER);
+                center.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+                center.setPadding(false);
+                center.setSpacing(false);
 
-            dom.span(label -> {
-                this.nickNameElm = label;
-                label.addClassName("welcome-label");
-                label.setText("Bem-vindo, " + this.state.nickName + "!");
-                this.nickNameOldValue = this.state.nickName;
+                var logo = new Image("images/shopping-logo.svg", "WDC Shopping");
+                logo.setHeight("32px");
+                center.add(logo);
             });
 
-            dom.hSpacer(10);
+            // Right: Cart button
+            dom.horizontalLayout(right -> {
+                right.setAlignItems(FlexComponent.Alignment.CENTER);
+                right.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
+                right.setPadding(false);
+                right.getStyle().set("flex", "1");
 
-            // Cart button with icon + badge
-            var cartIcon = VaadinIcon.CART.create();
-            cartIcon.setSize("20px");
-            cartIcon.setColor("white");
+                // Cart button with icon + badge
+                var cartIcon = VaadinIcon.CART.create();
+                cartIcon.setSize("24px");
+                cartIcon.setColor("white");
 
-            this.cartBadge = new Span(String.valueOf(this.state.cartItemCount));
-            this.cartBadge.getElement().getThemeList().add("badge error pill small");
-            this.cartBadge.getStyle().set("position", "absolute")
-                    .set("top", "-4px").set("right", "-8px")
-                    .set("font-size", "10px").set("min-width", "18px")
-                    .set("text-align", "center");
-            this.cartBadge.setVisible(this.state.cartItemCount > 0);
-            this.cartCountOldValue = this.state.cartItemCount;
+                this.cartBadge = new Span(String.valueOf(this.state.cartItemCount));
+                this.cartBadge.getElement().getThemeList().add("badge pill small");
+                this.cartBadge.getStyle().set("position", "absolute")
+                        .set("top", "-4px").set("right", "-8px")
+                        .set("font-size", "10px").set("min-width", "18px")
+                        .set("text-align", "center")
+                        .set("background-color", "#ff9800")
+                        .set("color", "white");
+                this.cartBadge.setVisible(this.state.cartItemCount > 0);
+                this.cartCountOldValue = this.state.cartItemCount;
 
-            var cartButton = new Button("Carrinho", cartIcon,
-                    e -> safeAction("Open cart", this.presenter::onOpenCart));
-            cartButton.addClassName("cart-button");
-            cartButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-            cartButton.getStyle().set("color", "white").set("position", "relative");
-            cartButton.getElement().appendChild(this.cartBadge.getElement());
-            header.add(cartButton);
-
-            dom.hSpacer(10);
-
-            // Exit button with icon
-            var exitIcon = VaadinIcon.SIGN_OUT.create();
-            exitIcon.setSize("16px");
-            dom.button(button -> {
-                button.addClassName("exit-button");
-                button.setText("SAIR");
-                button.setIcon(exitIcon);
-                button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
-                button.addClickListener(e -> safeAction("Exit", this.presenter::onExit));
+                var cartButton = new Button("Carrinho", cartIcon,
+                        e -> safeAction("Open cart", this.presenter::onOpenCart));
+                cartButton.addClassName("cart-button");
+                cartButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+                cartButton.getStyle().set("color", "white").set("position", "relative");
+                cartButton.getElement().appendChild(this.cartBadge.getElement());
+                right.add(cartButton);
             });
         });
 
-        // Body: purchases sidebar (left) + main content (right)
+        // Body: main content (left) + purchases sidebar (right)
         var body = new HorizontalLayout();
         body.setSizeFull();
         body.setSpacing(false);
         body.setPadding(false);
         body.getStyle().set("overflow", "hidden");
 
-        // Purchases sidebar
-        this.purchasesPanelSlot = new Div();
-        this.purchasesPanelSlot.addClassName("purchases-sidebar");
-        body.add(this.purchasesPanelSlot);
-
         // Main content area with scroller
         this.productsPanelSlot = new Div();
-        this.productsPanelSlot.setSizeFull();
+        this.productsPanelSlot.setWidthFull();
 
         var scroller = new Scroller(Scroller.ScrollDirection.VERTICAL);
         this.contentPane = new Div();
         this.contentPane.addClassName("home-content");
-        this.contentPane.setSizeFull();
+        this.contentPane.setWidthFull();
         this.contentPane.add(this.productsPanelSlot);
         scroller.setContent(this.contentPane);
         scroller.setSizeFull();
         body.add(scroller);
         body.setFlexGrow(1, scroller);
+
+        // Purchases sidebar (right)
+        this.purchasesPanelSlot = new Div();
+        this.purchasesPanelSlot.addClassName("purchases-sidebar");
+        body.add(this.purchasesPanelSlot);
 
         pane0.add(body);
         pane0.setFlexGrow(1, body);

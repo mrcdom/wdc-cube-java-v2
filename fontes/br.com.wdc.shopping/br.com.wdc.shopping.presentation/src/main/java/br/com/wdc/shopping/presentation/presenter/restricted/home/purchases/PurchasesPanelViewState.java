@@ -10,9 +10,9 @@ import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.Purcha
 
 public class PurchasesPanelViewState implements ViewState {
 
-    public List<PurchaseInfo> purchases;
+    public List<PurchaseInfo> purchases = Collections.emptyList();
     public int page;
-    public int pageSize = PurchasesPanelPresenter.DEFAULT_PAGE_SIZE;
+    public int pageSize = -1;
     public int totalCount;
 
     @Override

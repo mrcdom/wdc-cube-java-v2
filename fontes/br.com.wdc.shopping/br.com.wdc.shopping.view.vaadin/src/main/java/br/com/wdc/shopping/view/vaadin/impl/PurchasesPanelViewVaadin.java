@@ -9,6 +9,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.UI;
 
 import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelViewState;
@@ -29,6 +30,7 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelP
     private Span pageInfoElm;
     private Button prevButton;
     private Button nextButton;
+    private VerticalLayout contentArea;
 
     public PurchasesPanelViewVaadin(PurchasesPanelPresenter presenter) {
         super("purchases-panel", (ShoppingVaadinApplication) presenter.app, presenter, new VerticalLayout());
@@ -44,6 +46,7 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelP
         this.pageInfoElm = null;
         this.prevButton = null;
         this.nextButton = null;
+        this.contentArea = null;
         this.itemIdx = 0;
     }
 
@@ -52,10 +55,12 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelP
         if (this.notRendered) {
             VaadinDom.render((VerticalLayout) this.element, this::initialRender);
             this.notRendered = false;
+            schedulePageSizeComputation();
         }
         this.contentSlot.accept(this.state.purchases, this.viewList);
 
-        int totalPages = Math.max(1, (int) Math.ceil((double) this.state.totalCount / this.state.pageSize));
+        int pageSize = Math.max(1, this.state.pageSize);
+        int totalPages = Math.max(1, (int) Math.ceil((double) this.state.totalCount / pageSize));
         this.pageInfoElm.setText((this.state.page + 1) + " / " + totalPages);
         this.prevButton.setEnabled(this.state.page > 0);
         this.nextButton.setEnabled(this.state.page < totalPages - 1);
@@ -67,11 +72,13 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelP
         pane0.setPadding(true);
 
         dom.h4(h -> {
+            h.addClassName("title");
             h.setText("Seu histórico de compras");
-            h.getStyle().set("color", "white").set("margin", "0 0 8px 0");
+            h.getStyle().set("margin", "0 0 12px 0");
         });
 
         dom.verticalLayout(pane1 -> {
+            this.contentArea = pane1;
             pane1.addClassName("content");
             pane1.getStyle().set("overflow-y", "auto");
             pane0.setFlexGrow(1, pane1);
@@ -91,7 +98,7 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelP
                 this.prevButton = btn;
                 btn.setIcon(VaadinIcon.ANGLE_LEFT.create());
                 btn.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON);
-                btn.getStyle().set("color", "white");
+                btn.getStyle().set("color", "#1976d2");
                 btn.getElement().setAttribute("aria-label", "Página anterior");
                 btn.addClickListener(e -> safeAction("Previous page", () -> this.presenter.onPageChange(this.state.page - 1)));
             });
@@ -105,7 +112,7 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelP
                 this.nextButton = btn;
                 btn.setIcon(VaadinIcon.ANGLE_RIGHT.create());
                 btn.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON);
-                btn.getStyle().set("color", "white");
+                btn.getStyle().set("color", "#1976d2");
                 btn.getElement().setAttribute("aria-label", "Próxima página");
                 btn.addClickListener(e -> safeAction("Next page", () -> this.presenter.onPageChange(this.state.page + 1)));
             });
@@ -119,5 +126,56 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelP
     private void updateItem(PurchaseItemViewVaadin itemView, PurchaseInfo state) {
         itemView.setState(state, false);
         itemView.doUpdate();
+    }
+
+    private static final int BASE_ITEM_HEIGHT_PX = 56;
+    private static final int BASE_FONT_SIZE_PX = 16;
+
+    private void schedulePageSizeComputation() {
+        if (this.contentArea == null) return;
+        // Initial computation + ResizeObserver with debounce for subsequent resize events.
+        // Uses root font-size ratio as correction factor to adapt to different
+        // devices, zoom levels and accessibility settings.
+        this.contentArea.getElement().executeJs(
+                "const el = this; const baseIh = $0; const baseFontPx = $1;"
+                + "function itemHeight() {"
+                + "  const rootFs = parseFloat(getComputedStyle(document.documentElement).fontSize) || baseFontPx;"
+                + "  return baseIh * (rootFs / baseFontPx);"
+                + "}"
+                + "function compute() {"
+                + "  const h = el.clientHeight;"
+                + "  if (h > 0) {"
+                + "    const ps = Math.max(1, Math.floor(h / itemHeight()));"
+                + "    if (el.__lastPs !== ps) { el.__lastPs = ps; return ps; }"
+                + "  }"
+                + "  return -1;"
+                + "}"
+                + "if (!el.__resizeObs) {"
+                + "  el.__resizeObs = new ResizeObserver(() => {"
+                + "    clearTimeout(el.__resizeTimer);"
+                + "    el.__resizeTimer = setTimeout(() => {"
+                + "      const ps = compute();"
+                + "      if (ps > 0) el.dispatchEvent(new CustomEvent('page-size', {detail: ps}));"
+                + "    }, 150);"
+                + "  });"
+                + "  el.__resizeObs.observe(el);"
+                + "}"
+                + "return new Promise(r => requestAnimationFrame(() => r(compute())));",
+                BASE_ITEM_HEIGHT_PX, BASE_FONT_SIZE_PX
+        ).then(result -> {
+            int ps = (int) result.asNumber();
+            if (ps > 0) {
+                this.presenter.onItemSizeCapacityChanged(ps);
+            }
+        });
+
+        // Listen for debounced resize-triggered page size changes
+        this.contentArea.getElement().addEventListener("page-size", e -> {
+            var detail = e.getEventData().getNumber("event.detail");
+            int ps = (int) detail;
+            if (ps > 0) {
+                this.presenter.onItemSizeCapacityChanged(ps);
+            }
+        }).addEventData("event.detail");
     }
 }

@@ -1,5 +1,6 @@
 package br.com.wdc.shopping.view.gluon;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -25,7 +26,7 @@ import br.com.wdc.shopping.view.gluon.impl.ProductsPanelViewGluon;
 import br.com.wdc.shopping.view.gluon.impl.PurchasesPanelViewGluon;
 import br.com.wdc.shopping.view.gluon.impl.ReceiptViewGluon;
 import br.com.wdc.shopping.view.gluon.impl.RootViewGluon;
-import javafx.animation.AnimationTimer;
+import javafx.application.Platform;
 import javafx.scene.layout.StackPane;
 
 public class ShoppingGluonApplication extends ShoppingApplication {
@@ -44,9 +45,9 @@ public class ShoppingGluonApplication extends ShoppingApplication {
     private static final long FRAME_INTERVAL_NS = 16_000_000L;
 
     private StackPane rootPane;
-    private final Map<String, AbstractViewGluon<?>> dirtyViewMap = new ConcurrentHashMap<>();
+    private final Map<String, AbstractViewGluon<?>> dirtyViewMap = new HashMap<>();
     private final Map<String, Object> attributeMap = new ConcurrentHashMap<>();
-    private AnimationTimer renderLoop;
+    private boolean flushScheduled;
     
     @Override
     protected Map<Integer, CubePresenter> createPresenterMap() {
@@ -67,21 +68,11 @@ public class ShoppingGluonApplication extends ShoppingApplication {
     }
 
     public void start() {
-        this.renderLoop = new AnimationTimer() {
-            @Override
-            public void handle(long nowNanos) {
-                ShoppingGluonApplication.this.flushDirtyViews(nowNanos);
-            }
-        };
-        this.renderLoop.start();
+        // No-op: flush is scheduled on-demand via markDirty
     }
 
     @Override
     public void release() {
-        if (this.renderLoop != null) {
-            this.renderLoop.stop();
-            this.renderLoop = null;
-        }
         this.dirtyViewMap.clear();
         var rootPresenter = this.getRootPresenter();
         if (rootPresenter != null) {
@@ -131,16 +122,29 @@ public class ShoppingGluonApplication extends ShoppingApplication {
     }
 
     public void markDirty(AbstractViewGluon<?> view) {
-        if (this.dirtyViewMap.putIfAbsent(view.instanceId(), view) == null) {
+        if (Platform.isFxApplicationThread()) {
+            this.dirtyViewMap.putIfAbsent(view.instanceId(), view);
             view.dirtyTimestamp = System.nanoTime();
+            scheduleFlush();
+        } else {
+            Platform.runLater(() -> markDirty(view));
         }
     }
 
-    private void flushDirtyViews(long nowNanos) {
+    private void scheduleFlush() {
+        if (!this.flushScheduled) {
+            this.flushScheduled = true;
+            Platform.runLater(this::flushDirtyViews);
+        }
+    }
+
+    private void flushDirtyViews() {
+        this.flushScheduled = false;
         if (this.dirtyViewMap.isEmpty()) {
             return;
         }
 
+        var nowNanos = System.nanoTime();
         var threshold = nowNanos - FRAME_INTERVAL_NS;
         var iterator = this.dirtyViewMap.values().iterator();
         while (iterator.hasNext()) {
@@ -149,6 +153,11 @@ public class ShoppingGluonApplication extends ShoppingApplication {
                 iterator.remove();
                 view.doUpdate();
             }
+        }
+
+        // Re-schedule if there are remaining views not yet due
+        if (!this.dirtyViewMap.isEmpty()) {
+            scheduleFlush();
         }
     }
 }

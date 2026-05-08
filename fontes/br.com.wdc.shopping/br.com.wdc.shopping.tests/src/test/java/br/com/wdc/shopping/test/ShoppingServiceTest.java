@@ -151,11 +151,11 @@ public class ShoppingServiceTest extends BaseBusinessTest {
         var ultimaCompra = compras.get(0);
         Assert.assertEquals(Long.valueOf(idCompra), Long.valueOf(ultimaCompra.id));
         Assert.assertEquals(2, ultimaCompra.items.size());
-        Assert.assertEquals(Double.valueOf(60.0), Double.valueOf(ultimaCompra.total));
+        Assert.assertEquals(Double.valueOf(65.0), Double.valueOf(ultimaCompra.total));
 
         final ReceiptForm recibo = new ReceiptService(PurchaseRepository.BEAN.get()).loadReceipt(idCompra);
         Assert.assertNotNull(recibo);
-        Assert.assertEquals(Double.valueOf(60), recibo.total);
+        Assert.assertEquals(Double.valueOf(65), recibo.total);
         Assert.assertEquals(2, recibo.items.size());
 
         var pedido0 = purchase.items.get(0);

@@ -18,17 +18,22 @@ import br.com.wdc.shopping.view.gluon.theme.GluonColors;
 import br.com.wdc.shopping.view.gluon.theme.GluonIcons;
 import br.com.wdc.shopping.view.gluon.util.GluonDom;
 import br.com.wdc.shopping.view.gluon.theme.GluonStyles;
+import javafx.animation.PauseTransition;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 
 public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPresenter> {
 
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private static final int ITEM_HEIGHT_PX = 58;
 
     private final PurchasesPanelViewState state;
 
@@ -36,6 +41,7 @@ public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPre
     private int itemIdx;
     private List<PurchaseItemView> viewList = new ArrayList<>();
     private BiConsumer<List<PurchaseInfo>, List<PurchaseItemView>> contentSlot;
+    private ScrollPane scrollPane;
     private Label pageInfoElm;
 
     public PurchasesPanelViewGluon(PurchasesPanelPresenter presenter) {
@@ -49,9 +55,18 @@ public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPre
             GluonDom.render((VBox) this.element, this::buildUI);
             this.notRendered = false;
         }
+        if (this.state.pageSize < 0 && this.scrollPane != null) {
+            Platform.runLater(() -> {
+                int h = (int) this.scrollPane.getHeight();
+                if (h > 0) {
+                    computePageSize(h);
+                }
+            });
+        }
         this.contentSlot.accept(this.state.purchases, this.viewList);
 
-        int totalPages = Math.max(1, (int) Math.ceil((double) this.state.totalCount / this.state.pageSize));
+        int pageSize = Math.max(1, this.state.pageSize);
+        int totalPages = Math.max(1, (int) Math.ceil((double) this.state.totalCount / pageSize));
         this.pageInfoElm.setText((this.state.page + 1) + " / " + totalPages);
     }
 
@@ -75,6 +90,7 @@ public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPre
         });
 
         dom.scrollVBox((sp, contentBox) -> {
+            this.scrollPane = sp;
             VBox.setVgrow(sp, Priority.ALWAYS);
             sp.setFitToWidth(true);
             sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
@@ -83,6 +99,10 @@ public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPre
             contentBox.setSpacing(10);
             contentBox.setPadding(new Insets(4, 0, 4, 0));
             this.contentSlot = this.newListSlot(contentBox, this::newItemView, this::updateItem);
+
+            sp.heightProperty().addListener((obs, oldVal, newVal) -> {
+                scheduleResize(newVal.intValue());
+            });
         });
 
         // Pagination
@@ -125,6 +145,24 @@ public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPre
         itemView.doUpdate();
     }
 
+    private PauseTransition resizeDebounce;
+    private int pendingContainerHeight;
+
+    private void scheduleResize(int containerHeight) {
+        this.pendingContainerHeight = containerHeight;
+        if (this.resizeDebounce == null) {
+            this.resizeDebounce = new PauseTransition(Duration.millis(150));
+            this.resizeDebounce.setOnFinished(e -> computePageSize(this.pendingContainerHeight));
+        }
+        this.resizeDebounce.playFromStart();
+    }
+
+    private void computePageSize(int containerHeight) {
+        if (containerHeight <= 0) return;
+        int capacity = Math.max(1, containerHeight / ITEM_HEIGHT_PX);
+        this.presenter.onItemSizeCapacityChanged(capacity);
+    }
+
     // ---- Inner class ----
 
     public static class PurchaseItemView extends AbstractViewGluon<PurchasesPanelPresenter> {
@@ -132,9 +170,11 @@ public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPre
         private PurchaseInfo purchase;
         private boolean notRendered = true;
         private Label dateElm;
+        private Label itemsElm;
         private Label totalElm;
 
         private String dateOldValue;
+        private String itemsOldValue;
         private String totalOldValue;
 
         PurchaseItemView(ShoppingGluonApplication app, PurchasesPanelPresenter presenter, int idx) {
@@ -161,6 +201,12 @@ public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPre
                 this.dateOldValue = dateNewValue;
             }
 
+            var itemsNewValue = formatItems(this.purchase.items);
+            if (!Objects.equals(itemsOldValue, itemsNewValue)) {
+                this.itemsElm.setText(itemsNewValue);
+                this.itemsOldValue = itemsNewValue;
+            }
+
             var totalNewValue = NumberFormat.getCurrencyInstance().format(this.purchase.total);
             if (!Objects.equals(totalOldValue, totalNewValue)) {
                 this.totalElm.setText(totalNewValue);
@@ -178,19 +224,34 @@ public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPre
 
             dom.vbox(dateBox -> {
                 dateBox.setSpacing(2);
+                dateBox.setMinWidth(Region.USE_PREF_SIZE);
 
                 this.dateElm = dom.label(date -> {
                     date.setStyle(GluonStyles.TEXT_BODY_STYLE);
                 });
             });
 
-            dom.hSpacer();
+            this.itemsElm = dom.label(items -> {
+                items.setStyle(GluonStyles.TEXT_MUTED_STYLE);
+                items.setMinWidth(0);
+                items.setMaxWidth(Double.MAX_VALUE);
+                items.setEllipsisString("...");
+                HBox.setHgrow(items, Priority.ALWAYS);
+            });
 
             this.totalElm = dom.label(total -> {
                 total.setStyle(GluonStyles.PRICE_SMALL);
+                total.setMinWidth(Region.USE_PREF_SIZE);
             });
 
             dom.icon(GluonIcons.create(GluonIcons.CHEVRON_RIGHT, 16, GluonColors.TEXT_PLACEHOLDER));
+        }
+
+        private static String formatItems(List<String> items) {
+            if (items == null || items.isEmpty()) {
+                return "";
+            }
+            return String.join(", ", items);
         }
     }
 }

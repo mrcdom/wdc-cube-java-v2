@@ -125,23 +125,6 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
             sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
             sp.setStyle(GluonStyles.SCROLL_TRANSPARENT);
 
-            // Product image - hero section
-            dom.vbox(imageContainer -> {
-                imageContainer.setAlignment(Pos.CENTER);
-                imageContainer.setPadding(new Insets(20, 0, 16, 0));
-                imageContainer.setStyle(GluonStyles.BG_WHITE);
-
-                this.imageElm = dom.imageView(img -> {
-                    img.setFitWidth(220);
-                    img.setFitHeight(220);
-                    img.setPreserveRatio(true);
-                    if (this.state.product != null && this.state.product.image != null) {
-                        img.setImage(ResourceCatalog.getImage(this.state.product.image));
-                        this.imageOldValue = this.state.product.image;
-                    }
-                });
-            });
-
             // Product info card
             dom.vbox(card -> {
                 card.setSpacing(14);
@@ -155,28 +138,36 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
                 });
                 this.nameOldValue = this.state.product != null ? this.state.product.name : null;
 
-                this.priceElm = dom.label(price -> {
-                    price.setText(this.state.product != null
-                            ? NumberFormat.getCurrencyInstance().format(this.state.product.price)
-                            : "");
-                    price.setStyle(GluonStyles.PRICE_LARGE);
+                dom.label(descTitle -> {
+                    descTitle.setText("Descrição");
+                    descTitle.setStyle(GluonStyles.textBold(13, GluonColors.TEXT_SECONDARY) + " -fx-padding: 8 0 4 0;");
                 });
-                this.priceOldValue = this.state.product != null ? this.state.product.price : 0;
 
-                // Quantity selector + add button
-                dom.hbox(actionSection -> {
-                    actionSection.setAlignment(Pos.BOTTOM_LEFT);
-                    actionSection.setSpacing(16);
-                    actionSection.setPadding(new Insets(6, 0, 6, 0));
+                this.descriptionElm = dom.textFlow(tf -> {
+                    tf.setStyle(GluonStyles.fontSize(13) + " -fx-line-spacing: 3;");
+                });
+                renderDescription(this.state.product != null ? this.state.product.description : null);
+                this.descriptionOldValue = this.state.product != null ? this.state.product.description : null;
 
-                    dom.vbox(qtyBox -> {
-                        qtyBox.setSpacing(6);
+                // Price + quantity (left) | Image (right)
+                dom.hbox(priceImageRow -> {
+                    priceImageRow.setAlignment(Pos.CENTER_LEFT);
+                    priceImageRow.setSpacing(16);
+                    priceImageRow.setPadding(new Insets(6, 0, 6, 0));
 
-                        dom.label(qtyLabel -> {
-                            qtyLabel.setText("Quantidade");
-                            qtyLabel.setStyle(GluonStyles.TEXT_HINT_STYLE);
+                    dom.vbox(leftCol -> {
+                        leftCol.setSpacing(10);
+                        javafx.scene.layout.HBox.setHgrow(leftCol, Priority.ALWAYS);
+
+                        this.priceElm = dom.label(price -> {
+                            price.setText(this.state.product != null
+                                    ? NumberFormat.getCurrencyInstance().format(this.state.product.price)
+                                    : "");
+                            price.setStyle(GluonStyles.PRICE_LARGE);
                         });
+                        this.priceOldValue = this.state.product != null ? this.state.product.price : 0;
 
+                        // Quantity selector
                         dom.hbox(qtyStepper -> {
                             qtyStepper.setAlignment(Pos.CENTER);
                             qtyStepper.setSpacing(8);
@@ -213,11 +204,28 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
                         });
                     });
 
+                    this.imageElm = dom.imageView(img -> {
+                        img.setFitWidth(110);
+                        img.setFitHeight(110);
+                        img.setPreserveRatio(true);
+                        if (this.state.product != null && this.state.product.image != null) {
+                            img.setImage(ResourceCatalog.getImage(this.state.product.image));
+                            this.imageOldValue = this.state.product.image;
+                        }
+                    });
+                });
+
+                // Add to cart button
+                dom.hbox(actionSection -> {
+                    actionSection.setAlignment(Pos.CENTER);
+                    actionSection.setPadding(new Insets(6, 0, 6, 0));
+
                     dom.button(addBtn -> {
                         addBtn.setText("Adicionar ao Carrinho");
                         addBtn.setGraphic(GluonIcons.create(GluonIcons.SHOPPING_CART, 16, GluonColors.TEXT_ON_PRIMARY));
-                        addBtn.setMaxWidth(220);
+                        addBtn.setMaxWidth(Double.MAX_VALUE);
                         addBtn.setStyle(GluonStyles.BTN_SUCCESS);
+                        javafx.scene.layout.HBox.setHgrow(addBtn, Priority.ALWAYS);
                         addBtn.setOnAction(e -> emitBuy());
                     });
                 });
@@ -229,17 +237,6 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
                     err.setWrapText(true);
                 });
 
-                dom.label(descTitle -> {
-                    descTitle.setText("Descrição");
-                    descTitle
-                            .setStyle(GluonStyles.textBold(13, GluonColors.TEXT_SECONDARY) + " -fx-padding: 12 0 6 0;");
-                });
-
-                this.descriptionElm = dom.textFlow(tf -> {
-                    tf.setStyle(GluonStyles.fontSize(13) + " -fx-line-spacing: 3;");
-                });
-                renderDescription(this.state.product != null ? this.state.product.description : null);
-                this.descriptionOldValue = this.state.product != null ? this.state.product.description : null;
                 VBox.setVgrow(card, Priority.ALWAYS);
             });
         });

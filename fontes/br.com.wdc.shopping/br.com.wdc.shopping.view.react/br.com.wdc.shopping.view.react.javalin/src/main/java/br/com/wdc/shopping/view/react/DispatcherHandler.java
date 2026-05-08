@@ -44,12 +44,20 @@ public class DispatcherHandler {
     private String appId;
     private String appSignature;
     private WebSocketConnection wsSession;
+    private String activeWsSessionId;
 
     /**
      * Get or create handler for a given app ID.
      */
     public static DispatcherHandler getOrCreate(String appId) {
         return ACTIVE_HANDLERS.computeIfAbsent(appId, id -> new DispatcherHandler(id));
+    }
+
+    /**
+     * Get existing handler for a given app ID, or null if not found.
+     */
+    public static DispatcherHandler get(String appId) {
+        return ACTIVE_HANDLERS.get(appId);
     }
 
     /**
@@ -115,9 +123,10 @@ public class DispatcherHandler {
 
             this.appSignature = signature;
             ctx.enableAutomaticPings(15, TimeUnit.SECONDS);
+            this.activeWsSessionId = ctx.sessionId();
             this.wsSession = new JavalinWebSocketConnection(ctx);
             
-            LOG.debug("WebSocket connection established for session: {}", appId);
+            LOG.debug("WebSocket connection established for session: {} (wsId: {})", appId, this.activeWsSessionId);
             
         } catch (Exception e) {
             LOG.error("Error during WebSocket connection open", e);
@@ -175,6 +184,20 @@ public class DispatcherHandler {
     public void onClose(io.javalin.websocket.WsCloseContext ctx) {
         try {
             ctx.disableAutomaticPings();
+
+            // Guard against stale close events: when a client reconnects quickly,
+            // the new connection's onConnect may fire before the old connection's
+            // onClose. Without this check, the old close would destroy the new
+            // connection's handler and session.
+            String closingWsId = ctx.sessionId();
+            if (this.activeWsSessionId != null && !this.activeWsSessionId.equals(closingWsId)) {
+                LOG.debug("Ignoring close for superseded WebSocket session: {} (active: {})", closingWsId, this.activeWsSessionId);
+                return;
+            }
+
+            this.activeWsSessionId = null;
+            this.wsSession = null;
+
             ApplicationReactImpl app = getApp();
             if (app != null) {
                 app.setWsSession(null);

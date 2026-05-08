@@ -17,7 +17,6 @@ public class PurchasesPanelPresenter extends AbstractChildPresenter<ShoppingAppl
 
     // :: Public Class Fields
 
-    public static final int DEFAULT_PAGE_SIZE = 3;
     public static Function<PurchasesPanelPresenter, CubeView> createView;
 
     // :: Public Instance Fields
@@ -46,7 +45,9 @@ public class PurchasesPanelPresenter extends AbstractChildPresenter<ShoppingAppl
 
     @Override
     protected void onInitialize() {
-        this.loadPurchases();
+        // Render the view so it can measure the container.
+        // Data load is deferred until the view calls onItemSizeCapacityChanged().
+        this.update();
     }
 
     // :: User Actions
@@ -56,10 +57,17 @@ public class PurchasesPanelPresenter extends AbstractChildPresenter<ShoppingAppl
         this.loadPurchases();
     }
 
-    public void onPageSizeChange(int pageSize) {
-        this.state.pageSize = Math.max(1, pageSize);
-        this.state.page = 0;
-        this.loadPurchases();
+    /**
+     * Called by the view when it determines how many items fit without scrolling.
+     * Only triggers a data reload if the capacity actually changed.
+     */
+    public void onItemSizeCapacityChanged(int capacity) {
+        int newPageSize = Math.max(1, capacity);
+        if (newPageSize != this.state.pageSize) {
+            this.state.pageSize = newPageSize;
+            this.state.page = 0;
+            this.loadPurchases();
+        }
     }
 
     public void onOpenReceipt(Long purchaseId) {

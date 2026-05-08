@@ -164,8 +164,11 @@ public class HomeViewGluon extends AbstractViewGluon<HomePresenter> {
             VBox.setVgrow(cp, Priority.ALWAYS);
             this.defaultContentPane = dom.vbox(dp -> {
                 VBox.setVgrow(dp, Priority.ALWAYS);
-                this.productsPanelSlot = dom.stackPane(slot -> {});
+                this.productsPanelSlot = dom.stackPane(slot -> {
+                    VBox.setVgrow(slot, Priority.ALWAYS);
+                });
                 this.purchasesPanelSlot = dom.stackPane(slot -> {
+                    VBox.setVgrow(slot, Priority.ALWAYS);
                     slot.setVisible(false);
                     slot.setManaged(false);
                 });
@@ -208,6 +211,9 @@ public class HomeViewGluon extends AbstractViewGluon<HomePresenter> {
         this.purchasesPanelSlot.setVisible(!showProducts);
         this.purchasesPanelSlot.setManaged(!showProducts);
         updateTabStyles();
+        if (!showProducts && this.state.purchasesPanelView != null) {
+            this.state.purchasesPanelView.update();
+        }
     }
 
     private void updateTabStyles() {

@@ -55,8 +55,10 @@ public class DispatcherController {
 	protected void onClose(WsCloseContext ctx) {
 		try {
 			String sessionId = ctx.pathParam("id");
-			DispatcherHandler handler = DispatcherHandler.getOrCreate(sessionId);
-			handler.onClose(ctx);
+			DispatcherHandler handler = DispatcherHandler.get(sessionId);
+			if (handler != null) {
+				handler.onClose(ctx);
+			}
 		} catch (Exception e) {
 			LOG.warn("Error during WebSocket close", e);
 		}
@@ -65,8 +67,10 @@ public class DispatcherController {
 	protected void onError(WsErrorContext ctx) {
 		try {
 			String sessionId = ctx.pathParam("id");
-			DispatcherHandler handler = DispatcherHandler.getOrCreate(sessionId);
-			handler.onError(ctx);
+			DispatcherHandler handler = DispatcherHandler.get(sessionId);
+			if (handler != null) {
+				handler.onError(ctx);
+			}
 		} catch (Exception e) {
 			LOG.error("Error in WebSocket error handler", e);
 		}

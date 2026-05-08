@@ -114,9 +114,11 @@ public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptPresenter> {
         });
 
         dom.button(button -> {
-            button.setText("VOLTAR");
+            button.setText("Voltar aos produtos");
             button.setIcon(VaadinIcon.ARROW_LEFT.create());
-            button.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+            button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+            button.addClassName("back-button");
+            button.getStyle().set("margin-top", "var(--lumo-space-m)");
             button.addClickListener(e -> safeAction("Open products", this.presenter::onOpenProducts));
         });
     }
