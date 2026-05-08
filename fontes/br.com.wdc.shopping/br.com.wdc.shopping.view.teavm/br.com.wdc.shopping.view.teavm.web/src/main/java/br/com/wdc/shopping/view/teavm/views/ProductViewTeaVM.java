@@ -43,7 +43,7 @@ public class ProductViewTeaVM extends AbstractViewTeaVM<ProductPresenter> {
         }
 
         if (this.state.product != null) {
-            var newImage = this.state.product.image != null ? "/" + this.state.product.image : "";
+            var newImage = this.state.product.image != null ? app.resolveImageUrl(this.state.product.image) : "";
             if (!Objects.equals(this.imageOldValue, newImage) && !newImage.isEmpty()) {
                 this.imageElm.setSrc(newImage);
                 this.imageOldValue = newImage;

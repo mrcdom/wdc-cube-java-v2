@@ -97,7 +97,7 @@ public class ProductsPanelViewTeaVM extends AbstractViewTeaVM<ProductsPanelPrese
                 this.notRendered = false;
             }
 
-            var newImage = this.product.image != null ? "/" + this.product.image : "";
+            var newImage = this.product.image != null ? app.resolveImageUrl(this.product.image) : "";
             if (!Objects.equals(this.oldProductImage, newImage) && !newImage.isEmpty()) {
                 this.imageElm.setSrc(newImage);
                 this.oldProductImage = newImage;

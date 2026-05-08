@@ -39,6 +39,7 @@ import br.com.wdc.shopping.view.teavm.views.RootViewTeaVM;
  */
 public class ShoppingTeaVMApplication extends ShoppingApplication {
 
+    private final String apiBaseUrl;
     private final List<AbstractViewTeaVM<?>> dirtyViews = new ArrayList<>();
     private final Map<String, Object> attributeMap = new HashMap<>();
     private boolean renderScheduled;
@@ -56,6 +57,8 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
     }
 
     public ShoppingTeaVMApplication(String apiBaseUrl) {
+        this.apiBaseUrl = apiBaseUrl;
+
         // Configura CryptoProvider para browser (antes de qualquer auth)
         CryptoProvider.BEAN.set(new BrowserCryptoProvider());
 
@@ -66,7 +69,27 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
         HttpTransport transport = new FetchHttpTransport(apiBaseUrl);
         TeaVMRepositoryBootstrap.initialize(transport);
     }
-    
+
+    public String getApiBaseUrl() {
+        return apiBaseUrl;
+    }
+
+    /**
+     * Resolve an image path to a full URL.
+     * In browser mode (same origin), returns the relative path.
+     * In Tauri mode (cross-origin), prepends the API base URL.
+     */
+    public String resolveImageUrl(String imagePath) {
+        if (imagePath == null || imagePath.isEmpty()) {
+            return "";
+        }
+        // If apiBaseUrl is empty or matches current origin, use relative path
+        if (apiBaseUrl == null || apiBaseUrl.isEmpty()) {
+            return "/" + imagePath;
+        }
+        return apiBaseUrl + "/" + imagePath;
+    }
+
     @Override
     protected Map<Integer, CubePresenter> createPresenterMap() {
         return new HashMap<>();

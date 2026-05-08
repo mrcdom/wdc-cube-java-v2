@@ -31,6 +31,11 @@ public final class SecurityFilter {
 	 * Rotas de imagem de produto são públicas (catálogo) e não exigem autenticação.
 	 */
 	public void handle(Context ctx) {
+		// Skip CORS preflight requests (OPTIONS) — handled by CORS plugin
+		if ("OPTIONS".equalsIgnoreCase(ctx.method().name())) {
+			return;
+		}
+
 		if (isPublicRoute(ctx.path())) {
 			return;
 		}
