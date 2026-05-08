@@ -15,10 +15,10 @@
     <packaging>jar</packaging>
 
     <name>WeDoCode Shopping View TeaVM (Lit + Material Web)</name>
-    <description>Browser-based view compiled from Java to JavaScript via TeaVM, using Lit + Material Web components</description>
+    <description>Browser-based view compiled from Java to JavaScript via TeaVM, using Bootstrap 5</description>
 
     <properties>
-        <teavm.version>0.12.3</teavm.version>
+        <teavm.version>0.14.0</teavm.version>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
     </properties>

@@ -1,6 +1,6 @@
 # WDC Shopping — View TeaVM
 
-Implementação web da aplicação **WeDoCode Shopping** compilada de Java para JavaScript via [TeaVM 0.12.3](https://teavm.org/), utilizando **Bootstrap 5** para a interface gráfica.
+Implementação web da aplicação **WeDoCode Shopping** compilada de Java para JavaScript via [TeaVM 0.14.0](https://teavm.org/), utilizando **Bootstrap 5** para a interface gráfica.
 
 ## Visão Geral
 
@@ -40,7 +40,7 @@ Browser (JavaScript)
 
 | Componente | Tecnologia | Versão |
 |------------|-----------|--------|
-| Compilador AOT | [TeaVM](https://teavm.org/) | 0.12.3 |
+| Compilador AOT | [TeaVM](https://teavm.org/) | 0.14.0 |
 | UI Framework | [Bootstrap](https://getbootstrap.com/) | 5.3.3 |
 | Ícones | [Bootstrap Icons](https://icons.getbootstrap.com/) | 1.11.3 |
 | Linguagem | Java | 21 |
