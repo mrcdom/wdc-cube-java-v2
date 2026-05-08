@@ -21,6 +21,8 @@
         <teavm.version>0.14.0</teavm.version>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
+        <!-- API server URL: override with -Dapi.base.url=http://host:port -->
+        <api.base.url>http://localhost:8080</api.base.url>
     </properties>
 
     <modules>

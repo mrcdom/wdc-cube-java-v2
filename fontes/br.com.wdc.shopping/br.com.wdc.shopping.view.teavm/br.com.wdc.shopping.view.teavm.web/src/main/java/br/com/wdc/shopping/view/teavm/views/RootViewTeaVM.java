@@ -41,6 +41,8 @@ public class RootViewTeaVM extends AbstractViewTeaVM<RootPresenter> {
     }
 
     private void buildUI(HtmlDom dom, HTMLElement root) {
-        this.contentSlot = dom.div("flex-grow-1", slot -> {});
+        this.contentSlot = dom.div("flex-grow-1", slot -> {
+            slot.setAttribute("style", "min-height:0");
+        });
     }
 }

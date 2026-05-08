@@ -170,7 +170,7 @@ public class HomeViewTeaVM extends AbstractViewTeaVM<HomePresenter> {
 
         // Content pane
         this.contentPane = dom.div("flex-grow-1 overflow-auto", cp -> {
-            cp.setAttribute("style", "background-color:#ededed");
+            cp.setAttribute("style", "background-color:#ededed;min-height:0");
             this.defaultContentPane = dom.div("h-100", dp -> {
                 this.productsPanelSlot = dom.div(null, slot -> {});
                 this.purchasesPanelSlot = dom.div("d-none h-100", slot -> {});

@@ -64,7 +64,7 @@ public class PurchasesPanelViewTeaVM extends AbstractViewTeaVM<PurchasesPanelPre
         });
 
         this.listContainer = dom.div("flex-grow-1", container -> {
-            container.setAttribute("style", "overflow-y:auto;overflow-x:hidden");
+            container.setAttribute("style", "overflow-y:auto;overflow-x:hidden;min-height:0");
         });
         this.contentSlot = this.newListSlot(this.listContainer, this::newItemView, this::updateItem);
 
@@ -109,13 +109,9 @@ public class PurchasesPanelViewTeaVM extends AbstractViewTeaVM<PurchasesPanelPre
 
     private void computePageSize() {
         if (this.listContainer == null) return;
-        // Restore flex-grow-1 class for accurate measurement
-        this.listContainer.getClassList().add("flex-grow-1");
         int containerHeight = this.listContainer.getClientHeight();
         if (containerHeight <= 0) return;
         int capacity = Math.max(1, containerHeight / ITEM_HEIGHT_PX);
-        // Remove flex-grow so list shrinks to content; paginator sits right below
-        this.listContainer.getClassList().remove("flex-grow-1");
         this.presenter.onItemSizeCapacityChanged(capacity);
     }
 

@@ -156,6 +156,17 @@
                             <resources>
                                 <resource>
                                     <directory>src/main/webapp</directory>
+                                    <filtering>true</filtering>
+                                    <includes>
+                                        <include>index.html</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>src/main/webapp</directory>
+                                    <filtering>false</filtering>
+                                    <excludes>
+                                        <exclude>index.html</exclude>
+                                    </excludes>
                                 </resource>
                             </resources>
                         </configuration>
