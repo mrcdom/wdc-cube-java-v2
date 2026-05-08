@@ -27,7 +27,7 @@ git clone https://github.com/mrcdom/wdc-cube-java-v2.git
 cd wdc-cube-java-v2/fontes
 
 # 2. Build (requer Java 21 + Maven 3.9+)
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home
+export JAVA_HOME=<caminho-para-jdk-21>  # ex: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home
 mvn clean package -DskipTests
 
 # 3. Execute
@@ -58,7 +58,7 @@ Mesma aplicação, mesmo banco, mesma lógica — rodando nativamente em Desktop
 ## Ou rode a versão Web Server-Side (Vaadin)
 
 ```bash
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home
+export JAVA_HOME=<caminho-para-jdk-21>
 cd br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin
 java -cp "$(mvn -q dependency:build-classpath -Dmdep.outputFile=/dev/stdout):target/classes" \
   br.com.wdc.shopping.view.vaadin.ShoppingVaadinMain
@@ -71,7 +71,7 @@ Abra **http://localhost:8090**. UI inteiramente server-side com Vaadin 24 + Lumo
 ## Ou rode a versão Desktop (Swing + FlatLaf)
 
 ```bash
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home
+export JAVA_HOME=<caminho-para-jdk-21>
 cd br.com.wdc.shopping/br.com.wdc.shopping.view.swing
 java -cp "$(mvn -q dependency:build-classpath -Dmdep.outputFile=/dev/stdout):target/classes" \
   br.com.wdc.shopping.view.swing.ShoppingSwingMain

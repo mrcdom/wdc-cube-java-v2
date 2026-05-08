@@ -133,7 +133,7 @@ graph TD
 ### Backend (Java)
 
 ```bash
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home
+export JAVA_HOME=<caminho-para-jdk-21>  # ex: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home
 export PATH="$JAVA_HOME/bin:$PATH"
 
 cd fontes
@@ -177,7 +177,7 @@ java -jar target/br.com.wdc.shopping.view.react.javalin-1.0.0.jar [porta]
 ### Versão Vaadin (Web — Server-Side)
 
 ```bash
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home
+export JAVA_HOME=<caminho-para-jdk-21>
 export PATH="$JAVA_HOME/bin:$PATH"
 
 cd br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin

@@ -11,7 +11,7 @@ Frontend desktop do WeDoCode Shopping utilizando **Java Swing** com **FlatLaf** 
 
 ```bash
 # 1. Build (a partir da raiz do projeto)
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home
+export JAVA_HOME=<caminho-para-jdk-21>  # ex: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home
 cd fontes
 mvn -DskipTests compile -pl br.com.wdc.shopping/br.com.wdc.shopping.view.swing -am
 

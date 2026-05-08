@@ -41,7 +41,7 @@ O layout adapta-se a telas pequenas (iPhone SE) utilizando classes Bootstrap res
 
 ```bash
 # Via script (recomendado)
-JAVA21_HOME=/Library/Java/JavaVirtualMachines/microsoft-21.jdk/Contents/Home bash build.sh
+JAVA21_HOME=<caminho-para-jdk-21> bash build.sh
 
 # Ou diretamente com Maven
 JAVA_HOME=$JAVA21_HOME mvn process-classes -DskipTests

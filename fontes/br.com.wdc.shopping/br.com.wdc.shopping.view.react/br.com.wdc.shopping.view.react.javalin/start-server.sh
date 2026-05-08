@@ -8,9 +8,14 @@ set -e
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$SCRIPT_DIR/../.."
 
-# Ensure JAVA_HOME is set correctly
+# Ensure JAVA_HOME is set correctly (must point to a Java 21 JDK)
 if [ -z "$JAVA_HOME" ]; then
-    export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home
+    export JAVA_HOME=$JAVA21_HOME
+    if [ -z "$JAVA_HOME" ]; then
+        echo "Warning: JAVA_HOME not set. Please set it to a Java 21 JDK path."
+        echo "  Example: export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home"
+        exit 1
+    fi
 fi
 
 # Check if Java is available
