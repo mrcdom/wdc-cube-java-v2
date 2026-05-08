@@ -5,13 +5,13 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Div;
 
+import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
+import br.com.wdc.framework.cube.CubePresenter;
+import br.com.wdc.shopping.presentation.ProxyRepositoryWrapper;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.RootPresenter;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
@@ -33,19 +33,19 @@ import br.com.wdc.shopping.view.vaadin.util.IntentSigner;
 
 public class ShoppingVaadinApplication extends ShoppingApplication {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ShoppingVaadinApplication.class);
+    private static final Log LOG = Log.getLogger(ShoppingVaadinApplication.class);
 
     private static final Map<String, ShoppingVaadinApplication> APP_CACHE = new ConcurrentHashMap<>();
 
     static {
-        RootPresenter.createView = p -> new RootViewVaadin((ShoppingVaadinApplication) p.app, p);
-        LoginPresenter.createView = p -> new LoginViewVaadin((ShoppingVaadinApplication) p.app, p);
-        HomePresenter.createView = p -> new HomeViewVaadin((ShoppingVaadinApplication) p.app, p);
-        CartPresenter.createView = p -> new CartViewVaadin((ShoppingVaadinApplication) p.app, p);
-        ProductPresenter.createView = p -> new ProductViewVaadin((ShoppingVaadinApplication) p.app, p);
-        ReceiptPresenter.createView = p -> new ReceiptViewVaadin((ShoppingVaadinApplication) p.app, p);
-        ProductsPanelPresenter.createView = p -> new ProductsPanelViewVaadin((ShoppingVaadinApplication) p.app, p);
-        PurchasesPanelPresenter.createView = p -> new PurchasesPanelViewVaadin((ShoppingVaadinApplication) p.app, p);
+        RootPresenter.createView = RootViewVaadin::new;
+        LoginPresenter.createView = LoginViewVaadin::new;
+        HomePresenter.createView = HomeViewVaadin::new;
+        CartPresenter.createView = CartViewVaadin::new;
+        ProductPresenter.createView = ProductViewVaadin::new;
+        ReceiptPresenter.createView = ReceiptViewVaadin::new;
+        ProductsPanelPresenter.createView = ProductsPanelViewVaadin::new;
+        PurchasesPanelPresenter.createView = PurchasesPanelViewVaadin::new;
     }
 
     private UI ui;
@@ -55,6 +55,16 @@ public class ShoppingVaadinApplication extends ShoppingApplication {
     private final AtomicBoolean navigatingFromBrowser = new AtomicBoolean(false);
     private final IntentSigner intentSigner = new IntentSigner();
     private String lastSignature;
+
+    @Override
+    protected Map<Integer, CubePresenter> createPresenterMap() {
+        return new ConcurrentHashMap<>();
+    }
+
+    @Override
+    protected <T> T createDelegate(Class<T> repoInterface, T delegate) {
+        return ProxyRepositoryWrapper.wrap(repoInterface, delegate, this::getSecurityContext);
+    }
 
     public ShoppingVaadinApplication(UI ui) {
         this.ui = ui;

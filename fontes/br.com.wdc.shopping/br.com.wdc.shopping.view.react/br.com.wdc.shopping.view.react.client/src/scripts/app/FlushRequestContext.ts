@@ -125,7 +125,6 @@ export class FlushRequestContext {
 
     socket.onopen = () => {
       app.isConnected = true
-      app.reconnectController.reset()
       this.initKeepAliveChecks()
       this.keepAliveNow()
 
@@ -143,12 +142,20 @@ export class FlushRequestContext {
       handleDisconnect(error)
     }
 
-    socket.onclose = (event) => {
+    socket.onclose = (event: CloseEvent) => {
+      // Server sent close code 4001: session is invalid, reload the page
+      if (event.code === 4001) {
+        window.location.reload()
+        return
+      }
       handleDisconnect(event)
     }
 
     // Log messages from the server
     socket.onmessage = (e) => {
+      if (app.reconnectController.count > 0) {
+        app.reconnectController.reset()
+      }
       const response = JSON.parse(e.data)
 
       //console.log(response);

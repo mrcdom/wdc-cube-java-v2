@@ -62,7 +62,7 @@ public class FetchProductsCmd extends BaseCommand {
             this.applyParams(query);
 
             var productMap = new HashMap<Long, Product>();
-            return query.map((rs, _) -> fromJson(fJsonData.apply(rs), productMap)).list();
+            return query.map((rs, _ignored) -> fromJson(fJsonData.apply(rs), productMap)).list();
         }
     }
 

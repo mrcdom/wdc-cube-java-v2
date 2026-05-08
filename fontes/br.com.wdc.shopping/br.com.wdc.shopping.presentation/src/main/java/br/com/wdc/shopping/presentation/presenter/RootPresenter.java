@@ -3,8 +3,7 @@ package br.com.wdc.shopping.presentation.presenter;
 import java.util.function.Function;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubeIntent;
@@ -19,7 +18,7 @@ public class RootPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     // :: Public Class Fields
 
-    private static final Logger LOG = LoggerFactory.getLogger(RootPresenter.class);
+    private static final Log LOG = Log.getLogger(RootPresenter.class);
 
     public static Function<RootPresenter, CubeView> createView;
 
@@ -78,7 +77,7 @@ public class RootPresenter extends AbstractCubePresenter<ShoppingApplication> {
         this.alertUnexpectedError(LOG, message, caught);
     }
 
-    public void alertUnexpectedError(Logger logger, String message, Throwable caught) {
+    public void alertUnexpectedError(Log logger, String message, Throwable caught) {
         if (StringUtils.isNotBlank(caught.getMessage())) {
             this.state.errorMessage = message;
         } else {

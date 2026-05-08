@@ -20,6 +20,7 @@ settings/
 target/
 dist/
 node_modules/
+dependency-reduced-pom.xml
 .parcel-cache/
 *.class
 *.log

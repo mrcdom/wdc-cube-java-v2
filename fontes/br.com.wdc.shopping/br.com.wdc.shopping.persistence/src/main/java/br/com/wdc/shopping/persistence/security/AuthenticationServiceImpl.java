@@ -6,8 +6,7 @@ import java.security.MessageDigest;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 import br.com.wdc.shopping.domain.criteria.UserCriteria;
 import br.com.wdc.shopping.domain.model.User;
@@ -28,7 +27,7 @@ import br.com.wdc.shopping.domain.utils.ProjectionValues;
  */
 public final class AuthenticationServiceImpl implements AuthenticationService {
 
-	private static final Logger LOG = LoggerFactory.getLogger(AuthenticationServiceImpl.class);
+	private static final Log LOG = Log.getLogger(AuthenticationServiceImpl.class);
 	private static final String HMAC_ALGORITHM = "HmacSHA256";
 
 	private final UserRepository rawUserRepo;

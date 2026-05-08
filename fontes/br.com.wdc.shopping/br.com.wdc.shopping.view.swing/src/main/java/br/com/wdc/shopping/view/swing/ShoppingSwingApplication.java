@@ -5,10 +5,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.swing.Timer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 import br.com.wdc.framework.cube.AbstractCubePresenter;
+import br.com.wdc.framework.cube.CubePresenter;
+import br.com.wdc.shopping.presentation.ProxyRepositoryWrapper;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.RootPresenter;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
@@ -30,17 +31,17 @@ import br.com.wdc.shopping.view.swing.util.StackPanel;
 
 public class ShoppingSwingApplication extends ShoppingApplication {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ShoppingSwingApplication.class);
+    private static final Log LOG = Log.getLogger(ShoppingSwingApplication.class);
 
     static {
-        RootPresenter.createView = p -> new RootViewSwing((ShoppingSwingApplication) p.app, p);
-        LoginPresenter.createView = p -> new LoginViewSwing((ShoppingSwingApplication) p.app, p);
-        HomePresenter.createView = p -> new HomeViewSwing((ShoppingSwingApplication) p.app, p);
-        CartPresenter.createView = p -> new CartViewSwing((ShoppingSwingApplication) p.app, p);
-        ProductPresenter.createView = p -> new ProductViewSwing((ShoppingSwingApplication) p.app, p);
-        ReceiptPresenter.createView = p -> new ReceiptViewSwing((ShoppingSwingApplication) p.app, p);
-        ProductsPanelPresenter.createView = p -> new ProductsPanelViewSwing((ShoppingSwingApplication) p.app, p);
-        PurchasesPanelPresenter.createView = p -> new PurchasesPanelViewSwing((ShoppingSwingApplication) p.app, p);
+        RootPresenter.createView = RootViewSwing::new;
+        LoginPresenter.createView = LoginViewSwing::new;
+        HomePresenter.createView = HomeViewSwing::new;
+        CartPresenter.createView = CartViewSwing::new;
+        ProductPresenter.createView = ProductViewSwing::new;
+        ReceiptPresenter.createView = ReceiptViewSwing::new;
+        ProductsPanelPresenter.createView = ProductsPanelViewSwing::new;
+        PurchasesPanelPresenter.createView = PurchasesPanelViewSwing::new;
     }
 
     private static final int FRAME_INTERVAL_MS = 16; // ~60fps
@@ -50,6 +51,16 @@ public class ShoppingSwingApplication extends ShoppingApplication {
     private final Map<String, Object> attributeMap = new ConcurrentHashMap<>();
     private Timer renderTimer;
     private boolean devMode;
+
+    @Override
+    protected Map<Integer, CubePresenter> createPresenterMap() {
+        return new ConcurrentHashMap<>();
+    }
+
+    @Override
+    protected <T> T createDelegate(Class<T> repoInterface, T delegate) {
+        return ProxyRepositoryWrapper.wrap(repoInterface, delegate, this::getSecurityContext);
+    }
 
     public boolean isDevMode() {
         return this.devMode;
@@ -68,7 +79,7 @@ public class ShoppingSwingApplication extends ShoppingApplication {
     }
 
     public void start() {
-        this.renderTimer = new Timer(FRAME_INTERVAL_MS, _ -> this.flushDirtyViews());
+        this.renderTimer = new Timer(FRAME_INTERVAL_MS, _ignored -> this.flushDirtyViews());
         this.renderTimer.start();
     }
 

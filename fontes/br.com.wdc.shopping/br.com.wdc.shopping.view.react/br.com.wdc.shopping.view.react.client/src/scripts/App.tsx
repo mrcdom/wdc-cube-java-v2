@@ -44,6 +44,10 @@ const publicApp = new (class {
     privateApp.submit(vsid, eventId)
   }
 
+  submitSilent(vsid: string, eventId: number) {
+    privateApp.submitSilent(vsid, eventId)
+  }
+
   async cipher(value: string) {
     return privateApp.dataSecurity.b64Cipher(value)
   }

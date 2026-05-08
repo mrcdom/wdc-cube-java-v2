@@ -2,8 +2,7 @@ package br.com.wdc.shopping.presentation.presenter.restricted.home.purchases;
 
 import java.util.function.Function;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 import br.com.wdc.framework.cube.AbstractChildPresenter;
 import br.com.wdc.framework.cube.CubeView;
@@ -14,11 +13,10 @@ public class PurchasesPanelPresenter extends AbstractChildPresenter<ShoppingAppl
 
     // :: Private Class Fields
 
-    private static final Logger LOG = LoggerFactory.getLogger(PurchasesPanelPresenter.class);
+    private static final Log LOG = Log.getLogger(PurchasesPanelPresenter.class);
 
     // :: Public Class Fields
 
-    public static final int DEFAULT_PAGE_SIZE = 3;
     public static Function<PurchasesPanelPresenter, CubeView> createView;
 
     // :: Public Instance Fields
@@ -47,7 +45,9 @@ public class PurchasesPanelPresenter extends AbstractChildPresenter<ShoppingAppl
 
     @Override
     protected void onInitialize() {
-        this.loadPurchases();
+        // Render the view so it can measure the container.
+        // Data load is deferred until the view calls onItemSizeCapacityChanged().
+        this.update();
     }
 
     // :: User Actions
@@ -57,10 +57,17 @@ public class PurchasesPanelPresenter extends AbstractChildPresenter<ShoppingAppl
         this.loadPurchases();
     }
 
-    public void onPageSizeChange(int pageSize) {
-        this.state.pageSize = Math.max(1, pageSize);
-        this.state.page = 0;
-        this.loadPurchases();
+    /**
+     * Called by the view when it determines how many items fit without scrolling.
+     * Only triggers a data reload if the capacity actually changed.
+     */
+    public void onItemSizeCapacityChanged(int capacity) {
+        int newPageSize = Math.max(1, capacity);
+        if (newPageSize != this.state.pageSize) {
+            this.state.pageSize = newPageSize;
+            this.state.page = 0;
+            this.loadPurchases();
+        }
     }
 
     public void onOpenReceipt(Long purchaseId) {

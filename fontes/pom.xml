@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<name>WeDoCode Shopping :: root</name>
-	<description>Cube MVP architectural reference — Java 26 + React 19 e-commerce demo</description>
+	<description>Cube MVP architectural reference — Java 21 + React 19 e-commerce demo</description>
 	<url>https://github.com/mrcdom/wdc-cube-java-v2</url>
 	<inceptionYear>2026</inceptionYear>
 
@@ -44,8 +44,8 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-		<maven.compiler.source>26</maven.compiler.source>
-		<maven.compiler.target>26</maven.compiler.target>
+		<maven.compiler.source>21</maven.compiler.source>
+		<maven.compiler.target>21</maven.compiler.target>
 	</properties>
 
 	<distributionManagement>
@@ -77,34 +77,13 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
-					<version>4.0.0-beta-4</version>
+					<version>3.13.0</version>
 					<configuration>
-						<release>26</release>
-						<enablePreview>true</enablePreview>
+						<release>21</release>
 					</configuration>
 				</plugin>
 			</plugins>
 		</pluginManagement>
 	</build>
 
-	<profiles>
-		<profile>
-			<id>android-compat</id>
-			<build>
-				<pluginManagement>
-					<plugins>
-						<plugin>
-							<groupId>org.apache.maven.plugins</groupId>
-							<artifactId>maven-compiler-plugin</artifactId>
-							<version>4.0.0-beta-4</version>
-							<configuration>
-								<release>22</release>
-								<enablePreview>false</enablePreview>
-							</configuration>
-						</plugin>
-					</plugins>
-				</pluginManagement>
-			</build>
-		</profile>
-	</profiles>
 </project>

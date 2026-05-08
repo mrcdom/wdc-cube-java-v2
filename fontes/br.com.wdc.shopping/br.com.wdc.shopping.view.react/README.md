@@ -8,44 +8,53 @@ Na arquitetura Cube MVP, os **Presenters** mantêm o estado da aplicação e exp
 
 Este módulo demonstra que essa separação permite uma abordagem de **visualização remota**: o estado da aplicação vive inteiramente no servidor Java, e o browser atua apenas como terminal de renderização. Toda lógica de negócio, navegação e controle de sessão permanece server-side.
 
-```
-┌─────────────────────────────────────────────────┐
-│           Browser (React 19 + MUI 9)            │
-│       Renderiza ViewStates recebidos via WS     │
-├─────────────────────────────────────────────────┤
-│              WebSocket bidirecional             │
-│      ↑ eventos/form data    ↓ delta states     │
-├─────────────────────────────────────────────────┤
-│         Javalin 7 + Virtual Threads            │
-│     ApplicationReactImpl (1 por sessão)         │
-├─────────────────────────────────────────────────┤
-│     Presenters + ViewStates (Cube MVP)          │
-│     (compartilhados com a versão JFX)           │
-├─────────────────────────────────────────────────┤
-│       Domain + Persistence + H2 Database        │
-└─────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph Browser["Browser (React 19 + MUI 9)"]
+        render["Renderiza ViewStates recebidos via WS"]
+    end
+
+    subgraph Transport["WebSocket bidirecional"]
+        up["↑ eventos / form data"]
+        down["↓ delta states"]
+    end
+
+    subgraph Server["Javalin 7 + Virtual Threads"]
+        app["ApplicationReactImpl (1 por sessão)"]
+    end
+
+    subgraph Core["Presenters + ViewStates (Cube MVP)"]
+        presenters["Compartilhados com demais implementações"]
+    end
+
+    subgraph Data["Domain + Persistence + H2 Database"]
+        db[("H2")]
+    end
+
+    Browser <--> Transport <--> Server --> Core --> Data
 ```
 
 ## Comparação com as outras versões
 
-| Aspecto | React (este módulo) | Vaadin (server-side) | JFX (desktop) |
-|---------|---------------------|----------------------|---------------|
-| **Onde roda a UI** | Browser remoto | Browser via Server Push | JVM local |
-| **Transporte** | WebSocket (JSON delta) | Atmosphere (WebSocket/Push) | Acesso direto em memória |
-| **Segurança** | RSA + AES-GCM + URL signing | HMAC-SHA256 URL signing | N/A (processo local) |
-| **Escalabilidade** | Virtual Threads (~1K por conexão) | Server Push automático | Instância única |
-| **Código de UI** | TypeScript | Java | Java |
+| Aspecto | React (este módulo) | Vaadin (server-side) | JFX (desktop) | TeaVM (multiplataforma) |
+|---------|---------------------|----------------------|---------------|------------------------|
+| **Onde roda a UI** | Browser remoto | Browser via Server Push | JVM local | Browser / WebView (Tauri) |
+| **Transporte** | WebSocket (JSON delta) | Atmosphere (WebSocket/Push) | Acesso direto em memória | REST (OkHttp → JS) |
+| **Segurança** | RSA + AES-GCM + URL signing | HMAC-SHA256 URL signing | N/A (processo local) | HMAC + JWT |
+| **Escalabilidade** | Virtual Threads (~1K por conexão) | Server Push automático | Instância única | Client-side (SPA) |
+| **Código de UI** | TypeScript | Java | Java | Java (compilado para JS) |
 | **Presenters** | Mesmos | Mesmos | Mesmos |
 | **ViewStates** | Mesmos | Mesmos | Mesmos |
 
 ## Estrutura de submódulos
 
-```
-br.com.wdc.shopping.view.react/
-├── br.com.wdc.shopping.view.react.client/      # Frontend React/TypeScript (Node.js)
-├── br.com.wdc.shopping.view.react.skeleton/    # View impls + serialização + segurança (Maven)
-├── br.com.wdc.shopping.view.react.javalin/     # Servidor HTTP/WebSocket (Maven)
-└── VIRTUAL_THREADS_STRATEGY.md                 # Documentação de Virtual Threads
+```mermaid
+graph TD
+    root["view.react/"]
+    root --> client["client<br/><small>Frontend React/TypeScript (Node.js)</small>"]
+    root --> skeleton["skeleton<br/><small>View impls + serialização + segurança (Maven)</small>"]
+    root --> javalin["javalin<br/><small>Servidor HTTP/WebSocket (Maven)</small>"]
+    root --> vts["VIRTUAL_THREADS_STRATEGY.md"]
 ```
 
 ### client (Node.js — Parcel)
@@ -169,6 +178,17 @@ npm run watch   # Parcel em modo watch (hot reload)
 
 Este módulo utiliza Virtual Threads (Java 21+) para handlers HTTP e WebSocket, reduzindo o consumo de memória por conexão de ~1MB para ~1KB. Detalhes completos em [VIRTUAL_THREADS_STRATEGY.md](VIRTUAL_THREADS_STRATEGY.md).
 
+## Screenshots
+
+| Tela | Preview |
+|------|---------|
+| Login | ![Login](docs/screenshots/01-login.png) |
+| Home / Produtos | ![Home](docs/screenshots/02-home.png) |
+| Detalhe do Produto | ![Produto](docs/screenshots/03-product.png) |
+| Carrinho | ![Carrinho](docs/screenshots/04-cart.png) |
+| Recibo | ![Recibo](docs/screenshots/05-receipt.png) |
+| Histórico | ![Histórico](docs/screenshots/06-history.png) |
+
 ## Conclusão
 
-A versão React valida que o padrão Cube MVP suporta **visualização remota**: toda a lógica permanece server-side, e o browser é um thin client que renderiza estados serializados. Combinada com a [versão JFX](../br.com.wdc.shopping.view.jfx/README.md) (visualização local), demonstra que **a mesma camada de Presenters/ViewStates pode alimentar qualquer tecnologia de frontend** — web, desktop, ou potencialmente mobile.
+A versão React valida que o padrão Cube MVP suporta **visualização remota**: toda a lógica permanece server-side, e o browser é um thin client que renderiza estados serializados. Combinada com a [versão Gluon](../br.com.wdc.shopping.view.gluon/README.md) (visualização nativa multiplataforma), demonstra que **a mesma camada de Presenters/ViewStates pode alimentar qualquer tecnologia de frontend** — web, desktop ou mobile.

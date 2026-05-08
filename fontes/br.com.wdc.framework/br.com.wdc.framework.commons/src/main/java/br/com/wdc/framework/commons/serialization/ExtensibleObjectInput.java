@@ -7,39 +7,39 @@ public interface ExtensibleObjectInput {
 	/**
 	 * Consumes the next token from the JSON stream and asserts that it is the beginning of a new array.
 	 */
-	void beginArray() throws IOException;
+	void beginArray();
 
 	/**
 	 * Consumes the next token from the JSON stream and asserts that it is the end of the current array.
 	 */
-	void endArray() throws IOException;
+	void endArray();
 
 	/**
 	 * Consumes the next token from the JSON stream and asserts that it is the beginning of a new object.
 	 */
-	void beginObject() throws IOException;
+	void beginObject();
 
 	/**
 	 * Consumes the next token from the JSON stream and asserts that it is the end of the current array.
 	 */
-	void endObject() throws IOException;
+	void endObject();
 
 	/**
 	 * Returns true if the current array or object has another element.
 	 */
-	boolean hasNext() throws IOException;
+	boolean hasNext();
 
 	/**
 	 * Returns the type of the next token without consuming it.
 	 */
-	SerializationToken peek() throws IOException;
+	SerializationToken peek();
 
 	/**
 	 * Returns the next token, a {@link SerializationToken#NAME property name}, and consumes it.
 	 *
 	 * @throws IOException if the next token in the stream is not a property name.
 	 */
-	String nextName() throws IOException;
+	String nextName();
 
 	/**
 	 * Returns the {@link SerializationToken#STRING string} value of the next token, consuming it. If the next token is a number, this method will return its
@@ -47,21 +47,21 @@ public interface ExtensibleObjectInput {
 	 *
 	 * @throws IllegalStateException if the next token is not a string or if this reader is closed.
 	 */
-	String nextString() throws IOException;
+	String nextString();
 
 	/**
 	 * Returns the {@link SerializationToken#BOOLEAN boolean} value of the next token, consuming it.
 	 *
 	 * @throws IllegalStateException if the next token is not a boolean or if this reader is closed.
 	 */
-	boolean nextBoolean() throws IOException;
+	boolean nextBoolean();
 
 	/**
 	 * Consumes the next token from the JSON stream and asserts that it is a literal null.
 	 *
 	 * @throws IllegalStateException if the next token is not null or if this reader is closed.
 	 */
-	<T> T nextNull() throws IOException;
+	<T> T nextNull();
 
 	/**
 	 * Returns the {@link SerializationToken#NUMBER double} value of the next token, consuming it. If the next token is a string, this method will attempt to
@@ -69,7 +69,7 @@ public interface ExtensibleObjectInput {
 	 *
 	 * @throws IllegalStateException if the next token is not a literal value.
 	 */
-	double nextDouble() throws IOException;
+	double nextDouble();
 
 	/**
 	 * Returns the {@link SerializationToken#NUMBER double} value of the next token, consuming it. If the next token is a string, this method will attempt to
@@ -77,7 +77,7 @@ public interface ExtensibleObjectInput {
 	 *
 	 * @throws IllegalStateException if the next token is not a literal value.
 	 */
-	Number nextNumber() throws IOException;
+	Number nextNumber();
 
 	/**
 	 * Returns the {@link SerializationToken#NUMBER long} value of the next token, consuming it. If the next token is a string, this method will attempt to
@@ -86,7 +86,7 @@ public interface ExtensibleObjectInput {
 	 * @throws IllegalStateException if the next token is not a literal value.
 	 * @throws NumberFormatException if the next literal value cannot be parsed as a number, or exactly represented as a long.
 	 */
-	long nextLong() throws IOException;
+	long nextLong();
 
 	/**
 	 * Returns the {@link SerializationToken#NUMBER int} value of the next token, consuming it. If the next token is a string, this method will attempt to parse
@@ -95,12 +95,12 @@ public interface ExtensibleObjectInput {
 	 * @throws IllegalStateException if the next token is not a literal value.
 	 * @throws NumberFormatException if the next literal value cannot be parsed as a number, or exactly represented as an int.
 	 */
-	int nextInt() throws IOException;
+	int nextInt();
 
 	/**
 	 * Skips the next value recursively. If it is an object or array, all nested elements are skipped. This method is intended for use when the JSON token
 	 * stream contains unrecognized or unhandled values.
 	 */
-	void skipValue() throws IOException;
+	void skipValue();
 
 }

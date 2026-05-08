@@ -1,0 +1,483 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0B585C6EE0FE4BD63FCE2F4D /* libapp.a in Resources */ = {isa = PBXBuildFile; fileRef = BBEAAA3B5D77BFFB41A3065D /* libapp.a */; };
+		173CF8C03D475850A5C50993 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E3C5C85359B63C36BF8F38F8 /* WebKit.framework */; };
+		2DEBA054B111ABD5E4378FE6 /* libapp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AE6C437B33E3083FD20C3100 /* libapp.a */; };
+		2FDC77EADCC79567EAB1AC2C /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3A723476A6CA4F6714E24C2 /* UIKit.framework */; };
+		4A23A08281B4C23CDF637E1D /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85158E3A3A136937DA419643 /* QuartzCore.framework */; };
+		4F35518CE2E6B2A1CDA48F1F /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 16246947568795950268234E /* CoreGraphics.framework */; };
+		7DF9E868FCA44F58C59944D3 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = BFDE82935862B068E94B4E78 /* LaunchScreen.storyboard */; };
+		8AE5461D55E797ED69884042 /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = A78B92025CCF2AA671DA288D /* main.mm */; };
+		8BEB0ABAD6EBD9E878F41A49 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55CC1A45BBB695C1179E8E64 /* Metal.framework */; };
+		8D90E4E6C3BC87609D242B0B /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EEF0B7F0A3ECA9DD05C3FFE5 /* Security.framework */; };
+		A69658363F5DCB1AD0D3A209 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = F1414CDE6F8F94D17DE3B1D7 /* assets */; };
+		D2F5FAF231BA3B9D7B598974 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ACF628FFD0C598F40226C2CA /* MetalKit.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		16246947568795950268234E /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		2F61FC5880A90A3643022604 /* lib.rs */ = {isa = PBXFileReference; path = lib.rs; sourceTree = "<group>"; };
+		55CC1A45BBB695C1179E8E64 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
+		85158E3A3A136937DA419643 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		86A75008B44C74290483851C /* wdc-shopping-desktop_iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "wdc-shopping-desktop_iOS.entitlements"; sourceTree = "<group>"; };
+		A0C1832B94DF05B9D1EB8A5C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		A5D6A17EC6DE23378C44E4AC /* main.rs */ = {isa = PBXFileReference; path = main.rs; sourceTree = "<group>"; };
+		A78B92025CCF2AA671DA288D /* main.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
+		ACF628FFD0C598F40226C2CA /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
+		AE6C437B33E3083FD20C3100 /* libapp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libapp.a; sourceTree = "<group>"; };
+		BBEAAA3B5D77BFFB41A3065D /* libapp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libapp.a; sourceTree = "<group>"; };
+		BFDE82935862B068E94B4E78 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		D3929B922EE27C42984248BC /* bindings.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bindings.h; sourceTree = "<group>"; };
+		D3A723476A6CA4F6714E24C2 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		E3C5C85359B63C36BF8F38F8 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		EEF0B7F0A3ECA9DD05C3FFE5 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		F1414CDE6F8F94D17DE3B1D7 /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = assets; sourceTree = SOURCE_ROOT; };
+		F865D35D29E978690FE4460A /* wdc-shopping-desktop_iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "wdc-shopping-desktop_iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		71667E9677835C607586E532 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2DEBA054B111ABD5E4378FE6 /* libapp.a in Frameworks */,
+				4F35518CE2E6B2A1CDA48F1F /* CoreGraphics.framework in Frameworks */,
+				8BEB0ABAD6EBD9E878F41A49 /* Metal.framework in Frameworks */,
+				D2F5FAF231BA3B9D7B598974 /* MetalKit.framework in Frameworks */,
+				4A23A08281B4C23CDF637E1D /* QuartzCore.framework in Frameworks */,
+				8D90E4E6C3BC87609D242B0B /* Security.framework in Frameworks */,
+				2FDC77EADCC79567EAB1AC2C /* UIKit.framework in Frameworks */,
+				173CF8C03D475850A5C50993 /* WebKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		09A8E651208D3269D188224C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F865D35D29E978690FE4460A /* wdc-shopping-desktop_iOS.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		1889F8E40217F7EDF35924F6 /* Externals */ = {
+			isa = PBXGroup;
+			children = (
+				D03A2420BA5BADCE8D269377 /* arm64 */,
+			);
+			path = Externals;
+			sourceTree = "<group>";
+		};
+		3EA091CEC8A61666BD18CC85 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				16246947568795950268234E /* CoreGraphics.framework */,
+				AE6C437B33E3083FD20C3100 /* libapp.a */,
+				55CC1A45BBB695C1179E8E64 /* Metal.framework */,
+				ACF628FFD0C598F40226C2CA /* MetalKit.framework */,
+				85158E3A3A136937DA419643 /* QuartzCore.framework */,
+				EEF0B7F0A3ECA9DD05C3FFE5 /* Security.framework */,
+				D3A723476A6CA4F6714E24C2 /* UIKit.framework */,
+				E3C5C85359B63C36BF8F38F8 /* WebKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		5A327469E9FD94B6CAE709E0 = {
+			isa = PBXGroup;
+			children = (
+				F1414CDE6F8F94D17DE3B1D7 /* assets */,
+				BFDE82935862B068E94B4E78 /* LaunchScreen.storyboard */,
+				1889F8E40217F7EDF35924F6 /* Externals */,
+				5A349161158B1BCD34CAC035 /* Sources */,
+				AE12C4FD444D9E600DBD4880 /* src */,
+				784A795A486B0E641ED94A0C /* wdc-shopping-desktop_iOS */,
+				3EA091CEC8A61666BD18CC85 /* Frameworks */,
+				09A8E651208D3269D188224C /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		5A349161158B1BCD34CAC035 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				A87467B5214804DDBE5BBB8B /* wdc-shopping-desktop */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		5E1B1F4D0307466012731D92 /* bindings */ = {
+			isa = PBXGroup;
+			children = (
+				D3929B922EE27C42984248BC /* bindings.h */,
+			);
+			path = bindings;
+			sourceTree = "<group>";
+		};
+		784A795A486B0E641ED94A0C /* wdc-shopping-desktop_iOS */ = {
+			isa = PBXGroup;
+			children = (
+				A0C1832B94DF05B9D1EB8A5C /* Info.plist */,
+				86A75008B44C74290483851C /* wdc-shopping-desktop_iOS.entitlements */,
+			);
+			path = "wdc-shopping-desktop_iOS";
+			sourceTree = "<group>";
+		};
+		A63D425166A2F3F8E6EF7C6E /* debug */ = {
+			isa = PBXGroup;
+			children = (
+				BBEAAA3B5D77BFFB41A3065D /* libapp.a */,
+			);
+			path = debug;
+			sourceTree = "<group>";
+		};
+		A87467B5214804DDBE5BBB8B /* wdc-shopping-desktop */ = {
+			isa = PBXGroup;
+			children = (
+				A78B92025CCF2AA671DA288D /* main.mm */,
+				5E1B1F4D0307466012731D92 /* bindings */,
+			);
+			path = "wdc-shopping-desktop";
+			sourceTree = "<group>";
+		};
+		AE12C4FD444D9E600DBD4880 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				2F61FC5880A90A3643022604 /* lib.rs */,
+				A5D6A17EC6DE23378C44E4AC /* main.rs */,
+			);
+			name = src;
+			path = ../../src;
+			sourceTree = "<group>";
+		};
+		D03A2420BA5BADCE8D269377 /* arm64 */ = {
+			isa = PBXGroup;
+			children = (
+				A63D425166A2F3F8E6EF7C6E /* debug */,
+			);
+			path = arm64;
+			sourceTree = "<group>";
+		};
+		"TEMP_CBF721AB-C3CF-47AE-A27F-E3E3F4FC6323" /* x86_64 */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = x86_64;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		409C18F2FFD368CED359808C /* wdc-shopping-desktop_iOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6724707F4CEF1382A395BC85 /* Build configuration list for PBXNativeTarget "wdc-shopping-desktop_iOS" */;
+			buildPhases = (
+				4C66A3A2E060F42EE3C2861B /* Build Rust Code */,
+				56A5C71A8B3175A3F11FF8F6 /* Sources */,
+				C44C126BCE5D376E9891B641 /* Resources */,
+				71667E9677835C607586E532 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "wdc-shopping-desktop_iOS";
+			packageProductDependencies = (
+			);
+			productName = "wdc-shopping-desktop_iOS";
+			productReference = F865D35D29E978690FE4460A /* wdc-shopping-desktop_iOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		B7696B359C18038677502E88 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = A59DF865872A7CCC0443574C /* Build configuration list for PBXProject "wdc-shopping-desktop" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 5A327469E9FD94B6CAE709E0;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 09A8E651208D3269D188224C /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				409C18F2FFD368CED359808C /* wdc-shopping-desktop_iOS */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		C44C126BCE5D376E9891B641 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7DF9E868FCA44F58C59944D3 /* LaunchScreen.storyboard in Resources */,
+				A69658363F5DCB1AD0D3A209 /* assets in Resources */,
+				0B585C6EE0FE4BD63FCE2F4D /* libapp.a in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		4C66A3A2E060F42EE3C2861B /* Build Rust Code */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Build Rust Code";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(SRCROOT)/Externals/x86_64/${CONFIGURATION}/libapp.a",
+				"$(SRCROOT)/Externals/arm64/${CONFIGURATION}/libapp.a",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cargo tauri ios xcode-script -v --platform ${PLATFORM_DISPLAY_NAME:?} --sdk-root ${SDKROOT:?} --framework-search-paths \"${FRAMEWORK_SEARCH_PATHS:?}\" --header-search-paths \"${HEADER_SEARCH_PATHS:?}\" --gcc-preprocessor-definitions \"${GCC_PREPROCESSOR_DEFINITIONS:-}\" --configuration ${CONFIGURATION:?} ${FORCE_COLOR} ${ARCHS:?}";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		56A5C71A8B3175A3F11FF8F6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8AE5461D55E797ED69884042 /* main.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		2B3B5739D07621E3D0813792 /* release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ARCHS = (
+					arm64,
+				);
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "wdc-shopping-desktop_iOS/wdc-shopping-desktop_iOS.entitlements";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				ENABLE_BITCODE = NO;
+				"EXCLUDED_ARCHS[sdk=iphoneos*]" = x86_64;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\".\"",
+				);
+				INFOPLIST_FILE = "wdc-shopping-desktop_iOS/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				"LIBRARY_SEARCH_PATHS[arch=arm64]" = "$(inherited) $(PROJECT_DIR)/Externals/arm64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/$(PLATFORM_NAME) $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				"LIBRARY_SEARCH_PATHS[arch=x86_64]" = "$(inherited) $(PROJECT_DIR)/Externals/x86_64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/$(PLATFORM_NAME) $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = br.com.wdc.shopping.desktop;
+				PRODUCT_NAME = "WDC Shopping";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = arm64;
+			};
+			name = release;
+		};
+		33826FC5C47022230424B47B /* debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ARCHS = (
+					arm64,
+				);
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "wdc-shopping-desktop_iOS/wdc-shopping-desktop_iOS.entitlements";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				ENABLE_BITCODE = NO;
+				"EXCLUDED_ARCHS[sdk=iphoneos*]" = x86_64;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\".\"",
+				);
+				INFOPLIST_FILE = "wdc-shopping-desktop_iOS/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				"LIBRARY_SEARCH_PATHS[arch=arm64]" = "$(inherited) $(PROJECT_DIR)/Externals/arm64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/$(PLATFORM_NAME) $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				"LIBRARY_SEARCH_PATHS[arch=x86_64]" = "$(inherited) $(PROJECT_DIR)/Externals/x86_64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/$(PLATFORM_NAME) $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = br.com.wdc.shopping.desktop;
+				PRODUCT_NAME = "WDC Shopping";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = arm64;
+			};
+			name = debug;
+		};
+		4BB9164A32ECABDBB7EEFBD5 /* release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = release;
+		};
+		BCF720E80E326D4140CEC577 /* debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		6724707F4CEF1382A395BC85 /* Build configuration list for PBXNativeTarget "wdc-shopping-desktop_iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				33826FC5C47022230424B47B /* debug */,
+				2B3B5739D07621E3D0813792 /* release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = debug;
+		};
+		A59DF865872A7CCC0443574C /* Build configuration list for PBXProject "wdc-shopping-desktop" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BCF720E80E326D4140CEC577 /* debug */,
+				4BB9164A32ECABDBB7EEFBD5 /* release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = B7696B359C18038677502E88 /* Project object */;
+}

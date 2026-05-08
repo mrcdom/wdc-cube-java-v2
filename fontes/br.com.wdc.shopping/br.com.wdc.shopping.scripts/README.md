@@ -11,14 +11,15 @@ Módulo responsável pelos **scripts de banco de dados** da aplicação Shopping
 
 ## Estrutura atual
 
-```
-src/main/java/br/com/wdc/shopping/scripts/sgbd/
-├── DBCreate.java        — Cria tabelas e sequências caso não existam
-├── DBReset.java         — Popula o banco com dados de referência (seed)
-├── MigrationRunner.java — Executa migrações e registra steps já executados
-├── Migration_0001_AddUserRoles.java — Adiciona coluna ROLES à tabela EN_USER
-└── schema/
-    └── EnMigrationLog.java — Definição da tabela EN_MIGRATION_LOG
+```mermaid
+graph TD
+    root["scripts/sgbd/"]
+    root --> DBCreate["DBCreate.java<br/><small>Cria tabelas e sequências</small>"]
+    root --> DBReset["DBReset.java<br/><small>Popula com dados de referência (seed)</small>"]
+    root --> MigRunner["MigrationRunner.java<br/><small>Executa e registra migrações</small>"]
+    root --> Mig0001["Migration_0001_AddUserRoles.java<br/><small>Adiciona coluna ROLES</small>"]
+    root --> schema["schema/"]
+    schema --> EnMigLog["EnMigrationLog.java<br/><small>Tabela EN_MIGRATION_LOG</small>"]
 ```
 
 ## Abordagem híbrida SQL + Java

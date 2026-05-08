@@ -13,40 +13,49 @@ Módulo **cliente REST** da aplicação Shopping. Implementa as interfaces de re
 
 ## Estrutura de Pacotes
 
-```
-br.com.wdc.shopping.api.client
-├── RestConfig.java                    — Infraestrutura HTTP compartilhada (OkHttp + Gson)
-├── RestAuthClient.java                — Gerenciador de tokens + fluxo HMAC challenge-response
-├── RestAuthenticationService.java     — Implementação de AuthenticationService sobre REST
-├── RestRepositoryBootstrap.java       — Bootstrap: registra implementações REST nos BEANs
-├── RestUserRepository.java            — UserRepository via REST
-├── RestProductRepository.java         — ProductRepository via REST (inclui imagens)
-├── RestPurchaseRepository.java        — PurchaseRepository via REST
-└── RestPurchaseItemRepository.java    — PurchaseItemRepository via REST
+```mermaid
+graph TD
+    pkg["br.com.wdc.shopping.api.client"]
+    pkg --> RestConfig["RestConfig.java<br/><small>Infraestrutura HTTP (OkHttp + Gson)</small>"]
+    pkg --> RestAuthClient["RestAuthClient.java<br/><small>Tokens + HMAC challenge-response</small>"]
+    pkg --> RestAuthSvc["RestAuthenticationService.java<br/><small>AuthenticationService sobre REST</small>"]
+    pkg --> Bootstrap["RestRepositoryBootstrap.java<br/><small>Registra impls REST nos BEANs</small>"]
+    pkg --> RestUser["RestUserRepository.java"]
+    pkg --> RestProduct["RestProductRepository.java"]
+    pkg --> RestPurchase["RestPurchaseRepository.java"]
+    pkg --> RestPurchaseItem["RestPurchaseItemRepository.java"]
 ```
 
 ## Arquitetura
 
 O módulo espelha a API server-side, implementando as mesmas interfaces de domínio:
 
-```
-┌─────────────────────────────────────────────────────┐
-│                    Domínio                           │
-│  UserRepository  ProductRepository  AuthService ...  │
-├─────────────────────────────────────────────────────┤
-│                  api-client                          │
-│  RestUserRepo    RestProductRepo    RestAuthService  │
-│       │               │                  │          │
-│       └───────────────┼──────────────────┘          │
-│                       ▼                             │
-│                  RestConfig                          │
-│            (OkHttp + Gson + Auth)                    │
-│                       │                             │
-│                  RestAuthClient                      │
-│            (tokens + HMAC + RSA)                     │
-└───────────────────────┼─────────────────────────────┘
-                        ▼
-                 HTTP → Javalin API
+```mermaid
+graph TD
+    subgraph Domain["Domínio (interfaces)"]
+        UserRepo["UserRepository"]
+        ProductRepo["ProductRepository"]
+        AuthSvc["AuthService"]
+    end
+
+    subgraph ApiClient["api-client"]
+        RestUser["RestUserRepo"]
+        RestProduct["RestProductRepo"]
+        RestAuth["RestAuthService"]
+        Config["RestConfig<br/><small>OkHttp + Gson + Auth</small>"]
+        AuthClient["RestAuthClient<br/><small>tokens + HMAC + RSA</small>"]
+    end
+
+    Javalin["HTTP → Javalin API"]
+
+    UserRepo -.-> RestUser
+    ProductRepo -.-> RestProduct
+    AuthSvc -.-> RestAuth
+    RestUser --> Config
+    RestProduct --> Config
+    RestAuth --> Config
+    Config --> AuthClient
+    AuthClient --> Javalin
 ```
 
 ## Componentes
@@ -154,6 +163,6 @@ O módulo é usado por:
 
 | Consumidor | Contexto |
 |-----------|---------|
-| **Android** (`view.android`) | Modo remoto — acessa backend Javalin via rede |
+| **Gluon Desktop** (`view.gluon.desktop`) | Modo remoto — acessa backend Javalin via rede |
 | **Testes de integração** (`shopping.tests`) | `RestXxxRepositoryTest` valida API end-to-end |
 | **Javalin** (`view.react.javalin`) | Registra `RestAuthenticationService` para propagação de auth |

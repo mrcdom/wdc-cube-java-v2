@@ -7,9 +7,10 @@ import Toolbar from '@mui/material/Toolbar'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
-import LogoutIcon from '@mui/icons-material/Logout'
+import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew'
 import app from '@root/App'
 import { BasePanelClass } from '@root/utils/ViewUtils'
+import ShoppingLogo from './ShoppingLogo'
 
 // :: Actions
 
@@ -31,26 +32,33 @@ class HeaderPanelClass extends BasePanelClass<HeaderPanelProps> {
     this.vsid = vsid
 
     return (
-      <AppBar position="static" color="default" elevation={3} sx={{ bgcolor: '#333', flexShrink: 0 }}>
-        <Toolbar sx={{ justifyContent: 'space-between' }}>
-          <Box component="img" src="images/logo.png" alt="Shopping Triplice" sx={{ height: 36 }} />
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      <AppBar position="static" color="primary" elevation={2} sx={{ flexShrink: 0 }}>
+        <Toolbar>
+          {/* Left: Sair + Olá */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
+            <Tooltip title="Sair">
+              <IconButton size="small" onClick={this.emitExit} sx={{ color: '#fff' }}>
+                <PowerSettingsNewIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
             <Typography variant="body2" sx={{ color: '#fff' }}>
-              Olá, <strong>{nickName}</strong>
+              Olá, {nickName}
             </Typography>
+          </Box>
+
+          {/* Center: Logo */}
+          <ShoppingLogo height={32} />
+
+          {/* Right: Carrinho */}
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', flex: 1 }}>
             <Tooltip title="Abrir carrinho">
               <IconButton color="inherit" onClick={this.emitOpenCart} sx={{ color: '#fff' }}>
                 <Badge badgeContent={cartItemCount} color="error">
                   <ShoppingCartIcon />
                 </Badge>
-                <Typography variant="caption" sx={{ ml: 0.5, color: '#fff' }}>
+                <Typography variant="body2" sx={{ ml: 0.5, color: '#fff' }}>
                   Carrinho
                 </Typography>
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Sair">
-              <IconButton size="small" onClick={this.emitExit} sx={{ color: '#fff' }}>
-                <LogoutIcon fontSize="small" />
               </IconButton>
             </Tooltip>
           </Box>

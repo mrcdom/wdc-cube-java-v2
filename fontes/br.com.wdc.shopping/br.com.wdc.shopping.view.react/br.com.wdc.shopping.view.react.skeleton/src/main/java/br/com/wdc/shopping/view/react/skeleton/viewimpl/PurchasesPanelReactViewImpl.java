@@ -21,7 +21,7 @@ public class PurchasesPanelReactViewImpl extends GenericViewImpl {
         switch (eventCode) {
         case 1 -> presenter.onOpenReceipt(CoerceUtils.asLong(formData.get("p.purchaseId")));
         case 2 -> presenter.onPageChange(CoerceUtils.asInteger(formData.get("p.page")));
-        case 3 -> presenter.onPageSizeChange(CoerceUtils.asInteger(formData.get("p.pageSize")));
+        case 3 -> presenter.onItemSizeCapacityChanged(CoerceUtils.asInteger(formData.get("p.capacity")));
         default -> new AssertionError("eventCode(" + eventCode + ") not handled");
         }
     }

@@ -1,0 +1,165 @@
+package br.com.wdc.shopping.view.teavm;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.teavm.jso.browser.Window;
+
+import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
+import br.com.wdc.framework.cube.AbstractCubePresenter;
+import br.com.wdc.framework.cube.CubePresenter;
+import br.com.wdc.shopping.api.client.HttpTransport;
+import br.com.wdc.shopping.domain.security.CryptoProvider;
+import br.com.wdc.shopping.presentation.ShoppingApplication;
+import br.com.wdc.shopping.presentation.presenter.RootPresenter;
+import br.com.wdc.shopping.presentation.presenter.Routes;
+import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter;
+import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
+import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
+import br.com.wdc.shopping.view.teavm.interop.Console;
+import br.com.wdc.shopping.view.teavm.repo.TeaVMRepositoryBootstrap;
+import br.com.wdc.shopping.view.teavm.views.CartViewTeaVM;
+import br.com.wdc.shopping.view.teavm.views.HomeViewTeaVM;
+import br.com.wdc.shopping.view.teavm.views.LoginViewTeaVM;
+import br.com.wdc.shopping.view.teavm.views.ProductViewTeaVM;
+import br.com.wdc.shopping.view.teavm.views.ProductsPanelViewTeaVM;
+import br.com.wdc.shopping.view.teavm.views.PurchasesPanelViewTeaVM;
+import br.com.wdc.shopping.view.teavm.views.ReceiptViewTeaVM;
+import br.com.wdc.shopping.view.teavm.views.RootViewTeaVM;
+
+/**
+ * Implementação de {@link ShoppingApplication} para o browser via TeaVM.
+ * Usa Material Web components para UI e requestAnimationFrame para render loop.
+ */
+public class ShoppingTeaVMApplication extends ShoppingApplication {
+
+    private final String apiBaseUrl;
+    private final List<AbstractViewTeaVM<?>> dirtyViews = new ArrayList<>();
+    private final Map<String, Object> attributeMap = new HashMap<>();
+    private boolean renderScheduled;
+
+    static {
+        // Wiring das view factories
+        RootPresenter.createView = RootViewTeaVM::new;
+        LoginPresenter.createView = LoginViewTeaVM::new;
+        HomePresenter.createView = HomeViewTeaVM::new;
+        CartPresenter.createView = CartViewTeaVM::new;
+        ProductPresenter.createView = ProductViewTeaVM::new;
+        ReceiptPresenter.createView = ReceiptViewTeaVM::new;
+        ProductsPanelPresenter.createView = ProductsPanelViewTeaVM::new;
+        PurchasesPanelPresenter.createView = PurchasesPanelViewTeaVM::new;
+    }
+
+    public ShoppingTeaVMApplication(String apiBaseUrl) {
+        this.apiBaseUrl = apiBaseUrl;
+
+        // Configura CryptoProvider para browser (antes de qualquer auth)
+        CryptoProvider.BEAN.set(new BrowserCryptoProvider());
+
+        // Configura ScheduledExecutor para browser
+        ScheduledExecutor.BEAN.set(new ScheduledExecutorBrowser());
+
+        // Configura HTTP transport e registra repositórios
+        HttpTransport transport = new FetchHttpTransport(apiBaseUrl);
+        TeaVMRepositoryBootstrap.initialize(transport);
+    }
+
+    public String getApiBaseUrl() {
+        return apiBaseUrl;
+    }
+
+    /**
+     * Resolve an image path to a full URL.
+     * In browser mode (same origin), returns the relative path.
+     * In Tauri mode (cross-origin), prepends the API base URL.
+     */
+    public String resolveImageUrl(String imagePath) {
+        if (imagePath == null || imagePath.isEmpty()) {
+            return "";
+        }
+        // If apiBaseUrl is empty or matches current origin, use relative path
+        if (apiBaseUrl == null || apiBaseUrl.isEmpty()) {
+            return "/" + imagePath;
+        }
+        return apiBaseUrl + "/" + imagePath;
+    }
+
+    @Override
+    protected Map<Integer, CubePresenter> createPresenterMap() {
+        return new HashMap<>();
+    }
+
+    /**
+     * Marca uma view como dirty para re-render no próximo frame.
+     */
+    void markDirty(AbstractViewTeaVM<?> view) {
+        long now = System.currentTimeMillis();
+        if (view.dirtyTimestamp < now) {
+            view.dirtyTimestamp = now;
+            dirtyViews.add(view);
+        }
+        scheduleRender();
+    }
+
+    private void scheduleRender() {
+        if (!renderScheduled) {
+            renderScheduled = true;
+            Window.requestAnimationFrame(t -> this.flushDirtyViews());
+        }
+    }
+
+    private void flushDirtyViews() {
+        renderScheduled = false;
+        List<AbstractViewTeaVM<?>> snapshot = new ArrayList<>(dirtyViews);
+        dirtyViews.clear();
+        for (AbstractViewTeaVM<?> view : snapshot) {
+            try {
+                view.doUpdate();
+            } catch (Exception e) {
+                Console.error("Render error in " + view.instanceId() + ": " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Inicia a aplicação navegando para a rota inicial.
+     */
+    public void start() {
+        Console.log("ShoppingTeaVMApplication starting...");
+        Routes.root(this);
+    }
+
+    @Override
+    public Object setAttribute(String name, Object value) {
+        return this.attributeMap.put(name, value);
+    }
+
+    @Override
+    public Object getAttribute(String name) {
+        return this.attributeMap.get(name);
+    }
+
+    @Override
+    public Object removeAttribute(String name) {
+        return this.attributeMap.remove(name);
+    }
+
+    @Override
+    public void updateHistory() {
+        for (var presenter : this.presenterMap.values()) {
+            if (presenter instanceof AbstractCubePresenter<?> acp) {
+                var view = acp.view();
+                if (view instanceof AbstractViewTeaVM<?> teavmView) {
+                    this.markDirty(teavmView);
+                }
+            }
+        }
+    }
+
+}

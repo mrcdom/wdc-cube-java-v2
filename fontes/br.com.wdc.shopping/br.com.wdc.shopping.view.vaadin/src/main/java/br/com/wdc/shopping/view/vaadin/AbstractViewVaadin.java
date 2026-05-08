@@ -4,8 +4,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.HasComponents;
@@ -14,7 +13,7 @@ import br.com.wdc.framework.cube.CubeView;
 
 public abstract class AbstractViewVaadin<P> implements CubeView {
 
-    private static final Logger LOG = LoggerFactory.getLogger(AbstractViewVaadin.class);
+    private static final Log LOG = Log.getLogger(AbstractViewVaadin.class);
 
     protected final String instanceId;
     protected final ShoppingVaadinApplication app;

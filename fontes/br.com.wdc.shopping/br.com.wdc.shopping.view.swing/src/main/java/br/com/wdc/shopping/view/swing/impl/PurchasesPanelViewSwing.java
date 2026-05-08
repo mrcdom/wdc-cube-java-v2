@@ -33,9 +33,10 @@ public class PurchasesPanelViewSwing extends AbstractViewSwing<PurchasesPanelPre
     private JButton prevButton;
     private JButton nextButton;
     private JPanel paginationPanel;
+    private JPanel contentBox;
 
-    public PurchasesPanelViewSwing(ShoppingSwingApplication app, PurchasesPanelPresenter presenter) {
-        super("purchases-panel", app, presenter, new JPanel(new BorderLayout()));
+    public PurchasesPanelViewSwing(PurchasesPanelPresenter presenter) {
+        super("purchases-panel", (ShoppingSwingApplication) presenter.app, presenter, new JPanel(new BorderLayout()));
         this.state = presenter.state;
     }
 
@@ -49,6 +50,7 @@ public class PurchasesPanelViewSwing extends AbstractViewSwing<PurchasesPanelPre
         this.prevButton = null;
         this.nextButton = null;
         this.paginationPanel = null;
+        this.contentBox = null;
     }
 
     @Override
@@ -57,9 +59,13 @@ public class PurchasesPanelViewSwing extends AbstractViewSwing<PurchasesPanelPre
             SwingDom.render(this.element, this::initialRender);
             this.notRendered = false;
         }
+        if (this.state.pageSize < 0 && this.contentBox != null) {
+            javax.swing.SwingUtilities.invokeLater(this::computePageSize);
+        }
         this.contentSlot.accept(this.state.purchases, this.viewList);
 
-        int totalPages = Math.max(1, (int) Math.ceil((double) this.state.totalCount / this.state.pageSize));
+        int pageSize = Math.max(1, this.state.pageSize);
+        int totalPages = Math.max(1, (int) Math.ceil((double) this.state.totalCount / pageSize));
         this.pageInfoElm.setText((this.state.page + 1) + " / " + totalPages);
 
         boolean hasPrev = this.state.page > 0;
@@ -91,8 +97,15 @@ public class PurchasesPanelViewSwing extends AbstractViewSwing<PurchasesPanelPre
         });
 
         dom.constraints(BorderLayout.CENTER).vbox(contentBox -> {
+            this.contentBox = contentBox;
             contentBox.setBorder(new EmptyBorder(0, 0, 0, 0));
             this.contentSlot = this.newListSlot(contentBox, this::newItemView, this::updateItem);
+            contentBox.addComponentListener(new java.awt.event.ComponentAdapter() {
+                @Override
+                public void componentResized(java.awt.event.ComponentEvent e) {
+                    scheduleResize();
+                }
+            });
         });
 
         // Pagination
@@ -110,7 +123,7 @@ public class PurchasesPanelViewSwing extends AbstractViewSwing<PurchasesPanelPre
                 prevBtn.setBorderPainted(false);
                 prevBtn.setOpaque(true);
                 prevBtn.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-                prevBtn.addActionListener(_ -> safeAction("Previous page", () -> this.presenter.onPageChange(this.state.page - 1)));
+                prevBtn.addActionListener(_ignored -> safeAction("Previous page", () -> this.presenter.onPageChange(this.state.page - 1)));
             });
 
             dom.hSpacer();
@@ -133,7 +146,7 @@ public class PurchasesPanelViewSwing extends AbstractViewSwing<PurchasesPanelPre
                 nextBtn.setBorderPainted(false);
                 nextBtn.setOpaque(true);
                 nextBtn.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-                nextBtn.addActionListener(_ -> safeAction("Next page", () -> this.presenter.onPageChange(this.state.page + 1)));
+                nextBtn.addActionListener(_ignored -> safeAction("Next page", () -> this.presenter.onPageChange(this.state.page + 1)));
             });
         });
     }
@@ -145,5 +158,30 @@ public class PurchasesPanelViewSwing extends AbstractViewSwing<PurchasesPanelPre
     private void updateItem(PurchaseItemViewSwing itemView, PurchaseInfo state) {
         itemView.setState(state, false);
         itemView.doUpdate();
+    }
+
+    private static final int ITEM_HEIGHT_PX = 130;
+
+    private javax.swing.Timer resizeTimer;
+
+    private void scheduleResize() {
+        if (this.resizeTimer == null) {
+            this.resizeTimer = new javax.swing.Timer(150, e -> computePageSize());
+            this.resizeTimer.setRepeats(false);
+        }
+        this.resizeTimer.restart();
+    }
+
+    private void computePageSize() {
+        if (this.contentBox == null) return;
+        int containerHeight = this.contentBox.getHeight();
+        if (containerHeight <= 0) return;
+        int itemHeight = ITEM_HEIGHT_PX;
+        if (!this.viewList.isEmpty()) {
+            int measured = this.viewList.get(0).getElement().getHeight();
+            if (measured > 0) itemHeight = measured;
+        }
+        int capacity = Math.max(1, containerHeight / itemHeight);
+        this.presenter.onItemSizeCapacityChanged(capacity);
     }
 }

@@ -13,81 +13,73 @@ Camada de apresentação do sistema Shopping, implementada com o padrão **Cube 
 
 ## Estrutura de Pacotes
 
-```
-br.com.wdc.shopping.presentation
-├── ShoppingApplication.java           # Aplicação Cube (raiz)
-├── PlaceAttributes.java               # Constantes de atributos de navegação
-├── PlaceParameters.java               # Constantes de parâmetros de URL
-│
-├── function/
-│   └── GoAction.java                  # Interface funcional de navegação
-│
-├── exception/
-│   ├── WrongPlace.java                # Navegação para place inválido
-│   ├── WrongParametersException.java  # Parâmetros de navegação inválidos
-│   ├── ProductNotFoundException.java  # Produto não encontrado
-│   └── PurchaseNotFoundException.java # Compra não encontrada
-│
-└── presenter/
-    ├── Routes.java                    # Definição de places e funções de navegação
-    ├── RootPresenter.java             # Presenter raiz (container)
-    ├── RootViewState.java             # Estado da view raiz
-    │
-    ├── open/login/                    # Área pública
-    │   ├── LoginPresenter.java        # Presenter de login
-    │   ├── LoginViewState.java        # Estado da tela de login
-    │   ├── LoginService.java          # Serviço de autenticação (HMAC challenge-response)
-    │   └── structs/
-    │       └── Subject.java           # Usuário autenticado (DTO)
-    │
-    └── restricted/                    # Área autenticada
-        ├── home/
-        │   ├── HomePresenter.java     # Presenter principal (container)
-        │   ├── HomeViewState.java     # Estado da tela principal
-        │   ├── structs/
-        │   │   └── PurchaseInfo.java  # DTO de compra resumida
-        │   ├── products/
-        │   │   ├── ProductsPanelPresenter.java   # Painel de produtos (child)
-        │   │   └── ProductsPanelViewState.java   # Estado do painel
-        │   └── purchases/
-        │       ├── PurchasesPanelPresenter.java  # Painel de compras (child)
-        │       ├── PurchasesPanelViewState.java  # Estado do painel
-        │       └── PurchasesPanelService.java    # Serviço de consultas de compras
-        │
-        ├── products/
-        │   ├── ProductPresenter.java  # Detalhe de produto
-        │   ├── ProductViewState.java  # Estado do detalhe
-        │   ├── ProductService.java    # Serviço de produtos
-        │   └── structs/
-        │       └── ProductInfo.java   # DTO de produto
-        │
-        ├── cart/
-        │   ├── CartPresenter.java     # Carrinho de compras
-        │   ├── CartViewState.java     # Estado do carrinho
-        │   ├── CartManager.java       # Lógica do carrinho (in-memory) + efetivação de compra
-        │   └── structs/
-        │       └── CartItem.java      # DTO de item do carrinho
-        │
-        └── receipt/
-            ├── ReceiptPresenter.java  # Comprovante de compra
-            ├── ReceiptViewState.java  # Estado do comprovante
-            ├── ReceiptService.java    # Serviço de recibos
-            └── structs/
-                ├── ReceiptForm.java   # DTO do recibo
-                └── ReceiptItem.java   # DTO de item do recibo
+```mermaid
+graph TD
+    root["br.com.wdc.shopping.presentation"]
+    root --> ShoppingApp["ShoppingApplication.java"]
+    root --> PlaceAttr["PlaceAttributes.java"]
+    root --> PlaceParams["PlaceParameters.java"]
+
+    root --> function["function/"]
+    function --> GoAction["GoAction.java"]
+
+    root --> exception["exception/"]
+    exception --> WrongPlace["WrongPlace.java"]
+    exception --> WrongParams["WrongParametersException.java"]
+    exception --> ProductNotFound["ProductNotFoundException.java"]
+    exception --> PurchaseNotFound["PurchaseNotFoundException.java"]
+
+    root --> presenter["presenter/"]
+    presenter --> Routes["Routes.java"]
+    presenter --> RootP["RootPresenter.java"]
+    presenter --> RootVS["RootViewState.java"]
+
+    presenter --> login["open/login/"]
+    login --> LoginP["LoginPresenter.java"]
+    login --> LoginVS["LoginViewState.java"]
+    login --> LoginSvc["LoginService.java"]
+    login --> Subject["structs/Subject.java"]
+
+    presenter --> restricted["restricted/"]
+    restricted --> home["home/"]
+    home --> HomeP["HomePresenter.java"]
+    home --> HomeVS["HomeViewState.java"]
+    home --> products_panel["products/"]
+    products_panel --> ProdPanelP["ProductsPanelPresenter.java"]
+    products_panel --> ProdPanelVS["ProductsPanelViewState.java"]
+    home --> purchases_panel["purchases/"]
+    purchases_panel --> PurchPanelP["PurchasesPanelPresenter.java"]
+    purchases_panel --> PurchPanelVS["PurchasesPanelViewState.java"]
+    purchases_panel --> PurchPanelSvc["PurchasesPanelService.java"]
+
+    restricted --> products["products/"]
+    products --> ProductP["ProductPresenter.java"]
+    products --> ProductVS["ProductViewState.java"]
+    products --> ProductSvc["ProductService.java"]
+
+    restricted --> cart["cart/"]
+    cart --> CartP["CartPresenter.java"]
+    cart --> CartVS["CartViewState.java"]
+    cart --> CartMgr["CartManager.java"]
+
+    restricted --> receipt["receipt/"]
+    receipt --> ReceiptP["ReceiptPresenter.java"]
+    receipt --> ReceiptVS["ReceiptViewState.java"]
+    receipt --> ReceiptSvc["ReceiptService.java"]
 ```
 
 ## Hierarquia de Navegação
 
 O sistema possui 6 places organizados hierarquicamente:
 
-```
-ROOT (public)
-├── LOGIN (public/login)       ← área pública
-└── HOME (home)                ← área restrita (requer Subject)
-    ├── PRODUCT (product)      ← detalhe de produto (?productId=N)
-    ├── CART (cart)             ← carrinho de compras
-    └── RECEIPT (receipt)       ← comprovante (?purchaseId=N)
+```mermaid
+graph TD
+    ROOT["ROOT (public)"]
+    ROOT --> LOGIN["LOGIN (public/login)<br/><small>área pública</small>"]
+    ROOT --> HOME["HOME (home)<br/><small>área restrita (requer Subject)</small>"]
+    HOME --> PRODUCT["PRODUCT (product)<br/><small>?productId=N</small>"]
+    HOME --> CART["CART (cart)"]
+    HOME --> RECEIPT["RECEIPT (receipt)<br/><small>?purchaseId=N</small>"]
 ```
 
 A navegação é definida em `Routes.java` usando o builder `app.navigate().step(Place).execute(intent)`:
@@ -103,42 +95,19 @@ O `RootPresenter` decide automaticamente se direciona para `LOGIN` ou `HOME` bas
 
 ## Hierarquia de Presenters
 
-```
-RootPresenter (AbstractCubePresenter)
-│   Gerencia: contentSlot → view filha
-│   Estado: RootViewState { contentView, errorMessage }
-│
-├── LoginPresenter (AbstractCubePresenter)
-│       Gerencia: autenticação
-│       Estado: LoginViewState { userName, password, errorMessage }
-│       Serviço: LoginService
-│
-└── HomePresenter (AbstractCubePresenter)
-    │   Gerencia: contentSlot + painéis filhos + CartManager
-    │   Estado: HomeViewState { nickName, cartItemCount, contentView,
-    │           productsPanelView, purchasesPanelView, errorMessage }
-    │
-    ├── ProductsPanelPresenter (AbstractChildPresenter)
-    │       Gerencia: lista de produtos
-    │       Estado: ProductsPanelViewState { products[] }
-    │
-    ├── PurchasesPanelPresenter (AbstractChildPresenter)
-    │       Gerencia: histórico paginado
-    │       Estado: PurchasesPanelViewState { purchases[], page, pageSize, totalCount }
-    │
-    ├── ProductPresenter (AbstractCubePresenter)
-    │       Gerencia: detalhe de produto + adicionar ao carrinho
-    │       Estado: ProductViewState { product, errorMessage }
-    │       Parâmetro: PRODUCT_ID
-    │
-    ├── CartPresenter (AbstractCubePresenter)
-    │       Gerencia: edição do carrinho + efetivação de compra
-    │       Estado: CartViewState { items[], errorMessage }
-    │
-    └── ReceiptPresenter (AbstractCubePresenter)
-            Gerencia: exibição do comprovante
-            Estado: ReceiptViewState { receipt, notifySuccess }
-            Parâmetro: PURCHASE_ID
+```mermaid
+graph TD
+    RootP["RootPresenter<br/><small>contentSlot → view filha<br/>Estado: RootViewState</small>"]
+
+    RootP --> LoginP["LoginPresenter<br/><small>Autenticação<br/>Estado: LoginViewState<br/>Serviço: LoginService</small>"]
+
+    RootP --> HomeP["HomePresenter<br/><small>contentSlot + painéis + CartManager<br/>Estado: HomeViewState</small>"]
+
+    HomeP --> ProdPanelP["ProductsPanelPresenter<br/><small>AbstractChildPresenter<br/>Lista de produtos</small>"]
+    HomeP --> PurchPanelP["PurchasesPanelPresenter<br/><small>AbstractChildPresenter<br/>Histórico paginado</small>"]
+    HomeP --> ProductP["ProductPresenter<br/><small>Detalhe + adicionar ao carrinho<br/>Parâmetro: PRODUCT_ID</small>"]
+    HomeP --> CartP["CartPresenter<br/><small>Edição + efetivação de compra<br/>Estado: CartViewState</small>"]
+    HomeP --> ReceiptP["ReceiptPresenter<br/><small>Comprovante<br/>Parâmetro: PURCHASE_ID</small>"]
 ```
 
 ### Dois tipos de presenter
@@ -229,13 +198,14 @@ Gerenciador de carrinho in-memory com sistema de eventos:
 ### Organização de pacotes por feature
 
 Cada feature segue a estrutura:
-```
-presenter/restricted/<feature>/
-├── <Feature>Presenter.java      # Presenter
-├── <Feature>ViewState.java      # Estado serializável
-├── <Feature>Service.java        # Serviço (classe com injeção via construtor)
-└── structs/
-    └── <FeatureDTO>.java        # DTOs
+```mermaid
+graph TD
+    feature["presenter/restricted/&lt;feature&gt;/"]
+    feature --> Presenter["&lt;Feature&gt;Presenter.java"]
+    feature --> ViewState["&lt;Feature&gt;ViewState.java"]
+    feature --> Service["&lt;Feature&gt;Service.java"]
+    feature --> structs["structs/"]
+    structs --> DTO["&lt;FeatureDTO&gt;.java"]
 ```
 
 ### Padrão de um Presenter

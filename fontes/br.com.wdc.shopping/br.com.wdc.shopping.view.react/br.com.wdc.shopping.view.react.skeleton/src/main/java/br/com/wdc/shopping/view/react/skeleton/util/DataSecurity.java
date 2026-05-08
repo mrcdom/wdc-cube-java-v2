@@ -1,5 +1,7 @@
 package br.com.wdc.shopping.view.react.skeleton.util;
 
+import br.com.wdc.framework.commons.log.Log;
+
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -11,7 +13,6 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.slf4j.LoggerFactory;
 
 public class DataSecurity {
 
@@ -52,7 +53,7 @@ public class DataSecurity {
             var secretKey = keyFactory.generateSecret(spec);
             this.secret = new SecretKeySpec(secretKey.getEncoded(), "AES");
         } catch (Exception e) {
-            var logger = LoggerFactory.getLogger(this.getClass());
+            var logger = Log.getLogger(this.getClass());
             logger.error("updateSecret", e);
         }
     }

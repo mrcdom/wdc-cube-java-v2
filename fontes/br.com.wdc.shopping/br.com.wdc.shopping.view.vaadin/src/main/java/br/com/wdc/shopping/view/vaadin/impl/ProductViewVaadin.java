@@ -36,8 +36,8 @@ public class ProductViewVaadin extends AbstractViewVaadin<ProductPresenter> {
     private Div descriptionElm;
     private String descriptionOldValue;
 
-    public ProductViewVaadin(ShoppingVaadinApplication app, ProductPresenter presenter) {
-        super("product", app, presenter, new VerticalLayout());
+    public ProductViewVaadin(ProductPresenter presenter) {
+        super("product", (ShoppingVaadinApplication) presenter.app, presenter, new VerticalLayout());
         this.state = presenter.state;
     }
 
@@ -100,118 +100,105 @@ public class ProductViewVaadin extends AbstractViewVaadin<ProductPresenter> {
         pane0.setPadding(true);
         pane0.setSpacing(false);
 
-        // Breadcrumbs
-        dom.horizontalLayout(pane1 -> {
-            pane1.addClassName("breadcrumbs");
-            pane1.setPadding(false);
-            pane1.setSpacing(false);
-            dom.span(text -> text.setText("Produtos > "));
-            dom.span(text -> {
-                this.nameElm1 = text;
-                this.nameElm1.setText(this.state.product.name);
-                this.nameOldValue = this.state.product.name;
-            });
+        // Product name
+        dom.h3(h -> {
+            this.nameElm1 = new Span();
+            this.nameElm2 = new Span();
+            this.nameElm2.setText(this.state.product.name);
+            this.nameElm1.setText(this.state.product.name);
+            h.add(this.nameElm2);
+            h.getStyle().set("margin", "var(--lumo-space-xs) 0");
         });
 
-        dom.horizontalLayout(pane1 -> {
-            pane1.setWidthFull();
-            pane1.setSpacing(true);
+        // Row: info panel + image
+        dom.div(row -> {
+            row.addClassName("product-info-row");
+            row.getStyle()
+                    .set("display", "flex")
+                    .set("flex-direction", "row")
+                    .set("align-items", "center")
+                    .set("margin-top", "var(--lumo-space-s)")
+                    .set("gap", "var(--lumo-space-l)");
 
-            dom.verticalLayout(leftCol -> {
-                leftCol.setSpacing(false);
-                leftCol.setPadding(false);
-                leftCol.setWidth("auto");
+            // Left panel: price + qty + button (uses Div to avoid Shadow DOM)
+            var infoPanel = new Div();
+            infoPanel.getStyle()
+                    .set("display", "flex")
+                    .set("flex-direction", "column")
+                    .set("align-items", "flex-start")
+                    .set("justify-content", "center")
+                    .set("flex", "0 1 auto");
+            row.add(infoPanel);
 
-                dom.div(imgPane -> {
-                    imgPane.addClassName("image-pane");
+            this.priceElm = new Span();
+            this.priceElm.addClassName("lbl-price-val");
+            this.priceElm.setText(NumberFormat.getCurrencyInstance().format(this.state.product.price));
+            this.priceOldValue = this.state.product.price;
+            infoPanel.add(this.priceElm);
 
-                    dom.image(img -> {
-                        this.imageElm = img;
-                        this.imageElm.setSrc(ResourceCatalog.getImageResource(this.state.product.image));
-                        this.imageOldValue = this.state.product.image;
-                        img.setWidth("280px");
-                        img.setHeight("280px");
-                        img.getStyle().set("object-fit", "contain");
-                    });
-                });
+            var actionRow = new com.vaadin.flow.component.orderedlayout.HorizontalLayout();
+            actionRow.setAlignItems(FlexComponent.Alignment.BASELINE);
+            actionRow.setPadding(false);
+            actionRow.setSpacing(true);
+            actionRow.getStyle().set("margin-top", "var(--lumo-space-s)");
+            infoPanel.add(actionRow);
 
-                dom.button(button -> {
-                    button.setText("VOLTAR");
-                    button.setIcon(VaadinIcon.ARROW_LEFT.create());
-                    button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
-                    button.getStyle().set("margin-top", "var(--lumo-space-xs)");
-                    button.addClickListener(e -> safeAction("Open products", this.presenter::onOpenProducts));
-                });
-            });
+            this.quantityElm = new IntegerField();
+            this.quantityElm.setLabel("Quantidade");
+            this.quantityElm.setValue(1);
+            this.quantityElm.setMin(1);
+            this.quantityElm.setStepButtonsVisible(true);
+            this.quantityElm.addClassName("fld-quantity");
+            actionRow.add(this.quantityElm);
 
-            dom.verticalLayout(pane2 -> {
-                pane2.getStyle().set("flex-grow", "1");
-                pane2.addClassName("content");
-                pane2.setPadding(false);
-                pane2.setSpacing(false);
+            var addBtn = new com.vaadin.flow.component.button.Button("Adicionar");
+            addBtn.setIcon(VaadinIcon.CART.create());
+            addBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+            addBtn.addClickListener(e -> safeAction("Add to cart", this::emitBuyClicked));
+            actionRow.add(addBtn);
 
-                dom.h3(h -> {
-                    this.nameElm2 = new Span();
-                    this.nameElm2.setText(this.state.product.name);
-                    h.add(this.nameElm2);
-                    h.getStyle().set("margin", "0 0 var(--lumo-space-xs) 0");
-                });
+            // Right: product image
+            this.imageElm = new com.vaadin.flow.component.html.Image();
+            this.imageElm.setSrc(ResourceCatalog.getImageResource(this.state.product.image));
+            this.imageOldValue = this.state.product.image;
+            this.imageElm.getStyle()
+                    .set("flex", "0 0 auto")
+                    .set("width", "240px")
+                    .set("height", "240px")
+                    .set("object-fit", "contain")
+                    .set("padding", "var(--lumo-space-s)");
+            row.add(this.imageElm);
+        });
 
-                dom.horizontalLayout(pane3 -> {
-                    pane3.addClassName("pane-price-qtd");
-                    pane3.setAlignItems(FlexComponent.Alignment.CENTER);
-                    pane3.setWidthFull();
-                    pane3.setPadding(false);
+        // Description label
+        dom.span(label -> {
+            label.setText("Descrição");
+            label.getStyle()
+                    .set("color", "var(--lumo-secondary-text-color)")
+                    .set("font-weight", "600")
+                    .set("font-size", "var(--lumo-font-size-s)")
+                    .set("margin-top", "var(--lumo-space-s)");
+        });
 
-                    dom.span(label -> {
-                        label.addClassName("lbl-price-val");
-                        this.priceElm = label;
-                        this.priceElm.setText(NumberFormat.getCurrencyInstance().format(this.state.product.price));
-                        this.priceOldValue = this.state.product.price;
-                    });
+        // Description content - expands to fill available space
+        dom.div(descDiv -> {
+            descDiv.addClassName("description");
+            descDiv.setWidthFull();
+            this.descriptionElm = descDiv;
+            if (this.state.product.description != null) {
+                descDiv.getElement().setProperty("innerHTML", this.state.product.description);
+            }
+            this.descriptionOldValue = this.state.product.description;
+        });
 
-                    dom.hSpacer();
-                });
-
-                // IntegerField with step buttons (Vaadin native)
-                dom.integerField(field -> {
-                    this.quantityElm = field;
-                    field.setLabel("Quantidade");
-                    field.setValue(1);
-                    field.setMin(1);
-                    field.setStepButtonsVisible(true);
-                    field.addClassName("fld-quantity");
-                });
-
-                dom.span(label -> {
-                    label.setText("DESCRIÇÃO DO PRODUTO");
-                    label.getStyle()
-                            .set("color", "var(--lumo-secondary-text-color)")
-                            .set("font-weight", "600")
-                            .set("font-size", "var(--lumo-font-size-s)")
-                            .set("margin-top", "var(--lumo-space-xs)");
-                });
-
-                dom.div(descDiv -> {
-                    descDiv.addClassName("description");
-                    this.descriptionElm = descDiv;
-                    if (this.state.product.description != null) {
-                        descDiv.getElement().setProperty("innerHTML", this.state.product.description);
-                    }
-                    this.descriptionOldValue = this.state.product.description;
-                });
-
-                dom.horizontalLayout(pane3 -> {
-                    pane3.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
-                    pane3.setWidthFull();
-                    dom.button(button -> {
-                        button.setText("Adicionar ao carrinho");
-                        button.setIcon(VaadinIcon.CART.create());
-                        button.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-                        button.addClickListener(e -> safeAction("Add to cart", this::emitBuyClicked));
-                    });
-                });
-            });
+        // Back button - bottom
+        dom.button(button -> {
+            button.setText("Voltar aos produtos");
+            button.setIcon(VaadinIcon.ARROW_LEFT.create());
+            button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+            button.addClassName("back-button");
+            button.getStyle().set("margin-top", "var(--lumo-space-m)");
+            button.addClickListener(e -> safeAction("Open products", this.presenter::onOpenProducts));
         });
     }
 

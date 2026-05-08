@@ -2,7 +2,7 @@
 
 Proposta arquitetural para construção de aplicações utilizando o padrão **Cube MVP** — uma variação do Model-View-Presenter com presenters hierárquicos, navegação por intents e serialização de estado das views.
 
-Este projeto serve como **referência arquitetural** para novos projetos, demonstrando a implementação completa de um sistema de e-commerce (Shopping) com backend Java e **cinco implementações de frontend independentes** — React (web/remoto), Vaadin (web/server-side), JavaFX (desktop/local), Swing (desktop/local) e Android (mobile/Compose) — provando que a camada de visualização é totalmente desacoplada da lógica de apresentação.
+Este projeto serve como **referência arquitetural** para novos projetos, demonstrando a implementação completa de um sistema de e-commerce (Shopping) com backend Java e **cinco implementações de frontend independentes** — React (web/remoto), Vaadin (web/server-side), Swing (desktop), Gluon (desktop/iOS/Android via GraalVM Native Image) e TeaVM (web/desktop/Android/iOS via Tauri) — provando que a camada de visualização é totalmente desacoplada da lógica de apresentação.
 
 ## Visão Geral da Arquitetura
 
@@ -11,9 +11,9 @@ graph TD
     subgraph Views["Camada de Visualização"]
         R["React 19 + MUI<br/><small>Browser / WebSocket</small>"]
         V["Vaadin 24 + Lumo<br/><small>Browser / Server Push</small>"]
-        JFX["JavaFX 24 + CSS<br/><small>Desktop / JVM</small>"]
         SW["Swing + FlatLaf<br/><small>Desktop / JVM</small>"]
-        AND["Compose + M3<br/><small>Android</small>"]
+        GLN["Gluon + JavaFX<br/><small>Desktop / iOS / Android</small>"]
+        TVM["TeaVM + Tauri<br/><small>Web / Desktop / Android / iOS</small>"]
     end
 
     subgraph Core["Camadas Compartilhadas"]
@@ -26,9 +26,9 @@ graph TD
 
     R --> P
     V --> P
-    JFX --> P
     SW --> P
-    AND --> P
+    GLN --> P
+    TVM --> P
     P --> SEC --> PER --> DOM --> DB
 ```
 
@@ -36,13 +36,13 @@ graph TD
 |----------|-----------|------------|--------|
 | **Web (SPA)** | React 19 + TypeScript + MUI 9 | WebSocket (JSON delta) | `view.react` |
 | **Web (SSR)** | Vaadin 24 + Lumo | Server Push (Atmosphere) | `view.vaadin` |
-| **Desktop** | JavaFX 24 + CSS | Direto em memória | `view.jfx` |
 | **Desktop** | Swing + FlatLaf 3.5 | Direto em memória | `view.swing` |
-| **Mobile** | Kotlin + Jetpack Compose + M3 | REST (OkHttp) | `view.android` |
+| **Multiplataforma** | JavaFX + Gluon Mobile | REST (OkHttp) | `view.gluon` |
+| **Multiplataforma (TeaVM)** | TeaVM 0.14 + Tauri 2 + Bootstrap 5 | REST (OkHttp → JS) | `view.teavm` |
 
 **Características principais:**
 
-- **Independência de visualização** — mesmos Presenters/ViewStates alimentam React (web), Vaadin (web server-side), JavaFX (desktop), Swing (desktop) e Android (mobile)
+- **Independência de visualização** — mesmos Presenters/ViewStates alimentam React (web), Vaadin (web server-side), Swing (desktop), Gluon (desktop/iOS/Android) e TeaVM (web/desktop/Android/iOS)
 - **Sem frameworks de DI** — injeção via `AtomicReference<T> BEAN` (service locator estático); services recebem dependências no construtor
 - **Virtual Threads** (Java 26) — conexões WebSocket com consumo mínimo de memória
 - **Segurança RBAC** — autenticação HMAC challenge-response com JWT, controle de acesso por papéis (ADMIN, CUSTOMER, MANAGER), repositórios decorados com verificação de permissões
@@ -52,33 +52,39 @@ graph TD
 
 ## Estrutura de Módulos
 
-```
-fontes/
-├── br.com.wdc.framework/                  # Framework base
-│   ├── br.com.wdc.framework.commons/      # Utilitários, FP, serialização, SQL, crypto
-│   ├── br.com.wdc.framework.cube/         # Cube MVP: presenters, views, navegação
-│   └── br.com.wdc.framework.dependencies/ # BOM — gerenciamento centralizado de versões
-│
-└── br.com.wdc.shopping/                   # Aplicação Shopping
-    ├── br.com.wdc.shopping.domain/             # Modelos, repositórios, critérios, config
-    ├── br.com.wdc.shopping.persistence/        # Persistência (H2 + JDBI + Command Pattern)
-    ├── br.com.wdc.shopping.presentation/       # Presenters, ViewStates, navegação, DTOs
-    ├── br.com.wdc.shopping.scripts/            # Scripts DDL (DBCreate, DBReset)
-    ├── br.com.wdc.shopping.tests/              # Testes unitários e de workflow
-    ├── br.com.wdc.shopping.api/                # REST API controllers (Javalin)
-    ├── br.com.wdc.shopping.api-client/         # REST client (OkHttp + Gson) para Android
-    ├── br.com.wdc.shopping.view.react/         # 📄 [README](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.react/README.md)
-    │   ├── br.com.wdc.shopping.view.react.client/    # Frontend React/TypeScript
-    │   ├── br.com.wdc.shopping.view.react.javalin/   # Servidor Javalin (fat JAR)
-    │   └── br.com.wdc.shopping.view.react.skeleton/  # Implementações de view + segurança
-    ├── br.com.wdc.shopping.view.vaadin/        # 📄 [README](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin/README.md)
-    │                                           # Frontend Vaadin 24 (server-side, Lumo theme)
-    ├── br.com.wdc.shopping.view.jfx/           # 📄 [README](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.jfx/README.md)
-    │                                           # Frontend JavaFX desktop
-    ├── br.com.wdc.shopping.view.swing/         # 📄 [README](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.swing/README.md)
-    │                                           # Frontend Swing desktop (FlatLaf)
-    └── br.com.wdc.shopping.view.android/       # 📄 [README](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.android/README.md)
-                                                # Frontend Android (Kotlin + Jetpack Compose)
+```mermaid
+graph TD
+    fontes["fontes/"]
+
+    subgraph Framework["br.com.wdc.framework"]
+        commons["commons<br/><small>Utilitários, FP, serialização, SQL, crypto</small>"]
+        cube["cube<br/><small>Cube MVP: presenters, views, navegação</small>"]
+        deps["dependencies<br/><small>BOM — versões centralizadas</small>"]
+    end
+
+    subgraph Shopping["br.com.wdc.shopping"]
+        domain["domain<br/><small>Modelos, repositórios, critérios</small>"]
+        persistence["persistence<br/><small>H2 + JDBI + Command Pattern</small>"]
+        presentation["presentation<br/><small>Presenters, ViewStates, navegação</small>"]
+        scripts["scripts<br/><small>DDL (DBCreate, DBReset)</small>"]
+        tests["tests<br/><small>Testes unitários e de workflow</small>"]
+        api["api<br/><small>REST controllers (Javalin)</small>"]
+        apiClient["api-client<br/><small>REST client (OkHttp + Gson)</small>"]
+
+        subgraph ViewReact["view.react"]
+            reactClient["client<br/><small>Frontend React/TypeScript</small>"]
+            reactJavalin["javalin<br/><small>Servidor (fat JAR)</small>"]
+            reactSkeleton["skeleton<br/><small>Views + segurança</small>"]
+        end
+
+        viewVaadin["view.vaadin<br/><small>Vaadin 24 server-side</small>"]
+        viewSwing["view.swing<br/><small>Swing + FlatLaf</small>"]
+        viewGluon["view.gluon<br/><small>JavaFX + Gluon (Desktop/iOS/Android)</small>"]
+        viewTeavm["view.teavm<br/><small>TeaVM + Tauri (Web/Desktop/Android/iOS)</small>"]
+    end
+
+    fontes --> Framework
+    fontes --> Shopping
 ```
 
 ### Framework
@@ -108,9 +114,9 @@ fontes/
 | **view.react.javalin** | Servidor Javalin 7 com Virtual Threads, WebSocket dispatcher, controllers REST, banco H2 embarcado. Gera fat JAR (~11 MB) |
 | **view.react.skeleton** | Implementações de view para o servidor (`GenericViewImpl`), segurança (`AppSecurity` — RSA/PBKDF2/AES-GCM, `DataSecurity`), SPI de WebSocket |
 | **view.vaadin** | Visualização web server-side com Vaadin 24 + Lumo theme + Jetty 12 embarcado — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin/README.md) |
-| **view.jfx** | Visualização desktop com JavaFX 24 + CSS Material-inspired — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.jfx/README.md) |
 | **view.swing** | Visualização desktop com Swing + FlatLaf (Material look-and-feel) — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.swing/README.md) |
-| **view.android** | App Android nativo com Kotlin + Jetpack Compose + Material 3 — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.android/README.md) |
+| **view.gluon** | Multiplataforma (Desktop + iOS + Android) com JavaFX + Gluon Mobile + GraalVM Native Image — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/README.md) |
+| **view.teavm** | Multiplataforma (Web + Desktop + Android + iOS) com TeaVM 0.14 + Tauri 2 + Bootstrap 5 — Java compilado para JS — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.teavm/README.md) |
 | **api** | Controllers REST (Javalin) para expor repositórios como endpoints HTTP, filtro de segurança JWT (`SecurityFilter`), endpoints de autenticação (`AuthApiController`) |
 | **api-client** | Client REST (OkHttp + Gson) que implementa as interfaces de repositório e `AuthenticationService` via HTTP, com Bearer token automático |
 
@@ -182,27 +188,16 @@ java --enable-preview -cp "$(mvn -q dependency:build-classpath -Dmdep.outputFile
 - **Aplicação:** http://localhost:8090
 - UI inteiramente server-side — sem código JavaScript/TypeScript customizado
 
-### Versão JavaFX (Desktop)
+### Versão Gluon (Desktop / iOS / Android)
 
 ```bash
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-26.jdk/Contents/Home
-export PATH="$JAVA_HOME/bin:$PATH"
-
-cd br.com.wdc.shopping/br.com.wdc.shopping.view.jfx
+# Desktop (JVM)
+cd br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/br.com.wdc.shopping.view.gluon.desktop
 mvn javafx:run
-```
 
-Ou via IDE usando a classe `ShoppingJfxLauncher.java` (não requer module-path configurado).
-
-### Versão Android (Mobile)
-
-```bash
-# Compile as dependências Java para mavenLocal com perfil Android-compat
-cd fontes
-./build-android-deps.sh
-
-# Abra fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.android no Android Studio
-# Sync Gradle → Build → Run
+# iOS (simulador)
+cd br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/br.com.wdc.shopping.view.gluon.ios
+./build-sim.sh
 ```
 
 ## Testes
@@ -302,15 +297,16 @@ Se `jwt.secret` não estiver configurado, a API opera sem autenticação (modo d
 
 O Cube MVP organiza a aplicação em uma **hierarquia de presenters** com navegação baseada em **intents**:
 
-```
-RootPresenter (container)
-├── LoginPresenter (aberto)
-└── HomePresenter (restrito/autenticado)
-    ├── ProductsPanelPresenter (painel)
-    ├── PurchasesPanelPresenter (painel)
-    ├── ProductPresenter
-    ├── CartPresenter
-    └── ReceiptPresenter
+```mermaid
+graph TD
+    Root["RootPresenter (container)"]
+    Root --> Login["LoginPresenter (aberto)"]
+    Root --> Home["HomePresenter (restrito/autenticado)"]
+    Home --> ProductsPanel["ProductsPanelPresenter (painel)"]
+    Home --> PurchasesPanel["PurchasesPanelPresenter (painel)"]
+    Home --> Product["ProductPresenter"]
+    Home --> Cart["CartPresenter"]
+    Home --> Receipt["ReceiptPresenter"]
 ```
 
 Cada presenter possui um **ViewState** serializável que é transmitido ao frontend via WebSocket. O frontend renderiza com base no estado recebido e envia eventos de volta ao presenter correspondente.
@@ -336,10 +332,8 @@ Cada presenter possui um **ViewState** serializável que é transmitido ao front
 | Servidor HTTP | Javalin | 7.1.0 |
 | Web UI (server-side) | Vaadin | 24.6.3 |
 | Servlet Container | Jetty | 12 |
-| Desktop UI | JavaFX | 24.0.1 |
-| Mobile UI | Jetpack Compose + Material 3 | 2024.12 |
-| Mobile Language | Kotlin | 2.1 |
-| Image Loading | Coil | 2.7 |
+| Desktop UI | JavaFX (via Gluon) | 21.0.7 |
+| Multiplataforma | Gluon Mobile + GraalVM Native Image | 1.0.25 |
 | Banco de dados | H2 | 2.4.240 |
 | Acesso a dados | JDBI | 3.52.1 |
 | Serialização | Gson | 2.13.2 |

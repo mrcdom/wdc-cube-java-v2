@@ -34,8 +34,8 @@ public class ReceiptViewSwing extends AbstractViewSwing<ReceiptPresenter> {
     private BiConsumer<List<ReceiptItem>, List<ReceiptItemViewSwing>> itemsSlot;
     private int itemIdx;
 
-    public ReceiptViewSwing(ShoppingSwingApplication app, ReceiptPresenter presenter) {
-        super("receipt", app, presenter, new JPanel());
+    public ReceiptViewSwing(ReceiptPresenter presenter) {
+        super("receipt", (ShoppingSwingApplication) presenter.app, presenter, new JPanel());
         this.element.setLayout(new BoxLayout(this.element, BoxLayout.Y_AXIS));
         this.state = presenter.state;
     }
@@ -185,7 +185,7 @@ public class ReceiptViewSwing extends AbstractViewSwing<ReceiptPresenter> {
             backBtn.setText("< VOLTAR");
             Styles.styleOutlineButton(backBtn, Styles.FG_PRIMARY);
             backBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
-            backBtn.addActionListener(_ -> safeAction("Open products", this.presenter::onOpenProducts));
+            backBtn.addActionListener(_ignored -> safeAction("Open products", this.presenter::onOpenProducts));
         });
     }
 

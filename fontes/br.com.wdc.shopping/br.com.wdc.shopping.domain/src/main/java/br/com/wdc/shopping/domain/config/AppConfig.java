@@ -7,8 +7,7 @@ import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 /**
  * Application configuration loaded from a TOML file.
@@ -23,7 +22,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class AppConfig {
 
-    private static final Logger LOG = LoggerFactory.getLogger(AppConfig.class);
+    private static final Log LOG = Log.getLogger(AppConfig.class);
 
     private static final String CONFIG_FILE_PROPERTY = "shopping.config.file";
     private static final String DEFAULT_CONFIG_PATH = "work/config/application.toml";
@@ -53,6 +52,12 @@ public final class AppConfig {
 
     public String get(String key) {
         return properties.get(key);
+    }
+
+    public AppConfig withOverride(String key, String value) {
+        var copy = new LinkedHashMap<>(this.properties);
+        copy.put(key, value);
+        return new AppConfig(copy);
     }
 
     public String get(String key, String defaultValue) {

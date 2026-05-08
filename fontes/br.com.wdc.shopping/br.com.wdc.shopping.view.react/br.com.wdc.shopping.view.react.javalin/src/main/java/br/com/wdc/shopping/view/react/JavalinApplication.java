@@ -6,8 +6,8 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
+import br.com.wdc.framework.commons.log.Slf4jLogFactory;
 
 import br.com.wdc.shopping.api.RepositoryApiRoutes;
 import br.com.wdc.shopping.domain.config.AppConfig;
@@ -28,7 +28,11 @@ import io.javalin.http.staticfiles.Location;
 @SuppressWarnings({ "java:S2139", "java:S1192" })
 public class JavalinApplication {
 
-    private static final Logger LOG = LoggerFactory.getLogger(JavalinApplication.class);
+    public static void main(String[] args) {
+        JavalinApplication.doMain(args);
+    }
+
+    private static final Log LOG;
 
     private static final String STATIC_FILES_DIR = "/META-INF/resources";
     private static final String STATIC_IMAGES_FILES_DIR = STATIC_FILES_DIR + "/images";
@@ -39,12 +43,15 @@ public class JavalinApplication {
     private static final int DEFAULT_PORT = 8080;
     private static final record StaticFilesSettings(String directory, Location location) {}
 
+    static {
+        Log.setFactory(new Slf4jLogFactory());
+        LOG = Log.getLogger(JavalinApplication.class);
+    }
+
     private final Javalin app;
     private final int port;
     private final BusinessContext businessContext = new BusinessContext();
     private final StaticFilesSettings staticFilesSettings = resolveStaticFilesSettings();
-
-    
 
     public JavalinApplication(int port) {
         this.port = port;
@@ -69,6 +76,14 @@ public class JavalinApplication {
             // over the 15-second keepalive used by browser and server.
             config.jetty.modifyWebSocketServletFactory(wsFactory -> wsFactory.setIdleTimeout(Duration.ofMinutes(2)));
 
+            // Enable CORS for Tauri desktop app, Android WebView, and local dev
+            config.bundledPlugins.enableCors(cors -> cors.addRule(rule -> {
+                rule.allowHost("tauri://localhost", "https://tauri.localhost",
+                        "http://tauri.localhost",
+                        "http://localhost:8080", "http://shopping-wdc.localhost:8080");
+                rule.allowCredentials = true;
+            }));
+
             // Enable static file serving from META-INF/resources
             config.staticFiles.add(staticFileConfig -> {
                 staticFileConfig.directory = staticFilesSettings.directory;
@@ -80,6 +95,14 @@ public class JavalinApplication {
                 staticFileConfig.directory = STATIC_IMAGES_FILES_DIR;
                 staticFileConfig.location = Location.CLASSPATH;
                 staticFileConfig.hostedPath = STATIC_HOSTED_IMAGE_PATH;
+                staticFileConfig.precompressMaxSize = 0;
+            });
+
+            // TeaVM compiled webapp served under /teavm/
+            config.staticFiles.add(staticFileConfig -> {
+                staticFileConfig.directory = "/META-INF/resources/teavm";
+                staticFileConfig.location = Location.CLASSPATH;
+                staticFileConfig.hostedPath = "/teavm";
                 staticFileConfig.precompressMaxSize = 0;
             });
 
@@ -129,6 +152,7 @@ public class JavalinApplication {
                 && !path.startsWith("/ws/") 
                 && !path.startsWith("/health")
                 && !path.startsWith("/dispatcher")
+                && !path.startsWith("/teavm")
                 && !path.equals("/index.html")
                 && !isStaticResource(path)) {
                 LOG.debug("SPA fallback for path: {}", path);
@@ -210,7 +234,7 @@ public class JavalinApplication {
     /**
      * Entry point for the application.
      */
-    public static void main(String[] args) {
+    public static void doMain(String[] args) {
         var config = AppConfig.load();
         int port = config.getInt("server.port", DEFAULT_PORT);
 
@@ -218,7 +242,7 @@ public class JavalinApplication {
         if (args.length > 0) {
             try {
                 port = Integer.parseInt(args[0]);
-            } catch (NumberFormatException _) {
+            } catch (NumberFormatException ignored) {
                 LOG.warn("Invalid port number: {}, using default {}", args[0], DEFAULT_PORT);
             }
         }
@@ -228,7 +252,7 @@ public class JavalinApplication {
         if (portEnv != null && !portEnv.isBlank()) {
             try {
                 port = Integer.parseInt(portEnv);
-            } catch (NumberFormatException _) {
+            } catch (NumberFormatException ignored) {
                 LOG.warn("Invalid SERVER_PORT environment variable: {}, using default {}", portEnv, DEFAULT_PORT);
             }
         }
@@ -248,7 +272,7 @@ public class JavalinApplication {
         // Keep JVM running
         try {
             Thread.currentThread().join();
-        } catch (@SuppressWarnings("java:S2142") InterruptedException _) {
+        } catch (@SuppressWarnings("java:S2142") InterruptedException ignored) {
             LOG.info("Main thread interrupted");
             server.stop();
         }

@@ -13,18 +13,18 @@ Módulo de **API REST** da aplicação Shopping. Expõe os repositórios de dom�
 
 ## Estrutura de Pacotes
 
-```
-br.com.wdc.shopping.api
-├── RepositoryApiRoutes.java          — Configuração central de rotas e filtros
-├── ApiObjectMapper.java              — ObjectMapper Jackson com mixins e adapters
-├── AuthApiController.java            — Endpoints de autenticação (challenge, login, refresh, logout)
-├── UserApiController.java            — CRUD de usuários
-├── ProductApiController.java         — CRUD de produtos + upload/download de imagens
-├── PurchaseApiController.java        — CRUD de compras
-├── PurchaseItemApiController.java    — CRUD de itens de compra
-│
-└── security/
-    └── SecurityFilter.java           — Before-filter: valida Bearer JWT, popula SecurityContextHolder
+```mermaid
+graph TD
+    root["br.com.wdc.shopping.api"]
+    root --> Routes["RepositoryApiRoutes.java<br/><small>Rotas e filtros</small>"]
+    root --> Mapper["ApiObjectMapper.java<br/><small>Jackson mixins/adapters</small>"]
+    root --> AuthCtrl["AuthApiController.java<br/><small>challenge, login, refresh, logout</small>"]
+    root --> UserCtrl["UserApiController.java<br/><small>CRUD usuários</small>"]
+    root --> ProductCtrl["ProductApiController.java<br/><small>CRUD produtos + imagens</small>"]
+    root --> PurchaseCtrl["PurchaseApiController.java<br/><small>CRUD compras</small>"]
+    root --> PurchItemCtrl["PurchaseItemApiController.java<br/><small>CRUD itens</small>"]
+    root --> security["security/"]
+    security --> Filter["SecurityFilter.java<br/><small>Bearer JWT → SecurityContextHolder</small>"]
 ```
 
 ## Endpoints

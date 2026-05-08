@@ -3,8 +3,7 @@ package br.com.wdc.shopping.presentation.presenter.restricted.products;
 import java.util.Objects;
 import java.util.function.Function;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubeIntent;
@@ -20,7 +19,7 @@ public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication>
 
     // :: Private Class Fields
 
-    private static final Logger LOG = LoggerFactory.getLogger(ProductPresenter.class.getName());
+    private static final Log LOG = Log.getLogger(ProductPresenter.class);
 
     // :: Public Class Fields
 

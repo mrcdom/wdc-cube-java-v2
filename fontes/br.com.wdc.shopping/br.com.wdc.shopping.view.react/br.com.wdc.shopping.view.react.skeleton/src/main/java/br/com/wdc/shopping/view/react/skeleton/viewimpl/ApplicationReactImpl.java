@@ -16,8 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.mutable.MutableBoolean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 import com.google.gson.stream.JsonWriter;
 
@@ -29,6 +28,8 @@ import br.com.wdc.framework.commons.gson.JsonExtensibleObjectOutput;
 import br.com.wdc.framework.commons.lang.CoerceUtils;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
 import br.com.wdc.framework.cube.CubeIntent;
+import br.com.wdc.framework.cube.CubePresenter;
+import br.com.wdc.shopping.presentation.ProxyRepositoryWrapper;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.RootPresenter;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
@@ -45,7 +46,7 @@ import br.com.wdc.shopping.view.react.skeleton.util.GenericViewImpl;
 
 public class ApplicationReactImpl extends ShoppingApplication {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ApplicationReactImpl.class);
+    private static final Log LOG = Log.getLogger(ApplicationReactImpl.class);
 
     public static final Duration DEFAULT_TIME_SPAN = Duration.ofMinutes(3);
 
@@ -63,6 +64,11 @@ public class ApplicationReactImpl extends ShoppingApplication {
     }
 
     private static ConcurrentHashMap<String, ApplicationReactImpl> instanceMap = new ConcurrentHashMap<>();
+    
+    @Override
+    protected Map<Integer, CubePresenter> createPresenterMap() {
+        return new ConcurrentHashMap<>();
+    }
 
     public static ApplicationReactImpl get(String appId) {
         if (StringUtils.isBlank(appId)) {
@@ -85,7 +91,7 @@ public class ApplicationReactImpl extends ShoppingApplication {
     }
 
     public static ApplicationReactImpl getOrCreate(String appId, Map<String, Object> request) {
-        return instanceMap.computeIfAbsent(appId, _ -> ApplicationReactImpl.createApp(appId, request));
+        return instanceMap.computeIfAbsent(appId, _ignored -> ApplicationReactImpl.createApp(appId, request));
     }
 
     private static ApplicationReactImpl createApp(String appId, Map<String, Object> request) {
@@ -138,6 +144,11 @@ public class ApplicationReactImpl extends ShoppingApplication {
         this.id = id;
         this.removeInstanceAction = ThrowingRunnable.noop();
         this.postConstruct();
+    }
+
+    @Override
+    protected <T> T createDelegate(Class<T> repoInterface, T delegate) {
+        return ProxyRepositoryWrapper.wrap(repoInterface, delegate, this::getSecurityContext);
     }
 
     // :: Instance
@@ -316,11 +327,11 @@ public class ApplicationReactImpl extends ShoppingApplication {
     }
 
     public void updateAllViews() {
-        this.viewMap.forEach((_, v) -> this.markDirty(v));
+        this.viewMap.forEach((_ignored, v) -> this.markDirty(v));
     }
 
     @Override
-    public void alertUnexpectedError(Logger logger, String message, Throwable e) {
+    public void alertUnexpectedError(Log logger, String message, Throwable e) {
         this.browserView.alertUnexpectedError(message, e);
     }
 
@@ -567,7 +578,7 @@ public class ApplicationReactImpl extends ShoppingApplication {
         }
 
         private void commitComputedState() {
-            me.presenterMap.forEach((_, presenter) -> {
+            me.presenterMap.forEach((_ignored, presenter) -> {
                 try {
                     presenter.commitComputedState();
                 } catch (Exception cause) {

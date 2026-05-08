@@ -16,8 +16,8 @@ public class RootViewVaadin extends AbstractViewVaadin<RootPresenter> {
     private Div contentPane;
     private AbstractViewVaadin<?> currentContentView;
 
-    public RootViewVaadin(ShoppingVaadinApplication app, RootPresenter presenter) {
-        super("root", app, presenter, new Div());
+    public RootViewVaadin(RootPresenter presenter) {
+        super("root", (ShoppingVaadinApplication) presenter.app, presenter, new Div());
         this.state = presenter.state;
     }
 

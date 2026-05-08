@@ -5,6 +5,7 @@ import java.text.NumberFormat;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -31,9 +32,12 @@ public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
     private Grid<CartItem> grid;
     private Span totalCostElm;
     private double totalCostOldValue;
+    private Div emptyCartPane;
+    private HorizontalLayout footerPane;
+    private HorizontalLayout actionsPane;
 
-    public CartViewVaadin(ShoppingVaadinApplication app, CartPresenter presenter) {
-        super("cart", app, presenter, new VerticalLayout());
+    public CartViewVaadin(CartPresenter presenter) {
+        super("cart", (ShoppingVaadinApplication) presenter.app, presenter, new VerticalLayout());
         this.state = presenter.state;
     }
 
@@ -44,6 +48,9 @@ public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
         this.grid = null;
         this.totalCostElm = null;
         this.totalCostOldValue = 0;
+        this.emptyCartPane = null;
+        this.footerPane = null;
+        this.actionsPane = null;
     }
 
     @Override
@@ -54,6 +61,19 @@ public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
         }
 
         this.grid.setItems(this.state.items);
+
+        boolean empty = this.state.items.isEmpty();
+        this.emptyCartPane.setVisible(empty);
+        this.grid.setVisible(!empty);
+        this.footerPane.setVisible(!empty);
+        if (this.actionsPane != null) {
+            // Show only "Voltar" in actions when empty
+            this.actionsPane.getChildren().forEach(c -> {
+                if (c instanceof Button btn && "FINALIZAR PEDIDO".equals(btn.getText())) {
+                    btn.setVisible(!empty);
+                }
+            });
+        }
 
         var totalCostNewValue = this.computeTotalCost();
         if (totalCostNewValue != this.totalCostOldValue) {
@@ -123,8 +143,32 @@ public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
 
         pane0.add(this.grid);
 
+        // Empty cart message
+        this.emptyCartPane = new Div();
+        this.emptyCartPane.addClassName("cart-empty-message");
+        this.emptyCartPane.setVisible(false);
+        this.emptyCartPane.setWidthFull();
+        this.emptyCartPane.getStyle()
+                .set("flex-direction", "column")
+                .set("align-items", "center")
+                .set("justify-content", "center")
+                .set("padding", "var(--lumo-space-xl) 0");
+        var emptyCartIcon = new Div();
+        emptyCartIcon.addClassName("cart-empty-icon");
+        this.emptyCartPane.add(emptyCartIcon);
+        var emptyText = new Span("Seu carrinho está vazio");
+        emptyText.getStyle().set("display", "block").set("color", "var(--lumo-secondary-text-color)").set("font-size", "1.1rem").set("margin-top", "var(--lumo-space-m)");
+        this.emptyCartPane.add(emptyText);
+        var goShoppingBtn = new Button("Vamos às compras!",
+                e -> safeAction("Open products", this.presenter::onOpenProducts));
+        goShoppingBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        goShoppingBtn.getStyle().set("font-weight", "bold").set("font-size", "1rem").set("margin-top", "var(--lumo-space-s)");
+        this.emptyCartPane.add(goShoppingBtn);
+        pane0.add(this.emptyCartPane);
+
         // Footer with total
         dom.horizontalLayout(footer -> {
+            this.footerPane = footer;
             footer.setWidthFull();
             footer.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
             footer.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -148,13 +192,15 @@ public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
 
         // Action buttons
         dom.horizontalLayout(actions -> {
+            this.actionsPane = actions;
             actions.setWidthFull();
             actions.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 
             dom.button(button -> {
-                button.setText("VOLTAR");
+                button.setText("Voltar aos produtos");
                 button.setIcon(VaadinIcon.ARROW_LEFT.create());
-                button.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+                button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+                button.addClassName("back-button");
                 button.addClickListener(e -> safeAction("Open products", this.presenter::onOpenProducts));
             });
 

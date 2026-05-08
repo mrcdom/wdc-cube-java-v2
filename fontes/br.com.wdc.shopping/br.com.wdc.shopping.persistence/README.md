@@ -15,81 +15,49 @@ Camada de persistência do sistema Shopping. Implementa os repositórios definid
 
 ## Estrutura de Pacotes
 
-```
-br.com.wdc.shopping.persistence
-│
-├── RepositoryBootstrap.java                   # Inicializa os BEANs estáticos dos repositórios
-│
-├── concurrent/                                # Adaptadores de concorrência
-│   └── ScheduledExecutorAdapter.java          # Adapta ScheduledExecutorService → ScheduledExecutor
-│
-├── security/                                  # Segurança RBAC — decorators e infraestrutura
-│   ├── AccessContext.java                     # Contexto de acesso (userId, permissions)
-│   ├── AccessContextCache.java                # Cache de AccessContext por userId
-│   ├── AuthenticationServiceImpl.java         # Implementação de AuthenticationService (HMAC + JWT)
-│   ├── JwtUtil.java                           # Criação e validação de tokens JWT (HMAC-SHA256)
-│   ├── NonceStore.java                        # Armazena nonces de uso único com TTL
-│   ├── SecurityEnforcer.java                  # Verifica permissões e restringe escopo ao userId
-│   ├── SecuredUserRepository.java             # Decorator: verifica permissão user:* antes de operar
-│   ├── SecuredProductRepository.java          # Decorator: verifica permissão product:* antes de operar
-│   ├── SecuredPurchaseRepository.java         # Decorator: restringe escopo de compras ao userId
-│   └── SecuredPurchaseItemRepository.java     # Decorator: restringe escopo de itens ao userId
-│
-├── sql/                                       # DSL SQL e utilitários
-│   ├── SqlKeywords.java                       # Constantes e funções SQL (SELECT, WHERE, AND, ...)
-│   ├── SqlList.java                           # Builder de SQL com projeção tipada (ResultSet → tipo)
-│   └── SqlUtils.java                          # Utilitários (sequences, JSON fields, comma helper)
-│
-├── schema/                                    # Definições de tabelas (entidades)
-│   ├── EnUser.java                            # Tabela EN_USER + Row + sequence SQ_USER
-│   ├── EnProduct.java                         # Tabela EN_PRODUCT + Row + sequence SQ_PRODUCT
-│   ├── EnPurchase.java                        # Tabela EN_PURCHASE + Row + sequence SQ_PURCHASE
-│   ├── EnPurchaseItem.java                    # Tabela EN_PURCHASE_ITEM + Row + sequence SQ_PURCHASE_ITEM
-│   └── support/                               # Infraestrutura de suporte ao schema
-│       ├── DbTable.java                       # Base para definição de tabelas (DDL)
-│       ├── DbField.java                       # Metadado de coluna (nome, tipo, nullable, etc.)
-│       └── BaseRow.java                       # Base para row objects (change tracking)
-│
-└── repository/                                # Implementações de repositórios
-    ├── BaseRepository.java                    # Base para repositórios (DataSource + exceções)
-    ├── BaseCommand.java                       # Base para comandos SQL (parâmetros bind)
-    ├── BaseApplyCriteria.java                 # Base para aplicadores de critérios
-    │
-    ├── user/                                  # Repositório de usuários
-    │   ├── UserRepositoryImpl.java            # Implementa UserRepository
-    │   ├── InsertRowUserCmd.java              # INSERT
-    │   ├── UpdateRowUserCmd.java              # UPDATE
-    │   ├── FetchUsersCmd.java                 # SELECT (com projeção e CTE)
-    │   ├── CountUsersCmd.java                 # COUNT
-    │   ├── DeleteUsersCmd.java                # DELETE
-    │   └── ApplyUserCriteria.java             # Aplica UserCriteria → cláusulas WHERE
-    │
-    ├── product/                               # Repositório de produtos
-    │   ├── ProductRepositoryImpl.java
-    │   ├── InsertProductRowCmd.java
-    │   ├── UpdateProductRowCmd.java
-    │   ├── FetchProductsCmd.java
-    │   ├── CountProductsCmd.java
-    │   ├── DeleteProductsCmd.java
-    │   └── ApplyProductCriteria.java
-    │
-    ├── purchase/                              # Repositório de compras
-    │   ├── PurchaseRepositoryImpl.java
-    │   ├── InsertRowPurchaseCmd.java
-    │   ├── UpdateRowPurchaseCmd.java
-    │   ├── FetchPurchaseCmd.java
-    │   ├── CountPurchasesCmd.java
-    │   ├── DeletePurchasesCmd.java
-    │   └── ApplyPurshaseCriteria.java
-    │
-    └── purchaseitem/                          # Repositório de itens de compra
-        ├── PurchaseItemRepositoryImpl.java
-        ├── InsertRowPurchaseItemCmd.java
-        ├── UpdateRowPurchaseItemCmd.java
-        ├── FetchPurchaseItemsCmd.java
-        ├── CountPurchaseItemsCmd.java
-        ├── DeletePurchaseItemsCmd.java
-        └── ApplyPurshaseItemCriteria.java
+```mermaid
+graph TD
+    root["br.com.wdc.shopping.persistence"]
+    root --> Bootstrap["RepositoryBootstrap.java<br/><small>Inicializa BEANs</small>"]
+
+    root --> concurrent["concurrent/"]
+    concurrent --> SchedAdapter["ScheduledExecutorAdapter.java"]
+
+    root --> security["security/ — RBAC Decorators"]
+    security --> AccessCtx["AccessContext"]
+    security --> AccessCache["AccessContextCache"]
+    security --> AuthImpl["AuthenticationServiceImpl"]
+    security --> JwtUtil["JwtUtil (HMAC-SHA256)"]
+    security --> Nonce["NonceStore"]
+    security --> Enforcer["SecurityEnforcer"]
+    security --> SecUser["SecuredUserRepository"]
+    security --> SecProduct["SecuredProductRepository"]
+    security --> SecPurchase["SecuredPurchaseRepository"]
+    security --> SecPurchItem["SecuredPurchaseItemRepository"]
+
+    root --> sql["sql/ — DSL SQL"]
+    sql --> Keywords["SqlKeywords"]
+    sql --> SqlList["SqlList (builder)"]
+    sql --> SqlUtils["SqlUtils"]
+
+    root --> schema["schema/ — Definições de tabelas"]
+    schema --> EnUser["EnUser"]
+    schema --> EnProduct["EnProduct"]
+    schema --> EnPurchase["EnPurchase"]
+    schema --> EnPurchaseItem["EnPurchaseItem"]
+    schema --> support["support/"]
+    support --> DbTable["DbTable"]
+    support --> DbField["DbField"]
+    support --> BaseRow["BaseRow"]
+
+    root --> repository["repository/ — Implementações"]
+    repository --> BaseRepo["BaseRepository"]
+    repository --> BaseCmd["BaseCommand"]
+    repository --> BaseCrit["BaseApplyCriteria"]
+    repository --> userRepo["user/ (UserRepositoryImpl + Commands)"]
+    repository --> productRepo["product/ (ProductRepositoryImpl + Commands)"]
+    repository --> purchaseRepo["purchase/ (PurchaseRepositoryImpl + Commands)"]
+    repository --> purchItemRepo["purchaseitem/ (PurchaseItemRepositoryImpl + Commands)"]
 ```
 
 ## Arquitetura
@@ -285,29 +253,38 @@ Quando `initializeSecurity()` é chamado com um `jwtSecret` não-vazio, os repos
 
 ## Esquema do Banco
 
-```
-EN_USER
-├── ID          BIGINT NOT NULL (PK, SQ_USER)
-├── USERNAME    VARCHAR(255) NOT NULL
-├── PASSWORD    CHAR(32) NOT NULL
-└── NAME        VARCHAR(255) NOT NULL
+```mermaid
+erDiagram
+    EN_USER {
+        BIGINT ID PK "SQ_USER"
+        VARCHAR USERNAME "NOT NULL"
+        CHAR PASSWORD "NOT NULL"
+        VARCHAR NAME "NOT NULL"
+    }
 
-EN_PRODUCT
-├── ID          BIGINT NOT NULL (PK, SQ_PRODUCT)
-├── NAME        VARCHAR(255) NOT NULL
-├── PRICE       NUMERIC(10,2) NOT NULL
-├── DESCRIPTION VARCHAR(4096)
-└── IMAGE       VARBINARY(65536)
+    EN_PRODUCT {
+        BIGINT ID PK "SQ_PRODUCT"
+        VARCHAR NAME "NOT NULL"
+        NUMERIC PRICE "NOT NULL"
+        VARCHAR DESCRIPTION
+        VARBINARY IMAGE
+    }
 
-EN_PURCHASE
-├── ID          BIGINT NOT NULL (PK, SQ_PURCHASE)
-├── USER_ID     BIGINT NOT NULL (FK → EN_USER)
-└── BUY_DATE    TIMESTAMP NOT NULL
+    EN_PURCHASE {
+        BIGINT ID PK "SQ_PURCHASE"
+        BIGINT USER_ID FK "NOT NULL"
+        TIMESTAMP BUY_DATE "NOT NULL"
+    }
 
-EN_PURCHASE_ITEM
-├── ID          BIGINT NOT NULL (PK, SQ_PURCHASE_ITEM)
-├── PURCHASE_ID BIGINT NOT NULL (FK → EN_PURCHASE)
-├── PRODUCT_ID  BIGINT NOT NULL (FK → EN_PRODUCT)
-├── AMOUNT      INTEGER NOT NULL
-└── PRICE       NUMERIC(10,2) NOT NULL
+    EN_PURCHASE_ITEM {
+        BIGINT ID PK "SQ_PURCHASE_ITEM"
+        BIGINT PURCHASE_ID FK "NOT NULL"
+        BIGINT PRODUCT_ID FK "NOT NULL"
+        INTEGER AMOUNT "NOT NULL"
+        NUMERIC PRICE "NOT NULL"
+    }
+
+    EN_USER ||--o{ EN_PURCHASE : "compras"
+    EN_PURCHASE ||--o{ EN_PURCHASE_ITEM : "itens"
+    EN_PRODUCT ||--o{ EN_PURCHASE_ITEM : "produto"
 ```

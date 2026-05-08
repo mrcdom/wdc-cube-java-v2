@@ -4,50 +4,51 @@ Módulo de **domínio puro** da aplicação Shopping. Define modelos, contratos 
 
 ## Estrutura
 
-```
-src/main/java/br/com/wdc/shopping/domain/
-├── ShoppingConfig.java              — Diretórios da aplicação (config, data, log, temp)
-│
-├── config/
-│   └── AppConfig.java               — Carrega configuração TOML (application.toml)
-│
-├── model/                           — Modelos de domínio (POJOs)
-│   ├── User.java                    — Usuário (id, userName, password, name)
-│   ├── Product.java                 — Produto (id, name, price, description, image)
-│   ├── Purchase.java                — Compra (id, buyDate, user, items)
-│   └── PurchaseItem.java            — Item de compra (id, amount, price, purchase, product)
-│
-├── repositories/                    — Contratos de repositório (interfaces)
-│   ├── UserRepository.java
-│   ├── ProductRepository.java
-│   ├── PurchaseRepository.java
-│   └── PurchaseItemRepository.java
-│
-├── criteria/                        — Objetos de critério para consultas
-│   ├── UserCriteria.java
-│   ├── ProductCriteria.java
-│   ├── PurchaseCriteria.java
-│   └── PurchaseItemCriteria.java
-│
-├── exception/                       — Exceções de negócio
-│   ├── BusinessException.java       — Base para exceções de negócio
-│   ├── AccessDeniedException.java   — Acesso negado (permissão insuficiente)
-│   ├── InvalidCartItemException.java
-│   └── OfflineException.java
-│
-├── security/                        — Contratos e modelos de segurança (RBAC)
-│   ├── AuthenticationService.java   — Contrato de autenticação (challenge + login)
-│   ├── AuthResult.java              — Resultado de login (tokens, publicKey, expiresAt)
-│   ├── ChallengeResult.java         — Resultado de challenge (nonce, expiresAt)
-│   ├── PasswordUtil.java            — HMAC-SHA256 digest para autenticação
-│   ├── Role.java                    — Enum de papéis (ADMIN, CUSTOMER, MANAGER) com permissões
-│   ├── SecurityContext.java         — Contexto de segurança do usuário autenticado
-│   └── SecurityContextHolder.java   — ThreadLocal para propagação do SecurityContext
-│
-└── utils/                           — Utilitários de projeção
-    ├── ProjectionValues.java        — Valores sentinela para indicar campos desejados
-    ├── ProjectionList.java          — Lista com critério associado
-    └── ProjectionSet.java           — Set com critério associado
+```mermaid
+graph TD
+    root["domain/"]
+    root --> ShoppingConfig["ShoppingConfig.java<br/><small>Diretórios da aplicação</small>"]
+
+    root --> config["config/"]
+    config --> AppConfig["AppConfig.java<br/><small>Carrega TOML</small>"]
+
+    root --> model["model/ — POJOs"]
+    model --> User["User.java"]
+    model --> Product["Product.java"]
+    model --> Purchase["Purchase.java"]
+    model --> PurchaseItem["PurchaseItem.java"]
+
+    root --> repos["repositories/ — Interfaces"]
+    repos --> UserRepo["UserRepository"]
+    repos --> ProductRepo["ProductRepository"]
+    repos --> PurchaseRepo["PurchaseRepository"]
+    repos --> PurchaseItemRepo["PurchaseItemRepository"]
+
+    root --> criteria["criteria/ — Objetos de critério"]
+    criteria --> UserCrit["UserCriteria"]
+    criteria --> ProductCrit["ProductCriteria"]
+    criteria --> PurchaseCrit["PurchaseCriteria"]
+    criteria --> PurchaseItemCrit["PurchaseItemCriteria"]
+
+    root --> exception["exception/ — Exceções de negócio"]
+    exception --> BusinessEx["BusinessException (base)"]
+    exception --> AccessDenied["AccessDeniedException"]
+    exception --> InvalidCart["InvalidCartItemException"]
+    exception --> Offline["OfflineException"]
+
+    root --> security["security/ — RBAC"]
+    security --> AuthSvc["AuthenticationService"]
+    security --> AuthResult["AuthResult"]
+    security --> Challenge["ChallengeResult"]
+    security --> PasswordUtil["PasswordUtil (HMAC-SHA256)"]
+    security --> Role["Role (ADMIN, CUSTOMER, MANAGER)"]
+    security --> SecCtx["SecurityContext"]
+    security --> SecHolder["SecurityContextHolder"]
+
+    root --> utils["utils/ — Projeção"]
+    utils --> ProjValues["ProjectionValues"]
+    utils --> ProjList["ProjectionList"]
+    utils --> ProjSet["ProjectionSet"]
 ```
 
 ## Princípios

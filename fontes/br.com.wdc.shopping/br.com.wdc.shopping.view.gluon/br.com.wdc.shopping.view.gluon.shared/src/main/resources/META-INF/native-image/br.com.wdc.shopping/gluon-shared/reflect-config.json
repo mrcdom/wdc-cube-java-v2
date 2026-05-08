@@ -1,0 +1,30 @@
+[
+  {
+    "name": "ch.qos.logback.classic.util.DefaultJoranConfigurator",
+    "methods": [{ "name": "<init>", "parameterTypes": [] }]
+  },
+  {
+    "name": "ch.qos.logback.classic.BasicConfigurator",
+    "methods": [{ "name": "<init>", "parameterTypes": [] }]
+  },
+  {
+    "name": "br.com.wdc.shopping.domain.model.User",
+    "allDeclaredFields": true,
+    "methods": [{ "name": "<init>", "parameterTypes": [] }]
+  },
+  {
+    "name": "br.com.wdc.shopping.domain.model.Product",
+    "allDeclaredFields": true,
+    "methods": [{ "name": "<init>", "parameterTypes": [] }]
+  },
+  {
+    "name": "br.com.wdc.shopping.domain.model.Purchase",
+    "allDeclaredFields": true,
+    "methods": [{ "name": "<init>", "parameterTypes": [] }]
+  },
+  {
+    "name": "br.com.wdc.shopping.domain.model.PurchaseItem",
+    "allDeclaredFields": true,
+    "methods": [{ "name": "<init>", "parameterTypes": [] }]
+  }
+]

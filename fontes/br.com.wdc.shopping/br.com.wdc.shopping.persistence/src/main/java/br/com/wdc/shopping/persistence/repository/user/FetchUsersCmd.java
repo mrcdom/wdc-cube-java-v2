@@ -61,7 +61,7 @@ public class FetchUsersCmd extends BaseCommand {
             this.applyParams(query);
 
             var userMap = new HashMap<Long, User>();
-            return query.map((rs, _) -> fromJson(fJsonData.apply(rs), userMap)).list();
+            return query.map((rs, _ignored) -> fromJson(fJsonData.apply(rs), userMap)).list();
         }
     }
 

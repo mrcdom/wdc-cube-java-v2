@@ -11,6 +11,7 @@ import TableCell from '@mui/material/TableCell'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
+import Link from '@mui/material/Link'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined'
 import app, { type ViewProps } from '@root/App'
@@ -114,11 +115,23 @@ class ReceiptViewClass extends BaseViewClass<ViewProps, ReceiptViewState> {
             </Box>
           </Box>
 
-          <Box sx={{ mt: 3 }}>
-            <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={this.emitOpenProducts}>
-              Voltar
-            </Button>
-          </Box>
+          <Link
+            component="button"
+            underline="always"
+            onClick={this.emitOpenProducts}
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 0.5,
+              color: '#1976d2',
+              mt: 3,
+              fontSize: '0.875rem',
+              cursor: 'pointer',
+            }}
+          >
+            <ArrowBackIcon fontSize="small" />
+            Voltar aos produtos
+          </Link>
         </CardContent>
       </Card>
     )

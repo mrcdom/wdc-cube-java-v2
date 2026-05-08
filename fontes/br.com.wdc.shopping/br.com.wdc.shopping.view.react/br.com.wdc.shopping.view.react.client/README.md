@@ -17,48 +17,40 @@ Frontend SPA do sistema Shopping, construído com **React 19**, **TypeScript** e
 
 ## Estrutura do Projeto
 
-```
-src/
-├── index.html                         # Página HTML de entrada
-└── scripts/
-    ├── index.tsx                       # Bootstrap: tema MUI, registro de views, render
-    ├── App.tsx                         # Fachada pública da Application (API para views)
-    │
-    ├── app/                            # Infraestrutura da aplicação
-    │   ├── Application.ts              # Núcleo: gerencia views, formulários, WebSocket
-    │   ├── FlushRequestContext.ts      # Comunicação WebSocket: envio, recebimento, keep-alive
-    │   ├── ReconnectController.ts      # Reconexão automática com backoff progressivo
-    │   ├── DataSecurity.ts             # Criptografia client-side (RSA + AES-GCM)
-    │   ├── ViewScope.ts               # Estado reativo de cada view
-    │   ├── ViewGarbageCollector.ts     # Coleta de views desanexadas
-    │   ├── constants.ts                # Constantes (IDs, intervalos, helpers)
-    │   └── types.ts                    # Tipos compartilhados (BrowserViewState, ViewProps, etc.)
-    │
-    ├── utils/                          # Utilitários
-    │   ├── ViewUtils.tsx               # BaseViewClass / BasePanelClass (bridge classe→FC)
-    │   ├── LangUtils.ts               # makeUniqueId, deleteProperties
-    │   ├── DateUtils.ts               # Formatação de datas
-    │   ├── NumberUtils.ts             # Formatação numérica
-    │   ├── EndpointUtils.ts           # Helpers para endpoints
-    │   ├── Base64.ts                  # Codificação Base64
-    │   ├── BigIntUtils.ts             # Operações com BigInt
-    │   ├── RSA.ts                     # Criptografia RSA (Web Crypto API)
-    │   └── UTF8.ts                    # Encode/decode UTF-8
-    │
-    └── views/                          # Componentes de view
-        ├── BrowserView.tsx             # View raiz: conexão, alertas, indicador de loading
-        ├── RootView.tsx                # Container autenticado/não-autenticado
-        ├── SlotView.tsx                # Slot genérico para sub-views
-        ├── LoginView.tsx               # Tela de login
-        ├── HomeView.tsx                # Tela principal (após login)
-        ├── ProductView.tsx             # Detalhe de produto
-        ├── CartView.tsx                # Carrinho de compras
-        ├── ReceiptView.tsx             # Comprovante de compra
-        └── home/
-            ├── HeaderPanel.tsx         # Cabeçalho com navegação
-            ├── ContentPanel.tsx        # Container de conteúdo
-            ├── ProductsPanel.tsx       # Lista de produtos
-            └── PurchasesPanel.tsx      # Histórico de compras
+```mermaid
+graph TD
+    src["src/"]
+    src --> indexHtml["index.html"]
+    src --> scripts["scripts/"]
+
+    scripts --> indexTsx["index.tsx<br/><small>Bootstrap: tema, registro, render</small>"]
+    scripts --> AppTsx["App.tsx<br/><small>Fachada da Application</small>"]
+
+    scripts --> app["app/ — Infraestrutura"]
+    app --> Application["Application.ts<br/><small>Views, formulários, WebSocket</small>"]
+    app --> Flush["FlushRequestContext.ts<br/><small>Comunicação WS</small>"]
+    app --> Reconnect["ReconnectController.ts<br/><small>Backoff progressivo</small>"]
+    app --> DataSec["DataSecurity.ts<br/><small>RSA + AES-GCM</small>"]
+    app --> ViewScope["ViewScope.ts<br/><small>Estado reativo</small>"]
+    app --> ViewGC["ViewGarbageCollector.ts"]
+    app --> constants["constants.ts + types.ts"]
+
+    scripts --> utils["utils/ — Utilitários"]
+    utils --> ViewUtils["ViewUtils.tsx<br/><small>Base classes</small>"]
+    utils --> CryptoUtils["RSA.ts, Base64.ts, BigIntUtils.ts"]
+    utils --> FormatUtils["DateUtils.ts, NumberUtils.ts"]
+    utils --> OtherUtils["LangUtils.ts, EndpointUtils.ts, UTF8.ts"]
+
+    scripts --> views["views/ — Componentes"]
+    views --> BrowserView["BrowserView.tsx<br/><small>Conexão, alertas, loading</small>"]
+    views --> RootView["RootView.tsx<br/><small>Container auth</small>"]
+    views --> SlotView["SlotView.tsx<br/><small>Slot genérico</small>"]
+    views --> LoginView["LoginView.tsx"]
+    views --> HomeView["HomeView.tsx"]
+    views --> ProductView["ProductView.tsx"]
+    views --> CartView["CartView.tsx"]
+    views --> ReceiptView["ReceiptView.tsx"]
+    views --> home["home/<br/><small>HeaderPanel, ContentPanel,<br/>ProductsPanel, PurchasesPanel</small>"]
 ```
 
 ## Como Funciona

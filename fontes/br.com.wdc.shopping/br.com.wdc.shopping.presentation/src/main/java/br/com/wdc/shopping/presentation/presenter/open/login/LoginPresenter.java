@@ -2,8 +2,7 @@ package br.com.wdc.shopping.presentation.presenter.open.login;
 
 import java.util.function.Function;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubeIntent;
@@ -18,7 +17,7 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     // :: Private Class Fields
 
-    private static final Logger LOG = LoggerFactory.getLogger(LoginPresenter.class);
+    private static final Log LOG = Log.getLogger(LoginPresenter.class);
 
     // :: Public Static Fields
 
@@ -68,6 +67,12 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
         this.update();
     }
 
+    private void alertConnectionError(Throwable caught) {
+        state.errorCode = 5;
+        state.errorMessage = "Falha de comunicação com o servidor. Verifique sua conexão.";
+        this.update();
+    }
+
     // :: User Actions
 
     public void onEnter() {
@@ -88,7 +93,7 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
             }
 
             LOG.error("onEnter", caught);
-            app.alertUnexpectedError(LOG, "Trying to access restricted area", caught);
+            this.alertConnectionError(caught);
         }
     }
 }

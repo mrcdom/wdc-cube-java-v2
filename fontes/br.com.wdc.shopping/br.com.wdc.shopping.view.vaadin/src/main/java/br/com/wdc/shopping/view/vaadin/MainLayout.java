@@ -3,8 +3,7 @@ package br.com.wdc.shopping.view.vaadin;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.ClientCallable;
@@ -23,7 +22,7 @@ import br.com.wdc.shopping.presentation.presenter.Routes;
 public class MainLayout extends Div implements AppShellConfigurator {
 
     private static final long serialVersionUID = 4950391997168214131L;
-    private static final Logger LOG = LoggerFactory.getLogger(MainLayout.class);
+    private static final Log LOG = Log.getLogger(MainLayout.class);
     
 	private transient ShoppingVaadinApplication app;
     private transient ScheduledExecutorService executorService;

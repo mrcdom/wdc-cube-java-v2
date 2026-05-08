@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+        <key>CFBundleIdentifier</key>
+        <string>$packageName.$mainClassName</string>
+        <key>CFBundleVersion</key>
+        <string>$bundleVersion</string>
+        <key>CFBundleShortVersionString</key>
+        <string>$bundleShortVersion</string>
+        <key>CFBundleExecutable</key>
+        <string>$mainClassNameApp</string>
+        <key>CFBundleIconName</key>
+        <string>AppIcon</string>
+        <key>CFBundleName</key>
+        <string>$bundleName</string>
+        <key>UILaunchStoryboardName</key>
+        <string>LaunchScreen</string>
+        <key>UIMainStoryboardFile</key>
+        <string>MainScreen</string>
+        <key>CFBundlePackageType</key>
+        <string>APPL</string>
+        <key>LSRequiresIPhoneOS</key>
+        <true/>
+        <key>UISupportedInterfaceOrientations</key>
+        <array>
+                <string>UIInterfaceOrientationPortrait</string>
+                <string>UIInterfaceOrientationLandscapeLeft</string>
+                <string>UIInterfaceOrientationLandscapeRight</string>
+                <string>UIInterfaceOrientationPortraitUpsideDown</string>
+        </array>
+        <key>UISupportedInterfaceOrientations~ipad</key>
+        <array>
+                <string>UIInterfaceOrientationPortrait</string>
+                <string>UIInterfaceOrientationLandscapeLeft</string>
+                <string>UIInterfaceOrientationLandscapeRight</string>
+                <string>UIInterfaceOrientationPortraitUpsideDown</string>
+        </array>
+        <key>UIRequiredDeviceCapabilities</key>
+        <array>
+                <string>arm64</string>
+        </array>
+        <key>UIDeviceFamily</key>
+        <array>
+                <integer>1</integer>
+                <integer>2</integer>
+        </array>
+        <key>MinimumOSVersion</key>
+        <string>11.0</string>
+        <key>UIRequiresFullScreen</key>
+        <string>YES</string>
+        <key>NSAppTransportSecurity</key>
+        <dict>
+                <key>NSAllowsArbitraryLoads</key>
+                <true/>
+        </dict>
+</dict>
+</plist>

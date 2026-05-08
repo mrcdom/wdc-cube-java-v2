@@ -6,24 +6,35 @@ Raiz do código-fonte do projeto **WeDoCode Shopping** — um e-commerce de refe
 
 ## Estrutura
 
-```
-fontes/
-├── pom.xml                          → POM agregador (reactor) de todo o projeto
-├── wedocode-java-formatter.xml      → Perfil de formatação para IDEs (Eclipse/IntelliJ)
-├── br.com.wdc.framework/            → Módulos de infraestrutura reutilizáveis
-│   ├── br.com.wdc.framework.commons/       → Utilitários gerais (funções, helpers)
-│   ├── br.com.wdc.framework.cube/          → Motor do padrão Cube MVP (scopes, presenters, views)
-│   └── br.com.wdc.framework.dependencies/  → BOM de dependências (versões centralizadas)
-└── br.com.wdc.shopping/             → Aplicação de e-commerce (domínio + frontends)
-    ├── br.com.wdc.shopping.domain/          → Modelo de domínio (entidades, critérios, repositórios)
-    ├── br.com.wdc.shopping.persistence/     → Implementação de repositórios (SQL/JDBI, H2)
-    ├── br.com.wdc.shopping.presentation/    → Presenters da camada Cube MVP
-    ├── br.com.wdc.shopping.scripts/         → Scripts SGBD (seed, reset, DDL)
-    ├── br.com.wdc.shopping.tests/           → Testes automatizados (JUnit 4)
-    ├── br.com.wdc.shopping.view.react/      → Frontend web (React 19 + Javalin + Virtual Threads)
-    ├── br.com.wdc.shopping.view.vaadin/    → Frontend web server-side (Vaadin 24 + Jetty 12 + Lumo)
-    ├── br.com.wdc.shopping.view.jfx/        → Frontend desktop (JavaFX)
-    └── br.com.wdc.shopping.view.android/    → Frontend mobile (Kotlin + Jetpack Compose)
+```mermaid
+graph TD
+    fontes["fontes/"]
+    pom["pom.xml — POM agregador (reactor)"]
+    formatter["wedocode-java-formatter.xml — Formatação IDEs"]
+
+    subgraph Framework["br.com.wdc.framework — Infraestrutura reutilizável"]
+        fwCommons["commons — Utilitários gerais"]
+        fwCube["cube — Motor Cube MVP"]
+        fwDeps["dependencies — BOM de versões"]
+    end
+
+    subgraph Shopping["br.com.wdc.shopping — E-commerce"]
+        domain["domain — Entidades, critérios, repositórios"]
+        persistence["persistence — SQL/JDBI, H2"]
+        presentation["presentation — Presenters Cube MVP"]
+        scripts["scripts — DDL, seed, reset"]
+        tests["tests — JUnit 4"]
+        viewReact["view.react — React 19 + Javalin + Virtual Threads"]
+        viewVaadin["view.vaadin — Vaadin 24 + Jetty 12 + Lumo"]
+        viewSwing["view.swing — Java Swing + FlatLaf"]
+        viewGluon["view.gluon — JavaFX + Gluon (Desktop, iOS, Android)"]
+        viewTeavm["view.teavm — TeaVM + Tauri (Web, Desktop, Android, iOS)"]
+    end
+
+    fontes --> pom
+    fontes --> formatter
+    fontes --> Framework
+    fontes --> Shopping
 ```
 
 ---
@@ -47,8 +58,9 @@ fontes/
 | **tests** | Teste | Suíte de testes JUnit 4 para repositórios (82 testes) e integração de serviços. |
 | **view.react** | UI (Web) | Frontend React 19 + Material UI, servidor Javalin com Virtual Threads, comunicação segura RSA+AES-GCM. |
 | **view.vaadin** | UI (Web) | Frontend Vaadin 24 + Lumo theme, servidor Jetty 12 embarcado, UI puramente server-side com push automático. |
-| **view.jfx** | UI (Desktop) | Frontend JavaFX que reutiliza os mesmos presenters da versão web. |
-| **view.android** | UI (Mobile) | App Android nativo (Kotlin + Jetpack Compose) no modelo embarcado — roda toda a stack localmente (H2 + repositórios + presenters). |
+| **view.swing** | UI (Desktop) | Frontend Java Swing + FlatLaf (Material look-and-feel) que reutiliza os mesmos presenters. |
+| **view.gluon** | UI (Multiplataforma) | Frontend JavaFX + Gluon Mobile compilado nativamente para Desktop, iOS e Android via GraalVM. |
+| **view.teavm** | UI (Multiplataforma) | Frontend Java compilado para JavaScript via TeaVM 0.14, empacotado como app nativo (Desktop, Android, iOS) via Tauri 2. |
 
 ---
 

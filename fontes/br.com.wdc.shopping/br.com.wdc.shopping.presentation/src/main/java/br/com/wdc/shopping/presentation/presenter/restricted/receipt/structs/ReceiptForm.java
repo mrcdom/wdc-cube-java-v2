@@ -40,7 +40,8 @@ public class ReceiptForm implements Serializable {
         if (src.items != null) {
             for (var purchaseItem : src.items) {
                 if (purchaseItem.price != null) {
-                    total += purchaseItem.price;
+                    var amount = purchaseItem.amount != null ? purchaseItem.amount : 0;
+                    total += purchaseItem.price * amount;
                 }
 
                 tgt.items.add(ReceiptItem.create(purchaseItem));

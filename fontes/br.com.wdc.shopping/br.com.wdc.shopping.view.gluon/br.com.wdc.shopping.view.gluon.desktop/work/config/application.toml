@@ -1,0 +1,4 @@
+# WDC Shopping — Gluon Desktop Configuration
+# This app connects to the backend API via REST (api-client)
+
+api.url = http://localhost:8080

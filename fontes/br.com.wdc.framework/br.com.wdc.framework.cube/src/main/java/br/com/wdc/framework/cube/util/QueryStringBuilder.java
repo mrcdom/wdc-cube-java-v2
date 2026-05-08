@@ -1,6 +1,5 @@
 package br.com.wdc.framework.cube.util;
 
-import java.lang.reflect.Array;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -40,8 +39,8 @@ public class QueryStringBuilder {
             String name = entry.getKey();
 
             if (value.getClass().isArray()) {
-                for (int i = 0, iSize = Array.getLength(value); i < iSize; i++) {
-                    this.appendValue(name, Array.get(value, i));
+                for (int i = 0, iSize = ReflectArrayCompat.getLength(value); i < iSize; i++) {
+                    this.appendValue(name, ReflectArrayCompat.get(value, i));
                 }
             } else {
                 this.appendValue(name, value);

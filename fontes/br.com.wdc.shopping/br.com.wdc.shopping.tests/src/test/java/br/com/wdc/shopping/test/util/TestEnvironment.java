@@ -11,6 +11,7 @@ import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.commons.sql.SqlDataSource;
 import br.com.wdc.framework.commons.sql.SqlDataSourceDelegate;
 import br.com.wdc.shopping.api.RepositoryApiRoutes;
+import br.com.wdc.shopping.api.client.OkHttpTransport;
 import br.com.wdc.shopping.api.client.RestConfig;
 import br.com.wdc.shopping.api.client.RestProductRepository;
 import br.com.wdc.shopping.api.client.RestPurchaseItemRepository;
@@ -115,7 +116,7 @@ public class TestEnvironment extends ExternalResource {
 				RepositoryApiRoutes.configure(config);
 			}).start(0);
 
-			var restConfig = new RestConfig("http://localhost:" + javalin.port());
+			var restConfig = new RestConfig(new OkHttpTransport("http://localhost:" + javalin.port()));
 			userRepo = new RestUserRepository(restConfig);
 			productRepo = new RestProductRepository(restConfig);
 			purchaseRepo = new RestPurchaseRepository(restConfig);

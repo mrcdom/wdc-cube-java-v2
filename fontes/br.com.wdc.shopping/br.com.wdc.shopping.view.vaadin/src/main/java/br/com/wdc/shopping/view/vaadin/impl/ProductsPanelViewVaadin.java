@@ -23,8 +23,8 @@ public class ProductsPanelViewVaadin extends AbstractViewVaadin<ProductsPanelPre
     private List<ProductItemViewVaadin> itemViewList = new ArrayList<>();
     private BiConsumer<List<ProductInfo>, List<ProductItemViewVaadin>> contentSlot;
 
-    public ProductsPanelViewVaadin(ShoppingVaadinApplication app, ProductsPanelPresenter presenter) {
-        super("products-panel", app, presenter, new VerticalLayout());
+    public ProductsPanelViewVaadin(ProductsPanelPresenter presenter) {
+        super("products-panel", (ShoppingVaadinApplication) presenter.app, presenter, new VerticalLayout());
         this.state = presenter.state;
     }
 

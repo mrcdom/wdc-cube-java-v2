@@ -2,7 +2,8 @@ package br.com.wdc.framework.commons.function;
 
 import java.util.function.UnaryOperator;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
+import br.com.wdc.framework.commons.util.Rethrow;
+
 
 public interface ThrowingUnaryOperator<T> extends UnaryOperator<T> {
 
@@ -16,7 +17,7 @@ public interface ThrowingUnaryOperator<T> extends UnaryOperator<T> {
         try {
             return this.applyThrows(t);
         } catch (final Exception caught) {
-        	throw ExceptionUtils.asRuntimeException(caught);
+        	throw Rethrow.asRuntimeException(caught);
         }
     }
 

@@ -5,6 +5,8 @@ import br.com.wdc.shopping.domain.repositories.PurchaseItemRepository;
 import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
 import br.com.wdc.shopping.domain.repositories.UserRepository;
 import br.com.wdc.shopping.domain.security.AuthenticationService;
+import br.com.wdc.shopping.domain.security.CryptoProvider;
+import br.com.wdc.shopping.domain.security.JceCryptoProvider;
 
 /**
  * Inicializa os repositórios REST e registra nos BEANs estáticos do domínio.
@@ -17,6 +19,7 @@ public final class RestRepositoryBootstrap {
     private RestRepositoryBootstrap() {}
 
     public static void initialize(RestConfig config) {
+        CryptoProvider.BEAN.set(new JceCryptoProvider());
         UserRepository.BEAN.set(new RestUserRepository(config));
         ProductRepository.BEAN.set(new RestProductRepository(config));
         PurchaseRepository.BEAN.set(new RestPurchaseRepository(config));

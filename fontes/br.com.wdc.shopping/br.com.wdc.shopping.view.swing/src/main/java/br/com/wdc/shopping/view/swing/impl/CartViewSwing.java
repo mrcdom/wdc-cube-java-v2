@@ -39,9 +39,12 @@ public class CartViewSwing extends AbstractViewSwing<CartPresenter> {
     private JLabel totalCostElm;
     private double totalCostOldValue;
     private JLabel errorElm;
+    private JPanel emptyCartPane;
+    private JPanel contentPane;
+    private JPanel footerPane;
 
-    public CartViewSwing(ShoppingSwingApplication app, CartPresenter presenter) {
-        super("cart", app, presenter, new JPanel());
+    public CartViewSwing(CartPresenter presenter) {
+        super("cart", (ShoppingSwingApplication) presenter.app, presenter, new JPanel());
         this.element.setLayout(new BoxLayout(this.element, BoxLayout.Y_AXIS));
         this.state = presenter.state;
     }
@@ -57,6 +60,9 @@ public class CartViewSwing extends AbstractViewSwing<CartPresenter> {
         this.totalCostElm = null;
         this.totalCostOldValue = 0;
         this.errorElm = null;
+        this.emptyCartPane = null;
+        this.contentPane = null;
+        this.footerPane = null;
     }
 
     @Override
@@ -70,6 +76,11 @@ public class CartViewSwing extends AbstractViewSwing<CartPresenter> {
             this.itemSizeElm.setText("[" + this.state.items.size() + "]");
             this.itemSizeOldValue = this.state.items.size();
         }
+
+        boolean empty = this.state.items.isEmpty();
+        this.emptyCartPane.setVisible(empty);
+        this.contentPane.setVisible(!empty);
+        this.footerPane.setVisible(!empty);
 
         this.itemsSlot.accept(this.state.items, this.cartItemViewList);
 
@@ -128,8 +139,33 @@ public class CartViewSwing extends AbstractViewSwing<CartPresenter> {
 
         dom.vSpacer(12);
 
+        // Empty cart message
+        dom.vbox(emptyPnl -> {
+            this.emptyCartPane = emptyPnl;
+            emptyPnl.setAlignmentX(Component.LEFT_ALIGNMENT);
+            emptyPnl.setBorder(new EmptyBorder(24, 0, 24, 0));
+            emptyPnl.setVisible(false);
+
+            dom.label(lbl -> {
+                lbl.setText("Seu carrinho está vazio");
+                lbl.setFont(Styles.FONT_TITLE);
+                lbl.setForeground(Styles.FG_TEXT);
+                lbl.setAlignmentX(Component.LEFT_ALIGNMENT);
+            });
+
+            dom.vSpacer(12);
+
+            dom.button(link -> {
+                link.setText("Vamos às compras!");
+                Styles.styleLinkButton(link, Styles.FG_PRIMARY);
+                link.setAlignmentX(Component.LEFT_ALIGNMENT);
+                link.addActionListener(_ignored -> safeAction("Open products", this.presenter::onOpenProducts));
+            });
+        });
+
         // Content panel with border
         dom.vbox(content -> {
+            this.contentPane = content;
             content.setOpaque(true);
             content.setBorder(BorderFactory.createLineBorder(Styles.BORDER_LIGHT, 1));
             content.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -212,12 +248,13 @@ public class CartViewSwing extends AbstractViewSwing<CartPresenter> {
 
         // Buttons row
         dom.hbox(btnRow -> {
+            this.footerPane = btnRow;
             btnRow.setAlignmentX(Component.LEFT_ALIGNMENT);
 
             dom.button(backBtn -> {
                 backBtn.setText("< VOLTAR");
                 Styles.styleOutlineButton(backBtn, Styles.FG_PRIMARY);
-                backBtn.addActionListener(_ -> safeAction("Open products", this.presenter::onOpenProducts));
+                backBtn.addActionListener(_ignored -> safeAction("Open products", this.presenter::onOpenProducts));
             });
 
             dom.hSpacer();
@@ -225,7 +262,7 @@ public class CartViewSwing extends AbstractViewSwing<CartPresenter> {
             dom.button(buyBtn -> {
                 buyBtn.setText("FINALIZAR PEDIDO");
                 Styles.styleOrangeButton(buyBtn);
-                buyBtn.addActionListener(_ -> safeAction("Buy", this.presenter::onBuy));
+                buyBtn.addActionListener(_ignored -> safeAction("Buy", this.presenter::onBuy));
             });
         });
     }

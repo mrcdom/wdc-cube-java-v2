@@ -36,8 +36,8 @@ public class HomeViewSwing extends AbstractViewSwing<HomePresenter> {
     private AbstractViewSwing<?> currentContentView;
     private JLabel errorElm;
 
-    public HomeViewSwing(ShoppingSwingApplication app, HomePresenter presenter) {
-        super("home", app, presenter, new JPanel(new BorderLayout()));
+    public HomeViewSwing(HomePresenter presenter) {
+        super("home", (ShoppingSwingApplication) presenter.app, presenter, new JPanel(new BorderLayout()));
         this.state = presenter.state;
     }
 
@@ -91,6 +91,8 @@ public class HomeViewSwing extends AbstractViewSwing<HomePresenter> {
         	SwingUtils.replaceContent(this.contentPane,
                     newContentView != null ? newContentView.getElement() : this.defaultContentPane);
             this.currentContentView = newContentView;
+            // Purchases panel only visible on home (no content overlay)
+            this.purchasesPanelSlot.setVisible(newContentView == null);
         }
 
         // Error
@@ -193,11 +195,11 @@ public class HomeViewSwing extends AbstractViewSwing<HomePresenter> {
                 exitBtn.setText("SAIR");
                 Styles.styleHeaderButton(exitBtn);
                 exitBtn.setAlignmentY(0.5f);
-                exitBtn.addActionListener(_ -> safeAction("Exit", this.presenter::onExit));
+                exitBtn.addActionListener(_ignored -> safeAction("Exit", this.presenter::onExit));
             });
         });
 
-        // Center: error + scroll
+        // Center: error + scroll + purchases
         dom.constraints(BorderLayout.CENTER).borderPane(center -> {
             // Error
             dom.constraints(BorderLayout.NORTH).label(errorLbl -> {
@@ -206,32 +208,29 @@ public class HomeViewSwing extends AbstractViewSwing<HomePresenter> {
                 errorLbl.setVisible(false);
             });
 
-            // Default content (products + purchases side by side)
-            dom.hbox(defaultContent -> {
-                this.defaultContentPane = defaultContent;
-
-                dom.stackPane(slot -> this.productsPanelSlot = (StackPanel) slot);
-
-                dom.hSpacer(16);
-
-                dom.stackPane(slot -> {
-                    this.purchasesPanelSlot = (StackPanel) slot;
-                    slot.setPreferredSize(new Dimension(230, 0));
-                    slot.setMaximumSize(new Dimension(230, Integer.MAX_VALUE));
-                });
-            });
-
-            // Content pane wrapped in ScrollPane
+            // Products in scroll (CENTER)
             dom.constraints(BorderLayout.CENTER).scrollPane(scroll -> {
                 scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
                 scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
                 scroll.getViewport().setOpaque(true);
                 scroll.getViewport().setBackground(Styles.BG_PAGE);
 
+                // defaultContentPane wraps productsPanelSlot (for cart/receipt switching)
+                this.defaultContentPane = new JPanel(new BorderLayout());
+                this.defaultContentPane.setOpaque(false);
+                this.productsPanelSlot = new StackPanel();
+                this.defaultContentPane.add(this.productsPanelSlot, BorderLayout.CENTER);
+
                 this.contentPane = new StackPanel();
                 this.contentPane.setBorder(new EmptyBorder(16, 16, 16, 16));
                 this.contentPane.add(this.defaultContentPane);
                 scroll.setViewportView(this.contentPane);
+            });
+
+            // Purchases panel outside scroll (EAST) — fixed height, not scrollable
+            dom.constraints(BorderLayout.EAST).stackPane(slot -> {
+                this.purchasesPanelSlot = (StackPanel) slot;
+                slot.setPreferredSize(new Dimension(230, 0));
             });
         });
     }

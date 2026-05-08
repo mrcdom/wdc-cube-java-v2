@@ -61,9 +61,11 @@ public class ProductItemViewVaadin extends AbstractViewVaadin<ProductsPanelPrese
     }
 
     private void initialRender(VaadinDom dom, Div pane0) {
-        pane0.setMinWidth("200px");
-        pane0.setMaxWidth("200px");
-        pane0.getStyle().set("cursor", "pointer");
+        pane0.getStyle()
+                .set("cursor", "pointer")
+                .set("flex", "1 1 calc(50% - 12px)")
+                .set("min-width", "250px")
+                .set("max-width", "calc(50% - 12px)");
         pane0.addClickListener(e -> safeAction("Open product", () -> this.presenter.onOpenProduct(this.state.id)));
 
         dom.verticalLayout(pane1 -> {

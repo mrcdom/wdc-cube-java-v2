@@ -22,8 +22,7 @@ import javax.swing.text.StyledDocument;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.NodeVisitor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductViewState;
@@ -35,7 +34,7 @@ import br.com.wdc.shopping.view.swing.util.SwingDom;
 
 public class ProductViewSwing extends AbstractViewSwing<ProductPresenter> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ProductViewSwing.class);
+    private static final Log LOG = Log.getLogger(ProductViewSwing.class);
 
     private final ProductViewState state;
 
@@ -52,8 +51,8 @@ public class ProductViewSwing extends AbstractViewSwing<ProductPresenter> {
     private String descriptionOldValue;
     private JLabel errorElm;
 
-    public ProductViewSwing(ShoppingSwingApplication app, ProductPresenter presenter) {
-        super("product", app, presenter, new JPanel());
+    public ProductViewSwing(ProductPresenter presenter) {
+        super("product", (ShoppingSwingApplication) presenter.app, presenter, new JPanel());
         this.element.setLayout(new BoxLayout(this.element, BoxLayout.Y_AXIS));
         this.state = presenter.state;
     }
@@ -282,7 +281,7 @@ public class ProductViewSwing extends AbstractViewSwing<ProductPresenter> {
                     dom.button(backBtn -> {
                         backBtn.setText("< VOLTAR");
                         Styles.styleOutlineButton(backBtn, Styles.FG_PRIMARY);
-                        backBtn.addActionListener(_ -> safeAction("Open products", this.presenter::onOpenProducts));
+                        backBtn.addActionListener(_ignored -> safeAction("Open products", this.presenter::onOpenProducts));
                     });
 
                     dom.hSpacer();
@@ -291,7 +290,7 @@ public class ProductViewSwing extends AbstractViewSwing<ProductPresenter> {
                         buyBtn.setText("Adicionar ao carrinho");
                         Styles.styleOrangeButton(buyBtn);
                         buyBtn.setFont(Styles.FONT_BUTTON_LARGE);
-                        buyBtn.addActionListener(_ -> safeAction("Add to cart", () -> {
+                        buyBtn.addActionListener(_ignored -> safeAction("Add to cart", () -> {
                             var quantity = 1;
                             try {
                                 quantity = Integer.parseInt(this.quantityElm.getText().trim());

@@ -19,8 +19,8 @@ public class RootViewSwing extends AbstractViewSwing<RootPresenter> {
     private StackPanel contentPane;
     private AbstractViewSwing<?> currentContentView;
 
-    public RootViewSwing(ShoppingSwingApplication app, RootPresenter presenter) {
-        super("root", app, presenter, new JPanel());
+    public RootViewSwing(RootPresenter presenter) {
+        super("root", (ShoppingSwingApplication) presenter.app, presenter, new JPanel());
         this.element.setLayout(new BoxLayout(this.element, BoxLayout.Y_AXIS));
         this.state = presenter.state;
     }

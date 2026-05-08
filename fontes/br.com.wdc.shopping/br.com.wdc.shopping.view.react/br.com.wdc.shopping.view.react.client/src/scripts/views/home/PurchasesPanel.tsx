@@ -1,17 +1,7 @@
-import React, { ReactNode } from 'react'
+import React from 'react'
 import Box from '@mui/material/Box'
-import Button from '@mui/material/Button'
-import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
-import Divider from '@mui/material/Divider'
-import FormControl from '@mui/material/FormControl'
 import IconButton from '@mui/material/IconButton'
-import List from '@mui/material/List'
-import ListItem from '@mui/material/ListItem'
-import ListItemText from '@mui/material/ListItemText'
-import MenuItem from '@mui/material/MenuItem'
 import Paper from '@mui/material/Paper'
-import Select from '@mui/material/Select'
 import Typography from '@mui/material/Typography'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
@@ -20,7 +10,7 @@ import { BaseViewClass, BasePanelClass } from '@root/utils/ViewUtils'
 import * as NumberUtils from '@root/utils/NumberUtils'
 import * as DateUtils from '@root/utils/DateUtils'
 
-const PAGE_SIZE_OPTIONS = [2, 5, 10]
+const ITEM_HEIGHT_PX = 50
 
 // :: Actions
 
@@ -48,98 +38,114 @@ type PurchasesPanelState = {
 
 class PurchasesPanelClass extends BaseViewClass<ViewProps, PurchasesPanelState> {
   totalPages!: number
+  private resizeHandler: (() => void) | null = null
+  private resizeTimer: number | null = null
+  private listRef = React.createRef<HTMLDivElement>()
+
+  private computePageSize = () => {
+    const el = this.listRef.current
+    if (!el) return
+    const containerHeight = el.clientHeight
+    if (containerHeight <= 0) return
+    let itemHeight = ITEM_HEIGHT_PX
+    const firstItem = el.querySelector('[data-purchase-item]') as HTMLElement | null
+    if (firstItem && firstItem.offsetHeight > 0) {
+      const style = getComputedStyle(firstItem)
+      itemHeight = firstItem.offsetHeight + parseFloat(style.marginTop) + parseFloat(style.marginBottom)
+    }
+    const capacity = Math.max(1, Math.floor(containerHeight / itemHeight))
+    const { vsid } = this
+    app.setFormField(vsid, 'p.capacity', capacity)
+    app.submitSilent(vsid, ON_PAGE_SIZE_CHANGE)
+  }
+
+  private onResize = () => {
+    if (this.resizeTimer != null) clearTimeout(this.resizeTimer)
+    this.resizeTimer = window.setTimeout(this.computePageSize, 150)
+  }
 
   // :: Renders
 
-  override render({ className }: ViewProps): React.ReactNode {
+  override render({ className }: ViewProps, initial?: boolean): React.ReactNode {
     const { state } = this
-    this.totalPages = Math.max(1, Math.ceil(state.totalCount / state.pageSize))
+    const pageSize = Math.max(1, state.pageSize)
+    this.totalPages = Math.max(1, Math.ceil(state.totalCount / pageSize))
+
+    if (initial && !this.resizeHandler) {
+      this.resizeHandler = this.onResize
+      requestAnimationFrame(this.computePageSize)
+      window.addEventListener('resize', this.onResize)
+    }
 
     return (
       <Paper
         className={className}
-        elevation={2}
+        elevation={0}
         sx={{
-          width: 220,
+          width: 300,
           flexShrink: 0,
-          bgcolor: '#676767',
-          p: 1.5,
+          bgcolor: '#fff',
+          border: '1px solid',
+          borderColor: 'grey.300',
+          borderRadius: 2,
+          m: 2,
+          ml: 0,
+          p: 2,
+          display: 'flex',
+          flexDirection: 'column',
+          alignSelf: 'stretch',
         }}
       >
-        <Typography variant="subtitle2" sx={{ color: '#fff', mb: 1, fontWeight: 'bold' }}>
+        <Typography variant="subtitle2" sx={{ color: 'primary.main', mb: 1.5, fontWeight: 'bold' }}>
           Seu histórico de compras
         </Typography>
-        {this.#renderCompras()}
+        <Box ref={this.listRef} sx={{ flex: 1, overflow: 'hidden' }}>
+          {this.#renderCompras()}
+        </Box>
         {state.totalCount > 0 && this.#renderPageNavigation()}
-        {state.totalCount > state.pageSize && this.#renderRodape()}
       </Paper>
     )
   }
 
-  #renderCompras(): ReactNode {
+  #renderCompras(): React.ReactNode {
     const { vsid, state } = this
 
-    return (state.purchases ?? []).map((compra) => (
-      <CardHistoricoCompra key={compra.id} vsid={vsid} purchase={compra}>
-        <List dense disablePadding>
-          {compra.items.map((item) => (
-            <ListItem key={item} disableGutters sx={{ py: 0 }}>
-              <ListItemText primary={item} slotProps={{ primary: { variant: 'caption' } }} />
-            </ListItem>
-          ))}
-        </List>
-      </CardHistoricoCompra>
-    ))
+    return (state.purchases ?? []).map((compra) => <PurchaseItemRow key={compra.id} vsid={vsid} purchase={compra} />)
   }
 
-  #renderPageNavigation(): ReactNode {
+  #renderPageNavigation(): React.ReactNode {
     const { state } = this
     return (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          mt: 1,
+          pt: 1,
+          borderTop: '1px solid',
+          borderColor: 'grey.200',
+        }}
+      >
         <IconButton
           size="small"
           disabled={state.page === 0}
           onClick={this.emitPreviousPage}
-          sx={{ color: '#fff', '&.Mui-disabled': { color: '#999' } }}
+          sx={{ color: 'primary.main', '&.Mui-disabled': { color: 'grey.400' } }}
         >
           <ChevronLeftIcon fontSize="small" />
         </IconButton>
-        <Typography variant="caption" sx={{ color: '#fff' }}>
+        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
           {state.page + 1}/{this.totalPages}
         </Typography>
         <IconButton
           size="small"
           disabled={state.page >= this.totalPages - 1}
           onClick={this.emitNextPage}
-          sx={{ color: '#fff', '&.Mui-disabled': { color: '#999' } }}
+          sx={{ color: 'primary.main', '&.Mui-disabled': { color: 'grey.400' } }}
         >
           <ChevronRightIcon fontSize="small" />
         </IconButton>
-      </Box>
-    )
-  }
-
-  #renderRodape(): ReactNode {
-    const { state } = this
-    return (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mt: 0.5, gap: 0.5 }}>
-        <Typography variant="caption" sx={{ color: '#fff' }}>
-          Por página:
-        </Typography>
-        <FormControl size="small" variant="standard">
-          <Select
-            value={state.pageSize}
-            onChange={this.emitPageSizeChange}
-            sx={{ color: '#fff', fontSize: 12, '& .MuiSelect-icon': { color: '#fff' } }}
-            disableUnderline
-          >
-            {PAGE_SIZE_OPTIONS.map((opt) => (
-              <MenuItem key={opt} value={opt}>
-                {opt}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
       </Box>
     )
   }
@@ -161,72 +167,85 @@ class PurchasesPanelClass extends BaseViewClass<ViewProps, PurchasesPanelState> 
     const { state } = this
     this.emitPageChange(state.page - 1)
   }
-
-  readonly emitPageSizeChange = (e: { target: { value: unknown } }) => {
-    const { vsid } = this
-    app.setFormField(vsid, 'p.pageSize', Number(e.target.value))
-    app.submit(vsid, ON_PAGE_SIZE_CHANGE)
-  }
 }
 
 export default BaseViewClass.FC(PurchasesPanelClass, 'b3c4d5e6f7a8')
 
-// :: Internal - CardHistoricoCompra
+// :: Internal - PurchaseItemRow (compact)
 
-type CardHistoricoCompraProps = {
+type PurchaseItemRowProps = {
   vsid: string
   purchase: Purchase
-  children?: ReactNode
 }
 
-class CardHistoricoCompraClass extends BasePanelClass<CardHistoricoCompraProps> {
+function formatItems(items: string[]): string {
+  if (!items || items.length === 0) return ''
+  return items.join(', ')
+}
+
+class PurchaseItemRowClass extends BasePanelClass<PurchaseItemRowProps> {
   vsid!: string
   purchase!: Purchase
 
-  override render({ vsid, purchase, children }: CardHistoricoCompraProps): React.ReactNode {
+  override render({ vsid, purchase }: PurchaseItemRowProps): React.ReactNode {
     this.vsid = vsid
     this.purchase = purchase
 
     return (
-      <Card elevation={1} sx={{ mb: 1.5, bgcolor: '#fff' }}>
-        <CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
-          <Typography
-            variant="caption"
-            sx={{ bgcolor: '#e5e5e5', display: 'block', p: 0.5, mb: 0.5, fontWeight: 'bold' }}
-          >
-            Compra #{purchase.id}
+      <Box
+        data-purchase-item
+        onClick={this.emitOpenReceipt}
+        sx={{
+          mb: 0.75,
+          borderRadius: 1,
+          overflow: 'hidden',
+          cursor: 'pointer',
+          bgcolor: 'grey.50',
+          borderLeft: '3px solid',
+          borderColor: 'primary.main',
+          transition: 'all 0.15s',
+          '&:hover': {
+            bgcolor: 'primary.50',
+            borderColor: 'primary.dark',
+            transform: 'translateX(2px)',
+          },
+        }}
+      >
+        {/* Line 1: #id + date */}
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 1.5, pt: 0.75 }}>
+          <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 'bold', fontSize: '0.75rem' }}>
+            #{purchase.id}
           </Typography>
-          <Typography variant="caption" sx={{ display: 'block', fontWeight: 'bold' }}>
-            Data da compra:
-          </Typography>
-          <Typography variant="caption" sx={{ display: 'block', mb: 0.5 }}>
+          <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.7rem' }}>
             {DateUtils.formatDate(purchase.date)}
           </Typography>
-          <Typography variant="caption" sx={{ display: 'block', fontWeight: 'bold' }}>
-            Itens adquiridos:
+        </Box>
+        {/* Line 2: products + total */}
+        <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5, px: 1.5, pb: 0.75 }}>
+          <Typography
+            variant="caption"
+            sx={{
+              color: 'text.secondary',
+              flex: 1,
+              minWidth: 0,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              fontSize: '0.75rem',
+            }}
+          >
+            {formatItems(purchase.items)}
           </Typography>
-          {children}
-          <Divider sx={{ my: 0.5 }} />
-          <Typography variant="caption" sx={{ display: 'block' }}>
-            <strong>Valor Total: </strong>R$ {NumberUtils.format(purchase.total)}
+          <Typography
+            variant="caption"
+            sx={{ color: 'text.primary', fontWeight: 'bold', whiteSpace: 'nowrap', fontSize: '0.75rem' }}
+          >
+            R$ {NumberUtils.format(purchase.total)}
           </Typography>
-          <Box sx={{ textAlign: 'right', mt: 0.5 }}>
-            <Button
-              size="small"
-              variant="contained"
-              color="warning"
-              onClick={this.emitOpenReceipt}
-              sx={{ fontSize: 10 }}
-            >
-              Ver mais detalhes
-            </Button>
-          </Box>
-        </CardContent>
-      </Card>
+        </Box>
+      </Box>
     )
   }
-
-  // :: Emissors
 
   readonly emitOpenReceipt = () => {
     const { vsid, purchase } = this
@@ -235,4 +254,4 @@ class CardHistoricoCompraClass extends BasePanelClass<CardHistoricoCompraProps> 
   }
 }
 
-const CardHistoricoCompra = BasePanelClass.FC(CardHistoricoCompraClass)
+const PurchaseItemRow = BasePanelClass.FC(PurchaseItemRowClass)

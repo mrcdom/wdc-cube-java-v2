@@ -11,8 +11,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 import br.com.wdc.shopping.persistence.sql.SqlKeywords;
 import br.com.wdc.shopping.persistence.sql.SqlList;
@@ -34,7 +33,7 @@ import br.com.wdc.shopping.scripts.sgbd.schema.EnMigrationLog;
  */
 public class MigrationRunner implements SqlKeywords {
 
-	private static final Logger LOG = LoggerFactory.getLogger(MigrationRunner.class);
+	private static final Log LOG = Log.getLogger(MigrationRunner.class);
 
 	private static final String STEP_PREFIX = "step";
 

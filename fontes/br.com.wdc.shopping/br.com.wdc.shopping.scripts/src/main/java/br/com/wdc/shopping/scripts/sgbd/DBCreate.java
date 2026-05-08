@@ -68,7 +68,8 @@ public class DBCreate {
 
 		// Run pending migrations
 		new MigrationRunner(this.connection)
-				.run(new Migration_0001_AddUserRoles(this.connection));
+				.run(new Migration_0001_AddUserRoles(this.connection))
+				.run(new Migration_0002_PurchaseBuyDateToTimestamp(this.connection));
 
 		return this;
 	}

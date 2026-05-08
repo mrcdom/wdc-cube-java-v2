@@ -2,7 +2,7 @@ import React from 'react'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Container from '@mui/material/Container'
-import { type ViewProps } from '@root/App'
+import app, { type ViewProps } from '@root/App'
 import { BaseViewClass } from '@root/utils/ViewUtils'
 import HeaderPanel from './home/HeaderPanel'
 import ContentPanel from './home/ContentPanel'
@@ -33,14 +33,13 @@ class HomeViewClass extends BaseViewClass<ViewProps, HomeViewState> {
             {state.errorMessage}
           </Alert>
         )}
-        <Box sx={{ flex: 1, overflowY: 'auto' }}>
-          <Container maxWidth="lg" sx={{ pt: 2, pb: 4 }}>
-            <ContentPanel
-              contentViewId={state.contentViewId}
-              productsPanelViewId={state.productsPanelViewId}
-              purchasesPanelViewId={state.purchasesPanelViewId}
-            />
-          </Container>
+        <Box sx={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+          <Box sx={{ flex: 1, overflowY: 'auto' }}>
+            <Container maxWidth="lg" sx={{ pt: 2, pb: 4 }}>
+              <ContentPanel contentViewId={state.contentViewId} productsPanelViewId={state.productsPanelViewId} />
+            </Container>
+          </Box>
+          {!state.contentViewId && app.createView(state.purchasesPanelViewId)}
         </Box>
       </Box>
     )

@@ -221,6 +221,12 @@ export class Application {
     this.contextExchanger.submit(oldFormMap, vsid, eventId, silent)
   }
 
+  submitSilent(vsid: string, eventId: number) {
+    const oldFormMap = this.formMap
+    this.formMap = {}
+    this.contextExchanger.submit(oldFormMap, vsid, eventId, true)
+  }
+
   setFormField(vsid: string, fieldName: string, fieldValue: unknown) {
     var formData = this.formMap[vsid] as Record<string, unknown>
     if (!formData) {

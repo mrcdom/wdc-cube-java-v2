@@ -7,14 +7,13 @@ import java.util.Map;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 import br.com.wdc.shopping.domain.repositories.ProductRepository;
 
 public class ResourceCatalog {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ResourceCatalog.class);
+    private static final Log LOG = Log.getLogger(ResourceCatalog.class);
 
     private static final Map<String, ImageIcon> IMAGE_MAP = new HashMap<>();
     private static final ImageIcon NO_IMAGE_FOUND;

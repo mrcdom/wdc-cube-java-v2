@@ -17,8 +17,7 @@ import java.util.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import br.com.wdc.framework.commons.log.Log;
 
 import br.com.wdc.framework.commons.security.RSA;
 
@@ -34,7 +33,7 @@ public enum AppSecurity {
     private PrivateKey signPrivateKey;
 
     AppSecurity() {
-        Logger logger = LoggerFactory.getLogger(AppSecurity.class);
+        Log logger = Log.getLogger(AppSecurity.class);
 
         { // Cipher RSA
             String sPublicKey;
