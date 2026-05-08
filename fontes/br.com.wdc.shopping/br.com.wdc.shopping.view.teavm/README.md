@@ -72,24 +72,24 @@ Isso gera HTML nativo com classes Bootstrap, sem Virtual DOM ou framework JavaSc
 
 ### Login
 
-![Login](docs/screenshots/01-login.png)
+![Login](br.com.wdc.shopping.view.teavm.web/docs/screenshots/01-login.png)
 
 ### Lista de Produtos
 
-![Produtos](docs/screenshots/02-products.png)
+![Produtos](br.com.wdc.shopping.view.teavm.web/docs/screenshots/02-products.png)
 
 ### Detalhe do Produto
 
-![Detalhe do Produto](docs/screenshots/03-product-detail.png)
+![Detalhe do Produto](br.com.wdc.shopping.view.teavm.web/docs/screenshots/03-product-detail.png)
 
 ### Carrinho
 
-![Carrinho](docs/screenshots/04-cart.png)
+![Carrinho](br.com.wdc.shopping.view.teavm.web/docs/screenshots/04-cart.png)
 
 ### Recibo
 
-![Recibo](docs/screenshots/05-receipt.png)
+![Recibo](br.com.wdc.shopping.view.teavm.web/docs/screenshots/05-receipt.png)
 
 ### Histórico de Compras
 
-![Histórico](docs/screenshots/06-history.png)
+![Histórico](br.com.wdc.shopping.view.teavm.web/docs/screenshots/06-history.png)
