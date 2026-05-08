@@ -30,6 +30,9 @@ public class DispatcherHandler {
 
     private static final Log LOG = Log.getLogger(DispatcherHandler.class);
 
+    /** Custom WebSocket close code: session is invalid, client must reload the page. */
+    private static final int CLOSE_SESSION_INVALID = 4001;
+
     private static final Gson GSON = new GsonBuilder()
             .serializeNulls()
             .setObjectToNumberStrategy(ToNumberPolicy.DOUBLE)
@@ -77,13 +80,13 @@ public class DispatcherHandler {
             String sessionId = ctx.pathParam("id");
             if (StringUtils.isBlank(sessionId)) {
                 LOG.warn("WebSocket connection rejected: empty session ID");
-                ctx.closeSession();
+                ctx.closeSession(CLOSE_SESSION_INVALID, "reload_required");
                 return;
             }
 
             if (!sessionId.equals(this.appId)) {
                 LOG.warn("WebSocket connection rejected: session ID mismatch");
-                ctx.closeSession();
+                ctx.closeSession(CLOSE_SESSION_INVALID, "reload_required");
                 return;
             }
 
@@ -94,7 +97,7 @@ public class DispatcherHandler {
             String[] appIdParts = StringUtils.split(this.appId, '.');
             if (appIdParts.length != 2) {
                 LOG.warn("WebSocket connection rejected: invalid session ID format");
-                ctx.closeSession();
+                ctx.closeSession(CLOSE_SESSION_INVALID, "reload_required");
                 return;
             }
 
@@ -108,7 +111,7 @@ public class DispatcherHandler {
             
             if (!appIdPart2.equals(expectedAppIdPart2)) {
                 LOG.warn("WebSocket connection rejected: invalid session ID signature");
-                ctx.closeSession();
+                ctx.closeSession(CLOSE_SESSION_INVALID, "reload_required");
                 return;
             }
 
@@ -117,7 +120,7 @@ public class DispatcherHandler {
             String signature = ctx.cookie("app_signature");
             if (StringUtils.isEmpty(signature)) {
                 LOG.warn("WebSocket connection rejected: missing app_signature cookie for session: {}", this.appId);
-                ctx.closeSession();
+                ctx.closeSession(CLOSE_SESSION_INVALID, "reload_required");
                 return;
             }
 

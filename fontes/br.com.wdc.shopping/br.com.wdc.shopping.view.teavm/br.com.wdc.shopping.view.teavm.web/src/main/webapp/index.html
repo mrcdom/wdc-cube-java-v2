@@ -25,6 +25,10 @@
             overflow: hidden;
             background-color: #1976d2;
         }
+        /* Prevent double-tap zoom on iOS */
+        * {
+            touch-action: manipulation;
+        }
         #loading {
             display: flex;
             justify-content: center;
