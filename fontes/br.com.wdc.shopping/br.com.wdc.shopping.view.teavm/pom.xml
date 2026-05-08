@@ -15,7 +15,7 @@
     <packaging>pom</packaging>
 
     <name>WeDoCode Shopping View TeaVM</name>
-    <description>TeaVM-based views — web (browser) and desktop (Tauri)</description>
+    <description>TeaVM-based views — web (browser) and native (Tauri: desktop, Android, iOS)</description>
 
     <properties>
         <teavm.version>0.14.0</teavm.version>
@@ -27,6 +27,6 @@
 
     <modules>
         <module>br.com.wdc.shopping.view.teavm.web</module>
-        <module>br.com.wdc.shopping.view.teavm.desktop</module>
+        <module>br.com.wdc.shopping.view.teavm.native</module>
     </modules>
 </project>

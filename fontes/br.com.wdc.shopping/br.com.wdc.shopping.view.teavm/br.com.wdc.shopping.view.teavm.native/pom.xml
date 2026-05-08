@@ -11,11 +11,11 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>br.com.wdc.shopping.view.teavm.desktop</artifactId>
+    <artifactId>br.com.wdc.shopping.view.teavm.native</artifactId>
     <packaging>pom</packaging>
 
-    <name>WeDoCode Shopping View TeaVM Desktop (Tauri)</name>
-    <description>Desktop application wrapping the TeaVM web app via Tauri (native WebView)</description>
+    <name>WeDoCode Shopping View TeaVM Native (Tauri)</name>
+    <description>Native application (desktop, Android, iOS) wrapping the TeaVM web app via Tauri</description>
 
     <dependencies>
         <!-- Ensures the web subproject is built before this one -->
