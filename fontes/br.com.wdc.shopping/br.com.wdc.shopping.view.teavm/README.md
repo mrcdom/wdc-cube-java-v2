@@ -1,40 +1,39 @@
 # WDC Shopping — View TeaVM
 
-Implementação web da aplicação **WeDoCode Shopping** compilada de Java para JavaScript via [TeaVM 0.14.0](https://teavm.org/), utilizando **Bootstrap 5** para a interface gráfica.
+Implementação **multiplataforma** da aplicação **WeDoCode Shopping** utilizando [TeaVM](https://teavm.org/) — um compilador ahead-of-time que converte Java para JavaScript. O código Java (views, presenters, domain, api-client) é compilado para um SPA que roda diretamente no browser, e a partir dele pode ser empacotado como aplicativo nativo para **desktop**, **Android** e **iOS** via [Tauri 2](https://tauri.app/).
 
-## Visão Geral
+## Motivação
 
-Este módulo demonstra a **independência entre visualização e lógica de apresentação** no padrão **Cube MVP**: todo o código Java (domain, api-client, presentation e views) é compilado para JavaScript pelo TeaVM e executado diretamente no browser — sem servidor Java em runtime.
+O TeaVM possibilita uma estratégia **"write once, run anywhere"** real a partir de Java:
 
-A UI é construída programaticamente em Java usando a API `HtmlDom`, que gera elementos HTML nativos estilizados com Bootstrap 5 e Bootstrap Icons. O resultado é um SPA (Single Page Application) leve, responsivo e com layout adaptável para dispositivos móveis.
+1. **Escreva a UI em Java** — usando a API `HtmlDom` que gera HTML nativo com Bootstrap 5
+2. **Compile para JavaScript** — o TeaVM gera um único `app.js` otimizado
+3. **Execute em qualquer lugar** — no browser como SPA, ou empacotado como app nativo via Tauri
 
-## Arquitetura
+Isso permite atingir **4 plataformas** (Web, macOS, Android, iOS) com **uma única base de código** de UI, compartilhando os mesmos Presenters e ViewStates do padrão Cube MVP.
+
+| Plataforma | Empacotamento | Runtime | Distribuição |
+|------------|---------------|---------|-------------|
+| **Web** | SPA servido pelo Javalin | Browser (JS engine) | URL |
+| **macOS** | Tauri → `.app` bundle | WebView (WKWebView) | DMG / App Store |
+| **Android** | Tauri → APK | WebView (Chrome/System) | APK / Play Store |
+| **iOS** | Tauri → `.app` Simulator/Device | WebView (WKWebView) | Xcode / TestFlight |
+
+## Estrutura de Módulos
 
 ```
-Browser (JavaScript)
-├── index.html                          ← Carrega Bootstrap 5 CSS/JS + app.js
-├── js/app.js                           ← Java compilado para JS pelo TeaVM
-│   ├── Main.java                       ← Entry point
-│   ├── ShoppingTeaVMApplication.java   ← Wiring de factories e render loop
-│   ├── AbstractViewTeaVM.java          ← Classe base para views
-│   ├── FetchHttpTransport.java         ← XMLHttpRequest (REST API calls)
-│   ├── BrowserCryptoProvider.java      ← Web Crypto API (HMAC-SHA256)
-│   ├── ScheduledExecutorBrowser.java   ← setTimeout/setInterval
-│   ├── interop/                        ← JSO bridges (Console, Timers, Fetch)
-│   ├── repo/                           ← Repositórios via REST API
-│   ├── theme/                          ← Constantes Bootstrap (ícones, cores)
-│   ├── util/                           ← HtmlDom builder, DateUtils
-│   └── views/                          ← Implementações das views
-│       ├── RootViewTeaVM.java
-│       ├── LoginViewTeaVM.java
-│       ├── HomeViewTeaVM.java
-│       ├── ProductsPanelViewTeaVM.java
-│       ├── ProductViewTeaVM.java
-│       ├── CartViewTeaVM.java
-│       ├── ReceiptViewTeaVM.java
-│       └── PurchasesPanelViewTeaVM.java
-└── API REST (Javalin)                  ← Servidor back-end (porta 8080)
+br.com.wdc.shopping.view.teavm/          ← POM agregador (este diretório)
+├── br.com.wdc.shopping.view.teavm.web/  ← Código Java das views + compilação TeaVM → JS
+└── br.com.wdc.shopping.view.teavm.native/ ← Projeto Tauri 2 (desktop, Android, iOS)
 ```
+
+### [teavm.web](br.com.wdc.shopping.view.teavm.web/) — Views + Compilação
+
+Contém todo o código Java da camada de visualização (8 views, interop JS, tema Bootstrap, repositórios REST) e o plugin Maven do TeaVM que compila tudo para `app.js`. O output é um SPA completo (`index.html` + `app.js`) que pode ser servido por qualquer servidor HTTP ou embutido em um wrapper nativo.
+
+### [teavm.native](br.com.wdc.shopping.view.teavm.native/) — Empacotamento Nativo
+
+Projeto [Tauri 2](https://tauri.app/) que empacota o SPA gerado pelo módulo web em aplicativos nativos. O Tauri usa WebView nativa do SO (sem Chromium embarcado), resultando em binários leves. Suporta desktop (macOS), Android e iOS a partir de um único `build.sh`.
 
 ## Tecnologias
 
@@ -43,21 +42,17 @@ Browser (JavaScript)
 | Compilador AOT | [TeaVM](https://teavm.org/) | 0.14.0 |
 | UI Framework | [Bootstrap](https://getbootstrap.com/) | 5.3.3 |
 | Ícones | [Bootstrap Icons](https://icons.getbootstrap.com/) | 1.11.3 |
-| Linguagem | Java | 21 |
-| Build | Maven | — |
-| Interop JS | TeaVM JSO (`@JSBody`, `@JSFunctor`) | — |
+| Wrapper nativo | [Tauri](https://tauri.app/) | 2.x |
+| Linguagem (views) | Java 21 | — |
+| Linguagem (nativo) | Rust | — |
 
-## Como Funciona
+## Como o TeaVM Funciona
 
-### Compilação Java → JavaScript
-
-O TeaVM compila as classes Java (views, presenters, domain, api-client) para um único arquivo JavaScript (`app.js`). O compilador realiza:
+O TeaVM compila as classes Java para um único arquivo JavaScript (`app.js`). O compilador realiza:
 
 - **Dead code elimination** — remove classes/métodos não utilizados
 - **Minificação** — otimiza o tamanho do bundle
 - **Interop direto** — chamadas a APIs do browser (DOM, Fetch, Crypto) via anotações JSO, sem bridge pesado
-
-### Construção da UI
 
 A classe `HtmlDom` fornece uma API fluente para construção de elementos HTML em Java:
 
@@ -72,83 +67,6 @@ dom.div("d-flex align-items-center gap-2", container -> {
 ```
 
 Isso gera HTML nativo com classes Bootstrap, sem Virtual DOM ou framework JavaScript adicional.
-
-### Comunicação com o Servidor
-
-As views se comunicam com o back-end Javalin via REST API usando `XMLHttpRequest` (implementado em `FetchHttpTransport`). A autenticação utiliza HMAC-SHA256 via Web Crypto API (`BrowserCryptoProvider`).
-
-### Responsividade
-
-O layout é responsivo e adapta-se a telas pequenas (iPhone SE) utilizando classes Bootstrap responsivas (`d-none d-sm-inline`, `flex-column-reverse flex-sm-row`, etc.). No cabeçalho, textos auxiliares são ocultados em telas estreitas, mantendo apenas os ícones essenciais.
-
-## Build
-
-### Pré-requisitos
-
-- **Java 21** (ex: Microsoft OpenJDK 21)
-- **Maven** 3.8+
-
-### Compilar
-
-```bash
-# Definir JAVA21_HOME
-export JAVA21_HOME=/Library/Java/JavaVirtualMachines/microsoft-21.jdk/Contents/Home
-
-# Compilar (a partir da raiz do módulo)
-cd fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.teavm
-bash build.sh
-```
-
-Ou diretamente com Maven:
-
-```bash
-JAVA_HOME=$JAVA21_HOME mvn process-classes -DskipTests
-```
-
-### Output
-
-O build gera os artefatos em `target/classes/META-INF/resources/teavm/`:
-
-```
-target/classes/META-INF/resources/teavm/
-├── index.html    ← Página HTML (carrega Bootstrap + app.js)
-└── js/
-    └── app.js    ← Java compilado para JavaScript (~8000 métodos)
-```
-
-### Executar
-
-O módulo não tem servidor próprio — o arquivo `app.js` é servido como recurso estático pelo servidor Javalin (módulo `view.react.javalin`):
-
-```
-http://localhost:8080/teavm
-```
-
-## Estrutura do Projeto
-
-```
-br.com.wdc.shopping.view.teavm/
-├── build.sh                    ← Script de build simplificado
-├── pom.xml                     ← Configuração Maven + plugin TeaVM
-├── src/main/
-│   ├── java/.../view/teavm/
-│   │   ├── Main.java
-│   │   ├── ShoppingTeaVMApplication.java
-│   │   ├── AbstractViewTeaVM.java
-│   │   ├── FetchHttpTransport.java
-│   │   ├── BrowserCryptoProvider.java
-│   │   ├── JsonParsing.java
-│   │   ├── ScheduledExecutorBrowser.java
-│   │   ├── interop/            ← Console, Timers, FetchApi
-│   │   ├── repo/               ← Repositórios REST
-│   │   ├── theme/              ← BsIcons, BsColors, BsStyles
-│   │   ├── util/               ← HtmlDom, DateUtils
-│   │   └── views/              ← 8 views (Login, Home, Products, etc.)
-│   └── webapp/
-│       └── index.html
-└── docs/
-    └── screenshots/
-```
 
 ## Screenshots
 
