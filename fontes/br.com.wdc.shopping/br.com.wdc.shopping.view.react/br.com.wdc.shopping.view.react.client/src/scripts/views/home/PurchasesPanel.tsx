@@ -180,8 +180,7 @@ type PurchaseItemRowProps = {
 
 function formatItems(items: string[]): string {
   if (!items || items.length === 0) return ''
-  if (items.length === 1) return items[0]
-  return `${items[0]}, +${items.length - 1}...`
+  return items.join(', ')
 }
 
 class PurchaseItemRowClass extends BasePanelClass<PurchaseItemRowProps> {

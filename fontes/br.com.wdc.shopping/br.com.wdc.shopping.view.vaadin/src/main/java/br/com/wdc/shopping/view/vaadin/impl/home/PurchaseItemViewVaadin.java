@@ -130,7 +130,6 @@ public class PurchaseItemViewVaadin extends AbstractViewVaadin<PurchasesPanelPre
 
     private String getItemsStr() {
         if (this.state.items == null || this.state.items.isEmpty()) return "";
-        if (this.state.items.size() == 1) return this.state.items.get(0);
-        return this.state.items.get(0) + ", +" + (this.state.items.size() - 1) + "...";
+        return String.join(", ", this.state.items);
     }
 }

@@ -64,7 +64,7 @@ public class PurchasesPanelViewTeaVM extends AbstractViewTeaVM<PurchasesPanelPre
         });
 
         this.listContainer = dom.div("flex-grow-1", container -> {
-            container.setAttribute("style", "overflow-y:auto;overflow-x:hidden;min-height:0");
+            container.setAttribute("style", "overflow:hidden;min-height:0");
         });
         this.contentSlot = this.newListSlot(this.listContainer, this::newItemView, this::updateItem);
 
@@ -237,10 +237,7 @@ public class PurchasesPanelViewTeaVM extends AbstractViewTeaVM<PurchasesPanelPre
             if (items == null || items.isEmpty()) {
                 return "";
             }
-            if (items.size() == 1) {
-                return items.get(0);
-            }
-            return items.get(0) + ", +" + (items.size() - 1) + "...";
+            return String.join(", ", items);
         }
     }
 }
