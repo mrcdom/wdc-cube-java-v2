@@ -129,22 +129,39 @@ public class PurchasesPanelViewTeaVM extends AbstractViewTeaVM<PurchasesPanelPre
         private String itemsOldValue;
         private String totalOldValue;
 
+        private static final String STYLE_NORMAL =
+                "background-color:#fafafa;border-radius:6px;border-left:3px solid #1976d2;"
+                + "cursor:pointer;transition:all 0.15s;margin-bottom:6px;overflow:hidden";
+        private static final String STYLE_HIGHLIGHT =
+                "background-color:#e3f2fd;border-radius:6px;border-left:3px solid #1976d2;"
+                + "cursor:pointer;transition:all 0.15s;margin-bottom:6px;overflow:hidden;transform:translateX(2px)";
+
+        private boolean touchActive;
+
         PurchaseItemView(ShoppingTeaVMApplication app, PurchasesPanelPresenter presenter, int idx) {
             super("purchase-item-" + idx, app, presenter,
                     HTMLDocument.current().createElement("div"));
             this.purchase = new PurchaseInfo();
-            this.element.setAttribute("style",
-                    "background-color:#fafafa;border-radius:6px;border-left:3px solid #1976d2;"
-                    + "cursor:pointer;transition:all 0.15s;margin-bottom:6px;overflow:hidden");
+            this.element.setAttribute("style", STYLE_NORMAL);
             this.element.addEventListener("mouseenter", evt -> {
-                this.element.setAttribute("style",
-                        "background-color:#e3f2fd;border-radius:6px;border-left:3px solid #1976d2;"
-                        + "cursor:pointer;transition:all 0.15s;margin-bottom:6px;overflow:hidden;transform:translateX(2px)");
+                if (!this.touchActive) {
+                    this.element.setAttribute("style", STYLE_HIGHLIGHT);
+                }
             });
             this.element.addEventListener("mouseleave", evt -> {
-                this.element.setAttribute("style",
-                        "background-color:#fafafa;border-radius:6px;border-left:3px solid #1976d2;"
-                        + "cursor:pointer;transition:all 0.15s;margin-bottom:6px;overflow:hidden");
+                this.element.setAttribute("style", STYLE_NORMAL);
+            });
+            this.element.addEventListener("touchstart", evt -> {
+                this.touchActive = true;
+                this.element.setAttribute("style", STYLE_HIGHLIGHT);
+            });
+            this.element.addEventListener("touchend", evt -> {
+                this.element.setAttribute("style", STYLE_NORMAL);
+                Window.setTimeout(() -> this.touchActive = false, 300);
+            });
+            this.element.addEventListener("touchcancel", evt -> {
+                this.element.setAttribute("style", STYLE_NORMAL);
+                Window.setTimeout(() -> this.touchActive = false, 300);
             });
         }
 
@@ -188,8 +205,10 @@ public class PurchasesPanelViewTeaVM extends AbstractViewTeaVM<PurchasesPanelPre
         }
 
         private void buildUI(HtmlDom dom, HTMLElement card) {
-            card.addEventListener("click",
-                    evt -> safeAction("Open receipt", () -> this.presenter.onOpenReceipt(this.purchase.id)));
+            card.addEventListener("click", evt -> {
+                this.element.setAttribute("style", STYLE_NORMAL);
+                safeAction("Open receipt", () -> this.presenter.onOpenReceipt(this.purchase.id));
+            });
 
             // Line 1: #id (left) + date (right)
             dom.div("d-flex justify-content-between align-items-center", line1 -> {

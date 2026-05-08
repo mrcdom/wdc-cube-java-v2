@@ -67,6 +67,12 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
         this.update();
     }
 
+    private void alertConnectionError(Throwable caught) {
+        state.errorCode = 5;
+        state.errorMessage = "Falha de comunicação com o servidor. Verifique sua conexão.";
+        this.update();
+    }
+
     // :: User Actions
 
     public void onEnter() {
@@ -87,7 +93,7 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
             }
 
             LOG.error("onEnter", caught);
-            app.alertUnexpectedError(LOG, "Trying to access restricted area", caught);
+            this.alertConnectionError(caught);
         }
     }
 }

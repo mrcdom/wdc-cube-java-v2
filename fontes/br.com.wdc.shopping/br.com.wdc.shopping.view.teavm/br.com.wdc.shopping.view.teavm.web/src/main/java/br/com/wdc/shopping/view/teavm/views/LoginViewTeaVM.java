@@ -54,7 +54,7 @@ public class LoginViewTeaVM extends AbstractViewTeaVM<LoginPresenter> {
     private void buildUI(HtmlDom dom, HTMLElement root) {
         dom.div("card shadow mx-auto", card -> {
             card.setAttribute("style",
-                    "max-width:440px;width:100%;border-radius:16px;border:none;overflow:hidden");
+                    "max-width:400px;width:calc(100% - 32px);border-radius:16px;border:none;overflow:hidden");
 
             // Blue header with logo
             dom.div("", header -> {
@@ -103,6 +103,8 @@ public class LoginViewTeaVM extends AbstractViewTeaVM<LoginPresenter> {
                     this.userNameField = dom.input("text", "form-control form-control-lg", field -> {
                         field.setAttribute("placeholder", "Usuário");
                         field.setAttribute("autocomplete", "off");
+                        field.setAttribute("autocapitalize", "none");
+                        field.setAttribute("autocorrect", "off");
                         field.setAttribute("data-form-type", "other");
                         field.setAttribute("style",
                                 "border-radius:8px;border:1px solid #ccc;font-size:1rem");
@@ -114,6 +116,8 @@ public class LoginViewTeaVM extends AbstractViewTeaVM<LoginPresenter> {
                     this.passwordField = dom.input("password", "form-control form-control-lg", field -> {
                         field.setAttribute("placeholder", "Senha");
                         field.setAttribute("autocomplete", "off");
+                        field.setAttribute("autocapitalize", "none");
+                        field.setAttribute("autocorrect", "off");
                         field.setAttribute("data-form-type", "other");
                         field.setAttribute("style",
                                 "border-radius:8px;border:1px solid #ccc;font-size:1rem");

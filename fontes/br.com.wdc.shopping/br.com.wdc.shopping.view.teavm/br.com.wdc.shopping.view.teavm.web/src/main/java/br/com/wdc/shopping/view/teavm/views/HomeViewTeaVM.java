@@ -35,7 +35,8 @@ public class HomeViewTeaVM extends AbstractViewTeaVM<HomePresenter> {
         super("home", (ShoppingTeaVMApplication) presenter.app, presenter,
                 HTMLDocument.current().createElement("div"));
         this.state = presenter.state;
-        this.element.getClassList().add("d-flex", "flex-column", "h-100");
+        this.element.getClassList().add("d-flex", "flex-column", "flex-grow-1");
+        this.element.setAttribute("style", "min-height:0");
     }
 
     @Override
@@ -97,7 +98,8 @@ public class HomeViewTeaVM extends AbstractViewTeaVM<HomePresenter> {
         dom.nav("navbar navbar-dark px-2 px-sm-3", appBar -> {
             appBar.setAttribute("style",
                     "background-color:#1976d2;min-height:56px;box-shadow:0 2px 4px rgba(0,0,0,0.1);"
-                    + "display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between");
+                    + "display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between;"
+                    + "padding-top:env(safe-area-inset-top, 0px)");
 
             // Left section: exit button + greeting
             dom.div("d-flex align-items-center gap-1 gap-sm-2", userBox -> {
@@ -142,7 +144,7 @@ public class HomeViewTeaVM extends AbstractViewTeaVM<HomePresenter> {
             });
 
             // Right section: cart button with badge
-            dom.div("d-flex align-items-center", actionBox -> {
+            dom.div("d-flex align-items-center pe-2", actionBox -> {
                 dom.button(null, cartBtn -> {
                     cartBtn.setAttribute("style",
                             "background:none;border:none;color:rgba(255,255,255,0.9);cursor:pointer;"
@@ -178,7 +180,7 @@ public class HomeViewTeaVM extends AbstractViewTeaVM<HomePresenter> {
         });
 
         // Bottom navigation
-        dom.footer("d-flex border-top bg-white", bottomNav -> {
+        dom.footer("d-flex border-top bg-white flex-shrink-0", bottomNav -> {
             this.tabProductsBtn = dom.button("btn flex-grow-1 rounded-0 py-3 fw-bold text-primary border-0", btn -> {
                 dom.icon(BsIcons.SHOP);
                 dom.span(null, txt -> txt.setTextContent(" Produtos"));

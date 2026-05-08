@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 
+import org.teavm.jso.browser.Window;
 import org.teavm.jso.dom.html.HTMLDocument;
 import org.teavm.jso.dom.html.HTMLElement;
 import org.teavm.jso.dom.html.HTMLImageElement;
@@ -121,8 +122,23 @@ public class ProductsPanelViewTeaVM extends AbstractViewTeaVM<ProductsPanelPrese
         private void buildUI(HtmlDom dom, HTMLElement root) {
             dom.div(null, card -> {
                 card.setAttribute("style", CARD_STYLE);
-                card.addEventListener("mouseenter", evt -> card.setAttribute("style", CARD_HOVER_STYLE));
+                final boolean[] touchActive = {false};
+                card.addEventListener("mouseenter", evt -> {
+                    if (!touchActive[0]) card.setAttribute("style", CARD_HOVER_STYLE);
+                });
                 card.addEventListener("mouseleave", evt -> card.setAttribute("style", CARD_STYLE));
+                card.addEventListener("touchstart", evt -> {
+                    touchActive[0] = true;
+                    card.setAttribute("style", CARD_HOVER_STYLE);
+                });
+                card.addEventListener("touchend", evt -> {
+                    card.setAttribute("style", CARD_STYLE);
+                    Window.setTimeout(() -> touchActive[0] = false, 300);
+                });
+                card.addEventListener("touchcancel", evt -> {
+                    card.setAttribute("style", CARD_STYLE);
+                    Window.setTimeout(() -> touchActive[0] = false, 300);
+                });
                 card.addEventListener("click",
                         evt -> safeAction("Open product", () -> this.presenter.onOpenProduct(this.product.id)));
 

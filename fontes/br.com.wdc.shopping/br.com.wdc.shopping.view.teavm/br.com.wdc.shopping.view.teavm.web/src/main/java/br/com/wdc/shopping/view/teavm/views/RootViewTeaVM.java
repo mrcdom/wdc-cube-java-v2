@@ -19,7 +19,8 @@ public class RootViewTeaVM extends AbstractViewTeaVM<RootPresenter> {
         super("root", (ShoppingTeaVMApplication) presenter.app, presenter,
                 HTMLDocument.current().createElement("div"));
         this.state = presenter.state;
-        this.element.getClassList().add("d-flex", "flex-column", "vh-100");
+        this.element.getClassList().add("d-flex", "flex-column");
+        this.element.setAttribute("style", "height:100%;overflow:hidden");
     }
 
     @Override
@@ -41,7 +42,7 @@ public class RootViewTeaVM extends AbstractViewTeaVM<RootPresenter> {
     }
 
     private void buildUI(HtmlDom dom, HTMLElement root) {
-        this.contentSlot = dom.div("flex-grow-1", slot -> {
+        this.contentSlot = dom.div("flex-grow-1 d-flex flex-column", slot -> {
             slot.setAttribute("style", "min-height:0");
         });
     }

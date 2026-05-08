@@ -76,9 +76,10 @@ public class JavalinApplication {
             // over the 15-second keepalive used by browser and server.
             config.jetty.modifyWebSocketServletFactory(wsFactory -> wsFactory.setIdleTimeout(Duration.ofMinutes(2)));
 
-            // Enable CORS for Tauri desktop app and local dev
+            // Enable CORS for Tauri desktop app, Android WebView, and local dev
             config.bundledPlugins.enableCors(cors -> cors.addRule(rule -> {
                 rule.allowHost("tauri://localhost", "https://tauri.localhost",
+                        "http://tauri.localhost",
                         "http://localhost:8080", "http://shopping-wdc.localhost:8080");
                 rule.allowCredentials = true;
             }));
