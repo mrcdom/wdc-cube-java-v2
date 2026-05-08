@@ -178,6 +178,17 @@ npm run watch   # Parcel em modo watch (hot reload)
 
 Este módulo utiliza Virtual Threads (Java 21+) para handlers HTTP e WebSocket, reduzindo o consumo de memória por conexão de ~1MB para ~1KB. Detalhes completos em [VIRTUAL_THREADS_STRATEGY.md](VIRTUAL_THREADS_STRATEGY.md).
 
+## Screenshots
+
+| Tela | Preview |
+|------|---------|
+| Login | ![Login](docs/screenshots/01-login.png) |
+| Home / Produtos | ![Home](docs/screenshots/02-home.png) |
+| Detalhe do Produto | ![Produto](docs/screenshots/03-product.png) |
+| Carrinho | ![Carrinho](docs/screenshots/04-cart.png) |
+| Recibo | ![Recibo](docs/screenshots/05-receipt.png) |
+| Histórico | ![Histórico](docs/screenshots/06-history.png) |
+
 ## Conclusão
 
 A versão React valida que o padrão Cube MVP suporta **visualização remota**: toda a lógica permanece server-side, e o browser é um thin client que renderiza estados serializados. Combinada com a [versão Gluon](../br.com.wdc.shopping.view.gluon/README.md) (visualização nativa multiplataforma), demonstra que **a mesma camada de Presenters/ViewStates pode alimentar qualquer tecnologia de frontend** — web, desktop ou mobile.
