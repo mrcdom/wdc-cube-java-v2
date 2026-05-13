@@ -15,7 +15,7 @@
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>br.com.wdc.shopping.view.react.skeleton</module>
+		<module>react.skeleton</module>
 	</modules>
 
 </project>

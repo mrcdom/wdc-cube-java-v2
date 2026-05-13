@@ -9,8 +9,8 @@ Criar um novo módulo envolve alterações em **3 camadas**:
 | Camada | Módulo Maven | O que criar |
 |--------|-------------|-------------|
 | **Presentation** | `br.com.wdc.shopping.presentation` | Presenter, ViewState, Service, DTOs |
-| **Skeleton** (backend view) | `br.com.wdc.shopping.view.react.skeleton` | ViewImpl (wiring presenter ↔ React) |
-| **React Client** (frontend) | `br.com.wdc.shopping.view.react.client` | Componente React + registro |
+| **Skeleton** (backend view) | `react.skeleton` | ViewImpl (wiring presenter ↔ React) |
+| **React Client** (frontend) | `react.client` | Componente React + registro |
 
 ---
 

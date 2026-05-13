@@ -114,7 +114,7 @@ Configurado no `package.json` (Parcel) e `tsconfig.json` (TypeScript/IDE).
 Os assets compilados são gerados diretamente no módulo `skeleton`:
 
 ```
-../br.com.wdc.shopping.view.react.skeleton/src/main/resources/META-INF/resources/
+../react.skeleton/src/main/resources/META-INF/resources/
 ```
 
 Isso permite que o servidor Javalin sirva os arquivos estáticos automaticamente via classpath.

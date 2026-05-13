@@ -148,14 +148,14 @@ br.com.wdc.shopping/br.com.wdc.shopping/br.com.wdc.shopping.backend/target/br.co
 ### Frontend (React)
 
 ```bash
-cd br.com.wdc.shopping/br.com.wdc.shopping.view.react/br.com.wdc.shopping.view.react.client
+cd br.com.wdc.shopping/br.com.wdc.shopping.view.react/react.client
 
 npm install        # instalar dependências
 npm run build      # build de produção
 npm run watch      # modo desenvolvimento (hot reload)
 ```
 
-Os assets compilados são gerados diretamente em `br.com.wdc.shopping.view.react.skeleton/src/main/resources/META-INF/resources`.
+Os assets compilados são gerados diretamente em `react.skeleton/src/main/resources/META-INF/resources`.
 
 ## Execução
 

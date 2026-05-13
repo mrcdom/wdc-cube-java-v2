@@ -5,12 +5,12 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/mrcdom/wdc-cube-java-v2.git",
-    "directory": "fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.react/br.com.wdc.shopping.view.react.client"
+    "directory": "fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.react/react.client"
   },
   "source": "src/index.html",
   "targets": {
     "default": {
-      "distDir": "../br.com.wdc.shopping.view.react.skeleton/src/main/resources/META-INF/resources"
+      "distDir": "../react.skeleton/src/main/resources/META-INF/resources"
     }
   },
   "alias": {

@@ -32,7 +32,7 @@
         <!-- Core backend module with REST endpoints and business logic -->
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>br.com.wdc.shopping.view.react.skeleton</artifactId>
+            <artifactId>react.skeleton</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

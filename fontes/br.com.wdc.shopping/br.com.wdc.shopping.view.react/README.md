@@ -131,7 +131,7 @@ Apenas **views modificadas** são enviadas a cada resposta (delta updates), mini
 
 ```bash
 # 1. Build do client (gera assets em skeleton/META-INF/resources/)
-cd fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.react/br.com.wdc.shopping.view.react.client
+cd fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.react/react.client
 npm install && npm run build
 
 # 2. Build Maven (skeleton + javalin)
@@ -170,7 +170,7 @@ Arquivo `work/config/application.toml`:
 ### Desenvolvimento do client
 
 ```bash
-cd br.com.wdc.shopping.view.react.client
+cd react.client
 npm run watch   # Parcel em modo watch (hot reload)
 ```
 

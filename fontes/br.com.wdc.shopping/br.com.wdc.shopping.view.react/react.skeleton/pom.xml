@@ -11,7 +11,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>br.com.wdc.shopping.view.react.skeleton</artifactId>
+    <artifactId>react.skeleton</artifactId>
 
     <dependencies>
         <dependency>
