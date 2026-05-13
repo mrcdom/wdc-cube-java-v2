@@ -17,7 +17,7 @@
 	<properties>
 		<javafx.version>21.0.7</javafx.version>
 		<attach.version>4.0.22</attach.version>
-		<gluonfx.plugin.version>1.0.25</gluonfx.plugin.version>
+		<gluonfx.plugin.version>1.0.28</gluonfx.plugin.version>
 		<main.class>br.com.wdc.shopping.view.gluon.ShoppingGluonMain</main.class>
 	</properties>
 
