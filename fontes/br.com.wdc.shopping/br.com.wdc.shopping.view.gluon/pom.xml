@@ -22,10 +22,10 @@
 	</properties>
 
 	<modules>
-		<module>br.com.wdc.shopping.view.gluon.shared</module>
-		<module>br.com.wdc.shopping.view.gluon.desktop</module>
-		<module>br.com.wdc.shopping.view.gluon.android</module>
-		<module>br.com.wdc.shopping.view.gluon.ios</module>
+		<module>gluon.shared</module>
+		<module>gluon.desktop</module>
+		<module>gluon.android</module>
+		<module>gluon.ios</module>
 	</modules>
 
 	<repositories>

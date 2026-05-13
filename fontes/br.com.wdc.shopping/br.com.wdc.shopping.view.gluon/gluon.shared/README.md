@@ -1,4 +1,4 @@
-# br.com.wdc.shopping.view.gluon.shared
+# gluon.shared
 
 Módulo compartilhado que contém **toda a lógica de visualização** da aplicação Gluon. É o coração da camada de view — os módulos de plataforma (desktop, ios, android) são apenas launchers finos que delegam a este módulo.
 

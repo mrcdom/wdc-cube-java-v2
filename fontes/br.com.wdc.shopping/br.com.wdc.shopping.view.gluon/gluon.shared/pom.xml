@@ -11,90 +11,52 @@
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-	<artifactId>br.com.wdc.shopping.view.gluon.ios</artifactId>
+	<artifactId>gluon.shared</artifactId>
 
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<version>${project.version}</version>
-			<artifactId>br.com.wdc.shopping.view.gluon.shared</artifactId>
+			<artifactId>br.com.wdc.shopping.presentation</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<version>${project.version}</version>
-			<artifactId>br.com.wdc.shopping.persistence</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<version>${project.version}</version>
-			<artifactId>br.com.wdc.shopping.scripts</artifactId>
+			<artifactId>br.com.wdc.shopping.persistence.client</artifactId>
 		</dependency>
 
+		<!-- JavaFX -->
 		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
+			<groupId>org.openjfx</groupId>
+			<artifactId>javafx-controls</artifactId>
+			<version>${javafx.version}</version>
 		</dependency>
 
-		<!-- Attach iOS implementations -->
+		<!-- Gluon Attach (platform-independent API) -->
 		<dependency>
 			<groupId>com.gluonhq.attach</groupId>
 			<artifactId>display</artifactId>
 			<version>${attach.version}</version>
-			<classifier>ios</classifier>
-			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.gluonhq.attach</groupId>
 			<artifactId>lifecycle</artifactId>
 			<version>${attach.version}</version>
-			<classifier>ios</classifier>
-			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.gluonhq.attach</groupId>
 			<artifactId>statusbar</artifactId>
 			<version>${attach.version}</version>
-			<classifier>ios</classifier>
-			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.gluonhq.attach</groupId>
 			<artifactId>storage</artifactId>
 			<version>${attach.version}</version>
-			<classifier>ios</classifier>
-			<scope>runtime</scope>
 		</dependency>
-
 		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
+			<groupId>com.gluonhq.attach</groupId>
+			<artifactId>util</artifactId>
+			<version>${attach.version}</version>
 		</dependency>
-	</dependencies>
-
-	<properties>
-		<gluonfx.target>ios</gluonfx.target>
-	</properties>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>com.gluonhq</groupId>
-				<artifactId>gluonfx-maven-plugin</artifactId>
-				<version>${gluonfx.plugin.version}</version>
-				<configuration>
-					<mainClass>${main.class}</mainClass>
-					<target>${gluonfx.target}</target>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
-
-	<profiles>
-		<profile>
-			<id>ios-sim</id>
-			<properties>
-				<gluonfx.target>ios-sim</gluonfx.target>
-			</properties>
-		</profile>
-	</profiles>
+        </dependencies>
 </project>

@@ -11,13 +11,13 @@
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-	<artifactId>br.com.wdc.shopping.view.gluon.android</artifactId>
+	<artifactId>gluon.android</artifactId>
 
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<version>${project.version}</version>
-			<artifactId>br.com.wdc.shopping.view.gluon.shared</artifactId>
+			<artifactId>gluon.shared</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>

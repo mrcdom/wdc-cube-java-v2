@@ -11,13 +11,13 @@
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-	<artifactId>br.com.wdc.shopping.view.gluon.shared</artifactId>
+	<artifactId>gluon.desktop</artifactId>
 
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<version>${project.version}</version>
-			<artifactId>br.com.wdc.shopping.presentation</artifactId>
+			<artifactId>gluon.shared</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
@@ -25,38 +25,61 @@
 			<artifactId>br.com.wdc.shopping.persistence.client</artifactId>
 		</dependency>
 
-		<!-- JavaFX -->
-		<dependency>
-			<groupId>org.openjfx</groupId>
-			<artifactId>javafx-controls</artifactId>
-			<version>${javafx.version}</version>
-		</dependency>
-
-		<!-- Gluon Attach (platform-independent API) -->
+		<!-- Attach desktop implementations -->
 		<dependency>
 			<groupId>com.gluonhq.attach</groupId>
 			<artifactId>display</artifactId>
 			<version>${attach.version}</version>
+			<classifier>desktop</classifier>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.gluonhq.attach</groupId>
 			<artifactId>lifecycle</artifactId>
 			<version>${attach.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.gluonhq.attach</groupId>
-			<artifactId>statusbar</artifactId>
-			<version>${attach.version}</version>
+			<classifier>desktop</classifier>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.gluonhq.attach</groupId>
 			<artifactId>storage</artifactId>
 			<version>${attach.version}</version>
+			<classifier>desktop</classifier>
+			<scope>runtime</scope>
 		</dependency>
+
 		<dependency>
-			<groupId>com.gluonhq.attach</groupId>
-			<artifactId>util</artifactId>
-			<version>${attach.version}</version>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
 		</dependency>
-        </dependencies>
+	</dependencies>
+
+	<properties>
+		<main.class>br.com.wdc.shopping.view.gluon.desktop.ShoppingGluonDesktopLauncher</main.class>
+	</properties>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.openjfx</groupId>
+				<artifactId>javafx-maven-plugin</artifactId>
+				<version>0.0.8</version>
+				<configuration>
+					<mainClass>${main.class}</mainClass>
+					<options>
+						<option>-Xdock:icon=${project.basedir}/src/main/resources/icon-256.png</option>
+					</options>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.gluonhq</groupId>
+				<artifactId>gluonfx-maven-plugin</artifactId>
+				<version>${gluonfx.plugin.version}</version>
+				<configuration>
+					<mainClass>${main.class}</mainClass>
+					<target>host</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 </project>
