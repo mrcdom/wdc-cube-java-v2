@@ -1,6 +1,6 @@
 package br.com.wdc.shopping.view.teavm.repo;
 
-import br.com.wdc.shopping.api.client.HttpTransport;
+import br.com.wdc.shopping.persistence.client.HttpTransport;
 import br.com.wdc.shopping.domain.repositories.ProductRepository;
 import br.com.wdc.shopping.domain.repositories.PurchaseItemRepository;
 import br.com.wdc.shopping.domain.repositories.PurchaseRepository;

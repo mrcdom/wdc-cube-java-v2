@@ -22,7 +22,7 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <version>${project.version}</version>
-            <artifactId>br.com.wdc.shopping.api-client</artifactId>
+            <artifactId>br.com.wdc.shopping.persistence.client</artifactId>
             <exclusions>
                 <exclusion>
                     <groupId>com.squareup.okhttp3</groupId>
@@ -124,7 +124,7 @@
                         <phase>process-classes</phase>
                         <configuration>
                             <mainClass>br.com.wdc.shopping.view.teavm.Main</mainClass>
-                            <targetDirectory>${project.build.outputDirectory}/META-INF/resources/teavm/js</targetDirectory>
+                            <targetDirectory>${project.basedir}/../../br.com.wdc.shopping.backend/src/main/resources/META-INF/resources/teavm/js</targetDirectory>
                             <targetFileName>app.js</targetFileName>
                             <minifying>false</minifying>
                             <debugInformationGenerated>false</debugInformationGenerated>
@@ -152,7 +152,7 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.build.outputDirectory}/META-INF/resources/teavm</outputDirectory>
+                            <outputDirectory>${project.basedir}/../../br.com.wdc.shopping.backend/src/main/resources/META-INF/resources/teavm</outputDirectory>
                             <resources>
                                 <resource>
                                     <directory>src/main/webapp</directory>

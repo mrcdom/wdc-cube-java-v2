@@ -10,7 +10,7 @@ import org.teavm.jso.browser.Window;
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubePresenter;
-import br.com.wdc.shopping.api.client.HttpTransport;
+import br.com.wdc.shopping.persistence.client.HttpTransport;
 import br.com.wdc.shopping.domain.security.CryptoProvider;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.RootPresenter;

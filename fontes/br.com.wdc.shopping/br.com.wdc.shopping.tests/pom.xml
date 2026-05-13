@@ -56,13 +56,13 @@
 		<!-- REST API server + client for integration tests -->
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>br.com.wdc.shopping.api</artifactId>
+			<artifactId>br.com.wdc.shopping.persistence.rest</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>br.com.wdc.shopping.api-client</artifactId>
+			<artifactId>br.com.wdc.shopping.persistence.client</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>

@@ -32,7 +32,7 @@ mvn clean package -DskipTests
 
 # 3. Execute
 java -jar \
-  br.com.wdc.shopping/br.com.wdc.shopping.view.react/br.com.wdc.shopping.view.react.javalin/target/br.com.wdc.shopping.view.react.javalin-1.0.0.jar
+  br.com.wdc.shopping/br.com.wdc.shopping/br.com.wdc.shopping.backend/target/br.com.wdc.shopping.backend-1.0.0.jar
 ```
 
 Abra **http://localhost:8080** e entre com `admin` / `admin`.
@@ -110,8 +110,8 @@ Java compilado para JavaScript via TeaVM, empacotado como app nativo com Tauri 2
 | [`view.swing`](br.com.wdc.shopping.view.swing/) | Frontend desktop (Java Swing + FlatLaf Material) |
 | [`view.gluon`](br.com.wdc.shopping.view.gluon/) | Frontend multiplataforma (JavaFX + Gluon — Desktop, iOS, Android) |
 | [`view.teavm`](br.com.wdc.shopping.view.teavm/) | Frontend multiplataforma (TeaVM + Tauri — Web, Desktop, Android, iOS) |
-| [`api`](br.com.wdc.shopping.api/) | Controllers REST (Javalin) para expor repositórios via HTTP |
-| [`api-client`](br.com.wdc.shopping.api-client/) | Client REST (OkHttp + Gson) que implementa repositórios via HTTP |
+| [`persistence.rest`](br.com.wdc.shopping.persistence.rest/) | Controllers REST (Javalin) para expor repositórios via HTTP |
+| [`persistence.client`](br.com.wdc.shopping.persistence.client/) | Client REST (OkHttp + Gson) que implementa repositórios via HTTP |
 | [`tests`](br.com.wdc.shopping.tests/) | Testes de workflow e repositórios |
 
 ---

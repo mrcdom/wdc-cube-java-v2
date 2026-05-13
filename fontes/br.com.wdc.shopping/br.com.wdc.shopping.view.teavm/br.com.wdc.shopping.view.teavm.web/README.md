@@ -58,7 +58,7 @@ target/classes/META-INF/resources/teavm/
 
 ## Executar
 
-O módulo não tem servidor próprio. O SPA é servido como recurso estático pelo servidor Javalin (`view.react.javalin`) ou embutido pelo módulo `teavm.native` (Tauri):
+O módulo não tem servidor próprio. O SPA é servido como recurso estático pelo servidor Javalin (`backend`) ou embutido pelo módulo `teavm.native` (Tauri):
 
 ```
 http://localhost:8080/teavm

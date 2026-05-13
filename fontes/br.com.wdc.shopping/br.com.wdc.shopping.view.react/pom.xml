@@ -16,7 +16,6 @@
 
 	<modules>
 		<module>br.com.wdc.shopping.view.react.skeleton</module>
-		<module>br.com.wdc.shopping.view.react.javalin</module>
 	</modules>
 
 </project>

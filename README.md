@@ -111,7 +111,7 @@ graph TD
 |--------|-----------|
 | **view.react** | Visualização remota via browser — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.react/README.md) |
 | **view.react.client** | SPA em React 19 + TypeScript + MUI 9, bundled via Parcel. Comunicação WebSocket bidirecional, gerenciamento de reconexão, segurança client-side |
-| **view.react.javalin** | Servidor Javalin 7 com Virtual Threads, WebSocket dispatcher, controllers REST, banco H2 embarcado. Gera fat JAR (~11 MB) |
+| **backend** | Servidor Javalin 7 com Virtual Threads, WebSocket dispatcher, controllers REST, banco H2 embarcado. Gera fat JAR (~11 MB) |
 | **view.react.skeleton** | Implementações de view para o servidor (`GenericViewImpl`), segurança (`AppSecurity` — RSA/PBKDF2/AES-GCM, `DataSecurity`), SPI de WebSocket |
 | **view.vaadin** | Visualização web server-side com Vaadin 24 + Lumo theme + Jetty 12 embarcado — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin/README.md) |
 | **view.swing** | Visualização desktop com Swing + FlatLaf (Material look-and-feel) — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.swing/README.md) |
@@ -142,7 +142,7 @@ mvn clean package
 
 O fat JAR será gerado em:
 ```
-br.com.wdc.shopping/br.com.wdc.shopping.view.react/br.com.wdc.shopping.view.react.javalin/target/br.com.wdc.shopping.view.react.javalin-1.0.0.jar
+br.com.wdc.shopping/br.com.wdc.shopping/br.com.wdc.shopping.backend/target/br.com.wdc.shopping.backend-1.0.0.jar
 ```
 
 ### Frontend (React)
@@ -163,11 +163,11 @@ Os assets compilados são gerados diretamente em `br.com.wdc.shopping.view.react
 
 ```bash
 # Via script
-cd br.com.wdc.shopping/br.com.wdc.shopping.view.react/br.com.wdc.shopping.view.react.javalin
+cd br.com.wdc.shopping/br.com.wdc.shopping/br.com.wdc.shopping.backend
 ./start-server.sh [porta]
 
 # Ou diretamente
-java -jar target/br.com.wdc.shopping.view.react.javalin-1.0.0.jar [porta]
+java -jar target/br.com.wdc.shopping.backend-1.0.0.jar [porta]
 ```
 
 - **Aplicação:** http://localhost:8080

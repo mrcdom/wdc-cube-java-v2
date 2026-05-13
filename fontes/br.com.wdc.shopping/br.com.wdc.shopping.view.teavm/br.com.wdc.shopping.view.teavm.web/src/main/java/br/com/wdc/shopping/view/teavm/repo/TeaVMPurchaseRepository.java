@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.google.gson.JsonObject;
 
-import br.com.wdc.shopping.api.client.HttpTransport;
+import br.com.wdc.shopping.persistence.client.HttpTransport;
 import br.com.wdc.shopping.domain.criteria.PurchaseCriteria;
 import br.com.wdc.shopping.domain.model.Purchase;
 import br.com.wdc.shopping.domain.repositories.PurchaseRepository;

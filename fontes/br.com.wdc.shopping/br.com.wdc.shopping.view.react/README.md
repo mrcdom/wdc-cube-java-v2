@@ -142,8 +142,8 @@ cd fontes && mvn -q -DskipTests clean install
 
 ```bash
 # Servidor (porta 8080 por padrão)
-cd fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.react/br.com.wdc.shopping.view.react.javalin
-java -jar target/br.com.wdc.shopping.view.react.javalin-1.0.0.jar
+cd fontes/br.com.wdc.shopping/br.com.wdc.shopping/br.com.wdc.shopping.backend
+java -jar target/br.com.wdc.shopping.backend-1.0.0.jar
 
 # Ou via script
 ./start-server.sh

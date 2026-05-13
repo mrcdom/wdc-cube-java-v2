@@ -4,7 +4,7 @@ import org.teavm.jso.JSObject;
 
 import com.google.gson.JsonObject;
 
-import br.com.wdc.shopping.api.client.HttpTransport;
+import br.com.wdc.shopping.persistence.client.HttpTransport;
 import br.com.wdc.shopping.domain.exception.BusinessException;
 
 /**

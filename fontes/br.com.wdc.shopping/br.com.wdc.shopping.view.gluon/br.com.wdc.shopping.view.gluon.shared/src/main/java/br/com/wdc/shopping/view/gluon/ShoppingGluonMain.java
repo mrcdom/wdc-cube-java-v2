@@ -5,9 +5,9 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import br.com.wdc.framework.commons.log.Log;
 
-import br.com.wdc.shopping.api.client.OkHttpTransport;
-import br.com.wdc.shopping.api.client.RestConfig;
-import br.com.wdc.shopping.api.client.RestRepositoryBootstrap;
+import br.com.wdc.shopping.persistence.client.OkHttpTransport;
+import br.com.wdc.shopping.persistence.client.RestConfig;
+import br.com.wdc.shopping.persistence.client.RestRepositoryBootstrap;
 import br.com.wdc.shopping.domain.ShoppingConfig;
 import br.com.wdc.shopping.domain.config.AppConfig;
 import br.com.wdc.shopping.presentation.presenter.Routes;
