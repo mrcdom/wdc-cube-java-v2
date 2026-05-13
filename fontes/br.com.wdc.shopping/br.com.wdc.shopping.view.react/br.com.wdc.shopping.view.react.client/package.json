@@ -10,7 +10,7 @@
   "source": "src/index.html",
   "targets": {
     "default": {
-      "distDir": "../../br.com.wdc.shopping.backend/src/main/resources/META-INF/resources"
+      "distDir": "../br.com.wdc.shopping.view.react.skeleton/src/main/resources/META-INF/resources"
     }
   },
   "alias": {
