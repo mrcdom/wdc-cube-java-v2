@@ -20,6 +20,9 @@ settings/
 target/
 dist/
 node_modules/
+
+# Parcel + TeaVM generated resources in backend
+fontes/br.com.wdc.shopping/br.com.wdc.shopping.backend/src/main/resources/META-INF/resources/
 dependency-reduced-pom.xml
 .parcel-cache/
 *.class
