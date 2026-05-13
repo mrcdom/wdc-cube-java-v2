@@ -31,6 +31,7 @@ targets:
       - path: Sources
       - path: Externals
       - path: wdc-shopping-desktop_iOS
+      - path: Assets.xcassets
       - path: assets
         buildPhase: resources
         type: folder

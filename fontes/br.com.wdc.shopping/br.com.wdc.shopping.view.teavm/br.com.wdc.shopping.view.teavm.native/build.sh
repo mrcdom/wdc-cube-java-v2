@@ -49,7 +49,7 @@ shift 2>/dev/null || true
 API_URL=""
 DEV_MODE=false
 DEPLOY=false
-SIM_NAME="iPhone 16 Pro"
+SIM_NAME="iPhone 17 Pro"
 BUNDLE_ID="br.com.wdc.shopping.desktop"
 
 for arg in "$@"; do
@@ -157,6 +157,14 @@ case "$TARGET" in
         ;;
 
     ios)
+        # Copy custom iOS icons to the Xcode asset catalog
+        IOS_ICONS="$SCRIPT_DIR/src-tauri/icons/ios"
+        IOS_ASSETS="$SCRIPT_DIR/src-tauri/gen/apple/Assets.xcassets/AppIcon.appiconset"
+        if [ -d "$IOS_ICONS" ] && [ -d "$IOS_ASSETS" ]; then
+            echo "    Copying custom iOS icons..."
+            cp -f "$IOS_ICONS"/*.png "$IOS_ASSETS/"
+        fi
+
         # Clean stale build dir to avoid "Directory not empty" error
         rm -rf "$APPLE_BUILD_DIR" 2>/dev/null || true
         cargo tauri ios build --debug --target aarch64-sim 2>&1 | tail -10

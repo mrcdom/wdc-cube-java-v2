@@ -75,7 +75,7 @@ class ReceiptViewClass extends BaseViewClass<ViewProps, ReceiptViewState> {
             }}
           >
             <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
-              STELA SHOPPING - SUA COMPRA CERTA NA INTERNET
+              WDC SHOPPING - SUA COMPRA CERTA NA INTERNET
             </Typography>
             <Typography variant="subtitle2" gutterBottom>
               Recibo de compra

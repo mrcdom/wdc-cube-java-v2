@@ -11,6 +11,7 @@
 		173CF8C03D475850A5C50993 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E3C5C85359B63C36BF8F38F8 /* WebKit.framework */; };
 		2DEBA054B111ABD5E4378FE6 /* libapp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AE6C437B33E3083FD20C3100 /* libapp.a */; };
 		2FDC77EADCC79567EAB1AC2C /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3A723476A6CA4F6714E24C2 /* UIKit.framework */; };
+		459DFBED7AE3672B103DE4E6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 20918254BD5821869B85D8B4 /* Assets.xcassets */; };
 		4A23A08281B4C23CDF637E1D /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85158E3A3A136937DA419643 /* QuartzCore.framework */; };
 		4F35518CE2E6B2A1CDA48F1F /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 16246947568795950268234E /* CoreGraphics.framework */; };
 		7DF9E868FCA44F58C59944D3 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = BFDE82935862B068E94B4E78 /* LaunchScreen.storyboard */; };
@@ -23,6 +24,7 @@
 
 /* Begin PBXFileReference section */
 		16246947568795950268234E /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		20918254BD5821869B85D8B4 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2F61FC5880A90A3643022604 /* lib.rs */ = {isa = PBXFileReference; path = lib.rs; sourceTree = "<group>"; };
 		55CC1A45BBB695C1179E8E64 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
 		85158E3A3A136937DA419643 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
@@ -96,6 +98,7 @@
 			isa = PBXGroup;
 			children = (
 				F1414CDE6F8F94D17DE3B1D7 /* assets */,
+				20918254BD5821869B85D8B4 /* Assets.xcassets */,
 				BFDE82935862B068E94B4E78 /* LaunchScreen.storyboard */,
 				1889F8E40217F7EDF35924F6 /* Externals */,
 				5A349161158B1BCD34CAC035 /* Sources */,
@@ -166,7 +169,7 @@
 			path = arm64;
 			sourceTree = "<group>";
 		};
-		"TEMP_CBF721AB-C3CF-47AE-A27F-E3E3F4FC6323" /* x86_64 */ = {
+		"TEMP_C09E545B-23D7-4DA8-94E7-0A1A87EC9E7F" /* x86_64 */ = {
 			isa = PBXGroup;
 			children = (
 			);
@@ -231,6 +234,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				459DFBED7AE3672B103DE4E6 /* Assets.xcassets in Resources */,
 				7DF9E868FCA44F58C59944D3 /* LaunchScreen.storyboard in Resources */,
 				A69658363F5DCB1AD0D3A209 /* assets in Resources */,
 				0B585C6EE0FE4BD63FCE2F4D /* libapp.a in Resources */,

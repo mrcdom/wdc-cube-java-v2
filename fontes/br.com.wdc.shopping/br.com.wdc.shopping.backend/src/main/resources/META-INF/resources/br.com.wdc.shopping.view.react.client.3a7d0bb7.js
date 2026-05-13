@@ -62326,7 +62326,7 @@ class ReceiptViewClass extends (0, _viewUtils.BaseViewClass) {
                                 sx: {
                                     fontWeight: 'bold'
                                 },
-                                children: "STELA SHOPPING - SUA COMPRA CERTA NA INTERNET"
+                                children: "WDC SHOPPING - SUA COMPRA CERTA NA INTERNET"
                             }, void 0, false, {
                                 fileName: "src/scripts/views/ReceiptView.tsx",
                                 lineNumber: 77,
