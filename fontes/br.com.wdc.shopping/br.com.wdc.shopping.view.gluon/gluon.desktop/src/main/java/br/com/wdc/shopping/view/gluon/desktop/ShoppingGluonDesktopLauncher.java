@@ -2,10 +2,7 @@ package br.com.wdc.shopping.view.gluon.desktop;
 
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.log.Slf4jLogFactory;
-import br.com.wdc.shopping.view.gluon.ShoppingGluonMain;
 import javafx.application.Application;
-import javafx.scene.image.Image;
-import javafx.stage.Stage;
 
 /**
  * Desktop launcher — starts the Gluon application on a standard JVM and configures desktop-specific features
@@ -33,25 +30,8 @@ public class ShoppingGluonDesktopLauncher {
                     }
                 }
             }
-        } catch (Exception e) {
-            // Silently ignore — not critical
-        }
-    }
-
-    public static class DesktopShoppingGluonMain extends ShoppingGluonMain {
-        @Override
-        public void start(Stage primaryStage) {
-            super.start(primaryStage);
-            loadWindowIcons(primaryStage);
-        }
-
-        private void loadWindowIcons(Stage stage) {
-            for (var size : new String[] { "16", "32", "48", "256" }) {
-                var stream = getClass().getResourceAsStream("/icon-" + size + ".png");
-                if (stream != null) {
-                    stage.getIcons().add(new Image(stream));
-                }
-            }
+        } catch (Throwable e) {
+            // Silently ignore — AWT is not available in GluonFX native images
         }
     }
 }
