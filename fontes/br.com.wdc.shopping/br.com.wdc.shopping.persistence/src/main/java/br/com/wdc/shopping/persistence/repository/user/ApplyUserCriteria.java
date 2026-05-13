@@ -22,6 +22,7 @@ public class ApplyUserCriteria extends BaseApplyCriteria {
         super(cmd);
     }
 
+    @Override
     public void apply(SqlList sql) {
         if (criteria.userId() != null) {
             sql.ln(AND, root.id, EQUAL, param("userId", criteria.userId()));

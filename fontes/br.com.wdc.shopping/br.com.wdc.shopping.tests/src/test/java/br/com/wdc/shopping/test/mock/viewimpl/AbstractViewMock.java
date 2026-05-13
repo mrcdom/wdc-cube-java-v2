@@ -8,44 +8,47 @@ import br.com.wdc.shopping.test.mock.ShoppingApplicationMock;
 
 public abstract class AbstractViewMock<P extends CubePresenter> implements CubeView {
 
-    public static final MutableInt INSTANCE_ID_GEN = new MutableInt();
+	public static final MutableInt INSTANCE_ID_GEN = new MutableInt();
 
-    /*
-     * Fields
-     */
+	/*
+	 * Fields
+	 */
 
-    public boolean released;
+	public String instanceId;
 
-    public final ShoppingApplicationMock app;
+	public boolean released;
 
-    public final P presenter;
+	public final ShoppingApplicationMock app;
 
-    /*
-     * Constructor
-     */
+	public final P presenter;
 
-    protected AbstractViewMock(ShoppingApplicationMock app, P presenter) {
-        this.app = app;
-        this.presenter = presenter;
-    }
+	/*
+	 * Constructor
+	 */
 
-    /*
-     * API
-     */
+	protected AbstractViewMock(ShoppingApplicationMock app, P presenter) {
+		this.app = app;
+		this.presenter = presenter;
+		this.instanceId = String.valueOf(INSTANCE_ID_GEN.incrementAndGet());
+	}
 
-    @Override
-    public void release() {
-        this.released = true;
-    }
+	/*
+	 * API
+	 */
 
-    @Override
-    public void update() {
+	@Override
+	public void release() {
+		this.released = true;
+	}
 
-    }
+	@Override
+	public void update() {
+		// NOOP
+	}
 
-    @Override
-    public String instanceId() {
-        return String.valueOf(INSTANCE_ID_GEN.incrementAndGet());
-    }
+	@Override
+	public String instanceId() {
+		return this.instanceId;
+	}
 
 }

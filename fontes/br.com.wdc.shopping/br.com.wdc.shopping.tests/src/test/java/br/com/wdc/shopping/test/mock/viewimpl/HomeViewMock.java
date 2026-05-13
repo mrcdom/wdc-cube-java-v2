@@ -14,19 +14,19 @@ import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.Pr
 import br.com.wdc.shopping.test.mock.ShoppingApplicationMock;
 
 @SuppressWarnings("java:S106")
-public class RestrictedViewMock extends AbstractViewMock<HomePresenter> {
+public class HomeViewMock extends AbstractViewMock<HomePresenter> {
 
-    public static RestrictedViewMock cast(CubeView view) {
-        var cls = RestrictedViewMock.class;
+    public static HomeViewMock cast(CubeView view) {
+        var cls = HomeViewMock.class;
         Assert.assertNotNull("Expecting " + cls.getSimpleName() + " but this view was null", view);
         Assert.assertTrue("Expecting " + cls.getSimpleName() + " but it was " + view.getClass().getSimpleName(),
                 cls.isInstance(view));
-        return (RestrictedViewMock) view;
+        return (HomeViewMock) view;
     }
 
     public HomeViewState state;
 
-    public RestrictedViewMock(ShoppingApplicationMock app, HomePresenter presenter) {
+    public HomeViewMock(ShoppingApplicationMock app, HomePresenter presenter) {
         super(app, presenter);
         this.state = presenter.state;
     }

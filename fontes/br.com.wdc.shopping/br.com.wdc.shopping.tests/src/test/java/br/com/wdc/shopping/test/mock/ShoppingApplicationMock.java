@@ -21,7 +21,7 @@ import br.com.wdc.shopping.test.mock.viewimpl.ProductViewMock;
 import br.com.wdc.shopping.test.mock.viewimpl.ProductsPanelViewMock;
 import br.com.wdc.shopping.test.mock.viewimpl.PurchasesPanelViewMock;
 import br.com.wdc.shopping.test.mock.viewimpl.ReceiptViewMock;
-import br.com.wdc.shopping.test.mock.viewimpl.RestrictedViewMock;
+import br.com.wdc.shopping.test.mock.viewimpl.HomeViewMock;
 import br.com.wdc.shopping.test.mock.viewimpl.RootViewMock;
 
 public class ShoppingApplicationMock extends ShoppingApplication {
@@ -29,7 +29,7 @@ public class ShoppingApplicationMock extends ShoppingApplication {
     static {
         RootPresenter.createView = p -> new RootViewMock((ShoppingApplicationMock) p.app, p);
         LoginPresenter.createView = p -> new LoginViewMock((ShoppingApplicationMock) p.app, p);
-        HomePresenter.createView = p -> new RestrictedViewMock((ShoppingApplicationMock) p.app, p);
+        HomePresenter.createView = p -> new HomeViewMock((ShoppingApplicationMock) p.app, p);
         CartPresenter.createView = p -> new CartViewMock((ShoppingApplicationMock) p.app, p);
         ProductPresenter.createView = p -> new ProductViewMock((ShoppingApplicationMock) p.app, p);
         ReceiptPresenter.createView = p -> new ReceiptViewMock((ShoppingApplicationMock) p.app, p);

@@ -8,7 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import br.com.wdc.shopping.presentation.presenter.Routes;
 import br.com.wdc.shopping.scripts.sgbd.DBReset;
 import br.com.wdc.shopping.test.mock.viewimpl.LoginViewMock;
-import br.com.wdc.shopping.test.mock.viewimpl.RestrictedViewMock;
+import br.com.wdc.shopping.test.mock.viewimpl.HomeViewMock;
 import br.com.wdc.shopping.test.util.BasePresentationTest;
 
 @SuppressWarnings({"java:S2068", "java:S1192"})
@@ -51,7 +51,7 @@ public class ShoppingLoginTest extends BasePresentationTest {
         loginView.state.password = "admin";
         loginView.presenter.onEnter();
 
-        var restrictedView = RestrictedViewMock.cast(rootView.state.contentView);
+        var restrictedView = HomeViewMock.cast(rootView.state.contentView);
 
         Assert.assertTrue("Nome do usuário inválido", StringUtils.isNotBlank(restrictedView.state.nickName));
         Assert.assertTrue("Quantidade itens no carrinho não pode ser negativo",
