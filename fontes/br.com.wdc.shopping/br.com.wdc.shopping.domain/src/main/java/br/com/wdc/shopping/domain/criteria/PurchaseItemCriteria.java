@@ -101,7 +101,7 @@ public class PurchaseItemCriteria {
     }
 
     public enum OrderBy {
-        ACENDING,
+        ASCENDING,
         DESCENDING
     }
 

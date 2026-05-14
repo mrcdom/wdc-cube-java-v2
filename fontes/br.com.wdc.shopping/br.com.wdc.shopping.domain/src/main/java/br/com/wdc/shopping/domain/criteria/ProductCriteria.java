@@ -68,7 +68,7 @@ public class ProductCriteria {
     }
 
     public enum OrderBy {
-        ACENDING,
+        ASCENDING,
         DESCENDING
     }
 

@@ -62,7 +62,7 @@ public abstract class AbstractProductRepositoryTest {
 	@Test
 	public void fetchWithOffsetAndLimit() {
 		var products = repo().fetch(new ProductCriteria()
-				.withOrderBy(ProductCriteria.OrderBy.ACENDING)
+				.withOrderBy(ProductCriteria.OrderBy.ASCENDING)
 				.withOffset(0)
 				.withLimit(2));
 		assertEquals(2, products.size());
@@ -71,7 +71,7 @@ public abstract class AbstractProductRepositoryTest {
 	@Test
 	public void fetchWithOrderAscending() {
 		var products = repo().fetch(new ProductCriteria()
-				.withOrderBy(ProductCriteria.OrderBy.ACENDING));
+				.withOrderBy(ProductCriteria.OrderBy.ASCENDING));
 		assertEquals(4, products.size());
 		for (int i = 1; i < products.size(); i++) {
 			assertTrue(products.get(i - 1).id <= products.get(i).id);

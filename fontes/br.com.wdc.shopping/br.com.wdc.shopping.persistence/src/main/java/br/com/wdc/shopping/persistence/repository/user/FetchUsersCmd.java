@@ -92,7 +92,7 @@ public class FetchUsersCmd extends BaseCommand {
 
         if (criteria.orderBy() != null) {
             switch (criteria.orderBy()) {
-            case ACENDING -> sql.ln(ORDER_BY(u.id.asc()));
+            case ASCENDING -> sql.ln(ORDER_BY(u.id.asc()));
             case DESCENDING -> sql.ln(ORDER_BY(u.id.desc()));
             }
         }

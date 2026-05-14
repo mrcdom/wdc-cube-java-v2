@@ -216,7 +216,7 @@ public class FetchPurchaseItemsCmd extends BaseCommand {
 
         if (criteria.orderBy() != null) {
             switch (criteria.orderBy()) {
-            case ACENDING -> sql.ln(this.ORDER_BY(pi.id.asc()));
+            case ASCENDING -> sql.ln(this.ORDER_BY(pi.id.asc()));
             case DESCENDING -> sql.ln(this.ORDER_BY(pi.id.desc()));
             }
         }

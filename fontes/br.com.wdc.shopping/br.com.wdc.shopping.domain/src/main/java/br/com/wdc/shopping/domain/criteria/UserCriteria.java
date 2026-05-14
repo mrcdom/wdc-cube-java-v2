@@ -90,7 +90,7 @@ public class UserCriteria {
     }
 
     public enum OrderBy {
-        ACENDING,
+        ASCENDING,
         DESCENDING
     }
 

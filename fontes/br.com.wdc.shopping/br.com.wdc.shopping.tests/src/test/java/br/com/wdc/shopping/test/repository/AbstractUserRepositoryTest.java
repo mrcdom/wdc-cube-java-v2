@@ -78,7 +78,7 @@ public abstract class AbstractUserRepositoryTest {
 	@Test
 	public void fetchWithOffsetAndLimit() {
 		var users = repo().fetch(new UserCriteria()
-				.withOrderBy(UserCriteria.OrderBy.ACENDING)
+				.withOrderBy(UserCriteria.OrderBy.ASCENDING)
 				.withOffset(1)
 				.withLimit(1));
 		assertEquals(1, users.size());

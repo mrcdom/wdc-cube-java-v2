@@ -96,7 +96,7 @@ public abstract class AbstractPurchaseRepositoryTest {
 	@Test
 	public void fetchWithOffsetAndLimit() {
 		var purchases = repo().fetch(new PurchaseCriteria()
-				.withOrderBy(PurchaseCriteria.OrderBy.ACENDING)
+				.withOrderBy(PurchaseCriteria.OrderBy.ASCENDING)
 				.withOffset(0)
 				.withLimit(1));
 		assertEquals(1, purchases.size());
@@ -105,7 +105,7 @@ public abstract class AbstractPurchaseRepositoryTest {
 	@Test
 	public void fetchWithOrderAscending() {
 		var purchases = repo().fetch(new PurchaseCriteria()
-				.withOrderBy(PurchaseCriteria.OrderBy.ACENDING));
+				.withOrderBy(PurchaseCriteria.OrderBy.ASCENDING));
 		assertEquals(2, purchases.size());
 		assertTrue(purchases.get(0).id <= purchases.get(1).id);
 	}
