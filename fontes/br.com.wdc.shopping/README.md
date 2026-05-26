@@ -105,7 +105,7 @@ Java compilado para JavaScript via TeaVM, empacotado como app nativo com Tauri 2
 | [`persistence`](br.com.wdc.shopping.persistence/) | Implementações SQL (JDBI + Command Pattern), DDL, DSL |
 | [`presentation`](br.com.wdc.shopping.presentation/) | Presenters hierárquicos, ViewStates, serviços, navegação |
 | [`scripts`](br.com.wdc.shopping.scripts/) | Scripts DDL (DBCreate, DBReset) |
-| [`view.react`](br.com.wdc.shopping.view.react/) | Frontend web completo (React + Javalin + WebSocket) |
+| [`view.remote`](br.com.wdc.shopping.view.remote/) | Frontend web completo (React + Javalin + WebSocket) |
 | [`view.vaadin`](br.com.wdc.shopping.view.vaadin/) | Frontend web server-side (Vaadin 24 + Jetty 12 + Lumo theme) |
 | [`view.swing`](br.com.wdc.shopping.view.swing/) | Frontend desktop (Java Swing + FlatLaf Material) |
 | [`view.gluon`](br.com.wdc.shopping.view.gluon/) | Frontend multiplataforma (JavaFX + Gluon — Desktop, iOS, Android) |

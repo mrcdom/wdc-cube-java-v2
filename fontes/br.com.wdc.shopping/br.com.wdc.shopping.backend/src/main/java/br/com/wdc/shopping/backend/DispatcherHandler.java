@@ -13,10 +13,10 @@ import com.google.gson.ToNumberPolicy;
 import com.google.gson.reflect.TypeToken;
 
 import br.com.wdc.framework.commons.codec.Base62;
-import br.com.wdc.shopping.view.react.skeleton.spi.WebSocketConnection;
-import br.com.wdc.shopping.view.react.skeleton.util.AppSecurity;
-import br.com.wdc.shopping.view.react.skeleton.viewimpl.ApplicationReactImpl;
-import br.com.wdc.shopping.view.react.skeleton.viewimpl.ApplicationReactRegistry;
+import br.com.wdc.shopping.view.remote.skeleton.spi.WebSocketConnection;
+import br.com.wdc.shopping.view.remote.skeleton.util.AppSecurity;
+import br.com.wdc.shopping.view.remote.skeleton.viewimpl.ApplicationReactImpl;
+import br.com.wdc.shopping.view.remote.skeleton.viewimpl.ApplicationReactRegistry;
 import io.javalin.websocket.WsConnectContext;
 import io.javalin.websocket.WsErrorContext;
 import io.javalin.websocket.WsMessageContext;

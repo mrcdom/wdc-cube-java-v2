@@ -14,7 +14,7 @@ import br.com.wdc.shopping.domain.security.JceCryptoProvider;
 import br.com.wdc.shopping.persistence.RepositoryBootstrap;
 import br.com.wdc.shopping.persistence.concurrent.ScheduledExecutorAdapter;
 import br.com.wdc.shopping.scripts.sgbd.DBCreate;
-import br.com.wdc.shopping.view.react.skeleton.viewimpl.ApplicationReactRegistry;
+import br.com.wdc.shopping.view.remote.skeleton.viewimpl.ApplicationReactRegistry;
 import br.com.wdc.shopping.domain.ShoppingConfig;
 import br.com.wdc.shopping.domain.config.AppConfig;
 

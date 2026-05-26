@@ -10,7 +10,7 @@ import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.util.Rethrow;
 
 public class CubeNavigation<T extends CubeApplication> {
-    
+
     private static final Log LOG = Log.getLogger(CubeNavigation.class.getSimpleName());
 
     protected final T app;
@@ -64,36 +64,41 @@ public class CubeNavigation<T extends CubeApplication> {
 
                 var presenter = curPresenterMap.get(place.getId());
                 if (presenter == null) {
+                    presenter = newPresenterMap.get(place.getId());
+                }
+                if (presenter == null) {
                     var newPresenter = place.presenterFactory().apply(this.app);
                     newPresenterMap.put(place.getId(), newPresenter);
                     holder.presenter = newPresenter;
                     holder.initialize = true;
                 } else {
-                    newPresenterMap.put(place.getId(), presenter);
                     holder.presenter = presenter;
                     holder.initialize = false;
                 }
 
                 nextPresenters.add(holder);
 
-                var goAhread = holder.presenter.applyParameters(targetIntent, holder.initialize, holder.deepst);
-                if (!goAhread || !notInterruped) {
+                var goAhead = holder.presenter.applyParameters(targetIntent, holder.initialize, holder.deepst);
+                if (!goAhead || !notInterruped) {
                     result = false;
                     break;
                 }
             }
 
-            commit(nextPresenters);
+            if (notInterruped) {
+                commit(nextPresenters);
+            }
             return result;
         } catch (Exception caught) {
-            rollback(caught);
+            if (notInterruped) {
+                rollback(caught);
+            }
             throw Rethrow.asRuntimeException(caught);
         }
     }
 
     public void interrupt() {
         this.notInterruped = false;
-        this.newPresenterMap.forEach(this.curPresenterMap::put);
     }
 
     private void rollback(Exception caught) {
@@ -131,15 +136,24 @@ public class CubeNavigation<T extends CubeApplication> {
 
     private void commit(List<PresenterHolder> nextPresenters) {
         try {
+            // Build the final presenter map from accepted presenters
+            var finalMap = new HashMap<Integer, CubePresenter>();
             for (var holder : nextPresenters) {
-                this.curPresenterMap.remove(holder.id);
+                finalMap.put(holder.id, holder.presenter);
+                newPresenterMap.remove(holder.id);
+                curPresenterMap.remove(holder.id);
             }
 
-            if (this.curPresenterMap.size() > 0) {
-                releasePresenters(this.curPresenterMap);
+            // Release non-accepted created and replaced presenters (leaf-first)
+            newPresenterMap.putAll(curPresenterMap);
+            if (curPresenterMap.size() > 0) {
+                releasePresenters(newPresenterMap);
             }
+
+            // Update the existing map in-place
+            this.app.presenterMap.clear();
+            this.app.presenterMap.putAll(finalMap);
         } finally {
-            this.app.presenterMap = this.newPresenterMap;
             this.app.lastPlace = this.targetPlace;
             this.app.navigation = null;
             this.app.updateHistory();

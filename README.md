@@ -34,7 +34,7 @@ graph TD
 
 | Frontend | Tecnologia | Transporte | Módulo |
 |----------|-----------|------------|--------|
-| **Web (SPA)** | React 19 + TypeScript + MUI 9 | WebSocket (JSON delta) | `view.react` |
+| **Web (SPA)** | React 19 + TypeScript + MUI 9 | WebSocket (JSON delta) | `view.remote` |
 | **Web (SSR)** | Vaadin 24 + Lumo | Server Push (Atmosphere) | `view.vaadin` |
 | **Desktop** | Swing + FlatLaf 3.5 | Direto em memória | `view.swing` |
 | **Multiplataforma** | JavaFX + Gluon Mobile | REST (OkHttp) | `view.gluon` |
@@ -71,7 +71,7 @@ graph TD
         api["api<br/><small>REST controllers (Javalin)</small>"]
         apiClient["api-client<br/><small>REST client (OkHttp + Gson)</small>"]
 
-        subgraph ViewReact["view.react"]
+        subgraph ViewReact["view.remote"]
             reactClient["client<br/><small>Frontend React/TypeScript</small>"]
             reactJavalin["javalin<br/><small>Servidor (fat JAR)</small>"]
             reactSkeleton["skeleton<br/><small>Views + segurança</small>"]
@@ -109,10 +109,10 @@ graph TD
 
 | Módulo | Descrição |
 |--------|-----------|
-| **view.react** | Visualização remota via browser — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.react/README.md) |
-| **view.react.client** | SPA em React 19 + TypeScript + MUI 9, bundled via Parcel. Comunicação WebSocket bidirecional, gerenciamento de reconexão, segurança client-side |
+| **view.remote** | Visualização remota via browser — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/README.md) |
+| **view.remote.client** | SPA em React 19 + TypeScript + MUI 9, bundled via Parcel. Comunicação WebSocket bidirecional, gerenciamento de reconexão, segurança client-side |
 | **backend** | Servidor Javalin 7 com Virtual Threads, WebSocket dispatcher, controllers REST, banco H2 embarcado. Gera fat JAR (~11 MB) |
-| **view.react.skeleton** | Implementações de view para o servidor (`GenericViewImpl`), segurança (`AppSecurity` — RSA/PBKDF2/AES-GCM, `DataSecurity`), SPI de WebSocket |
+| **view.remote.skeleton** | Implementações de view para o servidor (`GenericViewImpl`), segurança (`AppSecurity` — RSA/PBKDF2/AES-GCM, `DataSecurity`), SPI de WebSocket |
 | **view.vaadin** | Visualização web server-side com Vaadin 24 + Lumo theme + Jetty 12 embarcado — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin/README.md) |
 | **view.swing** | Visualização desktop com Swing + FlatLaf (Material look-and-feel) — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.swing/README.md) |
 | **view.gluon** | Multiplataforma (Desktop + iOS + Android) com JavaFX + Gluon Mobile + GraalVM Native Image — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/README.md) |
@@ -148,14 +148,14 @@ br.com.wdc.shopping/br.com.wdc.shopping/br.com.wdc.shopping.backend/target/br.co
 ### Frontend (React)
 
 ```bash
-cd br.com.wdc.shopping/br.com.wdc.shopping.view.react/react.client
+cd br.com.wdc.shopping/br.com.wdc.shopping.view.remote/frontend.react
 
 npm install        # instalar dependências
 npm run build      # build de produção
 npm run watch      # modo desenvolvimento (hot reload)
 ```
 
-Os assets compilados são gerados diretamente em `react.skeleton/src/main/resources/META-INF/resources`.
+Os assets compilados são gerados diretamente em `remote.skeleton/src/main/resources/META-INF/resources`.
 
 ## Execução
 

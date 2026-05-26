@@ -70,23 +70,26 @@ public abstract class CubeApplication {
 	CubeNavigation<?> navigation;
 
 	protected <T extends CubeApplication> CubeNavigation<T> navigate() {
-		if (this.navigation != null) {
-			this.navigation.interrupt();
+        if (this.navigation != null) {
+            this.navigation.interrupt();
 
-			if (this.navigation.reflowCount > 10) {
-				throw new AssertionError("Navigation recursion detected");
-			}
+            if (this.navigation.reflowCount > 10) {
+                throw new AssertionError("Navigation recursion detected");
+            }
 
-			var newContext = new CubeNavigation<T>(this);
-			newContext.reflowCount = this.navigation.reflowCount + 1;
-			newContext = new CubeNavigation<T>(this);
-			this.navigation = newContext;
-			return newContext;
-		} else {
-			var newContext = new CubeNavigation<T>(this);
-			this.navigation = newContext;
-			return newContext;
-		}
+            var newContext = new CubeNavigation<T>(this);
+            newContext.reflowCount = this.navigation.reflowCount + 1;
+
+            // Migrate created presenters from interrupted navigation
+            newContext.newPresenterMap.putAll(this.navigation.newPresenterMap);
+
+            this.navigation = newContext;
+            return newContext;
+        } else {
+            var newContext = new CubeNavigation<T>(this);
+            this.navigation = newContext;
+            return newContext;
+        }
 	}
 
 	// Abstract

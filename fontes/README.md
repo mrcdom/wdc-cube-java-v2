@@ -24,7 +24,7 @@ graph TD
         presentation["presentation — Presenters Cube MVP"]
         scripts["scripts — DDL, seed, reset"]
         tests["tests — JUnit 4"]
-        viewReact["view.react — React 19 + Javalin + Virtual Threads"]
+        viewReact["view.remote — React 19 + Javalin + Virtual Threads"]
         viewVaadin["view.vaadin — Vaadin 24 + Jetty 12 + Lumo"]
         viewSwing["view.swing — Java Swing + FlatLaf"]
         viewGluon["view.gluon — JavaFX + Gluon (Desktop, iOS, Android)"]
@@ -56,7 +56,7 @@ graph TD
 | **presentation** | Aplicação | Presenters que orquestram a lógica de negócio e conectam domínio às views via Cube MVP. |
 | **scripts** | Infraestrutura | DDL de criação de tabelas, dados de seed (`DBReset`), suporte a testes e inicialização. |
 | **tests** | Teste | Suíte de testes JUnit 4 para repositórios (82 testes) e integração de serviços. |
-| **view.react** | UI (Web) | Frontend React 19 + Material UI, servidor Javalin com Virtual Threads, comunicação segura RSA+AES-GCM. |
+| **view.remote** | UI (Web) | Frontend React 19 + Material UI, servidor Javalin com Virtual Threads, comunicação segura RSA+AES-GCM. |
 | **view.vaadin** | UI (Web) | Frontend Vaadin 24 + Lumo theme, servidor Jetty 12 embarcado, UI puramente server-side com push automático. |
 | **view.swing** | UI (Desktop) | Frontend Java Swing + FlatLaf (Material look-and-feel) que reutiliza os mesmos presenters. |
 | **view.gluon** | UI (Multiplataforma) | Frontend JavaFX + Gluon Mobile compilado nativamente para Desktop, iOS e Android via GraalVM. |
