@@ -8,7 +8,7 @@ import org.teavm.jso.dom.html.HTMLElement;
 import org.teavm.jso.dom.html.HTMLInputElement;
 
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
-import br.com.wdc.shopping.presentation.presenter.open.login.LoginViewState;
+import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginViewState;
 import br.com.wdc.shopping.view.teavm.AbstractViewTeaVM;
 import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.util.HtmlDom;
@@ -84,8 +84,8 @@ public class LoginViewTeaVM extends AbstractViewTeaVM<LoginPresenter> {
                     dom.span("bi bi-lock-fill", icon -> {
                         icon.setAttribute("style",
                                 "display:inline-flex;align-items:center;justify-content:center;"
-                                + "width:48px;height:48px;border-radius:50%;background:#e8eaf6;"
-                                + "color:#1976d2;font-size:1.5rem");
+                                        + "width:48px;height:48px;border-radius:50%;background:#e8eaf6;"
+                                        + "color:#1976d2;font-size:1.5rem");
                     });
                 });
 
@@ -96,7 +96,8 @@ public class LoginViewTeaVM extends AbstractViewTeaVM<LoginPresenter> {
                 });
 
                 // Error alert
-                this.errorElm = dom.div("alert alert-danger d-none", err -> {});
+                this.errorElm = dom.div("alert alert-danger d-none", err -> {
+                });
 
                 // Username
                 dom.div("mb-3", group -> {
@@ -133,7 +134,7 @@ public class LoginViewTeaVM extends AbstractViewTeaVM<LoginPresenter> {
                 dom.button("btn btn-primary w-100 fw-bold", btn -> {
                     btn.setAttribute("style",
                             "border-radius:8px;padding:0.75rem;font-size:1.1rem;"
-                            + "background:#4285f4;border:none");
+                                    + "background:#4285f4;border:none");
                     btn.setTextContent("Entrar");
                     btn.addEventListener("click", evt -> emitEnter());
                 });
@@ -148,7 +149,7 @@ public class LoginViewTeaVM extends AbstractViewTeaVM<LoginPresenter> {
                 dom.div("text-center", demoBox -> {
                     demoBox.setAttribute("style",
                             "border:1px dashed #ccc;border-radius:8px;padding:0.6rem 1rem;"
-                            + "color:#888;font-size:0.85rem");
+                                    + "color:#888;font-size:0.85rem");
                     dom.span("", txt -> {
                         txt.setTextContent("Acesso demo: usuário ");
                     });

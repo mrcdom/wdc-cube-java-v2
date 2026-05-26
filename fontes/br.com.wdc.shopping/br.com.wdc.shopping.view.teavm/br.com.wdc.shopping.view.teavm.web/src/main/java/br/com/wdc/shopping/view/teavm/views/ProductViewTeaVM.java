@@ -7,7 +7,7 @@ import org.teavm.jso.dom.html.HTMLElement;
 import org.teavm.jso.dom.html.HTMLImageElement;
 
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter.ProductViewState;
 import br.com.wdc.shopping.view.teavm.AbstractViewTeaVM;
 import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.theme.BsIcons;
@@ -98,7 +98,8 @@ public class ProductViewTeaVM extends AbstractViewTeaVM<ProductPresenter> {
                 // Left column
                 dom.div("d-flex flex-column w-100", left -> {
                     this.priceElm = dom.p(null, price -> {
-                        price.setAttribute("style", "font-size:1.5rem;font-weight:bold;color:#1976d2;margin:0 0 12px 0");
+                        price.setAttribute("style",
+                                "font-size:1.5rem;font-weight:bold;color:#1976d2;margin:0 0 12px 0");
                     });
 
                     // Quantity stepper
@@ -141,7 +142,8 @@ public class ProductViewTeaVM extends AbstractViewTeaVM<ProductPresenter> {
                 dom.div("text-center", right -> {
                     this.imageElm = dom.img(null, img -> {
                         img.setAttribute("alt", "Produto");
-                        img.setAttribute("style", "max-width:200px;max-height:200px;width:100%;height:auto;object-fit:contain");
+                        img.setAttribute("style",
+                                "max-width:200px;max-height:200px;width:100%;height:auto;object-fit:contain");
                     });
                 });
             });
@@ -168,6 +170,7 @@ public class ProductViewTeaVM extends AbstractViewTeaVM<ProductPresenter> {
         });
 
         // Error
-        this.errorElm = dom.div("alert alert-danger m-3 d-none", err -> {});
+        this.errorElm = dom.div("alert alert-danger m-3 d-none", err -> {
+        });
     }
 }

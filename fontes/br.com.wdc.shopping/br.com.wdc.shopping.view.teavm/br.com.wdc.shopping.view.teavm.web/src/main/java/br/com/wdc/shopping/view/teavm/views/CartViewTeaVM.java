@@ -9,7 +9,7 @@ import org.teavm.jso.dom.html.HTMLDocument;
 import org.teavm.jso.dom.html.HTMLElement;
 
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartViewState;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.structs.CartItem;
 import br.com.wdc.shopping.view.teavm.AbstractViewTeaVM;
 import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
@@ -69,7 +69,8 @@ public class CartViewTeaVM extends AbstractViewTeaVM<CartPresenter> {
     }
 
     private double computeTotalCost() {
-        if (this.state.items == null) return 0;
+        if (this.state.items == null)
+            return 0;
         double total = 0;
         for (var item : this.state.items) {
             total += item.price * item.quantity;
@@ -99,32 +100,35 @@ public class CartViewTeaVM extends AbstractViewTeaVM<CartPresenter> {
             });
 
             // Error
-            this.errorElm = dom.div("alert alert-danger d-none mb-3", err -> {});
+            this.errorElm = dom.div("alert alert-danger d-none mb-3", err -> {
+            });
 
             // Empty cart state
-            this.emptyPane = dom.div("d-flex flex-column align-items-center justify-content-center py-5 d-none", empty -> {
-                dom.div(null, iconDiv -> {
-                    iconDiv.setAttribute("style",
-                            "width:120px;height:120px;background-color:#e3f2fd;border-radius:50%;"
-                            + "display:flex;align-items:center;justify-content:center;margin-bottom:16px;"
-                            + "font-size:48px;color:#1976d2");
-                    dom.icon("bi bi-cart3");
-                });
-                dom.p(null, msg -> {
-                    msg.setAttribute("style", "color:#666;font-size:1.1rem");
-                    msg.setTextContent("Seu carrinho está vazio");
-                });
-                dom.span(null, link -> {
-                    link.setAttribute("style", "cursor:pointer;color:#1976d2;font-weight:bold;font-size:1rem");
-                    link.setTextContent("Vamos às compras!");
-                    link.addEventListener("click",
-                            evt -> safeAction("Go shopping", this.presenter::onOpenProducts));
-                });
-            });
+            this.emptyPane = dom.div("d-flex flex-column align-items-center justify-content-center py-5 d-none",
+                    empty -> {
+                        dom.div(null, iconDiv -> {
+                            iconDiv.setAttribute("style",
+                                    "width:120px;height:120px;background-color:#e3f2fd;border-radius:50%;"
+                                            + "display:flex;align-items:center;justify-content:center;margin-bottom:16px;"
+                                            + "font-size:48px;color:#1976d2");
+                            dom.icon("bi bi-cart3");
+                        });
+                        dom.p(null, msg -> {
+                            msg.setAttribute("style", "color:#666;font-size:1.1rem");
+                            msg.setTextContent("Seu carrinho está vazio");
+                        });
+                        dom.span(null, link -> {
+                            link.setAttribute("style", "cursor:pointer;color:#1976d2;font-weight:bold;font-size:1rem");
+                            link.setTextContent("Vamos às compras!");
+                            link.addEventListener("click",
+                                    evt -> safeAction("Go shopping", this.presenter::onOpenProducts));
+                        });
+                    });
 
             // Cart content
             this.contentPane = dom.div("d-none", content -> {
-                var itemsContainer = dom.div(null, items -> {});
+                var itemsContainer = dom.div(null, items -> {
+                });
                 this.itemsSlot = this.newListSlot(itemsContainer, this::newItemView, this::updateItem);
 
                 // Footer
@@ -226,7 +230,8 @@ public class CartViewTeaVM extends AbstractViewTeaVM<CartPresenter> {
             });
             // Price
             this.subtotalElm = dom.span(null, subtotal -> {
-                subtotal.setAttribute("style", "width:100px;text-align:right;font-weight:bold;color:#1976d2;font-size:0.9rem");
+                subtotal.setAttribute("style",
+                        "width:100px;text-align:right;font-weight:bold;color:#1976d2;font-size:0.9rem");
             });
             // Quantity
             this.quantityElm = dom.span(null, qty -> {

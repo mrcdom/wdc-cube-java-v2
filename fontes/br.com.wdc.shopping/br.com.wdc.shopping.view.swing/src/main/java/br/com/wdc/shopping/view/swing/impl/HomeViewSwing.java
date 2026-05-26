@@ -11,7 +11,7 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
 
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeViewState;
 import br.com.wdc.shopping.view.swing.AbstractViewSwing;
 import br.com.wdc.shopping.view.swing.ShoppingSwingApplication;
 import br.com.wdc.shopping.view.swing.util.ResourceCatalog;
@@ -76,19 +76,19 @@ public class HomeViewSwing extends AbstractViewSwing<HomePresenter> {
         // Update products panel
         if (this.state.productsPanelView instanceof AbstractViewSwing<?> ppv
                 && ppv.getElement().getParent() != this.productsPanelSlot) {
-        	SwingUtils.replaceContent(this.productsPanelSlot, ppv.getElement());
+            SwingUtils.replaceContent(this.productsPanelSlot, ppv.getElement());
         }
 
         // Update purchases panel
         if (this.state.purchasesPanelView instanceof AbstractViewSwing<?> ppv
                 && ppv.getElement().getParent() != this.purchasesPanelSlot) {
-        	SwingUtils.replaceContent(this.purchasesPanelSlot, ppv.getElement());
+            SwingUtils.replaceContent(this.purchasesPanelSlot, ppv.getElement());
         }
 
         // Update content slot
         var newContentView = this.state.contentView instanceof AbstractViewSwing<?> v ? v : null;
         if (this.currentContentView != newContentView) {
-        	SwingUtils.replaceContent(this.contentPane,
+            SwingUtils.replaceContent(this.contentPane,
                     newContentView != null ? newContentView.getElement() : this.defaultContentPane);
             this.currentContentView = newContentView;
             // Purchases panel only visible on home (no content overlay)
@@ -112,8 +112,8 @@ public class HomeViewSwing extends AbstractViewSwing<HomePresenter> {
         }
     }
 
-	@SuppressWarnings("unused")
-	private void initialRender(SwingDom dom, JPanel pane0) {
+    @SuppressWarnings("unused")
+    private void initialRender(SwingDom dom, JPanel pane0) {
         pane0.setBackground(Styles.BG_PAGE);
 
         // Header

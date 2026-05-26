@@ -13,7 +13,7 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
 import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter.PurchasesPanelViewState;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
 import br.com.wdc.shopping.view.swing.AbstractViewSwing;
 import br.com.wdc.shopping.view.swing.ShoppingSwingApplication;
@@ -123,7 +123,8 @@ public class PurchasesPanelViewSwing extends AbstractViewSwing<PurchasesPanelPre
                 prevBtn.setBorderPainted(false);
                 prevBtn.setOpaque(true);
                 prevBtn.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-                prevBtn.addActionListener(_ignored -> safeAction("Previous page", () -> this.presenter.onPageChange(this.state.page - 1)));
+                prevBtn.addActionListener(_ignored -> safeAction("Previous page",
+                        () -> this.presenter.onPageChange(this.state.page - 1)));
             });
 
             dom.hSpacer();
@@ -146,7 +147,8 @@ public class PurchasesPanelViewSwing extends AbstractViewSwing<PurchasesPanelPre
                 nextBtn.setBorderPainted(false);
                 nextBtn.setOpaque(true);
                 nextBtn.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-                nextBtn.addActionListener(_ignored -> safeAction("Next page", () -> this.presenter.onPageChange(this.state.page + 1)));
+                nextBtn.addActionListener(
+                        _ignored -> safeAction("Next page", () -> this.presenter.onPageChange(this.state.page + 1)));
             });
         });
     }
@@ -173,13 +175,16 @@ public class PurchasesPanelViewSwing extends AbstractViewSwing<PurchasesPanelPre
     }
 
     private void computePageSize() {
-        if (this.contentBox == null) return;
+        if (this.contentBox == null)
+            return;
         int containerHeight = this.contentBox.getHeight();
-        if (containerHeight <= 0) return;
+        if (containerHeight <= 0)
+            return;
         int itemHeight = ITEM_HEIGHT_PX;
         if (!this.viewList.isEmpty()) {
             int measured = this.viewList.get(0).getElement().getHeight();
-            if (measured > 0) itemHeight = measured;
+            if (measured > 0)
+                itemHeight = measured;
         }
         int capacity = Math.max(1, containerHeight / itemHeight);
         this.presenter.onItemSizeCapacityChanged(capacity);

@@ -22,10 +22,10 @@ import javax.swing.text.StyledDocument;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.NodeVisitor;
-import br.com.wdc.framework.commons.log.Log;
 
+import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter.ProductViewState;
 import br.com.wdc.shopping.view.swing.AbstractViewSwing;
 import br.com.wdc.shopping.view.swing.ShoppingSwingApplication;
 import br.com.wdc.shopping.view.swing.util.ResourceCatalog;
@@ -281,7 +281,8 @@ public class ProductViewSwing extends AbstractViewSwing<ProductPresenter> {
                     dom.button(backBtn -> {
                         backBtn.setText("< VOLTAR");
                         Styles.styleOutlineButton(backBtn, Styles.FG_PRIMARY);
-                        backBtn.addActionListener(_ignored -> safeAction("Open products", this.presenter::onOpenProducts));
+                        backBtn.addActionListener(
+                                _ignored -> safeAction("Open products", this.presenter::onOpenProducts));
                     });
 
                     dom.hSpacer();

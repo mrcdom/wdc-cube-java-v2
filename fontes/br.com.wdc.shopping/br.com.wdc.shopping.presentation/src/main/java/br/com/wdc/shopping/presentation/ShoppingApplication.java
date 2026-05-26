@@ -4,7 +4,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import br.com.wdc.framework.commons.log.Log;
-
 import br.com.wdc.framework.cube.CubeApplication;
 import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.CubeNavigation;
@@ -22,151 +21,153 @@ import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartManager;
 
 public abstract class ShoppingApplication extends CubeApplication {
 
-    protected Subject subject;
+	protected Subject subject;
 
-    protected CartManager cart;
+	protected CartManager cart;
 
-    private SecurityContext securityContext;
+	private SecurityContext securityContext;
 
-    private UserRepository userRepository;
-    private ProductRepository productRepository;
-    private PurchaseRepository purchaseRepository;
-    private PurchaseItemRepository purchaseItemRepository;
+	private UserRepository userRepository;
+	private ProductRepository productRepository;
+	private PurchaseRepository purchaseRepository;
+	private PurchaseItemRepository purchaseItemRepository;
 
-    // :: Getters and Setters
+	// :: Getters and Setters
 
-    public CubePlace getRootPlace() {
-        return Routes.Place.ROOT;
-    }
+	public CubePlace getRootPlace() {
+		return Routes.Place.ROOT;
+	}
 
-    public RootPresenter getRootPresenter() {
-        return (RootPresenter) this.presenterMap.get(Routes.Place.ROOT.getId());
-    }
+	public RootPresenter getRootPresenter() {
+		return (RootPresenter) this.presenterMap.get(Routes.Place.ROOT.getId());
+	}
 
-    public Subject getSubject() {
-        return this.subject;
-    }
+	public Subject getSubject() {
+		return this.subject;
+	}
 
-    public void setSubject(Subject subject) {
-        this.subject = subject;
-    }
+	public void setSubject(Subject subject) {
+		this.subject = subject;
+	}
 
-    public SecurityContext getSecurityContext() {
-        return this.securityContext;
-    }
+	public SecurityContext getSecurityContext() {
+		return this.securityContext;
+	}
 
-    public void setSecurityContext(SecurityContext securityContext) {
-        this.securityContext = securityContext;
-        // Recriar delegates quando o contexto muda
-        this.userRepository = null;
-        this.productRepository = null;
-        this.purchaseRepository = null;
-        this.purchaseItemRepository = null;
-    }
+	public void setSecurityContext(SecurityContext securityContext) {
+		this.securityContext = securityContext;
+		// Recriar delegates quando o contexto muda
+		this.userRepository = null;
+		this.productRepository = null;
+		this.purchaseRepository = null;
+		this.purchaseItemRepository = null;
+	}
 
-    public UserRepository getUserRepository() {
-        if (userRepository == null) {
-            userRepository = createDelegate(UserRepository.class, UserRepository.BEAN.get());
-        }
-        return userRepository;
-    }
+	public UserRepository getUserRepository() {
+		if (userRepository == null) {
+			userRepository = createDelegate(UserRepository.class, UserRepository.BEAN.get());
+		}
+		return userRepository;
+	}
 
-    public ProductRepository getProductRepository() {
-        if (productRepository == null) {
-            productRepository = createDelegate(ProductRepository.class, ProductRepository.BEAN.get());
-        }
-        return productRepository;
-    }
+	public ProductRepository getProductRepository() {
+		if (productRepository == null) {
+			productRepository = createDelegate(ProductRepository.class, ProductRepository.BEAN.get());
+		}
+		return productRepository;
+	}
 
-    public PurchaseRepository getPurchaseRepository() {
-        if (purchaseRepository == null) {
-            purchaseRepository = createDelegate(PurchaseRepository.class, PurchaseRepository.BEAN.get());
-        }
-        return purchaseRepository;
-    }
+	public PurchaseRepository getPurchaseRepository() {
+		if (purchaseRepository == null) {
+			purchaseRepository = createDelegate(PurchaseRepository.class, PurchaseRepository.BEAN.get());
+		}
+		return purchaseRepository;
+	}
 
-    public PurchaseItemRepository getPurchaseItemRepository() {
-        if (purchaseItemRepository == null) {
-            purchaseItemRepository = createDelegate(PurchaseItemRepository.class, PurchaseItemRepository.BEAN.get());
-        }
-        return purchaseItemRepository;
-    }
+	public PurchaseItemRepository getPurchaseItemRepository() {
+		if (purchaseItemRepository == null) {
+			purchaseItemRepository = createDelegate(PurchaseItemRepository.class, PurchaseItemRepository.BEAN.get());
+		}
+		return purchaseItemRepository;
+	}
 
-    public CartManager getCart() {
-        return this.cart;
-    }
+	public CartManager getCart() {
+		return this.cart;
+	}
 
-    public CartManager setCart(CartManager cart) {
-        var old = this.cart;
-        this.cart = cart;
-        return old;
-    }
+	public CartManager setCart(CartManager cart) {
+		var old = this.cart;
+		this.cart = cart;
+		return old;
+	}
 
-    // :: Extentions
+	// :: Extentions
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public CubeNavigation<ShoppingApplication> navigate() {
-        return super.navigate();
-    }
+	@SuppressWarnings("unchecked")
+	@Override
+	public CubeNavigation<ShoppingApplication> navigate() {
+		return super.navigate();
+	}
 
-    // :: API
+	public abstract String b64Cipher(String text);
 
-    public void alertUnexpectedError(Log logger, String message, Throwable e) {
-        var rootPresenter = this.getRootPresenter();
-        if (rootPresenter != null) {
-            rootPresenter.alertUnexpectedError(logger, message, e);
-        }
-    }
+	public abstract String b64Decipher(String b64Text);
 
-    public void go(String placeStr) throws Exception {
-        this.go(CubeIntent.parse(placeStr));
-    }
+	// :: API
 
-    public void go(CubeIntent intent) {
-        ShoppingApplication.Internals.go(this, intent);
-    }
+	public void alertUnexpectedError(Log logger, String message, Throwable e) {
+		var rootPresenter = this.getRootPresenter();
+		if (rootPresenter != null) {
+			rootPresenter.alertUnexpectedError(logger, message, e);
+		}
+	}
 
-    // :: Internal Classes - Meant to be user on initialization only
+	public void go(String placeStr) throws Exception {
+		this.go(CubeIntent.parse(placeStr));
+	}
 
-    public static class Internals {
+	public void go(CubeIntent intent) {
+		ShoppingApplication.Internals.go(this, intent);
+	}
 
-        private static final Map<String, GoAction> goActionMap = new ConcurrentHashMap<>();
+	// :: Internal Classes - Meant to be user on initialization only
 
-        private Internals() {
-            super();
-        }
+	public static class Internals {
 
-        public static void registerPlace(String tag, GoAction goAction) {
-            goActionMap.put(tag, goAction);
-        }
+		private static final Map<String, GoAction> goActionMap = new ConcurrentHashMap<>();
 
-        static Boolean go(ShoppingApplication app, CubeIntent place) {
-            var goAction = goActionMap.get(place.getPlace().getName());
-            if (goAction == null) {
-                goAction = goActionMap.get(app.getRootPlace().getName());
-            }
+		private Internals() {
+			super();
+		}
 
-            if (goAction != null) {
-                return goAction.apply(app, place);
-            }
-            return Boolean.FALSE;
-        }
+		public static void registerPlace(String tag, GoAction goAction) {
+			goActionMap.put(tag, goAction);
+		}
 
-    }
+		static Boolean go(ShoppingApplication app, CubeIntent place) {
+			var goAction = goActionMap.get(place.getPlace().getName());
+			if (goAction == null) {
+				goAction = goActionMap.get(app.getRootPlace().getName());
+			}
 
-    // :: Repository delegate factory
+			if (goAction != null) {
+				return goAction.apply(app, place);
+			}
+			return Boolean.FALSE;
+		}
 
-    /**
-     * Cria (opcionalmente) um wrapper para o repositório que pode envolver cada chamada
-     * com o SecurityContext desta aplicação.
-     * <p>
-     * Implementação padrão retorna o delegate diretamente (sem proxy).
-     * Subclasses em ambientes multi-threaded (JVM desktop/server) devem override para usar
-     * {@link ProxyRepositoryWrapper#wrap(Class, Object, java.util.function.Supplier)}.
-     */
-    protected <T> T createDelegate(Class<T> repoInterface, T delegate) {
-        return delegate;
-    }
+	}
+
+	// :: Repository delegate factory
+
+	/**
+	 * Cria (opcionalmente) um wrapper para o repositório que pode envolver cada chamada com o SecurityContext desta aplicação.
+	 * <p>
+	 * Implementação padrão retorna o delegate diretamente (sem proxy). Subclasses em ambientes multi-threaded (JVM desktop/server) devem override para usar
+	 * {@link ProxyRepositoryWrapper#wrap(Class, Object, java.util.function.Supplier)}.
+	 */
+	protected <T> T createDelegate(Class<T> repoInterface, T delegate) {
+		return delegate;
+	}
 
 }

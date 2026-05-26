@@ -9,10 +9,9 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.UI;
 
 import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter.PurchasesPanelViewState;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
 import br.com.wdc.shopping.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.shopping.view.vaadin.ShoppingVaadinApplication;
@@ -89,7 +88,8 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelP
             pane1.addClassName("pagination");
             pane1.setWidthFull();
             pane1.setAlignItems(com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment.CENTER);
-            pane1.setJustifyContentMode(com.vaadin.flow.component.orderedlayout.FlexComponent.JustifyContentMode.CENTER);
+            pane1.setJustifyContentMode(
+                    com.vaadin.flow.component.orderedlayout.FlexComponent.JustifyContentMode.CENTER);
             pane1.setPadding(false);
             pane1.setSpacing(false);
             pane1.getStyle().set("gap", "var(--lumo-space-xs)");
@@ -100,7 +100,8 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelP
                 btn.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON);
                 btn.getStyle().set("color", "#1976d2");
                 btn.getElement().setAttribute("aria-label", "Página anterior");
-                btn.addClickListener(e -> safeAction("Previous page", () -> this.presenter.onPageChange(this.state.page - 1)));
+                btn.addClickListener(
+                        e -> safeAction("Previous page", () -> this.presenter.onPageChange(this.state.page - 1)));
             });
 
             dom.span(label -> {
@@ -114,7 +115,8 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelP
                 btn.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON);
                 btn.getStyle().set("color", "#1976d2");
                 btn.getElement().setAttribute("aria-label", "Próxima página");
-                btn.addClickListener(e -> safeAction("Next page", () -> this.presenter.onPageChange(this.state.page + 1)));
+                btn.addClickListener(
+                        e -> safeAction("Next page", () -> this.presenter.onPageChange(this.state.page + 1)));
             });
         });
     }
@@ -132,42 +134,42 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelP
     private static final int BASE_FONT_SIZE_PX = 16;
 
     private void schedulePageSizeComputation() {
-        if (this.contentArea == null) return;
+        if (this.contentArea == null)
+            return;
         // Initial computation + ResizeObserver with debounce for subsequent resize events.
         // Uses root font-size ratio as correction factor to adapt to different
         // devices, zoom levels and accessibility settings.
         this.contentArea.getElement().executeJs(
                 "const el = this; const baseIh = $0; const baseFontPx = $1;"
-                + "function itemHeight() {"
-                + "  const rootFs = parseFloat(getComputedStyle(document.documentElement).fontSize) || baseFontPx;"
-                + "  return baseIh * (rootFs / baseFontPx);"
-                + "}"
-                + "function compute() {"
-                + "  const h = el.clientHeight;"
-                + "  if (h > 0) {"
-                + "    const ps = Math.max(1, Math.floor(h / itemHeight()));"
-                + "    if (el.__lastPs !== ps) { el.__lastPs = ps; return ps; }"
-                + "  }"
-                + "  return -1;"
-                + "}"
-                + "if (!el.__resizeObs) {"
-                + "  el.__resizeObs = new ResizeObserver(() => {"
-                + "    clearTimeout(el.__resizeTimer);"
-                + "    el.__resizeTimer = setTimeout(() => {"
-                + "      const ps = compute();"
-                + "      if (ps > 0) el.dispatchEvent(new CustomEvent('page-size', {detail: ps}));"
-                + "    }, 150);"
-                + "  });"
-                + "  el.__resizeObs.observe(el);"
-                + "}"
-                + "return new Promise(r => requestAnimationFrame(() => r(compute())));",
-                BASE_ITEM_HEIGHT_PX, BASE_FONT_SIZE_PX
-        ).then(result -> {
-            int ps = (int) result.asNumber();
-            if (ps > 0) {
-                this.presenter.onItemSizeCapacityChanged(ps);
-            }
-        });
+                        + "function itemHeight() {"
+                        + "  const rootFs = parseFloat(getComputedStyle(document.documentElement).fontSize) || baseFontPx;"
+                        + "  return baseIh * (rootFs / baseFontPx);"
+                        + "}"
+                        + "function compute() {"
+                        + "  const h = el.clientHeight;"
+                        + "  if (h > 0) {"
+                        + "    const ps = Math.max(1, Math.floor(h / itemHeight()));"
+                        + "    if (el.__lastPs !== ps) { el.__lastPs = ps; return ps; }"
+                        + "  }"
+                        + "  return -1;"
+                        + "}"
+                        + "if (!el.__resizeObs) {"
+                        + "  el.__resizeObs = new ResizeObserver(() => {"
+                        + "    clearTimeout(el.__resizeTimer);"
+                        + "    el.__resizeTimer = setTimeout(() => {"
+                        + "      const ps = compute();"
+                        + "      if (ps > 0) el.dispatchEvent(new CustomEvent('page-size', {detail: ps}));"
+                        + "    }, 150);"
+                        + "  });"
+                        + "  el.__resizeObs.observe(el);"
+                        + "}"
+                        + "return new Promise(r => requestAnimationFrame(() => r(compute())));",
+                BASE_ITEM_HEIGHT_PX, BASE_FONT_SIZE_PX).then(result -> {
+                    int ps = (int) result.asNumber();
+                    if (ps > 0) {
+                        this.presenter.onItemSizeCapacityChanged(ps);
+                    }
+                });
 
         // Listen for debounced resize-triggered page size changes
         this.contentArea.getElement().addEventListener("page-size", e -> {

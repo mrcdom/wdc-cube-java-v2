@@ -10,7 +10,7 @@ import org.teavm.jso.dom.html.HTMLDocument;
 import org.teavm.jso.dom.html.HTMLElement;
 
 import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter.PurchasesPanelViewState;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
 import br.com.wdc.shopping.view.teavm.AbstractViewTeaVM;
 import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
@@ -108,9 +108,11 @@ public class PurchasesPanelViewTeaVM extends AbstractViewTeaVM<PurchasesPanelPre
     }
 
     private void computePageSize() {
-        if (this.listContainer == null) return;
+        if (this.listContainer == null)
+            return;
         int containerHeight = this.listContainer.getClientHeight();
-        if (containerHeight <= 0) return;
+        if (containerHeight <= 0)
+            return;
         int capacity = Math.max(1, containerHeight / ITEM_HEIGHT_PX);
         this.presenter.onItemSizeCapacityChanged(capacity);
     }
@@ -129,11 +131,9 @@ public class PurchasesPanelViewTeaVM extends AbstractViewTeaVM<PurchasesPanelPre
         private String itemsOldValue;
         private String totalOldValue;
 
-        private static final String STYLE_NORMAL =
-                "background-color:#fafafa;border-radius:6px;border-left:3px solid #1976d2;"
+        private static final String STYLE_NORMAL = "background-color:#fafafa;border-radius:6px;border-left:3px solid #1976d2;"
                 + "cursor:pointer;transition:all 0.15s;margin-bottom:6px;overflow:hidden";
-        private static final String STYLE_HIGHLIGHT =
-                "background-color:#e3f2fd;border-radius:6px;border-left:3px solid #1976d2;"
+        private static final String STYLE_HIGHLIGHT = "background-color:#e3f2fd;border-radius:6px;border-left:3px solid #1976d2;"
                 + "cursor:pointer;transition:all 0.15s;margin-bottom:6px;overflow:hidden;transform:translateX(2px)";
 
         private boolean touchActive;
@@ -225,7 +225,8 @@ public class PurchasesPanelViewTeaVM extends AbstractViewTeaVM<PurchasesPanelPre
             dom.div("d-flex align-items-baseline", line2 -> {
                 line2.setAttribute("style", "padding:2px 12px 6px 12px;gap:4px;font-size:0.75rem;color:#666");
                 this.itemsElm = dom.span("", items -> {
-                    items.setAttribute("style", "flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap");
+                    items.setAttribute("style",
+                            "flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap");
                 });
                 this.totalElm = dom.span("", total -> {
                     total.setAttribute("style", "font-weight:bold;white-space:nowrap;color:#333");

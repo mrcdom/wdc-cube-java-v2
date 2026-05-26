@@ -1,13 +1,19 @@
 package br.com.wdc.shopping.presentation.presenter.restricted.home.purchases;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
+import br.com.wdc.framework.commons.lang.CoerceUtils;
 import br.com.wdc.framework.commons.log.Log;
-
 import br.com.wdc.framework.cube.AbstractChildPresenter;
+import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
+import br.com.wdc.framework.cube.ViewState;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
 
 public class PurchasesPanelPresenter extends AbstractChildPresenter<ShoppingApplication> {
 
@@ -19,10 +25,22 @@ public class PurchasesPanelPresenter extends AbstractChildPresenter<ShoppingAppl
 
     public static Function<PurchasesPanelPresenter, CubeView> createView;
 
+    // :: View State
+
+    public class PurchasesPanelViewState implements ViewState {
+
+        public List<PurchaseInfo> purchases = Collections.emptyList();
+        public int page;
+        public int pageSize = -1;
+        public int totalCount;
+
+    }
+
+    public final PurchasesPanelViewState state = new PurchasesPanelViewState();
+
     // :: Public Instance Fields
 
     public final HomePresenter owner;
-    public final PurchasesPanelViewState state = new PurchasesPanelViewState();
 
     // :: Internal Instance Fields
 
@@ -58,8 +76,8 @@ public class PurchasesPanelPresenter extends AbstractChildPresenter<ShoppingAppl
     }
 
     /**
-     * Called by the view when it determines how many items fit without scrolling.
-     * Only triggers a data reload if the capacity actually changed.
+     * Called by the view when it determines how many items fit without scrolling. Only triggers a data reload if the
+     * capacity actually changed.
      */
     public void onItemSizeCapacityChanged(int capacity) {
         int newPageSize = Math.max(1, capacity);
@@ -88,12 +106,35 @@ public class PurchasesPanelPresenter extends AbstractChildPresenter<ShoppingAppl
                 }
 
                 int offset = this.state.page * this.state.pageSize;
-                this.state.purchases = purchasesPanelService.loadPurchasesOfUser(subject.getId(), offset, this.state.pageSize);
+                this.state.purchases = purchasesPanelService.loadPurchasesOfUser(subject.getId(), offset,
+                        this.state.pageSize);
                 this.update();
             }
         } catch (Exception caught) {
             LOG.error("Failed to load purchases", caught);
         }
+    }
+
+    // :: Controle remoto
+
+    public CubeSkeleton skeleton() {
+        return new CubeSkeleton() {
+
+            @Override
+            public String classId() {
+                return "b3c4d5e6f7a8";
+            }
+
+            @Override
+            public void submit(int eventCode, int eventQtde, Map<String, Object> formData) throws Exception {
+                switch (eventCode) {
+                case 1 -> onOpenReceipt(CoerceUtils.asLong(formData.get("p.purchaseId")));
+                case 2 -> onPageChange(CoerceUtils.asInteger(formData.get("p.page")));
+                case 3 -> onItemSizeCapacityChanged(CoerceUtils.asInteger(formData.get("p.capacity")));
+                default -> new AssertionError("eventCode(" + eventCode + ") not handled");
+                }
+            }
+        };
     }
 
 }

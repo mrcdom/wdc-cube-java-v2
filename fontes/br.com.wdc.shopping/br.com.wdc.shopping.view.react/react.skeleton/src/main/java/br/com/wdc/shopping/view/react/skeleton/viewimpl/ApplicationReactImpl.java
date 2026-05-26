@@ -6,26 +6,24 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.mutable.MutableBoolean;
-import br.com.wdc.framework.commons.log.Log;
 
 import com.google.gson.stream.JsonWriter;
 
 import br.com.wdc.framework.commons.codec.Base62;
-import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
-import br.com.wdc.framework.commons.function.Registration;
 import br.com.wdc.framework.commons.function.ThrowingRunnable;
 import br.com.wdc.framework.commons.gson.JsonExtensibleObjectOutput;
 import br.com.wdc.framework.commons.lang.CoerceUtils;
+import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
 import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.CubePresenter;
@@ -50,94 +48,20 @@ public class ApplicationReactImpl extends ShoppingApplication {
 
     public static final Duration DEFAULT_TIME_SPAN = Duration.ofMinutes(3);
 
-    private static final Duration PUSH_DELAY = Duration.ofMillis(200);
-
     static {
-        RootPresenter.createView = RootReactViewImpl::new;
-        LoginPresenter.createView = LoginReactViewImpl::new;
-        HomePresenter.createView = HomeReactViewImpl::new;
-        ProductPresenter.createView = ProductReactViewImpl::new;
-        CartPresenter.createView = CartReactViewImpl::new;
-        ReceiptPresenter.createView = ReceiptReactViewImpl::new;
-        ProductsPanelPresenter.createView = ProductsPanelReactViewImpl::new;
-        PurchasesPanelPresenter.createView = PurchasesPanelReactViewImpl::new;
+        RootPresenter.createView = p -> new GenericViewImpl(p.app, p, p.state, p.skeleton());
+        LoginPresenter.createView = p -> new GenericViewImpl(p.app, p, p.state, p.skeleton());
+        HomePresenter.createView = p -> new GenericViewImpl(p.app, p, p.state, p.skeleton());
+        ProductPresenter.createView = p -> new GenericViewImpl(p.app, p, p.state, p.skeleton());
+        CartPresenter.createView = p -> new GenericViewImpl(p.app, p, p.state, p.skeleton());
+        ReceiptPresenter.createView = p -> new GenericViewImpl(p.app, p, p.state, p.skeleton());
+        ProductsPanelPresenter.createView = p -> new GenericViewImpl(p.app, p, p.state, p.skeleton());
+        PurchasesPanelPresenter.createView = p -> new GenericViewImpl(p.app, p, p.state, p.skeleton());
     }
 
-    private static ConcurrentHashMap<String, ApplicationReactImpl> instanceMap = new ConcurrentHashMap<>();
-    
     @Override
     protected Map<Integer, CubePresenter> createPresenterMap() {
         return new ConcurrentHashMap<>();
-    }
-
-    public static ApplicationReactImpl get(String appId) {
-        if (StringUtils.isBlank(appId)) {
-            return null;
-        }
-        return instanceMap.get(appId);
-    }
-
-    public static ApplicationReactImpl getOrCreate(String appId, String path) {
-        var request = new HashMap<String, Object>();
-
-        {
-            var browserViewState = new HashMap<String, Object>();
-            browserViewState.put("p.path", path);
-
-            request.put(BrowserReactViewImpl.VSID, browserViewState);
-        }
-
-        return ApplicationReactImpl.getOrCreate(appId, request);
-    }
-
-    public static ApplicationReactImpl getOrCreate(String appId, Map<String, Object> request) {
-        return instanceMap.computeIfAbsent(appId, _ignored -> ApplicationReactImpl.createApp(appId, request));
-    }
-
-    private static ApplicationReactImpl createApp(String appId, Map<String, Object> request) {
-        var app = new ApplicationReactImpl(appId);
-        try {
-            app.addReleaseAction(() -> instanceMap.remove(appId));
-
-            String path = app.getFragment();
-            {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> browserViewState = (Map<String, Object>) request
-                        .get(BrowserReactViewImpl.VSID);
-                if (browserViewState != null) {
-                    path = (String) browserViewState.get("p.path");
-                    if (StringUtils.isBlank(path)) {
-                        path = app.getFragment();
-                    }
-                }
-            }
-
-            app.safeGo(path);
-        } catch (Exception caught) {
-            app.release();
-            return ExceptionUtils.rethrow(caught);
-        }
-        return app;
-    }
-
-    public static ApplicationReactImpl remove(String sessionId) {
-        return instanceMap.remove(sessionId);
-    }
-
-    public static void removeExpireds() {
-        var now = System.currentTimeMillis();
-
-        var appItertor = instanceMap.values().iterator();
-        while (appItertor.hasNext()) {
-            var app = appItertor.next();
-            if (app.expireMoment < now) {
-                if (app.wsSession == null) {
-                    app.release();
-                } else {
-                    app.extendLife();
-                }
-            }
-        }
     }
 
     public ApplicationReactImpl(String id) {
@@ -163,36 +87,37 @@ public class ApplicationReactImpl extends ShoppingApplication {
     private ThrowingRunnable removeInstanceAction;
 
     private RootPresenter rootPresenter;
-    private final Map<String, GenericViewImpl> dirtyViewMap = new LinkedHashMap<>();
-    private final Map<String, GenericViewImpl> viewMap = new HashMap<>();
+    private final Map<String, GenericViewImpl> dirtyViewMap = new ConcurrentHashMap<>();
+    private final Map<String, GenericViewImpl> viewMap = new ConcurrentHashMap<>();
     private long lastRequestId;
     private boolean historyDirty;
-    private BrowserReactViewImpl browserView;
+    private BrowserPresenter browserPresenter;
     private int instanceIdGen = 1;
 
-    private transient volatile boolean requestInProgress;
-    private transient volatile Registration pushRegistration = Registration.noop();
+    private final ReentrantLock lock = new ReentrantLock();
+    final AtomicBoolean dirtyQueued = new AtomicBoolean(false);
+    volatile long lastWakeupNanos;
 
     protected void postConstruct() {
-        this.dataSecurity = new DataSecurity();
-        this.browserView = new BrowserReactViewImpl(this);
-        this.viewMap.put(browserView.instanceId(), browserView);
-        this.dirtyViewMap.put(browserView.instanceId(), browserView);
         this.expireMoment = System.currentTimeMillis() + DEFAULT_TIME_SPAN.toMillis();
+        this.dataSecurity = new DataSecurity();
+        this.browserPresenter = new BrowserPresenter(this);
+
+        // View que representa o navegador
+        this.putView(this.browserPresenter.getView());
+        this.browserPresenter.update();
     }
 
     @Override
     public void release() {
         try {
             try {
-                this.pushRegistration.remove();
-                this.pushRegistration = Registration.noop();
-                this.browserView.release();
+                this.browserPresenter.release();
                 this.removeInstanceAction.runThrows();
                 this.removeInstanceAction = ThrowingRunnable.noop();
                 super.release();
             } finally {
-                ApplicationReactImpl.instanceMap.remove(id);
+                ApplicationReactRegistry.remove(id);
                 LOG.info("Application removed: {}", this.id);
             }
         } catch (Exception caught) {
@@ -202,6 +127,14 @@ public class ApplicationReactImpl extends ShoppingApplication {
 
     public void extendLife() {
         this.expireMoment = System.currentTimeMillis() + DEFAULT_TIME_SPAN.toMillis();
+    }
+
+    public String getId() {
+        return this.id;
+    }
+
+    boolean isExpired(long now) {
+        return this.expireMoment < now;
     }
 
     public int nextInstanceId() {
@@ -249,7 +182,11 @@ public class ApplicationReactImpl extends ShoppingApplication {
 
     @Override
     public RootPresenter getRootPresenter() {
-        return this.rootPresenter;
+        return this.rootPresenter != null ? this.rootPresenter : super.getRootPresenter();
+    }
+
+    public BrowserPresenter getBrowserPresenter() {
+        return this.browserPresenter;
     }
 
     public void setRootPresenter(RootPresenter presenter) {
@@ -257,13 +194,19 @@ public class ApplicationReactImpl extends ShoppingApplication {
     }
 
     public GenericViewImpl getViewInstanceById(String vsid) {
-        synchronized (this) {
-            return this.viewMap.get(vsid);
-        }
+        return this.viewMap.get(vsid);
     }
 
     public Map<String, GenericViewImpl> getViewMap() {
         return viewMap;
+    }
+
+    public String b64Cipher(String text) {
+        return this.dataSecurity.b64Cipher(text);
+    }
+
+    public String b64Decipher(String b64Text) {
+        return this.dataSecurity.b64Decipher(b64Text);
     }
 
     @Override
@@ -307,7 +250,13 @@ public class ApplicationReactImpl extends ShoppingApplication {
                 intent.setPlace(this.getRootPlace());
             }
         }
-        this.go(intent);
+
+        this.lock.lock();
+        try {
+            this.go(intent);
+        } finally {
+            this.lock.unlock();
+        }
     }
 
     public void putView(GenericViewImpl view) {
@@ -319,11 +268,9 @@ public class ApplicationReactImpl extends ShoppingApplication {
         return this.viewMap.remove(stateId);
     }
 
-    public synchronized void markDirty(GenericViewImpl view) {
+    public void markDirty(GenericViewImpl view) {
         this.dirtyViewMap.put(view.instanceId(), view);
-        if (!this.requestInProgress && this.wsSession != null) {
-            this.schedulePush();
-        }
+        ApplicationReactRegistry.enqueueDirty(this);
     }
 
     public void updateAllViews() {
@@ -332,22 +279,24 @@ public class ApplicationReactImpl extends ShoppingApplication {
 
     @Override
     public void alertUnexpectedError(Log logger, String message, Throwable e) {
-        this.browserView.alertUnexpectedError(message, e);
-    }
-
-    public synchronized void beginRequest() {
-        this.requestInProgress = true;
-        this.pushRegistration.remove();
-        this.pushRegistration = Registration.noop();
-    }
-
-    public synchronized void endRequest() {
-        this.requestInProgress = false;
+        this.lock.lock();
+        try {
+            this.browserPresenter.alertUnexpectedError(message, e);
+        } finally {
+            this.lock.unlock();
+        }
     }
 
     public void sendResponse(Map<String, Object> request) throws Exception {
+        // Discard stale requests (retransmissions after reconnect)
+        var incomingRequestId = CoerceUtils.asLong(request.get("requestId"), null);
+        var isPing = CoerceUtils.asBoolean(request.get("ping"), false).booleanValue();
+        if (!isPing && incomingRequestId != null && incomingRequestId <= this.lastRequestId) {
+            LOG.debug("Discarding stale request: incoming={} last={}", incomingRequestId, this.lastRequestId);
+            return;
+        }
+
         try {
-            this.beginRequest();
             new DispatchPhaseBhv(this).run(request);
             new ResponsePhaseBhv(this).run(request);
         } catch (Exception e) {
@@ -356,7 +305,10 @@ public class ApplicationReactImpl extends ShoppingApplication {
             throw exn;
         } finally {
             try {
-                this.endRequest();
+                if (!this.dirtyViewMap.isEmpty()) {
+                    ApplicationReactRegistry.enqueueDirty(this);
+                    ApplicationReactRegistry.triggerImmediateFlush(this);
+                }
             } catch (Exception e) {
                 LOG.error("error in endRequest", e);
             }
@@ -365,29 +317,22 @@ public class ApplicationReactImpl extends ShoppingApplication {
 
     // :: Internal
 
-    private void schedulePush() {
-        if (this.pushRegistration != Registration.noop()) {
-            return;
-        }
-        var scheduler = ScheduledExecutor.BEAN.get();
-        if (scheduler == null) {
-            return;
-        }
-        this.pushRegistration = scheduler.schedule(this::executePush, PUSH_DELAY);
-    }
+    void flushDirtyViewsFromRegistry() {
+        this.dirtyQueued.set(false);
 
-    private void executePush() {
-        synchronized (this) {
-            this.pushRegistration = Registration.noop();
-            if (this.requestInProgress || this.dirtyViewMap.isEmpty() || this.wsSession == null) {
-                return;
-            }
+        if (this.dirtyViewMap.isEmpty() || this.wsSession == null) {
+            return;
         }
+
         try {
-            var pushRequest = Map.<String, Object>of("requestId", this.lastRequestId);
+            var pushRequest = Map.<String, Object>of();
             new ResponsePhaseBhv(this).run(pushRequest);
         } catch (Exception e) {
-            LOG.error("Error during server push", e);
+            LOG.error("Error during background flush", e);
+        }
+        // Re-enqueue if views became dirty during flush
+        if (!this.dirtyViewMap.isEmpty()) {
+            ApplicationReactRegistry.enqueueDirty(this);
         }
     }
 
@@ -402,15 +347,8 @@ public class ApplicationReactImpl extends ShoppingApplication {
      * Processes client request data and updates application state.
      * 
      * <p>
-     * This method is synchronized to ensure atomic updates to the view map when multiple concurrent WebSocket
-     * connections process requests for the same application instance. Synchronization is safe and efficient with
-     * Virtual Threads because Virtual Threads yield when waiting for monitor locks without blocking the underlying OS
-     * thread, allowing other Virtual Threads to make progress.
-     * </p>
-     * 
-     * <p>
-     * The critical section is kept minimal (milliseconds) and primarily involves HashMap lookups and view state
-     * updates, making contention unlikely in practice.
+     * Concurrency is managed via a per-instance {@link ReentrantLock}, which avoids pinning virtual threads to carrier
+     * threads (unlike {@code synchronized}). The lock protects view map mutations and dirty state.
      * </p>
      * 
      * @param request the client request data containing form data and events
@@ -449,7 +387,8 @@ public class ApplicationReactImpl extends ShoppingApplication {
         }
 
         private void submitEvent(Map<String, Object> request, MutableBoolean viewNotFound,
-                Entry<String, Integer> eventEntry, String rawEvent) throws Exception {
+                Entry<String, Integer> eventEntry, String rawEvent)
+                throws Exception {
             // <view-id>:<instance-id>:<event-code>
             var pos = rawEvent.lastIndexOf(':');
             if (pos != -1) {
@@ -466,7 +405,12 @@ public class ApplicationReactImpl extends ShoppingApplication {
                             formData = Collections.emptyMap();
                         }
 
-                        view.submit(eventCode, eventQtde, formData);
+                        me.lock.lock();
+                        try {
+                            view.submit(eventCode, eventQtde, formData);
+                        } finally {
+                            me.lock.unlock();
+                        }
                     } catch (@SuppressWarnings("java:S1181") Throwable e) {
                         me.alertUnexpectedError(LOG, e.getMessage(), e);
                         view.update();
@@ -478,14 +422,19 @@ public class ApplicationReactImpl extends ShoppingApplication {
         }
 
         private void updateApplicationState(Map<String, Object> request) {
-            // First, update application state
-            for (final Map.Entry<String, Object> entry : request.entrySet()) {
-                var view = me.viewMap.get(entry.getKey());
-                if (view != null) {
-                    @SuppressWarnings("unchecked")
-                    var formData = (Map<String, Object>) entry.getValue();
-                    view.syncClientToServer(formData);
+            me.lock.lock();
+            try {
+                // First, update application state
+                for (final Map.Entry<String, Object> entry : request.entrySet()) {
+                    var view = me.viewMap.get(entry.getKey());
+                    if (view != null) {
+                        @SuppressWarnings("unchecked")
+                        var formData = (Map<String, Object>) entry.getValue();
+                        view.syncClientToServer(formData);
+                    }
                 }
+            } finally {
+                me.lock.unlock();
             }
         }
 
@@ -515,13 +464,8 @@ public class ApplicationReactImpl extends ShoppingApplication {
      * Generates response data from dirty views and sends it back to the client.
      * 
      * <p>
-     * This method is synchronized to protect concurrent access to view state. With Virtual Threads, multiple WebSocket
-     * handlers can safely call this method simultaneously on the same application instance without blocking OS threads.
-     * </p>
-     * 
-     * <p>
-     * Synchronization scope: view dirty state tracking and response generation. Does not hold the lock during WebSocket
-     * message transmission.
+     * Concurrency is managed via a per-instance {@link ReentrantLock} to protect dirty view state without pinning
+     * virtual threads. The lock is not held during WebSocket message transmission.
      * </p>
      * 
      * @param request   the incoming client request (used to extract requestId)
@@ -538,14 +482,15 @@ public class ApplicationReactImpl extends ShoppingApplication {
         }
 
         public boolean run(Map<String, Object> request) {
-            var requestId = me.lastRequestId = getRequestId(request);
+            var requestId = getRequestId(request);
+            if (requestId != null) {
+                me.lastRequestId = requestId;
+            }
             var isPing = isPing(request);
 
             if (!isPing && hasNoDirtyViews()) {
                 return false;
             }
-
-            this.commitComputedState();
 
             me.doUpdateHistory();
 
@@ -566,7 +511,7 @@ public class ApplicationReactImpl extends ShoppingApplication {
         }
 
         private Long getRequestId(Map<String, Object> request) {
-            return CoerceUtils.asLong(request.get("requestId"), me.lastRequestId);
+            return CoerceUtils.asLong(request.get("requestId"), null);
         }
 
         private boolean isPing(Map<String, Object> request) {
@@ -577,20 +522,12 @@ public class ApplicationReactImpl extends ShoppingApplication {
             return !me.historyDirty && me.dirtyViewMap.isEmpty();
         }
 
-        private void commitComputedState() {
-            me.presenterMap.forEach((_ignored, presenter) -> {
-                try {
-                    presenter.commitComputedState();
-                } catch (Exception cause) {
-                    LOG.error("presenter.commitComputedState()", cause);
-                }
-            });
-        }
-
         private void writeResponse(ExtensibleObjectOutput json, Long requestId, boolean isPing) {
             json.beginObject();
             {
-                json.name("requestId").value(requestId);
+                if (requestId != null) {
+                    json.name("requestId").value(requestId);
+                }
 
                 if (isPing) {
                     json.name("ping").value(true);
@@ -608,7 +545,13 @@ public class ApplicationReactImpl extends ShoppingApplication {
 
                     while (dirtyViews.hasNext()) {
                         var view = dirtyViews.next();
-                        view.writeState(json);
+                        me.lock.lock();
+                        try {
+                            view.presenter().commitComputedState();
+                            view.writeState(json);
+                        } finally {
+                            me.lock.unlock();
+                        }
                         dirtyViews.remove();
                     }
 

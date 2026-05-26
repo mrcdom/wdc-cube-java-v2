@@ -1,17 +1,16 @@
 package br.com.wdc.shopping.test;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
-import org.apache.commons.lang3.StringUtils;
-
 import br.com.wdc.shopping.presentation.presenter.Routes;
 import br.com.wdc.shopping.scripts.sgbd.DBReset;
-import br.com.wdc.shopping.test.mock.viewimpl.LoginViewMock;
 import br.com.wdc.shopping.test.mock.viewimpl.HomeViewMock;
+import br.com.wdc.shopping.test.mock.viewimpl.LoginViewMock;
 import br.com.wdc.shopping.test.util.BasePresentationTest;
 
-@SuppressWarnings({"java:S2068", "java:S1192"})
+@SuppressWarnings({ "java:S2068", "java:S1192" })
 public class ShoppingLoginTest extends BasePresentationTest {
 
     @Test

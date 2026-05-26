@@ -211,6 +211,16 @@ public class ShoppingVaadinApplication extends ShoppingApplication {
         return this.attributeMap.remove(name);
     }
 
+    @Override
+    public String b64Cipher(String text) {
+        throw new AssertionError("not implemented");
+    }
+
+    @Override
+    public String b64Decipher(String b64Text) {
+        throw new AssertionError("not implemented");
+    }
+
     public void markDirty(AbstractViewVaadin<?> view) {
         if (this.dirtyViewMap.putIfAbsent(view.instanceId(), view) == null) {
             this.scheduleFlush();

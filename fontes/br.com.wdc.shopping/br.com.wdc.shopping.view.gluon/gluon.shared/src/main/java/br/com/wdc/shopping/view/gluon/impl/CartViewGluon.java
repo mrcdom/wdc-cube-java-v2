@@ -7,14 +7,14 @@ import java.util.Objects;
 import java.util.function.BiConsumer;
 
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartViewState;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.structs.CartItem;
 import br.com.wdc.shopping.view.gluon.AbstractViewGluon;
 import br.com.wdc.shopping.view.gluon.ShoppingGluonApplication;
 import br.com.wdc.shopping.view.gluon.theme.GluonColors;
 import br.com.wdc.shopping.view.gluon.theme.GluonIcons;
-import br.com.wdc.shopping.view.gluon.util.GluonDom;
 import br.com.wdc.shopping.view.gluon.theme.GluonStyles;
+import br.com.wdc.shopping.view.gluon.util.GluonDom;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -183,7 +183,8 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
     }
 
     private double computeTotalCost() {
-        if (this.state.items == null) return 0;
+        if (this.state.items == null)
+            return 0;
         return this.state.items.stream().mapToDouble(v -> v.price * v.quantity).sum();
     }
 

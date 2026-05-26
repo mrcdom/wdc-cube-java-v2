@@ -6,15 +6,15 @@ import org.junit.Test;
 import br.com.wdc.shopping.presentation.presenter.Routes;
 import br.com.wdc.shopping.scripts.sgbd.DBReset;
 import br.com.wdc.shopping.test.mock.viewimpl.CartViewMock;
+import br.com.wdc.shopping.test.mock.viewimpl.HomeViewMock;
 import br.com.wdc.shopping.test.mock.viewimpl.LoginViewMock;
 import br.com.wdc.shopping.test.mock.viewimpl.ProductViewMock;
 import br.com.wdc.shopping.test.mock.viewimpl.ReceiptViewMock;
-import br.com.wdc.shopping.test.mock.viewimpl.HomeViewMock;
 import br.com.wdc.shopping.test.util.BasePresentationTest;
 
 public class ShoppingWorkflowTest extends BasePresentationTest {
 
-    private HomeViewMock gotoRestricted() throws Exception {
+    private HomeViewMock gotoRestricted() {
         Routes.login(this.app);
 
         var rootView = this.app.getRootView();
@@ -28,7 +28,7 @@ public class ShoppingWorkflowTest extends BasePresentationTest {
     }
 
     @Test
-    public void testVisualizaProdutoInexistente() throws Exception {
+    public void testVisualizaProdutoInexistente() {
         var restrictedView = gotoRestricted();
         var rootView = this.app.getRootView();
 
@@ -40,7 +40,7 @@ public class ShoppingWorkflowTest extends BasePresentationTest {
     }
 
     @Test
-    public void testVisualizaProduto() throws Exception {
+    public void testVisualizaProduto() {
         var restrictedView = gotoRestricted();
         var rootView = this.app.getRootView();
 
@@ -52,7 +52,7 @@ public class ShoppingWorkflowTest extends BasePresentationTest {
     }
 
     @Test
-    public void testComprarProduto() throws Exception {
+    public void testComprarProduto() {
         Routes.login(this.app);
 
         var rootView = this.app.getRootView();

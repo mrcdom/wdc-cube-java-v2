@@ -17,7 +17,7 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartViewState;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.structs.CartItem;
 import br.com.wdc.shopping.view.swing.AbstractViewSwing;
 import br.com.wdc.shopping.view.swing.ShoppingSwingApplication;
@@ -184,21 +184,25 @@ public class CartViewSwing extends AbstractViewSwing<CartPresenter> {
                 gbc.anchor = GridBagConstraints.WEST;
                 gbc.insets = new Insets(0, 0, 0, 8);
 
-                gbc.gridx = 0; gbc.weightx = 1.0;
+                gbc.gridx = 0;
+                gbc.weightx = 1.0;
                 dom.constraints(gbc.clone()).label(h1 -> {
                     h1.setText("ITEM");
                     h1.setFont(Styles.FONT_TABLE_HEADER);
                     h1.setForeground(Styles.FG_TEXT);
                 });
 
-                gbc.gridx = 1; gbc.weightx = 0; gbc.ipadx = 80;
+                gbc.gridx = 1;
+                gbc.weightx = 0;
+                gbc.ipadx = 80;
                 dom.constraints(gbc.clone()).label(h2 -> {
                     h2.setText("VALOR");
                     h2.setFont(Styles.FONT_TABLE_HEADER);
                     h2.setForeground(Styles.FG_TEXT);
                 });
 
-                gbc.gridx = 2; gbc.ipadx = 40;
+                gbc.gridx = 2;
+                gbc.ipadx = 40;
                 dom.constraints(gbc.clone()).label(h3 -> {
                     h3.setText("QUANTIDADE");
                     h3.setFont(Styles.FONT_TABLE_HEADER);

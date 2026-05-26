@@ -7,7 +7,7 @@ import org.teavm.jso.dom.html.HTMLElement;
 
 import br.com.wdc.shopping.presentation.presenter.Routes;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeViewState;
 import br.com.wdc.shopping.view.teavm.AbstractViewTeaVM;
 import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.theme.BsIcons;
@@ -98,15 +98,15 @@ public class HomeViewTeaVM extends AbstractViewTeaVM<HomePresenter> {
         dom.nav("navbar navbar-dark px-2 px-sm-3", appBar -> {
             appBar.setAttribute("style",
                     "background-color:#1976d2;min-height:56px;box-shadow:0 2px 4px rgba(0,0,0,0.1);"
-                    + "display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between;"
-                    + "padding-top:env(safe-area-inset-top, 0px)");
+                            + "display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between;"
+                            + "padding-top:env(safe-area-inset-top, 0px)");
 
             // Left section: exit button + greeting
             dom.div("d-flex align-items-center gap-1 gap-sm-2", userBox -> {
                 dom.button(null, exitBtn -> {
                     exitBtn.setAttribute("style",
                             "background:none;border:none;color:rgba(255,255,255,0.9);font-size:1.25rem;"
-                            + "cursor:pointer;padding:4px 6px;display:flex;align-items:center");
+                                    + "cursor:pointer;padding:4px 6px;display:flex;align-items:center");
                     dom.icon(BsIcons.POWER);
                     exitBtn.addEventListener("click",
                             evt -> safeAction("Exit", this.presenter::onExit));
@@ -148,7 +148,7 @@ public class HomeViewTeaVM extends AbstractViewTeaVM<HomePresenter> {
                 dom.button(null, cartBtn -> {
                     cartBtn.setAttribute("style",
                             "background:none;border:none;color:rgba(255,255,255,0.9);cursor:pointer;"
-                            + "padding:4px 8px;display:flex;align-items:center;gap:6px;position:relative");
+                                    + "padding:4px 8px;display:flex;align-items:center;gap:6px;position:relative");
                     dom.icon(BsIcons.CART);
                     dom.span("d-none d-sm-inline", label -> {
                         label.setAttribute("style", "font-size:0.9rem;color:#fff");
@@ -157,7 +157,7 @@ public class HomeViewTeaVM extends AbstractViewTeaVM<HomePresenter> {
                     this.cartCountElm = dom.span(null, badge -> {
                         badge.setAttribute("style",
                                 "position:absolute;top:-2px;right:-6px;font-size:10px;min-width:18px;"
-                                + "text-align:center;background-color:#ff9800;color:white;border-radius:50%;padding:2px 5px");
+                                        + "text-align:center;background-color:#ff9800;color:white;border-radius:50%;padding:2px 5px");
                         badge.setTextContent(String.valueOf(this.state.cartItemCount));
                     });
                     this.cartCountOldValue = this.state.cartItemCount;
@@ -168,14 +168,17 @@ public class HomeViewTeaVM extends AbstractViewTeaVM<HomePresenter> {
         });
 
         // Error label
-        this.errorElm = dom.div("alert alert-danger m-2 d-none", err -> {});
+        this.errorElm = dom.div("alert alert-danger m-2 d-none", err -> {
+        });
 
         // Content pane
         this.contentPane = dom.div("flex-grow-1 overflow-auto", cp -> {
             cp.setAttribute("style", "background-color:#ededed;min-height:0");
             this.defaultContentPane = dom.div("h-100", dp -> {
-                this.productsPanelSlot = dom.div(null, slot -> {});
-                this.purchasesPanelSlot = dom.div("d-none h-100", slot -> {});
+                this.productsPanelSlot = dom.div(null, slot -> {
+                });
+                this.purchasesPanelSlot = dom.div("d-none h-100", slot -> {
+                });
             });
         });
 

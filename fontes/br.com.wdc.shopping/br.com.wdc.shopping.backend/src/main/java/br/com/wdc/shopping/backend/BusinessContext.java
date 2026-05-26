@@ -14,6 +14,7 @@ import br.com.wdc.shopping.domain.security.JceCryptoProvider;
 import br.com.wdc.shopping.persistence.RepositoryBootstrap;
 import br.com.wdc.shopping.persistence.concurrent.ScheduledExecutorAdapter;
 import br.com.wdc.shopping.scripts.sgbd.DBCreate;
+import br.com.wdc.shopping.view.react.skeleton.viewimpl.ApplicationReactRegistry;
 import br.com.wdc.shopping.domain.ShoppingConfig;
 import br.com.wdc.shopping.domain.config.AppConfig;
 
@@ -24,6 +25,7 @@ public class BusinessContext {
     private static final String DEFAULT_DB_NAME = "wedocode-shopping";
 
     public void stop() {
+        ApplicationReactRegistry.shutdown();
         RepositoryBootstrap.release();
         ScheduledExecutor.BEAN.set(null);
         SqlDataSource.BEAN.set(null);
@@ -60,6 +62,8 @@ public class BusinessContext {
             }
 
             RepositoryBootstrap.initialize();
+
+            ApplicationReactRegistry.init();
 
             var jwtSecret = ShoppingConfig.getJwtSecret();
             if (jwtSecret != null && !jwtSecret.isBlank()) {

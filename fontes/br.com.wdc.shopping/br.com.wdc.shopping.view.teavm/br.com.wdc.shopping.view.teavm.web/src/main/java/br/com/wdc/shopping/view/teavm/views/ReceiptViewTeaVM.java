@@ -10,7 +10,7 @@ import org.teavm.jso.dom.html.HTMLDocument;
 import org.teavm.jso.dom.html.HTMLElement;
 
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter.ReceiptViewState;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptItem;
 import br.com.wdc.shopping.view.teavm.AbstractViewTeaVM;
 import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
@@ -95,7 +95,7 @@ public class ReceiptViewTeaVM extends AbstractViewTeaVM<ReceiptPresenter> {
             this.successElm = dom.div("d-none d-flex align-items-center gap-2 mb-3", success -> {
                 success.setAttribute("style",
                         "background-color:#e8f5e9;border:1px solid #a5d6a7;border-radius:8px;padding:12px 16px;"
-                        + "color:#2e7d32;font-size:1.2rem");
+                                + "color:#2e7d32;font-size:1.2rem");
                 dom.icon(BsIcons.CHECK_CIRCLE);
                 dom.span(null, msg -> {
                     msg.setAttribute("style", "color:#2e7d32;font-weight:bold;font-size:1rem");
@@ -107,7 +107,7 @@ public class ReceiptViewTeaVM extends AbstractViewTeaVM<ReceiptPresenter> {
             dom.div(null, receiptBox -> {
                 receiptBox.setAttribute("style",
                         "border:1px solid #bdbdbd;border-radius:8px;padding:16px;"
-                        + "font-family:'Courier New',Courier,monospace;font-size:0.85rem");
+                                + "font-family:'Courier New',Courier,monospace;font-size:0.85rem");
 
                 dom.span(null, caption1 -> {
                     caption1.setAttribute("style", "font-weight:600;display:block;margin-bottom:4px");
@@ -123,7 +123,8 @@ public class ReceiptViewTeaVM extends AbstractViewTeaVM<ReceiptPresenter> {
                         lbl.setAttribute("style", "color:#666");
                         lbl.setTextContent("Data:");
                     });
-                    this.dateElm = dom.span("fw-bold", date -> {});
+                    this.dateElm = dom.span("fw-bold", date -> {
+                    });
                 });
                 dom.div("d-flex justify-content-between mb-3", totalRow -> {
                     dom.span(null, lbl -> {
@@ -154,7 +155,8 @@ public class ReceiptViewTeaVM extends AbstractViewTeaVM<ReceiptPresenter> {
                         });
                     });
 
-                    var itemsContainer = dom.div(null, items -> {});
+                    var itemsContainer = dom.div(null, items -> {
+                    });
                     this.itemsSlot = this.newListSlot(itemsContainer, this::newItemView, this::updateItem);
                 });
             });

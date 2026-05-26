@@ -16,6 +16,7 @@ import br.com.wdc.framework.commons.codec.Base62;
 import br.com.wdc.shopping.view.react.skeleton.spi.WebSocketConnection;
 import br.com.wdc.shopping.view.react.skeleton.util.AppSecurity;
 import br.com.wdc.shopping.view.react.skeleton.viewimpl.ApplicationReactImpl;
+import br.com.wdc.shopping.view.react.skeleton.viewimpl.ApplicationReactRegistry;
 import io.javalin.websocket.WsConnectContext;
 import io.javalin.websocket.WsErrorContext;
 import io.javalin.websocket.WsMessageContext;
@@ -130,6 +131,13 @@ public class DispatcherHandler {
             this.wsSession = new JavalinWebSocketConnection(ctx);
             
             LOG.debug("WebSocket connection established for session: {} (wsId: {})", appId, this.activeWsSessionId);
+
+            // Phase C: on reconnect, if app has pending dirty views, trigger immediate flush
+            ApplicationReactImpl app = ApplicationReactRegistry.get(appId);
+            if (app != null) {
+                app.setWsSession(this.wsSession);
+                ApplicationReactRegistry.triggerImmediateFlush(app);
+            }
             
         } catch (Exception e) {
             LOG.error("Error during WebSocket connection open", e);
@@ -266,19 +274,19 @@ public class DispatcherHandler {
      * Retrieves an existing application instance by session ID.
      */
     private ApplicationReactImpl getApp() {
-        return ApplicationReactImpl.get(appId);
+        return ApplicationReactRegistry.get(appId);
     }
 
     /**
      * Gets or creates an application instance, initializing it with the request.
      */
     private ApplicationReactImpl getOrCreateApp(Map<String, Object> request) {
-        ApplicationReactImpl app = ApplicationReactImpl.get(appId);
+        ApplicationReactImpl app = ApplicationReactRegistry.get(appId);
         
         if (app == null) {
             // First request: include signature in request
             request.put("secret", this.appSignature);
-            app = ApplicationReactImpl.getOrCreate(appId, request);
+            app = ApplicationReactRegistry.getOrCreate(appId, request);
         }
         
         // Keep the current WebSocket channel attached to the app instance.

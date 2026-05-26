@@ -1,13 +1,16 @@
 package br.com.wdc.shopping.presentation.presenter.open.login;
 
+import java.util.Map;
 import java.util.function.Function;
 
+import br.com.wdc.framework.commons.lang.CoerceUtils;
 import br.com.wdc.framework.commons.log.Log;
-
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubeIntent;
+import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.CubeViewSlot;
+import br.com.wdc.framework.cube.ViewState;
 import br.com.wdc.shopping.domain.exception.OfflineException;
 import br.com.wdc.shopping.presentation.PlaceAttributes;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
@@ -24,6 +27,15 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
     public static Function<LoginPresenter, CubeView> createView;
 
     // :: Public Instance Fields
+
+    public static class LoginViewState implements ViewState {
+
+        public String userName;
+        public String password;
+        public int errorCode;
+        public String errorMessage;
+
+    }
 
     public final LoginViewState state = new LoginViewState();
 
@@ -71,6 +83,8 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
         state.errorCode = 5;
         state.errorMessage = "Falha de comunicação com o servidor. Verifique sua conexão.";
         this.update();
+
+        LOG.error(state.errorMessage, caught);
     }
 
     // :: User Actions
@@ -95,5 +109,38 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
             LOG.error("onEnter", caught);
             this.alertConnectionError(caught);
         }
+    }
+
+    // :: Controle remoto
+
+    public CubeSkeleton skeleton() {
+        return new CubeSkeleton() {
+
+            @Override
+            public String classId() {
+                return "c677cda52d14";
+            }
+
+            @Override
+            public void submit(int eventCode, int eventQtde, Map<String, Object> formData) throws Exception {
+                if (eventCode == 1) {
+                    onEnter();
+                }
+            }
+
+            @Override
+            public void syncState(Map<String, Object> formData) {
+                var fn = "userName";
+                if (formData.containsKey(fn)) {
+                    state.userName = CoerceUtils.asString(formData.get(fn));
+                }
+
+                fn = "password";
+                if (formData.containsKey(fn)) {
+                    state.password = app.b64Decipher(CoerceUtils.asString(formData.get(fn)));
+                }
+            }
+
+        };
     }
 }

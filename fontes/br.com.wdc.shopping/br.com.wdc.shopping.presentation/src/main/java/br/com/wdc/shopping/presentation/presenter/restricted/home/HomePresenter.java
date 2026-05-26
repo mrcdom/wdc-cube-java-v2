@@ -1,14 +1,16 @@
 package br.com.wdc.shopping.presentation.presenter.restricted.home;
 
+import java.util.Map;
 import java.util.function.Function;
 
-import br.com.wdc.framework.commons.log.Log;
-
 import br.com.wdc.framework.commons.function.ThrowingRunnable;
+import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubeIntent;
+import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.CubeViewSlot;
+import br.com.wdc.framework.cube.ViewState;
 import br.com.wdc.shopping.presentation.PlaceAttributes;
 import br.com.wdc.shopping.presentation.PlaceParameters;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
@@ -29,6 +31,18 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
     public static Function<HomePresenter, CubeView> createView;
 
     // :: Public Instance Fields
+
+    public static class HomeViewState implements ViewState {
+
+        public CubeView contentView;
+        public CubeView productsPanelView;
+        public CubeView purchasesPanelView;
+        public String nickName;
+        public int cartItemCount;
+        public int errorCode;
+        public String errorMessage;
+
+    }
 
     public final HomeViewState state = new HomeViewState();
 
@@ -258,6 +272,27 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
                 this.purchasesPanel.loadPurchases();
             }
         }
+    }
+
+    // :: Controle remoto
+
+    public CubeSkeleton skeleton() {
+        return new CubeSkeleton() {
+
+            @Override
+            public String classId() {
+                return "473dbdd7a36a";
+            }
+
+            @Override
+            public void submit(int eventCode, int eventQtde, Map<String, Object> formData) throws Exception {
+                switch (eventCode) {
+                case 1 -> onExit();
+                case 2 -> onOpenCart();
+                default -> new AssertionError("eventCode(" + eventCode + ") not handled");
+                }
+            }
+        };
     }
 
 }

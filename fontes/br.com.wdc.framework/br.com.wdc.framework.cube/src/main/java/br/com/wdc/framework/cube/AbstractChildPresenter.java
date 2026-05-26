@@ -8,7 +8,7 @@ package br.com.wdc.framework.cube;
  * @param <O> owner presenter type
  * @param <S> state type
  */
-public abstract class AbstractChildPresenter<A extends CubeApplication> {
+public abstract class AbstractChildPresenter<A extends CubeApplication> implements PresenterBase {
 
     public final A app;
 

@@ -4,7 +4,7 @@ import org.teavm.jso.dom.html.HTMLDocument;
 import org.teavm.jso.dom.html.HTMLElement;
 
 import br.com.wdc.shopping.presentation.presenter.RootPresenter;
-import br.com.wdc.shopping.presentation.presenter.RootViewState;
+import br.com.wdc.shopping.presentation.presenter.RootPresenter.RootViewState;
 import br.com.wdc.shopping.view.teavm.AbstractViewTeaVM;
 import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.util.HtmlDom;

@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import br.com.wdc.framework.commons.log.Log;
-
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubePresenter;
 import br.com.wdc.shopping.presentation.ProxyRepositoryWrapper;
@@ -48,7 +47,7 @@ public class ShoppingGluonApplication extends ShoppingApplication {
     private final Map<String, AbstractViewGluon<?>> dirtyViewMap = new HashMap<>();
     private final Map<String, Object> attributeMap = new ConcurrentHashMap<>();
     private boolean flushScheduled;
-    
+
     @Override
     protected Map<Integer, CubePresenter> createPresenterMap() {
         return new ConcurrentHashMap<>();
@@ -159,5 +158,15 @@ public class ShoppingGluonApplication extends ShoppingApplication {
         if (!this.dirtyViewMap.isEmpty()) {
             scheduleFlush();
         }
+    }
+
+    @Override
+    public String b64Cipher(String text) {
+        throw new AssertionError("Not implemented");
+    }
+
+    @Override
+    public String b64Decipher(String b64Text) {
+        throw new AssertionError("Not implemented");
     }
 }

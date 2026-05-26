@@ -1,7 +1,7 @@
 package br.com.wdc.shopping.view.gluon.impl;
 
 import br.com.wdc.shopping.presentation.presenter.RootPresenter;
-import br.com.wdc.shopping.presentation.presenter.RootViewState;
+import br.com.wdc.shopping.presentation.presenter.RootPresenter.RootViewState;
 import br.com.wdc.shopping.view.gluon.AbstractViewGluon;
 import br.com.wdc.shopping.view.gluon.ShoppingGluonApplication;
 import javafx.scene.layout.StackPane;

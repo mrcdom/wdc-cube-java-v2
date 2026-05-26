@@ -10,8 +10,8 @@ import org.teavm.jso.browser.Window;
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubePresenter;
-import br.com.wdc.shopping.persistence.client.HttpTransport;
 import br.com.wdc.shopping.domain.security.CryptoProvider;
+import br.com.wdc.shopping.persistence.client.HttpTransport;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.RootPresenter;
 import br.com.wdc.shopping.presentation.presenter.Routes;
@@ -34,8 +34,8 @@ import br.com.wdc.shopping.view.teavm.views.ReceiptViewTeaVM;
 import br.com.wdc.shopping.view.teavm.views.RootViewTeaVM;
 
 /**
- * Implementação de {@link ShoppingApplication} para o browser via TeaVM.
- * Usa Material Web components para UI e requestAnimationFrame para render loop.
+ * Implementação de {@link ShoppingApplication} para o browser via TeaVM. Usa Material Web components para UI e
+ * requestAnimationFrame para render loop.
  */
 public class ShoppingTeaVMApplication extends ShoppingApplication {
 
@@ -75,9 +75,8 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
     }
 
     /**
-     * Resolve an image path to a full URL.
-     * In browser mode (same origin), returns the relative path.
-     * In Tauri mode (cross-origin), prepends the API base URL.
+     * Resolve an image path to a full URL. In browser mode (same origin), returns the relative path. In Tauri mode
+     * (cross-origin), prepends the API base URL.
      */
     public String resolveImageUrl(String imagePath) {
         if (imagePath == null || imagePath.isEmpty()) {
@@ -93,6 +92,16 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
     @Override
     protected Map<Integer, CubePresenter> createPresenterMap() {
         return new HashMap<>();
+    }
+
+    @Override
+    public String b64Cipher(String text) {
+        throw new AssertionError("not implemented");
+    }
+
+    @Override
+    public String b64Decipher(String b64Text) {
+        throw new AssertionError("not implemented");
     }
 
     /**

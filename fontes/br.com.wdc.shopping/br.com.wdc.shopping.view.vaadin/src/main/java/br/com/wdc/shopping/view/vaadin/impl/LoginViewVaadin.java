@@ -11,7 +11,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
-import br.com.wdc.shopping.presentation.presenter.open.login.LoginViewState;
+import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginViewState;
 import br.com.wdc.shopping.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.shopping.view.vaadin.ShoppingVaadinApplication;
 import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
@@ -101,7 +101,8 @@ public class LoginViewVaadin extends AbstractViewVaadin<LoginPresenter> {
                 this.userField = new TextField("Usuário");
                 this.userField.setWidthFull();
                 this.userField.setAutocomplete(com.vaadin.flow.component.textfield.Autocomplete.OFF);
-                this.userField.getElement().executeJs("this.inputElement.setAttribute('autocomplete', 'one-time-code')");
+                this.userField.getElement()
+                        .executeJs("this.inputElement.setAttribute('autocomplete', 'one-time-code')");
                 body.add(this.userField);
 
                 // Password field — uses TextField with CSS masking to prevent
@@ -112,8 +113,8 @@ public class LoginViewVaadin extends AbstractViewVaadin<LoginPresenter> {
                 this.passwordField.setAutocomplete(com.vaadin.flow.component.textfield.Autocomplete.OFF);
                 this.passwordField.getElement().executeJs(
                         "this.inputElement.setAttribute('autocomplete', 'one-time-code');"
-                        + "this.inputElement.style.webkitTextSecurity = 'disc';"
-                        + "this.inputElement.style.textSecurity = 'disc';");
+                                + "this.inputElement.style.webkitTextSecurity = 'disc';"
+                                + "this.inputElement.style.textSecurity = 'disc';");
                 this.passwordField.addKeyPressListener(Key.ENTER, e -> doLogin());
                 body.add(this.passwordField);
 

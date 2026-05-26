@@ -11,7 +11,7 @@ import org.teavm.jso.dom.html.HTMLElement;
 import org.teavm.jso.dom.html.HTMLImageElement;
 
 import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter.ProductsPanelViewState;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
 import br.com.wdc.shopping.view.teavm.AbstractViewTeaVM;
 import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
@@ -47,7 +47,8 @@ public class ProductsPanelViewTeaVM extends AbstractViewTeaVM<ProductsPanelPrese
             caption.setTextContent("PRODUTOS");
         });
 
-        var listContainer = dom.div("row row-cols-2 row-cols-md-3 g-3", container -> {});
+        var listContainer = dom.div("row row-cols-2 row-cols-md-3 g-3", container -> {
+        });
         this.contentSlot = this.newListSlot(listContainer, this::newItemView, this::updateItem);
     }
 
@@ -64,11 +65,9 @@ public class ProductsPanelViewTeaVM extends AbstractViewTeaVM<ProductsPanelPrese
 
     public static class ProductCardView extends AbstractViewTeaVM<ProductsPanelPresenter> {
 
-        private static final String CARD_STYLE =
-                "background-color:#fff;border-radius:12px;border:1px solid #e0e0e0;"
+        private static final String CARD_STYLE = "background-color:#fff;border-radius:12px;border:1px solid #e0e0e0;"
                 + "cursor:pointer;transition:all 0.25s cubic-bezier(0.4,0,0.2,1);overflow:hidden";
-        private static final String CARD_HOVER_STYLE =
-                "background-color:#fff;border-radius:12px;border:1px solid #64b5f6;"
+        private static final String CARD_HOVER_STYLE = "background-color:#fff;border-radius:12px;border:1px solid #64b5f6;"
                 + "cursor:pointer;transition:all 0.25s cubic-bezier(0.4,0,0.2,1);overflow:hidden;"
                 + "transform:translateY(-4px);box-shadow:0 12px 24px rgba(0,0,0,0.1)";
 
@@ -122,9 +121,10 @@ public class ProductsPanelViewTeaVM extends AbstractViewTeaVM<ProductsPanelPrese
         private void buildUI(HtmlDom dom, HTMLElement root) {
             dom.div(null, card -> {
                 card.setAttribute("style", CARD_STYLE);
-                final boolean[] touchActive = {false};
+                final boolean[] touchActive = { false };
                 card.addEventListener("mouseenter", evt -> {
-                    if (!touchActive[0]) card.setAttribute("style", CARD_HOVER_STYLE);
+                    if (!touchActive[0])
+                        card.setAttribute("style", CARD_HOVER_STYLE);
                 });
                 card.addEventListener("mouseleave", evt -> card.setAttribute("style", CARD_STYLE));
                 card.addEventListener("touchstart", evt -> {

@@ -4,7 +4,7 @@ import org.junit.Assert;
 
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
-import br.com.wdc.shopping.presentation.presenter.open.login.LoginViewState;
+import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginViewState;
 import br.com.wdc.shopping.test.mock.ShoppingApplicationMock;
 
 public class LoginViewMock extends AbstractViewMock<LoginPresenter> {
@@ -19,8 +19,8 @@ public class LoginViewMock extends AbstractViewMock<LoginPresenter> {
 
     public LoginViewState state;
 
-    public LoginViewMock(ShoppingApplicationMock app, LoginPresenter presenter) {
-        super(app, presenter);
+    public LoginViewMock(LoginPresenter presenter) {
+        super(((ShoppingApplicationMock) presenter.app), presenter);
         this.state = presenter.state;
     }
 

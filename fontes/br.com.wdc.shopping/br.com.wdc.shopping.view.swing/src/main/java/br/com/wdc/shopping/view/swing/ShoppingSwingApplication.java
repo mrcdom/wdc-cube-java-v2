@@ -6,7 +6,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.swing.Timer;
 
 import br.com.wdc.framework.commons.log.Log;
-
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubePresenter;
 import br.com.wdc.shopping.presentation.ProxyRepositoryWrapper;
@@ -121,6 +120,16 @@ public class ShoppingSwingApplication extends ShoppingApplication {
     @Override
     public Object removeAttribute(String name) {
         return this.attributeMap.remove(name);
+    }
+
+    @Override
+    public String b64Cipher(String text) {
+        throw new AssertionError("not implemented");
+    }
+
+    @Override
+    public String b64Decipher(String b64Text) {
+        throw new AssertionError("not implemented");
     }
 
     public void markDirty(AbstractViewSwing<?> view) {

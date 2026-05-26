@@ -194,13 +194,13 @@ export class Application {
     this.submit(BROWSER_VSID, 2)
   }
 
-  applyViewStates(stateList: { id: string }[]) {
+  applyViewStates(stateList: { '#': string }[]) {
     for (let i = 0, ilen = stateList.length; i < ilen; i++) {
       let viewState = stateList[i]
-      if (!viewState || !viewState.id) {
+      if (!viewState || !viewState['#']) {
         continue
       }
-      const vsid = viewState.id
+      const vsid = viewState['#']
       this.viewGarbageCollector.recover(vsid)
 
       let viewScope = this.viewMap.get(vsid)
