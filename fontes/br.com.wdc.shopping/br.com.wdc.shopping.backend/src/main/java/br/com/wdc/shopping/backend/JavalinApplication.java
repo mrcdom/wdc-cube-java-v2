@@ -39,13 +39,10 @@ public class JavalinApplication {
 
     private static final String STATIC_FILES_DIR = "/META-INF/resources";
     private static final String STATIC_IMAGES_FILES_DIR = STATIC_FILES_DIR + "/images";
-    private static final String STATIC_FILES_EXTERNAL_DIR_ENV = "SHOPPING_STATIC_FILES_DIR";
-    private static final String STATIC_FILES_EXTERNAL_DIR_PROPERTY = "shopping.staticFilesDir";
     private static final String STATIC_HOSTED_IMAGE_PATH = "/images";
     private static final String FRONTEND_DIR = "work/frontend";
     
     private static final int DEFAULT_PORT = 8080;
-    private static final record StaticFilesSettings(String directory, Location location) {}
 
     static {
         Log.setFactory(new Slf4jLogFactory());
@@ -55,7 +52,6 @@ public class JavalinApplication {
     private final Javalin app;
     private final int port;
     private final BusinessContext businessContext = new BusinessContext();
-    private final StaticFilesSettings staticFilesSettings = resolveStaticFilesSettings();
 
     public JavalinApplication(int port) {
         this.port = port;
@@ -88,15 +84,8 @@ public class JavalinApplication {
                 rule.allowCredentials = true;
             }));
 
-            // Serve frontend assets from work/frontend/<subdir> (each subdir at root)
+            // Serve frontend assets from work/frontend/<subdir> (each subdir at its own context)
             configureFrontendStaticFiles(config);
-
-            // Fallback: classpath static files (META-INF/resources)
-            config.staticFiles.add(staticFileConfig -> {
-                staticFileConfig.directory = staticFilesSettings.directory;
-                staticFileConfig.location = staticFilesSettings.location;
-                staticFileConfig.precompressMaxSize = 0;
-            });
 
             config.staticFiles.add(staticFileConfig -> {
                 staticFileConfig.directory = STATIC_IMAGES_FILES_DIR;
@@ -224,24 +213,6 @@ public class JavalinApplication {
         }
     }
 
-    private static StaticFilesSettings resolveStaticFilesSettings() {
-        var customStaticDir = System.getProperty(STATIC_FILES_EXTERNAL_DIR_PROPERTY);
-        if (customStaticDir == null || customStaticDir.isBlank()) {
-            customStaticDir = System.getenv(STATIC_FILES_EXTERNAL_DIR_ENV);
-        }
-
-        if (customStaticDir != null && !customStaticDir.isBlank()) {
-            Path resolvedPath = Paths.get(customStaticDir).toAbsolutePath().normalize();
-            if (Files.isDirectory(resolvedPath)) {
-                return new StaticFilesSettings(resolvedPath.toString(), Location.EXTERNAL);
-            }
-
-            LOG.warn("External static files directory does not exist: {} (resolved to {}). Falling back to classpath.", customStaticDir, resolvedPath);
-        }
-
-        return new StaticFilesSettings(STATIC_FILES_DIR, Location.CLASSPATH);
-    }
-
     /**
      * Starts the HTTP server.
      */
@@ -249,7 +220,6 @@ public class JavalinApplication {
         try {
             app.start(port);
             LOG.info("Javalin server started on port {}", port);
-            LOG.info("Static files served from {}: {}", staticFilesSettings.location, staticFilesSettings.directory);
         } catch (Exception e) {
             LOG.error("Failed to start Javalin server", e);
             throw new AssertionError("Server startup failed", e);
