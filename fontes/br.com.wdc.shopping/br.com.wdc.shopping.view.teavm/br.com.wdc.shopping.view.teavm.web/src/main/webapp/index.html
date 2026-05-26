@@ -42,7 +42,7 @@
 <body>
     <div id="loading">Carregando...</div>
     <script>
-        // Determine base path: works both on server (/teavm/) and Tauri (local file)
+        // Determine base path: works both on server (/app.teavm/) and Tauri (local file)
         var p = location.pathname;
         if (p.lastIndexOf('/') > 0) p = p.substring(0, p.lastIndexOf('/') + 1);
         else if (!p.endsWith('/')) p += '/';

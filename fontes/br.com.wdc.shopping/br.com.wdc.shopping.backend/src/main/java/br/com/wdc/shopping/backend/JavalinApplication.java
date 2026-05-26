@@ -94,14 +94,6 @@ public class JavalinApplication {
                 staticFileConfig.precompressMaxSize = 0;
             });
 
-            // TeaVM compiled webapp served under /teavm/
-            config.staticFiles.add(staticFileConfig -> {
-                staticFileConfig.directory = "/META-INF/resources/teavm";
-                staticFileConfig.location = Location.CLASSPATH;
-                staticFileConfig.hostedPath = "/teavm";
-                staticFileConfig.precompressMaxSize = 0;
-            });
-
             // Configure default content type
             config.http.defaultContentType = "application/json";
 
@@ -148,7 +140,6 @@ public class JavalinApplication {
                 && !path.startsWith("/ws/") 
                 && !path.startsWith("/health")
                 && !path.startsWith("/dispatcher")
-                && !path.startsWith("/teavm")
                 && !path.equals("/")
                 && !isStaticResource(path)) {
                 // Resolve context-aware SPA fallback: /<context>/anything -> /<context>/index.html
