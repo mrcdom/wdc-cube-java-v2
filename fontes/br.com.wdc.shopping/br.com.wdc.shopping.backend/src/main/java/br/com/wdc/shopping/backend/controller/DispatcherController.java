@@ -24,6 +24,12 @@ public class DispatcherController {
 			ws.onClose(controller::onClose);
 			ws.onError(controller::onError);
 		});
+		config.routes.ws("/<context>/dispatcher/{id}", ws -> {
+			ws.onConnect(controller::onConnect);
+			ws.onMessage(controller::onMessage);
+			ws.onClose(controller::onClose);
+			ws.onError(controller::onError);
+		});
 	}
 
 	protected void onConnect(WsConnectContext ctx) {

@@ -39,7 +39,7 @@ export class Application {
 
     const appIdFromCookie = Cookie.get('app_id')
     if (appIdFromCookie) {
-      Cookie.remove('app_id')
+      Cookie.remove('app_id', { path: '/' })
     }
 
     let appId = sessionStorage.getItem('app_id')
@@ -57,13 +57,13 @@ export class Application {
     const appSKey = Cookie.get('app_skey')
     if (appSKey) {
       this.dataSecurity.updateSecurityKey(appSKey)
-      Cookie.remove('app_skey')
+      Cookie.remove('app_skey', { path: '/' })
 
       this.readyToStart = async () => {
         try {
           await this.dataSecurity.updateSecretWithRandomPassword()
 
-          Cookie.set('app_signature', this.dataSecurity.getSignature())
+          Cookie.set('app_signature', this.dataSecurity.getSignature(), { path: '/' })
           this.readyToStart = NOOP_PROMISE_VOID
         } catch (error) {
           CAUTHED(error)

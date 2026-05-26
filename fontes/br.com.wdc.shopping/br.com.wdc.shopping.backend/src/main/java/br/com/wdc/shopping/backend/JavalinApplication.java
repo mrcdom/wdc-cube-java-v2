@@ -1,10 +1,12 @@
 package br.com.wdc.shopping.backend;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.log.Slf4jLogFactory;
@@ -14,6 +16,7 @@ import br.com.wdc.shopping.domain.config.AppConfig;
 import br.com.wdc.shopping.backend.controller.DispatcherController;
 import br.com.wdc.shopping.backend.controller.ImageController;
 import br.com.wdc.shopping.backend.controller.IndexHtmlController;
+import br.com.wdc.shopping.backend.controller.LandingPageController;
 import br.com.wdc.shopping.backend.controller.StatusController;
 import io.javalin.Javalin;
 import io.javalin.config.JavalinConfig;
@@ -39,6 +42,7 @@ public class JavalinApplication {
     private static final String STATIC_FILES_EXTERNAL_DIR_ENV = "SHOPPING_STATIC_FILES_DIR";
     private static final String STATIC_FILES_EXTERNAL_DIR_PROPERTY = "shopping.staticFilesDir";
     private static final String STATIC_HOSTED_IMAGE_PATH = "/images";
+    private static final String FRONTEND_DIR = "work/frontend";
     
     private static final int DEFAULT_PORT = 8080;
     private static final record StaticFilesSettings(String directory, Location location) {}
@@ -84,7 +88,10 @@ public class JavalinApplication {
                 rule.allowCredentials = true;
             }));
 
-            // Enable static file serving from META-INF/resources
+            // Serve frontend assets from work/frontend/<subdir> (each subdir at root)
+            configureFrontendStaticFiles(config);
+
+            // Fallback: classpath static files (META-INF/resources)
             config.staticFiles.add(staticFileConfig -> {
                 staticFileConfig.directory = staticFilesSettings.directory;
                 staticFileConfig.location = staticFilesSettings.location;
@@ -130,9 +137,9 @@ public class JavalinApplication {
 
         // Repository REST API for Android (and other REST clients)
 		RepositoryApiRoutes.configure(config);
-        // Force the SPA root through /index.html so bootstrap cookies are always issued
-        // before the frontend constructor tries to read app_id and app_skey.
-        config.routes.get("/", ctx -> ctx.redirect("/index.html"));
+
+        // Landing page: lists available frontend contexts
+        LandingPageController.configure(config);
 
         // WebSocket dispatcher for bidirectional communication
         DispatcherController.configure(config);
@@ -142,7 +149,7 @@ public class JavalinApplication {
         // server-signed session ID on the very first page load.
         IndexHtmlController.configure(config);
 
-        // SPA fallback: redirect unmatched routes to index.html for React Router.
+        // SPA fallback: redirect unmatched paths within a frontend context to its index.html.
         // This must be last, after all specific routes are defined.
         config.routes.before(ctx -> {
             // @formatter:off
@@ -153,10 +160,15 @@ public class JavalinApplication {
                 && !path.startsWith("/health")
                 && !path.startsWith("/dispatcher")
                 && !path.startsWith("/teavm")
-                && !path.equals("/index.html")
+                && !path.equals("/")
                 && !isStaticResource(path)) {
-                LOG.debug("SPA fallback for path: {}", path);
-                ctx.redirect("/index.html");
+                // Resolve context-aware SPA fallback: /<context>/anything -> /<context>/index.html
+                int secondSlash = path.indexOf('/', 1);
+                if (secondSlash > 0) {
+                    String contextPath = path.substring(0, secondSlash);
+                    LOG.debug("SPA fallback for path: {} -> {}/index.html", path, contextPath);
+                    ctx.redirect(contextPath + "/index.html");
+                }
             }
             // @formatter:on
         });
@@ -181,6 +193,35 @@ public class JavalinApplication {
                path.endsWith(".ttf") ||
                path.equals("/");
         // @formatter:on
+    }
+
+    /**
+     * Scans subdirectories under {@code work/frontend/} and registers each one
+     * as an external static file source served at its own context path ({@code /<dirname>/}).
+     * This allows Parcel-built frontends to be served directly during development.
+     */
+    private void configureFrontendStaticFiles(JavalinConfig config) {
+        Path frontendBase = Paths.get(FRONTEND_DIR).toAbsolutePath().normalize();
+        if (!Files.isDirectory(frontendBase)) {
+            LOG.info("Frontend directory not found: {} — skipping external static files", frontendBase);
+            return;
+        }
+
+        try (Stream<Path> subdirs = Files.list(frontendBase)) {
+            subdirs.filter(Files::isDirectory).forEach(subdir -> {
+                String dirPath = subdir.toString();
+                String contextName = subdir.getFileName().toString();
+                config.staticFiles.add(staticFileConfig -> {
+                    staticFileConfig.directory = dirPath;
+                    staticFileConfig.location = Location.EXTERNAL;
+                    staticFileConfig.hostedPath = "/" + contextName;
+                    staticFileConfig.precompressMaxSize = 0;
+                });
+                LOG.info("Serving frontend context '{}' from: {}", contextName, dirPath);
+            });
+        } catch (IOException e) {
+            LOG.warn("Failed to scan frontend directory: {}", frontendBase, e);
+        }
     }
 
     private static StaticFilesSettings resolveStaticFilesSettings() {

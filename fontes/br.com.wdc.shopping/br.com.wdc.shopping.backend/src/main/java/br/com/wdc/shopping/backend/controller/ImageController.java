@@ -13,6 +13,7 @@ public class ImageController {
     public static void configure(JavalinConfig config) {
         var controller = new ImageController();
         config.routes.get("/image/product/{productId}.png", controller::handle);
+        config.routes.get("/<context>/image/product/{productId}.png", controller::handle);
     }
 
     protected void handle(Context ctx) {

@@ -12,7 +12,7 @@ public class IndexHtmlController {
 
 	public static void configure(JavalinConfig config) {
 		var controller = new IndexHtmlController();
-		config.routes.before("/index.html", controller::handle);
+		config.routes.before("/<context>/index.html", controller::handle);
 	}
 
 	// Singleton instance
