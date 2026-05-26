@@ -18,15 +18,19 @@ import io.javalin.http.Context;
 public class PurchaseApiController {
 
 	static void configure(JavalinConfig config) {
+		configure(config, "");
+	}
+
+	static void configure(JavalinConfig config, String prefix) {
 		var ctrl = new PurchaseApiController();
-		config.routes.post("/api/repo/purchase/insert", ctrl::insert);
-		config.routes.post("/api/repo/purchase/update", ctrl::update);
-		config.routes.post("/api/repo/purchase/upsert", ctrl::upsert);
-		config.routes.post("/api/repo/purchase/delete", ctrl::delete);
-		config.routes.post("/api/repo/purchase/count", ctrl::count);
-		config.routes.post("/api/repo/purchase/fetch", ctrl::fetch);
-		config.routes.post("/api/repo/purchase/fetchById", ctrl::fetchByIdPost);
-		config.routes.get("/api/repo/purchase/{id}", ctrl::fetchById);
+		config.routes.post(prefix + "/api/repo/purchase/insert", ctrl::insert);
+		config.routes.post(prefix + "/api/repo/purchase/update", ctrl::update);
+		config.routes.post(prefix + "/api/repo/purchase/upsert", ctrl::upsert);
+		config.routes.post(prefix + "/api/repo/purchase/delete", ctrl::delete);
+		config.routes.post(prefix + "/api/repo/purchase/count", ctrl::count);
+		config.routes.post(prefix + "/api/repo/purchase/fetch", ctrl::fetch);
+		config.routes.post(prefix + "/api/repo/purchase/fetchById", ctrl::fetchByIdPost);
+		config.routes.get(prefix + "/api/repo/purchase/{id}", ctrl::fetchById);
 	}
 
 	private static PurchaseRepository repo() {

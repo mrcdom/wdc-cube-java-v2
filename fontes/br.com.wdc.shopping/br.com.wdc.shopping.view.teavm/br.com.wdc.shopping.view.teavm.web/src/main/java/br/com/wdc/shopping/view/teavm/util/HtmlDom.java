@@ -3,6 +3,8 @@ package br.com.wdc.shopping.view.teavm.util;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import org.teavm.jso.JSBody;
+import org.teavm.jso.dom.events.EventListener;
 import org.teavm.jso.dom.html.HTMLButtonElement;
 import org.teavm.jso.dom.html.HTMLDocument;
 import org.teavm.jso.dom.html.HTMLElement;
@@ -270,4 +272,11 @@ public class HtmlDom {
         var textNode = HTMLDocument.current().createTextNode(content);
         this.currentParent.appendChild(textNode);
     }
+
+    // ---- Passive event listener ----
+
+    @JSBody(params = { "element", "type", "listener" }, script = ""
+            + "element.addEventListener(type, listener, {passive: true});")
+    public static native void addPassiveEventListener(HTMLElement element, String type,
+            EventListener<?> listener);
 }

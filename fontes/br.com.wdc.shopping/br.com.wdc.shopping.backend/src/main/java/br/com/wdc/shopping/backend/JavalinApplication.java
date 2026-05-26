@@ -137,6 +137,7 @@ public class JavalinApplication {
             String path = ctx.path();
             // Exclude API, WebSocket, health, and static resources from SPA redirect
             if (!path.startsWith("/api/") 
+                && !path.contains("/api/")
                 && !path.startsWith("/ws/") 
                 && !path.startsWith("/health")
                 && !path.startsWith("/dispatcher")
@@ -178,7 +179,8 @@ public class JavalinApplication {
     /**
      * Scans subdirectories under {@code work/frontend/} and registers each one
      * as an external static file source served at its own context path ({@code /<dirname>/}).
-     * This allows Parcel-built frontends to be served directly during development.
+     * Also registers API routes under each context so SPAs can access the API
+     * without cross-origin issues.
      */
     private void configureFrontendStaticFiles(JavalinConfig config) {
         Path frontendBase = Paths.get(FRONTEND_DIR).toAbsolutePath().normalize();
@@ -191,13 +193,16 @@ public class JavalinApplication {
             subdirs.filter(Files::isDirectory).forEach(subdir -> {
                 String dirPath = subdir.toString();
                 String contextName = subdir.getFileName().toString();
+                String contextPrefix = "/" + contextName;
                 config.staticFiles.add(staticFileConfig -> {
                     staticFileConfig.directory = dirPath;
                     staticFileConfig.location = Location.EXTERNAL;
-                    staticFileConfig.hostedPath = "/" + contextName;
+                    staticFileConfig.hostedPath = contextPrefix;
                     staticFileConfig.precompressMaxSize = 0;
                 });
-                LOG.info("Serving frontend context '{}' from: {}", contextName, dirPath);
+                // Register API routes under this context: /<context>/api/...
+                RepositoryApiRoutes.configure(config, contextPrefix);
+                LOG.info("Serving frontend context '{}' from: {} (with API at {}/api/)", contextName, dirPath, contextPrefix);
             });
         } catch (IOException e) {
             LOG.warn("Failed to scan frontend directory: {}", frontendBase, e);

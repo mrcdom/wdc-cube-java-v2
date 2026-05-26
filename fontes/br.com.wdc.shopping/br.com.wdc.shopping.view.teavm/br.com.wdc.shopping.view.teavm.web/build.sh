@@ -4,10 +4,20 @@ cd "$(dirname "$0")"
 
 DEPLOY_DIR="../../br.com.wdc.shopping.backend/work/frontend/app.teavm"
 
-# Compile TeaVM (generates JS into $DEPLOY_DIR/js/)
-JAVA_HOME=$JAVA21_HOME mvn process-classes -DskipTests
+# Option --full: install all dependency modules before building
+if [[ "$1" == "--full" ]]; then
+    echo "=== Installing dependency modules ==="
+    FRAMEWORK_DIR="../../../br.com.wdc.framework"
+    SHOPPING_DIR="../.."
 
-# Copy webapp assets (index.html) to deploy dir
-cp src/main/webapp/index.html "$DEPLOY_DIR/"
+    JAVA_HOME=$JAVA21_HOME mvn -f "$FRAMEWORK_DIR/pom.xml" install -DskipTests -q
+    JAVA_HOME=$JAVA21_HOME mvn -f "$SHOPPING_DIR/pom.xml" install \
+        -pl br.com.wdc.shopping.domain,br.com.wdc.shopping.persistence,br.com.wdc.shopping.persistence.client,br.com.wdc.shopping.presentation \
+        -DskipTests -q
+    echo "=== Dependencies installed ==="
+fi
+
+# Compile TeaVM (generates JS into $DEPLOY_DIR/js/ and copies filtered index.html via maven-resources-plugin)
+JAVA_HOME=$JAVA21_HOME mvn process-classes -DskipTests
 
 echo "Deploy complete: $DEPLOY_DIR"

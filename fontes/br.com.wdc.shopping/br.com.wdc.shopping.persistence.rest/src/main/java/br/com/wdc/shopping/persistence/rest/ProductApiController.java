@@ -19,17 +19,21 @@ public class ProductApiController {
 	private static final Log LOG = Log.getLogger(ProductApiController.class);
 
 	static void configure(JavalinConfig config) {
+		configure(config, "");
+	}
+
+	static void configure(JavalinConfig config, String prefix) {
 		var ctrl = new ProductApiController();
-		config.routes.post("/api/repo/product/insert", ctrl::insert);
-		config.routes.post("/api/repo/product/update", ctrl::update);
-		config.routes.post("/api/repo/product/upsert", ctrl::upsert);
-		config.routes.post("/api/repo/product/delete", ctrl::delete);
-		config.routes.post("/api/repo/product/count", ctrl::count);
-		config.routes.post("/api/repo/product/fetch", ctrl::fetch);
-		config.routes.post("/api/repo/product/fetchById", ctrl::fetchByIdPost);
-		config.routes.get("/api/repo/product/{id}", ctrl::fetchById);
-		config.routes.get("/api/repo/product/{id}/image", ctrl::fetchImage);
-		config.routes.put("/api/repo/product/{id}/image", ctrl::updateImage);
+		config.routes.post(prefix + "/api/repo/product/insert", ctrl::insert);
+		config.routes.post(prefix + "/api/repo/product/update", ctrl::update);
+		config.routes.post(prefix + "/api/repo/product/upsert", ctrl::upsert);
+		config.routes.post(prefix + "/api/repo/product/delete", ctrl::delete);
+		config.routes.post(prefix + "/api/repo/product/count", ctrl::count);
+		config.routes.post(prefix + "/api/repo/product/fetch", ctrl::fetch);
+		config.routes.post(prefix + "/api/repo/product/fetchById", ctrl::fetchByIdPost);
+		config.routes.get(prefix + "/api/repo/product/{id}", ctrl::fetchById);
+		config.routes.get(prefix + "/api/repo/product/{id}/image", ctrl::fetchImage);
+		config.routes.put(prefix + "/api/repo/product/{id}/image", ctrl::updateImage);
 	}
 
 	private static ProductRepository repo() {

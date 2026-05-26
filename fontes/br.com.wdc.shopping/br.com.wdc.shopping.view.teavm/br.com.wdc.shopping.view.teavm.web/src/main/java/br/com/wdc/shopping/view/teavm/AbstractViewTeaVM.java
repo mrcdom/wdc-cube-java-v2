@@ -41,7 +41,9 @@ public abstract class AbstractViewTeaVM<P> implements CubeView {
 
     @Override
     public void release() {
-        this.element.getOwnerDocument().getBody().removeChild(this.element);
+        if (this.element.getParentNode() != null) {
+            this.element.getParentNode().removeChild(this.element);
+        }
     }
 
     public HTMLElement getElement() {

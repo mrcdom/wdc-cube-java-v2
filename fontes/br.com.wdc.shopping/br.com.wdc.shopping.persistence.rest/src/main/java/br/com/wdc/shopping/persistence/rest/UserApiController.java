@@ -22,15 +22,19 @@ public class UserApiController {
 	private static final Log LOG = Log.getLogger(UserApiController.class);
 
 	static void configure(JavalinConfig config) {
+		configure(config, "");
+	}
+
+	static void configure(JavalinConfig config, String prefix) {
 		var ctrl = new UserApiController();
-		config.routes.post("/api/repo/user/insert", ctrl::insert);
-		config.routes.post("/api/repo/user/update", ctrl::update);
-		config.routes.post("/api/repo/user/upsert", ctrl::upsert);
-		config.routes.post("/api/repo/user/delete", ctrl::delete);
-		config.routes.post("/api/repo/user/count", ctrl::count);
-		config.routes.post("/api/repo/user/fetch", ctrl::fetch);
-		config.routes.post("/api/repo/user/fetchById", ctrl::fetchByIdPost);
-		config.routes.get("/api/repo/user/{id}", ctrl::fetchById);
+		config.routes.post(prefix + "/api/repo/user/insert", ctrl::insert);
+		config.routes.post(prefix + "/api/repo/user/update", ctrl::update);
+		config.routes.post(prefix + "/api/repo/user/upsert", ctrl::upsert);
+		config.routes.post(prefix + "/api/repo/user/delete", ctrl::delete);
+		config.routes.post(prefix + "/api/repo/user/count", ctrl::count);
+		config.routes.post(prefix + "/api/repo/user/fetch", ctrl::fetch);
+		config.routes.post(prefix + "/api/repo/user/fetchById", ctrl::fetchByIdPost);
+		config.routes.get(prefix + "/api/repo/user/{id}", ctrl::fetchById);
 	}
 
 	private static UserRepository repo() {

@@ -127,15 +127,15 @@ public class ProductsPanelViewTeaVM extends AbstractViewTeaVM<ProductsPanelPrese
                         card.setAttribute("style", CARD_HOVER_STYLE);
                 });
                 card.addEventListener("mouseleave", evt -> card.setAttribute("style", CARD_STYLE));
-                card.addEventListener("touchstart", evt -> {
+                HtmlDom.addPassiveEventListener(card, "touchstart", evt -> {
                     touchActive[0] = true;
                     card.setAttribute("style", CARD_HOVER_STYLE);
                 });
-                card.addEventListener("touchend", evt -> {
+                HtmlDom.addPassiveEventListener(card, "touchend", evt -> {
                     card.setAttribute("style", CARD_STYLE);
                     Window.setTimeout(() -> touchActive[0] = false, 300);
                 });
-                card.addEventListener("touchcancel", evt -> {
+                HtmlDom.addPassiveEventListener(card, "touchcancel", evt -> {
                     card.setAttribute("style", CARD_STYLE);
                     Window.setTimeout(() -> touchActive[0] = false, 300);
                 });

@@ -97,11 +97,11 @@ public class FetchUsersCmd extends BaseCommand {
             }
         }
 
-        if (criteria.limit() != null) {
+        if (criteria.limit() != null && criteria.limit() > 0) {
             sql.ln(LIMIT, criteria.limit());
         }
 
-        if (criteria.offset() != null) {
+        if (criteria.offset() != null && criteria.offset() > 0) {
             sql.ln(OFFSET, criteria.offset());
         }
 

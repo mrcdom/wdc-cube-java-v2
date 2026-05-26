@@ -26,10 +26,14 @@ public class AuthApiController {
 	}
 
 	public void configure(JavalinConfig config) {
-		config.routes.get("/api/auth/challenge", this::challenge);
-		config.routes.post("/api/auth/login", this::login);
-		config.routes.post("/api/auth/refresh", this::refresh);
-		config.routes.post("/api/auth/logout", this::logout);
+		configure(config, "");
+	}
+
+	public void configure(JavalinConfig config, String prefix) {
+		config.routes.get(prefix + "/api/auth/challenge", this::challenge);
+		config.routes.post(prefix + "/api/auth/login", this::login);
+		config.routes.post(prefix + "/api/auth/refresh", this::refresh);
+		config.routes.post(prefix + "/api/auth/logout", this::logout);
 	}
 
 	private void challenge(Context ctx) throws Exception {
