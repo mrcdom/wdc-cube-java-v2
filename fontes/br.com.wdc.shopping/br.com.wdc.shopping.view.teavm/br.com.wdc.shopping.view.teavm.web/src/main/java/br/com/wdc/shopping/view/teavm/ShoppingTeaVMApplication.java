@@ -32,14 +32,14 @@ import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPres
 import br.com.wdc.shopping.view.teavm.interop.Console;
 import br.com.wdc.shopping.view.teavm.repo.TeaVMAuthenticationService;
 import br.com.wdc.shopping.view.teavm.repo.TeaVMRepositoryBootstrap;
-import br.com.wdc.shopping.view.teavm.views.CartViewTeaVM;
-import br.com.wdc.shopping.view.teavm.views.HomeViewTeaVM;
-import br.com.wdc.shopping.view.teavm.views.LoginViewTeaVM;
-import br.com.wdc.shopping.view.teavm.views.ProductViewTeaVM;
-import br.com.wdc.shopping.view.teavm.views.ProductsPanelViewTeaVM;
-import br.com.wdc.shopping.view.teavm.views.PurchasesPanelViewTeaVM;
-import br.com.wdc.shopping.view.teavm.views.ReceiptViewTeaVM;
-import br.com.wdc.shopping.view.teavm.views.RootViewTeaVM;
+import br.com.wdc.shopping.view.teavm.views.CartViewVDom;
+import br.com.wdc.shopping.view.teavm.views.HomeViewVDom;
+import br.com.wdc.shopping.view.teavm.views.LoginViewVDom;
+import br.com.wdc.shopping.view.teavm.views.ProductViewVDom;
+import br.com.wdc.shopping.view.teavm.views.ProductsPanelViewVDom;
+import br.com.wdc.shopping.view.teavm.views.PurchasesPanelViewVDom;
+import br.com.wdc.shopping.view.teavm.views.ReceiptViewVDom;
+import br.com.wdc.shopping.view.teavm.views.RootViewVDom;
 
 /**
  * Implementação de {@link ShoppingApplication} para o browser via TeaVM. Usa Material Web components para UI e
@@ -58,14 +58,14 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
 
     static {
         // Wiring das view factories
-        RootPresenter.createView = RootViewTeaVM::new;
-        LoginPresenter.createView = LoginViewTeaVM::new;
-        HomePresenter.createView = HomeViewTeaVM::new;
-        CartPresenter.createView = CartViewTeaVM::new;
-        ProductPresenter.createView = ProductViewTeaVM::new;
-        ReceiptPresenter.createView = ReceiptViewTeaVM::new;
-        ProductsPanelPresenter.createView = ProductsPanelViewTeaVM::new;
-        PurchasesPanelPresenter.createView = PurchasesPanelViewTeaVM::new;
+        RootPresenter.createView = RootViewVDom::new;
+        LoginPresenter.createView = LoginViewVDom::new;
+        HomePresenter.createView = HomeViewVDom::new;
+        CartPresenter.createView = CartViewVDom::new;
+        ProductPresenter.createView = ProductViewVDom::new;
+        ReceiptPresenter.createView = ReceiptViewVDom::new;
+        ProductsPanelPresenter.createView = ProductsPanelViewVDom::new;
+        PurchasesPanelPresenter.createView = PurchasesPanelViewVDom::new;
     }
 
     public ShoppingTeaVMApplication(String apiBaseUrl) {
