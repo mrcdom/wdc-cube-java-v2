@@ -121,15 +121,19 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
             return slot("flex-grow-1 overflow-auto", contentViewEl)
                     .style("background-color:#ededed;min-height:0");
         }
-        // Default: products/purchases tabs
-        return div("flex-grow-1 overflow-auto")
+
+        // Responsive classes: on mobile, only one panel visible at a time
+        // On desktop (md+), both panels always visible side by side
+        var productsHide = this.showingProducts ? "" : "d-none d-md-flex";
+        var purchasesHide = this.showingProducts ? "d-none d-md-flex" : "";
+
+        return div("flex-grow-1 d-flex flex-column flex-md-row")
                 .style("background-color:#ededed;min-height:0")
                 .children(
-                        div("h-100").children(
-                                slot("h-100", productsPanelEl)
-                                        .style(this.showingProducts ? "" : "display:none"),
-                                slot("h-100", purchasesPanelEl)
-                                        .style(this.showingProducts ? "display:none" : "")));
+                        slot("h-100 " + productsHide, productsPanelEl)
+                                .style("flex:3;min-width:0"),
+                        slot("h-100 " + purchasesHide, purchasesPanelEl)
+                                .style("flex:2;min-width:0"));
     }
 
     private VNode renderBottomNav() {
@@ -140,7 +144,8 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
                 ? "btn flex-grow-1 rounded-0 py-3 text-muted border-0"
                 : "btn flex-grow-1 rounded-0 py-3 fw-bold text-primary border-0";
 
-        return footer("d-flex border-top bg-white flex-shrink-0").children(
+        // Bottom nav only on mobile (hidden on md+)
+        return footer("d-flex d-md-none border-top bg-white flex-shrink-0").children(
                 button(prodCls)
                         .children(span(BsIcons.SHOP), span("").text(" Produtos"))
                         .on("click", evt -> switchTab(true)),

@@ -21,10 +21,12 @@ import br.com.wdc.shopping.view.teavm.vdom.VNode;
 public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPresenter> {
 
     private static final int ITEM_HEIGHT_PX = 56;
+    private static final int MAX_COMPUTE_RETRIES = 10;
 
     private final PurchasesPanelViewState state;
     private HTMLElement listContainer;
     private int pendingResizeFrame = -1;
+    private int computeRetries;
 
     // Stable event listener references (avoid re-registration on every render)
     private final EventListener<Event> prevPageListener;
@@ -121,8 +123,15 @@ public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPrese
         if (this.listContainer == null)
             return;
         int containerHeight = this.listContainer.getClientHeight();
-        if (containerHeight <= 0)
+        if (containerHeight <= 0) {
+            // Element not yet laid out (e.g. not attached to DOM); retry next frame
+            if (this.computeRetries < MAX_COMPUTE_RETRIES) {
+                this.computeRetries++;
+                Window.requestAnimationFrame(t -> computePageSize());
+            }
             return;
+        }
+        this.computeRetries = 0;
         int capacity = Math.max(1, containerHeight / ITEM_HEIGHT_PX);
         // Must run in Thread because onItemSizeCapacityChanged triggers @Async data fetch
         safeAction("PageSize", () -> this.presenter.onItemSizeCapacityChanged(capacity));
