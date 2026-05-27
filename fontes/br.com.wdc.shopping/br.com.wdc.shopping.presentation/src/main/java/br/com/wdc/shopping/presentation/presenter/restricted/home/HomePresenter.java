@@ -5,12 +5,14 @@ import java.util.function.Function;
 
 import br.com.wdc.framework.commons.function.ThrowingRunnable;
 import br.com.wdc.framework.commons.log.Log;
+import br.com.wdc.framework.commons.storage.ClientStorage;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.CubeViewSlot;
 import br.com.wdc.framework.cube.ViewState;
+import br.com.wdc.shopping.domain.security.AuthenticationService;
 import br.com.wdc.shopping.presentation.PlaceAttributes;
 import br.com.wdc.shopping.presentation.PlaceParameters;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
@@ -227,6 +229,14 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
             this.cart.clear();
             this.app.setSubject(null);
             this.setContentView(null);
+
+            // Logout via AuthenticationService (limpa tokens do ClientStorage)
+            var authService = AuthenticationService.BEAN.get();
+            if (authService != null) {
+                var storage = ClientStorage.BEAN.get();
+                var refreshToken = storage != null ? storage.get("auth.refreshToken") : null;
+                authService.logout(refreshToken);
+            }
 
             Routes.login(this.app);
         } catch (Exception caught) {

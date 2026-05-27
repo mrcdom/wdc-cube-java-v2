@@ -52,6 +52,7 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
     private final String apiBaseUrl;
     private final List<AbstractViewTeaVM<?>> dirtyViews = new ArrayList<>();
     private final Map<String, Object> attributeMap = new HashMap<>();
+    private final IntentSigner intentSigner;
     private boolean renderScheduled;
     private boolean navigatingFromBrowser;
 
@@ -72,6 +73,9 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
 
         // Configura CryptoProvider para browser (antes de qualquer auth)
         CryptoProvider.BEAN.set(new BrowserCryptoProvider());
+
+        // Gera secret aleatório por sessão para assinatura de URL
+        this.intentSigner = new IntentSigner(generateRandomBytes(32));
 
         // Configura ScheduledExecutor para browser
         ScheduledExecutor.BEAN.set(new ScheduledExecutorBrowser());
@@ -182,7 +186,8 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
             Routes.Place.values();
             var hash = getLocationHash();
             if (hash != null && hash.startsWith("#") && hash.length() > 1) {
-                var location = hash.substring(1);
+                // No boot, o secret é novo (F5 gera outro), então strip assinatura antiga se houver
+                var location = intentSigner.stripSignature(hash.substring(1));
                 try {
                     this.go(location);
                 } catch (Exception e) {
@@ -222,13 +227,14 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
             }
         }
 
-        // Sync browser URL hash with current MVP intent
+        // Sync browser URL hash with signed intent
         if (!navigatingFromBrowser) {
             try {
                 var intent = this.newIntent();
                 var intentStr = intent.toString();
                 this.fragment = intentStr;
-                pushState("#" + intentStr);
+                var signedUrl = intentSigner.sign(intentStr);
+                pushState("#" + signedUrl);
             } catch (Exception e) {
                 LOG.error("Failed to push browser history state: " + e.getMessage());
             }
@@ -240,7 +246,6 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
         if (hash == null || hash.isEmpty()) {
             return;
         }
-        // Remove leading '#'
         if (hash.startsWith("#")) {
             hash = hash.substring(1);
         }
@@ -248,7 +253,14 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
             return;
         }
 
-        var location = hash;
+        // Verifica assinatura - rejeita URLs adulteradas e restaura hash legítimo
+        if (!intentSigner.verify(hash)) {
+            LOG.warn("Invalid URL signature, restoring current state: " + hash);
+            pushState("#" + intentSigner.sign(this.fragment));
+            return;
+        }
+
+        var location = intentSigner.stripSignature(hash);
         new Thread(() -> {
             this.navigatingFromBrowser = true;
             try {
@@ -266,5 +278,17 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
 
     @JSBody(params = {}, script = "return window.location.hash || '';")
     private static native String getLocationHash();
+
+    @JSBody(params = "length", script = "var arr = new Uint8Array(length); crypto.getRandomValues(arr); return Array.from(arr);")
+    private static native int[] cryptoRandomValues(int length);
+
+    private static byte[] generateRandomBytes(int length) {
+        int[] values = cryptoRandomValues(length);
+        byte[] bytes = new byte[length];
+        for (int i = 0; i < length; i++) {
+            bytes[i] = (byte) values[i];
+        }
+        return bytes;
+    }
 
 }
