@@ -6,14 +6,16 @@ import java.util.function.Supplier;
 
 import org.teavm.jso.dom.html.HTMLElement;
 
+import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.CubeView;
-import br.com.wdc.shopping.view.teavm.interop.Console;
 
 /**
  * Classe base para todas as views TeaVM.
  * Equivalente a AbstractViewGluon mas operando sobre HTMLElement via TeaVM.
  */
 public abstract class AbstractViewTeaVM<P> implements CubeView {
+
+    private static final Log LOG = Log.getLogger(AbstractViewTeaVM.class);
 
     protected final String instanceId;
     protected final ShoppingTeaVMApplication app;
@@ -57,14 +59,18 @@ public abstract class AbstractViewTeaVM<P> implements CubeView {
     public abstract void doUpdate();
 
     /**
-     * Executa uma ação do presenter com tratamento de erro.
+     * Executa uma ação do presenter em um Thread TeaVM (contexto de coroutine),
+     * permitindo que chamadas {@code @Async} (como HTTP requests) possam suspender.
+     * Erros são propagados para a aplicação via {@code alertUnexpectedError}.
      */
     protected void safeAction(String context, Runnable action) {
-        try {
-            action.run();
-        } catch (Exception e) {
-            Console.error("[" + context + "] Error: " + e.getMessage());
-        }
+        new Thread(() -> {
+            try {
+                action.run();
+            } catch (Exception e) {
+                app.alertUnexpectedError(LOG, context, e);
+            }
+        }).start();
     }
 
     /**

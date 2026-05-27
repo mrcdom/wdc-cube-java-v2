@@ -8,14 +8,20 @@ import java.util.Map;
 import org.teavm.jso.browser.Window;
 
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
+import br.com.wdc.framework.commons.http.HttpTransport;
+import br.com.wdc.framework.commons.log.Log;
+import br.com.wdc.framework.commons.storage.ClientStorage;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubePresenter;
+import br.com.wdc.shopping.domain.criteria.UserCriteria;
+import br.com.wdc.shopping.domain.security.AuthResult;
+import br.com.wdc.shopping.domain.security.AuthenticationService;
 import br.com.wdc.shopping.domain.security.CryptoProvider;
-import br.com.wdc.shopping.persistence.client.HttpTransport;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.RootPresenter;
 import br.com.wdc.shopping.presentation.presenter.Routes;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
+import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter;
@@ -23,6 +29,7 @@ import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.Purc
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
 import br.com.wdc.shopping.view.teavm.interop.Console;
+import br.com.wdc.shopping.view.teavm.repo.TeaVMAuthenticationService;
 import br.com.wdc.shopping.view.teavm.repo.TeaVMRepositoryBootstrap;
 import br.com.wdc.shopping.view.teavm.views.CartViewTeaVM;
 import br.com.wdc.shopping.view.teavm.views.HomeViewTeaVM;
@@ -38,6 +45,8 @@ import br.com.wdc.shopping.view.teavm.views.RootViewTeaVM;
  * requestAnimationFrame para render loop.
  */
 public class ShoppingTeaVMApplication extends ShoppingApplication {
+
+    private static final Log LOG = Log.getLogger(ShoppingTeaVMApplication.class);
 
     private final String apiBaseUrl;
     private final List<AbstractViewTeaVM<?>> dirtyViews = new ArrayList<>();
@@ -65,9 +74,13 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
         // Configura ScheduledExecutor para browser
         ScheduledExecutor.BEAN.set(new ScheduledExecutorBrowser());
 
+        // Configura ClientStorage para browser (sessionStorage)
+        var storage = new BrowserSessionStorage();
+        ClientStorage.BEAN.set(storage);
+
         // Configura HTTP transport e registra repositórios
         HttpTransport transport = new FetchHttpTransport(apiBaseUrl);
-        TeaVMRepositoryBootstrap.initialize(transport);
+        TeaVMRepositoryBootstrap.initialize(transport, storage);
     }
 
     public String getApiBaseUrl() {
@@ -137,11 +150,29 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
     }
 
     /**
-     * Inicia a aplicação navegando para a rota inicial.
+     * Inicia a aplicação. Tenta restaurar a sessão anterior via refresh token.
+     * Se bem-sucedido, navega direto para home; caso contrário, vai para login.
      */
     public void start() {
         Console.log("ShoppingTeaVMApplication starting...");
-        Routes.root(this);
+        new Thread(() -> {
+            try {
+                var authService = (TeaVMAuthenticationService) AuthenticationService.BEAN.get();
+                AuthResult restored = authService.tryRestore();
+                if (restored != null && restored.userId() != null) {
+                    // Restaurar o subject
+                    var users = getUserRepository().fetch(new UserCriteria()
+                            .withUserId(restored.userId())
+                            .withProjection(Subject.projection()), 0, 1);
+                    if (!users.isEmpty()) {
+                        setSubject(Subject.create(users.get(0)));
+                    }
+                }
+            } catch (Exception e) {
+                LOG.warn("Session restore failed: " + e.getMessage());
+            }
+            Routes.root(this);
+        }).start();
     }
 
     @Override

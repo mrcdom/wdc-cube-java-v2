@@ -10,6 +10,7 @@ import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
+import br.com.wdc.framework.commons.http.HttpTransport;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.framework.commons.serialization.JsonStreamReader;
 import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
@@ -24,15 +25,15 @@ public class RestAuthClient {
 
 	private static final String HMAC_ALGORITHM = "HmacSHA256";
 
-	private final RestConfig config;
+	private final HttpTransport transport;
 
 	private String accessToken;
 	private String refreshToken;
 	private String publicKeyBase64;
 	private long expiresAtEpochSecond;
 
-	public RestAuthClient(RestConfig config) {
-		this.config = config;
+	public RestAuthClient(HttpTransport transport) {
+		this.transport = transport;
 	}
 
 	/**
@@ -43,7 +44,7 @@ public class RestAuthClient {
 	 */
 	public void login(String userName, String passwordHash) {
 		// 1. Obter challenge (nonce)
-		var challengeJson = config.getJson("/api/auth/challenge");
+		var challengeJson = transport.getJson("/api/auth/challenge");
 		var challengeReader = new JsonStreamReader(challengeJson);
 		challengeReader.beginObject();
 		String nonce = null;
@@ -66,7 +67,7 @@ public class RestAuthClient {
 		writer.name("nonce").value(nonce);
 		writer.endObject();
 
-		var loginJson = config.postJsonPublic("/api/auth/login", writer.result());
+		var loginJson = transport.postJsonPublic("/api/auth/login", writer.result());
 		var loginReader = new JsonStreamReader(loginJson);
 		loginReader.beginObject();
 		while (loginReader.hasNext()) {
@@ -97,7 +98,7 @@ public class RestAuthClient {
 		writer.name("refreshToken").value(refreshToken);
 		writer.endObject();
 
-		var responseJson = config.postJsonPublic("/api/auth/refresh", writer.result());
+		var responseJson = transport.postJsonPublic("/api/auth/refresh", writer.result());
 		var reader = new JsonStreamReader(responseJson);
 		reader.beginObject();
 		while (reader.hasNext()) {
@@ -124,7 +125,7 @@ public class RestAuthClient {
 				var writer = new JsonStreamWriter();
 				writer.beginObject();
 				writer.endObject();
-				config.postJsonWithAuth("/api/auth/logout", writer.result(), accessToken);
+				transport.postJsonWithAuth("/api/auth/logout", writer.result(), accessToken);
 			} catch (Exception e) {
 				// Ignora erros de rede no logout
 			}

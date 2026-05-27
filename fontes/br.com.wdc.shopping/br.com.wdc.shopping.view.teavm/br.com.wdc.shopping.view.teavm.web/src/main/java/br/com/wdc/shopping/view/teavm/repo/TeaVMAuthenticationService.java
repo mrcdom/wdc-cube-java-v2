@@ -2,11 +2,12 @@ package br.com.wdc.shopping.view.teavm.repo;
 
 import java.time.Instant;
 
+import br.com.wdc.framework.commons.http.HttpTransport;
+import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.framework.commons.serialization.JsonStreamReader;
 import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
-import br.com.wdc.framework.commons.log.Log;
-import br.com.wdc.shopping.persistence.client.HttpTransport;
+import br.com.wdc.framework.commons.storage.ClientStorage;
 import br.com.wdc.shopping.domain.exception.BusinessException;
 import br.com.wdc.shopping.domain.security.AuthResult;
 import br.com.wdc.shopping.domain.security.AuthenticationService;
@@ -15,16 +16,44 @@ import br.com.wdc.shopping.domain.security.SecurityContext;
 
 /**
  * Implementação de {@link AuthenticationService} para TeaVM. Usa HttpTransport diretamente.
+ * <p>
+ * Persiste tokens no {@link ClientStorage} para que a sessão sobreviva ao reload (F5).
  */
 public class TeaVMAuthenticationService implements AuthenticationService {
+
+    private static final String KEY_ACCESS_TOKEN = "auth.accessToken";
+    private static final String KEY_REFRESH_TOKEN = "auth.refreshToken";
 
     private final Log LOG = Log.getLogger(TeaVMAuthenticationService.class.getSimpleName());
 
     private final HttpTransport transport;
+    private final ClientStorage storage;
     private String accessToken;
 
-    public TeaVMAuthenticationService(HttpTransport transport) {
+    public TeaVMAuthenticationService(HttpTransport transport, ClientStorage storage) {
         this.transport = transport;
+        this.storage = storage;
+    }
+
+    /**
+     * Tenta restaurar a sessão a partir dos tokens salvos no {@link ClientStorage}.
+     * Se o refresh token estiver presente, faz refresh e retorna o resultado.
+     *
+     * @return resultado do refresh, ou {@code null} se não houver sessão salva ou o refresh falhar
+     */
+    public AuthResult tryRestore() {
+        var savedRefreshToken = storage.get(KEY_REFRESH_TOKEN);
+        if (savedRefreshToken == null) {
+            return null;
+        }
+
+        var result = refresh(savedRefreshToken);
+        if (result == null) {
+            // Token expirado ou inválido — limpar storage
+            storage.remove(KEY_ACCESS_TOKEN);
+            storage.remove(KEY_REFRESH_TOKEN);
+        }
+        return result;
     }
 
     @Override
@@ -73,6 +102,10 @@ public class TeaVMAuthenticationService implements AuthenticationService {
         this.accessToken = result.accessToken();
         transport.setAccessTokenSupplier(() -> this.accessToken);
 
+        // Persiste no storage para sobreviver ao F5
+        storage.set(KEY_ACCESS_TOKEN, result.accessToken());
+        storage.set(KEY_REFRESH_TOKEN, result.refreshToken());
+
         return result;
     }
 
@@ -98,6 +131,12 @@ public class TeaVMAuthenticationService implements AuthenticationService {
 
         var result = parseAuthResult(responseJson);
         this.accessToken = result.accessToken();
+        transport.setAccessTokenSupplier(() -> this.accessToken);
+
+        // Atualiza tokens no storage
+        storage.set(KEY_ACCESS_TOKEN, result.accessToken());
+        storage.set(KEY_REFRESH_TOKEN, result.refreshToken());
+
         return result;
     }
 
@@ -116,6 +155,10 @@ public class TeaVMAuthenticationService implements AuthenticationService {
         }
         this.accessToken = null;
         transport.setAccessTokenSupplier(null);
+
+        // Limpa tokens do storage
+        storage.remove(KEY_ACCESS_TOKEN);
+        storage.remove(KEY_REFRESH_TOKEN);
     }
 
     @Override

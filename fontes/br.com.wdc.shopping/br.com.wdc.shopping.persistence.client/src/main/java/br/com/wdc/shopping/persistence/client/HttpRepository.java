@@ -2,6 +2,7 @@ package br.com.wdc.shopping.persistence.client;
 
 import java.util.List;
 
+import br.com.wdc.framework.commons.http.HttpTransport;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.framework.commons.serialization.JsonStreamReader;
 import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
