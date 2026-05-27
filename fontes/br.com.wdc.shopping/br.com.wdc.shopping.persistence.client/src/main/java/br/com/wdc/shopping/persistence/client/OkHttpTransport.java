@@ -4,9 +4,8 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
+import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
+import br.com.wdc.framework.commons.serialization.JsonStreamReader;
 import br.com.wdc.shopping.domain.exception.BusinessException;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -39,10 +38,10 @@ public class OkHttpTransport implements HttpTransport {
     }
 
     @Override
-    public JsonObject postJson(String path, JsonObject body) {
+    public String postJson(String path, String body) {
         var requestBuilder = new Request.Builder()
                 .url(baseUrl + path)
-                .post(RequestBody.create(body.toString(), JSON_MEDIA_TYPE));
+                .post(RequestBody.create(body, JSON_MEDIA_TYPE));
         addAuthHeader(requestBuilder);
 
         try (var response = client.newCall(requestBuilder.build()).execute()) {
@@ -50,7 +49,7 @@ public class OkHttpTransport implements HttpTransport {
             if (!response.isSuccessful()) {
                 throw new BusinessException("HTTP " + response.code() + ": " + responseBody);
             }
-            return JsonParser.parseString(responseBody).getAsJsonObject();
+            return responseBody;
         } catch (BusinessException e) {
             throw e;
         } catch (IOException e) {
@@ -59,10 +58,10 @@ public class OkHttpTransport implements HttpTransport {
     }
 
     @Override
-    public JsonObject postJsonNullable(String path, JsonObject body) {
+    public String postJsonNullable(String path, String body) {
         var requestBuilder = new Request.Builder()
                 .url(baseUrl + path)
-                .post(RequestBody.create(body.toString(), JSON_MEDIA_TYPE));
+                .post(RequestBody.create(body, JSON_MEDIA_TYPE));
         addAuthHeader(requestBuilder);
 
         try (var response = client.newCall(requestBuilder.build()).execute()) {
@@ -73,7 +72,7 @@ public class OkHttpTransport implements HttpTransport {
             if (!response.isSuccessful()) {
                 throw new BusinessException("HTTP " + response.code() + ": " + responseBody);
             }
-            return JsonParser.parseString(responseBody).getAsJsonObject();
+            return responseBody;
         } catch (BusinessException e) {
             throw e;
         } catch (IOException e) {
@@ -82,10 +81,10 @@ public class OkHttpTransport implements HttpTransport {
     }
 
     @Override
-    public JsonObject postJsonPublic(String path, JsonObject body) {
+    public String postJsonPublic(String path, String body) {
         var request = new Request.Builder()
                 .url(baseUrl + path)
-                .post(RequestBody.create(body.toString(), JSON_MEDIA_TYPE))
+                .post(RequestBody.create(body, JSON_MEDIA_TYPE))
                 .build();
 
         try (var response = client.newCall(request).execute()) {
@@ -93,7 +92,7 @@ public class OkHttpTransport implements HttpTransport {
             if (!response.isSuccessful()) {
                 throw new BusinessException("HTTP " + response.code() + ": " + responseBody);
             }
-            return JsonParser.parseString(responseBody).getAsJsonObject();
+            return responseBody;
         } catch (BusinessException e) {
             throw e;
         } catch (IOException e) {
@@ -102,10 +101,10 @@ public class OkHttpTransport implements HttpTransport {
     }
 
     @Override
-    public JsonObject postJsonWithAuth(String path, JsonObject body, String token) {
+    public String postJsonWithAuth(String path, String body, String token) {
         var request = new Request.Builder()
                 .url(baseUrl + path)
-                .post(RequestBody.create(body.toString(), JSON_MEDIA_TYPE))
+                .post(RequestBody.create(body, JSON_MEDIA_TYPE))
                 .header("Authorization", "Bearer " + token)
                 .build();
 
@@ -114,7 +113,7 @@ public class OkHttpTransport implements HttpTransport {
             if (!response.isSuccessful()) {
                 throw new BusinessException("HTTP " + response.code() + ": " + responseBody);
             }
-            return JsonParser.parseString(responseBody).getAsJsonObject();
+            return responseBody;
         } catch (BusinessException e) {
             throw e;
         } catch (IOException e) {
@@ -123,7 +122,7 @@ public class OkHttpTransport implements HttpTransport {
     }
 
     @Override
-    public JsonObject getJson(String path) {
+    public String getJson(String path) {
         var request = new Request.Builder()
                 .url(baseUrl + path)
                 .get()
@@ -134,7 +133,7 @@ public class OkHttpTransport implements HttpTransport {
             if (!response.isSuccessful()) {
                 throw new BusinessException("HTTP " + response.code() + ": " + responseBody);
             }
-            return JsonParser.parseString(responseBody).getAsJsonObject();
+            return responseBody;
         } catch (BusinessException e) {
             throw e;
         } catch (IOException e) {
@@ -176,8 +175,18 @@ public class OkHttpTransport implements HttpTransport {
                 throw new BusinessException("HTTP " + response.code());
             }
             var responseBody = response.body() != null ? response.body().string() : null;
-            var json = JsonParser.parseString(responseBody).getAsJsonObject();
-            return json.get("success").getAsBoolean();
+            if (responseBody == null) return false;
+            var reader = new JsonStreamReader(responseBody);
+            reader.beginObject();
+            boolean success = false;
+            while (reader.hasNext()) {
+                switch (reader.nextName()) {
+                    case "success" -> success = Boolean.TRUE.equals(InputCoerceUtils.asBoolean(reader));
+                    default -> reader.skipValue();
+                }
+            }
+            reader.endObject();
+            return success;
         } catch (BusinessException e) {
             throw e;
         } catch (IOException e) {

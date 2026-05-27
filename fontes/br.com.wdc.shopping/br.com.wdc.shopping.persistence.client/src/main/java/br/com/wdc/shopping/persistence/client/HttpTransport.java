@@ -2,13 +2,11 @@ package br.com.wdc.shopping.persistence.client;
 
 import java.util.function.Supplier;
 
-import com.google.gson.JsonObject;
-
 /**
  * Abstração de transporte HTTP para os REST repositories.
  * <p>
- * Permite substituir a implementação HTTP (OkHttp, fetch API do browser, etc.)
- * sem alterar a lógica dos repositórios REST.
+ * Trabalha com JSON em formato String (sem dependência de Gson),
+ * compatível com JVM (OkHttp) e TeaVM (XMLHttpRequest).
  */
 public interface HttpTransport {
 
@@ -24,31 +22,31 @@ public interface HttpTransport {
      * POST JSON com autenticação (se disponível).
      *
      * @param path caminho relativo (e.g. "/api/products/fetch")
-     * @param body corpo JSON da requisição
-     * @return resposta JSON
+     * @param body corpo JSON da requisição (String)
+     * @return resposta JSON (String)
      * @throws br.com.wdc.shopping.domain.exception.BusinessException em caso de erro HTTP
      */
-    JsonObject postJson(String path, JsonObject body);
+    String postJson(String path, String body);
 
     /**
      * POST JSON com autenticação, retornando null para 404.
      */
-    JsonObject postJsonNullable(String path, JsonObject body);
+    String postJsonNullable(String path, String body);
 
     /**
      * POST JSON sem autenticação (endpoints públicos).
      */
-    JsonObject postJsonPublic(String path, JsonObject body);
+    String postJsonPublic(String path, String body);
 
     /**
      * POST JSON com token de autenticação explícito.
      */
-    JsonObject postJsonWithAuth(String path, JsonObject body, String token);
+    String postJsonWithAuth(String path, String body, String token);
 
     /**
      * GET JSON sem autenticação.
      */
-    JsonObject getJson(String path);
+    String getJson(String path);
 
     /**
      * GET bytes com autenticação. Retorna null para 404/204.

@@ -14,10 +14,16 @@ import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.commons.sql.SqlDataSource;
 import br.com.wdc.framework.commons.sql.SqlDataSourceDelegate;
 import br.com.wdc.shopping.persistence.rest.RepositoryApiRoutes;
+import br.com.wdc.shopping.persistence.client.HttpProductRepository;
+import br.com.wdc.shopping.persistence.client.HttpPurchaseItemRepository;
+import br.com.wdc.shopping.persistence.client.HttpPurchaseRepository;
+import br.com.wdc.shopping.persistence.client.HttpUserRepository;
 import br.com.wdc.shopping.persistence.client.OkHttpTransport;
-import br.com.wdc.shopping.persistence.client.RestConfig;
-import br.com.wdc.shopping.persistence.client.RestRepositoryBootstrap;
 import br.com.wdc.shopping.domain.ShoppingConfig;
+import br.com.wdc.shopping.domain.codec.ProductModelCodec;
+import br.com.wdc.shopping.domain.codec.PurchaseItemModelCodec;
+import br.com.wdc.shopping.domain.codec.PurchaseModelCodec;
+import br.com.wdc.shopping.domain.codec.UserModelCodec;
 import br.com.wdc.shopping.domain.repositories.ProductRepository;
 import br.com.wdc.shopping.domain.repositories.PurchaseItemRepository;
 import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
@@ -84,11 +90,11 @@ public class BaseRestApiTest {
 		int actualPort = javalin.port();
 
 		// Cria instâncias REST client (não sobrescrevem os BEANs)
-		var restConfig = new RestConfig(new OkHttpTransport("http://localhost:" + actualPort));
-		userRepo = RestRepositoryBootstrap.createUserRepository(restConfig);
-		productRepo = RestRepositoryBootstrap.createProductRepository(restConfig);
-		purchaseRepo = RestRepositoryBootstrap.createPurchaseRepository(restConfig);
-		purchaseItemRepo = RestRepositoryBootstrap.createPurchaseItemRepository(restConfig);
+		var transport = new OkHttpTransport("http://localhost:" + actualPort);
+		userRepo = new HttpUserRepository(transport, new UserModelCodec());
+		productRepo = new HttpProductRepository(transport, new ProductModelCodec());
+		purchaseRepo = new HttpPurchaseRepository(transport, new PurchaseModelCodec());
+		purchaseItemRepo = new HttpPurchaseItemRepository(transport, new PurchaseItemModelCodec());
 	}
 
 	@AfterClass

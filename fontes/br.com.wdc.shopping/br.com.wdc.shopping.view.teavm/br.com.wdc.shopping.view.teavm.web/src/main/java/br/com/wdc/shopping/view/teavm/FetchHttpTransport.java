@@ -2,19 +2,15 @@ package br.com.wdc.shopping.view.teavm;
 
 import org.teavm.jso.JSObject;
 
-import com.google.gson.JsonObject;
-
+import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
+import br.com.wdc.framework.commons.serialization.JsonStreamReader;
 import br.com.wdc.shopping.persistence.client.HttpTransport;
 import br.com.wdc.shopping.domain.exception.BusinessException;
 
 /**
- * Implementação de {@link HttpTransport} usando a Fetch API do browser.
+ * Implementação de {@link HttpTransport} usando XMLHttpRequest síncrono do browser.
  * <p>
- * NOTA: No browser, fetch é assíncrono. Aqui usamos uma abordagem síncrona
- * bloqueante via XMLHttpRequest síncrono para manter a interface compatível
- * com o padrão existente (chamadas síncronas dos repositórios).
- * <p>
- * Alternativa futura: migrar para async/await com TeaVM coroutines.
+ * Retorna JSON como String bruta, compatível com JsonStreamReader para parsing.
  */
 public class FetchHttpTransport implements HttpTransport {
 
@@ -31,15 +27,14 @@ public class FetchHttpTransport implements HttpTransport {
     }
 
     @Override
-    public JsonObject postJson(String path, JsonObject body) {
-        String responseBody = syncFetch(baseUrl + path, "POST", JsonParsing.toJson(body), getToken());
-        return JsonParsing.parseObject(responseBody);
+    public String postJson(String path, String body) {
+        return syncFetch(baseUrl + path, "POST", body, getToken());
     }
 
     @Override
-    public JsonObject postJsonNullable(String path, JsonObject body) {
+    public String postJsonNullable(String path, String body) {
         String token = getToken();
-        SyncResult result = syncFetchRaw(baseUrl + path, "POST", JsonParsing.toJson(body), token);
+        SyncResult result = syncFetchRaw(baseUrl + path, "POST", body, token);
         if (result.status == 401 && token != null) {
             handleSessionExpired();
         }
@@ -49,25 +44,22 @@ public class FetchHttpTransport implements HttpTransport {
         if (result.status < 200 || result.status >= 300) {
             throw new BusinessException("HTTP " + result.status + ": " + result.body);
         }
-        return JsonParsing.parseObject(result.body);
+        return result.body;
     }
 
     @Override
-    public JsonObject postJsonPublic(String path, JsonObject body) {
-        String responseBody = syncFetch(baseUrl + path, "POST", JsonParsing.toJson(body), null);
-        return JsonParsing.parseObject(responseBody);
+    public String postJsonPublic(String path, String body) {
+        return syncFetch(baseUrl + path, "POST", body, null);
     }
 
     @Override
-    public JsonObject postJsonWithAuth(String path, JsonObject body, String token) {
-        String responseBody = syncFetch(baseUrl + path, "POST", JsonParsing.toJson(body), token);
-        return JsonParsing.parseObject(responseBody);
+    public String postJsonWithAuth(String path, String body, String token) {
+        return syncFetch(baseUrl + path, "POST", body, token);
     }
 
     @Override
-    public JsonObject getJson(String path) {
-        String responseBody = syncFetch(baseUrl + path, "GET", null, null);
-        return JsonParsing.parseObject(responseBody);
+    public String getJson(String path) {
+        return syncFetch(baseUrl + path, "GET", null, null);
     }
 
     @Override
@@ -83,15 +75,12 @@ public class FetchHttpTransport implements HttpTransport {
         if (result.status < 200 || result.status >= 300) {
             throw new BusinessException("HTTP " + result.status);
         }
-        // Para bytes, usamos Base64 encoding no response ou retornamos como byte[]
-        // Simplificação: retornar o body como bytes UTF-8
         return result.body != null ? result.body.getBytes(java.nio.charset.StandardCharsets.ISO_8859_1) : null;
     }
 
     @Override
     public boolean putBytes(String path, byte[] data) {
         String token = getToken();
-        // PUT com content-type octet-stream via XHR síncrono
         SyncResult result = syncXhr(baseUrl + path, "PUT", data, token);
         if (result.status == 401 && token != null) {
             handleSessionExpired();
@@ -99,8 +88,17 @@ public class FetchHttpTransport implements HttpTransport {
         if (result.status < 200 || result.status >= 300) {
             throw new BusinessException("HTTP " + result.status);
         }
-        var json = JsonParsing.parseObject(result.body);
-        return json.get("success").getAsBoolean();
+        var reader = new JsonStreamReader(result.body);
+        reader.beginObject();
+        boolean success = false;
+        while (reader.hasNext()) {
+            switch (reader.nextName()) {
+                case "success" -> success = Boolean.TRUE.equals(InputCoerceUtils.asBoolean(reader));
+                default -> reader.skipValue();
+            }
+        }
+        reader.endObject();
+        return success;
     }
 
     private String getToken() {
@@ -125,7 +123,6 @@ public class FetchHttpTransport implements HttpTransport {
     private static void handleSessionExpired() {
         showSessionExpiredDialog();
         reloadPage();
-        // Lança exceção para interromper o fluxo chamador (nunca alcançada após reload)
         throw new BusinessException("Sessão expirada");
     }
 
@@ -136,10 +133,6 @@ public class FetchHttpTransport implements HttpTransport {
     @org.teavm.jso.JSBody(params = {}, script = "window.location.reload();")
     private static native void reloadPage();
 
-    /**
-     * Executa um XMLHttpRequest síncrono (suportado em browsers, embora deprecated).
-     * Necessário para manter interface síncrona dos repositórios.
-     */
     private static SyncResult syncFetchRaw(String url, String method, String body, String token) {
         return syncXhr(url, method, body != null ? body.getBytes(java.nio.charset.StandardCharsets.UTF_8) : null, token,
                 "application/json");
@@ -151,7 +144,7 @@ public class FetchHttpTransport implements HttpTransport {
 
     @org.teavm.jso.JSBody(params = { "url", "method", "body", "token", "contentType" }, script = ""
             + "var xhr = new XMLHttpRequest();"
-            + "xhr.open(method, url, false);" // false = synchronous
+            + "xhr.open(method, url, false);"
             + "xhr.setRequestHeader('Content-Type', contentType);"
             + "if (token) xhr.setRequestHeader('Authorization', 'Bearer ' + token);"
             + "xhr.send(body);"

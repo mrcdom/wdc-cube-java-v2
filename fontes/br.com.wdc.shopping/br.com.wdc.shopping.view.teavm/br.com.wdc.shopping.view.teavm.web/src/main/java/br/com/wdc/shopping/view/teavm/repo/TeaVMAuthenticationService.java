@@ -2,8 +2,9 @@ package br.com.wdc.shopping.view.teavm.repo;
 
 import java.time.Instant;
 
-import com.google.gson.JsonObject;
-
+import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
+import br.com.wdc.framework.commons.serialization.JsonStreamReader;
+import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.shopping.persistence.client.HttpTransport;
 import br.com.wdc.shopping.domain.exception.BusinessException;
@@ -13,7 +14,7 @@ import br.com.wdc.shopping.domain.security.ChallengeResult;
 import br.com.wdc.shopping.domain.security.SecurityContext;
 
 /**
- * Implementação de {@link AuthenticationService} para TeaVM. Usa HttpTransport diretamente sem Gson reflection.
+ * Implementação de {@link AuthenticationService} para TeaVM. Usa HttpTransport diretamente.
  */
 public class TeaVMAuthenticationService implements AuthenticationService {
 
@@ -28,22 +29,37 @@ public class TeaVMAuthenticationService implements AuthenticationService {
 
     @Override
     public ChallengeResult challenge() {
-        var json = transport.getJson("/api/auth/challenge");
-        var nonce = json.get("nonce").getAsString();
-        var expiresAt = Instant.parse(json.get("expiresAt").getAsString());
+        var responseJson = transport.getJson("/api/auth/challenge");
+        var reader = new JsonStreamReader(responseJson);
+        reader.beginObject();
+        String nonce = null;
+        Instant expiresAt = null;
+        while (reader.hasNext()) {
+            switch (reader.nextName()) {
+                case "nonce" -> nonce = InputCoerceUtils.asString(reader);
+                case "expiresAt" -> {
+                    var s = InputCoerceUtils.asString(reader);
+                    if (s != null) expiresAt = Instant.parse(s);
+                }
+                default -> reader.skipValue();
+            }
+        }
+        reader.endObject();
         return new ChallengeResult(nonce, expiresAt);
     }
 
     @Override
     public AuthResult login(String userName, String digest, String nonce) {
-        var body = new JsonObject();
-        body.addProperty("userName", userName);
-        body.addProperty("digest", digest);
-        body.addProperty("nonce", nonce);
+        var writer = new JsonStreamWriter();
+        writer.beginObject();
+        writer.name("userName").value(userName);
+        writer.name("digest").value(digest);
+        writer.name("nonce").value(nonce);
+        writer.endObject();
 
-        JsonObject response;
+        String responseJson;
         try {
-            response = transport.postJsonPublic("/api/auth/login", body);
+            responseJson = transport.postJsonPublic("/api/auth/login", writer.result());
         } catch (BusinessException e) {
             if (e.getMessage() != null && e.getMessage().contains("401")) {
                 return null;
@@ -51,7 +67,7 @@ public class TeaVMAuthenticationService implements AuthenticationService {
             throw e;
         }
 
-        var result = parseAuthResult(response);
+        var result = parseAuthResult(responseJson);
 
         // Guarda access token para requisições subsequentes
         this.accessToken = result.accessToken();
@@ -65,12 +81,14 @@ public class TeaVMAuthenticationService implements AuthenticationService {
         if (refreshToken == null)
             return null;
 
-        var body = new JsonObject();
-        body.addProperty("refreshToken", refreshToken);
+        var writer = new JsonStreamWriter();
+        writer.beginObject();
+        writer.name("refreshToken").value(refreshToken);
+        writer.endObject();
 
-        JsonObject response;
+        String responseJson;
         try {
-            response = transport.postJsonPublic("/api/auth/refresh", body);
+            responseJson = transport.postJsonPublic("/api/auth/refresh", writer.result());
         } catch (BusinessException e) {
             if (e.getMessage() != null && e.getMessage().contains("401")) {
                 return null;
@@ -78,7 +96,7 @@ public class TeaVMAuthenticationService implements AuthenticationService {
             throw e;
         }
 
-        var result = parseAuthResult(response);
+        var result = parseAuthResult(responseJson);
         this.accessToken = result.accessToken();
         return result;
     }
@@ -88,9 +106,11 @@ public class TeaVMAuthenticationService implements AuthenticationService {
         if (refreshToken == null)
             return;
         try {
-            var body = new JsonObject();
-            body.addProperty("refreshToken", refreshToken);
-            transport.postJsonPublic("/api/auth/logout", body);
+            var writer = new JsonStreamWriter();
+            writer.beginObject();
+            writer.name("refreshToken").value(refreshToken);
+            writer.endObject();
+            transport.postJsonPublic("/api/auth/logout", writer.result());
         } catch (Exception e) {
             LOG.debug("logout: " + e.getMessage());
         }
@@ -104,13 +124,29 @@ public class TeaVMAuthenticationService implements AuthenticationService {
         return null;
     }
 
-    private static AuthResult parseAuthResult(JsonObject json) {
-        return new AuthResult(
-                json.get("userId").getAsLong(),
-                json.get("accessToken").getAsString(),
-                json.get("refreshToken").getAsString(),
-                Instant.parse(json.get("expiresAt").getAsString()),
-                json.get("publicKey").getAsString());
+    private static AuthResult parseAuthResult(String responseJson) {
+        var reader = new JsonStreamReader(responseJson);
+        reader.beginObject();
+        Long userId = null;
+        String accessToken = null;
+        String refreshToken = null;
+        Instant expiresAt = null;
+        String publicKey = null;
+        while (reader.hasNext()) {
+            switch (reader.nextName()) {
+                case "userId" -> userId = InputCoerceUtils.asLong(reader);
+                case "accessToken" -> accessToken = InputCoerceUtils.asString(reader);
+                case "refreshToken" -> refreshToken = InputCoerceUtils.asString(reader);
+                case "expiresAt" -> {
+                    var s = InputCoerceUtils.asString(reader);
+                    if (s != null) expiresAt = Instant.parse(s);
+                }
+                case "publicKey" -> publicKey = InputCoerceUtils.asString(reader);
+                default -> reader.skipValue();
+            }
+        }
+        reader.endObject();
+        return new AuthResult(userId, accessToken, refreshToken, expiresAt, publicKey);
     }
 
 }

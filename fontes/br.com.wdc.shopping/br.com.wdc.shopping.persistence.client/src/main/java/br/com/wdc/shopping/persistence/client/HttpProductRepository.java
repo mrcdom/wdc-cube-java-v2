@@ -1,5 +1,6 @@
 package br.com.wdc.shopping.persistence.client;
 
+import br.com.wdc.shopping.domain.codec.ModelCodec;
 import br.com.wdc.shopping.domain.criteria.ProductCriteria;
 import br.com.wdc.shopping.domain.model.Product;
 import br.com.wdc.shopping.domain.repositories.ProductRepository;

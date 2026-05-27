@@ -2,16 +2,18 @@ package br.com.wdc.shopping.persistence.client;
 
 import java.util.List;
 
-import com.google.gson.JsonObject;
-
+import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
+import br.com.wdc.framework.commons.serialization.JsonStreamReader;
+import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
+import br.com.wdc.shopping.domain.codec.ModelCodec;
 import br.com.wdc.shopping.domain.model.Page;
 import br.com.wdc.shopping.domain.repositories.Repository;
 
 /**
  * Implementação genérica de repositório HTTP que delega serialização ao {@link ModelCodec}.
  * <p>
- * Elimina a duplicação entre clientes REST (Gson/JVM) e TeaVM (parsing manual),
- * mantendo uma única lógica de comunicação com a API.
+ * Usa {@link JsonStreamWriter}/{@link JsonStreamReader} para serialização streaming
+ * sem dependência de Gson, compatível com JVM e TeaVM.
  *
  * @param <E> tipo da entidade
  * @param <C> tipo do critério de pesquisa
@@ -39,62 +41,169 @@ public abstract class HttpRepository<E, C, K> implements Repository<E, C, K> {
 
     @Override
     public boolean insert(E entity) {
-        var body = codec.entityToJson(entity);
-        var result = transport.postJson(basePath + "/insert", body);
-        boolean success = result.get("success").getAsBoolean();
-        if (success && result.has("id") && !result.get("id").isJsonNull()) {
-            codec.setGeneratedId(entity, result.get("id").getAsLong());
+        var writer = new JsonStreamWriter();
+        codec.writeEntity(writer, entity);
+        var responseJson = transport.postJson(basePath + "/insert", writer.result());
+
+        var reader = new JsonStreamReader(responseJson);
+        reader.beginObject();
+        boolean success = false;
+        long id = -1;
+        while (reader.hasNext()) {
+            switch (reader.nextName()) {
+                case "success" -> success = Boolean.TRUE.equals(InputCoerceUtils.asBoolean(reader));
+                case "id" -> {
+                    var v = InputCoerceUtils.asLong(reader);
+                    if (v != null) id = v;
+                }
+                default -> reader.skipValue();
+            }
+        }
+        reader.endObject();
+
+        if (success && id >= 0) {
+            codec.setGeneratedId(entity, id);
         }
         return success;
     }
 
     @Override
     public boolean update(E newEntity, E oldEntity) {
-        var body = new JsonObject();
-        body.add("newEntity", codec.entityToJson(newEntity));
-        body.add("oldEntity", codec.entityToJson(oldEntity));
-        return transport.postJson(basePath + "/update", body).get("success").getAsBoolean();
+        var writer = new JsonStreamWriter();
+        writer.beginObject();
+        writer.name("newEntity");
+        codec.writeEntity(writer, newEntity);
+        writer.name("oldEntity");
+        codec.writeEntity(writer, oldEntity);
+        writer.endObject();
+
+        var responseJson = transport.postJson(basePath + "/update", writer.result());
+        return readSuccess(responseJson);
     }
 
     @Override
     public int delete(C criteria) {
-        return transport.postJson(basePath + "/delete", codec.criteriaToJson(criteria)).get("count").getAsInt();
+        var writer = new JsonStreamWriter();
+        writer.beginObject();
+        codec.writeCriteriaFields(writer, criteria);
+        writer.endObject();
+
+        var responseJson = transport.postJson(basePath + "/delete", writer.result());
+        return readCount(responseJson);
     }
 
     @Override
     public int count(C criteria) {
-        return transport.postJson(basePath + "/count", codec.criteriaToJson(criteria)).get("count").getAsInt();
+        var writer = new JsonStreamWriter();
+        writer.beginObject();
+        codec.writeCriteriaFields(writer, criteria);
+        writer.endObject();
+
+        var responseJson = transport.postJson(basePath + "/count", writer.result());
+        return readCount(responseJson);
     }
 
     @Override
     public List<E> fetch(C criteria, int offset, int limit) {
-        var body = codec.criteriaToJson(criteria);
-        codec.addProjection(body, codec.getProjection(criteria));
-        if (offset > 0) body.addProperty("offset", offset);
-        if (limit > 0) body.addProperty("limit", limit);
-        var result = transport.postJson(basePath + "/fetch", body);
-        return codec.entityListFromJson(result.getAsJsonArray("items"));
+        var writer = new JsonStreamWriter();
+        writer.beginObject();
+        codec.writeCriteriaFields(writer, criteria);
+        writeProjection(writer, codec.getProjection(criteria));
+        if (offset > 0) writer.name("offset").value(offset);
+        if (limit > 0) writer.name("limit").value(limit);
+        writer.endObject();
+
+        var responseJson = transport.postJson(basePath + "/fetch", writer.result());
+
+        var reader = new JsonStreamReader(responseJson);
+        reader.beginObject();
+        List<E> items = List.of();
+        while (reader.hasNext()) {
+            switch (reader.nextName()) {
+                case "items" -> items = codec.readEntityList(reader);
+                default -> reader.skipValue();
+            }
+        }
+        reader.endObject();
+        return items;
     }
 
     @Override
     public Page<E> fetchPage(C criteria, int page, int pageSize) {
-        var body = codec.criteriaToJson(criteria);
-        codec.addProjection(body, codec.getProjection(criteria));
-        if (page > 0) body.addProperty("page", page);
-        if (pageSize > 0) body.addProperty("pageSize", pageSize);
-        var result = transport.postJson(basePath + "/fetch-page", body);
-        var items = codec.entityListFromJson(result.getAsJsonArray("items"));
-        int totalItems = result.get("totalItems").getAsInt();
+        var writer = new JsonStreamWriter();
+        writer.beginObject();
+        codec.writeCriteriaFields(writer, criteria);
+        writeProjection(writer, codec.getProjection(criteria));
+        if (page > 0) writer.name("page").value(page);
+        if (pageSize > 0) writer.name("pageSize").value(pageSize);
+        writer.endObject();
+
+        var responseJson = transport.postJson(basePath + "/fetch-page", writer.result());
+
+        var reader = new JsonStreamReader(responseJson);
+        reader.beginObject();
+        List<E> items = List.of();
+        int totalItems = 0;
+        while (reader.hasNext()) {
+            switch (reader.nextName()) {
+                case "items" -> items = codec.readEntityList(reader);
+                case "totalItems" -> totalItems = InputCoerceUtils.asInteger(reader, 0);
+                default -> reader.skipValue();
+            }
+        }
+        reader.endObject();
         return Page.of(items, page, pageSize, totalItems);
     }
 
     @Override
     public E fetchById(K id, E projection) {
-        var body = new JsonObject();
-        body.addProperty("id", ((Number) id).longValue());
-        codec.addProjection(body, projection);
-        var result = transport.postJsonNullable(basePath + "/fetch-by-id", body);
-        if (result == null) return null;
-        return codec.entityFromJson(result);
+        var writer = new JsonStreamWriter();
+        writer.beginObject();
+        writer.name("id").value(((Number) id).longValue());
+        writeProjection(writer, projection);
+        writer.endObject();
+
+        var responseJson = transport.postJsonNullable(basePath + "/fetch-by-id", writer.result());
+        if (responseJson == null) return null;
+
+        var reader = new JsonStreamReader(responseJson);
+        return codec.readEntity(reader);
+    }
+
+    // ── Helpers ──
+
+    private void writeProjection(JsonStreamWriter writer, E projection) {
+        if (projection != null) {
+            writer.name("projection");
+            codec.writeEntity(writer, projection);
+        }
+    }
+
+    private boolean readSuccess(String responseJson) {
+        var reader = new JsonStreamReader(responseJson);
+        reader.beginObject();
+        boolean success = false;
+        while (reader.hasNext()) {
+            switch (reader.nextName()) {
+                case "success" -> success = Boolean.TRUE.equals(InputCoerceUtils.asBoolean(reader));
+                default -> reader.skipValue();
+            }
+        }
+        reader.endObject();
+        return success;
+    }
+
+    private int readCount(String responseJson) {
+        var reader = new JsonStreamReader(responseJson);
+        reader.beginObject();
+        int count = 0;
+        while (reader.hasNext()) {
+            switch (reader.nextName()) {
+                case "count" -> count = InputCoerceUtils.asInteger(reader, 0);
+                default -> reader.skipValue();
+            }
+        }
+        reader.endObject();
+        return count;
     }
 }

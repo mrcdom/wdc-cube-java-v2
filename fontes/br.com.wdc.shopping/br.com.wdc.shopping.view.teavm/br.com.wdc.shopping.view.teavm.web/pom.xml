@@ -28,22 +28,12 @@
                     <groupId>com.squareup.okhttp3</groupId>
                     <artifactId>okhttp</artifactId>
                 </exclusion>
-                <exclusion>
-                    <groupId>com.google.code.gson</groupId>
-                    <artifactId>gson</artifactId>
-                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <version>${project.version}</version>
             <artifactId>br.com.wdc.shopping.presentation</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.google.code.gson</groupId>
-                    <artifactId>gson</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <!-- TeaVM core -->
@@ -74,44 +64,11 @@
             <version>${teavm.version}</version>
         </dependency>
 
-        <!-- Gson: provided scope = available for javac but excluded from TeaVM classpath -->
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <scope>provided</scope>
-        </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <!-- Unpack Gson classes into target/classes WITHOUT TypeAdapters (which uses AtomicIntegerArray).
-                 Our custom Streams.java replacement will be compiled on top, overwriting the jar version. -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.8.1</version>
-                <executions>
-                    <execution>
-                        <id>unpack-gson</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>unpack</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>com.google.code.gson</groupId>
-                                    <artifactId>gson</artifactId>
-                                    <version>2.13.2</version>
-                                    <outputDirectory>${project.build.outputDirectory}</outputDirectory>
-                                    <includes>**/*.class</includes>
-                                    <excludes>com/google/gson/internal/bind/TypeAdapters*.class,com/google/gson/internal/Streams*.class</excludes>
-                                </artifactItem>
-                            </artifactItems>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+
             <plugin>
                 <groupId>org.teavm</groupId>
                 <artifactId>teavm-maven-plugin</artifactId>
