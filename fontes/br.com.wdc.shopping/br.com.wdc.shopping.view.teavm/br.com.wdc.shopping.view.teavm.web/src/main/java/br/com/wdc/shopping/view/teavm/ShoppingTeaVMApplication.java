@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.teavm.jso.JSBody;
 import org.teavm.jso.browser.Window;
 
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
@@ -52,6 +53,7 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
     private final List<AbstractViewTeaVM<?>> dirtyViews = new ArrayList<>();
     private final Map<String, Object> attributeMap = new HashMap<>();
     private boolean renderScheduled;
+    private boolean navigatingFromBrowser;
 
     static {
         // Wiring das view factories
@@ -81,6 +83,9 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
         // Configura HTTP transport e registra repositórios
         HttpTransport transport = new FetchHttpTransport(apiBaseUrl);
         TeaVMRepositoryBootstrap.initialize(transport, storage);
+
+        // Escuta popstate (Back/Forward do browser)
+        Window.current().addEventListener("popstate", evt -> onPopState());
     }
 
     public String getApiBaseUrl() {
@@ -171,7 +176,22 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
             } catch (Exception e) {
                 LOG.warn("Session restore failed: " + e.getMessage());
             }
-            Routes.root(this);
+
+            // Navegar para o hash da URL se presente, senão para root
+            // Força inicialização do enum Routes.Place (registra GoActions no mapa)
+            Routes.Place.values();
+            var hash = getLocationHash();
+            if (hash != null && hash.startsWith("#") && hash.length() > 1) {
+                var location = hash.substring(1);
+                try {
+                    this.go(location);
+                } catch (Exception e) {
+                    LOG.warn("Failed to navigate to hash '" + location + "': " + e.getMessage());
+                    Routes.root(this);
+                }
+            } else {
+                Routes.root(this);
+            }
         }).start();
     }
 
@@ -192,6 +212,7 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
 
     @Override
     public void updateHistory() {
+        // Mark all active views as dirty for UI refresh
         for (var presenter : this.presenterMap.values()) {
             if (presenter instanceof AbstractCubePresenter<?> acp) {
                 var view = acp.view();
@@ -200,6 +221,50 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
                 }
             }
         }
+
+        // Sync browser URL hash with current MVP intent
+        if (!navigatingFromBrowser) {
+            try {
+                var intent = this.newIntent();
+                var intentStr = intent.toString();
+                this.fragment = intentStr;
+                pushState("#" + intentStr);
+            } catch (Exception e) {
+                LOG.error("Failed to push browser history state: " + e.getMessage());
+            }
+        }
     }
+
+    private void onPopState() {
+        var hash = getLocationHash();
+        if (hash == null || hash.isEmpty()) {
+            return;
+        }
+        // Remove leading '#'
+        if (hash.startsWith("#")) {
+            hash = hash.substring(1);
+        }
+        if (hash.isEmpty()) {
+            return;
+        }
+
+        var location = hash;
+        new Thread(() -> {
+            this.navigatingFromBrowser = true;
+            try {
+                this.go(location);
+            } catch (Exception e) {
+                LOG.error("Failed to handle browser navigation to: " + location + " - " + e.getMessage());
+            } finally {
+                this.navigatingFromBrowser = false;
+            }
+        }).start();
+    }
+
+    @JSBody(params = "url", script = "history.pushState(null, '', url);")
+    private static native void pushState(String url);
+
+    @JSBody(params = {}, script = "return window.location.hash || '';")
+    private static native String getLocationHash();
 
 }
