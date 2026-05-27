@@ -20,4 +20,8 @@ fi
 # Compile TeaVM (generates JS into $DEPLOY_DIR/js/ and copies filtered index.html via maven-resources-plugin)
 JAVA_HOME=$JAVA21_HOME mvn process-classes -DskipTests
 
+# Copy static assets for the landing page and browser
+cp src/main/webapp/context.html "$DEPLOY_DIR/context.html"
+cp src/main/webapp/favicon.ico "$DEPLOY_DIR/favicon.ico"
+
 echo "Deploy complete: $DEPLOY_DIR"

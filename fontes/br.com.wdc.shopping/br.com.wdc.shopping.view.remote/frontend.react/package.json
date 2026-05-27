@@ -18,11 +18,12 @@
   },
   "scripts": {
     "clean": "rm -rf .parcel-cache ../../br.com.wdc.shopping.backend/work/frontend/remote.react",
-    "start": "parcel watch --public-url ./",
-    "watch": "parcel watch --public-url ./",
-    "watch:clean": "npm run clean && parcel watch --public-url ./",
-    "build": "parcel build --public-url ./",
-    "build:clean": "npm run clean && parcel build --public-url ./",
+    "copy-context": "mkdir -p ../../br.com.wdc.shopping.backend/work/frontend/remote.react && cp context.html ../../br.com.wdc.shopping.backend/work/frontend/remote.react/context.html",
+    "start": "npm run copy-context && parcel watch --public-url ./",
+    "watch": "npm run copy-context && parcel watch --public-url ./",
+    "watch:clean": "npm run clean && npm run copy-context && parcel watch --public-url ./",
+    "build": "parcel build --public-url ./ && npm run copy-context",
+    "build:clean": "npm run clean && parcel build --public-url ./ && npm run copy-context",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

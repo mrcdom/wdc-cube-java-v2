@@ -13,7 +13,7 @@ import io.javalin.http.Context;
 /**
  * Generates a dynamic landing page listing all available frontend contexts
  * found under {@code work/frontend/}. Each context's description is loaded
- * from a sibling HTML file with the same name (e.g., {@code remote.react.html}).
+ * from {@code work/frontend/<context>/context.html}.
  */
 public class LandingPageController {
 
@@ -124,11 +124,11 @@ public class LandingPageController {
     }
 
     /**
-     * Loads the description HTML snippet from {@code work/frontend/<contextName>.html}.
+     * Loads the description HTML snippet from {@code work/frontend/<contextName>/context.html}.
      * Returns a fallback message if the file does not exist.
      */
     private String loadDescription(Path frontendBase, String contextName) {
-        Path descFile = frontendBase.resolve(contextName + ".html");
+        Path descFile = frontendBase.resolve(contextName).resolve("context.html");
         if (Files.isRegularFile(descFile)) {
             try {
                 return Files.readString(descFile).trim();
