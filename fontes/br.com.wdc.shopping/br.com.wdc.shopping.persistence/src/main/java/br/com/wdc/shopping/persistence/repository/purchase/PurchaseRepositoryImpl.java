@@ -4,6 +4,7 @@ import java.util.List;
 
 import br.com.wdc.framework.commons.util.TransactionContext;
 import br.com.wdc.shopping.domain.criteria.PurchaseCriteria;
+import br.com.wdc.shopping.domain.model.Page;
 import br.com.wdc.shopping.domain.model.Purchase;
 import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
 import br.com.wdc.shopping.persistence.repository.BaseRepository;
@@ -20,22 +21,6 @@ public class PurchaseRepositoryImpl extends BaseRepository implements PurchaseRe
     }
 
     @Override
-    public boolean insertOrUpdate(Purchase purchase) {
-        try (var tx = TransactionContext.begin(dataSource())) {
-            var modified = false;
-            if (purchase.id == null) {
-                modified = InsertRowPurchaseCmd.runWithItems(tx.connection(), purchase);
-            } else {
-                modified = UpdateRowPurchaseCmd.run(tx.connection(), purchase);
-            }
-
-            return modified;
-        } catch (Exception caught) {
-            throw writeException(caught);
-        }
-    }
-
-    @Override
     public boolean update(Purchase newPurchase, Purchase oldPurchase) {
         try (var tx = TransactionContext.begin(dataSource())) {
             return UpdateRowPurchaseCmd.run(tx.connection(), newPurchase, oldPurchase);
@@ -43,7 +28,7 @@ public class PurchaseRepositoryImpl extends BaseRepository implements PurchaseRe
             throw writeException(caught);
         }
     }
-    
+
     @Override
     public int delete(PurchaseCriteria criteria) {
         try (var tx = TransactionContext.begin(dataSource())) {
@@ -63,12 +48,19 @@ public class PurchaseRepositoryImpl extends BaseRepository implements PurchaseRe
     }
 
     @Override
-    public List<Purchase> fetch(PurchaseCriteria criteria) {
+    public List<Purchase> fetch(PurchaseCriteria criteria, int offset, int limit) {
         try (var tx = TransactionContext.begin(dataSource())) {
-            return FetchPurchaseCmd.byCriteria(tx.connection(), criteria);
+            return FetchPurchaseCmd.byCriteria(tx.connection(), criteria, offset, limit);
         } catch (Exception caught) {
             throw readException(caught);
         }
+    }
+
+    @Override
+    public Page<Purchase> fetchPage(PurchaseCriteria criteria, int page, int pageSize) {
+        var total = count(criteria);
+        var items = this.fetch(criteria, page * pageSize, pageSize);
+        return Page.of(items, page, pageSize, total);
     }
 
     @Override

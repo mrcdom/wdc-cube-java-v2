@@ -4,6 +4,7 @@ import java.util.List;
 
 import br.com.wdc.framework.commons.util.TransactionContext;
 import br.com.wdc.shopping.domain.criteria.ProductCriteria;
+import br.com.wdc.shopping.domain.model.Page;
 import br.com.wdc.shopping.domain.model.Product;
 import br.com.wdc.shopping.domain.repositories.ProductRepository;
 import br.com.wdc.shopping.domain.utils.ProjectionValues;
@@ -21,21 +22,6 @@ public class ProductRepositoryImpl extends BaseRepository implements ProductRepo
     }
 
     @Override
-    public boolean insertOrUpdate(Product product) {
-        try (var tx = TransactionContext.begin(dataSource())) {
-            var modified = false;
-            if (product.id == null) {
-                modified = InsertProductRowCmd.run(tx.connection(), product);
-            } else {
-                modified = UpdateProductRowCmd.run(tx.connection(), product);
-            }
-            return modified;
-        } catch (Exception caught) {
-            throw readException(caught);
-        }
-    }
-
-    @Override
     public boolean update(Product newProduct, Product oldProduct) {
         try (var tx = TransactionContext.begin(dataSource())) {
             return UpdateProductRowCmd.run(tx.connection(), newProduct, oldProduct);
@@ -43,7 +29,7 @@ public class ProductRepositoryImpl extends BaseRepository implements ProductRepo
             throw readException(caught);
         }
     }
-    
+
     @Override
     public int delete(ProductCriteria criteria) {
         try (var tx = TransactionContext.begin(dataSource())) {
@@ -63,12 +49,19 @@ public class ProductRepositoryImpl extends BaseRepository implements ProductRepo
     }
 
     @Override
-    public List<Product> fetch(ProductCriteria criteia) {
+    public List<Product> fetch(ProductCriteria criteia, int offset, int limit) {
         try (var tx = TransactionContext.begin(dataSource())) {
-            return FetchProductsCmd.byCriteria(tx.connection(), criteia);
+            return FetchProductsCmd.byCriteria(tx.connection(), criteia, offset, limit);
         } catch (Exception caught) {
             throw readException(caught);
         }
+    }
+
+    @Override
+    public Page<Product> fetchPage(ProductCriteria criteria, int page, int pageSize) {
+        var total = count(criteria);
+        var items = this.fetch(criteria, page * pageSize, pageSize);
+        return Page.of(items, page, pageSize, total);
     }
 
     @Override

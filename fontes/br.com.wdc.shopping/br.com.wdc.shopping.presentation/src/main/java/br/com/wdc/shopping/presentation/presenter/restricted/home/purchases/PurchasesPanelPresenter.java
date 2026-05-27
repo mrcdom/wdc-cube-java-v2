@@ -98,16 +98,18 @@ public class PurchasesPanelPresenter extends AbstractChildPresenter<ShoppingAppl
         try {
             var subject = this.app.getSubject();
             if (subject != null) {
-                this.state.totalCount = purchasesPanelService.countPurchasesOfUser(subject.getId());
+                var result = purchasesPanelService.fetchPageOfUser(
+                        subject.getId(), this.state.page, this.state.pageSize);
 
-                int totalPages = Math.max(1, (int) Math.ceil((double) this.state.totalCount / this.state.pageSize));
-                if (this.state.page >= totalPages) {
-                    this.state.page = totalPages - 1;
+                // If requested page exceeds total, clamp to last page and refetch
+                if (result.items().isEmpty() && result.totalPages() > 0) {
+                    result = purchasesPanelService.fetchPageOfUser(
+                            subject.getId(), result.totalPages() - 1, this.state.pageSize);
                 }
 
-                int offset = this.state.page * this.state.pageSize;
-                this.state.purchases = purchasesPanelService.loadPurchasesOfUser(subject.getId(), offset,
-                        this.state.pageSize);
+                this.state.page = result.page();
+                this.state.totalCount = result.totalItems();
+                this.state.purchases = result.items();
                 this.update();
             }
         } catch (Exception caught) {

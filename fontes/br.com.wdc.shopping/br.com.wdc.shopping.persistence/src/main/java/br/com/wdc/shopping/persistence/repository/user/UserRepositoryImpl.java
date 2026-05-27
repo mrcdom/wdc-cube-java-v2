@@ -4,6 +4,7 @@ import java.util.List;
 
 import br.com.wdc.framework.commons.util.TransactionContext;
 import br.com.wdc.shopping.domain.criteria.UserCriteria;
+import br.com.wdc.shopping.domain.model.Page;
 import br.com.wdc.shopping.domain.model.User;
 import br.com.wdc.shopping.domain.repositories.UserRepository;
 import br.com.wdc.shopping.persistence.repository.BaseRepository;
@@ -14,21 +15,6 @@ public class UserRepositoryImpl extends BaseRepository implements UserRepository
     public boolean insert(User user) {
         try (var tx = TransactionContext.begin(dataSource())) {
             return InsertRowUserCmd.run(tx.connection(), user);
-        } catch (Exception caught) {
-            throw readException(caught);
-        }
-    }
-
-    @Override
-    public boolean insertOrUpdate(User user) {
-        try (var tx = TransactionContext.begin(dataSource())) {
-            var modified = false;
-            if (user.id == null) {
-                modified = InsertRowUserCmd.run(tx.connection(), user);
-            } else {
-                modified = UpdateRowUserCmd.run(tx.connection(), user);
-            }
-            return modified;
         } catch (Exception caught) {
             throw readException(caught);
         }
@@ -62,12 +48,19 @@ public class UserRepositoryImpl extends BaseRepository implements UserRepository
     }
 
     @Override
-    public List<User> fetch(UserCriteria criteria) {
+    public List<User> fetch(UserCriteria criteria, int offset, int limit) {
         try (var tx = TransactionContext.begin(dataSource())) {
-            return FetchUsersCmd.byCriteria(tx.connection(), criteria);
+            return FetchUsersCmd.byCriteria(tx.connection(), criteria, offset, limit);
         } catch (Exception caught) {
             throw readException(caught);
         }
+    }
+
+    @Override
+    public Page<User> fetchPage(UserCriteria criteria, int page, int pageSize) {
+        var total = count(criteria);
+        var items = this.fetch(criteria, page * pageSize, pageSize);
+        return Page.of(items, page, pageSize, total);
     }
 
     @Override

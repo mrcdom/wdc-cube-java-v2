@@ -35,12 +35,11 @@ public class ProductService {
 
     public List<ProductInfo> loadProductsWithoutDescription(int limit) {
         var criteria = new ProductCriteria()
-                .withProjection(ProductInfo.projection())
-                .withLimit(limit);
+                .withProjection(ProductInfo.projection());
 
         criteria.projection().description = null;
 
-        return repo.fetch(criteria)
+        return repo.fetch(criteria, 0, limit)
                 .stream().map(ProductInfo::create).toList();
     }
 }

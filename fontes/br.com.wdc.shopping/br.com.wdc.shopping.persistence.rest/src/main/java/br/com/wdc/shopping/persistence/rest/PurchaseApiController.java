@@ -25,11 +25,11 @@ public class PurchaseApiController {
 		var ctrl = new PurchaseApiController();
 		config.routes.post(prefix + "/api/repo/purchase/insert", ctrl::insert);
 		config.routes.post(prefix + "/api/repo/purchase/update", ctrl::update);
-		config.routes.post(prefix + "/api/repo/purchase/upsert", ctrl::upsert);
 		config.routes.post(prefix + "/api/repo/purchase/delete", ctrl::delete);
 		config.routes.post(prefix + "/api/repo/purchase/count", ctrl::count);
 		config.routes.post(prefix + "/api/repo/purchase/fetch", ctrl::fetch);
-		config.routes.post(prefix + "/api/repo/purchase/fetchById", ctrl::fetchByIdPost);
+		config.routes.post(prefix + "/api/repo/purchase/fetch-page", ctrl::fetchPage);
+		config.routes.post(prefix + "/api/repo/purchase/fetch-by-id", ctrl::fetchByIdPost);
 		config.routes.get(prefix + "/api/repo/purchase/{id}", ctrl::fetchById);
 	}
 
@@ -89,13 +89,6 @@ public class PurchaseApiController {
 		json(ctx, Map.of("success", success));
 	}
 
-	private void upsert(Context ctx) throws Exception {
-		var mapper = ApiObjectMapper.get();
-		var purchase = mapper.readValue(ctx.body(), Purchase.class);
-		boolean success = repo().insertOrUpdate(purchase);
-		json(ctx, Map.of("success", success, "id", purchase.id != null ? purchase.id : -1));
-	}
-
 	private void delete(Context ctx) throws Exception {
 		var body = ApiObjectMapper.get().readTree(ctx.body());
 		var criteria = parseCriteria(body);
@@ -121,9 +114,29 @@ public class PurchaseApiController {
 		}
 		criteria.withProjection(projection);
 
-		var items = repo().fetch(criteria);
+		int offset = hasValue(body, "offset") ? body.get("offset").asInt() : 0;
+		int limit = hasValue(body, "limit") ? body.get("limit").asInt() : 0;
+		var items = repo().fetch(criteria, offset, limit);
 		clearCircularRefs(items);
 		json(ctx, Map.of("items", items));
+	}
+
+	private void fetchPage(Context ctx) throws Exception {
+		var body = ApiObjectMapper.get().readTree(ctx.body());
+		var criteria = parseCriteria(body);
+
+		var projection = ApiObjectMapper.parseProjection(body, Purchase.class);
+		if (projection == null) {
+			boolean includeItems = body.has("includeItems") && body.get("includeItems").asBoolean(true);
+			projection = includeItems ? fullProjectionWithItems() : simpleProjection();
+		}
+		criteria.withProjection(projection);
+
+		int pageIx = hasValue(body, "page") ? body.get("page").asInt() : 0;
+		int pageSz = hasValue(body, "pageSize") ? body.get("pageSize").asInt() : 0;
+		var page = repo().fetchPage(criteria, pageIx, pageSz);
+		clearCircularRefs(page.items());
+		json(ctx, Map.of("items", page.items(), "totalItems", page.totalItems()));
 	}
 
 	private void fetchById(Context ctx) throws Exception {
@@ -170,10 +183,6 @@ public class PurchaseApiController {
 			criteria.withPurchaseId(body.get("purchaseId").asLong());
 		if (hasValue(body, "userId"))
 			criteria.withUserId(body.get("userId").asLong());
-		if (hasValue(body, "offset"))
-			criteria.withOffset(body.get("offset").asInt());
-		if (hasValue(body, "limit"))
-			criteria.withLimit(body.get("limit").asInt());
 		if (hasValue(body, "orderBy"))
 			criteria.withOrderBy(PurchaseCriteria.OrderBy.valueOf(body.get("orderBy").asText()));
 		return criteria;

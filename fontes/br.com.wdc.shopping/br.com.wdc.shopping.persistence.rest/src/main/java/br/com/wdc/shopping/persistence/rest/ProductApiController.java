@@ -26,11 +26,11 @@ public class ProductApiController {
 		var ctrl = new ProductApiController();
 		config.routes.post(prefix + "/api/repo/product/insert", ctrl::insert);
 		config.routes.post(prefix + "/api/repo/product/update", ctrl::update);
-		config.routes.post(prefix + "/api/repo/product/upsert", ctrl::upsert);
 		config.routes.post(prefix + "/api/repo/product/delete", ctrl::delete);
 		config.routes.post(prefix + "/api/repo/product/count", ctrl::count);
 		config.routes.post(prefix + "/api/repo/product/fetch", ctrl::fetch);
-		config.routes.post(prefix + "/api/repo/product/fetchById", ctrl::fetchByIdPost);
+		config.routes.post(prefix + "/api/repo/product/fetch-page", ctrl::fetchPage);
+		config.routes.post(prefix + "/api/repo/product/fetch-by-id", ctrl::fetchByIdPost);
 		config.routes.get(prefix + "/api/repo/product/{id}", ctrl::fetchById);
 		config.routes.get(prefix + "/api/repo/product/{id}/image", ctrl::fetchImage);
 		config.routes.put(prefix + "/api/repo/product/{id}/image", ctrl::updateImage);
@@ -66,13 +66,6 @@ public class ProductApiController {
 		json(ctx, Map.of("success", success));
 	}
 
-	private void upsert(Context ctx) throws Exception {
-		var mapper = ApiObjectMapper.get();
-		var product = mapper.readValue(ctx.body(), Product.class);
-		boolean success = repo().insertOrUpdate(product);
-		json(ctx, Map.of("success", success, "id", product.id != null ? product.id : -1));
-	}
-
 	private void delete(Context ctx) throws Exception {
 		var body = ApiObjectMapper.get().readTree(ctx.body());
 		int count = repo().delete(parseCriteria(body));
@@ -90,8 +83,21 @@ public class ProductApiController {
 		var criteria = parseCriteria(body);
 		var projection = ApiObjectMapper.parseProjection(body, Product.class);
 		criteria.withProjection(projection != null ? projection : fullProjection());
-		var items = repo().fetch(criteria);
+		int offset = hasValue(body, "offset") ? body.get("offset").asInt() : 0;
+		int limit = hasValue(body, "limit") ? body.get("limit").asInt() : 0;
+		var items = repo().fetch(criteria, offset, limit);
 		json(ctx, Map.of("items", items));
+	}
+
+	private void fetchPage(Context ctx) throws Exception {
+		var body = ApiObjectMapper.get().readTree(ctx.body());
+		var criteria = parseCriteria(body);
+		var projection = ApiObjectMapper.parseProjection(body, Product.class);
+		criteria.withProjection(projection != null ? projection : fullProjection());
+		int pageIx = hasValue(body, "page") ? body.get("page").asInt() : 0;
+		int pageSz = hasValue(body, "pageSize") ? body.get("pageSize").asInt() : 0;
+		var page = repo().fetchPage(criteria, pageIx, pageSz);
+		json(ctx, Map.of("items", page.items(), "totalItems", page.totalItems()));
 	}
 
 	private void fetchById(Context ctx) throws Exception {
@@ -167,10 +173,6 @@ public class ProductApiController {
 		var criteria = new ProductCriteria();
 		if (hasValue(body, "productId"))
 			criteria.withProductId(body.get("productId").asLong());
-		if (hasValue(body, "offset"))
-			criteria.withOffset(body.get("offset").asInt());
-		if (hasValue(body, "limit"))
-			criteria.withLimit(body.get("limit").asInt());
 		if (hasValue(body, "orderBy"))
 			criteria.withOrderBy(ProductCriteria.OrderBy.valueOf(body.get("orderBy").asText()));
 		return criteria;

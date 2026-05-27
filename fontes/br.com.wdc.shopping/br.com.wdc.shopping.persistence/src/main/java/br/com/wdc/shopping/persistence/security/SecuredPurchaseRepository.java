@@ -3,6 +3,7 @@ package br.com.wdc.shopping.persistence.security;
 import java.util.List;
 
 import br.com.wdc.shopping.domain.criteria.PurchaseCriteria;
+import br.com.wdc.shopping.domain.model.Page;
 import br.com.wdc.shopping.domain.model.Purchase;
 import br.com.wdc.shopping.domain.model.User;
 import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
@@ -15,80 +16,96 @@ import br.com.wdc.shopping.domain.security.SecurityContext;
  */
 public final class SecuredPurchaseRepository implements PurchaseRepository {
 
-	private static final String ENTITY = "purchase";
+    private static final String ENTITY = "purchase";
 
-	private final PurchaseRepository delegate;
+    private final PurchaseRepository delegate;
 
-	public SecuredPurchaseRepository(PurchaseRepository delegate) {
-		this.delegate = delegate;
-	}
+    public SecuredPurchaseRepository(PurchaseRepository delegate) {
+        this.delegate = delegate;
+    }
 
-	@Override
-	public boolean insert(Purchase purchase) {
-		var sc = SecurityEnforcer.require(ENTITY, "write");
-		enforceUserScope(sc, purchase);
-		return delegate.insert(purchase);
-	}
+    @Override
+    public Purchase newProjection() {
+        return delegate.newProjection();
+    }
 
-	@Override
-	public boolean insertOrUpdate(Purchase purchase) {
-		var sc = SecurityEnforcer.require(ENTITY, "write");
-		enforceUserScope(sc, purchase);
-		return delegate.insertOrUpdate(purchase);
-	}
+    @Override
+    public boolean insert(Purchase purchase) {
+        var sc = SecurityEnforcer.require(ENTITY, "write");
+        enforceUserScope(sc, purchase);
+        return delegate.insert(purchase);
+    }
 
-	@Override
-	public boolean update(Purchase newPurchase, Purchase oldPurchase) {
-		SecurityEnforcer.require(ENTITY, "write");
-		return delegate.update(newPurchase, oldPurchase);
-	}
+    @Override
+    public boolean insertOrUpdate(Purchase newPurchase, Purchase oldPurchase) {
+        var sc = SecurityEnforcer.require(ENTITY, "write");
+        enforceUserScope(sc, newPurchase);
+        enforceUserScope(sc, oldPurchase);
+        return delegate.insertOrUpdate(newPurchase, oldPurchase);
+    }
 
-	@Override
-	public int delete(PurchaseCriteria criteria) {
-		var sc = SecurityEnforcer.require(ENTITY, "delete");
-		enforceUserScope(sc, criteria);
-		return delegate.delete(criteria);
-	}
+    @Override
+    public boolean update(Purchase newPurchase, Purchase oldPurchase) {
+        SecurityEnforcer.require(ENTITY, "write");
+        return delegate.update(newPurchase, oldPurchase);
+    }
 
-	@Override
-	public int count(PurchaseCriteria criteria) {
-		var sc = SecurityEnforcer.require(ENTITY, "read");
-		enforceUserScope(sc, criteria);
-		return delegate.count(criteria);
-	}
+    @Override
+    public int delete(PurchaseCriteria criteria) {
+        var sc = SecurityEnforcer.require(ENTITY, "delete");
+        enforceUserScope(sc, criteria);
+        return delegate.delete(criteria);
+    }
 
-	@Override
-	public List<Purchase> fetch(PurchaseCriteria criteria) {
-		var sc = SecurityEnforcer.require(ENTITY, "read");
-		enforceUserScope(sc, criteria);
-		return delegate.fetch(criteria);
-	}
+    @Override
+    public int count(PurchaseCriteria criteria) {
+        var sc = SecurityEnforcer.require(ENTITY, "read");
+        enforceUserScope(sc, criteria);
+        return delegate.count(criteria);
+    }
 
-	@Override
-	public Purchase fetchById(Long purchaseId, Purchase projection) {
-		var sc = SecurityEnforcer.require(ENTITY, "read");
-		var result = delegate.fetchById(purchaseId, projection);
-		if (result != null && !sc.hasDataAll()
-				&& result.user != null && !sc.userId().equals(result.user.id)) {
-			return null;
-		}
-		return result;
-	}
+    @Override
+    public List<Purchase> fetch(PurchaseCriteria criteria, int offset, int limit) {
+        var sc = SecurityEnforcer.require(ENTITY, "read");
+        enforceUserScope(sc, criteria);
+        return delegate.fetch(criteria, offset, limit);
+    }
 
-	// :: Scope enforcement
+    @Override
+    public Page<Purchase> fetchPage(PurchaseCriteria criteria, int page, int pageSize) {
+        SecurityEnforcer.require(ENTITY, "read");
+        return delegate.fetchPage(criteria, page, pageSize);
+    }
 
-	private static void enforceUserScope(SecurityContext sc, PurchaseCriteria criteria) {
-		if (!sc.hasDataAll()) {
-			criteria.withUserId(sc.userId());
-		}
-	}
+    @Override
+    public Purchase fetchById(Long purchaseId, Purchase projection) {
+        var sc = SecurityEnforcer.require(ENTITY, "read");
+        var result = delegate.fetchById(purchaseId, projection);
+        if (result != null && !sc.hasDataAll()
+                && result.user != null && !sc.userId().equals(result.user.id)) {
+            return null;
+        }
+        return result;
+    }
 
-	private static void enforceUserScope(SecurityContext sc, Purchase purchase) {
-		if (!sc.hasDataAll()) {
-			if (purchase.user == null) {
-				purchase.user = new User();
-			}
-			purchase.user.id = sc.userId();
-		}
-	}
+    // :: Scope enforcement
+
+    private static void enforceUserScope(SecurityContext sc, PurchaseCriteria criteria) {
+        if (!sc.hasDataAll()) {
+            criteria.withUserId(sc.userId());
+        }
+    }
+
+    private static void enforceUserScope(SecurityContext sc, Purchase purchase) {
+        if (purchase == null) {
+            return;
+        }
+
+        if (!sc.hasDataAll()) {
+            if (purchase.user == null) {
+                purchase.user = new User();
+            }
+            purchase.user.id = sc.userId();
+        }
+    }
 }

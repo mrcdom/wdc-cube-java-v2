@@ -23,11 +23,11 @@ public class PurchaseItemApiController {
 		var ctrl = new PurchaseItemApiController();
 		config.routes.post(prefix + "/api/repo/purchase-item/insert", ctrl::insert);
 		config.routes.post(prefix + "/api/repo/purchase-item/update", ctrl::update);
-		config.routes.post(prefix + "/api/repo/purchase-item/upsert", ctrl::upsert);
 		config.routes.post(prefix + "/api/repo/purchase-item/delete", ctrl::delete);
 		config.routes.post(prefix + "/api/repo/purchase-item/count", ctrl::count);
 		config.routes.post(prefix + "/api/repo/purchase-item/fetch", ctrl::fetch);
-		config.routes.post(prefix + "/api/repo/purchase-item/fetchById", ctrl::fetchByIdPost);
+		config.routes.post(prefix + "/api/repo/purchase-item/fetch-page", ctrl::fetchPage);
+		config.routes.post(prefix + "/api/repo/purchase-item/fetch-by-id", ctrl::fetchByIdPost);
 		config.routes.get(prefix + "/api/repo/purchase-item/{id}", ctrl::fetchById);
 	}
 
@@ -69,15 +69,6 @@ public class PurchaseItemApiController {
 		json(ctx, Map.of("success", success));
 	}
 
-	private void upsert(Context ctx) throws Exception {
-		var mapper = ApiObjectMapper.get();
-		var body = mapper.readTree(ctx.body());
-		var item = mapper.treeToValue(body, PurchaseItem.class);
-		setPurchaseFromJson(body, item);
-		boolean success = repo().insertOrUpdate(item);
-		json(ctx, Map.of("success", success, "id", item.id != null ? item.id : -1));
-	}
-
 	private void delete(Context ctx) throws Exception {
 		var body = ApiObjectMapper.get().readTree(ctx.body());
 		var criteria = parseCriteria(body);
@@ -97,11 +88,27 @@ public class PurchaseItemApiController {
 		var criteria = parseCriteria(body);
 		var projection = ApiObjectMapper.parseProjection(body, PurchaseItem.class);
 		criteria.withProjection(projection != null ? projection : fullProjection());
-		var items = repo().fetch(criteria);
+		int offset = hasValue(body, "offset") ? body.get("offset").asInt() : 0;
+		int limit = hasValue(body, "limit") ? body.get("limit").asInt() : 0;
+		var items = repo().fetch(criteria, offset, limit);
 		for (var item : items) {
 			item.purchase = null;
 		}
 		json(ctx, Map.of("items", items));
+	}
+
+	private void fetchPage(Context ctx) throws Exception {
+		var body = ApiObjectMapper.get().readTree(ctx.body());
+		var criteria = parseCriteria(body);
+		var projection = ApiObjectMapper.parseProjection(body, PurchaseItem.class);
+		criteria.withProjection(projection != null ? projection : fullProjection());
+		int pageIx = hasValue(body, "page") ? body.get("page").asInt() : 0;
+		int pageSz = hasValue(body, "pageSize") ? body.get("pageSize").asInt() : 0;
+		var page = repo().fetchPage(criteria, pageIx, pageSz);
+		for (var item : page.items()) {
+			item.purchase = null;
+		}
+		json(ctx, Map.of("items", page.items(), "totalItems", page.totalItems()));
 	}
 
 	private void fetchById(Context ctx) throws Exception {
@@ -138,10 +145,6 @@ public class PurchaseItemApiController {
 			criteria.withProductId(body.get("productId").asLong());
 		if (hasValue(body, "userId"))
 			criteria.withUserId(body.get("userId").asLong());
-		if (hasValue(body, "offset"))
-			criteria.withOffset(body.get("offset").asInt());
-		if (hasValue(body, "limit"))
-			criteria.withLimit(body.get("limit").asInt());
 		if (hasValue(body, "orderBy"))
 			criteria.withOrderBy(PurchaseItemCriteria.OrderBy.valueOf(body.get("orderBy").asText()));
 		return criteria;

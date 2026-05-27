@@ -43,24 +43,26 @@ public class FetchPurchaseItemsCmd extends BaseCommand {
 
         var list = new FetchPurchaseItemsCmd().execute(connection, new PurchaseItemCriteria()
                 .withPurchaseItemId(purchaseItemId)
-                .withProjection(projection));
+                .withProjection(projection), null, null);
 
         return list.isEmpty() ? null : list.get(0);
 
     }
 
-    public static List<PurchaseItem> byCriteria(Connection connection, PurchaseItemCriteria criteria) {
-        return new FetchPurchaseItemsCmd().execute(connection, criteria);
+    public static List<PurchaseItem> byCriteria(Connection connection, PurchaseItemCriteria criteria,
+            Integer offset, Integer limit) {
+        return new FetchPurchaseItemsCmd().execute(connection, criteria, offset, limit);
     }
 
     // :: Action
 
-    public List<PurchaseItem> execute(Connection connection, PurchaseItemCriteria criteria) {
+    public List<PurchaseItem> execute(Connection connection, PurchaseItemCriteria criteria,
+            Integer offset, Integer limit) {
         if (criteria == null) {
             criteria = new PurchaseItemCriteria();
         }
 
-        var sql = this.buildCte(criteria);
+        var sql = this.buildCte(criteria, offset, limit);
 
         var fJsonData = "json_data";
         var unionAll = "         ";
@@ -140,7 +142,7 @@ public class FetchPurchaseItemsCmd extends BaseCommand {
         return prj;
     }
 
-    private SqlList buildCte(PurchaseItemCriteria criteria) {
+    private SqlList buildCte(PurchaseItemCriteria criteria, Integer offset, Integer limit) {
         var ident = "  ";
 
         var sql = new SqlList();
@@ -149,7 +151,7 @@ public class FetchPurchaseItemsCmd extends BaseCommand {
         this.purchaseItemPrj = safeProjection(criteria.projection());
 
         sql.ln(WITH, this.ctePurchaseItem.alias(), AS, '(');
-        sql.ln(this.ctePurchaseItem(criteria, this.purchaseItemPrj, null, null).toText(ident));
+        sql.ln(this.ctePurchaseItem(criteria, this.purchaseItemPrj, null, null, offset, limit).toText(ident));
         sql.ln(")");
 
         if (this.purchaseItemPrj.product != null) {
@@ -190,6 +192,11 @@ public class FetchPurchaseItemsCmd extends BaseCommand {
 
     public SqlList ctePurchaseItem(PurchaseItemCriteria criteria, PurchaseItem prj, String ownerAlias,
             DbField ownerId) {
+        return ctePurchaseItem(criteria, prj, ownerAlias, ownerId, null, null);
+    }
+
+    public SqlList ctePurchaseItem(PurchaseItemCriteria criteria, PurchaseItem prj, String ownerAlias,
+            DbField ownerId, Integer offset, Integer limit) {
         var pi = new EnPurchaseItem("PI");
 
         var sql = new SqlList();
@@ -221,12 +228,12 @@ public class FetchPurchaseItemsCmd extends BaseCommand {
             }
         }
 
-        if (criteria.limit() != null && criteria.limit() > 0) {
-            sql.ln(LIMIT, criteria.limit());
+        if (limit != null && limit > 0) {
+            sql.ln(LIMIT, limit);
         }
 
-        if (criteria.offset() != null && criteria.offset() > 0) {
-            sql.ln(OFFSET, criteria.offset());
+        if (offset != null && offset > 0) {
+            sql.ln(OFFSET, offset);
         }
 
         return sql;

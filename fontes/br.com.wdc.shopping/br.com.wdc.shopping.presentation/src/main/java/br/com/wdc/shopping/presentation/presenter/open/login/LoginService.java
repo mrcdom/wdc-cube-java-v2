@@ -52,8 +52,7 @@ public class LoginService {
         // 7. Buscar nome de exibição do usuário
         var users = app.getUserRepository().fetch(new UserCriteria()
                 .withUserId(authResult.userId())
-                .withProjection(Subject.projection())
-                .withLimit(1));
+                .withProjection(Subject.projection()), 0, 1);
         return users.isEmpty() ? null : Subject.create(users.get(0));
     }
 
@@ -65,8 +64,7 @@ public class LoginService {
         return repository.fetch(new UserCriteria()
                 .withUserName(userName)
                 .withPassword(password)
-                .withProjection(Subject.projection())
-                .withLimit(1))
+                .withProjection(Subject.projection()), 0, 1)
                 .stream().map(Subject::create)
                 .findFirst().orElse(null);
     }

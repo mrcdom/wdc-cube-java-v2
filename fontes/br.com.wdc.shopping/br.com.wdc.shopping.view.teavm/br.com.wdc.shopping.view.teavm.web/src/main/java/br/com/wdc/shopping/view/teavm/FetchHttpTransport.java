@@ -38,7 +38,11 @@ public class FetchHttpTransport implements HttpTransport {
 
     @Override
     public JsonObject postJsonNullable(String path, JsonObject body) {
-        SyncResult result = syncFetchRaw(baseUrl + path, "POST", JsonParsing.toJson(body), getToken());
+        String token = getToken();
+        SyncResult result = syncFetchRaw(baseUrl + path, "POST", JsonParsing.toJson(body), token);
+        if (result.status == 401 && token != null) {
+            handleSessionExpired();
+        }
         if (result.status == 404) {
             return null;
         }
@@ -68,7 +72,11 @@ public class FetchHttpTransport implements HttpTransport {
 
     @Override
     public byte[] getBytes(String path) {
-        SyncResult result = syncFetchRaw(baseUrl + path, "GET", null, getToken());
+        String token = getToken();
+        SyncResult result = syncFetchRaw(baseUrl + path, "GET", null, token);
+        if (result.status == 401 && token != null) {
+            handleSessionExpired();
+        }
         if (result.status == 404 || result.status == 204) {
             return null;
         }
@@ -82,8 +90,12 @@ public class FetchHttpTransport implements HttpTransport {
 
     @Override
     public boolean putBytes(String path, byte[] data) {
+        String token = getToken();
         // PUT com content-type octet-stream via XHR síncrono
-        SyncResult result = syncXhr(baseUrl + path, "PUT", data, getToken());
+        SyncResult result = syncXhr(baseUrl + path, "PUT", data, token);
+        if (result.status == 401 && token != null) {
+            handleSessionExpired();
+        }
         if (result.status < 200 || result.status >= 300) {
             throw new BusinessException("HTTP " + result.status);
         }
@@ -98,11 +110,31 @@ public class FetchHttpTransport implements HttpTransport {
 
     private String syncFetch(String url, String method, String body, String token) {
         SyncResult result = syncFetchRaw(url, method, body, token);
+        if (result.status == 401 && token != null) {
+            handleSessionExpired();
+        }
         if (result.status < 200 || result.status >= 300) {
             throw new BusinessException("HTTP " + result.status + ": " + result.body);
         }
         return result.body;
     }
+
+    /**
+     * Exibe diálogo de sessão expirada e recarrega a página (volta ao login).
+     */
+    private static void handleSessionExpired() {
+        showSessionExpiredDialog();
+        reloadPage();
+        // Lança exceção para interromper o fluxo chamador (nunca alcançada após reload)
+        throw new BusinessException("Sessão expirada");
+    }
+
+    @org.teavm.jso.JSBody(params = {}, script = ""
+            + "alert('Sua sessão no servidor foi encerrada.\\nVocê será redirecionado ao login.');")
+    private static native void showSessionExpiredDialog();
+
+    @org.teavm.jso.JSBody(params = {}, script = "window.location.reload();")
+    private static native void reloadPage();
 
     /**
      * Executa um XMLHttpRequest síncrono (suportado em browsers, embora deprecated).

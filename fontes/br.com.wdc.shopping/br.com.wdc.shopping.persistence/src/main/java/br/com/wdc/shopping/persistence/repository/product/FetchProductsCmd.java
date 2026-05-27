@@ -34,22 +34,24 @@ public class FetchProductsCmd extends BaseCommand {
 
         var list = byCriteria(connection, new ProductCriteria()
                 .withProductId(productId)
-                .withProjection(projection));
+                .withProjection(projection), null, null);
         return list.isEmpty() ? null : list.get(0);
     }
 
-    public static List<Product> byCriteria(Connection connection, ProductCriteria criteria) {
-        return new FetchProductsCmd().execute(connection, criteria);
+    public static List<Product> byCriteria(Connection connection, ProductCriteria criteria,
+            Integer offset, Integer limit) {
+        return new FetchProductsCmd().execute(connection, criteria, offset, limit);
     }
 
     // :: Action
 
-    public List<Product> execute(Connection connection, ProductCriteria criteria) {
+    public List<Product> execute(Connection connection, ProductCriteria criteria,
+            Integer offset, Integer limit) {
         var sql = new SqlList();
 
         var cteProduct = new EnProduct("cteProduct");
         sql.ln(WITH, cteProduct.alias(), AS, '(');
-        sql.ln(this.cteProduct(criteria, criteria.projection(), null, null).toText("  "));
+        sql.ln(this.cteProduct(criteria, criteria.projection(), null, null, offset, limit).toText("  "));
         sql.ln(')');
         sql.ln(SELECT);
 
@@ -67,6 +69,11 @@ public class FetchProductsCmd extends BaseCommand {
     }
 
     public SqlList cteProduct(ProductCriteria criteria, Product prj, String superAlias, DbField superId) {
+        return cteProduct(criteria, prj, superAlias, superId, null, null);
+    }
+
+    public SqlList cteProduct(ProductCriteria criteria, Product prj, String superAlias, DbField superId,
+            Integer offset, Integer limit) {
         var p = new EnProduct("P");
 
         var sql = new SqlList();
@@ -98,12 +105,12 @@ public class FetchProductsCmd extends BaseCommand {
             }
         }
 
-        if (criteria.limit() != null && criteria.limit() > 0) {
-            sql.ln(LIMIT, criteria.limit());
+        if (limit != null && limit > 0) {
+            sql.ln(LIMIT, limit);
         }
 
-        if (criteria.offset() != null && criteria.offset() > 0) {
-            sql.ln(OFFSET, criteria.offset());
+        if (offset != null && offset > 0) {
+            sql.ln(OFFSET, offset);
         }
 
         return sql;

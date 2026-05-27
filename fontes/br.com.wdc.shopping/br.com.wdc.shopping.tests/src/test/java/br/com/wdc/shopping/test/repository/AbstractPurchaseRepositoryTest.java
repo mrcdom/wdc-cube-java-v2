@@ -96,9 +96,7 @@ public abstract class AbstractPurchaseRepositoryTest {
 	@Test
 	public void fetchWithOffsetAndLimit() {
 		var purchases = repo().fetch(new PurchaseCriteria()
-				.withOrderBy(PurchaseCriteria.OrderBy.ASCENDING)
-				.withOffset(0)
-				.withLimit(1));
+				.withOrderBy(PurchaseCriteria.OrderBy.ASCENDING), 0, 1);
 		assertEquals(1, purchases.size());
 	}
 
@@ -175,39 +173,6 @@ public abstract class AbstractPurchaseRepositoryTest {
 
 		var fetched = repo().fetchById(DBReset.ADMIN_FIRST_PURCHASE_ID, prj);
 		assertEquals(DBReset.BEOTRANO_ID, fetched.user.id);
-	}
-
-	// :: insertOrUpdate
-
-	@Test
-	public void insertOrUpdate_insertsWhenNew() {
-		var purchase = new Purchase();
-		purchase.buyDate = OffsetDateTime.now();
-		purchase.user = new User();
-		purchase.user.id = DBReset.BEOTRANO_ID;
-
-		boolean result = repo().insertOrUpdate(purchase);
-		assertTrue(result);
-		assertNotNull(purchase.id);
-
-		var fetched = repo().fetchById(purchase.id, purchaseProjectionWithUser());
-		assertNotNull(fetched);
-		assertEquals(DBReset.BEOTRANO_ID, fetched.user.id);
-	}
-
-	@Test
-	public void insertOrUpdate_updatesWhenExisting() {
-		var purchase = new Purchase();
-		purchase.id = DBReset.ADMIN_FIRST_PURCHASE_ID;
-		purchase.buyDate = OffsetDateTime.now();
-		purchase.user = new User();
-		purchase.user.id = DBReset.FULANO_ID;
-
-		boolean result = repo().insertOrUpdate(purchase);
-		assertTrue(result);
-
-		var fetched = repo().fetchById(DBReset.ADMIN_FIRST_PURCHASE_ID, purchaseProjectionWithUser());
-		assertEquals(DBReset.FULANO_ID, fetched.user.id);
 	}
 
 	// :: delete

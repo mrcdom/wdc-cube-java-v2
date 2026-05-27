@@ -78,9 +78,7 @@ public abstract class AbstractUserRepositoryTest {
 	@Test
 	public void fetchWithOffsetAndLimit() {
 		var users = repo().fetch(new UserCriteria()
-				.withOrderBy(UserCriteria.OrderBy.ASCENDING)
-				.withOffset(1)
-				.withLimit(1));
+				.withOrderBy(UserCriteria.OrderBy.ASCENDING), 1, 1);
 		assertEquals(1, users.size());
 	}
 
@@ -148,38 +146,6 @@ public abstract class AbstractUserRepositoryTest {
 
 		var fetched = repo().fetchById(DBReset.ADMIN_ID, null);
 		assertEquals("Nome Alterado", fetched.name);
-	}
-
-	// :: insertOrUpdate
-
-	@Test
-	public void insertOrUpdate_insertsWhenNew() {
-		var user = new User();
-		user.userName = "iou_user";
-		user.password = "pass";
-		user.name = "IOU Test";
-
-		boolean result = repo().insertOrUpdate(user);
-		assertTrue(result);
-		assertNotNull(user.id);
-
-		var fetched = repo().fetchById(user.id, null);
-		assertEquals("IOU Test", fetched.name);
-	}
-
-	@Test
-	public void insertOrUpdate_updatesWhenExisting() {
-		var user = new User();
-		user.id = DBReset.ADMIN_ID;
-		user.userName = "admin";
-		user.password = "admin";
-		user.name = "Updated Admin";
-
-		boolean result = repo().insertOrUpdate(user);
-		assertTrue(result);
-
-		var fetched = repo().fetchById(DBReset.ADMIN_ID, null);
-		assertEquals("Updated Admin", fetched.name);
 	}
 
 	// :: delete

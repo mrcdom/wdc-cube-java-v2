@@ -17,30 +17,6 @@ public class ProductCriteria {
         return this;
     }
 
-    // :: Offset and limit
-
-    private Integer offset;
-
-    public Integer offset() {
-        return offset;
-    }
-
-    public ProductCriteria withOffset(Integer offset) {
-        this.offset = offset;
-        return this;
-    }
-
-    private Integer limit;
-
-    public Integer limit() {
-        return limit;
-    }
-
-    public ProductCriteria withLimit(Integer limit) {
-        this.limit = limit;
-        return this;
-    }
-
     // :: Criteria
 
     private Long productId;

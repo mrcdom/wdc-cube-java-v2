@@ -16,10 +16,7 @@ import br.com.wdc.framework.commons.sql.SqlDataSourceDelegate;
 import br.com.wdc.shopping.persistence.rest.RepositoryApiRoutes;
 import br.com.wdc.shopping.persistence.client.OkHttpTransport;
 import br.com.wdc.shopping.persistence.client.RestConfig;
-import br.com.wdc.shopping.persistence.client.RestProductRepository;
-import br.com.wdc.shopping.persistence.client.RestPurchaseItemRepository;
-import br.com.wdc.shopping.persistence.client.RestPurchaseRepository;
-import br.com.wdc.shopping.persistence.client.RestUserRepository;
+import br.com.wdc.shopping.persistence.client.RestRepositoryBootstrap;
 import br.com.wdc.shopping.domain.ShoppingConfig;
 import br.com.wdc.shopping.domain.repositories.ProductRepository;
 import br.com.wdc.shopping.domain.repositories.PurchaseItemRepository;
@@ -88,10 +85,10 @@ public class BaseRestApiTest {
 
 		// Cria instâncias REST client (não sobrescrevem os BEANs)
 		var restConfig = new RestConfig(new OkHttpTransport("http://localhost:" + actualPort));
-		userRepo = new RestUserRepository(restConfig);
-		productRepo = new RestProductRepository(restConfig);
-		purchaseRepo = new RestPurchaseRepository(restConfig);
-		purchaseItemRepo = new RestPurchaseItemRepository(restConfig);
+		userRepo = RestRepositoryBootstrap.createUserRepository(restConfig);
+		productRepo = RestRepositoryBootstrap.createProductRepository(restConfig);
+		purchaseRepo = RestRepositoryBootstrap.createPurchaseRepository(restConfig);
+		purchaseItemRepo = RestRepositoryBootstrap.createPurchaseItemRepository(restConfig);
 	}
 
 	@AfterClass

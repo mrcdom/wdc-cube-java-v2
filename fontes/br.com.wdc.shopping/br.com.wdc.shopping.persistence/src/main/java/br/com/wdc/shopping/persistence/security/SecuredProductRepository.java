@@ -3,76 +3,87 @@ package br.com.wdc.shopping.persistence.security;
 import java.util.List;
 
 import br.com.wdc.shopping.domain.criteria.ProductCriteria;
+import br.com.wdc.shopping.domain.model.Page;
 import br.com.wdc.shopping.domain.model.Product;
 import br.com.wdc.shopping.domain.repositories.ProductRepository;
 
 /**
  * Decorator seguro para {@link ProductRepository}.
  * <p>
- * Produtos são catálogo compartilhado — sem restrição de escopo por usuário.
- * Verifica apenas permissões de entidade.
+ * Produtos são catálogo compartilhado — sem restrição de escopo por usuário. Verifica apenas permissões de entidade.
  */
 public final class SecuredProductRepository implements ProductRepository {
 
-	private static final String ENTITY = "product";
+    private static final String ENTITY = "product";
 
-	private final ProductRepository delegate;
+    private final ProductRepository delegate;
 
-	public SecuredProductRepository(ProductRepository delegate) {
-		this.delegate = delegate;
-	}
+    public SecuredProductRepository(ProductRepository delegate) {
+        this.delegate = delegate;
+    }
 
-	@Override
-	public boolean insert(Product product) {
-		SecurityEnforcer.require(ENTITY, "write");
-		return delegate.insert(product);
-	}
+    @Override
+    public Product newProjection() {
+        return delegate.newProjection();
+    }
 
-	@Override
-	public boolean update(Product newProduct, Product oldProduct) {
-		SecurityEnforcer.require(ENTITY, "write");
-		return delegate.update(newProduct, oldProduct);
-	}
+    @Override
+    public boolean insert(Product product) {
+        SecurityEnforcer.require(ENTITY, "write");
+        return delegate.insert(product);
+    }
 
-	@Override
-	public boolean insertOrUpdate(Product product) {
-		SecurityEnforcer.require(ENTITY, "write");
-		return delegate.insertOrUpdate(product);
-	}
+    @Override
+    public boolean update(Product newProduct, Product oldProduct) {
+        SecurityEnforcer.require(ENTITY, "write");
+        return delegate.update(newProduct, oldProduct);
+    }
 
-	@Override
-	public int delete(ProductCriteria criteria) {
-		SecurityEnforcer.require(ENTITY, "delete");
-		return delegate.delete(criteria);
-	}
+    @Override
+    public boolean insertOrUpdate(Product newBean, Product oldBean) {
+        SecurityEnforcer.require(ENTITY, "write");
+        return delegate.insertOrUpdate(newBean, oldBean);
+    }
 
-	@Override
-	public int count(ProductCriteria criteria) {
-		SecurityEnforcer.require(ENTITY, "read");
-		return delegate.count(criteria);
-	}
+    @Override
+    public int delete(ProductCriteria criteria) {
+        SecurityEnforcer.require(ENTITY, "delete");
+        return delegate.delete(criteria);
+    }
 
-	@Override
-	public List<Product> fetch(ProductCriteria criteria) {
-		SecurityEnforcer.require(ENTITY, "read");
-		return delegate.fetch(criteria);
-	}
+    @Override
+    public int count(ProductCriteria criteria) {
+        SecurityEnforcer.require(ENTITY, "read");
+        return delegate.count(criteria);
+    }
 
-	@Override
-	public Product fetchById(Long productId, Product projection) {
-		SecurityEnforcer.require(ENTITY, "read");
-		return delegate.fetchById(productId, projection);
-	}
+    @Override
+    public List<Product> fetch(ProductCriteria criteria, int offset, int limit) {
+        SecurityEnforcer.require(ENTITY, "read");
+        return delegate.fetch(criteria, offset, limit);
+    }
 
-	@Override
-	public byte[] fetchImage(Long productId) {
-		// Imagens de produto são recurso público (catálogo) — sem verificação de permissão
-		return delegate.fetchImage(productId);
-	}
+    @Override
+    public Page<Product> fetchPage(ProductCriteria criteria, int page, int pageSize) {
+        SecurityEnforcer.require(ENTITY, "read");
+        return delegate.fetchPage(criteria, page, pageSize);
+    }
 
-	@Override
-	public boolean updateImage(Long productId, byte[] image) {
-		SecurityEnforcer.require(ENTITY, "write");
-		return delegate.updateImage(productId, image);
-	}
+    @Override
+    public Product fetchById(Long productId, Product projection) {
+        SecurityEnforcer.require(ENTITY, "read");
+        return delegate.fetchById(productId, projection);
+    }
+
+    @Override
+    public byte[] fetchImage(Long productId) {
+        // Imagens de produto são recurso público (catálogo) — sem verificação de permissão
+        return delegate.fetchImage(productId);
+    }
+
+    @Override
+    public boolean updateImage(Long productId, byte[] image) {
+        SecurityEnforcer.require(ENTITY, "write");
+        return delegate.updateImage(productId, image);
+    }
 }

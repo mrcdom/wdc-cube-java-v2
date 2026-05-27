@@ -18,7 +18,8 @@ if [[ "$1" == "--full" ]]; then
 fi
 
 # Compile TeaVM (generates JS into $DEPLOY_DIR/js/ and copies filtered index.html via maven-resources-plugin)
-JAVA_HOME=$JAVA21_HOME mvn process-classes -DskipTests
+# clean is required to force TeaVM recompilation when only dependency JARs changed
+JAVA_HOME=$JAVA21_HOME mvn clean process-classes -DskipTests
 
 # Copy static assets for the landing page and browser
 cp src/main/webapp/context.html "$DEPLOY_DIR/context.html"

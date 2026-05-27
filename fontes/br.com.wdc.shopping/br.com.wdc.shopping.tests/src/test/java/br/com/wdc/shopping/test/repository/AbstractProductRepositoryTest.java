@@ -62,9 +62,7 @@ public abstract class AbstractProductRepositoryTest {
 	@Test
 	public void fetchWithOffsetAndLimit() {
 		var products = repo().fetch(new ProductCriteria()
-				.withOrderBy(ProductCriteria.OrderBy.ASCENDING)
-				.withOffset(0)
-				.withLimit(2));
+				.withOrderBy(ProductCriteria.OrderBy.ASCENDING), 0, 2);
 		assertEquals(2, products.size());
 	}
 
@@ -162,40 +160,6 @@ public abstract class AbstractProductRepositoryTest {
 		var fetched = repo().fetchById(DBReset.PEN_DRIVE2GB_ID, null);
 		assertEquals("Pen Drive 4GB", fetched.name);
 		assertEquals(35.0, fetched.price, 0.001);
-	}
-
-	// :: insertOrUpdate
-
-	@Test
-	public void insertOrUpdate_insertsWhenNew() {
-		var product = new Product();
-		product.name = "Mouse Wireless";
-		product.price = 49.90;
-		product.description = "Mouse sem fio";
-
-		boolean result = repo().insertOrUpdate(product);
-		assertTrue(result);
-		assertNotNull(product.id);
-
-		assertEquals(5, repo().count(new ProductCriteria()));
-	}
-
-	@Test
-	public void insertOrUpdate_updatesWhenExisting() {
-		var original = repo().fetchById(DBReset.FITA_VEDA_ROSCA_ID, null);
-		assertNotNull(original);
-
-		var product = new Product();
-		product.id = DBReset.FITA_VEDA_ROSCA_ID;
-		product.name = "Fita Veda Rosca Premium";
-		product.price = 12.0;
-		product.description = original.description;
-
-		boolean result = repo().insertOrUpdate(product);
-		assertTrue(result);
-
-		var fetched = repo().fetchById(DBReset.FITA_VEDA_ROSCA_ID, null);
-		assertEquals("Fita Veda Rosca Premium", fetched.name);
 	}
 
 	// :: delete
