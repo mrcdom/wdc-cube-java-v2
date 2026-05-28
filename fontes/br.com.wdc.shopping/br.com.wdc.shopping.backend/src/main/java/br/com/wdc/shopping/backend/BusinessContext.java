@@ -53,6 +53,8 @@ public class BusinessContext {
 
             SqlDataSource.BEAN.set(new SqlDataSourceDelegate(dataSource));
 
+            RepositoryBootstrap.initialize(config.getBoolean("database.logSql", false));
+
             try (var connection = dataSource.getConnection()) {
                 var command = new DBCreate().withConnection(connection);
                 if (config.getBoolean("database.reset", false)) {
@@ -60,8 +62,6 @@ public class BusinessContext {
                 }
                 command.run();
             }
-
-            RepositoryBootstrap.initialize(config.getBoolean("database.logSql", false));
 
             ApplicationReactRegistry.init();
 

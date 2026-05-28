@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import br.com.wdc.shopping.domain.config.AppConfig;
 
@@ -110,10 +109,13 @@ public class ShoppingConfig {
 
         private static Path resolveRuntimeBaseDir(AppConfig config) throws IOException {
             String configuredDir = config.get("app.basedir");
-            Path baseDir = configuredDir != null && !configuredDir.isBlank()
-                    ? Paths.get(configuredDir)
-                    : Paths.get("work");
-            return createDirectory(baseDir.toAbsolutePath().normalize());
+            if (configuredDir == null || configuredDir.isBlank()) {
+                throw new IllegalStateException(
+                        "Property 'app.basedir' is required in " + config.getConfigFilePath());
+            }
+            // Resolve relative to the config file's directory
+            Path resolved = config.getConfigFileDir().resolve(configuredDir).normalize();
+            return createDirectory(resolved);
         }
 
     }

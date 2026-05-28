@@ -19,9 +19,9 @@ import ch.qos.logback.core.joran.spi.JoranException;
  * Resolução do diretório de trabalho (basedir):
  * </p>
  * <ol>
- * <li>Lê {@code app.basedir} do {@code application.toml} (localizado via system property
- * {@code shopping.config.file} ou default {@code work/config/application.toml})</li>
- * <li>Se não definido, usa {@code work/} relativo ao diretório do processo</li>
+ * <li>Localiza o {@code application.toml} via system property
+ * {@code shopping.config.file} ou default {@code config/application.toml}</li>
+ * <li>Lê {@code app.basedir} (obrigatório) e resolve relativo à localização do arquivo</li>
  * </ol>
  *
  * <p>
@@ -33,8 +33,8 @@ import ch.qos.logback.core.joran.spi.JoranException;
 final class LogBootstrap {
 
     private static final String CONFIG_FILE_PROPERTY = "shopping.config.file";
-    private static final String DEFAULT_CONFIG_PATH = "work/config/application.toml";
-    private static final Pattern BASEDIR_PATTERN = Pattern.compile("^\\s*basedir\\s*=\\s*\"([^\"]+)\"");
+    private static final String DEFAULT_CONFIG_PATH = "config/application.toml";
+    private static final Pattern BASEDIR_PATTERN = Pattern.compile("^\\s*basedir\\s*=\\s*[\"']([^\"']+)[\"']");
 
     private LogBootstrap() {
     }
@@ -52,15 +52,24 @@ final class LogBootstrap {
 
     private static Path resolveBaseDir() {
         Path configFile = resolveAppConfigFile();
+        if (!Files.exists(configFile)) {
+            throw new IllegalStateException(
+                    "[LogBootstrap] Configuration file not found: " + configFile.toAbsolutePath()
+                            + ". Create the file or set -D" + CONFIG_FILE_PROPERTY + "=<path>");
+        }
         String basedir = peekBasedir(configFile);
-        Path baseDir = basedir != null ? Paths.get(basedir) : Paths.get("work");
-        return baseDir.toAbsolutePath().normalize();
+        if (basedir == null) {
+            throw new IllegalStateException(
+                    "[LogBootstrap] Property 'app.basedir' is required in " + configFile.toAbsolutePath());
+        }
+        // Resolve basedir relative to the config file's directory
+        return configFile.toAbsolutePath().getParent().resolve(basedir).normalize();
     }
 
     private static Path resolveAppConfigFile() {
         String configured = System.getProperty(CONFIG_FILE_PROPERTY);
         if (configured != null && !configured.isBlank()) {
-            return Paths.get(configured);
+            return Paths.get(configured).toAbsolutePath().normalize();
         }
         return Paths.get(DEFAULT_CONFIG_PATH).toAbsolutePath().normalize();
     }

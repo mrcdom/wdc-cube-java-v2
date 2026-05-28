@@ -3,22 +3,21 @@ package br.com.wdc.shopping.backend.controller;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.stream.Stream;
 
 import br.com.wdc.framework.commons.log.Log;
+import br.com.wdc.shopping.domain.ShoppingConfig;
 import io.javalin.config.JavalinConfig;
 import io.javalin.http.Context;
 
 /**
  * Generates a dynamic landing page listing all available frontend contexts
- * found under {@code work/frontend/}. Each context's description is loaded
- * from {@code work/frontend/<context>/context.html}.
+ * found under {@code {basedir}/frontend/}. Each context's description is loaded
+ * from {@code {basedir}/frontend/<context>/context.html}.
  */
 public class LandingPageController {
 
     private static final Log LOG = Log.getLogger(LandingPageController.class);
-    private static final String FRONTEND_DIR = "work/frontend";
 
     public static void configure(JavalinConfig config) {
         var controller = new LandingPageController();
@@ -27,7 +26,7 @@ public class LandingPageController {
     }
 
     private void handle(Context ctx) {
-        Path frontendBase = Paths.get(FRONTEND_DIR).toAbsolutePath().normalize();
+        Path frontendBase = ShoppingConfig.getBaseDir().resolve("frontend");
         var html = new StringBuilder();
 
         html.append("""

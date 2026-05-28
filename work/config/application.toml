@@ -1,10 +1,12 @@
 # WeDoCode Shopping - Application Configuration
-# Place this file at: work/config/application.toml
+# Place this file at: {CWD}/config/application.toml
+# (start-server.sh sets CWD to the work/ directory)
 
 [app]
-# Base directory for runtime data (config, data, log, temp)
-# Default: "work" relative to working directory
-# basedir = "/opt/wedocode-shopping"
+# Base directory for runtime data (data, log, temp, frontend)
+# Resolved relative to the location of THIS file.
+# ".." means one folder above config/ (i.e., the work/ directory itself)
+basedir = ".."
 
 [database]
 # JDBC URL. Default: H2 file database in the data directory

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-	<property name="LOG_DIR" value="work/log" />
+	<property name="LOG_DIR" value="/Users/mrcdom/Works/WeDoCode/wdc-cube-java-v2/fontes/br.com.wdc.shopping/br.com.wdc.shopping.backend/work/log" />
 	<property name="LOG_PATTERN" value="%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n" />
 
 	<!-- Console Appender -->

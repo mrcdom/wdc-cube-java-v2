@@ -3,7 +3,6 @@ package br.com.wdc.shopping.backend;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -12,6 +11,7 @@ import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.log.Slf4jLogFactory;
 
 import br.com.wdc.shopping.persistence.rest.RepositoryApiRoutes;
+import br.com.wdc.shopping.domain.ShoppingConfig;
 import br.com.wdc.shopping.domain.config.AppConfig;
 import br.com.wdc.shopping.backend.controller.DispatcherController;
 import br.com.wdc.shopping.backend.controller.ImageController;
@@ -40,7 +40,6 @@ public class JavalinApplication {
     private static final String STATIC_FILES_DIR = "/META-INF/resources";
     private static final String STATIC_IMAGES_FILES_DIR = STATIC_FILES_DIR + "/images";
     private static final String STATIC_HOSTED_IMAGE_PATH = "/images";
-    private static final String FRONTEND_DIR = "work/frontend";
     
     private static final int DEFAULT_PORT = 8080;
 
@@ -178,13 +177,13 @@ public class JavalinApplication {
     }
 
     /**
-     * Scans subdirectories under {@code work/frontend/} and registers each one
+     * Scans subdirectories under {@code {basedir}/frontend/} and registers each one
      * as an external static file source served at its own context path ({@code /<dirname>/}).
      * Also registers API routes under each context so SPAs can access the API
      * without cross-origin issues.
      */
     private void configureFrontendStaticFiles(JavalinConfig config) {
-        Path frontendBase = Paths.get(FRONTEND_DIR).toAbsolutePath().normalize();
+        Path frontendBase = ShoppingConfig.getBaseDir().resolve("frontend");
         if (!Files.isDirectory(frontendBase)) {
             LOG.info("Frontend directory not found: {} — skipping external static files", frontendBase);
             return;
