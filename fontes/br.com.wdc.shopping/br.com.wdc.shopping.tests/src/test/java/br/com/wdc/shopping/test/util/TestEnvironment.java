@@ -4,7 +4,10 @@ import java.nio.file.Paths;
 import java.sql.SQLException;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.tomcat.dbcp.dbcp.BasicDataSource;
+import io.agroal.api.AgroalDataSource;
+import io.agroal.api.configuration.supplier.AgroalDataSourceConfigurationSupplier;
+import io.agroal.api.security.NamePrincipal;
+import io.agroal.api.security.SimplePassword;
 import org.junit.rules.ExternalResource;
 
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
@@ -39,7 +42,7 @@ public class TestEnvironment extends ExternalResource {
 
 	private final Mode mode;
 
-	private BasicDataSource datasource;
+	private AgroalDataSource datasource;
 	private ScheduledExecutorForTest executor;
 	private Javalin javalin;
 
@@ -85,15 +88,17 @@ public class TestEnvironment extends ExternalResource {
 		executor = new ScheduledExecutorForTestAsync();
 
 		var dbName = mode == Mode.LOCAL ? "wedocode-shopping" : "wedocode-shopping-rest";
-		var ds = new BasicDataSource();
-		ds.setDriverClassName("org.h2.jdbcx.JdbcDataSource");
-		ds.setUrl("jdbc:h2:mem:" + dbName + ";DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE");
-		ds.setUsername("sa");
-		ds.setPassword("sa");
-		ds.setInitialSize(1);
-		ds.setMaxActive(10);
-		ds.setMaxIdle(5);
-		ds.setValidationQuery("SELECT 1 FROM DUAL");
+		var ds = AgroalDataSource.from(
+				new AgroalDataSourceConfigurationSupplier()
+						.connectionPoolConfiguration(cp -> cp
+								.maxSize(10)
+								.minSize(1)
+								.initialSize(1)
+								.connectionFactoryConfiguration(cf -> cf
+										.jdbcUrl("jdbc:h2:mem:" + dbName + ";DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE")
+										.principal(new NamePrincipal("sa"))
+										.credential(new SimplePassword("sa"))
+										.connectionProviderClassName("org.h2.jdbcx.JdbcDataSource"))));
 		datasource = ds;
 
 		var basePath = Paths.get("work");
@@ -136,11 +141,7 @@ public class TestEnvironment extends ExternalResource {
 
 		RepositoryBootstrap.release();
 
-		try {
-			datasource.close();
-		} catch (SQLException e) {
-			throw ExceptionUtils.asRuntimeException(e);
-		}
+		datasource.close();
 		datasource = null;
 		executor.shutdown();
 	}

@@ -234,18 +234,20 @@ enUser.NAME  // TableField<EnUserRecord, String>
 
 ### Tratamento de Imagens (ProductRepositoryImpl)
 
-O `ProductRepositoryImpl` usa JDBC raw para operações com imagens (campo `VARBINARY`), contornando limitação do pool de conexões (Tomcat DBCP 6.x não implementa `Connection.createBlob()`):
+O `ProductRepositoryImpl` usa jOOQ diretamente para operações com imagens (campo `VARBINARY`), sem necessidade de workarounds — o pool de conexões Agroal implementa JDBC 4.x completo, incluindo `createBlob()`:
 
 ```java
-private void setImageRawJdbc(Long productId, byte[] image) {
-    var ds = SqlDataSource.BEAN.get();
-    try (var conn = ds.getConnection();
-         var ps = conn.prepareStatement("UPDATE EN_PRODUCT SET IMAGE = ? WHERE ID = ?")) {
-        ps.setBytes(1, image);
-        ps.setLong(2, productId);
-        ps.executeUpdate();
-    }
-}
+// Insert com imagem
+dsl.insertInto(EN_PRODUCT)
+        .set(EN_PRODUCT.ID, product.id)
+        .set(EN_PRODUCT.IMAGE, product.image)  // byte[] direto via jOOQ
+        .execute();
+
+// Update de imagem isolado
+dsl.update(EN_PRODUCT)
+        .set(EN_PRODUCT.IMAGE, image)
+        .where(EN_PRODUCT.ID.eq(productId))
+        .execute();
 ```
 
 ## Convenções

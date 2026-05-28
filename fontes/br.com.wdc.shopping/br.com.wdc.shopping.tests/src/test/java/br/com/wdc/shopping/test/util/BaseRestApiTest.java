@@ -4,7 +4,10 @@ import java.nio.file.Paths;
 import java.sql.SQLException;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.tomcat.dbcp.dbcp.BasicDataSource;
+import io.agroal.api.AgroalDataSource;
+import io.agroal.api.configuration.supplier.AgroalDataSourceConfigurationSupplier;
+import io.agroal.api.security.NamePrincipal;
+import io.agroal.api.security.SimplePassword;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -42,7 +45,7 @@ import io.javalin.Javalin;
  */
 public class BaseRestApiTest {
 
-	private static BasicDataSource datasource;
+	private static AgroalDataSource datasource;
 	private static Javalin javalin;
 
 	protected static ScheduledExecutorForTest executor;
@@ -57,15 +60,17 @@ public class BaseRestApiTest {
 		executor = new ScheduledExecutorForTestAsync();
 
 		// Datasource H2 em memória
-		final BasicDataSource ds = new BasicDataSource();
-		ds.setDriverClassName("org.h2.jdbcx.JdbcDataSource");
-		ds.setUrl("jdbc:h2:mem:wedocode-shopping-rest;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE");
-		ds.setUsername("sa");
-		ds.setPassword("sa");
-		ds.setInitialSize(1);
-		ds.setMaxActive(10);
-		ds.setMaxIdle(5);
-		ds.setValidationQuery("SELECT 1 FROM DUAL");
+		var ds = AgroalDataSource.from(
+				new AgroalDataSourceConfigurationSupplier()
+						.connectionPoolConfiguration(cp -> cp
+								.maxSize(10)
+								.minSize(1)
+								.initialSize(1)
+								.connectionFactoryConfiguration(cf -> cf
+										.jdbcUrl("jdbc:h2:mem:wedocode-shopping-rest;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE")
+										.principal(new NamePrincipal("sa"))
+										.credential(new SimplePassword("sa"))
+										.connectionProviderClassName("org.h2.jdbcx.JdbcDataSource"))));
 		datasource = ds;
 
 		var basePath = Paths.get("work");
@@ -98,7 +103,7 @@ public class BaseRestApiTest {
 	}
 
 	@AfterClass
-	public static void afterClass() throws SQLException {
+	public static void afterClass() {
 		if (javalin != null) {
 			javalin.stop();
 			javalin = null;

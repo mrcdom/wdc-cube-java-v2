@@ -70,13 +70,11 @@ public class ProductRepositoryImpl implements ProductRepository {
         if (product.description != null) {
             step.set(EN_PRODUCT.DESCRIPTION, product.description);
         }
+        if (product.image != null) {
+            step.set(EN_PRODUCT.IMAGE, product.image);
+        }
 
         var inserted = step.execute() > 0;
-
-        // Image via raw JDBC to avoid createBlob() issue with old Tomcat DBCP pool
-        if (inserted && product.image != null) {
-            setImageRawJdbc(dsl, product.id, product.image);
-        }
 
         return inserted;
     }
@@ -108,15 +106,11 @@ public class ProductRepositoryImpl implements ProductRepository {
             return false;
         }
 
-        if (hasChanges) {
-            step.where(EN_PRODUCT.ID.eq(newBean.id)).execute();
+        if (newBean.image != null) {
+            step.set(EN_PRODUCT.IMAGE, newBean.image);
         }
 
-        // Image via raw JDBC to avoid createBlob() issue with old Tomcat DBCP pool
-        if (newBean.image != null) {
-            var dsl2 = JooqDSLContext.BEAN.get();
-            setImageRawJdbc(dsl2, newBean.id, newBean.image);
-        }
+        step.where(EN_PRODUCT.ID.eq(newBean.id)).execute();
 
         return true;
     }
@@ -194,18 +188,10 @@ public class ProductRepositoryImpl implements ProductRepository {
     @Override
     public boolean updateImage(Long productId, byte[] image) {
         var dsl = JooqDSLContext.BEAN.get();
-        setImageRawJdbc(dsl, productId, image);
-        return true;
-    }
-
-    private static void setImageRawJdbc(org.jooq.DSLContext dsl, long productId, byte[] image) {
-        dsl.connection(conn -> {
-            try (var ps = conn.prepareStatement("UPDATE EN_PRODUCT SET IMAGE = ? WHERE ID = ?")) {
-                ps.setBytes(1, image);
-                ps.setLong(2, productId);
-                ps.executeUpdate();
-            }
-        });
+        return dsl.update(EN_PRODUCT)
+                .set(EN_PRODUCT.IMAGE, image)
+                .where(EN_PRODUCT.ID.eq(productId))
+                .execute() > 0;
     }
 
     // :: Internal
