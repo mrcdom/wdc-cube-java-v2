@@ -19,7 +19,7 @@ public interface ProductRepository extends Repository<Product, ProductCriteria, 
         prj.name = pv.str;
         prj.price = pv.f64;
         prj.description = pv.str;
-        prj.image = pv.bin;
+        prj.image = null;
         return prj;
     }
 

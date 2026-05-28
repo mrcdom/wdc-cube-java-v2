@@ -2,7 +2,9 @@ package br.com.wdc.shopping.domain.utils;
 
 import java.util.HashSet;
 
-public class ProjectionSet<E> extends HashSet<E> {
+import br.com.wdc.framework.commons.util.HasCriteria;
+
+public class ProjectionSet<E> extends HashSet<E> implements HasCriteria {
 
     private static final long serialVersionUID = 6928480631349456496L;
 
@@ -14,6 +16,7 @@ public class ProjectionSet<E> extends HashSet<E> {
         this.add(bean);
     }
 
+    @Override
     public Object getCriteria() {
         return criteria;
     }

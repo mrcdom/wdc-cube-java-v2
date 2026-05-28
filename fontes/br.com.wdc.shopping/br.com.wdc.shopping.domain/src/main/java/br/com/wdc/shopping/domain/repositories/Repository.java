@@ -38,10 +38,13 @@ public interface Repository<E, C, K> {
         return fetch(criteria, 0, limit);
     }
 
-    Page<E> fetchPage(C criteria, int page, int pageSize);
+    default Page<E> fetchPage(C criteria, int page, int pageSize) {
+        var total = count(criteria);
+        var items = fetch(criteria, page * pageSize, pageSize);
+        return Page.of(items, page, pageSize, total);
+    }
 
     E fetchById(K id, E projection);
 
     E newProjection();
 }
-

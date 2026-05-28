@@ -61,7 +61,7 @@ public class BusinessContext {
                 command.run();
             }
 
-            RepositoryBootstrap.initialize();
+            RepositoryBootstrap.initialize(config.getBoolean("database.logSql", false));
 
             ApplicationReactRegistry.init();
 

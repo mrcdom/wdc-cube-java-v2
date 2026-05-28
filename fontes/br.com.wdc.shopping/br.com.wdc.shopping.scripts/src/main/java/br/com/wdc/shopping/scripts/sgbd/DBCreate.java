@@ -1,27 +1,34 @@
 package br.com.wdc.shopping.scripts.sgbd;
 
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
+import org.jooq.DSLContext;
+import org.jooq.SQLDialect;
+import org.jooq.Table;
+import org.jooq.impl.DSL;
 
-import br.com.wdc.shopping.persistence.schema.EnProduct;
-import br.com.wdc.shopping.persistence.schema.EnPurchase;
-import br.com.wdc.shopping.persistence.schema.EnPurchaseItem;
-import br.com.wdc.shopping.persistence.schema.EnUser;
-import br.com.wdc.shopping.scripts.sgbd.schema.EnMigrationLog;
+import br.com.wdc.framework.jooq.H2Functions;
 
+/**
+ * Creates the database schema using jOOQ and runs pending migrations.
+ *
+ * <p>The DDL statements here are the single source of truth for the schema.
+ * The jOOQ generated classes (in persistence.jooq) are derived from this via
+ * {@link GenerateJooqSchema}.</p>
+ */
 public class DBCreate {
 
 	private Connection connection;
+	private DSLContext dsl;
 
 	boolean mustResetDb = false;
 
 	public DBCreate withConnection(Connection connection) {
 		this.connection = connection;
+		this.dsl = DSL.using(connection, SQLDialect.H2);
 		return this;
 	}
 
@@ -31,113 +38,96 @@ public class DBCreate {
 	}
 
 	public DBCreate run() throws SQLException {
-		var tableMap = this.loadTableMap(this.connection.getMetaData());
+		H2Functions.registerAll(this.connection);
 
-		var enMigrationLog = EnMigrationLog.INSTANCE;
-		if (!tableMap.containsKey("PUBLIC." + enMigrationLog.tableName())) {
-			this.createTableMigrationLog();
-		}
+		var existingTables = loadExistingTables();
 
-		var enUser = EnUser.INSTANCE;
-		if (!tableMap.containsKey("PUBLIC." + enUser.tableName())) {
-			this.createTableUser();
+		if (!existingTables.contains("EN_USER")) {
+			createTableUser();
 			this.mustResetDb = true;
 		}
 
-		var enProduct = EnProduct.INSTANCE;
-		if (!tableMap.containsKey("PUBLIC." + enProduct.tableName())) {
-			this.createTableProduct();
+		if (!existingTables.contains("EN_PRODUCT")) {
+			createTableProduct();
 			this.mustResetDb = true;
 		}
 
-		var enPurchase = EnPurchase.INSTANCE;
-		if (!tableMap.containsKey("PUBLIC." + enPurchase.tableName())) {
-			this.createTablePurchase();
+		if (!existingTables.contains("EN_PURCHASE")) {
+			createTablePurchase();
 			this.mustResetDb = true;
 		}
 
-		var enPurchaseItem = EnPurchaseItem.INSTANCE;
-		if (!tableMap.containsKey("PUBLIC." + enPurchaseItem.tableName())) {
-			this.createTablePurchaseItem();
+		if (!existingTables.contains("EN_PURCHASEITEM")) {
+			createTablePurchaseItem();
 			this.mustResetDb = true;
 		}
 
 		if (this.mustResetDb) {
-			DBReset.run(this.connection);
+			DBReset.run();
 		}
-
-		// Run pending migrations
-		new MigrationRunner(this.connection)
-				.run(new Migration_0001_AddUserRoles(this.connection))
-				.run(new Migration_0002_PurchaseBuyDateToTimestamp(this.connection));
 
 		return this;
 	}
 
-	private Map<String, Boolean> loadTableMap(DatabaseMetaData metaData) throws SQLException {
-		var tableMap = new TreeMap<String, Boolean>(String.CASE_INSENSITIVE_ORDER);
-		try (var rs = metaData.getTables(null, null, "%", new String[] {"TABLE"})) {
-			while (rs.next()) {
-				var tableSchem = rs.getString("TABLE_SCHEM");
-				var tableName = rs.getString("TABLE_NAME");
-
-				var sb = new StringBuilder();
-
-				if (StringUtils.isNotBlank(tableSchem)) {
-					sb.append(tableSchem);
-					sb.append(".");
-				}
-				sb.append(tableName);
-
-				tableMap.put(sb.toString(), Boolean.TRUE);
-			}
-		}
-		return tableMap;
+	private Set<String> loadExistingTables() {
+		return dsl.meta().getTables().stream()
+				.map(Table::getName)
+				.map(String::toUpperCase)
+				.collect(Collectors.toSet());
 	}
 
-	private void createTableUser() throws SQLException {
-		var enUser = EnUser.INSTANCE;
+	// -- DDL definitions (source of truth) --
 
-		try (var stmt = this.connection.createStatement()) {
-			stmt.execute(enUser.createTableSql());
-			stmt.execute(enUser.createSequeceSql());
-		}
+	private void createTableUser() {
+		dsl.execute("""
+				CREATE TABLE EN_USER (
+				    ID BIGINT NOT NULL,
+				    USERNAME VARCHAR(255) NOT NULL,
+				    PASSWORD CHAR(32) NOT NULL,
+				    NAME VARCHAR(255) NOT NULL,
+				    ROLES VARCHAR(255),
+				    CONSTRAINT PK_USER PRIMARY KEY (ID)
+				)""");
+		dsl.execute("CREATE SEQUENCE SQ_USER START WITH 1 INCREMENT BY 1");
 	}
 
-	private void createTableProduct() throws SQLException {
-		var enProduct = EnProduct.INSTANCE;
-
-		try (var stmt = this.connection.createStatement()) {
-			stmt.execute(enProduct.createTableSql());
-			stmt.execute(enProduct.createSequeceSql());
-		}
+	private void createTableProduct() {
+		dsl.execute("""
+				CREATE TABLE EN_PRODUCT (
+				    ID BIGINT NOT NULL,
+				    NAME VARCHAR_IGNORECASE(1000000) NOT NULL,
+				    PRICE NUMERIC(20,2) NOT NULL,
+				    DESCRIPTION VARCHAR(1000000) NOT NULL,
+				    IMAGE BINARY(1000000),
+				    CONSTRAINT PK_PRODUCT PRIMARY KEY (ID)
+				)""");
+		dsl.execute("CREATE SEQUENCE SQ_PRODUCT START WITH 1 INCREMENT BY 1");
 	}
 
-	private void createTablePurchase() throws SQLException {
-		var enPurchase = EnPurchase.INSTANCE;
-
-		try (var stmt = this.connection.createStatement()) {
-			stmt.execute(enPurchase.createTableSql());
-			stmt.execute(enPurchase.createSequeceSql());
-		}
+	private void createTablePurchase() {
+		dsl.execute("""
+				CREATE TABLE EN_PURCHASE (
+				    ID BIGINT NOT NULL,
+				    USERID BIGINT NOT NULL,
+				    BUYDATE TIMESTAMP NOT NULL,
+				    CONSTRAINT PK_PURCHASE PRIMARY KEY (ID),
+				    CONSTRAINT FK_PURCHASE_USER FOREIGN KEY (USERID) REFERENCES EN_USER(ID)
+				)""");
+		dsl.execute("CREATE SEQUENCE SQ_PURCHASE START WITH 1 INCREMENT BY 1");
 	}
 
-	private void createTablePurchaseItem() throws SQLException {
-		var enPurchaseItem = EnPurchaseItem.INSTANCE;
-
-		try (var stmt = this.connection.createStatement()) {
-			stmt.execute(enPurchaseItem.createTableSql());
-			stmt.execute(enPurchaseItem.createSequeceSql());
-		}
+	private void createTablePurchaseItem() {
+		dsl.execute("""
+				CREATE TABLE EN_PURCHASEITEM (
+				    ID BIGINT NOT NULL,
+				    PURCHASEID BIGINT NOT NULL,
+				    PRODUCTID BIGINT NOT NULL,
+				    AMOUNT INT NOT NULL,
+				    PRICE NUMERIC(20,2) NOT NULL,
+				    CONSTRAINT PK_PURCHASEITEM PRIMARY KEY (ID),
+				    CONSTRAINT FK_PURCHASEITEM_PRODUCT FOREIGN KEY (PRODUCTID) REFERENCES EN_PRODUCT(ID),
+				    CONSTRAINT FK_PURCHASEITEM_PURCHASE FOREIGN KEY (PURCHASEID) REFERENCES EN_PURCHASE(ID)
+				)""");
+		dsl.execute("CREATE SEQUENCE SQ_PURCHASEITEM START WITH 1 INCREMENT BY 1");
 	}
-
-	private void createTableMigrationLog() throws SQLException {
-		var enMigrationLog = EnMigrationLog.INSTANCE;
-
-		try (var stmt = this.connection.createStatement()) {
-			stmt.execute(enMigrationLog.createTableSql());
-			stmt.execute(enMigrationLog.createSequeceSql());
-		}
-	}
-
 }

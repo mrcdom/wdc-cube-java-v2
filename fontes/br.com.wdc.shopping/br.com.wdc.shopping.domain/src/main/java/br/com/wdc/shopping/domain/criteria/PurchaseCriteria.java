@@ -41,6 +41,17 @@ public class PurchaseCriteria {
         return this;
     }
 
+    private Long productId;
+
+    public Long productId() {
+        return productId;
+    }
+
+    public PurchaseCriteria withProductId(Long productId) {
+        this.productId = productId;
+        return this;
+    }
+
     // :: Order By
 
     private OrderBy orderBy;

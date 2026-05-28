@@ -31,6 +31,7 @@
 	<modules>
 		<module>br.com.wdc.framework.dependencies</module>
 		<module>br.com.wdc.framework.commons</module>
+		<module>br.com.wdc.framework.jooq</module>
 		<module>br.com.wdc.framework.cube</module>
 	</modules>
 

@@ -267,7 +267,6 @@ public final class VDom {
 
     // ---- Event diffing ----
 
-    @SuppressWarnings("unchecked")
     private static void diffEvents(HTMLElement elm,
             Map<String, EventListener<? extends Event>> oldEvents,
             Map<String, EventListener<? extends Event>> newEvents) {
@@ -296,12 +295,12 @@ public final class VDom {
         }
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({ "rawtypes" })
     private static void addEventListener(HTMLElement elm, String type, EventListener listener) {
         elm.addEventListener(type, listener);
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({ "rawtypes" })
     private static void removeEventListener(HTMLElement elm, String type, EventListener listener) {
         elm.removeEventListener(type, listener);
     }
