@@ -171,7 +171,7 @@ public class JsonStreamReader implements ExtensibleObjectInput {
 		} catch (NumberFormatException e) {
 			double d = Double.parseDouble(raw);
 			long l = (long) d;
-			if (d == (double) l) return l;
+			if (d == l) return l;
 			throw new NumberFormatException("Expected long but was " + raw + " at position " + pos);
 		}
 	}
@@ -190,7 +190,7 @@ public class JsonStreamReader implements ExtensibleObjectInput {
 		} catch (NumberFormatException e) {
 			double d = Double.parseDouble(raw);
 			int i = (int) d;
-			if (d == (double) i) return i;
+			if (d == i) return i;
 			throw new NumberFormatException("Expected int but was " + raw + " at position " + pos);
 		}
 	}
@@ -230,7 +230,7 @@ public class JsonStreamReader implements ExtensibleObjectInput {
 					push(SCOPE_EMPTY_OBJECT);
 					depth++;
 					break;
-				case PEEKED_END_OBJECT:
+				case PEEKED_END_OBJECT, PEEKED_END_ARRAY:
 					stackSize--;
 					depth--;
 					break;
@@ -238,10 +238,6 @@ public class JsonStreamReader implements ExtensibleObjectInput {
 					pos++;
 					push(SCOPE_EMPTY_ARRAY);
 					depth++;
-					break;
-				case PEEKED_END_ARRAY:
-					stackSize--;
-					depth--;
 					break;
 				case PEEKED_NAME:
 					readQuotedString();
@@ -264,6 +260,8 @@ public class JsonStreamReader implements ExtensibleObjectInput {
 					break;
 				case PEEKED_EOF:
 					return;
+				default:
+					break;
 			}
 			peeked = PEEKED_NONE;
 		} while (depth > 0);
@@ -354,6 +352,9 @@ public class JsonStreamReader implements ExtensibleObjectInput {
 				}
 				pos++;
 				break;
+
+			default:
+				throw syntaxError("Unexpected scope: " + scope);
 		}
 
 		// Read a value token
