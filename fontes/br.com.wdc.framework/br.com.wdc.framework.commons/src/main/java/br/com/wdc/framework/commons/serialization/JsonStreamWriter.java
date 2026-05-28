@@ -138,6 +138,8 @@ public class JsonStreamWriter implements ExtensibleObjectOutput {
 				case SCOPE_NONEMPTY_ARRAY:
 					sb.append(',');
 					break;
+				default:
+					break;
 			}
 		}
 	}

@@ -1,7 +1,5 @@
 package br.com.wdc.shopping.persistence.rest.security;
 
-import java.util.Map;
-
 import br.com.wdc.framework.commons.log.Log;
 
 import br.com.wdc.shopping.domain.security.AuthenticationService;
@@ -42,7 +40,7 @@ public final class SecurityFilter {
 
 		var authHeader = ctx.header("Authorization");
 		if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) {
-			ctx.status(401).json(Map.of("error", "Missing or invalid Authorization header"));
+			ctx.status(401).contentType("application/json").result("{\"error\":\"Missing or invalid Authorization header\"}");
 			ctx.skipRemainingHandlers();
 			return;
 		}
@@ -50,7 +48,7 @@ public final class SecurityFilter {
 		var token = authHeader.substring(BEARER_PREFIX.length());
 		var securityContext = authService.resolveToken(token);
 		if (securityContext == null) {
-			ctx.status(401).json(Map.of("error", "Invalid or expired token"));
+			ctx.status(401).contentType("application/json").result("{\"error\":\"Invalid or expired token\"}");
 			ctx.skipRemainingHandlers();
 			return;
 		}

@@ -83,6 +83,19 @@ public class ProductModelCodec implements ModelCodec<Product, ProductCriteria> {
 	}
 
 	@Override
+	public boolean readCriteriaField(ExtensibleObjectInput in, String fieldName, ProductCriteria criteria) {
+		switch (fieldName) {
+			case "productId" -> criteria.withProductId(InputCoerceUtils.asLong(in));
+			case "orderBy" -> {
+				var v = InputCoerceUtils.asString(in);
+				if (v != null) criteria.withOrderBy(ProductCriteria.OrderBy.valueOf(v));
+			}
+			default -> { return false; }
+		}
+		return true;
+	}
+
+	@Override
 	public Product getProjection(ProductCriteria criteria) {
 		return criteria.projection();
 	}

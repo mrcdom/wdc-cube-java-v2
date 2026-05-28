@@ -120,6 +120,20 @@ public class PurchaseModelCodec implements ModelCodec<Purchase, PurchaseCriteria
 	}
 
 	@Override
+	public boolean readCriteriaField(ExtensibleObjectInput in, String fieldName, PurchaseCriteria criteria) {
+		switch (fieldName) {
+			case "purchaseId" -> criteria.withPurchaseId(InputCoerceUtils.asLong(in));
+			case "userId" -> criteria.withUserId(InputCoerceUtils.asLong(in));
+			case "orderBy" -> {
+				var v = InputCoerceUtils.asString(in);
+				if (v != null) criteria.withOrderBy(PurchaseCriteria.OrderBy.valueOf(v));
+			}
+			default -> { return false; }
+		}
+		return true;
+	}
+
+	@Override
 	public Purchase getProjection(PurchaseCriteria criteria) {
 		return criteria.projection();
 	}

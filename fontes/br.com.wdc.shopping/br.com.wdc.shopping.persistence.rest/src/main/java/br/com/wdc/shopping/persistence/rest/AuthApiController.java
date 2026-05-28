@@ -1,7 +1,8 @@
 package br.com.wdc.shopping.persistence.rest;
 
-import java.util.Map;
-
+import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
+import br.com.wdc.framework.commons.serialization.JsonStreamReader;
+import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
 import br.com.wdc.shopping.domain.security.AuthenticationService;
 import io.javalin.config.JavalinConfig;
 import io.javalin.http.Context;
@@ -36,75 +37,108 @@ public class AuthApiController {
 		config.routes.post(prefix + "/api/auth/logout", this::logout);
 	}
 
-	private void challenge(Context ctx) throws Exception {
+	private void challenge(Context ctx) {
 		var result = authService.challenge();
-		json(ctx, Map.of(
-				"nonce", result.nonce(),
-				"expiresAt", result.expiresAt().toString()));
+		var writer = new JsonStreamWriter();
+		writer.beginObject();
+		writer.name("nonce").value(result.nonce());
+		writer.name("expiresAt").value(result.expiresAt().toString());
+		writer.endObject();
+		json(ctx, writer);
 	}
 
-	private void login(Context ctx) throws Exception {
-		var mapper = ApiObjectMapper.get();
-		var body = mapper.readTree(ctx.body());
-
-		var userName = body.has("userName") ? body.get("userName").asText() : null;
-		var digest = body.has("digest") ? body.get("digest").asText() : null;
-		var nonce = body.has("nonce") ? body.get("nonce").asText() : null;
+	private void login(Context ctx) {
+		var reader = new JsonStreamReader(ctx.body());
+		String userName = null, digest = null, nonce = null;
+		reader.beginObject();
+		while (reader.hasNext()) {
+			switch (reader.nextName()) {
+				case "userName" -> userName = InputCoerceUtils.asString(reader);
+				case "digest" -> digest = InputCoerceUtils.asString(reader);
+				case "nonce" -> nonce = InputCoerceUtils.asString(reader);
+				default -> reader.skipValue();
+			}
+		}
+		reader.endObject();
 
 		if (userName == null || digest == null || nonce == null) {
-			ctx.status(400).json(Map.of("error", "Missing required fields: userName, digest, nonce"));
+			ctx.status(400).result("{\"error\":\"Missing required fields: userName, digest, nonce\"}");
 			return;
 		}
 
 		var result = authService.login(userName, digest, nonce);
 		if (result == null) {
-			ctx.status(401).json(Map.of("error", "Invalid credentials"));
+			ctx.status(401).result("{\"error\":\"Invalid credentials\"}");
 			return;
 		}
 
-		json(ctx, Map.of(
-				"userId", result.userId(),
-				"accessToken", result.accessToken(),
-				"refreshToken", result.refreshToken(),
-				"expiresAt", result.expiresAt().toString(),
-				"publicKey", result.publicKey()));
+		var writer = new JsonStreamWriter();
+		writer.beginObject();
+		writer.name("userId").value(result.userId());
+		writer.name("accessToken").value(result.accessToken());
+		writer.name("refreshToken").value(result.refreshToken());
+		writer.name("expiresAt").value(result.expiresAt().toString());
+		writer.name("publicKey").value(result.publicKey());
+		writer.endObject();
+		json(ctx, writer);
 	}
 
-	private void refresh(Context ctx) throws Exception {
-		var mapper = ApiObjectMapper.get();
-		var body = mapper.readTree(ctx.body());
+	private void refresh(Context ctx) {
+		var reader = new JsonStreamReader(ctx.body());
+		String refreshToken = null;
+		reader.beginObject();
+		while (reader.hasNext()) {
+			switch (reader.nextName()) {
+				case "refreshToken" -> refreshToken = InputCoerceUtils.asString(reader);
+				default -> reader.skipValue();
+			}
+		}
+		reader.endObject();
 
-		var refreshToken = body.has("refreshToken") ? body.get("refreshToken").asText() : null;
 		if (refreshToken == null) {
-			ctx.status(400).json(Map.of("error", "Missing refreshToken"));
+			ctx.status(400).result("{\"error\":\"Missing refreshToken\"}");
 			return;
 		}
 
 		var result = authService.refresh(refreshToken);
 		if (result == null) {
-			ctx.status(401).json(Map.of("error", "Invalid or expired refresh token"));
+			ctx.status(401).result("{\"error\":\"Invalid or expired refresh token\"}");
 			return;
 		}
 
-		json(ctx, Map.of(
-				"userId", result.userId(),
-				"accessToken", result.accessToken(),
-				"refreshToken", result.refreshToken(),
-				"expiresAt", result.expiresAt().toString(),
-				"publicKey", result.publicKey()));
+		var writer = new JsonStreamWriter();
+		writer.beginObject();
+		writer.name("userId").value(result.userId());
+		writer.name("accessToken").value(result.accessToken());
+		writer.name("refreshToken").value(result.refreshToken());
+		writer.name("expiresAt").value(result.expiresAt().toString());
+		writer.name("publicKey").value(result.publicKey());
+		writer.endObject();
+		json(ctx, writer);
 	}
 
-	private void logout(Context ctx) throws Exception {
-		var mapper = ApiObjectMapper.get();
-		var body = mapper.readTree(ctx.body());
+	private void logout(Context ctx) {
+		var reader = new JsonStreamReader(ctx.body());
+		String refreshToken = null;
+		reader.beginObject();
+		while (reader.hasNext()) {
+			switch (reader.nextName()) {
+				case "refreshToken" -> refreshToken = InputCoerceUtils.asString(reader);
+				default -> reader.skipValue();
+			}
+		}
+		reader.endObject();
 
-		var refreshToken = body.has("refreshToken") ? body.get("refreshToken").asText() : null;
 		authService.logout(refreshToken);
-		json(ctx, Map.of("success", true));
+		var writer = new JsonStreamWriter();
+		writer.beginObject();
+		writer.name("success").value(true);
+		writer.endObject();
+		json(ctx, writer);
 	}
 
-	private static void json(Context ctx, Object obj) throws Exception {
+	private static void json(Context ctx, JsonStreamWriter writer) {
 		ctx.contentType("application/json");
-		ctx.result(ApiObjectMapper.get().writeValueAsString(obj));
+		ctx.result(writer.result());
 	}
 }

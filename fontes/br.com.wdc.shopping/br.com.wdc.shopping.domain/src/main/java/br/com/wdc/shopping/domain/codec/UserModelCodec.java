@@ -92,6 +92,21 @@ public class UserModelCodec implements ModelCodec<User, UserCriteria> {
 	}
 
 	@Override
+	public boolean readCriteriaField(ExtensibleObjectInput in, String fieldName, UserCriteria criteria) {
+		switch (fieldName) {
+			case "userId" -> criteria.withUserId(InputCoerceUtils.asLong(in));
+			case "userName" -> criteria.withUserName(InputCoerceUtils.asString(in));
+			case "password" -> criteria.withPassword(InputCoerceUtils.asString(in));
+			case "orderBy" -> {
+				var v = InputCoerceUtils.asString(in);
+				if (v != null) criteria.withOrderBy(UserCriteria.OrderBy.valueOf(v));
+			}
+			default -> { return false; }
+		}
+		return true;
+	}
+
+	@Override
 	public User getProjection(UserCriteria criteria) {
 		return criteria.projection();
 	}

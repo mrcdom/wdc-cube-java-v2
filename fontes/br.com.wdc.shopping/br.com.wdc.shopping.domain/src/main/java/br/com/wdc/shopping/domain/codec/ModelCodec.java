@@ -69,6 +69,12 @@ public interface ModelCodec<E, C> {
     void writeCriteriaFields(ExtensibleObjectOutput out, C criteria);
 
     /**
+     * Lê os campos do critério a partir do nome do campo corrente (sem begin/endObject).
+     * Retorna true se o campo foi consumido, false se não é um campo de critério reconhecido.
+     */
+    boolean readCriteriaField(ExtensibleObjectInput in, String fieldName, C criteria);
+
+    /**
      * Retorna a projeção associada ao critério (pode ser null).
      */
     E getProjection(C criteria);

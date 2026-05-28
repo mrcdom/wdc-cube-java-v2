@@ -1,15 +1,12 @@
 package br.com.wdc.shopping.persistence.rest;
 
-import java.util.Map;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
+import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.framework.commons.serialization.JsonStreamReader;
+import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
 import br.com.wdc.shopping.domain.codec.ModelCodec;
 import br.com.wdc.shopping.domain.codec.PurchaseItemModelCodec;
 import br.com.wdc.shopping.domain.criteria.PurchaseItemCriteria;
 import br.com.wdc.shopping.domain.model.Product;
-import br.com.wdc.shopping.domain.model.Purchase;
 import br.com.wdc.shopping.domain.model.PurchaseItem;
 import br.com.wdc.shopping.domain.repositories.PurchaseItemRepository;
 import br.com.wdc.shopping.domain.utils.ProjectionValues;
@@ -38,6 +35,8 @@ public class PurchaseItemApiController {
 		return PurchaseItemRepository.BEAN.get();
 	}
 
+	private final PurchaseItemModelCodec codec = new PurchaseItemModelCodec();
+
 	private static PurchaseItem fullProjection() {
 		var pv = ProjectionValues.INSTANCE;
 
@@ -54,17 +53,19 @@ public class PurchaseItemApiController {
 		return prj;
 	}
 
-	private void insert(Context ctx) throws Exception {
-		var mapper = ApiObjectMapper.get();
-		var body = mapper.readTree(ctx.body());
-		var item = mapper.treeToValue(body, PurchaseItem.class);
-		setPurchaseFromJson(body, item);
+	private void insert(Context ctx) {
+		var reader = new JsonStreamReader(ctx.body());
+		var item = codec.readEntity(reader);
 		boolean success = repo().insert(item);
-		json(ctx, Map.of("success", success, "id", item.id != null ? item.id : -1));
+		var writer = new JsonStreamWriter();
+		writer.beginObject();
+		writer.name("success").value(success);
+		writer.name("id").value(item.id != null ? item.id : -1);
+		writer.endObject();
+		json(ctx, writer);
 	}
 
-	private void update(Context ctx) throws Exception {
-		var codec = new PurchaseItemModelCodec();
+	private void update(Context ctx) {
 		var reader = new JsonStreamReader(ctx.body());
 		ModelCodec.UpdateData<PurchaseItem> newData = null;
 		PurchaseItem oldEntity = null;
@@ -77,110 +78,154 @@ public class PurchaseItemApiController {
 			}
 		}
 		reader.endObject();
+		if (newData == null) {
+			throw new IllegalArgumentException("Missing 'newEntity' in request body");
+		}
 		boolean success = repo().update(newData.entity(), oldEntity, newData.projection());
-		json(ctx, Map.of("success", success));
+		var writer = new JsonStreamWriter();
+		writer.beginObject();
+		writer.name("success").value(success);
+		writer.endObject();
+		json(ctx, writer);
 	}
 
-	private void delete(Context ctx) throws Exception {
-		var body = ApiObjectMapper.get().readTree(ctx.body());
-		var criteria = parseCriteria(body);
+	private void delete(Context ctx) {
+		var reader = new JsonStreamReader(ctx.body());
+		var criteria = readCriteria(reader);
 		int count = repo().delete(criteria);
-		json(ctx, Map.of("count", count));
+		var writer = new JsonStreamWriter();
+		writer.beginObject();
+		writer.name("count").value(count);
+		writer.endObject();
+		json(ctx, writer);
 	}
 
-	private void count(Context ctx) throws Exception {
-		var body = ApiObjectMapper.get().readTree(ctx.body());
-		var criteria = parseCriteria(body);
+	private void count(Context ctx) {
+		var reader = new JsonStreamReader(ctx.body());
+		var criteria = readCriteria(reader);
 		int count = repo().count(criteria);
-		json(ctx, Map.of("count", count));
+		var writer = new JsonStreamWriter();
+		writer.beginObject();
+		writer.name("count").value(count);
+		writer.endObject();
+		json(ctx, writer);
 	}
 
-	private void fetch(Context ctx) throws Exception {
-		var body = ApiObjectMapper.get().readTree(ctx.body());
-		var criteria = parseCriteria(body);
-		var projection = ApiObjectMapper.parseProjection(body, PurchaseItem.class);
-		criteria.withProjection(projection != null ? projection : fullProjection());
-		int offset = hasValue(body, "offset") ? body.get("offset").asInt() : 0;
-		int limit = hasValue(body, "limit") ? body.get("limit").asInt() : 0;
+	private void fetch(Context ctx) {
+		var reader = new JsonStreamReader(ctx.body());
+		var criteria = new PurchaseItemCriteria();
+		int offset = 0;
+		int limit = 0;
+		reader.beginObject();
+		while (reader.hasNext()) {
+			var name = reader.nextName();
+			switch (name) {
+				case "projection" -> criteria.withProjection(codec.readEntity(reader));
+				case "offset" -> offset = InputCoerceUtils.asInteger(reader, 0);
+				case "limit" -> limit = InputCoerceUtils.asInteger(reader, 0);
+				default -> { if (!codec.readCriteriaField(reader, name, criteria)) reader.skipValue(); }
+			}
+		}
+		reader.endObject();
+		if (criteria.projection() == null) criteria.withProjection(fullProjection());
 		var items = repo().fetch(criteria, offset, limit);
+		var writer = new JsonStreamWriter();
+		writer.beginObject();
+		writer.name("items").beginArray();
 		for (var item : items) {
 			item.purchase = null;
+			codec.writeEntity(writer, item);
 		}
-		json(ctx, Map.of("items", items));
+		writer.endArray();
+		writer.endObject();
+		json(ctx, writer);
 	}
 
-	private void fetchPage(Context ctx) throws Exception {
-		var body = ApiObjectMapper.get().readTree(ctx.body());
-		var criteria = parseCriteria(body);
-		var projection = ApiObjectMapper.parseProjection(body, PurchaseItem.class);
-		criteria.withProjection(projection != null ? projection : fullProjection());
-		int pageIx = hasValue(body, "page") ? body.get("page").asInt() : 0;
-		int pageSz = hasValue(body, "pageSize") ? body.get("pageSize").asInt() : 0;
+	private void fetchPage(Context ctx) {
+		var reader = new JsonStreamReader(ctx.body());
+		var criteria = new PurchaseItemCriteria();
+		int pageIx = 0;
+		int pageSz = 0;
+		reader.beginObject();
+		while (reader.hasNext()) {
+			var name = reader.nextName();
+			switch (name) {
+				case "projection" -> criteria.withProjection(codec.readEntity(reader));
+				case "page" -> pageIx = InputCoerceUtils.asInteger(reader, 0);
+				case "pageSize" -> pageSz = InputCoerceUtils.asInteger(reader, 0);
+				default -> { if (!codec.readCriteriaField(reader, name, criteria)) reader.skipValue(); }
+			}
+		}
+		reader.endObject();
+		if (criteria.projection() == null) criteria.withProjection(fullProjection());
 		var page = repo().fetchPage(criteria, pageIx, pageSz);
+		var writer = new JsonStreamWriter();
+		writer.beginObject();
+		writer.name("items").beginArray();
 		for (var item : page.items()) {
 			item.purchase = null;
+			codec.writeEntity(writer, item);
 		}
-		json(ctx, Map.of("items", page.items(), "totalItems", page.totalItems()));
+		writer.endArray();
+		writer.name("totalItems").value(page.totalItems());
+		writer.endObject();
+		json(ctx, writer);
 	}
 
-	private void fetchById(Context ctx) throws Exception {
+	private void fetchById(Context ctx) {
 		Long id = Long.parseLong(ctx.pathParam("id"));
 		var result = repo().fetchById(id, fullProjection());
 		if (result == null) {
-			ctx.status(404).json(Map.of("error", "Not found"));
+			ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
 			return;
 		}
 		result.purchase = null;
-		json(ctx, result);
+		var writer = new JsonStreamWriter();
+		codec.writeEntity(writer, result);
+		json(ctx, writer);
 	}
 
-	private void fetchByIdPost(Context ctx) throws Exception {
-		var body = ApiObjectMapper.get().readTree(ctx.body());
-		Long id = body.get("id").asLong();
-		var projection = ApiObjectMapper.parseProjection(body, PurchaseItem.class);
+	private void fetchByIdPost(Context ctx) {
+		var reader = new JsonStreamReader(ctx.body());
+		Long id = null;
+		PurchaseItem projection = null;
+		reader.beginObject();
+		while (reader.hasNext()) {
+			switch (reader.nextName()) {
+				case "id" -> id = InputCoerceUtils.asLong(reader);
+				case "projection" -> projection = codec.readEntity(reader);
+				default -> reader.skipValue();
+			}
+		}
+		reader.endObject();
 		var result = repo().fetchById(id, projection != null ? projection : fullProjection());
 		if (result == null) {
-			ctx.status(404).json(Map.of("error", "Not found"));
+			ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
 			return;
 		}
 		result.purchase = null;
-		json(ctx, result);
+		var writer = new JsonStreamWriter();
+		codec.writeEntity(writer, result);
+		json(ctx, writer);
 	}
 
-	private static PurchaseItemCriteria parseCriteria(JsonNode body) {
+	// :: Helpers
+
+	private PurchaseItemCriteria readCriteria(JsonStreamReader reader) {
 		var criteria = new PurchaseItemCriteria();
-		if (hasValue(body, "purchaseItemId"))
-			criteria.withPurchaseItemId(body.get("purchaseItemId").asLong());
-		if (hasValue(body, "purchaseId"))
-			criteria.withPurchaseId(body.get("purchaseId").asLong());
-		if (hasValue(body, "productId"))
-			criteria.withProductId(body.get("productId").asLong());
-		if (hasValue(body, "userId"))
-			criteria.withUserId(body.get("userId").asLong());
-		if (hasValue(body, "orderBy"))
-			criteria.withOrderBy(PurchaseItemCriteria.OrderBy.valueOf(body.get("orderBy").asText()));
+		reader.beginObject();
+		while (reader.hasNext()) {
+			var name = reader.nextName();
+			if (!codec.readCriteriaField(reader, name, criteria)) {
+				reader.skipValue();
+			}
+		}
+		reader.endObject();
 		return criteria;
 	}
 
-	private static boolean hasValue(JsonNode node, String field) {
-		return node.has(field) && !node.get(field).isNull();
-	}
-
-	private static void json(Context ctx, Object obj) throws Exception {
+	private static void json(Context ctx, JsonStreamWriter writer) {
 		ctx.contentType("application/json");
-		ctx.result(ApiObjectMapper.get().writeValueAsString(obj));
-	}
-
-	private static void setPurchaseFromJson(JsonNode body, PurchaseItem item) {
-		if (body.has("purchaseId") && !body.get("purchaseId").isNull()) {
-			item.purchase = new Purchase();
-			item.purchase.id = body.get("purchaseId").asLong();
-		} else if (body.has("purchase") && !body.get("purchase").isNull()) {
-			var purchaseNode = body.get("purchase");
-			if (purchaseNode.has("id") && !purchaseNode.get("id").isNull()) {
-				item.purchase = new Purchase();
-				item.purchase.id = purchaseNode.get("id").asLong();
-			}
-		}
+		ctx.result(writer.result());
 	}
 }
