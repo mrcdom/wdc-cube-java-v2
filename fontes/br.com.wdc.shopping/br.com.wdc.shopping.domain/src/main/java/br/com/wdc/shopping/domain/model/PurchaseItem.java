@@ -9,4 +9,12 @@ public class PurchaseItem {
     public Purchase purchase;
     public Product product;
 
+    public Long purchaseId() {
+        return purchase != null ? purchase.id : null;
+    }
+
+    public Long productId() {
+        return product != null ? product.id : null;
+    }
+
 }

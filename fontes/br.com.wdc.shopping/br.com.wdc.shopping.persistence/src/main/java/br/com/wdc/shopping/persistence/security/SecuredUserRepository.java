@@ -37,10 +37,10 @@ public final class SecuredUserRepository implements UserRepository {
     }
 
     @Override
-    public boolean update(User newUser, User oldUser) {
+    public boolean update(User newUser, User oldUser, User projection) {
         var sc = SecurityEnforcer.require(ENTITY, "write");
         enforceUserScope(sc, newUser);
-        return delegate.update(newUser, oldUser);
+        return delegate.update(newUser, oldUser, projection);
     }
 
     @Override

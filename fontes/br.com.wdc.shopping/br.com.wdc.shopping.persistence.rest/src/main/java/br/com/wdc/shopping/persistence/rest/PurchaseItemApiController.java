@@ -63,10 +63,32 @@ public class PurchaseItemApiController {
 	private void update(Context ctx) throws Exception {
 		var mapper = ApiObjectMapper.get();
 		var body = mapper.readTree(ctx.body());
-		var newEntity = mapper.treeToValue(body.get("newEntity"), PurchaseItem.class);
-		var oldEntity = mapper.treeToValue(body.get("oldEntity"), PurchaseItem.class);
-		boolean success = repo().update(newEntity, oldEntity);
+		var newEntityNode = body.get("newEntity");
+		var newEntity = mapper.treeToValue(newEntityNode, PurchaseItem.class);
+		var oldNode = body.get("oldEntity");
+		var oldEntity = oldNode != null ? mapper.treeToValue(oldNode, PurchaseItem.class) : null;
+		setPurchaseFromJson(newEntityNode, newEntity);
+		if (oldEntity != null) setPurchaseFromJson(oldNode, oldEntity);
+		var projection = buildUpdateProjection(newEntityNode);
+		boolean success = repo().update(newEntity, oldEntity, projection);
 		json(ctx, Map.of("success", success));
+	}
+
+	private static PurchaseItem buildUpdateProjection(JsonNode node) {
+		var pv = ProjectionValues.INSTANCE;
+		var prj = new PurchaseItem();
+		if (node.has("id")) prj.id = pv.i64;
+		if (node.has("amount")) prj.amount = pv.i32;
+		if (node.has("price")) prj.price = pv.f64;
+		if (node.has("product")) {
+			prj.product = new Product();
+			prj.product.id = pv.i64;
+		}
+		if (node.has("purchaseId") || node.has("purchase")) {
+			prj.purchase = new Purchase();
+			prj.purchase.id = pv.i64;
+		}
+		return prj;
 	}
 
 	private void delete(Context ctx) throws Exception {

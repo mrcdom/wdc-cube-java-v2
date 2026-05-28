@@ -23,6 +23,14 @@ public interface ModelCodec<E, C> {
     void writeEntity(ExtensibleObjectOutput out, E entity);
 
     /**
+     * Escreve apenas os campos da entidade indicados pela projeção (campos não-nulos na projeção).
+     * O ID é sempre incluído.
+     */
+    default void writeEntityProjected(ExtensibleObjectOutput out, E newEntity, E oldEntity, E projection) {
+        writeEntity(out, newEntity);
+    }
+
+    /**
      * Lê uma entidade a partir da posição atual (espera beginObject).
      */
     E readEntity(ExtensibleObjectInput in);

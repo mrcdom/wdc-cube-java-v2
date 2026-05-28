@@ -11,4 +11,8 @@ public class Purchase {
 
     public List<PurchaseItem> items;
 
+    public Long userId() {
+        return user != null ? user.id : null;
+    }
+
 }

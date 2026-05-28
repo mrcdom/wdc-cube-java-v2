@@ -45,9 +45,9 @@ public final class SecuredPurchaseRepository implements PurchaseRepository {
     }
 
     @Override
-    public boolean update(Purchase newPurchase, Purchase oldPurchase) {
+    public boolean update(Purchase newPurchase, Purchase oldPurchase, Purchase projection) {
         SecurityEnforcer.require(ENTITY, "write");
-        return delegate.update(newPurchase, oldPurchase);
+        return delegate.update(newPurchase, oldPurchase, projection);
     }
 
     @Override

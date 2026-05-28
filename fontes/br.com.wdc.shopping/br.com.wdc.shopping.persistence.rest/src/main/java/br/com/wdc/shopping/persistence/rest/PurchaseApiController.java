@@ -83,10 +83,25 @@ public class PurchaseApiController {
 	private void update(Context ctx) throws Exception {
 		var mapper = ApiObjectMapper.get();
 		var body = mapper.readTree(ctx.body());
-		var newEntity = mapper.treeToValue(body.get("newEntity"), Purchase.class);
-		var oldEntity = mapper.treeToValue(body.get("oldEntity"), Purchase.class);
-		boolean success = repo().update(newEntity, oldEntity);
+		var newEntityNode = body.get("newEntity");
+		var newEntity = mapper.treeToValue(newEntityNode, Purchase.class);
+		var oldNode = body.get("oldEntity");
+		var oldEntity = oldNode != null ? mapper.treeToValue(oldNode, Purchase.class) : null;
+		var projection = buildUpdateProjection(newEntityNode);
+		boolean success = repo().update(newEntity, oldEntity, projection);
 		json(ctx, Map.of("success", success));
+	}
+
+	private static Purchase buildUpdateProjection(JsonNode node) {
+		var pv = ProjectionValues.INSTANCE;
+		var prj = new Purchase();
+		if (node.has("id")) prj.id = pv.i64;
+		if (node.has("buyDate")) prj.buyDate = pv.offsetDateTime;
+		if (node.has("user")) {
+			prj.user = new User();
+			prj.user.id = pv.i64;
+		}
+		return prj;
 	}
 
 	private void delete(Context ctx) throws Exception {

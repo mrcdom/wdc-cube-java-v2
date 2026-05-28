@@ -1,5 +1,6 @@
 package br.com.wdc.shopping.persistence.repository;
 
+import static br.com.wdc.shopping.domain.repositories.Repository.changed;
 import static br.com.wdc.shopping.persistence.jooq.Sequences.SQ_PRODUCT;
 import static br.com.wdc.shopping.persistence.jooq.tables.EnProduct.EN_PRODUCT;
 
@@ -78,9 +79,17 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
-    public boolean update(Product newBean, Product oldBean) {
+    public boolean update(Product newBean, Product oldBean, Product projection) {
+        if (newBean == null) {
+            throw new AssertionError("newBean is required");
+        }
+
         if (newBean.id == null) {
             throw new AssertionError("Missing primary key");
+        }
+
+        if (projection == null) {
+            projection = this.newProjection();
         }
 
         var dsl = JooqDSLContext.BEAN.get();
@@ -88,29 +97,28 @@ public class ProductRepositoryImpl implements ProductRepository {
 
         boolean hasChanges = false;
 
-        if (newBean.name != null) {
+        if (changed(newBean, oldBean, projection, p -> p.name)) {
             step.set(EN_PRODUCT.NAME, newBean.name);
             hasChanges = true;
         }
-        if (newBean.price != null) {
-            step.set(EN_PRODUCT.PRICE, BigDecimal.valueOf(newBean.price));
+        if (changed(newBean, oldBean, projection, p -> p.price)) {
+            step.set(EN_PRODUCT.PRICE, newBean.price != null ? BigDecimal.valueOf(newBean.price) : null);
             hasChanges = true;
         }
-        if (newBean.description != null) {
+        if (changed(newBean, oldBean, projection, p -> p.description)) {
             step.set(EN_PRODUCT.DESCRIPTION, newBean.description);
             hasChanges = true;
         }
-        if (!hasChanges && newBean.image == null) {
+        if (changed(newBean, oldBean, projection, p -> p.image)) {
+            step.set(EN_PRODUCT.IMAGE, newBean.image);
+            hasChanges = true;
+        }
+
+        if (!hasChanges) {
             return false;
         }
 
-        if (newBean.image != null) {
-            step.set(EN_PRODUCT.IMAGE, newBean.image);
-        }
-
-        step.where(EN_PRODUCT.ID.eq(newBean.id)).execute();
-
-        return true;
+        return step.where(EN_PRODUCT.ID.eq(newBean.id)).execute() > 0;
     }
 
     @Override

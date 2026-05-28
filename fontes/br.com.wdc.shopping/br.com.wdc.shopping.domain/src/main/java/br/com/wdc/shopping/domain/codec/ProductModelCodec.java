@@ -1,5 +1,7 @@
 package br.com.wdc.shopping.domain.codec;
 
+import static br.com.wdc.shopping.domain.repositories.Repository.changed;
+
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectInput;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
@@ -15,6 +17,25 @@ public class ProductModelCodec implements ModelCodec<Product, ProductCriteria> {
 		if (entity.name != null) out.name("name").value(entity.name);
 		if (entity.price != null) out.name("price").value(entity.price);
 		if (entity.description != null) out.name("description").value(entity.description);
+		out.endObject();
+	}
+
+	@Override
+	public void writeEntityProjected(ExtensibleObjectOutput out, Product newEntity, Product oldEntity, Product projection) {
+		out.beginObject();
+		if (newEntity.id != null) out.name("id").value(newEntity.id);
+		if (changed(newEntity, oldEntity, projection, p -> p.name)) {
+			out.name("name");
+			if (newEntity.name != null) out.value(newEntity.name); else out.nullValue();
+		}
+		if (changed(newEntity, oldEntity, projection, p -> p.price)) {
+			out.name("price");
+			if (newEntity.price != null) out.value(newEntity.price); else out.nullValue();
+		}
+		if (changed(newEntity, oldEntity, projection, p -> p.description)) {
+			out.name("description");
+			if (newEntity.description != null) out.value(newEntity.description); else out.nullValue();
+		}
 		out.endObject();
 	}
 

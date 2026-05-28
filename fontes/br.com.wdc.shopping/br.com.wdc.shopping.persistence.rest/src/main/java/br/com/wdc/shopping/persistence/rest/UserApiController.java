@@ -13,6 +13,7 @@ import br.com.wdc.shopping.domain.criteria.UserCriteria;
 import br.com.wdc.shopping.domain.model.User;
 import br.com.wdc.shopping.domain.repositories.UserRepository;
 import br.com.wdc.shopping.domain.security.SecurityContextHolder;
+import br.com.wdc.shopping.domain.utils.ProjectionValues;
 import io.javalin.config.JavalinConfig;
 import io.javalin.http.Context;
 
@@ -51,11 +52,25 @@ public class UserApiController {
     private void update(Context ctx) throws Exception {
         var mapper = ApiObjectMapper.get();
         var body = mapper.readTree(ctx.body());
-        var newEntity = mapper.treeToValue(body.get("newEntity"), User.class);
-        var oldEntity = mapper.treeToValue(body.get("oldEntity"), User.class);
+        var newEntityNode = body.get("newEntity");
+        var newEntity = mapper.treeToValue(newEntityNode, User.class);
+        var oldNode = body.get("oldEntity");
+        var oldEntity = oldNode != null ? mapper.treeToValue(oldNode, User.class) : null;
         decryptPasswordIfPresent(newEntity);
-        boolean success = repo().update(newEntity, oldEntity);
+        var projection = buildUpdateProjection(newEntityNode);
+        boolean success = repo().update(newEntity, oldEntity, projection);
         json(ctx, Map.of("success", success));
+    }
+
+    private static User buildUpdateProjection(JsonNode node) {
+        var pv = ProjectionValues.INSTANCE;
+        var prj = new User();
+        if (node.has("id")) prj.id = pv.i64;
+        if (node.has("userName")) prj.userName = pv.str;
+        if (node.has("name")) prj.name = pv.str;
+        if (node.has("password")) prj.password = pv.str;
+        if (node.has("roles")) prj.roles = pv.str;
+        return prj;
     }
 
     private void delete(Context ctx) throws Exception {

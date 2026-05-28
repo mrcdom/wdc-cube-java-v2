@@ -1,5 +1,7 @@
 package br.com.wdc.shopping.domain.codec;
 
+import static br.com.wdc.shopping.domain.repositories.Repository.changed;
+
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectInput;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
@@ -16,6 +18,29 @@ public class UserModelCodec implements ModelCodec<User, UserCriteria> {
 		if (entity.name != null) out.name("name").value(entity.name);
 		if (entity.password != null) out.name("password").value(entity.password);
 		if (entity.roles != null) out.name("roles").value(entity.roles);
+		out.endObject();
+	}
+
+	@Override
+	public void writeEntityProjected(ExtensibleObjectOutput out, User newEntity, User oldEntity, User projection) {
+		out.beginObject();
+		if (newEntity.id != null) out.name("id").value(newEntity.id);
+		if (changed(newEntity, oldEntity, projection, u -> u.userName)) {
+			out.name("userName");
+			if (newEntity.userName != null) out.value(newEntity.userName); else out.nullValue();
+		}
+		if (changed(newEntity, oldEntity, projection, u -> u.name)) {
+			out.name("name");
+			if (newEntity.name != null) out.value(newEntity.name); else out.nullValue();
+		}
+		if (changed(newEntity, oldEntity, projection, u -> u.password)) {
+			out.name("password");
+			if (newEntity.password != null) out.value(newEntity.password); else out.nullValue();
+		}
+		if (changed(newEntity, oldEntity, projection, u -> u.roles)) {
+			out.name("roles");
+			if (newEntity.roles != null) out.value(newEntity.roles); else out.nullValue();
+		}
 		out.endObject();
 	}
 

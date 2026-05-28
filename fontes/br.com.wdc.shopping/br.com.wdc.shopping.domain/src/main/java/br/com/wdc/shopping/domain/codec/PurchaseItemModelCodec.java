@@ -1,5 +1,7 @@
 package br.com.wdc.shopping.domain.codec;
 
+import static br.com.wdc.shopping.domain.repositories.Repository.changed;
+
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectInput;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
@@ -24,6 +26,33 @@ public class PurchaseItemModelCodec implements ModelCodec<PurchaseItem, Purchase
 		}
 		if (entity.purchase != null && entity.purchase.id != null) {
 			out.name("purchaseId").value(entity.purchase.id);
+		}
+		out.endObject();
+	}
+
+	@Override
+	public void writeEntityProjected(ExtensibleObjectOutput out, PurchaseItem newEntity, PurchaseItem oldEntity, PurchaseItem projection) {
+		out.beginObject();
+		if (newEntity.id != null) out.name("id").value(newEntity.id);
+		if (changed(newEntity, oldEntity, projection, pi -> pi.amount)) {
+			out.name("amount");
+			if (newEntity.amount != null) out.value(newEntity.amount.longValue()); else out.nullValue();
+		}
+		if (changed(newEntity, oldEntity, projection, pi -> pi.price)) {
+			out.name("price");
+			if (newEntity.price != null) out.value(newEntity.price); else out.nullValue();
+		}
+		if (changed(newEntity, oldEntity, projection, PurchaseItem::productId)) {
+			if (newEntity.product != null) {
+				out.name("product");
+				PRODUCT_CODEC.writeEntity(out, newEntity.product);
+			} else {
+				out.name("product").nullValue();
+			}
+		}
+		if (changed(newEntity, oldEntity, projection, PurchaseItem::purchaseId)) {
+			out.name("purchaseId");
+			if (newEntity.purchase != null && newEntity.purchase.id != null) out.value(newEntity.purchase.id); else out.nullValue();
 		}
 		out.endObject();
 	}

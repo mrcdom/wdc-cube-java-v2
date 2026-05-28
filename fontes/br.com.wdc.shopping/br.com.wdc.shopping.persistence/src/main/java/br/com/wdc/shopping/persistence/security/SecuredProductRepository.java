@@ -34,9 +34,9 @@ public final class SecuredProductRepository implements ProductRepository {
     }
 
     @Override
-    public boolean update(Product newProduct, Product oldProduct) {
+    public boolean update(Product newProduct, Product oldProduct, Product projection) {
         SecurityEnforcer.require(ENTITY, "write");
-        return delegate.update(newProduct, oldProduct);
+        return delegate.update(newProduct, oldProduct, projection);
     }
 
     @Override

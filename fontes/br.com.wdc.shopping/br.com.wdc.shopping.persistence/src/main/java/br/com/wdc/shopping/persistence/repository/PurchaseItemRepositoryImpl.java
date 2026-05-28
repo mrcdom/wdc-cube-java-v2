@@ -1,5 +1,6 @@
 package br.com.wdc.shopping.persistence.repository;
 
+import static br.com.wdc.shopping.domain.repositories.Repository.changed;
 import static br.com.wdc.shopping.persistence.jooq.Sequences.SQ_PURCHASEITEM;
 import static br.com.wdc.shopping.persistence.jooq.tables.EnPurchase.EN_PURCHASE;
 import static br.com.wdc.shopping.persistence.jooq.tables.EnPurchaseitem.EN_PURCHASEITEM;
@@ -94,9 +95,17 @@ public class PurchaseItemRepositoryImpl implements PurchaseItemRepository {
     }
 
     @Override
-    public boolean update(PurchaseItem newBean, PurchaseItem oldBean) {
+    public boolean update(PurchaseItem newBean, PurchaseItem oldBean, PurchaseItem projection) {
+        if (newBean == null) {
+            throw new AssertionError("newBean is required");
+        }
+
         if (newBean.id == null) {
             throw new AssertionError("Missing primary key");
+        }
+
+        if (projection == null) {
+            projection = this.newProjection();
         }
 
         var dsl = JooqDSLContext.BEAN.get();
@@ -104,20 +113,20 @@ public class PurchaseItemRepositoryImpl implements PurchaseItemRepository {
 
         boolean hasChanges = false;
 
-        if (newBean.purchase != null && newBean.purchase.id != null) {
-            step.set(EN_PURCHASEITEM.PURCHASEID, newBean.purchase.id);
+        if (changed(newBean, oldBean, projection, PurchaseItem::purchaseId)) {
+            step.set(EN_PURCHASEITEM.PURCHASEID, newBean.productId());
             hasChanges = true;
         }
-        if (newBean.product != null && newBean.product.id != null) {
-            step.set(EN_PURCHASEITEM.PRODUCTID, newBean.product.id);
+        if (changed(newBean, oldBean, projection, PurchaseItem::productId)) {
+            step.set(EN_PURCHASEITEM.PRODUCTID, newBean.productId());
             hasChanges = true;
         }
-        if (newBean.amount != null) {
+        if (changed(newBean, oldBean, projection, pi -> pi.amount)) {
             step.set(EN_PURCHASEITEM.AMOUNT, newBean.amount);
             hasChanges = true;
         }
-        if (newBean.price != null) {
-            step.set(EN_PURCHASEITEM.PRICE, BigDecimal.valueOf(newBean.price));
+        if (changed(newBean, oldBean, projection, pi -> pi.price)) {
+            step.set(EN_PURCHASEITEM.PRICE, newBean.price != null ? BigDecimal.valueOf(newBean.price) : null);
             hasChanges = true;
         }
 

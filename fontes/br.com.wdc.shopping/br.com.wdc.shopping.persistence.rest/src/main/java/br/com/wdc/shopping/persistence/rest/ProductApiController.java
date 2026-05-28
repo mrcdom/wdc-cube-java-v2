@@ -60,10 +60,23 @@ public class ProductApiController {
 	private void update(Context ctx) throws Exception {
 		var mapper = ApiObjectMapper.get();
 		var body = mapper.readTree(ctx.body());
-		var newEntity = mapper.treeToValue(body.get("newEntity"), Product.class);
-		var oldEntity = mapper.treeToValue(body.get("oldEntity"), Product.class);
-		boolean success = repo().update(newEntity, oldEntity);
+		var newEntityNode = body.get("newEntity");
+		var newEntity = mapper.treeToValue(newEntityNode, Product.class);
+		var oldNode = body.get("oldEntity");
+		var oldEntity = oldNode != null ? mapper.treeToValue(oldNode, Product.class) : null;
+		var projection = buildUpdateProjection(newEntityNode);
+		boolean success = repo().update(newEntity, oldEntity, projection);
 		json(ctx, Map.of("success", success));
+	}
+
+	private static Product buildUpdateProjection(JsonNode node) {
+		var pv = ProjectionValues.INSTANCE;
+		var prj = new Product();
+		if (node.has("id")) prj.id = pv.i64;
+		if (node.has("name")) prj.name = pv.str;
+		if (node.has("price")) prj.price = pv.f64;
+		if (node.has("description")) prj.description = pv.str;
+		return prj;
 	}
 
 	private void delete(Context ctx) throws Exception {

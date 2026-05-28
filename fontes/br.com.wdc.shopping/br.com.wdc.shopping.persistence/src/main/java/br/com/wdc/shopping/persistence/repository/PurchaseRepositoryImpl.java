@@ -1,5 +1,6 @@
 package br.com.wdc.shopping.persistence.repository;
 
+import static br.com.wdc.shopping.domain.repositories.Repository.changed;
 import static br.com.wdc.shopping.persistence.jooq.Sequences.SQ_PURCHASE;
 import static br.com.wdc.shopping.persistence.jooq.Sequences.SQ_PURCHASEITEM;
 import static br.com.wdc.shopping.persistence.jooq.tables.EnPurchase.EN_PURCHASE;
@@ -17,9 +18,9 @@ import br.com.wdc.framework.jooq.JsonQuery;
 import br.com.wdc.framework.jooq.JsonQueryBuilder;
 import br.com.wdc.framework.jooq.QueryContext;
 import br.com.wdc.shopping.domain.criteria.PurchaseCriteria;
-import br.com.wdc.shopping.domain.pagination.Page;
 import br.com.wdc.shopping.domain.model.Purchase;
 import br.com.wdc.shopping.domain.model.PurchaseItem;
+import br.com.wdc.shopping.domain.pagination.Page;
 import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
 import br.com.wdc.shopping.persistence.jooq.tables.EnPurchase;
 import br.com.wdc.shopping.persistence.jooq.tables.EnPurchaseitem;
@@ -126,9 +127,17 @@ public class PurchaseRepositoryImpl implements PurchaseRepository {
     }
 
     @Override
-    public boolean update(Purchase newBean, Purchase oldBean) {
+    public boolean update(Purchase newBean, Purchase oldBean, Purchase projection) {
+        if (newBean == null) {
+            throw new AssertionError("newBean is required");
+        }
+
         if (newBean.id == null) {
             throw new AssertionError("Missing primary key");
+        }
+
+        if (projection == null) {
+            projection = this.newProjection();
         }
 
         var dsl = JooqDSLContext.BEAN.get();
@@ -136,12 +145,12 @@ public class PurchaseRepositoryImpl implements PurchaseRepository {
 
         boolean hasChanges = false;
 
-        if (newBean.user != null && newBean.user.id != null) {
-            step.set(EN_PURCHASE.USERID, newBean.user.id);
+        if (changed(newBean, oldBean, projection, Purchase::userId)) {
+            step.set(EN_PURCHASE.USERID, newBean.userId());
             hasChanges = true;
         }
-        if (newBean.buyDate != null) {
-            step.set(EN_PURCHASE.BUYDATE, newBean.buyDate.toLocalDateTime());
+        if (changed(newBean, oldBean, projection, p -> p.buyDate)) {
+            step.set(EN_PURCHASE.BUYDATE, newBean.buyDate != null ? newBean.buyDate.toLocalDateTime() : null);
             hasChanges = true;
         }
 

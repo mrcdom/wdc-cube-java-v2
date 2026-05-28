@@ -1,6 +1,8 @@
 package br.com.wdc.shopping.domain.repositories;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Function;
 
 import br.com.wdc.shopping.domain.pagination.Page;
 
@@ -15,7 +17,24 @@ public interface Repository<E, C, K> {
 
     boolean insert(E bean);
 
-    boolean update(E newBean, E oldBean);
+    /**
+     * Atualiza uma entidade.
+     *
+     * @param newBean    valores novos
+     * @param oldBean    valores antigos para optimistic locking (pode ser {@code null} para ignorar)
+     * @param projection indica quais campos considerar — campos não-nulos na projeção serão atualizados
+     */
+    boolean update(E newBean, E oldBean, E projection);
+
+    /** Atualiza considerando apenas campos não-nulos do newBean (retrocompatível). */
+    default boolean update(E newBean) {
+        return update(newBean, null, null);
+    }
+
+    /** Atualiza considerando apenas campos não-nulos do newBean (retrocompatível). */
+    default boolean update(E newBean, E oldBean) {
+        return update(newBean, oldBean, null);
+    }
 
     /** Insere se {@code oldBean} for {@code null}; atualiza caso contrário. */
     default boolean insertOrUpdate(E newBean, E oldBean) {
@@ -47,4 +66,18 @@ public interface Repository<E, C, K> {
     E fetchById(K id, E projection);
 
     E newProjection();
+
+    /**
+     * Verifica se um campo deve ser incluído no UPDATE.
+     * Retorna {@code true} quando a projeção indica o campo (não-nulo) E o valor mudou em relação ao oldBean.
+     *
+     * @param newBean    entidade com valores novos
+     * @param oldBean    entidade com valores antigos (pode ser {@code null})
+     * @param projection projeção indicando campos a atualizar
+     * @param getter     extrai o valor do campo de interesse
+     */
+    static <E, V> boolean changed(E newBean, E oldBean, E projection, Function<E, V> getter) {
+        return getter.apply(projection) != null
+                && (oldBean == null || !Objects.equals(getter.apply(newBean), getter.apply(oldBean)));
+    }
 }

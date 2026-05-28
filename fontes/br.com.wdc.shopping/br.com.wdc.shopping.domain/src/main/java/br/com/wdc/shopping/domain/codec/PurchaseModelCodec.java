@@ -1,5 +1,7 @@
 package br.com.wdc.shopping.domain.codec;
 
+import static br.com.wdc.shopping.domain.repositories.Repository.changed;
+
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -32,6 +34,25 @@ public class PurchaseModelCodec implements ModelCodec<Purchase, PurchaseCriteria
 				writePurchaseItem(out, item);
 			}
 			out.endArray();
+		}
+		out.endObject();
+	}
+
+	@Override
+	public void writeEntityProjected(ExtensibleObjectOutput out, Purchase newEntity, Purchase oldEntity, Purchase projection) {
+		out.beginObject();
+		if (newEntity.id != null) out.name("id").value(newEntity.id);
+		if (changed(newEntity, oldEntity, projection, p -> p.buyDate)) {
+			out.name("buyDate");
+			if (newEntity.buyDate != null) out.value(newEntity.buyDate.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)); else out.nullValue();
+		}
+		if (changed(newEntity, oldEntity, projection, Purchase::userId)) {
+			if (newEntity.user != null) {
+				out.name("user");
+				USER_CODEC.writeEntity(out, newEntity.user);
+			} else {
+				out.name("user").nullValue();
+			}
 		}
 		out.endObject();
 	}

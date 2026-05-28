@@ -1,5 +1,6 @@
 package br.com.wdc.shopping.persistence.repository;
 
+import static br.com.wdc.shopping.domain.repositories.Repository.changed;
 import static br.com.wdc.shopping.persistence.jooq.Sequences.SQ_USER;
 import static br.com.wdc.shopping.persistence.jooq.tables.EnUser.EN_USER;
 
@@ -80,9 +81,17 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public boolean update(User newBean, User oldBean) {
+    public boolean update(User newBean, User oldBean, User projection) {
+        if (newBean == null) {
+            throw new AssertionError("newBean is requeried");
+        }
+
         if (newBean.id == null) {
             throw new AssertionError("Missing primary key");
+        }
+
+        if (projection == null) {
+            projection = this.newProjection();
         }
 
         var dsl = JooqDSLContext.BEAN.get();
@@ -90,19 +99,19 @@ public class UserRepositoryImpl implements UserRepository {
 
         boolean hasChanges = false;
 
-        if (newBean.userName != null) {
+        if (changed(newBean, oldBean, projection, u -> u.userName)) {
             step.set(EN_USER.USERNAME, newBean.userName);
             hasChanges = true;
         }
-        if (newBean.password != null) {
+        if (changed(newBean, oldBean, projection, u -> u.password)) {
             step.set(EN_USER.PASSWORD, newBean.password);
             hasChanges = true;
         }
-        if (newBean.name != null) {
+        if (changed(newBean, oldBean, projection, u -> u.name)) {
             step.set(EN_USER.NAME, newBean.name);
             hasChanges = true;
         }
-        if (newBean.roles != null) {
+        if (changed(newBean, oldBean, projection, u -> u.roles)) {
             step.set(EN_USER.ROLES, newBean.roles);
             hasChanges = true;
         }
