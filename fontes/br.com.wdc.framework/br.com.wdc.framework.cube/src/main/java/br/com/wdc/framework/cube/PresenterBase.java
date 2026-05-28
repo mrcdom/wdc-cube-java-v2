@@ -6,6 +6,8 @@ public interface PresenterBase {
         // NOOP
     }
 
-    void release();
+    default void release() {
+    	// NOOP
+    }
 
 }

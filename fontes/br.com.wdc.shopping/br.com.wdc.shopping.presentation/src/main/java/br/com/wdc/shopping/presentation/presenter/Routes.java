@@ -7,7 +7,9 @@ import br.com.wdc.framework.cube.CubePlace;
 import br.com.wdc.framework.cube.CubePresenter;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.function.GoAction;
+import br.com.wdc.shopping.presentation.presenter.open.OpenPresenter;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
+import br.com.wdc.shopping.presentation.presenter.restricted.RestrictedPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
@@ -31,10 +33,14 @@ public final class Routes {
         ROOT("public", Routes::root, RootPresenter::new),
 
         // Level 1
-        LOGIN("public/login", Routes::login, LoginPresenter::new),
-        HOME("home", Routes::home, HomePresenter::new),
+        OPEN("open", Routes::open, OpenPresenter::new),
+        RESTRICTED("restricted", Routes::restricted, RestrictedPresenter::new),
 
         // Level 2
+        LOGIN("login", Routes::login, LoginPresenter::new),
+        HOME("home", Routes::home, HomePresenter::new),
+
+        // Level 3
         CART("cart", Routes::cart, CartPresenter::new),
         PRODUCT("product", Routes::product, ProductPresenter::new),
         RECEIPT("receipt", Routes::receipt, ReceiptPresenter::new);
@@ -65,7 +71,7 @@ public final class Routes {
         }
     }
 
-    // :: Root
+    // -- Level 0 --
 
     public static boolean root(ShoppingApplication app) {
         return root(app, app.newIntent());
@@ -79,6 +85,26 @@ public final class Routes {
         }
     }
 
+    // -- Level 1 --
+
+    public static boolean open(ShoppingApplication app, CubeIntent intent) {
+        return app.navigate()
+                .step(Place.ROOT)
+                .step(Place.OPEN)
+                .execute(intent);
+    }
+
+    public static boolean restricted(ShoppingApplication app, CubeIntent intent) {
+        //@formatter:off
+        return app.navigate()
+                .step(Place.ROOT)
+                .step(Place.RESTRICTED)
+                .execute(intent);
+        //@formatter:on
+    }
+
+    // -- Level 2 --
+
     // :: Login
 
     public static boolean login(ShoppingApplication app) {
@@ -86,12 +112,11 @@ public final class Routes {
     }
 
     public static boolean login(ShoppingApplication app, CubeIntent intent) {
-        //@formatter:off
         return app.navigate()
-            .step(Place.ROOT)
-            .step(Place.LOGIN)
-            .execute(intent);
-        //@formatter:on
+                .step(Place.ROOT)
+                .step(Place.OPEN)
+                .step(Place.LOGIN)
+                .execute(intent);
     }
 
     // :: Home
@@ -101,13 +126,14 @@ public final class Routes {
     }
 
     public static boolean home(ShoppingApplication app, CubeIntent intent) {
-        //@formatter:off
         return app.navigate()
                 .step(Place.ROOT)
+                .step(Place.RESTRICTED)
                 .step(Place.HOME)
                 .execute(intent);
-        //@formatter:on
     }
+
+    // -- Level 3 --
 
     // :: Cart
 
@@ -116,36 +142,33 @@ public final class Routes {
     }
 
     public static boolean cart(ShoppingApplication app, CubeIntent intent) {
-        //@formatter:off
         return app.navigate()
                 .step(Place.ROOT)
+                .step(Place.RESTRICTED)
                 .step(Place.HOME)
                 .step(Place.CART)
                 .execute(intent);
-        //@formatter:on
     }
 
     // :: Product
 
     public static boolean product(ShoppingApplication app, CubeIntent intent) {
-        //@formatter:off
         return app.navigate()
                 .step(Place.ROOT)
+                .step(Place.RESTRICTED)
                 .step(Place.HOME)
                 .step(Place.PRODUCT)
                 .execute(intent);
-        //@formatter:on
     }
 
     // :: Receipt
 
     public static boolean receipt(ShoppingApplication app, CubeIntent intent) {
-        //@formatter:off
         return app.navigate()
                 .step(Place.ROOT)
+                .step(Place.RESTRICTED)
                 .step(Place.HOME)
                 .step(Place.RECEIPT)
                 .execute(intent);
-        //@formatter:on
     }
 }
