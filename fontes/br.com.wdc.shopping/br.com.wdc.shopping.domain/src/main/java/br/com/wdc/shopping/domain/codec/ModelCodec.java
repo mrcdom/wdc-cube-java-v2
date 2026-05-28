@@ -34,17 +34,13 @@ public interface ModelCodec<E, C> {
      * Implementações devem usar {@link EntityGraph#track(br.com.wdc.framework.commons.serialization.KeyedEntity)} para
      * detectar repetições antes de serializar campos aninhados.
      */
-    default void writeEntity(ExtensibleObjectOutput out, E entity, EntityGraph graph) {
-        writeEntity(out, entity);
-    }
+    void writeEntity(ExtensibleObjectOutput out, E entity, EntityGraph graph);
 
     /**
      * Escreve apenas os campos da entidade indicados pela projeção (campos não-nulos na projeção).
      * O ID é sempre incluído.
      */
-    default void writeEntityProjected(ExtensibleObjectOutput out, E newEntity, E oldEntity, E projection) {
-        writeEntity(out, newEntity);
-    }
+    void writeEntityProjected(ExtensibleObjectOutput out, E newEntity, E oldEntity, E projection);
 
     /**
      * Lê uma entidade a partir da posição atual (espera beginObject).
@@ -55,10 +51,7 @@ public interface ModelCodec<E, C> {
      * Lê uma entidade para update, retornando simultaneamente a entidade e a projeção
      * (campos presentes no JSON recebem marker não-nulo na projeção).
      */
-    default UpdateData<E> readEntityForUpdate(ExtensibleObjectInput in) {
-        var entity = readEntity(in);
-        return new UpdateData<>(entity, entity);
-    }
+    UpdateData<E> readEntityForUpdate(ExtensibleObjectInput in);
 
     /**
      * Lê uma lista de entidades (espera beginArray).

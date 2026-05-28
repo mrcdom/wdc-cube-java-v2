@@ -157,7 +157,6 @@ public class PurchaseApiController {
 			criteria.withProjection(includeItems ? fullProjectionWithItems() : simpleProjection());
 		}
 		var items = repo().fetch(criteria, offset, limit);
-		clearCircularRefs(items);
 		var writer = new JsonStreamWriter();
 		writer.beginObject();
 		writer.name("items").beginArray();
@@ -191,7 +190,6 @@ public class PurchaseApiController {
 			criteria.withProjection(includeItems ? fullProjectionWithItems() : simpleProjection());
 		}
 		var page = repo().fetchPage(criteria, pageIx, pageSz);
-		clearCircularRefs(page.items());
 		var writer = new JsonStreamWriter();
 		writer.beginObject();
 		writer.name("items").beginArray();
@@ -211,7 +209,6 @@ public class PurchaseApiController {
 			ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
 			return;
 		}
-		clearCircularRefs(result);
 		var writer = new JsonStreamWriter();
 		codec.writeEntity(writer, result);
 		json(ctx, writer);
@@ -235,7 +232,6 @@ public class PurchaseApiController {
 			ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
 			return;
 		}
-		clearCircularRefs(result);
 		var writer = new JsonStreamWriter();
 		codec.writeEntity(writer, result);
 		json(ctx, writer);
@@ -254,20 +250,6 @@ public class PurchaseApiController {
 		}
 		reader.endObject();
 		return criteria;
-	}
-
-	private static void clearCircularRefs(java.util.List<Purchase> purchases) {
-		for (var purchase : purchases) {
-			clearCircularRefs(purchase);
-		}
-	}
-
-	private static void clearCircularRefs(Purchase purchase) {
-		if (purchase.items != null) {
-			for (var item : purchase.items) {
-				item.purchase = null;
-			}
-		}
 	}
 
 	private static void json(Context ctx, JsonStreamWriter writer) {
