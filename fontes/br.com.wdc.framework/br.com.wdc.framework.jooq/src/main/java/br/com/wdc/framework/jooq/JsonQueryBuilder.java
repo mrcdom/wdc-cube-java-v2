@@ -17,7 +17,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.jooq.Field;
 import org.jooq.Record1;
 import org.jooq.SelectJoinStep;
@@ -82,7 +81,7 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
         FieldProjectionCallback<?, ?> NOOP = (f, c, b, t) -> {
         };
 
-        void accept(List<Pair<String, Field<String>>> fields, QueryContext ctx, B bean, T table);
+        void accept(List<JsonFieldEntry> fields, QueryContext ctx, B bean, T table);
 
         default FieldProjectionCallback<B, T> andThen(FieldProjectionCallback<? super B, ? super T> after) {
             Objects.requireNonNull(after);
@@ -151,7 +150,7 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
 
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx0, bean, table) -> {
             if (getter.apply(bean) != null) {
-                fields.add(JooqUtils.toJsonNum(fn, jooqField.apply(table)));
+                fields.add(new JsonFieldEntry(fn, jooqField.apply(table), JsonFieldType.NUMBER));
             }
         });
 
@@ -173,7 +172,7 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
 
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx0, bean, table) -> {
             if (getter.apply(bean) != null) {
-                fields.add(JooqUtils.toJsonNum(fn, jooqField.apply(table)));
+                fields.add(new JsonFieldEntry(fn, jooqField.apply(table), JsonFieldType.NUMBER));
             }
         });
 
@@ -210,7 +209,7 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
 
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx0, bean, table) -> {
             if (getter.apply(bean) != null) {
-                fields.add(JooqUtils.toJsonStr(fn, jooqField.apply(table)));
+                fields.add(new JsonFieldEntry(fn, jooqField.apply(table), JsonFieldType.STRING));
             }
         });
 
@@ -232,7 +231,7 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
 
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx0, bean, table) -> {
             if (getter.apply(bean) != null) {
-                fields.add(JooqUtils.toJsonStr(fn, jooqField.apply(table)));
+                fields.add(new JsonFieldEntry(fn, jooqField.apply(table), JsonFieldType.STRING));
             }
         });
 
@@ -254,7 +253,7 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
 
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx0, bean, table) -> {
             if (getter.apply(bean) != null) {
-                fields.add(JooqUtils.toJsonBool(fn, jooqField.apply(table)));
+                fields.add(new JsonFieldEntry(fn, jooqField.apply(table), JsonFieldType.BOOLEAN));
             }
         });
 
@@ -276,7 +275,7 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
 
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx0, bean, table) -> {
             if (getter.apply(bean) != null) {
-                fields.add(JooqUtils.toJsonOdt(fn, jooqField.apply(table)));
+                fields.add(new JsonFieldEntry(fn, jooqField.apply(table), JsonFieldType.DATETIME));
             }
         });
 
@@ -305,7 +304,7 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
 
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx0, bean, table) -> {
             if (getter.apply(bean) != null) {
-                fields.add(JooqUtils.toJsonOdt(fn, jooqField.apply(table)));
+                fields.add(new JsonFieldEntry(fn, jooqField.apply(table), JsonFieldType.DATETIME));
             }
         });
 
@@ -337,7 +336,7 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
 
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx0, bean, table) -> {
             if (getter.apply(bean) != null) {
-                fields.add(JooqUtils.toJsonNum(fn, jooqField.apply(table)));
+                fields.add(new JsonFieldEntry(fn, jooqField.apply(table), JsonFieldType.NUMBER));
             }
         });
 
@@ -359,7 +358,7 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
 
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx0, bean, table) -> {
             if (getter.apply(bean) != null) {
-                fields.add(JooqUtils.toJsonNum(fn, jooqField.apply(table)));
+                fields.add(new JsonFieldEntry(fn, jooqField.apply(table), JsonFieldType.NUMBER));
             }
         });
 
@@ -381,7 +380,7 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
 
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx0, bean, table) -> {
             if (getter.apply(bean) != null) {
-                fields.add(JooqUtils.toJsonBin(fn, jooqField.apply(table)));
+                fields.add(new JsonFieldEntry(fn, jooqField.apply(table), JsonFieldType.BINARY));
             }
         });
 
@@ -463,8 +462,8 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
                 childWhereClause.accept(childQueryBuilder);
             };
 
-            fields.add(Pair.of(fn,
-                    DSL.field(childQuery.select(ctx, childPrjBean, clause, true))));
+            fields.add(new JsonFieldEntry(fn,
+                    DSL.field(childQuery.select(ctx, childPrjBean, clause, true)), JsonFieldType.RAW_JSON));
         });
 
         this.fieldSetterMap.put(fn, (bean, reader) -> {
@@ -516,8 +515,8 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
                 childWhereClause.accept(childQueryBuilder);
             };
 
-            fields.add(Pair.of(fn,
-                    DSL.field(childQuery.select(ctx, childPrjBean, clause, true))));
+            fields.add(new JsonFieldEntry(fn,
+                    DSL.field(childQuery.select(ctx, childPrjBean, clause, true)), JsonFieldType.RAW_JSON));
         });
 
         this.fieldSetterMap.put(fn, (bean, reader) -> {
@@ -561,8 +560,8 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
                 childWhereClause.accept(childQueryBuilder);
             };
 
-            fields.add(Pair.of(fn,
-                    DSL.field(childQuery.select(ctx, childPrjBean, clause, false))));
+            fields.add(new JsonFieldEntry(fn,
+                    DSL.field(childQuery.select(ctx, childPrjBean, clause, false)), JsonFieldType.RAW_JSON));
         });
 
         this.fieldSetterMap.put(fn, (bean, reader) -> {
@@ -624,17 +623,14 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
                 me.runLazyInit();
 
                 var tbRoot = me.tableFactory.apply(me.tableName + ctx.nextUniqueInt());
+                var dialect = JsonDialect.of(ctx.dsl().dialect());
 
                 var prjField = isAgg
-                        ? DSL.field(DSL.sql(
-                                "'['"
-                                        + " || coalesce(string_agg(" + projection(ctx, tbRoot, prjBean) + ", ','), '')"
-                                        + " || ']'"),
-                                String.class)
+                        ? dialect.jsonArrayAgg(projection(ctx, tbRoot, prjBean))
                         : projection(ctx, tbRoot, prjBean);
 
                 var joinStep = ctx.dsl()
-                        .select(prjField)
+                        .select(prjField.as(me.tableName + "_json"))
                         .from(tbRoot);
 
                 whereClause.accept(tbRoot, joinStep);
@@ -644,10 +640,11 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
             @Override
             public Field<String> projection(QueryContext ctx, T jooqTable, B prjBean) {
                 me.runLazyInit();
-                var jsonFields = new ArrayList<Pair<String, Field<String>>>();
-                me.fieldPrjList.accept(jsonFields, ctx,
+                var entries = new ArrayList<JsonFieldEntry>();
+                me.fieldPrjList.accept(entries, ctx,
                         prjBean != null ? prjBean : this.newProjectionBean(), jooqTable);
-                return JooqUtils.toJsonObjectField(jsonFields);
+                var dialect = JsonDialect.of(ctx.dsl().dialect());
+                return dialect.jsonObject(entries);
             }
 
             @Override

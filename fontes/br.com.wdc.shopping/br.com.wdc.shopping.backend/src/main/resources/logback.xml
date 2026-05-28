@@ -29,7 +29,10 @@
 	
 	<!-- Jetty Logger -->
 	<logger name="org.eclipse.jetty" level="WARN" />
-	
+
+	<!-- jOOQ SQL Logger (ativado por database.logSql=true) -->
+	<logger name="org.jooq.tools.LoggerListener" level="DEBUG" />
+
 	<!-- WeDoCode Loggers -->
 	<logger name="br.com.wdc" level="DEBUG" />
 
