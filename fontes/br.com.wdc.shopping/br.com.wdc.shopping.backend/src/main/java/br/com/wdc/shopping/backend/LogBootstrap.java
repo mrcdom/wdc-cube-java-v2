@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.regex.Pattern;
 
 import org.slf4j.LoggerFactory;
 
@@ -15,22 +16,25 @@ import ch.qos.logback.core.joran.spi.JoranException;
  * Inicializa o Logback a partir de um arquivo externo {@code logback.xml}.
  *
  * <p>
- * Resolução do arquivo de configuração:
+ * Resolução do diretório de trabalho (basedir):
  * </p>
  * <ol>
- * <li>System property: {@code logback.configurationFile}</li>
- * <li>Default: {@code work/config/logback.xml} relativo ao diretório de trabalho</li>
+ * <li>Lê {@code app.basedir} do {@code application.toml} (localizado via system property
+ * {@code shopping.config.file} ou default {@code work/config/application.toml})</li>
+ * <li>Se não definido, usa {@code work/} relativo ao diretório do processo</li>
  * </ol>
  *
  * <p>
+ * O {@code logback.xml} é procurado em {@code {basedir}/config/logback.xml}.
  * Se o arquivo não existir, uma versão padrão é criada automaticamente.
  * Deve ser chamado antes de qualquer logging (tipicamente no início do {@code main}).
  * </p>
  */
 final class LogBootstrap {
 
-    private static final String CONFIG_PROPERTY = "logback.configurationFile";
-    private static final String DEFAULT_CONFIG_PATH = "work/config/logback.xml";
+    private static final String CONFIG_FILE_PROPERTY = "shopping.config.file";
+    private static final String DEFAULT_CONFIG_PATH = "work/config/application.toml";
+    private static final Pattern BASEDIR_PATTERN = Pattern.compile("^\\s*basedir\\s*=\\s*\"([^\"]+)\"");
 
     private LogBootstrap() {
     }
@@ -40,26 +44,63 @@ final class LogBootstrap {
      * Se o arquivo não existir, cria um com conteúdo padrão.
      */
     static void initialize() {
-        Path configFile = resolveConfigFile();
-        ensureFileExists(configFile);
+        Path baseDir = resolveBaseDir();
+        Path configFile = baseDir.resolve("config/logback.xml");
+        ensureFileExists(configFile, baseDir);
         reconfigure(configFile);
     }
 
-    private static Path resolveConfigFile() {
-        String configured = System.getProperty(CONFIG_PROPERTY);
+    private static Path resolveBaseDir() {
+        Path configFile = resolveAppConfigFile();
+        String basedir = peekBasedir(configFile);
+        Path baseDir = basedir != null ? Paths.get(basedir) : Paths.get("work");
+        return baseDir.toAbsolutePath().normalize();
+    }
+
+    private static Path resolveAppConfigFile() {
+        String configured = System.getProperty(CONFIG_FILE_PROPERTY);
         if (configured != null && !configured.isBlank()) {
             return Paths.get(configured);
         }
         return Paths.get(DEFAULT_CONFIG_PATH).toAbsolutePath().normalize();
     }
 
-    private static void ensureFileExists(Path configFile) {
+    /**
+     * Lê apenas o valor de {@code app.basedir} do TOML, sem dependências externas.
+     */
+    private static String peekBasedir(Path tomlFile) {
+        if (!Files.exists(tomlFile)) {
+            return null;
+        }
+        try {
+            boolean inAppSection = false;
+            for (String line : Files.readAllLines(tomlFile)) {
+                String trimmed = line.trim();
+                if (trimmed.startsWith("[")) {
+                    inAppSection = trimmed.equals("[app]");
+                    continue;
+                }
+                if (inAppSection) {
+                    var matcher = BASEDIR_PATTERN.matcher(line);
+                    if (matcher.find()) {
+                        return matcher.group(1);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            // silently ignore — will use default
+        }
+        return null;
+    }
+
+    private static void ensureFileExists(Path configFile, Path baseDir) {
         if (Files.exists(configFile)) {
             return;
         }
         try {
             Files.createDirectories(configFile.getParent());
-            Files.writeString(configFile, DEFAULT_LOGBACK_XML);
+            String logDir = baseDir.resolve("log").toString().replace("\\", "/");
+            Files.writeString(configFile, DEFAULT_LOGBACK_XML.replace("${DEFAULT_LOG_DIR}", logDir));
         } catch (IOException e) {
             System.err.println("[LogBootstrap] Failed to write default logback.xml: " + e.getMessage());
         }
@@ -81,7 +122,7 @@ final class LogBootstrap {
             <?xml version="1.0" encoding="UTF-8"?>
             <configuration>
 
-            	<property name="LOG_DIR" value="work/log" />
+            	<property name="LOG_DIR" value="${DEFAULT_LOG_DIR}" />
             	<property name="LOG_PATTERN" value="%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n" />
 
             	<!-- Console Appender -->
