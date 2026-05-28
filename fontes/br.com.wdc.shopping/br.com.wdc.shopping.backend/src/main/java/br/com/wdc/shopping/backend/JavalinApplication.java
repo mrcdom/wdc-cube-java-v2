@@ -45,6 +45,7 @@ public class JavalinApplication {
     private static final int DEFAULT_PORT = 8080;
 
     static {
+        LogBootstrap.initialize();
         Log.setFactory(new Slf4jLogFactory());
         LOG = Log.getLogger(JavalinApplication.class);
     }

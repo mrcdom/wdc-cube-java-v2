@@ -1,0 +1,7 @@
+# Ignore runtime data
+data/
+log/
+temp/
+
+# Track config files
+!config/

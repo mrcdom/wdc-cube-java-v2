@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-	<property name="LOG_FILE" value="/tmp/javalin-server.log" />
+	<property name="LOG_DIR" value="work/log" />
 	<property name="LOG_PATTERN" value="%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n" />
 
 	<!-- Console Appender -->
@@ -13,12 +13,12 @@
 
 	<!-- File Appender -->
 	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>${LOG_FILE}</file>
+		<file>${LOG_DIR}/server.log</file>
 		<encoder>
 			<pattern>${LOG_PATTERN}</pattern>
 		</encoder>
 		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-			<fileNamePattern>${LOG_FILE}.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
+			<fileNamePattern>${LOG_DIR}/server.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
 			<maxFileSize>10MB</maxFileSize>
 			<maxHistory>7</maxHistory>
 		</rollingPolicy>
