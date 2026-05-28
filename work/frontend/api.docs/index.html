@@ -39,6 +39,22 @@
         .response-info .status { font-weight: bold; }
         .response-info .status.ok { color: #4caf50; }
         .response-info .status.err { color: #e94560; }
+        .api-docs { background: #1a1a2e; border: 1px solid #1a4080; border-radius: 6px; padding: 15px; margin-top: 15px; display: none; font-size: 0.85em; line-height: 1.6; }
+        .api-docs.visible { display: block; }
+        .api-docs h4 { color: #00d4ff; margin-bottom: 8px; font-size: 1em; }
+        .api-docs .method-badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-weight: bold; font-size: 0.8em; margin-right: 8px; }
+        .api-docs .method-badge.post { background: #49cc90; color: #000; }
+        .api-docs .method-badge.get { background: #61affe; color: #000; }
+        .api-docs .method-badge.put { background: #fca130; color: #000; }
+        .api-docs .method-badge.delete { background: #f93e3e; color: #fff; }
+        .api-docs .endpoint { font-family: 'Fira Code', monospace; color: #fff; font-size: 0.9em; }
+        .api-docs .desc { color: #bbb; margin: 8px 0; }
+        .api-docs .params { margin-top: 10px; }
+        .api-docs .params th { text-align: left; color: #00d4ff; padding: 4px 12px 4px 0; font-size: 0.85em; }
+        .api-docs .params td { padding: 3px 12px 3px 0; color: #ccc; font-size: 0.85em; }
+        .api-docs .params td code { color: #ffd700; background: #16213e; padding: 1px 4px; border-radius: 2px; }
+        .api-docs .response-doc { margin-top: 10px; color: #aaa; }
+        .api-docs .response-doc code { color: #4caf50; background: #16213e; padding: 1px 4px; border-radius: 2px; }
         @media (max-width: 768px) { .exec-area { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -90,6 +106,7 @@
                 <div><h3>Response</h3><div class="response-info" id="info-product"></div><textarea id="res-product" readonly></textarea></div>
             </div>
             <button class="run-btn" onclick="executeOp('product')">Executar</button>
+            <div class="api-docs" id="docs-product"></div>
         </div>
 
         <!-- User Panel -->
@@ -114,6 +131,7 @@
                 <div><h3>Response</h3><div class="response-info" id="info-user"></div><textarea id="res-user" readonly></textarea></div>
             </div>
             <button class="run-btn" onclick="executeOp('user')">Executar</button>
+            <div class="api-docs" id="docs-user"></div>
         </div>
 
         <!-- Purchase Panel -->
@@ -140,6 +158,7 @@
                 <div><h3>Response</h3><div class="response-info" id="info-purchase"></div><textarea id="res-purchase" readonly></textarea></div>
             </div>
             <button class="run-btn" onclick="executeOp('purchase')">Executar</button>
+            <div class="api-docs" id="docs-purchase"></div>
         </div>
 
         <!-- PurchaseItem Panel -->
@@ -170,6 +189,7 @@
                 <div><h3>Response</h3><div class="response-info" id="info-purchaseItem"></div><textarea id="res-purchaseItem" readonly></textarea></div>
             </div>
             <button class="run-btn" onclick="executeOp('purchaseItem')">Executar</button>
+            <div class="api-docs" id="docs-purchaseItem"></div>
         </div>
     </div>
 
@@ -462,6 +482,491 @@ const OPERATIONS = {
 };
 
 // ============================================================
+// Documentação das operações
+// ============================================================
+const API_DOCS = {
+    product: {
+        fetchAll: {
+            desc: 'Retorna todos os produtos. Aceita critérios opcionais, ordenação e paginação por offset/limit.',
+            params: [
+                ['productId', 'number?', 'Filtro por ID do produto'],
+                ['orderBy', 'string?', '"ACENDING" ou "DESCENDING" (por nome)'],
+                ['offset', 'number?', 'Registros a pular (padrão: 0)'],
+                ['limit', 'number?', 'Máximo de registros (0 = todos)'],
+                ['projection', 'object?', 'Campos a retornar (ex: {id:1, name:"~"})']
+            ],
+            response: '{ "items": Product[] }'
+        },
+        fetchById: {
+            desc: 'Busca produto por ID via POST. Permite especificar projection.',
+            params: [
+                ['id', 'number', 'ID do produto'],
+                ['projection', 'object?', 'Campos a retornar']
+            ],
+            response: 'Product | { "error": "Not found" } (404)'
+        },
+        fetchByIdGet: {
+            desc: 'Busca produto por ID via GET. Retorna projeção completa.',
+            params: [['id', 'path param', 'ID do produto na URL']],
+            response: 'Product | { "error": "Not found" } (404)'
+        },
+        fetchByIdProjection: {
+            desc: 'Busca produto por ID com projeção customizada — retorna apenas os campos solicitados.',
+            params: [
+                ['id', 'number', 'ID do produto'],
+                ['projection', 'object', 'Campos desejados (ex: {id:1, name:"~"})']
+            ],
+            response: 'Product (parcial) | { "error": "Not found" } (404)'
+        },
+        fetchByCriteria: {
+            desc: 'Busca produtos filtrando por critérios específicos.',
+            params: [
+                ['productId', 'number?', 'Filtro por ID'],
+                ['projection', 'object?', 'Campos a retornar']
+            ],
+            response: '{ "items": Product[] }'
+        },
+        fetchPage: {
+            desc: 'Busca paginada — retorna uma página de resultados com total.',
+            params: [
+                ['page', 'number', 'Índice da página (0-based)'],
+                ['pageSize', 'number', 'Tamanho da página'],
+                ['productId', 'number?', 'Filtro por ID'],
+                ['orderBy', 'string?', '"ACENDING" ou "DESCENDING"'],
+                ['projection', 'object?', 'Campos a retornar']
+            ],
+            response: '{ "items": Product[], "totalItems": number }'
+        },
+        fetchPaginated: {
+            desc: 'Busca com paginação por offset/limit (sem total).',
+            params: [
+                ['offset', 'number', 'Registros a pular'],
+                ['limit', 'number', 'Máximo de registros'],
+                ['orderBy', 'string?', '"ACENDING" ou "DESCENDING"'],
+                ['projection', 'object?', 'Campos a retornar']
+            ],
+            response: '{ "items": Product[] }'
+        },
+        fetchOrderAsc: {
+            desc: 'Retorna todos os produtos ordenados por nome ascendente.',
+            params: [['orderBy', 'string', 'Fixo: "ACENDING"']],
+            response: '{ "items": Product[] }'
+        },
+        fetchOrderDesc: {
+            desc: 'Retorna todos os produtos ordenados por nome descendente.',
+            params: [['orderBy', 'string', 'Fixo: "DESCENDING"']],
+            response: '{ "items": Product[] }'
+        },
+        countAll: {
+            desc: 'Conta todos os produtos. Sem critério = total geral.',
+            params: [],
+            response: '{ "count": number }'
+        },
+        countById: {
+            desc: 'Conta produtos por critério (ex: verificar existência por ID).',
+            params: [['productId', 'number', 'ID do produto']],
+            response: '{ "count": number }'
+        },
+        fetchImage: {
+            desc: 'Retorna a imagem PNG do produto.',
+            params: [['id', 'path param', 'ID do produto na URL']],
+            response: 'image/png (binário) | 404'
+        },
+        updateImage: {
+            desc: 'Atualiza a imagem do produto. Envie o corpo como binário PNG.',
+            params: [['id', 'path param', 'ID do produto na URL']],
+            response: '(vazio, 200 OK)'
+        },
+        insert: {
+            desc: 'Insere um novo produto.',
+            params: [
+                ['name', 'string', 'Nome do produto'],
+                ['price', 'number', 'Preço'],
+                ['description', 'string?', 'Descrição']
+            ],
+            response: '{ "success": boolean, "id": number }'
+        },
+        update: {
+            desc: 'Atualiza um produto existente (optimistic locking via oldEntity).',
+            params: [
+                ['newEntity', 'Product', 'Valores novos (com id)'],
+                ['oldEntity', 'Product', 'Valores antigos para comparação']
+            ],
+            response: '{ "success": boolean }'
+        },
+        delete: {
+            desc: 'Remove produtos por critério.',
+            params: [['productId', 'number', 'ID do produto a deletar']],
+            response: '{ "count": number }'
+        }
+    },
+    user: {
+        fetchAll: {
+            desc: 'Retorna todos os usuários. Aceita critérios, ordenação e paginação.',
+            params: [
+                ['userId', 'number?', 'Filtro por ID'],
+                ['userName', 'string?', 'Filtro por username'],
+                ['orderBy', 'string?', '"ACENDING" ou "DESCENDING"'],
+                ['offset', 'number?', 'Registros a pular'],
+                ['limit', 'number?', 'Máximo de registros']
+            ],
+            response: '{ "items": User[] }'
+        },
+        fetchById: {
+            desc: 'Busca usuário por ID via POST com projeção opcional.',
+            params: [
+                ['id', 'number', 'ID do usuário'],
+                ['projection', 'object?', 'Campos a retornar']
+            ],
+            response: 'User | { "error": "Not found" } (404)'
+        },
+        fetchByIdGet: {
+            desc: 'Busca usuário por ID via GET. Retorna todos os campos.',
+            params: [['id', 'path param', 'ID do usuário na URL']],
+            response: 'User | { "error": "Not found" } (404)'
+        },
+        fetchByIdProjection: {
+            desc: 'Busca usuário por ID retornando apenas campos da projeção.',
+            params: [
+                ['id', 'number', 'ID do usuário'],
+                ['projection', 'object', 'Campos desejados']
+            ],
+            response: 'User (parcial) | { "error": "Not found" } (404)'
+        },
+        fetchByUserName: {
+            desc: 'Busca usuário por username.',
+            params: [['userName', 'string', 'Username para buscar']],
+            response: '{ "items": User[] }'
+        },
+        fetchByCredentials: {
+            desc: 'Busca usuário por userName e password (validação de credenciais).',
+            params: [
+                ['userName', 'string', 'Username'],
+                ['password', 'string', 'Password (texto plano, convertido para hash)']
+            ],
+            response: '{ "items": User[] }'
+        },
+        fetchPage: {
+            desc: 'Busca paginada de usuários com total.',
+            params: [
+                ['page', 'number', 'Índice da página (0-based)'],
+                ['pageSize', 'number', 'Tamanho da página'],
+                ['orderBy', 'string?', '"ACENDING" ou "DESCENDING"']
+            ],
+            response: '{ "items": User[], "totalItems": number }'
+        },
+        fetchPaginated: {
+            desc: 'Busca com paginação por offset/limit.',
+            params: [
+                ['offset', 'number', 'Registros a pular'],
+                ['limit', 'number', 'Máximo'],
+                ['orderBy', 'string?', '"ACENDING" ou "DESCENDING"']
+            ],
+            response: '{ "items": User[] }'
+        },
+        countAll: {
+            desc: 'Conta todos os usuários.',
+            params: [],
+            response: '{ "count": number }'
+        },
+        countById: {
+            desc: 'Conta usuários por critério.',
+            params: [['userId', 'number', 'ID do usuário']],
+            response: '{ "count": number }'
+        },
+        insert: {
+            desc: 'Insere um novo usuário. Password é armazenada como hash MD5/base36.',
+            params: [
+                ['userName', 'string', 'Username (único)'],
+                ['password', 'string', 'Password (texto plano)'],
+                ['name', 'string', 'Nome completo']
+            ],
+            response: '{ "success": boolean, "id": number }'
+        },
+        update: {
+            desc: 'Atualiza usuário (optimistic locking via oldEntity).',
+            params: [
+                ['newEntity', 'User', 'Valores novos (com id)'],
+                ['oldEntity', 'User', 'Valores antigos']
+            ],
+            response: '{ "success": boolean }'
+        },
+        delete: {
+            desc: 'Remove usuários por critério.',
+            params: [['userId', 'number', 'ID do usuário a deletar']],
+            response: '{ "count": number }'
+        }
+    },
+    purchase: {
+        fetchAll: {
+            desc: 'Retorna todas as compras com projeção completa (incluindo items).',
+            params: [
+                ['userId', 'number?', 'Filtro por usuário'],
+                ['orderBy', 'string?', '"ACENDING" ou "DESCENDING" (por data)'],
+                ['offset', 'number?', 'Registros a pular'],
+                ['limit', 'number?', 'Máximo de registros'],
+                ['projection', 'object?', 'Campos a retornar']
+            ],
+            response: '{ "items": Purchase[] }'
+        },
+        fetchById: {
+            desc: 'Busca compra por ID via POST com projeção.',
+            params: [
+                ['id', 'number', 'ID da compra'],
+                ['projection', 'object?', 'Campos a retornar']
+            ],
+            response: 'Purchase | { "error": "Not found" } (404)'
+        },
+        fetchByIdGet: {
+            desc: 'Busca compra por ID via GET.',
+            params: [['id', 'path param', 'ID da compra na URL']],
+            response: 'Purchase | { "error": "Not found" } (404)'
+        },
+        fetchByIdProjection: {
+            desc: 'Busca compra por ID com projeção reduzida.',
+            params: [
+                ['id', 'number', 'ID da compra'],
+                ['projection', 'object', 'Campos desejados']
+            ],
+            response: 'Purchase (parcial) | { "error": "Not found" } (404)'
+        },
+        fetchByUserId: {
+            desc: 'Busca compras de um usuário específico.',
+            params: [
+                ['userId', 'number', 'ID do usuário'],
+                ['projection', 'object?', 'Campos a retornar']
+            ],
+            response: '{ "items": Purchase[] }'
+        },
+        fetchPage: {
+            desc: 'Busca paginada de compras com total.',
+            params: [
+                ['page', 'number', 'Índice da página (0-based)'],
+                ['pageSize', 'number', 'Tamanho da página'],
+                ['userId', 'number?', 'Filtro por usuário'],
+                ['orderBy', 'string?', '"ACENDING" ou "DESCENDING"']
+            ],
+            response: '{ "items": Purchase[], "totalItems": number }'
+        },
+        fetchPaginated: {
+            desc: 'Busca com paginação por offset/limit.',
+            params: [
+                ['offset', 'number', 'Registros a pular'],
+                ['limit', 'number', 'Máximo'],
+                ['orderBy', 'string?', '"ACENDING" ou "DESCENDING"']
+            ],
+            response: '{ "items": Purchase[] }'
+        },
+        fetchOrderAsc: {
+            desc: 'Retorna compras ordenadas por data ascendente.',
+            params: [],
+            response: '{ "items": Purchase[] }'
+        },
+        fetchOrderDesc: {
+            desc: 'Retorna compras ordenadas por data descendente.',
+            params: [],
+            response: '{ "items": Purchase[] }'
+        },
+        countAll: {
+            desc: 'Conta todas as compras.',
+            params: [],
+            response: '{ "count": number }'
+        },
+        countByUserId: {
+            desc: 'Conta compras de um usuário.',
+            params: [['userId', 'number', 'ID do usuário']],
+            response: '{ "count": number }'
+        },
+        insert: {
+            desc: 'Insere uma nova compra.',
+            params: [
+                ['buyDate', 'string', 'Data ISO 8601 (ex: "2024-01-15T14:30:00Z")'],
+                ['user', 'object', '{ id: number } — usuário comprador']
+            ],
+            response: '{ "success": boolean, "id": number }'
+        },
+        update: {
+            desc: 'Atualiza uma compra (optimistic locking).',
+            params: [
+                ['newEntity', 'Purchase', 'Valores novos (com id)'],
+                ['oldEntity', 'Purchase', 'Valores antigos']
+            ],
+            response: '{ "success": boolean }'
+        },
+        deleteById: {
+            desc: 'Remove compra por ID.',
+            params: [['purchaseId', 'number', 'ID da compra']],
+            response: '{ "count": number }'
+        },
+        deleteByUserId: {
+            desc: 'Remove todas as compras de um usuário.',
+            params: [['userId', 'number', 'ID do usuário']],
+            response: '{ "count": number }'
+        }
+    },
+    purchaseItem: {
+        fetchAll: {
+            desc: 'Retorna todos os itens de compra.',
+            params: [
+                ['purchaseId', 'number?', 'Filtro por compra'],
+                ['userId', 'number?', 'Filtro por usuário'],
+                ['productId', 'number?', 'Filtro por produto'],
+                ['orderBy', 'string?', '"ACENDING" ou "DESCENDING"'],
+                ['offset', 'number?', 'Registros a pular'],
+                ['limit', 'number?', 'Máximo']
+            ],
+            response: '{ "items": PurchaseItem[] }'
+        },
+        fetchById: {
+            desc: 'Busca item por ID via POST com projeção.',
+            params: [
+                ['id', 'number', 'ID do item'],
+                ['projection', 'object?', 'Campos a retornar']
+            ],
+            response: 'PurchaseItem | { "error": "Not found" } (404)'
+        },
+        fetchByIdGet: {
+            desc: 'Busca item por ID via GET.',
+            params: [['id', 'path param', 'ID do item na URL']],
+            response: 'PurchaseItem | { "error": "Not found" } (404)'
+        },
+        fetchByIdProjection: {
+            desc: 'Busca item por ID com projeção reduzida.',
+            params: [
+                ['id', 'number', 'ID do item'],
+                ['projection', 'object', 'Campos desejados']
+            ],
+            response: 'PurchaseItem (parcial) | { "error": "Not found" } (404)'
+        },
+        fetchByPurchaseId: {
+            desc: 'Busca itens de uma compra específica.',
+            params: [['purchaseId', 'number', 'ID da compra']],
+            response: '{ "items": PurchaseItem[] }'
+        },
+        fetchByUserId: {
+            desc: 'Busca itens de compras de um usuário.',
+            params: [['userId', 'number', 'ID do usuário']],
+            response: '{ "items": PurchaseItem[] }'
+        },
+        fetchByProductId: {
+            desc: 'Busca itens que contêm um produto específico.',
+            params: [
+                ['productId', 'number', 'ID do produto'],
+                ['projection', 'object?', 'Campos a retornar']
+            ],
+            response: '{ "items": PurchaseItem[] }'
+        },
+        fetchPage: {
+            desc: 'Busca paginada de itens com total.',
+            params: [
+                ['page', 'number', 'Índice da página (0-based)'],
+                ['pageSize', 'number', 'Tamanho da página'],
+                ['purchaseId', 'number?', 'Filtro por compra'],
+                ['orderBy', 'string?', '"ACENDING" ou "DESCENDING"']
+            ],
+            response: '{ "items": PurchaseItem[], "totalItems": number }'
+        },
+        fetchPaginated: {
+            desc: 'Busca com paginação por offset/limit.',
+            params: [
+                ['offset', 'number', 'Registros a pular'],
+                ['limit', 'number', 'Máximo'],
+                ['orderBy', 'string?', '"ACENDING" ou "DESCENDING"']
+            ],
+            response: '{ "items": PurchaseItem[] }'
+        },
+        fetchOrderAsc: {
+            desc: 'Retorna itens ordenados ascendente.',
+            params: [],
+            response: '{ "items": PurchaseItem[] }'
+        },
+        fetchOrderDesc: {
+            desc: 'Retorna itens ordenados descendente.',
+            params: [],
+            response: '{ "items": PurchaseItem[] }'
+        },
+        countAll: {
+            desc: 'Conta todos os itens.',
+            params: [],
+            response: '{ "count": number }'
+        },
+        countByPurchaseId: {
+            desc: 'Conta itens de uma compra.',
+            params: [['purchaseId', 'number', 'ID da compra']],
+            response: '{ "count": number }'
+        },
+        countByUserId: {
+            desc: 'Conta itens de compras de um usuário.',
+            params: [['userId', 'number', 'ID do usuário']],
+            response: '{ "count": number }'
+        },
+        insert: {
+            desc: 'Insere um item em uma compra.',
+            params: [
+                ['amount', 'number', 'Quantidade'],
+                ['price', 'number', 'Preço unitário'],
+                ['purchaseId', 'number', 'ID da compra'],
+                ['product', 'object', '{ id: number } — produto']
+            ],
+            response: '{ "success": boolean, "id": number }'
+        },
+        update: {
+            desc: 'Atualiza item (optimistic locking).',
+            params: [
+                ['newEntity', 'PurchaseItem', 'Valores novos (com id)'],
+                ['oldEntity', 'PurchaseItem', 'Valores antigos']
+            ],
+            response: '{ "success": boolean }'
+        },
+        deleteById: {
+            desc: 'Remove item por ID.',
+            params: [['purchaseItemId', 'number', 'ID do item']],
+            response: '{ "count": number }'
+        },
+        deleteByPurchaseId: {
+            desc: 'Remove todos os itens de uma compra.',
+            params: [['purchaseId', 'number', 'ID da compra']],
+            response: '{ "count": number }'
+        },
+        deleteByUserId: {
+            desc: 'Remove todos os itens de compras de um usuário.',
+            params: [['userId', 'number', 'ID do usuário']],
+            response: '{ "count": number }'
+        }
+    }
+};
+
+function renderDocs(entity, opName) {
+    const docsDiv = document.getElementById('docs-' + entity);
+    const doc = (API_DOCS[entity] || {})[opName];
+    if (!doc) {
+        docsDiv.className = 'api-docs';
+        docsDiv.innerHTML = '';
+        return;
+    }
+
+    const op = OPERATIONS[entity][opName];
+    const method = (op.method || 'POST').toUpperCase();
+    const badgeClass = method.toLowerCase();
+
+    let paramsHtml = '';
+    if (doc.params && doc.params.length > 0) {
+        paramsHtml = `<table class="params"><tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr>` +
+            doc.params.map(([name, type, desc]) =>
+                `<tr><td><code>${name}</code></td><td>${type}</td><td>${desc}</td></tr>`
+            ).join('') + '</table>';
+    }
+
+    docsDiv.innerHTML = `
+        <h4><span class="method-badge ${badgeClass}">${method}</span><span class="endpoint">${op.path}</span></h4>
+        <div class="desc">${doc.desc}</div>
+        ${paramsHtml}
+        <div class="response-doc"><strong>Response:</strong> <code>${doc.response}</code></div>
+    `;
+    docsDiv.className = 'api-docs visible';
+}
+
+// ============================================================
 // Carregar operação no textarea
 // ============================================================
 function loadOp(entity, opName) {
@@ -497,6 +1002,9 @@ function loadOp(entity, opName) {
     // Clear response
     document.getElementById('res-' + entity).value = '';
     document.getElementById('info-' + entity).innerHTML = '';
+
+    // Show documentation
+    renderDocs(entity, opName);
 }
 
 // ============================================================
