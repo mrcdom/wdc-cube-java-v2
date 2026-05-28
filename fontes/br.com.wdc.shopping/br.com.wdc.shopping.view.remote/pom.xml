@@ -16,6 +16,7 @@
 
 	<modules>
 		<module>remote.skeleton</module>
+		<module>frontend.react</module>
 	</modules>
 
 </project>

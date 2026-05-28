@@ -114,7 +114,6 @@ public class VNode {
     /**
      * Registra um event listener.
      */
-    @SuppressWarnings("unchecked")
     public VNode on(String eventType, EventListener<? extends Event> listener) {
         if (this.events == null) {
             this.events = new LinkedHashMap<>();
