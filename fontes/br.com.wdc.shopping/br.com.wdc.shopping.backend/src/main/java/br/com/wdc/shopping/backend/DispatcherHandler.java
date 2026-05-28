@@ -54,7 +54,7 @@ public class DispatcherHandler {
      * Get or create handler for a given app ID.
      */
     public static DispatcherHandler getOrCreate(String appId) {
-        return ACTIVE_HANDLERS.computeIfAbsent(appId, id -> new DispatcherHandler(id));
+        return ACTIVE_HANDLERS.computeIfAbsent(appId, DispatcherHandler::new);
     }
 
     /**
@@ -158,33 +158,40 @@ public class DispatcherHandler {
             String jsonRequest = ctx.message();
             
             // Parse JSON request
-            Map<String, Object> request;
-            try {
-                request = GSON.fromJson(jsonRequest, REQUEST_TYPE.getType());
-            } catch (Exception parseError) {
-                LOG.warn("Failed to parse WebSocket message as JSON", parseError);
-                var app = getApp();
-                if (app != null) {
-                    app.alertUnexpectedError(LOG, parseError.getMessage(), parseError);
-                }
+            Map<String, Object> request = parseRequest(jsonRequest);
+            if (request == null) {
                 return;
             }
 
-            // Get or create application instance
+            // Get or create application instance and process
             ApplicationReactImpl app = getOrCreateApp(request);
-            try {
-                app.setWsSession(wsSession);
-                
-                // Process the request and send response
-                app.sendResponse(request);
-                
-            } catch (Exception processingError) {
-                LOG.error("Error processing WebSocket message", processingError);
-                app.alertUnexpectedError(LOG, processingError.getMessage(), processingError);
-            }
+            processRequest(app, request);
             
         } catch (Exception e) {
             LOG.error("Unexpected error in WebSocket message handler", e);
+        }
+    }
+
+    private Map<String, Object> parseRequest(String jsonRequest) {
+        try {
+            return GSON.fromJson(jsonRequest, REQUEST_TYPE.getType());
+        } catch (Exception parseError) {
+            LOG.warn("Failed to parse WebSocket message as JSON", parseError);
+            var app = getApp();
+            if (app != null) {
+                app.alertUnexpectedError(LOG, parseError.getMessage(), parseError);
+            }
+            return null;
+        }
+    }
+
+    private void processRequest(ApplicationReactImpl app, Map<String, Object> request) {
+        try {
+            app.setWsSession(wsSession);
+            app.sendResponse(request);
+        } catch (Exception processingError) {
+            LOG.error("Error processing WebSocket message", processingError);
+            app.alertUnexpectedError(LOG, processingError.getMessage(), processingError);
         }
     }
 
