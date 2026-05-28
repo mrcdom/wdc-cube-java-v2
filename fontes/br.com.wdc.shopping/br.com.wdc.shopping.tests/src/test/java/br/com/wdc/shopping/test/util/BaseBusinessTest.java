@@ -20,6 +20,7 @@ import br.com.wdc.shopping.persistence.RepositoryBootstrap;
 import br.com.wdc.shopping.scripts.sgbd.DBCreate;
 import br.com.wdc.shopping.domain.ShoppingConfig;
 
+@SuppressWarnings("java:S2187") // base class — tests are in subclasses
 public class BaseBusinessTest {
 
 	private static AgroalDataSource datasource;
@@ -28,8 +29,6 @@ public class BaseBusinessTest {
 
 	@BeforeClass
 	public static void beforeClass() throws Exception {
-		// executor = new ScheduledExecutorForTestSyncDirect();
-		// executor = new ScheduledExecutorForTestSyncDelayed();
 		executor = new ScheduledExecutorForTestAsync();
 
 		var ds = AgroalDataSource.from(

@@ -329,13 +329,12 @@ public class ProductViewSwing extends AbstractViewSwing<ProductPresenter> {
                             // ignore
                         }
                     }
-                } else if (node instanceof org.jsoup.nodes.Element el) {
-                    if ("li".equalsIgnoreCase(el.tagName())) {
-                        try {
-                            doc.insertString(doc.getLength(), "\n\u2022 ", bullet);
-                        } catch (BadLocationException e) {
-                            // ignore
-                        }
+                } else if (node instanceof org.jsoup.nodes.Element el
+                        && "li".equalsIgnoreCase(el.tagName())) {
+                    try {
+                        doc.insertString(doc.getLength(), "\n\u2022 ", bullet);
+                    } catch (BadLocationException e) {
+                        // ignore
                     }
                 }
             }

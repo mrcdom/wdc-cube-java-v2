@@ -13,7 +13,7 @@ public class ReceiptForm implements Serializable {
     private static final long serialVersionUID = -3783933804174247490L;
 
     public Long date;
-    public List<ReceiptItem> items;
+    public transient List<ReceiptItem> items;
     public Double total;
 
     public static Purchase projection() {

@@ -171,7 +171,7 @@ public class HtmlDom {
         elm.setAttribute("type", type);
         applyCss(elm, cssClasses);
         fnUpdate.accept(elm);
-        addChild(this.currentParent, (HTMLElement) elm);
+        addChild(this.currentParent, elm);
         return elm;
     }
 

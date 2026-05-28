@@ -18,10 +18,6 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
     private final HomeViewState state;
     private boolean showingProducts = true;
 
-    // Estado local para erro (one-shot)
-    private boolean showError;
-    private String errorMessage = "";
-
     public HomeViewVDom(HomePresenter presenter) {
         super("home", (ShoppingTeaVMApplication) presenter.app, presenter);
         this.state = presenter.state;
@@ -32,14 +28,16 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
     @Override
     protected VNode render() {
         // Consumir erro one-shot
+        final boolean showError;
+        final String errorMessage;
         if (this.state.errorCode != 0) {
-            this.showError = true;
-            this.errorMessage = this.state.errorMessage;
+            showError = true;
+            errorMessage = this.state.errorMessage;
             this.state.errorCode = 0;
             this.state.errorMessage = null;
         } else {
-            this.showError = false;
-            this.errorMessage = "";
+            showError = false;
+            errorMessage = "";
         }
 
         var nickName = this.state.nickName != null ? this.state.nickName : "";
@@ -56,8 +54,8 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
 
                 // Error
                 div("alert alert-danger m-2")
-                        .style(this.showError ? "" : "display:none")
-                        .text(this.errorMessage),
+                        .style(showError ? "" : "display:none")
+                        .text(errorMessage),
 
                 // Content pane
                 renderContentPane(productsPanelEl, purchasesPanelEl, contentViewEl),

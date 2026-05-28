@@ -84,7 +84,8 @@ public class StackPanel extends JPanel implements Scrollable {
 
         private static Dimension computeSize(Container parent, boolean preferred) {
             var insets = parent.getInsets();
-            int maxW = 0, maxH = 0;
+            int maxW = 0;
+            int maxH = 0;
             for (var comp : parent.getComponents()) {
                 var d = preferred ? comp.getPreferredSize() : comp.getMinimumSize();
                 maxW = Math.max(maxW, d.width);
@@ -102,7 +103,7 @@ public class StackPanel extends JPanel implements Scrollable {
 
     @Override
     public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
-        return orientation == SwingConstants.VERTICAL ? 20 : 20;
+        return 20;
     }
 
     @Override

@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -34,8 +35,8 @@ public final class ApplicationReactRegistry {
 
     private static final AtomicBoolean INITIALIZED = new AtomicBoolean(false);
 
-    private static volatile Registration flushRegistration = Registration.noop();
-    private static volatile Registration expiryRegistration = Registration.noop();
+    private static final AtomicReference<Registration> flushRegistration = new AtomicReference<>(Registration.noop());
+    private static final AtomicReference<Registration> expiryRegistration = new AtomicReference<>(Registration.noop());
 
     private ApplicationReactRegistry() {
         // NOOP
@@ -53,25 +54,25 @@ public final class ApplicationReactRegistry {
             return;
         }
 
-        expiryRegistration = scheduler.scheduleAtFixedRate(
+        expiryRegistration.set(scheduler.scheduleAtFixedRate(
                 ApplicationReactRegistry::removeExpireds,
                 EXPIRY_CHECK_INTERVAL,
-                EXPIRY_CHECK_INTERVAL);
+                EXPIRY_CHECK_INTERVAL));
 
-        flushRegistration = scheduler.scheduleAtFixedRate(
+        flushRegistration.set(scheduler.scheduleAtFixedRate(
                 ApplicationReactRegistry::executeBackgroundFlush,
                 FLUSH_INTERVAL,
-                FLUSH_INTERVAL);
+                FLUSH_INTERVAL));
 
         LOG.info("ApplicationReactRegistry initialized");
     }
 
     public static void shutdown() {
-        flushRegistration.remove();
-        flushRegistration = Registration.noop();
+        flushRegistration.get().remove();
+        flushRegistration.set(Registration.noop());
 
-        expiryRegistration.remove();
-        expiryRegistration = Registration.noop();
+        expiryRegistration.get().remove();
+        expiryRegistration.set(Registration.noop());
 
         INITIALIZED.set(false);
 

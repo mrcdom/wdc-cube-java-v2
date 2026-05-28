@@ -215,18 +215,17 @@ public final class ViewStateSerializer {
         json.value(value.toString());
     }
 
-    private void writeRecord(Object record) {
+    private void writeRecord(Object rec) {
         try {
             json.beginObject();
-            for (var component : record.getClass().getRecordComponents()) {
+            for (var component : rec.getClass().getRecordComponents()) {
                 var accessor = component.getAccessor();
-                accessor.setAccessible(true);
                 json.name(component.getName());
-                writeValue(accessor.invoke(record));
+                writeValue(accessor.invoke(rec));
             }
             json.endObject();
         } catch (Exception e) {
-            throw new RuntimeException("Falha ao serializar record " + record.getClass().getSimpleName(), e);
+            throw new RuntimeException("Falha ao serializar record " + rec.getClass().getSimpleName(), e);
         }
     }
 
@@ -234,13 +233,13 @@ public final class ViewStateSerializer {
         try {
             json.beginObject();
             for (Field field : fields) {
-                if (Modifier.isTransient(field.getModifiers()) || Modifier.isStatic(field.getModifiers()))
-                    continue;
-                Object value = field.get(pojo);
-                if (value == null)
-                    continue;
-                json.name(field.getName());
-                writeValue(value);
+                if (!Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers())) {
+                    Object value = field.get(pojo);
+                    if (value != null) {
+                        json.name(field.getName());
+                        writeValue(value);
+                    }
+                }
             }
             json.endObject();
         } catch (IllegalAccessException e) {

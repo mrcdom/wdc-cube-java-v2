@@ -1,6 +1,7 @@
 package br.com.wdc.shopping.view.teavm;
 
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 import org.teavm.interop.Async;
@@ -23,7 +24,7 @@ import br.com.wdc.shopping.domain.exception.BusinessException;
 public class FetchHttpTransport implements HttpTransport {
 
 	private final String baseUrl;
-	private volatile Supplier<String> accessTokenSupplier;
+	private final AtomicReference<Supplier<String>> accessTokenSupplier = new AtomicReference<>();
 
 	public FetchHttpTransport(String baseUrl) {
 		this.baseUrl = baseUrl;
@@ -31,7 +32,7 @@ public class FetchHttpTransport implements HttpTransport {
 
 	@Override
 	public void setAccessTokenSupplier(Supplier<String> tokenSupplier) {
-		this.accessTokenSupplier = tokenSupplier;
+		this.accessTokenSupplier.set(tokenSupplier);
 	}
 
 	@Override
@@ -84,12 +85,12 @@ public class FetchHttpTransport implements HttpTransport {
 			handleSessionExpired();
 		}
 		if (result.status == 404 || result.status == 204) {
-			return null;
+			return new byte[0];
 		}
 		if (result.status < 200 || result.status >= 300) {
 			throw new BusinessException("HTTP " + result.status);
 		}
-		return result.body != null ? result.body.getBytes(StandardCharsets.ISO_8859_1) : null;
+		return result.body != null ? result.body.getBytes(StandardCharsets.ISO_8859_1) : new byte[0];
 	}
 
 	@Override
@@ -122,7 +123,7 @@ public class FetchHttpTransport implements HttpTransport {
 	// ── Private helpers ──────────────────────────────────────────────────────
 
 	private String getToken() {
-		var supplier = accessTokenSupplier;
+		var supplier = accessTokenSupplier.get();
 		return supplier != null ? supplier.get() : null;
 	}
 
@@ -150,6 +151,7 @@ public class FetchHttpTransport implements HttpTransport {
 	@Async
 	private static native HttpResult asyncXhr(String url, String method, String body, String token, String contentType);
 
+	@SuppressWarnings("java:S1144") // Called by TeaVM @Async infrastructure
 	private static void asyncXhr(String url, String method, String body, String token, String contentType,
 			AsyncCallback<HttpResult> callback) {
 		XMLHttpRequest xhr = new XMLHttpRequest();

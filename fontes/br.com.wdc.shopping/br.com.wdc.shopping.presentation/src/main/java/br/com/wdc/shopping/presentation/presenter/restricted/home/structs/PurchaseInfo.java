@@ -21,7 +21,7 @@ public class PurchaseInfo implements Serializable {
     public long id;
     public long date;
     public double total;
-    public List<String> items;
+    public transient List<String> items;
 
     public static Purchase projectionWithItens() {
         var pv = ProjectionValues.INSTANCE;

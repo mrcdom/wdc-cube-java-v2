@@ -10,7 +10,7 @@ import br.com.wdc.shopping.test.mock.viewimpl.HomeViewMock;
 import br.com.wdc.shopping.test.mock.viewimpl.LoginViewMock;
 import br.com.wdc.shopping.test.util.BasePresentationTest;
 
-@SuppressWarnings({ "java:S2068", "java:S1192" })
+@SuppressWarnings({ "java:S2068", "java:S1192", "java:S5961" })
 public class ShoppingLoginTest extends BasePresentationTest {
 
     @Test
@@ -20,7 +20,7 @@ public class ShoppingLoginTest extends BasePresentationTest {
         var rootView = this.app.getRootView();
 
         var mainContent = LoginViewMock.cast(rootView.state.contentView);
-        Assert.assertTrue("Usuário não poderia ter sido validado", mainContent.state.errorCode == 0);
+        Assert.assertEquals("Usuário não poderia ter sido validado", 0, mainContent.state.errorCode);
     }
 
     @Test
@@ -36,7 +36,7 @@ public class ShoppingLoginTest extends BasePresentationTest {
 
         // Check if it keeps bean login view
         loginView = LoginViewMock.cast(rootView.state.contentView);
-        Assert.assertTrue("Usuário não poderia ter sido validado", loginView.state.errorCode == 1);
+        Assert.assertEquals("Usuário não poderia ter sido validado", 1, loginView.state.errorCode);
     }
 
     @Test
@@ -55,7 +55,7 @@ public class ShoppingLoginTest extends BasePresentationTest {
         Assert.assertTrue("Nome do usuário inválido", StringUtils.isNotBlank(restrictedView.state.nickName));
         Assert.assertTrue("Quantidade itens no carrinho não pode ser negativo",
                 restrictedView.state.cartItemCount >= 0);
-        Assert.assertTrue("Usuário deveria ter sido validado", restrictedView.state.errorCode == 0);
+        Assert.assertEquals("Usuário deveria ter sido validado", 0, restrictedView.state.errorCode);
 
         var purchasesState = restrictedView.getPurchasesPanelState();
         var productsState = restrictedView.getProductsPanelState();

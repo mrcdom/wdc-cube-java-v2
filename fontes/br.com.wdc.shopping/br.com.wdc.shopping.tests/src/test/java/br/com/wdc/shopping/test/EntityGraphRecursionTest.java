@@ -64,7 +64,7 @@ public class EntityGraphRecursionTest {
 	@Test
 	public void writeEntity_withCircularReference_writesOnlyKeyForDuplicate() {
 		// PurchaseItem tem referência ao Purchase pai — ao serializar o item isoladamente,
-		// se purchase já foi rastreada, deve escrever apenas {"id":...}
+		// se purchase já foi rastreada, deve escrever apenas o id como stub
 		var purchase = new Purchase();
 		purchase.id = 42L;
 		purchase.buyDate = OffsetDateTime.now();

@@ -69,7 +69,9 @@ public class WrapPanel extends JPanel {
 
                 Insets insets = target.getInsets();
                 int maxWidth = targetWidth - insets.left - insets.right;
-                int x = 0, y = 0, rowHeight = 0;
+                int x = 0;
+                int y = 0;
+                int rowHeight = 0;
 
                 for (int i = 0; i < target.getComponentCount(); i++) {
                     Component c = target.getComponent(i);

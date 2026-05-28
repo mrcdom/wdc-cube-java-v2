@@ -26,7 +26,7 @@ public class Main {
             removeLoadingScreen();
 
             Console.log("WDC Shopping TeaVM - Started.");
-        } catch (Throwable e) {
+        } catch (Exception e) {
             Console.error("WDC Shopping TeaVM - FATAL: " + e.getClass().getName() + ": " + e.getMessage());
             showError(e.getClass().getName() + ": " + e.getMessage());
         }

@@ -96,11 +96,11 @@ public class PurchasesPanelViewSwing extends AbstractViewSwing<PurchasesPanelPre
             caption.setBorder(new EmptyBorder(0, 0, 12, 0));
         });
 
-        dom.constraints(BorderLayout.CENTER).vbox(contentBox -> {
-            this.contentBox = contentBox;
-            contentBox.setBorder(new EmptyBorder(0, 0, 0, 0));
-            this.contentSlot = this.newListSlot(contentBox, this::newItemView, this::updateItem);
-            contentBox.addComponentListener(new java.awt.event.ComponentAdapter() {
+        dom.constraints(BorderLayout.CENTER).vbox(cBox -> {
+            this.contentBox = cBox;
+            cBox.setBorder(new EmptyBorder(0, 0, 0, 0));
+            this.contentSlot = this.newListSlot(cBox, this::newItemView, this::updateItem);
+            cBox.addComponentListener(new java.awt.event.ComponentAdapter() {
                 @Override
                 public void componentResized(java.awt.event.ComponentEvent e) {
                     scheduleResize();

@@ -17,7 +17,6 @@ import br.com.wdc.shopping.view.teavm.vdom.VNode;
 public class ReceiptViewVDom extends AbstractVDomView<ReceiptPresenter> {
 
     private final ReceiptViewState state;
-    private boolean showSuccess;
 
     public ReceiptViewVDom(ReceiptPresenter presenter) {
         super("receipt", (ShoppingTeaVMApplication) presenter.app, presenter);
@@ -27,7 +26,7 @@ public class ReceiptViewVDom extends AbstractVDomView<ReceiptPresenter> {
     @Override
     protected VNode render() {
         // Flag one-shot: true apenas no render imediato após a compra
-        this.showSuccess = this.state.notifySuccess;
+        final boolean showSuccess = this.state.notifySuccess;
         if (this.state.notifySuccess) {
             this.state.notifySuccess = false;
         }
@@ -56,10 +55,10 @@ public class ReceiptViewVDom extends AbstractVDomView<ReceiptPresenter> {
                                                 .text("IMPRIMA SEU RECIBO:"),
 
                                         // Success banner
-                                        div(this.showSuccess
+                                        div(showSuccess
                                                         ? "d-flex align-items-center gap-2 mb-3"
                                                         : "d-none")
-                                                .style(this.showSuccess
+                                                .style(showSuccess
                                                         ? "background-color:#e8f5e9;border:1px solid #a5d6a7;border-radius:8px;"
                                                                 + "padding:12px 16px;color:#2e7d32;font-size:1.2rem"
                                                         : "")

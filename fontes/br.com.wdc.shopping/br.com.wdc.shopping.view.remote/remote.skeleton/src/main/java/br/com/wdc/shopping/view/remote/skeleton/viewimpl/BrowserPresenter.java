@@ -99,7 +99,7 @@ public class BrowserPresenter implements PresenterBase {
         this.update();
     }
 
-    private void onStart(String path) throws Exception {
+    private void onStart(String path) {
         app.safeGo(path);
         app.updateAllViews();
     }

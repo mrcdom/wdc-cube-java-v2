@@ -43,6 +43,7 @@ import io.javalin.Javalin;
  * Os BEANs estáticos ficam apontando para a implementação de persistência local
  * (usada pelo servidor). Os testes usam os campos protegidos (REST client instances).
  */
+@SuppressWarnings("java:S2187") // base class — tests are in subclasses
 public class BaseRestApiTest {
 
 	private static AgroalDataSource datasource;

@@ -30,7 +30,7 @@ public class ShoppingGluonDesktopLauncher {
                     }
                 }
             }
-        } catch (Throwable e) {
+        } catch (Exception e) {
             // Silently ignore — AWT is not available in GluonFX native images
         }
     }

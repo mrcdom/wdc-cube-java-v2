@@ -33,7 +33,6 @@ public class ShoppingSwingMain {
 
     private ScheduledExecutorService executorService;
     private ShoppingSwingApplication app;
-    private JFrame frame;
     private boolean devMode;
 
     public static void main(String[] args) {
@@ -45,6 +44,10 @@ public class ShoppingSwingMain {
         try {
             init();
             SwingUtilities.invokeAndWait(this::startUI);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOG.error("Application startup interrupted", e);
+            System.exit(1);
         } catch (Exception e) {
             LOG.error("Failed to start application", e);
             System.exit(1);
@@ -94,13 +97,13 @@ public class ShoppingSwingMain {
         root.setBackground(Styles.BG_PAGE);
         this.app.setRootPane(root);
 
-        this.frame = new JFrame("WeDoCode Shopping");
-        this.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.frame.setContentPane(root);
-        this.frame.setPreferredSize(new Dimension(1024, 768));
-        this.frame.pack();
-        this.frame.setLocationRelativeTo(null);
-        this.frame.setVisible(true);
+        var frame = new JFrame("WeDoCode Shopping");
+        frame.setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        frame.setContentPane(root);
+        frame.setPreferredSize(new Dimension(1024, 768));
+        frame.pack();
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
 
         this.app.start();
         Routes.root(this.app);

@@ -122,7 +122,7 @@ public abstract class ShoppingApplication extends CubeApplication {
 		}
 	}
 
-	public void go(String placeStr) throws Exception {
+	public void go(String placeStr) {
 		this.go(CubeIntent.parse(placeStr));
 	}
 
@@ -166,6 +166,7 @@ public abstract class ShoppingApplication extends CubeApplication {
 	 * Implementação padrão retorna o delegate diretamente (sem proxy). Subclasses em ambientes multi-threaded (JVM desktop/server) devem override para usar
 	 * {@link ProxyRepositoryWrapper#wrap(Class, Object, java.util.function.Supplier)}.
 	 */
+	@SuppressWarnings("java:S1172") // repoInterface is used by subclass overrides (ProxyRepositoryWrapper)
 	protected <T> T createDelegate(Class<T> repoInterface, T delegate) {
 		return delegate;
 	}

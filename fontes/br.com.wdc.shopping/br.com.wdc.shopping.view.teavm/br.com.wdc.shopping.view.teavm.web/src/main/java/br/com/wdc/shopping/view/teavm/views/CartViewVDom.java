@@ -16,10 +16,6 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
 
     private final CartViewState state;
 
-    // Estado local para erro (one-shot)
-    private boolean showError;
-    private String errorMessage = "";
-
     public CartViewVDom(CartPresenter presenter) {
         super("cart", (ShoppingTeaVMApplication) presenter.app, presenter);
         this.state = presenter.state;
@@ -28,14 +24,16 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
     @Override
     protected VNode render() {
         // Consumir erro one-shot
+        final boolean showError;
+        final String errorMessage;
         if (this.state.errorCode != 0) {
-            this.showError = true;
-            this.errorMessage = this.state.errorMessage;
+            showError = true;
+            errorMessage = this.state.errorMessage;
             this.state.errorCode = 0;
             this.state.errorMessage = null;
         } else {
-            this.showError = false;
-            this.errorMessage = "";
+            showError = false;
+            errorMessage = "";
         }
 
         var items = this.state.items;
@@ -60,8 +58,8 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
 
                                         // Error
                                         div("alert alert-danger mb-3")
-                                                .style(this.showError ? "" : "display:none")
-                                                .text(this.errorMessage),
+                                                .style(showError ? "" : "display:none")
+                                                .text(errorMessage),
 
                                         // Empty cart state
                                         renderEmptyState(empty),

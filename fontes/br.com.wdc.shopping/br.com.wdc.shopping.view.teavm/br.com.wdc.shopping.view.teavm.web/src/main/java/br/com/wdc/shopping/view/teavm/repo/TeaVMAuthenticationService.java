@@ -24,7 +24,7 @@ public class TeaVMAuthenticationService implements AuthenticationService {
     private static final String KEY_ACCESS_TOKEN = "auth.accessToken";
     private static final String KEY_REFRESH_TOKEN = "auth.refreshToken";
 
-    private final Log LOG = Log.getLogger(TeaVMAuthenticationService.class.getSimpleName());
+    private final Log log = Log.getLogger(TeaVMAuthenticationService.class.getSimpleName());
 
     private final HttpTransport transport;
     private final ClientStorage storage;
@@ -151,7 +151,7 @@ public class TeaVMAuthenticationService implements AuthenticationService {
             writer.endObject();
             transport.postJsonPublic("/api/auth/logout", writer.result());
         } catch (Exception e) {
-            LOG.debug("logout: " + e.getMessage());
+            log.debug("logout: " + e.getMessage());
         }
         this.accessToken = null;
         transport.setAccessTokenSupplier(null);

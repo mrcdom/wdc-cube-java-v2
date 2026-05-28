@@ -230,7 +230,7 @@ public class ApplicationReactImpl extends ShoppingApplication {
         }
     }
 
-    public void safeGo(String path) throws Exception {
+    public void safeGo(String path) {
         var security = AppSecurity.BEAN;
         var intent = CubeIntent.parse(path);
         if (intent.getPlace() == null) {

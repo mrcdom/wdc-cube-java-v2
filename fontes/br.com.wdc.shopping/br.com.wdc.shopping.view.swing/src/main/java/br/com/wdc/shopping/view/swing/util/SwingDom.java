@@ -142,7 +142,7 @@ public class SwingDom {
 
     public JLabel img(Consumer<JLabel> fnUpdate) {
         var elm = new JLabel();
-        elm.setHorizontalAlignment(JLabel.CENTER);
+        elm.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         fnUpdate.accept(elm);
         addChild(this.currentParent, elm);
         return elm;

@@ -1,5 +1,7 @@
 package br.com.wdc.shopping.persistence.rest;
 
+import org.apache.commons.lang3.StringUtils;
+
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.framework.commons.serialization.JsonStreamReader;
 import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
@@ -47,9 +49,12 @@ public class AuthApiController {
 		json(ctx, writer);
 	}
 
+	@SuppressWarnings("java:S2589") // false positive — variables are assigned inside switch-in-while
 	private void login(Context ctx) {
 		var reader = new JsonStreamReader(ctx.body());
-		String userName = null, digest = null, nonce = null;
+		String userName = null;
+		String digest = null;
+		String nonce = null;
 		reader.beginObject();
 		while (reader.hasNext()) {
 			switch (reader.nextName()) {
@@ -61,7 +66,7 @@ public class AuthApiController {
 		}
 		reader.endObject();
 
-		if (userName == null || digest == null || nonce == null) {
+		if (StringUtils.isBlank(userName) || StringUtils.isBlank(digest) || StringUtils.isBlank(nonce)) {
 			ctx.status(400).result("{\"error\":\"Missing required fields: userName, digest, nonce\"}");
 			return;
 		}

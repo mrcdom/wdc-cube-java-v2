@@ -98,6 +98,7 @@ public class ScheduledExecutorForTestAsync implements ScheduledExecutorForTest {
      * {@code flush()} will wait for it.
      */
     @Override
+    @SuppressWarnings("java:S2925") // intentional sleep to simulate async delay in tests
     public Registration schedule(ThrowingRunnable command, Duration delay) {
         var allowed = new AtomicBoolean(true);
         var future = this.vtExecutor.submit(() -> {

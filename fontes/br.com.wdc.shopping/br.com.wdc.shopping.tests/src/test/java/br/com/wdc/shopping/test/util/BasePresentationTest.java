@@ -2,6 +2,7 @@ package br.com.wdc.shopping.test.util;
 
 import br.com.wdc.shopping.test.mock.ShoppingApplicationMock;
 
+@SuppressWarnings("java:S2187") // base class — tests are in subclasses
 public class BasePresentationTest extends BaseBusinessTest {
 
     protected ShoppingApplicationMock app;

@@ -332,12 +332,7 @@ public final class VDom {
             diff(parent, domChild, oldNode, newNode);
 
             // Avançar para o próximo filho DOM
-            if (newNode != null) {
-                domChild = nextDom;
-            } else {
-                // Se removemos um nó, nextDom já é o correto
-                domChild = nextDom;
-            }
+            domChild = nextDom;
         }
     }
 

@@ -64,7 +64,6 @@ public final class GenericViewImpl implements CubeView {
 
     public void writeState(ExtensibleObjectOutput json) {
         new ViewStateSerializer(json).write(this.state, instanceId);
-        // state.write(instanceId, json);
     }
 
 }

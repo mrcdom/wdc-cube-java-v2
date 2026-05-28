@@ -11,6 +11,7 @@ import br.com.wdc.shopping.domain.security.CryptoProvider;
  * Não usa Web Crypto API (que é assíncrona) para manter compatibilidade
  * com a interface síncrona existente.
  */
+@SuppressWarnings("java:S6126") // String concatenation in @JSBody is intentional for TeaVM JS interop
 public class BrowserCryptoProvider implements CryptoProvider {
 
     @Override

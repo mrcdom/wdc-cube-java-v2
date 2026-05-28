@@ -146,6 +146,7 @@ public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPre
     }
 
     private PauseTransition resizeDebounce;
+    @SuppressWarnings("java:S1450") // Detectado erroneamente pelo Sonar
     private int pendingContainerHeight;
 
     private void scheduleResize(int containerHeight) {

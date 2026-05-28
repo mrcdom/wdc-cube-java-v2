@@ -2,6 +2,7 @@ package br.com.wdc.shopping.persistence.client;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 import br.com.wdc.framework.commons.http.HttpTransport;
@@ -22,7 +23,7 @@ public class OkHttpTransport implements HttpTransport {
 
     private final String baseUrl;
     private final OkHttpClient client;
-    private volatile Supplier<String> accessTokenSupplier;
+    private final AtomicReference<Supplier<String>> accessTokenSupplier = new AtomicReference<>();
 
     public OkHttpTransport(String baseUrl) {
         this.baseUrl = baseUrl;
@@ -35,7 +36,7 @@ public class OkHttpTransport implements HttpTransport {
 
     @Override
     public void setAccessTokenSupplier(Supplier<String> tokenSupplier) {
-        this.accessTokenSupplier = tokenSupplier;
+        this.accessTokenSupplier.set(tokenSupplier);
     }
 
     @Override
@@ -156,7 +157,7 @@ public class OkHttpTransport implements HttpTransport {
             if (!response.isSuccessful()) {
                 throw new BusinessException("HTTP " + response.code());
             }
-            return response.body() != null ? response.body().bytes() : null;
+            return response.body() != null ? response.body().bytes() : new byte[0];
         } catch (BusinessException e) {
             throw e;
         } catch (IOException e) {
@@ -196,7 +197,7 @@ public class OkHttpTransport implements HttpTransport {
     }
 
     private void addAuthHeader(Request.Builder builder) {
-        var supplier = this.accessTokenSupplier;
+        var supplier = this.accessTokenSupplier.get();
         if (supplier != null) {
             var token = supplier.get();
             if (token != null) {

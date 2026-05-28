@@ -157,9 +157,9 @@ public class ShoppingVaadinApplication extends ShoppingApplication {
                 }
                 lastSignature = newSignature;
                 APP_CACHE.put(newSignature, this);
-                Optional.ofNullable(this.ui).ifPresent(ui -> {
-                    ui.access(() -> {
-                        ui.getPage().executeJs(
+                Optional.ofNullable(this.ui).ifPresent(currentUi -> {
+                    currentUi.access(() -> {
+                        currentUi.getPage().executeJs(
                                 "history.pushState(null, '', '#' + $0)", signedUrl);
                     });
                 });
@@ -175,9 +175,9 @@ public class ShoppingVaadinApplication extends ShoppingApplication {
             // Re-push the current valid state to the browser
             if (this.fragment != null) {
                 var signedUrl = intentSigner.sign(this.fragment);
-                Optional.ofNullable(this.ui).ifPresent(ui -> {
-                    ui.access(() -> {
-                        ui.getPage().executeJs(
+                Optional.ofNullable(this.ui).ifPresent(currentUi -> {
+                    currentUi.access(() -> {
+                        currentUi.getPage().executeJs(
                                 "history.replaceState(null, '', '#' + $0)", signedUrl);
                     });
                 });
@@ -228,8 +228,8 @@ public class ShoppingVaadinApplication extends ShoppingApplication {
     }
 
     private void scheduleFlush() {
-        Optional.ofNullable(this.ui).ifPresent(ui -> {
-            ui.access(this::flushDirtyViews);
+        Optional.ofNullable(this.ui).ifPresent(currentUi -> {
+            currentUi.access(this::flushDirtyViews);
         });
     }
 

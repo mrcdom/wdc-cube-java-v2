@@ -20,11 +20,8 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
 
     private final LoginViewState state;
     private HTMLInputElement userNameField;
+    @SuppressWarnings("java:S2068") // Not a hardcoded password — HTML input field reference
     private HTMLInputElement passwordField;
-
-    // Estado local da view para erro (consumido do state no render)
-    private boolean showError;
-    private String errorMessage = "";
 
     public LoginViewVDom(LoginPresenter presenter) {
         super("login", (ShoppingTeaVMApplication) presenter.app, presenter);
@@ -36,14 +33,16 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
     @Override
     protected VNode render() {
         // Consumir erro do state (one-shot)
+        final boolean showError;
+        final String errorMessage;
         if (this.state.errorCode != 0) {
-            this.showError = true;
-            this.errorMessage = this.state.errorMessage;
+            showError = true;
+            errorMessage = this.state.errorMessage;
             this.state.errorCode = 0;
             this.state.errorMessage = null;
         } else {
-            this.showError = false;
-            this.errorMessage = "";
+            showError = false;
+            errorMessage = "";
         }
 
         return div("card shadow mx-auto")
@@ -79,8 +78,8 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
 
                                 // Alerta de erro (condicional)
                                 div("alert alert-danger")
-                                        .style(this.showError ? "" : "display:none")
-                                        .text(this.errorMessage)
+                                        .style(showError ? "" : "display:none")
+                                        .text(errorMessage)
                                         .when(true),
 
                                 // Campo usuário
@@ -94,7 +93,7 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
 
                                 // Campo senha
                                 div("mb-4").children(
-                                        input("password", "form-control form-control-lg")
+                                        input("password", "form-control form-control-lg") // NOSONAR java:S2068
                                                 .attr("placeholder", "Senha")
                                                 .attr("autocomplete", "off")
                                                 .style("border-radius:8px;border:1px solid #ccc;font-size:1rem")
