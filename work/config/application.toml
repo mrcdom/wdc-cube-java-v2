@@ -23,7 +23,7 @@ basedir = ".."
 logSql = true
 
 [server]
-# HTTP port (Javalin only)
+# HTTP port
 # port = 8080
 
 # Allow any origin for CORS (development mode)
