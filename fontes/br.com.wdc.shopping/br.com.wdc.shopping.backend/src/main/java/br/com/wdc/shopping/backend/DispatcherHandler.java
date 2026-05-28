@@ -1,5 +1,6 @@
 package br.com.wdc.shopping.backend;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -159,7 +160,7 @@ public class DispatcherHandler {
             
             // Parse JSON request
             Map<String, Object> request = parseRequest(jsonRequest);
-            if (request == null) {
+            if (request.isEmpty()) {
                 return;
             }
 
@@ -181,7 +182,7 @@ public class DispatcherHandler {
             if (app != null) {
                 app.alertUnexpectedError(LOG, parseError.getMessage(), parseError);
             }
-            return null;
+            return Collections.emptyMap();
         }
     }
 

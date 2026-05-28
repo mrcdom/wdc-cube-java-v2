@@ -32,6 +32,8 @@ import ch.qos.logback.core.joran.spi.JoranException;
  */
 final class LogBootstrap {
 
+    private static final System.Logger BOOTSTRAP_LOG = System.getLogger(LogBootstrap.class.getName());
+
     private static final String CONFIG_FILE_PROPERTY = "shopping.config.file";
     private static final String DEFAULT_CONFIG_PATH = "config/application.toml";
     private static final Pattern BASEDIR_PATTERN = Pattern.compile("^\\s*basedir\\s*=\\s*[\"']([^\"']+)[\"']");
@@ -111,7 +113,7 @@ final class LogBootstrap {
             String logDir = baseDir.resolve("log").toString().replace("\\", "/");
             Files.writeString(configFile, DEFAULT_LOGBACK_XML.replace("${DEFAULT_LOG_DIR}", logDir));
         } catch (IOException e) {
-            System.err.println("[LogBootstrap] Failed to write default logback.xml: " + e.getMessage());
+            BOOTSTRAP_LOG.log(System.Logger.Level.ERROR, "[LogBootstrap] Failed to write default logback.xml: " + e.getMessage());
         }
     }
 
@@ -123,7 +125,7 @@ final class LogBootstrap {
             configurator.setContext(context);
             configurator.doConfigure(configFile.toFile());
         } catch (JoranException e) {
-            System.err.println("[LogBootstrap] Failed to configure logback from " + configFile + ": " + e.getMessage());
+            BOOTSTRAP_LOG.log(System.Logger.Level.ERROR, "[LogBootstrap] Failed to configure logback from " + configFile + ": " + e.getMessage());
         }
     }
 
@@ -131,46 +133,46 @@ final class LogBootstrap {
             <?xml version="1.0" encoding="UTF-8"?>
             <configuration>
 
-            	<property name="LOG_DIR" value="${DEFAULT_LOG_DIR}" />
-            	<property name="LOG_PATTERN" value="%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n" />
+                <property name="LOG_DIR" value="${DEFAULT_LOG_DIR}" />
+                <property name="LOG_PATTERN" value="%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n" />
 
-            	<!-- Console Appender -->
-            	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-            		<encoder>
-            			<pattern>${LOG_PATTERN}</pattern>
-            		</encoder>
-            	</appender>
+                <!-- Console Appender -->
+                <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+                    <encoder>
+                        <pattern>${LOG_PATTERN}</pattern>
+                    </encoder>
+                </appender>
 
-            	<!-- File Appender -->
-            	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-            		<file>${LOG_DIR}/server.log</file>
-            		<encoder>
-            			<pattern>${LOG_PATTERN}</pattern>
-            		</encoder>
-            		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            			<fileNamePattern>${LOG_DIR}/server.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
-            			<maxFileSize>10MB</maxFileSize>
-            			<maxHistory>7</maxHistory>
-            		</rollingPolicy>
-            	</appender>
+                <!-- File Appender -->
+                <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+                    <file>${LOG_DIR}/server.log</file>
+                    <encoder>
+                        <pattern>${LOG_PATTERN}</pattern>
+                    </encoder>
+                    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                        <fileNamePattern>${LOG_DIR}/server.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
+                        <maxFileSize>10MB</maxFileSize>
+                        <maxHistory>7</maxHistory>
+                    </rollingPolicy>
+                </appender>
 
-            	<!-- Javalin Logger -->
-            	<logger name="io.javalin" level="INFO" />
+                <!-- Javalin Logger -->
+                <logger name="io.javalin" level="INFO" />
 
-            	<!-- Jetty Logger -->
-            	<logger name="org.eclipse.jetty" level="WARN" />
+                <!-- Jetty Logger -->
+                <logger name="org.eclipse.jetty" level="WARN" />
 
-            	<!-- jOOQ SQL Logger (ativado por database.logSql=true) -->
-            	<logger name="org.jooq.tools.LoggerListener" level="DEBUG" />
+                <!-- jOOQ SQL Logger (ativado por database.logSql=true) -->
+                <logger name="org.jooq.tools.LoggerListener" level="DEBUG" />
 
-            	<!-- WeDoCode Loggers -->
-            	<logger name="br.com.wdc" level="DEBUG" />
+                <!-- WeDoCode Loggers -->
+                <logger name="br.com.wdc" level="DEBUG" />
 
-            	<!-- Root Logger -->
-            	<root level="INFO">
-            		<appender-ref ref="CONSOLE" />
-            		<appender-ref ref="FILE" />
-            	</root>
+                <!-- Root Logger -->
+                <root level="INFO">
+                    <appender-ref ref="CONSOLE" />
+                    <appender-ref ref="FILE" />
+                </root>
 
             </configuration>
             """;
