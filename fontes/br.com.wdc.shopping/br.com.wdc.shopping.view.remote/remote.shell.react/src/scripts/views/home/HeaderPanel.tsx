@@ -8,7 +8,7 @@ import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew'
-import app from '@root/App'
+import app from '@root/app'
 import { BasePanelClass } from '@root/utils/ViewUtils'
 import ShoppingLogo from './ShoppingLogo'
 

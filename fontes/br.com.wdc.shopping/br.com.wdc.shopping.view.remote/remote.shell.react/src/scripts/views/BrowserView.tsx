@@ -7,7 +7,7 @@ import CircularProgress from '@mui/material/CircularProgress'
 import LinearProgress from '@mui/material/LinearProgress'
 import Link from '@mui/material/Link'
 import Typography from '@mui/material/Typography'
-import app, { type ViewProps, BROWSER_VID, type BrowserViewState } from '@root/App'
+import app, { type ViewProps, BROWSER_VID, type BrowserViewState } from '@root/app'
 import { BaseViewClass } from '@root/utils/ViewUtils'
 
 // :: Actions

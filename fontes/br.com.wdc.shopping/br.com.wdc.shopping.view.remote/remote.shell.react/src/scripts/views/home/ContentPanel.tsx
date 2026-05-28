@@ -1,6 +1,6 @@
 import React from 'react'
 import Box from '@mui/material/Box'
-import app from '@root/App'
+import app from '@root/app'
 import { BasePanelClass } from '@root/utils/ViewUtils'
 
 type ContentPanelProps = {

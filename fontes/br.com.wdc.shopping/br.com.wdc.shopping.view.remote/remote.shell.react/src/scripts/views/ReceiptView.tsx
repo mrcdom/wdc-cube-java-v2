@@ -14,7 +14,7 @@ import Typography from '@mui/material/Typography'
 import Link from '@mui/material/Link'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined'
-import app, { type ViewProps } from '@root/App'
+import app, { type ViewProps } from '@root/app'
 import { BaseViewClass } from '@root/utils/ViewUtils'
 import * as NumberUtils from '@root/utils/NumberUtils'
 
