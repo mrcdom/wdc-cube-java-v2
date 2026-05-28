@@ -1,114 +1,120 @@
 # br.com.wdc.shopping.view.remote
 
-Implementação web (React + WebSocket) da aplicação **WeDoCode Shopping**, demonstrando a técnica de **visualização remota** no padrão **Cube MVP**.
+Implementação da técnica de **Remote Presentation** para a aplicação **WeDoCode Shopping**, baseada no padrão **Cube MVP**.
 
-## Motivação
+## Conceito
 
-Na arquitetura Cube MVP, os **Presenters** mantêm o estado da aplicação e expõem **ViewStates** — objetos serializáveis que descrevem o que deve ser exibido. A camada de view apenas consome esses estados para renderizar a interface.
+O módulo implementa um protocolo proprietário de **apresentação remota** — conceito análogo a um Remote Desktop, mas operando na camada de dados da aplicação em vez de pixels. O servidor mantém toda a lógica de negócio e estado das views; o cliente é um thin shell que apenas renderiza estados recebidos e emite eventos de interação do usuário.
 
-Este módulo demonstra que essa separação permite uma abordagem de **visualização remota**: o estado da aplicação vive inteiramente no servidor Java, e o browser atua apenas como terminal de renderização. Toda lógica de negócio, navegação e controle de sessão permanece server-side.
+### Como funciona
+
+1. **O cliente (shell)** não possui lógica de negócio. Contém apenas as views, cada uma independente das demais. Eventos de interação do usuário são enviados diretamente dessas views. Um controle global no app utiliza o protocolo proprietário para encaminhar os pedidos ao servidor e receber de volta os novos estados das views que foram modificadas no backend — apenas as porções de dados que se tornaram "sujas" (dirty).
+
+2. **O servidor (host)** é a contraparte desse protocolo. Recebe os pedidos vindos do cliente e os encaminha para a camada de apresentação, invocando os métodos nos Presenters correspondentes a cada view que existe no lado cliente. Após o processamento, coleta os ViewStates que mudaram e serializa apenas os deltas de volta.
+
+O cliente atual é um browser (React), mas a arquitetura suporta qualquer tecnologia de renderização — poderia ser um aplicativo desktop nativo, mobile, ou qualquer outra superfície capaz de renderizar componentes e capturar eventos.
 
 ```mermaid
 graph TD
-    subgraph Browser["Browser (React 19 + MUI 9)"]
-        render["Renderiza ViewStates recebidos via WS"]
+    subgraph Shell["Shell (thin client)"]
+        views["Views independentes<br/><small>renderiza estados, emite eventos</small>"]
+        proto_c["Controle global do protocolo"]
     end
 
     subgraph Transport["WebSocket bidirecional"]
         up["↑ eventos / form data"]
-        down["↓ delta states"]
+        down["↓ delta states (apenas dirty views)"]
     end
 
-    subgraph Server["Javalin 7 + Virtual Threads"]
-        app["ApplicationReactImpl (1 por sessão)"]
+    subgraph Host["Host (server-side)"]
+        proto_s["Receptor do protocolo"]
+        dispatch["Despacha para Presenters"]
+        collect["Coleta dirty ViewStates"]
     end
 
     subgraph Core["Presenters + ViewStates (Cube MVP)"]
-        presenters["Compartilhados com demais implementações"]
+        presenters["Compartilhados com todas as implementações de view"]
     end
 
-    subgraph Data["Domain + Persistence + H2 Database"]
+    subgraph Data["Domain + Persistence"]
         db[("H2")]
     end
 
-    Browser <--> Transport <--> Server --> Core --> Data
+    views --> proto_c
+    proto_c <--> Transport
+    Transport <--> proto_s
+    proto_s --> dispatch --> Core --> Data
+    Core --> collect --> proto_s
 ```
 
-## Comparação com as outras versões
+## Comparação com as outras implementações de view
 
-| Aspecto | React (este módulo) | Vaadin (server-side) | JFX (desktop) | TeaVM (multiplataforma) |
+| Aspecto | Remote (este módulo) | Vaadin (server-side) | JFX (desktop) | TeaVM (multiplataforma) |
 |---------|---------------------|----------------------|---------------|------------------------|
-| **Onde roda a UI** | Browser remoto | Browser via Server Push | JVM local | Browser / WebView (Tauri) |
-| **Transporte** | WebSocket (JSON delta) | Atmosphere (WebSocket/Push) | Acesso direto em memória | REST (OkHttp → JS) |
+| **Onde roda a UI** | Browser remoto (thin shell) | Browser via Server Push | JVM local | Browser / WebView (Tauri) |
+| **Modelo** | Server-driven (delta states) | Server-driven (component tree) | Acesso direto em memória | Client-side (SPA) |
+| **Transporte** | WebSocket (JSON delta) | Atmosphere (WebSocket/Push) | N/A (in-process) | REST (OkHttp → JS) |
 | **Segurança** | RSA + AES-GCM + URL signing | HMAC-SHA256 URL signing | N/A (processo local) | HMAC + JWT |
 | **Escalabilidade** | Virtual Threads (~1K por conexão) | Server Push automático | Instância única | Client-side (SPA) |
-| **Código de UI** | TypeScript | Java | Java | Java (compilado para JS) |
-| **Presenters** | Mesmos | Mesmos | Mesmos |
-| **ViewStates** | Mesmos | Mesmos | Mesmos |
+| **Código de UI** | TypeScript (React) | Java | Java | Java (compilado para JS) |
+| **Presenters** | Mesmos | Mesmos | Mesmos | Mesmos |
+| **ViewStates** | Mesmos | Mesmos | Mesmos | Mesmos |
 
 ## Estrutura de submódulos
 
-```mermaid
-graph TD
-    root["view.remote/"]
-    root --> client["client<br/><small>Frontend React/TypeScript (Node.js)</small>"]
-    root --> skeleton["skeleton<br/><small>View impls + serialização + segurança (Maven)</small>"]
-    root --> javalin["javalin<br/><small>Servidor HTTP/WebSocket (Maven)</small>"]
-    root --> vts["VIRTUAL_THREADS_STRATEGY.md"]
+```
+view.remote/
+├── remote.host/            ← Host: contraparte server-side do protocolo (Maven/Java)
+└── remote.shell.react/     ← Shell: thin client React no browser (Node.js/TypeScript)
 ```
 
-### client (Node.js — Parcel)
+Futuros clientes seguirão o padrão `remote.shell.<tecnologia>` (ex: `remote.shell.desktop`, `remote.shell.native`).
 
-Frontend SPA que atua como terminal de renderização:
+### remote.host (Maven)
 
-- **React 19** + **MUI 9** (Material UI) para componentes visuais
-- **WebSocket** bidirecional para comunicação com servidor
-- **Sem lógica de negócio** — apenas renderiza ViewStates recebidos e envia eventos/form data de volta
-- Build via **Parcel 2.13** — output copiado para `skeleton/META-INF/resources/`
-
-### skeleton (Maven)
-
-Ponte entre os Presenters e o browser:
+Servidor do protocolo de apresentação remota — recebe eventos do shell, despacha para os Presenters e devolve os ViewStates modificados:
 
 | Classe | Responsabilidade |
 |--------|------------------|
 | `ApplicationReactImpl` | `ShoppingApplication` concreta; gerencia dirty views, dispatch de eventos, geração de resposta JSON |
+| `ApplicationReactRegistry` | Registry de instâncias por sessão, lifecycle e cleanup |
 | `GenericViewImpl` | Base abstrata: `instanceId`, `update()` (marca dirty), `syncClientToServer()`, `writeState()` |
-| `*ReactViewImpl` | Implementações por tela: lê form data do cliente, despacha para Presenter, serializa estado |
+| `BrowserPresenter` | Coordena navegação e dispatch de intent entre views |
 | `AppSecurity` | RSA + SHA256withRSA para assinatura de URLs de navegação |
 | `DataSecurity` | AES-GCM por sessão (derivado via PBKDF2, 250k iterações) para dados sensíveis |
+| `ViewStateSerializer` | Serialização eficiente de ViewStates para JSON (apenas campos dirty) |
+| `WebSocketConnection` | SPI — interface que o backend implementa para comunicação com o shell |
 
-### javalin (Maven)
+### remote.shell.react (Node.js — Parcel)
 
-Servidor HTTP standalone:
+Thin client que atua como superfície de renderização no browser:
 
-- **Javalin 7.0.0** sobre **Jetty 12** com Virtual Threads nativas
-- WebSocket route `/dispatcher/{sessionId}` — ponto de comunicação com cada browser
-- Serve assets estáticos do classpath (`META-INF/resources/`)
-- SPA fallback routing (rotas não-API → `index.html`)
-- Gerenciamento de sessões com TTL e cleanup periódico
-- Fat JAR (~11 MB) via maven-shade-plugin
+- **React 19** + **MUI 9** (Material UI) para componentes visuais
+- **WebSocket** bidirecional para comunicação com o host
+- **Sem lógica de negócio** — cada view renderiza o ViewState recebido e emite eventos de interação
+- **Views independentes** — cada componente é autossuficiente, sem acoplamento entre views
+- Build via **Parcel 2.13** — output copiado para `remote.host/META-INF/resources/`
 
 ## Fluxo de comunicação
 
 ```
-1. Browser conecta: ws://host/dispatcher/{sessionId}
+1. Shell conecta: ws://host/dispatcher/{sessionId}
 2. Handshake de segurança:
-   - Client envia cookie app_signature (RSA-encrypted AES password)
-   - Server deriva chave AES-256 via PBKDF2 (salt + 250k iterações)
+   - Shell envia cookie app_signature (RSA-encrypted AES password)
+   - Host deriva chave AES-256 via PBKDF2 (salt + 250k iterações)
 3. Ciclo request/response:
-   - Browser → Server: { requestId, eventCode, formData }
-   - Server:
+   - Shell → Host: { requestId, eventCode, formData }
+   - Host:
      a. syncClientToServer() — atualiza form data nas views
      b. submit() — despacha evento para o Presenter correto
      c. Presenter atualiza ViewState → marca views dirty
      d. commitComputedState() — propaga estados derivados
      e. Serializa apenas views dirty → JSON delta
-   - Server → Browser: { requestId, uri, states: [...] }
-4. Browser aplica delta nos componentes React (reconciliação)
+   - Host → Shell: { requestId, uri, states: [...] }
+4. Shell aplica delta nos componentes (reconciliação React)
 ```
 
-Apenas **views modificadas** são enviadas a cada resposta (delta updates), minimizando tráfego.
+Apenas **views modificadas** (dirty) são enviadas a cada resposta — transferência mínima, análoga a um Remote Desktop enviando apenas as regiões da tela que mudaram.
 
 ## Segurança
 
@@ -130,11 +136,11 @@ Apenas **views modificadas** são enviadas a cada resposta (delta updates), mini
 ## Build
 
 ```bash
-# 1. Build do client (gera assets em skeleton/META-INF/resources/)
+# 1. Build do shell (gera assets em remote.host/META-INF/resources/)
 cd fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.shell.react
 npm install && npm run build
 
-# 2. Build Maven (skeleton + javalin)
+# 2. Build Maven (host + backend)
 cd fontes && mvn -q -DskipTests clean install
 ```
 
@@ -167,7 +173,7 @@ Arquivo `work/config/application.toml`:
 # port = 8080
 ```
 
-### Desenvolvimento do client
+### Desenvolvimento do shell
 
 ```bash
 cd remote.shell.react
@@ -191,4 +197,4 @@ Este módulo utiliza Virtual Threads (Java 21+) para handlers HTTP e WebSocket, 
 
 ## Conclusão
 
-A versão React valida que o padrão Cube MVP suporta **visualização remota**: toda a lógica permanece server-side, e o browser é um thin client que renderiza estados serializados. Combinada com a [versão Gluon](../br.com.wdc.shopping.view.gluon/README.md) (visualização nativa multiplataforma), demonstra que **a mesma camada de Presenters/ViewStates pode alimentar qualquer tecnologia de frontend** — web, desktop ou mobile.
+Este módulo valida que o padrão Cube MVP suporta **apresentação remota**: toda a lógica permanece server-side no **host**, e o **shell** é um thin client intercambiável que renderiza estados serializados e captura interações. A separação host/shell garante que a mesma infraestrutura de protocolo pode alimentar diferentes tecnologias de frontend — basta criar um novo `remote.shell.<tecnologia>` que implemente a renderização de ViewStates e a emissão de eventos.
