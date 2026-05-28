@@ -11,7 +11,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>remote.wiring</artifactId>
+    <artifactId>remote.host</artifactId>
 
     <dependencies>
         <dependency>

@@ -5,20 +5,20 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/mrcdom/wdc-cube-java-v2.git",
-    "directory": "fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.react"
+    "directory": "fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.shell.react"
   },
   "source": "src/index.html",
   "targets": {
     "default": {
-      "distDir": "../../../../work/frontend/remote.react"
+      "distDir": "../../../../work/frontend/remote.shell.react"
     }
   },
   "alias": {
     "@root/*": "./src/scripts/$1"
   },
   "scripts": {
-    "clean": "rm -rf .parcel-cache ../../../../work/frontend/remote.react",
-    "copy-context": "mkdir -p ../../../../work/frontend/remote.react && cp context.html ../../../../work/frontend/remote.react/context.html",
+    "clean": "rm -rf .parcel-cache ../../../../work/frontend/remote.shell.react",
+    "copy-context": "mkdir -p ../../../../work/frontend/remote.shell.react && cp context.html ../../../../work/frontend/remote.shell.react/context.html",
     "start": "npm run copy-context && parcel watch --public-url ./",
     "watch": "npm run copy-context && parcel watch --public-url ./",
     "watch:clean": "npm run clean && npm run copy-context && parcel watch --public-url ./",

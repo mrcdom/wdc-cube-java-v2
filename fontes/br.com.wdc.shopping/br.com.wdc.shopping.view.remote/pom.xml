@@ -15,8 +15,8 @@
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>remote.wiring</module>
-		<module>remote.react</module>
+		<module>remote.host</module>
+		<module>remote.shell.react</module>
 	</modules>
 
 </project>

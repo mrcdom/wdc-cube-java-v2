@@ -34,7 +34,7 @@
         <!-- Core backend module with REST endpoints and business logic -->
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>remote.wiring</artifactId>
+            <artifactId>remote.host</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

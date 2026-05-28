@@ -112,7 +112,7 @@ graph TD
 | **view.remote** | Visualização remota via browser — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/README.md) |
 | **view.remote.client** | SPA em React 19 + TypeScript + MUI 9, bundled via Parcel. Comunicação WebSocket bidirecional, gerenciamento de reconexão, segurança client-side |
 | **backend** | Servidor Javalin 7 com Virtual Threads, WebSocket dispatcher, controllers REST, banco H2 embarcado. Gera fat JAR (~11 MB) |
-| **view.remote.wiring** | Implementações de view para o servidor (`GenericViewImpl`), segurança (`AppSecurity` — RSA/PBKDF2/AES-GCM, `DataSecurity`), SPI de WebSocket |
+| **view.remote.host** | Implementações de view para o servidor (`GenericViewImpl`), segurança (`AppSecurity` — RSA/PBKDF2/AES-GCM, `DataSecurity`), SPI de WebSocket |
 | **view.vaadin** | Visualização web server-side com Vaadin 24 + Lumo theme + Jetty 12 embarcado — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin/README.md) |
 | **view.swing** | Visualização desktop com Swing + FlatLaf (Material look-and-feel) — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.swing/README.md) |
 | **view.gluon** | Multiplataforma (Desktop + iOS + Android) com JavaFX + Gluon Mobile + GraalVM Native Image — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/README.md) |
@@ -148,14 +148,14 @@ br.com.wdc.shopping/br.com.wdc.shopping/br.com.wdc.shopping.backend/target/br.co
 ### Frontend (React)
 
 ```bash
-cd br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.react
+cd br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.shell.react
 
 npm install        # instalar dependências
 npm run build      # build de produção
 npm run watch      # modo desenvolvimento (hot reload)
 ```
 
-Os assets compilados são gerados diretamente em `remote.wiring/src/main/resources/META-INF/resources`.
+Os assets compilados são gerados diretamente em `remote.host/src/main/resources/META-INF/resources`.
 
 ## Execução
 

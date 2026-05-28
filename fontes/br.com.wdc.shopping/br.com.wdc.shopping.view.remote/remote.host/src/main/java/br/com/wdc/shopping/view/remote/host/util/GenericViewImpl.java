@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.wiring.util;
+package br.com.wdc.shopping.view.remote.host.util;
 
 import java.util.Map;
 
@@ -8,7 +8,7 @@ import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.PresenterBase;
 import br.com.wdc.framework.cube.ViewState;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
-import br.com.wdc.shopping.view.remote.wiring.viewimpl.ApplicationReactImpl;
+import br.com.wdc.shopping.view.remote.host.viewimpl.ApplicationReactImpl;
 
 public final class GenericViewImpl implements CubeView {
 

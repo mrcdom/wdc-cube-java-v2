@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.wiring.util;
+package br.com.wdc.shopping.view.remote.host.util;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;

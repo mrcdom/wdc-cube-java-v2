@@ -7,9 +7,9 @@ if [ ! -d "node_modules" ]; then
     npm install
 fi
 
-DEPLOY_DIR="../../../../work/frontend/remote.react"
+DEPLOY_DIR="../../../../work/frontend/remote.shell.react"
 
-# Build React SPA (output goes to work/frontend/remote.react via distDir in package.json)
+# Build React SPA (output goes to work/frontend/remote.shell.react via distDir in package.json)
 # context.html is copied automatically by the build:clean script
 npm run build:clean
 

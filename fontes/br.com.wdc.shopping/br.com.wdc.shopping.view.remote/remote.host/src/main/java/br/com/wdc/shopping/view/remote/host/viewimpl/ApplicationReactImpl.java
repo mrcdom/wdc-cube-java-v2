@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.wiring.viewimpl;
+package br.com.wdc.shopping.view.remote.host.viewimpl;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -37,10 +37,10 @@ import br.com.wdc.shopping.presentation.presenter.restricted.home.products.Produ
 import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
-import br.com.wdc.shopping.view.remote.wiring.spi.WebSocketConnection;
-import br.com.wdc.shopping.view.remote.wiring.util.AppSecurity;
-import br.com.wdc.shopping.view.remote.wiring.util.DataSecurity;
-import br.com.wdc.shopping.view.remote.wiring.util.GenericViewImpl;
+import br.com.wdc.shopping.view.remote.host.spi.WebSocketConnection;
+import br.com.wdc.shopping.view.remote.host.util.AppSecurity;
+import br.com.wdc.shopping.view.remote.host.util.DataSecurity;
+import br.com.wdc.shopping.view.remote.host.util.GenericViewImpl;
 
 public class ApplicationReactImpl extends ShoppingApplication {
 

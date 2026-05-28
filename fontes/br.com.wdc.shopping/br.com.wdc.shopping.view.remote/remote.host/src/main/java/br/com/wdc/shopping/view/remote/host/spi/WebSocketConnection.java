@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.wiring.spi;
+package br.com.wdc.shopping.view.remote.host.spi;
 
 public interface WebSocketConnection {
 

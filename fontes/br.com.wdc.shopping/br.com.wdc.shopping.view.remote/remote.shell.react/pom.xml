@@ -11,7 +11,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>remote.react</artifactId>
+    <artifactId>remote.shell.react</artifactId>
     <packaging>pom</packaging>
 
     <name>WeDoCode Shopping View Remote - React Frontend</name>

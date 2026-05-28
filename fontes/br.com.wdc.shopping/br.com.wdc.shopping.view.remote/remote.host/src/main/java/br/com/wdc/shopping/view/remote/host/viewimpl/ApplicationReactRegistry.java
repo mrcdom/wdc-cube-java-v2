@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.wiring.viewimpl;
+package br.com.wdc.shopping.view.remote.host.viewimpl;
 
 import java.time.Duration;
 import java.util.Map;

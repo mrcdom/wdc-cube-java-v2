@@ -3,7 +3,7 @@ package br.com.wdc.shopping.backend.controller;
 import java.security.SecureRandom;
 
 import br.com.wdc.framework.commons.codec.Base62;
-import br.com.wdc.shopping.view.remote.wiring.util.AppSecurity;
+import br.com.wdc.shopping.view.remote.host.util.AppSecurity;
 import io.javalin.config.JavalinConfig;
 import io.javalin.http.Context;
 import jakarta.servlet.http.Cookie;

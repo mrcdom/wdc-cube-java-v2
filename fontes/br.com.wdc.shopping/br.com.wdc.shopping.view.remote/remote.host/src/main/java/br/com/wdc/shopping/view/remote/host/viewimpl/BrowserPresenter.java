@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.wiring.viewimpl;
+package br.com.wdc.shopping.view.remote.host.viewimpl;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,7 +14,7 @@ import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.PresenterBase;
 import br.com.wdc.framework.cube.ViewState;
-import br.com.wdc.shopping.view.remote.wiring.util.GenericViewImpl;
+import br.com.wdc.shopping.view.remote.host.util.GenericViewImpl;
 
 public class BrowserPresenter implements PresenterBase {
 
