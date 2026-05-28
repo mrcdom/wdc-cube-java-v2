@@ -7,6 +7,7 @@ import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.shopping.domain.criteria.UserCriteria;
 import br.com.wdc.shopping.domain.model.User;
+import br.com.wdc.shopping.domain.utils.ProjectionValues;
 
 public class UserModelCodec implements ModelCodec<User, UserCriteria> {
 
@@ -60,6 +61,26 @@ public class UserModelCodec implements ModelCodec<User, UserCriteria> {
 		}
 		in.endObject();
 		return user;
+	}
+
+	@Override
+	public UpdateData<User> readEntityForUpdate(ExtensibleObjectInput in) {
+		var pv = ProjectionValues.INSTANCE;
+		var entity = new User();
+		var projection = new User();
+		in.beginObject();
+		while (in.hasNext()) {
+			switch (in.nextName()) {
+				case "id" -> { entity.id = InputCoerceUtils.asLong(in); projection.id = pv.i64; }
+				case "userName" -> { entity.userName = InputCoerceUtils.asString(in); projection.userName = pv.str; }
+				case "name" -> { entity.name = InputCoerceUtils.asString(in); projection.name = pv.str; }
+				case "password" -> { entity.password = InputCoerceUtils.asString(in); projection.password = pv.str; }
+				case "roles" -> { entity.roles = InputCoerceUtils.asString(in); projection.roles = pv.str; }
+				default -> in.skipValue();
+			}
+		}
+		in.endObject();
+		return new UpdateData<>(entity, projection);
 	}
 
 	@Override

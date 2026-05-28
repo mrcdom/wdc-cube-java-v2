@@ -14,6 +14,8 @@ import br.com.wdc.framework.commons.serialization.SerializationToken;
 import br.com.wdc.shopping.domain.criteria.PurchaseCriteria;
 import br.com.wdc.shopping.domain.model.Purchase;
 import br.com.wdc.shopping.domain.model.PurchaseItem;
+import br.com.wdc.shopping.domain.model.User;
+import br.com.wdc.shopping.domain.utils.ProjectionValues;
 
 public class PurchaseModelCodec implements ModelCodec<Purchase, PurchaseCriteria> {
 
@@ -81,6 +83,33 @@ public class PurchaseModelCodec implements ModelCodec<Purchase, PurchaseCriteria
 		}
 		in.endObject();
 		return purchase;
+	}
+
+	@Override
+	public UpdateData<Purchase> readEntityForUpdate(ExtensibleObjectInput in) {
+		var pv = ProjectionValues.INSTANCE;
+		var entity = new Purchase();
+		var projection = new Purchase();
+		in.beginObject();
+		while (in.hasNext()) {
+			switch (in.nextName()) {
+				case "id" -> { entity.id = InputCoerceUtils.asLong(in); projection.id = pv.i64; }
+				case "buyDate" -> {
+					var s = InputCoerceUtils.asString(in);
+					if (s != null) entity.buyDate = OffsetDateTime.parse(s, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+					projection.buyDate = pv.offsetDateTime;
+				}
+				case "user" -> {
+					if (in.peek() == SerializationToken.NULL) { in.nextNull(); }
+					else entity.user = USER_CODEC.readEntity(in);
+					projection.user = new User();
+					projection.user.id = pv.i64;
+				}
+				default -> in.skipValue();
+			}
+		}
+		in.endObject();
+		return new UpdateData<>(entity, projection);
 	}
 
 	@Override

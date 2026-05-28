@@ -162,6 +162,61 @@ public abstract class AbstractProductRepositoryTest {
 		assertEquals(35.0, fetched.price, 0.001);
 	}
 
+	@Test
+	public void update_partialFields_onlyChangesSpecifiedFields() {
+		var original = repo().fetchById(DBReset.PEN_DRIVE2GB_ID, null);
+		assertNotNull(original);
+		var originalDescription = original.description;
+		var originalPrice = original.price;
+
+		// projeção parcial: só id e name
+		var pv = ProjectionValues.INSTANCE;
+		var projection = new Product();
+		projection.id = pv.i64;
+		projection.name = pv.str;
+
+		var updated = new Product();
+		updated.id = original.id;
+		updated.name = "Pen Drive Renomeado";
+
+		boolean result = repo().update(updated, original, projection);
+		assertTrue(result);
+
+		var fetched = repo().fetchById(DBReset.PEN_DRIVE2GB_ID, null);
+		assertEquals("Pen Drive Renomeado", fetched.name);
+		assertEquals(originalPrice, fetched.price, 0.001);
+		assertEquals(originalDescription, fetched.description);
+	}
+
+	@Test
+	public void update_setFieldToNull_clearsValue() {
+		// Insere um produto com description nullable para este teste
+		// Como DESCRIPTION é NOT NULL no schema, testamos que um campo fora da projeção
+		// não é afetado mesmo que esteja null no newEntity
+		var original = repo().fetchById(DBReset.PEN_DRIVE2GB_ID, null);
+		assertNotNull(original);
+
+		// projeção só com id e price — description NÃO está na projeção
+		var pv = ProjectionValues.INSTANCE;
+		var projection = new Product();
+		projection.id = pv.i64;
+		projection.price = pv.f64;
+
+		var updated = new Product();
+		updated.id = original.id;
+		updated.price = 99.99;
+		updated.description = null; // null no newEntity, mas NÃO na projeção
+
+		boolean result = repo().update(updated, original, projection);
+		assertTrue(result);
+
+		var fetched = repo().fetchById(DBReset.PEN_DRIVE2GB_ID, null);
+		// description preservada (campo fora da projeção não é tocado)
+		assertEquals(original.description, fetched.description);
+		// price atualizado
+		assertEquals(99.99, fetched.price, 0.001);
+	}
+
 	// :: delete
 
 	@Test

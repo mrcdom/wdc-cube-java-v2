@@ -148,6 +148,73 @@ public abstract class AbstractUserRepositoryTest {
 		assertEquals("Nome Alterado", fetched.name);
 	}
 
+	@Test
+	public void update_partialFields_onlyChangesSpecifiedFields() {
+		var pv = ProjectionValues.INSTANCE;
+		var fullProjection = new User();
+		fullProjection.id = pv.i64;
+		fullProjection.userName = pv.str;
+		fullProjection.password = pv.str;
+		fullProjection.name = pv.str;
+		fullProjection.roles = pv.str;
+
+		var original = repo().fetchById(DBReset.ADMIN_ID, fullProjection);
+		assertNotNull(original);
+		var originalUserName = original.userName;
+		var originalPassword = original.password;
+
+		// projeção parcial: só id e name
+		var projection = new User();
+		projection.id = pv.i64;
+		projection.name = pv.str;
+
+		var updated = new User();
+		updated.id = original.id;
+		updated.name = "Nome Parcial";
+
+		boolean result = repo().update(updated, original, projection);
+		assertTrue(result);
+
+		var fetched = repo().fetchById(DBReset.ADMIN_ID, fullProjection);
+		assertEquals("Nome Parcial", fetched.name);
+		assertEquals(originalUserName, fetched.userName);
+		assertEquals(originalPassword, fetched.password);
+	}
+
+	@Test
+	public void update_setFieldToNull_clearsValue() {
+		var pv = ProjectionValues.INSTANCE;
+		var fullProjection = new User();
+		fullProjection.id = pv.i64;
+		fullProjection.userName = pv.str;
+		fullProjection.password = pv.str;
+		fullProjection.name = pv.str;
+		fullProjection.roles = pv.str;
+
+		// Garante que admin tem roles preenchido
+		var original = repo().fetchById(DBReset.ADMIN_ID, fullProjection);
+		assertNotNull(original);
+		assertNotNull(original.roles);
+
+		// projeção inclui roles — valor será null para limpar
+		var projection = new User();
+		projection.id = pv.i64;
+		projection.roles = pv.str;
+
+		var updated = new User();
+		updated.id = original.id;
+		updated.roles = null; // intencionalmente limpar
+
+		boolean result = repo().update(updated, original, projection);
+		assertTrue(result);
+
+		var fetched = repo().fetchById(DBReset.ADMIN_ID, fullProjection);
+		assertNull(fetched.roles);
+		// demais campos intactos
+		assertEquals(original.userName, fetched.userName);
+		assertEquals(original.name, fetched.name);
+	}
+
 	// :: delete
 
 	@Test

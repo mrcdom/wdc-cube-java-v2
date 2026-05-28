@@ -7,6 +7,7 @@ import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.shopping.domain.criteria.ProductCriteria;
 import br.com.wdc.shopping.domain.model.Product;
+import br.com.wdc.shopping.domain.utils.ProjectionValues;
 
 public class ProductModelCodec implements ModelCodec<Product, ProductCriteria> {
 
@@ -54,6 +55,25 @@ public class ProductModelCodec implements ModelCodec<Product, ProductCriteria> {
 		}
 		in.endObject();
 		return product;
+	}
+
+	@Override
+	public UpdateData<Product> readEntityForUpdate(ExtensibleObjectInput in) {
+		var pv = ProjectionValues.INSTANCE;
+		var entity = new Product();
+		var projection = new Product();
+		in.beginObject();
+		while (in.hasNext()) {
+			switch (in.nextName()) {
+				case "id" -> { entity.id = InputCoerceUtils.asLong(in); projection.id = pv.i64; }
+				case "name" -> { entity.name = InputCoerceUtils.asString(in); projection.name = pv.str; }
+				case "price" -> { entity.price = InputCoerceUtils.asDouble(in); projection.price = pv.f64; }
+				case "description" -> { entity.description = InputCoerceUtils.asString(in); projection.description = pv.str; }
+				default -> in.skipValue();
+			}
+		}
+		in.endObject();
+		return new UpdateData<>(entity, projection);
 	}
 
 	@Override

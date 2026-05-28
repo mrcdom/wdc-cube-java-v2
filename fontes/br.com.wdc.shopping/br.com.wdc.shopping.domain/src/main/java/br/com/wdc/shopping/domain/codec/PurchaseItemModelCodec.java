@@ -7,8 +7,10 @@ import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.framework.commons.serialization.SerializationToken;
 import br.com.wdc.shopping.domain.criteria.PurchaseItemCriteria;
+import br.com.wdc.shopping.domain.model.Product;
 import br.com.wdc.shopping.domain.model.Purchase;
 import br.com.wdc.shopping.domain.model.PurchaseItem;
+import br.com.wdc.shopping.domain.utils.ProjectionValues;
 
 public class PurchaseItemModelCodec implements ModelCodec<PurchaseItem, PurchaseItemCriteria> {
 
@@ -86,6 +88,45 @@ public class PurchaseItemModelCodec implements ModelCodec<PurchaseItem, Purchase
 		}
 		in.endObject();
 		return item;
+	}
+
+	@Override
+	public UpdateData<PurchaseItem> readEntityForUpdate(ExtensibleObjectInput in) {
+		var pv = ProjectionValues.INSTANCE;
+		var entity = new PurchaseItem();
+		var projection = new PurchaseItem();
+		in.beginObject();
+		while (in.hasNext()) {
+			switch (in.nextName()) {
+				case "id" -> { entity.id = InputCoerceUtils.asLong(in); projection.id = pv.i64; }
+				case "amount" -> { entity.amount = InputCoerceUtils.asInteger(in); projection.amount = pv.i32; }
+				case "price" -> { entity.price = InputCoerceUtils.asDouble(in); projection.price = pv.f64; }
+				case "product" -> {
+					if (in.peek() == SerializationToken.NULL) { in.nextNull(); }
+					else entity.product = PRODUCT_CODEC.readEntity(in);
+					projection.product = new Product();
+					projection.product.id = pv.i64;
+				}
+				case "purchase" -> {
+					if (in.peek() == SerializationToken.NULL) { in.nextNull(); }
+					else entity.purchase = new PurchaseModelCodec().readEntity(in);
+					projection.purchase = new Purchase();
+					projection.purchase.id = pv.i64;
+				}
+				case "purchaseId" -> {
+					var purchaseId = InputCoerceUtils.asLong(in);
+					if (purchaseId != null) {
+						if (entity.purchase == null) entity.purchase = new Purchase();
+						entity.purchase.id = purchaseId;
+					}
+					projection.purchase = new Purchase();
+					projection.purchase.id = pv.i64;
+				}
+				default -> in.skipValue();
+			}
+		}
+		in.endObject();
+		return new UpdateData<>(entity, projection);
 	}
 
 	@Override

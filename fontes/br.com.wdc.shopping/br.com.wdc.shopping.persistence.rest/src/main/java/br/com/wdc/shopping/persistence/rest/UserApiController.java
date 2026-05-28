@@ -9,11 +9,13 @@ import javax.crypto.Cipher;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import br.com.wdc.framework.commons.log.Log;
+import br.com.wdc.framework.commons.serialization.JsonStreamReader;
+import br.com.wdc.shopping.domain.codec.ModelCodec;
+import br.com.wdc.shopping.domain.codec.UserModelCodec;
 import br.com.wdc.shopping.domain.criteria.UserCriteria;
 import br.com.wdc.shopping.domain.model.User;
 import br.com.wdc.shopping.domain.repositories.UserRepository;
 import br.com.wdc.shopping.domain.security.SecurityContextHolder;
-import br.com.wdc.shopping.domain.utils.ProjectionValues;
 import io.javalin.config.JavalinConfig;
 import io.javalin.http.Context;
 
@@ -50,27 +52,22 @@ public class UserApiController {
     }
 
     private void update(Context ctx) throws Exception {
-        var mapper = ApiObjectMapper.get();
-        var body = mapper.readTree(ctx.body());
-        var newEntityNode = body.get("newEntity");
-        var newEntity = mapper.treeToValue(newEntityNode, User.class);
-        var oldNode = body.get("oldEntity");
-        var oldEntity = oldNode != null ? mapper.treeToValue(oldNode, User.class) : null;
-        decryptPasswordIfPresent(newEntity);
-        var projection = buildUpdateProjection(newEntityNode);
-        boolean success = repo().update(newEntity, oldEntity, projection);
+        var codec = new UserModelCodec();
+        var reader = new JsonStreamReader(ctx.body());
+        ModelCodec.UpdateData<User> newData = null;
+        User oldEntity = null;
+        reader.beginObject();
+        while (reader.hasNext()) {
+            switch (reader.nextName()) {
+                case "newEntity" -> newData = codec.readEntityForUpdate(reader);
+                case "oldEntity" -> oldEntity = codec.readEntity(reader);
+                default -> reader.skipValue();
+            }
+        }
+        reader.endObject();
+        decryptPasswordIfPresent(newData.entity());
+        boolean success = repo().update(newData.entity(), oldEntity, newData.projection());
         json(ctx, Map.of("success", success));
-    }
-
-    private static User buildUpdateProjection(JsonNode node) {
-        var pv = ProjectionValues.INSTANCE;
-        var prj = new User();
-        if (node.has("id")) prj.id = pv.i64;
-        if (node.has("userName")) prj.userName = pv.str;
-        if (node.has("name")) prj.name = pv.str;
-        if (node.has("password")) prj.password = pv.str;
-        if (node.has("roles")) prj.roles = pv.str;
-        return prj;
     }
 
     private void delete(Context ctx) throws Exception {

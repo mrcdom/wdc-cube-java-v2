@@ -3,10 +3,13 @@ package br.com.wdc.shopping.persistence.rest;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.log.Log;
+import br.com.wdc.framework.commons.serialization.JsonStreamReader;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 
+import br.com.wdc.shopping.domain.codec.ModelCodec;
+import br.com.wdc.shopping.domain.codec.ProductModelCodec;
 import br.com.wdc.shopping.domain.criteria.ProductCriteria;
 import br.com.wdc.shopping.domain.model.Product;
 import br.com.wdc.shopping.domain.repositories.ProductRepository;
@@ -58,25 +61,21 @@ public class ProductApiController {
 	}
 
 	private void update(Context ctx) throws Exception {
-		var mapper = ApiObjectMapper.get();
-		var body = mapper.readTree(ctx.body());
-		var newEntityNode = body.get("newEntity");
-		var newEntity = mapper.treeToValue(newEntityNode, Product.class);
-		var oldNode = body.get("oldEntity");
-		var oldEntity = oldNode != null ? mapper.treeToValue(oldNode, Product.class) : null;
-		var projection = buildUpdateProjection(newEntityNode);
-		boolean success = repo().update(newEntity, oldEntity, projection);
+		var codec = new ProductModelCodec();
+		var reader = new JsonStreamReader(ctx.body());
+		ModelCodec.UpdateData<Product> newData = null;
+		Product oldEntity = null;
+		reader.beginObject();
+		while (reader.hasNext()) {
+			switch (reader.nextName()) {
+				case "newEntity" -> newData = codec.readEntityForUpdate(reader);
+				case "oldEntity" -> oldEntity = codec.readEntity(reader);
+				default -> reader.skipValue();
+			}
+		}
+		reader.endObject();
+		boolean success = repo().update(newData.entity(), oldEntity, newData.projection());
 		json(ctx, Map.of("success", success));
-	}
-
-	private static Product buildUpdateProjection(JsonNode node) {
-		var pv = ProjectionValues.INSTANCE;
-		var prj = new Product();
-		if (node.has("id")) prj.id = pv.i64;
-		if (node.has("name")) prj.name = pv.str;
-		if (node.has("price")) prj.price = pv.f64;
-		if (node.has("description")) prj.description = pv.str;
-		return prj;
 	}
 
 	private void delete(Context ctx) throws Exception {

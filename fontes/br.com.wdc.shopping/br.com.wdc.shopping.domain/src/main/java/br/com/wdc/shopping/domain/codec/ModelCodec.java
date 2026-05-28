@@ -18,6 +18,12 @@ import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
 public interface ModelCodec<E, C> {
 
     /**
+     * Resultado do parse de entidade para update: entidade + projeção (campos presentes no JSON).
+     */
+    record UpdateData<T>(T entity, T projection) {
+    }
+
+    /**
      * Escreve a entidade como um objeto JSON completo (beginObject + campos + endObject).
      */
     void writeEntity(ExtensibleObjectOutput out, E entity);
@@ -34,6 +40,15 @@ public interface ModelCodec<E, C> {
      * Lê uma entidade a partir da posição atual (espera beginObject).
      */
     E readEntity(ExtensibleObjectInput in);
+
+    /**
+     * Lê uma entidade para update, retornando simultaneamente a entidade e a projeção
+     * (campos presentes no JSON recebem marker não-nulo na projeção).
+     */
+    default UpdateData<E> readEntityForUpdate(ExtensibleObjectInput in) {
+        var entity = readEntity(in);
+        return new UpdateData<>(entity, entity);
+    }
 
     /**
      * Lê uma lista de entidades (espera beginArray).
