@@ -19,6 +19,8 @@
 
     <properties>
         <javalin.version>7.2.0</javalin.version>
+        <!-- Working directory for exec:java (must contain config/application.toml) -->
+        <workdir>${project.basedir}/../../../work</workdir>
     </properties>
 
     <dependencies>
@@ -131,6 +133,17 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+
+            <!-- exec:java launcher — usage: mvn exec:java -Dworkdir=../../../work -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.5.0</version>
+                <configuration>
+                    <mainClass>br.com.wdc.shopping.backend.BackendServer</mainClass>
+                    <workingDirectory>${workdir}</workingDirectory>
+                </configuration>
             </plugin>
         </plugins>
     </build>
