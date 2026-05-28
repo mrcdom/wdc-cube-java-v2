@@ -148,7 +148,7 @@ br.com.wdc.shopping/br.com.wdc.shopping/br.com.wdc.shopping.backend/target/br.co
 ### Frontend (React)
 
 ```bash
-cd br.com.wdc.shopping/br.com.wdc.shopping.view.remote/frontend.react
+cd br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.react
 
 npm install        # instalar dependências
 npm run build      # build de produção

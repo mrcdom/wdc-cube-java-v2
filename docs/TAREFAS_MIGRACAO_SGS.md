@@ -18,10 +18,10 @@
   - [fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.skeleton/src/main/java/br/com/wdc/shopping/view/react/skeleton/util/DataSecurity.java](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.skeleton/src/main/java/br/com/wdc/shopping/view/react/skeleton/util/DataSecurity.java)
   - [fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.skeleton/src/main/java/br/com/wdc/shopping/view/react/skeleton/util/GenericViewImpl.java](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.skeleton/src/main/java/br/com/wdc/shopping/view/react/skeleton/util/GenericViewImpl.java)
 - Protocolo do cliente react:
-  - [fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/frontend.react/src/scripts/app/FlushRequestContext.ts](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/frontend.react/src/scripts/app/FlushRequestContext.ts)
-  - [fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/frontend.react/src/scripts/app/Application.ts](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/frontend.react/src/scripts/app/Application.ts)
-  - [fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/frontend.react/src/scripts/app/ViewGarbageCollector.ts](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/frontend.react/src/scripts/app/ViewGarbageCollector.ts)
-  - [fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/frontend.react/src/scripts/app/types.ts](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/frontend.react/src/scripts/app/types.ts)
+  - [fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.react/src/scripts/app/FlushRequestContext.ts](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.react/src/scripts/app/FlushRequestContext.ts)
+  - [fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.react/src/scripts/app/Application.ts](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.react/src/scripts/app/Application.ts)
+  - [fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.react/src/scripts/app/ViewGarbageCollector.ts](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.react/src/scripts/app/ViewGarbageCollector.ts)
+  - [fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.react/src/scripts/app/types.ts](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.react/src/scripts/app/types.ts)
 
 ## Achados relevantes (o que o fork tem e aqui ainda nao)
 
@@ -84,7 +84,7 @@ No fork:
 - cliente usa esses campos para limpeza/sweep deterministico de scopes
 
 No atual:
-- existe coletor local ([ViewGarbageCollector.ts](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/frontend.react/src/scripts/app/ViewGarbageCollector.ts)), mas sem contrato completo com servidor
+- existe coletor local ([ViewGarbageCollector.ts](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.react/src/scripts/app/ViewGarbageCollector.ts)), mas sem contrato completo com servidor
 - resposta servidor atual nao envia `releasedViews`/`activeViews`
 
 Impacto:

@@ -5,7 +5,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/mrcdom/wdc-cube-java-v2.git",
-    "directory": "fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/frontend.react"
+    "directory": "fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.react"
   },
   "source": "src/index.html",
   "targets": {

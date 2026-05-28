@@ -10,7 +10,7 @@ Criar um novo módulo envolve alterações em **3 camadas**:
 |--------|-------------|-------------|
 | **Presentation** | `br.com.wdc.shopping.presentation` | Presenter, ViewState, Service, DTOs |
 | **Skeleton** (backend view) | `remote.skeleton` | ViewImpl (wiring presenter ↔ React) |
-| **React Client** (frontend) | `frontend.react` | Componente React + registro |
+| **React Client** (frontend) | `remote.react` | Componente React + registro |
 
 ---
 
