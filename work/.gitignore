@@ -2,7 +2,10 @@
 data/
 log/
 temp/
-frontend/
+frontend/*
+
+# Track version-controlled frontend contexts
+!frontend/api.docs/
 
 # Track config files
 !config/
