@@ -18,7 +18,7 @@ public class MapOrListInputTest {
 	// ── Flat Object ────────────────────────────────────────────────────
 
 	@Test
-	public void flatObject_allPrimitiveTypes() throws IOException {
+	public void flatObject_allPrimitiveTypes() {
 		Map<String, Object> map = new LinkedHashMap<>();
 		map.put("name", "Alice");
 		map.put("age", 30);
@@ -70,7 +70,7 @@ public class MapOrListInputTest {
 	// ── Flat Array ─────────────────────────────────────────────────────
 
 	@Test
-	public void flatArray_stringElements() throws IOException {
+	public void flatArray_stringElements() {
 		var input = new MapOrListInput(List.of("a", "b", "c"));
 
 		assertEquals(SerializationToken.BEGIN_ARRAY, input.peek());
@@ -91,7 +91,7 @@ public class MapOrListInputTest {
 	}
 
 	@Test
-	public void flatArray_mixedTypes() throws IOException {
+	public void flatArray_mixedTypes() {
 		var input = new MapOrListInput(List.of("hello", 42, true));
 
 		input.beginArray();
@@ -112,7 +112,7 @@ public class MapOrListInputTest {
 	// ── Nested Structures ──────────────────────────────────────────────
 
 	@Test
-	public void nestedObject_insideObject() throws IOException {
+	public void nestedObject_insideObject() {
 		Map<String, Object> address = new LinkedHashMap<>();
 		address.put("city", "São Paulo");
 		address.put("zip", "01000-000");
@@ -146,7 +146,7 @@ public class MapOrListInputTest {
 	}
 
 	@Test
-	public void nestedArray_insideObject() throws IOException {
+	public void nestedArray_insideObject() {
 		Map<String, Object> root = new LinkedHashMap<>();
 		root.put("tags", List.of("java", "test"));
 
@@ -168,7 +168,7 @@ public class MapOrListInputTest {
 	}
 
 	@Test
-	public void nestedObject_insideArray() throws IOException {
+	public void nestedObject_insideArray() {
 		Map<String, Object> item1 = new LinkedHashMap<>();
 		item1.put("name", "A");
 
@@ -198,7 +198,7 @@ public class MapOrListInputTest {
 	}
 
 	@Test
-	public void deeplyNestedStructure() throws IOException {
+	public void deeplyNestedStructure() {
 		// { "level1": { "level2": { "value": 42 } } }
 		Map<String, Object> level2 = new LinkedHashMap<>();
 		level2.put("value", 42);
@@ -232,7 +232,7 @@ public class MapOrListInputTest {
 	// ── Number Coercions ───────────────────────────────────────────────
 
 	@Test
-	public void nextNumber_returnsNumberInstance() throws IOException {
+	public void nextNumber_returnsNumberInstance() {
 		var input = new MapOrListInput(List.of(3.14));
 		input.beginArray();
 
@@ -243,7 +243,7 @@ public class MapOrListInputTest {
 	}
 
 	@Test
-	public void nextLong_fromIntegerValue() throws IOException {
+	public void nextLong_fromIntegerValue() {
 		var input = new MapOrListInput(List.of(100));
 		input.beginArray();
 		assertEquals(100L, input.nextLong());
@@ -251,7 +251,7 @@ public class MapOrListInputTest {
 	}
 
 	@Test
-	public void nextDouble_fromIntegerValue() throws IOException {
+	public void nextDouble_fromIntegerValue() {
 		var input = new MapOrListInput(List.of(7));
 		input.beginArray();
 		assertEquals(7.0, input.nextDouble(), 0.001);
@@ -259,7 +259,7 @@ public class MapOrListInputTest {
 	}
 
 	@Test
-	public void nextInt_fromLongValue() throws IOException {
+	public void nextInt_fromLongValue() {
 		var input = new MapOrListInput(List.of(50L));
 		input.beginArray();
 		assertEquals(50, input.nextInt());
@@ -269,7 +269,7 @@ public class MapOrListInputTest {
 	// ── Null handling ──────────────────────────────────────────────────
 
 	@Test
-	public void nextNull_succeedsForNullValue() throws IOException {
+	public void nextNull_succeedsForNullValue() {
 		Map<String, Object> map = new LinkedHashMap<>();
 		map.put("key", null);
 
@@ -284,7 +284,7 @@ public class MapOrListInputTest {
 	}
 
 	@Test(expected = IOException.class)
-	public void nextNull_failsForNonNullValue() throws IOException {
+	public void nextNull_failsForNonNullValue() {
 		var input = new MapOrListInput(List.of("not null"));
 		input.beginArray();
 		input.nextNull();
@@ -293,7 +293,7 @@ public class MapOrListInputTest {
 	// ── skipValue ──────────────────────────────────────────────────────
 
 	@Test
-	public void skipValue_skipsCurrentAndAdvances() throws IOException {
+	public void skipValue_skipsCurrentAndAdvances() {
 		Map<String, Object> map = new LinkedHashMap<>();
 		map.put("skip_me", "ignored");
 		map.put("keep", "important");
@@ -313,7 +313,7 @@ public class MapOrListInputTest {
 	}
 
 	@Test
-	public void skipValue_inArray() throws IOException {
+	public void skipValue_inArray() {
 		var input = new MapOrListInput(List.of("first", "second", "third"));
 		input.beginArray();
 
@@ -331,7 +331,7 @@ public class MapOrListInputTest {
 	// ── Character as STRING ────────────────────────────────────────────
 
 	@Test
-	public void characterValue_resolvedAsString() throws IOException {
+	public void characterValue_resolvedAsString() {
 		var input = new MapOrListInput(List.of('X'));
 		input.beginArray();
 
@@ -344,7 +344,7 @@ public class MapOrListInputTest {
 	// ── Empty structures ───────────────────────────────────────────────
 
 	@Test
-	public void emptyObject() throws IOException {
+	public void emptyObject() {
 		var input = new MapOrListInput(Map.of());
 		input.beginObject();
 
@@ -354,7 +354,7 @@ public class MapOrListInputTest {
 	}
 
 	@Test
-	public void emptyArray() throws IOException {
+	public void emptyArray() {
 		var input = new MapOrListInput(List.of());
 		input.beginArray();
 
@@ -366,38 +366,38 @@ public class MapOrListInputTest {
 	// ── Error cases ────────────────────────────────────────────────────
 
 	@Test(expected = IOException.class)
-	public void beginObject_failsWhenTokenIsNotBeginObject() throws IOException {
+	public void beginObject_failsWhenTokenIsNotBeginObject() {
 		var input = new MapOrListInput(List.of("text"));
 		input.beginObject();
 	}
 
 	@Test(expected = IOException.class)
-	public void beginArray_failsWhenTokenIsNotBeginArray() throws IOException {
+	public void beginArray_failsWhenTokenIsNotBeginArray() {
 		var input = new MapOrListInput(Map.of("key", "val"));
 		input.beginArray();
 	}
 
 	@Test(expected = IOException.class)
-	public void endObject_failsWhenNoParent() throws IOException {
+	public void endObject_failsWhenNoParent() {
 		var input = new MapOrListInput(Map.of());
 		input.endObject();
 	}
 
 	@Test(expected = IOException.class)
-	public void endArray_failsWhenNoParent() throws IOException {
+	public void endArray_failsWhenNoParent() {
 		var input = new MapOrListInput(List.of());
 		input.endArray();
 	}
 
 	@Test(expected = IOException.class)
-	public void endObject_failsWhenMismatchedWithArray() throws IOException {
+	public void endObject_failsWhenMismatchedWithArray() {
 		var input = new MapOrListInput(List.of());
 		input.beginArray();
 		input.endObject();
 	}
 
 	@Test(expected = IOException.class)
-	public void endArray_failsWhenMismatchedWithObject() throws IOException {
+	public void endArray_failsWhenMismatchedWithObject() {
 		var input = new MapOrListInput(Map.of());
 		input.beginObject();
 		input.endArray();
@@ -406,7 +406,7 @@ public class MapOrListInputTest {
 	// ── nextString coerces numbers ─────────────────────────────────────
 
 	@Test
-	public void nextString_coercesNumberToString() throws IOException {
+	public void nextString_coercesNumberToString() {
 		var input = new MapOrListInput(List.of(42));
 		input.beginArray();
 		assertEquals("42", input.nextString());
@@ -416,7 +416,7 @@ public class MapOrListInputTest {
 	// ── Boolean coercion from number ───────────────────────────────────
 
 	@Test
-	public void nextBoolean_defaultsToFalseForNull() throws IOException {
+	public void nextBoolean_defaultsToFalseForNull() {
 		Map<String, Object> map = new LinkedHashMap<>();
 		map.put("flag", null);
 
@@ -430,7 +430,7 @@ public class MapOrListInputTest {
 	// ── Complex real-world-like structure ──────────────────────────────
 
 	@Test
-	public void complexStructure_productsWithNestedArrays() throws IOException {
+	public void complexStructure_productsWithNestedArrays() {
 		Map<String, Object> product1 = new LinkedHashMap<>();
 		product1.put("id", 1);
 		product1.put("name", "Widget");
@@ -497,7 +497,7 @@ public class MapOrListInputTest {
 	// ── Peek does not consume ──────────────────────────────────────────
 
 	@Test
-	public void peek_doesNotConsumeToken() throws IOException {
+	public void peek_doesNotConsumeToken() {
 		var input = new MapOrListInput(List.of("x"));
 		input.beginArray();
 
@@ -511,7 +511,7 @@ public class MapOrListInputTest {
 	// ── nextName returns null for array elements ───────────────────────
 
 	@Test
-	public void nextName_returnsNullForArrayElements() throws IOException {
+	public void nextName_returnsNullForArrayElements() {
 		var input = new MapOrListInput(List.of("val"));
 		input.beginArray();
 

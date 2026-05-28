@@ -101,13 +101,4 @@ public final class JooqUtils {
         return DSL.field(DSL.sql("\n'{' || " + parts + " || '}'"), String.class);
     }
 
-    // ─── Legado (mantido para compatibilidade) ──────────────────────────────────
-
-    /**
-     * @deprecated Substituído pelos métodos tipados ({@link #toJsonNum}, {@link #toJsonStr}, etc.)
-     */
-    @Deprecated
-    public static Pair<String, Field<String>> toJsonField(String fn, Field<?> field) {
-        return toJsonNum(fn, field);
-    }
 }

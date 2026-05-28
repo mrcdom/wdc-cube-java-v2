@@ -53,7 +53,7 @@ public class DispatcherController {
 			String sessionId = ctx.pathParam("id");
 			DispatcherHandler handler = DispatcherHandler.getOrCreate(sessionId);
 			handler.onMessage(ctx);
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			LOG.error("Error during WebSocket message", e);
 		}
 	}

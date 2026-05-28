@@ -395,7 +395,7 @@ public class MapOrListOutputTest {
 	// ── Roundtrip with MapOrListInput ──────────────────────────────────
 
 	@Test
-	public void roundtrip_writeAndReadBack() throws Exception {
+	public void roundtrip_writeAndReadBack() {
 		var writer = new MapOrListOutput();
 
 		writer.beginObject()

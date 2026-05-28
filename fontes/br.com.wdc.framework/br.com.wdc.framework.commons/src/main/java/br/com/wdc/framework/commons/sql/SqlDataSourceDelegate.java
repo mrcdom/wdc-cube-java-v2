@@ -83,7 +83,7 @@ public class SqlDataSourceDelegate implements SqlDataSource {
 
     private static class DataSourceUnavailable implements DataSource {
 
-        private static DataSourceUnavailable INSTANCE = new DataSourceUnavailable();
+        private static final DataSourceUnavailable INSTANCE = new DataSourceUnavailable();
 
         private DataSourceUnavailable() {
             // NOOP

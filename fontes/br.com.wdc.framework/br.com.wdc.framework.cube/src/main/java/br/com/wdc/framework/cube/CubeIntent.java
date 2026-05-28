@@ -25,7 +25,7 @@ public class CubeIntent {
     /** A logger for this class */
     private static final Logger logger = Logger.getLogger(CubeIntent.class.getName());
 
-    public static CubeIntent parse(String placeStr) throws Exception {
+    public static CubeIntent parse(String placeStr) {
         // If we have a not blank URI, then we will proceed with URI parsing
         var intent = new CubeIntent();
         if (StringUtils.isNotBlank(placeStr)) {

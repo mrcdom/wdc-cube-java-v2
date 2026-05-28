@@ -28,6 +28,7 @@ public abstract class AbstractChildPresenter<A extends CubeApplication> implemen
         return this.view;
     }
 
+    @Override
     public void release() {
         if (view != null) {
             view.release();

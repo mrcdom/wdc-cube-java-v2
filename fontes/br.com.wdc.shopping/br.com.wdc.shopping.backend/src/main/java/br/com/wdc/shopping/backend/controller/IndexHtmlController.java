@@ -31,11 +31,13 @@ public class IndexHtmlController {
 		Cookie appIdCookie = new Cookie("app_id", makeAppId());
 		appIdCookie.setPath("/");
 		appIdCookie.setMaxAge(10);
+		appIdCookie.setSecure(true);
 		ctx.res().addCookie(appIdCookie);
 
 		Cookie pubKeyCookie = new Cookie("app_skey", AppSecurity.BEAN.getWebKey());
 		pubKeyCookie.setPath("/");
 		pubKeyCookie.setMaxAge(-1);
+		pubKeyCookie.setSecure(true);
 		ctx.res().addCookie(pubKeyCookie);
 	}
 
