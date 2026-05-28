@@ -10,7 +10,7 @@ import org.jooq.SQLDialect;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 
-import br.com.wdc.framework.jooq.H2Functions;
+import br.com.wdc.framework.jooq.JsonDialect;
 
 /**
  * Creates the database schema using jOOQ and runs pending migrations.
@@ -38,7 +38,7 @@ public class DBCreate {
 	}
 
 	public DBCreate run() throws SQLException {
-		H2Functions.registerAll(this.connection);
+		JsonDialect.of(org.jooq.SQLDialect.H2).initialize(this.connection);
 
 		var existingTables = loadExistingTables();
 
