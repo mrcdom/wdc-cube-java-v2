@@ -48,7 +48,7 @@ class ReceiptViewClass extends BaseViewClass<ViewProps, ReceiptViewState> {
 
   override render({ className }: ViewProps) {
     const { state } = this
-    const reciboItems = state.receipt.items
+    const reciboItems = state.receipt?.items ?? []
 
     return (
       <Card className={className} elevation={3} sx={{ maxWidth: 900, mx: 'auto', my: 3 }}>
@@ -110,7 +110,7 @@ class ReceiptViewClass extends BaseViewClass<ViewProps, ReceiptViewState> {
             <Divider sx={{ my: 1.5 }} />
             <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
               <Typography variant="body2" sx={{ fontFamily: 'inherit', fontWeight: 'bold' }}>
-                VALOR TOTAL: R$ {NumberUtils.format(state.receipt.total)}
+                VALOR TOTAL: R$ {NumberUtils.format(state.receipt?.total ?? 0)}
               </Typography>
             </Box>
           </Box>
