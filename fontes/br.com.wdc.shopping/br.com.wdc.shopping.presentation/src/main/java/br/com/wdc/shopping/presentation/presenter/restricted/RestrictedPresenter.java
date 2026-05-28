@@ -37,8 +37,7 @@ public class RestrictedPresenter implements CubePresenter {
 
 	@Override
 	public void publishParameters(CubeIntent intent) {
-		// TODO Auto-generated method stub
-
+		// NOOP
 	}
 
 }

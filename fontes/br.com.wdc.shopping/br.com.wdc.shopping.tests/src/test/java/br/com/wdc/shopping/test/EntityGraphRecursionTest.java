@@ -3,7 +3,6 @@ package br.com.wdc.shopping.test;
 import static org.junit.Assert.*;
 
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;

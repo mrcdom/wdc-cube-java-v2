@@ -122,8 +122,7 @@ public class RootPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
             @Override
             public void submit(int eventCode, int eventQtde, Map<String, Object> formData) throws Exception {
-                // TODO Auto-generated method stub
-
+                // NOOP
             }
         };
     }
