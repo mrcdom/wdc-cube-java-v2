@@ -76,7 +76,6 @@ public class CartItemViewSwing extends AbstractViewSwing<CartPresenter> {
         }
     }
 
-    @SuppressWarnings("unused")
 	private void initialRender(SwingDom dom, JPanel pane0) {
         dom.gridBagPane(grid -> {
             grid.setOpaque(false);

@@ -8,7 +8,7 @@ import java.io.ByteArrayOutputStream;
  * @author Sebastian Ruhleder, sebastian@seruco.io
  */
 public enum Base62 {
-    BEAN(CharacterSets.GMP, CharacterSets.GMP_LOOKUP);
+    BEAN(CharacterSets.GMP, CharacterSets.gmpLookup);
 
     private static final int STANDARD_BASE = 256;
 
@@ -58,7 +58,7 @@ public enum Base62 {
 
     public byte[] decodeFromString(final String encoded) {
         if (encoded == null) {
-            return null;
+            return new byte[0];
         }
         return this.decode(encoded.getBytes());
     }
@@ -75,12 +75,8 @@ public enum Base62 {
         }
 
         for (final byte e : bytes) {
-            if ('0' > e || '9' < e) {
-                if ('a' > e || 'z' < e) {
-                    if ('A' > e || 'Z' < e) {
-                        return false;
-                    }
-                }
+            if (('0' > e || '9' < e) && ('a' > e || 'z' < e) && ('A' > e || 'Z' < e)) {
+                return false;
             }
         }
 
@@ -179,7 +175,7 @@ public enum Base62 {
                 (byte) 'u', (byte) 'v', (byte) 'w', (byte) 'x', (byte) 'y', (byte) 'z'
         };
 
-        private static byte[] GMP_LOOKUP = createLookupTable(GMP);
+        private static byte[] gmpLookup = createLookupTable(GMP);
 
         /**
          * Creates the lookup table from character to index of character in character set.

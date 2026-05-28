@@ -74,9 +74,7 @@ public class ProductRepositoryImpl implements ProductRepository {
             step.set(EN_PRODUCT.IMAGE, product.image);
         }
 
-        var inserted = step.execute() > 0;
-
-        return inserted;
+        return step.execute() > 0;
     }
 
     @Override

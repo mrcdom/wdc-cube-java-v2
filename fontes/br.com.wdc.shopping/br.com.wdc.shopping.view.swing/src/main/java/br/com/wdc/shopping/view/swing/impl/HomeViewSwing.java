@@ -112,7 +112,6 @@ public class HomeViewSwing extends AbstractViewSwing<HomePresenter> {
         }
     }
 
-    @SuppressWarnings("unused")
     private void initialRender(SwingDom dom, JPanel pane0) {
         pane0.setBackground(Styles.BG_PAGE);
 
