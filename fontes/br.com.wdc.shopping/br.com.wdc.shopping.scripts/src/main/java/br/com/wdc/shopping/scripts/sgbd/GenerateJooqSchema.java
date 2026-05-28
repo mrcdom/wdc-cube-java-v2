@@ -5,6 +5,7 @@ import java.sql.DriverManager;
 import org.jooq.codegen.GenerationTool;
 import org.jooq.meta.jaxb.Configuration;
 import org.jooq.meta.jaxb.Database;
+import org.jooq.meta.jaxb.Generate;
 import org.jooq.meta.jaxb.Generator;
 import org.jooq.meta.jaxb.Jdbc;
 import org.jooq.meta.jaxb.Target;
@@ -36,6 +37,7 @@ public class GenerateJooqSchema {
 		try (var connection = DriverManager.getConnection(JDBC_URL, "sa", "")) {
 			new DBCreate()
 					.withConnection(connection)
+					.withSkipReset()
 					.run();
 		}
 
@@ -56,6 +58,8 @@ public class GenerateJooqSchema {
 								.withInputSchema("PUBLIC")
 								.withIncludes(".*")
 								.withExcludes("EN_MIGRATION_LOG"))
+						.withGenerate(new Generate()
+								.withRecords(false))
 						.withTarget(new Target()
 								.withPackageName(OUTPUT_PACKAGE)
 								.withDirectory(outputDir)));

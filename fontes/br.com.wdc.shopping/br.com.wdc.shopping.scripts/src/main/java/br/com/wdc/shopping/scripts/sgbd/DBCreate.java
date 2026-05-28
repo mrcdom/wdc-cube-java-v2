@@ -25,6 +25,7 @@ public class DBCreate {
 	private DSLContext dsl;
 
 	boolean mustResetDb = false;
+	private boolean skipReset = false;
 
 	public DBCreate withConnection(Connection connection) {
 		this.connection = connection;
@@ -34,6 +35,11 @@ public class DBCreate {
 
 	public DBCreate withReset() {
 		this.mustResetDb = true;
+		return this;
+	}
+
+	public DBCreate withSkipReset() {
+		this.skipReset = true;
 		return this;
 	}
 
@@ -62,7 +68,7 @@ public class DBCreate {
 			this.mustResetDb = true;
 		}
 
-		if (this.mustResetDb) {
+		if (this.mustResetDb && !this.skipReset) {
 			DBReset.run();
 		}
 

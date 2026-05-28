@@ -8,12 +8,9 @@ import br.com.wdc.shopping.persistence.jooq.tables.EnProduct;
 import br.com.wdc.shopping.persistence.jooq.tables.EnPurchase;
 import br.com.wdc.shopping.persistence.jooq.tables.EnPurchaseitem;
 import br.com.wdc.shopping.persistence.jooq.tables.EnUser;
-import br.com.wdc.shopping.persistence.jooq.tables.records.EnProductRecord;
-import br.com.wdc.shopping.persistence.jooq.tables.records.EnPurchaseRecord;
-import br.com.wdc.shopping.persistence.jooq.tables.records.EnPurchaseitemRecord;
-import br.com.wdc.shopping.persistence.jooq.tables.records.EnUserRecord;
 
 import org.jooq.ForeignKey;
+import org.jooq.Record;
 import org.jooq.TableField;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
@@ -31,16 +28,16 @@ public class Keys {
     // UNIQUE and PRIMARY KEY definitions
     // -------------------------------------------------------------------------
 
-    public static final UniqueKey<EnProductRecord> PK_PRODUCT = Internal.createUniqueKey(EnProduct.EN_PRODUCT, DSL.name("PK_PRODUCT"), new TableField[] { EnProduct.EN_PRODUCT.ID }, true);
-    public static final UniqueKey<EnPurchaseRecord> PK_PURCHASE = Internal.createUniqueKey(EnPurchase.EN_PURCHASE, DSL.name("PK_PURCHASE"), new TableField[] { EnPurchase.EN_PURCHASE.ID }, true);
-    public static final UniqueKey<EnPurchaseitemRecord> PK_PURCHASEITEM = Internal.createUniqueKey(EnPurchaseitem.EN_PURCHASEITEM, DSL.name("PK_PURCHASEITEM"), new TableField[] { EnPurchaseitem.EN_PURCHASEITEM.ID }, true);
-    public static final UniqueKey<EnUserRecord> PK_USER = Internal.createUniqueKey(EnUser.EN_USER, DSL.name("PK_USER"), new TableField[] { EnUser.EN_USER.ID }, true);
+    public static final UniqueKey<Record> PK_PRODUCT = Internal.createUniqueKey(EnProduct.EN_PRODUCT, DSL.name("PK_PRODUCT"), new TableField[] { EnProduct.EN_PRODUCT.ID }, true);
+    public static final UniqueKey<Record> PK_PURCHASE = Internal.createUniqueKey(EnPurchase.EN_PURCHASE, DSL.name("PK_PURCHASE"), new TableField[] { EnPurchase.EN_PURCHASE.ID }, true);
+    public static final UniqueKey<Record> PK_PURCHASEITEM = Internal.createUniqueKey(EnPurchaseitem.EN_PURCHASEITEM, DSL.name("PK_PURCHASEITEM"), new TableField[] { EnPurchaseitem.EN_PURCHASEITEM.ID }, true);
+    public static final UniqueKey<Record> PK_USER = Internal.createUniqueKey(EnUser.EN_USER, DSL.name("PK_USER"), new TableField[] { EnUser.EN_USER.ID }, true);
 
     // -------------------------------------------------------------------------
     // FOREIGN KEY definitions
     // -------------------------------------------------------------------------
 
-    public static final ForeignKey<EnPurchaseRecord, EnUserRecord> FK_PURCHASE_USER = Internal.createForeignKey(EnPurchase.EN_PURCHASE, DSL.name("FK_PURCHASE_USER"), new TableField[] { EnPurchase.EN_PURCHASE.USERID }, Keys.PK_USER, new TableField[] { EnUser.EN_USER.ID }, true);
-    public static final ForeignKey<EnPurchaseitemRecord, EnProductRecord> FK_PURCHASEITEM_PRODUCT = Internal.createForeignKey(EnPurchaseitem.EN_PURCHASEITEM, DSL.name("FK_PURCHASEITEM_PRODUCT"), new TableField[] { EnPurchaseitem.EN_PURCHASEITEM.PRODUCTID }, Keys.PK_PRODUCT, new TableField[] { EnProduct.EN_PRODUCT.ID }, true);
-    public static final ForeignKey<EnPurchaseitemRecord, EnPurchaseRecord> FK_PURCHASEITEM_PURCHASE = Internal.createForeignKey(EnPurchaseitem.EN_PURCHASEITEM, DSL.name("FK_PURCHASEITEM_PURCHASE"), new TableField[] { EnPurchaseitem.EN_PURCHASEITEM.PURCHASEID }, Keys.PK_PURCHASE, new TableField[] { EnPurchase.EN_PURCHASE.ID }, true);
+    public static final ForeignKey<Record, Record> FK_PURCHASE_USER = Internal.createForeignKey(EnPurchase.EN_PURCHASE, DSL.name("FK_PURCHASE_USER"), new TableField[] { EnPurchase.EN_PURCHASE.USERID }, Keys.PK_USER, new TableField[] { EnUser.EN_USER.ID }, true);
+    public static final ForeignKey<Record, Record> FK_PURCHASEITEM_PRODUCT = Internal.createForeignKey(EnPurchaseitem.EN_PURCHASEITEM, DSL.name("FK_PURCHASEITEM_PRODUCT"), new TableField[] { EnPurchaseitem.EN_PURCHASEITEM.PRODUCTID }, Keys.PK_PRODUCT, new TableField[] { EnProduct.EN_PRODUCT.ID }, true);
+    public static final ForeignKey<Record, Record> FK_PURCHASEITEM_PURCHASE = Internal.createForeignKey(EnPurchaseitem.EN_PURCHASEITEM, DSL.name("FK_PURCHASEITEM_PURCHASE"), new TableField[] { EnPurchaseitem.EN_PURCHASEITEM.PURCHASEID }, Keys.PK_PURCHASE, new TableField[] { EnPurchase.EN_PURCHASE.ID }, true);
 }
