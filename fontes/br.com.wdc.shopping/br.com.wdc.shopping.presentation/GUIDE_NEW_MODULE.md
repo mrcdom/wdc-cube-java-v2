@@ -9,7 +9,7 @@ Criar um novo módulo envolve alterações em **3 camadas**:
 | Camada | Módulo Maven | O que criar |
 |--------|-------------|-------------|
 | **Presentation** | `br.com.wdc.shopping.presentation` | Presenter, ViewState, Service, DTOs |
-| **Skeleton** (backend view) | `remote.skeleton` | ViewImpl (wiring presenter ↔ React) |
+| **Skeleton** (backend view) | `remote.wiring` | ViewImpl (wiring presenter ↔ React) |
 | **React Client** (frontend) | `remote.react` | Componente React + registro |
 
 ---
@@ -244,14 +244,14 @@ VID = "d1e2f3a4b5c6"
 ### 3.2 Criar a ViewImpl
 
 ```java
-package br.com.wdc.shopping.view.remote.skeleton.viewimpl;
+package br.com.wdc.shopping.view.remote.wiring.viewimpl;
 
 import java.util.Map;
 import br.com.wdc.framework.commons.lang.CoerceUtils;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.restricted.wishlist.WishlistPresenter;
-import br.com.wdc.shopping.view.remote.skeleton.util.GenericViewImpl;
+import br.com.wdc.shopping.view.remote.wiring.util.GenericViewImpl;
 
 public class WishlistReactViewImpl extends GenericViewImpl {
 

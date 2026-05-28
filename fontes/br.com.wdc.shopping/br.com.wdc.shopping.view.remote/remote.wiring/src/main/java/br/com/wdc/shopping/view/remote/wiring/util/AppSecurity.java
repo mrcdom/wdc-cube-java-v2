@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.skeleton.util;
+package br.com.wdc.shopping.view.remote.wiring.util;
 
 import java.math.BigInteger;
 import java.security.KeyFactory;

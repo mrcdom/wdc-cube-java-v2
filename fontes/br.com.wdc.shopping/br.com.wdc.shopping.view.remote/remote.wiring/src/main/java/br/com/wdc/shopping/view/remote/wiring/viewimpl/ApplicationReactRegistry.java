@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.skeleton.viewimpl;
+package br.com.wdc.shopping.view.remote.wiring.viewimpl;
 
 import java.time.Duration;
 import java.util.Map;

@@ -2,7 +2,7 @@ package br.com.wdc.shopping.backend;
 
 import io.javalin.websocket.WsContext;
 
-import br.com.wdc.shopping.view.remote.skeleton.spi.WebSocketConnection;
+import br.com.wdc.shopping.view.remote.wiring.spi.WebSocketConnection;
 
 final class JavalinWebSocketConnection implements WebSocketConnection {
 

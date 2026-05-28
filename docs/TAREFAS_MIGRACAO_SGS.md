@@ -13,10 +13,10 @@
   - [fontes/br.com.wdc.shopping/br.com.wdc.shopping.backend/src/main/java/br/com/wdc/shopping/backend/controller/IndexHtmlController.java](fontes/br.com.wdc.shopping/br.com.wdc.shopping.backend/src/main/java/br/com/wdc/shopping/backend/controller/IndexHtmlController.java)
   - [fontes/br.com.wdc.shopping/br.com.wdc.shopping.backend/src/main/java/br/com/wdc/shopping/backend/JavalinApplication.java](fontes/br.com.wdc.shopping/br.com.wdc.shopping.backend/src/main/java/br/com/wdc/shopping/backend/JavalinApplication.java)
 - Core da app react no servidor:
-  - [fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.skeleton/src/main/java/br/com/wdc/shopping/view/react/skeleton/viewimpl/ApplicationReactImpl.java](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.skeleton/src/main/java/br/com/wdc/shopping/view/react/skeleton/viewimpl/ApplicationReactImpl.java)
-  - [fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.skeleton/src/main/java/br/com/wdc/shopping/view/react/skeleton/util/AppSecurity.java](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.skeleton/src/main/java/br/com/wdc/shopping/view/react/skeleton/util/AppSecurity.java)
-  - [fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.skeleton/src/main/java/br/com/wdc/shopping/view/react/skeleton/util/DataSecurity.java](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.skeleton/src/main/java/br/com/wdc/shopping/view/react/skeleton/util/DataSecurity.java)
-  - [fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.skeleton/src/main/java/br/com/wdc/shopping/view/react/skeleton/util/GenericViewImpl.java](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.skeleton/src/main/java/br/com/wdc/shopping/view/react/skeleton/util/GenericViewImpl.java)
+  - [fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.wiring/src/main/java/br/com/wdc/shopping/view/react/skeleton/viewimpl/ApplicationReactImpl.java](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.wiring/src/main/java/br/com/wdc/shopping/view/react/skeleton/viewimpl/ApplicationReactImpl.java)
+  - [fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.wiring/src/main/java/br/com/wdc/shopping/view/react/skeleton/util/AppSecurity.java](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.wiring/src/main/java/br/com/wdc/shopping/view/react/skeleton/util/AppSecurity.java)
+  - [fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.wiring/src/main/java/br/com/wdc/shopping/view/react/skeleton/util/DataSecurity.java](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.wiring/src/main/java/br/com/wdc/shopping/view/react/skeleton/util/DataSecurity.java)
+  - [fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.wiring/src/main/java/br/com/wdc/shopping/view/react/skeleton/util/GenericViewImpl.java](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.wiring/src/main/java/br/com/wdc/shopping/view/react/skeleton/util/GenericViewImpl.java)
 - Protocolo do cliente react:
   - [fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.react/src/scripts/app/FlushRequestContext.ts](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.react/src/scripts/app/FlushRequestContext.ts)
   - [fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.react/src/scripts/app/Application.ts](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.react/src/scripts/app/Application.ts)
@@ -144,8 +144,8 @@ Definir regras de exclusao e ordenacao entre:
 - eventos de reconnect/close websocket
 
 ### Mapa atual (pontos sensiveis)
-- Agendamento por instancia em [ApplicationReactImpl.java](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.skeleton/src/main/java/br/com/wdc/shopping/view/react/skeleton/viewimpl/ApplicationReactImpl.java#L368).
-- Marcacao de dirty em [ApplicationReactImpl.java](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.skeleton/src/main/java/br/com/wdc/shopping/view/react/skeleton/viewimpl/ApplicationReactImpl.java#L322).
+- Agendamento por instancia em [ApplicationReactImpl.java](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.wiring/src/main/java/br/com/wdc/shopping/view/react/skeleton/viewimpl/ApplicationReactImpl.java#L368).
+- Marcacao de dirty em [ApplicationReactImpl.java](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.wiring/src/main/java/br/com/wdc/shopping/view/react/skeleton/viewimpl/ApplicationReactImpl.java#L322).
 - Ciclo WS em [DispatcherHandler.java](fontes/br.com.wdc.shopping/br.com.wdc.shopping.backend/src/main/java/br/com/wdc/shopping/backend/DispatcherHandler.java#L148).
 - Infra de scheduler central em [BusinessContext.java](fontes/br.com.wdc.shopping/br.com.wdc.shopping.backend/src/main/java/br/com/wdc/shopping/backend/BusinessContext.java#L45).
 
@@ -224,7 +224,7 @@ Objetivo da Fase A:
 - Nao desligar ainda o push por instancia; apenas preparar convivio controlado.
 
 ### 1) Arquitetura e fronteiras
-1. Revisar responsabilidades atuais em [ApplicationReactImpl.java](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.skeleton/src/main/java/br/com/wdc/shopping/view/react/skeleton/viewimpl/ApplicationReactImpl.java).
+1. Revisar responsabilidades atuais em [ApplicationReactImpl.java](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.wiring/src/main/java/br/com/wdc/shopping/view/react/skeleton/viewimpl/ApplicationReactImpl.java).
 2. Definir fronteira: registry gerencia instancias/expiracao/flush; app gerencia estado da sessao e serializacao de resposta.
 3. Definir API minima do registry (get, getOrCreate, remove, init, shutdown, markDirty).
 4. Critério de pronto: contrato de API fechado e sem ambiguidades de ownership.
@@ -242,7 +242,7 @@ Objetivo da Fase A:
 4. Critério de pronto: fluxo onConnect/onMessage/onClose/onError mapeado com estados validos.
 
 ### 4) Coexistencia com push por instancia (modo compatibilidade)
-1. Manter `schedulePush/executePush` ativo em [ApplicationReactImpl.java](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.skeleton/src/main/java/br/com/wdc/shopping/view/react/skeleton/viewimpl/ApplicationReactImpl.java#L368).
+1. Manter `schedulePush/executePush` ativo em [ApplicationReactImpl.java](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.wiring/src/main/java/br/com/wdc/shopping/view/react/skeleton/viewimpl/ApplicationReactImpl.java#L368).
 2. Introduzir modo dual controlado por feature flag de backend (default: compatibilidade).
 3. Definir regra de precedencia temporaria para evitar dupla drenagem (preferencia request path + guardas de inResponse).
 4. Critério de pronto: nenhuma mudanca de payload/resposta observavel no cliente.
@@ -280,7 +280,7 @@ Objetivo da Fase B:
 - Preservar corretude funcional e evitar perda de estado sob concorrencia.
 
 ### 1) Alteracao de fluxo no app
-1. Atualizar [ApplicationReactImpl.java](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.skeleton/src/main/java/br/com/wdc/shopping/view/react/skeleton/viewimpl/ApplicationReactImpl.java) para que `markDirty(...)` enfileire via registry global.
+1. Atualizar [ApplicationReactImpl.java](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.wiring/src/main/java/br/com/wdc/shopping/view/react/skeleton/viewimpl/ApplicationReactImpl.java) para que `markDirty(...)` enfileire via registry global.
 2. Introduzir flag de coalescencia por app (`dirtyQueued`) para impedir enqueue duplicado.
 3. Preparar `flushDirtyViews()` dedicado (snapshot + envio), sem depender de timer local por instancia.
 4. Critério de pronto: dirty passa a ser conduzido pelo registry, sem alterar payload enviado ao cliente.
@@ -438,7 +438,7 @@ Objetivo da Fase D:
 - Encerrar a migracao com codigo limpo, observavel e operavel.
 
 ### 1) Remocao do caminho legado
-1. Remover de [ApplicationReactImpl.java](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.skeleton/src/main/java/br/com/wdc/shopping/view/react/skeleton/viewimpl/ApplicationReactImpl.java):
+1. Remover de [ApplicationReactImpl.java](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.wiring/src/main/java/br/com/wdc/shopping/view/react/skeleton/viewimpl/ApplicationReactImpl.java):
   - `schedulePush(...)`
   - `executePush(...)`
   - estado associado ao timer legado por instancia
@@ -504,7 +504,7 @@ Checklist final de aceite:
 7. Adaptar cliente react para usar contrato completo de GC coordenado com servidor (release/sweep).
 
 ### P1 - Alto (seguranca operacional)
-8. Refatorar inicializacao de [AppSecurity.java](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.skeleton/src/main/java/br/com/wdc/shopping/view/react/skeleton/util/AppSecurity.java) para bootstrap central (sem hardcode de chave em codigo).
+8. Refatorar inicializacao de [AppSecurity.java](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.wiring/src/main/java/br/com/wdc/shopping/view/react/skeleton/util/AppSecurity.java) para bootstrap central (sem hardcode de chave em codigo).
 9. Revisar emissao de cookies em [IndexHtmlController.java](fontes/br.com.wdc.shopping/br.com.wdc.shopping.backend/src/main/java/br/com/wdc/shopping/backend/controller/IndexHtmlController.java): `Secure`, validade, consistencia com fluxo de handshake.
 
 ### P2 - Medio (coerencia de estado)

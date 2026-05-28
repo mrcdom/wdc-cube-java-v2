@@ -114,7 +114,7 @@ Configurado no `package.json` (Parcel) e `tsconfig.json` (TypeScript/IDE).
 Os assets compilados são gerados diretamente no módulo `skeleton`:
 
 ```
-../remote.skeleton/src/main/resources/META-INF/resources/
+../remote.wiring/src/main/resources/META-INF/resources/
 ```
 
 Isso permite que o servidor Javalin sirva os arquivos estáticos automaticamente via classpath.

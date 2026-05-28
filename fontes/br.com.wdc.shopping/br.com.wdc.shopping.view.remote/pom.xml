@@ -15,7 +15,7 @@
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>remote.skeleton</module>
+		<module>remote.wiring</module>
 		<module>remote.react</module>
 	</modules>
 

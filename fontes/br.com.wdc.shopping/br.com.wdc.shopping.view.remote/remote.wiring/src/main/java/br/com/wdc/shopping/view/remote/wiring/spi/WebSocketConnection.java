@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.skeleton.spi;
+package br.com.wdc.shopping.view.remote.wiring.spi;
 
 public interface WebSocketConnection {
 
