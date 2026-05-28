@@ -26,9 +26,9 @@ public class ReceiptViewVDom extends AbstractVDomView<ReceiptPresenter> {
 
     @Override
     protected VNode render() {
-        // Consumir flag one-shot
+        // Flag one-shot: true apenas no render imediato após a compra
+        this.showSuccess = this.state.notifySuccess;
         if (this.state.notifySuccess) {
-            this.showSuccess = true;
             this.state.notifySuccess = false;
         }
 
@@ -56,11 +56,13 @@ public class ReceiptViewVDom extends AbstractVDomView<ReceiptPresenter> {
                                                 .text("IMPRIMA SEU RECIBO:"),
 
                                         // Success banner
-                                        div("d-flex align-items-center gap-2 mb-3")
+                                        div(this.showSuccess
+                                                        ? "d-flex align-items-center gap-2 mb-3"
+                                                        : "d-none")
                                                 .style(this.showSuccess
                                                         ? "background-color:#e8f5e9;border:1px solid #a5d6a7;border-radius:8px;"
                                                                 + "padding:12px 16px;color:#2e7d32;font-size:1.2rem"
-                                                        : "display:none")
+                                                        : "")
                                                 .children(
                                                         span(BsIcons.CHECK_CIRCLE),
                                                         span("")
