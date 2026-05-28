@@ -7,7 +7,7 @@ import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.framework.commons.serialization.JsonStreamReader;
 import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
 import br.com.wdc.shopping.domain.codec.ModelCodec;
-import br.com.wdc.shopping.domain.model.Page;
+import br.com.wdc.shopping.domain.pagination.Page;
 import br.com.wdc.shopping.domain.repositories.Repository;
 
 /**

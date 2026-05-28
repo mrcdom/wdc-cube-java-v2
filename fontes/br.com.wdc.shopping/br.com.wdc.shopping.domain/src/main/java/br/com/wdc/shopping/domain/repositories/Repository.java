@@ -2,7 +2,7 @@ package br.com.wdc.shopping.domain.repositories;
 
 import java.util.List;
 
-import br.com.wdc.shopping.domain.model.Page;
+import br.com.wdc.shopping.domain.pagination.Page;
 
 /**
  * Contrato base de leitura para repositórios do SGS.

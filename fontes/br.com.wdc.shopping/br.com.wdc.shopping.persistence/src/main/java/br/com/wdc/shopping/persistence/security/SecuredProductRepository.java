@@ -3,7 +3,7 @@ package br.com.wdc.shopping.persistence.security;
 import java.util.List;
 
 import br.com.wdc.shopping.domain.criteria.ProductCriteria;
-import br.com.wdc.shopping.domain.model.Page;
+import br.com.wdc.shopping.domain.pagination.Page;
 import br.com.wdc.shopping.domain.model.Product;
 import br.com.wdc.shopping.domain.repositories.ProductRepository;
 
