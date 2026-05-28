@@ -128,31 +128,26 @@ public final class AppConfig {
             var line = rawLine.strip();
 
             if (line.isEmpty() || line.startsWith("#")) {
-                continue;
-            }
-
-            if (line.startsWith("[") && line.endsWith("]")) {
+                // skip comments and blank lines
+            } else if (line.startsWith("[") && line.endsWith("]")) {
                 currentSection = line.substring(1, line.length() - 1).strip();
-                continue;
+            } else {
+                var eqIdx = line.indexOf('=');
+                if (eqIdx > 0) {
+                    var key = line.substring(0, eqIdx).strip();
+                    var value = line.substring(eqIdx + 1).strip();
+
+                    // Remove surrounding quotes (double or single)
+                    if (value.length() >= 2
+                            && ((value.startsWith("\"") && value.endsWith("\""))
+                                    || (value.startsWith("'") && value.endsWith("'")))) {
+                        value = value.substring(1, value.length() - 1);
+                    }
+
+                    var fullKey = currentSection.isEmpty() ? key : currentSection + "." + key;
+                    result.put(fullKey, value);
+                }
             }
-
-            var eqIdx = line.indexOf('=');
-            if (eqIdx <= 0) {
-                continue;
-            }
-
-            var key = line.substring(0, eqIdx).strip();
-            var value = line.substring(eqIdx + 1).strip();
-
-            // Remove surrounding quotes (double or single)
-            if (value.length() >= 2
-                    && ((value.startsWith("\"") && value.endsWith("\""))
-                            || (value.startsWith("'") && value.endsWith("'")))) {
-                value = value.substring(1, value.length() - 1);
-            }
-
-            var fullKey = currentSection.isEmpty() ? key : currentSection + "." + key;
-            result.put(fullKey, value);
         }
 
         return result;
