@@ -69,19 +69,20 @@
         <div id="panel-product" class="panel active">
             <div class="operations">
                 <div class="op-btn" onclick="loadOp('product','fetchAll')">Fetch All</div>
-                <div class="op-btn" onclick="loadOp('product','fetchById')">Fetch By ID</div>
+                <div class="op-btn" onclick="loadOp('product','fetchById')">Fetch By ID (POST)</div>
+                <div class="op-btn" onclick="loadOp('product','fetchByIdGet')">Fetch By ID (GET)</div>
                 <div class="op-btn" onclick="loadOp('product','fetchByIdProjection')">Fetch com Projection</div>
                 <div class="op-btn" onclick="loadOp('product','fetchByCriteria')">Fetch por Critério</div>
-                <div class="op-btn" onclick="loadOp('product','fetchPaginated')">Fetch Paginado</div>
+                <div class="op-btn" onclick="loadOp('product','fetchPage')">Fetch Page</div>
+                <div class="op-btn" onclick="loadOp('product','fetchPaginated')">Fetch Paginado (offset/limit)</div>
                 <div class="op-btn" onclick="loadOp('product','fetchOrderAsc')">Fetch Ordem ASC</div>
                 <div class="op-btn" onclick="loadOp('product','fetchOrderDesc')">Fetch Ordem DESC</div>
                 <div class="op-btn" onclick="loadOp('product','countAll')">Count All</div>
                 <div class="op-btn" onclick="loadOp('product','countById')">Count por ID</div>
                 <div class="op-btn" onclick="loadOp('product','fetchImage')">Fetch Image</div>
+                <div class="op-btn" onclick="loadOp('product','updateImage')">Update Image</div>
                 <div class="op-btn" onclick="loadOp('product','insert')">Insert</div>
                 <div class="op-btn" onclick="loadOp('product','update')">Update</div>
-                <div class="op-btn" onclick="loadOp('product','upsertNew')">Upsert (Novo)</div>
-                <div class="op-btn" onclick="loadOp('product','upsertExisting')">Upsert (Existente)</div>
                 <div class="op-btn" onclick="loadOp('product','delete')">Delete</div>
             </div>
             <div class="exec-area">
@@ -95,17 +96,17 @@
         <div id="panel-user" class="panel">
             <div class="operations">
                 <div class="op-btn" onclick="loadOp('user','fetchAll')">Fetch All</div>
-                <div class="op-btn" onclick="loadOp('user','fetchById')">Fetch By ID</div>
+                <div class="op-btn" onclick="loadOp('user','fetchById')">Fetch By ID (POST)</div>
+                <div class="op-btn" onclick="loadOp('user','fetchByIdGet')">Fetch By ID (GET)</div>
                 <div class="op-btn" onclick="loadOp('user','fetchByIdProjection')">Fetch com Projection</div>
                 <div class="op-btn" onclick="loadOp('user','fetchByUserName')">Fetch por UserName</div>
                 <div class="op-btn" onclick="loadOp('user','fetchByCredentials')">Fetch por Credenciais</div>
-                <div class="op-btn" onclick="loadOp('user','fetchPaginated')">Fetch Paginado</div>
+                <div class="op-btn" onclick="loadOp('user','fetchPage')">Fetch Page</div>
+                <div class="op-btn" onclick="loadOp('user','fetchPaginated')">Fetch Paginado (offset/limit)</div>
                 <div class="op-btn" onclick="loadOp('user','countAll')">Count All</div>
                 <div class="op-btn" onclick="loadOp('user','countById')">Count por ID</div>
                 <div class="op-btn" onclick="loadOp('user','insert')">Insert</div>
                 <div class="op-btn" onclick="loadOp('user','update')">Update</div>
-                <div class="op-btn" onclick="loadOp('user','upsertNew')">Upsert (Novo)</div>
-                <div class="op-btn" onclick="loadOp('user','upsertExisting')">Upsert (Existente)</div>
                 <div class="op-btn" onclick="loadOp('user','delete')">Delete</div>
             </div>
             <div class="exec-area">
@@ -119,18 +120,18 @@
         <div id="panel-purchase" class="panel">
             <div class="operations">
                 <div class="op-btn" onclick="loadOp('purchase','fetchAll')">Fetch All</div>
-                <div class="op-btn" onclick="loadOp('purchase','fetchById')">Fetch By ID</div>
+                <div class="op-btn" onclick="loadOp('purchase','fetchById')">Fetch By ID (POST)</div>
+                <div class="op-btn" onclick="loadOp('purchase','fetchByIdGet')">Fetch By ID (GET)</div>
                 <div class="op-btn" onclick="loadOp('purchase','fetchByIdProjection')">Fetch com Projection</div>
                 <div class="op-btn" onclick="loadOp('purchase','fetchByUserId')">Fetch por User ID</div>
-                <div class="op-btn" onclick="loadOp('purchase','fetchPaginated')">Fetch Paginado</div>
+                <div class="op-btn" onclick="loadOp('purchase','fetchPage')">Fetch Page</div>
+                <div class="op-btn" onclick="loadOp('purchase','fetchPaginated')">Fetch Paginado (offset/limit)</div>
                 <div class="op-btn" onclick="loadOp('purchase','fetchOrderAsc')">Fetch Ordem ASC</div>
                 <div class="op-btn" onclick="loadOp('purchase','fetchOrderDesc')">Fetch Ordem DESC</div>
                 <div class="op-btn" onclick="loadOp('purchase','countAll')">Count All</div>
                 <div class="op-btn" onclick="loadOp('purchase','countByUserId')">Count por User ID</div>
                 <div class="op-btn" onclick="loadOp('purchase','insert')">Insert</div>
                 <div class="op-btn" onclick="loadOp('purchase','update')">Update</div>
-                <div class="op-btn" onclick="loadOp('purchase','upsertNew')">Upsert (Novo)</div>
-                <div class="op-btn" onclick="loadOp('purchase','upsertExisting')">Upsert (Existente)</div>
                 <div class="op-btn" onclick="loadOp('purchase','deleteById')">Delete por ID</div>
                 <div class="op-btn" onclick="loadOp('purchase','deleteByUserId')">Delete por User ID</div>
             </div>
@@ -145,12 +146,14 @@
         <div id="panel-purchaseItem" class="panel">
             <div class="operations">
                 <div class="op-btn" onclick="loadOp('purchaseItem','fetchAll')">Fetch All</div>
-                <div class="op-btn" onclick="loadOp('purchaseItem','fetchById')">Fetch By ID</div>
+                <div class="op-btn" onclick="loadOp('purchaseItem','fetchById')">Fetch By ID (POST)</div>
+                <div class="op-btn" onclick="loadOp('purchaseItem','fetchByIdGet')">Fetch By ID (GET)</div>
                 <div class="op-btn" onclick="loadOp('purchaseItem','fetchByIdProjection')">Fetch com Projection</div>
                 <div class="op-btn" onclick="loadOp('purchaseItem','fetchByPurchaseId')">Fetch por Purchase ID</div>
                 <div class="op-btn" onclick="loadOp('purchaseItem','fetchByUserId')">Fetch por User ID</div>
                 <div class="op-btn" onclick="loadOp('purchaseItem','fetchByProductId')">Fetch por Product ID</div>
-                <div class="op-btn" onclick="loadOp('purchaseItem','fetchPaginated')">Fetch Paginado</div>
+                <div class="op-btn" onclick="loadOp('purchaseItem','fetchPage')">Fetch Page</div>
+                <div class="op-btn" onclick="loadOp('purchaseItem','fetchPaginated')">Fetch Paginado (offset/limit)</div>
                 <div class="op-btn" onclick="loadOp('purchaseItem','fetchOrderAsc')">Fetch Ordem ASC</div>
                 <div class="op-btn" onclick="loadOp('purchaseItem','fetchOrderDesc')">Fetch Ordem DESC</div>
                 <div class="op-btn" onclick="loadOp('purchaseItem','countAll')">Count All</div>
@@ -158,8 +161,6 @@
                 <div class="op-btn" onclick="loadOp('purchaseItem','countByUserId')">Count por User ID</div>
                 <div class="op-btn" onclick="loadOp('purchaseItem','insert')">Insert</div>
                 <div class="op-btn" onclick="loadOp('purchaseItem','update')">Update</div>
-                <div class="op-btn" onclick="loadOp('purchaseItem','upsertNew')">Upsert (Novo)</div>
-                <div class="op-btn" onclick="loadOp('purchaseItem','upsertExisting')">Upsert (Existente)</div>
                 <div class="op-btn" onclick="loadOp('purchaseItem','deleteById')">Delete por Item ID</div>
                 <div class="op-btn" onclick="loadOp('purchaseItem','deleteByPurchaseId')">Delete por Purchase ID</div>
                 <div class="op-btn" onclick="loadOp('purchaseItem','deleteByUserId')">Delete por User ID</div>
@@ -389,41 +390,44 @@ function switchTab(tabName) {
 const OPERATIONS = {
     product: {
         fetchAll:            { path: '/api/repo/product/fetch', body: {} },
-        fetchById:           { path: '/api/repo/product/fetchById', body: { id: 0 } },
-        fetchByIdProjection: { path: '/api/repo/product/fetchById', body: { id: 3, projection: { id: 1, name: "~" } } },
+        fetchById:           { path: '/api/repo/product/fetch-by-id', body: { id: 0 } },
+        fetchByIdGet:        { path: '/api/repo/product/{id}', method: 'GET', body: null, pathParam: { id: 0 } },
+        fetchByIdProjection: { path: '/api/repo/product/fetch-by-id', body: { id: 3, projection: { id: 1, name: "~" } } },
         fetchByCriteria:     { path: '/api/repo/product/fetch', body: { productId: 1 } },
+        fetchPage:           { path: '/api/repo/product/fetch-page', body: { page: 0, pageSize: 2 } },
         fetchPaginated:      { path: '/api/repo/product/fetch', body: { orderBy: "ACENDING", offset: 0, limit: 2 } },
         fetchOrderAsc:       { path: '/api/repo/product/fetch', body: { orderBy: "ACENDING" } },
         fetchOrderDesc:      { path: '/api/repo/product/fetch', body: { orderBy: "DESCENDING" } },
         countAll:            { path: '/api/repo/product/count', body: {} },
         countById:           { path: '/api/repo/product/count', body: { productId: 0 } },
         fetchImage:          { path: '/api/repo/product/{id}/image', method: 'GET', body: null, pathParam: { id: 0 } },
+        updateImage:         { path: '/api/repo/product/{id}/image', method: 'PUT', body: null, pathParam: { id: 0 } },
         insert:              { path: '/api/repo/product/insert', body: { name: "Teclado USB", price: 89.90, description: "Teclado mecanico" } },
         update:              { path: '/api/repo/product/update', body: { newEntity: { id: 3, name: "Pen Drive 4GB", price: 35.0, description: "Pen Drive atualizado" }, oldEntity: { id: 3, name: "Pen Drive 2GB", price: 16.0, description: "..." } } },
-        upsertNew:           { path: '/api/repo/product/upsert', body: { name: "Mouse Wireless", price: 49.90, description: "Mouse sem fio" } },
-        upsertExisting:      { path: '/api/repo/product/upsert', body: { id: 2, name: "Fita Veda Rosca Premium", price: 12.0, description: "Fita vedação premium" } },
         delete:              { path: '/api/repo/product/delete', body: { productId: 3 } }
     },
     user: {
         fetchAll:            { path: '/api/repo/user/fetch', body: {} },
-        fetchById:           { path: '/api/repo/user/fetchById', body: { id: 0 } },
-        fetchByIdProjection: { path: '/api/repo/user/fetchById', body: { id: 0, projection: { id: 1, userName: "~" } } },
+        fetchById:           { path: '/api/repo/user/fetch-by-id', body: { id: 0 } },
+        fetchByIdGet:        { path: '/api/repo/user/{id}', method: 'GET', body: null, pathParam: { id: 0 } },
+        fetchByIdProjection: { path: '/api/repo/user/fetch-by-id', body: { id: 0, projection: { id: 1, userName: "~" } } },
         fetchByUserName:     { path: '/api/repo/user/fetch', body: { userName: "fulano" } },
         fetchByCredentials:  { path: '/api/repo/user/fetch', body: { userName: "admin", password: "admin" } },
+        fetchPage:           { path: '/api/repo/user/fetch-page', body: { page: 0, pageSize: 2 } },
         fetchPaginated:      { path: '/api/repo/user/fetch', body: { orderBy: "ACENDING", offset: 1, limit: 1 } },
         countAll:            { path: '/api/repo/user/count', body: {} },
         countById:           { path: '/api/repo/user/count', body: { userId: 0 } },
         insert:              { path: '/api/repo/user/insert', body: { userName: "newuser", password: "secret", name: "New User" } },
         update:              { path: '/api/repo/user/update', body: { newEntity: { id: 0, userName: "admin", password: "admin", name: "Nome Alterado" }, oldEntity: { id: 0, userName: "admin", password: "admin", name: "João da Silva" } } },
-        upsertNew:           { path: '/api/repo/user/upsert', body: { userName: "iou_user", password: "pass", name: "IOU Test" } },
-        upsertExisting:      { path: '/api/repo/user/upsert', body: { id: 0, userName: "admin", password: "admin", name: "Updated Admin" } },
         delete:              { path: '/api/repo/user/delete', body: { userId: 2 } }
     },
     purchase: {
         fetchAll:            { path: '/api/repo/purchase/fetch', body: {} },
-        fetchById:           { path: '/api/repo/purchase/fetchById', body: { id: 0, projection: { id: 1, buyDate: "2000-01-01T00:00:00Z", user: { id: 1 } } } },
-        fetchByIdProjection: { path: '/api/repo/purchase/fetchById', body: { id: 0, projection: { id: 1, buyDate: "2000-01-01T00:00:00Z" } } },
+        fetchById:           { path: '/api/repo/purchase/fetch-by-id', body: { id: 0, projection: { id: 1, buyDate: "2000-01-01T00:00:00Z", user: { id: 1 } } } },
+        fetchByIdGet:        { path: '/api/repo/purchase/{id}', method: 'GET', body: null, pathParam: { id: 0 } },
+        fetchByIdProjection: { path: '/api/repo/purchase/fetch-by-id', body: { id: 0, projection: { id: 1, buyDate: "2000-01-01T00:00:00Z" } } },
         fetchByUserId:       { path: '/api/repo/purchase/fetch', body: { userId: 0, projection: { id: 1, buyDate: "2000-01-01T00:00:00Z", user: { id: 1 } } } },
+        fetchPage:           { path: '/api/repo/purchase/fetch-page', body: { page: 0, pageSize: 2 } },
         fetchPaginated:      { path: '/api/repo/purchase/fetch', body: { orderBy: "ACENDING", offset: 0, limit: 1 } },
         fetchOrderAsc:       { path: '/api/repo/purchase/fetch', body: { orderBy: "ACENDING" } },
         fetchOrderDesc:      { path: '/api/repo/purchase/fetch', body: { orderBy: "DESCENDING" } },
@@ -431,18 +435,18 @@ const OPERATIONS = {
         countByUserId:       { path: '/api/repo/purchase/count', body: { userId: 0 } },
         insert:              { path: '/api/repo/purchase/insert', body: { buyDate: new Date().toISOString(), user: { id: 1 } } },
         update:              { path: '/api/repo/purchase/update', body: { newEntity: { id: 0, buyDate: new Date().toISOString(), user: { id: 2 } }, oldEntity: { id: 0, buyDate: "2010-01-01T14:30:00Z", user: { id: 0 } } } },
-        upsertNew:           { path: '/api/repo/purchase/upsert', body: { buyDate: new Date().toISOString(), user: { id: 2 } } },
-        upsertExisting:      { path: '/api/repo/purchase/upsert', body: { id: 0, buyDate: new Date().toISOString(), user: { id: 1 } } },
         deleteById:          { path: '/api/repo/purchase/delete', body: { purchaseId: 0 } },
         deleteByUserId:      { path: '/api/repo/purchase/delete', body: { userId: 0 } }
     },
     purchaseItem: {
         fetchAll:             { path: '/api/repo/purchase-item/fetch', body: {} },
-        fetchById:            { path: '/api/repo/purchase-item/fetchById', body: { id: 0, projection: { id: 1, amount: 1, price: 1.0, purchase: { id: 1 }, product: { id: 1 } } } },
-        fetchByIdProjection:  { path: '/api/repo/purchase-item/fetchById', body: { id: 0, projection: { id: 1, amount: 1, price: 1.0 } } },
+        fetchById:            { path: '/api/repo/purchase-item/fetch-by-id', body: { id: 0, projection: { id: 1, amount: 1, price: 1.0, purchase: { id: 1 }, product: { id: 1 } } } },
+        fetchByIdGet:         { path: '/api/repo/purchase-item/{id}', method: 'GET', body: null, pathParam: { id: 0 } },
+        fetchByIdProjection:  { path: '/api/repo/purchase-item/fetch-by-id', body: { id: 0, projection: { id: 1, amount: 1, price: 1.0 } } },
         fetchByPurchaseId:    { path: '/api/repo/purchase-item/fetch', body: { purchaseId: 0 } },
         fetchByUserId:        { path: '/api/repo/purchase-item/fetch', body: { userId: 0 } },
         fetchByProductId:     { path: '/api/repo/purchase-item/fetch', body: { productId: 0, projection: { id: 1, amount: 1, price: 1.0, purchase: { id: 1 }, product: { id: 1 } } } },
+        fetchPage:            { path: '/api/repo/purchase-item/fetch-page', body: { page: 0, pageSize: 2 } },
         fetchPaginated:       { path: '/api/repo/purchase-item/fetch', body: { orderBy: "ACENDING", offset: 0, limit: 2 } },
         fetchOrderAsc:        { path: '/api/repo/purchase-item/fetch', body: { orderBy: "ACENDING" } },
         fetchOrderDesc:       { path: '/api/repo/purchase-item/fetch', body: { orderBy: "DESCENDING" } },
@@ -451,8 +455,6 @@ const OPERATIONS = {
         countByUserId:        { path: '/api/repo/purchase-item/count', body: { userId: 0 } },
         insert:               { path: '/api/repo/purchase-item/insert', body: { amount: 5, price: 15.50, purchaseId: 0, product: { id: 3 } } },
         update:               { path: '/api/repo/purchase-item/update', body: { newEntity: { id: 0, amount: 99, price: 999.99, purchaseId: 0, product: { id: 0 } }, oldEntity: { id: 0, amount: 1, price: 200.0, purchaseId: 0, product: { id: 0 } } } },
-        upsertNew:            { path: '/api/repo/purchase-item/upsert', body: { amount: 3, price: 25.0, purchaseId: 1, product: { id: 1 } } },
-        upsertExisting:       { path: '/api/repo/purchase-item/upsert', body: { id: 1, amount: 77, price: 77.77, purchaseId: 1, product: { id: 0 } } },
         deleteById:           { path: '/api/repo/purchase-item/delete', body: { purchaseItemId: 0 } },
         deleteByPurchaseId:   { path: '/api/repo/purchase-item/delete', body: { purchaseId: 1 } },
         deleteByUserId:       { path: '/api/repo/purchase-item/delete', body: { userId: 0 } }
@@ -475,6 +477,14 @@ function loadOp(entity, opName) {
             }
         }
         textarea.value = '// GET ' + path + '\n// (sem body - requisição GET)';
+    } else if (op.method === 'PUT') {
+        let path = op.path;
+        if (op.pathParam) {
+            for (const [k, v] of Object.entries(op.pathParam)) {
+                path = path.replace('{' + k + '}', v);
+            }
+        }
+        textarea.value = '// PUT ' + path + '\n// Envie um binário (imagem PNG) via este endpoint.\n// Use curl ou ferramenta similar para upload real.';
     } else {
         textarea.value = JSON.stringify(op.body, null, 2);
     }
@@ -518,6 +528,21 @@ async function executeOp(entity) {
                 path = pathMatch[1].trim();
             }
             resp = await apiGet(path);
+        } else if (op.method === 'PUT') {
+            let path = op.path;
+            if (op.pathParam) {
+                for (const [k, v] of Object.entries(op.pathParam)) {
+                    path = path.replace('{' + k + '}', v);
+                }
+            }
+            const text = document.getElementById('req-' + entity).value;
+            const pathMatch = text.match(/\/\/\s*PUT\s+(.+)/);
+            if (pathMatch) {
+                path = pathMatch[1].trim();
+            }
+            const headers = {};
+            if (accessToken) headers['Authorization'] = 'Bearer ' + accessToken;
+            resp = await fetch(BASE_URL + path, { method: 'PUT', headers });
         } else {
             const bodyText = document.getElementById('req-' + entity).value;
             let body;
