@@ -43,6 +43,9 @@ public class FetchHttpTransport implements HttpTransport {
 	public String postJsonNullable(String path, String body) {
 		String token = getToken();
 		HttpResult result = asyncXhr(baseUrl + path, "POST", body, token, "application/json");
+		if (result.status == 0) {
+			handleConnectionRefused();
+		}
 		if (result.status == 401 && token != null) {
 			handleSessionExpired();
 		}
@@ -74,6 +77,9 @@ public class FetchHttpTransport implements HttpTransport {
 	public byte[] getBytes(String path) {
 		String token = getToken();
 		HttpResult result = asyncXhr(baseUrl + path, "GET", null, token, "application/json");
+		if (result.status == 0) {
+			handleConnectionRefused();
+		}
 		if (result.status == 401 && token != null) {
 			handleSessionExpired();
 		}
@@ -91,6 +97,9 @@ public class FetchHttpTransport implements HttpTransport {
 		String token = getToken();
 		String bodyStr = data != null ? new String(data, StandardCharsets.UTF_8) : null;
 		HttpResult result = asyncXhr(baseUrl + path, "PUT", bodyStr, token, "application/octet-stream");
+		if (result.status == 0) {
+			handleConnectionRefused();
+		}
 		if (result.status == 401 && token != null) {
 			handleSessionExpired();
 		}
@@ -119,6 +128,9 @@ public class FetchHttpTransport implements HttpTransport {
 
 	private String doFetch(String url, String method, String body, String token) {
 		HttpResult result = asyncXhr(url, method, body, token, "application/json");
+		if (result.status == 0) {
+			handleConnectionRefused();
+		}
 		if (result.status == 401 && token != null) {
 			handleSessionExpired();
 		}
@@ -160,6 +172,14 @@ public class FetchHttpTransport implements HttpTransport {
 	}
 
 	// ── Session expired handling ─────────────────────────────────────────────
+
+	private static void handleConnectionRefused() {
+		showConnectionRefusedDialog();
+		throw new BusinessException("Servidor indisponível");
+	}
+
+	@JSBody(params = {}, script = "alert('Não foi possível conectar ao servidor.\\nVerifique se o servidor está em execução.');")
+	private static native void showConnectionRefusedDialog();
 
 	private static void handleSessionExpired() {
 		showSessionExpiredDialog();
