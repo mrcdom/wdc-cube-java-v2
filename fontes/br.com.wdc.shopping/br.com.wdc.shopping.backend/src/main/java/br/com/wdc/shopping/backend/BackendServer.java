@@ -29,10 +29,10 @@ import io.javalin.http.staticfiles.Location;
  * session state - Cleans up expired sessions periodically
  */
 @SuppressWarnings({ "java:S2139", "java:S1192" })
-public class JavalinApplication {
+public class BackendServer {
 
     public static void main(String[] args) {
-        JavalinApplication.doMain(args);
+        BackendServer.doMain(args);
     }
 
     private static final Log LOG;
@@ -46,20 +46,20 @@ public class JavalinApplication {
     static {
         LogBootstrap.initialize();
         Log.setFactory(new Slf4jLogFactory());
-        LOG = Log.getLogger(JavalinApplication.class);
+        LOG = Log.getLogger(BackendServer.class);
     }
 
     private final Javalin app;
     private final int port;
     private final BusinessContext businessContext = new BusinessContext();
 
-    public JavalinApplication(int port) {
+    public BackendServer(int port) {
         this.port = port;
         this.businessContext.start();
         this.app = createJavalinApp();
     }
 
-    public JavalinApplication() {
+    public BackendServer() {
         this(DEFAULT_PORT);
     }
 
@@ -266,7 +266,7 @@ public class JavalinApplication {
 
         LOG.info("Starting WeDoCode Shopping React Server on port {}", port);
 
-        JavalinApplication server = new JavalinApplication(port);
+        BackendServer server = new BackendServer(port);
 
         // Graceful shutdown on JVM termination
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
