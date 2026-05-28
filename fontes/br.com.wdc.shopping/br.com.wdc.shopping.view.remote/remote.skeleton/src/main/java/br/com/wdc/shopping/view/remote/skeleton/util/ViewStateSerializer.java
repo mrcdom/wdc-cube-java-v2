@@ -29,7 +29,7 @@ import br.com.wdc.framework.cube.ViewState;
  * Records Java.</li>
  * <li>Datas são formatadas como ISO 8601.</li>
  * <li>Strings em branco em campos diretos são omitidas.</li>
- * <li>Primitivos numéricos com valor zero em campos diretos são omitidos.</li>
+ * <li>Primitivos numéricos são sempre serializados (o cliente precisa saber quando mudam para zero).</li>
  * <li>Booleanos primitivos são sempre serializados (o cliente precisa saber quando mudam para false).</li>
  * </ul>
  */
@@ -93,41 +93,29 @@ public final class ViewStateSerializer {
             return;
         }
 
-        // Primitivos numéricos: omite se zero (campo direto)
+        // Primitivos numéricos: sempre serializados (o cliente precisa saber quando mudam para zero)
         if (type == int.class) {
-            int v = (int) value;
-            if (v != 0)
-                json.name(field.getName()).value(v);
+            json.name(field.getName()).value((int) value);
             return;
         }
         if (type == long.class) {
-            long v = (long) value;
-            if (v != 0L)
-                json.name(field.getName()).value(v);
+            json.name(field.getName()).value((long) value);
             return;
         }
         if (type == double.class) {
-            double v = (double) value;
-            if (v != 0.0)
-                json.name(field.getName()).value(v);
+            json.name(field.getName()).value((double) value);
             return;
         }
         if (type == float.class) {
-            float v = (float) value;
-            if (v != 0.0f)
-                json.name(field.getName()).value(v);
+            json.name(field.getName()).value((float) value);
             return;
         }
         if (type == short.class) {
-            short v = (short) value;
-            if (v != 0)
-                json.name(field.getName()).value(v);
+            json.name(field.getName()).value((short) value);
             return;
         }
         if (type == byte.class) {
-            byte v = (byte) value;
-            if (v != 0)
-                json.name(field.getName()).value(v);
+            json.name(field.getName()).value((byte) value);
             return;
         }
         if (type == char.class) {

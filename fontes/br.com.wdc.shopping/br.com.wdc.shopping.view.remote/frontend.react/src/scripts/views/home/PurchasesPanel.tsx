@@ -68,8 +68,10 @@ class PurchasesPanelClass extends BaseViewClass<ViewProps, PurchasesPanelState> 
 
   override render({ className }: ViewProps, initial?: boolean): React.ReactNode {
     const { state } = this
-    const pageSize = Math.max(1, state.pageSize)
-    this.totalPages = Math.max(1, Math.ceil(state.totalCount / pageSize))
+    const pageSize = Math.max(1, state.pageSize || 1)
+    const totalCount = state.totalCount || 0
+    const page = state.page || 0
+    this.totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
 
     if (initial && !this.resizeHandler) {
       this.resizeHandler = this.onResize
@@ -102,7 +104,7 @@ class PurchasesPanelClass extends BaseViewClass<ViewProps, PurchasesPanelState> 
         <Box ref={this.listRef} sx={{ flex: 1, overflow: 'hidden' }}>
           {this.#renderCompras()}
         </Box>
-        {state.totalCount > 0 && this.#renderPageNavigation()}
+        {totalCount > 0 && this.#renderPageNavigation()}
       </Paper>
     )
   }
@@ -114,7 +116,7 @@ class PurchasesPanelClass extends BaseViewClass<ViewProps, PurchasesPanelState> 
   }
 
   #renderPageNavigation(): React.ReactNode {
-    const { state } = this
+    const page = this.state.page || 0
     return (
       <Box
         sx={{
@@ -129,18 +131,18 @@ class PurchasesPanelClass extends BaseViewClass<ViewProps, PurchasesPanelState> 
       >
         <IconButton
           size="small"
-          disabled={state.page === 0}
+          disabled={page === 0}
           onClick={this.emitPreviousPage}
           sx={{ color: 'primary.main', '&.Mui-disabled': { color: 'grey.400' } }}
         >
           <ChevronLeftIcon fontSize="small" />
         </IconButton>
         <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-          {state.page + 1}/{this.totalPages}
+          {page + 1}/{this.totalPages}
         </Typography>
         <IconButton
           size="small"
-          disabled={state.page >= this.totalPages - 1}
+          disabled={page >= this.totalPages - 1}
           onClick={this.emitNextPage}
           sx={{ color: 'primary.main', '&.Mui-disabled': { color: 'grey.400' } }}
         >
@@ -159,13 +161,13 @@ class PurchasesPanelClass extends BaseViewClass<ViewProps, PurchasesPanelState> 
   }
 
   readonly emitNextPage = () => {
-    const { state } = this
-    this.emitPageChange(state.page + 1)
+    const page = this.state.page || 0
+    this.emitPageChange(page + 1)
   }
 
   readonly emitPreviousPage = () => {
-    const { state } = this
-    this.emitPageChange(state.page - 1)
+    const page = this.state.page || 0
+    this.emitPageChange(page - 1)
   }
 }
 
