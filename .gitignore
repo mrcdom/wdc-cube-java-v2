@@ -33,6 +33,9 @@ hs_err_pid*
 **/work/data/*.mv.db
 **/work/data/*.trace.db
 
+# Backend work directory (runtime only — consolidated at root work/)
+fontes/br.com.wdc.shopping/br.com.wdc.shopping.backend/work/
+
 # Vaadin generated files
 **/frontend/generated/
 **/vite.generated.ts

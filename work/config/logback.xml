@@ -26,7 +26,7 @@
 
 	<!-- Javalin Logger -->
 	<logger name="io.javalin" level="INFO" />
-	
+
 	<!-- Jetty Logger -->
 	<logger name="org.eclipse.jetty" level="WARN" />
 

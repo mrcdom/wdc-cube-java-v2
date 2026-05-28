@@ -6,7 +6,10 @@
 set -e
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-PROJECT_ROOT="$SCRIPT_DIR/../.."
+PROJECT_ROOT="$SCRIPT_DIR/../../.."
+
+# Change to project root so that work/ resolves correctly
+cd "$PROJECT_ROOT"
 
 # Ensure JAVA_HOME is set correctly (must point to a Java 21 JDK)
 if [ -z "$JAVA_HOME" ]; then

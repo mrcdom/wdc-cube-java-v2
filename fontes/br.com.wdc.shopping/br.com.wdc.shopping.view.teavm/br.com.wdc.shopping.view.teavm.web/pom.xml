@@ -81,7 +81,7 @@
                         <phase>process-classes</phase>
                         <configuration>
                             <mainClass>br.com.wdc.shopping.view.teavm.Main</mainClass>
-                            <targetDirectory>${project.basedir}/../../br.com.wdc.shopping.backend/work/frontend/app.teavm/js</targetDirectory>
+                            <targetDirectory>${project.basedir}/../../../../work/frontend/app.teavm/js</targetDirectory>
                             <targetFileName>app.js</targetFileName>
                             <minifying>false</minifying>
                             <debugInformationGenerated>false</debugInformationGenerated>
@@ -109,7 +109,7 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.basedir}/../../br.com.wdc.shopping.backend/work/frontend/app.teavm</outputDirectory>
+                            <outputDirectory>${project.basedir}/../../../../work/frontend/app.teavm</outputDirectory>
                             <resources>
                                 <resource>
                                     <directory>src/main/webapp</directory>

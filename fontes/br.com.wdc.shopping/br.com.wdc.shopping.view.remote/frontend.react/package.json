@@ -10,15 +10,15 @@
   "source": "src/index.html",
   "targets": {
     "default": {
-      "distDir": "../../br.com.wdc.shopping.backend/work/frontend/remote.react"
+      "distDir": "../../../../work/frontend/remote.react"
     }
   },
   "alias": {
     "@root/*": "./src/scripts/$1"
   },
   "scripts": {
-    "clean": "rm -rf .parcel-cache ../../br.com.wdc.shopping.backend/work/frontend/remote.react",
-    "copy-context": "mkdir -p ../../br.com.wdc.shopping.backend/work/frontend/remote.react && cp context.html ../../br.com.wdc.shopping.backend/work/frontend/remote.react/context.html",
+    "clean": "rm -rf .parcel-cache ../../../../work/frontend/remote.react",
+    "copy-context": "mkdir -p ../../../../work/frontend/remote.react && cp context.html ../../../../work/frontend/remote.react/context.html",
     "start": "npm run copy-context && parcel watch --public-url ./",
     "watch": "npm run copy-context && parcel watch --public-url ./",
     "watch:clean": "npm run clean && npm run copy-context && parcel watch --public-url ./",

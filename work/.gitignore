@@ -1,7 +1,8 @@
-# Ignore runtime data
+# Ignore runtime data and build outputs
 data/
 log/
 temp/
+frontend/
 
 # Track config files
 !config/

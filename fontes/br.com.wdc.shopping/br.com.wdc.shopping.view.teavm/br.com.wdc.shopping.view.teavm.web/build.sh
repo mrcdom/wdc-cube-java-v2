@@ -2,7 +2,7 @@
 set -e
 cd "$(dirname "$0")"
 
-DEPLOY_DIR="../../br.com.wdc.shopping.backend/work/frontend/app.teavm"
+DEPLOY_DIR="../../../../work/frontend/app.teavm"
 
 # Option --full: install all dependency modules before building
 if [[ "$1" == "--full" ]]; then
