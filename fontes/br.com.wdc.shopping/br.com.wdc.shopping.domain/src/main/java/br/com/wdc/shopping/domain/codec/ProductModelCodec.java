@@ -2,6 +2,7 @@ package br.com.wdc.shopping.domain.codec;
 
 import static br.com.wdc.shopping.domain.repositories.Repository.changed;
 
+import br.com.wdc.framework.commons.serialization.EntityGraph;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectInput;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
@@ -19,6 +20,17 @@ public class ProductModelCodec implements ModelCodec<Product, ProductCriteria> {
 		if (entity.price != null) out.name("price").value(entity.price);
 		if (entity.description != null) out.name("description").value(entity.description);
 		out.endObject();
+	}
+
+	@Override
+	public void writeEntity(ExtensibleObjectOutput out, Product entity, EntityGraph graph) {
+		if (!graph.track(entity)) {
+			out.beginObject();
+			if (entity.id != null) out.name("id").value(entity.id);
+			out.endObject();
+			return;
+		}
+		writeEntity(out, entity);
 	}
 
 	@Override

@@ -71,8 +71,9 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
     }
 
     private VNode renderEmptyState(boolean empty) {
-        return div("d-flex flex-column align-items-center justify-content-center py-5")
-                .style(empty ? "" : "display:none")
+        return div(empty
+                        ? "d-flex flex-column align-items-center justify-content-center py-5"
+                        : "d-none")
                 .children(
                         div("")
                                 .style("width:120px;height:120px;background-color:#e3f2fd;border-radius:50%;"

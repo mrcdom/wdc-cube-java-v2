@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import br.com.wdc.framework.commons.serialization.EntityGraph;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectInput;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
@@ -23,17 +24,29 @@ public class PurchaseModelCodec implements ModelCodec<Purchase, PurchaseCriteria
 
 	@Override
 	public void writeEntity(ExtensibleObjectOutput out, Purchase entity) {
+		writeEntity(out, entity, new EntityGraph());
+	}
+
+	@Override
+	public void writeEntity(ExtensibleObjectOutput out, Purchase entity, EntityGraph graph) {
+		if (!graph.track(entity)) {
+			// Entidade já serializada neste grafo — escreve apenas a chave
+			out.beginObject();
+			if (entity.id != null) out.name("id").value(entity.id);
+			out.endObject();
+			return;
+		}
 		out.beginObject();
 		if (entity.id != null) out.name("id").value(entity.id);
 		if (entity.buyDate != null) out.name("buyDate").value(entity.buyDate.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
 		if (entity.user != null) {
 			out.name("user");
-			USER_CODEC.writeEntity(out, entity.user);
+			USER_CODEC.writeEntity(out, entity.user, graph);
 		}
 		if (entity.items != null) {
 			out.name("items").beginArray();
 			for (var item : entity.items) {
-				writePurchaseItem(out, item);
+				writePurchaseItem(out, item, graph);
 			}
 			out.endArray();
 		}
@@ -145,21 +158,33 @@ public class PurchaseModelCodec implements ModelCodec<Purchase, PurchaseCriteria
 
 	// ── PurchaseItem helpers ──
 
-	private static void writePurchaseItem(ExtensibleObjectOutput out, PurchaseItem item) {
+	private static void writePurchaseItem(ExtensibleObjectOutput out, PurchaseItem item, EntityGraph graph) {
+		if (!graph.track(item)) {
+			// Entidade já serializada — escreve apenas a chave
+			out.beginObject();
+			if (item.id != null) out.name("id").value(item.id);
+			out.endObject();
+			return;
+		}
 		out.beginObject();
 		if (item.id != null) out.name("id").value(item.id);
 		if (item.amount != null) out.name("amount").value(item.amount.longValue());
 		if (item.price != null) out.name("price").value(item.price);
 		if (item.product != null) {
 			out.name("product");
-			new ProductModelCodec().writeEntity(out, item.product);
+			new ProductModelCodec().writeEntity(out, item.product, graph);
 		}
 		out.endObject();
 	}
 
 	private static PurchaseItem readPurchaseItem(ExtensibleObjectInput in, Purchase parent) {
 		var item = new PurchaseItem();
-		item.purchase = parent;
+		// Back-reference como stub (apenas chave) — evita referência cíclica no grafo
+		if (parent != null && parent.id != null) {
+			var stub = new Purchase();
+			stub.id = parent.id;
+			item.purchase = stub;
+		}
 		in.beginObject();
 		while (in.hasNext()) {
 			switch (in.nextName()) {

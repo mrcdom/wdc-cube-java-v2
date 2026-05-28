@@ -3,6 +3,7 @@ package br.com.wdc.shopping.domain.codec;
 import java.util.ArrayList;
 import java.util.List;
 
+import br.com.wdc.framework.commons.serialization.EntityGraph;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectInput;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
 
@@ -27,6 +28,15 @@ public interface ModelCodec<E, C> {
      * Escreve a entidade como um objeto JSON completo (beginObject + campos + endObject).
      */
     void writeEntity(ExtensibleObjectOutput out, E entity);
+
+    /**
+     * Escreve a entidade com rastreamento de grafo — entidades já vistas são escritas apenas com a chave.
+     * Implementações devem usar {@link EntityGraph#track(br.com.wdc.framework.commons.serialization.KeyedEntity)} para
+     * detectar repetições antes de serializar campos aninhados.
+     */
+    default void writeEntity(ExtensibleObjectOutput out, E entity, EntityGraph graph) {
+        writeEntity(out, entity);
+    }
 
     /**
      * Escreve apenas os campos da entidade indicados pela projeção (campos não-nulos na projeção).

@@ -2,6 +2,7 @@ package br.com.wdc.shopping.domain.codec;
 
 import static br.com.wdc.shopping.domain.repositories.Repository.changed;
 
+import br.com.wdc.framework.commons.serialization.EntityGraph;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectInput;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
@@ -20,6 +21,17 @@ public class UserModelCodec implements ModelCodec<User, UserCriteria> {
 		if (entity.password != null) out.name("password").value(entity.password);
 		if (entity.roles != null) out.name("roles").value(entity.roles);
 		out.endObject();
+	}
+
+	@Override
+	public void writeEntity(ExtensibleObjectOutput out, User entity, EntityGraph graph) {
+		if (!graph.track(entity)) {
+			out.beginObject();
+			if (entity.id != null) out.name("id").value(entity.id);
+			out.endObject();
+			return;
+		}
+		writeEntity(out, entity);
 	}
 
 	@Override
