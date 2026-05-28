@@ -55,6 +55,11 @@
         .api-docs .params td code { color: #ffd700; background: #16213e; padding: 1px 4px; border-radius: 2px; }
         .api-docs .response-doc { margin-top: 10px; color: #aaa; }
         .api-docs .response-doc code { color: #4caf50; background: #16213e; padding: 1px 4px; border-radius: 2px; }
+        .api-docs .type-block { margin-top: 12px; background: #0d1b2a; border: 1px solid #1a4080; border-radius: 4px; padding: 10px 12px; font-family: 'Fira Code', 'Consolas', monospace; font-size: 0.8em; white-space: pre; overflow-x: auto; color: #e0e0e0; line-height: 1.5; }
+        .api-docs .type-block .kw { color: #569cd6; }
+        .api-docs .type-block .tp { color: #4ec9b0; }
+        .api-docs .type-block .pr { color: #9cdcfe; }
+        .api-docs .type-block .cm { color: #6a9955; }
         @media (max-width: 768px) { .exec-area { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -482,456 +487,416 @@ const OPERATIONS = {
 };
 
 // ============================================================
+// Tipos do domínio (br.com.wdc.shopping.domain.model)
+// ============================================================
+const DOMAIN_TYPES = {
+    Product: `<span class="kw">interface</span> <span class="tp">Product</span> {
+  <span class="pr">id</span>: number | null
+  <span class="pr">name</span>: string | null
+  <span class="pr">price</span>: number | null
+  <span class="pr">description</span>: string | null
+  <span class="pr">image</span>: string | null  <span class="cm">// base64 (binário)</span>
+}`,
+    User: `<span class="kw">interface</span> <span class="tp">User</span> {
+  <span class="pr">id</span>: number | null
+  <span class="pr">userName</span>: string | null
+  <span class="pr">password</span>: string | null  <span class="cm">// hash MD5/base36 (nunca retornado em fetch)</span>
+  <span class="pr">name</span>: string | null
+  <span class="pr">roles</span>: string | null
+}`,
+    Purchase: `<span class="kw">interface</span> <span class="tp">Purchase</span> {
+  <span class="pr">id</span>: number | null
+  <span class="pr">buyDate</span>: string | null  <span class="cm">// ISO 8601 OffsetDateTime</span>
+  <span class="pr">user</span>: <span class="tp">User</span> | null
+  <span class="pr">items</span>: <span class="tp">PurchaseItem</span>[] | null
+}`,
+    PurchaseItem: `<span class="kw">interface</span> <span class="tp">PurchaseItem</span> {
+  <span class="pr">id</span>: number | null
+  <span class="pr">amount</span>: number | null
+  <span class="pr">price</span>: number | null
+  <span class="pr">purchase</span>: <span class="tp">Purchase</span> | null
+  <span class="pr">product</span>: <span class="tp">Product</span> | null
+}`,
+    ProductCriteria: `<span class="kw">interface</span> <span class="tp">ProductCriteria</span> {
+  <span class="pr">productId</span>?: number        <span class="cm">// filtro por ID</span>
+  <span class="pr">orderBy</span>?: <span class="tp">"ACENDING"</span> | <span class="tp">"DESCENDING"</span>
+  <span class="pr">offset</span>?: number           <span class="cm">// pular N registros</span>
+  <span class="pr">limit</span>?: number            <span class="cm">// máximo (0 = todos)</span>
+  <span class="pr">projection</span>?: <span class="tp">Partial&lt;Product&gt;</span>
+}`,
+    UserCriteria: `<span class="kw">interface</span> <span class="tp">UserCriteria</span> {
+  <span class="pr">userId</span>?: number
+  <span class="pr">userName</span>?: string
+  <span class="pr">password</span>?: string         <span class="cm">// texto plano (convertido para hash)</span>
+  <span class="pr">orderBy</span>?: <span class="tp">"ACENDING"</span> | <span class="tp">"DESCENDING"</span>
+  <span class="pr">offset</span>?: number
+  <span class="pr">limit</span>?: number
+  <span class="pr">projection</span>?: <span class="tp">Partial&lt;User&gt;</span>
+}`,
+    PurchaseCriteria: `<span class="kw">interface</span> <span class="tp">PurchaseCriteria</span> {
+  <span class="pr">purchaseId</span>?: number
+  <span class="pr">userId</span>?: number
+  <span class="pr">productId</span>?: number
+  <span class="pr">orderBy</span>?: <span class="tp">"ACENDING"</span> | <span class="tp">"DESCENDING"</span>
+  <span class="pr">offset</span>?: number
+  <span class="pr">limit</span>?: number
+  <span class="pr">projection</span>?: <span class="tp">Partial&lt;Purchase&gt;</span>
+}`,
+    PurchaseItemCriteria: `<span class="kw">interface</span> <span class="tp">PurchaseItemCriteria</span> {
+  <span class="pr">purchaseItemId</span>?: number
+  <span class="pr">purchaseId</span>?: number
+  <span class="pr">productId</span>?: number
+  <span class="pr">userId</span>?: number
+  <span class="pr">orderBy</span>?: <span class="tp">"ACENDING"</span> | <span class="tp">"DESCENDING"</span>
+  <span class="pr">offset</span>?: number
+  <span class="pr">limit</span>?: number
+  <span class="pr">projection</span>?: <span class="tp">Partial&lt;PurchaseItem&gt;</span>
+}`,
+    PageResult: `<span class="kw">interface</span> <span class="tp">PageResult</span>&lt;<span class="tp">T</span>&gt; {
+  <span class="pr">items</span>: <span class="tp">T</span>[]
+  <span class="pr">totalItems</span>: number
+}`,
+    FetchResult: `<span class="kw">interface</span> <span class="tp">FetchResult</span>&lt;<span class="tp">T</span>&gt; {
+  <span class="pr">items</span>: <span class="tp">T</span>[]
+}`,
+    CountResult: `<span class="kw">interface</span> <span class="tp">CountResult</span> {
+  <span class="pr">count</span>: number
+}`,
+    MutationResult: `<span class="kw">interface</span> <span class="tp">InsertResult</span> {
+  <span class="pr">success</span>: boolean
+  <span class="pr">id</span>: number
+}
+
+<span class="kw">interface</span> <span class="tp">UpdateResult</span> {
+  <span class="pr">success</span>: boolean
+}`
+};
+
+// ============================================================
 // Documentação das operações
 // ============================================================
 const API_DOCS = {
     product: {
         fetchAll: {
             desc: 'Retorna todos os produtos. Aceita critérios opcionais, ordenação e paginação por offset/limit.',
-            params: [
-                ['productId', 'number?', 'Filtro por ID do produto'],
-                ['orderBy', 'string?', '"ACENDING" ou "DESCENDING" (por nome)'],
-                ['offset', 'number?', 'Registros a pular (padrão: 0)'],
-                ['limit', 'number?', 'Máximo de registros (0 = todos)'],
-                ['projection', 'object?', 'Campos a retornar (ex: {id:1, name:"~"})']
-            ],
-            response: '{ "items": Product[] }'
+            types: ['ProductCriteria', 'Product', 'FetchResult'],
+            response: 'FetchResult&lt;Product&gt;'
         },
         fetchById: {
             desc: 'Busca produto por ID via POST. Permite especificar projection.',
-            params: [
-                ['id', 'number', 'ID do produto'],
-                ['projection', 'object?', 'Campos a retornar']
-            ],
-            response: 'Product | { "error": "Not found" } (404)'
+            types: ['Product'],
+            response: 'Product | { error: string } (404)'
         },
         fetchByIdGet: {
             desc: 'Busca produto por ID via GET. Retorna projeção completa.',
-            params: [['id', 'path param', 'ID do produto na URL']],
-            response: 'Product | { "error": "Not found" } (404)'
+            types: ['Product'],
+            response: 'Product | { error: string } (404)'
         },
         fetchByIdProjection: {
             desc: 'Busca produto por ID com projeção customizada — retorna apenas os campos solicitados.',
-            params: [
-                ['id', 'number', 'ID do produto'],
-                ['projection', 'object', 'Campos desejados (ex: {id:1, name:"~"})']
-            ],
-            response: 'Product (parcial) | { "error": "Not found" } (404)'
+            types: ['Product'],
+            response: 'Partial&lt;Product&gt; | { error: string } (404)'
         },
         fetchByCriteria: {
             desc: 'Busca produtos filtrando por critérios específicos.',
-            params: [
-                ['productId', 'number?', 'Filtro por ID'],
-                ['projection', 'object?', 'Campos a retornar']
-            ],
-            response: '{ "items": Product[] }'
+            types: ['ProductCriteria', 'Product', 'FetchResult'],
+            response: 'FetchResult&lt;Product&gt;'
         },
         fetchPage: {
-            desc: 'Busca paginada — retorna uma página de resultados com total.',
-            params: [
-                ['page', 'number', 'Índice da página (0-based)'],
-                ['pageSize', 'number', 'Tamanho da página'],
-                ['productId', 'number?', 'Filtro por ID'],
-                ['orderBy', 'string?', '"ACENDING" ou "DESCENDING"'],
-                ['projection', 'object?', 'Campos a retornar']
-            ],
-            response: '{ "items": Product[], "totalItems": number }'
+            desc: 'Busca paginada — retorna uma página de resultados com total de itens.',
+            types: ['ProductCriteria', 'Product', 'PageResult'],
+            response: 'PageResult&lt;Product&gt;'
         },
         fetchPaginated: {
             desc: 'Busca com paginação por offset/limit (sem total).',
-            params: [
-                ['offset', 'number', 'Registros a pular'],
-                ['limit', 'number', 'Máximo de registros'],
-                ['orderBy', 'string?', '"ACENDING" ou "DESCENDING"'],
-                ['projection', 'object?', 'Campos a retornar']
-            ],
-            response: '{ "items": Product[] }'
+            types: ['ProductCriteria', 'Product', 'FetchResult'],
+            response: 'FetchResult&lt;Product&gt;'
         },
         fetchOrderAsc: {
             desc: 'Retorna todos os produtos ordenados por nome ascendente.',
-            params: [['orderBy', 'string', 'Fixo: "ACENDING"']],
-            response: '{ "items": Product[] }'
+            types: ['Product', 'FetchResult'],
+            response: 'FetchResult&lt;Product&gt;'
         },
         fetchOrderDesc: {
             desc: 'Retorna todos os produtos ordenados por nome descendente.',
-            params: [['orderBy', 'string', 'Fixo: "DESCENDING"']],
-            response: '{ "items": Product[] }'
+            types: ['Product', 'FetchResult'],
+            response: 'FetchResult&lt;Product&gt;'
         },
         countAll: {
             desc: 'Conta todos os produtos. Sem critério = total geral.',
-            params: [],
-            response: '{ "count": number }'
+            types: ['CountResult'],
+            response: 'CountResult'
         },
         countById: {
             desc: 'Conta produtos por critério (ex: verificar existência por ID).',
-            params: [['productId', 'number', 'ID do produto']],
-            response: '{ "count": number }'
+            types: ['ProductCriteria', 'CountResult'],
+            response: 'CountResult'
         },
         fetchImage: {
             desc: 'Retorna a imagem PNG do produto.',
-            params: [['id', 'path param', 'ID do produto na URL']],
+            types: [],
             response: 'image/png (binário) | 404'
         },
         updateImage: {
             desc: 'Atualiza a imagem do produto. Envie o corpo como binário PNG.',
-            params: [['id', 'path param', 'ID do produto na URL']],
+            types: [],
             response: '(vazio, 200 OK)'
         },
         insert: {
             desc: 'Insere um novo produto.',
-            params: [
-                ['name', 'string', 'Nome do produto'],
-                ['price', 'number', 'Preço'],
-                ['description', 'string?', 'Descrição']
-            ],
-            response: '{ "success": boolean, "id": number }'
+            types: ['Product', 'MutationResult'],
+            response: 'InsertResult'
         },
         update: {
             desc: 'Atualiza um produto existente (optimistic locking via oldEntity).',
-            params: [
-                ['newEntity', 'Product', 'Valores novos (com id)'],
-                ['oldEntity', 'Product', 'Valores antigos para comparação']
-            ],
-            response: '{ "success": boolean }'
+            types: ['Product', 'MutationResult'],
+            response: 'UpdateResult'
         },
         delete: {
             desc: 'Remove produtos por critério.',
-            params: [['productId', 'number', 'ID do produto a deletar']],
-            response: '{ "count": number }'
+            types: ['ProductCriteria', 'CountResult'],
+            response: 'CountResult'
         }
     },
     user: {
         fetchAll: {
             desc: 'Retorna todos os usuários. Aceita critérios, ordenação e paginação.',
-            params: [
-                ['userId', 'number?', 'Filtro por ID'],
-                ['userName', 'string?', 'Filtro por username'],
-                ['orderBy', 'string?', '"ACENDING" ou "DESCENDING"'],
-                ['offset', 'number?', 'Registros a pular'],
-                ['limit', 'number?', 'Máximo de registros']
-            ],
-            response: '{ "items": User[] }'
+            types: ['UserCriteria', 'User', 'FetchResult'],
+            response: 'FetchResult&lt;User&gt;'
         },
         fetchById: {
             desc: 'Busca usuário por ID via POST com projeção opcional.',
-            params: [
-                ['id', 'number', 'ID do usuário'],
-                ['projection', 'object?', 'Campos a retornar']
-            ],
-            response: 'User | { "error": "Not found" } (404)'
+            types: ['User'],
+            response: 'User | { error: string } (404)'
         },
         fetchByIdGet: {
             desc: 'Busca usuário por ID via GET. Retorna todos os campos.',
-            params: [['id', 'path param', 'ID do usuário na URL']],
-            response: 'User | { "error": "Not found" } (404)'
+            types: ['User'],
+            response: 'User | { error: string } (404)'
         },
         fetchByIdProjection: {
             desc: 'Busca usuário por ID retornando apenas campos da projeção.',
-            params: [
-                ['id', 'number', 'ID do usuário'],
-                ['projection', 'object', 'Campos desejados']
-            ],
-            response: 'User (parcial) | { "error": "Not found" } (404)'
+            types: ['User'],
+            response: 'Partial&lt;User&gt; | { error: string } (404)'
         },
         fetchByUserName: {
             desc: 'Busca usuário por username.',
-            params: [['userName', 'string', 'Username para buscar']],
-            response: '{ "items": User[] }'
+            types: ['UserCriteria', 'User', 'FetchResult'],
+            response: 'FetchResult&lt;User&gt;'
         },
         fetchByCredentials: {
             desc: 'Busca usuário por userName e password (validação de credenciais).',
-            params: [
-                ['userName', 'string', 'Username'],
-                ['password', 'string', 'Password (texto plano, convertido para hash)']
-            ],
-            response: '{ "items": User[] }'
+            types: ['UserCriteria', 'User', 'FetchResult'],
+            response: 'FetchResult&lt;User&gt;'
         },
         fetchPage: {
             desc: 'Busca paginada de usuários com total.',
-            params: [
-                ['page', 'number', 'Índice da página (0-based)'],
-                ['pageSize', 'number', 'Tamanho da página'],
-                ['orderBy', 'string?', '"ACENDING" ou "DESCENDING"']
-            ],
-            response: '{ "items": User[], "totalItems": number }'
+            types: ['UserCriteria', 'User', 'PageResult'],
+            response: 'PageResult&lt;User&gt;'
         },
         fetchPaginated: {
             desc: 'Busca com paginação por offset/limit.',
-            params: [
-                ['offset', 'number', 'Registros a pular'],
-                ['limit', 'number', 'Máximo'],
-                ['orderBy', 'string?', '"ACENDING" ou "DESCENDING"']
-            ],
-            response: '{ "items": User[] }'
+            types: ['UserCriteria', 'User', 'FetchResult'],
+            response: 'FetchResult&lt;User&gt;'
         },
         countAll: {
             desc: 'Conta todos os usuários.',
-            params: [],
-            response: '{ "count": number }'
+            types: ['CountResult'],
+            response: 'CountResult'
         },
         countById: {
             desc: 'Conta usuários por critério.',
-            params: [['userId', 'number', 'ID do usuário']],
-            response: '{ "count": number }'
+            types: ['UserCriteria', 'CountResult'],
+            response: 'CountResult'
         },
         insert: {
             desc: 'Insere um novo usuário. Password é armazenada como hash MD5/base36.',
-            params: [
-                ['userName', 'string', 'Username (único)'],
-                ['password', 'string', 'Password (texto plano)'],
-                ['name', 'string', 'Nome completo']
-            ],
-            response: '{ "success": boolean, "id": number }'
+            types: ['User', 'MutationResult'],
+            response: 'InsertResult'
         },
         update: {
             desc: 'Atualiza usuário (optimistic locking via oldEntity).',
-            params: [
-                ['newEntity', 'User', 'Valores novos (com id)'],
-                ['oldEntity', 'User', 'Valores antigos']
-            ],
-            response: '{ "success": boolean }'
+            types: ['User', 'MutationResult'],
+            response: 'UpdateResult'
         },
         delete: {
             desc: 'Remove usuários por critério.',
-            params: [['userId', 'number', 'ID do usuário a deletar']],
-            response: '{ "count": number }'
+            types: ['UserCriteria', 'CountResult'],
+            response: 'CountResult'
         }
     },
     purchase: {
         fetchAll: {
             desc: 'Retorna todas as compras com projeção completa (incluindo items).',
-            params: [
-                ['userId', 'number?', 'Filtro por usuário'],
-                ['orderBy', 'string?', '"ACENDING" ou "DESCENDING" (por data)'],
-                ['offset', 'number?', 'Registros a pular'],
-                ['limit', 'number?', 'Máximo de registros'],
-                ['projection', 'object?', 'Campos a retornar']
-            ],
-            response: '{ "items": Purchase[] }'
+            types: ['PurchaseCriteria', 'Purchase', 'PurchaseItem', 'FetchResult'],
+            response: 'FetchResult&lt;Purchase&gt;'
         },
         fetchById: {
             desc: 'Busca compra por ID via POST com projeção.',
-            params: [
-                ['id', 'number', 'ID da compra'],
-                ['projection', 'object?', 'Campos a retornar']
-            ],
-            response: 'Purchase | { "error": "Not found" } (404)'
+            types: ['Purchase', 'PurchaseItem'],
+            response: 'Purchase | { error: string } (404)'
         },
         fetchByIdGet: {
             desc: 'Busca compra por ID via GET.',
-            params: [['id', 'path param', 'ID da compra na URL']],
-            response: 'Purchase | { "error": "Not found" } (404)'
+            types: ['Purchase', 'PurchaseItem'],
+            response: 'Purchase | { error: string } (404)'
         },
         fetchByIdProjection: {
             desc: 'Busca compra por ID com projeção reduzida.',
-            params: [
-                ['id', 'number', 'ID da compra'],
-                ['projection', 'object', 'Campos desejados']
-            ],
-            response: 'Purchase (parcial) | { "error": "Not found" } (404)'
+            types: ['Purchase'],
+            response: 'Partial&lt;Purchase&gt; | { error: string } (404)'
         },
         fetchByUserId: {
             desc: 'Busca compras de um usuário específico.',
-            params: [
-                ['userId', 'number', 'ID do usuário'],
-                ['projection', 'object?', 'Campos a retornar']
-            ],
-            response: '{ "items": Purchase[] }'
+            types: ['PurchaseCriteria', 'Purchase', 'FetchResult'],
+            response: 'FetchResult&lt;Purchase&gt;'
         },
         fetchPage: {
             desc: 'Busca paginada de compras com total.',
-            params: [
-                ['page', 'number', 'Índice da página (0-based)'],
-                ['pageSize', 'number', 'Tamanho da página'],
-                ['userId', 'number?', 'Filtro por usuário'],
-                ['orderBy', 'string?', '"ACENDING" ou "DESCENDING"']
-            ],
-            response: '{ "items": Purchase[], "totalItems": number }'
+            types: ['PurchaseCriteria', 'Purchase', 'PageResult'],
+            response: 'PageResult&lt;Purchase&gt;'
         },
         fetchPaginated: {
             desc: 'Busca com paginação por offset/limit.',
-            params: [
-                ['offset', 'number', 'Registros a pular'],
-                ['limit', 'number', 'Máximo'],
-                ['orderBy', 'string?', '"ACENDING" ou "DESCENDING"']
-            ],
-            response: '{ "items": Purchase[] }'
+            types: ['PurchaseCriteria', 'Purchase', 'FetchResult'],
+            response: 'FetchResult&lt;Purchase&gt;'
         },
         fetchOrderAsc: {
             desc: 'Retorna compras ordenadas por data ascendente.',
-            params: [],
-            response: '{ "items": Purchase[] }'
+            types: ['Purchase', 'FetchResult'],
+            response: 'FetchResult&lt;Purchase&gt;'
         },
         fetchOrderDesc: {
             desc: 'Retorna compras ordenadas por data descendente.',
-            params: [],
-            response: '{ "items": Purchase[] }'
+            types: ['Purchase', 'FetchResult'],
+            response: 'FetchResult&lt;Purchase&gt;'
         },
         countAll: {
             desc: 'Conta todas as compras.',
-            params: [],
-            response: '{ "count": number }'
+            types: ['CountResult'],
+            response: 'CountResult'
         },
         countByUserId: {
             desc: 'Conta compras de um usuário.',
-            params: [['userId', 'number', 'ID do usuário']],
-            response: '{ "count": number }'
+            types: ['PurchaseCriteria', 'CountResult'],
+            response: 'CountResult'
         },
         insert: {
             desc: 'Insere uma nova compra.',
-            params: [
-                ['buyDate', 'string', 'Data ISO 8601 (ex: "2024-01-15T14:30:00Z")'],
-                ['user', 'object', '{ id: number } — usuário comprador']
-            ],
-            response: '{ "success": boolean, "id": number }'
+            types: ['Purchase', 'MutationResult'],
+            response: 'InsertResult'
         },
         update: {
             desc: 'Atualiza uma compra (optimistic locking).',
-            params: [
-                ['newEntity', 'Purchase', 'Valores novos (com id)'],
-                ['oldEntity', 'Purchase', 'Valores antigos']
-            ],
-            response: '{ "success": boolean }'
+            types: ['Purchase', 'MutationResult'],
+            response: 'UpdateResult'
         },
         deleteById: {
             desc: 'Remove compra por ID.',
-            params: [['purchaseId', 'number', 'ID da compra']],
-            response: '{ "count": number }'
+            types: ['PurchaseCriteria', 'CountResult'],
+            response: 'CountResult'
         },
         deleteByUserId: {
             desc: 'Remove todas as compras de um usuário.',
-            params: [['userId', 'number', 'ID do usuário']],
-            response: '{ "count": number }'
+            types: ['PurchaseCriteria', 'CountResult'],
+            response: 'CountResult'
         }
     },
     purchaseItem: {
         fetchAll: {
             desc: 'Retorna todos os itens de compra.',
-            params: [
-                ['purchaseId', 'number?', 'Filtro por compra'],
-                ['userId', 'number?', 'Filtro por usuário'],
-                ['productId', 'number?', 'Filtro por produto'],
-                ['orderBy', 'string?', '"ACENDING" ou "DESCENDING"'],
-                ['offset', 'number?', 'Registros a pular'],
-                ['limit', 'number?', 'Máximo']
-            ],
-            response: '{ "items": PurchaseItem[] }'
+            types: ['PurchaseItemCriteria', 'PurchaseItem', 'FetchResult'],
+            response: 'FetchResult&lt;PurchaseItem&gt;'
         },
         fetchById: {
             desc: 'Busca item por ID via POST com projeção.',
-            params: [
-                ['id', 'number', 'ID do item'],
-                ['projection', 'object?', 'Campos a retornar']
-            ],
-            response: 'PurchaseItem | { "error": "Not found" } (404)'
+            types: ['PurchaseItem', 'Product'],
+            response: 'PurchaseItem | { error: string } (404)'
         },
         fetchByIdGet: {
             desc: 'Busca item por ID via GET.',
-            params: [['id', 'path param', 'ID do item na URL']],
-            response: 'PurchaseItem | { "error": "Not found" } (404)'
+            types: ['PurchaseItem', 'Product'],
+            response: 'PurchaseItem | { error: string } (404)'
         },
         fetchByIdProjection: {
             desc: 'Busca item por ID com projeção reduzida.',
-            params: [
-                ['id', 'number', 'ID do item'],
-                ['projection', 'object', 'Campos desejados']
-            ],
-            response: 'PurchaseItem (parcial) | { "error": "Not found" } (404)'
+            types: ['PurchaseItem'],
+            response: 'Partial&lt;PurchaseItem&gt; | { error: string } (404)'
         },
         fetchByPurchaseId: {
             desc: 'Busca itens de uma compra específica.',
-            params: [['purchaseId', 'number', 'ID da compra']],
-            response: '{ "items": PurchaseItem[] }'
+            types: ['PurchaseItemCriteria', 'PurchaseItem', 'FetchResult'],
+            response: 'FetchResult&lt;PurchaseItem&gt;'
         },
         fetchByUserId: {
             desc: 'Busca itens de compras de um usuário.',
-            params: [['userId', 'number', 'ID do usuário']],
-            response: '{ "items": PurchaseItem[] }'
+            types: ['PurchaseItemCriteria', 'PurchaseItem', 'FetchResult'],
+            response: 'FetchResult&lt;PurchaseItem&gt;'
         },
         fetchByProductId: {
             desc: 'Busca itens que contêm um produto específico.',
-            params: [
-                ['productId', 'number', 'ID do produto'],
-                ['projection', 'object?', 'Campos a retornar']
-            ],
-            response: '{ "items": PurchaseItem[] }'
+            types: ['PurchaseItemCriteria', 'PurchaseItem', 'Product', 'FetchResult'],
+            response: 'FetchResult&lt;PurchaseItem&gt;'
         },
         fetchPage: {
             desc: 'Busca paginada de itens com total.',
-            params: [
-                ['page', 'number', 'Índice da página (0-based)'],
-                ['pageSize', 'number', 'Tamanho da página'],
-                ['purchaseId', 'number?', 'Filtro por compra'],
-                ['orderBy', 'string?', '"ACENDING" ou "DESCENDING"']
-            ],
-            response: '{ "items": PurchaseItem[], "totalItems": number }'
+            types: ['PurchaseItemCriteria', 'PurchaseItem', 'PageResult'],
+            response: 'PageResult&lt;PurchaseItem&gt;'
         },
         fetchPaginated: {
             desc: 'Busca com paginação por offset/limit.',
-            params: [
-                ['offset', 'number', 'Registros a pular'],
-                ['limit', 'number', 'Máximo'],
-                ['orderBy', 'string?', '"ACENDING" ou "DESCENDING"']
-            ],
-            response: '{ "items": PurchaseItem[] }'
+            types: ['PurchaseItemCriteria', 'PurchaseItem', 'FetchResult'],
+            response: 'FetchResult&lt;PurchaseItem&gt;'
         },
         fetchOrderAsc: {
             desc: 'Retorna itens ordenados ascendente.',
-            params: [],
-            response: '{ "items": PurchaseItem[] }'
+            types: ['PurchaseItem', 'FetchResult'],
+            response: 'FetchResult&lt;PurchaseItem&gt;'
         },
         fetchOrderDesc: {
             desc: 'Retorna itens ordenados descendente.',
-            params: [],
-            response: '{ "items": PurchaseItem[] }'
+            types: ['PurchaseItem', 'FetchResult'],
+            response: 'FetchResult&lt;PurchaseItem&gt;'
         },
         countAll: {
             desc: 'Conta todos os itens.',
-            params: [],
-            response: '{ "count": number }'
+            types: ['CountResult'],
+            response: 'CountResult'
         },
         countByPurchaseId: {
             desc: 'Conta itens de uma compra.',
-            params: [['purchaseId', 'number', 'ID da compra']],
-            response: '{ "count": number }'
+            types: ['PurchaseItemCriteria', 'CountResult'],
+            response: 'CountResult'
         },
         countByUserId: {
             desc: 'Conta itens de compras de um usuário.',
-            params: [['userId', 'number', 'ID do usuário']],
-            response: '{ "count": number }'
+            types: ['PurchaseItemCriteria', 'CountResult'],
+            response: 'CountResult'
         },
         insert: {
             desc: 'Insere um item em uma compra.',
-            params: [
-                ['amount', 'number', 'Quantidade'],
-                ['price', 'number', 'Preço unitário'],
-                ['purchaseId', 'number', 'ID da compra'],
-                ['product', 'object', '{ id: number } — produto']
-            ],
-            response: '{ "success": boolean, "id": number }'
+            types: ['PurchaseItem', 'Product', 'MutationResult'],
+            response: 'InsertResult'
         },
         update: {
             desc: 'Atualiza item (optimistic locking).',
-            params: [
-                ['newEntity', 'PurchaseItem', 'Valores novos (com id)'],
-                ['oldEntity', 'PurchaseItem', 'Valores antigos']
-            ],
-            response: '{ "success": boolean }'
+            types: ['PurchaseItem', 'MutationResult'],
+            response: 'UpdateResult'
         },
         deleteById: {
             desc: 'Remove item por ID.',
-            params: [['purchaseItemId', 'number', 'ID do item']],
-            response: '{ "count": number }'
+            types: ['PurchaseItemCriteria', 'CountResult'],
+            response: 'CountResult'
         },
         deleteByPurchaseId: {
             desc: 'Remove todos os itens de uma compra.',
-            params: [['purchaseId', 'number', 'ID da compra']],
-            response: '{ "count": number }'
+            types: ['PurchaseItemCriteria', 'CountResult'],
+            response: 'CountResult'
         },
         deleteByUserId: {
             desc: 'Remove todos os itens de compras de um usuário.',
-            params: [['userId', 'number', 'ID do usuário']],
-            response: '{ "count": number }'
+            types: ['PurchaseItemCriteria', 'CountResult'],
+            response: 'CountResult'
         }
     }
 };
@@ -949,18 +914,22 @@ function renderDocs(entity, opName) {
     const method = (op.method || 'POST').toUpperCase();
     const badgeClass = method.toLowerCase();
 
-    let paramsHtml = '';
-    if (doc.params && doc.params.length > 0) {
-        paramsHtml = `<table class="params"><tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr>` +
-            doc.params.map(([name, type, desc]) =>
-                `<tr><td><code>${name}</code></td><td>${type}</td><td>${desc}</td></tr>`
-            ).join('') + '</table>';
+    // Render type definitions
+    let typesHtml = '';
+    if (doc.types && doc.types.length > 0) {
+        const rendered = doc.types
+            .filter(t => DOMAIN_TYPES[t])
+            .map(t => DOMAIN_TYPES[t])
+            .join('\n\n');
+        if (rendered) {
+            typesHtml = `<div class="type-block">${rendered}</div>`;
+        }
     }
 
     docsDiv.innerHTML = `
         <h4><span class="method-badge ${badgeClass}">${method}</span><span class="endpoint">${op.path}</span></h4>
         <div class="desc">${doc.desc}</div>
-        ${paramsHtml}
+        ${typesHtml}
         <div class="response-doc"><strong>Response:</strong> <code>${doc.response}</code></div>
     `;
     docsDiv.className = 'api-docs visible';
