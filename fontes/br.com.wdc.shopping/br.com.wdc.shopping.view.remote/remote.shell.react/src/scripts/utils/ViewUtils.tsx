@@ -1,5 +1,5 @@
 import React from 'react'
-import app, { type ViewProps, type ViewScope } from '@root/app'
+import app, { type ViewProps, type ViewScope } from '@root/bridge'
 
 const ZERO_DEPS: React.DependencyList = []
 

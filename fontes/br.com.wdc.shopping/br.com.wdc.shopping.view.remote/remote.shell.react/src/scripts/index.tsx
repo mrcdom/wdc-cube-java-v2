@@ -3,7 +3,7 @@ import * as ReactDOM from 'react-dom/client'
 import CssBaseline from '@mui/material/CssBaseline'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
 
-import app from './app'
+import app from './bridge'
 
 import BrowserView from './views/BrowserView'
 import SlotView from './views/SlotView'

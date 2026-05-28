@@ -1,7 +1,7 @@
 import React from 'react'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
-import app, { type ViewProps } from '@root/app'
+import app, { type ViewProps } from '@root/bridge'
 import { BaseViewClass } from '@root/utils/ViewUtils'
 
 export type RootViewState = {

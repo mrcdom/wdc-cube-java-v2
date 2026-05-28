@@ -8,7 +8,7 @@ import Divider from '@mui/material/Divider'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
-import app, { type ViewProps } from '@root/app'
+import app, { type ViewProps } from '@root/bridge'
 import { BaseViewClass } from '@root/utils/ViewUtils'
 import ShoppingLogo from './home/ShoppingLogo'
 

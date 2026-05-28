@@ -1,5 +1,5 @@
 import React from 'react'
-import app, { type ViewProps } from '@root/app'
+import app, { type ViewProps } from '@root/bridge'
 
 export type SlotViewState = {
   slot?: string
