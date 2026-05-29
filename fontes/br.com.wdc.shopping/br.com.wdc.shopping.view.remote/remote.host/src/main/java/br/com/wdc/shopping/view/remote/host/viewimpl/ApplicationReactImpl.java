@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -47,6 +48,7 @@ public class ApplicationReactImpl extends ShoppingApplication {
     private static final Log LOG = Log.getLogger(ApplicationReactImpl.class);
 
     public static final Duration DEFAULT_TIME_SPAN = Duration.ofMinutes(3);
+    private static final long ACTIVE_VIEWS_INTERVAL = 5 * 60 * 1000L; // 5 minutos
 
     static {
         RootPresenter.createView = p -> new GenericViewImpl(p.app, p, p.state, p.skeleton());
@@ -89,7 +91,9 @@ public class ApplicationReactImpl extends ShoppingApplication {
     private RootPresenter rootPresenter;
     private final Map<String, GenericViewImpl> dirtyViewMap = new ConcurrentHashMap<>();
     private final Map<String, GenericViewImpl> viewMap = new ConcurrentHashMap<>();
+    private final ConcurrentLinkedQueue<String> releasedViews = new ConcurrentLinkedQueue<>();
     private long lastRequestId;
+    private long lastActiveViewsSentAt;
     private boolean historyDirty;
     private BrowserPresenter browserPresenter;
     private int instanceIdGen = 1;
@@ -265,7 +269,11 @@ public class ApplicationReactImpl extends ShoppingApplication {
 
     public GenericViewImpl removeView(String stateId) {
         this.dirtyViewMap.remove(stateId);
-        return this.viewMap.remove(stateId);
+        var removed = this.viewMap.remove(stateId);
+        if (removed != null) {
+            this.releasedViews.add(stateId);
+        }
+        return removed;
     }
 
     public void markDirty(GenericViewImpl view) {
@@ -531,6 +539,27 @@ public class ApplicationReactImpl extends ShoppingApplication {
 
                 if (isPing) {
                     json.name("ping").value(true);
+
+                    if (!me.releasedViews.isEmpty()) {
+                        json.name("releasedViews");
+                        json.beginArray();
+                        String released;
+                        while ((released = me.releasedViews.poll()) != null) {
+                            json.value(released);
+                        }
+                        json.endArray();
+                    }
+
+                    var now = System.currentTimeMillis();
+                    if (now - me.lastActiveViewsSentAt >= ACTIVE_VIEWS_INTERVAL) {
+                        me.lastActiveViewsSentAt = now;
+                        json.name("activeViews");
+                        json.beginArray();
+                        for (var vsid : me.viewMap.keySet()) {
+                            json.value(vsid);
+                        }
+                        json.endArray();
+                    }
                 }
 
                 if (me.getFragment() != null) {
