@@ -92,9 +92,6 @@ public final class VDom {
                     setAttr(elm, entry.getKey(), entry.getValue());
                 }
             }
-            if (vnode.hostedElement != null) {
-                elm.appendChild(vnode.hostedElement);
-            }
             if (vnode.ref != null) {
                 vnode.ref.accept(elm);
             }
@@ -164,16 +161,10 @@ public final class VDom {
             return;
         }
 
-        // Slot node → apenas troca elemento hospedado (nunca diffa filhos)
+        // Slot node — apenas diffa attrs e chama ref (que gerencia o hosted element)
         if (VNode.SLOT_TAG.equals(newNode.tag)) {
             var elm = (HTMLElement) domNode;
             diffAttrs(elm, oldNode.attrs, newNode.attrs);
-            if (oldNode.hostedElement != newNode.hostedElement) {
-                elm.clear();
-                if (newNode.hostedElement != null) {
-                    elm.appendChild(newNode.hostedElement);
-                }
-            }
             if (newNode.ref != null) {
                 newNode.ref.accept(elm);
             }

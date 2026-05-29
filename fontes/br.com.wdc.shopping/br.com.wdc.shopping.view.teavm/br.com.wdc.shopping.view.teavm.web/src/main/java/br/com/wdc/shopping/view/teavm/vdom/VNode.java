@@ -37,7 +37,6 @@ public class VNode {
     Map<String, EventListener<? extends Event>> events;
     List<VNode> children;
     Consumer<HTMLElement> ref;
-    HTMLElement hostedElement;
 
     private VNode() {
     }
@@ -243,8 +242,8 @@ public class VNode {
 
     /**
      * Cria um nó slot que hospeda um elemento DOM externo.
-     * O VDom cria/mantém um container div mas nunca diffa seus filhos —
-     * o elemento hospedado é gerenciado independentemente.
+     * O VDom cria/mantém um container div e o ref cuida de hospedar
+     * o elemento — nunca diffa filhos.
      *
      * @param classes classes CSS do container div
      * @param hosted  elemento externo a hospedar (pode ser null)
@@ -252,11 +251,20 @@ public class VNode {
     public static VNode slot(String classes, HTMLElement hosted) {
         var n = new VNode();
         n.tag = SLOT_TAG;
-        n.hostedElement = hosted;
         if (classes != null && !classes.isEmpty()) {
             n.attrs = new LinkedHashMap<>();
             n.attrs.put("class", classes);
         }
+        n.ref = el -> {
+            if (hosted != null) {
+                if (el.getFirstChild() != hosted) {
+                    el.clear();
+                    el.appendChild(hosted);
+                }
+            } else if (el.getFirstChild() != null) {
+                el.clear();
+            }
+        };
         return n;
     }
 
