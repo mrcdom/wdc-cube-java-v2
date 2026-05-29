@@ -34,6 +34,7 @@ public class VNode {
     String text;
     String key;
     Map<String, String> attrs;
+    Map<String, Object> props;
     Map<String, EventListener<? extends Event>> events;
     List<VNode> children;
     Consumer<HTMLElement> ref;
@@ -89,6 +90,31 @@ public class VNode {
      */
     public VNode style(String css) {
         return attr("style", css);
+    }
+
+    /**
+     * Define um atributo booleano (presença/ausência no DOM).
+     * Web Components usam este padrão: {@code <sp-button disabled>}.
+     */
+    public VNode boolAttr(String name, boolean present) {
+        if (present) {
+            return attr(name, "");
+        }
+        // Não adiciona → diffAttrs remove se existia antes
+        return this;
+    }
+
+    /**
+     * Define uma propriedade JavaScript no elemento (não um atributo HTML).
+     * Usado para Web Components que aceitam dados complexos via propriedade.
+     * Valores suportados: String, Boolean, Integer, Double, JSObject.
+     */
+    public VNode prop(String name, Object value) {
+        if (this.props == null) {
+            this.props = new LinkedHashMap<>();
+        }
+        this.props.put(name, value);
+        return this;
     }
 
     /**

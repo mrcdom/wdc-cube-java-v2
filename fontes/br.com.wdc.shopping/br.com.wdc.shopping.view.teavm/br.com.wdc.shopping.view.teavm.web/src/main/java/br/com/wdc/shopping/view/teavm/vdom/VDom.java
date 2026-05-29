@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import org.teavm.jso.JSBody;
+import org.teavm.jso.JSObject;
 import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
 import org.teavm.jso.dom.html.HTMLDocument;
@@ -64,6 +66,7 @@ public final class VDom {
     public static VNode patch(HTMLElement container, VNode oldTree, VNode newTree) {
         // Aplicar atributos do VNode raiz no container (com diffing)
         diffAttrs(container, oldTree != null ? oldTree.attrs : null, newTree.attrs);
+        diffProps(container, oldTree != null ? oldTree.props : null, newTree.props);
         diffEvents(container, oldTree != null ? oldTree.events : null, newTree.events);
 
         // Diffa os filhos do VNode raiz como filhos diretos do container
@@ -104,6 +107,13 @@ public final class VDom {
         if (vnode.attrs != null) {
             for (var entry : vnode.attrs.entrySet()) {
                 setAttr(elm, entry.getKey(), entry.getValue());
+            }
+        }
+
+        // Propriedades (Web Components)
+        if (vnode.props != null) {
+            for (var entry : vnode.props.entrySet()) {
+                setProp(elm, entry.getKey(), entry.getValue());
             }
         }
 
@@ -174,6 +184,7 @@ public final class VDom {
         // Mesmo tag → diff atributos, eventos e filhos
         var elm = (HTMLElement) domNode;
         diffAttrs(elm, oldNode.attrs, newNode.attrs);
+        diffProps(elm, oldNode.props, newNode.props);
         diffEvents(elm, oldNode.events, newNode.events);
         diffChildren(elm, oldNode.children, newNode.children);
 
@@ -260,6 +271,61 @@ public final class VDom {
                 break;
         }
     }
+
+    // ---- Property diffing (Web Components) ----
+
+    private static void diffProps(HTMLElement elm, Map<String, Object> oldProps, Map<String, Object> newProps) {
+        var oldMap = oldProps != null ? oldProps : Collections.<String, Object>emptyMap();
+        var newMap = newProps != null ? newProps : Collections.<String, Object>emptyMap();
+
+        // Remover propriedades que não existem mais
+        for (var key : oldMap.keySet()) {
+            if (!newMap.containsKey(key)) {
+                setJsProp(elm, key, null);
+            }
+        }
+
+        // Adicionar/atualizar propriedades
+        for (var entry : newMap.entrySet()) {
+            var key = entry.getKey();
+            var newVal = entry.getValue();
+            var oldVal = oldMap.get(key);
+            if (!Objects.equals(oldVal, newVal)) {
+                setProp(elm, key, newVal);
+            }
+        }
+    }
+
+    private static void setProp(HTMLElement elm, String name, Object value) {
+        if (value == null) {
+            setJsProp(elm, name, null);
+        } else if (value instanceof String s) {
+            setJsPropString(elm, name, s);
+        } else if (value instanceof Boolean b) {
+            setJsPropBool(elm, name, b);
+        } else if (value instanceof Integer i) {
+            setJsPropInt(elm, name, i);
+        } else if (value instanceof Double d) {
+            setJsPropDouble(elm, name, d);
+        } else if (value instanceof JSObject js) {
+            setJsProp(elm, name, js);
+        }
+    }
+
+    @JSBody(params = { "el", "name", "val" }, script = "el[name] = val;")
+    private static native void setJsProp(JSObject el, String name, JSObject val);
+
+    @JSBody(params = { "el", "name", "val" }, script = "el[name] = val;")
+    private static native void setJsPropString(JSObject el, String name, String val);
+
+    @JSBody(params = { "el", "name", "val" }, script = "el[name] = val;")
+    private static native void setJsPropBool(JSObject el, String name, boolean val);
+
+    @JSBody(params = { "el", "name", "val" }, script = "el[name] = val;")
+    private static native void setJsPropInt(JSObject el, String name, int val);
+
+    @JSBody(params = { "el", "name", "val" }, script = "el[name] = val;")
+    private static native void setJsPropDouble(JSObject el, String name, double val);
 
     // ---- Event diffing ----
 
