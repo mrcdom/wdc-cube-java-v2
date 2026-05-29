@@ -53,16 +53,16 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
                 // App bar
                 renderNavbar(nickName, cartCount),
 
+                // Tab navigation (mobile only, below header)
+                renderTabNav(),
+
                 // Error
                 div("alert alert-danger m-2")
                         .style(showError ? "" : "display:none")
                         .text(errorMessage),
 
                 // Content pane
-                renderContentPane(productsPanelEl, purchasesPanelEl, contentViewEl),
-
-                // Bottom navigation
-                renderBottomNav());
+                renderContentPane(productsPanelEl, purchasesPanelEl, contentViewEl));
         // @formatter:on
     }
 
@@ -135,18 +135,18 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
         // @formatter:on
     }
 
-    private VNode renderBottomNav() {
+    private VNode renderTabNav() {
         var prodCls = this.showingProducts
-                ? "btn flex-grow-1 rounded-0 py-3 fw-bold text-primary border-0"
-                : "btn flex-grow-1 rounded-0 py-3 text-muted border-0";
+                ? "btn flex-grow-1 rounded-0 py-2 fw-bold text-primary border-0"
+                : "btn flex-grow-1 rounded-0 py-2 text-muted border-0";
         var histCls = this.showingProducts
-                ? "btn flex-grow-1 rounded-0 py-3 text-muted border-0"
-                : "btn flex-grow-1 rounded-0 py-3 fw-bold text-primary border-0";
+                ? "btn flex-grow-1 rounded-0 py-2 text-muted border-0"
+                : "btn flex-grow-1 rounded-0 py-2 fw-bold text-primary border-0";
 
-        // Bottom nav only on mobile (hidden on md+)
+        // Tab nav only on mobile (hidden on md+)
 
         // @formatter:off
-        return footer("d-flex d-md-none border-top bg-white flex-shrink-0").children(
+        return nav("d-flex d-md-none border-bottom bg-white flex-shrink-0").children(
                 button(prodCls)
                         .children(span(BsIcons.SHOP), span("").text(" Produtos"))
                         .on("click", evt -> switchTab(true)),
