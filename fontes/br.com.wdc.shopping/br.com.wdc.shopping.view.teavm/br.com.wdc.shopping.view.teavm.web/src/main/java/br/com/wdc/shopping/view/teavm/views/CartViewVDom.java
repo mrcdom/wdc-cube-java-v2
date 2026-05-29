@@ -21,6 +21,7 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
     public CartViewVDom(CartPresenter presenter) {
         super("cart", (ShoppingTeaVMApplication) presenter.app, presenter);
         this.state = presenter.state;
+        this.element.setAttribute("style", "flex:1;min-height:0;overflow-y:auto");
     }
 
     @Override

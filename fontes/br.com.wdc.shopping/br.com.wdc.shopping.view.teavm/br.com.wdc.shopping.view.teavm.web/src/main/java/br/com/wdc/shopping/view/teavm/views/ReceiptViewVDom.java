@@ -23,6 +23,7 @@ public class ReceiptViewVDom extends AbstractVDomView<ReceiptPresenter> {
     public ReceiptViewVDom(ReceiptPresenter presenter) {
         super("receipt", (ShoppingTeaVMApplication) presenter.app, presenter);
         this.state = presenter.state;
+        this.element.setAttribute("style", "flex:1;min-height:0;overflow-y:auto");
     }
 
     @Override

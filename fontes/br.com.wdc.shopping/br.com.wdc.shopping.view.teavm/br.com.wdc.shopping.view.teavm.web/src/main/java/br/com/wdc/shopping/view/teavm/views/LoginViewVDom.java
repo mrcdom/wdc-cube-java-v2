@@ -29,8 +29,8 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
     public LoginViewVDom(LoginPresenter presenter) {
         super("login", (ShoppingTeaVMApplication) presenter.app, presenter);
         this.state = presenter.state;
-        this.element.getClassList().add("d-flex", "justify-content-center", "align-items-center", "vh-100");
-        this.element.setAttribute("style", "background:" + SURFACE_SECONDARY);
+        this.element.getClassList().add("d-flex", "justify-content-center", "align-items-center");
+        this.element.setAttribute("style", "flex:1;min-height:0;background:" + SURFACE_SECONDARY);
     }
 
     @Override

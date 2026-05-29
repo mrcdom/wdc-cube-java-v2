@@ -84,7 +84,7 @@ public class AppStyles {
     // ---- List items ----
     public static final String LIST_ITEM = "display:flex;align-items:center;padding:10px 0;border-bottom:1px solid "
             + BORDER_LIGHT;
-    public static final String PURCHASE_ITEM = "background-color:" + SURFACE_TERTIARY
+    public static final String PURCHASE_ITEM = "width:100%;box-sizing:border-box;background-color:" + SURFACE_TERTIARY
             + ";border-radius:6px;border-left:3px solid " + PRIMARY
             + ";cursor:pointer;transition:all 0.15s;margin-bottom:6px;overflow:hidden";
 

@@ -35,7 +35,7 @@ public class RootViewVDom extends AbstractVDomView<RootPresenter> {
     @Override
     protected VNode render() {
         var contentElement = this.state.contentView instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
-        return slot("flex-grow-1 d-flex flex-column", contentElement)
-                .style("min-height:0");
+        return slot("flex-grow-1", contentElement)
+                .style("display:flex;flex-direction:column;min-height:0");
     }
 }

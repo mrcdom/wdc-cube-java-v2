@@ -37,8 +37,8 @@ public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPrese
     public PurchasesPanelViewVDom(PurchasesPanelPresenter presenter) {
         super("purchases-panel", (ShoppingTeaVMApplication) presenter.app, presenter);
         this.state = presenter.state;
-        this.element.getClassList().add("p-2", "h-100", "d-flex", "flex-column");
-        this.element.setAttribute("style", "text-align:left");
+        this.element.getClassList().add("p-2", "d-flex", "flex-column");
+        this.element.setAttribute("style", "flex:1;min-width:0;min-height:0;overflow:hidden");
         this.prevPageListener = evt -> safeAction("Prev page",
                 () -> this.presenter.onPageChange(this.state.page - 1));
         this.nextPageListener = evt -> safeAction("Next page",
@@ -95,13 +95,13 @@ public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPrese
                 .children(
                         // Line 1: #id (left) + date (right)
                         div("d-flex justify-content-between align-items-center")
-                                .style("padding:6px 12px 0 12px")
+                                .style("padding:6px 12px 0 12px;min-width:0")
                                 .children(
                                         span("").style("font-weight:600;font-size:0.75rem;color:" + PRIMARY).text(id),
-                                        span("").style("font-size:0.7rem;color:" + TEXT_MUTED).text(date)),
+                                        span("").style("font-size:0.7rem;color:" + TEXT_MUTED + ";white-space:nowrap").text(date)),
                         // Line 2: items (left) + total (right)
                         div("d-flex align-items-baseline")
-                                .style("padding:2px 12px 6px 12px;gap:4px;font-size:0.75rem;color:" + TEXT_SECONDARY)
+                                .style("padding:2px 12px 6px 12px;gap:4px;font-size:0.75rem;color:" + TEXT_SECONDARY + ";min-width:0")
                                 .children(
                                         span("")
                                                 .style("flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")

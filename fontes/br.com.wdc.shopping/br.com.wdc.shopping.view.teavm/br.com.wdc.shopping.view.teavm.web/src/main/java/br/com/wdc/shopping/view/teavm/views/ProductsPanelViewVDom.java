@@ -21,6 +21,7 @@ public class ProductsPanelViewVDom extends AbstractVDomView<ProductsPanelPresent
         super("products-panel", (ShoppingTeaVMApplication) presenter.app, presenter);
         this.state = presenter.state;
         this.element.getClassList().add("p-3");
+        this.element.setAttribute("style", "flex:1;min-width:0;min-height:0;overflow-y:auto");
     }
 
     @Override

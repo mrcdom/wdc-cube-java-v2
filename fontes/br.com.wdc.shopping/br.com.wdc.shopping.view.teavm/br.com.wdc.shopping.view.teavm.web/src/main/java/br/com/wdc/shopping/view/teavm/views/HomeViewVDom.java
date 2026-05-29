@@ -24,7 +24,7 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
         super("home", (ShoppingTeaVMApplication) presenter.app, presenter);
         this.state = presenter.state;
         this.element.getClassList().add("d-flex", "flex-column", "flex-grow-1");
-        this.element.setAttribute("style", "min-height:0");
+        this.element.setAttribute("style", "flex:1;min-height:0;overflow:hidden");
     }
 
     @Override
@@ -113,7 +113,7 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
             HTMLElement contentViewEl) {
         if (contentViewEl != null) {
             // Showing a content view (product detail, cart, receipt)
-            return slot("flex-grow-1 overflow-auto", contentViewEl)
+            return slot("flex-grow-1", contentViewEl)
                     .style(CONTENT_PANE);
         }
 
@@ -125,10 +125,10 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
         return div("flex-grow-1 d-flex flex-column flex-md-row")
                 .style(CONTENT_PANE)
                 .children(
-                        slot("h-100 " + productsHide, productsPanelEl)
-                                .style("flex:1;min-width:0"),
+                        slot("flex-grow-1 h-100 " + productsHide, productsPanelEl)
+                                .style("display:flex;flex-direction:column"),
                         slot("h-100 " + purchasesHide, purchasesPanelEl)
-                                .style("width:320px;flex-shrink:0;min-width:0"));
+                                .style("width:320px;flex-shrink:0;display:flex;flex-direction:column"));
     }
 
     private VNode renderBottomNav() {
