@@ -20,15 +20,13 @@ public class ProductsPanelViewVDom extends AbstractVDomView<ProductsPanelPresent
     public ProductsPanelViewVDom(ProductsPanelPresenter presenter) {
         super("products-panel", (ShoppingTeaVMApplication) presenter.app, presenter);
         this.state = presenter.state;
-        this.element.getClassList().add("p-3");
-        this.element.setAttribute("style", "flex:1;min-width:0;min-height:0;overflow-y:auto");
     }
 
     @Override
     protected VNode render() {
         var products = this.state.products;
 
-        return div("").children(
+        return div("p-3").style("flex:1;min-width:0;min-height:0;overflow-y:auto").children(
                 h6("fw-bold text-uppercase mb-2")
                         .style(SECTION_LABEL)
                         .text("PRODUTOS"),

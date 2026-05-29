@@ -21,7 +21,6 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
     public CartViewVDom(CartPresenter presenter) {
         super("cart", (ShoppingTeaVMApplication) presenter.app, presenter);
         this.state = presenter.state;
-        this.element.setAttribute("style", "flex:1;min-height:0;overflow-y:auto");
     }
 
     @Override
@@ -44,9 +43,10 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
         var totalCost = computeTotalCost();
         var totalText = "R$ " + String.format("%.2f", totalCost);
 
-        return div("")
-                .style(PAGE_WRAPPER)
-                .children(
+        return div("").style("flex:1;min-height:0;overflow-y:auto").children(
+                div("")
+                        .style(PAGE_WRAPPER)
+                        .children(
                         div("")
                                 .style(CARD)
                                 .children(
@@ -68,7 +68,7 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
                                         renderEmptyState(empty),
 
                                         // Cart content
-                                        renderContent(items, empty, totalText)));
+                                        renderContent(items, empty, totalText))));
     }
 
     private VNode renderEmptyState(boolean empty) {

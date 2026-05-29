@@ -1,5 +1,6 @@
 package br.com.wdc.shopping.view.teavm.views;
 
+import static br.com.wdc.shopping.view.teavm.vdom.VNode.div;
 import static br.com.wdc.shopping.view.teavm.vdom.VNode.slot;
 
 import org.teavm.jso.dom.html.HTMLDocument;
@@ -19,8 +20,6 @@ public class RootViewVDom extends AbstractVDomView<RootPresenter> {
     public RootViewVDom(RootPresenter presenter) {
         super("root", (ShoppingTeaVMApplication) presenter.app, presenter);
         this.state = presenter.state;
-        this.element.getClassList().add("d-flex", "flex-column");
-        this.element.setAttribute("style", "height:100%;overflow:hidden");
     }
 
     @Override
@@ -35,7 +34,8 @@ public class RootViewVDom extends AbstractVDomView<RootPresenter> {
     @Override
     protected VNode render() {
         var contentElement = this.state.contentView instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
-        return slot("flex-grow-1", contentElement)
-                .style("display:flex;flex-direction:column;min-height:0");
+        return div("d-flex flex-column").style("height:100%;overflow:hidden").children(
+                slot("flex-grow-1", contentElement)
+                        .style("display:flex;flex-direction:column;min-height:0"));
     }
 }

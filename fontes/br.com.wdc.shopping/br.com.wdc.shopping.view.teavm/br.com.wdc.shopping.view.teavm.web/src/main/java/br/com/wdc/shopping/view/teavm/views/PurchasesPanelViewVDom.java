@@ -37,8 +37,6 @@ public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPrese
     public PurchasesPanelViewVDom(PurchasesPanelPresenter presenter) {
         super("purchases-panel", (ShoppingTeaVMApplication) presenter.app, presenter);
         this.state = presenter.state;
-        this.element.getClassList().add("p-2", "d-flex", "flex-column");
-        this.element.setAttribute("style", "flex:1;min-width:0;min-height:0;overflow:hidden");
         this.prevPageListener = evt -> safeAction("Prev page",
                 () -> this.presenter.onPageChange(this.state.page - 1));
         this.nextPageListener = evt -> safeAction("Next page",
@@ -61,7 +59,7 @@ public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPrese
         int totalPages = Math.max(1, (int) Math.ceil((double) this.state.totalCount / pageSize));
         var pageInfo = (this.state.page + 1) + " / " + totalPages;
 
-        return div("d-flex flex-column h-100").children(
+        return div("p-2 d-flex flex-column").style("flex:1;min-width:0;min-height:0;overflow:hidden").children(
                 h6("fw-bold mb-1").text("Histórico de Compras"),
                 p("text-muted small mb-0").text("Toque em uma compra para ver os detalhes"),
 

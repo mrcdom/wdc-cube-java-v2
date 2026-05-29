@@ -29,8 +29,6 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
     public LoginViewVDom(LoginPresenter presenter) {
         super("login", (ShoppingTeaVMApplication) presenter.app, presenter);
         this.state = presenter.state;
-        this.element.getClassList().add("d-flex", "justify-content-center", "align-items-center");
-        this.element.setAttribute("style", "flex:1;min-height:0;background:" + SURFACE_SECONDARY);
     }
 
     @Override
@@ -52,9 +50,12 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
 
         String inputStyle = loading ? INPUT_DISABLED : INPUT;
 
-        return div("card shadow mx-auto")
-                .style(LOGIN_CARD)
+        return div("d-flex justify-content-center align-items-center")
+                .style("flex:1;min-height:0;background:" + SURFACE_SECONDARY)
                 .children(
+                        div("card shadow mx-auto")
+                                .style(LOGIN_CARD)
+                                .children(
                         // Header azul com logo
                         div("")
                                 .style(APP_HEADER)
@@ -129,7 +130,7 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
                                                 textNode("Acesso demo: usuário "),
                                                 span("fw-bold").style("color:" + TEXT_DARK).text("admin"),
                                                 textNode(" / senha "),
-                                                span("fw-bold").style("color:" + TEXT_DARK).text("admin"))));
+                                                span("fw-bold").style("color:" + TEXT_DARK).text("admin")))));
     }
 
     private void emitEnter() {

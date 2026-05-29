@@ -23,7 +23,6 @@ public class ReceiptViewVDom extends AbstractVDomView<ReceiptPresenter> {
     public ReceiptViewVDom(ReceiptPresenter presenter) {
         super("receipt", (ShoppingTeaVMApplication) presenter.app, presenter);
         this.state = presenter.state;
-        this.element.setAttribute("style", "flex:1;min-height:0;overflow-y:auto");
     }
 
     @Override
@@ -47,9 +46,10 @@ public class ReceiptViewVDom extends AbstractVDomView<ReceiptPresenter> {
             totalText = "R$ " + String.format("%.2f", total);
         }
 
-        return div("")
-                .style(PAGE_WRAPPER)
-                .children(
+        return div("").style("flex:1;min-height:0;overflow-y:auto").children(
+                div("")
+                        .style(PAGE_WRAPPER)
+                        .children(
                         div("")
                                 .style(CARD_LARGE)
                                 .children(
@@ -101,7 +101,7 @@ public class ReceiptViewVDom extends AbstractVDomView<ReceiptPresenter> {
                                                         span(BsIcons.ARROW_BACK),
                                                         span("").text(" Voltar aos produtos"))
                                                 .on("click",
-                                                        evt -> safeAction("Back", this.presenter::onOpenProducts))));
+                                                        evt -> safeAction("Back", this.presenter::onOpenProducts)))));
     }
 
     private VNode renderItemsTable(List<ReceiptItem> items) {

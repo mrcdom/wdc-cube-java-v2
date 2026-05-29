@@ -53,7 +53,8 @@ public final class VDom {
 
     /**
      * Aplica diff entre oldTree e newTree, patchando o DOM sob container.
-     * Retorna newTree (para armazenar como "prev" no próximo ciclo).
+     * Os atributos do VNode raiz são aplicados diretamente no container (diffados).
+     * Os filhos do VNode raiz são diffados como filhos diretos do container.
      *
      * @param container elemento DOM que contém a árvore renderizada
      * @param oldTree   árvore anterior (null no primeiro render)
@@ -61,14 +62,18 @@ public final class VDom {
      * @return newTree (use como oldTree na próxima chamada)
      */
     public static VNode patch(HTMLElement container, VNode oldTree, VNode newTree) {
-        if (oldTree == null) {
-            // Primeiro render: criar tudo
-            var dom = createDom(newTree);
-            container.appendChild(dom);
-        } else {
-            // Diff e patch
-            diff(container, container.getFirstChild(), oldTree, newTree);
+        // Aplicar atributos do VNode raiz no container (com diffing)
+        diffAttrs(container, oldTree != null ? oldTree.attrs : null, newTree.attrs);
+        diffEvents(container, oldTree != null ? oldTree.events : null, newTree.events);
+
+        // Diffa os filhos do VNode raiz como filhos diretos do container
+        diffChildren(container, oldTree != null ? oldTree.children : null, newTree.children);
+
+        // Ref callback
+        if (newTree.ref != null) {
+            newTree.ref.accept(container);
         }
+
         return newTree;
     }
 

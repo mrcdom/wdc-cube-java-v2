@@ -23,8 +23,6 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
     public HomeViewVDom(HomePresenter presenter) {
         super("home", (ShoppingTeaVMApplication) presenter.app, presenter);
         this.state = presenter.state;
-        this.element.getClassList().add("d-flex", "flex-column", "flex-grow-1");
-        this.element.setAttribute("style", "flex:1;min-height:0;overflow:hidden");
     }
 
     @Override
@@ -50,7 +48,7 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
         var purchasesPanelEl = this.state.purchasesPanelView instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
         var contentViewEl = this.state.contentView instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
 
-        return div("d-flex flex-column flex-grow-1").style("min-height:0").children(
+        return div("d-flex flex-column flex-grow-1").style("flex:1;min-height:0;overflow:hidden").children(
                 // App bar
                 renderNavbar(nickName, cartCount),
 

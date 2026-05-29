@@ -19,7 +19,6 @@ public class ProductViewVDom extends AbstractVDomView<ProductPresenter> {
     public ProductViewVDom(ProductPresenter presenter) {
         super("product", (ShoppingTeaVMApplication) presenter.app, presenter);
         this.state = presenter.state;
-        this.element.setAttribute("style", "flex:1;min-height:0;overflow-y:auto");
     }
 
     @Override
@@ -52,9 +51,10 @@ public class ProductViewVDom extends AbstractVDomView<ProductPresenter> {
             description = "";
         }
 
-        return div("")
-                .style(PAGE_WRAPPER)
-                .children(
+        return div("").style("flex:1;min-height:0;overflow-y:auto").children(
+                div("")
+                        .style(PAGE_WRAPPER)
+                        .children(
                         // Card container
                         div("")
                                 .style(CARD)
@@ -133,6 +133,6 @@ public class ProductViewVDom extends AbstractVDomView<ProductPresenter> {
                         // Error
                         div("alert alert-danger m-3")
                                 .style(showError ? "" : "display:none")
-                                .text(errorMessage));
+                                .text(errorMessage)));
     }
 }
