@@ -1,5 +1,6 @@
 package br.com.wdc.shopping.view.teavm;
 
+import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
 import br.com.wdc.shopping.view.teavm.interop.Console;
 
 /**
@@ -24,6 +25,8 @@ public class Main {
 
             // Remove tela de loading
             removeLoadingScreen();
+            
+            LoginPresenter.simulateSlowLogin(true);
 
             Console.log("WDC Shopping TeaVM - Started.");
         } catch (Exception e) {

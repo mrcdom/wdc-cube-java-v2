@@ -32,6 +32,8 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
 
     @Override
     protected VNode render() {
+        final boolean loading = this.state.loading;
+
         // Consumir erro do state (one-shot)
         final boolean showError;
         final String errorMessage;
@@ -44,6 +46,9 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
             showError = false;
             errorMessage = "";
         }
+
+        String disabledStyle = "border-radius:8px;border:1px solid #ccc;font-size:1rem"
+                + (loading ? ";opacity:0.6;pointer-events:none" : "");
 
         return div("card shadow mx-auto")
                 .style("max-width:400px;width:calc(100% - 32px);border-radius:16px;border:none;overflow:hidden")
@@ -88,7 +93,8 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
                                                 .attr("placeholder", "Usuário")
                                                 .attr("autocomplete", "off")
                                                 .attr("autocapitalize", "none")
-                                                .style("border-radius:8px;border:1px solid #ccc;font-size:1rem")
+                                                .attr("disabled", loading ? "true" : null)
+                                                .style(disabledStyle)
                                                 .ref(el -> this.userNameField = (HTMLInputElement) el)),
 
                                 // Campo senha
@@ -96,7 +102,8 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
                                         input("password", "form-control form-control-lg") // NOSONAR java:S2068
                                                 .attr("placeholder", "Senha")
                                                 .attr("autocomplete", "off")
-                                                .style("border-radius:8px;border:1px solid #ccc;font-size:1rem")
+                                                .attr("disabled", loading ? "true" : null)
+                                                .style(disabledStyle)
                                                 .on("keydown", (KeyboardEvent evt) -> {
                                                     if ("Enter".equals(evt.getKey())) {
                                                         emitEnter();
@@ -107,8 +114,10 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
                                 // Botão Entrar
                                 button("btn btn-primary w-100 fw-bold")
                                         .style("border-radius:8px;padding:0.75rem;font-size:1.1rem;"
-                                                + "background:#4285f4;border:none")
-                                        .text("Entrar")
+                                                + "background:#4285f4;border:none"
+                                                + (loading ? ";opacity:0.7;pointer-events:none" : ""))
+                                        .text(loading ? "Entrando..." : "Entrar")
+                                        .attr("disabled", loading ? "true" : null)
                                         .on("click", evt -> emitEnter()),
 
                                 // Separador
