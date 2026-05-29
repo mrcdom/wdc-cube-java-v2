@@ -18,13 +18,18 @@ import br.com.wdc.shopping.presentation.presenter.Routes;
 
 public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
-    // :: Private Class Fields
+    // :: Private Static
 
     private static final Log LOG = Log.getLogger(LoginPresenter.class);
+    private static volatile boolean simulateSlowLogin;
 
-    // :: Public Static Fields
+    // :: Public Static
 
     public static Function<LoginPresenter, CubeView> createView;
+
+    public static void simulateSlowLogin(boolean value) {
+        simulateSlowLogin = value;
+    }
 
     // :: Public Instance Fields
 
@@ -34,6 +39,7 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
         public String password;
         public int errorCode;
         public String errorMessage;
+        public boolean loading;
 
     }
 
@@ -90,6 +96,19 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
     // :: User Actions
 
     public void onEnter() {
+        state.loading = true;
+        state.errorCode = 0;
+        state.errorMessage = null;
+        this.update();
+
+        if (simulateSlowLogin) {
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+
         try {
             var subject = loginService.fetchSubject(state.userName, state.password);
 
@@ -108,6 +127,8 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
             LOG.error("onEnter", caught);
             this.alertConnectionError(caught);
+        } finally {
+            state.loading = false;
         }
     }
 

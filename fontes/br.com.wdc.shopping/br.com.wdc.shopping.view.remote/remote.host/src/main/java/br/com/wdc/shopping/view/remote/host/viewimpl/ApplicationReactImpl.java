@@ -26,6 +26,7 @@ import br.com.wdc.framework.commons.gson.JsonExtensibleObjectOutput;
 import br.com.wdc.framework.commons.lang.CoerceUtils;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
+import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
 import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.CubePresenter;
 import br.com.wdc.shopping.presentation.ProxyRepositoryWrapper;
@@ -94,6 +95,7 @@ public class ApplicationReactImpl extends ShoppingApplication {
     private final ConcurrentLinkedQueue<String> releasedViews = new ConcurrentLinkedQueue<>();
     private long lastRequestId;
     private long lastActiveViewsSentAt;
+    private String lastSentFragment;
     private boolean historyDirty;
     private BrowserPresenter browserPresenter;
     private int instanceIdGen = 1;
@@ -101,6 +103,7 @@ public class ApplicationReactImpl extends ShoppingApplication {
     private final ReentrantLock lock = new ReentrantLock();
     final AtomicBoolean dirtyQueued = new AtomicBoolean(false);
     volatile long lastWakeupNanos;
+    volatile boolean processingSubmit;
 
     protected void postConstruct() {
         this.expireMoment = System.currentTimeMillis() + DEFAULT_TIME_SPAN.toMillis();
@@ -279,10 +282,21 @@ public class ApplicationReactImpl extends ShoppingApplication {
     public void markDirty(GenericViewImpl view) {
         this.dirtyViewMap.put(view.instanceId(), view);
         ApplicationReactRegistry.enqueueDirty(this);
+        if (this.processingSubmit) {
+            ApplicationReactRegistry.triggerImmediateFlush(this);
+        }
     }
 
     public void updateAllViews() {
         this.viewMap.forEach((_ignored, v) -> this.markDirty(v));
+    }
+
+    public void resetForReconnect() {
+        this.lastSentFragment = null;
+        this.historyDirty = true;
+        this.releasedViews.clear();
+        this.lastActiveViewsSentAt = 0;
+        this.updateAllViews();
     }
 
     @Override
@@ -304,7 +318,18 @@ public class ApplicationReactImpl extends ShoppingApplication {
             return;
         }
 
+        if (isPing) {
+            this.extendLife();
+            var signature = CoerceUtils.asString(request.get("secret"));
+            if (StringUtils.isNotBlank(signature)) {
+                this.dataSecurity.updateSecret(signature);
+            }
+            this.sendPingResponseIfNeeded();
+            return;
+        }
+
         try {
+            this.processingSubmit = true;
             new DispatchPhaseBhv(this).run(request);
             new ResponsePhaseBhv(this).run(request);
         } catch (Exception e) {
@@ -312,15 +337,45 @@ public class ApplicationReactImpl extends ShoppingApplication {
             exn.addSuppressed(e);
             throw exn;
         } finally {
-            try {
-                if (!this.dirtyViewMap.isEmpty()) {
-                    ApplicationReactRegistry.enqueueDirty(this);
-                    ApplicationReactRegistry.triggerImmediateFlush(this);
+            this.processingSubmit = false;
+        }
+    }
+
+    private void sendPingResponseIfNeeded() {
+        var hasReleasedViews = !this.releasedViews.isEmpty();
+        var now = System.currentTimeMillis();
+        var shouldSendActiveViews = (now - this.lastActiveViewsSentAt) >= ACTIVE_VIEWS_INTERVAL;
+
+        if (!hasReleasedViews && !shouldSendActiveViews) {
+            return;
+        }
+
+        var json = new JsonStreamWriter();
+        json.beginObject();
+        {
+            if (hasReleasedViews) {
+                json.name("releasedViews");
+                json.beginArray();
+                String released;
+                while ((released = this.releasedViews.poll()) != null) {
+                    json.value(released);
                 }
-            } catch (Exception e) {
-                LOG.error("error in endRequest", e);
+                json.endArray();
+            }
+
+            if (shouldSendActiveViews) {
+                this.lastActiveViewsSentAt = now;
+                json.name("activeViews");
+                json.beginArray();
+                for (var vsid : this.viewMap.keySet()) {
+                    json.value(vsid);
+                }
+                json.endArray();
             }
         }
+        json.endObject();
+
+        this.sendTextToClient(json.result());
     }
 
     // :: Internal
@@ -332,9 +387,13 @@ public class ApplicationReactImpl extends ShoppingApplication {
             return;
         }
 
+        var dirtyViews = drainDirtyViews();
+        if (dirtyViews.isEmpty()) {
+            return;
+        }
+
         try {
-            var pushRequest = Map.<String, Object>of();
-            new ResponsePhaseBhv(this).run(pushRequest);
+            new ResponsePhaseBhv(this).run(null, dirtyViews);
         } catch (Exception e) {
             LOG.error("Error during background flush", e);
         }
@@ -342,6 +401,16 @@ public class ApplicationReactImpl extends ShoppingApplication {
         if (!this.dirtyViewMap.isEmpty()) {
             ApplicationReactRegistry.enqueueDirty(this);
         }
+    }
+
+    private List<GenericViewImpl> drainDirtyViews() {
+        var snapshot = new java.util.ArrayList<GenericViewImpl>(this.dirtyViewMap.size());
+        var it = this.dirtyViewMap.values().iterator();
+        while (it.hasNext()) {
+            snapshot.add(it.next());
+            it.remove();
+        }
+        return snapshot;
     }
 
     protected void sendTextToClient(String text) {
@@ -413,12 +482,7 @@ public class ApplicationReactImpl extends ShoppingApplication {
                             formData = Collections.emptyMap();
                         }
 
-                        me.lock.lock();
-                        try {
-                            view.submit(eventCode, eventQtde, formData);
-                        } finally {
-                            me.lock.unlock();
-                        }
+                        view.submit(eventCode, eventQtde, formData);
                     } catch (@SuppressWarnings("java:S1181") Throwable e) {
                         me.alertUnexpectedError(LOG, e.getMessage(), e);
                         view.update();
@@ -494,9 +558,10 @@ public class ApplicationReactImpl extends ShoppingApplication {
             if (requestId != null) {
                 me.lastRequestId = requestId;
             }
-            var isPing = isPing(request);
 
-            if (!isPing && hasNoDirtyViews()) {
+            var dirtyViews = me.drainDirtyViews();
+
+            if (dirtyViews.isEmpty() && !me.historyDirty) {
                 return false;
             }
 
@@ -506,14 +571,38 @@ public class ApplicationReactImpl extends ShoppingApplication {
             var strWriter = new StringWriter();
             var json = new JsonExtensibleObjectOutput(new JsonWriter(strWriter));
             try {
-                this.writeResponse(json, requestId, isPing);
+                this.writeResponse(json, requestId, dirtyViews);
             } finally {
                 json.flush();
             }
 
-            // Send response to the client
             var jsonResponse = strWriter.toString();
-            me.sendTextToClient(jsonResponse);
+            if (jsonResponse.length() > 2) {
+                me.sendTextToClient(jsonResponse);
+            }
+
+            return true;
+        }
+
+        public boolean run(Long requestId, List<GenericViewImpl> dirtyViews) {
+            if (dirtyViews.isEmpty() && !me.historyDirty) {
+                return false;
+            }
+
+            me.doUpdateHistory();
+
+            var strWriter = new StringWriter();
+            var json = new JsonExtensibleObjectOutput(new JsonWriter(strWriter));
+            try {
+                this.writeResponse(json, requestId, dirtyViews);
+            } finally {
+                json.flush();
+            }
+
+            var jsonResponse = strWriter.toString();
+            if (jsonResponse.length() > 2) {
+                me.sendTextToClient(jsonResponse);
+            }
 
             return true;
         }
@@ -522,66 +611,31 @@ public class ApplicationReactImpl extends ShoppingApplication {
             return CoerceUtils.asLong(request.get("requestId"), null);
         }
 
-        private boolean isPing(Map<String, Object> request) {
-            return CoerceUtils.asBoolean(request.get("ping"), false);
-        }
-
-        private boolean hasNoDirtyViews() {
-            return !me.historyDirty && me.dirtyViewMap.isEmpty();
-        }
-
-        private void writeResponse(ExtensibleObjectOutput json, Long requestId, boolean isPing) {
+        private void writeResponse(ExtensibleObjectOutput json, Long requestId, List<GenericViewImpl> dirtyViews) {
             json.beginObject();
             {
                 if (requestId != null) {
                     json.name("requestId").value(requestId);
                 }
 
-                if (isPing) {
-                    json.name("ping").value(true);
-
-                    if (!me.releasedViews.isEmpty()) {
-                        json.name("releasedViews");
-                        json.beginArray();
-                        String released;
-                        while ((released = me.releasedViews.poll()) != null) {
-                            json.value(released);
-                        }
-                        json.endArray();
-                    }
-
-                    var now = System.currentTimeMillis();
-                    if (now - me.lastActiveViewsSentAt >= ACTIVE_VIEWS_INTERVAL) {
-                        me.lastActiveViewsSentAt = now;
-                        json.name("activeViews");
-                        json.beginArray();
-                        for (var vsid : me.viewMap.keySet()) {
-                            json.value(vsid);
-                        }
-                        json.endArray();
-                    }
+                var currentFragment = me.getFragment();
+                if (currentFragment != null && !currentFragment.equals(me.lastSentFragment)) {
+                    me.lastSentFragment = currentFragment;
+                    json.name("uri").value(currentFragment);
                 }
 
-                if (me.getFragment() != null) {
-                    json.name("uri").value(me.getFragment());
-                }
-
-                if (me.dirtyViewMap.size() > 0) {
+                if (!dirtyViews.isEmpty()) {
                     json.name("states");
                     json.beginArray();
 
-                    var dirtyViews = me.dirtyViewMap.values().iterator();
-
-                    while (dirtyViews.hasNext()) {
-                        var view = dirtyViews.next();
+                    for (var view : dirtyViews) {
                         me.lock.lock();
                         try {
                             view.presenter().commitComputedState();
-                            view.writeState(json);
                         } finally {
                             me.lock.unlock();
                         }
-                        dirtyViews.remove();
+                        view.writeState(json);
                     }
 
                     json.endArray();

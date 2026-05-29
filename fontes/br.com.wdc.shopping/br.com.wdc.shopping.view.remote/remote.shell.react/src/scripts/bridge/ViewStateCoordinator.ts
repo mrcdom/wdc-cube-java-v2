@@ -176,10 +176,6 @@ export class ViewStateCoordinator {
     this.submit(BROWSER_VSID, -2)
   }
 
-  onKeepAlive() {
-    this.submit(BROWSER_VSID, 2)
-  }
-
   applyViewStates(stateList: { '#': string }[]) {
     for (let i = 0, ilen = stateList.length; i < ilen; i++) {
       let viewState = stateList[i]

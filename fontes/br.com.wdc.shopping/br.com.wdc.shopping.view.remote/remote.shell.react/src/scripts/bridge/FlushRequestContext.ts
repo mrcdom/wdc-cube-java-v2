@@ -25,6 +25,15 @@ export class FlushRequestContext {
     this.app = app
     this.socket = null
 
+    // Restore request counter from sessionStorage (survives F5)
+    const savedSeq = sessionStorage.getItem('req_seq')
+    if (savedSeq) {
+      const parsed = parseInt(savedSeq, 10)
+      if (!isNaN(parsed) && parsed > 0) {
+        this.requestCount = parsed
+      }
+    }
+
     document.addEventListener('visibilitychange', this.onVisibilityOrFocus)
     window.addEventListener('focus', this.onVisibilityOrFocus)
   }
@@ -131,7 +140,6 @@ export class FlushRequestContext {
       socket.send(
         JSON.stringify({
           ping: true,
-          requestId: this.lastProcessedId,
           path: app.path,
           secret: app.dataSecurity.getSignature(),
         }),
@@ -158,23 +166,19 @@ export class FlushRequestContext {
       }
       const response = JSON.parse(e.data)
 
-      //console.log(response);
-
-      if (response.ping) {
-        me.lastSentRequestId = response.requestId
-        me.lastProcessedId = response.requestId
-        if (response.releasedViews) {
-          app.viewGarbageCollector.release(response.releasedViews)
-        }
-        if (response.activeViews) {
-          app.viewGarbageCollector.sweep(response.activeViews)
-        }
+      if (response.releasedViews) {
+        app.viewGarbageCollector.release(response.releasedViews)
+      }
+      if (response.activeViews) {
+        app.viewGarbageCollector.sweep(response.activeViews)
       }
 
-      for (let i = me.lastProcessedId + 1; i <= response.requestId; i++) {
-        me.requestMap.delete(i)
-        me.userRequestIds.delete(i)
-        me.lastProcessedId = i
+      if (response.requestId != null) {
+        for (let i = me.lastProcessedId + 1; i <= response.requestId; i++) {
+          me.requestMap.delete(i)
+          me.userRequestIds.delete(i)
+          me.lastProcessedId = i
+        }
       }
 
       if (response.uri) {
@@ -213,7 +217,8 @@ export class FlushRequestContext {
     if (this.socket?.readyState === WebSocket.OPEN) {
       this.pendingKeepAlive = window.setTimeout(() => {
         this.pendingKeepAlive = 0
-        this.app.onKeepAlive()
+        this.persistState()
+        this.socket!.send(JSON.stringify({ ping: true }))
       }, 80)
     }
   }
@@ -268,6 +273,10 @@ export class FlushRequestContext {
         scope.forceUpdate()
       }
     }
+  }
+
+  private persistState() {
+    sessionStorage.setItem('req_seq', String(this.requestCount))
   }
 
   private readonly keepAlive = () => {

@@ -29,6 +29,7 @@ public final class ApplicationReactRegistry {
     private static final Duration FLUSH_INTERVAL = Duration.ofMillis(50);
     private static final Duration EXPIRY_CHECK_INTERVAL = Duration.ofSeconds(30);
     private static final long WAKEUP_MIN_GAP_NANOS = Duration.ofMillis(10).toNanos();
+    private static final long WAKEUP_FAST_GAP_NANOS = Duration.ofMillis(16).toNanos();
 
     private static final ConcurrentHashMap<String, ApplicationReactImpl> INSTANCE_MAP = new ConcurrentHashMap<>();
     private static final ConcurrentLinkedQueue<ApplicationReactImpl> DIRTY_APP_QUEUE = new ConcurrentLinkedQueue<>();
@@ -116,7 +117,8 @@ public final class ApplicationReactRegistry {
         // Per-app debounce: skip if last wake-up was too recent
         long now = System.nanoTime();
         long last = app.lastWakeupNanos;
-        if (now - last < WAKEUP_MIN_GAP_NANOS) {
+        long gap = app.processingSubmit ? WAKEUP_FAST_GAP_NANOS : WAKEUP_MIN_GAP_NANOS;
+        if (now - last < gap) {
             return;
         }
         app.lastWakeupNanos = now;

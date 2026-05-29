@@ -4,19 +4,20 @@ import java.nio.file.Path;
 import java.util.concurrent.ScheduledExecutorService;
 
 import org.h2.jdbcx.JdbcDataSource;
-import br.com.wdc.framework.commons.log.Log;
 
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
+import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.sql.SqlDataSource;
 import br.com.wdc.framework.commons.sql.SqlDataSourceDelegate;
+import br.com.wdc.shopping.domain.ShoppingConfig;
+import br.com.wdc.shopping.domain.config.AppConfig;
 import br.com.wdc.shopping.domain.security.CryptoProvider;
 import br.com.wdc.shopping.domain.security.JceCryptoProvider;
 import br.com.wdc.shopping.persistence.RepositoryBootstrap;
 import br.com.wdc.shopping.persistence.concurrent.ScheduledExecutorAdapter;
+import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
 import br.com.wdc.shopping.scripts.sgbd.DBCreate;
 import br.com.wdc.shopping.view.remote.host.viewimpl.ApplicationReactRegistry;
-import br.com.wdc.shopping.domain.ShoppingConfig;
-import br.com.wdc.shopping.domain.config.AppConfig;
 
 public class BusinessContext {
 
@@ -69,6 +70,8 @@ public class BusinessContext {
             if (jwtSecret != null && !jwtSecret.isBlank()) {
                 RepositoryBootstrap.initializeSecurity(jwtSecret);
             }
+
+            LoginPresenter.simulateSlowLogin(config.getBoolean("simulation.slowLogin", false));
 
             LOG.info("Shopping backend context initialized with database {}", dataSource.getURL());
         } catch (Exception e) {

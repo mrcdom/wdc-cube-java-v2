@@ -33,3 +33,7 @@ cors.allowAll = true
 # JWT secret for API authentication (RepositoryApiRoutes)
 # If not set, API endpoints are served without authentication
 jwt.secret = "wdc-shopping-jwt-s3cr3t-k3y-ch4ng3-1n-pr0duct10n"
+
+[simulation]
+# Simulate slow login (adds 3s delay in LoginPresenter)
+slowLogin = true
