@@ -54,6 +54,7 @@ class PurchasesPanelClass extends BaseViewClass<ViewProps, PurchasesPanelState> 
       itemHeight = firstItem.offsetHeight + parseFloat(style.marginTop) + parseFloat(style.marginBottom)
     }
     const capacity = Math.max(1, Math.floor(containerHeight / itemHeight))
+    if (capacity === this.state.pageSize) return
     const { vsid } = this
     bridge.setFormField(vsid, 'p.capacity', capacity)
     bridge.submitSilent(vsid, ON_PAGE_SIZE_CHANGE)

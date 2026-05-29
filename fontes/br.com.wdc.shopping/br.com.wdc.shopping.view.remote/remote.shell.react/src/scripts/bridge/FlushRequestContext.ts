@@ -4,8 +4,8 @@ import { BROWSER_VSID, KEEP_ALIVE_INTERVAL } from './constants'
 
 export class FlushRequestContext {
   private readonly app: ViewStateCoordinator
-  private readonly onVisibilityOrFocus = () => {
-    if (!document.hidden) {
+  private readonly onVisibilityChange = () => {
+    if (!document.hidden && this.socket?.readyState === WebSocket.OPEN) {
       this.keepAliveNow()
     }
   }
@@ -20,6 +20,7 @@ export class FlushRequestContext {
   private submittingTimer = 0
   private submittingTimeout = 0
   private userRequestIds = new Set<number>()
+  private pendingSecret: string | null = null
 
   constructor(app: ViewStateCoordinator) {
     this.app = app
@@ -34,8 +35,7 @@ export class FlushRequestContext {
       }
     }
 
-    document.addEventListener('visibilitychange', this.onVisibilityOrFocus)
-    window.addEventListener('focus', this.onVisibilityOrFocus)
+    document.addEventListener('visibilitychange', this.onVisibilityChange)
   }
 
   submit(formMap: FormMapType, vsid: string, eventId: number, silent = false) {
@@ -104,6 +104,10 @@ export class FlushRequestContext {
       }
 
       if (hasData) {
+        if (this.pendingSecret) {
+          requestObj.secret = this.pendingSecret
+          this.pendingSecret = null
+        }
         socket.send(JSON.stringify(requestObj))
         if (this.userRequestIds.size > 0) {
           this.setSubmitting(true)
@@ -134,16 +138,9 @@ export class FlushRequestContext {
 
     socket.onopen = () => {
       app.isConnected = true
+      this.pendingSecret = app.dataSecurity.getSignature()
       this.initKeepAliveChecks()
-      this.keepAliveNow()
-
-      socket.send(
-        JSON.stringify({
-          ping: true,
-          path: app.path,
-          secret: app.dataSecurity.getSignature(),
-        }),
-      )
+      this.flush()
     }
 
     socket.onerror = (error) => {

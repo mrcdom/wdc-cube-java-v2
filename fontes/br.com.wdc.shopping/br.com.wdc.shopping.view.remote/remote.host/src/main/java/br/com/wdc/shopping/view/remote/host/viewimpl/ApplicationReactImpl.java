@@ -93,7 +93,7 @@ public class ApplicationReactImpl extends ShoppingApplication {
     private final Map<String, GenericViewImpl> dirtyViewMap = new ConcurrentHashMap<>();
     private final Map<String, GenericViewImpl> viewMap = new ConcurrentHashMap<>();
     private final ConcurrentLinkedQueue<String> releasedViews = new ConcurrentLinkedQueue<>();
-    private long lastRequestId;
+    private long lastRequestId = -1;
     private long lastActiveViewsSentAt;
     private String lastSentFragment;
     private boolean historyDirty;
@@ -295,7 +295,7 @@ public class ApplicationReactImpl extends ShoppingApplication {
         this.lastSentFragment = null;
         this.historyDirty = true;
         this.releasedViews.clear();
-        this.lastActiveViewsSentAt = 0;
+        this.lastActiveViewsSentAt = System.currentTimeMillis();
         this.updateAllViews();
     }
 

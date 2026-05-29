@@ -133,12 +133,11 @@ public class DispatcherHandler {
             
             LOG.debug("WebSocket connection established for session: {} (wsId: {})", appId, this.activeWsSessionId);
 
-            // Phase C: on reconnect, mark all views dirty and trigger flush
+            // Phase C: on reconnect, mark all views dirty (will be flushed when event -1 arrives)
             ApplicationReactImpl app = ApplicationReactRegistry.get(appId);
             if (app != null) {
                 app.setWsSession(this.wsSession);
                 app.resetForReconnect();
-                ApplicationReactRegistry.triggerImmediateFlush(app);
             }
             
         } catch (Exception e) {
