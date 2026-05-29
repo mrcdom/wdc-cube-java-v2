@@ -43,6 +43,7 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
         var totalCost = computeTotalCost();
         var totalText = "R$ " + String.format("%.2f", totalCost);
 
+        // @formatter:off
         return div("").style("flex:1;min-height:0;overflow-y:auto").children(
                 div("")
                         .style(PAGE_WRAPPER)
@@ -69,9 +70,11 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
 
                                         // Cart content
                                         renderContent(items, empty, totalText))));
+        // @formatter:on
     }
 
     private VNode renderEmptyState(boolean empty) {
+        // @formatter:off
         return div(empty
                         ? "d-flex flex-column align-items-center justify-content-center py-5"
                         : "d-none")
@@ -84,9 +87,11 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
                                 .style("cursor:pointer;color:" + PRIMARY + ";font-weight:bold;font-size:1rem")
                                 .text("Vamos às compras!")
                                 .on("click", evt -> safeAction("Go shopping", this.presenter::onOpenProducts)));
+        // @formatter:on
     }
 
     private VNode renderContent(List<CartItem> items, boolean empty, String totalText) {
+        // @formatter:off
         return div("")
                 .style(empty ? "display:none" : "")
                 .children(
@@ -114,6 +119,7 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
                                         span(BsIcons.BAG),
                                         span("").text(" FINALIZAR PEDIDO"))
                                         .on("click", evt -> safeAction("Buy", this.presenter::onBuy))));
+        // @formatter:on
     }
 
     private VNode renderItem(CartItem item) {
@@ -121,6 +127,7 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
         var subtotal = "R$ " + String.format("%.2f", item.price * item.quantity);
         var qty = "x" + item.quantity;
 
+        // @formatter:off
         return div("")
                 .key(String.valueOf(item.id))
                 .style(LIST_ITEM)
@@ -136,6 +143,7 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
                                 .children(span(BsIcons.TRASH))
                                 .on("click", evt -> safeAction("Remove item",
                                         () -> this.presenter.onRemoveProduct(item.id))));
+        // @formatter:on
     }
 
     private double computeTotalCost() {

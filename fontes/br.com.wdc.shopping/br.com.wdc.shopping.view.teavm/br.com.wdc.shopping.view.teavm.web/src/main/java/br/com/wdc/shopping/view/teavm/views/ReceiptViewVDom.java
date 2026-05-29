@@ -46,6 +46,7 @@ public class ReceiptViewVDom extends AbstractVDomView<ReceiptPresenter> {
             totalText = "R$ " + String.format("%.2f", total);
         }
 
+        // @formatter:off
         return div("").style("flex:1;min-height:0;overflow-y:auto").children(
                 div("")
                         .style(PAGE_WRAPPER)
@@ -102,9 +103,11 @@ public class ReceiptViewVDom extends AbstractVDomView<ReceiptPresenter> {
                                                         span("").text(" Voltar aos produtos"))
                                                 .on("click",
                                                         evt -> safeAction("Back", this.presenter::onOpenProducts)))));
+        // @formatter:on
     }
 
     private VNode renderItemsTable(List<ReceiptItem> items) {
+        // @formatter:off
         return div("")
                 .style(SEPARATOR + ";padding-top:8px")
                 .children(
@@ -117,6 +120,7 @@ public class ReceiptViewVDom extends AbstractVDomView<ReceiptPresenter> {
                                         span("").style("width:100px;text-align:right").text("VALOR")),
                         // Items
                         div("").children(items.stream().map(this::renderItemRow).toList()));
+        // @formatter:on
     }
 
     private VNode renderItemRow(ReceiptItem item) {
@@ -124,6 +128,7 @@ public class ReceiptViewVDom extends AbstractVDomView<ReceiptPresenter> {
         var qty = String.valueOf(item.quantity);
         var value = "R$ " + String.format("%.2f", item.value);
 
+        // @formatter:off
         return div("")
                 .key(desc + qty)
                 .style("display:flex;align-items:center;padding:6px 0")
@@ -131,5 +136,6 @@ public class ReceiptViewVDom extends AbstractVDomView<ReceiptPresenter> {
                         span("").style("flex:1;font-size:0.85rem").text(desc),
                         span("").style("width:80px;text-align:center;font-size:0.85rem").text(qty),
                         span("").style("width:100px;text-align:right;font-weight:bold;font-size:0.85rem").text(value));
+        // @formatter:on
     }
 }

@@ -50,6 +50,7 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
 
         String inputStyle = loading ? INPUT_DISABLED : INPUT;
 
+        // @formatter:off
         return div("d-flex justify-content-center align-items-center")
                 .style("flex:1;min-height:0;background:" + SURFACE_SECONDARY)
                 .children(
@@ -131,6 +132,7 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
                                                 span("fw-bold").style("color:" + TEXT_DARK).text("admin"),
                                                 textNode(" / senha "),
                                                 span("fw-bold").style("color:" + TEXT_DARK).text("admin")))));
+        // @formatter:on
     }
 
     private void emitEnter() {

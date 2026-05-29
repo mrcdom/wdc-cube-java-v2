@@ -48,6 +48,7 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
         var purchasesPanelEl = this.state.purchasesPanelView instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
         var contentViewEl = this.state.contentView instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
 
+        // @formatter:off
         return div("d-flex flex-column flex-grow-1").style("flex:1;min-height:0;overflow:hidden").children(
                 // App bar
                 renderNavbar(nickName, cartCount),
@@ -62,9 +63,11 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
 
                 // Bottom navigation
                 renderBottomNav());
+        // @formatter:on
     }
 
     private VNode renderNavbar(String nickName, String cartCount) {
+        // @formatter:off
         return nav("navbar navbar-dark px-2 px-sm-3")
                 .style(NAVBAR)
                 .children(
@@ -105,6 +108,7 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
                                                 span("")
                                                         .style(CART_BADGE)
                                                         .text(cartCount))));
+        // @formatter:on
     }
 
     private VNode renderContentPane(HTMLElement productsPanelEl, HTMLElement purchasesPanelEl,
@@ -120,6 +124,7 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
         var productsHide = this.showingProducts ? "" : "d-none d-md-flex";
         var purchasesHide = this.showingProducts ? "d-none d-md-flex" : "";
 
+        // @formatter:off
         return div("flex-grow-1 d-flex flex-column flex-md-row")
                 .style(CONTENT_PANE)
                 .children(
@@ -127,6 +132,7 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
                                 .style("display:flex;flex-direction:column"),
                         slot("h-100 " + purchasesHide, purchasesPanelEl)
                                 .style("width:320px;flex-shrink:0;display:flex;flex-direction:column"));
+        // @formatter:on
     }
 
     private VNode renderBottomNav() {
@@ -138,6 +144,8 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
                 : "btn flex-grow-1 rounded-0 py-3 fw-bold text-primary border-0";
 
         // Bottom nav only on mobile (hidden on md+)
+
+        // @formatter:off
         return footer("d-flex d-md-none border-top bg-white flex-shrink-0").children(
                 button(prodCls)
                         .children(span(BsIcons.SHOP), span("").text(" Produtos"))
@@ -145,6 +153,7 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
                 button(histCls)
                         .children(span(BsIcons.CLOCK_HISTORY), span("").text(" Histórico"))
                         .on("click", evt -> switchTab(false)));
+        // @formatter:on
     }
 
     private void switchTab(boolean showProducts) {

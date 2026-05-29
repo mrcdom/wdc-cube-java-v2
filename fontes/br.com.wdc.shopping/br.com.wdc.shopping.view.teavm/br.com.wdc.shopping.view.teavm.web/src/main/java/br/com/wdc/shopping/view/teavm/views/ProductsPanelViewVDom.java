@@ -26,12 +26,14 @@ public class ProductsPanelViewVDom extends AbstractVDomView<ProductsPanelPresent
     protected VNode render() {
         var products = this.state.products;
 
+        // @formatter:off
         return div("p-3").style("flex:1;min-width:0;min-height:0;overflow-y:auto").children(
                 h6("fw-bold text-uppercase mb-2")
                         .style(SECTION_LABEL)
                         .text("PRODUTOS"),
                 div("row row-cols-2 row-cols-md-3 g-3")
                         .children(products != null ? products.stream().map(this::renderCard).toList() : List.of()));
+        // @formatter:on
     }
 
     private VNode renderCard(ProductInfo product) {
@@ -39,6 +41,7 @@ public class ProductsPanelViewVDom extends AbstractVDomView<ProductsPanelPresent
         var name = product.name != null ? product.name : "";
         var price = product.price > 0 ? "R$ " + String.format("%.2f", product.price) : "";
 
+        // @formatter:off
         return div("col").key(String.valueOf(product.id)).children(
                 div("")
                         .style(PRODUCT_CARD)
@@ -62,5 +65,6 @@ public class ProductsPanelViewVDom extends AbstractVDomView<ProductsPanelPresent
                                                 span("")
                                                         .style(PRICE_MD)
                                                         .text(price))));
+        // @formatter:on
     }
 }

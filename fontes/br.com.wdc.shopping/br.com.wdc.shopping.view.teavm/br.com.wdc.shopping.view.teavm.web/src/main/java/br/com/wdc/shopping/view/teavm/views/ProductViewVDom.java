@@ -51,6 +51,7 @@ public class ProductViewVDom extends AbstractVDomView<ProductPresenter> {
             description = "";
         }
 
+        // @formatter:off
         return div("").style("flex:1;min-height:0;overflow-y:auto").children(
                 div("")
                         .style(PAGE_WRAPPER)
@@ -134,5 +135,6 @@ public class ProductViewVDom extends AbstractVDomView<ProductPresenter> {
                         div("alert alert-danger m-3")
                                 .style(showError ? "" : "display:none")
                                 .text(errorMessage)));
+        // @formatter:on
     }
 }

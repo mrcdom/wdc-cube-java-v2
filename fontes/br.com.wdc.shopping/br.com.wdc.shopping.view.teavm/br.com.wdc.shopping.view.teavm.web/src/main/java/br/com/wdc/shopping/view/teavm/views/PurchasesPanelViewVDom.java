@@ -59,6 +59,7 @@ public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPrese
         int totalPages = Math.max(1, (int) Math.ceil((double) this.state.totalCount / pageSize));
         var pageInfo = (this.state.page + 1) + " / " + totalPages;
 
+        // @formatter:off
         return div("p-2 d-flex flex-column").style("flex:1;min-width:0;min-height:0;overflow:hidden").children(
                 h6("fw-bold mb-1").text("Histórico de Compras"),
                 p("text-muted small mb-0").text("Toque em uma compra para ver os detalhes"),
@@ -78,6 +79,7 @@ public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPrese
                         button("btn btn-sm btn-outline-secondary")
                                 .children(span(BsIcons.CHEVRON_RIGHT))
                                 .on("click", this.nextPageListener)));
+        // @formatter:on
     }
 
     private VNode renderItem(PurchaseInfo purchase) {
@@ -86,6 +88,7 @@ public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPrese
         var items = purchase.items != null ? String.join(", ", purchase.items) : "";
         var total = purchase.total > 0 ? "R$ " + String.format("%.2f", purchase.total) : "";
 
+        // @formatter:off
         return div("")
                 .key(String.valueOf(purchase.id))
                 .style(PURCHASE_ITEM)
@@ -107,6 +110,7 @@ public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPrese
                                         span("")
                                                 .style("font-weight:bold;white-space:nowrap;color:" + TEXT_DARK)
                                                 .text(total)));
+        // @formatter:on
     }
 
     private void scheduleResize() {
