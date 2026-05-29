@@ -1,7 +1,7 @@
 import React from 'react'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
-import app, { type ViewProps } from '@root/bridge'
+import bridge, { type ViewProps } from '@root/bridge'
 import { BaseViewClass } from '@root/utils/ViewUtils'
 
 export type RootViewState = {
@@ -24,7 +24,7 @@ class RootViewClass extends BaseViewClass<ViewProps, RootViewState> {
     }
 
     if (state.contentViewId) {
-      return app.createView(state.contentViewId)
+      return bridge.createView(state.contentViewId)
     }
 
     return (

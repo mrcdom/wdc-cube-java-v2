@@ -10,7 +10,7 @@ import Snackbar from '@mui/material/Snackbar'
 import MuiAlert from '@mui/material/Alert'
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
-import app, { type ViewProps } from '@root/bridge'
+import bridge, { type ViewProps } from '@root/bridge'
 import { BaseViewClass } from '@root/utils/ViewUtils'
 import * as NumberUtils from '@root/utils/NumberUtils'
 import * as EndpointUtils from '@root/utils/EndpointUtils'
@@ -203,19 +203,19 @@ class ProductViewClass extends BaseViewClass<ViewProps, ProductViewState> {
 
   readonly emitAddToCart = () => {
     const { vsid, state } = this
-    app.setFormField(vsid, 'p.quantity', state.quantity)
-    app.submit(vsid, ON_ADD_TO_CART)
+    bridge.setFormField(vsid, 'p.quantity', state.quantity)
+    bridge.submit(vsid, ON_ADD_TO_CART)
   }
 
   readonly emitGoHome = () => {
     const { vsid } = this
-    app.submit(vsid, ON_OPEN_PRODUCTS)
+    bridge.submit(vsid, ON_OPEN_PRODUCTS)
   }
 
   readonly emitIncrement = () => {
     const { vsid, state } = this
     state.quantity = (state.quantity ?? 1) + 1
-    app.setFormField(vsid, 'quantity', state.quantity)
+    bridge.setFormField(vsid, 'quantity', state.quantity)
     this.forceUpdate()
   }
 
@@ -224,7 +224,7 @@ class ProductViewClass extends BaseViewClass<ViewProps, ProductViewState> {
     const cur = state.quantity ?? 1
     if (cur > 1) {
       state.quantity = cur - 1
-      app.setFormField(vsid, 'quantity', state.quantity)
+      bridge.setFormField(vsid, 'quantity', state.quantity)
       this.forceUpdate()
     }
   }

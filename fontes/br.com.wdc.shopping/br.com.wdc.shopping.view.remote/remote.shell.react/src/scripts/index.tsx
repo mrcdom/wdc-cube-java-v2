@@ -3,7 +3,7 @@ import * as ReactDOM from 'react-dom/client'
 import CssBaseline from '@mui/material/CssBaseline'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
 
-import app from './bridge'
+import bridge from './bridge'
 
 import BrowserView from './views/BrowserView'
 import SlotView from './views/SlotView'
@@ -16,7 +16,7 @@ import ProductView from './views/ProductView'
 import ProductsPanel from './views/home/ProductsPanel'
 import PurchasesPanel from './views/home/PurchasesPanel'
 
-app.registerComponents(
+bridge.registerComponents(
   BrowserView,
   SlotView,
   RootView,
@@ -58,7 +58,7 @@ if (domContainer) {
   root.render(
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      {app.createBrowserView()}
+      {bridge.createBrowserView()}
     </ThemeProvider>,
   )
 }

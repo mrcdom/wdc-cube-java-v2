@@ -2,7 +2,7 @@ import React from 'react'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Container from '@mui/material/Container'
-import app, { type ViewProps } from '@root/bridge'
+import bridge, { type ViewProps } from '@root/bridge'
 import { BaseViewClass } from '@root/utils/ViewUtils'
 import HeaderPanel from './home/HeaderPanel'
 import ContentPanel from './home/ContentPanel'
@@ -39,7 +39,7 @@ class HomeViewClass extends BaseViewClass<ViewProps, HomeViewState> {
               <ContentPanel contentViewId={state.contentViewId} productsPanelViewId={state.productsPanelViewId} />
             </Container>
           </Box>
-          {!state.contentViewId && app.createView(state.purchasesPanelViewId)}
+          {!state.contentViewId && bridge.createView(state.purchasesPanelViewId)}
         </Box>
       </Box>
     )

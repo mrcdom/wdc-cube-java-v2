@@ -5,7 +5,7 @@ import CardActionArea from '@mui/material/CardActionArea'
 import CardMedia from '@mui/material/CardMedia'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
-import app, { type ViewProps } from '@root/bridge'
+import bridge, { type ViewProps } from '@root/bridge'
 import { BaseViewClass, BasePanelClass } from '@root/utils/ViewUtils'
 import * as NumberUtils from '@root/utils/NumberUtils'
 import * as EndpointUtils from '@root/utils/EndpointUtils'
@@ -139,8 +139,8 @@ class CardProdutoClass extends BasePanelClass<CardProdutoProps> {
 
   emitOpenProduct = () => {
     const { vsid, product } = this
-    app.setFormField(vsid, 'p.productId', product.id)
-    app.submit(vsid, ON_OPEN_PRODUCT)
+    bridge.setFormField(vsid, 'p.productId', product.id)
+    bridge.submit(vsid, ON_OPEN_PRODUCT)
   }
 }
 

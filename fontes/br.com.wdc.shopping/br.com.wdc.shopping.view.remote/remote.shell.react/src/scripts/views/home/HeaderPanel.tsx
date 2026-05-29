@@ -8,7 +8,7 @@ import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew'
-import app from '@root/bridge'
+import bridge from '@root/bridge'
 import { BasePanelClass } from '@root/utils/ViewUtils'
 import ShoppingLogo from './ShoppingLogo'
 
@@ -71,12 +71,12 @@ class HeaderPanelClass extends BasePanelClass<HeaderPanelProps> {
 
   readonly emitOpenCart = () => {
     const { vsid } = this
-    app.submit(vsid, ON_OPEN_CART)
+    bridge.submit(vsid, ON_OPEN_CART)
   }
 
   readonly emitExit = () => {
     const { vsid } = this
-    app.submit(vsid, ON_EXIT)
+    bridge.submit(vsid, ON_EXIT)
   }
 }
 

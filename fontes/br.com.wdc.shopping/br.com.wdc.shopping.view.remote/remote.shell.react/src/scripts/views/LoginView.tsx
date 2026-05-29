@@ -8,7 +8,7 @@ import Divider from '@mui/material/Divider'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
-import app, { type ViewProps } from '@root/bridge'
+import bridge, { type ViewProps } from '@root/bridge'
 import { BaseViewClass } from '@root/utils/ViewUtils'
 import ShoppingLogo from './home/ShoppingLogo'
 
@@ -166,9 +166,9 @@ class LoginViewClass extends BaseViewClass<ViewProps, LoginViewState> {
     const { vsid } = this
     const userName = this.usrInputRef.current?.value ?? ''
     const password = this.pwdInputRef.current?.value ?? ''
-    app.setFormField(vsid, 'userName', userName)
-    app.setFormField(vsid, 'password', await app.cipher(password))
-    app.submit(vsid, ON_ENTER)
+    bridge.setFormField(vsid, 'userName', userName)
+    bridge.setFormField(vsid, 'password', await bridge.cipher(password))
+    bridge.submit(vsid, ON_ENTER)
   }
 
   readonly onKeyDown = (e: React.KeyboardEvent) => {

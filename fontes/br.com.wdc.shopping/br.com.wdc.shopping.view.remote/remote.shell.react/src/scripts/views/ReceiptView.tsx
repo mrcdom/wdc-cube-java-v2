@@ -14,7 +14,7 @@ import Typography from '@mui/material/Typography'
 import Link from '@mui/material/Link'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined'
-import app, { type ViewProps } from '@root/bridge'
+import bridge, { type ViewProps } from '@root/bridge'
 import { BaseViewClass } from '@root/utils/ViewUtils'
 import * as NumberUtils from '@root/utils/NumberUtils'
 
@@ -141,7 +141,7 @@ class ReceiptViewClass extends BaseViewClass<ViewProps, ReceiptViewState> {
 
   readonly emitOpenProducts = () => {
     const { vsid } = this
-    app.submit(vsid, ON_OPEN_PRODUCTS)
+    bridge.submit(vsid, ON_OPEN_PRODUCTS)
   }
 }
 

@@ -18,7 +18,7 @@ import Link from '@mui/material/Link'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import DeleteIcon from '@mui/icons-material/Delete'
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
-import app, { type ViewProps } from '@root/bridge'
+import bridge, { type ViewProps } from '@root/bridge'
 import { BaseViewClass, BasePanelClass } from '@root/utils/ViewUtils'
 import * as NumberUtils from '@root/utils/NumberUtils'
 import * as EndpointUtils from '@root/utils/EndpointUtils'
@@ -214,12 +214,12 @@ class CartViewClass extends BaseViewClass<ViewProps, CartViewState> {
 
   readonly emitClickFinalizar = () => {
     const { vsid } = this
-    app.submit(vsid, ON_BUY)
+    bridge.submit(vsid, ON_BUY)
   }
 
   readonly emitClickVoltar = () => {
     const { vsid } = this
-    app.submit(vsid, ON_OPEN_PRODUCTS)
+    bridge.submit(vsid, ON_OPEN_PRODUCTS)
   }
 }
 
@@ -249,8 +249,8 @@ class RemoveProductButtonClass extends BasePanelClass<RemoveProductButtonProps> 
 
   readonly emitRemoveProduct = () => {
     const { vsid, product } = this
-    app.setFormField(vsid, 'p.productId', product.id)
-    app.submit(vsid, ON_REMOVE_PRODUCT)
+    bridge.setFormField(vsid, 'p.productId', product.id)
+    bridge.submit(vsid, ON_REMOVE_PRODUCT)
   }
 }
 
