@@ -1,7 +1,6 @@
 package br.com.wdc.shopping.view.teavm.views;
 
-import static br.com.wdc.shopping.view.teavm.vdom.VNode.div;
-import static br.com.wdc.shopping.view.teavm.vdom.VNode.slot;
+import static br.com.wdc.shopping.view.teavm.vdom.VNode.*;
 
 import org.teavm.jso.dom.html.HTMLDocument;
 
@@ -18,7 +17,8 @@ public class RootViewVDom extends AbstractVDomView<RootPresenter> {
     private boolean appended;
 
     public RootViewVDom(RootPresenter presenter) {
-        super("root", (ShoppingTeaVMApplication) presenter.app, presenter);
+        super("root", (ShoppingTeaVMApplication) presenter.app, presenter,
+                HTMLDocument.current().createElement("sp-theme"));
         this.state = presenter.state;
     }
 
@@ -35,11 +35,14 @@ public class RootViewVDom extends AbstractVDomView<RootPresenter> {
     protected VNode render() {
         var contentElement = this.state.contentView instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
         // @formatter:off
-        return div("d-flex flex-column")
-                    .style("height:100%;overflow:hidden")
+        return el("sp-theme")
+                    .attr("system", "spectrum")
+                    .attr("color", "light")
+                    .attr("scale", "medium")
+                    .style("display:flex;flex-direction:column;height:100%;overflow:hidden")
                     .children(
-                        slot("flex-grow-1", contentElement)
-                            .style("display:flex;flex-direction:column;min-height:0"));
+                        slot("", contentElement)
+                            .style("display:flex;flex-direction:column;flex-grow:1;min-height:0"));
         // @formatter:on
     }
 }

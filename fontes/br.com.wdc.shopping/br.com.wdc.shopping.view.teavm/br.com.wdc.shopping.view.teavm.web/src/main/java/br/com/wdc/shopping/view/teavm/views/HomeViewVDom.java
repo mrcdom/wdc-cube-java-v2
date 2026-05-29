@@ -1,7 +1,5 @@
 package br.com.wdc.shopping.view.teavm.views;
 
-import static br.com.wdc.shopping.view.teavm.theme.AppStyles.*;
-import static br.com.wdc.shopping.view.teavm.theme.BsColors.*;
 import static br.com.wdc.shopping.view.teavm.vdom.VNode.*;
 
 import org.teavm.jso.dom.html.HTMLElement;
@@ -11,7 +9,6 @@ import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeViewState;
 import br.com.wdc.shopping.view.teavm.AbstractViewTeaVM;
 import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
-import br.com.wdc.shopping.view.teavm.theme.BsIcons;
 import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
 import br.com.wdc.shopping.view.teavm.vdom.VNode;
 
@@ -49,110 +46,124 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
         var contentViewEl = this.state.contentView instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
 
         // @formatter:off
-        return div("d-flex flex-column flex-grow-1").style("flex:1;min-height:0;overflow:hidden").children(
-                // App bar
-                renderNavbar(nickName, cartCount),
-
-                // Tab navigation (mobile only, below header)
-                renderTabNav(),
-
-                // Error
-                div("alert alert-danger m-2")
-                        .style(showError ? "" : "display:none")
-                        .text(errorMessage),
-
-                // Content pane
-                renderContentPane(productsPanelEl, purchasesPanelEl, contentViewEl));
+        return div("")
+                .style("display:flex;flex-direction:column;flex-grow:1;flex:1;min-height:0;overflow:hidden")
+                .children(
+                    renderNavbar(nickName, cartCount),
+                    renderTabNav(),
+                    div("")
+                            .style(showError ? "display:flex;align-items:center;gap:10px;padding:12px 16px;margin:8px 16px;background:#fef2f2;border:1px solid #fecaca;border-radius:var(--app-radius-sm)" : "display:none")
+                            .children(
+                                    span("bi bi-exclamation-circle").style("color:#dc2626;font-size:1rem;flex-shrink:0"),
+                                    span("").style("font-size:0.85rem;color:#991b1b;font-weight:500").text(errorMessage)),
+                    renderContentPane(productsPanelEl, purchasesPanelEl, contentViewEl));
         // @formatter:on
     }
 
     private VNode renderNavbar(String nickName, String cartCount) {
         // @formatter:off
-        return nav("navbar navbar-dark px-2 px-sm-3")
-                .style(NAVBAR)
+        return el("sp-theme")
+                .attr("color", "dark")
+                .attr("scale", "medium")
+                .style("display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:linear-gradient(135deg, #0d66d0 0%, #1a8cff 100%);flex-shrink:0;box-shadow:0 2px 8px rgba(13,102,208,0.3)")
                 .children(
                         // Left: exit + greeting
-                        div("d-flex align-items-center gap-1 gap-sm-2").children(
-                                button("")
-                                        .style(NAVBAR_BUTTON)
-                                        .children(span(BsIcons.POWER))
-                                        .on("click", evt -> safeAction("Exit", this.presenter::onExit)),
-                                span("d-none d-sm-inline")
-                                        .style(NAVBAR_TEXT)
-                                        .text("Olá,"),
-                                span("d-none d-sm-inline")
-                                        .style(NAVBAR_TEXT_BOLD)
-                                        .text(nickName)),
+                        div("")
+                                .style("display:flex;align-items:center;gap:10px")
+                                .children(
+                                        el("sp-action-button")
+                                                .boolAttr("quiet", true)
+                                                .children(span("bi bi-box-arrow-left").style("font-size:1.1rem;color:#fff"))
+                                                .on("click", evt -> safeAction("Exit", this.presenter::onExit)),
+                                        div("sm-show")
+                                                .style("display:flex;flex-direction:column;line-height:1.2")
+                                                .children(
+                                                        span("")
+                                                                .style("font-size:0.7rem;color:rgba(255,255,255,0.7);font-weight:400")
+                                                                .text("Bem-vindo(a),"),
+                                                        span("")
+                                                                .style("font-size:0.85rem;font-weight:600;color:#fff")
+                                                                .text(nickName))),
 
                         // Center: logo
-                        div("d-flex align-items-center gap-1 gap-sm-2").children(
-                                span(BsIcons.CART).style(APP_LOGO_ICON_SM),
-                                div("").children(
-                                        span("")
-                                                .style(APP_LOGO_TEXT_SM)
-                                                .text("Shopping"),
-                                        div("d-none d-sm-block")
-                                                .style(APP_LOGO_SUBTITLE_SM)
-                                                .text("by WeDoCode"))),
+                        div("")
+                                .style("display:flex;align-items:center;gap:10px")
+                                .children(
+                                        div("")
+                                                .style("width:36px;height:36px;background:rgba(255,255,255,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)")
+                                                .children(span("bi bi-bag-check").style("font-size:1.2rem;color:#fff")),
+                                        div("").style("display:flex;flex-direction:column;line-height:1.2").children(
+                                                span("")
+                                                        .style("font-size:1rem;font-weight:700;color:#fff;letter-spacing:-0.3px")
+                                                        .text("Shopping"),
+                                                span("sm-show")
+                                                        .style("font-size:0.6rem;color:rgba(255,255,255,0.65);font-weight:400;letter-spacing:0.5px;text-transform:none")
+                                                        .text("By WeDoCode"))),
 
                         // Right: cart button
-                        div("d-flex align-items-center pe-2").children(
-                                button("")
-                                        .style(CART_BUTTON)
-                                        .on("click", evt -> safeAction("Open cart", this.presenter::onOpenCart))
-                                        .children(
-                                                span(BsIcons.CART),
-                                                span("d-none d-sm-inline")
-                                                        .style("font-size:0.9rem;color:" + TEXT_ON_PRIMARY)
-                                                        .text("Carrinho"),
-                                                span("")
-                                                        .style(CART_BADGE)
-                                                        .text(cartCount))));
+                        div("")
+                                .style("display:flex;align-items:center")
+                                .children(
+                                        el("sp-action-button")
+                                                .boolAttr("quiet", true)
+                                                .style("position:relative")
+                                                .on("click", evt -> safeAction("Open cart", this.presenter::onOpenCart))
+                                                .children(
+                                                        span("bi bi-bag").style("font-size:1.2rem;color:#fff"),
+                                                        span("sm-show")
+                                                                .style("font-size:0.85rem;color:#fff;font-weight:500;margin-left:6px")
+                                                                .text("Carrinho"),
+                                                        span("")
+                                                                .style("background:#fff;color:var(--app-accent);font-size:0.65rem;font-weight:700;padding:2px 6px;border-radius:10px;min-width:18px;text-align:center;margin-left:8px;box-shadow:0 2px 4px rgba(0,0,0,0.15)")
+                                                                .text(cartCount))));
         // @formatter:on
     }
 
     private VNode renderContentPane(HTMLElement productsPanelEl, HTMLElement purchasesPanelEl,
             HTMLElement contentViewEl) {
         if (contentViewEl != null) {
-            // Showing a content view (product detail, cart, receipt)
-            return slot("flex-grow-1", contentViewEl)
-                    .style(CONTENT_PANE);
+            return slot("", contentViewEl)
+                    .style("display:flex;flex-direction:column;flex-grow:1;overflow:auto;min-height:0;background:var(--app-bg)");
         }
 
-        // Responsive classes: on mobile, only one panel visible at a time
-        // On desktop (md+), both panels always visible side by side
-        var productsHide = this.showingProducts ? "" : "d-none d-md-flex";
-        var purchasesHide = this.showingProducts ? "d-none d-md-flex" : "";
+        var productsHide = this.showingProducts ? "" : "md-show";
+        var purchasesHide = this.showingProducts ? "md-show" : "";
 
         // @formatter:off
-        return div("flex-grow-1 d-flex flex-column flex-md-row")
-                .style(CONTENT_PANE)
+        return div("md-row")
+                .style("display:flex;flex-grow:1;overflow:auto;min-height:0;background:var(--app-bg)")
                 .children(
-                        slot("flex-grow-1 h-100 " + productsHide, productsPanelEl)
-                                .style("display:flex;flex-direction:column"),
-                        slot("h-100 flex-grow-1 flex-md-grow-0 slot-purchases " + purchasesHide, purchasesPanelEl)
-                                .style("display:flex;flex-direction:column"));
+                        slot("" + productsHide, productsPanelEl)
+                                .style("display:flex;flex-direction:column;flex-grow:1;height:100%"),
+                        slot("slot-purchases md-grow-0 " + purchasesHide, purchasesPanelEl)
+                                .style("display:flex;flex-direction:column;flex-grow:1;height:100%"));
         // @formatter:on
     }
 
     private VNode renderTabNav() {
-        var prodCls = this.showingProducts
-                ? "btn flex-grow-1 rounded-0 py-2 fw-bold text-primary border-0"
-                : "btn flex-grow-1 rounded-0 py-2 text-muted border-0";
-        var histCls = this.showingProducts
-                ? "btn flex-grow-1 rounded-0 py-2 text-muted border-0"
-                : "btn flex-grow-1 rounded-0 py-2 fw-bold text-primary border-0";
+        var activeTabStyle = "flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 0;font-size:0.8rem;font-weight:600;cursor:pointer;border:none;background:none;position:relative;color:var(--app-accent);transition:color 0.2s";
+        var inactiveTabStyle = "flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 0;font-size:0.8rem;font-weight:500;cursor:pointer;border:none;background:none;position:relative;color:var(--app-text-secondary);transition:color 0.2s";
+        var indicatorStyle = "position:absolute;bottom:0;left:16px;right:16px;height:2.5px;background:var(--app-accent);border-radius:2px";
 
         // Tab nav only on mobile (hidden on md+)
-
         // @formatter:off
-        return nav("d-flex d-md-none border-bottom bg-white flex-shrink-0").children(
-                button(prodCls)
-                        .children(span(BsIcons.SHOP), span("").text(" Produtos"))
-                        .on("click", evt -> switchTab(true)),
-                button(histCls)
-                        .children(span(BsIcons.CLOCK_HISTORY), span("").text(" Histórico"))
-                        .on("click", evt -> switchTab(false)));
+        return nav("md-hide")
+                .style("display:flex;background:var(--app-surface);flex-shrink:0;box-shadow:0 1px 0 var(--app-border)")
+                .children(
+                        button("")
+                                .style(this.showingProducts ? activeTabStyle : inactiveTabStyle)
+                                .children(
+                                        span("bi bi-grid-3x3-gap").style("font-size:1rem"),
+                                        span("").text("Produtos"),
+                                        this.showingProducts ? span("").style(indicatorStyle) : span("").style("display:none"))
+                                .on("click", evt -> switchTab(true)),
+                        button("")
+                                .style(this.showingProducts ? inactiveTabStyle : activeTabStyle)
+                                .children(
+                                        span("bi bi-clock-history").style("font-size:1rem"),
+                                        span("").text("Histórico"),
+                                        !this.showingProducts ? span("").style(indicatorStyle) : span("").style("display:none"))
+                                .on("click", evt -> switchTab(false)));
         // @formatter:on
     }
 

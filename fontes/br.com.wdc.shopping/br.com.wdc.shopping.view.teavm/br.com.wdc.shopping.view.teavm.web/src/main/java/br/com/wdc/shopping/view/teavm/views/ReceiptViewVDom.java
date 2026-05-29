@@ -1,7 +1,5 @@
 package br.com.wdc.shopping.view.teavm.views;
 
-import static br.com.wdc.shopping.view.teavm.theme.AppStyles.*;
-import static br.com.wdc.shopping.view.teavm.theme.BsColors.*;
 import static br.com.wdc.shopping.view.teavm.vdom.VNode.*;
 
 import java.util.Collections;
@@ -11,7 +9,6 @@ import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPres
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter.ReceiptViewState;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptItem;
 import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
-import br.com.wdc.shopping.view.teavm.theme.BsIcons;
 import br.com.wdc.shopping.view.teavm.util.DateUtils;
 import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
 import br.com.wdc.shopping.view.teavm.vdom.VNode;
@@ -47,59 +44,54 @@ public class ReceiptViewVDom extends AbstractVDomView<ReceiptPresenter> {
         }
 
         // @formatter:off
-        return div("").style("flex:1;min-height:0;overflow-y:auto").children(
+        return div("").style("flex:1;min-height:0;overflow-y:auto;background:var(--app-bg)").children(
                 div("")
-                        .style(PAGE_WRAPPER)
+                        .style("max-width:900px;margin:0 auto;padding:20px")
                         .children(
+                        // Success banner
                         div("")
-                                .style(CARD_LARGE)
+                                .style(showSuccess ? "display:flex;align-items:center;gap:10px;padding:14px 18px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:var(--app-radius-sm);margin-bottom:16px" : "display:none")
                                 .children(
-                                        h5("")
-                                                .style(SECTION_LABEL + ";margin:0 0 16px 0")
-                                                .text("IMPRIMA SEU RECIBO:"),
+                                        span("bi bi-check-circle-fill").style("color:#16a34a;font-size:1.2rem;flex-shrink:0"),
+                                        span("").style("font-size:0.9rem;color:#166534;font-weight:600").text("Compra realizada com sucesso!")),
 
-                                        // Success banner
-                                        div(showSuccess
-                                                        ? "d-flex align-items-center gap-2 mb-3"
-                                                        : "d-none")
-                                                .style(showSuccess ? SUCCESS_BANNER : "")
-                                                .children(
-                                                        span(BsIcons.CHECK_CIRCLE),
-                                                        span("")
-                                                                .style(SUCCESS_TEXT_STYLE)
-                                                                .text("Compra realizada com sucesso!")),
+                        div("")
+                                .style("background:var(--app-surface);border-radius:var(--app-radius);border:1px solid var(--app-border);padding:28px;box-shadow:var(--app-shadow-sm)")
+                                .children(
+                                        // Header
+                                        div("").style("display:flex;align-items:center;gap:10px;margin-bottom:20px").children(
+                                                div("")
+                                                        .style("width:40px;height:40px;background:var(--app-accent-light);border-radius:10px;display:flex;align-items:center;justify-content:center")
+                                                        .children(span("bi bi-receipt").style("color:var(--app-accent);font-size:1.1rem")),
+                                                div("").children(
+                                                        h5("").style("margin:0;font-weight:700;font-size:1rem;color:var(--app-text)").text("Recibo de Compra"),
+                                                        span("").style("font-size:0.75rem;color:var(--app-text-secondary)").text("WDC Shopping"))),
 
                                         // Receipt content (monospace)
                                         div("")
-                                                .style(RECEIPT_BOX)
+                                                .style("background:var(--app-bg);border:1px solid var(--app-border);border-radius:var(--app-radius-sm);padding:20px;font-family:'Courier New',Courier,monospace;font-size:0.82rem")
                                                 .children(
-                                                        span("")
-                                                                .style("font-weight:600;display:block;margin-bottom:4px")
-                                                                .text("WEDOCODE SHOPPING - SUA COMPRA CERTA NA INTERNET"),
-                                                        span("")
-                                                                .style("color:" + TEXT_SECONDARY + ";display:block;margin-bottom:12px")
-                                                                .text("Recibo de compra"),
-
                                                         // Date row
-                                                        div("d-flex justify-content-between mb-2").children(
-                                                                span("").style("color:" + TEXT_SECONDARY).text("Data:"),
-                                                                span("fw-bold").text(dateText)),
-
-                                                        // Total row
-                                                        div("d-flex justify-content-between mb-3").children(
-                                                                span("").style("color:" + TEXT_SECONDARY).text("Total:"),
-                                                                span("")
-                                                                        .style(PRICE_MD)
-                                                                        .text(totalText)),
+                                                        div("").style("display:flex;justify-content:space-between;margin-bottom:10px;padding-bottom:10px;border-bottom:1px dashed var(--app-border)").children(
+                                                                span("").style("color:var(--app-text-secondary)").text("Data:"),
+                                                                span("").style("font-weight:600;color:var(--app-text)").text(dateText)),
 
                                                         // Items table
-                                                        renderItemsTable(items)),
+                                                        renderItemsTable(items),
+
+                                                        // Total row
+                                                        div("").style("display:flex;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:2px solid var(--app-accent)").children(
+                                                                span("").style("font-weight:700;color:var(--app-text)").text("TOTAL:"),
+                                                                span("")
+                                                                        .style("font-size:1.1rem;font-weight:800;color:var(--app-accent)")
+                                                                        .text(totalText))),
 
                                         // Back button
-                                        button("btn btn-link mt-3 p-0")
-                                                .style(BTN_LINK)
+                                        el("sp-action-button")
+                                                .boolAttr("quiet", true)
+                                                .style("margin-top:20px")
                                                 .children(
-                                                        span(BsIcons.ARROW_BACK),
+                                                        span("bi bi-arrow-left"),
                                                         span("").text(" Voltar aos produtos"))
                                                 .on("click",
                                                         evt -> safeAction("Back", this.presenter::onOpenProducts)))));
@@ -109,11 +101,10 @@ public class ReceiptViewVDom extends AbstractVDomView<ReceiptPresenter> {
     private VNode renderItemsTable(List<ReceiptItem> items) {
         // @formatter:off
         return div("")
-                .style(SEPARATOR + ";padding-top:8px")
                 .children(
                         // Header
-                        div("d-flex fw-bold small mb-1 pb-1")
-                                .style(SEPARATOR + ";color:" + TEXT_SECONDARY)
+                        div("")
+                                .style("display:flex;font-weight:700;font-size:0.75rem;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid var(--app-border);color:var(--app-text-secondary);text-transform:uppercase;letter-spacing:0.5px")
                                 .children(
                                         span("").style("flex:1").text("ITEM"),
                                         span("").style("width:80px;text-align:center").text("QTD"),
@@ -131,11 +122,11 @@ public class ReceiptViewVDom extends AbstractVDomView<ReceiptPresenter> {
         // @formatter:off
         return div("")
                 .key(desc + qty)
-                .style("display:flex;align-items:center;padding:6px 0")
+                .style("display:flex;align-items:center;padding:6px 0;border-bottom:1px dotted var(--app-border)")
                 .children(
-                        span("").style("flex:1;font-size:0.85rem").text(desc),
-                        span("").style("width:80px;text-align:center;font-size:0.85rem").text(qty),
-                        span("").style("width:100px;text-align:right;font-weight:bold;font-size:0.85rem").text(value));
+                        span("").style("flex:1;font-size:0.82rem;color:var(--app-text)").text(desc),
+                        span("").style("width:80px;text-align:center;font-size:0.82rem;color:var(--app-text-secondary)").text(qty),
+                        span("").style("width:100px;text-align:right;font-weight:700;font-size:0.82rem;color:var(--app-text)").text(value));
         // @formatter:on
     }
 }
