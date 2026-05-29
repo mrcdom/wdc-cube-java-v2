@@ -13,7 +13,7 @@ import { ViewGarbageCollector } from './ViewGarbageCollector'
 
 const Cookie = new CookieConstructor()
 
-export class Application {
+export class ViewStateCoordinator {
   readonly id: string
   readonly history = history.createHashHistory()
 
@@ -118,39 +118,25 @@ export class Application {
   }
 
   bindView<T>(vsid: string) {
-    let scope = this.viewMap.get(vsid) ?? null
+    let scope = this.viewMap.get(vsid)
     if (!scope) {
-      scope = this.viewGarbageCollector.recover(vsid)
-      if (!scope) {
-        throw new Error(`Missing View Scope for id(${vsid})`)
-      }
+      scope = new ViewScope(vsid)
+      this.viewMap.set(vsid, scope)
     }
 
     const [updateCount, setUpdateCount] = React.useState(0)
     scope.forceUpdate = () => setUpdateCount((count) => count + 1)
 
     React.useEffect(() => {
-      // attached
+      this.viewGarbageCollector.mount(vsid)
       return () => {
-        // detached
-        this.viewGarbageCollector.mark(scope)
+        if (vsid !== BROWSER_VSID) {
+          this.viewGarbageCollector.unmount(vsid)
+        }
       }
     }, [])
 
     return { state: scope.getState() as T, scope }
-  }
-
-  holdView(vsid: string | undefined) {
-    React.useEffect(() => {
-      if (vsid) {
-        this.viewGarbageCollector.hold(vsid)
-      }
-      return () => {
-        if (vsid) {
-          this.viewGarbageCollector.release(vsid)
-        }
-      }
-    }, [vsid])
   }
 
   onStart() {
@@ -201,7 +187,6 @@ export class Application {
         continue
       }
       const vsid = viewState['#']
-      this.viewGarbageCollector.recover(vsid)
 
       let viewScope = this.viewMap.get(vsid)
       if (!viewScope) {
@@ -210,7 +195,6 @@ export class Application {
       }
 
       viewScope.setState(viewState)
-      this.viewGarbageCollector.updateAutoHolds(viewScope)
     }
   }
 

@@ -1,16 +1,16 @@
-import type { Application } from './Application'
+import type { ViewStateCoordinator } from './ViewStateCoordinator'
 import type { BrowserViewState } from './types'
 import { BROWSER_VSID } from './constants'
 
 export class ReconnectController {
-  app: Application
+  app: ViewStateCoordinator
   url = ''
   count = 0
   reconnectHandler = 0
   delay = 0
   cause: unknown
 
-  constructor(app: Application) {
+  constructor(app: ViewStateCoordinator) {
     this.app = app
     this.url = app.getBaseWebSocketUrl() + '/dispatcher/' + app.id
   }

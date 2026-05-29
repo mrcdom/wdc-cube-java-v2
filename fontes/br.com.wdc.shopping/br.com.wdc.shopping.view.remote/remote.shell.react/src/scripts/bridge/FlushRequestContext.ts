@@ -1,9 +1,9 @@
-import type { Application } from './Application'
+import type { ViewStateCoordinator } from './ViewStateCoordinator'
 import type { BrowserViewState, FormMapType } from './types'
 import { BROWSER_VSID, KEEP_ALIVE_INTERVAL } from './constants'
 
 export class FlushRequestContext {
-  private readonly app: Application
+  private readonly app: ViewStateCoordinator
   private readonly onVisibilityOrFocus = () => {
     if (!document.hidden) {
       this.keepAliveNow()
@@ -21,7 +21,7 @@ export class FlushRequestContext {
   private submittingTimeout = 0
   private userRequestIds = new Set<number>()
 
-  constructor(app: Application) {
+  constructor(app: ViewStateCoordinator) {
     this.app = app
     this.socket = null
 
@@ -163,6 +163,12 @@ export class FlushRequestContext {
       if (response.ping) {
         me.lastSentRequestId = response.requestId
         me.lastProcessedId = response.requestId
+        if (response.releasedViews) {
+          app.viewGarbageCollector.release(response.releasedViews)
+        }
+        if (response.activeViews) {
+          app.viewGarbageCollector.sweep(response.activeViews)
+        }
       }
 
       for (let i = me.lastProcessedId + 1; i <= response.requestId; i++) {

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Application } from './Application'
+import { ViewStateCoordinator } from './ViewStateCoordinator'
 import { BROWSER_VSID } from './constants'
 import type { IViewFactory, ViewComponent } from './types'
 
@@ -7,7 +7,7 @@ export { BROWSER_VID } from './constants'
 export type { BrowserViewState, ViewComponent, ViewProps } from './types'
 export { ViewScope } from './ViewScope'
 
-async function static_updateAllViewStates(app: Application, vsids: string[]) {
+async function static_updateAllViewStates(app: ViewStateCoordinator, vsids: string[]) {
   var url = `view-state`
 
   const resp = await fetch(url, {
@@ -24,7 +24,7 @@ async function static_updateAllViewStates(app: Application, vsids: string[]) {
   app.applyViewStates(viewStates)
 }
 
-const privateApp = new Application()
+const privateApp = new ViewStateCoordinator()
 
 const publicApp = new (class {
   getBaseUrl() {
@@ -83,10 +83,6 @@ const publicApp = new (class {
 
   bindView<T>(vsid: string) {
     return privateApp.bindView<T>(vsid)
-  }
-
-  holdView(vsid: string | undefined) {
-    privateApp.holdView(vsid)
   }
 
   updateViewState(vsid: string) {
