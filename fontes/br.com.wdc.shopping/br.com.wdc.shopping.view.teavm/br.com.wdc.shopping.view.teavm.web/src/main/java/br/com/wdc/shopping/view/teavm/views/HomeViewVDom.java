@@ -130,8 +130,8 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
                 .children(
                         slot("flex-grow-1 h-100 " + productsHide, productsPanelEl)
                                 .style("display:flex;flex-direction:column"),
-                        slot("h-100 " + purchasesHide, purchasesPanelEl)
-                                .style("width:320px;flex-shrink:0;display:flex;flex-direction:column"));
+                        slot("h-100 flex-grow-1 flex-md-grow-0 slot-purchases " + purchasesHide, purchasesPanelEl)
+                                .style("display:flex;flex-direction:column"));
         // @formatter:on
     }
 
