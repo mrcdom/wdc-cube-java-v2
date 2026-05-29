@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.teavm.vdom;
+package br.com.wdc.framework.vdom;
 
 import java.util.Collections;
 import java.util.HashMap;

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>br.com.wdc.framework</groupId>
+		<artifactId>br.com.wdc.framework</artifactId>
+		<version>1.0.0</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+
+	<artifactId>br.com.wdc.framework.vdom</artifactId>
+	<version>1.0.0</version>
+
+	<name>WeDoCode Framework VDom</name>
+	<description>Virtual DOM engine and Spectrum Web Components DSL for TeaVM-based views</description>
+
+	<properties>
+		<teavm.version>0.14.0</teavm.version>
+	</properties>
+
+	<build>
+		<resources>
+			<resource>
+				<directory>src/main/java</directory>
+			</resource>
+			<resource>
+				<directory>src/main/resources</directory>
+			</resource>
+		</resources>
+	</build>
+
+	<dependencies>
+		<!-- TeaVM JSO (provided — consumer supplies TeaVM) -->
+		<dependency>
+			<groupId>org.teavm</groupId>
+			<artifactId>teavm-jso</artifactId>
+			<version>${teavm.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.teavm</groupId>
+			<artifactId>teavm-jso-apis</artifactId>
+			<version>${teavm.version}</version>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+</project>

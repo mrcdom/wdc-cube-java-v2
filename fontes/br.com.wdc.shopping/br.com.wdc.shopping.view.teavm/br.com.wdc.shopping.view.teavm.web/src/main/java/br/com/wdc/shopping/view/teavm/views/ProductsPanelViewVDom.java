@@ -1,6 +1,6 @@
 package br.com.wdc.shopping.view.teavm.views;
 
-import static br.com.wdc.shopping.view.teavm.vdom.VNode.*;
+import static br.com.wdc.framework.vdom.VNode.*;
 
 import java.util.List;
 
@@ -9,7 +9,7 @@ import br.com.wdc.shopping.presentation.presenter.restricted.home.products.Produ
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
 import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
-import br.com.wdc.shopping.view.teavm.vdom.VNode;
+import br.com.wdc.framework.vdom.VNode;
 
 public class ProductsPanelViewVDom extends AbstractVDomView<ProductsPanelPresenter> {
 

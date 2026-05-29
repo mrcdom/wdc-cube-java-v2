@@ -36,6 +36,13 @@
             <artifactId>br.com.wdc.shopping.presentation</artifactId>
         </dependency>
 
+        <!-- Framework VDom -->
+        <dependency>
+            <groupId>br.com.wdc.framework</groupId>
+            <artifactId>br.com.wdc.framework.vdom</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
         <!-- TeaVM core -->
         <dependency>
             <groupId>org.teavm</groupId>

@@ -1,7 +1,7 @@
 package br.com.wdc.shopping.view.teavm.views;
 
-import static br.com.wdc.shopping.view.teavm.vdom.Swc.*;
-import static br.com.wdc.shopping.view.teavm.vdom.VNode.*;
+import static br.com.wdc.framework.vdom.Swc.*;
+import static br.com.wdc.framework.vdom.VNode.*;
 
 import java.util.Collections;
 import java.util.List;
@@ -12,7 +12,7 @@ import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.Rec
 import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.util.DateUtils;
 import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
-import br.com.wdc.shopping.view.teavm.vdom.VNode;
+import br.com.wdc.framework.vdom.VNode;
 
 public class ReceiptViewVDom extends AbstractVDomView<ReceiptPresenter> {
 

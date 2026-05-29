@@ -1,7 +1,7 @@
 package br.com.wdc.shopping.view.teavm.views;
 
-import static br.com.wdc.shopping.view.teavm.vdom.Swc.*;
-import static br.com.wdc.shopping.view.teavm.vdom.VNode.*;
+import static br.com.wdc.framework.vdom.Swc.*;
+import static br.com.wdc.framework.vdom.VNode.*;
 
 import org.teavm.jso.dom.events.KeyboardEvent;
 import org.teavm.jso.dom.html.HTMLInputElement;
@@ -10,7 +10,7 @@ import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginViewState;
 import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
-import br.com.wdc.shopping.view.teavm.vdom.VNode;
+import br.com.wdc.framework.vdom.VNode;
 
 /**
  * Login view implementada com Spectrum Web Components + Virtual DOM.

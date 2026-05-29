@@ -1,13 +1,13 @@
 package br.com.wdc.shopping.view.teavm.views;
 
-import static br.com.wdc.shopping.view.teavm.vdom.Swc.*;
-import static br.com.wdc.shopping.view.teavm.vdom.VNode.*;
+import static br.com.wdc.framework.vdom.Swc.*;
+import static br.com.wdc.framework.vdom.VNode.*;
 
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter.ProductViewState;
 import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
-import br.com.wdc.shopping.view.teavm.vdom.VNode;
+import br.com.wdc.framework.vdom.VNode;
 
 public class ProductViewVDom extends AbstractVDomView<ProductPresenter> {
 

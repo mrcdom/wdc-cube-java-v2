@@ -1,6 +1,6 @@
-package br.com.wdc.shopping.view.teavm.vdom;
+package br.com.wdc.framework.vdom;
 
-import static br.com.wdc.shopping.view.teavm.vdom.VNode.*;
+import static br.com.wdc.framework.vdom.VNode.*;
 
 /**
  * Factory methods para Spectrum Web Components (SWC).
@@ -10,7 +10,7 @@ import static br.com.wdc.shopping.view.teavm.vdom.VNode.*;
  * <p>
  * Uso:
  * <pre>{@code
- * import static br.com.wdc.shopping.view.teavm.vdom.Swc.*;
+ * import static br.com.wdc.framework.vdom.Swc.*;
  *
  * spButton("accent", "l")
  *     .on("click", e -> doSomething())

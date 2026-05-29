@@ -1,7 +1,7 @@
 package br.com.wdc.shopping.view.teavm.views;
 
-import static br.com.wdc.shopping.view.teavm.vdom.Swc.*;
-import static br.com.wdc.shopping.view.teavm.vdom.VNode.*;
+import static br.com.wdc.framework.vdom.Swc.*;
+import static br.com.wdc.framework.vdom.VNode.*;
 
 import java.util.List;
 
@@ -10,7 +10,7 @@ import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.structs.CartItem;
 import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
-import br.com.wdc.shopping.view.teavm.vdom.VNode;
+import br.com.wdc.framework.vdom.VNode;
 
 public class CartViewVDom extends AbstractVDomView<CartPresenter> {
 

@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.teavm.vdom;
+package br.com.wdc.framework.vdom;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -16,7 +16,7 @@ import org.teavm.jso.dom.html.HTMLElement;
  * <p>
  * Uso:
  * <pre>{@code
- * import static br.com.wdc.shopping.view.teavm.vdom.VNode.*;
+ * import static br.com.wdc.framework.vdom.VNode.*;
  *
  * var tree = el("div").cls("card shadow").children(
  *     el("h5").text("Título"),
