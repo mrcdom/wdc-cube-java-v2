@@ -1,5 +1,6 @@
 package br.com.wdc.shopping.view.teavm.views;
 
+import static br.com.wdc.shopping.view.teavm.vdom.Swc.*;
 import static br.com.wdc.shopping.view.teavm.vdom.VNode.*;
 
 import org.teavm.jso.dom.events.KeyboardEvent;
@@ -121,27 +122,20 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
                                             span("").style("font-size:0.85rem;color:#991b1b;font-weight:500").text(errorMessage)),
 
                                     // Campo usuário
-                                    el("sp-field-label")
-                                        .attr("for", "login-user")
-                                        .style("font-weight:500")
-                                        .children(textNode("Usuário")),
-                                    el("sp-textfield")
+                                    spFieldLabel("login-user", "Usuário")
+                                        .style("font-weight:500"),
+                                    spTextField("Digite seu usuário")
                                         .attr("id", "login-user")
-                                        .attr("placeholder", "Digite seu usuário")
                                         .attr("autocomplete", "off")
                                         .boolAttr("disabled", loading)
                                         .style("width:100%;margin-bottom:16px")
                                         .ref(el -> this.userNameField = (HTMLInputElement) el),
 
                                     // Campo senha
-                                    el("sp-field-label")
-                                        .attr("for", "login-pass")
-                                        .style("font-weight:500")
-                                        .children(textNode("Senha")),
-                                    el("sp-textfield")
+                                    spFieldLabel("login-pass", "Senha")
+                                        .style("font-weight:500"),
+                                    spTextField("Digite sua senha", "password")
                                         .attr("id", "login-pass")
-                                        .attr("type", "password")
-                                        .attr("placeholder", "Digite sua senha")
                                         .attr("autocomplete", "off")
                                         .boolAttr("disabled", loading)
                                         .style("width:100%;margin-bottom:24px")
@@ -153,9 +147,7 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
                                         .ref(el -> this.passwordField = (HTMLInputElement) el),
 
                                     // Botão Entrar
-                                    el("sp-button")
-                                        .attr("variant", "accent")
-                                        .attr("size", "l")
+                                    spButton("accent", "l")
                                         .boolAttr("disabled", loading)
                                         .boolAttr("pending", loading)
                                         .style("width:100%;margin-bottom:20px")

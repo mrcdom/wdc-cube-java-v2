@@ -1,5 +1,6 @@
 package br.com.wdc.shopping.view.teavm.views;
 
+import static br.com.wdc.shopping.view.teavm.vdom.Swc.*;
 import static br.com.wdc.shopping.view.teavm.vdom.VNode.*;
 
 import org.teavm.jso.dom.html.HTMLDocument;
@@ -35,10 +36,7 @@ public class RootViewVDom extends AbstractVDomView<RootPresenter> {
     protected VNode render() {
         var contentElement = this.state.contentView instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
         // @formatter:off
-        return el("sp-theme")
-                    .attr("system", "spectrum")
-                    .attr("color", "light")
-                    .attr("scale", "medium")
+        return spTheme("light", "medium", "spectrum")
                     .style("display:flex;flex-direction:column;height:100%;overflow:hidden")
                     .children(
                         slot("", contentElement)

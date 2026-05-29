@@ -1,5 +1,6 @@
 package br.com.wdc.shopping.view.teavm.views;
 
+import static br.com.wdc.shopping.view.teavm.vdom.Swc.*;
 import static br.com.wdc.shopping.view.teavm.vdom.VNode.*;
 
 import java.util.Collections;
@@ -87,8 +88,7 @@ public class ReceiptViewVDom extends AbstractVDomView<ReceiptPresenter> {
                                                                         .text(totalText))),
 
                                         // Back button
-                                        el("sp-action-button")
-                                                .boolAttr("quiet", true)
+                                        spActionButton()
                                                 .style("margin-top:20px")
                                                 .children(
                                                         span("bi bi-arrow-left"),

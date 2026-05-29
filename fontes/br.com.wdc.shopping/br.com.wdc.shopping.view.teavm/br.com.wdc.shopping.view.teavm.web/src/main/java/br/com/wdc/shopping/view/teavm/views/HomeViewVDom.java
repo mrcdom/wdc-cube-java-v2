@@ -1,5 +1,6 @@
 package br.com.wdc.shopping.view.teavm.views;
 
+import static br.com.wdc.shopping.view.teavm.vdom.Swc.*;
 import static br.com.wdc.shopping.view.teavm.vdom.VNode.*;
 
 import org.teavm.jso.dom.html.HTMLElement;
@@ -62,17 +63,14 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
 
     private VNode renderNavbar(String nickName, String cartCount) {
         // @formatter:off
-        return el("sp-theme")
-                .attr("color", "dark")
-                .attr("scale", "medium")
+        return spTheme("dark")
                 .style("display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:linear-gradient(135deg, #0d66d0 0%, #1a8cff 100%);flex-shrink:0;box-shadow:0 2px 8px rgba(13,102,208,0.3)")
                 .children(
                         // Left: exit + greeting
                         div("")
                                 .style("display:flex;align-items:center;gap:10px")
                                 .children(
-                                        el("sp-action-button")
-                                                .boolAttr("quiet", true)
+                                        spActionButton()
                                                 .children(span("bi bi-box-arrow-left").style("font-size:1.1rem;color:#fff"))
                                                 .on("click", evt -> safeAction("Exit", this.presenter::onExit)),
                                         div("sm-show")
@@ -104,8 +102,7 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
                         div("")
                                 .style("display:flex;align-items:center")
                                 .children(
-                                        el("sp-action-button")
-                                                .boolAttr("quiet", true)
+                                        spActionButton()
                                                 .style("position:relative")
                                                 .on("click", evt -> safeAction("Open cart", this.presenter::onOpenCart))
                                                 .children(

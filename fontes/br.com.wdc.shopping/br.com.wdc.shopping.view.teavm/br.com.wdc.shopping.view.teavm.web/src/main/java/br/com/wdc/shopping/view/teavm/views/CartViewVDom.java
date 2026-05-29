@@ -1,5 +1,6 @@
 package br.com.wdc.shopping.view.teavm.views;
 
+import static br.com.wdc.shopping.view.teavm.vdom.Swc.*;
 import static br.com.wdc.shopping.view.teavm.vdom.VNode.*;
 
 import java.util.List;
@@ -84,8 +85,7 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
                                 .children(span("bi bi-bag").style("font-size:2.5rem;color:var(--app-accent)")),
                         p("").style("color:var(--app-text);font-size:1.1rem;font-weight:500;margin:0 0 8px 0").text("Carrinho vazio"),
                         p("").style("color:var(--app-text-secondary);font-size:0.85rem;margin:0 0 16px 0").text("Adicione produtos para começar"),
-                        el("sp-button")
-                                .attr("variant", "accent")
+                        spButton("accent")
                                 .children(span("bi bi-grid-3x3-gap").style("margin-right:6px"), span("").text("Ver produtos"))
                                 .on("click", evt -> safeAction("Go shopping", this.presenter::onOpenProducts)));
         // @formatter:on
@@ -110,15 +110,12 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
 
                         // Actions
                         div("").style("display:flex;justify-content:space-between;align-items:center;margin-top:16px").children(
-                                el("sp-action-button")
-                                        .boolAttr("quiet", true)
+                                spActionButton()
                                         .children(
                                                 span("bi bi-arrow-left"),
                                                 span("").text(" Continuar comprando"))
                                         .on("click", evt -> safeAction("Back", this.presenter::onOpenProducts)),
-                                el("sp-button")
-                                        .attr("variant", "accent")
-                                        .attr("size", "l")
+                                spButton("accent", "l")
                                         .children(
                                                 span("bi bi-check2-circle").style("margin-right:6px"),
                                                 span("").text("Finalizar pedido"))
@@ -140,18 +137,14 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
 
                         // Quantity stepper
                         div("").style("display:flex;align-items:center;gap:4px").children(
-                                el("sp-action-button")
-                                        .boolAttr("quiet", true)
-                                        .attr("size", "s")
+                                spActionButton("s")
                                         .children(span("bi bi-dash").style("font-size:0.7rem"))
                                         .on("click", evt -> safeAction("Decrement",
                                                 () -> this.presenter.onModifyQuantity(item.id, item.quantity - 1))),
                                 span("")
                                         .style("font-weight:700;min-width:24px;text-align:center;font-size:0.85rem;color:var(--app-text)")
                                         .text(String.valueOf(item.quantity)),
-                                el("sp-action-button")
-                                        .boolAttr("quiet", true)
-                                        .attr("size", "s")
+                                spActionButton("s")
                                         .children(span("bi bi-plus").style("font-size:0.7rem"))
                                         .on("click", evt -> safeAction("Increment",
                                                 () -> this.presenter.onModifyQuantity(item.id, item.quantity + 1)))),
@@ -162,9 +155,7 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
                                 .text(subtotal),
 
                         // Remove button
-                        el("sp-action-button")
-                                .boolAttr("quiet", true)
-                                .attr("size", "s")
+                        spActionButton("s")
                                 .children(span("bi bi-x-lg").style("font-size:0.7rem;color:#dc3545"))
                                 .on("click", evt -> safeAction("Remove item",
                                         () -> this.presenter.onRemoveProduct(item.id))));

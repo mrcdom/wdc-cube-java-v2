@@ -1,5 +1,6 @@
 package br.com.wdc.shopping.view.teavm.views;
 
+import static br.com.wdc.shopping.view.teavm.vdom.Swc.*;
 import static br.com.wdc.shopping.view.teavm.vdom.VNode.*;
 
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
@@ -58,7 +59,7 @@ public class ProductViewVDom extends AbstractVDomView<ProductPresenter> {
                         h5("").style("font-weight:700;margin:0 0 12px 0;font-size:1.5rem;color:var(--app-text)").text(name),
 
                         // Divider
-                        el("sp-divider").attr("size", "s").style("margin:0 0 16px 0"),
+                        spDivider("s").style("margin:0 0 16px 0"),
 
                         // Description card
                         div("")
@@ -87,9 +88,7 @@ public class ProductViewVDom extends AbstractVDomView<ProductPresenter> {
                                                 // Quantity stepper
                                                 div("").style("display:flex;align-items:center;gap:10px").children(
                                                         span("").style("font-size:0.85rem;color:var(--app-text-secondary)").text("Qtd:"),
-                                                        el("sp-action-button")
-                                                                .boolAttr("quiet", true)
-                                                                .attr("size", "s")
+                                                        spActionButton("s")
                                                                 .children(span("bi bi-dash"))
                                                                 .on("click", evt -> {
                                                                     if (this.quantity > 1) {
@@ -100,9 +99,7 @@ public class ProductViewVDom extends AbstractVDomView<ProductPresenter> {
                                                         span("")
                                                                 .style("font-weight:700;min-width:28px;text-align:center;font-size:1.1rem")
                                                                 .text(String.valueOf(this.quantity)),
-                                                        el("sp-action-button")
-                                                                .boolAttr("quiet", true)
-                                                                .attr("size", "s")
+                                                        spActionButton("s")
                                                                 .children(span("bi bi-plus"))
                                                                 .on("click", evt -> {
                                                                     this.quantity++;
@@ -122,16 +119,13 @@ public class ProductViewVDom extends AbstractVDomView<ProductPresenter> {
                         div("")
                                 .style("display:flex;align-items:center;justify-content:center;gap:12px;margin-top:8px")
                                 .children(
-                                        el("sp-action-button")
-                                                .boolAttr("quiet", true)
+                                        spActionButton()
                                                 .children(
                                                         span("bi bi-arrow-left"),
                                                         span("").text(" Voltar"))
                                                 .on("click",
                                                         evt -> safeAction("Back", this.presenter::onOpenProducts)),
-                                        el("sp-button")
-                                                .attr("variant", "accent")
-                                                .attr("size", "l")
+                                        spButton("accent", "l")
                                                 .children(
                                                         span("bi bi-bag-plus").style("margin-right:6px"),
                                                         span("").text("Adicionar ao Carrinho"))
