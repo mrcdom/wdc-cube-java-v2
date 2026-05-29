@@ -1,5 +1,7 @@
 package br.com.wdc.shopping.view.teavm.views;
 
+import static br.com.wdc.shopping.view.teavm.theme.AppStyles.*;
+import static br.com.wdc.shopping.view.teavm.theme.BsColors.*;
 import static br.com.wdc.shopping.view.teavm.vdom.VNode.*;
 
 import java.util.List;
@@ -42,10 +44,10 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
         var totalText = "R$ " + String.format("%.2f", totalCost);
 
         return div("")
-                .style("max-width:900px;margin:0 auto;padding:12px")
+                .style(PAGE_WRAPPER)
                 .children(
                         div("")
-                                .style("background-color:#fff;border-radius:12px;border:1px solid #e0e0e0;padding:16px")
+                                .style(CARD)
                                 .children(
                                         // Title row
                                         div("d-flex align-items-center gap-2 mb-3").children(
@@ -53,7 +55,7 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
                                                 h5("mb-0 fw-bold").text("Carrinho")),
 
                                         h6("")
-                                                .style("color:#666;font-size:0.85rem;margin:0 0 12px 0")
+                                                .style(SECTION_LABEL + ";margin:0 0 12px 0")
                                                 .text("LISTA DE PRODUTOS"),
 
                                         // Error
@@ -74,13 +76,11 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
                         : "d-none")
                 .children(
                         div("")
-                                .style("width:120px;height:120px;background-color:#e3f2fd;border-radius:50%;"
-                                        + "display:flex;align-items:center;justify-content:center;margin-bottom:16px;"
-                                        + "font-size:48px;color:#1976d2")
-                                .children(span("bi bi-cart3")),
-                        p("").style("color:#666;font-size:1.1rem").text("Seu carrinho está vazio"),
+                                .style(EMPTY_STATE_ICON)
+                                .children(span(BsIcons.CART)),
+                        p("").style("color:" + TEXT_SECONDARY + ";font-size:1.1rem").text("Seu carrinho está vazio"),
                         span("")
-                                .style("cursor:pointer;color:#1976d2;font-weight:bold;font-size:1rem")
+                                .style("cursor:pointer;color:" + PRIMARY + ";font-weight:bold;font-size:1rem")
                                 .text("Vamos às compras!")
                                 .on("click", evt -> safeAction("Go shopping", this.presenter::onOpenProducts)));
     }
@@ -94,17 +94,17 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
 
                         // Footer
                         div("d-flex justify-content-end align-items-center pt-3 mt-3")
-                                .style("border-top:1px solid #e0e0e0")
+                                .style(SEPARATOR)
                                 .children(
                                         span("fw-bold").text("VALOR TOTAL: "),
                                         span("")
-                                                .style("font-size:18px;font-weight:bold;color:#1976d2;margin-left:8px")
+                                                .style("font-size:18px;" + PRICE + ";margin-left:8px")
                                                 .text(totalText)),
 
                         // Actions
                         div("d-flex justify-content-between align-items-center mt-3").children(
                                 button("btn btn-link p-0")
-                                        .style("color:#1976d2;text-decoration:underline;font-size:0.85rem")
+                                        .style(BTN_LINK)
                                         .children(
                                                 span(BsIcons.ARROW_BACK),
                                                 span("").text(" Voltar aos produtos"))
@@ -122,14 +122,14 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
 
         return div("")
                 .key(String.valueOf(item.id))
-                .style("display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #f0f0f0")
+                .style(LIST_ITEM)
                 .children(
                         span("").style("flex:1;font-weight:500;font-size:0.9rem").text(name),
                         span("")
-                                .style("width:100px;text-align:right;font-weight:bold;color:#1976d2;font-size:0.9rem")
+                                .style("width:100px;text-align:right;" + PRICE + ";font-size:0.9rem")
                                 .text(subtotal),
                         span("")
-                                .style("width:50px;text-align:center;font-size:0.85rem;color:#666")
+                                .style("width:50px;text-align:center;font-size:0.85rem;color:" + TEXT_SECONDARY)
                                 .text(qty),
                         button("btn btn-sm btn-outline-danger ms-2")
                                 .children(span(BsIcons.TRASH))

@@ -1,5 +1,7 @@
 package br.com.wdc.shopping.view.teavm.views;
 
+import static br.com.wdc.shopping.view.teavm.theme.AppStyles.*;
+import static br.com.wdc.shopping.view.teavm.theme.BsColors.*;
 import static br.com.wdc.shopping.view.teavm.vdom.VNode.*;
 
 import org.teavm.jso.dom.events.KeyboardEvent;
@@ -8,6 +10,7 @@ import org.teavm.jso.dom.html.HTMLInputElement;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginViewState;
 import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
+import br.com.wdc.shopping.view.teavm.theme.BsIcons;
 import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
 import br.com.wdc.shopping.view.teavm.vdom.VNode;
 
@@ -27,7 +30,7 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
         super("login", (ShoppingTeaVMApplication) presenter.app, presenter);
         this.state = presenter.state;
         this.element.getClassList().add("d-flex", "justify-content-center", "align-items-center", "vh-100");
-        this.element.setAttribute("style", "background:#f5f5f5");
+        this.element.setAttribute("style", "background:" + SURFACE_SECONDARY);
     }
 
     @Override
@@ -47,24 +50,23 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
             errorMessage = "";
         }
 
-        String disabledStyle = "border-radius:8px;border:1px solid #ccc;font-size:1rem"
-                + (loading ? ";opacity:0.6;pointer-events:none" : "");
+        String inputStyle = loading ? INPUT_DISABLED : INPUT;
 
         return div("card shadow mx-auto")
-                .style("max-width:400px;width:calc(100% - 32px);border-radius:16px;border:none;overflow:hidden")
+                .style(LOGIN_CARD)
                 .children(
                         // Header azul com logo
                         div("")
-                                .style("background:#4285f4;padding:1.5rem 2rem;display:flex;align-items:center;gap:0.75rem")
+                                .style(APP_HEADER)
                                 .children(
-                                        span("bi bi-cart3")
-                                                .style("color:#ff9800;font-size:1.75rem"),
+                                        span(BsIcons.CART)
+                                                .style(APP_LOGO_ICON),
                                         div("").children(
                                                 span("")
-                                                        .style("color:#fff;font-size:1.5rem;font-weight:700;letter-spacing:0.5px")
+                                                        .style(APP_LOGO_TEXT)
                                                         .text("Shopping"),
                                                 div("")
-                                                        .style("color:rgba(255,255,255,0.65);font-size:0.75rem")
+                                                        .style(APP_LOGO_SUBTITLE)
                                                         .text("by WeDoCode"))),
 
                         // Body
@@ -72,13 +74,11 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
                                 // Lock icon
                                 div("text-center mb-3").children(
                                         span("bi bi-lock-fill")
-                                                .style("display:inline-flex;align-items:center;justify-content:center;"
-                                                        + "width:48px;height:48px;border-radius:50%;background:#e8eaf6;"
-                                                        + "color:#1976d2;font-size:1.5rem")),
+                                                .style(LOCK_ICON)),
 
                                 // Título
                                 h5("text-center fw-bold mb-4")
-                                        .style("color:#333;font-size:1.25rem")
+                                        .style("color:" + TEXT_DARK + ";font-size:1.25rem")
                                         .text("Acesso ao sistema"),
 
                                 // Alerta de erro (condicional)
@@ -94,7 +94,7 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
                                                 .attr("autocomplete", "off")
                                                 .attr("autocapitalize", "none")
                                                 .attr("disabled", loading ? "true" : null)
-                                                .style(disabledStyle)
+                                                .style(inputStyle)
                                                 .ref(el -> this.userNameField = (HTMLInputElement) el)),
 
                                 // Campo senha
@@ -103,7 +103,7 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
                                                 .attr("placeholder", "Senha")
                                                 .attr("autocomplete", "off")
                                                 .attr("disabled", loading ? "true" : null)
-                                                .style(disabledStyle)
+                                                .style(inputStyle)
                                                 .on("keydown", (KeyboardEvent evt) -> {
                                                     if ("Enter".equals(evt.getKey())) {
                                                         emitEnter();
@@ -113,26 +113,23 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
 
                                 // Botão Entrar
                                 button("btn btn-primary w-100 fw-bold")
-                                        .style("border-radius:8px;padding:0.75rem;font-size:1.1rem;"
-                                                + "background:#4285f4;border:none"
-                                                + (loading ? ";opacity:0.7;pointer-events:none" : ""))
+                                        .style(loading ? BTN_PRIMARY_LG_DISABLED : BTN_PRIMARY_LG)
                                         .text(loading ? "Entrando..." : "Entrar")
                                         .attr("disabled", loading ? "true" : null)
                                         .on("click", evt -> emitEnter()),
 
                                 // Separador
                                 div("")
-                                        .style("margin:1.5rem 0 1rem;border-top:1px solid #e0e0e0"),
+                                        .style("margin:1.5rem 0 1rem;" + SEPARATOR),
 
                                 // Hint demo
                                 div("text-center")
-                                        .style("border:1px dashed #ccc;border-radius:8px;padding:0.6rem 1rem;"
-                                                + "color:#888;font-size:0.85rem")
+                                        .style(HINT_BOX)
                                         .children(
                                                 textNode("Acesso demo: usuário "),
-                                                span("fw-bold").style("color:#555").text("admin"),
+                                                span("fw-bold").style("color:" + TEXT_DARK).text("admin"),
                                                 textNode(" / senha "),
-                                                span("fw-bold").style("color:#555").text("admin"))));
+                                                span("fw-bold").style("color:" + TEXT_DARK).text("admin"))));
     }
 
     private void emitEnter() {

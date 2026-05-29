@@ -1,5 +1,6 @@
 package br.com.wdc.shopping.view.teavm.views;
 
+import static br.com.wdc.shopping.view.teavm.theme.AppStyles.*;
 import static br.com.wdc.shopping.view.teavm.vdom.VNode.*;
 
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
@@ -51,11 +52,11 @@ public class ProductViewVDom extends AbstractVDomView<ProductPresenter> {
         }
 
         return div("")
-                .style("max-width:900px;margin:0 auto;padding:12px")
+                .style(PAGE_WRAPPER)
                 .children(
                         // Card container
                         div("")
-                                .style("background-color:#fff;border-radius:12px;border:1px solid #e0e0e0;padding:16px")
+                                .style(CARD)
                                 .children(
                                         // Product name
                                         h5("").style("font-weight:bold;margin:0 0 16px 0").text(name),
@@ -66,7 +67,7 @@ public class ProductViewVDom extends AbstractVDomView<ProductPresenter> {
                                                         // Left column
                                                         div("d-flex flex-column w-100").children(
                                                                 p("")
-                                                                        .style("font-size:1.5rem;font-weight:bold;color:#1976d2;margin:0 0 12px 0")
+                                                                        .style(PRICE_LG)
                                                                         .text(price),
 
                                                                 // Quantity stepper
@@ -106,7 +107,7 @@ public class ProductViewVDom extends AbstractVDomView<ProductPresenter> {
 
                                         // Description label
                                         span("")
-                                                .style("color:#666;font-weight:600;font-size:0.85rem")
+                                                .style(SECTION_LABEL + ";font-weight:600")
                                                 .text("Descrição"),
 
                                         // Description content (HTML from server)
@@ -121,7 +122,7 @@ public class ProductViewVDom extends AbstractVDomView<ProductPresenter> {
 
                                         // Back button
                                         button("btn btn-link mt-3 p-0")
-                                                .style("color:#1976d2;text-decoration:underline;font-size:0.85rem")
+                                                .style(BTN_LINK)
                                                 .children(
                                                         span(BsIcons.ARROW_BACK),
                                                         span("").text(" Voltar aos produtos"))

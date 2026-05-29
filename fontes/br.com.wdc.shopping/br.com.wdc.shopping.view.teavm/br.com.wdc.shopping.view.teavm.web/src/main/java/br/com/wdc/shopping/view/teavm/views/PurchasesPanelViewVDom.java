@@ -1,5 +1,7 @@
 package br.com.wdc.shopping.view.teavm.views;
 
+import static br.com.wdc.shopping.view.teavm.theme.AppStyles.*;
+import static br.com.wdc.shopping.view.teavm.theme.BsColors.*;
 import static br.com.wdc.shopping.view.teavm.vdom.VNode.*;
 
 import java.util.List;
@@ -36,6 +38,7 @@ public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPrese
         super("purchases-panel", (ShoppingTeaVMApplication) presenter.app, presenter);
         this.state = presenter.state;
         this.element.getClassList().add("p-2", "h-100", "d-flex", "flex-column");
+        this.element.setAttribute("style", "text-align:left");
         this.prevPageListener = evt -> safeAction("Prev page",
                 () -> this.presenter.onPageChange(this.state.page - 1));
         this.nextPageListener = evt -> safeAction("Next page",
@@ -87,25 +90,24 @@ public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPrese
 
         return div("")
                 .key(String.valueOf(purchase.id))
-                .style("background-color:#fafafa;border-radius:6px;border-left:3px solid #1976d2;"
-                        + "cursor:pointer;transition:all 0.15s;margin-bottom:6px;overflow:hidden")
+                .style(PURCHASE_ITEM)
                 .on("click", evt -> safeAction("Open receipt", () -> this.presenter.onOpenReceipt(purchase.id)))
                 .children(
                         // Line 1: #id (left) + date (right)
                         div("d-flex justify-content-between align-items-center")
                                 .style("padding:6px 12px 0 12px")
                                 .children(
-                                        span("").style("font-weight:600;font-size:0.75rem;color:#1976d2").text(id),
-                                        span("").style("font-size:0.7rem;color:#888").text(date)),
+                                        span("").style("font-weight:600;font-size:0.75rem;color:" + PRIMARY).text(id),
+                                        span("").style("font-size:0.7rem;color:" + TEXT_MUTED).text(date)),
                         // Line 2: items (left) + total (right)
                         div("d-flex align-items-baseline")
-                                .style("padding:2px 12px 6px 12px;gap:4px;font-size:0.75rem;color:#666")
+                                .style("padding:2px 12px 6px 12px;gap:4px;font-size:0.75rem;color:" + TEXT_SECONDARY)
                                 .children(
                                         span("")
                                                 .style("flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")
                                                 .text(items),
                                         span("")
-                                                .style("font-weight:bold;white-space:nowrap;color:#333")
+                                                .style("font-weight:bold;white-space:nowrap;color:" + TEXT_DARK)
                                                 .text(total)));
     }
 

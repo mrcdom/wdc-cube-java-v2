@@ -1,5 +1,7 @@
 package br.com.wdc.shopping.view.teavm.views;
 
+import static br.com.wdc.shopping.view.teavm.theme.AppStyles.*;
+import static br.com.wdc.shopping.view.teavm.theme.BsColors.*;
 import static br.com.wdc.shopping.view.teavm.vdom.VNode.*;
 
 import java.util.Collections;
@@ -45,51 +47,47 @@ public class ReceiptViewVDom extends AbstractVDomView<ReceiptPresenter> {
         }
 
         return div("")
-                .style("max-width:900px;margin:0 auto;padding:12px")
+                .style(PAGE_WRAPPER)
                 .children(
                         div("")
-                                .style("background-color:#fff;border-radius:12px;border:1px solid #e0e0e0;padding:24px")
+                                .style(CARD_LARGE)
                                 .children(
                                         h5("")
-                                                .style("color:#666;font-size:0.85rem;margin:0 0 16px 0")
+                                                .style(SECTION_LABEL + ";margin:0 0 16px 0")
                                                 .text("IMPRIMA SEU RECIBO:"),
 
                                         // Success banner
                                         div(showSuccess
                                                         ? "d-flex align-items-center gap-2 mb-3"
                                                         : "d-none")
-                                                .style(showSuccess
-                                                        ? "background-color:#e8f5e9;border:1px solid #a5d6a7;border-radius:8px;"
-                                                                + "padding:12px 16px;color:#2e7d32;font-size:1.2rem"
-                                                        : "")
+                                                .style(showSuccess ? SUCCESS_BANNER : "")
                                                 .children(
                                                         span(BsIcons.CHECK_CIRCLE),
                                                         span("")
-                                                                .style("color:#2e7d32;font-weight:bold;font-size:1rem")
+                                                                .style(SUCCESS_TEXT_STYLE)
                                                                 .text("Compra realizada com sucesso!")),
 
                                         // Receipt content (monospace)
                                         div("")
-                                                .style("border:1px solid #bdbdbd;border-radius:8px;padding:16px;"
-                                                        + "font-family:'Courier New',Courier,monospace;font-size:0.85rem")
+                                                .style(RECEIPT_BOX)
                                                 .children(
                                                         span("")
                                                                 .style("font-weight:600;display:block;margin-bottom:4px")
                                                                 .text("WEDOCODE SHOPPING - SUA COMPRA CERTA NA INTERNET"),
                                                         span("")
-                                                                .style("color:#666;display:block;margin-bottom:12px")
+                                                                .style("color:" + TEXT_SECONDARY + ";display:block;margin-bottom:12px")
                                                                 .text("Recibo de compra"),
 
                                                         // Date row
                                                         div("d-flex justify-content-between mb-2").children(
-                                                                span("").style("color:#666").text("Data:"),
+                                                                span("").style("color:" + TEXT_SECONDARY).text("Data:"),
                                                                 span("fw-bold").text(dateText)),
 
                                                         // Total row
                                                         div("d-flex justify-content-between mb-3").children(
-                                                                span("").style("color:#666").text("Total:"),
+                                                                span("").style("color:" + TEXT_SECONDARY).text("Total:"),
                                                                 span("")
-                                                                        .style("font-weight:bold;color:#1976d2;font-size:1.1rem")
+                                                                        .style(PRICE_MD)
                                                                         .text(totalText)),
 
                                                         // Items table
@@ -97,7 +95,7 @@ public class ReceiptViewVDom extends AbstractVDomView<ReceiptPresenter> {
 
                                         // Back button
                                         button("btn btn-link mt-3 p-0")
-                                                .style("color:#1976d2;text-decoration:underline;font-size:0.85rem")
+                                                .style(BTN_LINK)
                                                 .children(
                                                         span(BsIcons.ARROW_BACK),
                                                         span("").text(" Voltar aos produtos"))
@@ -107,11 +105,11 @@ public class ReceiptViewVDom extends AbstractVDomView<ReceiptPresenter> {
 
     private VNode renderItemsTable(List<ReceiptItem> items) {
         return div("")
-                .style("border-top:1px solid #e0e0e0;padding-top:8px")
+                .style(SEPARATOR + ";padding-top:8px")
                 .children(
                         // Header
                         div("d-flex fw-bold small mb-1 pb-1")
-                                .style("border-bottom:1px solid #e0e0e0;color:#666")
+                                .style(SEPARATOR + ";color:" + TEXT_SECONDARY)
                                 .children(
                                         span("").style("flex:1").text("ITEM"),
                                         span("").style("width:80px;text-align:center").text("QTD"),

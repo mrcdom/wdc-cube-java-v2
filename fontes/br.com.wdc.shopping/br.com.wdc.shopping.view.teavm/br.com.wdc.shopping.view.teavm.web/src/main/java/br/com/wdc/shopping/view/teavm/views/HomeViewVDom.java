@@ -1,5 +1,7 @@
 package br.com.wdc.shopping.view.teavm.views;
 
+import static br.com.wdc.shopping.view.teavm.theme.AppStyles.*;
+import static br.com.wdc.shopping.view.teavm.theme.BsColors.*;
 import static br.com.wdc.shopping.view.teavm.vdom.VNode.*;
 
 import org.teavm.jso.dom.html.HTMLElement;
@@ -66,49 +68,44 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
 
     private VNode renderNavbar(String nickName, String cartCount) {
         return nav("navbar navbar-dark px-2 px-sm-3")
-                .style("background-color:#1976d2;min-height:56px;box-shadow:0 2px 4px rgba(0,0,0,0.1);"
-                        + "display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between;"
-                        + "padding-top:env(safe-area-inset-top, 0px)")
+                .style(NAVBAR)
                 .children(
                         // Left: exit + greeting
                         div("d-flex align-items-center gap-1 gap-sm-2").children(
                                 button("")
-                                        .style("background:none;border:none;color:rgba(255,255,255,0.9);font-size:1.25rem;"
-                                                + "cursor:pointer;padding:4px 6px;display:flex;align-items:center")
+                                        .style(NAVBAR_BUTTON)
                                         .children(span(BsIcons.POWER))
                                         .on("click", evt -> safeAction("Exit", this.presenter::onExit)),
                                 span("d-none d-sm-inline")
-                                        .style("color:rgba(255,255,255,0.85);font-size:0.9rem")
+                                        .style(NAVBAR_TEXT)
                                         .text("Olá,"),
                                 span("d-none d-sm-inline")
-                                        .style("color:#fff;font-weight:600;font-size:0.9rem")
+                                        .style(NAVBAR_TEXT_BOLD)
                                         .text(nickName)),
 
                         // Center: logo
                         div("d-flex align-items-center gap-1 gap-sm-2").children(
-                                span("bi bi-cart3").style("color:#ff9800;font-size:1.25rem"),
+                                span(BsIcons.CART).style(APP_LOGO_ICON_SM),
                                 div("").children(
                                         span("")
-                                                .style("color:#fff;font-size:1.1rem;font-weight:700;letter-spacing:0.5px;display:block;line-height:1.2")
+                                                .style(APP_LOGO_TEXT_SM)
                                                 .text("Shopping"),
                                         div("d-none d-sm-block")
-                                                .style("color:rgba(255,255,255,0.55);font-size:0.6rem;letter-spacing:0.3px")
+                                                .style(APP_LOGO_SUBTITLE_SM)
                                                 .text("by WeDoCode"))),
 
                         // Right: cart button
                         div("d-flex align-items-center pe-2").children(
                                 button("")
-                                        .style("background:none;border:none;color:rgba(255,255,255,0.9);cursor:pointer;"
-                                                + "padding:4px 8px;display:flex;align-items:center;gap:6px;position:relative")
+                                        .style(CART_BUTTON)
                                         .on("click", evt -> safeAction("Open cart", this.presenter::onOpenCart))
                                         .children(
                                                 span(BsIcons.CART),
                                                 span("d-none d-sm-inline")
-                                                        .style("font-size:0.9rem;color:#fff")
+                                                        .style("font-size:0.9rem;color:" + TEXT_ON_PRIMARY)
                                                         .text("Carrinho"),
                                                 span("")
-                                                        .style("position:absolute;top:-2px;right:-6px;font-size:10px;min-width:18px;"
-                                                                + "text-align:center;background-color:#ff9800;color:white;border-radius:50%;padding:2px 5px")
+                                                        .style(CART_BADGE)
                                                         .text(cartCount))));
     }
 
@@ -117,7 +114,7 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
         if (contentViewEl != null) {
             // Showing a content view (product detail, cart, receipt)
             return slot("flex-grow-1 overflow-auto", contentViewEl)
-                    .style("background-color:#ededed;min-height:0");
+                    .style(CONTENT_PANE);
         }
 
         // Responsive classes: on mobile, only one panel visible at a time
@@ -126,12 +123,12 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
         var purchasesHide = this.showingProducts ? "d-none d-md-flex" : "";
 
         return div("flex-grow-1 d-flex flex-column flex-md-row")
-                .style("background-color:#ededed;min-height:0")
+                .style(CONTENT_PANE)
                 .children(
                         slot("h-100 " + productsHide, productsPanelEl)
-                                .style("flex:3;min-width:0"),
+                                .style("flex:1;min-width:0"),
                         slot("h-100 " + purchasesHide, purchasesPanelEl)
-                                .style("flex:2;min-width:0"));
+                                .style("width:320px;flex-shrink:0;min-width:0"));
     }
 
     private VNode renderBottomNav() {
