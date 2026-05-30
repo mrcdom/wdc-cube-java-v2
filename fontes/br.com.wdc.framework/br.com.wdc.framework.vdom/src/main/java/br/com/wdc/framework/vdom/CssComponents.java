@@ -1,11 +1,14 @@
 package br.com.wdc.framework.vdom;
 
 /**
- * Shared component CSS class name constants.
- * Single source of truth for reusable component-level classes used across multiple views.
+ * Shared component CSS class name constants. Single source of truth for reusable component-level classes used across
+ * multiple views.
  */
 @SuppressWarnings("java:S1214")
 public interface CssComponents {
+
+    CssComponents INSTANCE = new CssComponents() {
+    };
 
     // Alert
     String ALERT_ERROR = "alert-error";

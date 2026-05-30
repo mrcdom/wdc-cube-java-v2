@@ -9,18 +9,19 @@ import br.com.wdc.framework.vdom.VNode;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 
 /**
- * Root view: hosts the current content view (login or home).
- * Equivalent to RootView in remote.shell.react and RootViewVDom in teavm.web.
+ * Root view: hosts the current content view (login or home). Equivalent to RootView in remote.shell.react and
+ * RootViewVDom in teavm.web.
  */
 public class RootView extends AbstractRemoteView {
 
     public static final String VIEW_ID = "f2d345c4a610";
 
-    @SuppressWarnings("java:S1214")
+    @SuppressWarnings({ "java:S1214", "static-access" })
     private interface Css {
+        CssUtility u = CssUtility.INSTANCE;
 
-        String ROOT = clsx(CssUtility.FLEX_COL, CssUtility.H_FULL, CssUtility.OVERFLOW_HIDDEN);
-        String CONTENT = clsx(CssUtility.FLEX_COL, CssUtility.FLEX_GROW, CssUtility.MIN_H_0);
+        String ROOT = clsx(u.FLEX_COL, u.H_FULL, u.OVERFLOW_HIDDEN);
+        String CONTENT = clsx(u.FLEX_COL, u.FLEX_GROW, u.MIN_H_0);
     }
 
     public RootView(String vsid) {

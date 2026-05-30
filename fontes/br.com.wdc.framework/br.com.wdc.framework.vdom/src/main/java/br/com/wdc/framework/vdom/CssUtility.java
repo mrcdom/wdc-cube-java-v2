@@ -1,11 +1,13 @@
 package br.com.wdc.framework.vdom;
 
 /**
- * Utility CSS class name constants.
- * Single source of truth for reusable utility classes.
+ * Utility CSS class name constants. Single source of truth for reusable utility classes.
  */
 @SuppressWarnings("java:S1214")
 public interface CssUtility {
+
+    CssUtility INSTANCE = new CssUtility() {
+    };
 
     // Layout
     String FLEX = "flex";

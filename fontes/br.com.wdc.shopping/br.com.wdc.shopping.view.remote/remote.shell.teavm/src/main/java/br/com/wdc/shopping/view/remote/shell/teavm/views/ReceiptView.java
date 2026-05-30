@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.teavm.jso.dom.events.Event;
+import org.teavm.jso.dom.events.EventListener;
+
 import br.com.wdc.framework.vdom.CssComponents;
 import br.com.wdc.framework.vdom.CssIcons;
 import br.com.wdc.framework.vdom.CssUtility;
@@ -17,8 +20,7 @@ import br.com.wdc.framework.vdom.VNode;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 
 /**
- * Receipt view.
- * State: receipt {items [{description, quantity, value}], date, total}, notifySuccess.
+ * Receipt view. State: receipt {items [{description, quantity, value}], date, total}, notifySuccess.
  */
 public class ReceiptView extends AbstractRemoteView {
 
@@ -26,21 +28,24 @@ public class ReceiptView extends AbstractRemoteView {
 
     private static final int ON_BACK = 1;
 
-    @SuppressWarnings("java:S1214")
+    @SuppressWarnings({ "java:S1214", "static-access" })
     private interface Css {
+        CssUtility u = CssUtility.INSTANCE;
+        CssComponents c = CssComponents.INSTANCE;
+        CssIcons icon = CssIcons.INSTANCE;
 
-        String ROOT = CssUtility.PAGE_SCROLL_ROOT;
-        String WRAPPER = CssUtility.PAGE_WRAPPER;
-        String SUCCESS_VISIBLE = CssComponents.ALERT_SUCCESS;
-        String HIDDEN = CssUtility.HIDDEN;
-        String SUCCESS_ICON = clsx(CssIcons.CHECK_CIRCLE_FILL, CssComponents.ALERT_SUCCESS_ICON);
-        String SUCCESS_TEXT = CssComponents.ALERT_SUCCESS_TEXT;
-        String CARD = CssComponents.CARD_PANEL_LG;
-        String HEADER_ROW = CssComponents.CARD_HEADER_ROW;
-        String HEADER_ICON_BOX = CssComponents.CARD_HEADER_ICON_BOX;
-        String HEADER_ICON = clsx(CssIcons.RECEIPT, CssComponents.CARD_HEADER_ICON);
+        String ROOT = u.PAGE_SCROLL_ROOT;
+        String WRAPPER = u.PAGE_WRAPPER;
+        String SUCCESS_VISIBLE = c.ALERT_SUCCESS;
+        String HIDDEN = u.HIDDEN;
+        String SUCCESS_ICON = clsx(icon.CHECK_CIRCLE_FILL, c.ALERT_SUCCESS_ICON);
+        String SUCCESS_TEXT = c.ALERT_SUCCESS_TEXT;
+        String CARD = c.CARD_PANEL_LG;
+        String HEADER_ROW = c.CARD_HEADER_ROW;
+        String HEADER_ICON_BOX = c.CARD_HEADER_ICON_BOX;
+        String HEADER_ICON = clsx(icon.RECEIPT, c.CARD_HEADER_ICON);
         String HEADER_TITLE = "receipt-header-title";
-        String HEADER_SUBTITLE = CssComponents.CARD_HEADER_SUBTITLE;
+        String HEADER_SUBTITLE = c.CARD_HEADER_SUBTITLE;
         String RECEIPT_BODY = "receipt-body";
         String DATE_ROW = "receipt-date-row";
         String DATE_LABEL = "receipt-date-label";
@@ -58,6 +63,9 @@ public class ReceiptView extends AbstractRemoteView {
         String ITEM_QTY = "receipt-item-qty";
         String ITEM_VALUE = "receipt-item-value";
     }
+
+    // Stable event listener
+    private final EventListener<Event> onBack = evt -> submit(ON_BACK);
 
     public ReceiptView(String vsid) {
         super(vsid);
@@ -108,7 +116,7 @@ public class ReceiptView extends AbstractRemoteView {
               spActionButton()
                 .cls(Css.BACK_BTN)
                 .children(span(CssIcons.ARROW_LEFT), span().text(" Voltar aos produtos"))
-                .on("click", evt -> submit(ON_BACK)))));
+                .on("click", onBack))));
         // @formatter:on
     }
 
@@ -144,7 +152,8 @@ public class ReceiptView extends AbstractRemoteView {
         if (v instanceof List<?> list) {
             var result = new ArrayList<Map<String, Object>>();
             for (var item : list) {
-                if (item instanceof Map<?, ?> m) result.add((Map<String, Object>) m);
+                if (item instanceof Map<?, ?> m)
+                    result.add((Map<String, Object>) m);
             }
             return result;
         }

@@ -9,6 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.teavm.jso.dom.events.Event;
+import org.teavm.jso.dom.events.EventListener;
+
 import br.com.wdc.framework.commons.lang.CoerceUtils;
 import br.com.wdc.framework.vdom.VNode;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
@@ -37,6 +40,13 @@ public class ProductsPanelView extends AbstractRemoteView {
     private record Product(Long id, String name, String image, String price) {
     }
 
+    private EventListener<Event> mkOnOpenProduct(Long id) {
+        return evt -> {
+            setFormField("p.productId", id);
+            submit(ON_OPEN_PRODUCT);
+        };
+    }
+
     public ProductsPanelView(String vsid) {
         super(vsid);
     }
@@ -54,9 +64,10 @@ public class ProductsPanelView extends AbstractRemoteView {
     }
 
     private VNode renderCard(Product product) {
+        var key = product.id().toString();
         // @formatter:off
-        return div("product-card").key(product.id().toString())
-          .on("click", evt -> { setFormField("p.productId", product.id()); submit(ON_OPEN_PRODUCT); })
+        return div("product-card").key(key)
+          .on("click", useCallback("open-" + key, mkOnOpenProduct(product.id())))
           .children(
             div(Css.CARD_IMAGE_WRAP).children(
               img().attr("alt", product.name()).attr("src", product.image()).cls(Css.CARD_IMAGE)),

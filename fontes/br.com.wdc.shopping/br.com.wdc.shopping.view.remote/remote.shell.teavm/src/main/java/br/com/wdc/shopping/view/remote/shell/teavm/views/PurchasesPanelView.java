@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.teavm.jso.browser.Window;
+import org.teavm.jso.dom.events.Event;
+import org.teavm.jso.dom.events.EventListener;
 import org.teavm.jso.dom.html.HTMLElement;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
@@ -31,20 +33,21 @@ public class PurchasesPanelView extends AbstractRemoteView {
     private static final int ON_PAGE_SIZE_CHANGED = 3;
     private static final int ITEM_HEIGHT_PX = 56;
 
-    @SuppressWarnings("java:S1214")
+    @SuppressWarnings({ "java:S1214", "static-access" })
     private interface Css {
+        CssIcons icon = CssIcons.INSTANCE;
 
         String ROOT = "purchases-panel";
         String HEADER_ROW = "purchases-header-row";
-        String HEADER_ICON = clsx(CssIcons.CLOCK_HISTORY, "purchases-header-icon");
+        String HEADER_ICON = clsx(icon.CLOCK_HISTORY, "purchases-header-icon");
         String HEADER_TITLE = "purchases-header-title";
         String HINT = "purchases-hint";
         String LIST_CONTAINER = "purchases-list-container";
         String PAGINATION = "purchases-pagination";
         String PAGE_PILL = "purchases-page-pill";
         String PAGE_BTN = "purchases-page-btn";
-        String PAGE_PREV_ICON = clsx(CssIcons.CHEVRON_LEFT, "purchases-page-btn-icon");
-        String PAGE_NEXT_ICON = clsx(CssIcons.CHEVRON_RIGHT, "purchases-page-btn-icon");
+        String PAGE_PREV_ICON = clsx(icon.CHEVRON_LEFT, "purchases-page-btn-icon");
+        String PAGE_NEXT_ICON = clsx(icon.CHEVRON_RIGHT, "purchases-page-btn-icon");
         String PAGE_INFO = "purchases-page-info";
         String ITEM_CARD = clsx("purchase-item", "purchases-item-card");
         String ITEM_LINE1 = "purchases-item-line1";
@@ -59,6 +62,17 @@ public class PurchasesPanelView extends AbstractRemoteView {
     private int pendingResizeFrame = -1;
 
     private record Purchase(Object id, String key, String idStr, String date, String items, String total) {
+    }
+
+    private EventListener<Event> mkOnOpenReceipt(Object id) {
+        return evt -> {
+            setFormField("p.purchaseId", id);
+            submit(ON_OPEN_RECEIPT);
+        };
+    }
+
+    private EventListener<Event> mkOnPageChange(int page) {
+        return evt -> changePage(page);
     }
 
     public PurchasesPanelView(String vsid) {
@@ -98,11 +112,11 @@ public class PurchasesPanelView extends AbstractRemoteView {
           div(Css.PAGINATION).children(
             div(Css.PAGE_PILL).children(
               div(Css.PAGE_BTN)
-                .on("click", evt -> changePage(page - 1))
+                .on("click", useCallback("prev-" + page, mkOnPageChange(page - 1)))
                 .children(span(Css.PAGE_PREV_ICON)),
               span(Css.PAGE_INFO).text(pageInfo),
               div(Css.PAGE_BTN)
-                .on("click", evt -> changePage(page + 1))
+                .on("click", useCallback("next-" + page, mkOnPageChange(page + 1)))
                 .children(span(Css.PAGE_NEXT_ICON)))));
         // @formatter:on
     }
@@ -110,7 +124,7 @@ public class PurchasesPanelView extends AbstractRemoteView {
     private VNode renderItem(Purchase purchase) {
         // @formatter:off
         return div(Css.ITEM_CARD).key(purchase.key())
-          .on("click", evt -> { setFormField("p.purchaseId", purchase.id()); submit(ON_OPEN_RECEIPT); })
+          .on("click", useCallback("receipt-" + purchase.key(), mkOnOpenReceipt(purchase.id())))
           .children(
             div(Css.ITEM_LINE1).children(
               span(Css.ITEM_ID).text(purchase.idStr()),

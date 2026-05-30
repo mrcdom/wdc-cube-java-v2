@@ -4,6 +4,9 @@ import static br.com.wdc.framework.vdom.VNode.*;
 
 import java.util.List;
 
+import org.teavm.jso.dom.events.Event;
+import org.teavm.jso.dom.events.EventListener;
+
 import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter.ProductsPanelViewState;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
@@ -26,6 +29,10 @@ public class ProductsPanelViewVDom extends AbstractVDomView<ProductsPanelPresent
 
     private final ProductsPanelViewState state;
 
+    private EventListener<Event> mkOnOpenProduct(long id) {
+        return evt -> safeAction("Open product", () -> this.presenter.onOpenProduct(id));
+    }
+
     public ProductsPanelViewVDom(ProductsPanelPresenter presenter) {
         super("products-panel", (ShoppingTeaVMApplication) presenter.app, presenter);
         this.state = presenter.state;
@@ -46,10 +53,11 @@ public class ProductsPanelViewVDom extends AbstractVDomView<ProductsPanelPresent
         var imageUrl = product.image != null ? app.resolveImageUrl(product.image) : "";
         var name = product.name != null ? product.name : "";
         var price = product.price > 0 ? "R$ " + String.format("%.2f", product.price) : "";
+        var key = String.valueOf(product.id);
 
         // @formatter:off
-        return div("product-card").key(String.valueOf(product.id))
-          .on("click", evt -> safeAction("Open product", () -> this.presenter.onOpenProduct(product.id)))
+        return div("product-card").key(key)
+          .on("click", useCallback("open-" + key, mkOnOpenProduct(product.id)))
           .children(
             div(Css.CARD_IMAGE_WRAP).children(
               img().attr("alt", name).attr("src", imageUrl).cls(Css.CARD_IMAGE)),

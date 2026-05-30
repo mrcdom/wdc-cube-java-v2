@@ -20,20 +20,21 @@ import br.com.wdc.framework.vdom.VNode;
 
 public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPresenter> {
 
-    @SuppressWarnings("java:S1214")
+    @SuppressWarnings({"java:S1214", "static-access"})
     private interface Css {
+        CssIcons icon = CssIcons.INSTANCE;
 
         String ROOT = "purchases-panel";
         String HEADER_ROW = "purchases-header-row";
-        String HEADER_ICON = clsx(CssIcons.CLOCK_HISTORY, "purchases-header-icon");
+        String HEADER_ICON = clsx(icon.CLOCK_HISTORY, "purchases-header-icon");
         String HEADER_TITLE = "purchases-header-title";
         String HINT = "purchases-hint";
         String LIST_CONTAINER = "purchases-list-container";
         String PAGINATION = "purchases-pagination";
         String PAGE_PILL = "purchases-page-pill";
         String PAGE_BTN = "purchases-page-btn";
-        String PAGE_PREV_ICON = clsx(CssIcons.CHEVRON_LEFT, "purchases-page-btn-icon");
-        String PAGE_NEXT_ICON = clsx(CssIcons.CHEVRON_RIGHT, "purchases-page-btn-icon");
+        String PAGE_PREV_ICON = clsx(icon.CHEVRON_LEFT, "purchases-page-btn-icon");
+        String PAGE_NEXT_ICON = clsx(icon.CHEVRON_RIGHT, "purchases-page-btn-icon");
         String PAGE_INFO = "purchases-page-info";
         String ITEM_CARD = clsx("purchase-item", "purchases-item-card");
         String ITEM_LINE1 = "purchases-item-line1";
@@ -57,6 +58,10 @@ public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPrese
     private final EventListener<Event> nextPageListener;
 
     private record PurchaseData(long id, String key, String idStr, String date, String items, String total) {}
+
+    private EventListener<Event> mkOnOpenReceipt(long id) {
+        return evt -> safeAction("Open receipt", () -> this.presenter.onOpenReceipt(id));
+    }
 
     public PurchasesPanelViewVDom(PurchasesPanelPresenter presenter) {
         super("purchases-panel", (ShoppingTeaVMApplication) presenter.app, presenter);
@@ -107,7 +112,7 @@ public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPrese
     private VNode renderItem(PurchaseData purchase) {
         // @formatter:off
         return div(Css.ITEM_CARD).key(purchase.key())
-          .on("click", evt -> safeAction("Open receipt", () -> this.presenter.onOpenReceipt(purchase.id())))
+          .on("click", useCallback("receipt-" + purchase.key(), mkOnOpenReceipt(purchase.id())))
           .children(
             div(Css.ITEM_LINE1).children(
               span(Css.ITEM_ID).text(purchase.idStr()),

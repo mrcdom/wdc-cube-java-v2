@@ -12,20 +12,21 @@ import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.ViewStateCoordinator;
 
 /**
- * Browser-level view: manages global submitting indicator and hosts the root view.
- * Equivalent to BrowserView.tsx in remote.shell.react.
+ * Browser-level view: manages global submitting indicator and hosts the root view. Equivalent to BrowserView.tsx in
+ * remote.shell.react.
  */
 public class BrowserView extends AbstractRemoteView {
 
     public static final String VIEW_ID = ViewStateCoordinator.BROWSER_VID;
 
-    @SuppressWarnings("java:S1214")
-    private interface Css {
+    @SuppressWarnings({"java:S1214", "static-access"})
+    private interface Css extends CssUtility {
+        CssUtility u = CssUtility.INSTANCE;
 
+        String HIDDEN = u.HIDDEN;
         String HOST = "browser-host";
         String CONTAINER = "browser-container";
         String LOADING_BAR = "browser-loading-bar";
-        String HIDDEN = CssUtility.HIDDEN;
         String CONTENT = "browser-content";
     }
 

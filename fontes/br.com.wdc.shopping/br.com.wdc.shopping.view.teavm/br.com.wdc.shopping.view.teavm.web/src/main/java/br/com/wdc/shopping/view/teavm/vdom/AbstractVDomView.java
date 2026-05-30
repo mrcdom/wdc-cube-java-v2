@@ -1,5 +1,12 @@
 package br.com.wdc.shopping.view.teavm.vdom;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import org.teavm.jso.dom.events.Event;
+import org.teavm.jso.dom.events.EventListener;
 import org.teavm.jso.dom.html.HTMLDocument;
 import org.teavm.jso.dom.html.HTMLElement;
 
@@ -44,6 +51,10 @@ public abstract class AbstractVDomView<P> extends AbstractViewTeaVM<P> {
 
     private VNode prevTree;
 
+    // Listener memoization: stable references across renders
+    private Map<String, EventListener<? extends Event>> listenerCache = new HashMap<>();
+    private Set<String> usedKeys = new HashSet<>();
+
     protected AbstractVDomView(String instanceId, ShoppingTeaVMApplication app, P presenter) {
         super(instanceId, app, presenter, HTMLDocument.current().createElement("div"));
     }
@@ -60,7 +71,21 @@ public abstract class AbstractVDomView<P> extends AbstractViewTeaVM<P> {
 
     @Override
     public void doUpdate() {
+        usedKeys.clear();
         var nextTree = render();
+        listenerCache.keySet().retainAll(usedKeys);
         prevTree = VDom.patch(this.element, prevTree, nextTree);
+    }
+
+    /**
+     * Returns a stable event listener for the given key.
+     * If the key was seen before, returns the cached instance (same reference = no DOM re-registration).
+     * If the key is new, stores and returns the provided listener.
+     * Listeners not referenced during a render cycle are automatically removed.
+     */
+    @SuppressWarnings("unchecked")
+    protected <T extends Event> EventListener<T> useCallback(String key, EventListener<T> listener) {
+        usedKeys.add(key);
+        return (EventListener<T>) listenerCache.computeIfAbsent(key, k -> listener);
     }
 }

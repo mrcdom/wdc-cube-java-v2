@@ -6,6 +6,8 @@ package br.com.wdc.framework.vdom;
 @SuppressWarnings("java:S1214")
 public interface CssIcons {
 
+    CssIcons INSTANCE = new CssIcons() {};
+
     String ARROW_LEFT = "bi bi-arrow-left";
     String ARROW_REPEAT = "bi bi-arrow-repeat";
     String BAG = "bi bi-bag";

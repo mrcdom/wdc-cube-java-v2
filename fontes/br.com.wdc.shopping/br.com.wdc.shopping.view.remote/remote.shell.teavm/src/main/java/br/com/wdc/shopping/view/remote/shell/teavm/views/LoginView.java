@@ -8,6 +8,8 @@ import static br.com.wdc.framework.vdom.VNode.div;
 import static br.com.wdc.framework.vdom.VNode.span;
 import static br.com.wdc.framework.vdom.VNode.textNode;
 
+import org.teavm.jso.dom.events.Event;
+import org.teavm.jso.dom.events.EventListener;
 import org.teavm.jso.dom.events.KeyboardEvent;
 import org.teavm.jso.dom.html.HTMLInputElement;
 
@@ -27,17 +29,20 @@ public class LoginView extends AbstractRemoteView {
 
     private static final int ON_ENTER = 1;
 
-    @SuppressWarnings("java:S1214")
+    @SuppressWarnings({ "java:S1214", "static-access" })
     private interface Css {
+        CssUtility u = CssUtility.INSTANCE;
+        CssComponents c = CssComponents.INSTANCE;
+        CssIcons icon = CssIcons.INSTANCE;
 
         String LOGIN_ROOT = "login-root";
-        String LEFT_PANEL = clsx(CssUtility.MD_SHOW, "login-left-panel");
+        String LEFT_PANEL = clsx(u.MD_SHOW, "login-left-panel");
         String DECO_CIRCLE_1 = "deco-circle--1";
         String DECO_CIRCLE_2 = "deco-circle--2";
         String DECO_CIRCLE_3 = "deco-circle--3";
         String CONTENT_CENTER = "login-content-center";
         String LOGO_BOX_LG = "logo-box-lg";
-        String ICON_LG = clsx(CssIcons.BAG_CHECK, "login-logo-icon-lg");
+        String ICON_LG = clsx(icon.BAG_CHECK, "login-logo-icon-lg");
         String TITLE_LG = "login-title-lg";
         String SUBTITLE_LG = "login-subtitle-lg";
         String FEATURES_LIST = "login-features-list";
@@ -48,16 +53,16 @@ public class LoginView extends AbstractRemoteView {
         String MOBILE_CIRCLE_2 = "login-mobile-circle-2";
         String MOBILE_CONTENT = "login-mobile-content";
         String LOGO_BOX_SM = "login-logo-box-sm";
-        String ICON_SM = clsx(CssIcons.BAG_CHECK, "login-icon-sm");
+        String ICON_SM = clsx(icon.BAG_CHECK, "login-icon-sm");
         String MOBILE_TITLE = "login-mobile-title";
         String MOBILE_SUBTITLE = "login-mobile-subtitle";
         String WELCOME_WRAP = "login-welcome-wrap";
         String WELCOME_TITLE = "login-welcome-title";
         String WELCOME_SUBTITLE = "login-welcome-subtitle";
-        String ERROR_VISIBLE = CssComponents.ALERT_ERROR;
+        String ERROR_VISIBLE = c.ALERT_ERROR;
         String HIDDEN = CssUtility.HIDDEN;
-        String ERROR_ICON = clsx(CssIcons.EXCLAMATION_CIRCLE, CssComponents.ALERT_ERROR_ICON);
-        String ERROR_TEXT = CssComponents.ALERT_ERROR_TEXT;
+        String ERROR_ICON = clsx(CssIcons.EXCLAMATION_CIRCLE, c.ALERT_ERROR_ICON);
+        String ERROR_TEXT = c.ALERT_ERROR_TEXT;
         String FIELD_LABEL = "login-field-label";
         String USER_FIELD = "login-field";
         String PASSWORD_FIELD = "login-field-password";
@@ -69,6 +74,14 @@ public class LoginView extends AbstractRemoteView {
         String FEATURE_ICON = "login-feature-icon";
         String FEATURE_TEXT = "login-feature-text";
     }
+
+    // Stable event listeners
+    private final EventListener<KeyboardEvent> onKeyDown = evt -> {
+        if ("Enter".equals(evt.getKey())) {
+            emitEnter();
+        }
+    };
+    private final EventListener<Event> onClickEnter = evt -> emitEnter();
 
     private HTMLInputElement userNameField;
     @SuppressWarnings("java:S2068")
@@ -134,13 +147,13 @@ public class LoginView extends AbstractRemoteView {
                 .attr("id", "login-pass").attr("autocomplete", "off")
                 .boolAttr("disabled", loading)
                 .cls(Css.PASSWORD_FIELD)
-                .on("keydown", (KeyboardEvent evt) -> { if ("Enter".equals(evt.getKey())) { emitEnter(); } })
+                .on("keydown", onKeyDown)
                 .ref(el -> this.passwordField = (HTMLInputElement) el),
               // Enter button
               spButton("accent", "l")
                 .boolAttr("disabled", loading).boolAttr("pending", loading)
                 .cls(Css.ENTER_BUTTON)
-                .on("click", evt -> emitEnter())
+                .on("click", onClickEnter)
                 .children(textNode(loading ? "Entrando..." : "Entrar")),
               // Demo hint
               div(Css.DEMO_HINT).children(

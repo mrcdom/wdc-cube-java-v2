@@ -1,6 +1,13 @@
 package br.com.wdc.shopping.view.remote.shell.teavm.bridge;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.teavm.jso.JSBody;
+import org.teavm.jso.dom.events.Event;
+import org.teavm.jso.dom.events.EventListener;
 import org.teavm.jso.dom.html.HTMLDocument;
 import org.teavm.jso.dom.html.HTMLElement;
 
@@ -21,6 +28,10 @@ public abstract class AbstractRemoteView {
     private final HTMLElement element;
     private VNode prevTree;
     private boolean updateScheduled = false;
+
+    // Listener memoization: stable references across renders
+    private Map<String, EventListener<? extends Event>> listenerCache = new HashMap<>();
+    private Set<String> usedKeys = new HashSet<>();
 
     protected AbstractRemoteView(String vsid) {
         this.vsid = vsid;
@@ -58,9 +69,13 @@ public abstract class AbstractRemoteView {
 
     /**
      * Render cycle: diffs and patches the DOM.
+     * Also performs listener cache cleanup (removes entries not used this cycle).
      */
     public void doUpdate() {
+        usedKeys.clear();
         var nextTree = render();
+        // Remove listeners not referenced in this render
+        listenerCache.keySet().retainAll(usedKeys);
         prevTree = VDom.patch(element, prevTree, nextTree);
     }
 
@@ -68,6 +83,20 @@ public abstract class AbstractRemoteView {
      * Subclasses implement this to describe the view tree based on current state.
      */
     protected abstract VNode render();
+
+    // -- Listener memoization --
+
+    /**
+     * Returns a stable event listener for the given key.
+     * If the key was seen before, returns the cached instance (same reference = no DOM re-registration).
+     * If the key is new, stores and returns the provided listener.
+     * Listeners not referenced during a render cycle are automatically removed.
+     */
+    @SuppressWarnings("unchecked")
+    protected <T extends Event> EventListener<T> useCallback(String key, EventListener<T> listener) {
+        usedKeys.add(key);
+        return (EventListener<T>) listenerCache.computeIfAbsent(key, k -> listener);
+    }
 
     // -- Helpers --
 

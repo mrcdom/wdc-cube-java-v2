@@ -11,6 +11,9 @@ import static br.com.wdc.framework.vdom.VNode.span;
 
 import java.util.Map;
 
+import org.teavm.jso.dom.events.Event;
+import org.teavm.jso.dom.events.EventListener;
+
 import br.com.wdc.framework.commons.lang.CoerceUtils;
 import br.com.wdc.framework.vdom.CssComponents;
 import br.com.wdc.framework.vdom.CssIcons;
@@ -29,11 +32,14 @@ public class ProductView extends AbstractRemoteView {
     private static final int ON_BACK = 1;
     private static final int ON_ADD_TO_CART = 2;
 
-    @SuppressWarnings("java:S1214")
+    @SuppressWarnings({ "java:S1214", "static-access" })
     private interface Css {
+        CssUtility u = CssUtility.INSTANCE;
+        CssComponents c = CssComponents.INSTANCE;
+        CssIcons icon = CssIcons.INSTANCE;
 
-        String ROOT = CssUtility.PAGE_SCROLL_ROOT;
-        String WRAPPER = CssUtility.PAGE_WRAPPER;
+        String ROOT = u.PAGE_SCROLL_ROOT;
+        String WRAPPER = u.PAGE_WRAPPER;
         String TITLE = "product-title";
         String DIVIDER = "product-divider";
         String DESC_CARD = "product-desc-card";
@@ -47,12 +53,29 @@ public class ProductView extends AbstractRemoteView {
         String IMAGE_BOX = "product-image-box";
         String IMAGE = "product-image";
         String ACTIONS_ROW = "product-actions-row";
-        String ICON_ADD_CART = clsx(CssIcons.BAG_PLUS, CssUtility.MR_6);
-        String ERROR_VISIBLE = clsx(CssComponents.ALERT_ERROR, CssUtility.MT_12);
-        String HIDDEN = CssUtility.HIDDEN;
-        String ERROR_ICON = clsx(CssIcons.EXCLAMATION_CIRCLE, CssComponents.ALERT_ERROR_ICON);
-        String ERROR_TEXT = CssComponents.ALERT_ERROR_TEXT;
+        String ICON_ADD_CART = clsx(icon.BAG_PLUS, u.MR_6);
+        String ERROR_VISIBLE = clsx(c.ALERT_ERROR, u.MT_12);
+        String HIDDEN = u.HIDDEN;
+        String ERROR_ICON = clsx(icon.EXCLAMATION_CIRCLE, c.ALERT_ERROR_ICON);
+        String ERROR_TEXT = c.ALERT_ERROR_TEXT;
     }
+
+    // Stable event listeners
+    private final EventListener<Event> onDecrement = evt -> {
+        if (this.quantity > 1) {
+            this.quantity--;
+            forceUpdate();
+        }
+    };
+    private final EventListener<Event> onIncrement = evt -> {
+        this.quantity++;
+        forceUpdate();
+    };
+    private final EventListener<Event> onBack = evt -> submit(ON_BACK);
+    private final EventListener<Event> onAddToCart = evt -> {
+        setFormField("p.quantity", this.quantity);
+        submit(ON_ADD_TO_CART);
+    };
 
     private int quantity = 1;
     private String currentDescription = "";
@@ -94,21 +117,21 @@ public class ProductView extends AbstractRemoteView {
                   span(Css.QTY_LABEL).text("Qtd:"),
                   spActionButton("s")
                     .children(span(CssIcons.DASH))
-                    .on("click", evt -> { if (this.quantity > 1) { this.quantity--; forceUpdate(); } }),
+                    .on("click", onDecrement),
                   span(Css.QTY_VALUE).text(String.valueOf(this.quantity)),
                   spActionButton("s")
                     .children(span(CssIcons.PLUS))
-                    .on("click", evt -> { this.quantity++; forceUpdate(); }))),
+                    .on("click", onIncrement))),
               div(Css.IMAGE_BOX).children(
                 img().attr("alt", product.name()).attr("src", product.image()).cls(Css.IMAGE))),
             // Action buttons
             div(Css.ACTIONS_ROW).children(
               spActionButton()
                 .children(span(CssIcons.ARROW_LEFT), span().text(" Voltar"))
-                .on("click", evt -> submit(ON_BACK)),
+                .on("click", onBack),
               spButton("accent", "l")
                 .children(span(Css.ICON_ADD_CART), span().text("Adicionar ao Carrinho"))
-                .on("click", evt -> { setFormField("p.quantity", this.quantity); submit(ON_ADD_TO_CART); }))),
+                .on("click", onAddToCart))),
           // Error
           div(showError ? Css.ERROR_VISIBLE : Css.HIDDEN).children(
             span(Css.ERROR_ICON),
