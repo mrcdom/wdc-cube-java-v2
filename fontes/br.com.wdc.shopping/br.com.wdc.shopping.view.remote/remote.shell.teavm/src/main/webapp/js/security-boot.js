@@ -198,11 +198,17 @@
         });
     };
 
-    // Also persist app_id to sessionStorage if present as cookie
+    // Persist app_id to sessionStorage if present as cookie,
+    // but only when sessionStorage doesn't already hold one (sessionStorage wins on F5).
     const appId = getCookie('app_id');
     if (appId) {
-        try { sessionStorage.setItem('app_id', appId); } catch(e) { console.warn('[security-boot] sessionStorage unavailable:', e); }
         removeCookie('app_id');
-        console.log('[security-boot] app_id stored:', appId);
+        const existing = sessionStorage.getItem('app_id');
+        if (!existing) {
+            try { sessionStorage.setItem('app_id', appId); } catch(e) { console.warn('[security-boot] sessionStorage unavailable:', e); }
+            console.log('[security-boot] app_id stored:', appId);
+        } else {
+            console.log('[security-boot] app_id already in sessionStorage, cookie discarded');
+        }
     }
 })();
