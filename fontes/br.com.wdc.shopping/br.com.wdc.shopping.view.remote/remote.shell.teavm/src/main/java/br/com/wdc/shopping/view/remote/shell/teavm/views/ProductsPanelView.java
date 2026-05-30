@@ -81,7 +81,7 @@ public class ProductsPanelView extends AbstractRemoteView {
 
         // @formatter:off
         return div().style(Styles.PANEL).children(
-          div().cls("product-grid")
+          div("product-grid")
             .children(products.stream().map(this::renderCard).toList()));
         // @formatter:on
     }
@@ -109,7 +109,7 @@ public class ProductsPanelView extends AbstractRemoteView {
         var key = id != null ? id.toString() : name;
 
         // @formatter:off
-        return div().cls("product-card").key(key)
+        return div("product-card").key(key)
           .on("click", evt -> { setFormField("p.productId", id); submit(ON_OPEN_PRODUCT); })
           .children(
             div().style(Styles.CARD_IMAGE_WRAP).children(

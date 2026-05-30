@@ -206,7 +206,7 @@ public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPrese
         return div().style(Styles.ROOT).children(
           // Header
           div().style(Styles.HEADER_ROW).children(
-            span().cls("bi bi-clock-history").style(Styles.HEADER_ICON),
+            span("bi bi-clock-history").style(Styles.HEADER_ICON),
             span().style(Styles.HEADER_TITLE).text("Histórico")),
           span().style(Styles.HINT).text("Toque para ver detalhes"),
           // List container
@@ -218,11 +218,11 @@ public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPrese
             div().style(Styles.PAGE_PILL).children(
               div().style(Styles.PAGE_BTN)
                 .on("click", this.prevPageListener)
-                .children(span().cls("bi bi-chevron-left").style(Styles.PAGE_BTN_ICON)),
+                .children(span("bi bi-chevron-left").style(Styles.PAGE_BTN_ICON)),
               span().style(Styles.PAGE_INFO).text(pageInfo),
               div().style(Styles.PAGE_BTN)
                 .on("click", this.nextPageListener)
-                .children(span().cls("bi bi-chevron-right").style(Styles.PAGE_BTN_ICON)))));
+                .children(span("bi bi-chevron-right").style(Styles.PAGE_BTN_ICON)))));
         // @formatter:on
     }
 
@@ -233,7 +233,7 @@ public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPrese
         var total = purchase.total > 0 ? "R$ " + String.format("%.2f", purchase.total) : "";
 
         // @formatter:off
-        return div().cls("purchase-item").key(String.valueOf(purchase.id)).style(Styles.ITEM_CARD)
+        return div("purchase-item").key(String.valueOf(purchase.id)).style(Styles.ITEM_CARD)
           .on("click", evt -> safeAction("Open receipt", () -> this.presenter.onOpenReceipt(purchase.id)))
           .children(
             div().style(Styles.ITEM_LINE1).children(

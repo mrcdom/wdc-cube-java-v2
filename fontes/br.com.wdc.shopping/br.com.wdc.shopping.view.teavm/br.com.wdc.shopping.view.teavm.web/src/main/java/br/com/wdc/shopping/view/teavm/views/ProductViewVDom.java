@@ -213,11 +213,11 @@ public class ProductViewVDom extends AbstractVDomView<ProductPresenter> {
                 div().style(Styles.QTY_ROW).children(
                   span().style(Styles.QTY_LABEL).text("Qtd:"),
                   spActionButton("s")
-                    .children(span().cls("bi bi-dash"))
+                    .children(span("bi bi-dash"))
                     .on("click", evt -> { if (this.quantity > 1) { this.quantity--; update(); } }),
                   span().style(Styles.QTY_VALUE).text(String.valueOf(this.quantity)),
                   spActionButton("s")
-                    .children(span().cls("bi bi-plus"))
+                    .children(span("bi bi-plus"))
                     .on("click", evt -> { this.quantity++; update(); }))),
               // Right: product image
               div().style(Styles.IMAGE_BOX).children(
@@ -225,14 +225,14 @@ public class ProductViewVDom extends AbstractVDomView<ProductPresenter> {
             // Action buttons row
             div().style(Styles.ACTIONS_ROW).children(
               spActionButton()
-                .children(span().cls("bi bi-arrow-left"), span().text(" Voltar"))
+                .children(span("bi bi-arrow-left"), span().text(" Voltar"))
                 .on("click", evt -> safeAction("Back", this.presenter::onOpenProducts)),
               spButton("accent", "l")
-                .children(span().cls("bi bi-bag-plus").style("margin-right:6px"), span().text("Adicionar ao Carrinho"))
+                .children(span("bi bi-bag-plus").style("margin-right:6px"), span().text("Adicionar ao Carrinho"))
                 .on("click", evt -> safeAction("AddToCart", () -> this.presenter.onAddToCart(this.quantity))))),
           // Error
           div().style(showError ? Styles.ERROR_VISIBLE : Styles.HIDDEN).children(
-            span().cls("bi bi-exclamation-circle").style(Styles.ERROR_ICON),
+            span("bi bi-exclamation-circle").style(Styles.ERROR_ICON),
             span().style(Styles.ERROR_TEXT).text(errorMessage)));
         // @formatter:on
     }

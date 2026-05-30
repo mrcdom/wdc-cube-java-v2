@@ -279,7 +279,7 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
           renderNavbar(nickName, cartCount),
           renderTabNav(),
           div().style(showError ? Styles.ERROR_VISIBLE : Styles.HIDDEN).children(
-            span().cls("bi bi-exclamation-circle").style(Styles.ERROR_ICON),
+            span("bi bi-exclamation-circle").style(Styles.ERROR_ICON),
             span().style(Styles.ERROR_TEXT).text(errorMessage)),
           renderContentPane(productsPanelEl, purchasesPanelEl, contentViewEl));
         // @formatter:on
@@ -291,25 +291,25 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
           // Left: exit + greeting
           div().style(Styles.NAV_GROUP).children(
             spActionButton()
-              .children(span().cls("bi bi-box-arrow-left").style(Styles.EXIT_ICON))
+              .children(span("bi bi-box-arrow-left").style(Styles.EXIT_ICON))
               .on("click", evt -> safeAction("Exit", this.presenter::onExit)),
-            div().cls("sm-show").style(Styles.GREETING_WRAP).children(
+            div("sm-show").style(Styles.GREETING_WRAP).children(
               span().style(Styles.GREETING_LABEL).text("Bem-vindo(a),"),
               span().style(Styles.GREETING_NAME).text(nickName))),
           // Center: logo
           div().style(Styles.NAV_GROUP).children(
             div().style(Styles.LOGO_BOX)
-              .children(span().cls("bi bi-bag-check").style(Styles.LOGO_ICON)),
+              .children(span("bi bi-bag-check").style(Styles.LOGO_ICON)),
             div().style(Styles.LOGO_TEXT_WRAP).children(
               span().style(Styles.LOGO_TITLE).text("Shopping"),
-              span().cls("sm-show").style(Styles.LOGO_SUBTITLE).text("By WeDoCode"))),
+              span("sm-show").style(Styles.LOGO_SUBTITLE).text("By WeDoCode"))),
           // Right: cart button
           div().style(Styles.NAV_RIGHT).children(
             spActionButton().style(Styles.CART_BTN)
               .on("click", evt -> safeAction("Open cart", this.presenter::onOpenCart))
               .children(
-                span().cls("bi bi-bag").style(Styles.CART_ICON),
-                span().cls("sm-show").style(Styles.CART_LABEL).text("Carrinho"),
+                span("bi bi-bag").style(Styles.CART_ICON),
+                span("sm-show").style(Styles.CART_LABEL).text("Carrinho"),
                 span().style(Styles.CART_BADGE).text(cartCount))));
         // @formatter:on
     }
@@ -325,7 +325,7 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
         var purchasesHide = this.showingProducts ? "md-show" : "";
 
         // @formatter:off
-        return div().cls("md-row").style(Styles.SPLIT_ROW).children(
+        return div("md-row").style(Styles.SPLIT_ROW).children(
           slot(productsPanelEl).cls(productsHide).style(Styles.PANEL_SLOT),
           slot(purchasesPanelEl).cls("slot-purchases md-grow-0 " + purchasesHide).style(Styles.PANEL_SLOT));
         // @formatter:on
@@ -333,17 +333,17 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
 
     private VNode renderTabNav() {
         // @formatter:off
-        return nav().cls("md-hide").style(Styles.TAB_NAV).children(
+        return nav("md-hide").style(Styles.TAB_NAV).children(
           button().style(this.showingProducts ? Styles.TAB_ACTIVE : Styles.TAB_INACTIVE)
             .on("click", evt -> switchTab(true))
             .children(
-              span().cls("bi bi-grid-3x3-gap").style(Styles.TAB_ICON),
+              span("bi bi-grid-3x3-gap").style(Styles.TAB_ICON),
               span().text("Produtos"),
               this.showingProducts ? span().style(Styles.TAB_INDICATOR) : span().style(Styles.HIDDEN)),
           button().style(this.showingProducts ? Styles.TAB_INACTIVE : Styles.TAB_ACTIVE)
             .on("click", evt -> switchTab(false))
             .children(
-              span().cls("bi bi-clock-history").style(Styles.TAB_ICON),
+              span("bi bi-clock-history").style(Styles.TAB_ICON),
               span().text("Histórico"),
               !this.showingProducts ? span().style(Styles.TAB_INDICATOR) : span().style(Styles.HIDDEN)));
         // @formatter:on

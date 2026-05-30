@@ -204,7 +204,7 @@ public class PurchasesPanelView extends AbstractRemoteView {
         // @formatter:off
         return div().style(Styles.ROOT).children(
           div().style(Styles.HEADER_ROW).children(
-            span().cls("bi bi-clock-history").style(Styles.HEADER_ICON),
+            span("bi bi-clock-history").style(Styles.HEADER_ICON),
             span().style(Styles.HEADER_TITLE).text("Histórico")),
           span().style(Styles.HINT).text("Toque para ver detalhes"),
           div().style(Styles.LIST_CONTAINER)
@@ -214,11 +214,11 @@ public class PurchasesPanelView extends AbstractRemoteView {
             div().style(Styles.PAGER_GROUP).children(
               div().style(Styles.PAGER_BTN)
                 .on("click", evt -> changePage(page - 1))
-                .children(span().cls("bi bi-chevron-left").style(Styles.PAGER_ICON)),
+                .children(span("bi bi-chevron-left").style(Styles.PAGER_ICON)),
               span().style(Styles.PAGER_INFO).text(pageInfo),
               div().style(Styles.PAGER_BTN)
                 .on("click", evt -> changePage(page + 1))
-                .children(span().cls("bi bi-chevron-right").style(Styles.PAGER_ICON)))));
+                .children(span("bi bi-chevron-right").style(Styles.PAGER_ICON)))));
         // @formatter:on
     }
 
@@ -248,7 +248,7 @@ public class PurchasesPanelView extends AbstractRemoteView {
         }
 
         // @formatter:off
-        return div().cls("purchase-item").key(key).style(Styles.ITEM_CARD)
+        return div("purchase-item").key(key).style(Styles.ITEM_CARD)
           .on("click", evt -> { setFormField("p.purchaseId", id); submit(ON_OPEN_RECEIPT); })
           .children(
             div().style(Styles.ITEM_TOP_ROW).children(

@@ -77,7 +77,7 @@ public class ProductsPanelViewVDom extends AbstractVDomView<ProductsPanelPresent
 
         // @formatter:off
         return div().style(Styles.PANEL).children(
-          div().cls("product-grid")
+          div("product-grid")
             .children(products != null ? products.stream().map(this::renderCard).toList() : List.of()));
         // @formatter:on
     }
@@ -88,7 +88,7 @@ public class ProductsPanelViewVDom extends AbstractVDomView<ProductsPanelPresent
         var price = product.price > 0 ? "R$ " + String.format("%.2f", product.price) : "";
 
         // @formatter:off
-        return div().cls("product-card").key(String.valueOf(product.id))
+        return div("product-card").key(String.valueOf(product.id))
           .on("click", evt -> safeAction("Open product", () -> this.presenter.onOpenProduct(product.id)))
           .children(
             div().style(Styles.CARD_IMAGE_WRAP).children(

@@ -18,7 +18,7 @@ import static br.com.wdc.framework.vdom.VNode.*;
  *     .children(textNode("OK"));
  *
  * spActionButton()
- *     .children(span().cls("bi bi-arrow-left"), span().text("Voltar"))
+ *     .children(span("bi bi-arrow-left"), span().text("Voltar"))
  *     .on("click", e -> goBack());
  *
  * spTextField("Digite seu nome")

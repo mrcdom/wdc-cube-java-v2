@@ -245,13 +245,13 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
               // Title row
               div().style(Styles.HEADER_ROW).children(
                 div().style(Styles.HEADER_ICON_BOX)
-                  .children(span().cls("bi bi-bag").style(Styles.HEADER_ICON)),
+                  .children(span("bi bi-bag").style(Styles.HEADER_ICON)),
                 div().children(
                   h5().style(Styles.HEADER_TITLE).text("Carrinho"),
                   span().style(Styles.HEADER_SUBTITLE).text("Seus produtos selecionados"))),
               // Error
               div().style(showError ? Styles.ERROR_VISIBLE : Styles.HIDDEN).children(
-                span().cls("bi bi-exclamation-circle").style(Styles.ERROR_ICON),
+                span("bi bi-exclamation-circle").style(Styles.ERROR_ICON),
                 span().style(Styles.ERROR_TEXT).text(errorMessage)),
               // Empty cart state
               renderEmptyState(empty),
@@ -264,11 +264,11 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
         // @formatter:off
         return div().style(empty ? Styles.EMPTY_STATE : Styles.HIDDEN).children(
           div().style(Styles.EMPTY_ICON_BOX)
-            .children(span().cls("bi bi-bag").style(Styles.EMPTY_ICON)),
+            .children(span("bi bi-bag").style(Styles.EMPTY_ICON)),
           p().style(Styles.EMPTY_TITLE).text("Carrinho vazio"),
           p().style(Styles.EMPTY_SUBTITLE).text("Adicione produtos para começar"),
           spButton("accent")
-            .children(span().cls("bi bi-grid-3x3-gap").style("margin-right:6px"), span().text("Ver produtos"))
+            .children(span("bi bi-grid-3x3-gap").style("margin-right:6px"), span().text("Ver produtos"))
             .on("click", evt -> safeAction("Go shopping", this.presenter::onOpenProducts)));
         // @formatter:on
     }
@@ -285,10 +285,10 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
           // Actions
           div().style(Styles.ACTIONS_ROW).children(
             spActionButton()
-              .children(span().cls("bi bi-arrow-left"), span().text(" Continuar comprando"))
+              .children(span("bi bi-arrow-left"), span().text(" Continuar comprando"))
               .on("click", evt -> safeAction("Back", this.presenter::onOpenProducts)),
             spButton("accent", "l")
-              .children(span().cls("bi bi-check2-circle").style("margin-right:6px"), span().text("Finalizar pedido"))
+              .children(span("bi bi-check2-circle").style("margin-right:6px"), span().text("Finalizar pedido"))
               .on("click", evt -> safeAction("Buy", this.presenter::onBuy))));
         // @formatter:on
     }
@@ -303,19 +303,19 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
           // Quantity stepper
           div().style(Styles.STEPPER_ROW).children(
             spActionButton("s")
-              .children(span().cls("bi bi-dash").style(Styles.STEPPER_ICON))
+              .children(span("bi bi-dash").style(Styles.STEPPER_ICON))
               .on("click", evt -> safeAction("Decrement",
                   () -> this.presenter.onModifyQuantity(item.id, item.quantity - 1))),
             span().style(Styles.STEPPER_VALUE).text(String.valueOf(item.quantity)),
             spActionButton("s")
-              .children(span().cls("bi bi-plus").style(Styles.STEPPER_ICON))
+              .children(span("bi bi-plus").style(Styles.STEPPER_ICON))
               .on("click", evt -> safeAction("Increment",
                   () -> this.presenter.onModifyQuantity(item.id, item.quantity + 1)))),
           // Subtotal
           span().style(Styles.ITEM_SUBTOTAL).text(subtotal),
           // Remove button
           spActionButton("s")
-            .children(span().cls("bi bi-x-lg").style(Styles.REMOVE_ICON))
+            .children(span("bi bi-x-lg").style(Styles.REMOVE_ICON))
             .on("click", evt -> safeAction("Remove item",
                 () -> this.presenter.onRemoveProduct(item.id))));
         // @formatter:on

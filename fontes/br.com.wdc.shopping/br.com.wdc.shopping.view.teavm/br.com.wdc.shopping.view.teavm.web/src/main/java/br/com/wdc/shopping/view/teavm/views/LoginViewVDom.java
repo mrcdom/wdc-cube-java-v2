@@ -322,15 +322,15 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
         }
 
         // @formatter:off
-        return div().cls("login-root").style(Styles.LOGIN_ROOT).children(
+        return div("login-root").style(Styles.LOGIN_ROOT).children(
           // Left decorative panel (hidden on mobile)
-          div().cls("md-show").style(Styles.LEFT_PANEL).children(
+          div("md-show").style(Styles.LEFT_PANEL).children(
             div().style(Styles.DECO_CIRCLE_1),
             div().style(Styles.DECO_CIRCLE_2),
             div().style(Styles.DECO_CIRCLE_3),
             div().style(Styles.CONTENT_CENTER).children(
               div().style(Styles.LOGO_BOX_LG)
-                .children(span().cls("bi bi-bag-check").style(Styles.ICON_LG)),
+                .children(span("bi bi-bag-check").style(Styles.ICON_LG)),
               div().style(Styles.TITLE_LG).children(textNode("WDC Shopping")),
               div().style(Styles.SUBTITLE_LG).children(textNode("Sua compra certa na internet.")),
               div().style(Styles.FEATURES_LIST).children(
@@ -338,15 +338,15 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
                 renderFeature("bi bi-truck", "Entrega rápida"),
                 renderFeature("bi bi-arrow-repeat", "Troca garantida")))),
           // Right: form panel
-          div().cls("login-card").style(Styles.FORM_PANEL).children(
+          div("login-card").style(Styles.FORM_PANEL).children(
             div().style(Styles.FORM_CONTENT).children(
               // Mobile-only logo
-              div().cls("md-hide").style(Styles.MOBILE_LOGO_BG).children(
+              div("md-hide").style(Styles.MOBILE_LOGO_BG).children(
                 div().style(Styles.MOBILE_CIRCLE_1),
                 div().style(Styles.MOBILE_CIRCLE_2),
                 div().style(Styles.MOBILE_CONTENT).children(
                   div().style(Styles.LOGO_BOX_SM)
-                    .children(span().cls("bi bi-bag-check").style(Styles.ICON_SM)),
+                    .children(span("bi bi-bag-check").style(Styles.ICON_SM)),
                   div().style(Styles.MOBILE_TITLE).children(textNode("WDC Shopping")),
                   div().style(Styles.MOBILE_SUBTITLE).children(textNode("Sua compra certa na internet.")))),
               // Welcome text
@@ -355,7 +355,7 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
                 div().style(Styles.WELCOME_SUBTITLE).children(textNode("Entre com suas credenciais para continuar"))),
               // Error alert
               div().style(showError ? Styles.ERROR_VISIBLE : Styles.HIDDEN).children(
-                span().cls("bi bi-exclamation-circle").style(Styles.ERROR_ICON),
+                span("bi bi-exclamation-circle").style(Styles.ERROR_ICON),
                 span().style(Styles.ERROR_TEXT).text(errorMessage)),
               // User field
               spFieldLabel("login-user", "Usuário").style(Styles.FIELD_LABEL),
@@ -395,7 +395,7 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
     private VNode renderFeature(String icon, String text) {
         // @formatter:off
         return div().style(Styles.FEATURE_ROW).children(
-          span().cls(icon).style(Styles.FEATURE_ICON),
+          span(icon).style(Styles.FEATURE_ICON),
           span().style(Styles.FEATURE_TEXT).text(text));
         // @formatter:on
     }

@@ -239,13 +239,13 @@ public class ReceiptViewVDom extends AbstractVDomView<ReceiptPresenter> {
           div().style(Styles.WRAPPER).children(
             // Success banner
             div().style(showSuccess ? Styles.SUCCESS_VISIBLE : Styles.HIDDEN).children(
-              span().cls("bi bi-check-circle-fill").style(Styles.SUCCESS_ICON),
+              span("bi bi-check-circle-fill").style(Styles.SUCCESS_ICON),
               span().style(Styles.SUCCESS_TEXT).text("Compra realizada com sucesso!")),
             div().style(Styles.CARD).children(
               // Header
               div().style(Styles.HEADER_ROW).children(
                 div().style(Styles.HEADER_ICON_BOX)
-                  .children(span().cls("bi bi-receipt").style(Styles.HEADER_ICON)),
+                  .children(span("bi bi-receipt").style(Styles.HEADER_ICON)),
                 div().children(
                   h5().style(Styles.HEADER_TITLE).text("Recibo de Compra"),
                   span().style(Styles.HEADER_SUBTITLE).text("WDC Shopping"))),
@@ -260,7 +260,7 @@ public class ReceiptViewVDom extends AbstractVDomView<ReceiptPresenter> {
                   span().style(Styles.TOTAL_VALUE).text(totalText))),
               // Back button
               spActionButton().style(Styles.BACK_BTN)
-                .children(span().cls("bi bi-arrow-left"), span().text(" Voltar aos produtos"))
+                .children(span("bi bi-arrow-left"), span().text(" Voltar aos produtos"))
                 .on("click", evt -> safeAction("Back", this.presenter::onOpenProducts)))));
         // @formatter:on
     }

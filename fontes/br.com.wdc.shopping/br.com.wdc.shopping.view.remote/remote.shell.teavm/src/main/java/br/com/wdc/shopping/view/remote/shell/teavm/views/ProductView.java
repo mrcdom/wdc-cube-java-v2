@@ -214,25 +214,25 @@ public class ProductView extends AbstractRemoteView {
                 div().style(Styles.QTY_ROW).children(
                   span().style(Styles.QTY_LABEL).text("Qtd:"),
                   spActionButton("s")
-                    .children(span().cls("bi bi-dash"))
+                    .children(span("bi bi-dash"))
                     .on("click", evt -> { if (this.quantity > 1) { this.quantity--; forceUpdate(); } }),
                   span().style(Styles.QTY_VALUE).text(String.valueOf(this.quantity)),
                   spActionButton("s")
-                    .children(span().cls("bi bi-plus"))
+                    .children(span("bi bi-plus"))
                     .on("click", evt -> { this.quantity++; forceUpdate(); }))),
               div().style(Styles.IMAGE_BOX).children(
                 img().attr("alt", name).attr("src", imageUrl).style(Styles.IMAGE))),
             // Action buttons
             div().style(Styles.ACTIONS_ROW).children(
               spActionButton()
-                .children(span().cls("bi bi-arrow-left"), span().text(" Voltar"))
+                .children(span("bi bi-arrow-left"), span().text(" Voltar"))
                 .on("click", evt -> submit(ON_BACK)),
               spButton("accent", "l")
-                .children(span().cls("bi bi-bag-plus").style(Styles.ICON_MR), span().text("Adicionar ao Carrinho"))
+                .children(span("bi bi-bag-plus").style(Styles.ICON_MR), span().text("Adicionar ao Carrinho"))
                 .on("click", evt -> { setFormField("p.quantity", this.quantity); submit(ON_ADD_TO_CART); }))),
           // Error
           div().style(showError ? Styles.ERROR_VISIBLE : Styles.HIDDEN).children(
-            span().cls("bi bi-exclamation-circle").style(Styles.ERROR_ICON),
+            span("bi bi-exclamation-circle").style(Styles.ERROR_ICON),
             span().style(Styles.ERROR_TEXT).text(errorMessage != null ? errorMessage : "")));
         // @formatter:on
     }
