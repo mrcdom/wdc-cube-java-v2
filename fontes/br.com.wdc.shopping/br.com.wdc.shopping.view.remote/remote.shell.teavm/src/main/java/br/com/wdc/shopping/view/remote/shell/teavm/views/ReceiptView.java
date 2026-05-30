@@ -1,15 +1,20 @@
 package br.com.wdc.shopping.view.remote.shell.teavm.views;
 
-import static br.com.wdc.framework.vdom.StyleBuilder.css;
-import static br.com.wdc.framework.vdom.Swc.*;
-import static br.com.wdc.framework.vdom.VNode.*;
+import static br.com.wdc.framework.vdom.Swc.spActionButton;
+import static br.com.wdc.framework.vdom.VNode.clsx;
+import static br.com.wdc.framework.vdom.VNode.div;
+import static br.com.wdc.framework.vdom.VNode.h5;
+import static br.com.wdc.framework.vdom.VNode.span;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
+import br.com.wdc.framework.vdom.CssComponents;
+import br.com.wdc.framework.vdom.CssIcons;
+import br.com.wdc.framework.vdom.CssUtility;
 import br.com.wdc.framework.vdom.VNode;
+import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 
 /**
  * Receipt view.
@@ -22,187 +27,36 @@ public class ReceiptView extends AbstractRemoteView {
     private static final int ON_BACK = 1;
 
     @SuppressWarnings("java:S1214")
-    private interface Styles {
+    private interface Css {
 
-        String ROOT = css()
-                .flex("1")
-                .minHeight("0")
-                .overflowY("auto")
-                .background("var(--app-bg)")
-                .build();
-
-        String WRAPPER = css()
-                .maxWidth("900px")
-                .margin("0 auto")
-                .padding("20px")
-                .build();
-
-        String SUCCESS_BANNER = css()
-                .displayFlex()
-                .alignItems("center")
-                .gap("10px")
-                .padding("14px 18px")
-                .background("#f0fdf4")
-                .border("1px solid #bbf7d0")
-                .borderRadius("var(--app-radius-sm)")
-                .marginBottom("16px")
-                .build();
-
-        String HIDDEN = css().displayNone().build();
-
-        String SUCCESS_ICON = css()
-                .color("#16a34a")
-                .fontSize("1.2rem")
-                .flexShrink(0).build();
-
-        String SUCCESS_TEXT = css()
-                .fontSize("0.9rem")
-                .color("#166534")
-                .fontWeight("600")
-                .build();
-
-        String CARD = css()
-                .background("var(--app-surface)")
-                .borderRadius("var(--app-radius)")
-                .border("1px solid var(--app-border)")
-                .padding("28px")
-                .boxShadow("var(--app-shadow-sm)")
-                .build();
-
-        String HEADER_ROW = css()
-                .displayFlex()
-                .alignItems("center")
-                .gap("10px")
-                .marginBottom("20px")
-                .build();
-
-        String HEADER_ICON_BOX = css()
-                .width("40px")
-                .height("40px")
-                .background("var(--app-accent-light)")
-                .borderRadius("10px")
-                .displayFlex()
-                .alignItems("center")
-                .justifyContent("center")
-                .build();
-
-        String HEADER_ICON = css()
-                .color("var(--app-accent)")
-                .fontSize("1.1rem")
-                .build();
-
-        String HEADER_TITLE = css()
-                .margin("0")
-                .fontWeight("700")
-                .fontSize("1rem")
-                .color("var(--app-text)")
-                .build();
-
-        String HEADER_SUBTITLE = css()
-                .fontSize("0.75rem")
-                .color("var(--app-text-secondary)")
-                .build();
-
-        String RECEIPT_BOX = css()
-                .background("var(--app-bg)")
-                .border("1px solid var(--app-border)")
-                .borderRadius("var(--app-radius-sm)")
-                .padding("20px")
-                .fontFamily("'Courier New',Courier,monospace")
-                .fontSize("0.82rem")
-                .build();
-
-        String DATE_ROW = css()
-                .displayFlex()
-                .justifyContent("space-between")
-                .marginBottom("10px")
-                .paddingBottom("10px")
-                .borderBottom("1px dashed var(--app-border)")
-                .build();
-
-        String DATE_LABEL = css()
-                .color("var(--app-text-secondary)")
-                .build();
-
-        String DATE_VALUE = css()
-                .fontWeight("600")
-                .color("var(--app-text)")
-                .build();
-
-        String TOTAL_ROW = css()
-                .displayFlex()
-                .justifyContent("space-between")
-                .marginTop("12px")
-                .paddingTop("12px")
-                .borderTop("2px solid var(--app-accent)")
-                .build();
-
-        String TOTAL_LABEL = css()
-                .fontWeight("700")
-                .color("var(--app-text)")
-                .build();
-
-        String TOTAL_VALUE = css()
-                .fontSize("1.1rem")
-                .fontWeight("800")
-                .color("var(--app-accent)")
-                .build();
-
-        String BACK_BTN = css()
-                .marginTop("20px")
-                .build();
-
-        // Table header
-        String TABLE_HEADER = css()
-                .displayFlex()
-                .fontWeight("700")
-                .fontSize("0.75rem")
-                .marginBottom("6px")
-                .paddingBottom("6px")
-                .borderBottom("1px solid var(--app-border)")
-                .color("var(--app-text-secondary)")
-                .prop("text-transform", "uppercase")
-                .prop("letter-spacing", "0.5px")
-                .build();
-
-        String COL_ITEM = css().flex("1")
-                .build();
-
-        String COL_QTY = css().width("80px")
-                .textAlign("center").build();
-
-        String COL_VALUE = css().width("100px")
-                .textAlign("right")
-                .build();
-
-        // Item row
-        String ITEM_ROW = css()
-                .displayFlex()
-                .alignItems("center")
-                .padding("6px 0")
-                .borderBottom("1px dotted var(--app-border)")
-                .build();
-
-        String ITEM_DESC = css()
-                .flex("1")
-                .fontSize("0.82rem")
-                .color("var(--app-text)")
-                .build();
-
-        String ITEM_QTY = css()
-                .width("80px")
-                .textAlign("center")
-                .fontSize("0.82rem")
-                .color("var(--app-text-secondary)")
-                .build();
-
-        String ITEM_VALUE = css()
-                .width("100px")
-                .textAlign("right")
-                .fontWeight("700")
-                .fontSize("0.82rem")
-                .color("var(--app-text)")
-                .build();
+        String ROOT = CssUtility.PAGE_SCROLL_ROOT;
+        String WRAPPER = CssUtility.PAGE_WRAPPER;
+        String SUCCESS_VISIBLE = CssComponents.ALERT_SUCCESS;
+        String HIDDEN = CssUtility.HIDDEN;
+        String SUCCESS_ICON = clsx(CssIcons.CHECK_CIRCLE_FILL, CssComponents.ALERT_SUCCESS_ICON);
+        String SUCCESS_TEXT = CssComponents.ALERT_SUCCESS_TEXT;
+        String CARD = CssComponents.CARD_PANEL_LG;
+        String HEADER_ROW = CssComponents.CARD_HEADER_ROW;
+        String HEADER_ICON_BOX = CssComponents.CARD_HEADER_ICON_BOX;
+        String HEADER_ICON = clsx(CssIcons.RECEIPT, CssComponents.CARD_HEADER_ICON);
+        String HEADER_TITLE = "receipt-header-title";
+        String HEADER_SUBTITLE = CssComponents.CARD_HEADER_SUBTITLE;
+        String RECEIPT_BODY = "receipt-body";
+        String DATE_ROW = "receipt-date-row";
+        String DATE_LABEL = "receipt-date-label";
+        String DATE_VALUE = "receipt-date-value";
+        String TOTAL_ROW = "receipt-total-row";
+        String TOTAL_LABEL = "receipt-total-label";
+        String TOTAL_VALUE = "receipt-total-value";
+        String BACK_BTN = "receipt-back-btn";
+        String TABLE_HEADER = "receipt-table-header";
+        String COL_ITEM = "receipt-col-item";
+        String COL_QTY = "receipt-col-qty";
+        String COL_VALUE = "receipt-col-value";
+        String ITEM_ROW = "receipt-item-row";
+        String ITEM_DESC = "receipt-item-desc";
+        String ITEM_QTY = "receipt-item-qty";
+        String ITEM_VALUE = "receipt-item-value";
     }
 
     public ReceiptView(String vsid) {
@@ -230,30 +84,30 @@ public class ReceiptView extends AbstractRemoteView {
         final List<Map<String, Object>> finalItems = items;
 
         // @formatter:off
-        return div().style(Styles.ROOT).children(
-          div().style(Styles.WRAPPER).children(
+        return div(Css.ROOT).children(
+          div(Css.WRAPPER).children(
             // Success banner
-            div().style(showSuccess ? Styles.SUCCESS_BANNER : Styles.HIDDEN).children(
-              span("bi bi-check-circle-fill").style(Styles.SUCCESS_ICON),
-              span().style(Styles.SUCCESS_TEXT).text("Compra realizada com sucesso!")),
-            div().style(Styles.CARD).children(
-              div().style(Styles.HEADER_ROW).children(
-                div().style(Styles.HEADER_ICON_BOX).children(
-                  span("bi bi-receipt").style(Styles.HEADER_ICON)),
+            div(showSuccess ? Css.SUCCESS_VISIBLE : Css.HIDDEN).children(
+              span(Css.SUCCESS_ICON),
+              span(Css.SUCCESS_TEXT).text("Compra realizada com sucesso!")),
+            div(Css.CARD).children(
+              div(Css.HEADER_ROW).children(
+                div(Css.HEADER_ICON_BOX).children(
+                  span(Css.HEADER_ICON)),
                 div().children(
-                  h5().style(Styles.HEADER_TITLE).text("Recibo de Compra"),
-                  span().style(Styles.HEADER_SUBTITLE).text("WDC Shopping"))),
-              div().style(Styles.RECEIPT_BOX).children(
-                div().style(Styles.DATE_ROW).children(
-                  span().style(Styles.DATE_LABEL).text("Data:"),
-                  span().style(Styles.DATE_VALUE).text(dateText)),
+                  h5(Css.HEADER_TITLE).text("Recibo de Compra"),
+                  span(Css.HEADER_SUBTITLE).text("WDC Shopping"))),
+              div(Css.RECEIPT_BODY).children(
+                div(Css.DATE_ROW).children(
+                  span(Css.DATE_LABEL).text("Data:"),
+                  span(Css.DATE_VALUE).text(dateText)),
                 renderItemsTable(finalItems),
-                div().style(Styles.TOTAL_ROW).children(
-                  span().style(Styles.TOTAL_LABEL).text("TOTAL:"),
-                  span().style(Styles.TOTAL_VALUE).text(totalText))),
+                div(Css.TOTAL_ROW).children(
+                  span(Css.TOTAL_LABEL).text("TOTAL:"),
+                  span(Css.TOTAL_VALUE).text(totalText))),
               spActionButton()
-                .style(Styles.BACK_BTN)
-                .children(span("bi bi-arrow-left"), span().text(" Voltar aos produtos"))
+                .cls(Css.BACK_BTN)
+                .children(span(CssIcons.ARROW_LEFT), span().text(" Voltar aos produtos"))
                 .on("click", evt -> submit(ON_BACK)))));
         // @formatter:on
     }
@@ -261,10 +115,10 @@ public class ReceiptView extends AbstractRemoteView {
     private VNode renderItemsTable(List<Map<String, Object>> items) {
         // @formatter:off
         return div().children(
-          div().style(Styles.TABLE_HEADER).children(
-            span().style(Styles.COL_ITEM).text("ITEM"),
-            span().style(Styles.COL_QTY).text("QTD"),
-            span().style(Styles.COL_VALUE).text("VALOR")),
+          div(Css.TABLE_HEADER).children(
+            span(Css.COL_ITEM).text("ITEM"),
+            span(Css.COL_QTY).text("QTD"),
+            span(Css.COL_VALUE).text("VALOR")),
           div().children(items.stream().map(this::renderItemRow).toList()));
         // @formatter:on
     }
@@ -277,10 +131,10 @@ public class ReceiptView extends AbstractRemoteView {
         var value = valObj instanceof Number n ? "R$ " + String.format("%.2f", n.doubleValue()) : "";
 
         // @formatter:off
-        return div().key(desc + qty).style(Styles.ITEM_ROW).children(
-          span().style(Styles.ITEM_DESC).text(desc),
-          span().style(Styles.ITEM_QTY).text(qty),
-          span().style(Styles.ITEM_VALUE).text(value));
+        return div(Css.ITEM_ROW).key(desc + qty).children(
+          span(Css.ITEM_DESC).text(desc),
+          span(Css.ITEM_QTY).text(qty),
+          span(Css.ITEM_VALUE).text(value));
         // @formatter:on
     }
 

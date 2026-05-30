@@ -1,0 +1,25 @@
+/* Login layout: card centered on compact, flush on expanded */
+.login-root {
+    justify-content: center;
+    align-items: center;
+    background: var(--app-bg);
+}
+.login-card {
+    border-radius: var(--app-radius);
+    box-shadow: var(--app-shadow-lg);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+@media (min-width: 768px) {
+    .login-root {
+        justify-content: flex-start;
+        align-items: stretch;
+        background: none;
+    }
+    .login-card {
+        border-radius: 0;
+        box-shadow: none;
+        max-height: none;
+        overflow-y: visible;
+    }
+}

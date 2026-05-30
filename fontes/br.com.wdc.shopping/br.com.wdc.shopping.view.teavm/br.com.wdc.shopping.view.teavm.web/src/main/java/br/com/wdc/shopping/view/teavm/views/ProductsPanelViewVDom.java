@@ -1,6 +1,5 @@
 package br.com.wdc.shopping.view.teavm.views;
 
-import static br.com.wdc.framework.vdom.StyleBuilder.css;
 import static br.com.wdc.framework.vdom.VNode.*;
 
 import java.util.List;
@@ -15,53 +14,14 @@ import br.com.wdc.framework.vdom.VNode;
 public class ProductsPanelViewVDom extends AbstractVDomView<ProductsPanelPresenter> {
 
     @SuppressWarnings("java:S1214")
-    private interface Styles {
+    private interface Css {
 
-        String PANEL = css()
-                .flex("1")
-                .minWidth("0")
-                .minHeight("0")
-                .overflowY("auto")
-                .padding("20px")
-                .build();
-
-        String CARD_IMAGE_WRAP = css()
-                .background("linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%)")
-                .padding("20px")
-                .displayFlex()
-                .alignItems("center")
-                .justifyContent("center")
-                .aspectRatio("1")
-                .build();
-
-        String CARD_IMAGE = css()
-                .width("80%")
-                .height("80%")
-                .objectFit("contain")
-                .transition("transform 0.3s cubic-bezier(0.4,0,0.2,1)")
-                .build();
-
-        String CARD_BODY = css()
-                .padding("14px 16px")
-                .build();
-
-        String CARD_NAME = css()
-                .fontSize("0.82rem")
-                .fontWeight("500")
-                .prop("margin", "0 0 6px 0")
-                .color("var(--app-text)")
-                .lineHeight("1.3")
-                .prop("display", "-webkit-box")
-                .prop("-webkit-line-clamp", "2")
-                .prop("-webkit-box-orient", "vertical")
-                .overflowHidden()
-                .build();
-
-        String CARD_PRICE = css()
-                .fontSize("1.05rem")
-                .fontWeight("700")
-                .color("var(--app-accent)")
-                .build();
+        String PANEL = "products-panel";
+        String CARD_IMAGE_WRAP = "products-card-image-wrap";
+        String CARD_IMAGE = "products-card-image";
+        String CARD_BODY = "products-card-body";
+        String CARD_NAME = "products-card-name";
+        String CARD_PRICE = "products-card-price";
     }
 
     private final ProductsPanelViewState state;
@@ -76,7 +36,7 @@ public class ProductsPanelViewVDom extends AbstractVDomView<ProductsPanelPresent
         var products = this.state.products;
 
         // @formatter:off
-        return div().style(Styles.PANEL).children(
+        return div(Css.PANEL).children(
           div("product-grid")
             .children(products != null ? products.stream().map(this::renderCard).toList() : List.of()));
         // @formatter:on
@@ -91,11 +51,11 @@ public class ProductsPanelViewVDom extends AbstractVDomView<ProductsPanelPresent
         return div("product-card").key(String.valueOf(product.id))
           .on("click", evt -> safeAction("Open product", () -> this.presenter.onOpenProduct(product.id)))
           .children(
-            div().style(Styles.CARD_IMAGE_WRAP).children(
-              img().attr("alt", name).attr("src", imageUrl).style(Styles.CARD_IMAGE)),
-            div().style(Styles.CARD_BODY).children(
-              p().style(Styles.CARD_NAME).text(name),
-              span().style(Styles.CARD_PRICE).text(price)));
+            div(Css.CARD_IMAGE_WRAP).children(
+              img().attr("alt", name).attr("src", imageUrl).cls(Css.CARD_IMAGE)),
+            div(Css.CARD_BODY).children(
+              p(Css.CARD_NAME).text(name),
+              span(Css.CARD_PRICE).text(price)));
         // @formatter:on
     }
 }

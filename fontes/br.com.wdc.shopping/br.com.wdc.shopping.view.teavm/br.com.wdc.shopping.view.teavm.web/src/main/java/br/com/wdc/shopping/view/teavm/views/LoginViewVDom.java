@@ -1,17 +1,24 @@
 package br.com.wdc.shopping.view.teavm.views;
 
-import static br.com.wdc.framework.vdom.StyleBuilder.css;
-import static br.com.wdc.framework.vdom.Swc.*;
-import static br.com.wdc.framework.vdom.VNode.*;
+import static br.com.wdc.framework.vdom.Swc.spButton;
+import static br.com.wdc.framework.vdom.Swc.spFieldLabel;
+import static br.com.wdc.framework.vdom.Swc.spTextField;
+import static br.com.wdc.framework.vdom.VNode.clsx;
+import static br.com.wdc.framework.vdom.VNode.div;
+import static br.com.wdc.framework.vdom.VNode.span;
+import static br.com.wdc.framework.vdom.VNode.textNode;
 
 import org.teavm.jso.dom.events.KeyboardEvent;
 import org.teavm.jso.dom.html.HTMLInputElement;
 
+import br.com.wdc.framework.vdom.CssComponents;
+import br.com.wdc.framework.vdom.CssIcons;
+import br.com.wdc.framework.vdom.CssUtility;
+import br.com.wdc.framework.vdom.VNode;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginViewState;
 import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
-import br.com.wdc.framework.vdom.VNode;
 
 /**
  * Login view implementada com Spectrum Web Components + Virtual DOM.
@@ -19,279 +26,46 @@ import br.com.wdc.framework.vdom.VNode;
 public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
 
     @SuppressWarnings("java:S1214")
-    private interface Styles {
+    private interface Css {
 
-        String LOGIN_ROOT = css()
-                .displayFlex()
-                .flex("1")
-                .minHeight("0")
-                .overflowHidden()
-                .build();
-
-        String LEFT_PANEL = css()
-                .flex("1")
-                .background("linear-gradient(160deg, #0d66d0 0%, #1a8cff 40%, #4da6ff 100%)")
-                .flexCol()
-                .justifyContent("center")
-                .alignItems("center")
-                .padding("48px")
-                .position("relative")
-                .overflowHidden()
-                .build();
-
-        String DECO_CIRCLE_1 = css()
-                .position("absolute")
-                .top("-60px")
-                .right("-60px")
-                .width("200px")
-                .height("200px")
-                .background("rgba(255,255,255,0.06)")
-                .borderRadius("50%")
-                .build();
-
-        String DECO_CIRCLE_2 = css()
-                .position("absolute")
-                .bottom("-40px")
-                .left("-40px")
-                .width("160px")
-                .height("160px")
-                .background("rgba(255,255,255,0.04)")
-                .borderRadius("50%")
-                .build();
-
-        String DECO_CIRCLE_3 = css()
-                .position("absolute")
-                .top("40%")
-                .left("20%")
-                .width("80px")
-                .height("80px")
-                .background("rgba(255,255,255,0.05)")
-                .borderRadius("50%")
-                .build();
-
-        String CONTENT_CENTER = css()
-                .textAlign("center")
-                .position("relative")
-                .zIndex(1)
-                .build();
-
-        String LOGO_BOX_LG = css()
-                .width("80px")
-                .height("80px")
-                .background("rgba(255,255,255,0.12)")
-                .borderRadius("20px")
-                .displayInlineFlex()
-                .alignItems("center")
-                .justifyContent("center")
-                .marginBottom("24px")
-                .prop("backdrop-filter", "blur(8px)")
-                .border("1px solid rgba(255,255,255,0.2)")
-                .build();
-
-        String ICON_LG = css()
-                .fontSize("2.2rem")
-                .color("#fff")
-                .build();
-
-        String TITLE_LG = css()
-                .fontSize("2rem")
-                .fontWeight("800")
-                .color("#fff")
-                .prop("letter-spacing", "-0.5px")
-                .marginBottom("8px")
-                .build();
-
-        String SUBTITLE_LG = css()
-                .fontSize("0.9rem")
-                .color("rgba(255,255,255,0.8)")
-                .lineHeight("1.6")
-                .maxWidth("280px")
-                .build();
-
-        String FEATURES_LIST = css()
-                .marginTop("32px")
-                .textAlign("left")
-                .displayInlineFlex()
-                .flexDirection("column")
-                .gap("12px")
-                .build();
-
-        String FORM_PANEL = css()
-                .width("100%")
-                .maxWidth("460px")
-                .flexCol()
-                .justifyContent("center")
-                .alignItems("center")
-                .padding("32px")
-                .background("var(--app-surface)")
-                .build();
-
-        String FORM_CONTENT = css()
-                .width("100%")
-                .maxWidth("320px")
-                .build();
-
-        String MOBILE_LOGO_BG = css()
-                .textAlign("center")
-                .padding("24px 16px")
-                .margin("-32px -32px 24px -32px")
-                .background("linear-gradient(160deg, #0d66d0 0%, #1a8cff 40%, #4da6ff 100%)")
-                .position("relative")
-                .overflowHidden()
-                .build();
-
-        String MOBILE_CIRCLE_1 = css()
-                .position("absolute")
-                .top("-30px")
-                .right("-30px")
-                .width("100px")
-                .height("100px")
-                .background("rgba(255,255,255,0.06)")
-                .borderRadius("50%")
-                .build();
-
-        String MOBILE_CIRCLE_2 = css()
-                .position("absolute")
-                .bottom("-20px")
-                .left("-20px")
-                .width("80px")
-                .height("80px")
-                .background("rgba(255,255,255,0.04)")
-                .borderRadius("50%")
-                .build();
-
-        String MOBILE_CONTENT = css()
-                .position("relative")
-                .zIndex(1)
-                .build();
-
-        String LOGO_BOX_SM = css()
-                .width("48px")
-                .height("48px")
-                .background("rgba(255,255,255,0.12)")
-                .borderRadius("12px")
-                .displayInlineFlex()
-                .alignItems("center")
-                .justifyContent("center")
-                .marginBottom("8px")
-                .prop("backdrop-filter", "blur(8px)")
-                .border("1px solid rgba(255,255,255,0.2)")
-                .build();
-
-        String ICON_SM = css()
-                .fontSize("1.4rem")
-                .color("#fff")
-                .build();
-
-        String MOBILE_TITLE = css()
-                .fontSize("1.2rem")
-                .fontWeight("700")
-                .color("#fff")
-                .build();
-
-        String MOBILE_SUBTITLE = css()
-                .fontSize("0.75rem")
-                .color("rgba(255,255,255,0.7)")
-                .marginTop("4px")
-                .build();
-
-        String WELCOME_WRAP = css()
-                .marginBottom("28px")
-                .build();
-
-        String WELCOME_TITLE = css()
-                .fontSize("1.5rem")
-                .fontWeight("700")
-                .color("var(--app-text)")
-                .marginBottom("4px")
-                .build();
-
-        String WELCOME_SUBTITLE = css()
-                .fontSize("0.85rem")
-                .color("var(--app-text-secondary)")
-                .build();
-
-        String ERROR_VISIBLE = css()
-                .displayFlex()
-                .alignItems("center")
-                .gap("10px")
-                .padding("12px 16px")
-                .background("#fef2f2")
-                .border("1px solid #fecaca")
-                .borderRadius("var(--app-radius-sm)")
-                .marginBottom("1rem")
-                .build();
-
-        String HIDDEN = css()
-                .displayNone()
-                .build();
-
-        String ERROR_ICON = css()
-                .color("#dc2626")
-                .fontSize("1rem")
-                .flexShrink(0)
-                .build();
-
-        String ERROR_TEXT = css()
-                .fontSize("0.85rem")
-                .color("#991b1b")
-                .fontWeight("500")
-                .build();
-
-        String FIELD_LABEL = css()
-                .fontWeight("500")
-                .build();
-
-        String USER_FIELD = css()
-                .width("100%")
-                .marginBottom("16px")
-                .build();
-
-        String PASSWORD_FIELD = css()
-                .width("100%")
-                .marginBottom("24px")
-                .build();
-
-        String ENTER_BUTTON = css()
-                .width("100%")
-                .marginBottom("20px")
-                .build();
-
-        String DEMO_HINT = css()
-                .textAlign("center")
-                .padding("12px")
-                .background("var(--app-bg)")
-                .borderRadius("var(--app-radius-sm)")
-                .border("1px solid var(--app-border)")
-                .build();
-
-        String DEMO_TEXT = css()
-                .fontSize("0.8rem")
-                .color("var(--app-text-secondary)")
-                .build();
-
-        String DEMO_HIGHLIGHT = css()
-                .fontSize("0.8rem")
-                .fontWeight("700")
-                .color("var(--app-accent)")
-                .build();
-
-        String FEATURE_ROW = css()
-                .displayFlex()
-                .alignItems("center")
-                .gap("10px")
-                .build();
-
-        String FEATURE_ICON = css()
-                .fontSize("1rem")
-                .color("rgba(255,255,255,0.9)")
-                .build();
-
-        String FEATURE_TEXT = css()
-                .fontSize("0.85rem")
-                .color("rgba(255,255,255,0.85)")
-                .fontWeight("500")
-                .build();
+        String LOGIN_ROOT = "login-root";
+        String LEFT_PANEL = clsx(CssUtility.MD_SHOW, "login-left-panel");
+        String DECO_CIRCLE_1 = "deco-circle deco-circle--1";
+        String DECO_CIRCLE_2 = "deco-circle deco-circle--2";
+        String DECO_CIRCLE_3 = "deco-circle deco-circle--3";
+        String CONTENT_CENTER = "login-content-center";
+        String LOGO_BOX_LG = clsx("logo-box-lg", CssUtility.MB_24);
+        String ICON_LG = clsx(CssIcons.BAG_CHECK, "login-logo-icon-lg");
+        String TITLE_LG = "login-title-lg";
+        String SUBTITLE_LG = "login-subtitle-lg";
+        String FEATURES_LIST = "login-features-list";
+        String FORM_PANEL = "login-card login-form-panel";
+        String FORM_CONTENT = "login-form-content";
+        String MOBILE_LOGO_BG = "login-mobile-logo";
+        String MOBILE_CIRCLE_1 = "login-mobile-circle-1";
+        String MOBILE_CIRCLE_2 = "login-mobile-circle-2";
+        String MOBILE_CONTENT = "login-mobile-content";
+        String LOGO_BOX_SM = "login-logo-box-sm";
+        String ICON_SM = clsx(CssIcons.BAG_CHECK, "login-icon-sm");
+        String MOBILE_TITLE = "login-mobile-title";
+        String MOBILE_SUBTITLE = "login-mobile-subtitle";
+        String WELCOME_WRAP = "login-welcome-wrap";
+        String WELCOME_TITLE = "login-welcome-title";
+        String WELCOME_SUBTITLE = "login-welcome-subtitle";
+        String ERROR_VISIBLE = clsx(CssComponents.ALERT_ERROR, CssUtility.MB_16);
+        String HIDDEN = CssUtility.HIDDEN;
+        String ERROR_ICON = clsx(CssIcons.EXCLAMATION_CIRCLE, CssComponents.ALERT_ERROR_ICON);
+        String ERROR_TEXT = CssComponents.ALERT_ERROR_TEXT;
+        String FIELD_LABEL = "login-field-label";
+        String USER_FIELD = "login-field";
+        String PASSWORD_FIELD = "login-field-password";
+        String ENTER_BUTTON = "login-enter-btn";
+        String DEMO_HINT = "login-demo-hint";
+        String DEMO_TEXT = "login-demo-text";
+        String DEMO_HIGHLIGHT = "login-demo-highlight";
+        String FEATURE_ROW = "login-feature-row";
+        String FEATURE_ICON = "login-feature-icon";
+        String FEATURE_TEXT = "login-feature-text";
     }
 
     private final LoginViewState state;
@@ -322,56 +96,56 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
         }
 
         // @formatter:off
-        return div("login-root").style(Styles.LOGIN_ROOT).children(
+        return div(Css.LOGIN_ROOT).children(
           // Left decorative panel (hidden on mobile)
-          div("md-show").style(Styles.LEFT_PANEL).children(
-            div().style(Styles.DECO_CIRCLE_1),
-            div().style(Styles.DECO_CIRCLE_2),
-            div().style(Styles.DECO_CIRCLE_3),
-            div().style(Styles.CONTENT_CENTER).children(
-              div().style(Styles.LOGO_BOX_LG)
-                .children(span("bi bi-bag-check").style(Styles.ICON_LG)),
-              div().style(Styles.TITLE_LG).children(textNode("WDC Shopping")),
-              div().style(Styles.SUBTITLE_LG).children(textNode("Sua compra certa na internet.")),
-              div().style(Styles.FEATURES_LIST).children(
-                renderFeature("bi bi-shield-check", "Compra segura"),
-                renderFeature("bi bi-truck", "Entrega rápida"),
-                renderFeature("bi bi-arrow-repeat", "Troca garantida")))),
+          div(Css.LEFT_PANEL).children(
+            div(Css.DECO_CIRCLE_1),
+            div(Css.DECO_CIRCLE_2),
+            div(Css.DECO_CIRCLE_3),
+            div(Css.CONTENT_CENTER).children(
+              div(Css.LOGO_BOX_LG)
+                .children(span(Css.ICON_LG)),
+              div(Css.TITLE_LG).children(textNode("WDC Shopping")),
+              div(Css.SUBTITLE_LG).children(textNode("Sua compra certa na internet.")),
+              div(Css.FEATURES_LIST).children(
+                renderFeature(CssIcons.SHIELD_CHECK, "Compra segura"),
+                renderFeature(CssIcons.TRUCK, "Entrega rápida"),
+                renderFeature(CssIcons.ARROW_REPEAT, "Troca garantida")))),
           // Right: form panel
-          div("login-card").style(Styles.FORM_PANEL).children(
-            div().style(Styles.FORM_CONTENT).children(
+          div(Css.FORM_PANEL).children(
+            div(Css.FORM_CONTENT).children(
               // Mobile-only logo
-              div("md-hide").style(Styles.MOBILE_LOGO_BG).children(
-                div().style(Styles.MOBILE_CIRCLE_1),
-                div().style(Styles.MOBILE_CIRCLE_2),
-                div().style(Styles.MOBILE_CONTENT).children(
-                  div().style(Styles.LOGO_BOX_SM)
-                    .children(span("bi bi-bag-check").style(Styles.ICON_SM)),
-                  div().style(Styles.MOBILE_TITLE).children(textNode("WDC Shopping")),
-                  div().style(Styles.MOBILE_SUBTITLE).children(textNode("Sua compra certa na internet.")))),
+              div(Css.MOBILE_LOGO_BG).children(
+                div(Css.MOBILE_CIRCLE_1),
+                div(Css.MOBILE_CIRCLE_2),
+                div(Css.MOBILE_CONTENT).children(
+                  div(Css.LOGO_BOX_SM)
+                    .children(span(Css.ICON_SM)),
+                  div(Css.MOBILE_TITLE).children(textNode("WDC Shopping")),
+                  div(Css.MOBILE_SUBTITLE).children(textNode("Sua compra certa na internet.")))),
               // Welcome text
-              div().style(Styles.WELCOME_WRAP).children(
-                div().style(Styles.WELCOME_TITLE).children(textNode("Bem-vindo")),
-                div().style(Styles.WELCOME_SUBTITLE).children(textNode("Entre com suas credenciais para continuar"))),
+              div(Css.WELCOME_WRAP).children(
+                div(Css.WELCOME_TITLE).children(textNode("Bem-vindo")),
+                div(Css.WELCOME_SUBTITLE).children(textNode("Entre com suas credenciais para continuar"))),
               // Error alert
-              div().style(showError ? Styles.ERROR_VISIBLE : Styles.HIDDEN).children(
-                span("bi bi-exclamation-circle").style(Styles.ERROR_ICON),
-                span().style(Styles.ERROR_TEXT).text(errorMessage)),
+              div(showError ? Css.ERROR_VISIBLE : Css.HIDDEN).children(
+                span(Css.ERROR_ICON),
+                span(Css.ERROR_TEXT).text(errorMessage)),
               // User field
-              spFieldLabel("login-user", "Usuário").style(Styles.FIELD_LABEL),
+              spFieldLabel("login-user", "Usuário").cls(Css.FIELD_LABEL),
               spTextField("Digite seu usuário")
                 .attr("id", "login-user")
                 .attr("autocomplete", "off")
                 .boolAttr("disabled", loading)
-                .style(Styles.USER_FIELD)
+                .cls(Css.USER_FIELD)
                 .ref(el -> this.userNameField = (HTMLInputElement) el),
               // Password field
-              spFieldLabel("login-pass", "Senha").style(Styles.FIELD_LABEL),
+              spFieldLabel("login-pass", "Senha").cls(Css.FIELD_LABEL),
               spTextField("Digite sua senha", "password")
                 .attr("id", "login-pass")
                 .attr("autocomplete", "off")
                 .boolAttr("disabled", loading)
-                .style(Styles.PASSWORD_FIELD)
+                .cls(Css.PASSWORD_FIELD)
                 .on("keydown", (KeyboardEvent evt) -> {
                     if ("Enter".equals(evt.getKey())) { emitEnter(); }
                 })
@@ -380,23 +154,23 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
               spButton("accent", "l")
                 .boolAttr("disabled", loading)
                 .boolAttr("pending", loading)
-                .style(Styles.ENTER_BUTTON)
+                .cls(Css.ENTER_BUTTON)
                 .on("click", evt -> emitEnter())
                 .children(textNode(loading ? "Entrando..." : "Entrar")),
               // Demo hint
-              div().style(Styles.DEMO_HINT).children(
-                span().style(Styles.DEMO_TEXT).text("Acesso demo: "),
-                span().style(Styles.DEMO_HIGHLIGHT).text("admin"),
-                span().style(Styles.DEMO_TEXT).text(" / "),
-                span().style(Styles.DEMO_HIGHLIGHT).text("admin")))));
+              div(Css.DEMO_HINT).children(
+                span(Css.DEMO_TEXT).text("Acesso demo: "),
+                span(Css.DEMO_HIGHLIGHT).text("admin"),
+                span(Css.DEMO_TEXT).text(" / "),
+                span(Css.DEMO_HIGHLIGHT).text("admin")))));
         // @formatter:on
     }
 
     private VNode renderFeature(String icon, String text) {
         // @formatter:off
-        return div().style(Styles.FEATURE_ROW).children(
-          span(icon).style(Styles.FEATURE_ICON),
-          span().style(Styles.FEATURE_TEXT).text(text));
+        return div(Css.FEATURE_ROW).children(
+          span(clsx(icon, Css.FEATURE_ICON)),
+          span(Css.FEATURE_TEXT).text(text));
         // @formatter:on
     }
 

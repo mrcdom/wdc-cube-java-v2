@@ -1,8 +1,8 @@
 package br.com.wdc.shopping.view.teavm.views;
 
-import static br.com.wdc.framework.vdom.StyleBuilder.css;
 import static br.com.wdc.framework.vdom.VNode.*;
 
+import br.com.wdc.framework.vdom.CssIcons;
 import java.util.List;
 
 import org.teavm.jso.browser.Window;
@@ -21,148 +21,27 @@ import br.com.wdc.framework.vdom.VNode;
 public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPresenter> {
 
     @SuppressWarnings("java:S1214")
-    private interface Styles {
+    private interface Css {
 
-        String ROOT = css()
-                .flexCol()
-                .flex("1")
-                .minWidth("0")
-                .minHeight("0")
-                .overflowHidden()
-                .padding("16px")
-                .background("var(--app-surface)")
-                .prop("border-left", "1px solid var(--app-border)")
-                .build();
-
-        String HEADER_ROW = css()
-                .displayFlex()
-                .alignItems("center")
-                .gap("8px")
-                .marginBottom("12px")
-                .build();
-
-        String HEADER_ICON = css()
-                .fontSize("1rem")
-                .color("var(--app-accent)")
-                .build();
-
-        String HEADER_TITLE = css()
-                .fontWeight("700")
-                .fontSize("0.9rem")
-                .color("var(--app-text)")
-                .build();
-
-        String HINT = css()
-                .color("var(--app-text-secondary)")
-                .fontSize("0.75rem")
-                .marginBottom("12px")
-                .prop("display", "block")
-                .build();
-
-        String LIST_CONTAINER = css()
-                .flexGrow(1)
-                .overflowHidden()
-                .minHeight("0")
-                .build();
-
-        String PAGINATION = css()
-                .displayFlex()
-                .justifyContent("center")
-                .alignItems("center")
-                .padding("10px 0")
-                .marginTop("auto")
-                .prop("border-top", "1px solid var(--app-border)")
-                .build();
-
-        String PAGE_PILL = css()
-                .prop("display", "inline-flex")
-                .alignItems("center")
-                .gap("4px")
-                .background("var(--app-bg)")
-                .borderRadius("20px")
-                .padding("4px")
-                .build();
-
-        String PAGE_BTN = css()
-                .width("28px")
-                .height("28px")
-                .displayFlex()
-                .alignItems("center")
-                .justifyContent("center")
-                .borderRadius("50%")
-                .cursor("pointer")
-                .transition("background var(--app-transition)")
-                .build();
-
-        String PAGE_BTN_ICON = css()
-                .fontSize("0.75rem")
-                .color("var(--app-text-secondary)")
-                .build();
-
-        String PAGE_INFO = css()
-                .padding("4px 12px")
-                .fontWeight("600")
-                .fontSize("0.75rem")
-                .color("var(--app-text)")
-                .background("var(--app-surface)")
-                .borderRadius("12px")
-                .boxShadow("var(--app-shadow-sm)")
-                .build();
-
-        String ITEM_CARD = css()
-                .width("100%")
-                .boxSizing("border-box")
-                .background("var(--app-bg)")
-                .borderRadius("var(--app-radius-sm)")
-                .cursor("pointer")
-                .marginBottom("8px")
-                .overflowHidden()
-                .border("1px solid var(--app-border)")
-                .build();
-
-        String ITEM_LINE1 = css()
-                .displayFlex()
-                .justifyContent("space-between")
-                .alignItems("center")
-                .padding("8px 12px 0 12px")
-                .minWidth("0")
-                .build();
-
-        String ITEM_ID = css()
-                .fontWeight("600")
-                .fontSize("0.75rem")
-                .color("var(--app-accent)")
-                .build();
-
-        String ITEM_DATE = css()
-                .fontSize("0.7rem")
-                .color("var(--app-text-secondary)")
-                .whiteSpace("nowrap")
-                .build();
-
-        String ITEM_LINE2 = css()
-                .displayFlex()
-                .alignItems("baseline")
-                .padding("4px 12px 8px 12px")
-                .gap("4px")
-                .fontSize("0.75rem")
-                .color("var(--app-text-secondary)")
-                .minWidth("0")
-                .build();
-
-        String ITEM_ITEMS = css()
-                .flex("1")
-                .minWidth("0")
-                .overflowHidden()
-                .textOverflow("ellipsis")
-                .whiteSpace("nowrap")
-                .build();
-
-        String ITEM_TOTAL = css()
-                .fontWeight("700")
-                .whiteSpace("nowrap")
-                .color("var(--app-text)")
-                .build();
+        String ROOT = "purchases-panel";
+        String HEADER_ROW = "purchases-header-row";
+        String HEADER_ICON = clsx(CssIcons.CLOCK_HISTORY, "purchases-header-icon");
+        String HEADER_TITLE = "purchases-header-title";
+        String HINT = "purchases-hint";
+        String LIST_CONTAINER = "purchases-list-container";
+        String PAGINATION = "purchases-pagination";
+        String PAGE_PILL = "purchases-page-pill";
+        String PAGE_BTN = "purchases-page-btn";
+        String PAGE_PREV_ICON = clsx(CssIcons.CHEVRON_LEFT, "purchases-page-btn-icon");
+        String PAGE_NEXT_ICON = clsx(CssIcons.CHEVRON_RIGHT, "purchases-page-btn-icon");
+        String PAGE_INFO = "purchases-page-info";
+        String ITEM_CARD = clsx("purchase-item", "purchases-item-card");
+        String ITEM_LINE1 = "purchases-item-line1";
+        String ITEM_ID = "purchases-item-id";
+        String ITEM_DATE = "purchases-item-date";
+        String ITEM_LINE2 = "purchases-item-line2";
+        String ITEM_ITEMS = "purchases-item-items";
+        String ITEM_TOTAL = "purchases-item-total";
     }
 
     private static final int ITEM_HEIGHT_PX = 56;
@@ -203,26 +82,26 @@ public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPrese
         var pageInfo = (this.state.page + 1) + " / " + totalPages;
 
         // @formatter:off
-        return div().style(Styles.ROOT).children(
+        return div(Css.ROOT).children(
           // Header
-          div().style(Styles.HEADER_ROW).children(
-            span("bi bi-clock-history").style(Styles.HEADER_ICON),
-            span().style(Styles.HEADER_TITLE).text("Histórico")),
-          span().style(Styles.HINT).text("Toque para ver detalhes"),
+          div(Css.HEADER_ROW).children(
+            span(Css.HEADER_ICON),
+            span(Css.HEADER_TITLE).text("Histórico")),
+          span(Css.HINT).text("Toque para ver detalhes"),
           // List container
-          div().style(Styles.LIST_CONTAINER)
+          div(Css.LIST_CONTAINER)
             .ref(el -> this.listContainer = el)
             .children(purchases != null ? purchases.stream().map(this::renderItem).toList() : List.of()),
           // Pagination
-          div().style(Styles.PAGINATION).children(
-            div().style(Styles.PAGE_PILL).children(
-              div().style(Styles.PAGE_BTN)
+          div(Css.PAGINATION).children(
+            div(Css.PAGE_PILL).children(
+              div(Css.PAGE_BTN)
                 .on("click", this.prevPageListener)
-                .children(span("bi bi-chevron-left").style(Styles.PAGE_BTN_ICON)),
-              span().style(Styles.PAGE_INFO).text(pageInfo),
-              div().style(Styles.PAGE_BTN)
+                .children(span(Css.PAGE_PREV_ICON)),
+              span(Css.PAGE_INFO).text(pageInfo),
+              div(Css.PAGE_BTN)
                 .on("click", this.nextPageListener)
-                .children(span("bi bi-chevron-right").style(Styles.PAGE_BTN_ICON)))));
+                .children(span(Css.PAGE_NEXT_ICON)))));
         // @formatter:on
     }
 
@@ -233,15 +112,15 @@ public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPrese
         var total = purchase.total > 0 ? "R$ " + String.format("%.2f", purchase.total) : "";
 
         // @formatter:off
-        return div("purchase-item").key(String.valueOf(purchase.id)).style(Styles.ITEM_CARD)
+        return div(Css.ITEM_CARD).key(String.valueOf(purchase.id))
           .on("click", evt -> safeAction("Open receipt", () -> this.presenter.onOpenReceipt(purchase.id)))
           .children(
-            div().style(Styles.ITEM_LINE1).children(
-              span().style(Styles.ITEM_ID).text(id),
-              span().style(Styles.ITEM_DATE).text(date)),
-            div().style(Styles.ITEM_LINE2).children(
-              span().style(Styles.ITEM_ITEMS).text(items),
-              span().style(Styles.ITEM_TOTAL).text(total)));
+            div(Css.ITEM_LINE1).children(
+              span(Css.ITEM_ID).text(id),
+              span(Css.ITEM_DATE).text(date)),
+            div(Css.ITEM_LINE2).children(
+              span(Css.ITEM_ITEMS).text(items),
+              span(Css.ITEM_TOTAL).text(total)));
         // @formatter:on
     }
 

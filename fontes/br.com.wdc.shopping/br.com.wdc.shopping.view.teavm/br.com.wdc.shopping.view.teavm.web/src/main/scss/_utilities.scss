@@ -1,0 +1,1306 @@
+// =============================================================================
+// UTILITY CLASSES
+// Generated from common inline style patterns found across TeaVM views
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// 1. DISPLAY & VISIBILITY
+// -----------------------------------------------------------------------------
+.hidden { display: none; }
+.block { display: block; }
+.inline-flex { display: inline-flex; }
+.overflow-hidden { overflow: hidden; }
+.overflow-y-auto { overflow-y: auto; }
+.overflow-auto { overflow: auto; }
+
+// -----------------------------------------------------------------------------
+// 2. FLEX LAYOUT
+// -----------------------------------------------------------------------------
+.flex { display: flex; }
+.flex-col { display: flex; flex-direction: column; }
+.flex-center { display: flex; align-items: center; justify-content: center; }
+.flex-col-center { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.flex-items-center { display: flex; align-items: center; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.flex-end { display: flex; justify-content: flex-end; }
+.flex-col-stretch { display: flex; flex-direction: column; align-items: stretch; }
+
+.flex-1 { flex: 1; }
+.flex-grow { flex-grow: 1; }
+.flex-shrink-0 { flex-shrink: 0; }
+.flex-1-scroll { flex: 1; min-height: 0; }
+
+.flex-wrap { flex-wrap: wrap; }
+
+// Gaps
+.gap-4 { gap: 4px; }
+.gap-6 { gap: 6px; }
+.gap-8 { gap: 8px; }
+.gap-10 { gap: 10px; }
+.gap-12 { gap: 12px; }
+.gap-16 { gap: 16px; }
+.gap-20 { gap: 20px; }
+.gap-24 { gap: 24px; }
+
+// Alignment modifiers (composable with .flex or .flex-col)
+.items-center { align-items: center; }
+.items-start { align-items: flex-start; }
+.items-end { align-items: flex-end; }
+.items-stretch { align-items: stretch; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.justify-end { justify-content: flex-end; }
+.justify-start { justify-content: flex-start; }
+
+// -----------------------------------------------------------------------------
+// 3. SPACING
+// -----------------------------------------------------------------------------
+// Padding
+.p-0 { padding: 0; }
+.p-4 { padding: 4px; }
+.p-8 { padding: 8px; }
+.p-10 { padding: 10px; }
+.p-12 { padding: 12px; }
+.p-16 { padding: 16px; }
+.p-20 { padding: 20px; }
+.p-24 { padding: 24px; }
+.p-32 { padding: 32px; }
+.p-48 { padding: 48px; }
+
+.px-8 { padding-left: 8px; padding-right: 8px; }
+.px-12 { padding-left: 12px; padding-right: 12px; }
+.px-16 { padding-left: 16px; padding-right: 16px; }
+.px-20 { padding-left: 20px; padding-right: 20px; }
+.px-24 { padding-left: 24px; padding-right: 24px; }
+
+.py-8 { padding-top: 8px; padding-bottom: 8px; }
+.py-10 { padding-top: 10px; padding-bottom: 10px; }
+.py-12 { padding-top: 12px; padding-bottom: 12px; }
+.py-16 { padding-top: 16px; padding-bottom: 16px; }
+.py-20 { padding-top: 20px; padding-bottom: 20px; }
+.py-24 { padding-top: 24px; padding-bottom: 24px; }
+
+.pt-8 { padding-top: 8px; }
+.pt-16 { padding-top: 16px; }
+.pt-24 { padding-top: 24px; }
+.pb-8 { padding-bottom: 8px; }
+.pb-16 { padding-bottom: 16px; }
+
+// Margin
+.m-0 { margin: 0; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.mt-4 { margin-top: 4px; }
+.mt-8 { margin-top: 8px; }
+.mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; }
+.mt-20 { margin-top: 20px; }
+.mt-24 { margin-top: 24px; }
+.mt-32 { margin-top: 32px; }
+.mb-4 { margin-bottom: 4px; }
+.mb-8 { margin-bottom: 8px; }
+.mb-12 { margin-bottom: 12px; }
+.mb-16 { margin-bottom: 16px; }
+.mb-20 { margin-bottom: 20px; }
+.mb-24 { margin-bottom: 24px; }
+.ml-4 { margin-left: 4px; }
+.ml-6 { margin-left: 6px; }
+.ml-8 { margin-left: 8px; }
+.mr-4 { margin-right: 4px; }
+.mr-6 { margin-right: 6px; }
+.mr-8 { margin-right: 8px; }
+
+// -----------------------------------------------------------------------------
+// 4. SIZING
+// -----------------------------------------------------------------------------
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+.min-h-0 { min-height: 0; }
+.min-h-full { min-height: 100%; }
+.min-w-0 { min-width: 0; }
+.max-w-280 { max-width: 280px; }
+.max-w-320 { max-width: 320px; }
+.max-w-460 { max-width: 460px; }
+.max-w-900 { max-width: 900px; }
+
+// -----------------------------------------------------------------------------
+// 5. TYPOGRAPHY
+// -----------------------------------------------------------------------------
+// Font size
+.text-xs { font-size: 0.7rem; }
+.text-sm { font-size: 0.85rem; }
+.text-base { font-size: 1rem; }
+.text-lg { font-size: 1.1rem; }
+.text-xl { font-size: 1.2rem; }
+.text-2xl { font-size: 1.5rem; }
+.text-3xl { font-size: 2rem; }
+
+// Font weight
+.font-normal { font-weight: 400; }
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+.font-extrabold { font-weight: 800; }
+
+// Text align
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+// Line height
+.leading-tight { line-height: 1.2; }
+.leading-normal { line-height: 1.5; }
+.leading-relaxed { line-height: 1.6; }
+
+// Letter spacing
+.tracking-tight { letter-spacing: -0.3px; }
+.tracking-tighter { letter-spacing: -0.5px; }
+.tracking-wide { letter-spacing: 0.5px; }
+
+// Text colors
+.text-primary { color: var(--app-text); }
+.text-secondary { color: var(--app-text-secondary); }
+.text-accent { color: var(--app-accent); }
+.text-white { color: #fff; }
+.text-white-70 { color: rgba(255,255,255,0.7); }
+.text-white-65 { color: rgba(255,255,255,0.65); }
+.text-white-80 { color: rgba(255,255,255,0.8); }
+
+// Semantic text combinations
+.text-sm-secondary { font-size: 0.85rem; color: var(--app-text-secondary); }
+.text-xs-secondary { font-size: 0.75rem; color: var(--app-text-secondary); }
+
+// -----------------------------------------------------------------------------
+// 6. BORDERS & RADIUS
+// -----------------------------------------------------------------------------
+.border { border: 1px solid var(--app-border); }
+.border-t { border-top: 1px solid var(--app-border); }
+.border-b { border-bottom: 1px solid var(--app-border); }
+.border-none { border: none; }
+
+.rounded { border-radius: var(--app-radius); }
+.rounded-sm { border-radius: var(--app-radius-sm); }
+.rounded-10 { border-radius: 10px; }
+.rounded-12 { border-radius: 12px; }
+.rounded-20 { border-radius: 20px; }
+.rounded-full { border-radius: 50%; }
+
+// -----------------------------------------------------------------------------
+// 7. BACKGROUND & SHADOWS
+// -----------------------------------------------------------------------------
+.bg-surface { background: var(--app-surface); }
+.bg-default { background: var(--app-bg); }
+.bg-accent-light { background: var(--app-accent-light); }
+.bg-white { background: #fff; }
+.bg-none { background: none; }
+.bg-transparent { background: transparent; }
+
+.bg-gradient-primary { background: linear-gradient(135deg, #0d66d0 0%, #1a8cff 100%); }
+.bg-gradient-primary-extended { background: linear-gradient(160deg, #0d66d0 0%, #1a8cff 40%, #4da6ff 100%); }
+
+.bg-white-04 { background: rgba(255,255,255,0.04); }
+.bg-white-05 { background: rgba(255,255,255,0.05); }
+.bg-white-06 { background: rgba(255,255,255,0.06); }
+.bg-white-12 { background: rgba(255,255,255,0.12); }
+.bg-white-15 { background: rgba(255,255,255,0.15); }
+
+.shadow-sm { box-shadow: var(--app-shadow-sm); }
+.shadow-md { box-shadow: var(--app-shadow-md); }
+.shadow-lg { box-shadow: var(--app-shadow-lg); }
+.shadow-blue { box-shadow: 0 2px 8px rgba(13,102,208,0.3); }
+
+.backdrop-blur-sm { backdrop-filter: blur(4px); }
+.backdrop-blur-md { backdrop-filter: blur(8px); }
+
+// -----------------------------------------------------------------------------
+// 8. POSITION
+// -----------------------------------------------------------------------------
+.relative { position: relative; }
+.absolute { position: absolute; }
+.z-1 { z-index: 1; }
+.z-10 { z-index: 10; }
+
+// -----------------------------------------------------------------------------
+// 9. CURSOR & INTERACTION
+// -----------------------------------------------------------------------------
+.cursor-pointer { cursor: pointer; }
+.pointer-events-none { pointer-events: none; }
+
+// -----------------------------------------------------------------------------
+// 10. TRANSITIONS
+// -----------------------------------------------------------------------------
+.transition-colors { transition: color var(--app-transition), background var(--app-transition); }
+.transition-transform { transition: transform var(--app-transition); }
+.transition-all { transition: all var(--app-transition); }
+
+// -----------------------------------------------------------------------------
+// 11. ERROR/ALERT SEMANTIC COMPONENTS
+// -----------------------------------------------------------------------------
+:root {
+    --app-error-bg: #fef2f2;
+    --app-error-border: #fecaca;
+    --app-error-text: #991b1b;
+    --app-error-icon: #dc2626;
+}
+
+.alert-error {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    margin: 8px 16px;
+    background: var(--app-error-bg);
+    border: 1px solid var(--app-error-border);
+    border-radius: var(--app-radius-sm);
+}
+
+.alert-error-icon {
+    color: var(--app-error-icon);
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.alert-error-text {
+    font-size: 0.85rem;
+    color: var(--app-error-text);
+    font-weight: 500;
+}
+
+// -----------------------------------------------------------------------------
+// 12. NAVBAR COMPONENT
+// -----------------------------------------------------------------------------
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #0d66d0 0%, #1a8cff 100%);
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(13,102,208,0.3);
+}
+
+.nav-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+// -----------------------------------------------------------------------------
+// 13. EMPTY STATE
+// -----------------------------------------------------------------------------
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    text-align: center;
+}
+
+// -----------------------------------------------------------------------------
+// 14. TAB NAVIGATION
+// -----------------------------------------------------------------------------
+.tab-nav {
+    display: flex;
+    background: var(--app-surface);
+    flex-shrink: 0;
+    box-shadow: 0 1px 0 var(--app-border);
+}
+
+.tab-item {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 0;
+    font-size: 0.8rem;
+    cursor: pointer;
+    border: none;
+    background: none;
+    position: relative;
+    transition: color 0.2s;
+}
+
+.tab-item--active {
+    font-weight: 600;
+    color: var(--app-accent);
+}
+
+.tab-item--inactive {
+    font-weight: 500;
+    color: var(--app-text-secondary);
+}
+
+.tab-indicator {
+    position: absolute;
+    bottom: 0;
+    left: 16px;
+    right: 16px;
+    height: 2.5px;
+    background: var(--app-accent);
+    border-radius: 2px;
+}
+
+// -----------------------------------------------------------------------------
+// 15. LOGO / BRANDING
+// -----------------------------------------------------------------------------
+.logo-box {
+    width: 36px;
+    height: 36px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+}
+
+.logo-box-lg {
+    width: 80px;
+    height: 80px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+// -----------------------------------------------------------------------------
+// 16. CART BADGE
+// -----------------------------------------------------------------------------
+.cart-badge {
+    background: #fff;
+    color: var(--app-accent);
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+    margin-left: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+// -----------------------------------------------------------------------------
+// 17. DECORATION CIRCLES (Login panel)
+// -----------------------------------------------------------------------------
+.deco-circle {
+    position: absolute;
+    border-radius: 50%;
+}
+
+.deco-circle--1 {
+    top: -60px;
+    right: -60px;
+    width: 200px;
+    height: 200px;
+    background: rgba(255,255,255,0.06);
+}
+
+.deco-circle--2 {
+    bottom: -40px;
+    left: -40px;
+    width: 160px;
+    height: 160px;
+    background: rgba(255,255,255,0.04);
+}
+
+.deco-circle--3 {
+    top: 40%;
+    left: 20%;
+    width: 80px;
+    height: 80px;
+    background: rgba(255,255,255,0.05);
+}
+
+// -----------------------------------------------------------------------------
+// 18. TOTAL / SUMMARY ROWS
+// -----------------------------------------------------------------------------
+.total-row {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 16px 20px;
+    border-top: 1px solid var(--app-border);
+}
+
+// -----------------------------------------------------------------------------
+// 19. ADDITIONAL UTILITIES
+// -----------------------------------------------------------------------------
+.whitespace-nowrap { white-space: nowrap; }
+.text-ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.object-contain { object-fit: contain; }
+.aspect-1 { aspect-ratio: 1; }
+.box-border { box-sizing: border-box; }
+.text-uppercase { text-transform: uppercase; }
+
+// Additional font sizes
+.text-xxs { font-size: 0.65rem; }
+.text-4xl { font-size: 2.2rem; }
+
+// Additional spacing
+.mb-6 { margin-bottom: 6px; }
+.mb-10 { margin-bottom: 10px; }
+.mb-28 { margin-bottom: 28px; }
+.mt-auto { margin-top: auto; }
+.pt-10 { padding-top: 10px; }
+.pt-12 { padding-top: 12px; }
+.pb-6 { padding-bottom: 6px; }
+.pb-10 { padding-bottom: 10px; }
+
+// Additional sizing
+.w-28 { width: 28px; }
+.h-28 { height: 28px; }
+.w-40 { width: 40px; }
+.h-40 { height: 40px; }
+.w-48 { width: 48px; }
+.h-48 { height: 48px; }
+.w-80 { width: 80px; }
+.h-80 { height: 80px; }
+.w-100 { width: 100px; }
+.h-100 { height: 100px; }
+.min-w-24 { min-width: 24px; }
+.min-w-28 { min-width: 28px; }
+.max-w-160 { max-width: 160px; }
+.max-h-160 { max-height: 160px; }
+
+// Additional borders
+.border-white-20 { border: 1px solid rgba(255,255,255,0.2); }
+.border-dashed { border-bottom: 1px dashed var(--app-border); }
+.border-dotted { border-bottom: 1px dotted var(--app-border); }
+.border-t-accent { border-top: 2px solid var(--app-accent); }
+.border-l { border-left: 1px solid var(--app-border); }
+
+// Transitions
+.transition-transform-spring { transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+
+// =============================================================================
+// 20. LOGIN VIEW COMPONENTS
+// =============================================================================
+.login-root {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.login-left-panel {
+    flex: 1;
+    background: linear-gradient(160deg, #0d66d0 0%, #1a8cff 40%, #4da6ff 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 48px;
+    position: relative;
+    overflow: hidden;
+}
+
+.login-content-center {
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+.login-logo-icon-lg {
+    font-size: 2.2rem;
+    color: #fff;
+}
+
+.login-title-lg {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+}
+
+.login-subtitle-lg {
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.8);
+    line-height: 1.6;
+    max-width: 280px;
+}
+
+.login-features-list {
+    margin-top: 32px;
+    text-align: left;
+    display: inline-flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.login-feature-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.login-feature-icon {
+    font-size: 1rem;
+    color: rgba(255,255,255,0.9);
+}
+
+.login-feature-text {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.85);
+    font-weight: 500;
+}
+
+.login-form-panel {
+    width: 100%;
+    max-width: 460px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 32px;
+    background: var(--app-surface);
+}
+
+.login-form-content {
+    width: 100%;
+    max-width: 320px;
+}
+
+.login-mobile-logo {
+    text-align: center;
+    padding: 24px 16px;
+    margin: -32px -32px 24px -32px;
+    background: linear-gradient(160deg, #0d66d0 0%, #1a8cff 40%, #4da6ff 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.login-mobile-circle-1 {
+    position: absolute;
+    top: -30px;
+    right: -30px;
+    width: 100px;
+    height: 100px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 50%;
+}
+
+.login-mobile-circle-2 {
+    position: absolute;
+    bottom: -20px;
+    left: -20px;
+    width: 80px;
+    height: 80px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 50%;
+}
+
+.login-mobile-content {
+    position: relative;
+    z-index: 1;
+}
+
+.login-logo-box-sm {
+    width: 48px;
+    height: 48px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.login-icon-sm {
+    font-size: 1.4rem;
+    color: #fff;
+}
+
+.login-mobile-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.login-mobile-subtitle {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.7);
+    margin-top: 4px;
+}
+
+.login-welcome-wrap {
+    margin-bottom: 28px;
+}
+
+.login-welcome-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--app-text);
+    margin-bottom: 4px;
+}
+
+.login-welcome-subtitle {
+    font-size: 0.85rem;
+    color: var(--app-text-secondary);
+}
+
+.login-field-label {
+    font-weight: 500;
+}
+
+.login-field {
+    width: 100%;
+    margin-bottom: 16px;
+}
+
+.login-field-password {
+    width: 100%;
+    margin-bottom: 24px;
+}
+
+.login-enter-btn {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.login-demo-hint {
+    text-align: center;
+    padding: 12px;
+    background: var(--app-bg);
+    border-radius: var(--app-radius-sm);
+    border: 1px solid var(--app-border);
+}
+
+.login-demo-text {
+    font-size: 0.8rem;
+    color: var(--app-text-secondary);
+}
+
+.login-demo-highlight {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--app-accent);
+}
+
+// =============================================================================
+// 21. SHARED CARD / PAGE COMPONENTS
+// =============================================================================
+.page-scroll-root {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    background: var(--app-bg);
+}
+
+.page-wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.card-panel {
+    background: var(--app-surface);
+    border-radius: var(--app-radius);
+    border: 1px solid var(--app-border);
+    padding: 24px;
+    box-shadow: var(--app-shadow-sm);
+}
+
+.card-panel-lg {
+    background: var(--app-surface);
+    border-radius: var(--app-radius);
+    border: 1px solid var(--app-border);
+    padding: 28px;
+    box-shadow: var(--app-shadow-sm);
+}
+
+.card-header-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.card-header-icon-box {
+    width: 40px;
+    height: 40px;
+    background: var(--app-accent-light);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-header-icon {
+    color: var(--app-accent);
+    font-size: 1.1rem;
+}
+
+.card-header-title {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--app-text);
+}
+
+.card-header-subtitle {
+    font-size: 0.75rem;
+    color: var(--app-text-secondary);
+}
+
+// =============================================================================
+// 22. ALERT SUCCESS
+// =============================================================================
+.alert-success {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 18px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: var(--app-radius-sm);
+    margin-bottom: 16px;
+}
+
+.alert-success-icon {
+    color: #16a34a;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.alert-success-text {
+    font-size: 0.9rem;
+    color: #166534;
+    font-weight: 600;
+}
+
+// =============================================================================
+// 23. CART VIEW COMPONENTS
+// =============================================================================
+.cart-empty-icon-box {
+    width: 100px;
+    height: 100px;
+    background: var(--app-accent-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.cart-empty-icon {
+    font-size: 2.5rem;
+    color: var(--app-accent);
+}
+
+.cart-empty-title {
+    color: var(--app-text);
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin: 0 0 8px 0;
+}
+
+.cart-empty-subtitle {
+    color: var(--app-text-secondary);
+    font-size: 0.85rem;
+    margin: 0 0 16px 0;
+}
+
+.cart-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding-top: 16px;
+    margin-top: 16px;
+    border-top: 1px solid var(--app-border);
+}
+
+.cart-footer-label {
+    font-size: 0.85rem;
+    color: var(--app-text-secondary);
+}
+
+.cart-footer-total {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--app-accent);
+    margin-left: 8px;
+}
+
+.cart-actions-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+}
+
+.cart-item-row {
+    display: flex;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--app-border);
+    gap: 8px;
+}
+
+.cart-item-name {
+    flex: 1;
+    font-weight: 500;
+    font-size: 0.88rem;
+    color: var(--app-text);
+}
+
+.cart-stepper-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.cart-stepper-icon {
+    font-size: 0.7rem;
+}
+
+.cart-stepper-value {
+    font-weight: 700;
+    min-width: 24px;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--app-text);
+}
+
+.cart-item-subtotal {
+    width: 90px;
+    text-align: right;
+    font-weight: 700;
+    color: var(--app-accent);
+    font-size: 0.85rem;
+}
+
+.cart-remove-icon {
+    font-size: 0.7rem;
+    color: #dc3545;
+}
+
+// =============================================================================
+// 24. PRODUCT VIEW COMPONENTS
+// =============================================================================
+.product-title {
+    font-weight: 700;
+    margin: 0 0 12px 0;
+    font-size: 1.5rem;
+    color: var(--app-text);
+}
+
+.product-divider {
+    margin: 0 0 16px 0;
+}
+
+.product-desc-card {
+    background: var(--app-surface);
+    border-radius: var(--app-radius);
+    border: 1px solid var(--app-border);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.product-desc-text {
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: var(--app-text);
+}
+
+.product-price-image-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.product-price-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.product-price-badge {
+    display: inline-block;
+    background: var(--app-accent-light);
+    padding: 10px 20px;
+    border-radius: var(--app-radius-sm);
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--app-accent);
+}
+
+.product-qty-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.product-qty-label {
+    font-size: 0.85rem;
+    color: var(--app-text-secondary);
+}
+
+.product-qty-value {
+    font-weight: 700;
+    min-width: 28px;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+.product-image-box {
+    background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+    border-radius: var(--app-radius-sm);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.product-image {
+    max-width: 160px;
+    max-height: 160px;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+}
+
+.product-actions-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+// =============================================================================
+// 25. PRODUCTS PANEL COMPONENTS
+// =============================================================================
+.products-panel {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.products-card-image-wrap {
+    background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1;
+}
+
+.products-card-image {
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+
+.products-card-body {
+    padding: 14px 16px;
+}
+
+.products-card-name {
+    font-size: 0.82rem;
+    font-weight: 500;
+    margin: 0 0 6px 0;
+    color: var(--app-text);
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.products-card-price {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--app-accent);
+}
+
+// =============================================================================
+// 26. PURCHASES PANEL COMPONENTS
+// =============================================================================
+.purchases-panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    padding: 16px;
+    background: var(--app-surface);
+    border-left: 1px solid var(--app-border);
+}
+
+.purchases-header-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.purchases-header-icon {
+    font-size: 1rem;
+    color: var(--app-accent);
+}
+
+.purchases-header-title {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--app-text);
+}
+
+.purchases-hint {
+    color: var(--app-text-secondary);
+    font-size: 0.75rem;
+    margin-bottom: 12px;
+    display: block;
+}
+
+.purchases-list-container {
+    flex-grow: 1;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.purchases-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 0;
+    margin-top: auto;
+    border-top: 1px solid var(--app-border);
+}
+
+.purchases-page-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--app-bg);
+    border-radius: 20px;
+    padding: 4px;
+}
+
+.purchases-page-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background var(--app-transition);
+}
+
+.purchases-page-btn-icon {
+    font-size: 0.75rem;
+    color: var(--app-text-secondary);
+}
+
+.purchases-page-info {
+    padding: 4px 12px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: var(--app-text);
+    background: var(--app-surface);
+    border-radius: 12px;
+    box-shadow: var(--app-shadow-sm);
+}
+
+.purchases-item-card {
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--app-bg);
+    border-radius: var(--app-radius-sm);
+    cursor: pointer;
+    margin-bottom: 8px;
+    overflow: hidden;
+    border: 1px solid var(--app-border);
+}
+
+.purchases-item-line1 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px 0 12px;
+    min-width: 0;
+}
+
+.purchases-item-id {
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: var(--app-accent);
+}
+
+.purchases-item-date {
+    font-size: 0.7rem;
+    color: var(--app-text-secondary);
+    white-space: nowrap;
+}
+
+.purchases-item-line2 {
+    display: flex;
+    align-items: baseline;
+    padding: 4px 12px 8px 12px;
+    gap: 4px;
+    font-size: 0.75rem;
+    color: var(--app-text-secondary);
+    min-width: 0;
+}
+
+.purchases-item-items {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.purchases-item-total {
+    font-weight: 700;
+    white-space: nowrap;
+    color: var(--app-text);
+}
+
+// =============================================================================
+// 27. RECEIPT VIEW COMPONENTS
+// =============================================================================
+.receipt-header-title {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--app-text);
+}
+
+.receipt-body {
+    background: var(--app-bg);
+    border: 1px solid var(--app-border);
+    border-radius: var(--app-radius-sm);
+    padding: 20px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.82rem;
+}
+
+.receipt-date-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed var(--app-border);
+}
+
+.receipt-date-label {
+    color: var(--app-text-secondary);
+}
+
+.receipt-date-value {
+    font-weight: 600;
+    color: var(--app-text);
+}
+
+.receipt-table-header {
+    display: flex;
+    font-weight: 700;
+    font-size: 0.75rem;
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--app-border);
+    color: var(--app-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.receipt-col-item {
+    flex: 1;
+}
+
+.receipt-col-qty {
+    width: 80px;
+    text-align: center;
+}
+
+.receipt-col-value {
+    width: 100px;
+    text-align: right;
+}
+
+.receipt-item-row {
+    display: flex;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px dotted var(--app-border);
+}
+
+.receipt-item-desc {
+    flex: 1;
+    font-size: 0.82rem;
+    color: var(--app-text);
+}
+
+.receipt-item-qty {
+    width: 80px;
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--app-text-secondary);
+}
+
+.receipt-item-value {
+    width: 100px;
+    text-align: right;
+    font-weight: 700;
+    font-size: 0.82rem;
+    color: var(--app-text);
+}
+
+.receipt-total-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 2px solid var(--app-accent);
+}
+
+.receipt-total-label {
+    font-weight: 700;
+    color: var(--app-text);
+}
+
+.receipt-total-value {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--app-accent);
+}
+
+.receipt-back-btn {
+    margin-top: 20px;
+}
+
+// -----------------------------------------------------------------------------
+// RESPONSIVE UTILITIES
+// -----------------------------------------------------------------------------
+.sm-show { display: none; }
+.md-hide { }
+.md-show { display: none !important; }
+.md-row { flex-direction: column; }
+.md-grow-0 { }
+
+@media (min-width: 576px) {
+    .sm-show { display: inline; }
+    .sm-row { flex-direction: row; }
+}
+@media (min-width: 768px) {
+    .md-hide { display: none !important; }
+    .md-show { display: flex !important; }
+    .md-row { flex-direction: row; }
+    .md-grow-0 { flex-grow: 0; }
+}

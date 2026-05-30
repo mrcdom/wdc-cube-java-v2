@@ -8,8 +8,8 @@ echo "Press Ctrl+C to stop."
 # Initial build
 ./build.sh
 
-# Watch for changes and rebuild
-fswatch -o src/ | while read; do
+# Watch for changes and rebuild (exclude generated css)
+fswatch -o --exclude='\.css$' src/ | while read; do
     echo ""
     echo "=== Change detected, rebuilding... ==="
     ./build.sh || echo "BUILD FAILED"

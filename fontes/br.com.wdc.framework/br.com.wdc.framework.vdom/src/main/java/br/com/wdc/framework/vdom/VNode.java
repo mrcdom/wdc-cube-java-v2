@@ -31,6 +31,10 @@ public class VNode {
 
     static final String TEXT_TAG = "#text";
     static final String SLOT_TAG = "#slot";
+    
+    public static String clsx(String... classNames) {
+        return Stream.of(classNames).collect(Collectors.joining(" "));
+    }
 
     String tag;
     String text;
@@ -72,14 +76,6 @@ public class VNode {
      */
     public VNode cls(String classes) {
         return attr("class", classes);
-    }
-
-    public VNode clsx(String classes) {
-        return attr("class", classes);
-    }
-
-    public VNode clsx(String... classes) {
-        return attr("class", Stream.of(classes).collect(Collectors.joining(" ")));
     }
 
     /**

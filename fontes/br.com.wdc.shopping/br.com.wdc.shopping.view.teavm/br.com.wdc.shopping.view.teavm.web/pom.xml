@@ -83,7 +83,7 @@
                 <configuration>
                     <sassVersion>1.87.0</sassVersion>
                     <args>
-                        <arg>${project.basedir}/src/main/webapp/scss/app.scss:${project.basedir}/src/main/webapp/css/app.css</arg>
+                        <arg>${project.basedir}/src/main/scss/app.scss:${project.basedir}/src/main/webapp/css/app.css</arg>
                         <arg>--no-source-map</arg>
                         <arg>--style=compressed</arg>
                     </args>

@@ -1,15 +1,22 @@
 package br.com.wdc.shopping.view.remote.shell.teavm.views;
 
-import static br.com.wdc.framework.vdom.StyleBuilder.css;
-import static br.com.wdc.framework.vdom.Swc.*;
-import static br.com.wdc.framework.vdom.VNode.*;
+import static br.com.wdc.framework.vdom.Swc.spActionButton;
+import static br.com.wdc.framework.vdom.Swc.spButton;
+import static br.com.wdc.framework.vdom.VNode.clsx;
+import static br.com.wdc.framework.vdom.VNode.div;
+import static br.com.wdc.framework.vdom.VNode.h5;
+import static br.com.wdc.framework.vdom.VNode.p;
+import static br.com.wdc.framework.vdom.VNode.span;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
+import br.com.wdc.framework.vdom.CssComponents;
+import br.com.wdc.framework.vdom.CssIcons;
+import br.com.wdc.framework.vdom.CssUtility;
 import br.com.wdc.framework.vdom.VNode;
+import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 
 /**
  * Cart view.
@@ -25,204 +32,39 @@ public class CartView extends AbstractRemoteView {
     private static final int ON_MODIFY_QUANTITY = 4;
 
     @SuppressWarnings("java:S1214")
-    private interface Styles {
+    private interface Css {
 
-        String ROOT = css()
-                .flex("1")
-                .minHeight("0")
-                .overflowY("auto")
-                .background("var(--app-bg)")
-                .build();
-
-        String WRAPPER = css()
-                .maxWidth("900px")
-                .margin("0 auto")
-                .padding("20px")
-                .build();
-
-        String CARD = css()
-                .background("var(--app-surface)")
-                .borderRadius("var(--app-radius)")
-                .border("1px solid var(--app-border)")
-                .padding("24px")
-                .boxShadow("var(--app-shadow-sm)")
-                .build();
-
-        String HEADER_ROW = css()
-                .displayFlex()
-                .alignItems("center")
-                .gap("10px")
-                .marginBottom("20px").build();
-
-        String HEADER_ICON_BOX = css()
-                .width("40px")
-                .height("40px")
-                .background("var(--app-accent-light)")
-                .borderRadius("10px")
-                .displayFlex()
-                .alignItems("center")
-                .justifyContent("center")
-                .build();
-
-        String HEADER_ICON = css()
-                .color("var(--app-accent)")
-                .fontSize("1.1rem")
-                .build();
-
-        String HEADER_TITLE = css()
-                .margin("0")
-                .fontWeight("700")
-                .fontSize("1.1rem")
-                .color("var(--app-text)")
-                .build();
-
-        String HEADER_SUBTITLE = css()
-                .fontSize("0.75rem")
-                .color("var(--app-text-secondary)")
-                .build();
-
-        String ERROR_VISIBLE = css()
-                .displayFlex()
-                .alignItems("center")
-                .gap("10px")
-                .padding("12px 16px")
-                .background("#fef2f2")
-                .border("1px solid #fecaca")
-                .borderRadius("var(--app-radius-sm)")
-                .marginBottom("12px")
-                .build();
-
-        String HIDDEN = css()
-                .displayNone()
-                .build();
-
-        String ERROR_ICON = css()
-                .color("#dc2626")
-                .fontSize("1rem")
-                .flexShrink(0)
-                .build();
-
-        String ERROR_TEXT = css()
-                .fontSize("0.85rem")
-                .color("#991b1b")
-                .fontWeight("500")
-                .build();
-
-        // Empty state
-        String EMPTY_WRAP = css()
-                .flexCol()
-                .alignItems("center")
-                .justifyContent("center")
-                .padding("48px 0")
-                .build();
-
-        String EMPTY_CIRCLE = css()
-                .width("100px")
-                .height("100px")
-                .background("var(--app-accent-light)")
-                .borderRadius("50%")
-                .displayFlex()
-                .alignItems("center")
-                .justifyContent("center")
-                .marginBottom("20px")
-                .build();
-
-        String EMPTY_ICON = css()
-                .fontSize("2.5rem")
-                .color("var(--app-accent)")
-                .build();
-
-        String EMPTY_TITLE = css()
-                .color("var(--app-text)")
-                .fontSize("1.1rem")
-                .fontWeight("500")
-                .margin("0 0 8px 0")
-                .build();
-
-        String EMPTY_SUBTITLE = css()
-                .color("var(--app-text-secondary)")
-                .fontSize("0.85rem")
-                .margin("0 0 16px 0")
-                .build();
-
-        String ICON_MR = css()
-                .marginRight("6px")
-                .build();
-
-        // Content
-        String TOTAL_ROW = css()
-                .displayFlex()
-                .justifyContent("flex-end")
-                .alignItems("center")
-                .paddingTop("16px")
-                .marginTop("16px")
-                .borderTop("1px solid var(--app-border)")
-                .build();
-
-        String TOTAL_LABEL = css()
-                .fontSize("0.85rem")
-                .color("var(--app-text-secondary)")
-                .build();
-
-        String TOTAL_AMOUNT = css()
-                .fontSize("1.4rem")
-                .fontWeight("800")
-                .color("var(--app-accent)")
-                .marginLeft("8px")
-                .build();
-
-        String ACTIONS_ROW = css()
-                .displayFlex()
-                .justifyContent("space-between")
-                .alignItems("center")
-                .marginTop("16px")
-                .build();
-
-        // Item row
-        String ITEM_ROW = css()
-                .displayFlex()
-                .alignItems("center")
-                .padding("12px 0")
-                .borderBottom("1px solid var(--app-border)")
-                .gap("8px").build();
-
-        String ITEM_NAME = css()
-                .flex("1")
-                .fontWeight("500")
-                .fontSize("0.88rem")
-                .color("var(--app-text)")
-                .build();
-
-        String STEPPER_ROW = css()
-                .displayFlex()
-                .alignItems("center")
-                .gap("4px")
-                .build();
-
-        String STEPPER_ICON = css()
-                .fontSize("0.7rem")
-                .build();
-
-        String QTY_TEXT = css()
-                .fontWeight("700")
-                .minWidth("24px")
-                .textAlign("center")
-                .fontSize("0.85rem")
-                .color("var(--app-text)")
-                .build();
-
-        String SUBTOTAL = css()
-                .width("90px")
-                .textAlign("right")
-                .fontWeight("700")
-                .color("var(--app-accent)")
-                .fontSize("0.85rem")
-                .build();
-
-        String REMOVE_ICON = css()
-                .fontSize("0.7rem")
-                .color("#dc3545")
-                .build();
+        String ROOT = CssUtility.PAGE_SCROLL_ROOT;
+        String WRAPPER = CssUtility.PAGE_WRAPPER;
+        String CARD = CssComponents.CARD_PANEL;
+        String HEADER_ROW = CssComponents.CARD_HEADER_ROW;
+        String HEADER_ICON_BOX = CssComponents.CARD_HEADER_ICON_BOX;
+        String HEADER_ICON = clsx(CssIcons.BAG, CssComponents.CARD_HEADER_ICON);
+        String HEADER_TITLE = CssComponents.CARD_HEADER_TITLE;
+        String HEADER_SUBTITLE = CssComponents.CARD_HEADER_SUBTITLE;
+        String ERROR_VISIBLE = clsx(CssComponents.ALERT_ERROR, CssUtility.MB_12);
+        String HIDDEN = CssUtility.HIDDEN;
+        String ERROR_ICON = clsx(CssIcons.EXCLAMATION_CIRCLE, CssComponents.ALERT_ERROR_ICON);
+        String ERROR_TEXT = CssComponents.ALERT_ERROR_TEXT;
+        String EMPTY_STATE = clsx(CssComponents.EMPTY_STATE, CssUtility.PY_48);
+        String EMPTY_ICON_BOX = "cart-empty-icon-box";
+        String EMPTY_ICON = clsx(CssIcons.BAG, "cart-empty-icon");
+        String EMPTY_TITLE = "cart-empty-title";
+        String EMPTY_SUBTITLE = "cart-empty-subtitle";
+        String FOOTER = "cart-footer";
+        String FOOTER_LABEL = "cart-footer-label";
+        String FOOTER_TOTAL = "cart-footer-total";
+        String ACTIONS_ROW = "cart-actions-row";
+        String ITEM_ROW = "cart-item-row";
+        String ITEM_NAME = "cart-item-name";
+        String STEPPER_ROW = "cart-stepper-row";
+        String STEPPER_MINUS_ICON = clsx(CssIcons.DASH, "cart-stepper-icon");
+        String STEPPER_PLUS_ICON = clsx(CssIcons.PLUS, "cart-stepper-icon");
+        String STEPPER_VALUE = "cart-stepper-value";
+        String ITEM_SUBTOTAL = "cart-item-subtotal";
+        String REMOVE_ICON = clsx(CssIcons.X_LG, "cart-remove-icon");
+        String ICON_VIEW_PRODUCTS = clsx(CssIcons.GRID_3X3_GAP, CssUtility.MR_6);
+        String ICON_FINALIZE = clsx(CssIcons.CHECK2_CIRCLE, CssUtility.MR_6);
     }
 
     public CartView(String vsid) {
@@ -241,19 +83,19 @@ public class CartView extends AbstractRemoteView {
         String totalText = "R$ " + String.format("%.2f", totalCost);
 
         // @formatter:off
-        return div().style(Styles.ROOT).children(
-          div().style(Styles.WRAPPER).children(
-            div().style(Styles.CARD).children(
-              div().style(Styles.HEADER_ROW).children(
-                div().style(Styles.HEADER_ICON_BOX).children(
-                  span("bi bi-bag").style(Styles.HEADER_ICON)),
+        return div(Css.ROOT).children(
+          div(Css.WRAPPER).children(
+            div(Css.CARD).children(
+              div(Css.HEADER_ROW).children(
+                div(Css.HEADER_ICON_BOX).children(
+                  span(Css.HEADER_ICON)),
                 div().children(
-                  h5().style(Styles.HEADER_TITLE).text("Carrinho"),
-                  span().style(Styles.HEADER_SUBTITLE).text("Seus produtos selecionados"))),
+                  h5(Css.HEADER_TITLE).text("Carrinho"),
+                  span(Css.HEADER_SUBTITLE).text("Seus produtos selecionados"))),
               // Error
-              div().style(showError ? Styles.ERROR_VISIBLE : Styles.HIDDEN).children(
-                span("bi bi-exclamation-circle").style(Styles.ERROR_ICON),
-                span().style(Styles.ERROR_TEXT).text(errorMessage != null ? errorMessage : "")),
+              div(showError ? Css.ERROR_VISIBLE : Css.HIDDEN).children(
+                span(Css.ERROR_ICON),
+                span(Css.ERROR_TEXT).text(errorMessage != null ? errorMessage : "")),
               // Empty state
               renderEmptyState(empty),
               // Content
@@ -263,30 +105,30 @@ public class CartView extends AbstractRemoteView {
 
     private VNode renderEmptyState(boolean empty) {
         // @formatter:off
-        return div().style(empty ? Styles.EMPTY_WRAP : Styles.HIDDEN).children(
-          div().style(Styles.EMPTY_CIRCLE).children(
-            span("bi bi-bag").style(Styles.EMPTY_ICON)),
-          p().style(Styles.EMPTY_TITLE).text("Carrinho vazio"),
-          p().style(Styles.EMPTY_SUBTITLE).text("Adicione produtos para começar"),
+        return div(empty ? Css.EMPTY_STATE : Css.HIDDEN).children(
+          div(Css.EMPTY_ICON_BOX).children(
+            span(Css.EMPTY_ICON)),
+          p(Css.EMPTY_TITLE).text("Carrinho vazio"),
+          p(Css.EMPTY_SUBTITLE).text("Adicione produtos para começar"),
           spButton("accent")
-            .children(span("bi bi-grid-3x3-gap").style(Styles.ICON_MR), span().text("Ver produtos"))
+            .children(span(Css.ICON_VIEW_PRODUCTS), span().text("Ver produtos"))
             .on("click", evt -> submit(ON_BACK)));
         // @formatter:on
     }
 
     private VNode renderContent(List<Map<String, Object>> items, boolean empty, String totalText) {
         // @formatter:off
-        return div().style(empty ? Styles.HIDDEN : "").children(
+        return div(empty ? Css.HIDDEN : "").children(
           div().children(items.stream().map(this::renderItem).toList()),
-          div().style(Styles.TOTAL_ROW).children(
-            span().style(Styles.TOTAL_LABEL).text("Total: "),
-            span().style(Styles.TOTAL_AMOUNT).text(totalText)),
-          div().style(Styles.ACTIONS_ROW).children(
+          div(Css.FOOTER).children(
+            span(Css.FOOTER_LABEL).text("Total: "),
+            span(Css.FOOTER_TOTAL).text(totalText)),
+          div(Css.ACTIONS_ROW).children(
             spActionButton()
-              .children(span("bi bi-arrow-left"), span().text(" Continuar comprando"))
+              .children(span(CssIcons.ARROW_LEFT), span().text(" Continuar comprando"))
               .on("click", evt -> submit(ON_BACK)),
             spButton("accent", "l")
-              .children(span("bi bi-check2-circle").style(Styles.ICON_MR), span().text("Finalizar pedido"))
+              .children(span(Css.ICON_FINALIZE), span().text("Finalizar pedido"))
               .on("click", evt -> submit(ON_BUY))));
         // @formatter:on
     }
@@ -302,21 +144,21 @@ public class CartView extends AbstractRemoteView {
         var key = id != null ? id.toString() : name;
 
         // @formatter:off
-        return div().key(key).style(Styles.ITEM_ROW).children(
-          span().style(Styles.ITEM_NAME).text(name),
+        return div(Css.ITEM_ROW).key(key).children(
+          span(Css.ITEM_NAME).text(name),
           // Quantity stepper
-          div().style(Styles.STEPPER_ROW).children(
+          div(Css.STEPPER_ROW).children(
             spActionButton("s")
-              .children(span("bi bi-dash").style(Styles.STEPPER_ICON))
+              .children(span(Css.STEPPER_MINUS_ICON))
               .on("click", evt -> { setFormField("p.productId", id); setFormField("p.quantity", qty - 1); submit(ON_MODIFY_QUANTITY); }),
-            span().style(Styles.QTY_TEXT).text(String.valueOf(qty)),
+            span(Css.STEPPER_VALUE).text(String.valueOf(qty)),
             spActionButton("s")
-              .children(span("bi bi-plus").style(Styles.STEPPER_ICON))
+              .children(span(Css.STEPPER_PLUS_ICON))
               .on("click", evt -> { setFormField("p.productId", id); setFormField("p.quantity", qty + 1); submit(ON_MODIFY_QUANTITY); })),
-          span().style(Styles.SUBTOTAL).text(subtotal),
+          span(Css.ITEM_SUBTOTAL).text(subtotal),
           // Remove button
           spActionButton("s")
-            .children(span("bi bi-x-lg").style(Styles.REMOVE_ICON))
+            .children(span(Css.REMOVE_ICON))
             .on("click", evt -> { setFormField("p.productId", id); submit(ON_REMOVE); }));
         // @formatter:on
     }
