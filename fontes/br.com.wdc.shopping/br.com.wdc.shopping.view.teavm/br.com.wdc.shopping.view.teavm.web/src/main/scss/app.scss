@@ -51,7 +51,7 @@ html, body {
 }
 #loading::before {
     content: '\F217'; /* bi-cart3 */
-    font-family: 'bootstrap-icons';
+    font-family: 'bootstrap-icons', sans-serif;
     font-size: 3rem;
     animation: pulse 1.5s ease-in-out infinite;
 }

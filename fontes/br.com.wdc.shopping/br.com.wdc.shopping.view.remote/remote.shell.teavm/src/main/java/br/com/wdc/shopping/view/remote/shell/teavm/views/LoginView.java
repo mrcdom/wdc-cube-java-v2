@@ -81,9 +81,9 @@ public class LoginView extends AbstractRemoteView {
     @Override
     protected VNode render() {
         var scope = state();
-        boolean loading = scope.getBoolean("loading");
-        String errorMessage = scope.getString("errorMessage");
-        boolean showError = errorMessage != null && !errorMessage.isEmpty();
+        var loading = scope.getBoolean("loading");
+        var errorMessage = scope.getString("errorMessage");
+        var showError = errorMessage != null && !errorMessage.isEmpty();
 
         // @formatter:off
         return div(Css.LOGIN_ROOT).children(

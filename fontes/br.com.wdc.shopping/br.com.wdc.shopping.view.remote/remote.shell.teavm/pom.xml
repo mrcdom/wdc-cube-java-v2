@@ -24,6 +24,12 @@
     </properties>
 
     <dependencies>
+		<!-- Framework Commons -->
+        <dependency>
+            <groupId>br.com.wdc.framework</groupId>
+            <artifactId>br.com.wdc.framework.commons</artifactId>
+        </dependency>
+        
         <!-- Framework VDom -->
         <dependency>
             <groupId>br.com.wdc.framework</groupId>

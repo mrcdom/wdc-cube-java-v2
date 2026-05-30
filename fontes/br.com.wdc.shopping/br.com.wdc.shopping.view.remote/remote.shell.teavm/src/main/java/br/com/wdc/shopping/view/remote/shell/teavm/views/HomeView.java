@@ -33,64 +33,39 @@ public class HomeView extends AbstractRemoteView {
     private interface Css {
 
         String ROOT = clsx(CssUtility.FLEX_COL, CssUtility.FLEX_GROW, CssUtility.FLEX_1, CssUtility.MIN_H_0, CssUtility.OVERFLOW_HIDDEN);
-
         String ERROR_VISIBLE = CssComponents.ALERT_ERROR;
-
         String HIDDEN = CssUtility.HIDDEN;
-
         String ERROR_ICON = clsx(CssIcons.EXCLAMATION_CIRCLE, CssComponents.ALERT_ERROR_ICON);
-
         String ERROR_TEXT = CssComponents.ALERT_ERROR_TEXT;
 
         // Navbar
         String NAVBAR = "navbar";
-
         String NAV_GROUP = "nav-group";
-
-        String EXIT_ICON = clsx(CssIcons.BOX_ARROW_LEFT, CssUtility.TEXT_LG, CssUtility.TEXT_WHITE);
-
-        String GREETING_WRAP = clsx(CssUtility.SM_SHOW, CssUtility.FLEX_COL, CssUtility.LEADING_TIGHT);
-
-        String GREETING_LABEL = clsx(CssUtility.TEXT_XS, CssUtility.TEXT_WHITE_70, CssUtility.FONT_NORMAL);
-
-        String GREETING_NAME = clsx(CssUtility.TEXT_SM, CssUtility.FONT_SEMIBOLD, CssUtility.TEXT_WHITE);
-
-        String LOGO_BOX = "logo-box";
-
-        String LOGO_ICON = clsx(CssIcons.BAG_CHECK, CssUtility.TEXT_XL, CssUtility.TEXT_WHITE);
-
-        String LOGO_TEXT_WRAP = clsx(CssUtility.FLEX_COL, CssUtility.LEADING_TIGHT);
-
-        String LOGO_TITLE = clsx(CssUtility.TEXT_BASE, CssUtility.FONT_BOLD, CssUtility.TEXT_WHITE, CssUtility.TRACKING_TIGHT);
-
-        String LOGO_SUBTITLE = clsx(CssUtility.SM_SHOW, CssUtility.TEXT_XS, CssUtility.TEXT_WHITE_65, CssUtility.FONT_NORMAL, CssUtility.TRACKING_WIDE);
-
         String NAV_RIGHT = CssUtility.FLEX_ITEMS_CENTER;
-
+        String EXIT_ICON = clsx(CssIcons.BOX_ARROW_LEFT, CssUtility.TEXT_LG, CssUtility.TEXT_WHITE);
+        String GREETING_WRAP = clsx(CssUtility.SM_SHOW, CssUtility.FLEX_COL, CssUtility.LEADING_TIGHT);
+        String GREETING_LABEL = clsx(CssUtility.TEXT_XS, CssUtility.TEXT_WHITE_70, CssUtility.FONT_NORMAL);
+        String GREETING_NAME = clsx(CssUtility.TEXT_SM, CssUtility.FONT_SEMIBOLD, CssUtility.TEXT_WHITE);
+        String LOGO_BOX = "logo-box";
+        String LOGO_ICON = clsx(CssIcons.BAG_CHECK, CssUtility.TEXT_XL, CssUtility.TEXT_WHITE);
+        String LOGO_TEXT_WRAP = clsx(CssUtility.FLEX_COL, CssUtility.LEADING_TIGHT);
+        String LOGO_TITLE = clsx(CssUtility.TEXT_BASE, CssUtility.FONT_BOLD, CssUtility.TEXT_WHITE, CssUtility.TRACKING_TIGHT);
+        String LOGO_SUBTITLE = clsx(CssUtility.SM_SHOW, CssUtility.TEXT_XS, CssUtility.TEXT_WHITE_65, CssUtility.FONT_NORMAL, CssUtility.TRACKING_WIDE);
         String CART_BTN = CssUtility.RELATIVE;
-
         String CART_ICON = clsx(CssIcons.BAG, CssUtility.TEXT_XL, CssUtility.TEXT_WHITE);
-
         String CART_LABEL = clsx(CssUtility.SM_SHOW, CssUtility.TEXT_SM, CssUtility.TEXT_WHITE, CssUtility.FONT_MEDIUM, CssUtility.ML_6);
-
         String CART_BADGE = "cart-badge";
 
         // Content pane
         String CONTENT_OVERLAY = clsx(CssUtility.FLEX_COL, CssUtility.FLEX_GROW, CssUtility.OVERFLOW_AUTO, CssUtility.MIN_H_0, CssUtility.BG_DEFAULT);
-
         String SPLIT_ROW = clsx(CssUtility.MD_ROW, CssUtility.FLEX, CssUtility.FLEX_GROW, CssUtility.OVERFLOW_AUTO, CssUtility.MIN_H_0, CssUtility.BG_DEFAULT);
-
         String PANEL_SLOT = clsx(CssUtility.FLEX_COL, CssUtility.FLEX_GROW, CssUtility.H_FULL);
 
         // Tab nav
         String TAB_NAV = clsx(CssUtility.MD_HIDE, "tab-nav");
-
         String TAB_ACTIVE = "tab-item tab-item--active";
-
         String TAB_INACTIVE = "tab-item tab-item--inactive";
-
         String TAB_INDICATOR = "tab-indicator";
-
         String TAB_ICON_PRODUCTS = clsx(CssIcons.GRID_3X3_GAP, CssUtility.TEXT_BASE);
         String TAB_ICON_HISTORY = clsx(CssIcons.CLOCK_HISTORY, CssUtility.TEXT_BASE);
     }
@@ -104,19 +79,19 @@ public class HomeView extends AbstractRemoteView {
     @Override
     protected VNode render() {
         var scope = state();
-        String nickName = scope.getString("nickName", "");
-        String cartCount = String.valueOf(scope.getInt("cartItemCount"));
-        String errorMessage = scope.getString("errorMessage");
+        var nickName = scope.getString("nickName", "");
+        var cartCount = String.valueOf(scope.getInt("cartItemCount"));
+        var errorMessage = scope.getString("errorMessage");
         boolean showError = errorMessage != null && !errorMessage.isEmpty();
 
         // Child view elements
-        String productsPanelVsid = scope.getString("productsPanelViewId");
-        String purchasesPanelVsid = scope.getString("purchasesPanelViewId");
-        String contentVsid = scope.getString("contentViewId");
+        var productsPanelVsid = scope.getString("productsPanelViewId");
+        var purchasesPanelVsid = scope.getString("purchasesPanelViewId");
+        var contentVsid = scope.getString("contentViewId");
 
-        HTMLElement productsPanelEl = getChildViewElement(productsPanelVsid);
-        HTMLElement purchasesPanelEl = getChildViewElement(purchasesPanelVsid);
-        HTMLElement contentViewEl = getChildViewElement(contentVsid);
+        var productsPanelEl = getChildViewElement(productsPanelVsid);
+        var purchasesPanelEl = getChildViewElement(purchasesPanelVsid);
+        var contentViewEl = getChildViewElement(contentVsid);
 
         // @formatter:off
         return div(Css.ROOT).children(

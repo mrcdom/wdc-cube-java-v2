@@ -56,6 +56,8 @@ public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPrese
     private final EventListener<Event> prevPageListener;
     private final EventListener<Event> nextPageListener;
 
+    private record PurchaseData(long id, String key, String idStr, String date, String items, String total) {}
+
     public PurchasesPanelViewVDom(PurchasesPanelPresenter presenter) {
         super("purchases-panel", (ShoppingTeaVMApplication) presenter.app, presenter);
         this.state = presenter.state;
@@ -76,23 +78,20 @@ public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPrese
 
     @Override
     protected VNode render() {
-        var purchases = this.state.purchases;
+        var purchases = getPurchases();
         int pageSize = Math.max(1, this.state.pageSize);
         int totalPages = Math.max(1, (int) Math.ceil((double) this.state.totalCount / pageSize));
         var pageInfo = (this.state.page + 1) + " / " + totalPages;
 
         // @formatter:off
         return div(Css.ROOT).children(
-          // Header
           div(Css.HEADER_ROW).children(
             span(Css.HEADER_ICON),
             span(Css.HEADER_TITLE).text("Histórico")),
           span(Css.HINT).text("Toque para ver detalhes"),
-          // List container
           div(Css.LIST_CONTAINER)
             .ref(el -> this.listContainer = el)
-            .children(purchases != null ? purchases.stream().map(this::renderItem).toList() : List.of()),
-          // Pagination
+            .children(purchases.stream().map(this::renderItem).toList()),
           div(Css.PAGINATION).children(
             div(Css.PAGE_PILL).children(
               div(Css.PAGE_BTN)
@@ -105,23 +104,31 @@ public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPrese
         // @formatter:on
     }
 
-    private VNode renderItem(PurchaseInfo purchase) {
-        var id = "#" + purchase.id;
-        var date = purchase.date > 0 ? DateUtils.formatDate(purchase.date) : "";
-        var items = purchase.items != null ? String.join(", ", purchase.items) : "";
-        var total = purchase.total > 0 ? "R$ " + String.format("%.2f", purchase.total) : "";
-
+    private VNode renderItem(PurchaseData purchase) {
         // @formatter:off
-        return div(Css.ITEM_CARD).key(String.valueOf(purchase.id))
-          .on("click", evt -> safeAction("Open receipt", () -> this.presenter.onOpenReceipt(purchase.id)))
+        return div(Css.ITEM_CARD).key(purchase.key())
+          .on("click", evt -> safeAction("Open receipt", () -> this.presenter.onOpenReceipt(purchase.id())))
           .children(
             div(Css.ITEM_LINE1).children(
-              span(Css.ITEM_ID).text(id),
-              span(Css.ITEM_DATE).text(date)),
+              span(Css.ITEM_ID).text(purchase.idStr()),
+              span(Css.ITEM_DATE).text(purchase.date())),
             div(Css.ITEM_LINE2).children(
-              span(Css.ITEM_ITEMS).text(items),
-              span(Css.ITEM_TOTAL).text(total)));
+              span(Css.ITEM_ITEMS).text(purchase.items()),
+              span(Css.ITEM_TOTAL).text(purchase.total())));
         // @formatter:on
+    }
+
+    private List<PurchaseData> getPurchases() {
+        List<PurchaseInfo> list = this.state.purchases;
+        if (list == null || list.isEmpty()) return List.of();
+        return list.stream().map(p -> {
+            var key = String.valueOf(p.id);
+            var idStr = "#" + p.id;
+            var date = p.date > 0 ? DateUtils.formatDate(p.date) : "";
+            var items = p.items != null ? String.join(", ", p.items) : "";
+            var total = p.total > 0 ? "R$ " + String.format("%.2f", p.total) : "";
+            return new PurchaseData(p.id, key, idStr, date, items, total);
+        }).toList();
     }
 
     private void scheduleResize() {

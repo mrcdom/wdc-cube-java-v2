@@ -1289,10 +1289,8 @@
 // RESPONSIVE UTILITIES
 // -----------------------------------------------------------------------------
 .sm-show { display: none; }
-.md-hide { }
 .md-show { display: none !important; }
 .md-row { flex-direction: column; }
-.md-grow-0 { }
 
 @media (min-width: 576px) {
     .sm-show { display: inline; }

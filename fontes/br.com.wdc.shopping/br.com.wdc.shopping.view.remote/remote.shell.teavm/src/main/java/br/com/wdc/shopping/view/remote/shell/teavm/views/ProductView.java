@@ -11,15 +11,16 @@ import static br.com.wdc.framework.vdom.VNode.span;
 
 import java.util.Map;
 
+import br.com.wdc.framework.commons.lang.CoerceUtils;
 import br.com.wdc.framework.vdom.CssComponents;
 import br.com.wdc.framework.vdom.CssIcons;
 import br.com.wdc.framework.vdom.CssUtility;
 import br.com.wdc.framework.vdom.VNode;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
+import br.com.wdc.shopping.view.remote.shell.teavm.bridge.ViewScope;
 
 /**
- * Product detail view.
- * State: product {id, name, image, price, description}, errorMessage, errorCode.
+ * Product detail view. State: product {id, name, image, price, description}, errorMessage, errorCode.
  */
 public class ProductView extends AbstractRemoteView {
 
@@ -56,6 +57,9 @@ public class ProductView extends AbstractRemoteView {
     private int quantity = 1;
     private String currentDescription = "";
 
+    private record Product(Long id, String name, String image, String price, String description) {
+    }
+
     public ProductView(String vsid) {
         super(vsid);
     }
@@ -66,43 +70,26 @@ public class ProductView extends AbstractRemoteView {
         String errorMessage = scope.getString("errorMessage");
         boolean showError = errorMessage != null && !errorMessage.isEmpty();
 
-        Map<String, Object> product = scope.getMap("product");
-        String imageUrl = "";
-        String name = "";
-        String price = "";
-        String description = "";
-
-        if (!product.isEmpty()) {
-            var img = product.get("image");
-            imageUrl = img != null ? "/" + img : "";
-            var n = product.get("name");
-            name = n != null ? n.toString() : "";
-            var p = product.get("price");
-            price = p instanceof Number num ? "R$ " + String.format("%.2f", num.doubleValue()) : "";
-            var d = product.get("description");
-            description = d != null ? d.toString() : "";
-        }
-
-        final String desc = description;
+        var product = getProduct(scope);
 
         // @formatter:off
         return div(Css.ROOT).children(
           div(Css.WRAPPER).children(
-            h5(Css.TITLE).text(name),
+            h5(Css.TITLE).text(product.name()),
             spDivider("s").cls(Css.DIVIDER),
             // Description card
             div(Css.DESC_CARD).children(
               div(Css.DESC_TEXT)
                 .ref(el -> {
-                    if (!desc.equals(this.currentDescription)) {
-                        el.setInnerHTML(desc);
-                        this.currentDescription = desc;
+                    if (!product.description().equals(this.currentDescription)) {
+                        el.setInnerHTML(product.description());
+                        this.currentDescription = product.description();
                     }
                 })),
             // Price + Image row
             div(Css.PRICE_IMAGE_ROW).children(
               div(Css.PRICE_COL).children(
-                span(Css.PRICE_BADGE).text(price),
+                span(Css.PRICE_BADGE).text(product.price()),
                 div(Css.QTY_ROW).children(
                   span(Css.QTY_LABEL).text("Qtd:"),
                   spActionButton("s")
@@ -113,7 +100,7 @@ public class ProductView extends AbstractRemoteView {
                     .children(span(CssIcons.PLUS))
                     .on("click", evt -> { this.quantity++; forceUpdate(); }))),
               div(Css.IMAGE_BOX).children(
-                img().attr("alt", name).attr("src", imageUrl).cls(Css.IMAGE))),
+                img().attr("alt", product.name()).attr("src", product.image()).cls(Css.IMAGE))),
             // Action buttons
             div(Css.ACTIONS_ROW).children(
               spActionButton()
@@ -127,5 +114,22 @@ public class ProductView extends AbstractRemoteView {
             span(Css.ERROR_ICON),
             span(Css.ERROR_TEXT).text(errorMessage != null ? errorMessage : "")));
         // @formatter:on
+    }
+
+    // :: State mapping helpers
+
+    private Product getProduct(ViewScope scope) {
+        Map<String, Object> map = scope.getMap("product");
+        if (map.isEmpty()) {
+            return new Product(-1L, "", "", "", "");
+        }
+        var id = CoerceUtils.asLong(map.get("id"));
+        var name = CoerceUtils.asString(map.get("name"), "");
+        var rawImage = CoerceUtils.asString(map.get("image"));
+        var image = rawImage != null ? "/" + rawImage : "";
+        var priceVal = CoerceUtils.asNumber(map.get("price"));
+        var price = priceVal != null ? "R$ " + String.format("%.2f", priceVal.doubleValue()) : "";
+        var description = CoerceUtils.asString(map.get("description"), "");
+        return new Product(id, name, image, price, description);
     }
 }

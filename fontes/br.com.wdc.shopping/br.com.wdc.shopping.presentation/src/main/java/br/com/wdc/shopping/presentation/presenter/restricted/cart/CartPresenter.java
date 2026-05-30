@@ -243,6 +243,7 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
                 case 1 -> onBuy();
                 case 2 -> onRemoveProduct(CoerceUtils.asLong(formData.get("p.productId")));
                 case 3 -> onOpenProducts();
+                case 4 -> onModifyQuantity(CoerceUtils.asLong(formData.get("p.productId")), CoerceUtils.asInteger(formData.get("p.quantity")));
                 default -> new AssertionError("eventCode(" + eventCode + ") not handled");
                 }
             }

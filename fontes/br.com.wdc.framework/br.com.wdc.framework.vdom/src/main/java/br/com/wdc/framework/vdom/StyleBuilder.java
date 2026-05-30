@@ -39,7 +39,7 @@ public class StyleBuilder {
 
     public StyleBuilder prop(String name, String value) {
         if (value != null && !value.isEmpty()) {
-            if (sb.length() > 0) sb.append(';');
+            if (!sb.isEmpty()) sb.append(';');
             sb.append(name).append(':').append(value);
         }
         return this;
@@ -164,5 +164,5 @@ public class StyleBuilder {
 
     // ---- CSS Variables ----
 
-    public StyleBuilder var(String varName, String value) { return prop(varName, value); }
+    public StyleBuilder variable(String varName, String value) { return prop(varName, value); }
 }

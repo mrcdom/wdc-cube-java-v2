@@ -3,7 +3,8 @@
 
     // -- Cookie helpers --
     function getCookie(name) {
-        var m = document.cookie.match(String.raw`(^|;)\s*` + name + String.raw`\s*=\s*([^;]+)`);
+        const re = new RegExp(String.raw`(^|;)\s*` + name + String.raw`\s*=\s*([^;]+)`);
+        const m = re.exec(document.cookie);
         return m ? decodeURIComponent(m.pop()) : null;
     }
     function setCookie(name, value, path) {
@@ -14,11 +15,11 @@
     }
 
     // -- Base64 URL-safe (RFC 4648, no padding) --
-    var B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+    const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
     function b64urlEncode(buf) {
-        var r = '', i;
-        for (i = 0; i < buf.length; i += 3) {
-            var c = (buf[i] << 16) | (i+1 < buf.length ? buf[i+1] << 8 : 0) | (i+2 < buf.length ? buf[i+2] : 0);
+        let r = '';
+        for (let i = 0; i < buf.length; i += 3) {
+            const c = (buf[i] << 16) | (i+1 < buf.length ? buf[i+1] << 8 : 0) | (i+2 < buf.length ? buf[i+2] : 0);
             r += B64[(c >> 18) & 63];
             r += B64[(c >> 12) & 63];
             if (i+1 < buf.length) r += B64[(c >> 6) & 63];
@@ -28,11 +29,11 @@
     }
 
     // -- Standard Base64 (RFC 2045, with padding) --
-    var B64STD = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+    const B64STD = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
     function b64encode(buf) {
-        var r = '', i;
-        for (i = 0; i < buf.length; i += 3) {
-            var c = (buf[i] << 16) | (i+1 < buf.length ? buf[i+1] << 8 : 0) | (i+2 < buf.length ? buf[i+2] : 0);
+        let r = '';
+        for (let i = 0; i < buf.length; i += 3) {
+            const c = (buf[i] << 16) | (i+1 < buf.length ? buf[i+1] << 8 : 0) | (i+2 < buf.length ? buf[i+2] : 0);
             r += B64STD[(c >> 18) & 63];
             r += B64STD[(c >> 12) & 63];
             r += (i+1 < buf.length) ? B64STD[(c >> 6) & 63] : '=';
@@ -48,8 +49,8 @@
 
     // -- BigInt helpers --
     function bufToBigInt(buf) {
-        var r = 0n;
-        for (var b of buf) {
+        let r = 0n;
+        for (const b of buf) {
             r = (r << 8n) + BigInt(b);
         }
         return r;
@@ -57,7 +58,7 @@
 
     function modPow(base, exp, mod) {
         if (mod === 1n) return 0n;
-        var result = 1n;
+        let result = 1n;
         base = base % mod;
         while (exp > 0n) {
             if (exp % 2n === 1n) {
@@ -70,9 +71,9 @@
     }
 
     function parseBigInt36(str) {
-        var ks = '0123456789abcdefghijklmnopqrstuvwxyz';
-        var r = 0n;
-        for (var ch of str) {
+        const ks = '0123456789abcdefghijklmnopqrstuvwxyz';
+        let r = 0n;
+        for (const ch of str) {
             r = r * 36n + BigInt(ks.indexOf(ch));
         }
         return r;
@@ -80,8 +81,8 @@
 
     function bigIntToBase36(n) {
         if (n === 0n) return '0';
-        var ks = '0123456789abcdefghijklmnopqrstuvwxyz';
-        var r = '';
+        const ks = '0123456789abcdefghijklmnopqrstuvwxyz';
+        let r = '';
         while (n > 0n) {
             r = ks[Number(n % 36n)] + r;
             n = n / 36n;
@@ -91,38 +92,38 @@
 
     // -- RSA encrypt --
     function rsaEncryptToBase36(messageBytes, exponent, modulus) {
-        var messageAsBase64 = b64encode(messageBytes);
-        var safeBytes = utf8encode(messageAsBase64);
-        var messageBigInt = bufToBigInt(safeBytes);
-        var encrypted = modPow(messageBigInt, exponent, modulus);
+        const messageAsBase64 = b64encode(messageBytes);
+        const safeBytes = utf8encode(messageAsBase64);
+        const messageBigInt = bufToBigInt(safeBytes);
+        const encrypted = modPow(messageBigInt, exponent, modulus);
         return bigIntToBase36(encrypted);
     }
 
     // -- Main security boot --
-    var appSKey = getCookie('app_skey');
+    const appSKey = getCookie('app_skey');
     if (appSKey) {
         try {
-            var parts = appSKey.split(':');
-            var exponent = parseBigInt36(parts[0]);
-            var modulus = parseBigInt36(parts[1]);
+            const parts = appSKey.split(':');
+            const exponent = parseBigInt36(parts[0]);
+            const modulus = parseBigInt36(parts[1]);
 
             // Generate random password: base64url of 12 random bytes
-            var rndBytes = new Uint8Array(12);
+            const rndBytes = new Uint8Array(12);
             crypto.getRandomValues(rndBytes);
-            var pwd = b64urlEncode(rndBytes);
-            var pwdBuf = utf8encode(pwd);
+            const pwd = b64urlEncode(rndBytes);
+            const pwdBuf = utf8encode(pwd);
 
             // RSA-encrypt the password
-            var cryptedPwd = rsaEncryptToBase36(pwdBuf, exponent, modulus);
+            const cryptedPwd = rsaEncryptToBase36(pwdBuf, exponent, modulus);
 
             // Generate salt (16 bytes) and IV (12 bytes)
-            var salt = new Uint8Array(16);
+            const salt = new Uint8Array(16);
             crypto.getRandomValues(salt);
-            var iv = new Uint8Array(12);
+            const iv = new Uint8Array(12);
             crypto.getRandomValues(iv);
 
             // Build signature: {rsaEncryptedPwd_base36}.{salt_base64url}.{iv_base64url}
-            var signature = cryptedPwd + '.' + b64urlEncode(salt) + '.' + b64urlEncode(iv);
+            const signature = cryptedPwd + '.' + b64urlEncode(salt) + '.' + b64urlEncode(iv);
 
             // Set app_signature cookie
             setCookie('app_signature', signature, '/');
@@ -149,13 +150,13 @@
     // Derive AES-GCM key from password (async, ready by the time user interacts)
     (async function() {
         try {
-            var pwdBuf = globalThis.__wdc_cryptoPwdBuf;
-            var salt = globalThis.__wdc_cryptoSalt;
-            var iv = globalThis.__wdc_cryptoIv;
+            const pwdBuf = globalThis.__wdc_cryptoPwdBuf;
+            const salt = globalThis.__wdc_cryptoSalt;
+            const iv = globalThis.__wdc_cryptoIv;
             if (!pwdBuf || !salt || !iv) return;
 
-            var keyMaterial = await crypto.subtle.importKey('raw', pwdBuf, { name: 'PBKDF2' }, false, ['deriveKey']);
-            var aesKey = await crypto.subtle.deriveKey(
+            const keyMaterial = await crypto.subtle.importKey('raw', pwdBuf, { name: 'PBKDF2' }, false, ['deriveKey']);
+            const aesKey = await crypto.subtle.deriveKey(
                 { name: 'PBKDF2', salt: salt, iterations: 250000, hash: 'SHA-256' },
                 keyMaterial,
                 { name: 'AES-GCM', length: 256 },
@@ -178,18 +179,18 @@
 
     // Global cipher function: encrypts text with AES-GCM, calls callback with base64 result
     globalThis.__wdc_cipher = function(text, callback) {
-        var key = globalThis.__wdc_aesKey;
-        var iv = globalThis.__wdc_aesIv;
+        const key = globalThis.__wdc_aesKey;
+        const iv = globalThis.__wdc_aesIv;
         if (!key || !iv) {
             console.error('[cipher] AES key not yet available');
             callback('');
             return;
         }
-        var encoded = new TextEncoder().encode(text);
+        const encoded = new TextEncoder().encode(text);
         crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, key, encoded).then(function(ciphertext) {
-            var bytes = new Uint8Array(ciphertext);
-            var binary = '';
-            for (var b of bytes) binary += String.fromCodePoint(b);
+            const bytes = new Uint8Array(ciphertext);
+            let binary = '';
+            for (const b of bytes) binary += String.fromCodePoint(b);
             callback(btoa(binary));
         }).catch(function(e) {
             console.error('[cipher] Encryption failed:', e);
@@ -198,7 +199,7 @@
     };
 
     // Also persist app_id to sessionStorage if present as cookie
-    var appId = getCookie('app_id');
+    const appId = getCookie('app_id');
     if (appId) {
         try { sessionStorage.setItem('app_id', appId); } catch(e) { console.warn('[security-boot] sessionStorage unavailable:', e); }
         removeCookie('app_id');

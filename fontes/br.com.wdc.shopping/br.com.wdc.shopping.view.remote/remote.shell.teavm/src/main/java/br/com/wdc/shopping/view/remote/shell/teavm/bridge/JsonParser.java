@@ -5,11 +5,16 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.teavm.jso.JSBody;
+import br.com.wdc.framework.commons.serialization.JsonStreamReader;
+import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
+import br.com.wdc.framework.commons.serialization.SerializationToken;
 
 /**
- * Minimal JSON parser/serializer for WebSocket messages.
- * Uses browser-native JSON.parse/JSON.stringify via JSBody.
+ * JSON parser/serializer for WebSocket messages.
+ * <p>
+ * Uses {@link JsonStreamReader}/{@link JsonStreamWriter} (pure Java) to preserve
+ * type semantics: integers stay as Long/Integer, floats as Double.
+ * This avoids the JavaScript double coercion that loses long precision.
  */
 public final class JsonParser {
 
@@ -17,211 +22,96 @@ public final class JsonParser {
     }
 
     /**
-     * Parse a JSON string into a Map (object) or null if invalid.
+     * Parse a JSON string into a Map (object) or empty map if invalid.
      */
     public static Map<String, Object> parseObject(String json) {
+        if (json == null || json.isEmpty()) return Map.of();
         try {
-            Object result = parseNative(json);
-            Map<String, Object> map = convertToMap(result);
-            return map != null ? map : Map.of();
+            var reader = new JsonStreamReader(json);
+            if (reader.peek() != SerializationToken.BEGIN_OBJECT) return Map.of();
+            return readObject(reader);
         } catch (Exception e) {
             return Map.of();
         }
     }
 
     /**
-     * Stringify any object to JSON.
+     * Stringify a Java object graph (Map/List/primitives) to JSON.
      */
     public static String stringify(Object obj) {
-        return stringifyNative(toJsValue(obj));
+        var writer = new JsonStreamWriter();
+        writeValue(writer, obj);
+        return writer.result();
     }
 
-    // -- Native JSON --
+    // ── Reading ──
 
-    @JSBody(params = {"json"}, script = "try { return JSON.parse(json); } catch(e) { return null; }")
-    private static native Object parseNative(String json);
-
-    @JSBody(params = {"obj"}, script = "return JSON.stringify(obj);")
-    private static native String stringifyNative(Object obj);
-
-    // -- Java → JS conversion --
-
-    @JSBody(params = {}, script = "return {};")
-    private static native Object newJsObject();
-
-    @JSBody(params = {}, script = "return [];")
-    private static native Object newJsArray();
-
-    @JSBody(params = {"obj", "key", "val"}, script = "obj[key] = val;")
-    private static native void setJsProp(Object obj, String key, Object val);
-
-    @JSBody(params = {"arr", "val"}, script = "arr.push(val);")
-    private static native void pushJsArray(Object arr, Object val);
-
-    // -- Primitive conversion: TeaVM needs typed params for proper Java→JS conversion --
-
-    @JSBody(params = {"s"}, script = "return s;")
-    private static native Object stringToJs(String s);
-
-    @JSBody(params = {"n"}, script = "return n;")
-    private static native Object intToJs(int n);
-
-    @JSBody(params = {"n"}, script = "return n;")
-    private static native Object doubleToJs(double n);
-
-    @JSBody(params = {"b"}, script = "return b;")
-    private static native Object boolToJs(boolean b);
-
-    @JSBody(params = {"obj", "key", "val"}, script = "obj[key] = val;")
-    private static native void setJsPropStr(Object obj, String key, String val);
-
-    @JSBody(params = {"obj", "key", "val"}, script = "obj[key] = val;")
-    private static native void setJsPropInt(Object obj, String key, int val);
-
-    @JSBody(params = {"obj", "key", "val"}, script = "obj[key] = val;")
-    private static native void setJsPropDouble(Object obj, String key, double val);
-
-    @JSBody(params = {"obj", "key", "val"}, script = "obj[key] = val;")
-    private static native void setJsPropBool(Object obj, String key, boolean val);
-
-    @JSBody(params = {"arr", "val"}, script = "arr.push(val);")
-    private static native void pushJsArrayStr(Object arr, String val);
-
-    @JSBody(params = {"arr", "val"}, script = "arr.push(val);")
-    private static native void pushJsArrayInt(Object arr, int val);
-
-    @JSBody(params = {"arr", "val"}, script = "arr.push(val);")
-    private static native void pushJsArrayDouble(Object arr, double val);
-
-    @JSBody(params = {"arr", "val"}, script = "arr.push(val);")
-    private static native void pushJsArrayBool(Object arr, boolean val);
-
-    @SuppressWarnings("unchecked")
-    private static Object toJsValue(Object obj) {
-        if (obj == null) return null;
-        if (obj instanceof String s) return stringToJs(s);
-        if (obj instanceof Integer i) return intToJs(i);
-        if (obj instanceof Double d) return doubleToJs(d);
-        if (obj instanceof Number n) return doubleToJs(n.doubleValue());
-        if (obj instanceof Boolean b) return boolToJs(b);
-        if (obj instanceof Map<?, ?> map) {
-            var jsObj = newJsObject();
-            for (var entry : ((Map<String, Object>) map).entrySet()) {
-                setJsProperty(jsObj, entry.getKey(), entry.getValue());
-            }
-            return jsObj;
-        }
-        if (obj instanceof List<?> list) {
-            var jsArr = newJsArray();
-            for (var item : list) {
-                pushJsItem(jsArr, item);
-            }
-            return jsArr;
-        }
-        return stringToJs(obj.toString());
-    }
-
-    private static void setJsProperty(Object jsObj, String key, Object value) {
-        if (value == null) {
-            setJsProp(jsObj, key, null);
-        } else if (value instanceof String s) {
-            setJsPropStr(jsObj, key, s);
-        } else if (value instanceof Integer i) {
-            setJsPropInt(jsObj, key, i);
-        } else if (value instanceof Double d) {
-            setJsPropDouble(jsObj, key, d);
-        } else if (value instanceof Number n) {
-            setJsPropDouble(jsObj, key, n.doubleValue());
-        } else if (value instanceof Boolean b) {
-            setJsPropBool(jsObj, key, b);
-        } else {
-            setJsProp(jsObj, key, toJsValue(value));
-        }
-    }
-
-    private static void pushJsItem(Object jsArr, Object value) {
-        if (value == null) {
-            pushJsArray(jsArr, null);
-        } else if (value instanceof String s) {
-            pushJsArrayStr(jsArr, s);
-        } else if (value instanceof Integer i) {
-            pushJsArrayInt(jsArr, i);
-        } else if (value instanceof Double d) {
-            pushJsArrayDouble(jsArr, d);
-        } else if (value instanceof Number n) {
-            pushJsArrayDouble(jsArr, n.doubleValue());
-        } else if (value instanceof Boolean b) {
-            pushJsArrayBool(jsArr, b);
-        } else {
-            pushJsArray(jsArr, toJsValue(value));
-        }
-    }
-
-    // -- JS → Java conversion --
-
-    @JSBody(params = {"obj"}, script = "return Array.isArray(obj);")
-    private static native boolean isArray(Object obj);
-
-    @JSBody(params = {"obj"}, script = "return typeof obj === 'object' && obj !== null && !Array.isArray(obj);")
-    private static native boolean isObject(Object obj);
-
-    @JSBody(params = {"obj"}, script = "return typeof obj === 'string';")
-    private static native boolean isString(Object obj);
-
-    @JSBody(params = {"obj"}, script = "return typeof obj === 'number';")
-    private static native boolean isNumber(Object obj);
-
-    @JSBody(params = {"obj"}, script = "return typeof obj === 'boolean';")
-    private static native boolean isBoolean(Object obj);
-
-    @JSBody(params = {"obj"}, script = "return Object.keys(obj);")
-    private static native String[] getKeys(Object obj);
-
-    @JSBody(params = {"obj", "key"}, script = "return obj[key];")
-    private static native Object getProp(Object obj, String key);
-
-    @JSBody(params = {"arr"}, script = "return arr.length;")
-    private static native int getLength(Object arr);
-
-    @JSBody(params = {"arr", "i"}, script = "return arr[i];")
-    private static native Object getAt(Object arr, int i);
-
-    @JSBody(params = {"obj"}, script = "return String(obj);")
-    private static native String asString(Object obj);
-
-    @JSBody(params = {"obj"}, script = "return +obj;")
-    private static native double asNumber(Object obj);
-
-    @JSBody(params = {"obj"}, script = "return !!obj;")
-    private static native boolean asBoolean(Object obj);
-
-    static Map<String, Object> convertToMap(Object jsObj) {
-        if (jsObj == null || !isObject(jsObj)) return Map.of();
+    private static Map<String, Object> readObject(JsonStreamReader reader) {
         var map = new LinkedHashMap<String, Object>();
-        var keys = getKeys(jsObj);
-        for (var key : keys) {
-            var val = getProp(jsObj, key);
-            map.put(key, convertValue(val));
+        reader.beginObject();
+        while (reader.hasNext()) {
+            var name = reader.nextName();
+            map.put(name, readValue(reader));
         }
+        reader.endObject();
         return map;
     }
 
-    private static Object convertValue(Object val) {
-        if (val == null) return null;
-        if (isString(val)) return asString(val);
-        if (isNumber(val)) return asNumber(val);
-        if (isBoolean(val)) return asBoolean(val);
-        if (isArray(val)) return convertToList(val);
-        if (isObject(val)) return convertToMap(val);
-        return asString(val);
+    private static List<Object> readArray(JsonStreamReader reader) {
+        var list = new ArrayList<Object>();
+        reader.beginArray();
+        while (reader.hasNext()) {
+            list.add(readValue(reader));
+        }
+        reader.endArray();
+        return list;
     }
 
-    private static List<Object> convertToList(Object jsArr) {
-        int len = getLength(jsArr);
-        var list = new ArrayList<Object>(len);
-        for (int i = 0; i < len; i++) {
-            list.add(convertValue(getAt(jsArr, i)));
+    private static Object readValue(JsonStreamReader reader) {
+        return switch (reader.peek()) {
+            case BEGIN_OBJECT -> readObject(reader);
+            case BEGIN_ARRAY -> readArray(reader);
+            case STRING -> reader.nextString();
+            case NUMBER -> reader.nextNumber();
+            case BOOLEAN -> reader.nextBoolean();
+            case NULL -> reader.nextNull();
+            default -> { reader.skipValue(); yield null; }
+        };
+    }
+
+    // ── Writing ──
+
+    @SuppressWarnings("unchecked")
+    private static void writeValue(JsonStreamWriter writer, Object obj) {
+        if (obj == null) {
+            writer.nullValue();
+        } else if (obj instanceof String s) {
+            writer.value(s);
+        } else if (obj instanceof Integer i) {
+            writer.value((long) i);
+        } else if (obj instanceof Long l) {
+            writer.value(l);
+        } else if (obj instanceof Double d) {
+            writer.value(d);
+        } else if (obj instanceof Number n) {
+            writer.value(n.doubleValue());
+        } else if (obj instanceof Boolean b) {
+            writer.value(b);
+        } else if (obj instanceof Map<?, ?> map) {
+            writer.beginObject();
+            for (var entry : ((Map<String, Object>) map).entrySet()) {
+                writer.name(entry.getKey());
+                writeValue(writer, entry.getValue());
+            }
+            writer.endObject();
+        } else if (obj instanceof List<?> list) {
+            writer.beginArray();
+            for (var item : list) {
+                writeValue(writer, item);
+            }
+            writer.endArray();
+        } else {
+            writer.value(obj.toString());
         }
-        return list;
     }
 }

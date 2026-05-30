@@ -12,13 +12,15 @@ import java.util.Map;
 import org.teavm.jso.browser.Window;
 import org.teavm.jso.dom.html.HTMLElement;
 
+import br.com.wdc.framework.commons.lang.CoerceUtils;
 import br.com.wdc.framework.vdom.CssIcons;
 import br.com.wdc.framework.vdom.VNode;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
+import br.com.wdc.shopping.view.remote.shell.teavm.bridge.ViewScope;
 
 /**
- * Purchases history panel with pagination.
- * State: purchases (array of {id, date, items, total}), page, totalCount, pageSize.
+ * Purchases history panel with pagination. State: purchases (array of {id, date, items, total}), page, totalCount,
+ * pageSize.
  */
 public class PurchasesPanelView extends AbstractRemoteView {
 
@@ -56,6 +58,9 @@ public class PurchasesPanelView extends AbstractRemoteView {
     private HTMLElement listContainer;
     private int pendingResizeFrame = -1;
 
+    private record Purchase(Object id, String key, String idStr, String date, String items, String total) {
+    }
+
     public PurchasesPanelView(String vsid) {
         super(vsid);
         Window.current().addEventListener("resize", evt -> scheduleResize());
@@ -74,7 +79,7 @@ public class PurchasesPanelView extends AbstractRemoteView {
     @Override
     protected VNode render() {
         var scope = state();
-        List<Map<String, Object>> purchases = getPurchases();
+        var purchases = getPurchases(scope);
         int page = scope.getInt("page");
         int totalCount = scope.getInt("totalCount");
         int pageSize = Math.max(1, scope.getInt("pageSize"));
@@ -102,57 +107,18 @@ public class PurchasesPanelView extends AbstractRemoteView {
         // @formatter:on
     }
 
-    private VNode renderItem(Map<String, Object> purchase) {
-        var id = purchase.get("id");
-        String idStr;
-        if (id instanceof Number n) {
-            idStr = "#" + n.intValue();
-        } else {
-            idStr = id != null ? "#" + id : "";
-        }
-        var date = formatDate(purchase.get("date"));
-        var items = purchase.get("items");
-        String itemsStr;
-        if (items instanceof List<?> list) {
-            itemsStr = String.join(", ", list.stream().map(Object::toString).toList());
-        } else {
-            itemsStr = items != null ? items.toString() : "";
-        }
-        var totalVal = purchase.get("total");
-        var total = totalVal instanceof Number n ? "R$ " + String.format("%.2f", n.doubleValue()) : "";
-        String key;
-        if (id instanceof Number n) {
-            key = String.valueOf(n.intValue());
-        } else {
-            key = id != null ? id.toString() : date;
-        }
-
+    private VNode renderItem(Purchase purchase) {
         // @formatter:off
-        return div(Css.ITEM_CARD).key(key)
-          .on("click", evt -> { setFormField("p.purchaseId", id); submit(ON_OPEN_RECEIPT); })
+        return div(Css.ITEM_CARD).key(purchase.key())
+          .on("click", evt -> { setFormField("p.purchaseId", purchase.id()); submit(ON_OPEN_RECEIPT); })
           .children(
             div(Css.ITEM_LINE1).children(
-              span(Css.ITEM_ID).text(idStr),
-              span(Css.ITEM_DATE).text(date)),
+              span(Css.ITEM_ID).text(purchase.idStr()),
+              span(Css.ITEM_DATE).text(purchase.date())),
             div(Css.ITEM_LINE2).children(
-              span(Css.ITEM_ITEMS).text(itemsStr),
-              span(Css.ITEM_TOTAL).text(total)));
+              span(Css.ITEM_ITEMS).text(purchase.items()),
+              span(Css.ITEM_TOTAL).text(purchase.total())));
         // @formatter:on
-    }
-
-    @SuppressWarnings("unchecked")
-    private List<Map<String, Object>> getPurchases() {
-        var scope = state();
-        if (scope == null) return List.of();
-        var v = scope.getState().get("purchases");
-        if (v instanceof List<?> list) {
-            var result = new ArrayList<Map<String, Object>>();
-            for (var item : list) {
-                if (item instanceof Map<?, ?> m) result.add((Map<String, Object>) m);
-            }
-            return result;
-        }
-        return List.of();
     }
 
     private void changePage(int newPage) {
@@ -171,7 +137,8 @@ public class PurchasesPanelView extends AbstractRemoteView {
     }
 
     private void computePageSize() {
-        if (listContainer == null) return;
+        if (listContainer == null)
+            return;
         int containerHeight = listContainer.getClientHeight();
         if (containerHeight <= 0) {
             Window.setTimeout(() -> Window.requestAnimationFrame(t -> computePageSize()), 200);
@@ -184,13 +151,61 @@ public class PurchasesPanelView extends AbstractRemoteView {
 
     @SuppressWarnings("deprecation")
     private static String formatDate(Object dateObj) {
-        if (!(dateObj instanceof Number n)) return "";
+        if (!(dateObj instanceof Number n))
+            return "";
         long millis = n.longValue();
-        if (millis <= 0) return "";
+        if (millis <= 0)
+            return "";
         var d = new Date(millis);
         int day = d.getDate();
         int month = d.getMonth() + 1;
         int year = d.getYear() + 1900;
         return (day < 10 ? "0" : "") + day + "/" + (month < 10 ? "0" : "") + month + "/" + year;
     }
+
+    // :: State mapping helpers
+
+    private List<Purchase> getPurchases(ViewScope scope) {
+        if (scope == null)
+            return List.of();
+        var v = scope.getState().get("purchases");
+        if (v instanceof List<?> list) {
+            var result = new ArrayList<Purchase>();
+            for (var item : list) {
+                if (item instanceof Map<?, ?> m && m.containsKey("id")) {
+                    result.add(getPurchase(m));
+                }
+            }
+            return result;
+        }
+        return List.of();
+    }
+
+    private Purchase getPurchase(Map<?, ?> m) {
+        var id = m.get("id");
+        String idStr;
+        String key;
+        if (id instanceof Number n) {
+            idStr = "#" + n.longValue();
+            key = String.valueOf(n.longValue());
+        } else if (id != null) {
+            idStr = "#" + id;
+            key = id.toString();
+        } else {
+            idStr = "";
+            key = "";
+        }
+        var date = formatDate(m.get("date"));
+        var itemsObj = m.get("items");
+        String items;
+        if (itemsObj instanceof List<?> il) {
+            items = String.join(", ", il.stream().map(Object::toString).toList());
+        } else {
+            items = itemsObj != null ? itemsObj.toString() : "";
+        }
+        var totalVal = CoerceUtils.asNumber(m.get("total"));
+        var total = totalVal != null ? "R$ " + String.format("%.2f", totalVal.doubleValue()) : "";
+        return new Purchase(id, key, idStr, date, items, total);
+    }
+
 }

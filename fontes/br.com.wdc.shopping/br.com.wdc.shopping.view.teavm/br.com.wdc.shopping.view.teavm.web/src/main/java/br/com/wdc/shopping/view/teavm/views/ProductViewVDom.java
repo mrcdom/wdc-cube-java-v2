@@ -49,6 +49,8 @@ public class ProductViewVDom extends AbstractVDomView<ProductPresenter> {
     private int quantity = 1;
     private String currentDescription = "";
 
+    private record ProductData(String name, String image, String price, String description) {}
+
     public ProductViewVDom(ProductPresenter presenter) {
         super("product", (ShoppingTeaVMApplication) presenter.app, presenter);
         this.state = presenter.state;
@@ -69,43 +71,26 @@ public class ProductViewVDom extends AbstractVDomView<ProductPresenter> {
             errorMessage = "";
         }
 
-        var product = this.state.product;
-        var imageUrl = "";
-        var name = "";
-        var price = "";
-        final String description;
-
-        if (product != null) {
-            imageUrl = product.image != null ? app.resolveImageUrl(product.image) : "";
-            name = product.name != null ? product.name : "";
-            price = product.price > 0 ? "R$ " + String.format("%.2f", product.price) : "";
-            description = product.description != null ? product.description : "";
-        } else {
-            description = "";
-        }
+        var product = getProductData();
 
         // @formatter:off
         return div(Css.ROOT).children(
           div(Css.WRAPPER).children(
-            // Title
-            h5(Css.TITLE).text(name),
-            // Divider
+            h5(Css.TITLE).text(product.name()),
             spDivider("s").cls(Css.DIVIDER),
             // Description card
             div(Css.DESC_CARD).children(
               div(Css.DESC_TEXT)
                 .ref(el -> {
-                    if (!description.equals(this.currentDescription)) {
-                        el.setInnerHTML(description);
-                        this.currentDescription = description;
+                    if (!product.description().equals(this.currentDescription)) {
+                        el.setInnerHTML(product.description());
+                        this.currentDescription = product.description();
                     }
                 })),
             // Price + Image row
             div(Css.PRICE_IMAGE_ROW).children(
-              // Left: price + quantity (centered)
               div(Css.PRICE_COL).children(
-                span(Css.PRICE_BADGE).text(price),
-                // Quantity stepper
+                span(Css.PRICE_BADGE).text(product.price()),
                 div(Css.QTY_ROW).children(
                   span(Css.QTY_LABEL).text("Qtd:"),
                   spActionButton("s")
@@ -115,9 +100,8 @@ public class ProductViewVDom extends AbstractVDomView<ProductPresenter> {
                   spActionButton("s")
                     .children(span(CssIcons.PLUS))
                     .on("click", evt -> { this.quantity++; update(); }))),
-              // Right: product image
               div(Css.IMAGE_BOX).children(
-                img().attr("alt", name).attr("src", imageUrl).cls(Css.IMAGE))),
+                img().attr("alt", product.name()).attr("src", product.image()).cls(Css.IMAGE))),
             // Action buttons row
             div(Css.ACTIONS_ROW).children(
               spActionButton()
@@ -131,5 +115,17 @@ public class ProductViewVDom extends AbstractVDomView<ProductPresenter> {
             span(Css.ERROR_ICON),
             span(Css.ERROR_TEXT).text(errorMessage)));
         // @formatter:on
+    }
+
+    private ProductData getProductData() {
+        var p = this.state.product;
+        if (p == null) {
+            return new ProductData("", "", "", "");
+        }
+        var name = p.name != null ? p.name : "";
+        var image = p.image != null ? app.resolveImageUrl(p.image) : "";
+        var price = p.price > 0 ? "R$ " + String.format("%.2f", p.price) : "";
+        var description = p.description != null ? p.description : "";
+        return new ProductData(name, image, price, description);
     }
 }

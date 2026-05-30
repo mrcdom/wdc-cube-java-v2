@@ -9,13 +9,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import br.com.wdc.framework.commons.lang.CoerceUtils;
 import br.com.wdc.framework.vdom.VNode;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.ViewScope;
 
 /**
- * Products grid panel.
- * State: products (array of {id, name, image, price}).
+ * Products grid panel. State: products (array of {id, name, image, price}).
  */
 public class ProductsPanelView extends AbstractRemoteView {
 
@@ -34,6 +34,9 @@ public class ProductsPanelView extends AbstractRemoteView {
         String CARD_PRICE = "products-card-price";
     }
 
+    private record Product(Long id, String name, String image, String price) {
+    }
+
     public ProductsPanelView(String vsid) {
         super(vsid);
     }
@@ -41,7 +44,7 @@ public class ProductsPanelView extends AbstractRemoteView {
     @Override
     protected VNode render() {
         var scope = state();
-        List<Map<String, Object>> products = getProducts(scope);
+        var products = getProducts(scope);
 
         // @formatter:off
         return div(Css.PANEL).children(
@@ -50,37 +53,45 @@ public class ProductsPanelView extends AbstractRemoteView {
         // @formatter:on
     }
 
-    @SuppressWarnings("unchecked")
-    private List<Map<String, Object>> getProducts(ViewScope scope) {
-        if (scope == null) return List.of();
+    private VNode renderCard(Product product) {
+        // @formatter:off
+        return div("product-card").key(product.id().toString())
+          .on("click", evt -> { setFormField("p.productId", product.id()); submit(ON_OPEN_PRODUCT); })
+          .children(
+            div(Css.CARD_IMAGE_WRAP).children(
+              img().attr("alt", product.name()).attr("src", product.image()).cls(Css.CARD_IMAGE)),
+            div(Css.CARD_BODY).children(
+              p(Css.CARD_NAME).text(product.name()),
+              span(Css.CARD_PRICE).text(product.price())));
+        // @formatter:on
+    }
+
+    // :: State mapping helpers
+
+    private List<Product> getProducts(ViewScope scope) {
+        if (scope == null)
+            return List.of();
         var v = scope.getState().get("products");
         if (v instanceof List<?> list) {
-            var result = new ArrayList<Map<String, Object>>();
+            var result = new ArrayList<Product>();
             for (var item : list) {
-                if (item instanceof Map<?, ?> m) result.add((Map<String, Object>) m);
+                if (item instanceof Map<?, ?> m && m.containsKey("id")) {
+                    result.add(mapToProduct(m));
+                }
             }
             return result;
         }
         return List.of();
     }
 
-    private VNode renderCard(Map<String, Object> product) {
-        var id = product.get("id");
-        var name = product.get("name") != null ? product.get("name").toString() : "";
-        var image = product.get("image") != null ? "/" + product.get("image").toString() : "";
-        var priceVal = product.get("price");
-        var price = priceVal instanceof Number n ? "R$ " + String.format("%.2f", n.doubleValue()) : "";
-        var key = id != null ? id.toString() : name;
-
-        // @formatter:off
-        return div("product-card").key(key)
-          .on("click", evt -> { setFormField("p.productId", id); submit(ON_OPEN_PRODUCT); })
-          .children(
-            div(Css.CARD_IMAGE_WRAP).children(
-              img().attr("alt", name).attr("src", image).cls(Css.CARD_IMAGE)),
-            div(Css.CARD_BODY).children(
-              p(Css.CARD_NAME).text(name),
-              span(Css.CARD_PRICE).text(price)));
-        // @formatter:on
+    private Product mapToProduct(Map<?, ?> map) {
+        var id = CoerceUtils.asLong(map.get("id"));
+        var name = CoerceUtils.asString(map.get("name"), "");
+        var rawImage = CoerceUtils.asString(map.get("image"));
+        var image = rawImage != null ? "/" + rawImage : "";
+        var priceVal = CoerceUtils.asNumber(map.get("price"));
+        var price = priceVal != null ? "R$ " + String.format("%.2f", priceVal.doubleValue()) : "";
+        return new Product(id, name, image, price);
     }
+
 }
