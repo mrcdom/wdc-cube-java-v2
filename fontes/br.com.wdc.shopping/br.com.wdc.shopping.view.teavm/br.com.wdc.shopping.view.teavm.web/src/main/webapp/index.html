@@ -13,6 +13,18 @@
     <!-- Google Fonts: Inter for modern UI -->
     <link href="/web-cache/fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
+    <!-- Import map: unify Lit versions (SWC uses lit@2, @lit-labs/virtualizer uses lit@3) -->
+    <script type="importmap">
+    {
+      "imports": {
+        "/web-cache/jspm.dev/npm:lit@3": "/web-cache/jspm.dev/npm:lit@2",
+        "/web-cache/jspm.dev/npm:lit@3/directive.js": "/web-cache/jspm.dev/npm:lit-html@2.8.0/directive.js",
+        "/web-cache/jspm.dev/npm:lit@3/async-directive.js": "/web-cache/jspm.dev/npm:lit-html@2.8.0/async-directive.js",
+        "/web-cache/jspm.dev/npm:lit@3/directives/repeat.js": "/web-cache/jspm.dev/npm:lit-html@2.8.0/directives/repeat.js"
+      }
+    }
+    </script>
+
     <!-- Spectrum Web Components -->
     <script src="/web-cache/jspm.dev/@spectrum-web-components/bundle/elements.js" type="module"></script>
 
