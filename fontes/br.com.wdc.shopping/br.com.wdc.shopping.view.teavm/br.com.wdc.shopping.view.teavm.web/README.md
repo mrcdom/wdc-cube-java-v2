@@ -161,6 +161,10 @@ br.com.wdc.shopping.view.teavm.web/
 
 ![Carrinho](docs/screenshots/04-cart.png)
 
+### Carrinho Vazio
+
+![Carrinho Vazio](docs/screenshots/04-cart-empty.png)
+
 ### Recibo
 
 ![Recibo](docs/screenshots/05-receipt.png)
@@ -168,3 +172,7 @@ br.com.wdc.shopping.view.teavm.web/
 ### Histórico de Compras
 
 ![Histórico](docs/screenshots/06-history.png)
+
+## Guias
+
+- [Como criar uma nova View](docs/GUIDE_NEW_VIEW.md) — passo a passo para implementar uma view VDom neste projeto
