@@ -110,6 +110,8 @@
                                         <include>index.html</include>
                                         <include>context.html</include>
                                         <include>favicon.ico</include>
+                                        <include>css/**</include>
+                                        <include>js/security-boot.js</include>
                                     </includes>
                                 </resource>
                             </resources>
