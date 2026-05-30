@@ -18,6 +18,7 @@ import br.com.wdc.shopping.backend.controller.ImageController;
 import br.com.wdc.shopping.backend.controller.IndexHtmlController;
 import br.com.wdc.shopping.backend.controller.LandingPageController;
 import br.com.wdc.shopping.backend.controller.StatusController;
+import br.com.wdc.shopping.backend.controller.WebCacheController;
 import io.javalin.Javalin;
 import io.javalin.config.JavalinConfig;
 import io.javalin.http.staticfiles.Location;
@@ -115,6 +116,7 @@ public class BackendServer {
         // Health check endpoint
         StatusController.configure(config);
         ImageController.configure(config);
+        WebCacheController.configure(config);
 
         // Repository REST API for Android (and other REST clients)
 		RepositoryApiRoutes.configure(config);
@@ -141,6 +143,7 @@ public class BackendServer {
                 && !path.startsWith("/ws/") 
                 && !path.startsWith("/health")
                 && !path.startsWith("/dispatcher")
+                && !path.startsWith("/web-cache/")
                 && !path.equals("/")
                 && !isStaticResource(path)) {
                 // Resolve context-aware SPA fallback: /<context>/anything -> /<context>/index.html

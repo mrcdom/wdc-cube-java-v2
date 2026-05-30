@@ -8,15 +8,13 @@
     <link rel="icon" href="favicon.ico" type="image/png">
 
     <!-- Bootstrap Icons (icon font only) -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="/web-cache/cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
     <!-- Google Fonts: Inter for modern UI -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="/web-cache/fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Spectrum Web Components -->
-    <script src="https://jspm.dev/@spectrum-web-components/bundle/elements.js" type="module"></script>
+    <script src="/web-cache/jspm.dev/@spectrum-web-components/bundle/elements.js" type="module"></script>
 
     <style>
         :root {
@@ -141,7 +139,7 @@
         ::-webkit-scrollbar-thumb { background: #c1c1c6; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #a1a1a6; }
 
-        /* SWC button fixes: force accent fill and quiet borders */
+        /* SWC customization via --mod-* API (no external box-model overrides) */
         sp-button[variant="accent"] {
             --mod-button-background-color-default: var(--app-accent);
             --mod-button-background-color-hover: var(--app-accent-dark);
@@ -152,10 +150,6 @@
             --mod-button-border-color-default: transparent;
             --mod-button-border-color-hover: transparent;
             --mod-button-border-color-active: transparent;
-            padding: 6px 16px;
-        }
-        sp-action-button {
-            padding: 4px 12px;
         }
         sp-action-button[quiet] {
             --mod-actionbutton-border-color-default: transparent;
@@ -164,19 +158,10 @@
             --mod-actionbutton-background-color-hover: var(--app-accent-light);
         }
         sp-textfield {
-            border: 1px solid var(--app-border);
-            border-radius: var(--app-radius-sm);
-            transition: border-color var(--app-transition);
-            padding: 10px 12px;
-            min-height: 44px;
-            box-sizing: border-box;
-        }
-        sp-textfield:hover, sp-textfield:focus-within {
-            border-color: var(--app-accent);
-        }
-        sp-textfield::part(textfield) {
-            font-style: italic;
-            color: #999;
+            --mod-textfield-border-color: var(--app-border);
+            --mod-textfield-border-color-hover: var(--app-accent);
+            --mod-textfield-border-color-keyboard-focus: var(--app-accent);
+            --mod-textfield-corner-radius: var(--app-radius-sm);
         }
         sp-action-group[compact] sp-action-button {
             --mod-actionbutton-border-color-default: var(--app-border);

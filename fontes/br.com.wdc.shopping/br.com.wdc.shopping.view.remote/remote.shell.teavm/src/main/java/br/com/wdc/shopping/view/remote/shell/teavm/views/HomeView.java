@@ -1,20 +1,30 @@
-package br.com.wdc.shopping.view.teavm.views;
+package br.com.wdc.shopping.view.remote.shell.teavm.views;
 
 import static br.com.wdc.framework.vdom.StyleBuilder.css;
-import static br.com.wdc.framework.vdom.Swc.*;
-import static br.com.wdc.framework.vdom.VNode.*;
+import static br.com.wdc.framework.vdom.Swc.spActionButton;
+import static br.com.wdc.framework.vdom.Swc.spTheme;
+import static br.com.wdc.framework.vdom.VNode.button;
+import static br.com.wdc.framework.vdom.VNode.div;
+import static br.com.wdc.framework.vdom.VNode.nav;
+import static br.com.wdc.framework.vdom.VNode.slot;
+import static br.com.wdc.framework.vdom.VNode.span;
 
+import org.teavm.jso.JSBody;
 import org.teavm.jso.dom.html.HTMLElement;
 
-import br.com.wdc.shopping.presentation.presenter.Routes;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeViewState;
-import br.com.wdc.shopping.view.teavm.AbstractViewTeaVM;
-import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
-import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
 import br.com.wdc.framework.vdom.VNode;
+import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 
-public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
+/**
+ * Home view: navbar + content panels.
+ * State fields: nickName, cartItemCount, productsPanelViewId, purchasesPanelViewId, contentViewId, errorMessage.
+ */
+public class HomeView extends AbstractRemoteView {
+
+    public static final String VIEW_ID = "473dbdd7a36a";
+
+    private static final int ON_EXIT = 1;
+    private static final int ON_OPEN_CART = 2;
 
     @SuppressWarnings("java:S1214")
     private interface Styles {
@@ -45,8 +55,7 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
         String ERROR_ICON = css()
                 .color("#dc2626")
                 .fontSize("1rem")
-                .flexShrink(0)
-                .build();
+                .flexShrink(0).build();
 
         String ERROR_TEXT = css()
                 .fontSize("0.85rem")
@@ -68,8 +77,7 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
         String NAV_GROUP = css()
                 .displayFlex()
                 .alignItems("center")
-                .gap("10px")
-                .build();
+                .gap("10px").build();
 
         String EXIT_ICON = css()
                 .fontSize("1.1rem")
@@ -243,36 +251,28 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
                 .build();
     }
 
-    private final HomeViewState state;
     private boolean showingProducts = true;
 
-    public HomeViewVDom(HomePresenter presenter) {
-        super("home", (ShoppingTeaVMApplication) presenter.app, presenter);
-        this.state = presenter.state;
+    public HomeView(String vsid) {
+        super(vsid);
     }
 
     @Override
     protected VNode render() {
-        // Consumir erro one-shot
-        final boolean showError;
-        final String errorMessage;
-        if (this.state.errorCode != 0) {
-            showError = true;
-            errorMessage = this.state.errorMessage;
-            this.state.errorCode = 0;
-            this.state.errorMessage = null;
-        } else {
-            showError = false;
-            errorMessage = "";
-        }
+        var scope = state();
+        String nickName = scope.getString("nickName", "");
+        String cartCount = String.valueOf(scope.getInt("cartItemCount"));
+        String errorMessage = scope.getString("errorMessage");
+        boolean showError = errorMessage != null && !errorMessage.isEmpty();
 
-        var nickName = this.state.nickName != null ? this.state.nickName : "";
-        var cartCount = String.valueOf(this.state.cartItemCount);
+        // Child view elements
+        String productsPanelVsid = scope.getString("productsPanelViewId");
+        String purchasesPanelVsid = scope.getString("purchasesPanelViewId");
+        String contentVsid = scope.getString("contentViewId");
 
-        // Elementos hospedados
-        var productsPanelEl = this.state.productsPanelView instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
-        var purchasesPanelEl = this.state.purchasesPanelView instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
-        var contentViewEl = this.state.contentView instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
+        HTMLElement productsPanelEl = getChildViewElement(productsPanelVsid);
+        HTMLElement purchasesPanelEl = getChildViewElement(purchasesPanelVsid);
+        HTMLElement contentViewEl = getChildViewElement(contentVsid);
 
         // @formatter:off
         return div().style(Styles.ROOT).children(
@@ -280,7 +280,7 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
           renderTabNav(),
           div().style(showError ? Styles.ERROR_VISIBLE : Styles.HIDDEN).children(
             span().cls("bi bi-exclamation-circle").style(Styles.ERROR_ICON),
-            span().style(Styles.ERROR_TEXT).text(errorMessage)),
+            span().style(Styles.ERROR_TEXT).text(errorMessage != null ? errorMessage : "")),
           renderContentPane(productsPanelEl, purchasesPanelEl, contentViewEl));
         // @formatter:on
     }
@@ -292,21 +292,21 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
           div().style(Styles.NAV_GROUP).children(
             spActionButton()
               .children(span().cls("bi bi-box-arrow-left").style(Styles.EXIT_ICON))
-              .on("click", evt -> safeAction("Exit", this.presenter::onExit)),
+              .on("click", evt -> submit(ON_EXIT)),
             div().cls("sm-show").style(Styles.GREETING_WRAP).children(
               span().style(Styles.GREETING_LABEL).text("Bem-vindo(a),"),
               span().style(Styles.GREETING_NAME).text(nickName))),
           // Center: logo
           div().style(Styles.NAV_GROUP).children(
-            div().style(Styles.LOGO_BOX)
-              .children(span().cls("bi bi-bag-check").style(Styles.LOGO_ICON)),
+            div().style(Styles.LOGO_BOX).children(
+              span().cls("bi bi-bag-check").style(Styles.LOGO_ICON)),
             div().style(Styles.LOGO_TEXT_WRAP).children(
               span().style(Styles.LOGO_TITLE).text("Shopping"),
               span().cls("sm-show").style(Styles.LOGO_SUBTITLE).text("By WeDoCode"))),
           // Right: cart button
           div().style(Styles.NAV_RIGHT).children(
             spActionButton().style(Styles.CART_BTN)
-              .on("click", evt -> safeAction("Open cart", this.presenter::onOpenCart))
+              .on("click", evt -> submit(ON_OPEN_CART))
               .children(
                 span().cls("bi bi-bag").style(Styles.CART_ICON),
                 span().cls("sm-show").style(Styles.CART_LABEL).text("Carrinho"),
@@ -321,8 +321,8 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
                     .style(Styles.CONTENT_OVERLAY);
         }
 
-        var productsHide = this.showingProducts ? "" : "md-show";
-        var purchasesHide = this.showingProducts ? "md-show" : "";
+        var productsHide = showingProducts ? "" : "md-show";
+        var purchasesHide = showingProducts ? "md-show" : "";
 
         // @formatter:off
         return div().cls("md-row").style(Styles.SPLIT_ROW).children(
@@ -334,30 +334,32 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
     private VNode renderTabNav() {
         // @formatter:off
         return nav().cls("md-hide").style(Styles.TAB_NAV).children(
-          button().style(this.showingProducts ? Styles.TAB_ACTIVE : Styles.TAB_INACTIVE)
-            .on("click", evt -> switchTab(true))
+          button().style(showingProducts ? Styles.TAB_ACTIVE : Styles.TAB_INACTIVE)
             .children(
               span().cls("bi bi-grid-3x3-gap").style(Styles.TAB_ICON),
               span().text("Produtos"),
-              this.showingProducts ? span().style(Styles.TAB_INDICATOR) : span().style(Styles.HIDDEN)),
-          button().style(this.showingProducts ? Styles.TAB_INACTIVE : Styles.TAB_ACTIVE)
-            .on("click", evt -> switchTab(false))
+              showingProducts ? span().style(Styles.TAB_INDICATOR) : span().style(Styles.HIDDEN))
+            .on("click", evt -> switchTab(true)),
+          button().style(showingProducts ? Styles.TAB_INACTIVE : Styles.TAB_ACTIVE)
             .children(
               span().cls("bi bi-clock-history").style(Styles.TAB_ICON),
               span().text("Histórico"),
-              !this.showingProducts ? span().style(Styles.TAB_INDICATOR) : span().style(Styles.HIDDEN)));
+              !showingProducts ? span().style(Styles.TAB_INDICATOR) : span().style(Styles.HIDDEN))
+            .on("click", evt -> switchTab(false)));
         // @formatter:on
     }
 
     private void switchTab(boolean showProducts) {
-        if (this.state.contentView != null) {
-            safeAction("Back to home", () -> Routes.home(this.app));
+        // If a content view (product detail, cart, etc.) is showing, navigate back first
+        var scope = state();
+        String contentVsid = scope.getString("contentViewId");
+        if (contentVsid != null && !contentVsid.isEmpty()) {
+            historyBack();
         }
         this.showingProducts = showProducts;
-        update();
-        // Trigger re-measurement when the purchases panel becomes visible
-        if (!showProducts && this.state.purchasesPanelView != null) {
-            this.state.purchasesPanelView.update();
-        }
+        forceUpdate();
     }
+
+    @JSBody(params = {}, script = "history.back();")
+    private static native void historyBack();
 }

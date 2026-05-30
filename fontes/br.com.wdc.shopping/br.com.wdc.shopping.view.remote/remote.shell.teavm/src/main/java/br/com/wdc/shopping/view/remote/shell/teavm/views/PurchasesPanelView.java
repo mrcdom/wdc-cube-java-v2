@@ -1,24 +1,31 @@
-package br.com.wdc.shopping.view.teavm.views;
+package br.com.wdc.shopping.view.remote.shell.teavm.views;
 
 import static br.com.wdc.framework.vdom.StyleBuilder.css;
 import static br.com.wdc.framework.vdom.VNode.*;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.teavm.jso.browser.Window;
-import org.teavm.jso.dom.events.Event;
-import org.teavm.jso.dom.events.EventListener;
 import org.teavm.jso.dom.html.HTMLElement;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter.PurchasesPanelViewState;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
-import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
-import br.com.wdc.shopping.view.teavm.util.DateUtils;
-import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
+import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import br.com.wdc.framework.vdom.VNode;
 
-public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPresenter> {
+/**
+ * Purchases history panel with pagination.
+ * State: purchases (array of {id, date, items, total}), page, totalCount, pageSize.
+ */
+public class PurchasesPanelView extends AbstractRemoteView {
+
+    public static final String VIEW_ID = "b3c4d5e6f7a8";
+
+    private static final int ON_OPEN_RECEIPT = 1;
+    private static final int ON_PAGE_CHANGE = 2;
+    private static final int ON_PAGE_SIZE_CHANGED = 3;
+    private static final int ITEM_HEIGHT_PX = 56;
 
     @SuppressWarnings("java:S1214")
     private interface Styles {
@@ -31,7 +38,7 @@ public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPrese
                 .overflowHidden()
                 .padding("16px")
                 .background("var(--app-surface)")
-                .prop("border-left", "1px solid var(--app-border)")
+                .borderLeft("1px solid var(--app-border)")
                 .build();
 
         String HEADER_ROW = css()
@@ -56,7 +63,7 @@ public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPrese
                 .color("var(--app-text-secondary)")
                 .fontSize("0.75rem")
                 .marginBottom("12px")
-                .prop("display", "block")
+                .displayBlock()
                 .build();
 
         String LIST_CONTAINER = css()
@@ -65,17 +72,17 @@ public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPrese
                 .minHeight("0")
                 .build();
 
-        String PAGINATION = css()
+        String PAGER_WRAP = css()
                 .displayFlex()
                 .justifyContent("center")
                 .alignItems("center")
                 .padding("10px 0")
                 .marginTop("auto")
-                .prop("border-top", "1px solid var(--app-border)")
+                .borderTop("1px solid var(--app-border)")
                 .build();
 
-        String PAGE_PILL = css()
-                .prop("display", "inline-flex")
+        String PAGER_GROUP = css()
+                .displayInlineFlex()
                 .alignItems("center")
                 .gap("4px")
                 .background("var(--app-bg)")
@@ -83,7 +90,7 @@ public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPrese
                 .padding("4px")
                 .build();
 
-        String PAGE_BTN = css()
+        String PAGER_BTN = css()
                 .width("28px")
                 .height("28px")
                 .displayFlex()
@@ -94,12 +101,12 @@ public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPrese
                 .transition("background var(--app-transition)")
                 .build();
 
-        String PAGE_BTN_ICON = css()
+        String PAGER_ICON = css()
                 .fontSize("0.75rem")
                 .color("var(--app-text-secondary)")
                 .build();
 
-        String PAGE_INFO = css()
+        String PAGER_INFO = css()
                 .padding("4px 12px")
                 .fontWeight("600")
                 .fontSize("0.75rem")
@@ -109,6 +116,7 @@ public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPrese
                 .boxShadow("var(--app-shadow-sm)")
                 .build();
 
+        // Purchase item
         String ITEM_CARD = css()
                 .width("100%")
                 .boxSizing("border-box")
@@ -120,7 +128,7 @@ public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPrese
                 .border("1px solid var(--app-border)")
                 .build();
 
-        String ITEM_LINE1 = css()
+        String ITEM_TOP_ROW = css()
                 .displayFlex()
                 .justifyContent("space-between")
                 .alignItems("center")
@@ -140,7 +148,7 @@ public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPrese
                 .whiteSpace("nowrap")
                 .build();
 
-        String ITEM_LINE2 = css()
+        String ITEM_BOTTOM_ROW = css()
                 .displayFlex()
                 .alignItems("baseline")
                 .padding("4px 12px 8px 12px")
@@ -150,7 +158,7 @@ public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPrese
                 .minWidth("0")
                 .build();
 
-        String ITEM_ITEMS = css()
+        String ITEM_DESCRIPTION = css()
                 .flex("1")
                 .minWidth("0")
                 .overflowHidden()
@@ -165,111 +173,145 @@ public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPrese
                 .build();
     }
 
-    private static final int ITEM_HEIGHT_PX = 56;
-    private static final int MAX_COMPUTE_RETRIES = 10;
-
-    private final PurchasesPanelViewState state;
     private HTMLElement listContainer;
     private int pendingResizeFrame = -1;
-    private int computeRetries;
 
-    // Stable event listener references (avoid re-registration on every render)
-    private final EventListener<Event> prevPageListener;
-    private final EventListener<Event> nextPageListener;
-
-    public PurchasesPanelViewVDom(PurchasesPanelPresenter presenter) {
-        super("purchases-panel", (ShoppingTeaVMApplication) presenter.app, presenter);
-        this.state = presenter.state;
-        this.prevPageListener = evt -> safeAction("Prev page",
-                () -> this.presenter.onPageChange(this.state.page - 1));
-        this.nextPageListener = evt -> safeAction("Next page",
-                () -> this.presenter.onPageChange(this.state.page + 1));
+    public PurchasesPanelView(String vsid) {
+        super(vsid);
         Window.current().addEventListener("resize", evt -> scheduleResize());
     }
 
     @Override
     public void doUpdate() {
         super.doUpdate();
-        if (this.state.pageSize < 0) {
+        var scope = state();
+        int pageSize = scope.getInt("pageSize");
+        if (pageSize <= 0) {
             Window.requestAnimationFrame(t -> computePageSize());
         }
     }
 
     @Override
     protected VNode render() {
-        var purchases = this.state.purchases;
-        int pageSize = Math.max(1, this.state.pageSize);
-        int totalPages = Math.max(1, (int) Math.ceil((double) this.state.totalCount / pageSize));
-        var pageInfo = (this.state.page + 1) + " / " + totalPages;
+        var scope = state();
+        List<Map<String, Object>> purchases = getPurchases();
+        int page = scope.getInt("page");
+        int totalCount = scope.getInt("totalCount");
+        int pageSize = Math.max(1, scope.getInt("pageSize"));
+        int totalPages = Math.max(1, (int) Math.ceil((double) totalCount / pageSize));
+        var pageInfo = (page + 1) + " / " + totalPages;
 
         // @formatter:off
         return div().style(Styles.ROOT).children(
-          // Header
           div().style(Styles.HEADER_ROW).children(
             span().cls("bi bi-clock-history").style(Styles.HEADER_ICON),
             span().style(Styles.HEADER_TITLE).text("Histórico")),
           span().style(Styles.HINT).text("Toque para ver detalhes"),
-          // List container
           div().style(Styles.LIST_CONTAINER)
             .ref(el -> this.listContainer = el)
-            .children(purchases != null ? purchases.stream().map(this::renderItem).toList() : List.of()),
-          // Pagination
-          div().style(Styles.PAGINATION).children(
-            div().style(Styles.PAGE_PILL).children(
-              div().style(Styles.PAGE_BTN)
-                .on("click", this.prevPageListener)
-                .children(span().cls("bi bi-chevron-left").style(Styles.PAGE_BTN_ICON)),
-              span().style(Styles.PAGE_INFO).text(pageInfo),
-              div().style(Styles.PAGE_BTN)
-                .on("click", this.nextPageListener)
-                .children(span().cls("bi bi-chevron-right").style(Styles.PAGE_BTN_ICON)))));
+            .children(purchases.stream().map(this::renderItem).toList()),
+          div().style(Styles.PAGER_WRAP).children(
+            div().style(Styles.PAGER_GROUP).children(
+              div().style(Styles.PAGER_BTN)
+                .on("click", evt -> changePage(page - 1))
+                .children(span().cls("bi bi-chevron-left").style(Styles.PAGER_ICON)),
+              span().style(Styles.PAGER_INFO).text(pageInfo),
+              div().style(Styles.PAGER_BTN)
+                .on("click", evt -> changePage(page + 1))
+                .children(span().cls("bi bi-chevron-right").style(Styles.PAGER_ICON)))));
         // @formatter:on
     }
 
-    private VNode renderItem(PurchaseInfo purchase) {
-        var id = "#" + purchase.id;
-        var date = purchase.date > 0 ? DateUtils.formatDate(purchase.date) : "";
-        var items = purchase.items != null ? String.join(", ", purchase.items) : "";
-        var total = purchase.total > 0 ? "R$ " + String.format("%.2f", purchase.total) : "";
+    private VNode renderItem(Map<String, Object> purchase) {
+        var id = purchase.get("id");
+        String idStr;
+        if (id instanceof Number n) {
+            idStr = "#" + n.intValue();
+        } else {
+            idStr = id != null ? "#" + id : "";
+        }
+        var date = formatDate(purchase.get("date"));
+        var items = purchase.get("items");
+        String itemsStr;
+        if (items instanceof List<?> list) {
+            itemsStr = String.join(", ", list.stream().map(Object::toString).toList());
+        } else {
+            itemsStr = items != null ? items.toString() : "";
+        }
+        var totalVal = purchase.get("total");
+        var total = totalVal instanceof Number n ? "R$ " + String.format("%.2f", n.doubleValue()) : "";
+        String key;
+        if (id instanceof Number n) {
+            key = String.valueOf(n.intValue());
+        } else {
+            key = id != null ? id.toString() : date;
+        }
 
         // @formatter:off
-        return div().cls("purchase-item").key(String.valueOf(purchase.id)).style(Styles.ITEM_CARD)
-          .on("click", evt -> safeAction("Open receipt", () -> this.presenter.onOpenReceipt(purchase.id)))
+        return div().cls("purchase-item").key(key).style(Styles.ITEM_CARD)
+          .on("click", evt -> { setFormField("p.purchaseId", id); submit(ON_OPEN_RECEIPT); })
           .children(
-            div().style(Styles.ITEM_LINE1).children(
-              span().style(Styles.ITEM_ID).text(id),
+            div().style(Styles.ITEM_TOP_ROW).children(
+              span().style(Styles.ITEM_ID).text(idStr),
               span().style(Styles.ITEM_DATE).text(date)),
-            div().style(Styles.ITEM_LINE2).children(
-              span().style(Styles.ITEM_ITEMS).text(items),
+            div().style(Styles.ITEM_BOTTOM_ROW).children(
+              span().style(Styles.ITEM_DESCRIPTION).text(itemsStr),
               span().style(Styles.ITEM_TOTAL).text(total)));
         // @formatter:on
     }
 
-    private void scheduleResize() {
-        if (this.pendingResizeFrame >= 0) {
-            Window.cancelAnimationFrame(this.pendingResizeFrame);
+    @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> getPurchases() {
+        var scope = state();
+        if (scope == null) return List.of();
+        var v = scope.getState().get("purchases");
+        if (v instanceof List<?> list) {
+            var result = new ArrayList<Map<String, Object>>();
+            for (var item : list) {
+                if (item instanceof Map<?, ?> m) result.add((Map<String, Object>) m);
+            }
+            return result;
         }
-        this.pendingResizeFrame = Window.requestAnimationFrame(t -> {
-            this.pendingResizeFrame = -1;
+        return List.of();
+    }
+
+    private void changePage(int newPage) {
+        setFormField("p.page", newPage);
+        submit(ON_PAGE_CHANGE);
+    }
+
+    private void scheduleResize() {
+        if (pendingResizeFrame >= 0) {
+            Window.cancelAnimationFrame(pendingResizeFrame);
+        }
+        pendingResizeFrame = Window.requestAnimationFrame(t -> {
+            pendingResizeFrame = -1;
             computePageSize();
         });
     }
 
     private void computePageSize() {
-        if (this.listContainer == null)
-            return;
-        int containerHeight = this.listContainer.getClientHeight();
+        if (listContainer == null) return;
+        int containerHeight = listContainer.getClientHeight();
         if (containerHeight <= 0) {
-            // Element not yet laid out (e.g. not attached to DOM); retry next frame
-            if (this.computeRetries < MAX_COMPUTE_RETRIES) {
-                this.computeRetries++;
-                Window.requestAnimationFrame(t -> computePageSize());
-            }
+            // Container not visible yet (e.g. hidden tab on mobile), retry
+            Window.setTimeout(() -> Window.requestAnimationFrame(t -> computePageSize()), 200);
             return;
         }
-        this.computeRetries = 0;
         int capacity = Math.max(1, containerHeight / ITEM_HEIGHT_PX);
-        // Must run in Thread because onItemSizeCapacityChanged triggers @Async data fetch
-        safeAction("PageSize", () -> this.presenter.onItemSizeCapacityChanged(capacity));
+        setFormField("p.capacity", capacity);
+        submit(ON_PAGE_SIZE_CHANGED);
+    }
+
+    @SuppressWarnings("deprecation")
+    private static String formatDate(Object dateObj) {
+        if (!(dateObj instanceof Number n)) return "";
+        long millis = n.longValue();
+        if (millis <= 0) return "";
+        var d = new Date(millis);
+        int day = d.getDate();
+        int month = d.getMonth() + 1;
+        int year = d.getYear() + 1900;
+        return (day < 10 ? "0" : "") + day + "/" + (month < 10 ? "0" : "") + month + "/" + year;
     }
 }

@@ -27,14 +27,14 @@ import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
  *
  *     @Override
  *     protected VNode render() {
- *         return div("container").children(
- *             h5("title").text(state.title),
- *             div("content").children(
+ *         return div().cls("container").children(
+ *             h5().cls("title").text(state.title),
+ *             div().cls("content").children(
  *                 items.stream().map(item ->
- *                     div("item").key(item.id).text(item.name)
+ *                     div().cls("item").key(item.id).text(item.name)
  *                 ).toList()
  *             ),
- *             button("btn btn-primary").text("OK").on("click", e -> safeAction("OK", this::onOk))
+ *             button().cls("btn btn-primary").text("OK").on("click", e -> safeAction("OK", this::onOk))
  *         );
  *     }
  * }

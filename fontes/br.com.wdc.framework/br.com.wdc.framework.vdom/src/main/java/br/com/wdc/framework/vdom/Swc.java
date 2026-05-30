@@ -1,3 +1,4 @@
+// @formatter:off
 package br.com.wdc.framework.vdom;
 
 import static br.com.wdc.framework.vdom.VNode.*;
@@ -17,7 +18,7 @@ import static br.com.wdc.framework.vdom.VNode.*;
  *     .children(textNode("OK"));
  *
  * spActionButton()
- *     .children(span("bi bi-arrow-left"), span("").text("Voltar"))
+ *     .children(span().cls("bi bi-arrow-left"), span().text("Voltar"))
  *     .on("click", e -> goBack());
  *
  * spTextField("Digite seu nome")

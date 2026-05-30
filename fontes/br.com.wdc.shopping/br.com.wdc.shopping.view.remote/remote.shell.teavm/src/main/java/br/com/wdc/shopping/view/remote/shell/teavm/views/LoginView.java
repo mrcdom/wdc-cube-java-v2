@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.teavm.views;
+package br.com.wdc.shopping.view.remote.shell.teavm.views;
 
 import static br.com.wdc.framework.vdom.StyleBuilder.css;
 import static br.com.wdc.framework.vdom.Swc.*;
@@ -7,16 +7,18 @@ import static br.com.wdc.framework.vdom.VNode.*;
 import org.teavm.jso.dom.events.KeyboardEvent;
 import org.teavm.jso.dom.html.HTMLInputElement;
 
-import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
-import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginViewState;
-import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
-import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
+import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
+import br.com.wdc.shopping.view.remote.shell.teavm.bridge.DataSecurity;
 import br.com.wdc.framework.vdom.VNode;
 
 /**
- * Login view implementada com Spectrum Web Components + Virtual DOM.
+ * Login view with Spectrum Web Components + VDom. Reads state from server: userName, password, errorMessage, loading.
  */
-public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
+public class LoginView extends AbstractRemoteView {
+
+    public static final String VIEW_ID = "c677cda52d14";
+
+    private static final int ON_ENTER = 1;
 
     @SuppressWarnings("java:S1214")
     private interface Styles {
@@ -95,8 +97,7 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
 
         String TITLE_LG = css()
                 .fontSize("2rem")
-                .fontWeight("800")
-                .color("#fff")
+                .fontWeight("800").color("#fff")
                 .prop("letter-spacing", "-0.5px")
                 .marginBottom("8px")
                 .build();
@@ -277,8 +278,7 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
                 .build();
 
         String FEATURE_ROW = css()
-                .displayFlex()
-                .alignItems("center")
+                .displayFlex().alignItems("center")
                 .gap("10px")
                 .build();
 
@@ -294,32 +294,20 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
                 .build();
     }
 
-    private final LoginViewState state;
     private HTMLInputElement userNameField;
     @SuppressWarnings("java:S2068")
     private HTMLInputElement passwordField;
 
-    public LoginViewVDom(LoginPresenter presenter) {
-        super("login", (ShoppingTeaVMApplication) presenter.app, presenter);
-        this.state = presenter.state;
+    public LoginView(String vsid) {
+        super(vsid);
     }
 
     @Override
     protected VNode render() {
-        final boolean loading = this.state.loading;
-
-        // Consumir erro do state (one-shot)
-        final boolean showError;
-        final String errorMessage;
-        if (this.state.errorCode != 0) {
-            showError = true;
-            errorMessage = this.state.errorMessage;
-            this.state.errorCode = 0;
-            this.state.errorMessage = null;
-        } else {
-            showError = false;
-            errorMessage = "";
-        }
+        var scope = state();
+        boolean loading = scope.getBoolean("loading");
+        String errorMessage = scope.getString("errorMessage");
+        boolean showError = errorMessage != null && !errorMessage.isEmpty();
 
         // @formatter:off
         return div().cls("login-root").style(Styles.LOGIN_ROOT).children(
@@ -329,8 +317,8 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
             div().style(Styles.DECO_CIRCLE_2),
             div().style(Styles.DECO_CIRCLE_3),
             div().style(Styles.CONTENT_CENTER).children(
-              div().style(Styles.LOGO_BOX_LG)
-                .children(span().cls("bi bi-bag-check").style(Styles.ICON_LG)),
+              div().style(Styles.LOGO_BOX_LG).children(
+                span().cls("bi bi-bag-check").style(Styles.ICON_LG)),
               div().style(Styles.TITLE_LG).children(textNode("WDC Shopping")),
               div().style(Styles.SUBTITLE_LG).children(textNode("Sua compra certa na internet.")),
               div().style(Styles.FEATURES_LIST).children(
@@ -345,8 +333,8 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
                 div().style(Styles.MOBILE_CIRCLE_1),
                 div().style(Styles.MOBILE_CIRCLE_2),
                 div().style(Styles.MOBILE_CONTENT).children(
-                  div().style(Styles.LOGO_BOX_SM)
-                    .children(span().cls("bi bi-bag-check").style(Styles.ICON_SM)),
+                  div().style(Styles.LOGO_BOX_SM).children(
+                    span().cls("bi bi-bag-check").style(Styles.ICON_SM)),
                   div().style(Styles.MOBILE_TITLE).children(textNode("WDC Shopping")),
                   div().style(Styles.MOBILE_SUBTITLE).children(textNode("Sua compra certa na internet.")))),
               // Welcome text
@@ -356,30 +344,25 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
               // Error alert
               div().style(showError ? Styles.ERROR_VISIBLE : Styles.HIDDEN).children(
                 span().cls("bi bi-exclamation-circle").style(Styles.ERROR_ICON),
-                span().style(Styles.ERROR_TEXT).text(errorMessage)),
+                span().style(Styles.ERROR_TEXT).text(errorMessage != null ? errorMessage : "")),
               // User field
               spFieldLabel("login-user", "Usuário").style(Styles.FIELD_LABEL),
               spTextField("Digite seu usuário")
-                .attr("id", "login-user")
-                .attr("autocomplete", "off")
+                .attr("id", "login-user").attr("autocomplete", "off")
                 .boolAttr("disabled", loading)
                 .style(Styles.USER_FIELD)
                 .ref(el -> this.userNameField = (HTMLInputElement) el),
               // Password field
               spFieldLabel("login-pass", "Senha").style(Styles.FIELD_LABEL),
               spTextField("Digite sua senha", "password")
-                .attr("id", "login-pass")
-                .attr("autocomplete", "off")
+                .attr("id", "login-pass").attr("autocomplete", "off")
                 .boolAttr("disabled", loading)
                 .style(Styles.PASSWORD_FIELD)
-                .on("keydown", (KeyboardEvent evt) -> {
-                    if ("Enter".equals(evt.getKey())) { emitEnter(); }
-                })
+                .on("keydown", (KeyboardEvent evt) -> { if ("Enter".equals(evt.getKey())) { emitEnter(); } })
                 .ref(el -> this.passwordField = (HTMLInputElement) el),
               // Enter button
               spButton("accent", "l")
-                .boolAttr("disabled", loading)
-                .boolAttr("pending", loading)
+                .boolAttr("disabled", loading).boolAttr("pending", loading)
                 .style(Styles.ENTER_BUTTON)
                 .on("click", evt -> emitEnter())
                 .children(textNode(loading ? "Entrando..." : "Entrar")),
@@ -401,10 +384,12 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
     }
 
     private void emitEnter() {
-        safeAction("Login", () -> {
-            this.state.userName = this.userNameField.getValue();
-            this.state.password = this.passwordField.getValue();
-            this.presenter.onEnter();
+        String userName = userNameField != null ? userNameField.getValue() : "";
+        String password = passwordField != null ? passwordField.getValue() : "";
+        setFormField("userName", userName);
+        DataSecurity.cipher(password, encryptedPassword -> {
+            setFormField("password", encryptedPassword);
+            submit(ON_ENTER);
         });
     }
 }

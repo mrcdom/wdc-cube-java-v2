@@ -1,5 +1,6 @@
 package br.com.wdc.shopping.view.teavm.views;
 
+import static br.com.wdc.framework.vdom.StyleBuilder.css;
 import static br.com.wdc.framework.vdom.Swc.*;
 import static br.com.wdc.framework.vdom.VNode.*;
 
@@ -13,6 +14,22 @@ import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
 import br.com.wdc.framework.vdom.VNode;
 
 public class RootViewVDom extends AbstractVDomView<RootPresenter> {
+
+    @SuppressWarnings("java:S1214")
+    private interface Styles {
+
+        String ROOT = css()
+                .flexCol()
+                .height("100%")
+                .overflowHidden()
+                .build();
+
+        String CONTENT = css()
+                .flexCol()
+                .flexGrow(1)
+                .minHeight("0")
+                .build();
+    }
 
     private final RootViewState state;
     private boolean appended;
@@ -37,10 +54,10 @@ public class RootViewVDom extends AbstractVDomView<RootPresenter> {
         var contentElement = this.state.contentView instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
         // @formatter:off
         return spTheme("light", "medium", "spectrum")
-                    .style("display:flex;flex-direction:column;height:100%;overflow:hidden")
-                    .children(
-                        slot("", contentElement)
-                            .style("display:flex;flex-direction:column;flex-grow:1;min-height:0"));
+          .style(Styles.ROOT)
+          .children(
+            slot(contentElement)
+              .style(Styles.CONTENT));
         // @formatter:on
     }
 }

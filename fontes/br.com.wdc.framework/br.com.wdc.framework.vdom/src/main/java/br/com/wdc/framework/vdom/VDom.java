@@ -40,8 +40,8 @@ import org.teavm.jso.dom.xml.Node;
  *     }
  *
  *     private VNode render() {
- *         return div("container").children(
- *             h5("").text(state.title),
+ *         return div().cls("container").children(
+ *             h5().text(state.title),
  *             el("input").attr("type","text").attr("value", state.name)
  *         );
  *     }

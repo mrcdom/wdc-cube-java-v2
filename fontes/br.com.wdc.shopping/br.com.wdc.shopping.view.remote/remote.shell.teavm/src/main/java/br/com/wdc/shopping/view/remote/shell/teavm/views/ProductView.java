@@ -1,16 +1,24 @@
-package br.com.wdc.shopping.view.teavm.views;
+package br.com.wdc.shopping.view.remote.shell.teavm.views;
 
 import static br.com.wdc.framework.vdom.StyleBuilder.css;
 import static br.com.wdc.framework.vdom.Swc.*;
 import static br.com.wdc.framework.vdom.VNode.*;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter.ProductViewState;
-import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
-import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
+import java.util.Map;
+
+import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import br.com.wdc.framework.vdom.VNode;
 
-public class ProductViewVDom extends AbstractVDomView<ProductPresenter> {
+/**
+ * Product detail view.
+ * State: product {id, name, image, price, description}, errorMessage, errorCode.
+ */
+public class ProductView extends AbstractRemoteView {
+
+    public static final String VIEW_ID = "48b693f67410";
+
+    private static final int ON_BACK = 1;
+    private static final int ON_ADD_TO_CART = 2;
 
     @SuppressWarnings("java:S1214")
     private interface Styles {
@@ -22,21 +30,21 @@ public class ProductViewVDom extends AbstractVDomView<ProductPresenter> {
                 .background("var(--app-bg)")
                 .build();
 
-        String WRAPPER = css()
-                .maxWidth("900px")
-                .prop("margin", "0 auto")
+        String WRAPPER = css(
+                ).maxWidth("900px")
+                .margin("0 auto")
                 .padding("20px")
                 .build();
 
         String TITLE = css()
                 .fontWeight("700")
-                .prop("margin", "0 0 12px 0")
+                .margin("0 0 12px 0")
                 .fontSize("1.5rem")
                 .color("var(--app-text)")
                 .build();
 
         String DIVIDER = css()
-                .prop("margin", "0 0 16px 0")
+                .margin("0 0 16px 0")
                 .build();
 
         String DESC_CARD = css()
@@ -69,12 +77,12 @@ public class ProductViewVDom extends AbstractVDomView<ProductPresenter> {
                 .build();
 
         String PRICE_BADGE = css()
-                .prop("display", "inline-block")
+                .display("inline-block")
                 .background("var(--app-accent-light)")
                 .padding("10px 20px")
                 .borderRadius("var(--app-radius-sm)")
-                .fontSize("1.4rem")
-                .fontWeight("800")
+                .fontSize("1.4rem").
+                fontWeight("800")
                 .color("var(--app-accent)")
                 .build();
 
@@ -109,7 +117,7 @@ public class ProductViewVDom extends AbstractVDomView<ProductPresenter> {
                 .maxWidth("160px")
                 .maxHeight("160px")
                 .width("100%")
-                .prop("height", "auto")
+                .height("auto")
                 .objectFit("contain")
                 .build();
 
@@ -119,6 +127,10 @@ public class ProductViewVDom extends AbstractVDomView<ProductPresenter> {
                 .justifyContent("center")
                 .gap("12px")
                 .marginTop("8px")
+                .build();
+
+        String ICON_MR = css()
+                .marginRight("6px")
                 .build();
 
         String ERROR_VISIBLE = css()
@@ -149,91 +161,79 @@ public class ProductViewVDom extends AbstractVDomView<ProductPresenter> {
                 .build();
     }
 
-    private final ProductViewState state;
     private int quantity = 1;
     private String currentDescription = "";
 
-    public ProductViewVDom(ProductPresenter presenter) {
-        super("product", (ShoppingTeaVMApplication) presenter.app, presenter);
-        this.state = presenter.state;
+    public ProductView(String vsid) {
+        super(vsid);
     }
 
     @Override
     protected VNode render() {
-        // Consumir erro one-shot
-        final boolean showError;
-        final String errorMessage;
-        if (this.state.errorCode != 0) {
-            showError = true;
-            errorMessage = this.state.errorMessage;
-            this.state.errorCode = 0;
-            this.state.errorMessage = null;
-        } else {
-            showError = false;
-            errorMessage = "";
+        var scope = state();
+        String errorMessage = scope.getString("errorMessage");
+        boolean showError = errorMessage != null && !errorMessage.isEmpty();
+
+        Map<String, Object> product = scope.getMap("product");
+        String imageUrl = "";
+        String name = "";
+        String price = "";
+        String description = "";
+
+        if (!product.isEmpty()) {
+            var img = product.get("image");
+            imageUrl = img != null ? "/" + img : "";
+            var n = product.get("name");
+            name = n != null ? n.toString() : "";
+            var p = product.get("price");
+            price = p instanceof Number num ? "R$ " + String.format("%.2f", num.doubleValue()) : "";
+            var d = product.get("description");
+            description = d != null ? d.toString() : "";
         }
 
-        var product = this.state.product;
-        var imageUrl = "";
-        var name = "";
-        var price = "";
-        final String description;
-
-        if (product != null) {
-            imageUrl = product.image != null ? app.resolveImageUrl(product.image) : "";
-            name = product.name != null ? product.name : "";
-            price = product.price > 0 ? "R$ " + String.format("%.2f", product.price) : "";
-            description = product.description != null ? product.description : "";
-        } else {
-            description = "";
-        }
+        final String desc = description;
 
         // @formatter:off
         return div().style(Styles.ROOT).children(
           div().style(Styles.WRAPPER).children(
-            // Title
             h5().style(Styles.TITLE).text(name),
-            // Divider
             spDivider("s").style(Styles.DIVIDER),
             // Description card
             div().style(Styles.DESC_CARD).children(
               div().style(Styles.DESC_TEXT)
                 .ref(el -> {
-                    if (!description.equals(this.currentDescription)) {
-                        el.setInnerHTML(description);
-                        this.currentDescription = description;
+                    if (!desc.equals(this.currentDescription)) {
+                        el.setInnerHTML(desc);
+                        this.currentDescription = desc;
                     }
                 })),
             // Price + Image row
             div().style(Styles.PRICE_IMAGE_ROW).children(
-              // Left: price + quantity (centered)
               div().style(Styles.PRICE_COL).children(
                 span().style(Styles.PRICE_BADGE).text(price),
-                // Quantity stepper
                 div().style(Styles.QTY_ROW).children(
                   span().style(Styles.QTY_LABEL).text("Qtd:"),
                   spActionButton("s")
                     .children(span().cls("bi bi-dash"))
-                    .on("click", evt -> { if (this.quantity > 1) { this.quantity--; update(); } }),
+                    .on("click", evt -> { if (this.quantity > 1) { this.quantity--; forceUpdate(); } }),
                   span().style(Styles.QTY_VALUE).text(String.valueOf(this.quantity)),
                   spActionButton("s")
                     .children(span().cls("bi bi-plus"))
-                    .on("click", evt -> { this.quantity++; update(); }))),
-              // Right: product image
+                    .on("click", evt -> { this.quantity++; forceUpdate(); }))),
               div().style(Styles.IMAGE_BOX).children(
                 img().attr("alt", name).attr("src", imageUrl).style(Styles.IMAGE))),
-            // Action buttons row
+            // Action buttons
             div().style(Styles.ACTIONS_ROW).children(
               spActionButton()
                 .children(span().cls("bi bi-arrow-left"), span().text(" Voltar"))
-                .on("click", evt -> safeAction("Back", this.presenter::onOpenProducts)),
+                .on("click", evt -> submit(ON_BACK)),
               spButton("accent", "l")
-                .children(span().cls("bi bi-bag-plus").style("margin-right:6px"), span().text("Adicionar ao Carrinho"))
-                .on("click", evt -> safeAction("AddToCart", () -> this.presenter.onAddToCart(this.quantity))))),
+                .children(span().cls("bi bi-bag-plus").style(Styles.ICON_MR), span().text("Adicionar ao Carrinho"))
+                .on("click", evt -> { setFormField("p.quantity", this.quantity); submit(ON_ADD_TO_CART); }))),
           // Error
           div().style(showError ? Styles.ERROR_VISIBLE : Styles.HIDDEN).children(
             span().cls("bi bi-exclamation-circle").style(Styles.ERROR_ICON),
-            span().style(Styles.ERROR_TEXT).text(errorMessage)));
+            span().style(Styles.ERROR_TEXT).text(errorMessage != null ? errorMessage : "")));
         // @formatter:on
     }
 }

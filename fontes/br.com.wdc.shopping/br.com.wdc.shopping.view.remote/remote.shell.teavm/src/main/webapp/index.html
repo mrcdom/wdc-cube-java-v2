@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>WDC Shopping - Remote Shell (TeaVM)</title>
+    <link rel="icon" href="favicon.ico" type="image/png">
+
+    <!-- Bootstrap Icons (icon font only) -->
+    <link href="/web-cache/cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <!-- Google Fonts: Inter for modern UI -->
+    <link href="/web-cache/fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Spectrum Web Components -->
+    <script src="/web-cache/jspm.dev/@spectrum-web-components/bundle/elements.js" type="module"></script>
+
+    <style>
+        :root {
+            --app-accent: #0d66d0;
+            --app-accent-light: #e8f1fc;
+            --app-accent-dark: #0a4f9e;
+            --app-surface: #ffffff;
+            --app-bg: #f4f6f9;
+            --app-text: #1d1d1f;
+            --app-text-secondary: #6e6e73;
+            --app-border: #e5e5ea;
+            --app-shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+            --app-shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+            --app-shadow-lg: 0 10px 30px rgba(0,0,0,0.1), 0 4px 8px rgba(0,0,0,0.05);
+            --app-radius: 12px;
+            --app-radius-sm: 8px;
+            --app-transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background: var(--app-bg);
+            color: var(--app-text);
+        }
+
+        /* Prevent double-tap zoom on iOS */
+        * { touch-action: manipulation; box-sizing: border-box; }
+
+        /* Loading screen */
+        #loading {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            gap: 16px;
+            background: linear-gradient(135deg, #0d66d0 0%, #1a8cff 100%);
+            color: white;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        #loading::before {
+            content: '\F217'; /* bi-cart3 */
+            font-family: 'bootstrap-icons', sans-serif;
+            font-size: 3rem;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.95); }
+        }
+
+        /* Product grid responsive */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        @media (min-width: 768px) {
+            .product-grid { grid-template-columns: repeat(3, 1fr); }
+            .slot-purchases { width: 340px; flex-shrink: 0; }
+        }
+        @media (min-width: 1200px) {
+            .product-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+
+        /* Responsive utilities */
+        .sm-show { display: none; }
+        .md-hide { /* visible on small screens, hidden on md+ */ }
+        .md-show { display: none !important; }
+        .md-row { flex-direction: column; }
+        .md-grow-0 { /* default no-op, overridden on md+ */ }
+
+        @media (min-width: 576px) {
+            .sm-show { display: inline; }
+            .sm-row { flex-direction: row; }
+        }
+        @media (min-width: 768px) {
+            .md-hide { display: none !important; }
+            .md-show { display: flex !important; }
+            .md-row { flex-direction: row; }
+            .md-grow-0 { flex-grow: 0; }
+        }
+
+        /* Card hover effects */
+        .product-card {
+            background: var(--app-surface);
+            border-radius: var(--app-radius);
+            border: 1px solid var(--app-border);
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform var(--app-transition), box-shadow var(--app-transition);
+            box-shadow: var(--app-shadow-sm);
+        }
+        .product-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--app-shadow-lg);
+        }
+        .product-card:active {
+            transform: translateY(0px);
+            box-shadow: var(--app-shadow-sm);
+        }
+
+        /* Purchase item hover */
+        .purchase-item {
+            transition: background var(--app-transition), transform var(--app-transition);
+        }
+        .purchase-item:hover {
+            background: var(--app-accent-light) !important;
+            transform: translateX(2px);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #c1c1c6; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a1a1a6; }
+
+        /* SWC customization via --mod-* API (no external box-model overrides) */
+        sp-button[variant="accent"] {
+            --mod-button-background-color-default: var(--app-accent);
+            --mod-button-background-color-hover: var(--app-accent-dark);
+            --mod-button-background-color-active: #083d7a;
+            --mod-button-content-color-default: #fff;
+            --mod-button-content-color-hover: #fff;
+            --mod-button-content-color-active: #fff;
+            --mod-button-border-color-default: transparent;
+            --mod-button-border-color-hover: transparent;
+            --mod-button-border-color-active: transparent;
+        }
+        sp-action-button[quiet] {
+            --mod-actionbutton-border-color-default: transparent;
+            --mod-actionbutton-border-color-hover: var(--app-border);
+            --mod-actionbutton-background-color-default: transparent;
+            --mod-actionbutton-background-color-hover: var(--app-accent-light);
+        }
+        sp-textfield {
+            --mod-textfield-border-color: var(--app-border);
+            --mod-textfield-border-color-hover: var(--app-accent);
+            --mod-textfield-border-color-keyboard-focus: var(--app-accent);
+            --mod-textfield-corner-radius: var(--app-radius-sm);
+        }
+        sp-action-group[compact] sp-action-button {
+            --mod-actionbutton-border-color-default: var(--app-border);
+        }
+
+        /* Login layout: card centered on compact, flush on expanded */
+        .login-root {
+            justify-content: center;
+            align-items: center;
+            background: var(--app-bg);
+        }
+        .login-card {
+            border-radius: var(--app-radius);
+            box-shadow: var(--app-shadow-lg);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        @media (min-width: 768px) {
+            .login-root {
+                justify-content: flex-start;
+                align-items: stretch;
+                background: none;
+            }
+            .login-card {
+                border-radius: 0;
+                box-shadow: none;
+                max-height: none;
+                overflow-y: visible;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">Carregando...</div>
+
+    <!-- Security boot: read app_skey, generate app_signature cookie before TeaVM starts -->
+    <script>
+    (function() {
+        'use strict';
+
+        // -- Cookie helpers --
+        function getCookie(name) {
+            var m = document.cookie.match(String.raw`(^|;)\s*` + name + String.raw`\s*=\s*([^;]+)`);
+            return m ? decodeURIComponent(m.pop()) : null;
+        }
+        function setCookie(name, value, path) {
+            document.cookie = name + '=' + encodeURIComponent(value) + ';path=' + (path || '/');
+        }
+        function removeCookie(name) {
+            document.cookie = name + '=;path=/;expires=Thu,01 Jan 1970 00:00:00 GMT';
+        }
+
+        // -- Base64 URL-safe (RFC 4648, no padding) --
+        var B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+        function b64urlEncode(buf) {
+            var r = '', i;
+            for (i = 0; i < buf.length; i += 3) {
+                var c = (buf[i] << 16) | (i+1 < buf.length ? buf[i+1] << 8 : 0) | (i+2 < buf.length ? buf[i+2] : 0);
+                r += B64[(c >> 18) & 63];
+                r += B64[(c >> 12) & 63];
+                if (i+1 < buf.length) r += B64[(c >> 6) & 63];
+                if (i+2 < buf.length) r += B64[c & 63];
+            }
+            return r;
+        }
+
+        // -- Standard Base64 (RFC 2045, with padding) --
+        var B64STD = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+        function b64encode(buf) {
+            var r = '', i;
+            for (i = 0; i < buf.length; i += 3) {
+                var c = (buf[i] << 16) | (i+1 < buf.length ? buf[i+1] << 8 : 0) | (i+2 < buf.length ? buf[i+2] : 0);
+                r += B64STD[(c >> 18) & 63];
+                r += B64STD[(c >> 12) & 63];
+                r += (i+1 < buf.length) ? B64STD[(c >> 6) & 63] : '=';
+                r += (i+2 < buf.length) ? B64STD[c & 63] : '=';
+            }
+            return r;
+        }
+
+        // -- UTF8 encode string to Uint8Array --
+        function utf8encode(str) {
+            return new TextEncoder().encode(str);
+        }
+
+        // -- BigInt helpers --
+        function bufToBigInt(buf) {
+            var r = 0n;
+            for (var b of buf) {
+                r = (r << 8n) + BigInt(b);
+            }
+            return r;
+        }
+
+        function modPow(base, exp, mod) {
+            if (mod === 1n) return 0n;
+            var result = 1n;
+            base = base % mod;
+            while (exp > 0n) {
+                if (exp % 2n === 1n) {
+                    result = (result * base) % mod;
+                }
+                exp = exp / 2n;
+                base = (base * base) % mod;
+            }
+            return result;
+        }
+
+        function parseBigInt36(str) {
+            var ks = '0123456789abcdefghijklmnopqrstuvwxyz';
+            var r = 0n;
+            for (var ch of str) {
+                r = r * 36n + BigInt(ks.indexOf(ch));
+            }
+            return r;
+        }
+
+        function bigIntToBase36(n) {
+            if (n === 0n) return '0';
+            var ks = '0123456789abcdefghijklmnopqrstuvwxyz';
+            var r = '';
+            while (n > 0n) {
+                r = ks[Number(n % 36n)] + r;
+                n = n / 36n;
+            }
+            return r;
+        }
+
+        // -- RSA encrypt --
+        function rsaEncryptToBase36(messageBytes, exponent, modulus) {
+            // Same as React: base64-encode message, then utf8-encode that string, then to BigInt
+            var messageAsBase64 = b64encode(messageBytes);
+            var safeBytes = utf8encode(messageAsBase64);
+            var messageBigInt = bufToBigInt(safeBytes);
+            var encrypted = modPow(messageBigInt, exponent, modulus);
+            return bigIntToBase36(encrypted);
+        }
+
+        // -- Main security boot --
+        var appSKey = getCookie('app_skey');
+        if (appSKey) {
+            try {
+                var parts = appSKey.split(':');
+                var exponent = parseBigInt36(parts[0]);
+                var modulus = parseBigInt36(parts[1]);
+
+                // Generate random password: base64url of 12 random bytes
+                var rndBytes = new Uint8Array(12);
+                crypto.getRandomValues(rndBytes);
+                var pwd = b64urlEncode(rndBytes);
+                var pwdBuf = utf8encode(pwd);
+
+                // RSA-encrypt the password
+                var cryptedPwd = rsaEncryptToBase36(pwdBuf, exponent, modulus);
+
+                // Generate salt (16 bytes) and IV (12 bytes)
+                var salt = new Uint8Array(16);
+                crypto.getRandomValues(salt);
+                var iv = new Uint8Array(12);
+                crypto.getRandomValues(iv);
+
+                // Build signature: {rsaEncryptedPwd_base36}.{salt_base64url}.{iv_base64url}
+                var signature = cryptedPwd + '.' + b64urlEncode(salt) + '.' + b64urlEncode(iv);
+
+                // Set app_signature cookie
+                setCookie('app_signature', signature, '/');
+
+                // Store for potential future use
+                globalThis.__wdc_appSignature = signature;
+
+                // Store crypto material for AES key derivation
+                globalThis.__wdc_cryptoPwdBuf = pwdBuf;
+                globalThis.__wdc_cryptoSalt = salt;
+                globalThis.__wdc_cryptoIv = iv;
+
+                // Remove app_skey (one-time use)
+                removeCookie('app_skey');
+
+                console.log('[security-boot] app_signature cookie set');
+            } catch (e) {
+                console.error('[security-boot] Failed to generate signature:', e);
+            }
+        } else {
+            console.warn('[security-boot] No app_skey cookie found');
+        }
+
+        // Derive AES-GCM key from password (async, ready by the time user interacts)
+        (async function() {
+            try {
+                var pwdBuf = globalThis.__wdc_cryptoPwdBuf;
+                var salt = globalThis.__wdc_cryptoSalt;
+                var iv = globalThis.__wdc_cryptoIv;
+                if (!pwdBuf || !salt || !iv) return;
+
+                var keyMaterial = await crypto.subtle.importKey('raw', pwdBuf, { name: 'PBKDF2' }, false, ['deriveKey']);
+                var aesKey = await crypto.subtle.deriveKey(
+                    { name: 'PBKDF2', salt: salt, iterations: 250000, hash: 'SHA-256' },
+                    keyMaterial,
+                    { name: 'AES-GCM', length: 256 },
+                    false,
+                    ['encrypt', 'decrypt']
+                );
+                globalThis.__wdc_aesKey = aesKey;
+                globalThis.__wdc_aesIv = iv;
+
+                // Clean up intermediate crypto material
+                delete globalThis.__wdc_cryptoPwdBuf;
+                delete globalThis.__wdc_cryptoSalt;
+                delete globalThis.__wdc_cryptoIv;
+
+                console.log('[security-boot] AES-GCM key derived');
+            } catch (e) {
+                console.error('[security-boot] AES key derivation failed:', e);
+            }
+        })();
+
+        // Global cipher function: encrypts text with AES-GCM, calls callback with base64 result
+        globalThis.__wdc_cipher = function(text, callback) {
+            var key = globalThis.__wdc_aesKey;
+            var iv = globalThis.__wdc_aesIv;
+            if (!key || !iv) {
+                console.error('[cipher] AES key not yet available');
+                callback('');
+                return;
+            }
+            var encoded = new TextEncoder().encode(text);
+            crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, key, encoded).then(function(ciphertext) {
+                var bytes = new Uint8Array(ciphertext);
+                var binary = '';
+                for (var b of bytes) binary += String.fromCodePoint(b);
+                callback(btoa(binary));
+            }).catch(function(e) {
+                console.error('[cipher] Encryption failed:', e);
+                callback('');
+            });
+        };
+
+        // Also persist app_id to sessionStorage if present as cookie
+        var appId = getCookie('app_id');
+        if (appId) {
+            try { sessionStorage.setItem('app_id', appId); } catch(e) { console.warn('[security-boot] sessionStorage unavailable:', e); }
+            removeCookie('app_id');
+            console.log('[security-boot] app_id stored:', appId);
+        }
+    })();
+    </script>
+
+    <script src="js/app.js"></script>
+    <script>main();</script>
+</body>
+</html>

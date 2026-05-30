@@ -5,16 +5,18 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
 import org.teavm.jso.dom.html.HTMLElement;
 
 /**
- * Nó virtual representando um elemento DOM ou texto.
- * Usado pelo {@link VDom} para diffing e patching eficiente.
+ * Nó virtual representando um elemento DOM ou texto. Usado pelo {@link VDom} para diffing e patching eficiente.
  * <p>
  * Uso:
+ * 
  * <pre>{@code
  * import static br.com.wdc.framework.vdom.VNode.*;
  *
@@ -72,6 +74,14 @@ public class VNode {
         return attr("class", classes);
     }
 
+    public VNode clsx(String classes) {
+        return attr("class", classes);
+    }
+
+    public VNode clsx(String... classes) {
+        return attr("class", Stream.of(classes).collect(Collectors.joining(" ")));
+    }
+
     /**
      * Define um atributo.
      */
@@ -93,8 +103,8 @@ public class VNode {
     }
 
     /**
-     * Define um atributo booleano (presença/ausência no DOM).
-     * Web Components usam este padrão: {@code <sp-button disabled>}.
+     * Define um atributo booleano (presença/ausência no DOM). Web Components usam este padrão:
+     * {@code <sp-button disabled>}.
      */
     public VNode boolAttr(String name, boolean present) {
         if (present) {
@@ -105,9 +115,8 @@ public class VNode {
     }
 
     /**
-     * Define uma propriedade JavaScript no elemento (não um atributo HTML).
-     * Usado para Web Components que aceitam dados complexos via propriedade.
-     * Valores suportados: String, Boolean, Integer, Double, JSObject.
+     * Define uma propriedade JavaScript no elemento (não um atributo HTML). Usado para Web Components que aceitam dados
+     * complexos via propriedade. Valores suportados: String, Boolean, Integer, Double, JSObject.
      */
     public VNode prop(String name, Object value) {
         if (this.props == null) {
@@ -148,8 +157,7 @@ public class VNode {
     }
 
     /**
-     * Captura referência ao elemento DOM real (chamado após criação/patch).
-     * Similar ao React useRef/callback ref.
+     * Captura referência ao elemento DOM real (chamado após criação/patch). Similar ao React useRef/callback ref.
      */
     @SuppressWarnings("unchecked")
     public <T extends HTMLElement> VNode ref(Consumer<T> refCallback) {
@@ -192,52 +200,96 @@ public class VNode {
 
     // ---- Convenience element factories ----
 
+    public static VNode div() {
+        return el("div");
+    }
+
     public static VNode div(String classes) {
         return el("div").cls(classes);
+    }
+
+    public static VNode span() {
+        return el("span");
     }
 
     public static VNode span(String classes) {
         return el("span").cls(classes);
     }
 
+    public static VNode button() {
+        return el("button").attr("type", "button");
+    }
+
     public static VNode button(String classes) {
-        return el("button").attr("type", "button").cls(classes);
+        return el("button").cls(classes).attr("type", "button");
     }
 
-    public static VNode input(String type, String classes) {
-        return el("input").attr("type", type).cls(classes);
+    public static VNode input(String type) {
+        return el("input").attr("type", type);
     }
 
-    public static VNode img(String classes) {
-        return el("img").cls(classes);
+    public static VNode img() {
+        return el("img");
+    }
+
+    public static VNode nav() {
+        return el("nav");
     }
 
     public static VNode nav(String classes) {
         return el("nav").cls(classes);
     }
 
-    public static VNode footer(String classes) {
-        return el("footer").cls(classes);
+    public static VNode footer() {
+        return el("footer");
     }
 
-    public static VNode h5(String classes) {
-        return el("h5").cls(classes);
+    public static VNode footer(String classe) {
+        return el("footer").cls(classe);
+    }
+
+    public static VNode h5() {
+        return el("h5");
+    }
+
+    public static VNode h5(String classe) {
+        return el("h5").cls(classe);
+    }
+
+    public static VNode h6() {
+        return el("h6");
     }
 
     public static VNode h6(String classes) {
         return el("h6").cls(classes);
     }
 
+    public static VNode p() {
+        return el("p");
+    }
+
     public static VNode p(String classes) {
         return el("p").cls(classes);
+    }
+
+    public static VNode ul() {
+        return el("ul");
     }
 
     public static VNode ul(String classes) {
         return el("ul").cls(classes);
     }
 
+    public static VNode li() {
+        return el("li");
+    }
+
     public static VNode li(String classes) {
         return el("li").cls(classes);
+    }
+
+    public static VNode table() {
+        return el("table");
     }
 
     public static VNode table(String classes) {
@@ -248,16 +300,36 @@ public class VNode {
         return el("thead");
     }
 
+    public static VNode thead(String classes) {
+        return el("thead").cls(classes);
+    }
+
     public static VNode tbody() {
         return el("tbody");
+    }
+
+    public static VNode tbody(String classes) {
+        return el("tbody").cls(classes);
     }
 
     public static VNode tr() {
         return el("tr");
     }
 
+    public static VNode tr(String classes) {
+        return el("tr").cls(classes);
+    }
+
+    public static VNode th() {
+        return el("th");
+    }
+
     public static VNode th(String classes) {
         return el("th").cls(classes);
+    }
+
+    public static VNode td() {
+        return el("td");
     }
 
     public static VNode td(String classes) {
@@ -267,20 +339,14 @@ public class VNode {
     // ---- Slot (hosts external element without diffing children) ----
 
     /**
-     * Cria um nó slot que hospeda um elemento DOM externo.
-     * O VDom cria/mantém um container div e o ref cuida de hospedar
-     * o elemento — nunca diffa filhos.
+     * Cria um nó slot que hospeda um elemento DOM externo. O VDom cria/mantém um container div e o ref cuida de
+     * hospedar o elemento — nunca diffa filhos.
      *
-     * @param classes classes CSS do container div
-     * @param hosted  elemento externo a hospedar (pode ser null)
+     * @param hosted elemento externo a hospedar (pode ser null)
      */
-    public static VNode slot(String classes, HTMLElement hosted) {
+    public static VNode slot(HTMLElement hosted) {
         var n = new VNode();
         n.tag = SLOT_TAG;
-        if (classes != null && !classes.isEmpty()) {
-            n.attrs = new LinkedHashMap<>();
-            n.attrs.put("class", classes);
-        }
         n.ref = el -> {
             if (hosted != null) {
                 if (el.getFirstChild() != hosted) {
@@ -294,11 +360,8 @@ public class VNode {
         return n;
     }
 
-    /**
-     * Cria um nó slot sem classes.
-     */
-    public static VNode slot(HTMLElement hosted) {
-        return slot(null, hosted);
+    public static VNode slot(String classes, HTMLElement hosted) {
+        return slot(hosted).cls(classes);
     }
 
     // ---- Conditional rendering ----
