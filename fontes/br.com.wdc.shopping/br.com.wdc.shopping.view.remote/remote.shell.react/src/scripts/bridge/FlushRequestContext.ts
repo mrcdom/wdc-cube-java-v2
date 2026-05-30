@@ -53,6 +53,7 @@ export class FlushRequestContext {
       this.userRequestIds.add(formMap.requestId)
     }
 
+    this.persistState()
     this.resetKeepAliveTimer()
     this.flush()
   }

@@ -73,6 +73,7 @@ public class FlushRequestContext {
             userRequestIds.add(requestCount);
         }
         requestCount++;
+        persistState();
 
         resetKeepAliveTimer();
         flush();
