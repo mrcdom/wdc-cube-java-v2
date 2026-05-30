@@ -7,6 +7,7 @@ import static br.com.wdc.framework.vdom.VNode.h5;
 import static br.com.wdc.framework.vdom.VNode.span;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -83,8 +84,7 @@ public class ReceiptView extends AbstractRemoteView {
 
         if (!receipt.isEmpty()) {
             items = getReceiptItems(receipt);
-            var date = receipt.get("date");
-            dateText = date != null ? date.toString() : "";
+            dateText = formatDateTime(receipt.get("date"));
             var total = receipt.get("total");
             totalText = total instanceof Number n ? "R$ " + String.format("%.2f", n.doubleValue()) : "";
         }
@@ -158,5 +158,22 @@ public class ReceiptView extends AbstractRemoteView {
             return result;
         }
         return List.of();
+    }
+
+    @SuppressWarnings("deprecation")
+    private static String formatDateTime(Object dateObj) {
+        if (!(dateObj instanceof Number n))
+            return "";
+        long millis = n.longValue();
+        if (millis <= 0)
+            return "";
+        var d = new Date(millis);
+        int day = d.getDate();
+        int month = d.getMonth() + 1;
+        int year = d.getYear() + 1900;
+        int hour = d.getHours();
+        int min = d.getMinutes();
+        return (day < 10 ? "0" : "") + day + "/" + (month < 10 ? "0" : "") + month + "/" + year
+                + " " + (hour < 10 ? "0" : "") + hour + ":" + (min < 10 ? "0" : "") + min;
     }
 }
