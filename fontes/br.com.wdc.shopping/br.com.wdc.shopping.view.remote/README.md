@@ -65,7 +65,8 @@ graph TD
 ```
 view.remote/
 ├── remote.host/            ← Host: contraparte server-side do protocolo (Maven/Java)
-└── remote.shell.react/     ← Shell: thin client React no browser (Node.js/TypeScript)
+├── remote.shell.react/     ← Shell React: thin client no browser (Node.js/TypeScript)
+└── remote.shell.teavm/     ← Shell TeaVM: thin client Java compilado para JS (VDom)
 ```
 
 Futuros clientes seguirão o padrão `remote.shell.<tecnologia>` (ex: `remote.shell.desktop`, `remote.shell.native`).
@@ -94,6 +95,36 @@ Thin client que atua como superfície de renderização no browser:
 - **Sem lógica de negócio** — cada view renderiza o ViewState recebido e emite eventos de interação
 - **Views independentes** — cada componente é autossuficiente, sem acoplamento entre views
 - Build via **Parcel 2.13** — output copiado para `remote.host/META-INF/resources/`
+
+### remote.shell.teavm (Maven — TeaVM)
+
+Thin client em Java compilado para JavaScript via TeaVM, usando **Virtual DOM** (VNode API) com Spectrum Web Components:
+
+- **VNode API** declarativa — `render()` retorna árvore virtual, framework faz diff eficiente
+- **WebSocket** bidirecional para comunicação com o host (mesmo protocolo do shell React)
+- **Sem lógica de negócio** — cada view renderiza o ViewState recebido via `ViewScope` e emite eventos
+- **useCallback(key, listener)** — cache de listeners paramétricos para estabilidade de referência no diff
+- **Stable fields** — listeners sem parâmetros extraídos para campos `final` (zero custo no diff)
+- **Compact Css** — aliases (`u`/`c`/`icon`) para classes utilitárias do design system
+- Build via **Maven + plugin TeaVM** — output em `target/classes/META-INF/resources/`
+
+```
+remote.shell.teavm/
+├── src/main/java/.../shell/teavm/
+│   ├── bridge/
+│   │   ├── AbstractRemoteView.java       ← Base VDom (render/diff/useCallback)
+│   │   ├── ViewStateCoordinator.java     ← Gerencia views ativas + protocolo WS
+│   │   ├── ViewScope.java                ← Estado reativo recebido do host
+│   │   ├── FlushRequestContext.java      ← Comunicação WS
+│   │   ├── ReconnectController.java      ← Backoff progressivo
+│   │   ├── DataSecurity.java             ← RSA + AES-GCM
+│   │   └── ViewGarbageCollector.java     ← Cleanup de views desalocadas
+│   ├── interop/                          ← JSO bridges (Console, Timers, WS)
+│   └── views/                            ← 9 views (Browser, Root, Login, Home, ...)
+└── src/main/webapp/
+    ├── index.html
+    └── css/app.css
+```
 
 ## Fluxo de comunicação
 
