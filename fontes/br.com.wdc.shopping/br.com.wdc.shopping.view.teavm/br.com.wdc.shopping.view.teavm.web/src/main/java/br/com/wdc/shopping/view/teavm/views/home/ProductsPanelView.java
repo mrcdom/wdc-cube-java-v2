@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.teavm.views;
+package br.com.wdc.shopping.view.teavm.views.home;
 
 import static br.com.wdc.framework.vdom.VNode.*;
 

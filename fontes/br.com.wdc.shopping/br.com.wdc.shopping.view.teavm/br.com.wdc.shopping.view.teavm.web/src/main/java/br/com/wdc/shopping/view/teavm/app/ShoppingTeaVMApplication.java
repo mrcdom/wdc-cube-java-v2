@@ -38,13 +38,13 @@ import br.com.wdc.shopping.view.teavm.infra.ScheduledExecutorBrowser;
 import br.com.wdc.shopping.view.teavm.views.AbstractViewTeaVM;
 import br.com.wdc.shopping.view.teavm.repo.TeaVMAuthenticationService;
 import br.com.wdc.shopping.view.teavm.repo.TeaVMRepositoryBootstrap;
-import br.com.wdc.shopping.view.teavm.views.CartView;
-import br.com.wdc.shopping.view.teavm.views.HomeView;
-import br.com.wdc.shopping.view.teavm.views.LoginView;
-import br.com.wdc.shopping.view.teavm.views.ProductView;
-import br.com.wdc.shopping.view.teavm.views.ProductsPanelView;
-import br.com.wdc.shopping.view.teavm.views.PurchasesPanelView;
-import br.com.wdc.shopping.view.teavm.views.ReceiptView;
+import br.com.wdc.shopping.view.teavm.views.cart.CartView;
+import br.com.wdc.shopping.view.teavm.views.home.HomeView;
+import br.com.wdc.shopping.view.teavm.views.login.LoginView;
+import br.com.wdc.shopping.view.teavm.views.product.ProductView;
+import br.com.wdc.shopping.view.teavm.views.home.ProductsPanelView;
+import br.com.wdc.shopping.view.teavm.views.home.PurchasesPanelView;
+import br.com.wdc.shopping.view.teavm.views.receipt.ReceiptView;
 import br.com.wdc.shopping.view.teavm.views.RootView;
 
 /**

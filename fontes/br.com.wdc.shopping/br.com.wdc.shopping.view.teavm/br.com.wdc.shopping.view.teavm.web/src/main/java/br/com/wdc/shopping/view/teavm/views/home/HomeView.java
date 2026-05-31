@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.teavm.views;
+package br.com.wdc.shopping.view.teavm.views.home;
 
 import static br.com.wdc.framework.vdom.Swc.spActionButton;
 import static br.com.wdc.framework.vdom.Swc.spTheme;
@@ -22,6 +22,7 @@ import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeViewState;
 import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
+import br.com.wdc.shopping.view.teavm.views.AbstractViewTeaVM;
 
 public class HomeView extends AbstractVDomView<HomePresenter> {
 

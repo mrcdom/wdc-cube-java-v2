@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.teavm.views;
+package br.com.wdc.shopping.view.teavm.views.cart;
 
 import static br.com.wdc.framework.vdom.Swc.spActionButton;
 import static br.com.wdc.framework.vdom.Swc.spButton;
