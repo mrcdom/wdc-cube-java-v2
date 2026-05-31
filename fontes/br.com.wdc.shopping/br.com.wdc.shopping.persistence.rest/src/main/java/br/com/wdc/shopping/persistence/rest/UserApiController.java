@@ -9,7 +9,6 @@ import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.framework.commons.serialization.JsonStreamReader;
 import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
-import br.com.wdc.shopping.domain.codec.ModelCodec;
 import br.com.wdc.shopping.domain.codec.UserModelCodec;
 import br.com.wdc.shopping.domain.criteria.UserCriteria;
 import br.com.wdc.shopping.domain.model.User;
@@ -59,22 +58,9 @@ public class UserApiController {
 
     private void update(Context ctx) {
         var reader = new JsonStreamReader(ctx.body());
-        ModelCodec.UpdateData<User> newData = null;
-        User oldEntity = null;
-        reader.beginObject();
-        while (reader.hasNext()) {
-            switch (reader.nextName()) {
-                case "newEntity" -> newData = codec.readEntityForUpdate(reader);
-                case "oldEntity" -> oldEntity = codec.readEntity(reader);
-                default -> reader.skipValue();
-            }
-        }
-        reader.endObject();
-        if (newData == null) {
-            throw new IllegalArgumentException("Missing 'newEntity' in request body");
-        }
-        decryptPasswordIfPresent(newData.entity());
-        boolean success = repo().update(newData.entity(), oldEntity, newData.projection());
+        var data = codec.readEntityForUpdate(reader);
+        decryptPasswordIfPresent(data.entity());
+        boolean success = repo().update(data.entity(), null, data.projection());
         var writer = new JsonStreamWriter();
         writer.beginObject();
         writer.name("success").value(success);

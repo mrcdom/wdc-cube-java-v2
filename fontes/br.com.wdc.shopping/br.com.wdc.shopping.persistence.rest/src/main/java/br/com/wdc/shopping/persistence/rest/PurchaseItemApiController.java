@@ -3,7 +3,6 @@ package br.com.wdc.shopping.persistence.rest;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.framework.commons.serialization.JsonStreamReader;
 import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
-import br.com.wdc.shopping.domain.codec.ModelCodec;
 import br.com.wdc.shopping.domain.codec.PurchaseItemModelCodec;
 import br.com.wdc.shopping.domain.criteria.PurchaseItemCriteria;
 import br.com.wdc.shopping.domain.model.Product;
@@ -67,21 +66,8 @@ public class PurchaseItemApiController {
 
 	private void update(Context ctx) {
 		var reader = new JsonStreamReader(ctx.body());
-		ModelCodec.UpdateData<PurchaseItem> newData = null;
-		PurchaseItem oldEntity = null;
-		reader.beginObject();
-		while (reader.hasNext()) {
-			switch (reader.nextName()) {
-				case "newEntity" -> newData = codec.readEntityForUpdate(reader);
-				case "oldEntity" -> oldEntity = codec.readEntity(reader);
-				default -> reader.skipValue();
-			}
-		}
-		reader.endObject();
-		if (newData == null) {
-			throw new IllegalArgumentException("Missing 'newEntity' in request body");
-		}
-		boolean success = repo().update(newData.entity(), oldEntity, newData.projection());
+		var data = codec.readEntityForUpdate(reader);
+		boolean success = repo().update(data.entity(), null, data.projection());
 		var writer = new JsonStreamWriter();
 		writer.beginObject();
 		writer.name("success").value(success);

@@ -70,19 +70,17 @@ public abstract class HttpRepository<E, C, K> implements Repository<E, C, K> {
 
     @Override
     public boolean update(E newEntity, E oldEntity, E projection) {
-        var writer = new JsonStreamWriter();
-        writer.beginObject();
-        writer.name("newEntity");
+        E effectiveProjection;
         if (projection != null) {
-            codec.writeEntityProjected(writer, newEntity, oldEntity, projection);
+            effectiveProjection = projection;
+        } else if (oldEntity != null) {
+            effectiveProjection = codec.computeProjection(newEntity, oldEntity);
         } else {
-            codec.writeEntity(writer, newEntity);
+            effectiveProjection = newProjection();
         }
-        if (oldEntity != null) {
-            writer.name("oldEntity");
-            codec.writeEntity(writer, oldEntity);
-        }
-        writer.endObject();
+
+        var writer = new JsonStreamWriter();
+        codec.writeEntityProjected(writer, newEntity, effectiveProjection);
 
         var responseJson = transport.postJson(basePath + "/update", writer.result());
         return readSuccess(responseJson);

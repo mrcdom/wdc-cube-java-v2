@@ -1,7 +1,5 @@
 package br.com.wdc.shopping.domain.codec;
 
-import static br.com.wdc.shopping.domain.repositories.Repository.changed;
-
 import br.com.wdc.framework.commons.serialization.EntityGraph;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectInput;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
@@ -45,30 +43,47 @@ public class PurchaseItemModelCodec implements ModelCodec<PurchaseItem, Purchase
 	}
 
 	@Override
-	public void writeEntityProjected(ExtensibleObjectOutput out, PurchaseItem newEntity, PurchaseItem oldEntity, PurchaseItem projection) {
+	public void writeEntityProjected(ExtensibleObjectOutput out, PurchaseItem entity, PurchaseItem projection) {
 		out.beginObject();
-		if (newEntity.id != null) out.name("id").value(newEntity.id);
-		if (changed(newEntity, oldEntity, projection, pi -> pi.amount)) {
+		if (entity.id != null) out.name("id").value(entity.id);
+		if (projection.amount != null) {
 			out.name("amount");
-			if (newEntity.amount != null) out.value(newEntity.amount.longValue()); else out.nullValue();
+			if (entity.amount != null) out.value(entity.amount.longValue()); else out.nullValue();
 		}
-		if (changed(newEntity, oldEntity, projection, pi -> pi.price)) {
+		if (projection.price != null) {
 			out.name("price");
-			if (newEntity.price != null) out.value(newEntity.price); else out.nullValue();
+			if (entity.price != null) out.value(entity.price); else out.nullValue();
 		}
-		if (changed(newEntity, oldEntity, projection, PurchaseItem::productId)) {
-			if (newEntity.product != null) {
+		if (projection.product != null) {
+			if (entity.product != null) {
 				out.name("product");
-				PRODUCT_CODEC.writeEntity(out, newEntity.product);
+				PRODUCT_CODEC.writeEntity(out, entity.product);
 			} else {
 				out.name("product").nullValue();
 			}
 		}
-		if (changed(newEntity, oldEntity, projection, PurchaseItem::purchaseId)) {
+		if (projection.purchase != null) {
 			out.name("purchaseId");
-			if (newEntity.purchase != null && newEntity.purchase.id != null) out.value(newEntity.purchase.id); else out.nullValue();
+			if (entity.purchase != null && entity.purchase.id != null) out.value(entity.purchase.id); else out.nullValue();
 		}
 		out.endObject();
+	}
+
+	@Override
+	public PurchaseItem computeProjection(PurchaseItem newEntity, PurchaseItem oldEntity) {
+		var pv = ProjectionValues.INSTANCE;
+		var projection = new PurchaseItem();
+		if (!java.util.Objects.equals(newEntity.amount, oldEntity.amount)) projection.amount = pv.i32;
+		if (!java.util.Objects.equals(newEntity.price, oldEntity.price)) projection.price = pv.f64;
+		if (!java.util.Objects.equals(newEntity.productId(), oldEntity.productId())) {
+			projection.product = new Product();
+			projection.product.id = pv.i64;
+		}
+		if (!java.util.Objects.equals(newEntity.purchaseId(), oldEntity.purchaseId())) {
+			projection.purchase = new Purchase();
+			projection.purchase.id = pv.i64;
+		}
+		return projection;
 	}
 
 	@Override

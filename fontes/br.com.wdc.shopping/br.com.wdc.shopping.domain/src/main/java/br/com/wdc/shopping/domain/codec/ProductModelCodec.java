@@ -1,7 +1,5 @@
 package br.com.wdc.shopping.domain.codec;
 
-import static br.com.wdc.shopping.domain.repositories.Repository.changed;
-
 import br.com.wdc.framework.commons.serialization.EntityGraph;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectInput;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
@@ -34,22 +32,32 @@ public class ProductModelCodec implements ModelCodec<Product, ProductCriteria> {
 	}
 
 	@Override
-	public void writeEntityProjected(ExtensibleObjectOutput out, Product newEntity, Product oldEntity, Product projection) {
+	public void writeEntityProjected(ExtensibleObjectOutput out, Product entity, Product projection) {
 		out.beginObject();
-		if (newEntity.id != null) out.name("id").value(newEntity.id);
-		if (changed(newEntity, oldEntity, projection, p -> p.name)) {
+		if (entity.id != null) out.name("id").value(entity.id);
+		if (projection.name != null) {
 			out.name("name");
-			if (newEntity.name != null) out.value(newEntity.name); else out.nullValue();
+			if (entity.name != null) out.value(entity.name); else out.nullValue();
 		}
-		if (changed(newEntity, oldEntity, projection, p -> p.price)) {
+		if (projection.price != null) {
 			out.name("price");
-			if (newEntity.price != null) out.value(newEntity.price); else out.nullValue();
+			if (entity.price != null) out.value(entity.price); else out.nullValue();
 		}
-		if (changed(newEntity, oldEntity, projection, p -> p.description)) {
+		if (projection.description != null) {
 			out.name("description");
-			if (newEntity.description != null) out.value(newEntity.description); else out.nullValue();
+			if (entity.description != null) out.value(entity.description); else out.nullValue();
 		}
 		out.endObject();
+	}
+
+	@Override
+	public Product computeProjection(Product newEntity, Product oldEntity) {
+		var pv = ProjectionValues.INSTANCE;
+		var projection = new Product();
+		if (!java.util.Objects.equals(newEntity.name, oldEntity.name)) projection.name = pv.str;
+		if (!java.util.Objects.equals(newEntity.price, oldEntity.price)) projection.price = pv.f64;
+		if (!java.util.Objects.equals(newEntity.description, oldEntity.description)) projection.description = pv.str;
+		return projection;
 	}
 
 	@Override

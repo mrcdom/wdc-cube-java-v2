@@ -1,7 +1,5 @@
 package br.com.wdc.shopping.domain.codec;
 
-import static br.com.wdc.shopping.domain.repositories.Repository.changed;
-
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -54,22 +52,34 @@ public class PurchaseModelCodec implements ModelCodec<Purchase, PurchaseCriteria
 	}
 
 	@Override
-	public void writeEntityProjected(ExtensibleObjectOutput out, Purchase newEntity, Purchase oldEntity, Purchase projection) {
+	public void writeEntityProjected(ExtensibleObjectOutput out, Purchase entity, Purchase projection) {
 		out.beginObject();
-		if (newEntity.id != null) out.name("id").value(newEntity.id);
-		if (changed(newEntity, oldEntity, projection, p -> p.buyDate)) {
+		if (entity.id != null) out.name("id").value(entity.id);
+		if (projection.buyDate != null) {
 			out.name("buyDate");
-			if (newEntity.buyDate != null) out.value(newEntity.buyDate.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)); else out.nullValue();
+			if (entity.buyDate != null) out.value(entity.buyDate.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)); else out.nullValue();
 		}
-		if (changed(newEntity, oldEntity, projection, Purchase::userId)) {
-			if (newEntity.user != null) {
+		if (projection.user != null) {
+			if (entity.user != null) {
 				out.name("user");
-				USER_CODEC.writeEntity(out, newEntity.user);
+				USER_CODEC.writeEntity(out, entity.user);
 			} else {
 				out.name("user").nullValue();
 			}
 		}
 		out.endObject();
+	}
+
+	@Override
+	public Purchase computeProjection(Purchase newEntity, Purchase oldEntity) {
+		var pv = ProjectionValues.INSTANCE;
+		var projection = new Purchase();
+		if (!java.util.Objects.equals(newEntity.buyDate, oldEntity.buyDate)) projection.buyDate = pv.offsetDateTime;
+		if (!java.util.Objects.equals(newEntity.userId(), oldEntity.userId())) {
+			projection.user = new User();
+			projection.user.id = pv.i64;
+		}
+		return projection;
 	}
 
 	@Override

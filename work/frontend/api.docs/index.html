@@ -428,7 +428,7 @@ const OPERATIONS = {
         fetchImage:          { path: '/api/repo/product/{id}/image', method: 'GET', body: null, pathParam: { id: 0 } },
         updateImage:         { path: '/api/repo/product/{id}/image', method: 'PUT', body: null, pathParam: { id: 0 } },
         insert:              { path: '/api/repo/product/insert', body: { name: "Teclado USB", price: 89.90, description: "Teclado mecanico" } },
-        update:              { path: '/api/repo/product/update', body: { newEntity: { id: 3, name: "Pen Drive 4GB", price: 35.0, description: "Pen Drive atualizado" }, oldEntity: { id: 3, name: "Pen Drive 2GB", price: 16.0, description: "..." } } },
+        update:              { path: '/api/repo/product/update', body: { id: 3, name: "Pen Drive 4GB", price: 35.0, description: "Pen Drive atualizado" } },
         delete:              { path: '/api/repo/product/delete', body: { productId: 3 } }
     },
     user: {
@@ -443,7 +443,7 @@ const OPERATIONS = {
         countAll:            { path: '/api/repo/user/count', body: {} },
         countById:           { path: '/api/repo/user/count', body: { userId: 0 } },
         insert:              { path: '/api/repo/user/insert', body: { userName: "newuser", password: "secret", name: "New User" } },
-        update:              { path: '/api/repo/user/update', body: { newEntity: { id: 0, userName: "admin", password: "admin", name: "Nome Alterado" }, oldEntity: { id: 0, userName: "admin", password: "admin", name: "João da Silva" } } },
+        update:              { path: '/api/repo/user/update', body: { id: 0, userName: "admin", name: "Nome Alterado" } },
         delete:              { path: '/api/repo/user/delete', body: { userId: 2 } }
     },
     purchase: {
@@ -459,7 +459,7 @@ const OPERATIONS = {
         countAll:            { path: '/api/repo/purchase/count', body: {} },
         countByUserId:       { path: '/api/repo/purchase/count', body: { userId: 0 } },
         insert:              { path: '/api/repo/purchase/insert', body: { buyDate: new Date().toISOString(), user: { id: 1 } } },
-        update:              { path: '/api/repo/purchase/update', body: { newEntity: { id: 0, buyDate: new Date().toISOString(), user: { id: 2 } }, oldEntity: { id: 0, buyDate: "2010-01-01T14:30:00Z", user: { id: 0 } } } },
+        update:              { path: '/api/repo/purchase/update', body: { id: 0, buyDate: new Date().toISOString(), user: { id: 2 } } },
         deleteById:          { path: '/api/repo/purchase/delete', body: { purchaseId: 0 } },
         deleteByUserId:      { path: '/api/repo/purchase/delete', body: { userId: 0 } }
     },
@@ -479,7 +479,7 @@ const OPERATIONS = {
         countByPurchaseId:    { path: '/api/repo/purchase-item/count', body: { purchaseId: 1 } },
         countByUserId:        { path: '/api/repo/purchase-item/count', body: { userId: 0 } },
         insert:               { path: '/api/repo/purchase-item/insert', body: { amount: 5, price: 15.50, purchaseId: 0, product: { id: 3 } } },
-        update:               { path: '/api/repo/purchase-item/update', body: { newEntity: { id: 0, amount: 99, price: 999.99, purchaseId: 0, product: { id: 0 } }, oldEntity: { id: 0, amount: 1, price: 200.0, purchaseId: 0, product: { id: 0 } } } },
+        update:               { path: '/api/repo/purchase-item/update', body: { id: 0, amount: 99, price: 999.99, purchaseId: 0, product: { id: 0 } } },
         deleteById:           { path: '/api/repo/purchase-item/delete', body: { purchaseItemId: 0 } },
         deleteByPurchaseId:   { path: '/api/repo/purchase-item/delete', body: { purchaseId: 1 } },
         deleteByUserId:       { path: '/api/repo/purchase-item/delete', body: { userId: 0 } }
@@ -648,7 +648,7 @@ const API_DOCS = {
             response: 'InsertResult'
         },
         update: {
-            desc: 'Atualiza um produto existente (optimistic locking via oldEntity).',
+            desc: 'Atualiza um produto existente. Campos presentes no JSON indicam a projeção.',
             types: ['Product', 'MutationResult'],
             response: 'UpdateResult'
         },
@@ -715,7 +715,7 @@ const API_DOCS = {
             response: 'InsertResult'
         },
         update: {
-            desc: 'Atualiza usuário (optimistic locking via oldEntity).',
+            desc: 'Atualiza usuário. Campos presentes no JSON indicam a projeção.',
             types: ['User', 'MutationResult'],
             response: 'UpdateResult'
         },
@@ -787,7 +787,7 @@ const API_DOCS = {
             response: 'InsertResult'
         },
         update: {
-            desc: 'Atualiza uma compra (optimistic locking).',
+            desc: 'Atualiza uma compra. Campos presentes no JSON indicam a projeção.',
             types: ['Purchase', 'MutationResult'],
             response: 'UpdateResult'
         },
@@ -879,7 +879,7 @@ const API_DOCS = {
             response: 'InsertResult'
         },
         update: {
-            desc: 'Atualiza item (optimistic locking).',
+            desc: 'Atualiza item. Campos presentes no JSON indicam a projeção.',
             types: ['PurchaseItem', 'MutationResult'],
             response: 'UpdateResult'
         },

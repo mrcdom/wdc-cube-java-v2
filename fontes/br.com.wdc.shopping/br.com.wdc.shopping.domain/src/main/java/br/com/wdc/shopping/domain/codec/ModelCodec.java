@@ -40,7 +40,13 @@ public interface ModelCodec<E, C> {
      * Escreve apenas os campos da entidade indicados pela projeção (campos não-nulos na projeção).
      * O ID é sempre incluído.
      */
-    void writeEntityProjected(ExtensibleObjectOutput out, E newEntity, E oldEntity, E projection);
+    void writeEntityProjected(ExtensibleObjectOutput out, E entity, E projection);
+
+    /**
+     * Computa a projeção a partir da diferença entre duas entidades.
+     * Retorna uma projeção com campos marcados (não-nulos) para cada campo que difere entre newEntity e oldEntity.
+     */
+    E computeProjection(E newEntity, E oldEntity);
 
     /**
      * Lê uma entidade a partir da posição atual (espera beginObject).

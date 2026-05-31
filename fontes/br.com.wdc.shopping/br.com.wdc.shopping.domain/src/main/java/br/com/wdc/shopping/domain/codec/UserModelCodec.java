@@ -1,7 +1,5 @@
 package br.com.wdc.shopping.domain.codec;
 
-import static br.com.wdc.shopping.domain.repositories.Repository.changed;
-
 import br.com.wdc.framework.commons.serialization.EntityGraph;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectInput;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
@@ -35,26 +33,37 @@ public class UserModelCodec implements ModelCodec<User, UserCriteria> {
 	}
 
 	@Override
-	public void writeEntityProjected(ExtensibleObjectOutput out, User newEntity, User oldEntity, User projection) {
+	public void writeEntityProjected(ExtensibleObjectOutput out, User entity, User projection) {
 		out.beginObject();
-		if (newEntity.id != null) out.name("id").value(newEntity.id);
-		if (changed(newEntity, oldEntity, projection, u -> u.userName)) {
+		if (entity.id != null) out.name("id").value(entity.id);
+		if (projection.userName != null) {
 			out.name("userName");
-			if (newEntity.userName != null) out.value(newEntity.userName); else out.nullValue();
+			if (entity.userName != null) out.value(entity.userName); else out.nullValue();
 		}
-		if (changed(newEntity, oldEntity, projection, u -> u.name)) {
+		if (projection.name != null) {
 			out.name("name");
-			if (newEntity.name != null) out.value(newEntity.name); else out.nullValue();
+			if (entity.name != null) out.value(entity.name); else out.nullValue();
 		}
-		if (changed(newEntity, oldEntity, projection, u -> u.password)) {
+		if (projection.password != null) {
 			out.name("password");
-			if (newEntity.password != null) out.value(newEntity.password); else out.nullValue();
+			if (entity.password != null) out.value(entity.password); else out.nullValue();
 		}
-		if (changed(newEntity, oldEntity, projection, u -> u.roles)) {
+		if (projection.roles != null) {
 			out.name("roles");
-			if (newEntity.roles != null) out.value(newEntity.roles); else out.nullValue();
+			if (entity.roles != null) out.value(entity.roles); else out.nullValue();
 		}
 		out.endObject();
+	}
+
+	@Override
+	public User computeProjection(User newEntity, User oldEntity) {
+		var pv = ProjectionValues.INSTANCE;
+		var projection = new User();
+		if (!java.util.Objects.equals(newEntity.userName, oldEntity.userName)) projection.userName = pv.str;
+		if (!java.util.Objects.equals(newEntity.name, oldEntity.name)) projection.name = pv.str;
+		if (!java.util.Objects.equals(newEntity.password, oldEntity.password)) projection.password = pv.str;
+		if (!java.util.Objects.equals(newEntity.roles, oldEntity.roles)) projection.roles = pv.str;
+		return projection;
 	}
 
 	@Override
