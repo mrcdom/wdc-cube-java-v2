@@ -35,7 +35,7 @@ public class CartView extends AbstractRemoteView {
     private static final int ON_BACK = 3;
     private static final int ON_MODIFY_QUANTITY = 4;
 
-    @SuppressWarnings({"java:S1214", "static-access"})
+    @SuppressWarnings({ "java:S1214", "static-access" })
     private interface Css {
         CssUtility u = CssUtility.INSTANCE;
         CssComponents c = CssComponents.INSTANCE;
@@ -74,8 +74,7 @@ public class CartView extends AbstractRemoteView {
         String ICON_FINALIZE = clsx(CssIcons.CHECK2_CIRCLE, u.MR_6);
     }
 
-    record Item(Long id, String name, Double price, Integer qty) {
-    };
+    record Item(Long id, String name, Double price, Integer qty) {}
 
     // Stable event listeners
     private final EventListener<Event> onBack = evt -> submit(ON_BACK);

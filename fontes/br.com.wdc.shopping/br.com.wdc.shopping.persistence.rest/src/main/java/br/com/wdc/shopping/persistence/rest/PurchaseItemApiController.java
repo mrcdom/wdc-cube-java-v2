@@ -8,7 +8,9 @@ import br.com.wdc.shopping.domain.criteria.PurchaseItemCriteria;
 import br.com.wdc.shopping.domain.model.Product;
 import br.com.wdc.shopping.domain.model.PurchaseItem;
 import br.com.wdc.shopping.domain.repositories.PurchaseItemRepository;
+import br.com.wdc.shopping.domain.security.SecurityContext;
 import br.com.wdc.shopping.domain.utils.ProjectionValues;
+import br.com.wdc.shopping.persistence.rest.security.SecurityEnforcer;
 import io.javalin.config.JavalinConfig;
 import io.javalin.http.Context;
 
@@ -53,6 +55,7 @@ public class PurchaseItemApiController {
 	}
 
 	private void insert(Context ctx) {
+		SecurityEnforcer.require("purchase-item", "write");
 		var reader = new JsonStreamReader(ctx.body());
 		var item = codec.readEntity(reader);
 		boolean success = repo().insert(item);
@@ -65,6 +68,7 @@ public class PurchaseItemApiController {
 	}
 
 	private void update(Context ctx) {
+		SecurityEnforcer.require("purchase-item", "write");
 		var reader = new JsonStreamReader(ctx.body());
 		var data = codec.readEntityForUpdate(reader);
 		boolean success = repo().update(data.entity(), null, data.projection());
@@ -76,8 +80,10 @@ public class PurchaseItemApiController {
 	}
 
 	private void delete(Context ctx) {
+		var sc = SecurityEnforcer.require("purchase-item", "delete");
 		var reader = new JsonStreamReader(ctx.body());
 		var criteria = readCriteria(reader);
+		enforceUserScope(sc, criteria);
 		int count = repo().delete(criteria);
 		var writer = new JsonStreamWriter();
 		writer.beginObject();
@@ -87,8 +93,10 @@ public class PurchaseItemApiController {
 	}
 
 	private void count(Context ctx) {
+		var sc = SecurityEnforcer.require("purchase-item", "read");
 		var reader = new JsonStreamReader(ctx.body());
 		var criteria = readCriteria(reader);
+		enforceUserScope(sc, criteria);
 		int count = repo().count(criteria);
 		var writer = new JsonStreamWriter();
 		writer.beginObject();
@@ -98,6 +106,7 @@ public class PurchaseItemApiController {
 	}
 
 	private void fetch(Context ctx) {
+		var sc = SecurityEnforcer.require("purchase-item", "read");
 		var reader = new JsonStreamReader(ctx.body());
 		var criteria = new PurchaseItemCriteria();
 		int offset = 0;
@@ -113,6 +122,7 @@ public class PurchaseItemApiController {
 			}
 		}
 		reader.endObject();
+		enforceUserScope(sc, criteria);
 		if (criteria.projection() == null) criteria.withProjection(fullProjection());
 		var items = repo().fetch(criteria, offset, limit);
 		var writer = new JsonStreamWriter();
@@ -128,6 +138,7 @@ public class PurchaseItemApiController {
 	}
 
 	private void fetchPage(Context ctx) {
+		SecurityEnforcer.require("purchase-item", "read");
 		var reader = new JsonStreamReader(ctx.body());
 		var criteria = new PurchaseItemCriteria();
 		int pageIx = 0;
@@ -159,6 +170,7 @@ public class PurchaseItemApiController {
 	}
 
 	private void fetchById(Context ctx) {
+		SecurityEnforcer.require("purchase-item", "read");
 		Long id = Long.parseLong(ctx.pathParam("id"));
 		var result = repo().fetchById(id, fullProjection());
 		if (result == null) {
@@ -172,6 +184,7 @@ public class PurchaseItemApiController {
 	}
 
 	private void fetchByIdPost(Context ctx) {
+		SecurityEnforcer.require("purchase-item", "read");
 		var reader = new JsonStreamReader(ctx.body());
 		Long id = null;
 		PurchaseItem projection = null;
@@ -193,6 +206,14 @@ public class PurchaseItemApiController {
 		var writer = new JsonStreamWriter();
 		codec.writeEntity(writer, result);
 		json(ctx, writer);
+	}
+
+	// :: Security helpers
+
+	private static void enforceUserScope(SecurityContext sc, PurchaseItemCriteria criteria) {
+		if (sc != null && !sc.hasDataAll()) {
+			criteria.withUserId(sc.userId());
+		}
 	}
 
 	// :: Helpers

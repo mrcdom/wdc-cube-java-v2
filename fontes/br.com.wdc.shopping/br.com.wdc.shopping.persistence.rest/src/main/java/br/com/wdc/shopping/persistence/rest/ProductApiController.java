@@ -9,6 +9,7 @@ import br.com.wdc.shopping.domain.criteria.ProductCriteria;
 import br.com.wdc.shopping.domain.model.Product;
 import br.com.wdc.shopping.domain.repositories.ProductRepository;
 import br.com.wdc.shopping.domain.utils.ProjectionValues;
+import br.com.wdc.shopping.persistence.rest.security.SecurityEnforcer;
 import io.javalin.config.JavalinConfig;
 import io.javalin.http.Context;
 
@@ -51,6 +52,7 @@ public class ProductApiController {
 	}
 
 	private void insert(Context ctx) {
+		SecurityEnforcer.require("product", "write");
 		var reader = new JsonStreamReader(ctx.body());
 		var product = codec.readEntity(reader);
 		boolean success = repo().insert(product);
@@ -63,6 +65,7 @@ public class ProductApiController {
 	}
 
 	private void update(Context ctx) {
+		SecurityEnforcer.require("product", "write");
 		var reader = new JsonStreamReader(ctx.body());
 		var data = codec.readEntityForUpdate(reader);
 		boolean success = repo().update(data.entity(), null, data.projection());
@@ -74,6 +77,7 @@ public class ProductApiController {
 	}
 
 	private void delete(Context ctx) {
+		SecurityEnforcer.require("product", "write");
 		var reader = new JsonStreamReader(ctx.body());
 		var criteria = readCriteria(reader);
 		int count = repo().delete(criteria);
@@ -85,6 +89,7 @@ public class ProductApiController {
 	}
 
 	private void count(Context ctx) {
+		SecurityEnforcer.require("product", "read");
 		var reader = new JsonStreamReader(ctx.body());
 		var criteria = readCriteria(reader);
 		int count = repo().count(criteria);
@@ -96,6 +101,7 @@ public class ProductApiController {
 	}
 
 	private void fetch(Context ctx) {
+		SecurityEnforcer.require("product", "read");
 		var reader = new JsonStreamReader(ctx.body());
 		var criteria = new ProductCriteria();
 		int offset = 0;
@@ -125,6 +131,7 @@ public class ProductApiController {
 	}
 
 	private void fetchPage(Context ctx) {
+		SecurityEnforcer.require("product", "read");
 		var reader = new JsonStreamReader(ctx.body());
 		var criteria = new ProductCriteria();
 		int pageIx = 0;
@@ -155,6 +162,7 @@ public class ProductApiController {
 	}
 
 	private void fetchById(Context ctx) {
+		SecurityEnforcer.require("product", "read");
 		Long id = Long.parseLong(ctx.pathParam("id"));
 		var result = repo().fetchById(id, fullProjection());
 		if (result == null) {
@@ -167,6 +175,7 @@ public class ProductApiController {
 	}
 
 	private void fetchByIdPost(Context ctx) {
+		SecurityEnforcer.require("product", "read");
 		var reader = new JsonStreamReader(ctx.body());
 		Long id = null;
 		Product projection = null;
@@ -217,6 +226,7 @@ public class ProductApiController {
 	}
 
 	private void updateImage(Context ctx) {
+		SecurityEnforcer.require("product", "write");
 		Long id;
 		try {
 			id = Long.parseLong(ctx.pathParam("id"));

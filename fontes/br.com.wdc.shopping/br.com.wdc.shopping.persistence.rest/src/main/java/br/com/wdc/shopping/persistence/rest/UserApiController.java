@@ -11,9 +11,12 @@ import br.com.wdc.framework.commons.serialization.JsonStreamReader;
 import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
 import br.com.wdc.shopping.domain.codec.UserModelCodec;
 import br.com.wdc.shopping.domain.criteria.UserCriteria;
+import br.com.wdc.shopping.domain.exception.AccessDeniedException;
 import br.com.wdc.shopping.domain.model.User;
 import br.com.wdc.shopping.domain.repositories.UserRepository;
+import br.com.wdc.shopping.domain.security.SecurityContext;
 import br.com.wdc.shopping.domain.security.SecurityContextHolder;
+import br.com.wdc.shopping.persistence.rest.security.SecurityEnforcer;
 import io.javalin.config.JavalinConfig;
 import io.javalin.http.Context;
 
@@ -44,9 +47,11 @@ public class UserApiController {
     private final UserModelCodec codec = new UserModelCodec();
 
     private void insert(Context ctx) {
+        var sc = SecurityEnforcer.require("user", "write");
         var reader = new JsonStreamReader(ctx.body());
         var user = codec.readEntity(reader);
         decryptPasswordIfPresent(user);
+        enforceUserScope(sc, user);
         boolean success = repo().insert(user);
         var writer = new JsonStreamWriter();
         writer.beginObject();
@@ -57,9 +62,11 @@ public class UserApiController {
     }
 
     private void update(Context ctx) {
+        var sc = SecurityEnforcer.require("user", "write");
         var reader = new JsonStreamReader(ctx.body());
         var data = codec.readEntityForUpdate(reader);
         decryptPasswordIfPresent(data.entity());
+        enforceUserScope(sc, data.entity());
         boolean success = repo().update(data.entity(), null, data.projection());
         var writer = new JsonStreamWriter();
         writer.beginObject();
@@ -69,8 +76,10 @@ public class UserApiController {
     }
 
     private void delete(Context ctx) {
+        var sc = SecurityEnforcer.require("user", "delete");
         var reader = new JsonStreamReader(ctx.body());
         var criteria = readCriteria(reader);
+        enforceUserScope(sc, criteria);
         int count = repo().delete(criteria);
         var writer = new JsonStreamWriter();
         writer.beginObject();
@@ -80,8 +89,10 @@ public class UserApiController {
     }
 
     private void count(Context ctx) {
+        var sc = SecurityEnforcer.require("user", "read");
         var reader = new JsonStreamReader(ctx.body());
         var criteria = readCriteria(reader);
+        enforceUserScope(sc, criteria);
         int count = repo().count(criteria);
         var writer = new JsonStreamWriter();
         writer.beginObject();
@@ -91,6 +102,7 @@ public class UserApiController {
     }
 
     private void fetch(Context ctx) {
+        var sc = SecurityEnforcer.require("user", "read");
         var reader = new JsonStreamReader(ctx.body());
         var criteria = new UserCriteria();
         int offset = 0;
@@ -106,6 +118,8 @@ public class UserApiController {
             }
         }
         reader.endObject();
+        enforceUserScope(sc, criteria);
+        sanitizeProjection(criteria);
         var items = repo().fetch(criteria, offset, limit);
         var writer = new JsonStreamWriter();
         writer.beginObject();
@@ -120,6 +134,7 @@ public class UserApiController {
     }
 
     private void fetchPage(Context ctx) {
+        var sc = SecurityEnforcer.require("user", "read");
         var reader = new JsonStreamReader(ctx.body());
         var criteria = new UserCriteria();
         int pageIx = 0;
@@ -135,6 +150,8 @@ public class UserApiController {
             }
         }
         reader.endObject();
+        enforceUserScope(sc, criteria);
+        sanitizeProjection(criteria);
         var page = repo().fetchPage(criteria, pageIx, pageSz);
         var writer = new JsonStreamWriter();
         writer.beginObject();
@@ -150,7 +167,12 @@ public class UserApiController {
     }
 
     private void fetchById(Context ctx) {
+        var sc = SecurityEnforcer.require("user", "read");
         Long id = Long.parseLong(ctx.pathParam("id"));
+        if (sc != null && !sc.hasDataAll() && !id.equals(sc.userId())) {
+            ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
+            return;
+        }
         var result = repo().fetchById(id, null);
         if (result == null) {
             ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
@@ -163,6 +185,7 @@ public class UserApiController {
     }
 
     private void fetchByIdPost(Context ctx) {
+        var sc = SecurityEnforcer.require("user", "read");
         var reader = new JsonStreamReader(ctx.body());
         Long id = null;
         User projection = null;
@@ -175,6 +198,11 @@ public class UserApiController {
             }
         }
         reader.endObject();
+        if (sc != null && !sc.hasDataAll() && id != null && !id.equals(sc.userId())) {
+            ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
+            return;
+        }
+        if (projection != null) projection.password = null;
         var result = repo().fetchById(id, projection);
         if (result == null) {
             ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
@@ -184,6 +212,29 @@ public class UserApiController {
         var writer = new JsonStreamWriter();
         codec.writeEntity(writer, result);
         json(ctx, writer);
+    }
+
+    // :: Security helpers
+
+    private static void enforceUserScope(SecurityContext sc, UserCriteria criteria) {
+        if (sc != null && !sc.hasDataAll()) {
+            criteria.withUserId(sc.userId());
+        }
+    }
+
+    private static void enforceUserScope(SecurityContext sc, User user) {
+        if (sc == null || user == null) {
+            return;
+        }
+        if (!sc.hasDataAll() && user.id != null && !user.id.equals(sc.userId())) {
+            throw new AccessDeniedException("Cannot modify other user's data");
+        }
+    }
+
+    private static void sanitizeProjection(UserCriteria criteria) {
+        if (criteria.projection() != null) {
+            criteria.projection().password = null;
+        }
     }
 
     // :: Helpers

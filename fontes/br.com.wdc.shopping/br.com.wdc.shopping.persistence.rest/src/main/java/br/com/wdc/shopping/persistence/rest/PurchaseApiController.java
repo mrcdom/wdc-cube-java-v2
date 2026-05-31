@@ -12,7 +12,9 @@ import br.com.wdc.shopping.domain.model.Purchase;
 import br.com.wdc.shopping.domain.model.PurchaseItem;
 import br.com.wdc.shopping.domain.model.User;
 import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
+import br.com.wdc.shopping.domain.security.SecurityContext;
 import br.com.wdc.shopping.domain.utils.ProjectionValues;
+import br.com.wdc.shopping.persistence.rest.security.SecurityEnforcer;
 import io.javalin.config.JavalinConfig;
 import io.javalin.http.Context;
 
@@ -77,8 +79,10 @@ public class PurchaseApiController {
 	}
 
 	private void insert(Context ctx) {
+		var sc = SecurityEnforcer.require("purchase", "write");
 		var reader = new JsonStreamReader(ctx.body());
 		var purchase = codec.readEntity(reader);
+		enforceUserScope(sc, purchase);
 		boolean success = repo().insert(purchase);
 		var writer = new JsonStreamWriter();
 		writer.beginObject();
@@ -89,6 +93,7 @@ public class PurchaseApiController {
 	}
 
 	private void update(Context ctx) {
+		SecurityEnforcer.require("purchase", "write");
 		var reader = new JsonStreamReader(ctx.body());
 		var data = codec.readEntityForUpdate(reader);
 		boolean success = repo().update(data.entity(), null, data.projection());
@@ -100,8 +105,10 @@ public class PurchaseApiController {
 	}
 
 	private void delete(Context ctx) {
+		var sc = SecurityEnforcer.require("purchase", "delete");
 		var reader = new JsonStreamReader(ctx.body());
 		var criteria = readCriteria(reader);
+		enforceUserScope(sc, criteria);
 		int count = repo().delete(criteria);
 		var writer = new JsonStreamWriter();
 		writer.beginObject();
@@ -111,8 +118,10 @@ public class PurchaseApiController {
 	}
 
 	private void count(Context ctx) {
+		var sc = SecurityEnforcer.require("purchase", "read");
 		var reader = new JsonStreamReader(ctx.body());
 		var criteria = readCriteria(reader);
+		enforceUserScope(sc, criteria);
 		int count = repo().count(criteria);
 		var writer = new JsonStreamWriter();
 		writer.beginObject();
@@ -122,6 +131,7 @@ public class PurchaseApiController {
 	}
 
 	private void fetch(Context ctx) {
+		var sc = SecurityEnforcer.require("purchase", "read");
 		var reader = new JsonStreamReader(ctx.body());
 		var criteria = new PurchaseCriteria();
 		int offset = 0;
@@ -139,6 +149,7 @@ public class PurchaseApiController {
 			}
 		}
 		reader.endObject();
+		enforceUserScope(sc, criteria);
 		if (criteria.projection() == null) {
 			criteria.withProjection(includeItems ? fullProjectionWithItems() : simpleProjection());
 		}
@@ -155,6 +166,7 @@ public class PurchaseApiController {
 	}
 
 	private void fetchPage(Context ctx) {
+		var sc = SecurityEnforcer.require("purchase", "read");
 		var reader = new JsonStreamReader(ctx.body());
 		var criteria = new PurchaseCriteria();
 		int pageIx = 0;
@@ -172,6 +184,7 @@ public class PurchaseApiController {
 			}
 		}
 		reader.endObject();
+		enforceUserScope(sc, criteria);
 		if (criteria.projection() == null) {
 			criteria.withProjection(includeItems ? fullProjectionWithItems() : simpleProjection());
 		}
@@ -189,9 +202,10 @@ public class PurchaseApiController {
 	}
 
 	private void fetchById(Context ctx) {
+		var sc = SecurityEnforcer.require("purchase", "read");
 		Long id = Long.parseLong(ctx.pathParam("id"));
 		var result = repo().fetchById(id, fullProjectionWithItems());
-		if (result == null) {
+		if (result == null || (sc != null && !sc.hasDataAll() && result.user != null && !sc.userId().equals(result.user.id))) {
 			ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
 			return;
 		}
@@ -201,6 +215,7 @@ public class PurchaseApiController {
 	}
 
 	private void fetchByIdPost(Context ctx) {
+		var sc = SecurityEnforcer.require("purchase", "read");
 		var reader = new JsonStreamReader(ctx.body());
 		Long id = null;
 		Purchase projection = null;
@@ -214,13 +229,33 @@ public class PurchaseApiController {
 		}
 		reader.endObject();
 		var result = repo().fetchById(id, projection != null ? projection : fullProjectionWithItems());
-		if (result == null) {
+		if (result == null || (sc != null && !sc.hasDataAll() && result.user != null && !sc.userId().equals(result.user.id))) {
 			ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
 			return;
 		}
 		var writer = new JsonStreamWriter();
 		codec.writeEntity(writer, result);
 		json(ctx, writer);
+	}
+
+	// :: Security helpers
+
+	private static void enforceUserScope(SecurityContext sc, PurchaseCriteria criteria) {
+		if (sc != null && !sc.hasDataAll()) {
+			criteria.withUserId(sc.userId());
+		}
+	}
+
+	private static void enforceUserScope(SecurityContext sc, Purchase purchase) {
+		if (sc == null || purchase == null) {
+			return;
+		}
+		if (!sc.hasDataAll()) {
+			if (purchase.user == null) {
+				purchase.user = new User();
+			}
+			purchase.user.id = sc.userId();
+		}
 	}
 
 	// :: Helpers

@@ -122,10 +122,10 @@ public class ViewStateCoordinator {
     @SuppressWarnings("unchecked")
     public void applyViewStates(List<?> stateList) {
         for (int i = 0, len = stateList.size(); i < len; i++) {
-            Object item = stateList.get(i);
+            var item = stateList.get(i);
             if (item instanceof Map<?, ?> stateMap) {
-                Map<String, Object> map = (Map<String, Object>) stateMap;
-                Object vsidObj = map.get("#");
+                var map = (Map<String, Object>) stateMap;
+                var vsidObj = map.get("#");
                 if (vsidObj instanceof String vsid) {
                     ViewScope viewScope = viewMap.computeIfAbsent(vsid, ViewScope::new);
 
