@@ -15,7 +15,7 @@ import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.Purc
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
 import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.util.DateUtils;
-import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
+import br.com.wdc.shopping.view.teavm.views.AbstractVDomView;
 import br.com.wdc.framework.vdom.VNode;
 
 public class PurchasesPanelView extends AbstractVDomView<PurchasesPanelPresenter> {

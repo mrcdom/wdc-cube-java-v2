@@ -19,7 +19,7 @@ import br.com.wdc.framework.vdom.VNode;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter.ProductViewState;
 import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
-import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
+import br.com.wdc.shopping.view.teavm.views.AbstractVDomView;
 
 public class ProductView extends AbstractVDomView<ProductPresenter> {
 

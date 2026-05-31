@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.teavm.vdom;
+package br.com.wdc.shopping.view.teavm.views;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,7 +12,6 @@ import org.teavm.jso.dom.html.HTMLElement;
 
 import br.com.wdc.framework.vdom.VDom;
 import br.com.wdc.framework.vdom.VNode;
-import br.com.wdc.shopping.view.teavm.views.AbstractViewTeaVM;
 import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
 
 /**

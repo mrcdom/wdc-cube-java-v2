@@ -11,7 +11,7 @@ import br.com.wdc.shopping.presentation.presenter.restricted.home.products.Produ
 import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter.ProductsPanelViewState;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
 import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
-import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
+import br.com.wdc.shopping.view.teavm.views.AbstractVDomView;
 import br.com.wdc.framework.vdom.VNode;
 
 public class ProductsPanelView extends AbstractVDomView<ProductsPanelPresenter> {

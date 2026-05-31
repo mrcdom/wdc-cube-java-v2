@@ -20,7 +20,7 @@ import br.com.wdc.framework.vdom.VNode;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginViewState;
 import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
-import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
+import br.com.wdc.shopping.view.teavm.views.AbstractVDomView;
 
 /**
  * Login view implementada com Spectrum Web Components + Virtual DOM.

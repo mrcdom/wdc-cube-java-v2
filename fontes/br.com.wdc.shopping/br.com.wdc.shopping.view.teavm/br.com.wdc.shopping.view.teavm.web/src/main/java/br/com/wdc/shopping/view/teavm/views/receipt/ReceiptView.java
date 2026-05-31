@@ -21,7 +21,7 @@ import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPres
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptItem;
 import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.util.DateUtils;
-import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
+import br.com.wdc.shopping.view.teavm.views.AbstractVDomView;
 
 public class ReceiptView extends AbstractVDomView<ReceiptPresenter> {
 
