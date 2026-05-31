@@ -29,9 +29,9 @@ import br.com.wdc.shopping.presentation.presenter.restricted.home.products.Produ
 import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
-import br.com.wdc.shopping.view.teavm.interop.Console;
 import br.com.wdc.shopping.view.teavm.infra.BrowserCryptoProvider;
 import br.com.wdc.shopping.view.teavm.infra.BrowserSessionStorage;
+import br.com.wdc.shopping.view.teavm.infra.Console;
 import br.com.wdc.shopping.view.teavm.infra.FetchHttpTransport;
 import br.com.wdc.shopping.view.teavm.infra.IntentSigner;
 import br.com.wdc.shopping.view.teavm.infra.ScheduledExecutorBrowser;

@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.teavm.interop;
+package br.com.wdc.shopping.view.teavm.infra;
 
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;

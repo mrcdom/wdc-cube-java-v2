@@ -7,7 +7,6 @@ import org.teavm.jso.browser.Window;
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.commons.function.Registration;
 import br.com.wdc.framework.commons.function.ThrowingRunnable;
-import br.com.wdc.shopping.view.teavm.interop.Console;
 
 /**
  * Implementação de {@link ScheduledExecutor} para browser via setTimeout/setInterval.
