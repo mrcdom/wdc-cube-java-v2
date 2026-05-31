@@ -1,7 +1,9 @@
 import React from 'react'
+import clsx from 'clsx'
 import bridge from '@root/bridge'
 import { BasePanelClass } from '@root/utils/ViewUtils'
 import { Theme, ActionButton } from '@root/swc'
+import Sel from './home-sel'
 
 // :: Actions
 
@@ -23,35 +25,37 @@ class HeaderPanelClass extends BasePanelClass<HeaderPanelProps> {
     this.vsid = vsid
 
     return (
-      <Theme color="dark" scale="medium" className="navbar">
+      <Theme color="dark" scale="medium" className={Sel.navbar}>
         {/* Left: exit + greeting */}
-        <div className="nav-group">
+        <div className={Sel.navGroup}>
           <ActionButton quiet ref={this.exitBtnRef}>
-            <span className="bi bi-box-arrow-left text-lg text-white"></span>
+            <span className={clsx('bi bi-box-arrow-left', Sel.textLg, Sel.textWhite)}></span>
           </ActionButton>
-          <div className="sm-show flex-col leading-tight">
-            <span className="text-xs text-white-70 font-normal">Bem-vindo(a),</span>
-            <span className="text-sm font-semibold text-white">{nickName}</span>
+          <div className={clsx(Sel.smShow, Sel.flexCol, Sel.leadingTight)}>
+            <span className={clsx(Sel.textXs, Sel.textWhite70, Sel.fontNormal)}>Bem-vindo(a),</span>
+            <span className={clsx(Sel.textSm, Sel.fontSemibold, Sel.textWhite)}>{nickName}</span>
           </div>
         </div>
 
         {/* Center: logo */}
-        <div className="nav-group">
-          <div className="logo-box">
-            <span className="bi bi-bag-check text-xl text-white"></span>
+        <div className={Sel.navGroup}>
+          <div className={Sel.logoBox}>
+            <span className={clsx('bi bi-bag-check', Sel.textXl, Sel.textWhite)}></span>
           </div>
-          <div className="flex-col leading-tight">
-            <span className="text-base font-bold text-white tracking-tight">Shopping</span>
-            <span className="sm-show text-xs text-white-65 font-normal tracking-wide">By WeDoCode</span>
+          <div className={clsx(Sel.flexCol, Sel.leadingTight)}>
+            <span className={clsx(Sel.textBase, Sel.fontBold, Sel.textWhite, Sel.trackingTight)}>Shopping</span>
+            <span className={clsx(Sel.smShow, Sel.textXs, Sel.textWhite65, Sel.fontNormal, Sel.trackingWide)}>
+              By WeDoCode
+            </span>
           </div>
         </div>
 
         {/* Right: cart button */}
-        <div className="flex-items-center">
-          <ActionButton quiet className="relative" ref={this.cartBtnRef}>
-            <span className="bi bi-bag text-xl text-white"></span>
-            <span className="sm-show text-sm text-white font-medium ml-6">Carrinho</span>
-            <span className="cart-badge">{cartItemCount}</span>
+        <div className={Sel.flexItemsCenter}>
+          <ActionButton quiet className={Sel.relative} ref={this.cartBtnRef}>
+            <span className={clsx('bi bi-bag', Sel.textXl, Sel.textWhite)}></span>
+            <span className={clsx(Sel.smShow, Sel.textSm, Sel.textWhite, Sel.fontMedium, Sel.ml6)}>Carrinho</span>
+            <span className={Sel.cartBadge}>{cartItemCount}</span>
           </ActionButton>
         </div>
       </Theme>

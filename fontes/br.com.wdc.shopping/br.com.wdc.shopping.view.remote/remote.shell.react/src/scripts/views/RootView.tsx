@@ -1,6 +1,7 @@
 import React from 'react'
 import bridge, { type ViewProps } from '@root/bridge'
 import { BaseViewClass } from '@root/utils/ViewUtils'
+import GlobalSel from '@root/global-sel'
 
 export type RootViewState = {
   contentViewId?: string
@@ -15,11 +16,11 @@ class RootViewClass extends BaseViewClass<ViewProps, RootViewState> {
 
     if (state.errorMessage) {
       return (
-        <div className="alert-error" style={{ margin: '16px' }}>
-          <span className="alert-error-icon">
+        <div className={GlobalSel.alertError} style={{ margin: '16px' }}>
+          <span className={GlobalSel.alertErrorIcon}>
             <i className="bi bi-exclamation-circle"></i>
           </span>
-          <span className="alert-error-text">{state.errorMessage}</span>
+          <span className={GlobalSel.alertErrorText}>{state.errorMessage}</span>
         </div>
       )
     }
@@ -29,11 +30,11 @@ class RootViewClass extends BaseViewClass<ViewProps, RootViewState> {
     }
 
     return (
-      <div className="alert-error" style={{ margin: '16px' }}>
-        <span className="alert-error-icon">
+      <div className={GlobalSel.alertError} style={{ margin: '16px' }}>
+        <span className={GlobalSel.alertErrorIcon}>
           <i className="bi bi-exclamation-circle"></i>
         </span>
-        <span className="alert-error-text">Falta conteúdo para a página inicial</span>
+        <span className={GlobalSel.alertErrorText}>Falta conteúdo para a página inicial</span>
       </div>
     )
   }

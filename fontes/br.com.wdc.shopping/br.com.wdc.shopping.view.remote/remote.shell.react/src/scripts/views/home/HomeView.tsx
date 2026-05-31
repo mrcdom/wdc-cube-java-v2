@@ -1,7 +1,9 @@
 import React from 'react'
+import clsx from 'clsx'
 import bridge, { type ViewProps } from '@root/bridge'
 import { BaseViewClass } from '@root/utils/ViewUtils'
-import HeaderPanel from './home/HeaderPanel'
+import HeaderPanel from './HeaderPanel'
+import Sel from './home-sel'
 
 // :: View
 
@@ -23,13 +25,13 @@ class HomeViewClass extends BaseViewClass<ViewProps, HomeViewState> {
     const { state } = this
 
     return (
-      <div className="flex-col flex-grow flex-1 min-h-0 overflow-hidden">
+      <div className={clsx(Sel.flexCol, Sel.flexGrow, Sel.flex1, Sel.minH0, Sel.overflowHidden)}>
         <HeaderPanel vsid={vsid} nickName={state.nickName} cartItemCount={state.cartItemCount} />
         {/* Error */}
         {state.errorMessage ? (
-          <div className="alert-error">
-            <span className="bi bi-exclamation-circle alert-error-icon"></span>
-            <span className="alert-error-text">{state.errorMessage}</span>
+          <div className={Sel.alertError}>
+            <span className={clsx('bi bi-exclamation-circle', Sel.alertErrorIcon)}></span>
+            <span className={Sel.alertErrorText}>{state.errorMessage}</span>
           </div>
         ) : null}
         {this.renderContentPane()}
@@ -43,43 +45,43 @@ class HomeViewClass extends BaseViewClass<ViewProps, HomeViewState> {
     // When a content child (product detail, cart, receipt) is showing
     if (state.contentViewId) {
       return (
-        <div className="flex-col flex-grow overflow-auto min-h-0 bg-default">
+        <div className={clsx(Sel.flexCol, Sel.flexGrow, Sel.overflowAuto, Sel.minH0, Sel.bgDefault)}>
           {bridge.createView(state.contentViewId)}
         </div>
       )
     }
 
     // Default split: products + purchases with tab nav
-    const productsHide = this.showingProducts ? '' : 'md-show'
-    const purchasesHide = this.showingProducts ? 'md-show' : ''
+    const productsHide = this.showingProducts ? '' : Sel.mdShow
+    const purchasesHide = this.showingProducts ? Sel.mdShow : ''
 
     return (
-      <div className="flex-col flex-grow min-h-0 overflow-hidden">
+      <div className={clsx(Sel.flexCol, Sel.flexGrow, Sel.minH0, Sel.overflowHidden)}>
         {/* Tab navigation (mobile only) */}
-        <nav className="md-hide tab-nav">
+        <nav className={clsx(Sel.mdHide, Sel.tabNav)}>
           <button
-            className={this.showingProducts ? 'tab-item tab-item--active' : 'tab-item tab-item--inactive'}
+            className={clsx(Sel.tabItem, this.showingProducts ? Sel.tabItemActive : Sel.tabItemInactive)}
             onClick={this.onTabProducts}
           >
             <span className="bi bi-grid-3x3-gap text-base"></span>
             <span>Produtos</span>
-            {this.showingProducts ? <span className="tab-indicator"></span> : <span className="hidden"></span>}
+            {this.showingProducts ? <span className={Sel.tabIndicator}></span> : <span className={Sel.hidden}></span>}
           </button>
           <button
-            className={!this.showingProducts ? 'tab-item tab-item--active' : 'tab-item tab-item--inactive'}
+            className={clsx(Sel.tabItem, !this.showingProducts ? Sel.tabItemActive : Sel.tabItemInactive)}
             onClick={this.onTabHistory}
           >
             <span className="bi bi-clock-history text-base"></span>
             <span>Histórico</span>
-            {!this.showingProducts ? <span className="tab-indicator"></span> : <span className="hidden"></span>}
+            {!this.showingProducts ? <span className={Sel.tabIndicator}></span> : <span className={Sel.hidden}></span>}
           </button>
         </nav>
         {/* Split row: products + purchases */}
-        <div className="md-row flex flex-grow overflow-auto min-h-0 bg-default">
-          <div className={`${productsHide} flex-col flex-grow h-full`}>
+        <div className={clsx(Sel.mdRow, Sel.flex, Sel.flexGrow, Sel.overflowAuto, Sel.minH0, Sel.bgDefault)}>
+          <div className={clsx(productsHide, Sel.flexCol, Sel.flexGrow, Sel.hFull)}>
             {bridge.createView(state.productsPanelViewId)}
           </div>
-          <div className={`slot-purchases md-grow-0 ${purchasesHide} flex-col flex-grow h-full`}>
+          <div className={clsx(Sel.purchasesSlot, Sel.mdGrow0, purchasesHide, Sel.flexCol, Sel.flexGrow, Sel.hFull)}>
             {bridge.createView(state.purchasesPanelViewId)}
           </div>
         </div>

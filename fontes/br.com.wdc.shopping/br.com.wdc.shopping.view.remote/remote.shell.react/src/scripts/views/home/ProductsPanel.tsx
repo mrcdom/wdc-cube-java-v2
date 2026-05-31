@@ -1,8 +1,10 @@
 import React, { ReactNode } from 'react'
+import clsx from 'clsx'
 import bridge, { type ViewProps } from '@root/bridge'
 import { BaseViewClass, BasePanelClass } from '@root/utils/ViewUtils'
 import * as NumberUtils from '@root/utils/NumberUtils'
 import * as EndpointUtils from '@root/utils/EndpointUtils'
+import Sel from './home-sel'
 
 // :: Actions
 
@@ -35,8 +37,8 @@ class ProductPanelClass extends BaseViewClass<ViewProps, ProductsPanelState> {
     }
 
     return (
-      <div className={`products-panel ${className || ''}`}>
-        <div className="product-grid">{divProdutos}</div>
+      <div className={clsx(Sel.productsPanel, className)}>
+        <div className={Sel.productGrid}>{divProdutos}</div>
       </div>
     )
   }
@@ -59,13 +61,13 @@ class CardProdutoClass extends BasePanelClass<CardProdutoProps> {
     this.product = product
 
     return (
-      <div className="product-card" onClick={this.emitOpenProduct}>
-        <div className="products-card-image-wrap">
-          <img className="products-card-image" src={EndpointUtils.productImagePath(product.id)} alt={product.name} />
+      <div className={Sel.productCard} onClick={this.emitOpenProduct}>
+        <div className={Sel.productCardImage}>
+          <img className={Sel.productCardImg} src={EndpointUtils.productImagePath(product.id)} alt={product.name} />
         </div>
-        <div className="products-card-body">
-          <p className="products-card-name">{product.name}</p>
-          <span className="products-card-price">R$ {NumberUtils.format(product.price)}</span>
+        <div className={Sel.productCardBody}>
+          <p className={Sel.productCardName}>{product.name}</p>
+          <span className={Sel.productCardPrice}>R$ {NumberUtils.format(product.price)}</span>
         </div>
       </div>
     )

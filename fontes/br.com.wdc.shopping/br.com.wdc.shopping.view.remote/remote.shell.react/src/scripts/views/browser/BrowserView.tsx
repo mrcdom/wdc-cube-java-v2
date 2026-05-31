@@ -1,7 +1,9 @@
 import React, { ReactNode } from 'react'
+import clsx from 'clsx'
 import bridge, { type ViewProps, BROWSER_VID, type BrowserViewState } from '@root/bridge'
 import { BaseViewClass } from '@root/utils/ViewUtils'
 import { ActionButton, ProgressCircle } from '@root/swc'
+import Sel from './browser-sel'
 
 // :: Actions
 
@@ -32,7 +34,7 @@ class BrowserViewClass extends BaseViewClass<ViewProps, BrowserViewState> {
       rootView = bridge.createView(state.contentViewId)
     } else {
       rootView = (
-        <div className="flex-center" style={{ minHeight: '100vh' }}>
+        <div className={Sel.flexCenter} style={{ minHeight: '100vh' }}>
           <ProgressCircle size="l" indeterminate></ProgressCircle>
         </div>
       )
@@ -46,8 +48,8 @@ class BrowserViewClass extends BaseViewClass<ViewProps, BrowserViewState> {
     }
 
     return (
-      <div className={`browser-host ${className || ''}`}>
-        {state.submitting && <div className="browser-loading-bar" />}
+      <div className={clsx(Sel.host, className)}>
+        {state.submitting && <div className={Sel.loadingBar} />}
         {connectionAlert}
         {alertView}
         {rootView}
@@ -94,17 +96,17 @@ function AppAlert(props: AppAlertProps) {
   }
 
   return (
-    <div className="alert-error" style={{ margin: '16px' }}>
-      <span className="alert-error-icon">
+    <div className={Sel.alertError} style={{ margin: '16px' }}>
+      <span className={Sel.alertErrorIcon}>
         <i className="bi bi-exclamation-circle"></i>
       </span>
       <div style={{ flex: 1 }}>
-        <div className="font-bold text-sm" style={{ color: 'var(--app-error-text)' }}>
+        <div className={clsx(Sel.fontBold, Sel.textSm)} style={{ color: 'var(--app-error-text)' }}>
           Aviso!
         </div>
-        <span className="alert-error-text">{msgNode}</span>
+        <span className={Sel.alertErrorText}>{msgNode}</span>
         {detailMessage && (
-          <div className="text-xs mt-4" style={{ color: 'var(--app-error-text)' }}>
+          <div className={clsx(Sel.textXs, Sel.mt4)} style={{ color: 'var(--app-error-text)' }}>
             {detailMessage}
           </div>
         )}
@@ -142,18 +144,18 @@ function ConnectionAlert(props: ConnectionAlertProps) {
   return (
     <div style={{ textAlign: 'center' }}>
       <div
-        className="alert-error"
+        className={Sel.alertError}
         style={{ display: 'inline-flex', borderRadius: '0 0 8px 8px', padding: '6px 12px', margin: 0 }}
       >
-        <span className="font-bold text-sm" style={{ color: 'var(--app-error-text)' }}>
+        <span className={clsx(Sel.fontBold, Sel.textSm)} style={{ color: 'var(--app-error-text)' }}>
           Não conectado.
         </span>{' '}
-        <span className="text-sm" style={{ color: 'var(--app-error-text)' }}>
+        <span className={Sel.textSm} style={{ color: 'var(--app-error-text)' }}>
           {timeText}
         </span>
         {showRetry && (
           <span
-            className="text-sm font-medium cursor-pointer ml-4"
+            className={clsx(Sel.textSm, Sel.fontMedium, Sel.cursorPointer, Sel.ml4)}
             style={{ color: 'var(--app-accent)', textDecoration: 'underline' }}
             onClick={props.onReconnectNow}
           >

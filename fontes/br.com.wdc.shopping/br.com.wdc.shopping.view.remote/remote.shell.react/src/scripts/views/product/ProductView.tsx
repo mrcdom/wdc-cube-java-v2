@@ -1,9 +1,11 @@
 import React from 'react'
+import clsx from 'clsx'
 import bridge, { type ViewProps } from '@root/bridge'
 import { BaseViewClass } from '@root/utils/ViewUtils'
 import { Button, ActionButton, Divider } from '@root/swc'
 import * as NumberUtils from '@root/utils/NumberUtils'
 import * as EndpointUtils from '@root/utils/EndpointUtils'
+import Sel from './product-sel'
 
 // :: Actions
 
@@ -43,56 +45,56 @@ class ProductViewClass extends BaseViewClass<ViewProps, ProductViewState> {
     const product = state.product ?? DefaultProduct
 
     return (
-      <div className={`page-scroll-root ${className || ''}`}>
-        <div className="page-wrapper">
+      <div className={clsx(Sel.pageScrollRoot, className)}>
+        <div className={Sel.pageWrapper}>
           {/* Product title */}
-          <h5 className="product-title">{product.name}</h5>
-          <Divider size="s" className="product-divider"></Divider>
+          <h5 className={Sel.title}>{product.name}</h5>
+          <Divider size="s" className={Sel.divider}></Divider>
 
           {/* Description card */}
-          <div className="product-desc-card">
-            <div className="product-desc-text" dangerouslySetInnerHTML={{ __html: product.description }} />
+          <div className={Sel.descCard}>
+            <div className={Sel.descText} dangerouslySetInnerHTML={{ __html: product.description }} />
           </div>
 
           {/* Price + Image row */}
-          <div className="product-price-image-row">
-            <div className="product-price-col">
-              <span className="product-price-badge">R$ {NumberUtils.format(product.price)}</span>
-              <div className="product-qty-row">
-                <span className="product-qty-label">Qtd:</span>
+          <div className={Sel.priceImageRow}>
+            <div className={Sel.priceCol}>
+              <span className={Sel.priceBadge}>R$ {NumberUtils.format(product.price)}</span>
+              <div className={Sel.qtyRow}>
+                <span className={Sel.qtyLabel}>Qtd:</span>
                 <ActionButton quiet size="s" onClick={this.emitDecrement}>
                   <i className="bi bi-dash"></i>
                 </ActionButton>
-                <span className="product-qty-value">{quantity}</span>
+                <span className={Sel.qtyValue}>{quantity}</span>
                 <ActionButton quiet size="s" onClick={this.emitIncrement}>
                   <i className="bi bi-plus"></i>
                 </ActionButton>
               </div>
             </div>
-            <div className="product-image-box">
-              <img className="product-image" src={EndpointUtils.productImagePath(product.id)} alt={product.name} />
+            <div className={Sel.imageBox}>
+              <img className={Sel.image} src={EndpointUtils.productImagePath(product.id)} alt={product.name} />
             </div>
           </div>
 
           {/* Actions */}
-          <div className="product-actions-row">
+          <div className={Sel.actionsRow}>
             <ActionButton quiet onClick={this.emitGoHome}>
-              <i className="bi bi-arrow-left mr-4"></i>
+              <i className={clsx('bi bi-arrow-left', Sel.mr4)}></i>
               Voltar
             </ActionButton>
             <Button variant="accent" size="l" onClick={this.emitAddToCart}>
-              <i className="bi bi-bag-plus mr-4"></i>
+              <i className={clsx('bi bi-bag-plus', Sel.mr4)}></i>
               Adicionar ao Carrinho
             </Button>
           </div>
 
           {/* Error */}
           {state.errorMessage && (
-            <div className="alert-error mt-16">
-              <span className="alert-error-icon">
+            <div className={clsx(Sel.alertError, Sel.mt16)}>
+              <span className={Sel.alertErrorIcon}>
                 <i className="bi bi-exclamation-circle"></i>
               </span>
-              <span className="alert-error-text">{state.errorMessage}</span>
+              <span className={Sel.alertErrorText}>{state.errorMessage}</span>
             </div>
           )}
         </div>

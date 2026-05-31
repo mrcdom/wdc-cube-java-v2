@@ -1,0 +1,108 @@
+// Estilos do módulo carrinho.
+// Importado por cart-sel.ts; não referencie este arquivo diretamente nas views.
+
+.wdc-cart {
+
+    &__empty-icon-box {
+        width: 100px;
+        height: 100px;
+        background: var(--app-accent-light);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+
+    &__empty-icon {
+        font-size: 2.5rem;
+        color: var(--app-accent);
+    }
+
+    &__empty-title {
+        color: var(--app-text);
+        font-size: 1.1rem;
+        font-weight: 500;
+        margin: 0 0 8px 0;
+    }
+
+    &__empty-subtitle {
+        color: var(--app-text-secondary);
+        font-size: 0.85rem;
+        margin: 0 0 16px 0;
+    }
+
+    &__footer {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        padding-top: 16px;
+        margin-top: 16px;
+        border-top: 1px solid var(--app-border);
+    }
+
+    &__footer-label {
+        font-size: 0.85rem;
+        color: var(--app-text-secondary);
+    }
+
+    &__footer-total {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: var(--app-accent);
+        margin-left: 8px;
+    }
+
+    &__actions-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 16px;
+    }
+
+    &__item-row {
+        display: flex;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--app-border);
+        gap: 8px;
+    }
+
+    &__item-name {
+        flex: 1;
+        font-weight: 500;
+        font-size: 0.88rem;
+        color: var(--app-text);
+    }
+
+    &__stepper-row {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    &__stepper-icon {
+        font-size: 0.7rem;
+    }
+
+    &__stepper-value {
+        font-weight: 700;
+        min-width: 24px;
+        text-align: center;
+        font-size: 0.85rem;
+        color: var(--app-text);
+    }
+
+    &__item-subtotal {
+        width: 90px;
+        text-align: right;
+        font-weight: 700;
+        color: var(--app-accent);
+        font-size: 0.85rem;
+    }
+
+    &__remove-icon {
+        font-size: 0.7rem;
+        color: #dc3545;
+    }
+}

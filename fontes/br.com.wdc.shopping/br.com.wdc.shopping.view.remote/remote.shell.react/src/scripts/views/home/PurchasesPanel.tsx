@@ -1,8 +1,10 @@
 import React from 'react'
+import clsx from 'clsx'
 import bridge, { type ViewProps } from '@root/bridge'
 import { BaseViewClass, BasePanelClass } from '@root/utils/ViewUtils'
 import * as NumberUtils from '@root/utils/NumberUtils'
 import * as DateUtils from '@root/utils/DateUtils'
+import Sel from './home-sel'
 
 const ITEM_HEIGHT_PX = 56
 
@@ -80,13 +82,13 @@ class PurchasesPanelClass extends BaseViewClass<ViewProps, PurchasesPanelState> 
     }
 
     return (
-      <div className={`purchases-panel slot-purchases ${className || ''}`}>
-        <div className="purchases-header-row">
-          <i className="bi bi-clock-history purchases-header-icon"></i>
-          <span className="purchases-header-title">Histórico</span>
+      <div className={clsx(Sel.purchasesPanel, Sel.purchasesSlot, className)}>
+        <div className={Sel.purchasesHeaderRow}>
+          <i className={clsx('bi bi-clock-history', Sel.purchasesHeaderIcon)}></i>
+          <span className={Sel.purchasesHeaderTitle}>Histórico</span>
         </div>
-        <span className="purchases-hint">Toque para ver detalhes</span>
-        <div ref={this.listRef} className="purchases-list-container">
+        <span className={Sel.purchasesHint}>Toque para ver detalhes</span>
+        <div ref={this.listRef} className={Sel.purchasesListContainer}>
           {this.#renderCompras()}
         </div>
         {totalCount > 0 && this.#renderPageNavigation()}
@@ -103,22 +105,22 @@ class PurchasesPanelClass extends BaseViewClass<ViewProps, PurchasesPanelState> 
   #renderPageNavigation(): React.ReactNode {
     const page = this.state.page || 0
     return (
-      <div className="purchases-pagination">
-        <div className="purchases-page-pill">
+      <div className={Sel.purchasesPagination}>
+        <div className={Sel.purchasesPagePill}>
           <div
-            className={`purchases-page-btn ${page === 0 ? 'pointer-events-none' : ''}`}
+            className={clsx(Sel.purchasesPageBtn, page === 0 && Sel.pointerEventsNone)}
             onClick={page > 0 ? this.emitPreviousPage : undefined}
           >
-            <i className="bi bi-chevron-left purchases-page-btn-icon"></i>
+            <i className={clsx('bi bi-chevron-left', Sel.purchasesPageBtnIcon)}></i>
           </div>
-          <span className="purchases-page-info">
+          <span className={Sel.purchasesPageInfo}>
             {page + 1} / {this.totalPages}
           </span>
           <div
-            className={`purchases-page-btn ${page >= this.totalPages - 1 ? 'pointer-events-none' : ''}`}
+            className={clsx(Sel.purchasesPageBtn, page >= this.totalPages - 1 && Sel.pointerEventsNone)}
             onClick={page < this.totalPages - 1 ? this.emitNextPage : undefined}
           >
-            <i className="bi bi-chevron-right purchases-page-btn-icon"></i>
+            <i className={clsx('bi bi-chevron-right', Sel.purchasesPageBtnIcon)}></i>
           </div>
         </div>
       </div>
@@ -167,16 +169,16 @@ class PurchaseItemRowClass extends BasePanelClass<PurchaseItemRowProps> {
     this.purchase = purchase
 
     return (
-      <div data-purchase-item className="purchases-item-card purchase-item" onClick={this.emitOpenReceipt}>
+      <div data-purchase-item className={Sel.purchasesItemCard} onClick={this.emitOpenReceipt}>
         {/* Line 1: #id + date */}
-        <div className="purchases-item-line1">
-          <span className="purchases-item-id">#{purchase.id}</span>
-          <span className="purchases-item-date">{DateUtils.formatDate(purchase.date)}</span>
+        <div className={Sel.purchasesItemLine1}>
+          <span className={Sel.purchasesItemId}>#{purchase.id}</span>
+          <span className={Sel.purchasesItemDate}>{DateUtils.formatDate(purchase.date)}</span>
         </div>
         {/* Line 2: products + total */}
-        <div className="purchases-item-line2">
-          <span className="purchases-item-items">{formatItems(purchase.items)}</span>
-          <span className="purchases-item-total">R$ {NumberUtils.format(purchase.total)}</span>
+        <div className={Sel.purchasesItemLine2}>
+          <span className={Sel.purchasesItemItems}>{formatItems(purchase.items)}</span>
+          <span className={Sel.purchasesItemTotal}>R$ {NumberUtils.format(purchase.total)}</span>
         </div>
       </div>
     )

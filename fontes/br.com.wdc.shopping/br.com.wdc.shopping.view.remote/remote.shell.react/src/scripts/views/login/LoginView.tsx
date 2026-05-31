@@ -1,7 +1,9 @@
 import React from 'react'
+import clsx from 'clsx'
 import bridge, { type ViewProps } from '@root/bridge'
 import { BaseViewClass } from '@root/utils/ViewUtils'
 import { Button, FieldLabel, Textfield } from '@root/swc'
+import Sel from './login-sel'
 
 // :: Actions
 
@@ -21,88 +23,88 @@ class LoginViewClass extends BaseViewClass<ViewProps, LoginViewState> {
     const { state } = this
 
     return (
-      <div className={`login-root ${className || ''}`}>
+      <div className={clsx(Sel.root, className)}>
         {/* Left decorative panel (hidden on mobile) */}
-        <div className="login-left-panel md-show">
-          <div className="deco-circle deco-circle--1" />
-          <div className="deco-circle deco-circle--2" />
-          <div className="deco-circle deco-circle--3" />
-          <div className="login-content-center">
-            <div className="logo-box-lg mb-16">
-              <i className="bi bi-bag-check login-logo-icon-lg"></i>
+        <div className={clsx(Sel.leftPanel, Sel.mdShow)}>
+          <div className={clsx(Sel.decoCircle, Sel.decoCircle1)} />
+          <div className={clsx(Sel.decoCircle, Sel.decoCircle2)} />
+          <div className={clsx(Sel.decoCircle, Sel.decoCircle3)} />
+          <div className={Sel.contentCenter}>
+            <div className={clsx(Sel.logoBoxLg, Sel.mb16)}>
+              <i className={clsx('bi bi-bag-check', Sel.logoIconLg)}></i>
             </div>
-            <h1 className="login-title-lg">WDC Shopping</h1>
-            <p className="login-subtitle-lg">Sua compra certa na internet.</p>
-            <div className="login-features-list">
-              <div className="login-feature-row">
-                <i className="bi bi-shield-check login-feature-icon"></i>
-                <span className="login-feature-text">Compra segura</span>
+            <h1 className={Sel.titleLg}>WDC Shopping</h1>
+            <p className={Sel.subtitleLg}>Sua compra certa na internet.</p>
+            <div className={Sel.featuresList}>
+              <div className={Sel.featureRow}>
+                <i className={clsx('bi bi-shield-check', Sel.featureIcon)}></i>
+                <span className={Sel.featureText}>Compra segura</span>
               </div>
-              <div className="login-feature-row">
-                <i className="bi bi-truck login-feature-icon"></i>
-                <span className="login-feature-text">Entrega rápida</span>
+              <div className={Sel.featureRow}>
+                <i className={clsx('bi bi-truck', Sel.featureIcon)}></i>
+                <span className={Sel.featureText}>Entrega rápida</span>
               </div>
-              <div className="login-feature-row">
-                <i className="bi bi-arrow-repeat login-feature-icon"></i>
-                <span className="login-feature-text">Troca garantida</span>
+              <div className={Sel.featureRow}>
+                <i className={clsx('bi bi-arrow-repeat', Sel.featureIcon)}></i>
+                <span className={Sel.featureText}>Troca garantida</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Right form panel */}
-        <div className="login-form-panel login-card">
-          <div className="login-form-content">
+        <div className={Sel.formPanel}>
+          <div className={Sel.formContent}>
             {/* Mobile header */}
-            <div className="login-mobile-logo">
-              <div className="login-mobile-circle-1" />
-              <div className="login-mobile-circle-2" />
-              <div className="login-mobile-content">
-                <div className="login-logo-box-sm">
-                  <i className="bi bi-bag-check login-icon-sm"></i>
+            <div className={Sel.mobileLogo}>
+              <div className={Sel.mobileCircle1} />
+              <div className={Sel.mobileCircle2} />
+              <div className={Sel.mobileContent}>
+                <div className={Sel.logoBoxSm}>
+                  <i className={clsx('bi bi-bag-check', Sel.iconSm)}></i>
                 </div>
-                <div className="login-mobile-title">WDC Shopping</div>
-                <div className="login-mobile-subtitle">Sua compra certa na internet.</div>
+                <div className={Sel.mobileTitle}>WDC Shopping</div>
+                <div className={Sel.mobileSubtitle}>Sua compra certa na internet.</div>
               </div>
             </div>
 
             {/* Welcome text */}
-            <div className="login-welcome-wrap">
-              <h2 className="login-welcome-title">Bem-vindo</h2>
-              <p className="login-welcome-subtitle">Entre com suas credenciais para continuar</p>
+            <div className={Sel.welcomeWrap}>
+              <h2 className={Sel.welcomeTitle}>Bem-vindo</h2>
+              <p className={Sel.welcomeSubtitle}>Entre com suas credenciais para continuar</p>
             </div>
 
             {/* Error message */}
             {state.errorMessage && (
-              <div className="alert-error mb-16">
-                <span className="alert-error-icon">
+              <div className={clsx(Sel.alertError, Sel.mb16)}>
+                <span className={Sel.alertErrorIcon}>
                   <i className="bi bi-exclamation-circle"></i>
                 </span>
-                <span className="alert-error-text">{state.errorMessage}</span>
+                <span className={Sel.alertErrorText}>{state.errorMessage}</span>
               </div>
             )}
 
             {/* User field */}
-            <FieldLabel for="login-user" className="login-field-label">
+            <FieldLabel for="login-user" className={Sel.fieldLabel}>
               Usuário
             </FieldLabel>
             <Textfield
               id="login-user"
               placeholder="Digite seu usuário"
-              className="login-field"
+              className={Sel.field}
               disabled={state.loading || undefined}
               ref={this.userFieldRef}
             ></Textfield>
 
             {/* Password field */}
-            <FieldLabel for="login-password" className="login-field-label">
+            <FieldLabel for="login-password" className={Sel.fieldLabel}>
               Senha
             </FieldLabel>
             <Textfield
               id="login-password"
               type="password"
               placeholder="Digite sua senha"
-              className="login-field-password"
+              className={Sel.fieldPassword}
               disabled={state.loading || undefined}
               ref={this.passFieldRef}
             ></Textfield>
@@ -111,7 +113,7 @@ class LoginViewClass extends BaseViewClass<ViewProps, LoginViewState> {
             <Button
               variant="accent"
               size="l"
-              className="login-enter-btn"
+              className={Sel.enterBtn}
               disabled={state.loading || undefined}
               pending={state.loading || undefined}
               ref={this.btnRef}
@@ -120,11 +122,11 @@ class LoginViewClass extends BaseViewClass<ViewProps, LoginViewState> {
             </Button>
 
             {/* Demo hint */}
-            <div className="login-demo-hint">
-              <span className="login-demo-text">Acesso demo: </span>
-              <span className="login-demo-highlight">admin</span>
-              <span className="login-demo-text"> / </span>
-              <span className="login-demo-highlight">admin</span>
+            <div className={Sel.demoHint}>
+              <span className={Sel.demoText}>Acesso demo: </span>
+              <span className={Sel.demoHighlight}>admin</span>
+              <span className={Sel.demoText}> / </span>
+              <span className={Sel.demoHighlight}>admin</span>
             </div>
           </div>
         </div>
@@ -158,16 +160,16 @@ class LoginViewClass extends BaseViewClass<ViewProps, LoginViewState> {
   }
 
   readonly btnRef = (el: HTMLElement | null) => {
-    if (el) {
-      el.addEventListener('click', this.emitLogin)
-    }
+    if (el) el.addEventListener('click', this.emitLogin)
   }
 
-  readonly onKeyDown = (e: Event) => {
+  private readonly onKeyDown = (e: Event) => {
     if ((e as KeyboardEvent).key === 'Enter') {
       this.emitLogin()
     }
   }
+
+  // :: Emissors
 
   readonly emitLogin = async () => {
     const { vsid } = this

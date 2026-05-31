@@ -44,6 +44,7 @@
     "@swc-react/progress-circle": "^1.12.1",
     "@swc-react/textfield": "^1.12.1",
     "@swc-react/theme": "^1.12.1",
+    "clsx": "^2.1.1",
     "history": "^5.3.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

@@ -1,7 +1,9 @@
 import React from 'react'
+import clsx from 'clsx'
 import bridge, { type ViewProps } from '@root/bridge'
 import { BaseViewClass } from '@root/utils/ViewUtils'
 import { Button, ActionButton } from '@root/swc'
+import Sel from './cart-sel'
 
 // :: Actions (must match server-side presenter)
 
@@ -37,38 +39,38 @@ class CartViewClass extends BaseViewClass<ViewProps, CartViewState> {
     const totalText = `R$ ${total.toFixed(2)}`
 
     return (
-      <div className={`page-scroll-root ${className || ''}`}>
-        <div className="page-wrapper">
-          <div className="card-panel">
+      <div className={clsx(Sel.pageScrollRoot, className)}>
+        <div className={Sel.pageWrapper}>
+          <div className={Sel.cardPanel}>
             {/* Header */}
-            <div className="card-header-row">
-              <div className="card-header-icon-box">
-                <span className="bi bi-bag card-header-icon"></span>
+            <div className={Sel.cardHeaderRow}>
+              <div className={Sel.cardHeaderIconBox}>
+                <span className={clsx('bi bi-bag', Sel.cardHeaderIcon)}></span>
               </div>
               <div>
-                <h5 className="card-header-title">Carrinho</h5>
-                <span className="card-header-subtitle">Seus produtos selecionados</span>
+                <h5 className={Sel.cardHeaderTitle}>Carrinho</h5>
+                <span className={Sel.cardHeaderSubtitle}>Seus produtos selecionados</span>
               </div>
             </div>
 
             {/* Error */}
             {state.errorMessage && (
-              <div className="alert-error mb-16">
-                <span className="bi bi-exclamation-circle alert-error-icon"></span>
-                <span className="alert-error-text">{state.errorMessage}</span>
+              <div className={clsx(Sel.alertError, Sel.mb16)}>
+                <span className={clsx('bi bi-exclamation-circle', Sel.alertErrorIcon)}></span>
+                <span className={Sel.alertErrorText}>{state.errorMessage}</span>
               </div>
             )}
 
             {/* Empty state */}
             {empty ? (
-              <div className="empty-state py-48">
-                <div className="cart-empty-icon-box">
-                  <span className="bi bi-bag cart-empty-icon"></span>
+              <div className={clsx(Sel.emptyState, Sel.py24)}>
+                <div className={Sel.emptyIconBox}>
+                  <span className={clsx('bi bi-bag', Sel.emptyIcon)}></span>
                 </div>
-                <p className="cart-empty-title">Carrinho vazio</p>
-                <p className="cart-empty-subtitle">Adicione produtos para começar</p>
+                <p className={Sel.emptyTitle}>Carrinho vazio</p>
+                <p className={Sel.emptySubtitle}>Adicione produtos para começar</p>
                 <Button variant="accent" ref={this.viewProductsBtnRef}>
-                  <span className="bi bi-grid-3x3-gap mr-6"></span>
+                  <span className={clsx('bi bi-grid-3x3-gap', Sel.mr6)}></span>
                   <span>Ver produtos</span>
                 </Button>
               </div>
@@ -78,19 +80,19 @@ class CartViewClass extends BaseViewClass<ViewProps, CartViewState> {
                 <div>{items.map((item) => this.renderItem(item))}</div>
 
                 {/* Footer total */}
-                <div className="cart-footer">
-                  <span className="cart-footer-label">Total: </span>
-                  <span className="cart-footer-total">{totalText}</span>
+                <div className={Sel.footer}>
+                  <span className={Sel.footerLabel}>Total: </span>
+                  <span className={Sel.footerTotal}>{totalText}</span>
                 </div>
 
                 {/* Actions */}
-                <div className="cart-actions-row">
+                <div className={Sel.actionsRow}>
                   <ActionButton quiet ref={this.backBtnRef}>
                     <span className="bi bi-arrow-left"></span>
                     <span> Continuar comprando</span>
                   </ActionButton>
                   <Button variant="accent" size="l" ref={this.buyBtnRef}>
-                    <span className="bi bi-check2-circle mr-6"></span>
+                    <span className={clsx('bi bi-check2-circle', Sel.mr6)}></span>
                     <span>Finalizar pedido</span>
                   </Button>
                 </div>
@@ -105,9 +107,9 @@ class CartViewClass extends BaseViewClass<ViewProps, CartViewState> {
   private renderItem(item: CartItem) {
     const subtotal = `R$ ${(item.price * item.quantity).toFixed(2)}`
     return (
-      <div key={item.id} className="cart-item-row">
-        <span className="cart-item-name">{item.name}</span>
-        <div className="cart-stepper-row">
+      <div key={item.id} className={Sel.itemRow}>
+        <span className={Sel.itemName}>{item.name}</span>
+        <div className={Sel.stepperRow}>
           <ActionButton
             quiet
             size="s"
@@ -115,9 +117,9 @@ class CartViewClass extends BaseViewClass<ViewProps, CartViewState> {
               if (el) el.onclick = () => this.emitModifyQuantity(item.id, item.quantity - 1)
             }}
           >
-            <span className="bi bi-dash cart-stepper-icon"></span>
+            <span className={clsx('bi bi-dash', Sel.stepperIcon)}></span>
           </ActionButton>
-          <span className="cart-stepper-value">{item.quantity}</span>
+          <span className={Sel.stepperValue}>{item.quantity}</span>
           <ActionButton
             quiet
             size="s"
@@ -125,10 +127,10 @@ class CartViewClass extends BaseViewClass<ViewProps, CartViewState> {
               if (el) el.onclick = () => this.emitModifyQuantity(item.id, item.quantity + 1)
             }}
           >
-            <span className="bi bi-plus cart-stepper-icon"></span>
+            <span className={clsx('bi bi-plus', Sel.stepperIcon)}></span>
           </ActionButton>
         </div>
-        <span className="cart-item-subtotal">{subtotal}</span>
+        <span className={Sel.itemSubtotal}>{subtotal}</span>
         <ActionButton
           quiet
           size="s"
@@ -136,7 +138,7 @@ class CartViewClass extends BaseViewClass<ViewProps, CartViewState> {
             if (el) el.onclick = () => this.emitRemove(item.id)
           }}
         >
-          <span className="bi bi-x-lg cart-remove-icon"></span>
+          <span className={clsx('bi bi-x-lg', Sel.removeIcon)}></span>
         </ActionButton>
       </div>
     )
