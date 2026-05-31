@@ -13,9 +13,9 @@ import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
 import org.teavm.jso.dom.html.HTMLElement;
 
-import br.com.wdc.framework.vdom.CssComponents;
-import br.com.wdc.framework.vdom.CssIcons;
-import br.com.wdc.framework.vdom.CssUtility;
+import br.com.wdc.framework.vdom.SelComponents;
+import br.com.wdc.framework.vdom.SelIcons;
+import br.com.wdc.framework.vdom.SelUtility;
 import br.com.wdc.framework.vdom.VNode;
 import br.com.wdc.shopping.presentation.presenter.Routes;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
@@ -27,10 +27,10 @@ import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
 public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
 
     @SuppressWarnings({"java:S1214", "static-access"})
-    private interface Css {
-        CssUtility u = CssUtility.INSTANCE;
-        CssComponents c = CssComponents.INSTANCE;
-        CssIcons icon = CssIcons.INSTANCE;
+    private interface Sel {
+        SelUtility u = SelUtility.INSTANCE;
+        SelComponents c = SelComponents.INSTANCE;
+        SelIcons icon = SelIcons.INSTANCE;
 
         String HIDDEN = u.HIDDEN;
         String ROOT = clsx(u.FLEX_COL, u.FLEX_GROW, u.FLEX_1, u.MIN_H_0, u.OVERFLOW_HIDDEN);
@@ -109,41 +109,41 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
         var contentViewEl = this.state.contentView instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
 
         // @formatter:off
-        return div(Css.ROOT).children(
+        return div(Sel.ROOT).children(
           renderNavbar(nickName, cartCount),
-          div(showError ? Css.ERROR_VISIBLE : Css.HIDDEN).children(
-            span(Css.ERROR_ICON),
-            span(Css.ERROR_TEXT).text(errorMessage)),
+          div(showError ? Sel.ERROR_VISIBLE : Sel.HIDDEN).children(
+            span(Sel.ERROR_ICON),
+            span(Sel.ERROR_TEXT).text(errorMessage)),
           renderContentPane(productsPanelEl, purchasesPanelEl, contentViewEl));
         // @formatter:on
     }
 
     private VNode renderNavbar(String nickName, String cartCount) {
         // @formatter:off
-        return spTheme("dark").cls(Css.NAVBAR).children(
+        return spTheme("dark").cls(Sel.NAVBAR).children(
           // Left: exit + greeting
-          div(Css.NAV_GROUP).children(
+          div(Sel.NAV_GROUP).children(
             spActionButton()
-              .children(span(Css.EXIT_ICON))
+              .children(span(Sel.EXIT_ICON))
               .on("click", onExit),
-            div(Css.GREETING_WRAP).children(
-              span(Css.GREETING_LABEL).text("Bem-vindo(a),"),
-              span(Css.GREETING_NAME).text(nickName))),
+            div(Sel.GREETING_WRAP).children(
+              span(Sel.GREETING_LABEL).text("Bem-vindo(a),"),
+              span(Sel.GREETING_NAME).text(nickName))),
           // Center: logo
-          div(Css.NAV_GROUP).children(
-            div(Css.LOGO_BOX)
-              .children(span(Css.LOGO_ICON)),
-            div(Css.LOGO_TEXT_WRAP).children(
-              span(Css.LOGO_TITLE).text("Shopping"),
-              span(Css.LOGO_SUBTITLE).text("By WeDoCode"))),
+          div(Sel.NAV_GROUP).children(
+            div(Sel.LOGO_BOX)
+              .children(span(Sel.LOGO_ICON)),
+            div(Sel.LOGO_TEXT_WRAP).children(
+              span(Sel.LOGO_TITLE).text("Shopping"),
+              span(Sel.LOGO_SUBTITLE).text("By WeDoCode"))),
           // Right: cart button
-          div(Css.NAV_RIGHT).children(
-            spActionButton().cls(Css.CART_BTN)
+          div(Sel.NAV_RIGHT).children(
+            spActionButton().cls(Sel.CART_BTN)
               .on("click", onOpenCart)
               .children(
-                span(Css.CART_ICON),
-                span(Css.CART_LABEL).text("Carrinho"),
-                span(Css.CART_BADGE).text(cartCount))));
+                span(Sel.CART_ICON),
+                span(Sel.CART_LABEL).text("Carrinho"),
+                span(Sel.CART_BADGE).text(cartCount))));
         // @formatter:on
     }
 
@@ -151,36 +151,36 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
             HTMLElement contentViewEl) {
         if (contentViewEl != null) {
             return slot(contentViewEl)
-                    .cls(Css.CONTENT_OVERLAY);
+                    .cls(Sel.CONTENT_OVERLAY);
         }
 
         var productsHide = this.showingProducts ? "" : "md-show";
         var purchasesHide = this.showingProducts ? "md-show" : "";
 
         // @formatter:off
-        return div(Css.SPLIT_COL).children(
+        return div(Sel.SPLIT_COL).children(
           renderTabNav(),
-          div(Css.SPLIT_ROW).children(
-            slot(productsPanelEl).cls(clsx(productsHide, Css.PANEL_SLOT)),
-            slot(purchasesPanelEl).cls(clsx("slot-purchases md-grow-0", purchasesHide, Css.PANEL_SLOT))));
+          div(Sel.SPLIT_ROW).children(
+            slot(productsPanelEl).cls(clsx(productsHide, Sel.PANEL_SLOT)),
+            slot(purchasesPanelEl).cls(clsx("slot-purchases md-grow-0", purchasesHide, Sel.PANEL_SLOT))));
         // @formatter:on
     }
 
     private VNode renderTabNav() {
         // @formatter:off
-        return nav(Css.TAB_NAV).children(
-          button(this.showingProducts ? Css.TAB_ACTIVE : Css.TAB_INACTIVE)
+        return nav(Sel.TAB_NAV).children(
+          button(this.showingProducts ? Sel.TAB_ACTIVE : Sel.TAB_INACTIVE)
             .on("click", onTabProducts)
             .children(
-              span(Css.TAB_ICON_PRODUCTS),
+              span(Sel.TAB_ICON_PRODUCTS),
               span().text("Produtos"),
-              this.showingProducts ? span(Css.TAB_INDICATOR) : span(Css.HIDDEN)),
-          button(this.showingProducts ? Css.TAB_INACTIVE : Css.TAB_ACTIVE)
+              this.showingProducts ? span(Sel.TAB_INDICATOR) : span(Sel.HIDDEN)),
+          button(this.showingProducts ? Sel.TAB_INACTIVE : Sel.TAB_ACTIVE)
             .on("click", onTabHistory)
             .children(
-              span(Css.TAB_ICON_HISTORY),
+              span(Sel.TAB_ICON_HISTORY),
               span().text("Histórico"),
-              !this.showingProducts ? span(Css.TAB_INDICATOR) : span(Css.HIDDEN)));
+              !this.showingProducts ? span(Sel.TAB_INDICATOR) : span(Sel.HIDDEN)));
         // @formatter:on
     }
 

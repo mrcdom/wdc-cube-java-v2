@@ -15,11 +15,11 @@ import br.com.wdc.framework.vdom.VNode;
 public class RootViewVDom extends AbstractVDomView<RootPresenter> {
 
     @SuppressWarnings("java:S1214")
-    private interface Css {
+    private interface Sel {
 
         String ROOT = "flex-col h-full overflow-hidden";
-
         String CONTENT = "flex-col flex-grow min-h-0";
+
     }
 
     private final RootViewState state;
@@ -45,10 +45,10 @@ public class RootViewVDom extends AbstractVDomView<RootPresenter> {
         var contentElement = this.state.contentView instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
         // @formatter:off
         return spTheme("light", "medium", "spectrum")
-          .cls(Css.ROOT)
+          .cls(Sel.ROOT)
           .children(
             slot(contentElement)
-              .cls(Css.CONTENT));
+              .cls(Sel.CONTENT));
         // @formatter:on
     }
 }

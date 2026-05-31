@@ -15,7 +15,7 @@ import org.teavm.jso.dom.events.EventListener;
 import org.teavm.jso.dom.html.HTMLElement;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
-import br.com.wdc.framework.vdom.CssIcons;
+import br.com.wdc.framework.vdom.SelIcons;
 import br.com.wdc.framework.vdom.VNode;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.ViewScope;
@@ -34,8 +34,8 @@ public class PurchasesPanelView extends AbstractRemoteView {
     private static final int ITEM_HEIGHT_PX = 56;
 
     @SuppressWarnings({ "java:S1214", "static-access" })
-    private interface Css {
-        CssIcons icon = CssIcons.INSTANCE;
+    private interface Sel {
+        SelIcons icon = SelIcons.INSTANCE;
 
         String ROOT = "purchases-panel";
         String HEADER_ROW = "purchases-header-row";
@@ -101,37 +101,37 @@ public class PurchasesPanelView extends AbstractRemoteView {
         var pageInfo = (page + 1) + " / " + totalPages;
 
         // @formatter:off
-        return div(Css.ROOT).children(
-          div(Css.HEADER_ROW).children(
-            span(Css.HEADER_ICON),
-            span(Css.HEADER_TITLE).text("Histórico")),
-          span(Css.HINT).text("Toque para ver detalhes"),
-          div(Css.LIST_CONTAINER)
+        return div(Sel.ROOT).children(
+          div(Sel.HEADER_ROW).children(
+            span(Sel.HEADER_ICON),
+            span(Sel.HEADER_TITLE).text("Histórico")),
+          span(Sel.HINT).text("Toque para ver detalhes"),
+          div(Sel.LIST_CONTAINER)
             .ref(el -> this.listContainer = el)
             .children(purchases.stream().map(this::renderItem).toList()),
-          div(Css.PAGINATION).children(
-            div(Css.PAGE_PILL).children(
-              div(Css.PAGE_BTN)
+          div(Sel.PAGINATION).children(
+            div(Sel.PAGE_PILL).children(
+              div(Sel.PAGE_BTN)
                 .on("click", useCallback("prev-" + page, mkOnPageChange(page - 1)))
-                .children(span(Css.PAGE_PREV_ICON)),
-              span(Css.PAGE_INFO).text(pageInfo),
-              div(Css.PAGE_BTN)
+                .children(span(Sel.PAGE_PREV_ICON)),
+              span(Sel.PAGE_INFO).text(pageInfo),
+              div(Sel.PAGE_BTN)
                 .on("click", useCallback("next-" + page, mkOnPageChange(page + 1)))
-                .children(span(Css.PAGE_NEXT_ICON)))));
+                .children(span(Sel.PAGE_NEXT_ICON)))));
         // @formatter:on
     }
 
     private VNode renderItem(Purchase purchase) {
         // @formatter:off
-        return div(Css.ITEM_CARD).key(purchase.key())
+        return div(Sel.ITEM_CARD).key(purchase.key())
           .on("click", useCallback("receipt-" + purchase.key(), mkOnOpenReceipt(purchase.id())))
           .children(
-            div(Css.ITEM_LINE1).children(
-              span(Css.ITEM_ID).text(purchase.idStr()),
-              span(Css.ITEM_DATE).text(purchase.date())),
-            div(Css.ITEM_LINE2).children(
-              span(Css.ITEM_ITEMS).text(purchase.items()),
-              span(Css.ITEM_TOTAL).text(purchase.total())));
+            div(Sel.ITEM_LINE1).children(
+              span(Sel.ITEM_ID).text(purchase.idStr()),
+              span(Sel.ITEM_DATE).text(purchase.date())),
+            div(Sel.ITEM_LINE2).children(
+              span(Sel.ITEM_ITEMS).text(purchase.items()),
+              span(Sel.ITEM_TOTAL).text(purchase.total())));
         // @formatter:on
     }
 

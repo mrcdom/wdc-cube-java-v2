@@ -12,9 +12,9 @@ import java.util.List;
 import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
 
-import br.com.wdc.framework.vdom.CssComponents;
-import br.com.wdc.framework.vdom.CssIcons;
-import br.com.wdc.framework.vdom.CssUtility;
+import br.com.wdc.framework.vdom.SelComponents;
+import br.com.wdc.framework.vdom.SelIcons;
+import br.com.wdc.framework.vdom.SelUtility;
 import br.com.wdc.framework.vdom.VNode;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter.ReceiptViewState;
@@ -26,10 +26,10 @@ import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
 public class ReceiptViewVDom extends AbstractVDomView<ReceiptPresenter> {
 
     @SuppressWarnings({"java:S1214", "static-access"})
-    private interface Css {
-        CssUtility u = CssUtility.INSTANCE;
-        CssComponents c = CssComponents.INSTANCE;
-        CssIcons icon = CssIcons.INSTANCE;
+    private interface Sel {
+        SelUtility u = SelUtility.INSTANCE;
+        SelComponents c = SelComponents.INSTANCE;
+        SelIcons icon = SelIcons.INSTANCE;
 
         String ROOT = u.PAGE_SCROLL_ROOT;
         String WRAPPER = u.PAGE_WRAPPER;
@@ -93,32 +93,32 @@ public class ReceiptViewVDom extends AbstractVDomView<ReceiptPresenter> {
         }
 
         // @formatter:off
-        return div(Css.ROOT).children(
-          div(Css.WRAPPER).children(
+        return div(Sel.ROOT).children(
+          div(Sel.WRAPPER).children(
             // Success banner
-            div(showSuccess ? Css.SUCCESS_VISIBLE : Css.HIDDEN).children(
-              span(Css.SUCCESS_ICON),
-              span(Css.SUCCESS_TEXT).text("Compra realizada com sucesso!")),
-            div(Css.CARD).children(
+            div(showSuccess ? Sel.SUCCESS_VISIBLE : Sel.HIDDEN).children(
+              span(Sel.SUCCESS_ICON),
+              span(Sel.SUCCESS_TEXT).text("Compra realizada com sucesso!")),
+            div(Sel.CARD).children(
               // Header
-              div(Css.HEADER_ROW).children(
-                div(Css.HEADER_ICON_BOX)
-                  .children(span(Css.HEADER_ICON)),
+              div(Sel.HEADER_ROW).children(
+                div(Sel.HEADER_ICON_BOX)
+                  .children(span(Sel.HEADER_ICON)),
                 div().children(
-                  h5(Css.HEADER_TITLE).text("Recibo de Compra"),
-                  span(Css.HEADER_SUBTITLE).text("WDC Shopping"))),
+                  h5(Sel.HEADER_TITLE).text("Recibo de Compra"),
+                  span(Sel.HEADER_SUBTITLE).text("WDC Shopping"))),
               // Receipt content (monospace)
-              div(Css.RECEIPT_BODY).children(
-                div(Css.DATE_ROW).children(
-                  span(Css.DATE_LABEL).text("Data:"),
-                  span(Css.DATE_VALUE).text(dateText)),
+              div(Sel.RECEIPT_BODY).children(
+                div(Sel.DATE_ROW).children(
+                  span(Sel.DATE_LABEL).text("Data:"),
+                  span(Sel.DATE_VALUE).text(dateText)),
                 renderItemsTable(items),
-                div(Css.TOTAL_ROW).children(
-                  span(Css.TOTAL_LABEL).text("TOTAL:"),
-                  span(Css.TOTAL_VALUE).text(totalText))),
+                div(Sel.TOTAL_ROW).children(
+                  span(Sel.TOTAL_LABEL).text("TOTAL:"),
+                  span(Sel.TOTAL_VALUE).text(totalText))),
               // Back button
-              spActionButton().cls(Css.BACK_BTN)
-                .children(span(CssIcons.ARROW_LEFT), span().text(" Voltar aos produtos"))
+              spActionButton().cls(Sel.BACK_BTN)
+                .children(span(SelIcons.ARROW_LEFT), span().text(" Voltar aos produtos"))
                 .on("click", onBack))));
         // @formatter:on
     }
@@ -126,10 +126,10 @@ public class ReceiptViewVDom extends AbstractVDomView<ReceiptPresenter> {
     private VNode renderItemsTable(List<ReceiptItem> items) {
         // @formatter:off
         return div().children(
-          div(Css.TABLE_HEADER).children(
-            span(Css.COL_ITEM).text("ITEM"),
-            span(Css.COL_QTY).text("QTD"),
-            span(Css.COL_VALUE).text("VALOR")),
+          div(Sel.TABLE_HEADER).children(
+            span(Sel.COL_ITEM).text("ITEM"),
+            span(Sel.COL_QTY).text("QTD"),
+            span(Sel.COL_VALUE).text("VALOR")),
           div().children(items.stream().map(this::renderItemRow).toList()));
         // @formatter:on
     }
@@ -140,10 +140,10 @@ public class ReceiptViewVDom extends AbstractVDomView<ReceiptPresenter> {
         var value = "R$ " + String.format("%.2f", item.value);
 
         // @formatter:off
-        return div(Css.ITEM_ROW).key(desc + qty).children(
-          span(Css.ITEM_DESC).text(desc),
-          span(Css.ITEM_QTY).text(qty),
-          span(Css.ITEM_VALUE).text(value));
+        return div(Sel.ITEM_ROW).key(desc + qty).children(
+          span(Sel.ITEM_DESC).text(desc),
+          span(Sel.ITEM_QTY).text(qty),
+          span(Sel.ITEM_VALUE).text(value));
         // @formatter:on
     }
 }

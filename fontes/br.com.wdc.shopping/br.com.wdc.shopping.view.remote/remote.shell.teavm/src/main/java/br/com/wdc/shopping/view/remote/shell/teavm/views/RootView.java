@@ -4,7 +4,7 @@ import static br.com.wdc.framework.vdom.Swc.spTheme;
 import static br.com.wdc.framework.vdom.VNode.clsx;
 import static br.com.wdc.framework.vdom.VNode.slot;
 
-import br.com.wdc.framework.vdom.CssUtility;
+import br.com.wdc.framework.vdom.SelUtility;
 import br.com.wdc.framework.vdom.VNode;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 
@@ -17,8 +17,8 @@ public class RootView extends AbstractRemoteView {
     public static final String VIEW_ID = "f2d345c4a610";
 
     @SuppressWarnings({ "java:S1214", "static-access" })
-    private interface Css {
-        CssUtility u = CssUtility.INSTANCE;
+    private interface Sel {
+        SelUtility u = SelUtility.INSTANCE;
 
         String ROOT = clsx(u.FLEX_COL, u.H_FULL, u.OVERFLOW_HIDDEN);
         String CONTENT = clsx(u.FLEX_COL, u.FLEX_GROW, u.MIN_H_0);
@@ -29,7 +29,7 @@ public class RootView extends AbstractRemoteView {
         getElement().setAttribute("color", "light");
         getElement().setAttribute("scale", "medium");
         getElement().setAttribute("system", "spectrum");
-        getElement().setAttribute("class", Css.ROOT);
+        getElement().setAttribute("class", Sel.ROOT);
     }
 
     @Override
@@ -39,8 +39,8 @@ public class RootView extends AbstractRemoteView {
         var contentEl = getChildViewElement(contentVsid);
 
         // @formatter:off
-        return spTheme("light", "medium", "spectrum").cls(Css.ROOT).children(
-          slot(contentEl).cls(Css.CONTENT));
+        return spTheme("light", "medium", "spectrum").cls(Sel.ROOT).children(
+          slot(contentEl).cls(Sel.CONTENT));
         // @formatter:on
     }
 }

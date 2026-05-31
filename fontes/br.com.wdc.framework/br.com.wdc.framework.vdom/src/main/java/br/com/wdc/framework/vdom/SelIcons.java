@@ -4,9 +4,9 @@ package br.com.wdc.framework.vdom;
  * Bootstrap Icons class name constants.
  */
 @SuppressWarnings("java:S1214")
-public interface CssIcons {
+public interface SelIcons {
 
-    CssIcons INSTANCE = new CssIcons() {};
+    SelIcons INSTANCE = new SelIcons() {};
 
     String ARROW_LEFT = "bi bi-arrow-left";
     String ARROW_REPEAT = "bi bi-arrow-repeat";

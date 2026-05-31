@@ -4,9 +4,9 @@ package br.com.wdc.framework.vdom;
  * Utility CSS class name constants. Single source of truth for reusable utility classes.
  */
 @SuppressWarnings("java:S1214")
-public interface CssUtility {
+public interface SelUtility {
 
-    CssUtility INSTANCE = new CssUtility() {
+    SelUtility INSTANCE = new SelUtility() {
     };
 
     // Layout

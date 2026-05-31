@@ -27,7 +27,7 @@ public class ProductsPanelView extends AbstractRemoteView {
     private static final int ON_OPEN_PRODUCT = 1;
 
     @SuppressWarnings("java:S1214")
-    private interface Css {
+    private interface Sel {
 
         String PANEL = "products-panel";
         String CARD_IMAGE_WRAP = "products-card-image-wrap";
@@ -57,7 +57,7 @@ public class ProductsPanelView extends AbstractRemoteView {
         var products = getProducts(scope);
 
         // @formatter:off
-        return div(Css.PANEL).children(
+        return div(Sel.PANEL).children(
           div("product-grid")
             .children(products.stream().map(this::renderCard).toList()));
         // @formatter:on
@@ -69,11 +69,11 @@ public class ProductsPanelView extends AbstractRemoteView {
         return div("product-card").key(key)
           .on("click", useCallback("open-" + key, mkOnOpenProduct(product.id())))
           .children(
-            div(Css.CARD_IMAGE_WRAP).children(
-              img().attr("alt", product.name()).attr("src", product.image()).cls(Css.CARD_IMAGE)),
-            div(Css.CARD_BODY).children(
-              p(Css.CARD_NAME).text(product.name()),
-              span(Css.CARD_PRICE).text(product.price())));
+            div(Sel.CARD_IMAGE_WRAP).children(
+              img().attr("alt", product.name()).attr("src", product.image()).cls(Sel.CARD_IMAGE)),
+            div(Sel.CARD_BODY).children(
+              p(Sel.CARD_NAME).text(product.name()),
+              span(Sel.CARD_PRICE).text(product.price())));
         // @formatter:on
     }
 

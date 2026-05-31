@@ -16,9 +16,9 @@ import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
-import br.com.wdc.framework.vdom.CssComponents;
-import br.com.wdc.framework.vdom.CssIcons;
-import br.com.wdc.framework.vdom.CssUtility;
+import br.com.wdc.framework.vdom.SelComponents;
+import br.com.wdc.framework.vdom.SelIcons;
+import br.com.wdc.framework.vdom.SelUtility;
 import br.com.wdc.framework.vdom.VNode;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.ViewScope;
@@ -36,10 +36,10 @@ public class CartView extends AbstractRemoteView {
     private static final int ON_MODIFY_QUANTITY = 4;
 
     @SuppressWarnings({ "java:S1214", "static-access" })
-    private interface Css {
-        CssUtility u = CssUtility.INSTANCE;
-        CssComponents c = CssComponents.INSTANCE;
-        CssIcons icon = CssIcons.INSTANCE;
+    private interface Sel {
+        SelUtility u = SelUtility.INSTANCE;
+        SelComponents c = SelComponents.INSTANCE;
+        SelIcons icon = SelIcons.INSTANCE;
 
         String ROOT = u.PAGE_SCROLL_ROOT;
         String WRAPPER = u.PAGE_WRAPPER;
@@ -47,13 +47,13 @@ public class CartView extends AbstractRemoteView {
         String CARD = c.CARD_PANEL;
         String HEADER_ROW = c.CARD_HEADER_ROW;
         String HEADER_ICON_BOX = c.CARD_HEADER_ICON_BOX;
-        String HEADER_ICON = clsx(icon.BAG, CssComponents.CARD_HEADER_ICON);
+        String HEADER_ICON = clsx(icon.BAG, SelComponents.CARD_HEADER_ICON);
         String HEADER_TITLE = c.CARD_HEADER_TITLE;
         String HEADER_SUBTITLE = c.CARD_HEADER_SUBTITLE;
         String ERROR_VISIBLE = clsx(c.ALERT_ERROR, u.MB_12);
         String ERROR_ICON = clsx(icon.EXCLAMATION_CIRCLE, c.ALERT_ERROR_ICON);
         String ERROR_TEXT = c.ALERT_ERROR_TEXT;
-        String EMPTY_STATE_48 = clsx(CssComponents.EMPTY_STATE, u.PY_48);
+        String EMPTY_STATE_48 = clsx(SelComponents.EMPTY_STATE, u.PY_48);
         String EMPTY_ICON_BOX = "cart-empty-icon-box";
         String EMPTY_ICON = clsx(icon.BAG, "cart-empty-icon");
         String EMPTY_TITLE = "cart-empty-title";
@@ -65,13 +65,13 @@ public class CartView extends AbstractRemoteView {
         String ITEM_ROW = "cart-item-row";
         String ITEM_NAME = "cart-item-name";
         String STEPPER_ROW = "cart-stepper-row";
-        String STEPPER_MINUS_ICON = clsx(CssIcons.DASH, "cart-stepper-icon");
-        String STEPPER_PLUS_ICON = clsx(CssIcons.PLUS, "cart-stepper-icon");
+        String STEPPER_MINUS_ICON = clsx(SelIcons.DASH, "cart-stepper-icon");
+        String STEPPER_PLUS_ICON = clsx(SelIcons.PLUS, "cart-stepper-icon");
         String STEPPER_VALUE = "cart-stepper-value";
         String ITEM_SUBTOTAL = "cart-item-subtotal";
-        String REMOVE_ICON = clsx(CssIcons.X_LG, "cart-remove-icon");
-        String ICON_VIEW_PRODUCTS = clsx(CssIcons.GRID_3X3_GAP, u.MR_6);
-        String ICON_FINALIZE = clsx(CssIcons.CHECK2_CIRCLE, u.MR_6);
+        String REMOVE_ICON = clsx(SelIcons.X_LG, "cart-remove-icon");
+        String ICON_VIEW_PRODUCTS = clsx(SelIcons.GRID_3X3_GAP, u.MR_6);
+        String ICON_FINALIZE = clsx(SelIcons.CHECK2_CIRCLE, u.MR_6);
     }
 
     record Item(Long id, String name, Double price, Integer qty) {}
@@ -111,19 +111,19 @@ public class CartView extends AbstractRemoteView {
         var totalText = "R$ " + String.format("%.2f", totalCost);
 
         // @formatter:off
-        return div(Css.ROOT).children(
-          div(Css.WRAPPER).children(
-            div(Css.CARD).children(
-              div(Css.HEADER_ROW).children(
-                div(Css.HEADER_ICON_BOX).children(
-                  span(Css.HEADER_ICON)),
+        return div(Sel.ROOT).children(
+          div(Sel.WRAPPER).children(
+            div(Sel.CARD).children(
+              div(Sel.HEADER_ROW).children(
+                div(Sel.HEADER_ICON_BOX).children(
+                  span(Sel.HEADER_ICON)),
                 div().children(
-                  h5(Css.HEADER_TITLE).text("Carrinho"),
-                  span(Css.HEADER_SUBTITLE).text("Seus produtos selecionados"))),
+                  h5(Sel.HEADER_TITLE).text("Carrinho"),
+                  span(Sel.HEADER_SUBTITLE).text("Seus produtos selecionados"))),
               // Error
-              div(showError ? Css.ERROR_VISIBLE : Css.HIDDEN).children(
-                span(Css.ERROR_ICON),
-                span(Css.ERROR_TEXT).text(errorMessage != null ? errorMessage : "")),
+              div(showError ? Sel.ERROR_VISIBLE : Sel.HIDDEN).children(
+                span(Sel.ERROR_ICON),
+                span(Sel.ERROR_TEXT).text(errorMessage != null ? errorMessage : "")),
               // Empty state
               renderEmptyState(empty),
               // Content
@@ -133,31 +133,31 @@ public class CartView extends AbstractRemoteView {
 
     private VNode renderEmptyState(boolean empty) {
         // @formatter:off
-        return div(empty ? Css.EMPTY_STATE_48 : Css.HIDDEN).children(
-          div(Css.EMPTY_ICON_BOX).children(
-            span(Css.EMPTY_ICON)),
-          p(Css.EMPTY_TITLE).text("Carrinho vazio"),
-          p(Css.EMPTY_SUBTITLE).text("Adicione produtos para começar"),
+        return div(empty ? Sel.EMPTY_STATE_48 : Sel.HIDDEN).children(
+          div(Sel.EMPTY_ICON_BOX).children(
+            span(Sel.EMPTY_ICON)),
+          p(Sel.EMPTY_TITLE).text("Carrinho vazio"),
+          p(Sel.EMPTY_SUBTITLE).text("Adicione produtos para começar"),
           spButton("accent")
-            .children(span(Css.ICON_VIEW_PRODUCTS), span().text("Ver produtos"))
+            .children(span(Sel.ICON_VIEW_PRODUCTS), span().text("Ver produtos"))
             .on("click", onBack));
         // @formatter:on
     }
 
     private VNode renderContent(List<Item> items, boolean empty, String totalText) {
         // @formatter:off
-        return div(empty ? Css.HIDDEN : "").children(
+        return div(empty ? Sel.HIDDEN : "").children(
           div().children(items.stream().map(this::renderItem).toList()),
-          div(Css.FOOTER).children(
-            span(Css.FOOTER_LABEL).text("Total: "),
-            span(Css.FOOTER_TOTAL).text(totalText)),
-          div(Css.ACTIONS_ROW).children(
+          div(Sel.FOOTER).children(
+            span(Sel.FOOTER_LABEL).text("Total: "),
+            span(Sel.FOOTER_TOTAL).text(totalText)),
+          div(Sel.ACTIONS_ROW).children(
             spActionButton()
-              .children(span(CssIcons.ARROW_LEFT), span().text(" Continuar comprando"))
+              .children(span(SelIcons.ARROW_LEFT), span().text(" Continuar comprando"))
               .on("click", onBack),
             spButton("accent", "l")
               .boolAttr("disabled", empty)
-              .children(span(Css.ICON_FINALIZE), span().text("Finalizar pedido"))
+              .children(span(Sel.ICON_FINALIZE), span().text("Finalizar pedido"))
               .on("click", onBuy)));
         // @formatter:on
     }
@@ -167,21 +167,21 @@ public class CartView extends AbstractRemoteView {
         var key = item.id.toString();
 
         // @formatter:off
-        return div(Css.ITEM_ROW).key(key).children(
-          span(Css.ITEM_NAME).text(item.name),
+        return div(Sel.ITEM_ROW).key(key).children(
+          span(Sel.ITEM_NAME).text(item.name),
           // Quantity stepper
-          div(Css.STEPPER_ROW).children(
+          div(Sel.STEPPER_ROW).children(
             spActionButton("s")
-              .children(span(Css.STEPPER_MINUS_ICON))
+              .children(span(Sel.STEPPER_MINUS_ICON))
               .on("click", useCallback("minus-" + key + "-" + item.qty, mkOnModifyQuantity(item.id, item.qty - 1))),
-            span(Css.STEPPER_VALUE).text(String.valueOf(item.qty)),
+            span(Sel.STEPPER_VALUE).text(String.valueOf(item.qty)),
             spActionButton("s")
-              .children(span(Css.STEPPER_PLUS_ICON))
+              .children(span(Sel.STEPPER_PLUS_ICON))
               .on("click", useCallback("plus-" + key + "-" + item.qty, mkOnModifyQuantity(item.id, item.qty + 1)))),
-          span(Css.ITEM_SUBTOTAL).text(subtotal),
+          span(Sel.ITEM_SUBTOTAL).text(subtotal),
           // Remove button
           spActionButton("s")
-            .children(span(Css.REMOVE_ICON))
+            .children(span(Sel.REMOVE_ICON))
             .on("click", useCallback("remove-" + key, mkOnRemove(item.id))));
         // @formatter:on
     }

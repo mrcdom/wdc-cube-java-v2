@@ -15,9 +15,9 @@ import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
-import br.com.wdc.framework.vdom.CssComponents;
-import br.com.wdc.framework.vdom.CssIcons;
-import br.com.wdc.framework.vdom.CssUtility;
+import br.com.wdc.framework.vdom.SelComponents;
+import br.com.wdc.framework.vdom.SelIcons;
+import br.com.wdc.framework.vdom.SelUtility;
 import br.com.wdc.framework.vdom.VNode;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.ViewScope;
@@ -33,10 +33,10 @@ public class ProductView extends AbstractRemoteView {
     private static final int ON_ADD_TO_CART = 2;
 
     @SuppressWarnings({ "java:S1214", "static-access" })
-    private interface Css {
-        CssUtility u = CssUtility.INSTANCE;
-        CssComponents c = CssComponents.INSTANCE;
-        CssIcons icon = CssIcons.INSTANCE;
+    private interface Sel {
+        SelUtility u = SelUtility.INSTANCE;
+        SelComponents c = SelComponents.INSTANCE;
+        SelIcons icon = SelIcons.INSTANCE;
 
         String ROOT = u.PAGE_SCROLL_ROOT;
         String WRAPPER = u.PAGE_WRAPPER;
@@ -96,13 +96,13 @@ public class ProductView extends AbstractRemoteView {
         var product = getProduct(scope);
 
         // @formatter:off
-        return div(Css.ROOT).children(
-          div(Css.WRAPPER).children(
-            h5(Css.TITLE).text(product.name()),
-            spDivider("s").cls(Css.DIVIDER),
+        return div(Sel.ROOT).children(
+          div(Sel.WRAPPER).children(
+            h5(Sel.TITLE).text(product.name()),
+            spDivider("s").cls(Sel.DIVIDER),
             // Description card
-            div(Css.DESC_CARD).children(
-              div(Css.DESC_TEXT)
+            div(Sel.DESC_CARD).children(
+              div(Sel.DESC_TEXT)
                 .ref(el -> {
                     if (!product.description().equals(this.currentDescription)) {
                         el.setInnerHTML(product.description());
@@ -110,32 +110,32 @@ public class ProductView extends AbstractRemoteView {
                     }
                 })),
             // Price + Image row
-            div(Css.PRICE_IMAGE_ROW).children(
-              div(Css.PRICE_COL).children(
-                span(Css.PRICE_BADGE).text(product.price()),
-                div(Css.QTY_ROW).children(
-                  span(Css.QTY_LABEL).text("Qtd:"),
+            div(Sel.PRICE_IMAGE_ROW).children(
+              div(Sel.PRICE_COL).children(
+                span(Sel.PRICE_BADGE).text(product.price()),
+                div(Sel.QTY_ROW).children(
+                  span(Sel.QTY_LABEL).text("Qtd:"),
                   spActionButton("s")
-                    .children(span(CssIcons.DASH))
+                    .children(span(SelIcons.DASH))
                     .on("click", onDecrement),
-                  span(Css.QTY_VALUE).text(String.valueOf(this.quantity)),
+                  span(Sel.QTY_VALUE).text(String.valueOf(this.quantity)),
                   spActionButton("s")
-                    .children(span(CssIcons.PLUS))
+                    .children(span(SelIcons.PLUS))
                     .on("click", onIncrement))),
-              div(Css.IMAGE_BOX).children(
-                img().attr("alt", product.name()).attr("src", product.image()).cls(Css.IMAGE))),
+              div(Sel.IMAGE_BOX).children(
+                img().attr("alt", product.name()).attr("src", product.image()).cls(Sel.IMAGE))),
             // Action buttons
-            div(Css.ACTIONS_ROW).children(
+            div(Sel.ACTIONS_ROW).children(
               spActionButton()
-                .children(span(CssIcons.ARROW_LEFT), span().text(" Voltar"))
+                .children(span(SelIcons.ARROW_LEFT), span().text(" Voltar"))
                 .on("click", onBack),
               spButton("accent", "l")
-                .children(span(Css.ICON_ADD_CART), span().text("Adicionar ao Carrinho"))
+                .children(span(Sel.ICON_ADD_CART), span().text("Adicionar ao Carrinho"))
                 .on("click", onAddToCart))),
           // Error
-          div(showError ? Css.ERROR_VISIBLE : Css.HIDDEN).children(
-            span(Css.ERROR_ICON),
-            span(Css.ERROR_TEXT).text(errorMessage != null ? errorMessage : "")));
+          div(showError ? Sel.ERROR_VISIBLE : Sel.HIDDEN).children(
+            span(Sel.ERROR_ICON),
+            span(Sel.ERROR_TEXT).text(errorMessage != null ? errorMessage : "")));
         // @formatter:on
     }
 

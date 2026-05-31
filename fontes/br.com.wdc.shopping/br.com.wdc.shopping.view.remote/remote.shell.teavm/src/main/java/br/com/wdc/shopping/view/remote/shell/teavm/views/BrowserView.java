@@ -6,7 +6,7 @@ import static br.com.wdc.framework.vdom.VNode.slot;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.dom.html.HTMLDocument;
 
-import br.com.wdc.framework.vdom.CssUtility;
+import br.com.wdc.framework.vdom.SelUtility;
 import br.com.wdc.framework.vdom.VNode;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.ViewStateCoordinator;
@@ -20,8 +20,8 @@ public class BrowserView extends AbstractRemoteView {
     public static final String VIEW_ID = ViewStateCoordinator.BROWSER_VID;
 
     @SuppressWarnings({"java:S1214", "static-access"})
-    private interface Css extends CssUtility {
-        CssUtility u = CssUtility.INSTANCE;
+    private interface Sel extends SelUtility {
+        SelUtility u = SelUtility.INSTANCE;
 
         String HIDDEN = u.HIDDEN;
         String HOST = "browser-host";
@@ -34,7 +34,7 @@ public class BrowserView extends AbstractRemoteView {
 
     public BrowserView(String vsid) {
         super(vsid);
-        getElement().setAttribute("class", Css.HOST);
+        getElement().setAttribute("class", Sel.HOST);
     }
 
     @Override
@@ -59,9 +59,9 @@ public class BrowserView extends AbstractRemoteView {
                 || scope.getBoolean("submitting");
 
         // @formatter:off
-        return div(Css.CONTAINER).children(
-          div(submitting ? Css.LOADING_BAR : Css.HIDDEN),
-          slot(Css.CONTENT, contentEl));
+        return div(Sel.CONTAINER).children(
+          div(submitting ? Sel.LOADING_BAR : Sel.HIDDEN),
+          slot(Sel.CONTENT, contentEl));
         // @formatter:on
     }
 }

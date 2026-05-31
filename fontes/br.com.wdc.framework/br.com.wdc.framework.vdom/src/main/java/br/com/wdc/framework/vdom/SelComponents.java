@@ -5,9 +5,9 @@ package br.com.wdc.framework.vdom;
  * multiple views.
  */
 @SuppressWarnings("java:S1214")
-public interface CssComponents {
+public interface SelComponents {
 
-    CssComponents INSTANCE = new CssComponents() {
+    SelComponents INSTANCE = new SelComponents() {
     };
 
     // Alert

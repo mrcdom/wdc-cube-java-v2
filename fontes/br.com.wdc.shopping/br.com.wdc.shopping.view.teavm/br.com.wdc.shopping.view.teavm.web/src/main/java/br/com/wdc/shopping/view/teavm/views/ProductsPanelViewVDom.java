@@ -17,7 +17,7 @@ import br.com.wdc.framework.vdom.VNode;
 public class ProductsPanelViewVDom extends AbstractVDomView<ProductsPanelPresenter> {
 
     @SuppressWarnings("java:S1214")
-    private interface Css {
+    private interface Sel {
 
         String PANEL = "products-panel";
         String CARD_IMAGE_WRAP = "products-card-image-wrap";
@@ -43,7 +43,7 @@ public class ProductsPanelViewVDom extends AbstractVDomView<ProductsPanelPresent
         var products = this.state.products;
 
         // @formatter:off
-        return div(Css.PANEL).children(
+        return div(Sel.PANEL).children(
           div("product-grid")
             .children(products != null ? products.stream().map(this::renderCard).toList() : List.of()));
         // @formatter:on
@@ -59,11 +59,11 @@ public class ProductsPanelViewVDom extends AbstractVDomView<ProductsPanelPresent
         return div("product-card").key(key)
           .on("click", useCallback("open-" + key, mkOnOpenProduct(product.id)))
           .children(
-            div(Css.CARD_IMAGE_WRAP).children(
-              img().attr("alt", name).attr("src", imageUrl).cls(Css.CARD_IMAGE)),
-            div(Css.CARD_BODY).children(
-              p(Css.CARD_NAME).text(name),
-              span(Css.CARD_PRICE).text(price)));
+            div(Sel.CARD_IMAGE_WRAP).children(
+              img().attr("alt", name).attr("src", imageUrl).cls(Sel.CARD_IMAGE)),
+            div(Sel.CARD_BODY).children(
+              p(Sel.CARD_NAME).text(name),
+              span(Sel.CARD_PRICE).text(price)));
         // @formatter:on
     }
 }

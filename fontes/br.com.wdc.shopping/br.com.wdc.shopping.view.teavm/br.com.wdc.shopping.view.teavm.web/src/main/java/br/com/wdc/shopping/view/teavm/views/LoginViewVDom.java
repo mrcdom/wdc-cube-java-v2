@@ -13,9 +13,9 @@ import org.teavm.jso.dom.events.EventListener;
 import org.teavm.jso.dom.events.KeyboardEvent;
 import org.teavm.jso.dom.html.HTMLInputElement;
 
-import br.com.wdc.framework.vdom.CssComponents;
-import br.com.wdc.framework.vdom.CssIcons;
-import br.com.wdc.framework.vdom.CssUtility;
+import br.com.wdc.framework.vdom.SelComponents;
+import br.com.wdc.framework.vdom.SelIcons;
+import br.com.wdc.framework.vdom.SelUtility;
 import br.com.wdc.framework.vdom.VNode;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginViewState;
@@ -28,10 +28,10 @@ import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
 public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
 
     @SuppressWarnings({"java:S1214", "static-access"})
-    private interface Css {
-        CssUtility u = CssUtility.INSTANCE;
-        CssComponents c = CssComponents.INSTANCE;
-        CssIcons icon = CssIcons.INSTANCE;
+    private interface Sel {
+        SelUtility u = SelUtility.INSTANCE;
+        SelComponents c = SelComponents.INSTANCE;
+        SelIcons icon = SelIcons.INSTANCE;
 
         String LOGIN_ROOT = "login-root";
         String LEFT_PANEL = clsx(u.MD_SHOW, "login-left-panel");
@@ -105,79 +105,79 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
         }
 
         // @formatter:off
-        return div(Css.LOGIN_ROOT).children(
+        return div(Sel.LOGIN_ROOT).children(
           // Left decorative panel (hidden on mobile)
-          div(Css.LEFT_PANEL).children(
-            div(Css.DECO_CIRCLE_1),
-            div(Css.DECO_CIRCLE_2),
-            div(Css.DECO_CIRCLE_3),
-            div(Css.CONTENT_CENTER).children(
-              div(Css.LOGO_BOX_LG)
-                .children(span(Css.ICON_LG)),
-              div(Css.TITLE_LG).children(textNode("WDC Shopping")),
-              div(Css.SUBTITLE_LG).children(textNode("Sua compra certa na internet.")),
-              div(Css.FEATURES_LIST).children(
-                renderFeature(CssIcons.SHIELD_CHECK, "Compra segura"),
-                renderFeature(CssIcons.TRUCK, "Entrega rápida"),
-                renderFeature(CssIcons.ARROW_REPEAT, "Troca garantida")))),
+          div(Sel.LEFT_PANEL).children(
+            div(Sel.DECO_CIRCLE_1),
+            div(Sel.DECO_CIRCLE_2),
+            div(Sel.DECO_CIRCLE_3),
+            div(Sel.CONTENT_CENTER).children(
+              div(Sel.LOGO_BOX_LG)
+                .children(span(Sel.ICON_LG)),
+              div(Sel.TITLE_LG).children(textNode("WDC Shopping")),
+              div(Sel.SUBTITLE_LG).children(textNode("Sua compra certa na internet.")),
+              div(Sel.FEATURES_LIST).children(
+                renderFeature(SelIcons.SHIELD_CHECK, "Compra segura"),
+                renderFeature(SelIcons.TRUCK, "Entrega rápida"),
+                renderFeature(SelIcons.ARROW_REPEAT, "Troca garantida")))),
           // Right: form panel
-          div(Css.FORM_PANEL).children(
-            div(Css.FORM_CONTENT).children(
+          div(Sel.FORM_PANEL).children(
+            div(Sel.FORM_CONTENT).children(
               // Mobile-only logo
-              div(Css.MOBILE_LOGO_BG).children(
-                div(Css.MOBILE_CIRCLE_1),
-                div(Css.MOBILE_CIRCLE_2),
-                div(Css.MOBILE_CONTENT).children(
-                  div(Css.LOGO_BOX_SM)
-                    .children(span(Css.ICON_SM)),
-                  div(Css.MOBILE_TITLE).children(textNode("WDC Shopping")),
-                  div(Css.MOBILE_SUBTITLE).children(textNode("Sua compra certa na internet.")))),
+              div(Sel.MOBILE_LOGO_BG).children(
+                div(Sel.MOBILE_CIRCLE_1),
+                div(Sel.MOBILE_CIRCLE_2),
+                div(Sel.MOBILE_CONTENT).children(
+                  div(Sel.LOGO_BOX_SM)
+                    .children(span(Sel.ICON_SM)),
+                  div(Sel.MOBILE_TITLE).children(textNode("WDC Shopping")),
+                  div(Sel.MOBILE_SUBTITLE).children(textNode("Sua compra certa na internet.")))),
               // Welcome text
-              div(Css.WELCOME_WRAP).children(
-                div(Css.WELCOME_TITLE).children(textNode("Bem-vindo")),
-                div(Css.WELCOME_SUBTITLE).children(textNode("Entre com suas credenciais para continuar"))),
+              div(Sel.WELCOME_WRAP).children(
+                div(Sel.WELCOME_TITLE).children(textNode("Bem-vindo")),
+                div(Sel.WELCOME_SUBTITLE).children(textNode("Entre com suas credenciais para continuar"))),
               // Error alert
-              div(showError ? Css.ERROR_VISIBLE : Css.HIDDEN).children(
-                span(Css.ERROR_ICON),
-                span(Css.ERROR_TEXT).text(errorMessage)),
+              div(showError ? Sel.ERROR_VISIBLE : Sel.HIDDEN).children(
+                span(Sel.ERROR_ICON),
+                span(Sel.ERROR_TEXT).text(errorMessage)),
               // User field
-              spFieldLabel("login-user", "Usuário").cls(Css.FIELD_LABEL),
+              spFieldLabel("login-user", "Usuário").cls(Sel.FIELD_LABEL),
               spTextField("Digite seu usuário")
                 .attr("id", "login-user")
                 .attr("autocomplete", "off")
                 .boolAttr("disabled", loading)
-                .cls(Css.USER_FIELD)
+                .cls(Sel.USER_FIELD)
                 .ref(el -> this.userNameField = (HTMLInputElement) el),
               // Password field
-              spFieldLabel("login-pass", "Senha").cls(Css.FIELD_LABEL),
+              spFieldLabel("login-pass", "Senha").cls(Sel.FIELD_LABEL),
               spTextField("Digite sua senha", "password")
                 .attr("id", "login-pass")
                 .attr("autocomplete", "off")
                 .boolAttr("disabled", loading)
-                .cls(Css.PASSWORD_FIELD)
+                .cls(Sel.PASSWORD_FIELD)
                 .on("keydown", onKeyDown)
                 .ref(el -> this.passwordField = (HTMLInputElement) el),
               // Enter button
               spButton("accent", "l")
                 .boolAttr("disabled", loading)
                 .boolAttr("pending", loading)
-                .cls(Css.ENTER_BUTTON)
+                .cls(Sel.ENTER_BUTTON)
                 .on("click", onClickEnter)
                 .children(textNode(loading ? "Entrando..." : "Entrar")),
               // Demo hint
-              div(Css.DEMO_HINT).children(
-                span(Css.DEMO_TEXT).text("Acesso demo: "),
-                span(Css.DEMO_HIGHLIGHT).text("admin"),
-                span(Css.DEMO_TEXT).text(" / "),
-                span(Css.DEMO_HIGHLIGHT).text("admin")))));
+              div(Sel.DEMO_HINT).children(
+                span(Sel.DEMO_TEXT).text("Acesso demo: "),
+                span(Sel.DEMO_HIGHLIGHT).text("admin"),
+                span(Sel.DEMO_TEXT).text(" / "),
+                span(Sel.DEMO_HIGHLIGHT).text("admin")))));
         // @formatter:on
     }
 
     private VNode renderFeature(String icon, String text) {
         // @formatter:off
-        return div(Css.FEATURE_ROW).children(
-          span(clsx(icon, Css.FEATURE_ICON)),
-          span(Css.FEATURE_TEXT).text(text));
+        return div(Sel.FEATURE_ROW).children(
+          span(clsx(icon, Sel.FEATURE_ICON)),
+          span(Sel.FEATURE_TEXT).text(text));
         // @formatter:on
     }
 

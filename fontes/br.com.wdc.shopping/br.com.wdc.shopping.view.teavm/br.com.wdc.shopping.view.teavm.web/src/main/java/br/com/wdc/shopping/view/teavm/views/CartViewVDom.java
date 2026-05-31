@@ -13,9 +13,9 @@ import java.util.List;
 import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
 
-import br.com.wdc.framework.vdom.CssComponents;
-import br.com.wdc.framework.vdom.CssIcons;
-import br.com.wdc.framework.vdom.CssUtility;
+import br.com.wdc.framework.vdom.SelComponents;
+import br.com.wdc.framework.vdom.SelIcons;
+import br.com.wdc.framework.vdom.SelUtility;
 import br.com.wdc.framework.vdom.VNode;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartViewState;
@@ -26,10 +26,10 @@ import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
 public class CartViewVDom extends AbstractVDomView<CartPresenter> {
 
     @SuppressWarnings({"java:S1214", "static-access"})
-    private interface Css {
-        CssUtility u = CssUtility.INSTANCE;
-        CssComponents c = CssComponents.INSTANCE;
-        CssIcons icon = CssIcons.INSTANCE;
+    private interface Sel {
+        SelUtility u = SelUtility.INSTANCE;
+        SelComponents c = SelComponents.INSTANCE;
+        SelIcons icon = SelIcons.INSTANCE;
 
         String ROOT = u.PAGE_SCROLL_ROOT;
         String WRAPPER = u.PAGE_WRAPPER;
@@ -104,20 +104,20 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
         var totalText = "R$ " + String.format("%.2f", totalCost);
 
         // @formatter:off
-        return div(Css.ROOT).children(
-          div(Css.WRAPPER).children(
-            div(Css.CARD).children(
+        return div(Sel.ROOT).children(
+          div(Sel.WRAPPER).children(
+            div(Sel.CARD).children(
               // Title row
-              div(Css.HEADER_ROW).children(
-                div(Css.HEADER_ICON_BOX)
-                  .children(span(Css.HEADER_ICON)),
+              div(Sel.HEADER_ROW).children(
+                div(Sel.HEADER_ICON_BOX)
+                  .children(span(Sel.HEADER_ICON)),
                 div().children(
-                  h5(Css.HEADER_TITLE).text("Carrinho"),
-                  span(Css.HEADER_SUBTITLE).text("Seus produtos selecionados"))),
+                  h5(Sel.HEADER_TITLE).text("Carrinho"),
+                  span(Sel.HEADER_SUBTITLE).text("Seus produtos selecionados"))),
               // Error
-              div(showError ? Css.ERROR_VISIBLE : Css.HIDDEN).children(
-                span(Css.ERROR_ICON),
-                span(Css.ERROR_TEXT).text(errorMessage)),
+              div(showError ? Sel.ERROR_VISIBLE : Sel.HIDDEN).children(
+                span(Sel.ERROR_ICON),
+                span(Sel.ERROR_TEXT).text(errorMessage)),
               // Empty cart state
               renderEmptyState(empty),
               // Cart content
@@ -127,34 +127,34 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
 
     private VNode renderEmptyState(boolean empty) {
         // @formatter:off
-        return div(empty ? Css.EMPTY_STATE : Css.HIDDEN).children(
-          div(Css.EMPTY_ICON_BOX)
-            .children(span(Css.EMPTY_ICON)),
-          p(Css.EMPTY_TITLE).text("Carrinho vazio"),
-          p(Css.EMPTY_SUBTITLE).text("Adicione produtos para começar"),
+        return div(empty ? Sel.EMPTY_STATE : Sel.HIDDEN).children(
+          div(Sel.EMPTY_ICON_BOX)
+            .children(span(Sel.EMPTY_ICON)),
+          p(Sel.EMPTY_TITLE).text("Carrinho vazio"),
+          p(Sel.EMPTY_SUBTITLE).text("Adicione produtos para começar"),
           spButton("accent")
-            .children(span(Css.ICON_VIEW_PRODUCTS), span().text("Ver produtos"))
+            .children(span(Sel.ICON_VIEW_PRODUCTS), span().text("Ver produtos"))
             .on("click", onBack));
         // @formatter:on
     }
 
     private VNode renderContent(List<CartItem> items, boolean empty, String totalText) {
         // @formatter:off
-        return div(empty ? Css.HIDDEN : "").children(
+        return div(empty ? Sel.HIDDEN : "").children(
           // Items list
           div().children(items != null ? items.stream().map(this::renderItem).toList() : List.of()),
           // Footer
-          div(Css.FOOTER).children(
-            span(Css.FOOTER_LABEL).text("Total: "),
-            span(Css.FOOTER_TOTAL).text(totalText)),
+          div(Sel.FOOTER).children(
+            span(Sel.FOOTER_LABEL).text("Total: "),
+            span(Sel.FOOTER_TOTAL).text(totalText)),
           // Actions
-          div(Css.ACTIONS_ROW).children(
+          div(Sel.ACTIONS_ROW).children(
             spActionButton()
-              .children(span(CssIcons.ARROW_LEFT), span().text(" Continuar comprando"))
+              .children(span(SelIcons.ARROW_LEFT), span().text(" Continuar comprando"))
               .on("click", onBack),
             spButton("accent", "l")
               .boolAttr("disabled", empty)
-              .children(span(Css.ICON_FINALIZE), span().text("Finalizar pedido"))
+              .children(span(Sel.ICON_FINALIZE), span().text("Finalizar pedido"))
               .on("click", onBuy)));
         // @formatter:on
     }
@@ -165,22 +165,22 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
         var key = String.valueOf(item.id);
 
         // @formatter:off
-        return div(Css.ITEM_ROW).key(key).children(
-          span(Css.ITEM_NAME).text(name),
+        return div(Sel.ITEM_ROW).key(key).children(
+          span(Sel.ITEM_NAME).text(name),
           // Quantity stepper
-          div(Css.STEPPER_ROW).children(
+          div(Sel.STEPPER_ROW).children(
             spActionButton("s")
-              .children(span(Css.STEPPER_MINUS_ICON))
+              .children(span(Sel.STEPPER_MINUS_ICON))
               .on("click", useCallback("minus-" + key + "-" + item.quantity, mkOnModifyQuantity(item.id, item.quantity - 1))),
-            span(Css.STEPPER_VALUE).text(String.valueOf(item.quantity)),
+            span(Sel.STEPPER_VALUE).text(String.valueOf(item.quantity)),
             spActionButton("s")
-              .children(span(Css.STEPPER_PLUS_ICON))
+              .children(span(Sel.STEPPER_PLUS_ICON))
               .on("click", useCallback("plus-" + key + "-" + item.quantity, mkOnModifyQuantity(item.id, item.quantity + 1)))),
           // Subtotal
-          span(Css.ITEM_SUBTOTAL).text(subtotal),
+          span(Sel.ITEM_SUBTOTAL).text(subtotal),
           // Remove button
           spActionButton("s")
-            .children(span(Css.REMOVE_ICON))
+            .children(span(Sel.REMOVE_ICON))
             .on("click", useCallback("remove-" + key, mkOnRemove(item.id))));
         // @formatter:on
     }
