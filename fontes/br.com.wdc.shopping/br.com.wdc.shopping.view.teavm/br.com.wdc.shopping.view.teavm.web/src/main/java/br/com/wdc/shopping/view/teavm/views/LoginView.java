@@ -19,7 +19,7 @@ import br.com.wdc.framework.vdom.SelUtility;
 import br.com.wdc.framework.vdom.VNode;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginViewState;
-import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
+import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
 
 /**

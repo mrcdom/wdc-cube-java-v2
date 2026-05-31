@@ -20,8 +20,7 @@ import br.com.wdc.framework.vdom.VNode;
 import br.com.wdc.shopping.presentation.presenter.Routes;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeViewState;
-import br.com.wdc.shopping.view.teavm.AbstractViewTeaVM;
-import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
+import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
 
 public class HomeView extends AbstractVDomView<HomePresenter> {

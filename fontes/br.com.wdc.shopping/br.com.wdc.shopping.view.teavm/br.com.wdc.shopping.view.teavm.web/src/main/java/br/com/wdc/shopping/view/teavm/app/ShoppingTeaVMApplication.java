@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.teavm;
+package br.com.wdc.shopping.view.teavm.app;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,6 +30,12 @@ import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.Purc
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
 import br.com.wdc.shopping.view.teavm.interop.Console;
+import br.com.wdc.shopping.view.teavm.infra.BrowserCryptoProvider;
+import br.com.wdc.shopping.view.teavm.infra.BrowserSessionStorage;
+import br.com.wdc.shopping.view.teavm.infra.FetchHttpTransport;
+import br.com.wdc.shopping.view.teavm.infra.IntentSigner;
+import br.com.wdc.shopping.view.teavm.infra.ScheduledExecutorBrowser;
+import br.com.wdc.shopping.view.teavm.views.AbstractViewTeaVM;
 import br.com.wdc.shopping.view.teavm.repo.TeaVMAuthenticationService;
 import br.com.wdc.shopping.view.teavm.repo.TeaVMRepositoryBootstrap;
 import br.com.wdc.shopping.view.teavm.views.CartView;
@@ -129,7 +135,7 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
     /**
      * Marca uma view como dirty para re-render no próximo frame.
      */
-    void markDirty(AbstractViewTeaVM<?> view) {
+    public void markDirty(AbstractViewTeaVM<?> view) {
         long now = System.currentTimeMillis();
         if (view.dirtyTimestamp < now) {
             view.dirtyTimestamp = now;

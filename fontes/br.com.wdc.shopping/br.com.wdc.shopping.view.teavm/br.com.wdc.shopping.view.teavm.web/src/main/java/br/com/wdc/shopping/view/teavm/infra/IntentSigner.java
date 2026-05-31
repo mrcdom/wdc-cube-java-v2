@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.teavm;
+package br.com.wdc.shopping.view.teavm.infra;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -14,18 +14,18 @@ import br.com.wdc.shopping.domain.security.CryptoProvider;
  * <p>
  * Formato: {@code intent&s=<base62_signature>} (ex: {@code home?userId=0&s=3kTm8Gx2Rn1})
  */
-class IntentSigner {
+public class IntentSigner {
 
     private static final String SIGN_PARAM = "s";
     private static final int TRUNCATE_BYTES = 8; // 8 bytes → ~11 chars Base62 (2^64 combinations)
 
     private final byte[] secret;
 
-    IntentSigner(byte[] secret) {
+    public IntentSigner(byte[] secret) {
         this.secret = secret;
     }
 
-    String sign(String intentStr) {
+    public String sign(String intentStr) {
         var signature = computeSignature(intentStr);
         if (intentStr.contains("?")) {
             return intentStr + "&" + SIGN_PARAM + "=" + signature;
@@ -34,7 +34,7 @@ class IntentSigner {
         }
     }
 
-    boolean verify(String signedIntentStr) {
+    public boolean verify(String signedIntentStr) {
         var signIdx = signedIntentStr.lastIndexOf(SIGN_PARAM + "=");
         if (signIdx < 0) {
             return false;
@@ -52,7 +52,7 @@ class IntentSigner {
         return constantTimeEquals(expectedSignature, actualSignature);
     }
 
-    String stripSignature(String signedIntentStr) {
+    public String stripSignature(String signedIntentStr) {
         var signIdx = signedIntentStr.lastIndexOf(SIGN_PARAM + "=");
         if (signIdx < 0) {
             return signedIntentStr;

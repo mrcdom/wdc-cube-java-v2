@@ -10,7 +10,7 @@ import org.teavm.jso.dom.events.EventListener;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter.ProductsPanelViewState;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
-import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
+import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
 import br.com.wdc.framework.vdom.VNode;
 

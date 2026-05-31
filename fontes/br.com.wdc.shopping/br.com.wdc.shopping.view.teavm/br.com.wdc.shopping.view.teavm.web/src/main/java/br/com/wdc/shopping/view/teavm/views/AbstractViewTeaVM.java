@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.teavm;
+package br.com.wdc.shopping.view.teavm.views;
 
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -8,6 +8,7 @@ import org.teavm.jso.dom.html.HTMLElement;
 
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.CubeView;
+import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
 
 /**
  * Classe base para todas as views TeaVM.
@@ -22,7 +23,7 @@ public abstract class AbstractViewTeaVM<P> implements CubeView {
     protected final P presenter;
     protected final HTMLElement element;
     protected boolean notRendered = true;
-    long dirtyTimestamp;
+    public long dirtyTimestamp;
 
     protected AbstractViewTeaVM(String instanceId, ShoppingTeaVMApplication app, P presenter, HTMLElement element) {
         this.instanceId = instanceId;

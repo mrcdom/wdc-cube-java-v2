@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.teavm;
+package br.com.wdc.shopping.view.teavm.infra;
 
 import java.time.Duration;
 

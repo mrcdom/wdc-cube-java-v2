@@ -19,7 +19,7 @@ import br.com.wdc.framework.vdom.VNode;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter.ReceiptViewState;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptItem;
-import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
+import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.util.DateUtils;
 import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
 

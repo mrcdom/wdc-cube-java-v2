@@ -20,7 +20,7 @@ import br.com.wdc.framework.vdom.VNode;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartViewState;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.structs.CartItem;
-import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
+import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
 
 public class CartView extends AbstractVDomView<CartPresenter> {

@@ -12,8 +12,8 @@ import org.teavm.jso.dom.html.HTMLElement;
 
 import br.com.wdc.framework.vdom.VDom;
 import br.com.wdc.framework.vdom.VNode;
-import br.com.wdc.shopping.view.teavm.AbstractViewTeaVM;
-import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
+import br.com.wdc.shopping.view.teavm.views.AbstractViewTeaVM;
+import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
 
 /**
  * Base para views TeaVM com Virtual DOM.
