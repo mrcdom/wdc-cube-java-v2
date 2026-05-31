@@ -1,149 +1,25 @@
 package br.com.wdc.shopping.view.teavm.views.receipt;
 
-import static br.com.wdc.shopping.view.teavm.commons.Swc.spActionButton;
-import static br.com.wdc.shopping.view.teavm.commons.VNode.clsx;
-import static br.com.wdc.shopping.view.teavm.commons.VNode.div;
-import static br.com.wdc.shopping.view.teavm.commons.VNode.h5;
-import static br.com.wdc.shopping.view.teavm.commons.VNode.span;
-
-import java.util.Collections;
-import java.util.List;
-
-import org.teavm.jso.dom.events.Event;
-import org.teavm.jso.dom.events.EventListener;
-
-import br.com.wdc.shopping.view.teavm.commons.SelComponents;
-import br.com.wdc.shopping.view.teavm.commons.SelIcons;
-import br.com.wdc.shopping.view.teavm.commons.SelUtility;
-import br.com.wdc.shopping.view.teavm.commons.VNode;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter.ReceiptViewState;
-import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptItem;
 import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
-import br.com.wdc.shopping.view.teavm.util.DateUtils;
+import br.com.wdc.shopping.view.teavm.commons.VNode;
+import br.com.wdc.shopping.view.teavm.commons.views.receipt.ReceiptSharedView;
 import br.com.wdc.shopping.view.teavm.views.AbstractVDomView;
 
 public class ReceiptView extends AbstractVDomView<ReceiptPresenter> {
 
-    @SuppressWarnings({"java:S1214", "static-access"})
-    private interface Sel {
-        SelUtility u = SelUtility.INSTANCE;
-        SelComponents c = SelComponents.INSTANCE;
-        SelIcons icon = SelIcons.INSTANCE;
-
-        String ROOT = u.PAGE_SCROLL_ROOT;
-        String WRAPPER = u.PAGE_WRAPPER;
-        String HIDDEN = u.HIDDEN;
-        String SUCCESS_VISIBLE = c.ALERT_SUCCESS;
-        String SUCCESS_ICON = clsx(icon.CHECK_CIRCLE_FILL, c.ALERT_SUCCESS_ICON);
-        String SUCCESS_TEXT = c.ALERT_SUCCESS_TEXT;
-        String CARD = c.CARD_PANEL_LG;
-        String HEADER_ROW = c.CARD_HEADER_ROW;
-        String HEADER_ICON_BOX = c.CARD_HEADER_ICON_BOX;
-        String HEADER_ICON = clsx(icon.RECEIPT, c.CARD_HEADER_ICON);
-        String HEADER_TITLE = "receipt-header-title";
-        String HEADER_SUBTITLE = c.CARD_HEADER_SUBTITLE;
-        String RECEIPT_BODY = "receipt-body";
-        String DATE_ROW = "receipt-date-row";
-        String DATE_LABEL = "receipt-date-label";
-        String DATE_VALUE = "receipt-date-value";
-        String TOTAL_ROW = "receipt-total-row";
-        String TOTAL_LABEL = "receipt-total-label";
-        String TOTAL_VALUE = "receipt-total-value";
-        String BACK_BTN = "receipt-back-btn";
-        String TABLE_HEADER = "receipt-table-header";
-        String COL_ITEM = "receipt-col-item";
-        String COL_QTY = "receipt-col-qty";
-        String COL_VALUE = "receipt-col-value";
-        String ITEM_ROW = "receipt-item-row";
-        String ITEM_DESC = "receipt-item-desc";
-        String ITEM_QTY = "receipt-item-qty";
-        String ITEM_VALUE = "receipt-item-value";
-    }
-
-    private final ReceiptViewState state;
-
-    // Stable event listener
-    private final EventListener<Event> onBack = evt -> safeAction("Back", this.presenter::onOpenProducts);
+    private final ReceiptSharedView shared;
 
     public ReceiptView(ReceiptPresenter presenter) {
         super("receipt", (ShoppingTeaVMApplication) presenter.app, presenter);
-        this.state = presenter.state;
+
+        this.shared = new ReceiptSharedView();
+        this.shared.stateSupplier = () -> presenter.state;
+        this.shared.onBack = () -> safeAction("Back", presenter::onOpenProducts);
     }
 
     @Override
     protected VNode render() {
-        // Flag one-shot: true apenas no render imediato após a compra
-        final boolean showSuccess = this.state.notifySuccess;
-        if (this.state.notifySuccess) {
-            this.state.notifySuccess = false;
-        }
-
-        var items = Collections.<ReceiptItem>emptyList();
-        var dateText = "";
-        var totalText = "";
-
-        if (this.state.receipt != null) {
-            items = this.state.receipt.items != null ? this.state.receipt.items : Collections.emptyList();
-            if (this.state.receipt.date != null) {
-                dateText = DateUtils.formatDateTime(this.state.receipt.date);
-            }
-            var total = this.state.receipt.total != null ? this.state.receipt.total : 0.0;
-            totalText = "R$ " + String.format("%.2f", total);
-        }
-
-        // @formatter:off
-        return div(Sel.ROOT).children(
-          div(Sel.WRAPPER).children(
-            // Success banner
-            div(showSuccess ? Sel.SUCCESS_VISIBLE : Sel.HIDDEN).children(
-              span(Sel.SUCCESS_ICON),
-              span(Sel.SUCCESS_TEXT).text("Compra realizada com sucesso!")),
-            div(Sel.CARD).children(
-              // Header
-              div(Sel.HEADER_ROW).children(
-                div(Sel.HEADER_ICON_BOX)
-                  .children(span(Sel.HEADER_ICON)),
-                div().children(
-                  h5(Sel.HEADER_TITLE).text("Recibo de Compra"),
-                  span(Sel.HEADER_SUBTITLE).text("WDC Shopping"))),
-              // Receipt content (monospace)
-              div(Sel.RECEIPT_BODY).children(
-                div(Sel.DATE_ROW).children(
-                  span(Sel.DATE_LABEL).text("Data:"),
-                  span(Sel.DATE_VALUE).text(dateText)),
-                renderItemsTable(items),
-                div(Sel.TOTAL_ROW).children(
-                  span(Sel.TOTAL_LABEL).text("TOTAL:"),
-                  span(Sel.TOTAL_VALUE).text(totalText))),
-              // Back button
-              spActionButton().cls(Sel.BACK_BTN)
-                .children(span(SelIcons.ARROW_LEFT), span().text(" Voltar aos produtos"))
-                .on("click", onBack))));
-        // @formatter:on
-    }
-
-    private VNode renderItemsTable(List<ReceiptItem> items) {
-        // @formatter:off
-        return div().children(
-          div(Sel.TABLE_HEADER).children(
-            span(Sel.COL_ITEM).text("ITEM"),
-            span(Sel.COL_QTY).text("QTD"),
-            span(Sel.COL_VALUE).text("VALOR")),
-          div().children(items.stream().map(this::renderItemRow).toList()));
-        // @formatter:on
-    }
-
-    private VNode renderItemRow(ReceiptItem item) {
-        var desc = item.description != null ? item.description : "";
-        var qty = String.valueOf(item.quantity);
-        var value = "R$ " + String.format("%.2f", item.value);
-
-        // @formatter:off
-        return div(Sel.ITEM_ROW).key(desc + qty).children(
-          span(Sel.ITEM_DESC).text(desc),
-          span(Sel.ITEM_QTY).text(qty),
-          span(Sel.ITEM_VALUE).text(value));
-        // @formatter:on
+        return shared.renderTree();
     }
 }

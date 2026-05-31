@@ -27,7 +27,7 @@ public class PurchasesPanelPresenter extends AbstractChildPresenter<ShoppingAppl
 
     // :: View State
 
-    public class PurchasesPanelViewState implements ViewState {
+    public static class PurchasesPanelViewState implements ViewState {
 
         public List<PurchaseInfo> purchases = Collections.emptyList();
         public int page;

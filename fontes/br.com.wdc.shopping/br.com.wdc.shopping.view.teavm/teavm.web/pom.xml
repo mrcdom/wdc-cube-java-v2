@@ -85,7 +85,6 @@
                     <sassVersion>1.87.0</sassVersion>
                     <args>
                         <arg>--load-path=${project.basedir}/../teavm.commons/src/main/scss</arg>
-                        <arg>--load-path=${project.basedir}/src/main/java/br/com/wdc/shopping/view/teavm/views</arg>
                         <arg>${project.basedir}/src/main/scss/app.scss:${project.basedir}/src/main/webapp/css/app.css</arg>
                         <arg>--no-source-map</arg>
                         <arg>--style=compressed</arg>

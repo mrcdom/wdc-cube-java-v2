@@ -1,27 +1,15 @@
 package br.com.wdc.shopping.view.remote.shell.teavm.views.login;
 
-import static br.com.wdc.shopping.view.teavm.commons.Swc.spButton;
-import static br.com.wdc.shopping.view.teavm.commons.Swc.spFieldLabel;
-import static br.com.wdc.shopping.view.teavm.commons.Swc.spTextField;
-import static br.com.wdc.shopping.view.teavm.commons.VNode.clsx;
-import static br.com.wdc.shopping.view.teavm.commons.VNode.div;
-import static br.com.wdc.shopping.view.teavm.commons.VNode.span;
-import static br.com.wdc.shopping.view.teavm.commons.VNode.textNode;
-
-import org.teavm.jso.dom.events.Event;
-import org.teavm.jso.dom.events.EventListener;
-import org.teavm.jso.dom.events.KeyboardEvent;
-import org.teavm.jso.dom.html.HTMLInputElement;
-
-import br.com.wdc.shopping.view.teavm.commons.SelComponents;
-import br.com.wdc.shopping.view.teavm.commons.SelIcons;
-import br.com.wdc.shopping.view.teavm.commons.SelUtility;
-import br.com.wdc.shopping.view.teavm.commons.VNode;
+import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginViewState;
+import br.com.wdc.shopping.view.teavm.commons.views.login.LoginSharedView;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.DataSecurity;
+import br.com.wdc.shopping.view.remote.shell.teavm.bridge.ViewScope;
+import br.com.wdc.shopping.view.teavm.commons.VNode;
 
 /**
- * Login view with Spectrum Web Components + VDom. Reads state from server: userName, password, errorMessage, loading.
+ * Login view adapter for remote.shell.teavm (remote mode).
+ * Delegates rendering to {@link LoginSharedView} and wires remote bridge actions.
  */
 public class LoginView extends AbstractRemoteView {
 
@@ -29,156 +17,35 @@ public class LoginView extends AbstractRemoteView {
 
     private static final int ON_ENTER = 1;
 
-    @SuppressWarnings({ "java:S1214", "static-access" })
-    private interface Sel {
-        SelUtility u = SelUtility.INSTANCE;
-        SelComponents c = SelComponents.INSTANCE;
-        SelIcons icon = SelIcons.INSTANCE;
-
-        String LOGIN_ROOT = "login-root";
-        String LEFT_PANEL = clsx(u.MD_SHOW, "login-left-panel");
-        String DECO_CIRCLE_1 = "deco-circle--1";
-        String DECO_CIRCLE_2 = "deco-circle--2";
-        String DECO_CIRCLE_3 = "deco-circle--3";
-        String CONTENT_CENTER = "login-content-center";
-        String LOGO_BOX_LG = "logo-box-lg";
-        String ICON_LG = clsx(icon.BAG_CHECK, "login-logo-icon-lg");
-        String TITLE_LG = "login-title-lg";
-        String SUBTITLE_LG = "login-subtitle-lg";
-        String FEATURES_LIST = "login-features-list";
-        String FORM_PANEL = "login-card login-form-panel";
-        String FORM_CONTENT = "login-form-content";
-        String MOBILE_LOGO_BG = "login-mobile-logo";
-        String MOBILE_CIRCLE_1 = "login-mobile-circle-1";
-        String MOBILE_CIRCLE_2 = "login-mobile-circle-2";
-        String MOBILE_CONTENT = "login-mobile-content";
-        String LOGO_BOX_SM = "login-logo-box-sm";
-        String ICON_SM = clsx(icon.BAG_CHECK, "login-icon-sm");
-        String MOBILE_TITLE = "login-mobile-title";
-        String MOBILE_SUBTITLE = "login-mobile-subtitle";
-        String WELCOME_WRAP = "login-welcome-wrap";
-        String WELCOME_TITLE = "login-welcome-title";
-        String WELCOME_SUBTITLE = "login-welcome-subtitle";
-        String ERROR_VISIBLE = c.ALERT_ERROR;
-        String HIDDEN = SelUtility.HIDDEN;
-        String ERROR_ICON = clsx(SelIcons.EXCLAMATION_CIRCLE, c.ALERT_ERROR_ICON);
-        String ERROR_TEXT = c.ALERT_ERROR_TEXT;
-        String FIELD_LABEL = "login-field-label";
-        String USER_FIELD = "login-field";
-        String PASSWORD_FIELD = "login-field-password";
-        String ENTER_BUTTON = "login-enter-btn";
-        String DEMO_HINT = "login-demo-hint";
-        String DEMO_TEXT = "login-demo-text";
-        String DEMO_HIGHLIGHT = "login-demo-highlight";
-        String FEATURE_ROW = "login-feature-row";
-        String FEATURE_ICON = "login-feature-icon";
-        String FEATURE_TEXT = "login-feature-text";
-    }
-
-    // Stable event listeners
-    private final EventListener<KeyboardEvent> onKeyDown = evt -> {
-        if ("Enter".equals(evt.getKey())) {
-            emitEnter();
-        }
-    };
-    private final EventListener<Event> onClickEnter = evt -> emitEnter();
-
-    private HTMLInputElement userNameField;
-    @SuppressWarnings("java:S2068")
-    private HTMLInputElement passwordField;
+    private final LoginSharedView shared;
+    private final LoginViewState adaptedState = new LoginViewState();
 
     public LoginView(String vsid) {
         super(vsid);
+
+        this.shared = new LoginSharedView();
+        this.shared.stateSupplier = this::adaptState;
+        this.shared.onEnter = (userName, password) -> {
+            setFormField("userName", userName);
+            DataSecurity.cipher(password, encryptedPassword -> {
+                setFormField("password", encryptedPassword);
+                submit(ON_ENTER);
+            });
+        };
     }
 
     @Override
     protected VNode render() {
-        var scope = state();
-        var loading = scope.getBoolean("loading");
-        var errorMessage = scope.getString("errorMessage");
-        var showError = errorMessage != null && !errorMessage.isEmpty();
-
-        // @formatter:off
-        return div(Sel.LOGIN_ROOT).children(
-          // Left decorative panel (hidden on mobile)
-          div(Sel.LEFT_PANEL).children(
-            div(Sel.DECO_CIRCLE_1),
-            div(Sel.DECO_CIRCLE_2),
-            div(Sel.DECO_CIRCLE_3),
-            div(Sel.CONTENT_CENTER).children(
-              div(Sel.LOGO_BOX_LG).children(
-                span(Sel.ICON_LG)),
-              div(Sel.TITLE_LG).children(textNode("WDC Shopping")),
-              div(Sel.SUBTITLE_LG).children(textNode("Sua compra certa na internet.")),
-              div(Sel.FEATURES_LIST).children(
-                renderFeature(SelIcons.SHIELD_CHECK, "Compra segura"),
-                renderFeature(SelIcons.TRUCK, "Entrega rápida"),
-                renderFeature(SelIcons.ARROW_REPEAT, "Troca garantida")))),
-          // Right: form panel
-          div(Sel.FORM_PANEL).children(
-            div(Sel.FORM_CONTENT).children(
-              // Mobile-only logo
-              div(Sel.MOBILE_LOGO_BG).children(
-                div(Sel.MOBILE_CIRCLE_1),
-                div(Sel.MOBILE_CIRCLE_2),
-                div(Sel.MOBILE_CONTENT).children(
-                  div(Sel.LOGO_BOX_SM).children(
-                    span(Sel.ICON_SM)),
-                  div(Sel.MOBILE_TITLE).children(textNode("WDC Shopping")),
-                  div(Sel.MOBILE_SUBTITLE).children(textNode("Sua compra certa na internet.")))),
-              // Welcome text
-              div(Sel.WELCOME_WRAP).children(
-                div(Sel.WELCOME_TITLE).children(textNode("Bem-vindo")),
-                div(Sel.WELCOME_SUBTITLE).children(textNode("Entre com suas credenciais para continuar"))),
-              // Error alert
-              div(showError ? Sel.ERROR_VISIBLE : Sel.HIDDEN).children(
-                span(Sel.ERROR_ICON),
-                span(Sel.ERROR_TEXT).text(errorMessage != null ? errorMessage : "")),
-              // User field
-              spFieldLabel("login-user", "Usuário").cls(Sel.FIELD_LABEL),
-              spTextField("Digite seu usuário")
-                .attr("id", "login-user").attr("autocomplete", "off")
-                .boolAttr("disabled", loading)
-                .cls(Sel.USER_FIELD)
-                .ref(el -> this.userNameField = (HTMLInputElement) el),
-              // Password field
-              spFieldLabel("login-pass", "Senha").cls(Sel.FIELD_LABEL),
-              spTextField("Digite sua senha", "password")
-                .attr("id", "login-pass").attr("autocomplete", "off")
-                .boolAttr("disabled", loading)
-                .cls(Sel.PASSWORD_FIELD)
-                .on("keydown", onKeyDown)
-                .ref(el -> this.passwordField = (HTMLInputElement) el),
-              // Enter button
-              spButton("accent", "l")
-                .boolAttr("disabled", loading).boolAttr("pending", loading)
-                .cls(Sel.ENTER_BUTTON)
-                .on("click", onClickEnter)
-                .children(textNode(loading ? "Entrando..." : "Entrar")),
-              // Demo hint
-              div(Sel.DEMO_HINT).children(
-                span(Sel.DEMO_TEXT).text("Acesso demo: "),
-                span(Sel.DEMO_HIGHLIGHT).text("admin"),
-                span(Sel.DEMO_TEXT).text(" / "),
-                span(Sel.DEMO_HIGHLIGHT).text("admin")))));
-        // @formatter:on
+        return shared.render();
     }
 
-    private VNode renderFeature(String icon, String text) {
-        // @formatter:off
-        return div(Sel.FEATURE_ROW).children(
-          span(clsx(icon, Sel.FEATURE_ICON)),
-          span(Sel.FEATURE_TEXT).text(text));
-        // @formatter:on
-    }
-
-    private void emitEnter() {
-        String userName = userNameField != null ? userNameField.getValue() : "";
-        String password = passwordField != null ? passwordField.getValue() : "";
-        setFormField("userName", userName);
-        DataSecurity.cipher(password, encryptedPassword -> {
-            setFormField("password", encryptedPassword);
-            submit(ON_ENTER);
-        });
+    private LoginViewState adaptState() {
+        ViewScope scope = state();
+        adaptedState.loading = scope.getBoolean("loading");
+        adaptedState.errorMessage = scope.getString("errorMessage");
+        adaptedState.errorCode = scope.getInt("errorCode");
+        adaptedState.userName = scope.getString("userName");
+        adaptedState.password = scope.getString("password");
+        return adaptedState;
     }
 }

@@ -18,6 +18,14 @@
     <description>Shared code for TeaVM-based views: Virtual DOM engine, Spectrum Web Components DSL, selectors, and browser interop utilities</description>
 
     <dependencies>
+        <!-- Presentation module (ViewState classes only — TeaVM tree-shakes unused code) -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <version>${project.version}</version>
+            <artifactId>br.com.wdc.shopping.presentation</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- TeaVM JSO (provided — consumer supplies TeaVM) -->
         <dependency>
             <groupId>org.teavm</groupId>
