@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.shell.teavm.views;
+package br.com.wdc.shopping.view.remote.shell.teavm.views.home;
 
 import static br.com.wdc.shopping.view.teavm.commons.VNode.clsx;
 import static br.com.wdc.shopping.view.teavm.commons.VNode.div;

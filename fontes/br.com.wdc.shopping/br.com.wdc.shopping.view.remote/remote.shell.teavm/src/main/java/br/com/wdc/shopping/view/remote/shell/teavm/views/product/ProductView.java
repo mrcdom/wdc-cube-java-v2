@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.shell.teavm.views;
+package br.com.wdc.shopping.view.remote.shell.teavm.views.product;
 
 import static br.com.wdc.shopping.view.teavm.commons.Swc.spActionButton;
 import static br.com.wdc.shopping.view.teavm.commons.Swc.spButton;

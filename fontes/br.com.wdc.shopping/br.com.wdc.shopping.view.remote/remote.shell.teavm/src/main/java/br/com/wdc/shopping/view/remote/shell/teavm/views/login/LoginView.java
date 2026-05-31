@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.shell.teavm.views;
+package br.com.wdc.shopping.view.remote.shell.teavm.views.login;
 
 import static br.com.wdc.shopping.view.teavm.commons.Swc.spButton;
 import static br.com.wdc.shopping.view.teavm.commons.Swc.spFieldLabel;

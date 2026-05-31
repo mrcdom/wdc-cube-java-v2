@@ -1,0 +1,35 @@
+// =============================================================================
+// BROWSER VIEW COMPONENTS
+// =============================================================================
+.browser-host {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.browser-container {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    height: 100%;
+    min-height: 0;
+}
+
+.browser-loading-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--app-accent);
+    z-index: 9999;
+    animation: progress 1.5s ease-in-out infinite;
+}
+
+.browser-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}

@@ -2,15 +2,15 @@ package br.com.wdc.shopping.view.remote.shell.teavm;
 
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.ViewStateCoordinator;
 import br.com.wdc.shopping.view.teavm.commons.interop.Console;
-import br.com.wdc.shopping.view.remote.shell.teavm.views.BrowserView;
-import br.com.wdc.shopping.view.remote.shell.teavm.views.CartView;
-import br.com.wdc.shopping.view.remote.shell.teavm.views.HomeView;
-import br.com.wdc.shopping.view.remote.shell.teavm.views.LoginView;
-import br.com.wdc.shopping.view.remote.shell.teavm.views.ProductView;
-import br.com.wdc.shopping.view.remote.shell.teavm.views.ProductsPanelView;
-import br.com.wdc.shopping.view.remote.shell.teavm.views.PurchasesPanelView;
-import br.com.wdc.shopping.view.remote.shell.teavm.views.ReceiptView;
 import br.com.wdc.shopping.view.remote.shell.teavm.views.RootView;
+import br.com.wdc.shopping.view.remote.shell.teavm.views.browser.BrowserView;
+import br.com.wdc.shopping.view.remote.shell.teavm.views.cart.CartView;
+import br.com.wdc.shopping.view.remote.shell.teavm.views.home.HomeView;
+import br.com.wdc.shopping.view.remote.shell.teavm.views.home.ProductsPanelView;
+import br.com.wdc.shopping.view.remote.shell.teavm.views.home.PurchasesPanelView;
+import br.com.wdc.shopping.view.remote.shell.teavm.views.login.LoginView;
+import br.com.wdc.shopping.view.remote.shell.teavm.views.product.ProductView;
+import br.com.wdc.shopping.view.remote.shell.teavm.views.receipt.ReceiptView;
 
 /**
  * Entry point da aplicação remote shell TeaVM.

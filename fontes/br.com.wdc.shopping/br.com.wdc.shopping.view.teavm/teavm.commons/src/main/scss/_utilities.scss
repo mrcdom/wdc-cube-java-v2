@@ -1,6 +1,6 @@
 // =============================================================================
-// UTILITY CLASSES
-// Generated from common inline style patterns found across TeaVM views
+// UTILITY CLASSES (SelUtility)
+// Shared utility selectors used by both teavm.web and remote.shell.teavm
 // =============================================================================
 
 // -----------------------------------------------------------------------------
@@ -42,7 +42,7 @@
 .gap-20 { gap: 20px; }
 .gap-24 { gap: 24px; }
 
-// Alignment modifiers (composable with .flex or .flex-col)
+// Alignment modifiers
 .items-center { align-items: center; }
 .items-start { align-items: flex-start; }
 .items-end { align-items: flex-end; }
@@ -81,9 +81,13 @@
 .py-24 { padding-top: 24px; padding-bottom: 24px; }
 
 .pt-8 { padding-top: 8px; }
+.pt-10 { padding-top: 10px; }
+.pt-12 { padding-top: 12px; }
 .pt-16 { padding-top: 16px; }
 .pt-24 { padding-top: 24px; }
+.pb-6 { padding-bottom: 6px; }
 .pb-8 { padding-bottom: 8px; }
+.pb-10 { padding-bottom: 10px; }
 .pb-16 { padding-bottom: 16px; }
 
 // Margin
@@ -96,12 +100,16 @@
 .mt-20 { margin-top: 20px; }
 .mt-24 { margin-top: 24px; }
 .mt-32 { margin-top: 32px; }
+.mt-auto { margin-top: auto; }
 .mb-4 { margin-bottom: 4px; }
+.mb-6 { margin-bottom: 6px; }
 .mb-8 { margin-bottom: 8px; }
+.mb-10 { margin-bottom: 10px; }
 .mb-12 { margin-bottom: 12px; }
 .mb-16 { margin-bottom: 16px; }
 .mb-20 { margin-bottom: 20px; }
 .mb-24 { margin-bottom: 24px; }
+.mb-28 { margin-bottom: 28px; }
 .ml-4 { margin-left: 4px; }
 .ml-6 { margin-left: 6px; }
 .ml-8 { margin-left: 8px; }
@@ -117,15 +125,31 @@
 .min-h-0 { min-height: 0; }
 .min-h-full { min-height: 100%; }
 .min-w-0 { min-width: 0; }
+.max-w-160 { max-width: 160px; }
 .max-w-280 { max-width: 280px; }
 .max-w-320 { max-width: 320px; }
 .max-w-460 { max-width: 460px; }
 .max-w-900 { max-width: 900px; }
+.max-h-160 { max-height: 160px; }
+
+.w-28 { width: 28px; }
+.h-28 { height: 28px; }
+.w-40 { width: 40px; }
+.h-40 { height: 40px; }
+.w-48 { width: 48px; }
+.h-48 { height: 48px; }
+.w-80 { width: 80px; }
+.h-80 { height: 80px; }
+.w-100 { width: 100px; }
+.h-100 { height: 100px; }
+.min-w-24 { min-width: 24px; }
+.min-w-28 { min-width: 28px; }
 
 // -----------------------------------------------------------------------------
 // 5. TYPOGRAPHY
 // -----------------------------------------------------------------------------
 // Font size
+.text-xxs { font-size: 0.65rem; }
 .text-xs { font-size: 0.7rem; }
 .text-sm { font-size: 0.85rem; }
 .text-base { font-size: 1rem; }
@@ -133,6 +157,7 @@
 .text-xl { font-size: 1.2rem; }
 .text-2xl { font-size: 1.5rem; }
 .text-3xl { font-size: 2rem; }
+.text-4xl { font-size: 2.2rem; }
 
 // Font weight
 .font-normal { font-weight: 400; }
@@ -169,13 +194,23 @@
 .text-sm-secondary { font-size: 0.85rem; color: var(--app-text-secondary); }
 .text-xs-secondary { font-size: 0.75rem; color: var(--app-text-secondary); }
 
+// Text utilities
+.whitespace-nowrap { white-space: nowrap; }
+.text-ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.text-uppercase { text-transform: uppercase; }
+
 // -----------------------------------------------------------------------------
 // 6. BORDERS & RADIUS
 // -----------------------------------------------------------------------------
 .border { border: 1px solid var(--app-border); }
 .border-t { border-top: 1px solid var(--app-border); }
 .border-b { border-bottom: 1px solid var(--app-border); }
+.border-l { border-left: 1px solid var(--app-border); }
 .border-none { border: none; }
+.border-white-20 { border: 1px solid rgba(255,255,255,0.2); }
+.border-dashed { border-bottom: 1px dashed var(--app-border); }
+.border-dotted { border-bottom: 1px dotted var(--app-border); }
+.border-t-accent { border-top: 2px solid var(--app-accent); }
 
 .rounded { border-radius: var(--app-radius); }
 .rounded-sm { border-radius: var(--app-radius-sm); }
@@ -230,208 +265,18 @@
 // -----------------------------------------------------------------------------
 .transition-colors { transition: color var(--app-transition), background var(--app-transition); }
 .transition-transform { transition: transform var(--app-transition); }
+.transition-transform-spring { transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
 .transition-all { transition: all var(--app-transition); }
 
 // -----------------------------------------------------------------------------
-// 11. ERROR/ALERT SEMANTIC COMPONENTS
+// 11. MISC
 // -----------------------------------------------------------------------------
-:root {
-    --app-error-bg: #fef2f2;
-    --app-error-border: #fecaca;
-    --app-error-text: #991b1b;
-    --app-error-icon: #dc2626;
-}
-
-.alert-error {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 16px;
-    margin: 8px 16px;
-    background: var(--app-error-bg);
-    border: 1px solid var(--app-error-border);
-    border-radius: var(--app-radius-sm);
-}
-
-.alert-error-icon {
-    color: var(--app-error-icon);
-    font-size: 1rem;
-    flex-shrink: 0;
-}
-
-.alert-error-text {
-    font-size: 0.85rem;
-    color: var(--app-error-text);
-    font-weight: 500;
-}
-
-// -----------------------------------------------------------------------------
-// 13. EMPTY STATE
-// -----------------------------------------------------------------------------
-.empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 48px 24px;
-    text-align: center;
-}
-
-// -----------------------------------------------------------------------------
-// 18. TOTAL / SUMMARY ROWS
-// -----------------------------------------------------------------------------
-.total-row {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    padding: 16px 20px;
-    border-top: 1px solid var(--app-border);
-}
-
-// -----------------------------------------------------------------------------
-// 19. ADDITIONAL UTILITIES
-// -----------------------------------------------------------------------------
-.whitespace-nowrap { white-space: nowrap; }
-.text-ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .object-contain { object-fit: contain; }
 .aspect-1 { aspect-ratio: 1; }
 .box-border { box-sizing: border-box; }
-.text-uppercase { text-transform: uppercase; }
-
-// Additional font sizes
-.text-xxs { font-size: 0.65rem; }
-.text-4xl { font-size: 2.2rem; }
-
-// Additional spacing
-.mb-6 { margin-bottom: 6px; }
-.mb-10 { margin-bottom: 10px; }
-.mb-28 { margin-bottom: 28px; }
-.mt-auto { margin-top: auto; }
-.pt-10 { padding-top: 10px; }
-.pt-12 { padding-top: 12px; }
-.pb-6 { padding-bottom: 6px; }
-.pb-10 { padding-bottom: 10px; }
-
-// Additional sizing
-.w-28 { width: 28px; }
-.h-28 { height: 28px; }
-.w-40 { width: 40px; }
-.h-40 { height: 40px; }
-.w-48 { width: 48px; }
-.h-48 { height: 48px; }
-.w-80 { width: 80px; }
-.h-80 { height: 80px; }
-.w-100 { width: 100px; }
-.h-100 { height: 100px; }
-.min-w-24 { min-width: 24px; }
-.min-w-28 { min-width: 28px; }
-.max-w-160 { max-width: 160px; }
-.max-h-160 { max-height: 160px; }
-
-// Additional borders
-.border-white-20 { border: 1px solid rgba(255,255,255,0.2); }
-.border-dashed { border-bottom: 1px dashed var(--app-border); }
-.border-dotted { border-bottom: 1px dotted var(--app-border); }
-.border-t-accent { border-top: 2px solid var(--app-accent); }
-.border-l { border-left: 1px solid var(--app-border); }
-
-// Transitions
-.transition-transform-spring { transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
-
-// =============================================================================
-// 21. SHARED CARD / PAGE COMPONENTS
-// =============================================================================
-.page-scroll-root {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    background: var(--app-bg);
-}
-
-.page-wrapper {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-.card-panel {
-    background: var(--app-surface);
-    border-radius: var(--app-radius);
-    border: 1px solid var(--app-border);
-    padding: 24px;
-    box-shadow: var(--app-shadow-sm);
-}
-
-.card-panel-lg {
-    background: var(--app-surface);
-    border-radius: var(--app-radius);
-    border: 1px solid var(--app-border);
-    padding: 28px;
-    box-shadow: var(--app-shadow-sm);
-}
-
-.card-header-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.card-header-icon-box {
-    width: 40px;
-    height: 40px;
-    background: var(--app-accent-light);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.card-header-icon {
-    color: var(--app-accent);
-    font-size: 1.1rem;
-}
-
-.card-header-title {
-    margin: 0;
-    font-weight: 700;
-    font-size: 1.1rem;
-    color: var(--app-text);
-}
-
-.card-header-subtitle {
-    font-size: 0.75rem;
-    color: var(--app-text-secondary);
-}
-
-// =============================================================================
-// 22. ALERT SUCCESS
-// =============================================================================
-.alert-success {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 14px 18px;
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
-    border-radius: var(--app-radius-sm);
-    margin-bottom: 16px;
-}
-
-.alert-success-icon {
-    color: #16a34a;
-    font-size: 1.2rem;
-    flex-shrink: 0;
-}
-
-.alert-success-text {
-    font-size: 0.9rem;
-    color: #166534;
-    font-weight: 600;
-}
 
 // -----------------------------------------------------------------------------
-// RESPONSIVE UTILITIES
+// 12. RESPONSIVE
 // -----------------------------------------------------------------------------
 .sm-show { display: none; }
 .md-show { display: none !important; }
