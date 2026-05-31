@@ -29,3 +29,100 @@
     transform: translateY(0px);
     box-shadow: var(--app-shadow-sm);
 }
+
+// =============================================================================
+// PRODUCT VIEW COMPONENTS
+// =============================================================================
+.product-title {
+    font-weight: 700;
+    margin: 0 0 12px 0;
+    font-size: 1.5rem;
+    color: var(--app-text);
+}
+
+.product-divider {
+    margin: 0 0 16px 0;
+}
+
+.product-desc-card {
+    background: var(--app-surface);
+    border-radius: var(--app-radius);
+    border: 1px solid var(--app-border);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.product-desc-text {
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: var(--app-text);
+}
+
+.product-price-image-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.product-price-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.product-price-badge {
+    display: inline-block;
+    background: var(--app-accent-light);
+    padding: 10px 20px;
+    border-radius: var(--app-radius-sm);
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--app-accent);
+}
+
+.product-qty-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.product-qty-label {
+    font-size: 0.85rem;
+    color: var(--app-text-secondary);
+}
+
+.product-qty-value {
+    font-weight: 700;
+    min-width: 28px;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+.product-image-box {
+    background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+    border-radius: var(--app-radius-sm);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.product-image {
+    max-width: 160px;
+    max-height: 160px;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+}
+
+.product-actions-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 8px;
+}

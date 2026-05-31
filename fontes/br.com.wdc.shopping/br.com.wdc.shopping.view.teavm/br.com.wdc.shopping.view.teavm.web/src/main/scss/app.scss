@@ -1,8 +1,11 @@
 @use 'utilities';
 @use 'swc';
-@use 'product/product';
+@use 'cart/cart';
+@use 'home/products-panel';
 @use 'home/purchases';
 @use 'login/login';
+@use 'product/product';
+@use 'receipt/receipt';
 
 :root {
     --app-accent: #0d66d0;
