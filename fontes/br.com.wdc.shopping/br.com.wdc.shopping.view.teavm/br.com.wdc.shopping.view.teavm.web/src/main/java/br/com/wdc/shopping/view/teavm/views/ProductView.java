@@ -21,7 +21,7 @@ import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPre
 import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
 
-public class ProductViewVDom extends AbstractVDomView<ProductPresenter> {
+public class ProductView extends AbstractVDomView<ProductPresenter> {
 
     @SuppressWarnings({"java:S1214", "static-access"})
     private interface Sel {
@@ -63,7 +63,7 @@ public class ProductViewVDom extends AbstractVDomView<ProductPresenter> {
 
     private record ProductData(String name, String image, String price, String description) {}
 
-    public ProductViewVDom(ProductPresenter presenter) {
+    public ProductView(ProductPresenter presenter) {
         super("product", (ShoppingTeaVMApplication) presenter.app, presenter);
         this.state = presenter.state;
     }

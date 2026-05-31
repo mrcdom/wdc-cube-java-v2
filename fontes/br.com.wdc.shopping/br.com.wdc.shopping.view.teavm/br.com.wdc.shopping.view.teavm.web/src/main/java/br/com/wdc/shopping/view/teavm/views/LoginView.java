@@ -25,7 +25,7 @@ import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
 /**
  * Login view implementada com Spectrum Web Components + Virtual DOM.
  */
-public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
+public class LoginView extends AbstractVDomView<LoginPresenter> {
 
     @SuppressWarnings({"java:S1214", "static-access"})
     private interface Sel {
@@ -82,7 +82,7 @@ public class LoginViewVDom extends AbstractVDomView<LoginPresenter> {
     private final EventListener<KeyboardEvent> onKeyDown = evt -> { if ("Enter".equals(evt.getKey())) { emitEnter(); } };
     private final EventListener<Event> onClickEnter = evt -> emitEnter();
 
-    public LoginViewVDom(LoginPresenter presenter) {
+    public LoginView(LoginPresenter presenter) {
         super("login", (ShoppingTeaVMApplication) presenter.app, presenter);
         this.state = presenter.state;
     }

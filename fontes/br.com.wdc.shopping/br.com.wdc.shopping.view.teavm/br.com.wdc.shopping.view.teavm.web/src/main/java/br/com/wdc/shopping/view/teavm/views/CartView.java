@@ -23,7 +23,7 @@ import br.com.wdc.shopping.presentation.presenter.restricted.cart.structs.CartIt
 import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
 
-public class CartViewVDom extends AbstractVDomView<CartPresenter> {
+public class CartView extends AbstractVDomView<CartPresenter> {
 
     @SuppressWarnings({"java:S1214", "static-access"})
     private interface Sel {
@@ -78,7 +78,7 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
         return evt -> safeAction("Remove item", () -> this.presenter.onRemoveProduct(id));
     }
 
-    public CartViewVDom(CartPresenter presenter) {
+    public CartView(CartPresenter presenter) {
         super("cart", (ShoppingTeaVMApplication) presenter.app, presenter);
         this.state = presenter.state;
     }

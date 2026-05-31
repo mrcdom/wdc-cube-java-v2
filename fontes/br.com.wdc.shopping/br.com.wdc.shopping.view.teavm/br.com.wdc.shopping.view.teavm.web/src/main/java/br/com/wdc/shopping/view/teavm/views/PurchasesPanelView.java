@@ -18,7 +18,7 @@ import br.com.wdc.shopping.view.teavm.util.DateUtils;
 import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
 import br.com.wdc.framework.vdom.VNode;
 
-public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPresenter> {
+public class PurchasesPanelView extends AbstractVDomView<PurchasesPanelPresenter> {
 
     @SuppressWarnings({"java:S1214", "static-access"})
     private interface Sel {
@@ -63,7 +63,7 @@ public class PurchasesPanelViewVDom extends AbstractVDomView<PurchasesPanelPrese
         return evt -> safeAction("Open receipt", () -> this.presenter.onOpenReceipt(id));
     }
 
-    public PurchasesPanelViewVDom(PurchasesPanelPresenter presenter) {
+    public PurchasesPanelView(PurchasesPanelPresenter presenter) {
         super("purchases-panel", (ShoppingTeaVMApplication) presenter.app, presenter);
         this.state = presenter.state;
         this.prevPageListener = evt -> safeAction("Prev page",

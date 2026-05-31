@@ -23,7 +23,7 @@ import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.util.DateUtils;
 import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
 
-public class ReceiptViewVDom extends AbstractVDomView<ReceiptPresenter> {
+public class ReceiptView extends AbstractVDomView<ReceiptPresenter> {
 
     @SuppressWarnings({"java:S1214", "static-access"})
     private interface Sel {
@@ -66,7 +66,7 @@ public class ReceiptViewVDom extends AbstractVDomView<ReceiptPresenter> {
     // Stable event listener
     private final EventListener<Event> onBack = evt -> safeAction("Back", this.presenter::onOpenProducts);
 
-    public ReceiptViewVDom(ReceiptPresenter presenter) {
+    public ReceiptView(ReceiptPresenter presenter) {
         super("receipt", (ShoppingTeaVMApplication) presenter.app, presenter);
         this.state = presenter.state;
     }

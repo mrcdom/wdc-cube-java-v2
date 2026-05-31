@@ -24,7 +24,7 @@ import br.com.wdc.shopping.view.teavm.AbstractViewTeaVM;
 import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
 
-public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
+public class HomeView extends AbstractVDomView<HomePresenter> {
 
     @SuppressWarnings({"java:S1214", "static-access"})
     private interface Sel {
@@ -80,7 +80,7 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
     private final EventListener<Event> onTabProducts = evt -> switchTab(true);
     private final EventListener<Event> onTabHistory = evt -> switchTab(false);
 
-    public HomeViewVDom(HomePresenter presenter) {
+    public HomeView(HomePresenter presenter) {
         super("home", (ShoppingTeaVMApplication) presenter.app, presenter);
         this.state = presenter.state;
     }

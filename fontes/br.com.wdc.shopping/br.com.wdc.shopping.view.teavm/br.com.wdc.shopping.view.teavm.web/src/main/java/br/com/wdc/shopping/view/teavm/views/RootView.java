@@ -12,7 +12,7 @@ import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
 import br.com.wdc.framework.vdom.VNode;
 
-public class RootViewVDom extends AbstractVDomView<RootPresenter> {
+public class RootView extends AbstractVDomView<RootPresenter> {
 
     @SuppressWarnings("java:S1214")
     private interface Sel {
@@ -25,7 +25,7 @@ public class RootViewVDom extends AbstractVDomView<RootPresenter> {
     private final RootViewState state;
     private boolean appended;
 
-    public RootViewVDom(RootPresenter presenter) {
+    public RootView(RootPresenter presenter) {
         super("root", (ShoppingTeaVMApplication) presenter.app, presenter,
                 HTMLDocument.current().createElement("sp-theme"));
         this.state = presenter.state;

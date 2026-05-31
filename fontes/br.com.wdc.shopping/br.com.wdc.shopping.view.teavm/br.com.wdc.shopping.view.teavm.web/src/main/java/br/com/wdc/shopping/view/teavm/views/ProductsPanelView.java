@@ -14,7 +14,7 @@ import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
 import br.com.wdc.framework.vdom.VNode;
 
-public class ProductsPanelViewVDom extends AbstractVDomView<ProductsPanelPresenter> {
+public class ProductsPanelView extends AbstractVDomView<ProductsPanelPresenter> {
 
     @SuppressWarnings("java:S1214")
     private interface Sel {
@@ -33,7 +33,7 @@ public class ProductsPanelViewVDom extends AbstractVDomView<ProductsPanelPresent
         return evt -> safeAction("Open product", () -> this.presenter.onOpenProduct(id));
     }
 
-    public ProductsPanelViewVDom(ProductsPanelPresenter presenter) {
+    public ProductsPanelView(ProductsPanelPresenter presenter) {
         super("products-panel", (ShoppingTeaVMApplication) presenter.app, presenter);
         this.state = presenter.state;
     }
