@@ -2,7 +2,7 @@
 set -e
 cd "$(dirname "$0")"
 
-DEPLOY_DIR="../../../../work/frontend/app.teavm"
+DEPLOY_DIR="../../../../work/frontend/teavm.web"
 COMMONS_DIR="../teavm.commons"
 
 # Option --full: install all dependency modules before building
