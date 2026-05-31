@@ -1,9 +1,8 @@
 import React from 'react'
 import * as ReactDOM from 'react-dom/client'
-import CssBaseline from '@mui/material/CssBaseline'
-import { ThemeProvider, createTheme } from '@mui/material/styles'
 
 import bridge from './bridge'
+import { Theme } from './swc'
 
 import BrowserView from './views/BrowserView'
 import SlotView from './views/SlotView'
@@ -29,36 +28,13 @@ bridge.registerComponents(
   PurchasesPanel,
 )
 
-const theme = createTheme({
-  palette: {
-    primary: { main: '#1976d2' },
-    warning: { main: '#ff5500', contrastText: '#fff' },
-    background: { default: '#ededed' },
-  },
-  typography: {
-    fontFamily: 'Verdana, Geneva, Tahoma, sans-serif',
-  },
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: { textTransform: 'none', borderRadius: 4 },
-      },
-    },
-    MuiCard: {
-      styleOverrides: {
-        root: { borderRadius: 4 },
-      },
-    },
-  },
-})
-
-const domContainer = document.querySelector('#root')
+const domContainer = document.querySelector('#root') as HTMLElement | null
 if (domContainer) {
+  domContainer.style.height = '100%'
   const root = ReactDOM.createRoot(domContainer)
   root.render(
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
+    <Theme color="light" scale="medium" className="flex-col h-full overflow-hidden">
       {bridge.createBrowserView()}
-    </ThemeProvider>,
+    </Theme>,
   )
 }

@@ -1,21 +1,7 @@
 import React from 'react'
-import Alert from '@mui/material/Alert'
-import Box from '@mui/material/Box'
-import Button from '@mui/material/Button'
-import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
-import Divider from '@mui/material/Divider'
-import Table from '@mui/material/Table'
-import TableBody from '@mui/material/TableBody'
-import TableCell from '@mui/material/TableCell'
-import TableHead from '@mui/material/TableHead'
-import TableRow from '@mui/material/TableRow'
-import Typography from '@mui/material/Typography'
-import Link from '@mui/material/Link'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'
-import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined'
 import bridge, { type ViewProps } from '@root/bridge'
 import { BaseViewClass } from '@root/utils/ViewUtils'
+import { ActionButton } from '@root/swc'
 import * as NumberUtils from '@root/utils/NumberUtils'
 
 // :: Actions
@@ -51,89 +37,76 @@ class ReceiptViewClass extends BaseViewClass<ViewProps, ReceiptViewState> {
     const reciboItems = state.receipt?.items ?? []
 
     return (
-      <Card className={className} elevation={3} sx={{ maxWidth: 900, mx: 'auto', my: 3 }}>
-        <CardContent>
+      <div className={`page-scroll-root ${className || ''}`}>
+        <div className="page-wrapper">
+          {/* Success alert */}
           {state.notifySuccess && (
-            <Alert icon={<CheckCircleOutlinedIcon fontSize="inherit" />} severity="success" sx={{ mb: 2 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                COMPRA EFETUADA COM SUCESSO
-              </Typography>
-            </Alert>
+            <div className="alert-success">
+              <span className="alert-success-icon">
+                <i className="bi bi-check-circle-fill"></i>
+              </span>
+              <span className="alert-success-text">Compra realizada com sucesso!</span>
+            </div>
           )}
 
-          <Typography variant="h6" gutterBottom>
-            IMPRIMA SEU RECIBO:
-          </Typography>
+          {/* Receipt card */}
+          <div className="card-panel-lg">
+            {/* Header */}
+            <div className="card-header-row">
+              <div className="card-header-icon-box">
+                <i className="bi bi-receipt card-header-icon"></i>
+              </div>
+              <div>
+                <h5 className="card-header-title">Recibo de Compra</h5>
+                <span className="card-header-subtitle">WDC Shopping</span>
+              </div>
+            </div>
 
-          <Box
-            sx={{
-              border: '1px solid',
-              borderColor: 'grey.500',
-              borderRadius: 1,
-              p: 2,
-              fontFamily: '"Courier New", Courier, monospace',
-            }}
-          >
-            <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
-              WDC SHOPPING - SUA COMPRA CERTA NA INTERNET
-            </Typography>
-            <Typography variant="subtitle2" gutterBottom>
-              Recibo de compra
-            </Typography>
-            <Divider sx={{ my: 1, borderStyle: 'dashed' }} />
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ fontFamily: 'inherit', fontWeight: 'bold' }}>ITEM</TableCell>
-                  <TableCell align="right" sx={{ fontFamily: 'inherit', fontWeight: 'bold' }}>
-                    VALOR UNITÁRIO
-                  </TableCell>
-                  <TableCell align="center" sx={{ fontFamily: 'inherit', fontWeight: 'bold' }}>
-                    QUANTIDADE
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
+            {/* Receipt body */}
+            <div className="receipt-body">
+              {/* Date */}
+              <div className="receipt-date-row">
+                <span className="receipt-date-label">Data:</span>
+                <span className="receipt-date-value">
+                  {state.receipt?.date
+                    ? new Date(state.receipt.date).toLocaleDateString('pt-BR') +
+                      ' ' +
+                      new Date(state.receipt.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                    : ''}
+                </span>
+              </div>
+
+              {/* Items table */}
+              <div className="receipt-table-header">
+                <span className="receipt-col-item">ITEM</span>
+                <span className="receipt-col-qty">QTD</span>
+                <span className="receipt-col-value">VALOR</span>
+              </div>
+              <div>
                 {reciboItems.map((item, idx) => (
-                  <TableRow key={idx}>
-                    <TableCell sx={{ fontFamily: 'inherit' }}>{item.description}</TableCell>
-                    <TableCell align="right" sx={{ fontFamily: 'inherit' }}>
-                      R$ {NumberUtils.format(item.value)}
-                    </TableCell>
-                    <TableCell align="center" sx={{ fontFamily: 'inherit' }}>
-                      {NumberUtils.format(item.quantity, 0)}
-                    </TableCell>
-                  </TableRow>
+                  <div key={idx} className="receipt-item-row">
+                    <span className="receipt-item-desc">{item.description}</span>
+                    <span className="receipt-item-qty">{NumberUtils.format(item.quantity, 0)}</span>
+                    <span className="receipt-item-value">R$ {NumberUtils.format(item.value)}</span>
+                  </div>
                 ))}
-              </TableBody>
-            </Table>
-            <Divider sx={{ my: 1.5 }} />
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <Typography variant="body2" sx={{ fontFamily: 'inherit', fontWeight: 'bold' }}>
-                VALOR TOTAL: R$ {NumberUtils.format(state.receipt?.total ?? 0)}
-              </Typography>
-            </Box>
-          </Box>
+              </div>
 
-          <Link
-            component="button"
-            underline="always"
-            onClick={this.emitOpenProducts}
-            sx={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 0.5,
-              color: '#1976d2',
-              mt: 3,
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-            }}
-          >
-            <ArrowBackIcon fontSize="small" />
-            Voltar aos produtos
-          </Link>
-        </CardContent>
-      </Card>
+              {/* Total */}
+              <div className="receipt-total-row">
+                <span className="receipt-total-label">TOTAL:</span>
+                <span className="receipt-total-value">R$ {NumberUtils.format(state.receipt?.total ?? 0)}</span>
+              </div>
+            </div>
+
+            {/* Back button */}
+            <ActionButton quiet className="receipt-back-btn" onClick={this.emitOpenProducts}>
+              <i className="bi bi-arrow-left mr-4"></i>
+              Voltar aos produtos
+            </ActionButton>
+          </div>
+        </div>
+      </div>
     )
   }
 

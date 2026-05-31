@@ -1,186 +1,182 @@
-import React, { ReactNode } from 'react'
-import Alert from '@mui/material/Alert'
-import Box from '@mui/material/Box'
-import Button from '@mui/material/Button'
-import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
-import CircularProgress from '@mui/material/CircularProgress'
-import Divider from '@mui/material/Divider'
-import TextField from '@mui/material/TextField'
-import Typography from '@mui/material/Typography'
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
+import React from 'react'
 import bridge, { type ViewProps } from '@root/bridge'
 import { BaseViewClass } from '@root/utils/ViewUtils'
-import ShoppingLogo from './home/ShoppingLogo'
+import { Button, FieldLabel, Textfield } from '@root/swc'
 
 // :: Actions
 
-const ON_ENTER = 1
+const ON_LOGIN = 1
 
 // :: View
 
 export type LoginViewState = {
-  userName?: string
-  password?: string
   errorMessage?: string
   loading?: boolean
 }
 
 class LoginViewClass extends BaseViewClass<ViewProps, LoginViewState> {
-  // :: Render
+  // :: Renderes
 
-  override render({ className }: ViewProps): React.ReactNode {
+  override render({ className }: ViewProps) {
     const { state } = this
 
     return (
-      <Box
-        className={className}
-        sx={{
-          minHeight: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          bgcolor: 'grey.100',
-        }}
-      >
-        <Card
-          elevation={0}
-          sx={{
-            width: 400,
-            border: '1px solid',
-            borderColor: 'grey.200',
-            borderRadius: 3,
-            overflow: 'hidden',
-          }}
-        >
-          {/* Blue header with logo */}
-          <Box
-            sx={{
-              bgcolor: 'primary.main',
-              py: 3,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 1.5,
-            }}
-          >
-            <ShoppingLogo height={38} />
-          </Box>
+      <div className={`login-root ${className || ''}`}>
+        {/* Left decorative panel (hidden on mobile) */}
+        <div className="login-left-panel md-show">
+          <div className="deco-circle deco-circle--1" />
+          <div className="deco-circle deco-circle--2" />
+          <div className="deco-circle deco-circle--3" />
+          <div className="login-content-center">
+            <div className="logo-box-lg mb-16">
+              <i className="bi bi-bag-check login-logo-icon-lg"></i>
+            </div>
+            <h1 className="login-title-lg">WDC Shopping</h1>
+            <p className="login-subtitle-lg">Sua compra certa na internet.</p>
+            <div className="login-features-list">
+              <div className="login-feature-row">
+                <i className="bi bi-shield-check login-feature-icon"></i>
+                <span className="login-feature-text">Compra segura</span>
+              </div>
+              <div className="login-feature-row">
+                <i className="bi bi-truck login-feature-icon"></i>
+                <span className="login-feature-text">Entrega rápida</span>
+              </div>
+              <div className="login-feature-row">
+                <i className="bi bi-arrow-repeat login-feature-icon"></i>
+                <span className="login-feature-text">Troca garantida</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-          <CardContent sx={{ p: 4 }}>
-            {/* Lock icon + title */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
-              <Box
-                sx={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: '50%',
-                  bgcolor: 'primary.main',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  mb: 1.5,
-                }}
-              >
-                <LockOutlinedIcon sx={{ color: '#fff', fontSize: 22 }} />
-              </Box>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                Acesso ao sistema
-              </Typography>
-            </Box>
+        {/* Right form panel */}
+        <div className="login-form-panel login-card">
+          <div className="login-form-content">
+            {/* Mobile header */}
+            <div className="login-mobile-logo">
+              <div className="login-mobile-circle-1" />
+              <div className="login-mobile-circle-2" />
+              <div className="login-mobile-content">
+                <div className="login-logo-box-sm">
+                  <i className="bi bi-bag-check login-icon-sm"></i>
+                </div>
+                <div className="login-mobile-title">WDC Shopping</div>
+                <div className="login-mobile-subtitle">Sua compra certa na internet.</div>
+              </div>
+            </div>
 
-            {/* Form */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }} onKeyDown={this.onKeyDown}>
-              <TextField
-                inputRef={this.usrInputRef}
-                label="Usuário"
-                type="text"
-                name="login-usr"
-                autoComplete="one-time-code"
-                defaultValue={state.userName ?? ''}
-                disabled={!!state.loading}
-                fullWidth
-                size="small"
-              />
-              <TextField
-                inputRef={this.pwdInputRef}
-                label="Senha"
-                type="password"
-                name="login-pwd"
-                autoComplete="one-time-code"
-                defaultValue={state.password ?? ''}
-                disabled={!!state.loading}
-                fullWidth
-                size="small"
-              />
-              {!!state.errorMessage && (
-                <Alert severity="error" sx={{ mt: 0.5 }}>
-                  {state.errorMessage}
-                </Alert>
-              )}
-              <Button
-                type="button"
-                variant="contained"
-                color="primary"
-                size="large"
-                fullWidth
-                disabled={!!state.loading}
-                sx={{ mt: 1, py: 1.2, borderRadius: 2, textTransform: 'none', fontWeight: 'bold', fontSize: '1rem' }}
-                onClick={this.emitOnEnter}
-              >
-                {state.loading ? <CircularProgress size={24} color="inherit" /> : 'Entrar'}
-              </Button>
-            </Box>
+            {/* Welcome text */}
+            <div className="login-welcome-wrap">
+              <h2 className="login-welcome-title">Bem-vindo</h2>
+              <p className="login-welcome-subtitle">Entre com suas credenciais para continuar</p>
+            </div>
 
-            {/* Demo credentials hint */}
-            <Divider sx={{ mt: 3, mb: 2 }} />
-            <Box
-              sx={{
-                bgcolor: 'grey.50',
-                border: '1px dashed',
-                borderColor: 'grey.300',
-                borderRadius: 2,
-                p: 1.5,
-                textAlign: 'center',
-              }}
+            {/* Error message */}
+            {state.errorMessage && (
+              <div className="alert-error mb-16">
+                <span className="alert-error-icon">
+                  <i className="bi bi-exclamation-circle"></i>
+                </span>
+                <span className="alert-error-text">{state.errorMessage}</span>
+              </div>
+            )}
+
+            {/* User field */}
+            <FieldLabel for="login-user" className="login-field-label">
+              Usuário
+            </FieldLabel>
+            <Textfield
+              id="login-user"
+              placeholder="Digite seu usuário"
+              className="login-field"
+              disabled={state.loading || undefined}
+              ref={this.userFieldRef}
+            ></Textfield>
+
+            {/* Password field */}
+            <FieldLabel for="login-password" className="login-field-label">
+              Senha
+            </FieldLabel>
+            <Textfield
+              id="login-password"
+              type="password"
+              placeholder="Digite sua senha"
+              className="login-field-password"
+              disabled={state.loading || undefined}
+              ref={this.passFieldRef}
+            ></Textfield>
+
+            {/* Login button */}
+            <Button
+              variant="accent"
+              size="l"
+              className="login-enter-btn"
+              disabled={state.loading || undefined}
+              pending={state.loading || undefined}
+              ref={this.btnRef}
             >
-              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>
-                Acesso demo: usuário <strong>admin</strong> / senha <strong>admin</strong>
-              </Typography>
-            </Box>
-          </CardContent>
-        </Card>
-      </Box>
+              {state.loading ? 'Entrando...' : 'Entrar'}
+            </Button>
+
+            {/* Demo hint */}
+            <div className="login-demo-hint">
+              <span className="login-demo-text">Acesso demo: </span>
+              <span className="login-demo-highlight">admin</span>
+              <span className="login-demo-text"> / </span>
+              <span className="login-demo-highlight">admin</span>
+            </div>
+          </div>
+        </div>
+      </div>
     )
   }
 
-  // :: Element Refs
+  // :: Refs and Event Handlers
 
-  usrInputRef: React.RefObject<HTMLInputElement | null> = {
-    current: null,
-  }
+  private userEl: HTMLElement | null = null
+  private passEl: HTMLElement | null = null
 
-  pwdInputRef: React.RefObject<HTMLInputElement | null> = {
-    current: null,
-  }
-
-  // :: Emissors
-
-  readonly emitOnEnter = async () => {
-    const { vsid } = this
-    const userName = this.usrInputRef.current?.value ?? ''
-    const password = this.pwdInputRef.current?.value ?? ''
-    bridge.setFormField(vsid, 'userName', userName)
-    bridge.setFormField(vsid, 'password', await bridge.cipher(password))
-    bridge.submit(vsid, ON_ENTER)
-  }
-
-  readonly onKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      this.emitOnEnter()
+  readonly userFieldRef = (el: HTMLElement | null) => {
+    if (this.userEl) {
+      this.userEl.removeEventListener('keydown', this.onKeyDown)
     }
+    this.userEl = el
+    if (el) {
+      el.addEventListener('keydown', this.onKeyDown)
+    }
+  }
+
+  readonly passFieldRef = (el: HTMLElement | null) => {
+    if (this.passEl) {
+      this.passEl.removeEventListener('keydown', this.onKeyDown)
+    }
+    this.passEl = el
+    if (el) {
+      el.addEventListener('keydown', this.onKeyDown)
+    }
+  }
+
+  readonly btnRef = (el: HTMLElement | null) => {
+    if (el) {
+      el.addEventListener('click', this.emitLogin)
+    }
+  }
+
+  readonly onKeyDown = (e: Event) => {
+    if ((e as KeyboardEvent).key === 'Enter') {
+      this.emitLogin()
+    }
+  }
+
+  readonly emitLogin = async () => {
+    const { vsid } = this
+    const userName = (this.userEl as any)?.value || ''
+    const password = (this.passEl as any)?.value || ''
+    bridge.setFormField(vsid, 'userName', userName)
+    const encryptedPassword = await bridge.cipher(password)
+    bridge.setFormField(vsid, 'password', encryptedPassword)
+    bridge.submit(vsid, ON_LOGIN)
   }
 }
 

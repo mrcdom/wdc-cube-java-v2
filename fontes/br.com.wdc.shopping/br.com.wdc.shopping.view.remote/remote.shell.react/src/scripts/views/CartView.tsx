@@ -1,37 +1,18 @@
 import React from 'react'
-import Alert from '@mui/material/Alert'
-import Box from '@mui/material/Box'
-import Button from '@mui/material/Button'
-import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
-import Divider from '@mui/material/Divider'
-import IconButton from '@mui/material/IconButton'
-import Paper from '@mui/material/Paper'
-import Table from '@mui/material/Table'
-import TableBody from '@mui/material/TableBody'
-import TableCell from '@mui/material/TableCell'
-import TableHead from '@mui/material/TableHead'
-import TableRow from '@mui/material/TableRow'
-import Toolbar from '@mui/material/Toolbar'
-import Typography from '@mui/material/Typography'
-import Link from '@mui/material/Link'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'
-import DeleteIcon from '@mui/icons-material/Delete'
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
 import bridge, { type ViewProps } from '@root/bridge'
-import { BaseViewClass, BasePanelClass } from '@root/utils/ViewUtils'
-import * as NumberUtils from '@root/utils/NumberUtils'
-import * as EndpointUtils from '@root/utils/EndpointUtils'
+import { BaseViewClass } from '@root/utils/ViewUtils'
+import { Button, ActionButton } from '@root/swc'
 
-// :: Actions
+// :: Actions (must match server-side presenter)
 
 const ON_BUY = 1
-const ON_REMOVE_PRODUCT = 2
-const ON_OPEN_PRODUCTS = 3
+const ON_REMOVE = 2
+const ON_BACK = 3
+const ON_MODIFY_QUANTITY = 4
 
 // :: Types
 
-type ItemCarrinho = {
+type CartItem = {
   id: number
   name: string
   price: number
@@ -41,217 +22,160 @@ type ItemCarrinho = {
 // :: View
 
 export type CartViewState = {
-  items: ItemCarrinho[]
+  items?: CartItem[]
   errorMessage?: string
 }
 
 class CartViewClass extends BaseViewClass<ViewProps, CartViewState> {
+  // :: Renderes
+
   override render({ className }: ViewProps) {
-    const { vsid, state } = this
-
-    let valorTotal = 0
-    let carrinhoTotal = 0
+    const { state } = this
     const items = state.items ?? []
-
-    items.forEach((prod) => {
-      carrinhoTotal += prod.quantity
-      valorTotal += prod.price * prod.quantity
-    })
+    const empty = items.length === 0
+    const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+    const totalText = `R$ ${total.toFixed(2)}`
 
     return (
-      <Card elevation={3} sx={{ maxWidth: 900, mx: 'auto', my: 3 }}>
-        <CardContent>
-          {/* Header */}
-          <Toolbar disableGutters sx={{ mb: 1 }}>
-            <ShoppingCartIcon sx={{ mr: 1 }} />
-            <Typography variant="h6" sx={{ flexGrow: 1 }}>
-              Carrinho{' '}
-              <Typography component="span" variant="body2" color="text.secondary">
-                ({NumberUtils.format(carrinhoTotal, 0)} {carrinhoTotal === 1 ? 'item' : 'itens'})
-              </Typography>
-            </Typography>
-            <Typography variant="subtitle2" color="text.secondary">
-              LISTA DE PRODUTOS
-            </Typography>
-          </Toolbar>
+      <div className={`page-scroll-root ${className || ''}`}>
+        <div className="page-wrapper">
+          <div className="card-panel">
+            {/* Header */}
+            <div className="card-header-row">
+              <div className="card-header-icon-box">
+                <span className="bi bi-bag card-header-icon"></span>
+              </div>
+              <div>
+                <h5 className="card-header-title">Carrinho</h5>
+                <span className="card-header-subtitle">Seus produtos selecionados</span>
+              </div>
+            </div>
 
-          <Divider sx={{ mb: 2 }} />
-
-          {/* Table */}
-          <Paper variant="outlined">
-            <Table size="small">
-              <TableHead>
-                <TableRow sx={{ bgcolor: 'grey.100' }}>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Item</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'bold' }}>
-                    Valor unitário
-                  </TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>
-                    Quantidade
-                  </TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>
-                    Remover
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {items.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={4} align="center">
-                      <Box sx={{ py: 5, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="100"
-                          height="100"
-                          viewBox="0 0 64 64"
-                          style={{ marginBottom: 12 }}
-                        >
-                          <circle cx="32" cy="32" r="30" fill="#e3f2fd" />
-                          <path
-                            d="M16 18h4l3 14h18l3-10H24"
-                            fill="none"
-                            stroke="#1976d2"
-                            strokeWidth="2.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <circle cx="25" cy="38" r="2.5" fill="#1976d2" />
-                          <circle cx="39" cy="38" r="2.5" fill="#1976d2" />
-                          <line
-                            x1="28"
-                            y1="26"
-                            x2="38"
-                            y2="26"
-                            stroke="#ff9800"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                          />
-                        </svg>
-                        <Typography color="text.secondary" variant="body1" sx={{ mb: 1 }}>
-                          Seu carrinho está vazio
-                        </Typography>
-                        <Button
-                          variant="text"
-                          color="primary"
-                          onClick={this.emitClickVoltar}
-                          sx={{ textTransform: 'none', fontWeight: 'bold', fontSize: '1rem' }}
-                        >
-                          Vamos às compras!
-                        </Button>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  items.map((prod) => (
-                    <TableRow key={prod.id} hover>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Box
-                            component="img"
-                            src={EndpointUtils.productImagePath(prod.id)}
-                            alt={prod.name}
-                            sx={{ width: 42, height: 40, objectFit: 'contain' }}
-                          />
-                          {prod.name}
-                        </Box>
-                      </TableCell>
-                      <TableCell align="right">R$ {NumberUtils.format(prod.price)}</TableCell>
-                      <TableCell align="center">{NumberUtils.format(prod.quantity, 0)}</TableCell>
-                      <TableCell align="center">
-                        <RemoveProductButton vsid={vsid} product={prod} />
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </Paper>
-
-          {/* Total */}
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2, mr: 1 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-              VALOR TOTAL: R$ {NumberUtils.format(valorTotal)}
-            </Typography>
-          </Box>
-
-          {/* Error */}
-          {state.errorMessage && (
-            <Alert severity="error" sx={{ mt: 1 }}>
-              {state.errorMessage}
-            </Alert>
-          )}
-
-          {/* Actions */}
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 3 }}>
-            <Link
-              component="button"
-              underline="always"
-              onClick={this.emitClickVoltar}
-              sx={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 0.5,
-                color: '#1976d2',
-                fontSize: '0.875rem',
-                cursor: 'pointer',
-              }}
-            >
-              <ArrowBackIcon fontSize="small" />
-              Voltar aos produtos
-            </Link>
-            {items.length > 0 && (
-              <Button variant="contained" color="warning" onClick={this.emitClickFinalizar}>
-                Finalizar pedido &rarr;
-              </Button>
+            {/* Error */}
+            {state.errorMessage && (
+              <div className="alert-error mb-16">
+                <span className="bi bi-exclamation-circle alert-error-icon"></span>
+                <span className="alert-error-text">{state.errorMessage}</span>
+              </div>
             )}
-          </Box>
-        </CardContent>
-      </Card>
+
+            {/* Empty state */}
+            {empty ? (
+              <div className="empty-state py-48">
+                <div className="cart-empty-icon-box">
+                  <span className="bi bi-bag cart-empty-icon"></span>
+                </div>
+                <p className="cart-empty-title">Carrinho vazio</p>
+                <p className="cart-empty-subtitle">Adicione produtos para começar</p>
+                <Button variant="accent" ref={this.viewProductsBtnRef}>
+                  <span className="bi bi-grid-3x3-gap mr-6"></span>
+                  <span>Ver produtos</span>
+                </Button>
+              </div>
+            ) : (
+              <div>
+                {/* Items list */}
+                <div>{items.map((item) => this.renderItem(item))}</div>
+
+                {/* Footer total */}
+                <div className="cart-footer">
+                  <span className="cart-footer-label">Total: </span>
+                  <span className="cart-footer-total">{totalText}</span>
+                </div>
+
+                {/* Actions */}
+                <div className="cart-actions-row">
+                  <ActionButton quiet ref={this.backBtnRef}>
+                    <span className="bi bi-arrow-left"></span>
+                    <span> Continuar comprando</span>
+                  </ActionButton>
+                  <Button variant="accent" size="l" ref={this.buyBtnRef}>
+                    <span className="bi bi-check2-circle mr-6"></span>
+                    <span>Finalizar pedido</span>
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     )
+  }
+
+  private renderItem(item: CartItem) {
+    const subtotal = `R$ ${(item.price * item.quantity).toFixed(2)}`
+    return (
+      <div key={item.id} className="cart-item-row">
+        <span className="cart-item-name">{item.name}</span>
+        <div className="cart-stepper-row">
+          <ActionButton
+            quiet
+            size="s"
+            ref={(el: HTMLElement | null) => {
+              if (el) el.onclick = () => this.emitModifyQuantity(item.id, item.quantity - 1)
+            }}
+          >
+            <span className="bi bi-dash cart-stepper-icon"></span>
+          </ActionButton>
+          <span className="cart-stepper-value">{item.quantity}</span>
+          <ActionButton
+            quiet
+            size="s"
+            ref={(el: HTMLElement | null) => {
+              if (el) el.onclick = () => this.emitModifyQuantity(item.id, item.quantity + 1)
+            }}
+          >
+            <span className="bi bi-plus cart-stepper-icon"></span>
+          </ActionButton>
+        </div>
+        <span className="cart-item-subtotal">{subtotal}</span>
+        <ActionButton
+          quiet
+          size="s"
+          ref={(el: HTMLElement | null) => {
+            if (el) el.onclick = () => this.emitRemove(item.id)
+          }}
+        >
+          <span className="bi bi-x-lg cart-remove-icon"></span>
+        </ActionButton>
+      </div>
+    )
+  }
+
+  // :: Refs
+
+  readonly backBtnRef = (el: HTMLElement | null) => {
+    if (el) el.addEventListener('click', this.emitBack)
+  }
+
+  readonly buyBtnRef = (el: HTMLElement | null) => {
+    if (el) el.addEventListener('click', this.emitBuy)
+  }
+
+  readonly viewProductsBtnRef = (el: HTMLElement | null) => {
+    if (el) el.addEventListener('click', this.emitBack)
   }
 
   // :: Emissors
 
-  readonly emitClickFinalizar = () => {
-    const { vsid } = this
-    bridge.submit(vsid, ON_BUY)
+  readonly emitBack = () => {
+    bridge.submit(this.vsid, ON_BACK)
   }
 
-  readonly emitClickVoltar = () => {
-    const { vsid } = this
-    bridge.submit(vsid, ON_OPEN_PRODUCTS)
+  readonly emitBuy = () => {
+    bridge.submit(this.vsid, ON_BUY)
+  }
+
+  readonly emitModifyQuantity = (id: number, quantity: number) => {
+    bridge.setFormField(this.vsid, 'p.productId', id)
+    bridge.setFormField(this.vsid, 'p.quantity', quantity)
+    bridge.submit(this.vsid, ON_MODIFY_QUANTITY)
+  }
+
+  readonly emitRemove = (id: number) => {
+    bridge.setFormField(this.vsid, 'p.productId', id)
+    bridge.submit(this.vsid, ON_REMOVE)
   }
 }
 
 export default BaseViewClass.FC(CartViewClass, '7eb485e5f843')
-
-// :: RemoveProductButton Component
-
-type RemoveProductButtonProps = {
-  vsid: string
-  product: ItemCarrinho
-}
-
-class RemoveProductButtonClass extends BasePanelClass<RemoveProductButtonProps> {
-  vsid!: string
-  product!: ItemCarrinho
-
-  override render({ vsid, product }: RemoveProductButtonProps) {
-    this.vsid = vsid
-    this.product = product
-
-    return (
-      <IconButton size="small" color="error" onClick={this.emitRemoveProduct} aria-label={`Remover ${product.name}`}>
-        <DeleteIcon fontSize="small" />
-      </IconButton>
-    )
-  }
-
-  readonly emitRemoveProduct = () => {
-    const { vsid, product } = this
-    bridge.setFormField(vsid, 'p.productId', product.id)
-    bridge.submit(vsid, ON_REMOVE_PRODUCT)
-  }
-}
-
-const RemoveProductButton = BasePanelClass.FC(RemoveProductButtonClass)

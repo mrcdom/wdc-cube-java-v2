@@ -1,17 +1,7 @@
 import React from 'react'
-import Box from '@mui/material/Box'
-import Button from '@mui/material/Button'
-import IconButton from '@mui/material/IconButton'
-import Link from '@mui/material/Link'
-import Typography from '@mui/material/Typography'
-import RemoveIcon from '@mui/icons-material/Remove'
-import AddIcon from '@mui/icons-material/Add'
-import Snackbar from '@mui/material/Snackbar'
-import MuiAlert from '@mui/material/Alert'
-import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import bridge, { type ViewProps } from '@root/bridge'
 import { BaseViewClass } from '@root/utils/ViewUtils'
+import { Button, ActionButton, Divider } from '@root/swc'
 import * as NumberUtils from '@root/utils/NumberUtils'
 import * as EndpointUtils from '@root/utils/EndpointUtils'
 
@@ -53,153 +43,64 @@ class ProductViewClass extends BaseViewClass<ViewProps, ProductViewState> {
     const product = state.product ?? DefaultProduct
 
     return (
-      <Box
-        sx={{
-          maxWidth: 900,
-          mx: 'auto',
-          bgcolor: '#fff',
-          borderRadius: '12px',
-          border: '1px solid #e0e0e0',
-          p: 3,
-        }}
-      >
-        {/* Product name */}
-        <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 1 }}>
-          {product.name}
-        </Typography>
+      <div className={`page-scroll-root ${className || ''}`}>
+        <div className="page-wrapper">
+          {/* Product title */}
+          <h5 className="product-title">{product.name}</h5>
+          <Divider size="s" className="product-divider"></Divider>
 
-        {/* Row: info panel (left) + image (right) */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mt: 1 }}>
-          {/* Left: price + quantity + button */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center' }}>
-            <Typography
-              sx={{
-                fontSize: '1.75rem',
-                fontWeight: 'bold',
-                color: '#1976d2',
-                mt: 0.5,
-              }}
-            >
-              R$ {NumberUtils.format(product.price)}
-            </Typography>
+          {/* Description card */}
+          <div className="product-desc-card">
+            <div className="product-desc-text" dangerouslySetInnerHTML={{ __html: product.description }} />
+          </div>
 
-            <Typography variant="caption" sx={{ color: 'text.secondary', mt: 1 }}>
-              Quantidade
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 0.5 }}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  border: '1px solid',
-                  borderColor: 'grey.400',
-                  borderRadius: 1,
-                  overflow: 'hidden',
-                }}
-              >
-                <IconButton size="small" onClick={this.emitDecrement} disabled={quantity <= 1}>
-                  <RemoveIcon fontSize="small" />
-                </IconButton>
-                <Typography
-                  sx={{
-                    minWidth: 40,
-                    textAlign: 'center',
-                    fontSize: '0.875rem',
-                    userSelect: 'none',
-                    px: 1,
-                  }}
-                >
-                  {quantity}
-                </Typography>
-                <IconButton size="small" onClick={this.emitIncrement}>
-                  <AddIcon fontSize="small" />
-                </IconButton>
-              </Box>
+          {/* Price + Image row */}
+          <div className="product-price-image-row">
+            <div className="product-price-col">
+              <span className="product-price-badge">R$ {NumberUtils.format(product.price)}</span>
+              <div className="product-qty-row">
+                <span className="product-qty-label">Qtd:</span>
+                <ActionButton quiet size="s" onClick={this.emitDecrement}>
+                  <i className="bi bi-dash"></i>
+                </ActionButton>
+                <span className="product-qty-value">{quantity}</span>
+                <ActionButton quiet size="s" onClick={this.emitIncrement}>
+                  <i className="bi bi-plus"></i>
+                </ActionButton>
+              </div>
+            </div>
+            <div className="product-image-box">
+              <img className="product-image" src={EndpointUtils.productImagePath(product.id)} alt={product.name} />
+            </div>
+          </div>
 
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<AddShoppingCartIcon />}
-                onClick={this.emitAddToCart}
-              >
-                Adicionar
-              </Button>
-            </Box>
-          </Box>
+          {/* Actions */}
+          <div className="product-actions-row">
+            <ActionButton quiet onClick={this.emitGoHome}>
+              <i className="bi bi-arrow-left mr-4"></i>
+              Voltar
+            </ActionButton>
+            <Button variant="accent" size="l" onClick={this.emitAddToCart}>
+              <i className="bi bi-bag-plus mr-4"></i>
+              Adicionar ao Carrinho
+            </Button>
+          </div>
 
-          {/* Right: product image */}
-          <Box
-            component="img"
-            src={EndpointUtils.productImagePath(product.id)}
-            alt={product.name}
-            sx={{
-              width: 240,
-              height: 240,
-              objectFit: 'contain',
-              flexShrink: 0,
-              p: 1,
-            }}
-          />
-        </Box>
-
-        {/* Description label */}
-        <Typography
-          variant="body2"
-          sx={{
-            color: 'text.secondary',
-            fontWeight: 600,
-            mt: 1,
-          }}
-        >
-          Descrição
-        </Typography>
-
-        {/* Description content */}
-        <Box
-          sx={{ fontSize: 14, lineHeight: 1.6, py: 0.5 }}
-          dangerouslySetInnerHTML={{ __html: product.description }}
-        />
-
-        {/* Error notification */}
-        <Snackbar
-          open={!!state.errorMessage}
-          autoHideDuration={5000}
-          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-          onClose={this.emitDismissError}
-        >
-          <MuiAlert severity="error" elevation={6} variant="filled" onClose={this.emitDismissError}>
-            {state.errorMessage}
-          </MuiAlert>
-        </Snackbar>
-
-        {/* Back link */}
-        <Link
-          component="button"
-          underline="always"
-          onClick={this.emitGoHome}
-          sx={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 0.5,
-            color: '#1976d2',
-            mt: 2,
-            fontSize: '0.875rem',
-            cursor: 'pointer',
-          }}
-        >
-          <ArrowBackIcon fontSize="small" />
-          Voltar aos produtos
-        </Link>
-      </Box>
+          {/* Error */}
+          {state.errorMessage && (
+            <div className="alert-error mt-16">
+              <span className="alert-error-icon">
+                <i className="bi bi-exclamation-circle"></i>
+              </span>
+              <span className="alert-error-text">{state.errorMessage}</span>
+            </div>
+          )}
+        </div>
+      </div>
     )
   }
 
   // :: Emissors
-
-  readonly emitDismissError = () => {
-    this.state.errorMessage = undefined
-    this.forceUpdate()
-  }
 
   readonly emitAddToCart = () => {
     const { vsid, state } = this

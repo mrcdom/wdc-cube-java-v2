@@ -1,6 +1,4 @@
 import React from 'react'
-import Alert from '@mui/material/Alert'
-import Box from '@mui/material/Box'
 import bridge, { type ViewProps } from '@root/bridge'
 import { BaseViewClass } from '@root/utils/ViewUtils'
 
@@ -17,9 +15,12 @@ class RootViewClass extends BaseViewClass<ViewProps, RootViewState> {
 
     if (state.errorMessage) {
       return (
-        <Box sx={{ m: 2 }}>
-          <Alert severity="error">{state.errorMessage}</Alert>
-        </Box>
+        <div className="alert-error" style={{ margin: '16px' }}>
+          <span className="alert-error-icon">
+            <i className="bi bi-exclamation-circle"></i>
+          </span>
+          <span className="alert-error-text">{state.errorMessage}</span>
+        </div>
       )
     }
 
@@ -28,9 +29,12 @@ class RootViewClass extends BaseViewClass<ViewProps, RootViewState> {
     }
 
     return (
-      <Box className={className} sx={{ m: 2 }}>
-        <Alert severity="error">Falta conteúdo para a página inicial</Alert>
-      </Box>
+      <div className="alert-error" style={{ margin: '16px' }}>
+        <span className="alert-error-icon">
+          <i className="bi bi-exclamation-circle"></i>
+        </span>
+        <span className="alert-error-text">Falta conteúdo para a página inicial</span>
+      </div>
     )
   }
 }

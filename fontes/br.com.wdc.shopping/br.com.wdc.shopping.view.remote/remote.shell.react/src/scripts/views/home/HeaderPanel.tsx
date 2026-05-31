@@ -1,16 +1,7 @@
 import React from 'react'
-import AppBar from '@mui/material/AppBar'
-import Badge from '@mui/material/Badge'
-import Box from '@mui/material/Box'
-import IconButton from '@mui/material/IconButton'
-import Toolbar from '@mui/material/Toolbar'
-import Tooltip from '@mui/material/Tooltip'
-import Typography from '@mui/material/Typography'
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
-import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew'
 import bridge from '@root/bridge'
 import { BasePanelClass } from '@root/utils/ViewUtils'
-import ShoppingLogo from './ShoppingLogo'
+import { Theme, ActionButton } from '@root/swc'
 
 // :: Actions
 
@@ -32,39 +23,49 @@ class HeaderPanelClass extends BasePanelClass<HeaderPanelProps> {
     this.vsid = vsid
 
     return (
-      <AppBar position="static" color="primary" elevation={2} sx={{ flexShrink: 0 }}>
-        <Toolbar>
-          {/* Left: Sair + Olá */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
-            <Tooltip title="Sair">
-              <IconButton size="small" onClick={this.emitExit} sx={{ color: '#fff' }}>
-                <PowerSettingsNewIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-            <Typography variant="body2" sx={{ color: '#fff' }}>
-              Olá, {nickName}
-            </Typography>
-          </Box>
+      <Theme color="dark" scale="medium" className="navbar">
+        {/* Left: exit + greeting */}
+        <div className="nav-group">
+          <ActionButton quiet ref={this.exitBtnRef}>
+            <span className="bi bi-box-arrow-left text-lg text-white"></span>
+          </ActionButton>
+          <div className="sm-show flex-col leading-tight">
+            <span className="text-xs text-white-70 font-normal">Bem-vindo(a),</span>
+            <span className="text-sm font-semibold text-white">{nickName}</span>
+          </div>
+        </div>
 
-          {/* Center: Logo */}
-          <ShoppingLogo height={32} />
+        {/* Center: logo */}
+        <div className="nav-group">
+          <div className="logo-box">
+            <span className="bi bi-bag-check text-xl text-white"></span>
+          </div>
+          <div className="flex-col leading-tight">
+            <span className="text-base font-bold text-white tracking-tight">Shopping</span>
+            <span className="sm-show text-xs text-white-65 font-normal tracking-wide">By WeDoCode</span>
+          </div>
+        </div>
 
-          {/* Right: Carrinho */}
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', flex: 1 }}>
-            <Tooltip title="Abrir carrinho">
-              <IconButton color="inherit" onClick={this.emitOpenCart} sx={{ color: '#fff' }}>
-                <Badge badgeContent={cartItemCount} color="error">
-                  <ShoppingCartIcon />
-                </Badge>
-                <Typography variant="body2" sx={{ ml: 0.5, color: '#fff' }}>
-                  Carrinho
-                </Typography>
-              </IconButton>
-            </Tooltip>
-          </Box>
-        </Toolbar>
-      </AppBar>
+        {/* Right: cart button */}
+        <div className="flex-items-center">
+          <ActionButton quiet className="relative" ref={this.cartBtnRef}>
+            <span className="bi bi-bag text-xl text-white"></span>
+            <span className="sm-show text-sm text-white font-medium ml-6">Carrinho</span>
+            <span className="cart-badge">{cartItemCount}</span>
+          </ActionButton>
+        </div>
+      </Theme>
     )
+  }
+
+  // :: Refs
+
+  readonly exitBtnRef = (el: HTMLElement | null) => {
+    if (el) el.addEventListener('click', this.emitExit)
+  }
+
+  readonly cartBtnRef = (el: HTMLElement | null) => {
+    if (el) el.addEventListener('click', this.emitOpenCart)
   }
 
   // :: Emissors

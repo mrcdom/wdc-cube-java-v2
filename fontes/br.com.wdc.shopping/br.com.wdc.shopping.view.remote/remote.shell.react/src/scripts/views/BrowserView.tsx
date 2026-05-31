@@ -1,14 +1,7 @@
 import React, { ReactNode } from 'react'
-import Alert from '@mui/material/Alert'
-import AlertTitle from '@mui/material/AlertTitle'
-import Box from '@mui/material/Box'
-import Button from '@mui/material/Button'
-import CircularProgress from '@mui/material/CircularProgress'
-import LinearProgress from '@mui/material/LinearProgress'
-import Link from '@mui/material/Link'
-import Typography from '@mui/material/Typography'
 import bridge, { type ViewProps, BROWSER_VID, type BrowserViewState } from '@root/bridge'
 import { BaseViewClass } from '@root/utils/ViewUtils'
+import { ActionButton, ProgressCircle } from '@root/swc'
 
 // :: Actions
 
@@ -39,9 +32,9 @@ class BrowserViewClass extends BaseViewClass<ViewProps, BrowserViewState> {
       rootView = bridge.createView(state.contentViewId)
     } else {
       rootView = (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-          <CircularProgress />
-        </Box>
+        <div className="flex-center" style={{ minHeight: '100vh' }}>
+          <ProgressCircle size="l" indeterminate></ProgressCircle>
+        </div>
       )
     }
 
@@ -53,22 +46,12 @@ class BrowserViewClass extends BaseViewClass<ViewProps, BrowserViewState> {
     }
 
     return (
-      <Box className={className}>
-        {state.submitting && (
-          <LinearProgress
-            sx={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              zIndex: 9999,
-            }}
-          />
-        )}
+      <div className={`browser-host ${className || ''}`}>
+        {state.submitting && <div className="browser-loading-bar" />}
         {connectionAlert}
         {alertView}
         {rootView}
-      </Box>
+      </div>
     )
   }
 
@@ -111,23 +94,25 @@ function AppAlert(props: AppAlertProps) {
   }
 
   return (
-    <Alert
-      severity="warning"
-      sx={{ m: 2 }}
-      action={
-        <Button color="inherit" size="small" onClick={props.onDismiss}>
-          Ok
-        </Button>
-      }
-    >
-      <AlertTitle>Aviso!</AlertTitle>
-      {msgNode}
-      {detailMessage && (
-        <Typography variant="body2" sx={{ mt: 1 }}>
-          {detailMessage}
-        </Typography>
-      )}
-    </Alert>
+    <div className="alert-error" style={{ margin: '16px' }}>
+      <span className="alert-error-icon">
+        <i className="bi bi-exclamation-circle"></i>
+      </span>
+      <div style={{ flex: 1 }}>
+        <div className="font-bold text-sm" style={{ color: 'var(--app-error-text)' }}>
+          Aviso!
+        </div>
+        <span className="alert-error-text">{msgNode}</span>
+        {detailMessage && (
+          <div className="text-xs mt-4" style={{ color: 'var(--app-error-text)' }}>
+            {detailMessage}
+          </div>
+        )}
+      </div>
+      <ActionButton quiet size="s" onClick={props.onDismiss} style={{ marginLeft: 'auto' }}>
+        Ok
+      </ActionButton>
+    </div>
   )
 }
 
@@ -139,7 +124,8 @@ type ConnectionAlertProps = {
 }
 
 function ConnectionAlert(props: ConnectionAlertProps) {
-  let timeElm: React.ReactNode, retryElm: React.ReactNode
+  let timeText: string
+  let showRetry = false
   if (props.delay > 0) {
     let seconds = Math.floor(props.delay / 1000)
     let minutes = 0
@@ -147,48 +133,34 @@ function ConnectionAlert(props: ConnectionAlertProps) {
       minutes = Math.floor(seconds / 60)
       seconds = seconds - minutes * 60
     }
-
-    timeElm = (
-      <Typography component="span" variant="body2">
-        {minutes > 0 ? `Conectando em ${minutes}m e ${seconds}s...` : `Conectando em ${seconds}s...`}
-      </Typography>
-    )
-    retryElm = (
-      <Link
-        component="button"
-        variant="body2"
-        underline="always"
-        onClick={props.onReconnectNow}
-        sx={{ cursor: 'pointer', ml: 1 }}
-      >
-        Tentar agora
-      </Link>
-    )
+    timeText = minutes > 0 ? `Conectando em ${minutes}m e ${seconds}s...` : `Conectando em ${seconds}s...`
+    showRetry = true
   } else {
-    timeElm = (
-      <Typography component="span" variant="body2">
-        Conectando agora...
-      </Typography>
-    )
+    timeText = 'Conectando agora...'
   }
 
   return (
-    <Box sx={{ textAlign: 'center' }}>
-      <Alert
-        severity="warning"
-        icon={false}
-        sx={{
-          display: 'inline-flex',
-          borderRadius: '0 0 4px 4px',
-          py: 0,
-          px: 1.5,
-        }}
+    <div style={{ textAlign: 'center' }}>
+      <div
+        className="alert-error"
+        style={{ display: 'inline-flex', borderRadius: '0 0 8px 8px', padding: '6px 12px', margin: 0 }}
       >
-        <Typography component="span" variant="body2" sx={{ fontWeight: 'bold' }}>
+        <span className="font-bold text-sm" style={{ color: 'var(--app-error-text)' }}>
           Não conectado.
-        </Typography>{' '}
-        {timeElm} {retryElm}.
-      </Alert>
-    </Box>
+        </span>{' '}
+        <span className="text-sm" style={{ color: 'var(--app-error-text)' }}>
+          {timeText}
+        </span>
+        {showRetry && (
+          <span
+            className="text-sm font-medium cursor-pointer ml-4"
+            style={{ color: 'var(--app-accent)', textDecoration: 'underline' }}
+            onClick={props.onReconnectNow}
+          >
+            Tentar agora
+          </span>
+        )}
+      </div>
+    </div>
   )
 }

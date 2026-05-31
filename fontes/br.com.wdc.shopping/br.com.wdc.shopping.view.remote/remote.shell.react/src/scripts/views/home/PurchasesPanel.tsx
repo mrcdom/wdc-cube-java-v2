@@ -1,16 +1,10 @@
 import React from 'react'
-import Box from '@mui/material/Box'
-import IconButton from '@mui/material/IconButton'
-import Paper from '@mui/material/Paper'
-import Typography from '@mui/material/Typography'
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
-import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import bridge, { type ViewProps } from '@root/bridge'
 import { BaseViewClass, BasePanelClass } from '@root/utils/ViewUtils'
 import * as NumberUtils from '@root/utils/NumberUtils'
 import * as DateUtils from '@root/utils/DateUtils'
 
-const ITEM_HEIGHT_PX = 50
+const ITEM_HEIGHT_PX = 56
 
 // :: Actions
 
@@ -46,7 +40,10 @@ class PurchasesPanelClass extends BaseViewClass<ViewProps, PurchasesPanelState> 
     const el = this.listRef.current
     if (!el) return
     const containerHeight = el.clientHeight
-    if (containerHeight <= 0) return
+    if (containerHeight <= 0) {
+      window.setTimeout(() => requestAnimationFrame(this.computePageSize), 200)
+      return
+    }
     let itemHeight = ITEM_HEIGHT_PX
     const firstItem = el.querySelector('[data-purchase-item]') as HTMLElement | null
     if (firstItem && firstItem.offsetHeight > 0) {
@@ -57,7 +54,7 @@ class PurchasesPanelClass extends BaseViewClass<ViewProps, PurchasesPanelState> 
     if (capacity === this.state.pageSize) return
     const { vsid } = this
     bridge.setFormField(vsid, 'p.capacity', capacity)
-    bridge.submitSilent(vsid, ON_PAGE_SIZE_CHANGE)
+    bridge.submit(vsid, ON_PAGE_SIZE_CHANGE)
   }
 
   private onResize = () => {
@@ -78,35 +75,22 @@ class PurchasesPanelClass extends BaseViewClass<ViewProps, PurchasesPanelState> 
       this.resizeHandler = this.onResize
       requestAnimationFrame(this.computePageSize)
       window.addEventListener('resize', this.onResize)
+    } else if (!state.pageSize) {
+      requestAnimationFrame(this.computePageSize)
     }
 
     return (
-      <Paper
-        className={className}
-        elevation={0}
-        sx={{
-          width: 300,
-          flexShrink: 0,
-          bgcolor: '#fff',
-          border: '1px solid',
-          borderColor: 'grey.300',
-          borderRadius: 2,
-          m: 2,
-          ml: 0,
-          p: 2,
-          display: 'flex',
-          flexDirection: 'column',
-          alignSelf: 'stretch',
-        }}
-      >
-        <Typography variant="subtitle2" sx={{ color: 'primary.main', mb: 1.5, fontWeight: 'bold' }}>
-          Seu histórico de compras
-        </Typography>
-        <Box ref={this.listRef} sx={{ flex: 1, overflow: 'hidden' }}>
+      <div className={`purchases-panel slot-purchases ${className || ''}`}>
+        <div className="purchases-header-row">
+          <i className="bi bi-clock-history purchases-header-icon"></i>
+          <span className="purchases-header-title">Histórico</span>
+        </div>
+        <span className="purchases-hint">Toque para ver detalhes</span>
+        <div ref={this.listRef} className="purchases-list-container">
           {this.#renderCompras()}
-        </Box>
+        </div>
         {totalCount > 0 && this.#renderPageNavigation()}
-      </Paper>
+      </div>
     )
   }
 
@@ -119,37 +103,25 @@ class PurchasesPanelClass extends BaseViewClass<ViewProps, PurchasesPanelState> 
   #renderPageNavigation(): React.ReactNode {
     const page = this.state.page || 0
     return (
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          mt: 1,
-          pt: 1,
-          borderTop: '1px solid',
-          borderColor: 'grey.200',
-        }}
-      >
-        <IconButton
-          size="small"
-          disabled={page === 0}
-          onClick={this.emitPreviousPage}
-          sx={{ color: 'primary.main', '&.Mui-disabled': { color: 'grey.400' } }}
-        >
-          <ChevronLeftIcon fontSize="small" />
-        </IconButton>
-        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-          {page + 1}/{this.totalPages}
-        </Typography>
-        <IconButton
-          size="small"
-          disabled={page >= this.totalPages - 1}
-          onClick={this.emitNextPage}
-          sx={{ color: 'primary.main', '&.Mui-disabled': { color: 'grey.400' } }}
-        >
-          <ChevronRightIcon fontSize="small" />
-        </IconButton>
-      </Box>
+      <div className="purchases-pagination">
+        <div className="purchases-page-pill">
+          <div
+            className={`purchases-page-btn ${page === 0 ? 'pointer-events-none' : ''}`}
+            onClick={page > 0 ? this.emitPreviousPage : undefined}
+          >
+            <i className="bi bi-chevron-left purchases-page-btn-icon"></i>
+          </div>
+          <span className="purchases-page-info">
+            {page + 1} / {this.totalPages}
+          </span>
+          <div
+            className={`purchases-page-btn ${page >= this.totalPages - 1 ? 'pointer-events-none' : ''}`}
+            onClick={page < this.totalPages - 1 ? this.emitNextPage : undefined}
+          >
+            <i className="bi bi-chevron-right purchases-page-btn-icon"></i>
+          </div>
+        </div>
+      </div>
     )
   }
 
@@ -174,7 +146,7 @@ class PurchasesPanelClass extends BaseViewClass<ViewProps, PurchasesPanelState> 
 
 export default BaseViewClass.FC(PurchasesPanelClass, 'b3c4d5e6f7a8')
 
-// :: Internal - PurchaseItemRow (compact)
+// :: Internal - PurchaseItemRow
 
 type PurchaseItemRowProps = {
   vsid: string
@@ -195,58 +167,18 @@ class PurchaseItemRowClass extends BasePanelClass<PurchaseItemRowProps> {
     this.purchase = purchase
 
     return (
-      <Box
-        data-purchase-item
-        onClick={this.emitOpenReceipt}
-        sx={{
-          mb: 0.75,
-          borderRadius: 1,
-          overflow: 'hidden',
-          cursor: 'pointer',
-          bgcolor: 'grey.50',
-          borderLeft: '3px solid',
-          borderColor: 'primary.main',
-          transition: 'all 0.15s',
-          '&:hover': {
-            bgcolor: 'primary.50',
-            borderColor: 'primary.dark',
-            transform: 'translateX(2px)',
-          },
-        }}
-      >
+      <div data-purchase-item className="purchases-item-card purchase-item" onClick={this.emitOpenReceipt}>
         {/* Line 1: #id + date */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 1.5, pt: 0.75 }}>
-          <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 'bold', fontSize: '0.75rem' }}>
-            #{purchase.id}
-          </Typography>
-          <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.7rem' }}>
-            {DateUtils.formatDate(purchase.date)}
-          </Typography>
-        </Box>
+        <div className="purchases-item-line1">
+          <span className="purchases-item-id">#{purchase.id}</span>
+          <span className="purchases-item-date">{DateUtils.formatDate(purchase.date)}</span>
+        </div>
         {/* Line 2: products + total */}
-        <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5, px: 1.5, pb: 0.75 }}>
-          <Typography
-            variant="caption"
-            sx={{
-              color: 'text.secondary',
-              flex: 1,
-              minWidth: 0,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              fontSize: '0.75rem',
-            }}
-          >
-            {formatItems(purchase.items)}
-          </Typography>
-          <Typography
-            variant="caption"
-            sx={{ color: 'text.primary', fontWeight: 'bold', whiteSpace: 'nowrap', fontSize: '0.75rem' }}
-          >
-            R$ {NumberUtils.format(purchase.total)}
-          </Typography>
-        </Box>
-      </Box>
+        <div className="purchases-item-line2">
+          <span className="purchases-item-items">{formatItems(purchase.items)}</span>
+          <span className="purchases-item-total">R$ {NumberUtils.format(purchase.total)}</span>
+        </div>
+      </div>
     )
   }
 

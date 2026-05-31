@@ -1,5 +1,4 @@
 import React from 'react'
-import Box from '@mui/material/Box'
 import bridge from '@root/bridge'
 import { BasePanelClass } from '@root/utils/ViewUtils'
 
@@ -11,10 +10,10 @@ type ContentPanelProps = {
 class ContentPanelClass extends BasePanelClass<ContentPanelProps> {
   override render({ contentViewId, productsPanelViewId }: ContentPanelProps) {
     if (contentViewId) {
-      return bridge.createView(contentViewId, { style: { marginTop: '25px', marginLeft: '25px' } })
+      return bridge.createView(contentViewId)
     }
 
-    return <Box sx={{ mt: '25px', ml: '25px' }}>{bridge.createView(productsPanelViewId)}</Box>
+    return <>{bridge.createView(productsPanelViewId)}</>
   }
 }
 

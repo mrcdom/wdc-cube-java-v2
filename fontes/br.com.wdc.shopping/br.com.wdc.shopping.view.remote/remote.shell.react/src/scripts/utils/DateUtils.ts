@@ -6,7 +6,7 @@ export function formatDate(dateOrMillis: number | Date | null | undefined) {
 
   const purchaseDate = typeof dateOrMillis === 'number' ? new Date(dateOrMillis) : dateOrMillis
 
-  let purchaseDay = purchaseDate.getDay() + 1 //Dia primeiro retorna zero
+  let purchaseDay = purchaseDate.getDate()
   let purchaseMonth = purchaseDate.getMonth() + 1 //Janeiro retorna zero
   let purchaseFullYear = purchaseDate.getFullYear()
 
