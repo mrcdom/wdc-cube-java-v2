@@ -5,19 +5,20 @@ import static br.com.wdc.framework.vdom.VNode.*;
 
 import org.teavm.jso.dom.html.HTMLDocument;
 
+import br.com.wdc.framework.vdom.SelUtility;
+import br.com.wdc.framework.vdom.VNode;
 import br.com.wdc.shopping.presentation.presenter.RootPresenter;
 import br.com.wdc.shopping.presentation.presenter.RootPresenter.RootViewState;
 import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
-import br.com.wdc.framework.vdom.VNode;
 
 public class RootView extends AbstractVDomView<RootPresenter> {
 
-    @SuppressWarnings("java:S1214")
+    @SuppressWarnings({"java:S1214", "static-access"})
     private interface Sel {
+        SelUtility u = SelUtility.INSTANCE;
 
-        String ROOT = "flex-col h-full overflow-hidden";
-        String CONTENT = "flex-col flex-grow min-h-0";
-
+        String ROOT = clsx(u.FLEX_COL, u.H_FULL, u.OVERFLOW_HIDDEN);
+        String CONTENT = clsx(u.FLEX_COL, u.FLEX_GROW, u.MIN_H_0);
     }
 
     private final RootViewState state;

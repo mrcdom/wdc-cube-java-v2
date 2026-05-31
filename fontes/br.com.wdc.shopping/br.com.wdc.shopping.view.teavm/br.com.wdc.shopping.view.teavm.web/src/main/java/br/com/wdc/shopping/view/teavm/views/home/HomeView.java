@@ -39,14 +39,14 @@ public class HomeView extends AbstractVDomView<HomePresenter> {
         String ERROR_TEXT = c.ALERT_ERROR_TEXT;
 
         // Navbar
-        String NAVBAR = "navbar";
-        String NAV_GROUP = "nav-group";
+        String NAVBAR = c.NAVBAR;
+        String NAV_GROUP = c.NAV_GROUP;
         String NAV_RIGHT = u.FLEX_ITEMS_CENTER;
         String EXIT_ICON = clsx(icon.BOX_ARROW_LEFT, u.TEXT_LG, u.TEXT_WHITE);
         String GREETING_WRAP = clsx(u.SM_SHOW, u.FLEX_COL, u.LEADING_TIGHT);
         String GREETING_LABEL = clsx(u.TEXT_XS, u.TEXT_WHITE_70, u.FONT_NORMAL);
         String GREETING_NAME = clsx(u.TEXT_SM, u.FONT_SEMIBOLD, u.TEXT_WHITE);
-        String LOGO_BOX = "logo-box";
+        String LOGO_BOX = c.LOGO_BOX;
         String LOGO_ICON = clsx(icon.BAG_CHECK, u.TEXT_XL, u.TEXT_WHITE);
         String LOGO_TEXT_WRAP = clsx(u.FLEX_COL, u.LEADING_TIGHT);
         String LOGO_TITLE = clsx(u.TEXT_BASE, u.FONT_BOLD, u.TEXT_WHITE, u.TRACKING_TIGHT);
@@ -54,7 +54,7 @@ public class HomeView extends AbstractVDomView<HomePresenter> {
         String CART_BTN = u.RELATIVE;
         String CART_ICON = clsx(icon.BAG, u.TEXT_XL, u.TEXT_WHITE);
         String CART_LABEL = clsx(u.SM_SHOW, u.TEXT_SM, u.TEXT_WHITE, u.FONT_MEDIUM, u.ML_6);
-        String CART_BADGE = "cart-badge";
+        String CART_BADGE = c.CART_BADGE;
 
         // Content pane
         String CONTENT_OVERLAY = clsx(u.FLEX_COL, u.FLEX_GROW, u.OVERFLOW_AUTO, u.MIN_H_0, u.BG_DEFAULT);
@@ -63,10 +63,10 @@ public class HomeView extends AbstractVDomView<HomePresenter> {
         String PANEL_SLOT = clsx(u.FLEX_COL, u.FLEX_GROW, u.H_FULL);
 
         // Tab nav
-        String TAB_NAV = clsx(u.MD_HIDE, "tab-nav");
-        String TAB_ACTIVE = "tab-item tab-item--active";
-        String TAB_INACTIVE = "tab-item tab-item--inactive";
-        String TAB_INDICATOR = "tab-indicator";
+        String TAB_NAV = clsx(u.MD_HIDE, c.TAB_NAV);
+        String TAB_ACTIVE = c.TAB_ITEM_ACTIVE;
+        String TAB_INACTIVE = c.TAB_ITEM_INACTIVE;
+        String TAB_INDICATOR = c.TAB_INDICATOR;
         String TAB_ICON_PRODUCTS = clsx(icon.GRID_3X3_GAP, u.TEXT_BASE);
         String TAB_ICON_HISTORY = clsx(icon.CLOCK_HISTORY, u.TEXT_BASE);
     }

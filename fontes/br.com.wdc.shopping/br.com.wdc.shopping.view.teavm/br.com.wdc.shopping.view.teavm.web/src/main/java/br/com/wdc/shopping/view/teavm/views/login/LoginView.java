@@ -35,11 +35,11 @@ public class LoginView extends AbstractVDomView<LoginPresenter> {
 
         String LOGIN_ROOT = "login-root";
         String LEFT_PANEL = clsx(u.MD_SHOW, "login-left-panel");
-        String DECO_CIRCLE_1 = "deco-circle deco-circle--1";
-        String DECO_CIRCLE_2 = "deco-circle deco-circle--2";
-        String DECO_CIRCLE_3 = "deco-circle deco-circle--3";
+        String DECO_CIRCLE_1 = c.DECO_CIRCLE_1;
+        String DECO_CIRCLE_2 = c.DECO_CIRCLE_2;
+        String DECO_CIRCLE_3 = c.DECO_CIRCLE_3;
         String CONTENT_CENTER = "login-content-center";
-        String LOGO_BOX_LG = clsx("logo-box-lg", u.MB_24);
+        String LOGO_BOX_LG = clsx(c.LOGO_BOX_LG, u.MB_24);
         String ICON_LG = clsx(icon.BAG_CHECK, "login-logo-icon-lg");
         String TITLE_LG = "login-title-lg";
         String SUBTITLE_LG = "login-subtitle-lg";

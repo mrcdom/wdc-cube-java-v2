@@ -33,33 +33,29 @@ public interface SelComponents {
     String EMPTY_STATE = "empty-state";
 
     // Navbar
-    String NAVBAR = "wdc-navbar";
-    String NAV_GROUP = "wdc-navbar__group";
+    String NAVBAR = "navbar";
+    String NAV_GROUP = "nav-group";
 
     // Tab navigation
-    String TAB_NAV = "wdc-tab-nav";
-    String TAB_ITEM = "wdc-tab-nav__item";
-    String TAB_ITEM_ACTIVE = "wdc-tab-nav__item--active";
-    String TAB_ITEM_INACTIVE = "wdc-tab-nav__item--inactive";
-    String TAB_INDICATOR = "wdc-tab-nav__indicator";
+    String TAB_NAV = "tab-nav";
+    String TAB_ITEM = "tab-item";
+    String TAB_ITEM_ACTIVE = "tab-item tab-item--active";
+    String TAB_ITEM_INACTIVE = "tab-item tab-item--inactive";
+    String TAB_INDICATOR = "tab-indicator";
 
     // Logo
-    String LOGO_BOX = "wdc-logo-box";
-    String LOGO_BOX_LG = "wdc-logo-box--lg";
+    String LOGO_BOX = "logo-box";
+    String LOGO_BOX_LG = "logo-box-lg";
 
     // Cart badge
-    String CART_BADGE = "wdc-cart-badge";
-
-    // Page layout
-    String PAGE_SCROLL_ROOT = "wdc-page__scroll-root";
-    String PAGE_WRAPPER = "wdc-page__wrapper";
+    String CART_BADGE = "cart-badge";
 
     // Total row
-    String TOTAL_ROW = "wdc-total-row";
+    String TOTAL_ROW = "total-row";
 
     // Decorative circles
-    String DECO_CIRCLE = "wdc-deco-circle";
-    String DECO_CIRCLE_1 = "wdc-deco-circle--1";
-    String DECO_CIRCLE_2 = "wdc-deco-circle--2";
-    String DECO_CIRCLE_3 = "wdc-deco-circle--3";
+    String DECO_CIRCLE = "deco-circle";
+    String DECO_CIRCLE_1 = "deco-circle deco-circle--1";
+    String DECO_CIRCLE_2 = "deco-circle deco-circle--2";
+    String DECO_CIRCLE_3 = "deco-circle deco-circle--3";
 }
