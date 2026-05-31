@@ -1,0 +1,263 @@
+// =============================================================================
+// DECORATION CIRCLES (Login panel)
+// =============================================================================
+.deco-circle {
+    position: absolute;
+    border-radius: 50%;
+}
+
+.deco-circle--1 {
+    top: -60px;
+    right: -60px;
+    width: 200px;
+    height: 200px;
+    background: rgba(255,255,255,0.06);
+}
+
+.deco-circle--2 {
+    bottom: -40px;
+    left: -40px;
+    width: 160px;
+    height: 160px;
+    background: rgba(255,255,255,0.04);
+}
+
+.deco-circle--3 {
+    top: 40%;
+    left: 20%;
+    width: 80px;
+    height: 80px;
+    background: rgba(255,255,255,0.05);
+}
+
+// =============================================================================
+// LOGIN VIEW COMPONENTS
+// =============================================================================
+.login-root {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    justify-content: center;
+    align-items: center;
+    background: var(--app-bg);
+}
+
+.login-card {
+    border-radius: var(--app-radius);
+    box-shadow: var(--app-shadow-lg);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.login-left-panel {
+    flex: 1;
+    background: linear-gradient(160deg, #0d66d0 0%, #1a8cff 40%, #4da6ff 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 48px;
+    position: relative;
+    overflow: hidden;
+}
+
+.login-content-center {
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+.login-logo-icon-lg {
+    font-size: 2.2rem;
+    color: #fff;
+}
+
+.login-title-lg {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+}
+
+.login-subtitle-lg {
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.8);
+    line-height: 1.6;
+    max-width: 280px;
+}
+
+.login-features-list {
+    margin-top: 32px;
+    text-align: left;
+    display: inline-flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.login-feature-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.login-feature-icon {
+    font-size: 1rem;
+    color: rgba(255,255,255,0.9);
+}
+
+.login-feature-text {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.85);
+    font-weight: 500;
+}
+
+.login-form-panel {
+    width: 100%;
+    max-width: 460px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 32px;
+    background: var(--app-surface);
+}
+
+.login-form-content {
+    width: 100%;
+    max-width: 320px;
+}
+
+.login-mobile-logo {
+    text-align: center;
+    padding: 24px 16px;
+    margin: -32px -32px 24px -32px;
+    background: linear-gradient(160deg, #0d66d0 0%, #1a8cff 40%, #4da6ff 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.login-mobile-circle-1 {
+    position: absolute;
+    top: -30px;
+    right: -30px;
+    width: 100px;
+    height: 100px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 50%;
+}
+
+.login-mobile-circle-2 {
+    position: absolute;
+    bottom: -20px;
+    left: -20px;
+    width: 80px;
+    height: 80px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 50%;
+}
+
+.login-mobile-content {
+    position: relative;
+    z-index: 1;
+}
+
+.login-logo-box-sm {
+    width: 48px;
+    height: 48px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.login-icon-sm {
+    font-size: 1.4rem;
+    color: #fff;
+}
+
+.login-mobile-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.login-mobile-subtitle {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.7);
+    margin-top: 4px;
+}
+
+.login-welcome-wrap {
+    margin-bottom: 28px;
+}
+
+.login-welcome-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--app-text);
+    margin-bottom: 4px;
+}
+
+.login-welcome-subtitle {
+    font-size: 0.85rem;
+    color: var(--app-text-secondary);
+}
+
+.login-field-label {
+    font-weight: 500;
+}
+
+.login-field {
+    width: 100%;
+    margin-bottom: 16px;
+}
+
+.login-field-password {
+    width: 100%;
+    margin-bottom: 24px;
+}
+
+.login-enter-btn {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.login-demo-hint {
+    text-align: center;
+    padding: 12px;
+    background: var(--app-bg);
+    border-radius: var(--app-radius-sm);
+    border: 1px solid var(--app-border);
+}
+
+.login-demo-text {
+    font-size: 0.8rem;
+    color: var(--app-text-secondary);
+}
+
+.login-demo-highlight {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--app-accent);
+}
+
+// Responsive overrides
+@media (min-width: 768px) {
+    .login-root {
+        justify-content: flex-start;
+        align-items: stretch;
+        background: none;
+    }
+    .login-card {
+        border-radius: 0;
+        box-shadow: none;
+        max-height: none;
+        overflow-y: visible;
+    }
+}

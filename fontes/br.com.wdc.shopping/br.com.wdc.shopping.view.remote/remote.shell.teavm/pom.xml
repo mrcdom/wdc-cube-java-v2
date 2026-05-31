@@ -30,10 +30,11 @@
             <artifactId>br.com.wdc.framework.commons</artifactId>
         </dependency>
         
-        <!-- Framework VDom -->
+        <!-- TeaVM Commons (VDom, Swc, interop) -->
         <dependency>
-            <groupId>br.com.wdc.framework</groupId>
-            <artifactId>br.com.wdc.framework.vdom</artifactId>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>teavm.commons</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <!-- TeaVM core -->

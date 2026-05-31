@@ -26,7 +26,8 @@
     </properties>
 
     <modules>
-        <module>br.com.wdc.shopping.view.teavm.web</module>
-        <module>br.com.wdc.shopping.view.teavm.native</module>
+        <module>teavm.commons</module>
+        <module>teavm.web</module>
+        <module>teavm.native</module>
     </modules>
 </project>

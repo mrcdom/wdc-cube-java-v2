@@ -11,9 +11,9 @@ import org.teavm.jso.dom.events.EventListener;
 import org.teavm.jso.dom.html.HTMLDocument;
 import org.teavm.jso.dom.html.HTMLElement;
 
-import br.com.wdc.framework.vdom.VDom;
-import br.com.wdc.framework.vdom.VNode;
-import br.com.wdc.shopping.view.remote.shell.teavm.interop.JsRunnable;
+import br.com.wdc.shopping.view.teavm.commons.VDom;
+import br.com.wdc.shopping.view.teavm.commons.VNode;
+import br.com.wdc.shopping.view.teavm.commons.interop.JsRunnable;
 
 /**
  * Base class for all remote views using Virtual DOM rendering.

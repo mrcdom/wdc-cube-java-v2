@@ -10,11 +10,11 @@ import java.util.Set;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
 
-import br.com.wdc.shopping.view.remote.shell.teavm.interop.Console;
-import br.com.wdc.shopping.view.remote.shell.teavm.interop.JsIntConsumer;
-import br.com.wdc.shopping.view.remote.shell.teavm.interop.JsRunnable;
-import br.com.wdc.shopping.view.remote.shell.teavm.interop.JsStringConsumer;
-import br.com.wdc.shopping.view.remote.shell.teavm.interop.Timers;
+import br.com.wdc.shopping.view.teavm.commons.interop.Console;
+import br.com.wdc.shopping.view.teavm.commons.interop.JsIntConsumer;
+import br.com.wdc.shopping.view.teavm.commons.interop.JsRunnable;
+import br.com.wdc.shopping.view.teavm.commons.interop.JsStringConsumer;
+import br.com.wdc.shopping.view.teavm.commons.interop.Timers;
 
 /**
  * Gerencia a conexão WebSocket, fila de requests, keepalive e estado de submitting.

@@ -1,13 +1,13 @@
 package br.com.wdc.shopping.view.remote.shell.teavm.views;
 
-import static br.com.wdc.framework.vdom.VNode.div;
-import static br.com.wdc.framework.vdom.VNode.slot;
+import static br.com.wdc.shopping.view.teavm.commons.VNode.div;
+import static br.com.wdc.shopping.view.teavm.commons.VNode.slot;
 
 import org.teavm.jso.JSBody;
 import org.teavm.jso.dom.html.HTMLDocument;
 
-import br.com.wdc.framework.vdom.SelUtility;
-import br.com.wdc.framework.vdom.VNode;
+import br.com.wdc.shopping.view.teavm.commons.SelUtility;
+import br.com.wdc.shopping.view.teavm.commons.VNode;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.ViewStateCoordinator;
 

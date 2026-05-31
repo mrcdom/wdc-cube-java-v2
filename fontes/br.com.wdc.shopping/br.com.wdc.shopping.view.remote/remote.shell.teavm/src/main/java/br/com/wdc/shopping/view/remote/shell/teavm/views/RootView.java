@@ -1,11 +1,11 @@
 package br.com.wdc.shopping.view.remote.shell.teavm.views;
 
-import static br.com.wdc.framework.vdom.Swc.spTheme;
-import static br.com.wdc.framework.vdom.VNode.clsx;
-import static br.com.wdc.framework.vdom.VNode.slot;
+import static br.com.wdc.shopping.view.teavm.commons.Swc.spTheme;
+import static br.com.wdc.shopping.view.teavm.commons.VNode.clsx;
+import static br.com.wdc.shopping.view.teavm.commons.VNode.slot;
 
-import br.com.wdc.framework.vdom.SelUtility;
-import br.com.wdc.framework.vdom.VNode;
+import br.com.wdc.shopping.view.teavm.commons.SelUtility;
+import br.com.wdc.shopping.view.teavm.commons.VNode;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 
 /**

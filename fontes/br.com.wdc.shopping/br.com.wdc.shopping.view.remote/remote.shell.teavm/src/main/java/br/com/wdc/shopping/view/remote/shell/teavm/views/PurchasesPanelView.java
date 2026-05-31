@@ -1,8 +1,8 @@
 package br.com.wdc.shopping.view.remote.shell.teavm.views;
 
-import static br.com.wdc.framework.vdom.VNode.clsx;
-import static br.com.wdc.framework.vdom.VNode.div;
-import static br.com.wdc.framework.vdom.VNode.span;
+import static br.com.wdc.shopping.view.teavm.commons.VNode.clsx;
+import static br.com.wdc.shopping.view.teavm.commons.VNode.div;
+import static br.com.wdc.shopping.view.teavm.commons.VNode.span;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -15,8 +15,8 @@ import org.teavm.jso.dom.events.EventListener;
 import org.teavm.jso.dom.html.HTMLElement;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
-import br.com.wdc.framework.vdom.SelIcons;
-import br.com.wdc.framework.vdom.VNode;
+import br.com.wdc.shopping.view.teavm.commons.SelIcons;
+import br.com.wdc.shopping.view.teavm.commons.VNode;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.ViewScope;
 

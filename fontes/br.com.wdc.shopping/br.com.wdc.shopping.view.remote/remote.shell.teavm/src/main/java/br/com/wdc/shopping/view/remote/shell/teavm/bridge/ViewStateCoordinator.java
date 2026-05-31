@@ -9,7 +9,7 @@ import org.teavm.jso.JSBody;
 import org.teavm.jso.browser.Window;
 import org.teavm.jso.dom.html.HTMLElement;
 
-import br.com.wdc.shopping.view.remote.shell.teavm.interop.Console;
+import br.com.wdc.shopping.view.teavm.commons.interop.Console;
 
 /**
  * Core coordinator that manages:

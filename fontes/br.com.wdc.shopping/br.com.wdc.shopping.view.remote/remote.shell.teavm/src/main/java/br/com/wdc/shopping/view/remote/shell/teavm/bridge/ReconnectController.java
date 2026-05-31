@@ -1,6 +1,6 @@
 package br.com.wdc.shopping.view.remote.shell.teavm.bridge;
 
-import br.com.wdc.shopping.view.remote.shell.teavm.interop.Timers;
+import br.com.wdc.shopping.view.teavm.commons.interop.Timers;
 
 /**
  * Controla reconexão com backoff exponencial.

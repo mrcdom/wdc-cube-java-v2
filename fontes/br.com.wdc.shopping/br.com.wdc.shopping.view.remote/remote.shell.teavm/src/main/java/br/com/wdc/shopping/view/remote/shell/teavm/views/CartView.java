@@ -1,12 +1,12 @@
 package br.com.wdc.shopping.view.remote.shell.teavm.views;
 
-import static br.com.wdc.framework.vdom.Swc.spActionButton;
-import static br.com.wdc.framework.vdom.Swc.spButton;
-import static br.com.wdc.framework.vdom.VNode.clsx;
-import static br.com.wdc.framework.vdom.VNode.div;
-import static br.com.wdc.framework.vdom.VNode.h5;
-import static br.com.wdc.framework.vdom.VNode.p;
-import static br.com.wdc.framework.vdom.VNode.span;
+import static br.com.wdc.shopping.view.teavm.commons.Swc.spActionButton;
+import static br.com.wdc.shopping.view.teavm.commons.Swc.spButton;
+import static br.com.wdc.shopping.view.teavm.commons.VNode.clsx;
+import static br.com.wdc.shopping.view.teavm.commons.VNode.div;
+import static br.com.wdc.shopping.view.teavm.commons.VNode.h5;
+import static br.com.wdc.shopping.view.teavm.commons.VNode.p;
+import static br.com.wdc.shopping.view.teavm.commons.VNode.span;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,10 +16,10 @@ import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
-import br.com.wdc.framework.vdom.SelComponents;
-import br.com.wdc.framework.vdom.SelIcons;
-import br.com.wdc.framework.vdom.SelUtility;
-import br.com.wdc.framework.vdom.VNode;
+import br.com.wdc.shopping.view.teavm.commons.SelComponents;
+import br.com.wdc.shopping.view.teavm.commons.SelIcons;
+import br.com.wdc.shopping.view.teavm.commons.SelUtility;
+import br.com.wdc.shopping.view.teavm.commons.VNode;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.ViewScope;
 

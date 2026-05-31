@@ -2,14 +2,16 @@
 set -e
 cd "$(dirname "$0")"
 
-echo "Watching for changes in src/ ..."
+COMMONS_SRC="../../br.com.wdc.shopping.view.teavm/teavm.commons/src"
+
+echo "Watching for changes in src/ and teavm.commons/src/ ..."
 echo "Press Ctrl+C to stop."
 
 # Initial build
 ./build.sh
 
 # Watch for changes and rebuild (exclude generated css)
-fswatch -o --exclude='\.css$' src/ | while read; do
+fswatch -o --exclude='\.css$' src/ "$COMMONS_SRC/" | while read; do
     echo ""
     echo "=== Change detected, rebuilding... ==="
     ./build.sh || echo "BUILD FAILED"

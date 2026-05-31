@@ -1,22 +1,22 @@
 package br.com.wdc.shopping.view.remote.shell.teavm.views;
 
-import static br.com.wdc.framework.vdom.Swc.spButton;
-import static br.com.wdc.framework.vdom.Swc.spFieldLabel;
-import static br.com.wdc.framework.vdom.Swc.spTextField;
-import static br.com.wdc.framework.vdom.VNode.clsx;
-import static br.com.wdc.framework.vdom.VNode.div;
-import static br.com.wdc.framework.vdom.VNode.span;
-import static br.com.wdc.framework.vdom.VNode.textNode;
+import static br.com.wdc.shopping.view.teavm.commons.Swc.spButton;
+import static br.com.wdc.shopping.view.teavm.commons.Swc.spFieldLabel;
+import static br.com.wdc.shopping.view.teavm.commons.Swc.spTextField;
+import static br.com.wdc.shopping.view.teavm.commons.VNode.clsx;
+import static br.com.wdc.shopping.view.teavm.commons.VNode.div;
+import static br.com.wdc.shopping.view.teavm.commons.VNode.span;
+import static br.com.wdc.shopping.view.teavm.commons.VNode.textNode;
 
 import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
 import org.teavm.jso.dom.events.KeyboardEvent;
 import org.teavm.jso.dom.html.HTMLInputElement;
 
-import br.com.wdc.framework.vdom.SelComponents;
-import br.com.wdc.framework.vdom.SelIcons;
-import br.com.wdc.framework.vdom.SelUtility;
-import br.com.wdc.framework.vdom.VNode;
+import br.com.wdc.shopping.view.teavm.commons.SelComponents;
+import br.com.wdc.shopping.view.teavm.commons.SelIcons;
+import br.com.wdc.shopping.view.teavm.commons.SelUtility;
+import br.com.wdc.shopping.view.teavm.commons.VNode;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.DataSecurity;
 

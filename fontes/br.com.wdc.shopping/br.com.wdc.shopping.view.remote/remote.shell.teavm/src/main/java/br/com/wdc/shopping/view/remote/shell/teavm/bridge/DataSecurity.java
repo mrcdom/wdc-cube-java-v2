@@ -2,7 +2,7 @@ package br.com.wdc.shopping.view.remote.shell.teavm.bridge;
 
 import org.teavm.jso.JSBody;
 
-import br.com.wdc.shopping.view.remote.shell.teavm.interop.JsStringConsumer;
+import br.com.wdc.shopping.view.teavm.commons.interop.JsStringConsumer;
 
 /**
  * Provides AES-GCM encryption for sensitive form fields (e.g., passwords).

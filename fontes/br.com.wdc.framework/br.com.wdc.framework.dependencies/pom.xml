@@ -136,11 +136,6 @@
 				<artifactId>br.com.wdc.framework.cube</artifactId>
 				<version>2.0.0</version>
 			</dependency>
-			<dependency>
-				<groupId>br.com.wdc.framework</groupId>
-				<artifactId>br.com.wdc.framework.vdom</artifactId>
-				<version>1.0.0</version>
-			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
