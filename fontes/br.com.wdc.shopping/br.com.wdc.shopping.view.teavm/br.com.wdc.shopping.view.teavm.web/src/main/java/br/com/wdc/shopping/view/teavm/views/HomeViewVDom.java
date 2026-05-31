@@ -58,6 +58,7 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
 
         // Content pane
         String CONTENT_OVERLAY = clsx(u.FLEX_COL, u.FLEX_GROW, u.OVERFLOW_AUTO, u.MIN_H_0, u.BG_DEFAULT);
+        String SPLIT_COL = clsx(u.FLEX_COL, u.FLEX_GROW, u.MIN_H_0, u.OVERFLOW_HIDDEN);
         String SPLIT_ROW = clsx(u.MD_ROW, u.FLEX, u.FLEX_GROW, u.OVERFLOW_AUTO, u.MIN_H_0, u.BG_DEFAULT);
         String PANEL_SLOT = clsx(u.FLEX_COL, u.FLEX_GROW, u.H_FULL);
 
@@ -110,7 +111,6 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
         // @formatter:off
         return div(Css.ROOT).children(
           renderNavbar(nickName, cartCount),
-          renderTabNav(),
           div(showError ? Css.ERROR_VISIBLE : Css.HIDDEN).children(
             span(Css.ERROR_ICON),
             span(Css.ERROR_TEXT).text(errorMessage)),
@@ -158,9 +158,11 @@ public class HomeViewVDom extends AbstractVDomView<HomePresenter> {
         var purchasesHide = this.showingProducts ? "md-show" : "";
 
         // @formatter:off
-        return div(Css.SPLIT_ROW).children(
-          slot(productsPanelEl).cls(clsx(productsHide, Css.PANEL_SLOT)),
-          slot(purchasesPanelEl).cls(clsx("slot-purchases md-grow-0", purchasesHide, Css.PANEL_SLOT)));
+        return div(Css.SPLIT_COL).children(
+          renderTabNav(),
+          div(Css.SPLIT_ROW).children(
+            slot(productsPanelEl).cls(clsx(productsHide, Css.PANEL_SLOT)),
+            slot(purchasesPanelEl).cls(clsx("slot-purchases md-grow-0", purchasesHide, Css.PANEL_SLOT))));
         // @formatter:on
     }
 
