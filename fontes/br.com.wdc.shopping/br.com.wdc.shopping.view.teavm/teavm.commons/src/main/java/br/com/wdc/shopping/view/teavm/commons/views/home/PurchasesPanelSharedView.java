@@ -89,11 +89,11 @@ public class PurchasesPanelSharedView extends SharedVDomView {
     // -- Render --
 
     private EventListener<Event> mkOnOpenReceipt(long id) {
-        return evt -> { if (onOpenReceipt != null) onOpenReceipt.accept(id); };
+        return evt -> onOpenReceipt.accept(id);
     }
 
     private EventListener<Event> mkOnPageChange(int page) {
-        return evt -> { if (onPageChange != null) onPageChange.accept(page); };
+        return evt -> onPageChange.accept(page);
     }
 
     @Override
@@ -175,6 +175,6 @@ public class PurchasesPanelSharedView extends SharedVDomView {
         }
         this.computeRetries = 0;
         int capacity = Math.max(1, containerHeight / ITEM_HEIGHT_PX);
-        if (onPageSizeChanged != null) onPageSizeChanged.accept(capacity);
+        onPageSizeChanged.accept(capacity);
     }
 }

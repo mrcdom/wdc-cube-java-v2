@@ -74,15 +74,15 @@ public class ProductSharedView extends SharedVDomView {
     private final EventListener<Event> onDecrement = evt -> {
         if (this.quantity > 1) {
             this.quantity--;
-            if (requestUpdate != null) requestUpdate.run();
+            requestUpdate.run();
         }
     };
     private final EventListener<Event> onIncrement = evt -> {
         this.quantity++;
-        if (requestUpdate != null) requestUpdate.run();
+        requestUpdate.run();
     };
-    private final EventListener<Event> backListener = evt -> { if (onBack != null) onBack.run(); };
-    private final EventListener<Event> addToCartListener = evt -> { if (onAddToCart != null) onAddToCart.accept(this.quantity); };
+    private final EventListener<Event> backListener = evt -> onBack.run();
+    private final EventListener<Event> addToCartListener = evt -> onAddToCart.accept(this.quantity);
 
     // -- Render --
 

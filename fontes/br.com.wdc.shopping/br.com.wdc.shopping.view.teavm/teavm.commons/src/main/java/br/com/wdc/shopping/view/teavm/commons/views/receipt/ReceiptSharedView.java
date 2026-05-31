@@ -70,7 +70,7 @@ public class ReceiptSharedView extends SharedVDomView {
 
     // -- Stable event listener --
 
-    private final EventListener<Event> backListener = evt -> { if (onBack != null) onBack.run(); };
+    private final EventListener<Event> backListener = evt -> onBack.run();
 
     // -- Render --
 

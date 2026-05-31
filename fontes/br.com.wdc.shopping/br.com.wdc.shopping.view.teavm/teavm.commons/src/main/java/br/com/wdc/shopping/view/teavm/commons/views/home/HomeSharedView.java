@@ -100,8 +100,8 @@ public class HomeSharedView extends SharedVDomView {
 
     // -- Stable event listeners --
 
-    private final EventListener<Event> exitListener = evt -> { if (onExit != null) onExit.run(); };
-    private final EventListener<Event> openCartListener = evt -> { if (onOpenCart != null) onOpenCart.run(); };
+    private final EventListener<Event> exitListener = evt -> onExit.run();
+    private final EventListener<Event> openCartListener = evt -> onOpenCart.run();
     private final EventListener<Event> tabProductsListener = evt -> switchTab(true);
     private final EventListener<Event> tabHistoryListener = evt -> switchTab(false);
 
@@ -191,11 +191,11 @@ public class HomeSharedView extends SharedVDomView {
     private void switchTab(boolean showProducts) {
         var data = stateSupplier.get();
         if (data.contentViewEl != null) {
-            if (onNavigateBack != null) onNavigateBack.run();
+            onNavigateBack.run();
         }
         this.showingProducts = showProducts;
-        if (requestUpdate != null) requestUpdate.run();
-        if (!showProducts && onPurchasesPanelVisible != null) {
+        requestUpdate.run();
+        if (!showProducts) {
             onPurchasesPanelVisible.run();
         }
     }

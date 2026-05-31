@@ -78,15 +78,15 @@ public class CartSharedView extends SharedVDomView {
 
     // -- Stable event listeners --
 
-    private final EventListener<Event> backListener = evt -> { if (onBack != null) onBack.run(); };
-    private final EventListener<Event> buyListener = evt -> { if (onBuy != null) onBuy.run(); };
+    private final EventListener<Event> backListener = evt -> onBack.run();
+    private final EventListener<Event> buyListener = evt -> onBuy.run();
 
     private EventListener<Event> mkOnModifyQuantity(long id, int qty) {
-        return evt -> { if (onModifyQuantity != null) onModifyQuantity.accept(id, qty); };
+        return evt -> onModifyQuantity.accept(id, qty);
     }
 
     private EventListener<Event> mkOnRemove(long id) {
-        return evt -> { if (onRemoveProduct != null) onRemoveProduct.accept(id); };
+        return evt -> onRemoveProduct.accept(id);
     }
 
     // -- Render --

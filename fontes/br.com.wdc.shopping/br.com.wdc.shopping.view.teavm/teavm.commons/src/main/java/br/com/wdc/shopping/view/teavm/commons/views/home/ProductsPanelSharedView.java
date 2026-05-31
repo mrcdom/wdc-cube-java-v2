@@ -42,7 +42,7 @@ public class ProductsPanelSharedView extends SharedVDomView {
     // -- Render --
 
     private EventListener<Event> mkOnOpenProduct(long id) {
-        return evt -> { if (onOpenProduct != null) onOpenProduct.accept(id); };
+        return evt -> onOpenProduct.accept(id);
     }
 
     @Override

@@ -195,10 +195,8 @@ public class LoginSharedView extends SharedVDomView {
     }
 
     private void emitEnter() {
-        if (onEnter != null) {
-            String userName = userNameField != null ? userNameField.getValue() : "";
-            String password = passwordField != null ? passwordField.getValue() : "";
-            onEnter.accept(userName, password);
-        }
+        String userName = userNameField != null ? userNameField.getValue() : "";
+        String password = passwordField != null ? passwordField.getValue() : "";
+        onEnter.accept(userName, password);
     }
 }
