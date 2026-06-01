@@ -13,6 +13,10 @@
 
     <artifactId>remote.host</artifactId>
 
+    <properties>
+        <javalin.version>7.2.0</javalin.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -23,6 +27,13 @@
             <groupId>${project.groupId}</groupId>
             <version>${project.version}</version>
             <artifactId>br.com.wdc.shopping.persistence</artifactId>
+        </dependency>
+
+        <!-- Javalin HTTP/WebSocket framework -->
+        <dependency>
+            <groupId>io.javalin</groupId>
+            <artifactId>javalin</artifactId>
+            <version>${javalin.version}</version>
         </dependency>
 
         <dependency>

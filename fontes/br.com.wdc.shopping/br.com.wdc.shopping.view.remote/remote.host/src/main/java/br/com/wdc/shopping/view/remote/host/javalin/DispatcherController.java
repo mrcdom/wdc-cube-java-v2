@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.backend;
+package br.com.wdc.shopping.view.remote.host.javalin;
 
 import java.util.Collections;
 import java.util.Map;
@@ -16,21 +16,23 @@ import com.google.gson.reflect.TypeToken;
 import br.com.wdc.framework.commons.codec.Base62;
 import br.com.wdc.shopping.view.remote.host.app.ShoppingApplicationImpl;
 import br.com.wdc.shopping.view.remote.host.app.ShoppingApplicationRegistry;
-import br.com.wdc.shopping.view.remote.host.spi.WebSocketConnection;
 import br.com.wdc.shopping.view.remote.host.util.AppSecurity;
+import io.javalin.config.JavalinConfig;
+import io.javalin.websocket.WsCloseContext;
 import io.javalin.websocket.WsConnectContext;
+import io.javalin.websocket.WsContext;
 import io.javalin.websocket.WsErrorContext;
 import io.javalin.websocket.WsMessageContext;
 
 /**
  * WebSocket message handler for the "/dispatcher/{id}" endpoint.
  * 
- * Manages bidirectional communication between React frontend and backend.
+ * Manages bidirectional communication between frontend shell and backend.
  * Handles session creation, message routing, and cleanup.
  */
-public class DispatcherHandler {
+public class DispatcherController {
 
-    private static final Log LOG = Log.getLogger(DispatcherHandler.class);
+    private static final Log LOG = Log.getLogger(DispatcherController.class);
 
     /** Custom WebSocket close code: session is invalid, client must reload the page. */
     private static final int CLOSE_SESSION_INVALID = 4001;
@@ -44,31 +46,99 @@ public class DispatcherHandler {
             new TypeToken<Map<String, Object>>() {};
 
     private static final ConcurrentHashMap<String, String> SESSION_SIGNATURES = new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<String, DispatcherHandler> ACTIVE_HANDLERS = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, DispatcherController> ACTIVE_HANDLERS = new ConcurrentHashMap<>();
 
     private String appId;
     private String appSignature;
-    private WebSocketConnection wsSession;
+
+    /**
+     * Registers the WebSocket dispatcher routes on the given Javalin configuration.
+     */
+    public static void configure(JavalinConfig config) {
+        config.routes.ws("/dispatcher/{id}", ws -> {
+            ws.onConnect(DispatcherController::handleConnect);
+            ws.onMessage(DispatcherController::handleMessage);
+            ws.onClose(DispatcherController::handleClose);
+            ws.onError(DispatcherController::handleError);
+        });
+        config.routes.ws("/<context>/dispatcher/{id}", ws -> {
+            ws.onConnect(DispatcherController::handleConnect);
+            ws.onMessage(DispatcherController::handleMessage);
+            ws.onClose(DispatcherController::handleClose);
+            ws.onError(DispatcherController::handleError);
+        });
+    }
+
+    private static void handleConnect(WsConnectContext ctx) {
+        try {
+            String sessionId = ctx.pathParam("id");
+            DispatcherController handler = getOrCreate(sessionId);
+            handler.onConnectOpen(ctx);
+            LOG.debug("WebSocket dispatcher connected for session: {}", sessionId);
+        } catch (Exception e) {
+            LOG.error("Error during WebSocket connect", e);
+            try {
+                ctx.closeSession();
+            } catch (Exception closeErr) {
+                LOG.warn("Error closing session", closeErr);
+            }
+        }
+    }
+
+    private static void handleMessage(WsMessageContext ctx) {
+        try {
+            String sessionId = ctx.pathParam("id");
+            DispatcherController handler = getOrCreate(sessionId);
+            handler.onMessage(ctx);
+        } catch (Exception e) {
+            LOG.error("Error during WebSocket message", e);
+        }
+    }
+
+    private static void handleClose(WsCloseContext ctx) {
+        try {
+            String sessionId = ctx.pathParam("id");
+            DispatcherController handler = get(sessionId);
+            if (handler != null) {
+                handler.onClose(ctx);
+            }
+        } catch (Exception e) {
+            LOG.warn("Error during WebSocket close", e);
+        }
+    }
+
+    private static void handleError(WsErrorContext ctx) {
+        try {
+            String sessionId = ctx.pathParam("id");
+            DispatcherController handler = get(sessionId);
+            if (handler != null) {
+                handler.onError(ctx);
+            }
+        } catch (Exception e) {
+            LOG.error("Error in WebSocket error handler", e);
+        }
+    }
+    private WsContext wsSession;
     private String activeWsSessionId;
 
     /**
      * Get or create handler for a given app ID.
      */
-    public static DispatcherHandler getOrCreate(String appId) {
-        return ACTIVE_HANDLERS.computeIfAbsent(appId, DispatcherHandler::new);
+    public static DispatcherController getOrCreate(String appId) {
+        return ACTIVE_HANDLERS.computeIfAbsent(appId, DispatcherController::new);
     }
 
     /**
      * Get existing handler for a given app ID, or null if not found.
      */
-    public static DispatcherHandler get(String appId) {
+    public static DispatcherController get(String appId) {
         return ACTIVE_HANDLERS.get(appId);
     }
 
     /**
      * Constructor for creating a new handler (private, use getOrCreate instead).
      */
-    private DispatcherHandler(String appId) {
+    private DispatcherController(String appId) {
         this.appId = appId;
     }
 
@@ -117,8 +187,8 @@ public class DispatcherHandler {
                 return;
             }
 
-            // Replicates WdcStateDispatcherConfiguratator: read app_signature from
-            // the HTTP upgrade request cookie (set by the frontend after key exchange).
+            // Read app_signature from the HTTP upgrade request cookie
+            // (set by the frontend after key exchange).
             String signature = ctx.cookie("app_signature");
             if (StringUtils.isEmpty(signature)) {
                 LOG.warn("WebSocket connection rejected: missing app_signature cookie for session: {}", this.appId);
@@ -129,11 +199,11 @@ public class DispatcherHandler {
             this.appSignature = signature;
             ctx.enableAutomaticPings(15, TimeUnit.SECONDS);
             this.activeWsSessionId = ctx.sessionId();
-            this.wsSession = new JavalinWebSocketConnection(ctx);
+            this.wsSession = ctx;
             
             LOG.debug("WebSocket connection established for session: {} (wsId: {})", appId, this.activeWsSessionId);
 
-            // Phase C: on reconnect, mark all views dirty (will be flushed when event -1 arrives)
+            // On reconnect, mark all views dirty (will be flushed when event -1 arrives)
             ShoppingApplicationImpl app = ShoppingApplicationRegistry.get(appId);
             if (app != null) {
                 app.setWsSession(this.wsSession);
@@ -152,7 +222,7 @@ public class DispatcherHandler {
 
     /**
      * Handles incoming WebSocket messages from the client.
-     * Routes messages to the appropriate ApplicationReactImpl instance.
+     * Routes messages to the appropriate ShoppingApplicationImpl instance.
      */
     public void onMessage(WsMessageContext ctx) {
         try {

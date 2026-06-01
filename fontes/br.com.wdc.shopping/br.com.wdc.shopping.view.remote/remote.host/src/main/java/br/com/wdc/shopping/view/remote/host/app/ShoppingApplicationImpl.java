@@ -39,10 +39,10 @@ import br.com.wdc.shopping.presentation.presenter.restricted.home.products.Produ
 import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
-import br.com.wdc.shopping.view.remote.host.spi.WebSocketConnection;
 import br.com.wdc.shopping.view.remote.host.util.AppSecurity;
 import br.com.wdc.shopping.view.remote.host.util.DataSecurity;
 import br.com.wdc.shopping.view.remote.host.util.GenericViewImpl;
+import io.javalin.websocket.WsContext;
 
 public class ShoppingApplicationImpl extends ShoppingApplication {
 
@@ -84,7 +84,7 @@ public class ShoppingApplicationImpl extends ShoppingApplication {
     private long expireMoment;
 
     private DataSecurity dataSecurity;
-    private transient @SuppressWarnings("java:S2065") WebSocketConnection wsSession;
+    private transient @SuppressWarnings("java:S2065") WsContext wsSession;
     private ConcurrentHashMap<String, Object> attributes = new ConcurrentHashMap<>();
 
     private ThrowingRunnable removeInstanceAction;
@@ -164,11 +164,11 @@ public class ShoppingApplicationImpl extends ShoppingApplication {
         return dataSecurity;
     }
 
-    public WebSocketConnection getWsSession() {
+    public WsContext getWsSession() {
         return wsSession;
     }
 
-    public void setWsSession(WebSocketConnection wsSession) {
+    public void setWsSession(WsContext wsSession) {
         this.wsSession = wsSession;
     }
 
@@ -417,7 +417,7 @@ public class ShoppingApplicationImpl extends ShoppingApplication {
         if (this.wsSession == null) {
             throw new AssertionError("Missing WebSocket Session");
         }
-        this.wsSession.sendText(text);
+        this.wsSession.send(text);
     }
 
     /**

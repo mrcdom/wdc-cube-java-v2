@@ -17,7 +17,7 @@ import br.com.wdc.shopping.persistence.RepositoryBootstrap;
 import br.com.wdc.shopping.persistence.concurrent.ScheduledExecutorAdapter;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
 import br.com.wdc.shopping.scripts.sgbd.DBCreate;
-import br.com.wdc.shopping.view.remote.host.app.ShoppingApplicationRegistry;
+import br.com.wdc.shopping.view.remote.host.RemoteHostBootstrap;
 
 public class BusinessContext {
 
@@ -26,7 +26,7 @@ public class BusinessContext {
     private static final String DEFAULT_DB_NAME = "wedocode-shopping";
 
     public void stop() {
-        ShoppingApplicationRegistry.shutdown();
+        RemoteHostBootstrap.stop();
         RepositoryBootstrap.release();
         ScheduledExecutor.BEAN.set(null);
         SqlDataSource.BEAN.set(null);
@@ -64,7 +64,7 @@ public class BusinessContext {
                 command.run();
             }
 
-            ShoppingApplicationRegistry.init();
+            RemoteHostBootstrap.start();
 
             var jwtSecret = ShoppingConfig.getJwtSecret();
             if (jwtSecret != null && !jwtSecret.isBlank()) {
