@@ -29,6 +29,7 @@ import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPre
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
 import br.com.wdc.shopping.view.swt.impl.HomeViewSwt;
 import br.com.wdc.shopping.view.swt.impl.LoginViewSwt;
+import br.com.wdc.shopping.view.swt.impl.ProductViewSwt;
 import br.com.wdc.shopping.view.swt.impl.ProductsPanelViewSwt;
 import br.com.wdc.shopping.view.swt.impl.PurchasesPanelViewSwt;
 import br.com.wdc.shopping.view.swt.impl.ReceiptViewSwt;
@@ -46,7 +47,7 @@ public class ShoppingSwtApplication extends ShoppingApplication {
         PurchasesPanelPresenter.createView = onUiThread(PurchasesPanelViewSwt::new);
         // TODO: implement remaining views
         CartPresenter.createView = p -> { throw new UnsupportedOperationException("CartView not yet implemented"); };
-        ProductPresenter.createView = p -> { throw new UnsupportedOperationException("ProductView not yet implemented"); };
+        ProductPresenter.createView = onUiThread(ProductViewSwt::new);
         ReceiptPresenter.createView = onUiThread(ReceiptViewSwt::new);
     }
 
