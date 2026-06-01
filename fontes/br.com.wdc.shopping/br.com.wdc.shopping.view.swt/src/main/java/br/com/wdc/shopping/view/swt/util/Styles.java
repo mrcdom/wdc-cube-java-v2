@@ -82,6 +82,7 @@ public final class Styles {
     public static final String ICON_EXCLAMATION_CIRCLE = "\uF333";
     public static final String ICON_CLOCK_HISTORY = "\uF293";
     public static final String ICON_BAG_CHECK_FILL = "\uF173";
+    public static final String ICON_RECEIPT = "\uF50F";
 
     static {
         var display = Display.getDefault();
