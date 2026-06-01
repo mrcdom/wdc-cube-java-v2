@@ -21,8 +21,7 @@ public class ShoppingWorkflowTest extends BasePresentationTest {
 
         var loginView = LoginViewMock.cast(rootView.state.contentView);
         loginView.state.userName = "admin";
-        loginView.state.password = "admin";
-        loginView.presenter.onEnter();
+        loginView.presenter.onEnter("admin", "admin");
 
         return HomeViewMock.cast(rootView.state.contentView);
     }
@@ -59,8 +58,7 @@ public class ShoppingWorkflowTest extends BasePresentationTest {
 
         var loginView = LoginViewMock.cast(rootView.state.contentView);
         loginView.state.userName = "admin";
-        loginView.state.password = "admin";
-        loginView.presenter.onEnter();
+        loginView.presenter.onEnter("admin", "admin");
 
         var homeView = HomeViewMock.cast(rootView.state.contentView);
 

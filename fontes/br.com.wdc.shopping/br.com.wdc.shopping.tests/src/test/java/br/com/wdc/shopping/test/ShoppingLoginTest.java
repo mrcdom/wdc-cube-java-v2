@@ -31,8 +31,7 @@ public class ShoppingLoginTest extends BasePresentationTest {
 
         var loginView = LoginViewMock.cast(rootView.state.contentView);
         loginView.state.userName = "admin";
-        loginView.state.password = "senha não reconhecida";
-        loginView.presenter.onEnter();
+        loginView.presenter.onEnter("admin", "senha não reconhecida");
 
         // Check if it keeps bean login view
         loginView = LoginViewMock.cast(rootView.state.contentView);
@@ -47,8 +46,7 @@ public class ShoppingLoginTest extends BasePresentationTest {
 
         var loginView = LoginViewMock.cast(rootView.state.contentView);
         loginView.state.userName = "admin";
-        loginView.state.password = "admin";
-        loginView.presenter.onEnter();
+        loginView.presenter.onEnter("admin", "admin");
 
         var restrictedView = HomeViewMock.cast(rootView.state.contentView);
 

@@ -142,9 +142,9 @@ public class LoginViewGluon extends AbstractViewGluon<LoginPresenter> {
 
     private void emitEnter() {
         safeAction("Login", () -> {
-            this.state.userName = this.userNameField.getText();
-            this.state.password = this.passwordField.getText();
-            this.presenter.onEnter();
+            var userName = this.userNameField.getText();
+            var password = this.passwordField.getText();
+            this.presenter.onEnter(userName, password);
         });
     }
 }

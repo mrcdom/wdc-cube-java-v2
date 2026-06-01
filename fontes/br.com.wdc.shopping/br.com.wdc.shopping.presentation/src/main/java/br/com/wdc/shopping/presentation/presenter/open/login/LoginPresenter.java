@@ -36,7 +36,6 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
     public static class LoginViewState implements ViewState {
 
         public String userName;
-        public String password;
         public int errorCode;
         public String errorMessage;
         public boolean loading;
@@ -95,7 +94,8 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     // :: User Actions
 
-    public void onEnter() {
+    public void onEnter(String userName, String password) {
+        state.userName = userName;
         state.loading = true;
         state.errorCode = 0;
         state.errorMessage = null;
@@ -110,7 +110,7 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
         }
 
         try {
-            var subject = loginService.fetchSubject(state.userName, state.password);
+            var subject = loginService.fetchSubject(userName, password);
 
             if (subject == null || subject.getId() == null) {
                 app.setSubject(null);
@@ -145,7 +145,9 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
             @Override
             public void submit(int eventCode, int eventQtde, Map<String, Object> formData) throws Exception {
                 if (eventCode == 1) {
-                    onEnter();
+                    var userName = CoerceUtils.asString(formData.get("userName"));
+                    var password = app.b64Decipher(CoerceUtils.asString(formData.get("password")));
+                    onEnter(userName, password);
                 }
             }
 
@@ -154,11 +156,6 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
                 var fn = "userName";
                 if (formData.containsKey(fn)) {
                     state.userName = CoerceUtils.asString(formData.get(fn));
-                }
-
-                fn = "password";
-                if (formData.containsKey(fn)) {
-                    state.password = app.b64Decipher(CoerceUtils.asString(formData.get(fn)));
                 }
             }
 

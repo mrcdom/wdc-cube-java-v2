@@ -190,9 +190,9 @@ public class LoginViewSwing extends AbstractViewSwing<LoginPresenter> {
 
     private void emitEnter() {
         safeAction("Login", () -> {
-            this.state.userName = this.userNameField.getText();
-            this.state.password = new String(this.passwordField.getPassword());
-            this.presenter.onEnter();
+            var userName = this.userNameField.getText();
+            var password = new String(this.passwordField.getPassword());
+            this.presenter.onEnter(userName, password);
         });
     }
 }
