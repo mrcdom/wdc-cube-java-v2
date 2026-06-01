@@ -26,9 +26,9 @@ public class LoginView extends AbstractRemoteView {
         this.shared = new LoginSharedView();
         this.shared.stateSupplier = this::adaptState;
         this.shared.onEnter = (userName, password) -> {
-            setFormField("userName", userName);
+            setFormField("p.userName", userName);
             DataSecurity.cipher(password, encryptedPassword -> {
-                setFormField("password", encryptedPassword);
+                setFormField("p.password", encryptedPassword);
                 submit(ON_ENTER);
             });
         };

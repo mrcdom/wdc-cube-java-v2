@@ -145,8 +145,8 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
             @Override
             public void submit(int eventCode, int eventQtde, Map<String, Object> formData) throws Exception {
                 if (eventCode == 1) {
-                    var userName = CoerceUtils.asString(formData.get("userName"));
-                    var password = app.b64Decipher(CoerceUtils.asString(formData.get("password")));
+                    var userName = CoerceUtils.asString(formData.get("p.userName"));
+                    var password = app.b64Decipher(CoerceUtils.asString(formData.get("p.password")));
                     onEnter(userName, password);
                 }
             }

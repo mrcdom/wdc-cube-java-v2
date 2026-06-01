@@ -175,9 +175,9 @@ class LoginViewClass extends BaseViewClass<ViewProps, LoginViewState> {
     const { vsid } = this
     const userName = (this.userEl as any)?.value || ''
     const password = (this.passEl as any)?.value || ''
-    bridge.setFormField(vsid, 'userName', userName)
+    bridge.setFormField(vsid, 'p.userName', userName)
     const encryptedPassword = await bridge.cipher(password)
-    bridge.setFormField(vsid, 'password', encryptedPassword)
+    bridge.setFormField(vsid, 'p.password', encryptedPassword)
     bridge.submit(vsid, ON_LOGIN)
   }
 }
