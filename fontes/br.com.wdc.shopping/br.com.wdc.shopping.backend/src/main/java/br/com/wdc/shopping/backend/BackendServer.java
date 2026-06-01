@@ -13,6 +13,7 @@ import br.com.wdc.framework.commons.log.Slf4jLogFactory;
 import br.com.wdc.shopping.persistence.rest.RepositoryApiRoutes;
 import br.com.wdc.shopping.domain.ShoppingConfig;
 import br.com.wdc.shopping.domain.config.AppConfig;
+import br.com.wdc.shopping.backend.controller.DevReloadController;
 import br.com.wdc.shopping.backend.controller.DispatcherController;
 import br.com.wdc.shopping.backend.controller.ImageController;
 import br.com.wdc.shopping.backend.controller.IndexHtmlController;
@@ -52,16 +53,18 @@ public class BackendServer {
 
     private final Javalin app;
     private final int port;
+    private final boolean devMode;
     private final BusinessContext businessContext = new BusinessContext();
 
-    public BackendServer(int port) {
+    public BackendServer(int port, boolean devMode) {
         this.port = port;
+        this.devMode = devMode;
         this.businessContext.start();
         this.app = createJavalinApp();
     }
 
     public BackendServer() {
-        this(DEFAULT_PORT);
+        this(DEFAULT_PORT, false);
     }
 
     /**
@@ -127,6 +130,11 @@ public class BackendServer {
         // WebSocket dispatcher for bidirectional communication
         DispatcherController.configure(config);
 
+        // Dev-mode live reload: WebSocket + notify endpoint
+        if (devMode) {
+            DevReloadController.configure(config);
+        }
+
         // Replicates WdcAppIdFilter: generates and sets app_id + app_skey cookies
         // when the SPA entrypoint is requested so the client gets a valid,
         // server-signed session ID on the very first page load.
@@ -144,6 +152,7 @@ public class BackendServer {
                 && !path.startsWith("/health")
                 && !path.startsWith("/dispatcher")
                 && !path.startsWith("/web-cache/")
+                && !path.startsWith("/__dev/")
                 && !path.equals("/")
                 && !isStaticResource(path)) {
                 // Resolve context-aware SPA fallback: /<context>/anything -> /<context>/index.html
@@ -230,6 +239,9 @@ public class BackendServer {
      */
     public void stop() {
         try {
+            if (devMode) {
+                DevReloadController.stop();
+            }
             businessContext.stop();
 
             if (app != null) {
@@ -269,7 +281,8 @@ public class BackendServer {
 
         LOG.info("Starting WeDoCode Shopping React Server on port {}", port);
 
-        BackendServer server = new BackendServer(port);
+        boolean devMode = config.getBoolean("server.devMode", false);
+        BackendServer server = new BackendServer(port, devMode);
 
         // Graceful shutdown on JVM termination
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {

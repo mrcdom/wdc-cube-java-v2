@@ -27,7 +27,7 @@ public class Main {
             // Remove tela de loading
             removeLoadingScreen();
             
-            LoginPresenter.simulateSlowLogin(true);
+            LoginPresenter.simulateSlowLogin(false);
 
             Console.log("WDC Shopping TeaVM - Started.");
         } catch (Exception e) {

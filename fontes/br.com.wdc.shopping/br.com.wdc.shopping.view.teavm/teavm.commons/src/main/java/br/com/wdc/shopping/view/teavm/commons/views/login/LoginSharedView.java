@@ -113,9 +113,12 @@ public class LoginSharedView extends SharedVDomView {
     @Override
     public VNode render() {
         var state = stateSupplier.get();
-        boolean loading = state.loading;
-        String errorMessage = state.errorMessage;
-        boolean showError = errorMessage != null && !errorMessage.isEmpty();
+        var loading = state.loading;
+        var errorMessage = state.errorMessage;
+        var showError = errorMessage != null && !errorMessage.isEmpty();
+        
+        var title = "WDC Shopping";
+        var subtitle = "Sua compra certa na internet.";
 
         // @formatter:off
         return div(Sel.LOGIN_ROOT).children(
@@ -127,8 +130,8 @@ public class LoginSharedView extends SharedVDomView {
             div(Sel.CONTENT_CENTER).children(
               div(Sel.LOGO_BOX_LG)
                 .children(span(Sel.ICON_LG)),
-              div(Sel.TITLE_LG).children(textNode("WDC Shopping")),
-              div(Sel.SUBTITLE_LG).children(textNode("Sua compra certa na internet.")),
+              div(Sel.TITLE_LG).children(textNode(title)),
+              div(Sel.SUBTITLE_LG).children(textNode(subtitle)),
               div(Sel.FEATURES_LIST).children(
                 renderFeature(SelIcons.SHIELD_CHECK, "Compra segura"),
                 renderFeature(SelIcons.TRUCK, "Entrega rápida"),
@@ -143,8 +146,8 @@ public class LoginSharedView extends SharedVDomView {
                 div(Sel.MOBILE_CONTENT).children(
                   div(Sel.LOGO_BOX_SM)
                     .children(span(Sel.ICON_SM)),
-                  div(Sel.MOBILE_TITLE).children(textNode("WDC Shopping")),
-                  div(Sel.MOBILE_SUBTITLE).children(textNode("Sua compra certa na internet.")))),
+                  div(Sel.MOBILE_TITLE).children(textNode(title)),
+                  div(Sel.MOBILE_SUBTITLE).children(textNode(subtitle)))),
               // Welcome text
               div(Sel.WELCOME_WRAP).children(
                 div(Sel.WELCOME_TITLE).children(textNode("Bem-vindo")),

@@ -162,4 +162,28 @@
         </plugins>
     </build>
 
+    <profiles>
+        <profile>
+            <id>watch</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>3.5.0</version>
+                        <configuration>
+                            <mainClass>br.com.wdc.shopping.view.teavm.commons.devtools.DevWatcher</mainClass>
+                            <systemProperties>
+                                <systemProperty>
+                                    <key>devwatch.dirs</key>
+                                    <value>src,../../br.com.wdc.shopping.view.teavm/teavm.commons/src</value>
+                                </systemProperty>
+                            </systemProperties>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
 </project>

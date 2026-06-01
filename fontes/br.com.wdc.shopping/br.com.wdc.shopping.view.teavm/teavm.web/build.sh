@@ -23,6 +23,7 @@ JAVA_HOME=$JAVA21_HOME mvn -f "$COMMONS_DIR/pom.xml" install -DskipTests -q
 
 # Compile TeaVM (generates JS into $DEPLOY_DIR/js/ and copies filtered index.html via maven-resources-plugin)
 # clean is required to force TeaVM recompilation when only dependency JARs changed
+rm -f "$DEPLOY_DIR/index.html"
 JAVA_HOME=$JAVA21_HOME mvn clean process-classes -DskipTests
 
 # Copy static assets for the landing page and browser

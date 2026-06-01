@@ -26,6 +26,9 @@ logSql = true
 # HTTP port
 # port = 8080
 
+# Development mode: enables live-reload endpoints (/__dev/ws, /__dev/notify)
+devMode = true
+
 # Allow any origin for CORS (development mode)
 cors.allowAll = true
 
@@ -36,4 +39,4 @@ jwt.secret = "wdc-shopping-jwt-s3cr3t-k3y-ch4ng3-1n-pr0duct10n"
 
 [simulation]
 # Simulate slow login (adds 3s delay in LoginPresenter)
-slowLogin = true
+slowLogin = false
