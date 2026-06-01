@@ -1,6 +1,7 @@
 package br.com.wdc.shopping.view.teavm.commons.devtools;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +25,12 @@ import java.util.stream.Stream;
 public class DevWatcher {
 
     private static final long DEBOUNCE_MS = 500;
+    
+    @SuppressWarnings("java:S106")
+    static PrintStream out = System.out;
+    
+    @SuppressWarnings("java:S106")
+    static PrintStream err = System.err;
 
     public static void main(String[] args) throws Exception {
         String dirsProperty = System.getProperty("devwatch.dirs", "src");
@@ -31,9 +38,11 @@ public class DevWatcher {
 
         var excludeRegex = java.util.regex.Pattern.compile(excludePattern);
         var watchDirs = parseDirs(dirsProperty);
+        
+       
 
-        System.err.println("[DevWatcher] Watching: " + watchDirs);
-        System.err.println("[DevWatcher] Exclude: " + excludePattern);
+        err.println("[DevWatcher] Watching: " + watchDirs);
+        err.println("[DevWatcher] Exclude: " + excludePattern);
 
         try (WatchService watchService = FileSystems.getDefault().newWatchService()) {
             for (Path dir : watchDirs) {
@@ -54,15 +63,13 @@ public class DevWatcher {
                     Path changed = watchedDir.resolve((Path) event.context());
                     String filename = changed.getFileName().toString();
 
-                    if (excludeRegex.matcher(filename).find()) {
-                        continue;
-                    }
+                    if (!excludeRegex.matcher(filename).find()) {
+                        relevantChange = true;
 
-                    relevantChange = true;
-
-                    // Register new directories
-                    if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE && Files.isDirectory(changed)) {
-                        registerRecursive(watchService, changed);
+                        // Register new directories
+                        if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE && Files.isDirectory(changed)) {
+                            registerRecursive(watchService, changed);
+                        }
                     }
                 }
 
@@ -74,15 +81,14 @@ public class DevWatcher {
 
                 // Debounce
                 long now = System.currentTimeMillis();
-                if (now - lastEventTime < DEBOUNCE_MS) {
-                    continue;
-                }
-                Thread.sleep(DEBOUNCE_MS);
-                lastEventTime = System.currentTimeMillis();
+                if (now - lastEventTime >= DEBOUNCE_MS) {
+                    Thread.sleep(DEBOUNCE_MS);
+                    lastEventTime = System.currentTimeMillis();
 
-                // Emit a line (like fswatch -o)
-                System.out.println("1");
-                System.out.flush();
+                    // Emit a line (like fswatch -o)
+                    out.println("1");
+                    out.flush();
+                }
             }
         }
     }
@@ -94,7 +100,7 @@ public class DevWatcher {
             if (Files.isDirectory(p)) {
                 dirs.add(p);
             } else {
-                System.err.println("[DevWatcher] WARNING: directory not found: " + p);
+                err.println("[DevWatcher] WARNING: directory not found: " + p);
             }
         }
         return dirs;
@@ -109,7 +115,7 @@ public class DevWatcher {
                             StandardWatchEventKinds.ENTRY_MODIFY,
                             StandardWatchEventKinds.ENTRY_DELETE);
                 } catch (IOException e) {
-                    System.err.println("[DevWatcher] Could not watch: " + dir + " — " + e.getMessage());
+                    err.println("[DevWatcher] Could not watch: " + dir + " — " + e.getMessage());
                 }
             });
         }

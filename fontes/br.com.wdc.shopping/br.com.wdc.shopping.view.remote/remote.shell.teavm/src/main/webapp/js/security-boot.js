@@ -204,11 +204,11 @@
     if (appId) {
         removeCookie('app_id');
         const existing = sessionStorage.getItem('app_id');
-        if (!existing) {
+        if (existing) {
+            console.log('[security-boot] app_id already in sessionStorage, cookie discarded');
+        } else {
             try { sessionStorage.setItem('app_id', appId); } catch(e) { console.warn('[security-boot] sessionStorage unavailable:', e); }
             console.log('[security-boot] app_id stored:', appId);
-        } else {
-            console.log('[security-boot] app_id already in sessionStorage, cookie discarded');
         }
     }
 })();

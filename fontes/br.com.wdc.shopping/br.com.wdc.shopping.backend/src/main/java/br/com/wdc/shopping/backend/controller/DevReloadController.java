@@ -50,9 +50,7 @@ public class DevReloadController {
                 INSTANCE.clients.remove(ctx);
                 LOG.debug("[DevReload] Browser disconnected (total: {})", INSTANCE.clients.size());
             });
-            ws.onError(ctx -> {
-                INSTANCE.clients.remove(ctx);
-            });
+            ws.onError(INSTANCE.clients::remove);
         });
 
         // HTTP endpoint for watch scripts to trigger reload
