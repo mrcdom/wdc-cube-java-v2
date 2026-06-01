@@ -8,7 +8,7 @@ import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.Pr
 import br.com.wdc.shopping.view.teavm.commons.VNode;
 import br.com.wdc.shopping.view.teavm.commons.views.product.ProductSharedView;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
-import br.com.wdc.shopping.view.remote.shell.teavm.bridge.ViewScope;
+import br.com.wdc.framework.cube.remote.bridge.teavm.ViewScope;
 
 public class ProductView extends AbstractRemoteView {
 

@@ -30,6 +30,12 @@
             <artifactId>br.com.wdc.framework.commons</artifactId>
         </dependency>
 
+        <!-- Remote Bridge (WebSocket coordinator, reconnect, GC) -->
+        <dependency>
+            <groupId>br.com.wdc.framework</groupId>
+            <artifactId>remote.bridge.teavm</artifactId>
+        </dependency>
+
         <!-- Presentation (ViewState classes only — TeaVM tree-shakes unused code) -->
         <dependency>
             <groupId>${project.groupId}</groupId>

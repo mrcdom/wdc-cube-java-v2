@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.shell.teavm.bridge;
+package br.com.wdc.framework.cube.remote.bridge.teavm;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -6,7 +6,6 @@ import java.util.Map;
 /**
  * Holds the state for a single view instance (identified by vsid).
  * State is received from the server as a flat key-value map.
- * Equivalent to ViewScope.ts in remote.shell.react.
  */
 public class ViewScope {
 
@@ -26,10 +25,6 @@ public class ViewScope {
         return viewState;
     }
 
-    /**
-     * Clear existing state, assign new state, then trigger forceUpdate.
-     * Mirrors React's: LangUtils.deleteProperties(viewState); Object.assign(viewState, newState)
-     */
     public void setState(Map<String, Object> newState) {
         viewState.clear();
         if (newState != null) {
@@ -38,10 +33,6 @@ public class ViewScope {
         forceUpdate();
     }
 
-    /**
-     * Triggers a re-render via the coordinator's animation-frame scheduler.
-     * Safe to call multiple times — scheduling is idempotent.
-     */
     public void forceUpdate() {
         if (forceUpdateCallback != null) {
             forceUpdateCallback.run();

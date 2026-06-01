@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.shell.teavm.bridge;
+package br.com.wdc.framework.cube.remote.bridge.teavm;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -10,15 +10,14 @@ import java.util.Set;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
 
-import br.com.wdc.shopping.view.teavm.commons.interop.Console;
-import br.com.wdc.shopping.view.teavm.commons.interop.JsIntConsumer;
-import br.com.wdc.shopping.view.teavm.commons.interop.JsRunnable;
-import br.com.wdc.shopping.view.teavm.commons.interop.JsStringConsumer;
-import br.com.wdc.shopping.view.teavm.commons.interop.Timers;
+import br.com.wdc.framework.cube.remote.bridge.teavm.interop.Console;
+import br.com.wdc.framework.cube.remote.bridge.teavm.interop.JsIntConsumer;
+import br.com.wdc.framework.cube.remote.bridge.teavm.interop.JsRunnable;
+import br.com.wdc.framework.cube.remote.bridge.teavm.interop.JsStringConsumer;
+import br.com.wdc.framework.cube.remote.bridge.teavm.interop.Timers;
 
 /**
  * Gerencia a conexão WebSocket, fila de requests, keepalive e estado de submitting.
- * Equivalente fiel ao FlushRequestContext.ts do remote.shell.react.
  */
 public class FlushRequestContext {
 
@@ -42,7 +41,6 @@ public class FlushRequestContext {
     public FlushRequestContext(ViewStateCoordinator app) {
         this.app = app;
 
-        // Restore request counter from sessionStorage (survives F5)
         String savedSeq = getSessionItem("req_seq");
         if (savedSeq != null && !savedSeq.isEmpty()) {
             try {
@@ -51,7 +49,6 @@ public class FlushRequestContext {
                     this.requestCount = parsed;
                 }
             } catch (NumberFormatException ignored) {
-                // Intentionally empty: non-numeric session counter is safely ignored
             }
         }
     }
@@ -106,7 +103,6 @@ public class FlushRequestContext {
                 } else if ("requestId".equals(key)) {
                     // will be set below
                 } else {
-                    // Merge form data (nested map)
                     Map<String, Object> formData = (Map<String, Object>) requestObj.get(key);
                     if (formData == null) {
                         formData = new LinkedHashMap<>();
@@ -174,7 +170,6 @@ public class FlushRequestContext {
     private void handleClose(int code) {
         Console.warn("WebSocket closed: " + code);
         if (code == 4001) {
-            // Session invalid: reload the page
             reload();
             return;
         }
@@ -204,19 +199,16 @@ public class FlushRequestContext {
         Map<String, Object> response = JsonParser.parseObject(data);
         if (response.isEmpty()) return;
 
-        // GC: released views
         Object released = response.get("releasedViews");
         if (released instanceof List<?> releasedList) {
             app.viewGarbageCollector.release((List<String>) releasedList);
         }
 
-        // GC: active views sweep
         Object active = response.get("activeViews");
         if (active instanceof List<?> activeList) {
             app.viewGarbageCollector.sweep((List<String>) activeList);
         }
 
-        // Process requestId acknowledgment
         Object reqId = response.get("requestId");
         if (reqId instanceof Number n) {
             int processedId = n.intValue();
@@ -227,14 +219,12 @@ public class FlushRequestContext {
             }
         }
 
-        // Process URI change
         Object uri = response.get("uri");
         if (uri instanceof String u) {
             app.path = u;
             setLocationHref("#" + u);
         }
 
-        // Process view states
         Object states = response.get("states");
         if (states instanceof List<?> list) {
             app.applyViewStates(list);

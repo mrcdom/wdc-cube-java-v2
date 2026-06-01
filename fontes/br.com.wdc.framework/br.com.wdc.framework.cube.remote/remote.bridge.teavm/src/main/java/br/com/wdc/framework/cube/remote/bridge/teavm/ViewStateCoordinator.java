@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.shell.teavm.bridge;
+package br.com.wdc.framework.cube.remote.bridge.teavm;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -9,7 +9,7 @@ import org.teavm.jso.JSBody;
 import org.teavm.jso.browser.Window;
 import org.teavm.jso.dom.html.HTMLElement;
 
-import br.com.wdc.shopping.view.teavm.commons.interop.Console;
+import br.com.wdc.framework.cube.remote.bridge.teavm.interop.Console;
 
 /**
  * Core coordinator that manages:
@@ -22,8 +22,6 @@ import br.com.wdc.shopping.view.teavm.commons.interop.Console;
  *   <li>Form field collection and event submission</li>
  *   <li>Render scheduling via requestAnimationFrame (no recursion)</li>
  * </ul>
- * <p>
- * Faithful equivalent of ViewStateCoordinator.ts in remote.shell.react.
  */
 public class ViewStateCoordinator {
 
@@ -32,7 +30,7 @@ public class ViewStateCoordinator {
     public static final String BROWSER_VID = "7b32e816a191";
     public static final String BROWSER_VSID = BROWSER_VID + ":0";
 
-    // -- Public fields (accessed by FlushRequestContext, ReconnectController, ViewGarbageCollector) --
+    // -- Public fields --
 
     public final String id;
     public final Map<String, ViewScope> viewMap = new LinkedHashMap<>();
@@ -45,21 +43,19 @@ public class ViewStateCoordinator {
 
     // -- Private fields --
 
-    private final Map<String, Function<String, AbstractRemoteView>> viewFactoryMap = new LinkedHashMap<>();
-    private final Map<String, AbstractRemoteView> viewInstanceMap = new LinkedHashMap<>();
+    private final Map<String, Function<String, RemoteView>> viewFactoryMap = new LinkedHashMap<>();
+    private final Map<String, RemoteView> viewInstanceMap = new LinkedHashMap<>();
     private Map<String, Object> formMap = new LinkedHashMap<>();
     private String baseWebSocketUrl = "";
 
     private ViewStateCoordinator() {
         viewMap.put(BROWSER_VSID, new ViewScope(BROWSER_VSID));
 
-        // Read app_id from cookie (set by server's IndexHtmlController)
         String appIdFromCookie = getCookie("app_id");
         if (appIdFromCookie != null && !appIdFromCookie.isEmpty()) {
             removeCookie("app_id");
         }
 
-        // Try sessionStorage first (survives F5), then fall back to cookie
         String appId = getSessionItem("app_id");
         if (appId == null || appId.isEmpty()) {
             appId = appIdFromCookie;
@@ -71,13 +67,11 @@ public class ViewStateCoordinator {
         }
         this.id = appId;
 
-        // Build base WebSocket URL: ws[s]://host
         String protocol = getLocationProtocol();
         String wsProtocol = "https:".equals(protocol) ? "wss://" : "ws://";
         String host = getLocationHost();
         this.baseWebSocketUrl = wsProtocol + host;
 
-        // Initialize sub-components
         this.contextExchanger = new FlushRequestContext(this);
         this.reconnectController = new ReconnectController(this);
         this.viewGarbageCollector = new ViewGarbageCollector(this);
@@ -89,24 +83,17 @@ public class ViewStateCoordinator {
         return baseWebSocketUrl;
     }
 
-    public void registerView(String viewId, Function<String, AbstractRemoteView> factory) {
+    public void registerView(String viewId, Function<String, RemoteView> factory) {
         viewFactoryMap.put(viewId, factory);
     }
 
-    /**
-     * Main entry point. Called from Main.main() after view registration.
-     * Mirrors onStart() from the React shell.
-     */
     public void start() {
         Console.log("App ID: " + id);
 
-        // Connect via ReconnectController (delegates to FlushRequestContext.open)
         assureContextExchangerIsConnected();
 
-        // Listen popstate (Back/Forward)
         Window.current().addEventListener("popstate", evt -> onPopState());
 
-        // Send initial navigation event (equivalent to React's onStart event -1)
         String hash = getLocationHash();
         path = (hash != null && hash.length() > 1) ? hash.substring(1) : "/";
         setFormField(BROWSER_VSID, "p.path", path);
@@ -129,10 +116,8 @@ public class ViewStateCoordinator {
                 if (vsidObj instanceof String vsid) {
                     ViewScope viewScope = viewMap.computeIfAbsent(vsid, ViewScope::new);
 
-                    // Ensure view instance exists and is wired
                     ensureViewInstance(vsid);
 
-                    // Set state (this calls forceUpdate → scheduleRender)
                     viewScope.setState(map);
                 }
             }
@@ -142,7 +127,6 @@ public class ViewStateCoordinator {
     private void ensureViewInstance(String vsid) {
         if (viewInstanceMap.containsKey(vsid)) return;
 
-        // Extract viewId from vsid (format: "viewId:instanceNum")
         int colonIdx = vsid.indexOf(':');
         String viewId = colonIdx > 0 ? vsid.substring(0, colonIdx) : vsid;
 
@@ -155,17 +139,15 @@ public class ViewStateCoordinator {
         var view = factory.apply(vsid);
         viewInstanceMap.put(vsid, view);
 
-        // Wire forceUpdate: view schedules its own render
         var scope = viewMap.get(vsid);
         if (scope != null) {
             scope.setForceUpdate(view::forceUpdate);
         }
 
-        // Register with GC
         viewGarbageCollector.mount(vsid);
     }
 
-    // -- Form fields and event submission (matches React's submit flow) --
+    // -- Form fields and event submission --
 
     @SuppressWarnings("unchecked")
     public void setFormField(String vsid, String fieldName, Object fieldValue) {
@@ -188,7 +170,7 @@ public class ViewStateCoordinator {
 
     // -- View tree access --
 
-    public AbstractRemoteView getViewInstance(String vsid) {
+    public RemoteView getViewInstance(String vsid) {
         return vsid != null ? viewInstanceMap.get(vsid) : null;
     }
 

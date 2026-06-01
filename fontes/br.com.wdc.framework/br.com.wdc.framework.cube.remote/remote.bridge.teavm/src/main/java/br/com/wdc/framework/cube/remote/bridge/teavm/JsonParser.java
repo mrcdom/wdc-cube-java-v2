@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.shell.teavm.bridge;
+package br.com.wdc.framework.cube.remote.bridge.teavm;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -11,19 +11,14 @@ import br.com.wdc.framework.commons.serialization.SerializationToken;
 
 /**
  * JSON parser/serializer for WebSocket messages.
- * <p>
  * Uses {@link JsonStreamReader}/{@link JsonStreamWriter} (pure Java) to preserve
  * type semantics: integers stay as Long/Integer, floats as Double.
- * This avoids the JavaScript double coercion that loses long precision.
  */
 public final class JsonParser {
 
     private JsonParser() {
     }
 
-    /**
-     * Parse a JSON string into a Map (object) or empty map if invalid.
-     */
     public static Map<String, Object> parseObject(String json) {
         if (json == null || json.isEmpty()) return Map.of();
         try {
@@ -35,9 +30,6 @@ public final class JsonParser {
         }
     }
 
-    /**
-     * Stringify a Java object graph (Map/List/primitives) to JSON.
-     */
     public static String stringify(Object obj) {
         var writer = new JsonStreamWriter();
         writeValue(writer, obj);

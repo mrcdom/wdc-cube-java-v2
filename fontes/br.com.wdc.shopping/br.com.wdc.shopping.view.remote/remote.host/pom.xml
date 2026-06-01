@@ -32,7 +32,7 @@
         <!-- Framework: remote application infrastructure -->
         <dependency>
             <groupId>br.com.wdc.framework</groupId>
-            <artifactId>br.com.wdc.framework.cube.remote</artifactId>
+            <artifactId>remote.backend</artifactId>
         </dependency>
 
         <!-- Javalin HTTP/WebSocket framework -->

@@ -1,10 +1,9 @@
-package br.com.wdc.shopping.view.remote.shell.teavm.bridge;
+package br.com.wdc.framework.cube.remote.bridge.teavm;
 
-import br.com.wdc.shopping.view.teavm.commons.interop.Timers;
+import br.com.wdc.framework.cube.remote.bridge.teavm.interop.Timers;
 
 /**
  * Controla reconexão com backoff exponencial.
- * Equivalente ao ReconnectController.ts do remote.shell.react.
  */
 public class ReconnectController {
 
@@ -33,7 +32,6 @@ public class ReconnectController {
         this.delay = Math.min(2000 * this.count, 120000);
         this.cause = cause;
 
-        // Update browser view scope with error info
         var bvScope = app.viewMap.get(ViewStateCoordinator.BROWSER_VSID);
         if (bvScope != null) {
             var state = bvScope.getState();

@@ -1,6 +1,6 @@
 package br.com.wdc.shopping.view.remote.shell.teavm;
 
-import br.com.wdc.shopping.view.remote.shell.teavm.bridge.ViewStateCoordinator;
+import br.com.wdc.framework.cube.remote.bridge.teavm.ViewStateCoordinator;
 import br.com.wdc.shopping.view.teavm.commons.interop.Console;
 import br.com.wdc.shopping.view.remote.shell.teavm.views.RootView;
 import br.com.wdc.shopping.view.remote.shell.teavm.views.browser.BrowserView;

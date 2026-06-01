@@ -1,6 +1,6 @@
 import React from 'react'
 import * as history from 'history'
-import * as LangUtils from '@root/utils/LangUtils'
+import * as LangUtils from '../utils/LangUtils'
 import CookieConstructor from 'universal-cookie'
 
 import type { FormMapType, IViewFactory } from './types'

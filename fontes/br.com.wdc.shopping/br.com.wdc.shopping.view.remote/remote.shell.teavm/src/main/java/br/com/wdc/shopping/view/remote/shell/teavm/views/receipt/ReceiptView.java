@@ -11,7 +11,7 @@ import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.Rec
 import br.com.wdc.shopping.view.teavm.commons.VNode;
 import br.com.wdc.shopping.view.teavm.commons.views.receipt.ReceiptSharedView;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
-import br.com.wdc.shopping.view.remote.shell.teavm.bridge.ViewScope;
+import br.com.wdc.framework.cube.remote.bridge.teavm.ViewScope;
 
 public class ReceiptView extends AbstractRemoteView {
 

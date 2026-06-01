@@ -11,9 +11,12 @@ import org.teavm.jso.dom.events.EventListener;
 import org.teavm.jso.dom.html.HTMLDocument;
 import org.teavm.jso.dom.html.HTMLElement;
 
+import br.com.wdc.framework.cube.remote.bridge.teavm.RemoteView;
+import br.com.wdc.framework.cube.remote.bridge.teavm.ViewScope;
+import br.com.wdc.framework.cube.remote.bridge.teavm.ViewStateCoordinator;
+import br.com.wdc.framework.cube.remote.bridge.teavm.interop.JsRunnable;
 import br.com.wdc.shopping.view.teavm.commons.VDom;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
-import br.com.wdc.shopping.view.teavm.commons.interop.JsRunnable;
 
 /**
  * Base class for all remote views using Virtual DOM rendering.
@@ -22,7 +25,7 @@ import br.com.wdc.shopping.view.teavm.commons.interop.JsRunnable;
  * remote views receive state from the server via {@link ViewScope} (JSON map).
  * The rendering uses the same VDom/Swc infrastructure.
  */
-public abstract class AbstractRemoteView {
+public abstract class AbstractRemoteView implements RemoteView {
 
     private final String vsid;
     private final HTMLElement element;

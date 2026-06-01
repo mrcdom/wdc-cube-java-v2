@@ -6,19 +6,12 @@
 
 	<parent>
 		<groupId>br.com.wdc.framework</groupId>
-		<artifactId>br.com.wdc.framework</artifactId>
+		<artifactId>br.com.wdc.framework.cube.remote</artifactId>
 		<version>1.0.0</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-	<artifactId>br.com.wdc.framework.cube.remote</artifactId>
-	<version>1.0.0</version>
+	<artifactId>remote.bridge.react</artifactId>
 	<packaging>pom</packaging>
-
-	<modules>
-		<module>remote.backend</module>
-		<module>remote.bridge.react</module>
-		<module>remote.bridge.teavm</module>
-	</modules>
 
 </project>

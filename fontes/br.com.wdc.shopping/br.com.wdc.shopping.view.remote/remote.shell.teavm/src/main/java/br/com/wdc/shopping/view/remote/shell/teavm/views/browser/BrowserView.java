@@ -10,7 +10,7 @@ import org.teavm.jso.dom.html.HTMLDocument;
 import br.com.wdc.shopping.view.teavm.commons.SelUtility;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
-import br.com.wdc.shopping.view.remote.shell.teavm.bridge.ViewStateCoordinator;
+import br.com.wdc.framework.cube.remote.bridge.teavm.ViewStateCoordinator;
 
 /**
  * Browser-level view: manages global submitting indicator and hosts the root view. Equivalent to BrowserView.tsx in

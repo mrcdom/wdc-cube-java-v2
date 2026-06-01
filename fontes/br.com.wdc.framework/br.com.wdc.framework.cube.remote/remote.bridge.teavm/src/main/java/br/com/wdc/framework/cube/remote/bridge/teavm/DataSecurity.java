@@ -1,8 +1,8 @@
-package br.com.wdc.shopping.view.remote.shell.teavm.bridge;
+package br.com.wdc.framework.cube.remote.bridge.teavm;
 
 import org.teavm.jso.JSBody;
 
-import br.com.wdc.shopping.view.teavm.commons.interop.JsStringConsumer;
+import br.com.wdc.framework.cube.remote.bridge.teavm.interop.JsStringConsumer;
 
 /**
  * Provides AES-GCM encryption for sensitive form fields (e.g., passwords).
@@ -13,11 +13,6 @@ public final class DataSecurity {
 
     private DataSecurity() {}
 
-    /**
-     * Encrypts text using AES-GCM (key derived during boot from the same password
-     * used in the app_signature). The result is base64-encoded ciphertext.
-     * Asynchronous: calls the callback with the encrypted string when done.
-     */
     public static void cipher(String text, JsStringConsumer callback) {
         doCipher(text, callback);
     }

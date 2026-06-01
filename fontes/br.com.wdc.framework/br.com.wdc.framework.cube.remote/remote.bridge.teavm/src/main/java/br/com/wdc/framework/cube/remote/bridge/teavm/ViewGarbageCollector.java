@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.shell.teavm.bridge;
+package br.com.wdc.framework.cube.remote.bridge.teavm;
 
 import java.util.HashSet;
 import java.util.List;
@@ -29,10 +29,6 @@ public class ViewGarbageCollector {
         mountedViews.remove(vsid);
     }
 
-    /**
-     * Remove views específicas que o servidor liberou (eager GC, ~15s).
-     * Só remove se não estiver montada.
-     */
     public void release(List<String> releasedViews) {
         for (String vsid : releasedViews) {
             if (!mountedViews.contains(vsid)) {
@@ -41,10 +37,6 @@ public class ViewGarbageCollector {
         }
     }
 
-    /**
-     * Reconciliação completa: remove qualquer view não listada pelo servidor
-     * e não montada (full sweep, ~5min).
-     */
     public void sweep(List<String> activeViews) {
         Set<String> serverActive = new HashSet<>(activeViews);
         var keysToRemove = new java.util.ArrayList<String>();

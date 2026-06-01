@@ -14,7 +14,8 @@
     }
   },
   "alias": {
-    "@root/*": "./src/scripts/$1"
+    "@root/*": "./src/scripts/$1",
+    "@wdc/remote-bridge-react": "../../../br.com.wdc.framework/br.com.wdc.framework.cube.remote/remote.bridge.react/src/bridge/index.tsx"
   },
   "scripts": {
     "clean": "rm -rf .parcel-cache ../../../../work/frontend/remote.shell.react",
