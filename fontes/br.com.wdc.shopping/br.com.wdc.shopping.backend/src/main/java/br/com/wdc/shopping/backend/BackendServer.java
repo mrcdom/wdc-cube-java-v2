@@ -58,8 +58,9 @@ public class BackendServer {
     public BackendServer(int port, boolean devMode) {
         this.port = port;
         this.devMode = devMode;
-        this.businessContext.start();
+        this.businessContext.configure();
         this.app = createJavalinApp();
+        this.businessContext.start();
     }
 
     public BackendServer() {

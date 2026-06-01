@@ -1,6 +1,4 @@
-package br.com.wdc.shopping.view.remote.host.util;
-
-import br.com.wdc.framework.commons.log.Log;
+package br.com.wdc.framework.cube.remote;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -14,18 +12,26 @@ import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-public class DataSecurity {
+import br.com.wdc.framework.commons.log.Log;
 
-    private final AppSecurity security;
+/**
+ * Per-session AES-GCM encryption derived from client key exchange.
+ * <p>
+ * Each application session has its own instance with keys derived from
+ * the RSA-encrypted secret provided by the client.
+ */
+public class RemoteDataSecurity {
+
+    private final RemoteAppSecurity security;
     private final SecretKeyFactory keyFactory;
 
     private SecretKeySpec secret;
     private byte[] iv;
 
-    public DataSecurity() {
+    public RemoteDataSecurity(RemoteAppSecurity security) {
         try {
-            security = AppSecurity.BEAN;
-            keyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+            this.security = security;
+            this.keyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
         } catch (Exception e) {
             throw ExceptionUtils.asRuntimeException(e);
         }
@@ -58,8 +64,6 @@ public class DataSecurity {
         }
     }
 
-    // :: Binary Cypher
-
     public byte[] cipher(byte[] binData) {
         try {
             var cipher = Cipher.getInstance("AES/GCM/NoPadding");
@@ -84,14 +88,13 @@ public class DataSecurity {
 
     public String b64Cipher(String text) {
         var textBytes = text.getBytes(StandardCharsets.UTF_8);
-        var cipheredTextBytes = this.cipher(textBytes);
+        var cipheredTextBytes = cipher(textBytes);
         return Base64.getEncoder().encodeToString(cipheredTextBytes);
     }
 
     public String b64Decipher(String b64Text) {
         var cipheredTextBytes = Base64.getDecoder().decode(b64Text);
-        var textBytes = this.decipher(cipheredTextBytes);
+        var textBytes = decipher(cipheredTextBytes);
         return new String(textBytes, StandardCharsets.UTF_8);
     }
-
 }

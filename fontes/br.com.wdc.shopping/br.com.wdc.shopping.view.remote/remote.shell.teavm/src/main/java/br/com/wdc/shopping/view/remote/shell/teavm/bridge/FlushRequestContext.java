@@ -125,7 +125,7 @@ public class FlushRequestContext {
             hasData = true;
         }
 
-        if (hasData) {
+        if (hasData || pendingSecret != null) {
             requestObj.put("event", allEvents);
             if (pendingSecret != null) {
                 requestObj.put("secret", pendingSecret);

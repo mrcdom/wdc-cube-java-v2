@@ -29,6 +29,12 @@
             <artifactId>br.com.wdc.shopping.persistence</artifactId>
         </dependency>
 
+        <!-- Framework: remote application infrastructure -->
+        <dependency>
+            <groupId>br.com.wdc.framework</groupId>
+            <artifactId>br.com.wdc.framework.cube.remote</artifactId>
+        </dependency>
+
         <!-- Javalin HTTP/WebSocket framework -->
         <dependency>
             <groupId>io.javalin</groupId>

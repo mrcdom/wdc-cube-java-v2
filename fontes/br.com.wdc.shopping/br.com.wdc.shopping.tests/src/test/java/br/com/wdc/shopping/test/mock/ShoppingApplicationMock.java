@@ -1,6 +1,5 @@
 package br.com.wdc.shopping.test.mock;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -39,8 +38,6 @@ public class ShoppingApplicationMock extends ShoppingApplication {
         PurchasesPanelPresenter.createView = PurchasesPanelViewMock::new;
     }
 
-    private final Map<String, Object> attributes = new HashMap<>();
-
     public ShoppingApplicationMock() {
         // NOOP
     }
@@ -62,21 +59,6 @@ public class ShoppingApplicationMock extends ShoppingApplication {
         } else {
             return null;
         }
-    }
-
-    @Override
-    public Object setAttribute(String name, Object value) {
-        return this.attributes.put(name, value);
-    }
-
-    @Override
-    public Object getAttribute(String name) {
-        return this.attributes.get(name);
-    }
-
-    @Override
-    public Object removeAttribute(String name) {
-        return this.attributes.remove(name);
     }
 
     @Override

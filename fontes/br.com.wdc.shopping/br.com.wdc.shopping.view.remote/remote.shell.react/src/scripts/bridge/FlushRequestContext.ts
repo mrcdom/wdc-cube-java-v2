@@ -104,7 +104,7 @@ export class FlushRequestContext {
         hasData = true
       }
 
-      if (hasData) {
+      if (hasData || this.pendingSecret) {
         if (this.pendingSecret) {
           requestObj.secret = this.pendingSecret
           this.pendingSecret = null

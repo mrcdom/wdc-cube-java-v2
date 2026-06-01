@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.host.app;
+package br.com.wdc.framework.cube.remote;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -10,40 +10,47 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import br.com.wdc.framework.commons.function.ThrowingRunnable;
 import br.com.wdc.framework.commons.lang.CoerceUtils;
 import br.com.wdc.framework.commons.log.Log;
+import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.PresenterBase;
 import br.com.wdc.framework.cube.ViewState;
-import br.com.wdc.shopping.view.remote.host.util.GenericViewImpl;
 
-public class BrowserPresenter implements PresenterBase {
+/**
+ * Generic browser presenter: represents the top-level browser view
+ * that wraps the application's root presenter content.
+ * <p>
+ * Handles: alert dialogs, navigation start, history changes, keep-alive.
+ */
+public class RemoteBrowserPresenter implements PresenterBase {
 
     public static class BrowserState implements ViewState {
-
         public String instanceId;
         public int alertId;
         public List<String> alertArgs = Collections.emptyList();
         public CubeView contentView;
-
     }
 
-    public final ShoppingApplicationImpl app;
+    public final RemoteApplication app;
     public final BrowserState state = new BrowserState();
 
     private final CubeSkeleton skeleton = skeleton();
-    private GenericViewImpl view;
+    private RemoteViewImpl view;
     private ThrowingRunnable alertAction = ThrowingRunnable.noop();
 
-    public BrowserPresenter(ShoppingApplicationImpl app) {
+    public RemoteBrowserPresenter(RemoteApplication app) {
         this.app = app;
-        this.view = new GenericViewImpl(app, this, this.state, this.skeleton, this.skeleton.classId() + ":0");
+        this.view = new RemoteViewImpl(app, this, this.state, this.skeleton, this.skeleton.classId() + ":0");
         this.state.instanceId = this.view.instanceId();
     }
 
     @Override
     public void commitComputedState() {
         var rootPresenter = this.app.getRootPresenter();
-        var rootView = rootPresenter != null ? rootPresenter.view() : null;
+        CubeView rootView = null;
+        if (rootPresenter instanceof AbstractCubePresenter<?> acp) {
+            rootView = acp.view();
+        }
         if (this.state.contentView != rootView) {
             this.state.contentView = rootView;
         }
@@ -54,7 +61,7 @@ public class BrowserPresenter implements PresenterBase {
         this.view.release();
     }
 
-    public GenericViewImpl getView() {
+    public RemoteViewImpl getView() {
         return view;
     }
 
@@ -62,7 +69,7 @@ public class BrowserPresenter implements PresenterBase {
         this.app.markDirty(this.view);
     }
 
-    public void alertUnexpectedError(String msg, Throwable cause) {
+    public void alertUnexpectedError(Log log, String msg, Throwable cause) {
         int alertCode = -1;
         if (msg == null) {
             if (cause != null) {
@@ -73,9 +80,11 @@ public class BrowserPresenter implements PresenterBase {
         }
 
         if (cause != null) {
+        	log.error(msg, cause);
             var detail = ExceptionUtils.getStackTrace(cause);
             this.alert(ThrowingRunnable.noop(), alertCode, msg, detail);
         } else {
+        	log.error(msg);
             this.alert(ThrowingRunnable.noop(), alertCode, msg);
         }
     }
@@ -161,5 +170,4 @@ public class BrowserPresenter implements PresenterBase {
             }
         };
     }
-
 }

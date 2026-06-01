@@ -33,7 +33,7 @@ public class BusinessContext {
         CryptoProvider.BEAN.set(null);
     }
 
-    public void start() {
+    public void configure() {
         try {
             var config = AppConfig.load();
             ShoppingConfig.Internals.configure(config);
@@ -64,8 +64,6 @@ public class BusinessContext {
                 command.run();
             }
 
-            RemoteHostBootstrap.start();
-
             var jwtSecret = ShoppingConfig.getJwtSecret();
             if (jwtSecret != null && !jwtSecret.isBlank()) {
                 RepositoryBootstrap.initializeSecurity(jwtSecret);
@@ -73,10 +71,14 @@ public class BusinessContext {
 
             LoginPresenter.simulateSlowLogin(config.getBoolean("simulation.slowLogin", false));
 
-            LOG.info("Shopping backend context initialized with database {}", dataSource.getURL());
+            LOG.info("Shopping backend context configured with database {}", dataSource.getURL());
         } catch (Exception e) {
-            throw new IllegalStateException("Failed to initialize shopping backend context", e);
+            throw new IllegalStateException("Failed to configure shopping backend context", e);
         }
+    }
+
+    public void start() {
+        RemoteHostBootstrap.start();
     }
 
     private static String resolveJdbcUrl(AppConfig config, Path dataDir) {

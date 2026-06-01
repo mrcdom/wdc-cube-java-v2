@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.host.util;
+package br.com.wdc.framework.cube.remote;
 
 import java.util.Map;
 
@@ -7,12 +7,16 @@ import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.PresenterBase;
 import br.com.wdc.framework.cube.ViewState;
-import br.com.wdc.shopping.presentation.ShoppingApplication;
-import br.com.wdc.shopping.view.remote.host.app.ShoppingApplicationImpl;
 
-public final class GenericViewImpl implements CubeView {
+/**
+ * Generic {@link CubeView} implementation for remote applications.
+ * <p>
+ * Each presenter gets one instance that manages dirty-tracking and
+ * delegates submit/syncState to the skeleton.
+ */
+public class RemoteViewImpl implements CubeView {
 
-    protected final ShoppingApplicationImpl app;
+    protected final RemoteApplication app;
     protected final PresenterBase presenter;
     protected final ViewState state;
     protected final CubeSkeleton skeleton;
@@ -20,13 +24,13 @@ public final class GenericViewImpl implements CubeView {
 
     protected int alertId;
 
-    public GenericViewImpl(ShoppingApplication app, PresenterBase presenter, ViewState state, CubeSkeleton skeleton) {
-        this(app, presenter, state, skeleton, skeleton.classId() + ":" + ((ShoppingApplicationImpl) app).nextInstanceId());
+    public RemoteViewImpl(RemoteApplication app, PresenterBase presenter, ViewState state, CubeSkeleton skeleton) {
+        this(app, presenter, state, skeleton, skeleton.classId() + ":" + app.nextInstanceId());
     }
 
-    public GenericViewImpl(ShoppingApplication app, PresenterBase presenter, ViewState state, CubeSkeleton skeleton,
+    public RemoteViewImpl(RemoteApplication app, PresenterBase presenter, ViewState state, CubeSkeleton skeleton,
             String vsid) {
-        this.app = (ShoppingApplicationImpl) app;
+        this.app = app;
         this.presenter = presenter;
         this.state = state;
         this.skeleton = skeleton;
@@ -65,5 +69,4 @@ public final class GenericViewImpl implements CubeView {
     public void writeState(ExtensibleObjectOutput json) {
         new ViewStateSerializer(json).write(this.state, instanceId);
     }
-
 }

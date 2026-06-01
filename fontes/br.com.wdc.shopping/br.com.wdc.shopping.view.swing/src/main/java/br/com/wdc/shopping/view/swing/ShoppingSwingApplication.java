@@ -47,12 +47,16 @@ public class ShoppingSwingApplication extends ShoppingApplication {
 
     private StackPanel rootPane;
     private final Map<String, AbstractViewSwing<?>> dirtyViewMap = new ConcurrentHashMap<>();
-    private final Map<String, Object> attributeMap = new ConcurrentHashMap<>();
     private Timer renderTimer;
     private boolean devMode;
 
     @Override
     protected Map<Integer, CubePresenter> createPresenterMap() {
+        return new ConcurrentHashMap<>();
+    }
+
+    @Override
+    protected Map<String, Object> createAttributeMap() {
         return new ConcurrentHashMap<>();
     }
 
@@ -105,21 +109,6 @@ public class ShoppingSwingApplication extends ShoppingApplication {
                 }
             }
         }
-    }
-
-    @Override
-    public Object setAttribute(String name, Object value) {
-        return this.attributeMap.put(name, value);
-    }
-
-    @Override
-    public Object getAttribute(String name) {
-        return this.attributeMap.get(name);
-    }
-
-    @Override
-    public Object removeAttribute(String name) {
-        return this.attributeMap.remove(name);
     }
 
     @Override

@@ -1,53 +1,60 @@
-package br.com.wdc.shopping.view.remote.host.javalin;
+package br.com.wdc.framework.cube.remote.javalin;
 
 import java.security.SecureRandom;
 
 import br.com.wdc.framework.commons.codec.Base62;
-import br.com.wdc.shopping.view.remote.host.util.AppSecurity;
+import br.com.wdc.framework.cube.remote.RemoteAppSecurity;
 import io.javalin.config.JavalinConfig;
 import io.javalin.http.Context;
 import jakarta.servlet.http.Cookie;
 
 /**
- * Handles the session cookie generation for the SPA entrypoint (index.html).
+ * Handles session cookie generation for the SPA entrypoint (index.html).
  * <p>
  * Generates {@code app_id} (signed random token) and {@code app_skey} (server web key)
  * cookies so the client gets a valid, server-signed session ID on the very first page load.
+ * <p>
+ * Each application module creates its own instance with its own security.
  */
 public final class IndexHtmlController {
 
     private static final SecureRandom RND = new SecureRandom();
 
-    private IndexHtmlController() {
+    private final RemoteAppSecurity security;
+
+    public IndexHtmlController(RemoteAppSecurity security) {
+        this.security = security;
     }
 
     /**
-     * Registers the session cookie handler before {@code /<context>/index.html}.
+     * Registers the session cookie handler before index.html for all context paths.
+     * Uses a wildcard path parameter to match any context.
      */
-    public static void configure(JavalinConfig config) {
-        config.routes.before("/<context>/index.html", IndexHtmlController::handle);
+    public void configure(JavalinConfig config, String... contextPaths) {
+        config.routes.before("/<context>/index.html", this::handle);
     }
 
-    private static void handle(Context ctx) {
+    private void handle(Context ctx) {
         ctx.res().setHeader("Cache-Control", "no-cache, no-store");
         ctx.res().setHeader("Pragma", "no-cache");
         ctx.res().setDateHeader("Expires", 0);
 
+        boolean secure = "https".equalsIgnoreCase(ctx.scheme());
+
         Cookie appIdCookie = new Cookie("app_id", makeAppId());
         appIdCookie.setPath("/");
         appIdCookie.setMaxAge(10);
-        appIdCookie.setSecure(true);
+        appIdCookie.setSecure(secure);
         ctx.res().addCookie(appIdCookie);
 
-        Cookie pubKeyCookie = new Cookie("app_skey", AppSecurity.BEAN.getWebKey());
+        Cookie pubKeyCookie = new Cookie("app_skey", security.getWebKey());
         pubKeyCookie.setPath("/");
         pubKeyCookie.setMaxAge(-1);
-        pubKeyCookie.setSecure(true);
+        pubKeyCookie.setSecure(secure);
         ctx.res().addCookie(pubKeyCookie);
     }
 
-    private static String makeAppId() {
-        var security = AppSecurity.BEAN;
+    private String makeAppId() {
         var b62 = Base62.BEAN;
 
         var appIdPart1Bytes = new byte[32];

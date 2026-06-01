@@ -29,23 +29,23 @@ import br.com.wdc.shopping.presentation.presenter.restricted.home.products.Produ
 import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
+import br.com.wdc.shopping.view.teavm.commons.interop.Console;
 import br.com.wdc.shopping.view.teavm.infra.BrowserCryptoProvider;
 import br.com.wdc.shopping.view.teavm.infra.BrowserSessionStorage;
-import br.com.wdc.shopping.view.teavm.commons.interop.Console;
 import br.com.wdc.shopping.view.teavm.infra.FetchHttpTransport;
 import br.com.wdc.shopping.view.teavm.infra.IntentSigner;
 import br.com.wdc.shopping.view.teavm.infra.ScheduledExecutorBrowser;
-import br.com.wdc.shopping.view.teavm.views.AbstractViewTeaVM;
 import br.com.wdc.shopping.view.teavm.repo.TeaVMAuthenticationService;
 import br.com.wdc.shopping.view.teavm.repo.TeaVMRepositoryBootstrap;
+import br.com.wdc.shopping.view.teavm.views.AbstractViewTeaVM;
+import br.com.wdc.shopping.view.teavm.views.RootView;
 import br.com.wdc.shopping.view.teavm.views.cart.CartView;
 import br.com.wdc.shopping.view.teavm.views.home.HomeView;
-import br.com.wdc.shopping.view.teavm.views.login.LoginView;
-import br.com.wdc.shopping.view.teavm.views.product.ProductView;
 import br.com.wdc.shopping.view.teavm.views.home.ProductsPanelView;
 import br.com.wdc.shopping.view.teavm.views.home.PurchasesPanelView;
+import br.com.wdc.shopping.view.teavm.views.login.LoginView;
+import br.com.wdc.shopping.view.teavm.views.product.ProductView;
 import br.com.wdc.shopping.view.teavm.views.receipt.ReceiptView;
-import br.com.wdc.shopping.view.teavm.views.RootView;
 
 /**
  * Implementação de {@link ShoppingApplication} para o browser via TeaVM. Usa Material Web components para UI e
@@ -57,7 +57,6 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
 
     private final String apiBaseUrl;
     private final List<AbstractViewTeaVM<?>> dirtyViews = new ArrayList<>();
-    private final Map<String, Object> attributeMap = new HashMap<>();
     private final IntentSigner intentSigner;
     private boolean renderScheduled;
     private boolean navigatingFromBrowser;
@@ -204,21 +203,6 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
                 Routes.root(this);
             }
         }).start();
-    }
-
-    @Override
-    public Object setAttribute(String name, Object value) {
-        return this.attributeMap.put(name, value);
-    }
-
-    @Override
-    public Object getAttribute(String name) {
-        return this.attributeMap.get(name);
-    }
-
-    @Override
-    public Object removeAttribute(String name) {
-        return this.attributeMap.remove(name);
     }
 
     @Override

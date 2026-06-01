@@ -1,8 +1,8 @@
 package br.com.wdc.shopping.view.remote.host;
 
-import br.com.wdc.shopping.view.remote.host.app.ShoppingApplicationRegistry;
-import br.com.wdc.shopping.view.remote.host.javalin.DispatcherController;
-import br.com.wdc.shopping.view.remote.host.javalin.IndexHtmlController;
+import br.com.wdc.framework.cube.remote.RemoteAppSecurity;
+import br.com.wdc.framework.cube.remote.RemoteApplicationRegistry;
+import br.com.wdc.framework.cube.remote.RemoteHostModule;
 import io.javalin.config.JavalinConfig;
 
 /**
@@ -24,6 +24,8 @@ import io.javalin.config.JavalinConfig;
  */
 public final class RemoteHostBootstrap {
 
+    private static RemoteHostModule<ShoppingApplicationImpl> module;
+
     private RemoteHostBootstrap() {
     }
 
@@ -31,21 +33,26 @@ public final class RemoteHostBootstrap {
      * Starts the application registry (flush loop, expiry checker).
      */
     public static void start() {
-        ShoppingApplicationRegistry.init();
+        module.start();
     }
 
     /**
      * Stops the application registry and releases resources.
      */
     public static void stop() {
-        ShoppingApplicationRegistry.shutdown();
+        module.stop();
     }
 
     /**
      * Registers all remote.host routes on the given Javalin configuration.
      */
     public static void configure(JavalinConfig config) {
-        DispatcherController.configure(config);
-        IndexHtmlController.configure(config);
+        var security = RemoteAppSecurity.createDefault();
+        var registry = new RemoteApplicationRegistry<>(ShoppingApplicationImpl::createApp);
+
+        ShoppingApplicationImpl.initialize(security, registry);
+
+        module = new RemoteHostModule<>(security, registry, "shopping");
+        module.configure(config);
     }
 }

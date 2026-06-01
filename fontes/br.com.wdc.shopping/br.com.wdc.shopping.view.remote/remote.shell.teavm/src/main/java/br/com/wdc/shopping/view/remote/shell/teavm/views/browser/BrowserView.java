@@ -2,6 +2,7 @@ package br.com.wdc.shopping.view.remote.shell.teavm.views.browser;
 
 import static br.com.wdc.shopping.view.teavm.commons.VNode.div;
 import static br.com.wdc.shopping.view.teavm.commons.VNode.slot;
+import static br.com.wdc.shopping.view.teavm.commons.VNode.span;
 
 import org.teavm.jso.JSBody;
 import org.teavm.jso.dom.html.HTMLDocument;
@@ -58,10 +59,49 @@ public class BrowserView extends AbstractRemoteView {
         boolean submitting = ViewStateCoordinator.INSTANCE.isSubmitting()
                 || scope.getBoolean("submitting");
 
+        var errorCause = scope.getString("error.cause");
+
         // @formatter:off
         return div(Sel.CONTAINER).children(
           div(submitting ? Sel.LOADING_BAR : Sel.HIDDEN),
+          errorCause != null ? renderConnectionAlert(scope.getInt("error.delay")) : null,
           slot(Sel.CONTENT, contentEl));
         // @formatter:on
+    }
+
+    private VNode renderConnectionAlert(int delay) {
+        String timeText;
+        boolean showRetry;
+        if (delay > 0) {
+            int seconds = delay / 1000;
+            int minutes = 0;
+            if (seconds > 60) {
+                minutes = seconds / 60;
+                seconds = seconds - minutes * 60;
+            }
+            timeText = minutes > 0
+                    ? "Conectando em " + minutes + "m e " + seconds + "s..."
+                    : "Conectando em " + seconds + "s...";
+            showRetry = true;
+        } else {
+            timeText = "Conectando agora...";
+            showRetry = false;
+        }
+
+        var alert = div("alert-error")
+                .style("display:inline-flex;border-radius:0 0 8px 8px;padding:6px 12px;margin:0")
+                .children(
+                        span("font-bold text-sm").style("color:var(--app-error-text)").text("Não conectado. "),
+                        span("text-sm").style("color:var(--app-error-text)").text(timeText));
+
+        if (showRetry) {
+            alert.children(
+                    span("text-sm font-medium cursor-pointer ml-4")
+                            .style("color:var(--app-accent);text-decoration:underline")
+                            .text("Tentar agora")
+                            .on("click", e -> ViewStateCoordinator.INSTANCE.reconnectController.checkNow()));
+        }
+
+        return div().style("text-align:center").children(alert);
     }
 }

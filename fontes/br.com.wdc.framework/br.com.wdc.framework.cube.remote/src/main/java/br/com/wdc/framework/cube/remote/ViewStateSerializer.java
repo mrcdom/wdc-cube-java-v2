@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.host.util;
+package br.com.wdc.framework.cube.remote;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -12,25 +12,20 @@ import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.ViewState;
 
 /**
- * Classe comando responsável por serializar um {@link ViewState} para JSON.
+ * Command class that serializes a {@link ViewState} to JSON.
  *
  * <p>
- * Cada instância encapsula o contexto de uma única execução de serialização: o {@link ExtensibleObjectOutput} de
- * destino e o mapa {@code ViewState → vsid} fornecido pelo chamador. Não há estado estático.
+ * Each instance encapsulates the context of a single serialization execution.
  * </p>
  *
  * <ul>
- * <li>Injeta {@code "vsid"} como primeiro campo (instanceId da view).</li>
- * <li>Campos {@code transient} e {@code static} são ignorados.</li>
- * <li>Campos do tipo {@link CubeView} ou {@link ViewState} são serializados como {@code "<nome>Id": vsid} com sufixo
- * {@code "Id"}.</li>
- * <li>Tipos suportados em campos e em coleções: todos os primitivos Java e seus wrappers, {@link String},
- * {@link Character}, datas ({@link java.util.Date} e extensões SQL), {@link Collection} (List/Set), {@link Map} e
- * Records Java.</li>
- * <li>Datas são formatadas como ISO 8601.</li>
- * <li>Strings em branco em campos diretos são omitidas.</li>
- * <li>Primitivos numéricos são sempre serializados (o cliente precisa saber quando mudam para zero).</li>
- * <li>Booleanos primitivos são sempre serializados (o cliente precisa saber quando mudam para false).</li>
+ * <li>Injects {@code "#"} as the first field (instanceId of the view).</li>
+ * <li>{@code transient} and {@code static} fields are skipped.</li>
+ * <li>{@link CubeView}/{@link ViewState} fields are serialized as {@code "<name>Id": vsid}.</li>
+ * <li>Supported field types: all Java primitives/wrappers, {@link String}, {@link Character},
+ * dates, {@link Collection}, {@link Map}, Records, and POJOs with public fields.</li>
+ * <li>Blank strings in direct fields are omitted.</li>
+ * <li>Numeric primitives and boolean primitives are always serialized.</li>
  * </ul>
  */
 public final class ViewStateSerializer {
@@ -41,9 +36,6 @@ public final class ViewStateSerializer {
 
     private final ExtensibleObjectOutput json;
 
-    /**
-     * @param json destino da serialização
-     */
     public ViewStateSerializer(ExtensibleObjectOutput json) {
         this.json = json;
     }
@@ -63,14 +55,13 @@ public final class ViewStateSerializer {
 
             json.endObject();
         } catch (IllegalAccessException e) {
-            throw new RuntimeException("Falha ao serializar ViewState: " + state.getClass().getSimpleName(), e);
+            throw new RuntimeException("Failed to serialize ViewState: " + state.getClass().getSimpleName(), e);
         }
     }
 
     private void writeField(Field field, Object value) {
         Class<?> type = field.getType();
 
-        // Booleanos primitivos: sempre serializados (o cliente precisa saber quando mudam para false)
         if (type == boolean.class) {
             json.name(field.getName()).value((boolean) value);
             return;
@@ -79,13 +70,11 @@ public final class ViewStateSerializer {
         if (value == null)
             return;
 
-        // CubeView: "<campo>Id": instanceId
         if (value instanceof CubeView cv) {
             json.name(field.getName() + "Id").value(cv.instanceId());
             return;
         }
 
-        // String: omite se em branco (campo direto)
         if (value instanceof String s) {
             if (!s.isBlank()) {
                 json.name(field.getName()).value(s);
@@ -93,7 +82,6 @@ public final class ViewStateSerializer {
             return;
         }
 
-        // Primitivos numéricos: sempre serializados (o cliente precisa saber quando mudam para zero)
         if (type == int.class) {
             json.name(field.getName()).value((int) value);
             return;
@@ -123,15 +111,10 @@ public final class ViewStateSerializer {
             return;
         }
 
-        // Demais tipos: wrappers, datas, coleções, etc.
         json.name(field.getName());
         writeValue(value);
     }
 
-    /**
-     * Serializa um valor sem prefixo de nome — usado dentro de arrays e maps. Strings vazias e números zero NÃO são
-     * omitidos neste contexto.
-     */
     private void writeValue(Object value) {
         if (value == null) {
             json.nullValue();
@@ -158,7 +141,6 @@ public final class ViewStateSerializer {
             return;
         }
 
-        // Datas: do mais específico para o mais genérico (subtipos sql estendem java.util.Date)
         if (value instanceof java.sql.Date sqlDate) {
             json.value(sqlDate.toLocalDate().format(DATE_FMT));
             return;
@@ -167,13 +149,11 @@ public final class ViewStateSerializer {
             json.value(sqlTime.toLocalTime().format(TIME_FMT));
             return;
         }
-        // java.sql.Timestamp estende java.util.Date e toInstant() funciona para ambos
         if (value instanceof java.util.Date date) {
             json.value(date.toInstant().atOffset(ZoneOffset.UTC).format(DATE_TIME_FMT));
             return;
         }
 
-        // Wrappers numéricos: Byte, Short, Integer, Long, Float, Double
         if (value instanceof Number n) {
             json.value(n);
             return;
@@ -198,20 +178,17 @@ public final class ViewStateSerializer {
             return;
         }
 
-        // Records Java: serializa como objeto JSON usando os componentes do record.
         if (value.getClass().isRecord()) {
             writeRecord(value);
             return;
         }
 
-        // POJOs com campos públicos (ex: PurchaseInfo)
         Field[] publicFields = value.getClass().getFields();
         if (publicFields.length > 0) {
             writePojo(value, publicFields);
             return;
         }
 
-        // Fallback: toString (enums, tipos não previstos)
         json.value(value.toString());
     }
 
@@ -225,7 +202,7 @@ public final class ViewStateSerializer {
             }
             json.endObject();
         } catch (Exception e) {
-            throw new RuntimeException("Falha ao serializar record " + rec.getClass().getSimpleName(), e);
+            throw new RuntimeException("Failed to serialize record " + rec.getClass().getSimpleName(), e);
         }
     }
 
@@ -243,7 +220,7 @@ public final class ViewStateSerializer {
             }
             json.endObject();
         } catch (IllegalAccessException e) {
-            throw new RuntimeException("Falha ao serializar POJO " + pojo.getClass().getSimpleName(), e);
+            throw new RuntimeException("Failed to serialize POJO " + pojo.getClass().getSimpleName(), e);
         }
     }
 }
