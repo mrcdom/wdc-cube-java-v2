@@ -4,7 +4,7 @@ import UTF8 from '../utils/UTF8'
 import Base64 from '../utils/Base64'
 
 class RsaHelper {
-  private __rsa: RSA
+  private readonly __rsa: RSA
 
   constructor(skey: string) {
     const [exponent, key] = skey.split(/:/)
@@ -35,7 +35,7 @@ export class DataSecurity {
   }
 
   async updateSecretWithRandomPassword() {
-    const pwd = Base64.encodeUrlSafe(window.crypto.getRandomValues(new Uint8Array(12)))
+    const pwd = Base64.encodeUrlSafe(globalThis.crypto.getRandomValues(new Uint8Array(12)))
     const pwdBuf = UTF8.encode(pwd)
     await this.updateSecret(pwdBuf)
   }

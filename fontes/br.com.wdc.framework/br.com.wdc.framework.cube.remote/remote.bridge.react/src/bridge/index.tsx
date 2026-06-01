@@ -7,7 +7,7 @@ export type { BrowserViewState, ViewComponent, ViewProps } from './types'
 export { ViewScope } from './ViewScope'
 
 async function static_updateAllViewStates(app: ViewStateCoordinator, vsids: string[]) {
-  var url = `view-state`
+  const url = `view-state`
 
   const resp = await fetch(url, {
     method: 'POST',
@@ -31,7 +31,7 @@ const publicApp = new (class {
   }
 
   getViewState<T>(vsid: string) {
-    var viewScope = privateApp.viewMap.get(vsid)
+    const viewScope = privateApp.viewMap.get(vsid)
     return viewScope ? (viewScope.getState() as T) : ({} as T)
   }
 

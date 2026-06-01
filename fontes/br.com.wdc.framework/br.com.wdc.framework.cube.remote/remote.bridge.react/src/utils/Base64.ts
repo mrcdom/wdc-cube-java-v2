@@ -94,8 +94,8 @@ const base64UrlDecode = (str: string) => {
     const chunk =
       (lookup.get(padded[i]) << 18) |
       (lookup.get(padded[i + 1]) << 12) |
-      ((padded[i + 2] !== '=' ? lookup.get(padded[i + 2]) : 0) << 6) |
-      (padded[i + 3] !== '=' ? lookup.get(padded[i + 3]) : 0)
+      ((padded[i + 2] === '=' ? 0 : lookup.get(padded[i + 2])) << 6) |
+      (padded[i + 3] === '=' ? 0 : lookup.get(padded[i + 3]))
 
     binData[j++] = (chunk >> 16) & 255
     if (padded[i + 2] !== '=') binData[j++] = (chunk >> 8) & 255

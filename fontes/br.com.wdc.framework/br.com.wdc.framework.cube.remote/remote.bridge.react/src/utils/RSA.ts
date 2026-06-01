@@ -3,9 +3,9 @@ import BigIntUtils, { type BigIntValue } from './BigIntUtils'
 export default class RSA {
   static readonly N65537 = 65537n
 
-  #publicExponent: bigint
-  #privateKey: bigint
-  #publicKey: bigint
+  readonly #publicExponent: bigint
+  readonly #privateKey: bigint
+  readonly #publicKey: bigint
 
   constructor(publicExponent: BigIntValue, privateKey: BigIntValue, publicKey: BigIntValue) {
     if (typeof publicExponent !== 'bigint') publicExponent = BigInt(publicExponent)

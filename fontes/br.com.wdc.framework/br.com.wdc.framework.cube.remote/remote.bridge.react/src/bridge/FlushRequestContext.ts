@@ -19,7 +19,7 @@ export class FlushRequestContext {
   pendingKeepAlive = 0
   private submittingTimer = 0
   private submittingTimeout = 0
-  private userRequestIds = new Set<number>()
+  private readonly userRequestIds = new Set<number>()
   private pendingSecret: string | null = null
 
   constructor(app: ViewStateCoordinator) {
@@ -29,8 +29,8 @@ export class FlushRequestContext {
     // Restore request counter from sessionStorage (survives F5)
     const savedSeq = sessionStorage.getItem('req_seq')
     if (savedSeq) {
-      const parsed = parseInt(savedSeq, 10)
-      if (!isNaN(parsed) && parsed > 0) {
+      const parsed = Number.parseInt(savedSeq, 10)
+      if (!Number.isNaN(parsed) && parsed > 0) {
         this.requestCount = parsed
       }
     }
@@ -42,10 +42,10 @@ export class FlushRequestContext {
     this.cancelPendingKeepAlive()
 
     formMap.requestId = this.requestCount++
-    if (!formMap.event) {
-      formMap.event = [vsid + ':' + eventId]
-    } else {
+    if (formMap.event) {
       formMap.event.push(vsid + ':' + eventId)
+    } else {
+      formMap.event = [vsid + ':' + eventId]
     }
     this.requestMap.set(formMap.requestId, formMap)
 
@@ -58,61 +58,52 @@ export class FlushRequestContext {
     this.flush()
   }
 
-  flush() {
-    type RequestObjType = {
-      requestId: number
-      event: string[]
-    }
-
+  flush() { // NOSONAR: complexity is inherent to the WebSocket protocol handling
     const { socket, lastSentRequestId, requestCount, requestMap } = this
 
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      const requestObj: Partial<RequestObjType> & Record<string, unknown> = {
-        event: [],
-      }
-      let hasData = false
-      for (let i = lastSentRequestId + 1; i < requestCount; i++) {
-        const requestItemObj = requestMap.get(i)
-        if (!requestItemObj) {
-          continue
-        }
+    if (socket?.readyState !== WebSocket.OPEN) {
+      return
+    }
 
-        const keys = Object.keys(requestItemObj)
-        for (let j = 0; j < keys.length; j++) {
-          const key = keys[j]
-          const value = requestItemObj[key] as unknown
-          if (value) {
-            if ('event' === key) {
-              const valueArray = value as string[]
-              for (let k = 0; k < valueArray.length; k++) {
-                requestObj.event!.push(valueArray[k])
-              }
-            } else {
-              let formData = requestObj[key] as object
-              if (!formData) {
-                formData = {}
-                requestObj[key] = formData
-              }
-              Object.assign(formData, value as object)
+    const requestObj: Record<string, unknown> = { event: [] }
+    let hasData = false
+
+    for (let i = lastSentRequestId + 1; i < requestCount; i++) {
+      const requestItemObj = requestMap.get(i)
+      if (!requestItemObj) {
+        continue
+      }
+
+      for (const key of Object.keys(requestItemObj)) {
+        const value = requestItemObj[key]
+        if (value) {
+          if (key === 'event') {
+            for (const item of value as string[]) {
+              (requestObj.event as string[]).push(item)
             }
+          } else {
+            let formData = requestObj[key] as object
+            if (!formData) {
+              formData = {}
+              requestObj[key] = formData
+            }
+            Object.assign(formData, value)
           }
         }
-        requestObj.requestId = i
-
-        this.lastSentRequestId = i
-
-        hasData = true
       }
+      requestObj.requestId = i
+      this.lastSentRequestId = i
+      hasData = true
+    }
 
-      if (hasData || this.pendingSecret) {
-        if (this.pendingSecret) {
-          requestObj.secret = this.pendingSecret
-          this.pendingSecret = null
-        }
-        socket.send(JSON.stringify(requestObj))
-        if (this.userRequestIds.size > 0) {
-          this.setSubmitting(true)
-        }
+    if (hasData || this.pendingSecret) {
+      if (this.pendingSecret) {
+        requestObj.secret = this.pendingSecret
+        this.pendingSecret = null
+      }
+      socket.send(JSON.stringify(requestObj))
+      if (this.userRequestIds.size > 0) {
+        this.startSubmitting()
       }
     }
   }
@@ -122,18 +113,17 @@ export class FlushRequestContext {
       return
     }
 
-    const me = this
     const app = this.app
 
     const socket = (this.socket = new WebSocket(url, ['wdc']))
-    ;(socket as unknown as Record<string, unknown>).withCredentials = true
+    ;(socket as Record<string, unknown>).withCredentials = true
 
     const handleDisconnect = (cause: unknown) => {
       this.socket = null
       app.isConnected = false
       this.stopKeepAliveChecks()
       this.userRequestIds.clear()
-      this.setSubmitting(false)
+      this.stopSubmitting()
       app.reconnectController.reconnect(cause)
     }
 
@@ -151,7 +141,7 @@ export class FlushRequestContext {
     socket.onclose = (event: CloseEvent) => {
       // Server sent close code 4001: session is invalid, reload the page
       if (event.code === 4001) {
-        window.location.reload()
+        globalThis.location.reload()
         return
       }
       handleDisconnect(event)
@@ -172,24 +162,28 @@ export class FlushRequestContext {
       }
 
       if (response.requestId != null) {
-        for (let i = me.lastProcessedId + 1; i <= response.requestId; i++) {
-          me.requestMap.delete(i)
-          me.userRequestIds.delete(i)
-          me.lastProcessedId = i
+        for (let i = this.lastProcessedId + 1; i <= response.requestId; i++) {
+          this.requestMap.delete(i)
+          this.userRequestIds.delete(i)
+          this.lastProcessedId = i
         }
       }
 
       if (response.uri) {
         app.path = response.uri
-        window.location.href = `#${response.uri}`
+        globalThis.location.href = `#${response.uri}`
       }
 
       if (response.states) {
         app.applyViewStates(response.states)
       }
 
-      me.flush()
-      me.setSubmitting(me.userRequestIds.size > 0)
+      this.flush()
+      if (this.userRequestIds.size > 0) {
+        this.startSubmitting()
+      } else {
+        this.stopSubmitting()
+      }
     }
   }
 
@@ -202,28 +196,28 @@ export class FlushRequestContext {
 
   private initKeepAliveChecks() {
     this.stopKeepAliveChecks()
-    this.keepAliveHandler = window.setTimeout(this.keepAlive, KEEP_ALIVE_INTERVAL)
+    this.keepAliveHandler = globalThis.setTimeout(this.keepAlive, KEEP_ALIVE_INTERVAL)
   }
 
   private stopKeepAliveChecks() {
-    window.clearTimeout(this.keepAliveHandler)
+    globalThis.clearTimeout(this.keepAliveHandler)
     this.keepAliveHandler = 0
   }
 
   private keepAliveNow() {
     this.cancelPendingKeepAlive()
     if (this.socket?.readyState === WebSocket.OPEN) {
-      this.pendingKeepAlive = window.setTimeout(() => {
+      this.pendingKeepAlive = globalThis.setTimeout(() => {
         this.pendingKeepAlive = 0
         this.persistState()
-        this.socket!.send(JSON.stringify({ ping: true }))
+        this.socket?.send(JSON.stringify({ ping: true }))
       }, 80)
     }
   }
 
   private cancelPendingKeepAlive() {
     if (this.pendingKeepAlive !== 0) {
-      window.clearTimeout(this.pendingKeepAlive)
+      globalThis.clearTimeout(this.pendingKeepAlive)
       this.pendingKeepAlive = 0
     }
   }
@@ -231,35 +225,35 @@ export class FlushRequestContext {
   private resetKeepAliveTimer() {
     if (this.keepAliveHandler !== 0) {
       this.stopKeepAliveChecks()
-      this.keepAliveHandler = window.setTimeout(this.keepAlive, KEEP_ALIVE_INTERVAL)
+      this.keepAliveHandler = globalThis.setTimeout(this.keepAlive, KEEP_ALIVE_INTERVAL)
     }
   }
 
-  private setSubmitting(value: boolean) {
-    if (value) {
-      if (this.submittingTimer === 0) {
-        this.submittingTimer = window.setTimeout(() => {
-          this.submittingTimer = 0
-          this.applySubmitting(true)
-        }, 200)
-      }
-      if (this.submittingTimeout === 0) {
-        this.submittingTimeout = window.setTimeout(() => {
-          this.submittingTimeout = 0
-          this.setSubmitting(false)
-        }, 15_000)
-      }
-    } else {
-      if (this.submittingTimer !== 0) {
-        window.clearTimeout(this.submittingTimer)
+  private startSubmitting() {
+    if (this.submittingTimer === 0) {
+      this.submittingTimer = globalThis.setTimeout(() => {
         this.submittingTimer = 0
-      }
-      if (this.submittingTimeout !== 0) {
-        window.clearTimeout(this.submittingTimeout)
-        this.submittingTimeout = 0
-      }
-      this.applySubmitting(false)
+        this.applySubmitting(true)
+      }, 200)
     }
+    if (this.submittingTimeout === 0) {
+      this.submittingTimeout = globalThis.setTimeout(() => {
+        this.submittingTimeout = 0
+        this.stopSubmitting()
+      }, 15_000)
+    }
+  }
+
+  private stopSubmitting() {
+    if (this.submittingTimer !== 0) {
+      globalThis.clearTimeout(this.submittingTimer)
+      this.submittingTimer = 0
+    }
+    if (this.submittingTimeout !== 0) {
+      globalThis.clearTimeout(this.submittingTimeout)
+      this.submittingTimeout = 0
+    }
+    this.applySubmitting(false)
   }
 
   private applySubmitting(value: boolean) {
@@ -280,6 +274,6 @@ export class FlushRequestContext {
   private readonly keepAlive = () => {
     this.stopKeepAliveChecks()
     this.keepAliveNow()
-    this.keepAliveHandler = window.setTimeout(this.keepAlive, KEEP_ALIVE_INTERVAL)
+    this.keepAliveHandler = globalThis.setTimeout(this.keepAlive, KEEP_ALIVE_INTERVAL)
   }
 }

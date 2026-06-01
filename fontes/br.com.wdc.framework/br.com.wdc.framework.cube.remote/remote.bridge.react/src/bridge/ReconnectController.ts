@@ -41,7 +41,7 @@ export class ReconnectController {
     }
 
     if (this.reconnectHandler === 0) {
-      this.reconnectHandler = window.setInterval(() => this.check(), 1000)
+      this.reconnectHandler = globalThis.setInterval(() => this.check(), 1000)
     }
   }
 
@@ -74,7 +74,7 @@ export class ReconnectController {
     bvScope.forceUpdate()
 
     if (this.delay <= 0) {
-      window.setTimeout(app.assureContextExchangerIsConnected, 16)
+      globalThis.setTimeout(app.assureContextExchangerIsConnected, 16)
     }
   }
 

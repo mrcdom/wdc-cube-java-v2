@@ -124,10 +124,10 @@ export class ViewStateCoordinator {
       this.viewMap.set(vsid, scope)
     }
 
-    const [updateCount, setUpdateCount] = React.useState(0)
+    const [, setUpdateCount] = React.useState(0) // NOSONAR: bindView is called from function components only
     scope.forceUpdate = () => setUpdateCount((count) => count + 1)
 
-    React.useEffect(() => {
+    React.useEffect(() => { // NOSONAR: bindView is called from function components only
       this.viewGarbageCollector.mount(vsid)
       return () => {
         if (vsid !== BROWSER_VSID) {
@@ -156,7 +156,7 @@ export class ViewStateCoordinator {
         }
       })
 
-      const hash = window.location.hash
+      const hash = globalThis.location.hash
       this.path = hash && hash.length > 1 ? hash.substring(1) : '/'
 
       this.setFormField(BROWSER_VSID, 'p.path', this.path)
@@ -177,9 +177,8 @@ export class ViewStateCoordinator {
   }
 
   applyViewStates(stateList: { '#': string }[]) {
-    for (let i = 0, ilen = stateList.length; i < ilen; i++) {
-      let viewState = stateList[i]
-      if (!viewState || !viewState['#']) {
+    for (const viewState of stateList) {
+      if (!viewState?.['#']) {
         continue
       }
       const vsid = viewState['#']
@@ -208,7 +207,7 @@ export class ViewStateCoordinator {
   }
 
   setFormField(vsid: string, fieldName: string, fieldValue: unknown) {
-    var formData = this.formMap[vsid] as Record<string, unknown>
+    let formData = this.formMap[vsid] as Record<string, unknown>
     if (!formData) {
       formData = {}
       this.formMap[vsid] = formData

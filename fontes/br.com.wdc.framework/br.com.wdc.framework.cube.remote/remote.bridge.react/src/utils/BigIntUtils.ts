@@ -13,7 +13,7 @@ const HEX_STR_EXP = /^(0x)?([\da-fA-F]+)$/
 const HEX_BYTE_EXP = /[\da-fA-F]{2}/g
 
 function parseHex(a: string, prefix0x?: boolean, byteLength?: number) {
-  const hexMatch = a.match(HEX_STR_EXP)
+  const hexMatch = HEX_STR_EXP.exec(a)
   if (hexMatch == null) {
     throw new RangeError("input must be a hexadecimal string, e.g. '0x124fe3a' or '0214f1b2'")
   }
@@ -30,7 +30,7 @@ function parseHex(a: string, prefix0x?: boolean, byteLength?: number) {
 function hexToBuf(hexStr: string): Uint8Array {
   let hex = parseHex(hexStr)
   hex = hex.padStart(Math.ceil(hex.length / 2) * 2, '0')
-  const intArray = (hex.match(HEX_BYTE_EXP) ?? []).map((h) => parseInt(h, 16))
+  const intArray = (hex.match(HEX_BYTE_EXP) ?? []).map((h) => Number.parseInt(h, 16))
   return Uint8Array.from(intArray)
 }
 
@@ -105,11 +105,11 @@ function toZn(a: bigint | number, n: bigint | number) {
 
 function modInv(a: bigint, n: bigint) {
   const egcd = eGcd(toZn(a, n), n)
-  if (egcd.g !== 1n) {
+  if (egcd.g === 1n) {
+    return toZn(egcd.x, n)
+  } else {
     // modular inverse does not exist
     throw new RangeError(`${a.toString()} does not have inverse modulo ${n.toString()}`)
-  } else {
-    return toZn(egcd.x, n)
   }
 }
 
@@ -144,8 +144,8 @@ function modPow(b: BigIntValue, e: BigIntValue, n: BigIntValue): bigint {
 function parseBigInt(numberString: string, keyspace: string) {
   let result = 0n
   const keyspaceLength = BigInt(keyspace.length)
-  for (let i = 0; i < numberString.length; i++) {
-    const value = keyspace.indexOf(numberString[i])
+  for (const ch of numberString) {
+    const value = keyspace.indexOf(ch)
     if (value === -1) throw new Error('invalid string')
     result = result * keyspaceLength + BigInt(value)
   }
@@ -158,7 +158,7 @@ function parse(numberString: string, radix: number, options?: { urlSafe: boolean
   }
 
   if (radix === 64) {
-    if (options && options.urlSafe) {
+    if (options?.urlSafe) {
       return bufToBigint(Base64.decodeUrlSafe(numberString))
     }
     return bufToBigint(Base64.decode(numberString))
