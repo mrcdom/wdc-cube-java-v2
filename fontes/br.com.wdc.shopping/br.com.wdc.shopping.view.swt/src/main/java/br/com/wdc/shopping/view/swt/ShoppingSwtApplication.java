@@ -2,14 +2,21 @@ package br.com.wdc.shopping.view.swt;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
+import br.com.wdc.framework.commons.function.ThrowingRunnable;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubePresenter;
+import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.shopping.presentation.ProxyRepositoryWrapper;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.RootPresenter;
@@ -20,7 +27,10 @@ import br.com.wdc.shopping.presentation.presenter.restricted.home.products.Produ
 import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
+import br.com.wdc.shopping.view.swt.impl.HomeViewSwt;
 import br.com.wdc.shopping.view.swt.impl.LoginViewSwt;
+import br.com.wdc.shopping.view.swt.impl.ProductsPanelViewSwt;
+import br.com.wdc.shopping.view.swt.impl.PurchasesPanelViewSwt;
 import br.com.wdc.shopping.view.swt.impl.RootViewSwt;
 
 public class ShoppingSwtApplication extends ShoppingApplication {
@@ -28,22 +38,46 @@ public class ShoppingSwtApplication extends ShoppingApplication {
     private static final Log LOG = Log.getLogger(ShoppingSwtApplication.class);
 
     static {
-        RootPresenter.createView = RootViewSwt::new;
-        LoginPresenter.createView = LoginViewSwt::new;
+        RootPresenter.createView = onUiThread(RootViewSwt::new);
+        LoginPresenter.createView = onUiThread(LoginViewSwt::new);
+        HomePresenter.createView = onUiThread(HomeViewSwt::new);
+        ProductsPanelPresenter.createView = onUiThread(ProductsPanelViewSwt::new);
+        PurchasesPanelPresenter.createView = onUiThread(PurchasesPanelViewSwt::new);
         // TODO: implement remaining views
-        HomePresenter.createView = p -> { throw new UnsupportedOperationException("HomeView not yet implemented"); };
         CartPresenter.createView = p -> { throw new UnsupportedOperationException("CartView not yet implemented"); };
         ProductPresenter.createView = p -> { throw new UnsupportedOperationException("ProductView not yet implemented"); };
         ReceiptPresenter.createView = p -> { throw new UnsupportedOperationException("ReceiptView not yet implemented"); };
-        ProductsPanelPresenter.createView = p -> { throw new UnsupportedOperationException("ProductsPanelView not yet implemented"); };
-        PurchasesPanelPresenter.createView = p -> { throw new UnsupportedOperationException("PurchasesPanelView not yet implemented"); };
+    }
+
+    /**
+     * Wraps a view factory so that it always executes on the SWT UI thread.
+     * If already on the UI thread, runs directly; otherwise uses syncExec.
+     */
+    @SuppressWarnings("unchecked")
+    private static <P> Function<P, CubeView> onUiThread(Function<P, CubeView> factory) {
+        return presenter -> {
+            var display = Display.getDefault();
+            if (display.getThread() == Thread.currentThread()) {
+                return factory.apply(presenter);
+            }
+            var result = new CubeView[1];
+            display.syncExec(() -> result[0] = factory.apply(presenter));
+            return result[0];
+        };
     }
 
     private static final int FRAME_INTERVAL_MS = 16; // ~60fps
 
     private final Display display;
     private final Shell shell;
+    private final ReentrantLock presenterLock = new ReentrantLock();
+    private final ExecutorService presenterExecutor = Executors.newSingleThreadExecutor(r -> {
+        var t = new Thread(r, "presenter-worker");
+        t.setDaemon(true);
+        return t;
+    });
     private Composite rootPane;
+    private Composite offscreen;
     private final Map<String, AbstractViewSwt<?>> dirtyViewMap = new ConcurrentHashMap<>();
     private Runnable renderTimerRunnable;
     private boolean devMode;
@@ -51,6 +85,12 @@ public class ShoppingSwtApplication extends ShoppingApplication {
     public ShoppingSwtApplication(Display display, Shell shell) {
         this.display = display;
         this.shell = shell;
+        this.renderTimerRunnable = ThrowingRunnable.noop();
+
+        // Hidden container for views not yet connected to a visible slot
+        this.offscreen = new Composite(shell, SWT.NONE);
+        this.offscreen.setVisible(false);
+        this.offscreen.setSize(0, 0);
     }
 
     @Override
@@ -84,12 +124,42 @@ public class ShoppingSwtApplication extends ShoppingApplication {
         return this.shell;
     }
 
+    /**
+     * Returns the hidden offscreen container. Views are created here
+     * and reparented to visible containers when needed.
+     */
+    public Composite getOffscreen() {
+        return this.offscreen;
+    }
+
     public Composite getRootPane() {
         return this.rootPane;
     }
 
     public void setRootPane(Composite rootPane) {
         this.rootPane = rootPane;
+    }
+
+    /**
+     * Returns the reentrant lock used to synchronize view→presenter calls.
+     */
+    public ReentrantLock getPresenterLock() {
+        return this.presenterLock;
+    }
+
+    /**
+     * Submits a presenter action to execute on the dedicated worker thread,
+     * acquiring the presenter lock. The UI thread remains responsive.
+     */
+    public void runPresenterAction(Runnable action) {
+        this.presenterExecutor.execute(() -> {
+            this.presenterLock.lock();
+            try {
+                action.run();
+            } finally {
+                this.presenterLock.unlock();
+            }
+        });
     }
 
     public void start() {
@@ -104,8 +174,10 @@ public class ShoppingSwtApplication extends ShoppingApplication {
 
     @Override
     public void release() {
-        this.renderTimerRunnable = null;
+        this.renderTimerRunnable = ThrowingRunnable.noop();
         this.dirtyViewMap.clear();
+        this.presenterExecutor.shutdownNow();
+        br.com.wdc.shopping.view.swt.util.ProductImageCache.getInstance().dispose();
         var rootPresenter = this.getRootPresenter();
         if (rootPresenter != null) {
             rootPresenter.release();
@@ -162,14 +234,22 @@ public class ShoppingSwtApplication extends ShoppingApplication {
             return;
         }
 
-        var threshold = System.nanoTime() - (FRAME_INTERVAL_MS * 1_000_000L);
-        var iterator = this.dirtyViewMap.values().iterator();
-        while (iterator.hasNext()) {
-            var view = iterator.next();
-            if (view.dirtyTimestamp <= threshold) {
-                iterator.remove();
-                view.doUpdate();
+        // Use tryLock to avoid blocking the UI thread while presenter is working
+        if (!this.presenterLock.tryLock()) {
+            return;
+        }
+        try {
+            var threshold = System.nanoTime() - (FRAME_INTERVAL_MS * 1_000_000L);
+            var iterator = this.dirtyViewMap.values().iterator();
+            while (iterator.hasNext()) {
+                var view = iterator.next();
+                if (view.dirtyTimestamp <= threshold) {
+                    iterator.remove();
+                    view.doUpdate();
+                }
             }
+        } finally {
+            this.presenterLock.unlock();
         }
     }
 }

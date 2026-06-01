@@ -57,10 +57,12 @@ public abstract class AbstractViewSwt<P> implements CubeView {
     }
 
     protected void safeAction(String context, Runnable action) {
-        try {
-            action.run();
-        } catch (Exception caught) {
-            this.app.alertUnexpectedError(LOG, context, caught);
-        }
+        this.app.runPresenterAction(() -> {
+            try {
+                action.run();
+            } catch (Exception caught) {
+                this.app.alertUnexpectedError(LOG, context, caught);
+            }
+        });
     }
 }

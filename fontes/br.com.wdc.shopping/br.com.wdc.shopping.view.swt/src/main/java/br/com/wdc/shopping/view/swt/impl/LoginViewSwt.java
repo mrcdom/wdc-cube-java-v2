@@ -45,7 +45,7 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
     }
 
     private static Composite createRootComposite(ShoppingSwtApplication app) {
-        var root = new Composite(app.getShell(), SWT.NONE);
+        var root = new Composite(app.getOffscreen(), SWT.NONE);
         var layout = new GridLayout(2, false);
         layout.marginWidth = 0;
         layout.marginHeight = 0;
@@ -474,9 +474,9 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
     }
 
     private void emitEnter() {
+        var userName = this.userNameField.getText();
+        var password = this.passwordField.getText();
         safeAction("login", () -> {
-            var userName = this.userNameField.getText();
-            var password = this.passwordField.getText();
             this.presenter.onEnter(userName, password);
         });
     }
