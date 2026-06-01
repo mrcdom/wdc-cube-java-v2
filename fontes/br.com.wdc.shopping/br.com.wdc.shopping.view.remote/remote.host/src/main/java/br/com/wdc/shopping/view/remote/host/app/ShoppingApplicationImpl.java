@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.host.viewimpl;
+package br.com.wdc.shopping.view.remote.host.app;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -44,9 +44,9 @@ import br.com.wdc.shopping.view.remote.host.util.AppSecurity;
 import br.com.wdc.shopping.view.remote.host.util.DataSecurity;
 import br.com.wdc.shopping.view.remote.host.util.GenericViewImpl;
 
-public class ApplicationReactImpl extends ShoppingApplication {
+public class ShoppingApplicationImpl extends ShoppingApplication {
 
-    private static final Log LOG = Log.getLogger(ApplicationReactImpl.class);
+    private static final Log LOG = Log.getLogger(ShoppingApplicationImpl.class);
 
     public static final Duration DEFAULT_TIME_SPAN = Duration.ofMinutes(3);
     private static final long ACTIVE_VIEWS_INTERVAL = 5 * 60 * 1000L; // 5 minutos
@@ -67,7 +67,7 @@ public class ApplicationReactImpl extends ShoppingApplication {
         return new ConcurrentHashMap<>();
     }
 
-    public ApplicationReactImpl(String id) {
+    public ShoppingApplicationImpl(String id) {
         this.id = id;
         this.removeInstanceAction = ThrowingRunnable.noop();
         this.postConstruct();
@@ -124,7 +124,7 @@ public class ApplicationReactImpl extends ShoppingApplication {
                 this.removeInstanceAction = ThrowingRunnable.noop();
                 super.release();
             } finally {
-                ApplicationReactRegistry.remove(id);
+                ShoppingApplicationRegistry.remove(id);
                 LOG.info("Application removed: {}", this.id);
             }
         } catch (Exception caught) {
@@ -281,9 +281,9 @@ public class ApplicationReactImpl extends ShoppingApplication {
 
     public void markDirty(GenericViewImpl view) {
         this.dirtyViewMap.put(view.instanceId(), view);
-        ApplicationReactRegistry.enqueueDirty(this);
+        ShoppingApplicationRegistry.enqueueDirty(this);
         if (this.processingSubmit) {
-            ApplicationReactRegistry.triggerImmediateFlush(this);
+            ShoppingApplicationRegistry.triggerImmediateFlush(this);
         }
     }
 
@@ -399,7 +399,7 @@ public class ApplicationReactImpl extends ShoppingApplication {
         }
         // Re-enqueue if views became dirty during flush
         if (!this.dirtyViewMap.isEmpty()) {
-            ApplicationReactRegistry.enqueueDirty(this);
+            ShoppingApplicationRegistry.enqueueDirty(this);
         }
     }
 
@@ -434,9 +434,9 @@ public class ApplicationReactImpl extends ShoppingApplication {
      */
     private static class DispatchPhaseBhv {
 
-        private ApplicationReactImpl me;
+        private ShoppingApplicationImpl me;
 
-        public DispatchPhaseBhv(ApplicationReactImpl me) {
+        public DispatchPhaseBhv(ShoppingApplicationImpl me) {
             this.me = me;
         }
 
@@ -547,9 +547,9 @@ public class ApplicationReactImpl extends ShoppingApplication {
      */
     private static class ResponsePhaseBhv {
 
-        private ApplicationReactImpl me;
+        private ShoppingApplicationImpl me;
 
-        public ResponsePhaseBhv(ApplicationReactImpl me) {
+        public ResponsePhaseBhv(ShoppingApplicationImpl me) {
             this.me = me;
         }
 

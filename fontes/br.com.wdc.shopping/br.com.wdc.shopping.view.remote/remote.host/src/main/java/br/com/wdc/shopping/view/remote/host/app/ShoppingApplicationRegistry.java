@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.host.viewimpl;
+package br.com.wdc.shopping.view.remote.host.app;
 
 import java.time.Duration;
 import java.util.Map;
@@ -22,24 +22,24 @@ import br.com.wdc.framework.commons.log.Log;
  * prevents duplicate queue entries and debounce prevents wake-up storms.
  * </p>
  */
-public final class ApplicationReactRegistry {
+public final class ShoppingApplicationRegistry {
 
-    private static final Log LOG = Log.getLogger(ApplicationReactRegistry.class);
+    private static final Log LOG = Log.getLogger(ShoppingApplicationRegistry.class);
 
     private static final Duration FLUSH_INTERVAL = Duration.ofMillis(50);
     private static final Duration EXPIRY_CHECK_INTERVAL = Duration.ofSeconds(30);
     private static final long WAKEUP_MIN_GAP_NANOS = Duration.ofMillis(10).toNanos();
     private static final long WAKEUP_FAST_GAP_NANOS = Duration.ofMillis(16).toNanos();
 
-    private static final ConcurrentHashMap<String, ApplicationReactImpl> INSTANCE_MAP = new ConcurrentHashMap<>();
-    private static final ConcurrentLinkedQueue<ApplicationReactImpl> DIRTY_APP_QUEUE = new ConcurrentLinkedQueue<>();
+    private static final ConcurrentHashMap<String, ShoppingApplicationImpl> INSTANCE_MAP = new ConcurrentHashMap<>();
+    private static final ConcurrentLinkedQueue<ShoppingApplicationImpl> DIRTY_APP_QUEUE = new ConcurrentLinkedQueue<>();
 
     private static final AtomicBoolean INITIALIZED = new AtomicBoolean(false);
 
     private static final AtomicReference<Registration> flushRegistration = new AtomicReference<>(Registration.noop());
     private static final AtomicReference<Registration> expiryRegistration = new AtomicReference<>(Registration.noop());
 
-    private ApplicationReactRegistry() {
+    private ShoppingApplicationRegistry() {
         // NOOP
     }
 
@@ -56,12 +56,12 @@ public final class ApplicationReactRegistry {
         }
 
         expiryRegistration.set(scheduler.scheduleAtFixedRate(
-                ApplicationReactRegistry::removeExpireds,
+                ShoppingApplicationRegistry::removeExpireds,
                 EXPIRY_CHECK_INTERVAL,
                 EXPIRY_CHECK_INTERVAL));
 
         flushRegistration.set(scheduler.scheduleAtFixedRate(
-                ApplicationReactRegistry::executeBackgroundFlush,
+                ShoppingApplicationRegistry::executeBackgroundFlush,
                 FLUSH_INTERVAL,
                 FLUSH_INTERVAL));
 
@@ -80,22 +80,22 @@ public final class ApplicationReactRegistry {
         LOG.info("ApplicationReactRegistry stopped");
     }
 
-    public static ApplicationReactImpl get(String appId) {
+    public static ShoppingApplicationImpl get(String appId) {
         if (StringUtils.isBlank(appId)) {
             return null;
         }
         return INSTANCE_MAP.get(appId);
     }
 
-    public static ApplicationReactImpl getOrCreate(String appId, Map<String, Object> request) {
+    public static ShoppingApplicationImpl getOrCreate(String appId, Map<String, Object> request) {
         return INSTANCE_MAP.computeIfAbsent(appId, id -> createApp(id, request));
     }
 
-    public static ApplicationReactImpl remove(String appId) {
+    public static ShoppingApplicationImpl remove(String appId) {
         return INSTANCE_MAP.remove(appId);
     }
 
-    public static void enqueueDirty(ApplicationReactImpl app) {
+    public static void enqueueDirty(ShoppingApplicationImpl app) {
         if (app == null) {
             return;
         }
@@ -109,7 +109,7 @@ public final class ApplicationReactRegistry {
      * ({@code WAKEUP_MIN_GAP_NANOS}) to prevent storm under burst. Falls back to tick if scheduler is unavailable or
      * debounce suppresses.
      */
-    public static void triggerImmediateFlush(ApplicationReactImpl app) {
+    public static void triggerImmediateFlush(ShoppingApplicationImpl app) {
         if (app == null) {
             return;
         }
@@ -154,7 +154,7 @@ public final class ApplicationReactRegistry {
     }
 
     private static void executeBackgroundFlush() {
-        ApplicationReactImpl app;
+        ShoppingApplicationImpl app;
         while ((app = DIRTY_APP_QUEUE.poll()) != null) {
             try {
                 app.flushDirtyViewsFromRegistry();
@@ -164,8 +164,8 @@ public final class ApplicationReactRegistry {
         }
     }
 
-    private static ApplicationReactImpl createApp(String appId, Map<String, Object> request) {
-        var app = new ApplicationReactImpl(appId);
+    private static ShoppingApplicationImpl createApp(String appId, Map<String, Object> request) {
+        var app = new ShoppingApplicationImpl(appId);
         try {
             app.addReleaseAction(() -> INSTANCE_MAP.remove(appId));
 

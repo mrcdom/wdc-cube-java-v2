@@ -14,10 +14,10 @@ import com.google.gson.ToNumberPolicy;
 import com.google.gson.reflect.TypeToken;
 
 import br.com.wdc.framework.commons.codec.Base62;
+import br.com.wdc.shopping.view.remote.host.app.ShoppingApplicationImpl;
+import br.com.wdc.shopping.view.remote.host.app.ShoppingApplicationRegistry;
 import br.com.wdc.shopping.view.remote.host.spi.WebSocketConnection;
 import br.com.wdc.shopping.view.remote.host.util.AppSecurity;
-import br.com.wdc.shopping.view.remote.host.viewimpl.ApplicationReactImpl;
-import br.com.wdc.shopping.view.remote.host.viewimpl.ApplicationReactRegistry;
 import io.javalin.websocket.WsConnectContext;
 import io.javalin.websocket.WsErrorContext;
 import io.javalin.websocket.WsMessageContext;
@@ -134,7 +134,7 @@ public class DispatcherHandler {
             LOG.debug("WebSocket connection established for session: {} (wsId: {})", appId, this.activeWsSessionId);
 
             // Phase C: on reconnect, mark all views dirty (will be flushed when event -1 arrives)
-            ApplicationReactImpl app = ApplicationReactRegistry.get(appId);
+            ShoppingApplicationImpl app = ShoppingApplicationRegistry.get(appId);
             if (app != null) {
                 app.setWsSession(this.wsSession);
                 app.resetForReconnect();
@@ -165,7 +165,7 @@ public class DispatcherHandler {
             }
 
             // Get or create application instance and process
-            ApplicationReactImpl app = getOrCreateApp(request);
+            ShoppingApplicationImpl app = getOrCreateApp(request);
             processRequest(app, request);
             
         } catch (Exception e) {
@@ -186,7 +186,7 @@ public class DispatcherHandler {
         }
     }
 
-    private void processRequest(ApplicationReactImpl app, Map<String, Object> request) {
+    private void processRequest(ShoppingApplicationImpl app, Map<String, Object> request) {
         try {
             app.setWsSession(wsSession);
             app.sendResponse(request);
@@ -217,7 +217,7 @@ public class DispatcherHandler {
             this.activeWsSessionId = null;
             this.wsSession = null;
 
-            ApplicationReactImpl app = getApp();
+            ShoppingApplicationImpl app = getApp();
             if (app != null) {
                 app.setWsSession(null);
                 if (!app.isAuthenticated()) {
@@ -246,7 +246,7 @@ public class DispatcherHandler {
             Throwable error = ctx.error();
             LOG.warn("WebSocket error for session {}: {}", appId, error.getMessage(), error);
             
-            ApplicationReactImpl app = getApp();
+            ShoppingApplicationImpl app = getApp();
             if (app != null) {
                 app.alertUnexpectedError(LOG, error.getMessage(), error);
             }
@@ -281,20 +281,20 @@ public class DispatcherHandler {
     /**
      * Retrieves an existing application instance by session ID.
      */
-    private ApplicationReactImpl getApp() {
-        return ApplicationReactRegistry.get(appId);
+    private ShoppingApplicationImpl getApp() {
+        return ShoppingApplicationRegistry.get(appId);
     }
 
     /**
      * Gets or creates an application instance, initializing it with the request.
      */
-    private ApplicationReactImpl getOrCreateApp(Map<String, Object> request) {
-        ApplicationReactImpl app = ApplicationReactRegistry.get(appId);
+    private ShoppingApplicationImpl getOrCreateApp(Map<String, Object> request) {
+        ShoppingApplicationImpl app = ShoppingApplicationRegistry.get(appId);
         
         if (app == null) {
             // First request: include signature in request
             request.put("secret", this.appSignature);
-            app = ApplicationReactRegistry.getOrCreate(appId, request);
+            app = ShoppingApplicationRegistry.getOrCreate(appId, request);
         }
         
         // Keep the current WebSocket channel attached to the app instance.

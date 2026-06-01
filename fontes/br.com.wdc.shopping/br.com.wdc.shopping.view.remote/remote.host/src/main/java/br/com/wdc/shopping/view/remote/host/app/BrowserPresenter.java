@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.host.viewimpl;
+package br.com.wdc.shopping.view.remote.host.app;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,14 +27,14 @@ public class BrowserPresenter implements PresenterBase {
 
     }
 
-    public final ApplicationReactImpl app;
+    public final ShoppingApplicationImpl app;
     public final BrowserState state = new BrowserState();
 
     private final CubeSkeleton skeleton = skeleton();
     private GenericViewImpl view;
     private ThrowingRunnable alertAction = ThrowingRunnable.noop();
 
-    public BrowserPresenter(ApplicationReactImpl app) {
+    public BrowserPresenter(ShoppingApplicationImpl app) {
         this.app = app;
         this.view = new GenericViewImpl(app, this, this.state, this.skeleton, this.skeleton.classId() + ":0");
         this.state.instanceId = this.view.instanceId();

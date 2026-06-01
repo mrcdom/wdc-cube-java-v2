@@ -8,11 +8,11 @@ import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.PresenterBase;
 import br.com.wdc.framework.cube.ViewState;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
-import br.com.wdc.shopping.view.remote.host.viewimpl.ApplicationReactImpl;
+import br.com.wdc.shopping.view.remote.host.app.ShoppingApplicationImpl;
 
 public final class GenericViewImpl implements CubeView {
 
-    protected final ApplicationReactImpl app;
+    protected final ShoppingApplicationImpl app;
     protected final PresenterBase presenter;
     protected final ViewState state;
     protected final CubeSkeleton skeleton;
@@ -21,12 +21,12 @@ public final class GenericViewImpl implements CubeView {
     protected int alertId;
 
     public GenericViewImpl(ShoppingApplication app, PresenterBase presenter, ViewState state, CubeSkeleton skeleton) {
-        this(app, presenter, state, skeleton, skeleton.classId() + ":" + ((ApplicationReactImpl) app).nextInstanceId());
+        this(app, presenter, state, skeleton, skeleton.classId() + ":" + ((ShoppingApplicationImpl) app).nextInstanceId());
     }
 
     public GenericViewImpl(ShoppingApplication app, PresenterBase presenter, ViewState state, CubeSkeleton skeleton,
             String vsid) {
-        this.app = (ApplicationReactImpl) app;
+        this.app = (ShoppingApplicationImpl) app;
         this.presenter = presenter;
         this.state = state;
         this.skeleton = skeleton;
