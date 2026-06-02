@@ -48,7 +48,12 @@ public class ShoppingSwtMain {
 
         var shell = new Shell(display, SWT.SHELL_TRIM);
         shell.setText("WeDoCode Shopping");
-        shell.setSize(1024, 768);
+        shell.setSize(1000, 900);
+
+        var monitor = display.getPrimaryMonitor().getBounds();
+        var size = shell.getSize();
+        shell.setLocation((monitor.width - size.x) / 2, (monitor.height - size.y) / 2);
+
         shell.setLayout(new StackLayout());
 
         this.app = new ShoppingSwtApplication(display, shell);

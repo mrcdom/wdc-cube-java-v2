@@ -4,6 +4,7 @@ import java.text.NumberFormat;
 import java.util.Locale;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
@@ -79,19 +80,31 @@ public class ProductViewSwt extends AbstractViewSwt<ProductPresenter> {
             if (showError && errorText != null) {
                 errorText.setText(state.errorMessage);
             }
-            element.layout(true, true);
+            var content = errorBanner.getParent();
+            content.layout(true, true);
+            content.setSize(content.computeSize(SWT.DEFAULT, SWT.DEFAULT));
         }
     }
 
     private void render() {
         var root = this.element;
         root.setBackground(Styles.BG_PAGE);
+        root.setLayout(new GridLayout(1, false));
 
-        var rootLayout = new GridLayout(1, false);
-        rootLayout.marginWidth = 20;
-        rootLayout.marginHeight = 20;
-        rootLayout.verticalSpacing = 0;
-        root.setLayout(rootLayout);
+        var scrolled = new ScrolledComposite(root, SWT.V_SCROLL);
+        scrolled.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        scrolled.setExpandHorizontal(true);
+        scrolled.setExpandVertical(false);
+        scrolled.setBackground(Styles.BG_PAGE);
+
+        var content = new Composite(scrolled, SWT.NONE);
+        content.setBackground(Styles.BG_PAGE);
+
+        var contentLayout = new GridLayout(1, false);
+        contentLayout.marginWidth = 20;
+        contentLayout.marginHeight = 20;
+        contentLayout.verticalSpacing = 0;
+        content.setLayout(contentLayout);
 
         var product = state.product;
         String name = product != null ? product.name : "";
@@ -99,7 +112,7 @@ public class ProductViewSwt extends AbstractViewSwt<ProductPresenter> {
         double price = product != null ? product.price : 0;
 
         // Title
-        var titleLabel = new Label(root, SWT.NONE);
+        var titleLabel = new Label(content, SWT.NONE);
         titleLabel.setText(name);
         titleLabel.setFont(FONT_TITLE);
         titleLabel.setForeground(Styles.FG_TEXT_DARK);
@@ -107,7 +120,7 @@ public class ProductViewSwt extends AbstractViewSwt<ProductPresenter> {
         titleLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 
         // Blue divider
-        var divider = new Canvas(root, SWT.NONE);
+        var divider = new Canvas(content, SWT.NONE);
         var divGd = new GridData(SWT.FILL, SWT.CENTER, true, false);
         divGd.heightHint = 3;
         divGd.verticalIndent = 8;
@@ -120,16 +133,19 @@ public class ProductViewSwt extends AbstractViewSwt<ProductPresenter> {
         });
 
         // Description card
-        renderDescriptionCard(root, description);
+        renderDescriptionCard(content, description);
 
         // Price + Image row
-        renderPriceImageRow(root, product, price);
+        renderPriceImageRow(content, product, price);
 
         // Actions row
-        renderActionsRow(root);
+        renderActionsRow(content);
 
         // Error banner (hidden by default)
-        renderErrorBanner(root);
+        renderErrorBanner(content);
+
+        scrolled.setContent(content);
+        content.setSize(content.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 
         root.layout(true, true);
     }
