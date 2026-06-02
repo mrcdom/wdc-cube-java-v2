@@ -6,10 +6,12 @@ import java.util.Map;
 import java.util.function.Function;
 
 import org.teavm.jso.JSBody;
+import org.teavm.jso.browser.Storage;
 import org.teavm.jso.browser.Window;
 import org.teavm.jso.dom.html.HTMLElement;
 
 import br.com.wdc.framework.cube.remote.bridge.teavm.interop.Console;
+import br.com.wdc.framework.cube.remote.bridge.teavm.interop.Cookies;
 
 /**
  * Core coordinator that manages:
@@ -51,16 +53,16 @@ public class ViewStateCoordinator {
     private ViewStateCoordinator() {
         viewMap.put(BROWSER_VSID, new ViewScope(BROWSER_VSID));
 
-        String appIdFromCookie = getCookie("app_id");
+        String appIdFromCookie = Cookies.get("app_id");
         if (appIdFromCookie != null && !appIdFromCookie.isEmpty()) {
-            removeCookie("app_id");
+            Cookies.remove("app_id");
         }
 
-        String appId = getSessionItem("app_id");
+        String appId = Storage.getSessionStorage().getItem("app_id");
         if (appId == null || appId.isEmpty()) {
             appId = appIdFromCookie;
             if (appId != null && !appId.isEmpty()) {
-                setSessionItem("app_id", appId);
+                Storage.getSessionStorage().setItem("app_id", appId);
             } else {
                 appId = generateId() + ".fake";
             }
@@ -215,20 +217,6 @@ public class ViewStateCoordinator {
 
     @JSBody(params = {}, script = "return location.hash || '';")
     private static native String getLocationHash();
-
-    @JSBody(params = {"key"}, script = "try { return sessionStorage.getItem(key); } catch(e) { return null; }")
-    private static native String getSessionItem(String key);
-
-    @JSBody(params = {"key", "val"}, script = "try { sessionStorage.setItem(key, val); } catch(e) {}")
-    private static native void setSessionItem(String key, String val);
-
-    @JSBody(params = {"name"}, script = ""
-            + "var m = document.cookie.match('(^|;)\\\\s*' + name + '\\\\s*=\\\\s*([^;]+)');"
-            + "return m ? decodeURIComponent(m.pop()) : null;")
-    private static native String getCookie(String name);
-
-    @JSBody(params = {"name"}, script = "document.cookie = name + '=;path=/;expires=Thu,01 Jan 1970 00:00:00 GMT';")
-    private static native void removeCookie(String name);
 
     @JSBody(params = {}, script = ""
             + "var a = new Uint8Array(16); crypto.getRandomValues(a);"

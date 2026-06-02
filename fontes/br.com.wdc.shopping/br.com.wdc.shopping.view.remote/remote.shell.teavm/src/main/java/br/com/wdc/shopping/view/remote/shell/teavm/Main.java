@@ -1,5 +1,6 @@
 package br.com.wdc.shopping.view.remote.shell.teavm;
 
+import br.com.wdc.framework.cube.remote.bridge.teavm.SecurityBoot;
 import br.com.wdc.framework.cube.remote.bridge.teavm.ViewStateCoordinator;
 import br.com.wdc.shopping.view.teavm.commons.interop.Console;
 import br.com.wdc.shopping.view.remote.shell.teavm.views.RootView;
@@ -21,6 +22,9 @@ public class Main {
     public static void main(String[] args) {
         try {
             Console.log("WDC Shopping Remote Shell TeaVM - Initializing...");
+
+            // Security boot (RSA + AES key derivation)
+            SecurityBoot.initialize();
 
             // Register view factories
             ViewStateCoordinator app = ViewStateCoordinator.INSTANCE;

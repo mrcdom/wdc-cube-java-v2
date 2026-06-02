@@ -162,7 +162,7 @@ public class FlushRequestContext {
     private void handleOpen() {
         Console.log("WebSocket connected");
         app.isConnected = true;
-        pendingSecret = getGlobalAppSignature();
+        pendingSecret = SecurityBoot.getSignature();
         initKeepAliveChecks();
         flush();
     }
@@ -351,9 +351,6 @@ public class FlushRequestContext {
 
     @JSBody(params = {"ws"}, script = "return ws.readyState === 0 || ws.readyState === 1;")
     private static native boolean isSocketOpenOrConnecting(JSObject ws);
-
-    @JSBody(params = {}, script = "return window.__wdc_appSignature || null;")
-    private static native String getGlobalAppSignature();
 
     @JSBody(params = {"key"}, script = "try { return sessionStorage.getItem(key); } catch(e) { return null; }")
     private static native String getSessionItem(String key);
