@@ -65,16 +65,17 @@ graph TD
     subgraph Shopping["br.com.wdc.shopping"]
         domain["domain<br/><small>Modelos, repositórios, critérios</small>"]
         persistence["persistence<br/><small>H2 + JDBI + Command Pattern</small>"]
+        persistRest["persistence.rest<br/><small>REST controllers (Javalin)</small>"]
+        persistClient["persistence.client<br/><small>REST client (OkHttp + Gson)</small>"]
         presentation["presentation<br/><small>Presenters, ViewStates, navegação</small>"]
         scripts["scripts<br/><small>DDL (DBCreate, DBReset)</small>"]
+        backend["backend<br/><small>Javalin 7 + Virtual Threads (fat JAR)</small>"]
         tests["tests<br/><small>Testes unitários e de workflow</small>"]
-        api["api<br/><small>REST controllers (Javalin)</small>"]
-        apiClient["api-client<br/><small>REST client (OkHttp + Gson)</small>"]
 
         subgraph ViewReact["view.remote"]
-            reactClient["client<br/><small>Frontend React/TypeScript</small>"]
-            reactJavalin["javalin<br/><small>Servidor (fat JAR)</small>"]
-            reactSkeleton["skeleton<br/><small>Views + segurança</small>"]
+            reactHost["remote.host<br/><small>Views + segurança (servidor)</small>"]
+            reactShellReact["remote.shell.react<br/><small>Frontend React/TypeScript</small>"]
+            reactShellTeavm["remote.shell.teavm<br/><small>Frontend TeaVM (WebSocket)</small>"]
         end
 
         viewVaadin["view.vaadin<br/><small>Vaadin 24 server-side</small>"]
@@ -110,15 +111,16 @@ graph TD
 | Módulo | Descrição |
 |--------|-----------|
 | **view.remote** | Visualização remota via browser — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/README.md) |
-| **view.remote.client** | SPA em React 19 + TypeScript + MUI 9, bundled via Parcel. Comunicação WebSocket bidirecional, gerenciamento de reconexão, segurança client-side |
+| **view.remote / remote.shell.react** | SPA em React 19 + TypeScript + MUI 9, bundled via Parcel. Comunicação WebSocket bidirecional, gerenciamento de reconexão, segurança client-side |
+| **view.remote / remote.shell.teavm** | Frontend TeaVM para comunicação via WebSocket com o servidor |
 | **backend** | Servidor Javalin 7 com Virtual Threads, WebSocket dispatcher, controllers REST, banco H2 embarcado. Gera fat JAR (~11 MB) |
-| **view.remote.host** | Implementações de view para o servidor (`GenericViewImpl`), segurança (`AppSecurity` — RSA/PBKDF2/AES-GCM, `DataSecurity`), SPI de WebSocket |
+| **view.remote / remote.host** | Implementações de view para o servidor (`GenericViewImpl`), segurança (`AppSecurity` — RSA/PBKDF2/AES-GCM, `DataSecurity`), SPI de WebSocket |
 | **view.vaadin** | Visualização web server-side com Vaadin 24 + Lumo theme + Jetty 12 embarcado — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin/README.md) |
 | **view.swt** | Visualização desktop nativa com Eclipse SWT 3.128.0 — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.swt/README.md) |
 | **view.gluon** | Multiplataforma (Desktop + iOS + Android) com JavaFX + Gluon Mobile + GraalVM Native Image — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/README.md) |
 | **view.teavm** | Multiplataforma (Web + Desktop + Android + iOS) com TeaVM 0.14 + Tauri 2 + Bootstrap 5 — Java compilado para JS — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.teavm/README.md) |
-| **api** | Controllers REST (Javalin) para expor repositórios como endpoints HTTP, filtro de segurança JWT (`SecurityFilter`), endpoints de autenticação (`AuthApiController`) |
-| **api-client** | Client REST (OkHttp + Gson) que implementa as interfaces de repositório e `AuthenticationService` via HTTP, com Bearer token automático |
+| **persistence.rest** | Controllers REST (Javalin) para expor repositórios como endpoints HTTP, filtro de segurança JWT (`SecurityFilter`), endpoints de autenticação (`AuthApiController`) |
+| **persistence.client** | Client REST (OkHttp + Gson) que implementa as interfaces de repositório e `AuthenticationService` via HTTP, com Bearer token automático |
 
 ## Pré-requisitos
 
@@ -142,7 +144,7 @@ mvn clean package
 
 O fat JAR será gerado em:
 ```
-br.com.wdc.shopping/br.com.wdc.shopping/br.com.wdc.shopping.backend/target/br.com.wdc.shopping.backend-1.0.0.jar
+fontes/br.com.wdc.shopping/br.com.wdc.shopping.backend/target/br.com.wdc.shopping.backend-1.0.0.jar
 ```
 
 ### Frontend (React)
@@ -332,7 +334,8 @@ Cada presenter possui um **ViewState** serializável que é transmitido ao front
 | Servidor HTTP | Javalin | 7.2.0 |
 | Web UI (server-side) | Vaadin | 24.6.3 |
 | Servlet Container | Jetty | 12 |
-| Desktop UI | JavaFX (via Gluon) | 21.0.7 |
+| Desktop UI (nativo) | Eclipse SWT (Cocoa macOS aarch64) | 3.128.0 |
+| Desktop UI (JavaFX) | JavaFX (via Gluon) | 21.0.7 |
 | Multiplataforma | Gluon Mobile + GraalVM Native Image | 1.0.25 |
 | Banco de dados | H2 | 2.4.240 |
 | Acesso a dados | JDBI | 3.52.1 |
