@@ -54,8 +54,6 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt<PurchasesPanelPresent
         if (this.notRendered) {
             initialRender();
             this.notRendered = false;
-            // Force layout so listPanel gets dimensions (triggers resize listener)
-            this.element.layout(true, true);
         }
 
         // Rebuild list if data changed

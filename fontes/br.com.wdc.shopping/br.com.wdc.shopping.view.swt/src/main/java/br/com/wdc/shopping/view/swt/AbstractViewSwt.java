@@ -20,6 +20,7 @@ public abstract class AbstractViewSwt<P> implements CubeView {
     protected final Composite element;
 
     long dirtyTimestamp;
+    private boolean needsInitialLayout = true;
 
     protected AbstractViewSwt(String instanceId, ShoppingSwtApplication app, P presenter) {
         this(instanceId, app, presenter, new Composite(app.getOffscreen(), SWT.NONE));
@@ -53,10 +54,23 @@ public abstract class AbstractViewSwt<P> implements CubeView {
 
     public abstract void doUpdate();
 
+    /**
+     * Called by the render loop. Delegates to doUpdate() and forces layout on first render
+     * so that children get their dimensions (triggering paint/resize events).
+     */
+    public void performUpdate() {
+        doUpdate();
+        if (this.needsInitialLayout) {
+            this.needsInitialLayout = false;
+            this.element.layout(true, true);
+        }
+    }
+
     public void rebuild() {
         for (var child : this.element.getChildren()) {
             child.dispose();
         }
+        this.needsInitialLayout = true;
         this.onRebuild();
         this.update();
     }

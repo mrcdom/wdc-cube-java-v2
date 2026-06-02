@@ -310,7 +310,7 @@ public class ShoppingSwtApplication extends ShoppingApplication {
 				var view = iterator.next();
 				if (view.dirtyTimestamp <= threshold) {
 					iterator.remove();
-					view.doUpdate();
+					view.performUpdate();
 				}
 			}
 		} finally {

@@ -269,15 +269,16 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
         gc.setAdvanced(true);
         gc.setAntialias(SWT.ON);
 
-        // Blue gradient background
-        gc.setBackground(Theme.BG_LOGIN_LEFT);
+        // Blue gradient background (matches web: #0d66d0 top → #4da6ff bottom)
         gc.setForeground(Theme.PRIMARY_BLUE);
+        gc.setBackground(Theme.BG_LOGIN_LEFT);
         gc.fillGradientRectangle(0, 0, bounds.width, bounds.height, true);
 
-        // Decorative circles
-        gc.setAlpha(30);
+        // Decorative circles (6% and 4% white, matching web)
         gc.setBackground(Theme.FG_TEXT_WHITE);
+        gc.setAlpha(15);
         gc.fillOval(bounds.width - 120, -60, 240, 240);
+        gc.setAlpha(10);
         gc.fillOval(-80, bounds.height - 200, 200, 200);
         gc.setAlpha(255);
 
@@ -325,15 +326,16 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
         gc.setAdvanced(true);
         gc.setAntialias(SWT.ON);
 
-        // Blue gradient background (rounded corners)
+        // Blue gradient background (square corners)
         gc.setBackground(Theme.BG_LOGIN_LEFT);
         gc.setForeground(Theme.PRIMARY_BLUE_LIGHT);
-        gc.fillRoundRectangle(0, 0, bounds.width, bounds.height, 16, 16);
+        gc.fillRectangle(0, 0, bounds.width, bounds.height);
 
-        // Decorative circles
-        gc.setAlpha(25);
+        // Decorative circles (6% and 4% white, matching web)
         gc.setBackground(Theme.FG_TEXT_WHITE);
+        gc.setAlpha(15);
         gc.fillOval(bounds.width - 80, -40, 160, 160);
+        gc.setAlpha(10);
         gc.fillOval(-60, bounds.height - 60, 120, 120);
         gc.setAlpha(255);
 

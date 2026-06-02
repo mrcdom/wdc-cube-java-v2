@@ -29,7 +29,7 @@ public final class Theme {
     public static final Color BG_PAGE = color(0xF4, 0xF6, 0xF9);
     public static final Color BG_WHITE = color(0xFF, 0xFF, 0xFF);
     public static final Color BG_HEADER = PRIMARY_BLUE;
-    public static final Color BG_LOGIN_LEFT = color(0x5B, 0x8D, 0xEF);
+    public static final Color BG_LOGIN_LEFT = color(0x4D, 0xA6, 0xFF);
     public static final Color BG_CARD = BG_WHITE;
     public static final Color BG_SUCCESS = color(0xE8, 0xF5, 0xE9);
     public static final Color BG_ICON_BOX = color(0xE8, 0xF1, 0xFC);
