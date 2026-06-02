@@ -171,9 +171,9 @@ public class CartViewSwt extends AbstractViewSwt<CartPresenter> {
             });
 
             dom.primaryButton(Theme.ICON_GRID_3X3_GAP, "Ver produtos", btn -> {
-                var gd = (GridData) btn.getLayoutData();
-                gd.horizontalAlignment = SWT.CENTER;
+                var gd = new GridData(SWT.CENTER, SWT.CENTER, false, false);
                 gd.verticalIndent = 20;
+                btn.setLayoutData(gd);
                 btn.addListener(SWT.MouseUp, evt -> safeAction("onOpenProducts", presenter::onOpenProducts));
             });
 
@@ -234,7 +234,7 @@ public class CartViewSwt extends AbstractViewSwt<CartPresenter> {
                 actionsRow.setBackground(Theme.BG_WHITE);
 
                 dom.actionButton(Theme.ICON_ARROW_LEFT, "Continuar comprando", Theme.BG_WHITE, btn -> {
-                    ((GridData) btn.getLayoutData()).grabExcessHorizontalSpace = true;
+                    btn.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
                     btn.addListener(SWT.MouseUp, evt -> safeAction("onOpenProducts", presenter::onOpenProducts));
                 });
 

@@ -2,7 +2,7 @@ package br.com.wdc.shopping.view.swt.components;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 
@@ -14,14 +14,11 @@ import br.com.wdc.shopping.view.swt.theme.Theme;
  */
 public class IconButton extends Canvas {
 
+    private static final int SIZE = 30;
     private boolean hovered;
 
     public IconButton(Composite parent, String icon, Color iconColor, org.eclipse.swt.graphics.Font iconFont, Color background) {
         super(parent, SWT.DOUBLE_BUFFERED);
-        var gd = new GridData(SWT.CENTER, SWT.CENTER, false, false);
-        gd.widthHint = 30;
-        gd.heightHint = 30;
-        setLayoutData(gd);
         setBackground(background);
         setCursor(getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 
@@ -51,5 +48,12 @@ public class IconButton extends Canvas {
 
     public IconButton(Composite parent, String icon, Color background) {
         this(parent, icon, Theme.FG_TEXT_DARK, Theme.FONT_ICON, background);
+    }
+
+    @Override
+    public Point computeSize(int wHint, int hHint, boolean changed) {
+        int w = (wHint != SWT.DEFAULT) ? wHint : SIZE;
+        int h = (hHint != SWT.DEFAULT) ? hHint : SIZE;
+        return new Point(w, h);
     }
 }

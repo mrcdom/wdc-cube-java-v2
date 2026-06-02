@@ -182,14 +182,12 @@ public class ProductViewSwt extends AbstractViewSwt<ProductPresenter> {
                     actionsLayout.horizontalSpacing = 20;
 
                     page.actionButton(Theme.ICON_ARROW_LEFT, "Voltar", Theme.BG_PAGE, btn -> {
-                        var gd = (GridData) btn.getLayoutData();
-                        gd.horizontalAlignment = SWT.CENTER;
+                        btn.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
                         btn.addListener(SWT.MouseUp, evt -> safeAction("product.onOpenProducts", presenter::onOpenProducts));
                     });
 
                     page.primaryButton(Theme.ICON_BAG_PLUS, "Adicionar ao Carrinho", Theme.BG_PAGE, btn -> {
-                        var gd = (GridData) btn.getLayoutData();
-                        gd.horizontalAlignment = SWT.CENTER;
+                        btn.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
                         btn.addListener(SWT.MouseUp, evt -> {
                             safeAction("product.onAddToCart", () -> presenter.onAddToCart(this.quantity));
                         });

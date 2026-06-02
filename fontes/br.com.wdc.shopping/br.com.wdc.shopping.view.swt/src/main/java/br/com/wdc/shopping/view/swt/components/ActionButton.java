@@ -4,7 +4,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 
@@ -17,6 +16,8 @@ import br.com.wdc.shopping.view.swt.theme.Theme;
 public class ActionButton extends Canvas {
 
     private boolean hovered;
+    private final int preferredWidth;
+    private final int preferredHeight;
 
     public ActionButton(Composite parent, String icon, String text, Color background) {
         super(parent, SWT.DOUBLE_BUFFERED);
@@ -31,13 +32,8 @@ public class ActionButton extends Canvas {
         tmpGc.setFont(Theme.FONT_ICON);
         var iconExt = tmpGc.textExtent(icon);
         tmpGc.dispose();
-        int btnW = iconExt.x + iconTextGap + textExt.x + 24;
-        int btnH = 36;
-
-        var gd = new GridData(SWT.LEFT, SWT.CENTER, false, false);
-        gd.widthHint = btnW;
-        gd.heightHint = btnH;
-        setLayoutData(gd);
+        this.preferredWidth = iconExt.x + iconTextGap + textExt.x + 24;
+        this.preferredHeight = 36;
 
         final Point cachedTextExt = textExt;
 
@@ -71,5 +67,12 @@ public class ActionButton extends Canvas {
 
         addListener(SWT.MouseEnter, evt -> { hovered = true; redraw(); });
         addListener(SWT.MouseExit, evt -> { hovered = false; redraw(); });
+    }
+
+    @Override
+    public Point computeSize(int wHint, int hHint, boolean changed) {
+        int w = (wHint != SWT.DEFAULT) ? wHint : this.preferredWidth;
+        int h = (hHint != SWT.DEFAULT) ? hHint : this.preferredHeight;
+        return new Point(w, h);
     }
 }

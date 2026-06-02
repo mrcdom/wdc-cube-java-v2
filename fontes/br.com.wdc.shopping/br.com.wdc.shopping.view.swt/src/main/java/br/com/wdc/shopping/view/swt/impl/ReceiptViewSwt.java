@@ -267,8 +267,9 @@ public class ReceiptViewSwt extends AbstractViewSwt<ReceiptPresenter> {
 
     private void renderBackButton(SwtDom dom) {
         dom.actionButton(Theme.ICON_ARROW_LEFT, "Voltar aos produtos", Theme.BG_WHITE, btn -> {
-            var gd = (GridData) btn.getLayoutData();
+            var gd = new GridData(SWT.LEFT, SWT.CENTER, false, false);
             gd.verticalIndent = 4;
+            btn.setLayoutData(gd);
             btn.addListener(SWT.MouseUp, evt -> safeAction("receipt.onOpenProducts", presenter::onOpenProducts));
         });
     }

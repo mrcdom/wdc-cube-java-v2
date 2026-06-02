@@ -200,7 +200,9 @@ public final class SwtDom {
     }
 
     public CardHeader cardHeader(String icon, String title, String subtitle) {
-        return new CardHeader(this.currentParent, icon, title, subtitle);
+        var elm = new CardHeader(this.currentParent, icon, title, subtitle);
+        elm.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        return elm;
     }
 
     public ErrorBanner errorBanner(int verticalIndent, Consumer<ErrorBanner> fn) {
@@ -247,15 +249,27 @@ public final class SwtDom {
     }
 
     public Separator separator(int verticalIndent) {
-        return new Separator(this.currentParent, verticalIndent);
+        var elm = new Separator(this.currentParent, verticalIndent);
+        var gd = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        gd.verticalIndent = verticalIndent;
+        elm.setLayoutData(gd);
+        return elm;
     }
 
     public AccentLine accentLine(int height, int verticalIndent) {
-        return new AccentLine(this.currentParent, height, verticalIndent);
+        var elm = new AccentLine(this.currentParent, height, verticalIndent);
+        var gd = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        gd.verticalIndent = verticalIndent;
+        elm.setLayoutData(gd);
+        return elm;
     }
 
     public AccentLine accentLine(Color color, int height, int verticalIndent) {
-        return new AccentLine(this.currentParent, color, height, verticalIndent);
+        var elm = new AccentLine(this.currentParent, color, height, verticalIndent);
+        var gd = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        gd.verticalIndent = verticalIndent;
+        elm.setLayoutData(gd);
+        return elm;
     }
 
     // ========== SPACERS ==========

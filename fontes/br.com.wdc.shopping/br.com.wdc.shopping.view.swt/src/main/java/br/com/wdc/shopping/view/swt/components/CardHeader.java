@@ -17,7 +17,6 @@ public class CardHeader extends Composite {
 
     public CardHeader(Composite parent, String icon, String title, String subtitle) {
         super(parent, SWT.NONE);
-        setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         setBackground(Theme.BG_WHITE);
 
         var layout = new GridLayout(2, false);

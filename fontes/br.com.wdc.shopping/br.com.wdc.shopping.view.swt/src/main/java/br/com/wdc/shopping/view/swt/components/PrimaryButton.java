@@ -4,7 +4,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 
@@ -17,6 +16,8 @@ import br.com.wdc.shopping.view.swt.theme.Theme;
 public class PrimaryButton extends Canvas {
 
     private boolean hovered;
+    private final int preferredWidth;
+    private final int preferredHeight;
 
     public PrimaryButton(Composite parent, String icon, String text, Color background) {
         super(parent, SWT.DOUBLE_BUFFERED);
@@ -30,13 +31,8 @@ public class PrimaryButton extends Canvas {
         tmpGc.setFont(Theme.FONT_ICON);
         var iconExt = tmpGc.textExtent(icon);
         tmpGc.dispose();
-        int btnW = iconExt.x + textExt.x + 36;
-        int btnH = 42;
-
-        var gd = new GridData(SWT.RIGHT, SWT.CENTER, false, false);
-        gd.widthHint = btnW;
-        gd.heightHint = btnH;
-        setLayoutData(gd);
+        this.preferredWidth = iconExt.x + textExt.x + 36;
+        this.preferredHeight = 42;
 
         final Point cachedTextExt = textExt;
 
@@ -69,5 +65,12 @@ public class PrimaryButton extends Canvas {
 
     public PrimaryButton(Composite parent, String icon, String text) {
         this(parent, icon, text, Theme.BG_WHITE);
+    }
+
+    @Override
+    public Point computeSize(int wHint, int hHint, boolean changed) {
+        int w = (wHint != SWT.DEFAULT) ? wHint : this.preferredWidth;
+        int h = (hHint != SWT.DEFAULT) ? hHint : this.preferredHeight;
+        return new Point(w, h);
     }
 }
