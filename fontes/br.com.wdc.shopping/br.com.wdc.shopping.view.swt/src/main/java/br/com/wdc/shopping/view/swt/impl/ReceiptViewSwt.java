@@ -18,6 +18,7 @@ import br.com.wdc.shopping.view.swt.components.AccentLine;
 import br.com.wdc.shopping.view.swt.components.ActionButton;
 import br.com.wdc.shopping.view.swt.components.CardHeader;
 import br.com.wdc.shopping.view.swt.components.ShadowCard;
+import br.com.wdc.shopping.view.swt.theme.Surface;
 import br.com.wdc.shopping.view.swt.theme.Theme;
 
 public class ReceiptViewSwt extends AbstractViewSwt<ReceiptPresenter> {
@@ -106,13 +107,7 @@ public class ReceiptViewSwt extends AbstractViewSwt<ReceiptPresenter> {
         bodyLayout.verticalSpacing = 10;
         body.setLayout(bodyLayout);
 
-        body.addPaintListener(e -> {
-            var gc = e.gc;
-            gc.setAntialias(SWT.ON);
-            var area = body.getClientArea();
-            gc.setForeground(Theme.BORDER_LIGHT);
-            gc.drawRoundRectangle(0, 0, area.width - 1, area.height - 1, 8, 8);
-        });
+        body.addPaintListener(Surface.outlinedPanel(body::getClientArea, null, 8));
 
         // Date row
         var dateRow = new Composite(body, SWT.NONE);
@@ -146,17 +141,7 @@ public class ReceiptViewSwt extends AbstractViewSwt<ReceiptPresenter> {
         sepGd.heightHint = 4;
         sep1.setLayoutData(sepGd);
         sep1.setBackground(Theme.BG_PAGE);
-        sep1.addPaintListener(e -> {
-            var gc = e.gc;
-            gc.setForeground(Theme.BORDER_LIGHT);
-            gc.setLineWidth(1);
-            int y = 2;
-            int w = sep1.getBounds().width;
-            for (int x = 0; x < w; x += 4) {
-                gc.drawPoint(x, y);
-                gc.drawPoint(x + 1, y);
-            }
-        });
+        sep1.addPaintListener(Surface.dottedSeparator());
 
         // Table header
         var tableHeader = new Composite(body, SWT.NONE);
@@ -199,11 +184,7 @@ public class ReceiptViewSwt extends AbstractViewSwt<ReceiptPresenter> {
         sep2Gd.heightHint = 1;
         sep2.setLayoutData(sep2Gd);
         sep2.setBackground(Theme.BG_PAGE);
-        sep2.addPaintListener(e -> {
-            var gc = e.gc;
-            gc.setForeground(Theme.BORDER_LIGHT);
-            gc.drawLine(0, 0, sep2.getBounds().width, 0);
-        });
+        sep2.addPaintListener(Surface.solidSeparator());
 
         // Items
         if (this.state.receipt != null && this.state.receipt.items != null) {

@@ -4,9 +4,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 
-import br.com.wdc.shopping.view.swt.theme.Theme;
+import br.com.wdc.shopping.view.swt.theme.Surface;
 
 /**
  * A rounded-corner white card with shadow — standard container for content sections.
@@ -23,35 +22,7 @@ public class ShadowCard extends Canvas {
         layout.verticalSpacing = verticalSpacing;
         setLayout(layout);
 
-        addPaintListener(e -> {
-            var gc = e.gc;
-            gc.setAntialias(SWT.ON);
-            var area = getClientArea();
-
-            gc.setBackground(Theme.BG_PAGE);
-            gc.fillRectangle(area);
-
-            int x = 4;
-            int y = 2;
-            int w = area.width - 8;
-            int h = area.height - 6;
-
-            // Shadow
-            gc.setAlpha(15);
-            gc.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_BLACK));
-            gc.fillRoundRectangle(x, y + 2, w, h, Theme.CARD_RADIUS_LARGE, Theme.CARD_RADIUS_LARGE);
-            gc.setAlpha(10);
-            gc.fillRoundRectangle(x - 1, y + 1, w + 2, h + 2, 26, 26);
-            gc.setAlpha(255);
-
-            // White card fill
-            gc.setBackground(Theme.BG_WHITE);
-            gc.fillRoundRectangle(x, y, w, h, Theme.CARD_RADIUS_LARGE, Theme.CARD_RADIUS_LARGE);
-
-            // Border
-            gc.setForeground(Theme.BORDER_LIGHT);
-            gc.drawRoundRectangle(x, y, w - 1, h - 1, Theme.CARD_RADIUS_LARGE, Theme.CARD_RADIUS_LARGE);
-        });
+        addPaintListener(Surface.elevatedCard(this::getClientArea));
     }
 
     public ShadowCard(Composite parent) {

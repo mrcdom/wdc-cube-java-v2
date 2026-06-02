@@ -1,6 +1,8 @@
 package br.com.wdc.shopping.view.swt.impl;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
@@ -17,6 +19,7 @@ import br.com.wdc.shopping.view.swt.components.ErrorBanner;
 import br.com.wdc.shopping.view.swt.components.IconButton;
 import br.com.wdc.shopping.view.swt.components.PrimaryButton;
 import br.com.wdc.shopping.view.swt.components.ScrolledPage;
+import br.com.wdc.shopping.view.swt.theme.Surface;
 import br.com.wdc.shopping.view.swt.theme.Theme;
 import br.com.wdc.shopping.view.swt.util.ProductImageCache;
 
@@ -98,30 +101,7 @@ public class ProductViewSwt extends AbstractViewSwt<ProductPresenter> {
 
         var lines = parseDescription(description);
 
-        card.addPaintListener(e -> {
-            var gc = e.gc;
-            gc.setAntialias(SWT.ON);
-            var area = card.getClientArea();
-
-            gc.setBackground(Theme.BG_WHITE);
-            gc.fillRoundRectangle(0, 0, area.width, area.height, 16, 16);
-
-            gc.setForeground(Theme.BORDER_LIGHT);
-            gc.drawRoundRectangle(0, 0, area.width - 1, area.height - 1, 16, 16);
-
-            gc.setFont(Theme.FONT_SUBTITLE);
-            gc.setForeground(Theme.FG_TEXT_DARK);
-            int textX = 28;
-            int textY = 24;
-            int lineH = 26;
-
-            for (var line : lines) {
-                if (!line.isBlank()) {
-                    gc.drawText("\u2022  " + line.trim(), textX, textY, true);
-                    textY += lineH;
-                }
-            }
-        });
+        card.addPaintListener(e -> paintDescriptionCard(e.gc, card.getClientArea(), lines));
 
         int lineCount = Math.max(1, lines.length);
         cardGd.heightHint = 24 + lineCount * 26 + 20;
@@ -175,18 +155,7 @@ public class ProductViewSwt extends AbstractViewSwt<ProductPresenter> {
         priceBadge.setBackground(Theme.BG_PAGE);
 
         String priceText = price > 0 ? Theme.formatPrice(price) : "";
-        priceBadge.addPaintListener(e -> {
-            var gc = e.gc;
-            gc.setAntialias(SWT.ON);
-            int w = priceBadge.getBounds().width;
-            int h = priceBadge.getBounds().height;
-            gc.setBackground(Theme.BG_ICON_BOX);
-            gc.fillRoundRectangle(0, 0, w, h, 8, 8);
-            gc.setFont(Theme.FONT_PRICE_LARGE);
-            gc.setForeground(Theme.PRIMARY_BLUE);
-            var ext = gc.textExtent(priceText);
-            gc.drawText(priceText, (w - ext.x) / 2, (h - ext.y) / 2, true);
-        });
+        priceBadge.addPaintListener(e -> paintPriceBadge(e.gc, priceBadge.getBounds(), priceText));
 
         // Quantity row
         var qtyRow = new Composite(leftCol, SWT.NONE);
@@ -241,33 +210,7 @@ public class ProductViewSwt extends AbstractViewSwt<ProductPresenter> {
         imageBox.setLayoutData(imgGd);
 
         long productId = state.product != null ? state.product.id : -1;
-        imageBox.addPaintListener(e -> {
-            var gc = e.gc;
-            gc.setAntialias(SWT.ON);
-            int w = imageBox.getBounds().width;
-            int h = imageBox.getBounds().height;
-
-            gc.setBackground(Theme.BG_IMAGE_PLACEHOLDER);
-            gc.fillRoundRectangle(0, 0, w, h, 12, 12);
-
-            var productImage = ProductImageCache.getInstance().getImage(imageBox.getDisplay(), productId);
-            if (productImage != null && !productImage.isDisposed()) {
-                var imgBounds = productImage.getBounds();
-                double scale = Math.min((double) w / imgBounds.width, (double) h / imgBounds.height) * 0.85;
-                int drawW = (int) (imgBounds.width * scale);
-                int drawH = (int) (imgBounds.height * scale);
-                int drawX = (w - drawW) / 2;
-                int drawY = (h - drawH) / 2;
-                gc.setInterpolation(SWT.HIGH);
-                gc.drawImage(productImage, 0, 0, imgBounds.width, imgBounds.height, drawX, drawY, drawW, drawH);
-            } else {
-                gc.setFont(Theme.FONT_ICON_LARGE);
-                gc.setForeground(Theme.FG_TEXT_SUBTLE);
-                var icon = Theme.ICON_BAG_CHECK;
-                var ext = gc.textExtent(icon);
-                gc.drawText(icon, (w - ext.x) / 2, (h - ext.y) / 2, true);
-            }
-        });
+        imageBox.addPaintListener(e -> paintProductImage(e.gc, imageBox, productId));
     }
 
     private void renderActionsRow(Composite parent) {
@@ -296,5 +239,61 @@ public class ProductViewSwt extends AbstractViewSwt<ProductPresenter> {
         addCartBtn.addListener(SWT.MouseUp, evt -> {
             safeAction("product.onAddToCart", () -> presenter.onAddToCart(this.quantity));
         });
+    }
+
+    // ========== SURFACES ==========
+
+    private void paintDescriptionCard(GC gc, Rectangle area, String[] lines) {
+        Surface.drawCard(gc, area, 16);
+
+        gc.setFont(Theme.FONT_SUBTITLE);
+        gc.setForeground(Theme.FG_TEXT_DARK);
+        int textX = 28;
+        int textY = 24;
+        int lineH = 26;
+
+        for (var line : lines) {
+            if (!line.isBlank()) {
+                gc.drawText("\u2022  " + line.trim(), textX, textY, true);
+                textY += lineH;
+            }
+        }
+    }
+
+    private void paintPriceBadge(GC gc, Rectangle bounds, String priceText) {
+        gc.setAntialias(SWT.ON);
+        gc.setBackground(Theme.BG_ICON_BOX);
+        gc.fillRoundRectangle(0, 0, bounds.width, bounds.height, 8, 8);
+        gc.setFont(Theme.FONT_PRICE_LARGE);
+        gc.setForeground(Theme.PRIMARY_BLUE);
+        var ext = gc.textExtent(priceText);
+        gc.drawText(priceText, (bounds.width - ext.x) / 2, (bounds.height - ext.y) / 2, true);
+    }
+
+    private void paintProductImage(GC gc, Canvas imageBox, long productId) {
+        gc.setAntialias(SWT.ON);
+        int w = imageBox.getBounds().width;
+        int h = imageBox.getBounds().height;
+
+        gc.setBackground(Theme.BG_IMAGE_PLACEHOLDER);
+        gc.fillRoundRectangle(0, 0, w, h, 12, 12);
+
+        var productImage = ProductImageCache.getInstance().getImage(imageBox.getDisplay(), productId);
+        if (productImage != null && !productImage.isDisposed()) {
+            var imgBounds = productImage.getBounds();
+            double scale = Math.min((double) w / imgBounds.width, (double) h / imgBounds.height) * 0.85;
+            int drawW = (int) (imgBounds.width * scale);
+            int drawH = (int) (imgBounds.height * scale);
+            int drawX = (w - drawW) / 2;
+            int drawY = (h - drawH) / 2;
+            gc.setInterpolation(SWT.HIGH);
+            gc.drawImage(productImage, 0, 0, imgBounds.width, imgBounds.height, drawX, drawY, drawW, drawH);
+        } else {
+            gc.setFont(Theme.FONT_ICON_LARGE);
+            gc.setForeground(Theme.FG_TEXT_SUBTLE);
+            var icon = Theme.ICON_BAG_CHECK;
+            var ext = gc.textExtent(icon);
+            gc.drawText(icon, (w - ext.x) / 2, (h - ext.y) / 2, true);
+        }
     }
 }

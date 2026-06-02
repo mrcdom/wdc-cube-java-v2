@@ -3,7 +3,9 @@ package br.com.wdc.shopping.view.swt.impl;
 import java.util.Objects;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
@@ -14,9 +16,10 @@ import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeViewState;
 import br.com.wdc.shopping.view.swt.AbstractViewSwt;
 import br.com.wdc.shopping.view.swt.ShoppingSwtApplication;
+import br.com.wdc.shopping.view.swt.theme.Surface;
+import br.com.wdc.shopping.view.swt.theme.Theme;
 import br.com.wdc.shopping.view.swt.util.SlotComposite;
 import br.com.wdc.shopping.view.swt.util.StackComposite;
-import br.com.wdc.shopping.view.swt.theme.Theme;
 
 /**
  * Home view — header + content area (products grid + purchases panel).
@@ -223,33 +226,7 @@ public class HomeViewSwt extends AbstractViewSwt<HomePresenter> {
         iconBoxGd.widthHint = 36;
         iconBoxGd.heightHint = 36;
         iconBox.setLayoutData(iconBoxGd);
-        iconBox.addPaintListener(ev -> {
-            var gc = ev.gc;
-            gc.setAntialias(SWT.ON);
-            var area = iconBox.getClientArea();
-            // Draw the parent's background image portion at this position
-            var parentBgImg = navContent.getBackgroundImage();
-            if (parentBgImg != null) {
-                var loc = iconBox.getLocation();
-                gc.drawImage(parentBgImg, loc.x, loc.y, area.width, area.height, 0, 0, area.width, area.height);
-            } else {
-                gc.setBackground(Theme.PRIMARY_BLUE_LIGHT);
-                gc.fillRectangle(0, 0, area.width, area.height);
-            }
-            // Rounded box: rgba(255,255,255,0.15) overlay
-            gc.setAlpha(38); // 0.15 * 255 ≈ 38
-            gc.setBackground(navContent.getDisplay().getSystemColor(SWT.COLOR_WHITE));
-            gc.fillRoundRectangle(0, 0, area.width, area.height, 10, 10);
-            gc.setAlpha(255);
-            // Draw the icon centered
-            gc.setFont(Theme.FONT_ICON_NAV);
-            gc.setForeground(Theme.FG_TEXT_WHITE);
-            var iconText = Theme.ICON_BAG_CHECK_FILL;
-            var extent = gc.textExtent(iconText);
-            int ix = (area.width - extent.x) / 2;
-            int iy = (area.height - extent.y) / 2;
-            gc.drawText(iconText, ix, iy, true);
-        });
+        iconBox.addPaintListener(ev -> paintNavIconBox(ev.gc, iconBox, navContent));
 
         var centerBlock = new Composite(navContent, SWT.NONE);
         centerBlock.setBackground(null);
@@ -309,22 +286,7 @@ public class HomeViewSwt extends AbstractViewSwt<HomePresenter> {
         badgeGd.widthHint = 20;
         badgeGd.heightHint = 18;
         this.cartBadge.setLayoutData(badgeGd);
-        this.cartBadge.addPaintListener(ev -> {
-            var gc = ev.gc;
-            var area = this.cartBadge.getClientArea();
-            gc.setAntialias(SWT.ON);
-            // Pill-shaped white background
-            gc.setBackground(Theme.FG_TEXT_WHITE);
-            gc.fillRoundRectangle(0, 0, area.width, area.height, area.height, area.height);
-            // Centered text
-            gc.setFont(Theme.FONT_BADGE);
-            gc.setForeground(Theme.PRIMARY_BLUE);
-            var text = this.cartBadgeText;
-            var extent = gc.textExtent(text);
-            int tx = (area.width - extent.x) / 2;
-            int ty = (area.height - extent.y) / 2;
-            gc.drawText(text, tx, ty, true);
-        });
+        this.cartBadge.addPaintListener(ev -> paintCartBadge(ev.gc, this.cartBadge.getClientArea()));
 
         // Click on entire cart area opens cart
         var cartClickListener = (org.eclipse.swt.widgets.Listener) event -> safeAction("openCart", HomeViewSwt.this.presenter::onOpenCart);
@@ -342,26 +304,7 @@ public class HomeViewSwt extends AbstractViewSwt<HomePresenter> {
         gd.exclude = true;
         this.errorBanner.setLayoutData(gd);
         this.errorBanner.setVisible(false);
-        this.errorBanner.addPaintListener(ev -> {
-            var gc = ev.gc;
-            var area = this.errorBanner.getClientArea();
-            gc.setAntialias(SWT.ON);
-            gc.setBackground(Theme.BG_ERROR);
-            gc.fillRectangle(0, 0, area.width, area.height);
-            gc.setForeground(Theme.BORDER_ERROR_BOX);
-            gc.drawLine(0, area.height - 1, area.width, area.height - 1);
-            // Icon
-            gc.setForeground(Theme.FG_ERROR);
-            gc.setFont(Theme.FONT_ICON);
-            Point iconSz = gc.textExtent(Theme.ICON_EXCLAMATION_CIRCLE);
-            int iconX = 16;
-            int iconY = (area.height - iconSz.y) / 2;
-            gc.drawText(Theme.ICON_EXCLAMATION_CIRCLE, iconX, iconY, true);
-            // Text
-            gc.setFont(Theme.FONT_BODY);
-            String msg = this.errorMessage != null ? this.errorMessage : "";
-            gc.drawText(msg, iconX + iconSz.x + 10, (area.height - gc.textExtent(msg).y) / 2, true);
-        });
+        this.errorBanner.addPaintListener(Surface.errorBanner(this.errorBanner::getClientArea, () -> this.errorMessage));
     }
 
     // ========== CONTENT AREA ==========
@@ -407,4 +350,42 @@ public class HomeViewSwt extends AbstractViewSwt<HomePresenter> {
         purchGd.widthHint = 340;
         this.purchasesPanelSlot.setLayoutData(purchGd);
     }
+
+    // ========== SURFACES ==========
+
+    private void paintNavIconBox(GC gc, Canvas iconBox, Composite navContent) {
+        gc.setAntialias(SWT.ON);
+        var area = iconBox.getClientArea();
+        // Draw the parent's background image portion at this position
+        var parentBgImg = navContent.getBackgroundImage();
+        if (parentBgImg != null) {
+            var loc = iconBox.getLocation();
+            gc.drawImage(parentBgImg, loc.x, loc.y, area.width, area.height, 0, 0, area.width, area.height);
+        } else {
+            gc.setBackground(Theme.PRIMARY_BLUE_LIGHT);
+            gc.fillRectangle(0, 0, area.width, area.height);
+        }
+        // Rounded box: rgba(255,255,255,0.15) overlay
+        gc.setAlpha(38);
+        gc.setBackground(navContent.getDisplay().getSystemColor(SWT.COLOR_WHITE));
+        gc.fillRoundRectangle(0, 0, area.width, area.height, 10, 10);
+        gc.setAlpha(255);
+        // Icon centered
+        gc.setFont(Theme.FONT_ICON_NAV);
+        gc.setForeground(Theme.FG_TEXT_WHITE);
+        var iconText = Theme.ICON_BAG_CHECK_FILL;
+        var extent = gc.textExtent(iconText);
+        gc.drawText(iconText, (area.width - extent.x) / 2, (area.height - extent.y) / 2, true);
+    }
+
+    private void paintCartBadge(GC gc, Rectangle area) {
+        gc.setAntialias(SWT.ON);
+        Surface.drawPill(gc, area, Theme.FG_TEXT_WHITE);
+        gc.setFont(Theme.FONT_BADGE);
+        gc.setForeground(Theme.PRIMARY_BLUE);
+        var text = this.cartBadgeText;
+        var extent = gc.textExtent(text);
+        gc.drawText(text, (area.width - extent.x) / 2, (area.height - extent.y) / 2, true);
+    }
+
 }

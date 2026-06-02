@@ -5,7 +5,9 @@ import java.util.Date;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
@@ -17,6 +19,7 @@ import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.Purc
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
 import br.com.wdc.shopping.view.swt.AbstractViewSwt;
 import br.com.wdc.shopping.view.swt.ShoppingSwtApplication;
+import br.com.wdc.shopping.view.swt.theme.Surface;
 import br.com.wdc.shopping.view.swt.theme.Theme;
 
 /**
@@ -146,50 +149,7 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt<PurchasesPanelPresent
         fGd.heightHint = 36;
         paginationCanvas.setLayoutData(fGd);
         paginationCanvas.setCursor(paginationCanvas.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
-        paginationCanvas.addPaintListener(ev -> {
-            var gc = ev.gc;
-            var area = paginationCanvas.getClientArea();
-            gc.setAntialias(SWT.ON);
-
-            // Pill container background
-            gc.setBackground(Theme.BG_PAGE);
-            gc.fillRoundRectangle(0, 0, area.width, area.height, area.height, area.height);
-
-            int arrowSize = 28;
-            int arrowY = (area.height - arrowSize) / 2;
-
-            // Left arrow circle area
-            gc.setFont(Theme.FONT_ICON);
-            gc.setForeground(Theme.FG_TEXT_DARK);
-            var leftArrow = Theme.ICON_CHEVRON_LEFT;
-            var arrowExtent = gc.textExtent(leftArrow);
-            int leftX = 4 + (arrowSize - arrowExtent.x) / 2;
-            int leftTy = arrowY + (arrowSize - arrowExtent.y) / 2;
-            gc.drawText(leftArrow, leftX, leftTy, true);
-
-            // Right arrow circle area
-            var rightArrow = Theme.ICON_CHEVRON_RIGHT;
-            int rightX = area.width - 4 - arrowSize + (arrowSize - arrowExtent.x) / 2;
-            int rightTy = arrowY + (arrowSize - arrowExtent.y) / 2;
-            gc.drawText(rightArrow, rightX, rightTy, true);
-
-            // Center: page text on white pill
-            int centerW = 48;
-            int centerH = 22;
-            int cx = (area.width - centerW) / 2;
-            int cy = (area.height - centerH) / 2;
-            gc.setBackground(Theme.BG_WHITE);
-            gc.fillRoundRectangle(cx, cy, centerW, centerH, 12, 12);
-
-            gc.setFont(Theme.FONT_PAGINATION);
-            gc.setForeground(Theme.FG_TEXT_DARK);
-            int totalPages = getTotalPages();
-            String pageStr = totalPages > 0 ? (this.state.page + 1) + " / " + totalPages : "";
-            var textExtent = gc.textExtent(pageStr);
-            int tx = cx + (centerW - textExtent.x) / 2;
-            int ty = cy + (centerH - textExtent.y) / 2;
-            gc.drawText(pageStr, tx, ty, true);
-        });
+        paginationCanvas.addPaintListener(ev -> paintPagination(ev.gc, paginationCanvas.getClientArea()));
         paginationCanvas.addListener(SWT.MouseDown, ev -> {
             var area = paginationCanvas.getClientArea();
             int arrowSize = 28;
@@ -233,62 +193,94 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt<PurchasesPanelPresent
         item.setLayoutData(gd);
         item.setCursor(item.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 
-        item.addPaintListener(e -> {
-            var gc = e.gc;
-            var area = item.getClientArea();
-            gc.setAntialias(SWT.ON);
-
-            // Card background with rounded corners
-            gc.setBackground(Theme.BG_PAGE);
-            gc.fillRoundRectangle(0, 0, area.width, area.height, 8, 8);
-
-            // Border
-            gc.setForeground(Theme.BORDER_LIGHT);
-            gc.drawRoundRectangle(0, 0, area.width - 1, area.height - 1, 8, 8);
-
-            // Left blue accent bar
-            gc.setBackground(Theme.PRIMARY_BLUE);
-            gc.fillRoundRectangle(0, 0, 5, area.height, 4, 4);
-
-            int leftPad = 14;
-
-            // #ID in blue bold
-            gc.setFont(Theme.FONT_HEADER_BOLD);
-            gc.setForeground(Theme.PRIMARY_BLUE);
-            String idStr = "#" + purchase.id;
-            gc.drawText(idStr, leftPad, 8, true);
-
-            // Product name below ID
-            gc.setFont(Theme.FONT_BODY);
-            gc.setForeground(Theme.FG_TEXT_DARK);
-            String summary = "";
-            if (purchase.items != null && !purchase.items.isEmpty()) {
-                summary = purchase.items.get(0);
-                if (purchase.items.size() > 1) {
-                    summary += ", " + purchase.items.get(1);
-                }
-            }
-            if (summary.length() > 30) summary = summary.substring(0, 28) + "...";
-            gc.drawText(summary, leftPad, 30, true);
-
-            // Date top-right
-            gc.setFont(Theme.FONT_BODY);
-            gc.setForeground(Theme.FG_TEXT_SUBTLE);
-            String dateStr = dateFormat.format(new Date(purchase.date));
-            Point dateSz = gc.textExtent(dateStr);
-            gc.drawText(dateStr, area.width - dateSz.x - 12, 8, true);
-
-            // Total price bottom-right
-            gc.setFont(Theme.FONT_PRICE);
-            gc.setForeground(Theme.FG_TEXT_DARK);
-            String total = Theme.formatPrice(purchase.total);
-            Point totalSz = gc.textExtent(total);
-            gc.drawText(total, area.width - totalSz.x - 12, 30, true);
-        });
+        item.addPaintListener(e -> paintPurchaseItem(e.gc, item.getClientArea(), purchase));
 
         item.addListener(SWT.MouseDown, _e -> {
             safeAction("openReceipt", () -> this.presenter.onOpenReceipt(purchase.id));
         });
+    }
+
+    // ========== SURFACES ==========
+
+    private void paintPagination(GC gc, Rectangle area) {
+        Surface.drawPill(gc, area, Theme.BG_PAGE);
+
+        int arrowSize = 28;
+        int arrowY = (area.height - arrowSize) / 2;
+
+        // Left arrow
+        gc.setFont(Theme.FONT_ICON);
+        gc.setForeground(Theme.FG_TEXT_DARK);
+        var leftArrow = Theme.ICON_CHEVRON_LEFT;
+        var arrowExtent = gc.textExtent(leftArrow);
+        int leftX = 4 + (arrowSize - arrowExtent.x) / 2;
+        int leftTy = arrowY + (arrowSize - arrowExtent.y) / 2;
+        gc.drawText(leftArrow, leftX, leftTy, true);
+
+        // Right arrow
+        var rightArrow = Theme.ICON_CHEVRON_RIGHT;
+        int rightX = area.width - 4 - arrowSize + (arrowSize - arrowExtent.x) / 2;
+        int rightTy = arrowY + (arrowSize - arrowExtent.y) / 2;
+        gc.drawText(rightArrow, rightX, rightTy, true);
+
+        // Center: page text on white pill
+        int centerW = 48;
+        int centerH = 22;
+        int cx = (area.width - centerW) / 2;
+        int cy = (area.height - centerH) / 2;
+        gc.setBackground(Theme.BG_WHITE);
+        gc.fillRoundRectangle(cx, cy, centerW, centerH, 12, 12);
+
+        gc.setFont(Theme.FONT_PAGINATION);
+        gc.setForeground(Theme.FG_TEXT_DARK);
+        int totalPages = getTotalPages();
+        String pageStr = totalPages > 0 ? (this.state.page + 1) + " / " + totalPages : "";
+        var textExtent = gc.textExtent(pageStr);
+        int tx = cx + (centerW - textExtent.x) / 2;
+        int ty = cy + (centerH - textExtent.y) / 2;
+        gc.drawText(pageStr, tx, ty, true);
+    }
+
+    private void paintPurchaseItem(GC gc, Rectangle area, PurchaseInfo purchase) {
+        Surface.drawOutlinedPanel(gc, area);
+
+        // Left blue accent bar
+        gc.setBackground(Theme.PRIMARY_BLUE);
+        gc.fillRoundRectangle(0, 0, 5, area.height, 4, 4);
+
+        int leftPad = 14;
+
+        // #ID in blue bold
+        gc.setFont(Theme.FONT_HEADER_BOLD);
+        gc.setForeground(Theme.PRIMARY_BLUE);
+        gc.drawText("#" + purchase.id, leftPad, 8, true);
+
+        // Product name below ID
+        gc.setFont(Theme.FONT_BODY);
+        gc.setForeground(Theme.FG_TEXT_DARK);
+        String summary = "";
+        if (purchase.items != null && !purchase.items.isEmpty()) {
+            summary = purchase.items.get(0);
+            if (purchase.items.size() > 1) {
+                summary += ", " + purchase.items.get(1);
+            }
+        }
+        if (summary.length() > 30) summary = summary.substring(0, 28) + "...";
+        gc.drawText(summary, leftPad, 30, true);
+
+        // Date top-right
+        gc.setFont(Theme.FONT_BODY);
+        gc.setForeground(Theme.FG_TEXT_SUBTLE);
+        String dateStr = dateFormat.format(new Date(purchase.date));
+        Point dateSz = gc.textExtent(dateStr);
+        gc.drawText(dateStr, area.width - dateSz.x - 12, 8, true);
+
+        // Total price bottom-right
+        gc.setFont(Theme.FONT_PRICE);
+        gc.setForeground(Theme.FG_TEXT_DARK);
+        String total = Theme.formatPrice(purchase.total);
+        Point totalSz = gc.textExtent(total);
+        gc.drawText(total, area.width - totalSz.x - 12, 30, true);
     }
 
     private void updatePagination() {

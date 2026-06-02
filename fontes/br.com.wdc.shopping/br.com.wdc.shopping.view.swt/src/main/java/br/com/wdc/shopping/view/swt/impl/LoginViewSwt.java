@@ -7,7 +7,6 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.graphics.TextLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -20,6 +19,7 @@ import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginViewState;
 import br.com.wdc.shopping.view.swt.AbstractViewSwt;
 import br.com.wdc.shopping.view.swt.ShoppingSwtApplication;
+import br.com.wdc.shopping.view.swt.theme.Surface;
 import br.com.wdc.shopping.view.swt.theme.Theme;
 
 /**
@@ -116,66 +116,6 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
         leftPanel.addPaintListener(this::paintLeftPanel);
     }
 
-    private void paintLeftPanel(PaintEvent e) {
-        GC gc = e.gc;
-        Rectangle bounds = ((Canvas) e.widget).getBounds();
-        gc.setAdvanced(true);
-        gc.setAntialias(SWT.ON);
-
-        // Blue gradient background
-        gc.setBackground(Theme.BG_LOGIN_LEFT);
-        gc.setForeground(Theme.PRIMARY_BLUE);
-        gc.fillGradientRectangle(0, 0, bounds.width, bounds.height, true);
-
-        // Decorative circles (matching the web design)
-        gc.setAlpha(30);
-        gc.setBackground(Theme.FG_TEXT_WHITE);
-        gc.fillOval(bounds.width - 120, -60, 240, 240);
-        gc.fillOval(-80, bounds.height - 200, 200, 200);
-        gc.setAlpha(255);
-
-        // Bag icon (logo)
-        gc.setForeground(Theme.FG_TEXT_WHITE);
-        gc.setFont(Theme.FONT_ICON_LARGE);
-        Point iconSize = gc.textExtent(Theme.ICON_BAG_CHECK);
-        int iconY = bounds.height / 4 - iconSize.y / 2;
-        gc.drawText(Theme.ICON_BAG_CHECK, (bounds.width - iconSize.x) / 2, iconY, true);
-
-        // Title text
-        gc.setFont(Theme.FONT_TITLE);
-        String title = "WDC Shopping";
-        Point titleSize = gc.textExtent(title);
-        int titleY = iconY + iconSize.y + 16;
-        gc.drawText(title, (bounds.width - titleSize.x) / 2, titleY, true);
-
-        // Subtitle
-        gc.setFont(Theme.FONT_SUBTITLE);
-        String subtitle = "Sua compra certa na internet.";
-        Point subtitleSize = gc.textExtent(subtitle);
-        gc.drawText(subtitle, (bounds.width - subtitleSize.x) / 2, titleY + titleSize.y + 8, true);
-
-        // Feature list with Bootstrap Icons
-        int featureY = titleY + titleSize.y + 60;
-        String[][] features = {
-                { Theme.ICON_SHIELD_CHECK, "  Compra segura" },
-                { Theme.ICON_TRUCK, "  Entrega rápida" },
-                { Theme.ICON_ARROW_REPEAT, "  Troca garantida" }
-        };
-        for (String[] feature : features) {
-            // Draw icon
-            gc.setFont(Theme.FONT_ICON);
-            Point iSize = gc.textExtent(feature[0]);
-            int featureX = (bounds.width - 200) / 2;
-            gc.drawText(feature[0], featureX, featureY, true);
-
-            // Draw text
-            gc.setFont(Theme.FONT_BODY);
-            gc.drawText(feature[1], featureX + iSize.x, featureY, true);
-
-            featureY += iSize.y + 16;
-        }
-    }
-
     // ========== RIGHT PANEL (Form) ==========
 
     private void createRightPanel() {
@@ -186,11 +126,7 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
         gd.widthHint = 420;
         rightPanel.setLayoutData(gd);
 
-        // Custom white background painting (macOS Dark Mode bypassed via NO_BACKGROUND)
-        rightPanel.addPaintListener(e -> {
-            e.gc.setBackground(Theme.BG_WHITE);
-            e.gc.fillRectangle(rightPanel.getClientArea());
-        });
+        rightPanel.addPaintListener(e -> paintRightPanel(e.gc, rightPanel.getClientArea()));
 
         var layout = new GridLayout(1, false);
         layout.marginWidth = 20;
@@ -247,40 +183,7 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
         errorGd.exclude = true;
         this.errorLabel.setLayoutData(errorGd);
         this.errorLabel.setVisible(false);
-        this.errorLabel.addPaintListener(ev -> {
-            var gc = ev.gc;
-            var area = this.errorLabel.getClientArea();
-            gc.setAntialias(SWT.ON);
-            // Red-tinted background
-            gc.setBackground(Theme.BG_ERROR);
-            gc.fillRoundRectangle(0, 0, area.width, area.height, 8, 8);
-            // Red border
-            gc.setForeground(Theme.BORDER_ERROR_BOX);
-            gc.drawRoundRectangle(0, 0, area.width - 1, area.height - 1, 8, 8);
-            // Icon
-            gc.setForeground(Theme.FG_ERROR);
-            gc.setFont(Theme.FONT_ICON);
-            Point iconSz = gc.textExtent(Theme.ICON_EXCLAMATION_CIRCLE);
-            int iconX = 12;
-            int iconY = 12;
-            gc.drawText(Theme.ICON_EXCLAMATION_CIRCLE, iconX, iconY, true);
-            // Error text with wrapping via TextLayout
-            String msg = this.errorMessage != null ? this.errorMessage : "";
-            int textX = iconX + iconSz.x + 10;
-            var tl = new TextLayout(ev.display);
-            tl.setText(msg);
-            tl.setFont(Theme.FONT_BODY);
-            tl.setWidth(area.width - textX - 12);
-            gc.setForeground(Theme.FG_ERROR);
-            tl.draw(gc, textX, 12);
-            // Resize height if needed
-            int neededHeight = tl.getBounds().height + 24;
-            tl.dispose();
-            if (neededHeight > area.height) {
-                ((GridData) this.errorLabel.getLayoutData()).heightHint = neededHeight;
-                this.errorLabel.getParent().layout(true, true);
-            }
-        });
+        this.errorLabel.addPaintListener(Surface.errorBox(this.errorLabel::getClientArea, () -> this.errorMessage));
 
         // Spacer below error (also toggled with error)
         this.errorSpacer = new Label(formPanel, SWT.NONE);
@@ -340,23 +243,7 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
         var demoGd = new GridData(SWT.FILL, SWT.CENTER, true, false);
         demoGd.heightHint = 40;
         demoBox.setLayoutData(demoGd);
-        demoBox.addPaintListener(ev -> {
-            var gc = ev.gc;
-            var area = demoBox.getClientArea();
-            gc.setAntialias(SWT.ON);
-            // Light gray background
-            gc.setBackground(Theme.BG_PAGE);
-            gc.fillRoundRectangle(0, 0, area.width, area.height, 8, 8);
-            // Slightly darker border
-            gc.setForeground(Theme.BORDER_LIGHT);
-            gc.drawRoundRectangle(0, 0, area.width - 1, area.height - 1, 8, 8);
-            // Text centered
-            gc.setForeground(Theme.FG_TEXT_SUBTLE);
-            gc.setFont(Theme.FONT_SUBTITLE);
-            String text = "Acesso demo: admin / admin";
-            Point size = gc.textExtent(text);
-            gc.drawText(text, (area.width - size.x) / 2, (area.height - size.y) / 2, true);
-        });
+        demoBox.addPaintListener(ev -> paintDemoBox(ev.gc, demoBox.getClientArea()));
 
         // Bottom spacer for centering
         var bottomSpacer = new Label(rightPanel, SWT.NONE);
@@ -372,6 +259,64 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
         gd.heightHint = 120;
         banner.setLayoutData(gd);
         banner.addPaintListener(e -> paintBanner(e, banner));
+    }
+
+    // ========== SURFACES ==========
+
+    private void paintLeftPanel(PaintEvent e) {
+        GC gc = e.gc;
+        Rectangle bounds = ((Canvas) e.widget).getBounds();
+        gc.setAdvanced(true);
+        gc.setAntialias(SWT.ON);
+
+        // Blue gradient background
+        gc.setBackground(Theme.BG_LOGIN_LEFT);
+        gc.setForeground(Theme.PRIMARY_BLUE);
+        gc.fillGradientRectangle(0, 0, bounds.width, bounds.height, true);
+
+        // Decorative circles
+        gc.setAlpha(30);
+        gc.setBackground(Theme.FG_TEXT_WHITE);
+        gc.fillOval(bounds.width - 120, -60, 240, 240);
+        gc.fillOval(-80, bounds.height - 200, 200, 200);
+        gc.setAlpha(255);
+
+        // Bag icon (logo)
+        gc.setForeground(Theme.FG_TEXT_WHITE);
+        gc.setFont(Theme.FONT_ICON_LARGE);
+        Point iconSize = gc.textExtent(Theme.ICON_BAG_CHECK);
+        int iconY = bounds.height / 4 - iconSize.y / 2;
+        gc.drawText(Theme.ICON_BAG_CHECK, (bounds.width - iconSize.x) / 2, iconY, true);
+
+        // Title text
+        gc.setFont(Theme.FONT_TITLE);
+        String title = "WDC Shopping";
+        Point titleSize = gc.textExtent(title);
+        int titleY = iconY + iconSize.y + 16;
+        gc.drawText(title, (bounds.width - titleSize.x) / 2, titleY, true);
+
+        // Subtitle
+        gc.setFont(Theme.FONT_SUBTITLE);
+        String subtitle = "Sua compra certa na internet.";
+        Point subtitleSize = gc.textExtent(subtitle);
+        gc.drawText(subtitle, (bounds.width - subtitleSize.x) / 2, titleY + titleSize.y + 8, true);
+
+        // Feature list
+        int featureY = titleY + titleSize.y + 60;
+        String[][] features = {
+                { Theme.ICON_SHIELD_CHECK, "  Compra segura" },
+                { Theme.ICON_TRUCK, "  Entrega rápida" },
+                { Theme.ICON_ARROW_REPEAT, "  Troca garantida" }
+        };
+        for (String[] feature : features) {
+            gc.setFont(Theme.FONT_ICON);
+            Point iSize = gc.textExtent(feature[0]);
+            int featureX = (bounds.width - 200) / 2;
+            gc.drawText(feature[0], featureX, featureY, true);
+            gc.setFont(Theme.FONT_BODY);
+            gc.drawText(feature[1], featureX + iSize.x, featureY, true);
+            featureY += iSize.y + 16;
+        }
     }
 
     private void paintBanner(PaintEvent e, Canvas banner) {
@@ -392,7 +337,7 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
         gc.fillOval(-60, bounds.height - 60, 120, 120);
         gc.setAlpha(255);
 
-        // Icon box (rounded square with translucent bg)
+        // Icon box
         gc.setForeground(Theme.FG_TEXT_WHITE);
         int boxSize = 44;
         int boxX = (bounds.width - boxSize) / 2;
@@ -426,6 +371,20 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
         gc.setAlpha(255);
     }
 
+    private void paintRightPanel(GC gc, Rectangle area) {
+        gc.setBackground(Theme.BG_WHITE);
+        gc.fillRectangle(area);
+    }
+
+    private void paintDemoBox(GC gc, Rectangle area) {
+        Surface.drawOutlinedPanel(gc, area);
+        gc.setForeground(Theme.FG_TEXT_SUBTLE);
+        gc.setFont(Theme.FONT_SUBTITLE);
+        String text = "Acesso demo: admin / admin";
+        Point size = gc.textExtent(text);
+        gc.drawText(text, (area.width - size.x) / 2, (area.height - size.y) / 2, true);
+    }
+
     // ========== HELPERS ==========
 
     private void createSpacer(Composite parent, int height) {
@@ -452,17 +411,7 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
         borderLayout.verticalSpacing = 0;
         borderComp.setLayout(borderLayout);
 
-        // Paint rounded border
-        borderComp.addPaintListener(e -> {
-            var bounds = borderComp.getClientArea();
-            e.gc.setAntialias(SWT.ON);
-            // Fill white background
-            e.gc.setBackground(Theme.BG_WHITE);
-            e.gc.fillRoundRectangle(0, 0, bounds.width, bounds.height, 8, 8);
-            // Draw border
-            e.gc.setForeground(Theme.BORDER_FIELD);
-            e.gc.drawRoundRectangle(0, 0, bounds.width - 1, bounds.height - 1, 8, 8);
-        });
+        borderComp.addPaintListener(Surface.borderedField(borderComp::getClientArea));
 
         // Inner text field (no SWT.BORDER — the rounded wrapper provides the border)
         var field = new Text(borderComp, textStyle);

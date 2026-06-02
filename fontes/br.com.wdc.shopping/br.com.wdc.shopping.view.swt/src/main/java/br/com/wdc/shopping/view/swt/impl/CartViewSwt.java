@@ -3,6 +3,7 @@ package br.com.wdc.shopping.view.swt.impl;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
@@ -80,18 +81,7 @@ public class CartViewSwt extends AbstractViewSwt<CartPresenter> {
         circleGd.widthHint = circleSize;
         circleGd.heightHint = circleSize;
         iconCircle.setLayoutData(circleGd);
-        iconCircle.addPaintListener(e -> {
-            var gc = e.gc;
-            gc.setAntialias(SWT.ON);
-            gc.setBackground(Theme.BG_WHITE);
-            gc.fillRectangle(0, 0, circleSize, circleSize);
-            gc.setBackground(Theme.BG_ICON_BOX);
-            gc.fillOval(0, 0, circleSize, circleSize);
-            gc.setFont(Theme.FONT_ICON_LARGE);
-            gc.setForeground(Theme.PRIMARY_BLUE);
-            var ext = gc.textExtent(Theme.ICON_BAG);
-            gc.drawText(Theme.ICON_BAG, (circleSize - ext.x) / 2, (circleSize - ext.y) / 2, true);
-        });
+        iconCircle.addPaintListener(e -> paintEmptyCartIcon(e.gc, circleSize));
 
         // "Carrinho vazio"
         var emptyTitle = new Label(card, SWT.CENTER);
@@ -272,5 +262,19 @@ public class CartViewSwt extends AbstractViewSwt<CartPresenter> {
         // "Finalizar pedido"
         var buyBtn = new PrimaryButton(row, Theme.ICON_CHECK2_SQUARE, "Finalizar pedido");
         buyBtn.addListener(SWT.MouseUp, evt -> safeAction("onBuy", presenter::onBuy));
+    }
+
+    // ========== SURFACES ==========
+
+    private void paintEmptyCartIcon(GC gc, int size) {
+        gc.setAntialias(SWT.ON);
+        gc.setBackground(Theme.BG_WHITE);
+        gc.fillRectangle(0, 0, size, size);
+        gc.setBackground(Theme.BG_ICON_BOX);
+        gc.fillOval(0, 0, size, size);
+        gc.setFont(Theme.FONT_ICON_LARGE);
+        gc.setForeground(Theme.PRIMARY_BLUE);
+        var ext = gc.textExtent(Theme.ICON_BAG);
+        gc.drawText(Theme.ICON_BAG, (size - ext.x) / 2, (size - ext.y) / 2, true);
     }
 }

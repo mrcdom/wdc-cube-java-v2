@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -16,8 +17,9 @@ import br.com.wdc.shopping.presentation.presenter.restricted.home.products.Produ
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
 import br.com.wdc.shopping.view.swt.AbstractViewSwt;
 import br.com.wdc.shopping.view.swt.ShoppingSwtApplication;
-import br.com.wdc.shopping.view.swt.util.ProductImageCache;
+import br.com.wdc.shopping.view.swt.theme.Surface;
 import br.com.wdc.shopping.view.swt.theme.Theme;
+import br.com.wdc.shopping.view.swt.util.ProductImageCache;
 
 /**
  * Products grid panel — scrollable grid of product cards.
@@ -127,61 +129,7 @@ public class ProductsPanelViewSwt extends AbstractViewSwt<ProductsPanelPresenter
         card.setCursor(card.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
         card.setData("productId", product.id);
 
-        card.addPaintListener(e -> {
-            var gc = e.gc;
-            var area = card.getClientArea();
-            gc.setAntialias(SWT.ON);
-
-            // Card background with rounded corners
-            gc.setBackground(Theme.BG_WHITE);
-            gc.fillRoundRectangle(0, 0, area.width, area.height, Theme.CARD_RADIUS, Theme.CARD_RADIUS);
-
-            // Border
-            gc.setForeground(Theme.BORDER_LIGHT);
-            gc.drawRoundRectangle(0, 0, area.width - 1, area.height - 1, Theme.CARD_RADIUS, Theme.CARD_RADIUS);
-
-            // Image area gradient
-            gc.setBackground(Theme.BG_PAGE);
-            gc.setForeground(Theme.BORDER_LIGHT);
-            gc.fillGradientRectangle(1, 1, area.width - 2, CARD_IMAGE_HEIGHT, true);
-
-            // Product image or fallback icon
-            var productImage = ProductImageCache.getInstance().getImage(card.getDisplay(), product.id);
-            if (productImage != null && !productImage.isDisposed()) {
-                var imgBounds = productImage.getBounds();
-                // Scale image to fit within the image area, maintaining aspect ratio
-                int availW = area.width - 2;
-                int availH = CARD_IMAGE_HEIGHT;
-                double scale = Math.min((double) availW / imgBounds.width, (double) availH / imgBounds.height);
-                int drawW = (int) (imgBounds.width * scale);
-                int drawH = (int) (imgBounds.height * scale);
-                int drawX = (area.width - drawW) / 2;
-                int drawY = (CARD_IMAGE_HEIGHT - drawH) / 2;
-                gc.setInterpolation(SWT.HIGH);
-                gc.drawImage(productImage, 0, 0, imgBounds.width, imgBounds.height, drawX, drawY, drawW, drawH);
-            } else {
-                // Fallback: icon placeholder
-                gc.setFont(Theme.FONT_ICON_LARGE);
-                gc.setForeground(Theme.FG_TEXT_SUBTLE);
-                var iconText = Theme.ICON_BAG_CHECK;
-                Point iconSz = gc.textExtent(iconText);
-                gc.drawText(iconText, (area.width - iconSz.x) / 2, (CARD_IMAGE_HEIGHT - iconSz.y) / 2, true);
-            }
-
-            // Product name
-            int textY = CARD_IMAGE_HEIGHT + CARD_PADDING;
-            gc.setFont(Theme.FONT_PRODUCT_NAME);
-            gc.setForeground(Theme.FG_TEXT_DARK);
-            String name = product.name != null ? product.name : "";
-            if (name.length() > 22) name = name.substring(0, 20) + "...";
-            gc.drawText(name, CARD_PADDING, textY, true);
-
-            // Price
-            gc.setFont(Theme.FONT_PRICE);
-            gc.setForeground(Theme.PRIMARY_BLUE);
-            String price = Theme.formatPrice(product.price);
-            gc.drawText(price, CARD_PADDING, textY + 24, true);
-        });
+        card.addPaintListener(e -> paintProductCard(e.gc, card, product));
 
         card.addListener(SWT.MouseDown, _e -> {
             var pid = (Long) card.getData("productId");
@@ -191,5 +139,55 @@ public class ProductsPanelViewSwt extends AbstractViewSwt<ProductsPanelPresenter
         // Set size via RowData
         var rd = new org.eclipse.swt.layout.RowData(CARD_WIDTH, CARD_HEIGHT);
         card.setLayoutData(rd);
+    }
+
+    // ========== SURFACES ==========
+
+    private void paintProductCard(GC gc, Canvas card, ProductInfo product) {
+        var area = card.getClientArea();
+        gc.setAntialias(SWT.ON);
+
+        // Card background with rounded corners + border
+        Surface.drawCard(gc, area);
+
+        // Image area gradient
+        gc.setBackground(Theme.BG_PAGE);
+        gc.setForeground(Theme.BORDER_LIGHT);
+        gc.fillGradientRectangle(1, 1, area.width - 2, CARD_IMAGE_HEIGHT, true);
+
+        // Product image or fallback icon
+        var productImage = ProductImageCache.getInstance().getImage(card.getDisplay(), product.id);
+        if (productImage != null && !productImage.isDisposed()) {
+            var imgBounds = productImage.getBounds();
+            int availW = area.width - 2;
+            int availH = CARD_IMAGE_HEIGHT;
+            double scale = Math.min((double) availW / imgBounds.width, (double) availH / imgBounds.height);
+            int drawW = (int) (imgBounds.width * scale);
+            int drawH = (int) (imgBounds.height * scale);
+            int drawX = (area.width - drawW) / 2;
+            int drawY = (CARD_IMAGE_HEIGHT - drawH) / 2;
+            gc.setInterpolation(SWT.HIGH);
+            gc.drawImage(productImage, 0, 0, imgBounds.width, imgBounds.height, drawX, drawY, drawW, drawH);
+        } else {
+            gc.setFont(Theme.FONT_ICON_LARGE);
+            gc.setForeground(Theme.FG_TEXT_SUBTLE);
+            var iconText = Theme.ICON_BAG_CHECK;
+            Point iconSz = gc.textExtent(iconText);
+            gc.drawText(iconText, (area.width - iconSz.x) / 2, (CARD_IMAGE_HEIGHT - iconSz.y) / 2, true);
+        }
+
+        // Product name
+        int textY = CARD_IMAGE_HEIGHT + CARD_PADDING;
+        gc.setFont(Theme.FONT_PRODUCT_NAME);
+        gc.setForeground(Theme.FG_TEXT_DARK);
+        String name = product.name != null ? product.name : "";
+        if (name.length() > 22) name = name.substring(0, 20) + "...";
+        gc.drawText(name, CARD_PADDING, textY, true);
+
+        // Price
+        gc.setFont(Theme.FONT_PRICE);
+        gc.setForeground(Theme.PRIMARY_BLUE);
+        String price = Theme.formatPrice(product.price);
+        gc.drawText(price, CARD_PADDING, textY + 24, true);
     }
 }
