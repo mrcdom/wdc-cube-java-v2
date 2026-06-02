@@ -27,7 +27,7 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt<PurchasesPanelPresent
     private static final int ITEM_HEIGHT = 50;
     private static final int LIST_SPACING = 8;
 
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy");
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 
     private final PurchasesPanelViewState state;
 
@@ -139,8 +139,8 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt<PurchasesPanelPresent
         });
 
         // Pagination footer — pill-shaped container with arrows and page text
-        var paginationCanvas = new Canvas(this.element, SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND);
-        paginationCanvas.setBackground(Theme.BG_WHITE);
+        this.paginationCanvas = new Canvas(this.element, SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND);
+        this.paginationCanvas.setBackground(Theme.BG_WHITE);
         var fGd = new GridData(SWT.CENTER, SWT.BOTTOM, true, false);
         fGd.widthHint = 120;
         fGd.heightHint = 36;
@@ -275,7 +275,7 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt<PurchasesPanelPresent
             // Date top-right
             gc.setFont(Theme.FONT_BODY);
             gc.setForeground(Theme.FG_TEXT_SUBTLE);
-            String dateStr = DATE_FORMAT.format(new Date(purchase.date));
+            String dateStr = dateFormat.format(new Date(purchase.date));
             Point dateSz = gc.textExtent(dateStr);
             gc.drawText(dateStr, area.width - dateSz.x - 12, 8, true);
 

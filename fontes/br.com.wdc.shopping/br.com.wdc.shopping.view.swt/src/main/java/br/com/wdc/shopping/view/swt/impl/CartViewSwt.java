@@ -27,7 +27,6 @@ import br.com.wdc.shopping.view.swt.theme.Theme;
 public class CartViewSwt extends AbstractViewSwt<CartPresenter> {
 
     private final CartViewState state;
-    private boolean notRendered = true;
 
     public CartViewSwt(CartPresenter presenter) {
         super("cart", (ShoppingSwtApplication) presenter.app, presenter,
@@ -119,7 +118,7 @@ public class CartViewSwt extends AbstractViewSwt<CartPresenter> {
         var viewBtnGd = (GridData) viewBtn.getLayoutData();
         viewBtnGd.horizontalAlignment = SWT.CENTER;
         viewBtnGd.verticalIndent = 20;
-        viewBtn.addListener(SWT.MouseUp, evt -> safeAction("onOpenProducts", () -> presenter.onOpenProducts()));
+        viewBtn.addListener(SWT.MouseUp, evt -> safeAction("onOpenProducts", presenter::onOpenProducts));
 
         // Spacer bottom
         var spacerBottom = new Label(card, SWT.NONE);
@@ -268,10 +267,10 @@ public class CartViewSwt extends AbstractViewSwt<CartPresenter> {
         // "← Continuar comprando"
         var backBtn = new ActionButton(row, Theme.ICON_ARROW_LEFT, "Continuar comprando", Theme.BG_WHITE);
         ((GridData) backBtn.getLayoutData()).grabExcessHorizontalSpace = true;
-        backBtn.addListener(SWT.MouseUp, evt -> safeAction("onOpenProducts", () -> presenter.onOpenProducts()));
+        backBtn.addListener(SWT.MouseUp, evt -> safeAction("onOpenProducts", presenter::onOpenProducts));
 
         // "Finalizar pedido"
         var buyBtn = new PrimaryButton(row, Theme.ICON_CHECK2_SQUARE, "Finalizar pedido");
-        buyBtn.addListener(SWT.MouseUp, evt -> safeAction("onBuy", () -> presenter.onBuy()));
+        buyBtn.addListener(SWT.MouseUp, evt -> safeAction("onBuy", presenter::onBuy));
     }
 }

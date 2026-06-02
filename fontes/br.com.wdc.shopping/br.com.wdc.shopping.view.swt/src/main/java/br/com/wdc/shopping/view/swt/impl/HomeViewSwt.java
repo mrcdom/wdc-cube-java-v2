@@ -188,7 +188,7 @@ public class HomeViewSwt extends AbstractViewSwt<HomePresenter> {
         exitBtn.setBackground(null);
         exitBtn.setCursor(navContent.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
         exitBtn.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, true));
-        exitBtn.addListener(SWT.MouseDown, _e -> safeAction("exit", () -> this.presenter.onExit()));
+        exitBtn.addListener(SWT.MouseDown, _e -> safeAction("exit", this.presenter::onExit));
 
         // Welcome area: "Bem-vindo(a)," + "Nome!"
         var welcomeArea = new Composite(navContent, SWT.NONE);
@@ -327,12 +327,7 @@ public class HomeViewSwt extends AbstractViewSwt<HomePresenter> {
         });
 
         // Click on entire cart area opens cart
-        var cartClickListener = new org.eclipse.swt.widgets.Listener() {
-            @Override
-            public void handleEvent(org.eclipse.swt.widgets.Event event) {
-                safeAction("openCart", () -> HomeViewSwt.this.presenter.onOpenCart());
-            }
-        };
+        var cartClickListener = (org.eclipse.swt.widgets.Listener) event -> safeAction("openCart", HomeViewSwt.this.presenter::onOpenCart);
         cartArea.addListener(SWT.MouseDown, cartClickListener);
         cartIcon.addListener(SWT.MouseDown, cartClickListener);
         cartLabel.addListener(SWT.MouseDown, cartClickListener);

@@ -1,7 +1,6 @@
 package br.com.wdc.shopping.view.swt.components;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
@@ -32,7 +31,10 @@ public class ShadowCard extends Canvas {
             gc.setBackground(Theme.BG_PAGE);
             gc.fillRectangle(area);
 
-            int x = 4, y = 2, w = area.width - 8, h = area.height - 6;
+            int x = 4;
+            int y = 2;
+            int w = area.width - 8;
+            int h = area.height - 6;
 
             // Shadow
             gc.setAlpha(15);

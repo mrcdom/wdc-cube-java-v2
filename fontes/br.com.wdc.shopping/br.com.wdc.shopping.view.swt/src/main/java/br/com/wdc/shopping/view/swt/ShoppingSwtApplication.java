@@ -55,7 +55,6 @@ public class ShoppingSwtApplication extends ShoppingApplication {
      * Wraps a view factory so that it always executes on the SWT UI thread.
      * If already on the UI thread, runs directly; otherwise uses syncExec.
      */
-    @SuppressWarnings("unchecked")
     private static <P> Function<P, CubeView> onUiThread(Function<P, CubeView> factory) {
         return presenter -> {
             var display = Display.getDefault();

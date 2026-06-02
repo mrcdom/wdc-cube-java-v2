@@ -28,7 +28,8 @@ public class IconButton extends Canvas {
         addPaintListener(e -> {
             var gc = e.gc;
             gc.setAntialias(SWT.ON);
-            int w = 30, h = 30;
+            int w = 30;
+            int h = 30;
             if (hovered) {
                 gc.setBackground(Theme.BG_BTN_HOVER);
                 gc.fillRoundRectangle(0, 0, w, h, 6, 6);

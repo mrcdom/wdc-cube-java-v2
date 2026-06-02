@@ -22,7 +22,7 @@ import br.com.wdc.shopping.view.swt.theme.Theme;
 
 public class ReceiptViewSwt extends AbstractViewSwt<ReceiptPresenter> {
 
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
 
     private final ReceiptViewState state;
     private boolean notRendered = true;
@@ -132,7 +132,7 @@ public class ReceiptViewSwt extends AbstractViewSwt<ReceiptPresenter> {
 
         var dateValue = new Label(dateRow, SWT.NONE);
         var dateStr = this.state.receipt != null && this.state.receipt.date != null
-                ? DATE_FORMAT.format(new Date(this.state.receipt.date))
+                ? dateFormat.format(new Date(this.state.receipt.date))
                 : "--";
         dateValue.setText(dateStr);
         dateValue.setFont(Theme.FONT_MONO_BOLD);
@@ -279,8 +279,6 @@ public class ReceiptViewSwt extends AbstractViewSwt<ReceiptPresenter> {
         var backBtn = new ActionButton(card, Theme.ICON_ARROW_LEFT, "Voltar aos produtos", Theme.BG_WHITE);
         var gd = (GridData) backBtn.getLayoutData();
         gd.verticalIndent = 4;
-        backBtn.addListener(SWT.MouseUp, evt -> {
-            safeAction("receipt.onOpenProducts", () -> presenter.onOpenProducts());
-        });
+        backBtn.addListener(SWT.MouseUp, evt -> safeAction("receipt.onOpenProducts", presenter::onOpenProducts));
     }
 }

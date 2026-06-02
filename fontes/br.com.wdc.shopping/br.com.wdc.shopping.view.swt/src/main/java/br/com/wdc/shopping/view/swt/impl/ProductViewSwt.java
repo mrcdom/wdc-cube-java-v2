@@ -27,7 +27,6 @@ public class ProductViewSwt extends AbstractViewSwt<ProductPresenter> {
     private int quantity = 1;
     private Label qtyLabel;
     private ErrorBanner errorBanner;
-    private ScrolledPage page;
 
     public ProductViewSwt(ProductPresenter presenter) {
         super("product", (ShoppingSwtApplication) presenter.app, presenter,
@@ -57,7 +56,7 @@ public class ProductViewSwt extends AbstractViewSwt<ProductPresenter> {
     }
 
     private void render() {
-        page = new ScrolledPage(this.element, 20, 20, 0);
+        var page = new ScrolledPage(this.element, 20, 20, 0);
         var content = page.getContent();
 
         var product = state.product;
@@ -288,9 +287,7 @@ public class ProductViewSwt extends AbstractViewSwt<ProductPresenter> {
         var backBtn = new ActionButton(row, Theme.ICON_ARROW_LEFT, "Voltar", Theme.BG_PAGE);
         var backGd = (GridData) backBtn.getLayoutData();
         backGd.horizontalAlignment = SWT.CENTER;
-        backBtn.addListener(SWT.MouseUp, evt -> {
-            safeAction("product.onOpenProducts", () -> presenter.onOpenProducts());
-        });
+        backBtn.addListener(SWT.MouseUp, evt -> safeAction("product.onOpenProducts", presenter::onOpenProducts));
 
         // Add to Cart button
         var addCartBtn = new PrimaryButton(row, Theme.ICON_BAG_PLUS, "Adicionar ao Carrinho", Theme.BG_PAGE);
