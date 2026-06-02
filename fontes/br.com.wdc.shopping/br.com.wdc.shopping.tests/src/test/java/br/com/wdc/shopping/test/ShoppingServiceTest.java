@@ -33,6 +33,7 @@ import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.Rec
 import br.com.wdc.shopping.scripts.sgbd.DBReset;
 import br.com.wdc.shopping.test.util.BaseBusinessTest;
 
+@SuppressWarnings("java:S5961") // integration test — many assertions validate end-to-end flow
 public class ShoppingServiceTest extends BaseBusinessTest {
 
     @Test

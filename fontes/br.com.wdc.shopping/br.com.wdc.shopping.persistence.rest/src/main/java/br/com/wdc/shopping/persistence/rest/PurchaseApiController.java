@@ -1,37 +1,46 @@
 package br.com.wdc.shopping.persistence.rest;
 
 import java.util.Collections;
-import java.util.Map;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
+import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
+import br.com.wdc.framework.commons.serialization.JsonStreamReader;
+import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
+import br.com.wdc.shopping.domain.codec.PurchaseModelCodec;
 import br.com.wdc.shopping.domain.criteria.PurchaseCriteria;
 import br.com.wdc.shopping.domain.model.Product;
 import br.com.wdc.shopping.domain.model.Purchase;
 import br.com.wdc.shopping.domain.model.PurchaseItem;
 import br.com.wdc.shopping.domain.model.User;
 import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
+import br.com.wdc.shopping.domain.security.SecurityContext;
 import br.com.wdc.shopping.domain.utils.ProjectionValues;
+import br.com.wdc.shopping.persistence.rest.security.SecurityEnforcer;
 import io.javalin.config.JavalinConfig;
 import io.javalin.http.Context;
 
 public class PurchaseApiController {
 
 	static void configure(JavalinConfig config) {
+		configure(config, "");
+	}
+
+	static void configure(JavalinConfig config, String prefix) {
 		var ctrl = new PurchaseApiController();
-		config.routes.post("/api/repo/purchase/insert", ctrl::insert);
-		config.routes.post("/api/repo/purchase/update", ctrl::update);
-		config.routes.post("/api/repo/purchase/upsert", ctrl::upsert);
-		config.routes.post("/api/repo/purchase/delete", ctrl::delete);
-		config.routes.post("/api/repo/purchase/count", ctrl::count);
-		config.routes.post("/api/repo/purchase/fetch", ctrl::fetch);
-		config.routes.post("/api/repo/purchase/fetchById", ctrl::fetchByIdPost);
-		config.routes.get("/api/repo/purchase/{id}", ctrl::fetchById);
+		config.routes.post(prefix + "/api/repo/purchase/insert", ctrl::insert);
+		config.routes.post(prefix + "/api/repo/purchase/update", ctrl::update);
+		config.routes.post(prefix + "/api/repo/purchase/delete", ctrl::delete);
+		config.routes.post(prefix + "/api/repo/purchase/count", ctrl::count);
+		config.routes.post(prefix + "/api/repo/purchase/fetch", ctrl::fetch);
+		config.routes.post(prefix + "/api/repo/purchase/fetch-page", ctrl::fetchPage);
+		config.routes.post(prefix + "/api/repo/purchase/fetch-by-id", ctrl::fetchByIdPost);
+		config.routes.get(prefix + "/api/repo/purchase/{id}", ctrl::fetchById);
 	}
 
 	private static PurchaseRepository repo() {
 		return PurchaseRepository.BEAN.get();
 	}
+
+	private final PurchaseModelCodec codec = new PurchaseModelCodec();
 
 	private static Purchase fullProjectionWithItems() {
 		var pv = ProjectionValues.INSTANCE;
@@ -69,118 +78,203 @@ public class PurchaseApiController {
 		return prj;
 	}
 
-	private void insert(Context ctx) throws Exception {
-		var mapper = ApiObjectMapper.get();
-		var purchase = mapper.readValue(ctx.body(), Purchase.class);
+	private void insert(Context ctx) {
+		var sc = SecurityEnforcer.require("purchase", "write");
+		var reader = new JsonStreamReader(ctx.body());
+		var purchase = codec.readEntity(reader);
+		enforceUserScope(sc, purchase);
 		boolean success = repo().insert(purchase);
-		json(ctx, Map.of("success", success, "id", purchase.id != null ? purchase.id : -1));
+		var writer = new JsonStreamWriter();
+		writer.beginObject();
+		writer.name("success").value(success);
+		writer.name("id").value(purchase.id != null ? purchase.id : -1);
+		writer.endObject();
+		json(ctx, writer);
 	}
 
-	private void update(Context ctx) throws Exception {
-		var mapper = ApiObjectMapper.get();
-		var body = mapper.readTree(ctx.body());
-		var newEntity = mapper.treeToValue(body.get("newEntity"), Purchase.class);
-		var oldEntity = mapper.treeToValue(body.get("oldEntity"), Purchase.class);
-		boolean success = repo().update(newEntity, oldEntity);
-		json(ctx, Map.of("success", success));
+	private void update(Context ctx) {
+		SecurityEnforcer.require("purchase", "write");
+		var reader = new JsonStreamReader(ctx.body());
+		var data = codec.readEntityForUpdate(reader);
+		boolean success = repo().update(data.entity(), null, data.projection());
+		var writer = new JsonStreamWriter();
+		writer.beginObject();
+		writer.name("success").value(success);
+		writer.endObject();
+		json(ctx, writer);
 	}
 
-	private void upsert(Context ctx) throws Exception {
-		var mapper = ApiObjectMapper.get();
-		var purchase = mapper.readValue(ctx.body(), Purchase.class);
-		boolean success = repo().insertOrUpdate(purchase);
-		json(ctx, Map.of("success", success, "id", purchase.id != null ? purchase.id : -1));
-	}
-
-	private void delete(Context ctx) throws Exception {
-		var body = ApiObjectMapper.get().readTree(ctx.body());
-		var criteria = parseCriteria(body);
+	private void delete(Context ctx) {
+		var sc = SecurityEnforcer.require("purchase", "delete");
+		var reader = new JsonStreamReader(ctx.body());
+		var criteria = readCriteria(reader);
+		enforceUserScope(sc, criteria);
 		int count = repo().delete(criteria);
-		json(ctx, Map.of("count", count));
+		var writer = new JsonStreamWriter();
+		writer.beginObject();
+		writer.name("count").value(count);
+		writer.endObject();
+		json(ctx, writer);
 	}
 
-	private void count(Context ctx) throws Exception {
-		var body = ApiObjectMapper.get().readTree(ctx.body());
-		var criteria = parseCriteria(body);
+	private void count(Context ctx) {
+		var sc = SecurityEnforcer.require("purchase", "read");
+		var reader = new JsonStreamReader(ctx.body());
+		var criteria = readCriteria(reader);
+		enforceUserScope(sc, criteria);
 		int count = repo().count(criteria);
-		json(ctx, Map.of("count", count));
+		var writer = new JsonStreamWriter();
+		writer.beginObject();
+		writer.name("count").value(count);
+		writer.endObject();
+		json(ctx, writer);
 	}
 
-	private void fetch(Context ctx) throws Exception {
-		var body = ApiObjectMapper.get().readTree(ctx.body());
-		var criteria = parseCriteria(body);
-
-		var projection = ApiObjectMapper.parseProjection(body, Purchase.class);
-		if (projection == null) {
-			boolean includeItems = body.has("includeItems") && body.get("includeItems").asBoolean(true);
-			projection = includeItems ? fullProjectionWithItems() : simpleProjection();
-		}
-		criteria.withProjection(projection);
-
-		var items = repo().fetch(criteria);
-		clearCircularRefs(items);
-		json(ctx, Map.of("items", items));
-	}
-
-	private void fetchById(Context ctx) throws Exception {
-		Long id = Long.parseLong(ctx.pathParam("id"));
-		var result = repo().fetchById(id, fullProjectionWithItems());
-		if (result == null) {
-			ctx.status(404).json(Map.of("error", "Not found"));
-			return;
-		}
-		clearCircularRefs(result);
-		json(ctx, result);
-	}
-
-	private void fetchByIdPost(Context ctx) throws Exception {
-		var body = ApiObjectMapper.get().readTree(ctx.body());
-		Long id = body.get("id").asLong();
-		var projection = ApiObjectMapper.parseProjection(body, Purchase.class);
-		var result = repo().fetchById(id, projection != null ? projection : fullProjectionWithItems());
-		if (result == null) {
-			ctx.status(404).json(Map.of("error", "Not found"));
-			return;
-		}
-		clearCircularRefs(result);
-		json(ctx, result);
-	}
-
-	private static void clearCircularRefs(java.util.List<Purchase> purchases) {
-		for (var purchase : purchases) {
-			clearCircularRefs(purchase);
-		}
-	}
-
-	private static void clearCircularRefs(Purchase purchase) {
-		if (purchase.items != null) {
-			for (var item : purchase.items) {
-				item.purchase = null;
+	private void fetch(Context ctx) {
+		var sc = SecurityEnforcer.require("purchase", "read");
+		var reader = new JsonStreamReader(ctx.body());
+		var criteria = new PurchaseCriteria();
+		int offset = 0;
+		int limit = 0;
+		boolean includeItems = true;
+		reader.beginObject();
+		while (reader.hasNext()) {
+			var name = reader.nextName();
+			switch (name) {
+				case "projection" -> criteria.withProjection(codec.readEntity(reader));
+				case "offset" -> offset = InputCoerceUtils.asInteger(reader, 0);
+				case "limit" -> limit = InputCoerceUtils.asInteger(reader, 0);
+				case "includeItems" -> includeItems = Boolean.TRUE.equals(InputCoerceUtils.asBoolean(reader));
+				default -> { if (!codec.readCriteriaField(reader, name, criteria)) reader.skipValue(); }
 			}
 		}
+		reader.endObject();
+		enforceUserScope(sc, criteria);
+		if (criteria.projection() == null) {
+			criteria.withProjection(includeItems ? fullProjectionWithItems() : simpleProjection());
+		}
+		var items = repo().fetch(criteria, offset, limit);
+		var writer = new JsonStreamWriter();
+		writer.beginObject();
+		writer.name("items").beginArray();
+		for (var item : items) {
+			codec.writeEntity(writer, item);
+		}
+		writer.endArray();
+		writer.endObject();
+		json(ctx, writer);
 	}
 
-	private static PurchaseCriteria parseCriteria(JsonNode body) {
+	private void fetchPage(Context ctx) {
+		var sc = SecurityEnforcer.require("purchase", "read");
+		var reader = new JsonStreamReader(ctx.body());
 		var criteria = new PurchaseCriteria();
-		if (hasValue(body, "purchaseId"))
-			criteria.withPurchaseId(body.get("purchaseId").asLong());
-		if (hasValue(body, "userId"))
-			criteria.withUserId(body.get("userId").asLong());
-		if (hasValue(body, "offset"))
-			criteria.withOffset(body.get("offset").asInt());
-		if (hasValue(body, "limit"))
-			criteria.withLimit(body.get("limit").asInt());
-		if (hasValue(body, "orderBy"))
-			criteria.withOrderBy(PurchaseCriteria.OrderBy.valueOf(body.get("orderBy").asText()));
+		int pageIx = 0;
+		int pageSz = 0;
+		boolean includeItems = true;
+		reader.beginObject();
+		while (reader.hasNext()) {
+			var name = reader.nextName();
+			switch (name) {
+				case "projection" -> criteria.withProjection(codec.readEntity(reader));
+				case "page" -> pageIx = InputCoerceUtils.asInteger(reader, 0);
+				case "pageSize" -> pageSz = InputCoerceUtils.asInteger(reader, 0);
+				case "includeItems" -> includeItems = Boolean.TRUE.equals(InputCoerceUtils.asBoolean(reader));
+				default -> { if (!codec.readCriteriaField(reader, name, criteria)) reader.skipValue(); }
+			}
+		}
+		reader.endObject();
+		enforceUserScope(sc, criteria);
+		if (criteria.projection() == null) {
+			criteria.withProjection(includeItems ? fullProjectionWithItems() : simpleProjection());
+		}
+		var page = repo().fetchPage(criteria, pageIx, pageSz);
+		var writer = new JsonStreamWriter();
+		writer.beginObject();
+		writer.name("items").beginArray();
+		for (var item : page.items()) {
+			codec.writeEntity(writer, item);
+		}
+		writer.endArray();
+		writer.name("totalItems").value(page.totalItems());
+		writer.endObject();
+		json(ctx, writer);
+	}
+
+	private void fetchById(Context ctx) {
+		var sc = SecurityEnforcer.require("purchase", "read");
+		Long id = Long.parseLong(ctx.pathParam("id"));
+		var result = repo().fetchById(id, fullProjectionWithItems());
+		if (result == null || (sc != null && !sc.hasDataAll() && result.user != null && !sc.userId().equals(result.user.id))) {
+			ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
+			return;
+		}
+		var writer = new JsonStreamWriter();
+		codec.writeEntity(writer, result);
+		json(ctx, writer);
+	}
+
+	private void fetchByIdPost(Context ctx) {
+		var sc = SecurityEnforcer.require("purchase", "read");
+		var reader = new JsonStreamReader(ctx.body());
+		Long id = null;
+		Purchase projection = null;
+		reader.beginObject();
+		while (reader.hasNext()) {
+			switch (reader.nextName()) {
+				case "id" -> id = InputCoerceUtils.asLong(reader);
+				case "projection" -> projection = codec.readEntity(reader);
+				default -> reader.skipValue();
+			}
+		}
+		reader.endObject();
+		var result = repo().fetchById(id, projection != null ? projection : fullProjectionWithItems());
+		if (result == null || (sc != null && !sc.hasDataAll() && result.user != null && !sc.userId().equals(result.user.id))) {
+			ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
+			return;
+		}
+		var writer = new JsonStreamWriter();
+		codec.writeEntity(writer, result);
+		json(ctx, writer);
+	}
+
+	// :: Security helpers
+
+	private static void enforceUserScope(SecurityContext sc, PurchaseCriteria criteria) {
+		if (sc != null && !sc.hasDataAll()) {
+			criteria.withUserId(sc.userId());
+		}
+	}
+
+	private static void enforceUserScope(SecurityContext sc, Purchase purchase) {
+		if (sc == null || purchase == null) {
+			return;
+		}
+		if (!sc.hasDataAll()) {
+			if (purchase.user == null) {
+				purchase.user = new User();
+			}
+			purchase.user.id = sc.userId();
+		}
+	}
+
+	// :: Helpers
+
+	private PurchaseCriteria readCriteria(JsonStreamReader reader) {
+		var criteria = new PurchaseCriteria();
+		reader.beginObject();
+		while (reader.hasNext()) {
+			var name = reader.nextName();
+			if (!codec.readCriteriaField(reader, name, criteria)) {
+				reader.skipValue();
+			}
+		}
+		reader.endObject();
 		return criteria;
 	}
 
-	private static boolean hasValue(JsonNode node, String field) {
-		return node.has(field) && !node.get(field).isNull();
-	}
-
-	private static void json(Context ctx, Object obj) throws Exception {
+	private static void json(Context ctx, JsonStreamWriter writer) {
 		ctx.contentType("application/json");
-		ctx.result(ApiObjectMapper.get().writeValueAsString(obj));
+		ctx.result(writer.result());
 	}
 }

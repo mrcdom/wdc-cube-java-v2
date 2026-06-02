@@ -21,12 +21,13 @@
         <teavm.version>0.14.0</teavm.version>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
-        <!-- API server URL: override with -Dapi.base.url=http://host:port -->
-        <api.base.url>http://localhost:8080</api.base.url>
+        <!-- API server URL: empty = same origin (relative paths); override with -Dapi.base.url=http://host:port for cross-origin -->
+        <api.base.url></api.base.url>
     </properties>
 
     <modules>
-        <module>br.com.wdc.shopping.view.teavm.web</module>
-        <module>br.com.wdc.shopping.view.teavm.native</module>
+        <module>teavm.commons</module>
+        <module>teavm.web</module>
+        <module>teavm.native</module>
     </modules>
 </project>

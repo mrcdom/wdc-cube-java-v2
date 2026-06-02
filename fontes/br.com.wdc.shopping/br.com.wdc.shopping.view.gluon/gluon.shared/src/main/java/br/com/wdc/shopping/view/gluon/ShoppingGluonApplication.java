@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import br.com.wdc.framework.commons.log.Log;
-
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubePresenter;
 import br.com.wdc.shopping.presentation.ProxyRepositoryWrapper;
@@ -46,11 +45,15 @@ public class ShoppingGluonApplication extends ShoppingApplication {
 
     private StackPane rootPane;
     private final Map<String, AbstractViewGluon<?>> dirtyViewMap = new HashMap<>();
-    private final Map<String, Object> attributeMap = new ConcurrentHashMap<>();
     private boolean flushScheduled;
-    
+
     @Override
     protected Map<Integer, CubePresenter> createPresenterMap() {
+        return new ConcurrentHashMap<>();
+    }
+
+    @Override
+    protected Map<String, Object> createAttributeMap() {
         return new ConcurrentHashMap<>();
     }
 
@@ -90,21 +93,6 @@ public class ShoppingGluonApplication extends ShoppingApplication {
                 }
             }
         }
-    }
-
-    @Override
-    public Object setAttribute(String name, Object value) {
-        return this.attributeMap.put(name, value);
-    }
-
-    @Override
-    public Object getAttribute(String name) {
-        return this.attributeMap.get(name);
-    }
-
-    @Override
-    public Object removeAttribute(String name) {
-        return this.attributeMap.remove(name);
     }
 
     @Override
@@ -159,5 +147,15 @@ public class ShoppingGluonApplication extends ShoppingApplication {
         if (!this.dirtyViewMap.isEmpty()) {
             scheduleFlush();
         }
+    }
+
+    @Override
+    public String b64Cipher(String text) {
+        throw new AssertionError("Not implemented");
+    }
+
+    @Override
+    public String b64Decipher(String b64Text) {
+        throw new AssertionError("Not implemented");
     }
 }

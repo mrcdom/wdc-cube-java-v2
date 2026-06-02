@@ -4,9 +4,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 import br.com.wdc.framework.commons.log.Log;
+import br.com.wdc.framework.commons.storage.ClientStorage;
+import br.com.wdc.framework.commons.storage.PreferencesClientStorage;
 
 import br.com.wdc.shopping.persistence.client.OkHttpTransport;
-import br.com.wdc.shopping.persistence.client.RestConfig;
 import br.com.wdc.shopping.persistence.client.RestRepositoryBootstrap;
 import br.com.wdc.shopping.domain.ShoppingConfig;
 import br.com.wdc.shopping.domain.config.AppConfig;
@@ -49,8 +50,9 @@ public class ShoppingGluonMain extends Application {
         this.executorService = Executors.newScheduledThreadPool(2);
 
         var apiUrl = config.get("api.url", DEFAULT_API_URL);
-        var restConfig = new RestConfig(new OkHttpTransport(apiUrl));
-        RestRepositoryBootstrap.initialize(restConfig);
+        var storage = new PreferencesClientStorage(ShoppingGluonMain.class);
+        ClientStorage.BEAN.set(storage);
+        RestRepositoryBootstrap.initialize(new OkHttpTransport(apiUrl), storage);
 
         LOG.info("Backend initialized with REST client → {}", apiUrl);
     }

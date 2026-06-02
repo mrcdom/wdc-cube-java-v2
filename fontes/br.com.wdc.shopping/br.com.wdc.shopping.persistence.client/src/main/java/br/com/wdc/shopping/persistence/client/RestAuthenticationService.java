@@ -2,8 +2,11 @@ package br.com.wdc.shopping.persistence.client;
 
 import java.time.Instant;
 
-import com.google.gson.JsonObject;
-
+import br.com.wdc.framework.commons.http.HttpTransport;
+import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
+import br.com.wdc.framework.commons.serialization.JsonStreamReader;
+import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
+import br.com.wdc.framework.commons.storage.ClientStorage;
 import br.com.wdc.shopping.domain.exception.BusinessException;
 import br.com.wdc.shopping.domain.security.AuthResult;
 import br.com.wdc.shopping.domain.security.AuthenticationService;
@@ -14,39 +17,81 @@ import br.com.wdc.shopping.domain.security.SecurityContext;
  * Implementação de {@link AuthenticationService} sobre HTTP REST.
  * <p>
  * Encapsula as chamadas aos endpoints {@code /api/auth/*} e gerencia
- * o token de acesso automaticamente no {@link RestAuthClient} vinculado
- * ao {@link RestConfig}, permitindo que os repositórios REST incluam
- * o Bearer token em requisições subsequentes.
+ * o token de acesso automaticamente, permitindo que os repositórios REST
+ * incluam o Bearer token em requisições subsequentes.
+ * <p>
+ * Persiste tokens no {@link ClientStorage} (se disponível) para que a sessão
+ * possa ser restaurada após reinicialização da aplicação.
  */
 public class RestAuthenticationService implements AuthenticationService {
 
-	private final RestConfig config;
-	private final RestAuthClient authClient;
+	private static final String KEY_ACCESS_TOKEN = "auth.accessToken";
+	private static final String KEY_REFRESH_TOKEN = "auth.refreshToken";
 
-	public RestAuthenticationService(RestConfig config) {
-		this.config = config;
-		this.authClient = new RestAuthClient(config);
-		config.setAuthClient(authClient);
+	private final HttpTransport transport;
+	private final RestAuthClient authClient;
+	private final ClientStorage storage;
+
+	public RestAuthenticationService(HttpTransport transport, ClientStorage storage) {
+		this.transport = transport;
+		this.storage = storage;
+		this.authClient = new RestAuthClient(transport);
+		transport.setAccessTokenSupplier(authClient::accessToken);
+	}
+
+	/**
+	 * Tenta restaurar a sessão a partir dos tokens salvos no {@link ClientStorage}.
+	 * Se o refresh token estiver presente, faz refresh e retorna o resultado.
+	 *
+	 * @return resultado do refresh, ou {@code null} se não houver sessão salva ou o refresh falhar
+	 */
+	public AuthResult tryRestore() {
+		var savedRefreshToken = storage.get(KEY_REFRESH_TOKEN);
+		if (savedRefreshToken == null) {
+			return null;
+		}
+
+		var result = refresh(savedRefreshToken);
+		if (result == null) {
+			storage.remove(KEY_ACCESS_TOKEN);
+			storage.remove(KEY_REFRESH_TOKEN);
+		}
+		return result;
 	}
 
 	@Override
 	public ChallengeResult challenge() {
-		var json = config.getJson("/api/auth/challenge");
-		var nonce = json.get("nonce").getAsString();
-		var expiresAt = Instant.parse(json.get("expiresAt").getAsString());
+		var responseJson = transport.getJson("/api/auth/challenge");
+		var reader = new JsonStreamReader(responseJson);
+		reader.beginObject();
+		String nonce = null;
+		Instant expiresAt = null;
+		while (reader.hasNext()) {
+			switch (reader.nextName()) {
+				case "nonce" -> nonce = InputCoerceUtils.asString(reader);
+				case "expiresAt" -> {
+					var s = InputCoerceUtils.asString(reader);
+					if (s != null) expiresAt = Instant.parse(s);
+				}
+				default -> reader.skipValue();
+			}
+		}
+		reader.endObject();
 		return new ChallengeResult(nonce, expiresAt);
 	}
 
 	@Override
 	public AuthResult login(String userName, String digest, String nonce) {
-		var body = new JsonObject();
-		body.addProperty("userName", userName);
-		body.addProperty("digest", digest);
-		body.addProperty("nonce", nonce);
+		var writer = new JsonStreamWriter();
+		writer.beginObject();
+		writer.name("userName").value(userName);
+		writer.name("digest").value(digest);
+		writer.name("nonce").value(nonce);
+		writer.endObject();
 
-		JsonObject response;
+		String responseJson;
 		try {
-			response = config.postJsonPublic("/api/auth/login", body);
+			responseJson = transport.postJsonPublic("/api/auth/login", writer.result());
 		} catch (BusinessException e) {
 			if (e.getMessage() != null && e.getMessage().contains("401")) {
 				return null;
@@ -54,7 +99,7 @@ public class RestAuthenticationService implements AuthenticationService {
 			throw e;
 		}
 
-		var result = parseAuthResult(response);
+		var result = parseAuthResult(responseJson);
 
 		// Atualiza o RestAuthClient para que REST repos incluam o Bearer token
 		authClient.setTokens(
@@ -62,6 +107,10 @@ public class RestAuthenticationService implements AuthenticationService {
 				result.refreshToken(),
 				result.publicKey(),
 				result.expiresAt().getEpochSecond());
+
+		// Persiste tokens para restauração futura
+		storage.set(KEY_ACCESS_TOKEN, result.accessToken());
+		storage.set(KEY_REFRESH_TOKEN, result.refreshToken());
 
 		return result;
 	}
@@ -72,12 +121,14 @@ public class RestAuthenticationService implements AuthenticationService {
 			return null;
 		}
 
-		var body = new JsonObject();
-		body.addProperty("refreshToken", refreshToken);
+		var writer = new JsonStreamWriter();
+		writer.beginObject();
+		writer.name("refreshToken").value(refreshToken);
+		writer.endObject();
 
-		JsonObject response;
+		String responseJson;
 		try {
-			response = config.postJsonPublic("/api/auth/refresh", body);
+			responseJson = transport.postJsonPublic("/api/auth/refresh", writer.result());
 		} catch (BusinessException e) {
 			if (e.getMessage() != null && e.getMessage().contains("401")) {
 				return null;
@@ -85,13 +136,17 @@ public class RestAuthenticationService implements AuthenticationService {
 			throw e;
 		}
 
-		var result = parseAuthResult(response);
+		var result = parseAuthResult(responseJson);
 
 		authClient.setTokens(
 				result.accessToken(),
 				result.refreshToken(),
 				result.publicKey(),
 				result.expiresAt().getEpochSecond());
+
+		// Atualiza tokens no storage
+		storage.set(KEY_ACCESS_TOKEN, result.accessToken());
+		storage.set(KEY_REFRESH_TOKEN, result.refreshToken());
 
 		return result;
 	}
@@ -102,30 +157,49 @@ public class RestAuthenticationService implements AuthenticationService {
 			return;
 		}
 		try {
-			var body = new JsonObject();
-			body.addProperty("refreshToken", refreshToken);
-			config.postJsonPublic("/api/auth/logout", body);
+			var writer = new JsonStreamWriter();
+			writer.beginObject();
+			writer.name("refreshToken").value(refreshToken);
+			writer.endObject();
+			transport.postJsonPublic("/api/auth/logout", writer.result());
 		} catch (Exception ignored) {
 			// Ignora erros de rede no logout
 		}
 		authClient.clearTokens();
+
+		// Limpa tokens do storage
+		storage.remove(KEY_ACCESS_TOKEN);
+		storage.remove(KEY_REFRESH_TOKEN);
 	}
 
 	@Override
 	public SecurityContext resolveToken(String jwtToken) {
 		// Resolução de token é server-side only.
-		// No client REST, o SecurityContextHolder não é usado —
-		// os REST repos enviam o Bearer token e o servidor valida.
 		return null;
 	}
 
-	private static AuthResult parseAuthResult(JsonObject json) {
-		return new AuthResult(
-				json.get("userId").getAsLong(),
-				json.get("accessToken").getAsString(),
-				json.get("refreshToken").getAsString(),
-				Instant.parse(json.get("expiresAt").getAsString()),
-				json.get("publicKey").getAsString());
+	private static AuthResult parseAuthResult(String responseJson) {
+		var reader = new JsonStreamReader(responseJson);
+		reader.beginObject();
+		Long userId = null;
+		String accessToken = null;
+		String refreshToken = null;
+		Instant expiresAt = null;
+		String publicKey = null;
+		while (reader.hasNext()) {
+			switch (reader.nextName()) {
+				case "userId" -> userId = InputCoerceUtils.asLong(reader);
+				case "accessToken" -> accessToken = InputCoerceUtils.asString(reader);
+				case "refreshToken" -> refreshToken = InputCoerceUtils.asString(reader);
+				case "expiresAt" -> {
+					var s = InputCoerceUtils.asString(reader);
+					if (s != null) expiresAt = Instant.parse(s);
+				}
+				case "publicKey" -> publicKey = InputCoerceUtils.asString(reader);
+				default -> reader.skipValue();
+			}
+		}
+		reader.endObject();
+		return new AuthResult(userId, accessToken, refreshToken, expiresAt, publicKey);
 	}
-
 }

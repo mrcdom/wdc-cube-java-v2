@@ -1,0 +1,42 @@
+# WeDoCode Shopping - Application Configuration
+# Place this file at: {CWD}/config/application.toml
+# (start-server.sh sets CWD to the work/ directory)
+
+[app]
+# Base directory for runtime data (data, log, temp, frontend)
+# Resolved relative to the location of THIS file.
+# ".." means one folder above config/ (i.e., the work/ directory itself)
+basedir = ".."
+
+[database]
+# JDBC URL. Default: H2 file database in the data directory
+# url = "jdbc:h2:file:/path/to/wedocode-shopping;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+
+# Database credentials
+# username = "sa"
+# password = "sa"
+
+# Reset database on startup (drops and recreates all tables)
+# reset = false
+
+# Log SQL statements executed by jOOQ (true/false)
+logSql = true
+
+[server]
+# HTTP port
+# port = 8080
+
+# Development mode: enables live-reload endpoints (/__dev/ws, /__dev/notify)
+devMode = true
+
+# Allow any origin for CORS (development mode)
+cors.allowAll = true
+
+[security]
+# JWT secret for API authentication (RepositoryApiRoutes)
+# If not set, API endpoints are served without authentication
+jwt.secret = "wdc-shopping-jwt-s3cr3t-k3y-ch4ng3-1n-pr0duct10n"
+
+[simulation]
+# Simulate slow login (adds 3s delay in LoginPresenter)
+slowLogin = false

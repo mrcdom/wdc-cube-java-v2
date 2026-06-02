@@ -1,0 +1,228 @@
+// Estilos do módulo de login — layout split, painel decorativo, formulário.
+// Importado por login-sel.ts; não referencie este arquivo diretamente nas views.
+
+.wdc-login {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    justify-content: center;
+    align-items: center;
+    background: var(--app-bg);
+
+    &__left-panel {
+        flex: 1;
+        background: linear-gradient(160deg, #0d66d0 0%, #1a8cff 40%, #4da6ff 100%);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 48px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    &__content-center {
+        text-align: center;
+        position: relative;
+        z-index: 1;
+    }
+
+    &__logo-icon-lg {
+        font-size: 2.2rem;
+        color: #fff;
+    }
+
+    &__title-lg {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #fff;
+        letter-spacing: -0.5px;
+        margin-bottom: 8px;
+    }
+
+    &__subtitle-lg {
+        font-size: 0.9rem;
+        color: rgba(255,255,255,0.8);
+        line-height: 1.6;
+        max-width: 280px;
+    }
+
+    &__features-list {
+        margin-top: 32px;
+        text-align: left;
+        display: inline-flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    &__feature-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    &__feature-icon {
+        font-size: 1rem;
+        color: rgba(255,255,255,0.9);
+    }
+
+    &__feature-text {
+        font-size: 0.85rem;
+        color: rgba(255,255,255,0.85);
+        font-weight: 500;
+    }
+
+    &__form-panel {
+        width: 100%;
+        max-width: 460px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 32px;
+        background: var(--app-surface);
+        border-radius: var(--app-radius);
+        box-shadow: var(--app-shadow-lg);
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    &__form-content {
+        width: 100%;
+        max-width: 320px;
+    }
+
+    &__mobile-logo {
+        text-align: center;
+        padding: 24px 16px;
+        margin: -32px -32px 24px -32px;
+        background: linear-gradient(160deg, #0d66d0 0%, #1a8cff 40%, #4da6ff 100%);
+        position: relative;
+        overflow: hidden;
+    }
+
+    &__mobile-circle-1 {
+        position: absolute;
+        top: -30px;
+        right: -30px;
+        width: 100px;
+        height: 100px;
+        background: rgba(255,255,255,0.06);
+        border-radius: 50%;
+    }
+
+    &__mobile-circle-2 {
+        position: absolute;
+        bottom: -20px;
+        left: -20px;
+        width: 80px;
+        height: 80px;
+        background: rgba(255,255,255,0.04);
+        border-radius: 50%;
+    }
+
+    &__mobile-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    &__logo-box-sm {
+        width: 48px;
+        height: 48px;
+        background: rgba(255,255,255,0.12);
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 8px;
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    &__icon-sm {
+        font-size: 1.4rem;
+        color: #fff;
+    }
+
+    &__mobile-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #fff;
+    }
+
+    &__mobile-subtitle {
+        font-size: 0.75rem;
+        color: rgba(255,255,255,0.7);
+        margin-top: 4px;
+    }
+
+    &__welcome-wrap {
+        margin-bottom: 28px;
+    }
+
+    &__welcome-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--app-text);
+        margin-bottom: 4px;
+    }
+
+    &__welcome-subtitle {
+        font-size: 0.85rem;
+        color: var(--app-text-secondary);
+    }
+
+    &__field-label {
+        font-weight: 500;
+    }
+
+    &__field {
+        width: 100%;
+        margin-bottom: 16px;
+    }
+
+    &__field-password {
+        width: 100%;
+        margin-bottom: 24px;
+    }
+
+    &__enter-btn {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+
+    &__demo-hint {
+        text-align: center;
+        padding: 12px;
+        background: var(--app-bg);
+        border-radius: var(--app-radius-sm);
+        border: 1px solid var(--app-border);
+    }
+
+    &__demo-text {
+        font-size: 0.8rem;
+        color: var(--app-text-secondary);
+    }
+
+    &__demo-highlight {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--app-accent);
+    }
+}
+
+// Responsive: on md+ show left panel, full-width form
+@media (min-width: 768px) {
+    .wdc-login {
+        justify-content: flex-start;
+        align-items: stretch;
+        background: none;
+    }
+    .wdc-login__form-panel {
+        border-radius: 0;
+        box-shadow: none;
+        max-height: none;
+        overflow-y: visible;
+    }
+}

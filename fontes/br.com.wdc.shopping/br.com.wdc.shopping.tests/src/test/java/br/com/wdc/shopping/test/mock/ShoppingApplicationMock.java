@@ -1,8 +1,9 @@
 package br.com.wdc.shopping.test.mock;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.commons.lang3.NotImplementedException;
 
 import br.com.wdc.framework.cube.CubePresenter;
 import br.com.wdc.shopping.presentation.ProxyRepositoryWrapper;
@@ -27,22 +28,20 @@ import br.com.wdc.shopping.test.mock.viewimpl.RootViewMock;
 public class ShoppingApplicationMock extends ShoppingApplication {
 
     static {
-        RootPresenter.createView = p -> new RootViewMock((ShoppingApplicationMock) p.app, p);
-        LoginPresenter.createView = p -> new LoginViewMock((ShoppingApplicationMock) p.app, p);
-        HomePresenter.createView = p -> new HomeViewMock((ShoppingApplicationMock) p.app, p);
-        CartPresenter.createView = p -> new CartViewMock((ShoppingApplicationMock) p.app, p);
-        ProductPresenter.createView = p -> new ProductViewMock((ShoppingApplicationMock) p.app, p);
-        ReceiptPresenter.createView = p -> new ReceiptViewMock((ShoppingApplicationMock) p.app, p);
+        RootPresenter.createView = RootViewMock::new;
+        LoginPresenter.createView = LoginViewMock::new;
+        HomePresenter.createView = HomeViewMock::new;
+        CartPresenter.createView = CartViewMock::new;
+        ProductPresenter.createView = ProductViewMock::new;
+        ReceiptPresenter.createView = ReceiptViewMock::new;
         ProductsPanelPresenter.createView = ProductsPanelViewMock::new;
         PurchasesPanelPresenter.createView = PurchasesPanelViewMock::new;
     }
 
-    private final Map<String, Object> attributes = new HashMap<>();
-
     public ShoppingApplicationMock() {
         // NOOP
     }
-    
+
     @Override
     protected Map<Integer, CubePresenter> createPresenterMap() {
         return new ConcurrentHashMap<>();
@@ -63,23 +62,18 @@ public class ShoppingApplicationMock extends ShoppingApplication {
     }
 
     @Override
-    public Object setAttribute(String name, Object value) {
-        return this.attributes.put(name, value);
-    }
-
-    @Override
-    public Object getAttribute(String name) {
-        return this.attributes.get(name);
-    }
-
-    @Override
-    public Object removeAttribute(String name) {
-        return this.attributes.remove(name);
-    }
-
-    @Override
     public void updateHistory() {
         // NOOP
+    }
+
+    @Override
+    public String b64Cipher(String text) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public String b64Decipher(String b64Text) {
+        throw new NotImplementedException();
     }
 
 }

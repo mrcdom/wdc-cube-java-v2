@@ -51,13 +51,17 @@ public class ShoppingVaadinApplication extends ShoppingApplication {
     private UI ui;
     private Div rootContainer;
     private final Map<String, AbstractViewVaadin<?>> dirtyViewMap = new ConcurrentHashMap<>();
-    private final Map<String, Object> attributeMap = new ConcurrentHashMap<>();
     private final AtomicBoolean navigatingFromBrowser = new AtomicBoolean(false);
     private final IntentSigner intentSigner = new IntentSigner();
     private String lastSignature;
 
     @Override
     protected Map<Integer, CubePresenter> createPresenterMap() {
+        return new ConcurrentHashMap<>();
+    }
+
+    @Override
+    protected Map<String, Object> createAttributeMap() {
         return new ConcurrentHashMap<>();
     }
 
@@ -157,9 +161,9 @@ public class ShoppingVaadinApplication extends ShoppingApplication {
                 }
                 lastSignature = newSignature;
                 APP_CACHE.put(newSignature, this);
-                Optional.ofNullable(this.ui).ifPresent(ui -> {
-                    ui.access(() -> {
-                        ui.getPage().executeJs(
+                Optional.ofNullable(this.ui).ifPresent(currentUi -> {
+                    currentUi.access(() -> {
+                        currentUi.getPage().executeJs(
                                 "history.pushState(null, '', '#' + $0)", signedUrl);
                     });
                 });
@@ -175,9 +179,9 @@ public class ShoppingVaadinApplication extends ShoppingApplication {
             // Re-push the current valid state to the browser
             if (this.fragment != null) {
                 var signedUrl = intentSigner.sign(this.fragment);
-                Optional.ofNullable(this.ui).ifPresent(ui -> {
-                    ui.access(() -> {
-                        ui.getPage().executeJs(
+                Optional.ofNullable(this.ui).ifPresent(currentUi -> {
+                    currentUi.access(() -> {
+                        currentUi.getPage().executeJs(
                                 "history.replaceState(null, '', '#' + $0)", signedUrl);
                     });
                 });
@@ -197,18 +201,13 @@ public class ShoppingVaadinApplication extends ShoppingApplication {
     }
 
     @Override
-    public Object setAttribute(String name, Object value) {
-        return this.attributeMap.put(name, value);
+    public String b64Cipher(String text) {
+        throw new AssertionError("not implemented");
     }
 
     @Override
-    public Object getAttribute(String name) {
-        return this.attributeMap.get(name);
-    }
-
-    @Override
-    public Object removeAttribute(String name) {
-        return this.attributeMap.remove(name);
+    public String b64Decipher(String b64Text) {
+        throw new AssertionError("not implemented");
     }
 
     public void markDirty(AbstractViewVaadin<?> view) {
@@ -218,8 +217,8 @@ public class ShoppingVaadinApplication extends ShoppingApplication {
     }
 
     private void scheduleFlush() {
-        Optional.ofNullable(this.ui).ifPresent(ui -> {
-            ui.access(this::flushDirtyViews);
+        Optional.ofNullable(this.ui).ifPresent(currentUi -> {
+            currentUi.access(this::flushDirtyViews);
         });
     }
 

@@ -2,7 +2,7 @@
 
 Proposta arquitetural para construção de aplicações utilizando o padrão **Cube MVP** — uma variação do Model-View-Presenter com presenters hierárquicos, navegação por intents e serialização de estado das views.
 
-Este projeto serve como **referência arquitetural** para novos projetos, demonstrando a implementação completa de um sistema de e-commerce (Shopping) com backend Java e **cinco implementações de frontend independentes** — React (web/remoto), Vaadin (web/server-side), Swing (desktop), Gluon (desktop/iOS/Android via GraalVM Native Image) e TeaVM (web/desktop/Android/iOS via Tauri) — provando que a camada de visualização é totalmente desacoplada da lógica de apresentação.
+Este projeto serve como **referência arquitetural** para novos projetos, demonstrando a implementação completa de um sistema de e-commerce (Shopping) com backend Java e **cinco implementações de frontend independentes** — React (web/remoto), Vaadin (web/server-side), SWT (desktop nativo), Gluon (desktop/iOS/Android via GraalVM Native Image) e TeaVM (web/desktop/Android/iOS via Tauri) — provando que a camada de visualização é totalmente desacoplada da lógica de apresentação.
 
 ## Visão Geral da Arquitetura
 
@@ -11,7 +11,7 @@ graph TD
     subgraph Views["Camada de Visualização"]
         R["React 19 + MUI<br/><small>Browser / WebSocket</small>"]
         V["Vaadin 24 + Lumo<br/><small>Browser / Server Push</small>"]
-        SW["Swing + FlatLaf<br/><small>Desktop / JVM</small>"]
+        SW["Eclipse SWT<br/><small>Desktop Nativo / macOS</small>"]
         GLN["Gluon + JavaFX<br/><small>Desktop / iOS / Android</small>"]
         TVM["TeaVM + Tauri<br/><small>Web / Desktop / Android / iOS</small>"]
     end
@@ -34,15 +34,15 @@ graph TD
 
 | Frontend | Tecnologia | Transporte | Módulo |
 |----------|-----------|------------|--------|
-| **Web (SPA)** | React 19 + TypeScript + MUI 9 | WebSocket (JSON delta) | `view.react` |
+| **Web (SPA)** | React 19 + TypeScript + MUI 9 | WebSocket (JSON delta) | `view.remote` |
 | **Web (SSR)** | Vaadin 24 + Lumo | Server Push (Atmosphere) | `view.vaadin` |
-| **Desktop** | Swing + FlatLaf 3.5 | Direto em memória | `view.swing` |
+| **Desktop Nativo** | Eclipse SWT 3.128.0 | Direto em memória | `view.swt` |
 | **Multiplataforma** | JavaFX + Gluon Mobile | REST (OkHttp) | `view.gluon` |
 | **Multiplataforma (TeaVM)** | TeaVM 0.14 + Tauri 2 + Bootstrap 5 | REST (OkHttp → JS) | `view.teavm` |
 
 **Características principais:**
 
-- **Independência de visualização** — mesmos Presenters/ViewStates alimentam React (web), Vaadin (web server-side), Swing (desktop), Gluon (desktop/iOS/Android) e TeaVM (web/desktop/Android/iOS)
+- **Independência de visualização** — mesmos Presenters/ViewStates alimentam React (web), Vaadin (web server-side), SWT (desktop nativo), Gluon (desktop/iOS/Android) e TeaVM (web/desktop/Android/iOS)
 - **Sem frameworks de DI** — injeção via `AtomicReference<T> BEAN` (service locator estático); services recebem dependências no construtor
 - **Virtual Threads** (Java 21+) — conexões WebSocket com consumo mínimo de memória
 - **Segurança RBAC** — autenticação HMAC challenge-response com JWT, controle de acesso por papéis (ADMIN, CUSTOMER, MANAGER), repositórios decorados com verificação de permissões
@@ -65,20 +65,21 @@ graph TD
     subgraph Shopping["br.com.wdc.shopping"]
         domain["domain<br/><small>Modelos, repositórios, critérios</small>"]
         persistence["persistence<br/><small>H2 + JDBI + Command Pattern</small>"]
+        persistRest["persistence.rest<br/><small>REST controllers (Javalin)</small>"]
+        persistClient["persistence.client<br/><small>REST client (OkHttp + Gson)</small>"]
         presentation["presentation<br/><small>Presenters, ViewStates, navegação</small>"]
         scripts["scripts<br/><small>DDL (DBCreate, DBReset)</small>"]
+        backend["backend<br/><small>Javalin 7 + Virtual Threads (fat JAR)</small>"]
         tests["tests<br/><small>Testes unitários e de workflow</small>"]
-        api["api<br/><small>REST controllers (Javalin)</small>"]
-        apiClient["api-client<br/><small>REST client (OkHttp + Gson)</small>"]
 
-        subgraph ViewReact["view.react"]
-            reactClient["client<br/><small>Frontend React/TypeScript</small>"]
-            reactJavalin["javalin<br/><small>Servidor (fat JAR)</small>"]
-            reactSkeleton["skeleton<br/><small>Views + segurança</small>"]
+        subgraph ViewReact["view.remote"]
+            reactHost["remote.host<br/><small>Views + segurança (servidor)</small>"]
+            reactShellReact["remote.shell.react<br/><small>Frontend React/TypeScript</small>"]
+            reactShellTeavm["remote.shell.teavm<br/><small>Frontend TeaVM (WebSocket)</small>"]
         end
 
         viewVaadin["view.vaadin<br/><small>Vaadin 24 server-side</small>"]
-        viewSwing["view.swing<br/><small>Swing + FlatLaf</small>"]
+        viewSwt["view.swt<br/><small>Eclipse SWT</small>"]
         viewGluon["view.gluon<br/><small>JavaFX + Gluon (Desktop/iOS/Android)</small>"]
         viewTeavm["view.teavm<br/><small>TeaVM + Tauri (Web/Desktop/Android/iOS)</small>"]
     end
@@ -109,16 +110,17 @@ graph TD
 
 | Módulo | Descrição |
 |--------|-----------|
-| **view.react** | Visualização remota via browser — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.react/README.md) |
-| **view.react.client** | SPA em React 19 + TypeScript + MUI 9, bundled via Parcel. Comunicação WebSocket bidirecional, gerenciamento de reconexão, segurança client-side |
+| **view.remote** | Visualização remota via browser — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/README.md) |
+| **view.remote / remote.shell.react** | SPA em React 19 + TypeScript + MUI 9, bundled via Parcel. Comunicação WebSocket bidirecional, gerenciamento de reconexão, segurança client-side |
+| **view.remote / remote.shell.teavm** | Frontend TeaVM para comunicação via WebSocket com o servidor |
 | **backend** | Servidor Javalin 7 com Virtual Threads, WebSocket dispatcher, controllers REST, banco H2 embarcado. Gera fat JAR (~11 MB) |
-| **view.react.skeleton** | Implementações de view para o servidor (`GenericViewImpl`), segurança (`AppSecurity` — RSA/PBKDF2/AES-GCM, `DataSecurity`), SPI de WebSocket |
+| **view.remote / remote.host** | Implementações de view para o servidor (`GenericViewImpl`), segurança (`AppSecurity` — RSA/PBKDF2/AES-GCM, `DataSecurity`), SPI de WebSocket |
 | **view.vaadin** | Visualização web server-side com Vaadin 24 + Lumo theme + Jetty 12 embarcado — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin/README.md) |
-| **view.swing** | Visualização desktop com Swing + FlatLaf (Material look-and-feel) — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.swing/README.md) |
+| **view.swt** | Visualização desktop nativa com Eclipse SWT 3.128.0 — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.swt/README.md) |
 | **view.gluon** | Multiplataforma (Desktop + iOS + Android) com JavaFX + Gluon Mobile + GraalVM Native Image — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/README.md) |
 | **view.teavm** | Multiplataforma (Web + Desktop + Android + iOS) com TeaVM 0.14 + Tauri 2 + Bootstrap 5 — Java compilado para JS — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.teavm/README.md) |
-| **api** | Controllers REST (Javalin) para expor repositórios como endpoints HTTP, filtro de segurança JWT (`SecurityFilter`), endpoints de autenticação (`AuthApiController`) |
-| **api-client** | Client REST (OkHttp + Gson) que implementa as interfaces de repositório e `AuthenticationService` via HTTP, com Bearer token automático |
+| **persistence.rest** | Controllers REST (Javalin) para expor repositórios como endpoints HTTP, filtro de segurança JWT (`SecurityFilter`), endpoints de autenticação (`AuthApiController`) |
+| **persistence.client** | Client REST (OkHttp + Gson) que implementa as interfaces de repositório e `AuthenticationService` via HTTP, com Bearer token automático |
 
 ## Pré-requisitos
 
@@ -142,20 +144,20 @@ mvn clean package
 
 O fat JAR será gerado em:
 ```
-br.com.wdc.shopping/br.com.wdc.shopping/br.com.wdc.shopping.backend/target/br.com.wdc.shopping.backend-1.0.0.jar
+fontes/br.com.wdc.shopping/br.com.wdc.shopping.backend/target/br.com.wdc.shopping.backend-1.0.0.jar
 ```
 
 ### Frontend (React)
 
 ```bash
-cd br.com.wdc.shopping/br.com.wdc.shopping.view.react/react.client
+cd br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.shell.react
 
 npm install        # instalar dependências
 npm run build      # build de produção
 npm run watch      # modo desenvolvimento (hot reload)
 ```
 
-Os assets compilados são gerados diretamente em `react.skeleton/src/main/resources/META-INF/resources`.
+Os assets compilados são gerados diretamente em `remote.host/src/main/resources/META-INF/resources`.
 
 ## Execução
 
@@ -332,7 +334,8 @@ Cada presenter possui um **ViewState** serializável que é transmitido ao front
 | Servidor HTTP | Javalin | 7.2.0 |
 | Web UI (server-side) | Vaadin | 24.6.3 |
 | Servlet Container | Jetty | 12 |
-| Desktop UI | JavaFX (via Gluon) | 21.0.7 |
+| Desktop UI (nativo) | Eclipse SWT (Cocoa macOS aarch64) | 3.128.0 |
+| Desktop UI (JavaFX) | JavaFX (via Gluon) | 21.0.7 |
 | Multiplataforma | Gluon Mobile + GraalVM Native Image | 1.0.25 |
 | Banco de dados | H2 | 2.4.240 |
 | Acesso a dados | JDBI | 3.52.1 |

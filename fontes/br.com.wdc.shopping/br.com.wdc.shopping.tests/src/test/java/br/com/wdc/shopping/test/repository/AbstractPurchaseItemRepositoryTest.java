@@ -113,9 +113,7 @@ public abstract class AbstractPurchaseItemRepositoryTest {
 	@Test
 	public void fetchWithOffsetAndLimit() {
 		var items = repo().fetch(new PurchaseItemCriteria()
-				.withOrderBy(PurchaseItemCriteria.OrderBy.ASCENDING)
-				.withOffset(0)
-				.withLimit(2));
+				.withOrderBy(PurchaseItemCriteria.OrderBy.ASCENDING), 0, 2);
 		assertEquals(2, items.size());
 	}
 
@@ -211,44 +209,6 @@ public abstract class AbstractPurchaseItemRepositoryTest {
 		var fetched = repo().fetchById(DBReset.ADMIN_FIRST_PURCHASE_ITEM0_ID, null);
 		assertEquals(Integer.valueOf(99), fetched.amount);
 		assertEquals(999.99, fetched.price, 0.001);
-	}
-
-	// :: insertOrUpdate
-
-	@Test
-	public void insertOrUpdate_insertsWhenNew() {
-		var item = new PurchaseItem();
-		item.amount = 3;
-		item.price = 25.0;
-		item.purchase = new Purchase();
-		item.purchase.id = DBReset.ADMIN_SECOND_PURCHASE_ID;
-		item.product = new Product();
-		item.product.id = DBReset.BOLA_WILSON_ID;
-
-		boolean result = repo().insertOrUpdate(item);
-		assertTrue(result);
-		assertNotNull(item.id);
-
-		assertEquals(4, repo().count(new PurchaseItemCriteria()));
-	}
-
-	@Test
-	public void insertOrUpdate_updatesWhenExisting() {
-		var item = new PurchaseItem();
-		item.id = DBReset.ADMIN_SECOND_PURCHASE_ITEM0_ID;
-		item.amount = 77;
-		item.price = 77.77;
-		item.purchase = new Purchase();
-		item.purchase.id = DBReset.ADMIN_SECOND_PURCHASE_ID;
-		item.product = new Product();
-		item.product.id = DBReset.CAFETEIRA_ID;
-
-		boolean result = repo().insertOrUpdate(item);
-		assertTrue(result);
-
-		var fetched = repo().fetchById(DBReset.ADMIN_SECOND_PURCHASE_ITEM0_ID, null);
-		assertEquals(Integer.valueOf(77), fetched.amount);
-		assertEquals(77.77, fetched.price, 0.001);
 	}
 
 	// :: delete

@@ -17,7 +17,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartViewState;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.structs.CartItem;
 import br.com.wdc.shopping.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.shopping.view.vaadin.ShoppingVaadinApplication;
@@ -157,12 +157,14 @@ public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
         emptyCartIcon.addClassName("cart-empty-icon");
         this.emptyCartPane.add(emptyCartIcon);
         var emptyText = new Span("Seu carrinho está vazio");
-        emptyText.getStyle().set("display", "block").set("color", "var(--lumo-secondary-text-color)").set("font-size", "1.1rem").set("margin-top", "var(--lumo-space-m)");
+        emptyText.getStyle().set("display", "block").set("color", "var(--lumo-secondary-text-color)")
+                .set("font-size", "1.1rem").set("margin-top", "var(--lumo-space-m)");
         this.emptyCartPane.add(emptyText);
         var goShoppingBtn = new Button("Vamos às compras!",
                 e -> safeAction("Open products", this.presenter::onOpenProducts));
         goShoppingBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        goShoppingBtn.getStyle().set("font-weight", "bold").set("font-size", "1rem").set("margin-top", "var(--lumo-space-s)");
+        goShoppingBtn.getStyle().set("font-weight", "bold").set("font-size", "1rem").set("margin-top",
+                "var(--lumo-space-s)");
         this.emptyCartPane.add(goShoppingBtn);
         pane0.add(this.emptyCartPane);
 

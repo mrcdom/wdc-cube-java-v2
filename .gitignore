@@ -21,6 +21,9 @@ target/
 dist/
 node_modules/
 
+# SCSS generated CSS (compiled by sass-cli-maven-plugin)
+**/src/main/webapp/css/app.css
+
 # Parcel + TeaVM generated resources in backend
 fontes/br.com.wdc.shopping/br.com.wdc.shopping.backend/src/main/resources/META-INF/resources/
 dependency-reduced-pom.xml
@@ -32,6 +35,9 @@ dependency-reduced-pom.xml
 hs_err_pid*
 **/work/data/*.mv.db
 **/work/data/*.trace.db
+
+# Backend work directory (runtime only — consolidated at root work/)
+fontes/br.com.wdc.shopping/br.com.wdc.shopping.backend/work/
 
 # Vaadin generated files
 **/frontend/generated/

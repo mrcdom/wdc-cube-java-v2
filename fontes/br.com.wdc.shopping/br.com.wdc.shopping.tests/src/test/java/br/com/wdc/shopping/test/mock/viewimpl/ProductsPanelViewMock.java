@@ -6,7 +6,8 @@ import org.junit.Assert;
 
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter.ProductsPanelViewState;
+import br.com.wdc.shopping.test.mock.ShoppingApplicationMock;
 
 public class ProductsPanelViewMock implements CubeView {
 
@@ -18,24 +19,26 @@ public class ProductsPanelViewMock implements CubeView {
         return (ProductsPanelViewMock) view;
     }
 
+    public final ShoppingApplicationMock app;
     public final ProductsPanelPresenter presenter;
     public ProductsPanelViewState state;
 
     public ProductsPanelViewMock(ProductsPanelPresenter presenter) {
+        this.app = (ShoppingApplicationMock) presenter.app;
         this.presenter = presenter;
         this.state = presenter.state;
     }
 
     @Override
     public void release() {
-    	// NOOP
+        // NOOP
     }
 
     @Override
     public void update() {
-    	// NOOP
+        // NOOP
     }
-    
+
     public String instanceId() {
         return String.valueOf(INSTANCE_ID_GEN.incrementAndGet());
     }

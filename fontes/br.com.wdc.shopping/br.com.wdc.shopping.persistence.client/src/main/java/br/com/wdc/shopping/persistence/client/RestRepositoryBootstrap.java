@@ -1,5 +1,11 @@
 package br.com.wdc.shopping.persistence.client;
 
+import br.com.wdc.framework.commons.http.HttpTransport;
+import br.com.wdc.framework.commons.storage.ClientStorage;
+import br.com.wdc.shopping.domain.codec.ProductModelCodec;
+import br.com.wdc.shopping.domain.codec.PurchaseItemModelCodec;
+import br.com.wdc.shopping.domain.codec.PurchaseModelCodec;
+import br.com.wdc.shopping.domain.codec.UserModelCodec;
 import br.com.wdc.shopping.domain.repositories.ProductRepository;
 import br.com.wdc.shopping.domain.repositories.PurchaseItemRepository;
 import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
@@ -18,13 +24,13 @@ public final class RestRepositoryBootstrap {
 
     private RestRepositoryBootstrap() {}
 
-    public static void initialize(RestConfig config) {
+    public static void initialize(HttpTransport transport, ClientStorage storage) {
         CryptoProvider.BEAN.set(new JceCryptoProvider());
-        UserRepository.BEAN.set(new RestUserRepository(config));
-        ProductRepository.BEAN.set(new RestProductRepository(config));
-        PurchaseRepository.BEAN.set(new RestPurchaseRepository(config));
-        PurchaseItemRepository.BEAN.set(new RestPurchaseItemRepository(config));
-        AuthenticationService.BEAN.set(new RestAuthenticationService(config));
+        UserRepository.BEAN.set(new HttpUserRepository(transport, new UserModelCodec()));
+        ProductRepository.BEAN.set(new HttpProductRepository(transport, new ProductModelCodec()));
+        PurchaseRepository.BEAN.set(new HttpPurchaseRepository(transport, new PurchaseModelCodec()));
+        PurchaseItemRepository.BEAN.set(new HttpPurchaseItemRepository(transport, new PurchaseItemModelCodec()));
+        AuthenticationService.BEAN.set(new RestAuthenticationService(transport, storage));
     }
 
     public static void release() {

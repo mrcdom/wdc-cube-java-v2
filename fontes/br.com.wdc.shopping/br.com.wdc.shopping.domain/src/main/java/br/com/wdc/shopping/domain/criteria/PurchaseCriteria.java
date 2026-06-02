@@ -17,30 +17,6 @@ public class PurchaseCriteria {
         return this;
     }
 
-    // :: Offset and limit
-
-    private Integer offset;
-
-    public Integer offset() {
-        return offset;
-    }
-
-    public PurchaseCriteria withOffset(Integer offset) {
-        this.offset = offset;
-        return this;
-    }
-
-    private Integer limit;
-
-    public Integer limit() {
-        return limit;
-    }
-
-    public PurchaseCriteria withLimit(Integer limit) {
-        this.limit = limit;
-        return this;
-    }
-
     // :: Criteria
 
     private Long purchaseId;
@@ -62,6 +38,17 @@ public class PurchaseCriteria {
 
     public PurchaseCriteria withUserId(Long userId) {
         this.userId = userId;
+        return this;
+    }
+
+    private Long productId;
+
+    public Long productId() {
+        return productId;
+    }
+
+    public PurchaseCriteria withProductId(Long productId) {
+        this.productId = productId;
         return this;
     }
 

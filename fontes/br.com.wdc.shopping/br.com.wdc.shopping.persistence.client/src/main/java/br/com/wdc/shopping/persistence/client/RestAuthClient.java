@@ -10,8 +10,10 @@ import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
-import com.google.gson.JsonObject;
-
+import br.com.wdc.framework.commons.http.HttpTransport;
+import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
+import br.com.wdc.framework.commons.serialization.JsonStreamReader;
+import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
 import br.com.wdc.shopping.domain.exception.BusinessException;
 
 /**
@@ -23,15 +25,15 @@ public class RestAuthClient {
 
 	private static final String HMAC_ALGORITHM = "HmacSHA256";
 
-	private final RestConfig config;
+	private final HttpTransport transport;
 
 	private String accessToken;
 	private String refreshToken;
 	private String publicKeyBase64;
 	private long expiresAtEpochSecond;
 
-	public RestAuthClient(RestConfig config) {
-		this.config = config;
+	public RestAuthClient(HttpTransport transport) {
+		this.transport = transport;
 	}
 
 	/**
@@ -42,26 +44,45 @@ public class RestAuthClient {
 	 */
 	public void login(String userName, String passwordHash) {
 		// 1. Obter challenge (nonce)
-		var challengeResponse = config.getJson("/api/auth/challenge");
-		var nonce = challengeResponse.get("nonce").getAsString();
+		var challengeJson = transport.getJson("/api/auth/challenge");
+		var challengeReader = new JsonStreamReader(challengeJson);
+		challengeReader.beginObject();
+		String nonce = null;
+		while (challengeReader.hasNext()) {
+			switch (challengeReader.nextName()) {
+				case "nonce" -> nonce = InputCoerceUtils.asString(challengeReader);
+				default -> challengeReader.skipValue();
+			}
+		}
+		challengeReader.endObject();
 
 		// 2. Calcular HMAC: key=passwordHash, data=userName+nonce
 		var digest = computeHmac(passwordHash, userName + nonce);
 
 		// 3. Enviar login
-		var loginBody = new JsonObject();
-		loginBody.addProperty("userName", userName);
-		loginBody.addProperty("digest", digest);
-		loginBody.addProperty("nonce", nonce);
+		var writer = new JsonStreamWriter();
+		writer.beginObject();
+		writer.name("userName").value(userName);
+		writer.name("digest").value(digest);
+		writer.name("nonce").value(nonce);
+		writer.endObject();
 
-		var loginResponse = config.postJsonPublic("/api/auth/login", loginBody);
-
-		this.accessToken = loginResponse.get("accessToken").getAsString();
-		this.refreshToken = loginResponse.get("refreshToken").getAsString();
-		this.publicKeyBase64 = loginResponse.get("publicKey").getAsString();
-
-		var expiresAtStr = loginResponse.get("expiresAt").getAsString();
-		this.expiresAtEpochSecond = java.time.Instant.parse(expiresAtStr).getEpochSecond();
+		var loginJson = transport.postJsonPublic("/api/auth/login", writer.result());
+		var loginReader = new JsonStreamReader(loginJson);
+		loginReader.beginObject();
+		while (loginReader.hasNext()) {
+			switch (loginReader.nextName()) {
+				case "accessToken" -> this.accessToken = InputCoerceUtils.asString(loginReader);
+				case "refreshToken" -> this.refreshToken = InputCoerceUtils.asString(loginReader);
+				case "publicKey" -> this.publicKeyBase64 = InputCoerceUtils.asString(loginReader);
+				case "expiresAt" -> {
+					var s = InputCoerceUtils.asString(loginReader);
+					if (s != null) this.expiresAtEpochSecond = java.time.Instant.parse(s).getEpochSecond();
+				}
+				default -> loginReader.skipValue();
+			}
+		}
+		loginReader.endObject();
 	}
 
 	/**
@@ -72,17 +93,27 @@ public class RestAuthClient {
 			throw new BusinessException("No refresh token available — login first");
 		}
 
-		var body = new JsonObject();
-		body.addProperty("refreshToken", refreshToken);
+		var writer = new JsonStreamWriter();
+		writer.beginObject();
+		writer.name("refreshToken").value(refreshToken);
+		writer.endObject();
 
-		var response = config.postJsonPublic("/api/auth/refresh", body);
-
-		this.accessToken = response.get("accessToken").getAsString();
-		this.refreshToken = response.get("refreshToken").getAsString();
-		this.publicKeyBase64 = response.get("publicKey").getAsString();
-
-		var expiresAtStr = response.get("expiresAt").getAsString();
-		this.expiresAtEpochSecond = java.time.Instant.parse(expiresAtStr).getEpochSecond();
+		var responseJson = transport.postJsonPublic("/api/auth/refresh", writer.result());
+		var reader = new JsonStreamReader(responseJson);
+		reader.beginObject();
+		while (reader.hasNext()) {
+			switch (reader.nextName()) {
+				case "accessToken" -> this.accessToken = InputCoerceUtils.asString(reader);
+				case "refreshToken" -> this.refreshToken = InputCoerceUtils.asString(reader);
+				case "publicKey" -> this.publicKeyBase64 = InputCoerceUtils.asString(reader);
+				case "expiresAt" -> {
+					var s = InputCoerceUtils.asString(reader);
+					if (s != null) this.expiresAtEpochSecond = java.time.Instant.parse(s).getEpochSecond();
+				}
+				default -> reader.skipValue();
+			}
+		}
+		reader.endObject();
 	}
 
 	/**
@@ -91,7 +122,10 @@ public class RestAuthClient {
 	public void logout() {
 		if (accessToken != null) {
 			try {
-				config.postJsonWithAuth("/api/auth/logout", new JsonObject(), accessToken);
+				var writer = new JsonStreamWriter();
+				writer.beginObject();
+				writer.endObject();
+				transport.postJsonWithAuth("/api/auth/logout", writer.result(), accessToken);
 			} catch (Exception e) {
 				// Ignora erros de rede no logout
 			}

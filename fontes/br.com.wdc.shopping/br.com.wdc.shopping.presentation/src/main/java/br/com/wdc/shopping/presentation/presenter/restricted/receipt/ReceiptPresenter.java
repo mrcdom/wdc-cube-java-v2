@@ -1,14 +1,16 @@
 package br.com.wdc.shopping.presentation.presenter.restricted.receipt;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
 import br.com.wdc.framework.commons.log.Log;
-
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubeIntent;
+import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.CubeViewSlot;
+import br.com.wdc.framework.cube.ViewState;
 import br.com.wdc.shopping.presentation.PlaceAttributes;
 import br.com.wdc.shopping.presentation.PlaceParameters;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
@@ -27,6 +29,13 @@ public class ReceiptPresenter extends AbstractCubePresenter<ShoppingApplication>
     public static Function<ReceiptPresenter, CubeView> createView;
 
     // :: Public Instance Fields
+
+    public static class ReceiptViewState implements ViewState {
+
+        public boolean notifySuccess;
+        public ReceiptForm receipt;
+
+    }
 
     public final ReceiptViewState state = new ReceiptViewState();
 
@@ -106,6 +115,25 @@ public class ReceiptPresenter extends AbstractCubePresenter<ShoppingApplication>
             throw new PurchaseNotFoundException();
         }
         return receipt;
+    }
+
+    // :: Controle remoto
+
+    public CubeSkeleton skeleton() {
+        return new CubeSkeleton() {
+
+            @Override
+            public String classId() {
+                return "e8d0bd8ae3bc";
+            }
+
+            @Override
+            public void submit(int eventCode, int eventQtde, Map<String, Object> formData) throws Exception {
+                if (eventCode == 1) {
+                    onOpenProducts();
+                }
+            }
+        };
     }
 
 }

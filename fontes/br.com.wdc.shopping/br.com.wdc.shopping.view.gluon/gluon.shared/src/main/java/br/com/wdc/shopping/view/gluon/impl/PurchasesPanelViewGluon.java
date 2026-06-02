@@ -10,14 +10,14 @@ import java.util.Objects;
 import java.util.function.BiConsumer;
 
 import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter.PurchasesPanelViewState;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
 import br.com.wdc.shopping.view.gluon.AbstractViewGluon;
 import br.com.wdc.shopping.view.gluon.ShoppingGluonApplication;
 import br.com.wdc.shopping.view.gluon.theme.GluonColors;
 import br.com.wdc.shopping.view.gluon.theme.GluonIcons;
-import br.com.wdc.shopping.view.gluon.util.GluonDom;
 import br.com.wdc.shopping.view.gluon.theme.GluonStyles;
+import br.com.wdc.shopping.view.gluon.util.GluonDom;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -146,6 +146,7 @@ public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPre
     }
 
     private PauseTransition resizeDebounce;
+    @SuppressWarnings("java:S1450") // Detectado erroneamente pelo Sonar
     private int pendingContainerHeight;
 
     private void scheduleResize(int containerHeight) {
@@ -158,7 +159,8 @@ public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPre
     }
 
     private void computePageSize(int containerHeight) {
-        if (containerHeight <= 0) return;
+        if (containerHeight <= 0)
+            return;
         int capacity = Math.max(1, containerHeight / ITEM_HEIGHT_PX);
         this.presenter.onItemSizeCapacityChanged(capacity);
     }

@@ -2,6 +2,6 @@ package br.com.wdc.shopping.domain.exception;
 
 public class InvalidCartItemException extends BusinessException {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1665377704497244027L;
 
 }

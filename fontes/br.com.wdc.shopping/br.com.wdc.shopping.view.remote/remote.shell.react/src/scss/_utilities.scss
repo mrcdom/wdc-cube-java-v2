@@ -1,0 +1,588 @@
+// =============================================================================
+// UTILITY CLASSES
+// Generated from common inline style patterns found across TeaVM views
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// 1. DISPLAY & VISIBILITY
+// -----------------------------------------------------------------------------
+.hidden { display: none; }
+.block { display: block; }
+.inline-flex { display: inline-flex; }
+.overflow-hidden { overflow: hidden; }
+.overflow-y-auto { overflow-y: auto; }
+.overflow-auto { overflow: auto; }
+
+// -----------------------------------------------------------------------------
+// 2. FLEX LAYOUT
+// -----------------------------------------------------------------------------
+.flex { display: flex; }
+.flex-col { display: flex; flex-direction: column; }
+.flex-center { display: flex; align-items: center; justify-content: center; }
+.flex-col-center { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.flex-items-center { display: flex; align-items: center; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.flex-end { display: flex; justify-content: flex-end; }
+.flex-col-stretch { display: flex; flex-direction: column; align-items: stretch; }
+
+.flex-1 { flex: 1; }
+.flex-grow { flex-grow: 1; }
+.flex-shrink-0 { flex-shrink: 0; }
+.flex-1-scroll { flex: 1; min-height: 0; }
+
+.flex-wrap { flex-wrap: wrap; }
+
+// Gaps
+.gap-4 { gap: 4px; }
+.gap-6 { gap: 6px; }
+.gap-8 { gap: 8px; }
+.gap-10 { gap: 10px; }
+.gap-12 { gap: 12px; }
+.gap-16 { gap: 16px; }
+.gap-20 { gap: 20px; }
+.gap-24 { gap: 24px; }
+
+// Alignment modifiers (composable with .flex or .flex-col)
+.items-center { align-items: center; }
+.items-start { align-items: flex-start; }
+.items-end { align-items: flex-end; }
+.items-stretch { align-items: stretch; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.justify-end { justify-content: flex-end; }
+.justify-start { justify-content: flex-start; }
+
+// -----------------------------------------------------------------------------
+// 3. SPACING
+// -----------------------------------------------------------------------------
+// Padding
+.p-0 { padding: 0; }
+.p-4 { padding: 4px; }
+.p-8 { padding: 8px; }
+.p-10 { padding: 10px; }
+.p-12 { padding: 12px; }
+.p-16 { padding: 16px; }
+.p-20 { padding: 20px; }
+.p-24 { padding: 24px; }
+.p-32 { padding: 32px; }
+.p-48 { padding: 48px; }
+
+.px-8 { padding-left: 8px; padding-right: 8px; }
+.px-12 { padding-left: 12px; padding-right: 12px; }
+.px-16 { padding-left: 16px; padding-right: 16px; }
+.px-20 { padding-left: 20px; padding-right: 20px; }
+.px-24 { padding-left: 24px; padding-right: 24px; }
+
+.py-8 { padding-top: 8px; padding-bottom: 8px; }
+.py-10 { padding-top: 10px; padding-bottom: 10px; }
+.py-12 { padding-top: 12px; padding-bottom: 12px; }
+.py-16 { padding-top: 16px; padding-bottom: 16px; }
+.py-20 { padding-top: 20px; padding-bottom: 20px; }
+.py-24 { padding-top: 24px; padding-bottom: 24px; }
+
+.pt-8 { padding-top: 8px; }
+.pt-16 { padding-top: 16px; }
+.pt-24 { padding-top: 24px; }
+.pb-8 { padding-bottom: 8px; }
+.pb-16 { padding-bottom: 16px; }
+
+// Margin
+.m-0 { margin: 0; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.mt-4 { margin-top: 4px; }
+.mt-8 { margin-top: 8px; }
+.mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; }
+.mt-20 { margin-top: 20px; }
+.mt-24 { margin-top: 24px; }
+.mt-32 { margin-top: 32px; }
+.mb-4 { margin-bottom: 4px; }
+.mb-8 { margin-bottom: 8px; }
+.mb-12 { margin-bottom: 12px; }
+.mb-16 { margin-bottom: 16px; }
+.mb-20 { margin-bottom: 20px; }
+.mb-24 { margin-bottom: 24px; }
+.ml-4 { margin-left: 4px; }
+.ml-6 { margin-left: 6px; }
+.ml-8 { margin-left: 8px; }
+.mr-4 { margin-right: 4px; }
+.mr-6 { margin-right: 6px; }
+.mr-8 { margin-right: 8px; }
+
+// -----------------------------------------------------------------------------
+// 4. SIZING
+// -----------------------------------------------------------------------------
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+.min-h-0 { min-height: 0; }
+.min-h-full { min-height: 100%; }
+.min-w-0 { min-width: 0; }
+.max-w-280 { max-width: 280px; }
+.max-w-320 { max-width: 320px; }
+.max-w-460 { max-width: 460px; }
+.max-w-900 { max-width: 900px; }
+
+// -----------------------------------------------------------------------------
+// 5. TYPOGRAPHY
+// -----------------------------------------------------------------------------
+// Font size
+.text-xs { font-size: 0.7rem; }
+.text-sm { font-size: 0.85rem; }
+.text-base { font-size: 1rem; }
+.text-lg { font-size: 1.1rem; }
+.text-xl { font-size: 1.2rem; }
+.text-2xl { font-size: 1.5rem; }
+.text-3xl { font-size: 2rem; }
+
+// Font weight
+.font-normal { font-weight: 400; }
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+.font-extrabold { font-weight: 800; }
+
+// Text align
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+// Line height
+.leading-tight { line-height: 1.2; }
+.leading-normal { line-height: 1.5; }
+.leading-relaxed { line-height: 1.6; }
+
+// Letter spacing
+.tracking-tight { letter-spacing: -0.3px; }
+.tracking-tighter { letter-spacing: -0.5px; }
+.tracking-wide { letter-spacing: 0.5px; }
+
+// Text colors
+.text-primary { color: var(--app-text); }
+.text-secondary { color: var(--app-text-secondary); }
+.text-accent { color: var(--app-accent); }
+.text-white { color: #fff; }
+.text-white-70 { color: rgba(255,255,255,0.7); }
+.text-white-65 { color: rgba(255,255,255,0.65); }
+.text-white-80 { color: rgba(255,255,255,0.8); }
+
+// Semantic text combinations
+.text-sm-secondary { font-size: 0.85rem; color: var(--app-text-secondary); }
+.text-xs-secondary { font-size: 0.75rem; color: var(--app-text-secondary); }
+
+// -----------------------------------------------------------------------------
+// 6. BORDERS & RADIUS
+// -----------------------------------------------------------------------------
+.border { border: 1px solid var(--app-border); }
+.border-t { border-top: 1px solid var(--app-border); }
+.border-b { border-bottom: 1px solid var(--app-border); }
+.border-none { border: none; }
+
+.rounded { border-radius: var(--app-radius); }
+.rounded-sm { border-radius: var(--app-radius-sm); }
+.rounded-10 { border-radius: 10px; }
+.rounded-12 { border-radius: 12px; }
+.rounded-20 { border-radius: 20px; }
+.rounded-full { border-radius: 50%; }
+
+// -----------------------------------------------------------------------------
+// 7. BACKGROUND & SHADOWS
+// -----------------------------------------------------------------------------
+.bg-surface { background: var(--app-surface); }
+.bg-default { background: var(--app-bg); }
+.bg-accent-light { background: var(--app-accent-light); }
+.bg-white { background: #fff; }
+.bg-none { background: none; }
+.bg-transparent { background: transparent; }
+
+.bg-gradient-primary { background: linear-gradient(135deg, #0d66d0 0%, #1a8cff 100%); }
+.bg-gradient-primary-extended { background: linear-gradient(160deg, #0d66d0 0%, #1a8cff 40%, #4da6ff 100%); }
+
+.bg-white-04 { background: rgba(255,255,255,0.04); }
+.bg-white-05 { background: rgba(255,255,255,0.05); }
+.bg-white-06 { background: rgba(255,255,255,0.06); }
+.bg-white-12 { background: rgba(255,255,255,0.12); }
+.bg-white-15 { background: rgba(255,255,255,0.15); }
+
+.shadow-sm { box-shadow: var(--app-shadow-sm); }
+.shadow-md { box-shadow: var(--app-shadow-md); }
+.shadow-lg { box-shadow: var(--app-shadow-lg); }
+.shadow-blue { box-shadow: 0 2px 8px rgba(13,102,208,0.3); }
+
+.backdrop-blur-sm { backdrop-filter: blur(4px); }
+.backdrop-blur-md { backdrop-filter: blur(8px); }
+
+// -----------------------------------------------------------------------------
+// 8. POSITION
+// -----------------------------------------------------------------------------
+.relative { position: relative; }
+.absolute { position: absolute; }
+.z-1 { z-index: 1; }
+.z-10 { z-index: 10; }
+
+// -----------------------------------------------------------------------------
+// 9. CURSOR & INTERACTION
+// -----------------------------------------------------------------------------
+.cursor-pointer { cursor: pointer; }
+.pointer-events-none { pointer-events: none; }
+
+// -----------------------------------------------------------------------------
+// 10. TRANSITIONS
+// -----------------------------------------------------------------------------
+.transition-colors { transition: color var(--app-transition), background var(--app-transition); }
+.transition-transform { transition: transform var(--app-transition); }
+.transition-all { transition: all var(--app-transition); }
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// 11. ERROR/ALERT SEMANTIC COMPONENTS
+// -----------------------------------------------------------------------------
+:root {
+    --app-error-bg: #fef2f2;
+    --app-error-border: #fecaca;
+    --app-error-text: #991b1b;
+    --app-error-icon: #dc2626;
+}
+
+.wdc-alert--error {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    margin: 8px 16px;
+    background: var(--app-error-bg);
+    border: 1px solid var(--app-error-border);
+    border-radius: var(--app-radius-sm);
+}
+
+.wdc-alert--error__icon {
+    color: var(--app-error-icon);
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.wdc-alert--error__text {
+    font-size: 0.85rem;
+    color: var(--app-error-text);
+    font-weight: 500;
+}
+
+// -----------------------------------------------------------------------------
+// 12. NAVBAR COMPONENT
+// -----------------------------------------------------------------------------
+.wdc-navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #0d66d0 0%, #1a8cff 100%);
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(13,102,208,0.3);
+}
+
+.wdc-navbar__group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+// -----------------------------------------------------------------------------
+// 13. EMPTY STATE
+// -----------------------------------------------------------------------------
+.wdc-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    text-align: center;
+}
+
+// -----------------------------------------------------------------------------
+// 14. TAB NAVIGATION
+// -----------------------------------------------------------------------------
+.wdc-tab-nav {
+    display: flex;
+    background: var(--app-surface);
+    flex-shrink: 0;
+    box-shadow: 0 1px 0 var(--app-border);
+}
+
+.wdc-tab-nav__item {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 0;
+    font-size: 0.8rem;
+    cursor: pointer;
+    border: none;
+    background: none;
+    position: relative;
+    transition: color 0.2s;
+}
+
+.wdc-tab-nav__item--active {
+    font-weight: 600;
+    color: var(--app-accent);
+}
+
+.wdc-tab-nav__item--inactive {
+    font-weight: 500;
+    color: var(--app-text-secondary);
+}
+
+.wdc-tab-nav__indicator {
+    position: absolute;
+    bottom: 0;
+    left: 16px;
+    right: 16px;
+    height: 2.5px;
+    background: var(--app-accent);
+    border-radius: 2px;
+}
+
+// -----------------------------------------------------------------------------
+// 15. LOGO / BRANDING
+// -----------------------------------------------------------------------------
+.wdc-logo-box {
+    width: 36px;
+    height: 36px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+}
+
+.wdc-logo-box--lg {
+    width: 80px;
+    height: 80px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+// -----------------------------------------------------------------------------
+// 16. CART BADGE
+// -----------------------------------------------------------------------------
+.wdc-cart-badge {
+    background: #fff;
+    color: var(--app-accent);
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+    margin-left: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+// -----------------------------------------------------------------------------
+// 17. DECORATION CIRCLES (Login panel)
+// -----------------------------------------------------------------------------
+.wdc-deco-circle {
+    position: absolute;
+    border-radius: 50%;
+}
+
+.wdc-deco-circle--1 {
+    top: -60px;
+    right: -60px;
+    width: 200px;
+    height: 200px;
+    background: rgba(255,255,255,0.06);
+}
+
+.wdc-deco-circle--2 {
+    bottom: -40px;
+    left: -40px;
+    width: 160px;
+    height: 160px;
+    background: rgba(255,255,255,0.04);
+}
+
+.wdc-deco-circle--3 {
+    top: 40%;
+    left: 20%;
+    width: 80px;
+    height: 80px;
+    background: rgba(255,255,255,0.05);
+}
+
+// -----------------------------------------------------------------------------
+// 18. TOTAL / SUMMARY ROWS
+// -----------------------------------------------------------------------------
+.wdc-total-row {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 16px 20px;
+    border-top: 1px solid var(--app-border);
+}
+
+// -----------------------------------------------------------------------------
+// 19. ADDITIONAL UTILITIES
+// -----------------------------------------------------------------------------
+.whitespace-nowrap { white-space: nowrap; }
+.text-ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.object-contain { object-fit: contain; }
+.aspect-1 { aspect-ratio: 1; }
+.box-border { box-sizing: border-box; }
+.text-uppercase { text-transform: uppercase; }
+
+// Additional font sizes
+.text-xxs { font-size: 0.65rem; }
+.text-4xl { font-size: 2.2rem; }
+
+// Additional spacing
+.mb-6 { margin-bottom: 6px; }
+.mb-10 { margin-bottom: 10px; }
+.mb-28 { margin-bottom: 28px; }
+.mt-auto { margin-top: auto; }
+.pt-10 { padding-top: 10px; }
+.pt-12 { padding-top: 12px; }
+.pb-6 { padding-bottom: 6px; }
+.pb-10 { padding-bottom: 10px; }
+
+// Additional sizing
+.w-28 { width: 28px; }
+.h-28 { height: 28px; }
+.w-40 { width: 40px; }
+.h-40 { height: 40px; }
+.w-48 { width: 48px; }
+.h-48 { height: 48px; }
+.w-80 { width: 80px; }
+.h-80 { height: 80px; }
+.w-100 { width: 100px; }
+.h-100 { height: 100px; }
+.min-w-24 { min-width: 24px; }
+.min-w-28 { min-width: 28px; }
+.max-w-160 { max-width: 160px; }
+.max-h-160 { max-height: 160px; }
+
+// Additional borders
+.border-white-20 { border: 1px solid rgba(255,255,255,0.2); }
+.border-dashed { border-bottom: 1px dashed var(--app-border); }
+.border-dotted { border-bottom: 1px dotted var(--app-border); }
+.border-t-accent { border-top: 2px solid var(--app-accent); }
+.border-l { border-left: 1px solid var(--app-border); }
+
+// Transitions
+.transition-transform-spring { transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+
+// -----------------------------------------------------------------------------
+// 20. SHARED PAGE / CARD COMPONENTS
+// -----------------------------------------------------------------------------
+.wdc-page__scroll-root {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    background: var(--app-bg);
+}
+
+.wdc-page__wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.wdc-card {
+    background: var(--app-surface);
+    border-radius: var(--app-radius);
+    border: 1px solid var(--app-border);
+    padding: 24px;
+    box-shadow: var(--app-shadow-sm);
+}
+
+.wdc-card--lg {
+    background: var(--app-surface);
+    border-radius: var(--app-radius);
+    border: 1px solid var(--app-border);
+    padding: 28px;
+    box-shadow: var(--app-shadow-sm);
+}
+
+.wdc-card__header-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.wdc-card__header-icon-box {
+    width: 40px;
+    height: 40px;
+    background: var(--app-accent-light);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wdc-card__header-icon {
+    color: var(--app-accent);
+    font-size: 1.1rem;
+}
+
+.wdc-card__header-title {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--app-text);
+}
+
+.wdc-card__header-subtitle {
+    font-size: 0.75rem;
+    color: var(--app-text-secondary);
+}
+
+// -----------------------------------------------------------------------------
+// 21. ALERT SUCCESS
+// -----------------------------------------------------------------------------
+.wdc-alert--success {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 18px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: var(--app-radius-sm);
+    margin-bottom: 16px;
+}
+
+.wdc-alert--success__icon {
+    color: #16a34a;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.wdc-alert--success__text {
+    font-size: 0.9rem;
+    color: #166534;
+    font-weight: 600;
+}
+
+// -----------------------------------------------------------------------------
+// RESPONSIVE UTILITIES
+// -----------------------------------------------------------------------------
+.sm-show { display: none; }
+.md-show { display: none !important; }
+.md-row { flex-direction: column; }
+
+@media (min-width: 576px) {
+    .sm-show { display: inline; }
+    .sm-row { flex-direction: row; }
+}
+@media (min-width: 768px) {
+    .md-hide { display: none !important; }
+    .md-show { display: flex !important; }
+    .md-row { flex-direction: row; }
+    .md-grow-0 { flex-grow: 0; }
+}

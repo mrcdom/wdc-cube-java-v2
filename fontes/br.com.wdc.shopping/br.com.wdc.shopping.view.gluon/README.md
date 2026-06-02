@@ -1,6 +1,6 @@
 # br.com.wdc.shopping.view.gluon
 
-Implementação **multiplataforma móvel** (iOS e Android) e **desktop** da aplicação **WeDoCode Shopping** utilizando [Gluon Mobile](https://gluonhq.com/) + JavaFX, com compilação nativa via GraalVM Native Image. Compartilha os mesmos Presenters, ViewStates e lógica de negócio das demais implementações (React, Vaadin, Swing) — apenas a camada de visualização é específica.
+Implementação **multiplataforma móvel** (iOS e Android) e **desktop** da aplicação **WeDoCode Shopping** utilizando [Gluon Mobile](https://gluonhq.com/) + JavaFX, com compilação nativa via GraalVM Native Image. Compartilha os mesmos Presenters, ViewStates e lógica de negócio das demais implementações (React, Vaadin, SWT) — apenas a camada de visualização é específica.
 
 ## Motivação
 

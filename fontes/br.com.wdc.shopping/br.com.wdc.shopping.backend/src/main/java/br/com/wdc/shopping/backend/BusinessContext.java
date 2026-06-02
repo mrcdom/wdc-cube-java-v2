@@ -4,18 +4,20 @@ import java.nio.file.Path;
 import java.util.concurrent.ScheduledExecutorService;
 
 import org.h2.jdbcx.JdbcDataSource;
-import br.com.wdc.framework.commons.log.Log;
 
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
+import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.sql.SqlDataSource;
 import br.com.wdc.framework.commons.sql.SqlDataSourceDelegate;
+import br.com.wdc.shopping.domain.ShoppingConfig;
+import br.com.wdc.shopping.domain.config.AppConfig;
 import br.com.wdc.shopping.domain.security.CryptoProvider;
 import br.com.wdc.shopping.domain.security.JceCryptoProvider;
 import br.com.wdc.shopping.persistence.RepositoryBootstrap;
 import br.com.wdc.shopping.persistence.concurrent.ScheduledExecutorAdapter;
+import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
 import br.com.wdc.shopping.scripts.sgbd.DBCreate;
-import br.com.wdc.shopping.domain.ShoppingConfig;
-import br.com.wdc.shopping.domain.config.AppConfig;
+import br.com.wdc.shopping.view.remote.host.RemoteHostBootstrap;
 
 public class BusinessContext {
 
@@ -24,13 +26,14 @@ public class BusinessContext {
     private static final String DEFAULT_DB_NAME = "wedocode-shopping";
 
     public void stop() {
+        RemoteHostBootstrap.stop();
         RepositoryBootstrap.release();
         ScheduledExecutor.BEAN.set(null);
         SqlDataSource.BEAN.set(null);
         CryptoProvider.BEAN.set(null);
     }
 
-    public void start() {
+    public void configure() {
         try {
             var config = AppConfig.load();
             ShoppingConfig.Internals.configure(config);
@@ -51,6 +54,8 @@ public class BusinessContext {
 
             SqlDataSource.BEAN.set(new SqlDataSourceDelegate(dataSource));
 
+            RepositoryBootstrap.initialize(config.getBoolean("database.logSql", false));
+
             try (var connection = dataSource.getConnection()) {
                 var command = new DBCreate().withConnection(connection);
                 if (config.getBoolean("database.reset", false)) {
@@ -59,17 +64,21 @@ public class BusinessContext {
                 command.run();
             }
 
-            RepositoryBootstrap.initialize();
-
             var jwtSecret = ShoppingConfig.getJwtSecret();
             if (jwtSecret != null && !jwtSecret.isBlank()) {
                 RepositoryBootstrap.initializeSecurity(jwtSecret);
             }
 
-            LOG.info("Shopping backend context initialized with database {}", dataSource.getURL());
+            LoginPresenter.simulateSlowLogin(config.getBoolean("simulation.slowLogin", false));
+
+            LOG.info("Shopping backend context configured with database {}", dataSource.getURL());
         } catch (Exception e) {
-            throw new IllegalStateException("Failed to initialize shopping backend context", e);
+            throw new IllegalStateException("Failed to configure shopping backend context", e);
         }
+    }
+
+    public void start() {
+        RemoteHostBootstrap.start();
     }
 
     private static String resolveJdbcUrl(AppConfig config, Path dataDir) {

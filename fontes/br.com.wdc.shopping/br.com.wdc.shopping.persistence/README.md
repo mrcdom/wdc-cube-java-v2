@@ -1,24 +1,24 @@
 # WDC Shopping — Persistence
 
-Camada de persistência do sistema Shopping. Implementa os repositórios definidos no módulo `domain` usando **JDBI**, **Command Pattern** e uma **DSL SQL** própria. O banco de dados utilizado é **H2** (embarcado).
+Camada de persistência do sistema Shopping. Implementa os repositórios definidos no módulo `domain` usando **jOOQ** e o framework **JsonQueryBuilder** para mapeamento declarativo bean↔tabela com projeção JSON e relações lazy. O banco de dados utilizado é **H2** (embarcado).
 
 ## Dependências
 
 | Artefato | Papel |
 |----------|-------|
 | `br.com.wdc.shopping.domain` | Modelos de domínio, interfaces de repositório, critérios |
-| `br.com.wdc.shopping.presentation.shared` | DTOs compartilhados com a camada de apresentação |
-| `org.jdbi:jdbi3-core` | Acesso a dados JDBC fluente |
-| `com.google.code.gson:gson` | Parsing de JSON (usado na deserialização de rows) |
+| `br.com.wdc.framework.jooq` | Framework JsonQueryBuilder (mapeamento declarativo) |
+| `br.com.wdc.framework.commons` | Infraestrutura SQL (DataSource, utilitários) |
+| `org.jooq:jooq` | Query builder type-safe e execução SQL |
+| `com.google.code.gson:gson` | Deserialização de JSON (projeção JSON_OBJECT) |
 | `commons-io` | Utilitários de I/O |
-| `slf4j-api` | Logging |
 
 ## Estrutura de Pacotes
 
 ```mermaid
 graph TD
     root["br.com.wdc.shopping.persistence"]
-    root --> Bootstrap["RepositoryBootstrap.java<br/><small>Inicializa BEANs</small>"]
+    root --> Bootstrap["RepositoryBootstrap.java<br/><small>Inicializa DSLContext + BEANs</small>"]
 
     root --> concurrent["concurrent/"]
     concurrent --> SchedAdapter["ScheduledExecutorAdapter.java"]
@@ -35,29 +35,19 @@ graph TD
     security --> SecPurchase["SecuredPurchaseRepository"]
     security --> SecPurchItem["SecuredPurchaseItemRepository"]
 
-    root --> sql["sql/ — DSL SQL"]
-    sql --> Keywords["SqlKeywords"]
-    sql --> SqlList["SqlList (builder)"]
-    sql --> SqlUtils["SqlUtils"]
-
-    root --> schema["schema/ — Definições de tabelas"]
-    schema --> EnUser["EnUser"]
-    schema --> EnProduct["EnProduct"]
-    schema --> EnPurchase["EnPurchase"]
-    schema --> EnPurchaseItem["EnPurchaseItem"]
-    schema --> support["support/"]
-    support --> DbTable["DbTable"]
-    support --> DbField["DbField"]
-    support --> BaseRow["BaseRow"]
+    root --> jooq["jooq/ — Código gerado pelo jOOQ"]
+    jooq --> Tables["Tables.java, Keys.java, Sequences.java"]
+    jooq --> tbls["tables/"]
+    tbls --> EnUser["EnUser.java"]
+    tbls --> EnProduct["EnProduct.java"]
+    tbls --> EnPurchase["EnPurchase.java"]
+    tbls --> EnPurchaseitem["EnPurchaseitem.java"]
 
     root --> repository["repository/ — Implementações"]
-    repository --> BaseRepo["BaseRepository"]
-    repository --> BaseCmd["BaseCommand"]
-    repository --> BaseCrit["BaseApplyCriteria"]
-    repository --> userRepo["user/ (UserRepositoryImpl + Commands)"]
-    repository --> productRepo["product/ (ProductRepositoryImpl + Commands)"]
-    repository --> purchaseRepo["purchase/ (PurchaseRepositoryImpl + Commands)"]
-    repository --> purchItemRepo["purchaseitem/ (PurchaseItemRepositoryImpl + Commands)"]
+    repository --> UserRepo["UserRepositoryImpl"]
+    repository --> ProductRepo["ProductRepositoryImpl"]
+    repository --> PurchaseRepo["PurchaseRepositoryImpl"]
+    repository --> PurchaseItemRepo["PurchaseItemRepositoryImpl"]
 ```
 
 ## Arquitetura
@@ -66,12 +56,10 @@ graph TD
 
 | Padrão | Implementação | Finalidade |
 |--------|--------------|------------|
-| **Repository** | `XxxRepositoryImpl extends BaseRepository` | Fachada de acesso a dados por entidade |
-| **Command** | `VerbEntityCmd extends BaseCommand` | Cada operação SQL é uma classe isolada |
-| **Criteria** | `ApplyXxxCriteria extends BaseApplyCriteria` | Traduz critérios de negócio em cláusulas WHERE |
-| **Row (Change Tracking)** | `EnXxx.Row extends BaseRow` | Rastreia quais campos foram modificados para UPDATE parcial |
-| **Table Metadata** | `EnXxx extends DbTable` | Define esquema (colunas, tipos, DDL, sequences) |
-| **SQL DSL** | `SqlList` + `SqlKeywords` | Construção programática de SQL legível |
+| **Repository** | `XxxRepositoryImpl implements XxxRepository` | Fachada de acesso a dados por entidade |
+| **JsonQuery (Declarativo)** | `public static final JsonQuery<B, T> QUERY` | Mapeamento bean↔tabela declarativo com projeção JSON |
+| **ApplyConditions** | Inner class `ApplyConditions` | Traduz critérios de negócio em `Condition` jOOQ |
+| **Lazy Relations** | `addBeanField` / `addBeanListField` | Relações 1:1 e 1:N via subquery correlacionada |
 | **Decorator (Security)** | `SecuredXxxRepository` | Envolve repositórios com verificação de permissões RBAC |
 
 ### Fluxo de uma Consulta
@@ -81,15 +69,15 @@ graph TD
    ProductRepository.BEAN.get().fetch(criteria)
 
 2. ProductRepositoryImpl.fetch():
-   - Abre TransactionContext (connection do DataSource)
-   - Delega para FetchProductsCmd.byCriteria(connection, criteria)
+   - Obtém bean de projeção (quais campos carregar)
+   - Delega para QUERY.fetchToList(projection, (t, q) -> { ... })
 
-3. FetchProductsCmd:
-   - Constrói SQL com SqlList (SELECT, FROM, WITH CTE)
-   - Usa ApplyProductCriteria para gerar WHERE
-   - Usa SqlList.field() / strColumn() para projeção tipada
-   - Executa via JDBI: handle.createQuery(sql).map(...)
-   - Deserializa resultado via JSON_OBJECT → Gson → Modelo
+3. JsonQueryBuilder:
+   - Gera SELECT com JSON_OBJECT para os campos ativos na projeção
+   - Aplica condições WHERE via ApplyConditions
+   - Para campos lazy (relações), gera subqueries correlacionadas
+   - Executa via jOOQ DSLContext
+   - Deserializa JSON → Bean via Gson
 
 4. Retorna List<Product> para o chamador
 ```
@@ -101,155 +89,178 @@ graph TD
    ProductRepository.BEAN.get().insert(product)
 
 2. ProductRepositoryImpl.insert():
-   - Abre TransactionContext
-   - Delega para InsertProductRowCmd.run(connection, product)
-
-3. InsertProductRowCmd:
-   - Cria EnProduct.Row e popula campos modificados
-   - Gera ID via sequence se necessário
-   - Monta INSERT INTO ... VALUES usando SqlList + param()
-   - Executa via JDBI: handle.createUpdate(sql).execute()
-   - Retorna o ID gerado no modelo original
+   - Obtém DSLContext via JooqDSLContext.BEAN.get()
+   - Gera ID via sequence (dsl.nextval(SQ_PRODUCT)) se necessário
+   - Monta INSERT com dsl.insertInto(EN_PRODUCT).set(...) apenas para campos não-nulos
+   - Executa diretamente via jOOQ
 ```
 
 ## Componentes Principais
 
-### SqlList — Builder de SQL
+### JsonQuery — Mapeamento Declarativo
 
-`SqlList` estende `ArrayList<String>` e oferece construção fluente de SQL:
+Cada repositório define um `QUERY` estático que descreve o mapeamento completo bean↔tabela:
 
 ```java
-var sql = new SqlList();
-sql.ln(SELECT);
-var fId = sql.i64Column(en.id);       // registra coluna + retorna extractor tipado
-var fName = sql.strColumn(en.name);
-sql.ln(FROM, en.tableRef());
-sql.ln(WHERE_TRUE);
-sql.ln(AND, en.id, EQUAL, param("id", 42));
-
-// Execução com projeção tipada
-query.map((rs, _) -> {
-    var item = new Product();
-    item.id = fId.apply(rs);      // Long
-    item.name = fName.apply(rs);  // String
-    return item;
-});
+public static final JsonQuery<User, EnUser> QUERY = new JsonQueryBuilder<User, EnUser>()
+        .setAlias("u")
+        .setBeanFactory(User::new)
+        .setTableFactory(EN_USER::as)
+        .addI64("id", u -> u.id, (u, v) -> u.id = v, t -> t.ID)
+        .addStr("userName", u -> u.userName, (u, v) -> u.userName = v, t -> t.USERNAME)
+        .addStr("password", u -> u.password, (u, v) -> u.password = v, t -> t.PASSWORD)
+        .addStr("name", u -> u.name, (u, v) -> u.name = v, t -> t.NAME)
+        .addStr("roles", u -> u.roles, (u, v) -> u.roles = v, t -> t.ROLES)
+        .build();
 ```
 
-Os métodos `i64Column()`, `strColumn()`, `f64Column()`, etc., registram a coluna na projeção e retornam uma `ThrowingFunction<ResultSet, T>` que extrai o valor tipado pela posição.
+O builder usa generics `<B, T extends Table<?>>` — eliminando a necessidade de factory de tabela por reflexão.
 
-### SqlKeywords — Constantes SQL
+### Relações Lazy (1:1 e 1:N)
 
-Interface com constantes (`SELECT`, `WHERE`, `AND`, `ORDER_BY`, ...) e funções auxiliares (`COUNT(...)`, `IN(...)`, `EXISTS(...)`, `BETWEEN(...)`, `ORDER_BY(...)`). Implementada por `BaseCommand` e `BaseApplyCriteria`.
-
-### DbTable + DbField — Definição de Esquema
-
-Cada tabela é definida como classe que estende `DbTable`:
+Relações são definidas no bloco `lazy(...)` e só são carregadas quando o campo correspondente está presente na projeção:
 
 ```java
-public class EnUser extends DbTable {
-    public static final EnUser INSTANCE = new EnUser("");
+.lazy(qb -> {
+    // Relação 1:1: Purchase → User
+    qb.addBeanField("user", p -> p.user, (p, v) -> p.user = v,
+            UserRepositoryImpl.QUERY, cq -> {
+                var enPurchase = cq.getSuperTable();
+                var enUser = cq.getChildTable();
+                cq.dsl().where()
+                    .and(enUser.ID.eq(enPurchase.USERID))
+                    .and(UserRepositoryImpl.applyConditions(cq));
+            });
 
-    public final DbField id;
-    public final DbField userName;
-    public final DbField password;
-    public final DbField name;
+    // Relação 1:N: Purchase → Items
+    qb.addBeanListField("items", p -> p.items, (p, v) -> p.items = v,
+            PurchaseItemRepositoryImpl.QUERY, cq -> {
+                var enPurchase = cq.getSuperTable();
+                var enPurchaseItem = cq.getChildTable();
+                cq.dsl().where()
+                    .and(enPurchaseItem.PURCHASEID.eq(enPurchase.ID))
+                    .and(PurchaseItemRepositoryImpl.applyConditions(cq));
+            });
+})
+```
 
-    public EnUser(String alias) {
-        super(alias);
-        this.id = mkBigint("ID", false);
-        this.userName = mkVarChar("USERNAME", 255, false);
-        this.password = mkChar("PASSWORD", 32, false);
-        this.name = mkVarChar("NAME", 255, false);
+- `addBeanField` → gera subquery escalar (relação 1:1)
+- `addBeanListField` → gera subquery que retorna JSON array (relação 1:N)
+- `cq.getSuperTable()` → tabela-pai aliased
+- `cq.getChildTable()` → tabela-filha aliased
+- `cq.dsl()` → SelectConditionStep para compor JOINs
+
+### ApplyConditions — Tradução de Critérios
+
+Cada repositório expõe um método estático `applyConditions` que traduz critérios de negócio em `Condition` jOOQ. Isso permite composição entre repositórios (ex: filtro de userId propagado via subquery):
+
+```java
+// Método estático para uso em subqueries de outros repositórios
+public static Condition applyConditions(JsonChildQueryBuilder<?, EnUser> cq) {
+    if (cq.getCriteria() instanceof UserCriteria criteria) {
+        return new ApplyConditions(cq.getChildTable(), cq.getCtx()).apply(criteria);
+    }
+    return DSL.noCondition();
+}
+
+// Inner class que constrói as condições
+private static class ApplyConditions {
+    EnUser enUser;
+    QueryContext ctx;
+
+    public Condition apply(UserCriteria criteria) {
+        var condition = DSL.noCondition();
+        if (criteria.userId() != null) {
+            condition = condition.and(enUser.ID.eq(criteria.userId()));
+        }
+        if (criteria.userName() != null) {
+            condition = condition.and(enUser.USERNAME.eq(criteria.userName()));
+        }
+        return condition;
     }
 }
 ```
 
-- `INSTANCE` (sem alias) — usado para DDL e acesso direto
-- Instâncias com alias (`new EnUser("u")`) — usadas em queries com JOINs
+O `QueryContext` gerencia aliases únicos para tabelas em subqueries aninhadas, evitando colisões.
 
-### Row (Change Tracking)
+### Projeção Seletiva
 
-Cada `EnXxx` contém uma classe `Row` interna que rastreia quais campos foram alterados. O `InsertRowCmd` e `UpdateRowCmd` usam `isXxxChanged()` para incluir apenas campos modificados no SQL:
-
-```java
-var row = new EnUser.Row();
-row.id(bean.id);
-row.userName(bean.userName);  // marca userNameChanged = true
-// password e name NÃO são setados → não entram no INSERT
-```
-
-### BaseCommand — Parâmetros Bind
-
-Todos os comandos usam `param(name, value)` para parâmetros SQL (prevenção de SQL injection via JDBI bind):
+O bean de projeção controla quais campos são carregados. Campos `null` no bean de projeção são ignorados na query:
 
 ```java
-sql.ln(AND, en.id, EQUAL, param("id", userId));
-// Gera: AND U.ID = :id
-// E registra: bind("id", userId)
-```
+// Projeção completa (todos os campos)
+var projection = QUERY.newProjectionBean();
 
-### ApplyCriteria — Tradução de Critérios
-
-Cada entidade possui um `ApplyXxxCriteria` que traduz os campos do `XxxCriteria` em cláusulas WHERE:
-
-```java
-public void apply(SqlList sql) {
-    if (criteria.userId() != null) {
-        sql.ln(AND, root.id, EQUAL, param("userId", criteria.userId()));
-    }
-    if (criteria.userName() != null) {
-        sql.ln(AND, root.userName, EQUAL, param("userName", criteria.userName()));
-    }
-}
-```
-
-### Projeção com JSON_OBJECT
-
-Os comandos `FetchXxxCmd` usam `JSON_OBJECT` do H2 para serializar o resultado como JSON no banco e depois deserializar com Gson. Isso simplifica o mapeamento de JOINs complexos (ex: Purchase + PurchaseItem + Product):
-
-```java
-var fields = FetchUsersCmd.fields(projection, en);
-var fJsonData = sql.strColumn(SqlUtils.toJsonField(fields), AS, "json_data");
-// Gera: JSON_OBJECT('ID': U.ID, 'NAME': U.NAME) AS json_data
+// Projeção parcial (apenas id e name)
+var projection = new User();
+projection.id = 0L;      // != null → incluído
+projection.name = "";    // != null → incluído
+// userName, password → null → excluídos da query
 ```
 
 ### RepositoryBootstrap
 
-Inicializa todos os `BEAN` estáticos dos repositórios. Possui dois modos:
+Inicializa o `DSLContext` do jOOQ e registra todos os repositórios nos `BEAN` estáticos:
 
 ```java
 // Modo básico (sem segurança — testes locais)
 RepositoryBootstrap.initialize();
 
+// Modo com log de SQL (jOOQ loga via SLF4J DEBUG)
+RepositoryBootstrap.initialize(true);
+
 // Modo com segurança RBAC (produção)
 RepositoryBootstrap.initialize();
 RepositoryBootstrap.initializeSecurity(jwtSecret);
-// Envolve cada repositório com SecuredXxxRepository
-// Cria AuthenticationServiceImpl com JwtUtil + NonceStore
 ```
+
+A configuração `logSql` ativa `Settings.withExecuteLogging(true)` no jOOQ, que loga todos os SQLs executados via `org.jooq.tools.LoggerListener` em nível DEBUG.
 
 Quando `initializeSecurity()` é chamado com um `jwtSecret` não-vazio, os repositórios são decorados com `Secured*Repository` que verificam permissões e restringem escopo ao userId do usuário autenticado (para não-admins).
 
-### DBCreate / DBReset
+### Tabelas jOOQ (Geradas)
 
-- `DBCreate` — criação idempotente do esquema (verifica se tabelas existem via `DatabaseMetaData`)
-- `DBReset` — carga inicial de dados (usuários, produtos de exemplo)
+As classes em `persistence.jooq.tables` são geradas pelo jOOQ Code Generator a partir do esquema H2. Cada classe (ex: `EnUser`) é um `TableImpl<EnUserRecord>` com campos tipados:
 
-## Convenções de Nomenclatura
+```java
+// Uso como referência estática
+import static br.com.wdc.shopping.persistence.jooq.tables.EnUser.EN_USER;
+
+// Alias para subqueries
+var enUser = EN_USER.as("u");
+enUser.ID    // TableField<EnUserRecord, Long>
+enUser.NAME  // TableField<EnUserRecord, String>
+```
+
+### Tratamento de Imagens (ProductRepositoryImpl)
+
+O `ProductRepositoryImpl` usa jOOQ diretamente para operações com imagens (campo `VARBINARY`), sem necessidade de workarounds — o pool de conexões Agroal implementa JDBC 4.x completo, incluindo `createBlob()`:
+
+```java
+// Insert com imagem
+dsl.insertInto(EN_PRODUCT)
+        .set(EN_PRODUCT.ID, product.id)
+        .set(EN_PRODUCT.IMAGE, product.image)  // byte[] direto via jOOQ
+        .execute();
+
+// Update de imagem isolado
+dsl.update(EN_PRODUCT)
+        .set(EN_PRODUCT.IMAGE, image)
+        .where(EN_PRODUCT.ID.eq(productId))
+        .execute();
+```
+
+## Convenções
 
 | Tipo | Padrão | Exemplo |
 |------|--------|---------|
-| Tabela DDL | `En` + Entidade | `EnUser`, `EnProduct` |
-| Nome da tabela | `EN_` + ENTIDADE | `EN_USER`, `EN_PRODUCT` |
+| Tabela (jOOQ) | `En` + Entidade | `EnUser`, `EnProduct` |
+| Constante de tabela | `EN_` + ENTIDADE | `EN_USER`, `EN_PRODUCT` |
 | Sequence | `SQ_` + ENTIDADE | `SQ_USER`, `SQ_PRODUCT` |
 | Repositório | Entidade + `RepositoryImpl` | `UserRepositoryImpl` |
-| Insert | `InsertRow` + Entidade + `Cmd` | `InsertRowUserCmd` |
-| Update | `UpdateRow` + Entidade + `Cmd` | `UpdateRowUserCmd` |
-| Fetch | `Fetch` + Entidades + `Cmd` | `FetchUsersCmd` |
-| Count | `Count` + Entidades + `Cmd` | `CountUsersCmd` |
-| Delete | `Delete` + Entidades + `Cmd` | `DeleteUsersCmd` |
-| Critério | `Apply` + Entidade + `Criteria` | `ApplyUserCriteria` |
+| Query estática | `QUERY` | `UserRepositoryImpl.QUERY` |
+| Condições estáticas | `applyConditions(cq)` | Composição entre repositórios |
+| Inner class critérios | `ApplyConditions` | Tradução de criteria → Condition |
 
 ## Esquema do Banco
 
@@ -260,6 +271,7 @@ erDiagram
         VARCHAR USERNAME "NOT NULL"
         CHAR PASSWORD "NOT NULL"
         VARCHAR NAME "NOT NULL"
+        VARCHAR ROLES "NOT NULL"
     }
 
     EN_PRODUCT {

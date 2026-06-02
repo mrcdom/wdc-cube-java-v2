@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>WDC Shopping - Remote Shell (TeaVM)</title>
+    <link rel="icon" href="favicon.ico" type="image/png">
+
+    <!-- Bootstrap Icons (icon font only) -->
+    <link href="/web-cache/cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <!-- Google Fonts: Inter for modern UI -->
+    <link href="/web-cache/fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Import map: unify Lit versions (SWC uses lit@2, @lit-labs/virtualizer uses lit@3) -->
+    <script type="importmap">
+    {
+      "imports": {
+        "/web-cache/jspm.dev/npm:lit@3": "/web-cache/jspm.dev/npm:lit@2",
+        "/web-cache/jspm.dev/npm:lit@3/directive.js": "/web-cache/jspm.dev/npm:lit-html@2.8.0/directive.js",
+        "/web-cache/jspm.dev/npm:lit@3/async-directive.js": "/web-cache/jspm.dev/npm:lit-html@2.8.0/async-directive.js",
+        "/web-cache/jspm.dev/npm:lit@3/directives/repeat.js": "/web-cache/jspm.dev/npm:lit-html@2.8.0/directives/repeat.js"
+      }
+    }
+    </script>
+
+    <!-- Spectrum Web Components -->
+    <script src="/web-cache/jspm.dev/@spectrum-web-components/bundle/elements.js" type="module"></script>
+
+    <!-- App styles -->
+    <link href="css/app.css" rel="stylesheet">
+</head>
+<body>
+    <div id="loading">Carregando...</div>
+    <script src="js/security-boot.js"></script>
+    <script src="js/app.js"></script>
+    <script>main();</script>
+</body>
+</html>

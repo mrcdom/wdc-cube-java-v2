@@ -26,16 +26,26 @@ public final class RepositoryApiRoutes {
 	 * registra apenas os controllers de entidade (modo teste/local).
 	 */
 	public static void configure(JavalinConfig config) {
+		configure(config, "");
+	}
+
+	/**
+	 * Configura as rotas REST com um prefixo de contexto.
+	 * <p>
+	 * Permite registrar a API em {@code /<context>/api/repo/...} para
+	 * que SPAs servidos em um contexto acessem a API sem CORS.
+	 */
+	public static void configure(JavalinConfig config, String prefix) {
 		var authService = AuthenticationService.BEAN.get();
 
 		if (authService != null) {
 			// Endpoints públicos de autenticação
-			new AuthApiController(authService).configure(config);
+			new AuthApiController(authService).configure(config, prefix);
 
 			// Filtro de segurança para endpoints protegidos
 			var securityFilter = new SecurityFilter(authService);
-			config.routes.before("/api/repo/*", securityFilter::handle);
-			config.routes.after("/api/repo/*", ctx -> SecurityContextHolder.clear());
+			config.routes.before(prefix + "/api/repo/*", securityFilter::handle);
+			config.routes.after(prefix + "/api/repo/*", ctx -> SecurityContextHolder.clear());
 		}
 
 		// Exception handler para AccessDeniedException
@@ -45,9 +55,9 @@ public final class RepositoryApiRoutes {
 		});
 
 		// Controllers de entidades
-		UserApiController.configure(config);
-		ProductApiController.configure(config);
-		PurchaseApiController.configure(config);
-		PurchaseItemApiController.configure(config);
+		UserApiController.configure(config, prefix);
+		ProductApiController.configure(config, prefix);
+		PurchaseApiController.configure(config, prefix);
+		PurchaseItemApiController.configure(config, prefix);
 	}
 }

@@ -160,55 +160,28 @@ public class VaadinDom {
     }
 
     public Div hSpacer() {
-        var oldParent = this.currentParent;
-        try {
-            var elm = new Div();
-            elm.getStyle().set("flex-grow", "1");
-            this.currentParent = null;
-            oldParent.add(elm);
-            return elm;
-        } finally {
-            this.currentParent = oldParent;
-        }
+        var elm = new Div();
+        elm.getStyle().set("flex-grow", "1");
+        this.currentParent.add(elm);
+        return elm;
     }
 
     public Div hSpacer(int widthPx) {
-        var oldParent = this.currentParent;
-        try {
-            var elm = new Div();
-            elm.setMinWidth(widthPx + "px");
-            this.currentParent = null;
-            oldParent.add(elm);
-            return elm;
-        } finally {
-            this.currentParent = oldParent;
-        }
+        var elm = new Div();
+        elm.setMinWidth(widthPx + "px");
+        this.currentParent.add(elm);
+        return elm;
     }
 
     public Div vSpacer() {
-        var oldParent = this.currentParent;
-        try {
-            var elm = new Div();
-            elm.getStyle().set("flex-grow", "1");
-            this.currentParent = null;
-            oldParent.add(elm);
-            return elm;
-        } finally {
-            this.currentParent = oldParent;
-        }
+        return hSpacer();
     }
 
     public Div vSpacer(int heightPx) {
-        var oldParent = this.currentParent;
-        try {
-            var elm = new Div();
-            elm.setMinHeight(heightPx + "px");
-            this.currentParent = null;
-            oldParent.add(elm);
-            return elm;
-        } finally {
-            this.currentParent = oldParent;
-        }
+        var elm = new Div();
+        elm.setMinHeight(heightPx + "px");
+        this.currentParent.add(elm);
+        return elm;
     }
 
     public Div scrollable(Consumer<Div> fnUpdate) {
@@ -292,14 +265,9 @@ public class VaadinDom {
     }
 
     public Hr hr() {
-        var oldParent = this.currentParent;
-        try {
-            var elm = new Hr();
-            oldParent.add(elm);
-            return elm;
-        } finally {
-            this.currentParent = oldParent;
-        }
+        var elm = new Hr();
+        this.currentParent.add(elm);
+        return elm;
     }
 
     public Icon icon(VaadinIcon vaadinIcon, Consumer<Icon> fnUpdate) {

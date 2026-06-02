@@ -1,0 +1,303 @@
+// Estilos do módulo home — navbar, tabs, products grid, purchases panel.
+// Importado por home-sel.ts; não referencie este arquivo diretamente nas views.
+
+// --- Navbar ------------------------------------------------------------------
+
+.wdc-navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #0d66d0 0%, #1a8cff 100%);
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(13,102,208,0.3);
+
+    &__group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+}
+
+// --- Tab Navigation ----------------------------------------------------------
+
+.wdc-tab-nav {
+    display: flex;
+    background: var(--app-surface);
+    flex-shrink: 0;
+    box-shadow: 0 1px 0 var(--app-border);
+
+    &__item {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 12px 0;
+        font-size: 0.8rem;
+        cursor: pointer;
+        border: none;
+        background: none;
+        position: relative;
+        transition: color 0.2s;
+
+        &--active {
+            font-weight: 600;
+            color: var(--app-accent);
+        }
+
+        &--inactive {
+            font-weight: 500;
+            color: var(--app-text-secondary);
+        }
+    }
+
+    &__indicator {
+        position: absolute;
+        bottom: 0;
+        left: 16px;
+        right: 16px;
+        height: 2.5px;
+        background: var(--app-accent);
+        border-radius: 2px;
+    }
+}
+
+// --- Products panel ----------------------------------------------------------
+
+.wdc-products {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 20px;
+
+    &__grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+
+        @media (min-width: 768px) {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        @media (min-width: 1200px) {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+
+    &__card {
+        background: var(--app-surface);
+        border-radius: var(--app-radius);
+        border: 1px solid var(--app-border);
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform var(--app-transition), box-shadow var(--app-transition);
+        box-shadow: var(--app-shadow-sm);
+
+        &:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--app-shadow-lg);
+        }
+        &:active {
+            transform: translateY(0px);
+            box-shadow: var(--app-shadow-sm);
+        }
+    }
+
+    &__card-image-wrap {
+        background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        aspect-ratio: 1;
+    }
+
+    &__card-img {
+        width: 80%;
+        height: 80%;
+        object-fit: contain;
+        transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    &__card-body {
+        padding: 14px 16px;
+    }
+
+    &__card-name {
+        font-size: 0.82rem;
+        font-weight: 500;
+        margin: 0 0 6px 0;
+        color: var(--app-text);
+        line-height: 1.3;
+        display: -webkit-box;
+        line-clamp: 2;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    &__card-price {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--app-accent);
+    }
+}
+
+// --- Purchases panel ---------------------------------------------------------
+
+.wdc-purchases {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    padding: 16px;
+    background: var(--app-surface);
+    border-left: 1px solid var(--app-border);
+
+    &__slot {
+        // Responsive width on md+
+        @media (min-width: 768px) {
+            width: 340px;
+            flex-shrink: 0;
+        }
+    }
+
+    &__header-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    &__header-icon {
+        font-size: 1rem;
+        color: var(--app-accent);
+    }
+
+    &__header-title {
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: var(--app-text);
+    }
+
+    &__hint {
+        color: var(--app-text-secondary);
+        font-size: 0.75rem;
+        margin-bottom: 12px;
+        display: block;
+    }
+
+    &__list-container {
+        flex-grow: 1;
+        overflow: hidden;
+        min-height: 0;
+    }
+
+    &__pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 10px 0;
+        margin-top: auto;
+        border-top: 1px solid var(--app-border);
+    }
+
+    &__page-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: var(--app-bg);
+        border-radius: 20px;
+        padding: 4px;
+    }
+
+    &__page-btn {
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: background var(--app-transition);
+    }
+
+    &__page-btn-icon {
+        font-size: 0.75rem;
+        color: var(--app-text-secondary);
+    }
+
+    &__page-info {
+        padding: 4px 12px;
+        font-weight: 600;
+        font-size: 0.75rem;
+        color: var(--app-text);
+        background: var(--app-surface);
+        border-radius: 12px;
+        box-shadow: var(--app-shadow-sm);
+    }
+
+    &__item-card {
+        width: 100%;
+        box-sizing: border-box;
+        background: var(--app-bg);
+        border-radius: var(--app-radius-sm);
+        cursor: pointer;
+        margin-bottom: 8px;
+        overflow: hidden;
+        border: 1px solid var(--app-border);
+        transition: background var(--app-transition), transform var(--app-transition);
+
+        &:hover {
+            background: var(--app-accent-light) !important;
+            transform: translateX(2px);
+        }
+    }
+
+    &__item-line1 {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 12px 0 12px;
+        min-width: 0;
+    }
+
+    &__item-id {
+        font-weight: 600;
+        font-size: 0.75rem;
+        color: var(--app-accent);
+    }
+
+    &__item-date {
+        font-size: 0.7rem;
+        color: var(--app-text-secondary);
+        white-space: nowrap;
+    }
+
+    &__item-line2 {
+        display: flex;
+        align-items: baseline;
+        padding: 4px 12px 8px 12px;
+        gap: 4px;
+        font-size: 0.75rem;
+        color: var(--app-text-secondary);
+        min-width: 0;
+    }
+
+    &__item-items {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__item-total {
+        font-weight: 700;
+        white-space: nowrap;
+        color: var(--app-text);
+    }
+}

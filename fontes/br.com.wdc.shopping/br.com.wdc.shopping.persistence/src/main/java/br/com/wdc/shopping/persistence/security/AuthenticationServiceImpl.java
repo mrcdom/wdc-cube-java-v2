@@ -126,8 +126,7 @@ public final class AuthenticationServiceImpl implements AuthenticationService {
 
 		var users = rawUserRepo.fetch(new UserCriteria()
 				.withUserName(userName)
-				.withProjection(prj)
-				.withLimit(1));
+				.withProjection(prj), 0, 1);
 
 		if (users.isEmpty()) {
 			return null;

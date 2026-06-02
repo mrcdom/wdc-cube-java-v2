@@ -2,7 +2,7 @@ package br.com.wdc.shopping.domain.exception;
 
 public class BusinessException extends RuntimeException {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -6365348003401134516L;
 
     public static BusinessException wrap(String message, Exception e) {
         if (e instanceof BusinessException exn) {

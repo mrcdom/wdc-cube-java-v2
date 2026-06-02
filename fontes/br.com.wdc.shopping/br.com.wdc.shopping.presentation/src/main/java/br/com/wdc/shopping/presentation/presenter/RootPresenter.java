@@ -1,14 +1,17 @@
 package br.com.wdc.shopping.presentation.presenter;
 
+import java.util.Map;
 import java.util.function.Function;
 
 import org.apache.commons.lang3.StringUtils;
-import br.com.wdc.framework.commons.log.Log;
 
+import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubeIntent;
+import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.CubeViewSlot;
+import br.com.wdc.framework.cube.ViewState;
 import br.com.wdc.shopping.presentation.PlaceAttributes;
 import br.com.wdc.shopping.presentation.PlaceParameters;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
@@ -23,6 +26,13 @@ public class RootPresenter extends AbstractCubePresenter<ShoppingApplication> {
     public static Function<RootPresenter, CubeView> createView;
 
     // :: Public Instance Fields
+
+    public static class RootViewState implements ViewState {
+
+        public CubeView contentView;
+        public String errorMessage;
+
+    }
 
     public final RootViewState state = new RootViewState();
 
@@ -98,6 +108,23 @@ public class RootPresenter extends AbstractCubePresenter<ShoppingApplication> {
             this.state.contentView = view;
             this.update();
         }
+    }
+
+    // :: Controle remoto
+
+    public CubeSkeleton skeleton() {
+        return new CubeSkeleton() {
+
+            @Override
+            public String classId() {
+                return "f2d345c4a610";
+            }
+
+            @Override
+            public void submit(int eventCode, int eventQtde, Map<String, Object> formData) throws Exception {
+                // NOOP
+            }
+        };
     }
 
 }

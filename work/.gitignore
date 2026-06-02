@@ -1,0 +1,11 @@
+# Ignore runtime data and build outputs
+data/
+log/
+temp/
+frontend/*
+
+# Track version-controlled frontend contexts
+!frontend/api.docs/
+
+# Track config files
+!config/

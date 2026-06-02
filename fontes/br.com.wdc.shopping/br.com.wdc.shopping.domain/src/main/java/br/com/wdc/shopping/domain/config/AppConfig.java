@@ -15,39 +15,55 @@ import br.com.wdc.framework.commons.log.Log;
  * Resolution order for config file:
  * <ol>
  * <li>System property: {@code shopping.config.file}</li>
- * <li>Default: {@code work/config/application.toml} relative to working directory</li>
+ * <li>Default: {@code config/application.toml} relative to working directory</li>
  * </ol>
  * <p>
- * If the file does not exist, an empty configuration is used (all values fall back to defaults).
+ * If the file does not exist, the application fails to start.
  */
 public final class AppConfig {
 
     private static final Log LOG = Log.getLogger(AppConfig.class);
 
     private static final String CONFIG_FILE_PROPERTY = "shopping.config.file";
-    private static final String DEFAULT_CONFIG_PATH = "work/config/application.toml";
+    private static final String DEFAULT_CONFIG_PATH = "config/application.toml";
 
     private final Map<String, String> properties;
+    private final Path configFilePath;
 
-    private AppConfig(Map<String, String> properties) {
+    private AppConfig(Map<String, String> properties, Path configFilePath) {
         this.properties = properties;
+        this.configFilePath = configFilePath;
+    }
+
+    /**
+     * Returns the absolute path of the loaded configuration file.
+     */
+    public Path getConfigFilePath() {
+        return configFilePath;
+    }
+
+    /**
+     * Returns the directory containing the configuration file.
+     */
+    public Path getConfigFileDir() {
+        return configFilePath.getParent();
     }
 
     public static AppConfig load() {
-        var configPath = resolveConfigPath();
-        if (Files.exists(configPath)) {
-            LOG.info("Loading configuration from {}", configPath.toAbsolutePath());
-            try {
-                var content = Files.readString(configPath);
-                var props = parseToml(content);
-                return new AppConfig(props);
-            } catch (IOException e) {
-                LOG.warn("Failed to read config file {}: {}", configPath, e.getMessage());
-            }
-        } else {
-            LOG.info("No config file found at {}, using defaults", configPath.toAbsolutePath());
+        var configPath = resolveConfigPath().toAbsolutePath().normalize();
+        if (!Files.exists(configPath)) {
+            throw new IllegalStateException(
+                    "Configuration file not found: " + configPath
+                            + ". Create the file or set system property -D" + CONFIG_FILE_PROPERTY + "=<path>");
         }
-        return new AppConfig(Map.of());
+        LOG.info("Loading configuration from {}", configPath);
+        try {
+            var content = Files.readString(configPath);
+            var props = parseToml(content);
+            return new AppConfig(props, configPath);
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to read config file: " + configPath, e);
+        }
     }
 
     public String get(String key) {
@@ -57,7 +73,7 @@ public final class AppConfig {
     public AppConfig withOverride(String key, String value) {
         var copy = new LinkedHashMap<>(this.properties);
         copy.put(key, value);
-        return new AppConfig(copy);
+        return new AppConfig(copy, this.configFilePath);
     }
 
     public String get(String key, String defaultValue) {
@@ -112,29 +128,26 @@ public final class AppConfig {
             var line = rawLine.strip();
 
             if (line.isEmpty() || line.startsWith("#")) {
-                continue;
-            }
-
-            if (line.startsWith("[") && line.endsWith("]")) {
+                // skip comments and blank lines
+            } else if (line.startsWith("[") && line.endsWith("]")) {
                 currentSection = line.substring(1, line.length() - 1).strip();
-                continue;
+            } else {
+                var eqIdx = line.indexOf('=');
+                if (eqIdx > 0) {
+                    var key = line.substring(0, eqIdx).strip();
+                    var value = line.substring(eqIdx + 1).strip();
+
+                    // Remove surrounding quotes (double or single)
+                    if (value.length() >= 2
+                            && ((value.startsWith("\"") && value.endsWith("\""))
+                                    || (value.startsWith("'") && value.endsWith("'")))) {
+                        value = value.substring(1, value.length() - 1);
+                    }
+
+                    var fullKey = currentSection.isEmpty() ? key : currentSection + "." + key;
+                    result.put(fullKey, value);
+                }
             }
-
-            var eqIdx = line.indexOf('=');
-            if (eqIdx <= 0) {
-                continue;
-            }
-
-            var key = line.substring(0, eqIdx).strip();
-            var value = line.substring(eqIdx + 1).strip();
-
-            // Remove surrounding quotes
-            if (value.length() >= 2 && value.startsWith("\"") && value.endsWith("\"")) {
-                value = value.substring(1, value.length() - 1);
-            }
-
-            var fullKey = currentSection.isEmpty() ? key : currentSection + "." + key;
-            result.put(fullKey, value);
         }
 
         return result;

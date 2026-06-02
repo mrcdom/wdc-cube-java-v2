@@ -24,6 +24,10 @@
 			<artifactId>br.com.wdc.framework.commons</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>br.com.wdc.framework</groupId>
+			<artifactId>br.com.wdc.framework.jooq</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 		</dependency>
@@ -34,6 +38,10 @@
 		<dependency>
 			<groupId>org.jdbi</groupId>
 			<artifactId>jdbi3-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.jooq</groupId>
+			<artifactId>jooq</artifactId>
 		</dependency>
 	</dependencies>
 </project>

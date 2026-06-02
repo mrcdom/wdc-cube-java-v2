@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>br.com.wdc.shopping</groupId>
+        <artifactId>br.com.wdc.shopping.view.teavm</artifactId>
+        <version>1.0.0</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>teavm.web</artifactId>
+    <packaging>jar</packaging>
+
+    <name>WeDoCode Shopping View TeaVM Web</name>
+    <description>Browser-based view compiled from Java to JavaScript via TeaVM, using Bootstrap 5</description>
+
+    <dependencies>
+        <!-- Project modules compiled to JS -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <version>${project.version}</version>
+            <artifactId>br.com.wdc.shopping.persistence.client</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.squareup.okhttp3</groupId>
+                    <artifactId>okhttp</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <version>${project.version}</version>
+            <artifactId>br.com.wdc.shopping.presentation</artifactId>
+        </dependency>
+
+        <!-- TeaVM Commons (VDom, Swc, interop) -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>teavm.commons</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- TeaVM core -->
+        <dependency>
+            <groupId>org.teavm</groupId>
+            <artifactId>teavm-classlib</artifactId>
+            <version>${teavm.version}</version>
+        </dependency>
+
+        <!-- TeaVM interop (runtime classes) -->
+        <dependency>
+            <groupId>org.teavm</groupId>
+            <artifactId>teavm-interop</artifactId>
+            <version>${teavm.version}</version>
+        </dependency>
+
+        <!-- TeaVM JSO interop -->
+        <dependency>
+            <groupId>org.teavm</groupId>
+            <artifactId>teavm-jso</artifactId>
+            <version>${teavm.version}</version>
+        </dependency>
+
+        <!-- TeaVM DOM/Browser APIs -->
+        <dependency>
+            <groupId>org.teavm</groupId>
+            <artifactId>teavm-jso-apis</artifactId>
+            <version>${teavm.version}</version>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+
+            <!-- Compile SCSS to CSS (auto-downloads Dart Sass binary) -->
+            <plugin>
+                <groupId>us.hebi.sass</groupId>
+                <artifactId>sass-cli-maven-plugin</artifactId>
+                <version>1.0.4</version>
+                <configuration>
+                    <sassVersion>1.87.0</sassVersion>
+                    <args>
+                        <arg>--load-path=${project.basedir}/../teavm.commons/src/main/scss</arg>
+                        <arg>--load-path=${project.basedir}/../teavm.commons/src/main/java/br/com/wdc/shopping/view/teavm/commons/views</arg>
+                        <arg>${project.basedir}/src/main/scss/app.scss:${project.basedir}/src/main/webapp/css/app.css</arg>
+                        <arg>--no-source-map</arg>
+                        <arg>--style=compressed</arg>
+                    </args>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>compile-scss</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.teavm</groupId>
+                <artifactId>teavm-maven-plugin</artifactId>
+                <version>${teavm.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <phase>process-classes</phase>
+                        <configuration>
+                            <mainClass>br.com.wdc.shopping.view.teavm.Main</mainClass>
+                            <targetDirectory>${project.basedir}/../../../../work/frontend/teavm.web/js</targetDirectory>
+                            <targetFileName>app.js</targetFileName>
+                            <minifying>false</minifying>
+                            <debugInformationGenerated>false</debugInformationGenerated>
+                            <sourceMapsGenerated>false</sourceMapsGenerated>
+                            <optimizationLevel>SIMPLE</optimizationLevel>
+                            <targetType>JAVASCRIPT</targetType>
+                            <stopOnErrors>false</stopOnErrors>
+                            <compileScopes>
+                                <scope>compile</scope>
+                                <scope>runtime</scope>
+                            </compileScopes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                    <execution>
+                        <id>copy-webapp</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/../../../../work/frontend/teavm.web</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/main/webapp</directory>
+                                    <filtering>true</filtering>
+                                    <includes>
+                                        <include>index.html</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>src/main/webapp</directory>
+                                    <filtering>false</filtering>
+                                    <excludes>
+                                        <exclude>index.html</exclude>
+                                    </excludes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>watch</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>3.5.0</version>
+                        <configuration>
+                            <mainClass>br.com.wdc.shopping.view.teavm.commons.devtools.DevWatcher</mainClass>
+                            <systemProperties>
+                                <systemProperty>
+                                    <key>devwatch.dirs</key>
+                                    <value>src,../teavm.commons/src</value>
+                                </systemProperty>
+                            </systemProperties>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

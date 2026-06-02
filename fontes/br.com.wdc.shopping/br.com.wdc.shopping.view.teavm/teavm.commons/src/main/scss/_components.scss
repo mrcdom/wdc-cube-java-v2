@@ -1,0 +1,290 @@
+// =============================================================================
+// COMPONENT CLASSES (SelComponents)
+// Shared component selectors used by both teavm.web and remote.shell.teavm
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// NAVBAR
+// -----------------------------------------------------------------------------
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #0d66d0 0%, #1a8cff 100%);
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(13,102,208,0.3);
+}
+
+.nav-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+// -----------------------------------------------------------------------------
+// TAB NAVIGATION
+// -----------------------------------------------------------------------------
+.tab-nav {
+    display: flex;
+    background: var(--app-surface);
+    flex-shrink: 0;
+    box-shadow: 0 1px 0 var(--app-border);
+}
+
+.tab-item {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 0;
+    font-size: 0.8rem;
+    cursor: pointer;
+    border: none;
+    background: none;
+    position: relative;
+    transition: color 0.2s;
+}
+
+.tab-item--active {
+    font-weight: 600;
+    color: var(--app-accent);
+}
+
+.tab-item--inactive {
+    font-weight: 500;
+    color: var(--app-text-secondary);
+}
+
+.tab-indicator {
+    position: absolute;
+    bottom: 0;
+    left: 16px;
+    right: 16px;
+    height: 2.5px;
+    background: var(--app-accent);
+    border-radius: 2px;
+}
+
+// -----------------------------------------------------------------------------
+// LOGO / BRANDING
+// -----------------------------------------------------------------------------
+.logo-box {
+    width: 36px;
+    height: 36px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+}
+
+.logo-box-lg {
+    width: 80px;
+    height: 80px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+// -----------------------------------------------------------------------------
+// CART BADGE
+// -----------------------------------------------------------------------------
+.cart-badge {
+    background: #fff;
+    color: var(--app-accent);
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+    margin-left: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+// -----------------------------------------------------------------------------
+// EMPTY STATE
+// -----------------------------------------------------------------------------
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    text-align: center;
+}
+
+// -----------------------------------------------------------------------------
+// TOTAL / SUMMARY ROW
+// -----------------------------------------------------------------------------
+.total-row {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 16px 20px;
+    border-top: 1px solid var(--app-border);
+}
+
+// -----------------------------------------------------------------------------
+// DECORATION CIRCLES
+// -----------------------------------------------------------------------------
+.deco-circle {
+    position: absolute;
+    border-radius: 50%;
+}
+
+.deco-circle--1 {
+    top: -60px;
+    right: -60px;
+    width: 200px;
+    height: 200px;
+    background: rgba(255,255,255,0.06);
+}
+
+.deco-circle--2 {
+    bottom: -40px;
+    left: -40px;
+    width: 160px;
+    height: 160px;
+    background: rgba(255,255,255,0.04);
+}
+
+.deco-circle--3 {
+    top: 40%;
+    left: 20%;
+    width: 80px;
+    height: 80px;
+    background: rgba(255,255,255,0.05);
+}
+
+// -----------------------------------------------------------------------------
+// ALERT ERROR
+// -----------------------------------------------------------------------------
+:root {
+    --app-error-bg: #fef2f2;
+    --app-error-border: #fecaca;
+    --app-error-text: #991b1b;
+    --app-error-icon: #dc2626;
+}
+
+.alert-error {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    margin: 8px 16px;
+    background: var(--app-error-bg);
+    border: 1px solid var(--app-error-border);
+    border-radius: var(--app-radius-sm);
+}
+
+.alert-error-icon {
+    color: var(--app-error-icon);
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.alert-error-text {
+    font-size: 0.85rem;
+    color: var(--app-error-text);
+    font-weight: 500;
+}
+
+// -----------------------------------------------------------------------------
+// ALERT SUCCESS
+// -----------------------------------------------------------------------------
+.alert-success {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 18px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: var(--app-radius-sm);
+    margin-bottom: 16px;
+}
+
+.alert-success-icon {
+    color: #16a34a;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.alert-success-text {
+    font-size: 0.9rem;
+    color: #166534;
+    font-weight: 600;
+}
+
+// -----------------------------------------------------------------------------
+// PAGE / CARD COMPONENTS
+// -----------------------------------------------------------------------------
+.page-scroll-root {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    background: var(--app-bg);
+}
+
+.page-wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.card-panel {
+    background: var(--app-surface);
+    border-radius: var(--app-radius);
+    border: 1px solid var(--app-border);
+    padding: 24px;
+    box-shadow: var(--app-shadow-sm);
+}
+
+.card-panel-lg {
+    background: var(--app-surface);
+    border-radius: var(--app-radius);
+    border: 1px solid var(--app-border);
+    padding: 28px;
+    box-shadow: var(--app-shadow-sm);
+}
+
+.card-header-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.card-header-icon-box {
+    width: 40px;
+    height: 40px;
+    background: var(--app-accent-light);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-header-icon {
+    color: var(--app-accent);
+    font-size: 1.1rem;
+}
+
+.card-header-title {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--app-text);
+}
+
+.card-header-subtitle {
+    font-size: 0.75rem;
+    color: var(--app-text-secondary);
+}

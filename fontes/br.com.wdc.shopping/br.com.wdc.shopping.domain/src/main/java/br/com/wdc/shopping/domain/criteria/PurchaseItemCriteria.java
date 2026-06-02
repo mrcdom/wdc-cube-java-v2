@@ -17,30 +17,6 @@ public class PurchaseItemCriteria {
         return this;
     }
 
-    // :: Limit and Offset
-
-    private Integer offset;
-
-    public Integer offset() {
-        return offset;
-    }
-
-    public PurchaseItemCriteria withOffset(Integer offset) {
-        this.offset = offset;
-        return this;
-    }
-
-    private Integer limit;
-
-    public Integer limit() {
-        return limit;
-    }
-
-    public PurchaseItemCriteria withLimit(Integer limit) {
-        this.limit = limit;
-        return this;
-    }
-
     // :: Criteria
 
     private Long purchaseItemId;

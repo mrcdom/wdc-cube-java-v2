@@ -21,12 +21,15 @@ graph TD
     subgraph Shopping["br.com.wdc.shopping — E-commerce"]
         domain["domain — Entidades, critérios, repositórios"]
         persistence["persistence — SQL/JDBI, H2"]
+        persistRest["persistence.rest — REST controllers"]
+        persistClient["persistence.client — REST client"]
         presentation["presentation — Presenters Cube MVP"]
         scripts["scripts — DDL, seed, reset"]
+        backend["backend — Javalin 7 + Virtual Threads (fat JAR)"]
         tests["tests — JUnit 4"]
-        viewReact["view.react — React 19 + Javalin + Virtual Threads"]
+        viewReact["view.remote — React 19 + WebSocket"]
         viewVaadin["view.vaadin — Vaadin 24 + Jetty 12 + Lumo"]
-        viewSwing["view.swing — Java Swing + FlatLaf"]
+        viewSwt["view.swt — Eclipse SWT (Desktop Nativo)"]
         viewGluon["view.gluon — JavaFX + Gluon (Desktop, iOS, Android)"]
         viewTeavm["view.teavm — TeaVM + Tauri (Web, Desktop, Android, iOS)"]
     end
@@ -53,12 +56,15 @@ graph TD
 |--------|--------|-----------|
 | **domain** | Domínio | Entidades (`User`, `Product`, `Purchase`, `PurchaseItem`), critérios de busca, interfaces de repositório, utilitários de projeção (`ProjectionValues`, `ProjectionList`). |
 | **persistence** | Infraestrutura | Implementação concreta dos repositórios usando JDBI + H2. Schema definido via classes `En*`, comandos SQL (Fetch/Insert/Update/Delete). |
+| **persistence.rest** | Infraestrutura | Controllers REST (Javalin) que expõem repositórios como endpoints HTTP. |
+| **persistence.client** | Infraestrutura | Client REST (OkHttp + Gson) que implementa repositórios via HTTP. |
 | **presentation** | Aplicação | Presenters que orquestram a lógica de negócio e conectam domínio às views via Cube MVP. |
 | **scripts** | Infraestrutura | DDL de criação de tabelas, dados de seed (`DBReset`), suporte a testes e inicialização. |
+| **backend** | Servidor | Javalin 7 + Virtual Threads, WebSocket dispatcher, banco H2 embarcado. Fat JAR (~11 MB). |
 | **tests** | Teste | Suíte de testes JUnit 4 para repositórios (82 testes) e integração de serviços. |
-| **view.react** | UI (Web) | Frontend React 19 + Material UI, servidor Javalin com Virtual Threads, comunicação segura RSA+AES-GCM. |
+| **view.remote** | UI (Web) | Frontend React 19 + Material UI, comunicação WebSocket bidirecional, segurança RSA+AES-GCM. |
 | **view.vaadin** | UI (Web) | Frontend Vaadin 24 + Lumo theme, servidor Jetty 12 embarcado, UI puramente server-side com push automático. |
-| **view.swing** | UI (Desktop) | Frontend Java Swing + FlatLaf (Material look-and-feel) que reutiliza os mesmos presenters. |
+| **view.swt** | UI (Desktop) | Frontend desktop nativo com Eclipse SWT 3.128.0 que reutiliza os mesmos presenters. |
 | **view.gluon** | UI (Multiplataforma) | Frontend JavaFX + Gluon Mobile compilado nativamente para Desktop, iOS e Android via GraalVM. |
 | **view.teavm** | UI (Multiplataforma) | Frontend Java compilado para JavaScript via TeaVM 0.14, empacotado como app nativo (Desktop, Android, iOS) via Tauri 2. |
 

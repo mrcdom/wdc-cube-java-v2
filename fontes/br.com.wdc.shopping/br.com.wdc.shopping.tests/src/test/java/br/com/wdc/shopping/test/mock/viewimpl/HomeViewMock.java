@@ -6,9 +6,9 @@ import org.junit.Assert;
 
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeViewState;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelViewState;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter.ProductsPanelViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter.PurchasesPanelViewState;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
 import br.com.wdc.shopping.test.mock.ShoppingApplicationMock;
@@ -26,8 +26,8 @@ public class HomeViewMock extends AbstractViewMock<HomePresenter> {
 
     public HomeViewState state;
 
-    public HomeViewMock(ShoppingApplicationMock app, HomePresenter presenter) {
-        super(app, presenter);
+    public HomeViewMock(HomePresenter presenter) {
+        super(((ShoppingApplicationMock) presenter.app), presenter);
         this.state = presenter.state;
     }
 

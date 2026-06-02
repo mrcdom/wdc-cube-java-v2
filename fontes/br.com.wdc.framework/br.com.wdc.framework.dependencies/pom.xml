@@ -71,9 +71,9 @@
 				<version>2.13.2</version>
 			</dependency>
 			<dependency>
-				<groupId>org.apache.tomcat</groupId>
-				<artifactId>dbcp</artifactId>
-				<version>6.0.53</version>
+				<groupId>io.agroal</groupId>
+				<artifactId>agroal-pool</artifactId>
+				<version>2.7.1</version>
 			</dependency>
 			<dependency>
 				<groupId>com.h2database</groupId>
@@ -106,6 +106,16 @@
 				<version>3.52.1</version>
 			</dependency>
 			<dependency>
+				<groupId>org.jooq</groupId>
+				<artifactId>jooq</artifactId>
+				<version>3.19.16</version>
+			</dependency>
+			<dependency>
+				<groupId>org.jooq</groupId>
+				<artifactId>jooq-codegen</artifactId>
+				<version>3.19.16</version>
+			</dependency>
+			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
 				<artifactId>jackson-databind</artifactId>
 				<version>2.17.2</version>
@@ -118,8 +128,23 @@
 			</dependency>
 			<dependency>
 				<groupId>br.com.wdc.framework</groupId>
+				<artifactId>br.com.wdc.framework.jooq</artifactId>
+				<version>1.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>br.com.wdc.framework</groupId>
 				<artifactId>br.com.wdc.framework.cube</artifactId>
 				<version>2.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>br.com.wdc.framework</groupId>
+				<artifactId>remote.backend</artifactId>
+				<version>1.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>br.com.wdc.framework</groupId>
+				<artifactId>remote.bridge.teavm</artifactId>
+				<version>1.0.0</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

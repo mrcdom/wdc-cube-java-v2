@@ -12,12 +12,15 @@ public abstract class CubeApplication {
 
 	protected Map<Integer, CubePresenter> presenterMap;
 
+	protected Map<String, Object> attributeMap;
+
 	protected CubePlace lastPlace;
 
 	protected String fragment;
 
 	protected CubeApplication() {
 		this.presenterMap = this.createPresenterMap();
+		this.attributeMap = this.createAttributeMap();
 	}
 
 	public void release() {
@@ -40,8 +43,16 @@ public abstract class CubeApplication {
 		this.presenterMap.clear();
 	}
 
+	public CubePlace getLastPlace() {
+		return this.lastPlace;
+	}
+
 	public String getFragment() {
 		return this.fragment;
+	}
+
+	public void setFragment(String fragment) {
+		this.fragment = fragment;
 	}
 
 	public void publishParameters(CubeIntent intent) {
@@ -70,35 +81,56 @@ public abstract class CubeApplication {
 	CubeNavigation<?> navigation;
 
 	protected <T extends CubeApplication> CubeNavigation<T> navigate() {
-		if (this.navigation != null) {
-			this.navigation.interrupt();
+        if (this.navigation != null) {
+            this.navigation.interrupt();
 
-			if (this.navigation.reflowCount > 10) {
-				throw new AssertionError("Navigation recursion detected");
-			}
+            if (this.navigation.reflowCount > 10) {
+                throw new AssertionError("Navigation recursion detected");
+            }
 
-			var newContext = new CubeNavigation<T>(this);
-			newContext.reflowCount = this.navigation.reflowCount + 1;
-			newContext = new CubeNavigation<T>(this);
-			this.navigation = newContext;
-			return newContext;
-		} else {
-			var newContext = new CubeNavigation<T>(this);
-			this.navigation = newContext;
-			return newContext;
-		}
+            var newContext = new CubeNavigation<T>(this);
+            newContext.reflowCount = this.navigation.reflowCount + 1;
+
+            // Migrate created presenters from interrupted navigation
+            newContext.newPresenterMap.putAll(this.navigation.newPresenterMap);
+
+            this.navigation = newContext;
+            return newContext;
+        } else {
+            var newContext = new CubeNavigation<T>(this);
+            this.navigation = newContext;
+            return newContext;
+        }
 	}
 
 	// Abstract
 
-	public abstract Object setAttribute(String name, Object value);
-
-	public abstract Object getAttribute(String name);
-
-	public abstract Object removeAttribute(String name);
+	public abstract CubePlace getRootPlace();
 
 	public abstract void updateHistory();
 	
 	protected abstract Map<Integer, CubePresenter> createPresenterMap();
+
+	/**
+	 * Factory for the attribute map. Override to return a thread-safe map
+	 * in multi-threaded environments (e.g. ConcurrentHashMap).
+	 */
+	protected Map<String, Object> createAttributeMap() {
+		return new java.util.HashMap<>();
+	}
+
+	// :: Attributes
+
+	public Object setAttribute(String name, Object value) {
+		return this.attributeMap.put(name, value);
+	}
+
+	public Object getAttribute(String name) {
+		return this.attributeMap.get(name);
+	}
+
+	public Object removeAttribute(String name) {
+		return this.attributeMap.remove(name);
+	}
 
 }

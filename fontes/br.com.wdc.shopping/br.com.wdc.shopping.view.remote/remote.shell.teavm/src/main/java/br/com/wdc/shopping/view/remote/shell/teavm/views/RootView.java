@@ -1,0 +1,46 @@
+package br.com.wdc.shopping.view.remote.shell.teavm.views;
+
+import static br.com.wdc.shopping.view.teavm.commons.Swc.spTheme;
+import static br.com.wdc.shopping.view.teavm.commons.VNode.clsx;
+import static br.com.wdc.shopping.view.teavm.commons.VNode.slot;
+
+import br.com.wdc.shopping.view.teavm.commons.SelUtility;
+import br.com.wdc.shopping.view.teavm.commons.VNode;
+import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
+
+/**
+ * Root view: hosts the current content view (login or home). Equivalent to RootView in remote.shell.react and
+ * RootViewVDom in teavm.web.
+ */
+public class RootView extends AbstractRemoteView {
+
+    public static final String VIEW_ID = "f2d345c4a610";
+
+    @SuppressWarnings({ "java:S1214", "static-access" })
+    private interface Sel {
+        SelUtility u = SelUtility.INSTANCE;
+
+        String ROOT = clsx(u.FLEX_COL, u.H_FULL, u.OVERFLOW_HIDDEN);
+        String CONTENT = clsx(u.FLEX_COL, u.FLEX_GROW, u.MIN_H_0);
+    }
+
+    public RootView(String vsid) {
+        super(vsid, "sp-theme");
+        getElement().setAttribute("color", "light");
+        getElement().setAttribute("scale", "medium");
+        getElement().setAttribute("system", "spectrum");
+        getElement().setAttribute("class", Sel.ROOT);
+    }
+
+    @Override
+    protected VNode render() {
+        var scope = state();
+        var contentVsid = scope.getString("contentViewId");
+        var contentEl = getChildViewElement(contentVsid);
+
+        // @formatter:off
+        return spTheme("light", "medium", "spectrum").cls(Sel.ROOT).children(
+          slot(contentEl).cls(Sel.CONTENT));
+        // @formatter:on
+    }
+}

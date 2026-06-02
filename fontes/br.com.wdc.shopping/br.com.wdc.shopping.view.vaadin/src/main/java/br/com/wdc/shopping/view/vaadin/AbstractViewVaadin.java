@@ -60,16 +60,17 @@ public abstract class AbstractViewVaadin<P> implements CubeView {
         }
     }
 
-    protected <T, V extends AbstractViewVaadin<?>> BiConsumer<List<T>, List<V>> newListSlot(
-            HasComponents container, Supplier<V> factory, BiConsumer<V, T> updater) {
+    protected <T, V extends AbstractViewVaadin<?>> BiConsumer<List<T>, List<V>> newListSlot(HasComponents container,
+            Supplier<V> factory,
+            BiConsumer<V, T> updater) {
         return (items, viewList) -> {
             this.syncListSlot(container, items, viewList, factory, updater);
         };
     }
 
-    private <T, V extends AbstractViewVaadin<?>> void syncListSlot(
-            HasComponents container, List<T> items, List<V> viewList,
-            Supplier<V> factory, BiConsumer<V, T> updater) {
+    private <T, V extends AbstractViewVaadin<?>> void syncListSlot(HasComponents container, List<T> items,
+            List<V> viewList, Supplier<V> factory,
+            BiConsumer<V, T> updater) {
 
         var newSize = items != null ? items.size() : 0;
         var oldSize = viewList.size();
@@ -90,8 +91,10 @@ public abstract class AbstractViewVaadin<P> implements CubeView {
         }
 
         // Update all
-        for (int i = 0; i < newSize; i++) {
-            updater.accept(viewList.get(i), items.get(i));
+        if (items != null) {
+            for (int i = 0; i < newSize; i++) {
+                updater.accept(viewList.get(i), items.get(i));
+            }
         }
     }
 }

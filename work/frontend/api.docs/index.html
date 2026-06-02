@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WDC Shopping - API REST Demo</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a2e; color: #e0e0e0; padding: 20px; }
+        h1 { text-align: center; color: #00d4ff; margin-bottom: 10px; }
+        .subtitle { text-align: center; color: #888; margin-bottom: 30px; font-size: 0.9em; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .auth-bar { background: #16213e; border: 1px solid #0f3460; border-radius: 8px; padding: 15px; margin-bottom: 20px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .auth-bar label { color: #aaa; font-size: 0.85em; }
+        .auth-bar input { background: #0f3460; border: 1px solid #1a4080; color: #fff; padding: 6px 10px; border-radius: 4px; width: 140px; }
+        .auth-bar button { background: #00d4ff; color: #000; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .auth-bar button:hover { background: #00b8e6; }
+        .auth-bar button.logout { background: #e94560; color: #fff; }
+        .auth-bar button.logout:hover { background: #c23050; }
+        .auth-status { margin-left: auto; font-size: 0.85em; }
+        .auth-status.ok { color: #4caf50; }
+        .auth-status.no { color: #e94560; }
+        .tabs { display: flex; gap: 5px; margin-bottom: 0; }
+        .tab { padding: 10px 20px; background: #16213e; border: 1px solid #0f3460; border-bottom: none; border-radius: 8px 8px 0 0; cursor: pointer; color: #aaa; }
+        .tab.active { background: #0f3460; color: #00d4ff; border-color: #00d4ff; border-bottom: 1px solid #0f3460; }
+        .panel { background: #0f3460; border: 1px solid #00d4ff; border-radius: 0 8px 8px 8px; padding: 20px; display: none; }
+        .panel.active { display: block; }
+        .operations { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; margin-bottom: 15px; }
+        .op-btn { background: #16213e; border: 1px solid #1a4080; color: #e0e0e0; padding: 10px; border-radius: 6px; cursor: pointer; text-align: center; font-size: 0.85em; transition: all 0.2s; }
+        .op-btn:hover { border-color: #00d4ff; color: #00d4ff; background: #1a2744; }
+        .op-btn.active { border-color: #4caf50; color: #4caf50; }
+        .exec-area { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .exec-area h3 { color: #00d4ff; margin-bottom: 8px; font-size: 0.9em; }
+        textarea { width: 100%; min-height: 200px; background: #1a1a2e; border: 1px solid #1a4080; color: #e0e0e0; font-family: 'Fira Code', 'Consolas', monospace; font-size: 0.85em; padding: 10px; border-radius: 4px; resize: vertical; }
+        .run-btn { display: block; margin: 15px auto 0; background: #4caf50; color: #fff; border: none; padding: 10px 30px; border-radius: 4px; cursor: pointer; font-size: 1em; font-weight: bold; }
+        .run-btn:hover { background: #45a049; }
+        .run-btn:disabled { background: #555; cursor: not-allowed; }
+        .response-info { display: flex; gap: 15px; margin-bottom: 8px; font-size: 0.8em; color: #888; }
+        .response-info .status { font-weight: bold; }
+        .response-info .status.ok { color: #4caf50; }
+        .response-info .status.err { color: #e94560; }
+        .api-docs { background: #1a1a2e; border: 1px solid #1a4080; border-radius: 6px; padding: 15px; margin-top: 15px; display: none; font-size: 0.85em; line-height: 1.6; }
+        .api-docs.visible { display: block; }
+        .api-docs h4 { color: #00d4ff; margin-bottom: 8px; font-size: 1em; }
+        .api-docs .method-badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-weight: bold; font-size: 0.8em; margin-right: 8px; }
+        .api-docs .method-badge.post { background: #49cc90; color: #000; }
+        .api-docs .method-badge.get { background: #61affe; color: #000; }
+        .api-docs .method-badge.put { background: #fca130; color: #000; }
+        .api-docs .method-badge.delete { background: #f93e3e; color: #fff; }
+        .api-docs .endpoint { font-family: 'Fira Code', monospace; color: #fff; font-size: 0.9em; }
+        .api-docs .desc { color: #bbb; margin: 8px 0; }
+        .api-docs .params { margin-top: 10px; }
+        .api-docs .params th { text-align: left; color: #00d4ff; padding: 4px 12px 4px 0; font-size: 0.85em; }
+        .api-docs .params td { padding: 3px 12px 3px 0; color: #ccc; font-size: 0.85em; }
+        .api-docs .params td code { color: #ffd700; background: #16213e; padding: 1px 4px; border-radius: 2px; }
+        .api-docs .response-doc { margin-top: 10px; color: #aaa; }
+        .api-docs .response-doc code { color: #4caf50; background: #16213e; padding: 1px 4px; border-radius: 2px; }
+        .api-docs .type-block { margin-top: 12px; background: #0d1b2a; border: 1px solid #1a4080; border-radius: 4px; padding: 10px 12px; font-family: 'Fira Code', 'Consolas', monospace; font-size: 0.8em; white-space: pre; overflow-x: auto; color: #e0e0e0; line-height: 1.5; }
+        .api-docs .type-block .kw { color: #569cd6; }
+        .api-docs .type-block .tp { color: #4ec9b0; }
+        .api-docs .type-block .pr { color: #9cdcfe; }
+        .api-docs .type-block .cm { color: #6a9955; }
+        @media (max-width: 768px) { .exec-area { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WDC Shopping &mdash; API REST Demo</h1>
+        <p class="subtitle">Demonstração interativa dos endpoints REST. Baseado nos testes de integração.</p>
+
+        <!-- Auth Bar -->
+        <div class="auth-bar">
+            <div><label>Usuário</label><br><input id="authUser" value="admin"></div>
+            <div><label>Senha</label><br><input id="authPass" type="password" value="admin"></div>
+            <button onclick="doLogin()">Login</button>
+            <button class="logout" onclick="doLogout()">Logout</button>
+            <button onclick="doRefresh()">Refresh</button>
+            <span id="authStatus" class="auth-status no">Não autenticado</span>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('product')">Products</div>
+            <div class="tab" onclick="switchTab('user')">Users</div>
+            <div class="tab" onclick="switchTab('purchase')">Purchases</div>
+            <div class="tab" onclick="switchTab('purchaseItem')">Purchase Items</div>
+        </div>
+
+        <!-- Product Panel -->
+        <div id="panel-product" class="panel active">
+            <div class="operations">
+                <div class="op-btn" onclick="loadOp('product','fetchAll')">Fetch All</div>
+                <div class="op-btn" onclick="loadOp('product','fetchById')">Fetch By ID (POST)</div>
+                <div class="op-btn" onclick="loadOp('product','fetchByIdGet')">Fetch By ID (GET)</div>
+                <div class="op-btn" onclick="loadOp('product','fetchByIdProjection')">Fetch com Projection</div>
+                <div class="op-btn" onclick="loadOp('product','fetchByCriteria')">Fetch por Critério</div>
+                <div class="op-btn" onclick="loadOp('product','fetchPage')">Fetch Page</div>
+                <div class="op-btn" onclick="loadOp('product','fetchPaginated')">Fetch Paginado (offset/limit)</div>
+                <div class="op-btn" onclick="loadOp('product','fetchOrderAsc')">Fetch Ordem ASC</div>
+                <div class="op-btn" onclick="loadOp('product','fetchOrderDesc')">Fetch Ordem DESC</div>
+                <div class="op-btn" onclick="loadOp('product','countAll')">Count All</div>
+                <div class="op-btn" onclick="loadOp('product','countById')">Count por ID</div>
+                <div class="op-btn" onclick="loadOp('product','fetchImage')">Fetch Image</div>
+                <div class="op-btn" onclick="loadOp('product','updateImage')">Update Image</div>
+                <div class="op-btn" onclick="loadOp('product','insert')">Insert</div>
+                <div class="op-btn" onclick="loadOp('product','update')">Update</div>
+                <div class="op-btn" onclick="loadOp('product','delete')">Delete</div>
+            </div>
+            <div class="exec-area">
+                <div><h3>Request Body</h3><textarea id="req-product"></textarea></div>
+                <div><h3>Response</h3><div class="response-info" id="info-product"></div><textarea id="res-product" readonly></textarea></div>
+            </div>
+            <button class="run-btn" onclick="executeOp('product')">Executar</button>
+            <div class="api-docs" id="docs-product"></div>
+        </div>
+
+        <!-- User Panel -->
+        <div id="panel-user" class="panel">
+            <div class="operations">
+                <div class="op-btn" onclick="loadOp('user','fetchAll')">Fetch All</div>
+                <div class="op-btn" onclick="loadOp('user','fetchById')">Fetch By ID (POST)</div>
+                <div class="op-btn" onclick="loadOp('user','fetchByIdGet')">Fetch By ID (GET)</div>
+                <div class="op-btn" onclick="loadOp('user','fetchByIdProjection')">Fetch com Projection</div>
+                <div class="op-btn" onclick="loadOp('user','fetchByUserName')">Fetch por UserName</div>
+                <div class="op-btn" onclick="loadOp('user','fetchByCredentials')">Fetch por Credenciais</div>
+                <div class="op-btn" onclick="loadOp('user','fetchPage')">Fetch Page</div>
+                <div class="op-btn" onclick="loadOp('user','fetchPaginated')">Fetch Paginado (offset/limit)</div>
+                <div class="op-btn" onclick="loadOp('user','countAll')">Count All</div>
+                <div class="op-btn" onclick="loadOp('user','countById')">Count por ID</div>
+                <div class="op-btn" onclick="loadOp('user','insert')">Insert</div>
+                <div class="op-btn" onclick="loadOp('user','update')">Update</div>
+                <div class="op-btn" onclick="loadOp('user','delete')">Delete</div>
+            </div>
+            <div class="exec-area">
+                <div><h3>Request Body</h3><textarea id="req-user"></textarea></div>
+                <div><h3>Response</h3><div class="response-info" id="info-user"></div><textarea id="res-user" readonly></textarea></div>
+            </div>
+            <button class="run-btn" onclick="executeOp('user')">Executar</button>
+            <div class="api-docs" id="docs-user"></div>
+        </div>
+
+        <!-- Purchase Panel -->
+        <div id="panel-purchase" class="panel">
+            <div class="operations">
+                <div class="op-btn" onclick="loadOp('purchase','fetchAll')">Fetch All</div>
+                <div class="op-btn" onclick="loadOp('purchase','fetchById')">Fetch By ID (POST)</div>
+                <div class="op-btn" onclick="loadOp('purchase','fetchByIdGet')">Fetch By ID (GET)</div>
+                <div class="op-btn" onclick="loadOp('purchase','fetchByIdProjection')">Fetch com Projection</div>
+                <div class="op-btn" onclick="loadOp('purchase','fetchByUserId')">Fetch por User ID</div>
+                <div class="op-btn" onclick="loadOp('purchase','fetchPage')">Fetch Page</div>
+                <div class="op-btn" onclick="loadOp('purchase','fetchPaginated')">Fetch Paginado (offset/limit)</div>
+                <div class="op-btn" onclick="loadOp('purchase','fetchOrderAsc')">Fetch Ordem ASC</div>
+                <div class="op-btn" onclick="loadOp('purchase','fetchOrderDesc')">Fetch Ordem DESC</div>
+                <div class="op-btn" onclick="loadOp('purchase','countAll')">Count All</div>
+                <div class="op-btn" onclick="loadOp('purchase','countByUserId')">Count por User ID</div>
+                <div class="op-btn" onclick="loadOp('purchase','insert')">Insert</div>
+                <div class="op-btn" onclick="loadOp('purchase','update')">Update</div>
+                <div class="op-btn" onclick="loadOp('purchase','deleteById')">Delete por ID</div>
+                <div class="op-btn" onclick="loadOp('purchase','deleteByUserId')">Delete por User ID</div>
+            </div>
+            <div class="exec-area">
+                <div><h3>Request Body</h3><textarea id="req-purchase"></textarea></div>
+                <div><h3>Response</h3><div class="response-info" id="info-purchase"></div><textarea id="res-purchase" readonly></textarea></div>
+            </div>
+            <button class="run-btn" onclick="executeOp('purchase')">Executar</button>
+            <div class="api-docs" id="docs-purchase"></div>
+        </div>
+
+        <!-- PurchaseItem Panel -->
+        <div id="panel-purchaseItem" class="panel">
+            <div class="operations">
+                <div class="op-btn" onclick="loadOp('purchaseItem','fetchAll')">Fetch All</div>
+                <div class="op-btn" onclick="loadOp('purchaseItem','fetchById')">Fetch By ID (POST)</div>
+                <div class="op-btn" onclick="loadOp('purchaseItem','fetchByIdGet')">Fetch By ID (GET)</div>
+                <div class="op-btn" onclick="loadOp('purchaseItem','fetchByIdProjection')">Fetch com Projection</div>
+                <div class="op-btn" onclick="loadOp('purchaseItem','fetchByPurchaseId')">Fetch por Purchase ID</div>
+                <div class="op-btn" onclick="loadOp('purchaseItem','fetchByUserId')">Fetch por User ID</div>
+                <div class="op-btn" onclick="loadOp('purchaseItem','fetchByProductId')">Fetch por Product ID</div>
+                <div class="op-btn" onclick="loadOp('purchaseItem','fetchPage')">Fetch Page</div>
+                <div class="op-btn" onclick="loadOp('purchaseItem','fetchPaginated')">Fetch Paginado (offset/limit)</div>
+                <div class="op-btn" onclick="loadOp('purchaseItem','fetchOrderAsc')">Fetch Ordem ASC</div>
+                <div class="op-btn" onclick="loadOp('purchaseItem','fetchOrderDesc')">Fetch Ordem DESC</div>
+                <div class="op-btn" onclick="loadOp('purchaseItem','countAll')">Count All</div>
+                <div class="op-btn" onclick="loadOp('purchaseItem','countByPurchaseId')">Count por Purchase ID</div>
+                <div class="op-btn" onclick="loadOp('purchaseItem','countByUserId')">Count por User ID</div>
+                <div class="op-btn" onclick="loadOp('purchaseItem','insert')">Insert</div>
+                <div class="op-btn" onclick="loadOp('purchaseItem','update')">Update</div>
+                <div class="op-btn" onclick="loadOp('purchaseItem','deleteById')">Delete por Item ID</div>
+                <div class="op-btn" onclick="loadOp('purchaseItem','deleteByPurchaseId')">Delete por Purchase ID</div>
+                <div class="op-btn" onclick="loadOp('purchaseItem','deleteByUserId')">Delete por User ID</div>
+            </div>
+            <div class="exec-area">
+                <div><h3>Request Body</h3><textarea id="req-purchaseItem"></textarea></div>
+                <div><h3>Response</h3><div class="response-info" id="info-purchaseItem"></div><textarea id="res-purchaseItem" readonly></textarea></div>
+            </div>
+            <button class="run-btn" onclick="executeOp('purchaseItem')">Executar</button>
+            <div class="api-docs" id="docs-purchaseItem"></div>
+        </div>
+    </div>
+
+<script>
+// ============================================================
+// Estado global
+// ============================================================
+let accessToken = null;
+let refreshTokenStr = null;
+
+// Operação corrente por aba
+const currentOp = { product: null, user: null, purchase: null, purchaseItem: null };
+
+// ============================================================
+// Utilitários de criptografia (HMAC-SHA256 e MD5 via Web Crypto)
+// ============================================================
+
+async function md5(message) {
+    // Web Crypto não tem MD5, usamos uma implementação leve
+    return md5Impl(message);
+}
+
+// MD5 implementation (RFC 1321) - minificado para uso no digest de senha
+function md5Impl(string) {
+    const utf8 = new TextEncoder().encode(string);
+    let [a0, b0, c0, d0] = [0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476];
+    const K = [
+        0xd76aa478,0xe8c7b756,0x242070db,0xc1bdceee,0xf57c0faf,0x4787c62a,0xa8304613,0xfd469501,
+        0x698098d8,0x8b44f7af,0xffff5bb1,0x895cd7be,0x6b901122,0xfd987193,0xa679438e,0x49b40821,
+        0xf61e2562,0xc040b340,0x265e5a51,0xe9b6c7aa,0xd62f105d,0x02441453,0xd8a1e681,0xe7d3fbc8,
+        0x21e1cde6,0xc33707d6,0xf4d50d87,0x455a14ed,0xa9e3e905,0xfcefa3f8,0x676f02d9,0x8d2a4c8a,
+        0xfffa3942,0x8771f681,0x6d9d6122,0xfde5380c,0xa4beea44,0x4bdecfa9,0xf6bb4b60,0xbebfbc70,
+        0x289b7ec6,0xeaa127fa,0xd4ef3085,0x04881d05,0xd9d4d039,0xe6db99e5,0x1fa27cf8,0xc4ac5665,
+        0xf4292244,0x432aff97,0xab9423a7,0xfc93a039,0x655b59c3,0x8f0ccc92,0xffeff47d,0x85845dd1,
+        0x6fa87e4f,0xfe2ce6e0,0xa3014314,0x4e0811a1,0xf7537e82,0xbd3af235,0x2ad7d2bb,0xeb86d391
+    ];
+    const S = [
+        7,12,17,22,7,12,17,22,7,12,17,22,7,12,17,22,
+        5,9,14,20,5,9,14,20,5,9,14,20,5,9,14,20,
+        4,11,16,23,4,11,16,23,4,11,16,23,4,11,16,23,
+        6,10,15,21,6,10,15,21,6,10,15,21,6,10,15,21
+    ];
+
+    const bitLen = utf8.length * 8;
+    const padded = new Uint8Array(((utf8.length + 8) >> 6 + 1) * 64 || 64);
+    // proper padding calculation
+    const totalLen = (((utf8.length + 8) >>> 6) + 1) << 6;
+    const buf = new Uint8Array(totalLen);
+    buf.set(utf8);
+    buf[utf8.length] = 0x80;
+    const view = new DataView(buf.buffer);
+    view.setUint32(totalLen - 8, bitLen & 0xFFFFFFFF, true);
+    view.setUint32(totalLen - 4, Math.floor(bitLen / 0x100000000), true);
+
+    function rotl(x, n) { return ((x << n) | (x >>> (32 - n))) >>> 0; }
+    function add(...args) { return args.reduce((a, b) => (a + b) >>> 0, 0); }
+
+    for (let offset = 0; offset < totalLen; offset += 64) {
+        const M = new Uint32Array(16);
+        for (let j = 0; j < 16; j++) M[j] = view.getUint32(offset + j * 4, true);
+        let [a, b, c, d] = [a0, b0, c0, d0];
+        for (let i = 0; i < 64; i++) {
+            let f, g;
+            if (i < 16) { f = (b & c) | (~b & d); g = i; }
+            else if (i < 32) { f = (d & b) | (~d & c); g = (5 * i + 1) % 16; }
+            else if (i < 48) { f = b ^ c ^ d; g = (3 * i + 5) % 16; }
+            else { f = c ^ (b | ~d); g = (7 * i) % 16; }
+            f = f >>> 0;
+            const temp = d;
+            d = c; c = b;
+            b = add(b, rotl(add(a, f, K[i], M[g]), S[i]));
+            a = temp;
+        }
+        a0 = add(a0, a); b0 = add(b0, b); c0 = add(c0, c); d0 = add(d0, d);
+    }
+
+    // Retorna como array de bytes (little-endian)
+    const result = new Uint8Array(16);
+    const rv = new DataView(result.buffer);
+    rv.setUint32(0, a0, true); rv.setUint32(4, b0, true);
+    rv.setUint32(8, c0, true); rv.setUint32(12, d0, true);
+    return result;
+}
+
+// Converte bytes MD5 para BigInteger base36 (replicando Java: new BigInteger(md5bytes).toString(36))
+function md5ToBase36(bytes) {
+    // BigInteger interpreta os bytes como signed big-endian
+    // Precisamos converter para um BigInt
+    let hex = '';
+    for (let i = 0; i < bytes.length; i++) {
+        hex += bytes[i].toString(16).padStart(2, '0');
+    }
+    const bigint = BigInt('0x' + hex);
+    return bigint.toString(36);
+}
+
+function computePasswordHash(password) {
+    const md5Bytes = md5Impl(password);
+    return md5ToBase36(md5Bytes);
+}
+
+async function computeHmacSha256(key, data) {
+    const enc = new TextEncoder();
+    const cryptoKey = await crypto.subtle.importKey(
+        'raw', enc.encode(key), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+    );
+    const sig = await crypto.subtle.sign('HMAC', cryptoKey, enc.encode(data));
+    return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// ============================================================
+// API base
+// ============================================================
+const BASE_URL = '';  // Mesmo servidor
+
+async function apiPost(path, body) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (accessToken) headers['Authorization'] = 'Bearer ' + accessToken;
+    const resp = await fetch(BASE_URL + path, { method: 'POST', headers, body: JSON.stringify(body) });
+    return resp;
+}
+
+async function apiGet(path) {
+    const headers = {};
+    if (accessToken) headers['Authorization'] = 'Bearer ' + accessToken;
+    const resp = await fetch(BASE_URL + path, { method: 'GET', headers });
+    return resp;
+}
+
+// ============================================================
+// Autenticação
+// ============================================================
+async function doLogin() {
+    const userName = document.getElementById('authUser').value;
+    const password = document.getElementById('authPass').value;
+    try {
+        // 1. Challenge
+        const challengeResp = await apiGet('/api/auth/challenge');
+        const challenge = await challengeResp.json();
+        const nonce = challenge.nonce;
+
+        // 2. Compute password hash (MD5 base36) + HMAC
+        const passwordHash = computePasswordHash(password);
+        const digest = await computeHmacSha256(passwordHash, userName + nonce);
+
+        // 3. Login
+        const loginResp = await fetch(BASE_URL + '/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userName, digest, nonce })
+        });
+
+        if (!loginResp.ok) {
+            updateAuthStatus(false, 'Falha: HTTP ' + loginResp.status);
+            return;
+        }
+        const loginData = await loginResp.json();
+        accessToken = loginData.accessToken;
+        refreshTokenStr = loginData.refreshToken;
+        updateAuthStatus(true, 'Autenticado como ' + userName + ' (userId=' + loginData.userId + ')');
+    } catch (e) {
+        updateAuthStatus(false, 'Erro: ' + e.message);
+    }
+}
+
+async function doRefresh() {
+    if (!refreshTokenStr) { updateAuthStatus(false, 'Sem refresh token'); return; }
+    try {
+        const resp = await fetch(BASE_URL + '/api/auth/refresh', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refreshToken: refreshTokenStr })
+        });
+        if (!resp.ok) { updateAuthStatus(false, 'Refresh falhou: HTTP ' + resp.status); return; }
+        const data = await resp.json();
+        accessToken = data.accessToken;
+        refreshTokenStr = data.refreshToken;
+        updateAuthStatus(true, 'Token renovado (expira: ' + data.expiresAt + ')');
+    } catch (e) {
+        updateAuthStatus(false, 'Erro: ' + e.message);
+    }
+}
+
+async function doLogout() {
+    if (refreshTokenStr) {
+        try {
+            await fetch(BASE_URL + '/api/auth/logout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refreshToken: refreshTokenStr })
+            });
+        } catch (e) { /* ignora */ }
+    }
+    accessToken = null;
+    refreshTokenStr = null;
+    updateAuthStatus(false, 'Não autenticado');
+}
+
+function updateAuthStatus(ok, msg) {
+    const el = document.getElementById('authStatus');
+    el.textContent = msg;
+    el.className = 'auth-status ' + (ok ? 'ok' : 'no');
+}
+
+// ============================================================
+// Tabs
+// ============================================================
+function switchTab(tabName) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('panel-' + tabName).classList.add('active');
+}
+
+// ============================================================
+// Operações - Definições
+// ============================================================
+const OPERATIONS = {
+    product: {
+        fetchAll:            { path: '/api/repo/product/fetch', body: {} },
+        fetchById:           { path: '/api/repo/product/fetch-by-id', body: { id: 0 } },
+        fetchByIdGet:        { path: '/api/repo/product/{id}', method: 'GET', body: null, pathParam: { id: 0 } },
+        fetchByIdProjection: { path: '/api/repo/product/fetch-by-id', body: { id: 3, projection: { id: 1, name: "~" } } },
+        fetchByCriteria:     { path: '/api/repo/product/fetch', body: { productId: 1 } },
+        fetchPage:           { path: '/api/repo/product/fetch-page', body: { page: 0, pageSize: 2 } },
+        fetchPaginated:      { path: '/api/repo/product/fetch', body: { orderBy: "ACENDING", offset: 0, limit: 2 } },
+        fetchOrderAsc:       { path: '/api/repo/product/fetch', body: { orderBy: "ACENDING" } },
+        fetchOrderDesc:      { path: '/api/repo/product/fetch', body: { orderBy: "DESCENDING" } },
+        countAll:            { path: '/api/repo/product/count', body: {} },
+        countById:           { path: '/api/repo/product/count', body: { productId: 0 } },
+        fetchImage:          { path: '/api/repo/product/{id}/image', method: 'GET', body: null, pathParam: { id: 0 } },
+        updateImage:         { path: '/api/repo/product/{id}/image', method: 'PUT', body: null, pathParam: { id: 0 } },
+        insert:              { path: '/api/repo/product/insert', body: { name: "Teclado USB", price: 89.90, description: "Teclado mecanico" } },
+        update:              { path: '/api/repo/product/update', body: { id: 3, name: "Pen Drive 4GB", price: 35.0, description: "Pen Drive atualizado" } },
+        delete:              { path: '/api/repo/product/delete', body: { productId: 3 } }
+    },
+    user: {
+        fetchAll:            { path: '/api/repo/user/fetch', body: {} },
+        fetchById:           { path: '/api/repo/user/fetch-by-id', body: { id: 0 } },
+        fetchByIdGet:        { path: '/api/repo/user/{id}', method: 'GET', body: null, pathParam: { id: 0 } },
+        fetchByIdProjection: { path: '/api/repo/user/fetch-by-id', body: { id: 0, projection: { id: 1, userName: "~" } } },
+        fetchByUserName:     { path: '/api/repo/user/fetch', body: { userName: "fulano" } },
+        fetchByCredentials:  { path: '/api/repo/user/fetch', body: { userName: "admin", password: "admin" } },
+        fetchPage:           { path: '/api/repo/user/fetch-page', body: { page: 0, pageSize: 2 } },
+        fetchPaginated:      { path: '/api/repo/user/fetch', body: { orderBy: "ACENDING", offset: 1, limit: 1 } },
+        countAll:            { path: '/api/repo/user/count', body: {} },
+        countById:           { path: '/api/repo/user/count', body: { userId: 0 } },
+        insert:              { path: '/api/repo/user/insert', body: { userName: "newuser", password: "secret", name: "New User" } },
+        update:              { path: '/api/repo/user/update', body: { id: 0, userName: "admin", name: "Nome Alterado" } },
+        delete:              { path: '/api/repo/user/delete', body: { userId: 2 } }
+    },
+    purchase: {
+        fetchAll:            { path: '/api/repo/purchase/fetch', body: {} },
+        fetchById:           { path: '/api/repo/purchase/fetch-by-id', body: { id: 0, projection: { id: 1, buyDate: "2000-01-01T00:00:00Z", user: { id: 1 } } } },
+        fetchByIdGet:        { path: '/api/repo/purchase/{id}', method: 'GET', body: null, pathParam: { id: 0 } },
+        fetchByIdProjection: { path: '/api/repo/purchase/fetch-by-id', body: { id: 0, projection: { id: 1, buyDate: "2000-01-01T00:00:00Z" } } },
+        fetchByUserId:       { path: '/api/repo/purchase/fetch', body: { userId: 0, projection: { id: 1, buyDate: "2000-01-01T00:00:00Z", user: { id: 1 } } } },
+        fetchPage:           { path: '/api/repo/purchase/fetch-page', body: { page: 0, pageSize: 2 } },
+        fetchPaginated:      { path: '/api/repo/purchase/fetch', body: { orderBy: "ACENDING", offset: 0, limit: 1 } },
+        fetchOrderAsc:       { path: '/api/repo/purchase/fetch', body: { orderBy: "ACENDING" } },
+        fetchOrderDesc:      { path: '/api/repo/purchase/fetch', body: { orderBy: "DESCENDING" } },
+        countAll:            { path: '/api/repo/purchase/count', body: {} },
+        countByUserId:       { path: '/api/repo/purchase/count', body: { userId: 0 } },
+        insert:              { path: '/api/repo/purchase/insert', body: { buyDate: new Date().toISOString(), user: { id: 1 } } },
+        update:              { path: '/api/repo/purchase/update', body: { id: 0, buyDate: new Date().toISOString(), user: { id: 2 } } },
+        deleteById:          { path: '/api/repo/purchase/delete', body: { purchaseId: 0 } },
+        deleteByUserId:      { path: '/api/repo/purchase/delete', body: { userId: 0 } }
+    },
+    purchaseItem: {
+        fetchAll:             { path: '/api/repo/purchase-item/fetch', body: {} },
+        fetchById:            { path: '/api/repo/purchase-item/fetch-by-id', body: { id: 0, projection: { id: 1, amount: 1, price: 1.0, purchase: { id: 1 }, product: { id: 1 } } } },
+        fetchByIdGet:         { path: '/api/repo/purchase-item/{id}', method: 'GET', body: null, pathParam: { id: 0 } },
+        fetchByIdProjection:  { path: '/api/repo/purchase-item/fetch-by-id', body: { id: 0, projection: { id: 1, amount: 1, price: 1.0 } } },
+        fetchByPurchaseId:    { path: '/api/repo/purchase-item/fetch', body: { purchaseId: 0 } },
+        fetchByUserId:        { path: '/api/repo/purchase-item/fetch', body: { userId: 0 } },
+        fetchByProductId:     { path: '/api/repo/purchase-item/fetch', body: { productId: 0, projection: { id: 1, amount: 1, price: 1.0, purchase: { id: 1 }, product: { id: 1 } } } },
+        fetchPage:            { path: '/api/repo/purchase-item/fetch-page', body: { page: 0, pageSize: 2 } },
+        fetchPaginated:       { path: '/api/repo/purchase-item/fetch', body: { orderBy: "ACENDING", offset: 0, limit: 2 } },
+        fetchOrderAsc:        { path: '/api/repo/purchase-item/fetch', body: { orderBy: "ACENDING" } },
+        fetchOrderDesc:       { path: '/api/repo/purchase-item/fetch', body: { orderBy: "DESCENDING" } },
+        countAll:             { path: '/api/repo/purchase-item/count', body: {} },
+        countByPurchaseId:    { path: '/api/repo/purchase-item/count', body: { purchaseId: 1 } },
+        countByUserId:        { path: '/api/repo/purchase-item/count', body: { userId: 0 } },
+        insert:               { path: '/api/repo/purchase-item/insert', body: { amount: 5, price: 15.50, purchaseId: 0, product: { id: 3 } } },
+        update:               { path: '/api/repo/purchase-item/update', body: { id: 0, amount: 99, price: 999.99, purchaseId: 0, product: { id: 0 } } },
+        deleteById:           { path: '/api/repo/purchase-item/delete', body: { purchaseItemId: 0 } },
+        deleteByPurchaseId:   { path: '/api/repo/purchase-item/delete', body: { purchaseId: 1 } },
+        deleteByUserId:       { path: '/api/repo/purchase-item/delete', body: { userId: 0 } }
+    }
+};
+
+// ============================================================
+// Tipos do domínio (br.com.wdc.shopping.domain.model)
+// ============================================================
+const DOMAIN_TYPES = {
+    Product: `<span class="kw">interface</span> <span class="tp">Product</span> {
+  <span class="pr">id</span>: number | null
+  <span class="pr">name</span>: string | null
+  <span class="pr">price</span>: number | null
+  <span class="pr">description</span>: string | null
+  <span class="pr">image</span>: string | null  <span class="cm">// base64 (binário)</span>
+}`,
+    User: `<span class="kw">interface</span> <span class="tp">User</span> {
+  <span class="pr">id</span>: number | null
+  <span class="pr">userName</span>: string | null
+  <span class="pr">password</span>: string | null  <span class="cm">// hash MD5/base36 (nunca retornado em fetch)</span>
+  <span class="pr">name</span>: string | null
+  <span class="pr">roles</span>: string | null
+}`,
+    Purchase: `<span class="kw">interface</span> <span class="tp">Purchase</span> {
+  <span class="pr">id</span>: number | null
+  <span class="pr">buyDate</span>: string | null  <span class="cm">// ISO 8601 OffsetDateTime</span>
+  <span class="pr">user</span>: <span class="tp">User</span> | null
+  <span class="pr">items</span>: <span class="tp">PurchaseItem</span>[] | null
+}`,
+    PurchaseItem: `<span class="kw">interface</span> <span class="tp">PurchaseItem</span> {
+  <span class="pr">id</span>: number | null
+  <span class="pr">amount</span>: number | null
+  <span class="pr">price</span>: number | null
+  <span class="pr">purchase</span>: <span class="tp">Purchase</span> | null
+  <span class="pr">product</span>: <span class="tp">Product</span> | null
+}`,
+    ProductCriteria: `<span class="kw">interface</span> <span class="tp">ProductCriteria</span> {
+  <span class="pr">productId</span>?: number        <span class="cm">// filtro por ID</span>
+  <span class="pr">orderBy</span>?: <span class="tp">"ACENDING"</span> | <span class="tp">"DESCENDING"</span>
+  <span class="pr">offset</span>?: number           <span class="cm">// pular N registros</span>
+  <span class="pr">limit</span>?: number            <span class="cm">// máximo (0 = todos)</span>
+  <span class="pr">projection</span>?: <span class="tp">Partial&lt;Product&gt;</span>
+}`,
+    UserCriteria: `<span class="kw">interface</span> <span class="tp">UserCriteria</span> {
+  <span class="pr">userId</span>?: number
+  <span class="pr">userName</span>?: string
+  <span class="pr">password</span>?: string         <span class="cm">// texto plano (convertido para hash)</span>
+  <span class="pr">orderBy</span>?: <span class="tp">"ACENDING"</span> | <span class="tp">"DESCENDING"</span>
+  <span class="pr">offset</span>?: number
+  <span class="pr">limit</span>?: number
+  <span class="pr">projection</span>?: <span class="tp">Partial&lt;User&gt;</span>
+}`,
+    PurchaseCriteria: `<span class="kw">interface</span> <span class="tp">PurchaseCriteria</span> {
+  <span class="pr">purchaseId</span>?: number
+  <span class="pr">userId</span>?: number
+  <span class="pr">productId</span>?: number
+  <span class="pr">orderBy</span>?: <span class="tp">"ACENDING"</span> | <span class="tp">"DESCENDING"</span>
+  <span class="pr">offset</span>?: number
+  <span class="pr">limit</span>?: number
+  <span class="pr">projection</span>?: <span class="tp">Partial&lt;Purchase&gt;</span>
+}`,
+    PurchaseItemCriteria: `<span class="kw">interface</span> <span class="tp">PurchaseItemCriteria</span> {
+  <span class="pr">purchaseItemId</span>?: number
+  <span class="pr">purchaseId</span>?: number
+  <span class="pr">productId</span>?: number
+  <span class="pr">userId</span>?: number
+  <span class="pr">orderBy</span>?: <span class="tp">"ACENDING"</span> | <span class="tp">"DESCENDING"</span>
+  <span class="pr">offset</span>?: number
+  <span class="pr">limit</span>?: number
+  <span class="pr">projection</span>?: <span class="tp">Partial&lt;PurchaseItem&gt;</span>
+}`,
+    PageResult: `<span class="kw">interface</span> <span class="tp">PageResult</span>&lt;<span class="tp">T</span>&gt; {
+  <span class="pr">items</span>: <span class="tp">T</span>[]
+  <span class="pr">totalItems</span>: number
+}`,
+    FetchResult: `<span class="kw">interface</span> <span class="tp">FetchResult</span>&lt;<span class="tp">T</span>&gt; {
+  <span class="pr">items</span>: <span class="tp">T</span>[]
+}`,
+    CountResult: `<span class="kw">interface</span> <span class="tp">CountResult</span> {
+  <span class="pr">count</span>: number
+}`,
+    MutationResult: `<span class="kw">interface</span> <span class="tp">InsertResult</span> {
+  <span class="pr">success</span>: boolean
+  <span class="pr">id</span>: number
+}
+
+<span class="kw">interface</span> <span class="tp">UpdateResult</span> {
+  <span class="pr">success</span>: boolean
+}`
+};
+
+// ============================================================
+// Documentação das operações
+// ============================================================
+const API_DOCS = {
+    product: {
+        fetchAll: {
+            desc: 'Retorna todos os produtos. Aceita critérios opcionais, ordenação e paginação por offset/limit.',
+            types: ['ProductCriteria', 'Product', 'FetchResult'],
+            response: 'FetchResult&lt;Product&gt;'
+        },
+        fetchById: {
+            desc: 'Busca produto por ID via POST. Permite especificar projection.',
+            types: ['Product'],
+            response: 'Product | { error: string } (404)'
+        },
+        fetchByIdGet: {
+            desc: 'Busca produto por ID via GET. Retorna projeção completa.',
+            types: ['Product'],
+            response: 'Product | { error: string } (404)'
+        },
+        fetchByIdProjection: {
+            desc: 'Busca produto por ID com projeção customizada — retorna apenas os campos solicitados.',
+            types: ['Product'],
+            response: 'Partial&lt;Product&gt; | { error: string } (404)'
+        },
+        fetchByCriteria: {
+            desc: 'Busca produtos filtrando por critérios específicos.',
+            types: ['ProductCriteria', 'Product', 'FetchResult'],
+            response: 'FetchResult&lt;Product&gt;'
+        },
+        fetchPage: {
+            desc: 'Busca paginada — retorna uma página de resultados com total de itens.',
+            types: ['ProductCriteria', 'Product', 'PageResult'],
+            response: 'PageResult&lt;Product&gt;'
+        },
+        fetchPaginated: {
+            desc: 'Busca com paginação por offset/limit (sem total).',
+            types: ['ProductCriteria', 'Product', 'FetchResult'],
+            response: 'FetchResult&lt;Product&gt;'
+        },
+        fetchOrderAsc: {
+            desc: 'Retorna todos os produtos ordenados por nome ascendente.',
+            types: ['Product', 'FetchResult'],
+            response: 'FetchResult&lt;Product&gt;'
+        },
+        fetchOrderDesc: {
+            desc: 'Retorna todos os produtos ordenados por nome descendente.',
+            types: ['Product', 'FetchResult'],
+            response: 'FetchResult&lt;Product&gt;'
+        },
+        countAll: {
+            desc: 'Conta todos os produtos. Sem critério = total geral.',
+            types: ['CountResult'],
+            response: 'CountResult'
+        },
+        countById: {
+            desc: 'Conta produtos por critério (ex: verificar existência por ID).',
+            types: ['ProductCriteria', 'CountResult'],
+            response: 'CountResult'
+        },
+        fetchImage: {
+            desc: 'Retorna a imagem PNG do produto.',
+            types: [],
+            response: 'image/png (binário) | 404'
+        },
+        updateImage: {
+            desc: 'Atualiza a imagem do produto. Envie o corpo como binário PNG.',
+            types: [],
+            response: '(vazio, 200 OK)'
+        },
+        insert: {
+            desc: 'Insere um novo produto.',
+            types: ['Product', 'MutationResult'],
+            response: 'InsertResult'
+        },
+        update: {
+            desc: 'Atualiza um produto existente. Campos presentes no JSON indicam a projeção.',
+            types: ['Product', 'MutationResult'],
+            response: 'UpdateResult'
+        },
+        delete: {
+            desc: 'Remove produtos por critério.',
+            types: ['ProductCriteria', 'CountResult'],
+            response: 'CountResult'
+        }
+    },
+    user: {
+        fetchAll: {
+            desc: 'Retorna todos os usuários. Aceita critérios, ordenação e paginação.',
+            types: ['UserCriteria', 'User', 'FetchResult'],
+            response: 'FetchResult&lt;User&gt;'
+        },
+        fetchById: {
+            desc: 'Busca usuário por ID via POST com projeção opcional.',
+            types: ['User'],
+            response: 'User | { error: string } (404)'
+        },
+        fetchByIdGet: {
+            desc: 'Busca usuário por ID via GET. Retorna todos os campos.',
+            types: ['User'],
+            response: 'User | { error: string } (404)'
+        },
+        fetchByIdProjection: {
+            desc: 'Busca usuário por ID retornando apenas campos da projeção.',
+            types: ['User'],
+            response: 'Partial&lt;User&gt; | { error: string } (404)'
+        },
+        fetchByUserName: {
+            desc: 'Busca usuário por username.',
+            types: ['UserCriteria', 'User', 'FetchResult'],
+            response: 'FetchResult&lt;User&gt;'
+        },
+        fetchByCredentials: {
+            desc: 'Busca usuário por userName e password (validação de credenciais).',
+            types: ['UserCriteria', 'User', 'FetchResult'],
+            response: 'FetchResult&lt;User&gt;'
+        },
+        fetchPage: {
+            desc: 'Busca paginada de usuários com total.',
+            types: ['UserCriteria', 'User', 'PageResult'],
+            response: 'PageResult&lt;User&gt;'
+        },
+        fetchPaginated: {
+            desc: 'Busca com paginação por offset/limit.',
+            types: ['UserCriteria', 'User', 'FetchResult'],
+            response: 'FetchResult&lt;User&gt;'
+        },
+        countAll: {
+            desc: 'Conta todos os usuários.',
+            types: ['CountResult'],
+            response: 'CountResult'
+        },
+        countById: {
+            desc: 'Conta usuários por critério.',
+            types: ['UserCriteria', 'CountResult'],
+            response: 'CountResult'
+        },
+        insert: {
+            desc: 'Insere um novo usuário. Password é armazenada como hash MD5/base36.',
+            types: ['User', 'MutationResult'],
+            response: 'InsertResult'
+        },
+        update: {
+            desc: 'Atualiza usuário. Campos presentes no JSON indicam a projeção.',
+            types: ['User', 'MutationResult'],
+            response: 'UpdateResult'
+        },
+        delete: {
+            desc: 'Remove usuários por critério.',
+            types: ['UserCriteria', 'CountResult'],
+            response: 'CountResult'
+        }
+    },
+    purchase: {
+        fetchAll: {
+            desc: 'Retorna todas as compras com projeção completa (incluindo items).',
+            types: ['PurchaseCriteria', 'Purchase', 'PurchaseItem', 'FetchResult'],
+            response: 'FetchResult&lt;Purchase&gt;'
+        },
+        fetchById: {
+            desc: 'Busca compra por ID via POST com projeção.',
+            types: ['Purchase', 'PurchaseItem'],
+            response: 'Purchase | { error: string } (404)'
+        },
+        fetchByIdGet: {
+            desc: 'Busca compra por ID via GET.',
+            types: ['Purchase', 'PurchaseItem'],
+            response: 'Purchase | { error: string } (404)'
+        },
+        fetchByIdProjection: {
+            desc: 'Busca compra por ID com projeção reduzida.',
+            types: ['Purchase'],
+            response: 'Partial&lt;Purchase&gt; | { error: string } (404)'
+        },
+        fetchByUserId: {
+            desc: 'Busca compras de um usuário específico.',
+            types: ['PurchaseCriteria', 'Purchase', 'FetchResult'],
+            response: 'FetchResult&lt;Purchase&gt;'
+        },
+        fetchPage: {
+            desc: 'Busca paginada de compras com total.',
+            types: ['PurchaseCriteria', 'Purchase', 'PageResult'],
+            response: 'PageResult&lt;Purchase&gt;'
+        },
+        fetchPaginated: {
+            desc: 'Busca com paginação por offset/limit.',
+            types: ['PurchaseCriteria', 'Purchase', 'FetchResult'],
+            response: 'FetchResult&lt;Purchase&gt;'
+        },
+        fetchOrderAsc: {
+            desc: 'Retorna compras ordenadas por data ascendente.',
+            types: ['Purchase', 'FetchResult'],
+            response: 'FetchResult&lt;Purchase&gt;'
+        },
+        fetchOrderDesc: {
+            desc: 'Retorna compras ordenadas por data descendente.',
+            types: ['Purchase', 'FetchResult'],
+            response: 'FetchResult&lt;Purchase&gt;'
+        },
+        countAll: {
+            desc: 'Conta todas as compras.',
+            types: ['CountResult'],
+            response: 'CountResult'
+        },
+        countByUserId: {
+            desc: 'Conta compras de um usuário.',
+            types: ['PurchaseCriteria', 'CountResult'],
+            response: 'CountResult'
+        },
+        insert: {
+            desc: 'Insere uma nova compra.',
+            types: ['Purchase', 'MutationResult'],
+            response: 'InsertResult'
+        },
+        update: {
+            desc: 'Atualiza uma compra. Campos presentes no JSON indicam a projeção.',
+            types: ['Purchase', 'MutationResult'],
+            response: 'UpdateResult'
+        },
+        deleteById: {
+            desc: 'Remove compra por ID.',
+            types: ['PurchaseCriteria', 'CountResult'],
+            response: 'CountResult'
+        },
+        deleteByUserId: {
+            desc: 'Remove todas as compras de um usuário.',
+            types: ['PurchaseCriteria', 'CountResult'],
+            response: 'CountResult'
+        }
+    },
+    purchaseItem: {
+        fetchAll: {
+            desc: 'Retorna todos os itens de compra.',
+            types: ['PurchaseItemCriteria', 'PurchaseItem', 'FetchResult'],
+            response: 'FetchResult&lt;PurchaseItem&gt;'
+        },
+        fetchById: {
+            desc: 'Busca item por ID via POST com projeção.',
+            types: ['PurchaseItem', 'Product'],
+            response: 'PurchaseItem | { error: string } (404)'
+        },
+        fetchByIdGet: {
+            desc: 'Busca item por ID via GET.',
+            types: ['PurchaseItem', 'Product'],
+            response: 'PurchaseItem | { error: string } (404)'
+        },
+        fetchByIdProjection: {
+            desc: 'Busca item por ID com projeção reduzida.',
+            types: ['PurchaseItem'],
+            response: 'Partial&lt;PurchaseItem&gt; | { error: string } (404)'
+        },
+        fetchByPurchaseId: {
+            desc: 'Busca itens de uma compra específica.',
+            types: ['PurchaseItemCriteria', 'PurchaseItem', 'FetchResult'],
+            response: 'FetchResult&lt;PurchaseItem&gt;'
+        },
+        fetchByUserId: {
+            desc: 'Busca itens de compras de um usuário.',
+            types: ['PurchaseItemCriteria', 'PurchaseItem', 'FetchResult'],
+            response: 'FetchResult&lt;PurchaseItem&gt;'
+        },
+        fetchByProductId: {
+            desc: 'Busca itens que contêm um produto específico.',
+            types: ['PurchaseItemCriteria', 'PurchaseItem', 'Product', 'FetchResult'],
+            response: 'FetchResult&lt;PurchaseItem&gt;'
+        },
+        fetchPage: {
+            desc: 'Busca paginada de itens com total.',
+            types: ['PurchaseItemCriteria', 'PurchaseItem', 'PageResult'],
+            response: 'PageResult&lt;PurchaseItem&gt;'
+        },
+        fetchPaginated: {
+            desc: 'Busca com paginação por offset/limit.',
+            types: ['PurchaseItemCriteria', 'PurchaseItem', 'FetchResult'],
+            response: 'FetchResult&lt;PurchaseItem&gt;'
+        },
+        fetchOrderAsc: {
+            desc: 'Retorna itens ordenados ascendente.',
+            types: ['PurchaseItem', 'FetchResult'],
+            response: 'FetchResult&lt;PurchaseItem&gt;'
+        },
+        fetchOrderDesc: {
+            desc: 'Retorna itens ordenados descendente.',
+            types: ['PurchaseItem', 'FetchResult'],
+            response: 'FetchResult&lt;PurchaseItem&gt;'
+        },
+        countAll: {
+            desc: 'Conta todos os itens.',
+            types: ['CountResult'],
+            response: 'CountResult'
+        },
+        countByPurchaseId: {
+            desc: 'Conta itens de uma compra.',
+            types: ['PurchaseItemCriteria', 'CountResult'],
+            response: 'CountResult'
+        },
+        countByUserId: {
+            desc: 'Conta itens de compras de um usuário.',
+            types: ['PurchaseItemCriteria', 'CountResult'],
+            response: 'CountResult'
+        },
+        insert: {
+            desc: 'Insere um item em uma compra.',
+            types: ['PurchaseItem', 'Product', 'MutationResult'],
+            response: 'InsertResult'
+        },
+        update: {
+            desc: 'Atualiza item. Campos presentes no JSON indicam a projeção.',
+            types: ['PurchaseItem', 'MutationResult'],
+            response: 'UpdateResult'
+        },
+        deleteById: {
+            desc: 'Remove item por ID.',
+            types: ['PurchaseItemCriteria', 'CountResult'],
+            response: 'CountResult'
+        },
+        deleteByPurchaseId: {
+            desc: 'Remove todos os itens de uma compra.',
+            types: ['PurchaseItemCriteria', 'CountResult'],
+            response: 'CountResult'
+        },
+        deleteByUserId: {
+            desc: 'Remove todos os itens de compras de um usuário.',
+            types: ['PurchaseItemCriteria', 'CountResult'],
+            response: 'CountResult'
+        }
+    }
+};
+
+function renderDocs(entity, opName) {
+    const docsDiv = document.getElementById('docs-' + entity);
+    const doc = (API_DOCS[entity] || {})[opName];
+    if (!doc) {
+        docsDiv.className = 'api-docs';
+        docsDiv.innerHTML = '';
+        return;
+    }
+
+    const op = OPERATIONS[entity][opName];
+    const method = (op.method || 'POST').toUpperCase();
+    const badgeClass = method.toLowerCase();
+
+    // Render type definitions
+    let typesHtml = '';
+    if (doc.types && doc.types.length > 0) {
+        const rendered = doc.types
+            .filter(t => DOMAIN_TYPES[t])
+            .map(t => DOMAIN_TYPES[t])
+            .join('\n\n');
+        if (rendered) {
+            typesHtml = `<div class="type-block">${rendered}</div>`;
+        }
+    }
+
+    docsDiv.innerHTML = `
+        <h4><span class="method-badge ${badgeClass}">${method}</span><span class="endpoint">${op.path}</span></h4>
+        <div class="desc">${doc.desc}</div>
+        ${typesHtml}
+        <div class="response-doc"><strong>Response:</strong> <code>${doc.response}</code></div>
+    `;
+    docsDiv.className = 'api-docs visible';
+}
+
+// ============================================================
+// Carregar operação no textarea
+// ============================================================
+function loadOp(entity, opName) {
+    const op = OPERATIONS[entity][opName];
+    currentOp[entity] = { ...op, opName };
+    const textarea = document.getElementById('req-' + entity);
+
+    if (op.method === 'GET') {
+        let path = op.path;
+        if (op.pathParam) {
+            for (const [k, v] of Object.entries(op.pathParam)) {
+                path = path.replace('{' + k + '}', v);
+            }
+        }
+        textarea.value = '// GET ' + path + '\n// (sem body - requisição GET)';
+    } else if (op.method === 'PUT') {
+        let path = op.path;
+        if (op.pathParam) {
+            for (const [k, v] of Object.entries(op.pathParam)) {
+                path = path.replace('{' + k + '}', v);
+            }
+        }
+        textarea.value = '// PUT ' + path + '\n// Envie um binário (imagem PNG) via este endpoint.\n// Use curl ou ferramenta similar para upload real.';
+    } else {
+        textarea.value = JSON.stringify(op.body, null, 2);
+    }
+
+    // Highlight active button
+    const panel = document.getElementById('panel-' + entity);
+    panel.querySelectorAll('.op-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+
+    // Clear response
+    document.getElementById('res-' + entity).value = '';
+    document.getElementById('info-' + entity).innerHTML = '';
+
+    // Show documentation
+    renderDocs(entity, opName);
+}
+
+// ============================================================
+// Executar operação
+// ============================================================
+async function executeOp(entity) {
+    const op = currentOp[entity];
+    if (!op) { alert('Selecione uma operação primeiro.'); return; }
+
+    const resTextarea = document.getElementById('res-' + entity);
+    const infoDiv = document.getElementById('info-' + entity);
+    resTextarea.value = 'Executando...';
+
+    try {
+        let resp;
+        const startTime = performance.now();
+
+        if (op.method === 'GET') {
+            let path = op.path;
+            if (op.pathParam) {
+                for (const [k, v] of Object.entries(op.pathParam)) {
+                    path = path.replace('{' + k + '}', v);
+                }
+            }
+            // Permite editar o path param no textarea
+            const text = document.getElementById('req-' + entity).value;
+            const pathMatch = text.match(/\/\/\s*GET\s+(.+)/);
+            if (pathMatch) {
+                path = pathMatch[1].trim();
+            }
+            resp = await apiGet(path);
+        } else if (op.method === 'PUT') {
+            let path = op.path;
+            if (op.pathParam) {
+                for (const [k, v] of Object.entries(op.pathParam)) {
+                    path = path.replace('{' + k + '}', v);
+                }
+            }
+            const text = document.getElementById('req-' + entity).value;
+            const pathMatch = text.match(/\/\/\s*PUT\s+(.+)/);
+            if (pathMatch) {
+                path = pathMatch[1].trim();
+            }
+            const headers = {};
+            if (accessToken) headers['Authorization'] = 'Bearer ' + accessToken;
+            resp = await fetch(BASE_URL + path, { method: 'PUT', headers });
+        } else {
+            const bodyText = document.getElementById('req-' + entity).value;
+            let body;
+            try {
+                body = JSON.parse(bodyText);
+            } catch (e) {
+                resTextarea.value = 'Erro ao parsear JSON do request:\n' + e.message;
+                return;
+            }
+            resp = await apiPost(op.path, body);
+        }
+
+        const elapsed = (performance.now() - startTime).toFixed(0);
+        const statusClass = resp.ok ? 'ok' : 'err';
+        infoDiv.innerHTML = `<span class="status ${statusClass}">HTTP ${resp.status}</span> <span>${elapsed}ms</span> <span>${op.path}</span>`;
+
+        const contentType = resp.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+            const data = await resp.json();
+            resTextarea.value = JSON.stringify(data, null, 2);
+        } else if (contentType.includes('image') || contentType.includes('octet-stream')) {
+            const blob = await resp.blob();
+            resTextarea.value = `[Binário: ${contentType}, ${blob.size} bytes]\n\n(Para visualizar imagens, use o endpoint diretamente no navegador)`;
+        } else {
+            const text = await resp.text();
+            resTextarea.value = text || '(resposta vazia)';
+        }
+    } catch (e) {
+        resTextarea.value = 'Erro de rede:\n' + e.message;
+        infoDiv.innerHTML = '<span class="status err">ERRO</span>';
+    }
+}
+
+// ============================================================
+// Comentários sobre IDs seed do banco
+// ============================================================
+/*
+  IDs do banco de dados (seed via DBReset):
+  
+  Users:
+    ADMIN_ID = 0         (userName: "admin", password: "admin", name: "João da Silva")
+    FULANO_ID = 1        (userName: "fulano", password: "fulano", name: "Fulano de Tal")
+    BEOTRANO_ID = 2      (userName: "beotrano", password: "beotrano", name: "Beotrano de Alguma Coisa")
+
+  Products:
+    CAFETEIRA_ID = 0       (name: "Cafeteira design italiano", price: 199.99)
+    BOLA_WILSON_ID = 1     (name: "Bola Wilson", price: 45.30)
+    FITA_VEDA_ROSCA_ID = 2 (name: "Fita veda rosca", price: 2.67)
+    PEN_DRIVE2GB_ID = 3    (name: "Pen Drive 2GB", price: 16.0)
+
+  Purchases:
+    ADMIN_FIRST_PURCHASE_ID = 0   (userId: 0, buyDate: 2010-01-01 14:30)
+    ADMIN_SECOND_PURCHASE_ID = 1  (userId: 0, buyDate: 2011-04-03 09:15)
+
+  Purchase Items:
+    ADMIN_FIRST_PURCHASE_ITEM0_ID = 0  (purchaseId: 0, productId: 0, amount: 1, price: 200.0)
+    ADMIN_SECOND_PURCHASE_ITEM0_ID = 1 (purchaseId: 1, productId: 1, amount: 1, price: 45.30)
+    ADMIN_SECOND_PURCHASE_ITEM1_ID = 2 (purchaseId: 1, productId: 2, amount: 1, price: 2.67)
+*/
+</script>
+</body>
+</html>

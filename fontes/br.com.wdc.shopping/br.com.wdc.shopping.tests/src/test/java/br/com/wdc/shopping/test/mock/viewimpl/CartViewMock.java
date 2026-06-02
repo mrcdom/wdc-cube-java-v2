@@ -4,10 +4,10 @@ import org.junit.Assert;
 
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartViewState;
 import br.com.wdc.shopping.test.mock.ShoppingApplicationMock;
 
-@SuppressWarnings({"java:S106", "java:S1192"})
+@SuppressWarnings({ "java:S106", "java:S1192" })
 public class CartViewMock extends AbstractViewMock<CartPresenter> {
 
     public static CartViewMock cast(CubeView view) {
@@ -20,10 +20,9 @@ public class CartViewMock extends AbstractViewMock<CartPresenter> {
 
     public CartViewState state;
 
-    public CartViewMock(ShoppingApplicationMock app, CartPresenter presenter) {
-        super(app, presenter);
+    public CartViewMock(CartPresenter presenter) {
+        super(((ShoppingApplicationMock) presenter.app), presenter);
         this.state = presenter.state;
     }
-
 
 }

@@ -1,0 +1,112 @@
+// =============================================================================
+// RECEIPT VIEW COMPONENTS
+// =============================================================================
+.receipt-header-title {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--app-text);
+}
+
+.receipt-body {
+    background: var(--app-bg);
+    border: 1px solid var(--app-border);
+    border-radius: var(--app-radius-sm);
+    padding: 20px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.82rem;
+}
+
+.receipt-date-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed var(--app-border);
+}
+
+.receipt-date-label {
+    color: var(--app-text-secondary);
+}
+
+.receipt-date-value {
+    font-weight: 600;
+    color: var(--app-text);
+}
+
+.receipt-table-header {
+    display: flex;
+    font-weight: 700;
+    font-size: 0.75rem;
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--app-border);
+    color: var(--app-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.receipt-col-item {
+    flex: 1;
+}
+
+.receipt-col-qty {
+    width: 80px;
+    text-align: center;
+}
+
+.receipt-col-value {
+    width: 100px;
+    text-align: right;
+}
+
+.receipt-item-row {
+    display: flex;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px dotted var(--app-border);
+}
+
+.receipt-item-desc {
+    flex: 1;
+    font-size: 0.82rem;
+    color: var(--app-text);
+}
+
+.receipt-item-qty {
+    width: 80px;
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--app-text-secondary);
+}
+
+.receipt-item-value {
+    width: 100px;
+    text-align: right;
+    font-weight: 700;
+    font-size: 0.82rem;
+    color: var(--app-text);
+}
+
+.receipt-total-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 2px solid var(--app-accent);
+}
+
+.receipt-total-label {
+    font-weight: 700;
+    color: var(--app-text);
+}
+
+.receipt-total-value {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--app-accent);
+}
+
+.receipt-back-btn {
+    margin-top: 20px;
+}

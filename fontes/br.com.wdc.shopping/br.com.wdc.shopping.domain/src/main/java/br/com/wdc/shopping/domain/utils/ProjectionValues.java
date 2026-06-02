@@ -21,7 +21,7 @@ public class ProjectionValues {
     public final Float f32 = Float.valueOf(1f);
     public final Double f64 = Double.valueOf(1d);
     public final Character chr = Character.valueOf('A');
-    public final String str = "dummy";
+    public final String str = "~";
     public final byte[] bin = new byte[0];
 
     public final java.math.BigInteger bInt = java.math.BigInteger.ONE;

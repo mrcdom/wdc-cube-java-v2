@@ -2,22 +2,27 @@ package br.com.wdc.shopping.presentation.presenter.restricted.cart;
 
 import java.time.Duration;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
-
-import br.com.wdc.framework.commons.log.Log;
 
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.commons.function.Registration;
+import br.com.wdc.framework.commons.lang.CoerceUtils;
+import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubeIntent;
+import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.CubeViewSlot;
+import br.com.wdc.framework.cube.ViewState;
 import br.com.wdc.shopping.domain.exception.InvalidCartItemException;
 import br.com.wdc.shopping.domain.exception.OfflineException;
 import br.com.wdc.shopping.presentation.PlaceAttributes;
 import br.com.wdc.shopping.presentation.PlaceParameters;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.Routes;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.structs.CartItem;
 
 public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
@@ -30,6 +35,14 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
     public static Function<CartPresenter, CubeView> createView;
 
     // :: Public Instance Fields
+
+    public static class CartViewState implements ViewState {
+
+        public List<CartItem> items;
+        public int errorCode;
+        public String errorMessage;
+
+    }
 
     public final CartViewState state = new CartViewState();
 
@@ -212,6 +225,29 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
         this.state.errorMessage = "Valor da quantiade está mal formado.";
         this.update();
         this.clearErrorAfterDelay();
+    }
+
+    // :: Controle remoto
+
+    public CubeSkeleton skeleton() {
+        return new CubeSkeleton() {
+
+            @Override
+            public String classId() {
+                return "7eb485e5f843";
+            }
+
+            @Override
+            public void submit(int eventCode, int eventQtde, Map<String, Object> formData) throws Exception {
+                switch (eventCode) {
+                case 1 -> onBuy();
+                case 2 -> onRemoveProduct(CoerceUtils.asLong(formData.get("p.productId")));
+                case 3 -> onOpenProducts();
+                case 4 -> onModifyQuantity(CoerceUtils.asLong(formData.get("p.productId")), CoerceUtils.asInteger(formData.get("p.quantity")));
+                default -> new AssertionError("eventCode(" + eventCode + ") not handled");
+                }
+            }
+        };
     }
 
 }
