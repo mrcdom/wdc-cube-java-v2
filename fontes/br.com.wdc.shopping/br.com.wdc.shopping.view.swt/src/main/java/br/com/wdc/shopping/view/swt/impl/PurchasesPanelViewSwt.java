@@ -208,7 +208,6 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt<PurchasesPanelPresent
                 }
             }
         });
-        this.paginationCanvas = paginationCanvas;
     }
 
     private void rebuildList(List<PurchaseInfo> purchases) {
