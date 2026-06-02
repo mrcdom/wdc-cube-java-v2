@@ -20,7 +20,7 @@ import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginViewState;
 import br.com.wdc.shopping.view.swt.AbstractViewSwt;
 import br.com.wdc.shopping.view.swt.ShoppingSwtApplication;
-import br.com.wdc.shopping.view.swt.util.Styles;
+import br.com.wdc.shopping.view.swt.theme.Theme;
 
 /**
  * Login view matching the TeaVM web design:
@@ -51,7 +51,7 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
         layout.marginHeight = 0;
         layout.horizontalSpacing = 0;
         root.setLayout(layout);
-        root.setBackground(Styles.BG_LOGIN_LEFT);
+        root.setBackground(Theme.BG_LOGIN_LEFT);
         return root;
     }
 
@@ -123,33 +123,33 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
         gc.setAntialias(SWT.ON);
 
         // Blue gradient background
-        gc.setBackground(Styles.BG_LOGIN_LEFT);
-        gc.setForeground(Styles.PRIMARY_BLUE);
+        gc.setBackground(Theme.BG_LOGIN_LEFT);
+        gc.setForeground(Theme.PRIMARY_BLUE);
         gc.fillGradientRectangle(0, 0, bounds.width, bounds.height, true);
 
         // Decorative circles (matching the web design)
         gc.setAlpha(30);
-        gc.setBackground(Styles.FG_TEXT_WHITE);
+        gc.setBackground(Theme.FG_TEXT_WHITE);
         gc.fillOval(bounds.width - 120, -60, 240, 240);
         gc.fillOval(-80, bounds.height - 200, 200, 200);
         gc.setAlpha(255);
 
         // Bag icon (logo)
-        gc.setForeground(Styles.FG_TEXT_WHITE);
-        gc.setFont(Styles.FONT_ICON_LARGE);
-        Point iconSize = gc.textExtent(Styles.ICON_BAG_CHECK);
+        gc.setForeground(Theme.FG_TEXT_WHITE);
+        gc.setFont(Theme.FONT_ICON_LARGE);
+        Point iconSize = gc.textExtent(Theme.ICON_BAG_CHECK);
         int iconY = bounds.height / 4 - iconSize.y / 2;
-        gc.drawText(Styles.ICON_BAG_CHECK, (bounds.width - iconSize.x) / 2, iconY, true);
+        gc.drawText(Theme.ICON_BAG_CHECK, (bounds.width - iconSize.x) / 2, iconY, true);
 
         // Title text
-        gc.setFont(Styles.FONT_TITLE);
+        gc.setFont(Theme.FONT_TITLE);
         String title = "WDC Shopping";
         Point titleSize = gc.textExtent(title);
         int titleY = iconY + iconSize.y + 16;
         gc.drawText(title, (bounds.width - titleSize.x) / 2, titleY, true);
 
         // Subtitle
-        gc.setFont(Styles.FONT_SUBTITLE);
+        gc.setFont(Theme.FONT_SUBTITLE);
         String subtitle = "Sua compra certa na internet.";
         Point subtitleSize = gc.textExtent(subtitle);
         gc.drawText(subtitle, (bounds.width - subtitleSize.x) / 2, titleY + titleSize.y + 8, true);
@@ -157,19 +157,19 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
         // Feature list with Bootstrap Icons
         int featureY = titleY + titleSize.y + 60;
         String[][] features = {
-                { Styles.ICON_SHIELD_CHECK, "  Compra segura" },
-                { Styles.ICON_TRUCK, "  Entrega rápida" },
-                { Styles.ICON_ARROW_REPEAT, "  Troca garantida" }
+                { Theme.ICON_SHIELD_CHECK, "  Compra segura" },
+                { Theme.ICON_TRUCK, "  Entrega rápida" },
+                { Theme.ICON_ARROW_REPEAT, "  Troca garantida" }
         };
         for (String[] feature : features) {
             // Draw icon
-            gc.setFont(Styles.FONT_ICON);
+            gc.setFont(Theme.FONT_ICON);
             Point iSize = gc.textExtent(feature[0]);
             int featureX = (bounds.width - 200) / 2;
             gc.drawText(feature[0], featureX, featureY, true);
 
             // Draw text
-            gc.setFont(Styles.FONT_BODY);
+            gc.setFont(Theme.FONT_BODY);
             gc.drawText(feature[1], featureX + iSize.x, featureY, true);
 
             featureY += iSize.y + 16;
@@ -180,7 +180,7 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
 
     private void createRightPanel() {
         var rightPanel = new Composite(this.element, SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND);
-        rightPanel.setBackground(Styles.BG_WHITE);
+        rightPanel.setBackground(Theme.BG_WHITE);
         rightPanel.setBackgroundMode(SWT.INHERIT_FORCE);
         var gd = new GridData(SWT.FILL, SWT.FILL, false, true);
         gd.widthHint = 420;
@@ -188,7 +188,7 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
 
         // Custom white background painting (macOS Dark Mode bypassed via NO_BACKGROUND)
         rightPanel.addPaintListener(e -> {
-            e.gc.setBackground(Styles.BG_WHITE);
+            e.gc.setBackground(Theme.BG_WHITE);
             e.gc.fillRectangle(rightPanel.getClientArea());
         });
 
@@ -200,7 +200,7 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
 
         // Top spacer to push form toward vertical center
         var topSpacer = new Label(rightPanel, SWT.NONE);
-        topSpacer.setBackground(Styles.BG_WHITE);
+        topSpacer.setBackground(Theme.BG_WHITE);
         topSpacer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
         // Blue banner card (matching web "login-mobile-logo")
@@ -210,7 +210,7 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
 
         // Inner form panel (indented relative to banner)
         var formPanel = new Composite(rightPanel, SWT.NONE);
-        formPanel.setBackground(Styles.BG_WHITE);
+        formPanel.setBackground(Theme.BG_WHITE);
         var formGd = new GridData(SWT.FILL, SWT.FILL, true, false);
         formPanel.setLayoutData(formGd);
         var formLayout = new GridLayout(1, false);
@@ -222,9 +222,9 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
         // "Bem-vindo" title (larger, bolder)
         var title = new Label(formPanel, SWT.NONE);
         title.setText("Bem-vindo");
-        title.setFont(Styles.FONT_WELCOME);
-        title.setForeground(Styles.FG_TEXT_DARK);
-        title.setBackground(Styles.BG_WHITE);
+        title.setFont(Theme.FONT_WELCOME);
+        title.setForeground(Theme.FG_TEXT_DARK);
+        title.setBackground(Theme.BG_WHITE);
         title.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 
         createSpacer(formPanel, 6);
@@ -232,9 +232,9 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
         // Subtitle
         var subtitle = new Label(formPanel, SWT.NONE);
         subtitle.setText("Entre com suas credenciais para continuar");
-        subtitle.setFont(Styles.FONT_SUBTITLE);
-        subtitle.setForeground(Styles.FG_TEXT_SUBTLE);
-        subtitle.setBackground(Styles.BG_WHITE);
+        subtitle.setFont(Theme.FONT_SUBTITLE);
+        subtitle.setForeground(Theme.FG_TEXT_SUBTLE);
+        subtitle.setBackground(Theme.BG_WHITE);
         subtitle.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 
         createSpacer(formPanel, 28);
@@ -252,26 +252,26 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
             var area = this.errorLabel.getClientArea();
             gc.setAntialias(SWT.ON);
             // Red-tinted background
-            gc.setBackground(Styles.BG_ERROR);
+            gc.setBackground(Theme.BG_ERROR);
             gc.fillRoundRectangle(0, 0, area.width, area.height, 8, 8);
             // Red border
-            gc.setForeground(Styles.BORDER_ERROR_BOX);
+            gc.setForeground(Theme.BORDER_ERROR_BOX);
             gc.drawRoundRectangle(0, 0, area.width - 1, area.height - 1, 8, 8);
             // Icon
-            gc.setForeground(Styles.FG_ERROR);
-            gc.setFont(Styles.FONT_ICON);
-            Point iconSz = gc.textExtent(Styles.ICON_EXCLAMATION_CIRCLE);
+            gc.setForeground(Theme.FG_ERROR);
+            gc.setFont(Theme.FONT_ICON);
+            Point iconSz = gc.textExtent(Theme.ICON_EXCLAMATION_CIRCLE);
             int iconX = 12;
             int iconY = 12;
-            gc.drawText(Styles.ICON_EXCLAMATION_CIRCLE, iconX, iconY, true);
+            gc.drawText(Theme.ICON_EXCLAMATION_CIRCLE, iconX, iconY, true);
             // Error text with wrapping via TextLayout
             String msg = this.errorMessage != null ? this.errorMessage : "";
             int textX = iconX + iconSz.x + 10;
             var tl = new TextLayout(ev.display);
             tl.setText(msg);
-            tl.setFont(Styles.FONT_BODY);
+            tl.setFont(Theme.FONT_BODY);
             tl.setWidth(area.width - textX - 12);
-            gc.setForeground(Styles.FG_ERROR);
+            gc.setForeground(Theme.FG_ERROR);
             tl.draw(gc, textX, 12);
             // Resize height if needed
             int neededHeight = tl.getBounds().height + 24;
@@ -284,7 +284,7 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
 
         // Spacer below error (also toggled with error)
         this.errorSpacer = new Label(formPanel, SWT.NONE);
-        this.errorSpacer.setBackground(Styles.BG_WHITE);
+        this.errorSpacer.setBackground(Theme.BG_WHITE);
         var errorSpacerGd = new GridData(SWT.FILL, SWT.CENTER, true, false);
         errorSpacerGd.heightHint = 12;
         errorSpacerGd.exclude = true;
@@ -294,9 +294,9 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
         // "Usuário" label
         var userLabel = new Label(formPanel, SWT.NONE);
         userLabel.setText("Usuário");
-        userLabel.setFont(Styles.FONT_FIELD_LABEL);
-        userLabel.setForeground(Styles.FG_TEXT_DARK);
-        userLabel.setBackground(Styles.BG_WHITE);
+        userLabel.setFont(Theme.FONT_FIELD_LABEL);
+        userLabel.setForeground(Theme.FG_TEXT_DARK);
+        userLabel.setBackground(Theme.BG_WHITE);
         userLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 
         createSpacer(formPanel, 4);
@@ -309,9 +309,9 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
         // "Senha" label
         var passLabel = new Label(formPanel, SWT.NONE);
         passLabel.setText("Senha");
-        passLabel.setFont(Styles.FONT_FIELD_LABEL);
-        passLabel.setForeground(Styles.FG_TEXT_DARK);
-        passLabel.setBackground(Styles.BG_WHITE);
+        passLabel.setFont(Theme.FONT_FIELD_LABEL);
+        passLabel.setForeground(Theme.FG_TEXT_DARK);
+        passLabel.setBackground(Theme.BG_WHITE);
         passLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 
         createSpacer(formPanel, 4);
@@ -325,11 +325,11 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
         // Login button
         var loginBtn = new Button(formPanel, SWT.PUSH);
         loginBtn.setText("Entrar");
-        loginBtn.setFont(Styles.FONT_BUTTON);
-        loginBtn.setBackground(Styles.PRIMARY_BLUE);
-        loginBtn.setForeground(Styles.FG_TEXT_WHITE);
+        loginBtn.setFont(Theme.FONT_BUTTON);
+        loginBtn.setBackground(Theme.PRIMARY_BLUE);
+        loginBtn.setForeground(Theme.FG_TEXT_WHITE);
         var btnGd = new GridData(SWT.FILL, SWT.CENTER, true, false);
-        btnGd.heightHint = Styles.BUTTON_HEIGHT;
+        btnGd.heightHint = Theme.BUTTON_HEIGHT;
         loginBtn.setLayoutData(btnGd);
         loginBtn.addListener(SWT.Selection, _e -> emitEnter());
 
@@ -345,14 +345,14 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
             var area = demoBox.getClientArea();
             gc.setAntialias(SWT.ON);
             // Light gray background
-            gc.setBackground(Styles.BG_PAGE);
+            gc.setBackground(Theme.BG_PAGE);
             gc.fillRoundRectangle(0, 0, area.width, area.height, 8, 8);
             // Slightly darker border
-            gc.setForeground(Styles.BORDER_LIGHT);
+            gc.setForeground(Theme.BORDER_LIGHT);
             gc.drawRoundRectangle(0, 0, area.width - 1, area.height - 1, 8, 8);
             // Text centered
-            gc.setForeground(Styles.FG_TEXT_SUBTLE);
-            gc.setFont(Styles.FONT_SUBTITLE);
+            gc.setForeground(Theme.FG_TEXT_SUBTLE);
+            gc.setFont(Theme.FONT_SUBTITLE);
             String text = "Acesso demo: admin / admin";
             Point size = gc.textExtent(text);
             gc.drawText(text, (area.width - size.x) / 2, (area.height - size.y) / 2, true);
@@ -360,7 +360,7 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
 
         // Bottom spacer for centering
         var bottomSpacer = new Label(rightPanel, SWT.NONE);
-        bottomSpacer.setBackground(Styles.BG_WHITE);
+        bottomSpacer.setBackground(Theme.BG_WHITE);
         bottomSpacer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
     }
 
@@ -381,37 +381,37 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
         gc.setAntialias(SWT.ON);
 
         // Blue gradient background (rounded corners)
-        gc.setBackground(Styles.BG_LOGIN_LEFT);
-        gc.setForeground(Styles.PRIMARY_BLUE_LIGHT);
+        gc.setBackground(Theme.BG_LOGIN_LEFT);
+        gc.setForeground(Theme.PRIMARY_BLUE_LIGHT);
         gc.fillRoundRectangle(0, 0, bounds.width, bounds.height, 16, 16);
 
         // Decorative circles
         gc.setAlpha(25);
-        gc.setBackground(Styles.FG_TEXT_WHITE);
+        gc.setBackground(Theme.FG_TEXT_WHITE);
         gc.fillOval(bounds.width - 80, -40, 160, 160);
         gc.fillOval(-60, bounds.height - 60, 120, 120);
         gc.setAlpha(255);
 
         // Icon box (rounded square with translucent bg)
-        gc.setForeground(Styles.FG_TEXT_WHITE);
+        gc.setForeground(Theme.FG_TEXT_WHITE);
         int boxSize = 44;
         int boxX = (bounds.width - boxSize) / 2;
         int boxY = 20;
         gc.setAlpha(30);
-        gc.setBackground(Styles.FG_TEXT_WHITE);
+        gc.setBackground(Theme.FG_TEXT_WHITE);
         gc.fillRoundRectangle(boxX, boxY, boxSize, boxSize, 10, 10);
         gc.setAlpha(60);
         gc.drawRoundRectangle(boxX, boxY, boxSize, boxSize, 10, 10);
         gc.setAlpha(255);
 
         // Bag icon inside box
-        gc.setForeground(Styles.FG_TEXT_WHITE);
-        gc.setFont(Styles.FONT_ICON);
-        Point iconSize = gc.textExtent(Styles.ICON_BAG_CHECK);
-        gc.drawText(Styles.ICON_BAG_CHECK, boxX + (boxSize - iconSize.x) / 2, boxY + (boxSize - iconSize.y) / 2, true);
+        gc.setForeground(Theme.FG_TEXT_WHITE);
+        gc.setFont(Theme.FONT_ICON);
+        Point iconSize = gc.textExtent(Theme.ICON_BAG_CHECK);
+        gc.drawText(Theme.ICON_BAG_CHECK, boxX + (boxSize - iconSize.x) / 2, boxY + (boxSize - iconSize.y) / 2, true);
 
         // Title "WDC Shopping"
-        gc.setFont(Styles.FONT_BANNER_TITLE);
+        gc.setFont(Theme.FONT_BANNER_TITLE);
         String title = "WDC Shopping";
         Point titleSize = gc.textExtent(title);
         int titleY = boxY + boxSize + 10;
@@ -419,7 +419,7 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
 
         // Subtitle
         gc.setAlpha(180);
-        gc.setFont(Styles.FONT_BANNER_SUBTITLE);
+        gc.setFont(Theme.FONT_BANNER_SUBTITLE);
         String sub = "Sua compra certa na internet.";
         Point subSize = gc.textExtent(sub);
         gc.drawText(sub, (bounds.width - subSize.x) / 2, titleY + titleSize.y + 4, true);
@@ -457,18 +457,18 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
             var bounds = borderComp.getClientArea();
             e.gc.setAntialias(SWT.ON);
             // Fill white background
-            e.gc.setBackground(Styles.BG_WHITE);
+            e.gc.setBackground(Theme.BG_WHITE);
             e.gc.fillRoundRectangle(0, 0, bounds.width, bounds.height, 8, 8);
             // Draw border
-            e.gc.setForeground(Styles.BORDER_FIELD);
+            e.gc.setForeground(Theme.BORDER_FIELD);
             e.gc.drawRoundRectangle(0, 0, bounds.width - 1, bounds.height - 1, 8, 8);
         });
 
         // Inner text field (no SWT.BORDER — the rounded wrapper provides the border)
         var field = new Text(borderComp, textStyle);
         field.setMessage(placeholder);
-        field.setBackground(Styles.BG_WHITE);
-        field.setForeground(Styles.FG_TEXT_DARK);
+        field.setBackground(Theme.BG_WHITE);
+        field.setForeground(Theme.FG_TEXT_DARK);
         field.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true));
         return field;
     }

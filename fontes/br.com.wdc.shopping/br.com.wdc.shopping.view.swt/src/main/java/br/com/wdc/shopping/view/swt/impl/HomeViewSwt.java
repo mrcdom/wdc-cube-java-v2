@@ -16,7 +16,7 @@ import br.com.wdc.shopping.view.swt.AbstractViewSwt;
 import br.com.wdc.shopping.view.swt.ShoppingSwtApplication;
 import br.com.wdc.shopping.view.swt.util.SlotComposite;
 import br.com.wdc.shopping.view.swt.util.StackComposite;
-import br.com.wdc.shopping.view.swt.util.Styles;
+import br.com.wdc.shopping.view.swt.theme.Theme;
 
 /**
  * Home view — header + content area (products grid + purchases panel).
@@ -131,7 +131,7 @@ public class HomeViewSwt extends AbstractViewSwt<HomePresenter> {
         layout.marginHeight = 0;
         layout.verticalSpacing = 0;
         this.element.setLayout(layout);
-        this.element.setBackground(Styles.BG_PAGE);
+        this.element.setBackground(Theme.BG_PAGE);
 
         createNavbar(this.element);
         createErrorBanner(this.element);
@@ -145,12 +145,12 @@ public class HomeViewSwt extends AbstractViewSwt<HomePresenter> {
             @Override
             public Point computeSize(int wHint, int hHint, boolean changed) {
                 var size = super.computeSize(wHint, hHint, changed);
-                size.y = Styles.HEADER_HEIGHT;
+                size.y = Theme.HEADER_HEIGHT;
                 return size;
             }
         };
         var gd = new GridData(SWT.FILL, SWT.TOP, true, false);
-        gd.heightHint = Styles.HEADER_HEIGHT;
+        gd.heightHint = Theme.HEADER_HEIGHT;
         navContent.setLayoutData(gd);
         navContent.setBackgroundMode(SWT.INHERIT_FORCE);
 
@@ -164,8 +164,8 @@ public class HomeViewSwt extends AbstractViewSwt<HomePresenter> {
             bgImage[0] = new org.eclipse.swt.graphics.Image(navContent.getDisplay(), area.width, area.height);
             var gc = new org.eclipse.swt.graphics.GC(bgImage[0]);
             gc.setAntialias(SWT.ON);
-            gc.setBackground(Styles.PRIMARY_BLUE_DARK);
-            gc.setForeground(Styles.PRIMARY_BLUE_LIGHT);
+            gc.setBackground(Theme.PRIMARY_BLUE_DARK);
+            gc.setForeground(Theme.PRIMARY_BLUE_LIGHT);
             gc.fillGradientRectangle(0, 0, area.width, area.height, false);
             gc.dispose();
             navContent.setBackgroundImage(bgImage[0]);
@@ -182,9 +182,9 @@ public class HomeViewSwt extends AbstractViewSwt<HomePresenter> {
 
         // -- LEFT: Exit button
         var exitBtn = new Label(navContent, SWT.NONE);
-        exitBtn.setFont(Styles.FONT_ICON);
-        exitBtn.setText(Styles.ICON_BOX_ARROW_LEFT);
-        exitBtn.setForeground(Styles.FG_TEXT_WHITE);
+        exitBtn.setFont(Theme.FONT_ICON);
+        exitBtn.setText(Theme.ICON_BOX_ARROW_LEFT);
+        exitBtn.setForeground(Theme.FG_TEXT_WHITE);
         exitBtn.setBackground(null);
         exitBtn.setCursor(navContent.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
         exitBtn.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, true));
@@ -201,14 +201,14 @@ public class HomeViewSwt extends AbstractViewSwt<HomePresenter> {
         welcomeArea.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, true));
 
         this.welcomeLabel = new Label(welcomeArea, SWT.NONE);
-        this.welcomeLabel.setFont(Styles.FONT_NAV_SMALL);
-        this.welcomeLabel.setForeground(Styles.FG_TEXT_WHITE_70);
+        this.welcomeLabel.setFont(Theme.FONT_NAV_SMALL);
+        this.welcomeLabel.setForeground(Theme.FG_TEXT_WHITE_70);
         this.welcomeLabel.setBackground(null);
         this.welcomeLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
 
         this.nickNameLabel = new Label(welcomeArea, SWT.NONE);
-        this.nickNameLabel.setFont(Styles.FONT_BODY_BOLD);
-        this.nickNameLabel.setForeground(Styles.FG_TEXT_WHITE);
+        this.nickNameLabel.setFont(Theme.FONT_BODY_BOLD);
+        this.nickNameLabel.setForeground(Theme.FG_TEXT_WHITE);
         this.nickNameLabel.setBackground(null);
         this.nickNameLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
 
@@ -233,7 +233,7 @@ public class HomeViewSwt extends AbstractViewSwt<HomePresenter> {
                 var loc = iconBox.getLocation();
                 gc.drawImage(parentBgImg, loc.x, loc.y, area.width, area.height, 0, 0, area.width, area.height);
             } else {
-                gc.setBackground(Styles.PRIMARY_BLUE_LIGHT);
+                gc.setBackground(Theme.PRIMARY_BLUE_LIGHT);
                 gc.fillRectangle(0, 0, area.width, area.height);
             }
             // Rounded box: rgba(255,255,255,0.15) overlay
@@ -242,9 +242,9 @@ public class HomeViewSwt extends AbstractViewSwt<HomePresenter> {
             gc.fillRoundRectangle(0, 0, area.width, area.height, 10, 10);
             gc.setAlpha(255);
             // Draw the icon centered
-            gc.setFont(Styles.FONT_ICON_NAV);
-            gc.setForeground(Styles.FG_TEXT_WHITE);
-            var iconText = Styles.ICON_BAG_CHECK_FILL;
+            gc.setFont(Theme.FONT_ICON_NAV);
+            gc.setForeground(Theme.FG_TEXT_WHITE);
+            var iconText = Theme.ICON_BAG_CHECK_FILL;
             var extent = gc.textExtent(iconText);
             int ix = (area.width - extent.x) / 2;
             int iy = (area.height - extent.y) / 2;
@@ -261,16 +261,16 @@ public class HomeViewSwt extends AbstractViewSwt<HomePresenter> {
         centerBlock.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, true));
 
         var titleLabel = new Label(centerBlock, SWT.NONE);
-        titleLabel.setFont(Styles.FONT_NAV_TITLE);
+        titleLabel.setFont(Theme.FONT_NAV_TITLE);
         titleLabel.setText("Shopping");
-        titleLabel.setForeground(Styles.FG_TEXT_WHITE);
+        titleLabel.setForeground(Theme.FG_TEXT_WHITE);
         titleLabel.setBackground(null);
         titleLabel.setLayoutData(new GridData(SWT.LEFT, SWT.BOTTOM, false, false));
 
         var subtitleLabel = new Label(centerBlock, SWT.NONE);
-        subtitleLabel.setFont(Styles.FONT_NAV_SMALL);
+        subtitleLabel.setFont(Theme.FONT_NAV_SMALL);
         subtitleLabel.setText("By WeDoCode");
-        subtitleLabel.setForeground(Styles.FG_TEXT_WHITE_65);
+        subtitleLabel.setForeground(Theme.FG_TEXT_WHITE_65);
         subtitleLabel.setBackground(null);
         subtitleLabel.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
 
@@ -291,16 +291,16 @@ public class HomeViewSwt extends AbstractViewSwt<HomePresenter> {
         cartArea.setCursor(navContent.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 
         var cartIcon = new Label(cartArea, SWT.NONE);
-        cartIcon.setFont(Styles.FONT_ICON);
-        cartIcon.setText(Styles.ICON_BAG);
-        cartIcon.setForeground(Styles.FG_TEXT_WHITE);
+        cartIcon.setFont(Theme.FONT_ICON);
+        cartIcon.setText(Theme.ICON_BAG);
+        cartIcon.setForeground(Theme.FG_TEXT_WHITE);
         cartIcon.setBackground(null);
         cartIcon.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, true));
 
         var cartLabel = new Label(cartArea, SWT.NONE);
-        cartLabel.setFont(Styles.FONT_BODY);
+        cartLabel.setFont(Theme.FONT_BODY);
         cartLabel.setText("Carrinho");
-        cartLabel.setForeground(Styles.FG_TEXT_WHITE);
+        cartLabel.setForeground(Theme.FG_TEXT_WHITE);
         cartLabel.setBackground(null);
         cartLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, true));
 
@@ -314,11 +314,11 @@ public class HomeViewSwt extends AbstractViewSwt<HomePresenter> {
             var area = this.cartBadge.getClientArea();
             gc.setAntialias(SWT.ON);
             // Pill-shaped white background
-            gc.setBackground(Styles.FG_TEXT_WHITE);
+            gc.setBackground(Theme.FG_TEXT_WHITE);
             gc.fillRoundRectangle(0, 0, area.width, area.height, area.height, area.height);
             // Centered text
-            gc.setFont(Styles.FONT_BADGE);
-            gc.setForeground(Styles.PRIMARY_BLUE);
+            gc.setFont(Theme.FONT_BADGE);
+            gc.setForeground(Theme.PRIMARY_BLUE);
             var text = this.cartBadgeText;
             var extent = gc.textExtent(text);
             int tx = (area.width - extent.x) / 2;
@@ -351,19 +351,19 @@ public class HomeViewSwt extends AbstractViewSwt<HomePresenter> {
             var gc = ev.gc;
             var area = this.errorBanner.getClientArea();
             gc.setAntialias(SWT.ON);
-            gc.setBackground(Styles.BG_ERROR);
+            gc.setBackground(Theme.BG_ERROR);
             gc.fillRectangle(0, 0, area.width, area.height);
-            gc.setForeground(Styles.BORDER_ERROR_BOX);
+            gc.setForeground(Theme.BORDER_ERROR_BOX);
             gc.drawLine(0, area.height - 1, area.width, area.height - 1);
             // Icon
-            gc.setForeground(Styles.FG_ERROR);
-            gc.setFont(Styles.FONT_ICON);
-            Point iconSz = gc.textExtent(Styles.ICON_EXCLAMATION_CIRCLE);
+            gc.setForeground(Theme.FG_ERROR);
+            gc.setFont(Theme.FONT_ICON);
+            Point iconSz = gc.textExtent(Theme.ICON_EXCLAMATION_CIRCLE);
             int iconX = 16;
             int iconY = (area.height - iconSz.y) / 2;
-            gc.drawText(Styles.ICON_EXCLAMATION_CIRCLE, iconX, iconY, true);
+            gc.drawText(Theme.ICON_EXCLAMATION_CIRCLE, iconX, iconY, true);
             // Text
-            gc.setFont(Styles.FONT_BODY);
+            gc.setFont(Theme.FONT_BODY);
             String msg = this.errorMessage != null ? this.errorMessage : "";
             gc.drawText(msg, iconX + iconSz.x + 10, (area.height - gc.textExtent(msg).y) / 2, true);
         });
@@ -374,7 +374,7 @@ public class HomeViewSwt extends AbstractViewSwt<HomePresenter> {
     private void createContentArea(Composite parent) {
         // Main content row: products (flex) + purchases (fixed 280px)
         var contentRow = new Composite(parent, SWT.NONE);
-        contentRow.setBackground(Styles.BG_PAGE);
+        contentRow.setBackground(Theme.BG_PAGE);
         contentRow.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
         var rowLayout = new GridLayout(2, false);
         rowLayout.marginWidth = 0;
@@ -384,30 +384,30 @@ public class HomeViewSwt extends AbstractViewSwt<HomePresenter> {
 
         // Left: content stack (default shows products, overlay replaces)
         this.contentStack = new StackComposite(contentRow);
-        this.contentStack.setBackground(Styles.BG_PAGE);
+        this.contentStack.setBackground(Theme.BG_PAGE);
         this.contentStack.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
         // Default content (products slot)
         this.defaultContent = new Composite(this.contentStack, SWT.NONE);
-        this.defaultContent.setBackground(Styles.BG_PAGE);
+        this.defaultContent.setBackground(Theme.BG_PAGE);
         var dcLayout = new GridLayout(1, false);
         dcLayout.marginWidth = 0;
         dcLayout.marginHeight = 0;
         this.defaultContent.setLayout(dcLayout);
 
         this.productsPanelSlot = new SlotComposite(this.defaultContent, this.app.getOffscreen());
-        this.productsPanelSlot.setBackground(Styles.BG_PAGE);
+        this.productsPanelSlot.setBackground(Theme.BG_PAGE);
         this.productsPanelSlot.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
         // Content overlay slot (for cart/product/receipt overlays)
         this.contentOverlaySlot = new SlotComposite(this.contentStack, this.app.getOffscreen());
-        this.contentOverlaySlot.setBackground(Styles.BG_PAGE);
+        this.contentOverlaySlot.setBackground(Theme.BG_PAGE);
 
         this.contentStack.showControl(this.defaultContent);
 
         // Right: purchases panel slot (fixed width)
         this.purchasesPanelSlot = new SlotComposite(contentRow, this.app.getOffscreen());
-        this.purchasesPanelSlot.setBackground(Styles.BG_WHITE);
+        this.purchasesPanelSlot.setBackground(Theme.BG_WHITE);
         var purchGd = new GridData(SWT.FILL, SWT.FILL, false, true);
         purchGd.widthHint = 340;
         this.purchasesPanelSlot.setLayoutData(purchGd);

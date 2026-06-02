@@ -1,10 +1,8 @@
 package br.com.wdc.shopping.view.swt.impl;
 
-import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
@@ -19,7 +17,7 @@ import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.Purc
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
 import br.com.wdc.shopping.view.swt.AbstractViewSwt;
 import br.com.wdc.shopping.view.swt.ShoppingSwtApplication;
-import br.com.wdc.shopping.view.swt.util.Styles;
+import br.com.wdc.shopping.view.swt.theme.Theme;
 
 /**
  * Purchases panel — list of purchase items with pagination.
@@ -28,7 +26,7 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt<PurchasesPanelPresent
 
     private static final int ITEM_HEIGHT = 50;
     private static final int LIST_SPACING = 8;
-    private static final NumberFormat PRICE_FORMAT = NumberFormat.getCurrencyInstance(Locale.of("pt", "BR"));
+
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy");
 
     private final PurchasesPanelViewState state;
@@ -87,11 +85,11 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt<PurchasesPanelPresent
         layout.marginHeight = 12;
         layout.verticalSpacing = 4;
         this.element.setLayout(layout);
-        this.element.setBackground(Styles.BG_WHITE);
+        this.element.setBackground(Theme.BG_WHITE);
 
         // Header with icon + title
         var headerRow = new Composite(this.element, SWT.NONE);
-        headerRow.setBackground(Styles.BG_WHITE);
+        headerRow.setBackground(Theme.BG_WHITE);
         headerRow.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
         var hrLayout = new GridLayout(2, false);
         hrLayout.marginWidth = 0;
@@ -100,30 +98,30 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt<PurchasesPanelPresent
         headerRow.setLayout(hrLayout);
 
         var histIcon = new Label(headerRow, SWT.NONE);
-        histIcon.setFont(Styles.FONT_ICON);
-        histIcon.setText(Styles.ICON_CLOCK_HISTORY);
-        histIcon.setForeground(Styles.FG_TEXT_DARK);
-        histIcon.setBackground(Styles.BG_WHITE);
+        histIcon.setFont(Theme.FONT_ICON);
+        histIcon.setText(Theme.ICON_CLOCK_HISTORY);
+        histIcon.setForeground(Theme.FG_TEXT_DARK);
+        histIcon.setBackground(Theme.BG_WHITE);
         histIcon.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
 
         var title = new Label(headerRow, SWT.NONE);
-        title.setFont(Styles.FONT_HEADER);
-        title.setForeground(Styles.FG_TEXT_DARK);
-        title.setBackground(Styles.BG_WHITE);
+        title.setFont(Theme.FONT_HEADER);
+        title.setForeground(Theme.FG_TEXT_DARK);
+        title.setBackground(Theme.BG_WHITE);
         title.setText("Histórico");
         title.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 
         // Subtitle
         var subtitle = new Label(this.element, SWT.NONE);
-        subtitle.setFont(Styles.FONT_BODY);
-        subtitle.setForeground(Styles.FG_TEXT_SUBTLE);
-        subtitle.setBackground(Styles.BG_WHITE);
+        subtitle.setFont(Theme.FONT_BODY);
+        subtitle.setForeground(Theme.FG_TEXT_SUBTLE);
+        subtitle.setBackground(Theme.BG_WHITE);
         subtitle.setText("Toque para ver detalhes");
         subtitle.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 
         // List area
         this.listPanel = new Composite(this.element, SWT.NONE);
-        this.listPanel.setBackground(Styles.BG_WHITE);
+        this.listPanel.setBackground(Theme.BG_WHITE);
         this.listPanel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
         var listLayout = new GridLayout(1, false);
         listLayout.marginWidth = 0;
@@ -142,7 +140,7 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt<PurchasesPanelPresent
 
         // Pagination footer — pill-shaped container with arrows and page text
         var paginationCanvas = new Canvas(this.element, SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND);
-        paginationCanvas.setBackground(Styles.BG_WHITE);
+        paginationCanvas.setBackground(Theme.BG_WHITE);
         var fGd = new GridData(SWT.CENTER, SWT.BOTTOM, true, false);
         fGd.widthHint = 120;
         fGd.heightHint = 36;
@@ -154,23 +152,23 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt<PurchasesPanelPresent
             gc.setAntialias(SWT.ON);
 
             // Pill container background
-            gc.setBackground(Styles.BG_PAGE);
+            gc.setBackground(Theme.BG_PAGE);
             gc.fillRoundRectangle(0, 0, area.width, area.height, area.height, area.height);
 
             int arrowSize = 28;
             int arrowY = (area.height - arrowSize) / 2;
 
             // Left arrow circle area
-            gc.setFont(Styles.FONT_ICON);
-            gc.setForeground(Styles.FG_TEXT_DARK);
-            var leftArrow = Styles.ICON_CHEVRON_LEFT;
+            gc.setFont(Theme.FONT_ICON);
+            gc.setForeground(Theme.FG_TEXT_DARK);
+            var leftArrow = Theme.ICON_CHEVRON_LEFT;
             var arrowExtent = gc.textExtent(leftArrow);
             int leftX = 4 + (arrowSize - arrowExtent.x) / 2;
             int leftTy = arrowY + (arrowSize - arrowExtent.y) / 2;
             gc.drawText(leftArrow, leftX, leftTy, true);
 
             // Right arrow circle area
-            var rightArrow = Styles.ICON_CHEVRON_RIGHT;
+            var rightArrow = Theme.ICON_CHEVRON_RIGHT;
             int rightX = area.width - 4 - arrowSize + (arrowSize - arrowExtent.x) / 2;
             int rightTy = arrowY + (arrowSize - arrowExtent.y) / 2;
             gc.drawText(rightArrow, rightX, rightTy, true);
@@ -180,11 +178,11 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt<PurchasesPanelPresent
             int centerH = 22;
             int cx = (area.width - centerW) / 2;
             int cy = (area.height - centerH) / 2;
-            gc.setBackground(Styles.BG_WHITE);
+            gc.setBackground(Theme.BG_WHITE);
             gc.fillRoundRectangle(cx, cy, centerW, centerH, 12, 12);
 
-            gc.setFont(Styles.FONT_PAGINATION);
-            gc.setForeground(Styles.FG_TEXT_DARK);
+            gc.setFont(Theme.FONT_PAGINATION);
+            gc.setForeground(Theme.FG_TEXT_DARK);
             int totalPages = getTotalPages();
             String pageStr = totalPages > 0 ? (this.state.page + 1) + " / " + totalPages : "";
             var textExtent = gc.textExtent(pageStr);
@@ -242,28 +240,28 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt<PurchasesPanelPresent
             gc.setAntialias(SWT.ON);
 
             // Card background with rounded corners
-            gc.setBackground(Styles.BG_PAGE);
+            gc.setBackground(Theme.BG_PAGE);
             gc.fillRoundRectangle(0, 0, area.width, area.height, 8, 8);
 
             // Border
-            gc.setForeground(Styles.BORDER_LIGHT);
+            gc.setForeground(Theme.BORDER_LIGHT);
             gc.drawRoundRectangle(0, 0, area.width - 1, area.height - 1, 8, 8);
 
             // Left blue accent bar
-            gc.setBackground(Styles.PRIMARY_BLUE);
+            gc.setBackground(Theme.PRIMARY_BLUE);
             gc.fillRoundRectangle(0, 0, 5, area.height, 4, 4);
 
             int leftPad = 14;
 
             // #ID in blue bold
-            gc.setFont(Styles.FONT_HEADER_BOLD);
-            gc.setForeground(Styles.PRIMARY_BLUE);
+            gc.setFont(Theme.FONT_HEADER_BOLD);
+            gc.setForeground(Theme.PRIMARY_BLUE);
             String idStr = "#" + purchase.id;
             gc.drawText(idStr, leftPad, 8, true);
 
             // Product name below ID
-            gc.setFont(Styles.FONT_BODY);
-            gc.setForeground(Styles.FG_TEXT_DARK);
+            gc.setFont(Theme.FONT_BODY);
+            gc.setForeground(Theme.FG_TEXT_DARK);
             String summary = "";
             if (purchase.items != null && !purchase.items.isEmpty()) {
                 summary = purchase.items.get(0);
@@ -275,16 +273,16 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt<PurchasesPanelPresent
             gc.drawText(summary, leftPad, 30, true);
 
             // Date top-right
-            gc.setFont(Styles.FONT_BODY);
-            gc.setForeground(Styles.FG_TEXT_SUBTLE);
+            gc.setFont(Theme.FONT_BODY);
+            gc.setForeground(Theme.FG_TEXT_SUBTLE);
             String dateStr = DATE_FORMAT.format(new Date(purchase.date));
             Point dateSz = gc.textExtent(dateStr);
             gc.drawText(dateStr, area.width - dateSz.x - 12, 8, true);
 
             // Total price bottom-right
-            gc.setFont(Styles.FONT_PRICE);
-            gc.setForeground(Styles.FG_TEXT_DARK);
-            String total = PRICE_FORMAT.format(purchase.total);
+            gc.setFont(Theme.FONT_PRICE);
+            gc.setForeground(Theme.FG_TEXT_DARK);
+            String total = Theme.formatPrice(purchase.total);
             Point totalSz = gc.textExtent(total);
             gc.drawText(total, area.width - totalSz.x - 12, 30, true);
         });
