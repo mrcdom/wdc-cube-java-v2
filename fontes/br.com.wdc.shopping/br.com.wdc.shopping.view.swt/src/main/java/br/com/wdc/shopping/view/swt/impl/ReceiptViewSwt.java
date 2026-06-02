@@ -6,20 +6,15 @@ import java.util.Date;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Canvas;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
 
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter.ReceiptViewState;
 import br.com.wdc.shopping.view.swt.AbstractViewSwt;
 import br.com.wdc.shopping.view.swt.ShoppingSwtApplication;
-import br.com.wdc.shopping.view.swt.components.AccentLine;
-import br.com.wdc.shopping.view.swt.components.ActionButton;
-import br.com.wdc.shopping.view.swt.components.CardHeader;
-import br.com.wdc.shopping.view.swt.components.ShadowCard;
 import br.com.wdc.shopping.view.swt.theme.Surface;
 import br.com.wdc.shopping.view.swt.theme.Theme;
+import br.com.wdc.shopping.view.swt.util.SwtDom;
+import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
 
 public class ReceiptViewSwt extends AbstractViewSwt<ReceiptPresenter> {
 
@@ -29,8 +24,7 @@ public class ReceiptViewSwt extends AbstractViewSwt<ReceiptPresenter> {
     private boolean notRendered = true;
 
     public ReceiptViewSwt(ReceiptPresenter presenter) {
-        super("receipt", (ShoppingSwtApplication) presenter.app, presenter,
-                new Composite(((ShoppingSwtApplication) presenter.app).getOffscreen(), SWT.NONE));
+        super("receipt", (ShoppingSwtApplication) presenter.app, presenter);
         this.state = presenter.state;
     }
 
@@ -43,223 +37,239 @@ public class ReceiptViewSwt extends AbstractViewSwt<ReceiptPresenter> {
     }
 
     private void render() {
-        var root = this.element;
-        root.setBackground(Theme.BG_PAGE);
+        SwtDom.render(this.element, (dom, root) -> {
+            root.setBackground(Theme.BG_PAGE);
+            var rootLayout = new GridLayout(1, false);
+            rootLayout.marginWidth = 20;
+            rootLayout.marginHeight = 20;
+            rootLayout.verticalSpacing = 0;
+            root.setLayout(rootLayout);
 
-        var rootLayout = new GridLayout(1, false);
-        rootLayout.marginWidth = 20;
-        rootLayout.marginHeight = 20;
-        rootLayout.verticalSpacing = 0;
-        root.setLayout(rootLayout);
-
-        // Success banner (conditional)
-        if (this.state.notifySuccess) {
-            renderSuccessBanner(root);
-        }
-
-        // Main card
-        var card = new ShadowCard(root, 32, 32, 20);
-        card.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
-
-        new CardHeader(card, Theme.ICON_RECEIPT, "Recibo de Compra", "WDC Shopping");
-
-        renderBody(card);
-        renderBackButton(card);
-
-        root.layout(true, true);
-    }
-
-    private void renderSuccessBanner(Composite parent) {
-        var banner = new Composite(parent, SWT.NONE);
-        var bannerGd = new GridData(SWT.FILL, SWT.CENTER, true, false);
-        bannerGd.verticalIndent = 0;
-        banner.setLayoutData(bannerGd);
-        banner.setBackground(Theme.BG_SUCCESS);
-
-        var bannerLayout = new GridLayout(2, false);
-        bannerLayout.marginWidth = 16;
-        bannerLayout.marginHeight = 12;
-        bannerLayout.horizontalSpacing = 10;
-        banner.setLayout(bannerLayout);
-
-        var iconLabel = new Label(banner, SWT.NONE);
-        iconLabel.setText("\u2713");
-        iconLabel.setFont(Theme.FONT_BODY_BOLD);
-        iconLabel.setForeground(Theme.FG_SUCCESS);
-        iconLabel.setBackground(Theme.BG_SUCCESS);
-
-        var msgLabel = new Label(banner, SWT.NONE);
-        msgLabel.setText("Compra realizada com sucesso!");
-        msgLabel.setFont(Theme.FONT_BODY_BOLD);
-        msgLabel.setForeground(Theme.FG_SUCCESS);
-        msgLabel.setBackground(Theme.BG_SUCCESS);
-        msgLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-    }
-
-    private void renderBody(Composite card) {
-        var body = new Composite(card, SWT.NONE);
-        body.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
-        body.setBackground(Theme.BG_PAGE);
-
-        var bodyLayout = new GridLayout(1, false);
-        bodyLayout.marginWidth = 20;
-        bodyLayout.marginHeight = 20;
-        bodyLayout.verticalSpacing = 10;
-        body.setLayout(bodyLayout);
-
-        body.addPaintListener(Surface.outlinedPanel(body::getClientArea, null, 8));
-
-        // Date row
-        var dateRow = new Composite(body, SWT.NONE);
-        dateRow.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        dateRow.setBackground(Theme.BG_PAGE);
-
-        var dateLayout = new GridLayout(2, false);
-        dateLayout.marginWidth = 0;
-        dateLayout.marginHeight = 0;
-        dateRow.setLayout(dateLayout);
-
-        var dateLabel = new Label(dateRow, SWT.NONE);
-        dateLabel.setText("Data:");
-        dateLabel.setFont(Theme.FONT_MONO);
-        dateLabel.setForeground(Theme.FG_TEXT_SUBTLE);
-        dateLabel.setBackground(Theme.BG_PAGE);
-
-        var dateValue = new Label(dateRow, SWT.NONE);
-        var dateStr = this.state.receipt != null && this.state.receipt.date != null
-                ? dateFormat.format(new Date(this.state.receipt.date))
-                : "--";
-        dateValue.setText(dateStr);
-        dateValue.setFont(Theme.FONT_MONO_BOLD);
-        dateValue.setForeground(Theme.FG_TEXT_DARK);
-        dateValue.setBackground(Theme.BG_PAGE);
-        dateValue.setLayoutData(new GridData(SWT.END, SWT.CENTER, true, false));
-
-        // Dotted separator
-        var sep1 = new Canvas(body, SWT.NONE);
-        var sepGd = new GridData(SWT.FILL, SWT.CENTER, true, false);
-        sepGd.heightHint = 4;
-        sep1.setLayoutData(sepGd);
-        sep1.setBackground(Theme.BG_PAGE);
-        sep1.addPaintListener(Surface.dottedSeparator());
-
-        // Table header
-        var tableHeader = new Composite(body, SWT.NONE);
-        tableHeader.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        tableHeader.setBackground(Theme.BG_PAGE);
-
-        var thLayout = new GridLayout(3, false);
-        thLayout.marginWidth = 0;
-        thLayout.marginHeight = 0;
-        tableHeader.setLayout(thLayout);
-
-        var thItem = new Label(tableHeader, SWT.NONE);
-        thItem.setText("ITEM");
-        thItem.setFont(Theme.FONT_MONO_BOLD);
-        thItem.setForeground(Theme.FG_TEXT_SUBTLE);
-        thItem.setBackground(Theme.BG_PAGE);
-        thItem.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-
-        var thQtd = new Label(tableHeader, SWT.NONE);
-        thQtd.setText("QTD");
-        thQtd.setFont(Theme.FONT_MONO_BOLD);
-        thQtd.setForeground(Theme.FG_TEXT_SUBTLE);
-        thQtd.setBackground(Theme.BG_PAGE);
-        var thQtdGd = new GridData(SWT.CENTER, SWT.CENTER, false, false);
-        thQtdGd.widthHint = 80;
-        thQtd.setLayoutData(thQtdGd);
-
-        var thValor = new Label(tableHeader, SWT.NONE);
-        thValor.setText("VALOR");
-        thValor.setFont(Theme.FONT_MONO_BOLD);
-        thValor.setForeground(Theme.FG_TEXT_SUBTLE);
-        thValor.setBackground(Theme.BG_PAGE);
-        var thValorGd = new GridData(SWT.END, SWT.CENTER, false, false);
-        thValorGd.widthHint = 100;
-        thValor.setLayoutData(thValorGd);
-
-        // Solid separator under header
-        var sep2 = new Canvas(body, SWT.NONE);
-        var sep2Gd = new GridData(SWT.FILL, SWT.CENTER, true, false);
-        sep2Gd.heightHint = 1;
-        sep2.setLayoutData(sep2Gd);
-        sep2.setBackground(Theme.BG_PAGE);
-        sep2.addPaintListener(Surface.solidSeparator());
-
-        // Items
-        if (this.state.receipt != null && this.state.receipt.items != null) {
-            for (var item : this.state.receipt.items) {
-                var row = new Composite(body, SWT.NONE);
-                row.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-                row.setBackground(Theme.BG_PAGE);
-
-                var rowLayout = new GridLayout(3, false);
-                rowLayout.marginWidth = 0;
-                rowLayout.marginHeight = 4;
-                row.setLayout(rowLayout);
-
-                var descLabel = new Label(row, SWT.NONE);
-                descLabel.setText(item.description != null ? item.description : "");
-                descLabel.setFont(Theme.FONT_MONO);
-                descLabel.setForeground(Theme.FG_TEXT_DARK);
-                descLabel.setBackground(Theme.BG_PAGE);
-                descLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-
-                var qtdLabel = new Label(row, SWT.NONE);
-                qtdLabel.setText(String.valueOf(item.quantity));
-                qtdLabel.setFont(Theme.FONT_MONO);
-                qtdLabel.setForeground(Theme.FG_TEXT_SUBTLE);
-                qtdLabel.setBackground(Theme.BG_PAGE);
-                var qtdGd = new GridData(SWT.CENTER, SWT.CENTER, false, false);
-                qtdGd.widthHint = 80;
-                qtdLabel.setLayoutData(qtdGd);
-
-                var valLabel = new Label(row, SWT.NONE);
-                valLabel.setText(Theme.formatPrice(item.value * item.quantity));
-                valLabel.setFont(Theme.FONT_MONO_BOLD);
-                valLabel.setForeground(Theme.FG_TEXT_DARK);
-                valLabel.setBackground(Theme.BG_PAGE);
-                var valGd = new GridData(SWT.END, SWT.CENTER, false, false);
-                valGd.widthHint = 100;
-                valLabel.setLayoutData(valGd);
+            // Success banner (conditional)
+            if (this.state.notifySuccess) {
+                renderSuccessBanner(dom);
             }
-        }
 
-        // Blue accent separator
-        new AccentLine(body, 2, 0);
+            // Main card
+            dom.card(32, 32, 20, card -> {
+                card.setLayoutData(gdFillH(new GridData()));
 
-        // Total row
-        var totalRow = new Composite(body, SWT.NONE);
-        totalRow.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        totalRow.setBackground(Theme.BG_PAGE);
+                dom.cardHeader(Theme.ICON_RECEIPT, "Recibo de Compra", "WDC Shopping");
 
-        var totalLayout = new GridLayout(2, false);
-        totalLayout.marginWidth = 0;
-        totalLayout.marginHeight = 8;
-        totalRow.setLayout(totalLayout);
+                renderBody(dom);
+                renderBackButton(dom);
+            });
 
-        var totalLabel = new Label(totalRow, SWT.NONE);
-        totalLabel.setText("TOTAL:");
-        totalLabel.setFont(Theme.FONT_MONO_BOLD);
-        totalLabel.setForeground(Theme.FG_TEXT_DARK);
-        totalLabel.setBackground(Theme.BG_PAGE);
-        totalLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-
-        var totalValue = new Label(totalRow, SWT.NONE);
-        var totalStr = this.state.receipt != null && this.state.receipt.total != null
-                ? Theme.formatPrice(this.state.receipt.total)
-                : "R$ 0,00";
-        totalValue.setText(totalStr);
-        totalValue.setFont(Theme.FONT_PRICE);
-        totalValue.setForeground(Theme.PRIMARY_BLUE);
-        totalValue.setBackground(Theme.BG_PAGE);
-        totalValue.setLayoutData(new GridData(SWT.END, SWT.CENTER, false, false));
+            root.layout(true, true);
+        });
     }
 
-    private void renderBackButton(Composite card) {
-        var backBtn = new ActionButton(card, Theme.ICON_ARROW_LEFT, "Voltar aos produtos", Theme.BG_WHITE);
-        var gd = (GridData) backBtn.getLayoutData();
-        gd.verticalIndent = 4;
-        backBtn.addListener(SWT.MouseUp, evt -> safeAction("receipt.onOpenProducts", presenter::onOpenProducts));
+    private void renderSuccessBanner(SwtDom dom) {
+        dom.row(2, banner -> {
+            var bannerGd = gdFillH(new GridData());
+            bannerGd.verticalIndent = 0;
+            banner.setLayoutData(bannerGd);
+            banner.setBackground(Theme.BG_SUCCESS);
+            var bannerLayout = (GridLayout) banner.getLayout();
+            bannerLayout.marginWidth = 16;
+            bannerLayout.marginHeight = 12;
+            bannerLayout.horizontalSpacing = 10;
+
+            dom.label(lbl -> {
+                lbl.setText("\u2713");
+                lbl.setFont(Theme.FONT_BODY_BOLD);
+                lbl.setForeground(Theme.FG_SUCCESS);
+                lbl.setBackground(Theme.BG_SUCCESS);
+            });
+
+            dom.label(lbl -> {
+                lbl.setText("Compra realizada com sucesso!");
+                lbl.setFont(Theme.FONT_BODY_BOLD);
+                lbl.setForeground(Theme.FG_SUCCESS);
+                lbl.setBackground(Theme.BG_SUCCESS);
+                lbl.setLayoutData(gdFillH(new GridData()));
+            });
+        });
+    }
+
+    private void renderBody(SwtDom dom) {
+        dom.col(SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND, body -> {
+            body.setLayoutData(gdFillH(new GridData()));
+            body.setBackground(Theme.BG_PAGE);
+            var bodyLayout = (GridLayout) body.getLayout();
+            bodyLayout.marginWidth = 20;
+            bodyLayout.marginHeight = 20;
+            bodyLayout.verticalSpacing = 10;
+
+            body.addPaintListener(Surface.outlinedPanel(body::getClientArea, Theme.BG_PAGE, 8));
+
+            // Date row
+            dom.row(2, dateRow -> {
+                dateRow.setLayoutData(gdFillH(new GridData()));
+                dateRow.setBackground(Theme.BG_PAGE);
+                var dateLayout = (GridLayout) dateRow.getLayout();
+                dateLayout.marginWidth = 0;
+                dateLayout.marginHeight = 0;
+
+                dom.label(lbl -> {
+                    lbl.setText("Data:");
+                    lbl.setFont(Theme.FONT_MONO);
+                    lbl.setForeground(Theme.FG_TEXT_SUBTLE);
+                    lbl.setBackground(Theme.BG_PAGE);
+                });
+
+                var dateStr = this.state.receipt != null && this.state.receipt.date != null
+                        ? dateFormat.format(new Date(this.state.receipt.date))
+                        : "--";
+                dom.label(lbl -> {
+                    lbl.setText(dateStr);
+                    lbl.setFont(Theme.FONT_MONO_BOLD);
+                    lbl.setForeground(Theme.FG_TEXT_DARK);
+                    lbl.setBackground(Theme.BG_PAGE);
+                    lbl.setLayoutData(new GridData(SWT.END, SWT.CENTER, true, false));
+                });
+            });
+
+            // Dotted separator
+            dom.canvas(SWT.NONE, sep -> {
+                var sepGd = new GridData();
+                gdFillH(sepGd);
+                gdHeight(sepGd, 4);
+                sep.setLayoutData(sepGd);
+                sep.setBackground(Theme.BG_PAGE);
+                sep.addPaintListener(Surface.dottedSeparator());
+            });
+
+            // Table header
+            dom.row(3, tableHeader -> {
+                tableHeader.setLayoutData(gdFillH(new GridData()));
+                tableHeader.setBackground(Theme.BG_PAGE);
+                var thLayout = (GridLayout) tableHeader.getLayout();
+                thLayout.marginWidth = 0;
+                thLayout.marginHeight = 0;
+
+                dom.label(lbl -> {
+                    lbl.setText("ITEM");
+                    lbl.setFont(Theme.FONT_MONO_BOLD);
+                    lbl.setForeground(Theme.FG_TEXT_SUBTLE);
+                    lbl.setBackground(Theme.BG_PAGE);
+                    lbl.setLayoutData(gdFillH(new GridData()));
+                });
+
+                dom.label(lbl -> {
+                    lbl.setText("QTD");
+                    lbl.setFont(Theme.FONT_MONO_BOLD);
+                    lbl.setForeground(Theme.FG_TEXT_SUBTLE);
+                    lbl.setBackground(Theme.BG_PAGE);
+                    var gd = new GridData();
+                    gdCenter(gd);
+                    gdWidth(gd, 80);
+                    lbl.setLayoutData(gd);
+                });
+
+                dom.label(lbl -> {
+                    lbl.setText("VALOR");
+                    lbl.setFont(Theme.FONT_MONO_BOLD);
+                    lbl.setForeground(Theme.FG_TEXT_SUBTLE);
+                    lbl.setBackground(Theme.BG_PAGE);
+                    var gd = new GridData();
+                    gdRight(gd);
+                    gdWidth(gd, 100);
+                    lbl.setLayoutData(gd);
+                });
+            });
+
+            // Solid separator under header
+            dom.canvas(SWT.NONE, sep -> {
+                var sepGd = new GridData();
+                gdFillH(sepGd);
+                gdHeight(sepGd, 1);
+                sep.setLayoutData(sepGd);
+                sep.setBackground(Theme.BG_PAGE);
+                sep.addPaintListener(Surface.solidSeparator());
+            });
+
+            // Items
+            if (this.state.receipt != null && this.state.receipt.items != null) {
+                for (var item : this.state.receipt.items) {
+                    dom.row(3, row -> {
+                        row.setLayoutData(gdFillH(new GridData()));
+                        row.setBackground(Theme.BG_PAGE);
+                        var rowLayout = (GridLayout) row.getLayout();
+                        rowLayout.marginWidth = 0;
+                        rowLayout.marginHeight = 4;
+
+                        dom.label(lbl -> {
+                            lbl.setText(item.description != null ? item.description : "");
+                            lbl.setFont(Theme.FONT_MONO);
+                            lbl.setForeground(Theme.FG_TEXT_DARK);
+                            lbl.setBackground(Theme.BG_PAGE);
+                            lbl.setLayoutData(gdFillH(new GridData()));
+                        });
+
+                        dom.label(lbl -> {
+                            lbl.setText(String.valueOf(item.quantity));
+                            lbl.setFont(Theme.FONT_MONO);
+                            lbl.setForeground(Theme.FG_TEXT_SUBTLE);
+                            lbl.setBackground(Theme.BG_PAGE);
+                            var gd = new GridData();
+                            gdCenter(gd);
+                            gdWidth(gd, 80);
+                            lbl.setLayoutData(gd);
+                        });
+
+                        dom.label(lbl -> {
+                            lbl.setText(Theme.formatPrice(item.value * item.quantity));
+                            lbl.setFont(Theme.FONT_MONO_BOLD);
+                            lbl.setForeground(Theme.FG_TEXT_DARK);
+                            lbl.setBackground(Theme.BG_PAGE);
+                            var gd = new GridData();
+                            gdRight(gd);
+                            gdWidth(gd, 100);
+                            lbl.setLayoutData(gd);
+                        });
+                    });
+                }
+            }
+
+            // Blue accent separator
+            dom.accentLine(2, 0);
+
+            // Total row
+            dom.row(2, totalRow -> {
+                totalRow.setLayoutData(gdFillH(new GridData()));
+                totalRow.setBackground(Theme.BG_PAGE);
+                var totalLayout = (GridLayout) totalRow.getLayout();
+                totalLayout.marginWidth = 0;
+                totalLayout.marginHeight = 8;
+
+                dom.label(lbl -> {
+                    lbl.setText("TOTAL:");
+                    lbl.setFont(Theme.FONT_MONO_BOLD);
+                    lbl.setForeground(Theme.FG_TEXT_DARK);
+                    lbl.setBackground(Theme.BG_PAGE);
+                    lbl.setLayoutData(gdFillH(new GridData()));
+                });
+
+                var totalStr = this.state.receipt != null && this.state.receipt.total != null
+                        ? Theme.formatPrice(this.state.receipt.total)
+                        : "R$ 0,00";
+                dom.label(lbl -> {
+                    lbl.setText(totalStr);
+                    lbl.setFont(Theme.FONT_PRICE);
+                    lbl.setForeground(Theme.PRIMARY_BLUE);
+                    lbl.setBackground(Theme.BG_PAGE);
+                    lbl.setLayoutData(new GridData(SWT.END, SWT.CENTER, false, false));
+                });
+            });
+        });
+    }
+
+    private void renderBackButton(SwtDom dom) {
+        dom.actionButton(Theme.ICON_ARROW_LEFT, "Voltar aos produtos", Theme.BG_WHITE, btn -> {
+            var gd = (GridData) btn.getLayoutData();
+            gd.verticalIndent = 4;
+            btn.addListener(SWT.MouseUp, evt -> safeAction("receipt.onOpenProducts", presenter::onOpenProducts));
+        });
     }
 }

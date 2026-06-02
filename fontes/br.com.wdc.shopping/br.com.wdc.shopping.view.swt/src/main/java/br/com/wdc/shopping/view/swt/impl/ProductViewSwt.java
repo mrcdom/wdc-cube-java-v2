@@ -6,22 +6,18 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
-import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter.ProductViewState;
 import br.com.wdc.shopping.view.swt.AbstractViewSwt;
 import br.com.wdc.shopping.view.swt.ShoppingSwtApplication;
-import br.com.wdc.shopping.view.swt.components.AccentLine;
-import br.com.wdc.shopping.view.swt.components.ActionButton;
 import br.com.wdc.shopping.view.swt.components.ErrorBanner;
-import br.com.wdc.shopping.view.swt.components.IconButton;
-import br.com.wdc.shopping.view.swt.components.PrimaryButton;
-import br.com.wdc.shopping.view.swt.components.ScrolledPage;
 import br.com.wdc.shopping.view.swt.theme.Surface;
 import br.com.wdc.shopping.view.swt.theme.Theme;
 import br.com.wdc.shopping.view.swt.util.ProductImageCache;
+import br.com.wdc.shopping.view.swt.util.SwtDom;
+import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
 
 public class ProductViewSwt extends AbstractViewSwt<ProductPresenter> {
 
@@ -32,8 +28,7 @@ public class ProductViewSwt extends AbstractViewSwt<ProductPresenter> {
     private ErrorBanner errorBanner;
 
     public ProductViewSwt(ProductPresenter presenter) {
-        super("product", (ShoppingSwtApplication) presenter.app, presenter,
-                new Composite(((ShoppingSwtApplication) presenter.app).getOffscreen(), SWT.NONE));
+        super("product", (ShoppingSwtApplication) presenter.app, presenter);
         this.state = presenter.state;
     }
 
@@ -59,52 +54,152 @@ public class ProductViewSwt extends AbstractViewSwt<ProductPresenter> {
     }
 
     private void render() {
-        var page = new ScrolledPage(this.element, 20, 20, 0);
-        var content = page.getContent();
-
         var product = state.product;
         String name = product != null ? product.name : "";
         String description = product != null ? product.description : "";
         double price = product != null ? product.price : 0;
+        long productId = product != null ? product.id : -1;
 
-        // Title
-        var titleLabel = new Label(content, SWT.NONE);
-        titleLabel.setText(name);
-        titleLabel.setFont(Theme.FONT_TITLE);
-        titleLabel.setForeground(Theme.FG_TEXT_DARK);
-        titleLabel.setBackground(Theme.BG_PAGE);
-        titleLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        SwtDom.render(this.element, (dom, _root) -> {
+            dom.scrolledPage(page -> {
+                // Title
+                page.label(lbl -> {
+                    lbl.setText(name);
+                    lbl.setFont(Theme.FONT_TITLE);
+                    lbl.setForeground(Theme.FG_TEXT_DARK);
+                    lbl.setBackground(Theme.BG_PAGE);
+                    lbl.setLayoutData(gdFillH(new GridData()));
+                });
 
-        // Blue divider
-        new AccentLine(content, 3, 8);
+                // Blue divider
+                page.accentLine(3, 8);
 
-        // Description card
-        renderDescriptionCard(content, description);
+                // Description card
+                var lines = parseDescription(description);
+                page.canvas(SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND, card -> {
+                    var cardGd = new GridData();
+                    gdFillH(cardGd);
+                    gdIndent(cardGd, 0, 16);
+                    int lineCount = Math.max(1, lines.length);
+                    cardGd.heightHint = 24 + lineCount * 26 + 20;
+                    card.setLayoutData(cardGd);
+                    card.addPaintListener(e -> paintDescriptionCard(e.gc, card.getClientArea(), lines));
+                });
 
-        // Price + Image row
-        renderPriceImageRow(content, price);
+                // Price + Image row
+                page.row(2, row -> {
+                    var rowGd = new GridData();
+                    gdCenter(rowGd);
+                    gdGrabH(rowGd);
+                    gdIndent(rowGd, 0, 20);
+                    row.setLayoutData(rowGd);
+                    row.setBackground(Theme.BG_PAGE);
+                    var rowLayout = (GridLayout) row.getLayout();
+                    rowLayout.horizontalSpacing = 32;
 
-        // Actions row
-        renderActionsRow(content);
+                    // Left column: price + qty
+                    page.col(leftCol -> {
+                        leftCol.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
+                        leftCol.setBackground(Theme.BG_PAGE);
+                        var leftLayout = (GridLayout) leftCol.getLayout();
+                        leftLayout.verticalSpacing = 12;
 
-        // Error banner (hidden by default)
-        errorBanner = new ErrorBanner(content, 12, false);
+                        // Price badge
+                        String priceText = price > 0 ? Theme.formatPrice(price) : "";
+                        page.canvas(SWT.DOUBLE_BUFFERED, priceBadge -> {
+                            var badgeGd = gdCenter(new GridData());
+                            badgeGd.widthHint = 160;
+                            badgeGd.heightHint = 48;
+                            priceBadge.setLayoutData(badgeGd);
+                            priceBadge.setBackground(Theme.BG_PAGE);
+                            priceBadge.addPaintListener(e -> paintPriceBadge(e.gc, priceBadge.getBounds(), priceText));
+                        });
 
-        page.complete();
-    }
+                        // Quantity row
+                        page.row(4, qtyRow -> {
+                            qtyRow.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
+                            qtyRow.setBackground(Theme.BG_PAGE);
+                            var qtyLayout = (GridLayout) qtyRow.getLayout();
+                            qtyLayout.horizontalSpacing = 10;
 
-    private void renderDescriptionCard(Composite parent, String description) {
-        var card = new Canvas(parent, SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND);
-        var cardGd = new GridData(SWT.FILL, SWT.TOP, true, false);
-        cardGd.verticalIndent = 16;
-        card.setLayoutData(cardGd);
+                            page.label(lbl -> {
+                                lbl.setText("Qtd:");
+                                lbl.setFont(Theme.FONT_QTY);
+                                lbl.setForeground(Theme.FG_TEXT_SUBTLE);
+                                lbl.setBackground(Theme.BG_PAGE);
+                            });
 
-        var lines = parseDescription(description);
+                            page.iconButton(Theme.ICON_DASH, Theme.BG_PAGE, btn -> {
+                                btn.addListener(SWT.MouseUp, evt -> {
+                                    if (this.quantity > 1) {
+                                        this.quantity--;
+                                        qtyLabel.setText(String.valueOf(this.quantity));
+                                        qtyLabel.getParent().layout(true);
+                                    }
+                                });
+                            });
 
-        card.addPaintListener(e -> paintDescriptionCard(e.gc, card.getClientArea(), lines));
+                            this.qtyLabel = page.label(SWT.CENTER, lbl -> {
+                                lbl.setText("1");
+                                lbl.setFont(Theme.FONT_QTY_VALUE);
+                                lbl.setForeground(Theme.FG_TEXT_DARK);
+                                lbl.setBackground(Theme.BG_PAGE);
+                                var qtyGd = new GridData();
+                                gdCenter(qtyGd);
+                                gdWidth(qtyGd, 28);
+                                lbl.setLayoutData(qtyGd);
+                            });
 
-        int lineCount = Math.max(1, lines.length);
-        cardGd.heightHint = 24 + lineCount * 26 + 20;
+                            page.iconButton(Theme.ICON_PLUS, Theme.BG_PAGE, btn -> {
+                                btn.addListener(SWT.MouseUp, evt -> {
+                                    this.quantity++;
+                                    qtyLabel.setText(String.valueOf(this.quantity));
+                                    qtyLabel.getParent().layout(true);
+                                });
+                            });
+                        });
+                    });
+
+                    // Right column: image
+                    page.canvas(SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND, imageBox -> {
+                        var imgGd = gdCenter(new GridData());
+                        imgGd.widthHint = 240;
+                        imgGd.heightHint = 240;
+                        imageBox.setLayoutData(imgGd);
+                        imageBox.addPaintListener(e -> paintProductImage(e.gc, imageBox, productId));
+                    });
+                });
+
+                // Actions row
+                page.row(2, actionsRow -> {
+                    var actionsGd = new GridData();
+                    gdCenter(actionsGd);
+                    gdGrabH(actionsGd);
+                    gdIndent(actionsGd, 0, 20);
+                    actionsRow.setLayoutData(actionsGd);
+                    actionsRow.setBackground(Theme.BG_PAGE);
+                    var actionsLayout = (GridLayout) actionsRow.getLayout();
+                    actionsLayout.horizontalSpacing = 20;
+
+                    page.actionButton(Theme.ICON_ARROW_LEFT, "Voltar", Theme.BG_PAGE, btn -> {
+                        var gd = (GridData) btn.getLayoutData();
+                        gd.horizontalAlignment = SWT.CENTER;
+                        btn.addListener(SWT.MouseUp, evt -> safeAction("product.onOpenProducts", presenter::onOpenProducts));
+                    });
+
+                    page.primaryButton(Theme.ICON_BAG_PLUS, "Adicionar ao Carrinho", Theme.BG_PAGE, btn -> {
+                        var gd = (GridData) btn.getLayoutData();
+                        gd.horizontalAlignment = SWT.CENTER;
+                        btn.addListener(SWT.MouseUp, evt -> {
+                            safeAction("product.onAddToCart", () -> presenter.onAddToCart(this.quantity));
+                        });
+                    });
+                });
+
+                // Error banner (hidden by default)
+                this.errorBanner = page.errorBanner(12, false, eb -> {});
+            });
+        });
     }
 
     private String[] parseDescription(String desc) {
@@ -120,125 +215,6 @@ public class ProductViewSwt extends AbstractViewSwt<ProductPresenter> {
             return result;
         }
         return desc.split("\n");
-    }
-
-    private void renderPriceImageRow(Composite parent, double price) {
-        var row = new Composite(parent, SWT.NONE);
-        var rowGd = new GridData(SWT.CENTER, SWT.CENTER, true, false);
-        rowGd.verticalIndent = 20;
-        row.setLayoutData(rowGd);
-        row.setBackground(Theme.BG_PAGE);
-
-        var rowLayout = new GridLayout(2, false);
-        rowLayout.marginWidth = 0;
-        rowLayout.marginHeight = 0;
-        rowLayout.horizontalSpacing = 32;
-        row.setLayout(rowLayout);
-
-        // Left column: price + qty
-        var leftCol = new Composite(row, SWT.NONE);
-        leftCol.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
-        leftCol.setBackground(Theme.BG_PAGE);
-
-        var leftLayout = new GridLayout(1, false);
-        leftLayout.marginWidth = 0;
-        leftLayout.marginHeight = 0;
-        leftLayout.verticalSpacing = 12;
-        leftCol.setLayout(leftLayout);
-
-        // Price badge
-        var priceBadge = new Canvas(leftCol, SWT.DOUBLE_BUFFERED);
-        var badgeGd = new GridData(SWT.CENTER, SWT.CENTER, false, false);
-        badgeGd.heightHint = 48;
-        badgeGd.widthHint = 160;
-        priceBadge.setLayoutData(badgeGd);
-        priceBadge.setBackground(Theme.BG_PAGE);
-
-        String priceText = price > 0 ? Theme.formatPrice(price) : "";
-        priceBadge.addPaintListener(e -> paintPriceBadge(e.gc, priceBadge.getBounds(), priceText));
-
-        // Quantity row
-        var qtyRow = new Composite(leftCol, SWT.NONE);
-        qtyRow.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
-        qtyRow.setBackground(Theme.BG_PAGE);
-
-        var qtyLayout = new GridLayout(4, false);
-        qtyLayout.marginWidth = 0;
-        qtyLayout.marginHeight = 0;
-        qtyLayout.horizontalSpacing = 10;
-        qtyRow.setLayout(qtyLayout);
-
-        var qtyLbl = new Label(qtyRow, SWT.NONE);
-        qtyLbl.setText("Qtd:");
-        qtyLbl.setFont(Theme.FONT_QTY);
-        qtyLbl.setForeground(Theme.FG_TEXT_SUBTLE);
-        qtyLbl.setBackground(Theme.BG_PAGE);
-
-        // Minus button
-        var minusBtn = new IconButton(qtyRow, Theme.ICON_DASH, Theme.BG_PAGE);
-        minusBtn.addListener(SWT.MouseUp, evt -> {
-            if (this.quantity > 1) {
-                this.quantity--;
-                qtyLabel.setText(String.valueOf(this.quantity));
-                qtyLabel.getParent().layout(true);
-            }
-        });
-
-        // Quantity value
-        this.qtyLabel = new Label(qtyRow, SWT.CENTER);
-        this.qtyLabel.setText("1");
-        this.qtyLabel.setFont(Theme.FONT_QTY_VALUE);
-        this.qtyLabel.setForeground(Theme.FG_TEXT_DARK);
-        this.qtyLabel.setBackground(Theme.BG_PAGE);
-        var qtyValGd = new GridData(SWT.CENTER, SWT.CENTER, false, false);
-        qtyValGd.widthHint = 28;
-        this.qtyLabel.setLayoutData(qtyValGd);
-
-        // Plus button
-        var plusBtn = new IconButton(qtyRow, Theme.ICON_PLUS, Theme.BG_PAGE);
-        plusBtn.addListener(SWT.MouseUp, evt -> {
-            this.quantity++;
-            qtyLabel.setText(String.valueOf(this.quantity));
-            qtyLabel.getParent().layout(true);
-        });
-
-        // Right column: image
-        var imageBox = new Canvas(row, SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND);
-        var imgGd = new GridData(SWT.CENTER, SWT.CENTER, false, false);
-        imgGd.widthHint = 240;
-        imgGd.heightHint = 240;
-        imageBox.setLayoutData(imgGd);
-
-        long productId = state.product != null ? state.product.id : -1;
-        imageBox.addPaintListener(e -> paintProductImage(e.gc, imageBox, productId));
-    }
-
-    private void renderActionsRow(Composite parent) {
-        var row = new Composite(parent, SWT.NONE);
-        var rowGd = new GridData(SWT.CENTER, SWT.CENTER, true, false);
-        rowGd.verticalIndent = 20;
-        row.setLayoutData(rowGd);
-        row.setBackground(Theme.BG_PAGE);
-
-        var rowLayout = new GridLayout(2, false);
-        rowLayout.marginWidth = 0;
-        rowLayout.marginHeight = 0;
-        rowLayout.horizontalSpacing = 20;
-        row.setLayout(rowLayout);
-
-        // Back button
-        var backBtn = new ActionButton(row, Theme.ICON_ARROW_LEFT, "Voltar", Theme.BG_PAGE);
-        var backGd = (GridData) backBtn.getLayoutData();
-        backGd.horizontalAlignment = SWT.CENTER;
-        backBtn.addListener(SWT.MouseUp, evt -> safeAction("product.onOpenProducts", presenter::onOpenProducts));
-
-        // Add to Cart button
-        var addCartBtn = new PrimaryButton(row, Theme.ICON_BAG_PLUS, "Adicionar ao Carrinho", Theme.BG_PAGE);
-        var addGd = (GridData) addCartBtn.getLayoutData();
-        addGd.horizontalAlignment = SWT.CENTER;
-        addCartBtn.addListener(SWT.MouseUp, evt -> {
-            safeAction("product.onAddToCart", () -> presenter.onAddToCart(this.quantity));
-        });
     }
 
     // ========== SURFACES ==========

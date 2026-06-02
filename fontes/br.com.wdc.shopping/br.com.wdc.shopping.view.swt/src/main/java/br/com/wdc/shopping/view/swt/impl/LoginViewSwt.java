@@ -9,7 +9,6 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
@@ -21,6 +20,8 @@ import br.com.wdc.shopping.view.swt.AbstractViewSwt;
 import br.com.wdc.shopping.view.swt.ShoppingSwtApplication;
 import br.com.wdc.shopping.view.swt.theme.Surface;
 import br.com.wdc.shopping.view.swt.theme.Theme;
+import br.com.wdc.shopping.view.swt.util.SwtDom;
+import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
 
 /**
  * Login view matching the TeaVM web design:
@@ -56,14 +57,6 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
     }
 
     @Override
-    protected void onRebuild() {
-        this.notRendered = true;
-        this.userNameField = null;
-        this.passwordField = null;
-        this.errorLabel = null;
-    }
-
-    @Override
     public void doUpdate() {
         if (this.notRendered) {
             initialRender();
@@ -93,11 +86,172 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
     }
 
     private void initialRender() {
-        // :: Left panel — blue gradient with branding
-        createLeftPanel();
+        SwtDom.render(this.element, (dom, root) -> {
+            // :: Left panel — blue gradient with branding
+            dom.canvas(SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND, canvas -> {
+                canvas.setLayoutData(gdFill(new GridData()));
+                canvas.addPaintListener(this::paintLeftPanel);
+            });
 
-        // :: Right panel — white form
-        createRightPanel();
+            // :: Right panel — white form
+            dom.col(SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND, col -> {
+                col.setBackground(Theme.BG_WHITE);
+                col.setBackgroundMode(SWT.INHERIT_FORCE);
+                var colGd = new GridData();
+                gdFillV(colGd);
+                gdWidth(colGd, 420);
+                col.setLayoutData(colGd);
+                col.addPaintListener(e -> paintRightPanel(e.gc, col.getClientArea()));
+                var layout = (GridLayout) col.getLayout();
+                layout.marginWidth = 20;
+                layout.verticalSpacing = 0;
+
+                // Top spacer to push form toward vertical center
+                dom.label(lbl -> {
+                    lbl.setBackground(Theme.BG_WHITE);
+                    lbl.setLayoutData(gdFill(new GridData()));
+                });
+
+                // Blue banner card
+                dom.canvas(SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND, canvas -> {
+                    var canvasGd = new GridData();
+                    gdFillH(canvasGd);
+                    gdHeight(canvasGd, 120);
+                    canvas.setLayoutData(canvasGd);
+                    canvas.addPaintListener(e -> paintBanner(e, canvas));
+                });
+
+                dom.spacer(24);
+
+                // Inner form panel (indented relative to banner)
+                dom.col(form -> {
+                    form.setBackground(Theme.BG_WHITE);
+                    form.setLayoutData(gdFillH(new GridData()));
+                    var formLayout = (GridLayout) form.getLayout();
+                    formLayout.marginWidth = 40;
+                    formLayout.verticalSpacing = 0;
+
+                    // "Bem-vindo" title
+                    dom.label(lbl -> {
+                        lbl.setText("Bem-vindo");
+                        lbl.setFont(Theme.FONT_WELCOME);
+                        lbl.setForeground(Theme.FG_TEXT_DARK);
+                        lbl.setBackground(Theme.BG_WHITE);
+                        var lblGd = new GridData();
+                        gdLeft(lblGd);
+                        gdGrabH(lblGd);
+                        lbl.setLayoutData(lblGd);
+                    });
+
+                    dom.spacer(6);
+
+                    // Subtitle
+                    dom.label(lbl -> {
+                        lbl.setText("Entre com suas credenciais para continuar");
+                        lbl.setFont(Theme.FONT_SUBTITLE);
+                        lbl.setForeground(Theme.FG_TEXT_SUBTLE);
+                        lbl.setBackground(Theme.BG_WHITE);
+                        var lblGd = new GridData();
+                        gdLeft(lblGd);
+                        gdGrabH(lblGd);
+                        lbl.setLayoutData(lblGd);
+                    });
+
+                    dom.spacer(28);
+
+                    // Error alert box (hidden by default)
+                    this.errorLabel = dom.canvas(SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND, canvas -> {
+                        var gd = gdFillH(new GridData());
+                        gd.heightHint = 40;
+                        gd.verticalIndent = 12;
+                        gd.exclude = true;
+                        canvas.setLayoutData(gd);
+                        canvas.setVisible(false);
+                        canvas.addPaintListener(Surface.errorBox(canvas::getClientArea, () -> this.errorMessage));
+                    });
+
+                    // Spacer below error (also toggled with error)
+                    this.errorSpacer = dom.label(lbl -> {
+                        lbl.setBackground(Theme.BG_WHITE);
+                        var gd = new GridData();
+                        gdFillH(gd);
+                        gdHeight(gd, 12);
+                        gd.exclude = true;
+                        lbl.setLayoutData(gd);
+                        lbl.setVisible(false);
+                    });
+
+                    // "Usuário" label
+                    dom.label(lbl -> {
+                        lbl.setText("Usuário");
+                        lbl.setFont(Theme.FONT_FIELD_LABEL);
+                        lbl.setForeground(Theme.FG_TEXT_DARK);
+                        lbl.setBackground(Theme.BG_WHITE);
+                        var lblGd = new GridData();
+                        gdLeft(lblGd);
+                        gdGrabH(lblGd);
+                        lbl.setLayoutData(lblGd);
+                    });
+
+                    dom.spacer(4);
+
+                    // User text field
+                    this.userNameField = createBorderedTextField(dom, SWT.SINGLE, "Digite seu usuário");
+
+                    dom.spacer(16);
+
+                    // "Senha" label
+                    dom.label(lbl -> {
+                        lbl.setText("Senha");
+                        lbl.setFont(Theme.FONT_FIELD_LABEL);
+                        lbl.setForeground(Theme.FG_TEXT_DARK);
+                        lbl.setBackground(Theme.BG_WHITE);
+                        var lblGd = new GridData();
+                        gdLeft(lblGd);
+                        gdGrabH(lblGd);
+                        lbl.setLayoutData(lblGd);
+                    });
+
+                    dom.spacer(4);
+
+                    // Password field
+                    this.passwordField = createBorderedTextField(dom, SWT.SINGLE | SWT.PASSWORD, "Digite sua senha");
+                    this.passwordField.addListener(SWT.DefaultSelection, _e -> emitEnter());
+
+                    dom.spacer(24);
+
+                    // Login button
+                    dom.button(btn -> {
+                        btn.setText("Entrar");
+                        btn.setFont(Theme.FONT_BUTTON);
+                        btn.setBackground(Theme.PRIMARY_BLUE);
+                        btn.setForeground(Theme.FG_TEXT_WHITE);
+                        var btnGd = new GridData();
+                        gdFillH(btnGd);
+                        gdHeight(btnGd, Theme.BUTTON_HEIGHT);
+                        btn.setLayoutData(btnGd);
+                        btn.addListener(SWT.Selection, _e -> emitEnter());
+                    });
+
+                    dom.spacer(16);
+
+                    // Demo hint (gray box with border)
+                    dom.canvas(SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND, canvas -> {
+                        var canvasGd = new GridData();
+                        gdFillH(canvasGd);
+                        gdHeight(canvasGd, 40);
+                        canvas.setLayoutData(canvasGd);
+                        canvas.addPaintListener(ev -> paintDemoBox(ev.gc, canvas.getClientArea()));
+                    });
+                });
+
+                // Bottom spacer for centering
+                dom.label(lbl -> {
+                    lbl.setBackground(Theme.BG_WHITE);
+                    lbl.setLayoutData(gdFill(new GridData()));
+                });
+            });
+        });
 
         // Show this view in the Shell's StackLayout
         var shell = this.element.getParent();
@@ -105,160 +259,6 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
             stackLayout.topControl = this.element;
             shell.layout(true, true);
         }
-    }
-
-    // ========== LEFT PANEL (Branding) ==========
-
-    private void createLeftPanel() {
-        var leftPanel = new Canvas(this.element, SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND);
-        var gd = new GridData(SWT.FILL, SWT.FILL, true, true);
-        leftPanel.setLayoutData(gd);
-        leftPanel.addPaintListener(this::paintLeftPanel);
-    }
-
-    // ========== RIGHT PANEL (Form) ==========
-
-    private void createRightPanel() {
-        var rightPanel = new Composite(this.element, SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND);
-        rightPanel.setBackground(Theme.BG_WHITE);
-        rightPanel.setBackgroundMode(SWT.INHERIT_FORCE);
-        var gd = new GridData(SWT.FILL, SWT.FILL, false, true);
-        gd.widthHint = 420;
-        rightPanel.setLayoutData(gd);
-
-        rightPanel.addPaintListener(e -> paintRightPanel(e.gc, rightPanel.getClientArea()));
-
-        var layout = new GridLayout(1, false);
-        layout.marginWidth = 20;
-        layout.marginHeight = 0;
-        layout.verticalSpacing = 0;
-        rightPanel.setLayout(layout);
-
-        // Top spacer to push form toward vertical center
-        var topSpacer = new Label(rightPanel, SWT.NONE);
-        topSpacer.setBackground(Theme.BG_WHITE);
-        topSpacer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-
-        // Blue banner card (matching web "login-mobile-logo")
-        createBannerCard(rightPanel);
-
-        createSpacer(rightPanel, 24);
-
-        // Inner form panel (indented relative to banner)
-        var formPanel = new Composite(rightPanel, SWT.NONE);
-        formPanel.setBackground(Theme.BG_WHITE);
-        var formGd = new GridData(SWT.FILL, SWT.FILL, true, false);
-        formPanel.setLayoutData(formGd);
-        var formLayout = new GridLayout(1, false);
-        formLayout.marginWidth = 40;
-        formLayout.marginHeight = 0;
-        formLayout.verticalSpacing = 0;
-        formPanel.setLayout(formLayout);
-
-        // "Bem-vindo" title (larger, bolder)
-        var title = new Label(formPanel, SWT.NONE);
-        title.setText("Bem-vindo");
-        title.setFont(Theme.FONT_WELCOME);
-        title.setForeground(Theme.FG_TEXT_DARK);
-        title.setBackground(Theme.BG_WHITE);
-        title.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
-
-        createSpacer(formPanel, 6);
-
-        // Subtitle
-        var subtitle = new Label(formPanel, SWT.NONE);
-        subtitle.setText("Entre com suas credenciais para continuar");
-        subtitle.setFont(Theme.FONT_SUBTITLE);
-        subtitle.setForeground(Theme.FG_TEXT_SUBTLE);
-        subtitle.setBackground(Theme.BG_WHITE);
-        subtitle.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
-
-        createSpacer(formPanel, 28);
-
-        // Error alert box (hidden by default) — between subtitle and fields
-        this.errorLabel = new Canvas(formPanel, SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND);
-        var errorGd = new GridData(SWT.FILL, SWT.CENTER, true, false);
-        errorGd.heightHint = 40;
-        errorGd.verticalIndent = 12;
-        errorGd.exclude = true;
-        this.errorLabel.setLayoutData(errorGd);
-        this.errorLabel.setVisible(false);
-        this.errorLabel.addPaintListener(Surface.errorBox(this.errorLabel::getClientArea, () -> this.errorMessage));
-
-        // Spacer below error (also toggled with error)
-        this.errorSpacer = new Label(formPanel, SWT.NONE);
-        this.errorSpacer.setBackground(Theme.BG_WHITE);
-        var errorSpacerGd = new GridData(SWT.FILL, SWT.CENTER, true, false);
-        errorSpacerGd.heightHint = 12;
-        errorSpacerGd.exclude = true;
-        this.errorSpacer.setLayoutData(errorSpacerGd);
-        this.errorSpacer.setVisible(false);
-
-        // "Usuário" label
-        var userLabel = new Label(formPanel, SWT.NONE);
-        userLabel.setText("Usuário");
-        userLabel.setFont(Theme.FONT_FIELD_LABEL);
-        userLabel.setForeground(Theme.FG_TEXT_DARK);
-        userLabel.setBackground(Theme.BG_WHITE);
-        userLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
-
-        createSpacer(formPanel, 4);
-
-        // User text field (wrapped in border composite)
-        this.userNameField = createBorderedTextField(formPanel, SWT.SINGLE, "Digite seu usuário");
-
-        createSpacer(formPanel, 16);
-
-        // "Senha" label
-        var passLabel = new Label(formPanel, SWT.NONE);
-        passLabel.setText("Senha");
-        passLabel.setFont(Theme.FONT_FIELD_LABEL);
-        passLabel.setForeground(Theme.FG_TEXT_DARK);
-        passLabel.setBackground(Theme.BG_WHITE);
-        passLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
-
-        createSpacer(formPanel, 4);
-
-        // Password field (wrapped in border composite)
-        this.passwordField = createBorderedTextField(formPanel, SWT.SINGLE | SWT.PASSWORD, "Digite sua senha");
-        this.passwordField.addListener(SWT.DefaultSelection, _e -> emitEnter());
-
-        createSpacer(formPanel, 24);
-
-        // Login button
-        var loginBtn = new Button(formPanel, SWT.PUSH);
-        loginBtn.setText("Entrar");
-        loginBtn.setFont(Theme.FONT_BUTTON);
-        loginBtn.setBackground(Theme.PRIMARY_BLUE);
-        loginBtn.setForeground(Theme.FG_TEXT_WHITE);
-        var btnGd = new GridData(SWT.FILL, SWT.CENTER, true, false);
-        btnGd.heightHint = Theme.BUTTON_HEIGHT;
-        loginBtn.setLayoutData(btnGd);
-        loginBtn.addListener(SWT.Selection, _e -> emitEnter());
-
-        createSpacer(formPanel, 16);
-
-        // Demo hint (gray box with border)
-        var demoBox = new Canvas(formPanel, SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND);
-        var demoGd = new GridData(SWT.FILL, SWT.CENTER, true, false);
-        demoGd.heightHint = 40;
-        demoBox.setLayoutData(demoGd);
-        demoBox.addPaintListener(ev -> paintDemoBox(ev.gc, demoBox.getClientArea()));
-
-        // Bottom spacer for centering
-        var bottomSpacer = new Label(rightPanel, SWT.NONE);
-        bottomSpacer.setBackground(Theme.BG_WHITE);
-        bottomSpacer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-    }
-
-    // ========== BANNER CARD ==========
-
-    private void createBannerCard(Composite parent) {
-        var banner = new Canvas(parent, SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND);
-        var gd = new GridData(SWT.FILL, SWT.CENTER, true, false);
-        gd.heightHint = 120;
-        banner.setLayoutData(gd);
-        banner.addPaintListener(e -> paintBanner(e, banner));
     }
 
     // ========== SURFACES ==========
@@ -387,39 +387,33 @@ public class LoginViewSwt extends AbstractViewSwt<LoginPresenter> {
 
     // ========== HELPERS ==========
 
-    private void createSpacer(Composite parent, int height) {
-        var spacer = new Label(parent, SWT.NONE);
-        spacer.setBackground(parent.getBackground());
-        var gd = new GridData(SWT.FILL, SWT.CENTER, true, false);
-        gd.heightHint = height;
-        spacer.setLayoutData(gd);
-    }
-
     /**
      * Creates a Text field wrapped in a rounded border composite.
      */
-    private Text createBorderedTextField(Composite parent, int textStyle, String placeholder) {
-        // Outer composite with custom-painted rounded border
-        var borderComp = new Composite(parent, SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND);
-        var borderGd = new GridData(SWT.FILL, SWT.CENTER, true, false);
-        borderGd.heightHint = 36;
-        borderComp.setLayoutData(borderGd);
-        var borderLayout = new GridLayout(1, false);
-        borderLayout.marginWidth = 10;
-        borderLayout.marginHeight = 6;
-        borderLayout.horizontalSpacing = 0;
-        borderLayout.verticalSpacing = 0;
-        borderComp.setLayout(borderLayout);
+    private Text createBorderedTextField(SwtDom dom, int textStyle, String placeholder) {
+        var field = new Text[1];
+        dom.col(SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND, borderComp -> {
+            var borderCompGd = new GridData();
+            gdFillH(borderCompGd);
+            gdHeight(borderCompGd, 36);
+            borderComp.setLayoutData(borderCompGd);
+            var borderLayout = (GridLayout) borderComp.getLayout();
+            borderLayout.marginWidth = 10;
+            borderLayout.marginHeight = 0;
+            borderLayout.horizontalSpacing = 0;
+            borderLayout.verticalSpacing = 0;
 
-        borderComp.addPaintListener(Surface.borderedField(borderComp::getClientArea));
+            borderComp.addPaintListener(Surface.borderedField(borderComp::getClientArea));
 
-        // Inner text field (no SWT.BORDER — the rounded wrapper provides the border)
-        var field = new Text(borderComp, textStyle);
-        field.setMessage(placeholder);
-        field.setBackground(Theme.BG_WHITE);
-        field.setForeground(Theme.FG_TEXT_DARK);
-        field.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true));
-        return field;
+            dom.text(textStyle, txt -> {
+                txt.setMessage(placeholder);
+                txt.setBackground(Theme.BG_WHITE);
+                txt.setForeground(Theme.FG_TEXT_DARK);
+                txt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true));
+                field[0] = txt;
+            });
+        });
+        return field[0];
     }
 
     private void emitEnter() {

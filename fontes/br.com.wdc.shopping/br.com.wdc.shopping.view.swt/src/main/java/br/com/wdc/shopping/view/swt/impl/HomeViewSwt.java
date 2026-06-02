@@ -4,7 +4,6 @@ import java.util.Objects;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -20,6 +19,8 @@ import br.com.wdc.shopping.view.swt.theme.Surface;
 import br.com.wdc.shopping.view.swt.theme.Theme;
 import br.com.wdc.shopping.view.swt.util.SlotComposite;
 import br.com.wdc.shopping.view.swt.util.StackComposite;
+import br.com.wdc.shopping.view.swt.util.SwtDom;
+import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
 
 /**
  * Home view — header + content area (products grid + purchases panel).
@@ -43,13 +44,8 @@ public class HomeViewSwt extends AbstractViewSwt<HomePresenter> {
     private SlotComposite contentOverlaySlot;
 
     public HomeViewSwt(HomePresenter presenter) {
-        super("home", (ShoppingSwtApplication) presenter.app, presenter,
-                createRootComposite((ShoppingSwtApplication) presenter.app));
+        super("home", (ShoppingSwtApplication) presenter.app, presenter);
         this.state = presenter.state;
-    }
-
-    private static Composite createRootComposite(ShoppingSwtApplication app) {
-        return new Composite(app.getOffscreen(), SWT.NONE);
     }
 
     @Override
@@ -136,219 +132,243 @@ public class HomeViewSwt extends AbstractViewSwt<HomePresenter> {
         this.element.setLayout(layout);
         this.element.setBackground(Theme.BG_PAGE);
 
-        createNavbar(this.element);
-        createErrorBanner(this.element);
-        createContentArea(this.element);
+        SwtDom.render(this.element, (dom, root) -> {
+            createNavbar(dom);
+            createErrorBanner(dom);
+            createContentArea(dom);
+        });
     }
 
     // ========== NAVBAR ==========
 
-    private void createNavbar(Composite parent) {
-        var navContent = new Composite(parent, SWT.NONE) {
-            @Override
-            public Point computeSize(int wHint, int hHint, boolean changed) {
-                var size = super.computeSize(wHint, hHint, changed);
-                size.y = Theme.HEADER_HEIGHT;
-                return size;
-            }
-        };
-        var gd = new GridData(SWT.FILL, SWT.TOP, true, false);
-        gd.heightHint = Theme.HEADER_HEIGHT;
-        navContent.setLayoutData(gd);
-        navContent.setBackgroundMode(SWT.INHERIT_FORCE);
+    private void createNavbar(SwtDom dom) {
+        dom.row(7, navContent -> {
+            var navGd = new GridData();
+            gdFillH(navGd);
+            gdHeight(navGd, Theme.HEADER_HEIGHT);
+            gdTop(navGd);
+            navContent.setLayoutData(navGd);
+            navContent.setBackgroundMode(SWT.INHERIT_FORCE);
 
-        // Use a background image (gradient) so INHERIT_FORCE gives children the correct
-        // portion of the gradient as their background (instead of a solid color).
-        final org.eclipse.swt.graphics.Image[] bgImage = {null};
-        navContent.addListener(SWT.Resize, _e -> {
-            var area = navContent.getClientArea();
-            if (area.width <= 0 || area.height <= 0) return;
-            if (bgImage[0] != null) bgImage[0].dispose();
-            bgImage[0] = new org.eclipse.swt.graphics.Image(navContent.getDisplay(), area.width, area.height);
-            var gc = new org.eclipse.swt.graphics.GC(bgImage[0]);
-            gc.setAntialias(SWT.ON);
-            gc.setBackground(Theme.PRIMARY_BLUE_DARK);
-            gc.setForeground(Theme.PRIMARY_BLUE_LIGHT);
-            gc.fillGradientRectangle(0, 0, area.width, area.height, false);
-            gc.dispose();
-            navContent.setBackgroundImage(bgImage[0]);
+            // Override computeSize to enforce header height
+            navContent.addListener(SWT.MeasureItem, _e -> {});
+            // NOTE: we use heightHint on GridData to enforce height
+
+            // Background gradient image
+            final org.eclipse.swt.graphics.Image[] bgImage = {null};
+            navContent.addListener(SWT.Resize, _e -> {
+                var area = navContent.getClientArea();
+                if (area.width <= 0 || area.height <= 0) return;
+                if (bgImage[0] != null) bgImage[0].dispose();
+                bgImage[0] = new org.eclipse.swt.graphics.Image(navContent.getDisplay(), area.width, area.height);
+                var gc = new org.eclipse.swt.graphics.GC(bgImage[0]);
+                gc.setAntialias(SWT.ON);
+                gc.setBackground(Theme.PRIMARY_BLUE_DARK);
+                gc.setForeground(Theme.PRIMARY_BLUE_LIGHT);
+                gc.fillGradientRectangle(0, 0, area.width, area.height, false);
+                gc.dispose();
+                navContent.setBackgroundImage(bgImage[0]);
+            });
+            navContent.addListener(SWT.Dispose, _e -> {
+                if (bgImage[0] != null) bgImage[0].dispose();
+            });
+
+            var navLayout = (GridLayout) navContent.getLayout();
+            navLayout.marginWidth = 16;
+
+            // -- LEFT: Exit button
+            dom.label(exitBtn -> {
+                exitBtn.setFont(Theme.FONT_ICON);
+                exitBtn.setText(Theme.ICON_BOX_ARROW_LEFT);
+                exitBtn.setForeground(Theme.FG_TEXT_WHITE);
+                exitBtn.setBackground(null);
+                exitBtn.setCursor(navContent.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+                var exitBtnGd = new GridData();
+                gdLeft(exitBtnGd);
+                gdGrabV(exitBtnGd);
+                exitBtn.setLayoutData(exitBtnGd);
+                exitBtn.addListener(SWT.MouseDown, _e -> safeAction("exit", this.presenter::onExit));
+            });
+
+            // Welcome area: "Bem-vindo(a)," + "Nome!"
+            dom.row(2, welcomeArea -> {
+                welcomeArea.setBackground(null);
+                var welcomeGd = new GridData();
+                gdLeft(welcomeGd);
+                gdGrabV(welcomeGd);
+                welcomeArea.setLayoutData(welcomeGd);
+                var waLayout = (GridLayout) welcomeArea.getLayout();
+                waLayout.horizontalSpacing = 4;
+
+                this.welcomeLabel = dom.label(lbl -> {
+                    lbl.setFont(Theme.FONT_NAV_SMALL);
+                    lbl.setForeground(Theme.FG_TEXT_WHITE_70);
+                    lbl.setBackground(null);
+                    lbl.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+                });
+
+                this.nickNameLabel = dom.label(lbl -> {
+                    lbl.setFont(Theme.FONT_BODY_BOLD);
+                    lbl.setForeground(Theme.FG_TEXT_WHITE);
+                    lbl.setBackground(null);
+                    lbl.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+                });
+            });
+
+            // -- LEFT spacer
+            dom.label(lbl -> {
+                lbl.setBackground(null);
+                lbl.setLayoutData(gdFill(new GridData()));
+            });
+
+            // -- CENTER: icon with rounded background
+            dom.canvas(SWT.NO_BACKGROUND | SWT.DOUBLE_BUFFERED, iconBox -> {
+            	var iconGd = new GridData();
+            	gdRight(iconGd);
+                gdGrabV(iconGd);
+                iconGd.widthHint = 36;
+                iconGd.heightHint = 36;
+                iconBox.setLayoutData(iconGd);
+                iconBox.addPaintListener(ev -> paintNavIconBox(ev.gc, iconBox, navContent));
+            });
+
+            // CENTER: title block
+            dom.col(centerBlock -> {
+                centerBlock.setBackground(null);
+                var centerGd = new GridData();
+                gdLeft(centerGd);
+                gdGrabV(centerGd);
+                centerBlock.setLayoutData(centerGd);
+
+                dom.label(lbl -> {
+                    lbl.setFont(Theme.FONT_NAV_TITLE);
+                    lbl.setText("Shopping");
+                    lbl.setForeground(Theme.FG_TEXT_WHITE);
+                    lbl.setBackground(null);
+                    lbl.setLayoutData(new GridData(SWT.LEFT, SWT.BOTTOM, false, false));
+                });
+
+                dom.label(lbl -> {
+                    lbl.setFont(Theme.FONT_NAV_SMALL);
+                    lbl.setText("By WeDoCode");
+                    lbl.setForeground(Theme.FG_TEXT_WHITE_65);
+                    lbl.setBackground(null);
+                    lbl.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
+                });
+            });
+
+            // -- RIGHT spacer
+            dom.label(lbl -> {
+                lbl.setBackground(null);
+                lbl.setLayoutData(gdFill(new GridData()));
+            });
+
+            // -- RIGHT: Cart area
+            dom.row(3, cartArea -> {
+                cartArea.setBackground(null);
+                var cartGd = new GridData();
+                gdRight(cartGd);
+                gdGrabV(cartGd);
+                cartArea.setLayoutData(cartGd);
+                var cartLayout = (GridLayout) cartArea.getLayout();
+                cartLayout.horizontalSpacing = 4;
+                cartArea.setCursor(navContent.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+
+                var cartIcon = dom.label(lbl -> {
+                    lbl.setFont(Theme.FONT_ICON);
+                    lbl.setText(Theme.ICON_BAG);
+                    lbl.setForeground(Theme.FG_TEXT_WHITE);
+                    lbl.setBackground(null);
+                    var cartIconGd = new GridData();
+                    gdLeft(cartIconGd);
+                    gdGrabV(cartIconGd);
+                    lbl.setLayoutData(cartIconGd);
+                });
+
+                var cartLabel = dom.label(lbl -> {
+                    lbl.setFont(Theme.FONT_BODY);
+                    lbl.setText("Carrinho");
+                    lbl.setForeground(Theme.FG_TEXT_WHITE);
+                    lbl.setBackground(null);
+                    var cartLabelGd = new GridData();
+                    gdLeft(cartLabelGd);
+                    gdGrabV(cartLabelGd);
+                    lbl.setLayoutData(cartLabelGd);
+                });
+
+                this.cartBadge = dom.canvas(SWT.NO_BACKGROUND | SWT.DOUBLE_BUFFERED, badge -> {
+                    var badgeGd = gdCenter(new GridData());
+                    badgeGd.widthHint = 20;
+                    badgeGd.heightHint = 18;
+                    badge.setLayoutData(badgeGd);
+                    badge.addPaintListener(ev -> paintCartBadge(ev.gc, badge.getClientArea()));
+                });
+
+                // Click on entire cart area opens cart
+                var cartClickListener = (org.eclipse.swt.widgets.Listener) event ->
+                        safeAction("openCart", HomeViewSwt.this.presenter::onOpenCart);
+                cartArea.addListener(SWT.MouseDown, cartClickListener);
+                cartIcon.addListener(SWT.MouseDown, cartClickListener);
+                cartLabel.addListener(SWT.MouseDown, cartClickListener);
+            });
         });
-        navContent.addListener(SWT.Dispose, _e -> {
-            if (bgImage[0] != null) bgImage[0].dispose();
-        });
-
-        var navLayout = new GridLayout(7, false);
-        navLayout.marginWidth = 16;
-        navLayout.marginHeight = 0;
-        navLayout.verticalSpacing = 0;
-        navContent.setLayout(navLayout);
-
-        // -- LEFT: Exit button
-        var exitBtn = new Label(navContent, SWT.NONE);
-        exitBtn.setFont(Theme.FONT_ICON);
-        exitBtn.setText(Theme.ICON_BOX_ARROW_LEFT);
-        exitBtn.setForeground(Theme.FG_TEXT_WHITE);
-        exitBtn.setBackground(null);
-        exitBtn.setCursor(navContent.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
-        exitBtn.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, true));
-        exitBtn.addListener(SWT.MouseDown, _e -> safeAction("exit", this.presenter::onExit));
-
-        // Welcome area: "Bem-vindo(a)," + "Nome!"
-        var welcomeArea = new Composite(navContent, SWT.NONE);
-        welcomeArea.setBackground(null);
-        var waLayout = new GridLayout(2, false);
-        waLayout.marginWidth = 0;
-        waLayout.marginHeight = 0;
-        waLayout.horizontalSpacing = 4;
-        welcomeArea.setLayout(waLayout);
-        welcomeArea.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, true));
-
-        this.welcomeLabel = new Label(welcomeArea, SWT.NONE);
-        this.welcomeLabel.setFont(Theme.FONT_NAV_SMALL);
-        this.welcomeLabel.setForeground(Theme.FG_TEXT_WHITE_70);
-        this.welcomeLabel.setBackground(null);
-        this.welcomeLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
-
-        this.nickNameLabel = new Label(welcomeArea, SWT.NONE);
-        this.nickNameLabel.setFont(Theme.FONT_BODY_BOLD);
-        this.nickNameLabel.setForeground(Theme.FG_TEXT_WHITE);
-        this.nickNameLabel.setBackground(null);
-        this.nickNameLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
-
-        // -- LEFT spacer
-        var spacerLeft = new Label(navContent, SWT.NONE);
-        spacerLeft.setBackground(null);
-        spacerLeft.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true));
-
-        // -- CENTER: icon with rounded background + title block
-        var iconBox = new Canvas(navContent, SWT.NO_BACKGROUND | SWT.DOUBLE_BUFFERED);
-        var iconBoxGd = new GridData(SWT.RIGHT, SWT.CENTER, false, true);
-        iconBoxGd.widthHint = 36;
-        iconBoxGd.heightHint = 36;
-        iconBox.setLayoutData(iconBoxGd);
-        iconBox.addPaintListener(ev -> paintNavIconBox(ev.gc, iconBox, navContent));
-
-        var centerBlock = new Composite(navContent, SWT.NONE);
-        centerBlock.setBackground(null);
-        var cbLayout = new GridLayout(1, false);
-        cbLayout.marginWidth = 0;
-        cbLayout.marginHeight = 0;
-        cbLayout.verticalSpacing = 0;
-        centerBlock.setLayout(cbLayout);
-        centerBlock.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, true));
-
-        var titleLabel = new Label(centerBlock, SWT.NONE);
-        titleLabel.setFont(Theme.FONT_NAV_TITLE);
-        titleLabel.setText("Shopping");
-        titleLabel.setForeground(Theme.FG_TEXT_WHITE);
-        titleLabel.setBackground(null);
-        titleLabel.setLayoutData(new GridData(SWT.LEFT, SWT.BOTTOM, false, false));
-
-        var subtitleLabel = new Label(centerBlock, SWT.NONE);
-        subtitleLabel.setFont(Theme.FONT_NAV_SMALL);
-        subtitleLabel.setText("By WeDoCode");
-        subtitleLabel.setForeground(Theme.FG_TEXT_WHITE_65);
-        subtitleLabel.setBackground(null);
-        subtitleLabel.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
-
-        // -- RIGHT spacer
-        var spacerRight = new Label(navContent, SWT.NONE);
-        spacerRight.setBackground(null);
-        spacerRight.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true));
-
-        // -- RIGHT: Cart area
-        var cartArea = new Composite(navContent, SWT.NONE);
-        cartArea.setBackground(null);
-        var cartLayout = new GridLayout(3, false);
-        cartLayout.marginWidth = 0;
-        cartLayout.marginHeight = 0;
-        cartLayout.horizontalSpacing = 4;
-        cartArea.setLayout(cartLayout);
-        cartArea.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, true));
-        cartArea.setCursor(navContent.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
-
-        var cartIcon = new Label(cartArea, SWT.NONE);
-        cartIcon.setFont(Theme.FONT_ICON);
-        cartIcon.setText(Theme.ICON_BAG);
-        cartIcon.setForeground(Theme.FG_TEXT_WHITE);
-        cartIcon.setBackground(null);
-        cartIcon.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, true));
-
-        var cartLabel = new Label(cartArea, SWT.NONE);
-        cartLabel.setFont(Theme.FONT_BODY);
-        cartLabel.setText("Carrinho");
-        cartLabel.setForeground(Theme.FG_TEXT_WHITE);
-        cartLabel.setBackground(null);
-        cartLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, true));
-
-        this.cartBadge = new Canvas(cartArea, SWT.NO_BACKGROUND | SWT.DOUBLE_BUFFERED);
-        var badgeGd = new GridData(SWT.CENTER, SWT.CENTER, false, false);
-        badgeGd.widthHint = 20;
-        badgeGd.heightHint = 18;
-        this.cartBadge.setLayoutData(badgeGd);
-        this.cartBadge.addPaintListener(ev -> paintCartBadge(ev.gc, this.cartBadge.getClientArea()));
-
-        // Click on entire cart area opens cart
-        var cartClickListener = (org.eclipse.swt.widgets.Listener) event -> safeAction("openCart", HomeViewSwt.this.presenter::onOpenCart);
-        cartArea.addListener(SWT.MouseDown, cartClickListener);
-        cartIcon.addListener(SWT.MouseDown, cartClickListener);
-        cartLabel.addListener(SWT.MouseDown, cartClickListener);
     }
 
     // ========== ERROR BANNER ==========
 
-    private void createErrorBanner(Composite parent) {
-        this.errorBanner = new Canvas(parent, SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND);
-        var gd = new GridData(SWT.FILL, SWT.TOP, true, false);
-        gd.heightHint = 40;
-        gd.exclude = true;
-        this.errorBanner.setLayoutData(gd);
-        this.errorBanner.setVisible(false);
-        this.errorBanner.addPaintListener(Surface.errorBanner(this.errorBanner::getClientArea, () -> this.errorMessage));
+    private void createErrorBanner(SwtDom dom) {
+        this.errorBanner = dom.canvas(SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND, canvas -> {
+            var errorGd = new GridData();
+            gdFillH(errorGd);
+            gdTop(errorGd);
+            errorGd.heightHint = 40;
+            errorGd.exclude = true;
+            canvas.setLayoutData(errorGd);
+            canvas.setVisible(false);
+            canvas.addPaintListener(Surface.errorBanner(canvas::getClientArea, () -> this.errorMessage));
+        });
     }
 
     // ========== CONTENT AREA ==========
 
-    private void createContentArea(Composite parent) {
-        // Main content row: products (flex) + purchases (fixed 280px)
-        var contentRow = new Composite(parent, SWT.NONE);
-        contentRow.setBackground(Theme.BG_PAGE);
-        contentRow.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-        var rowLayout = new GridLayout(2, false);
-        rowLayout.marginWidth = 0;
-        rowLayout.marginHeight = 0;
-        rowLayout.horizontalSpacing = 0;
-        contentRow.setLayout(rowLayout);
+    private void createContentArea(SwtDom dom) {
+        dom.row(2, contentRow -> {
+            contentRow.setBackground(Theme.BG_PAGE);
+            contentRow.setLayoutData(gdFill(new GridData()));
 
-        // Left: content stack (default shows products, overlay replaces)
-        this.contentStack = new StackComposite(contentRow);
-        this.contentStack.setBackground(Theme.BG_PAGE);
-        this.contentStack.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+            // Left: content stack (default shows products, overlay replaces)
+            this.contentStack = dom.stack(stack -> {
+                stack.setBackground(Theme.BG_PAGE);
+                stack.setLayoutData(gdFill(new GridData()));
+            });
 
-        // Default content (products slot)
-        this.defaultContent = new Composite(this.contentStack, SWT.NONE);
-        this.defaultContent.setBackground(Theme.BG_PAGE);
-        var dcLayout = new GridLayout(1, false);
-        dcLayout.marginWidth = 0;
-        dcLayout.marginHeight = 0;
-        this.defaultContent.setLayout(dcLayout);
+            // Default content (products slot) — created inside stack
+            this.defaultContent = new Composite(this.contentStack, SWT.NONE);
+            this.defaultContent.setBackground(Theme.BG_PAGE);
+            var dcLayout = new GridLayout(1, false);
+            dcLayout.marginWidth = 0;
+            dcLayout.marginHeight = 0;
+            this.defaultContent.setLayout(dcLayout);
 
-        this.productsPanelSlot = new SlotComposite(this.defaultContent, this.app.getOffscreen());
-        this.productsPanelSlot.setBackground(Theme.BG_PAGE);
-        this.productsPanelSlot.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+            this.productsPanelSlot = new SlotComposite(this.defaultContent, this.app.getOffscreen());
+            this.productsPanelSlot.setBackground(Theme.BG_PAGE);
+            this.productsPanelSlot.setLayoutData(gdFill(new GridData()));
 
-        // Content overlay slot (for cart/product/receipt overlays)
-        this.contentOverlaySlot = new SlotComposite(this.contentStack, this.app.getOffscreen());
-        this.contentOverlaySlot.setBackground(Theme.BG_PAGE);
+            // Content overlay slot (for cart/product/receipt overlays)
+            this.contentOverlaySlot = new SlotComposite(this.contentStack, this.app.getOffscreen());
+            this.contentOverlaySlot.setBackground(Theme.BG_PAGE);
 
-        this.contentStack.showControl(this.defaultContent);
+            this.contentStack.showControl(this.defaultContent);
 
-        // Right: purchases panel slot (fixed width)
-        this.purchasesPanelSlot = new SlotComposite(contentRow, this.app.getOffscreen());
-        this.purchasesPanelSlot.setBackground(Theme.BG_WHITE);
-        var purchGd = new GridData(SWT.FILL, SWT.FILL, false, true);
-        purchGd.widthHint = 340;
-        this.purchasesPanelSlot.setLayoutData(purchGd);
+            // Right: purchases panel slot (fixed width)
+            this.purchasesPanelSlot = dom.slot(this.app.getOffscreen(), slot -> {
+                slot.setBackground(Theme.BG_WHITE);
+                var slotGd = new GridData();
+                gdFillV(slotGd);
+                gdWidth(slotGd, 340);
+                slot.setLayoutData(slotGd);
+            });
+        });
     }
 
     // ========== SURFACES ==========

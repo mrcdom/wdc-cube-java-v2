@@ -35,13 +35,6 @@ public class RootViewSwt extends AbstractViewSwt<RootPresenter> {
     }
 
     @Override
-    protected void onRebuild() {
-        this.notRendered = true;
-        this.contentSlot = null;
-        this.currentContentView = null;
-    }
-
-    @Override
     public void doUpdate() {
         if (this.notRendered) {
             initialRender();

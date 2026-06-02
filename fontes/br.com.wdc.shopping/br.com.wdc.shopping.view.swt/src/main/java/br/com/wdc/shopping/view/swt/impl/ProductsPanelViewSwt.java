@@ -42,8 +42,7 @@ public class ProductsPanelViewSwt extends AbstractViewSwt<ProductsPanelPresenter
     private int lastProductsHash;
 
     public ProductsPanelViewSwt(ProductsPanelPresenter presenter) {
-        super("products-panel", (ShoppingSwtApplication) presenter.app, presenter,
-                new Composite(((ShoppingSwtApplication) presenter.app).getOffscreen(), SWT.NONE));
+        super("products-panel", (ShoppingSwtApplication) presenter.app, presenter);
         this.state = presenter.state;
         this.element.setBackground(Theme.BG_PAGE);
         var layout = new GridLayout(1, false);

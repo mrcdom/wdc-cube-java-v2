@@ -1,5 +1,10 @@
 package br.com.wdc.shopping.view.swt;
 
+import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
+
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
 import br.com.wdc.framework.commons.log.Log;
@@ -15,6 +20,10 @@ public abstract class AbstractViewSwt<P> implements CubeView {
     protected final Composite element;
 
     long dirtyTimestamp;
+
+    protected AbstractViewSwt(String instanceId, ShoppingSwtApplication app, P presenter) {
+        this(instanceId, app, presenter, new Composite(app.getOffscreen(), SWT.NONE));
+    }
 
     protected AbstractViewSwt(String instanceId, ShoppingSwtApplication app, P presenter, Composite element) {
         this.instanceId = instanceId;
@@ -64,5 +73,34 @@ public abstract class AbstractViewSwt<P> implements CubeView {
                 this.app.alertUnexpectedError(LOG, context, caught);
             }
         });
+    }
+
+    protected <T, V extends Composite> void syncList(
+            Composite container, List<T> items, List<V> slots,
+            Supplier<V> factory, BiConsumer<V, T> updater) {
+
+        var newSize = items != null ? items.size() : 0;
+        var oldSize = slots.size();
+
+        // Remove excess slots
+        if (oldSize > newSize) {
+            for (int i = oldSize - 1; i >= newSize; i--) {
+                var slot = slots.remove(i);
+                slot.dispose();
+            }
+        }
+
+        // Add missing slots
+        while (slots.size() < newSize) {
+            var slot = factory.get();
+            slots.add(slot);
+        }
+
+        // Update all
+        for (int i = 0; i < newSize; i++) {
+            updater.accept(slots.get(i), items.get(i));
+        }
+
+        container.layout(true, true);
     }
 }

@@ -1,6 +1,8 @@
 package br.com.wdc.shopping.view.swt.impl;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -12,7 +14,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
 
 import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter.PurchasesPanelViewState;
@@ -21,6 +22,8 @@ import br.com.wdc.shopping.view.swt.AbstractViewSwt;
 import br.com.wdc.shopping.view.swt.ShoppingSwtApplication;
 import br.com.wdc.shopping.view.swt.theme.Surface;
 import br.com.wdc.shopping.view.swt.theme.Theme;
+import br.com.wdc.shopping.view.swt.util.SwtDom;
+import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
 
 /**
  * Purchases panel — list of purchase items with pagination.
@@ -36,13 +39,13 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt<PurchasesPanelPresent
 
     private boolean notRendered = true;
     private Composite listPanel;
+    private final List<PurchaseItemSlot> itemSlots = new ArrayList<>();
     private Canvas paginationCanvas;
     private int lastHash;
     private boolean capacityComputed;
 
     public PurchasesPanelViewSwt(PurchasesPanelPresenter presenter) {
-        super("purchases-panel", (ShoppingSwtApplication) presenter.app, presenter,
-                new Composite(((ShoppingSwtApplication) presenter.app).getOffscreen(), SWT.NONE));
+        super("purchases-panel", (ShoppingSwtApplication) presenter.app, presenter);
         this.state = presenter.state;
     }
 
@@ -77,6 +80,7 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt<PurchasesPanelPresent
     protected void onRebuild() {
         this.notRendered = true;
         this.listPanel = null;
+        this.itemSlots.clear();
         this.paginationCanvas = null;
         this.lastHash = 0;
         this.capacityComputed = false;
@@ -90,114 +94,129 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt<PurchasesPanelPresent
         this.element.setLayout(layout);
         this.element.setBackground(Theme.BG_WHITE);
 
-        // Header with icon + title
-        var headerRow = new Composite(this.element, SWT.NONE);
-        headerRow.setBackground(Theme.BG_WHITE);
-        headerRow.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
-        var hrLayout = new GridLayout(2, false);
-        hrLayout.marginWidth = 0;
-        hrLayout.marginHeight = 4;
-        hrLayout.horizontalSpacing = 8;
-        headerRow.setLayout(hrLayout);
+        SwtDom.render(this.element, (dom, root) -> {
+            // Header with icon + title
+            dom.row(2, headerRow -> {
+                headerRow.setBackground(Theme.BG_WHITE);
+                var gd = new GridData();
+                gdFillH(gd);
+                gdTop(gd);
+                headerRow.setLayoutData(gd);
+                var hrLayout = (GridLayout) headerRow.getLayout();
+                hrLayout.marginHeight = 4;
+                hrLayout.horizontalSpacing = 8;
 
-        var histIcon = new Label(headerRow, SWT.NONE);
-        histIcon.setFont(Theme.FONT_ICON);
-        histIcon.setText(Theme.ICON_CLOCK_HISTORY);
-        histIcon.setForeground(Theme.FG_TEXT_DARK);
-        histIcon.setBackground(Theme.BG_WHITE);
-        histIcon.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+                dom.label(lbl -> {
+                    lbl.setFont(Theme.FONT_ICON);
+                    lbl.setText(Theme.ICON_CLOCK_HISTORY);
+                    lbl.setForeground(Theme.FG_TEXT_DARK);
+                    lbl.setBackground(Theme.BG_WHITE);
+                    lbl.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+                });
 
-        var title = new Label(headerRow, SWT.NONE);
-        title.setFont(Theme.FONT_HEADER);
-        title.setForeground(Theme.FG_TEXT_DARK);
-        title.setBackground(Theme.BG_WHITE);
-        title.setText("Histórico");
-        title.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
+                dom.label(lbl -> {
+                    lbl.setFont(Theme.FONT_HEADER);
+                    lbl.setForeground(Theme.FG_TEXT_DARK);
+                    lbl.setBackground(Theme.BG_WHITE);
+                    lbl.setText("Histórico");
+                    lbl.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
+                });
+            });
 
-        // Subtitle
-        var subtitle = new Label(this.element, SWT.NONE);
-        subtitle.setFont(Theme.FONT_BODY);
-        subtitle.setForeground(Theme.FG_TEXT_SUBTLE);
-        subtitle.setBackground(Theme.BG_WHITE);
-        subtitle.setText("Toque para ver detalhes");
-        subtitle.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+            // Subtitle
+            dom.label(lbl -> {
+                lbl.setFont(Theme.FONT_BODY);
+                lbl.setForeground(Theme.FG_TEXT_SUBTLE);
+                lbl.setBackground(Theme.BG_WHITE);
+                lbl.setText("Toque para ver detalhes");
+                var gd = new GridData();
+                gdFillH(gd);
+                gdTop(gd);
+                lbl.setLayoutData(gd);
+            });
 
-        // List area
-        this.listPanel = new Composite(this.element, SWT.NONE);
-        this.listPanel.setBackground(Theme.BG_WHITE);
-        this.listPanel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-        var listLayout = new GridLayout(1, false);
-        listLayout.marginWidth = 0;
-        listLayout.marginHeight = 0;
-        listLayout.verticalSpacing = LIST_SPACING;
-        this.listPanel.setLayout(listLayout);
+            // List area
+            this.listPanel = dom.col(panel -> {
+                panel.setBackground(Theme.BG_WHITE);
+                panel.setLayoutData(gdFill(new GridData()));
+                var listLayout = (GridLayout) panel.getLayout();
+                listLayout.verticalSpacing = LIST_SPACING;
+            });
 
-        // Listen for resize to compute capacity
-        this.listPanel.addListener(SWT.Resize, _e -> {
-            if (this.listPanel.getClientArea().height > 0) {
-                int availableHeight = this.listPanel.getClientArea().height;
-                int capacity = Math.max(1, (availableHeight + LIST_SPACING) / (ITEM_HEIGHT + LIST_SPACING));
-                safeAction("capacityChanged", () -> this.presenter.onItemSizeCapacityChanged(capacity));
-            }
-        });
-
-        // Pagination footer — pill-shaped container with arrows and page text
-        this.paginationCanvas = new Canvas(this.element, SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND);
-        this.paginationCanvas.setBackground(Theme.BG_WHITE);
-        var fGd = new GridData(SWT.CENTER, SWT.BOTTOM, true, false);
-        fGd.widthHint = 120;
-        fGd.heightHint = 36;
-        paginationCanvas.setLayoutData(fGd);
-        paginationCanvas.setCursor(paginationCanvas.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
-        paginationCanvas.addPaintListener(ev -> paintPagination(ev.gc, paginationCanvas.getClientArea()));
-        paginationCanvas.addListener(SWT.MouseDown, ev -> {
-            var area = paginationCanvas.getClientArea();
-            int arrowSize = 28;
-            if (ev.x < arrowSize + 4) {
-                // Left arrow clicked
-                int page = this.state.page;
-                if (page > 0) {
-                    safeAction("prevPage", () -> this.presenter.onPageChange(page - 1));
+            // Listen for resize to compute capacity
+            this.listPanel.addListener(SWT.Resize, _e -> {
+                if (this.listPanel.getClientArea().height > 0) {
+                    int availableHeight = this.listPanel.getClientArea().height;
+                    int capacity = Math.max(1, (availableHeight + LIST_SPACING) / (ITEM_HEIGHT + LIST_SPACING));
+                    safeAction("capacityChanged", () -> this.presenter.onItemSizeCapacityChanged(capacity));
                 }
-            } else if (ev.x > area.width - arrowSize - 4) {
-                // Right arrow clicked
-                int totalPages = getTotalPages();
-                int page = this.state.page;
-                if (page < totalPages - 1) {
-                    safeAction("nextPage", () -> this.presenter.onPageChange(page + 1));
-                }
-            }
+            });
+
+            // Pagination footer
+            this.paginationCanvas = dom.canvas(SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND, canvas -> {
+                canvas.setBackground(Theme.BG_WHITE);
+                var paginationGd = new GridData();
+                gdCenter(paginationGd);
+                gdGrabH(paginationGd);
+                gdBottom(paginationGd);
+                paginationGd.widthHint = 120;
+                paginationGd.heightHint = 36;
+                canvas.setLayoutData(paginationGd);
+                canvas.setCursor(canvas.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+                canvas.addPaintListener(ev -> paintPagination(ev.gc, canvas.getClientArea()));
+                canvas.addListener(SWT.MouseDown, ev -> {
+                    var area = canvas.getClientArea();
+                    int arrowSize = 28;
+                    if (ev.x < arrowSize + 4) {
+                        int page = this.state.page;
+                        if (page > 0) {
+                            safeAction("prevPage", () -> this.presenter.onPageChange(page - 1));
+                        }
+                    } else if (ev.x > area.width - arrowSize - 4) {
+                        int totalPages = getTotalPages();
+                        int page = this.state.page;
+                        if (page < totalPages - 1) {
+                            safeAction("nextPage", () -> this.presenter.onPageChange(page + 1));
+                        }
+                    }
+                });
+            });
         });
     }
 
     private void rebuildList(List<PurchaseInfo> purchases) {
-        if (this.listPanel == null) return;
+        if (this.listPanel == null || this.listPanel.isDisposed()) return;
 
-        for (var child : this.listPanel.getChildren()) {
-            child.dispose();
-        }
-
-        if (purchases != null) {
-            for (var purchase : purchases) {
-                createPurchaseItem(purchase);
-            }
-        }
-
-        this.listPanel.layout(true, true);
+        var items = purchases != null ? purchases : Collections.<PurchaseInfo>emptyList();
+        syncList(this.listPanel, items, this.itemSlots,
+                () -> new PurchaseItemSlot(this.listPanel),
+                (slot, purchase) -> {
+                    slot.item = purchase;
+                    slot.redraw();
+                });
     }
 
-    private void createPurchaseItem(PurchaseInfo purchase) {
-        var item = new Canvas(this.listPanel, SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND);
-        var gd = new GridData(SWT.FILL, SWT.TOP, true, false);
-        gd.heightHint = ITEM_HEIGHT;
-        item.setLayoutData(gd);
-        item.setCursor(item.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+    // ========== PURCHASE ITEM SLOT ==========
 
-        item.addPaintListener(e -> paintPurchaseItem(e.gc, item.getClientArea(), purchase));
+    private class PurchaseItemSlot extends Canvas {
 
-        item.addListener(SWT.MouseDown, _e -> {
-            safeAction("openReceipt", () -> this.presenter.onOpenReceipt(purchase.id));
-        });
+        PurchaseInfo item;
+
+        PurchaseItemSlot(Composite parent) {
+            super(parent, SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND);
+            var gd = new GridData(SWT.FILL, SWT.TOP, true, false);
+            gd.heightHint = ITEM_HEIGHT;
+            setLayoutData(gd);
+            setCursor(getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+
+            addPaintListener(e -> paintPurchaseItem(e.gc, getClientArea(), this.item));
+            addListener(SWT.MouseDown, _e -> {
+                var current = this.item;
+                if (current != null) {
+                    safeAction("openReceipt", () -> presenter.onOpenReceipt(current.id));
+                }
+            });
+        }
     }
 
     // ========== SURFACES ==========

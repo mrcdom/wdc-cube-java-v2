@@ -1,267 +1,356 @@
 package br.com.wdc.shopping.view.swt.impl;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
+import br.com.wdc.framework.commons.function.ThrowingBiConsumer;
+import br.com.wdc.framework.commons.function.ThrowingSupplier;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartViewState;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.structs.CartItem;
 import br.com.wdc.shopping.view.swt.AbstractViewSwt;
 import br.com.wdc.shopping.view.swt.ShoppingSwtApplication;
-import br.com.wdc.shopping.view.swt.components.ActionButton;
-import br.com.wdc.shopping.view.swt.components.CardHeader;
 import br.com.wdc.shopping.view.swt.components.ErrorBanner;
-import br.com.wdc.shopping.view.swt.components.IconButton;
-import br.com.wdc.shopping.view.swt.components.PrimaryButton;
-import br.com.wdc.shopping.view.swt.components.ScrolledPage;
-import br.com.wdc.shopping.view.swt.components.Separator;
-import br.com.wdc.shopping.view.swt.components.ShadowCard;
 import br.com.wdc.shopping.view.swt.theme.Theme;
+import br.com.wdc.shopping.view.swt.util.SwtDom;
+import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
 
 public class CartViewSwt extends AbstractViewSwt<CartPresenter> {
 
     private final CartViewState state;
 
+    private boolean notRendered = true;
+
+    // Empty state widgets
+    private Composite emptyCard;
+
+    // Filled state widgets
+    private Composite filledCard;
+    private ErrorBanner errorBanner;
+    private Composite itemsContainer;
+    private final List<CartItemSlot> itemSlots = new ArrayList<>();
+    private Label totalValueLabel;
+
     public CartViewSwt(CartPresenter presenter) {
-        super("cart", (ShoppingSwtApplication) presenter.app, presenter,
-                new Composite(((ShoppingSwtApplication) presenter.app).getOffscreen(), SWT.NONE));
+        super("cart", (ShoppingSwtApplication) presenter.app, presenter);
         this.state = presenter.state;
     }
 
     @Override
-    public void doUpdate() {
-        for (var child : this.element.getChildren()) {
-            child.dispose();
-        }
-        render();
+    protected void onRebuild() {
+        this.notRendered = true;
+        this.emptyCard = null;
+        this.filledCard = null;
+        this.errorBanner = null;
+        this.itemsContainer = null;
+        this.itemSlots.clear();
+        this.totalValueLabel = null;
     }
 
-    private void render() {
-        var page = new ScrolledPage(this.element);
-        var content = page.getContent();
+    @Override
+    public void doUpdate() {
+        if (this.notRendered) {
+            initialRender();
+            this.notRendered = false;
+        }
 
         var items = state.items;
         boolean empty = items == null || items.isEmpty();
 
-        if (empty) {
-            renderEmptyCard(content);
-        } else {
-            renderFilledCard(content, items);
+        // Toggle empty/filled visibility
+        setCardVisible(this.emptyCard, empty);
+        setCardVisible(this.filledCard, !empty);
+
+        // Sync error banner
+        boolean showError = state.errorMessage != null && !state.errorMessage.isEmpty();
+        if (showError) {
+            errorBanner.setMessage(state.errorMessage);
+        }
+        if (showError != errorBanner.isShown()) {
+            errorBanner.setShown(showError);
         }
 
-        page.complete();
+        if (empty) {
+        	Supplier<CartItemSlot> factory = ThrowingSupplier.noop();
+        	BiConsumer<CartItemSlot, CartItem> updater = ThrowingBiConsumer.noop();
+        	syncList(this.itemsContainer, Collections.emptyList(), this.itemSlots, factory, updater);
+        	this.totalValueLabel.setText("?");
+        } else {
+            // Sync items list
+            syncList(this.itemsContainer, items, this.itemSlots,
+                    () -> new CartItemSlot(this.itemsContainer),
+                    (slot, item) -> {
+                        slot.item = item;
+                        slot.doUpdate();
+                    });
+
+            // Sync total
+            double total = 0;
+            for (var item : items) {
+                total += item.price * item.quantity;
+            }
+
+            var totalValueText = Theme.formatPrice(total);
+            if (!Objects.equals(totalValueText, this.totalValueLabel.getText())) {
+            	this.totalValueLabel.setText(totalValueText);
+            }
+        }
+
+        this.element.layout(true, true);
+    }
+
+    private void setCardVisible(Composite card, boolean visible) {
+        if (card == null) return;
+        card.setVisible(visible);
+        ((GridData) card.getLayoutData()).exclude = !visible;
+    }
+
+    private void initialRender() {
+        SwtDom.render(this.element, (dom, _root) -> {
+            dom.scrolledPage(page -> {
+                this.errorBanner = page.errorBanner(16, false, eb -> {});
+                renderEmptyCard(page);
+                renderFilledCard(page);
+            });
+        });
     }
 
     // ========== EMPTY STATE ==========
 
-    private void renderEmptyCard(Composite parent) {
-        var card = new ShadowCard(parent);
-        card.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+    private void renderEmptyCard(SwtDom dom) {
+        this.emptyCard = dom.card(card -> {
+            card.setLayoutData(gdFill(new GridData()));
 
-        new CardHeader(card, Theme.ICON_BAG, "Carrinho", "Seus produtos selecionados");
+            dom.cardHeader(Theme.ICON_BAG, "Carrinho", "Seus produtos selecionados");
+            dom.spacer(40);
 
-        // Spacer top
-        var spacerTop = new Label(card, SWT.NONE);
-        spacerTop.setBackground(Theme.BG_WHITE);
-        var spacerTopGd = new GridData(SWT.FILL, SWT.CENTER, true, false);
-        spacerTopGd.heightHint = 40;
-        spacerTop.setLayoutData(spacerTopGd);
+            int circleSize = 120;
+            dom.canvas(SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND, canvas -> {
+                var gd = new GridData();
+                gdCenter(gd);
+                gdGrabH(gd);
+                gd.widthHint = circleSize;
+                gd.heightHint = circleSize;
+                canvas.setLayoutData(gd);
+                canvas.addPaintListener(e -> paintEmptyCartIcon(e.gc, circleSize));
+            });
 
-        // Large circle with bag icon
-        int circleSize = 120;
-        var iconCircle = new Canvas(card, SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND);
-        var circleGd = new GridData(SWT.CENTER, SWT.CENTER, true, false);
-        circleGd.widthHint = circleSize;
-        circleGd.heightHint = circleSize;
-        iconCircle.setLayoutData(circleGd);
-        iconCircle.addPaintListener(e -> paintEmptyCartIcon(e.gc, circleSize));
+            dom.label(SWT.CENTER, lbl -> {
+                lbl.setText("Carrinho vazio");
+                lbl.setFont(Theme.FONT_NAV_TITLE);
+                lbl.setForeground(Theme.FG_TEXT_DARK);
+                lbl.setBackground(Theme.BG_WHITE);
+                var lblGd = new GridData();
+                gdCenter(lblGd);
+                gdGrabH(lblGd);
+                gdIndent(lblGd, 0, 16);
+                lbl.setLayoutData(lblGd);
+            });
 
-        // "Carrinho vazio"
-        var emptyTitle = new Label(card, SWT.CENTER);
-        emptyTitle.setText("Carrinho vazio");
-        emptyTitle.setFont(Theme.FONT_NAV_TITLE);
-        emptyTitle.setForeground(Theme.FG_TEXT_DARK);
-        emptyTitle.setBackground(Theme.BG_WHITE);
-        var emptyTitleGd = new GridData(SWT.CENTER, SWT.CENTER, true, false);
-        emptyTitleGd.verticalIndent = 16;
-        emptyTitle.setLayoutData(emptyTitleGd);
+            dom.label(SWT.CENTER, lbl -> {
+                lbl.setText("Adicione produtos para começar");
+                lbl.setFont(Theme.FONT_BODY);
+                lbl.setForeground(Theme.FG_TEXT_SUBTLE);
+                lbl.setBackground(Theme.BG_WHITE);
+                var lblGd = new GridData();
+                gdCenter(lblGd);
+                gdGrabH(lblGd);
+                gdIndent(lblGd, 0, 6);
+                lbl.setLayoutData(lblGd);
+            });
 
-        // Subtitle
-        var emptySubtitle = new Label(card, SWT.CENTER);
-        emptySubtitle.setText("Adicione produtos para começar");
-        emptySubtitle.setFont(Theme.FONT_BODY);
-        emptySubtitle.setForeground(Theme.FG_TEXT_SUBTLE);
-        emptySubtitle.setBackground(Theme.BG_WHITE);
-        var emptySubGd = new GridData(SWT.CENTER, SWT.CENTER, true, false);
-        emptySubGd.verticalIndent = 6;
-        emptySubtitle.setLayoutData(emptySubGd);
+            dom.primaryButton(Theme.ICON_GRID_3X3_GAP, "Ver produtos", btn -> {
+                var gd = (GridData) btn.getLayoutData();
+                gd.horizontalAlignment = SWT.CENTER;
+                gd.verticalIndent = 20;
+                btn.addListener(SWT.MouseUp, evt -> safeAction("onOpenProducts", presenter::onOpenProducts));
+            });
 
-        // "Ver produtos" button
-        var viewBtn = new PrimaryButton(card, Theme.ICON_GRID_3X3_GAP, "Ver produtos");
-        var viewBtnGd = (GridData) viewBtn.getLayoutData();
-        viewBtnGd.horizontalAlignment = SWT.CENTER;
-        viewBtnGd.verticalIndent = 20;
-        viewBtn.addListener(SWT.MouseUp, evt -> safeAction("onOpenProducts", presenter::onOpenProducts));
-
-        // Spacer bottom
-        var spacerBottom = new Label(card, SWT.NONE);
-        spacerBottom.setBackground(Theme.BG_WHITE);
-        var spacerBottomGd = new GridData(SWT.FILL, SWT.FILL, true, true);
-        spacerBottomGd.heightHint = 40;
-        spacerBottom.setLayoutData(spacerBottomGd);
+            dom.spacer(40);
+        });
     }
 
-    // ========== CART WITH ITEMS ==========
+    // ========== FILLED STATE ==========
 
-    private void renderFilledCard(Composite parent, List<CartItem> items) {
-        var card = new ShadowCard(parent);
-        card.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+    private void renderFilledCard(SwtDom dom) {
+        this.filledCard = dom.card(card -> {
+            var cardGd = new GridData();
+            gdFillH(cardGd);
+            gdTop(cardGd);
+            card.setLayoutData(cardGd);
 
-        new CardHeader(card, Theme.ICON_BAG, "Carrinho", "Seus produtos selecionados");
+            dom.cardHeader(Theme.ICON_BAG, "Carrinho", "Seus produtos selecionados");
 
-        // Error banner (if any)
-        if (state.errorMessage != null && !state.errorMessage.isEmpty()) {
-            var banner = new ErrorBanner(card, 16);
-            banner.setMessage(state.errorMessage);
+            // Items container — slots will be synced here
+            this.itemsContainer = dom.col(col -> {
+                col.setBackground(Theme.BG_WHITE);
+                col.setLayoutData(gdFillH(new GridData()));
+            });
+
+            // Total row
+            dom.separator(16);
+            dom.row(2, totalRow -> {
+                var totalRowGd = new GridData();
+                gdFillH(totalRowGd);
+                gdIndent(totalRowGd, 0, 16);
+                totalRow.setLayoutData(totalRowGd);
+                totalRow.setBackground(Theme.BG_WHITE);
+                var rowLayout = (GridLayout) totalRow.getLayout();
+                rowLayout.horizontalSpacing = 12;
+
+                dom.label(lbl -> {
+                    lbl.setText("Total:");
+                    lbl.setFont(Theme.FONT_BODY);
+                    lbl.setForeground(Theme.FG_TEXT_DARK);
+                    lbl.setBackground(Theme.BG_WHITE);
+                    lbl.setLayoutData(gdFillH(new GridData()));
+                });
+
+                this.totalValueLabel = dom.label(SWT.RIGHT, lbl -> {
+                    lbl.setFont(Theme.FONT_PRICE);
+                    lbl.setForeground(Theme.PRIMARY_BLUE);
+                    lbl.setBackground(Theme.BG_WHITE);
+                    lbl.setLayoutData(gdRight(new GridData()));
+                });
+            });
+
+            // Actions row
+            dom.row(2, actionsRow -> {
+                var actionsRowGd = new GridData();
+                gdFillH(actionsRowGd);
+                gdIndent(actionsRowGd, 0, 24);
+                actionsRow.setLayoutData(actionsRowGd);
+                actionsRow.setBackground(Theme.BG_WHITE);
+
+                dom.actionButton(Theme.ICON_ARROW_LEFT, "Continuar comprando", Theme.BG_WHITE, btn -> {
+                    ((GridData) btn.getLayoutData()).grabExcessHorizontalSpace = true;
+                    btn.addListener(SWT.MouseUp, evt -> safeAction("onOpenProducts", presenter::onOpenProducts));
+                });
+
+                dom.primaryButton(Theme.ICON_CHECK2_SQUARE, "Finalizar pedido", btn -> {
+                    btn.addListener(SWT.MouseUp, evt -> safeAction("onBuy", presenter::onBuy));
+                });
+            });
+        });
+    }
+
+    // ========== CART ITEM SLOT ==========
+
+    private class CartItemSlot extends Composite {
+
+        CartItem item;
+
+        private boolean notRendered = true;
+        private Label nameLabel;
+        private Label qtyLabel;
+        private Label priceLabel;
+
+        CartItemSlot(Composite parent) {
+            super(parent, SWT.NONE);
+            setBackground(Theme.BG_WHITE);
+            setLayoutData(gdFillH(new GridData()));
+
+            var layout = new GridLayout(1, false);
+            layout.marginWidth = 0;
+            layout.marginHeight = 0;
+            layout.verticalSpacing = 0;
+            setLayout(layout);
         }
 
-        // Items
-        for (var item : items) {
-            renderCartItem(card, item);
+        void doUpdate() {
+            if (this.notRendered) {
+                initialRender();
+                this.notRendered = false;
+            }
+
+            var current = this.item;
+            if (!current.name.equals(this.nameLabel.getText())) {
+                this.nameLabel.setText(current.name);
+            }
+
+            var qtyText = String.valueOf(current.quantity);
+            if (!qtyText.equals(this.qtyLabel.getText())) {
+                this.qtyLabel.setText(qtyText);
+            }
+
+            var priceText = Theme.formatPrice(current.price * current.quantity);
+            if (!priceText.equals(this.priceLabel.getText())) {
+                this.priceLabel.setText(priceText);
+            }
         }
 
-        // Total row
-        renderTotalRow(card, items);
+        private void initialRender() {
+            SwtDom.render(this, (dom, _self) -> {
+                dom.separator(16);
 
-        // Actions row
-        renderActionsRow(card);
+                dom.row(6, row -> {
+                    var rowGd = new GridData();
+                    gdFillH(rowGd);
+                    gdIndent(rowGd, 0, 12);
+                    row.setLayoutData(rowGd);
+                    row.setBackground(Theme.BG_WHITE);
+                    var rowLayout = (GridLayout) row.getLayout();
+                    rowLayout.horizontalSpacing = 8;
 
-        card.layout(true, true);
-    }
+                    this.nameLabel = dom.label(lbl -> {
+                        lbl.setFont(Theme.FONT_BODY);
+                        lbl.setForeground(Theme.FG_TEXT_DARK);
+                        lbl.setBackground(Theme.BG_WHITE);
+                        lbl.setLayoutData(gdFillH(new GridData()));
+                    });
 
-    private void renderCartItem(Composite card, CartItem item) {
-        new Separator(card, 16);
+                    dom.iconButton(Theme.ICON_DASH, Theme.BG_WHITE, btn -> {
+                        btn.addListener(SWT.MouseUp, evt -> safeAction("onModifyQuantity", () -> {
+                            presenter.onModifyQuantity(item.id, item.quantity - 1);
+                        }));
+                    });
 
-        var row = new Composite(card, SWT.NONE);
-        var rowGd = new GridData(SWT.FILL, SWT.CENTER, true, false);
-        rowGd.verticalIndent = 12;
-        row.setLayoutData(rowGd);
-        row.setBackground(Theme.BG_WHITE);
+                    this.qtyLabel = dom.label(SWT.CENTER, lbl -> {
+                        lbl.setFont(Theme.FONT_BODY_BOLD);
+                        lbl.setForeground(Theme.FG_TEXT_DARK);
+                        lbl.setBackground(Theme.BG_WHITE);
+                        var lblGd = new GridData();
+                        gdCenter(lblGd);
+                        gdWidth(lblGd, 30);
+                        lbl.setLayoutData(lblGd);
+                    });
 
-        var rowLayout = new GridLayout(6, false);
-        rowLayout.marginWidth = 0;
-        rowLayout.marginHeight = 0;
-        rowLayout.horizontalSpacing = 8;
-        row.setLayout(rowLayout);
+                    dom.iconButton(Theme.ICON_PLUS, Theme.BG_WHITE, btn -> {
+                        btn.addListener(SWT.MouseUp, evt -> safeAction("onModifyQuantity", () -> {
+                            presenter.onModifyQuantity(item.id, item.quantity + 1);
+                        }));
+                    });
 
-        // Product name
-        var nameLabel = new Label(row, SWT.NONE);
-        nameLabel.setText(item.name);
-        nameLabel.setFont(Theme.FONT_BODY);
-        nameLabel.setForeground(Theme.FG_TEXT_DARK);
-        nameLabel.setBackground(Theme.BG_WHITE);
-        nameLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+                    this.priceLabel = dom.label(SWT.RIGHT, lbl -> {
+                        lbl.setFont(Theme.FONT_PRICE);
+                        lbl.setForeground(Theme.PRIMARY_BLUE);
+                        lbl.setBackground(Theme.BG_WHITE);
+                        var lblGd = new GridData();
+                        gdRight(lblGd);
+                        gdWidth(lblGd, 100);
+                        lbl.setLayoutData(lblGd);
+                    });
 
-        // Minus button
-        var minusBtn = new IconButton(row, Theme.ICON_DASH, Theme.BG_WHITE);
-        minusBtn.addListener(SWT.MouseUp, evt -> safeAction("onModifyQuantity", () -> {
-            presenter.onModifyQuantity(item.id, item.quantity - 1);
-        }));
-
-        // Quantity value
-        var qtyLabel = new Label(row, SWT.CENTER);
-        qtyLabel.setText(String.valueOf(item.quantity));
-        qtyLabel.setFont(Theme.FONT_BODY_BOLD);
-        qtyLabel.setForeground(Theme.FG_TEXT_DARK);
-        qtyLabel.setBackground(Theme.BG_WHITE);
-        var qtyGd = new GridData(SWT.CENTER, SWT.CENTER, false, false);
-        qtyGd.widthHint = 30;
-        qtyLabel.setLayoutData(qtyGd);
-
-        // Plus button
-        var plusBtn = new IconButton(row, Theme.ICON_PLUS, Theme.BG_WHITE);
-        plusBtn.addListener(SWT.MouseUp, evt -> safeAction("onModifyQuantity", () -> {
-            presenter.onModifyQuantity(item.id, item.quantity + 1);
-        }));
-
-        // Price
-        var priceLabel = new Label(row, SWT.RIGHT);
-        priceLabel.setText(Theme.formatPrice(item.price * item.quantity));
-        priceLabel.setFont(Theme.FONT_PRICE);
-        priceLabel.setForeground(Theme.PRIMARY_BLUE);
-        priceLabel.setBackground(Theme.BG_WHITE);
-        var priceGd = new GridData(SWT.RIGHT, SWT.CENTER, false, false);
-        priceGd.widthHint = 100;
-        priceLabel.setLayoutData(priceGd);
-
-        // Remove (X) button
-        var removeBtn = new IconButton(row, Theme.ICON_X, Theme.FG_PRICE, Theme.FONT_ICON_NAV, Theme.BG_WHITE);
-        removeBtn.addListener(SWT.MouseUp, evt -> safeAction("onRemoveProduct", () -> {
-            presenter.onRemoveProduct(item.id);
-        }));
-    }
-
-    private void renderTotalRow(Composite card, List<CartItem> items) {
-        new Separator(card, 16);
-
-        var row = new Composite(card, SWT.NONE);
-        var rowGd = new GridData(SWT.FILL, SWT.CENTER, true, false);
-        rowGd.verticalIndent = 16;
-        row.setLayoutData(rowGd);
-        row.setBackground(Theme.BG_WHITE);
-
-        var rowLayout = new GridLayout(2, false);
-        rowLayout.marginWidth = 0;
-        rowLayout.horizontalSpacing = 12;
-        row.setLayout(rowLayout);
-
-        var totalLabel = new Label(row, SWT.NONE);
-        totalLabel.setText("Total:");
-        totalLabel.setFont(Theme.FONT_BODY);
-        totalLabel.setForeground(Theme.FG_TEXT_DARK);
-        totalLabel.setBackground(Theme.BG_WHITE);
-        totalLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-
-        double total = 0;
-        for (var item : items) {
-            total += item.price * item.quantity;
+                    dom.iconButton(Theme.ICON_X, Theme.FG_PRICE, Theme.FONT_ICON_NAV,
+                            Theme.BG_WHITE, btn -> {
+                                btn.addListener(SWT.MouseUp, evt -> safeAction("onRemoveProduct", () -> {
+                                    presenter.onRemoveProduct(item.id);
+                                }));
+                            });
+                });
+            });
         }
-
-        var totalValue = new Label(row, SWT.NONE);
-        totalValue.setText(Theme.formatPrice(total));
-        totalValue.setFont(Theme.FONT_PRICE);
-        totalValue.setForeground(Theme.PRIMARY_BLUE);
-        totalValue.setBackground(Theme.BG_WHITE);
-        totalValue.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
-    }
-
-    private void renderActionsRow(Composite card) {
-        var row = new Composite(card, SWT.NONE);
-        var rowGd = new GridData(SWT.FILL, SWT.CENTER, true, false);
-        rowGd.verticalIndent = 24;
-        row.setLayoutData(rowGd);
-        row.setBackground(Theme.BG_WHITE);
-
-        var rowLayout = new GridLayout(2, false);
-        rowLayout.marginWidth = 0;
-        rowLayout.marginHeight = 0;
-        row.setLayout(rowLayout);
-
-        // "← Continuar comprando"
-        var backBtn = new ActionButton(row, Theme.ICON_ARROW_LEFT, "Continuar comprando", Theme.BG_WHITE);
-        ((GridData) backBtn.getLayoutData()).grabExcessHorizontalSpace = true;
-        backBtn.addListener(SWT.MouseUp, evt -> safeAction("onOpenProducts", presenter::onOpenProducts));
-
-        // "Finalizar pedido"
-        var buyBtn = new PrimaryButton(row, Theme.ICON_CHECK2_SQUARE, "Finalizar pedido");
-        buyBtn.addListener(SWT.MouseUp, evt -> safeAction("onBuy", presenter::onBuy));
     }
 
     // ========== SURFACES ==========
