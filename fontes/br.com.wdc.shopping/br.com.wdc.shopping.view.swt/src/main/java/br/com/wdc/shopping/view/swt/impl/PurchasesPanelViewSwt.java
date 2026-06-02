@@ -206,13 +206,58 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt<PurchasesPanelPresent
             setLayoutData(gd);
             setCursor(getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 
-            addPaintListener(e -> paintPurchaseItem(e.gc, getClientArea(), this.item));
+            addPaintListener(e -> paint(e.gc, getClientArea()));
             addListener(SWT.MouseDown, _e -> {
                 var current = this.item;
                 if (current != null) {
                     safeAction("openReceipt", () -> presenter.onOpenReceipt(current.id));
                 }
             });
+        }
+
+        private void paint(GC gc, Rectangle area) {
+            var purchase = this.item;
+            if (purchase == null) return;
+
+            Surface.drawOutlinedPanel(gc, area);
+
+            // Left blue accent bar
+            gc.setBackground(Theme.PRIMARY_BLUE);
+            gc.fillRoundRectangle(0, 0, 5, area.height, 4, 4);
+
+            int leftPad = 14;
+
+            // #ID in blue bold
+            gc.setFont(Theme.FONT_HEADER_BOLD);
+            gc.setForeground(Theme.PRIMARY_BLUE);
+            gc.drawText("#" + purchase.id, leftPad, 8, true);
+
+            // Product name below ID
+            gc.setFont(Theme.FONT_BODY);
+            gc.setForeground(Theme.FG_TEXT_DARK);
+            String summary = "";
+            if (purchase.items != null && !purchase.items.isEmpty()) {
+                summary = purchase.items.get(0);
+                if (purchase.items.size() > 1) {
+                    summary += ", " + purchase.items.get(1);
+                }
+            }
+            if (summary.length() > 30) summary = summary.substring(0, 28) + "...";
+            gc.drawText(summary, leftPad, 30, true);
+
+            // Date top-right
+            gc.setFont(Theme.FONT_BODY);
+            gc.setForeground(Theme.FG_TEXT_SUBTLE);
+            String dateStr = dateFormat.format(new Date(purchase.date));
+            Point dateSz = gc.textExtent(dateStr);
+            gc.drawText(dateStr, area.width - dateSz.x - 12, 8, true);
+
+            // Total price bottom-right
+            gc.setFont(Theme.FONT_PRICE);
+            gc.setForeground(Theme.FG_TEXT_DARK);
+            String total = Theme.formatPrice(purchase.total);
+            Point totalSz = gc.textExtent(total);
+            gc.drawText(total, area.width - totalSz.x - 12, 30, true);
         }
     }
 
@@ -255,48 +300,6 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt<PurchasesPanelPresent
         int tx = cx + (centerW - textExtent.x) / 2;
         int ty = cy + (centerH - textExtent.y) / 2;
         gc.drawText(pageStr, tx, ty, true);
-    }
-
-    private void paintPurchaseItem(GC gc, Rectangle area, PurchaseInfo purchase) {
-        Surface.drawOutlinedPanel(gc, area);
-
-        // Left blue accent bar
-        gc.setBackground(Theme.PRIMARY_BLUE);
-        gc.fillRoundRectangle(0, 0, 5, area.height, 4, 4);
-
-        int leftPad = 14;
-
-        // #ID in blue bold
-        gc.setFont(Theme.FONT_HEADER_BOLD);
-        gc.setForeground(Theme.PRIMARY_BLUE);
-        gc.drawText("#" + purchase.id, leftPad, 8, true);
-
-        // Product name below ID
-        gc.setFont(Theme.FONT_BODY);
-        gc.setForeground(Theme.FG_TEXT_DARK);
-        String summary = "";
-        if (purchase.items != null && !purchase.items.isEmpty()) {
-            summary = purchase.items.get(0);
-            if (purchase.items.size() > 1) {
-                summary += ", " + purchase.items.get(1);
-            }
-        }
-        if (summary.length() > 30) summary = summary.substring(0, 28) + "...";
-        gc.drawText(summary, leftPad, 30, true);
-
-        // Date top-right
-        gc.setFont(Theme.FONT_BODY);
-        gc.setForeground(Theme.FG_TEXT_SUBTLE);
-        String dateStr = dateFormat.format(new Date(purchase.date));
-        Point dateSz = gc.textExtent(dateStr);
-        gc.drawText(dateStr, area.width - dateSz.x - 12, 8, true);
-
-        // Total price bottom-right
-        gc.setFont(Theme.FONT_PRICE);
-        gc.setForeground(Theme.FG_TEXT_DARK);
-        String total = Theme.formatPrice(purchase.total);
-        Point totalSz = gc.textExtent(total);
-        gc.drawText(total, area.width - totalSz.x - 12, 30, true);
     }
 
     private void updatePagination() {

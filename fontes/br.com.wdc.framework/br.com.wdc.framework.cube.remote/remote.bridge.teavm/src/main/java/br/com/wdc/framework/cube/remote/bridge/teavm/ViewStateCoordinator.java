@@ -5,22 +5,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import org.teavm.jso.JSBody;
+import org.teavm.jso.browser.Location;
+import org.teavm.jso.browser.Storage;
 import org.teavm.jso.browser.Window;
 import org.teavm.jso.dom.html.HTMLElement;
 
 import br.com.wdc.framework.cube.remote.bridge.teavm.interop.Console;
+import br.com.wdc.framework.cube.remote.bridge.teavm.interop.Cookies;
+import br.com.wdc.framework.cube.remote.bridge.teavm.interop.WebCrypto;
 
 /**
  * Core coordinator that manages:
  * <ul>
- *   <li>WebSocket connection to remote.host (via FlushRequestContext)</li>
- *   <li>Reconnection with exponential backoff (via ReconnectController)</li>
- *   <li>View garbage collection (via ViewGarbageCollector)</li>
- *   <li>View factory registry (viewId → view constructor)</li>
- *   <li>View state distribution (vsid → ViewScope)</li>
- *   <li>Form field collection and event submission</li>
- *   <li>Render scheduling via requestAnimationFrame (no recursion)</li>
+ * <li>WebSocket connection to remote.host (via FlushRequestContext)</li>
+ * <li>Reconnection with exponential backoff (via ReconnectController)</li>
+ * <li>View garbage collection (via ViewGarbageCollector)</li>
+ * <li>View factory registry (viewId → view constructor)</li>
+ * <li>View state distribution (vsid → ViewScope)</li>
+ * <li>Form field collection and event submission</li>
+ * <li>Render scheduling via requestAnimationFrame (no recursion)</li>
  * </ul>
  */
 public class ViewStateCoordinator {
@@ -51,16 +54,16 @@ public class ViewStateCoordinator {
     private ViewStateCoordinator() {
         viewMap.put(BROWSER_VSID, new ViewScope(BROWSER_VSID));
 
-        String appIdFromCookie = getCookie("app_id");
+        String appIdFromCookie = Cookies.get("app_id");
         if (appIdFromCookie != null && !appIdFromCookie.isEmpty()) {
-            removeCookie("app_id");
+            Cookies.remove("app_id");
         }
 
-        String appId = getSessionItem("app_id");
+        String appId = Storage.getSessionStorage().getItem("app_id");
         if (appId == null || appId.isEmpty()) {
             appId = appIdFromCookie;
             if (appId != null && !appId.isEmpty()) {
-                setSessionItem("app_id", appId);
+                Storage.getSessionStorage().setItem("app_id", appId);
             } else {
                 appId = generateId() + ".fake";
             }
@@ -95,7 +98,7 @@ public class ViewStateCoordinator {
         Window.current().addEventListener("popstate", evt -> onPopState());
 
         String hash = getLocationHash();
-        path = (hash != null && hash.length() > 1) ? hash.substring(1) : "/";
+        path = hash.length() > 1 ? hash.substring(1) : "/";
         setFormField(BROWSER_VSID, "p.path", path);
         submit(BROWSER_VSID, -1);
     }
@@ -125,7 +128,8 @@ public class ViewStateCoordinator {
     }
 
     private void ensureViewInstance(String vsid) {
-        if (viewInstanceMap.containsKey(vsid)) return;
+        if (viewInstanceMap.containsKey(vsid))
+            return;
 
         int colonIdx = vsid.indexOf(':');
         String viewId = colonIdx > 0 ? vsid.substring(0, colonIdx) : vsid;
@@ -195,7 +199,7 @@ public class ViewStateCoordinator {
 
     private void onPopState() {
         String hash = getLocationHash();
-        if (hash != null && hash.startsWith("#") && hash.length() > 1) {
+        if (hash.startsWith("#") && hash.length() > 1) {
             String newPath = hash.substring(1);
             if (!newPath.equals(path)) {
                 path = newPath;
@@ -207,31 +211,25 @@ public class ViewStateCoordinator {
 
     // -- JS interop --
 
-    @JSBody(params = {}, script = "return location.protocol;")
-    private static native String getLocationProtocol();
+    private static String getLocationProtocol() {
+        return Location.current().getProtocol();
+    }
 
-    @JSBody(params = {}, script = "return location.host;")
-    private static native String getLocationHost();
+    private static String getLocationHost() {
+        return Location.current().getHost();
+    }
 
-    @JSBody(params = {}, script = "return location.hash || '';")
-    private static native String getLocationHash();
+    private static String getLocationHash() {
+        var hash = Location.current().getHash();
+        return hash != null ? hash : "";
+    }
 
-    @JSBody(params = {"key"}, script = "try { return sessionStorage.getItem(key); } catch(e) { return null; }")
-    private static native String getSessionItem(String key);
-
-    @JSBody(params = {"key", "val"}, script = "try { sessionStorage.setItem(key, val); } catch(e) {}")
-    private static native void setSessionItem(String key, String val);
-
-    @JSBody(params = {"name"}, script = ""
-            + "var m = document.cookie.match('(^|;)\\\\s*' + name + '\\\\s*=\\\\s*([^;]+)');"
-            + "return m ? decodeURIComponent(m.pop()) : null;")
-    private static native String getCookie(String name);
-
-    @JSBody(params = {"name"}, script = "document.cookie = name + '=;path=/;expires=Thu,01 Jan 1970 00:00:00 GMT';")
-    private static native void removeCookie(String name);
-
-    @JSBody(params = {}, script = ""
-            + "var a = new Uint8Array(16); crypto.getRandomValues(a);"
-            + "return Array.from(a, function(b) { return b.toString(16).padStart(2,'0'); }).join('');")
-    private static native String generateId();
+    private static String generateId() {
+        var bytes = WebCrypto.getRandomBytes(16);
+        var sb = new StringBuilder(32);
+        for (var b : bytes) {
+            sb.append(String.format("%02x", b & 0xFF));
+        }
+        return sb.toString();
+    }
 }
