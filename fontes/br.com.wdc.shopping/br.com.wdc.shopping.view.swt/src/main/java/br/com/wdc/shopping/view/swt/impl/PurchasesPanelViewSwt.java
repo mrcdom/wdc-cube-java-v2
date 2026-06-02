@@ -54,6 +54,8 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt<PurchasesPanelPresent
         if (this.notRendered) {
             initialRender();
             this.notRendered = false;
+            // Force layout so listPanel gets dimensions (triggers resize listener)
+            this.element.layout(true, true);
         }
 
         // Rebuild list if data changed
@@ -136,16 +138,7 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt<PurchasesPanelPresent
             });
 
             // Recompute capacity on every resize (including first layout)
-            this.listPanel.addListener(SWT.Resize, _e -> {
-                int h = this.listPanel.getClientArea().height;
-                if (h > 0) {
-                    int capacity = Math.max(1, (h + LIST_SPACING) / (ITEM_HEIGHT + LIST_SPACING));
-                    if (capacity != this.lastCapacity) {
-                        this.lastCapacity = capacity;
-                        safeAction("capacityChanged", () -> this.presenter.onItemSizeCapacityChanged(capacity));
-                    }
-                }
-            });
+            this.listPanel.addListener(SWT.Resize, _e -> this.checkCapacityChanged());
 
             // Pagination footer
             this.paginationCanvas = dom.canvas(SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND, canvas -> {
@@ -189,6 +182,17 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt<PurchasesPanelPresent
                     slot.item = purchase;
                     slot.redraw();
                 });
+    }
+    
+    private void checkCapacityChanged() {
+    	int h = this.listPanel.getClientArea().height;
+        if (h > 0) {
+            int capacity = Math.max(1, (h + LIST_SPACING) / (ITEM_HEIGHT + LIST_SPACING));
+            if (capacity != this.lastCapacity) {
+                this.lastCapacity = capacity;
+                safeAction("capacityChanged", () -> this.presenter.onItemSizeCapacityChanged(capacity));
+            }
+        }
     }
 
     // ========== PURCHASE ITEM SLOT ==========
