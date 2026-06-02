@@ -27,7 +27,7 @@ import br.com.wdc.shopping.view.swt.util.Styles;
 public class ProductsPanelViewSwt extends AbstractViewSwt<ProductsPanelPresenter> {
 
     private static final int CARD_WIDTH = 200;
-    private static final int CARD_HEIGHT = 220;
+    private static final int CARD_HEIGHT = 195;
     private static final int CARD_IMAGE_HEIGHT = 130;
     private static final int CARD_PADDING = 12;
     private static final int GRID_GAP = 16;
