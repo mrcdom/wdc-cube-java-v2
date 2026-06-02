@@ -42,7 +42,7 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt<PurchasesPanelPresent
     private final List<PurchaseItemSlot> itemSlots = new ArrayList<>();
     private Canvas paginationCanvas;
     private int lastHash;
-    private boolean capacityComputed;
+    private int lastCapacity;
 
     public PurchasesPanelViewSwt(PurchasesPanelPresenter presenter) {
         super("purchases-panel", (ShoppingSwtApplication) presenter.app, presenter);
@@ -54,14 +54,6 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt<PurchasesPanelPresent
         if (this.notRendered) {
             initialRender();
             this.notRendered = false;
-        }
-
-        // Compute capacity from available height
-        if (!this.capacityComputed && this.listPanel.getClientArea().height > 0) {
-            this.capacityComputed = true;
-            int availableHeight = this.listPanel.getClientArea().height;
-            int capacity = Math.max(1, (availableHeight + LIST_SPACING) / (ITEM_HEIGHT + LIST_SPACING));
-            safeAction("capacityChanged", () -> this.presenter.onItemSizeCapacityChanged(capacity));
         }
 
         // Rebuild list if data changed
@@ -83,7 +75,7 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt<PurchasesPanelPresent
         this.itemSlots.clear();
         this.paginationCanvas = null;
         this.lastHash = 0;
-        this.capacityComputed = false;
+        this.lastCapacity = 0;
     }
 
     private void initialRender() {
@@ -143,12 +135,15 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt<PurchasesPanelPresent
                 listLayout.verticalSpacing = LIST_SPACING;
             });
 
-            // Listen for resize to compute capacity
+            // Recompute capacity on every resize (including first layout)
             this.listPanel.addListener(SWT.Resize, _e -> {
-                if (this.listPanel.getClientArea().height > 0) {
-                    int availableHeight = this.listPanel.getClientArea().height;
-                    int capacity = Math.max(1, (availableHeight + LIST_SPACING) / (ITEM_HEIGHT + LIST_SPACING));
-                    safeAction("capacityChanged", () -> this.presenter.onItemSizeCapacityChanged(capacity));
+                int h = this.listPanel.getClientArea().height;
+                if (h > 0) {
+                    int capacity = Math.max(1, (h + LIST_SPACING) / (ITEM_HEIGHT + LIST_SPACING));
+                    if (capacity != this.lastCapacity) {
+                        this.lastCapacity = capacity;
+                        safeAction("capacityChanged", () -> this.presenter.onItemSizeCapacityChanged(capacity));
+                    }
                 }
             });
 

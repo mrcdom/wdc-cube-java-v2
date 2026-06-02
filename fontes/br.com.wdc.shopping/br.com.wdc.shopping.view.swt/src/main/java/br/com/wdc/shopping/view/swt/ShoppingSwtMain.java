@@ -13,14 +13,18 @@ import org.h2.jdbcx.JdbcDataSource;
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.log.Slf4jLogFactory;
+import br.com.wdc.framework.commons.storage.ClientStorage;
+import br.com.wdc.framework.commons.storage.PreferencesClientStorage;
 import br.com.wdc.framework.commons.sql.SqlDataSource;
 import br.com.wdc.framework.commons.sql.SqlDataSourceDelegate;
 import br.com.wdc.shopping.domain.ShoppingConfig;
 import br.com.wdc.shopping.domain.config.AppConfig;
 import br.com.wdc.shopping.domain.security.CryptoProvider;
 import br.com.wdc.shopping.domain.security.JceCryptoProvider;
+import br.com.wdc.shopping.domain.criteria.UserCriteria;
 import br.com.wdc.shopping.persistence.RepositoryBootstrap;
 import br.com.wdc.shopping.presentation.presenter.Routes;
+import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
 import br.com.wdc.shopping.scripts.sgbd.DBCreate;
 
 public class ShoppingSwtMain {
@@ -48,7 +52,7 @@ public class ShoppingSwtMain {
 
         var shell = new Shell(display, SWT.SHELL_TRIM);
         shell.setText("WeDoCode Shopping");
-        shell.setSize(1000, 900);
+        shell.setSize(800, 820);
 
         var monitor = display.getPrimaryMonitor().getBounds();
         var size = shell.getSize();
@@ -59,7 +63,18 @@ public class ShoppingSwtMain {
         this.app = new ShoppingSwtApplication(display, shell);
         this.app.setDevMode(this.devMode);
         this.app.start();
-        Routes.root(this.app);
+        tryRestoreSession();
+
+        // Ensure Routes.Place enum is class-loaded (registers GoActions)
+        Routes.Place.values();
+
+        var savedIntent = tryRestoreIntent();
+        if (savedIntent != null) {
+            this.app.safeGo(savedIntent);
+        } else {
+            this.app.runPresenterAction(() -> Routes.root(this.app));
+        }
+        this.app.runPresenterAction(() -> this.app.markAllViewsDirty());
 
         shell.open();
 
@@ -79,6 +94,7 @@ public class ShoppingSwtMain {
         this.devMode = config.getBoolean("dev.mode", false);
 
         CryptoProvider.BEAN.set(new JceCryptoProvider());
+        ClientStorage.BEAN.set(new PreferencesClientStorage(ShoppingSwtMain.class));
 
         this.executorService = Executors.newScheduledThreadPool(2);
         ScheduledExecutor.BEAN.set(new ScheduledExecutorSwtAdapter(this.executorService, Display.getDefault()));
@@ -116,6 +132,45 @@ public class ShoppingSwtMain {
         RepositoryBootstrap.release();
         ScheduledExecutor.BEAN.set(null);
         SqlDataSource.BEAN.set(null);
+        ClientStorage.BEAN.set(null);
+    }
+
+    private void tryRestoreSession() {
+        var storage = ClientStorage.BEAN.get();
+        if (storage == null) return;
+
+        var savedUserId = storage.get("session.userId");
+        if (savedUserId == null) return;
+
+        try {
+            var userId = Long.parseLong(savedUserId);
+            var users = this.app.getUserRepository().fetch(
+                    new UserCriteria().withUserId(userId).withProjection(Subject.projection()), 0, 1);
+            if (!users.isEmpty()) {
+                this.app.setSubject(Subject.create(users.get(0)));
+                LOG.info("Session restored for userId={}", userId);
+            } else {
+                storage.remove("session.userId");
+            }
+        } catch (Exception e) {
+            LOG.warn("Session restore failed: {}", e.getMessage());
+            storage.remove("session.userId");
+        }
+    }
+
+    private String tryRestoreIntent() {
+        if (this.app.getSubject() == null) return null;
+
+        var storage = ClientStorage.BEAN.get();
+        if (storage == null) return null;
+
+        var savedIntent = storage.get("session.intent");
+        if (savedIntent == null || savedIntent.isBlank()) return null;
+
+        // Don't restore login intent — let Routes.root decide
+        if (savedIntent.startsWith("login")) return null;
+
+        return savedIntent;
     }
 
     private static String resolveJdbcUrl(AppConfig config, Path dataDir) {

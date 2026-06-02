@@ -105,7 +105,6 @@ public class HomeViewSwt extends AbstractViewSwt<HomePresenter> {
             this.purchasesPanelSlot.setVisible(true);
             ((GridData) this.purchasesPanelSlot.getLayoutData()).exclude = false;
         }
-        this.element.layout(true, true);
 
         // Products panel
         if (this.state.productsPanelView != null) {
@@ -117,11 +116,14 @@ public class HomeViewSwt extends AbstractViewSwt<HomePresenter> {
 
         // Purchases panel
         if (this.state.purchasesPanelView != null) {
-            var purchasesComp = ((AbstractViewSwt<?>) this.state.purchasesPanelView).getElement();
-            this.purchasesPanelSlot.setContent(purchasesComp);
+            var purchasesView = (AbstractViewSwt<?>) this.state.purchasesPanelView;
+            this.purchasesPanelSlot.setContent(purchasesView.getElement());
         } else {
             this.purchasesPanelSlot.setContent(null);
         }
+
+        // Layout first so child panels get their actual dimensions (triggers resize listeners)
+        this.element.layout(true, true);
     }
 
     private void initialRender() {
