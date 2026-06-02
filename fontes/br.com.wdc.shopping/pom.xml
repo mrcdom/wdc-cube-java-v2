@@ -52,7 +52,6 @@
 		<module>br.com.wdc.shopping.view.remote</module>
 		<module>br.com.wdc.shopping.backend</module>
 		<module>br.com.wdc.shopping.view.vaadin</module>
-		<module>br.com.wdc.shopping.view.swing</module>
 		<module>br.com.wdc.shopping.view.swt</module>
 		<module>br.com.wdc.shopping.view.gluon</module>
 		<module>br.com.wdc.shopping.view.teavm</module>

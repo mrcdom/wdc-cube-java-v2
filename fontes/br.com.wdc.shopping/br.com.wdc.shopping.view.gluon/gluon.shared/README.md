@@ -19,7 +19,7 @@ static {
 }
 ```
 
-Cada construtor de View recebe apenas o Presenter (que já carrega a referência `app`), permitindo o uso de method references. Isso permite que a camada de apresentação crie views sem conhecer a implementação concreta (Gluon, Swing, Vaadin, React, etc).
+Cada construtor de View recebe apenas o Presenter (que já carrega a referência `app`), permitindo o uso de method references. Isso permite que a camada de apresentação crie views sem conhecer a implementação concreta (Gluon, SWT, Vaadin, React, etc).
 
 ### 2. Render Loop via AnimationTimer (dirty-check)
 

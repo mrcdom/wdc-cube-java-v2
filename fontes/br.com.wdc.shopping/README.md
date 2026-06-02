@@ -1,6 +1,6 @@
 # 🛒 WeDoCode Shopping
 
-Um **sistema de e-commerce completo** construído com arquitetura **Cube MVP**, demonstrando como a mesma lógica de negócio pode alimentar interfaces totalmente diferentes — **React (web)**, **Vaadin (web server-side)**, **Swing (desktop)**, **Gluon (desktop/iOS/Android)** e **TeaVM (web/desktop/Android/iOS)** — sem duplicar uma única linha de código de apresentação.
+Um **sistema de e-commerce completo** construído com arquitetura **Cube MVP**, demonstrando como a mesma lógica de negócio pode alimentar interfaces totalmente diferentes — **React (web)**, **Vaadin (web server-side)**, **SWT (desktop nativo)**, **Gluon (desktop/iOS/Android)** e **TeaVM (web/desktop/Android/iOS)** — sem duplicar uma única linha de código de apresentação.
 
 > **Cinco frontends. Mesma alma.**
 
@@ -68,16 +68,16 @@ Abra **http://localhost:8090**. UI inteiramente server-side com Vaadin 24 + Lumo
 
 ---
 
-## Ou rode a versão Desktop (Swing + FlatLaf)
+## Ou rode a versão Desktop (Eclipse SWT)
 
 ```bash
 export JAVA_HOME=<caminho-para-jdk-21>
-cd br.com.wdc.shopping/br.com.wdc.shopping.view.swing
-java -cp "$(mvn -q dependency:build-classpath -Dmdep.outputFile=/dev/stdout):target/classes" \
-  br.com.wdc.shopping.view.swing.ShoppingSwingMain
+cd br.com.wdc.shopping/br.com.wdc.shopping.view.swt
+mvn exec:java \
+  -Dexec.mainClass="br.com.wdc.shopping.view.swt.ShoppingSwtMain"
 ```
 
-Aplicação desktop com Java Swing + FlatLaf (Material look-and-feel). Mesmos presenters, mesmo domínio, banco H2 embarcado.
+Aplicação desktop nativa com Eclipse SWT. Mesmos presenters, mesmo domínio, banco H2 embarcado.
 
 ---
 
@@ -107,7 +107,7 @@ Java compilado para JavaScript via TeaVM, empacotado como app nativo com Tauri 2
 | [`scripts`](br.com.wdc.shopping.scripts/) | Scripts DDL (DBCreate, DBReset) |
 | [`view.remote`](br.com.wdc.shopping.view.remote/) | Frontend web completo (React + Javalin + WebSocket) |
 | [`view.vaadin`](br.com.wdc.shopping.view.vaadin/) | Frontend web server-side (Vaadin 24 + Jetty 12 + Lumo theme) |
-| [`view.swing`](br.com.wdc.shopping.view.swing/) | Frontend desktop (Java Swing + FlatLaf Material) |
+| [`view.swt`](br.com.wdc.shopping.view.swt/) | Frontend desktop nativo (Eclipse SWT) |
 | [`view.gluon`](br.com.wdc.shopping.view.gluon/) | Frontend multiplataforma (JavaFX + Gluon — Desktop, iOS, Android) |
 | [`view.teavm`](br.com.wdc.shopping.view.teavm/) | Frontend multiplataforma (TeaVM + Tauri — Web, Desktop, Android, iOS) |
 | [`persistence.rest`](br.com.wdc.shopping.persistence.rest/) | Controllers REST (Javalin) para expor repositórios via HTTP |

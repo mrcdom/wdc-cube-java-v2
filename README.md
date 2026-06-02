@@ -2,7 +2,7 @@
 
 Proposta arquitetural para construção de aplicações utilizando o padrão **Cube MVP** — uma variação do Model-View-Presenter com presenters hierárquicos, navegação por intents e serialização de estado das views.
 
-Este projeto serve como **referência arquitetural** para novos projetos, demonstrando a implementação completa de um sistema de e-commerce (Shopping) com backend Java e **cinco implementações de frontend independentes** — React (web/remoto), Vaadin (web/server-side), Swing (desktop), Gluon (desktop/iOS/Android via GraalVM Native Image) e TeaVM (web/desktop/Android/iOS via Tauri) — provando que a camada de visualização é totalmente desacoplada da lógica de apresentação.
+Este projeto serve como **referência arquitetural** para novos projetos, demonstrando a implementação completa de um sistema de e-commerce (Shopping) com backend Java e **cinco implementações de frontend independentes** — React (web/remoto), Vaadin (web/server-side), SWT (desktop nativo), Gluon (desktop/iOS/Android via GraalVM Native Image) e TeaVM (web/desktop/Android/iOS via Tauri) — provando que a camada de visualização é totalmente desacoplada da lógica de apresentação.
 
 ## Visão Geral da Arquitetura
 
@@ -11,7 +11,7 @@ graph TD
     subgraph Views["Camada de Visualização"]
         R["React 19 + MUI<br/><small>Browser / WebSocket</small>"]
         V["Vaadin 24 + Lumo<br/><small>Browser / Server Push</small>"]
-        SW["Swing + FlatLaf<br/><small>Desktop / JVM</small>"]
+        SW["Eclipse SWT<br/><small>Desktop Nativo / macOS</small>"]
         GLN["Gluon + JavaFX<br/><small>Desktop / iOS / Android</small>"]
         TVM["TeaVM + Tauri<br/><small>Web / Desktop / Android / iOS</small>"]
     end
@@ -36,13 +36,13 @@ graph TD
 |----------|-----------|------------|--------|
 | **Web (SPA)** | React 19 + TypeScript + MUI 9 | WebSocket (JSON delta) | `view.remote` |
 | **Web (SSR)** | Vaadin 24 + Lumo | Server Push (Atmosphere) | `view.vaadin` |
-| **Desktop** | Swing + FlatLaf 3.5 | Direto em memória | `view.swing` |
+| **Desktop Nativo** | Eclipse SWT 3.128.0 | Direto em memória | `view.swt` |
 | **Multiplataforma** | JavaFX + Gluon Mobile | REST (OkHttp) | `view.gluon` |
 | **Multiplataforma (TeaVM)** | TeaVM 0.14 + Tauri 2 + Bootstrap 5 | REST (OkHttp → JS) | `view.teavm` |
 
 **Características principais:**
 
-- **Independência de visualização** — mesmos Presenters/ViewStates alimentam React (web), Vaadin (web server-side), Swing (desktop), Gluon (desktop/iOS/Android) e TeaVM (web/desktop/Android/iOS)
+- **Independência de visualização** — mesmos Presenters/ViewStates alimentam React (web), Vaadin (web server-side), SWT (desktop nativo), Gluon (desktop/iOS/Android) e TeaVM (web/desktop/Android/iOS)
 - **Sem frameworks de DI** — injeção via `AtomicReference<T> BEAN` (service locator estático); services recebem dependências no construtor
 - **Virtual Threads** (Java 21+) — conexões WebSocket com consumo mínimo de memória
 - **Segurança RBAC** — autenticação HMAC challenge-response com JWT, controle de acesso por papéis (ADMIN, CUSTOMER, MANAGER), repositórios decorados com verificação de permissões
@@ -78,7 +78,7 @@ graph TD
         end
 
         viewVaadin["view.vaadin<br/><small>Vaadin 24 server-side</small>"]
-        viewSwing["view.swing<br/><small>Swing + FlatLaf</small>"]
+        viewSwt["view.swt<br/><small>Eclipse SWT</small>"]
         viewGluon["view.gluon<br/><small>JavaFX + Gluon (Desktop/iOS/Android)</small>"]
         viewTeavm["view.teavm<br/><small>TeaVM + Tauri (Web/Desktop/Android/iOS)</small>"]
     end
@@ -114,7 +114,7 @@ graph TD
 | **backend** | Servidor Javalin 7 com Virtual Threads, WebSocket dispatcher, controllers REST, banco H2 embarcado. Gera fat JAR (~11 MB) |
 | **view.remote.host** | Implementações de view para o servidor (`GenericViewImpl`), segurança (`AppSecurity` — RSA/PBKDF2/AES-GCM, `DataSecurity`), SPI de WebSocket |
 | **view.vaadin** | Visualização web server-side com Vaadin 24 + Lumo theme + Jetty 12 embarcado — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin/README.md) |
-| **view.swing** | Visualização desktop com Swing + FlatLaf (Material look-and-feel) — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.swing/README.md) |
+| **view.swt** | Visualização desktop nativa com Eclipse SWT 3.128.0 — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.swt/README.md) |
 | **view.gluon** | Multiplataforma (Desktop + iOS + Android) com JavaFX + Gluon Mobile + GraalVM Native Image — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/README.md) |
 | **view.teavm** | Multiplataforma (Web + Desktop + Android + iOS) com TeaVM 0.14 + Tauri 2 + Bootstrap 5 — Java compilado para JS — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.teavm/README.md) |
 | **api** | Controllers REST (Javalin) para expor repositórios como endpoints HTTP, filtro de segurança JWT (`SecurityFilter`), endpoints de autenticação (`AuthApiController`) |
