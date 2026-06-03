@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../bridge/view_state_coordinator.dart';
+import '../widgets/error_banner.dart';
 import 'base_view.dart';
 
 /// RootView — shows the content view pushed by the server,
@@ -22,39 +22,19 @@ class _RootViewState extends BaseViewState<RootView> {
     final contentViewId = state['contentViewId'] as String?;
 
     if (errorMessage != null) {
-      return _ErrorMessage(message: errorMessage);
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: ErrorBanner(message: errorMessage),
+      );
     }
 
     if (contentViewId != null) {
-      final view = ViewStateCoordinator.instance.createView(contentViewId);
-      if (view is Widget) return view;
+      return slot(contentViewId);
     }
 
-    return const _ErrorMessage(message: 'Falta conteúdo para a página inicial');
-  }
-}
-
-class _ErrorMessage extends StatelessWidget {
-  final String message;
-  const _ErrorMessage({required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.red.shade50,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.red.shade200),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.error_outline, color: Colors.red.shade700),
-          const SizedBox(width: 8),
-          Expanded(child: Text(message, style: TextStyle(color: Colors.red.shade700))),
-        ],
-      ),
+    return const Padding(
+      padding: EdgeInsets.all(16),
+      child: ErrorBanner(message: 'Falta conteúdo para a página inicial'),
     );
   }
 }

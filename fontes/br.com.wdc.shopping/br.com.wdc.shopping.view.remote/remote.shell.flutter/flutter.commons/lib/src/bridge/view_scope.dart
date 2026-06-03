@@ -20,6 +20,18 @@ class ViewScope {
     forceUpdate();
   }
 
+  /// Sets a single field and notifies listeners (partial update).
+  void patchField(String key, dynamic value) {
+    _state[key] = value;
+    forceUpdate();
+  }
+
+  /// Removes a single field and notifies listeners.
+  void removeField(String key) {
+    _state.remove(key);
+    forceUpdate();
+  }
+
   // Convenience typed accessors.
   String? getString(String key) => _state[key] as String?;
   int getInt(String key) => (_state[key] as num?)?.toInt() ?? 0;

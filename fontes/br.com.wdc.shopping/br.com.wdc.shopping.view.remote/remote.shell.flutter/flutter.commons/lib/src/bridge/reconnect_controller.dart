@@ -52,9 +52,7 @@ class ReconnectController {
   void reset() {
     final browserView = app.viewMap[browserVsid];
     if (browserView != null) {
-      final state = browserView.state;
-      state.remove('error');
-      browserView.setState(state);
+      browserView.removeField('error');
     }
 
     count = 0;
@@ -73,12 +71,10 @@ class ReconnectController {
   void _updateBrowserError() {
     final bvScope = app.viewMap[browserVsid];
     if (bvScope == null) return;
-    final state = bvScope.state;
-    state['error'] = {
+    bvScope.patchField('error', {
       'cause': cause,
       'numAttempt': count,
       'delay': delay,
-    };
-    bvScope.forceUpdate();
+    });
   }
 }

@@ -1,26 +1,3 @@
-/// State shape for the browser-level view scope.
-class BrowserViewState {
-  String? contentViewId;
-  bool submitting = false;
-  AlertMessage? alertMessage;
-  ConnectionError? error;
-}
-
-class AlertMessage {
-  final int id;
-  final List<String> args;
-
-  AlertMessage({required this.id, this.args = const []});
-}
-
-class ConnectionError {
-  final int delay;
-  final Object? cause;
-  final int numAttempt;
-
-  ConnectionError({required this.delay, this.cause, required this.numAttempt});
-}
-
 /// Factory that creates a widget given its vsid and optional props.
 typedef ViewFactory = Object Function(String vsid, Map<String, dynamic> props);
 

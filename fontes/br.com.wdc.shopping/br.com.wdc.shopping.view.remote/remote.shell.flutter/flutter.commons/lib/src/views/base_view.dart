@@ -29,12 +29,14 @@ abstract class BaseViewState<T extends BaseView> extends State<T> {
     scope = coordinator.viewMap[widget.vsid] ?? ViewScope(widget.vsid);
     coordinator.viewMap[widget.vsid] = scope;
     scope.forceUpdate = _rebuild;
+    coordinator.viewGarbageCollector.mount(widget.vsid);
   }
 
   @override
   void dispose() {
+    coordinator.viewGarbageCollector.unmount(widget.vsid);
     if (scope.forceUpdate == _rebuild) {
-      scope.forceUpdate = () {};
+      scope.forceUpdate = ViewScope.noop;
     }
     super.dispose();
   }
@@ -51,5 +53,10 @@ abstract class BaseViewState<T extends BaseView> extends State<T> {
   /// Sets a form field value before submitting.
   void setFormField(String fieldName, dynamic value) {
     coordinator.setFormField(widget.vsid, fieldName, value);
+  }
+
+  /// Creates the widget for a child view slot.
+  Widget slot(String viewId) {
+    return coordinator.createViewWidget(viewId);
   }
 }

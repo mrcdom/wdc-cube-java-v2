@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../bridge/constants.dart';
-import '../bridge/view_state_coordinator.dart';
+import '../design_tokens.dart';
+import '../widgets/status_banner.dart';
 import 'base_view.dart';
 
 /// Actions
@@ -45,7 +46,7 @@ class _BrowserViewState extends BaseViewState<BrowserView> {
     return Column(
       children: [
         if (submitting) const LinearProgressIndicator(),
-        if (error != null) _ConnectionAlert(error: error),
+        if (error != null) _ConnectionAlert(error: error, onRetry: coordinator.connect),
         if (alertId != 0)
           _AppAlert(
             code: alertId,
@@ -65,9 +66,7 @@ class _BrowserViewState extends BaseViewState<BrowserView> {
   }
 
   Widget _createView(String vsid) {
-    final widget = coordinator.createView(vsid);
-    if (widget is Widget) return widget;
-    return const SizedBox.shrink();
+    return slot(vsid);
   }
 
   void _emitAlertOk() {
@@ -99,35 +98,14 @@ class _AppAlert extends StatelessWidget {
         message = args.isNotEmpty ? args[0] : 'Ocorreu um erro não esperado';
     }
 
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.red.shade50,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.red.shade200),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.error_outline, color: Colors.red.shade700),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Aviso!',
-                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red.shade700, fontSize: 13)),
-                Text(message, style: TextStyle(color: Colors.red.shade700, fontSize: 13)),
-                if (detail != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(detail, style: TextStyle(color: Colors.red.shade700, fontSize: 11)),
-                  ),
-              ],
-            ),
-          ),
-          TextButton(onPressed: onDismiss, child: const Text('Ok')),
-        ],
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: StatusBanner(
+        title: 'Aviso!',
+        message: message,
+        detail: detail,
+        onDismiss: onDismiss,
+        severity: StatusSeverity.error,
       ),
     );
   }
@@ -137,13 +115,13 @@ class _AppAlert extends StatelessWidget {
 
 class _ConnectionAlert extends StatelessWidget {
   final Map<String, dynamic> error;
+  final VoidCallback onRetry;
 
-  const _ConnectionAlert({required this.error});
+  const _ConnectionAlert({required this.error, required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
     final delay = (error['delay'] as num?)?.toInt() ?? 0;
-    final coordinator = ViewStateCoordinator.instance;
 
     String timeText;
     bool showRetry = false;
@@ -165,8 +143,8 @@ class _ConnectionAlert extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.red.shade50,
         borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(8),
-          bottomRight: Radius.circular(8),
+          bottomLeft: Radius.circular(radiusSm),
+          bottomRight: Radius.circular(radiusSm),
         ),
       ),
       child: Row(
@@ -179,10 +157,10 @@ class _ConnectionAlert extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(left: 8),
               child: GestureDetector(
-                onTap: () => coordinator.connect(),
+                onTap: onRetry,
                 child: Text('Tentar agora',
                     style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary, decoration: TextDecoration.underline, fontSize: 13)),
+                        color: appAccent, decoration: TextDecoration.underline, fontSize: 13)),
               ),
             ),
         ],

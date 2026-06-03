@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../bridge/view_state_coordinator.dart';
+import '../design_tokens.dart';
+import '../utils/format_utils.dart';
+import '../utils/url_utils.dart';
+import '../widgets/error_banner.dart';
 import '../widgets/html_text.dart';
+import '../widgets/page_card.dart';
 import 'base_view.dart';
 
 /// Actions
@@ -20,7 +24,7 @@ class ProductView extends BaseView {
 
 class _ProductViewState extends BaseViewState<ProductView> {
   int _localQuantity = 1;
-  bool _quantityInitialized = false;
+  dynamic _lastProductId;
 
   @override
   Widget build(BuildContext context) {
@@ -32,43 +36,28 @@ class _ProductViewState extends BaseViewState<ProductView> {
     final productId = product['id'];
     final errorMessage = state['errorMessage'] as String?;
 
-    // Sync quantity from server only once
-    if (!_quantityInitialized) {
+    // Re-sync quantity when product changes
+    if (productId != _lastProductId) {
+      _lastProductId = productId;
       _localQuantity = (state['quantity'] as num?)?.toInt() ?? 1;
-      _quantityInitialized = true;
     }
 
-    final imageUrl = _resolveImageUrl('./image/product/$productId.png');
-
-    const accentColor = Color(0xFF0D66D0);
-    const accentLight = Color(0xFFE8F1FC);
-    const pageBg = Color(0xFFF4F6F9);
-    const borderColor = Color(0xFFE5E5EA);
-    const textSecondary = Color(0xFF6E6E73);
-
-    return Container(
-      color: pageBg,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 900),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
+    return PageCard(
+      useCardDecoration: false,
+      children: [
                 // Title
                 Text(name, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
-                const Divider(color: accentColor, thickness: 2),
+                const Divider(color: appAccent, thickness: 2),
                 const SizedBox(height: 16),
-                // Description card (white, bordered, rounded)
+                // Description card
                 if (description.isNotEmpty)
                   Container(
                     padding: const EdgeInsets.all(20),
                     margin: const EdgeInsets.only(bottom: 20),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: borderColor),
+                      color: appSurface,
+                      borderRadius: BorderRadius.circular(radiusLg),
+                      border: Border.all(color: appBorder),
                     ),
                     child: HtmlText(html: description),
                   ),
@@ -86,20 +75,17 @@ class _ProductViewState extends BaseViewState<ProductView> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                           decoration: BoxDecoration(
-                            color: accentLight,
-                            borderRadius: BorderRadius.circular(8),
+                            color: appAccentLight,
+                            borderRadius: BorderRadius.circular(radiusSm),
                           ),
-                          child: Text('R\$ ${price.toStringAsFixed(2)}',
-                              style: const TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w800,
-                                  color: accentColor)),
+                          child: Text(formatCurrency(price),
+                              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: appAccent)),
                         ),
                         const SizedBox(height: 12),
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Text('Qtd:', style: TextStyle(fontSize: 14, color: textSecondary)),
+                            const Text('Qtd:', style: TextStyle(fontSize: 14, color: appTextSecondary)),
                             const SizedBox(width: 10),
                             IconButton(
                               icon: const Icon(Icons.remove, size: 18),
@@ -119,28 +105,25 @@ class _ProductViewState extends BaseViewState<ProductView> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        gradient: const LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Color(0xFFF8FAFC), Color(0xFFEEF2F7)],
-                        ),
+                        borderRadius: BorderRadius.circular(radiusSm),
+                        gradient: imageGradient,
                       ),
                       child: SizedBox(
                         width: 160,
                         height: 160,
-                        child: Image.network(
-                          imageUrl,
-                          fit: BoxFit.contain,
-                          errorBuilder: (_, __, ___) =>
-                              const Icon(Icons.image_not_supported, size: 48, color: Colors.grey),
-                        ),
+                        child: productId != null
+                            ? Image.network(
+                                resolveAssetUrl('./image/product/$productId.png'),
+                                fit: BoxFit.contain,
+                                errorBuilder: (_, __, ___) => imageErrorPlaceholder(),
+                              )
+                            : imageErrorPlaceholder(),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 24),
-                // Actions (centered, like React)
+                // Actions
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -152,13 +135,7 @@ class _ProductViewState extends BaseViewState<ProductView> {
                     const SizedBox(width: 12),
                     FilledButton.icon(
                       onPressed: _emitAddToCart,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: accentColor,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                        textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                      ),
+                      style: accentButtonStyle,
                       icon: const Icon(Icons.add_shopping_cart, size: 18),
                       label: const Text('Adicionar ao Carrinho'),
                     ),
@@ -167,39 +144,19 @@ class _ProductViewState extends BaseViewState<ProductView> {
                 // Error
                 if (errorMessage != null) ...[
                   const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.red.shade50,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.red.shade200),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.error_outline, color: Colors.red.shade700, size: 18),
-                        const SizedBox(width: 8),
-                        Expanded(child: Text(errorMessage, style: TextStyle(color: Colors.red.shade700, fontSize: 13))),
-                      ],
-                    ),
-                  ),
+                  ErrorBanner(message: errorMessage),
                 ],
-              ],
-            ),
-          ),
-        ),
-      ),
+      ],
     );
   }
 
   void _emitIncrement() {
     setState(() => _localQuantity++);
-    setFormField('quantity', _localQuantity);
   }
 
   void _emitDecrement() {
     if (_localQuantity > 1) {
       setState(() => _localQuantity--);
-      setFormField('quantity', _localQuantity);
     }
   }
 
@@ -210,11 +167,5 @@ class _ProductViewState extends BaseViewState<ProductView> {
 
   void _emitGoHome() {
     submit(_onOpenProducts);
-  }
-
-  static String _resolveImageUrl(String relativePath) {
-    final base = ViewStateCoordinator.instance.baseWebSocketUrl.replaceFirst('ws', 'http');
-    final baseUri = Uri.parse(base);
-    return '${baseUri.scheme}://${baseUri.host}:${baseUri.port}/$relativePath';
   }
 }

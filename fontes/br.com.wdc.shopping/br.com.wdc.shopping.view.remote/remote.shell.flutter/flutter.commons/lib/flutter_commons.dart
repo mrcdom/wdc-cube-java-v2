@@ -13,6 +13,17 @@ export 'src/bridge/view_garbage_collector.dart';
 export 'src/bridge/reconnect_controller.dart';
 export 'src/bridge/flush_request_context.dart';
 
+export 'src/design_tokens.dart';
+export 'src/utils/format_utils.dart';
+export 'src/utils/url_utils.dart';
+
+export 'src/widgets/error_banner.dart';
+export 'src/widgets/hover_card.dart';
+export 'src/widgets/html_text.dart';
+export 'src/widgets/page_card.dart';
+export 'src/widgets/status_banner.dart';
+export 'src/widgets/view_header.dart';
+
 export 'src/views/base_view.dart';
 export 'src/views/browser_view.dart';
 export 'src/views/root_view.dart';

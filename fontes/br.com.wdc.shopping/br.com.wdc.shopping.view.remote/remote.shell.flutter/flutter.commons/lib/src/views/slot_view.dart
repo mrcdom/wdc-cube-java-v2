@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../bridge/view_state_coordinator.dart';
 import 'base_view.dart';
 
 /// SlotView — just renders whatever child view the server assigns to its 'slot' field.
@@ -16,10 +15,8 @@ class SlotView extends BaseView {
 class _SlotViewState extends BaseViewState<SlotView> {
   @override
   Widget build(BuildContext context) {
-    final slot = viewState['slot'] as String?;
-    if (slot == null) return const SizedBox.shrink();
-    final view = ViewStateCoordinator.instance.createView(slot);
-    if (view is Widget) return view;
-    return const SizedBox.shrink();
+    final slotViewId = viewState['slot'] as String?;
+    if (slotViewId == null) return const SizedBox.shrink();
+    return slot(slotViewId);
   }
 }

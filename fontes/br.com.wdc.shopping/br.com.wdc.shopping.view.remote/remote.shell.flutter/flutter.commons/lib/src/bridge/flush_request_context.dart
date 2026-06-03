@@ -16,6 +16,7 @@ class FlushRequestContext {
 
   WebSocketChannel? _channel;
   bool _isOpen = false;
+  bool _isConnecting = false;
   final Map<int, FormMapType> _requestMap = {};
   int _lastSentRequestId = -1;
   int _requestCount = 0;
@@ -98,7 +99,8 @@ class FlushRequestContext {
   }
 
   void open(String url) {
-    if (_isOpen) return;
+    if (_isOpen || _isConnecting) return;
+    _isConnecting = true;
 
     final channel = WebSocketChannel.connect(
       Uri.parse(url),
@@ -107,12 +109,14 @@ class FlushRequestContext {
     _channel = channel;
 
     channel.ready.then((_) {
+      _isConnecting = false;
       _isOpen = true;
       app.isConnected = true;
       _pendingSecret = app.dataSecurity.getSignature();
       _initKeepAliveChecks();
       flush();
     }).catchError((Object error) {
+      _isConnecting = false;
       _handleDisconnect(error);
     });
 
@@ -137,15 +141,24 @@ class FlushRequestContext {
 
   void close() {
     _isOpen = false;
+    _isConnecting = false;
+    _stopKeepAliveChecks();
+    _cancelPendingKeepAlive();
+    _stopSubmitting();
     _channel?.sink.close();
     _channel = null;
   }
 
   void _handleDisconnect(Object? cause) {
+    if (_channel == null) return; // Intentional close — don't reconnect
     _isOpen = false;
     _channel = null;
     app.isConnected = false;
     _stopKeepAliveChecks();
+    // Clean up sent-but-unacknowledged requests (won't be retried)
+    for (var i = _lastProcessedId + 1; i <= _lastSentRequestId; i++) {
+      _requestMap.remove(i);
+    }
     _userRequestIds.clear();
     _stopSubmitting();
     app.reconnectController.reconnect(cause);
@@ -255,12 +268,8 @@ class FlushRequestContext {
 
   void _applySubmitting(bool value) {
     final scope = app.viewMap[browserVsid];
-    if (scope != null) {
-      final state = scope.state;
-      if (state['submitting'] != value) {
-        state['submitting'] = value;
-        scope.forceUpdate();
-      }
+    if (scope != null && scope.state['submitting'] != value) {
+      scope.patchField('submitting', value);
     }
   }
 }

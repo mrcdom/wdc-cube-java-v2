@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../design_tokens.dart';
+
 /// A cross-platform widget that renders simple HTML as styled text.
 /// Supports: <b>, <strong>, <i>, <em>, <u>, <br>, <p>, <ul>, <li>, plain text.
 class HtmlText extends StatelessWidget {
@@ -10,7 +12,7 @@ class HtmlText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final baseStyle = style ?? const TextStyle(fontSize: 14, height: 1.5, color: Color(0xFF333333));
+    final baseStyle = style ?? const TextStyle(fontSize: 14, height: 1.5, color: appText);
     final spans = _parse(html);
     return Text.rich(
       TextSpan(children: spans, style: baseStyle),

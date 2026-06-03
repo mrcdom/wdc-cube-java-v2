@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:flutter/widgets.dart';
+
 import 'constants.dart';
 import 'data_security.dart';
 import 'flush_request_context.dart';
@@ -99,6 +101,12 @@ class ViewStateCoordinator {
 
     viewMap.putIfAbsent(vsid, () => ViewScope(vsid));
     return factory(vsid, props ?? {});
+  }
+
+  /// Creates a view widget, returning SizedBox.shrink() if the factory doesn't produce a Widget.
+  Widget createViewWidget(String vsid, [Map<String, dynamic>? props]) {
+    final obj = createView(vsid, props);
+    return obj is Widget ? obj : const SizedBox.shrink();
   }
 
   // :: Connection

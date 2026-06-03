@@ -45,6 +45,9 @@ class DataSecurity {
 
   String getSignature() => _signature;
 
+  /// Whether the security context is initialized and ready for cipher operations.
+  bool get isReady => _signature.isNotEmpty;
+
   /// Encrypts [text] with AES-256-GCM and returns base64-encoded ciphertext.
   String b64Cipher(String text) {
     final plainBytes = utf8.encode(text);

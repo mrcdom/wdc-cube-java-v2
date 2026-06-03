@@ -131,13 +131,6 @@ class ShoppingApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0D66D0)),
         useMaterial3: true,
-        filledButtonTheme: FilledButtonThemeData(
-          style: FilledButton.styleFrom(
-            backgroundColor: const Color(0xFF2563EB),
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-          ),
-        ),
       ),
       home: const Scaffold(
         body: BrowserView(),

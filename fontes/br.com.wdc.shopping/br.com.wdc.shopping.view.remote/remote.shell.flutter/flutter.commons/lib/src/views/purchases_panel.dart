@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../design_tokens.dart';
+import '../utils/format_utils.dart';
 import 'base_view.dart';
 
 /// Actions
@@ -24,6 +26,7 @@ class _PurchasesPanelState extends BaseViewState<PurchasesPanel> {
   double _lastHeight = 0;
   double _measuredItemHeight = 0;
   Timer? _resizeTimer;
+  bool _pendingLayoutCallback = false;
   final _firstItemKey = GlobalKey();
 
   @override
@@ -68,8 +71,8 @@ class _PurchasesPanelState extends BaseViewState<PurchasesPanel> {
 
     return Container(
       decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(left: BorderSide(color: Color(0xFFE5E5EA))),
+        color: appSurface,
+        border: Border(left: BorderSide(color: appBorder)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -79,7 +82,7 @@ class _PurchasesPanelState extends BaseViewState<PurchasesPanel> {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
             child: Row(
               children: [
-                const Icon(Icons.history, size: 18, color: Color(0xFF0D66D0)),
+                const Icon(Icons.history, size: 18, color: appAccent),
                 const SizedBox(width: 8),
                 const Text('Histórico', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
               ],
@@ -87,16 +90,20 @@ class _PurchasesPanelState extends BaseViewState<PurchasesPanel> {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text('Toque para ver detalhes', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+            child: Text('Toque para ver detalhes', style: TextStyle(fontSize: 12, color: appTextSecondary)),
           ),
           const SizedBox(height: 12),
           // List
           Expanded(
             child: LayoutBuilder(
               builder: (context, constraints) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  _onListLayout(constraints.maxHeight);
-                });
+                if (!_pendingLayoutCallback) {
+                  _pendingLayoutCallback = true;
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    _pendingLayoutCallback = false;
+                    _onListLayout(constraints.maxHeight);
+                  });
+                }
                 return ListView.builder(
                   itemCount: purchases.length,
                   itemBuilder: (context, index) {
@@ -116,7 +123,7 @@ class _PurchasesPanelState extends BaseViewState<PurchasesPanel> {
             Container(
               padding: const EdgeInsets.symmetric(vertical: 10),
               decoration: const BoxDecoration(
-                border: Border(top: BorderSide(color: Color(0xFFE5E5EA))),
+                border: Border(top: BorderSide(color: appBorder)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -125,8 +132,8 @@ class _PurchasesPanelState extends BaseViewState<PurchasesPanel> {
                   Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF4F6F9),
-                      borderRadius: BorderRadius.circular(20),
+                      color: appBg,
+                      borderRadius: BorderRadius.circular(radiusRound),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -143,7 +150,7 @@ class _PurchasesPanelState extends BaseViewState<PurchasesPanel> {
                                 style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w300,
-                                    color: page > 0 ? const Color(0xFF6E6E73) : const Color(0xFFBBBBC0))),
+                                    color: page > 0 ? appTextSecondary : appTextDisabled)),
                           ),
                         ),
                         const SizedBox(width: 4),
@@ -151,12 +158,9 @@ class _PurchasesPanelState extends BaseViewState<PurchasesPanel> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: const [
-                              BoxShadow(color: Color(0x0F000000), blurRadius: 3, offset: Offset(0, 1)),
-                              BoxShadow(color: Color(0x0A000000), blurRadius: 2, offset: Offset(0, 1)),
-                            ],
+                            color: appSurface,
+                            borderRadius: BorderRadius.circular(radiusLg),
+                            boxShadow: cardShadowSm,
                           ),
                           child: Text('${page + 1} / $totalPages',
                               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
@@ -175,8 +179,8 @@ class _PurchasesPanelState extends BaseViewState<PurchasesPanel> {
                                     fontSize: 18,
                                     fontWeight: FontWeight.w300,
                                     color: page < totalPages - 1
-                                        ? const Color(0xFF6E6E73)
-                                        : const Color(0xFFBBBBC0))),
+                                        ? appTextSecondary
+                                        : appTextDisabled)),
                           ),
                         ),
                       ],
@@ -216,7 +220,7 @@ class _PurchaseItem extends StatelessWidget {
     final total = (purchase['total'] as num?)?.toDouble() ?? 0.0;
     final items = (purchase['items'] as List?)?.cast<String>() ?? [];
 
-    final dateStr = _formatDate(date);
+    final dateStr = formatDate(date);
 
     return InkWell(
       onTap: onTap,
@@ -224,9 +228,9 @@ class _PurchaseItem extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          border: Border.all(color: const Color(0xFFE5E5EA)),
-          borderRadius: BorderRadius.circular(8),
-          color: const Color(0xFFF4F6F9),
+          border: Border.all(color: appBorder),
+          borderRadius: BorderRadius.circular(radiusSm),
+          color: appBg,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -234,8 +238,8 @@ class _PurchaseItem extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('#$id', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF0D66D0))),
-                Text(dateStr, style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+                Text('#$id', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: appAccent)),
+                Text(dateStr, style: TextStyle(fontSize: 11, color: appTextSecondary)),
               ],
             ),
             const SizedBox(height: 2),
@@ -244,10 +248,10 @@ class _PurchaseItem extends StatelessWidget {
               children: [
                 Expanded(
                     child: Text(items.join(', '),
-                        style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                        style: TextStyle(fontSize: 12, color: appTextSecondary),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis)),
-                Text('R\$ ${total.toStringAsFixed(2)}',
+                Text(formatCurrency(total),
                     style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
               ],
             ),
@@ -255,11 +259,5 @@ class _PurchaseItem extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  static String _formatDate(int millis) {
-    if (millis == 0) return 'Data indisponível';
-    final d = DateTime.fromMillisecondsSinceEpoch(millis);
-    return '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
   }
 }

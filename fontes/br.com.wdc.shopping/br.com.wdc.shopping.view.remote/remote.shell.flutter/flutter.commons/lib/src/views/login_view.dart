@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../bridge/view_state_coordinator.dart';
+import '../design_tokens.dart';
+import '../widgets/error_banner.dart';
 import 'base_view.dart';
 
 /// Actions
@@ -34,7 +36,7 @@ class _LoginViewState extends BaseViewState<LoginView> {
     final loading = state['loading'] == true;
 
     return LayoutBuilder(builder: (context, constraints) {
-      final wide = constraints.maxWidth >= 768;
+      final wide = constraints.maxWidth >= breakpointMd;
       if (wide) {
         return Row(
           children: [
@@ -50,51 +52,22 @@ class _LoginViewState extends BaseViewState<LoginView> {
   Widget _buildLeftPanel(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF0D66D0), Color(0xFF1A8CFF), Color(0xFF4DA6FF)],
-          stops: [0.0, 0.4, 1.0],
-        ),
+        gradient: loginGradient,
       ),
       child: Stack(
         children: [
           // Decorative circles
           Positioned(
-            top: -60,
-            right: -60,
-            child: Container(
-              width: 200,
-              height: 200,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.06),
-              ),
-            ),
+            top: -60, right: -60,
+            child: _decorativeCircle(200, 0.06),
           ),
           Positioned(
-            bottom: -40,
-            left: -40,
-            child: Container(
-              width: 160,
-              height: 160,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.04),
-              ),
-            ),
+            bottom: -40, left: -40,
+            child: _decorativeCircle(160, 0.04),
           ),
           Positioned(
-            top: 140,
-            left: 60,
-            child: Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.05),
-              ),
-            ),
+            top: 140, left: 60,
+            child: _decorativeCircle(80, 0.05),
           ),
           // Content
           Center(
@@ -145,6 +118,15 @@ class _LoginViewState extends BaseViewState<LoginView> {
     );
   }
 
+  Widget _decorativeCircle(double size, double alpha) => Container(
+    width: size,
+    height: size,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      color: Colors.white.withValues(alpha: alpha),
+    ),
+  );
+
   Widget _buildForm(BuildContext context, String? errorMessage, bool loading) {
     return Center(
       child: SingleChildScrollView(
@@ -160,39 +142,18 @@ class _LoginViewState extends BaseViewState<LoginView> {
                   child: Container(
                     padding: const EdgeInsets.all(24),
                     decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [Color(0xFF0D66D0), Color(0xFF1A8CFF), Color(0xFF4DA6FF)],
-                        stops: [0.0, 0.4, 1.0],
-                      ),
+                      gradient: loginGradient,
                     ),
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
                         Positioned(
-                          top: -30,
-                          right: -30,
-                          child: Container(
-                            width: 100,
-                            height: 100,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white.withValues(alpha: 0.06),
-                            ),
-                          ),
+                          top: -30, right: -30,
+                          child: _decorativeCircle(100, 0.06),
                         ),
                         Positioned(
-                          bottom: -20,
-                          left: -20,
-                          child: Container(
-                            width: 80,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white.withValues(alpha: 0.04),
-                            ),
-                          ),
+                          bottom: -20, left: -20,
+                          child: _decorativeCircle(80, 0.04),
                         ),
                         Column(
                           mainAxisSize: MainAxisSize.min,
@@ -222,25 +183,11 @@ class _LoginViewState extends BaseViewState<LoginView> {
                 const SizedBox(height: 24),
               const Text('Bem-vindo', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
-              Text('Entre com suas credenciais para continuar',
-                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+              const Text('Entre com suas credenciais para continuar',
+                  style: TextStyle(fontSize: 14, color: appTextSecondary)),
               const SizedBox(height: 24),
               if (errorMessage != null) ...[
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red.shade200),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.error_outline, color: Colors.red.shade700, size: 18),
-                      const SizedBox(width: 8),
-                      Expanded(child: Text(errorMessage, style: TextStyle(color: Colors.red.shade700, fontSize: 13))),
-                    ],
-                  ),
-                ),
+                ErrorBanner(message: errorMessage),
                 const SizedBox(height: 16),
               ],
               const Text('Usuário', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
@@ -283,17 +230,17 @@ class _LoginViewState extends BaseViewState<LoginView> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.shade200),
+                  color: appBg,
+                  borderRadius: BorderRadius.circular(radiusSm),
+                  border: Border.all(color: appBorder),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text('Acesso demo: ', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
-                    const Text('admin', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0D66D0))),
-                    Text(' / ', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
-                    const Text('admin', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0D66D0))),
+                    const Text('Acesso demo: ', style: TextStyle(fontSize: 12, color: appTextSecondary)),
+                    const Text('admin', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: appAccent)),
+                    const Text(' / ', style: TextStyle(fontSize: 12, color: appTextSecondary)),
+                    const Text('admin', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: appAccent)),
                   ],
                 ),
               ),
@@ -308,7 +255,8 @@ class _LoginViewState extends BaseViewState<LoginView> {
     final userName = _userController.text;
     final password = _passController.text;
     setFormField('p.userName', userName);
-    final encrypted = ViewStateCoordinator.instance.cipher(password);
+    final security = ViewStateCoordinator.instance.dataSecurity;
+    final encrypted = security.isReady ? security.b64Cipher(password) : password;
     setFormField('p.password', encrypted);
     submit(_onLogin);
   }

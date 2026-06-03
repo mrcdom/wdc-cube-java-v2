@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../bridge/view_state_coordinator.dart';
+import '../design_tokens.dart';
+import '../utils/format_utils.dart';
+import '../utils/url_utils.dart';
+import '../widgets/hover_card.dart';
 import 'base_view.dart';
 
 /// Actions
@@ -26,9 +29,9 @@ class _ProductsPanelState extends BaseViewState<ProductsPanel> {
     }
 
     return LayoutBuilder(builder: (context, constraints) {
-      final crossAxisCount = constraints.maxWidth >= 900
+      final crossAxisCount = constraints.maxWidth >= breakpointLg
           ? 4
-          : constraints.maxWidth >= 600
+          : constraints.maxWidth >= breakpointSm
               ? 3
               : 2;
 
@@ -60,98 +63,54 @@ class _ProductsPanelState extends BaseViewState<ProductsPanel> {
 
 // :: ProductCard
 
-class _ProductCard extends StatefulWidget {
+class _ProductCard extends StatelessWidget {
   final Map<String, dynamic> product;
   final VoidCallback onTap;
 
   const _ProductCard({required this.product, required this.onTap});
 
   @override
-  State<_ProductCard> createState() => _ProductCardState();
-}
-
-class _ProductCardState extends State<_ProductCard> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
-    final name = widget.product['name'] as String? ?? '';
-    final price = (widget.product['price'] as num?)?.toDouble() ?? 0.0;
-    final id = widget.product['id'];
-    final imageUrl = './image/product/$id.png';
+    final name = product['name'] as String? ?? '';
+    final price = (product['price'] as num?)?.toDouble() ?? 0.0;
+    final id = product['id'];
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
-          transform: _hovered ? (Matrix4.identity()..translate(0.0, -3.0)) : Matrix4.identity(),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFE5E5EA)),
-            boxShadow: _hovered
-                ? const [
-                    BoxShadow(color: Color(0x1A000000), blurRadius: 12, offset: Offset(0, 8)),
-                    BoxShadow(color: Color(0x0D000000), blurRadius: 4, offset: Offset(0, 2)),
-                  ]
-                : const [
-                    BoxShadow(color: Color(0x0F000000), blurRadius: 3, offset: Offset(0, 1)),
-                    BoxShadow(color: Color(0x0A000000), blurRadius: 2, offset: Offset(0, 1)),
-                  ],
+    return HoverCard(
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: Container(
+              decoration: const BoxDecoration(gradient: imageGradient),
+              padding: const EdgeInsets.all(20),
+              child: id != null
+                  ? Image.network(
+                      resolveAssetUrl('./image/product/$id.png'),
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => imageErrorPlaceholder(),
+                    )
+                  : imageErrorPlaceholder(),
+            ),
           ),
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Color(0xFFF8FAFC), Color(0xFFEEF2F7)],
-                    ),
-                  ),
-                  padding: const EdgeInsets.all(20),
-                  child: Image.network(
-                    _resolveImageUrl(imageUrl),
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported, size: 48, color: Colors.grey),
-                  ),
-                ),
-              ),
-              Container(
-                color: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(name,
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis),
-                    const SizedBox(height: 6),
-                    Text('R\$ ${price.toStringAsFixed(2)}',
-                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF0D66D0))),
-                  ],
-                ),
-              ),
-            ],
+          Container(
+            color: appSurface,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name,
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis),
+                const SizedBox(height: 6),
+                Text(formatCurrency(price),
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: appAccent)),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
-  }
-
-  static String _resolveImageUrl(String relativePath) {
-    // Resolve relative to backend base URL
-    final base = ViewStateCoordinator.instance.baseWebSocketUrl.replaceFirst('ws', 'http');
-    final baseUri = Uri.parse(base);
-    return '${baseUri.scheme}://${baseUri.host}:${baseUri.port}/$relativePath';
   }
 }
