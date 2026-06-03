@@ -56,7 +56,7 @@ graph TD
 | **Transporte** | WebSocket (JSON delta) | Atmosphere (WebSocket/Push) | N/A (in-process) | REST (OkHttp → JS) |
 | **Segurança** | RSA + AES-GCM + URL signing | HMAC-SHA256 URL signing | N/A (processo local) | HMAC + JWT |
 | **Escalabilidade** | Virtual Threads (~1K por conexão) | Server Push automático | Instância única | Client-side (SPA) |
-| **Código de UI** | TypeScript (React) | Java | Java | Java (compilado para JS) |
+| **Código de UI** | TypeScript (React) / Dart (Flutter) | Java | Java | Java (compilado para JS) |
 | **Presenters** | Mesmos | Mesmos | Mesmos | Mesmos |
 | **ViewStates** | Mesmos | Mesmos | Mesmos | Mesmos |
 
@@ -64,12 +64,17 @@ graph TD
 
 ```
 view.remote/
-├── remote.host/            ← Host: contraparte server-side do protocolo (Maven/Java)
-├── remote.shell.react/     ← Shell React: thin client no browser (Node.js/TypeScript)
-└── remote.shell.teavm/     ← Shell TeaVM: thin client Java compilado para JS (VDom)
+├── remote.host/                ← Host: contraparte server-side do protocolo (Maven/Java)
+├── remote.shell.react/         ← Shell React: thin client no browser (Node.js/TypeScript)
+├── remote.shell.teavm/         ← Shell TeaVM: thin client Java compilado para JS (VDom)
+└── remote.shell.flutter/       ← Shells Flutter: thin clients multiplataforma (Dart)
+    ├── flutter.commons/        ← Código compartilhado (protocolo, views, widgets)
+    ├── flutter.desktop/        ← Desktop: macOS, Linux, Windows ("Shopping Native")
+    ├── flutter.mobile/         ← Mobile: iOS, Android ("Shopping Remote")
+    └── flutter.web/            ← Web: browser (WASM/JS)
 ```
 
-Futuros clientes seguirão o padrão `remote.shell.<tecnologia>` (ex: `remote.shell.desktop`, `remote.shell.native`).
+Futuros clientes seguirão o padrão `remote.shell.<tecnologia>`.
 
 ### remote.host (Maven)
 
