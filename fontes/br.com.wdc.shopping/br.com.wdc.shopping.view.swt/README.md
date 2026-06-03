@@ -5,53 +5,31 @@ Compartilha a mesma camada de apresentação (Cube MVP) com as demais views (Tea
 
 ## Arquitetura
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                    ShoppingSwtMain                       │
-│  (Entry point: Shell, Display, DB init, session restore)│
-└────────────────────────┬────────────────────────────────┘
-                         │
-┌────────────────────────▼────────────────────────────────┐
-│              ShoppingSwtApplication                      │
-│  - View factory registration (Presenter.createView)     │
-│  - Render loop (Timer 16ms → flushDirtyViews)           │
-│  - Dirty-view tracking (ConcurrentHashMap)              │
-│  - History management (navigation stack)                │
-└────────────────────────┬────────────────────────────────┘
-                         │
-┌────────────────────────▼────────────────────────────────┐
-│              AbstractViewSwt<P>                          │
-│  - Base class for all views (implements CubeView)       │
-│  - performUpdate(): doUpdate() + initial layout         │
-│  - rebuild(): dispose children, reset state             │
-│  - Thread safety via markDirty() → EDT timer flush      │
-└────────────────────────┬────────────────────────────────┘
-                         │
-          ┌──────────────┼──────────────┐
-          ▼              ▼              ▼
-    ┌──────────┐  ┌───────────┐  ┌──────────────┐
-    │ impl/    │  │ components│  │ util/        │
-    │ ViewSwt  │  │ (custom)  │  │ (helpers)    │
-    └──────────┘  └───────────┘  └──────────────┘
+```mermaid
+graph TD
+    Main["ShoppingSwtMain<br/><small>Entry point: Shell, Display, DB init, session restore</small>"]
+    Main --> App["ShoppingSwtApplication<br/><small>View factory registration<br/>Render loop (Timer 16ms → flushDirtyViews)<br/>Dirty-view tracking (ConcurrentHashMap)<br/>History management (navigation stack)</small>"]
+    App --> Base["AbstractViewSwt&lt;P&gt;<br/><small>Base class for all views (implements CubeView)<br/>performUpdate(): doUpdate() + initial layout<br/>rebuild(): dispose children, reset state<br/>Thread safety via markDirty() → EDT timer flush</small>"]
+    Base --> Impl["impl/<br/><small>ViewSwt implementations</small>"]
+    Base --> Components["components/<br/><small>Custom widgets</small>"]
+    Base --> Util["util/<br/><small>Helpers</small>"]
 ```
 
 ### Render Loop
 
-```
-Background Thread                     SWT Display Thread (EDT)
-─────────────────                     ─────────────────────────
-presenter.state changes
-       │
-       ▼
-  view.update()
-       │
-       ▼
-  app.markDirty(view)  ───────────►  Timer(16ms) {
-                                       flushHistory()
-                                       flushDirtyViews() {
-                                         view.performUpdate()
-                                       }
-                                     }
+```mermaid
+sequenceDiagram
+    participant BG as Background Thread
+    participant App as ShoppingSwtApplication
+    participant EDT as SWT Display Thread (EDT)
+
+    BG->>BG: presenter.state changes
+    BG->>App: view.update()
+    App->>App: markDirty(view)
+    Note over EDT: Timer(16ms)
+    EDT->>EDT: flushHistory()
+    EDT->>EDT: flushDirtyViews()
+    EDT->>EDT: view.performUpdate()
 ```
 
 ### Estrutura de Pacotes
