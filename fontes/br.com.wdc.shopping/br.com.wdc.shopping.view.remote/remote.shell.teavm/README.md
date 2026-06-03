@@ -10,37 +10,40 @@ Este módulo é uma implementação alternativa do shell (cliente leve) da arqui
 - Renderiza usando Virtual DOM (diff eficiente → DOM real)
 - Emite **eventos de interação** do usuário de volta ao host
 
-```
-Browser (JavaScript)
-└── js/app.js  ← Java compilado para JS pelo TeaVM
-    ├── Main.java                   ← Entry point: registra factories das views
-    ├── bridge/                     ← Infra de comunicação WS + VDom base
-    └── views/                      ← 9 views (thin renderers)
+```mermaid
+graph TD
+    subgraph browser["Browser (JavaScript)"]
+        main["js/app.js ← Java compilado para JS pelo TeaVM"]
+        mainClass["Main.java — Entry point: registra factories das views"]
+        bridge["bridge/ — Infra de comunicação WS + VDom base"]
+        views["views/ — 9 views (thin renderers)"]
+        main --> mainClass
+        main --> bridge
+        main --> views
+    end
 ```
 
 ## Arquitetura
 
-```
-┌─────────────────────────────────────────────┐
-│  Browser (remote.shell.teavm)               │
-│                                             │
-│  ViewStateCoordinator ──── WebSocket ───┐   │
-│       │                                 │   │
-│  ┌────┴────────────┐                   │   │
-│  │ AbstractRemoteView (VDom)           │   │
-│  │  ├─ ViewScope (estado reativo)      │   │
-│  │  ├─ render() → VNode tree           │   │
-│  │  └─ diff/patch → DOM real           │   │
-│  └─────────────────┘                   │   │
-└─────────────────────────────────────────┼───┘
-                                          │
-                              ┌────────────┘
-                              ▼
-                    ┌──────────────────┐
-                    │  remote.host     │
-                    │  (Presenters +   │
-                    │   ViewStates)    │
-                    └──────────────────┘
+```mermaid
+graph TD
+    subgraph browser["Browser (remote.shell.teavm)"]
+        coordinator["ViewStateCoordinator"]
+        ws["WebSocket"]
+        subgraph vdom["AbstractRemoteView (VDom)"]
+            scope["ViewScope (estado reativo)"]
+            render["render() → VNode tree"]
+            diff["diff/patch → DOM real"]
+        end
+        coordinator --> ws
+        coordinator --> vdom
+    end
+
+    subgraph host["remote.host"]
+        presenters["Presenters + ViewStates"]
+    end
+
+    ws <--> host
 ```
 
 ## Estrutura do Projeto
