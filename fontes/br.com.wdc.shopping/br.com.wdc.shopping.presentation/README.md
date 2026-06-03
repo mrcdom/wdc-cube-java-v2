@@ -17,6 +17,7 @@ Camada de apresentação do sistema Shopping, implementada com o padrão **Cube 
 graph TD
     root["br.com.wdc.shopping.presentation"]
     root --> ShoppingApp["ShoppingApplication.java"]
+    root --> ProxyWrapper["ProxyRepositoryWrapper.java"]
     root --> PlaceAttr["PlaceAttributes.java"]
     root --> PlaceParams["PlaceParameters.java"]
 
@@ -31,52 +32,53 @@ graph TD
 
     root --> presenter["presenter/"]
     presenter --> Routes["Routes.java"]
-    presenter --> RootP["RootPresenter.java"]
-    presenter --> RootVS["RootViewState.java"]
+    presenter --> RootP["RootPresenter.java (+ RootViewState)"]
 
-    presenter --> login["open/login/"]
-    login --> LoginP["LoginPresenter.java"]
-    login --> LoginVS["LoginViewState.java"]
+    presenter --> open["open/"]
+    open --> OpenP["OpenPresenter.java"]
+    open --> login["login/"]
+    login --> LoginP["LoginPresenter.java (+ LoginViewState)"]
     login --> LoginSvc["LoginService.java"]
-    login --> Subject["structs/Subject.java"]
+    login --> LoginStructs["structs/Subject.java"]
 
     presenter --> restricted["restricted/"]
+    restricted --> RestrictedP["RestrictedPresenter.java"]
     restricted --> home["home/"]
-    home --> HomeP["HomePresenter.java"]
-    home --> HomeVS["HomeViewState.java"]
+    home --> HomeP["HomePresenter.java (+ HomeViewState)"]
+    home --> HomeStructs["structs/PurchaseInfo.java"]
     home --> products_panel["products/"]
-    products_panel --> ProdPanelP["ProductsPanelPresenter.java"]
-    products_panel --> ProdPanelVS["ProductsPanelViewState.java"]
+    products_panel --> ProdPanelP["ProductsPanelPresenter.java (+ ViewState)"]
     home --> purchases_panel["purchases/"]
-    purchases_panel --> PurchPanelP["PurchasesPanelPresenter.java"]
-    purchases_panel --> PurchPanelVS["PurchasesPanelViewState.java"]
+    purchases_panel --> PurchPanelP["PurchasesPanelPresenter.java (+ ViewState)"]
     purchases_panel --> PurchPanelSvc["PurchasesPanelService.java"]
 
     restricted --> products["products/"]
-    products --> ProductP["ProductPresenter.java"]
-    products --> ProductVS["ProductViewState.java"]
+    products --> ProductP["ProductPresenter.java (+ ProductViewState)"]
     products --> ProductSvc["ProductService.java"]
+    products --> ProductStructs["structs/ProductInfo.java"]
 
     restricted --> cart["cart/"]
-    cart --> CartP["CartPresenter.java"]
-    cart --> CartVS["CartViewState.java"]
+    cart --> CartP["CartPresenter.java (+ CartViewState)"]
     cart --> CartMgr["CartManager.java"]
+    cart --> CartStructs["structs/CartItem.java"]
 
     restricted --> receipt["receipt/"]
-    receipt --> ReceiptP["ReceiptPresenter.java"]
-    receipt --> ReceiptVS["ReceiptViewState.java"]
+    receipt --> ReceiptP["ReceiptPresenter.java (+ ReceiptViewState)"]
     receipt --> ReceiptSvc["ReceiptService.java"]
+    receipt --> ReceiptStructs["structs/ReceiptForm.java, ReceiptItem.java"]
 ```
 
 ## Hierarquia de Navegação
 
-O sistema possui 6 places organizados hierarquicamente:
+O sistema possui 8 places organizados em 4 níveis:
 
 ```mermaid
 graph TD
     ROOT["ROOT (public)"]
-    ROOT --> LOGIN["LOGIN (public/login)<br/><small>área pública</small>"]
-    ROOT --> HOME["HOME (home)<br/><small>área restrita (requer Subject)</small>"]
+    ROOT --> OPEN["OPEN (open)<br/><small>guarda: se autenticado → RESTRICTED</small>"]
+    ROOT --> RESTRICTED["RESTRICTED (restricted)<br/><small>guarda: se não autenticado → OPEN</small>"]
+    OPEN --> LOGIN["LOGIN (login)<br/><small>área pública</small>"]
+    RESTRICTED --> HOME["HOME (home)<br/><small>área restrita (requer Subject)</small>"]
     HOME --> PRODUCT["PRODUCT (product)<br/><small>?productId=N</small>"]
     HOME --> CART["CART (cart)"]
     HOME --> RECEIPT["RECEIPT (receipt)<br/><small>?purchaseId=N</small>"]
@@ -91,23 +93,26 @@ intent.setParameter(PlaceParameters.PRODUCT_ID, productId);
 Routes.product(app, intent);
 ```
 
-O `RootPresenter` decide automaticamente se direciona para `LOGIN` ou `HOME` baseado na presença do `Subject`.
+Os presenters `OpenPresenter` e `RestrictedPresenter` funcionam como **guardas de navegação**: redirecionam automaticamente com base na presença/ausência do `Subject`.
 
 ## Hierarquia de Presenters
 
 ```mermaid
 graph TD
-    RootP["RootPresenter<br/><small>contentSlot → view filha<br/>Estado: RootViewState</small>"]
+    RootP["RootPresenter<br/><small>contentSlot → view filha<br/>Inner: RootViewState</small>"]
 
-    RootP --> LoginP["LoginPresenter<br/><small>Autenticação<br/>Estado: LoginViewState<br/>Serviço: LoginService</small>"]
+    RootP --> OpenP["OpenPresenter<br/><small>Guarda: redireciona se autenticado</small>"]
+    RootP --> RestrictedP["RestrictedPresenter<br/><small>Guarda: redireciona se não autenticado</small>"]
 
-    RootP --> HomeP["HomePresenter<br/><small>contentSlot + painéis + CartManager<br/>Estado: HomeViewState</small>"]
+    OpenP --> LoginP["LoginPresenter<br/><small>Autenticação<br/>Inner: LoginViewState<br/>Serviço: LoginService</small>"]
 
-    HomeP --> ProdPanelP["ProductsPanelPresenter<br/><small>AbstractChildPresenter<br/>Lista de produtos</small>"]
-    HomeP --> PurchPanelP["PurchasesPanelPresenter<br/><small>AbstractChildPresenter<br/>Histórico paginado</small>"]
-    HomeP --> ProductP["ProductPresenter<br/><small>Detalhe + adicionar ao carrinho<br/>Parâmetro: PRODUCT_ID</small>"]
-    HomeP --> CartP["CartPresenter<br/><small>Edição + efetivação de compra<br/>Estado: CartViewState</small>"]
-    HomeP --> ReceiptP["ReceiptPresenter<br/><small>Comprovante<br/>Parâmetro: PURCHASE_ID</small>"]
+    RestrictedP --> HomeP["HomePresenter<br/><small>contentSlot + painéis + CartManager<br/>Inner: HomeViewState</small>"]
+
+    HomeP --> ProdPanelP["ProductsPanelPresenter<br/><small>AbstractChildPresenter<br/>Inner: ProductsPanelViewState</small>"]
+    HomeP --> PurchPanelP["PurchasesPanelPresenter<br/><small>AbstractChildPresenter<br/>Inner: PurchasesPanelViewState</small>"]
+    HomeP --> ProductP["ProductPresenter<br/><small>Detalhe + adicionar ao carrinho<br/>Inner: ProductViewState</small>"]
+    HomeP --> CartP["CartPresenter<br/><small>Edição + efetivação de compra<br/>Inner: CartViewState</small>"]
+    HomeP --> ReceiptP["ReceiptPresenter<br/><small>Comprovante<br/>Inner: ReceiptViewState</small>"]
 ```
 
 ### Dois tipos de presenter
@@ -126,28 +131,31 @@ Classe abstrata que estende `CubeApplication`. Mantém o estado global:
 - `subject` — usuário autenticado (`Subject`)
 - `securityContext` — contexto de segurança (`SecurityContext`) com roles e permissões
 - `cart` — carrinho de compras (`CartManager`)
-- Proxy delegates (via `SecurityContextDelegate`) para repositórios — propagam `SecurityContext` para a thread corrente em cada chamada
+- `createDelegate(Class, Object)` — hook para criação de proxies de repositório (ver `ProxyRepositoryWrapper`)
 - `go(String)` / `go(CubeIntent)` — navegação programática
 - `alertUnexpectedError(...)` — exibição de erros via `RootPresenter`
 
-### ViewState
+### ProxyRepositoryWrapper
 
-Cada presenter possui um `ViewState` que implementa `ViewState.write()` para serializar o estado em JSON. Este JSON é enviado ao frontend via WebSocket.
+Classe utilitária que cria proxies dinâmicos (via `java.lang.reflect.Proxy`) para repositórios, envolvendo cada chamada com o `SecurityContext`. Usado em ambientes JVM multi-threaded (desktop, servidor). Não compatível com TeaVM/GraalVM native.
+
+### ViewState (inner class)
+
+Cada presenter define um `ViewState` como **classe estática interna** (`public static class XxxViewState implements ViewState`). A interface `ViewState` é marcadora (sem métodos) — a serialização é feita automaticamente pelo `ViewStateSerializer` via reflection dos campos públicos:
 
 ```java
-public class ProductViewState implements ViewState {
+public static class ProductViewState implements ViewState {
     public ProductInfo product;
     public int errorCode;
     public String errorMessage;
-
-    @Override
-    public void write(String instanceId, ExtensibleObjectOutput json) {
-        json.beginObject();
-        json.name("id").value(instanceId);
-        // ... serialização dos campos
-        json.endObject();
-    }
 }
+```
+
+O JSON gerado pelo serializer usa `"#"` como chave para o `instanceId`:
+
+```json
+{ "#": "view-instance-id", "product": {...}, "errorCode": 0, "errorMessage": null }
+```
 ```
 
 ### Services
@@ -169,14 +177,14 @@ Objetos `Serializable` usados para transferir dados entre camadas. Cada DTO poss
 - **`projection()`** — retorna uma instância do modelo de domínio indicando quais campos carregar
 - **`create(Model)`** — factory method que converte do modelo de domínio para o DTO
 
-| DTO | Origem | Campos principais |
+| DTO | Pacote | Campos principais |
 |-----|--------|------------------|
-| `Subject` | `User` | id, nickName |
-| `ProductInfo` | `Product` | id, image, name, description, price |
-| `CartItem` | `ProductInfo` | id, image, name, price, quantity |
-| `PurchaseInfo` | `Purchase` | id, date, total, items (nomes) |
-| `ReceiptForm` | `Purchase` | date, total, items |
-| `ReceiptItem` | `PurchaseItem` | id, description, value, quantity |
+| `Subject` | `open/login/structs/` | id, nickName |
+| `ProductInfo` | `restricted/products/structs/` | id, image, name, description, price |
+| `CartItem` | `restricted/cart/structs/` | id, image, name, price, quantity |
+| `PurchaseInfo` | `restricted/home/structs/` | id, date, total, items (nomes) |
+| `ReceiptForm` | `restricted/receipt/structs/` | date, total, items |
+| `ReceiptItem` | `restricted/receipt/structs/` | id, description, value, quantity |
 
 ### Constantes
 
@@ -201,10 +209,9 @@ Cada feature segue a estrutura:
 ```mermaid
 graph TD
     feature["presenter/restricted/&lt;feature&gt;/"]
-    feature --> Presenter["&lt;Feature&gt;Presenter.java"]
-    feature --> ViewState["&lt;Feature&gt;ViewState.java"]
-    feature --> Service["&lt;Feature&gt;Service.java"]
-    feature --> structs["structs/"]
+    feature --> Presenter["&lt;Feature&gt;Presenter.java<br/><small>(inner: &lt;Feature&gt;ViewState)</small>"]
+    feature --> Service["&lt;Feature&gt;Service.java (opcional)"]
+    feature --> structs["structs/ (opcional)"]
     structs --> DTO["&lt;FeatureDTO&gt;.java"]
 ```
 
@@ -216,21 +223,28 @@ public class XxxPresenter extends AbstractCubePresenter<ShoppingApplication> {
     // 1. Logger
     private static final Logger LOG = LoggerFactory.getLogger(XxxPresenter.class);
 
-    // 2. Factory de view (injetada pelo skeleton)
+    // 2. ViewState (inner class — interface marcadora, serialização via reflection)
+    public static class XxxViewState implements ViewState {
+        public int errorCode;
+        public String errorMessage;
+        // ... campos específicos
+    }
+
+    // 3. Factory de view (injetada pelo skeleton)
     public static Function<XxxPresenter, CubeView> createView;
 
-    // 3. Estado público
+    // 4. Estado público
     public final XxxViewState state = new XxxViewState();
 
-    // 4. Campos internos
+    // 5. Campos internos
     private CubeViewSlot ownerSlot;
 
-    // 5. Constructor
+    // 6. Constructor
     public XxxPresenter(ShoppingApplication app) { super(app); }
 
-    // 6. Cube API (applyParameters, publishParameters)
-    // 7. User Actions (onXxx)
-    // 8. Messages (alertXxx, errorXxx)
+    // 7. Cube API (applyParameters, publishParameters)
+    // 8. User Actions (onXxx)
+    // 9. Messages (alertXxx, errorXxx)
 }
 ```
 
