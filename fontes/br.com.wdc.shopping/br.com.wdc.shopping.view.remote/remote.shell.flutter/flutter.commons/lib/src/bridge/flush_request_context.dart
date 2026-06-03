@@ -27,6 +27,7 @@ class FlushRequestContext {
   Timer? _submittingTimeout;
   final Set<int> _userRequestIds = {};
   String? _pendingSecret;
+  String? _pendingAccessToken;
 
   FlushRequestContext(this.app) {
     // Restore request counter from platform storage (survives F5)
@@ -91,6 +92,10 @@ class FlushRequestContext {
         requestObj['secret'] = _pendingSecret;
         _pendingSecret = null;
       }
+      if (_pendingAccessToken != null) {
+        requestObj['accessToken'] = app.dataSecurity.b64Cipher(_pendingAccessToken!);
+        _pendingAccessToken = null;
+      }
       _channel?.sink.add(jsonEncode(requestObj));
       if (_userRequestIds.isNotEmpty) {
         _startSubmitting();
@@ -113,6 +118,7 @@ class FlushRequestContext {
       _isOpen = true;
       app.isConnected = true;
       _pendingSecret = app.dataSecurity.getSignature();
+      _pendingAccessToken = app.accessToken;
       _initKeepAliveChecks();
       flush();
     }).catchError((Object error) {
@@ -189,6 +195,18 @@ class FlushRequestContext {
 
     if (response['uri'] != null) {
       app.onUriChanged(response['uri'] as String);
+    }
+
+    if (response.containsKey('accessToken')) {
+      final ciphered = response['accessToken'] as String?;
+      if (ciphered != null && ciphered.isNotEmpty) {
+        final token = app.dataSecurity.b64Decipher(ciphered);
+        app.accessToken = token;
+        app.onAccessTokenChanged?.call(token);
+      } else {
+        app.accessToken = null;
+        app.onAccessTokenChanged?.call('');
+      }
     }
 
     if (response['states'] != null) {

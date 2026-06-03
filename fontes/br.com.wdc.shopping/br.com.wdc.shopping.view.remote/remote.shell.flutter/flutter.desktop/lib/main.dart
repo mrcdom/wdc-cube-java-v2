@@ -69,6 +69,9 @@ void main() async {
   final appId = session['appId']!;
   final appSKey = session['appSKey']!;
 
+  // Load persistent access token (for auto-login / remember me)
+  final savedToken = _prefs.getString('access_token');
+
   // Persist for potential reconnection
   _prefs.setString('app_id', appId);
   _prefs.setString('app_skey', appSKey);
@@ -77,6 +80,7 @@ void main() async {
     appId: appId,
     securityKey: appSKey,
     baseWebSocketUrl: baseWsUrl,
+    accessToken: savedToken,
     onSetCookie: (name, value) {
       _prefs.setString(name, value);
     },
@@ -87,6 +91,15 @@ void main() async {
       return _prefs.getInt('req_seq') ?? 0;
     },
   ));
+
+  // Handle access token changes from server (login/logoff)
+  coordinator.onAccessTokenChanged = (token) {
+    if (token.isEmpty) {
+      _prefs.remove('access_token');
+    } else {
+      _prefs.setString('access_token', token);
+    }
+  };
 
   coordinator.onSessionInvalid = () async {
     // Fetch new credentials and restart

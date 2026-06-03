@@ -8,9 +8,7 @@ import br.com.wdc.framework.commons.serialization.JsonStreamReader;
 import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
 import br.com.wdc.framework.commons.storage.ClientStorage;
 import br.com.wdc.shopping.domain.exception.BusinessException;
-import br.com.wdc.shopping.domain.security.AuthResult;
 import br.com.wdc.shopping.domain.security.AuthenticationService;
-import br.com.wdc.shopping.domain.security.ChallengeResult;
 import br.com.wdc.shopping.domain.security.SecurityContext;
 
 /**
@@ -174,8 +172,17 @@ public class RestAuthenticationService implements AuthenticationService {
 
 	@Override
 	public SecurityContext resolveToken(String jwtToken) {
-		// Resolução de token é server-side only.
-		return null;
+		throw new UnsupportedOperationException("resolveToken is server-side only; REST clients use refresh tokens");
+	}
+
+	@Override
+	public String createPersistentToken(Long userId, String userName) {
+		throw new UnsupportedOperationException("createPersistentToken is server-side only; requires HMAC secret");
+	}
+
+	@Override
+	public AuthResult loginWithPersistentToken(String persistentToken) {
+		throw new UnsupportedOperationException("loginWithPersistentToken is server-side only; REST clients use tryRestore()");
 	}
 
 	private static AuthResult parseAuthResult(String responseJson) {

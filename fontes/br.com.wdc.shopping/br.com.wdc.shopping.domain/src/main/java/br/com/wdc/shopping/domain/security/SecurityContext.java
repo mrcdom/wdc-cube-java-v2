@@ -6,10 +6,12 @@ import java.util.Set;
 /**
  * Contexto de segurança de uma sessão autenticada.
  * <p>
- * Disponível via {@link SecurityContextHolder} para qualquer camada
- * que precise verificar permissões ou identidade do usuário corrente.
+ * Disponível via {@code SecurityContext.CURRENT} (ThreadLocal) para qualquer
+ * camada que precise verificar permissões ou identidade do usuário corrente.
  */
 public interface SecurityContext {
+
+	ThreadLocal<SecurityContext> CURRENT = new ThreadLocal<>();
 
 	Long userId();
 

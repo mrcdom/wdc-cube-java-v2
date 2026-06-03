@@ -10,6 +10,9 @@ class CoordinatorConfig {
   final String? securityKey;
   final String baseWebSocketUrl;
 
+  /// Optional persistent access token for auto-login (remember me).
+  final String? accessToken;
+
   /// Called when the signature cookie needs to be set.
   final void Function(String name, String value)? onSetCookie;
 
@@ -23,6 +26,7 @@ class CoordinatorConfig {
     required this.appId,
     this.securityKey,
     required this.baseWebSocketUrl,
+    this.accessToken,
     this.onSetCookie,
     this.onPersistRequestSeq,
     this.onRestoreRequestSeq,

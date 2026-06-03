@@ -139,6 +139,7 @@ public final class DispatcherController {
 
         private String appSignature;
         private boolean pendingSignature;
+        private String pendingAccessToken;
         private WsContext wsSession;
         private String activeWsSessionId;
 
@@ -231,6 +232,11 @@ public final class DispatcherController {
                         ctx.closeSession(CLOSE_SESSION_INVALID, "reload_required");
                         return;
                     }
+                    // Extract access token for auto-login (optional)
+                    Object token = request.get("accessToken");
+                    if (token instanceof String t && !t.isEmpty()) {
+                        this.pendingAccessToken = t;
+                    }
                 }
 
                 RemoteApplication app = getOrCreateApp(request);
@@ -304,6 +310,10 @@ public final class DispatcherController {
 
             if (app == null) {
                 request.put("secret", this.appSignature);
+                if (this.pendingAccessToken != null) {
+                    request.put("accessToken", this.pendingAccessToken);
+                    this.pendingAccessToken = null;
+                }
                 app = registry.getOrCreate(appId, request);
             }
 

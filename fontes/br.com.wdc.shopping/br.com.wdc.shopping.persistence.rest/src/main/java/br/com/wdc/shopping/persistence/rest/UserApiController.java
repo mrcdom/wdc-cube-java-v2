@@ -15,7 +15,6 @@ import br.com.wdc.shopping.domain.exception.AccessDeniedException;
 import br.com.wdc.shopping.domain.model.User;
 import br.com.wdc.shopping.domain.repositories.UserRepository;
 import br.com.wdc.shopping.domain.security.SecurityContext;
-import br.com.wdc.shopping.domain.security.SecurityContextHolder;
 import br.com.wdc.shopping.persistence.rest.security.SecurityEnforcer;
 import io.javalin.config.JavalinConfig;
 import io.javalin.http.Context;
@@ -259,7 +258,7 @@ public class UserApiController {
         if (user == null) {
             return;
         }
-        var sc = SecurityContextHolder.get();
+        var sc = SecurityContext.CURRENT.get();
         if (sc != null && user.password != null && !user.password.isBlank()) {
             try {
                 user.password = rsaDecrypt(user.password, sc.privateKey());

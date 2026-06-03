@@ -3,7 +3,7 @@ package br.com.wdc.shopping.persistence.rest.security;
 import br.com.wdc.framework.commons.log.Log;
 
 import br.com.wdc.shopping.domain.security.AuthenticationService;
-import br.com.wdc.shopping.domain.security.SecurityContextHolder;
+import br.com.wdc.shopping.domain.security.SecurityContext;
 import io.javalin.http.Context;
 
 /**
@@ -53,7 +53,7 @@ public final class SecurityFilter {
 			return;
 		}
 
-		SecurityContextHolder.set(securityContext);
+		SecurityContext.CURRENT.set(securityContext);
 		LOG.debug("Authenticated request: user={} path={}", securityContext.userName(), ctx.path());
 	}
 

@@ -44,6 +44,13 @@ class ViewStateCoordinator {
   /// Called once on init to restore the persisted request sequence counter.
   int Function()? onRestoreRequestSeq;
 
+  /// Called when the server sends an access token (after login success).
+  /// Empty string means "forget the token" (logoff).
+  void Function(String token)? onAccessTokenChanged;
+
+  /// The current access token to send on first connect (for auto-login).
+  String? accessToken;
+
   /// Sync initialization (security key derivation) — called once on start.
   void Function() readyToStart = _noopSync;
 
@@ -55,6 +62,7 @@ class ViewStateCoordinator {
 
     onPersistRequestSeq = config.onPersistRequestSeq;
     onRestoreRequestSeq = config.onRestoreRequestSeq;
+    accessToken = config.accessToken;
 
     if (config.securityKey != null && config.securityKey!.isNotEmpty) {
       dataSecurity.updateSecurityKey(config.securityKey!);

@@ -2,18 +2,16 @@ package br.com.wdc.shopping.persistence.security;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.time.Duration;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 import br.com.wdc.framework.commons.log.Log;
-
 import br.com.wdc.shopping.domain.criteria.UserCriteria;
 import br.com.wdc.shopping.domain.model.User;
 import br.com.wdc.shopping.domain.repositories.UserRepository;
-import br.com.wdc.shopping.domain.security.AuthResult;
 import br.com.wdc.shopping.domain.security.AuthenticationService;
-import br.com.wdc.shopping.domain.security.ChallengeResult;
 import br.com.wdc.shopping.domain.security.Role;
 import br.com.wdc.shopping.domain.security.SecurityContext;
 import br.com.wdc.shopping.domain.utils.ProjectionValues;
@@ -29,6 +27,7 @@ public final class AuthenticationServiceImpl implements AuthenticationService {
 
 	private static final Log LOG = Log.getLogger(AuthenticationServiceImpl.class);
 	private static final String HMAC_ALGORITHM = "HmacSHA256";
+	private static final Duration PERSISTENT_TOKEN_TTL = Duration.ofDays(30);
 
 	private final UserRepository rawUserRepo;
 	private final AccessContextCache cache;
@@ -114,6 +113,39 @@ public final class AuthenticationServiceImpl implements AuthenticationService {
 		return cache.get(claims.userId());
 	}
 
+	@Override
+	public String createPersistentToken(Long userId, String userName) {
+		return JwtUtil.create(userId, userName, PERSISTENT_TOKEN_TTL, cache.jwtSecret());
+	}
+
+	@Override
+	public AuthResult loginWithPersistentToken(String persistentToken) {
+		if (persistentToken == null || persistentToken.isBlank()) {
+			return null;
+		}
+
+		var claims = JwtUtil.validate(persistentToken, cache.jwtSecret());
+		if (claims == null) {
+			LOG.debug("Persistent token validation failed");
+			return null;
+		}
+
+		// Fetch user to verify still exists and get roles
+		var user = fetchUserById(claims.userId());
+		if (user == null) {
+			LOG.warn("Persistent token login failed: user {} no longer exists", claims.userId());
+			return null;
+		}
+
+		var roles = Role.parse(user.roles);
+		var permissions = Role.effectivePermissions(roles);
+		var session = cache.createSession(user.id, user.userName, permissions);
+		var accessToken = JwtUtil.create(user.id, user.userName, cache.accessTokenTtl(), cache.jwtSecret());
+
+		LOG.info("Auto-login via persistent token for user: {} ({})", user.userName, user.id);
+		return new AuthResult(user.id, accessToken, session.refreshToken(), session.expiresAt(), session.publicKeyBase64());
+	}
+
 	// :: Internal
 
 	private User fetchUserForAuth(String userName) {
@@ -138,6 +170,20 @@ public final class AuthenticationServiceImpl implements AuthenticationService {
 			user.password = user.password.trim();
 		}
 		return user;
+	}
+
+	private User fetchUserById(Long userId) {
+		var pv = ProjectionValues.INSTANCE;
+		var prj = new User();
+		prj.id = pv.i64;
+		prj.userName = pv.str;
+		prj.roles = pv.str;
+
+		var users = rawUserRepo.fetch(new UserCriteria()
+				.withUserId(userId)
+				.withProjection(prj), 0, 1);
+
+		return users.isEmpty() ? null : users.get(0);
 	}
 
 	private static String computeHmac(String key, String data) {

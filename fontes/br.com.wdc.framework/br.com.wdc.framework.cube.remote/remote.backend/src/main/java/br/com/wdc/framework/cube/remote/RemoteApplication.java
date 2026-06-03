@@ -128,4 +128,14 @@ public interface RemoteApplication {
     default boolean isProcessingSubmit() {
         return getSupport().isProcessingSubmit();
     }
+
+    // :: Response envelope
+
+    default void addResponseField(String key, Object value) {
+        getSupport().addResponseField(key, value);
+    }
+
+    default void emitAccessToken(String token) {
+        getSupport().emitAccessToken(token);
+    }
 }

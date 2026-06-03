@@ -12,10 +12,14 @@ import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.CubeViewSlot;
 import br.com.wdc.framework.cube.ViewState;
+import br.com.wdc.shopping.domain.criteria.UserCriteria;
+import br.com.wdc.shopping.domain.security.AuthenticationService;
+import br.com.wdc.shopping.domain.security.SecurityContext;
 import br.com.wdc.shopping.presentation.PlaceAttributes;
 import br.com.wdc.shopping.presentation.PlaceParameters;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.exception.WrongPlace;
+import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
 
 public class RootPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
@@ -59,6 +63,7 @@ public class RootPresenter extends AbstractCubePresenter<ShoppingApplication> {
     public boolean applyParameters(CubeIntent intent, boolean initialization, boolean deepest) {
         if (initialization) {
             this.view = createView.apply(this);
+            tryAutoLogin();
         }
 
         if (deepest) {
@@ -72,6 +77,50 @@ public class RootPresenter extends AbstractCubePresenter<ShoppingApplication> {
         }
 
         return true;
+    }
+
+    /**
+     * Attempts auto-login using a persistent token stored as app attribute.
+     * Called once during initialization. If the token is valid, sets Subject
+     * and SecurityContext so the user skips the login screen.
+     */
+    private void tryAutoLogin() {
+        var token = (String) this.app.getAttribute("accessToken");
+        if (StringUtils.isBlank(token)) {
+            return;
+        }
+        // Remove from in-memory attributes (token remains persisted on client for 30 days)
+        this.app.removeAttribute("accessToken");
+
+        var authService = AuthenticationService.BEAN.get();
+        if (authService == null) {
+            return;
+        }
+
+        var authResult = authService.loginWithPersistentToken(token);
+        if (authResult == null) {
+            LOG.info("Auto-login failed: invalid or expired token");
+            this.app.emitAccessToken("");
+            return;
+        }
+
+        // Resolve SecurityContext
+        var securityContext = authService.resolveToken(authResult.accessToken());
+        if (securityContext != null) {
+            SecurityContext.CURRENT.set(securityContext);
+            this.app.setSecurityContext(securityContext);
+        }
+
+        // Fetch user and set Subject
+        var users = this.app.getUserRepository().fetch(
+                new UserCriteria().withUserId(authResult.userId())
+                        .withProjection(Subject.projection()),
+                0, 1);
+        if (!users.isEmpty()) {
+            this.app.setSubject(Subject.create(users.get(0)));
+            LOG.info("Auto-login successful for user: {}",
+                    securityContext != null ? securityContext.userName() : authResult.userId());
+        }
     }
 
     @Override

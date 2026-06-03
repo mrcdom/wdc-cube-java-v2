@@ -4,7 +4,7 @@ import br.com.wdc.shopping.domain.criteria.UserCriteria;
 import br.com.wdc.shopping.domain.repositories.UserRepository;
 import br.com.wdc.shopping.domain.security.AuthenticationService;
 import br.com.wdc.shopping.domain.security.PasswordUtil;
-import br.com.wdc.shopping.domain.security.SecurityContextHolder;
+import br.com.wdc.shopping.domain.security.SecurityContext;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
 
@@ -43,13 +43,17 @@ public class LoginService {
         // 5. Resolver token → SecurityContext (server-side; null em REST client)
         var securityContext = authService.resolveToken(authResult.accessToken());
         if (securityContext != null) {
-            SecurityContextHolder.set(securityContext);
+            SecurityContext.CURRENT.set(securityContext);
         }
 
         // 6. Armazenar SecurityContext na aplicação (para delegates de repositório)
         app.setSecurityContext(securityContext);
 
-        // 7. Buscar nome de exibição do usuário
+        // 7. Emitir token persistente para clientes nativos (remember me)
+        var persistentToken = authService.createPersistentToken(authResult.userId(), userName);
+        app.emitAccessToken(persistentToken);
+
+        // 8. Buscar nome de exibição do usuário
         var users = app.getUserRepository().fetch(new UserCriteria()
                 .withUserId(authResult.userId())
                 .withProjection(Subject.projection()), 0, 1);

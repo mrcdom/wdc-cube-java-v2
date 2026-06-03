@@ -230,6 +230,9 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
             this.app.setSubject(null);
             this.setContentView(null);
 
+            // Signal frontend to forget persistent token
+            this.app.emitAccessToken("");
+
             // Logout via AuthenticationService (limpa tokens do ClientStorage)
             var authService = AuthenticationService.BEAN.get();
             if (authService != null) {

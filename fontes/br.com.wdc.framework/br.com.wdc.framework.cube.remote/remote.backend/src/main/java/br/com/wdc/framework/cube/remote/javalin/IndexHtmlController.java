@@ -28,10 +28,11 @@ public final class IndexHtmlController {
 
     /**
      * Registers the session cookie handler before index.html for all context paths.
-     * Uses a wildcard path parameter to match any context.
      */
     public void configure(JavalinConfig config, String... contextPaths) {
-        config.routes.before("/<context>/index.html", this::handle);
+        for (String ctx : contextPaths) {
+            config.routes.before("/" + ctx + "/index.html", this::handle);
+        }
     }
 
     private void handle(Context ctx) {

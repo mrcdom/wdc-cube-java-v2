@@ -108,6 +108,11 @@ public class ShoppingApplicationImpl extends ShoppingApplication implements Remo
 	}
 
 	@Override
+	public void emitAccessToken(String token) {
+		this.support.emitAccessToken(token);
+	}
+
+	@Override
 	public void updateHistory() {
 		this.support.updateHistory();
 	}
@@ -117,16 +122,14 @@ public class ShoppingApplicationImpl extends ShoppingApplication implements Remo
 	@Override
 	public void release() {
 		try {
-			try {
-				this.support.release();
-				this.cleanUp.run();
-				super.release();
-			} finally {
-				registry.remove(this.getId());
-				LOG.info("Application removed: {}", this.getId());
-			}
+			this.support.release();
+			this.cleanUp.run();
+			super.release();
 		} catch (Exception caught) {
 			LOG.error("Running removeInstanceAction", caught);
+		} finally {
+			registry.remove(this.getId());
+			LOG.info("Application removed: {}", this.getId());
 		}
 	}
 
@@ -145,6 +148,18 @@ public class ShoppingApplicationImpl extends ShoppingApplication implements Remo
 		try {
 			app.cleanUp.push(() -> registry.remove(appId));
 
+			// Initialize data security before auto-login (needed for decipher)
+			var secret = (String) request.get("secret");
+			if (StringUtils.isNotBlank(secret)) {
+				app.support.getDataSecurity().updateSecret(secret);
+			}
+
+			// Store deciphered access token as app attribute for RootPresenter auto-login
+			var cipheredToken = (String) request.get("accessToken");
+			if (StringUtils.isNotBlank(cipheredToken)) {
+				decipherAndStoreAccessToken(app, cipheredToken);
+			}
+
 			var path = app.getFragment();
 			var browserViewId = app.getSupport().getBrowserPresenter().getView().instanceId();
 
@@ -162,6 +177,15 @@ public class ShoppingApplicationImpl extends ShoppingApplication implements Remo
 			return ExceptionUtils.rethrow(caught);
 		}
 		return app;
+	}
+
+	private static void decipherAndStoreAccessToken(ShoppingApplicationImpl app, String cipheredToken) {
+		try {
+			var accessToken = app.support.getDataSecurity().b64Decipher(cipheredToken);
+			app.setAttribute("accessToken", accessToken);
+		} catch (Exception e) {
+			LOG.warn("Failed to decipher accessToken for app {}: {}", app.getId(), e.getMessage());
+		}
 	}
 
 	// :: Host callbacks
