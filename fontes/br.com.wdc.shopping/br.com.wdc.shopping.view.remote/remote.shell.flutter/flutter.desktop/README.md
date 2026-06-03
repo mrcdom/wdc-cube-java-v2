@@ -1,17 +1,50 @@
-# flutter_desktop
+# Shopping Native — Flutter Desktop
 
-A new Flutter project.
+Shell desktop (macOS, Linux, Windows) da aplicação **WeDoCode Shopping**, usando o protocolo de **Remote Presentation**. O app é um thin client que renderiza ViewStates recebidos do servidor via WebSocket.
 
-## Getting Started
+## Características
 
-This project is a starting point for a Flutter application.
+- **Nome do app:** Shopping Native
+- **Plataformas:** macOS, Linux, Windows
+- **Protocolo:** WebSocket bidirecional com criptografia RSA + AES-GCM
+- **Persistência de sessão:** Access token via SharedPreferences (auto-login)
+- **Código compartilhado:** Usa `flutter_commons` para protocolo, views e widgets
 
-A few resources to get you started if this is your first Flutter project:
+## Pré-requisitos
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+- **Flutter 3.44+** (`flutter --version`)
+- **Backend rodando** na porta 8080 (ou endpoint configurado)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Execução
+
+```bash
+# Run (detecção automática do OS)
+./run.sh
+
+# Build release
+./build.sh
+
+# Ou com endpoint customizado
+WDC_ENDPOINT=http://servidor:8080 ./run.sh
+```
+
+## Estrutura
+
+```
+flutter.desktop/
+├── lib/
+│   └── main.dart        ← Entry point (session init, ViewStateCoordinator)
+├── macos/               ← Config nativa macOS
+├── linux/               ← Config nativa Linux
+├── windows/             ← Config nativa Windows
+├── build.sh             ← Build release (auto-detecta OS)
+├── run.sh               ← Run debug (auto-detecta OS)
+└── pubspec.yaml
+```
+
+## Dependências
+
+| Package | Uso |
+|---------|-----|
+| `flutter_commons` | Protocolo WS, views, widgets, segurança |
+| `shared_preferences` | Persistência de access token |
