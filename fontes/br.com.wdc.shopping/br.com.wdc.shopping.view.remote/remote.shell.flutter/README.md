@@ -17,19 +17,22 @@ Todos os shells Flutter compartilham a mesma base de código (`flutter_commons`)
 
 ## Arquitetura
 
-```
-┌────────────────────────────────────────────────────────────┐
-│                    flutter.commons                          │
-│  ┌──────────┐  ┌──────────┐  ┌────────┐  ┌────────────┐  │
-│  │  bridge  │  │  views   │  │widgets │  │design tokens│  │
-│  └──────────┘  └──────────┘  └────────┘  └────────────┘  │
-└────────────────────────────────────────────────────────────┘
-        ▲                ▲                ▲
-        │                │                │
-   ┌────┴────┐    ┌──────┴──────┐   ┌────┴────┐
-   │ desktop │    │   mobile    │   │   web   │
-   │ (macOS) │    │ (iOS/Andr.) │   │(browser)│
-   └─────────┘    └─────────────┘   └─────────┘
+```mermaid
+graph TD
+    subgraph commons["flutter.commons"]
+        bridge["bridge"]
+        views["views"]
+        widgets["widgets"]
+        tokens["design tokens"]
+    end
+
+    desktop["flutter.desktop<br/><small>macOS · Linux · Windows</small>"]
+    mobile["flutter.mobile<br/><small>iOS · Android</small>"]
+    web["flutter.web<br/><small>Browser (WASM/JS)</small>"]
+
+    desktop --> commons
+    mobile --> commons
+    web --> commons
 ```
 
 ## Pré-requisitos
