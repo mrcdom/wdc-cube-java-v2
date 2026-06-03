@@ -152,7 +152,7 @@ public class OkHttpTransport implements HttpTransport {
 
         try (var response = client.newCall(requestBuilder.build()).execute()) {
             if (response.code() == 404 || response.code() == 204) {
-                return null;
+                return null; // NOSONAR S1168 — null means "resource not found", distinct from empty
             }
             if (!response.isSuccessful()) {
                 throw new BusinessException("HTTP " + response.code());

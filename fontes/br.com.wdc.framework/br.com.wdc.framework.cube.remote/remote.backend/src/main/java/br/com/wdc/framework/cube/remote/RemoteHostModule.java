@@ -2,6 +2,7 @@ package br.com.wdc.framework.cube.remote;
 
 import br.com.wdc.framework.cube.remote.javalin.DispatcherController;
 import br.com.wdc.framework.cube.remote.javalin.IndexHtmlController;
+import br.com.wdc.framework.cube.remote.javalin.SessionInitController;
 import io.javalin.config.JavalinConfig;
 
 /**
@@ -34,6 +35,7 @@ public final class RemoteHostModule<T extends RemoteApplication> {
 
     private final DispatcherController dispatcherController;
     private final IndexHtmlController indexHtmlController;
+    private final SessionInitController sessionInitController;
 
     public RemoteHostModule(RemoteAppSecurity security,
                             RemoteApplicationRegistry<T> registry,
@@ -43,6 +45,7 @@ public final class RemoteHostModule<T extends RemoteApplication> {
         this.contextPaths = contextPaths;
         this.dispatcherController = new DispatcherController(registry, security);
         this.indexHtmlController = new IndexHtmlController(security);
+        this.sessionInitController = new SessionInitController(security);
     }
 
     /**
@@ -51,6 +54,7 @@ public final class RemoteHostModule<T extends RemoteApplication> {
     public void configure(JavalinConfig config) {
         dispatcherController.configure(config, contextPaths);
         indexHtmlController.configure(config, contextPaths);
+        sessionInitController.configure(config, contextPaths);
     }
 
     /**

@@ -16,19 +16,15 @@ public class OpenPresenter implements CubePresenter {
 	@Override
 	public boolean applyParameters(CubeIntent intent, boolean initialization, boolean deepest) {
         // :: Coloque regras necessárias para a parte pública do site
+	    
+	    // Se o usuário já está autenticado, não há motivo para estar na área pública
+        if (this.app.getSubject() != null) {
+            Routes.restricted(this.app, intent);
+            return false;
+        }
 
         if (deepest) {
-            // Só temos uma tela pública, que é o Login
-
-            if (this.app.getSubject() == null) {
-                // ... logo, se não temos usuário logado, a tela default é justamente o login
-                Routes.login(this.app, intent);
-                return false;
-            }
-
-            // ..., contudo, se temos usuário logado, por não termos outras telas abertas,
-            // a tela default é a principal da área restrita
-            Routes.restricted(this.app, intent);
+            Routes.login(this.app, intent);
             return false;
         }
 

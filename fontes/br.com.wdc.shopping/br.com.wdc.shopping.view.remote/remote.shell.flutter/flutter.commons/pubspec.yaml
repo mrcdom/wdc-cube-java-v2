@@ -1,0 +1,18 @@
+name: flutter_commons
+description: Shared logic for WDC Shopping remote shell (protocol, state, widgets).
+version: 1.0.0
+
+environment:
+  sdk: ^3.12.1
+  flutter: ">=3.44.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  web_socket_channel: ^3.0.2
+  pointycastle: ^3.9.1
+
+dev_dependencies:
+  flutter_lints: ^5.0.0
+  flutter_test:
+    sdk: flutter

@@ -138,6 +138,8 @@ public final class DispatcherController {
         private final RemoteApplicationRegistry<? extends RemoteApplication> registry;
 
         private String appSignature;
+        private boolean pendingSignature;
+        private String pendingAccessToken;
         private WsContext wsSession;
         private String activeWsSessionId;
 
@@ -180,12 +182,14 @@ public final class DispatcherController {
 
                 String signature = ctx.cookie("app_signature");
                 if (StringUtils.isEmpty(signature)) {
-                    LOG.warn("WebSocket connection rejected: missing app_signature cookie for session: {}", this.appId);
-                    ctx.closeSession(CLOSE_SESSION_INVALID, "reload_required");
-                    return;
+                    // No cookie — defer validation to first message (desktop/mobile clients
+                    // send the signature in the "secret" field of the first JSON message).
+                    this.pendingSignature = true;
+                } else {
+                    this.appSignature = signature;
+                    this.pendingSignature = false;
                 }
 
-                this.appSignature = signature;
                 ctx.enableAutomaticPings(15, TimeUnit.SECONDS);
                 this.activeWsSessionId = ctx.sessionId();
                 this.wsSession = ctx;
@@ -215,6 +219,24 @@ public final class DispatcherController {
                 Map<String, Object> request = parseRequest(jsonRequest);
                 if (request.isEmpty()) {
                     return;
+                }
+
+                // Desktop/mobile clients send the signature in the first message
+                if (this.pendingSignature) {
+                    Object secret = request.get("secret");
+                    if (secret instanceof String s && !s.isEmpty()) {
+                        this.appSignature = s;
+                        this.pendingSignature = false;
+                    } else {
+                        LOG.warn("WebSocket rejected: first message missing 'secret' for session: {}", this.appId);
+                        ctx.closeSession(CLOSE_SESSION_INVALID, "reload_required");
+                        return;
+                    }
+                    // Extract access token for auto-login (optional)
+                    Object token = request.get("accessToken");
+                    if (token instanceof String t && !t.isEmpty()) {
+                        this.pendingAccessToken = t;
+                    }
                 }
 
                 RemoteApplication app = getOrCreateApp(request);
@@ -288,6 +310,10 @@ public final class DispatcherController {
 
             if (app == null) {
                 request.put("secret", this.appSignature);
+                if (this.pendingAccessToken != null) {
+                    request.put("accessToken", this.pendingAccessToken);
+                    this.pendingAccessToken = null;
+                }
                 app = registry.getOrCreate(appId, request);
             }
 

@@ -113,6 +113,15 @@ public abstract class ShoppingApplication extends CubeApplication {
 
 	public abstract String b64Decipher(String b64Text);
 
+	/**
+	 * Emits an access token to the frontend for persistent storage.
+	 * Empty string signals the frontend to delete the stored token.
+	 * Default implementation is a no-op (non-remote views don't need it).
+	 */
+	public void emitAccessToken(String token) {
+		// Override in RemoteApplication implementations
+	}
+
 	// :: API
 
 	public void alertUnexpectedError(Log logger, String message, Throwable e) {

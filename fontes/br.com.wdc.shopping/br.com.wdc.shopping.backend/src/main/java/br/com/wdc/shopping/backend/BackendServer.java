@@ -179,6 +179,7 @@ public class BackendServer {
                path.endsWith(".woff") || 
                path.endsWith(".woff2") ||
                path.endsWith(".ttf") ||
+               path.endsWith(".otf") ||
                path.equals("/");
         // @formatter:on
     }

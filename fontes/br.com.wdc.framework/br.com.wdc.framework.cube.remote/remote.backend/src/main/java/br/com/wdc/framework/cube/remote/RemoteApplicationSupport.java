@@ -80,7 +80,10 @@ public class RemoteApplicationSupport {
     private long lastActiveViewsSentAt;
     private String lastSentFragment;
     private boolean historyDirty;
+    private boolean navigationAttempted;
     private int instanceIdGen = 1;
+
+    private final ConcurrentLinkedQueue<Map.Entry<String, Object>> pendingResponseFields = new ConcurrentLinkedQueue<>();
 
     private final ReentrantLock lock = new ReentrantLock();
     private final AtomicBoolean dirtyQueued = new AtomicBoolean(false);
@@ -111,6 +114,28 @@ public class RemoteApplicationSupport {
 
     public String getId() {
         return this.id;
+    }
+
+    // :: Response envelope
+
+    /**
+     * Enqueues a field to be included in the next WebSocket response JSON.
+     * Used for out-of-band data like access tokens.
+     */
+    public void addResponseField(String key, Object value) {
+        this.pendingResponseFields.add(Map.entry(key, value));
+    }
+
+    /**
+     * Emits an access token to the frontend for persistent storage.
+     * The token is ciphered for transport; an empty/null token signals
+     * the frontend to delete the stored token.
+     */
+    public void emitAccessToken(String token) {
+        var value = (token != null && !token.isEmpty())
+                ? this.dataSecurity.b64Cipher(token)
+                : "";
+        this.addResponseField("accessToken", value);
     }
 
     // :: Lifecycle
@@ -217,6 +242,7 @@ public class RemoteApplicationSupport {
 
             cubeApp.setFragment(intent.toString());
             this.historyDirty = false;
+            this.navigationAttempted = true;
         }
     }
 
@@ -265,14 +291,7 @@ public class RemoteApplicationSupport {
     // :: Request processing
 
     public void sendResponse(Map<String, Object> request) throws Exception {
-        // Discard stale requests (retransmissions after reconnect)
-        var incomingRequestId = CoerceUtils.asLong(request.get("requestId"), null);
         var isPing = CoerceUtils.asBoolean(request.get("ping"), false).booleanValue();
-        if (!isPing && incomingRequestId != null && incomingRequestId <= this.lastRequestId) {
-            LOG.debug("Discarding stale request: incoming={} last={}", incomingRequestId, this.lastRequestId);
-            return;
-        }
-
         if (isPing) {
             this.extendLife();
             var signature = CoerceUtils.asString(request.get("secret"));
@@ -283,10 +302,22 @@ public class RemoteApplicationSupport {
             return;
         }
 
+        var incomingRequestId = CoerceUtils.asLong(request.get("requestId"), null);
+        if (incomingRequestId == null) {
+            LOG.debug("Discarding request: incomingRequestId is null");
+            return;
+        }
+
+        if (incomingRequestId <= this.lastRequestId) {
+            LOG.debug("Discarding request: incoming={} <= last={}", incomingRequestId, this.lastRequestId);
+            return;
+        }
+
         try {
             this.processingSubmit = true;
+            this.lastRequestId = incomingRequestId;
             this.runDispatchPhase(request);
-            this.runResponsePhase(request);
+            this.writeAndSendResponse(incomingRequestId, this.drainDirtyViews());
         } catch (Exception e) {
             var exn = new java.io.IOException("Sending response");
             exn.addSuppressed(e);
@@ -489,24 +520,8 @@ public class RemoteApplicationSupport {
 
     // :: Response Phase
 
-    private void runResponsePhase(Map<String, Object> request) {
-        var requestId = CoerceUtils.asLong(request.get("requestId"), null);
-        if (requestId != null) {
-            this.lastRequestId = requestId;
-        }
-
-        var dirtyViews = this.drainDirtyViews();
-
-        if (dirtyViews.isEmpty() && !this.historyDirty) {
-            return;
-        }
-
-        this.doUpdateHistory();
-        this.writeAndSendResponse(requestId, dirtyViews);
-    }
-
     private void writeAndSendResponse(Long requestId, List<RemoteViewImpl> dirtyViews) {
-        if (dirtyViews.isEmpty() && !this.historyDirty) {
+        if (requestId == null && dirtyViews.isEmpty() && !this.historyDirty) {
             return;
         }
 
@@ -533,9 +548,27 @@ public class RemoteApplicationSupport {
                 json.name("requestId").value(requestId);
             }
 
+            // Drain pending envelope fields
+            Map.Entry<String, Object> field;
+            while ((field = this.pendingResponseFields.poll()) != null) {
+                json.name(field.getKey());
+                if (field.getValue() == null) {
+                    json.nullValue();
+                } else if (field.getValue() instanceof String s) {
+                    json.value(s);
+                } else if (field.getValue() instanceof Number n) {
+                    json.value(n);
+                } else if (field.getValue() instanceof Boolean b) {
+                    json.value(b);
+                } else {
+                    json.value(field.getValue().toString());
+                }
+            }
+
             var currentFragment = host.getCubeApp().getFragment();
-            if (currentFragment != null && !currentFragment.equals(this.lastSentFragment)) {
+            if (currentFragment != null && (this.navigationAttempted || !currentFragment.equals(this.lastSentFragment))) {
                 this.lastSentFragment = currentFragment;
+                this.navigationAttempted = false;
                 json.name("uri").value(currentFragment);
             }
 

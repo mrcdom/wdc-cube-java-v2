@@ -2,7 +2,7 @@ package br.com.wdc.shopping.persistence.rest;
 
 import br.com.wdc.shopping.domain.exception.AccessDeniedException;
 import br.com.wdc.shopping.domain.security.AuthenticationService;
-import br.com.wdc.shopping.domain.security.SecurityContextHolder;
+import br.com.wdc.shopping.domain.security.SecurityContext;
 import br.com.wdc.shopping.persistence.rest.security.SecurityFilter;
 import io.javalin.config.JavalinConfig;
 
@@ -45,7 +45,7 @@ public final class RepositoryApiRoutes {
 			// Filtro de segurança para endpoints protegidos
 			var securityFilter = new SecurityFilter(authService);
 			config.routes.before(prefix + "/api/repo/*", securityFilter::handle);
-			config.routes.after(prefix + "/api/repo/*", ctx -> SecurityContextHolder.clear());
+			config.routes.after(prefix + "/api/repo/*", ctx -> SecurityContext.CURRENT.remove());
 		}
 
 		// Exception handler para AccessDeniedException

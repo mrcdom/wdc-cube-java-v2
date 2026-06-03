@@ -3,7 +3,6 @@ package br.com.wdc.shopping.persistence.rest.security;
 import br.com.wdc.shopping.domain.exception.AccessDeniedException;
 import br.com.wdc.shopping.domain.security.AuthenticationService;
 import br.com.wdc.shopping.domain.security.SecurityContext;
-import br.com.wdc.shopping.domain.security.SecurityContextHolder;
 
 /**
  * Utilitário de verificação de segurança para os endpoints REST.
@@ -31,7 +30,7 @@ public final class SecurityEnforcer {
 		if (AuthenticationService.BEAN.get() == null) {
 			return null;
 		}
-		var sc = SecurityContextHolder.get();
+		var sc = SecurityContext.CURRENT.get();
 		if (sc == null) {
 			throw new AccessDeniedException("Authentication required");
 		}

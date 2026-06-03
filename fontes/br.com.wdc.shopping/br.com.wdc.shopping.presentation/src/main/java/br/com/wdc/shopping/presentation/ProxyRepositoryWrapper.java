@@ -6,7 +6,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 import br.com.wdc.shopping.domain.security.SecurityContext;
-import br.com.wdc.shopping.domain.security.SecurityContextHolder;
 
 /**
  * Cria proxies dinâmicos para repositórios que envolvem cada chamada com o SecurityContext.
@@ -49,20 +48,20 @@ public final class ProxyRepositoryWrapper {
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            var previous = SecurityContextHolder.get();
+            var previous = SecurityContext.CURRENT.get();
             try {
                 var ctx = contextSupplier.get();
                 if (ctx != null) {
-                    SecurityContextHolder.set(ctx);
+                    SecurityContext.CURRENT.set(ctx);
                 }
                 return method.invoke(delegate, args);
             } catch (InvocationTargetException e) {
                 throw e.getCause();
             } finally {
                 if (previous != null) {
-                    SecurityContextHolder.set(previous);
+                    SecurityContext.CURRENT.set(previous);
                 } else {
-                    SecurityContextHolder.clear();
+                    SecurityContext.CURRENT.remove();
                 }
             }
         }
