@@ -80,6 +80,7 @@ public class RemoteApplicationSupport {
     private long lastActiveViewsSentAt;
     private String lastSentFragment;
     private boolean historyDirty;
+    private boolean navigationAttempted;
     private int instanceIdGen = 1;
 
     private final ReentrantLock lock = new ReentrantLock();
@@ -217,6 +218,7 @@ public class RemoteApplicationSupport {
 
             cubeApp.setFragment(intent.toString());
             this.historyDirty = false;
+            this.navigationAttempted = true;
         }
     }
 
@@ -265,14 +267,7 @@ public class RemoteApplicationSupport {
     // :: Request processing
 
     public void sendResponse(Map<String, Object> request) throws Exception {
-        // Discard stale requests (retransmissions after reconnect)
-        var incomingRequestId = CoerceUtils.asLong(request.get("requestId"), null);
         var isPing = CoerceUtils.asBoolean(request.get("ping"), false).booleanValue();
-        if (!isPing && incomingRequestId != null && incomingRequestId <= this.lastRequestId) {
-            LOG.debug("Discarding stale request: incoming={} last={}", incomingRequestId, this.lastRequestId);
-            return;
-        }
-
         if (isPing) {
             this.extendLife();
             var signature = CoerceUtils.asString(request.get("secret"));
@@ -283,10 +278,22 @@ public class RemoteApplicationSupport {
             return;
         }
 
+        var incomingRequestId = CoerceUtils.asLong(request.get("requestId"), null);
+        if (incomingRequestId == null) {
+            LOG.debug("Discarding request: incomingRequestId is null");
+            return;
+        }
+
+        if (incomingRequestId <= this.lastRequestId) {
+            LOG.debug("Discarding request: incoming={} <= last={}", incomingRequestId, this.lastRequestId);
+            return;
+        }
+
         try {
             this.processingSubmit = true;
+            this.lastRequestId = incomingRequestId;
             this.runDispatchPhase(request);
-            this.runResponsePhase(request);
+            this.writeAndSendResponse(incomingRequestId, this.drainDirtyViews());
         } catch (Exception e) {
             var exn = new java.io.IOException("Sending response");
             exn.addSuppressed(e);
@@ -489,24 +496,8 @@ public class RemoteApplicationSupport {
 
     // :: Response Phase
 
-    private void runResponsePhase(Map<String, Object> request) {
-        var requestId = CoerceUtils.asLong(request.get("requestId"), null);
-        if (requestId != null) {
-            this.lastRequestId = requestId;
-        }
-
-        var dirtyViews = this.drainDirtyViews();
-
-        if (dirtyViews.isEmpty() && !this.historyDirty) {
-            return;
-        }
-
-        this.doUpdateHistory();
-        this.writeAndSendResponse(requestId, dirtyViews);
-    }
-
     private void writeAndSendResponse(Long requestId, List<RemoteViewImpl> dirtyViews) {
-        if (dirtyViews.isEmpty() && !this.historyDirty) {
+        if (requestId == null && dirtyViews.isEmpty() && !this.historyDirty) {
             return;
         }
 
@@ -534,8 +525,9 @@ public class RemoteApplicationSupport {
             }
 
             var currentFragment = host.getCubeApp().getFragment();
-            if (currentFragment != null && !currentFragment.equals(this.lastSentFragment)) {
+            if (currentFragment != null && (this.navigationAttempted || !currentFragment.equals(this.lastSentFragment))) {
                 this.lastSentFragment = currentFragment;
+                this.navigationAttempted = false;
                 json.name("uri").value(currentFragment);
             }
 

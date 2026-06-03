@@ -171,7 +171,14 @@ export class FlushRequestContext {
 
       if (response.uri) {
         app.path = response.uri
-        globalThis.location.href = `#${response.uri}`
+        const hashValue = `#${response.uri}`
+        if (app.firstUriResponse || app.navigatingFromPopState) {
+          app.firstUriResponse = false
+          app.navigatingFromPopState = false
+          globalThis.history.replaceState(null, '', hashValue)
+        } else {
+          globalThis.history.pushState(null, '', hashValue)
+        }
       }
 
       if (response.states) {

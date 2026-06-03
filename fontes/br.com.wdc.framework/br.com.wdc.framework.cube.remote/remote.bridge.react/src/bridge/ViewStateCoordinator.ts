@@ -1,10 +1,9 @@
 import React from 'react'
-import * as history from 'history'
 import * as LangUtils from '../utils/LangUtils'
 import CookieConstructor from 'universal-cookie'
 
 import type { FormMapType, IViewFactory } from './types'
-import { NOOP_VOID, NOOP_PROMISE_VOID, CAUTHED, BROWSER_VSID } from './constants'
+import { NOOP_PROMISE_VOID, CAUTHED, BROWSER_VSID } from './constants'
 import { ViewScope } from './ViewScope'
 import { DataSecurity } from './DataSecurity'
 import { FlushRequestContext } from './FlushRequestContext'
@@ -15,7 +14,6 @@ const Cookie = new CookieConstructor()
 
 export class ViewStateCoordinator {
   readonly id: string
-  readonly history = history.createHashHistory()
 
   readonly viewFactory = new Map<string, IViewFactory>()
   readonly viewMap = new Map<string, ViewScope>()
@@ -25,7 +23,9 @@ export class ViewStateCoordinator {
   isConnected = false
   path = ''
   baseWebSocketUtl = ''
-  unlistenHistory = NOOP_VOID
+  private popStateHandler: ((event: PopStateEvent) => void) | null = null
+  navigatingFromPopState = false
+  firstUriResponse = true
 
   readonly dataSecurity = new DataSecurity()
   readonly contextExchanger: FlushRequestContext
@@ -146,15 +146,20 @@ export class ViewStateCoordinator {
 
       this.assureContextExchangerIsConnected()
 
-      this.unlistenHistory()
-      this.unlistenHistory = this.history.listen(({ action, location }) => {
-        if (action === 'POP') {
-          let path = `${location.pathname}${location.search ? location.search : ''}`
-          if (this.path !== path) {
-            this.onHistoryChange(path)
-          }
+      // Listen for browser back/forward using raw popstate
+      // (pushState/replaceState do NOT fire popstate — no loop)
+      if (this.popStateHandler) {
+        globalThis.removeEventListener('popstate', this.popStateHandler)
+      }
+      this.popStateHandler = () => {
+        const hash = globalThis.location.hash
+        const newPath = hash && hash.length > 1 ? hash.substring(1) : '/'
+        if (this.path !== newPath) {
+          this.navigatingFromPopState = true
+          this.onHistoryChange(newPath)
         }
-      })
+      }
+      globalThis.addEventListener('popstate', this.popStateHandler)
 
       const hash = globalThis.location.hash
       this.path = hash && hash.length > 1 ? hash.substring(1) : '/'
@@ -167,8 +172,10 @@ export class ViewStateCoordinator {
   }
 
   onStop() {
-    this.unlistenHistory()
-    this.unlistenHistory = NOOP_VOID
+    if (this.popStateHandler) {
+      globalThis.removeEventListener('popstate', this.popStateHandler)
+      this.popStateHandler = null
+    }
   }
 
   onHistoryChange(path: string) {

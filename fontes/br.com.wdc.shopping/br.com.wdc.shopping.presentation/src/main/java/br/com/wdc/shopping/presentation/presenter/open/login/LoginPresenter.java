@@ -67,7 +67,7 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
         ownerSlot.setView(view);
 
-        return false;
+        return true;
     }
 
     // :: Messages
