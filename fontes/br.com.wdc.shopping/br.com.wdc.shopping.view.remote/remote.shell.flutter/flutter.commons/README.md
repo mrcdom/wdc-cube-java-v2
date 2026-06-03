@@ -1,39 +1,37 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# flutter_commons
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/tools/pub/writing-package-pages).
+Biblioteca compartilhada para os shells Flutter (desktop, mobile, web) da aplicação **WeDoCode Shopping**.
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/tools/pub/create-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/to/develop-packages).
--->
+Contém toda a infraestrutura necessária para que qualquer shell Flutter funcione como thin client do protocolo de Remote Presentation — sem lógica de negócio, apenas protocolo, renderização e interação.
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+## Módulos
 
-## Features
-
-TODO: List what your package can do. Maybe include images, gifs, or videos.
-
-## Getting started
-
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
-
-## Usage
-
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
-
-```dart
-const like = 'sample';
+```
+lib/src/
+├── bridge/              ← Protocolo WebSocket, segurança, coordenação de views
+│   ├── ViewStateCoordinator   ← Gerencia views ativas, protocolo WS, dirty states
+│   ├── DataSecurity           ← RSA key exchange + AES-GCM por sessão
+│   ├── FlushRequestContext    ← Envio de eventos e form data
+│   └── ReconnectController    ← Backoff progressivo para reconexão
+├── design_tokens.dart   ← Cores, tipografia, espaçamentos do design system
+├── utils/               ← Helpers compartilhados
+├── views/               ← Implementação das views (Home, Login, Root, etc.)
+└── widgets/             ← Widgets reutilizáveis (formulários, tabelas, etc.)
 ```
 
-## Additional information
+## Uso
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+Referenciado como path dependency nos shells:
+
+```yaml
+dependencies:
+  flutter_commons:
+    path: ../flutter.commons
+```
+
+## Dependências externas
+
+| Package | Uso |
+|---------|-----|
+| `web_socket_channel` | Comunicação WebSocket com o host |
+| `pointycastle` | Criptografia RSA + AES-GCM |

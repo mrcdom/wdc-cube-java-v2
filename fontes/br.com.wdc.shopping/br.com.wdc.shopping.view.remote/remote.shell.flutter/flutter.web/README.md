@@ -1,17 +1,42 @@
-# flutter_web
+# Shopping Remote — Flutter Web
 
-A new Flutter project.
+Shell web da aplicação **WeDoCode Shopping**, usando o protocolo de **Remote Presentation** via Flutter compilado para WebAssembly/JS. Thin client que renderiza ViewStates recebidos do servidor via WebSocket.
 
-## Getting Started
+## Características
 
-This project is a starting point for a Flutter application.
+- **Plataforma:** Browser (WebAssembly ou JS)
+- **Protocolo:** WebSocket bidirecional com criptografia RSA + AES-GCM
+- **Código compartilhado:** Usa `flutter_commons` para protocolo, views e widgets
+- **Alternativa ao shell React** — mesma funcionalidade, implementada em Dart/Flutter
 
-A few resources to get you started if this is your first Flutter project:
+## Pré-requisitos
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+- **Flutter 3.44+** (`flutter --version`)
+- **Backend rodando** na porta 8080 (ou endpoint configurado)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Execução
+
+```bash
+# Dev (hot reload)
+flutter run -d chrome --dart-define=WDC_ENDPOINT=http://localhost:8080
+
+# Build release
+flutter build web --dart-define=WDC_ENDPOINT=http://localhost:8080
+```
+
+## Estrutura
+
+```
+flutter.web/
+├── lib/
+│   └── main.dart        ← Entry point
+├── web/
+│   └── index.html       ← HTML host
+└── pubspec.yaml
+```
+
+## Dependências
+
+| Package | Uso |
+|---------|-----|
+| `flutter_commons` | Protocolo WS, views, widgets, segurança |
