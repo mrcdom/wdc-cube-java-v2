@@ -4,7 +4,7 @@ import '../design_tokens.dart';
 import '../utils/format_utils.dart';
 import '../utils/url_utils.dart';
 import '../widgets/hover_card.dart';
-import 'base_view.dart';
+import 'package:remote_bridge_flutter/remote_bridge_flutter.dart';
 
 /// Actions
 const _onOpenProduct = 1;

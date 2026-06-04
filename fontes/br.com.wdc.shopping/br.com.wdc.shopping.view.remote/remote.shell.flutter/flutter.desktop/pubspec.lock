@@ -231,6 +231,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.9.1"
+  remote_bridge_flutter:
+    dependency: transitive
+    description:
+      path: "../../../../br.com.wdc.framework/br.com.wdc.framework.cube.remote/remote.bridge.flutter"
+      relative: true
+    source: path
+    version: "1.0.0"
   shared_preferences:
     dependency: "direct main"
     description:

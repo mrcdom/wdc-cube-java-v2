@@ -92,6 +92,18 @@ void main() async {
     },
   ));
 
+  // Restore last navigation path (survives app restart)
+  final lastPath = _prefs.getString('last_path');
+  if (lastPath != null && lastPath.isNotEmpty) {
+    coordinator.path = lastPath;
+  }
+
+  // Persist navigation path on every URI change from server
+  coordinator.onUriChanged = (uri) {
+    coordinator.path = uri;
+    _prefs.setString('last_path', uri);
+  };
+
   // Handle access token changes from server (login/logoff)
   coordinator.onAccessTokenChanged = (token) {
     if (token.isEmpty) {
@@ -109,6 +121,7 @@ void main() async {
       _prefs.setString('app_skey', newSession['appSKey']!);
     }
     _prefs.remove('req_seq');
+    _prefs.remove('last_path');
     coordinator.onStop();
     coordinator.onStart();
   };

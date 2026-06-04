@@ -49,3 +49,6 @@ fontes/br.com.wdc.shopping/br.com.wdc.shopping.backend/work/
 **/pnpm-lock.yaml
 **/package.json
 **/package-lock.json
+
+# Flutter/Dart generated
+.dart_tool/

@@ -1,5 +1,5 @@
-name: flutter_commons
-description: Shared logic for WDC Shopping remote shell (protocol, state, widgets).
+name: remote_bridge_flutter
+description: Framework bridge for Flutter remote shell clients — WebSocket protocol, ViewScope state, security, and base view abstractions.
 version: 1.0.0
 
 environment:
@@ -9,8 +9,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  remote_bridge_flutter:
-    path: ../../../../br.com.wdc.framework/br.com.wdc.framework.cube.remote/remote.bridge.flutter
   web_socket_channel: ^3.0.2
   pointycastle: ^3.9.1
 

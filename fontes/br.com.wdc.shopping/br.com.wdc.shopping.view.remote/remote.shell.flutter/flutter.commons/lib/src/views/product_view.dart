@@ -6,7 +6,7 @@ import '../utils/url_utils.dart';
 import '../widgets/error_banner.dart';
 import '../widgets/html_text.dart';
 import '../widgets/page_card.dart';
-import 'base_view.dart';
+import 'package:remote_bridge_flutter/remote_bridge_flutter.dart';
 
 /// Actions
 const _onOpenProducts = 1;

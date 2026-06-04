@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../widgets/error_banner.dart';
-import 'base_view.dart';
+import 'package:remote_bridge_flutter/remote_bridge_flutter.dart';
 
 /// RootView — shows the content view pushed by the server,
 /// or an error if something went wrong.

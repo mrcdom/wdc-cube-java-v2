@@ -5,7 +5,7 @@ import '../utils/format_utils.dart';
 import '../widgets/error_banner.dart';
 import '../widgets/page_card.dart';
 import '../widgets/view_header.dart';
-import 'base_view.dart';
+import 'package:remote_bridge_flutter/remote_bridge_flutter.dart';
 
 /// Actions
 const _onBuy = 1;
