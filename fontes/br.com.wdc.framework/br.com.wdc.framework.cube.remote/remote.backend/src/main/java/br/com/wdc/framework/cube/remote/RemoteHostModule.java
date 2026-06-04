@@ -45,7 +45,7 @@ public final class RemoteHostModule<T extends RemoteApplication> {
         this.contextPaths = contextPaths;
         this.dispatcherController = new DispatcherController(registry, security);
         this.indexHtmlController = new IndexHtmlController(security);
-        this.sessionInitController = new SessionInitController(security);
+        this.sessionInitController = new SessionInitController(security, registry::isFull);
     }
 
     /**

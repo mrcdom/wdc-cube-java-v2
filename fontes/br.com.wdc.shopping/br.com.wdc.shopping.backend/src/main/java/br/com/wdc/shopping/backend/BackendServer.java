@@ -14,6 +14,8 @@ import br.com.wdc.shopping.persistence.rest.RepositoryApiRoutes;
 import br.com.wdc.shopping.domain.ShoppingConfig;
 import br.com.wdc.shopping.domain.config.AppConfig;
 import br.com.wdc.shopping.backend.controller.DevDbResetController;
+import br.com.wdc.shopping.backend.controller.DevGcController;
+import br.com.wdc.shopping.backend.controller.DevHeapController;
 import br.com.wdc.shopping.backend.controller.DevReloadController;
 import br.com.wdc.shopping.backend.controller.ImageController;
 import br.com.wdc.shopping.backend.controller.LandingPageController;
@@ -146,6 +148,8 @@ public class BackendServer {
         if (devMode) {
             DevReloadController.configure(config);
             DevDbResetController.configure(config);
+            DevHeapController.configure(config);
+            DevGcController.configure(config);
         }
 
         // SPA fallback: redirect unmatched paths within a frontend context to its index.html.

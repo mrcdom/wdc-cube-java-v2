@@ -12,7 +12,10 @@ import br.com.wdc.framework.cube.remote.RemoteAppSecurity;
 import br.com.wdc.framework.cube.remote.RemoteApplicationRegistry;
 import br.com.wdc.framework.cube.remote.RemoteHostModule;
 import br.com.wdc.shopping.domain.ShoppingConfig;
+import br.com.wdc.shopping.domain.config.AppConfig;
 import io.javalin.config.JavalinConfig;
+
+import java.time.Duration;
 
 /**
  * Bootstrap for the remote.host infrastructure.
@@ -59,8 +62,25 @@ public final class RemoteHostBootstrap {
      * Context paths are discovered from the frontend directory (work/frontend/).
      */
     public static void configure(JavalinConfig config) {
+        var appConfig = AppConfig.load();
+        int maxSessions = appConfig.getInt("server.maxSessions", -1);
+
         var security = RemoteAppSecurity.createDefault();
         var registry = new RemoteApplicationRegistry<>(ShoppingApplicationImpl::createApp);
+
+        if (maxSessions > 0) {
+            registry.setMaxInstances(maxSessions);
+            LOG.info("Session limit configured: maxSessions={}", maxSessions);
+        }
+
+        int sessionTtlSeconds = appConfig.getInt("server.sessionTtlSeconds", -1);
+        if (sessionTtlSeconds == 0) {
+            registry.setSessionTimeSpan(Duration.ZERO);
+            LOG.info("Session TTL disabled: sessions released immediately on disconnect");
+        } else if (sessionTtlSeconds > 0) {
+            registry.setSessionTimeSpan(Duration.ofSeconds(sessionTtlSeconds));
+            LOG.info("Session TTL configured: {}s", sessionTtlSeconds);
+        }
 
         ShoppingApplicationImpl.initialize(security, registry);
 

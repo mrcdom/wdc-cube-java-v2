@@ -39,10 +39,56 @@ public final class RemoteApplicationRegistry<T extends RemoteApplication> {
     private final BiFunction<String, Map<String, Object>, T> factory;
 
     /**
+     * Maximum number of concurrent application sessions.
+     * {@code -1} (default) means unlimited.
+     */
+    private int maxInstances = -1;
+
+    /**
+     * TTL for authenticated sessions after WebSocket disconnect.
+     * {@code Duration.ZERO} means immediate release (no cache).
+     * Default: {@link RemoteApplicationSupport#DEFAULT_TIME_SPAN}.
+     */
+    private Duration sessionTimeSpan = RemoteApplicationSupport.DEFAULT_TIME_SPAN;
+
+    /**
      * @param factory creates a new application instance given (appId, initialRequest)
      */
     public RemoteApplicationRegistry(BiFunction<String, Map<String, Object>, T> factory) {
         this.factory = factory;
+    }
+
+    /**
+     * Sets the maximum number of concurrent sessions.
+     * {@code -1} disables the limit (default).
+     */
+    public void setMaxInstances(int maxInstances) {
+        this.maxInstances = maxInstances;
+    }
+
+    public int size() {
+        return instanceMap.size();
+    }
+
+    public boolean isFull() {
+        return maxInstances > 0 && instanceMap.size() >= maxInstances;
+    }
+
+    /**
+     * Sets the TTL for authenticated sessions after WebSocket disconnect.
+     * Use {@code Duration.ZERO} to disable caching (immediate release).
+     */
+    public void setSessionTimeSpan(Duration sessionTimeSpan) {
+        this.sessionTimeSpan = sessionTimeSpan != null ? sessionTimeSpan : RemoteApplicationSupport.DEFAULT_TIME_SPAN;
+    }
+
+    public Duration getSessionTimeSpan() {
+        return sessionTimeSpan;
+    }
+
+    /** Returns true when sessions are released immediately on disconnect (TTL = 0). */
+    public boolean isImmediateRelease() {
+        return sessionTimeSpan.isZero();
     }
 
     public void init() {
@@ -90,6 +136,13 @@ public final class RemoteApplicationRegistry<T extends RemoteApplication> {
     }
 
     public T getOrCreate(String appId, Map<String, Object> request) {
+        T existing = instanceMap.get(appId);
+        if (existing != null) {
+            return existing;
+        }
+        if (isFull()) {
+            throw new CapacityExceededException(maxInstances);
+        }
         return instanceMap.computeIfAbsent(appId, id -> factory.apply(id, request));
     }
 

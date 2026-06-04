@@ -68,6 +68,7 @@ public class RemoteApplicationSupport {
     private final Host host;
     private final RemoteAppSecurity security;
 
+    private Duration timeSpan = DEFAULT_TIME_SPAN;
     private long expireMoment;
     private RemoteDataSecurity dataSecurity;
     private transient @SuppressWarnings("java:S2065") WsContext wsSession;
@@ -103,7 +104,7 @@ public class RemoteApplicationSupport {
      * (i.e., after presenterMap is initialized).
      */
     public void postConstruct(RemoteApplication owner) {
-        this.expireMoment = System.currentTimeMillis() + DEFAULT_TIME_SPAN.toMillis();
+        this.expireMoment = System.currentTimeMillis() + timeSpan.toMillis();
         this.dataSecurity = new RemoteDataSecurity(security);
         this.browserPresenter = new RemoteBrowserPresenter(owner);
         this.putView(this.browserPresenter.getView());
@@ -140,8 +141,12 @@ public class RemoteApplicationSupport {
 
     // :: Lifecycle
 
+    public void setTimeSpan(Duration timeSpan) {
+        this.timeSpan = timeSpan != null ? timeSpan : DEFAULT_TIME_SPAN;
+    }
+
     public void extendLife() {
-        this.expireMoment = System.currentTimeMillis() + DEFAULT_TIME_SPAN.toMillis();
+        this.expireMoment = System.currentTimeMillis() + timeSpan.toMillis();
     }
 
     public boolean isExpired(long now) {

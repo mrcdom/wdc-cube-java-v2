@@ -14,6 +14,7 @@ import com.google.gson.reflect.TypeToken;
 
 import br.com.wdc.framework.commons.codec.Base62;
 import br.com.wdc.framework.commons.log.Log;
+import br.com.wdc.framework.cube.remote.CapacityExceededException;
 import br.com.wdc.framework.cube.remote.RemoteAppSecurity;
 import br.com.wdc.framework.cube.remote.RemoteApplication;
 import br.com.wdc.framework.cube.remote.RemoteApplicationRegistry;
@@ -35,6 +36,7 @@ public final class DispatcherController {
     private static final Log LOG = Log.getLogger(DispatcherController.class);
 
     private static final int CLOSE_SESSION_INVALID = 4001;
+    private static final int CLOSE_CAPACITY_EXCEEDED = 4003;
 
     private static final Gson GSON = new GsonBuilder()
             .serializeNulls()
@@ -242,6 +244,13 @@ public final class DispatcherController {
                 RemoteApplication app = getOrCreateApp(request);
                 processRequest(app, request);
 
+            } catch (CapacityExceededException e) {
+                LOG.warn("WebSocket rejected (capacity exceeded) for session: {}", this.appId);
+                try {
+                    ctx.closeSession(CLOSE_CAPACITY_EXCEEDED, "capacity_exceeded");
+                } catch (Exception closeErr) {
+                    LOG.warn("Error closing session after capacity rejection", closeErr);
+                }
             } catch (Exception e) {
                 LOG.error("Unexpected error in WebSocket message handler", e);
             }
@@ -263,8 +272,9 @@ public final class DispatcherController {
                 RemoteApplication app = registry.get(appId);
                 if (app != null) {
                     app.setWsSession(null);
-                    if (!app.isAuthenticated()) {
-                        LOG.debug("Releasing non-authenticated session: {}", appId);
+                    if (!app.isAuthenticated() || registry.isImmediateRelease()) {
+                        LOG.debug("Releasing session on disconnect: {} (authenticated={}, immediateRelease={})",
+                                appId, app.isAuthenticated(), registry.isImmediateRelease());
                         app.release();
                     }
                 }
