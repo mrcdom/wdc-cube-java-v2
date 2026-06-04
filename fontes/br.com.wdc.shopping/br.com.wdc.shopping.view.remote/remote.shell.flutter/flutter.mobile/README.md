@@ -56,20 +56,30 @@ O script `deploy.sh` suporta todos os targets:
 
 ## Estrutura
 
-```
-flutter.mobile/
-├── lib/
-│   └── main.dart              ← Entry point (session init, ViewStateCoordinator)
-├── ios/
-│   └── Runner/
-│       ├── Info.plist          ← Nome, ATS config
-│       └── Assets.xcassets/    ← App icons (teal + badge F)
-├── android/
-│   └── app/src/main/
-│       ├── AndroidManifest.xml ← Nome
-│       └── res/mipmap-*/       ← App icons
-├── deploy.sh                   ← Script de deploy multi-target
-└── pubspec.yaml
+```mermaid
+graph TD
+    root["flutter.mobile/"]
+    lib["lib/"]
+    main["main.dart<br/><small>Entry point (session init, ViewStateCoordinator)</small>"]
+    ios["ios/Runner/"]
+    infoPlist["Info.plist<br/><small>Nome, ATS config</small>"]
+    assets["Assets.xcassets/<br/><small>App icons (teal + badge F)</small>"]
+    android["android/app/src/main/"]
+    manifest["AndroidManifest.xml<br/><small>Nome</small>"]
+    res["res/mipmap-*/<br/><small>App icons</small>"]
+    deploy["deploy.sh<br/><small>Script de deploy multi-target</small>"]
+    pubspec["pubspec.yaml"]
+
+    root --> lib
+    root --> ios
+    root --> android
+    root --> deploy
+    root --> pubspec
+    lib --> main
+    ios --> infoPlist
+    ios --> assets
+    android --> manifest
+    android --> res
 ```
 
 ## Dependências

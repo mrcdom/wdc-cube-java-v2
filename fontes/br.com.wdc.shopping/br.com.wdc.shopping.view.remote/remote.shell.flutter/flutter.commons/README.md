@@ -6,17 +6,28 @@ Contém toda a infraestrutura necessária para que qualquer shell Flutter funcio
 
 ## Módulos
 
-```
-lib/src/
-├── bridge/              ← Protocolo WebSocket, segurança, coordenação de views
-│   ├── ViewStateCoordinator   ← Gerencia views ativas, protocolo WS, dirty states
-│   ├── DataSecurity           ← RSA key exchange + AES-GCM por sessão
-│   ├── FlushRequestContext    ← Envio de eventos e form data
-│   └── ReconnectController    ← Backoff progressivo para reconexão
-├── design_tokens.dart   ← Cores, tipografia, espaçamentos do design system
-├── utils/               ← Helpers compartilhados
-├── views/               ← Implementação das views (Home, Login, Root, etc.)
-└── widgets/             ← Widgets reutilizáveis (formulários, tabelas, etc.)
+```mermaid
+graph TD
+    lib["lib/src/"]
+    bridge["bridge/<br/><small>Protocolo WebSocket, segurança, coordenação de views</small>"]
+    vsc["ViewStateCoordinator<br/><small>Gerencia views ativas, protocolo WS, dirty states</small>"]
+    ds["DataSecurity<br/><small>RSA key exchange + AES-GCM por sessão</small>"]
+    frc["FlushRequestContext<br/><small>Envio de eventos e form data</small>"]
+    rc["ReconnectController<br/><small>Backoff progressivo para reconexão</small>"]
+    dt["design_tokens.dart<br/><small>Cores, tipografia, espaçamentos do design system</small>"]
+    utils["utils/<br/><small>Helpers compartilhados</small>"]
+    views["views/<br/><small>Implementação das views (Home, Login, Root, etc.)</small>"]
+    widgets["widgets/<br/><small>Widgets reutilizáveis (formulários, tabelas, etc.)</small>"]
+
+    lib --> bridge
+    lib --> dt
+    lib --> utils
+    lib --> views
+    lib --> widgets
+    bridge --> vsc
+    bridge --> ds
+    bridge --> frc
+    bridge --> rc
 ```
 
 ## Uso

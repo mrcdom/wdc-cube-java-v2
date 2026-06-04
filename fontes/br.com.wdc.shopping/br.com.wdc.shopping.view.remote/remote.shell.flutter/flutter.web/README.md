@@ -26,13 +26,20 @@ flutter build web --dart-define=WDC_ENDPOINT=http://localhost:8080
 
 ## Estrutura
 
-```
-flutter.web/
-├── lib/
-│   └── main.dart        ← Entry point
-├── web/
-│   └── index.html       ← HTML host
-└── pubspec.yaml
+```mermaid
+graph TD
+    root["flutter.web/"]
+    lib["lib/"]
+    main["main.dart<br/><small>Entry point</small>"]
+    web["web/"]
+    index["index.html<br/><small>HTML host</small>"]
+    pubspec["pubspec.yaml"]
+
+    root --> lib
+    root --> web
+    root --> pubspec
+    lib --> main
+    web --> index
 ```
 
 ## Dependências

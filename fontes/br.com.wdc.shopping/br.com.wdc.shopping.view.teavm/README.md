@@ -21,10 +21,14 @@ Isso permite atingir **4 plataformas** (Web, macOS, Android, iOS) com **uma úni
 
 ## Estrutura de Módulos
 
-```
-br.com.wdc.shopping.view.teavm/          ← POM agregador (este diretório)
-├── br.com.wdc.shopping.view.teavm.web/  ← Código Java das views + compilação TeaVM → JS
-└── br.com.wdc.shopping.view.teavm.native/ ← Projeto Tauri 2 (desktop, Android, iOS)
+```mermaid
+graph TD
+    root["br.com.wdc.shopping.view.teavm/<br/><small>POM agregador (este diretório)</small>"]
+    web["br.com.wdc.shopping.view.teavm.web/<br/><small>Código Java das views + compilação TeaVM → JS</small>"]
+    native["br.com.wdc.shopping.view.teavm.native/<br/><small>Projeto Tauri 2 (desktop, Android, iOS)</small>"]
+
+    root --> web
+    root --> native
 ```
 
 ### [teavm.web](br.com.wdc.shopping.view.teavm.web/) — Views + Compilação

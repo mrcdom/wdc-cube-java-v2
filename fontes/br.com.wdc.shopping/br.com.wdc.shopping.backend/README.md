@@ -122,7 +122,7 @@ When `security.jwt.secret` is configured in `application.toml`, the server enabl
 
 `SecurityFilter` intercepts all `/api/repo/*` requests:
 - Validates JWT Bearer token
-- Populates `SecurityContextHolder` with user context (userId, roles, permissions)
+- Populates `SecurityContext.CURRENT` with user context (userId, roles, permissions)
 - Public routes (e.g., product images) bypass authentication
 - Returns 401 for missing/invalid tokens, 403 for insufficient permissions
 

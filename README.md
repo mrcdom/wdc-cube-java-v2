@@ -4,6 +4,9 @@ Proposta arquitetural para construção de aplicações utilizando o padrão **C
 
 Este projeto serve como **referência arquitetural** para novos projetos, demonstrando a implementação completa de um sistema de e-commerce (Shopping) com backend Java e **seis implementações de frontend independentes** — React (web/remoto), Flutter (mobile/desktop/web remoto), Vaadin (web/server-side), SWT (desktop nativo), Gluon (desktop/iOS/Android via GraalVM Native Image) e TeaVM (web/desktop/Android/iOS via Tauri) — provando que a camada de visualização é totalmente desacoplada da lógica de apresentação.
 
+📄 [Cube MVP — Arquitetura de Apresentação Multiplataforma em Java](docs/cube-mvp-arquitetura-multiplataforma.md)  
+📄 [Camada de Dados — Domain, Persistence e API REST](docs/camada-de-dados.md)
+
 ## Visão Geral da Arquitetura
 
 ```mermaid
@@ -330,7 +333,7 @@ Modelo **allow-wins**: permissão efetiva = união de todos os papéis do usuár
 
 | Camada | Componente | Responsabilidade |
 |--------|-----------|-----------------|
-| **HTTP** | `SecurityFilter` | Valida Bearer JWT, popula `SecurityContextHolder` |
+| **HTTP** | `SecurityFilter` | Valida Bearer JWT, popula `SecurityContext.CURRENT` |
 | **Repositório** | `SecuredXxxRepository` | Verifica permissões, restringe escopo ao userId (non-admin) |
 | **Apresentação** | `SecurityContextDelegate` (proxy) | Propaga `SecurityContext` para a thread corrente em cada chamada |
 | **Transporte** | `AppSecurity` (React) | RSA + PBKDF2 + AES-GCM para dados sensíveis via WebSocket |
