@@ -27,6 +27,9 @@ public class BinaryContentTypeFilter implements Filter {
         if (path.endsWith(".wasm")) {
             HttpServletResponse httpRes = (HttpServletResponse) response;
             chain.doFilter(request, new NoCharsetResponseWrapper(httpRes, "application/wasm"));
+        } else if (path.endsWith(".mjs")) {
+            HttpServletResponse httpRes = (HttpServletResponse) response;
+            chain.doFilter(request, new NoCharsetResponseWrapper(httpRes, "application/javascript"));
         } else {
             chain.doFilter(request, response);
         }
