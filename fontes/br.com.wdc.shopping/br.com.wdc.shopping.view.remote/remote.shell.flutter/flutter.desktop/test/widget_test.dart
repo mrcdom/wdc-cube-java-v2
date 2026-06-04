@@ -1,9 +1,8 @@
-// This is a basic Flutter widget test.
+// Smoke tests for flutter.desktop.
 //
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// The app is a WebSocket shell that connects to a remote backend — full
+// integration tests require a live server. These tests cover only the widgets
+// that are renderable without a network connection.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,20 +10,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_desktop/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('ConnectionErrorApp renders error message and icon', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const ConnectionErrorApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.byIcon(Icons.cloud_off), findsOneWidget);
+    expect(find.text('Não foi possível conectar ao servidor.'), findsOneWidget);
   });
 }
