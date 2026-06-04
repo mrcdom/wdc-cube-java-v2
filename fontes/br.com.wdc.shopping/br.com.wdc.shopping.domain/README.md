@@ -43,7 +43,7 @@ graph TD
     security --> PasswordUtil["PasswordUtil (HMAC-SHA256)"]
     security --> Role["Role (ADMIN, CUSTOMER, MANAGER)"]
     security --> SecCtx["SecurityContext"]
-    security --> SecHolder["SecurityContextHolder"]
+    security --> SecHolder["SecurityContext.CURRENT"]
 
     root --> utils["utils/ — Projeção"]
     utils --> ProjValues["ProjectionValues"]
@@ -57,7 +57,7 @@ graph TD
 - **Modelos simples** — POJOs com campos públicos, sem anotações de persistência
 - **Repositórios como interfaces** — registrados via `AtomicReference<XxxRepository> BEAN` (Service Locator leve)
 - **Critérios tipados** — cada entidade tem seu `XxxCriteria` com filtros, projeção, paginação e ordenação
-- **Segurança declarativa** — `Role` enum define permissões no formato `entity:operation`; `SecurityContextHolder` propaga contexto via ThreadLocal
+- **Segurança declarativa** — `Role` enum define permissões no formato `entity:operation`; `SecurityContext.CURRENT` propaga contexto via ThreadLocal
 
 ## Modelos
 
@@ -117,7 +117,7 @@ O pacote `security/` define os contratos de autenticação e autorização:
 |--------|-----------------|
 | `Role` | Enum com papéis (ADMIN, CUSTOMER, MANAGER) e suas permissões no formato `entity:operation` |
 | `SecurityContext` | Contexto imutável do usuário autenticado (userId, userName, roles, permissions) |
-| `SecurityContextHolder` | ThreadLocal para propagação do contexto entre camadas |
+| `SecurityContext.CURRENT` | ThreadLocal para propagação do contexto entre camadas |
 | `AuthenticationService` | Contrato de autenticação: `challenge()` → `ChallengeResult`, `login(user, digest, nonce)` → `AuthResult` |
 | `PasswordUtil` | HMAC-SHA256 para gerar digest de autenticação sem trafegar senha em texto plano |
 | `AccessDeniedException` | Exceção lançada quando o usuário não possui permissão para a operação |

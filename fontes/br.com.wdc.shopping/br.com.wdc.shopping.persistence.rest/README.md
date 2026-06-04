@@ -24,7 +24,7 @@ graph TD
     root --> PurchaseCtrl["PurchaseApiController.java<br/><small>CRUD compras</small>"]
     root --> PurchItemCtrl["PurchaseItemApiController.java<br/><small>CRUD itens</small>"]
     root --> security["security/"]
-    security --> Filter["SecurityFilter.java<br/><small>Bearer JWT → SecurityContextHolder</small>"]
+    security --> Filter["SecurityFilter.java<br/><small>Bearer JWT → SecurityContext.CURRENT</small>"]
 ```
 
 ## Endpoints
@@ -70,11 +70,11 @@ Before-filter registrado em `/api/repo/*` (condicional — só ativo quando `Aut
 
 1. Extrai `Authorization: Bearer <token>` do header
 2. Valida o JWT via `AuthenticationService.resolveToken()`
-3. Popula `SecurityContextHolder` com o contexto do usuário (userId, roles, permissions)
+3. Popula `SecurityContext.CURRENT` com o contexto do usuário (userId, roles, permissions)
 4. Rotas públicas (terminadas em `/image`) ignoram autenticação
 5. Retorna 401 para tokens ausentes/inválidos
 
-O `SecurityContextHolder` é limpo automaticamente em um `after` handler registrado por `RepositoryApiRoutes`.
+O `SecurityContext.CURRENT` é limpo automaticamente em um `after` handler registrado por `RepositoryApiRoutes`.
 
 ### Tratamento de Erros
 
@@ -97,7 +97,7 @@ RepositoryApiRoutes.configure(javalinConfig);
 
 - Registra `SecurityFilter` como before-filter (se auth habilitado)
 - Registra handler para `AccessDeniedException` → 403
-- Registra `after` handler para limpar `SecurityContextHolder`
+- Registra `after` handler para limpar `SecurityContext.CURRENT`
 - Registra endpoints de autenticação (`AuthApiController`)
 - Registra endpoints CRUD de todas as entidades
 
