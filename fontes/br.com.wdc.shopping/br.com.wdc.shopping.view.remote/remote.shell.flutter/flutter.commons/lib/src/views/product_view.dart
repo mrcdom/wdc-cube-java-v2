@@ -62,24 +62,23 @@ class _ProductViewState extends BaseViewState<ProductView> {
                     child: HtmlText(html: description),
                   ),
                 // Price + Image
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  spacing: 32,
-                  runSpacing: 16,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     // Price + quantity
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
                             color: appAccentLight,
                             borderRadius: BorderRadius.circular(radiusSm),
                           ),
                           child: Text(formatCurrency(price),
-                              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: appAccent)),
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: appAccent)),
                         ),
                         const SizedBox(height: 12),
                         Row(
@@ -101,23 +100,26 @@ class _ProductViewState extends BaseViewState<ProductView> {
                         ),
                       ],
                     ),
+                    const SizedBox(width: 16),
                     // Image
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(radiusSm),
-                        gradient: imageGradient,
-                      ),
-                      child: SizedBox(
-                        width: 160,
-                        height: 160,
-                        child: productId != null
-                            ? Image.network(
-                                resolveAssetUrl('./image/product/$productId.png'),
-                                fit: BoxFit.contain,
-                                errorBuilder: (_, __, ___) => imageErrorPlaceholder(),
-                              )
-                            : imageErrorPlaceholder(),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 200, maxHeight: 200),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(radiusSm),
+                          gradient: imageGradient,
+                        ),
+                        child: AspectRatio(
+                          aspectRatio: 1,
+                          child: productId != null
+                              ? Image.network(
+                                  resolveAssetUrl('./image/product/$productId.png'),
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (_, __, ___) => imageErrorPlaceholder(),
+                                )
+                              : imageErrorPlaceholder(),
+                        ),
                       ),
                     ),
                   ],

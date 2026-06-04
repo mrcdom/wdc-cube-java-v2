@@ -94,8 +94,10 @@ class _CartViewState extends BaseViewState<CartView> {
           ),
           const SizedBox(height: 16),
           // Actions
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 8,
+            runSpacing: 8,
             children: [
               TextButton.icon(
                 onPressed: _emitBack,
@@ -133,24 +135,24 @@ class _CartViewState extends BaseViewState<CartView> {
           IconButton(
             icon: const Icon(Icons.remove, size: 16),
             onPressed: quantity > 1 ? () => _emitModifyQuantity(id, quantity - 1) : null,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+            padding: EdgeInsets.zero,
           ),
           Text('$quantity', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
           IconButton(
             icon: const Icon(Icons.add, size: 16),
             onPressed: () => _emitModifyQuantity(id, quantity + 1),
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+            padding: EdgeInsets.zero,
           ),
-          const SizedBox(width: 8),
-          SizedBox(
-            width: 90,
-            child: Text(formatCurrency(subtotal),
-                textAlign: TextAlign.end, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: appAccent)),
-          ),
+          const SizedBox(width: 4),
+          Text(formatCurrency(subtotal),
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: appAccent)),
           IconButton(
             icon: const Icon(Icons.close, size: 16, color: appDanger),
             onPressed: () => _emitRemove(id),
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+            padding: EdgeInsets.zero,
           ),
         ],
       ),
