@@ -34,42 +34,26 @@ sequenceDiagram
 
 ### Estrutura de Pacotes
 
-```
-br.com.wdc.shopping.view.swt/
-├── ShoppingSwtMain.java              # Entry point, DB init, event loop
-├── ShoppingSwtApplication.java       # App lifecycle, view factories, render timer
-├── AbstractViewSwt.java              # Base view class (performUpdate/rebuild)
-├── ScheduledExecutorSwtAdapter.java  # Bridge ConcurrentExecutor → SWT Display
-├── theme/
-│   ├── Theme.java                    # Colors, fonts, dimensions
-│   └── Surface.java                  # Painted surfaces (gradients, shadows)
-├── components/
-│   ├── PrimaryButton.java            # Botão primário (computeSize override)
-│   ├── ActionButton.java             # Botão de ação
-│   ├── IconButton.java               # Botão com ícone (30x30)
-│   ├── CardHeader.java               # Cabeçalho de card
-│   ├── AccentLine.java               # Linha decorativa colorida
-│   ├── Separator.java                # Separador horizontal
-│   ├── ShadowCard.java               # Card com sombra
-│   ├── ScrolledPage.java             # Container com scroll
-│   └── ErrorBanner.java              # Banner de erro
-├── util/
-│   ├── SwtDom.java                   # Builder API declarativa para UI
-│   ├── GridDataUtils.java            # Helpers para GridData
-│   ├── RowDataUtils.java             # Helpers para RowData
-│   ├── FormDataUtils.java            # Helpers para FormData
-│   ├── SlotComposite.java            # Slot para troca dinâmica de views
-│   ├── StackComposite.java           # Empilha composites (overlay)
-│   └── ProductImageCache.java        # Cache de imagens de produtos
-└── impl/
-    ├── RootViewSwt.java              # View raiz (content slot)
-    ├── LoginViewSwt.java             # Tela de login (gradient, form)
-    ├── HomeViewSwt.java              # Home (products + purchases panels)
-    ├── CartViewSwt.java              # Carrinho de compras
-    ├── ProductViewSwt.java           # Detalhe de produto
-    ├── ReceiptViewSwt.java           # Recibo de compra
-    ├── ProductsPanelViewSwt.java     # Painel de produtos (grid dinâmico)
-    └── PurchasesPanelViewSwt.java    # Painel de compras recentes
+```mermaid
+graph TD
+    root["br.com.wdc.shopping.view.swt/"]
+    main["ShoppingSwtMain.java<br/><small>Entry point, DB init, event loop</small>"]
+    app["ShoppingSwtApplication.java<br/><small>App lifecycle, view factories, render timer</small>"]
+    base["AbstractViewSwt.java<br/><small>Base view class (performUpdate/rebuild)</small>"]
+    sched["ScheduledExecutorSwtAdapter.java<br/><small>Bridge ConcurrentExecutor → SWT Display</small>"]
+    theme["theme/<br/><small>Theme.java · Surface.java</small>"]
+    components["components/<br/><small>PrimaryButton · ActionButton · IconButton<br/>CardHeader · AccentLine · Separator<br/>ShadowCard · ScrolledPage · ErrorBanner</small>"]
+    util["util/<br/><small>SwtDom · GridDataUtils · RowDataUtils<br/>FormDataUtils · SlotComposite · StackComposite<br/>ProductImageCache</small>"]
+    impl["impl/<br/><small>RootViewSwt · LoginViewSwt · HomeViewSwt<br/>CartViewSwt · ProductViewSwt · ReceiptViewSwt<br/>ProductsPanelViewSwt · PurchasesPanelViewSwt</small>"]
+
+    root --> main
+    root --> app
+    root --> base
+    root --> sched
+    root --> theme
+    root --> components
+    root --> util
+    root --> impl
 ```
 
 ## Dependências Principais

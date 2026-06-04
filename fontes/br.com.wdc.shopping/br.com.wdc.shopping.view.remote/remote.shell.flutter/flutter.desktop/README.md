@@ -30,16 +30,26 @@ WDC_ENDPOINT=http://servidor:8080 ./run.sh
 
 ## Estrutura
 
-```
-flutter.desktop/
-├── lib/
-│   └── main.dart        ← Entry point (session init, ViewStateCoordinator)
-├── macos/               ← Config nativa macOS
-├── linux/               ← Config nativa Linux
-├── windows/             ← Config nativa Windows
-├── build.sh             ← Build release (auto-detecta OS)
-├── run.sh               ← Run debug (auto-detecta OS)
-└── pubspec.yaml
+```mermaid
+graph TD
+    root["flutter.desktop/"]
+    lib["lib/"]
+    main["main.dart<br/><small>Entry point (session init, ViewStateCoordinator)</small>"]
+    macos["macos/<br/><small>Config nativa macOS</small>"]
+    linux["linux/<br/><small>Config nativa Linux</small>"]
+    windows["windows/<br/><small>Config nativa Windows</small>"]
+    buildsh["build.sh<br/><small>Build release (auto-detecta OS)</small>"]
+    runsh["run.sh<br/><small>Run debug (auto-detecta OS)</small>"]
+    pubspec["pubspec.yaml"]
+
+    root --> lib
+    root --> macos
+    root --> linux
+    root --> windows
+    root --> buildsh
+    root --> runsh
+    root --> pubspec
+    lib --> main
 ```
 
 ## Dependências

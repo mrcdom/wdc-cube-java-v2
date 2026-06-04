@@ -41,48 +41,72 @@ O script `build.sh` automatiza todo o processo: compila o módulo `teavm.web` (J
 
 ## Estrutura
 
-```
-br.com.wdc.shopping.view.teavm.native/
-├── build.sh                  ← Script unificado de build (desktop/android/ios)
-├── pom.xml                   ← Declaração Maven (sem código Java)
-└── src-tauri/
-    ├── tauri.conf.json       ← Configuração Tauri (janela, bundle, segurança)
-    ├── Cargo.toml            ← Dependências Rust
-    ├── src/
-    │   ├── lib.rs            ← Entry point Tauri
-    │   └── main.rs           ← Bootstrap (desktop)
-    ├── icons/                ← Ícones do app (desktop + Android customizados)
-    │   ├── *.png, *.icns     ← Desktop
-    │   └── android/          ← Ícones Android por densidade (mdpi→xxxhdpi)
-    ├── capabilities/         ← Permissões Tauri (window, webview)
-    └── gen/                  ← Código gerado (Android Studio project, Xcode project)
+```mermaid
+graph TD
+    root["br.com.wdc.shopping.view.teavm.native/"]
+    buildsh["build.sh\n<small>Script unificado de build (desktop/android/ios)</small>"]
+    pom["pom.xml\n<small>Declaração Maven (sem código Java)</small>"]
+    srcTauri["src-tauri/"]
+    tauriConf["tauri.conf.json\n<small>Configuração Tauri (janela, bundle, segurança)</small>"]
+    cargoToml["Cargo.toml\n<small>Dependências Rust</small>"]
+    src["src/"]
+    libRs["lib.rs\n<small>Entry point Tauri</small>"]
+    mainRs["main.rs\n<small>Bootstrap (desktop)</small>"]
+    icons["icons/\n<small>Ícones do app (desktop + Android customizados)</small>"]
+    capabilities["capabilities/\n<small>Permissões Tauri (window, webview)</small>"]
+    gen["gen/\n<small>Código gerado (Android Studio project, Xcode project)</small>"]
+
+    root --> buildsh
+    root --> pom
+    root --> srcTauri
+    srcTauri --> tauriConf
+    srcTauri --> cargoToml
+    srcTauri --> src
+    srcTauri --> icons
+    srcTauri --> capabilities
+    srcTauri --> gen
+    src --> libRs
+    src --> mainRs
 ```
 
 ## Ícones Android
 
 Os ícones customizados ficam em `src-tauri/icons/android/` e são copiados automaticamente pelo `build.sh` para `src-tauri/gen/android/.../res/` antes do build, sobrescrevendo os ícones padrão do Tauri:
 
-```
-icons/android/
-├── mipmap-mdpi/          ← 48×48
-├── mipmap-hdpi/          ← 72×72
-├── mipmap-xhdpi/         ← 96×96
-├── mipmap-xxhdpi/        ← 144×144
-├── mipmap-xxxhdpi/       ← 192×192
-├── mipmap-anydpi-v26/    ← Adaptive icon XML (API 26+)
-└── values/               ← Cor de fundo do ícone adaptativo
+```mermaid
+graph TD
+    root["icons/android/"]
+    mdpi["mipmap-mdpi/<br/><small>48×48</small>"]
+    hdpi["mipmap-hdpi/<br/><small>72×72</small>"]
+    xhdpi["mipmap-xhdpi/<br/><small>96×96</small>"]
+    xxhdpi["mipmap-xxhdpi/<br/><small>144×144</small>"]
+    xxxhdpi["mipmap-xxxhdpi/<br/><small>192×192</small>"]
+    anydpi["mipmap-anydpi-v26/<br/><small>Adaptive icon XML (API 26+)</small>"]
+    values["values/<br/><small>Cor de fundo do ícone adaptativo</small>"]
+
+    root --> mdpi
+    root --> hdpi
+    root --> xhdpi
+    root --> xxhdpi
+    root --> xxxhdpi
+    root --> anydpi
+    root --> values
 ```
 
 ## Fluxo de Build
 
-```
-build.sh
-  │
-  ├─ [1/2] Compila teavm.web (Maven)
-  │         Java → app.js + index.html
-  │
-  └─ [2/2] Empacota com Tauri (Cargo)
-            ├─ desktop: .app bundle (macOS)
-            ├─ android: APK debug (aarch64) + adb install
-            └─ ios: .app simulador (aarch64-sim) + xcrun install
+```mermaid
+graph TD
+    buildSh["build.sh"]
+    step1["1/2 — Compila teavm.web via Maven<br/>Java → app.js + index.html"]
+    step2["2/2 — Empacota com Tauri via Cargo"]
+    desktop[".app bundle (macOS)"]
+    android["APK debug aarch64 + adb install"]
+    ios[".app simulador aarch64-sim + xcrun install"]
+
+    buildSh --> step1
+    buildSh --> step2
+    step2 --> desktop
+    step2 --> android
+    step2 --> ios
 ```

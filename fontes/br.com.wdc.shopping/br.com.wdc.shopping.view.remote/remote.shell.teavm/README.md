@@ -48,42 +48,48 @@ graph TD
 
 ## Estrutura do Projeto
 
-```
-remote.shell.teavm/
-├── build.sh                    ← Build simplificado (TeaVM → JS)
-├── watch.sh                    ← Rebuild automático ao detectar mudanças
-├── pom.xml                     ← Maven + plugin TeaVM
-├── docs/
-│   └── GUIDE_NEW_VIEW.md      ← Guia para criar novas views
-└── src/main/
-    ├── java/.../shell/teavm/
-    │   ├── Main.java                       ← Entry point (registra view factories)
-    │   ├── bridge/
-    │   │   ├── AbstractRemoteView.java     ← Base VDom (render/diff/useCallback)
-    │   │   ├── ViewStateCoordinator.java   ← Gerencia views ativas + protocolo WS
-    │   │   ├── ViewScope.java              ← Estado reativo recebido do host
-    │   │   ├── FlushRequestContext.java    ← Comunicação WS (request/response)
-    │   │   ├── ReconnectController.java    ← Backoff progressivo para reconexão
-    │   │   ├── DataSecurity.java           ← RSA + AES-GCM (criptografia de sessão)
-    │   │   ├── JsonParser.java             ← Parsing de respostas JSON do host
-    │   │   └── ViewGarbageCollector.java   ← Cleanup de views desalocadas
-    │   ├── interop/                        ← JSO bridges
-    │   │   ├── Console.java
-    │   │   ├── Timers.java
-    │   │   └── Js*Consumer/Runnable.java
-    │   └── views/                          ← 9 views (thin renderers)
-    │       ├── BrowserView.java            ← Controle de navegação (URI → view)
-    │       ├── RootView.java               ← Layout root (header + content)
-    │       ├── LoginView.java
-    │       ├── HomeView.java
-    │       ├── ProductsPanelView.java
-    │       ├── ProductView.java
-    │       ├── CartView.java
-    │       ├── ReceiptView.java
-    │       └── PurchasesPanelView.java
-    └── webapp/
-        ├── index.html
-        └── css/app.css                     ← Utility classes + componentes + ícones
+```mermaid
+graph TD
+    root["remote.shell.teavm/"]
+    buildsh["build.sh<br/><small>Build simplificado (TeaVM → JS)</small>"]
+    watchsh["watch.sh<br/><small>Rebuild automático ao detectar mudanças</small>"]
+    pom["pom.xml<br/><small>Maven + plugin TeaVM</small>"]
+    docs["docs/<br/><small>GUIDE_NEW_VIEW.md</small>"]
+    srcMain["src/main/"]
+    java["java/.../shell/teavm/"]
+    main["Main.java<br/><small>Entry point (registra view factories)</small>"]
+    bridge["bridge/"]
+    arv["AbstractRemoteView.java<br/><small>Base VDom (render/diff/useCallback)</small>"]
+    vsc["ViewStateCoordinator.java<br/><small>Gerencia views ativas + protocolo WS</small>"]
+    vs["ViewScope.java<br/><small>Estado reativo recebido do host</small>"]
+    frc["FlushRequestContext.java<br/><small>Comunicação WS (request/response)</small>"]
+    rc["ReconnectController.java<br/><small>Backoff progressivo para reconexão</small>"]
+    ds["DataSecurity.java<br/><small>RSA + AES-GCM (criptografia de sessão)</small>"]
+    jp["JsonParser.java<br/><small>Parsing de respostas JSON do host</small>"]
+    vgc["ViewGarbageCollector.java<br/><small>Cleanup de views desalocadas</small>"]
+    interop["interop/<br/><small>JSO bridges — Console · Timers · JsConsumer/Runnable</small>"]
+    views["views/<br/><small>BrowserView · RootView · LoginView · HomeView<br/>ProductsPanelView · ProductView · CartView · ReceiptView · PurchasesPanelView</small>"]
+    webapp["webapp/<br/><small>index.html + css/app.css</small>"]
+
+    root --> buildsh
+    root --> watchsh
+    root --> pom
+    root --> docs
+    root --> srcMain
+    srcMain --> java
+    srcMain --> webapp
+    java --> main
+    java --> bridge
+    java --> interop
+    java --> views
+    bridge --> arv
+    bridge --> vsc
+    bridge --> vs
+    bridge --> frc
+    bridge --> rc
+    bridge --> ds
+    bridge --> jp
+    bridge --> vgc
 ```
 
 ## Virtual DOM
@@ -153,12 +159,18 @@ JAVA21_HOME=<caminho-jdk-21> ./build.sh --full
 
 ### Output
 
-```
-work/frontend/remote.shell.teavm/
-├── index.html
-├── css/app.css
-└── js/
-    └── app.js    ← Java compilado para JavaScript
+```mermaid
+graph TD
+    root["work/frontend/remote.shell.teavm/"]
+    index["index.html"]
+    css["css/app.css"]
+    js["js/"]
+    appJs["app.js<br/><small>Java compilado para JavaScript</small>"]
+
+    root --> index
+    root --> css
+    root --> js
+    js --> appJs
 ```
 
 ## Desenvolvimento

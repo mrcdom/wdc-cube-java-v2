@@ -4,30 +4,36 @@ Código-fonte Java das views TeaVM e compilação para JavaScript. Este módulo 
 
 ## Arquitetura
 
-```
-Browser (JavaScript)
-├── index.html                          ← Carrega Spectrum WC + CSS + app.js
-└── js/app.js                           ← Java compilado para JS pelo TeaVM
-    ├── Main.java                       ← Entry point
-    ├── ShoppingTeaVMApplication.java   ← Wiring de factories e render loop
-    ├── AbstractViewTeaVM.java          ← Classe base (legacy HtmlDom)
-    ├── vdom/
-    │   └── AbstractVDomView.java       ← Classe base VDom (render + diff + useCallback)
-    ├── FetchHttpTransport.java         ← XMLHttpRequest (REST API calls)
-    ├── BrowserCryptoProvider.java      ← Web Crypto API (HMAC-SHA256)
-    ├── ScheduledExecutorBrowser.java   ← setTimeout/setInterval
-    ├── interop/                        ← JSO bridges (Console, Timers, Fetch)
-    ├── repo/                           ← Repositórios via REST API
-    ├── util/                           ← DateUtils
-    └── views/                          ← 8 views (VDom)
-        ├── RootViewVDom.java
-        ├── LoginViewVDom.java
-        ├── HomeViewVDom.java
-        ├── ProductsPanelViewVDom.java
-        ├── ProductViewVDom.java
-        ├── CartViewVDom.java
-        ├── ReceiptViewVDom.java
-        └── PurchasesPanelViewVDom.java
+```mermaid
+graph TD
+    browser["Browser (JavaScript)"]
+    indexHtml["index.html<br/><small>Carrega Spectrum WC + CSS + app.js</small>"]
+    appJs["js/app.js<br/><small>Java compilado para JS pelo TeaVM</small>"]
+    main["Main.java<br/><small>Entry point</small>"]
+    app["ShoppingTeaVMApplication.java<br/><small>Wiring de factories e render loop</small>"]
+    base["AbstractViewTeaVM.java<br/><small>Classe base (legacy HtmlDom)</small>"]
+    vdom["vdom/<br/><small>AbstractVDomView.java — VDom base (render + diff + useCallback)</small>"]
+    fetch["FetchHttpTransport.java<br/><small>XMLHttpRequest (REST API calls)</small>"]
+    crypto["BrowserCryptoProvider.java<br/><small>Web Crypto API (HMAC-SHA256)</small>"]
+    sched["ScheduledExecutorBrowser.java<br/><small>setTimeout/setInterval</small>"]
+    interop["interop/<br/><small>JSO bridges (Console, Timers, Fetch)</small>"]
+    repo["repo/<br/><small>Repositórios via REST API</small>"]
+    util["util/<br/><small>DateUtils</small>"]
+    views["views/<br/><small>RootViewVDom · LoginViewVDom · HomeViewVDom<br/>ProductsPanelViewVDom · ProductViewVDom · CartViewVDom<br/>ReceiptViewVDom · PurchasesPanelViewVDom</small>"]
+
+    browser --> indexHtml
+    browser --> appJs
+    appJs --> main
+    appJs --> app
+    appJs --> base
+    appJs --> vdom
+    appJs --> fetch
+    appJs --> crypto
+    appJs --> sched
+    appJs --> interop
+    appJs --> repo
+    appJs --> util
+    appJs --> views
 ```
 
 ## Virtual DOM
@@ -101,11 +107,16 @@ JAVA_HOME=$JAVA21_HOME mvn process-classes -DskipTests
 
 ### Output
 
-```
-target/classes/META-INF/resources/teavm/
-├── index.html    ← Página HTML (carrega Spectrum WC + app.js)
-└── js/
-    └── app.js    ← Java compilado para JavaScript (~8000 métodos)
+```mermaid
+graph TD
+    root["target/classes/META-INF/resources/teavm/"]
+    indexHtml["index.html<br/><small>Página HTML (carrega Spectrum WC + app.js)</small>"]
+    js["js/"]
+    appJs["app.js<br/><small>Java compilado para JavaScript (~8000 métodos)</small>"]
+
+    root --> indexHtml
+    root --> js
+    js --> appJs
 ```
 
 ## Executar
@@ -118,29 +129,36 @@ http://localhost:8080/teavm
 
 ## Estrutura do Projeto
 
-```
-br.com.wdc.shopping.view.teavm.web/
-├── build.sh                    ← Script de build simplificado
-├── pom.xml                     ← Configuração Maven + plugin TeaVM
-└── src/main/
-    ├── java/.../view/teavm/
-    │   ├── Main.java
-    │   ├── ShoppingTeaVMApplication.java
-    │   ├── AbstractViewTeaVM.java          ← Legacy (HtmlDom)
-    │   ├── vdom/
-    │   │   └── AbstractVDomView.java       ← VDom base (render/diff/useCallback)
-    │   ├── FetchHttpTransport.java
-    │   ├── BrowserCryptoProvider.java
-    │   ├── BrowserSessionStorage.java
-    │   ├── IntentSigner.java
-    │   ├── ScheduledExecutorBrowser.java
-    │   ├── interop/            ← Console, Timers, FetchApi
-    │   ├── repo/               ← Repositórios REST
-    │   ├── util/               ← DateUtils
-    │   └── views/              ← 8 views VDom (Login, Home, Products, etc.)
-    └── webapp/
-        ├── index.html
-        └── css/app.css         ← Utility classes + componentes + ícones
+```mermaid
+graph TD
+    root["br.com.wdc.shopping.view.teavm.web/"]
+    buildsh["build.sh<br/><small>Script de build simplificado</small>"]
+    pom["pom.xml<br/><small>Configuração Maven + plugin TeaVM</small>"]
+    srcMain["src/main/"]
+    java["java/.../view/teavm/"]
+    main["Main.java"]
+    appCls["ShoppingTeaVMApplication.java"]
+    baseCls["AbstractViewTeaVM.java<br/><small>Legacy (HtmlDom)</small>"]
+    vdom["vdom/<br/><small>AbstractVDomView.java — VDom base (render/diff/useCallback)</small>"]
+    interop["interop/<br/><small>Console, Timers, FetchApi</small>"]
+    repo["repo/<br/><small>Repositórios REST</small>"]
+    util["util/<br/><small>DateUtils</small>"]
+    views["views/<br/><small>8 views VDom (Login, Home, Products, etc.)</small>"]
+    webapp["webapp/<br/><small>index.html + css/app.css (Utility classes + componentes + ícones)</small>"]
+
+    root --> buildsh
+    root --> pom
+    root --> srcMain
+    srcMain --> java
+    srcMain --> webapp
+    java --> main
+    java --> appCls
+    java --> baseCls
+    java --> vdom
+    java --> interop
+    java --> repo
+    java --> util
+    java --> views
 ```
 
 ## Screenshots

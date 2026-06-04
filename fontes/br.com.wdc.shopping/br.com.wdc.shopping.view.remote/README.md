@@ -62,16 +62,26 @@ graph TD
 
 ## Estrutura de submódulos
 
-```
-view.remote/
-├── remote.host/                ← Host: contraparte server-side do protocolo (Maven/Java)
-├── remote.shell.react/         ← Shell React: thin client no browser (Node.js/TypeScript)
-├── remote.shell.teavm/         ← Shell TeaVM: thin client Java compilado para JS (VDom)
-└── remote.shell.flutter/       ← Shells Flutter: thin clients multiplataforma (Dart)
-    ├── flutter.commons/        ← Código compartilhado (protocolo, views, widgets)
-    ├── flutter.desktop/        ← Desktop: macOS, Linux, Windows ("Shopping Native")
-    ├── flutter.mobile/         ← Mobile: iOS, Android ("Shopping Remote")
-    └── flutter.web/            ← Web: browser (WASM/JS)
+```mermaid
+graph TD
+    root["view.remote/"]
+    host["remote.host/<br/><small>Host: contraparte server-side do protocolo (Maven/Java)</small>"]
+    react["remote.shell.react/<br/><small>Shell React: thin client no browser (Node.js/TypeScript)</small>"]
+    teavm["remote.shell.teavm/<br/><small>Shell TeaVM: thin client Java compilado para JS (VDom)</small>"]
+    flutter["remote.shell.flutter/<br/><small>Shells Flutter: thin clients multiplataforma (Dart)</small>"]
+    commons["flutter.commons/<br/><small>Código compartilhado (protocolo, views, widgets)</small>"]
+    desktop["flutter.desktop/<br/><small>Desktop: macOS, Linux, Windows</small>"]
+    mobile["flutter.mobile/<br/><small>Mobile: iOS, Android</small>"]
+    web["flutter.web/<br/><small>Web: browser (WASM/JS)</small>"]
+
+    root --> host
+    root --> react
+    root --> teavm
+    root --> flutter
+    flutter --> commons
+    flutter --> desktop
+    flutter --> mobile
+    flutter --> web
 ```
 
 Futuros clientes seguirão o padrão `remote.shell.<tecnologia>`.
@@ -113,22 +123,38 @@ Thin client em Java compilado para JavaScript via TeaVM, usando **Virtual DOM** 
 - **Compact Css** — aliases (`u`/`c`/`icon`) para classes utilitárias do design system
 - Build via **Maven + plugin TeaVM** — output em `target/classes/META-INF/resources/`
 
-```
-remote.shell.teavm/
-├── src/main/java/.../shell/teavm/
-│   ├── bridge/
-│   │   ├── AbstractRemoteView.java       ← Base VDom (render/diff/useCallback)
-│   │   ├── ViewStateCoordinator.java     ← Gerencia views ativas + protocolo WS
-│   │   ├── ViewScope.java                ← Estado reativo recebido do host
-│   │   ├── FlushRequestContext.java      ← Comunicação WS
-│   │   ├── ReconnectController.java      ← Backoff progressivo
-│   │   ├── DataSecurity.java             ← RSA + AES-GCM
-│   │   └── ViewGarbageCollector.java     ← Cleanup de views desalocadas
-│   ├── interop/                          ← JSO bridges (Console, Timers, WS)
-│   └── views/                            ← 9 views (Browser, Root, Login, Home, ...)
-└── src/main/webapp/
-    ├── index.html
-    └── css/app.css
+```mermaid
+graph TD
+    root["remote.shell.teavm/"]
+    srcJava["src/main/java/.../shell/teavm/"]
+    bridge["bridge/"]
+    arv["AbstractRemoteView.java<br/><small>Base VDom (render/diff/useCallback)</small>"]
+    vsc["ViewStateCoordinator.java<br/><small>Gerencia views ativas + protocolo WS</small>"]
+    vs["ViewScope.java<br/><small>Estado reativo recebido do host</small>"]
+    frc["FlushRequestContext.java<br/><small>Comunicação WS</small>"]
+    rc["ReconnectController.java<br/><small>Backoff progressivo</small>"]
+    ds["DataSecurity.java<br/><small>RSA + AES-GCM</small>"]
+    vgc["ViewGarbageCollector.java<br/><small>Cleanup de views desalocadas</small>"]
+    interop["interop/<br/><small>JSO bridges (Console, Timers, WS)</small>"]
+    views["views/<br/><small>9 views (Browser, Root, Login, Home, ...)</small>"]
+    webapp["src/main/webapp/"]
+    index["index.html"]
+    css["css/app.css"]
+
+    root --> srcJava
+    root --> webapp
+    srcJava --> bridge
+    srcJava --> interop
+    srcJava --> views
+    bridge --> arv
+    bridge --> vsc
+    bridge --> vs
+    bridge --> frc
+    bridge --> rc
+    bridge --> ds
+    bridge --> vgc
+    webapp --> index
+    webapp --> css
 ```
 
 ## Fluxo de comunicação
