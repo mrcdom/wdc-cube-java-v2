@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../bridge/constants.dart';
+import 'package:remote_bridge_flutter/remote_bridge_flutter.dart';
 import '../design_tokens.dart';
 import '../widgets/status_banner.dart';
-import 'base_view.dart';
+
 
 /// Actions
 const _onAlertOk = 1;

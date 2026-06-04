@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../bridge/view_state_coordinator.dart';
+import 'package:remote_bridge_flutter/remote_bridge_flutter.dart';
 import '../design_tokens.dart';
 import '../widgets/error_banner.dart';
-import 'base_view.dart';
+
 
 /// Actions
 const _onLogin = 1;

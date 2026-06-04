@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../design_tokens.dart';
 import '../utils/format_utils.dart';
-import 'base_view.dart';
+import 'package:remote_bridge_flutter/remote_bridge_flutter.dart';
 
 /// Actions
 const _onOpenReceipt = 1;

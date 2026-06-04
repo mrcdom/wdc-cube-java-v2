@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
 
-import '../bridge/view_state_coordinator.dart';
+import 'package:remote_bridge_flutter/remote_bridge_flutter.dart';
 import 'root_view.dart';
-import 'slot_view.dart';
+
 import 'login_view.dart';
 import 'home_view.dart';
 import 'products_panel.dart';

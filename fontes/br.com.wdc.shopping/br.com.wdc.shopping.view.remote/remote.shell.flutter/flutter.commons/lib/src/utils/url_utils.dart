@@ -1,4 +1,4 @@
-import '../bridge/view_state_coordinator.dart';
+import 'package:remote_bridge_flutter/remote_bridge_flutter.dart';
 
 String? _cachedBaseHttpUrl;
 
