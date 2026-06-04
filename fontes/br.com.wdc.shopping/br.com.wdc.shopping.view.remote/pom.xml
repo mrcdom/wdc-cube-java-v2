@@ -18,6 +18,7 @@
 		<module>remote.host</module>
 		<module>remote.shell.react</module>
 		<module>remote.shell.teavm</module>
+		<module>remote.shell.java-client</module>
 	</modules>
 
 </project>

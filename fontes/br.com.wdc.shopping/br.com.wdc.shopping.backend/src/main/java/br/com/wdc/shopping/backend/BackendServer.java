@@ -13,6 +13,7 @@ import br.com.wdc.framework.commons.log.Slf4jLogFactory;
 import br.com.wdc.shopping.persistence.rest.RepositoryApiRoutes;
 import br.com.wdc.shopping.domain.ShoppingConfig;
 import br.com.wdc.shopping.domain.config.AppConfig;
+import br.com.wdc.shopping.backend.controller.DevDbResetController;
 import br.com.wdc.shopping.backend.controller.DevReloadController;
 import br.com.wdc.shopping.backend.controller.ImageController;
 import br.com.wdc.shopping.backend.controller.LandingPageController;
@@ -144,6 +145,7 @@ public class BackendServer {
         // Dev-mode live reload: WebSocket + notify endpoint
         if (devMode) {
             DevReloadController.configure(config);
+            DevDbResetController.configure(config);
         }
 
         // SPA fallback: redirect unmatched paths within a frontend context to its index.html.
