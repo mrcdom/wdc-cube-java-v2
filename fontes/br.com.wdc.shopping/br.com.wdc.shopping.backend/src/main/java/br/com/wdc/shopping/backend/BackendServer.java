@@ -22,6 +22,7 @@ import br.com.wdc.shopping.view.remote.host.RemoteHostBootstrap;
 import io.javalin.Javalin;
 import io.javalin.config.JavalinConfig;
 import io.javalin.http.staticfiles.Location;
+import org.eclipse.jetty.ee10.servlet.FilterHolder;
 
 /**
  * Standalone Javalin-based HTTP server for WeDoCode Shopping React frontend.
@@ -79,6 +80,16 @@ public class BackendServer {
             // Two minutes keeps a reasonable fail-fast window while leaving ample margin
             // over the 15-second keepalive used by browser and server.
             config.jetty.modifyWebSocketServletFactory(wsFactory -> wsFactory.setIdleTimeout(Duration.ofMinutes(2)));
+
+            // Register MIME types and strip charset for binary/module resources.
+            // BinaryContentTypeFilter ensures .wasm → application/wasm and .mjs → application/javascript
+            // without the charset suffix that Jetty appends and browsers reject.
+            config.jetty.modifyServletContextHandler(handler -> {
+                handler.getMimeTypes().addMimeMapping("wasm", "application/wasm");
+                handler.getMimeTypes().addMimeMapping("mjs", "application/javascript");
+                var filterHolder = new FilterHolder(new BinaryContentTypeFilter());
+                handler.addFilter(filterHolder, "/*", java.util.EnumSet.of(jakarta.servlet.DispatcherType.REQUEST));
+            });
 
             // Enable CORS for Tauri desktop app, Android WebView, and local dev
             config.bundledPlugins.enableCors(cors -> cors.addRule(rule -> {
@@ -168,6 +179,8 @@ public class BackendServer {
     private static boolean isStaticResource(String path) {
         // @formatter:off
         return path.endsWith(".js") || 
+               path.endsWith(".mjs") || 
+               path.endsWith(".wasm") || 
                path.endsWith(".css") || 
                path.endsWith(".html") || 
                path.endsWith(".json") || 

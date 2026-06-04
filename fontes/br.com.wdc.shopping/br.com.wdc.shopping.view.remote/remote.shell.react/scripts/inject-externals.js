@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 /**
- * Post-build script: injects external resources (Bootstrap Icons, Inter font,
- * SWC importmap, SWC bundle) into the Parcel-generated index.html.
- * These resources are served by the backend (web-cache) and cannot be
- * processed by Parcel at build time.
+ * Post-build script: injects external resources (SWC importmap, SWC bundle, etc.)
+ * into the Parcel-generated index.html.
+ *
+ * NOTE: Bootstrap Icons and Google Fonts are now declared directly in src/index.html
+ * so they survive every parcel watch rebuild automatically. This script is kept for
+ * any future resources that cannot be referenced from source (e.g. runtime-generated
+ * importmaps). It exits early without modifying the file if nothing needs injection.
  */
 const fs = require('fs')
 const path = require('path')
@@ -25,6 +28,11 @@ const INJECT_HEAD = `
 `
 
 let html = fs.readFileSync(indexPath, 'utf-8')
+
+if (html.includes('bootstrap-icons')) {
+  console.log('✓ inject-externals: already injected, skipping')
+  process.exit(0)
+}
 
 // Inject before <body> (Parcel minifies away </head>)
 if (html.includes('</head>')) {
