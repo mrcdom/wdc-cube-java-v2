@@ -62,7 +62,7 @@ void main() async {
   // Fetch fresh credentials from the server
   final session = await _fetchSessionInit(baseHttpUrl);
   if (session == null) {
-    runApp(const _ConnectionErrorApp());
+    runApp(const ConnectionErrorApp());
     return;
   }
 
@@ -76,21 +76,23 @@ void main() async {
   _prefs.setString('app_id', appId);
   _prefs.setString('app_skey', appSKey);
 
-  final coordinator = ViewStateCoordinator(CoordinatorConfig(
-    appId: appId,
-    securityKey: appSKey,
-    baseWebSocketUrl: baseWsUrl,
-    accessToken: savedToken,
-    onSetCookie: (name, value) {
-      _prefs.setString(name, value);
-    },
-    onPersistRequestSeq: (count) {
-      _prefs.setInt('req_seq', count);
-    },
-    onRestoreRequestSeq: () {
-      return _prefs.getInt('req_seq') ?? 0;
-    },
-  ));
+  final coordinator = ViewStateCoordinator(
+    CoordinatorConfig(
+      appId: appId,
+      securityKey: appSKey,
+      baseWebSocketUrl: baseWsUrl,
+      accessToken: savedToken,
+      onSetCookie: (name, value) {
+        _prefs.setString(name, value);
+      },
+      onPersistRequestSeq: (count) {
+        _prefs.setInt('req_seq', count);
+      },
+      onRestoreRequestSeq: () {
+        return _prefs.getInt('req_seq') ?? 0;
+      },
+    ),
+  );
 
   // Restore last navigation path (survives app restart)
   final lastPath = _prefs.getString('last_path');
@@ -143,15 +145,13 @@ class ShoppingDesktopApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0D66D0)),
         useMaterial3: true,
       ),
-      home: const Scaffold(
-        body: BrowserView(),
-      ),
+      home: const Scaffold(body: BrowserView()),
     );
   }
 }
 
-class _ConnectionErrorApp extends StatelessWidget {
-  const _ConnectionErrorApp();
+class ConnectionErrorApp extends StatelessWidget {
+  const ConnectionErrorApp();
 
   @override
   Widget build(BuildContext context) {
@@ -180,4 +180,3 @@ class _ConnectionErrorApp extends StatelessWidget {
     );
   }
 }
-

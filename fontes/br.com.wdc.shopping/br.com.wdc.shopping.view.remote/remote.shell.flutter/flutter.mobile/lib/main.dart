@@ -62,7 +62,7 @@ void main() async {
   // Fetch fresh credentials from the server
   final session = await _fetchSessionInit(baseHttpUrl);
   if (session == null) {
-    runApp(_ConnectionErrorApp(endpoint: baseHttpUrl));
+    runApp(ConnectionErrorApp(endpoint: baseHttpUrl));
     return;
   }
 
@@ -76,21 +76,23 @@ void main() async {
   _prefs.setString('app_id', appId);
   _prefs.setString('app_skey', appSKey);
 
-  final coordinator = ViewStateCoordinator(CoordinatorConfig(
-    appId: appId,
-    securityKey: appSKey,
-    baseWebSocketUrl: baseWsUrl,
-    accessToken: savedToken,
-    onSetCookie: (name, value) {
-      _prefs.setString(name, value);
-    },
-    onPersistRequestSeq: (count) {
-      _prefs.setInt('req_seq', count);
-    },
-    onRestoreRequestSeq: () {
-      return _prefs.getInt('req_seq') ?? 0;
-    },
-  ));
+  final coordinator = ViewStateCoordinator(
+    CoordinatorConfig(
+      appId: appId,
+      securityKey: appSKey,
+      baseWebSocketUrl: baseWsUrl,
+      accessToken: savedToken,
+      onSetCookie: (name, value) {
+        _prefs.setString(name, value);
+      },
+      onPersistRequestSeq: (count) {
+        _prefs.setInt('req_seq', count);
+      },
+      onRestoreRequestSeq: () {
+        return _prefs.getInt('req_seq') ?? 0;
+      },
+    ),
+  );
 
   // Restore last navigation path (survives app restart)
   final lastPath = _prefs.getString('last_path');
@@ -143,18 +145,14 @@ class ShoppingMobileApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0D66D0)),
         useMaterial3: true,
       ),
-      home: const Scaffold(
-        body: SafeArea(
-          child: BrowserView(),
-        ),
-      ),
+      home: const Scaffold(body: SafeArea(child: BrowserView())),
     );
   }
 }
 
-class _ConnectionErrorApp extends StatelessWidget {
+class ConnectionErrorApp extends StatelessWidget {
   final String endpoint;
-  const _ConnectionErrorApp({required this.endpoint});
+  const ConnectionErrorApp({required this.endpoint});
 
   @override
   Widget build(BuildContext context) {
@@ -183,4 +181,3 @@ class _ConnectionErrorApp extends StatelessWidget {
     );
   }
 }
-
