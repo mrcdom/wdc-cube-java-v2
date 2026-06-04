@@ -12,9 +12,7 @@ import java.util.concurrent.atomic.LongAdder;
 
 import br.com.wdc.shopping.view.remote.javaclient.HostClient;
 import br.com.wdc.shopping.view.remote.javaclient.scenario.shopping.presentation.BrowserPresenterClient;
-import br.com.wdc.shopping.view.remote.javaclient.scenario.shopping.presentation.CartPresenterClient;
 import br.com.wdc.shopping.view.remote.javaclient.scenario.shopping.presentation.LoginPresenterClient;
-import br.com.wdc.shopping.view.remote.javaclient.scenario.shopping.presentation.ProductPresenterClient;
 import br.com.wdc.shopping.view.remote.javaclient.scenario.shopping.presentation.ProductsPanelPresenterClient;
 import br.com.wdc.shopping.view.remote.javaclient.scenario.shopping.presentation.ShoppingRoutes;
 
@@ -114,7 +112,7 @@ public class ConcurrentThroughputScenario {
                 : "fire-and-wait";
 
         out.println("╔════════════════════════════════════════════════════════════════╗");
-        out.println("║           ConcurrentThroughputScenario — Host/Shell           ║");
+        out.println("║           ConcurrentThroughputScenario — Host/Shell            ║");
         out.println("╠════════════════════════════════════════════════════════════════╣");
         out.printf ("║  Server   : %-50s ║%n", serverUrl);
         out.printf ("║  Sessions : %-50d ║%n", sessions);

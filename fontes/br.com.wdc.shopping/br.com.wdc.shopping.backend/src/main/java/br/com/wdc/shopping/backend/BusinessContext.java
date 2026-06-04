@@ -1,9 +1,15 @@
 package br.com.wdc.shopping.backend;
 
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.concurrent.ScheduledExecutorService;
 
 import org.h2.jdbcx.JdbcDataSource;
+
+import io.agroal.api.AgroalDataSource;
+import io.agroal.api.configuration.supplier.AgroalDataSourceConfigurationSupplier;
+import io.agroal.api.configuration.supplier.AgroalConnectionFactoryConfigurationSupplier;
+import io.agroal.api.configuration.supplier.AgroalConnectionPoolConfigurationSupplier;
 
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.commons.log.Log;
@@ -47,10 +53,30 @@ public class BusinessContext {
             // Service now use direct ReentrantReadWriteLock and execute synchronously on Virtual Threads
             ScheduledExecutor.BEAN.set(new ScheduledExecutorAdapter(scheduledExecutor));
 
-            JdbcDataSource dataSource = new JdbcDataSource();
-            dataSource.setURL(resolveJdbcUrl(config, ShoppingConfig.getDataDir()));
-            dataSource.setUser(config.get("database.username", "sa"));
-            dataSource.setPassword(config.get("database.password", "sa"));
+            var xaDataSource = new JdbcDataSource();
+            xaDataSource.setURL(resolveJdbcUrl(config, ShoppingConfig.getDataDir()));
+            xaDataSource.setUser(config.get("database.username", "sa"));
+            xaDataSource.setPassword(config.get("database.password", "sa"));
+
+            int maxPoolSize  = config.getInt("database.pool.maxSize", 20);
+            int minIdle      = config.getInt("database.pool.minIdle", 5);
+            int connTimeout  = config.getInt("database.pool.connectionTimeoutSeconds", 30);
+
+            var poolConfig = new AgroalDataSourceConfigurationSupplier()
+                    .connectionPoolConfiguration(new AgroalConnectionPoolConfigurationSupplier()
+                            .maxSize(maxPoolSize)
+                            .minSize(minIdle)
+                            .initialSize(minIdle)
+                            .acquisitionTimeout(Duration.ofSeconds(connTimeout))
+                            .connectionFactoryConfiguration(new AgroalConnectionFactoryConfigurationSupplier()
+                                    .connectionProviderClass(org.h2.jdbcx.JdbcDataSource.class)
+                                    .jdbcUrl(xaDataSource.getURL())
+                                    .credential(new io.agroal.api.security.NamePrincipal(xaDataSource.getUser()))
+                                    .credential(new io.agroal.api.security.SimplePassword(xaDataSource.getPassword()))));
+
+            AgroalDataSource dataSource = AgroalDataSource.from(poolConfig);
+            LOG.info("Connection pool configured: maxSize={}, minIdle={}, acquisitionTimeout={}s",
+                    maxPoolSize, minIdle, connTimeout);
 
             SqlDataSource.BEAN.set(new SqlDataSourceDelegate(dataSource));
 
@@ -71,7 +97,7 @@ public class BusinessContext {
 
             LoginPresenter.simulateSlowLogin(config.getBoolean("simulation.slowLogin", false));
 
-            LOG.info("Shopping backend context configured with database {}", dataSource.getURL());
+            LOG.info("Shopping backend context configured with database {}", xaDataSource.getURL());
         } catch (Exception e) {
             throw new IllegalStateException("Failed to configure shopping backend context", e);
         }

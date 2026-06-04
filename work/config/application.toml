@@ -27,6 +27,26 @@ url = "jdbc:h2:tcp://localhost/./wedocode-shopping;DB_CLOSE_DELAY=-1;DB_CLOSE_ON
 # Log SQL statements executed by jOOQ (true/false)
 logSql = true
 
+# Connection pool (Agroal)
+# maxSize             = maximum concurrent connections to the database
+# minIdle             = minimum connections kept alive in the pool
+# connectionTimeoutSeconds = max wait for a connection before throwing
+#
+# H2 TCP: the H2 server (2.x) does not impose a fixed connection limit —
+#   it spawns one thread per connection internally. The effective limit is
+#   the OS thread/socket capacity of the H2 process.
+#   H2 serializes writes with a single database-level lock; gains above
+#   ~100–200 connections are marginal for write-heavy loads.
+#   For read-heavy loads (navigation/queries), large pools help significantly.
+#
+# PostgreSQL: maxSize can safely match or exceed the number of concurrent sessions.
+#
+# pool.maxSize = 20
+# pool.minIdle = 5
+# pool.connectionTimeoutSeconds = 30
+pool.maxSize = 100
+pool.minIdle = 20
+
 [server]
 # HTTP port
 # port = 8080
