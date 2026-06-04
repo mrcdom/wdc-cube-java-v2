@@ -130,118 +130,138 @@ class _LoginViewState extends BaseViewState<LoginView> {
   Widget _buildForm(BuildContext context, String? errorMessage, bool loading) {
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(32),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 380),
+        padding: const EdgeInsets.all(24),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 460),
+          decoration: BoxDecoration(
+            color: appSurface,
+            borderRadius: BorderRadius.circular(radiusLg),
+            boxShadow: cardShadowLg,
+          ),
+          clipBehavior: Clip.antiAlias,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: const BoxDecoration(
-                      gradient: loginGradient,
-                    ),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Positioned(
-                          top: -30, right: -30,
-                          child: _decorativeCircle(100, 0.06),
-                        ),
-                        Positioned(
-                          bottom: -20, left: -20,
-                          child: _decorativeCircle(80, 0.04),
-                        ),
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-                              ),
-                              child: const Icon(Icons.shopping_bag_outlined, size: 24, color: Colors.white),
+              // Header gradient — flush top, inset sides, square corners
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 16),
+                  decoration: const BoxDecoration(gradient: loginGradient),
+                  clipBehavior: Clip.antiAlias,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    clipBehavior: Clip.none,
+                    children: [
+                      Positioned(
+                        top: -50, right: -40,
+                        child: _decorativeCircle(120, 0.08),
+                      ),
+                      Positioned(
+                        bottom: -40, left: -30,
+                        child: _decorativeCircle(100, 0.06),
+                      ),
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                             ),
-                            const SizedBox(height: 8),
-                            const Text('WDC Shopping',
-                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-                            const Text('Sua compra certa na internet.',
-                                style: TextStyle(fontSize: 12, color: Colors.white70)),
-                          ],
-                        ),
-                      ],
-                    ),
+                            child: const Icon(Icons.shopping_bag_outlined, size: 24, color: Colors.white),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text('WDC Shopping',
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                          const Text('Sua compra certa na internet.',
+                              style: TextStyle(fontSize: 12, color: Colors.white70)),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 24),
-              const Text('Bem-vindo', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 4),
-              const Text('Entre com suas credenciais para continuar',
-                  style: TextStyle(fontSize: 14, color: appTextSecondary)),
-              const SizedBox(height: 24),
-              if (errorMessage != null) ...[
-                ErrorBanner(message: errorMessage),
-                const SizedBox(height: 16),
-              ],
-              const Text('Usuário', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
-              const SizedBox(height: 4),
-              TextField(
-                controller: _userController,
-                enabled: !loading,
-                decoration: const InputDecoration(
-                  hintText: 'Digite seu usuário',
-                  border: OutlineInputBorder(),
-                  isDense: true,
-                ),
-                onSubmitted: (_) => _emitLogin(),
               ),
-              const SizedBox(height: 16),
-              const Text('Senha', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
-              const SizedBox(height: 4),
-              TextField(
-                controller: _passController,
-                enabled: !loading,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  hintText: 'Digite sua senha',
-                  border: OutlineInputBorder(),
-                  isDense: true,
-                ),
-                onSubmitted: (_) => _emitLogin(),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                height: 48,
-                child: FilledButton(
-                  onPressed: loading ? null : _emitLogin,
-                  child: loading
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text('Entrar', style: TextStyle(fontSize: 16)),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: appBg,
-                  borderRadius: BorderRadius.circular(radiusSm),
-                  border: Border.all(color: appBorder),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text('Acesso demo: ', style: TextStyle(fontSize: 12, color: appTextSecondary)),
-                    const Text('admin', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: appAccent)),
-                    const Text(' / ', style: TextStyle(fontSize: 12, color: appTextSecondary)),
-                    const Text('admin', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: appAccent)),
-                  ],
+              // Form content — larger horizontal padding
+              Padding(
+                padding: const EdgeInsets.fromLTRB(48, 28, 48, 32),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 320),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Text('Bem-vindo', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 4),
+                      const Text('Entre com suas credenciais para continuar',
+                          style: TextStyle(fontSize: 14, color: appTextSecondary)),
+                      const SizedBox(height: 28),
+                      if (errorMessage != null) ...[
+                        ErrorBanner(message: errorMessage),
+                        const SizedBox(height: 16),
+                      ],
+                      const Text('Usuário', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                      const SizedBox(height: 4),
+                      TextField(
+                        controller: _userController,
+                        enabled: !loading,
+                        decoration: const InputDecoration(
+                          hintText: 'Digite seu usuário',
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                        ),
+                        onSubmitted: (_) => _emitLogin(),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text('Senha', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                      const SizedBox(height: 4),
+                      TextField(
+                        controller: _passController,
+                        enabled: !loading,
+                        obscureText: true,
+                        decoration: const InputDecoration(
+                          hintText: 'Digite sua senha',
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                        ),
+                        onSubmitted: (_) => _emitLogin(),
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        height: 48,
+                        child: FilledButton(
+                          onPressed: loading ? null : _emitLogin,
+                          style: accentButtonStyle,
+                          child: loading
+                              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                              : const Text('Entrar', style: TextStyle(fontSize: 16)),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: appBg,
+                          borderRadius: BorderRadius.circular(radiusSm),
+                          border: Border.all(color: appBorder),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text('Acesso demo: ', style: TextStyle(fontSize: 12, color: appTextSecondary)),
+                            const Text('admin', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: appAccent)),
+                            const Text(' / ', style: TextStyle(fontSize: 12, color: appTextSecondary)),
+                            const Text('admin', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: appAccent)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
