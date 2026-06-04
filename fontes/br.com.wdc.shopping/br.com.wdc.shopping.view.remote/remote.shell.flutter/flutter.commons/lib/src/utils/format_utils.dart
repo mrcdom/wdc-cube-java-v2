@@ -1,12 +1,15 @@
 /// Date/time formatting utilities.
+library;
 
 /// Formats milliseconds-since-epoch as "dd/MM/yyyy HH:mm".
 /// Returns empty string for 0.
 String formatDateTime(int millis) {
   if (millis == 0) return '';
   final d = DateTime.fromMillisecondsSinceEpoch(millis);
-  final date = '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
-  final time = '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+  final date =
+      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+  final time =
+      '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
   return '$date $time';
 }
 

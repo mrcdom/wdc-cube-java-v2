@@ -151,7 +151,7 @@ class ShoppingDesktopApp extends StatelessWidget {
 }
 
 class ConnectionErrorApp extends StatelessWidget {
-  const ConnectionErrorApp();
+  const ConnectionErrorApp({super.key});
 
   @override
   Widget build(BuildContext context) {
