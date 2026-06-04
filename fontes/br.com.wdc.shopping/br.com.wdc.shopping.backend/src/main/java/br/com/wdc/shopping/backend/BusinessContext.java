@@ -4,12 +4,12 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.concurrent.ScheduledExecutorService;
 
-import org.h2.jdbcx.JdbcDataSource;
+import org.jooq.SQLDialect;
 
 import io.agroal.api.AgroalDataSource;
-import io.agroal.api.configuration.supplier.AgroalDataSourceConfigurationSupplier;
 import io.agroal.api.configuration.supplier.AgroalConnectionFactoryConfigurationSupplier;
 import io.agroal.api.configuration.supplier.AgroalConnectionPoolConfigurationSupplier;
+import io.agroal.api.configuration.supplier.AgroalDataSourceConfigurationSupplier;
 
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.commons.log.Log;
@@ -53,14 +53,16 @@ public class BusinessContext {
             // Service now use direct ReentrantReadWriteLock and execute synchronously on Virtual Threads
             ScheduledExecutor.BEAN.set(new ScheduledExecutorAdapter(scheduledExecutor));
 
-            var xaDataSource = new JdbcDataSource();
-            xaDataSource.setURL(resolveJdbcUrl(config, ShoppingConfig.getDataDir()));
-            xaDataSource.setUser(config.get("database.username", "sa"));
-            xaDataSource.setPassword(config.get("database.password", "sa"));
+            String jdbcUrl  = resolveJdbcUrl(config, ShoppingConfig.getDataDir());
+            String username = config.get("database.username", "sa");
+            String password = config.get("database.password", "sa");
 
-            int maxPoolSize  = config.getInt("database.pool.maxSize", 20);
-            int minIdle      = config.getInt("database.pool.minIdle", 5);
-            int connTimeout  = config.getInt("database.pool.connectionTimeoutSeconds", 30);
+            SQLDialect dialect   = detectDialect(jdbcUrl);
+            Class<?>  driverClass = resolveDriverClass(dialect);
+
+            int maxPoolSize = config.getInt("database.pool.maxSize", 20);
+            int minIdle     = config.getInt("database.pool.minIdle", 5);
+            int connTimeout = config.getInt("database.pool.connectionTimeoutSeconds", 30);
 
             var poolConfig = new AgroalDataSourceConfigurationSupplier()
                     .connectionPoolConfiguration(new AgroalConnectionPoolConfigurationSupplier()
@@ -69,18 +71,18 @@ public class BusinessContext {
                             .initialSize(minIdle)
                             .acquisitionTimeout(Duration.ofSeconds(connTimeout))
                             .connectionFactoryConfiguration(new AgroalConnectionFactoryConfigurationSupplier()
-                                    .connectionProviderClass(org.h2.jdbcx.JdbcDataSource.class)
-                                    .jdbcUrl(xaDataSource.getURL())
-                                    .credential(new io.agroal.api.security.NamePrincipal(xaDataSource.getUser()))
-                                    .credential(new io.agroal.api.security.SimplePassword(xaDataSource.getPassword()))));
+                                    .connectionProviderClass(driverClass)
+                                    .jdbcUrl(jdbcUrl)
+                                    .credential(new io.agroal.api.security.NamePrincipal(username))
+                                    .credential(new io.agroal.api.security.SimplePassword(password))));
 
             AgroalDataSource dataSource = AgroalDataSource.from(poolConfig);
-            LOG.info("Connection pool configured: maxSize={}, minIdle={}, acquisitionTimeout={}s",
-                    maxPoolSize, minIdle, connTimeout);
+            LOG.info("Connection pool configured: dialect={}, maxSize={}, minIdle={}, acquisitionTimeout={}s",
+                    dialect, maxPoolSize, minIdle, connTimeout);
 
             SqlDataSource.BEAN.set(new SqlDataSourceDelegate(dataSource));
 
-            RepositoryBootstrap.initialize(config.getBoolean("database.logSql", false));
+            RepositoryBootstrap.initialize(config.getBoolean("database.logSql", false), dialect);
 
             try (var connection = dataSource.getConnection()) {
                 var command = new DBCreate().withConnection(connection);
@@ -97,7 +99,7 @@ public class BusinessContext {
 
             LoginPresenter.simulateSlowLogin(config.getBoolean("simulation.slowLogin", false));
 
-            LOG.info("Shopping backend context configured with database {}", xaDataSource.getURL());
+            LOG.info("Shopping backend context configured with database {}", jdbcUrl);
         } catch (Exception e) {
             throw new IllegalStateException("Failed to configure shopping backend context", e);
         }
@@ -114,6 +116,25 @@ public class BusinessContext {
         }
         return "jdbc:h2:file:" + dataDir.resolve(DEFAULT_DB_NAME).toAbsolutePath()
                 + ";DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE";
+    }
+
+    private static SQLDialect detectDialect(String jdbcUrl) {
+        if (jdbcUrl.startsWith("jdbc:postgresql:") || jdbcUrl.startsWith("jdbc:pgsql:")) {
+            return SQLDialect.POSTGRES;
+        }
+        return SQLDialect.H2;
+    }
+
+    /**
+     * Returns the DataSource / Driver provider class for Agroal based on the dialect.
+     * Agroal uses the provider class to obtain connections — it supports both
+     * {@code javax.sql.DataSource} implementations and {@code java.sql.Driver} subclasses.
+     */
+    private static Class<?> resolveDriverClass(SQLDialect dialect) {
+        return switch (dialect) {
+            case POSTGRES -> org.postgresql.ds.PGSimpleDataSource.class;
+            default       -> org.h2.jdbcx.JdbcDataSource.class;
+        };
     }
 
     /**

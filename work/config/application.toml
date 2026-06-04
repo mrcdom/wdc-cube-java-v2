@@ -15,14 +15,24 @@ basedir = ".."
 # H2 TCP server mode (for memory measurements — isolates DB heap from app heap):
 # 1. Start: ./work/bin/start-h2-server.sh
 # 2. Uncomment the line below, comment out the file URL above
-url = "jdbc:h2:tcp://localhost/./wedocode-shopping;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+# url = "jdbc:h2:tcp://localhost/./wedocode-shopping;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
 
-# Database credentials
+# PostgreSQL (recommended for production and load testing beyond H2 limits):
+# url = "jdbc:postgresql://localhost:5432/wedocode-shopping"
+# username = "postgres"
+# password = "admin"
+
+url = "jdbc:postgresql://localhost:5432/wedocode-shopping"
+username = "postgres"
+password = "admin"
+
+# Database credentials (H2 defaults)
 # username = "sa"
 # password = "sa"
 
 # Reset database on startup (drops and recreates all tables)
 # reset = false
+reset = true
 
 # Log SQL statements executed by jOOQ (true/false)
 logSql = true
@@ -44,8 +54,8 @@ logSql = true
 # pool.maxSize = 20
 # pool.minIdle = 5
 # pool.connectionTimeoutSeconds = 30
-pool.maxSize = 100
-pool.minIdle = 20
+pool.maxSize = 500
+pool.minIdle = 500
 
 [server]
 # HTTP port

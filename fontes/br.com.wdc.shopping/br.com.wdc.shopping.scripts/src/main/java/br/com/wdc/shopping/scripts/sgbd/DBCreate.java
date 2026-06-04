@@ -29,8 +29,23 @@ public class DBCreate {
 
 	public DBCreate withConnection(Connection connection) {
 		this.connection = connection;
-		this.dsl = DSL.using(connection, SQLDialect.H2);
+		this.dsl = DSL.using(connection, detectDialect(connection));
 		return this;
+	}
+
+	/** Detects the jOOQ SQLDialect from the JDBC connection metadata. */
+	private static SQLDialect detectDialect(Connection connection) {
+		try {
+			String url = connection.getMetaData().getURL();
+			if (url != null) {
+				if (url.startsWith("jdbc:postgresql:") || url.startsWith("jdbc:pgsql:")) {
+					return SQLDialect.POSTGRES;
+				}
+			}
+		} catch (Exception ignored) {
+			// fall through to default
+		}
+		return SQLDialect.H2;
 	}
 
 	public DBCreate withReset() {
@@ -44,7 +59,7 @@ public class DBCreate {
 	}
 
 	public DBCreate run() throws SQLException {
-		JsonDialect.of(org.jooq.SQLDialect.H2).initialize(this.connection);
+		JsonDialect.of(this.dsl.dialect()).initialize(this.connection);
 
 		var existingTables = loadExistingTables();
 
@@ -98,15 +113,19 @@ public class DBCreate {
 	}
 
 	private void createTableProduct() {
+		boolean isPostgres = dsl.dialect() == SQLDialect.POSTGRES;
+		String nameType  = isPostgres ? "TEXT"  : "VARCHAR_IGNORECASE(1000000)";
+		String imageType = isPostgres ? "BYTEA" : "BINARY(1000000)";
+		String descType  = isPostgres ? "TEXT"  : "VARCHAR(1000000)";
 		dsl.execute("""
 				CREATE TABLE EN_PRODUCT (
 				    ID BIGINT NOT NULL,
-				    NAME VARCHAR_IGNORECASE(1000000) NOT NULL,
+				    NAME %s NOT NULL,
 				    PRICE NUMERIC(20,2) NOT NULL,
-				    DESCRIPTION VARCHAR(1000000) NOT NULL,
-				    IMAGE BINARY(1000000),
+				    DESCRIPTION %s NOT NULL,
+				    IMAGE %s,
 				    CONSTRAINT PK_PRODUCT PRIMARY KEY (ID)
-				)""");
+				)""".formatted(nameType, descType, imageType));
 		dsl.execute("CREATE SEQUENCE SQ_PRODUCT START WITH 1 INCREMENT BY 1");
 	}
 
