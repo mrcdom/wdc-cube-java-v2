@@ -16,6 +16,9 @@ basedir = ".."
 # 1. Start: ./work/bin/start-h2-server.sh
 # 2. Uncomment the line below, comment out the file URL above
 # url = "jdbc:h2:tcp://localhost/./wedocode-shopping;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+# Database credentials (H2 defaults)
+# username = "sa"
+# password = "sa"
 
 # PostgreSQL (recommended for production and load testing beyond H2 limits):
 # url = "jdbc:h2:tcp://localhost/./wedocode-shopping;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
@@ -23,9 +26,6 @@ basedir = ".."
 # username = "postgres"
 # password = "admin"
 
-# Database credentials (H2 defaults)
-# username = "sa"
-# password = "sa"
 
 # Reset database on startup (drops and recreates all tables)
 # reset = false
