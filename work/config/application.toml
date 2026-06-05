@@ -18,13 +18,10 @@ basedir = ".."
 # url = "jdbc:h2:tcp://localhost/./wedocode-shopping;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
 
 # PostgreSQL (recommended for production and load testing beyond H2 limits):
+# url = "jdbc:h2:tcp://localhost/./wedocode-shopping;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
 # url = "jdbc:postgresql://localhost:5432/wedocode-shopping"
 # username = "postgres"
 # password = "admin"
-
-url = "jdbc:postgresql://localhost:5432/wedocode-shopping"
-username = "postgres"
-password = "admin"
 
 # Database credentials (H2 defaults)
 # username = "sa"
@@ -32,7 +29,6 @@ password = "admin"
 
 # Reset database on startup (drops and recreates all tables)
 # reset = false
-reset = true
 
 # Log SQL statements executed by jOOQ (true/false)
 logSql = true
