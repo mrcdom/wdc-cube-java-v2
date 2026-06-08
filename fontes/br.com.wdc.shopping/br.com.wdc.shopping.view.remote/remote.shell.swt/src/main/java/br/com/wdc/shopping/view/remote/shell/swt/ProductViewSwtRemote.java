@@ -49,7 +49,7 @@ class ProductViewSwtRemote extends ProductViewSwt {
 			p.description = CoerceUtils.asString(raw.get("description"));
 			p.price = CoerceUtils.asDouble(raw.get("price"), 0.0);
 			p.image = CoerceUtils.asString(raw.get("image"));
-			state.product = p.id != 0 ? p : null;
+			state.product = p;
 		}
 		return state;
 	}
