@@ -10,6 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 /**
  * Entry point for the SWT Remote Shell.
@@ -96,20 +98,44 @@ public class ShoppingSwtRemoteMain {
 	}
 
 	/**
-	 * Sets the macOS Dock icon (and taskbar icon on other platforms) via {@code java.awt.Taskbar}.
-	 * {@code shell.setImages()} only affects the window title-bar icon; the Dock requires
-	 * calling {@code NSApplication.setApplicationIconImage()} which java.awt.Taskbar exposes
-	 * as a standard cross-platform API.
+	 * Sets the macOS Dock icon.
+	 *
+	 * <p>SWT on macOS requires {@code -XstartOnFirstThread}, which prevents AWT from starting its
+	 * own EventDispatchThread on the main thread. Because of this, {@code java.awt.Taskbar} alone
+	 * is unreliable — AWT and SWT fight over the Cocoa main thread.
+	 *
+	 * <p>The reliable approach is to:
+	 * <ol>
+	 *   <li>Extract the icon PNG to a temp file.</li>
+	 *   <li>Set {@code apple.awt.application.icon} <em>before</em> {@code new Display()} — the
+	 *       property is read by {@code NSApplicationLoad()} when SWT's Display constructor
+	 *       initialises {@code NSApplication}.</li>
+	 *   <li>Also attempt {@code Taskbar.setIconImage()} as a secondary fallback.</li>
+	 * </ol>
 	 */
 	private static void applyDockIcon() {
 		try {
-			var taskbar = java.awt.Taskbar.getTaskbar();
 			var url = ShoppingSwtRemoteMain.class.getResource("/images/app-icon.png");
-			if (url != null) {
-				taskbar.setIconImage(ImageIO.read(url));
+			if (url == null) return;
+
+			// Extract to a temp file so the native layer can load it by path
+			var tempFile = Files.createTempFile("wdc-shopping-icon-", ".png");
+			tempFile.toFile().deleteOnExit();
+			try (var in = url.openStream()) {
+				Files.copy(in, tempFile, StandardCopyOption.REPLACE_EXISTING);
 			}
-		} catch (UnsupportedOperationException ignored) {
-			// Platform does not support taskbar icon — silently skip
+
+			// Primary: apple.awt.application.icon is read by NSApplicationLoad()
+			// when Display's constructor initialises NSApplication — set it BEFORE new Display()
+			System.setProperty("apple.awt.application.icon", tempFile.toAbsolutePath().toString());
+
+			// Secondary: java.awt.Taskbar (calls NSApplication.setApplicationIconImage())
+			try {
+				var taskbar = java.awt.Taskbar.getTaskbar();
+				taskbar.setIconImage(ImageIO.read(url));
+			} catch (UnsupportedOperationException ignored) {
+				// Platform does not support Taskbar icon
+			}
 		} catch (Exception e) {
 			LOG.debug("Could not set dock icon: {}", e.getMessage());
 		}
