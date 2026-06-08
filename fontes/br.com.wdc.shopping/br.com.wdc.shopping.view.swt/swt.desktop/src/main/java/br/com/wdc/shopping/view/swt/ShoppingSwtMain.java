@@ -6,6 +6,8 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.h2.jdbcx.JdbcDataSource;
@@ -31,6 +33,9 @@ public class ShoppingSwtMain {
 
     private static final Log LOG = Log.getLogger(ShoppingSwtMain.class);
 
+    /** Kept alive for the app lifetime — NSApplication retains it after setApplicationIconImage. */
+    private static Image dockIconImage;
+
     private ScheduledExecutorService executorService;
     private ShoppingSwtApplication app;
     private boolean devMode;
@@ -49,6 +54,10 @@ public class ShoppingSwtMain {
         }
 
         var display = Display.getDefault();
+        // macOS: must be called AFTER Display.getDefault() — Display's constructor calls
+        // NSApplicationLoad() which reinitialises NSApplication and overrides any
+        // icon set via -Xdock:icon or apple.awt.application.icon.
+        setDockIcon(display);
 
         var shell = new Shell(display, SWT.SHELL_TRIM);
         shell.setText("WeDoCode Shopping");
@@ -116,6 +125,39 @@ public class ShoppingSwtMain {
 
         RepositoryBootstrap.initialize();
         LOG.info("Backend initialized with database at {}", dataDir);
+    }
+
+    /**
+     * Sets the macOS Dock icon via {@code NSApplication.setApplicationIconImage()}.
+     *
+     * <p>Must be called <em>after</em> {@code Display.getDefault()} — SWT's Display constructor
+     * calls {@code NSApplicationLoad()} which reinitialises {@code NSApplication} and resets any
+     * icon previously set through {@code -Xdock:icon} or {@code apple.awt.application.icon}.
+     *
+     * <p>Uses SWT's own Cocoa internal bindings via reflection. The created {@code Image} is kept
+     * in {@link #dockIconImage} for the app lifetime; {@code NSApplication} retains the underlying
+     * {@code NSImage} after the call.
+     */
+    private static void setDockIcon(Display display) {
+        try (var stream = ShoppingSwtMain.class.getResourceAsStream("/images/app-icon.png")) {
+            if (stream == null) {
+                LOG.debug("app-icon.png not found in classpath");
+                return;
+            }
+            dockIconImage = new Image(display, new ImageData(stream).scaledTo(512, 512));
+
+            var nsImageClass = Class.forName("org.eclipse.swt.internal.cocoa.NSImage");
+            var handleField  = Image.class.getDeclaredField("handle");
+            handleField.setAccessible(true);
+            var nsImage = nsImageClass.getDeclaredConstructor(long.class)
+                    .newInstance(handleField.getLong(dockIconImage));
+
+            var nsAppClass = Class.forName("org.eclipse.swt.internal.cocoa.NSApplication");
+            var sharedApp  = nsAppClass.getMethod("sharedApplication").invoke(null);
+            nsAppClass.getMethod("setApplicationIconImage", nsImageClass).invoke(sharedApp, nsImage);
+        } catch (Exception e) {
+            LOG.debug("Could not set Dock icon via NSApplication: {}", e.getMessage());
+        }
     }
 
     private void stop() {

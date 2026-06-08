@@ -9,10 +9,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.imageio.ImageIO;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-
 /**
  * Entry point for the SWT Remote Shell.
  * <p>
@@ -33,17 +29,19 @@ public class ShoppingSwtRemoteMain {
 	private static final int WINDOW_WIDTH = 800;
 	private static final int WINDOW_HEIGHT = 820;
 
+	/** Kept alive for the app lifetime — NSApplication retains it after setApplicationIconImage. */
+	private static Image dockIconImage;
+
 	public static void main(String[] args) throws Exception {
 		String serverUrl = args.length > 0 ? args[0] : DEFAULT_SERVER_URL;
 		LOG.info("Starting SWT Remote Shell → {}", serverUrl);
 
-		// macOS: AWT must be initialized BEFORE SWT's Display, because Display's constructor
-		// calls NSApplicationLoad() and takes over the Cocoa event loop. If AWT is initialized
-		// after that, Taskbar.setIconImage() has no effect on the Dock icon.
-		applyDockIcon();
-
 		var display = new Display();
 		try {
+			// macOS: must be called AFTER new Display() — Display's constructor calls
+			// NSApplicationLoad() which reinitialises NSApplication and overrides any
+			// icon set via -Xdock:icon or apple.awt.application.icon.
+			setDockIcon(display);
 			var shell = new Shell(display, SWT.SHELL_TRIM);
 			shell.setText("WDC Shopping (Remote)");
 			shell.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -98,46 +96,39 @@ public class ShoppingSwtRemoteMain {
 	}
 
 	/**
-	 * Sets the macOS Dock icon.
+	 * Sets the macOS Dock icon via {@code NSApplication.setApplicationIconImage()}.
 	 *
-	 * <p>SWT on macOS requires {@code -XstartOnFirstThread}, which prevents AWT from starting its
-	 * own EventDispatchThread on the main thread. Because of this, {@code java.awt.Taskbar} alone
-	 * is unreliable — AWT and SWT fight over the Cocoa main thread.
+	 * <p>Must be called <em>after</em> {@code new Display()} — SWT's Display constructor calls
+	 * {@code NSApplicationLoad()} which reinitialises {@code NSApplication} and resets any icon
+	 * previously set through {@code -Xdock:icon} or {@code apple.awt.application.icon}.
 	 *
-	 * <p>The reliable approach is to:
-	 * <ol>
-	 *   <li>Extract the icon PNG to a temp file.</li>
-	 *   <li>Set {@code apple.awt.application.icon} <em>before</em> {@code new Display()} — the
-	 *       property is read by {@code NSApplicationLoad()} when SWT's Display constructor
-	 *       initialises {@code NSApplication}.</li>
-	 *   <li>Also attempt {@code Taskbar.setIconImage()} as a secondary fallback.</li>
-	 * </ol>
+	 * <p>Uses SWT's own Cocoa internal bindings ({@code org.eclipse.swt.internal.cocoa.*})
+	 * via reflection so that no compile-time dependency on internal packages is required.
+	 * The created {@code Image} is kept in {@link #dockIconImage} for the app lifetime;
+	 * {@code NSApplication} retains the underlying {@code NSImage} after the call.
 	 */
-	private static void applyDockIcon() {
-		try {
-			var url = ShoppingSwtRemoteMain.class.getResource("/images/app-icon.png");
-			if (url == null) return;
-
-			// Extract to a temp file so the native layer can load it by path
-			var tempFile = Files.createTempFile("wdc-shopping-icon-", ".png");
-			tempFile.toFile().deleteOnExit();
-			try (var in = url.openStream()) {
-				Files.copy(in, tempFile, StandardCopyOption.REPLACE_EXISTING);
+	private static void setDockIcon(Display display) {
+		try (var stream = ShoppingSwtRemoteMain.class.getResourceAsStream("/images/app-icon.png")) {
+			if (stream == null) {
+				LOG.debug("app-icon.png not found in classpath");
+				return;
 			}
+			// Keep a static reference — prevents SWT from disposing the underlying NSImage
+			dockIconImage = new Image(display, new ImageData(stream).scaledTo(512, 512));
 
-			// Primary: apple.awt.application.icon is read by NSApplicationLoad()
-			// when Display's constructor initialises NSApplication — set it BEFORE new Display()
-			System.setProperty("apple.awt.application.icon", tempFile.toAbsolutePath().toString());
+			// Wrap SWT's NSImage* handle in SWT's internal NSImage proxy
+			var nsImageClass = Class.forName("org.eclipse.swt.internal.cocoa.NSImage");
+			var handleField  = Image.class.getDeclaredField("handle");
+			handleField.setAccessible(true);
+			var nsImage = nsImageClass.getDeclaredConstructor(long.class)
+					.newInstance(handleField.getLong(dockIconImage));
 
-			// Secondary: java.awt.Taskbar (calls NSApplication.setApplicationIconImage())
-			try {
-				var taskbar = java.awt.Taskbar.getTaskbar();
-				taskbar.setIconImage(ImageIO.read(url));
-			} catch (UnsupportedOperationException ignored) {
-				// Platform does not support Taskbar icon
-			}
+			// NSApplication.sharedApplication().setApplicationIconImage(nsImage)
+			var nsAppClass = Class.forName("org.eclipse.swt.internal.cocoa.NSApplication");
+			var sharedApp  = nsAppClass.getMethod("sharedApplication").invoke(null);
+			nsAppClass.getMethod("setApplicationIconImage", nsImageClass).invoke(sharedApp, nsImage);
 		} catch (Exception e) {
-			LOG.debug("Could not set dock icon: {}", e.getMessage());
+			LOG.debug("Could not set Dock icon via NSApplication: {}", e.getMessage());
 		}
 	}
 }
