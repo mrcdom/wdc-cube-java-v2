@@ -51,9 +51,12 @@ public class ProductViewSwt extends AbstractViewSwt {
             }
             if (showError != errorBanner.isShown()) {
                 errorBanner.setShown(showError);
-                // Recompute scroll size
+                // Recompute scroll size passing the actual viewport width so
+                // Label(SWT.WRAP) children recalculate their wrapped height.
                 var content = errorBanner.getParent();
-                content.setSize(content.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+                var scrolled = (org.eclipse.swt.custom.ScrolledComposite) content.getParent();
+                int vw = scrolled.getClientArea().width;
+                content.setSize(content.computeSize(vw > 0 ? vw : SWT.DEFAULT, SWT.DEFAULT));
             }
         }
     }

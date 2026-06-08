@@ -48,9 +48,19 @@ public class ScrolledPage {
 
     /**
      * Call after all children have been added to finalize scroll size and layout.
+     * Attaches a resize listener so that Label(SWT.WRAP) children rewrap correctly
+     * whenever the viewport width changes (including the initial layout pass).
      */
     public void complete() {
         scrolled.setContent(content);
+        // Recompute content height using the actual viewport width so that
+        // Label(SWT.WRAP) children wrap at the right column width.
+        scrolled.addListener(SWT.Resize, e -> {
+            int vw = scrolled.getClientArea().width;
+            if (vw > 0) {
+                content.setSize(content.computeSize(vw, SWT.DEFAULT));
+            }
+        });
         content.setSize(content.computeSize(SWT.DEFAULT, SWT.DEFAULT));
         scrolled.getParent().layout(true, true);
     }
