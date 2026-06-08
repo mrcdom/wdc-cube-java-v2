@@ -15,7 +15,10 @@
   },
   "alias": {
     "@root/*": "./src/scripts/$1",
-    "@wdc/remote-bridge-react": "../../../br.com.wdc.framework/br.com.wdc.framework.cube.remote/remote.bridge.react/src/bridge/index.tsx"
+    "@wdc/remote-bridge-react": "../../../br.com.wdc.framework/br.com.wdc.framework.cube.remote/remote.bridge.react/src/bridge/index.tsx",
+    "react": "./node_modules/react",
+    "react-dom": "./node_modules/react-dom",
+    "universal-cookie": "./node_modules/universal-cookie"
   },
   "scripts": {
     "clean": "rm -rf .parcel-cache ../../../../work/frontend/remote.shell.react",
