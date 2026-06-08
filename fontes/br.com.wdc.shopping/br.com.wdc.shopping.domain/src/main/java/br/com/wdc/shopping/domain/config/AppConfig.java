@@ -19,6 +19,11 @@ import br.com.wdc.framework.commons.log.Log;
  * </ol>
  * <p>
  * If the file does not exist, the application fails to start.
+ * <p>
+ * After loading the main file, {@code application.local.toml} in the same directory is
+ * loaded if present and its keys override the main config. Use this file for secrets
+ * (passwords, tokens) that must not be committed to version control — add it to
+ * {@code .gitignore}.
  */
 public final class AppConfig {
 
@@ -59,7 +64,15 @@ public final class AppConfig {
         LOG.info("Loading configuration from {}", configPath);
         try {
             var content = Files.readString(configPath);
-            var props = parseToml(content);
+            var props = new LinkedHashMap<>(parseToml(content));
+
+            // Load optional local override file (not tracked by version control)
+            var localPath = configPath.resolveSibling("application.local.toml");
+            if (Files.exists(localPath)) {
+                LOG.info("Loading local overrides from {}", localPath);
+                props.putAll(parseToml(Files.readString(localPath)));
+            }
+
             return new AppConfig(props, configPath);
         } catch (IOException e) {
             throw new IllegalStateException("Failed to read config file: " + configPath, e);

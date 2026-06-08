@@ -183,7 +183,6 @@ public class ConcurrentThroughputScenario {
 
             // Live progress loop
             long nextReport = startMs + HEAP_SAMPLE_SECS * 1000L;
-            long endMs = startMs + holdSecs * 1000L;
             long elapsed = 0;
             while ((elapsed = System.currentTimeMillis() - startMs) < holdSecs * 1000L) {
                 if (System.currentTimeMillis() >= nextReport) {
@@ -406,7 +405,6 @@ public class ConcurrentThroughputScenario {
         out.printf ("  %-14s  %10s  %10s%n", "Bucket (ms)", "Count", "% of total");
         out.printf ("  %-14s  %10s  %10s%n", "──────────────", "──────────", "──────────");
         long[] hist = metrics.histogram();
-        long prev = 0;
         for (int i = 0; i < LATENCY_BUCKETS_MS.length; i++) {
             long count = hist[i];
             String label = (i == 0)

@@ -9,3 +9,6 @@ frontend/*
 
 # Track config files
 !config/
+
+# Local overrides with secrets (passwords, tokens) — never commit
+config/application.local.toml

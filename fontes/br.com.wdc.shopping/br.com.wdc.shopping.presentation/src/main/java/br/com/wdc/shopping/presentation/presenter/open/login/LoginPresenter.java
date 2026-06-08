@@ -129,6 +129,7 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
             this.alertConnectionError(caught);
         } finally {
             state.loading = false;
+            this.update();
         }
     }
 

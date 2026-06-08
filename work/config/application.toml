@@ -26,6 +26,11 @@ basedir = ".."
 # username = "postgres"
 # password = "admin"
 
+url = "jdbc:h2:tcp://localhost/./wedocode-shopping;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+# url = "jdbc:postgresql://localhost:5432/wedocode-shopping"
+# username = "postgres"
+# password = "changeme"
+
 
 # Reset database on startup (drops and recreates all tables)
 # reset = false
@@ -50,8 +55,8 @@ logSql = true
 # pool.maxSize = 20
 # pool.minIdle = 5
 # pool.connectionTimeoutSeconds = 30
-pool.maxSize = 500
-pool.minIdle = 500
+pool.maxSize = 800
+pool.minIdle = 20
 
 [server]
 # HTTP port
