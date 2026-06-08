@@ -55,7 +55,7 @@ logSql = true
 # pool.maxSize = 20
 # pool.minIdle = 5
 # pool.connectionTimeoutSeconds = 30
-pool.maxSize = 800
+pool.maxSize = 100
 pool.minIdle = 20
 
 [server]
