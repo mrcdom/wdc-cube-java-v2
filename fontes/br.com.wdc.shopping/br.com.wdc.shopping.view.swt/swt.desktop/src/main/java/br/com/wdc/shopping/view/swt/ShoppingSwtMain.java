@@ -115,6 +115,8 @@ public class ShoppingSwtMain {
         dataSource.setPassword(config.get("database.password", "sa"));
         SqlDataSource.BEAN.set(new SqlDataSourceDelegate(dataSource));
 
+        RepositoryBootstrap.initialize();
+
         try (var connection = dataSource.getConnection()) {
             var command = new DBCreate().withConnection(connection);
             if (config.getBoolean("database.reset", false)) {
@@ -123,7 +125,6 @@ public class ShoppingSwtMain {
             command.run();
         }
 
-        RepositoryBootstrap.initialize();
         LOG.info("Backend initialized with database at {}", dataDir);
     }
 
