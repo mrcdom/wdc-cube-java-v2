@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>br.com.wdc.shopping</groupId>
+        <artifactId>br.com.wdc.shopping.view.swt</artifactId>
+        <version>1.0.0</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>swt.desktop</artifactId>
+    <packaging>jar</packaging>
+
+    <name>WeDoCode Shopping View SWT Desktop</name>
+    <description>Desktop application entry point and wiring — binds SWT commons views to local presenters</description>
+
+    <dependencies>
+        <!-- SWT commons (shared view implementations) -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>swt.commons</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Backend modules (only needed by the local desktop app) -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <version>${project.version}</version>
+            <artifactId>br.com.wdc.shopping.persistence</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <version>${project.version}</version>
+            <artifactId>br.com.wdc.shopping.scripts</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
+    </dependencies>
+
+</project>

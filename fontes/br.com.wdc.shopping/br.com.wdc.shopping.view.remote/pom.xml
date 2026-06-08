@@ -19,6 +19,8 @@
 		<module>remote.shell.react</module>
 		<module>remote.shell.teavm</module>
 		<module>remote.shell.java</module>
+		<module>remote.shell.swt</module>
 	</modules>
 
 </project>
+

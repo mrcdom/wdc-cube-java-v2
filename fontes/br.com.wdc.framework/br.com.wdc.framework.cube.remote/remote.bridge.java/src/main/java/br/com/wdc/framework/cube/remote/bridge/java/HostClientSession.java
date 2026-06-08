@@ -110,54 +110,6 @@ final class HostClientSession implements AutoCloseable {
         http.close();
     }
 
-    // :: JSON parsing
-
-    @SuppressWarnings("unchecked")
-    private HostResponse parse(String json) {
-        LOG.debug("← {}", json);
-        Map<String, Object> msg = GSON.fromJson(json, MAP_TYPE.getType());
-
-        Long requestId = null;
-        Object rid = msg.get("requestId");
-        if (rid instanceof Number n) requestId = n.longValue();
-
-        String uri = (String) msg.get("uri");
-        String accessToken = (String) msg.get("accessToken");
-
-        // Parse states
-        List<ViewStateSnapshot> snapshots = Collections.emptyList();
-        Object rawStates = msg.get("states");
-        if (rawStates instanceof List<?> stateList && !stateList.isEmpty()) {
-            snapshots = new ArrayList<>(stateList.size());
-            for (Object entry : stateList) {
-                if (entry instanceof Map<?, ?> rawMap) {
-                    var stateMap = new java.util.HashMap<String, Object>();
-                    ((Map<String, Object>) rawMap).forEach(stateMap::put);
-                    String instanceId = String.valueOf(stateMap.remove("#"));
-                    if (instanceId != null && !instanceId.equals("null")) {
-                        snapshots.add(new ViewStateSnapshot(instanceId, stateMap));
-                    }
-                }
-            }
-            // Apply to shared map
-            List<Object> rawList = (List<Object>) rawStates;
-            viewStateMap.applyStates(rawList);
-        }
-
-        // Parse released views
-        List<String> released = Collections.emptyList();
-        Object rawReleased = msg.get("releasedViews");
-        if (rawReleased instanceof List<?> relList) {
-            released = new ArrayList<>();
-            for (Object r : relList) {
-                released.add(String.valueOf(r));
-            }
-            viewStateMap.applyReleased(released);
-        }
-
-        return new HostResponse(requestId, uri, snapshots, released, accessToken);
-    }
-
     // :: WebSocket Listener
 
     private final class MessageListener implements WebSocket.Listener {
@@ -178,6 +130,52 @@ final class HostClientSession implements AutoCloseable {
             }
             ws.request(1);
             return null;
+        }
+
+        @SuppressWarnings("unchecked")
+        private HostResponse parse(String json) {
+            LOG.debug("← {}", json);
+            Map<String, Object> msg = GSON.fromJson(json, MAP_TYPE.getType());
+
+            Long requestId = null;
+            Object rid = msg.get("requestId");
+            if (rid instanceof Number n) requestId = n.longValue();
+
+            String uri = (String) msg.get("uri");
+            String accessToken = (String) msg.get("accessToken");
+
+            // Parse states
+            List<ViewStateSnapshot> snapshots = Collections.emptyList();
+            Object rawStates = msg.get("states");
+            if (rawStates instanceof List<?> stateList && !stateList.isEmpty()) {
+                snapshots = new ArrayList<>(stateList.size());
+                for (Object entry : stateList) {
+                    if (entry instanceof Map<?, ?> rawMap) {
+                        var stateMap = new java.util.HashMap<String, Object>();
+                        ((Map<String, Object>) rawMap).forEach(stateMap::put);
+                        String instanceId = String.valueOf(stateMap.remove("#"));
+                        if (instanceId != null && !instanceId.equals("null")) {
+                            snapshots.add(new ViewStateSnapshot(instanceId, stateMap));
+                        }
+                    }
+                }
+                // Apply to shared map
+                List<Object> rawList = (List<Object>) rawStates;
+                viewStateMap.applyStates(rawList);
+            }
+
+            // Parse released views
+            List<String> released = Collections.emptyList();
+            Object rawReleased = msg.get("releasedViews");
+            if (rawReleased instanceof List<?> relList) {
+                released = new ArrayList<>();
+                for (Object r : relList) {
+                    released.add(String.valueOf(r));
+                }
+                viewStateMap.applyReleased(released);
+            }
+
+            return new HostResponse(requestId, uri, snapshots, released, accessToken);
         }
 
         @Override

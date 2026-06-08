@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
+
 
 /**
  * Thread-safe registry of all ViewStates currently active in the session.
@@ -75,7 +75,7 @@ public final class ViewStateMap {
         return map.values().stream()
                 .filter(vs -> vs.instanceId().startsWith(prefix))
                 .sorted(Comparator.comparingInt(ViewStateMap::instanceNumber).reversed())
-                .collect(Collectors.toUnmodifiableList());
+                .toList();
     }
 
     private static int instanceNumber(ViewStateSnapshot vs) {

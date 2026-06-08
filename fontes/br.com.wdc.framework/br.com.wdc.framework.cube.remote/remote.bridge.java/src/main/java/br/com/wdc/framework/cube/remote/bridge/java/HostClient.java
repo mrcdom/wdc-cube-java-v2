@@ -64,6 +64,7 @@ public final class HostClient implements AutoCloseable {
      */
     public static final String BROWSER_VSID = HostClientSession.BROWSER_VSID;
 
+    @SuppressWarnings("java:S1075") // Protocol-defined path, not deployment-specific
     private static final String SESSION_INIT_PATH = "/api/session/init";
     private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(10);
 
