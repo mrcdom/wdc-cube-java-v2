@@ -3,6 +3,7 @@ package br.com.wdc.shopping.view.swt.impl;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.TextLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
@@ -89,7 +90,7 @@ public class ProductViewSwt extends AbstractViewSwt {
                     int lineCount = Math.max(1, lines.length);
                     cardGd.heightHint = 24 + lineCount * 26 + 20;
                     card.setLayoutData(cardGd);
-                    card.addPaintListener(e -> paintDescriptionCard(e.gc, card.getClientArea(), lines));
+                    card.addPaintListener(e -> paintDescriptionCard(e.gc, card.getClientArea(), card, lines));
                 });
 
                 // Price + Image row
@@ -223,20 +224,32 @@ public class ProductViewSwt extends AbstractViewSwt {
 
     // ========== SURFACES ==========
 
-    private void paintDescriptionCard(GC gc, Rectangle area, String[] lines) {
+    private void paintDescriptionCard(GC gc, Rectangle area, Canvas card, String[] lines) {
         Surface.drawCard(gc, area, 16);
 
         gc.setFont(Theme.FONT_SUBTITLE);
         gc.setForeground(Theme.FG_TEXT_DARK);
         int textX = 28;
         int textY = 24;
-        int lineH = 26;
+        int lineSpacing = 6;
+        int availableWidth = Math.max(1, area.width - textX - 16);
 
         for (var line : lines) {
-            if (!line.isBlank()) {
-                gc.drawText("\u2022  " + line.trim(), textX, textY, true);
-                textY += lineH;
-            }
+            if (line.isBlank()) continue;
+            var tl = new TextLayout(gc.getDevice());
+            tl.setText("\u2022  " + line.trim());
+            tl.setFont(Theme.FONT_SUBTITLE);
+            tl.setWidth(availableWidth);
+            tl.draw(gc, textX, textY);
+            textY += tl.getBounds().height + lineSpacing;
+            tl.dispose();
+        }
+        int neededHeight = textY + 20;
+
+        // Auto-resize when content overflows the initial heightHint (same pattern as Surface.errorBox)
+        if (card.getLayoutData() instanceof GridData gd && neededHeight > area.height) {
+            gd.heightHint = neededHeight;
+            card.getParent().layout(true, true);
         }
     }
 
