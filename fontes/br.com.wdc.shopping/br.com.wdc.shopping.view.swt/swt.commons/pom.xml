@@ -23,16 +23,42 @@
             <version>${project.version}</version>
             <artifactId>br.com.wdc.shopping.presentation</artifactId>
         </dependency>
-
-        <!-- SWT platform-specific (macOS arm64 — platform profiles add others) -->
-        <dependency>
-            <groupId>org.eclipse.platform</groupId>
-            <artifactId>org.eclipse.swt.cocoa.macosx.aarch64</artifactId>
-            <version>${swt.version}</version>
-        </dependency>
     </dependencies>
 
     <profiles>
+        <!-- SWT platform-specific: each platform activates only its own JAR -->
+        <profile>
+            <id>macos-aarch64</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                    <arch>aarch64</arch>
+                </os>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.eclipse.platform</groupId>
+                    <artifactId>org.eclipse.swt.cocoa.macosx.aarch64</artifactId>
+                    <version>${swt.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>macos-x86_64</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                    <arch>x86_64</arch>
+                </os>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.eclipse.platform</groupId>
+                    <artifactId>org.eclipse.swt.cocoa.macosx.x86_64</artifactId>
+                    <version>${swt.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
         <profile>
             <id>linux-x86_64</id>
             <activation>
