@@ -9,6 +9,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.imageio.ImageIO;
+
 /**
  * Entry point for the SWT Remote Shell.
  * <p>
@@ -85,6 +87,27 @@ public class ShoppingSwtRemoteMain {
 			});
 		} catch (Exception e) {
 			LOG.debug("Could not load app icon: {}", e.getMessage());
+		}
+		applyDockIcon();
+	}
+
+	/**
+	 * Sets the macOS Dock icon (and taskbar icon on other platforms) via {@code java.awt.Taskbar}.
+	 * {@code shell.setImages()} only affects the window title-bar icon; the Dock requires
+	 * calling {@code NSApplication.setApplicationIconImage()} which java.awt.Taskbar exposes
+	 * as a standard cross-platform API.
+	 */
+	private static void applyDockIcon() {
+		try {
+			var taskbar = java.awt.Taskbar.getTaskbar();
+			var url = ShoppingSwtRemoteMain.class.getResource("/images/app-icon.png");
+			if (url != null) {
+				taskbar.setIconImage(ImageIO.read(url));
+			}
+		} catch (UnsupportedOperationException ignored) {
+			// Platform does not support taskbar icon — silently skip
+		} catch (Exception e) {
+			LOG.debug("Could not set dock icon: {}", e.getMessage());
 		}
 	}
 }

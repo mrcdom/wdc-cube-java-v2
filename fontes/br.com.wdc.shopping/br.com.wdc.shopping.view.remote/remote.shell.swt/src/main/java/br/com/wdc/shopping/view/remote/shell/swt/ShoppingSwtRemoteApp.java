@@ -39,8 +39,7 @@ import br.com.wdc.shopping.view.swt.util.ProductImageCache;
 public class ShoppingSwtRemoteApp implements SwtApp, RemoteViewContext {
 
 	// Class IDs from the Host (match the server-side presenter classId hashes)
-	public static final String CLASS_LOGIN = "c677cda52d14";
-	public static final String CLASS_ROOT = "f2d345c4a610";
+
 	public static final String CLASS_HOME = "473dbdd7a36a";
 	public static final String CLASS_CART = "7eb485e5f843";
 	public static final String CLASS_PRODUCT = "48b693f67410";
@@ -137,8 +136,8 @@ public class ShoppingSwtRemoteApp implements SwtApp, RemoteViewContext {
 	// :: Internal
 
 	private void registerViewFactories() {
-		this.viewFactories.put(CLASS_ROOT, vsid -> new RootViewSwtRemote(this, vsid, this));
-		this.viewFactories.put(CLASS_LOGIN, vsid -> new LoginViewSwtRemote(this, vsid, this));
+		this.viewFactories.put(RootViewSwtRemote.CID, vsid -> new RootViewSwtRemote(this, vsid, this));
+		this.viewFactories.put(LoginViewSwtRemote.CID, vsid -> new LoginViewSwtRemote(this, vsid, this));
 		this.viewFactories.put(CLASS_HOME, vsid -> new HomeViewSwtRemote(this, vsid, this));
 		this.viewFactories.put(CLASS_CART, vsid -> new CartViewSwtRemote(this, vsid, this));
 		this.viewFactories.put(CLASS_PRODUCT, vsid -> new ProductViewSwtRemote(this, vsid, this));
