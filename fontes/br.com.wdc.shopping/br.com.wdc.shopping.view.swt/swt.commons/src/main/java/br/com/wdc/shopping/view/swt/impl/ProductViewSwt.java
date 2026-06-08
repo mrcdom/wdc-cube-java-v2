@@ -91,7 +91,9 @@ public class ProductViewSwt extends AbstractViewSwt {
                     gdFillH(cardGd);
                     gdIndent(cardGd, 0, 16);
                     descCard.setLayoutData(cardGd);
-                    descCard.setBackground(Theme.BG_WHITE);
+                    // BG_PAGE so that the corners outside the rounded card rect blend
+                    // with the page background instead of showing a white square (GTK).
+                    descCard.setBackground(Theme.BG_PAGE);
                     var cardLayout = (GridLayout) descCard.getLayout();
                     cardLayout.marginLeft = 28;
                     cardLayout.marginRight = 16;
@@ -257,6 +259,11 @@ public class ProductViewSwt extends AbstractViewSwt {
         gc.setAntialias(SWT.ON);
         int w = imageBox.getBounds().width;
         int h = imageBox.getBounds().height;
+
+        // Fill the full rectangle first so corners outside the rounded rect
+        // don't expose native widget garbage (needed on Linux/GTK with SWT.NO_BACKGROUND).
+        gc.setBackground(Theme.BG_PAGE);
+        gc.fillRectangle(0, 0, w, h);
 
         gc.setBackground(Theme.BG_IMAGE_PLACEHOLDER);
         gc.fillRoundRectangle(0, 0, w, h, 12, 12);

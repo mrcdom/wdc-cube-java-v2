@@ -11,6 +11,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
@@ -249,7 +250,8 @@ public class CartViewSwt extends AbstractViewSwt {
         CartItem item;
 
         private boolean notRendered = true;
-        private Label nameLabel;
+        private Canvas nameCanvas;
+        private String nameToDraw = "";
         private Label qtyLabel;
         private Label priceLabel;
 
@@ -272,8 +274,9 @@ public class CartViewSwt extends AbstractViewSwt {
             }
 
             var current = this.item;
-            if (!current.name.equals(this.nameLabel.getText())) {
-                this.nameLabel.setText(current.name);
+            if (!current.name.equals(this.nameToDraw)) {
+                this.nameToDraw = current.name;
+                this.nameCanvas.redraw();
             }
 
             var qtyText = String.valueOf(current.quantity);
@@ -300,11 +303,30 @@ public class CartViewSwt extends AbstractViewSwt {
                     var rowLayout = (GridLayout) row.getLayout();
                     rowLayout.horizontalSpacing = 8;
 
-                    this.nameLabel = dom.label(lbl -> {
-                        lbl.setFont(Theme.FONT_BODY);
-                        lbl.setForeground(Theme.FG_TEXT_DARK);
-                        lbl.setBackground(Theme.BG_WHITE);
-                        lbl.setLayoutData(gdFillH(new GridData()));
+                    this.nameCanvas = dom.canvas(SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND, canvas -> {
+                        canvas.setLayoutData(gdFillH(new GridData()));
+                        canvas.addPaintListener(e -> {
+                            var gc = e.gc;
+                            var bounds = canvas.getClientArea();
+                            gc.setBackground(Theme.BG_WHITE);
+                            gc.fillRectangle(bounds);
+                            gc.setFont(Theme.FONT_BODY);
+                            gc.setForeground(Theme.FG_TEXT_DARK);
+                            var text = this.nameToDraw;
+                            if (text != null && !text.isEmpty() && bounds.width > 0) {
+                                var ellipsis = "\u2026"; // …
+                                var extent = gc.textExtent(text);
+                                if (extent.x > bounds.width) {
+                                    var ellipsisW = gc.textExtent(ellipsis).x;
+                                    while (text.length() > 0 && gc.textExtent(text).x + ellipsisW > bounds.width) {
+                                        text = text.substring(0, text.length() - 1);
+                                    }
+                                    text += ellipsis;
+                                }
+                                int textY = (bounds.height - extent.y) / 2;
+                                gc.drawText(text, 0, Math.max(0, textY), true);
+                            }
+                        });
                     });
 
                     dom.iconButton(Theme.ICON_DASH, Theme.BG_WHITE, btn -> {

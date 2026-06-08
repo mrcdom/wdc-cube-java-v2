@@ -227,6 +227,11 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt {
             var purchase = this.item;
             if (purchase == null) return;
 
+            // Clear full rect first so rounded corners don't expose native
+            // widget background on Linux/GTK (SWT.NO_BACKGROUND canvas).
+            gc.setBackground(Theme.BG_WHITE);
+            gc.fillRectangle(area);
+
             Surface.drawOutlinedPanel(gc, area);
 
             // Left blue accent bar
@@ -234,38 +239,55 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt {
             gc.fillRoundRectangle(0, 0, 5, area.height, 4, 4);
 
             int leftPad = 14;
+            int rightPad = 12;
 
-            // #ID in blue bold
+            // Pre-measure right-side elements so we can compute available widths
+            // before drawing anything on the left.
+            String dateStr = dateFormat.format(new Date(purchase.date));
+            gc.setFont(Theme.FONT_BODY);
+            Point dateSz = gc.textExtent(dateStr);
+
+            String total = Theme.formatPrice(purchase.total);
+            gc.setFont(Theme.FONT_PRICE);
+            Point totalSz = gc.textExtent(total);
+
+            // #ID (row 1, left)
             gc.setFont(Theme.FONT_HEADER_BOLD);
             gc.setForeground(Theme.PRIMARY_BLUE);
             gc.drawText("#" + purchase.id, leftPad, 8, true);
 
-            // Product name below ID
-            gc.setFont(Theme.FONT_BODY);
-            gc.setForeground(Theme.FG_TEXT_DARK);
-            String summary = "";
-            if (purchase.items != null && !purchase.items.isEmpty()) {
-                summary = purchase.items.get(0);
-                if (purchase.items.size() > 1) {
-                    summary += ", " + purchase.items.get(1);
-                }
-            }
-            if (summary.length() > 30) summary = summary.substring(0, 28) + "...";
-            gc.drawText(summary, leftPad, 30, true);
-
-            // Date top-right
+            // Date (row 1, right)
             gc.setFont(Theme.FONT_BODY);
             gc.setForeground(Theme.FG_TEXT_SUBTLE);
-            String dateStr = dateFormat.format(new Date(purchase.date));
-            Point dateSz = gc.textExtent(dateStr);
-            gc.drawText(dateStr, area.width - dateSz.x - 12, 8, true);
+            gc.drawText(dateStr, area.width - dateSz.x - rightPad, 8, true);
 
-            // Total price bottom-right
+            // Summary (row 2, left) — pixel-based ellipsis to avoid overlap with total
+            gc.setFont(Theme.FONT_BODY);
+            gc.setForeground(Theme.FG_TEXT_DARK);
+            String summary = buildSummary(purchase);
+            int maxSummaryW = area.width - totalSz.x - rightPad - leftPad - 8;
+            if (maxSummaryW > 0 && gc.textExtent(summary).x > maxSummaryW) {
+                int availForText = maxSummaryW - gc.textExtent("\u2026").x;
+                while (summary.length() > 0 && gc.textExtent(summary).x > availForText) {
+                    summary = summary.substring(0, summary.length() - 1);
+                }
+                summary += "\u2026";
+            }
+            gc.drawText(summary, leftPad, 30, true);
+
+            // Total price (row 2, right)
             gc.setFont(Theme.FONT_PRICE);
             gc.setForeground(Theme.FG_TEXT_DARK);
-            String total = Theme.formatPrice(purchase.total);
-            Point totalSz = gc.textExtent(total);
-            gc.drawText(total, area.width - totalSz.x - 12, 30, true);
+            gc.drawText(total, area.width - totalSz.x - rightPad, 30, true);
+        }
+
+        private String buildSummary(PurchaseInfo purchase) {
+            if (purchase.items == null || purchase.items.isEmpty()) return "";
+            String summary = purchase.items.get(0);
+            if (purchase.items.size() > 1) {
+                summary += ", " + purchase.items.get(1);
+            }
+            return summary;
         }
     }
 

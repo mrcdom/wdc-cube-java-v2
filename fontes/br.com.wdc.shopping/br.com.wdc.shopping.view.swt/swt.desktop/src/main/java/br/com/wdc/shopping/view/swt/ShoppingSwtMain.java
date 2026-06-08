@@ -1,6 +1,9 @@
 package br.com.wdc.shopping.view.swt;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -42,7 +45,39 @@ public class ShoppingSwtMain {
 
     public static void main(String[] args) {
         Log.setFactory(new Slf4jLogFactory());
+        installGtkFonts();
         new ShoppingSwtMain().run();
+    }
+
+    /**
+     * On GTK/Linux, SWT's {@code display.loadFont()} adds the font to fontconfig
+     * app-fonts but Pango's font map cache is NOT refreshed in the same JVM session.
+     * Pre-installing fonts to {@code ~/.local/share/fonts/} and running
+     * {@code fc-cache -f} ensures they are visible to Pango before Display is created.
+     */
+    private static void installGtkFonts() {
+        if (!"gtk".equals(org.eclipse.swt.SWT.getPlatform())) return;
+        try {
+            var fontsDir = Path.of(System.getProperty("user.home"), ".local", "share", "fonts");
+            Files.createDirectories(fontsDir);
+            var fontResource = ShoppingSwtMain.class.getClassLoader()
+                    .getResourceAsStream("fonts/bootstrap-icons.ttf");
+            if (fontResource == null) {
+                LOG.warn("bootstrap-icons.ttf not found in classpath, icons will not render");
+                return;
+            }
+            var dest = fontsDir.resolve("bootstrap-icons.ttf");
+            try (fontResource) {
+                Files.copy(fontResource, dest, StandardCopyOption.REPLACE_EXISTING);
+            }
+            var result = new ProcessBuilder("fc-cache", "-f", fontsDir.toString())
+                    .redirectErrorStream(true)
+                    .start();
+            result.waitFor();
+            LOG.info("GTK fonts installed to {}", dest);
+        } catch (IOException | InterruptedException e) {
+            LOG.warn("Failed to pre-install GTK fonts: {}", e.getMessage());
+        }
     }
 
     private void run() {

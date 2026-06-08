@@ -147,6 +147,11 @@ public class ProductsPanelViewSwt extends AbstractViewSwt {
         var area = card.getClientArea();
         gc.setAntialias(SWT.ON);
 
+        // Fill full area with page background so rounded corners don't expose
+        // the widget's native background (needed on Linux/GTK with SWT.NO_BACKGROUND)
+        gc.setBackground(Theme.BG_PAGE);
+        gc.fillRectangle(area);
+
         // Card background with rounded corners + border
         Surface.drawCard(gc, area);
 

@@ -1,5 +1,9 @@
 package br.com.wdc.shopping.view.swt.theme;
 
+import java.net.URL;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.text.NumberFormat;
@@ -18,6 +22,25 @@ import org.eclipse.swt.widgets.Display;
 public final class Theme {
 
     private Theme() {
+    }
+
+    // ========== PLATFORM ==========
+
+    /**
+     * {@code true} when running on GTK/Linux.
+     * GTK uses 96 DPI for font metrics; macOS uses 72 DPI.
+     * The same point value therefore renders ~33 % larger on GTK.
+     * Must be declared BEFORE the static initializer block.
+     */
+    public static final boolean IS_GTK = "gtk".equals(SWT.getPlatform());
+
+    /**
+     * Converts a macOS-calibrated point size to the platform-appropriate equivalent.
+     * On GTK a 3/4 scaling factor (72/96) is applied so fonts appear the same
+     * visual size as on macOS.
+     */
+    private static int pt(int macSize) {
+        return IS_GTK ? Math.max(8, macSize * 3 / 4) : macSize;
     }
 
     // ========== COLORS — Primary Palette ==========
@@ -130,28 +153,28 @@ public final class Theme {
         var display = Display.getDefault();
         var sysName = display.getSystemFont().getFontData()[0].getName();
 
-        FONT_TITLE = new Font(display, new FontData(sysName, 20, SWT.BOLD));
-        FONT_WELCOME = new Font(display, new FontData(sysName, 24, SWT.BOLD));
-        FONT_SUBTITLE = new Font(display, new FontData(sysName, 12, SWT.NORMAL));
-        FONT_HEADER = new Font(display, new FontData(sysName, 13, SWT.NORMAL));
-        FONT_HEADER_BOLD = new Font(display, new FontData(sysName, 14, SWT.BOLD));
-        FONT_BODY = new Font(display, new FontData(sysName, 13, SWT.NORMAL));
-        FONT_BODY_BOLD = new Font(display, new FontData(sysName, 13, SWT.BOLD));
-        FONT_FIELD_LABEL = new Font(display, new FontData(sysName, 12, SWT.BOLD));
-        FONT_BUTTON = new Font(display, new FontData(sysName, 14, SWT.BOLD));
-        FONT_PRICE = new Font(display, new FontData(sysName, 14, SWT.BOLD));
-        FONT_PRICE_LARGE = new Font(display, new FontData(sysName, 18, SWT.BOLD));
-        FONT_BANNER_TITLE = new Font(display, new FontData(sysName, 15, SWT.BOLD));
-        FONT_BANNER_SUBTITLE = new Font(display, new FontData(sysName, 10, SWT.NORMAL));
-        FONT_BADGE = new Font(display, new FontData(sysName, 10, SWT.BOLD));
-        FONT_PRODUCT_NAME = new Font(display, new FontData(sysName, 12, SWT.NORMAL));
-        FONT_NAV_SMALL = new Font(display, new FontData(sysName, 11, SWT.NORMAL));
-        FONT_NAV_TITLE = new Font(display, new FontData(sysName, 16, SWT.BOLD));
-        FONT_PAGINATION = new Font(display, new FontData(sysName, 12, SWT.BOLD));
-        FONT_QTY = new Font(display, new FontData(sysName, 11, SWT.NORMAL));
-        FONT_QTY_VALUE = new Font(display, new FontData(sysName, 14, SWT.BOLD));
-        FONT_MONO = new Font(display, new FontData("Courier New", 12, SWT.NORMAL));
-        FONT_MONO_BOLD = new Font(display, new FontData("Courier New", 12, SWT.BOLD));
+        FONT_TITLE = new Font(display, new FontData(sysName, pt(20), SWT.BOLD));
+        FONT_WELCOME = new Font(display, new FontData(sysName, pt(24), SWT.BOLD));
+        FONT_SUBTITLE = new Font(display, new FontData(sysName, pt(12), SWT.NORMAL));
+        FONT_HEADER = new Font(display, new FontData(sysName, pt(13), SWT.NORMAL));
+        FONT_HEADER_BOLD = new Font(display, new FontData(sysName, pt(14), SWT.BOLD));
+        FONT_BODY = new Font(display, new FontData(sysName, pt(13), SWT.NORMAL));
+        FONT_BODY_BOLD = new Font(display, new FontData(sysName, pt(13), SWT.BOLD));
+        FONT_FIELD_LABEL = new Font(display, new FontData(sysName, pt(12), SWT.BOLD));
+        FONT_BUTTON = new Font(display, new FontData(sysName, pt(14), SWT.BOLD));
+        FONT_PRICE = new Font(display, new FontData(sysName, pt(14), SWT.BOLD));
+        FONT_PRICE_LARGE = new Font(display, new FontData(sysName, pt(18), SWT.BOLD));
+        FONT_BANNER_TITLE = new Font(display, new FontData(sysName, pt(15), SWT.BOLD));
+        FONT_BANNER_SUBTITLE = new Font(display, new FontData(sysName, pt(10), SWT.NORMAL));
+        FONT_BADGE = new Font(display, new FontData(sysName, pt(10), SWT.BOLD));
+        FONT_PRODUCT_NAME = new Font(display, new FontData(sysName, pt(12), SWT.NORMAL));
+        FONT_NAV_SMALL = new Font(display, new FontData(sysName, pt(11), SWT.NORMAL));
+        FONT_NAV_TITLE = new Font(display, new FontData(sysName, pt(16), SWT.BOLD));
+        FONT_PAGINATION = new Font(display, new FontData(sysName, pt(12), SWT.BOLD));
+        FONT_QTY = new Font(display, new FontData(sysName, pt(11), SWT.NORMAL));
+        FONT_QTY_VALUE = new Font(display, new FontData(sysName, pt(14), SWT.BOLD));
+        FONT_MONO = new Font(display, new FontData("Courier New", pt(12), SWT.NORMAL));
+        FONT_MONO_BOLD = new Font(display, new FontData("Courier New", pt(12), SWT.BOLD));
 
         // Load Bootstrap Icons font
         // When running from a UberJar, fontUrl.getPath() is a jar-internal path that
@@ -172,21 +195,32 @@ public final class Theme {
                     }
                     path = tempFont.toAbsolutePath().toString();
                 }
-                display.loadFont(path);
-                var fd = display.getFontList(null, true);
-                for (var f : fd) {
-                    if (f.getName().toLowerCase().contains("bootstrap")) {
-                        iconFontName = f.getName();
-                        break;
+
+                // Read the real family name directly from the TTF name table.
+                String ttfName = readTtfFamilyName(fontUrl, null);
+                boolean loaded = display.loadFont(path);
+
+                if (ttfName != null) {
+                    iconFontName = ttfName;
+                } else if (loaded) {
+                    // Scan the font list as a last resort
+                    var fd = display.getFontList(null, true);
+                    for (var f : fd) {
+                        if (f.getName().toLowerCase().contains("bootstrap")) {
+                            iconFontName = f.getName();
+                            break;
+                        }
                     }
                 }
             } catch (Exception e) {
-                // Fallback: use system font
+                System.err.println("[Theme] Exception loading icon font: " + e);
             }
+        } else {
+            System.err.println("[Theme] bootstrap-icons.ttf not found in classpath");
         }
-        FONT_ICON = new Font(display, new FontData(iconFontName, 14, SWT.NORMAL));
-        FONT_ICON_NAV = new Font(display, new FontData(iconFontName, 18, SWT.NORMAL));
-        FONT_ICON_LARGE = new Font(display, new FontData(iconFontName, 40, SWT.NORMAL));
+        FONT_ICON = new Font(display, new FontData(iconFontName, pt(14), SWT.NORMAL));
+        FONT_ICON_NAV = new Font(display, new FontData(iconFontName, pt(18), SWT.NORMAL));
+        FONT_ICON_LARGE = new Font(display, new FontData(iconFontName, pt(40), SWT.NORMAL));
     }
 
     // ========== HELPERS ==========
@@ -203,5 +237,58 @@ public final class Theme {
 
     private static Color color(int r, int g, int b, int a) {
         return new Color(r, g, b, a);
+    }
+
+    /**
+     * Reads the font family name (name ID 1) directly from the TTF name table.
+     * This is needed on GTK where freshly loaded fonts may not appear in
+     * {@code display.getFontList()} in the same JVM session.
+     *
+     * @param fontUrl  URL of the TTF file (file: or jar: protocol)
+     * @param fallback value to return if the name cannot be read
+     */
+    private static String readTtfFamilyName(URL fontUrl, String fallback) {
+        try (var in = fontUrl.openStream()) {
+            byte[] data = in.readAllBytes();
+            var buf = ByteBuffer.wrap(data).order(ByteOrder.BIG_ENDIAN);
+            // Offset table: sfVersion(4) + numTables(2) + ...
+            int numTables = buf.getShort(4) & 0xFFFF;
+            for (int i = 0; i < numTables; i++) {
+                int offset = 12 + i * 16;
+                String tag = new String(data, offset, 4, StandardCharsets.US_ASCII);
+                if ("name".equals(tag)) {
+                    int tableOffset = buf.getInt(offset + 8);
+                    // name table: format(2) + count(2) + stringOffset(2)
+                    int count = buf.getShort(tableOffset + 2) & 0xFFFF;
+                    int stringOffset = tableOffset + (buf.getShort(tableOffset + 4) & 0xFFFF);
+                    for (int r = 0; r < count; r++) {
+                        int recBase = tableOffset + 6 + r * 12;
+                        int platformId = buf.getShort(recBase) & 0xFFFF;
+                        int nameId     = buf.getShort(recBase + 6) & 0xFFFF;
+                        int length     = buf.getShort(recBase + 8) & 0xFFFF;
+                        int strOff     = buf.getShort(recBase + 10) & 0xFFFF;
+                        // nameId == 1: Font Family; prefer platform 3 (Windows/Unicode)
+                        if (nameId == 1 && (platformId == 3 || platformId == 0)) {
+                            String charset = (platformId == 3) ? "UTF-16BE" : "UTF-8";
+                            return new String(data, stringOffset + strOff, length, charset).trim();
+                        }
+                    }
+                    // Fallback: pick any nameId==1 record
+                    for (int r = 0; r < count; r++) {
+                        int recBase = tableOffset + 6 + r * 12;
+                        int nameId  = buf.getShort(recBase + 6) & 0xFFFF;
+                        int length  = buf.getShort(recBase + 8) & 0xFFFF;
+                        int strOff  = buf.getShort(recBase + 10) & 0xFFFF;
+                        if (nameId == 1 && length > 0) {
+                            return new String(data, stringOffset + strOff, length, StandardCharsets.UTF_8).trim();
+                        }
+                    }
+                    break;
+                }
+            }
+        } catch (Exception ignored) {
+            // fall through to fallback
+        }
+        return fallback;
     }
 }
