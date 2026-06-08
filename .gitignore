@@ -12,7 +12,7 @@
 .run/
 
 # Eclipse workspace files
-.ecp-cube-v2/
+.ecp-*/
 .mtj.tmp/
 settings/
 
