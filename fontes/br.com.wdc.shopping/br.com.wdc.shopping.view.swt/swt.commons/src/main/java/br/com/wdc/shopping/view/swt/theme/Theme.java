@@ -1,5 +1,7 @@
 package br.com.wdc.shopping.view.swt.theme;
 
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.text.NumberFormat;
 import java.util.Locale;
 
@@ -152,11 +154,24 @@ public final class Theme {
         FONT_MONO_BOLD = new Font(display, new FontData("Courier New", 12, SWT.BOLD));
 
         // Load Bootstrap Icons font
+        // When running from a UberJar, fontUrl.getPath() is a jar-internal path that
+        // display.loadFont() cannot use. Extract to a temp file if needed.
         var fontUrl = Theme.class.getClassLoader().getResource("fonts/bootstrap-icons.ttf");
         String iconFontName = "bootstrap-icons";
         if (fontUrl != null) {
             try {
-                var path = fontUrl.getPath();
+                String path;
+                if ("file".equals(fontUrl.getProtocol())) {
+                    path = fontUrl.getPath();
+                } else {
+                    // jar: or other non-file URL — extract to a temp file
+                    var tempFont = Files.createTempFile("bootstrap-icons-", ".ttf");
+                    tempFont.toFile().deleteOnExit();
+                    try (var in = fontUrl.openStream()) {
+                        Files.copy(in, tempFont, StandardCopyOption.REPLACE_EXISTING);
+                    }
+                    path = tempFont.toAbsolutePath().toString();
+                }
                 display.loadFont(path);
                 var fd = display.getFontList(null, true);
                 for (var f : fd) {
