@@ -2,6 +2,8 @@ package br.com.wdc.shopping.view.remote.shell.swt;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
@@ -37,6 +39,7 @@ public class ShoppingSwtRemoteMain {
 			shell.setText("WDC Shopping (Remote)");
 			shell.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 			shell.setLayout(new StackLayout());
+			applyAppIcons(display, shell);
 
 			// Centre on primary monitor
 			var monitor = display.getPrimaryMonitor();
@@ -68,5 +71,20 @@ public class ShoppingSwtRemoteMain {
 		}
 
 		LOG.info("SWT Remote Shell exited.");
+	}
+
+	private static void applyAppIcons(Display display, Shell shell) {
+		try (var stream = ShoppingSwtRemoteMain.class.getResourceAsStream("/images/app-icon.png")) {
+			if (stream == null) return;
+			var base = new ImageData(stream);
+			shell.setImages(new Image[]{
+				new Image(display, base.scaledTo(16, 16)),
+				new Image(display, base.scaledTo(32, 32)),
+				new Image(display, base.scaledTo(48, 48)),
+				new Image(display, base.scaledTo(256, 256)),
+			});
+		} catch (Exception e) {
+			LOG.debug("Could not load app icon: {}", e.getMessage());
+		}
 	}
 }
