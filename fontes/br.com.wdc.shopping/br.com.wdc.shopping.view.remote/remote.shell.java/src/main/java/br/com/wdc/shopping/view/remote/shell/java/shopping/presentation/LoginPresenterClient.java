@@ -1,12 +1,12 @@
-package br.com.wdc.shopping.view.remote.javaclient.scenario.shopping.presentation;
+package br.com.wdc.shopping.view.remote.shell.java.shopping.presentation;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
-import br.com.wdc.framework.cube.remote.javaclient.AbstractPresenterClient;
-import br.com.wdc.framework.cube.remote.javaclient.HostClient;
-import br.com.wdc.framework.cube.remote.javaclient.model.HostResponse;
+import br.com.wdc.framework.cube.remote.bridge.java.AbstractPresenterClient;
+import br.com.wdc.framework.cube.remote.bridge.java.HostClient;
+import br.com.wdc.framework.cube.remote.bridge.java.model.HostResponse;
 
 /**
  * Client mirror of {@code LoginPresenter} (classId {@value #CLASS_ID}).

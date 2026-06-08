@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.javaclient.scenario;
+package br.com.wdc.shopping.view.remote.shell.java;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -10,11 +10,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.LongAdder;
 
-import br.com.wdc.framework.cube.remote.javaclient.HostClient;
-import br.com.wdc.shopping.view.remote.javaclient.scenario.shopping.presentation.BrowserPresenterClient;
-import br.com.wdc.shopping.view.remote.javaclient.scenario.shopping.presentation.LoginPresenterClient;
-import br.com.wdc.shopping.view.remote.javaclient.scenario.shopping.presentation.ProductsPanelPresenterClient;
-import br.com.wdc.shopping.view.remote.javaclient.scenario.shopping.presentation.ShoppingRoutes;
+import br.com.wdc.framework.cube.remote.bridge.java.HostClient;
+import br.com.wdc.shopping.view.remote.shell.java.shopping.presentation.BrowserPresenterClient;
+import br.com.wdc.shopping.view.remote.shell.java.shopping.presentation.LoginPresenterClient;
+import br.com.wdc.shopping.view.remote.shell.java.shopping.presentation.ProductsPanelPresenterClient;
+import br.com.wdc.shopping.view.remote.shell.java.shopping.presentation.ShoppingRoutes;
 
 /**
  * Mede a capacidade de atendimento concorrente do servidor Host/Shell.

@@ -1,4 +1,4 @@
-package br.com.wdc.framework.cube.remote.javaclient;
+package br.com.wdc.framework.cube.remote.bridge.java;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -9,7 +9,7 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.SecretKeySpec;
 
-import br.com.wdc.framework.cube.remote.javaclient.model.SecretContext;
+import br.com.wdc.framework.cube.remote.bridge.java.model.SecretContext;
 
 /**
  * Handles the RSA + PBKDF2 + AES-GCM handshake required to connect to the Host.

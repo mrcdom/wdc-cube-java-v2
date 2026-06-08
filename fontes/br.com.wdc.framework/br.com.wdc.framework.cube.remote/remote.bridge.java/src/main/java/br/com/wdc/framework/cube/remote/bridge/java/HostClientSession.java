@@ -1,4 +1,4 @@
-package br.com.wdc.framework.cube.remote.javaclient;
+package br.com.wdc.framework.cube.remote.bridge.java;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -20,9 +20,9 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.ToNumberPolicy;
 import com.google.gson.reflect.TypeToken;
 
-import br.com.wdc.framework.cube.remote.javaclient.model.HostResponse;
-import br.com.wdc.framework.cube.remote.javaclient.model.ViewStateMap;
-import br.com.wdc.framework.cube.remote.javaclient.model.ViewStateSnapshot;
+import br.com.wdc.framework.cube.remote.bridge.java.model.HostResponse;
+import br.com.wdc.framework.cube.remote.bridge.java.model.ViewStateMap;
+import br.com.wdc.framework.cube.remote.bridge.java.model.ViewStateSnapshot;
 
 /**
  * Low-level WebSocket session for the Host/Shell protocol.

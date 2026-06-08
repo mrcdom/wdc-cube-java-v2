@@ -1,4 +1,4 @@
-package br.com.wdc.framework.cube.remote.javaclient.model;
+package br.com.wdc.framework.cube.remote.bridge.java.model;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -10,7 +10,7 @@ import javax.crypto.spec.SecretKeySpec;
 /**
  * Holds the AES-GCM key material derived during the handshake.
  * <p>
- * Produced by {@link br.com.wdc.framework.cube.remote.javaclient.ClientCrypto#generateSecret(String)}.
+ * Produced by {@link br.com.wdc.framework.cube.remote.bridge.java.ClientCrypto#generateSecret(String)}.
  * The {@code signature} field is the {@code "secret"} value for the first WS message.
  * The AES key + IV are used to decipher tokens sent back by the server.
  */

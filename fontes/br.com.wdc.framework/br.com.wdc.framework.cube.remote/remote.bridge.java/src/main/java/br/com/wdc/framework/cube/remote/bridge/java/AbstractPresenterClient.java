@@ -1,12 +1,12 @@
-package br.com.wdc.framework.cube.remote.javaclient;
+package br.com.wdc.framework.cube.remote.bridge.java;
 
 import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
-import br.com.wdc.framework.cube.remote.javaclient.model.HostResponse;
-import br.com.wdc.framework.cube.remote.javaclient.model.ViewStateSnapshot;
+import br.com.wdc.framework.cube.remote.bridge.java.model.HostResponse;
+import br.com.wdc.framework.cube.remote.bridge.java.model.ViewStateSnapshot;
 
 /**
  * Base class for typed client-side presenter mirrors.

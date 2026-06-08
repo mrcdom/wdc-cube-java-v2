@@ -1,4 +1,4 @@
-package br.com.wdc.framework.cube.remote.javaclient.model;
+package br.com.wdc.framework.cube.remote.bridge.java.model;
 
 import java.util.Collection;
 import java.util.Collections;

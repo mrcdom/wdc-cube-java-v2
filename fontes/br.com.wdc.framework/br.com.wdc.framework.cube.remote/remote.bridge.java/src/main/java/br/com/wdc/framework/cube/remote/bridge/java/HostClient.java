@@ -1,4 +1,4 @@
-package br.com.wdc.framework.cube.remote.javaclient;
+package br.com.wdc.framework.cube.remote.bridge.java;
 
 import java.io.IOException;
 import java.net.URI;
@@ -23,10 +23,10 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.ToNumberPolicy;
 import com.google.gson.reflect.TypeToken;
 
-import br.com.wdc.framework.cube.remote.javaclient.model.HostResponse;
-import br.com.wdc.framework.cube.remote.javaclient.model.SecretContext;
-import br.com.wdc.framework.cube.remote.javaclient.model.ViewStateMap;
-import br.com.wdc.framework.cube.remote.javaclient.model.ViewStateSnapshot;
+import br.com.wdc.framework.cube.remote.bridge.java.model.HostResponse;
+import br.com.wdc.framework.cube.remote.bridge.java.model.SecretContext;
+import br.com.wdc.framework.cube.remote.bridge.java.model.ViewStateMap;
+import br.com.wdc.framework.cube.remote.bridge.java.model.ViewStateSnapshot;
 
 /**
  * Main facade for connecting a Java program to the Host as a Shell.

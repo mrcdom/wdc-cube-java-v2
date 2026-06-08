@@ -1,15 +1,15 @@
-package br.com.wdc.shopping.view.remote.javaclient.scenario;
+package br.com.wdc.shopping.view.remote.shell.java;
 
 import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-import br.com.wdc.framework.cube.remote.javaclient.HostClient;
-import br.com.wdc.shopping.view.remote.javaclient.scenario.shopping.presentation.BrowserPresenterClient;
-import br.com.wdc.shopping.view.remote.javaclient.scenario.shopping.presentation.CartPresenterClient;
-import br.com.wdc.shopping.view.remote.javaclient.scenario.shopping.presentation.LoginPresenterClient;
-import br.com.wdc.shopping.view.remote.javaclient.scenario.shopping.presentation.ShoppingRoutes;
+import br.com.wdc.framework.cube.remote.bridge.java.HostClient;
+import br.com.wdc.shopping.view.remote.shell.java.shopping.presentation.BrowserPresenterClient;
+import br.com.wdc.shopping.view.remote.shell.java.shopping.presentation.CartPresenterClient;
+import br.com.wdc.shopping.view.remote.shell.java.shopping.presentation.LoginPresenterClient;
+import br.com.wdc.shopping.view.remote.shell.java.shopping.presentation.ShoppingRoutes;
 
 /**
  * Mede o consumo de memória heap por sessão ativa no servidor em duas fases:

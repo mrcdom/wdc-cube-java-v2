@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.javaclient.scenario;
+package br.com.wdc.shopping.view.remote.shell.java;
 
 /**
  * Assertion helpers for scenario classes.

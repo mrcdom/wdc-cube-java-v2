@@ -1,11 +1,11 @@
-package br.com.wdc.shopping.view.remote.javaclient.scenario;
+package br.com.wdc.shopping.view.remote.shell.java;
 
 import java.io.PrintStream;
 import java.util.Map;
 
-import br.com.wdc.framework.cube.remote.javaclient.HostClient;
-import br.com.wdc.framework.cube.remote.javaclient.model.HostResponse;
-import br.com.wdc.framework.cube.remote.javaclient.model.ViewStateSnapshot;
+import br.com.wdc.framework.cube.remote.bridge.java.HostClient;
+import br.com.wdc.framework.cube.remote.bridge.java.model.HostResponse;
+import br.com.wdc.framework.cube.remote.bridge.java.model.ViewStateSnapshot;
 
 /**
  * Demonstrates how to use {@link HostClient} to connect to a running Host,

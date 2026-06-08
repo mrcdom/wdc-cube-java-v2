@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.javaclient.scenario.shopping;
+package br.com.wdc.shopping.view.remote.shell.java.shopping;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -9,15 +9,15 @@ import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import br.com.wdc.framework.cube.remote.javaclient.HostClient;
-import br.com.wdc.shopping.view.remote.javaclient.scenario.ScenarioAssert;
-import br.com.wdc.shopping.view.remote.javaclient.scenario.shopping.presentation.BrowserPresenterClient;
-import br.com.wdc.shopping.view.remote.javaclient.scenario.shopping.presentation.CartPresenterClient;
-import br.com.wdc.shopping.view.remote.javaclient.scenario.shopping.presentation.HomePresenterClient;
-import br.com.wdc.shopping.view.remote.javaclient.scenario.shopping.presentation.LoginPresenterClient;
-import br.com.wdc.shopping.view.remote.javaclient.scenario.shopping.presentation.ProductPresenterClient;
-import br.com.wdc.shopping.view.remote.javaclient.scenario.shopping.presentation.ReceiptPresenterClient;
-import br.com.wdc.shopping.view.remote.javaclient.scenario.shopping.presentation.ShoppingRoutes;
+import br.com.wdc.framework.cube.remote.bridge.java.HostClient;
+import br.com.wdc.shopping.view.remote.shell.java.ScenarioAssert;
+import br.com.wdc.shopping.view.remote.shell.java.shopping.presentation.BrowserPresenterClient;
+import br.com.wdc.shopping.view.remote.shell.java.shopping.presentation.CartPresenterClient;
+import br.com.wdc.shopping.view.remote.shell.java.shopping.presentation.HomePresenterClient;
+import br.com.wdc.shopping.view.remote.shell.java.shopping.presentation.LoginPresenterClient;
+import br.com.wdc.shopping.view.remote.shell.java.shopping.presentation.ProductPresenterClient;
+import br.com.wdc.shopping.view.remote.shell.java.shopping.presentation.ReceiptPresenterClient;
+import br.com.wdc.shopping.view.remote.shell.java.shopping.presentation.ShoppingRoutes;
 
 /**
  * Cenário de integração: comprar produto.

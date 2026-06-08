@@ -1,9 +1,9 @@
-package br.com.wdc.shopping.view.remote.javaclient.scenario.shopping.presentation;
+package br.com.wdc.shopping.view.remote.shell.java.shopping.presentation;
 
 import java.util.Optional;
 
-import br.com.wdc.framework.cube.remote.javaclient.AbstractPresenterClient;
-import br.com.wdc.framework.cube.remote.javaclient.HostClient;
+import br.com.wdc.framework.cube.remote.bridge.java.AbstractPresenterClient;
+import br.com.wdc.framework.cube.remote.bridge.java.HostClient;
 
 /**
  * Client mirror of {@code RootPresenter} (classId {@value #CLASS_ID}).
