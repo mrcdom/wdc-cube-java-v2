@@ -76,7 +76,7 @@
         <!-- TeaVM compiled webapp (static resources only) -->
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>br.com.wdc.shopping.view.teavm.web</artifactId>
+            <artifactId>teavm.web</artifactId>
             <version>${project.version}</version>
             <exclusions>
                 <exclusion>
