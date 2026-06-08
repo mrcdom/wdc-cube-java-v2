@@ -17,6 +17,7 @@
 
 	<modules>
 		<module>remote.backend</module>
+		<module>remote.bridge.java</module>
 		<module>remote.bridge.react</module>
 		<module>remote.bridge.teavm</module>
 	</modules>

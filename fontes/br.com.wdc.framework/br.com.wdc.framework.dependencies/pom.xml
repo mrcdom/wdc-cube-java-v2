@@ -148,6 +148,11 @@
 			</dependency>
 			<dependency>
 				<groupId>br.com.wdc.framework</groupId>
+				<artifactId>remote.bridge.java</artifactId>
+				<version>1.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>br.com.wdc.framework</groupId>
 				<artifactId>remote.bridge.teavm</artifactId>
 				<version>1.0.0</version>
 			</dependency>
