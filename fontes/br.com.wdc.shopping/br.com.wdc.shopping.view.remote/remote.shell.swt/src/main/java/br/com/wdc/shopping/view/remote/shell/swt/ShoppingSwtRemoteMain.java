@@ -35,6 +35,11 @@ public class ShoppingSwtRemoteMain {
 		String serverUrl = args.length > 0 ? args[0] : DEFAULT_SERVER_URL;
 		LOG.info("Starting SWT Remote Shell → {}", serverUrl);
 
+		// macOS: AWT must be initialized BEFORE SWT's Display, because Display's constructor
+		// calls NSApplicationLoad() and takes over the Cocoa event loop. If AWT is initialized
+		// after that, Taskbar.setIconImage() has no effect on the Dock icon.
+		applyDockIcon();
+
 		var display = new Display();
 		try {
 			var shell = new Shell(display, SWT.SHELL_TRIM);
@@ -88,7 +93,6 @@ public class ShoppingSwtRemoteMain {
 		} catch (Exception e) {
 			LOG.debug("Could not load app icon: {}", e.getMessage());
 		}
-		applyDockIcon();
 	}
 
 	/**

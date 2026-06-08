@@ -11,6 +11,8 @@ import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.impl.ProductsPanelViewSwt;
 
 class ProductsPanelViewSwtRemote extends ProductsPanelViewSwt {
+	
+	public static final String CID = "a1b2c3d4e5f6";
 
 	final String vsid;
 	final RemoteViewContext ctx;

@@ -38,15 +38,6 @@ import br.com.wdc.shopping.view.swt.util.ProductImageCache;
  */
 public class ShoppingSwtRemoteApp implements SwtApp, RemoteViewContext {
 
-	// Class IDs from the Host (match the server-side presenter classId hashes)
-
-	public static final String CLASS_HOME = "473dbdd7a36a";
-	public static final String CLASS_CART = "7eb485e5f843";
-	public static final String CLASS_PRODUCT = "48b693f67410";
-	public static final String CLASS_PRODUCTS_PANEL = "a1b2c3d4e5f6";
-	public static final String CLASS_PURCHASES_PANEL = "b3c4d5e6f7a8";
-	public static final String CLASS_RECEIPT = "e8d0bd8ae3bc";
-
 	private static final int FRAME_INTERVAL_MS = 16;
 	private static final Logger LOG = LoggerFactory.getLogger(ShoppingSwtRemoteApp.class);
 
@@ -138,12 +129,12 @@ public class ShoppingSwtRemoteApp implements SwtApp, RemoteViewContext {
 	private void registerViewFactories() {
 		this.viewFactories.put(RootViewSwtRemote.CID, vsid -> new RootViewSwtRemote(this, vsid, this));
 		this.viewFactories.put(LoginViewSwtRemote.CID, vsid -> new LoginViewSwtRemote(this, vsid, this));
-		this.viewFactories.put(CLASS_HOME, vsid -> new HomeViewSwtRemote(this, vsid, this));
-		this.viewFactories.put(CLASS_CART, vsid -> new CartViewSwtRemote(this, vsid, this));
-		this.viewFactories.put(CLASS_PRODUCT, vsid -> new ProductViewSwtRemote(this, vsid, this));
-		this.viewFactories.put(CLASS_PRODUCTS_PANEL, vsid -> new ProductsPanelViewSwtRemote(this, vsid, this));
-		this.viewFactories.put(CLASS_PURCHASES_PANEL, vsid -> new PurchasesPanelViewSwtRemote(this, vsid, this));
-		this.viewFactories.put(CLASS_RECEIPT, vsid -> new ReceiptViewSwtRemote(this, vsid, this));
+		this.viewFactories.put(HomeViewSwtRemote.CID, vsid -> new HomeViewSwtRemote(this, vsid, this));
+		this.viewFactories.put(CartViewSwtRemote.CID, vsid -> new CartViewSwtRemote(this, vsid, this));
+		this.viewFactories.put(ProductViewSwtRemote.CID, vsid -> new ProductViewSwtRemote(this, vsid, this));
+		this.viewFactories.put(ProductsPanelViewSwtRemote.CID, vsid -> new ProductsPanelViewSwtRemote(this, vsid, this));
+		this.viewFactories.put(PurchasesPanelViewSwtRemote.CID, vsid -> new PurchasesPanelViewSwtRemote(this, vsid, this));
+		this.viewFactories.put(ReceiptViewSwtRemote.CID, vsid -> new ReceiptViewSwtRemote(this, vsid, this));
 	}
 
 	private void applyResponse(HostResponse resp) {
