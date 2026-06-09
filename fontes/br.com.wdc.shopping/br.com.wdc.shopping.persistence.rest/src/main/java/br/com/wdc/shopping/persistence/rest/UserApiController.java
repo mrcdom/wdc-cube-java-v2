@@ -15,9 +15,14 @@ import br.com.wdc.shopping.domain.exception.AccessDeniedException;
 import br.com.wdc.shopping.domain.model.User;
 import br.com.wdc.shopping.domain.repositories.UserRepository;
 import br.com.wdc.shopping.domain.security.SecurityContext;
+import br.com.wdc.shopping.persistence.rest.doc.Doc;
 import br.com.wdc.shopping.persistence.rest.security.SecurityEnforcer;
 import io.javalin.config.JavalinConfig;
 import io.javalin.http.Context;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.PathItem;
+import io.swagger.v3.oas.models.responses.ApiResponses;
 
 public class UserApiController {
 
@@ -29,14 +34,26 @@ public class UserApiController {
 
     static void configure(JavalinConfig config, String prefix) {
         var ctrl = new UserApiController();
-        config.routes.post(prefix + "/api/repo/user/insert", ctrl::insert);
-        config.routes.post(prefix + "/api/repo/user/update", ctrl::update);
-        config.routes.post(prefix + "/api/repo/user/delete", ctrl::delete);
-        config.routes.post(prefix + "/api/repo/user/count", ctrl::count);
-        config.routes.post(prefix + "/api/repo/user/fetch", ctrl::fetch);
-        config.routes.post(prefix + "/api/repo/user/fetch-page", ctrl::fetchPage);
-        config.routes.post(prefix + "/api/repo/user/fetch-by-id", ctrl::fetchByIdPost);
-        config.routes.get(prefix + "/api/repo/user/{id}", ctrl::fetchById);
+        config.routes.post(insertPath(prefix), ctrl::insert);
+        config.routes.post(updatePath(prefix), ctrl::update);
+        config.routes.post(deletePath(prefix), ctrl::delete);
+        config.routes.post(countPath(prefix), ctrl::count);
+        config.routes.post(fetchPath(prefix), ctrl::fetch);
+        config.routes.post(fetchPagePath(prefix), ctrl::fetchPage);
+        config.routes.post(fetchByIdPostPath(prefix), ctrl::fetchByIdPost);
+        config.routes.get(fetchByIdPath(prefix), ctrl::fetchById);
+    }
+
+    public static void openApi(OpenAPI api) {
+        var ctrl = new UserApiController();
+        ctrl.insertDoc(api);
+        ctrl.updateDoc(api);
+        ctrl.deleteDoc(api);
+        ctrl.countDoc(api);
+        ctrl.fetchDoc(api);
+        ctrl.fetchPageDoc(api);
+        ctrl.fetchByIdDoc(api);
+        ctrl.fetchByIdPostDoc(api);
     }
 
     private static UserRepository repo() {
@@ -44,6 +61,24 @@ public class UserApiController {
     }
 
     private final UserModelCodec codec = new UserModelCodec();
+
+    // :: Insert
+
+    private static String insertPath(String prefix) {
+        return prefix + "/api/repo/user/insert";
+    }
+
+    private void insertDoc(OpenAPI api) {
+        var operation = new Operation()
+                .addTagsItem("user").summary("Insert a user")
+                .security(Doc.BEARER)
+                .requestBody(Doc.body("#/components/schemas/User"))
+                .responses(new ApiResponses()
+                        .addApiResponse("201", Doc.ok("#/components/schemas/InsertResult"))
+                        .addApiResponse("401", Doc.unauthorized())
+                        .addApiResponse("403", Doc.forbidden()));
+        api.path(insertPath(""), new PathItem().post(operation));
+    }
 
     private void insert(Context ctx) {
         var sc = SecurityEnforcer.require("user", "write");
@@ -60,6 +95,24 @@ public class UserApiController {
         json(ctx, writer);
     }
 
+    // :: Update
+
+    private static String updatePath(String prefix) {
+        return prefix + "/api/repo/user/update";
+    }
+
+    private void updateDoc(OpenAPI api) {
+        var operation = new Operation()
+                .addTagsItem("user").summary("Update a user")
+                .security(Doc.BEARER)
+                .requestBody(Doc.body("#/components/schemas/User"))
+                .responses(new ApiResponses()
+                        .addApiResponse("200", Doc.ok("#/components/schemas/MutationResult"))
+                        .addApiResponse("401", Doc.unauthorized())
+                        .addApiResponse("403", Doc.forbidden()));
+        api.path(updatePath(""), new PathItem().post(operation));
+    }
+
     private void update(Context ctx) {
         var sc = SecurityEnforcer.require("user", "write");
         var reader = new JsonStreamReader(ctx.body());
@@ -72,6 +125,24 @@ public class UserApiController {
         writer.name("success").value(success);
         writer.endObject();
         json(ctx, writer);
+    }
+
+    // :: Delete
+
+    private static String deletePath(String prefix) {
+        return prefix + "/api/repo/user/delete";
+    }
+
+    private void deleteDoc(OpenAPI api) {
+        var operation = new Operation()
+                .addTagsItem("user").summary("Delete users matching criteria")
+                .security(Doc.BEARER)
+                .requestBody(Doc.body("#/components/schemas/FetchRequest"))
+                .responses(new ApiResponses()
+                        .addApiResponse("200", Doc.ok("#/components/schemas/CountResult"))
+                        .addApiResponse("401", Doc.unauthorized())
+                        .addApiResponse("403", Doc.forbidden()));
+        api.path(deletePath(""), new PathItem().post(operation));
     }
 
     private void delete(Context ctx) {
@@ -87,6 +158,23 @@ public class UserApiController {
         json(ctx, writer);
     }
 
+    // :: Count
+
+    private static String countPath(String prefix) {
+        return prefix + "/api/repo/user/count";
+    }
+
+    private void countDoc(OpenAPI api) {
+        var operation = new Operation()
+                .addTagsItem("user").summary("Count users matching criteria")
+                .security(Doc.BEARER)
+                .requestBody(Doc.body("#/components/schemas/FetchRequest"))
+                .responses(new ApiResponses()
+                        .addApiResponse("200", Doc.ok("#/components/schemas/CountResult"))
+                        .addApiResponse("401", Doc.unauthorized()));
+        api.path(countPath(""), new PathItem().post(operation));
+    }
+
     private void count(Context ctx) {
         var sc = SecurityEnforcer.require("user", "read");
         var reader = new JsonStreamReader(ctx.body());
@@ -100,6 +188,23 @@ public class UserApiController {
         json(ctx, writer);
     }
 
+    // :: Fetch
+
+    private static String fetchPath(String prefix) {
+        return prefix + "/api/repo/user/fetch";
+    }
+
+    private void fetchDoc(OpenAPI api) {
+        var operation = new Operation()
+                .addTagsItem("user").summary("Fetch users matching criteria (offset/limit)")
+                .security(Doc.BEARER)
+                .requestBody(Doc.body("#/components/schemas/FetchRequest"))
+                .responses(new ApiResponses()
+                        .addApiResponse("200", Doc.ok("#/components/schemas/UserFetchResponse"))
+                        .addApiResponse("401", Doc.unauthorized()));
+        api.path(fetchPath(""), new PathItem().post(operation));
+    }
+
     private void fetch(Context ctx) {
         var sc = SecurityEnforcer.require("user", "read");
         var reader = new JsonStreamReader(ctx.body());
@@ -110,10 +215,13 @@ public class UserApiController {
         while (reader.hasNext()) {
             var name = reader.nextName();
             switch (name) {
-                case "projection" -> criteria.withProjection(codec.readEntity(reader));
-                case "offset" -> offset = InputCoerceUtils.asInteger(reader, 0);
-                case "limit" -> limit = InputCoerceUtils.asInteger(reader, 0);
-                default -> { if (!codec.readCriteriaField(reader, name, criteria)) reader.skipValue(); }
+            case "projection" -> criteria.withProjection(codec.readEntity(reader));
+            case "offset" -> offset = InputCoerceUtils.asInteger(reader, 0);
+            case "limit" -> limit = InputCoerceUtils.asInteger(reader, 0);
+            default -> {
+                if (!codec.readCriteriaField(reader, name, criteria))
+                    reader.skipValue();
+            }
             }
         }
         reader.endObject();
@@ -132,6 +240,23 @@ public class UserApiController {
         json(ctx, writer);
     }
 
+    // :: Fetch Page
+
+    private static String fetchPagePath(String prefix) {
+        return prefix + "/api/repo/user/fetch-page";
+    }
+
+    private void fetchPageDoc(OpenAPI api) {
+        var operation = new Operation()
+                .addTagsItem("user").summary("Fetch users matching criteria (page/pageSize)")
+                .security(Doc.BEARER)
+                .requestBody(Doc.body("#/components/schemas/PageRequest"))
+                .responses(new ApiResponses()
+                        .addApiResponse("200", Doc.ok("#/components/schemas/UserPageResponse"))
+                        .addApiResponse("401", Doc.unauthorized()));
+        api.path(fetchPagePath(""), new PathItem().post(operation));
+    }
+
     private void fetchPage(Context ctx) {
         var sc = SecurityEnforcer.require("user", "read");
         var reader = new JsonStreamReader(ctx.body());
@@ -142,10 +267,13 @@ public class UserApiController {
         while (reader.hasNext()) {
             var name = reader.nextName();
             switch (name) {
-                case "projection" -> criteria.withProjection(codec.readEntity(reader));
-                case "page" -> pageIx = InputCoerceUtils.asInteger(reader, 0);
-                case "pageSize" -> pageSz = InputCoerceUtils.asInteger(reader, 0);
-                default -> { if (!codec.readCriteriaField(reader, name, criteria)) reader.skipValue(); }
+            case "projection" -> criteria.withProjection(codec.readEntity(reader));
+            case "page" -> pageIx = InputCoerceUtils.asInteger(reader, 0);
+            case "pageSize" -> pageSz = InputCoerceUtils.asInteger(reader, 0);
+            default -> {
+                if (!codec.readCriteriaField(reader, name, criteria))
+                    reader.skipValue();
+            }
             }
         }
         reader.endObject();
@@ -163,6 +291,24 @@ public class UserApiController {
         writer.name("totalItems").value(page.totalItems());
         writer.endObject();
         json(ctx, writer);
+    }
+
+    // :: Fetch by ID
+
+    private static String fetchByIdPath(String prefix) {
+        return prefix + "/api/repo/user/{id}";
+    }
+
+    private void fetchByIdDoc(OpenAPI api) {
+        var operation = new Operation()
+                .addTagsItem("user").summary("Fetch a user by ID (GET)")
+                .security(Doc.BEARER)
+                .addParametersItem(Doc.pathId())
+                .responses(new ApiResponses()
+                        .addApiResponse("200", Doc.ok("#/components/schemas/User"))
+                        .addApiResponse("401", Doc.unauthorized())
+                        .addApiResponse("404", Doc.notFound()));
+        api.path(fetchByIdPath(""), new PathItem().get(operation));
     }
 
     private void fetchById(Context ctx) {
@@ -183,6 +329,24 @@ public class UserApiController {
         json(ctx, writer);
     }
 
+    // :: Fetch by ID (POST)
+
+    private static String fetchByIdPostPath(String prefix) {
+        return prefix + "/api/repo/user/fetch-by-id";
+    }
+
+    private void fetchByIdPostDoc(OpenAPI api) {
+        var operation = new Operation()
+                .addTagsItem("user").summary("Fetch a user by ID (POST, supports projection)")
+                .security(Doc.BEARER)
+                .requestBody(Doc.body("#/components/schemas/FetchByIdRequest"))
+                .responses(new ApiResponses()
+                        .addApiResponse("200", Doc.ok("#/components/schemas/User"))
+                        .addApiResponse("401", Doc.unauthorized())
+                        .addApiResponse("404", Doc.notFound()));
+        api.path(fetchByIdPostPath(""), new PathItem().post(operation));
+    }
+
     private void fetchByIdPost(Context ctx) {
         var sc = SecurityEnforcer.require("user", "read");
         var reader = new JsonStreamReader(ctx.body());
@@ -191,9 +355,9 @@ public class UserApiController {
         reader.beginObject();
         while (reader.hasNext()) {
             switch (reader.nextName()) {
-                case "id" -> id = InputCoerceUtils.asLong(reader);
-                case "projection" -> projection = codec.readEntity(reader);
-                default -> reader.skipValue();
+            case "id" -> id = InputCoerceUtils.asLong(reader);
+            case "projection" -> projection = codec.readEntity(reader);
+            default -> reader.skipValue();
             }
         }
         reader.endObject();
@@ -201,7 +365,8 @@ public class UserApiController {
             ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
             return;
         }
-        if (projection != null) projection.password = null;
+        if (projection != null)
+            projection.password = null;
         var result = repo().fetchById(id, projection);
         if (result == null) {
             ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
@@ -279,4 +444,5 @@ public class UserApiController {
         ctx.contentType("application/json");
         ctx.result(writer.result());
     }
+
 }
