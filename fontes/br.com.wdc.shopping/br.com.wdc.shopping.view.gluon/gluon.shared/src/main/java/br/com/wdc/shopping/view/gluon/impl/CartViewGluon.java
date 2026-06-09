@@ -81,11 +81,15 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
     }
 
     private void buildUI(GluonDom dom, VBox root) {
-        root.setPadding(new Insets(20));
-        root.setSpacing(0);
         root.setStyle(GluonStyles.PAGE_BG);
-        root.setAlignment(Pos.TOP_CENTER);  // Flutter: Center() wrapping the card
-        VBox.setVgrow(root, Priority.ALWAYS);
+
+        // Center wrapper: fills root VBox (via VGrow=ALWAYS), applies padding, and centers card horizontally.
+        // StackPane fills its children to its own bounds — this guarantees the card fills the full available height.
+        // Flutter equivalent: appBg Container → padding(20) → Center() → ConstrainedBox(maxWidth: 900)
+        dom.stackPane(center -> {
+            center.setAlignment(Pos.TOP_CENTER);
+            center.setPadding(new Insets(20));
+            VBox.setVgrow(center, Priority.ALWAYS);
 
         // PageCard equivalent: centered card with CARD decoration + 28px padding
         dom.vbox(card -> {
@@ -94,7 +98,7 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
             card.setSpacing(0);
             card.setMaxWidth(900);
             card.setMinWidth(0);
-            VBox.setVgrow(card, Priority.ALWAYS);
+            // Card height is filled by the center StackPane automatically (StackPane fills children to its bounds)
 
         // View header with icon + title + subtitle (Flutter ViewHeader)
         dom.hbox(viewHeader -> {
@@ -202,12 +206,11 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
 
             dom.vSpacer(16);
 
-            // Action buttons — stacked vertically like Flutter Wrap on narrow screen:
-            // "← Continuar comprando" (text link, centered) above
-            // "Finalizar pedido" (full-width pill) below
-            dom.vbox(actionsBox -> {
-                actionsBox.setSpacing(8);
+            // Action buttons — Flutter Wrap equivalent: side-by-side when space allows, wraps to next line when narrow
+            dom.flowPane(actionsBox -> {
                 actionsBox.setAlignment(Pos.CENTER);
+                actionsBox.setHgap(8);
+                actionsBox.setVgap(8);
 
                 dom.button(backBtn -> {
                     backBtn.setText("Continuar comprando");
@@ -219,13 +222,13 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
                 dom.button(buyBtn -> {
                     buyBtn.setText("Finalizar pedido");
                     buyBtn.setGraphic(GluonIcons.create(GluonIcons.CHECK_CIRCLE, 18, GluonColors.TEXT_ON_PRIMARY));
-                    buyBtn.setMaxWidth(Double.MAX_VALUE);
-                    buyBtn.setStyle(GluonStyles.BTN_SUCCESS_BLOCK);
+                    buyBtn.setStyle(GluonStyles.BTN_SUCCESS);
                     buyBtn.setOnAction(e -> safeAction("Buy", this.presenter::onBuy));
                 });
             });
         });
         }); // end card
+        }); // end center StackPane
     }
 
     private double computeTotalCost() {
