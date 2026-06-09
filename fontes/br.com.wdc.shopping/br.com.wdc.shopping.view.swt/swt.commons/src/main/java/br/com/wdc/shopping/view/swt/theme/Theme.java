@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.text.NumberFormat;
 import java.util.Locale;
@@ -191,7 +192,9 @@ public final class Theme {
             try {
                 String path;
                 if ("file".equals(fontUrl.getProtocol())) {
-                    path = fontUrl.getPath();
+                    // URL#getPath() can produce invalid Windows paths (e.g. /C:/... and %20).
+                    // Resolve through URI to get a valid local filesystem path.
+                    path = Path.of(fontUrl.toURI()).toString();
                 } else {
                     // jar: or other non-file URL — extract to a temp file
                     var tempFont = Files.createTempFile("bootstrap-icons-", ".ttf");
@@ -205,6 +208,9 @@ public final class Theme {
                 // Read the real family name directly from the TTF name table.
                 String ttfName = readTtfFamilyName(fontUrl, null);
                 boolean loaded = display.loadFont(path);
+                if (!loaded) {
+                    System.err.println("[Theme] display.loadFont failed for: " + path);
+                }
 
                 if (loaded && ttfName != null && !ttfName.isBlank()) {
                     iconFontName = ttfName;

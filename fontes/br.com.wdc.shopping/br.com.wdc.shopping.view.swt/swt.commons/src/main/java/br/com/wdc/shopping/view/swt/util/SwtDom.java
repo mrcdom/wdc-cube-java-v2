@@ -276,6 +276,7 @@ public final class SwtDom {
 
     public Label spacer(int height) {
         var elm = new Label(this.currentParent, SWT.NONE);
+        elm.setBackground(this.currentParent.getBackground());
         var gd = new GridData(SWT.FILL, SWT.CENTER, true, false);
         gd.heightHint = height;
         elm.setLayoutData(gd);
@@ -284,6 +285,7 @@ public final class SwtDom {
 
     public Label spacer(GridData gd) {
         var elm = new Label(this.currentParent, SWT.NONE);
+        elm.setBackground(this.currentParent.getBackground());
         elm.setLayoutData(gd);
         return elm;
     }

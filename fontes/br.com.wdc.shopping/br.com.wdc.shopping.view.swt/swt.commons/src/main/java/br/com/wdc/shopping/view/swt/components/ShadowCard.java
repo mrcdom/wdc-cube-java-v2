@@ -6,6 +6,7 @@ import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 
 import br.com.wdc.shopping.view.swt.theme.Surface;
+import br.com.wdc.shopping.view.swt.theme.Theme;
 
 /**
  * A rounded-corner white card with shadow — standard container for content sections.
@@ -15,6 +16,7 @@ public class ShadowCard extends Canvas {
 
     public ShadowCard(Composite parent, int marginWidth, int marginHeight, int verticalSpacing) {
         super(parent, SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND);
+        setBackground(Theme.BG_WHITE);
 
         var layout = new GridLayout(1, false);
         layout.marginWidth = marginWidth;

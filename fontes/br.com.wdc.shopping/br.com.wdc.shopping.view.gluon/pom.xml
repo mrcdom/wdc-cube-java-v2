@@ -28,6 +28,57 @@
 		<module>gluon.ios</module>
 	</modules>
 
+	<profiles>
+		<profile>
+			<id>macos-aarch64</id>
+			<activation>
+				<os>
+					<family>mac</family>
+					<arch>aarch64</arch>
+				</os>
+			</activation>
+			<properties>
+				<javafx.platform>mac-aarch64</javafx.platform>
+			</properties>
+		</profile>
+		<profile>
+			<id>macos-x86_64</id>
+			<activation>
+				<os>
+					<family>mac</family>
+					<arch>x86_64</arch>
+				</os>
+			</activation>
+			<properties>
+				<javafx.platform>mac</javafx.platform>
+			</properties>
+		</profile>
+		<profile>
+			<id>linux-x86_64</id>
+			<activation>
+				<os>
+					<family>unix</family>
+					<name>linux</name>
+					<arch>amd64</arch>
+				</os>
+			</activation>
+			<properties>
+				<javafx.platform>linux</javafx.platform>
+			</properties>
+		</profile>
+		<profile>
+			<id>windows</id>
+			<activation>
+				<os>
+					<family>windows</family>
+				</os>
+			</activation>
+			<properties>
+				<javafx.platform>win</javafx.platform>
+			</properties>
+		</profile>
+	</profiles>
+
 	<repositories>
 		<repository>
 			<id>gluon-releases</id>

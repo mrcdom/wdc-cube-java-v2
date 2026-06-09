@@ -396,11 +396,12 @@ public class LoginViewSwt extends AbstractViewSwt {
      */
     private Text createBorderedTextField(SwtDom dom, int textStyle, String placeholder) {
         var field = new Text[1];
-        dom.col(SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND, borderComp -> {
+        dom.col(SWT.DOUBLE_BUFFERED, borderComp -> {
             var borderCompGd = new GridData();
             gdFillH(borderCompGd);
             gdHeight(borderCompGd, 36);
             borderComp.setLayoutData(borderCompGd);
+            borderComp.setBackground(Theme.BG_WHITE);
             var borderLayout = (GridLayout) borderComp.getLayout();
             borderLayout.marginWidth = 10;
             borderLayout.marginHeight = 0;
@@ -410,6 +411,9 @@ public class LoginViewSwt extends AbstractViewSwt {
             borderComp.addPaintListener(Surface.borderedField(borderComp::getClientArea));
 
             dom.text(textStyle, txt -> {
+                if (Theme.IS_WIN32) {
+                    txt.setData("org.eclipse.swt.internal.win32.use_WS_BORDER", Boolean.FALSE);
+                }
                 txt.setMessage(placeholder);
                 txt.setBackground(Theme.BG_WHITE);
                 txt.setForeground(Theme.FG_TEXT_DARK);

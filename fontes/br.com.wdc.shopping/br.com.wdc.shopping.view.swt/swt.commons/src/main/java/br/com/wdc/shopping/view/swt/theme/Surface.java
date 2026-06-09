@@ -65,6 +65,7 @@ public final class Surface {
         return e -> {
             var gc = e.gc;
             var bounds = area.get();
+            gc.setAdvanced(true);
             gc.setAntialias(SWT.ON);
 
             // Red-tinted rounded background
@@ -109,6 +110,7 @@ public final class Surface {
         return e -> {
             var gc = e.gc;
             var bounds = area.get();
+            gc.setAdvanced(true);
             gc.setAntialias(SWT.ON);
 
             gc.setBackground(Theme.BG_ERROR);
@@ -137,6 +139,7 @@ public final class Surface {
         return e -> {
             var gc = e.gc;
             var bounds = area.get();
+            gc.setAdvanced(true);
             gc.setAntialias(SWT.ON);
             gc.setBackground(Theme.BG_WHITE);
             gc.fillRoundRectangle(0, 0, bounds.width, bounds.height, 8, 8);
@@ -175,6 +178,7 @@ public final class Surface {
     }
 
     public static void drawCard(GC gc, Rectangle area, int radius) {
+        gc.setAdvanced(true);
         gc.setAntialias(SWT.ON);
         gc.setBackground(Theme.BG_WHITE);
         gc.fillRoundRectangle(0, 0, area.width, area.height, radius, radius);
@@ -187,6 +191,7 @@ public final class Surface {
     }
 
     public static void drawOutlinedPanel(GC gc, Rectangle area, Color background, int radius) {
+        gc.setAdvanced(true);
         gc.setAntialias(SWT.ON);
         if (background != null) {
             gc.setBackground(background);
@@ -197,6 +202,7 @@ public final class Surface {
     }
 
     public static void drawElevatedCard(GC gc, Rectangle area) {
+        gc.setAdvanced(true);
         gc.setAntialias(SWT.ON);
         gc.setBackground(Theme.BG_PAGE);
         gc.fillRectangle(area);
@@ -224,6 +230,7 @@ public final class Surface {
     }
 
     public static void drawPill(GC gc, Rectangle area, Color background) {
+        gc.setAdvanced(true);
         gc.setAntialias(SWT.ON);
         gc.setBackground(background);
         gc.fillRoundRectangle(0, 0, area.width, area.height, area.height, area.height);

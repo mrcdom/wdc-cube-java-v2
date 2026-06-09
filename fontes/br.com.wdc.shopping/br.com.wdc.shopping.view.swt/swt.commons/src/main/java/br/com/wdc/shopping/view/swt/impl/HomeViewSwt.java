@@ -6,6 +6,7 @@ import java.util.function.Supplier;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.TextLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
@@ -27,6 +28,10 @@ import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
  * When a content overlay is active (cart/product/receipt), it replaces the default content.
  */
 public class HomeViewSwt extends AbstractViewSwt {
+
+    private static final int CART_BADGE_HEIGHT = 18;
+    private static final int CART_BADGE_MIN_WIDTH = 18;
+    private static final int CART_BADGE_H_PADDING = 6;
 
     public Supplier<HomeViewState> stateSupplier;
     public Runnable onExit;
@@ -73,6 +78,7 @@ public class HomeViewSwt extends AbstractViewSwt {
         String badge = String.valueOf(state != null ? state.cartItemCount : 0);
         if (!Objects.equals(this.cartBadgeText, badge)) {
             this.cartBadgeText = badge;
+            updateCartBadgeSize();
             this.cartBadge.redraw();
         }
 
@@ -198,6 +204,7 @@ public class HomeViewSwt extends AbstractViewSwt {
                 var welcomeGd = new GridData();
                 gdLeft(welcomeGd);
                 gdGrabV(welcomeGd);
+                welcomeGd.horizontalIndent = 8;
                 welcomeArea.setLayoutData(welcomeGd);
                 var waLayout = (GridLayout) welcomeArea.getLayout();
                 waLayout.horizontalSpacing = 4;
@@ -298,10 +305,10 @@ public class HomeViewSwt extends AbstractViewSwt {
                     lbl.setLayoutData(cartLabelGd);
                 });
 
-                this.cartBadge = dom.canvas(SWT.NO_BACKGROUND | SWT.DOUBLE_BUFFERED, badge -> {
+                this.cartBadge = dom.canvas(SWT.DOUBLE_BUFFERED, badge -> {
                     var badgeGd = gdCenter(new GridData());
-                    badgeGd.widthHint = 20;
-                    badgeGd.heightHint = 18;
+                    badgeGd.widthHint = CART_BADGE_MIN_WIDTH;
+                    badgeGd.heightHint = CART_BADGE_HEIGHT;
                     badge.setLayoutData(badgeGd);
                     badge.addPaintListener(ev -> paintCartBadge(ev.gc, badge.getClientArea()));
                 });
@@ -401,13 +408,54 @@ public class HomeViewSwt extends AbstractViewSwt {
     }
 
     private void paintCartBadge(GC gc, Rectangle area) {
+        gc.setAdvanced(true);
         gc.setAntialias(SWT.ON);
+
+        // Paint the inherited navbar background first to avoid dark halo artifacts on Win32.
+        this.cartBadge.drawBackground(gc, 0, 0, area.width, area.height);
+
+        // Soft shadow equivalent to CSS: box-shadow: 0 2px 4px rgba(0,0,0,0.15)
+        gc.setAlpha(38);
+        gc.setBackground(this.cartBadge.getDisplay().getSystemColor(SWT.COLOR_BLACK));
+        gc.fillRoundRectangle(0, 2, area.width, area.height - 2, area.height, area.height);
+        gc.setAlpha(255);
+
         Surface.drawPill(gc, area, Theme.FG_TEXT_WHITE);
-        gc.setFont(Theme.FONT_BADGE);
         gc.setForeground(Theme.PRIMARY_BLUE);
         var text = this.cartBadgeText;
-        var extent = gc.textExtent(text);
-        gc.drawText(text, (area.width - extent.x) / 2, (area.height - extent.y) / 2, true);
+        var layout = new TextLayout(this.cartBadge.getDisplay());
+        try {
+            layout.setFont(Theme.FONT_BADGE);
+            layout.setText(text);
+            var bounds = layout.getBounds();
+            int tx = (area.width - bounds.width) / 2 - bounds.x;
+            int ty = (area.height - bounds.height) / 2 - bounds.y;
+            layout.draw(gc, tx, ty);
+        } finally {
+            layout.dispose();
+        }
+    }
+
+    private void updateCartBadgeSize() {
+        if (this.cartBadge == null || this.cartBadge.isDisposed()) {
+            return;
+        }
+        var gd = (GridData) this.cartBadge.getLayoutData();
+        int textW;
+        var measureGc = new GC(this.cartBadge);
+        try {
+            measureGc.setFont(Theme.FONT_BADGE);
+            textW = measureGc.textExtent(this.cartBadgeText).x;
+        } finally {
+            measureGc.dispose();
+        }
+
+        int width = Math.max(CART_BADGE_MIN_WIDTH, textW + (CART_BADGE_H_PADDING * 2));
+        if (gd.widthHint != width || gd.heightHint != CART_BADGE_HEIGHT) {
+            gd.widthHint = width;
+            gd.heightHint = CART_BADGE_HEIGHT;
+            this.cartBadge.getParent().layout(true, true);
+        }
     }
 
 }

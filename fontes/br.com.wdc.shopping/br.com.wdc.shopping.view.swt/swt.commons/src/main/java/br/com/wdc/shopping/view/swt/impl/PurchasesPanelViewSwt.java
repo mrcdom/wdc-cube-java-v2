@@ -145,7 +145,7 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt {
             this.listPanel.addListener(SWT.Resize, _e -> this.checkCapacityChanged());
 
             // Pagination footer
-            this.paginationCanvas = dom.canvas(SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND, canvas -> {
+            this.paginationCanvas = dom.canvas(SWT.DOUBLE_BUFFERED, canvas -> {
                 canvas.setBackground(Theme.BG_WHITE);
                 var paginationGd = new GridData();
                 gdCenter(paginationGd);
@@ -294,6 +294,11 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt {
     // ========== SURFACES ==========
 
     private void paintPagination(GC gc, Rectangle area) {
+        gc.setAdvanced(true);
+        gc.setAntialias(SWT.ON);
+        gc.setBackground(Theme.BG_WHITE);
+        gc.fillRectangle(0, 0, area.width, area.height);
+
         Surface.drawPill(gc, area, Theme.BG_PAGE);
 
         int arrowSize = 28;

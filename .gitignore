@@ -52,3 +52,6 @@ fontes/br.com.wdc.shopping/br.com.wdc.shopping.backend/work/
 
 # Flutter/Dart generated
 .dart_tool/
+
+# Local Maven CLI overrides (machine/platform specific)
+**/.mvn/maven.config
