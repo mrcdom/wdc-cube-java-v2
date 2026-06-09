@@ -189,6 +189,10 @@ public final class GluonStyles {
             "-fx-background-radius: 8; -fx-border-color: " + BORDER + "; -fx-border-radius: 8; " +
             "-fx-border-width: 1; -fx-padding: 12;";
 
+    // ---- Login card (no border, large shadow — matches Flutter _buildForm container cardShadowLg) ----
+    public static final String CARD_LOGIN = "-fx-background-color: " + SURFACE + "; -fx-background-radius: 12; " +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 12, 0, 0, 8);";
+
     // ---- Tab navigation (compact mode, bottom border) ----
     public static final String TAB_NAV = "-fx-border-color: " + BORDER + "; -fx-border-width: 0 0 1 0;";
 
