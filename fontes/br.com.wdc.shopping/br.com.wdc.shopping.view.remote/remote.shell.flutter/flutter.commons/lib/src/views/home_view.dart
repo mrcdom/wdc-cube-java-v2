@@ -133,7 +133,10 @@ class _HeaderPanel extends StatelessWidget {
             children: [
               // Left: exit + greeting
               IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                icon: Transform.flip(
+                  flipX: true,
+                  child: const Icon(Icons.logout, color: Colors.white),
+                ),
                 onPressed: onExit,
               ),
               const SizedBox(width: 4),
