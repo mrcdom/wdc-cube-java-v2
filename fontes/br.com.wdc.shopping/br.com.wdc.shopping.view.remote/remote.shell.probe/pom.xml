@@ -11,7 +11,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>remote.shell.java</artifactId>
+    <artifactId>remote.shell.probe</artifactId>
 
     <description>
         Java shell for the Host/Shell remote protocol.

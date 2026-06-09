@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.shell.java.shopping.presentation;
+package br.com.wdc.shopping.view.remote.shell.probe.shopping.presentation;
 
 import java.util.List;
 import java.util.concurrent.TimeoutException;

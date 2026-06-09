@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.shell.java.shopping;
+package br.com.wdc.shopping.view.remote.shell.probe.shopping;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -10,14 +10,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import br.com.wdc.framework.cube.remote.bridge.java.HostClient;
-import br.com.wdc.shopping.view.remote.shell.java.ScenarioAssert;
-import br.com.wdc.shopping.view.remote.shell.java.shopping.presentation.BrowserPresenterClient;
-import br.com.wdc.shopping.view.remote.shell.java.shopping.presentation.CartPresenterClient;
-import br.com.wdc.shopping.view.remote.shell.java.shopping.presentation.HomePresenterClient;
-import br.com.wdc.shopping.view.remote.shell.java.shopping.presentation.LoginPresenterClient;
-import br.com.wdc.shopping.view.remote.shell.java.shopping.presentation.ProductPresenterClient;
-import br.com.wdc.shopping.view.remote.shell.java.shopping.presentation.ReceiptPresenterClient;
-import br.com.wdc.shopping.view.remote.shell.java.shopping.presentation.ShoppingRoutes;
+import br.com.wdc.shopping.view.remote.shell.probe.ScenarioAssert;
+import br.com.wdc.shopping.view.remote.shell.probe.shopping.presentation.BrowserPresenterClient;
+import br.com.wdc.shopping.view.remote.shell.probe.shopping.presentation.CartPresenterClient;
+import br.com.wdc.shopping.view.remote.shell.probe.shopping.presentation.HomePresenterClient;
+import br.com.wdc.shopping.view.remote.shell.probe.shopping.presentation.LoginPresenterClient;
+import br.com.wdc.shopping.view.remote.shell.probe.shopping.presentation.ProductPresenterClient;
+import br.com.wdc.shopping.view.remote.shell.probe.shopping.presentation.ReceiptPresenterClient;
+import br.com.wdc.shopping.view.remote.shell.probe.shopping.presentation.ShoppingRoutes;
 
 /**
  * Cenário de integração: comprar produto.
@@ -35,7 +35,7 @@ import br.com.wdc.shopping.view.remote.shell.java.shopping.presentation.Shopping
  * <h3>Execução</h3>
  * 
  * <pre>
- *   mvn exec:java -pl ...remote.shell.java-client \
+ *   mvn exec:java -pl ...remote.shell.probe-client \
  *     -Dexec.mainClass=br.com.wdc.shopping.view.remote.javaclient.scenario.shopping.ComprarProdutoScenario
  * </pre>
  */

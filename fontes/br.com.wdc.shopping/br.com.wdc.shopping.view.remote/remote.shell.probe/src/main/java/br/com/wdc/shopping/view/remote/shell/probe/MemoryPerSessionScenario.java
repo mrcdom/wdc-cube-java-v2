@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.shell.java;
+package br.com.wdc.shopping.view.remote.shell.probe;
 
 import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
@@ -6,10 +6,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import br.com.wdc.framework.cube.remote.bridge.java.HostClient;
-import br.com.wdc.shopping.view.remote.shell.java.shopping.presentation.BrowserPresenterClient;
-import br.com.wdc.shopping.view.remote.shell.java.shopping.presentation.CartPresenterClient;
-import br.com.wdc.shopping.view.remote.shell.java.shopping.presentation.LoginPresenterClient;
-import br.com.wdc.shopping.view.remote.shell.java.shopping.presentation.ShoppingRoutes;
+import br.com.wdc.shopping.view.remote.shell.probe.shopping.presentation.BrowserPresenterClient;
+import br.com.wdc.shopping.view.remote.shell.probe.shopping.presentation.CartPresenterClient;
+import br.com.wdc.shopping.view.remote.shell.probe.shopping.presentation.LoginPresenterClient;
+import br.com.wdc.shopping.view.remote.shell.probe.shopping.presentation.ShoppingRoutes;
 
 /**
  * Mede o consumo de memória heap por sessão ativa no servidor em duas fases:
@@ -54,7 +54,7 @@ import br.com.wdc.shopping.view.remote.shell.java.shopping.presentation.Shopping
  *
  * <h3>Execução</h3>
  * <pre>
- *   mvn exec:java -pl ...remote.shell.java-client \
+ *   mvn exec:java -pl ...remote.shell.probe-client \
  *     -Dexec.mainClass=br.com.wdc.shopping.view.remote.javaclient.scenario.MemoryPerSessionScenario \
  *     [-Dexec.args="http://localhost:8080 1000"]
  * </pre>

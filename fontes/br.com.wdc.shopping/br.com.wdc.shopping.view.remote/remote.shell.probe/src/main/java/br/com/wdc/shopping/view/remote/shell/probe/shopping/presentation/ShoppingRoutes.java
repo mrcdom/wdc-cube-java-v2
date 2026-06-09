@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.shell.java.shopping.presentation;
+package br.com.wdc.shopping.view.remote.shell.probe.shopping.presentation;
 
 /**
  * Client-side mirror of {@code Routes} from the Shopping presentation layer.

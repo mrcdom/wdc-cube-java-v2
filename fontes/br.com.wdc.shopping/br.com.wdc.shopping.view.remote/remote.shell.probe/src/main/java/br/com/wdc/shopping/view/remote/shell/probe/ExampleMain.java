@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.shell.java;
+package br.com.wdc.shopping.view.remote.shell.probe;
 
 import java.io.PrintStream;
 import java.util.Map;
