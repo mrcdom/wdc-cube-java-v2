@@ -44,6 +44,12 @@ public final class GluonIcons {
     /** Mais (add) */
     public static final String PLUS = "M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z";
 
+    /** Sair / logout */
+    public static final String LOGOUT = "M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z";
+
+    /** Sacola de compras (shopping_bag) */
+    public static final String SHOPPING_BAG = "M18 6h-2c0-2.21-1.79-4-4-4S8 3.79 8 6H6c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6-2c1.1 0 2 .9 2 2h-4c0-1.1.9-2 2-2zm6 16H6V8h2v2c0 .55.45 1 1 1s1-.45 1-1V8h4v2c0 .55.45 1 1 1s1-.45 1-1V8h2v12z";
+
     // ---- Factory method ----
 
     /**

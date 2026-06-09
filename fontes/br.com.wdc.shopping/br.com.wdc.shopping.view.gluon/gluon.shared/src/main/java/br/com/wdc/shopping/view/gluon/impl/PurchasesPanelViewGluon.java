@@ -71,22 +71,29 @@ public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPre
     }
 
     private void buildUI(GluonDom dom, VBox root) {
-        root.setPadding(new Insets(16, 12, 8, 12));
-        root.setSpacing(12);
-        root.setStyle(GluonStyles.PAGE_BG);
+        root.setSpacing(0);
+        // White surface with left border matching Flutter's purchases panel
+        root.setStyle(GluonStyles.PURCHASES_PANEL);
 
-        dom.vbox(headerBox -> {
-            headerBox.setSpacing(2);
+        // Header — history icon + title + subtitle
+        dom.hbox(headerRow -> {
+            headerRow.setAlignment(Pos.CENTER_LEFT);
+            headerRow.setSpacing(8);
+            headerRow.setPadding(new Insets(16, 16, 4, 16));
 
-            dom.label(caption -> {
-                caption.setText("Histórico de Compras");
-                caption.setStyle(GluonStyles.textBold(16, GluonColors.TEXT_DEFAULT));
+            dom.icon(GluonIcons.create(GluonIcons.HISTORY, 18, GluonColors.PRIMARY));
+
+            dom.vbox(headerText -> {
+                dom.label(caption -> {
+                    caption.setText("Histórico");
+                    caption.setStyle(GluonStyles.textBold(14, GluonColors.TEXT_DEFAULT));
+                });
             });
+        });
 
-            dom.label(subtitle -> {
-                subtitle.setText("Toque em uma compra para ver os detalhes");
-                subtitle.setStyle(GluonStyles.TEXT_MUTED_STYLE);
-            });
+        dom.label(subtitle -> {
+            subtitle.setText("Toque para ver detalhes");
+            subtitle.setStyle(GluonStyles.text(12, GluonColors.TEXT_SECONDARY) + " -fx-padding: 0 16 12 16;");
         });
 
         dom.scrollVBox((sp, contentBox) -> {

@@ -62,9 +62,9 @@ public class ProductsPanelViewGluon extends AbstractViewGluon<ProductsPanelPrese
             sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
             sp.setStyle(GluonStyles.SCROLL_TRANSPARENT);
 
-            flowPane.setHgap(8);
-            flowPane.setVgap(8);
-            flowPane.setPadding(new Insets(4));
+            flowPane.setHgap(16);
+            flowPane.setVgap(16);
+            flowPane.setPadding(new Insets(20));
 
             this.contentSlot = this.newListSlot(flowPane, this::newItemView, this::updateItem);
         });
@@ -130,28 +130,40 @@ public class ProductsPanelViewGluon extends AbstractViewGluon<ProductsPanelPrese
         }
 
         private void buildUI(GluonDom dom, VBox card) {
-            card.setPrefWidth(140);
-            card.setPadding(new Insets(8));
-            card.setSpacing(4);
-            card.setAlignment(Pos.CENTER);
+            card.setPrefWidth(170);
             card.setStyle(GluonStyles.CARD_SMALL);
             card.setOnMouseClicked(
                     e -> safeAction("Open product", () -> this.presenter.onOpenProduct(this.product.id)));
 
-            this.imageElm = dom.imageView(img -> {
-                img.setFitWidth(100);
-                img.setFitHeight(100);
-                img.setPreserveRatio(true);
+            // Image area with gradient background
+            dom.stackPane(imageArea -> {
+                imageArea.setStyle(GluonStyles.IMAGE_BG);
+                imageArea.setPrefHeight(130);
+                imageArea.setMinHeight(130);
+                imageArea.setMaxWidth(Double.MAX_VALUE);
+
+                this.imageElm = dom.imageView(img -> {
+                    img.setFitWidth(90);
+                    img.setFitHeight(90);
+                    img.setPreserveRatio(true);
+                });
             });
 
-            this.nameElm = dom.label(name -> {
-                name.setStyle(GluonStyles.textBold(12, GluonColors.TEXT_DEFAULT));
-                name.setWrapText(true);
-                name.setMaxWidth(130);
-            });
+            // Info area
+            dom.vbox(infoArea -> {
+                infoArea.setSpacing(3);
+                infoArea.setPadding(new Insets(10, 14, 12, 14));
+                infoArea.setStyle("-fx-background-color: white;");
 
-            this.priceElm = dom.label(price -> {
-                price.setStyle(GluonStyles.text(11, GluonColors.PRIMARY));
+                this.nameElm = dom.label(name -> {
+                    name.setStyle(GluonStyles.textBold(13, GluonColors.TEXT_DEFAULT));
+                    name.setWrapText(true);
+                    name.setMaxWidth(160);
+                });
+
+                this.priceElm = dom.label(price -> {
+                    price.setStyle(GluonStyles.textBold(13, GluonColors.PRIMARY));
+                });
             });
         }
     }

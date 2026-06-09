@@ -94,28 +94,6 @@ public class ReceiptViewGluon extends AbstractViewGluon<ReceiptPresenter> {
         root.setSpacing(0);
         root.setStyle(GluonStyles.PAGE_BG);
 
-        // Header bar
-        dom.hbox(headerBar -> {
-            headerBar.setAlignment(Pos.CENTER_LEFT);
-            headerBar.setSpacing(12);
-            headerBar.setPadding(new Insets(10, 16, 10, 16));
-            headerBar.setStyle(GluonStyles.HEADER_BAR);
-
-            dom.button(backBtn -> {
-                backBtn.setText("Voltar");
-                backBtn.setGraphic(GluonIcons.create(GluonIcons.ARROW_BACK, 14, GluonColors.PRIMARY));
-                backBtn.setStyle(GluonStyles.BACK_BUTTON);
-                backBtn.setOnAction(e -> safeAction("Back", this.presenter::onOpenProducts));
-            });
-
-            dom.hSpacer();
-
-            dom.label(title -> {
-                title.setText("Comprovante");
-                title.setStyle(GluonStyles.PAGE_TITLE);
-            });
-        });
-
         // Success banner
         this.successElm = dom.label(success -> {
             success.setText("Compra realizada com sucesso!");
@@ -126,67 +104,91 @@ public class ReceiptViewGluon extends AbstractViewGluon<ReceiptPresenter> {
             success.setManaged(false);
         });
 
-        // Receipt card
-        dom.vbox(card -> {
-            card.setSpacing(0);
-            card.setStyle(GluonStyles.CARD);
-            VBox.setMargin(card, new Insets(16, 12, 12, 12));
+        // Scrollable content (no separate header bar — like Flutter PageCard)
+        dom.scrollVBox((sp, scrollContent) -> {
+            VBox.setVgrow(sp, Priority.ALWAYS);
+            sp.setFitToWidth(true);
+            sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+            sp.setStyle(GluonStyles.SCROLL_TRANSPARENT);
+            scrollContent.setPadding(new Insets(20));
+            scrollContent.setSpacing(0);
 
-            // Receipt header section
-            dom.vbox(receiptHeader -> {
-                receiptHeader.setAlignment(Pos.CENTER);
-                receiptHeader.setSpacing(4);
-                receiptHeader.setPadding(new Insets(20, 16, 12, 16));
-                receiptHeader.setStyle(GluonStyles.DIVIDER_BOTTOM);
+            // Receipt card
+            dom.vbox(card -> {
+                card.setSpacing(0);
+                card.setStyle(GluonStyles.CARD);
 
-                dom.label(receiptTitle -> {
-                    receiptTitle.setText("Detalhes da Compra");
-                    receiptTitle.setStyle(GluonStyles.PAGE_TITLE);
+                // Receipt header section
+                dom.vbox(receiptHeader -> {
+                    receiptHeader.setAlignment(Pos.CENTER);
+                    receiptHeader.setSpacing(4);
+                    receiptHeader.setPadding(new Insets(20, 16, 12, 16));
+                    receiptHeader.setStyle(GluonStyles.DIVIDER_BOTTOM);
+
+                    dom.label(receiptTitle -> {
+                        receiptTitle.setText("Recibo de Compra");
+                        receiptTitle.setStyle(GluonStyles.PAGE_TITLE);
+                    });
+
+                    dom.label(subtitleLbl -> {
+                        subtitleLbl.setText("WDC Shopping");
+                        subtitleLbl.setStyle(GluonStyles.text(12, GluonColors.TEXT_SECONDARY));
+                    });
+
+                    this.dateElm = dom.label(date -> {
+                        date.setStyle(GluonStyles.TEXT_HINT_STYLE);
+                    });
                 });
 
-                this.dateElm = dom.label(date -> {
-                    date.setStyle(GluonStyles.TEXT_HINT_STYLE);
+                // Items section
+                dom.scrollVBox((isp, iScrollContent) -> {
+                    VBox.setVgrow(isp, Priority.ALWAYS);
+                    isp.setFitToWidth(true);
+                    isp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+                    isp.setStyle(GluonStyles.SCROLL_TRANSPARENT);
+
+                    dom.label(itemsLabel -> {
+                        itemsLabel.setText("Itens");
+                        itemsLabel.setStyle(GluonStyles.SECTION_CAPTION + " -fx-padding: 12 16 6 16;");
+                    });
+
+                    dom.vbox(itemsBox -> {
+                        itemsBox.setSpacing(0);
+                        itemsBox.setPadding(new Insets(0, 12, 0, 12));
+                        this.itemsSlot = this.newListSlot(itemsBox, this::newItemView, this::updateItem);
+                    });
                 });
+
+                // Total footer
+                dom.hbox(totalRow -> {
+                    totalRow.setAlignment(Pos.CENTER);
+                    totalRow.setSpacing(8);
+                    totalRow.setPadding(new Insets(14, 16, 14, 16));
+                    totalRow.setStyle(GluonStyles.FOOTER_HIGHLIGHT);
+
+                    dom.label(totalLabel -> {
+                        totalLabel.setText("Total");
+                        totalLabel.setStyle(GluonStyles.TEXT_PRICE_LABEL);
+                    });
+
+                    dom.hSpacer();
+
+                    this.totalElm = dom.label(total -> {
+                        total.setStyle(GluonStyles.PRICE_MEDIUM);
+                    });
+                });
+                VBox.setVgrow(card, Priority.ALWAYS);
             });
 
-            // Items section
-            dom.scrollVBox((sp, scrollContent) -> {
-                VBox.setVgrow(sp, Priority.ALWAYS);
-                sp.setFitToWidth(true);
-                sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-                sp.setStyle(GluonStyles.SCROLL_TRANSPARENT);
+            dom.vSpacer(20);
 
-                dom.label(itemsLabel -> {
-                    itemsLabel.setText("Itens");
-                    itemsLabel.setStyle(GluonStyles.SECTION_CAPTION + " -fx-padding: 12 16 6 16;");
-                });
-
-                dom.vbox(itemsBox -> {
-                    itemsBox.setSpacing(0);
-                    itemsBox.setPadding(new Insets(0, 12, 0, 12));
-                    this.itemsSlot = this.newListSlot(itemsBox, this::newItemView, this::updateItem);
-                });
+            // Back button
+            dom.button(backBtn -> {
+                backBtn.setText("Voltar aos produtos");
+                backBtn.setGraphic(GluonIcons.create(GluonIcons.ARROW_BACK, 18, GluonColors.PRIMARY));
+                backBtn.setStyle(GluonStyles.BACK_BUTTON + " -fx-font-size: 14;");
+                backBtn.setOnAction(e -> safeAction("Back", this.presenter::onOpenProducts));
             });
-
-            // Total footer
-            dom.hbox(totalRow -> {
-                totalRow.setAlignment(Pos.CENTER);
-                totalRow.setSpacing(8);
-                totalRow.setPadding(new Insets(14, 16, 14, 16));
-                totalRow.setStyle(GluonStyles.FOOTER_HIGHLIGHT);
-
-                dom.label(totalLabel -> {
-                    totalLabel.setText("Total");
-                    totalLabel.setStyle(GluonStyles.TEXT_PRICE_LABEL);
-                });
-
-                dom.hSpacer();
-
-                this.totalElm = dom.label(total -> {
-                    total.setStyle(GluonStyles.PRICE_MEDIUM);
-                });
-            });
-            VBox.setVgrow(card, Priority.ALWAYS);
         });
     }
 

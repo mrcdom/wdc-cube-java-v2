@@ -85,25 +85,27 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
         root.setSpacing(0);
         root.setStyle(GluonStyles.PAGE_BG);
 
-        // Header bar
-        dom.hbox(headerBar -> {
-            headerBar.setAlignment(Pos.CENTER_LEFT);
-            headerBar.setSpacing(12);
-            headerBar.setPadding(new Insets(10, 16, 10, 16));
-            headerBar.setStyle(GluonStyles.HEADER_BAR);
+        // View header with icon + title + subtitle (like Flutter ViewHeader)
+        dom.hbox(viewHeader -> {
+            viewHeader.setAlignment(Pos.CENTER_LEFT);
+            viewHeader.setSpacing(12);
+            viewHeader.setPadding(new Insets(20, 20, 16, 20));
 
-            dom.button(backBtn -> {
-                backBtn.setText("Voltar");
-                backBtn.setGraphic(GluonIcons.create(GluonIcons.ARROW_BACK, 14, GluonColors.PRIMARY));
-                backBtn.setStyle(GluonStyles.BACK_BUTTON);
-                backBtn.setOnAction(e -> safeAction("Back", this.presenter::onOpenProducts));
+            dom.stackPane(iconBox -> {
+                iconBox.setStyle(GluonStyles.VIEW_HEADER_ICON_BOX);
+                dom.icon(GluonIcons.create(GluonIcons.SHOPPING_BAG, 22, GluonColors.PRIMARY));
             });
 
-            dom.hSpacer();
-
-            dom.label(headerTitle -> {
-                headerTitle.setText("Carrinho");
-                headerTitle.setStyle(GluonStyles.PAGE_TITLE);
+            dom.vbox(titleBox -> {
+                titleBox.setSpacing(2);
+                dom.label(title -> {
+                    title.setText("Carrinho");
+                    title.setStyle(GluonStyles.textBold(20, GluonColors.TEXT_DEFAULT));
+                });
+                dom.label(subtitle -> {
+                    subtitle.setText("Seus produtos selecionados");
+                    subtitle.setStyle(GluonStyles.text(13, GluonColors.TEXT_SECONDARY));
+                });
             });
         });
 
@@ -114,24 +116,40 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
             empty.setPadding(new Insets(40, 0, 40, 0));
             VBox.setVgrow(empty, Priority.ALWAYS);
 
-            dom.icon(GluonIcons.create(GluonIcons.SHOPPING_CART, 48, GluonColors.TEXT_PLACEHOLDER));
+            // Circular accent-light icon container (like Flutter)
+            dom.stackPane(emptyIcon -> {
+                emptyIcon.setStyle("-fx-background-color: " + GluonColors.ACCENT_SURFACE + "; " +
+                        "-fx-background-radius: 50; -fx-min-width: 100; -fx-min-height: 100; " +
+                        "-fx-max-width: 100; -fx-max-height: 100;");
+                dom.icon(GluonIcons.create(GluonIcons.SHOPPING_BAG, 40, GluonColors.PRIMARY));
+            });
+
+            dom.vSpacer(20);
 
             dom.label(msg -> {
-                msg.setText("Seu carrinho está vazio");
-                msg.setStyle(GluonStyles.TEXT_SECONDARY_STYLE);
+                msg.setText("Carrinho vazio");
+                msg.setStyle(GluonStyles.textBold(16, GluonColors.TEXT_DEFAULT));
             });
 
             dom.label(hint -> {
-                hint.setText("Vamos às compras!");
-                hint.setStyle(GluonStyles.LINK_BOLD);
-                hint.setOnMouseClicked(e -> safeAction("Go shopping", this.presenter::onOpenProducts));
+                hint.setText("Adicione produtos para começar");
+                hint.setStyle(GluonStyles.text(13, GluonColors.TEXT_SECONDARY));
+            });
+
+            dom.vSpacer(16);
+
+            dom.button(shopBtn -> {
+                shopBtn.setText("Ver produtos");
+                shopBtn.setGraphic(GluonIcons.create(GluonIcons.STORE, 18, GluonColors.TEXT_ON_PRIMARY));
+                shopBtn.setStyle(GluonStyles.BTN_PRIMARY);
+                shopBtn.setOnAction(e -> safeAction("Go shopping", this.presenter::onOpenProducts));
             });
         });
 
         // Cart content
         this.contentPane = dom.vbox(content -> {
             content.setSpacing(10);
-            content.setPadding(new Insets(12));
+            content.setPadding(new Insets(0, 16, 12, 16));
             VBox.setVgrow(content, Priority.ALWAYS);
 
             dom.scrollVBox((sp, itemsBox) -> {
@@ -140,26 +158,25 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
                 sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
                 sp.setStyle(GluonStyles.SCROLL_TRANSPARENT);
 
-                itemsBox.setSpacing(6);
+                itemsBox.setSpacing(0);
                 this.itemsSlot = this.newListSlot(itemsBox, this::newItemView, this::updateItem);
             });
 
-            // Footer
+            // Footer: total row
             dom.hbox(footerRow -> {
-                footerRow.setAlignment(Pos.CENTER);
-                footerRow.setSpacing(8);
-                footerRow.setPadding(new Insets(8, 0, 0, 0));
+                footerRow.setAlignment(Pos.CENTER_RIGHT);
+                footerRow.setSpacing(4);
+                footerRow.setPadding(new Insets(16, 0, 0, 0));
+                footerRow.setStyle("-fx-border-color: " + GluonColors.BORDER + "; -fx-border-width: 1 0 0 0;");
 
                 dom.label(totalLabel -> {
-                    totalLabel.setText("TOTAL:");
-                    totalLabel.setStyle(GluonStyles.textBold(14, GluonColors.TEXT_DEFAULT));
+                    totalLabel.setText("Total: ");
+                    totalLabel.setStyle(GluonStyles.text(14, GluonColors.TEXT_SECONDARY));
                 });
-
-                dom.hSpacer();
 
                 this.totalCostElm = dom.label(total -> {
                     total.setText(NumberFormat.getCurrencyInstance().format(computeTotalCost()));
-                    total.setStyle(GluonStyles.PRICE_SMALL);
+                    total.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: " + GluonColors.PRIMARY + ";");
                 });
                 this.totalCostOldValue = computeTotalCost();
             });
@@ -172,12 +189,25 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
                 err.setWrapText(true);
             });
 
-            // Buy button
-            dom.button(buyBtn -> {
-                buyBtn.setText("FINALIZAR PEDIDO");
-                buyBtn.setMaxWidth(Double.MAX_VALUE);
-                buyBtn.setStyle(GluonStyles.BTN_SUCCESS_BLOCK);
-                buyBtn.setOnAction(e -> safeAction("Buy", this.presenter::onBuy));
+            // Action buttons row
+            dom.hbox(actionRow -> {
+                actionRow.setAlignment(Pos.CENTER);
+                actionRow.setSpacing(8);
+                actionRow.setPadding(new Insets(16, 0, 0, 0));
+
+                dom.button(backBtn -> {
+                    backBtn.setText("Continuar comprando");
+                    backBtn.setGraphic(GluonIcons.create(GluonIcons.ARROW_BACK, 18, GluonColors.PRIMARY));
+                    backBtn.setStyle(GluonStyles.BACK_BUTTON + " -fx-font-size: 14;");
+                    backBtn.setOnAction(e -> safeAction("Back", this.presenter::onOpenProducts));
+                });
+
+                dom.button(buyBtn -> {
+                    buyBtn.setText("Finalizar pedido");
+                    buyBtn.setGraphic(GluonIcons.create(GluonIcons.CHECK_CIRCLE, 18, GluonColors.TEXT_ON_PRIMARY));
+                    buyBtn.setStyle(GluonStyles.BTN_SUCCESS_BLOCK);
+                    buyBtn.setOnAction(e -> safeAction("Buy", this.presenter::onBuy));
+                });
             });
         });
     }
@@ -223,32 +253,58 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
                 this.notRendered = false;
             }
             this.nameElm.setText(this.item.name != null ? this.item.name : "");
-            this.priceElm.setText(NumberFormat.getCurrencyInstance().format(this.item.price));
-            this.qtyElm.setText("x" + this.item.quantity);
+            double subtotal = this.item.price * this.item.quantity;
+            this.priceElm.setText(NumberFormat.getCurrencyInstance().format(subtotal));
+            this.qtyElm.setText(String.valueOf(this.item.quantity));
         }
 
         private void buildUI(GluonDom dom, HBox row) {
-            row.setSpacing(8);
-            row.setPadding(new Insets(8));
+            row.setSpacing(0);
             row.setAlignment(Pos.CENTER_LEFT);
-            row.setStyle(GluonStyles.CARD_ITEM);
+            row.setStyle(GluonStyles.CART_ITEM_ROW);
 
             this.nameElm = dom.label(name -> {
-                name.setStyle(GluonStyles.text(12, GluonColors.TEXT_DEFAULT));
+                name.setStyle(GluonStyles.textBold(14, GluonColors.TEXT_DEFAULT));
                 HBox.setHgrow(name, Priority.ALWAYS);
+                name.setWrapText(false);
+            });
+
+            dom.hSpacer(8);
+
+            // Quantity stepper
+            dom.button(minusBtn -> {
+                minusBtn.setText("-");
+                minusBtn.setStyle("-fx-background-color: transparent; -fx-font-size: 16; -fx-cursor: hand; -fx-padding: 2 6;");
+                minusBtn.setOnAction(e -> {
+                    if (this.item.quantity > 1) {
+                        safeAction("Qty", () -> this.presenter.onModifyQuantity(this.item.id, this.item.quantity - 1));
+                    }
+                });
             });
 
             this.qtyElm = dom.label(qty -> {
-                qty.setStyle(GluonStyles.text(12, GluonColors.TEXT_SECONDARY));
+                qty.setStyle(GluonStyles.textBold(14, GluonColors.TEXT_DEFAULT) + " -fx-min-width: 24; -fx-alignment: center;");
             });
 
+            dom.button(plusBtn -> {
+                plusBtn.setText("+");
+                plusBtn.setStyle("-fx-background-color: transparent; -fx-font-size: 16; -fx-cursor: hand; -fx-padding: 2 6;");
+                plusBtn.setOnAction(e -> {
+                    safeAction("Qty", () -> this.presenter.onModifyQuantity(this.item.id, this.item.quantity + 1));
+                });
+            });
+
+            dom.hSpacer(4);
+
             this.priceElm = dom.label(price -> {
-                price.setStyle(GluonStyles.text(12, GluonColors.PRIMARY));
+                price.setStyle(GluonStyles.textBold(13, GluonColors.PRIMARY));
+                price.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
             });
 
             dom.button(btn -> {
-                btn.setGraphic(GluonIcons.create(GluonIcons.DELETE, 16, GluonColors.ERROR));
-                btn.setStyle(GluonStyles.BTN_DANGER_INLINE);
+                btn.setText("×");
+                btn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + GluonColors.ERROR + "; " +
+                        "-fx-font-size: 16; -fx-padding: 2 4; -fx-cursor: hand;");
                 btn.setOnAction(e -> safeAction("Remove",
                         () -> this.presenter.onRemoveProduct(this.item.id)));
             });

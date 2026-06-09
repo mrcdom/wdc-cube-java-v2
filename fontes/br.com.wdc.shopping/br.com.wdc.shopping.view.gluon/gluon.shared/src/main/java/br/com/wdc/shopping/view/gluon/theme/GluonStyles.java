@@ -14,8 +14,9 @@ public final class GluonStyles {
     public static final String HEADER_BAR = "-fx-background-color: " + SURFACE + "; " +
             "-fx-border-color: " + BORDER + "; -fx-border-width: 0 0 1 0;";
 
-    public static final String APP_BAR_PRIMARY = "-fx-background-color: " + PRIMARY + "; " +
-            "-fx-effect: dropshadow(gaussian, " + SHADOW_HEAVY + ", 8, 0, 0, 2);";
+    // Gradient header like Flutter headerGradient
+    public static final String APP_BAR_PRIMARY = "-fx-background-color: linear-gradient(from 0% 0% to 100% 0%, " + PRIMARY + ", " + PRIMARY_END + "); " +
+            "-fx-effect: dropshadow(gaussian, rgba(13,102,208,0.3), 8, 0, 0, 2);";
 
     // ---- Back button ----
     public static final String BACK_BUTTON = "-fx-font-size: 13; -fx-background-color: transparent; " +
@@ -41,16 +42,17 @@ public final class GluonStyles {
     public static final String TEXT_PRICE_LABEL = "-fx-font-size: 14; -fx-text-fill: " + TEXT_SECONDARY + ";";
 
     // ---- Buttons ----
+    // Pill-shaped accent button — matches Flutter accentButtonStyle
     public static final String BTN_PRIMARY = "-fx-background-color: " + PRIMARY + "; -fx-text-fill: " + TEXT_ON_PRIMARY + "; " +
-            "-fx-font-weight: bold; -fx-font-size: 14; -fx-padding: 12 20; " +
-            "-fx-background-radius: 8; -fx-cursor: hand;";
+            "-fx-font-weight: bold; -fx-font-size: 15; -fx-padding: 14 24; " +
+            "-fx-background-radius: 20; -fx-cursor: hand;";
 
-    public static final String BTN_SUCCESS = "-fx-background-color: " + SUCCESS + "; -fx-text-fill: " + TEXT_ON_PRIMARY + "; " +
-            "-fx-font-weight: bold; -fx-font-size: 13; -fx-padding: 12 20; " +
-            "-fx-background-radius: 8; -fx-cursor: hand;";
+    public static final String BTN_SUCCESS = "-fx-background-color: " + PRIMARY + "; -fx-text-fill: " + TEXT_ON_PRIMARY + "; " +
+            "-fx-font-weight: bold; -fx-font-size: 14; -fx-padding: 14 24; " +
+            "-fx-background-radius: 20; -fx-cursor: hand;";
 
-    public static final String BTN_SUCCESS_BLOCK = "-fx-background-color: " + SUCCESS + "; -fx-text-fill: " + TEXT_ON_PRIMARY + "; " +
-            "-fx-font-weight: bold; -fx-padding: 10 20; -fx-background-radius: 4;";
+    public static final String BTN_SUCCESS_BLOCK = "-fx-background-color: " + PRIMARY + "; -fx-text-fill: " + TEXT_ON_PRIMARY + "; " +
+            "-fx-font-weight: bold; -fx-font-size: 14; -fx-padding: 14 24; -fx-background-radius: 20;";
 
     public static final String BTN_CIRCLE = "-fx-background-color: " + CONTROL_BG + "; -fx-background-radius: 50; " +
             "-fx-min-width: 32; -fx-min-height: 32; -fx-max-width: 32; -fx-max-height: 32; " +
@@ -76,11 +78,14 @@ public final class GluonStyles {
             "-fx-border-color: transparent; -fx-border-width: 0 0 3 0;";
 
     // ---- Cards ----
+    // Flutter cardDecoration: white, border, rounded, subtle shadow
     public static final String CARD = "-fx-background-color: " + SURFACE + "; -fx-background-radius: 12; " +
-            "-fx-effect: dropshadow(gaussian, " + SHADOW_MEDIUM + ", 8, 0, 0, 2);";
+            "-fx-border-color: " + BORDER + "; -fx-border-radius: 12; -fx-border-width: 1; " +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 3, 0, 0, 1);";
 
-    public static final String CARD_SMALL = "-fx-background-color: " + SURFACE + "; -fx-background-radius: 6; " +
-            "-fx-effect: dropshadow(gaussian, " + SHADOW_MEDIUM + ", 4, 0, 0, 1); -fx-cursor: hand;";
+    public static final String CARD_SMALL = "-fx-background-color: " + SURFACE + "; -fx-background-radius: 12; " +
+            "-fx-border-color: " + BORDER + "; -fx-border-radius: 12; -fx-border-width: 1; " +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 6, 0, 0, 2); -fx-cursor: hand;";
 
     public static final String CARD_ITEM = "-fx-background-color: " + SURFACE + "; -fx-background-radius: 4; " +
             "-fx-effect: dropshadow(gaussian, " + SHADOW_LIGHT + ", 2, 0, 0, 1);";
@@ -120,8 +125,9 @@ public final class GluonStyles {
             "-fx-effect: dropshadow(gaussian, " + SHADOW_STRONG + ", 8, 0, 0, -2);";
 
     // ---- Badge ----
-    public static final String BADGE_CART = "-fx-background-color: " + ERROR_BRIGHT + "; -fx-text-fill: " + TEXT_ON_PRIMARY + "; " +
-            "-fx-font-size: 10; -fx-font-weight: bold; -fx-padding: 2 6; " +
+    // White badge with accent text — matches Flutter's white badge in header
+    public static final String BADGE_CART = "-fx-background-color: white; -fx-text-fill: " + PRIMARY + "; " +
+            "-fx-font-size: 11; -fx-font-weight: bold; -fx-padding: 2 6; " +
             "-fx-background-radius: 10; -fx-min-width: 18; -fx-alignment: center;";
 
     public static final String BADGE_QUANTITY = "-fx-font-size: 11; -fx-text-fill: " + TEXT_ON_PRIMARY + "; " +
@@ -145,10 +151,43 @@ public final class GluonStyles {
             "-fx-background-radius: 0 0 12 12; -fx-border-color: " + ACCENT_SURFACE + "; -fx-border-width: 1 0 0 0;";
 
     // ---- Login ----
-    public static final String LOGIN_GRADIENT = "-fx-background-color: linear-gradient(to bottom, " + PRIMARY + ", " + PRIMARY_DARK + ");";
+    // Diagonal 3-stop gradient matching Flutter loginGradient
+    public static final String LOGIN_GRADIENT = "-fx-background-color: linear-gradient(from 0% 0% to 100% 100%, " +
+            PRIMARY + " 0%, " + PRIMARY_END + " 40%, " + PRIMARY_LIGHT + " 100%);";
 
     // ---- Background white ----
     public static final String BG_WHITE = "-fx-background-color: " + SURFACE + ";";
+
+    // ---- Product image area (matches Flutter imageGradient) ----
+    public static final String IMAGE_BG = "-fx-background-color: linear-gradient(from 0% 0% to 0% 100%, " + SURFACE_OVERLAY + ", " + IMAGE_BG_END + ");";
+
+    // ---- Price badge (accent light bg, like Flutter appAccentLight container) ----
+    public static final String PRICE_BADGE = "-fx-background-color: " + ACCENT_SURFACE + "; " +
+            "-fx-background-radius: 8; -fx-padding: 8 16;";
+
+    // ---- Purchases panel (white surface with left border) ----
+    public static final String PURCHASES_PANEL = "-fx-background-color: " + SURFACE + "; " +
+            "-fx-border-color: " + BORDER + "; -fx-border-width: 0 0 0 1;";
+
+    // ---- Cart item divider ----
+    public static final String CART_ITEM_ROW = "-fx-border-color: " + BORDER + "; -fx-border-width: 0 0 1 0; -fx-padding: 12 0 12 0;";
+
+    // ---- View header icon box (accent light circle) ----
+    public static final String VIEW_HEADER_ICON_BOX = "-fx-background-color: " + ACCENT_SURFACE + "; " +
+            "-fx-background-radius: 50; -fx-padding: 10;";
+
+    // ---- Login glass icon box (semi-white on gradient) ----
+    public static final String LOGIN_ICON_BOX = "-fx-background-color: rgba(255,255,255,0.12); " +
+            "-fx-background-radius: 12; -fx-border-color: rgba(255,255,255,0.2); " +
+            "-fx-border-radius: 12; -fx-border-width: 1; -fx-padding: 10;";
+    public static final String LOGIN_ICON_BOX_LG = "-fx-background-color: rgba(255,255,255,0.12); " +
+            "-fx-background-radius: 20; -fx-border-color: rgba(255,255,255,0.2); " +
+            "-fx-border-radius: 20; -fx-border-width: 1; -fx-padding: 20;";
+
+    // ---- Demo credentials box ----
+    public static final String DEMO_BOX = "-fx-background-color: " + SURFACE_DIM + "; " +
+            "-fx-background-radius: 8; -fx-border-color: " + BORDER + "; -fx-border-radius: 8; " +
+            "-fx-border-width: 1; -fx-padding: 12;";
 
     // ---- Helper methods for parametric styles ----
 

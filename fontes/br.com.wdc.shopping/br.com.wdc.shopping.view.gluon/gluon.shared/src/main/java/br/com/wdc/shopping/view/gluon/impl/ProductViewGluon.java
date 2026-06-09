@@ -96,79 +96,72 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
         root.setSpacing(0);
         root.setStyle(GluonStyles.PAGE_BG);
 
-        // Header bar
-        dom.hbox(headerBar -> {
-            headerBar.setAlignment(Pos.CENTER_LEFT);
-            headerBar.setSpacing(12);
-            headerBar.setPadding(new Insets(10, 16, 10, 16));
-            headerBar.setStyle(GluonStyles.HEADER_BAR);
-
-            dom.button(backBtn -> {
-                backBtn.setText("Voltar");
-                backBtn.setGraphic(GluonIcons.create(GluonIcons.ARROW_BACK, 14, GluonColors.PRIMARY));
-                backBtn.setStyle(GluonStyles.BACK_BUTTON);
-                backBtn.setOnAction(e -> safeAction("Back", this.presenter::onOpenProducts));
-            });
-
-            dom.hSpacer();
-
-            dom.label(headerTitle -> {
-                headerTitle.setText("Detalhes do Produto");
-                headerTitle.setStyle(GluonStyles.PAGE_TITLE);
-            });
-        });
-
-        // Scrollable content
+        // Scrollable content (no separate header bar — like Flutter PageCard)
         dom.scrollVBox((sp, content) -> {
             VBox.setVgrow(sp, Priority.ALWAYS);
             sp.setFitToWidth(true);
             sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
             sp.setStyle(GluonStyles.SCROLL_TRANSPARENT);
-            content.setPadding(new Insets(16));
+            content.setPadding(new Insets(20));
+            content.setSpacing(16);
             content.setAlignment(Pos.TOP_CENTER);
 
-            // Product info card
-            dom.vbox(card -> {
-                card.setSpacing(14);
-                card.setPadding(new Insets(24, 20, 20, 20));
-                card.setMaxWidth(480);
-                card.setStyle(GluonStyles.CARD_TOP_ROUND);
+            // Inner container with max-width
+            dom.vbox(inner -> {
+                inner.setSpacing(16);
+                inner.setMaxWidth(560);
 
+                // Title
                 this.nameElm = dom.label(name -> {
                     name.setText(this.state.product != null ? this.state.product.name : "");
-                    name.setStyle(GluonStyles.textBold(20, GluonColors.TEXT_PRIMARY));
+                    name.setStyle(GluonStyles.textBold(24, GluonColors.TEXT_PRIMARY));
                     name.setWrapText(true);
                 });
                 this.nameOldValue = this.state.product != null ? this.state.product.name : null;
 
-                dom.label(descTitle -> {
-                    descTitle.setText("Descrição");
-                    descTitle.setStyle(GluonStyles.textBold(13, GluonColors.TEXT_SECONDARY) + " -fx-padding: 8 0 4 0;");
+                // Accent divider
+                dom.node(buildDivider());
+
+                // Description card
+                dom.vbox(descCard -> {
+                    descCard.setPadding(new Insets(20));
+                    descCard.setStyle(GluonStyles.CARD);
+                    descCard.setMaxWidth(Double.MAX_VALUE);
+
+                    dom.label(descTitle -> {
+                        descTitle.setText("Descrição");
+                        descTitle.setStyle(GluonStyles.textBold(13, GluonColors.TEXT_SECONDARY) + " -fx-padding: 0 0 8 0;");
+                    });
+
+                    this.descriptionElm = dom.textFlow(tf -> {
+                        tf.setStyle(GluonStyles.fontSize(13) + " -fx-line-spacing: 3;");
+                    });
+                    renderDescription(this.state.product != null ? this.state.product.description : null);
+                    this.descriptionOldValue = this.state.product != null ? this.state.product.description : null;
                 });
 
-                this.descriptionElm = dom.textFlow(tf -> {
-                    tf.setStyle(GluonStyles.fontSize(13) + " -fx-line-spacing: 3;");
-                });
-                renderDescription(this.state.product != null ? this.state.product.description : null);
-                this.descriptionOldValue = this.state.product != null ? this.state.product.description : null;
-
-                // Price + quantity (left) | Image (right)
+                // Price + Image row
                 dom.hbox(priceImageRow -> {
-                    priceImageRow.setAlignment(Pos.CENTER_LEFT);
+                    priceImageRow.setAlignment(Pos.CENTER);
                     priceImageRow.setSpacing(16);
-                    priceImageRow.setPadding(new Insets(6, 0, 6, 0));
 
                     dom.vbox(leftCol -> {
-                        leftCol.setSpacing(10);
-                        javafx.scene.layout.HBox.setHgrow(leftCol, Priority.ALWAYS);
+                        leftCol.setSpacing(12);
+                        leftCol.setAlignment(Pos.CENTER);
+                        HBox.setHgrow(leftCol, Priority.NEVER);
 
-                        this.priceElm = dom.label(price -> {
-                            price.setText(this.state.product != null
-                                    ? NumberFormat.getCurrencyInstance().format(this.state.product.price)
-                                    : "");
-                            price.setStyle(GluonStyles.PRICE_LARGE);
+                        // Price badge — accent light background like Flutter
+                        dom.stackPane(priceBadge -> {
+                            priceBadge.setStyle(GluonStyles.PRICE_BADGE);
+
+                            this.priceElm = dom.label(price -> {
+                                price.setText(this.state.product != null
+                                        ? NumberFormat.getCurrencyInstance().format(this.state.product.price)
+                                        : "");
+                                price.setStyle("-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: " + GluonColors.PRIMARY + ";");
+                            });
+                            this.priceOldValue = this.state.product != null ? this.state.product.price : 0;
                         });
-                        this.priceOldValue = this.state.product != null ? this.state.product.price : 0;
 
                         // Quantity selector
                         dom.hbox(qtyStepper -> {
@@ -190,8 +183,8 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
 
                             this.quantityLabel = dom.label(qty -> {
                                 qty.setText("1");
-                                qty.setStyle(GluonStyles.textBold(16, GluonColors.TEXT_DEFAULT) + " " +
-                                        "-fx-min-width: 32; -fx-alignment: center;");
+                                qty.setStyle(GluonStyles.textBold(16, GluonColors.TEXT_DEFAULT) +
+                                        " -fx-min-width: 32; -fx-alignment: center;");
                             });
 
                             dom.button(plusBtn -> {
@@ -207,40 +200,65 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
                         });
                     });
 
-                    this.imageElm = dom.imageView(img -> {
-                        img.setFitWidth(110);
-                        img.setFitHeight(110);
-                        img.setPreserveRatio(true);
-                        if (this.state.product != null && this.state.product.image != null) {
-                            img.setImage(ResourceCatalog.getImage(this.state.product.image));
-                            this.imageOldValue = this.state.product.image;
-                        }
+                    // Image box with gradient background
+                    dom.stackPane(imageBox -> {
+                        imageBox.setStyle(GluonStyles.IMAGE_BG + " -fx-background-radius: 8;");
+                        imageBox.setPrefWidth(200);
+                        imageBox.setPrefHeight(200);
+                        imageBox.setMaxWidth(200);
+                        imageBox.setMaxHeight(200);
+
+                        this.imageElm = dom.imageView(img -> {
+                            img.setFitWidth(160);
+                            img.setFitHeight(160);
+                            img.setPreserveRatio(true);
+                            if (this.state.product != null && this.state.product.image != null) {
+                                img.setImage(ResourceCatalog.getImage(this.state.product.image));
+                                this.imageOldValue = this.state.product.image;
+                            }
+                        });
                     });
                 });
 
-                // Add to cart button
-                dom.hbox(actionSection -> {
-                    actionSection.setAlignment(Pos.CENTER);
-                    actionSection.setPadding(new Insets(6, 0, 6, 0));
-
-                    dom.button(addBtn -> {
-                        addBtn.setText("Adicionar ao Carrinho");
-                        addBtn.setGraphic(GluonIcons.create(GluonIcons.SHOPPING_CART, 16, GluonColors.TEXT_ON_PRIMARY));
-                        addBtn.setMaxWidth(Double.MAX_VALUE);
-                        addBtn.setStyle(GluonStyles.BTN_SUCCESS);
-                        javafx.scene.layout.HBox.setHgrow(addBtn, Priority.ALWAYS);
-                        addBtn.setOnAction(e -> emitBuy());
-                    });
-                });
-
+                // Error
                 this.errorElm = dom.label(err -> {
                     err.setStyle(GluonStyles.ERROR_INLINE);
                     err.setVisible(false);
                     err.setManaged(false);
                     err.setWrapText(true);
+                    err.setMaxWidth(Double.MAX_VALUE);
+                });
+
+                // Action row — back button (text) + add-to-cart button (filled pill)
+                dom.hbox(actionRow -> {
+                    actionRow.setAlignment(Pos.CENTER);
+                    actionRow.setSpacing(12);
+
+                    dom.button(backBtn -> {
+                        backBtn.setText("Voltar");
+                        backBtn.setGraphic(GluonIcons.create(GluonIcons.ARROW_BACK, 18, GluonColors.PRIMARY));
+                        backBtn.setStyle(GluonStyles.BACK_BUTTON + " -fx-font-size: 14;");
+                        backBtn.setOnAction(e -> safeAction("Back", this.presenter::onOpenProducts));
+                    });
+
+                    dom.button(addBtn -> {
+                        addBtn.setText("Adicionar ao Carrinho");
+                        addBtn.setGraphic(GluonIcons.create(GluonIcons.SHOPPING_CART, 18, GluonColors.TEXT_ON_PRIMARY));
+                        addBtn.setStyle(GluonStyles.BTN_SUCCESS);
+                        addBtn.setOnAction(e -> emitBuy());
+                    });
                 });
             });
         });
+    }
+
+    private javafx.scene.shape.Line buildDivider() {
+        var line = new javafx.scene.shape.Line();
+        line.setStartX(0);
+        line.setEndX(560);
+        line.setStroke(javafx.scene.paint.Color.web(GluonColors.PRIMARY));
+        line.setStrokeWidth(2);
+        return line;
     }
 
     private void emitBuy() {
