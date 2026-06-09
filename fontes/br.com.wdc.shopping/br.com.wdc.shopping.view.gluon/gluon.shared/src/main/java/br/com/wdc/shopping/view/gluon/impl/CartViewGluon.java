@@ -82,154 +82,151 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
     }
 
     private void buildUI(GluonDom dom, StackPane root) {
-        // Root is a StackPane — StackPane fills its children to its own bounds unconditionally.
-        // ContentPane (HomeViewGluon) is also a StackPane, so StackPane-in-StackPane = perfect fill-height.
-        // Flutter equivalent: appBg Container → padding(20) → Center() → ConstrainedBox(maxWidth: 900)
         root.setStyle(GluonStyles.PAGE_BG);
-        root.setPadding(new Insets(20));
-        root.setAlignment(Pos.TOP_CENTER); // centers card horizontally when window > 900px
 
-        // PageCard: card is content-sized (not window-sized).
-        // StackPane resizes children up to their maxHeight — keeping default (USE_COMPUTED_SIZE)
-        // means card height = preferred (content) height, not window height.
-        // Horizontally: capped at 900px and centered by root.setAlignment(TOP_CENTER).
-        dom.vbox(card -> {
-            card.setStyle(GluonStyles.CARD);
-            card.setPadding(new Insets(28));
-            card.setSpacing(0);
-            card.setMaxWidth(900);
-            card.setMinWidth(0);
-            // maxHeight intentionally NOT set to MAX_VALUE — card sizes to its content
+        // Page-level scroll — matches Flutter's SingleChildScrollView wrapping the entire PageCard.
+        // The card is content-sized; if it overflows the window, the page scrolls (not the card).
+        // StackPane fills the ScrollPane (maxWidth/Height = MAX_VALUE), keeping the bg color full-window.
+        dom.scrollVBox((pageScroll, pageContent) -> {
+            pageScroll.setFitToWidth(true);
+            pageScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+            pageScroll.setStyle(GluonStyles.SCROLL_TRANSPARENT);
+            pageScroll.setMaxWidth(Double.MAX_VALUE);
+            pageScroll.setMaxHeight(Double.MAX_VALUE);
 
-        // View header with icon + title + subtitle (Flutter ViewHeader)
-        dom.hbox(viewHeader -> {
-            viewHeader.setAlignment(Pos.CENTER_LEFT);
-            viewHeader.setSpacing(12);
-            viewHeader.setPadding(new Insets(0, 0, 20, 0));
+            pageContent.setPadding(new Insets(20));
+            pageContent.setAlignment(Pos.TOP_CENTER); // centers card when window > 900px
 
-            dom.stackPane(iconBox -> {
-                iconBox.setStyle(GluonStyles.VIEW_HEADER_ICON_BOX);
-                dom.icon(GluonIcons.create(GluonIcons.SHOPPING_BAG, 22, GluonColors.PRIMARY));
-            });
+            // Card: content-sized. No maxHeight — card height = its content height.
+            // Flutter equivalent: Container(padding: all(28), decoration: cardDecoration)
+            dom.vbox(card -> {
+                card.setStyle(GluonStyles.CARD);
+                card.setPadding(new Insets(28));
+                card.setSpacing(0);
+                card.setMaxWidth(900);
+                card.setMinWidth(0);
 
-            dom.vbox(titleBox -> {
-                titleBox.setSpacing(2);
-                dom.label(title -> {
-                    title.setText("Carrinho");
-                    title.setStyle(GluonStyles.textBold(20, GluonColors.TEXT_DEFAULT));
-                });
-                dom.label(subtitle -> {
-                    subtitle.setText("Seus produtos selecionados");
-                    subtitle.setStyle(GluonStyles.text(13, GluonColors.TEXT_SECONDARY));
-                });
-            });
-        });
+                // View header
+                dom.hbox(viewHeader -> {
+                    viewHeader.setAlignment(Pos.CENTER_LEFT);
+                    viewHeader.setSpacing(12);
+                    viewHeader.setPadding(new Insets(0, 0, 20, 0));
 
-        // Empty cart state
-        this.emptyPane = dom.vbox(empty -> {
-            empty.setAlignment(Pos.CENTER);
-            empty.setSpacing(8);
-            empty.setPadding(new Insets(40, 0, 40, 0));
-            VBox.setVgrow(empty, Priority.ALWAYS);
+                    dom.stackPane(iconBox -> {
+                        iconBox.setStyle(GluonStyles.VIEW_HEADER_ICON_BOX);
+                        dom.icon(GluonIcons.create(GluonIcons.SHOPPING_BAG, 22, GluonColors.PRIMARY));
+                    });
 
-            // Circular accent-light icon container (like Flutter)
-            dom.stackPane(emptyIcon -> {
-                emptyIcon.setStyle("-fx-background-color: " + GluonColors.ACCENT_SURFACE + "; " +
-                        "-fx-background-radius: 50; -fx-min-width: 100; -fx-min-height: 100; " +
-                        "-fx-max-width: 100; -fx-max-height: 100;");
-                dom.icon(GluonIcons.create(GluonIcons.SHOPPING_BAG, 40, GluonColors.PRIMARY));
-            });
-
-            dom.vSpacer(20);
-
-            dom.label(msg -> {
-                msg.setText("Carrinho vazio");
-                msg.setStyle(GluonStyles.textBold(16, GluonColors.TEXT_DEFAULT));
-            });
-
-            dom.label(hint -> {
-                hint.setText("Adicione produtos para começar");
-                hint.setStyle(GluonStyles.text(13, GluonColors.TEXT_SECONDARY));
-            });
-
-            dom.vSpacer(16);
-
-            dom.button(shopBtn -> {
-                shopBtn.setText("Ver produtos");
-                shopBtn.setGraphic(GluonIcons.create(GluonIcons.STORE, 18, GluonColors.TEXT_ON_PRIMARY));
-                shopBtn.setStyle(GluonStyles.BTN_PRIMARY);
-                shopBtn.setOnAction(e -> safeAction("Go shopping", this.presenter::onOpenProducts));
-            });
-        });
-
-        // Cart content
-        this.contentPane = dom.vbox(content -> {
-            content.setSpacing(0);
-            content.setPadding(new Insets(0));
-            VBox.setVgrow(content, Priority.ALWAYS);
-
-            dom.scrollVBox((sp, itemsBox) -> {
-                VBox.setVgrow(sp, Priority.ALWAYS);
-                sp.setFitToWidth(true);
-                sp.setMaxWidth(Double.MAX_VALUE); // allow contentPane VBox to stretch sp to full card width
-                sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-                sp.setStyle(GluonStyles.SCROLL_TRANSPARENT);
-
-                itemsBox.setSpacing(0);
-                this.itemsSlot = this.newListSlot(itemsBox, this::newItemView, this::updateItem);
-            });
-
-            // Footer: total row — right-aligned, border-top + margin-top 16 (matches Flutter)
-            dom.hbox(footerRow -> {
-                footerRow.setAlignment(Pos.CENTER_RIGHT);
-                footerRow.setSpacing(4);
-                footerRow.setPadding(new Insets(16, 0, 0, 0));
-                footerRow.setStyle("-fx-border-color: " + GluonColors.BORDER + "; -fx-border-width: 1 0 0 0;");
-
-                dom.label(totalLabel -> {
-                    totalLabel.setText("Total: ");
-                    totalLabel.setStyle(GluonStyles.text(14, GluonColors.TEXT_SECONDARY));
+                    dom.vbox(titleBox -> {
+                        titleBox.setSpacing(2);
+                        dom.label(title -> {
+                            title.setText("Carrinho");
+                            title.setStyle(GluonStyles.textBold(20, GluonColors.TEXT_DEFAULT));
+                        });
+                        dom.label(subtitle -> {
+                            subtitle.setText("Seus produtos selecionados");
+                            subtitle.setStyle(GluonStyles.text(13, GluonColors.TEXT_SECONDARY));
+                        });
+                    });
                 });
 
-                this.totalCostElm = dom.label(total -> {
-                    total.setText(NumberFormat.getCurrencyInstance().format(computeTotalCost()));
-                    total.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: " + GluonColors.PRIMARY + ";");
+                // Empty cart state
+                this.emptyPane = dom.vbox(empty -> {
+                    empty.setAlignment(Pos.CENTER);
+                    empty.setSpacing(8);
+                    empty.setPadding(new Insets(40, 0, 40, 0));
+
+                    dom.stackPane(emptyIcon -> {
+                        emptyIcon.setStyle("-fx-background-color: " + GluonColors.ACCENT_SURFACE + "; " +
+                                "-fx-background-radius: 50; -fx-min-width: 100; -fx-min-height: 100; " +
+                                "-fx-max-width: 100; -fx-max-height: 100;");
+                        dom.icon(GluonIcons.create(GluonIcons.SHOPPING_BAG, 40, GluonColors.PRIMARY));
+                    });
+
+                    dom.vSpacer(20);
+
+                    dom.label(msg -> {
+                        msg.setText("Carrinho vazio");
+                        msg.setStyle(GluonStyles.textBold(16, GluonColors.TEXT_DEFAULT));
+                    });
+
+                    dom.label(hint -> {
+                        hint.setText("Adicione produtos para começar");
+                        hint.setStyle(GluonStyles.text(13, GluonColors.TEXT_SECONDARY));
+                    });
+
+                    dom.vSpacer(16);
+
+                    dom.button(shopBtn -> {
+                        shopBtn.setText("Ver produtos");
+                        shopBtn.setGraphic(GluonIcons.create(GluonIcons.STORE, 18, GluonColors.TEXT_ON_PRIMARY));
+                        shopBtn.setStyle(GluonStyles.BTN_PRIMARY);
+                        shopBtn.setOnAction(e -> safeAction("Go shopping", this.presenter::onOpenProducts));
+                    });
                 });
-                this.totalCostOldValue = computeTotalCost();
-            });
 
-            // Error
-            this.errorElm = dom.label(err -> {
-                err.setStyle(GluonStyles.ERROR_TEXT);
-                err.setVisible(false);
-                err.setManaged(false);
-                err.setWrapText(true);
-            });
+                // Cart content — no inner scroll; items rendered as plain children; page scrolls if needed
+                this.contentPane = dom.vbox(content -> {
+                    content.setSpacing(0);
 
-            dom.vSpacer(16);
+                    // Items list
+                    dom.vbox(itemsBox -> {
+                        itemsBox.setSpacing(0);
+                        this.itemsSlot = this.newListSlot(itemsBox, this::newItemView, this::updateItem);
+                    });
 
-            // Action buttons — Flutter Wrap equivalent: side-by-side when space allows, wraps to next line when narrow
-            dom.flowPane(actionsBox -> {
-                actionsBox.setAlignment(Pos.CENTER);
-                actionsBox.setHgap(8);
-                actionsBox.setVgap(8);
+                    // Footer: total row
+                    dom.hbox(footerRow -> {
+                        footerRow.setAlignment(Pos.CENTER_RIGHT);
+                        footerRow.setSpacing(4);
+                        footerRow.setPadding(new Insets(16, 0, 0, 0));
+                        footerRow.setStyle("-fx-border-color: " + GluonColors.BORDER + "; -fx-border-width: 1 0 0 0;");
 
-                dom.button(backBtn -> {
-                    backBtn.setText("Continuar comprando");
-                    backBtn.setGraphic(GluonIcons.create(GluonIcons.ARROW_BACK, 18, GluonColors.PRIMARY));
-                    backBtn.setStyle(GluonStyles.BACK_BUTTON + " -fx-font-size: 14;");
-                    backBtn.setOnAction(e -> safeAction("Back", this.presenter::onOpenProducts));
+                        dom.label(totalLabel -> {
+                            totalLabel.setText("Total: ");
+                            totalLabel.setStyle(GluonStyles.text(14, GluonColors.TEXT_SECONDARY));
+                        });
+
+                        this.totalCostElm = dom.label(total -> {
+                            total.setText(NumberFormat.getCurrencyInstance().format(computeTotalCost()));
+                            total.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: " + GluonColors.PRIMARY + ";");
+                        });
+                        this.totalCostOldValue = computeTotalCost();
+                    });
+
+                    // Error
+                    this.errorElm = dom.label(err -> {
+                        err.setStyle(GluonStyles.ERROR_TEXT);
+                        err.setVisible(false);
+                        err.setManaged(false);
+                        err.setWrapText(true);
+                    });
+
+                    dom.vSpacer(16);
+
+                    // Action buttons — Flutter Wrap: side-by-side with space, wraps when narrow
+                    dom.flowPane(actionsBox -> {
+                        actionsBox.setAlignment(Pos.CENTER);
+                        actionsBox.setHgap(8);
+                        actionsBox.setVgap(8);
+
+                        dom.button(backBtn -> {
+                            backBtn.setText("Continuar comprando");
+                            backBtn.setGraphic(GluonIcons.create(GluonIcons.ARROW_BACK, 18, GluonColors.PRIMARY));
+                            backBtn.setStyle(GluonStyles.BACK_BUTTON + " -fx-font-size: 14;");
+                            backBtn.setOnAction(e -> safeAction("Back", this.presenter::onOpenProducts));
+                        });
+
+                        dom.button(buyBtn -> {
+                            buyBtn.setText("Finalizar pedido");
+                            buyBtn.setGraphic(GluonIcons.create(GluonIcons.CHECK_CIRCLE, 18, GluonColors.TEXT_ON_PRIMARY));
+                            buyBtn.setStyle(GluonStyles.BTN_SUCCESS);
+                            buyBtn.setOnAction(e -> safeAction("Buy", this.presenter::onBuy));
+                        });
+                    });
                 });
-
-                dom.button(buyBtn -> {
-                    buyBtn.setText("Finalizar pedido");
-                    buyBtn.setGraphic(GluonIcons.create(GluonIcons.CHECK_CIRCLE, 18, GluonColors.TEXT_ON_PRIMARY));
-                    buyBtn.setStyle(GluonStyles.BTN_SUCCESS);
-                    buyBtn.setOnAction(e -> safeAction("Buy", this.presenter::onBuy));
-                });
-            });
-        });
-        }); // end card
+            }); // end card
+        }); // end pageScroll
     }
 
     private double computeTotalCost() {
