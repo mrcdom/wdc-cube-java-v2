@@ -12,13 +12,13 @@ cd "$(dirname "$0")"
 # Commands:
 #   run       Run on a connected device or simulator (default)
 #   build     Build release artifact (APK, IPA, etc.)
-#   install   Build and install on connected device
+#   install   Build and install on connected device or simulator
 #   list      List available devices
 #
 # Targets:
-#   ios           iOS device (physical)
-#   ios-sim       iPhone Simulator
-#   ipad-sim      iPad Simulator
+#   ios                iOS device (physical)
+#   ios-sim            iPhone Simulator
+#   ipad-sim           iPad Simulator
 #   android            Android device (physical)
 #   android-emu        Android phone Emulator
 #   android-tablet-emu Android tablet Emulator
@@ -38,9 +38,11 @@ cd "$(dirname "$0")"
 # ./deploy.sh build all               # Build release para iOS + Android (APK + AAB)
 # ./deploy.sh build android           # Só APK
 # ./deploy.sh build ios               # Só iOS
-# ./deploy.sh install ios-sim         # Build + instalar no iPhone simulator
-# ./deploy.sh install ipad-sim        # Build + instalar no iPad simulator
-# ./deploy.sh install android         # Build + instalar no device
+# ./deploy.sh install ios-sim             # Build + instalar no iPhone simulator
+# ./deploy.sh install ipad-sim            # Build + instalar no iPad simulator
+# ./deploy.sh install android             # Build + instalar no device Android físico
+# ./deploy.sh install android-emu         # Build + instalar no emulador de phone
+# ./deploy.sh install android-tablet-emu  # Build + instalar no emulador de tablet
 # ──────────────────────────────────────────────────────────────────────────────
 
 ENDPOINT="${WDC_ENDPOINT:-http://localhost:8080}"
@@ -132,6 +134,57 @@ for runtime, devices in data.get('devices', {}).items():
   fi
 }
 
+find_android_device() {
+  flutter devices --machine 2>/dev/null | python3 -c "
+import json, sys
+devices = json.load(sys.stdin)
+for d in devices:
+    if d.get('targetPlatform','').startswith('android') and not d.get('emulator', False):
+        print(d['id']); sys.exit(0)
+print(''); sys.exit(1)
+" 2>/dev/null
+}
+
+find_android_phone_emu() {
+  flutter devices --machine 2>/dev/null | python3 -c "
+import json, sys
+devices = json.load(sys.stdin)
+tablet_keywords = ['tablet', 'tab', 'nexus 9', 'nexus 10', 'pixel c']
+for d in devices:
+    if d.get('targetPlatform','').startswith('android') and d.get('emulator', False):
+        name = d.get('name','').lower()
+        if not any(k in name for k in tablet_keywords):
+            print(d['id']); sys.exit(0)
+# fallback: any android emulator
+for d in devices:
+    if d.get('targetPlatform','').startswith('android') and d.get('emulator', False):
+        print(d['id']); sys.exit(0)
+print(''); sys.exit(1)
+" 2>/dev/null
+}
+
+find_android_tablet_emu() {
+  flutter devices --machine 2>/dev/null | python3 -c "
+import json, sys
+devices = json.load(sys.stdin)
+tablet_keywords = ['tablet', 'tab', 'nexus 9', 'nexus 10', 'pixel c']
+for d in devices:
+    if d.get('targetPlatform','').startswith('android') and d.get('emulator', False):
+        name = d.get('name','').lower()
+        if any(k in name for k in tablet_keywords):
+            print(d['id']); sys.exit(0)
+print(''); sys.exit(1)
+" 2>/dev/null
+}
+
+# Translates localhost/127.0.0.1 to 10.0.2.2 for Android emulators
+emu_endpoint() {
+  local ep="$1"
+  ep="${ep//localhost/10.0.2.2}"
+  ep="${ep//127.0.0.1/10.0.2.2}"
+  echo "$ep"
+}
+
 run_on_target() {
   local target="$1"
   local mode="${MODE:---debug}"
@@ -155,14 +208,7 @@ run_on_target() {
       ;;
     android)
       local android_id
-      android_id=$(flutter devices --machine 2>/dev/null | python3 -c "
-import json, sys
-devices = json.load(sys.stdin)
-for d in devices:
-    if d.get('targetPlatform','').startswith('android') and not d.get('emulator', False):
-        print(d['id']); sys.exit(0)
-print(''); sys.exit(1)
-" 2>/dev/null)
+      android_id=$(find_android_device)
       if [[ -z "$android_id" ]]; then
         echo "ERROR: No physical Android device found. Use './deploy.sh list' to check."
         exit 1
@@ -171,58 +217,30 @@ print(''); sys.exit(1)
       flutter run -d "$android_id" $mode $DART_DEFINES
       ;;
     android-emu)
-      local emu_id
-      emu_id=$(flutter devices --machine 2>/dev/null | python3 -c "
-import json, sys
-devices = json.load(sys.stdin)
-tablet_keywords = ['tablet', 'tab', 'nexus 9', 'nexus 10', 'pixel c']
-for d in devices:
-    if d.get('targetPlatform','').startswith('android') and d.get('emulator', False):
-        name = d.get('name','').lower()
-        if not any(k in name for k in tablet_keywords):
-            print(d['id']); sys.exit(0)
-# fallback: any android emulator
-for d in devices:
-    if d.get('targetPlatform','').startswith('android') and d.get('emulator', False):
-        print(d['id']); sys.exit(0)
-print(''); sys.exit(1)
-" 2>/dev/null)
+      local emu_id ep ep_defines
+      emu_id=$(find_android_phone_emu)
       if [[ -z "$emu_id" ]]; then
         echo "ERROR: No Android phone emulator found. Use './deploy.sh list' to check."
         exit 1
       fi
-      # Android emulator uses 10.0.2.2 to reach host's localhost
-      local emu_endpoint="${ENDPOINT//localhost/10.0.2.2}"
-      emu_endpoint="${emu_endpoint//127.0.0.1/10.0.2.2}"
-      local emu_dart_defines="--dart-define=WDC_ENDPOINT=$emu_endpoint"
-      echo "▶ Running on Android Phone Emulator ($emu_id) -> $emu_endpoint"
-      flutter run -d "$emu_id" $mode $emu_dart_defines
+      ep=$(emu_endpoint "$ENDPOINT")
+      ep_defines="--dart-define=WDC_ENDPOINT=$ep"
+      echo "▶ Running on Android Phone Emulator ($emu_id) -> $ep"
+      flutter run -d "$emu_id" $mode $ep_defines
       ;;
     android-tablet-emu)
-      local tablet_id
-      tablet_id=$(flutter devices --machine 2>/dev/null | python3 -c "
-import json, sys
-devices = json.load(sys.stdin)
-tablet_keywords = ['tablet', 'tab', 'nexus 9', 'nexus 10', 'pixel c']
-for d in devices:
-    if d.get('targetPlatform','').startswith('android') and d.get('emulator', False):
-        name = d.get('name','').lower()
-        if any(k in name for k in tablet_keywords):
-            print(d['id']); sys.exit(0)
-print(''); sys.exit(1)
-" 2>/dev/null)
+      local tablet_id ep ep_defines
+      tablet_id=$(find_android_tablet_emu)
       if [[ -z "$tablet_id" ]]; then
         echo "ERROR: No Android tablet emulator found."
         echo "  Make sure the AVD name contains 'Tablet' or 'Tab'."
         echo "  Use './deploy.sh list' to check available devices."
         exit 1
       fi
-      # Android emulator uses 10.0.2.2 to reach host's localhost
-      local emu_endpoint="${ENDPOINT//localhost/10.0.2.2}"
-      emu_endpoint="${emu_endpoint//127.0.0.1/10.0.2.2}"
-      local emu_dart_defines="--dart-define=WDC_ENDPOINT=$emu_endpoint"
-      echo "▶ Running on Android Tablet Emulator ($tablet_id) -> $emu_endpoint"
-      flutter run -d "$tablet_id" $mode $emu_dart_defines
+      ep=$(emu_endpoint "$ENDPOINT")
+      ep_defines="--dart-define=WDC_ENDPOINT=$ep"
+      echo "▶ Running on Android Tablet Emulator ($tablet_id) -> $ep"
+      flutter run -d "$tablet_id" $mode $ep_defines
       ;;
     *)
       echo "ERROR: Specify a target: ios, ios-sim, android, android-emu"
@@ -298,13 +316,47 @@ install_on_target() {
       xcrun simctl install "$sim_id" build/ios/iphonesimulator/Runner.app
       echo "✓ Installed on simulator. Launch from Home screen."
       ;;
-    android|android-emu)
-      echo "📲 Building and installing on Android..."
+    android)
+      local android_id
+      android_id=$(find_android_device)
+      if [[ -z "$android_id" ]]; then
+        echo "ERROR: No physical Android device found. Use './deploy.sh list' to check."
+        exit 1
+      fi
+      echo "📲 Building and installing on Android device ($android_id)..."
       flutter build apk $mode $DART_DEFINES
-      flutter install -d android
+      flutter install -d "$android_id"
+      ;;
+    android-emu)
+      local emu_id ep ep_defines
+      emu_id=$(find_android_phone_emu)
+      if [[ -z "$emu_id" ]]; then
+        echo "ERROR: No Android phone emulator found. Use './deploy.sh list' to check."
+        exit 1
+      fi
+      ep=$(emu_endpoint "$ENDPOINT")
+      ep_defines="--dart-define=WDC_ENDPOINT=$ep"
+      echo "📲 Building and installing on Android Phone Emulator ($emu_id) -> $ep"
+      flutter build apk $mode $ep_defines
+      flutter install -d "$emu_id"
+      ;;
+    android-tablet-emu)
+      local tablet_id ep ep_defines
+      tablet_id=$(find_android_tablet_emu)
+      if [[ -z "$tablet_id" ]]; then
+        echo "ERROR: No Android tablet emulator found."
+        echo "  Make sure the AVD name contains 'Tablet' or 'Tab'."
+        echo "  Use './deploy.sh list' to check available devices."
+        exit 1
+      fi
+      ep=$(emu_endpoint "$ENDPOINT")
+      ep_defines="--dart-define=WDC_ENDPOINT=$ep"
+      echo "📲 Building and installing on Android Tablet Emulator ($tablet_id) -> $ep"
+      flutter build apk $mode $ep_defines
+      flutter install -d "$tablet_id"
       ;;
     *)
-      echo "ERROR: Specify a target: ios, ios-sim, android, android-emu"
+      echo "ERROR: Specify a target: ios, ios-sim, ipad-sim, android, android-emu, android-tablet-emu"
       exit 1
       ;;
   esac
