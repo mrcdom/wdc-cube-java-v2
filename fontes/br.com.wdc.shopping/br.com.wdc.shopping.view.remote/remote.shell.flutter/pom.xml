@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>br.com.wdc.shopping</groupId>
+        <artifactId>br.com.wdc.shopping.view.remote</artifactId>
+        <version>1.0.0</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>remote.shell.flutter</artifactId>
+    <packaging>pom</packaging>
+
+    <name>WeDoCode Shopping View Remote - Flutter Desktop</name>
+
+    <description>
+        Flutter desktop shell for the Host/Shell remote protocol.
+        Builds flutter.desktop for the current platform (macOS, Linux, Windows)
+        via flutter build.sh which auto-detects the target platform.
+    </description>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <!-- flutter pub get -->
+                    <execution>
+                        <id>flutter-pub-get</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>flutter</executable>
+                            <arguments>
+                                <argument>pub</argument>
+                                <argument>get</argument>
+                            </arguments>
+                            <workingDirectory>${project.basedir}/flutter.desktop</workingDirectory>
+                        </configuration>
+                    </execution>
+                    <!-- flutter build (platform auto-detected by build.sh) -->
+                    <execution>
+                        <id>flutter-build</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>${project.basedir}/flutter.desktop/build.sh</executable>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

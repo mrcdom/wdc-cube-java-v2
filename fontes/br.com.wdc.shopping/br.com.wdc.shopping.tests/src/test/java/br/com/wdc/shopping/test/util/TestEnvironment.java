@@ -121,7 +121,7 @@ public class TestEnvironment extends ExternalResource {
 		} else {
 			javalin = Javalin.create(config -> {
 				config.http.maxRequestSize = 10_000_000L;
-				RepositoryApiRoutes.configure(config);
+				RepositoryApiRoutes.configure(config, "");
 			}).start(0);
 
 			var transport = new OkHttpTransport("http://localhost:" + javalin.port());

@@ -90,7 +90,7 @@ public class BaseRestApiTest {
 		// Sobe o servidor Javalin embarcado (usa os BEANs → persistence local)
 		javalin = Javalin.create(config -> {
 			config.http.maxRequestSize = 10_000_000L; // 10MB
-			RepositoryApiRoutes.configure(config);
+			RepositoryApiRoutes.configure(config, "");
 		}).start(0);
 
 		int actualPort = javalin.port();
