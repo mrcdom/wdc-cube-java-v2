@@ -20,7 +20,7 @@ public final class GluonStyles {
 
     // ---- Back button ----
     public static final String BACK_BUTTON = "-fx-font-size: 13; -fx-background-color: transparent; " +
-            "-fx-text-fill: " + PRIMARY + "; -fx-font-weight: bold; -fx-cursor: hand;";
+            "-fx-text-fill: " + TEXT_SECONDARY + "; -fx-cursor: hand;";
 
     // ---- Page / section titles ----
     public static final String PAGE_TITLE = "-fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: " + TEXT_DEFAULT + ";";

@@ -220,7 +220,7 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
 
                         dom.button(backBtn -> {
                             backBtn.setText("Continuar comprando");
-                            backBtn.setGraphic(GluonIcons.create(GluonIcons.ARROW_BACK, 18, GluonColors.PRIMARY));
+                            backBtn.setGraphic(GluonIcons.create(GluonIcons.ARROW_BACK, 18, GluonColors.TEXT_SECONDARY));
                             backBtn.setStyle(GluonStyles.BACK_BUTTON + " -fx-font-size: 14;");
                             backBtn.setOnAction(e -> safeAction("Back", this.presenter::onOpenProducts));
                         });

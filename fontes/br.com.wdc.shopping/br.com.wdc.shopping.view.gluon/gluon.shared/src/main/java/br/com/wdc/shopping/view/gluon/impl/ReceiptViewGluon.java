@@ -189,7 +189,7 @@ public class ReceiptViewGluon extends AbstractViewGluon<ReceiptPresenter> {
             // Back button
             dom.button(backBtn -> {
                 backBtn.setText("Voltar aos produtos");
-                backBtn.setGraphic(GluonIcons.create(GluonIcons.ARROW_BACK, 18, GluonColors.PRIMARY));
+                backBtn.setGraphic(GluonIcons.create(GluonIcons.ARROW_BACK, 18, GluonColors.TEXT_SECONDARY));
                 backBtn.setStyle(GluonStyles.BACK_BUTTON + " -fx-font-size: 14;");
                 backBtn.setOnAction(e -> safeAction("Back", this.presenter::onOpenProducts));
             });
