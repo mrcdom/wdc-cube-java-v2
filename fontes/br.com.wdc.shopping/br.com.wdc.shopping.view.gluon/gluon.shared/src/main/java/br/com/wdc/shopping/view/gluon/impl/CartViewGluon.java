@@ -89,15 +89,17 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
         root.setPadding(new Insets(20));
         root.setAlignment(Pos.TOP_CENTER); // centers card horizontally when window > 900px
 
-        // PageCard: card fills root height (StackPane resizes children to content area),
-        // capped at 900px width and centered.
+        // PageCard: card is content-sized (not window-sized).
+        // StackPane resizes children up to their maxHeight — keeping default (USE_COMPUTED_SIZE)
+        // means card height = preferred (content) height, not window height.
+        // Horizontally: capped at 900px and centered by root.setAlignment(TOP_CENTER).
         dom.vbox(card -> {
             card.setStyle(GluonStyles.CARD);
             card.setPadding(new Insets(28));
             card.setSpacing(0);
             card.setMaxWidth(900);
             card.setMinWidth(0);
-            card.setMaxHeight(Double.MAX_VALUE); // allow StackPane parent to stretch card to full height
+            // maxHeight intentionally NOT set to MAX_VALUE — card sizes to its content
 
         // View header with icon + title + subtitle (Flutter ViewHeader)
         dom.hbox(viewHeader -> {
@@ -169,6 +171,7 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
             dom.scrollVBox((sp, itemsBox) -> {
                 VBox.setVgrow(sp, Priority.ALWAYS);
                 sp.setFitToWidth(true);
+                sp.setMaxWidth(Double.MAX_VALUE); // allow contentPane VBox to stretch sp to full card width
                 sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
                 sp.setStyle(GluonStyles.SCROLL_TRANSPARENT);
 
