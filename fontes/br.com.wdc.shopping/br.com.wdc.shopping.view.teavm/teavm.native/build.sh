@@ -8,11 +8,13 @@
 #   - For iOS: Xcode, xcrun simctl
 #
 # Usage:
-#   ./build.sh desktop                              # build desktop (release)
-#   ./build.sh desktop --dev                        # dev mode (uses devUrl)
-#   ./build.sh android --deploy                     # build + install on device
+#   ./build.sh desktop                                       # build desktop (release)
+#   ./build.sh desktop --dev                                 # dev mode (uses devUrl)
+#   ./build.sh android --deploy                              # build + deploy to phone emulator
+#   ./build.sh android --deploy --form-factor tablet         # build + deploy to tablet emulator
 #   ./build.sh android --api-url http://192.168.1.8:8080 --deploy
-#   ./build.sh ios --deploy                         # build + install on simulator
+#   ./build.sh ios --deploy                                  # build + deploy to iPhone simulator
+#   ./build.sh ios --deploy --form-factor tablet             # build + deploy to iPad simulator
 #   ./build.sh ios --api-url http://localhost:8080 --deploy
 #
 # Targets:
@@ -21,15 +23,15 @@
 #   ios          iOS Simulator app (debug, aarch64-sim)
 #
 # Options:
-#   --dev        Dev mode (desktop only)
-#   --deploy     Deploy to device/simulator after build
-#   --api-url    API server URL (default: http://localhost:8080)
-#   --sim-name   iOS Simulator name (default: "iPhone 16 Pro")
+#   --dev              Dev mode (desktop only)
+#   --deploy           Deploy to device/simulator after build
+#   --api-url          API server URL (default: http://localhost:8080)
+#   --form-factor      phone (default) or tablet — selects the running emulator/simulator
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-WEB_DIR="$SCRIPT_DIR/../br.com.wdc.shopping.view.teavm.web"
+WEB_DIR="$SCRIPT_DIR/../teavm.web"
 APPLE_BUILD_DIR="$SCRIPT_DIR/src-tauri/gen/apple/build"
 
 # Resolve Java home
@@ -49,7 +51,7 @@ shift 2>/dev/null || true
 API_URL=""
 DEV_MODE=false
 DEPLOY=false
-SIM_NAME="iPhone 17 Pro"
+FORM_FACTOR="phone"
 BUNDLE_ID="br.com.wdc.shopping.desktop"
 
 for arg in "$@"; do
@@ -58,11 +60,11 @@ for arg in "$@"; do
         --deploy) DEPLOY=true ;;
         --api-url=*) API_URL="${arg#--api-url=}" ;;
         --api-url) shift_next_api=true ;;
-        --sim-name=*) SIM_NAME="${arg#--sim-name=}" ;;
-        --sim-name) shift_next_sim=true ;;
+        --form-factor=*) FORM_FACTOR="${arg#--form-factor=}" ;;
+        --form-factor) shift_next_ff=true ;;
         *)
             if [ "$shift_next_api" = true ]; then API_URL="$arg"; shift_next_api=false;
-            elif [ "$shift_next_sim" = true ]; then SIM_NAME="$arg"; shift_next_sim=false;
+            elif [ "$shift_next_ff" = true ]; then FORM_FACTOR="$arg"; shift_next_ff=false;
             else echo "WARNING: Unknown argument: $arg"; fi
             ;;
     esac
@@ -88,10 +90,10 @@ esac
 echo "============================================"
 echo "  WDC Shopping - Build"
 echo "============================================"
-echo "  Target:   $TARGET"
-echo "  API URL:  $API_URL"
-echo "  Deploy:   $DEPLOY"
-[ "$TARGET" = "ios" ] && echo "  Sim:      $SIM_NAME"
+echo "  Target:       $TARGET"
+echo "  API URL:      $API_URL"
+echo "  Deploy:       $DEPLOY"
+echo "  Form factor:  $FORM_FACTOR"
 echo "============================================"
 echo ""
 
@@ -148,11 +150,32 @@ case "$TARGET" in
 
         if [ "$DEPLOY" = true ]; then
             echo ""
-            echo ">>> Deploying to Android device..."
             ADB="${ANDROID_HOME:-$HOME/Library/Android/sdk}/platform-tools/adb"
-            "$ADB" install -r "$APK_PATH"
-            "$ADB" shell monkey -p "${BUNDLE_ID}.debug" -c android.intent.category.LAUNCHER 1 2>&1
-            echo "    App launched on Android"
+
+            # Auto-detect the running emulator matching the requested form factor.
+            # "tablet" matches any model containing "Tablet"; everything else is "phone".
+            # Note: adb shell must read from /dev/null to avoid consuming the process substitution stdin.
+            ADB_DEVICE=""
+            while IFS= read -r serial; do
+                model=$("$ADB" -s "$serial" shell getprop ro.product.model </dev/null 2>/dev/null | tr -d '\r\n')
+                [ -z "$model" ] && continue
+                if [ "$FORM_FACTOR" = "tablet" ]; then
+                    echo "$model" | grep -qi "tablet" && ADB_DEVICE="$serial" && break
+                else
+                    echo "$model" | grep -qi "tablet" || { ADB_DEVICE="$serial"; break; }
+                fi
+            done < <("$ADB" devices | awk '/\tdevice$/{print $1}')
+
+            if [ -z "$ADB_DEVICE" ]; then
+                echo "ERROR: No running Android emulator found for form-factor '$FORM_FACTOR'."
+                echo "       Start the appropriate AVD and retry."
+                exit 1
+            fi
+
+            echo ">>> Deploying to Android emulator: $ADB_DEVICE (form-factor: $FORM_FACTOR)..."
+            "$ADB" -s "$ADB_DEVICE" install -r "$APK_PATH"
+            "$ADB" -s "$ADB_DEVICE" shell monkey -p "${BUNDLE_ID}.debug" -c android.intent.category.LAUNCHER 1 2>&1
+            echo "    App launched on Android ($ADB_DEVICE)"
         fi
         ;;
 
@@ -180,10 +203,30 @@ case "$TARGET" in
 
         if [ "$DEPLOY" = true ]; then
             echo ""
-            echo ">>> Deploying to iOS Simulator ($SIM_NAME)..."
-            xcrun simctl terminate "$SIM_NAME" "$BUNDLE_ID" 2>/dev/null || true
-            xcrun simctl install "$SIM_NAME" "$IOS_APP"
-            xcrun simctl launch "$SIM_NAME" "$BUNDLE_ID"
+            # Auto-detect the booted iOS simulator matching the requested form factor.
+            # "tablet" matches simulators whose name contains "iPad"; everything else is "phone".
+            SIM_UDID=""
+            while IFS='|' read -r name udid; do
+                name=$(echo "$name" | xargs)
+                udid=$(echo "$udid" | xargs)
+                if [ "$FORM_FACTOR" = "tablet" ]; then
+                    echo "$name" | grep -qi "ipad" && SIM_UDID="$udid" && break
+                else
+                    echo "$name" | grep -qi "ipad" || { SIM_UDID="$udid"; break; }
+                fi
+            done < <(xcrun simctl list devices booted | awk -F'[()]' '/Booted/{print $1 "|" $2}')
+
+            if [ -z "$SIM_UDID" ]; then
+                echo "ERROR: No booted iOS simulator found for form-factor '$FORM_FACTOR'."
+                echo "       Boot the appropriate simulator and retry."
+                exit 1
+            fi
+
+            SIM_NAME=$(xcrun simctl list devices booted | grep "$SIM_UDID" | sed 's/ *(.*//' | xargs)
+            echo ">>> Deploying to iOS Simulator: $SIM_NAME ($SIM_UDID, form-factor: $FORM_FACTOR)..."
+            xcrun simctl terminate "$SIM_UDID" "$BUNDLE_ID" 2>/dev/null || true
+            xcrun simctl install "$SIM_UDID" "$IOS_APP"
+            xcrun simctl launch "$SIM_UDID" "$BUNDLE_ID"
             echo "    App launched on $SIM_NAME"
         fi
         ;;

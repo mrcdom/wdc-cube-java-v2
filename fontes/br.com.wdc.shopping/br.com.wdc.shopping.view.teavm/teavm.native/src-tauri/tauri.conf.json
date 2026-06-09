@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "identifier": "br.com.wdc.shopping.desktop",
   "build": {
-    "frontendDist": "../../../br.com.wdc.shopping.backend/src/main/resources/META-INF/resources/teavm",
+    "frontendDist": "../../../../../work/frontend/teavm.web",
     "devUrl": "http://shopping-wdc.localhost:8080/teavm"
   },
   "app": {
