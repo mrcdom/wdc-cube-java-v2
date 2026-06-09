@@ -95,16 +95,24 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
             pageScroll.setMaxHeight(Double.MAX_VALUE);
 
             pageContent.setPadding(new Insets(20));
-            pageContent.setAlignment(Pos.TOP_CENTER); // centers card when window > 900px
+            // No alignment set — VBox.fillWidth=true propagates full width down the chain.
+            // Card is centered via HBox spacers below (not via VBox.alignment which breaks fillWidth).
 
-            // Card: content-sized. No maxHeight — card height = its content height.
-            // Flutter equivalent: Container(padding: all(28), decoration: cardDecoration)
-            dom.vbox(card -> {
-                card.setStyle(GluonStyles.CARD);
-                card.setPadding(new Insets(28));
-                card.setSpacing(0);
-                card.setMaxWidth(900);
-                card.setMinWidth(0);
+            // Centering row: [hSpacer] [card, maxWidth=900] [hSpacer]
+            dom.hbox(centerRow -> {
+                centerRow.setMaxWidth(Double.MAX_VALUE);
+                HBox.setHgrow(centerRow, Priority.ALWAYS);
+
+                dom.hSpacer(); // left spacer — grows to fill
+
+                // Card: content-sized, capped at 900px width.
+                dom.vbox(card -> {
+                    card.setStyle(GluonStyles.CARD);
+                    card.setPadding(new Insets(28));
+                    card.setSpacing(0);
+                    card.setMaxWidth(900);
+                    card.setMinWidth(0);
+                    HBox.setHgrow(card, Priority.ALWAYS); // grows up to maxWidth(900) inside centerRow
 
                 // View header
                 dom.hbox(viewHeader -> {
@@ -228,6 +236,8 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
                     });
                 });
             }); // end card
+                dom.hSpacer(); // right spacer
+            }); // end centerRow
         }); // end pageScroll
     }
 
