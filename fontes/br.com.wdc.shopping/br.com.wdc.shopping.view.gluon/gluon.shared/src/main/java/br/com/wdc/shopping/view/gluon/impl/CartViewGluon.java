@@ -168,10 +168,12 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
                 // Cart content — no inner scroll; items rendered as plain children; page scrolls if needed
                 this.contentPane = dom.vbox(content -> {
                     content.setSpacing(0);
+                    content.setMaxWidth(Double.MAX_VALUE); // allow card VBox to stretch content to full width
 
                     // Items list
                     dom.vbox(itemsBox -> {
                         itemsBox.setSpacing(0);
+                        itemsBox.setMaxWidth(Double.MAX_VALUE); // allow content VBox to stretch itemsBox to full width
                         this.itemsSlot = this.newListSlot(itemsBox, this::newItemView, this::updateItem);
                     });
 
