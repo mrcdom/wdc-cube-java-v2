@@ -95,24 +95,22 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
             pageScroll.setMaxHeight(Double.MAX_VALUE);
 
             pageContent.setPadding(new Insets(20));
-            // No alignment set — VBox.fillWidth=true propagates full width down the chain.
-            // Card is centered via HBox spacers below (not via VBox.alignment which breaks fillWidth).
+            pageContent.setAlignment(Pos.TOP_CENTER); // centers card when window > 900px
 
-            // Centering row: [hSpacer] [card, maxWidth=900] [hSpacer]
-            dom.hbox(centerRow -> {
-                centerRow.setMaxWidth(Double.MAX_VALUE);
-                HBox.setHgrow(centerRow, Priority.ALWAYS);
-
-                dom.hSpacer(); // left spacer — grows to fill
-
-                // Card: content-sized, capped at 900px width.
-                dom.vbox(card -> {
-                    card.setStyle(GluonStyles.CARD);
-                    card.setPadding(new Insets(28));
-                    card.setSpacing(0);
-                    card.setMaxWidth(900);
-                    card.setMinWidth(0);
-                    HBox.setHgrow(card, Priority.ALWAYS); // grows up to maxWidth(900) inside centerRow
+            // Card: direct child of pageContent.
+            // VBox.alignment=TOP_CENTER gives children their prefWidth, so we must set card.prefWidth
+            // explicitly via a listener: min(available, 900). This guarantees:
+            //   - narrow window  → card fills full available width  (fillWidth chain works)
+            //   - wide window    → card is 900px wide, centered     (alignment=TOP_CENTER centers it)
+            dom.vbox(card -> {
+                card.setStyle(GluonStyles.CARD);
+                card.setPadding(new Insets(28));
+                card.setSpacing(0);
+                card.setMinWidth(0);
+                pageContent.widthProperty().addListener((obs, oldW, newW) -> {
+                    double insets = pageContent.getPadding().getLeft() + pageContent.getPadding().getRight();
+                    card.setPrefWidth(Math.min(newW.doubleValue() - insets, 900));
+                });
 
                 // View header
                 dom.hbox(viewHeader -> {
@@ -236,8 +234,6 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
                     });
                 });
             }); // end card
-                dom.hSpacer(); // right spacer
-            }); // end centerRow
         }); // end pageScroll
     }
 
