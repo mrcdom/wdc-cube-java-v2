@@ -81,15 +81,24 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
     }
 
     private void buildUI(GluonDom dom, VBox root) {
-        root.setPadding(new Insets(0));
+        root.setPadding(new Insets(20));
         root.setSpacing(0);
         root.setStyle(GluonStyles.PAGE_BG);
+        VBox.setVgrow(root, Priority.ALWAYS);
 
-        // View header with icon + title + subtitle (like Flutter ViewHeader)
+        // PageCard equivalent: centered card with CARD decoration + 28px padding
+        dom.vbox(card -> {
+            card.setStyle(GluonStyles.CARD);
+            card.setPadding(new Insets(28));
+            card.setSpacing(0);
+            card.setMaxWidth(900);
+            VBox.setVgrow(card, Priority.ALWAYS);
+
+        // View header with icon + title + subtitle (Flutter ViewHeader)
         dom.hbox(viewHeader -> {
             viewHeader.setAlignment(Pos.CENTER_LEFT);
             viewHeader.setSpacing(12);
-            viewHeader.setPadding(new Insets(20, 20, 16, 20));
+            viewHeader.setPadding(new Insets(0, 0, 20, 0));
 
             dom.stackPane(iconBox -> {
                 iconBox.setStyle(GluonStyles.VIEW_HEADER_ICON_BOX);
@@ -148,8 +157,8 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
 
         // Cart content
         this.contentPane = dom.vbox(content -> {
-            content.setSpacing(10);
-            content.setPadding(new Insets(0, 16, 12, 16));
+            content.setSpacing(0);
+            content.setPadding(new Insets(0));
             VBox.setVgrow(content, Priority.ALWAYS);
 
             dom.scrollVBox((sp, itemsBox) -> {
@@ -162,7 +171,7 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
                 this.itemsSlot = this.newListSlot(itemsBox, this::newItemView, this::updateItem);
             });
 
-            // Footer: total row
+            // Footer: total row — right-aligned, border-top + margin-top 16 (matches Flutter)
             dom.hbox(footerRow -> {
                 footerRow.setAlignment(Pos.CENTER_RIGHT);
                 footerRow.setSpacing(4);
@@ -189,11 +198,14 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
                 err.setWrapText(true);
             });
 
-            // Action buttons row
-            dom.hbox(actionRow -> {
-                actionRow.setAlignment(Pos.CENTER);
-                actionRow.setSpacing(8);
-                actionRow.setPadding(new Insets(16, 0, 0, 0));
+            dom.vSpacer(16);
+
+            // Action buttons — stacked vertically like Flutter Wrap on narrow screen:
+            // "← Continuar comprando" (text link, centered) above
+            // "Finalizar pedido" (full-width pill) below
+            dom.vbox(actionsBox -> {
+                actionsBox.setSpacing(8);
+                actionsBox.setAlignment(Pos.CENTER);
 
                 dom.button(backBtn -> {
                     backBtn.setText("Continuar comprando");
@@ -205,11 +217,13 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
                 dom.button(buyBtn -> {
                     buyBtn.setText("Finalizar pedido");
                     buyBtn.setGraphic(GluonIcons.create(GluonIcons.CHECK_CIRCLE, 18, GluonColors.TEXT_ON_PRIMARY));
+                    buyBtn.setMaxWidth(Double.MAX_VALUE);
                     buyBtn.setStyle(GluonStyles.BTN_SUCCESS_BLOCK);
                     buyBtn.setOnAction(e -> safeAction("Buy", this.presenter::onBuy));
                 });
             });
         });
+        }); // end card
     }
 
     private double computeTotalCost() {
@@ -269,7 +283,8 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
             this.nameElm = dom.label(name -> {
                 name.setStyle(GluonStyles.textBold(14, GluonColors.TEXT_DEFAULT));
                 HBox.setHgrow(name, Priority.ALWAYS);
-                name.setWrapText(false);
+                name.setWrapText(true);
+                name.setMinWidth(0);
             });
 
             // Minus button — 28×28 icon, disabled when qty = 1 (Flutter: null onPressed)
