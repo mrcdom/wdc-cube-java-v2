@@ -20,8 +20,9 @@ export PATH="$JAVA_HOME/bin:$PATH"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SHOPPING_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 ARTIFACT_ID="br.com.wdc.shopping.view.gluon.ios"
-APP_BUNDLE="$SCRIPT_DIR/target/gluonfx/arm64-ios/${ARTIFACT_ID}.app"
-BINARY="$APP_BUNDLE/$ARTIFACT_ID"
+APP_NAME="gluon.ios"
+APP_BUNDLE="$SCRIPT_DIR/target/gluonfx/arm64-ios/${APP_NAME}.app"
+BINARY="$APP_BUNDLE/$APP_NAME"
 
 # Simulator – auto-detect first booted device, or override with SIM_UDID env var
 if [[ -z "${SIM_UDID:-}" ]]; then
@@ -79,7 +80,7 @@ cat > "$APP_BUNDLE/Info.plist" << PLIST
 <plist version="1.0">
 <dict>
     <key>CFBundleExecutable</key>
-    <string>${ARTIFACT_ID}</string>
+    <string>${APP_NAME}</string>
     <key>CFBundleIdentifier</key>
     <string>${ARTIFACT_ID}</string>
     <key>CFBundleName</key>
@@ -119,15 +120,50 @@ cat > "$APP_BUNDLE/Info.plist" << PLIST
     <string>6.0</string>
     <key>MinimumOSVersion</key>
     <string>${MIN_IOS}</string>
+    <key>UIDeviceFamily</key>
+    <array>
+        <integer>1</integer>
+        <integer>2</integer>
+    </array>
+    <key>UIRequiresFullScreen</key>
+    <true/>
+    <key>UIStatusBarHidden</key>
+    <false/>
+    <key>UIViewControllerBasedStatusBarAppearance</key>
+    <false/>
+    <key>UISupportedInterfaceOrientations</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+        <string>UIInterfaceOrientationLandscapeLeft</string>
+        <string>UIInterfaceOrientationLandscapeRight</string>
+    </array>
+    <key>UISupportedInterfaceOrientations~ipad</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+        <string>UIInterfaceOrientationPortraitUpsideDown</string>
+        <string>UIInterfaceOrientationLandscapeLeft</string>
+        <string>UIInterfaceOrientationLandscapeRight</string>
+    </array>
     <key>NSAppTransportSecurity</key>
     <dict>
         <key>NSAllowsArbitraryLoads</key>
         <true/>
     </dict>
+    <key>UILaunchScreen</key>
+    <dict/>
 </dict>
 </plist>
 PLIST
 echo "  ✔ Info.plist written"
+
+# ── Step 3b: Copy application config into bundle ──────────────────────────────
+
+CONFIG_SRC="$SCRIPT_DIR/src/main/resources/config/application.toml"
+if [[ -f "$CONFIG_SRC" ]]; then
+    mkdir -p "$APP_BUNDLE/config"
+    cp "$CONFIG_SRC" "$APP_BUNDLE/config/application.toml"
+    echo "  ✔ application.toml copied to bundle"
+fi
 
 # ── Step 4: Compile asset catalog (icons) ─────────────────────────────────────
 
@@ -192,5 +228,9 @@ if [[ "$NO_LAUNCH" == true ]]; then
     exit 0
 fi
 
+# Resolve the installed bundle path so we can pass the config file location
+INSTALLED_BUNDLE="$(xcrun simctl get_app_container "$SIM_UDID" "$ARTIFACT_ID" app 2>/dev/null || true)"
+
 echo "▶ Launching..."
-xcrun simctl launch --console "$SIM_UDID" "$ARTIFACT_ID" 2>&1
+xcrun simctl launch --console "$SIM_UDID" "$ARTIFACT_ID" \
+    -Dshopping.config.file="${INSTALLED_BUNDLE}/config/application.toml" 2>&1

@@ -63,9 +63,9 @@ public class ProductsPanelViewGluon extends AbstractViewGluon<ProductsPanelPrese
             sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
             sp.setStyle(GluonStyles.SCROLL_TRANSPARENT);
 
-            flowPane.setHgap(16);
-            flowPane.setVgap(16);
-            flowPane.setPadding(new Insets(20));
+            flowPane.setHgap(12);
+            flowPane.setVgap(12);
+            flowPane.setPadding(new Insets(8));
 
             this.contentSlot = this.newListSlot(flowPane, this::newItemView, this::updateItem);
         });
@@ -138,7 +138,7 @@ public class ProductsPanelViewGluon extends AbstractViewGluon<ProductsPanelPrese
         }
 
         private void buildUI(GluonDom dom, VBox card) {
-            card.setPrefWidth(170);
+            card.setPrefWidth(172);
             card.setStyle(CARD_NORMAL);
             card.setOnMouseClicked(
                     e -> safeAction("Open product", () -> this.presenter.onOpenProduct(this.product.id)));
@@ -160,8 +160,8 @@ public class ProductsPanelViewGluon extends AbstractViewGluon<ProductsPanelPrese
             // Image area with gradient background
             dom.stackPane(imageArea -> {
                 imageArea.setStyle(GluonStyles.IMAGE_BG);
-                imageArea.setPrefHeight(130);
-                imageArea.setMinHeight(130);
+                imageArea.setPrefHeight(128);
+                imageArea.setMinHeight(128);
                 imageArea.setMaxWidth(Double.MAX_VALUE);
 
                 this.imageElm = dom.imageView(img -> {
@@ -180,7 +180,7 @@ public class ProductsPanelViewGluon extends AbstractViewGluon<ProductsPanelPrese
                 this.nameElm = dom.label(name -> {
                     name.setStyle(GluonStyles.textBold(13, GluonColors.TEXT_DEFAULT));
                     name.setWrapText(true);
-                    name.setMaxWidth(160);
+                    name.setMaxWidth(158);
                 });
 
                 this.priceElm = dom.label(price -> {

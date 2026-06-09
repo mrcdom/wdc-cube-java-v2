@@ -10,6 +10,7 @@ import br.com.wdc.shopping.view.gluon.theme.GluonColors;
 import br.com.wdc.shopping.view.gluon.theme.GluonIcons;
 import br.com.wdc.shopping.view.gluon.theme.GluonStyles;
 import br.com.wdc.shopping.view.gluon.util.GluonDom;
+import br.com.wdc.shopping.view.gluon.util.GluonPlatform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -142,7 +143,7 @@ public class LoginViewGluon extends AbstractViewGluon<LoginPresenter> {
             // Scrollable wrapper — centers card vertically and horizontally
             dom.vbox(scrollWrapper -> {
                 scrollWrapper.setAlignment(Pos.CENTER);
-                scrollWrapper.setPadding(new Insets(24));
+                scrollWrapper.setPadding(new Insets(24 + GluonPlatform.topSafeAreaInset(), 24, 24, 24));
                 scrollWrapper.setMaxWidth(460);
                 StackPane.setAlignment(scrollWrapper, Pos.CENTER);
 

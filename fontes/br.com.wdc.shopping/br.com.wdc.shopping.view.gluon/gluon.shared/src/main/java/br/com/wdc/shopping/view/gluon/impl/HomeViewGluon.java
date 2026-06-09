@@ -10,6 +10,7 @@ import br.com.wdc.shopping.view.gluon.theme.GluonColors;
 import br.com.wdc.shopping.view.gluon.theme.GluonIcons;
 import br.com.wdc.shopping.view.gluon.theme.GluonStyles;
 import br.com.wdc.shopping.view.gluon.util.GluonDom;
+import br.com.wdc.shopping.view.gluon.util.GluonPlatform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -134,7 +135,7 @@ public class HomeViewGluon extends AbstractViewGluon<HomePresenter> {
         dom.hbox(appBar -> {
             appBar.setAlignment(Pos.CENTER_LEFT);
             appBar.setSpacing(8);
-            appBar.setPadding(new Insets(8, 12, 8, 12));
+            appBar.setPadding(new Insets(8 + GluonPlatform.topSafeAreaInset(), 12, 8, 12));
             appBar.setStyle(GluonStyles.APP_BAR_PRIMARY);
 
             // Exit icon button
