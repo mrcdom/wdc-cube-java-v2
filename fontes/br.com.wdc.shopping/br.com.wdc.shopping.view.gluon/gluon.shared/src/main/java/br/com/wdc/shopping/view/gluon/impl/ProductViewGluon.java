@@ -105,14 +105,19 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
             sp.setStyle(GluonStyles.SCROLL_TRANSPARENT);
             content.setPadding(new Insets(20));
             content.setSpacing(0);
-            content.setAlignment(Pos.TOP_CENTER);  // Flutter: Center()
+            content.setAlignment(Pos.TOP_CENTER);
 
-            // PageCard card wrapper — white, border, shadow, max 900px (Flutter cardDecoration + padding 28)
+            // PageCard card wrapper — white, border, shadow, max 900px
+            // Same centering pattern as CartViewGluon: prefWidth listener drives width,
+            // VBox.alignment=TOP_CENTER centers the card when window > 900px.
             dom.vbox(card -> {
                 card.setStyle(GluonStyles.CARD);
                 card.setPadding(new Insets(28));
-                card.setMaxWidth(900);
                 card.setMinWidth(0);
+                content.widthProperty().addListener((obs, oldW, newW) -> {
+                    double insets = content.getPadding().getLeft() + content.getPadding().getRight();
+                    card.setPrefWidth(Math.min(newW.doubleValue() - insets, 900));
+                });
 
             // Inner container with max-width for content
             dom.vbox(inner -> {
@@ -127,7 +132,7 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
                 });
                 this.nameOldValue = this.state.product != null ? this.state.product.name : null;
 
-                // Accent divider
+                // Accent divider — Region fills full available width (Flutter: Divider)
                 dom.node(buildDivider());
 
                 // Description card
@@ -261,13 +266,14 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
         });
     }
 
-    private javafx.scene.shape.Line buildDivider() {
-        var line = new javafx.scene.shape.Line();
-        line.setStartX(0);
-        line.setEndX(560);
-        line.setStroke(javafx.scene.paint.Color.web(GluonColors.PRIMARY));
-        line.setStrokeWidth(2);
-        return line;
+    private javafx.scene.layout.Region buildDivider() {
+        var divider = new javafx.scene.layout.Region();
+        divider.setMinHeight(2);
+        divider.setPrefHeight(2);
+        divider.setMaxHeight(2);
+        divider.setMaxWidth(Double.MAX_VALUE);
+        divider.setStyle("-fx-background-color: " + GluonColors.PRIMARY + ";");
+        return divider;
     }
 
     private void emitBuy() {
