@@ -35,12 +35,18 @@ public final class Theme {
     public static final boolean IS_GTK = "gtk".equals(SWT.getPlatform());
 
     /**
+     * Windows also uses 96 DPI metrics, so macOS-calibrated point sizes need
+     * the same compensation there to keep the visual rhythm aligned.
+     */
+    public static final boolean IS_WIN32 = "win32".equals(SWT.getPlatform());
+
+    /**
      * Converts a macOS-calibrated point size to the platform-appropriate equivalent.
      * On GTK a 3/4 scaling factor (72/96) is applied so fonts appear the same
      * visual size as on macOS.
      */
     private static int pt(int macSize) {
-        return IS_GTK ? Math.max(8, macSize * 3 / 4) : macSize;
+        return (IS_GTK || IS_WIN32) ? Math.max(8, macSize * 3 / 4) : macSize;
     }
 
     // ========== COLORS — Primary Palette ==========
@@ -200,14 +206,15 @@ public final class Theme {
                 String ttfName = readTtfFamilyName(fontUrl, null);
                 boolean loaded = display.loadFont(path);
 
-                if (ttfName != null) {
+                if (loaded && ttfName != null && !ttfName.isBlank()) {
                     iconFontName = ttfName;
-                } else if (loaded) {
-                    // Scan the font list as a last resort
+                } else {
+                    // Scan the font list as a fallback after loading.
                     var fd = display.getFontList(null, true);
                     for (var f : fd) {
-                        if (f.getName().toLowerCase().contains("bootstrap")) {
-                            iconFontName = f.getName();
+                        var name = f.getName();
+                        if (name != null && name.toLowerCase().contains("bootstrap")) {
+                            iconFontName = name;
                             break;
                         }
                     }

@@ -92,9 +92,16 @@ public class ShoppingSwtMain {
         // macOS: must be called AFTER Display.getDefault() — Display's constructor calls
         // NSApplicationLoad() which reinitialises NSApplication and overrides any
         // icon set via -Xdock:icon or apple.awt.application.icon.
-        setDockIcon(display);
+        var appIcon = loadAppIcon(display);
+        if (appIcon != null) {
+            dockIconImage = appIcon;
+        }
+        setDockIcon(appIcon);
 
         var shell = new Shell(display, SWT.SHELL_TRIM);
+        if (appIcon != null) {
+            shell.setImage(appIcon);
+        }
         shell.setText("WeDoCode Shopping");
         shell.setSize(800, 820);
 
@@ -174,25 +181,35 @@ public class ShoppingSwtMain {
      * in {@link #dockIconImage} for the app lifetime; {@code NSApplication} retains the underlying
      * {@code NSImage} after the call.
      */
-    private static void setDockIcon(Display display) {
-        try (var stream = ShoppingSwtMain.class.getResourceAsStream("/images/app-icon.png")) {
-            if (stream == null) {
-                LOG.debug("app-icon.png not found in classpath");
-                return;
-            }
-            dockIconImage = new Image(display, new ImageData(stream).scaledTo(512, 512));
-
+    private static void setDockIcon(Image appIcon) {
+        if (appIcon == null) {
+            return;
+        }
+        try {
             var nsImageClass = Class.forName("org.eclipse.swt.internal.cocoa.NSImage");
             var handleField  = Image.class.getDeclaredField("handle");
             handleField.setAccessible(true);
             var nsImage = nsImageClass.getDeclaredConstructor(long.class)
-                    .newInstance(handleField.getLong(dockIconImage));
+                    .newInstance(handleField.getLong(appIcon));
 
             var nsAppClass = Class.forName("org.eclipse.swt.internal.cocoa.NSApplication");
             var sharedApp  = nsAppClass.getMethod("sharedApplication").invoke(null);
             nsAppClass.getMethod("setApplicationIconImage", nsImageClass).invoke(sharedApp, nsImage);
         } catch (Exception e) {
             LOG.debug("Could not set Dock icon via NSApplication: {}", e.getMessage());
+        }
+    }
+
+    private static Image loadAppIcon(Display display) {
+        try (var stream = ShoppingSwtMain.class.getResourceAsStream("/images/app-icon.png")) {
+            if (stream == null) {
+                LOG.debug("app-icon.png not found in classpath");
+                return null;
+            }
+            return new Image(display, new ImageData(stream).scaledTo(512, 512));
+        } catch (IOException e) {
+            LOG.debug("Could not load app icon: {}", e.getMessage());
+            return null;
         }
     }
 
