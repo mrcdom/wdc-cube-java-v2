@@ -15,24 +15,50 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.SVGPath;
 
 public class HomeViewGluon extends AbstractViewGluon<HomePresenter> {
+
+    /** Breakpoints matching Flutter's design_tokens.dart */
+    private static final double BREAKPOINT_SM = 576.0;
+    private static final double BREAKPOINT_MD = 768.0;
 
     private final HomeViewState state;
 
     private boolean notRendered = true;
+    private boolean showingProducts = true;
+    private boolean wideMode = true;
     private Label nickNameElm;
     private String nickNameOldValue;
     private Label cartCountElm;
     private int cartCountOldValue;
     private StackPane contentPane;
-    private HBox defaultContentPane;
-    private StackPane productsPanelSlot;
-    private StackPane purchasesPanelSlot;
+    private VBox defaultContentPane;
     private AbstractViewGluon<?> currentContentView;
     private Label errorElm;
+
+    // Header responsive elements (hidden below BREAKPOINT_SM)
+    private VBox greetingBox;
+    private Label cartLabel;
+
+    // Compact tab nav (visible below BREAKPOINT_MD)
+    private HBox tabNavRow;
+    private SVGPath tabProductsIcon;
+    private Label tabProductsLabel;
+    private Region tabProductsIndicator;
+    private SVGPath tabPurchasesIcon;
+    private Label tabPurchasesLabel;
+    private Region tabPurchasesIndicator;
+
+    // Panel slots
+    private HBox widePanelRow;
+    private StackPane wideProductsSlot;
+    private StackPane widePurchasesSlot;
+    private StackPane narrowSlot;
 
     public HomeViewGluon(HomePresenter presenter) {
         super("home", (ShoppingGluonApplication) presenter.app, presenter, new VBox());
@@ -56,14 +82,21 @@ public class HomeViewGluon extends AbstractViewGluon<HomePresenter> {
             this.cartCountOldValue = this.state.cartItemCount;
         }
 
-        if (this.state.productsPanelView instanceof AbstractViewGluon<?> ppv
-                && ppv.getElement().getParent() != this.productsPanelSlot) {
-            this.productsPanelSlot.getChildren().setAll(ppv.getElement());
+        // Assign panel views to the correct slot based on current responsive mode
+        if (this.state.productsPanelView instanceof AbstractViewGluon<?> ppv) {
+            var targetSlot = this.wideMode ? this.wideProductsSlot
+                    : (this.showingProducts ? this.narrowSlot : null);
+            if (targetSlot != null && ppv.getElement().getParent() != targetSlot) {
+                targetSlot.getChildren().setAll(ppv.getElement());
+            }
         }
 
-        if (this.state.purchasesPanelView instanceof AbstractViewGluon<?> ppv
-                && ppv.getElement().getParent() != this.purchasesPanelSlot) {
-            this.purchasesPanelSlot.getChildren().setAll(ppv.getElement());
+        if (this.state.purchasesPanelView instanceof AbstractViewGluon<?> ppv) {
+            var targetSlot = this.wideMode ? this.widePurchasesSlot
+                    : (!this.showingProducts ? this.narrowSlot : null);
+            if (targetSlot != null && ppv.getElement().getParent() != targetSlot) {
+                targetSlot.getChildren().setAll(ppv.getElement());
+            }
         }
 
         var newContentView = this.state.contentView instanceof AbstractViewGluon<?> v ? v : null;
@@ -97,7 +130,7 @@ public class HomeViewGluon extends AbstractViewGluon<HomePresenter> {
     private void buildUI(GluonDom dom, VBox root) {
         root.setStyle(GluonStyles.PAGE_BG);
 
-        // AppBar — gradient with exit icon | greeting | [spacer] | logo | [spacer] | cart
+        // AppBar — gradient header matching Flutter _HeaderPanel
         dom.hbox(appBar -> {
             appBar.setAlignment(Pos.CENTER_LEFT);
             appBar.setSpacing(8);
@@ -113,15 +146,13 @@ public class HomeViewGluon extends AbstractViewGluon<HomePresenter> {
 
             dom.hSpacer(4);
 
-            // Greeting column
-            dom.vbox(greetingBox -> {
-                greetingBox.setSpacing(-2);
-
+            // Greeting column — hidden when width < BREAKPOINT_SM (like Flutter isExpanded)
+            this.greetingBox = dom.vbox(gb -> {
+                gb.setSpacing(-2);
                 dom.label(greeting -> {
                     greeting.setText("Bem-vindo(a),");
                     greeting.setStyle(GluonStyles.text(11, GluonColors.TEXT_ON_PRIMARY_DIM));
                 });
-
                 this.nickNameElm = dom.label(nick -> {
                     nick.setText(this.state.nickName);
                     nick.setStyle(GluonStyles.textBold(13, GluonColors.TEXT_ON_PRIMARY));
@@ -135,9 +166,7 @@ public class HomeViewGluon extends AbstractViewGluon<HomePresenter> {
             dom.hbox(logoBox -> {
                 logoBox.setAlignment(Pos.CENTER);
                 logoBox.setSpacing(6);
-
                 dom.icon(GluonIcons.create(GluonIcons.SHOPPING_BAG, 24, GluonColors.TEXT_ON_PRIMARY));
-
                 dom.vbox(logoText -> {
                     logoText.setSpacing(-2);
                     dom.label(l -> {
@@ -153,7 +182,7 @@ public class HomeViewGluon extends AbstractViewGluon<HomePresenter> {
 
             dom.hSpacer();
 
-            // Cart button with white badge
+            // Cart button — "Carrinho" label hidden when width < BREAKPOINT_SM
             dom.hbox(cartArea -> {
                 cartArea.setAlignment(Pos.CENTER);
                 cartArea.setSpacing(6);
@@ -163,7 +192,7 @@ public class HomeViewGluon extends AbstractViewGluon<HomePresenter> {
 
                 dom.icon(GluonIcons.create(GluonIcons.SHOPPING_BAG, 24, GluonColors.TEXT_ON_PRIMARY));
 
-                dom.label(l -> {
+                this.cartLabel = dom.label(l -> {
                     l.setText("Carrinho");
                     l.setStyle(GluonStyles.textBold(14, GluonColors.TEXT_ON_PRIMARY));
                 });
@@ -187,22 +216,171 @@ public class HomeViewGluon extends AbstractViewGluon<HomePresenter> {
             err.setMaxWidth(Double.MAX_VALUE);
         });
 
-        // Content pane
+        // Content pane (StackPane fills remaining height)
         this.contentPane = dom.stackPane(cp -> {
             VBox.setVgrow(cp, Priority.ALWAYS);
-            this.defaultContentPane = dom.hbox(dp -> {
-                VBox.setVgrow(dp, Priority.ALWAYS);
-                this.productsPanelSlot = dom.stackPane(slot -> {
-                    HBox.setHgrow(slot, Priority.ALWAYS);
+
+            this.defaultContentPane = dom.vbox(dp -> {
+                // Tab nav — visible only in compact mode (width < BREAKPOINT_MD)
+                // Matches Flutter _TabNav with icon + label + 2px indicator line
+                this.tabNavRow = dom.hbox(tabRow -> {
+                    tabRow.setStyle(GluonStyles.TAB_NAV);
+                    tabRow.setVisible(false);
+                    tabRow.setManaged(false);
+
+                    // Products tab
+                    dom.vbox(tabProducts -> {
+                        HBox.setHgrow(tabProducts, Priority.ALWAYS);
+                        tabProducts.setAlignment(Pos.CENTER);
+                        tabProducts.setSpacing(2);
+                        tabProducts.setPadding(new Insets(8, 0, 0, 0));
+                        tabProducts.setStyle("-fx-cursor: hand;");
+                        tabProducts.setOnMouseClicked(e -> switchTab(true));
+
+                        this.tabProductsIcon = dom.icon(GluonIcons.create(GluonIcons.GRID_VIEW, 18, GluonColors.PRIMARY));
+
+                        this.tabProductsLabel = dom.label(lbl -> {
+                            lbl.setText("Produtos");
+                            lbl.setStyle(GluonStyles.textBold(12, GluonColors.PRIMARY));
+                        });
+
+                        dom.vSpacer(4);
+
+                        var ind = new Region();
+                        ind.setMaxWidth(Double.MAX_VALUE);
+                        ind.setMinHeight(2);
+                        ind.setPrefHeight(2);
+                        ind.setMaxHeight(2);
+                        ind.setStyle("-fx-background-color: " + GluonColors.PRIMARY + ";");
+                        this.tabProductsIndicator = ind;
+                        dom.node(ind);
+                    });
+
+                    // Purchases tab
+                    dom.vbox(tabPurchases -> {
+                        HBox.setHgrow(tabPurchases, Priority.ALWAYS);
+                        tabPurchases.setAlignment(Pos.CENTER);
+                        tabPurchases.setSpacing(2);
+                        tabPurchases.setPadding(new Insets(8, 0, 0, 0));
+                        tabPurchases.setStyle("-fx-cursor: hand;");
+                        tabPurchases.setOnMouseClicked(e -> switchTab(false));
+
+                        this.tabPurchasesIcon = dom.icon(GluonIcons.create(GluonIcons.HISTORY, 18, GluonColors.TEXT_SECONDARY));
+
+                        this.tabPurchasesLabel = dom.label(lbl -> {
+                            lbl.setText("Histórico");
+                            lbl.setStyle(GluonStyles.text(12, GluonColors.TEXT_SECONDARY));
+                        });
+
+                        dom.vSpacer(4);
+
+                        var ind = new Region();
+                        ind.setMaxWidth(Double.MAX_VALUE);
+                        ind.setMinHeight(2);
+                        ind.setPrefHeight(2);
+                        ind.setMaxHeight(2);
+                        ind.setStyle("-fx-background-color: transparent;");
+                        this.tabPurchasesIndicator = ind;
+                        dom.node(ind);
+                    });
                 });
-                // Purchases panel: fixed 340 px wide, white surface with left border
-                this.purchasesPanelSlot = dom.stackPane(slot -> {
-                    slot.setPrefWidth(340);
-                    slot.setMinWidth(300);
-                    slot.setMaxWidth(400);
-                    slot.setStyle(GluonStyles.PURCHASES_PANEL);
+
+                // Body StackPane: wide HBox (side by side) or compact single slot
+                dom.stackPane(bodyPane -> {
+                    VBox.setVgrow(bodyPane, Priority.ALWAYS);
+
+                    // Wide mode: products | purchases side by side (width >= BREAKPOINT_MD)
+                    this.widePanelRow = dom.hbox(wideRow -> {
+                        this.wideProductsSlot = dom.stackPane(slot -> {
+                            HBox.setHgrow(slot, Priority.ALWAYS);
+                        });
+                        this.widePurchasesSlot = dom.stackPane(slot -> {
+                            slot.setPrefWidth(340);
+                            slot.setMinWidth(300);
+                            slot.setMaxWidth(400);
+                            slot.setStyle(GluonStyles.PURCHASES_PANEL);
+                        });
+                    });
+
+                    // Compact mode: single active slot (hidden initially)
+                    this.narrowSlot = dom.stackPane(slot -> {
+                        slot.setVisible(false);
+                        slot.setManaged(false);
+                    });
                 });
             });
         });
+
+        // Width listener — responsive breakpoints matching Flutter's breakpointSm / breakpointMd
+        root.widthProperty().addListener((obs, oldW, newW) -> {
+            double w = newW.doubleValue();
+            if (w <= 0) return;
+
+            boolean showGreeting = w >= BREAKPOINT_SM;
+            this.greetingBox.setVisible(showGreeting);
+            this.greetingBox.setManaged(showGreeting);
+            this.cartLabel.setVisible(showGreeting);
+            this.cartLabel.setManaged(showGreeting);
+
+            boolean newWide = w >= BREAKPOINT_MD;
+            if (newWide != this.wideMode) {
+                this.wideMode = newWide;
+                this.tabNavRow.setVisible(!newWide);
+                this.tabNavRow.setManaged(!newWide);
+                this.widePanelRow.setVisible(newWide);
+                this.widePanelRow.setManaged(newWide);
+                this.narrowSlot.setVisible(!newWide);
+                this.narrowSlot.setManaged(!newWide);
+                reassignPanelViews();
+            }
+        });
+    }
+
+    /** Switch active tab in compact mode — matches Flutter _switchTab */
+    private void switchTab(boolean showProducts) {
+        if (this.showingProducts == showProducts) return;
+        this.showingProducts = showProducts;
+        updateTabStyles();
+        if (!this.wideMode) {
+            var active = showProducts ? this.state.productsPanelView : this.state.purchasesPanelView;
+            if (active instanceof AbstractViewGluon<?> ppv) {
+                this.narrowSlot.getChildren().setAll(ppv.getElement());
+            }
+        }
+    }
+
+    /** Update tab button active/inactive visual state */
+    private void updateTabStyles() {
+        String activeColor = GluonColors.PRIMARY;
+        String inactiveColor = GluonColors.TEXT_SECONDARY;
+
+        this.tabProductsIcon.setFill(Color.web(this.showingProducts ? activeColor : inactiveColor));
+        this.tabProductsLabel.setStyle(GluonStyles.text(12, this.showingProducts ? activeColor : inactiveColor)
+                + (this.showingProducts ? " -fx-font-weight: bold;" : ""));
+        this.tabProductsIndicator.setStyle("-fx-background-color: "
+                + (this.showingProducts ? activeColor : "transparent") + ";");
+
+        this.tabPurchasesIcon.setFill(Color.web(!this.showingProducts ? activeColor : inactiveColor));
+        this.tabPurchasesLabel.setStyle(GluonStyles.text(12, !this.showingProducts ? activeColor : inactiveColor)
+                + (!this.showingProducts ? " -fx-font-weight: bold;" : ""));
+        this.tabPurchasesIndicator.setStyle("-fx-background-color: "
+                + (!this.showingProducts ? activeColor : "transparent") + ";");
+    }
+
+    /** Move panel view elements to the correct slots after mode change */
+    private void reassignPanelViews() {
+        if (this.wideMode) {
+            if (this.state.productsPanelView instanceof AbstractViewGluon<?> ppv) {
+                this.wideProductsSlot.getChildren().setAll(ppv.getElement());
+            }
+            if (this.state.purchasesPanelView instanceof AbstractViewGluon<?> ppv) {
+                this.widePurchasesSlot.getChildren().setAll(ppv.getElement());
+            }
+        } else {
+            var active = this.showingProducts ? this.state.productsPanelView : this.state.purchasesPanelView;
+            if (active instanceof AbstractViewGluon<?> ppv) {
+                this.narrowSlot.getChildren().setAll(ppv.getElement());
+            }
+        }
     }
 }

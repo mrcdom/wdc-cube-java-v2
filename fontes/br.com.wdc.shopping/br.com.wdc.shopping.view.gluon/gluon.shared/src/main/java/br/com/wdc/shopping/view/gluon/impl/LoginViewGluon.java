@@ -18,7 +18,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 
 public class LoginViewGluon extends AbstractViewGluon<LoginPresenter> {
 

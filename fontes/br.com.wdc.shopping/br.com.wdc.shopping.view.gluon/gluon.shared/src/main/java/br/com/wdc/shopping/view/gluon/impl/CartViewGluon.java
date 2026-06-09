@@ -236,6 +236,7 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
         private Label nameElm;
         private Label priceElm;
         private Label qtyElm;
+        private javafx.scene.control.Button minusBtnRef;
 
         CartItemView(ShoppingGluonApplication app, CartPresenter presenter, int idx) {
             super("cart-item-" + idx, app, presenter, new HBox());
@@ -256,6 +257,8 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
             double subtotal = this.item.price * this.item.quantity;
             this.priceElm.setText(NumberFormat.getCurrencyInstance().format(subtotal));
             this.qtyElm.setText(String.valueOf(this.item.quantity));
+            // Disable minus button when qty = 1 (matching Flutter's null onPressed)
+            this.minusBtnRef.setDisable(this.item.quantity <= 1);
         }
 
         private void buildUI(GluonDom dom, HBox row) {
@@ -269,29 +272,27 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
                 name.setWrapText(false);
             });
 
-            dom.hSpacer(8);
-
-            // Quantity stepper
-            dom.button(minusBtn -> {
-                minusBtn.setText("-");
-                minusBtn.setStyle("-fx-background-color: transparent; -fx-font-size: 16; -fx-cursor: hand; -fx-padding: 2 6;");
-                minusBtn.setOnAction(e -> {
-                    if (this.item.quantity > 1) {
-                        safeAction("Qty", () -> this.presenter.onModifyQuantity(this.item.id, this.item.quantity - 1));
-                    }
-                });
+            // Minus button — 28×28 icon, disabled when qty = 1 (Flutter: null onPressed)
+            this.minusBtnRef = dom.button(minusBtn -> {
+                minusBtn.setGraphic(GluonIcons.create(GluonIcons.MINUS, 16, GluonColors.TEXT_SECONDARY));
+                minusBtn.setStyle(GluonStyles.BTN_ICON_SM);
+                minusBtn.setOnAction(e -> safeAction("Qty",
+                        () -> this.presenter.onModifyQuantity(this.item.id, this.item.quantity - 1)));
             });
 
             this.qtyElm = dom.label(qty -> {
-                qty.setStyle(GluonStyles.textBold(14, GluonColors.TEXT_DEFAULT) + " -fx-min-width: 24; -fx-alignment: center;");
+                qty.setStyle(GluonStyles.textBold(14, GluonColors.TEXT_DEFAULT));
+                qty.setMinWidth(24);
+                qty.setPrefWidth(24);
+                qty.setAlignment(Pos.CENTER);
             });
 
+            // Plus button — 28×28 icon
             dom.button(plusBtn -> {
-                plusBtn.setText("+");
-                plusBtn.setStyle("-fx-background-color: transparent; -fx-font-size: 16; -fx-cursor: hand; -fx-padding: 2 6;");
-                plusBtn.setOnAction(e -> {
-                    safeAction("Qty", () -> this.presenter.onModifyQuantity(this.item.id, this.item.quantity + 1));
-                });
+                plusBtn.setGraphic(GluonIcons.create(GluonIcons.PLUS, 16, GluonColors.TEXT_SECONDARY));
+                plusBtn.setStyle(GluonStyles.BTN_ICON_SM);
+                plusBtn.setOnAction(e -> safeAction("Qty",
+                        () -> this.presenter.onModifyQuantity(this.item.id, this.item.quantity + 1)));
             });
 
             dom.hSpacer(4);
@@ -301,10 +302,10 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
                 price.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
             });
 
+            // Delete button — 28×28 close icon, danger color
             dom.button(btn -> {
-                btn.setText("×");
-                btn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + GluonColors.ERROR + "; " +
-                        "-fx-font-size: 16; -fx-padding: 2 4; -fx-cursor: hand;");
+                btn.setGraphic(GluonIcons.create(GluonIcons.CLOSE, 16, GluonColors.ERROR));
+                btn.setStyle(GluonStyles.BTN_ICON_SM);
                 btn.setOnAction(e -> safeAction("Remove",
                         () -> this.presenter.onRemoveProduct(this.item.id)));
             });

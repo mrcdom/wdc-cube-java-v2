@@ -43,6 +43,9 @@ public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPre
     private BiConsumer<List<PurchaseInfo>, List<PurchaseItemView>> contentSlot;
     private ScrollPane scrollPane;
     private Label pageInfoElm;
+    private Label prevNavLabel;
+    private Label nextNavLabel;
+    private HBox paginationRow;
 
     public PurchasesPanelViewGluon(PurchasesPanelPresenter presenter) {
         super("purchases-panel", (ShoppingGluonApplication) presenter.app, presenter, new VBox());
@@ -68,6 +71,22 @@ public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPre
         int pageSize = Math.max(1, this.state.pageSize);
         int totalPages = Math.max(1, (int) Math.ceil((double) this.state.totalCount / pageSize));
         this.pageInfoElm.setText((this.state.page + 1) + " / " + totalPages);
+
+        // Update nav label colors based on enabled state (matching Flutter disabled color)
+        boolean hasPrev = this.state.page > 0;
+        boolean hasNext = this.state.totalCount > 0 && this.state.page < totalPages - 1;
+        this.prevNavLabel.setStyle(buildNavLabelStyle(hasPrev ? GluonColors.TEXT_SECONDARY : GluonColors.TEXT_DISABLED));
+        this.nextNavLabel.setStyle(buildNavLabelStyle(hasNext ? GluonColors.TEXT_SECONDARY : GluonColors.TEXT_DISABLED));
+
+        // Show pagination only when there are items (matching Flutter if (totalCount > 0))
+        boolean hasPagination = this.state.totalCount > 0;
+        this.paginationRow.setVisible(hasPagination);
+        this.paginationRow.setManaged(hasPagination);
+    }
+
+    private static String buildNavLabelStyle(String color) {
+        return "-fx-font-size: 18; -fx-text-fill: " + color + "; -fx-cursor: hand; "
+                + "-fx-alignment: center; -fx-min-width: 28; -fx-min-height: 28;";
     }
 
     private void buildUI(GluonDom dom, VBox root) {
@@ -103,8 +122,8 @@ public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPre
             sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
             sp.setStyle(GluonStyles.SCROLL_TRANSPARENT);
 
-            contentBox.setSpacing(10);
-            contentBox.setPadding(new Insets(4, 0, 4, 0));
+            contentBox.setSpacing(8);
+            contentBox.setPadding(new Insets(4, 8, 4, 8));
             this.contentSlot = this.newListSlot(contentBox, this::newItemView, this::updateItem);
 
             sp.heightProperty().addListener((obs, oldVal, newVal) -> {
@@ -112,33 +131,53 @@ public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPre
             });
         });
 
-        // Pagination
-        dom.hbox(pagination -> {
+        // Pagination — matches Flutter pill-style pagination
+        this.paginationRow = dom.hbox(pagination -> {
             pagination.setAlignment(Pos.CENTER);
-            pagination.setSpacing(12);
-            pagination.setPadding(new Insets(8, 4, 4, 4));
+            pagination.setPadding(new Insets(10, 0, 10, 0));
+            pagination.setStyle("-fx-border-color: " + GluonColors.BORDER + "; -fx-border-width: 1 0 0 0;");
 
-            dom.button(prevBtn -> {
-                prevBtn.setGraphic(GluonIcons.create(GluonIcons.CHEVRON_LEFT, 16, GluonColors.TEXT_DEFAULT));
-                prevBtn.setStyle(GluonStyles.BTN_PAGINATION);
-                prevBtn.setOnAction(e -> safeAction("Prev page",
-                        () -> this.presenter.onPageChange(this.state.page - 1)));
-            });
+            // Pill container: appBg bg, rounded corners (matching Flutter radiusRound)
+            dom.hbox(pill -> {
+                pill.setAlignment(Pos.CENTER);
+                pill.setStyle(GluonStyles.PAGINATION_PILL_CONTAINER);
 
-            dom.hSpacer();
+                // Prev ‹
+                this.prevNavLabel = dom.label(prev -> {
+                    prev.setText("\u2039");
+                    prev.setStyle(buildNavLabelStyle(GluonColors.TEXT_DISABLED));
+                    prev.setMinWidth(28);
+                    prev.setPrefWidth(28);
+                    prev.setMinHeight(28);
+                    prev.setPrefHeight(28);
+                    prev.setAlignment(Pos.CENTER);
+                    prev.setOnMouseClicked(e -> safeAction("Prev page",
+                            () -> this.presenter.onPageChange(this.state.page - 1)));
+                });
 
-            this.pageInfoElm = dom.label(pageInfo -> {
-                pageInfo.setText("1 / 1");
-                pageInfo.setStyle(GluonStyles.PAGINATION_TEXT);
-            });
+                dom.hSpacer(4);
 
-            dom.hSpacer();
+                // Page info pill: white bg, radius 12, subtle shadow
+                this.pageInfoElm = dom.label(pageInfo -> {
+                    pageInfo.setText("1 / 1");
+                    pageInfo.setStyle(GluonStyles.PAGINATION_PAGE_INFO_PILL
+                            + GluonStyles.textBold(12, GluonColors.TEXT_DEFAULT));
+                });
 
-            dom.button(nextBtn -> {
-                nextBtn.setGraphic(GluonIcons.create(GluonIcons.CHEVRON_RIGHT, 16, GluonColors.TEXT_DEFAULT));
-                nextBtn.setStyle(GluonStyles.BTN_PAGINATION);
-                nextBtn.setOnAction(e -> safeAction("Next page",
-                        () -> this.presenter.onPageChange(this.state.page + 1)));
+                dom.hSpacer(4);
+
+                // Next ›
+                this.nextNavLabel = dom.label(next -> {
+                    next.setText("\u203A");
+                    next.setStyle(buildNavLabelStyle(GluonColors.TEXT_DISABLED));
+                    next.setMinWidth(28);
+                    next.setPrefWidth(28);
+                    next.setMinHeight(28);
+                    next.setPrefHeight(28);
+                    next.setAlignment(Pos.CENTER);
+                    next.setOnMouseClicked(e -> safeAction("Next page",
+                            () -> this.presenter.onPageChange(this.state.page + 1)));
+                });
             });
         });
     }
@@ -178,16 +217,18 @@ public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPre
 
         private PurchaseInfo purchase;
         private boolean notRendered = true;
+        private Label idElm;
         private Label dateElm;
         private Label itemsElm;
         private Label totalElm;
 
+        private String idOldValue;
         private String dateOldValue;
         private String itemsOldValue;
         private String totalOldValue;
 
         PurchaseItemView(ShoppingGluonApplication app, PurchasesPanelPresenter presenter, int idx) {
-            super("purchase-item-" + idx, app, presenter, new HBox());
+            super("purchase-item-" + idx, app, presenter, new VBox());
             this.purchase = new PurchaseInfo();
         }
 
@@ -198,10 +239,18 @@ public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPre
         @Override
         public void doUpdate() {
             if (this.notRendered) {
-                GluonDom.render((HBox) this.element, this::buildUI);
+                GluonDom.render((VBox) this.element, this::buildUI);
                 this.notRendered = false;
             }
 
+            // Row 1 left: #id
+            var idNewValue = "#" + this.purchase.id;
+            if (!Objects.equals(idOldValue, idNewValue)) {
+                this.idElm.setText(idNewValue);
+                this.idOldValue = idNewValue;
+            }
+
+            // Row 1 right: date
             var dateNewValue = this.purchase.date > 0
                     ? DATE_FMT.format(Instant.ofEpochMilli(this.purchase.date).atZone(ZoneId.systemDefault()))
                     : "";
@@ -210,12 +259,14 @@ public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPre
                 this.dateOldValue = dateNewValue;
             }
 
+            // Row 2 left: items
             var itemsNewValue = formatItems(this.purchase.items);
             if (!Objects.equals(itemsOldValue, itemsNewValue)) {
                 this.itemsElm.setText(itemsNewValue);
                 this.itemsOldValue = itemsNewValue;
             }
 
+            // Row 2 right: total
             var totalNewValue = NumberFormat.getCurrencyInstance().format(this.purchase.total);
             if (!Objects.equals(totalOldValue, totalNewValue)) {
                 this.totalElm.setText(totalNewValue);
@@ -223,37 +274,51 @@ public class PurchasesPanelViewGluon extends AbstractViewGluon<PurchasesPanelPre
             }
         }
 
-        private void buildUI(GluonDom dom, HBox row) {
-            row.setSpacing(12);
-            row.setPadding(new Insets(14, 16, 14, 16));
-            row.setAlignment(Pos.CENTER_LEFT);
-            row.setStyle(GluonStyles.CARD_CLICKABLE);
-            row.setOnMouseClicked(e -> safeAction("Open receipt",
+        /**
+         * Card layout matching Flutter _PurchaseItem:
+         * Container(appBg, border, radius=8) → Column:
+         *   Row: #id (accent bold 12) | Spacer | date (secondary 11)
+         *   Row: items (secondary 12 ellipsis) | total (bold 12)
+         */
+        private void buildUI(GluonDom dom, VBox card) {
+            card.setSpacing(2);
+            card.setPadding(new Insets(8, 12, 8, 12));
+            card.setStyle(GluonStyles.PURCHASE_ITEM_CARD);
+            card.setOnMouseClicked(e -> safeAction("Open receipt",
                     () -> this.presenter.onOpenReceipt(this.purchase.id)));
 
-            dom.vbox(dateBox -> {
-                dateBox.setSpacing(2);
-                dateBox.setMinWidth(Region.USE_PREF_SIZE);
+            // Row 1: #id | spacer | date
+            dom.hbox(row1 -> {
+                row1.setAlignment(Pos.CENTER_LEFT);
 
-                this.dateElm = dom.label(date -> {
-                    date.setStyle(GluonStyles.TEXT_BODY_STYLE);
+                this.idElm = dom.label(lbl -> {
+                    lbl.setStyle(GluonStyles.textBold(12, GluonColors.PRIMARY));
+                });
+
+                dom.hSpacer();
+
+                this.dateElm = dom.label(lbl -> {
+                    lbl.setStyle(GluonStyles.text(11, GluonColors.TEXT_SECONDARY));
                 });
             });
 
-            this.itemsElm = dom.label(items -> {
-                items.setStyle(GluonStyles.TEXT_MUTED_STYLE);
-                items.setMinWidth(0);
-                items.setMaxWidth(Double.MAX_VALUE);
-                items.setEllipsisString("...");
-                HBox.setHgrow(items, Priority.ALWAYS);
-            });
+            // Row 2: items (ellipsis) | total
+            dom.hbox(row2 -> {
+                row2.setAlignment(Pos.CENTER_LEFT);
 
-            this.totalElm = dom.label(total -> {
-                total.setStyle(GluonStyles.PRICE_SMALL);
-                total.setMinWidth(Region.USE_PREF_SIZE);
-            });
+                this.itemsElm = dom.label(lbl -> {
+                    lbl.setStyle(GluonStyles.text(12, GluonColors.TEXT_SECONDARY));
+                    lbl.setMinWidth(0);
+                    lbl.setMaxWidth(Double.MAX_VALUE);
+                    lbl.setEllipsisString("...");
+                    HBox.setHgrow(lbl, Priority.ALWAYS);
+                });
 
-            dom.icon(GluonIcons.create(GluonIcons.CHEVRON_RIGHT, 16, GluonColors.TEXT_PLACEHOLDER));
+                this.totalElm = dom.label(lbl -> {
+                    lbl.setStyle(GluonStyles.textBold(12, GluonColors.TEXT_DEFAULT));
+                    lbl.setMinWidth(Region.USE_PREF_SIZE);
+                });
+            });
         }
 
         private static String formatItems(List<String> items) {

@@ -189,6 +189,27 @@ public final class GluonStyles {
             "-fx-background-radius: 8; -fx-border-color: " + BORDER + "; -fx-border-radius: 8; " +
             "-fx-border-width: 1; -fx-padding: 12;";
 
+    // ---- Tab navigation (compact mode, bottom border) ----
+    public static final String TAB_NAV = "-fx-border-color: " + BORDER + "; -fx-border-width: 0 0 1 0;";
+
+    // ---- Small transparent icon button (28x28, like Flutter IconButton w/ zero padding) ----
+    public static final String BTN_ICON_SM = "-fx-background-color: transparent; -fx-padding: 0; -fx-cursor: hand; " +
+            "-fx-min-width: 28; -fx-min-height: 28; -fx-max-width: 28; -fx-max-height: 28;";
+
+    // ---- Pagination pill container (appBg bg, round) ----
+    public static final String PAGINATION_PILL_CONTAINER = "-fx-background-color: " + SURFACE_DIM + "; " +
+            "-fx-background-radius: 20; -fx-padding: 4;";
+
+    // ---- Pagination page info pill (white, rounded, shadow) ----
+    public static final String PAGINATION_PAGE_INFO_PILL = "-fx-background-color: " + SURFACE + "; " +
+            "-fx-background-radius: 12; -fx-padding: 4 12; " +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 3, 0, 0, 1);";
+
+    // ---- Purchase item card (appBg, border, rounded) ----
+    public static final String PURCHASE_ITEM_CARD = "-fx-background-color: " + SURFACE_DIM + "; " +
+            "-fx-background-radius: 8; -fx-border-color: " + BORDER + "; -fx-border-radius: 8; " +
+            "-fx-border-width: 1; -fx-cursor: hand;";
+
     // ---- Helper methods for parametric styles ----
 
     public static String fontSize(int size) {
