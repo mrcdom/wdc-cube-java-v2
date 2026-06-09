@@ -97,6 +97,7 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
             card.setSpacing(0);
             card.setMaxWidth(900);
             card.setMinWidth(0);
+            card.setMaxHeight(Double.MAX_VALUE); // allow StackPane parent to stretch card to full height
 
         // View header with icon + title + subtitle (Flutter ViewHeader)
         dom.hbox(viewHeader -> {
