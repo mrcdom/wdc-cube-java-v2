@@ -21,6 +21,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
@@ -38,14 +39,14 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
     private VBox contentPane;
 
     public CartViewGluon(CartPresenter presenter) {
-        super("cart", (ShoppingGluonApplication) presenter.app, presenter, new VBox());
+        super("cart", (ShoppingGluonApplication) presenter.app, presenter, new StackPane());
         this.state = presenter.state;
     }
 
     @Override
     public void doUpdate() {
         if (this.notRendered) {
-            GluonDom.render((VBox) this.element, this::buildUI);
+            GluonDom.render((StackPane) this.element, this::buildUI);
             this.notRendered = false;
         }
 
@@ -80,25 +81,22 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
         }
     }
 
-    private void buildUI(GluonDom dom, VBox root) {
-        root.setStyle(GluonStyles.PAGE_BG);
-
-        // Center wrapper: fills root VBox (via VGrow=ALWAYS), applies padding, and centers card horizontally.
-        // StackPane fills its children to its own bounds — this guarantees the card fills the full available height.
+    private void buildUI(GluonDom dom, StackPane root) {
+        // Root is a StackPane — StackPane fills its children to its own bounds unconditionally.
+        // ContentPane (HomeViewGluon) is also a StackPane, so StackPane-in-StackPane = perfect fill-height.
         // Flutter equivalent: appBg Container → padding(20) → Center() → ConstrainedBox(maxWidth: 900)
-        dom.stackPane(center -> {
-            center.setAlignment(Pos.TOP_CENTER);
-            center.setPadding(new Insets(20));
-            VBox.setVgrow(center, Priority.ALWAYS);
+        root.setStyle(GluonStyles.PAGE_BG);
+        root.setPadding(new Insets(20));
+        root.setAlignment(Pos.TOP_CENTER); // centers card horizontally when window > 900px
 
-        // PageCard equivalent: centered card with CARD decoration + 28px padding
+        // PageCard: card fills root height (StackPane resizes children to content area),
+        // capped at 900px width and centered.
         dom.vbox(card -> {
             card.setStyle(GluonStyles.CARD);
             card.setPadding(new Insets(28));
             card.setSpacing(0);
             card.setMaxWidth(900);
             card.setMinWidth(0);
-            // Card height is filled by the center StackPane automatically (StackPane fills children to its bounds)
 
         // View header with icon + title + subtitle (Flutter ViewHeader)
         dom.hbox(viewHeader -> {
@@ -228,7 +226,6 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
             });
         });
         }); // end card
-        }); // end center StackPane
     }
 
     private double computeTotalCost() {
@@ -283,6 +280,7 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
         private void buildUI(GluonDom dom, HBox row) {
             row.setSpacing(0);
             row.setAlignment(Pos.CENTER_LEFT);
+            row.setMaxWidth(Double.MAX_VALUE); // fills itemsBox VBox width — name label absorbs excess space
             row.setStyle(GluonStyles.CART_ITEM_ROW);
 
             this.nameElm = dom.label(name -> {
