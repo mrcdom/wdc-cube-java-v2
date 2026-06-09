@@ -30,8 +30,7 @@ public class ShoppingSwtRemoteMain {
 	private static final int WINDOW_HEIGHT = 820;
 
 	/** Kept alive for the app lifetime — NSApplication retains it after setApplicationIconImage. */
-	@SuppressWarnings("unused")
-	private static Image dockIconImage;
+	protected static Image dockIconImage;
 
 	public static void main(String[] args) throws Exception {
 		String serverUrl = args.length > 0 ? args[0] : DEFAULT_SERVER_URL;
