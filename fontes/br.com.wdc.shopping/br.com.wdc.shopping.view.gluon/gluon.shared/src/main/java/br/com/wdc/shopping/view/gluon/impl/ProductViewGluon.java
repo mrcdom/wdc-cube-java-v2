@@ -97,45 +97,40 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
         root.setSpacing(0);
         root.setStyle(GluonStyles.PAGE_BG);
 
-        // Scrollable content (no separate header bar — like Flutter PageCard)
+        // Flutter: PageCard(useCardDecoration: false) — NO outer card.
+        // Content is directly on the gray background, centered with maxWidth 900.
+        // Only the description has its own card decoration.
         dom.scrollVBox((sp, content) -> {
             VBox.setVgrow(sp, Priority.ALWAYS);
             sp.setFitToWidth(true);
             sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
             sp.setStyle(GluonStyles.SCROLL_TRANSPARENT);
             content.setPadding(new Insets(20));
-            content.setSpacing(0);
+            content.setSpacing(16);
             content.setAlignment(Pos.TOP_CENTER);
 
-            // PageCard card wrapper — white, border, shadow, max 900px
-            // Same centering pattern as CartViewGluon: prefWidth listener drives width,
-            // VBox.alignment=TOP_CENTER centers the card when window > 900px.
-            dom.vbox(card -> {
-                card.setStyle(GluonStyles.CARD);
-                card.setPadding(new Insets(28));
-                card.setMinWidth(0);
-                content.widthProperty().addListener((obs, oldW, newW) -> {
-                    double insets = content.getPadding().getLeft() + content.getPadding().getRight();
-                    card.setPrefWidth(Math.min(newW.doubleValue() - insets, 900));
-                });
-
-            // Inner container with max-width for content
+            // Content VBox centered at max 900px — driven by prefWidth listener
             dom.vbox(inner -> {
                 inner.setSpacing(16);
-                inner.setMaxWidth(Double.MAX_VALUE);
+                inner.setMinWidth(0);
+                content.widthProperty().addListener((obs, oldW, newW) -> {
+                    double insets = content.getPadding().getLeft() + content.getPadding().getRight();
+                    inner.setPrefWidth(Math.min(newW.doubleValue() - insets, 900));
+                });
 
-                // Title
+                // Title — on gray background
                 this.nameElm = dom.label(name -> {
                     name.setText(this.state.product != null ? this.state.product.name : "");
                     name.setStyle(GluonStyles.textBold(24, GluonColors.TEXT_PRIMARY));
                     name.setWrapText(true);
+                    name.setMaxWidth(Double.MAX_VALUE);
                 });
                 this.nameOldValue = this.state.product != null ? this.state.product.name : null;
 
-                // Accent divider — Region fills full available width (Flutter: Divider)
+                // Accent divider — full width
                 dom.node(buildDivider());
 
-                // Description card
+                // Description card — only this gets CARD decoration (Flutter: Container with cardDecoration)
                 dom.vbox(descCard -> {
                     descCard.setPadding(new Insets(20));
                     descCard.setStyle(GluonStyles.CARD);
@@ -153,7 +148,7 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
                     this.descriptionOldValue = this.state.product != null ? this.state.product.description : null;
                 });
 
-                // Price + Image row
+                // Price + Image row — on gray background
                 dom.hbox(priceImageRow -> {
                     priceImageRow.setAlignment(Pos.CENTER);
                     priceImageRow.setSpacing(16);
@@ -161,9 +156,8 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
                     dom.vbox(leftCol -> {
                         leftCol.setSpacing(12);
                         leftCol.setAlignment(Pos.CENTER);
-                        HBox.setHgrow(leftCol, Priority.NEVER);
 
-                        // Price badge — accent light background like Flutter
+                        // Price badge
                         dom.stackPane(priceBadge -> {
                             priceBadge.setStyle(GluonStyles.PRICE_BADGE);
 
@@ -242,7 +236,7 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
                     err.setMaxWidth(Double.MAX_VALUE);
                 });
 
-                // Action row — back button (text) + add-to-cart button (filled pill)
+                // Action row
                 dom.hbox(actionRow -> {
                     actionRow.setAlignment(Pos.CENTER);
                     actionRow.setSpacing(12);
@@ -262,8 +256,7 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
                     });
                 });
             }); // end inner
-            }); // end card
-        });
+        }); // end scroll
     }
 
     private javafx.scene.layout.Region buildDivider() {
