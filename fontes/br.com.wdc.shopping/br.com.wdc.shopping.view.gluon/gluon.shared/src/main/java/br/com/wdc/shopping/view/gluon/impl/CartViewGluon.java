@@ -294,10 +294,11 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
 
             this.nameElm = dom.label(name -> {
                 name.setStyle(GluonStyles.textBold(14, GluonColors.TEXT_DEFAULT));
-                HBox.setHgrow(name, Priority.ALWAYS);
                 name.setWrapText(true);
                 name.setMinWidth(0);
             });
+
+            dom.hSpacer(); // absorbs all extra space, pushes controls to the right
 
             // Minus button — 28×28 icon, disabled when qty = 1 (Flutter: null onPressed)
             this.minusBtnRef = dom.button(minusBtn -> {
