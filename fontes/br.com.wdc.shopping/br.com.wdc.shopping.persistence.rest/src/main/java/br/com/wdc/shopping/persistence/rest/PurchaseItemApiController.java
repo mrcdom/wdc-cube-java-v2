@@ -33,16 +33,16 @@ public class PurchaseItemApiController {
         config.routes.get(fetchByIdPath(prefix), ctrl::fetchById);
     }
 
-    public static void openApi(OpenAPI api) {
+    public static void openApi(OpenAPI api, String prefix) {
         var ctrl = new PurchaseItemApiController();
-        ctrl.insertDoc(api);
-        ctrl.updateDoc(api);
-        ctrl.deleteDoc(api);
-        ctrl.countDoc(api);
-        ctrl.fetchDoc(api);
-        ctrl.fetchPageDoc(api);
-        ctrl.fetchByIdDoc(api);
-        ctrl.fetchByIdPostDoc(api);
+        ctrl.insertDoc(api, prefix);
+        ctrl.updateDoc(api, prefix);
+        ctrl.deleteDoc(api, prefix);
+        ctrl.countDoc(api, prefix);
+        ctrl.fetchDoc(api, prefix);
+        ctrl.fetchPageDoc(api, prefix);
+        ctrl.fetchByIdDoc(api, prefix);
+        ctrl.fetchByIdPostDoc(api, prefix);
     }
 
     private static PurchaseItemRepository repo() {
@@ -73,7 +73,7 @@ public class PurchaseItemApiController {
         return prefix + "/api/repo/purchase-item/insert";
     }
 
-    private void insertDoc(OpenAPI api) {
+    private void insertDoc(OpenAPI api, String prefix) {
         var operation = new Operation()
                 .addTagsItem("purchase-item").summary("Insert a purchase item")
                 .security(Doc.BEARER)
@@ -82,7 +82,7 @@ public class PurchaseItemApiController {
                         .addApiResponse("201", Doc.ok("#/components/schemas/InsertResult"))
                         .addApiResponse("401", Doc.unauthorized())
                         .addApiResponse("403", Doc.forbidden()));
-        api.path(insertPath(""), new PathItem().post(operation));
+        api.path(insertPath(prefix), new PathItem().post(operation));
     }
 
     private void insert(Context ctx) {
@@ -104,7 +104,7 @@ public class PurchaseItemApiController {
         return prefix + "/api/repo/purchase-item/update";
     }
 
-    private void updateDoc(OpenAPI api) {
+    private void updateDoc(OpenAPI api, String prefix) {
         var operation = new Operation()
                 .addTagsItem("purchase-item").summary("Update a purchase item")
                 .security(Doc.BEARER)
@@ -113,7 +113,7 @@ public class PurchaseItemApiController {
                         .addApiResponse("200", Doc.ok("#/components/schemas/MutationResult"))
                         .addApiResponse("401", Doc.unauthorized())
                         .addApiResponse("403", Doc.forbidden()));
-        api.path(updatePath(""), new PathItem().post(operation));
+        api.path(updatePath(prefix), new PathItem().post(operation));
     }
 
     private void update(Context ctx) {
@@ -134,7 +134,7 @@ public class PurchaseItemApiController {
         return prefix + "/api/repo/purchase-item/delete";
     }
 
-    private void deleteDoc(OpenAPI api) {
+    private void deleteDoc(OpenAPI api, String prefix) {
         var operation = new Operation()
                 .addTagsItem("purchase-item").summary("Delete purchase items matching criteria")
                 .security(Doc.BEARER)
@@ -143,7 +143,7 @@ public class PurchaseItemApiController {
                         .addApiResponse("200", Doc.ok("#/components/schemas/CountResult"))
                         .addApiResponse("401", Doc.unauthorized())
                         .addApiResponse("403", Doc.forbidden()));
-        api.path(deletePath(""), new PathItem().post(operation));
+        api.path(deletePath(prefix), new PathItem().post(operation));
     }
 
     private void delete(Context ctx) {
@@ -165,7 +165,7 @@ public class PurchaseItemApiController {
         return prefix + "/api/repo/purchase-item/count";
     }
 
-    private void countDoc(OpenAPI api) {
+    private void countDoc(OpenAPI api, String prefix) {
         var operation = new Operation()
                 .addTagsItem("purchase-item").summary("Count purchase items matching criteria")
                 .security(Doc.BEARER)
@@ -173,7 +173,7 @@ public class PurchaseItemApiController {
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/CountResult"))
                         .addApiResponse("401", Doc.unauthorized()));
-        api.path(countPath(""), new PathItem().post(operation));
+        api.path(countPath(prefix), new PathItem().post(operation));
     }
 
     private void count(Context ctx) {
@@ -195,7 +195,7 @@ public class PurchaseItemApiController {
         return prefix + "/api/repo/purchase-item/fetch";
     }
 
-    private void fetchDoc(OpenAPI api) {
+    private void fetchDoc(OpenAPI api, String prefix) {
         var operation = new Operation()
                 .addTagsItem("purchase-item").summary("Fetch purchase items matching criteria (offset/limit)")
                 .security(Doc.BEARER)
@@ -203,7 +203,7 @@ public class PurchaseItemApiController {
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/PurchaseItemFetchResponse"))
                         .addApiResponse("401", Doc.unauthorized()));
-        api.path(fetchPath(""), new PathItem().post(operation));
+        api.path(fetchPath(prefix), new PathItem().post(operation));
     }
 
     private void fetch(Context ctx) {
@@ -248,7 +248,7 @@ public class PurchaseItemApiController {
         return prefix + "/api/repo/purchase-item/fetch-page";
     }
 
-    private void fetchPageDoc(OpenAPI api) {
+    private void fetchPageDoc(OpenAPI api, String prefix) {
         var operation = new Operation()
                 .addTagsItem("purchase-item").summary("Fetch purchase items matching criteria (page/pageSize)")
                 .security(Doc.BEARER)
@@ -256,7 +256,7 @@ public class PurchaseItemApiController {
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/PurchaseItemPageResponse"))
                         .addApiResponse("401", Doc.unauthorized()));
-        api.path(fetchPagePath(""), new PathItem().post(operation));
+        api.path(fetchPagePath(prefix), new PathItem().post(operation));
     }
 
     private void fetchPage(Context ctx) {
@@ -301,7 +301,7 @@ public class PurchaseItemApiController {
         return prefix + "/api/repo/purchase-item/{id}";
     }
 
-    private void fetchByIdDoc(OpenAPI api) {
+    private void fetchByIdDoc(OpenAPI api, String prefix) {
         var operation = new Operation()
                 .addTagsItem("purchase-item").summary("Fetch a purchase item by ID (GET)")
                 .security(Doc.BEARER)
@@ -310,7 +310,7 @@ public class PurchaseItemApiController {
                         .addApiResponse("200", Doc.ok("#/components/schemas/PurchaseItem"))
                         .addApiResponse("401", Doc.unauthorized())
                         .addApiResponse("404", Doc.notFound()));
-        api.path(fetchByIdPath(""), new PathItem().get(operation));
+        api.path(fetchByIdPath(prefix), new PathItem().get(operation));
     }
 
     private void fetchById(Context ctx) {
@@ -333,7 +333,7 @@ public class PurchaseItemApiController {
         return prefix + "/api/repo/purchase-item/fetch-by-id";
     }
 
-    private void fetchByIdPostDoc(OpenAPI api) {
+    private void fetchByIdPostDoc(OpenAPI api, String prefix) {
         var operation = new Operation()
                 .addTagsItem("purchase-item").summary("Fetch a purchase item by ID (POST, supports projection)")
                 .security(Doc.BEARER)
@@ -342,7 +342,7 @@ public class PurchaseItemApiController {
                         .addApiResponse("200", Doc.ok("#/components/schemas/PurchaseItem"))
                         .addApiResponse("401", Doc.unauthorized())
                         .addApiResponse("404", Doc.notFound()));
-        api.path(fetchByIdPostPath(""), new PathItem().post(operation));
+        api.path(fetchByIdPostPath(prefix), new PathItem().post(operation));
     }
 
     private void fetchByIdPost(Context ctx) {

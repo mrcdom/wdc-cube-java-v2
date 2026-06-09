@@ -52,7 +52,7 @@ public final class RepositoryApiRoutes {
         // OpenAPI document — served at GET {prefix}/openapi.json
         config.routes.get(prefix + "/openapi.json", ctx -> {
             ctx.contentType("application/json");
-            ctx.result(RepositoryApiDocs.toJson());
+            ctx.result(RepositoryApiDocs.toJson(prefix));
         });
     }
 }

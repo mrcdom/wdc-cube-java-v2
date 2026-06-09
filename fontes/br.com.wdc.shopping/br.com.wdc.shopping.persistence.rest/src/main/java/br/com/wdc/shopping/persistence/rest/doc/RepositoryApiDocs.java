@@ -43,24 +43,24 @@ public final class RepositoryApiDocs {
     }
 
     /** Builds the full OpenAPI document by collecting fragments from all controllers. */
-    public static OpenAPI build() {
+    public static OpenAPI build(String prefix) {
         var api = new OpenAPI()
                 .info(info())
                 .components(components())
                 .tags(tags());
 
-        AuthApiController.openApi(api);
-        ProductApiController.openApi(api);
-        UserApiController.openApi(api);
-        PurchaseApiController.openApi(api);
-        PurchaseItemApiController.openApi(api);
+        AuthApiController.openApi(api, prefix);
+        ProductApiController.openApi(api, prefix);
+        UserApiController.openApi(api, prefix);
+        PurchaseApiController.openApi(api, prefix);
+        PurchaseItemApiController.openApi(api, prefix);
 
         return api;
     }
 
     /** Returns the document serialized as pretty-printed JSON. */
-    public static String toJson() {
-        return Json.pretty(build());
+    public static String toJson(String prefix) {
+        return Json.pretty(build(prefix));
     }
 
     // =========================================================================

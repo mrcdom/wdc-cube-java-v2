@@ -29,33 +29,33 @@ public class AuthApiController {
 
     public static void configure(JavalinConfig config, String prefix) {
         var ctrl = new AuthApiController();
-        config.routes.get(ctrl.chalengePath(prefix), ctrl::challenge);
-        config.routes.post(ctrl.loginPath(prefix), ctrl::login);
-        config.routes.post(ctrl.refreshPath(prefix), ctrl::refresh);
-        config.routes.post(ctrl.logoutPath(prefix), ctrl::logout);
+        config.routes.get(chalengePath(prefix), ctrl::challenge);
+        config.routes.post(loginPath(prefix), ctrl::login);
+        config.routes.post(refreshPath(prefix), ctrl::refresh);
+        config.routes.post(logoutPath(prefix), ctrl::logout);
     }
 
-    public static void openApi(OpenAPI api) {
+    public static void openApi(OpenAPI api, String prefix) {
         var ctrl = new AuthApiController();
-        ctrl.challengeDoc(api);
-        ctrl.loginDoc(api);
-        ctrl.refreshDoc(api);
-        ctrl.logoutDoc(api);
+        ctrl.challengeDoc(api, prefix);
+        ctrl.loginDoc(api, prefix);
+        ctrl.refreshDoc(api, prefix);
+        ctrl.logoutDoc(api, prefix);
     }
 
     // :: Challange
 
-    private String chalengePath(String prefix) {
+    private static String chalengePath(String prefix) {
         return prefix + "/api/auth/challenge";
     }
 
-    private void challengeDoc(OpenAPI api) {
+    private void challengeDoc(OpenAPI api, String prefix) {
         var operation = new Operation()
                 .addTagsItem("auth").summary("Request an HMAC challenge nonce")
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/ChallengeResponse")));
 
-        api.path(chalengePath(""), new PathItem().get(operation));
+        api.path(chalengePath(prefix), new PathItem().get(operation));
     }
 
     private void challenge(Context ctx) {
@@ -71,11 +71,11 @@ public class AuthApiController {
 
     // :: login
 
-    private String loginPath(String prefix) {
+    private static String loginPath(String prefix) {
         return prefix + "/api/auth/login";
     }
 
-    private void loginDoc(OpenAPI api) {
+    private void loginDoc(OpenAPI api, String prefix) {
         var operation = new Operation()
                 .addTagsItem("auth").summary("Authenticate with HMAC challenge-response")
                 .requestBody(Doc.body("#/components/schemas/LoginRequest"))
@@ -83,7 +83,7 @@ public class AuthApiController {
                         .addApiResponse("200", Doc.ok("#/components/schemas/TokenResponse"))
                         .addApiResponse("401", Doc.unauthorized()));
 
-        api.path(loginPath(""), new PathItem().post(operation));
+        api.path(loginPath(prefix), new PathItem().post(operation));
     }
 
     @SuppressWarnings("java:S2589") // false positive — variables are assigned inside switch-in-while
@@ -128,11 +128,11 @@ public class AuthApiController {
 
     // :: Refresh
 
-    private String refreshPath(String prefix) {
+    private static String refreshPath(String prefix) {
         return prefix + "/api/auth/refresh";
     }
 
-    private void refreshDoc(OpenAPI api) {
+    private void refreshDoc(OpenAPI api, String prefix) {
         var operation = new Operation()
                 .addTagsItem("auth").summary("Refresh the access token using a refresh token")
                 .requestBody(Doc.body("#/components/schemas/RefreshRequest"))
@@ -140,7 +140,7 @@ public class AuthApiController {
                         .addApiResponse("200", Doc.ok("#/components/schemas/TokenResponse"))
                         .addApiResponse("401", Doc.unauthorized()));
 
-        api.path(refreshPath(""), new PathItem().post(operation));
+        api.path(refreshPath(prefix), new PathItem().post(operation));
     }
 
     private void refresh(Context ctx) {
@@ -180,11 +180,11 @@ public class AuthApiController {
 
     // :: Logout
 
-    private String logoutPath(String prefix) {
+    private static String logoutPath(String prefix) {
         return prefix + "/api/auth/logout";
     }
 
-    private void logoutDoc(OpenAPI api) {
+    private void logoutDoc(OpenAPI api, String prefix) {
         var operation = new Operation()
                 .addTagsItem("auth").summary("Revoke the session (invalidate the refresh token)")
                 .requestBody(Doc.body("#/components/schemas/RefreshRequest"))
@@ -192,7 +192,7 @@ public class AuthApiController {
                         .addApiResponse("200", Doc.ok("#/components/schemas/MutationResult"))
                         .addApiResponse("401", Doc.unauthorized()));
 
-        api.path(logoutPath(""), new PathItem().post(operation));
+        api.path(logoutPath(prefix), new PathItem().post(operation));
     }
 
     private void logout(Context ctx) {

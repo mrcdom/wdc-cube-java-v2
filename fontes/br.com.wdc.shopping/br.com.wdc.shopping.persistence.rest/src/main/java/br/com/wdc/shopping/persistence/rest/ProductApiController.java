@@ -36,17 +36,17 @@ public class ProductApiController {
         config.routes.put(imagePath(prefix), ctrl::updateImage);
     }
 
-    public static void openApi(OpenAPI api) {
+    public static void openApi(OpenAPI api, String prefix) {
         var ctrl = new ProductApiController();
-        ctrl.insertDoc(api);
-        ctrl.updateDoc(api);
-        ctrl.deleteDoc(api);
-        ctrl.countDoc(api);
-        ctrl.fetchDoc(api);
-        ctrl.fetchPageDoc(api);
-        ctrl.fetchByIdDoc(api);
-        ctrl.fetchByIdPostDoc(api);
-        ctrl.imageDoc(api);
+        ctrl.insertDoc(api, prefix);
+        ctrl.updateDoc(api, prefix);
+        ctrl.deleteDoc(api, prefix);
+        ctrl.countDoc(api, prefix);
+        ctrl.fetchDoc(api, prefix);
+        ctrl.fetchPageDoc(api, prefix);
+        ctrl.fetchByIdDoc(api, prefix);
+        ctrl.fetchByIdPostDoc(api, prefix);
+        ctrl.imageDoc(api, prefix);
     }
 
     private static ProductRepository repo() {
@@ -71,7 +71,7 @@ public class ProductApiController {
         return prefix + "/api/repo/product/insert";
     }
 
-    private void insertDoc(OpenAPI api) {
+    private void insertDoc(OpenAPI api, String prefix) {
         var operation = new Operation()
                 .addTagsItem("product").summary("Insert a product")
                 .security(Doc.BEARER)
@@ -80,7 +80,7 @@ public class ProductApiController {
                         .addApiResponse("201", Doc.ok("#/components/schemas/InsertResult"))
                         .addApiResponse("401", Doc.unauthorized())
                         .addApiResponse("403", Doc.forbidden()));
-        api.path(insertPath(""), new PathItem().post(operation));
+        api.path(insertPath(prefix), new PathItem().post(operation));
     }
 
     private void insert(Context ctx) {
@@ -102,7 +102,7 @@ public class ProductApiController {
         return prefix + "/api/repo/product/update";
     }
 
-    private void updateDoc(OpenAPI api) {
+    private void updateDoc(OpenAPI api, String prefix) {
         var operation = new Operation()
                 .addTagsItem("product").summary("Update a product")
                 .security(Doc.BEARER)
@@ -111,7 +111,7 @@ public class ProductApiController {
                         .addApiResponse("200", Doc.ok("#/components/schemas/MutationResult"))
                         .addApiResponse("401", Doc.unauthorized())
                         .addApiResponse("403", Doc.forbidden()));
-        api.path(updatePath(""), new PathItem().post(operation));
+        api.path(updatePath(prefix), new PathItem().post(operation));
     }
 
     private void update(Context ctx) {
@@ -132,7 +132,7 @@ public class ProductApiController {
         return prefix + "/api/repo/product/delete";
     }
 
-    private void deleteDoc(OpenAPI api) {
+    private void deleteDoc(OpenAPI api, String prefix) {
         var operation = new Operation()
                 .addTagsItem("product").summary("Delete products matching criteria")
                 .security(Doc.BEARER)
@@ -141,7 +141,7 @@ public class ProductApiController {
                         .addApiResponse("200", Doc.ok("#/components/schemas/CountResult"))
                         .addApiResponse("401", Doc.unauthorized())
                         .addApiResponse("403", Doc.forbidden()));
-        api.path(deletePath(""), new PathItem().post(operation));
+        api.path(deletePath(prefix), new PathItem().post(operation));
     }
 
     private void delete(Context ctx) {
@@ -162,7 +162,7 @@ public class ProductApiController {
         return prefix + "/api/repo/product/count";
     }
 
-    private void countDoc(OpenAPI api) {
+    private void countDoc(OpenAPI api, String prefix) {
         var operation = new Operation()
                 .addTagsItem("product").summary("Count products matching criteria")
                 .security(Doc.BEARER)
@@ -170,7 +170,7 @@ public class ProductApiController {
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/CountResult"))
                         .addApiResponse("401", Doc.unauthorized()));
-        api.path(countPath(""), new PathItem().post(operation));
+        api.path(countPath(prefix), new PathItem().post(operation));
     }
 
     private void count(Context ctx) {
@@ -191,7 +191,7 @@ public class ProductApiController {
         return prefix + "/api/repo/product/fetch";
     }
 
-    private void fetchDoc(OpenAPI api) {
+    private void fetchDoc(OpenAPI api, String prefix) {
         var operation = new Operation()
                 .addTagsItem("product").summary("Fetch products matching criteria (offset/limit)")
                 .security(Doc.BEARER)
@@ -199,7 +199,7 @@ public class ProductApiController {
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/ProductFetchResponse"))
                         .addApiResponse("401", Doc.unauthorized()));
-        api.path(fetchPath(""), new PathItem().post(operation));
+        api.path(fetchPath(prefix), new PathItem().post(operation));
     }
 
     private void fetch(Context ctx) {
@@ -242,7 +242,7 @@ public class ProductApiController {
         return prefix + "/api/repo/product/fetch-page";
     }
 
-    private void fetchPageDoc(OpenAPI api) {
+    private void fetchPageDoc(OpenAPI api, String prefix) {
         var operation = new Operation()
                 .addTagsItem("product").summary("Fetch products matching criteria (page/pageSize)")
                 .security(Doc.BEARER)
@@ -250,7 +250,7 @@ public class ProductApiController {
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/ProductPageResponse"))
                         .addApiResponse("401", Doc.unauthorized()));
-        api.path(fetchPagePath(""), new PathItem().post(operation));
+        api.path(fetchPagePath(prefix), new PathItem().post(operation));
     }
 
     private void fetchPage(Context ctx) {
@@ -294,7 +294,7 @@ public class ProductApiController {
         return prefix + "/api/repo/product/{id}";
     }
 
-    private void fetchByIdDoc(OpenAPI api) {
+    private void fetchByIdDoc(OpenAPI api, String prefix) {
         var operation = new Operation()
                 .addTagsItem("product").summary("Fetch a product by ID (GET)")
                 .security(Doc.BEARER)
@@ -303,7 +303,7 @@ public class ProductApiController {
                         .addApiResponse("200", Doc.ok("#/components/schemas/Product"))
                         .addApiResponse("401", Doc.unauthorized())
                         .addApiResponse("404", Doc.notFound()));
-        api.path(fetchByIdPath(""), new PathItem().get(operation));
+        api.path(fetchByIdPath(prefix), new PathItem().get(operation));
     }
 
     private void fetchById(Context ctx) {
@@ -325,7 +325,7 @@ public class ProductApiController {
         return prefix + "/api/repo/product/fetch-by-id";
     }
 
-    private void fetchByIdPostDoc(OpenAPI api) {
+    private void fetchByIdPostDoc(OpenAPI api, String prefix) {
         var operation = new Operation()
                 .addTagsItem("product").summary("Fetch a product by ID (POST, supports projection)")
                 .security(Doc.BEARER)
@@ -334,7 +334,7 @@ public class ProductApiController {
                         .addApiResponse("200", Doc.ok("#/components/schemas/Product"))
                         .addApiResponse("401", Doc.unauthorized())
                         .addApiResponse("404", Doc.notFound()));
-        api.path(fetchByIdPostPath(""), new PathItem().post(operation));
+        api.path(fetchByIdPostPath(prefix), new PathItem().post(operation));
     }
 
     private void fetchByIdPost(Context ctx) {
@@ -367,8 +367,8 @@ public class ProductApiController {
         return prefix + "/api/repo/product/{id}/image";
     }
 
-    private void imageDoc(OpenAPI api) {
-        api.path(imagePath(""), new PathItem()
+    private void imageDoc(OpenAPI api, String prefix) {
+        api.path(imagePath(prefix), new PathItem()
                 .get(new Operation()
                         .addTagsItem("product").summary("Get the product image")
                         .addParametersItem(Doc.pathId())
