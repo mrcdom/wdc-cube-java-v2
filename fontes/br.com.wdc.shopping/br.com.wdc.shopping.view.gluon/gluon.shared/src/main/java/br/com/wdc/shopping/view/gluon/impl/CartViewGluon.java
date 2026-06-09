@@ -84,6 +84,7 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
         root.setPadding(new Insets(20));
         root.setSpacing(0);
         root.setStyle(GluonStyles.PAGE_BG);
+        root.setAlignment(Pos.TOP_CENTER);  // Flutter: Center() wrapping the card
         VBox.setVgrow(root, Priority.ALWAYS);
 
         // PageCard equivalent: centered card with CARD decoration + 28px padding
@@ -92,6 +93,7 @@ public class CartViewGluon extends AbstractViewGluon<CartPresenter> {
             card.setPadding(new Insets(28));
             card.setSpacing(0);
             card.setMaxWidth(900);
+            card.setMinWidth(0);
             VBox.setVgrow(card, Priority.ALWAYS);
 
         // View header with icon + title + subtitle (Flutter ViewHeader)

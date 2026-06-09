@@ -104,13 +104,20 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
             sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
             sp.setStyle(GluonStyles.SCROLL_TRANSPARENT);
             content.setPadding(new Insets(20));
-            content.setSpacing(16);
-            content.setAlignment(Pos.TOP_CENTER);
+            content.setSpacing(0);
+            content.setAlignment(Pos.TOP_CENTER);  // Flutter: Center()
 
-            // Inner container with max-width
+            // PageCard card wrapper — white, border, shadow, max 900px (Flutter cardDecoration + padding 28)
+            dom.vbox(card -> {
+                card.setStyle(GluonStyles.CARD);
+                card.setPadding(new Insets(28));
+                card.setMaxWidth(900);
+                card.setMinWidth(0);
+
+            // Inner container with max-width for content
             dom.vbox(inner -> {
                 inner.setSpacing(16);
-                inner.setMaxWidth(560);
+                inner.setMaxWidth(Double.MAX_VALUE);
 
                 // Title
                 this.nameElm = dom.label(name -> {
@@ -249,7 +256,8 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
                         addBtn.setOnAction(e -> emitBuy());
                     });
                 });
-            });
+            }); // end inner
+            }); // end card
         });
     }
 

@@ -93,6 +93,7 @@ public class ReceiptViewGluon extends AbstractViewGluon<ReceiptPresenter> {
         root.setPadding(new Insets(0));
         root.setSpacing(0);
         root.setStyle(GluonStyles.PAGE_BG);
+        root.setAlignment(Pos.TOP_CENTER);  // Flutter: Center()
 
         // Success banner
         this.successElm = dom.label(success -> {
@@ -112,11 +113,14 @@ public class ReceiptViewGluon extends AbstractViewGluon<ReceiptPresenter> {
             sp.setStyle(GluonStyles.SCROLL_TRANSPARENT);
             scrollContent.setPadding(new Insets(20));
             scrollContent.setSpacing(0);
+            scrollContent.setAlignment(Pos.TOP_CENTER);  // Flutter: Center()
 
             // Receipt card
             dom.vbox(card -> {
                 card.setSpacing(0);
                 card.setStyle(GluonStyles.CARD);
+                card.setMaxWidth(900);
+                card.setMinWidth(0);
 
                 // Receipt header section
                 dom.vbox(receiptHeader -> {
