@@ -51,15 +51,15 @@ public record ViewStateSnapshot(String instanceId, Map<String, Object> fields) {
 	}
 
 	/**
-	 * Returns the field value as a {@code Map<String,Object>}, or {@code null} if absent or not a map. Suitable for nested POJO fields (e.g.,
-	 * {@code product}, {@code address}).
+	 * Returns the field value as a {@code Map<String,Object>}, or an empty map if absent or not a map. Suitable for nested POJO fields (e.g.,
+	 * {@code product}, {@code address}). Use {@link #hasField(String)} to distinguish "absent" from "present but empty".
 	 */
 	@SuppressWarnings("unchecked")
 	public Map<String, Object> getMap(String field) {
 		Object v = fields.get(field);
 		if (v instanceof Map<?, ?> m)
 			return (Map<String, Object>) m;
-		return null;
+		return Collections.emptyMap();
 	}
 
 	/** Returns {@code true} if the field is present (even if null). */

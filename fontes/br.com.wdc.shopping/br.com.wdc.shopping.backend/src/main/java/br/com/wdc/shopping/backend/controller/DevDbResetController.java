@@ -20,6 +20,10 @@ import io.javalin.config.JavalinConfig;
  */
 public class DevDbResetController {
 
+    private DevDbResetController() {
+        // utility class
+    }
+
     private static final Log LOG = Log.getLogger(DevDbResetController.class);
 
     public static void configure(JavalinConfig config) {

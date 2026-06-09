@@ -5,7 +5,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 import br.com.wdc.framework.commons.log.Log;
-
 import br.com.wdc.framework.cube.CubeView;
 import javafx.scene.Parent;
 import javafx.scene.layout.Pane;

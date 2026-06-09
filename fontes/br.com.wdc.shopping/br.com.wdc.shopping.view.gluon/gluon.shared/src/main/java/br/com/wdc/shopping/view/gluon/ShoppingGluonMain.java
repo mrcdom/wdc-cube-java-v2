@@ -10,11 +10,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.storage.ClientStorage;
 import br.com.wdc.framework.commons.storage.PreferencesClientStorage;
-
-import br.com.wdc.shopping.persistence.client.OkHttpTransport;
-import br.com.wdc.shopping.persistence.client.RestRepositoryBootstrap;
 import br.com.wdc.shopping.domain.ShoppingConfig;
 import br.com.wdc.shopping.domain.config.AppConfig;
+import br.com.wdc.shopping.persistence.client.OkHttpTransport;
+import br.com.wdc.shopping.persistence.client.RestRepositoryBootstrap;
 import br.com.wdc.shopping.presentation.presenter.Routes;
 import javafx.application.Application;
 import javafx.scene.Scene;

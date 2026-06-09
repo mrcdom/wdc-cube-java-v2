@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.log.Log;
-
 import br.com.wdc.shopping.domain.repositories.ProductRepository;
 import javafx.scene.image.Image;
 

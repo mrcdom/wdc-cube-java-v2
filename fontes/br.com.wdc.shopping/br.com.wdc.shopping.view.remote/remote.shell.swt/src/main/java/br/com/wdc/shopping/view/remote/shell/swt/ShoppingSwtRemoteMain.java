@@ -30,6 +30,7 @@ public class ShoppingSwtRemoteMain {
 	private static final int WINDOW_HEIGHT = 820;
 
 	/** Kept alive for the app lifetime — NSApplication retains it after setApplicationIconImage. */
+	@SuppressWarnings("unused")
 	private static Image dockIconImage;
 
 	public static void main(String[] args) throws Exception {
@@ -107,6 +108,7 @@ public class ShoppingSwtRemoteMain {
 	 * The created {@code Image} is kept in {@link #dockIconImage} for the app lifetime;
 	 * {@code NSApplication} retains the underlying {@code NSImage} after the call.
 	 */
+	@SuppressWarnings("java:S3011")
 	private static void setDockIcon(Display display) {
 		try (var stream = ShoppingSwtRemoteMain.class.getResourceAsStream("/images/app-icon.png")) {
 			if (stream == null) {

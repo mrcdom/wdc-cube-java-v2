@@ -1,6 +1,34 @@
 package br.com.wdc.shopping.view.gluon.theme;
 
-import static br.com.wdc.shopping.view.gluon.theme.GluonColors.*;
+import static br.com.wdc.shopping.view.gluon.theme.GluonColors.ACCENT_LIGHT;
+import static br.com.wdc.shopping.view.gluon.theme.GluonColors.ACCENT_SURFACE;
+import static br.com.wdc.shopping.view.gluon.theme.GluonColors.BORDER;
+import static br.com.wdc.shopping.view.gluon.theme.GluonColors.CONTROL_BG;
+import static br.com.wdc.shopping.view.gluon.theme.GluonColors.CONTROL_OVERLAY;
+import static br.com.wdc.shopping.view.gluon.theme.GluonColors.CONTROL_TEXT;
+import static br.com.wdc.shopping.view.gluon.theme.GluonColors.DIVIDER;
+import static br.com.wdc.shopping.view.gluon.theme.GluonColors.ERROR;
+import static br.com.wdc.shopping.view.gluon.theme.GluonColors.IMAGE_BG_END;
+import static br.com.wdc.shopping.view.gluon.theme.GluonColors.PRIMARY;
+import static br.com.wdc.shopping.view.gluon.theme.GluonColors.PRIMARY_END;
+import static br.com.wdc.shopping.view.gluon.theme.GluonColors.PRIMARY_LIGHT;
+import static br.com.wdc.shopping.view.gluon.theme.GluonColors.SHADOW_LIGHT;
+import static br.com.wdc.shopping.view.gluon.theme.GluonColors.SHADOW_MEDIUM;
+import static br.com.wdc.shopping.view.gluon.theme.GluonColors.SHADOW_STRONG;
+import static br.com.wdc.shopping.view.gluon.theme.GluonColors.SUCCESS_BORDER;
+import static br.com.wdc.shopping.view.gluon.theme.GluonColors.SUCCESS_SURFACE;
+import static br.com.wdc.shopping.view.gluon.theme.GluonColors.SUCCESS_TEXT;
+import static br.com.wdc.shopping.view.gluon.theme.GluonColors.SURFACE;
+import static br.com.wdc.shopping.view.gluon.theme.GluonColors.SURFACE_DIM;
+import static br.com.wdc.shopping.view.gluon.theme.GluonColors.SURFACE_OVERLAY;
+import static br.com.wdc.shopping.view.gluon.theme.GluonColors.TEXT_BODY;
+import static br.com.wdc.shopping.view.gluon.theme.GluonColors.TEXT_DEFAULT;
+import static br.com.wdc.shopping.view.gluon.theme.GluonColors.TEXT_HINT;
+import static br.com.wdc.shopping.view.gluon.theme.GluonColors.TEXT_MUTED;
+import static br.com.wdc.shopping.view.gluon.theme.GluonColors.TEXT_ON_PRIMARY;
+import static br.com.wdc.shopping.view.gluon.theme.GluonColors.TEXT_ON_PRIMARY_BRIGHT;
+import static br.com.wdc.shopping.view.gluon.theme.GluonColors.TEXT_ON_PRIMARY_DIM;
+import static br.com.wdc.shopping.view.gluon.theme.GluonColors.TEXT_SECONDARY;
 
 public final class GluonStyles {
 

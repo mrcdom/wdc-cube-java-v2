@@ -35,8 +35,10 @@ public class LoginViewGluon extends AbstractViewGluon<LoginPresenter> {
     private Label errorElm;
 
     /** Left gradient panel — hidden when width < BREAKPOINT_MD */
+    @SuppressWarnings("java:S1450")
     private StackPane leftPanelElm;
     /** Right panel container — background changes between wide and narrow */
+    @SuppressWarnings("java:S1450")
     private StackPane rightPanelElm;
 
     public LoginViewGluon(LoginPresenter presenter) {

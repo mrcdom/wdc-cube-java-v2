@@ -37,6 +37,7 @@ public class ShoppingSwtMain {
     private static final Log LOG = Log.getLogger(ShoppingSwtMain.class);
 
     /** Kept alive for the app lifetime — NSApplication retains it after setApplicationIconImage. */
+    @SuppressWarnings({"unused", "java:S1450", "java:S1068"})
     private static Image dockIconImage;
 
     private ScheduledExecutorService executorService;
@@ -75,7 +76,10 @@ public class ShoppingSwtMain {
                     .start();
             result.waitFor();
             LOG.info("GTK fonts installed to {}", dest);
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOG.warn("Failed to pre-install GTK fonts: {}", e.getMessage());
+        } catch (IOException e) {
             LOG.warn("Failed to pre-install GTK fonts: {}", e.getMessage());
         }
     }
@@ -93,9 +97,6 @@ public class ShoppingSwtMain {
         // NSApplicationLoad() which reinitialises NSApplication and overrides any
         // icon set via -Xdock:icon or apple.awt.application.icon.
         var appIcon = loadAppIcon(display);
-        if (appIcon != null) {
-            dockIconImage = appIcon;
-        }
         setDockIcon(appIcon);
 
         var shell = new Shell(display, SWT.SHELL_TRIM);
@@ -181,10 +182,12 @@ public class ShoppingSwtMain {
      * in {@link #dockIconImage} for the app lifetime; {@code NSApplication} retains the underlying
      * {@code NSImage} after the call.
      */
+    @SuppressWarnings("java:S3011")
     private static void setDockIcon(Image appIcon) {
         if (appIcon == null) {
             return;
         }
+        dockIconImage = appIcon;
         try {
             var nsImageClass = Class.forName("org.eclipse.swt.internal.cocoa.NSImage");
             var handleField  = Image.class.getDeclaredField("handle");
