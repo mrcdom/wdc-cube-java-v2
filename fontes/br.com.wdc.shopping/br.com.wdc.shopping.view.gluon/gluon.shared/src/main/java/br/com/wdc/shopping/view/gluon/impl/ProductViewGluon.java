@@ -276,11 +276,59 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
         });
     }
 
-    private void renderDescription(String text) {
+    /**
+     * Renders simple HTML into a TextFlow — mirrors Flutter's HtmlText widget.
+     * Supports: &lt;li&gt; → bullet (• ), &lt;br&gt; → newline, &lt;p&gt; → paragraph break,
+     *           &lt;b&gt;/&lt;strong&gt; → bold, plain text. All other tags stripped.
+     */
+    private void renderDescription(String html) {
         this.descriptionElm.getChildren().clear();
-        if (text != null && !text.isBlank()) {
-            var plain = text.replaceAll("<[^>]+>", " ").replaceAll("\\s+", " ").trim();
-            this.descriptionElm.getChildren().add(new Text(plain));
+        if (html == null || html.isBlank()) return;
+
+        var sb = new StringBuilder();
+        boolean bold = false;
+        boolean firstSpan = true;
+        int i = 0;
+
+        while (i < html.length()) {
+            if (html.charAt(i) == '<') {
+                int closeIdx = html.indexOf('>', i);
+                if (closeIdx == -1) { sb.append(html.charAt(i++)); continue; }
+                String tag = html.substring(i + 1, closeIdx).trim().toLowerCase();
+
+                // flush buffered text before handling tag
+                if (!sb.isEmpty()) {
+                    var t = new Text(sb.toString());
+                    t.setStyle(bold ? "-fx-font-weight: bold; -fx-font-size: 13;" : "-fx-font-size: 13;");
+                    this.descriptionElm.getChildren().add(t);
+                    sb.setLength(0);
+                    firstSpan = false;
+                }
+
+                if (tag.equals("li")) {
+                    if (!firstSpan) sb.append("\n");
+                    sb.append("  \u2022 ");
+                } else if (tag.equals("br") || tag.equals("br/") || tag.equals("br /")) {
+                    sb.append("\n");
+                } else if (tag.equals("p") && !firstSpan) {
+                    sb.append("\n\n");
+                } else if (tag.equals("b") || tag.equals("strong")) {
+                    bold = true;
+                } else if (tag.equals("/b") || tag.equals("/strong")) {
+                    bold = false;
+                }
+                // /li, /ul, /ol, /p, and other closing/unknown tags: skip
+                i = closeIdx + 1;
+            } else {
+                sb.append(html.charAt(i++));
+            }
+        }
+
+        // flush remaining buffer
+        if (!sb.isEmpty()) {
+            var t = new Text(sb.toString());
+            t.setStyle(bold ? "-fx-font-weight: bold; -fx-font-size: 13;" : "-fx-font-size: 13;");
+            this.descriptionElm.getChildren().add(t);
         }
     }
 }
