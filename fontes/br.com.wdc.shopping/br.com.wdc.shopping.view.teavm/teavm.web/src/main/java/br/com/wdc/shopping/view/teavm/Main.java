@@ -47,9 +47,8 @@ public class Main {
     private static native void removeLoadingScreen();
 
     @org.teavm.jso.JSBody(params = {}, script = ""
-            + "var path = window.location.pathname;"
-            + "var idx = path.indexOf('/', 1);"
-            + "return idx > 0 ? path.substring(0, idx) : '';")
+            + "var meta = document.querySelector('meta[name=\"api-base-url\"]');"
+            + "return (meta && meta.content) ? meta.content : '';")
     private static native String getApiBaseUrl();
 
 }

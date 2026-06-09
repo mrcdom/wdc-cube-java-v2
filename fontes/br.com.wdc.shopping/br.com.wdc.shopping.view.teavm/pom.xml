@@ -21,8 +21,8 @@
         <teavm.version>0.14.0</teavm.version>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
-        <!-- API server URL: empty = same origin (relative paths); override with -Dapi.base.url=http://host:port for cross-origin -->
-        <api.base.url></api.base.url>
+        <!-- API server URL: empty = same origin (relative paths) for browser; override with -Dapi.base.url=http://host:port for cross-origin (Tauri mobile builds use this) -->
+        <api.base.url>http://localhost:8080</api.base.url>
     </properties>
 
     <modules>

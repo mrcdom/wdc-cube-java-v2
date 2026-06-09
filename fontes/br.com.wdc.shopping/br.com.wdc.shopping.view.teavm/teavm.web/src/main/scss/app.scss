@@ -27,8 +27,10 @@
 
 html, body {
     height: 100%;
+    width: 100%;
     margin: 0;
-    padding: 0;
+    /* Reserve safe-area edges: left/right for landscape, bottom for home indicator */
+    padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     overflow: hidden;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -39,6 +41,19 @@ html, body {
 
 /* Prevent double-tap zoom on iOS */
 * { touch-action: manipulation; box-sizing: border-box; }
+
+/*
+ * iOS WKWebView auto-zooms when focusing an input whose font-size < 16px.
+ * The zoom persists after the input loses focus (e.g., after login).
+ * Fix: force the native <input> inside sp-textfield to always use font-size >= 16px.
+ * This targets the shadow-DOM input via the ::slotted approach won't work, but
+ * sp-textfield exposes its internal input at the light-DOM level via part="input".
+ */
+sp-textfield::part(input),
+sp-search-field::part(input),
+input, textarea, select {
+    font-size: max(16px, 1rem) !important;
+}
 
 /* Loading screen */
 #loading {
