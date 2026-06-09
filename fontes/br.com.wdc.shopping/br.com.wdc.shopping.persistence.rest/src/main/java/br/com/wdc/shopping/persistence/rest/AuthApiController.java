@@ -27,25 +27,16 @@ import io.swagger.v3.oas.models.responses.ApiResponses;
  */
 public class AuthApiController {
 
-    private final AuthenticationService authService;
-
-    public AuthApiController(AuthenticationService authService) {
-        this.authService = authService;
-    }
-
-    public void configure(JavalinConfig config) {
-        configure(config, "");
-    }
-
-    public void configure(JavalinConfig config, String prefix) {
-        config.routes.get(chalengePath(prefix), this::challenge);
-        config.routes.post(loginPath(prefix), this::login);
-        config.routes.post(refreshPath(prefix), this::refresh);
-        config.routes.post(logoutPath(prefix), this::logout);
+    public static void configure(JavalinConfig config, String prefix) {
+        var ctrl = new AuthApiController();
+        config.routes.get(ctrl.chalengePath(prefix), ctrl::challenge);
+        config.routes.post(ctrl.loginPath(prefix), ctrl::login);
+        config.routes.post(ctrl.refreshPath(prefix), ctrl::refresh);
+        config.routes.post(ctrl.logoutPath(prefix), ctrl::logout);
     }
 
     public static void openApi(OpenAPI api) {
-        var ctrl = new AuthApiController(null);
+        var ctrl = new AuthApiController();
         ctrl.challengeDoc(api);
         ctrl.loginDoc(api);
         ctrl.refreshDoc(api);
@@ -68,6 +59,7 @@ public class AuthApiController {
     }
 
     private void challenge(Context ctx) {
+        var authService = AuthenticationService.BEAN.get();
         var result = authService.challenge();
         var writer = new JsonStreamWriter();
         writer.beginObject();
@@ -116,6 +108,7 @@ public class AuthApiController {
             return;
         }
 
+        var authService = AuthenticationService.BEAN.get();
         var result = authService.login(userName, digest, nonce);
         if (result == null) {
             ctx.status(401).result("{\"error\":\"Invalid credentials\"}");
@@ -167,6 +160,7 @@ public class AuthApiController {
             return;
         }
 
+        var authService = AuthenticationService.BEAN.get();
         var result = authService.refresh(refreshToken);
         if (result == null) {
             ctx.status(401).result("{\"error\":\"Invalid or expired refresh token\"}");
@@ -213,6 +207,7 @@ public class AuthApiController {
         }
         reader.endObject();
 
+        var authService = AuthenticationService.BEAN.get();
         authService.logout(refreshToken);
         var writer = new JsonStreamWriter();
         writer.beginObject();

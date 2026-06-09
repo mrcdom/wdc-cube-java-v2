@@ -22,11 +22,7 @@ public class ProductApiController {
 
     private static final Log LOG = Log.getLogger(ProductApiController.class);
 
-    static void configure(JavalinConfig config) {
-        configure(config, "");
-    }
-
-    static void configure(JavalinConfig config, String prefix) {
+    public static void configure(JavalinConfig config, String prefix) {
         var ctrl = new ProductApiController();
         config.routes.post(insertPath(prefix), ctrl::insert);
         config.routes.post(updatePath(prefix), ctrl::update);

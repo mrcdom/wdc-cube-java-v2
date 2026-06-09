@@ -21,11 +21,7 @@ import io.swagger.v3.oas.models.responses.ApiResponses;
 
 public class PurchaseItemApiController {
 
-    static void configure(JavalinConfig config) {
-        configure(config, "");
-    }
-
-    static void configure(JavalinConfig config, String prefix) {
+    public static void configure(JavalinConfig config, String prefix) {
         var ctrl = new PurchaseItemApiController();
         config.routes.post(insertPath(prefix), ctrl::insert);
         config.routes.post(updatePath(prefix), ctrl::update);

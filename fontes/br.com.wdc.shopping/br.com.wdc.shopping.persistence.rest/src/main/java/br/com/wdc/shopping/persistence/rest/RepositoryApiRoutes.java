@@ -16,16 +16,7 @@ import io.javalin.config.JavalinConfig;
 public final class RepositoryApiRoutes {
 
     private RepositoryApiRoutes() {
-    }
-
-    /**
-     * Configura as rotas REST.
-     * <p>
-     * Se {@code AuthenticationService.BEAN} estiver populado, habilita segurança (filtro JWT + endpoints de auth). Caso
-     * contrário, registra apenas os controllers de entidade (modo teste/local).
-     */
-    public static void configure(JavalinConfig config) {
-        configure(config, "");
+        // NOOP
     }
 
     /**
@@ -36,13 +27,12 @@ public final class RepositoryApiRoutes {
      */
     public static void configure(JavalinConfig config, String prefix) {
         var authService = AuthenticationService.BEAN.get();
-
         if (authService != null) {
             // Endpoints públicos de autenticação
-            new AuthApiController(authService).configure(config, prefix);
+            AuthApiController.configure(config, prefix);
 
             // Filtro de segurança para endpoints protegidos
-            var securityFilter = new SecurityFilter(authService);
+            var securityFilter = new SecurityFilter();
             config.routes.before(prefix + "/api/repo/*", securityFilter::handle);
             config.routes.after(prefix + "/api/repo/*", ctx -> SecurityContext.CURRENT.remove());
         }

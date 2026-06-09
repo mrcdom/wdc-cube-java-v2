@@ -16,12 +16,6 @@ public final class SecurityFilter {
     private static final Log LOG = Log.getLogger(SecurityFilter.class);
     private static final String BEARER_PREFIX = "Bearer ";
 
-    private final AuthenticationService authService;
-
-    public SecurityFilter(AuthenticationService authService) {
-        this.authService = authService;
-    }
-
     /**
      * Handler a ser registrado como {@code before("/api/repo/*")}.
      * <p>
@@ -46,6 +40,8 @@ public final class SecurityFilter {
         }
 
         var token = authHeader.substring(BEARER_PREFIX.length());
+        
+        var authService = AuthenticationService.BEAN.get();
         var securityContext = authService.resolveToken(token);
         if (securityContext == null) {
             ctx.status(401).contentType("application/json").result("{\"error\":\"Invalid or expired token\"}");

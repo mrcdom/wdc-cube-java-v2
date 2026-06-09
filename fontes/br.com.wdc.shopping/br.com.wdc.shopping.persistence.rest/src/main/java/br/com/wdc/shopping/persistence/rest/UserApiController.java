@@ -28,11 +28,7 @@ public class UserApiController {
 
     private static final Log LOG = Log.getLogger(UserApiController.class);
 
-    static void configure(JavalinConfig config) {
-        configure(config, "");
-    }
-
-    static void configure(JavalinConfig config, String prefix) {
+    public static void configure(JavalinConfig config, String prefix) {
         var ctrl = new UserApiController();
         config.routes.post(insertPath(prefix), ctrl::insert);
         config.routes.post(updatePath(prefix), ctrl::update);

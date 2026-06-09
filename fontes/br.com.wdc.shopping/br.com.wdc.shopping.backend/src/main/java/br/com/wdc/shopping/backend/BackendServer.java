@@ -136,7 +136,7 @@ public class BackendServer {
         WebCacheController.configure(config);
 
         // Repository REST API for Android (and other REST clients)
-		RepositoryApiRoutes.configure(config);
+		RepositoryApiRoutes.configure(config, "");
 
         // Landing page: lists available frontend contexts
         LandingPageController.configure(config);
