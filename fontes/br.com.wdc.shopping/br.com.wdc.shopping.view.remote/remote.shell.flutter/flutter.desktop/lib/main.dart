@@ -103,7 +103,11 @@ void main() async {
     all: () {
       return {
         for (final key in _prefs.getKeys().where(
-          (k) => !k.startsWith('app_') && k != 'req_seq' && k != 'last_path',
+          (k) =>
+              !k.startsWith('app_') &&
+              !k.startsWith('sec.') &&
+              k != 'req_seq' &&
+              k != 'last_path',
         ))
           key: _prefs.getString(key)!,
       };
