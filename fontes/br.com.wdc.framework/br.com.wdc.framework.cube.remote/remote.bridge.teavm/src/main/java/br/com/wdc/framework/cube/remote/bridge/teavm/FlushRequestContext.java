@@ -170,9 +170,10 @@ public class FlushRequestContext {
         app.isConnected = true;
         pendingSecret = SecurityBoot.getSignature();
         initKeepAliveChecks();
-        // Build bootstrap storage (async cipher callbacks), then flush.
-        // Nothing is sent until all ciphers resolve.
-        app.buildBootstrapStorage(this::flush);
+        // Build bootstrap storage only after AES key is ready.
+        // SecurityBoot.onReady() fires immediately if already ready (reconnects),
+        // or defers until PBKDF2 derivation completes (first load after F5).
+        SecurityBoot.onReady(() -> app.buildBootstrapStorage(this::flush));
     }
 
     private void handleClose(int code) {
