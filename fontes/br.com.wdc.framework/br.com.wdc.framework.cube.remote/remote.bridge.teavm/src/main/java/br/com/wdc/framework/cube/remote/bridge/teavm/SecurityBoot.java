@@ -110,6 +110,18 @@ public final class SecurityBoot {
         WebCrypto.encrypt(text, aesKey, aesIv, callback);
     }
 
+    /**
+     * Decrypts a base64-encoded AES-GCM ciphertext. Calls back with the plaintext, or empty string on failure.
+     */
+    public static void decipher(String b64Ciphered, JsStringConsumer callback) {
+        if (!ready || aesKey == null || aesIv == null) {
+            Console.error("[SecurityBoot] AES key not yet available");
+            callback.accept("");
+            return;
+        }
+        WebCrypto.decrypt(b64Ciphered, aesKey, aesIv, callback);
+    }
+
     // -- Private helpers --
 
     private static void transferAppId() {

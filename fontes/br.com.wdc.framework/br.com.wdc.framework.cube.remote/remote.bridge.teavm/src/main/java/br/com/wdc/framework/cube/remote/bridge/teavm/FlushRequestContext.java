@@ -37,6 +37,7 @@ public class FlushRequestContext {
     private int submittingTimer = 0;
     private int submittingTimeout = 0;
     private String pendingSecret;
+    Map<String, Object> pendingStorage;
 
     public FlushRequestContext(ViewStateCoordinator app) {
         this.app = app;
@@ -122,11 +123,15 @@ public class FlushRequestContext {
             hasData = true;
         }
 
-        if (hasData || pendingSecret != null) {
+        if (hasData || pendingSecret != null || pendingStorage != null) {
             requestObj.put("event", allEvents);
             if (pendingSecret != null) {
                 requestObj.put("secret", pendingSecret);
                 pendingSecret = null;
+            }
+            if (pendingStorage != null) {
+                requestObj.put("storage", pendingStorage);
+                pendingStorage = null;
             }
             String json = JsonParser.stringify(requestObj);
             sendToSocket(socket, json);
@@ -165,7 +170,9 @@ public class FlushRequestContext {
         app.isConnected = true;
         pendingSecret = SecurityBoot.getSignature();
         initKeepAliveChecks();
-        flush();
+        // Build bootstrap storage (async cipher callbacks), then flush.
+        // Nothing is sent until all ciphers resolve.
+        app.buildBootstrapStorage(this::flush);
     }
 
     private void handleClose(int code) {
@@ -229,6 +236,11 @@ public class FlushRequestContext {
         Object states = response.get("states");
         if (states instanceof List<?> list) {
             app.applyViewStates(list);
+        }
+
+        Object storage = response.get("storage");
+        if (storage instanceof Map<?, ?> storageDelta) {
+            app.applyStorageDelta((Map<String, Object>) storageDelta);
         }
 
         flush();

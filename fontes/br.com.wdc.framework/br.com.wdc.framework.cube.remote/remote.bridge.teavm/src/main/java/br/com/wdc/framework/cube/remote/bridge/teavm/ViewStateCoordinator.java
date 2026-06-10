@@ -40,6 +40,11 @@ public class ViewStateCoordinator {
     public boolean isConnected = false;
     public String path = "";
 
+    /** Session-scoped storage: in-memory, lives while the tab is open. */
+    public final ClientStorage sessionStorage;
+    /** Persistent-scoped storage: backed by localStorage, survives page reload. */
+    public final ClientStorage persistentStorage;
+
     public final FlushRequestContext contextExchanger;
     public final ReconnectController reconnectController;
     public final ViewGarbageCollector viewGarbageCollector;
@@ -69,6 +74,14 @@ public class ViewStateCoordinator {
             }
         }
         this.id = appId;
+
+        // Storage: session is in-memory; persistent is localStorage-backed.
+        // .secure() uses 'sec.' key prefix to namespace sensitive values.
+        var secureStorage = new ClientStorage.LocalStorageClientStorage(
+                "sec.", new String[]{}, () -> new ClientStorage.InMemoryClientStorage());
+        this.sessionStorage = new ClientStorage.InMemoryClientStorage();
+        this.persistentStorage = new ClientStorage.LocalStorageClientStorage(
+                "", new String[]{"app_", "sec.", "req_seq"}, () -> secureStorage);
 
         String protocol = getLocationProtocol();
         String wsProtocol = "https:".equals(protocol) ? "wss://" : "ws://";
@@ -105,6 +118,93 @@ public class ViewStateCoordinator {
 
     public void assureContextExchangerIsConnected() {
         contextExchanger.open(reconnectController.url);
+    }
+
+    // -- Storage --
+
+    /**
+     * Builds the bootstrap {@code storage} map sent on WebSocket open.
+     * All values are ciphered asynchronously. Calls {@code onDone} when complete
+     * (whether or not any storage was produced). If the cipher key is not ready,
+     * or all scopes are empty, calls {@code onDone} immediately.
+     */
+    public void buildBootstrapStorage(Runnable onDone) {
+        if (!SecurityBoot.isReady()) {
+            onDone.run();
+            return;
+        }
+
+        var sessionEntries    = sessionStorage.all();
+        var persistentEntries = persistentStorage.all();
+        var secureEntries     = persistentStorage.secure().all();
+
+        int total = sessionEntries.size() + persistentEntries.size() + secureEntries.size();
+        if (total == 0) {
+            onDone.run();
+            return;
+        }
+
+        var sessionMap    = new LinkedHashMap<String, String>();
+        var persistentMap = new LinkedHashMap<String, String>();
+        var secureMap     = new LinkedHashMap<String, String>();
+        int[] remaining   = {total};
+
+        Runnable checkDone = () -> {
+            remaining[0]--;
+            if (remaining[0] == 0) {
+                var out = new LinkedHashMap<String, Object>();
+                if (!sessionMap.isEmpty())    out.put("session",           sessionMap);
+                if (!persistentMap.isEmpty()) out.put("persistent",        persistentMap);
+                if (!secureMap.isEmpty())     out.put("persistent-secure", secureMap);
+                contextExchanger.pendingStorage = out.isEmpty() ? null : out;
+                onDone.run();
+            }
+        };
+
+        cipherEntries(sessionEntries,    sessionMap,    checkDone);
+        cipherEntries(persistentEntries, persistentMap, checkDone);
+        cipherEntries(secureEntries,     secureMap,     checkDone);
+    }
+
+    private static void cipherEntries(Map<String, String> entries, Map<String, String> out, Runnable checkDone) {
+        for (var entry : entries.entrySet()) {
+            var key   = entry.getKey();
+            var value = entry.getValue();
+            SecurityBoot.cipher(value, ciphered -> {
+                if (!ciphered.isEmpty()) {
+                    out.put(key, ciphered);
+                }
+                checkDone.run();
+            });
+        }
+    }
+
+    /**
+     * Applies a storage delta received from the server.
+     * Null/empty values mean removal; non-empty values are deciphered and stored.
+     */
+    @SuppressWarnings("unchecked")
+    public void applyStorageDelta(Map<String, Object> delta) {
+        applyScope((Map<String, Object>) delta.get("session"),           sessionStorage);
+        applyScope((Map<String, Object>) delta.get("persistent"),        persistentStorage);
+        applyScope((Map<String, Object>) delta.get("persistent-secure"), persistentStorage.secure());
+    }
+
+    private static void applyScope(Map<String, Object> scope, ClientStorage storage) {
+        if (scope == null) return;
+        for (var entry : scope.entrySet()) {
+            var key     = entry.getKey();
+            var ciphered = entry.getValue();
+            if (!(ciphered instanceof String s) || s.isEmpty()) {
+                storage.remove(key);
+            } else {
+                SecurityBoot.decipher(s, plaintext -> {
+                    if (!plaintext.isEmpty()) {
+                        storage.set(key, plaintext);
+                    }
+                });
+            }
+        }
     }
 
     // -- View state application --

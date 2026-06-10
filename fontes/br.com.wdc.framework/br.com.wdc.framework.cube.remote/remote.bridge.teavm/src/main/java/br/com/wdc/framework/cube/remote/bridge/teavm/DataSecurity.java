@@ -13,4 +13,8 @@ public final class DataSecurity {
     public static void cipher(String text, JsStringConsumer callback) {
         SecurityBoot.cipher(text, callback);
     }
+
+    public static void decipher(String b64Ciphered, JsStringConsumer callback) {
+        SecurityBoot.decipher(b64Ciphered, callback);
+    }
 }
