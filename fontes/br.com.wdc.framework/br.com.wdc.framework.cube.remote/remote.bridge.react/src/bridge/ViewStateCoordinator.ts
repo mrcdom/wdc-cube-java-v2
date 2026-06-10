@@ -9,7 +9,8 @@ import { DataSecurity } from './DataSecurity'
 import { FlushRequestContext } from './FlushRequestContext'
 import { ReconnectController } from './ReconnectController'
 import { ViewGarbageCollector } from './ViewGarbageCollector'
-import { ClientStorage, InMemoryClientStorage, LocalStorageClientStorage, SessionStorageClientStorage } from './ClientStorage'
+import { ClientStorage, LocalStorageClientStorage, SessionStorageClientStorage } from './ClientStorage'
+import { EncryptedLocalStorage } from './EncryptedLocalStorage'
 
 const Cookie = new CookieConstructor()
 
@@ -44,10 +45,10 @@ export class ViewStateCoordinator {
     this.viewMap.set(BROWSER_VSID, new ViewScope(BROWSER_VSID))
 
     // Storage: session uses browser sessionStorage (survives F5, not tab close);
-    // persistent uses localStorage. .secure uses 'sec.' key prefix.
-    const secureStorage = new LocalStorageClientStorage('sec.', [], () => new InMemoryClientStorage())
+    // persistent uses localStorage. .secure uses AES-GCM encryption via IndexedDB.
+    const encryptedStorage = new EncryptedLocalStorage()
     this.sessionStorage = new SessionStorageClientStorage()
-    this.persistentStorage = new LocalStorageClientStorage('', ['app_', 'sec.', 'req_seq'], () => secureStorage)
+    this.persistentStorage = new LocalStorageClientStorage('', ['app_', 'sec.', 'req_seq'], () => encryptedStorage)
 
     const appIdFromCookie = Cookie.get('app_id')
     if (appIdFromCookie) {
@@ -73,6 +74,7 @@ export class ViewStateCoordinator {
 
       this.readyToStart = async () => {
         try {
+          await encryptedStorage.initialize()
           await this.dataSecurity.updateSecretWithRandomPassword()
 
           Cookie.set('app_signature', this.dataSecurity.getSignature(), { path: '/' })
