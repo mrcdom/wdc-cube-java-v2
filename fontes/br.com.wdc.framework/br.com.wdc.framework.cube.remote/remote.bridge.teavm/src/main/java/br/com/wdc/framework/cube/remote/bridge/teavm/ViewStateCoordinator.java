@@ -76,10 +76,15 @@ public class ViewStateCoordinator {
         this.id = appId;
 
         // Storage: session uses browser sessionStorage (survives F5, not tab close);
-        // persistent uses localStorage. .secure() → EncryptedLocalStorage (AES-GCM, non-extractable key in IndexedDB).
+        // persistent uses localStorage namespaced by shell ("rt:") so each shell
+        // has isolated data. The shared IndexedDB AES key is still reused.
+        // secure() → EncryptedLocalStorage (AES-GCM, non-extractable key in IndexedDB).
+        // Only keys prefixed with '~' are included in WebSocket bootstrap/delta payloads.
+        final String shellId = "rt";
+        EncryptedLocalStorage.configure(shellId);
         this.sessionStorage = new ClientStorage.SessionStorageClientStorage("app_id", "req_seq");
         this.persistentStorage = new ClientStorage.LocalStorageClientStorage(
-                "", new String[]{"app_", "sec.", "req_seq"}, () -> EncryptedLocalStorage.INSTANCE);
+                shellId, new String[]{"app_", shellId + ":sec.", "req_seq"}, () -> EncryptedLocalStorage.INSTANCE);
 
         String protocol = getLocationProtocol();
         String wsProtocol = "https:".equals(protocol) ? "wss://" : "ws://";

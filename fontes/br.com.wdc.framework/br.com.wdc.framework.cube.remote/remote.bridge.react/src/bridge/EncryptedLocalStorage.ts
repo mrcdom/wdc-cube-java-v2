@@ -23,7 +23,6 @@
 
 import { ClientStorage } from './ClientStorage'
 
-const LS_PREFIX = 'sec.'
 const IDB_NAME = '_sec'
 const IDB_STORE = 'k'
 const IDB_KEY = 0
@@ -31,6 +30,15 @@ const IDB_KEY = 0
 export class EncryptedLocalStorage implements ClientStorage {
   private readonly cache = new Map<string, string>()
   private cryptoKey: CryptoKey | null = null
+  private readonly lsPrefix: string
+
+  /**
+   * @param shellId short identifier for the shell (e.g. `'rr'`).
+   *                Used as localStorage namespace: `"{shellId}:sec."`.
+   */
+  constructor(shellId: string) {
+    this.lsPrefix = shellId ? `${shellId}:sec.` : 'sec.'
+  }
 
   get secure(): ClientStorage {
     return this
@@ -51,11 +59,16 @@ export class EncryptedLocalStorage implements ClientStorage {
 
   remove(key: string): void {
     this.cache.delete(key)
-    localStorage.removeItem(LS_PREFIX + key)
+    localStorage.removeItem(this.lsPrefix + key)
   }
 
   all(): Record<string, string> {
-    return Object.fromEntries(this.cache)
+    // Only sync entries whose logical key starts with '~'
+    const result: Record<string, string> = {}
+    for (const [k, v] of this.cache) {
+      if (k.startsWith('~')) result[k] = v
+    }
+    return result
   }
 
   /**
@@ -78,9 +91,9 @@ export class EncryptedLocalStorage implements ClientStorage {
     const entries: Array<{ short: string; b64: string }> = []
     for (let i = 0; i < len; i++) {
       const rawKey = localStorage.key(i)
-      if (rawKey && rawKey.startsWith(LS_PREFIX)) {
+      if (rawKey && rawKey.startsWith(this.lsPrefix)) {
         const b64 = localStorage.getItem(rawKey)
-        if (b64) entries.push({ short: rawKey.slice(LS_PREFIX.length), b64 })
+        if (b64) entries.push({ short: rawKey.slice(this.lsPrefix.length), b64 })
       }
     }
 
@@ -97,7 +110,7 @@ export class EncryptedLocalStorage implements ClientStorage {
 
   private async encryptAndStore(key: string, value: string, cryptoKey: CryptoKey): Promise<void> {
     const b64 = await encryptValue(cryptoKey, value)
-    localStorage.setItem(LS_PREFIX + key, b64)
+    localStorage.setItem(this.lsPrefix + key, b64)
   }
 }
 

@@ -23,6 +23,7 @@ public class Main {
             // antes de iniciar o app, para que tryRestore() encontre os tokens cifrados.
             ShoppingTeaVMApplication app = new ShoppingTeaVMApplication(apiBaseUrl);
             Console.log("WDC Shopping TeaVM - App created, initializing secure storage...");
+            EncryptedLocalStorage.configure("tw");
             EncryptedLocalStorage.initialize(() -> {
                 app.start();
                 removeLoadingScreen();

@@ -42,4 +42,15 @@ public interface ClientStorage {
      */
     void remove(String key);
 
+    /**
+     * Retorna todas as entradas deste escopo candidatas à sincronização.
+     * Por convenção, apenas chaves prefixadas com {@code ~} são incluídas.
+     * <p>
+     * Implementações que não suportam sincronização (ex.: in-memory, desktop)
+     * podem retornar o mapa padrão vazio.
+     */
+    default java.util.Map<String, String> all() {
+        return java.util.Collections.emptyMap();
+    }
+
 }

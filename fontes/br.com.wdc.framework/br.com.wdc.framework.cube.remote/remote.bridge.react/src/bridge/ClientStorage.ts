@@ -93,11 +93,21 @@ export class SessionStorageClientStorage implements ClientStorage {
 export class LocalStorageClientStorage implements ClientStorage {
   private _secure: ClientStorage | null = null
 
+  /**
+   * @param shellId      short identifier for the shell (e.g. `'rr'`) — used as
+   *                     localStorage namespace prefix
+   * @param skipPrefixes raw key prefixes (or exact keys) to exclude from `all()`
+   * @param secureFactory factory that produces the `.secure` view of this storage
+   */
   constructor(
-    private readonly keyPrefix: string = '',
-    private readonly skipPrefixes: string[] = ['app_', 'sec.', 'req_seq'],
+    private readonly shellId: string = '',
+    private readonly skipPrefixes: string[] = ['app_', 'req_seq'],
     private readonly secureFactory: () => ClientStorage = () => new InMemoryClientStorage(),
   ) {}
+
+  private get keyPrefix(): string {
+    return this.shellId ? `${this.shellId}:` : ''
+  }
 
   get secure(): ClientStorage {
     return (this._secure ??= this.secureFactory())
@@ -123,6 +133,8 @@ export class LocalStorageClientStorage implements ClientStorage {
       if (!rawKey.startsWith(this.keyPrefix)) continue
       if (this.skipPrefixes.some(p => rawKey.startsWith(p))) continue
       const shortKey = rawKey.substring(this.keyPrefix.length)
+      // Only sync keys prefixed with '~'
+      if (!shortKey.startsWith('~')) continue
       const v = localStorage.getItem(rawKey)
       if (v !== null) result[shortKey] = v
     }

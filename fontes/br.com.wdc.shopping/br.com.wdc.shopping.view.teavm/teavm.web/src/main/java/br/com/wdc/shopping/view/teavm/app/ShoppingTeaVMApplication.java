@@ -131,7 +131,7 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
     }
 
     private final BrowserSessionStorage sessionStore = new BrowserSessionStorage();
-    private final BrowserLocalStorage persistentStore = new BrowserLocalStorage();
+    private final BrowserLocalStorage persistentStore = new BrowserLocalStorage("tw");
 
     @Override
     public ClientStorage clientSessionStore() {

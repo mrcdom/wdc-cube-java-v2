@@ -45,10 +45,12 @@ export class ViewStateCoordinator {
     this.viewMap.set(BROWSER_VSID, new ViewScope(BROWSER_VSID))
 
     // Storage: session uses browser sessionStorage (survives F5, not tab close);
-    // persistent uses localStorage. .secure uses AES-GCM encryption via IndexedDB.
-    const encryptedStorage = new EncryptedLocalStorage()
+    // persistent uses localStorage namespaced by shell ("rr:") for isolation.
+    // .secure uses AES-GCM encryption via IndexedDB (shared across shells).
+    // Only keys prefixed with '~' are included in WebSocket bootstrap/delta payloads.
+    const encryptedStorage = new EncryptedLocalStorage('rr')
     this.sessionStorage = new SessionStorageClientStorage()
-    this.persistentStorage = new LocalStorageClientStorage('', ['app_', 'sec.', 'req_seq'], () => encryptedStorage)
+    this.persistentStorage = new LocalStorageClientStorage('rr', ['app_', 'rr:sec.', 'req_seq'], () => encryptedStorage)
 
     const appIdFromCookie = Cookie.get('app_id')
     if (appIdFromCookie) {

@@ -116,14 +116,15 @@ public interface ClientStorage {
         private ClientStorage _secure;
 
         /**
-         * @param keyPrefix     raw key prefix in localStorage (e.g. {@code ""} for plain,
-         *                      {@code "sec."} for secure-namespaced)
+         * @param shellId       short identifier for the shell (e.g. {@code "rt"}) used as
+         *                      a localStorage namespace prefix — keeps each shell's data isolated
+         *                      while sharing the same IndexedDB AES key
          * @param skipPrefixes  raw key prefixes to exclude from {@link #all()}
          * @param secureFactory factory that produces the {@link #secure()} view
          */
-        public LocalStorageClientStorage(String keyPrefix, String[] skipPrefixes,
+        public LocalStorageClientStorage(String shellId, String[] skipPrefixes,
                 Supplier<ClientStorage> secureFactory) {
-            this.keyPrefix = keyPrefix;
+            this.keyPrefix = shellId.isEmpty() ? "" : shellId + ":";
             this.skipPrefixes = skipPrefixes;
             this.secureFactory = secureFactory;
         }
@@ -164,6 +165,8 @@ public interface ClientStorage {
                     if (rawKey.startsWith(skip)) continue outer;
                 }
                 String shortKey = rawKey.substring(keyPrefix.length());
+                // Only sync keys prefixed with '~'
+                if (!shortKey.startsWith("~")) continue;
                 String v = lsGetItem(rawKey);
                 if (v != null) {
                     result.put(shortKey, v);

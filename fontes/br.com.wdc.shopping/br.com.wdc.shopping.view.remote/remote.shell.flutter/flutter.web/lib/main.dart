@@ -19,24 +19,26 @@ void main() async {
 
   // Persistent storage backed by localStorage (survives page refresh).
   // Secure view uses AES-GCM encryption via IndexedDB (non-extractable key).
-  final secureStorage = EncryptedWebStorage();
+  // shellId 'rf' namespaces all keys under 'rf:' / 'rf:sec.' to isolate
+  // this shell's data from other shells sharing the same origin.
+  final secureStorage = EncryptedWebStorage('rf');
   await secureStorage.initialize();
   final persistentStorage = DelegateClientStorage(
-    get: (key) => web.window.localStorage.getItem(key),
-    set: (key, value) => web.window.localStorage.setItem(key, value),
-    remove: (key) => web.window.localStorage.removeItem(key),
+    get: (key) => web.window.localStorage.getItem('rf:$key'),
+    set: (key, value) => web.window.localStorage.setItem('rf:$key', value),
+    remove: (key) => web.window.localStorage.removeItem('rf:$key'),
     all: () {
       final result = <String, String>{};
       final ls = web.window.localStorage;
+      const prefix = 'rf:';
       for (var i = 0; i < ls.length; i++) {
-        final k = ls.key(i);
-        if (k != null &&
-            !k.startsWith('sec.') &&
-            !k.startsWith('app_') &&
-            k != 'req_seq') {
-          final v = ls.getItem(k);
-          if (v != null) result[k] = v;
-        }
+        final rawKey = ls.key(i);
+        if (rawKey == null || !rawKey.startsWith(prefix)) continue;
+        final shortKey = rawKey.substring(prefix.length);
+        // Only sync keys prefixed with '~'; skip sec.* (handled by secureStorage)
+        if (!shortKey.startsWith('~') || shortKey.startsWith('sec.')) continue;
+        final v = ls.getItem(rawKey);
+        if (v != null) result[shortKey] = v;
       }
       return result;
     },

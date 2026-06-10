@@ -19,8 +19,8 @@ import br.com.wdc.shopping.domain.security.SecurityContext;
  */
 public class TeaVMAuthenticationService implements AuthenticationService {
 
-    private static final String KEY_ACCESS_TOKEN = "auth.accessToken";
-    private static final String KEY_REFRESH_TOKEN = "auth.refreshToken";
+    private static final String KEY_ACCESS_TOKEN = "~auth.accessToken";
+    private static final String KEY_REFRESH_TOKEN = "~auth.refreshToken";
 
     private final Log log = Log.getLogger(TeaVMAuthenticationService.class.getSimpleName());
 

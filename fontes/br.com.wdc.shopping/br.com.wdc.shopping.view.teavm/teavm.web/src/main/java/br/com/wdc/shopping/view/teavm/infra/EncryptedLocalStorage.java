@@ -45,7 +45,21 @@ public class EncryptedLocalStorage implements ClientStorage {
     /** Chave AES-GCM não-exportável, obtida do IndexedDB. Null se indisponível. */
     private static JSObject cryptoKey;
 
-    private static final String LS_PREFIX = "sec.";
+    /**
+     * Prefixo no localStorage: {@code "{shellId}:sec."}.
+     * Configurado por {@link #configure(String)} antes de {@link #initialize(Runnable)}.
+     */
+    private static String LS_PREFIX = "sec.";
+
+    /**
+     * Configura o prefixo de namespace específico do shell.
+     * Deve ser chamado antes de {@link #initialize(Runnable)}.
+     *
+     * @param shellId identificador curto do shell (ex: {@code "tw"})
+     */
+    public static void configure(String shellId) {
+        LS_PREFIX = shellId + ":sec.";
+    }
 
     private EncryptedLocalStorage() {
     }
@@ -131,6 +145,18 @@ public class EncryptedLocalStorage implements ClientStorage {
     public void remove(String key) {
         cache.remove(key);
         lsRemoveItem(LS_PREFIX + key);
+    }
+
+    @Override
+    public Map<String, String> all() {
+        // Apenas chaves com prefixo '~' são candidatas à sincronização com o backend
+        var result = new LinkedHashMap<String, String>();
+        for (var e : cache.entrySet()) {
+            if (e.getKey().startsWith("~")) {
+                result.put(e.getKey(), e.getValue());
+            }
+        }
+        return result;
     }
 
     // -- JS interop --
