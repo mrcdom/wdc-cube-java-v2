@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import br.com.wdc.framework.commons.log.Log;
+import br.com.wdc.framework.commons.storage.ClientStorage;
 import br.com.wdc.framework.commons.util.Defer;
 import br.com.wdc.framework.cube.CubeApplication;
 import br.com.wdc.framework.cube.CubeIntent;
@@ -108,6 +109,16 @@ public class ShoppingApplicationImpl extends ShoppingApplication implements Remo
 	}
 
 	@Override
+	public ClientStorage clientSessionStore() {
+		return this.support.getClientStorage().session();
+	}
+
+	@Override
+	public ClientStorage clientPersistentStore() {
+		return this.support.getClientStorage().persistent();
+	}
+
+	@Override
 	public void updateHistory() {
 		this.support.updateHistory();
 	}
@@ -150,11 +161,8 @@ public class ShoppingApplicationImpl extends ShoppingApplication implements Remo
 				app.support.getDataSecurity().updateSecret(secret);
 			}
 
-			// Store deciphered access token as app attribute for RootPresenter auto-login
-			var cipheredToken = (String) request.get("accessToken");
-			if (StringUtils.isNotBlank(cipheredToken)) {
-				decipherAndStoreAccessToken(app, cipheredToken);
-			}
+			// Populate client storage from bootstrap payload (both scopes)
+			app.support.getClientStorage().loadFromBootstrap(request.get("storage"));
 
 			var path = app.getFragment();
 			var browserViewId = app.getSupport().getBrowserPresenter().getView().instanceId();
@@ -173,15 +181,6 @@ public class ShoppingApplicationImpl extends ShoppingApplication implements Remo
 			return ExceptionUtils.rethrow(caught);
 		}
 		return app;
-	}
-
-	private static void decipherAndStoreAccessToken(ShoppingApplicationImpl app, String cipheredToken) {
-		try {
-			var accessToken = app.support.getDataSecurity().b64Decipher(cipheredToken);
-			app.setAttribute("accessToken", accessToken);
-		} catch (Exception e) {
-			LOG.warn("Failed to decipher accessToken for app {}: {}", app.getId(), e.getMessage());
-		}
 	}
 
 	// :: Host callbacks

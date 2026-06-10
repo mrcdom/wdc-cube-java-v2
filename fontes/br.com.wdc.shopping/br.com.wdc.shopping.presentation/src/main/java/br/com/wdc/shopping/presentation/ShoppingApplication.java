@@ -114,19 +114,6 @@ public abstract class ShoppingApplication extends CubeApplication {
 
 	public abstract String b64Decipher(String b64Text);
 
-	/**
-	 * Emits an access token to the frontend for persistent storage via RootViewState.
-	 * Empty string signals the frontend to delete the stored token.
-	 */
-	public void emitAccessToken(String token) {
-		var root = getRootPresenter();
-		if (root != null) {
-			root.state.accessToken = b64Cipher(token != null ? token : "");
-			root.update();
-		}
-	}
-
-	// :: API
 
 	public void alertUnexpectedError(Log logger, String message, Throwable e) {
 		var rootPresenter = this.getRootPresenter();

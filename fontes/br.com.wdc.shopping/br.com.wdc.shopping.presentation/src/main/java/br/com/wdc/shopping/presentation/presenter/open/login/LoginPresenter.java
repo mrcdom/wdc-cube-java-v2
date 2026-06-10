@@ -14,6 +14,7 @@ import br.com.wdc.framework.cube.ViewState;
 import br.com.wdc.shopping.domain.exception.OfflineException;
 import br.com.wdc.shopping.presentation.PlaceAttributes;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
+import br.com.wdc.shopping.presentation.StorageKeys;
 import br.com.wdc.shopping.presentation.presenter.Routes;
 
 public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
@@ -53,7 +54,7 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     public LoginPresenter(ShoppingApplication app) {
         super(app);
-        this.loginService = new LoginService(app);
+        this.loginService = new LoginService(app.getUserRepository());
     }
 
     // :: Cube API
@@ -110,13 +111,19 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
         }
 
         try {
-            var subject = loginService.fetchSubject(userName, password);
+            var result = loginService.fetchSubject(userName, password);
 
-            if (subject == null || subject.getId() == null) {
+            if (result == null || result.subject() == null || result.subject().getId() == null) {
                 app.setSubject(null);
                 this.alertUserOrPasswordNotRecognize();
             } else {
-                app.setSubject(subject);
+                if (result.securityContext() != null) {
+                    app.setSecurityContext(result.securityContext());
+                }
+                if (result.persistentToken() != null) {
+                    app.clientPersistentStore().secure().set(StorageKeys.AUTH_TOKEN, result.persistentToken());
+                }
+                app.setSubject(result.subject());
                 Routes.home(app);
             }
         } catch (Exception caught) {

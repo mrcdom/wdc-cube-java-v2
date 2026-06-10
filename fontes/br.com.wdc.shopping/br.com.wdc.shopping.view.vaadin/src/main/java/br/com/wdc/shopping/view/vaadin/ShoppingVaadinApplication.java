@@ -9,6 +9,8 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Div;
 
 import br.com.wdc.framework.commons.log.Log;
+import br.com.wdc.framework.commons.storage.ClientStorage;
+import br.com.wdc.framework.commons.storage.InMemoryClientStorage;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubePresenter;
 import br.com.wdc.shopping.presentation.ProxyRepositoryWrapper;
@@ -209,6 +211,15 @@ public class ShoppingVaadinApplication extends ShoppingApplication {
     public String b64Decipher(String b64Text) {
         throw new AssertionError("not implemented");
     }
+
+    private final InMemoryClientStorage sessionStore    = new InMemoryClientStorage();
+    private final InMemoryClientStorage persistentStore = new InMemoryClientStorage();
+
+    @Override
+    public ClientStorage clientSessionStore()    { return sessionStore; }
+
+    @Override
+    public ClientStorage clientPersistentStore() { return persistentStore; }
 
     public void markDirty(AbstractViewVaadin<?> view) {
         if (this.dirtyViewMap.putIfAbsent(view.instanceId(), view) == null) {

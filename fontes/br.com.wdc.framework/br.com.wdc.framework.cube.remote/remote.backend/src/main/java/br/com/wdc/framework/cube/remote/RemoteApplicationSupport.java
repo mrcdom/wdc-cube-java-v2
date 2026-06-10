@@ -89,6 +89,8 @@ public class RemoteApplicationSupport {
     private volatile long lastWakeupNanos;
     private volatile boolean processingSubmit;
 
+    private final RemoteClientStorage clientStorage = new RemoteClientStorage();
+
     // :: Constructor
 
     public RemoteApplicationSupport(String id, Host host, RemoteAppSecurity security) {
@@ -104,6 +106,7 @@ public class RemoteApplicationSupport {
     public void postConstruct(RemoteApplication owner) {
         this.expireMoment = System.currentTimeMillis() + timeSpan.toMillis();
         this.dataSecurity = new RemoteDataSecurity(security);
+        this.clientStorage.init(this.dataSecurity);
         this.browserPresenter = new RemoteBrowserPresenter(owner);
         this.putView(this.browserPresenter.getView());
         this.browserPresenter.update();
@@ -153,6 +156,12 @@ public class RemoteApplicationSupport {
 
     public RemoteDataSecurity getDataSecurity() {
         return dataSecurity;
+    }
+
+    // :: Client storage
+
+    public RemoteClientStorage getClientStorage() {
+        return clientStorage;
     }
 
     // :: Browser presenter
@@ -527,6 +536,27 @@ public class RemoteApplicationSupport {
         {
             if (requestId != null) {
                 json.name("requestId").value(requestId);
+            }
+
+            // Client storage deltas
+            var storageDelta = this.clientStorage.drainDeltas();
+            if (storageDelta != null) {
+                json.name("storage");
+                json.beginObject();
+                for (var scopeEntry : storageDelta.entrySet()) {
+                    json.name(scopeEntry.getKey());
+                    json.beginObject();
+                    for (var kv : scopeEntry.getValue().entrySet()) {
+                        json.name(kv.getKey());
+                        if (kv.getValue() == null) {
+                            json.nullValue();
+                        } else {
+                            json.value(kv.getValue());
+                        }
+                    }
+                    json.endObject();
+                }
+                json.endObject();
             }
 
             var currentFragment = host.getCubeApp().getFragment();

@@ -5,26 +5,29 @@ import br.com.wdc.shopping.domain.repositories.UserRepository;
 import br.com.wdc.shopping.domain.security.AuthenticationService;
 import br.com.wdc.shopping.domain.security.PasswordUtil;
 import br.com.wdc.shopping.domain.security.SecurityContext;
-import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
 
 public class LoginService {
 
-    private final ShoppingApplication app;
+    private final UserRepository userRepository;
 
-    public LoginService(ShoppingApplication app) {
-        this.app = app;
+    public LoginService(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
-    public Subject fetchSubject(String userName, String password) {
+    /**
+     * Autentica o usuário e retorna o resultado completo.
+     * Retorna {@code null} se as credenciais forem inválidas.
+     */
+    public LoginResult fetchSubject(String userName, String password) {
         var authService = AuthenticationService.BEAN.get();
-        if (authService != null && app != null) {
+        if (authService != null) {
             return authenticateViaAuthService(authService, userName, password);
         }
         return authenticateViaRepository(userName, password);
     }
 
-    private Subject authenticateViaAuthService(AuthenticationService authService, String userName, String password) {
+    private LoginResult authenticateViaAuthService(AuthenticationService authService, String userName, String password) {
         // 1. Hash da senha (MD5 → base36, mesmo formato do banco)
         var passwordHash = PasswordUtil.hashPassword(password);
 
@@ -45,43 +48,42 @@ public class LoginService {
         try {
             securityContext = authService.resolveToken(authResult.accessToken());
         } catch (UnsupportedOperationException ignored) {
-            // REST clients não resolvem JWT localmente; o contexto de segurança fica nulo
-            // e toda autorização é delegada ao servidor via Bearer token.
+            // REST clients não resolvem JWT localmente; toda autorização é
+            // delegada ao servidor via Bearer token.
         }
         if (securityContext != null) {
             SecurityContext.CURRENT.set(securityContext);
         }
 
-        // 6. Armazenar SecurityContext na aplicação (para delegates de repositório)
-        app.setSecurityContext(securityContext);
-
-        // 7. Emitir token persistente para clientes nativos (remember me)
-        // REST clients gerenciam sessão via refresh token (já persistido em step 4); pular.
+        // 6. Token persistente para auto-login (remember me)
+        // REST clients gerenciam sessão via refresh token; lança UnsupportedOperationException.
+        String persistentToken = null;
         try {
-            var persistentToken = authService.createPersistentToken(authResult.userId(), userName);
-            app.emitAccessToken(persistentToken);
+            persistentToken = authService.createPersistentToken(authResult.userId(), userName);
         } catch (UnsupportedOperationException ignored) {
-            // REST client: sessão gerenciada por refresh token
+            // REST client: sem persistent token
         }
 
-        // 8. Buscar nome de exibição do usuário
-        var users = app.getUserRepository().fetch(new UserCriteria()
+        // 7. Buscar nome de exibição do usuário
+        var users = userRepository.fetch(new UserCriteria()
                 .withUserId(authResult.userId())
                 .withProjection(Subject.projection()), 0, 1);
-        return users.isEmpty() ? null : Subject.create(users.get(0));
+        var subject = users.isEmpty() ? null : Subject.create(users.get(0));
+
+        return new LoginResult(subject, securityContext, persistentToken);
     }
 
     /**
      * Fallback para ambientes sem segurança (testes unitários sem initializeSecurity).
      */
-    private Subject authenticateViaRepository(String userName, String password) {
-        var repository = UserRepository.BEAN.get();
-        return repository.fetch(new UserCriteria()
+    private LoginResult authenticateViaRepository(String userName, String password) {
+        var subject = userRepository.fetch(new UserCriteria()
                 .withUserName(userName)
                 .withPassword(password)
                 .withProjection(Subject.projection()), 0, 1)
                 .stream().map(Subject::create)
                 .findFirst().orElse(null);
+        return subject != null ? new LoginResult(subject, null, null) : null;
     }
 
 }

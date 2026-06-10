@@ -3,6 +3,7 @@ import 'dart:io' show HttpClient, Platform;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_commons/flutter_commons.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Resolves the base HTTP URL from:
@@ -29,6 +30,7 @@ String _toWsUrl(String httpUrl) {
 }
 
 late SharedPreferences _prefs;
+late FlutterSecureStorage _securePrefs;
 
 /// Fetches session credentials from the backend.
 /// Returns {appId, appSKey} or null on failure.
@@ -55,6 +57,7 @@ Future<Map<String, String>?> _fetchSessionInit(String baseHttpUrl) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   _prefs = await SharedPreferences.getInstance();
+  _securePrefs = const FlutterSecureStorage();
 
   final baseHttpUrl = _resolveBaseHttpUrl();
   final baseWsUrl = _toWsUrl(baseHttpUrl);
@@ -69,19 +72,55 @@ void main() async {
   final appId = session['appId']!;
   final appSKey = session['appSKey']!;
 
-  // Load persistent access token (for auto-login / remember me)
-  final savedToken = _prefs.getString('access_token');
-
   // Persist for potential reconnection
   _prefs.setString('app_id', appId);
   _prefs.setString('app_skey', appSKey);
+
+  // Build ClientStorage instances backed by SharedPreferences / FlutterSecureStorage
+  final secureStorage = DelegateClientStorage(
+    get: (key) => null, // async read not supported synchronously;
+    set: (key, value) {
+      _securePrefs.write(key: key, value: value);
+    },
+    remove: (key) {
+      _securePrefs.delete(key: key);
+    },
+    all: () => const {}, // bootstrap data loaded async below
+    secureFactory: () => InMemoryClientStorage(), // already IS secure
+  );
+  final persistentStorage = DelegateClientStorage(
+    get: (key) => _prefs.getString(key),
+    set: (key, value) {
+      _prefs.setString(key, value);
+    },
+    remove: (key) {
+      _prefs.remove(key);
+    },
+    all: () {
+      return {
+        for (final key in _prefs.getKeys().where(
+          (k) => !k.startsWith('app_') && k != 'req_seq' && k != 'last_path',
+        ))
+          key: _prefs.getString(key)!,
+      };
+    },
+    secureFactory: () => secureStorage,
+  );
+  final sessionStorage = InMemoryClientStorage();
+
+  // Pre-load auth.token from secure storage (for auto-login / remember me)
+  final savedToken = await _securePrefs.read(key: 'auth.token');
+  if (savedToken != null && savedToken.isNotEmpty) {
+    secureStorage.set('auth.token', savedToken);
+  }
 
   final coordinator = ViewStateCoordinator(
     CoordinatorConfig(
       appId: appId,
       securityKey: appSKey,
       baseWebSocketUrl: baseWsUrl,
-      accessToken: savedToken,
+      sessionStorage: sessionStorage,
+      persistentStorage: persistentStorage,
       onSetCookie: (name, value) {
         _prefs.setString(name, value);
       },
@@ -104,15 +143,6 @@ void main() async {
   coordinator.onUriChanged = (uri) {
     coordinator.path = uri;
     _prefs.setString('last_path', uri);
-  };
-
-  // Handle access token changes from server (login/logoff)
-  coordinator.onAccessTokenChanged = (token) {
-    if (token.isEmpty) {
-      _prefs.remove('access_token');
-    } else {
-      _prefs.setString('access_token', token);
-    }
   };
 
   coordinator.onSessionInvalid = () async {

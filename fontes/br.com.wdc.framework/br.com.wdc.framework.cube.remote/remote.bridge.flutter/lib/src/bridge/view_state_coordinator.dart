@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/widgets.dart';
 
+import 'client_storage.dart';
 import 'constants.dart';
 import 'data_security.dart';
 import 'flush_request_context.dart';
@@ -44,12 +45,11 @@ class ViewStateCoordinator {
   /// Called once on init to restore the persisted request sequence counter.
   int Function()? onRestoreRequestSeq;
 
-  /// Called when the server sends an access token (after login success).
-  /// Empty string means "forget the token" (logoff).
-  void Function(String token)? onAccessTokenChanged;
+  /// Session-scoped storage: lives while the app is running.
+  late final ClientStorage sessionStorage;
 
-  /// The current access token to send on first connect (for auto-login).
-  String? accessToken;
+  /// Persistent-scoped storage: survives app restarts, synced on bootstrap.
+  late final ClientStorage persistentStorage;
 
   /// Sync initialization (security key derivation) — called once on start.
   void Function() readyToStart = _noopSync;
@@ -62,7 +62,8 @@ class ViewStateCoordinator {
 
     onPersistRequestSeq = config.onPersistRequestSeq;
     onRestoreRequestSeq = config.onRestoreRequestSeq;
-    accessToken = config.accessToken;
+    sessionStorage = config.sessionStorage ?? InMemoryClientStorage();
+    persistentStorage = config.persistentStorage ?? InMemoryClientStorage();
 
     if (config.securityKey != null && config.securityKey!.isNotEmpty) {
       dataSecurity.updateSecurityKey(config.securityKey!);
@@ -151,27 +152,40 @@ class ViewStateCoordinator {
       final vsid = viewState['#'] as String?;
       if (vsid == null) continue;
 
-      // Intercept accessToken from any ViewState (typically RootViewState)
-      if (viewState.containsKey('accessToken')) {
-        final ciphered = viewState['accessToken'] as String?;
-        if (ciphered != null && ciphered.isNotEmpty) {
-          final token = dataSecurity.b64Decipher(ciphered);
-          if (token.isNotEmpty) {
-            accessToken = token;
-            onAccessTokenChanged?.call(token);
-          } else {
-            accessToken = null;
-            onAccessTokenChanged?.call('');
-          }
-        }
-      }
-
       var viewScope = viewMap[vsid];
       if (viewScope == null) {
         viewScope = ViewScope(vsid);
         viewMap[vsid] = viewScope;
       }
       viewScope.setState(Map<String, dynamic>.from(viewState));
+    }
+  }
+
+  /// Applies a storage delta received from the server.
+  void applyStorageDelta(Map<String, dynamic> storageDelta) {
+    _applyStorageScope(
+      storageDelta['session'] as Map<String, dynamic>?,
+      sessionStorage,
+    );
+    _applyStorageScope(
+      storageDelta['persistent'] as Map<String, dynamic>?,
+      persistentStorage,
+    );
+    _applyStorageScope(
+      storageDelta['persistent-secure'] as Map<String, dynamic>?,
+      persistentStorage.secure,
+    );
+  }
+
+  void _applyStorageScope(Map<String, dynamic>? scope, ClientStorage target) {
+    if (scope == null) return;
+    for (final entry in scope.entries) {
+      final ciphered = entry.value as String?;
+      if (ciphered == null) {
+        target.remove(entry.key);
+      } else if (ciphered.isNotEmpty) {
+        target.set(entry.key, dataSecurity.b64Decipher(ciphered));
+      }
     }
   }
 

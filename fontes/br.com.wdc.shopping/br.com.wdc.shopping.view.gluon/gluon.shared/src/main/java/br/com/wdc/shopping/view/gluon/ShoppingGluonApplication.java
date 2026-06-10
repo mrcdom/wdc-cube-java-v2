@@ -5,6 +5,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import br.com.wdc.framework.commons.log.Log;
+import br.com.wdc.framework.commons.storage.ClientStorage;
+import br.com.wdc.framework.commons.storage.InMemoryClientStorage;
+import br.com.wdc.framework.commons.storage.PreferencesClientStorage;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubePresenter;
 import br.com.wdc.shopping.presentation.ProxyRepositoryWrapper;
@@ -157,5 +160,18 @@ public class ShoppingGluonApplication extends ShoppingApplication {
     @Override
     public String b64Decipher(String b64Text) {
         throw new AssertionError("Not implemented");
+    }
+
+    private final InMemoryClientStorage sessionStore = new InMemoryClientStorage();
+    private final PreferencesClientStorage persistentStore = new PreferencesClientStorage(ShoppingGluonApplication.class);
+
+    @Override
+    public ClientStorage clientSessionStore() {
+        return sessionStore;
+    }
+
+    @Override
+    public ClientStorage clientPersistentStore() {
+        return persistentStore;
     }
 }

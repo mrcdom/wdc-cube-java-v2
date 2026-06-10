@@ -4,6 +4,7 @@
 /// RSA/AES-GCM security, reconnection logic, and base view abstractions.
 library;
 
+export 'src/bridge/client_storage.dart';
 export 'src/bridge/constants.dart';
 export 'src/bridge/types.dart';
 export 'src/bridge/view_scope.dart';

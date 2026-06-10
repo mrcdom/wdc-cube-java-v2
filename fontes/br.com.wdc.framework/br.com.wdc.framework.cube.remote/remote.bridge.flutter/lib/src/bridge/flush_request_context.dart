@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+import 'client_storage.dart';
 import 'constants.dart';
 import 'types.dart';
 import 'view_state_coordinator.dart';
@@ -27,7 +28,7 @@ class FlushRequestContext {
   Timer? _submittingTimeout;
   final Set<int> _userRequestIds = {};
   String? _pendingSecret;
-  String? _pendingAccessToken;
+  Map<String, dynamic>? _pendingBootstrapStorage;
 
   FlushRequestContext(this.app) {
     // Restore request counter from platform storage (survives F5)
@@ -94,16 +95,14 @@ class FlushRequestContext {
       hasData = true;
     }
 
-    if (hasData || _pendingSecret != null) {
+    if (hasData || _pendingSecret != null || _pendingBootstrapStorage != null) {
       if (_pendingSecret != null) {
         requestObj['secret'] = _pendingSecret;
         _pendingSecret = null;
       }
-      if (_pendingAccessToken != null) {
-        requestObj['accessToken'] = app.dataSecurity.b64Cipher(
-          _pendingAccessToken!,
-        );
-        _pendingAccessToken = null;
+      if (_pendingBootstrapStorage != null) {
+        requestObj['storage'] = _pendingBootstrapStorage;
+        _pendingBootstrapStorage = null;
       }
       _channel?.sink.add(jsonEncode(requestObj));
       if (_userRequestIds.isNotEmpty) {
@@ -128,7 +127,11 @@ class FlushRequestContext {
           _isOpen = true;
           app.isConnected = true;
           _pendingSecret = app.dataSecurity.getSignature();
-          _pendingAccessToken = app.accessToken;
+          // Snapshot all syncable storage entries for the bootstrap payload;
+          // will be included in the first flush() after open.
+          _pendingBootstrapStorage = _buildBootstrapStorage();
+          if (_pendingBootstrapStorage!.isEmpty)
+            _pendingBootstrapStorage = null;
           _initKeepAliveChecks();
           flush();
         })
@@ -208,6 +211,10 @@ class FlushRequestContext {
 
     if (response['uri'] != null) {
       app.onUriChanged(response['uri'] as String);
+    }
+
+    if (response['storage'] != null) {
+      app.applyStorageDelta(response['storage'] as Map<String, dynamic>);
     }
 
     if (response['states'] != null) {
@@ -290,5 +297,29 @@ class FlushRequestContext {
     if (scope != null && scope.state['submitting'] != value) {
       scope.patchField('submitting', value);
     }
+  }
+
+  // :: Storage helpers
+
+  /// Builds the bootstrap `storage` map sent on WebSocket open.
+  /// All values are ciphered. Null values are never included (nothing to remove
+  /// on a fresh connection).
+  Map<String, dynamic> _buildBootstrapStorage() {
+    final result = <String, dynamic>{};
+
+    void addScope(String scopeName, ClientStorage storage) {
+      final all = storage.all;
+      if (all.isNotEmpty) {
+        result[scopeName] = {
+          for (final e in all.entries)
+            e.key: app.dataSecurity.b64Cipher(e.value),
+        };
+      }
+    }
+
+    addScope('session', app.sessionStorage);
+    addScope('persistent', app.persistentStorage);
+    addScope('persistent-secure', app.persistentStorage.secure);
+    return result;
   }
 }

@@ -1,33 +1,45 @@
 package br.com.wdc.framework.commons.storage;
 
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Abstração de armazenamento chave-valor no cliente.
  * <p>
- * Cada plataforma fornece sua implementação:
+ * Cada plataforma fornece duas implementações por escopo, acessíveis via a
+ * instância de aplicação:
  * <ul>
- *   <li>Browser (TeaVM): {@code window.sessionStorage}</li>
- *   <li>Desktop/Mobile (Gluon/Swing): Java Preferences ou file-based</li>
+ *   <li>{@code app.clientSessionStore()} — in-memory, vive enquanto a instância de app estiver ativa.</li>
+ *   <li>{@code app.clientPersistentStore()} — persiste entre reinicializações (backing plain).</li>
  * </ul>
+ * Para armazenar valores sensíveis, use {@link #secure()} em qualquer dos escopos:
+ * <pre>
+ *   app.clientPersistentStore().secure().set("auth.token", token);
+ *   app.clientSessionStore().secure().set("csrf.token", csrf);
+ * </pre>
  */
 public interface ClientStorage {
 
-	AtomicReference<ClientStorage> BEAN = new AtomicReference<>();
+    /**
+     * Retorna uma visão deste escopo que usa backing seguro (Keychain,
+     * FlutterSecureStorage, etc.) para armazenar valores em repouso.
+     * <p>
+     * Implementações que não suportam backing seguro nativo (ex.: in-memory,
+     * Preferences desktop) podem retornar {@code this}.
+     */
+    ClientStorage secure();
 
-	/**
-	 * Obtém o valor associado à chave, ou {@code null} se não existir.
-	 */
-	String get(String key);
+    /**
+     * Retorna o valor associado à chave, ou {@code null} se não houver.
+     */
+    String get(String key);
 
-	/**
-	 * Armazena um valor associado à chave.
-	 */
-	void set(String key, String value);
+    /**
+     * Armazena um valor associado à chave.
+     */
+    void set(String key, String value);
 
-	/**
-	 * Remove a entrada associada à chave.
-	 */
-	void remove(String key);
+    /**
+     * Remove a entrada associada à chave.
+     */
+    void remove(String key);
 
 }

@@ -23,6 +23,7 @@ import br.com.wdc.shopping.domain.repositories.ProductRepository;
 import br.com.wdc.shopping.domain.repositories.PurchaseItemRepository;
 import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
 import br.com.wdc.shopping.domain.utils.ProjectionValues;
+import br.com.wdc.shopping.domain.repositories.UserRepository;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginService;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelService;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
@@ -68,7 +69,8 @@ public class ShoppingServiceTest extends BaseBusinessTest {
 
     @Test
     public void test() {
-        var subject = new LoginService(null).fetchSubject("admin", "admin");
+        var result = new LoginService(UserRepository.BEAN.get()).fetchSubject("admin", "admin");
+        var subject = result != null ? result.subject() : null;
         Assert.assertNotNull("Missing subject", subject);
 
         Assert.assertTrue("Subject.id must be a Long type", subject.getId() instanceof Long);

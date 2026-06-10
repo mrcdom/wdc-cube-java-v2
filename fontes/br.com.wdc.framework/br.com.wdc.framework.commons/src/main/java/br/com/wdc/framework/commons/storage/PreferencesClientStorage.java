@@ -22,6 +22,11 @@ public class PreferencesClientStorage implements ClientStorage {
 	}
 
 	@Override
+	public ClientStorage secure() {
+		return this; // JVM desktop: sem Keychain nativo, best-effort
+	}
+
+	@Override
 	public String get(String key) {
 		return prefs.get(key, null);
 	}

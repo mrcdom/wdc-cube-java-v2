@@ -5,6 +5,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.NotImplementedException;
 
+import br.com.wdc.framework.commons.storage.ClientStorage;
+import br.com.wdc.framework.commons.storage.InMemoryClientStorage;
 import br.com.wdc.framework.cube.CubePresenter;
 import br.com.wdc.shopping.presentation.ProxyRepositoryWrapper;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
@@ -75,5 +77,14 @@ public class ShoppingApplicationMock extends ShoppingApplication {
     public String b64Decipher(String b64Text) {
         throw new NotImplementedException();
     }
+
+    private final InMemoryClientStorage sessionStore    = new InMemoryClientStorage();
+    private final InMemoryClientStorage persistentStore = new InMemoryClientStorage();
+
+    @Override
+    public ClientStorage clientSessionStore()    { return sessionStore; }
+
+    @Override
+    public ClientStorage clientPersistentStore() { return persistentStore; }
 
 }

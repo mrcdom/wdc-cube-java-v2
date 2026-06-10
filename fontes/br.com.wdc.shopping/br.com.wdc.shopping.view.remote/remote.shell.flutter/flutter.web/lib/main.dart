@@ -15,9 +15,52 @@ void main() {
   final protocol = web.window.location.protocol == 'http:' ? 'ws://' : 'wss://';
   final baseWsUrl = '$protocol${web.window.location.host}';
 
+  // Persistent storage backed by localStorage (survives page refresh).
+  // Secure view uses a 'sec.' prefix to namespace keys.
+  final secureStorage = DelegateClientStorage(
+    get: (key) => web.window.localStorage.getItem('sec.$key'),
+    set: (key, value) => web.window.localStorage.setItem('sec.$key', value),
+    remove: (key) => web.window.localStorage.removeItem('sec.$key'),
+    all: () {
+      final result = <String, String>{};
+      final ls = web.window.localStorage;
+      for (var i = 0; i < ls.length; i++) {
+        final k = ls.key(i);
+        if (k != null && k.startsWith('sec.')) {
+          final v = ls.getItem(k);
+          if (v != null) result[k.substring(4)] = v;
+        }
+      }
+      return result;
+    },
+    secureFactory: () => InMemoryClientStorage(),
+  );
+  final persistentStorage = DelegateClientStorage(
+    get: (key) => web.window.localStorage.getItem(key),
+    set: (key, value) => web.window.localStorage.setItem(key, value),
+    remove: (key) => web.window.localStorage.removeItem(key),
+    all: () {
+      final result = <String, String>{};
+      final ls = web.window.localStorage;
+      for (var i = 0; i < ls.length; i++) {
+        final k = ls.key(i);
+        if (k != null &&
+            !k.startsWith('sec.') &&
+            !k.startsWith('app_') &&
+            k != 'req_seq') {
+          final v = ls.getItem(k);
+          if (v != null) result[k] = v;
+        }
+      }
+      return result;
+    },
+    secureFactory: () => secureStorage,
+  );
+
   final coordinator = ViewStateCoordinator(
     CoordinatorConfig(
       appId: appId,
+      persistentStorage: persistentStorage,
       securityKey: appSKey,
       baseWebSocketUrl: baseWsUrl,
       onSetCookie: (name, value) {

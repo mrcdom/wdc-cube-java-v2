@@ -12,6 +12,7 @@ import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.commons.http.HttpTransport;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.storage.ClientStorage;
+import br.com.wdc.framework.commons.storage.InMemoryClientStorage;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubePresenter;
 import br.com.wdc.shopping.domain.criteria.UserCriteria;
@@ -86,12 +87,9 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
         ScheduledExecutor.BEAN.set(new ScheduledExecutorBrowser());
 
         // Configura ClientStorage para browser (sessionStorage)
-        var storage = new BrowserSessionStorage();
-        ClientStorage.BEAN.set(storage);
-
         // Configura HTTP transport e registra repositórios
         HttpTransport transport = new FetchHttpTransport(apiBaseUrl);
-        TeaVMRepositoryBootstrap.initialize(transport, storage);
+        TeaVMRepositoryBootstrap.initialize(transport, sessionStore);
 
         // Escuta popstate (Back/Forward do browser)
         Window.current().addEventListener("popstate", evt -> onPopState());
@@ -129,6 +127,19 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
     @Override
     public String b64Decipher(String b64Text) {
         throw new AssertionError("not implemented");
+    }
+
+    private final BrowserSessionStorage sessionStore = new BrowserSessionStorage();
+    private final InMemoryClientStorage persistentStore = new InMemoryClientStorage();
+
+    @Override
+    public ClientStorage clientSessionStore() {
+        return sessionStore;
+    }
+
+    @Override
+    public ClientStorage clientPersistentStore() {
+        return persistentStore;
     }
 
     /**
