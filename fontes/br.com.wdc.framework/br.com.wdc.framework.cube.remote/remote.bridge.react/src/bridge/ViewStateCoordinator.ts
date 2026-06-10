@@ -9,11 +9,17 @@ import { DataSecurity } from './DataSecurity'
 import { FlushRequestContext } from './FlushRequestContext'
 import { ReconnectController } from './ReconnectController'
 import { ViewGarbageCollector } from './ViewGarbageCollector'
+import { ClientStorage, InMemoryClientStorage, LocalStorageClientStorage } from './ClientStorage'
 
 const Cookie = new CookieConstructor()
 
 export class ViewStateCoordinator {
   readonly id: string
+
+  /** Session-scoped storage: in-memory, lives while the tab is open. */
+  readonly sessionStorage: ClientStorage
+  /** Persistent-scoped storage: backed by localStorage, survives page reload. */
+  readonly persistentStorage: ClientStorage
 
   readonly viewFactory = new Map<string, IViewFactory>()
   readonly viewMap = new Map<string, ViewScope>()
@@ -36,6 +42,12 @@ export class ViewStateCoordinator {
 
   constructor() {
     this.viewMap.set(BROWSER_VSID, new ViewScope(BROWSER_VSID))
+
+    // Storage: session is in-memory; persistent is localStorage-backed.
+    // .secure uses 'sec.' key prefix to namespace sensitive values.
+    const secureStorage = new LocalStorageClientStorage('sec.', [], () => new InMemoryClientStorage())
+    this.sessionStorage = new InMemoryClientStorage()
+    this.persistentStorage = new LocalStorageClientStorage('', ['app_', 'sec.', 'req_seq'], () => secureStorage)
 
     const appIdFromCookie = Cookie.get('app_id')
     if (appIdFromCookie) {
@@ -224,5 +236,55 @@ export class ViewStateCoordinator {
 
   readonly assureContextExchangerIsConnected = () => {
     this.contextExchanger.open(this.reconnectController.url)
+  }
+
+  /**
+   * Builds the bootstrap `storage` map sent on WebSocket open.
+   * All values are ciphered. Returns `null` if the cipher key is not ready.
+   */
+  async buildBootstrapStorage(): Promise<Record<string, unknown> | null> {
+    if (!this.dataSecurity.getSignature()) return null
+
+    const result: Record<string, unknown> = {}
+
+    const addScope = async (scopeName: string, storage: ClientStorage) => {
+      const entries = storage.all()
+      const keys = Object.keys(entries)
+      if (keys.length === 0) return
+      const scoped: Record<string, string> = {}
+      for (const key of keys) {
+        scoped[key] = await this.dataSecurity.b64Cipher(entries[key])
+      }
+      result[scopeName] = scoped
+    }
+
+    await addScope('session', this.sessionStorage)
+    await addScope('persistent', this.persistentStorage)
+    await addScope('persistent-secure', this.persistentStorage.secure)
+
+    return Object.keys(result).length > 0 ? result : null
+  }
+
+  /**
+   * Applies a storage delta received from the server.
+   * Values are deciphered; a `null`/empty value means removal.
+   */
+  async applyStorageDelta(delta: Record<string, unknown>): Promise<void> {
+    if (!this.dataSecurity.getSignature()) return
+
+    const applyScope = async (scope: Record<string, string> | undefined, storage: ClientStorage) => {
+      if (!scope) return
+      for (const [key, ciphered] of Object.entries(scope)) {
+        if (!ciphered) {
+          storage.remove(key)
+        } else {
+          storage.set(key, await this.dataSecurity.b64Decipher(ciphered))
+        }
+      }
+    }
+
+    await applyScope(delta['session'] as Record<string, string>, this.sessionStorage)
+    await applyScope(delta['persistent'] as Record<string, string>, this.persistentStorage)
+    await applyScope(delta['persistent-secure'] as Record<string, string>, this.persistentStorage.secure)
   }
 }

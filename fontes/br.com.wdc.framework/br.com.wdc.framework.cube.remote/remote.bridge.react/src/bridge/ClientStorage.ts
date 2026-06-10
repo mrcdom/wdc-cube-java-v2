@@ -1,0 +1,90 @@
+/**
+ * Client-side key-value storage abstraction.
+ *
+ * Mirrors the Java/Dart `ClientStorage` design: two scopes (session and
+ * persistent) with a `.secure` view for sensitive values.
+ *
+ * All values that travel over WebSocket are ciphered regardless of the scope.
+ * The `.secure` view is a hint to use a more secure backing store where
+ * available (e.g., Keychain on mobile).
+ *
+ * In the browser there is no Keychain, so `.secure` uses `localStorage` with
+ * a `sec.` key prefix to namespace it away from plain persistent values.
+ */
+
+export interface ClientStorage {
+  /** Returns a view that uses secure backing (or `this` if already secure). */
+  readonly secure: ClientStorage
+
+  get(key: string): string | null
+  set(key: string, value: string): void
+  remove(key: string): void
+
+  /** All entries in this scope. Used when building the WebSocket bootstrap payload. */
+  all(): Record<string, string>
+}
+
+// ---------------------------------------------------------------------------
+// In-memory (session scope / fallback)
+// ---------------------------------------------------------------------------
+
+export class InMemoryClientStorage implements ClientStorage {
+  private readonly _data = new Map<string, string>()
+
+  get secure(): ClientStorage { return this }
+  get(key: string): string | null { return this._data.get(key) ?? null }
+  set(key: string, value: string): void { this._data.set(key, value) }
+  remove(key: string): void { this._data.delete(key) }
+  all(): Record<string, string> { return Object.fromEntries(this._data) }
+}
+
+// ---------------------------------------------------------------------------
+// localStorage-backed (persistent scope)
+// ---------------------------------------------------------------------------
+
+/**
+ * `localStorage`-backed implementation.
+ *
+ * @param keyPrefix     raw key prefix in localStorage (`''` for plain, `'sec.'` for secure)
+ * @param skipPrefixes  raw key prefixes (or exact keys) to exclude from `all()`
+ * @param secureFactory factory that produces the `.secure` view of this storage
+ */
+export class LocalStorageClientStorage implements ClientStorage {
+  private _secure: ClientStorage | null = null
+
+  constructor(
+    private readonly keyPrefix: string = '',
+    private readonly skipPrefixes: string[] = ['app_', 'sec.', 'req_seq'],
+    private readonly secureFactory: () => ClientStorage = () => new InMemoryClientStorage(),
+  ) {}
+
+  get secure(): ClientStorage {
+    return (this._secure ??= this.secureFactory())
+  }
+
+  get(key: string): string | null {
+    return localStorage.getItem(this.keyPrefix + key)
+  }
+
+  set(key: string, value: string): void {
+    localStorage.setItem(this.keyPrefix + key, value)
+  }
+
+  remove(key: string): void {
+    localStorage.removeItem(this.keyPrefix + key)
+  }
+
+  all(): Record<string, string> {
+    const result: Record<string, string> = {}
+    for (let i = 0; i < localStorage.length; i++) {
+      const rawKey = localStorage.key(i)
+      if (rawKey === null) continue
+      if (!rawKey.startsWith(this.keyPrefix)) continue
+      if (this.skipPrefixes.some(p => rawKey.startsWith(p))) continue
+      const shortKey = rawKey.substring(this.keyPrefix.length)
+      const v = localStorage.getItem(rawKey)
+      if (v !== null) result[shortKey] = v
+    }
+    return result
+  }
+}

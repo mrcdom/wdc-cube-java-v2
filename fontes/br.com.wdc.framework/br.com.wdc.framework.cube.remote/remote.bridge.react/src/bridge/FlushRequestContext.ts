@@ -21,6 +21,7 @@ export class FlushRequestContext {
   private submittingTimeout = 0
   private readonly userRequestIds = new Set<number>()
   private pendingSecret: string | null = null
+  pendingStorage: Record<string, unknown> | null = null
 
   constructor(app: ViewStateCoordinator) {
     this.app = app
@@ -96,10 +97,14 @@ export class FlushRequestContext {
       hasData = true
     }
 
-    if (hasData || this.pendingSecret) {
+    if (hasData || this.pendingSecret || this.pendingStorage) {
       if (this.pendingSecret) {
         requestObj.secret = this.pendingSecret
         this.pendingSecret = null
+      }
+      if (this.pendingStorage) {
+        requestObj.storage = this.pendingStorage
+        this.pendingStorage = null
       }
       socket.send(JSON.stringify(requestObj))
       if (this.userRequestIds.size > 0) {
@@ -131,7 +136,16 @@ export class FlushRequestContext {
       app.isConnected = true
       this.pendingSecret = app.dataSecurity.getSignature()
       this.initKeepAliveChecks()
-      this.flush()
+      // Build bootstrap storage payload (async: cipher key may have just been set)
+      // then flush. Nothing is sent until the promise resolves.
+      app.buildBootstrapStorage()
+        .then(storage => {
+          this.pendingStorage = storage
+          this.flush()
+        })
+        .catch(() => {
+          this.flush() // send even if storage build fails
+        })
     }
 
     socket.onerror = (error) => {
@@ -183,6 +197,10 @@ export class FlushRequestContext {
 
       if (response.states) {
         app.applyViewStates(response.states)
+      }
+
+      if (response.storage) {
+        app.applyStorageDelta(response.storage as Record<string, unknown>).catch(CAUTHED)
       }
 
       this.flush()
