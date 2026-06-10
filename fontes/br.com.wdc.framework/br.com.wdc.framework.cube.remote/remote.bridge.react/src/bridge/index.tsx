@@ -1,3 +1,4 @@
+import React from 'react'
 import { ViewStateCoordinator } from './ViewStateCoordinator'
 import { BROWSER_VSID } from './constants'
 import type { IViewFactory, ViewComponent } from './types'

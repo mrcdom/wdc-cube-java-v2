@@ -19,6 +19,7 @@
 
     <properties>
         <javalin.version>7.1.0</javalin.version>
+        <swagger-core.version>2.2.25</swagger-core.version>
     </properties>
 
     <dependencies>
@@ -33,6 +34,14 @@
             <groupId>io.javalin</groupId>
             <artifactId>javalin</artifactId>
             <version>${javalin.version}</version>
+        </dependency>
+
+        <!-- OpenAPI 3 programmatic model — no annotations required.
+             Used by each controller's OpenApi inner class and RepositoryApiDocs. -->
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-core</artifactId>
+            <version>${swagger-core.version}</version>
         </dependency>
     </dependencies>
 </project>

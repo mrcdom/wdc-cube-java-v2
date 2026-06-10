@@ -147,6 +147,7 @@ public class ShoppingApplicationImpl extends ShoppingApplication implements Remo
 		var app = new ShoppingApplicationImpl(appId);
 		try {
 			app.cleanUp.push(() -> registry.remove(appId));
+			app.support.setTimeSpan(registry.getSessionTimeSpan());
 
 			// Initialize data security before auto-login (needed for decipher)
 			var secret = (String) request.get("secret");

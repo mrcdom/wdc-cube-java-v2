@@ -12,15 +12,51 @@ basedir = ".."
 # JDBC URL. Default: H2 file database in the data directory
 # url = "jdbc:h2:file:/path/to/wedocode-shopping;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
 
-# Database credentials
+# H2 TCP server mode (for memory measurements — isolates DB heap from app heap):
+# 1. Start: ./work/bin/start-h2-server.sh
+# 2. Uncomment the line below, comment out the file URL above
+# url = "jdbc:h2:tcp://localhost/./wedocode-shopping;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+# Database credentials (H2 defaults)
 # username = "sa"
 # password = "sa"
+
+# PostgreSQL (recommended for production and load testing beyond H2 limits):
+# url = "jdbc:h2:tcp://localhost/./wedocode-shopping;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+# url = "jdbc:postgresql://localhost:5432/wedocode-shopping"
+# username = "postgres"
+# password = "admin"
+
+url = "jdbc:h2:tcp://localhost/./wedocode-shopping;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+# url = "jdbc:postgresql://localhost:5432/wedocode-shopping"
+# username = "postgres"
+# password = "changeme"
+
 
 # Reset database on startup (drops and recreates all tables)
 # reset = false
 
 # Log SQL statements executed by jOOQ (true/false)
 logSql = true
+
+# Connection pool (Agroal)
+# maxSize             = maximum concurrent connections to the database
+# minIdle             = minimum connections kept alive in the pool
+# connectionTimeoutSeconds = max wait for a connection before throwing
+#
+# H2 TCP: the H2 server (2.x) does not impose a fixed connection limit —
+#   it spawns one thread per connection internally. The effective limit is
+#   the OS thread/socket capacity of the H2 process.
+#   H2 serializes writes with a single database-level lock; gains above
+#   ~100–200 connections are marginal for write-heavy loads.
+#   For read-heavy loads (navigation/queries), large pools help significantly.
+#
+# PostgreSQL: maxSize can safely match or exceed the number of concurrent sessions.
+#
+# pool.maxSize = 20
+# pool.minIdle = 5
+# pool.connectionTimeoutSeconds = 30
+pool.maxSize = 100
+pool.minIdle = 20
 
 [server]
 # HTTP port
@@ -31,6 +67,20 @@ devMode = true
 
 # Allow any origin for CORS (development mode)
 cors.allowAll = true
+
+# Maximum number of concurrent application sessions (Host/Shell protocol).
+# Connections beyond this limit are rejected with HTTP 503 (session/init)
+# or WebSocket close code 4003 (browser clients).
+# Omit or set to -1 for unlimited (default).
+# maxSessions = 100
+
+# TTL (seconds) for authenticated sessions after WebSocket disconnect.
+# The session stays in memory so the user can reconnect without losing state.
+#   -1 or omitted = default (180s / 3 min) — recommended for production
+#        0        = disable cache; session released immediately on disconnect
+#                   (recommended for load tests — avoids zombie session accumulation)
+#   any positive  = custom TTL in seconds
+sessionTtlSeconds = 0
 
 [security]
 # JWT secret for API authentication (RepositoryApiRoutes)

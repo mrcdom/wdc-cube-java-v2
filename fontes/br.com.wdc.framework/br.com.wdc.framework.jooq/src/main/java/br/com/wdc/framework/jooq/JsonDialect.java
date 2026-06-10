@@ -13,6 +13,7 @@ import br.com.wdc.framework.jooq.dialect.H2JsonDialect;
 import br.com.wdc.framework.jooq.dialect.MySqlJsonDialect;
 import br.com.wdc.framework.jooq.dialect.PostgresJsonDialect;
 import br.com.wdc.framework.jooq.dialect.SQLiteJsonDialect;
+import br.com.wdc.framework.jooq.dialect.SqlServerJsonDialect;
 
 /**
  * Abstração para geração de JSON via SQL nativo por banco de dados.
@@ -69,7 +70,15 @@ public interface JsonDialect {
             case MYSQL, MARIADB -> MySqlJsonDialect.INSTANCE;
             case SQLITE -> SQLiteJsonDialect.INSTANCE;
             case DUCKDB -> DuckDbJsonDialect.INSTANCE;
-            default -> GenericJsonDialect.INSTANCE;
+            default -> {
+                // SQL Server (SQLSERVER) só está disponível no jOOQ comercial.
+                // Detectamos pelo nome da família para não depender do enum pro.
+                String family = dialect.family().name();
+                if (family.equals("SQLSERVER")) {
+                    yield SqlServerJsonDialect.INSTANCE;
+                }
+                yield GenericJsonDialect.INSTANCE;
+            }
         };
     }
 }

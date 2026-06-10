@@ -15,13 +15,14 @@ import br.com.wdc.shopping.view.gluon.theme.GluonColors;
 import br.com.wdc.shopping.view.gluon.theme.GluonStyles;
 import br.com.wdc.shopping.view.gluon.util.GluonDom;
 import br.com.wdc.shopping.view.gluon.util.ResourceCatalog;
+import javafx.animation.TranslateTransition;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 
 public class ProductsPanelViewGluon extends AbstractViewGluon<ProductsPanelPresenter> {
 
@@ -62,9 +63,9 @@ public class ProductsPanelViewGluon extends AbstractViewGluon<ProductsPanelPrese
             sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
             sp.setStyle(GluonStyles.SCROLL_TRANSPARENT);
 
-            flowPane.setHgap(8);
-            flowPane.setVgap(8);
-            flowPane.setPadding(new Insets(4));
+            flowPane.setHgap(12);
+            flowPane.setVgap(12);
+            flowPane.setPadding(new Insets(8));
 
             this.contentSlot = this.newListSlot(flowPane, this::newItemView, this::updateItem);
         });
@@ -82,6 +83,13 @@ public class ProductsPanelViewGluon extends AbstractViewGluon<ProductsPanelPrese
     // ---- Inner class: ProductCardView ----
 
     public static class ProductCardView extends AbstractViewGluon<ProductsPanelPresenter> {
+
+        /** Normal card style (cardShadowSm equivalent) */
+        private static final String CARD_NORMAL = GluonStyles.CARD_SMALL;
+        /** Hovered card style (cardShadowLg + border — matches Flutter HoverCard) */
+        private static final String CARD_HOVERED = "-fx-background-color: white; -fx-background-radius: 12; "
+                + "-fx-border-color: " + GluonColors.BORDER + "; -fx-border-radius: 12; -fx-border-width: 1; "
+                + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.16), 12, 0, 0, 8);";
 
         private ProductInfo product;
         private String oldProductName;
@@ -130,28 +138,54 @@ public class ProductsPanelViewGluon extends AbstractViewGluon<ProductsPanelPrese
         }
 
         private void buildUI(GluonDom dom, VBox card) {
-            card.setPrefWidth(140);
-            card.setPadding(new Insets(8));
-            card.setSpacing(4);
-            card.setAlignment(Pos.CENTER);
-            card.setStyle(GluonStyles.CARD_SMALL);
+            card.setPrefWidth(172);
+            card.setStyle(CARD_NORMAL);
             card.setOnMouseClicked(
                     e -> safeAction("Open product", () -> this.presenter.onOpenProduct(this.product.id)));
 
-            this.imageElm = dom.imageView(img -> {
-                img.setFitWidth(100);
-                img.setFitHeight(100);
-                img.setPreserveRatio(true);
+            // Hover effect — matches Flutter HoverCard: translateY(-3px) + cardShadowLg (200ms easeOut)
+            var hoverTransition = new TranslateTransition(Duration.millis(200), card);
+            card.setOnMouseEntered(e -> {
+                hoverTransition.stop();
+                hoverTransition.setToY(-3);
+                hoverTransition.play();
+                card.setStyle(CARD_HOVERED);
+            });
+            card.setOnMouseExited(e -> {
+                hoverTransition.stop();
+                hoverTransition.setToY(0);
+                hoverTransition.play();
+                card.setStyle(CARD_NORMAL);
+            });
+            // Image area with gradient background
+            dom.stackPane(imageArea -> {
+                imageArea.setStyle(GluonStyles.IMAGE_BG);
+                imageArea.setPrefHeight(128);
+                imageArea.setMinHeight(128);
+                imageArea.setMaxWidth(Double.MAX_VALUE);
+
+                this.imageElm = dom.imageView(img -> {
+                    img.setFitWidth(90);
+                    img.setFitHeight(90);
+                    img.setPreserveRatio(true);
+                });
             });
 
-            this.nameElm = dom.label(name -> {
-                name.setStyle(GluonStyles.textBold(12, GluonColors.TEXT_DEFAULT));
-                name.setWrapText(true);
-                name.setMaxWidth(130);
-            });
+            // Info area
+            dom.vbox(infoArea -> {
+                infoArea.setSpacing(3);
+                infoArea.setPadding(new Insets(10, 14, 12, 14));
+                infoArea.setStyle("-fx-background-color: white;");
 
-            this.priceElm = dom.label(price -> {
-                price.setStyle(GluonStyles.text(11, GluonColors.PRIMARY));
+                this.nameElm = dom.label(name -> {
+                    name.setStyle(GluonStyles.textBold(13, GluonColors.TEXT_DEFAULT));
+                    name.setWrapText(true);
+                    name.setMaxWidth(158);
+                });
+
+                this.priceElm = dom.label(price -> {
+                    price.setStyle(GluonStyles.textBold(13, GluonColors.PRIMARY));
+                });
             });
         }
     }

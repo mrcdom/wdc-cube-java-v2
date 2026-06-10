@@ -1,0 +1,18 @@
+# WeDoCode Shopping - iOS Configuration
+[app]
+basedir = "."
+
+[api]
+url = "http://localhost:8080"
+
+[database]
+logSql = false
+
+[server]
+devMode = false
+
+[security]
+jwt.secret = "wdc-shopping-jwt-s3cr3t-k3y-ch4ng3-1n-pr0duct10n"
+
+[simulation]
+slowLogin = false

@@ -84,6 +84,12 @@
 				<configuration>
 					<mainClass>${main.class}</mainClass>
 					<target>${gluonfx.target}</target>
+					<nativeImageArgs>
+						<list>-H:-UseCAPCache</list>
+					</nativeImageArgs>
+					<resourcesList>
+						<list>config/application.toml</list>
+					</resourcesList>
 				</configuration>
 			</plugin>
 		</plugins>

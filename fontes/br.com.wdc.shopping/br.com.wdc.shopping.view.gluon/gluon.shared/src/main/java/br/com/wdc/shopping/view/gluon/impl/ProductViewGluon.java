@@ -96,79 +96,78 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
         root.setSpacing(0);
         root.setStyle(GluonStyles.PAGE_BG);
 
-        // Header bar
-        dom.hbox(headerBar -> {
-            headerBar.setAlignment(Pos.CENTER_LEFT);
-            headerBar.setSpacing(12);
-            headerBar.setPadding(new Insets(10, 16, 10, 16));
-            headerBar.setStyle(GluonStyles.HEADER_BAR);
-
-            dom.button(backBtn -> {
-                backBtn.setText("Voltar");
-                backBtn.setGraphic(GluonIcons.create(GluonIcons.ARROW_BACK, 14, GluonColors.PRIMARY));
-                backBtn.setStyle(GluonStyles.BACK_BUTTON);
-                backBtn.setOnAction(e -> safeAction("Back", this.presenter::onOpenProducts));
-            });
-
-            dom.hSpacer();
-
-            dom.label(headerTitle -> {
-                headerTitle.setText("Detalhes do Produto");
-                headerTitle.setStyle(GluonStyles.PAGE_TITLE);
-            });
-        });
-
-        // Scrollable content
+        // Flutter: PageCard(useCardDecoration: false) — NO outer card.
+        // Content is directly on the gray background, centered with maxWidth 900.
+        // Only the description has its own card decoration.
         dom.scrollVBox((sp, content) -> {
             VBox.setVgrow(sp, Priority.ALWAYS);
             sp.setFitToWidth(true);
             sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
             sp.setStyle(GluonStyles.SCROLL_TRANSPARENT);
-            content.setPadding(new Insets(16));
+            content.setPadding(new Insets(20));
+            content.setSpacing(16);
             content.setAlignment(Pos.TOP_CENTER);
 
-            // Product info card
-            dom.vbox(card -> {
-                card.setSpacing(14);
-                card.setPadding(new Insets(24, 20, 20, 20));
-                card.setMaxWidth(480);
-                card.setStyle(GluonStyles.CARD_TOP_ROUND);
+            // Content VBox centered at max 900px — driven by prefWidth listener
+            dom.vbox(inner -> {
+                inner.setSpacing(16);
+                inner.setMinWidth(0);
+                content.widthProperty().addListener((obs, oldW, newW) -> {
+                    double insets = content.getPadding().getLeft() + content.getPadding().getRight();
+                    inner.setPrefWidth(Math.min(newW.doubleValue() - insets, 900));
+                });
 
+                // Title — on gray background
                 this.nameElm = dom.label(name -> {
                     name.setText(this.state.product != null ? this.state.product.name : "");
-                    name.setStyle(GluonStyles.textBold(20, GluonColors.TEXT_PRIMARY));
+                    name.setStyle(GluonStyles.textBold(24, GluonColors.TEXT_PRIMARY));
                     name.setWrapText(true);
+                    name.setMaxWidth(Double.MAX_VALUE);
                 });
                 this.nameOldValue = this.state.product != null ? this.state.product.name : null;
 
-                dom.label(descTitle -> {
-                    descTitle.setText("Descrição");
-                    descTitle.setStyle(GluonStyles.textBold(13, GluonColors.TEXT_SECONDARY) + " -fx-padding: 8 0 4 0;");
+                // Accent divider — full width
+                dom.node(buildDivider());
+
+                // Description card — only this gets CARD decoration (Flutter: Container with cardDecoration)
+                dom.vbox(descCard -> {
+                    descCard.setPadding(new Insets(20));
+                    descCard.setStyle(GluonStyles.CARD);
+                    descCard.setMaxWidth(Double.MAX_VALUE);
+
+                    dom.label(descTitle -> {
+                        descTitle.setText("Descrição");
+                        descTitle.setStyle(GluonStyles.textBold(13, GluonColors.TEXT_SECONDARY) + " -fx-padding: 0 0 8 0;");
+                    });
+
+                    this.descriptionElm = dom.textFlow(tf -> {
+                        tf.setStyle(GluonStyles.fontSize(13) + " -fx-line-spacing: 3;");
+                    });
+                    renderDescription(this.state.product != null ? this.state.product.description : null);
+                    this.descriptionOldValue = this.state.product != null ? this.state.product.description : null;
                 });
 
-                this.descriptionElm = dom.textFlow(tf -> {
-                    tf.setStyle(GluonStyles.fontSize(13) + " -fx-line-spacing: 3;");
-                });
-                renderDescription(this.state.product != null ? this.state.product.description : null);
-                this.descriptionOldValue = this.state.product != null ? this.state.product.description : null;
-
-                // Price + quantity (left) | Image (right)
+                // Price + Image row — on gray background
                 dom.hbox(priceImageRow -> {
-                    priceImageRow.setAlignment(Pos.CENTER_LEFT);
+                    priceImageRow.setAlignment(Pos.CENTER);
                     priceImageRow.setSpacing(16);
-                    priceImageRow.setPadding(new Insets(6, 0, 6, 0));
 
                     dom.vbox(leftCol -> {
-                        leftCol.setSpacing(10);
-                        javafx.scene.layout.HBox.setHgrow(leftCol, Priority.ALWAYS);
+                        leftCol.setSpacing(12);
+                        leftCol.setAlignment(Pos.CENTER);
 
-                        this.priceElm = dom.label(price -> {
-                            price.setText(this.state.product != null
-                                    ? NumberFormat.getCurrencyInstance().format(this.state.product.price)
-                                    : "");
-                            price.setStyle(GluonStyles.PRICE_LARGE);
+                        // Price badge
+                        dom.stackPane(priceBadge -> {
+                            priceBadge.setStyle(GluonStyles.PRICE_BADGE);
+
+                            this.priceElm = dom.label(price -> {
+                                price.setText(this.state.product != null
+                                        ? NumberFormat.getCurrencyInstance().format(this.state.product.price)
+                                        : "");
+                                price.setStyle("-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: " + GluonColors.PRIMARY + ";");
+                            });
+                            this.priceOldValue = this.state.product != null ? this.state.product.price : 0;
                         });
-                        this.priceOldValue = this.state.product != null ? this.state.product.price : 0;
 
                         // Quantity selector
                         dom.hbox(qtyStepper -> {
@@ -190,8 +189,8 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
 
                             this.quantityLabel = dom.label(qty -> {
                                 qty.setText("1");
-                                qty.setStyle(GluonStyles.textBold(16, GluonColors.TEXT_DEFAULT) + " " +
-                                        "-fx-min-width: 32; -fx-alignment: center;");
+                                qty.setStyle(GluonStyles.textBold(16, GluonColors.TEXT_DEFAULT) +
+                                        " -fx-min-width: 32; -fx-alignment: center;");
                             });
 
                             dom.button(plusBtn -> {
@@ -207,40 +206,66 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
                         });
                     });
 
-                    this.imageElm = dom.imageView(img -> {
-                        img.setFitWidth(110);
-                        img.setFitHeight(110);
-                        img.setPreserveRatio(true);
-                        if (this.state.product != null && this.state.product.image != null) {
-                            img.setImage(ResourceCatalog.getImage(this.state.product.image));
-                            this.imageOldValue = this.state.product.image;
-                        }
+                    // Image box with gradient background
+                    dom.stackPane(imageBox -> {
+                        imageBox.setStyle(GluonStyles.IMAGE_BG + " -fx-background-radius: 8;");
+                        imageBox.setPrefWidth(200);
+                        imageBox.setPrefHeight(200);
+                        imageBox.setMaxWidth(200);
+                        imageBox.setMaxHeight(200);
+
+                        this.imageElm = dom.imageView(img -> {
+                            img.setFitWidth(160);
+                            img.setFitHeight(160);
+                            img.setPreserveRatio(true);
+                            if (this.state.product != null && this.state.product.image != null) {
+                                img.setImage(ResourceCatalog.getImage(this.state.product.image));
+                                this.imageOldValue = this.state.product.image;
+                            }
+                        });
                     });
                 });
 
-                // Add to cart button
-                dom.hbox(actionSection -> {
-                    actionSection.setAlignment(Pos.CENTER);
-                    actionSection.setPadding(new Insets(6, 0, 6, 0));
-
-                    dom.button(addBtn -> {
-                        addBtn.setText("Adicionar ao Carrinho");
-                        addBtn.setGraphic(GluonIcons.create(GluonIcons.SHOPPING_CART, 16, GluonColors.TEXT_ON_PRIMARY));
-                        addBtn.setMaxWidth(Double.MAX_VALUE);
-                        addBtn.setStyle(GluonStyles.BTN_SUCCESS);
-                        javafx.scene.layout.HBox.setHgrow(addBtn, Priority.ALWAYS);
-                        addBtn.setOnAction(e -> emitBuy());
-                    });
-                });
-
+                // Error
                 this.errorElm = dom.label(err -> {
                     err.setStyle(GluonStyles.ERROR_INLINE);
                     err.setVisible(false);
                     err.setManaged(false);
                     err.setWrapText(true);
+                    err.setMaxWidth(Double.MAX_VALUE);
                 });
-            });
-        });
+
+                // Action row
+                dom.hbox(actionRow -> {
+                    actionRow.setAlignment(Pos.CENTER);
+                    actionRow.setSpacing(12);
+
+                    dom.button(backBtn -> {
+                        backBtn.setText("Voltar");
+                        backBtn.setGraphic(GluonIcons.create(GluonIcons.ARROW_BACK, 18, GluonColors.TEXT_SECONDARY));
+                        backBtn.setStyle(GluonStyles.BACK_BUTTON + " -fx-font-size: 14;");
+                        backBtn.setOnAction(e -> safeAction("Back", this.presenter::onOpenProducts));
+                    });
+
+                    dom.button(addBtn -> {
+                        addBtn.setText("Adicionar ao Carrinho");
+                        addBtn.setGraphic(GluonIcons.create(GluonIcons.SHOPPING_CART, 18, GluonColors.TEXT_ON_PRIMARY));
+                        addBtn.setStyle(GluonStyles.BTN_SUCCESS);
+                        addBtn.setOnAction(e -> emitBuy());
+                    });
+                });
+            }); // end inner
+        }); // end scroll
+    }
+
+    private javafx.scene.layout.Region buildDivider() {
+        var divider = new javafx.scene.layout.Region();
+        divider.setMinHeight(2);
+        divider.setPrefHeight(2);
+        divider.setMaxHeight(2);
+        divider.setMaxWidth(Double.MAX_VALUE);
+        divider.setStyle("-fx-background-color: " + GluonColors.PRIMARY + ";");
+        return divider;
     }
 
     private void emitBuy() {
@@ -249,11 +274,59 @@ public class ProductViewGluon extends AbstractViewGluon<ProductPresenter> {
         });
     }
 
-    private void renderDescription(String text) {
+    /**
+     * Renders simple HTML into a TextFlow — mirrors Flutter's HtmlText widget.
+     * Supports: &lt;li&gt; → bullet (• ), &lt;br&gt; → newline, &lt;p&gt; → paragraph break,
+     *           &lt;b&gt;/&lt;strong&gt; → bold, plain text. All other tags stripped.
+     */
+    private void renderDescription(String html) {
         this.descriptionElm.getChildren().clear();
-        if (text != null && !text.isBlank()) {
-            var plain = text.replaceAll("<[^>]+>", " ").replaceAll("\\s+", " ").trim();
-            this.descriptionElm.getChildren().add(new Text(plain));
+        if (html == null || html.isBlank()) return;
+
+        var sb = new StringBuilder();
+        boolean bold = false;
+        boolean firstSpan = true;
+        int i = 0;
+
+        while (i < html.length()) {
+            if (html.charAt(i) == '<') {
+                int closeIdx = html.indexOf('>', i);
+                if (closeIdx == -1) { sb.append(html.charAt(i++)); continue; }
+                String tag = html.substring(i + 1, closeIdx).trim().toLowerCase();
+
+                // flush buffered text before handling tag
+                if (!sb.isEmpty()) {
+                    var t = new Text(sb.toString());
+                    t.setStyle(bold ? "-fx-font-weight: bold; -fx-font-size: 13;" : "-fx-font-size: 13;");
+                    this.descriptionElm.getChildren().add(t);
+                    sb.setLength(0);
+                    firstSpan = false;
+                }
+
+                if (tag.equals("li")) {
+                    if (!firstSpan) sb.append("\n");
+                    sb.append("  \u2022 ");
+                } else if (tag.equals("br") || tag.equals("br/") || tag.equals("br /")) {
+                    sb.append("\n");
+                } else if (tag.equals("p") && !firstSpan) {
+                    sb.append("\n\n");
+                } else if (tag.equals("b") || tag.equals("strong")) {
+                    bold = true;
+                } else if (tag.equals("/b") || tag.equals("/strong")) {
+                    bold = false;
+                }
+                // /li, /ul, /ol, /p, and other closing/unknown tags: skip
+                i = closeIdx + 1;
+            } else {
+                sb.append(html.charAt(i++));
+            }
+        }
+
+        // flush remaining buffer
+        if (!sb.isEmpty()) {
+            var t = new Text(sb.toString());
+            t.setStyle(bold ? "-fx-font-weight: bold; -fx-font-size: 13;" : "-fx-font-size: 13;");
+            this.descriptionElm.getChildren().add(t);
         }
     }
 }

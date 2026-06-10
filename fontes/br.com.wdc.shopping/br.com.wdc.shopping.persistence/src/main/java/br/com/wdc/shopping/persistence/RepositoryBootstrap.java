@@ -1,6 +1,7 @@
 package br.com.wdc.shopping.persistence;
 
 import org.jooq.SQLDialect;
+import org.jooq.conf.RenderNameCase;
 import org.jooq.conf.Settings;
 import org.jooq.impl.DSL;
 
@@ -32,8 +33,29 @@ public class RepositoryBootstrap {
      * @param logSql se {@code true}, jOOQ loga os SQLs executados via SLF4J (nível DEBUG)
      */
     public static void initialize(boolean logSql) {
+        initialize(logSql, SQLDialect.H2);
+    }
+
+    /**
+     * Inicializa repositórios sem segurança, com dialeto explícito.
+     *
+     * @param logSql  se {@code true}, jOOQ loga os SQLs executados via SLF4J (nível DEBUG)
+     * @param dialect dialeto SQL a usar (ex: {@link SQLDialect#H2}, {@link SQLDialect#POSTGRES})
+     */
+    public static void initialize(boolean logSql, SQLDialect dialect) {
         var settings = new Settings().withExecuteLogging(logSql);
-        JooqDSLContext.BEAN.set(DSL.using(SqlDataSource.BEAN.get(), SQLDialect.H2, settings));
+        if (dialect == SQLDialect.POSTGRES) {
+            // The jOOQ-generated classes reference schema "PUBLIC" (from H2 codegen).
+            // PostgreSQL treats quoted identifiers as case-sensitive, so "PUBLIC" != "public".
+            // Disabling schema rendering removes the prefix entirely; PostgreSQL resolves
+            // tables through search_path (default: public).
+            settings = settings.withRenderSchema(false);
+            // H2 codegen produces uppercase names ("EN_USER"). PostgreSQL folds unquoted DDL
+            // identifiers to lowercase (en_user). Rendering in lowercase makes jOOQ emit
+            // "en_user" which matches the actual stored name.
+            settings = settings.withRenderNameCase(RenderNameCase.LOWER);
+        }
+        JooqDSLContext.BEAN.set(DSL.using(SqlDataSource.BEAN.get(), dialect, settings));
 
         UserRepository.BEAN
                 .set(new br.com.wdc.shopping.persistence.repository.UserRepositoryImpl());

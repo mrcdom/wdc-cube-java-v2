@@ -386,7 +386,7 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
 
         this.fieldSetterMap.put(fn, (bean, reader) -> {
             if (reader.peek() == JsonToken.STRING) {
-                setter.accept(bean, java.util.Base64.getDecoder().decode(reader.nextString()));
+                setter.accept(bean, java.util.Base64.getMimeDecoder().decode(reader.nextString()));
             } else {
                 reader.skipValue();
             }

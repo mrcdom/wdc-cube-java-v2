@@ -1,6 +1,7 @@
 package br.com.wdc.framework.cube.remote.javalin;
 
 import java.security.SecureRandom;
+import java.util.function.BooleanSupplier;
 
 import br.com.wdc.framework.commons.codec.Base62;
 import br.com.wdc.framework.cube.remote.RemoteAppSecurity;
@@ -21,9 +22,15 @@ public final class SessionInitController {
     private static final SecureRandom RND = new SecureRandom();
 
     private final RemoteAppSecurity security;
+    private final BooleanSupplier atCapacity;
 
     public SessionInitController(RemoteAppSecurity security) {
+        this(security, () -> false);
+    }
+
+    public SessionInitController(RemoteAppSecurity security, BooleanSupplier atCapacity) {
         this.security = security;
+        this.atCapacity = atCapacity;
     }
 
     /**
@@ -42,6 +49,11 @@ public final class SessionInitController {
         ctx.res().setHeader("Cache-Control", "no-cache, no-store");
         ctx.res().setHeader("Pragma", "no-cache");
         ctx.res().setDateHeader("Expires", 0);
+
+        if (atCapacity.getAsBoolean()) {
+            ctx.status(503).result("{\"error\":\"capacity_exceeded\"}");
+            return;
+        }
 
         String appId = makeAppId();
         String appSKey = security.getWebKey();

@@ -152,7 +152,7 @@ class ShoppingMobileApp extends StatelessWidget {
 
 class ConnectionErrorApp extends StatelessWidget {
   final String endpoint;
-  const ConnectionErrorApp({required this.endpoint});
+  const ConnectionErrorApp({super.key, required this.endpoint});
 
   @override
   Widget build(BuildContext context) {

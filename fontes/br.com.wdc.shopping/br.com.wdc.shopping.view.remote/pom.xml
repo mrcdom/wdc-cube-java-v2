@@ -16,8 +16,12 @@
 
 	<modules>
 		<module>remote.host</module>
+		<module>remote.shell.flutter</module>
 		<module>remote.shell.react</module>
 		<module>remote.shell.teavm</module>
+		<module>remote.shell.probe</module>
+		<module>remote.shell.swt</module>
 	</modules>
 
 </project>
+

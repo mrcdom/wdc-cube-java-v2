@@ -173,12 +173,16 @@ class LoginViewClass extends BaseViewClass<ViewProps, LoginViewState> {
 
   readonly emitLogin = async () => {
     const { vsid } = this
-    const userName = (this.userEl as any)?.value || ''
-    const password = (this.passEl as any)?.value || ''
+    const userEl = this.userEl! as HTMLInputElement
+    const passEl = this.passEl! as HTMLInputElement
+
+    const userName = userEl.value || ''
+    const password = passEl.value || ''
     bridge.setFormField(vsid, 'p.userName', userName)
     const encryptedPassword = await bridge.cipher(password)
     bridge.setFormField(vsid, 'p.password', encryptedPassword)
     bridge.submit(vsid, ON_LOGIN)
+    passEl.value = ''
   }
 }
 

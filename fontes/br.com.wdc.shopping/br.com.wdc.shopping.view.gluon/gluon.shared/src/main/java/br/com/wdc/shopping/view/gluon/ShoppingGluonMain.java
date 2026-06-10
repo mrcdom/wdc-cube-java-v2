@@ -1,16 +1,19 @@
 package br.com.wdc.shopping.view.gluon;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.storage.ClientStorage;
 import br.com.wdc.framework.commons.storage.PreferencesClientStorage;
-
-import br.com.wdc.shopping.persistence.client.OkHttpTransport;
-import br.com.wdc.shopping.persistence.client.RestRepositoryBootstrap;
 import br.com.wdc.shopping.domain.ShoppingConfig;
 import br.com.wdc.shopping.domain.config.AppConfig;
+import br.com.wdc.shopping.persistence.client.OkHttpTransport;
+import br.com.wdc.shopping.persistence.client.RestRepositoryBootstrap;
 import br.com.wdc.shopping.presentation.presenter.Routes;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -33,6 +36,26 @@ public class ShoppingGluonMain extends Application {
     @Override
     public void init() throws Exception {
         LOG.info("Initializing Gluon application...");
+
+        // On iOS the working directory is "/" (read-only), so config/application.toml
+        // cannot be found relative to CWD. Extract the bundled resource to user.home first.
+        if (isIOS() && System.getProperty("shopping.config.file") == null) {
+            var userHome = System.getProperty("user.home");
+            if (userHome != null && !userHome.isBlank()) {
+                var dest = Path.of(userHome, "config", "application.toml");
+                if (!Files.exists(dest)) {
+                    try (InputStream in = ShoppingGluonMain.class.getResourceAsStream("/config/application.toml")) {
+                        if (in != null) {
+                            Files.createDirectories(dest.getParent());
+                            Files.copy(in, dest);
+                        }
+                    } catch (IOException e) {
+                        LOG.warn("Could not extract bundled config: {}", e.getMessage());
+                    }
+                }
+                System.setProperty("shopping.config.file", dest.toString());
+            }
+        }
 
         var config = AppConfig.load();
 
@@ -67,10 +90,11 @@ public class ShoppingGluonMain extends Application {
         this.app.setRootPane(root);
 
         var isDesktop = !isIOS() && !isAndroid();
-        var sceneWidth = isDesktop ? 1024.0 : 360.0;
-        var sceneHeight = isDesktop ? 768.0 : 640.0;
 
-        var scene = new Scene(root, sceneWidth, sceneHeight);
+        // On desktop use a fixed window size; on mobile let GluonFX/iOS fill
+        // the full screen (UILaunchScreen in Info.plist opts the app into the
+        // native device resolution so no letterboxing occurs).
+        var scene = isDesktop ? new Scene(root, 1024.0, 768.0) : new Scene(root);
 
         primaryStage.setTitle("WDC Shopping — Gluon Mobile");
         primaryStage.setScene(scene);

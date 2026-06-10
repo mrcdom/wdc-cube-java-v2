@@ -103,6 +103,8 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
                 this.alertProductNotFound();
                 LOG.warn("onModifyQuantity.alertProductNotFound: {}", this.state.errorMessage);
             } else {
+                this.state.errorCode = 0;
+                this.state.errorMessage = null;
                 this.state.items = this.cart.getCartItems();
                 this.update();
             }

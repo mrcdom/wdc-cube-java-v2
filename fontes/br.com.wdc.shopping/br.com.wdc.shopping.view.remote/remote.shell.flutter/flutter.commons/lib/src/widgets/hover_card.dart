@@ -24,7 +24,8 @@ class HoverCard extends StatefulWidget {
 
 class _HoverCardState extends State<HoverCard> {
   static final _identityMatrix = Matrix4.identity();
-  static final _hoverMatrix = Matrix4.identity()..translate(0.0, -3.0);
+  static final _hoverMatrix = Matrix4.identity()
+    ..translateByDouble(0.0, -3.0, 0.0, 1.0);
 
   bool _hovered = false;
 

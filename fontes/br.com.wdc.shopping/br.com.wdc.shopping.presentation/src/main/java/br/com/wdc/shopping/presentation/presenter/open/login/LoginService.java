@@ -41,7 +41,13 @@ public class LoginService {
         }
 
         // 5. Resolver token → SecurityContext (server-side; null em REST client)
-        var securityContext = authService.resolveToken(authResult.accessToken());
+        SecurityContext securityContext = null;
+        try {
+            securityContext = authService.resolveToken(authResult.accessToken());
+        } catch (UnsupportedOperationException ignored) {
+            // REST clients não resolvem JWT localmente; o contexto de segurança fica nulo
+            // e toda autorização é delegada ao servidor via Bearer token.
+        }
         if (securityContext != null) {
             SecurityContext.CURRENT.set(securityContext);
         }
@@ -50,8 +56,13 @@ public class LoginService {
         app.setSecurityContext(securityContext);
 
         // 7. Emitir token persistente para clientes nativos (remember me)
-        var persistentToken = authService.createPersistentToken(authResult.userId(), userName);
-        app.emitAccessToken(persistentToken);
+        // REST clients gerenciam sessão via refresh token (já persistido em step 4); pular.
+        try {
+            var persistentToken = authService.createPersistentToken(authResult.userId(), userName);
+            app.emitAccessToken(persistentToken);
+        } catch (UnsupportedOperationException ignored) {
+            // REST client: sessão gerenciada por refresh token
+        }
 
         // 8. Buscar nome de exibição do usuário
         var users = app.getUserRepository().fetch(new UserCriteria()

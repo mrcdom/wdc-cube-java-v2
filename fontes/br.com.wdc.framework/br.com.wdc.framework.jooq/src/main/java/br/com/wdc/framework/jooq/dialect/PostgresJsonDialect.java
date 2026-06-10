@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.jooq.Field;
+import org.jooq.SQLDialect;
+import org.jooq.conf.RenderNameCase;
+import org.jooq.conf.Settings;
 import org.jooq.impl.DSL;
 
 import br.com.wdc.framework.jooq.JsonDialect;
@@ -43,6 +46,17 @@ public final class PostgresJsonDialect implements JsonDialect {
 
     public static final PostgresJsonDialect INSTANCE = new PostgresJsonDialect();
 
+    /**
+     * Usado para renderizar referências de campo dentro dos fragmentos DSL.sql().
+     * <p>
+     * As classes jOOQ geradas usam nomes em maiúsculas (do H2 codegen). O PostgreSQL armazena
+     * identificadores sem aspas em minúsculas. Este contexto aplica as mesmas configurações do
+     * RepositoryBootstrap (withRenderSchema=false, withRenderNameCase=LOWER) para que
+     * {@code e.field().toString()} produza {@code "u1"."id"} em vez de {@code "PUBLIC"."EN_USER"."ID"}.
+     */
+    private static final org.jooq.DSLContext RENDER_CTX = DSL.using(SQLDialect.POSTGRES,
+            new Settings().withRenderSchema(false).withRenderNameCase(RenderNameCase.LOWER));
+
     private PostgresJsonDialect() {
     }
 
@@ -69,10 +83,13 @@ public final class PostgresJsonDialect implements JsonDialect {
     }
 
     private String valueExpr(JsonFieldEntry e) {
+        String col = RENDER_CTX.render(e.field());
         return switch (e.type()) {
-            case BINARY -> "coalesce(to_json(encode(" + e.field() + ", 'base64')), 'null')";
-            case RAW_JSON -> "coalesce(" + e.field() + ", 'null')";
-            default -> "coalesce(to_json(" + e.field() + "), 'null')";
+            // encode() inserts newlines every 76 chars (RFC 2045); getMimeDecoder() on
+            // the Java side tolerates them, so no replace() needed here.
+            case BINARY -> "coalesce(to_json(encode(" + col + ", 'base64')), 'null')";
+            case RAW_JSON -> "coalesce(" + col + ", 'null')";
+            default -> "coalesce(to_json(" + col + "), 'null')";
         };
     }
 

@@ -1,0 +1,44 @@
+# WeDoCode Shopping - Vaadin Application Configuration
+# Place this file at: {CWD}/config/application.toml
+# (start the app with CWD set to the work/ directory)
+#
+# NOTE: This file is for the Vaadin view module only.
+# It uses an embedded Jetty server and a direct JdbcDataSource — there is no
+# Agroal connection pool, no CORS layer, no backend Host/Shell session protocol,
+# and no live-reload dev server. Those parameters are backend-only and have no
+# effect here.
+
+[app]
+# Base directory for runtime data (data, log, temp).
+# Resolved relative to the location of THIS file.
+# ".." means one folder above config/ (i.e., the work/ directory itself).
+basedir = ".."
+
+[database]
+# JDBC URL. Default (when omitted): H2 file database under the data/ directory.
+# url = "jdbc:h2:file:/path/to/wedocode-shopping;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+
+# H2 TCP server mode (isolates DB heap from app heap — useful for memory profiling):
+#   1. Start H2 server: ./work/bin/start-h2-server.sh
+#   2. Uncomment:
+# url = "jdbc:h2:tcp://localhost/./wedocode-shopping;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+
+# PostgreSQL:
+# url = "jdbc:postgresql://localhost:5432/wedocode-shopping"
+
+# Credentials (H2 defaults: sa/sa)
+# username = "sa"
+# password = "sa"
+
+# Reset database on startup (drops and recreates all tables)
+# reset = false
+
+[server]
+# HTTP port for the embedded Jetty server (default: 8090)
+# Use a port different from the backend (8080) to run both simultaneously.
+# port = 8090
+
+[security]
+# JWT secret used to sign navigation intents (IntentSigner).
+# Change this in production.
+jwt.secret = "wdc-shopping-jwt-s3cr3t-k3y-ch4ng3-1n-pr0duct10n"
