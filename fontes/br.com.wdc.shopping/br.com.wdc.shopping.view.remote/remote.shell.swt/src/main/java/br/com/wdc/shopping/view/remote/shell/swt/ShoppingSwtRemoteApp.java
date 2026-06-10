@@ -111,6 +111,8 @@ public class ShoppingSwtRemoteApp implements SwtApp, RemoteViewContext {
 
 	// :: Connect
 
+	private static final String STORAGE_KEY_INTENT = "session.intent";
+
 	/**
 	 * Connects to the Host, awaits the initial state push, starts the listener thread and render loop. Call from the UI thread before the event loop.
 	 */
@@ -122,10 +124,32 @@ public class ShoppingSwtRemoteApp implements SwtApp, RemoteViewContext {
 		// Initial async state push
 		var initial = this.hostClient.awaitResponse();
 		this.hostClient.applyStorageDelta(initial);
+		persistUri(initial.uri());
 		this.applyResponse(initial);
+
+		// Restore last intent if logged in (not on login page)
+		var savedIntent = persistentStorage.get(STORAGE_KEY_INTENT);
+		if (savedIntent != null && !savedIntent.startsWith("login")) {
+			try {
+				var navResp = this.hostClient.navigate(savedIntent);
+				this.hostClient.applyStorageDelta(navResp);
+				persistUri(navResp.uri());
+				this.applyResponse(navResp);
+			} catch (Exception e) {
+				LOG.warn("Could not restore intent '{}': {}", savedIntent, e.getMessage());
+			}
+		}
 
 		this.startListenerThread();
 		this.startRenderLoop();
+	}
+
+	private void persistUri(String uri) {
+		if (uri == null) return;
+		var path = uri.contains("#") ? uri.substring(uri.indexOf('#') + 1) : uri;
+		if (!path.isBlank()) {
+			persistentStorage.set(STORAGE_KEY_INTENT, path);
+		}
 	}
 
 	// :: Internal
@@ -181,6 +205,7 @@ public class ShoppingSwtRemoteApp implements SwtApp, RemoteViewContext {
 				try {
 					var resp = this.hostClient.awaitResponse(java.time.Duration.ofSeconds(30));
 					this.hostClient.applyStorageDelta(resp);
+					persistUri(resp.uri());
 					this.display.asyncExec(() -> this.applyResponse(resp));
 				} catch (java.util.concurrent.TimeoutException e) {
 					// heartbeat timeout — continue loop
