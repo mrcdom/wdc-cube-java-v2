@@ -34,6 +34,7 @@ public abstract class ShoppingApplication extends CubeApplication {
 
 	// :: Getters and Setters
 
+	@Override
 	public CubePlace getRootPlace() {
 		return Routes.Place.ROOT;
 	}
