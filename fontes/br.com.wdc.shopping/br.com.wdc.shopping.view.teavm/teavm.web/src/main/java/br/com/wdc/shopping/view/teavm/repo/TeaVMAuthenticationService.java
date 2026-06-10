@@ -40,7 +40,7 @@ public class TeaVMAuthenticationService implements AuthenticationService {
      * @return resultado do refresh, ou {@code null} se não houver sessão salva ou o refresh falhar
      */
     public AuthResult tryRestore() {
-        var savedRefreshToken = storage.get(KEY_REFRESH_TOKEN);
+        var savedRefreshToken = storage.secure().get(KEY_REFRESH_TOKEN);
         if (savedRefreshToken == null) {
             return null;
         }
@@ -48,8 +48,8 @@ public class TeaVMAuthenticationService implements AuthenticationService {
         var result = refresh(savedRefreshToken);
         if (result == null) {
             // Token expirado ou inválido — limpar storage
-            storage.remove(KEY_ACCESS_TOKEN);
-            storage.remove(KEY_REFRESH_TOKEN);
+            storage.secure().remove(KEY_ACCESS_TOKEN);
+            storage.secure().remove(KEY_REFRESH_TOKEN);
         }
         return result;
     }
@@ -100,9 +100,9 @@ public class TeaVMAuthenticationService implements AuthenticationService {
         this.accessToken = result.accessToken();
         transport.setAccessTokenSupplier(() -> this.accessToken);
 
-        // Persiste no storage para sobreviver ao F5
-        storage.set(KEY_ACCESS_TOKEN, result.accessToken());
-        storage.set(KEY_REFRESH_TOKEN, result.refreshToken());
+        // Persiste no storage seguro (AES-GCM) para sobreviver ao F5
+        storage.secure().set(KEY_ACCESS_TOKEN, result.accessToken());
+        storage.secure().set(KEY_REFRESH_TOKEN, result.refreshToken());
 
         return result;
     }
@@ -131,9 +131,9 @@ public class TeaVMAuthenticationService implements AuthenticationService {
         this.accessToken = result.accessToken();
         transport.setAccessTokenSupplier(() -> this.accessToken);
 
-        // Atualiza tokens no storage
-        storage.set(KEY_ACCESS_TOKEN, result.accessToken());
-        storage.set(KEY_REFRESH_TOKEN, result.refreshToken());
+        // Atualiza tokens no storage seguro (AES-GCM)
+        storage.secure().set(KEY_ACCESS_TOKEN, result.accessToken());
+        storage.secure().set(KEY_REFRESH_TOKEN, result.refreshToken());
 
         return result;
     }
@@ -154,9 +154,9 @@ public class TeaVMAuthenticationService implements AuthenticationService {
         this.accessToken = null;
         transport.setAccessTokenSupplier(null);
 
-        // Limpa tokens do storage
-        storage.remove(KEY_ACCESS_TOKEN);
-        storage.remove(KEY_REFRESH_TOKEN);
+        // Limpa tokens do storage seguro
+        storage.secure().remove(KEY_ACCESS_TOKEN);
+        storage.secure().remove(KEY_REFRESH_TOKEN);
     }
 
     @Override
