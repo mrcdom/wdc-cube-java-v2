@@ -16,7 +16,6 @@ import br.com.wdc.framework.commons.storage.ClientStorage;
 public class BrowserLocalStorage implements ClientStorage {
 
     private final String keyPrefix;
-    private ClientStorage _secure;
 
     public BrowserLocalStorage() {
         this("");
@@ -26,12 +25,13 @@ public class BrowserLocalStorage implements ClientStorage {
         this.keyPrefix = keyPrefix;
     }
 
+    /**
+     * Returns the encrypted view of this storage, backed by {@link EncryptedLocalStorage}.
+     * Values are stored with AES-GCM encryption using a non-exportable key from IndexedDB.
+     */
     @Override
     public ClientStorage secure() {
-        if (_secure == null) {
-            _secure = new BrowserLocalStorage("sec.");
-        }
-        return _secure;
+        return EncryptedLocalStorage.INSTANCE;
     }
 
     @Override

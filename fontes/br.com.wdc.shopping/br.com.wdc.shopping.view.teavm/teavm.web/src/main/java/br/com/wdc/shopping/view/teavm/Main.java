@@ -3,6 +3,7 @@ package br.com.wdc.shopping.view.teavm;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
 import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.commons.interop.Console;
+import br.com.wdc.shopping.view.teavm.infra.EncryptedLocalStorage;
 
 /**
  * Entry point para a aplicação TeaVM.
@@ -18,18 +19,16 @@ public class Main {
             String apiBaseUrl = getApiBaseUrl();
             Console.log("API Base URL: " + apiBaseUrl);
 
-            // Cria e inicia a aplicação
+            // Cria a aplicação e inicializa o storage seguro (IndexedDB + AES-GCM)
+            // antes de iniciar o app, para que tryRestore() encontre os tokens cifrados.
             ShoppingTeaVMApplication app = new ShoppingTeaVMApplication(apiBaseUrl);
-            Console.log("WDC Shopping TeaVM - App created, starting...");
-            app.start();
-            Console.log("WDC Shopping TeaVM - App started, removing loading...");
-
-            // Remove tela de loading
-            removeLoadingScreen();
-            
-            LoginPresenter.simulateSlowLogin(false);
-
-            Console.log("WDC Shopping TeaVM - Started.");
+            Console.log("WDC Shopping TeaVM - App created, initializing secure storage...");
+            EncryptedLocalStorage.initialize(() -> {
+                app.start();
+                removeLoadingScreen();
+                LoginPresenter.simulateSlowLogin(false);
+                Console.log("WDC Shopping TeaVM - Started.");
+            });
         } catch (Exception e) {
             Console.error("WDC Shopping TeaVM - FATAL: " + e.getClass().getName() + ": " + e.getMessage());
             showError(e.getClass().getName() + ": " + e.getMessage());
