@@ -47,15 +47,34 @@ graph TD
 # Desktop (macOS/Linux/Windows)
 cd flutter.desktop && ./run.sh
 
-# Mobile — iPhone simulator
-cd flutter.mobile && ./deploy.sh run ios-sim
+# Mobile — simuladores iOS
+cd flutter.mobile && ./deploy.sh run ios-sim      # iPhone Simulator
+cd flutter.mobile && ./deploy.sh run ipad-sim     # iPad Simulator
 
-# Mobile — Android emulator
-cd flutter.mobile && ./deploy.sh run android-emu
+# Mobile — emuladores Android
+cd flutter.mobile && ./deploy.sh run android-emu         # phone emulator
+cd flutter.mobile && ./deploy.sh run android-tablet-emu  # tablet emulator
+
+# Mobile — devices físicos
+cd flutter.mobile && ./deploy.sh run ios
+cd flutter.mobile && ./deploy.sh run android
 
 # Web
 cd flutter.web && flutter run -d chrome --dart-define=WDC_ENDPOINT=http://localhost:8080
 ```
+
+## Build via Maven (desktop)
+
+O módulo `remote.shell.flutter` possui um `pom.xml` que integra o build do desktop ao ciclo Maven:
+
+```bash
+# A partir do diretório fontes/ — executa flutter pub get + flutter build desktop
+mvn compile -pl br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.shell.flutter -am
+```
+
+O `exec-maven-plugin` executa automaticamente:
+1. `flutter pub get` (fase `initialize`)
+2. `flutter.desktop/build.sh` — auto-detecta macOS/Linux/Windows (fase `compile`)
 
 ## Estrutura de dependências
 

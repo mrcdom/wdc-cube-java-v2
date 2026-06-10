@@ -28,6 +28,15 @@ Shell desktop (macOS, Linux, Windows) da aplicação **WeDoCode Shopping**, usan
 WDC_ENDPOINT=http://servidor:8080 ./run.sh
 ```
 
+## Build via Maven
+
+O módulo pai `remote.shell.flutter` integra este build ao ciclo Maven:
+
+```bash
+# A partir de fontes/ — faz pub get + build release
+mvn compile -pl br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.shell.flutter -am
+```
+
 ## Estrutura
 
 ```mermaid
