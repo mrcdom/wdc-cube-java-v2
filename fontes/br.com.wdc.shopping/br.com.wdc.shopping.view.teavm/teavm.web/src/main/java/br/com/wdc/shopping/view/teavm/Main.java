@@ -19,11 +19,16 @@ public class Main {
             String apiBaseUrl = getApiBaseUrl();
             Console.log("API Base URL: " + apiBaseUrl);
 
+            // Configura o prefixo do storage seguro ANTES de criar a aplicação,
+            // para que set/remove usem sempre o mesmo prefixo "tw:sec.".
+            EncryptedLocalStorage.configure("tw");
+            // Remove entradas legadas gravadas com o prefixo antigo "sec." (sem shellId).
+            cleanLegacyStoragePrefix("sec.");
+
             // Cria a aplicação e inicializa o storage seguro (IndexedDB + AES-GCM)
             // antes de iniciar o app, para que tryRestore() encontre os tokens cifrados.
             ShoppingTeaVMApplication app = new ShoppingTeaVMApplication(apiBaseUrl);
             Console.log("WDC Shopping TeaVM - App created, initializing secure storage...");
-            EncryptedLocalStorage.configure("tw");
             EncryptedLocalStorage.initialize(() -> {
                 app.start();
                 removeLoadingScreen();
@@ -35,6 +40,17 @@ public class Main {
             showError(e.getClass().getName() + ": " + e.getMessage());
         }
     }
+
+    @org.teavm.jso.JSBody(params = {"prefix"}, script = ""
+            + "try {"
+            + "  var keys = [];"
+            + "  for (var i = 0; i < localStorage.length; i++) {"
+            + "    var k = localStorage.key(i);"
+            + "    if (k && k.startsWith(prefix)) keys.push(k);"
+            + "  }"
+            + "  keys.forEach(function(k) { localStorage.removeItem(k); });"
+            + "} catch(e) {}")
+    private static native void cleanLegacyStoragePrefix(String prefix);
 
     @org.teavm.jso.JSBody(params = {"msg"}, script = ""
             + "var el = document.getElementById('loading');"

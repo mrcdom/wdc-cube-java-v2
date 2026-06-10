@@ -45,34 +45,44 @@ export class InMemoryClientStorage implements ClientStorage {
 /**
  * `sessionStorage`-backed implementation.
  *
- * @param skipPrefixes  raw key prefixes (or exact keys) to exclude from `all()`
+ * @param syncNamespace key namespace that qualifies entries for WebSocket sync;
+ *                      prepended to every stored key and stripped when building `all()`.
+ *                      Convention: `'~<shellId>:'` (e.g. `'~rr:'`).
+ * @param secureFactory factory that produces the `.secure` view of this storage.
+ *                      Defaults to `this` (no encryption — fallback).
  */
 export class SessionStorageClientStorage implements ClientStorage {
+  private _secure: ClientStorage | null = null
+
   constructor(
-    private readonly skipPrefixes: string[] = ['app_id', 'req_seq'],
+    private readonly syncNamespace: string = '',
+    private readonly secureFactory: (() => ClientStorage) | null = null,
   ) {}
 
-  get secure(): ClientStorage { return this }
+  get secure(): ClientStorage {
+    if (this.secureFactory) return (this._secure ??= this.secureFactory())
+    return this
+  }
 
   get(key: string): string | null {
-    return sessionStorage.getItem(key)
+    return sessionStorage.getItem(this.syncNamespace + key)
   }
 
   set(key: string, value: string): void {
-    sessionStorage.setItem(key, value)
+    sessionStorage.setItem(this.syncNamespace + key, value)
   }
 
   remove(key: string): void {
-    sessionStorage.removeItem(key)
+    sessionStorage.removeItem(this.syncNamespace + key)
   }
 
   all(): Record<string, string> {
     const result: Record<string, string> = {}
     for (let i = 0; i < sessionStorage.length; i++) {
-      const key = sessionStorage.key(i)
-      if (key === null) continue
-      if (this.skipPrefixes.some(p => key.startsWith(p))) continue
-      const v = sessionStorage.getItem(key)
+      const rawKey = sessionStorage.key(i)
+      if (rawKey === null || !rawKey.startsWith(this.syncNamespace)) continue
+      const key = rawKey.substring(this.syncNamespace.length)
+      const v = sessionStorage.getItem(rawKey)
       if (v !== null) result[key] = v
     }
     return result
@@ -86,57 +96,45 @@ export class SessionStorageClientStorage implements ClientStorage {
 /**
  * `localStorage`-backed implementation.
  *
- * @param keyPrefix     raw key prefix in localStorage (`''` for plain, `'sec.'` for secure)
- * @param skipPrefixes  raw key prefixes (or exact keys) to exclude from `all()`
+ * @param syncNamespace key namespace that qualifies entries for WebSocket sync;
+ *                      prepended to every stored key and stripped when building `all()`.
+ *                      Convention: `'~<shellId>:'` (e.g. `'~rr:'`) — the `~`
+ *                      marks the key as syncable and `<shellId>:` isolates the
+ *                      shell's data from other shells on the same origin.
  * @param secureFactory factory that produces the `.secure` view of this storage
  */
 export class LocalStorageClientStorage implements ClientStorage {
   private _secure: ClientStorage | null = null
 
-  /**
-   * @param shellId      short identifier for the shell (e.g. `'rr'`) — used as
-   *                     localStorage namespace prefix
-   * @param skipPrefixes raw key prefixes (or exact keys) to exclude from `all()`
-   * @param secureFactory factory that produces the `.secure` view of this storage
-   */
   constructor(
-    private readonly shellId: string = '',
-    private readonly skipPrefixes: string[] = ['app_', 'req_seq'],
+    private readonly syncNamespace: string = '',
     private readonly secureFactory: () => ClientStorage = () => new InMemoryClientStorage(),
   ) {}
-
-  private get keyPrefix(): string {
-    return this.shellId ? `${this.shellId}:` : ''
-  }
 
   get secure(): ClientStorage {
     return (this._secure ??= this.secureFactory())
   }
 
   get(key: string): string | null {
-    return localStorage.getItem(this.keyPrefix + key)
+    return localStorage.getItem(this.syncNamespace + key)
   }
 
   set(key: string, value: string): void {
-    localStorage.setItem(this.keyPrefix + key, value)
+    localStorage.setItem(this.syncNamespace + key, value)
   }
 
   remove(key: string): void {
-    localStorage.removeItem(this.keyPrefix + key)
+    localStorage.removeItem(this.syncNamespace + key)
   }
 
   all(): Record<string, string> {
     const result: Record<string, string> = {}
     for (let i = 0; i < localStorage.length; i++) {
       const rawKey = localStorage.key(i)
-      if (rawKey === null) continue
-      if (!rawKey.startsWith(this.keyPrefix)) continue
-      if (this.skipPrefixes.some(p => rawKey.startsWith(p))) continue
-      const shortKey = rawKey.substring(this.keyPrefix.length)
-      // Only sync keys prefixed with '~'
-      if (!shortKey.startsWith('~')) continue
+      if (rawKey === null || !rawKey.startsWith(this.syncNamespace)) continue
+      const key = rawKey.substring(this.syncNamespace.length)
       const v = localStorage.getItem(rawKey)
-      if (v !== null) result[shortKey] = v
+      if (v !== null) result[key] = v
     }
     return result
   }

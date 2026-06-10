@@ -51,39 +51,46 @@ public interface ClientStorage {
 
     class SessionStorageClientStorage implements ClientStorage {
 
-        private final String[] skipPrefixes;
+        private final String syncNamespace;
+        private ClientStorage _secure;
+        private final Supplier<ClientStorage> secureFactory;
 
         /**
-         * @param skipPrefixes raw keys/prefixes to exclude from {@link #all()}
+         * @param syncNamespace namespace prefix for sync (e.g. {@code "~rt:"})
+         * @param secureFactory factory for the {@link #secure()} view; pass {@code null}
+         *                      to fall back to {@code this} (no encryption)
          */
-        public SessionStorageClientStorage(String... skipPrefixes) {
-            this.skipPrefixes = skipPrefixes;
+        public SessionStorageClientStorage(String syncNamespace, Supplier<ClientStorage> secureFactory) {
+            this.syncNamespace = syncNamespace;
+            this.secureFactory = secureFactory;
         }
 
-        @Override public ClientStorage secure() { return this; }
+        @Override
+        public ClientStorage secure() {
+            if (secureFactory == null) return this;
+            if (_secure == null) _secure = secureFactory.get();
+            return _secure;
+        }
 
         @Override
-        public String get(String key) { return ssGetItem(key); }
+        public String get(String key) { return ssGetItem(syncNamespace + key); }
 
         @Override
-        public void set(String key, String value) { ssSetItem(key, value); }
+        public void set(String key, String value) { ssSetItem(syncNamespace + key, value); }
 
         @Override
-        public void remove(String key) { ssRemoveItem(key); }
+        public void remove(String key) { ssRemoveItem(syncNamespace + key); }
 
         @Override
         public Map<String, String> all() {
             var result = new LinkedHashMap<String, String>();
             int len = ssLength();
-            outer:
             for (int i = 0; i < len; i++) {
-                String key = ssKey(i);
-                if (key == null) continue;
-                for (String skip : skipPrefixes) {
-                    if (key.startsWith(skip)) continue outer;
-                }
-                String v = ssGetItem(key);
-                if (v != null) result.put(key, v);
+                String rawKey = ssKey(i);
+                if (rawKey == null || !rawKey.startsWith(syncNamespace)) continue;
+                String shortKey = rawKey.substring(syncNamespace.length());
+                String v = ssGetItem(rawKey);
+                if (v != null) result.put(shortKey, v);
             }
             return result;
         }
@@ -110,67 +117,46 @@ public interface ClientStorage {
 
     class LocalStorageClientStorage implements ClientStorage {
 
-        private final String keyPrefix;
-        private final String[] skipPrefixes;
+        private final String syncNamespace;
         private final Supplier<ClientStorage> secureFactory;
         private ClientStorage _secure;
 
         /**
-         * @param shellId       short identifier for the shell (e.g. {@code "rt"}) used as
-         *                      a localStorage namespace prefix — keeps each shell's data isolated
-         *                      while sharing the same IndexedDB AES key
-         * @param skipPrefixes  raw key prefixes to exclude from {@link #all()}
+         * @param syncNamespace namespace prefix that qualifies entries for WebSocket sync
+         *                      (e.g. {@code "~rt:"}); prepended to every stored key and
+         *                      stripped in {@link #all()}
          * @param secureFactory factory that produces the {@link #secure()} view
          */
-        public LocalStorageClientStorage(String shellId, String[] skipPrefixes,
-                Supplier<ClientStorage> secureFactory) {
-            this.keyPrefix = shellId.isEmpty() ? "" : shellId + ":";
-            this.skipPrefixes = skipPrefixes;
+        public LocalStorageClientStorage(String syncNamespace, Supplier<ClientStorage> secureFactory) {
+            this.syncNamespace = syncNamespace;
             this.secureFactory = secureFactory;
         }
 
         @Override
         public ClientStorage secure() {
-            if (_secure == null) {
-                _secure = secureFactory.get();
-            }
+            if (_secure == null) _secure = secureFactory.get();
             return _secure;
         }
 
         @Override
-        public String get(String key) {
-            return lsGetItem(keyPrefix + key);
-        }
+        public String get(String key) { return lsGetItem(syncNamespace + key); }
 
         @Override
-        public void set(String key, String value) {
-            lsSetItem(keyPrefix + key, value);
-        }
+        public void set(String key, String value) { lsSetItem(syncNamespace + key, value); }
 
         @Override
-        public void remove(String key) {
-            lsRemoveItem(keyPrefix + key);
-        }
+        public void remove(String key) { lsRemoveItem(syncNamespace + key); }
 
         @Override
         public Map<String, String> all() {
             var result = new LinkedHashMap<String, String>();
             int len = lsLength();
-            outer:
             for (int i = 0; i < len; i++) {
                 String rawKey = lsKey(i);
-                if (rawKey == null) continue;
-                if (!rawKey.startsWith(keyPrefix)) continue;
-                for (String skip : skipPrefixes) {
-                    if (rawKey.startsWith(skip)) continue outer;
-                }
-                String shortKey = rawKey.substring(keyPrefix.length());
-                // Only sync keys prefixed with '~'
-                if (!shortKey.startsWith("~")) continue;
+                if (rawKey == null || !rawKey.startsWith(syncNamespace)) continue;
+                String shortKey = rawKey.substring(syncNamespace.length());
                 String v = lsGetItem(rawKey);
-                if (v != null) {
-                    result.put(shortKey, v);
-                }
+                if (v != null) result.put(shortKey, v);
             }
             return result;
         }

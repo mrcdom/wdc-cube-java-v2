@@ -132,9 +132,11 @@ public class EncryptedLocalStorage implements ClientStorage {
         }
         cache.put(key, value);
         if (cryptoKey != null) {
-            // Persiste assincronamente no localStorage cifrado
+            // Persiste assincronamente no localStorage cifrado.
+            // Verifica cache.containsKey ao final para evitar race condition com remove():
+            // se remove() foi chamado antes do callback completar, não grava no localStorage.
             encryptValue(cryptoKey, value, b64 -> {
-                if (b64 != null && !b64.isEmpty()) {
+                if (b64 != null && !b64.isEmpty() && cache.containsKey(key)) {
                     lsSetItem(LS_PREFIX + key, b64);
                 }
             });
@@ -149,14 +151,7 @@ public class EncryptedLocalStorage implements ClientStorage {
 
     @Override
     public Map<String, String> all() {
-        // Apenas chaves com prefixo '~' são candidatas à sincronização com o backend
-        var result = new LinkedHashMap<String, String>();
-        for (var e : cache.entrySet()) {
-            if (e.getKey().startsWith("~")) {
-                result.put(e.getKey(), e.getValue());
-            }
-        }
-        return result;
+        return new LinkedHashMap<>(cache);
     }
 
     // -- JS interop --

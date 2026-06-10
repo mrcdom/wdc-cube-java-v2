@@ -28,7 +28,15 @@ import br.com.wdc.framework.cube.remote.bridge.teavm.interop.WebCrypto;
  */
 public class ViewStateCoordinator {
 
-    public static final ViewStateCoordinator INSTANCE = new ViewStateCoordinator();
+    public static ViewStateCoordinator INSTANCE;
+
+    /**
+     * Configures and creates the singleton. Must be called once by the shell
+     * before any other use, passing the sync namespace (e.g. {@code "~rt:"}).
+     */
+    public static void configure(String syncNamespace) {
+        INSTANCE = new ViewStateCoordinator(syncNamespace);
+    }
 
     public static final String BROWSER_VID = "7b32e816a191";
     public static final String BROWSER_VSID = BROWSER_VID + ":0";
@@ -56,7 +64,7 @@ public class ViewStateCoordinator {
     private Map<String, Object> formMap = new LinkedHashMap<>();
     private String baseWebSocketUrl = "";
 
-    private ViewStateCoordinator() {
+    private ViewStateCoordinator(String syncNamespace) {
         viewMap.put(BROWSER_VSID, new ViewScope(BROWSER_VSID));
 
         String appIdFromCookie = Cookies.get("app_id");
@@ -75,16 +83,12 @@ public class ViewStateCoordinator {
         }
         this.id = appId;
 
-        // Storage: session uses browser sessionStorage (survives F5, not tab close);
-        // persistent uses localStorage namespaced by shell ("rt:") so each shell
-        // has isolated data. The shared IndexedDB AES key is still reused.
-        // secure() → EncryptedLocalStorage (AES-GCM, non-extractable key in IndexedDB).
-        // Only keys prefixed with '~' are included in WebSocket bootstrap/delta payloads.
-        final String shellId = "rt";
-        EncryptedLocalStorage.configure(shellId);
-        this.sessionStorage = new ClientStorage.SessionStorageClientStorage("app_id", "req_seq");
+        // syncNamespace (e.g. '~rt:') qualifies keys for WebSocket sync and isolates
+        // the shell's data from other shells on the same origin.
+        EncryptedLocalStorage.configure(syncNamespace);
+        this.sessionStorage = new ClientStorage.SessionStorageClientStorage(syncNamespace, () -> EncryptedLocalStorage.INSTANCE);
         this.persistentStorage = new ClientStorage.LocalStorageClientStorage(
-                shellId, new String[]{"app_", shellId + ":sec.", "req_seq"}, () -> EncryptedLocalStorage.INSTANCE);
+                syncNamespace, () -> EncryptedLocalStorage.INSTANCE);
 
         String protocol = getLocationProtocol();
         String wsProtocol = "https:".equals(protocol) ? "wss://" : "ws://";

@@ -236,7 +236,7 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
             // Logout via AuthenticationService (limpa tokens do ClientStorage)
             var authService = AuthenticationService.BEAN.get();
             if (authService != null) {
-                var refreshToken = this.app.clientPersistentStore().secure().get("~auth.refreshToken");
+                var refreshToken = this.app.clientPersistentStore().secure().get(StorageKeys.AUTH_REFRESH_TOKEN);
                 authService.logout(refreshToken);
             }
 

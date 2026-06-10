@@ -19,8 +19,8 @@ import br.com.wdc.shopping.domain.security.SecurityContext;
  */
 public class TeaVMAuthenticationService implements AuthenticationService {
 
-    private static final String KEY_ACCESS_TOKEN = "~auth.accessToken";
-    private static final String KEY_REFRESH_TOKEN = "~auth.refreshToken";
+    private static final String KEY_ACCESS_TOKEN = "auth.accessToken";
+    private static final String KEY_REFRESH_TOKEN = "auth.refreshToken";
 
     private final Log log = Log.getLogger(TeaVMAuthenticationService.class.getSimpleName());
 
@@ -140,21 +140,21 @@ public class TeaVMAuthenticationService implements AuthenticationService {
 
     @Override
     public void logout(String refreshToken) {
-        if (refreshToken == null)
-            return;
-        try {
-            var writer = new JsonStreamWriter();
-            writer.beginObject();
-            writer.name("refreshToken").value(refreshToken);
-            writer.endObject();
-            transport.postJsonPublic("/api/auth/logout", writer.result());
-        } catch (Exception e) {
-            log.debug("logout: " + e.getMessage());
+        if (refreshToken != null) {
+            try {
+                var writer = new JsonStreamWriter();
+                writer.beginObject();
+                writer.name("refreshToken").value(refreshToken);
+                writer.endObject();
+                transport.postJsonPublic("/api/auth/logout", writer.result());
+            } catch (Exception e) {
+                log.debug("logout: " + e.getMessage());
+            }
         }
         this.accessToken = null;
         transport.setAccessTokenSupplier(null);
 
-        // Limpa tokens do storage seguro
+        // Limpa tokens do storage seguro — incondicional, independente do refreshToken
         storage.secure().remove(KEY_ACCESS_TOKEN);
         storage.secure().remove(KEY_REFRESH_TOKEN);
     }

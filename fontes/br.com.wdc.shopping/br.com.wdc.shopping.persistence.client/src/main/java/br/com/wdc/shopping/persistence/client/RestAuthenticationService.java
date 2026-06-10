@@ -23,8 +23,8 @@ import br.com.wdc.shopping.domain.security.SecurityContext;
  */
 public class RestAuthenticationService implements AuthenticationService {
 
-	private static final String KEY_ACCESS_TOKEN = "~auth.accessToken";
-	private static final String KEY_REFRESH_TOKEN = "~auth.refreshToken";
+	private static final String KEY_ACCESS_TOKEN = "auth.accessToken";
+	private static final String KEY_REFRESH_TOKEN = "auth.refreshToken";
 
 	private final HttpTransport transport;
 	private final RestAuthClient authClient;
@@ -151,21 +151,20 @@ public class RestAuthenticationService implements AuthenticationService {
 
 	@Override
 	public void logout(String refreshToken) {
-		if (refreshToken == null) {
-			return;
-		}
-		try {
-			var writer = new JsonStreamWriter();
-			writer.beginObject();
-			writer.name("refreshToken").value(refreshToken);
-			writer.endObject();
-			transport.postJsonPublic("/api/auth/logout", writer.result());
-		} catch (Exception ignored) {
-			// Ignora erros de rede no logout
+		if (refreshToken != null) {
+			try {
+				var writer = new JsonStreamWriter();
+				writer.beginObject();
+				writer.name("refreshToken").value(refreshToken);
+				writer.endObject();
+				transport.postJsonPublic("/api/auth/logout", writer.result());
+			} catch (Exception ignored) {
+				// Ignora erros de rede no logout
+			}
 		}
 		authClient.clearTokens();
 
-		// Limpa tokens do storage seguro
+		// Limpa tokens do storage — incondicional, independente do refreshToken
 		storage.secure().remove(KEY_ACCESS_TOKEN);
 		storage.secure().remove(KEY_REFRESH_TOKEN);
 	}

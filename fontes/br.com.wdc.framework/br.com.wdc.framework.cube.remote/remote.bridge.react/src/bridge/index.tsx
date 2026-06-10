@@ -24,9 +24,13 @@ async function static_updateAllViewStates(app: ViewStateCoordinator, vsids: stri
   app.applyViewStates(viewStates)
 }
 
-const privateApp = new ViewStateCoordinator()
+let privateApp: ViewStateCoordinator
 
 const publicApp = new (class {
+  configure(syncNamespace: string) {
+    privateApp = new ViewStateCoordinator(syncNamespace)
+  }
+
   getBaseUrl() {
     return privateApp.baseWebSocketUtl
   }

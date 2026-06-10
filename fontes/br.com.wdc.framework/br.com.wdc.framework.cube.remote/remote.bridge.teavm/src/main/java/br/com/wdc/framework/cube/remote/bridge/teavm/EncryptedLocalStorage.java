@@ -36,19 +36,19 @@ public final class EncryptedLocalStorage implements ClientStorage {
     public static final EncryptedLocalStorage INSTANCE = new EncryptedLocalStorage();
 
     /**
-     * localStorage prefix: {@code "{shellId}:sec."}.
+     * localStorage prefix: {@code "{syncNamespace}sec."}.
      * Set once by {@link #configure(String)} before {@link #initialize(Runnable)}.
      */
     private static String LS_PREFIX = "sec.";
 
     /**
-     * Configures the shell-specific namespace prefix.
+     * Configures the sync namespace prefix.
      * Must be called before {@link #initialize(Runnable)}.
      *
-     * @param shellId short identifier for the shell (e.g. {@code "rt"})
+     * @param syncNamespace namespace prefix for sync (e.g. {@code "~rt:"})
      */
-    public static void configure(String shellId) {
-        LS_PREFIX = shellId + ":sec.";
+    public static void configure(String syncNamespace) {
+        LS_PREFIX = syncNamespace + "sec.";
     }
 
     private final Map<String, String> cache = new LinkedHashMap<>();
@@ -94,14 +94,7 @@ public final class EncryptedLocalStorage implements ClientStorage {
 
     @Override
     public Map<String, String> all() {
-        // Only sync entries whose logical key starts with '~'
-        var result = new LinkedHashMap<String, String>();
-        for (var e : cache.entrySet()) {
-            if (e.getKey().startsWith("~")) {
-                result.put(e.getKey(), e.getValue());
-            }
-        }
-        return result;
+        return new LinkedHashMap<>(cache);
     }
 
     // -----------------------------------------------------------------------

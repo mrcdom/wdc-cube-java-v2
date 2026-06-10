@@ -41,16 +41,16 @@ export class ViewStateCoordinator {
 
   readyToStart = NOOP_PROMISE_VOID
 
-  constructor() {
+  constructor(syncNamespace: string) {
     this.viewMap.set(BROWSER_VSID, new ViewScope(BROWSER_VSID))
 
-    // Storage: session uses browser sessionStorage (survives F5, not tab close);
-    // persistent uses localStorage namespaced by shell ("rr:") for isolation.
+    // syncNamespace (e.g. '~rr:') qualifies keys for WebSocket sync and isolates
+    // the shell's data from other shells on the same origin.
     // .secure uses AES-GCM encryption via IndexedDB (shared across shells).
-    // Only keys prefixed with '~' are included in WebSocket bootstrap/delta payloads.
-    const encryptedStorage = new EncryptedLocalStorage('rr')
-    this.sessionStorage = new SessionStorageClientStorage()
-    this.persistentStorage = new LocalStorageClientStorage('rr', ['app_', 'rr:sec.', 'req_seq'], () => encryptedStorage)
+    const encryptedStorage = new EncryptedLocalStorage(syncNamespace)
+    const encryptedSession = new EncryptedLocalStorage(syncNamespace, sessionStorage)
+    this.sessionStorage = new SessionStorageClientStorage(syncNamespace, () => encryptedSession)
+    this.persistentStorage = new LocalStorageClientStorage(syncNamespace, () => encryptedStorage)
 
     const appIdFromCookie = Cookie.get('app_id')
     if (appIdFromCookie) {
@@ -76,7 +76,7 @@ export class ViewStateCoordinator {
 
       this.readyToStart = async () => {
         try {
-          await encryptedStorage.initialize()
+          await Promise.all([encryptedStorage.initialize(), encryptedSession.initialize()])
           await this.dataSecurity.updateSecretWithRandomPassword()
 
           Cookie.set('app_signature', this.dataSecurity.getSignature(), { path: '/' })

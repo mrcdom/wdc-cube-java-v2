@@ -32,13 +32,13 @@ class EncryptedWebStorage implements ClientStorage {
   final _cache = <String, String>{};
   web.CryptoKey? _cryptoKey;
 
-  /// localStorage prefix: `"{shellId}:sec."`.
+  /// localStorage prefix: `"{syncNamespace}sec."`.
   final String _lsPrefix;
 
-  /// @param shellId short identifier for the shell (e.g. `'rf'`).
-  ///                Used as localStorage namespace: `"{shellId}:sec."`.
-  EncryptedWebStorage(String shellId)
-    : _lsPrefix = shellId.isEmpty ? 'sec.' : '$shellId:sec.';
+  /// @param syncNamespace namespace prefix for sync (e.g. `'~rf:'`).
+  ///                Used as localStorage prefix: `"{syncNamespace}sec."`.
+  EncryptedWebStorage(String syncNamespace)
+    : _lsPrefix = '${syncNamespace}sec.';
 
   @override
   ClientStorage get secure => this;
@@ -63,10 +63,7 @@ class EncryptedWebStorage implements ClientStorage {
 
   @override
   Map<String, String> get all {
-    // Only sync entries whose logical key starts with '~'
-    return Map.unmodifiable(
-      Map.fromEntries(_cache.entries.where((e) => e.key.startsWith('~'))),
-    );
+    return Map.unmodifiable(_cache);
   }
 
   /// Initialises the AES-GCM key from IndexedDB and pre-decrypts all stored

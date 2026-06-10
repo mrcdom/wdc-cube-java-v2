@@ -61,8 +61,6 @@ public class BrowserLocalStorage implements ClientStorage {
             String rawKey = jsKey(i);
             if (rawKey == null || !rawKey.startsWith(keyPrefix)) continue;
             String shortKey = rawKey.substring(keyPrefix.length());
-            // Only sync keys prefixed with '~'
-            if (!shortKey.startsWith("~")) continue;
             String v = jsGet(rawKey);
             if (v != null) result.put(shortKey, v);
         }

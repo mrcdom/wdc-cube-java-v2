@@ -31,13 +31,19 @@ export class EncryptedLocalStorage implements ClientStorage {
   private readonly cache = new Map<string, string>()
   private cryptoKey: CryptoKey | null = null
   private readonly lsPrefix: string
+  private readonly storage: Storage
 
   /**
-   * @param shellId short identifier for the shell (e.g. `'rr'`).
-   *                Used as localStorage namespace: `"{shellId}:sec."`.
+   * @param syncNamespace key namespace that qualifies entries for WebSocket sync;
+   *                      convention: `'~<shellId>:'` (e.g. `'~rr:'`).
+   *                      Prepended to every stored key and stripped in `all()`.
+   *                      Also used to derive the storage prefix: `'<syncNamespace>sec.'`.
+   * @param storage       backing Web Storage (`localStorage` or `sessionStorage`).
+   *                      Defaults to `localStorage`.
    */
-  constructor(shellId: string) {
-    this.lsPrefix = shellId ? `${shellId}:sec.` : 'sec.'
+  constructor(private readonly syncNamespace = '', storage?: Storage) {
+    this.lsPrefix = `${syncNamespace}sec.`
+    this.storage = storage ?? localStorage
   }
 
   get secure(): ClientStorage {
@@ -59,14 +65,13 @@ export class EncryptedLocalStorage implements ClientStorage {
 
   remove(key: string): void {
     this.cache.delete(key)
-    localStorage.removeItem(this.lsPrefix + key)
+    this.storage.removeItem(this.lsPrefix + key)
   }
 
   all(): Record<string, string> {
-    // Only sync entries whose logical key starts with '~'
     const result: Record<string, string> = {}
     for (const [k, v] of this.cache) {
-      if (k.startsWith('~')) result[k] = v
+      result[k] = v
     }
     return result
   }
@@ -87,12 +92,12 @@ export class EncryptedLocalStorage implements ClientStorage {
     if (!this.cryptoKey) return
 
     const key = this.cryptoKey
-    const len = localStorage.length
+    const len = this.storage.length
     const entries: Array<{ short: string; b64: string }> = []
     for (let i = 0; i < len; i++) {
-      const rawKey = localStorage.key(i)
+      const rawKey = this.storage.key(i)
       if (rawKey && rawKey.startsWith(this.lsPrefix)) {
-        const b64 = localStorage.getItem(rawKey)
+        const b64 = this.storage.getItem(rawKey)
         if (b64) entries.push({ short: rawKey.slice(this.lsPrefix.length), b64 })
       }
     }
@@ -110,7 +115,7 @@ export class EncryptedLocalStorage implements ClientStorage {
 
   private async encryptAndStore(key: string, value: string, cryptoKey: CryptoKey): Promise<void> {
     const b64 = await encryptValue(cryptoKey, value)
-    localStorage.setItem(this.lsPrefix + key, b64)
+    this.storage.setItem(this.lsPrefix + key, b64)
   }
 }
 

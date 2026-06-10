@@ -24,6 +24,9 @@ public class Main {
         try {
             Console.log("WDC Shopping Remote Shell TeaVM - Initializing...");
 
+            // Configure sync namespace — must be before ViewStateCoordinator.INSTANCE is used
+            ViewStateCoordinator.configure("~rt:");
+
             // Security boot (RSA + AES key derivation) — starts async PBKDF2
             SecurityBoot.initialize();
 

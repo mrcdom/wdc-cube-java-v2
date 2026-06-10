@@ -17,26 +17,24 @@ void main() async {
   final protocol = web.window.location.protocol == 'http:' ? 'ws://' : 'wss://';
   final baseWsUrl = '$protocol${web.window.location.host}';
 
-  // Persistent storage backed by localStorage (survives page refresh).
-  // Secure view uses AES-GCM encryption via IndexedDB (non-extractable key).
-  // shellId 'rf' namespaces all keys under 'rf:' / 'rf:sec.' to isolate
-  // this shell's data from other shells sharing the same origin.
-  final secureStorage = EncryptedWebStorage('rf');
+  // syncNamespace '~rf:' qualifies keys for WebSocket sync and isolates this
+  // shell's data from other shells sharing the same origin.
+  // Stored as '~rf:key' in localStorage; 'all()' strips the namespace.
+  const syncNamespace = '~rf:';
+  final secureStorage = EncryptedWebStorage(syncNamespace);
   await secureStorage.initialize();
   final persistentStorage = DelegateClientStorage(
-    get: (key) => web.window.localStorage.getItem('rf:$key'),
-    set: (key, value) => web.window.localStorage.setItem('rf:$key', value),
-    remove: (key) => web.window.localStorage.removeItem('rf:$key'),
+    get: (key) => web.window.localStorage.getItem('$syncNamespace$key'),
+    set: (key, value) =>
+        web.window.localStorage.setItem('$syncNamespace$key', value),
+    remove: (key) => web.window.localStorage.removeItem('$syncNamespace$key'),
     all: () {
       final result = <String, String>{};
       final ls = web.window.localStorage;
-      const prefix = 'rf:';
       for (var i = 0; i < ls.length; i++) {
         final rawKey = ls.key(i);
-        if (rawKey == null || !rawKey.startsWith(prefix)) continue;
-        final shortKey = rawKey.substring(prefix.length);
-        // Only sync keys prefixed with '~'; skip sec.* (handled by secureStorage)
-        if (!shortKey.startsWith('~') || shortKey.startsWith('sec.')) continue;
+        if (rawKey == null || !rawKey.startsWith(syncNamespace)) continue;
+        final shortKey = rawKey.substring(syncNamespace.length);
         final v = ls.getItem(rawKey);
         if (v != null) result[shortKey] = v;
       }
