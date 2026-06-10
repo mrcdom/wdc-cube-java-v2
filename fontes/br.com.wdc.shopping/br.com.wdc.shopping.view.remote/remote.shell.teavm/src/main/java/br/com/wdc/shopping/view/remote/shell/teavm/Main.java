@@ -1,5 +1,6 @@
 package br.com.wdc.shopping.view.remote.shell.teavm;
 
+import br.com.wdc.framework.cube.remote.bridge.teavm.EncryptedLocalStorage;
 import br.com.wdc.framework.cube.remote.bridge.teavm.SecurityBoot;
 import br.com.wdc.framework.cube.remote.bridge.teavm.ViewStateCoordinator;
 import br.com.wdc.shopping.view.teavm.commons.interop.Console;
@@ -23,7 +24,7 @@ public class Main {
         try {
             Console.log("WDC Shopping Remote Shell TeaVM - Initializing...");
 
-            // Security boot (RSA + AES key derivation)
+            // Security boot (RSA + AES key derivation) — starts async PBKDF2
             SecurityBoot.initialize();
 
             // Register view factories
@@ -38,11 +39,16 @@ public class Main {
             app.registerView(ProductsPanelView.VIEW_ID, ProductsPanelView::new);
             app.registerView(PurchasesPanelView.VIEW_ID, PurchasesPanelView::new);
 
-            // Start
-            app.start();
-            // Loading screen is removed by BrowserView on first render
+            // Open IndexedDB key + decrypt sec.* cache, then start WebSocket.
+            // SecurityBoot PBKDF2 runs in parallel; FlushRequestContext.open()
+            // already waits for SecurityBoot.onReady() before sending the first
+            // message, so the two async paths are correctly sequenced.
+            EncryptedLocalStorage.initialize(() -> {
+                app.start();
+                // Loading screen is removed by BrowserView on first render
+                Console.log("WDC Shopping Remote Shell TeaVM - Started.");
+            });
 
-            Console.log("WDC Shopping Remote Shell TeaVM - Started.");
         } catch (Exception e) {
             Console.error("FATAL: " + e.getClass().getName() + ": " + e.getMessage());
             showError(e.getClass().getName() + ": " + e.getMessage());
