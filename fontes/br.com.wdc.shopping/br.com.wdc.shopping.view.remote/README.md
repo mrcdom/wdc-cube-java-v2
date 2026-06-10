@@ -73,11 +73,13 @@ graph TD
     desktop["flutter.desktop/<br/><small>Desktop: macOS, Linux, Windows</small>"]
     mobile["flutter.mobile/<br/><small>Mobile: iOS, Android</small>"]
     web["flutter.web/<br/><small>Web: browser (WASM/JS)</small>"]
+    probe["remote.shell.probe/<br/><small>Probe Java: cenários de teste e benchmark sobre o host (Maven/Java)</small>"]
 
     root --> host
     root --> react
     root --> teavm
     root --> flutter
+    root --> probe
     flutter --> commons
     flutter --> desktop
     flutter --> mobile
@@ -156,6 +158,24 @@ graph TD
     webapp --> index
     webapp --> css
 ```
+
+### remote.shell.flutter (Maven + Flutter/Dart)
+
+Shells Flutter multiplataforma — thin clients em Dart que compartilham código via `flutter.commons`:
+
+- **flutter.commons** — biblioteca compartilhada: protocolo WebSocket, segurança RSA+AES-GCM, views, widgets e design tokens
+- **flutter.desktop** — app nativo macOS/Linux/Windows; build via `build.sh` (auto-detecta plataforma)
+- **flutter.mobile** — app iOS/Android com deploy via `deploy.sh` (suporta simuladores, emuladores e devices físicos)
+- **flutter.web** — app web via Flutter WASM/JS
+
+### remote.shell.probe (Maven/Java)
+
+Executa cenários programáticos sobre o host remoto — usado para benchmarks de throughput, medição de memória por sessão e validação comportamental:
+
+- **`ConcurrentThroughputScenario`** — mede throughput com múltiplas sessões paralelas
+- **`MemoryPerSessionScenario`** — mede consumo de memória por sessão ativa
+- **`ComprarProdutoScenario`** — valida fluxo completo de compra via protocolo remoto
+- Usa `remote.bridge.java` (framework) como base para conexão com o host
 
 ## Fluxo de comunicação
 
