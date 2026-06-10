@@ -108,11 +108,6 @@ public class ShoppingApplicationImpl extends ShoppingApplication implements Remo
 	}
 
 	@Override
-	public void emitAccessToken(String token) {
-		this.support.emitAccessToken(token);
-	}
-
-	@Override
 	public void updateHistory() {
 		this.support.updateHistory();
 	}

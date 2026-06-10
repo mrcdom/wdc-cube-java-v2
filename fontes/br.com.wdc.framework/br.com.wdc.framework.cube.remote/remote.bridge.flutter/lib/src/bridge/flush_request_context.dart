@@ -37,7 +37,12 @@ class FlushRequestContext {
     }
   }
 
-  void submit(FormMapType formMap, String vsid, int eventId, {bool silent = false}) {
+  void submit(
+    FormMapType formMap,
+    String vsid,
+    int eventId, {
+    bool silent = false,
+  }) {
     _cancelPendingKeepAlive();
 
     formMap['requestId'] = _requestCount++;
@@ -75,7 +80,9 @@ class FlushRequestContext {
           if (key == 'event') {
             (requestObj['event'] as List<String>).addAll(value as List<String>);
           } else if (value is Map) {
-            final formData = requestObj.putIfAbsent(key, () => <String, dynamic>{}) as Map<String, dynamic>;
+            final formData =
+                requestObj.putIfAbsent(key, () => <String, dynamic>{})
+                    as Map<String, dynamic>;
             formData.addAll(Map<String, dynamic>.from(value));
           } else {
             requestObj[key] = value;
@@ -93,7 +100,9 @@ class FlushRequestContext {
         _pendingSecret = null;
       }
       if (_pendingAccessToken != null) {
-        requestObj['accessToken'] = app.dataSecurity.b64Cipher(_pendingAccessToken!);
+        requestObj['accessToken'] = app.dataSecurity.b64Cipher(
+          _pendingAccessToken!,
+        );
         _pendingAccessToken = null;
       }
       _channel?.sink.add(jsonEncode(requestObj));
@@ -113,18 +122,20 @@ class FlushRequestContext {
     );
     _channel = channel;
 
-    channel.ready.then((_) {
-      _isConnecting = false;
-      _isOpen = true;
-      app.isConnected = true;
-      _pendingSecret = app.dataSecurity.getSignature();
-      _pendingAccessToken = app.accessToken;
-      _initKeepAliveChecks();
-      flush();
-    }).catchError((Object error) {
-      _isConnecting = false;
-      _handleDisconnect(error);
-    });
+    channel.ready
+        .then((_) {
+          _isConnecting = false;
+          _isOpen = true;
+          app.isConnected = true;
+          _pendingSecret = app.dataSecurity.getSignature();
+          _pendingAccessToken = app.accessToken;
+          _initKeepAliveChecks();
+          flush();
+        })
+        .catchError((Object error) {
+          _isConnecting = false;
+          _handleDisconnect(error);
+        });
 
     channel.stream.listen(
       (dynamic message) {
@@ -178,7 +189,9 @@ class FlushRequestContext {
     final response = jsonDecode(rawMessage) as Map<String, dynamic>;
 
     if (response['releasedViews'] != null) {
-      app.viewGarbageCollector.release(response['releasedViews'] as List<dynamic>);
+      app.viewGarbageCollector.release(
+        response['releasedViews'] as List<dynamic>,
+      );
     }
     if (response['activeViews'] != null) {
       app.viewGarbageCollector.sweep(response['activeViews'] as List<dynamic>);
@@ -195,18 +208,6 @@ class FlushRequestContext {
 
     if (response['uri'] != null) {
       app.onUriChanged(response['uri'] as String);
-    }
-
-    if (response.containsKey('accessToken')) {
-      final ciphered = response['accessToken'] as String?;
-      if (ciphered != null && ciphered.isNotEmpty) {
-        final token = app.dataSecurity.b64Decipher(ciphered);
-        app.accessToken = token;
-        app.onAccessTokenChanged?.call(token);
-      } else {
-        app.accessToken = null;
-        app.onAccessTokenChanged?.call('');
-      }
     }
 
     if (response['states'] != null) {

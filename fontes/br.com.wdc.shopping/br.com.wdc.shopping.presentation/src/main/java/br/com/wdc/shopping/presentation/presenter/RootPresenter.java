@@ -35,6 +35,7 @@ public class RootPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
         public CubeView contentView;
         public String errorMessage;
+        public String accessToken;
 
     }
 

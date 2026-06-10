@@ -55,8 +55,8 @@ class ViewStateCoordinator {
   void Function() readyToStart = _noopSync;
 
   ViewStateCoordinator(CoordinatorConfig config)
-      : id = config.appId,
-        baseWebSocketUrl = config.baseWebSocketUrl {
+    : id = config.appId,
+      baseWebSocketUrl = config.baseWebSocketUrl {
     instance = this;
     viewMap[browserVsid] = ViewScope(browserVsid);
 
@@ -86,12 +86,14 @@ class ViewStateCoordinator {
     void Function(String name, String value)? onSetCookie,
   }) {
     final appId = _makeUniqueId();
-    return ViewStateCoordinator(CoordinatorConfig(
-      appId: appId,
-      securityKey: securityKey,
-      baseWebSocketUrl: baseWebSocketUrl,
-      onSetCookie: onSetCookie,
-    ));
+    return ViewStateCoordinator(
+      CoordinatorConfig(
+        appId: appId,
+        securityKey: securityKey,
+        baseWebSocketUrl: baseWebSocketUrl,
+        onSetCookie: onSetCookie,
+      ),
+    );
   }
 
   // :: View Registry
@@ -149,6 +151,21 @@ class ViewStateCoordinator {
       final vsid = viewState['#'] as String?;
       if (vsid == null) continue;
 
+      // Intercept accessToken from any ViewState (typically RootViewState)
+      if (viewState.containsKey('accessToken')) {
+        final ciphered = viewState['accessToken'] as String?;
+        if (ciphered != null && ciphered.isNotEmpty) {
+          final token = dataSecurity.b64Decipher(ciphered);
+          if (token.isNotEmpty) {
+            accessToken = token;
+            onAccessTokenChanged?.call(token);
+          } else {
+            accessToken = null;
+            onAccessTokenChanged?.call('');
+          }
+        }
+      }
+
       var viewScope = viewMap[vsid];
       if (viewScope == null) {
         viewScope = ViewScope(vsid);
@@ -174,7 +191,9 @@ class ViewStateCoordinator {
   }
 
   void setFormField(String vsid, String fieldName, dynamic fieldValue) {
-    final formData = formMap.putIfAbsent(vsid, () => <String, dynamic>{}) as Map<String, dynamic>;
+    final formData =
+        formMap.putIfAbsent(vsid, () => <String, dynamic>{})
+            as Map<String, dynamic>;
     formData[fieldName] = fieldValue;
   }
 
@@ -195,4 +214,3 @@ class ViewStateCoordinator {
     return bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
   }
 }
-
