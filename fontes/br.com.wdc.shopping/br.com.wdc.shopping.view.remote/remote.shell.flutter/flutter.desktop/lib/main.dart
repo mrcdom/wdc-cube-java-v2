@@ -3,7 +3,6 @@ import 'dart:io' show HttpClient, Platform;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_commons/flutter_commons.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Resolves the base HTTP URL from:
@@ -30,7 +29,6 @@ String _toWsUrl(String httpUrl) {
 }
 
 late SharedPreferences _prefs;
-late FlutterSecureStorage _securePrefs;
 
 /// Fetches session credentials from the backend.
 /// Returns {appId, appSKey} or null on failure.
@@ -57,7 +55,6 @@ Future<Map<String, String>?> _fetchSessionInit(String baseHttpUrl) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   _prefs = await SharedPreferences.getInstance();
-  _securePrefs = const FlutterSecureStorage();
 
   final baseHttpUrl = _resolveBaseHttpUrl();
   final baseWsUrl = _toWsUrl(baseHttpUrl);
@@ -76,16 +73,23 @@ void main() async {
   _prefs.setString('app_id', appId);
   _prefs.setString('app_skey', appSKey);
 
-  // Build ClientStorage instances backed by SharedPreferences / FlutterSecureStorage
+  // Build ClientStorage instances backed by SharedPreferences / FlutterSecureStorage.
+  //
+  // On macOS the app runs in a sandbox. FlutterSecureStorage (Keychain) requires
+  // the keychain-access-groups entitlement — without it readAll() returns empty.
+  // For desktop we fall back to SharedPreferences with a 'sec.' key prefix, which
+  // is protected by the OS sandbox and avoids the Keychain entitlement requirement.
+  // The values are still ciphered over the WebSocket regardless.
   final secureStorage = DelegateClientStorage(
-    get: (key) => null, // async read not supported synchronously;
-    set: (key, value) {
-      _securePrefs.write(key: key, value: value);
+    get: (key) => _prefs.getString('sec.$key'),
+    set: (key, value) => _prefs.setString('sec.$key', value),
+    remove: (key) => _prefs.remove('sec.$key'),
+    all: () {
+      return {
+        for (final k in _prefs.getKeys().where((k) => k.startsWith('sec.')))
+          k.substring(4): _prefs.getString(k)!,
+      };
     },
-    remove: (key) {
-      _securePrefs.delete(key: key);
-    },
-    all: () => const {}, // bootstrap data loaded async below
     secureFactory: () => InMemoryClientStorage(), // already IS secure
   );
   final persistentStorage = DelegateClientStorage(
@@ -107,12 +111,6 @@ void main() async {
     secureFactory: () => secureStorage,
   );
   final sessionStorage = InMemoryClientStorage();
-
-  // Pre-load auth.token from secure storage (for auto-login / remember me)
-  final savedToken = await _securePrefs.read(key: 'auth.token');
-  if (savedToken != null && savedToken.isNotEmpty) {
-    secureStorage.set('auth.token', savedToken);
-  }
 
   final coordinator = ViewStateCoordinator(
     CoordinatorConfig(

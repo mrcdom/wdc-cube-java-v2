@@ -76,16 +76,24 @@ void main() async {
   _prefs.setString('app_id', appId);
   _prefs.setString('app_skey', appSKey);
 
-  // Build ClientStorage instances backed by SharedPreferences / FlutterSecureStorage
+  // Build ClientStorage instances backed by SharedPreferences / FlutterSecureStorage.
+  //
+  // secureStorage uses an in-memory cache pre-populated from FlutterSecureStorage.
+  // This is necessary because FlutterSecureStorage is async-only: get() and all()
+  // must be synchronous for the WebSocket bootstrap payload. Without the cache,
+  // all() returns {} → server never sees the token → tryAutoLogin() never runs.
+  final secureCache = Map<String, String>.from(await _securePrefs.readAll());
   final secureStorage = DelegateClientStorage(
-    get: (key) => null, // async read not supported synchronously
+    get: (key) => secureCache[key],
     set: (key, value) {
+      secureCache[key] = value;
       _securePrefs.write(key: key, value: value);
     },
     remove: (key) {
+      secureCache.remove(key);
       _securePrefs.delete(key: key);
     },
-    all: () => const {}, // bootstrap data loaded async below
+    all: () => Map.unmodifiable(secureCache),
     secureFactory: () => InMemoryClientStorage(), // already IS secure
   );
   final persistentStorage = DelegateClientStorage(
@@ -107,12 +115,6 @@ void main() async {
     secureFactory: () => secureStorage,
   );
   final sessionStorage = InMemoryClientStorage();
-
-  // Pre-load auth.token from secure storage (for auto-login / remember me)
-  final savedToken = await _securePrefs.read(key: 'auth.token');
-  if (savedToken != null && savedToken.isNotEmpty) {
-    secureStorage.set('auth.token', savedToken);
-  }
 
   final coordinator = ViewStateCoordinator(
     CoordinatorConfig(
