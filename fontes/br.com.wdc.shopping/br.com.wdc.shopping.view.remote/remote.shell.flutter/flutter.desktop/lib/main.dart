@@ -85,10 +85,12 @@ void main() async {
     set: (key, value) => _prefs.setString('sec.$key', value),
     remove: (key) => _prefs.remove('sec.$key'),
     all: () {
-      return {
-        for (final k in _prefs.getKeys().where((k) => k.startsWith('sec.')))
-          k.substring(4): _prefs.getString(k)!,
-      };
+      final result = <String, String>{};
+      for (final k in _prefs.getKeys().where((k) => k.startsWith('sec.'))) {
+        final v = _prefs.getString(k);
+        if (v != null) result[k.substring(4)] = v;
+      }
+      return result;
     },
     secureFactory: () => InMemoryClientStorage(), // already IS secure
   );

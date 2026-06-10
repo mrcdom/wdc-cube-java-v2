@@ -105,12 +105,15 @@ void main() async {
       _prefs.remove(key);
     },
     all: () {
-      return {
-        for (final key in _prefs.getKeys().where(
-          (k) => !k.startsWith('app_') && k != 'req_seq' && k != 'last_path',
-        ))
-          key: _prefs.getString(key)!,
-      };
+      final result = <String, String>{};
+      for (final key in _prefs.getKeys()) {
+        if (key.startsWith('app_') || key == 'req_seq' || key == 'last_path') {
+          continue;
+        }
+        final v = _prefs.getString(key);
+        if (v != null) result[key] = v;
+      }
+      return result;
     },
     secureFactory: () => secureStorage,
   );
