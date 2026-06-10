@@ -19,15 +19,20 @@ public class Main {
             String apiBaseUrl = getApiBaseUrl();
             Console.log("API Base URL: " + apiBaseUrl);
 
+            // Detecta ambiente: Tauri nativo usa shellId "tn", browser usa "tw".
+            // O shellId serve como namespace de localStorage para isolar dados entre shells.
+            String shellId = isTauri() ? "tn" : "tw";
+            Console.log("Shell ID: " + shellId);
+
             // Configura o prefixo do storage seguro ANTES de criar a aplicação,
-            // para que set/remove usem sempre o mesmo prefixo "tw:sec.".
-            EncryptedLocalStorage.configure("tw");
+            // para que set/remove usem sempre o mesmo prefixo "<shellId>:sec.".
+            EncryptedLocalStorage.configure(shellId);
             // Remove entradas legadas gravadas com o prefixo antigo "sec." (sem shellId).
             cleanLegacyStoragePrefix("sec.");
 
             // Cria a aplicação e inicializa o storage seguro (IndexedDB + AES-GCM)
             // antes de iniciar o app, para que tryRestore() encontre os tokens cifrados.
-            ShoppingTeaVMApplication app = new ShoppingTeaVMApplication(apiBaseUrl);
+            ShoppingTeaVMApplication app = new ShoppingTeaVMApplication(apiBaseUrl, shellId);
             Console.log("WDC Shopping TeaVM - App created, initializing secure storage...");
             EncryptedLocalStorage.initialize(() -> {
                 app.start();
@@ -66,5 +71,10 @@ public class Main {
             + "var meta = document.querySelector('meta[name=\"api-base-url\"]');"
             + "return (meta && meta.content) ? meta.content : '';")
     private static native String getApiBaseUrl();
+
+    /** Returns true when running inside a Tauri native shell (desktop, Android, iOS). */
+    @org.teavm.jso.JSBody(params = {}, script = ""
+            + "return typeof window !== 'undefined' && typeof window.__TAURI_INTERNALS__ !== 'undefined';")
+    private static native boolean isTauri();
 
 }

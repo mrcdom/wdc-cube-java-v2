@@ -74,8 +74,9 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
         PurchasesPanelPresenter.createView = PurchasesPanelView::new;
     }
 
-    public ShoppingTeaVMApplication(String apiBaseUrl) {
+    public ShoppingTeaVMApplication(String apiBaseUrl, String shellId) {
         this.apiBaseUrl = apiBaseUrl;
+        this.persistentStore = new BrowserLocalStorage(shellId);
 
         // Configura CryptoProvider para browser (antes de qualquer auth)
         CryptoProvider.BEAN.set(new BrowserCryptoProvider());
@@ -131,7 +132,7 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
     }
 
     private final BrowserSessionStorage sessionStore = new BrowserSessionStorage();
-    private final BrowserLocalStorage persistentStore = new BrowserLocalStorage("tw");
+    private final BrowserLocalStorage persistentStore;
 
     @Override
     public ClientStorage clientSessionStore() {
