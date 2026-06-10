@@ -2,6 +2,7 @@ package br.com.wdc.framework.cube.remote.bridge.java.model;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Parsed representation of a single server message received over WebSocket.
@@ -16,7 +17,8 @@ import java.util.List;
 public record HostResponse(Long requestId, String uri,
                            List<ViewStateSnapshot> viewStates,
                            List<String> releasedViews,
-                           String cipheredAccessToken) {
+                           String cipheredAccessToken,
+                           Map<String, Object> storageDelta) {
 
     public HostResponse {
         viewStates = viewStates != null ? Collections.unmodifiableList(viewStates) : Collections.emptyList();

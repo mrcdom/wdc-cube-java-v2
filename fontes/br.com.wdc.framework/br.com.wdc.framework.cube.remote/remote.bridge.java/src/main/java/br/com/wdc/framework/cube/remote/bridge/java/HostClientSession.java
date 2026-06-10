@@ -144,6 +144,13 @@ final class HostClientSession implements AutoCloseable {
             String uri = (String) msg.get("uri");
             String accessToken = (String) msg.get("accessToken");
 
+            // Parse storage delta (if present)
+            Map<String, Object> storageDelta = null;
+            Object rawStorage = msg.get("storage");
+            if (rawStorage instanceof Map<?, ?> storageMap) {
+                storageDelta = (Map<String, Object>) storageMap;
+            }
+
             // Parse states
             List<ViewStateSnapshot> snapshots = Collections.emptyList();
             Object rawStates = msg.get("states");
@@ -175,7 +182,7 @@ final class HostClientSession implements AutoCloseable {
                 viewStateMap.applyReleased(released);
             }
 
-            return new HostResponse(requestId, uri, snapshots, released, accessToken);
+            return new HostResponse(requestId, uri, snapshots, released, accessToken, storageDelta);
         }
 
         @Override

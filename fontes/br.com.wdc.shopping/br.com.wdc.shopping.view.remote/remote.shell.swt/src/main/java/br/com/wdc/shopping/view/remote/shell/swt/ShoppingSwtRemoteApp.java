@@ -15,6 +15,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import br.com.wdc.framework.commons.storage.ClientStorage;
+import br.com.wdc.framework.commons.storage.PreferencesClientStorage;
 import br.com.wdc.framework.cube.remote.bridge.java.HostClient;
 import br.com.wdc.framework.cube.remote.bridge.java.model.HostResponse;
 import br.com.wdc.framework.cube.remote.bridge.java.model.ViewStateSnapshot;
@@ -46,6 +48,7 @@ public class ShoppingSwtRemoteApp implements SwtApp, RemoteViewContext {
 	private Composite offscreen;
 
 	private HostClient hostClient;
+	private final ClientStorage persistentStorage = new PreferencesClientStorage(ShoppingSwtRemoteApp.class);
 
 	/** vsid → view */
 	private final Map<String, AbstractViewSwt> viewRegistry = new ConcurrentHashMap<>();
@@ -113,11 +116,12 @@ public class ShoppingSwtRemoteApp implements SwtApp, RemoteViewContext {
 	 */
 	public void connect(String serverUrl) throws Exception {
 		LOG.info("Connecting to {}", serverUrl);
-		this.hostClient = HostClient.connect(serverUrl);
+		this.hostClient = HostClient.connect(serverUrl, persistentStorage);
 		ProductRepository.BEAN.set(new RemoteProductImageRepository(serverUrl));
 
 		// Initial async state push
 		var initial = this.hostClient.awaitResponse();
+		this.hostClient.applyStorageDelta(initial);
 		this.applyResponse(initial);
 
 		this.startListenerThread();
@@ -176,6 +180,7 @@ public class ShoppingSwtRemoteApp implements SwtApp, RemoteViewContext {
 			while (!shouldStop && !this.display.isDisposed() && this.hostClient != null) {
 				try {
 					var resp = this.hostClient.awaitResponse(java.time.Duration.ofSeconds(30));
+					this.hostClient.applyStorageDelta(resp);
 					this.display.asyncExec(() -> this.applyResponse(resp));
 				} catch (java.util.concurrent.TimeoutException e) {
 					// heartbeat timeout — continue loop

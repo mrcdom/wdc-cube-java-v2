@@ -1,5 +1,8 @@
 package br.com.wdc.framework.commons.storage;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 /**
@@ -43,6 +46,22 @@ public class PreferencesClientStorage implements ClientStorage {
 	@Override
 	public void remove(String key) {
 		prefs.remove(key);
+	}
+
+	@Override
+	public Map<String, String> all() {
+		var result = new LinkedHashMap<String, String>();
+		try {
+			for (String key : prefs.keys()) {
+				String value = prefs.get(key, null);
+				if (value != null) {
+					result.put(key, value);
+				}
+			}
+		} catch (BackingStoreException e) {
+			// Best-effort: return what we have
+		}
+		return result;
 	}
 
 }
