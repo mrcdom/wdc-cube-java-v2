@@ -25,7 +25,7 @@ export interface ClientStorage {
 }
 
 // ---------------------------------------------------------------------------
-// In-memory (session scope / fallback)
+// In-memory fallback (use only outside the browser)
 // ---------------------------------------------------------------------------
 
 export class InMemoryClientStorage implements ClientStorage {
@@ -34,8 +34,49 @@ export class InMemoryClientStorage implements ClientStorage {
   get secure(): ClientStorage { return this }
   get(key: string): string | null { return this._data.get(key) ?? null }
   set(key: string, value: string): void { this._data.set(key, value) }
-  remove(key: string): void { this._data.delete(key) }
+  remove(key: string): void { this._data.delete(key) }  
   all(): Record<string, string> { return Object.fromEntries(this._data) }
+}
+
+// ---------------------------------------------------------------------------
+// sessionStorage-backed (session scope — survives F5, not tab close)
+// ---------------------------------------------------------------------------
+
+/**
+ * `sessionStorage`-backed implementation.
+ *
+ * @param skipPrefixes  raw key prefixes (or exact keys) to exclude from `all()`
+ */
+export class SessionStorageClientStorage implements ClientStorage {
+  constructor(
+    private readonly skipPrefixes: string[] = ['app_id', 'req_seq'],
+  ) {}
+
+  get secure(): ClientStorage { return this }
+
+  get(key: string): string | null {
+    return sessionStorage.getItem(key)
+  }
+
+  set(key: string, value: string): void {
+    sessionStorage.setItem(key, value)
+  }
+
+  remove(key: string): void {
+    sessionStorage.removeItem(key)
+  }
+
+  all(): Record<string, string> {
+    const result: Record<string, string> = {}
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const key = sessionStorage.key(i)
+      if (key === null) continue
+      if (this.skipPrefixes.some(p => key.startsWith(p))) continue
+      const v = sessionStorage.getItem(key)
+      if (v !== null) result[key] = v
+    }
+    return result
+  }
 }
 
 // ---------------------------------------------------------------------------

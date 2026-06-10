@@ -75,11 +75,11 @@ public class ViewStateCoordinator {
         }
         this.id = appId;
 
-        // Storage: session is in-memory; persistent is localStorage-backed.
-        // .secure() uses 'sec.' key prefix to namespace sensitive values.
+        // Storage: session uses browser sessionStorage (survives F5, not tab close);
+        // persistent uses localStorage. .secure() uses 'sec.' key prefix.
         var secureStorage = new ClientStorage.LocalStorageClientStorage(
                 "sec.", new String[]{}, () -> new ClientStorage.InMemoryClientStorage());
-        this.sessionStorage = new ClientStorage.InMemoryClientStorage();
+        this.sessionStorage = new ClientStorage.SessionStorageClientStorage("app_id", "req_seq");
         this.persistentStorage = new ClientStorage.LocalStorageClientStorage(
                 "", new String[]{"app_", "sec.", "req_seq"}, () -> secureStorage);
 

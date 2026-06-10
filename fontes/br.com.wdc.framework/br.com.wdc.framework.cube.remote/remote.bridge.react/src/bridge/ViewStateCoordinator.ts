@@ -9,7 +9,7 @@ import { DataSecurity } from './DataSecurity'
 import { FlushRequestContext } from './FlushRequestContext'
 import { ReconnectController } from './ReconnectController'
 import { ViewGarbageCollector } from './ViewGarbageCollector'
-import { ClientStorage, InMemoryClientStorage, LocalStorageClientStorage } from './ClientStorage'
+import { ClientStorage, InMemoryClientStorage, LocalStorageClientStorage, SessionStorageClientStorage } from './ClientStorage'
 
 const Cookie = new CookieConstructor()
 
@@ -43,10 +43,10 @@ export class ViewStateCoordinator {
   constructor() {
     this.viewMap.set(BROWSER_VSID, new ViewScope(BROWSER_VSID))
 
-    // Storage: session is in-memory; persistent is localStorage-backed.
-    // .secure uses 'sec.' key prefix to namespace sensitive values.
+    // Storage: session uses browser sessionStorage (survives F5, not tab close);
+    // persistent uses localStorage. .secure uses 'sec.' key prefix.
     const secureStorage = new LocalStorageClientStorage('sec.', [], () => new InMemoryClientStorage())
-    this.sessionStorage = new InMemoryClientStorage()
+    this.sessionStorage = new SessionStorageClientStorage()
     this.persistentStorage = new LocalStorageClientStorage('', ['app_', 'sec.', 'req_seq'], () => secureStorage)
 
     const appIdFromCookie = Cookie.get('app_id')

@@ -32,7 +32,7 @@ public interface ClientStorage {
     Map<String, String> all();
 
     // ---------------------------------------------------------------------------
-    // In-memory implementation (session scope / fallback)
+    // In-memory fallback (use only outside the browser)
     // ---------------------------------------------------------------------------
 
     class InMemoryClientStorage implements ClientStorage {
@@ -43,6 +43,65 @@ public interface ClientStorage {
         @Override public void set(String key, String value) { data.put(key, value); }
         @Override public void remove(String key) { data.remove(key); }
         @Override public Map<String, String> all() { return new LinkedHashMap<>(data); }
+    }
+
+    // ---------------------------------------------------------------------------
+    // sessionStorage-backed (session scope — survives F5, not tab close)
+    // ---------------------------------------------------------------------------
+
+    class SessionStorageClientStorage implements ClientStorage {
+
+        private final String[] skipPrefixes;
+
+        /**
+         * @param skipPrefixes raw keys/prefixes to exclude from {@link #all()}
+         */
+        public SessionStorageClientStorage(String... skipPrefixes) {
+            this.skipPrefixes = skipPrefixes;
+        }
+
+        @Override public ClientStorage secure() { return this; }
+
+        @Override
+        public String get(String key) { return ssGetItem(key); }
+
+        @Override
+        public void set(String key, String value) { ssSetItem(key, value); }
+
+        @Override
+        public void remove(String key) { ssRemoveItem(key); }
+
+        @Override
+        public Map<String, String> all() {
+            var result = new LinkedHashMap<String, String>();
+            int len = ssLength();
+            outer:
+            for (int i = 0; i < len; i++) {
+                String key = ssKey(i);
+                if (key == null) continue;
+                for (String skip : skipPrefixes) {
+                    if (key.startsWith(skip)) continue outer;
+                }
+                String v = ssGetItem(key);
+                if (v != null) result.put(key, v);
+            }
+            return result;
+        }
+
+        @JSBody(params = {"key"}, script = "try { return sessionStorage.getItem(key); } catch(e) { return null; }")
+        private static native String ssGetItem(String key);
+
+        @JSBody(params = {"key", "val"}, script = "try { sessionStorage.setItem(key, val); } catch(e) {}")
+        private static native void ssSetItem(String key, String val);
+
+        @JSBody(params = {"key"}, script = "try { sessionStorage.removeItem(key); } catch(e) {}")
+        private static native void ssRemoveItem(String key);
+
+        @JSBody(params = {}, script = "try { return sessionStorage.length; } catch(e) { return 0; }")
+        private static native int ssLength();
+
+        @JSBody(params = {"i"}, script = "try { return sessionStorage.key(i); } catch(e) { return null; }")
+        private static native String ssKey(int i);
     }
 
     // ---------------------------------------------------------------------------
