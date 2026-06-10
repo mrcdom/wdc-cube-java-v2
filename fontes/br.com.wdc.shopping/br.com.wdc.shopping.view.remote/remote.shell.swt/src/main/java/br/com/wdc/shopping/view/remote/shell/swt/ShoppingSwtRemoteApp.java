@@ -121,6 +121,9 @@ public class ShoppingSwtRemoteApp implements SwtApp, RemoteViewContext {
 		this.hostClient = HostClient.connect(serverUrl, persistentStorage);
 		ProductRepository.BEAN.set(new RemoteProductImageRepository(serverUrl));
 
+		// Read saved intent BEFORE processing any response (responses may overwrite it)
+		var savedIntent = persistentStorage.get(STORAGE_KEY_INTENT);
+
 		// Initial async state push
 		var initial = this.hostClient.awaitResponse();
 		this.hostClient.applyStorageDelta(initial);
@@ -128,7 +131,6 @@ public class ShoppingSwtRemoteApp implements SwtApp, RemoteViewContext {
 		this.applyResponse(initial);
 
 		// Restore last intent if logged in (not on login page)
-		var savedIntent = persistentStorage.get(STORAGE_KEY_INTENT);
 		if (savedIntent != null && !savedIntent.startsWith("login")) {
 			try {
 				var navResp = this.hostClient.navigate(savedIntent);
