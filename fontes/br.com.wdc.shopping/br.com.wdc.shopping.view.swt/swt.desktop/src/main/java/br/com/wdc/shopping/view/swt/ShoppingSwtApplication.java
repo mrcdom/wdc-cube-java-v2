@@ -153,7 +153,7 @@ public class ShoppingSwtApplication extends ShoppingApplication implements SwtAp
 	@Override
 	public void setSubject(Subject subject) {
 		super.setSubject(subject);
-		var storage = clientSessionStore();
+		var storage = clientPersistentStore();
 		if (storage != null) {
 			if (subject != null && subject.getId() != null) {
 				storage.set("session.userId", String.valueOf(subject.getId()));
@@ -266,7 +266,7 @@ public class ShoppingSwtApplication extends ShoppingApplication implements SwtAp
 			return;
 		}
 
-var storage = clientSessionStore();
+var storage = clientPersistentStore();
 		if (storage == null) {
 			return;
 		}

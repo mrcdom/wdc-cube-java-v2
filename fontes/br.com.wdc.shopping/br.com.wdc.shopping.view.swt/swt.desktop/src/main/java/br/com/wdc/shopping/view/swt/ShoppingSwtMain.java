@@ -231,7 +231,7 @@ public class ShoppingSwtMain {
 
     private void tryRestoreSession() {
         if (this.app == null) return;
-        var storage = this.app.clientSessionStore();
+        var storage = this.app.clientPersistentStore();
 
         var savedUserId = storage.get("session.userId");
         if (savedUserId == null) return;
@@ -255,7 +255,7 @@ public class ShoppingSwtMain {
     private String tryRestoreIntent() {
         if (this.app.getSubject() == null) return null;
 
-        var storage = this.app.clientSessionStore();
+        var storage = this.app.clientPersistentStore();
 
         var savedIntent = storage.get("session.intent");
         if (savedIntent == null || savedIntent.isBlank()) return null;
