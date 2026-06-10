@@ -87,6 +87,19 @@ sessionTtlSeconds = 0
 # If not set, API endpoints are served without authentication
 jwt.secret = "wdc-shopping-jwt-s3cr3t-k3y-ch4ng3-1n-pr0duct10n"
 
+[remote]
+# RSA key pair for client↔server handshake (cipher keys).
+# Format: "exponent:modulus" (exponent and modulus encoded in base36).
+# Dev-default keys are auto-written to application.local.toml on first run.
+# REPLACE BOTH KEY PAIRS before deploying to production.
+# cipherPublicKey = "<exponent>:<modulus>"
+# cipherPrivateKey = "<modulus inverse>"
+
+# RSA key pair for URL/intent signing (URL-safe Base64 DER — PKCS#8 / X.509).
+# cipherPublicKey / cipherPrivateKey generated with: openssl genrsa 512 | ...
+# signPublicKey  = "<base64url>"
+# signPrivateKey = "<base64url>"
+
 [simulation]
 # Simulate slow login (adds 3s delay in LoginPresenter)
 slowLogin = false

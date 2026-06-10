@@ -68,16 +68,13 @@ public final class RemoteAppSecurity {
         var wdcPublicKey = System.getProperty(cipherPublicKeyProp);
         var wdcPrivateKey = System.getProperty(cipherPrivateKeyProp);
         if (StringUtils.isBlank(wdcPublicKey) || StringUtils.isBlank(wdcPrivateKey)) {
-            // Fallback for development
-            sPublicExponent = "1ekh";
-            sPublicKey = "3n88eu224huxfvj7lndkkf4n2vye4lus611fecnoc57qod2m7d";
-            wdcPrivateKey = "2n9arhz94hevkz4ge8vxwje5c37k7aqol1st01wvzln81u5m69";
-            wdcPublicKey = sPublicExponent + ":" + sPublicKey;
-        } else {
-            var parts = StringUtils.split(wdcPublicKey, ":");
-            sPublicExponent = parts[0];
-            sPublicKey = parts[1];
+            throw new IllegalStateException(
+                    "Remote security keys not configured. Set '" + cipherPublicKeyProp + "' and '"
+                    + cipherPrivateKeyProp + "' (via system properties or application.local.toml [remote] section).");
         }
+        var parts = StringUtils.split(wdcPublicKey, ":");
+        sPublicExponent = parts[0];
+        sPublicKey = parts[1];
         sPrivateKey = wdcPrivateKey;
 
         var publicExponent = new BigInteger(sPublicExponent, 36);
@@ -88,9 +85,9 @@ public final class RemoteAppSecurity {
         var signPub = System.getProperty(signPublicKeyProp);
         var signPrv = System.getProperty(signPrivateKeyProp);
         if (StringUtils.isBlank(signPub) || StringUtils.isBlank(signPrv)) {
-            // Fallback for development
-            signPub = "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAIkDxriJZ2BLyg26A7hR-qzJPRSj33156sXy_r6JLa0NWz2uY1z9FwnQRtrU3CztutyAIhwyHaOxfMGWyvgFsokCAwEAAQ==";
-            signPrv = "MIIBVAIBADANBgkqhkiG9w0BAQEFAASCAT4wggE6AgEAAkEAiQPGuIlnYEvKDboDuFH6rMk9FKPffXnqxfL-voktrQ1bPa5jXP0XCdBG2tTcLO263IAiHDIdo7F8wZbK-AWyiQIDAQABAkABpau1PygHILu4tTC0ZEsblbnhltdHxfPW2m_KGUVqXjg71xASB-0rctP7pu9qgOPaj_ltTki3xHXQX07QKnJZAiEAvxFzS6c6FqJ8LbrVta72W5i-pb3AkLAM-wyoPmAOOxsCIQC3k8lagaTvRvdlkLrfJZ3K4q4JcsUHG6M2h43P34SfKwIgYtC9ljTIYAhsvKHSAQKZusmGX-WA_9NtAzGKmafH9F0CIGVwnpUKio9F0bMn1Hs2GAliVPUXnFQfK4MYSH6Tbn9dAiEAimwgt_xSziP2RejiFY3_Ek6ROpRG6uL9s89NuaoGFvY=";
+            throw new IllegalStateException(
+                    "Remote sign keys not configured. Set '" + signPublicKeyProp + "' and '"
+                    + signPrivateKeyProp + "' (via system properties or application.local.toml [remote] section).");
         }
 
         return new RemoteAppSecurity(rsa, wdcPublicKey, signPub, signPrv);
