@@ -12,7 +12,6 @@ import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.commons.http.HttpTransport;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.storage.ClientStorage;
-import br.com.wdc.framework.commons.storage.InMemoryClientStorage;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubePresenter;
 import br.com.wdc.shopping.domain.criteria.UserCriteria;
@@ -32,6 +31,7 @@ import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPre
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
 import br.com.wdc.shopping.view.teavm.commons.interop.Console;
 import br.com.wdc.shopping.view.teavm.infra.BrowserCryptoProvider;
+import br.com.wdc.shopping.view.teavm.infra.BrowserLocalStorage;
 import br.com.wdc.shopping.view.teavm.infra.BrowserSessionStorage;
 import br.com.wdc.shopping.view.teavm.infra.FetchHttpTransport;
 import br.com.wdc.shopping.view.teavm.infra.IntentSigner;
@@ -86,10 +86,11 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
         // Configura ScheduledExecutor para browser
         ScheduledExecutor.BEAN.set(new ScheduledExecutorBrowser());
 
-        // Configura ClientStorage para browser (sessionStorage)
-        // Configura HTTP transport e registra repositórios
+        // Configura HTTP transport e registra repositórios.
+        // Auth tokens (accessToken, refreshToken) são persistidos em localStorage
+        // para que a sessão sobreviva ao fechar e reabrir o browser.
         HttpTransport transport = new FetchHttpTransport(apiBaseUrl);
-        TeaVMRepositoryBootstrap.initialize(transport, sessionStore);
+        TeaVMRepositoryBootstrap.initialize(transport, persistentStore);
 
         // Escuta popstate (Back/Forward do browser)
         Window.current().addEventListener("popstate", evt -> onPopState());
@@ -130,7 +131,7 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
     }
 
     private final BrowserSessionStorage sessionStore = new BrowserSessionStorage();
-    private final InMemoryClientStorage persistentStore = new InMemoryClientStorage();
+    private final BrowserLocalStorage persistentStore = new BrowserLocalStorage();
 
     @Override
     public ClientStorage clientSessionStore() {
