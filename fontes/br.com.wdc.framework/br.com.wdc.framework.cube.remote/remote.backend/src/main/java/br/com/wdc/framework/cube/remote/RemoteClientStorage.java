@@ -109,9 +109,9 @@ public class RemoteClientStorage {
         scopeMap.putAll(deltas);
         deltas.clear();
         for (var entry : scopeMap.entrySet()) {
-            String wireValue = (entry.getValue() != null)
+            String wireValue = !DELTA_REMOVE.equals(entry.getValue())
                     ? security.b64Cipher(entry.getValue())
-                    : null; // null = remove signal
+                    : null; // null = remove signal for client
             scopeMap.put(entry.getKey(), wireValue);
         }
         out.put(scope, scopeMap);
@@ -136,6 +136,9 @@ public class RemoteClientStorage {
     }
 
     // :: Inner implementation
+
+    /** Sentinel stored in delta maps to signal client-side key removal (ConcurrentHashMap forbids null values). */
+    private static final String DELTA_REMOVE = "\0";
 
     private static final class ScopedView implements ClientStorage {
 
@@ -163,16 +166,17 @@ public class RemoteClientStorage {
         public void set(String key, String value) {
             if (value != null) {
                 data.put(key, value);
+                deltas.put(key, value);
             } else {
                 data.remove(key);
+                deltas.put(key, DELTA_REMOVE);
             }
-            deltas.put(key, value);
         }
 
         @Override
         public void remove(String key) {
             data.remove(key);
-            deltas.put(key, null); // null = remove signal for client
+            deltas.put(key, DELTA_REMOVE); // sentinel = remove signal for client
         }
     }
 }

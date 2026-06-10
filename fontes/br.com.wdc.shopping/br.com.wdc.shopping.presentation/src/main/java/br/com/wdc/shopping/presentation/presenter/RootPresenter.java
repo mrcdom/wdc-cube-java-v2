@@ -136,7 +136,7 @@ public class RootPresenter extends AbstractCubePresenter<ShoppingApplication> {
     }
 
     public void alertUnexpectedError(Log logger, String message, Throwable caught) {
-        if (StringUtils.isNotBlank(caught.getMessage())) {
+        if (StringUtils.isBlank(caught.getMessage())) {
             this.state.errorMessage = message;
         } else {
             this.state.errorMessage = message + ": " + caught.getMessage();
