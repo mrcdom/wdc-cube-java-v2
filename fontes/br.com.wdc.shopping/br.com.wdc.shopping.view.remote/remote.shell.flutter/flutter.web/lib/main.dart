@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_commons/flutter_commons.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 
-void main() {
+import 'encrypted_web_storage.dart';
+
+void main() async {
   // Disable Flutter's internal URL management — we handle navigation ourselves
   setUrlStrategy(null);
 
@@ -16,25 +18,9 @@ void main() {
   final baseWsUrl = '$protocol${web.window.location.host}';
 
   // Persistent storage backed by localStorage (survives page refresh).
-  // Secure view uses a 'sec.' prefix to namespace keys.
-  final secureStorage = DelegateClientStorage(
-    get: (key) => web.window.localStorage.getItem('sec.$key'),
-    set: (key, value) => web.window.localStorage.setItem('sec.$key', value),
-    remove: (key) => web.window.localStorage.removeItem('sec.$key'),
-    all: () {
-      final result = <String, String>{};
-      final ls = web.window.localStorage;
-      for (var i = 0; i < ls.length; i++) {
-        final k = ls.key(i);
-        if (k != null && k.startsWith('sec.')) {
-          final v = ls.getItem(k);
-          if (v != null) result[k.substring(4)] = v;
-        }
-      }
-      return result;
-    },
-    secureFactory: () => InMemoryClientStorage(),
-  );
+  // Secure view uses AES-GCM encryption via IndexedDB (non-extractable key).
+  final secureStorage = EncryptedWebStorage();
+  await secureStorage.initialize();
   final persistentStorage = DelegateClientStorage(
     get: (key) => web.window.localStorage.getItem(key),
     set: (key, value) => web.window.localStorage.setItem(key, value),
