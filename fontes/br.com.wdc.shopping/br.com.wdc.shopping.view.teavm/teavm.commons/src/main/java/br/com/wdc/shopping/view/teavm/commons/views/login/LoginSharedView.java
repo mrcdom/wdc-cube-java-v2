@@ -222,15 +222,25 @@ public class LoginSharedView extends SharedVDomView {
      * Safe to call on every render — sets only when needed and silently no-ops
      * when shadowRoot is null (SSR, test environments).
      */
+    /**
+     * Retries up to ~300 ms (10 × 30 ms) waiting for the sp-textfield shadow
+     * root to render its inner {@code <input>}, then sets the attributes.
+     * Needed because the ref fires immediately after the host element is
+     * inserted, before the Custom Element upgrade has created the shadow tree.
+     */
     @JSBody(params = {"el"}, script = ""
             + "try {"
-            + "  var root = el.shadowRoot;"
-            + "  if (!root) return;"
-            + "  var input = root.querySelector('input');"
-            + "  if (!input) return;"
-            + "  input.setAttribute('autocapitalize', 'off');"
-            + "  input.setAttribute('autocorrect', 'off');"
-            + "  input.setAttribute('spellcheck', 'false');"
+            + "  (function tryPatch(n) {"
+            + "    var root = el.shadowRoot;"
+            + "    var input = root ? root.querySelector('input') : null;"
+            + "    if (input) {"
+            + "      input.setAttribute('autocapitalize', 'off');"
+            + "      input.setAttribute('autocorrect', 'off');"
+            + "      input.setAttribute('spellcheck', 'false');"
+            + "    } else if (n > 0) {"
+            + "      setTimeout(function() { tryPatch(n - 1); }, 30);"
+            + "    }"
+            + "  })(10);"
             + "} catch(e) {}")
     private static native void patchInputAttrs(HTMLElement el);
 }
