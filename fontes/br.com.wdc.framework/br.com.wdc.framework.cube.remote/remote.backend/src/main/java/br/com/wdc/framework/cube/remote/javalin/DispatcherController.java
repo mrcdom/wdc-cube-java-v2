@@ -1,5 +1,6 @@
 package br.com.wdc.framework.cube.remote.javalin;
 
+import java.nio.channels.ClosedChannelException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -291,6 +292,14 @@ public final class DispatcherController {
             try {
                 ctx.disableAutomaticPings();
                 Throwable error = ctx.error();
+
+                // ClosedChannelException is routine — the client disconnected abruptly.
+                // Log at DEBUG to avoid polluting the log with expected network events.
+                if (error instanceof ClosedChannelException) {
+                    LOG.debug("WebSocket closed abruptly for session {}", appId);
+                    return;
+                }
+
                 LOG.warn("WebSocket error for session {}: {}", appId, error.getMessage(), error);
 
                 RemoteApplication app = registry.get(appId);
