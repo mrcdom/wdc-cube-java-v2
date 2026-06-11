@@ -1,10 +1,10 @@
-import React from 'react'
-import clsx from 'clsx'
-import bridge, { type ViewProps } from '@root/bridge'
-import { BaseViewClass } from '@root/utils/ViewUtils'
-import { ActionButton } from '@root/swc'
-import * as NumberUtils from '@root/utils/NumberUtils'
-import Sel from './receipt-sel'
+import React from "react"
+import clsx from "clsx"
+import bridge, { type ViewProps } from "@root/bridge"
+import { BaseViewClass } from "@root/utils/ViewUtils"
+import { ActionButton } from "@root/swc"
+import * as NumberUtils from "@root/utils/NumberUtils"
+import Sel from "./receipt-sel"
 
 // :: Actions
 
@@ -56,7 +56,7 @@ class ReceiptViewClass extends BaseViewClass<ViewProps, ReceiptViewState> {
             {/* Header */}
             <div className={Sel.cardHeaderRow}>
               <div className={Sel.cardHeaderIconBox}>
-                <i className={clsx('bi bi-receipt', Sel.cardHeaderIcon)}></i>
+                <i className={clsx("bi bi-receipt", Sel.cardHeaderIcon)}></i>
               </div>
               <div>
                 <h5 className={Sel.cardHeaderTitle}>Recibo de Compra</h5>
@@ -71,10 +71,10 @@ class ReceiptViewClass extends BaseViewClass<ViewProps, ReceiptViewState> {
                 <span className={Sel.dateLabel}>Data:</span>
                 <span className={Sel.dateValue}>
                   {state.receipt?.date
-                    ? new Date(state.receipt.date).toLocaleDateString('pt-BR') +
-                      ' ' +
-                      new Date(state.receipt.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-                    : ''}
+                    ? new Date(state.receipt.date).toLocaleDateString("pt-BR") +
+                      " " +
+                      new Date(state.receipt.date).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+                    : ""}
                 </span>
               </div>
 
@@ -103,7 +103,7 @@ class ReceiptViewClass extends BaseViewClass<ViewProps, ReceiptViewState> {
 
             {/* Back button */}
             <ActionButton quiet className={Sel.backBtn} onClick={this.emitOpenProducts}>
-              <i className={clsx('bi bi-arrow-left', Sel.mr4)}></i>
+              <i className={clsx("bi bi-arrow-left", Sel.mr4)}></i>
               Voltar aos produtos
             </ActionButton>
           </div>
@@ -120,4 +120,4 @@ class ReceiptViewClass extends BaseViewClass<ViewProps, ReceiptViewState> {
   }
 }
 
-export default BaseViewClass.FC(ReceiptViewClass, 'e8d0bd8ae3bc')
+export default BaseViewClass.FC(ReceiptViewClass, "e8d0bd8ae3bc")

@@ -1,27 +1,27 @@
 /* SWC customization via --mod-* API (no external box-model overrides) */
 sp-button[variant="accent"] {
-    --mod-button-background-color-default: var(--app-accent);
-    --mod-button-background-color-hover: var(--app-accent-dark);
-    --mod-button-background-color-active: #083d7a;
-    --mod-button-content-color-default: #fff;
-    --mod-button-content-color-hover: #fff;
-    --mod-button-content-color-active: #fff;
-    --mod-button-border-color-default: transparent;
-    --mod-button-border-color-hover: transparent;
-    --mod-button-border-color-active: transparent;
+  --mod-button-background-color-default: var(--app-accent);
+  --mod-button-background-color-hover: var(--app-accent-dark);
+  --mod-button-background-color-active: #083d7a;
+  --mod-button-content-color-default: #fff;
+  --mod-button-content-color-hover: #fff;
+  --mod-button-content-color-active: #fff;
+  --mod-button-border-color-default: transparent;
+  --mod-button-border-color-hover: transparent;
+  --mod-button-border-color-active: transparent;
 }
 sp-action-button[quiet] {
-    --mod-actionbutton-border-color-default: transparent;
-    --mod-actionbutton-border-color-hover: var(--app-border);
-    --mod-actionbutton-background-color-default: transparent;
-    --mod-actionbutton-background-color-hover: var(--app-accent-light);
+  --mod-actionbutton-border-color-default: transparent;
+  --mod-actionbutton-border-color-hover: var(--app-border);
+  --mod-actionbutton-background-color-default: transparent;
+  --mod-actionbutton-background-color-hover: var(--app-accent-light);
 }
 sp-textfield {
-    --mod-textfield-border-color: var(--app-border);
-    --mod-textfield-border-color-hover: var(--app-accent);
-    --mod-textfield-border-color-keyboard-focus: var(--app-accent);
-    --mod-textfield-corner-radius: var(--app-radius-sm);
+  --mod-textfield-border-color: var(--app-border);
+  --mod-textfield-border-color-hover: var(--app-accent);
+  --mod-textfield-border-color-keyboard-focus: var(--app-accent);
+  --mod-textfield-corner-radius: var(--app-radius-sm);
 }
 sp-action-group[compact] sp-action-button {
-    --mod-actionbutton-border-color-default: var(--app-border);
+  --mod-actionbutton-border-color-default: var(--app-border);
 }

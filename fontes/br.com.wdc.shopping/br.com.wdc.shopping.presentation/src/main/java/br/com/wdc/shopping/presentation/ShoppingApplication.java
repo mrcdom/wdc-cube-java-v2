@@ -113,7 +113,8 @@ public abstract class ShoppingApplication extends CubeApplication {
 	public abstract String b64Cipher(String text);
 
 	public abstract String b64Decipher(String b64Text);
-
+	
+	public abstract String getClientIp();
 
 	public void alertUnexpectedError(Log logger, String message, Throwable e) {
 		var rootPresenter = this.getRootPresenter();

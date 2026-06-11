@@ -11,8 +11,8 @@ import jakarta.servlet.http.Cookie;
 /**
  * Handles session cookie generation for the SPA entrypoint (index.html).
  * <p>
- * Generates {@code app_id} (signed random token) and {@code app_skey} (server web key)
- * cookies so the client gets a valid, server-signed session ID on the very first page load.
+ * Generates {@code app_id} (signed random token) and {@code app_skey} (server web key) cookies so the client gets a
+ * valid, server-signed session ID on the very first page load.
  * <p>
  * Each application module creates its own instance with its own security.
  */
@@ -40,7 +40,11 @@ public final class IndexHtmlController {
         ctx.res().setHeader("Pragma", "no-cache");
         ctx.res().setDateHeader("Expires", 0);
 
-        boolean secure = "https".equalsIgnoreCase(ctx.scheme());
+        // Atributo Secure só quando a requisição chega por HTTPS (direto ou via proxy,
+        // lido do X-Forwarded-Proto do nginx). Em HTTP puro (ex.: QA sem TLS), navegadores
+        // REJEITAM cookies Secure (Firefox sempre) — sem o app_id o handshake WS cai em
+        // 4001/reload em loop.
+        boolean secure = isHttps(ctx);
 
         Cookie appIdCookie = new Cookie("app_id", makeAppId());
         appIdCookie.setPath("/");
@@ -53,6 +57,14 @@ public final class IndexHtmlController {
         pubKeyCookie.setMaxAge(-1);
         pubKeyCookie.setSecure(secure);
         ctx.res().addCookie(pubKeyCookie);
+    }
+
+    private static boolean isHttps(Context ctx) {
+        var forwardedProto = ctx.header("X-Forwarded-Proto");
+        if (forwardedProto != null && !forwardedProto.isBlank()) {
+            return "https".equalsIgnoreCase(forwardedProto.trim());
+        }
+        return "https".equalsIgnoreCase(ctx.scheme());
     }
 
     private String makeAppId() {

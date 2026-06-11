@@ -1,10 +1,10 @@
-import React, { ReactNode } from 'react'
-import clsx from 'clsx'
-import bridge, { type ViewProps } from '@root/bridge'
-import { BaseViewClass, BasePanelClass } from '@root/utils/ViewUtils'
-import * as NumberUtils from '@root/utils/NumberUtils'
-import * as EndpointUtils from '@root/utils/EndpointUtils'
-import Sel from './home-sel'
+import React, { ReactNode } from "react"
+import clsx from "clsx"
+import bridge, { type ViewProps } from "@root/bridge"
+import { BaseViewClass, BasePanelClass } from "@root/utils/ViewUtils"
+import * as NumberUtils from "@root/utils/NumberUtils"
+import * as EndpointUtils from "@root/utils/EndpointUtils"
+import Sel from "./home-sel"
 
 // :: Actions
 
@@ -43,7 +43,7 @@ class ProductPanelClass extends BaseViewClass<ViewProps, ProductsPanelState> {
     )
   }
 }
-export default BaseViewClass.FC(ProductPanelClass, 'a1b2c3d4e5f6')
+export default BaseViewClass.FC(ProductPanelClass, "a1b2c3d4e5f6")
 
 // :: Internal - CardProduto
 
@@ -77,7 +77,7 @@ class CardProdutoClass extends BasePanelClass<CardProdutoProps> {
 
   emitOpenProduct = () => {
     const { vsid, product } = this
-    bridge.setFormField(vsid, 'p.productId', product.id)
+    bridge.setFormField(vsid, "p.productId", product.id)
     bridge.submit(vsid, ON_OPEN_PRODUCT)
   }
 }

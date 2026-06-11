@@ -1,7 +1,7 @@
 // :: Standard - RFC 2045 - Non URL safe
 
 let getRfc2045Table = () => {
-  const b64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+  const b64chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
   const lookup = new Map(Array.from(b64chars).map((char, i) => [char, i]))
   const response = { b64chars, lookup }
   getRfc2045Table = () => response
@@ -10,7 +10,7 @@ let getRfc2045Table = () => {
 
 const base64Encode = (binData: Uint8Array) => {
   const { b64chars } = getRfc2045Table()
-  let result = ''
+  let result = ""
 
   // Process 3 bytes at a time
   for (let i = 0; i < binData.length; i += 3) {
@@ -22,8 +22,8 @@ const base64Encode = (binData: Uint8Array) => {
     // Convert to 4 base64 characters
     result += b64chars[(chunk >> 18) & 63]
     result += b64chars[(chunk >> 12) & 63]
-    result += i + 1 < binData.length ? b64chars[(chunk >> 6) & 63] : '='
-    result += i + 2 < binData.length ? b64chars[chunk & 63] : '='
+    result += i + 1 < binData.length ? b64chars[(chunk >> 6) & 63] : "="
+    result += i + 2 < binData.length ? b64chars[chunk & 63] : "="
   }
 
   return result
@@ -33,7 +33,7 @@ const base64Decode = (str: string) => {
   const { lookup } = getRfc2045Table()
 
   // Remove padding if present
-  const unpadded = str.replace(/=+$/, '')
+  const unpadded = str.replace(/=+$/, "")
   const binData = new Uint8Array(Math.floor((unpadded.length * 3) / 4))
 
   for (let i = 0, j = 0; i < unpadded.length; i += 4) {
@@ -54,7 +54,7 @@ const base64Decode = (str: string) => {
 // :: RFC 4648 - Url Safe
 
 let getRfc4648Table = () => {
-  const b64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
+  const b64chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
   const lookup = new Map(Array.from(b64chars).map((char, i) => [char, i]))
   const response = { b64chars, lookup }
   getRfc4648Table = () => response
@@ -64,7 +64,7 @@ let getRfc4648Table = () => {
 const base64UrlEncode = (binData: Uint8Array) => {
   const { b64chars } = getRfc4648Table()
 
-  let result = ''
+  let result = ""
 
   for (let i = 0; i < binData.length; i += 3) {
     const chunk =
@@ -74,8 +74,8 @@ const base64UrlEncode = (binData: Uint8Array) => {
 
     result += b64chars[(chunk >> 18) & 63]
     result += b64chars[(chunk >> 12) & 63]
-    result += i + 1 < binData.length ? b64chars[(chunk >> 6) & 63] : ''
-    result += i + 2 < binData.length ? b64chars[chunk & 63] : ''
+    result += i + 1 < binData.length ? b64chars[(chunk >> 6) & 63] : ""
+    result += i + 2 < binData.length ? b64chars[chunk & 63] : ""
   }
 
   return result
@@ -86,7 +86,7 @@ const base64UrlDecode = (str: string) => {
 
   // Pad to multiple of 4
   const padLen = str.length % 4
-  const padded = str + '='.repeat(padLen ? 4 - padLen : 0)
+  const padded = str + "=".repeat(padLen ? 4 - padLen : 0)
 
   const binData = new Uint8Array(Math.floor((padded.length * 3) / 4))
 
@@ -94,12 +94,12 @@ const base64UrlDecode = (str: string) => {
     const chunk =
       (lookup.get(padded[i]) << 18) |
       (lookup.get(padded[i + 1]) << 12) |
-      ((padded[i + 2] === '=' ? 0 : lookup.get(padded[i + 2])) << 6) |
-      (padded[i + 3] === '=' ? 0 : lookup.get(padded[i + 3]))
+      ((padded[i + 2] === "=" ? 0 : lookup.get(padded[i + 2])) << 6) |
+      (padded[i + 3] === "=" ? 0 : lookup.get(padded[i + 3]))
 
     binData[j++] = (chunk >> 16) & 255
-    if (padded[i + 2] !== '=') binData[j++] = (chunk >> 8) & 255
-    if (padded[i + 3] !== '=') binData[j++] = chunk & 255
+    if (padded[i + 2] !== "=") binData[j++] = (chunk >> 8) & 255
+    if (padded[i + 3] !== "=") binData[j++] = chunk & 255
   }
 
   return binData

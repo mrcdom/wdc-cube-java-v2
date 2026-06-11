@@ -1,4 +1,4 @@
-import BigIntUtils, { type BigIntValue } from './BigIntUtils'
+import BigIntUtils, { type BigIntValue } from "./BigIntUtils"
 
 export default class RSA {
   static readonly N65537 = 65537n
@@ -8,9 +8,9 @@ export default class RSA {
   readonly #publicKey: bigint
 
   constructor(publicExponent: BigIntValue, privateKey: BigIntValue, publicKey: BigIntValue) {
-    if (typeof publicExponent !== 'bigint') publicExponent = BigInt(publicExponent)
-    if (typeof privateKey !== 'bigint') privateKey = BigInt(privateKey)
-    if (typeof publicKey !== 'bigint') publicKey = BigInt(publicKey)
+    if (typeof publicExponent !== "bigint") publicExponent = BigInt(publicExponent)
+    if (typeof privateKey !== "bigint") privateKey = BigInt(privateKey)
+    if (typeof publicKey !== "bigint") publicKey = BigInt(publicKey)
 
     this.#publicExponent = publicExponent
     this.#privateKey = privateKey
@@ -39,14 +39,14 @@ export default class RSA {
 
   toString() {
     return [
-      '{',
-      'publicExponent: ',
+      "{",
+      "publicExponent: ",
       this.#publicExponent.toString(16),
-      ', publicKey: ',
+      ", publicKey: ",
       this.#publicKey.toString(16),
-      ', private: ',
+      ", private: ",
       this.#privateKey.toString(16),
-      '}',
+      "}",
     ].join()
   }
 }

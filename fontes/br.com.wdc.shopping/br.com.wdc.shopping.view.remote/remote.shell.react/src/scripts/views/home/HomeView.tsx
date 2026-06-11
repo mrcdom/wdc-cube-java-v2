@@ -1,9 +1,9 @@
-import React from 'react'
-import clsx from 'clsx'
-import bridge, { type ViewProps } from '@root/bridge'
-import { BaseViewClass } from '@root/utils/ViewUtils'
-import HeaderPanel from './HeaderPanel'
-import Sel from './home-sel'
+import React from "react"
+import clsx from "clsx"
+import bridge, { type ViewProps } from "@root/bridge"
+import { BaseViewClass } from "@root/utils/ViewUtils"
+import HeaderPanel from "./HeaderPanel"
+import Sel from "./home-sel"
 
 // :: View
 
@@ -30,7 +30,7 @@ class HomeViewClass extends BaseViewClass<ViewProps, HomeViewState> {
         {/* Error */}
         {state.errorMessage ? (
           <div className={Sel.alertError}>
-            <span className={clsx('bi bi-exclamation-circle', Sel.alertErrorIcon)}></span>
+            <span className={clsx("bi bi-exclamation-circle", Sel.alertErrorIcon)}></span>
             <span className={Sel.alertErrorText}>{state.errorMessage}</span>
           </div>
         ) : null}
@@ -52,8 +52,8 @@ class HomeViewClass extends BaseViewClass<ViewProps, HomeViewState> {
     }
 
     // Default split: products + purchases with tab nav
-    const productsHide = this.showingProducts ? '' : Sel.mdShow
-    const purchasesHide = this.showingProducts ? Sel.mdShow : ''
+    const productsHide = this.showingProducts ? "" : Sel.mdShow
+    const purchasesHide = this.showingProducts ? Sel.mdShow : ""
 
     return (
       <div className={clsx(Sel.flexCol, Sel.flexGrow, Sel.minH0, Sel.overflowHidden)}>
@@ -109,4 +109,4 @@ class HomeViewClass extends BaseViewClass<ViewProps, HomeViewState> {
   }
 }
 
-export default BaseViewClass.FC(HomeViewClass, '473dbdd7a36a')
+export default BaseViewClass.FC(HomeViewClass, "473dbdd7a36a")

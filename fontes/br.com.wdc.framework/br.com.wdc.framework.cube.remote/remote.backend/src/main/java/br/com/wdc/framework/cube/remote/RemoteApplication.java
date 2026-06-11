@@ -49,6 +49,10 @@ public interface RemoteApplication {
         getSupport().setWsSession(ctx);
     }
 
+    default String getClientIp() {
+        return getSupport().getClientIp();
+    }
+
     // :: Lifecycle
 
     void release();

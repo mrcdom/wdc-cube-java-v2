@@ -475,7 +475,6 @@ public final class HostClient implements AutoCloseable {
         applyScope((Map<String, Object>) delta.get("persistent-secure"), persistentStorage.secure());
     }
 
-    @SuppressWarnings("unchecked")
     private void applyScope(Map<String, Object> scope, ClientStorage storage) {
         if (scope == null) return;
         for (var entry : scope.entrySet()) {

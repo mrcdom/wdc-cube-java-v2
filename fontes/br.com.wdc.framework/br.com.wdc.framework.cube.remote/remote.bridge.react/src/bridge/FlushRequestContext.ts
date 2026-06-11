@@ -1,6 +1,6 @@
-import type { ViewStateCoordinator } from './ViewStateCoordinator'
-import type { BrowserViewState, FormMapType } from './types'
-import { BROWSER_VSID, KEEP_ALIVE_INTERVAL } from './constants'
+import type { ViewStateCoordinator } from "./ViewStateCoordinator"
+import type { BrowserViewState, FormMapType } from "./types"
+import { BROWSER_VSID, KEEP_ALIVE_INTERVAL } from "./constants"
 
 export class FlushRequestContext {
   private readonly app: ViewStateCoordinator
@@ -28,7 +28,7 @@ export class FlushRequestContext {
     this.socket = null
 
     // Restore request counter from sessionStorage (survives F5)
-    const savedSeq = sessionStorage.getItem('req_seq')
+    const savedSeq = sessionStorage.getItem("req_seq")
     if (savedSeq) {
       const parsed = Number.parseInt(savedSeq, 10)
       if (!Number.isNaN(parsed) && parsed > 0) {
@@ -36,7 +36,7 @@ export class FlushRequestContext {
       }
     }
 
-    document.addEventListener('visibilitychange', this.onVisibilityChange)
+    document.addEventListener("visibilitychange", this.onVisibilityChange)
   }
 
   submit(formMap: FormMapType, vsid: string, eventId: number, silent = false) {
@@ -44,9 +44,9 @@ export class FlushRequestContext {
 
     formMap.requestId = this.requestCount++
     if (formMap.event) {
-      formMap.event.push(vsid + ':' + eventId)
+      formMap.event.push(vsid + ":" + eventId)
     } else {
-      formMap.event = [vsid + ':' + eventId]
+      formMap.event = [vsid + ":" + eventId]
     }
     this.requestMap.set(formMap.requestId, formMap)
 
@@ -59,7 +59,8 @@ export class FlushRequestContext {
     this.flush()
   }
 
-  flush() { // NOSONAR: complexity is inherent to the WebSocket protocol handling
+  flush() {
+    // NOSONAR: complexity is inherent to the WebSocket protocol handling
     const { socket, lastSentRequestId, requestCount, requestMap } = this
 
     if (socket?.readyState !== WebSocket.OPEN) {
@@ -78,9 +79,9 @@ export class FlushRequestContext {
       for (const key of Object.keys(requestItemObj)) {
         const value = requestItemObj[key]
         if (value) {
-          if (key === 'event') {
+          if (key === "event") {
             for (const item of value as string[]) {
-              (requestObj.event as string[]).push(item)
+              ;(requestObj.event as string[]).push(item)
             }
           } else {
             let formData = requestObj[key] as object
@@ -120,7 +121,7 @@ export class FlushRequestContext {
 
     const app = this.app
 
-    const socket = (this.socket = new WebSocket(url, ['wdc']))
+    const socket = (this.socket = new WebSocket(url, ["wdc"]))
     ;(socket as Record<string, unknown>).withCredentials = true
 
     const handleDisconnect = (cause: unknown) => {
@@ -138,8 +139,9 @@ export class FlushRequestContext {
       this.initKeepAliveChecks()
       // Build bootstrap storage payload (async: cipher key may have just been set)
       // then flush. Nothing is sent until the promise resolves.
-      app.buildBootstrapStorage()
-        .then(storage => {
+      app
+        .buildBootstrapStorage()
+        .then((storage) => {
           this.pendingStorage = storage
           this.flush()
         })
@@ -153,8 +155,11 @@ export class FlushRequestContext {
     }
 
     socket.onclose = (event: CloseEvent) => {
-      // Server sent close code 4001: session is invalid, reload the page
       if (event.code === 4001) {
+        // Sessão rejeitada pelo servidor (reload_required): descarta o app_id
+        // guardado antes de recarregar — senão o reload reconecta com o mesmo
+        // id inválido e entra em loop infinito de reload.
+        sessionStorage.removeItem("app_id")
         globalThis.location.reload()
         return
       }
@@ -189,9 +194,9 @@ export class FlushRequestContext {
         if (app.firstUriResponse || app.navigatingFromPopState) {
           app.firstUriResponse = false
           app.navigatingFromPopState = false
-          globalThis.history.replaceState(null, '', hashValue)
+          globalThis.history.replaceState(null, "", hashValue)
         } else {
-          globalThis.history.pushState(null, '', hashValue)
+          globalThis.history.pushState(null, "", hashValue)
         }
       }
 
@@ -293,7 +298,7 @@ export class FlushRequestContext {
   }
 
   private persistState() {
-    sessionStorage.setItem('req_seq', String(this.requestCount))
+    sessionStorage.setItem("req_seq", String(this.requestCount))
   }
 
   private readonly keepAlive = () => {

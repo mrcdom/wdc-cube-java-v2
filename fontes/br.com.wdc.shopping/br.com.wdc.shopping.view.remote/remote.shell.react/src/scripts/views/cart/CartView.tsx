@@ -1,9 +1,9 @@
-import React from 'react'
-import clsx from 'clsx'
-import bridge, { type ViewProps } from '@root/bridge'
-import { BaseViewClass } from '@root/utils/ViewUtils'
-import { Button, ActionButton } from '@root/swc'
-import Sel from './cart-sel'
+import React from "react"
+import clsx from "clsx"
+import bridge, { type ViewProps } from "@root/bridge"
+import { BaseViewClass } from "@root/utils/ViewUtils"
+import { Button, ActionButton } from "@root/swc"
+import Sel from "./cart-sel"
 
 // :: Actions (must match server-side presenter)
 
@@ -45,7 +45,7 @@ class CartViewClass extends BaseViewClass<ViewProps, CartViewState> {
             {/* Header */}
             <div className={Sel.cardHeaderRow}>
               <div className={Sel.cardHeaderIconBox}>
-                <span className={clsx('bi bi-bag', Sel.cardHeaderIcon)}></span>
+                <span className={clsx("bi bi-bag", Sel.cardHeaderIcon)}></span>
               </div>
               <div>
                 <h5 className={Sel.cardHeaderTitle}>Carrinho</h5>
@@ -56,7 +56,7 @@ class CartViewClass extends BaseViewClass<ViewProps, CartViewState> {
             {/* Error */}
             {state.errorMessage && (
               <div className={clsx(Sel.alertError, Sel.mb16)}>
-                <span className={clsx('bi bi-exclamation-circle', Sel.alertErrorIcon)}></span>
+                <span className={clsx("bi bi-exclamation-circle", Sel.alertErrorIcon)}></span>
                 <span className={Sel.alertErrorText}>{state.errorMessage}</span>
               </div>
             )}
@@ -65,12 +65,12 @@ class CartViewClass extends BaseViewClass<ViewProps, CartViewState> {
             {empty ? (
               <div className={clsx(Sel.emptyState, Sel.py24)}>
                 <div className={Sel.emptyIconBox}>
-                  <span className={clsx('bi bi-bag', Sel.emptyIcon)}></span>
+                  <span className={clsx("bi bi-bag", Sel.emptyIcon)}></span>
                 </div>
                 <p className={Sel.emptyTitle}>Carrinho vazio</p>
                 <p className={Sel.emptySubtitle}>Adicione produtos para começar</p>
                 <Button variant="accent" ref={this.viewProductsBtnRef}>
-                  <span className={clsx('bi bi-grid-3x3-gap', Sel.mr6)}></span>
+                  <span className={clsx("bi bi-grid-3x3-gap", Sel.mr6)}></span>
                   <span>Ver produtos</span>
                 </Button>
               </div>
@@ -92,7 +92,7 @@ class CartViewClass extends BaseViewClass<ViewProps, CartViewState> {
                     <span> Continuar comprando</span>
                   </ActionButton>
                   <Button variant="accent" size="l" ref={this.buyBtnRef}>
-                    <span className={clsx('bi bi-check2-circle', Sel.mr6)}></span>
+                    <span className={clsx("bi bi-check2-circle", Sel.mr6)}></span>
                     <span>Finalizar pedido</span>
                   </Button>
                 </div>
@@ -117,7 +117,7 @@ class CartViewClass extends BaseViewClass<ViewProps, CartViewState> {
               if (el) el.onclick = () => this.emitModifyQuantity(item.id, item.quantity - 1)
             }}
           >
-            <span className={clsx('bi bi-dash', Sel.stepperIcon)}></span>
+            <span className={clsx("bi bi-dash", Sel.stepperIcon)}></span>
           </ActionButton>
           <span className={Sel.stepperValue}>{item.quantity}</span>
           <ActionButton
@@ -127,7 +127,7 @@ class CartViewClass extends BaseViewClass<ViewProps, CartViewState> {
               if (el) el.onclick = () => this.emitModifyQuantity(item.id, item.quantity + 1)
             }}
           >
-            <span className={clsx('bi bi-plus', Sel.stepperIcon)}></span>
+            <span className={clsx("bi bi-plus", Sel.stepperIcon)}></span>
           </ActionButton>
         </div>
         <span className={Sel.itemSubtotal}>{subtotal}</span>
@@ -138,7 +138,7 @@ class CartViewClass extends BaseViewClass<ViewProps, CartViewState> {
             if (el) el.onclick = () => this.emitRemove(item.id)
           }}
         >
-          <span className={clsx('bi bi-x-lg', Sel.removeIcon)}></span>
+          <span className={clsx("bi bi-x-lg", Sel.removeIcon)}></span>
         </ActionButton>
       </div>
     )
@@ -147,15 +147,15 @@ class CartViewClass extends BaseViewClass<ViewProps, CartViewState> {
   // :: Refs
 
   readonly backBtnRef = (el: HTMLElement | null) => {
-    if (el) el.addEventListener('click', this.emitBack)
+    if (el) el.addEventListener("click", this.emitBack)
   }
 
   readonly buyBtnRef = (el: HTMLElement | null) => {
-    if (el) el.addEventListener('click', this.emitBuy)
+    if (el) el.addEventListener("click", this.emitBuy)
   }
 
   readonly viewProductsBtnRef = (el: HTMLElement | null) => {
-    if (el) el.addEventListener('click', this.emitBack)
+    if (el) el.addEventListener("click", this.emitBack)
   }
 
   // :: Emissors
@@ -169,15 +169,15 @@ class CartViewClass extends BaseViewClass<ViewProps, CartViewState> {
   }
 
   readonly emitModifyQuantity = (id: number, quantity: number) => {
-    bridge.setFormField(this.vsid, 'p.productId', id)
-    bridge.setFormField(this.vsid, 'p.quantity', quantity)
+    bridge.setFormField(this.vsid, "p.productId", id)
+    bridge.setFormField(this.vsid, "p.quantity", quantity)
     bridge.submit(this.vsid, ON_MODIFY_QUANTITY)
   }
 
   readonly emitRemove = (id: number) => {
-    bridge.setFormField(this.vsid, 'p.productId', id)
+    bridge.setFormField(this.vsid, "p.productId", id)
     bridge.submit(this.vsid, ON_REMOVE)
   }
 }
 
-export default BaseViewClass.FC(CartViewClass, '7eb485e5f843')
+export default BaseViewClass.FC(CartViewClass, "7eb485e5f843")

@@ -1,16 +1,16 @@
-import React from 'react'
-import * as LangUtils from '../utils/LangUtils'
-import CookieConstructor from 'universal-cookie'
+import React from "react"
+import * as LangUtils from "../utils/LangUtils"
+import CookieConstructor from "universal-cookie"
 
-import type { FormMapType, IViewFactory } from './types'
-import { NOOP_PROMISE_VOID, CAUTHED, BROWSER_VSID } from './constants'
-import { ViewScope } from './ViewScope'
-import { DataSecurity } from './DataSecurity'
-import { FlushRequestContext } from './FlushRequestContext'
-import { ReconnectController } from './ReconnectController'
-import { ViewGarbageCollector } from './ViewGarbageCollector'
-import { ClientStorage, LocalStorageClientStorage, SessionStorageClientStorage } from './ClientStorage'
-import { EncryptedLocalStorage } from './EncryptedLocalStorage'
+import type { FormMapType, IViewFactory } from "./types"
+import { NOOP_PROMISE_VOID, CAUTHED, BROWSER_VSID } from "./constants"
+import { ViewScope } from "./ViewScope"
+import { DataSecurity } from "./DataSecurity"
+import { FlushRequestContext } from "./FlushRequestContext"
+import { ReconnectController } from "./ReconnectController"
+import { ViewGarbageCollector } from "./ViewGarbageCollector"
+import { ClientStorage, LocalStorageClientStorage, SessionStorageClientStorage } from "./ClientStorage"
+import { EncryptedLocalStorage } from "./EncryptedLocalStorage"
 
 const Cookie = new CookieConstructor()
 
@@ -28,8 +28,8 @@ export class ViewStateCoordinator {
   formMap: FormMapType = {}
 
   isConnected = false
-  path = ''
-  baseWebSocketUtl = ''
+  path = ""
+  baseWebSocketUtl = ""
   private popStateHandler: ((event: PopStateEvent) => void) | null = null
   navigatingFromPopState = false
   firstUriResponse = true
@@ -52,34 +52,34 @@ export class ViewStateCoordinator {
     this.sessionStorage = new SessionStorageClientStorage(syncNamespace, () => encryptedSession)
     this.persistentStorage = new LocalStorageClientStorage(syncNamespace, () => encryptedStorage)
 
-    const appIdFromCookie = Cookie.get('app_id')
+    const appIdFromCookie = Cookie.get("app_id")
     if (appIdFromCookie) {
-      Cookie.remove('app_id', { path: '/' })
+      Cookie.remove("app_id", { path: "/" })
     }
 
-    let appId = sessionStorage.getItem('app_id')
+    let appId = sessionStorage.getItem("app_id")
     if (!appId) {
       appId = appIdFromCookie
       if (appId) {
-        sessionStorage.setItem('app_id', appId)
+        sessionStorage.setItem("app_id", appId)
       } else {
-        appId = LangUtils.makeUniqueId() + '.fake'
+        appId = LangUtils.makeUniqueId() + ".fake"
       }
     }
 
     this.id = appId
 
-    const appSKey = Cookie.get('app_skey')
+    const appSKey = Cookie.get("app_skey")
     if (appSKey) {
       this.dataSecurity.updateSecurityKey(appSKey)
-      Cookie.remove('app_skey', { path: '/' })
+      Cookie.remove("app_skey", { path: "/" })
 
       this.readyToStart = async () => {
         try {
           await Promise.all([encryptedStorage.initialize(), encryptedSession.initialize()])
           await this.dataSecurity.updateSecretWithRandomPassword()
 
-          Cookie.set('app_signature', this.dataSecurity.getSignature(), { path: '/' })
+          Cookie.set("app_signature", this.dataSecurity.getSignature(), { path: "/" })
           this.readyToStart = NOOP_PROMISE_VOID
         } catch (error) {
           CAUTHED(error)
@@ -87,15 +87,15 @@ export class ViewStateCoordinator {
       }
     }
 
-    const contextPath = location.pathname.split('/')[1]
+    const contextPath = location.pathname.split("/")[1]
 
     this.baseWebSocketUtl =
-      (document.location.protocol === 'http:' ? 'ws://' : 'wss://') +
+      (document.location.protocol === "http:" ? "ws://" : "wss://") +
       document.location.host +
-      '/' +
-      (contextPath ?? 'unknown')
+      "/" +
+      (contextPath ?? "unknown")
 
-    const slashPos = this.baseWebSocketUtl.indexOf('/', 10)
+    const slashPos = this.baseWebSocketUtl.indexOf("/", 10)
     if (slashPos != -1) {
       this.baseWebSocketUtl = this.baseWebSocketUtl.substring(0, slashPos)
     }
@@ -143,7 +143,8 @@ export class ViewStateCoordinator {
     const [, setUpdateCount] = React.useState(0) // NOSONAR: bindView is called from function components only
     scope.forceUpdate = () => setUpdateCount((count) => count + 1)
 
-    React.useEffect(() => { // NOSONAR: bindView is called from function components only
+    React.useEffect(() => {
+      // NOSONAR: bindView is called from function components only
       this.viewGarbageCollector.mount(vsid)
       return () => {
         if (vsid !== BROWSER_VSID) {
@@ -165,22 +166,22 @@ export class ViewStateCoordinator {
       // Listen for browser back/forward using raw popstate
       // (pushState/replaceState do NOT fire popstate — no loop)
       if (this.popStateHandler) {
-        globalThis.removeEventListener('popstate', this.popStateHandler)
+        globalThis.removeEventListener("popstate", this.popStateHandler)
       }
       this.popStateHandler = () => {
         const hash = globalThis.location.hash
-        const newPath = hash && hash.length > 1 ? hash.substring(1) : '/'
+        const newPath = hash && hash.length > 1 ? hash.substring(1) : "/"
         if (this.path !== newPath) {
           this.navigatingFromPopState = true
           this.onHistoryChange(newPath)
         }
       }
-      globalThis.addEventListener('popstate', this.popStateHandler)
+      globalThis.addEventListener("popstate", this.popStateHandler)
 
       const hash = globalThis.location.hash
-      this.path = hash && hash.length > 1 ? hash.substring(1) : '/'
+      this.path = hash && hash.length > 1 ? hash.substring(1) : "/"
 
-      this.setFormField(BROWSER_VSID, 'p.path', this.path)
+      this.setFormField(BROWSER_VSID, "p.path", this.path)
       this.submit(BROWSER_VSID, -1)
     }
 
@@ -189,22 +190,22 @@ export class ViewStateCoordinator {
 
   onStop() {
     if (this.popStateHandler) {
-      globalThis.removeEventListener('popstate', this.popStateHandler)
+      globalThis.removeEventListener("popstate", this.popStateHandler)
       this.popStateHandler = null
     }
   }
 
   onHistoryChange(path: string) {
-    this.setFormField(BROWSER_VSID, 'p.path', path)
+    this.setFormField(BROWSER_VSID, "p.path", path)
     this.submit(BROWSER_VSID, -2)
   }
 
-  applyViewStates(stateList: { '#': string }[]) {
+  applyViewStates(stateList: { "#": string }[]) {
     for (const viewState of stateList) {
-      if (!viewState?.['#']) {
+      if (!viewState?.["#"]) {
         continue
       }
-      const vsid = viewState['#']
+      const vsid = viewState["#"]
 
       let viewScope = this.viewMap.get(vsid)
       if (!viewScope) {
@@ -262,9 +263,9 @@ export class ViewStateCoordinator {
       result[scopeName] = scoped
     }
 
-    await addScope('session', this.sessionStorage)
-    await addScope('persistent', this.persistentStorage)
-    await addScope('persistent-secure', this.persistentStorage.secure)
+    await addScope("session", this.sessionStorage)
+    await addScope("persistent", this.persistentStorage)
+    await addScope("persistent-secure", this.persistentStorage.secure)
 
     return Object.keys(result).length > 0 ? result : null
   }
@@ -287,8 +288,8 @@ export class ViewStateCoordinator {
       }
     }
 
-    await applyScope(delta['session'] as Record<string, string>, this.sessionStorage)
-    await applyScope(delta['persistent'] as Record<string, string>, this.persistentStorage)
-    await applyScope(delta['persistent-secure'] as Record<string, string>, this.persistentStorage.secure)
+    await applyScope(delta["session"] as Record<string, string>, this.sessionStorage)
+    await applyScope(delta["persistent"] as Record<string, string>, this.persistentStorage)
+    await applyScope(delta["persistent-secure"] as Record<string, string>, this.persistentStorage.secure)
   }
 }

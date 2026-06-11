@@ -1,7 +1,7 @@
-import React from 'react'
-import bridge, { type ViewProps } from '@root/bridge'
-import { BaseViewClass } from '@root/utils/ViewUtils'
-import GlobalSel from '@root/global-sel'
+import React from "react"
+import bridge, { type ViewProps } from "@root/bridge"
+import { BaseViewClass } from "@root/utils/ViewUtils"
+import GlobalSel from "@root/global-sel"
 
 export type RootViewState = {
   contentViewId?: string
@@ -16,7 +16,7 @@ class RootViewClass extends BaseViewClass<ViewProps, RootViewState> {
 
     if (state.errorMessage) {
       return (
-        <div className={GlobalSel.alertError} style={{ margin: '16px' }}>
+        <div className={GlobalSel.alertError} style={{ margin: "16px" }}>
           <span className={GlobalSel.alertErrorIcon}>
             <i className="bi bi-exclamation-circle"></i>
           </span>
@@ -30,7 +30,7 @@ class RootViewClass extends BaseViewClass<ViewProps, RootViewState> {
     }
 
     return (
-      <div className={GlobalSel.alertError} style={{ margin: '16px' }}>
+      <div className={GlobalSel.alertError} style={{ margin: "16px" }}>
         <span className={GlobalSel.alertErrorIcon}>
           <i className="bi bi-exclamation-circle"></i>
         </span>
@@ -40,4 +40,4 @@ class RootViewClass extends BaseViewClass<ViewProps, RootViewState> {
   }
 }
 
-export default BaseViewClass.FC(RootViewClass, 'f2d345c4a610')
+export default BaseViewClass.FC(RootViewClass, "f2d345c4a610")

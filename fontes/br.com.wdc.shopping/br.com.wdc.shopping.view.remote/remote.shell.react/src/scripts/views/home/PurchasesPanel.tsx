@@ -1,10 +1,10 @@
-import React from 'react'
-import clsx from 'clsx'
-import bridge, { type ViewProps } from '@root/bridge'
-import { BaseViewClass, BasePanelClass } from '@root/utils/ViewUtils'
-import * as NumberUtils from '@root/utils/NumberUtils'
-import * as DateUtils from '@root/utils/DateUtils'
-import Sel from './home-sel'
+import React from "react"
+import clsx from "clsx"
+import bridge, { type ViewProps } from "@root/bridge"
+import { BaseViewClass, BasePanelClass } from "@root/utils/ViewUtils"
+import * as NumberUtils from "@root/utils/NumberUtils"
+import * as DateUtils from "@root/utils/DateUtils"
+import Sel from "./home-sel"
 
 const ITEM_HEIGHT_PX = 56
 
@@ -47,7 +47,7 @@ class PurchasesPanelClass extends BaseViewClass<ViewProps, PurchasesPanelState> 
       return
     }
     let itemHeight = ITEM_HEIGHT_PX
-    const firstItem = el.querySelector('[data-purchase-item]') as HTMLElement | null
+    const firstItem = el.querySelector("[data-purchase-item]") as HTMLElement | null
     if (firstItem && firstItem.offsetHeight > 0) {
       const style = getComputedStyle(firstItem)
       itemHeight = firstItem.offsetHeight + parseFloat(style.marginTop) + parseFloat(style.marginBottom)
@@ -55,7 +55,7 @@ class PurchasesPanelClass extends BaseViewClass<ViewProps, PurchasesPanelState> 
     const capacity = Math.max(1, Math.floor(containerHeight / itemHeight))
     if (capacity === this.state.pageSize) return
     const { vsid } = this
-    bridge.setFormField(vsid, 'p.capacity', capacity)
+    bridge.setFormField(vsid, "p.capacity", capacity)
     bridge.submit(vsid, ON_PAGE_SIZE_CHANGE)
   }
 
@@ -76,7 +76,7 @@ class PurchasesPanelClass extends BaseViewClass<ViewProps, PurchasesPanelState> 
     if (initial && !this.resizeHandler) {
       this.resizeHandler = this.onResize
       requestAnimationFrame(this.computePageSize)
-      window.addEventListener('resize', this.onResize)
+      window.addEventListener("resize", this.onResize)
     } else if (!state.pageSize) {
       requestAnimationFrame(this.computePageSize)
     }
@@ -84,7 +84,7 @@ class PurchasesPanelClass extends BaseViewClass<ViewProps, PurchasesPanelState> 
     return (
       <div className={clsx(Sel.purchasesPanel, Sel.purchasesSlot, className)}>
         <div className={Sel.purchasesHeaderRow}>
-          <i className={clsx('bi bi-clock-history', Sel.purchasesHeaderIcon)}></i>
+          <i className={clsx("bi bi-clock-history", Sel.purchasesHeaderIcon)}></i>
           <span className={Sel.purchasesHeaderTitle}>Histórico</span>
         </div>
         <span className={Sel.purchasesHint}>Toque para ver detalhes</span>
@@ -111,7 +111,7 @@ class PurchasesPanelClass extends BaseViewClass<ViewProps, PurchasesPanelState> 
             className={clsx(Sel.purchasesPageBtn, page === 0 && Sel.pointerEventsNone)}
             onClick={page > 0 ? this.emitPreviousPage : undefined}
           >
-            <i className={clsx('bi bi-chevron-left', Sel.purchasesPageBtnIcon)}></i>
+            <i className={clsx("bi bi-chevron-left", Sel.purchasesPageBtnIcon)}></i>
           </div>
           <span className={Sel.purchasesPageInfo}>
             {page + 1} / {this.totalPages}
@@ -120,7 +120,7 @@ class PurchasesPanelClass extends BaseViewClass<ViewProps, PurchasesPanelState> 
             className={clsx(Sel.purchasesPageBtn, page >= this.totalPages - 1 && Sel.pointerEventsNone)}
             onClick={page < this.totalPages - 1 ? this.emitNextPage : undefined}
           >
-            <i className={clsx('bi bi-chevron-right', Sel.purchasesPageBtnIcon)}></i>
+            <i className={clsx("bi bi-chevron-right", Sel.purchasesPageBtnIcon)}></i>
           </div>
         </div>
       </div>
@@ -131,7 +131,7 @@ class PurchasesPanelClass extends BaseViewClass<ViewProps, PurchasesPanelState> 
 
   readonly emitPageChange = (page: number) => {
     const { vsid } = this
-    bridge.setFormField(vsid, 'p.page', page)
+    bridge.setFormField(vsid, "p.page", page)
     bridge.submit(vsid, ON_PAGE_CHANGE)
   }
 
@@ -146,7 +146,7 @@ class PurchasesPanelClass extends BaseViewClass<ViewProps, PurchasesPanelState> 
   }
 }
 
-export default BaseViewClass.FC(PurchasesPanelClass, 'b3c4d5e6f7a8')
+export default BaseViewClass.FC(PurchasesPanelClass, "b3c4d5e6f7a8")
 
 // :: Internal - PurchaseItemRow
 
@@ -156,8 +156,8 @@ type PurchaseItemRowProps = {
 }
 
 function formatItems(items: string[]): string {
-  if (!items || items.length === 0) return ''
-  return items.join(', ')
+  if (!items || items.length === 0) return ""
+  return items.join(", ")
 }
 
 class PurchaseItemRowClass extends BasePanelClass<PurchaseItemRowProps> {
@@ -186,7 +186,7 @@ class PurchaseItemRowClass extends BasePanelClass<PurchaseItemRowProps> {
 
   readonly emitOpenReceipt = () => {
     const { vsid, purchase } = this
-    bridge.setFormField(vsid, 'p.purchaseId', purchase.id)
+    bridge.setFormField(vsid, "p.purchaseId", purchase.id)
     bridge.submit(vsid, ON_OPEN_RECEIPT)
   }
 }

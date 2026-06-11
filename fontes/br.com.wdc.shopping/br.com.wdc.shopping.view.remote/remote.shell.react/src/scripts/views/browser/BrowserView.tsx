@@ -1,9 +1,9 @@
-import React, { ReactNode } from 'react'
-import clsx from 'clsx'
-import bridge, { type ViewProps, BROWSER_VID, type BrowserViewState } from '@root/bridge'
-import { BaseViewClass } from '@root/utils/ViewUtils'
-import { ActionButton, ProgressCircle } from '@root/swc'
-import Sel from './browser-sel'
+import React, { ReactNode } from "react"
+import clsx from "clsx"
+import bridge, { type ViewProps, BROWSER_VID, type BrowserViewState } from "@root/bridge"
+import { BaseViewClass } from "@root/utils/ViewUtils"
+import { ActionButton, ProgressCircle } from "@root/swc"
+import Sel from "./browser-sel"
 
 // :: Actions
 
@@ -34,7 +34,7 @@ class BrowserViewClass extends BaseViewClass<ViewProps, BrowserViewState> {
       rootView = bridge.createView(state.contentViewId)
     } else {
       rootView = (
-        <div className={Sel.flexCenter} style={{ minHeight: '100vh' }}>
+        <div className={Sel.flexCenter} style={{ minHeight: "100vh" }}>
           <ProgressCircle size="l" indeterminate></ProgressCircle>
         </div>
       )
@@ -88,30 +88,30 @@ function AppAlert(props: AppAlertProps) {
       detailMessage = props.args[1]
       break
     case -2:
-      msgNode = 'A URI ' + props.args[0] + ' não está acessível'
+      msgNode = "A URI " + props.args[0] + " não está acessível"
       detailMessage = props.args[1]
       break
     default:
-      msgNode = props.args.length > 0 ? props.args[0] : 'Ocorreu um erro não esperado'
+      msgNode = props.args.length > 0 ? props.args[0] : "Ocorreu um erro não esperado"
   }
 
   return (
-    <div className={Sel.alertError} style={{ margin: '16px' }}>
+    <div className={Sel.alertError} style={{ margin: "16px" }}>
       <span className={Sel.alertErrorIcon}>
         <i className="bi bi-exclamation-circle"></i>
       </span>
       <div style={{ flex: 1 }}>
-        <div className={clsx(Sel.fontBold, Sel.textSm)} style={{ color: 'var(--app-error-text)' }}>
+        <div className={clsx(Sel.fontBold, Sel.textSm)} style={{ color: "var(--app-error-text)" }}>
           Aviso!
         </div>
         <span className={Sel.alertErrorText}>{msgNode}</span>
         {detailMessage && (
-          <div className={clsx(Sel.textXs, Sel.mt4)} style={{ color: 'var(--app-error-text)' }}>
+          <div className={clsx(Sel.textXs, Sel.mt4)} style={{ color: "var(--app-error-text)" }}>
             {detailMessage}
           </div>
         )}
       </div>
-      <ActionButton quiet size="s" onClick={props.onDismiss} style={{ marginLeft: 'auto' }}>
+      <ActionButton quiet size="s" onClick={props.onDismiss} style={{ marginLeft: "auto" }}>
         Ok
       </ActionButton>
     </div>
@@ -138,25 +138,25 @@ function ConnectionAlert(props: ConnectionAlertProps) {
     timeText = minutes > 0 ? `Conectando em ${minutes}m e ${seconds}s...` : `Conectando em ${seconds}s...`
     showRetry = true
   } else {
-    timeText = 'Conectando agora...'
+    timeText = "Conectando agora..."
   }
 
   return (
-    <div style={{ textAlign: 'center' }}>
+    <div style={{ textAlign: "center" }}>
       <div
         className={Sel.alertError}
-        style={{ display: 'inline-flex', borderRadius: '0 0 8px 8px', padding: '6px 12px', margin: 0 }}
+        style={{ display: "inline-flex", borderRadius: "0 0 8px 8px", padding: "6px 12px", margin: 0 }}
       >
-        <span className={clsx(Sel.fontBold, Sel.textSm)} style={{ color: 'var(--app-error-text)' }}>
+        <span className={clsx(Sel.fontBold, Sel.textSm)} style={{ color: "var(--app-error-text)" }}>
           Não conectado.
-        </span>{' '}
-        <span className={Sel.textSm} style={{ color: 'var(--app-error-text)' }}>
+        </span>{" "}
+        <span className={Sel.textSm} style={{ color: "var(--app-error-text)" }}>
           {timeText}
         </span>
         {showRetry && (
           <span
             className={clsx(Sel.textSm, Sel.fontMedium, Sel.cursorPointer, Sel.ml4)}
-            style={{ color: 'var(--app-accent)', textDecoration: 'underline' }}
+            style={{ color: "var(--app-accent)", textDecoration: "underline" }}
             onClick={props.onReconnectNow}
           >
             Tentar agora
