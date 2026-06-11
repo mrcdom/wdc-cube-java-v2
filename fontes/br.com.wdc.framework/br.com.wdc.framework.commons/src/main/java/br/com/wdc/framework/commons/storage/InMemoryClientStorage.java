@@ -5,8 +5,15 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Implementação em memória de {@link ClientStorage}.
  * <p>
- * Usada como fallback em plataformas que não suportam persistência no cliente
- * (ex: testes, server-side). Os dados existem apenas enquanto a JVM estiver ativa.
+ * Usada nos seguintes contextos:
+ * <ul>
+ *   <li>{@code clientSessionStore()} em todas as plataformas — dados da sessão corrente.</li>
+ *   <li>{@code clientPersistentStore()} no probe/bridge ({@code HostClient}) — sem persistência
+ *       real; dados vivem enquanto a conexão estiver ativa.</li>
+ *   <li>Testes e ambientes server-side onde persistência local não é desejada.</li>
+ * </ul>
+ * {@link #secure()} retorna {@code this} — os dados já são efêmeros e criptografia
+ * não agrega valor nesse contexto.
  */
 public class InMemoryClientStorage implements ClientStorage {
 
