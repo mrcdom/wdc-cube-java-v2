@@ -9,6 +9,13 @@ import org.teavm.jso.typedarrays.Uint8Array;
  * Web Crypto API abstraction for browser environment (TeaVM).
  * <p>
  * Provides: random bytes generation via {@code crypto.getRandomValues}, PBKDF2 key derivation, and AES-GCM encryption.
+ * <p>
+ * {@code crypto.subtle} is only available in secure contexts (HTTPS or localhost). In plain HTTP
+ * (e.g. QA accessed by IP), falls back to {@code wdcCryptoFallback} — a pre-bundled @noble
+ * implementation loaded from {@code js/crypto-compat.js} — with identical parameters so the
+ * server deciphers both paths identically. The fallback key is a raw {@code Uint8Array}; the
+ * native path returns a {@code CryptoKey}. {@link #encrypt} and {@link #decrypt} detect the
+ * difference via {@code key instanceof Uint8Array}.
  */
 public final class WebCrypto {
 
@@ -41,10 +48,20 @@ public final class WebCrypto {
 
     /**
      * Derives an AES-GCM 256-bit key from a password using PBKDF2 (SHA-256, 250k iterations). Calls back with
-     * (CryptoKey, iv) on success.
+     * (CryptoKey|Uint8Array, iv) on success. Returns a raw {@code Uint8Array} key when falling back to
+     * {@code wdcCryptoFallback} (non-secure context); returns a {@code CryptoKey} in secure contexts.
      */
     @JSBody(params = { "pwd", "salt", "iv", "callback" }, script = """
             var pwdBuf = new TextEncoder().encode(pwd);
+            if (!crypto.subtle) {
+                if (typeof wdcCryptoFallback === 'undefined') {
+                    console.error('[WebCrypto] crypto.subtle unavailable and wdcCryptoFallback not loaded');
+                    return;
+                }
+                var keyBytes = wdcCryptoFallback.pbkdf2(pwdBuf, salt, 250000, 32);
+                callback(keyBytes, iv);
+                return;
+            }
             crypto.subtle.importKey('raw', pwdBuf, { name: 'PBKDF2' }, false, ['deriveKey'])
             .then(function(keyMaterial) {
                 return crypto.subtle.deriveKey(
@@ -67,10 +84,17 @@ public final class WebCrypto {
 
     /**
      * Encrypts text with AES-GCM using the given key and IV. Calls back with base64-encoded ciphertext, or empty string
-     * on failure.
+     * on failure. Accepts either a {@code CryptoKey} (native path) or a raw {@code Uint8Array} (fallback path).
      */
     @JSBody(params = { "text", "key", "iv", "callback" }, script = """
             var encoded = new TextEncoder().encode(text);
+            if (key instanceof Uint8Array) {
+                var cipherBytes = wdcCryptoFallback.aesGcmEncrypt(key, iv, encoded);
+                var binary = '';
+                for (var i = 0; i < cipherBytes.length; i++) binary += String.fromCodePoint(cipherBytes[i]);
+                callback(btoa(binary));
+                return;
+            }
             crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, key, encoded)
             .then(function(ciphertext) {
                 var bytes = new Uint8Array(ciphertext);
@@ -88,11 +112,16 @@ public final class WebCrypto {
     /**
      * Decrypts a base64-encoded AES-GCM ciphertext produced by {@link #encrypt}.
      * Calls back with the plaintext string, or empty string on failure.
+     * Accepts either a {@code CryptoKey} (native path) or a raw {@code Uint8Array} (fallback path).
      */
     @JSBody(params = { "b64", "key", "iv", "callback" }, script = """
             var binary = atob(b64);
             var bytes = new Uint8Array(binary.length);
             for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+            if (key instanceof Uint8Array) {
+                callback(wdcCryptoFallback.aesGcmDecrypt(key, iv, bytes));
+                return;
+            }
             crypto.subtle.decrypt({ name: 'AES-GCM', iv: iv }, key, bytes)
             .then(function(plaintext) {
                 callback(new TextDecoder().decode(new Uint8Array(plaintext)));

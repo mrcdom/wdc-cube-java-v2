@@ -34,6 +34,10 @@
 </head>
 <body>
     <div id="loading">Carregando...</div>
+    <!-- Crypto fallback for non-secure contexts (HTTP without localhost).
+         Uses PBKDF2-SHA256 + AES-256-GCM via @noble when crypto.subtle is unavailable.
+         Regenerate: npx esbuild src/main/webapp/js/crypto-compat-src.mjs --bundle --format=iife --minify --outfile=src/main/webapp/js/crypto-compat.js -->
+    <script src="js/crypto-compat.js"></script>
     <script src="js/boot.js"></script>
 </body>
 </html>
