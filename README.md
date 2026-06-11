@@ -246,12 +246,12 @@ java -cp "$(mvn -q dependency:build-classpath -Dmdep.outputFile=/dev/stdout):tar
 
 ```bash
 # Desktop (JVM)
-cd br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/br.com.wdc.shopping.view.gluon.desktop
-mvn javafx:run
+cd br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/gluon.desktop
+./build.sh
 
-# iOS (simulador)
-cd br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/br.com.wdc.shopping.view.gluon.ios
-./build-sim.sh
+# iOS (simulador — Apple Silicon)
+cd br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/gluon.ios
+./build.sh --native --sim --deploy
 ```
 
 ## Testes

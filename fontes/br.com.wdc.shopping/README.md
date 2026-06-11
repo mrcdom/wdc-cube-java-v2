@@ -43,12 +43,12 @@ Abra **http://localhost:8080** e entre com `admin` / `admin`.
 
 ```bash
 # Desktop (JVM)
-cd br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/br.com.wdc.shopping.view.gluon.desktop
-mvn javafx:run
+cd br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/gluon.desktop
+./build.sh
 
-# iOS (simulador)
-cd br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/br.com.wdc.shopping.view.gluon.ios
-./build-sim.sh
+# iOS (simulador — Apple Silicon)
+cd br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/gluon.ios
+./build.sh --native --sim --deploy
 ```
 
 Mesma aplicação, mesmo banco, mesma lógica — rodando nativamente em Desktop, iOS e Android via GraalVM.

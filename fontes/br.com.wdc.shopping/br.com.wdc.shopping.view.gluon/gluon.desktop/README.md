@@ -25,7 +25,17 @@ Contém apenas as classes de launcher — toda a lógica de UI está em `gluon.s
 
 ```bash
 cd fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/gluon.desktop
+
+# Execução padrão (usa application.toml do diretório work/config/)
+./build.sh
+
+# Execução com arquivo de configuração alternativo
+./build.sh --config=/caminho/para/application.toml
+
+# Equivalente Maven direto
 mvn javafx:run
 ```
+
+O `build.sh` passa automaticamente `-Dshopping.config.file=` para o `javafx:run`.
 
 Ver [README do módulo pai](../README.md) para contexto completo e comparação entre plataformas.

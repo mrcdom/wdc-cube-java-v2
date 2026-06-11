@@ -63,23 +63,19 @@ mvn javafx:run
 ### iOS (Simulador)
 
 ```bash
-cd fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/br.com.wdc.shopping.view.gluon.ios
+cd fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/gluon.ios
 
-# Build completo + deploy no simulador
-./build-sim.sh
+# Build completo + deploy no simulador (detecta automaticamente o simulador Booted)
+./build.sh --native --sim --deploy
+
+# Build completo + deploy no simulador tablet
+./build.sh --native --sim --tablet --deploy
 
 # Apenas deploy (reutiliza build anterior)
-./build-sim.sh --deploy
-
-# Build sem lançar
-./build-sim.sh --no-launch
+./build.sh --deploy-only --sim
 ```
 
-Requer um simulador iOS bootado. Para iniciar um:
-
-```bash
-xcrun simctl boot <UDID>
-```
+O script `build.sh` detecta automaticamente o simulador com status `Booted` do form factor selecionado (phone/tablet). Em Apple Silicon aplica automaticamente um workaround para o profile `ios-sim` que não funciona no GluonFX 1.0.25 (ver [README do módulo](gluon.ios/README.md) para detalhes).
 
 ### iOS (Dispositivo físico)
 

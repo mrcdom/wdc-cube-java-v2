@@ -171,10 +171,21 @@ card.setOnMouseClicked(
 
 | Pacote | Responsabilidade |
 |--------|-----------------|
-| `view.gluon` | Classes base: `AbstractViewGluon`, `ShoppingGluonApplication`, `ShoppingGluonMain` |
+| `view.gluon` | Classes base: `AbstractViewGluon`, `ShoppingGluonApplication` (storage, dirty-check loop), `ShoppingGluonMain` (startup + session restore) |
 | `view.gluon.impl` | Implementações concretas de cada view (uma por Presenter) |
 | `view.gluon.theme` | Design tokens: `GluonStyles` (inline CSS), `GluonColors` (paleta), `GluonIcons` (SVG paths) |
 | `view.gluon.util` | `GluonDom` (DSL de build) e `ResourceCatalog` (cache de imagens) |
+
+## Storage e Persistência de Sessão
+
+`ShoppingGluonApplication` implementa `clientSessionStore()` e `clientPersistentStore()` como exigido pelo protocolo de autenticação remota:
+
+| Método | Implementação | Ciclo de Vida |
+|--------|---------------|---------------|
+| `clientSessionStore()` | `InMemoryClientStorage` | Descartado ao fechar o app |
+| `clientPersistentStore()` | `PreferencesClientStorage(ShoppingGluonApplication.class)` | Persiste entre execuções (java.util.prefs) |
+
+O `clientPersistentStore()` armazena o refresh token em `storage.secure()` (AES-256-GCM via `EncryptedPreferencesClientStorage`) e o último `session.intent` visitado. Ao iniciar (`ShoppingGluonMain.start()`), o app lê o intent salvo e navega diretamente para ele — evitando que o usuário volte à tela de login após reiniciar.
 
 ## Fluxo de Vida de uma View
 
