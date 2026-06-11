@@ -60,6 +60,18 @@ graph TD
 
 ## Componentes
 
+### RestAuthenticationService
+
+Implementa `AuthenticationService` sobre REST. Suporta autenticação por credenciais e **auto-login por token persistente**:
+
+| Método | Descrição |
+|--------|-----------|
+| `login(user, password)` | Autentica por credenciais; armazena refresh token em `clientPersistentStore().secure()` |
+| `tryRestore()` | Tenta restaurar sessão usando o refresh token persistido (auto-login) |
+| `loginWithPersistentToken(token)` | Renova access token via refresh token |
+| `createPersistentToken()` | Retorna o refresh token armazenado (para bootstrap de sessão remota) |
+| `resolveToken()` | Retorna `null` — token é resolvido internamente por `RestConfig` |
+
 ### RestConfig
 
 Infraestrutura HTTP compartilhada por todos os repositórios:

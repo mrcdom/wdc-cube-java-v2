@@ -19,7 +19,7 @@ Biblioteca de utilitários compartilhados por todos os demais módulos do framew
 | `security` | `RSA` — operações de criptografia RSA |
 | `serialization` | Serialização binária extensível: `Externalizable`, `EntityGraph`, `ExtensibleObjectInput/Output`, `JsonStream*`, `MapOrList*`, `KeyedEntity`, `SerializationToken` |
 | `sql` | `SqlDataSource`, `SqlDataSourceDelegate` — abstração de conexão SQL |
-| `storage` | `ClientStorage`, `InMemoryClientStorage`, `PreferencesClientStorage` — armazenamento local key-value |
+| `storage` | `ClientStorage`, `InMemoryClientStorage`, `PreferencesClientStorage`, `EncryptedPreferencesClientStorage` — armazenamento local key-value com suporte a criptografia AES-256-GCM |
 | `util` | `Defer`, `HasCriteria`, `LambdaUtils`, `Rethrow`, `TransactionContext` |
 
 ---

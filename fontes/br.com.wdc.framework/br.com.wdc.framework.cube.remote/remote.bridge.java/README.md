@@ -17,6 +17,15 @@ Fornecer a infra de conectividade para qualquer cliente Java que precise comunic
 | `AbstractPresenterClient` | Base para clientes tipados por presenter — facilita scripting de fluxos (ex: login, compra) |
 | `ClientCrypto` | Handshake RSA + derivação AES-GCM via PBKDF2; espelha `RemoteDataSecurity` do servidor |
 
+`HostClient` expõe dois escopos de storage por sessão:
+
+| Método | Backing | Ciclo de vida |
+|--------|---------|---------------|
+| `clientSessionStore()` | `InMemoryClientStorage` | Dura enquanto a conexão existir |
+| `clientPersistentStore()` | `InMemoryClientStorage` por default (via `connect(url)`); customizável via `connect(url, storage)` | Configurável |
+
+O storage persistente é bootstrapped para o servidor no momento do `connect()` — permite que o servidor restaure o estado da sessão anterior (ex: auto-login via refresh token).
+
 ### Modelos
 
 | Classe | Responsabilidade |
