@@ -181,6 +181,15 @@ public class ShoppingGluonApplication extends ShoppingApplication {
         throw new AssertionError("Not implemented");
     }
 
+    @Override
+    public String getClientIp() {
+        try {
+            return java.net.InetAddress.getLocalHost().getHostAddress();
+        } catch (java.net.UnknownHostException e) {
+            return "127.0.0.1";
+        }
+    }
+
     private final InMemoryClientStorage sessionStore = new InMemoryClientStorage();
     private final PreferencesClientStorage persistentStore = new PreferencesClientStorage(ShoppingGluonApplication.class);
 

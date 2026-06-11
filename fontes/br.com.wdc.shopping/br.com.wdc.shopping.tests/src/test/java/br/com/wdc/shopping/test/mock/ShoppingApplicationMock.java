@@ -78,6 +78,11 @@ public class ShoppingApplicationMock extends ShoppingApplication {
         throw new NotImplementedException();
     }
 
+    @Override
+    public String getClientIp() {
+        return "127.0.0.1";
+    }
+
     private final InMemoryClientStorage sessionStore    = new InMemoryClientStorage();
     private final InMemoryClientStorage persistentStore = new InMemoryClientStorage();
 

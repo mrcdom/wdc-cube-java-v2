@@ -7,6 +7,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.server.VaadinRequest;
+import com.vaadin.flow.server.VaadinService;
 
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.storage.ClientStorage;
@@ -210,6 +212,19 @@ public class ShoppingVaadinApplication extends ShoppingApplication {
     @Override
     public String b64Decipher(String b64Text) {
         throw new AssertionError("not implemented");
+    }
+
+    @Override
+    public String getClientIp() {
+        VaadinRequest request = VaadinService.getCurrentRequest();
+        if (request == null) {
+            return "127.0.0.1";
+        }
+        String forwarded = request.getHeader("X-Forwarded-For");
+        if (forwarded != null && !forwarded.isBlank()) {
+            return forwarded.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 
     private final InMemoryClientStorage sessionStore    = new InMemoryClientStorage();

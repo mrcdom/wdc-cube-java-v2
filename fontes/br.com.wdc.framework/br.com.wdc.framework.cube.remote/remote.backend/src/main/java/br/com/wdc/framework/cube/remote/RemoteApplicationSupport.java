@@ -72,6 +72,7 @@ public class RemoteApplicationSupport {
     private long expireMoment;
     private RemoteDataSecurity dataSecurity;
     private transient @SuppressWarnings("java:S2065") WsContext wsSession;
+    private String clientIp;
 
     private RemoteBrowserPresenter browserPresenter;
     private final Map<String, RemoteViewImpl> dirtyViewMap = new ConcurrentHashMap<>();
@@ -150,6 +151,11 @@ public class RemoteApplicationSupport {
 
     public void setWsSession(WsContext wsSession) {
         this.wsSession = wsSession;
+        this.clientIp = resolveClientIp(wsSession);
+    }
+    
+    public String getClientIp() {
+        return clientIp;
     }
 
     // :: Data security
@@ -584,5 +590,24 @@ public class RemoteApplicationSupport {
             }
         }
         json.endObject();
+    }
+    
+    private static String resolveClientIp(WsContext ctx) {
+        var fwd = ctx.header("X-Forwarded-For");
+        if (StringUtils.isNotBlank(fwd)) {
+            // X-Forwarded-For pode vir como "client, proxy1, proxy2" — fica o primeiro.
+            int comma = fwd.indexOf(',');
+            return comma > 0 ? fwd.substring(0, comma).trim() : fwd.trim();
+        }
+        try {
+            // Jetty 12 (websocket-jetty-api 12.x): getRemoteSocketAddress() — não getRemoteAddress().
+            if (ctx.session.getRemoteSocketAddress() instanceof java.net.InetSocketAddress isa
+                    && isa.getAddress() != null) {
+                return isa.getAddress().getHostAddress();
+            }
+        } catch (Exception e) {
+            LOG.debug("Não foi possível resolver IP remoto do WebSocket", e);
+        }
+        return null;
     }
 }

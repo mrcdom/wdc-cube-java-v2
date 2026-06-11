@@ -109,6 +109,11 @@ public class ShoppingApplicationImpl extends ShoppingApplication implements Remo
 	}
 
 	@Override
+	public String getClientIp() {
+		return this.support.getClientIp();
+	}
+
+	@Override
 	public ClientStorage clientSessionStore() {
 		return this.support.getClientStorage().session();
 	}

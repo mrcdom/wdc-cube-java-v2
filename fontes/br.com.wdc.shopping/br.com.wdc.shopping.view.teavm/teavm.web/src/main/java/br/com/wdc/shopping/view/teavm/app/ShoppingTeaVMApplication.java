@@ -131,6 +131,14 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
         throw new AssertionError("not implemented");
     }
 
+    @Override
+    public String getClientIp() {
+        // TeaVM runs entirely in the browser — the client IP is not available
+        // on the client side. Server-side logging should use the WebSocket/HTTP
+        // connection IP instead.
+        return "127.0.0.1";
+    }
+
     private final BrowserSessionStorage sessionStore = new BrowserSessionStorage();
     private final BrowserLocalStorage persistentStore;
 
