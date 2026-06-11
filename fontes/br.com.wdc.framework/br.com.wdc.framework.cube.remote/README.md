@@ -33,6 +33,7 @@ graph LR
 | Submódulo | Linguagem | Descrição |
 |-----------|-----------|-----------|
 | `remote.backend` | Java 21 | Servidor — `RemoteApplication`, `RemoteApplicationSupport`, `ViewStateSerializer`, controllers Javalin (WebSocket + HTTP index) |
+| `remote.bridge.java` | Java 21 | Bridge Java (fat-client) — `HostClient`, `HostClientSession`, `AbstractPresenterClient`, handshake RSA/AES-GCM; usado por `remote.shell.probe` e `remote.shell.swt` |
 | `remote.bridge.react` | TypeScript/React | Bridge do thin-client React — `ViewStateCoordinator`, reconnection, data security, GC de views |
 | `remote.bridge.teavm` | Java (TeaVM) | Bridge do thin-client TeaVM — mesma lógica que React, compilada para JavaScript via TeaVM |
 
