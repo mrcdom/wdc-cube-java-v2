@@ -213,7 +213,19 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
                     Routes.root(this);
                 }
             } else {
-                Routes.root(this);
+                // Tauri native: WebView inicia sem hash — restaura último intent salvo.
+                // No browser isso só acontece na primeira visita; neste caso savedIntent é null.
+                var savedIntent = persistentStore.get("session.intent");
+                if (savedIntent != null && !savedIntent.isBlank() && !savedIntent.startsWith("login")) {
+                    try {
+                        this.go(savedIntent);
+                    } catch (Exception e) {
+                        LOG.warn("Failed to restore intent '" + savedIntent + "': " + e.getMessage());
+                        Routes.root(this);
+                    }
+                } else {
+                    Routes.root(this);
+                }
             }
         }).start();
     }
@@ -238,6 +250,11 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
                 this.fragment = intentStr;
                 var signedUrl = intentSigner.sign(intentStr);
                 pushState("#" + signedUrl);
+                // Persiste o intent para restauração no próximo launch (Tauri native).
+                // No browser, o hash já cobre isso; aqui é redundante mas inofensivo.
+                if (!intentStr.isBlank() && !intentStr.startsWith("login")) {
+                    persistentStore.set("session.intent", intentStr);
+                }
             } catch (Exception e) {
                 LOG.error("Failed to push browser history state: " + e.getMessage());
             }
