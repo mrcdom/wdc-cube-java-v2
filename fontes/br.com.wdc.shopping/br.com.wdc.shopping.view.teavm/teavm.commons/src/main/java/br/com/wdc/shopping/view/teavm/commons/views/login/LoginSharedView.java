@@ -11,9 +11,11 @@ import static br.com.wdc.shopping.view.teavm.commons.VNode.textNode;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
+import org.teavm.jso.JSBody;
 import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
 import org.teavm.jso.dom.events.KeyboardEvent;
+import org.teavm.jso.dom.html.HTMLElement;
 import org.teavm.jso.dom.html.HTMLInputElement;
 
 import br.com.wdc.shopping.view.teavm.commons.SelComponents;
@@ -161,18 +163,28 @@ public class LoginSharedView extends SharedVDomView {
               spTextField("Digite seu usuário")
                 .attr("id", "login-user")
                 .attr("autocomplete", "off")
+                .attr("autocapitalize", "off")
+                .attr("autocorrect", "off")
                 .boolAttr("disabled", loading)
                 .cls(Sel.USER_FIELD)
-                .ref(el -> this.userNameField = (HTMLInputElement) el),
+                .ref(el -> {
+                    this.userNameField = (HTMLInputElement) el;
+                    patchInputAttrs(el);
+                }),
               // Password field
               spFieldLabel("login-pass", "Senha").cls(Sel.FIELD_LABEL),
               spTextField("Digite sua senha", "password")
                 .attr("id", "login-pass")
                 .attr("autocomplete", "off")
+                .attr("autocapitalize", "off")
+                .attr("autocorrect", "off")
                 .boolAttr("disabled", loading)
                 .cls(Sel.PASSWORD_FIELD)
                 .on("keydown", onKeyDown)
-                .ref(el -> this.passwordField = (HTMLInputElement) el),
+                .ref(el -> {
+                    this.passwordField = (HTMLInputElement) el;
+                    patchInputAttrs(el);
+                }),
               // Enter button
               spButton("accent", "l")
                 .boolAttr("disabled", loading)
@@ -202,4 +214,23 @@ public class LoginSharedView extends SharedVDomView {
         String password = passwordField != null ? passwordField.getValue() : "";
         onEnter.accept(userName, password);
     }
+
+    /**
+     * Patches the inner {@code <input>} inside a {@code <sp-textfield>} shadow root
+     * with attributes that iOS Safari does not propagate from the host element:
+     * {@code autocapitalize}, {@code autocorrect} and {@code spellcheck}.
+     * Safe to call on every render — sets only when needed and silently no-ops
+     * when shadowRoot is null (SSR, test environments).
+     */
+    @JSBody(params = {"el"}, script = ""
+            + "try {"
+            + "  var root = el.shadowRoot;"
+            + "  if (!root) return;"
+            + "  var input = root.querySelector('input');"
+            + "  if (!input) return;"
+            + "  input.setAttribute('autocapitalize', 'off');"
+            + "  input.setAttribute('autocorrect', 'off');"
+            + "  input.setAttribute('spellcheck', 'false');"
+            + "} catch(e) {}")
+    private static native void patchInputAttrs(HTMLElement el);
 }
