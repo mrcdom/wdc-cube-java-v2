@@ -151,7 +151,7 @@ public class RemoteApplicationSupport {
 
     public void setWsSession(WsContext wsSession) {
         this.wsSession = wsSession;
-        this.clientIp = resolveClientIp(wsSession);
+        this.clientIp = wsSession != null ? resolveClientIp(wsSession) : "127.0.0.1";
     }
     
     public String getClientIp() {
