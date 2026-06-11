@@ -4,26 +4,36 @@ package br.com.wdc.framework.commons.storage;
 /**
  * Abstração de armazenamento chave-valor no cliente.
  * <p>
- * Cada plataforma fornece duas implementações por escopo, acessíveis via a
- * instância de aplicação:
+ * Cada plataforma/contexto fornece duas implementações por escopo:
  * <ul>
- *   <li>{@code app.clientSessionStore()} — in-memory, vive enquanto a instância de app estiver ativa.</li>
- *   <li>{@code app.clientPersistentStore()} — persiste entre reinicializações (backing plain).</li>
+ *   <li>{@code app.clientSessionStore()} — in-memory, vive enquanto a instância de app
+ *       (ou conexão, no caso do {@code HostClient}) estiver ativa.</li>
+ *   <li>{@code app.clientPersistentStore()} — persiste entre reinicializações.
+ *       No desktop/mobile usa {@link PreferencesClientStorage};
+ *       no probe/bridge usa {@link InMemoryClientStorage} por default.</li>
  * </ul>
  * Para armazenar valores sensíveis, use {@link #secure()} em qualquer dos escopos:
  * <pre>
  *   app.clientPersistentStore().secure().set("auth.token", token);
  *   app.clientSessionStore().secure().set("csrf.token", csrf);
  * </pre>
+ * <p>
+ * O comportamento de {@link #secure()} depende da implementação:
+ * <ul>
+ *   <li>{@link PreferencesClientStorage} — retorna {@link EncryptedPreferencesClientStorage}
+ *       (AES-256-GCM, chave gerada por instalação).</li>
+ *   <li>{@link InMemoryClientStorage} — retorna {@code this}; dados efêmeros, criptografia
+ *       não agrega valor.</li>
+ * </ul>
  */
 public interface ClientStorage {
 
     /**
-     * Retorna uma visão deste escopo que usa backing seguro (Keychain,
-     * FlutterSecureStorage, etc.) para armazenar valores em repouso.
+     * Retorna uma visão deste escopo com backing seguro para os valores em repouso.
      * <p>
-     * Implementações que não suportam backing seguro nativo (ex.: in-memory,
-     * Preferences desktop) podem retornar {@code this}.
+     * {@link PreferencesClientStorage} retorna {@link EncryptedPreferencesClientStorage}
+     * (AES-256-GCM). {@link InMemoryClientStorage} retorna {@code this} — dados
+     * são efêmeros e a criptografia não agrega valor nesse contexto.
      */
     ClientStorage secure();
 

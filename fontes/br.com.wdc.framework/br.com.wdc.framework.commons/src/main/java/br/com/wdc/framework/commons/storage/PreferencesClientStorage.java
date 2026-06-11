@@ -10,6 +10,13 @@ import java.util.prefs.Preferences;
  * <p>
  * Persiste dados entre reinicializações da aplicação em plataformas JVM
  * (desktop, mobile via Gluon). O armazenamento é local ao usuário do SO.
+ * <p>
+ * {@link #secure()} retorna um {@link EncryptedPreferencesClientStorage} que
+ * compartilha o mesmo nó de {@link Preferences}, armazenando os valores
+ * cifrados com AES-256-GCM. A chave AES é gerada uma vez por instalação e
+ * reutilizada entre reinicializações. As entradas cifradas usam o prefixo
+ * {@value EncryptedPreferencesClientStorage#KEY_PREFIX} para não colidir com
+ * as entradas em texto plano deste storage.
  */
 public class PreferencesClientStorage implements ClientStorage {
 
