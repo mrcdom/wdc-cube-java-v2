@@ -7,7 +7,6 @@ import java.util.Map;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
 
-import br.com.wdc.framework.cube.remote.bridge.teavm.interop.Console;
 import br.com.wdc.framework.cube.remote.bridge.teavm.interop.JsObjectConsumer;
 import br.com.wdc.framework.cube.remote.bridge.teavm.interop.JsStringConsumer;
 
@@ -39,7 +38,7 @@ public final class EncryptedLocalStorage implements ClientStorage {
      * localStorage prefix: {@code "{syncNamespace}sec."}.
      * Set once by {@link #configure(String)} before {@link #initialize(Runnable)}.
      */
-    private static String LS_PREFIX = "sec.";
+    private static String lsPrefix = "sec.";
 
     /**
      * Configures the sync namespace prefix.
@@ -48,7 +47,7 @@ public final class EncryptedLocalStorage implements ClientStorage {
      * @param syncNamespace namespace prefix for sync (e.g. {@code "~rt:"})
      */
     public static void configure(String syncNamespace) {
-        LS_PREFIX = syncNamespace + "sec.";
+        lsPrefix = syncNamespace + "sec.";
     }
 
     private final Map<String, String> cache = new LinkedHashMap<>();
@@ -80,7 +79,7 @@ public final class EncryptedLocalStorage implements ClientStorage {
             var k = cryptoKey;
             encryptValue(k, value, encrypted -> {
                 if (!encrypted.isEmpty()) {
-                    lsSetItem(LS_PREFIX + key, encrypted);
+                    lsSetItem(lsPrefix + key, encrypted);
                 }
             });
         }
@@ -89,7 +88,7 @@ public final class EncryptedLocalStorage implements ClientStorage {
     @Override
     public void remove(String key) {
         cache.remove(key);
-        lsRemoveItem(LS_PREFIX + key);
+        lsRemoveItem(lsPrefix + key);
     }
 
     @Override
@@ -125,10 +124,10 @@ public final class EncryptedLocalStorage implements ClientStorage {
         var pairs = new ArrayList<String[]>();
         for (int i = 0; i < len; i++) {
             String rawKey = lsKey(i);
-            if (rawKey == null || !rawKey.startsWith(LS_PREFIX)) continue;
+            if (rawKey == null || !rawKey.startsWith(lsPrefix)) continue;
             String b64 = lsGetItem(rawKey);
             if (b64 != null && !b64.isEmpty()) {
-                pairs.add(new String[]{rawKey.substring(LS_PREFIX.length()), b64});
+                pairs.add(new String[]{rawKey.substring(lsPrefix.length()), b64});
             }
         }
 
