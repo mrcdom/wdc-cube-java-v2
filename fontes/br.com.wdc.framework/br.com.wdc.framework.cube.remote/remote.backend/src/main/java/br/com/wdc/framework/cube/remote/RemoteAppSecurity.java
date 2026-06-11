@@ -50,14 +50,14 @@ public final class RemoteAppSecurity {
     /**
      * Creates a security instance from system properties.
      *
-     * @param cipherPublicKeyProp  property name for RSA cipher public key (format: "exponent:modulus" in base36)
-     * @param cipherPrivateKeyProp property name for RSA cipher private key (base36)
+     * @param rsaPublicKeyProp     property name for RSA public key (format: "exponent:modulus" in base36)
+     * @param rsaPrivateKeyProp    property name for RSA private key (base36)
      * @param signPublicKeyProp    property name for RSA sign public key (URL-safe Base64)
      * @param signPrivateKeyProp   property name for RSA sign private key (URL-safe Base64)
      */
     public static RemoteAppSecurity fromSystemProperties(
-            String cipherPublicKeyProp,
-            String cipherPrivateKeyProp,
+            String rsaPublicKeyProp,
+            String rsaPrivateKeyProp,
             String signPublicKeyProp,
             String signPrivateKeyProp) {
 
@@ -65,12 +65,12 @@ public final class RemoteAppSecurity {
         String sPublicKey;
         String sPrivateKey;
 
-        var wdcPublicKey = System.getProperty(cipherPublicKeyProp);
-        var wdcPrivateKey = System.getProperty(cipherPrivateKeyProp);
+        var wdcPublicKey = System.getProperty(rsaPublicKeyProp);
+        var wdcPrivateKey = System.getProperty(rsaPrivateKeyProp);
         if (StringUtils.isBlank(wdcPublicKey) || StringUtils.isBlank(wdcPrivateKey)) {
             throw new IllegalStateException(
-                    "Remote security keys not configured. Set '" + cipherPublicKeyProp + "' and '"
-                    + cipherPrivateKeyProp + "' (via system properties or application.local.toml [remote] section).");
+                    "Remote security keys not configured. Set '" + rsaPublicKeyProp + "' and '"
+                    + rsaPrivateKeyProp + "' (via system properties or application.local.toml [remote] section).");
         }
         var parts = StringUtils.split(wdcPublicKey, ":");
         sPublicExponent = parts[0];
