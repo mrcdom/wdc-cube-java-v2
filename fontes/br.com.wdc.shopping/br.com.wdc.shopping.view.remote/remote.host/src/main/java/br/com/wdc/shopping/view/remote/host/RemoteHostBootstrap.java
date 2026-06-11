@@ -4,11 +4,16 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import br.com.wdc.framework.commons.security.RSA;
 import br.com.wdc.framework.cube.remote.RemoteAppSecurity;
 import br.com.wdc.framework.cube.remote.RemoteApplicationRegistry;
 import br.com.wdc.framework.cube.remote.RemoteHostModule;
@@ -38,12 +43,6 @@ import java.time.Duration;
 public final class RemoteHostBootstrap {
 
     private static final Logger LOG = LoggerFactory.getLogger(RemoteHostBootstrap.class);
-
-    // Development-only defaults — MUST be replaced in production via application.local.toml [remote] section
-    private static final String DEV_CIPHER_PUBLIC_KEY  = "1ekh:3n88eu224huxfvj7lndkkf4n2vye4lus611fecnoc57qod2m7d";
-    private static final String DEV_CIPHER_PRIVATE_KEY = "2n9arhz94hevkz4ge8vxwje5c37k7aqol1st01wvzln81u5m69";
-    private static final String DEV_SIGN_PUBLIC_KEY    = "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAIkDxriJZ2BLyg26A7hR-qzJPRSj33156sXy_r6JLa0NWz2uY1z9FwnQRtrU3CztutyAIhwyHaOxfMGWyvgFsokCAwEAAQ==";
-    private static final String DEV_SIGN_PRIVATE_KEY   = "MIIBVAIBADANBgkqhkiG9w0BAQEFAASCAT4wggE6AgEAAkEAiQPGuIlnYEvKDboDuFH6rMk9FKPffXnqxfL-voktrQ1bPa5jXP0XCdBG2tTcLO263IAiHDIdo7F8wZbK-AWyiQIDAQABAkABpau1PygHILu4tTC0ZEsblbnhltdHxfPW2m_KGUVqXjg71xASB-0rctP7pu9qgOPaj_ltTki3xHXQX07QKnJZAiEAvxFzS6c6FqJ8LbrVta72W5i-pb3AkLAM-wyoPmAOOxsCIQC3k8lagaTvRvdlkLrfJZ3K4q4JcsUHG6M2h43P34SfKwIgYtC9ljTIYAhsvKHSAQKZusmGX-WA_9NtAzGKmafH9F0CIGVwnpUKio9F0bMn1Hs2GAliVPUXnFQfK4MYSH6Tbn9dAiEAimwgt_xSziP2RejiFY3_Ek6ROpRG6uL9s89NuaoGFvY=";
 
     private static RemoteHostModule<ShoppingApplicationImpl> module;
 
@@ -75,8 +74,8 @@ public final class RemoteHostBootstrap {
         ensureRemoteSecurityKeys(appConfig);
 
         // Bridge AppConfig [remote] → System properties consumed by RemoteAppSecurity
-        propagateRemoteKey(appConfig, "remote.cipherPublicKey",  "wdc.web.public_key");
-        propagateRemoteKey(appConfig, "remote.cipherPrivateKey", "wdc.web.private_key");
+        propagateRemoteKey(appConfig, "remote.rsaPublicKey",  "wdc.web.public_key");
+        propagateRemoteKey(appConfig, "remote.rsaPrivateKey", "wdc.web.private_key");
         propagateRemoteKey(appConfig, "remote.signPublicKey",    "wdc.sign.wdc.web.public_key");
         propagateRemoteKey(appConfig, "remote.signPrivateKey",   "wdc.sign.wdc.web.private_key");
 
@@ -114,27 +113,49 @@ public final class RemoteHostBootstrap {
     }
 
     /**
-     * Writes the development-default RSA keys into {@code application.local.toml} when absent.
-     * This ensures the app starts correctly on a fresh checkout without manual configuration.
+     * Generates fresh RSA key pairs and writes them into {@code application.local.toml} when absent.
+     * Keys are randomly generated on each fresh checkout — no hardcoded values exist in the source.
      * The log warning reminds operators to replace these keys before production deployment.
      */
     private static void ensureRemoteSecurityKeys(AppConfig appConfig) {
-        if (appConfig.get("remote.cipherPublicKey") != null) {
+        if (appConfig.get("remote.rsaPublicKey") != null) {
             return; // already configured
         }
+
+        var rnd = new SecureRandom();
+
+        // RSA key pair for client handshake (custom RSA class, base36 format)
+        var handshakeRsa = new RSA(512, rnd);
+        String rsaPublicKey = handshakeRsa.getPublicExponent().toString(36) + ":" + handshakeRsa.getPublicKey().toString(36);
+        String rsaPrivateKey = handshakeRsa.getPrivateKey().toString(36);
+
+        // RSA key pair for URL/intent signing (standard JCA, DER URL-safe Base64 format)
+        String signPublicKey;
+        String signPrivateKey;
+        try {
+            var keyGen = KeyPairGenerator.getInstance("RSA");
+            keyGen.initialize(512, rnd);
+            var keyPair = keyGen.generateKeyPair();
+            var b64 = Base64.getUrlEncoder().withoutPadding();
+            signPublicKey = b64.encodeToString(keyPair.getPublic().getEncoded());
+            signPrivateKey = b64.encodeToString(keyPair.getPrivate().getEncoded());
+        } catch (NoSuchAlgorithmException e) {
+            throw new AssertionError("RSA not available", e);
+        }
+
         Path localToml = appConfig.getConfigFilePath().resolveSibling("application.local.toml");
         String block = "\n[remote]\n"
-                + "# RSA key pair for client handshake (cipher: exponent:modulus in base36)\n"
-                + "# CHANGE THESE KEYS IN PRODUCTION — these are development-only defaults\n"
-                + "cipherPublicKey = \"" + DEV_CIPHER_PUBLIC_KEY + "\"\n"
-                + "cipherPrivateKey = \"" + DEV_CIPHER_PRIVATE_KEY + "\"\n"
+                + "# RSA key pair for client handshake (format: exponent:modulus in base36)\n"
+                + "# Generated automatically — REPLACE THESE KEYS IN PRODUCTION\n"
+                + "rsaPublicKey = \"" + rsaPublicKey + "\"\n"
+                + "rsaPrivateKey = \"" + rsaPrivateKey + "\"\n"
                 + "# RSA key pair for URL/intent signing (URL-safe Base64 DER)\n"
-                + "# CHANGE THESE KEYS IN PRODUCTION — these are development-only defaults\n"
-                + "signPublicKey = \"" + DEV_SIGN_PUBLIC_KEY + "\"\n"
-                + "signPrivateKey = \"" + DEV_SIGN_PRIVATE_KEY + "\"\n";
+                + "# Generated automatically — REPLACE THESE KEYS IN PRODUCTION\n"
+                + "signPublicKey = \"" + signPublicKey + "\"\n"
+                + "signPrivateKey = \"" + signPrivateKey + "\"\n";
         try {
             Files.writeString(localToml, block, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-            LOG.warn("Remote security keys were absent — dev defaults written to {}", localToml);
+            LOG.warn("Remote security keys were absent — fresh keys generated and written to {}", localToml);
             LOG.warn("IMPORTANT: replace [remote] keys in application.local.toml before production deployment.");
         } catch (IOException e) {
             LOG.error("Failed to bootstrap remote security keys into {}", localToml, e);
