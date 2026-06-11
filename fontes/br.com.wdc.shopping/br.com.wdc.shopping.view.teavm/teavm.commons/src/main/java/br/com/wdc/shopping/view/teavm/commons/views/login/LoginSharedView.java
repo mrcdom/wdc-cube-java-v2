@@ -223,24 +223,40 @@ public class LoginSharedView extends SharedVDomView {
      * when shadowRoot is null (SSR, test environments).
      */
     /**
-     * Retries up to ~300 ms (10 × 30 ms) waiting for the sp-textfield shadow
-     * root to render its inner {@code <input>}, then sets the attributes.
-     * Needed because the ref fires immediately after the host element is
-     * inserted, before the Custom Element upgrade has created the shadow tree.
+     * Patches the inner {@code <input>} inside the {@code sp-textfield} shadow root.
+     * <p>
+     * Two-path strategy:
+     * <ol>
+     *   <li>If the element is already a fully-upgraded LitElement (has
+     *       {@code updateComplete}), wait for the current render cycle to finish
+     *       via that Promise, then set the attributes.</li>
+     *   <li>Otherwise the Custom Element has not been defined yet (race with the
+     *       deferred {@code elements.js} module) — use
+     *       {@code customElements.whenDefined()} to wait for registration, force
+     *       the upgrade, then wait for {@code updateComplete}.</li>
+     * </ol>
+     * The VDom calls {@code ref} on every re-render, so the patch is reapplied
+     * after each state change (e.g., disabled toggled during login).
      */
     @JSBody(params = {"el"}, script = ""
             + "try {"
-            + "  (function tryPatch(n) {"
+            + "  var apply = function() {"
             + "    var root = el.shadowRoot;"
-            + "    var input = root ? root.querySelector('input') : null;"
-            + "    if (input) {"
-            + "      input.setAttribute('autocapitalize', 'off');"
-            + "      input.setAttribute('autocorrect', 'off');"
-            + "      input.setAttribute('spellcheck', 'false');"
-            + "    } else if (n > 0) {"
-            + "      setTimeout(function() { tryPatch(n - 1); }, 30);"
-            + "    }"
-            + "  })(10);"
+            + "    var inp = root ? root.querySelector('input') : null;"
+            + "    if (!inp) return;"
+            + "    inp.setAttribute('autocapitalize', 'none');"
+            + "    inp.setAttribute('autocorrect', 'off');"
+            + "    inp.setAttribute('spellcheck', 'false');"
+            + "  };"
+            + "  if (el.updateComplete) {"
+            + "    el.updateComplete.then(apply);"
+            + "  } else {"
+            + "    customElements.whenDefined(el.localName).then(function() {"
+            + "      customElements.upgrade(el);"
+            + "      var uc = el.updateComplete;"
+            + "      if (uc) { uc.then(apply); } else { apply(); }"
+            + "    });"
+            + "  }"
             + "} catch(e) {}")
     private static native void patchInputAttrs(HTMLElement el);
 }
