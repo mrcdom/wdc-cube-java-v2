@@ -110,6 +110,13 @@ void main() async {
     }
   }).toJS;
 
+  coordinator.onSessionInvalid = () {
+    // Descarta o app_id guardado antes de recarregar — senão o reload
+    // reconecta com o mesmo id inválido e entra em loop infinito.
+    web.window.sessionStorage.removeItem('app_id');
+    web.window.location.reload();
+  };
+
   registerAllViews(coordinator);
 
   runApp(const ShoppingApp());

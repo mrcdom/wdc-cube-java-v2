@@ -179,6 +179,9 @@ public class FlushRequestContext {
     private void handleClose(int code) {
         Console.warn("WebSocket closed: " + code);
         if (code == 4001) {
+            // Descarta o app_id guardado antes de recarregar — senão o reload
+            // reconecta com o mesmo id inválido e entra em loop infinito.
+            removeSessionItem("app_id");
             reload();
             return;
         }
@@ -372,6 +375,9 @@ public class FlushRequestContext {
 
     @JSBody(params = {"key", "val"}, script = "try { sessionStorage.setItem(key, val); } catch(e) {}")
     private static native void setSessionItem(String key, String val);
+
+    @JSBody(params = {"key"}, script = "try { sessionStorage.removeItem(key); } catch(e) {}")
+    private static native void removeSessionItem(String key);
 
     @JSBody(params = {}, script = "location.reload();")
     private static native void reload();
