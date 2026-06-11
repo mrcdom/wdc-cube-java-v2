@@ -6,7 +6,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -17,7 +16,8 @@ import br.com.wdc.framework.commons.log.Log;
 /**
  * Cache em memória de sessões autenticadas.
  * <p>
- * Indexa por userId — um usuário tem no máximo uma sessão ativa.
+ * Suporta múltiplas sessões ativas por usuário (multi-device).
+ * Indexa por refreshToken — cada dispositivo/aba mantém sua própria sessão.
  */
 public final class AccessContextCache {
 
@@ -27,8 +27,8 @@ public final class AccessContextCache {
 	private static final Duration ACCESS_TOKEN_TTL = Duration.ofMinutes(30);
 	private static final Duration REFRESH_TOKEN_TTL = Duration.ofDays(7);
 
-	private final ConcurrentHashMap<Long, AccessContext> byUserId = new ConcurrentHashMap<>();
-	private final ConcurrentHashMap<String, Long> refreshTokenIndex = new ConcurrentHashMap<>();
+	/** Índice primário: refreshToken → AccessContext. */
+	private final ConcurrentHashMap<String, AccessContext> byRefreshToken = new ConcurrentHashMap<>();
 
 	private final String jwtSecret;
 
@@ -38,7 +38,8 @@ public final class AccessContextCache {
 
 	/**
 	 * Cria uma nova sessão para o usuário autenticado.
-	 * Se já existia uma sessão anterior, ela é substituída.
+	 * Sessões anteriores do mesmo usuário <em>não</em> são removidas —
+	 * cada dispositivo tem sua sessão independente.
 	 */
 	public AccessContext createSession(Long userId, String userName, Set<String> permissions) {
 		var keyPair = generateRsaKeyPair();
@@ -46,12 +47,7 @@ public final class AccessContextCache {
 		var expiresAt = Instant.now().plus(ACCESS_TOKEN_TTL);
 
 		var ctx = new AccessContext(userId, userName, permissions, keyPair, expiresAt, refreshToken);
-
-		var previous = byUserId.put(userId, ctx);
-		if (previous != null) {
-			refreshTokenIndex.remove(previous.refreshToken());
-		}
-		refreshTokenIndex.put(refreshToken, userId);
+		byRefreshToken.put(refreshToken, ctx);
 
 		LOG.info("Session created for user: {} ({})", userName, userId);
 		return ctx;
@@ -59,85 +55,67 @@ public final class AccessContextCache {
 
 	/**
 	 * Renova o access token usando o refresh token.
-	 * Retorna null se o refresh token for inválido.
+	 * Retorna null se o refresh token for inválido ou expirado.
 	 */
 	public AccessContext refresh(String refreshToken) {
-		var userId = refreshTokenIndex.get(refreshToken);
-		if (userId == null) {
-			return null;
-		}
-
-		var existing = byUserId.get(userId);
-		if (existing == null || !existing.refreshToken().equals(refreshToken)) {
-			refreshTokenIndex.remove(refreshToken);
+		var existing = byRefreshToken.remove(refreshToken);
+		if (existing == null) {
 			return null;
 		}
 
 		var newRefreshToken = UUID.randomUUID().toString();
 		var expiresAt = Instant.now().plus(ACCESS_TOKEN_TTL);
 
-		var ctx = new AccessContext(userId, existing.userName(), existing.permissions(),
+		var ctx = new AccessContext(existing.userId(), existing.userName(), existing.permissions(),
 				generateRsaKeyPair(), expiresAt, newRefreshToken);
+		byRefreshToken.put(newRefreshToken, ctx);
 
-		byUserId.put(userId, ctx);
-		refreshTokenIndex.remove(refreshToken);
-		refreshTokenIndex.put(newRefreshToken, userId);
-
-		LOG.info("Session refreshed for user: {} ({})", existing.userName(), userId);
+		LOG.info("Session refreshed for user: {} ({})", existing.userName(), existing.userId());
 		return ctx;
 	}
 
 	/**
-	 * Busca o contexto de acesso pelo userId.
+	 * Busca qualquer sessão válida (não expirada) para o userId.
+	 * Usado após validação de JWT para obter permissões e chave RSA.
 	 */
 	public AccessContext get(Long userId) {
-		var ctx = byUserId.get(userId);
-		if (ctx != null && ctx.isExpired()) {
-			remove(userId);
-			return null;
+		for (var ctx : byRefreshToken.values()) {
+			if (userId.equals(ctx.userId()) && !ctx.isExpired()) {
+				return ctx;
+			}
 		}
-		return ctx;
+		return null;
 	}
 
 	/**
-	 * Remove (logout) a sessão do usuário.
+	 * Remove (logout) <em>todas</em> as sessões do usuário.
 	 */
 	public void remove(Long userId) {
-		var ctx = byUserId.remove(userId);
-		if (ctx != null) {
-			refreshTokenIndex.remove(ctx.refreshToken());
-			LOG.info("Session removed for user: {}", userId);
-		}
+		byRefreshToken.entrySet().removeIf(e -> userId.equals(e.getValue().userId()));
+		LOG.info("All sessions removed for userId: {}", userId);
 	}
 
 	/**
-	 * Remove a sessão associada ao refresh token.
+	 * Remove apenas a sessão associada ao refresh token (logout de um dispositivo).
 	 *
 	 * @return true se a sessão foi encontrada e removida
 	 */
 	public boolean removeByRefreshToken(String refreshToken) {
-		var userId = refreshTokenIndex.get(refreshToken);
-		if (userId == null) {
-			return false;
-		}
-		remove(userId);
-		return true;
+		return byRefreshToken.remove(refreshToken) != null;
 	}
 
 	/**
-	 * Remove sessões expiradas. Chamado periodicamente.
+	 * Remove sessões cujo refresh token expirou. Chamado periodicamente.
 	 */
 	public void evictExpired() {
 		var now = Instant.now();
-		Iterator<Map.Entry<Long, AccessContext>> it = byUserId.entrySet().iterator();
-		while (it.hasNext()) {
-			var entry = it.next();
-			if (now.isAfter(entry.getValue().expiresAt().plus(REFRESH_TOKEN_TTL))) {
-				refreshTokenIndex.remove(entry.getValue().refreshToken());
-				it.remove();
-				LOG.debug("Evicted expired session for userId: {}", entry.getKey());
+		byRefreshToken.entrySet().removeIf(e -> {
+			var expired = now.isAfter(e.getValue().expiresAt().plus(REFRESH_TOKEN_TTL));
+			if (expired) {
+				LOG.debug("Evicted expired session for userId: {}", e.getValue().userId());
 			}
-		}
+			return expired;
+		});
 	}
 
 	public String jwtSecret() {
