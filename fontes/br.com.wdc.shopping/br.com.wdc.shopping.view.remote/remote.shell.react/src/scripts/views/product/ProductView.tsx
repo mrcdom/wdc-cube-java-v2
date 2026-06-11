@@ -1,11 +1,11 @@
-import React from 'react'
-import clsx from 'clsx'
-import bridge, { type ViewProps } from '@root/bridge'
-import { BaseViewClass } from '@root/utils/ViewUtils'
-import { Button, ActionButton, Divider } from '@root/swc'
-import * as NumberUtils from '@root/utils/NumberUtils'
-import * as EndpointUtils from '@root/utils/EndpointUtils'
-import Sel from './product-sel'
+import React from "react"
+import clsx from "clsx"
+import bridge, { type ViewProps } from "@root/bridge"
+import { BaseViewClass } from "@root/utils/ViewUtils"
+import { Button, ActionButton, Divider } from "@root/swc"
+import * as NumberUtils from "@root/utils/NumberUtils"
+import * as EndpointUtils from "@root/utils/EndpointUtils"
+import Sel from "./product-sel"
 
 // :: Actions
 
@@ -23,8 +23,8 @@ type Product = {
 
 const DefaultProduct: Product = {
   id: -1,
-  name: '',
-  description: '',
+  name: "",
+  description: "",
   price: 0,
 }
 
@@ -79,11 +79,11 @@ class ProductViewClass extends BaseViewClass<ViewProps, ProductViewState> {
           {/* Actions */}
           <div className={Sel.actionsRow}>
             <ActionButton quiet onClick={this.emitGoHome}>
-              <i className={clsx('bi bi-arrow-left', Sel.mr4)}></i>
+              <i className={clsx("bi bi-arrow-left", Sel.mr4)}></i>
               Voltar
             </ActionButton>
             <Button variant="accent" size="l" onClick={this.emitAddToCart}>
-              <i className={clsx('bi bi-bag-plus', Sel.mr4)}></i>
+              <i className={clsx("bi bi-bag-plus", Sel.mr4)}></i>
               Adicionar ao Carrinho
             </Button>
           </div>
@@ -106,7 +106,7 @@ class ProductViewClass extends BaseViewClass<ViewProps, ProductViewState> {
 
   readonly emitAddToCart = () => {
     const { vsid, state } = this
-    bridge.setFormField(vsid, 'p.quantity', state.quantity)
+    bridge.setFormField(vsid, "p.quantity", state.quantity)
     bridge.submit(vsid, ON_ADD_TO_CART)
   }
 
@@ -118,7 +118,7 @@ class ProductViewClass extends BaseViewClass<ViewProps, ProductViewState> {
   readonly emitIncrement = () => {
     const { vsid, state } = this
     state.quantity = (state.quantity ?? 1) + 1
-    bridge.setFormField(vsid, 'quantity', state.quantity)
+    bridge.setFormField(vsid, "quantity", state.quantity)
     this.forceUpdate()
   }
 
@@ -127,10 +127,10 @@ class ProductViewClass extends BaseViewClass<ViewProps, ProductViewState> {
     const cur = state.quantity ?? 1
     if (cur > 1) {
       state.quantity = cur - 1
-      bridge.setFormField(vsid, 'quantity', state.quantity)
+      bridge.setFormField(vsid, "quantity", state.quantity)
       this.forceUpdate()
     }
   }
 }
 
-export default BaseViewClass.FC(ProductViewClass, '48b693f67410')
+export default BaseViewClass.FC(ProductViewClass, "48b693f67410")

@@ -2,114 +2,113 @@
 // Importado por receipt-sel.ts; não referencie este arquivo diretamente nas views.
 
 .wdc-receipt {
+  &__header-title {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--app-text);
+  }
 
-    &__header-title {
-        margin: 0;
-        font-weight: 700;
-        font-size: 1rem;
-        color: var(--app-text);
-    }
+  &__body {
+    background: var(--app-bg);
+    border: 1px solid var(--app-border);
+    border-radius: var(--app-radius-sm);
+    padding: 20px;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.82rem;
+  }
 
-    &__body {
-        background: var(--app-bg);
-        border: 1px solid var(--app-border);
-        border-radius: var(--app-radius-sm);
-        padding: 20px;
-        font-family: 'Courier New', Courier, monospace;
-        font-size: 0.82rem;
-    }
+  &__date-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed var(--app-border);
+  }
 
-    &__date-row {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 10px;
-        padding-bottom: 10px;
-        border-bottom: 1px dashed var(--app-border);
-    }
+  &__date-label {
+    color: var(--app-text-secondary);
+  }
 
-    &__date-label {
-        color: var(--app-text-secondary);
-    }
+  &__date-value {
+    font-weight: 600;
+    color: var(--app-text);
+  }
 
-    &__date-value {
-        font-weight: 600;
-        color: var(--app-text);
-    }
+  &__table-header {
+    display: flex;
+    font-weight: 700;
+    font-size: 0.75rem;
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--app-border);
+    color: var(--app-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
 
-    &__table-header {
-        display: flex;
-        font-weight: 700;
-        font-size: 0.75rem;
-        margin-bottom: 6px;
-        padding-bottom: 6px;
-        border-bottom: 1px solid var(--app-border);
-        color: var(--app-text-secondary);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
+  &__col-item {
+    flex: 1;
+  }
 
-    &__col-item {
-        flex: 1;
-    }
+  &__col-qty {
+    width: 80px;
+    text-align: center;
+  }
 
-    &__col-qty {
-        width: 80px;
-        text-align: center;
-    }
+  &__col-value {
+    width: 100px;
+    text-align: right;
+  }
 
-    &__col-value {
-        width: 100px;
-        text-align: right;
-    }
+  &__item-row {
+    display: flex;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px dotted var(--app-border);
+  }
 
-    &__item-row {
-        display: flex;
-        align-items: center;
-        padding: 6px 0;
-        border-bottom: 1px dotted var(--app-border);
-    }
+  &__item-desc {
+    flex: 1;
+    font-size: 0.82rem;
+    color: var(--app-text);
+  }
 
-    &__item-desc {
-        flex: 1;
-        font-size: 0.82rem;
-        color: var(--app-text);
-    }
+  &__item-qty {
+    width: 80px;
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--app-text-secondary);
+  }
 
-    &__item-qty {
-        width: 80px;
-        text-align: center;
-        font-size: 0.82rem;
-        color: var(--app-text-secondary);
-    }
+  &__item-value {
+    width: 100px;
+    text-align: right;
+    font-weight: 700;
+    font-size: 0.82rem;
+    color: var(--app-text);
+  }
 
-    &__item-value {
-        width: 100px;
-        text-align: right;
-        font-weight: 700;
-        font-size: 0.82rem;
-        color: var(--app-text);
-    }
+  &__total-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 2px solid var(--app-accent);
+  }
 
-    &__total-row {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 12px;
-        padding-top: 12px;
-        border-top: 2px solid var(--app-accent);
-    }
+  &__total-label {
+    font-weight: 700;
+    color: var(--app-text);
+  }
 
-    &__total-label {
-        font-weight: 700;
-        color: var(--app-text);
-    }
+  &__total-value {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--app-accent);
+  }
 
-    &__total-value {
-        font-size: 1.1rem;
-        font-weight: 800;
-        color: var(--app-accent);
-    }
-
-    &__back-btn {
-        margin-top: 20px;
-    }
+  &__back-btn {
+    margin-top: 20px;
+  }
 }

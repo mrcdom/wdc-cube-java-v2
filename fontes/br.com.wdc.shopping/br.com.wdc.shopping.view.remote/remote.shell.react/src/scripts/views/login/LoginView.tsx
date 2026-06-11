@@ -1,9 +1,9 @@
-import React from 'react'
-import clsx from 'clsx'
-import bridge, { type ViewProps } from '@root/bridge'
-import { BaseViewClass } from '@root/utils/ViewUtils'
-import { Button, FieldLabel, Textfield } from '@root/swc'
-import Sel from './login-sel'
+import React from "react"
+import clsx from "clsx"
+import bridge, { type ViewProps } from "@root/bridge"
+import { BaseViewClass } from "@root/utils/ViewUtils"
+import { Button, FieldLabel, Textfield } from "@root/swc"
+import Sel from "./login-sel"
 
 // :: Actions
 
@@ -31,21 +31,21 @@ class LoginViewClass extends BaseViewClass<ViewProps, LoginViewState> {
           <div className={clsx(Sel.decoCircle, Sel.decoCircle3)} />
           <div className={Sel.contentCenter}>
             <div className={clsx(Sel.logoBoxLg, Sel.mb16)}>
-              <i className={clsx('bi bi-bag-check', Sel.logoIconLg)}></i>
+              <i className={clsx("bi bi-bag-check", Sel.logoIconLg)}></i>
             </div>
             <h1 className={Sel.titleLg}>WDC Shopping</h1>
             <p className={Sel.subtitleLg}>Sua compra certa na internet.</p>
             <div className={Sel.featuresList}>
               <div className={Sel.featureRow}>
-                <i className={clsx('bi bi-shield-check', Sel.featureIcon)}></i>
+                <i className={clsx("bi bi-shield-check", Sel.featureIcon)}></i>
                 <span className={Sel.featureText}>Compra segura</span>
               </div>
               <div className={Sel.featureRow}>
-                <i className={clsx('bi bi-truck', Sel.featureIcon)}></i>
+                <i className={clsx("bi bi-truck", Sel.featureIcon)}></i>
                 <span className={Sel.featureText}>Entrega rápida</span>
               </div>
               <div className={Sel.featureRow}>
-                <i className={clsx('bi bi-arrow-repeat', Sel.featureIcon)}></i>
+                <i className={clsx("bi bi-arrow-repeat", Sel.featureIcon)}></i>
                 <span className={Sel.featureText}>Troca garantida</span>
               </div>
             </div>
@@ -61,7 +61,7 @@ class LoginViewClass extends BaseViewClass<ViewProps, LoginViewState> {
               <div className={Sel.mobileCircle2} />
               <div className={Sel.mobileContent}>
                 <div className={Sel.logoBoxSm}>
-                  <i className={clsx('bi bi-bag-check', Sel.iconSm)}></i>
+                  <i className={clsx("bi bi-bag-check", Sel.iconSm)}></i>
                 </div>
                 <div className={Sel.mobileTitle}>WDC Shopping</div>
                 <div className={Sel.mobileSubtitle}>Sua compra certa na internet.</div>
@@ -118,7 +118,7 @@ class LoginViewClass extends BaseViewClass<ViewProps, LoginViewState> {
               pending={state.loading || undefined}
               ref={this.btnRef}
             >
-              {state.loading ? 'Entrando...' : 'Entrar'}
+              {state.loading ? "Entrando..." : "Entrar"}
             </Button>
 
             {/* Demo hint */}
@@ -141,30 +141,30 @@ class LoginViewClass extends BaseViewClass<ViewProps, LoginViewState> {
 
   readonly userFieldRef = (el: HTMLElement | null) => {
     if (this.userEl) {
-      this.userEl.removeEventListener('keydown', this.onKeyDown)
+      this.userEl.removeEventListener("keydown", this.onKeyDown)
     }
     this.userEl = el
     if (el) {
-      el.addEventListener('keydown', this.onKeyDown)
+      el.addEventListener("keydown", this.onKeyDown)
     }
   }
 
   readonly passFieldRef = (el: HTMLElement | null) => {
     if (this.passEl) {
-      this.passEl.removeEventListener('keydown', this.onKeyDown)
+      this.passEl.removeEventListener("keydown", this.onKeyDown)
     }
     this.passEl = el
     if (el) {
-      el.addEventListener('keydown', this.onKeyDown)
+      el.addEventListener("keydown", this.onKeyDown)
     }
   }
 
   readonly btnRef = (el: HTMLElement | null) => {
-    if (el) el.addEventListener('click', this.emitLogin)
+    if (el) el.addEventListener("click", this.emitLogin)
   }
 
   private readonly onKeyDown = (e: Event) => {
-    if ((e as KeyboardEvent).key === 'Enter') {
+    if ((e as KeyboardEvent).key === "Enter") {
       this.emitLogin()
     }
   }
@@ -176,14 +176,14 @@ class LoginViewClass extends BaseViewClass<ViewProps, LoginViewState> {
     const userEl = this.userEl! as HTMLInputElement
     const passEl = this.passEl! as HTMLInputElement
 
-    const userName = userEl.value || ''
-    const password = passEl.value || ''
-    bridge.setFormField(vsid, 'p.userName', userName)
+    const userName = userEl.value || ""
+    const password = passEl.value || ""
+    bridge.setFormField(vsid, "p.userName", userName)
     const encryptedPassword = await bridge.cipher(password)
-    bridge.setFormField(vsid, 'p.password', encryptedPassword)
+    bridge.setFormField(vsid, "p.password", encryptedPassword)
     bridge.submit(vsid, ON_LOGIN)
-    passEl.value = ''
+    passEl.value = ""
   }
 }
 
-export default BaseViewClass.FC(LoginViewClass, 'c677cda52d14')
+export default BaseViewClass.FC(LoginViewClass, "c677cda52d14")

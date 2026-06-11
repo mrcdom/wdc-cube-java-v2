@@ -4,16 +4,16 @@ Frontend SPA do sistema Shopping, construído com **React 19**, **TypeScript** e
 
 ## Stack
 
-| Tecnologia | Versão | Finalidade |
-|-----------|--------|------------|
-| React | 19 | UI reativa |
-| TypeScript | ES2024 | Tipagem estática |
-| MUI (Material UI) | 9 | Componentes visuais |
-| Emotion | 11 | CSS-in-JS (engine do MUI) |
-| Parcel | 2.13.3 | Bundler |
-| Prettier | 3.8.2 | Formatação de código |
-| history | 5.3.0 | Navegação hash-based |
-| universal-cookie | 7.2.2 | Gerenciamento de cookies |
+| Tecnologia        | Versão | Finalidade                |
+| ----------------- | ------ | ------------------------- |
+| React             | 19     | UI reativa                |
+| TypeScript        | ES2024 | Tipagem estática          |
+| MUI (Material UI) | 9      | Componentes visuais       |
+| Emotion           | 11     | CSS-in-JS (engine do MUI) |
+| Parcel            | 2.13.3 | Bundler                   |
+| Prettier          | 3.8.2  | Formatação de código      |
+| history           | 5.3.0  | Navegação hash-based      |
+| universal-cookie  | 7.2.2  | Gerenciamento de cookies  |
 
 ## Estrutura do Projeto
 
@@ -74,7 +74,7 @@ class LoginViewClass extends BaseViewClass<ViewProps, LoginViewState> {
   }
 }
 
-export default BaseViewClass.FC(LoginViewClass, 'c677cda52d14')
+export default BaseViewClass.FC(LoginViewClass, "c677cda52d14")
 ```
 
 - O **estado** (`state`) vem do backend (presenter), não é gerenciado localmente
@@ -103,8 +103,8 @@ Um `LinearProgress` (MUI) aparece no topo da página durante submits do usuário
 O alias `@root/*` mapeia para `./src/scripts/*`:
 
 ```typescript
-import app from '@root/App'
-import { BaseViewClass } from '@root/utils/ViewUtils'
+import app from "@root/App"
+import { BaseViewClass } from "@root/utils/ViewUtils"
 ```
 
 Configurado no `package.json` (Parcel) e `tsconfig.json` (TypeScript/IDE).
@@ -140,10 +140,10 @@ npm run format:check
 
 ## Formatação (Prettier)
 
-| Regra | Valor |
-|-------|-------|
-| Ponto-e-vírgula | Não |
-| Aspas | Simples |
-| Trailing comma | Todas |
-| Largura | 120 colunas |
-| Indentação | 2 espaços |
+| Regra           | Valor       |
+| --------------- | ----------- |
+| Ponto-e-vírgula | Não         |
+| Aspas           | Simples     |
+| Trailing comma  | Todas       |
+| Largura         | 120 colunas |
+| Indentação      | 2 espaços   |

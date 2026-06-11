@@ -1,6 +1,6 @@
-import React from 'react'
-import bridge from '@root/bridge'
-import { BasePanelClass } from '@root/utils/ViewUtils'
+import React from "react"
+import bridge from "@root/bridge"
+import { BasePanelClass } from "@root/utils/ViewUtils"
 
 type ContentPanelProps = {
   contentViewId?: string

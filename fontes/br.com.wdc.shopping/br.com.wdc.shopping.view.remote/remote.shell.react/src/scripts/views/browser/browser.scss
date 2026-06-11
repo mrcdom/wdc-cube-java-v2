@@ -2,40 +2,46 @@
 // Importado por browser-sel.ts; não referencie este arquivo diretamente nas views.
 
 .wdc-browser {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+
+  &__container {
     display: flex;
     flex-direction: column;
+    flex: 1;
     height: 100%;
-    overflow: hidden;
+    min-height: 0;
+  }
 
-    &__container {
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-        height: 100%;
-        min-height: 0;
-    }
+  &__loading-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--app-accent);
+    z-index: 9999;
+    animation: wdc-progress 1.5s ease-in-out infinite;
+  }
 
-    &__loading-bar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: var(--app-accent);
-        z-index: 9999;
-        animation: wdc-progress 1.5s ease-in-out infinite;
-    }
-
-    &__content {
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-        min-height: 0;
-    }
+  &__content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
 }
 
 @keyframes wdc-progress {
-    0% { transform: translateX(-100%); }
-    50% { transform: translateX(0); }
-    100% { transform: translateX(100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
