@@ -32,11 +32,11 @@ src/
 
 ```tsx
 // Inicializa o bridge
-const coordinator = new ViewStateCoordinator(wsUrl);
+const coordinator = new ViewStateCoordinator(wsUrl)
 
 // Em um componente:
-const viewState = ViewScope.use<LoginViewState>('login');
-coordinator.submit({ eventCode: 'LOGIN', formData: { username, password } });
+const viewState = ViewScope.use<LoginViewState>("login")
+coordinator.submit({ eventCode: "LOGIN", formData: { username, password } })
 ```
 
 ## Segurança

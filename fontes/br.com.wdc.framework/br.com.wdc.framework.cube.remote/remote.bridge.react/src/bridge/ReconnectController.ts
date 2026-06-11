@@ -1,10 +1,10 @@
-import type { ViewStateCoordinator } from './ViewStateCoordinator'
-import type { BrowserViewState } from './types'
-import { BROWSER_VSID } from './constants'
+import type { ViewStateCoordinator } from "./ViewStateCoordinator"
+import type { BrowserViewState } from "./types"
+import { BROWSER_VSID } from "./constants"
 
 export class ReconnectController {
   app: ViewStateCoordinator
-  url = ''
+  url = ""
   count = 0
   reconnectHandler = 0
   delay = 0
@@ -12,7 +12,7 @@ export class ReconnectController {
 
   constructor(app: ViewStateCoordinator) {
     this.app = app
-    this.url = app.getBaseWebSocketUrl() + '/dispatcher/' + app.id
+    this.url = app.getBaseWebSocketUrl() + "/dispatcher/" + app.id
   }
 
   close() {

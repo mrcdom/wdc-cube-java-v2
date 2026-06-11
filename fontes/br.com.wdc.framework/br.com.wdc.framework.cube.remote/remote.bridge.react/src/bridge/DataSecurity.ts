@@ -1,7 +1,20 @@
-import BigIntUtils from '../utils/BigIntUtils'
-import RSA from '../utils/RSA'
-import UTF8 from '../utils/UTF8'
-import Base64 from '../utils/Base64'
+import { pbkdf2 } from "@noble/hashes/pbkdf2"
+import { sha256 } from "@noble/hashes/sha2"
+import { gcm } from "@noble/ciphers/aes"
+
+import BigIntUtils from "@/utils/BigIntUtils"
+import RSA from "@/utils/RSA"
+import UTF8 from "@/utils/UTF8"
+import Base64 from "@/utils/Base64"
+
+// crypto.subtle só existe em secure contexts (HTTPS ou localhost). Em HTTP puro
+// (ex.: QA acessado por IP), cai no fallback JS puro (@noble) com os MESMOS
+// parâmetros (PBKDF2-SHA256 250k → AES-256-GCM, tag de 128 bits anexada) — o
+// servidor decifra os dois caminhos de forma idêntica.
+const SUBTLE: SubtleCrypto | undefined =
+  typeof crypto !== "undefined" && crypto.subtle ? crypto.subtle : undefined
+
+const PBKDF2_ITERATIONS = 250000
 
 class RsaHelper {
   private readonly __rsa: RSA
@@ -26,7 +39,8 @@ class RsaHelper {
 
 export class DataSecurity {
   private __iv!: Uint8Array<ArrayBuffer>
-  private __key!: CryptoKey
+  private __key: CryptoKey | null = null
+  private __keyBytes: Uint8Array | null = null
   private __signature!: string
   private __rsa!: RsaHelper
 
@@ -41,27 +55,24 @@ export class DataSecurity {
   }
 
   async updateSecret(password: Uint8Array) {
-    // Generate salt and IV
-    const salt = crypto.getRandomValues(new Uint8Array(16))
-    this.__iv = crypto.getRandomValues(new Uint8Array(12))
+    const salt = crypto.getRandomValues(new Uint8Array(16)) as Uint8Array<ArrayBuffer>
+    this.__iv = crypto.getRandomValues(new Uint8Array(12)) as Uint8Array<ArrayBuffer>
 
-    // Derive key from password
-    const key = await crypto.subtle.importKey('raw', password as unknown as any, { name: 'PBKDF2' }, false, [
-      'deriveKey',
-    ])
+    if (SUBTLE) {
+      const rawKey = await SUBTLE.importKey("raw", password as Uint8Array<ArrayBuffer>, { name: "PBKDF2" }, false, [
+        "deriveKey",
+      ])
 
-    this.__key = await crypto.subtle.deriveKey(
-      {
-        name: 'PBKDF2',
-        salt: salt,
-        iterations: 250000,
-        hash: 'SHA-256',
-      },
-      key,
-      { name: 'AES-GCM', length: 256 },
-      false,
-      ['encrypt', 'decrypt'],
-    )
+      this.__key = await SUBTLE.deriveKey(
+        { name: "PBKDF2", salt, iterations: PBKDF2_ITERATIONS, hash: "SHA-256" },
+        rawKey,
+        { name: "AES-GCM", length: 256 },
+        false,
+        ["encrypt", "decrypt"],
+      )
+    } else {
+      this.__keyBytes = pbkdf2(sha256, password, salt, { c: PBKDF2_ITERATIONS, dkLen: 32 })
+    }
 
     const cryptedPwd = this.__rsa.encryptToBase36(password)
 
@@ -73,28 +84,28 @@ export class DataSecurity {
   }
 
   async b64Cipher(text: string) {
-    const textAsUtf8Array = UTF8.encode(text) as ArrayBufferView<ArrayBuffer>
-    const cipheredText = await crypto.subtle.encrypt(
-      {
-        name: 'AES-GCM',
-        iv: this.__iv,
-      },
-      this.__key,
-      textAsUtf8Array,
-    )
-    return Base64.encode(new Uint8Array(cipheredText))
+    const textAsUtf8 = UTF8.encode(text)
+    if (SUBTLE && this.__key) {
+      const ciphered = await SUBTLE.encrypt(
+        { name: "AES-GCM", iv: this.__iv },
+        this.__key,
+        textAsUtf8 as Uint8Array<ArrayBuffer>,
+      )
+      return Base64.encode(new Uint8Array(ciphered))
+    }
+    return Base64.encode(gcm(this.__keyBytes!, this.__iv).encrypt(textAsUtf8))
   }
 
   async b64Decipher(b64CipheredText: string) {
-    const cipheredText = Base64.decode(b64CipheredText) as ArrayBufferView<ArrayBuffer>
-    const textAsUtf8Array = await crypto.subtle.decrypt(
-      {
-        name: 'AES-GCM',
-        iv: this.__iv,
-      },
-      this.__key,
-      cipheredText,
-    )
-    return UTF8.decode(textAsUtf8Array)
+    const ciphered = Base64.decode(b64CipheredText)
+    if (SUBTLE && this.__key) {
+      const decrypted = await SUBTLE.decrypt(
+        { name: "AES-GCM", iv: this.__iv },
+        this.__key,
+        ciphered as Uint8Array<ArrayBuffer>,
+      )
+      return UTF8.decode(decrypted)
+    }
+    return UTF8.decode(gcm(this.__keyBytes!, this.__iv).decrypt(ciphered))
   }
 }

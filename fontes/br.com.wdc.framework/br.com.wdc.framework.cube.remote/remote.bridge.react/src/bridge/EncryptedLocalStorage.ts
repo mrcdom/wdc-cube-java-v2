@@ -21,10 +21,10 @@
  * works in-memory only — data is not persisted across reloads.
  */
 
-import { ClientStorage } from './ClientStorage'
+import { ClientStorage } from "./ClientStorage"
 
-const IDB_NAME = '_sec'
-const IDB_STORE = 'k'
+const IDB_NAME = "_sec"
+const IDB_STORE = "k"
 const IDB_KEY = 0
 
 export class EncryptedLocalStorage implements ClientStorage {
@@ -41,7 +41,10 @@ export class EncryptedLocalStorage implements ClientStorage {
    * @param storage       backing Web Storage (`localStorage` or `sessionStorage`).
    *                      Defaults to `localStorage`.
    */
-  constructor(private readonly syncNamespace = '', storage?: Storage) {
+  constructor(
+    private readonly syncNamespace = "",
+    storage?: Storage,
+  ) {
     this.lsPrefix = `${syncNamespace}sec.`
     this.storage = storage ?? localStorage
   }
@@ -137,7 +140,7 @@ function openOrCreateKey(): Promise<CryptoKey> {
 
     req.onsuccess = () => {
       const db = req.result
-      const tx = db.transaction(IDB_STORE, 'readwrite')
+      const tx = db.transaction(IDB_STORE, "readwrite")
       const store = tx.objectStore(IDB_STORE)
       const get = store.get(IDB_KEY)
 
@@ -148,9 +151,9 @@ function openOrCreateKey(): Promise<CryptoKey> {
         }
         // No key yet — generate one
         crypto.subtle
-          .generateKey({ name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt'])
+          .generateKey({ name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"])
           .then((key) => {
-            const tx2 = db.transaction(IDB_STORE, 'readwrite')
+            const tx2 = db.transaction(IDB_STORE, "readwrite")
             tx2.objectStore(IDB_STORE).put(key, IDB_KEY)
             resolve(key)
           })
@@ -170,11 +173,11 @@ function openOrCreateKey(): Promise<CryptoKey> {
 async function encryptValue(key: CryptoKey, text: string): Promise<string> {
   const iv = crypto.getRandomValues(new Uint8Array(12))
   const encoded = new TextEncoder().encode(text)
-  const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encoded)
+  const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, encoded)
   const combined = new Uint8Array(12 + ct.byteLength)
   combined.set(iv, 0)
   combined.set(new Uint8Array(ct), 12)
-  let s = ''
+  let s = ""
   for (let i = 0; i < combined.length; i++) s += String.fromCharCode(combined[i])
   return btoa(s)
 }
@@ -185,7 +188,7 @@ async function decryptValue(key: CryptoKey, b64: string): Promise<string | null>
     const s = atob(b64)
     const b = new Uint8Array(s.length)
     for (let i = 0; i < s.length; i++) b[i] = s.charCodeAt(i)
-    const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b.slice(0, 12) }, key, b.slice(12))
+    const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b.slice(0, 12) }, key, b.slice(12))
     return new TextDecoder().decode(new Uint8Array(pt))
   } catch {
     return null

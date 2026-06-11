@@ -1,4 +1,4 @@
-import Base64 from './Base64'
+import Base64 from "./Base64"
 
 export type BigIntValue = bigint | boolean | number | string
 
@@ -22,21 +22,21 @@ function parseHex(a: string, prefix0x?: boolean, byteLength?: number) {
     if (byteLength < hex.length / 2) {
       throw new RangeError(`expected byte length ${byteLength} < input hex byte length ${Math.ceil(hex.length / 2)}`)
     }
-    hex = hex.padStart(byteLength * 2, '0')
+    hex = hex.padStart(byteLength * 2, "0")
   }
-  return prefix0x ? '0x' + hex : hex
+  return prefix0x ? "0x" + hex : hex
 }
 
 function hexToBuf(hexStr: string): Uint8Array {
   let hex = parseHex(hexStr)
-  hex = hex.padStart(Math.ceil(hex.length / 2) * 2, '0')
+  hex = hex.padStart(Math.ceil(hex.length / 2) * 2, "0")
   const intArray = (hex.match(HEX_BYTE_EXP) ?? []).map((h) => Number.parseInt(h, 16))
   return Uint8Array.from(intArray)
 }
 
 function bigintToHex(a: bigint) {
   if (a < 0) {
-    throw RangeError('a should be a non-negative integer. Negative values are not supported')
+    throw RangeError("a should be a non-negative integer. Negative values are not supported")
   }
   return a.toString(16)
 }
@@ -58,18 +58,18 @@ function bufToBigint(buf: Uint8Array) {
 }
 
 function bigintToBuf(a: BigIntValue): Uint8Array {
-  if (typeof a !== 'bigint') a = BigInt(a)
+  if (typeof a !== "bigint") a = BigInt(a)
   if (a < 0) {
-    throw RangeError('a should be a non-negative integer. Negative values are not supported')
+    throw RangeError("a should be a non-negative integer. Negative values are not supported")
   }
   return hexToBuf(bigintToHex(a))
 }
 
 function eGcd(a: bigint, b: bigint) {
-  if (typeof a !== 'bigint') a = BigInt(a)
-  if (typeof b !== 'bigint') b = BigInt(b)
+  if (typeof a !== "bigint") a = BigInt(a)
+  if (typeof b !== "bigint") b = BigInt(b)
 
-  if (a <= 0n || b <= 0n) throw new RangeError('a and b MUST be > 0') // a and b MUST be positive
+  if (a <= 0n || b <= 0n) throw new RangeError("a and b MUST be > 0") // a and b MUST be positive
 
   let x = 0n
   let y = 1n
@@ -92,11 +92,11 @@ function eGcd(a: bigint, b: bigint) {
 }
 
 function toZn(a: bigint | number, n: bigint | number) {
-  if (typeof a !== 'bigint') a = BigInt(a)
-  if (typeof n !== 'bigint') n = BigInt(n)
+  if (typeof a !== "bigint") a = BigInt(a)
+  if (typeof n !== "bigint") n = BigInt(n)
 
   if (n <= 0n) {
-    throw new RangeError('n must be > 0')
+    throw new RangeError("n must be > 0")
   }
 
   const aZn = a % n
@@ -114,12 +114,12 @@ function modInv(a: bigint, n: bigint) {
 }
 
 function modPow(b: BigIntValue, e: BigIntValue, n: BigIntValue): bigint {
-  if (typeof b !== 'bigint') b = BigInt(b)
-  if (typeof e !== 'bigint') e = BigInt(e)
-  if (typeof n !== 'bigint') n = BigInt(n)
+  if (typeof b !== "bigint") b = BigInt(b)
+  if (typeof e !== "bigint") e = BigInt(e)
+  if (typeof n !== "bigint") n = BigInt(n)
 
   if (n <= 0n) {
-    throw new RangeError('n must be > 0')
+    throw new RangeError("n must be > 0")
   } else if (n === 1n) {
     return 0n
   }
@@ -146,7 +146,7 @@ function parseBigInt(numberString: string, keyspace: string) {
   const keyspaceLength = BigInt(keyspace.length)
   for (const ch of numberString) {
     const value = keyspace.indexOf(ch)
-    if (value === -1) throw new Error('invalid string')
+    if (value === -1) throw new Error("invalid string")
     result = result * keyspaceLength + BigInt(value)
   }
   return result
@@ -154,7 +154,7 @@ function parseBigInt(numberString: string, keyspace: string) {
 
 function parse(numberString: string, radix: number, options?: { urlSafe: boolean }) {
   if (radix === 36) {
-    return parseBigInt(numberString, '0123456789abcdefghijklmnopqrstuvwxyz')
+    return parseBigInt(numberString, "0123456789abcdefghijklmnopqrstuvwxyz")
   }
 
   if (radix === 64) {

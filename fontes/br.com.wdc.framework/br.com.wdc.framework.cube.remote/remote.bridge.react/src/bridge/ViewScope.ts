@@ -1,5 +1,5 @@
-import * as LangUtils from '../utils/LangUtils'
-import { NOOP_VOID } from './constants'
+import * as LangUtils from "../utils/LangUtils"
+import { NOOP_VOID } from "./constants"
 
 export class ViewScope {
   private readonly __svid: string

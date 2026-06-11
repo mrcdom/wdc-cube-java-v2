@@ -31,11 +31,21 @@ export interface ClientStorage {
 export class InMemoryClientStorage implements ClientStorage {
   private readonly _data = new Map<string, string>()
 
-  get secure(): ClientStorage { return this }
-  get(key: string): string | null { return this._data.get(key) ?? null }
-  set(key: string, value: string): void { this._data.set(key, value) }
-  remove(key: string): void { this._data.delete(key) }  
-  all(): Record<string, string> { return Object.fromEntries(this._data) }
+  get secure(): ClientStorage {
+    return this
+  }
+  get(key: string): string | null {
+    return this._data.get(key) ?? null
+  }
+  set(key: string, value: string): void {
+    this._data.set(key, value)
+  }
+  remove(key: string): void {
+    this._data.delete(key)
+  }
+  all(): Record<string, string> {
+    return Object.fromEntries(this._data)
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -55,7 +65,7 @@ export class SessionStorageClientStorage implements ClientStorage {
   private _secure: ClientStorage | null = null
 
   constructor(
-    private readonly syncNamespace: string = '',
+    private readonly syncNamespace: string = "",
     private readonly secureFactory: (() => ClientStorage) | null = null,
   ) {}
 
@@ -107,7 +117,7 @@ export class LocalStorageClientStorage implements ClientStorage {
   private _secure: ClientStorage | null = null
 
   constructor(
-    private readonly syncNamespace: string = '',
+    private readonly syncNamespace: string = "",
     private readonly secureFactory: () => ClientStorage = () => new InMemoryClientStorage(),
   ) {}
 

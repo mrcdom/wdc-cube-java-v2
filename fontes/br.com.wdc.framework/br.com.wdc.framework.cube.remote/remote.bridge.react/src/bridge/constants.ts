@@ -2,10 +2,10 @@ export const NOOP_VOID = () => void 0 as void
 export const NOOP_PROMISE_VOID = async () => void 0 as void
 
 export const CAUTHED = (reason: unknown) => {
-  console.error('Unexpected', reason)
+  console.error("Unexpected", reason)
 }
 
-export const BROWSER_VID = '7b32e816a191'
+export const BROWSER_VID = "7b32e816a191"
 export const BROWSER_VSID = `${BROWSER_VID}:0`
 
 // Keepalive interval to prevent "Idle Timeout" errors

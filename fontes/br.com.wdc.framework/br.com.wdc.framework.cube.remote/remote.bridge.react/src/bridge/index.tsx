@@ -1,21 +1,21 @@
-import React from 'react'
-import { ViewStateCoordinator } from './ViewStateCoordinator'
-import { BROWSER_VSID } from './constants'
-import type { IViewFactory, ViewComponent } from './types'
+import React from "react"
+import { ViewStateCoordinator } from "./ViewStateCoordinator"
+import { BROWSER_VSID } from "./constants"
+import type { IViewFactory, ViewComponent } from "./types"
 
-export { BROWSER_VID } from './constants'
-export type { BrowserViewState, ViewComponent, ViewProps } from './types'
-export { ViewScope } from './ViewScope'
+export { BROWSER_VID } from "./constants"
+export type { BrowserViewState, ViewComponent, ViewProps } from "./types"
+export { ViewScope } from "./ViewScope"
 
 async function static_updateAllViewStates(app: ViewStateCoordinator, vsids: string[]) {
   const url = `view-state`
 
   const resp = await fetch(url, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      'X-Application-Id': app.id,
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      "X-Application-Id": app.id,
     },
     body: JSON.stringify(vsids),
   })

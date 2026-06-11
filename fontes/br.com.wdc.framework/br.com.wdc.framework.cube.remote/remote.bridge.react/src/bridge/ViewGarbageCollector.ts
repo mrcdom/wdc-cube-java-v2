@@ -1,4 +1,4 @@
-import type { ViewStateCoordinator } from './ViewStateCoordinator'
+import type { ViewStateCoordinator } from "./ViewStateCoordinator"
 
 /**
  * GC de ViewScopes baseado em autoridade do servidor.
