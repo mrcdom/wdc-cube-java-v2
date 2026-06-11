@@ -68,6 +68,7 @@
 					<mainClass>${main.class}</mainClass>
 					<options>
 						<option>-Xdock:icon=${project.basedir}/src/main/resources/icon-256.png</option>
+						<option>-Dshopping.config.file=${project.basedir}/work/config/application.toml</option>
 					</options>
 				</configuration>
 			</plugin>

@@ -86,6 +86,8 @@ public class ShoppingGluonApplication extends ShoppingApplication {
         }
     }
 
+    private String lastPersistedIntent;
+
     @Override
     public void updateHistory() {
         for (var presenter : this.presenterMap.values()) {
@@ -95,6 +97,23 @@ public class ShoppingGluonApplication extends ShoppingApplication {
                     this.markDirty(gluonView);
                 }
             }
+        }
+
+        // Persist current navigation intent so it can be restored after restart.
+        // Run on the presenter thread — updateHistory() is already called there.
+        try {
+            var intent = this.newIntent();
+            for (var presenter : this.presenterMap.values()) {
+                presenter.publishParameters(intent);
+            }
+            var intentStr = intent.toString();
+            if (intentStr != null && !intentStr.isBlank() && !intentStr.startsWith("login")
+                    && !intentStr.equals(lastPersistedIntent)) {
+                lastPersistedIntent = intentStr;
+                clientPersistentStore().set("session.intent", intentStr);
+            }
+        } catch (Exception e) {
+            // Best-effort — never block a UI update
         }
     }
 

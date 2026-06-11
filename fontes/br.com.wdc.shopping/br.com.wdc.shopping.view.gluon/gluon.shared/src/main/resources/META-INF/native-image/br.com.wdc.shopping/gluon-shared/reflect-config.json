@@ -1,5 +1,9 @@
 [
   {
+    "name": "com.sun.crypto.provider.SunJCE",
+    "methods": [{ "name": "<init>", "parameterTypes": [] }]
+  },
+  {
     "name": "ch.qos.logback.classic.util.DefaultJoranConfigurator",
     "methods": [{ "name": "<init>", "parameterTypes": [] }]
   },

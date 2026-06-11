@@ -99,7 +99,20 @@ public class ShoppingGluonMain extends Application {
         primaryStage.show();
 
         this.app.start();
-        Routes.root(this.app);
+
+        // Ensure Routes.Place enum is class-loaded so all GoActions are registered
+        // before any navigation (required when bypassing Routes.root below).
+        Routes.Place.values();
+
+        // Read saved intent BEFORE any navigation — Routes.root() would call
+        // updateHistory() internally and overwrite the persisted value.
+        var savedIntent = this.app.clientPersistentStore().get("session.intent");
+        if (savedIntent != null && !savedIntent.isBlank() && !savedIntent.startsWith("login")) {
+            // Navigate directly; ROOT/RESTRICTED steps will run tryAutoLogin internally.
+            this.app.go(savedIntent);
+        } else {
+            Routes.root(this.app);
+        }
     }
 
     @Override

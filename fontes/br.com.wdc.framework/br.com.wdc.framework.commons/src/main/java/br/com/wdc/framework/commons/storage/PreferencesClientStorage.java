@@ -14,6 +14,7 @@ import java.util.prefs.Preferences;
 public class PreferencesClientStorage implements ClientStorage {
 
 	private final Preferences prefs;
+	private final ClientStorage secureView;
 
 	/**
 	 * Cria um storage usando o nó de preferências da classe fornecida.
@@ -22,11 +23,12 @@ public class PreferencesClientStorage implements ClientStorage {
 	 */
 	public PreferencesClientStorage(Class<?> appClass) {
 		this.prefs = Preferences.userNodeForPackage(appClass);
+		this.secureView = new EncryptedPreferencesClientStorage(this.prefs);
 	}
 
 	@Override
 	public ClientStorage secure() {
-		return this; // JVM desktop: sem Keychain nativo, best-effort
+		return secureView;
 	}
 
 	@Override

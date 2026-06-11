@@ -90,7 +90,7 @@ else
     if [ "$RUN" = true ]; then
         echo ">>> [2/2] Running via JavaFX plugin..."
         cd "$SCRIPT_DIR"
-        mvn javafx:run -Dapi.base.url="$API_URL"
+        mvn javafx:run -Dapi.base.url="$API_URL" -Dshopping.config.file="$SCRIPT_DIR/work/config/application.toml"
     else
         echo ">>> [2/2] Building project JAR..."
         cd "$SCRIPT_DIR"

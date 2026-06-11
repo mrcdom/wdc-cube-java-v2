@@ -171,17 +171,30 @@ public class RestAuthenticationService implements AuthenticationService {
 
 	@Override
 	public SecurityContext resolveToken(String jwtToken) {
-		throw new UnsupportedOperationException("resolveToken is server-side only; REST clients use refresh tokens");
+		// REST clients do not resolve JWT locally — SecurityContext is managed
+		// server-side. Return null so callers handle the absent context gracefully.
+		return null;
 	}
 
 	@Override
 	public String createPersistentToken(Long userId, String userName) {
-		throw new UnsupportedOperationException("createPersistentToken is server-side only; requires HMAC secret");
+		// For REST clients the persistent token IS the refresh token, which was
+		// already stored in storage.secure() during login(). Return it directly.
+		return storage.secure().get(KEY_REFRESH_TOKEN);
 	}
 
 	@Override
 	public AuthResult loginWithPersistentToken(String persistentToken) {
-		throw new UnsupportedOperationException("loginWithPersistentToken is server-side only; REST clients use tryRestore()");
+		// For REST clients the "persistent token" stored by LoginPresenter is the
+		// refresh token. Delegate to refresh() to obtain a fresh access token.
+		var result = refresh(persistentToken);
+		// refresh() already saves the NEW refresh token under KEY_REFRESH_TOKEN.
+		// Also update the persistent-token entry so the next auto-login works
+		// (servers rotate refresh tokens on every use).
+		if (result != null) {
+			storage.secure().set("auth.token", storage.secure().get(KEY_REFRESH_TOKEN));
+		}
+		return result;
 	}
 
 	private static AuthResult parseAuthResult(String responseJson) {
