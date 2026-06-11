@@ -25,6 +25,7 @@ import com.google.gson.ToNumberPolicy;
 import com.google.gson.reflect.TypeToken;
 
 import br.com.wdc.framework.commons.storage.ClientStorage;
+import br.com.wdc.framework.commons.storage.InMemoryClientStorage;
 import br.com.wdc.framework.cube.remote.bridge.java.model.HostResponse;
 import br.com.wdc.framework.cube.remote.bridge.java.model.SecretContext;
 import br.com.wdc.framework.cube.remote.bridge.java.model.ViewStateMap;
@@ -80,15 +81,17 @@ public final class HostClient implements AutoCloseable {
     private final SecretContext secret;
     private final HostClientSession session;
     private final ViewStateMap states;
+    private final ClientStorage sessionStorage;
     private final ClientStorage persistentStorage;
     private final AtomicLong requestCounter = new AtomicLong(0);
 
     private HostClient(String serverUrl, SecretContext secret, HostClientSession session,
-                       ViewStateMap states, ClientStorage persistentStorage) {
+                       ViewStateMap states, ClientStorage sessionStorage, ClientStorage persistentStorage) {
         this.serverUrl = serverUrl;
         this.secret = secret;
         this.session = session;
         this.states = states;
+        this.sessionStorage = sessionStorage;
         this.persistentStorage = persistentStorage;
     }
 
@@ -110,7 +113,7 @@ public final class HostClient implements AutoCloseable {
      * @throws InterruptedException if interrupted during connection
      */
     public static HostClient connect(String serverUrl) throws IOException, InterruptedException {
-        return connect(serverUrl, null);
+        return connect(serverUrl, new InMemoryClientStorage());
     }
 
     /**
@@ -168,7 +171,7 @@ public final class HostClient implements AutoCloseable {
         clientSession.send(GSON.toJson(initMsg));
 
         LOG.info("Connected and init message sent");
-        return new HostClient(serverUrl, secret, clientSession, sharedStates, persistentStorage);
+        return new HostClient(serverUrl, secret, clientSession, sharedStates, new InMemoryClientStorage(), persistentStorage);
     }
 
     // :: Navigation
@@ -411,6 +414,23 @@ public final class HostClient implements AutoCloseable {
      */
     public SecretContext secretContext() {
         return secret;
+    }
+
+    /**
+     * Returns the session-scoped store for this connection.
+     * Always backed by an {@link InMemoryClientStorage} — lives for the duration of the connection.
+     */
+    public ClientStorage clientSessionStore() {
+        return sessionStorage;
+    }
+
+    /**
+     * Returns the persistent-scoped store for this connection.
+     * When created via {@link #connect(String)} the default backing is {@link InMemoryClientStorage}.
+     * Pass a custom {@link ClientStorage} to {@link #connect(String, ClientStorage)} to use real persistence.
+     */
+    public ClientStorage clientPersistentStore() {
+        return persistentStorage;
     }
 
     // :: Dev utilities
