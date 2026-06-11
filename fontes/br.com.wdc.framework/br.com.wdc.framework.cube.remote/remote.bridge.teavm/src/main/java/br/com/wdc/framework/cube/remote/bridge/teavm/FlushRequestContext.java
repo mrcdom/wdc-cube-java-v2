@@ -232,6 +232,7 @@ public class FlushRequestContext {
         if (uri instanceof String u) {
             app.path = u;
             setLocationHref("#" + u);
+            app.persistUri(u);
         }
 
         Object states = response.get("states");

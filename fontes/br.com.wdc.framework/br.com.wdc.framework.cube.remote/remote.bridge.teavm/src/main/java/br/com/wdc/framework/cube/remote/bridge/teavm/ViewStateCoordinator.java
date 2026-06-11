@@ -41,6 +41,9 @@ public class ViewStateCoordinator {
     public static final String BROWSER_VID = "7b32e816a191";
     public static final String BROWSER_VSID = BROWSER_VID + ":0";
 
+    /** localStorage key used to persist the last visited path for native shell restore. */
+    private static final String STORAGE_KEY_INTENT = "session.intent";
+
     // -- Public fields --
 
     public final String id;
@@ -118,7 +121,16 @@ public class ViewStateCoordinator {
         Window.current().addEventListener("popstate", evt -> onPopState());
 
         String hash = getLocationHash();
-        path = hash.length() > 1 ? hash.substring(1) : "/";
+        if (hash.length() > 1) {
+            // Browser: hash survives F5 — use it directly.
+            path = hash.substring(1);
+        } else {
+            // Tauri native shell: WebView always starts fresh without a hash.
+            // Restore the last visited path from persistent storage so the user
+            // returns to the same screen after closing and reopening the app.
+            String saved = persistentStorage.get(STORAGE_KEY_INTENT);
+            path = (saved != null && !saved.isEmpty()) ? saved : "/";
+        }
         setFormField(BROWSER_VSID, "p.path", path);
         submit(BROWSER_VSID, -1);
     }
@@ -212,6 +224,18 @@ public class ViewStateCoordinator {
                 });
             }
         }
+    }
+
+    /**
+     * Persists the current navigation path to {@link #persistentStorage} so that
+     * native shells (Tauri desktop/mobile) can restore it on next launch.
+     * <p>
+     * Login paths are intentionally excluded — the server will redirect there
+     * automatically if the session is not valid.
+     */
+    void persistUri(String u) {
+        if (u == null || u.isEmpty() || u.startsWith("/login")) return;
+        persistentStorage.set(STORAGE_KEY_INTENT, u);
     }
 
     // -- View state application --
