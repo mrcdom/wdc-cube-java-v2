@@ -143,6 +143,13 @@ public final class RemoteHostBootstrap {
             throw new AssertionError("RSA not available", e);
         }
 
+        // Propagate to System properties immediately — AppConfig was already loaded before
+        // this method ran, so appConfig.get() won't see the values we're about to write.
+        System.setProperty("wdc.web.public_key",          rsaPublicKey);
+        System.setProperty("wdc.web.private_key",         rsaPrivateKey);
+        System.setProperty("wdc.sign.wdc.web.public_key", signPublicKey);
+        System.setProperty("wdc.sign.wdc.web.private_key",signPrivateKey);
+
         Path localToml = appConfig.getConfigFilePath().resolveSibling("application.local.toml");
         String block = "\n[remote]\n"
                 + "# RSA key pair for client handshake (format: exponent:modulus in base36)\n"
