@@ -15,6 +15,8 @@ import org.eclipse.swt.widgets.Shell;
 import br.com.wdc.framework.commons.function.ThrowingRunnable;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.storage.ClientStorage;
+import br.com.wdc.framework.commons.storage.InMemoryClientStorage;
+import br.com.wdc.framework.commons.storage.PreferencesClientStorage;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubePresenter;
 import br.com.wdc.framework.cube.CubeView;
@@ -151,7 +153,7 @@ public class ShoppingSwtApplication extends ShoppingApplication implements SwtAp
 	@Override
 	public void setSubject(Subject subject) {
 		super.setSubject(subject);
-		var storage = ClientStorage.BEAN.get();
+		var storage = clientPersistentStore();
 		if (storage != null) {
 			if (subject != null && subject.getId() != null) {
 				storage.set("session.userId", String.valueOf(subject.getId()));
@@ -264,7 +266,7 @@ public class ShoppingSwtApplication extends ShoppingApplication implements SwtAp
 			return;
 		}
 
-		var storage = ClientStorage.BEAN.get();
+var storage = clientPersistentStore();
 		if (storage == null) {
 			return;
 		}
@@ -299,6 +301,19 @@ public class ShoppingSwtApplication extends ShoppingApplication implements SwtAp
 	@Override
 	public String b64Decipher(String b64Text) {
 		throw new AssertionError("not implemented");
+	}
+
+	private final InMemoryClientStorage sessionStore = new InMemoryClientStorage();
+	private final PreferencesClientStorage persistentStore = new PreferencesClientStorage(ShoppingSwtApplication.class);
+
+	@Override
+	public ClientStorage clientSessionStore() {
+		return sessionStore;
+	}
+
+	@Override
+	public ClientStorage clientPersistentStore() {
+		return persistentStore;
 	}
 
 	public void markDirty(AbstractViewSwt view) {

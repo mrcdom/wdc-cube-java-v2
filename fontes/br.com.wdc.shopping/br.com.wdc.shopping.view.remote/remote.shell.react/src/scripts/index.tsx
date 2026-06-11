@@ -17,6 +17,8 @@ import ProductView from './views/product/ProductView'
 import ProductsPanel from './views/home/ProductsPanel'
 import PurchasesPanel from './views/home/PurchasesPanel'
 
+bridge.configure('~rr:')
+
 bridge.registerComponents(
   BrowserView,
   SlotView,

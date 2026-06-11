@@ -18,8 +18,6 @@ import org.h2.jdbcx.JdbcDataSource;
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.log.Slf4jLogFactory;
-import br.com.wdc.framework.commons.storage.ClientStorage;
-import br.com.wdc.framework.commons.storage.PreferencesClientStorage;
 import br.com.wdc.framework.commons.sql.SqlDataSource;
 import br.com.wdc.framework.commons.sql.SqlDataSourceDelegate;
 import br.com.wdc.shopping.domain.ShoppingConfig;
@@ -146,7 +144,6 @@ public class ShoppingSwtMain {
         this.devMode = config.getBoolean("dev.mode", false);
 
         CryptoProvider.BEAN.set(new JceCryptoProvider());
-        ClientStorage.BEAN.set(new PreferencesClientStorage(ShoppingSwtMain.class));
 
         this.executorService = Executors.newScheduledThreadPool(2);
         ScheduledExecutor.BEAN.set(new ScheduledExecutorSwtAdapter(this.executorService, Display.getDefault()));
@@ -230,12 +227,11 @@ public class ShoppingSwtMain {
         RepositoryBootstrap.release();
         ScheduledExecutor.BEAN.set(null);
         SqlDataSource.BEAN.set(null);
-        ClientStorage.BEAN.set(null);
     }
 
     private void tryRestoreSession() {
-        var storage = ClientStorage.BEAN.get();
-        if (storage == null) return;
+        if (this.app == null) return;
+        var storage = this.app.clientPersistentStore();
 
         var savedUserId = storage.get("session.userId");
         if (savedUserId == null) return;
@@ -259,8 +255,7 @@ public class ShoppingSwtMain {
     private String tryRestoreIntent() {
         if (this.app.getSubject() == null) return null;
 
-        var storage = ClientStorage.BEAN.get();
-        if (storage == null) return null;
+        var storage = this.app.clientPersistentStore();
 
         var savedIntent = storage.get("session.intent");
         if (savedIntent == null || savedIntent.isBlank()) return null;

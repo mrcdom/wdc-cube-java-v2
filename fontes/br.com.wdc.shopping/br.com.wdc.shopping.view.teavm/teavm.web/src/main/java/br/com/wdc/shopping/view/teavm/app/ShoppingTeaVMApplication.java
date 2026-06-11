@@ -31,6 +31,7 @@ import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPre
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
 import br.com.wdc.shopping.view.teavm.commons.interop.Console;
 import br.com.wdc.shopping.view.teavm.infra.BrowserCryptoProvider;
+import br.com.wdc.shopping.view.teavm.infra.BrowserLocalStorage;
 import br.com.wdc.shopping.view.teavm.infra.BrowserSessionStorage;
 import br.com.wdc.shopping.view.teavm.infra.FetchHttpTransport;
 import br.com.wdc.shopping.view.teavm.infra.IntentSigner;
@@ -73,8 +74,9 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
         PurchasesPanelPresenter.createView = PurchasesPanelView::new;
     }
 
-    public ShoppingTeaVMApplication(String apiBaseUrl) {
+    public ShoppingTeaVMApplication(String apiBaseUrl, String shellId) {
         this.apiBaseUrl = apiBaseUrl;
+        this.persistentStore = new BrowserLocalStorage(shellId);
 
         // Configura CryptoProvider para browser (antes de qualquer auth)
         CryptoProvider.BEAN.set(new BrowserCryptoProvider());
@@ -85,13 +87,11 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
         // Configura ScheduledExecutor para browser
         ScheduledExecutor.BEAN.set(new ScheduledExecutorBrowser());
 
-        // Configura ClientStorage para browser (sessionStorage)
-        var storage = new BrowserSessionStorage();
-        ClientStorage.BEAN.set(storage);
-
-        // Configura HTTP transport e registra repositórios
+        // Configura HTTP transport e registra repositórios.
+        // Auth tokens (accessToken, refreshToken) são persistidos em localStorage
+        // para que a sessão sobreviva ao fechar e reabrir o browser.
         HttpTransport transport = new FetchHttpTransport(apiBaseUrl);
-        TeaVMRepositoryBootstrap.initialize(transport, storage);
+        TeaVMRepositoryBootstrap.initialize(transport, persistentStore);
 
         // Escuta popstate (Back/Forward do browser)
         Window.current().addEventListener("popstate", evt -> onPopState());
@@ -129,6 +129,19 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
     @Override
     public String b64Decipher(String b64Text) {
         throw new AssertionError("not implemented");
+    }
+
+    private final BrowserSessionStorage sessionStore = new BrowserSessionStorage();
+    private final BrowserLocalStorage persistentStore;
+
+    @Override
+    public ClientStorage clientSessionStore() {
+        return sessionStore;
+    }
+
+    @Override
+    public ClientStorage clientPersistentStore() {
+        return persistentStore;
     }
 
     /**
@@ -200,7 +213,19 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
                     Routes.root(this);
                 }
             } else {
-                Routes.root(this);
+                // Tauri native: WebView inicia sem hash — restaura último intent salvo.
+                // No browser isso só acontece na primeira visita; neste caso savedIntent é null.
+                var savedIntent = persistentStore.get("session.intent");
+                if (savedIntent != null && !savedIntent.isBlank() && !savedIntent.startsWith("login")) {
+                    try {
+                        this.go(savedIntent);
+                    } catch (Exception e) {
+                        LOG.warn("Failed to restore intent '" + savedIntent + "': " + e.getMessage());
+                        Routes.root(this);
+                    }
+                } else {
+                    Routes.root(this);
+                }
             }
         }).start();
     }
@@ -225,6 +250,11 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
                 this.fragment = intentStr;
                 var signedUrl = intentSigner.sign(intentStr);
                 pushState("#" + signedUrl);
+                // Persiste o intent para restauração no próximo launch (Tauri native).
+                // No browser, o hash já cobre isso; aqui é redundante mas inofensivo.
+                if (!intentStr.isBlank() && !intentStr.startsWith("login")) {
+                    persistentStore.set("session.intent", intentStr);
+                }
             } catch (Exception e) {
                 LOG.error("Failed to push browser history state: " + e.getMessage());
             }

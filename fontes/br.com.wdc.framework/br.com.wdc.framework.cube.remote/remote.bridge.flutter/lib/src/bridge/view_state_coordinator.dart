@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/widgets.dart';
 
+import 'client_storage.dart';
 import 'constants.dart';
 import 'data_security.dart';
 import 'flush_request_context.dart';
@@ -44,25 +45,25 @@ class ViewStateCoordinator {
   /// Called once on init to restore the persisted request sequence counter.
   int Function()? onRestoreRequestSeq;
 
-  /// Called when the server sends an access token (after login success).
-  /// Empty string means "forget the token" (logoff).
-  void Function(String token)? onAccessTokenChanged;
+  /// Session-scoped storage: lives while the app is running.
+  late final ClientStorage sessionStorage;
 
-  /// The current access token to send on first connect (for auto-login).
-  String? accessToken;
+  /// Persistent-scoped storage: survives app restarts, synced on bootstrap.
+  late final ClientStorage persistentStorage;
 
   /// Sync initialization (security key derivation) — called once on start.
   void Function() readyToStart = _noopSync;
 
   ViewStateCoordinator(CoordinatorConfig config)
-      : id = config.appId,
-        baseWebSocketUrl = config.baseWebSocketUrl {
+    : id = config.appId,
+      baseWebSocketUrl = config.baseWebSocketUrl {
     instance = this;
     viewMap[browserVsid] = ViewScope(browserVsid);
 
     onPersistRequestSeq = config.onPersistRequestSeq;
     onRestoreRequestSeq = config.onRestoreRequestSeq;
-    accessToken = config.accessToken;
+    sessionStorage = config.sessionStorage ?? InMemoryClientStorage();
+    persistentStorage = config.persistentStorage ?? InMemoryClientStorage();
 
     if (config.securityKey != null && config.securityKey!.isNotEmpty) {
       dataSecurity.updateSecurityKey(config.securityKey!);
@@ -86,12 +87,14 @@ class ViewStateCoordinator {
     void Function(String name, String value)? onSetCookie,
   }) {
     final appId = _makeUniqueId();
-    return ViewStateCoordinator(CoordinatorConfig(
-      appId: appId,
-      securityKey: securityKey,
-      baseWebSocketUrl: baseWebSocketUrl,
-      onSetCookie: onSetCookie,
-    ));
+    return ViewStateCoordinator(
+      CoordinatorConfig(
+        appId: appId,
+        securityKey: securityKey,
+        baseWebSocketUrl: baseWebSocketUrl,
+        onSetCookie: onSetCookie,
+      ),
+    );
   }
 
   // :: View Registry
@@ -158,6 +161,34 @@ class ViewStateCoordinator {
     }
   }
 
+  /// Applies a storage delta received from the server.
+  void applyStorageDelta(Map<String, dynamic> storageDelta) {
+    _applyStorageScope(
+      storageDelta['session'] as Map<String, dynamic>?,
+      sessionStorage,
+    );
+    _applyStorageScope(
+      storageDelta['persistent'] as Map<String, dynamic>?,
+      persistentStorage,
+    );
+    _applyStorageScope(
+      storageDelta['persistent-secure'] as Map<String, dynamic>?,
+      persistentStorage.secure,
+    );
+  }
+
+  void _applyStorageScope(Map<String, dynamic>? scope, ClientStorage target) {
+    if (scope == null) return;
+    for (final entry in scope.entries) {
+      final ciphered = entry.value as String?;
+      if (ciphered == null) {
+        target.remove(entry.key);
+      } else if (ciphered.isNotEmpty) {
+        target.set(entry.key, dataSecurity.b64Decipher(ciphered));
+      }
+    }
+  }
+
   // :: Submit
 
   void submit(String vsid, int eventId) {
@@ -174,7 +205,9 @@ class ViewStateCoordinator {
   }
 
   void setFormField(String vsid, String fieldName, dynamic fieldValue) {
-    final formData = formMap.putIfAbsent(vsid, () => <String, dynamic>{}) as Map<String, dynamic>;
+    final formData =
+        formMap.putIfAbsent(vsid, () => <String, dynamic>{})
+            as Map<String, dynamic>;
     formData[fieldName] = fieldValue;
   }
 
@@ -195,4 +228,3 @@ class ViewStateCoordinator {
     return bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
   }
 }
-

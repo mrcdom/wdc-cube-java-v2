@@ -35,6 +35,8 @@
 
 	<!-- WeDoCode Loggers -->
 	<logger name="br.com.wdc" level="DEBUG" />
+	<logger name="br.com.wdc.shopping.backend.controller.WebCacheController" level="WARN" />
+	<logger name="br.com.wdc.shopping.backend.BackendServer" level="WARN" />
 
 	<!-- Root Logger -->
 	<root level="INFO">

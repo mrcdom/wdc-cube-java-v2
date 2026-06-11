@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+import 'client_storage.dart';
 import 'constants.dart';
 import 'types.dart';
 import 'view_state_coordinator.dart';
@@ -27,7 +28,7 @@ class FlushRequestContext {
   Timer? _submittingTimeout;
   final Set<int> _userRequestIds = {};
   String? _pendingSecret;
-  String? _pendingAccessToken;
+  Map<String, dynamic>? _pendingBootstrapStorage;
 
   FlushRequestContext(this.app) {
     // Restore request counter from platform storage (survives F5)
@@ -37,7 +38,12 @@ class FlushRequestContext {
     }
   }
 
-  void submit(FormMapType formMap, String vsid, int eventId, {bool silent = false}) {
+  void submit(
+    FormMapType formMap,
+    String vsid,
+    int eventId, {
+    bool silent = false,
+  }) {
     _cancelPendingKeepAlive();
 
     formMap['requestId'] = _requestCount++;
@@ -75,7 +81,9 @@ class FlushRequestContext {
           if (key == 'event') {
             (requestObj['event'] as List<String>).addAll(value as List<String>);
           } else if (value is Map) {
-            final formData = requestObj.putIfAbsent(key, () => <String, dynamic>{}) as Map<String, dynamic>;
+            final formData =
+                requestObj.putIfAbsent(key, () => <String, dynamic>{})
+                    as Map<String, dynamic>;
             formData.addAll(Map<String, dynamic>.from(value));
           } else {
             requestObj[key] = value;
@@ -87,14 +95,14 @@ class FlushRequestContext {
       hasData = true;
     }
 
-    if (hasData || _pendingSecret != null) {
+    if (hasData || _pendingSecret != null || _pendingBootstrapStorage != null) {
       if (_pendingSecret != null) {
         requestObj['secret'] = _pendingSecret;
         _pendingSecret = null;
       }
-      if (_pendingAccessToken != null) {
-        requestObj['accessToken'] = app.dataSecurity.b64Cipher(_pendingAccessToken!);
-        _pendingAccessToken = null;
+      if (_pendingBootstrapStorage != null) {
+        requestObj['storage'] = _pendingBootstrapStorage;
+        _pendingBootstrapStorage = null;
       }
       _channel?.sink.add(jsonEncode(requestObj));
       if (_userRequestIds.isNotEmpty) {
@@ -113,18 +121,24 @@ class FlushRequestContext {
     );
     _channel = channel;
 
-    channel.ready.then((_) {
-      _isConnecting = false;
-      _isOpen = true;
-      app.isConnected = true;
-      _pendingSecret = app.dataSecurity.getSignature();
-      _pendingAccessToken = app.accessToken;
-      _initKeepAliveChecks();
-      flush();
-    }).catchError((Object error) {
-      _isConnecting = false;
-      _handleDisconnect(error);
-    });
+    channel.ready
+        .then((_) {
+          _isConnecting = false;
+          _isOpen = true;
+          app.isConnected = true;
+          _pendingSecret = app.dataSecurity.getSignature();
+          // Snapshot all syncable storage entries for the bootstrap payload;
+          // will be included in the first flush() after open.
+          _pendingBootstrapStorage = _buildBootstrapStorage();
+          if (_pendingBootstrapStorage!.isEmpty)
+            _pendingBootstrapStorage = null;
+          _initKeepAliveChecks();
+          flush();
+        })
+        .catchError((Object error) {
+          _isConnecting = false;
+          _handleDisconnect(error);
+        });
 
     channel.stream.listen(
       (dynamic message) {
@@ -178,7 +192,9 @@ class FlushRequestContext {
     final response = jsonDecode(rawMessage) as Map<String, dynamic>;
 
     if (response['releasedViews'] != null) {
-      app.viewGarbageCollector.release(response['releasedViews'] as List<dynamic>);
+      app.viewGarbageCollector.release(
+        response['releasedViews'] as List<dynamic>,
+      );
     }
     if (response['activeViews'] != null) {
       app.viewGarbageCollector.sweep(response['activeViews'] as List<dynamic>);
@@ -197,16 +213,8 @@ class FlushRequestContext {
       app.onUriChanged(response['uri'] as String);
     }
 
-    if (response.containsKey('accessToken')) {
-      final ciphered = response['accessToken'] as String?;
-      if (ciphered != null && ciphered.isNotEmpty) {
-        final token = app.dataSecurity.b64Decipher(ciphered);
-        app.accessToken = token;
-        app.onAccessTokenChanged?.call(token);
-      } else {
-        app.accessToken = null;
-        app.onAccessTokenChanged?.call('');
-      }
+    if (response['storage'] != null) {
+      app.applyStorageDelta(response['storage'] as Map<String, dynamic>);
     }
 
     if (response['states'] != null) {
@@ -289,5 +297,29 @@ class FlushRequestContext {
     if (scope != null && scope.state['submitting'] != value) {
       scope.patchField('submitting', value);
     }
+  }
+
+  // :: Storage helpers
+
+  /// Builds the bootstrap `storage` map sent on WebSocket open.
+  /// All values are ciphered. Null values are never included (nothing to remove
+  /// on a fresh connection).
+  Map<String, dynamic> _buildBootstrapStorage() {
+    final result = <String, dynamic>{};
+
+    void addScope(String scopeName, ClientStorage storage) {
+      final all = storage.all;
+      if (all.isNotEmpty) {
+        result[scopeName] = {
+          for (final e in all.entries)
+            e.key: app.dataSecurity.b64Cipher(e.value),
+        };
+      }
+    }
+
+    addScope('session', app.sessionStorage);
+    addScope('persistent', app.persistentStorage);
+    addScope('persistent-secure', app.persistentStorage.secure);
+    return result;
   }
 }

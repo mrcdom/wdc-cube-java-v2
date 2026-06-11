@@ -36,7 +36,7 @@ url = "jdbc:h2:tcp://localhost/./wedocode-shopping;DB_CLOSE_DELAY=-1;DB_CLOSE_ON
 # reset = false
 
 # Log SQL statements executed by jOOQ (true/false)
-logSql = true
+logSql = false
 
 # Connection pool (Agroal)
 # maxSize             = maximum concurrent connections to the database

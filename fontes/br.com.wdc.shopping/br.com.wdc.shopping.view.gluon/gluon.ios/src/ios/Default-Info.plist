@@ -9,7 +9,7 @@
         <key>CFBundleShortVersionString</key>
         <string>$bundleShortVersion</string>
         <key>CFBundleExecutable</key>
-        <string>$mainClassNameApp</string>
+        <string>gluon.ios</string>
         <key>CFBundleIconName</key>
         <string>AppIcon</string>
         <key>CFBundleName</key>

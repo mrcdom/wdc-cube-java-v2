@@ -3,6 +3,7 @@ package br.com.wdc.shopping.view.teavm;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
 import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.commons.interop.Console;
+import br.com.wdc.shopping.view.teavm.infra.EncryptedLocalStorage;
 
 /**
  * Entry point para a aplicação TeaVM.
@@ -18,23 +19,43 @@ public class Main {
             String apiBaseUrl = getApiBaseUrl();
             Console.log("API Base URL: " + apiBaseUrl);
 
-            // Cria e inicia a aplicação
-            ShoppingTeaVMApplication app = new ShoppingTeaVMApplication(apiBaseUrl);
-            Console.log("WDC Shopping TeaVM - App created, starting...");
-            app.start();
-            Console.log("WDC Shopping TeaVM - App started, removing loading...");
+            // Detecta ambiente: Tauri nativo usa shellId "tn", browser usa "tw".
+            // O shellId serve como namespace de localStorage para isolar dados entre shells.
+            String shellId = isTauri() ? "tn" : "tw";
+            Console.log("Shell ID: " + shellId);
 
-            // Remove tela de loading
-            removeLoadingScreen();
-            
-            LoginPresenter.simulateSlowLogin(false);
+            // Configura o prefixo do storage seguro ANTES de criar a aplicação,
+            // para que set/remove usem sempre o mesmo prefixo "<shellId>:sec.".
+            EncryptedLocalStorage.configure(shellId);
+            // Remove entradas legadas gravadas com o prefixo antigo "sec." (sem shellId).
+            cleanLegacyStoragePrefix("sec.");
 
-            Console.log("WDC Shopping TeaVM - Started.");
+            // Cria a aplicação e inicializa o storage seguro (IndexedDB + AES-GCM)
+            // antes de iniciar o app, para que tryRestore() encontre os tokens cifrados.
+            ShoppingTeaVMApplication app = new ShoppingTeaVMApplication(apiBaseUrl, shellId);
+            Console.log("WDC Shopping TeaVM - App created, initializing secure storage...");
+            EncryptedLocalStorage.initialize(() -> {
+                app.start();
+                removeLoadingScreen();
+                LoginPresenter.simulateSlowLogin(false);
+                Console.log("WDC Shopping TeaVM - Started.");
+            });
         } catch (Exception e) {
             Console.error("WDC Shopping TeaVM - FATAL: " + e.getClass().getName() + ": " + e.getMessage());
             showError(e.getClass().getName() + ": " + e.getMessage());
         }
     }
+
+    @org.teavm.jso.JSBody(params = {"prefix"}, script = ""
+            + "try {"
+            + "  var keys = [];"
+            + "  for (var i = 0; i < localStorage.length; i++) {"
+            + "    var k = localStorage.key(i);"
+            + "    if (k && k.startsWith(prefix)) keys.push(k);"
+            + "  }"
+            + "  keys.forEach(function(k) { localStorage.removeItem(k); });"
+            + "} catch(e) {}")
+    private static native void cleanLegacyStoragePrefix(String prefix);
 
     @org.teavm.jso.JSBody(params = {"msg"}, script = ""
             + "var el = document.getElementById('loading');"
@@ -50,5 +71,10 @@ public class Main {
             + "var meta = document.querySelector('meta[name=\"api-base-url\"]');"
             + "return (meta && meta.content) ? meta.content : '';")
     private static native String getApiBaseUrl();
+
+    /** Returns true when running inside a Tauri native shell (desktop, Android, iOS). */
+    @org.teavm.jso.JSBody(params = {}, script = ""
+            + "return typeof window !== 'undefined' && typeof window.__TAURI_INTERNALS__ !== 'undefined';")
+    private static native boolean isTauri();
 
 }

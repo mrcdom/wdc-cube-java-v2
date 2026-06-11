@@ -18,6 +18,7 @@ import br.com.wdc.shopping.domain.security.SecurityContext;
 import br.com.wdc.shopping.presentation.PlaceAttributes;
 import br.com.wdc.shopping.presentation.PlaceParameters;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
+import br.com.wdc.shopping.presentation.StorageKeys;
 import br.com.wdc.shopping.presentation.exception.WrongPlace;
 import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
 
@@ -85,12 +86,10 @@ public class RootPresenter extends AbstractCubePresenter<ShoppingApplication> {
      * and SecurityContext so the user skips the login screen.
      */
     private void tryAutoLogin() {
-        var token = (String) this.app.getAttribute("accessToken");
+        var token = this.app.clientPersistentStore().secure().get(StorageKeys.AUTH_TOKEN);
         if (StringUtils.isBlank(token)) {
             return;
         }
-        // Remove from in-memory attributes (token remains persisted on client for 30 days)
-        this.app.removeAttribute("accessToken");
 
         var authService = AuthenticationService.BEAN.get();
         if (authService == null) {
@@ -100,7 +99,7 @@ public class RootPresenter extends AbstractCubePresenter<ShoppingApplication> {
         var authResult = authService.loginWithPersistentToken(token);
         if (authResult == null) {
             LOG.info("Auto-login failed: invalid or expired token");
-            this.app.emitAccessToken("");
+            this.app.clientPersistentStore().secure().remove(StorageKeys.AUTH_TOKEN);
             return;
         }
 
@@ -137,7 +136,7 @@ public class RootPresenter extends AbstractCubePresenter<ShoppingApplication> {
     }
 
     public void alertUnexpectedError(Log logger, String message, Throwable caught) {
-        if (StringUtils.isNotBlank(caught.getMessage())) {
+        if (StringUtils.isBlank(caught.getMessage())) {
             this.state.errorMessage = message;
         } else {
             this.state.errorMessage = message + ": " + caught.getMessage();

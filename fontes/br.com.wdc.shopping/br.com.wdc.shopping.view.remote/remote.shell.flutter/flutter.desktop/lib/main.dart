@@ -69,19 +69,62 @@ void main() async {
   final appId = session['appId']!;
   final appSKey = session['appSKey']!;
 
-  // Load persistent access token (for auto-login / remember me)
-  final savedToken = _prefs.getString('access_token');
-
   // Persist for potential reconnection
   _prefs.setString('app_id', appId);
   _prefs.setString('app_skey', appSKey);
+
+  // Build ClientStorage instances backed by SharedPreferences / FlutterSecureStorage.
+  //
+  // On macOS the app runs in a sandbox. FlutterSecureStorage (Keychain) requires
+  // the keychain-access-groups entitlement — without it readAll() returns empty.
+  // For desktop we fall back to SharedPreferences with a 'sec.' key prefix, which
+  // is protected by the OS sandbox and avoids the Keychain entitlement requirement.
+  // The values are still ciphered over the WebSocket regardless.
+  final secureStorage = DelegateClientStorage(
+    get: (key) => _prefs.getString('sec.$key'),
+    set: (key, value) => _prefs.setString('sec.$key', value),
+    remove: (key) => _prefs.remove('sec.$key'),
+    all: () {
+      final result = <String, String>{};
+      for (final k in _prefs.getKeys().where((k) => k.startsWith('sec.'))) {
+        final v = _prefs.getString(k);
+        if (v != null) result[k.substring(4)] = v;
+      }
+      return result;
+    },
+    secureFactory: () => InMemoryClientStorage(), // already IS secure
+  );
+  final persistentStorage = DelegateClientStorage(
+    get: (key) => _prefs.getString(key),
+    set: (key, value) {
+      _prefs.setString(key, value);
+    },
+    remove: (key) {
+      _prefs.remove(key);
+    },
+    all: () {
+      return {
+        for (final key in _prefs.getKeys().where(
+          (k) =>
+              !k.startsWith('app_') &&
+              !k.startsWith('sec.') &&
+              k != 'req_seq' &&
+              k != 'last_path',
+        ))
+          key: _prefs.getString(key)!,
+      };
+    },
+    secureFactory: () => secureStorage,
+  );
+  final sessionStorage = InMemoryClientStorage();
 
   final coordinator = ViewStateCoordinator(
     CoordinatorConfig(
       appId: appId,
       securityKey: appSKey,
       baseWebSocketUrl: baseWsUrl,
-      accessToken: savedToken,
+      sessionStorage: sessionStorage,
+      persistentStorage: persistentStorage,
       onSetCookie: (name, value) {
         _prefs.setString(name, value);
       },
@@ -104,15 +147,6 @@ void main() async {
   coordinator.onUriChanged = (uri) {
     coordinator.path = uri;
     _prefs.setString('last_path', uri);
-  };
-
-  // Handle access token changes from server (login/logoff)
-  coordinator.onAccessTokenChanged = (token) {
-    if (token.isEmpty) {
-      _prefs.remove('access_token');
-    } else {
-      _prefs.setString('access_token', token);
-    }
   };
 
   coordinator.onSessionInvalid = () async {

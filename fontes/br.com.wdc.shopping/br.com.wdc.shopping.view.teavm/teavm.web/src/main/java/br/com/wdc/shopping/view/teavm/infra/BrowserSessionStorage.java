@@ -13,6 +13,11 @@ import br.com.wdc.framework.commons.storage.ClientStorage;
 public class BrowserSessionStorage implements ClientStorage {
 
 	@Override
+	public ClientStorage secure() {
+		return this; // sessionStorage do browser é efêmero — sem backing seguro extra
+	}
+
+	@Override
 	public String get(String key) {
 		return jsGet(key);
 	}

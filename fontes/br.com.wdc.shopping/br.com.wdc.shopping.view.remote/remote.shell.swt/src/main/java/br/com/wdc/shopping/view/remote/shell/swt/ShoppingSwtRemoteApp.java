@@ -15,6 +15,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import br.com.wdc.framework.commons.storage.ClientStorage;
+import br.com.wdc.framework.commons.storage.PreferencesClientStorage;
 import br.com.wdc.framework.cube.remote.bridge.java.HostClient;
 import br.com.wdc.framework.cube.remote.bridge.java.model.HostResponse;
 import br.com.wdc.framework.cube.remote.bridge.java.model.ViewStateSnapshot;
@@ -46,6 +48,7 @@ public class ShoppingSwtRemoteApp implements SwtApp, RemoteViewContext {
 	private Composite offscreen;
 
 	private HostClient hostClient;
+	private final ClientStorage persistentStorage = new PreferencesClientStorage(ShoppingSwtRemoteApp.class);
 
 	/** vsid → view */
 	private final Map<String, AbstractViewSwt> viewRegistry = new ConcurrentHashMap<>();
@@ -108,20 +111,47 @@ public class ShoppingSwtRemoteApp implements SwtApp, RemoteViewContext {
 
 	// :: Connect
 
+	private static final String STORAGE_KEY_INTENT = "session.intent";
+
 	/**
 	 * Connects to the Host, awaits the initial state push, starts the listener thread and render loop. Call from the UI thread before the event loop.
 	 */
 	public void connect(String serverUrl) throws Exception {
 		LOG.info("Connecting to {}", serverUrl);
-		this.hostClient = HostClient.connect(serverUrl);
+		this.hostClient = HostClient.connect(serverUrl, persistentStorage);
 		ProductRepository.BEAN.set(new RemoteProductImageRepository(serverUrl));
+
+		// Read saved intent BEFORE processing any response (responses may overwrite it)
+		var savedIntent = persistentStorage.get(STORAGE_KEY_INTENT);
 
 		// Initial async state push
 		var initial = this.hostClient.awaitResponse();
+		this.hostClient.applyStorageDelta(initial);
+		persistUri(initial.uri());
 		this.applyResponse(initial);
+
+		// Restore last intent if logged in (not on login page)
+		if (savedIntent != null && !savedIntent.startsWith("login")) {
+			try {
+				var navResp = this.hostClient.navigate(savedIntent);
+				this.hostClient.applyStorageDelta(navResp);
+				persistUri(navResp.uri());
+				this.applyResponse(navResp);
+			} catch (Exception e) {
+				LOG.warn("Could not restore intent '{}': {}", savedIntent, e.getMessage());
+			}
+		}
 
 		this.startListenerThread();
 		this.startRenderLoop();
+	}
+
+	private void persistUri(String uri) {
+		if (uri == null) return;
+		var path = uri.contains("#") ? uri.substring(uri.indexOf('#') + 1) : uri;
+		if (!path.isBlank()) {
+			persistentStorage.set(STORAGE_KEY_INTENT, path);
+		}
 	}
 
 	// :: Internal
@@ -176,6 +206,8 @@ public class ShoppingSwtRemoteApp implements SwtApp, RemoteViewContext {
 			while (!shouldStop && !this.display.isDisposed() && this.hostClient != null) {
 				try {
 					var resp = this.hostClient.awaitResponse(java.time.Duration.ofSeconds(30));
+					this.hostClient.applyStorageDelta(resp);
+					persistUri(resp.uri());
 					this.display.asyncExec(() -> this.applyResponse(resp));
 				} catch (java.util.concurrent.TimeoutException e) {
 					// heartbeat timeout — continue loop

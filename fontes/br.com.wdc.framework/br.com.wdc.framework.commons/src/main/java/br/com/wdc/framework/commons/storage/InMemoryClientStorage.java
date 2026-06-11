@@ -13,6 +13,11 @@ public class InMemoryClientStorage implements ClientStorage {
 	private final ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();
 
 	@Override
+	public ClientStorage secure() {
+		return this; // dados efêmeros — backing seguro não acrescenta valor
+	}
+
+	@Override
 	public String get(String key) {
 		return map.get(key);
 	}

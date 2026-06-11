@@ -84,4 +84,23 @@ public final class WebCrypto {
             });
             """)
     public static native void encrypt(String text, JSObject key, JSObject iv, JsStringConsumer callback);
+
+    /**
+     * Decrypts a base64-encoded AES-GCM ciphertext produced by {@link #encrypt}.
+     * Calls back with the plaintext string, or empty string on failure.
+     */
+    @JSBody(params = { "b64", "key", "iv", "callback" }, script = """
+            var binary = atob(b64);
+            var bytes = new Uint8Array(binary.length);
+            for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+            crypto.subtle.decrypt({ name: 'AES-GCM', iv: iv }, key, bytes)
+            .then(function(plaintext) {
+                callback(new TextDecoder().decode(new Uint8Array(plaintext)));
+            })
+            .catch(function(e) {
+                console.error('[WebCrypto] Decryption failed:', e);
+                callback('');
+            });
+            """)
+    public static native void decrypt(String b64, JSObject key, JSObject iv, JsStringConsumer callback);
 }

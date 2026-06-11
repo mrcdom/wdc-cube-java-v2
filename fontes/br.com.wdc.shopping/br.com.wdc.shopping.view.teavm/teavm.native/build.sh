@@ -104,8 +104,11 @@ echo ""
 
 # 1. Build the web subproject (Java → JS via TeaVM)
 echo ">>> [1/3] Building TeaVM web module..."
-cd "$WEB_DIR"
-JAVA_HOME="$JAVA" mvn clean install -DskipTests -q -Dapi.base.url="$API_URL"
+# Build from the parent to ensure teavm.commons (shared views/components) is
+# installed before teavm.web. Running mvn only inside teavm.web would use the
+# stale teavm.commons jar from ~/.m2, silently ignoring any source changes.
+cd "$WEB_DIR/.."
+JAVA_HOME="$JAVA" mvn clean install -DskipTests -q -pl teavm.commons,teavm.web -Dapi.base.url="$API_URL"
 echo "    OK"
 echo ""
 

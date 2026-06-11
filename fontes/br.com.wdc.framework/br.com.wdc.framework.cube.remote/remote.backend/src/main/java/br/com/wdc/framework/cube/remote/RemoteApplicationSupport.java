@@ -84,12 +84,12 @@ public class RemoteApplicationSupport {
     private boolean navigationAttempted;
     private int instanceIdGen = 1;
 
-    private final ConcurrentLinkedQueue<Map.Entry<String, Object>> pendingResponseFields = new ConcurrentLinkedQueue<>();
-
     private final ReentrantLock lock = new ReentrantLock();
     private final AtomicBoolean dirtyQueued = new AtomicBoolean(false);
     private volatile long lastWakeupNanos;
     private volatile boolean processingSubmit;
+
+    private final RemoteClientStorage clientStorage = new RemoteClientStorage();
 
     // :: Constructor
 
@@ -106,6 +106,7 @@ public class RemoteApplicationSupport {
     public void postConstruct(RemoteApplication owner) {
         this.expireMoment = System.currentTimeMillis() + timeSpan.toMillis();
         this.dataSecurity = new RemoteDataSecurity(security);
+        this.clientStorage.init(this.dataSecurity);
         this.browserPresenter = new RemoteBrowserPresenter(owner);
         this.putView(this.browserPresenter.getView());
         this.browserPresenter.update();
@@ -115,28 +116,6 @@ public class RemoteApplicationSupport {
 
     public String getId() {
         return this.id;
-    }
-
-    // :: Response envelope
-
-    /**
-     * Enqueues a field to be included in the next WebSocket response JSON.
-     * Used for out-of-band data like access tokens.
-     */
-    public void addResponseField(String key, Object value) {
-        this.pendingResponseFields.add(Map.entry(key, value));
-    }
-
-    /**
-     * Emits an access token to the frontend for persistent storage.
-     * The token is ciphered for transport; an empty/null token signals
-     * the frontend to delete the stored token.
-     */
-    public void emitAccessToken(String token) {
-        var value = (token != null && !token.isEmpty())
-                ? this.dataSecurity.b64Cipher(token)
-                : "";
-        this.addResponseField("accessToken", value);
     }
 
     // :: Lifecycle
@@ -177,6 +156,12 @@ public class RemoteApplicationSupport {
 
     public RemoteDataSecurity getDataSecurity() {
         return dataSecurity;
+    }
+
+    // :: Client storage
+
+    public RemoteClientStorage getClientStorage() {
+        return clientStorage;
     }
 
     // :: Browser presenter
@@ -553,21 +538,25 @@ public class RemoteApplicationSupport {
                 json.name("requestId").value(requestId);
             }
 
-            // Drain pending envelope fields
-            Map.Entry<String, Object> field;
-            while ((field = this.pendingResponseFields.poll()) != null) {
-                json.name(field.getKey());
-                if (field.getValue() == null) {
-                    json.nullValue();
-                } else if (field.getValue() instanceof String s) {
-                    json.value(s);
-                } else if (field.getValue() instanceof Number n) {
-                    json.value(n);
-                } else if (field.getValue() instanceof Boolean b) {
-                    json.value(b);
-                } else {
-                    json.value(field.getValue().toString());
+            // Client storage deltas
+            var storageDelta = this.clientStorage.drainDeltas();
+            if (storageDelta != null) {
+                json.name("storage");
+                json.beginObject();
+                for (var scopeEntry : storageDelta.entrySet()) {
+                    json.name(scopeEntry.getKey());
+                    json.beginObject();
+                    for (var kv : scopeEntry.getValue().entrySet()) {
+                        json.name(kv.getKey());
+                        if (kv.getValue() == null) {
+                            json.nullValue();
+                        } else {
+                            json.value(kv.getValue());
+                        }
+                    }
+                    json.endObject();
                 }
+                json.endObject();
             }
 
             var currentFragment = host.getCubeApp().getFragment();

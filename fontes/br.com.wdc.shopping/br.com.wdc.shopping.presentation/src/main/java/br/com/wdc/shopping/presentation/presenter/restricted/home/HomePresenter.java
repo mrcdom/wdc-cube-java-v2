@@ -5,7 +5,6 @@ import java.util.function.Function;
 
 import br.com.wdc.framework.commons.function.ThrowingRunnable;
 import br.com.wdc.framework.commons.log.Log;
-import br.com.wdc.framework.commons.storage.ClientStorage;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.CubeSkeleton;
@@ -16,6 +15,7 @@ import br.com.wdc.shopping.domain.security.AuthenticationService;
 import br.com.wdc.shopping.presentation.PlaceAttributes;
 import br.com.wdc.shopping.presentation.PlaceParameters;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
+import br.com.wdc.shopping.presentation.StorageKeys;
 import br.com.wdc.shopping.presentation.exception.ProductNotFoundException;
 import br.com.wdc.shopping.presentation.presenter.Routes;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartManager;
@@ -230,14 +230,13 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
             this.app.setSubject(null);
             this.setContentView(null);
 
-            // Signal frontend to forget persistent token
-            this.app.emitAccessToken("");
+            // Remover token persistente do storage seguro
+            this.app.clientPersistentStore().secure().remove(StorageKeys.AUTH_TOKEN);
 
             // Logout via AuthenticationService (limpa tokens do ClientStorage)
             var authService = AuthenticationService.BEAN.get();
             if (authService != null) {
-                var storage = ClientStorage.BEAN.get();
-                var refreshToken = storage != null ? storage.get("auth.refreshToken") : null;
+                var refreshToken = this.app.clientPersistentStore().secure().get(StorageKeys.AUTH_REFRESH_TOKEN);
                 authService.logout(refreshToken);
             }
 

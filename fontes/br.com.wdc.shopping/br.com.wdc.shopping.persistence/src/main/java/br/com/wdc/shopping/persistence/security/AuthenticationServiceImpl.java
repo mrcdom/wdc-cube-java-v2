@@ -7,6 +7,7 @@ import java.time.Duration;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
+import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.shopping.domain.criteria.UserCriteria;
 import br.com.wdc.shopping.domain.model.User;
@@ -37,6 +38,16 @@ public final class AuthenticationServiceImpl implements AuthenticationService {
 		this.rawUserRepo = rawUserRepo;
 		this.cache = new AccessContextCache(jwtSecret);
 		this.nonceStore = new NonceStore();
+
+		// Agenda limpeza periódica de sessões e nonces expirados.
+		// Intervalo de 1h é suficiente: refresh TTL é 7 dias, nonce TTL é 5 min.
+		var scheduler = ScheduledExecutor.BEAN.get();
+		if (scheduler != null) {
+			scheduler.scheduleAtFixedRate(() -> {
+				cache.evictExpired();
+				nonceStore.evictExpired();
+			}, Duration.ofMinutes(10), Duration.ofHours(1));
+		}
 	}
 
 	@Override

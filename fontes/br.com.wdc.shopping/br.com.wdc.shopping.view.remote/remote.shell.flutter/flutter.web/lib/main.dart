@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_commons/flutter_commons.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 
-void main() {
+import 'encrypted_web_storage.dart';
+
+void main() async {
   // Disable Flutter's internal URL management — we handle navigation ourselves
   setUrlStrategy(null);
 
@@ -15,9 +17,36 @@ void main() {
   final protocol = web.window.location.protocol == 'http:' ? 'ws://' : 'wss://';
   final baseWsUrl = '$protocol${web.window.location.host}';
 
+  // syncNamespace '~rf:' qualifies keys for WebSocket sync and isolates this
+  // shell's data from other shells sharing the same origin.
+  // Stored as '~rf:key' in localStorage; 'all()' strips the namespace.
+  const syncNamespace = '~rf:';
+  final secureStorage = EncryptedWebStorage(syncNamespace);
+  await secureStorage.initialize();
+  final persistentStorage = DelegateClientStorage(
+    get: (key) => web.window.localStorage.getItem('$syncNamespace$key'),
+    set: (key, value) =>
+        web.window.localStorage.setItem('$syncNamespace$key', value),
+    remove: (key) => web.window.localStorage.removeItem('$syncNamespace$key'),
+    all: () {
+      final result = <String, String>{};
+      final ls = web.window.localStorage;
+      for (var i = 0; i < ls.length; i++) {
+        final rawKey = ls.key(i);
+        if (rawKey == null || !rawKey.startsWith(syncNamespace)) continue;
+        final shortKey = rawKey.substring(syncNamespace.length);
+        final v = ls.getItem(rawKey);
+        if (v != null) result[shortKey] = v;
+      }
+      return result;
+    },
+    secureFactory: () => secureStorage,
+  );
+
   final coordinator = ViewStateCoordinator(
     CoordinatorConfig(
       appId: appId,
+      persistentStorage: persistentStorage,
       securityKey: appSKey,
       baseWebSocketUrl: baseWsUrl,
       onSetCookie: (name, value) {

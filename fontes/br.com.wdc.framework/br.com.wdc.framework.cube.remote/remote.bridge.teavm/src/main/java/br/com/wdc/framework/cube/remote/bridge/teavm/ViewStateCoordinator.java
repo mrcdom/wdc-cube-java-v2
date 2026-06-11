@@ -28,10 +28,21 @@ import br.com.wdc.framework.cube.remote.bridge.teavm.interop.WebCrypto;
  */
 public class ViewStateCoordinator {
 
-    public static final ViewStateCoordinator INSTANCE = new ViewStateCoordinator();
+    public static ViewStateCoordinator INSTANCE;
+
+    /**
+     * Configures and creates the singleton. Must be called once by the shell
+     * before any other use, passing the sync namespace (e.g. {@code "~rt:"}).
+     */
+    public static void configure(String syncNamespace) {
+        INSTANCE = new ViewStateCoordinator(syncNamespace);
+    }
 
     public static final String BROWSER_VID = "7b32e816a191";
     public static final String BROWSER_VSID = BROWSER_VID + ":0";
+
+    /** localStorage key used to persist the last visited path for native shell restore. */
+    private static final String STORAGE_KEY_INTENT = "session.intent";
 
     // -- Public fields --
 
@@ -39,6 +50,11 @@ public class ViewStateCoordinator {
     public final Map<String, ViewScope> viewMap = new LinkedHashMap<>();
     public boolean isConnected = false;
     public String path = "";
+
+    /** Session-scoped storage: in-memory, lives while the tab is open. */
+    public final ClientStorage sessionStorage;
+    /** Persistent-scoped storage: backed by localStorage, survives page reload. */
+    public final ClientStorage persistentStorage;
 
     public final FlushRequestContext contextExchanger;
     public final ReconnectController reconnectController;
@@ -51,7 +67,7 @@ public class ViewStateCoordinator {
     private Map<String, Object> formMap = new LinkedHashMap<>();
     private String baseWebSocketUrl = "";
 
-    private ViewStateCoordinator() {
+    private ViewStateCoordinator(String syncNamespace) {
         viewMap.put(BROWSER_VSID, new ViewScope(BROWSER_VSID));
 
         String appIdFromCookie = Cookies.get("app_id");
@@ -69,6 +85,13 @@ public class ViewStateCoordinator {
             }
         }
         this.id = appId;
+
+        // syncNamespace (e.g. '~rt:') qualifies keys for WebSocket sync and isolates
+        // the shell's data from other shells on the same origin.
+        EncryptedLocalStorage.configure(syncNamespace);
+        this.sessionStorage = new ClientStorage.SessionStorageClientStorage(syncNamespace, () -> EncryptedLocalStorage.INSTANCE);
+        this.persistentStorage = new ClientStorage.LocalStorageClientStorage(
+                syncNamespace, () -> EncryptedLocalStorage.INSTANCE);
 
         String protocol = getLocationProtocol();
         String wsProtocol = "https:".equals(protocol) ? "wss://" : "ws://";
@@ -98,13 +121,121 @@ public class ViewStateCoordinator {
         Window.current().addEventListener("popstate", evt -> onPopState());
 
         String hash = getLocationHash();
-        path = hash.length() > 1 ? hash.substring(1) : "/";
+        if (hash.length() > 1) {
+            // Browser: hash survives F5 — use it directly.
+            path = hash.substring(1);
+        } else {
+            // Tauri native shell: WebView always starts fresh without a hash.
+            // Restore the last visited path from persistent storage so the user
+            // returns to the same screen after closing and reopening the app.
+            String saved = persistentStorage.get(STORAGE_KEY_INTENT);
+            path = (saved != null && !saved.isEmpty()) ? saved : "/";
+        }
         setFormField(BROWSER_VSID, "p.path", path);
         submit(BROWSER_VSID, -1);
     }
 
     public void assureContextExchangerIsConnected() {
         contextExchanger.open(reconnectController.url);
+    }
+
+    // -- Storage --
+
+    /**
+     * Builds the bootstrap {@code storage} map sent on WebSocket open.
+     * All values are ciphered asynchronously. Calls {@code onDone} when complete
+     * (whether or not any storage was produced). If the cipher key is not ready,
+     * or all scopes are empty, calls {@code onDone} immediately.
+     */
+    public void buildBootstrapStorage(Runnable onDone) {
+        if (!SecurityBoot.isReady()) {
+            onDone.run();
+            return;
+        }
+
+        var sessionEntries    = sessionStorage.all();
+        var persistentEntries = persistentStorage.all();
+        var secureEntries     = persistentStorage.secure().all();
+
+        int total = sessionEntries.size() + persistentEntries.size() + secureEntries.size();
+        if (total == 0) {
+            onDone.run();
+            return;
+        }
+
+        var sessionMap    = new LinkedHashMap<String, String>();
+        var persistentMap = new LinkedHashMap<String, String>();
+        var secureMap     = new LinkedHashMap<String, String>();
+        int[] remaining   = {total};
+
+        Runnable checkDone = () -> {
+            remaining[0]--;
+            if (remaining[0] == 0) {
+                var out = new LinkedHashMap<String, Object>();
+                if (!sessionMap.isEmpty())    out.put("session",           sessionMap);
+                if (!persistentMap.isEmpty()) out.put("persistent",        persistentMap);
+                if (!secureMap.isEmpty())     out.put("persistent-secure", secureMap);
+                contextExchanger.pendingStorage = out.isEmpty() ? null : out;
+                onDone.run();
+            }
+        };
+
+        cipherEntries(sessionEntries,    sessionMap,    checkDone);
+        cipherEntries(persistentEntries, persistentMap, checkDone);
+        cipherEntries(secureEntries,     secureMap,     checkDone);
+    }
+
+    private static void cipherEntries(Map<String, String> entries, Map<String, String> out, Runnable checkDone) {
+        for (var entry : entries.entrySet()) {
+            var key   = entry.getKey();
+            var value = entry.getValue();
+            SecurityBoot.cipher(value, ciphered -> {
+                if (!ciphered.isEmpty()) {
+                    out.put(key, ciphered);
+                }
+                checkDone.run();
+            });
+        }
+    }
+
+    /**
+     * Applies a storage delta received from the server.
+     * Null/empty values mean removal; non-empty values are deciphered and stored.
+     */
+    @SuppressWarnings("unchecked")
+    public void applyStorageDelta(Map<String, Object> delta) {
+        applyScope((Map<String, Object>) delta.get("session"),           sessionStorage);
+        applyScope((Map<String, Object>) delta.get("persistent"),        persistentStorage);
+        applyScope((Map<String, Object>) delta.get("persistent-secure"), persistentStorage.secure());
+    }
+
+    private static void applyScope(Map<String, Object> scope, ClientStorage storage) {
+        if (scope == null) return;
+        for (var entry : scope.entrySet()) {
+            var key     = entry.getKey();
+            var ciphered = entry.getValue();
+            if (!(ciphered instanceof String s) || s.isEmpty()) {
+                storage.remove(key);
+            } else {
+                SecurityBoot.decipher(s, plaintext -> {
+                    if (!plaintext.isEmpty()) {
+                        storage.set(key, plaintext);
+                    }
+                });
+            }
+        }
+    }
+
+    /**
+     * Persists the current navigation path to {@link #persistentStorage} so that
+     * native shells (Tauri desktop/mobile) can restore it on next launch.
+     * <p>
+     * Login paths are intentionally excluded — the server will redirect there
+     * automatically if the session is not valid.
+     */
+    void persistUri(String u) {
+        if (u == null || u.isEmpty() || u.startsWith("/login")) return;
+        persistentStorage.set(STORAGE_KEY_INTENT, u);
     }
 
     // -- View state application --

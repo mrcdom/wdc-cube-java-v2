@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.log.Log;
+import br.com.wdc.framework.commons.storage.ClientStorage;
 
 public abstract class CubeApplication {
     
@@ -108,6 +109,12 @@ public abstract class CubeApplication {
 	public abstract CubePlace getRootPlace();
 
 	public abstract void updateHistory();
+
+	/** Storage de sessão — in-memory, vive enquanto a instância de app estiver ativa. */
+	public abstract ClientStorage clientSessionStore();
+
+	/** Storage persistente — sobrevive a reinicializações; chame {@code .secure()} para backing seguro. */
+	public abstract ClientStorage clientPersistentStore();
 	
 	protected abstract Map<Integer, CubePresenter> createPresenterMap();
 

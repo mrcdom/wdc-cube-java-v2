@@ -44,15 +44,15 @@ public class RestAuthenticationService implements AuthenticationService {
 	 * @return resultado do refresh, ou {@code null} se não houver sessão salva ou o refresh falhar
 	 */
 	public AuthResult tryRestore() {
-		var savedRefreshToken = storage.get(KEY_REFRESH_TOKEN);
+		var savedRefreshToken = storage.secure().get(KEY_REFRESH_TOKEN);
 		if (savedRefreshToken == null) {
 			return null;
 		}
 
 		var result = refresh(savedRefreshToken);
 		if (result == null) {
-			storage.remove(KEY_ACCESS_TOKEN);
-			storage.remove(KEY_REFRESH_TOKEN);
+			storage.secure().remove(KEY_ACCESS_TOKEN);
+			storage.secure().remove(KEY_REFRESH_TOKEN);
 		}
 		return result;
 	}
@@ -106,9 +106,9 @@ public class RestAuthenticationService implements AuthenticationService {
 				result.publicKey(),
 				result.expiresAt().getEpochSecond());
 
-		// Persiste tokens para restauração futura
-		storage.set(KEY_ACCESS_TOKEN, result.accessToken());
-		storage.set(KEY_REFRESH_TOKEN, result.refreshToken());
+		// Persiste tokens no storage seguro (AES-GCM) para restauração futura
+		storage.secure().set(KEY_ACCESS_TOKEN, result.accessToken());
+		storage.secure().set(KEY_REFRESH_TOKEN, result.refreshToken());
 
 		return result;
 	}
@@ -142,47 +142,59 @@ public class RestAuthenticationService implements AuthenticationService {
 				result.publicKey(),
 				result.expiresAt().getEpochSecond());
 
-		// Atualiza tokens no storage
-		storage.set(KEY_ACCESS_TOKEN, result.accessToken());
-		storage.set(KEY_REFRESH_TOKEN, result.refreshToken());
+		// Atualiza tokens no storage seguro (AES-GCM)
+		storage.secure().set(KEY_ACCESS_TOKEN, result.accessToken());
+		storage.secure().set(KEY_REFRESH_TOKEN, result.refreshToken());
 
 		return result;
 	}
 
 	@Override
 	public void logout(String refreshToken) {
-		if (refreshToken == null) {
-			return;
-		}
-		try {
-			var writer = new JsonStreamWriter();
-			writer.beginObject();
-			writer.name("refreshToken").value(refreshToken);
-			writer.endObject();
-			transport.postJsonPublic("/api/auth/logout", writer.result());
-		} catch (Exception ignored) {
-			// Ignora erros de rede no logout
+		if (refreshToken != null) {
+			try {
+				var writer = new JsonStreamWriter();
+				writer.beginObject();
+				writer.name("refreshToken").value(refreshToken);
+				writer.endObject();
+				transport.postJsonPublic("/api/auth/logout", writer.result());
+			} catch (Exception ignored) {
+				// Ignora erros de rede no logout
+			}
 		}
 		authClient.clearTokens();
 
-		// Limpa tokens do storage
-		storage.remove(KEY_ACCESS_TOKEN);
-		storage.remove(KEY_REFRESH_TOKEN);
+		// Limpa tokens do storage — incondicional, independente do refreshToken
+		storage.secure().remove(KEY_ACCESS_TOKEN);
+		storage.secure().remove(KEY_REFRESH_TOKEN);
 	}
 
 	@Override
 	public SecurityContext resolveToken(String jwtToken) {
-		throw new UnsupportedOperationException("resolveToken is server-side only; REST clients use refresh tokens");
+		// REST clients do not resolve JWT locally — SecurityContext is managed
+		// server-side. Return null so callers handle the absent context gracefully.
+		return null;
 	}
 
 	@Override
 	public String createPersistentToken(Long userId, String userName) {
-		throw new UnsupportedOperationException("createPersistentToken is server-side only; requires HMAC secret");
+		// For REST clients the persistent token IS the refresh token, which was
+		// already stored in storage.secure() during login(). Return it directly.
+		return storage.secure().get(KEY_REFRESH_TOKEN);
 	}
 
 	@Override
 	public AuthResult loginWithPersistentToken(String persistentToken) {
-		throw new UnsupportedOperationException("loginWithPersistentToken is server-side only; REST clients use tryRestore()");
+		// For REST clients the "persistent token" stored by LoginPresenter is the
+		// refresh token. Delegate to refresh() to obtain a fresh access token.
+		var result = refresh(persistentToken);
+		// refresh() already saves the NEW refresh token under KEY_REFRESH_TOKEN.
+		// Also update the persistent-token entry so the next auto-login works
+		// (servers rotate refresh tokens on every use).
+		if (result != null) {
+			storage.secure().set("auth.token", storage.secure().get(KEY_REFRESH_TOKEN));
+		}
+		return result;
 	}
 
 	private static AuthResult parseAuthResult(String responseJson) {

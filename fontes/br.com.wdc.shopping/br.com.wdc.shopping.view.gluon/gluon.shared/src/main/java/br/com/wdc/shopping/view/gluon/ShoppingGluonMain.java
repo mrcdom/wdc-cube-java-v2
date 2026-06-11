@@ -8,7 +8,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 import br.com.wdc.framework.commons.log.Log;
-import br.com.wdc.framework.commons.storage.ClientStorage;
 import br.com.wdc.framework.commons.storage.PreferencesClientStorage;
 import br.com.wdc.shopping.domain.ShoppingConfig;
 import br.com.wdc.shopping.domain.config.AppConfig;
@@ -74,7 +73,6 @@ public class ShoppingGluonMain extends Application {
 
         var apiUrl = config.get("api.url", DEFAULT_API_URL);
         var storage = new PreferencesClientStorage(ShoppingGluonMain.class);
-        ClientStorage.BEAN.set(storage);
         RestRepositoryBootstrap.initialize(new OkHttpTransport(apiUrl), storage);
 
         LOG.info("Backend initialized with REST client → {}", apiUrl);
@@ -101,7 +99,20 @@ public class ShoppingGluonMain extends Application {
         primaryStage.show();
 
         this.app.start();
-        Routes.root(this.app);
+
+        // Ensure Routes.Place enum is class-loaded so all GoActions are registered
+        // before any navigation (required when bypassing Routes.root below).
+        Routes.Place.values();
+
+        // Read saved intent BEFORE any navigation — Routes.root() would call
+        // updateHistory() internally and overwrite the persisted value.
+        var savedIntent = this.app.clientPersistentStore().get("session.intent");
+        if (savedIntent != null && !savedIntent.isBlank() && !savedIntent.startsWith("login")) {
+            // Navigate directly; ROOT/RESTRICTED steps will run tryAutoLogin internally.
+            this.app.go(savedIntent);
+        } else {
+            Routes.root(this.app);
+        }
     }
 
     @Override

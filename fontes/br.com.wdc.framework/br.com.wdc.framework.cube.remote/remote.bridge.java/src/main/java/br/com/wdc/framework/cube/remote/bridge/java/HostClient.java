@@ -9,6 +9,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -23,6 +24,8 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.ToNumberPolicy;
 import com.google.gson.reflect.TypeToken;
 
+import br.com.wdc.framework.commons.storage.ClientStorage;
+import br.com.wdc.framework.commons.storage.InMemoryClientStorage;
 import br.com.wdc.framework.cube.remote.bridge.java.model.HostResponse;
 import br.com.wdc.framework.cube.remote.bridge.java.model.SecretContext;
 import br.com.wdc.framework.cube.remote.bridge.java.model.ViewStateMap;
@@ -78,13 +81,18 @@ public final class HostClient implements AutoCloseable {
     private final SecretContext secret;
     private final HostClientSession session;
     private final ViewStateMap states;
+    private final ClientStorage sessionStorage;
+    private final ClientStorage persistentStorage;
     private final AtomicLong requestCounter = new AtomicLong(0);
 
-    private HostClient(String serverUrl, SecretContext secret, HostClientSession session, ViewStateMap states) {
+    private HostClient(String serverUrl, SecretContext secret, HostClientSession session,
+                       ViewStateMap states, ClientStorage sessionStorage, ClientStorage persistentStorage) {
         this.serverUrl = serverUrl;
         this.secret = secret;
         this.session = session;
         this.states = states;
+        this.sessionStorage = sessionStorage;
+        this.persistentStorage = persistentStorage;
     }
 
     // :: Factory
@@ -105,6 +113,20 @@ public final class HostClient implements AutoCloseable {
      * @throws InterruptedException if interrupted during connection
      */
     public static HostClient connect(String serverUrl) throws IOException, InterruptedException {
+        return connect(serverUrl, new InMemoryClientStorage());
+    }
+
+    /**
+     * Connects to the Host, sending bootstrap storage from the given {@link ClientStorage}.
+     * The storage entries (persistent + secure) are ciphered and sent in the init message
+     * so the server can restore the user's session (auto-login via persistent token).
+     *
+     * @param serverUrl          base URL of the Host server
+     * @param persistentStorage  storage to bootstrap from (may be {@code null})
+     * @throws IOException          if the HTTP request fails
+     * @throws InterruptedException if interrupted during connection
+     */
+    public static HostClient connect(String serverUrl, ClientStorage persistentStorage) throws IOException, InterruptedException {
         LOG.info("Connecting to {}", serverUrl);
 
         // 1. Session init
@@ -137,10 +159,19 @@ public final class HostClient implements AutoCloseable {
         Map<String, Object> initMsg = new HashMap<>();
         initMsg.put("secret", secret.signature());
         initMsg.put("event", List.of());
+
+        // Bootstrap storage: send persistent + secure entries ciphered
+        if (persistentStorage != null) {
+            var storageMap = buildBootstrapStorage(persistentStorage, secret);
+            if (!storageMap.isEmpty()) {
+                initMsg.put("storage", storageMap);
+            }
+        }
+
         clientSession.send(GSON.toJson(initMsg));
 
         LOG.info("Connected and init message sent");
-        return new HostClient(serverUrl, secret, clientSession, sharedStates);
+        return new HostClient(serverUrl, secret, clientSession, sharedStates, new InMemoryClientStorage(), persistentStorage);
     }
 
     // :: Navigation
@@ -385,6 +416,23 @@ public final class HostClient implements AutoCloseable {
         return secret;
     }
 
+    /**
+     * Returns the session-scoped store for this connection.
+     * Always backed by an {@link InMemoryClientStorage} — lives for the duration of the connection.
+     */
+    public ClientStorage clientSessionStore() {
+        return sessionStorage;
+    }
+
+    /**
+     * Returns the persistent-scoped store for this connection.
+     * When created via {@link #connect(String)} the default backing is {@link InMemoryClientStorage}.
+     * Pass a custom {@link ClientStorage} to {@link #connect(String, ClientStorage)} to use real persistence.
+     */
+    public ClientStorage clientPersistentStore() {
+        return persistentStorage;
+    }
+
     // :: Dev utilities
 
     /**
@@ -409,6 +457,56 @@ public final class HostClient implements AutoCloseable {
                     "DB reset failed with HTTP " + resp.statusCode() + ": " + resp.body());
         }
         LOG.info("DB reset completed");
+    }
+
+    // :: Storage sync
+
+    /**
+     * Applies a storage delta received from the server.
+     * Values are deciphered; a {@code null}/empty value means removal.
+     * Call this after each {@link #awaitResponse()} / {@link #awaitResponseFor(long)}.
+     */
+    @SuppressWarnings("unchecked")
+    public void applyStorageDelta(HostResponse response) {
+        var delta = response.storageDelta();
+        if (delta == null || persistentStorage == null) return;
+
+        applyScope((Map<String, Object>) delta.get("persistent"), persistentStorage);
+        applyScope((Map<String, Object>) delta.get("persistent-secure"), persistentStorage.secure());
+    }
+
+    @SuppressWarnings("unchecked")
+    private void applyScope(Map<String, Object> scope, ClientStorage storage) {
+        if (scope == null) return;
+        for (var entry : scope.entrySet()) {
+            var key = entry.getKey();
+            var ciphered = entry.getValue();
+            if (!(ciphered instanceof String s) || s.isEmpty()) {
+                storage.remove(key);
+            } else {
+                storage.set(key, secret.decipher(s));
+            }
+        }
+    }
+
+    private static Map<String, Object> buildBootstrapStorage(ClientStorage storage, SecretContext secret) {
+        var result = new LinkedHashMap<String, Object>();
+
+        var persistentEntries = storage.all();
+        if (!persistentEntries.isEmpty()) {
+            var map = new LinkedHashMap<String, String>();
+            persistentEntries.forEach((k, v) -> map.put(k, secret.encipher(v)));
+            result.put("persistent", map);
+        }
+
+        var secureEntries = storage.secure().all();
+        if (!secureEntries.isEmpty()) {
+            var map = new LinkedHashMap<String, String>();
+            secureEntries.forEach((k, v) -> map.put(k, secret.encipher(v)));
+            result.put("persistent-secure", map);
+        }
+
+        return result;
     }
 
     // :: Lifecycle

@@ -26,6 +26,7 @@ public final class SecurityBoot {
     private static Uint8Array aesKey;
     private static JSObject aesIv;
     private static boolean ready = false;
+    private static Runnable pendingOnReadyCallback;
 
     private SecurityBoot() {
     }
@@ -42,6 +43,19 @@ public final class SecurityBoot {
      */
     public static boolean isReady() {
         return ready;
+    }
+
+    /**
+     * Calls {@code callback} immediately if the AES key is already derived,
+     * or defers the call until derivation completes.
+     * Only one pending callback is supported (last one wins).
+     */
+    public static void onReady(Runnable callback) {
+        if (ready) {
+            callback.run();
+        } else {
+            pendingOnReadyCallback = callback;
+        }
     }
 
     /**
@@ -110,6 +124,18 @@ public final class SecurityBoot {
         WebCrypto.encrypt(text, aesKey, aesIv, callback);
     }
 
+    /**
+     * Decrypts a base64-encoded AES-GCM ciphertext. Calls back with the plaintext, or empty string on failure.
+     */
+    public static void decipher(String b64Ciphered, JsStringConsumer callback) {
+        if (!ready || aesKey == null || aesIv == null) {
+            Console.error("[SecurityBoot] AES key not yet available");
+            callback.accept("");
+            return;
+        }
+        WebCrypto.decrypt(b64Ciphered, aesKey, aesIv, callback);
+    }
+
     // -- Private helpers --
 
     private static void transferAppId() {
@@ -129,6 +155,11 @@ public final class SecurityBoot {
         aesIv = iv;
         ready = true;
         Console.log("[SecurityBoot] AES-GCM key derived");
+        if (pendingOnReadyCallback != null) {
+            var cb = pendingOnReadyCallback;
+            pendingOnReadyCallback = null;
+            cb.run();
+        }
     }
 
     private static String base64UrlEncode(byte[] buf) {
