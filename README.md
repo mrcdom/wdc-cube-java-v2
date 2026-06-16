@@ -23,7 +23,7 @@ graph TD
     subgraph Core["Camadas Compartilhadas"]
         P["Presentation<br/><small>Presenters + ViewStates + Navegação</small>"]
         SEC["Security · RBAC<br/><small>HMAC + JWT + Secured Repos</small>"]
-        PER["Persistence<br/><small>Repositories + Command Pattern SQL</small>"]
+        PER["Persistence<br/><small>Repositories + jOOQ (SQL type-safe)</small>"]
         DOM["Domain<br/><small>Modelos + Contratos + Config</small>"]
         DB[("H2 Database")]
     end
@@ -70,7 +70,7 @@ graph TD
 
     subgraph Shopping["br.com.wdc.shopping"]
         domain["domain<br/><small>Modelos, repositórios, critérios</small>"]
-        persistence["persistence<br/><small>H2 + JDBI + Command Pattern</small>"]
+        persistence["persistence<br/><small>H2 + jOOQ + classes geradas</small>"]
         persistRest["persistence.rest<br/><small>REST controllers (Javalin)</small>"]
         persistClient["persistence.client<br/><small>REST client (OkHttp + Gson)</small>"]
         presentation["presentation<br/><small>Presenters, ViewStates, navegação</small>"]
@@ -108,7 +108,7 @@ graph TD
 | Módulo | Descrição |
 |--------|-----------|
 | **domain** | Modelos de domínio (`User`, `Product`, `Purchase`, `PurchaseItem`), interfaces de repositório, classes de critérios para consultas, hierarquia de exceções (`BusinessException`), contratos de segurança (`SecurityContext`, `AuthenticationService`, `Role`) |
-| **persistence** | Implementação de persistência com Command Pattern SQL (`InsertRowUserCmd`, `FetchProductsCmd`, etc.), `BaseRepository`, `BaseCommand`, DSL SQL (`SqlKeywords`), scripts DDL para H2, **decorators de segurança** (`SecuredUserRepository`, etc.) que verificam permissões RBAC |
+| **persistence** | Implementação de persistência com **jOOQ** (DSL type-safe, classes geradas em `persistence.jooq.*` a partir do schema H2), `*RepositoryImpl` que obtêm o `DSLContext` via `JooqDSLContext.BEAN`, helpers de query JSON do framework (`JsonQuery`, `JsonQueryBuilder`, `JsonChildQueryBuilder`), `RepositoryBootstrap` para wiring. A restrição de escopo por `userId` (RBAC) é aplicada nas queries via critérios |
 | **presentation** | `ShoppingApplication` com proxy delegates de SecurityContext, hierarquia de presenters (Root → Login \| Home → Products/Purchases/Product/Cart/Receipt), ViewStates serializáveis, services com injeção via construtor, `CartManager`, sistema de rotas e navegação |
 
 ### Shopping — Frontend (View Implementations)
@@ -334,7 +334,7 @@ Modelo **allow-wins**: permissão efetiva = união de todos os papéis do usuár
 | Camada | Componente | Responsabilidade |
 |--------|-----------|-----------------|
 | **HTTP** | `SecurityFilter` | Valida Bearer JWT, popula `SecurityContext.CURRENT` |
-| **Repositório** | `SecuredXxxRepository` | Verifica permissões, restringe escopo ao userId (non-admin) |
+| **Repositório** | `*RepositoryImpl` (jOOQ) | Restringe escopo ao `userId` via critérios para usuários non-admin |
 | **Apresentação** | `SecurityContextDelegate` (proxy) | Propaga `SecurityContext` para a thread corrente em cada chamada |
 | **Transporte** | `AppSecurity` (React) | RSA + PBKDF2 + AES-GCM para dados sensíveis via WebSocket |
 
@@ -369,7 +369,7 @@ Cada presenter possui um **ViewState** serializável que é transmitido ao front
 
 | Tipo | Padrão | Exemplo |
 |------|--------|---------|
-| Comando SQL | `Verbo` + `Entidade` + `Cmd` | `InsertRowUserCmd` |
+| Tabela jOOQ (gerada) | `En` + `Entidade` | `EnProduct` / `EN_PRODUCT` |
 | View State | `*ViewState` | `ProductViewState` |
 | View Impl | `*ViewImpl` | `RootReactViewImpl` |
 | Presenter | `*Presenter` | `CartPresenter` |
@@ -391,7 +391,7 @@ Cada presenter possui um **ViewState** serializável que é transmitido ao front
 | Multiplataforma | Gluon Mobile + GraalVM Native Image | 1.0.25 |
 | Mobile/Desktop/Web | Flutter + Dart | 3.x |
 | Banco de dados | H2 | 2.4.240 |
-| Acesso a dados | JDBI | 3.52.1 |
+| Acesso a dados | jOOQ | 3.19.16 |
 | Serialização | Gson | 2.13.2 |
 | Logging | SLF4J + Logback | 2.0.16 / 1.5.32 |
 | Testes | JUnit | 4.13.2 |
