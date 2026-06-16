@@ -12,10 +12,10 @@ import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.shopping.domain.criteria.UserCriteria;
 import br.com.wdc.shopping.domain.model.User;
 import br.com.wdc.shopping.domain.repositories.UserRepository;
-import br.com.wdc.shopping.domain.security.AuthenticationService;
+import br.com.wdc.framework.domain.security.AuthenticationService;
 import br.com.wdc.shopping.domain.security.Role;
-import br.com.wdc.shopping.domain.security.SecurityContext;
-import br.com.wdc.shopping.domain.utils.ProjectionValues;
+import br.com.wdc.framework.domain.security.SecurityContext;
+import br.com.wdc.framework.domain.projection.ProjectionValues;
 
 /**
  * Implementação de {@link AuthenticationService}.

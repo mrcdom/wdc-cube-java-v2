@@ -6,9 +6,9 @@ import br.com.wdc.framework.commons.http.HttpTransport;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.framework.commons.serialization.JsonStreamReader;
 import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
-import br.com.wdc.shopping.domain.codec.ModelCodec;
-import br.com.wdc.shopping.domain.pagination.Page;
-import br.com.wdc.shopping.domain.repositories.Repository;
+import br.com.wdc.framework.domain.codec.ModelCodec;
+import br.com.wdc.framework.domain.pagination.Page;
+import br.com.wdc.framework.domain.repository.Repository;
 
 /**
  * Implementação genérica de repositório HTTP que delega serialização ao {@link ModelCodec}.

@@ -16,9 +16,9 @@ import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.sql.SqlDataSource;
 import br.com.wdc.framework.commons.sql.SqlDataSourceDelegate;
 import br.com.wdc.shopping.domain.ShoppingConfig;
-import br.com.wdc.shopping.domain.config.AppConfig;
-import br.com.wdc.shopping.domain.security.CryptoProvider;
-import br.com.wdc.shopping.domain.security.JceCryptoProvider;
+import br.com.wdc.framework.domain.config.AppConfig;
+import br.com.wdc.framework.domain.security.CryptoProvider;
+import br.com.wdc.framework.domain.security.JceCryptoProvider;
 import br.com.wdc.shopping.persistence.RepositoryBootstrap;
 import br.com.wdc.shopping.persistence.concurrent.ScheduledExecutorAdapter;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
@@ -41,7 +41,7 @@ public class BusinessContext {
 
     public void configure() {
         try {
-            var config = AppConfig.load();
+            var config = ShoppingConfig.loadConfig();
             ShoppingConfig.Internals.configure(config);
 
             // CryptoProvider é necessário para PasswordUtil (usado pela presentation layer no login)

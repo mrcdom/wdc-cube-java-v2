@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.domain.exception;
+package br.com.wdc.framework.domain.exception;
 
 public class BusinessException extends RuntimeException {
 

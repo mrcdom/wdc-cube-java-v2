@@ -1,5 +1,7 @@
 package br.com.wdc.shopping.domain.codec;
 
+import br.com.wdc.framework.domain.codec.ModelCodec;
+
 import br.com.wdc.framework.commons.serialization.EntityGraph;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectInput;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
@@ -9,7 +11,7 @@ import br.com.wdc.shopping.domain.criteria.PurchaseItemCriteria;
 import br.com.wdc.shopping.domain.model.Product;
 import br.com.wdc.shopping.domain.model.Purchase;
 import br.com.wdc.shopping.domain.model.PurchaseItem;
-import br.com.wdc.shopping.domain.utils.ProjectionValues;
+import br.com.wdc.framework.domain.projection.ProjectionValues;
 
 public class PurchaseItemModelCodec implements ModelCodec<PurchaseItem, PurchaseItemCriteria> {
 

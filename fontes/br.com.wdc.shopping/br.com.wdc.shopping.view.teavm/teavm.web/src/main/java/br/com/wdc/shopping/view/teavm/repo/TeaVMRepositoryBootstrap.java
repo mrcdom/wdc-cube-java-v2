@@ -14,7 +14,7 @@ import br.com.wdc.shopping.domain.repositories.ProductRepository;
 import br.com.wdc.shopping.domain.repositories.PurchaseItemRepository;
 import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
 import br.com.wdc.shopping.domain.repositories.UserRepository;
-import br.com.wdc.shopping.domain.security.AuthenticationService;
+import br.com.wdc.framework.domain.security.AuthenticationService;
 
 /**
  * Bootstrap para TeaVM: registra repositórios usando os codecs unificados

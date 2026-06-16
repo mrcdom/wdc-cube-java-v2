@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.Optional;
 
 import br.com.wdc.shopping.domain.model.Product;
-import br.com.wdc.shopping.domain.utils.ProjectionValues;
+import br.com.wdc.framework.domain.projection.ProjectionValues;
 
 public class ProductInfo implements Serializable {
 

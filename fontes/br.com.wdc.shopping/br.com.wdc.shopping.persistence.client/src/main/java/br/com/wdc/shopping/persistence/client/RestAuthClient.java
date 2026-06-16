@@ -14,7 +14,7 @@ import br.com.wdc.framework.commons.http.HttpTransport;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.framework.commons.serialization.JsonStreamReader;
 import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
-import br.com.wdc.shopping.domain.exception.BusinessException;
+import br.com.wdc.framework.domain.exception.BusinessException;
 
 /**
  * Cliente REST para autenticação via API.

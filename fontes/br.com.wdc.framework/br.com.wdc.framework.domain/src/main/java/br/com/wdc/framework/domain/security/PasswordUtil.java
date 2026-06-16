@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.domain.security;
+package br.com.wdc.framework.domain.security;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;

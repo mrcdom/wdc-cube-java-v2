@@ -1,10 +1,10 @@
-package br.com.wdc.shopping.domain.repositories;
+package br.com.wdc.framework.domain.repository;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
-import br.com.wdc.shopping.domain.pagination.Page;
+import br.com.wdc.framework.domain.pagination.Page;
 
 /**
  * Contrato base de leitura para repositórios do SGS.

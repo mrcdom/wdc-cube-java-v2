@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.domain.pagination;
+package br.com.wdc.framework.domain.pagination;
 
 import java.util.List;
 

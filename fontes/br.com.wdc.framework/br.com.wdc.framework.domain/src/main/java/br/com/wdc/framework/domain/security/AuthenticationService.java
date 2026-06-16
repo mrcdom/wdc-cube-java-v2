@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.domain.security;
+package br.com.wdc.framework.domain.security;
 
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicReference;

@@ -1,6 +1,6 @@
 package br.com.wdc.shopping.presentation.presenter.open.login;
 
-import br.com.wdc.shopping.domain.security.SecurityContext;
+import br.com.wdc.framework.domain.security.SecurityContext;
 import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
 
 /**

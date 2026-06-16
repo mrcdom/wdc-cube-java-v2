@@ -22,7 +22,7 @@ import br.com.wdc.shopping.domain.model.User;
 import br.com.wdc.shopping.domain.repositories.ProductRepository;
 import br.com.wdc.shopping.domain.repositories.PurchaseItemRepository;
 import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
-import br.com.wdc.shopping.domain.utils.ProjectionValues;
+import br.com.wdc.framework.domain.projection.ProjectionValues;
 import br.com.wdc.shopping.domain.repositories.UserRepository;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginService;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelService;

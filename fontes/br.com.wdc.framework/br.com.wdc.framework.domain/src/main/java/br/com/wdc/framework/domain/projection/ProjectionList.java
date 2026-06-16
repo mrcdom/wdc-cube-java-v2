@@ -1,16 +1,16 @@
-package br.com.wdc.shopping.domain.utils;
+package br.com.wdc.framework.domain.projection;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 
 import br.com.wdc.framework.commons.util.HasCriteria;
 
-public class ProjectionSet<E> extends HashSet<E> implements HasCriteria {
+public class ProjectionList<E> extends ArrayList<E> implements HasCriteria {
 
-    private static final long serialVersionUID = 6928480631349456496L;
+    private static final long serialVersionUID = 8142609009973945555L;
 
     private transient Object criteria;
 
-    public ProjectionSet(E bean, Object criteria) {
+    public ProjectionList(E bean, Object criteria) {
         super(1);
         this.criteria = criteria;
         this.add(bean);

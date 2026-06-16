@@ -8,7 +8,7 @@ import br.com.wdc.shopping.domain.codec.ProductModelCodec;
 import br.com.wdc.shopping.domain.criteria.ProductCriteria;
 import br.com.wdc.shopping.domain.model.Product;
 import br.com.wdc.shopping.domain.repositories.ProductRepository;
-import br.com.wdc.shopping.domain.utils.ProjectionValues;
+import br.com.wdc.framework.domain.projection.ProjectionValues;
 import br.com.wdc.shopping.persistence.rest.doc.Doc;
 import br.com.wdc.shopping.persistence.rest.security.SecurityEnforcer;
 import io.javalin.config.JavalinConfig;

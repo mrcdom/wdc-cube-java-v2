@@ -18,7 +18,7 @@ import br.com.wdc.framework.cube.remote.RemoteAppSecurity;
 import br.com.wdc.framework.cube.remote.RemoteApplicationRegistry;
 import br.com.wdc.framework.cube.remote.RemoteHostModule;
 import br.com.wdc.shopping.domain.ShoppingConfig;
-import br.com.wdc.shopping.domain.config.AppConfig;
+import br.com.wdc.framework.domain.config.AppConfig;
 import io.javalin.config.JavalinConfig;
 
 import java.time.Duration;
@@ -68,7 +68,7 @@ public final class RemoteHostBootstrap {
      * Context paths are discovered from the frontend directory (work/frontend/).
      */
     public static void configure(JavalinConfig config) {
-        var appConfig = AppConfig.load();
+        var appConfig = ShoppingConfig.loadConfig();
 
         // Ensure [remote] keys exist in application.local.toml; if absent, write dev defaults and warn
         ensureRemoteSecurityKeys(appConfig);

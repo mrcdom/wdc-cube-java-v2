@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.domain.exception;
+package br.com.wdc.framework.domain.exception;
 
 /**
  * Lançada quando uma operação é negada por falta de permissão ou autenticação.

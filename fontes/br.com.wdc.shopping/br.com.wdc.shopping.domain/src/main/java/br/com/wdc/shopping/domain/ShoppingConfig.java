@@ -5,9 +5,15 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import br.com.wdc.shopping.domain.config.AppConfig;
+import br.com.wdc.framework.domain.config.AppConfig;
 
 public class ShoppingConfig {
+
+    /** System property consulted first for the config file location. */
+    private static final String CONFIG_FILE_PROPERTY = "shopping.config.file";
+
+    /** Default config path, relative to the working directory. */
+    private static final String DEFAULT_CONFIG_PATH = "config/application.toml";
 
     private static Path baseDir;
 
@@ -23,6 +29,14 @@ public class ShoppingConfig {
 
     private ShoppingConfig() {
         super();
+    }
+
+    /**
+     * Carrega a configuração da aplicação aplicando as convenções do Shopping
+     * (system property {@code shopping.config.file} → {@code config/application.toml}).
+     */
+    public static AppConfig loadConfig() {
+        return AppConfig.load(CONFIG_FILE_PROPERTY, DEFAULT_CONFIG_PATH);
     }
 
     public static final Path getBaseDir() {

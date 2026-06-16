@@ -4,7 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import br.com.wdc.framework.commons.codec.Base62;
-import br.com.wdc.shopping.domain.security.CryptoProvider;
+import br.com.wdc.framework.domain.security.CryptoProvider;
 
 /**
  * Assina e verifica fragments de URL usando HMAC-SHA256 truncado + Base62.

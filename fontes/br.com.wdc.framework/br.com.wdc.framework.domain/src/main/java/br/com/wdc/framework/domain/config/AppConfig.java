@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.domain.config;
+package br.com.wdc.framework.domain.config;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -12,10 +12,10 @@ import br.com.wdc.framework.commons.log.Log;
 /**
  * Application configuration loaded from a TOML file.
  * <p>
- * Resolution order for config file:
+ * Resolution order for the config file (see {@link #load(String, String)}):
  * <ol>
- * <li>System property: {@code shopping.config.file}</li>
- * <li>Default: {@code config/application.toml} relative to working directory</li>
+ * <li>System property whose key is provided by the application</li>
+ * <li>Default path provided by the application, relative to the working directory</li>
  * </ol>
  * <p>
  * If the file does not exist, the application fails to start.
@@ -29,8 +29,8 @@ public final class AppConfig {
 
     private static final Log LOG = Log.getLogger(AppConfig.class);
 
-    private static final String CONFIG_FILE_PROPERTY = "shopping.config.file";
-    private static final String DEFAULT_CONFIG_PATH = "config/application.toml";
+    /** Name of the optional, version-control-ignored override file loaded alongside the main config. */
+    private static final String LOCAL_OVERRIDE_FILE = "application.local.toml";
 
     private final Map<String, String> properties;
     private final Path configFilePath;
@@ -54,12 +54,19 @@ public final class AppConfig {
         return configFilePath.getParent();
     }
 
-    public static AppConfig load() {
-        var configPath = resolveConfigPath().toAbsolutePath().normalize();
+    /**
+     * Loads configuration from a TOML file.
+     *
+     * @param configFilePropertyKey system property consulted first for the config file path
+     * @param defaultConfigPath     fallback path (relative to the working directory) when the
+     *                              system property is absent
+     */
+    public static AppConfig load(String configFilePropertyKey, String defaultConfigPath) {
+        var configPath = resolveConfigPath(configFilePropertyKey, defaultConfigPath).toAbsolutePath().normalize();
         if (!Files.exists(configPath)) {
             throw new IllegalStateException(
                     "Configuration file not found: " + configPath
-                            + ". Create the file or set system property -D" + CONFIG_FILE_PROPERTY + "=<path>");
+                            + ". Create the file or set system property -D" + configFilePropertyKey + "=<path>");
         }
         LOG.info("Loading configuration from {}", configPath);
         try {
@@ -67,7 +74,7 @@ public final class AppConfig {
             var props = new LinkedHashMap<>(parseToml(content));
 
             // Load optional local override file (not tracked by version control)
-            var localPath = configPath.resolveSibling("application.local.toml");
+            var localPath = configPath.resolveSibling(LOCAL_OVERRIDE_FILE);
             if (Files.exists(localPath)) {
                 LOG.info("Loading local overrides from {}", localPath);
                 props.putAll(parseToml(Files.readString(localPath)));
@@ -115,12 +122,12 @@ public final class AppConfig {
         return "true".equalsIgnoreCase(value);
     }
 
-    private static Path resolveConfigPath() {
-        var configured = System.getProperty(CONFIG_FILE_PROPERTY);
+    private static Path resolveConfigPath(String configFilePropertyKey, String defaultConfigPath) {
+        var configured = System.getProperty(configFilePropertyKey);
         if (configured != null && !configured.isBlank()) {
             return Paths.get(configured);
         }
-        return Paths.get(DEFAULT_CONFIG_PATH);
+        return Paths.get(defaultConfigPath);
     }
 
     /**

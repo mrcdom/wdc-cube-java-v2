@@ -17,9 +17,9 @@ import br.com.wdc.framework.commons.log.Slf4jLogFactory;
 import br.com.wdc.framework.commons.sql.SqlDataSource;
 import br.com.wdc.framework.commons.sql.SqlDataSourceDelegate;
 import br.com.wdc.shopping.domain.ShoppingConfig;
-import br.com.wdc.shopping.domain.config.AppConfig;
-import br.com.wdc.shopping.domain.security.CryptoProvider;
-import br.com.wdc.shopping.domain.security.JceCryptoProvider;
+import br.com.wdc.framework.domain.config.AppConfig;
+import br.com.wdc.framework.domain.security.CryptoProvider;
+import br.com.wdc.framework.domain.security.JceCryptoProvider;
 import br.com.wdc.shopping.persistence.RepositoryBootstrap;
 import br.com.wdc.shopping.scripts.sgbd.DBCreate;
 
@@ -34,7 +34,7 @@ public class ShoppingVaadinMain {
 
     public static void main(String[] args) throws Exception {
 
-        var config = AppConfig.load();
+        var config = ShoppingConfig.loadConfig();
         ShoppingConfig.Internals.configure(config);
 
         CryptoProvider.BEAN.set(new JceCryptoProvider());

@@ -13,7 +13,7 @@ import br.com.wdc.shopping.domain.model.Purchase;
 import br.com.wdc.shopping.domain.model.User;
 import br.com.wdc.shopping.domain.repositories.PurchaseItemRepository;
 import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
-import br.com.wdc.shopping.domain.utils.ProjectionValues;
+import br.com.wdc.framework.domain.projection.ProjectionValues;
 import br.com.wdc.shopping.scripts.sgbd.DBReset;
 
 public abstract class AbstractPurchaseRepositoryTest {

@@ -1,8 +1,8 @@
 package br.com.wdc.shopping.persistence.rest.security;
 
-import br.com.wdc.shopping.domain.exception.AccessDeniedException;
-import br.com.wdc.shopping.domain.security.AuthenticationService;
-import br.com.wdc.shopping.domain.security.SecurityContext;
+import br.com.wdc.framework.domain.exception.AccessDeniedException;
+import br.com.wdc.framework.domain.security.AuthenticationService;
+import br.com.wdc.framework.domain.security.SecurityContext;
 
 /**
  * Utilitário de verificação de segurança para os endpoints REST.

@@ -11,7 +11,7 @@ import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.CubeViewSlot;
 import br.com.wdc.framework.cube.ViewState;
-import br.com.wdc.shopping.domain.exception.OfflineException;
+import br.com.wdc.framework.domain.exception.OfflineException;
 import br.com.wdc.shopping.presentation.PlaceAttributes;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.StorageKeys;

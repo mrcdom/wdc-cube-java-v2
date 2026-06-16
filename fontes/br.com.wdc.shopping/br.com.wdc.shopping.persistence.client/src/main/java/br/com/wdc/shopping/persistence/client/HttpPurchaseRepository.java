@@ -1,7 +1,7 @@
 package br.com.wdc.shopping.persistence.client;
 
 import br.com.wdc.framework.commons.http.HttpTransport;
-import br.com.wdc.shopping.domain.codec.ModelCodec;
+import br.com.wdc.framework.domain.codec.ModelCodec;
 import br.com.wdc.shopping.domain.criteria.PurchaseCriteria;
 import br.com.wdc.shopping.domain.model.Purchase;
 import br.com.wdc.shopping.domain.repositories.PurchaseRepository;

@@ -133,6 +133,11 @@
 			</dependency>
 			<dependency>
 				<groupId>br.com.wdc.framework</groupId>
+				<artifactId>br.com.wdc.framework.domain</artifactId>
+				<version>1.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>br.com.wdc.framework</groupId>
 				<artifactId>br.com.wdc.framework.jooq</artifactId>
 				<version>1.0.0</version>
 			</dependency>

@@ -5,7 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
-import br.com.wdc.shopping.domain.security.SecurityContext;
+import br.com.wdc.framework.domain.security.SecurityContext;
 
 /**
  * Cria proxies dinâmicos para repositórios que envolvem cada chamada com o SecurityContext.

@@ -12,7 +12,7 @@ import br.com.wdc.shopping.domain.repositories.ProductRepository;
 import br.com.wdc.shopping.domain.repositories.PurchaseItemRepository;
 import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
 import br.com.wdc.shopping.domain.repositories.UserRepository;
-import br.com.wdc.shopping.domain.security.SecurityContext;
+import br.com.wdc.framework.domain.security.SecurityContext;
 import br.com.wdc.shopping.presentation.function.GoAction;
 import br.com.wdc.shopping.presentation.presenter.RootPresenter;
 import br.com.wdc.shopping.presentation.presenter.Routes;

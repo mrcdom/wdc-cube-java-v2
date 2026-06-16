@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.domain.utils;
+package br.com.wdc.framework.domain.projection;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;

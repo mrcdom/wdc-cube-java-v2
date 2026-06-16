@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.domain.codec;
+package br.com.wdc.framework.domain.codec;
 
 import java.util.ArrayList;
 import java.util.List;

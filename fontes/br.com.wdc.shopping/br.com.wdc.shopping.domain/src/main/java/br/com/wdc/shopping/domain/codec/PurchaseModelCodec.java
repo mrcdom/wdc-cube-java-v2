@@ -1,5 +1,7 @@
 package br.com.wdc.shopping.domain.codec;
 
+import br.com.wdc.framework.domain.codec.ModelCodec;
+
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -14,7 +16,7 @@ import br.com.wdc.shopping.domain.criteria.PurchaseCriteria;
 import br.com.wdc.shopping.domain.model.Purchase;
 import br.com.wdc.shopping.domain.model.PurchaseItem;
 import br.com.wdc.shopping.domain.model.User;
-import br.com.wdc.shopping.domain.utils.ProjectionValues;
+import br.com.wdc.framework.domain.projection.ProjectionValues;
 
 public class PurchaseModelCodec implements ModelCodec<Purchase, PurchaseCriteria> {
 

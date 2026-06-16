@@ -1,6 +1,6 @@
 package br.com.wdc.shopping.persistence.repository;
 
-import static br.com.wdc.shopping.domain.repositories.Repository.changed;
+import static br.com.wdc.framework.domain.repository.Repository.changed;
 import static br.com.wdc.shopping.persistence.jooq.Sequences.SQ_PURCHASEITEM;
 import static br.com.wdc.shopping.persistence.jooq.tables.EnPurchase.EN_PURCHASE;
 import static br.com.wdc.shopping.persistence.jooq.tables.EnPurchaseitem.EN_PURCHASEITEM;

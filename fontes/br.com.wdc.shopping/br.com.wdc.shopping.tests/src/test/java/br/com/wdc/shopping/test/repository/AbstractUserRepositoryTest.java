@@ -9,7 +9,7 @@ import org.junit.Test;
 import br.com.wdc.shopping.domain.criteria.UserCriteria;
 import br.com.wdc.shopping.domain.model.User;
 import br.com.wdc.shopping.domain.repositories.UserRepository;
-import br.com.wdc.shopping.domain.utils.ProjectionValues;
+import br.com.wdc.framework.domain.projection.ProjectionValues;
 import br.com.wdc.shopping.scripts.sgbd.DBReset;
 
 public abstract class AbstractUserRepositoryTest {

@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import br.com.wdc.framework.domain.security.PermissionModel;
+
 /**
  * Papéis de acesso com permissões definidas em código.
  * <p>
@@ -76,14 +78,13 @@ public enum Role {
 	 * Verifica se o conjunto de permissões concede acesso à operação na entidade.
 	 */
 	public static boolean hasPermission(Set<String> permissions, String entity, String operation) {
-		return permissions.contains(entity + ":" + operation)
-				|| permissions.contains(entity + ":*");
+		return PermissionModel.grants(permissions, entity, operation);
 	}
 
 	/**
 	 * Verifica se as permissões incluem acesso irrestrito a dados de todos os usuários.
 	 */
 	public static boolean hasDataAll(Set<String> permissions) {
-		return permissions.contains("data:all");
+		return PermissionModel.hasDataAll(permissions);
 	}
 }

@@ -5,7 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.framework.commons.serialization.JsonStreamReader;
 import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
-import br.com.wdc.shopping.domain.security.AuthenticationService;
+import br.com.wdc.framework.domain.security.AuthenticationService;
 import br.com.wdc.shopping.persistence.rest.doc.Doc;
 import io.javalin.config.JavalinConfig;
 import io.javalin.http.Context;

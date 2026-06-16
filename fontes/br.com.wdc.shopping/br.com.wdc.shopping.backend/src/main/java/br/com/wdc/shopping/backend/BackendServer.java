@@ -12,7 +12,6 @@ import br.com.wdc.framework.commons.log.Slf4jLogFactory;
 
 import br.com.wdc.shopping.persistence.rest.RepositoryApiRoutes;
 import br.com.wdc.shopping.domain.ShoppingConfig;
-import br.com.wdc.shopping.domain.config.AppConfig;
 import br.com.wdc.shopping.backend.controller.DevDbResetController;
 import br.com.wdc.shopping.backend.controller.DevGcController;
 import br.com.wdc.shopping.backend.controller.DevHeapController;
@@ -272,7 +271,7 @@ public class BackendServer {
      * Entry point for the application.
      */
     public static void doMain(String[] args) {
-        var config = AppConfig.load();
+        var config = ShoppingConfig.loadConfig();
         int port = config.getInt("server.port", DEFAULT_PORT);
 
         // Parse port from command line arguments if provided (overrides config)

@@ -7,7 +7,8 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.Set;
 
-import br.com.wdc.shopping.domain.security.SecurityContext;
+import br.com.wdc.framework.domain.security.PermissionModel;
+import br.com.wdc.framework.domain.security.SecurityContext;
 
 /**
  * Implementação de {@link SecurityContext} para uma sessão autenticada.
@@ -75,12 +76,11 @@ public final class AccessContext implements SecurityContext {
 
 	@Override
 	public boolean hasPermission(String entity, String operation) {
-		return permissions.contains(entity + ":" + operation)
-				|| permissions.contains(entity + ":*");
+		return PermissionModel.grants(permissions, entity, operation);
 	}
 
 	@Override
 	public boolean hasDataAll() {
-		return permissions.contains("data:all");
+		return PermissionModel.hasDataAll(permissions);
 	}
 }
