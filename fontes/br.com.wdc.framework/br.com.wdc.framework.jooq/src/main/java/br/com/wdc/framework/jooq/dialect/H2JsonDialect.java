@@ -2,10 +2,11 @@ package br.com.wdc.framework.jooq.dialect;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.jooq.Field;
+import org.jooq.QueryPart;
 import org.jooq.impl.DSL;
 
 import br.com.wdc.framework.jooq.JsonDialect;
@@ -25,6 +26,12 @@ import br.com.wdc.framework.jooq.JsonFieldEntry;
  * }</pre>
  *
  * <p>Para Base64, requer a função {@code TO_BASE64} registrada via {@link #initialize(Connection)}.</p>
+ *
+ * <p>
+ * <b>Preservação de bind values:</b> os campos ({@link JsonFieldEntry#field()} e o elemento do array) são embutidos via
+ * placeholders {@code {N}} de template do jOOQ — nunca renderizados para string crua. Isso garante que subqueries
+ * correlacionadas com critérios filtrados tenham seus bind values rastreados e vinculados na posição correta pelo jOOQ.
+ * </p>
  */
 public final class H2JsonDialect implements JsonDialect {
 
@@ -48,27 +55,33 @@ public final class H2JsonDialect implements JsonDialect {
             return DSL.inline("{}");
         }
 
-        String body = entries.stream()
-                .map(e -> "KEY '" + escapeKey(e.key()) + "' VALUE " + valueExpr(e))
-                .collect(Collectors.joining(", "));
+        var sql = new StringBuilder("CAST(JSON_OBJECT(");
+        var args = new ArrayList<QueryPart>();
+        for (int i = 0; i < entries.size(); i++) {
+            if (i > 0) {
+                sql.append(", ");
+            }
+            var e = entries.get(i);
+            sql.append("KEY '").append(escapeKey(e.key())).append("' VALUE ").append(valueExpr(e, args));
+        }
+        sql.append(" ABSENT ON NULL) AS VARCHAR)");
 
-        return DSL.field(
-                DSL.sql("CAST(JSON_OBJECT(" + body + " ABSENT ON NULL) AS VARCHAR)"),
-                String.class);
+        return DSL.field(sql.toString(), String.class, args.toArray(new QueryPart[0]));
     }
 
     @Override
     public Field<String> jsonArrayAgg(Field<String> jsonElement) {
-        return DSL.field(
-                DSL.sql("'[' || COALESCE(LISTAGG(" + jsonElement + ", ','), '') || ']'"),
-                String.class);
+        return DSL.field("'[' || COALESCE(LISTAGG({0}, ','), '') || ']'", String.class, jsonElement);
     }
 
-    private String valueExpr(JsonFieldEntry e) {
+    private String valueExpr(JsonFieldEntry e, List<QueryPart> args) {
+        int idx = args.size();
+        args.add(e.field());
+        String ph = "{" + idx + "}";
         return switch (e.type()) {
-            case BINARY -> "TO_BASE64(" + e.field() + ")";
-            case RAW_JSON -> e.field().toString() + " FORMAT JSON";
-            default -> e.field().toString();
+            case BINARY -> "TO_BASE64(" + ph + ")";
+            case RAW_JSON -> ph + " FORMAT JSON";
+            default -> ph;
         };
     }
 
