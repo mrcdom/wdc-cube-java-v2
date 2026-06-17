@@ -35,6 +35,11 @@ url = "jdbc:h2:tcp://localhost/./wedocode-shopping;DB_CLOSE_DELAY=-1;DB_CLOSE_ON
 # Reset database on startup (drops and recreates all tables)
 # reset = false
 
+# Modo de transação:
+#   "jta"     = TransactionManager Narayana + pool Agroal enlistado em XA
+#   "non-jta" = JDBC direto (autocommit por statement) — padrão
+transaction = "jta"
+
 # Log SQL statements executed by jOOQ (true/false)
 logSql = false
 
