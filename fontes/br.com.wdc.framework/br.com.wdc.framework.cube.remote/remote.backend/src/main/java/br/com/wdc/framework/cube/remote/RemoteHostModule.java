@@ -1,5 +1,6 @@
 package br.com.wdc.framework.cube.remote;
 
+import br.com.wdc.framework.commons.util.Defer;
 import br.com.wdc.framework.cube.remote.javalin.DispatcherController;
 import br.com.wdc.framework.cube.remote.javalin.IndexHtmlController;
 import br.com.wdc.framework.cube.remote.javalin.SessionInitController;
@@ -60,15 +61,8 @@ public final class RemoteHostModule<T extends RemoteApplication> {
     /**
      * Starts the application registry (flush loop, expiry checker).
      */
-    public void start() {
-        registry.init();
-    }
-
-    /**
-     * Stops the application registry and releases resources.
-     */
-    public void stop() {
-        registry.shutdown();
+    public void start(Defer cleanUp) {
+        registry.init(cleanUp);
     }
 
     public RemoteAppSecurity getSecurity() {

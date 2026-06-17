@@ -58,6 +58,11 @@
             <artifactId>br.com.wdc.shopping.scripts</artifactId>
             <version>${shopping.version}</version>
         </dependency>
+        
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>        
 
         <!-- Javalin HTTP framework -->
         <dependency>
@@ -77,18 +82,27 @@
             <artifactId>h2</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.agroal</groupId>
-            <artifactId>agroal-pool</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
         </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-        </dependency>
-
+        
+        <!-- Pool de conexões + integração JTA -->
+		<dependency>
+			<groupId>io.agroal</groupId>
+			<artifactId>agroal-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.agroal</groupId>
+			<artifactId>agroal-pool</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.agroal</groupId>
+			<artifactId>agroal-narayana</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.narayana.jta</groupId>
+			<artifactId>narayana-jta</artifactId>
+		</dependency>
     </dependencies>
 
     <build>

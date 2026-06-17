@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import br.com.wdc.framework.commons.security.RSA;
+import br.com.wdc.framework.commons.util.Defer;
 import br.com.wdc.framework.cube.remote.RemoteAppSecurity;
 import br.com.wdc.framework.cube.remote.RemoteApplicationRegistry;
 import br.com.wdc.framework.cube.remote.RemoteHostModule;
@@ -52,15 +53,8 @@ public final class RemoteHostBootstrap {
     /**
      * Starts the application registry (flush loop, expiry checker).
      */
-    public static void start() {
-        module.start();
-    }
-
-    /**
-     * Stops the application registry and releases resources.
-     */
-    public static void stop() {
-        module.stop();
+    public static void start(Defer cleanUp) {
+        module.start(cleanUp);
     }
 
     /**

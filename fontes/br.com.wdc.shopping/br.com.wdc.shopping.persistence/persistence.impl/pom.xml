@@ -28,6 +28,10 @@
 			<artifactId>br.com.wdc.framework.jooq</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>br.com.wdc.framework</groupId>
+			<artifactId>br.com.wdc.framework.persistence</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 		</dependency>

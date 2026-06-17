@@ -4,10 +4,6 @@ import java.nio.file.Paths;
 import java.sql.SQLException;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import io.agroal.api.AgroalDataSource;
-import io.agroal.api.configuration.supplier.AgroalDataSourceConfigurationSupplier;
-import io.agroal.api.security.NamePrincipal;
-import io.agroal.api.security.SimplePassword;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -16,12 +12,7 @@ import org.junit.BeforeClass;
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.commons.sql.SqlDataSource;
 import br.com.wdc.framework.commons.sql.SqlDataSourceDelegate;
-import br.com.wdc.shopping.persistence.rest.RepositoryApiRoutes;
-import br.com.wdc.shopping.persistence.client.HttpProductRepository;
-import br.com.wdc.shopping.persistence.client.HttpPurchaseItemRepository;
-import br.com.wdc.shopping.persistence.client.HttpPurchaseRepository;
-import br.com.wdc.shopping.persistence.client.HttpUserRepository;
-import br.com.wdc.shopping.persistence.client.OkHttpTransport;
+import br.com.wdc.framework.commons.util.Defer;
 import br.com.wdc.shopping.domain.ShoppingConfig;
 import br.com.wdc.shopping.domain.codec.ProductModelCodec;
 import br.com.wdc.shopping.domain.codec.PurchaseItemModelCodec;
@@ -31,8 +22,18 @@ import br.com.wdc.shopping.domain.repositories.ProductRepository;
 import br.com.wdc.shopping.domain.repositories.PurchaseItemRepository;
 import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
 import br.com.wdc.shopping.domain.repositories.UserRepository;
+import br.com.wdc.shopping.persistence.client.HttpProductRepository;
+import br.com.wdc.shopping.persistence.client.HttpPurchaseItemRepository;
+import br.com.wdc.shopping.persistence.client.HttpPurchaseRepository;
+import br.com.wdc.shopping.persistence.client.HttpUserRepository;
+import br.com.wdc.shopping.persistence.client.OkHttpTransport;
 import br.com.wdc.shopping.persistence.impl.RepositoryBootstrap;
+import br.com.wdc.shopping.persistence.rest.RepositoryApiRoutes;
 import br.com.wdc.shopping.scripts.sgbd.DBCreate;
+import io.agroal.api.AgroalDataSource;
+import io.agroal.api.configuration.supplier.AgroalDataSourceConfigurationSupplier;
+import io.agroal.api.security.NamePrincipal;
+import io.agroal.api.security.SimplePassword;
 import io.javalin.Javalin;
 
 /**
@@ -46,11 +47,10 @@ import io.javalin.Javalin;
 @SuppressWarnings("java:S2187") // base class — tests are in subclasses
 public class BaseRestApiTest {
 
+    private static Defer cleanUp = new Defer();
 	private static AgroalDataSource datasource;
 	private static Javalin javalin;
-
 	protected static ScheduledExecutorForTest executor;
-
 	protected static UserRepository userRepo;
 	protected static ProductRepository productRepo;
 	protected static PurchaseRepository purchaseRepo;
@@ -59,6 +59,10 @@ public class BaseRestApiTest {
 	@BeforeClass
 	public static void beforeClass() throws Exception {
 		executor = new ScheduledExecutorForTestAsync();
+		cleanUp.push(executor::shutdown);
+
+		ScheduledExecutor.BEAN.set(executor);
+        cleanUp.push(() -> ScheduledExecutor.BEAN.set(null));
 
 		// Datasource H2 em memória
 		var ds = AgroalDataSource.from(
@@ -73,6 +77,12 @@ public class BaseRestApiTest {
 										.credential(new SimplePassword("sa"))
 										.connectionProviderClassName("org.h2.jdbcx.JdbcDataSource"))));
 		datasource = ds;
+		SqlDataSource.BEAN.set(new SqlDataSourceDelegate(ds));
+		cleanUp.push(() -> {
+            datasource = null;
+            cleanUp.push(() -> SqlDataSource.BEAN.set(null));
+		    ds.close();
+		});
 
 		var basePath = Paths.get("work");
 		ShoppingConfig.Internals.setBaseDir(basePath);
@@ -81,17 +91,18 @@ public class BaseRestApiTest {
 		ShoppingConfig.Internals.setLogDir(basePath.resolve("log"));
 		ShoppingConfig.Internals.setTempDir(basePath.resolve("temp"));
 
-		SqlDataSource.BEAN.set(new SqlDataSourceDelegate(ds));
-		ScheduledExecutor.BEAN.set(executor);
-
 		// Inicializa repositórios locais (persistence) — ficam nos BEANs para o servidor usar
-		RepositoryBootstrap.initialize();
+		RepositoryBootstrap.initialize(cleanUp);
 
 		// Sobe o servidor Javalin embarcado (usa os BEANs → persistence local)
 		javalin = Javalin.create(config -> {
 			config.http.maxRequestSize = 10_000_000L; // 10MB
 			RepositoryApiRoutes.configure(config, "");
 		}).start(0);
+		cleanUp.push(() -> {
+		    javalin.stop();
+		    javalin = null;
+		});
 
 		int actualPort = javalin.port();
 
@@ -101,20 +112,18 @@ public class BaseRestApiTest {
 		productRepo = new HttpProductRepository(transport, new ProductModelCodec());
 		purchaseRepo = new HttpPurchaseRepository(transport, new PurchaseModelCodec());
 		purchaseItemRepo = new HttpPurchaseItemRepository(transport, new PurchaseItemModelCodec());
+
+		cleanUp.push(() -> {
+		    userRepo = null;
+		    productRepo = null;
+		    purchaseRepo = null;
+		    purchaseItemRepo = null;
+		});
 	}
 
 	@AfterClass
 	public static void afterClass() {
-		if (javalin != null) {
-			javalin.stop();
-			javalin = null;
-		}
-
-		RepositoryBootstrap.release();
-
-		datasource.close();
-		datasource = null;
-		executor.shutdown();
+	    cleanUp.run();
 	}
 
 	@Before

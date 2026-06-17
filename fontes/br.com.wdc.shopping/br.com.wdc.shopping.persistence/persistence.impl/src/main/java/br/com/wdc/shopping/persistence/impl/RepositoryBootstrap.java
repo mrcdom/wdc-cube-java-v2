@@ -6,12 +6,17 @@ import org.jooq.conf.Settings;
 import org.jooq.impl.DSL;
 
 import br.com.wdc.framework.commons.sql.SqlDataSource;
+import br.com.wdc.framework.commons.util.Defer;
+import br.com.wdc.framework.domain.security.AuthenticationService;
 import br.com.wdc.framework.jooq.JooqDSLContext;
 import br.com.wdc.shopping.domain.repositories.ProductRepository;
 import br.com.wdc.shopping.domain.repositories.PurchaseItemRepository;
 import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
 import br.com.wdc.shopping.domain.repositories.UserRepository;
-import br.com.wdc.framework.domain.security.AuthenticationService;
+import br.com.wdc.shopping.persistence.impl.repository.ProductRepositoryImpl;
+import br.com.wdc.shopping.persistence.impl.repository.PurchaseItemRepositoryImpl;
+import br.com.wdc.shopping.persistence.impl.repository.PurchaseRepositoryImpl;
+import br.com.wdc.shopping.persistence.impl.repository.UserRepositoryImpl;
 import br.com.wdc.shopping.persistence.impl.security.AuthenticationServiceImpl;
 
 public class RepositoryBootstrap {
@@ -23,8 +28,8 @@ public class RepositoryBootstrap {
     /**
      * Inicializa repositórios sem segurança (para testes ou views locais).
      */
-    public static void initialize() {
-        initialize(false);
+    public static void initialize(Defer cleanUp) {
+        initialize(false, cleanUp);
     }
 
     /**
@@ -32,8 +37,8 @@ public class RepositoryBootstrap {
      *
      * @param logSql se {@code true}, jOOQ loga os SQLs executados via SLF4J (nível DEBUG)
      */
-    public static void initialize(boolean logSql) {
-        initialize(logSql, SQLDialect.H2);
+    public static void initialize(boolean logSql, Defer cleanUp) {
+        initialize(logSql, SQLDialect.H2, cleanUp);
     }
 
     /**
@@ -42,7 +47,7 @@ public class RepositoryBootstrap {
      * @param logSql  se {@code true}, jOOQ loga os SQLs executados via SLF4J (nível DEBUG)
      * @param dialect dialeto SQL a usar (ex: {@link SQLDialect#H2}, {@link SQLDialect#POSTGRES})
      */
-    public static void initialize(boolean logSql, SQLDialect dialect) {
+    public static void initialize(boolean logSql, SQLDialect dialect, Defer cleanUp) {
         var settings = new Settings().withExecuteLogging(logSql);
         if (dialect == SQLDialect.POSTGRES) {
             // The jOOQ-generated classes reference schema "PUBLIC" (from H2 codegen).
@@ -57,14 +62,18 @@ public class RepositoryBootstrap {
         }
         JooqDSLContext.BEAN.set(DSL.using(SqlDataSource.BEAN.get(), dialect, settings));
 
-        UserRepository.BEAN
-                .set(new br.com.wdc.shopping.persistence.impl.repository.UserRepositoryImpl());
-        ProductRepository.BEAN
-                .set(new br.com.wdc.shopping.persistence.impl.repository.ProductRepositoryImpl());
-        PurchaseRepository.BEAN
-                .set(new br.com.wdc.shopping.persistence.impl.repository.PurchaseRepositoryImpl());
-        PurchaseItemRepository.BEAN
-                .set(new br.com.wdc.shopping.persistence.impl.repository.PurchaseItemRepositoryImpl());
+        UserRepository.BEAN.set(new UserRepositoryImpl());
+        ProductRepository.BEAN.set(new ProductRepositoryImpl());
+        PurchaseRepository.BEAN.set(new PurchaseRepositoryImpl());
+        PurchaseItemRepository.BEAN.set(new PurchaseItemRepositoryImpl());
+
+        cleanUp.push(() -> {
+            JooqDSLContext.BEAN.set(null);
+            UserRepository.BEAN.set(null);
+            ProductRepository.BEAN.set(null);
+            PurchaseRepository.BEAN.set(null);
+            PurchaseItemRepository.BEAN.set(null);
+        });
     }
 
     /**
@@ -76,18 +85,10 @@ public class RepositoryBootstrap {
      *
      * @param jwtSecret segredo para assinatura JWT
      */
-    public static void initializeSecurity(String jwtSecret) {
+    public static void initializeSecurity(String jwtSecret, Defer cleanUp) {
         var rawUserRepo = UserRepository.BEAN.get();
         AuthenticationService.BEAN.set(new AuthenticationServiceImpl(rawUserRepo, jwtSecret));
-    }
-
-    public static void release() {
-        AuthenticationService.BEAN.set(null);
-        UserRepository.BEAN.set(null);
-        ProductRepository.BEAN.set(null);
-        PurchaseRepository.BEAN.set(null);
-        PurchaseItemRepository.BEAN.set(null);
-        JooqDSLContext.BEAN.set(null);
+        cleanUp.push(() -> AuthenticationService.BEAN.set(null));
     }
 
 }

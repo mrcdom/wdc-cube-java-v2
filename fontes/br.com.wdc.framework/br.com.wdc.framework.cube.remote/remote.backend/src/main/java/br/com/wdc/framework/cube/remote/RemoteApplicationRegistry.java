@@ -11,12 +11,13 @@ import java.util.function.BiFunction;
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.commons.function.Registration;
 import br.com.wdc.framework.commons.log.Log;
+import br.com.wdc.framework.commons.util.Defer;
 
 /**
  * Generic lifecycle and lookup registry for {@link RemoteApplication} sessions.
  * <p>
- * Each application type has its own registry instance — no shared global state.
- * Manages periodic flush (50ms tick) and session expiry (30s check).
+ * Each application type has its own registry instance — no shared global state. Manages periodic flush (50ms tick) and
+ * session expiry (30s check).
  *
  * @param <T> the concrete RemoteApplication subclass
  */
@@ -39,15 +40,13 @@ public final class RemoteApplicationRegistry<T extends RemoteApplication> {
     private final BiFunction<String, Map<String, Object>, T> factory;
 
     /**
-     * Maximum number of concurrent application sessions.
-     * {@code -1} (default) means unlimited.
+     * Maximum number of concurrent application sessions. {@code -1} (default) means unlimited.
      */
     private int maxInstances = -1;
 
     /**
-     * TTL for authenticated sessions after WebSocket disconnect.
-     * {@code Duration.ZERO} means immediate release (no cache).
-     * Default: {@link RemoteApplicationSupport#DEFAULT_TIME_SPAN}.
+     * TTL for authenticated sessions after WebSocket disconnect. {@code Duration.ZERO} means immediate release (no
+     * cache). Default: {@link RemoteApplicationSupport#DEFAULT_TIME_SPAN}.
      */
     private Duration sessionTimeSpan = RemoteApplicationSupport.DEFAULT_TIME_SPAN;
 
@@ -59,8 +58,7 @@ public final class RemoteApplicationRegistry<T extends RemoteApplication> {
     }
 
     /**
-     * Sets the maximum number of concurrent sessions.
-     * {@code -1} disables the limit (default).
+     * Sets the maximum number of concurrent sessions. {@code -1} disables the limit (default).
      */
     public void setMaxInstances(int maxInstances) {
         this.maxInstances = maxInstances;
@@ -75,8 +73,8 @@ public final class RemoteApplicationRegistry<T extends RemoteApplication> {
     }
 
     /**
-     * Sets the TTL for authenticated sessions after WebSocket disconnect.
-     * Use {@code Duration.ZERO} to disable caching (immediate release).
+     * Sets the TTL for authenticated sessions after WebSocket disconnect. Use {@code Duration.ZERO} to disable caching
+     * (immediate release).
      */
     public void setSessionTimeSpan(Duration sessionTimeSpan) {
         this.sessionTimeSpan = sessionTimeSpan != null ? sessionTimeSpan : RemoteApplicationSupport.DEFAULT_TIME_SPAN;
@@ -91,7 +89,7 @@ public final class RemoteApplicationRegistry<T extends RemoteApplication> {
         return sessionTimeSpan.isZero();
     }
 
-    public void init() {
+    public void init(Defer cleanUp) {
         if (!initialized.compareAndSet(false, true)) {
             return;
         }
@@ -107,25 +105,25 @@ public final class RemoteApplicationRegistry<T extends RemoteApplication> {
                 this::removeExpireds,
                 EXPIRY_CHECK_INTERVAL,
                 EXPIRY_CHECK_INTERVAL));
+        cleanUp.push(() -> {
+            expiryRegistration.get().remove();
+            expiryRegistration.set(Registration.noop());
+        });
 
         flushRegistration.set(scheduler.scheduleAtFixedRate(
                 this::executeBackgroundFlush,
                 FLUSH_INTERVAL,
                 FLUSH_INTERVAL));
+        cleanUp.push(() -> {
+            flushRegistration.get().remove();
+            flushRegistration.set(Registration.noop());
+        });
 
+        cleanUp.push(() -> {
+            initialized.set(false);
+            LOG.info("RemoteApplicationRegistry stopped");
+        });
         LOG.info("RemoteApplicationRegistry initialized");
-    }
-
-    public void shutdown() {
-        flushRegistration.get().remove();
-        flushRegistration.set(Registration.noop());
-
-        expiryRegistration.get().remove();
-        expiryRegistration.set(Registration.noop());
-
-        initialized.set(false);
-
-        LOG.info("RemoteApplicationRegistry stopped");
     }
 
     public T get(String appId) {

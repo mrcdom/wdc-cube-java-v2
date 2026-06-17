@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import br.com.wdc.framework.commons.log.Log;
+import br.com.wdc.framework.commons.util.Defer;
 import io.javalin.config.JavalinConfig;
 import io.javalin.websocket.WsContext;
 
@@ -33,7 +34,9 @@ public class DevReloadController {
     private DevReloadController() {
     }
 
-    public static void configure(JavalinConfig config) {
+    public static void configure(JavalinConfig config, Defer cleanUp) {
+        cleanUp.push(DevReloadController::stop);
+
         // WebSocket endpoint for browser clients
         config.routes.ws("/__dev/ws", ws -> {
             ws.onConnect(ctx -> {
@@ -96,7 +99,7 @@ public class DevReloadController {
     /**
      * Disconnects all browser clients (called on server shutdown).
      */
-    public static void stop() {
+    private static void stop() {
         INSTANCE.clients.clear();
     }
 }

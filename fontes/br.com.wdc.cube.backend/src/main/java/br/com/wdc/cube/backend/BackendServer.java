@@ -7,11 +7,8 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import br.com.wdc.framework.commons.log.Log;
-import br.com.wdc.framework.commons.log.Slf4jLogFactory;
+import org.eclipse.jetty.ee10.servlet.FilterHolder;
 
-import br.com.wdc.shopping.persistence.rest.RepositoryApiRoutes;
-import br.com.wdc.shopping.domain.ShoppingConfig;
 import br.com.wdc.cube.backend.controller.DevDbResetController;
 import br.com.wdc.cube.backend.controller.DevGcController;
 import br.com.wdc.cube.backend.controller.DevHeapController;
@@ -20,11 +17,15 @@ import br.com.wdc.cube.backend.controller.ImageController;
 import br.com.wdc.cube.backend.controller.LandingPageController;
 import br.com.wdc.cube.backend.controller.StatusController;
 import br.com.wdc.cube.backend.controller.WebCacheController;
+import br.com.wdc.framework.commons.log.Log;
+import br.com.wdc.framework.commons.log.Slf4jLogFactory;
+import br.com.wdc.framework.commons.util.Defer;
+import br.com.wdc.shopping.domain.ShoppingConfig;
+import br.com.wdc.shopping.persistence.rest.RepositoryApiRoutes;
 import br.com.wdc.shopping.view.remote.host.RemoteHostBootstrap;
 import io.javalin.Javalin;
 import io.javalin.config.JavalinConfig;
 import io.javalin.http.staticfiles.Location;
-import org.eclipse.jetty.ee10.servlet.FilterHolder;
 
 /**
  * Standalone Javalin-based HTTP server for WeDoCode Shopping React frontend.
@@ -44,7 +45,7 @@ public class BackendServer {
     private static final String STATIC_FILES_DIR = "/META-INF/resources";
     private static final String STATIC_IMAGES_FILES_DIR = STATIC_FILES_DIR + "/images";
     private static final String STATIC_HOSTED_IMAGE_PATH = "/images";
-    
+
     private static final int DEFAULT_PORT = 8080;
 
     static {
@@ -53,17 +54,15 @@ public class BackendServer {
         LOG = Log.getLogger(BackendServer.class);
     }
 
-    private final Javalin app;
+    private final Defer cleanUp = new Defer();
     private final int port;
     private final boolean devMode;
     private final BusinessContext businessContext = new BusinessContext();
+    private Javalin app;
 
     public BackendServer(int port, boolean devMode) {
         this.port = port;
         this.devMode = devMode;
-        this.businessContext.configure();
-        this.app = createJavalinApp();
-        this.businessContext.start();
     }
 
     public BackendServer() {
@@ -135,7 +134,7 @@ public class BackendServer {
         WebCacheController.configure(config);
 
         // Repository REST API for Android (and other REST clients)
-		RepositoryApiRoutes.configure(config, "");
+        RepositoryApiRoutes.configure(config, "");
 
         // Landing page: lists available frontend contexts
         LandingPageController.configure(config);
@@ -145,7 +144,7 @@ public class BackendServer {
 
         // Dev-mode live reload: WebSocket + notify endpoint
         if (devMode) {
-            DevReloadController.configure(config);
+            DevReloadController.configure(config, cleanUp);
             DevDbResetController.configure(config);
             DevHeapController.configure(config);
             DevGcController.configure(config);
@@ -203,10 +202,9 @@ public class BackendServer {
     }
 
     /**
-     * Scans subdirectories under {@code {basedir}/frontend/} and registers each one
-     * as an external static file source served at its own context path ({@code /<dirname>/}).
-     * Also registers API routes under each context so SPAs can access the API
-     * without cross-origin issues.
+     * Scans subdirectories under {@code {basedir}/frontend/} and registers each one as an external static file source
+     * served at its own context path ({@code /<dirname>/}). Also registers API routes under each context so SPAs can
+     * access the API without cross-origin issues.
      */
     private void configureFrontendStaticFiles(JavalinConfig config) {
         Path frontendBase = ShoppingConfig.getBaseDir().resolve("frontend");
@@ -228,7 +226,8 @@ public class BackendServer {
                 });
                 // Register API routes under this context: /<context>/api/...
                 RepositoryApiRoutes.configure(config, contextPrefix);
-                LOG.info("Serving frontend context '{}' from: {} (with API at {}/api/)", contextName, dirPath, contextPrefix);
+                LOG.info("Serving frontend context '{}' from: {} (with API at {}/api/)", contextName, dirPath,
+                        contextPrefix);
             });
         } catch (IOException e) {
             LOG.warn("Failed to scan frontend directory: {}", frontendBase, e);
@@ -240,6 +239,12 @@ public class BackendServer {
      */
     public void start() {
         try {
+            this.businessContext.configure(cleanUp);
+            this.app = createJavalinApp();
+            cleanUp.push(this.app::stop);
+
+            this.businessContext.start(cleanUp);
+
             app.start(port);
             LOG.info("Javalin server started on port {}", port);
         } catch (Exception e) {
@@ -253,14 +258,7 @@ public class BackendServer {
      */
     public void stop() {
         try {
-            if (devMode) {
-                DevReloadController.stop();
-            }
-            businessContext.stop();
-
-            if (app != null) {
-                app.stop();
-            }
+            cleanUp.run();
             LOG.info("Javalin server stopped");
         } catch (Exception e) {
             LOG.error("Error stopping server", e);
@@ -305,7 +303,6 @@ public class BackendServer {
         }));
 
         server.start();
-
         // Keep JVM running
         try {
             Thread.currentThread().join();
