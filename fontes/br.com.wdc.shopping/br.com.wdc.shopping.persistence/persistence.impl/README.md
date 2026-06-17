@@ -89,7 +89,7 @@ graph TD
    ProductRepository.BEAN.get().insert(product)
 
 2. ProductRepositoryImpl.insert():
-   - Obtém DSLContext via JooqDSLContext.BEAN.get()
+   - Obtém DSLContext via ShoppingDSLContext.BEAN.get()
    - Gera ID via sequence (dsl.nextval(SQ_PRODUCT)) se necessário
    - Monta INSERT com dsl.insertInto(EN_PRODUCT).set(...) apenas para campos não-nulos
    - Executa diretamente via jOOQ

@@ -17,6 +17,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record1;
 import org.jooq.SelectJoinStep;
@@ -104,6 +105,7 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
     private String tableName;
     private Supplier<B> beanFactory;
     private Function<String, T> tableFactory;
+    private Supplier<DSLContext> dslContextSupplier;
     private Consumer<B> fillProjBean;
     private FieldProjectionCallback<B, T> fieldPrjList;
     private Map<String, FieldSetterCallback<B>> fieldSetterMap;
@@ -136,6 +138,22 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
     public JsonQueryBuilder<B, T> setTableFactory(Function<String, T> tableFactory) {
         this.tableFactory = tableFactory;
         return this;
+    }
+
+    /**
+     * Fornecedor do {@link DSLContext} usado nas queries. Cada aplicação injeta o seu (resolução lazy, por execução),
+     * mantendo o {@code framework.jooq} livre de qualquer holder global de {@code DSLContext}.
+     */
+    public JsonQueryBuilder<B, T> setDSLContextSupplier(Supplier<DSLContext> dslContextSupplier) {
+        this.dslContextSupplier = dslContextSupplier;
+        return this;
+    }
+
+    private DSLContext requireDslContext() {
+        if (dslContextSupplier == null) {
+            throw new IllegalStateException("JsonQueryBuilder: setDSLContextSupplier(...) não foi configurado");
+        }
+        return dslContextSupplier.get();
     }
 
 
@@ -613,7 +631,7 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
             @Override
             public SelectQuery<Record1<String>> select(B prjBean,
                     BiConsumer<T, SelectJoinStep<Record1<String>>> whereClause) {
-                var ctx = new QueryContext();
+                var ctx = new QueryContext(me.requireDslContext());
                 return select(ctx, prjBean, whereClause, false);
             }
 
@@ -700,7 +718,7 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
 
             @Override
             public int fetchCount(BiConsumer<T, SelectJoinStep<Record1<Integer>>> whereClause) {
-                var ctx = new QueryContext();
+                var ctx = new QueryContext(me.requireDslContext());
                 var root = me.tableFactory.apply(ctx.alias(me.tableName));
                 var q = ctx.dsl()
                         .selectCount()

@@ -23,7 +23,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import br.com.wdc.framework.jooq.JooqDSLContext;
+import br.com.wdc.shopping.persistence.impl.ShoppingDSLContext;
 import br.com.wdc.shopping.domain.model.Product;
 import br.com.wdc.shopping.domain.model.Purchase;
 import br.com.wdc.shopping.domain.model.PurchaseItem;
@@ -56,7 +56,7 @@ public class DBReset {
 	}
 
 	public static void run() {
-		var dsl = JooqDSLContext.BEAN.get();
+		var dsl = ShoppingDSLContext.BEAN.get();
 
 		/*
 		 * Clean all

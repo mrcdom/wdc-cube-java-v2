@@ -13,7 +13,6 @@ import java.util.List;
 import org.jooq.Condition;
 import org.jooq.impl.DSL;
 
-import br.com.wdc.framework.jooq.JooqDSLContext;
 import br.com.wdc.framework.jooq.JsonChildQueryBuilder;
 import br.com.wdc.framework.jooq.JsonQuery;
 import br.com.wdc.framework.jooq.JsonQueryBuilder;
@@ -22,14 +21,16 @@ import br.com.wdc.shopping.domain.criteria.UserCriteria;
 import br.com.wdc.shopping.domain.model.User;
 import br.com.wdc.shopping.domain.repositories.UserRepository;
 import br.com.wdc.shopping.persistence.impl.scheme.tables.EnUser;
+import br.com.wdc.shopping.persistence.impl.util.BaseRepositoryImpl;
 
-public class UserRepositoryImpl implements UserRepository {
-
+public class UserRepositoryImpl extends BaseRepositoryImpl  implements UserRepository {
+    
     // @formatter:off
     public static final JsonQuery<User, EnUser> QUERY = new JsonQueryBuilder<User, EnUser>()
             .setAlias("u")
             .setBeanFactory(User::new)
             .setTableFactory(EN_USER::as)
+            .setDSLContextSupplier(UserRepositoryImpl::dsl)
             .addI64("id", u -> u.id, (u, v) -> u.id = v, t -> t.ID)
             .addStr("userName", u -> u.userName, (u, v) -> u.userName = v, t -> t.USERNAME)
             .addStr("password", u -> u.password, (u, v) -> u.password = v, t -> t.PASSWORD)
@@ -55,7 +56,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public boolean insert(User user) {
-        var dsl = JooqDSLContext.BEAN.get();
+        var dsl = dsl();
 
         if (user.id == null) {
             user.id = dsl.nextval(SQ_USER);
@@ -94,7 +95,7 @@ public class UserRepositoryImpl implements UserRepository {
             projection = this.newProjection();
         }
 
-        var dsl = JooqDSLContext.BEAN.get();
+        var dsl = dsl();
         var step = dsl.update(EN_USER).set(EN_USER.ID, newBean.id);
 
         boolean hasChanges = false;
@@ -129,7 +130,7 @@ public class UserRepositoryImpl implements UserRepository {
             throw new AssertionError("Missing primary key");
         }
 
-        var dsl = JooqDSLContext.BEAN.get();
+        var dsl = dsl();
         return dsl.deleteFrom(EN_USER)
                 .where(applyConditions(EN_USER, criteria))
                 .execute();
@@ -137,7 +138,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public int count(UserCriteria criteria) {
-        var dsl = JooqDSLContext.BEAN.get();
+        var dsl = dsl();
         return dsl.selectCount()
                 .from(EN_USER)
                 .where(applyConditions(EN_USER, criteria))
@@ -204,7 +205,7 @@ public class UserRepositoryImpl implements UserRepository {
 
         ApplyConditions(EnUser t) {
             this.enUser = t;
-            this.ctx = new QueryContext();
+            this.ctx = new QueryContext(dsl());
         }
 
         public Condition apply(UserCriteria criteria) {

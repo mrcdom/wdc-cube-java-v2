@@ -9,7 +9,6 @@ import br.com.wdc.framework.commons.sql.SqlDataSource;
 import br.com.wdc.framework.commons.util.Defer;
 import br.com.wdc.framework.domain.security.AuthenticationService;
 import br.com.wdc.framework.domain.transaction.TransactionService;
-import br.com.wdc.framework.jooq.JooqDSLContext;
 import br.com.wdc.framework.jooq.TransactionAwareConnectionProvider;
 import br.com.wdc.framework.persistence.transaction.TransactionServiceImpl;
 import br.com.wdc.shopping.domain.repositories.ProductRepository;
@@ -66,7 +65,7 @@ public class RepositoryBootstrap {
         // DSLContext ciente do TransactionScope: dentro de uma transação as queries usam a conexão do escopo
         // (mesma transação física); fora dela, conexão avulsa do pool (autocommit). Vale para JDBC e JTA.
         var connectionProvider = new TransactionAwareConnectionProvider(SqlDataSource.BEAN.get());
-        JooqDSLContext.BEAN.set(DSL.using(connectionProvider, dialect, settings));
+        ShoppingDSLContext.BEAN.set(DSL.using(connectionProvider, dialect, settings));
 
         UserRepository.BEAN.set(new UserRepositoryImpl());
         ProductRepository.BEAN.set(new ProductRepositoryImpl());
@@ -78,7 +77,7 @@ public class RepositoryBootstrap {
 
         cleanUp.push(() -> {
             TransactionService.BEAN.set(null);
-            JooqDSLContext.BEAN.set(null);
+            ShoppingDSLContext.BEAN.set(null);
             UserRepository.BEAN.set(null);
             ProductRepository.BEAN.set(null);
             PurchaseRepository.BEAN.set(null);

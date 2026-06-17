@@ -11,7 +11,6 @@ import java.util.List;
 import org.jooq.Condition;
 import org.jooq.impl.DSL;
 
-import br.com.wdc.framework.jooq.JooqDSLContext;
 import br.com.wdc.framework.jooq.JsonChildQueryBuilder;
 import br.com.wdc.framework.jooq.JsonQuery;
 import br.com.wdc.framework.jooq.JsonQueryBuilder;
@@ -20,14 +19,16 @@ import br.com.wdc.shopping.domain.criteria.PurchaseItemCriteria;
 import br.com.wdc.shopping.domain.model.PurchaseItem;
 import br.com.wdc.shopping.domain.repositories.PurchaseItemRepository;
 import br.com.wdc.shopping.persistence.impl.scheme.tables.EnPurchaseitem;
+import br.com.wdc.shopping.persistence.impl.util.BaseRepositoryImpl;
 
-public class PurchaseItemRepositoryImpl implements PurchaseItemRepository {
+public class PurchaseItemRepositoryImpl extends BaseRepositoryImpl  implements PurchaseItemRepository {
 
     // @formatter:off
     public static final JsonQuery<PurchaseItem, EnPurchaseitem> QUERY = new JsonQueryBuilder<PurchaseItem, EnPurchaseitem>()
             .setAlias("pi")
             .setBeanFactory(PurchaseItem::new)
             .setTableFactory(EN_PURCHASEITEM::as)
+            .setDSLContextSupplier(PurchaseItemRepositoryImpl::dsl)
             .addI64("id", pi -> pi.id, (pi, v) -> pi.id = v, t -> t.ID)
             .addI32("amount", pi -> pi.amount, (pi, v) -> pi.amount = v, t -> t.AMOUNT)
             .addF64("price", pi -> pi.price, (pi, v) -> pi.price = v, t -> t.PRICE)
@@ -69,7 +70,7 @@ public class PurchaseItemRepositoryImpl implements PurchaseItemRepository {
 
     @Override
     public boolean insert(PurchaseItem item) {
-        var dsl = JooqDSLContext.BEAN.get();
+        var dsl = dsl();
 
         if (item.id == null) {
             item.id = dsl.nextval(SQ_PURCHASEITEM);
@@ -108,7 +109,7 @@ public class PurchaseItemRepositoryImpl implements PurchaseItemRepository {
             projection = this.newProjection();
         }
 
-        var dsl = JooqDSLContext.BEAN.get();
+        var dsl = dsl();
         var step = dsl.update(EN_PURCHASEITEM).set(EN_PURCHASEITEM.ID, newBean.id);
 
         boolean hasChanges = false;
@@ -139,16 +140,15 @@ public class PurchaseItemRepositoryImpl implements PurchaseItemRepository {
 
     @Override
     public int delete(PurchaseItemCriteria criteria) {
-        var dsl = JooqDSLContext.BEAN.get();
-        return dsl.deleteFrom(EN_PURCHASEITEM)
+        return dsl().deleteFrom(EN_PURCHASEITEM)
                 .where(applyConditions(EN_PURCHASEITEM, criteria))
                 .execute();
     }
 
     @Override
     public int count(PurchaseItemCriteria criteria) {
-        var dsl = JooqDSLContext.BEAN.get();
-        return dsl.selectCount()
+        return dsl()
+                .selectCount()
                 .from(EN_PURCHASEITEM)
                 .where(applyConditions(EN_PURCHASEITEM, criteria))
                 .fetchOne()
@@ -214,7 +214,7 @@ public class PurchaseItemRepositoryImpl implements PurchaseItemRepository {
 
         ApplyConditions(EnPurchaseitem t) {
             this.enPurchaseItem = t;
-            this.ctx = new QueryContext();
+            this.ctx = new QueryContext(dsl());
         }
 
         public Condition apply(PurchaseItemCriteria criteria) {

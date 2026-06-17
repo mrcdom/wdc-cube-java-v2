@@ -38,7 +38,7 @@ Config externa: `work/config/application.toml` (resolução: system property `sh
 
 A camada de persistência foi **migrada de JDBI + Command Pattern para jOOQ** (branch `evolucoes-estruturais`). O README ainda descreve o modelo antigo — está desatualizado nesse ponto.
 
-- Repositórios (`*RepositoryImpl`) usam `JooqDSLContext.BEAN.get()` para obter o `DSLContext`.
+- Repositórios (`*RepositoryImpl`) estendem `BaseRepositoryImpl` e obtêm o `DSLContext` via `dsl()` — que lê `ShoppingDSLContext.BEAN` (holder **do app**, em `persistence.impl`, não no framework). O `framework.jooq` recebe o `DSLContext` por injeção (`JsonQueryBuilder.setDSLContextSupplier`).
 - Classes jOOQ geradas ficam em `br.com.wdc.shopping.persistence.impl.scheme.*` (`Tables`, `Sequences`, `tables.EnProduct`, etc.) — `scheme` = esquema do banco; jOOQ é só a tecnologia de geração.
 - Não existem mais classes `*Cmd.java` (Command Pattern SQL foi removido).
 - Helpers de query JSON em `br.com.wdc.framework.jooq` (`JsonQuery`, `JsonQueryBuilder`, `JsonChildQueryBuilder`).
@@ -53,7 +53,7 @@ Controle programático estilo CMT via `TransactionService` (`framework.domain.tr
 
 ## Convenções
 
-- **Injeção de dependências sem framework de DI**: service locator estático via `AtomicReference<T> BEAN` (ex.: `JooqDSLContext.BEAN`). Services recebem dependências no construtor.
+- **Injeção de dependências sem framework de DI**: service locator estático via `AtomicReference<T> BEAN` (ex.: `ShoppingDSLContext.BEAN`). Services recebem dependências no construtor.
 - **Virtual Threads** (Java 21) para conexões WebSocket.
 - **Segurança RBAC**: HMAC challenge-response + JWT; repositórios decorados (`SecuredXxxRepository`); papéis ADMIN/CUSTOMER/MANAGER (modelo allow-wins). Transporte React: RSA + PBKDF2 + AES-GCM.
 - **Nomenclatura**: `*ViewState`, `*ViewImpl`, `*Presenter`, `*RepositoryImpl`, `*Criteria`, `Apply*Criteria`.

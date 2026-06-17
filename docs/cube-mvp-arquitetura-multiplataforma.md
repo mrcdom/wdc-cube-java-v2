@@ -123,7 +123,7 @@ Os módulos estão organizados em dois grupos:
 | `framework.commons` | Interfaces funcionais com checked exceptions, serialização extensível, abstração SQL, criptografia (RSA, Base62), logging multiplataforma |
 | `framework.cube` | Motor do Cube MVP: presenters, views, navegação, intents, slots |
 | `framework.cube.remote` | Protocolo de Apresentação Remota: serialização de ViewStates, dispatcher WebSocket, bridges para React/Flutter/TeaVM |
-| `framework.jooq` | Suporte jOOQ: `JooqDSLContext`, helpers de query JSON (`JsonQuery`, `JsonQueryBuilder`, `JsonChildQueryBuilder`) |
+| `framework.jooq` | Suporte jOOQ: helpers de query JSON (`JsonQuery`, `JsonQueryBuilder`, `JsonChildQueryBuilder`); o `DSLContext` é injetado pela aplicação (sem holder global) |
 | `framework.dependencies` | BOM Maven para versões centralizadas |
 
 **Shopping** — a aplicação em si:

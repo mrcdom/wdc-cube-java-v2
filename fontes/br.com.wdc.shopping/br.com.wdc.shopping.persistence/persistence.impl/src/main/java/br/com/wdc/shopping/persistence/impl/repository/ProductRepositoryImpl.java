@@ -11,7 +11,6 @@ import org.jooq.Condition;
 import org.jooq.impl.DSL;
 
 import br.com.wdc.framework.domain.exception.BusinessException;
-import br.com.wdc.framework.jooq.JooqDSLContext;
 import br.com.wdc.framework.jooq.JsonChildQueryBuilder;
 import br.com.wdc.framework.jooq.JsonQuery;
 import br.com.wdc.framework.jooq.JsonQueryBuilder;
@@ -20,14 +19,16 @@ import br.com.wdc.shopping.domain.criteria.ProductCriteria;
 import br.com.wdc.shopping.domain.model.Product;
 import br.com.wdc.shopping.domain.repositories.ProductRepository;
 import br.com.wdc.shopping.persistence.impl.scheme.tables.EnProduct;
+import br.com.wdc.shopping.persistence.impl.util.BaseRepositoryImpl;
 
-public class ProductRepositoryImpl implements ProductRepository {
-
+public class ProductRepositoryImpl extends BaseRepositoryImpl implements ProductRepository {
+    
     // @formatter:off
     public static final JsonQuery<Product, EnProduct> QUERY = new JsonQueryBuilder<Product, EnProduct>()
             .setAlias("p")
             .setBeanFactory(Product::new)
             .setTableFactory(EN_PRODUCT::as)
+            .setDSLContextSupplier(ProductRepositoryImpl::dsl)
             .addI64("id", p -> p.id, (p, v) -> p.id = v, t -> t.ID)
             .addStr("name", p -> p.name, (p, v) -> p.name = v, t -> t.NAME)
             .addF64("price", p -> p.price, (p, v) -> p.price = v, t -> t.PRICE)
@@ -53,7 +54,7 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     @Override
     public boolean insert(Product product) {
-        var dsl = JooqDSLContext.BEAN.get();
+        var dsl = dsl();
 
         if (product.id == null) {
             product.id = dsl.nextval(SQ_PRODUCT);
@@ -92,7 +93,7 @@ public class ProductRepositoryImpl implements ProductRepository {
             projection = this.newProjection();
         }
 
-        var dsl = JooqDSLContext.BEAN.get();
+        var dsl = dsl();
         var step = dsl.update(EN_PRODUCT).set(EN_PRODUCT.ID, newBean.id);
 
         boolean hasChanges = false;
@@ -127,16 +128,15 @@ public class ProductRepositoryImpl implements ProductRepository {
             throw new AssertionError("Missing primary key");
         }
 
-        var dsl = JooqDSLContext.BEAN.get();
-        return dsl.deleteFrom(EN_PRODUCT)
+        return dsl()
+                .deleteFrom(EN_PRODUCT)
                 .where(applyConditions(EN_PRODUCT, criteria))
                 .execute();
     }
 
     @Override
     public int count(ProductCriteria criteria) {
-        var dsl = JooqDSLContext.BEAN.get();
-        return dsl.selectCount()
+        return dsl().selectCount()
                 .from(EN_PRODUCT)
                 .where(applyConditions(EN_PRODUCT, criteria))
                 .fetchOne()
@@ -193,8 +193,8 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     @Override
     public boolean updateImage(Long productId, byte[] image) {
-        var dsl = JooqDSLContext.BEAN.get();
-        return dsl.update(EN_PRODUCT)
+        return dsl()
+                .update(EN_PRODUCT)
                 .set(EN_PRODUCT.IMAGE, image)
                 .where(EN_PRODUCT.ID.eq(productId))
                 .execute() > 0;
@@ -226,7 +226,7 @@ public class ProductRepositoryImpl implements ProductRepository {
 
         ApplyConditions(EnProduct t) {
             this.enProduct = t;
-            this.ctx = new QueryContext();
+            this.ctx = new QueryContext(dsl());
         }
 
         public Condition apply(ProductCriteria criteria) {

@@ -108,7 +108,7 @@ graph TD
 | Módulo | Descrição |
 |--------|-----------|
 | **domain** | Modelos de domínio (`User`, `Product`, `Purchase`, `PurchaseItem`), interfaces de repositório, classes de critérios para consultas, hierarquia de exceções (`BusinessException`), contratos de segurança (`SecurityContext`, `AuthenticationService`, `Role`) |
-| **persistence** | Implementação de persistência com **jOOQ** (DSL type-safe, classes geradas em `persistence.jooq.*` a partir do schema H2), `*RepositoryImpl` que obtêm o `DSLContext` via `JooqDSLContext.BEAN`, helpers de query JSON do framework (`JsonQuery`, `JsonQueryBuilder`, `JsonChildQueryBuilder`), `RepositoryBootstrap` para wiring. A restrição de escopo por `userId` (RBAC) é aplicada nas queries via critérios |
+| **persistence** | Implementação de persistência com **jOOQ** (DSL type-safe, classes geradas em `persistence.jooq.*` a partir do schema H2), `*RepositoryImpl` que obtêm o `DSLContext` via `ShoppingDSLContext.BEAN`, helpers de query JSON do framework (`JsonQuery`, `JsonQueryBuilder`, `JsonChildQueryBuilder`), `RepositoryBootstrap` para wiring. A restrição de escopo por `userId` (RBAC) é aplicada nas queries via critérios |
 | **presentation** | `ShoppingApplication` com proxy delegates de SecurityContext, hierarquia de presenters (Root → Login \| Home → Products/Purchases/Product/Cart/Receipt), ViewStates serializáveis, services com injeção via construtor, `CartManager`, sistema de rotas e navegação |
 
 ### Shopping — Frontend (View Implementations)
