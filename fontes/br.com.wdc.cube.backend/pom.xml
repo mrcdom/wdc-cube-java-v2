@@ -5,42 +5,58 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>br.com.wdc.shopping</groupId>
-        <artifactId>br.com.wdc.shopping</artifactId>
-        <version>1.0.0</version>
+        <groupId>br.com.wdc</groupId>
+        <artifactId>br.com.wdc.cube.parent</artifactId>
+        <version>2.0.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>br.com.wdc.shopping.backend</artifactId>
+    <artifactId>br.com.wdc.cube.backend</artifactId>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
 
-    <name>WeDoCode Shopping Backend</name>
-    <description>Standalone Javalin-based HTTP backend server</description>
+    <name>WeDoCode Cube Backend</name>
+    <description>Standalone Javalin-based HTTP backend that assembles application modules and launches a single process (monorepo host)</description>
 
     <properties>
         <javalin.version>7.2.0</javalin.version>
+        <!-- Versão dos módulos da aplicação Shopping empacotados por este backend -->
+        <shopping.version>1.0.0</shopping.version>
         <!-- Working directory for exec:java (must contain config/application.toml) -->
-        <workdir>${project.basedir}/../../../work</workdir>
+        <workdir>${project.basedir}/../../work</workdir>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <!-- BOM do framework: versões gerenciadas (jackson, h2, agroal, postgresql, logback…) -->
+            <dependency>
+                <groupId>br.com.wdc.framework</groupId>
+                <artifactId>br.com.wdc.framework.dependencies</artifactId>
+                <version>1.0.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
-        <!-- Repository REST API -->
+        <!-- Aplicação Shopping: API REST de repositórios -->
         <dependency>
-            <groupId>${project.groupId}</groupId>
+            <groupId>br.com.wdc.shopping</groupId>
             <artifactId>persistence.rest</artifactId>
-            <version>${project.version}</version>
+            <version>${shopping.version}</version>
         </dependency>
 
-        <!-- Core backend module with REST endpoints and business logic -->
+        <!-- Aplicação Shopping: host remoto (endpoints REST + lógica de negócio) -->
         <dependency>
-            <groupId>${project.groupId}</groupId>
+            <groupId>br.com.wdc.shopping</groupId>
             <artifactId>remote.host</artifactId>
-            <version>${project.version}</version>
+            <version>${shopping.version}</version>
         </dependency>
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <version>${project.version}</version>
+            <groupId>br.com.wdc.shopping</groupId>
             <artifactId>br.com.wdc.shopping.scripts</artifactId>
+            <version>${shopping.version}</version>
         </dependency>
 
         <!-- Javalin HTTP framework -->
@@ -93,7 +109,7 @@
                             <transformers>
                                 <!-- Set Main-Class in manifest -->
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>br.com.wdc.shopping.backend.BackendServer</mainClass>
+                                    <mainClass>br.com.wdc.cube.backend.BackendServer</mainClass>
                                 </transformer>
                                 <!-- Merge service entries -->
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
@@ -115,13 +131,13 @@
                 </executions>
             </plugin>
 
-            <!-- exec:java launcher — usage: mvn exec:java -Dworkdir=../../../work -->
+            <!-- exec:java launcher — usage: mvn exec:java -Dworkdir=../../work -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.5.0</version>
                 <configuration>
-                    <mainClass>br.com.wdc.shopping.backend.BackendServer</mainClass>
+                    <mainClass>br.com.wdc.cube.backend.BackendServer</mainClass>
                     <workingDirectory>${workdir}</workingDirectory>
                 </configuration>
             </plugin>

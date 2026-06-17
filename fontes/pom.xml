@@ -64,6 +64,7 @@
 	<modules>
 		<module>br.com.wdc.framework</module>
 		<module>br.com.wdc.shopping</module>
+		<module>br.com.wdc.cube.backend</module>
 	</modules>
 
 	<build>

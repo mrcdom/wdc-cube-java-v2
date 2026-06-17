@@ -22,7 +22,7 @@ Fazer o wiring da aplicação Shopping com a infraestrutura `remote.backend` do 
 
 ## Execução
 
-O host é iniciado pelo `br.com.wdc.shopping.backend` (que orquestra backend REST + host remoto na mesma JVM). Para executar apenas o host remoto isolado:
+O host é iniciado pelo `br.com.wdc.cube.backend` (que orquestra backend REST + host remoto na mesma JVM). Para executar apenas o host remoto isolado:
 
 ```bash
 cd fontes && mvn clean package -pl br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.host -am

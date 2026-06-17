@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.backend.controller;
+package br.com.wdc.cube.backend.controller;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -34,7 +34,7 @@ JAVA_VERSION=$(java -version 2>&1 | head -1)
 echo "Using: $JAVA_VERSION"
 
 # Ensure JAR exists
-JAR_FILE="$PROJECT_ROOT/fontes/br.com.wdc.shopping/br.com.wdc.shopping.backend/target/br.com.wdc.shopping.backend-1.0.0.jar"
+JAR_FILE="$PROJECT_ROOT/fontes/br.com.wdc.cube.backend/target/br.com.wdc.cube.backend-1.0.0.jar"
 if [ ! -f "$JAR_FILE" ]; then
     echo "JAR not found: $JAR_FILE"
     echo "Building project..."

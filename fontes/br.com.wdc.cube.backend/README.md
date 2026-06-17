@@ -1,4 +1,4 @@
-# WeDoCode Shopping React - Javalin Server
+# WeDoCode Cube Backend
 
 Standalone HTTP server built with [Javalin 7.2.0](https://javalin.io) for serving the React frontend and managing backend session state.
 
@@ -21,25 +21,25 @@ mvn package -DskipTests
 
 Fat JAR with all dependencies is created at:
 ```
-fontes/br.com.wdc.shopping/br.com.wdc.shopping/br.com.wdc.shopping.backend/target/br.com.wdc.shopping.backend-1.0.0.jar
+fontes/br.com.wdc.cube.backend/target/br.com.wdc.cube.backend-1.0.0.jar
 ```
 
 ## Running
 
 ### Quick Start (Default port 8080)
 ```bash
-java -jar br.com.wdc.shopping.backend-1.0.0.jar
+java -jar br.com.wdc.cube.backend-1.0.0.jar
 ```
 
 ### Custom Port (via command-line argument)
 ```bash
-java -jar br.com.wdc.shopping.backend-1.0.0.jar 9090
+java -jar br.com.wdc.cube.backend-1.0.0.jar 9090
 ```
 
 ### Custom Port (via environment variable)
 ```bash
 export SERVER_PORT=3000
-java -jar br.com.wdc.shopping.backend-1.0.0.jar
+java -jar br.com.wdc.cube.backend-1.0.0.jar
 ```
 
 ## URLs
@@ -77,7 +77,7 @@ All requests and errors are logged via SLF4J + Logback (configured in `br.com.wd
 - **Java Version**: 26 (minimum)
 - **Fat JAR Size**: ~11 MB (all dependencies included)
 - **Assembly Method**: maven-shade-plugin with manifest configuration
-- **Entry Point**: `br.com.wdc.shopping.backend.JavalinApplication`
+- **Entry Point**: `br.com.wdc.cube.backend.BackendServer`
 
 ## Dependencies
 
@@ -98,11 +98,11 @@ The fat JAR can be deployed to any environment that has Java 21+ installed:
 
 ```bash
 # Copy JAR to server
-scp br.com.wdc.shopping.backend-1.0.0.jar user@server:/opt/app/
+scp br.com.wdc.cube.backend-1.0.0.jar user@server:/opt/app/
 
 # Run with systemd (example)
 [Service]
-ExecStart=/usr/bin/java -jar /opt/app/br.com.wdc.shopping.backend-1.0.0.jar
+ExecStart=/usr/bin/java -jar /opt/app/br.com.wdc.cube.backend-1.0.0.jar
 Environment="SERVER_PORT=8080"
 ```
 
@@ -128,7 +128,7 @@ When `security.jwt.secret` is configured in `application.toml`, the server enabl
 
 ### Startup Order
 
-`BusinessContext.start()` is called in the `JavalinApplication` constructor **before** `createJavalinApp()`, ensuring `AuthenticationService.BEAN` is populated when auth routes are registered.
+`BusinessContext.start()` is called in the `BackendServer` constructor **before** `createJavalinApp()`, ensuring `AuthenticationService.BEAN` is populated when auth routes are registered.
 
 ## Future Enhancements
 

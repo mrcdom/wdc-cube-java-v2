@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.backend;
+package br.com.wdc.cube.backend;
 
 import java.util.concurrent.ThreadFactory;
 

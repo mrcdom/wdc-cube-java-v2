@@ -27,7 +27,7 @@ DATA_DIR="$( cd "$DATA_DIR" && pwd )"
 
 # JAR locations (checked in priority order)
 H2_JAR="${HOME}/.m2/repository/com/h2database/h2/2.4.240/h2-2.4.240.jar"
-BACKEND_JAR="$PROJECT_ROOT/fontes/br.com.wdc.shopping/br.com.wdc.shopping.backend/target/br.com.wdc.shopping.backend-1.0.0.jar"
+BACKEND_JAR="$PROJECT_ROOT/fontes/br.com.wdc.cube.backend/target/br.com.wdc.cube.backend-1.0.0.jar"
 
 if [ ! -f "$H2_JAR" ]; then
     echo "ERROR: H2 JAR not found at $H2_JAR"

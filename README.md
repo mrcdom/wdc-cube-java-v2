@@ -153,7 +153,7 @@ mvn clean package
 
 O fat JAR será gerado em:
 ```
-fontes/br.com.wdc.shopping/br.com.wdc.shopping.backend/target/br.com.wdc.shopping.backend-1.0.0.jar
+fontes/br.com.wdc.cube.backend/target/br.com.wdc.cube.backend-1.0.0.jar
 ```
 
 ### Frontend (React)
@@ -195,11 +195,11 @@ O deploy script suporta targets: `ios`, `ios-sim`, `ipad-sim`, `android`, `andro
 
 ```bash
 # Via script
-cd br.com.wdc.shopping/br.com.wdc.shopping/br.com.wdc.shopping.backend
+cd fontes/br.com.wdc.cube.backend
 ./start-server.sh [porta]
 
 # Ou diretamente
-java -jar target/br.com.wdc.shopping.backend-1.0.0.jar [porta]
+java -jar target/br.com.wdc.cube.backend-1.0.0.jar [porta]
 ```
 
 - **Aplicação:** http://localhost:8080

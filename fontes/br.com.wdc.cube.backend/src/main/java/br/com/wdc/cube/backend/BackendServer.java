@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.backend;
+package br.com.wdc.cube.backend;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -12,14 +12,14 @@ import br.com.wdc.framework.commons.log.Slf4jLogFactory;
 
 import br.com.wdc.shopping.persistence.rest.RepositoryApiRoutes;
 import br.com.wdc.shopping.domain.ShoppingConfig;
-import br.com.wdc.shopping.backend.controller.DevDbResetController;
-import br.com.wdc.shopping.backend.controller.DevGcController;
-import br.com.wdc.shopping.backend.controller.DevHeapController;
-import br.com.wdc.shopping.backend.controller.DevReloadController;
-import br.com.wdc.shopping.backend.controller.ImageController;
-import br.com.wdc.shopping.backend.controller.LandingPageController;
-import br.com.wdc.shopping.backend.controller.StatusController;
-import br.com.wdc.shopping.backend.controller.WebCacheController;
+import br.com.wdc.cube.backend.controller.DevDbResetController;
+import br.com.wdc.cube.backend.controller.DevGcController;
+import br.com.wdc.cube.backend.controller.DevHeapController;
+import br.com.wdc.cube.backend.controller.DevReloadController;
+import br.com.wdc.cube.backend.controller.ImageController;
+import br.com.wdc.cube.backend.controller.LandingPageController;
+import br.com.wdc.cube.backend.controller.StatusController;
+import br.com.wdc.cube.backend.controller.WebCacheController;
 import br.com.wdc.shopping.view.remote.host.RemoteHostBootstrap;
 import io.javalin.Javalin;
 import io.javalin.config.JavalinConfig;

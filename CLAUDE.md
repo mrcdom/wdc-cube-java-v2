@@ -21,7 +21,7 @@ Idioma do projeto: **português** (docs, READMEs, mensagens de commit). Código 
 ```bash
 # Build (Java 21 obrigatório)
 export JAVA_HOME=<jdk-21>     # ou defina JAVA21_HOME
-cd fontes && mvn clean package          # fat JAR em br.com.wdc.shopping.backend/target/
+cd fontes && mvn clean package          # fat JAR em br.com.wdc.cube.backend/target/
 cd fontes && mvn test                   # testes
 
 # Rodar o backend (React/Flutter via WebSocket, porta 8080)

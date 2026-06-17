@@ -16,7 +16,9 @@
       "Read(//Users/mrcdom/.m2/repository/br/com/wdc/shopping/persistence.impl/1.0.0/**)",
       "Bash(echo \"EXIT=$?\")",
       "Bash([ -d \"$D/jooq\" ])",
-      "Bash(grep -rh '^package ' __TRACKED_VAR__/scheme)"
+      "Bash(grep -rh '^package ' __TRACKED_VAR__/scheme)",
+      "Bash(awk 'NR>=1{print NR\": \"$0}' pom.xml)",
+      "Bash(unzip -p target/br.com.wdc.cube.backend-1.0.0.jar META-INF/MANIFEST.MF)"
     ]
   }
 }
