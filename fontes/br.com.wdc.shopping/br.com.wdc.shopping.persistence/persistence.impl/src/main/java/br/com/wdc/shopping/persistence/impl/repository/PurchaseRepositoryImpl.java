@@ -12,6 +12,7 @@ import java.util.List;
 import org.jooq.Condition;
 import org.jooq.impl.DSL;
 
+import br.com.wdc.framework.domain.pagination.Page;
 import br.com.wdc.framework.jooq.JooqDSLContext;
 import br.com.wdc.framework.jooq.JsonChildQueryBuilder;
 import br.com.wdc.framework.jooq.JsonQuery;
@@ -20,7 +21,6 @@ import br.com.wdc.framework.jooq.QueryContext;
 import br.com.wdc.shopping.domain.criteria.PurchaseCriteria;
 import br.com.wdc.shopping.domain.model.Purchase;
 import br.com.wdc.shopping.domain.model.PurchaseItem;
-import br.com.wdc.framework.domain.pagination.Page;
 import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
 import br.com.wdc.shopping.persistence.impl.scheme.tables.EnPurchase;
 import br.com.wdc.shopping.persistence.impl.scheme.tables.EnPurchaseitem;
