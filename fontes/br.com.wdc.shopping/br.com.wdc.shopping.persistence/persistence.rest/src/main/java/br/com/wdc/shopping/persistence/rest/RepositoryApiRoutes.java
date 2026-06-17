@@ -3,9 +3,11 @@ package br.com.wdc.shopping.persistence.rest;
 import br.com.wdc.framework.domain.exception.AccessDeniedException;
 import br.com.wdc.framework.domain.security.AuthenticationService;
 import br.com.wdc.framework.domain.security.SecurityContext;
+import br.com.wdc.framework.domain.transaction.TransactionService;
 import br.com.wdc.shopping.persistence.rest.doc.RepositoryApiDocs;
 import br.com.wdc.shopping.persistence.rest.security.SecurityFilter;
 import io.javalin.config.JavalinConfig;
+import io.javalin.http.Handler;
 
 /**
  * Registra todos os endpoints REST da API de repositório no Javalin.
@@ -54,5 +56,30 @@ public final class RepositoryApiRoutes {
             ctx.contentType("application/json");
             ctx.result(RepositoryApiDocs.toJson(prefix));
         });
+    }
+
+    /**
+     * Envolve um handler de <b>escrita</b> numa transação ({@code TransactionService.required}), de modo que múltiplas
+     * statements (ex.: compra + itens) commitem/revertam atomicamente. Em retorno normal commita; em exceção reverte e
+     * repropaga a exceção <b>original</b> (tipo preservado), para que os exception mappers do Javalin continuem
+     * funcionando. Se nenhum {@link TransactionService} estiver registrado, executa direto.
+     */
+    static Handler transactional(Handler delegate) {
+        return ctx -> {
+            var tx = TransactionService.BEAN.get();
+            if (tx == null) {
+                delegate.handle(ctx);
+                return;
+            }
+            tx.required(t -> {
+                try {
+                    delegate.handle(ctx);
+                } catch (RuntimeException e) {
+                    throw e;
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        };
     }
 }

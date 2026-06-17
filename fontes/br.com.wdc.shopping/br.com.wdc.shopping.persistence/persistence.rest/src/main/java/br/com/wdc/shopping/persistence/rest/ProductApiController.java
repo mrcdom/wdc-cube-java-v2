@@ -24,16 +24,16 @@ public class ProductApiController {
 
     public static void configure(JavalinConfig config, String prefix) {
         var ctrl = new ProductApiController();
-        config.routes.post(insertPath(prefix), ctrl::insert);
-        config.routes.post(updatePath(prefix), ctrl::update);
-        config.routes.post(deletePath(prefix), ctrl::delete);
+        config.routes.post(insertPath(prefix), RepositoryApiRoutes.transactional(ctrl::insert));
+        config.routes.post(updatePath(prefix), RepositoryApiRoutes.transactional(ctrl::update));
+        config.routes.post(deletePath(prefix), RepositoryApiRoutes.transactional(ctrl::delete));
         config.routes.post(countPath(prefix), ctrl::count);
         config.routes.post(fetchPath(prefix), ctrl::fetch);
         config.routes.post(fetchPagePath(prefix), ctrl::fetchPage);
         config.routes.post(fetchByIdPostPath(prefix), ctrl::fetchByIdPost);
         config.routes.get(fetchByIdPath(prefix), ctrl::fetchById);
         config.routes.get(imagePath(prefix), ctrl::fetchImage);
-        config.routes.put(imagePath(prefix), ctrl::updateImage);
+        config.routes.put(imagePath(prefix), RepositoryApiRoutes.transactional(ctrl::updateImage));
     }
 
     public static void openApi(OpenAPI api, String prefix) {

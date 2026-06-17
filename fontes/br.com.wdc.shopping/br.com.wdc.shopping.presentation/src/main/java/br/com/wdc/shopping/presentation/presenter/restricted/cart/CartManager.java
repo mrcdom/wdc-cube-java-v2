@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.function.ThrowingRunnable;
+import br.com.wdc.framework.domain.transaction.TransactionService;
 import br.com.wdc.shopping.domain.exception.InvalidCartItemException;
 import br.com.wdc.shopping.domain.model.Product;
 import br.com.wdc.shopping.domain.model.Purchase;
@@ -148,8 +149,18 @@ public class CartManager {
             purchase.items.add(purchaseItem);
         }
 
-        if (!app.getPurchaseRepository().insert(purchase)) {
-            throw new AssertionError("Record not inserted");
+        // Compra + itens devem ser atômicos. Abre transação quando há TransactionService registrado
+        // (backend/Host, views JVM); em ambientes sem ele (ex.: TeaVM com repos HTTP) executa direto.
+        Runnable persist = () -> {
+            if (!app.getPurchaseRepository().insert(purchase)) {
+                throw new AssertionError("Record not inserted");
+            }
+        };
+        var txService = TransactionService.BEAN.get();
+        if (txService != null) {
+            txService.required(tx -> persist.run());
+        } else {
+            persist.run();
         }
 
         return purchase.id;

@@ -27,9 +27,9 @@ public class PurchaseApiController {
 
     public static void configure(JavalinConfig config, String prefix) {
         var ctrl = new PurchaseApiController();
-        config.routes.post(insertPath(prefix), ctrl::insert);
-        config.routes.post(updatePath(prefix), ctrl::update);
-        config.routes.post(deletePath(prefix), ctrl::delete);
+        config.routes.post(insertPath(prefix), RepositoryApiRoutes.transactional(ctrl::insert));
+        config.routes.post(updatePath(prefix), RepositoryApiRoutes.transactional(ctrl::update));
+        config.routes.post(deletePath(prefix), RepositoryApiRoutes.transactional(ctrl::delete));
         config.routes.post(countPath(prefix), ctrl::count);
         config.routes.post(fetchPath(prefix), ctrl::fetch);
         config.routes.post(fetchPagePath(prefix), ctrl::fetchPage);
