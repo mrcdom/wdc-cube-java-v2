@@ -16,7 +16,7 @@ import org.junit.BeforeClass;
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.commons.sql.SqlDataSource;
 import br.com.wdc.framework.commons.sql.SqlDataSourceDelegate;
-import br.com.wdc.shopping.persistence.RepositoryBootstrap;
+import br.com.wdc.shopping.persistence.impl.RepositoryBootstrap;
 import br.com.wdc.shopping.scripts.sgbd.DBCreate;
 import br.com.wdc.shopping.domain.ShoppingConfig;
 

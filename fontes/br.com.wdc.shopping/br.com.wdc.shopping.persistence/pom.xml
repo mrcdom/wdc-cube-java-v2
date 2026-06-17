@@ -12,36 +12,11 @@
 	</parent>
 
 	<artifactId>br.com.wdc.shopping.persistence</artifactId>
+	<packaging>pom</packaging>
 
-	<dependencies>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<version>${project.version}</version>
-			<artifactId>br.com.wdc.shopping.domain</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>br.com.wdc.framework</groupId>
-			<artifactId>br.com.wdc.framework.commons</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>br.com.wdc.framework</groupId>
-			<artifactId>br.com.wdc.framework.jooq</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.google.code.gson</groupId>
-			<artifactId>gson</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.jdbi</groupId>
-			<artifactId>jdbi3-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.jooq</groupId>
-			<artifactId>jooq</artifactId>
-		</dependency>
-	</dependencies>
+	<modules>
+		<module>persistence.impl</module>
+		<module>persistence.client</module>
+		<module>persistence.rest</module>
+	</modules>
 </project>

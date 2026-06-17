@@ -18,6 +18,10 @@
 .ecp-*/
 .mtj.tmp/
 settings/
+# pasta de saída do JDT Language Server (criada até em módulos pom agregadores)
+bin/
+# exceção: work/bin contém scripts de start versionados
+!work/bin/
 
 # Build outputs and generated files
 target/

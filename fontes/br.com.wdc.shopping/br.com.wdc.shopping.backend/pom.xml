@@ -27,7 +27,7 @@
         <!-- Repository REST API -->
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>br.com.wdc.shopping.persistence.rest</artifactId>
+            <artifactId>persistence.rest</artifactId>
             <version>${project.version}</version>
         </dependency>
 

@@ -20,7 +20,7 @@ import br.com.wdc.shopping.domain.ShoppingConfig;
 import br.com.wdc.framework.domain.config.AppConfig;
 import br.com.wdc.framework.domain.security.CryptoProvider;
 import br.com.wdc.framework.domain.security.JceCryptoProvider;
-import br.com.wdc.shopping.persistence.RepositoryBootstrap;
+import br.com.wdc.shopping.persistence.impl.RepositoryBootstrap;
 import br.com.wdc.shopping.scripts.sgbd.DBCreate;
 
 public class ShoppingVaadinMain {

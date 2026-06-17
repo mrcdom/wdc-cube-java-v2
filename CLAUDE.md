@@ -11,8 +11,8 @@ Idioma do projeto: **português** (docs, READMEs, mensagens de commit). Código 
 ## Layout
 
 - `fontes/` — todo o código-fonte Maven (multi-módulo). **O build roda a partir daqui, não da raiz.**
-  - `br.com.wdc.framework/` — framework reutilizável: `commons`, `cube`, `cube.remote`, `jooq`, `dependencies` (BOM)
-  - `br.com.wdc.shopping/` — app de exemplo: `domain`, `persistence`, `persistence.rest`, `persistence.client`, `presentation`, `backend`, `scripts`, `tests`, `view.*`
+  - `br.com.wdc.framework/` — framework reutilizável: `commons`, `domain` (abstrações genéricas: `Repository`, `Page`, `ModelCodec`, `Projection*`, exceções base, segurança/`PermissionModel`, `AppConfig`), `cube`, `cube.remote`, `jooq`, `dependencies` (BOM)
+  - `br.com.wdc.shopping/` — app de exemplo: `domain`, `persistence` (agrupador de `persistence.impl` (jOOQ), `persistence.client` (HTTP/okhttp), `persistence.rest` (API Javalin)), `presentation`, `backend`, `scripts`, `tests`, `view.*`
 - `work/` — diretório de runtime: `config/` (TOML), `bin/` (scripts de start), `data/`, `log/`, `frontend/`
 - `docs/` — documentação arquitetural detalhada (PT)
 
@@ -39,7 +39,7 @@ Config externa: `work/config/application.toml` (resolução: system property `sh
 A camada de persistência foi **migrada de JDBI + Command Pattern para jOOQ** (branch `evolucoes-estruturais`). O README ainda descreve o modelo antigo — está desatualizado nesse ponto.
 
 - Repositórios (`*RepositoryImpl`) usam `JooqDSLContext.BEAN.get()` para obter o `DSLContext`.
-- Classes jOOQ geradas ficam em `br.com.wdc.shopping.persistence.jooq.*` (`Tables`, `Sequences`, `tables.EnProduct`, etc.).
+- Classes jOOQ geradas ficam em `br.com.wdc.shopping.persistence.impl.jooq.*` (`Tables`, `Sequences`, `tables.EnProduct`, etc.).
 - Não existem mais classes `*Cmd.java` (Command Pattern SQL foi removido).
 - Helpers de query JSON em `br.com.wdc.framework.jooq` (`JsonQuery`, `JsonQueryBuilder`, `JsonChildQueryBuilder`).
 

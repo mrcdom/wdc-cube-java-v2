@@ -1,13 +1,13 @@
 package br.com.wdc.shopping.scripts.sgbd;
 
-import static br.com.wdc.shopping.persistence.jooq.Sequences.SQ_PRODUCT;
-import static br.com.wdc.shopping.persistence.jooq.Sequences.SQ_PURCHASE;
-import static br.com.wdc.shopping.persistence.jooq.Sequences.SQ_PURCHASEITEM;
-import static br.com.wdc.shopping.persistence.jooq.Sequences.SQ_USER;
-import static br.com.wdc.shopping.persistence.jooq.tables.EnProduct.EN_PRODUCT;
-import static br.com.wdc.shopping.persistence.jooq.tables.EnPurchase.EN_PURCHASE;
-import static br.com.wdc.shopping.persistence.jooq.tables.EnPurchaseitem.EN_PURCHASEITEM;
-import static br.com.wdc.shopping.persistence.jooq.tables.EnUser.EN_USER;
+import static br.com.wdc.shopping.persistence.impl.jooq.Sequences.SQ_PRODUCT;
+import static br.com.wdc.shopping.persistence.impl.jooq.Sequences.SQ_PURCHASE;
+import static br.com.wdc.shopping.persistence.impl.jooq.Sequences.SQ_PURCHASEITEM;
+import static br.com.wdc.shopping.persistence.impl.jooq.Sequences.SQ_USER;
+import static br.com.wdc.shopping.persistence.impl.jooq.tables.EnProduct.EN_PRODUCT;
+import static br.com.wdc.shopping.persistence.impl.jooq.tables.EnPurchase.EN_PURCHASE;
+import static br.com.wdc.shopping.persistence.impl.jooq.tables.EnPurchaseitem.EN_PURCHASEITEM;
+import static br.com.wdc.shopping.persistence.impl.jooq.tables.EnUser.EN_USER;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -13,7 +13,7 @@ if [[ "$1" == "--full" ]]; then
 
     JAVA_HOME=$JAVA21_HOME mvn -f "$FRAMEWORK_DIR/pom.xml" install -DskipTests -q
     JAVA_HOME=$JAVA21_HOME mvn -f "$SHOPPING_DIR/pom.xml" install \
-        -pl br.com.wdc.shopping.domain,br.com.wdc.shopping.persistence,br.com.wdc.shopping.persistence.client,br.com.wdc.shopping.presentation \
+        -pl br.com.wdc.shopping.domain,br.com.wdc.shopping.persistence,:persistence.client,br.com.wdc.shopping.presentation \
         -DskipTests -q
     echo "=== Dependencies installed ==="
 fi

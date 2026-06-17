@@ -22,7 +22,7 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<version>${project.version}</version>
-			<artifactId>br.com.wdc.shopping.persistence.client</artifactId>
+			<artifactId>persistence.client</artifactId>
 		</dependency>
 
 		<!-- JavaFX -->

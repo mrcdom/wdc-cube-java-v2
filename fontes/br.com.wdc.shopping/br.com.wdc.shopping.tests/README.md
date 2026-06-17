@@ -129,11 +129,11 @@ Cada mock (`LoginViewMock`, `CartViewMock`, etc.) estende `AbstractViewMock<P>` 
 
 ## Dependências
 
-- `br.com.wdc.shopping.persistence` — repositórios SQL reais
+- `persistence.impl` — repositórios SQL reais
 - `br.com.wdc.shopping.presentation` — presenters e serviços reais
 - `br.com.wdc.shopping.scripts` — `DBCreate` / `DBReset` para setup do banco
-- `br.com.wdc.shopping.persistence.rest` — controllers REST (para testes REST)
-- `br.com.wdc.shopping.persistence.client` — client REST (OkHttp + Gson)
+- `persistence.rest` — controllers REST (para testes REST)
+- `persistence.client` — client REST (OkHttp + Gson)
 - H2 Database — banco in-memory
 - Javalin — servidor HTTP embarcado para testes REST
 - JUnit 4 — framework de testes

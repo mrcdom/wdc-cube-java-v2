@@ -28,7 +28,7 @@ import br.com.wdc.shopping.domain.repositories.ProductRepository;
 import br.com.wdc.shopping.domain.repositories.PurchaseItemRepository;
 import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
 import br.com.wdc.shopping.domain.repositories.UserRepository;
-import br.com.wdc.shopping.persistence.RepositoryBootstrap;
+import br.com.wdc.shopping.persistence.impl.RepositoryBootstrap;
 import br.com.wdc.shopping.scripts.sgbd.DBCreate;
 import io.javalin.Javalin;
 

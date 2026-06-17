@@ -111,8 +111,8 @@ Java compilado para JavaScript via TeaVM, empacotado como app nativo com Tauri 2
 | [`view.swt`](br.com.wdc.shopping.view.swt/) | Frontend desktop nativo (Eclipse SWT) |
 | [`view.gluon`](br.com.wdc.shopping.view.gluon/) | Frontend multiplataforma (JavaFX + Gluon — Desktop, iOS, Android) |
 | [`view.teavm`](br.com.wdc.shopping.view.teavm/) | Frontend multiplataforma (TeaVM + Tauri — Web, Desktop, Android, iOS) |
-| [`persistence.rest`](br.com.wdc.shopping.persistence.rest/) | Controllers REST (Javalin) para expor repositórios via HTTP |
-| [`persistence.client`](br.com.wdc.shopping.persistence.client/) | Client REST (OkHttp + Gson) que implementa repositórios via HTTP |
+| [`persistence.rest`](br.com.wdc.shopping.persistence/persistence.rest/) | Controllers REST (Javalin) para expor repositórios via HTTP |
+| [`persistence.client`](br.com.wdc.shopping.persistence/persistence.client/) | Client REST (OkHttp + Gson) que implementa repositórios via HTTP |
 | [`tests`](br.com.wdc.shopping.tests/) | Testes de workflow e repositórios |
 
 ---
