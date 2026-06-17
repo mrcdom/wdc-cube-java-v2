@@ -7,8 +7,6 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.rules.ExternalResource;
 
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
-import br.com.wdc.framework.commons.sql.SqlDataSource;
-import br.com.wdc.framework.commons.sql.SqlDataSourceDelegate;
 import br.com.wdc.framework.commons.util.Defer;
 import br.com.wdc.shopping.domain.ShoppingConfig;
 import br.com.wdc.shopping.domain.codec.ProductModelCodec;
@@ -24,7 +22,7 @@ import br.com.wdc.shopping.persistence.client.HttpPurchaseItemRepository;
 import br.com.wdc.shopping.persistence.client.HttpPurchaseRepository;
 import br.com.wdc.shopping.persistence.client.HttpUserRepository;
 import br.com.wdc.shopping.persistence.client.OkHttpTransport;
-import br.com.wdc.shopping.persistence.impl.RepositoryBootstrap;
+import br.com.wdc.shopping.persistence.impl.ShoppingRepositoryBootstrap;
 import br.com.wdc.shopping.persistence.rest.RepositoryApiRoutes;
 import br.com.wdc.shopping.scripts.sgbd.DBCreate;
 import io.agroal.api.AgroalDataSource;
@@ -110,11 +108,9 @@ public class TestEnvironment extends ExternalResource {
                                         .credential(new SimplePassword("sa"))
                                         .connectionProviderClassName("org.h2.jdbcx.JdbcDataSource"))));
         datasource = ds;
-        SqlDataSource.BEAN.set(new SqlDataSourceDelegate(ds));
         cleanUp.push(() -> {
             ds.close();
             datasource = null;
-            SqlDataSource.BEAN.set(null);
         });
 
         var basePath = Paths.get("work");
@@ -124,7 +120,7 @@ public class TestEnvironment extends ExternalResource {
         ShoppingConfig.Internals.setLogDir(basePath.resolve("log"));
         ShoppingConfig.Internals.setTempDir(basePath.resolve("temp"));
 
-        RepositoryBootstrap.initialize(cleanUp);
+        ShoppingRepositoryBootstrap.initialize(ds, cleanUp);
 
         if (mode == Mode.LOCAL) {
             userRepo = UserRepository.BEAN.get();

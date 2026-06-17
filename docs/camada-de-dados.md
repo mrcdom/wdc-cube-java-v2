@@ -465,7 +465,8 @@ O projeto resolve isso com uma camada de transação **programática no estilo C
 A abstração vive em `framework.domain.transaction` (puro contrato, sem tecnologia). A fronteira da transação é sempre o trabalho fornecido (um lambda): em retorno normal **commita**, em qualquer exceção **reverte** e repropaga. O `TransactionContext` entregue ao trabalho serve para marcar rollback e introspecção.
 
 ```java
-TransactionService.BEAN.get().required(tx -> {
+// holder por módulo, populado pelo backend (ex.: ShoppingTransactions.BEAN.get())
+ShoppingTransactions.BEAN.get().required(tx -> {
     purchaseRepository.insert(purchase);   // compra + itens
     if (regraDeNegocioFalhou) {
         tx.setRollbackOnly();              // aborta sem lançar exceção
@@ -521,6 +522,12 @@ transaction = "jta"
 ```
 
 Um princípio guia a separação: **a tecnologia concreta (Agroal, Narayana, driver XA) vive no host** (`cube.backend`), que constrói o `DataSource` e o `TransactionManager` e os injeta em holders neutros. O módulo `framework.persistence` permanece agnóstico — depende apenas de `javax.sql.DataSource` e `jakarta.transaction` (padrões), nunca de uma implementação de pool ou TM. Trocar Agroal/Narayana por outra stack é mudança isolada no host.
+
+### Contextualização por módulo (hexagonal)
+
+Não existe holder global de `DataSource` nem de `TransactionService`. Cada **módulo** expõe seus holders como SPI — `ShoppingDSLContext` (DSLContext) e `ShoppingTransactions` (TransactionService) — populados pelo **backend (composition root)**, que conhece todos os módulos. O `TransactionServiceImpl` recebe o `DataSource` do módulo na construção (`Supplier<DataSource>`), de modo que cada módulo tem sua transação ligada ao **seu** banco.
+
+Se o backend dá a dois módulos o mesmo `DataSource` (banco compartilhado) ou bancos distintos é decisão dele — **transparente para o módulo**, que apenas usa seu próprio holder. O `TransactionManager` JTA permanece **único por JVM** (coordenador): é ele que permite uma transação atravessar vários módulos/datasources em XA — por isso *não* é contextualizado por módulo.
 
 ---
 

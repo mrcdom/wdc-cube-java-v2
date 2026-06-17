@@ -3,7 +3,7 @@ package br.com.wdc.shopping.persistence.rest;
 import br.com.wdc.framework.domain.exception.AccessDeniedException;
 import br.com.wdc.framework.domain.security.AuthenticationService;
 import br.com.wdc.framework.domain.security.SecurityContext;
-import br.com.wdc.framework.domain.transaction.TransactionService;
+import br.com.wdc.shopping.domain.ShoppingTransactions;
 import br.com.wdc.shopping.persistence.rest.doc.RepositoryApiDocs;
 import br.com.wdc.shopping.persistence.rest.security.SecurityFilter;
 import io.javalin.config.JavalinConfig;
@@ -12,7 +12,7 @@ import io.javalin.http.Handler;
 /**
  * Registra todos os endpoints REST da API de repositório no Javalin.
  * <p>
- * Se o {@link AuthenticationService} estiver inicializado (via {@code RepositoryBootstrap.initializeSecurity}),
+ * Se o {@link AuthenticationService} estiver inicializado (via {@code ShoppingRepositoryBootstrap.initializeSecurity}),
  * registra automaticamente o filtro de segurança e os endpoints de autenticação.
  */
 public final class RepositoryApiRoutes {
@@ -66,7 +66,7 @@ public final class RepositoryApiRoutes {
      */
     static Handler transactional(Handler delegate) {
         return ctx -> {
-            var tx = TransactionService.BEAN.get();
+            var tx = ShoppingTransactions.BEAN.get();
             if (tx == null) {
                 delegate.handle(ctx);
                 return;

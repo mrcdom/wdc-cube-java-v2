@@ -8,11 +8,13 @@ import br.com.wdc.framework.cube.CubeApplication;
 import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.CubeNavigation;
 import br.com.wdc.framework.cube.CubePlace;
+import br.com.wdc.framework.domain.security.SecurityContext;
+import br.com.wdc.framework.domain.transaction.TransactionService;
+import br.com.wdc.shopping.domain.ShoppingTransactions;
 import br.com.wdc.shopping.domain.repositories.ProductRepository;
 import br.com.wdc.shopping.domain.repositories.PurchaseItemRepository;
 import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
 import br.com.wdc.shopping.domain.repositories.UserRepository;
-import br.com.wdc.framework.domain.security.SecurityContext;
 import br.com.wdc.shopping.presentation.function.GoAction;
 import br.com.wdc.shopping.presentation.presenter.RootPresenter;
 import br.com.wdc.shopping.presentation.presenter.Routes;
@@ -49,6 +51,10 @@ public abstract class ShoppingApplication extends CubeApplication {
 
 	public void setSubject(Subject subject) {
 		this.subject = subject;
+	}
+	
+	public TransactionService tx() {
+	    return ShoppingTransactions.BEAN.get();
 	}
 
 	public SecurityContext getSecurityContext() {

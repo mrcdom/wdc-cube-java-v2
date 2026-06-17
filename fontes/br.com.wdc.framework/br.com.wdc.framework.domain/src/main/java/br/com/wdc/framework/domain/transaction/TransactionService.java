@@ -1,6 +1,5 @@
 package br.com.wdc.framework.domain.transaction;
 
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -30,15 +29,21 @@ import java.util.function.Function;
  * Exemplos:
  * </p>
  * <pre>{@code
- * TransactionService.BEAN.get().required(tx -> {
+ * shoppingTransactions.required(tx -> {     // holder por módulo (ex.: ShoppingTransactions.BEAN.get())
  *     sistemaRepository.insert(sistema);
  *     if (regraDeNegocioFalhou) {
  *         tx.setRollbackOnly();          // aborta sem lançar exceção
  *     }
  * });
  *
- * var lista = TransactionService.BEAN.get().requiredCall(tx -> sistemaRepository.fetch(criteria));
+ * var lista = shoppingTransactions.requiredCall(tx -> sistemaRepository.fetch(criteria));
  * }</pre>
+ *
+ * <p>
+ * <b>Sem holder global:</b> não há {@code TransactionService.BEAN}. Cada módulo expõe seu próprio holder (ex.:
+ * {@code ShoppingTransactions} em {@code shopping.domain}), populado pelo backend com uma instância ligada ao
+ * {@code DataSource} daquele módulo. Assim módulos com bancos distintos têm transações independentes.
+ * </p>
  *
  * <p>
  * <b>Afinidade de thread:</b> a transação é presa à thread corrente (ThreadLocal) e é single-thread. Não compartilhe a
@@ -46,8 +51,6 @@ import java.util.function.Function;
  * </p>
  */
 public interface TransactionService {
-
-    AtomicReference<TransactionService> BEAN = new AtomicReference<>();
 
     /** REQUIRED — junta-se à transação ativa ou abre uma nova quando não há. */
     void required(Consumer<TransactionContext> work);

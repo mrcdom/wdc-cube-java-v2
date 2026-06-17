@@ -14,14 +14,13 @@ import com.arjuna.ats.internal.jta.transaction.arjunacore.TransactionManagerImpl
 import com.arjuna.ats.internal.jta.transaction.arjunacore.UserTransactionImple;
 import com.arjuna.ats.jta.common.jtaPropertyManager;
 
-import br.com.wdc.framework.commons.sql.SqlDataSource;
-import br.com.wdc.framework.commons.sql.SqlDataSourceDelegate;
 import br.com.wdc.framework.domain.transaction.TransactionNotAllowedException;
 import br.com.wdc.framework.domain.transaction.TransactionRequiredException;
 import br.com.wdc.framework.domain.transaction.TransactionService;
 import br.com.wdc.framework.persistence.transaction.JtaTransactionManager;
 import br.com.wdc.framework.persistence.transaction.TransactionScope;
 import br.com.wdc.framework.persistence.transaction.TransactionServiceImpl;
+import br.com.wdc.shopping.domain.ShoppingTransactions;
 import io.agroal.api.AgroalDataSource;
 import io.agroal.api.configuration.supplier.AgroalDataSourceConfigurationSupplier;
 import io.agroal.api.security.NamePrincipal;
@@ -71,8 +70,7 @@ public class TransactionServiceJtaTest {
                                 .credential(new NamePrincipal("sa"))
                                 .credential(new SimplePassword("sa")))));
 
-        SqlDataSource.BEAN.set(new SqlDataSourceDelegate(dataSource));
-        TransactionService.BEAN.set(new TransactionServiceImpl());
+        ShoppingTransactions.BEAN.set(new TransactionServiceImpl(() -> dataSource));
 
         // 3) Tabela de apoio (fora de transação)
         try (var conn = dataSource.getConnection(); var st = conn.createStatement()) {
@@ -85,13 +83,12 @@ public class TransactionServiceJtaTest {
         if (dataSource != null) {
             dataSource.close();
         }
-        TransactionService.BEAN.set(null);
-        SqlDataSource.BEAN.set(null);
+        ShoppingTransactions.BEAN.set(null);
         JtaTransactionManager.BEAN.set(null);
     }
 
     private static TransactionService tx() {
-        return TransactionService.BEAN.get();
+        return ShoppingTransactions.BEAN.get();
     }
 
     /** Insere usando a conexão da transação corrente (participa do escopo JTA). */

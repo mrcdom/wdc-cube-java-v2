@@ -5,12 +5,11 @@ import java.util.concurrent.ScheduledExecutorService;
 import br.com.wdc.cube.backend.supports.JtaSupport;
 import br.com.wdc.cube.backend.supports.SqlDataSourceSupport;
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
-import br.com.wdc.framework.commons.sql.SqlDataSource;
 import br.com.wdc.framework.commons.util.Defer;
 import br.com.wdc.framework.domain.security.CryptoProvider;
 import br.com.wdc.framework.domain.security.JceCryptoProvider;
 import br.com.wdc.shopping.domain.ShoppingConfig;
-import br.com.wdc.shopping.persistence.impl.RepositoryBootstrap;
+import br.com.wdc.shopping.persistence.impl.ShoppingRepositoryBootstrap;
 import br.com.wdc.shopping.persistence.impl.concurrent.ScheduledExecutorAdapter;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
 import br.com.wdc.shopping.view.remote.host.RemoteHostBootstrap;
@@ -44,17 +43,18 @@ public class BusinessContext {
             jtaSupport.init(cleanUp);
 
             var dsSupport = new SqlDataSourceSupport(dbPrefix, config);
-            SqlDataSource.BEAN.set(dsSupport.init(cleanUp));
-            cleanUp.push(() -> SqlDataSource.BEAN.set(null));
+            var dataSource = dsSupport.init(cleanUp);
 
             // Avisa se pediram JTA mas o TransactionManager não subiu (rodando como JDBC direto).
             jtaSupport.warnIfModeMismatch();
 
-            RepositoryBootstrap.initialize(dsSupport.isLogEnabled(), dsSupport.getDialect(), cleanUp);
+            // O DataSource do módulo é injetado no bootstrap (sem holder global): ele liga o DSLContext e o
+            // TransactionService deste módulo a este DataSource.
+            ShoppingRepositoryBootstrap.initialize(dataSource, dsSupport.isLogEnabled(), dsSupport.getDialect(), cleanUp);
 
             var jwtSecret = ShoppingConfig.getJwtSecret();
             if (jwtSecret != null && !jwtSecret.isBlank()) {
-                RepositoryBootstrap.initializeSecurity(jwtSecret, cleanUp);
+                ShoppingRepositoryBootstrap.initializeSecurity(jwtSecret, cleanUp);
             }
 
             LoginPresenter.simulateSlowLogin(config.getBoolean("simulation.slowLogin", false));

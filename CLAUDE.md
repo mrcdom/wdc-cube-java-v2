@@ -48,7 +48,8 @@ A camada de persistência foi **migrada de JDBI + Command Pattern para jOOQ** (b
 Controle programático estilo CMT via `TransactionService` (`framework.domain.transaction`, contrato) + `TransactionServiceImpl`/`TransactionScope` (`framework.persistence`, impl dual-mode). Detalhes: [docs/camada-de-dados.md → Transações](docs/camada-de-dados.md#transações-atomicidade-e-modo-dual-jtajdbc).
 
 - Modo escolhido em `application.toml`: `database.transaction = "jta"` (Narayana + Agroal XA) ou `"non-jta"` (JDBC direto, padrão). Tecnologia concreta (Agroal/Narayana) só no host `br.com.wdc.cube.backend` (`supports/`); `framework.persistence` é neutro (`javax.sql.DataSource` + `jakarta.transaction`).
-- Repositórios **não** demarcam transação. O `DSLContext` usa `TransactionAwareConnectionProvider` (`framework.jooq`): dentro de `TransactionService.required(...)` compartilha a conexão do escopo; fora, conexão avulsa (autocommit).
+- **Per-módulo (sem holder global)**: cada módulo expõe seus holders — `ShoppingDSLContext` (impl) e `ShoppingTransactions` (domain) — populados pelo backend (composition root). `TransactionServiceImpl(Supplier<DataSource>)` é ligado ao DataSource do módulo. **Não** existem `SqlDataSource.BEAN` nem `TransactionService.BEAN` globais. O TM JTA permanece único por JVM (coordenador).
+- Repositórios **não** demarcam transação. O `DSLContext` usa `TransactionAwareConnectionProvider` (`framework.jooq`): dentro de `ShoppingTransactions.BEAN.get().required(...)` compartilha a conexão do escopo; fora, conexão avulsa (autocommit).
 - Fronteira aberta nos casos de uso de escrita: checkout (`CartManager.doPurchase`) e handlers REST (`RepositoryApiRoutes.transactional(...)`).
 
 ## Convenções

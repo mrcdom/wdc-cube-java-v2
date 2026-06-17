@@ -10,8 +10,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
-import br.com.wdc.framework.commons.sql.SqlDataSource;
-import br.com.wdc.framework.commons.sql.SqlDataSourceDelegate;
 import br.com.wdc.framework.commons.util.Defer;
 import br.com.wdc.shopping.domain.ShoppingConfig;
 import br.com.wdc.shopping.domain.codec.ProductModelCodec;
@@ -27,7 +25,7 @@ import br.com.wdc.shopping.persistence.client.HttpPurchaseItemRepository;
 import br.com.wdc.shopping.persistence.client.HttpPurchaseRepository;
 import br.com.wdc.shopping.persistence.client.HttpUserRepository;
 import br.com.wdc.shopping.persistence.client.OkHttpTransport;
-import br.com.wdc.shopping.persistence.impl.RepositoryBootstrap;
+import br.com.wdc.shopping.persistence.impl.ShoppingRepositoryBootstrap;
 import br.com.wdc.shopping.persistence.rest.RepositoryApiRoutes;
 import br.com.wdc.shopping.scripts.sgbd.DBCreate;
 import io.agroal.api.AgroalDataSource;
@@ -77,10 +75,8 @@ public class BaseRestApiTest {
 										.credential(new SimplePassword("sa"))
 										.connectionProviderClassName("org.h2.jdbcx.JdbcDataSource"))));
 		datasource = ds;
-		SqlDataSource.BEAN.set(new SqlDataSourceDelegate(ds));
 		cleanUp.push(() -> {
             datasource = null;
-            cleanUp.push(() -> SqlDataSource.BEAN.set(null));
 		    ds.close();
 		});
 
@@ -92,7 +88,7 @@ public class BaseRestApiTest {
 		ShoppingConfig.Internals.setTempDir(basePath.resolve("temp"));
 
 		// Inicializa repositórios locais (persistence) — ficam nos BEANs para o servidor usar
-		RepositoryBootstrap.initialize(cleanUp);
+		ShoppingRepositoryBootstrap.initialize(ds, cleanUp);
 
 		// Sobe o servidor Javalin embarcado (usa os BEANs → persistence local)
 		javalin = Javalin.create(config -> {

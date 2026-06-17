@@ -25,12 +25,14 @@ Controle de transação **programático estilo CMT** (Container-Managed Transact
 
 ## Uso
 
+Não há holder global: cada módulo expõe o seu (ex.: `ShoppingTransactions` em `shopping.domain`), populado pelo backend com uma instância ligada ao `DataSource` do módulo.
+
 ```java
-// Registrado no bootstrap (ex.: RepositoryBootstrap):
-TransactionService.BEAN.set(new TransactionServiceImpl());
+// Registrado pelo bootstrap do módulo, ligado ao DataSource do módulo:
+ShoppingTransactions.BEAN.set(new TransactionServiceImpl(() -> moduleDataSource));
 
 // No caso de uso (camada de serviço / handler / presenter):
-TransactionService.BEAN.get().required(tx -> {
+ShoppingTransactions.BEAN.get().required(tx -> {
     repositoryA.insert(x);
     repositoryB.update(y);   // commita junto, ou reverte tudo
 });

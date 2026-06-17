@@ -10,11 +10,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
-import br.com.wdc.framework.commons.sql.SqlDataSource;
-import br.com.wdc.framework.commons.sql.SqlDataSourceDelegate;
 import br.com.wdc.framework.commons.util.Defer;
 import br.com.wdc.shopping.domain.ShoppingConfig;
-import br.com.wdc.shopping.persistence.impl.RepositoryBootstrap;
+import br.com.wdc.shopping.persistence.impl.ShoppingRepositoryBootstrap;
 import br.com.wdc.shopping.scripts.sgbd.DBCreate;
 import io.agroal.api.AgroalDataSource;
 import io.agroal.api.configuration.supplier.AgroalDataSourceConfigurationSupplier;
@@ -61,10 +59,9 @@ public class BaseBusinessTest {
         ShoppingConfig.Internals.setLogDir(basePath.resolve("log"));
         ShoppingConfig.Internals.setTempDir(basePath.resolve("temp"));
 
-        SqlDataSource.BEAN.set(new SqlDataSourceDelegate(ds));
         ScheduledExecutor.BEAN.set(executor);
 
-        RepositoryBootstrap.initialize(cleanUp);
+        ShoppingRepositoryBootstrap.initialize(ds, cleanUp);
     }
 
     @AfterClass

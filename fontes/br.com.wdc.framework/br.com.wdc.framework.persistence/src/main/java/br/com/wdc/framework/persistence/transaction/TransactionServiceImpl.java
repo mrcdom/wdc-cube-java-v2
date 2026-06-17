@@ -2,10 +2,10 @@ package br.com.wdc.framework.persistence.transaction;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import javax.sql.DataSource;
 
-import br.com.wdc.framework.commons.sql.SqlDataSource;
 import br.com.wdc.framework.domain.transaction.TransactionContext;
 import br.com.wdc.framework.domain.transaction.TransactionNotAllowedException;
 import br.com.wdc.framework.domain.transaction.TransactionRequiredException;
@@ -35,6 +35,13 @@ public final class TransactionServiceImpl implements TransactionService {
 
     /** Handle entregue ao {@code work}; lê o estado da transação ambiente. */
     private static final TransactionContext HANDLE = new AmbientContext();
+
+    /** DataSource deste contexto (por módulo). Resolução lazy — o backend o injeta no bootstrap do módulo. */
+    private final Supplier<DataSource> dataSourceSupplier;
+
+    public TransactionServiceImpl(Supplier<DataSource> dataSourceSupplier) {
+        this.dataSourceSupplier = dataSourceSupplier;
+    }
 
     // :: REQUIRED
 
@@ -152,7 +159,7 @@ public final class TransactionServiceImpl implements TransactionService {
         return result;
     }
 
-    private static TransactionScope beginRequired() {
+    private TransactionScope beginRequired() {
         try {
             return TransactionScope.begin(dataSource());
         } catch (Exception e) {
@@ -160,7 +167,7 @@ public final class TransactionServiceImpl implements TransactionService {
         }
     }
 
-    private static TransactionScope beginNew() {
+    private TransactionScope beginNew() {
         try {
             return TransactionScope.beginNew(dataSource());
         } catch (Exception e) {
@@ -181,10 +188,10 @@ public final class TransactionServiceImpl implements TransactionService {
         }
     }
 
-    private static DataSource dataSource() {
-        var ds = SqlDataSource.BEAN.get();
+    private DataSource dataSource() {
+        var ds = dataSourceSupplier != null ? dataSourceSupplier.get() : null;
         if (ds == null) {
-            throw new TransactionSystemException("SqlDataSource não inicializado");
+            throw new TransactionSystemException("DataSource não inicializado para este TransactionService");
         }
         return ds;
     }
