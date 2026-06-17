@@ -34,6 +34,11 @@
 			<groupId>br.com.wdc.framework</groupId>
 			<artifactId>br.com.wdc.framework.commons</artifactId>
 		</dependency>
+		<!-- Abstração de transação (TransactionScope) — o módulo jOOQ conhece transações, não o contrário -->
+		<dependency>
+			<groupId>br.com.wdc.framework</groupId>
+			<artifactId>br.com.wdc.framework.persistence</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.jooq</groupId>
 			<artifactId>jooq</artifactId>
