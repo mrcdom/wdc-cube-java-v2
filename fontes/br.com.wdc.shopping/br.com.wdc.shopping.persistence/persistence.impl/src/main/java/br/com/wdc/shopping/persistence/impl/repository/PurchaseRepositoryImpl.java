@@ -1,10 +1,10 @@
 package br.com.wdc.shopping.persistence.impl.repository;
 
 import static br.com.wdc.framework.domain.repository.Repository.changed;
-import static br.com.wdc.shopping.persistence.impl.jooq.Sequences.SQ_PURCHASE;
-import static br.com.wdc.shopping.persistence.impl.jooq.Sequences.SQ_PURCHASEITEM;
-import static br.com.wdc.shopping.persistence.impl.jooq.tables.EnPurchase.EN_PURCHASE;
-import static br.com.wdc.shopping.persistence.impl.jooq.tables.EnPurchaseitem.EN_PURCHASEITEM;
+import static br.com.wdc.shopping.persistence.impl.scheme.Sequences.SQ_PURCHASE;
+import static br.com.wdc.shopping.persistence.impl.scheme.Sequences.SQ_PURCHASEITEM;
+import static br.com.wdc.shopping.persistence.impl.scheme.tables.EnPurchase.EN_PURCHASE;
+import static br.com.wdc.shopping.persistence.impl.scheme.tables.EnPurchaseitem.EN_PURCHASEITEM;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -22,8 +22,8 @@ import br.com.wdc.shopping.domain.model.Purchase;
 import br.com.wdc.shopping.domain.model.PurchaseItem;
 import br.com.wdc.framework.domain.pagination.Page;
 import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
-import br.com.wdc.shopping.persistence.impl.jooq.tables.EnPurchase;
-import br.com.wdc.shopping.persistence.impl.jooq.tables.EnPurchaseitem;
+import br.com.wdc.shopping.persistence.impl.scheme.tables.EnPurchase;
+import br.com.wdc.shopping.persistence.impl.scheme.tables.EnPurchaseitem;
 
 public class PurchaseRepositoryImpl implements PurchaseRepository {
 

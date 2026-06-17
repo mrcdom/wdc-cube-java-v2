@@ -1,8 +1,8 @@
 package br.com.wdc.shopping.persistence.impl.repository;
 
 import static br.com.wdc.framework.domain.repository.Repository.changed;
-import static br.com.wdc.shopping.persistence.impl.jooq.Sequences.SQ_PRODUCT;
-import static br.com.wdc.shopping.persistence.impl.jooq.tables.EnProduct.EN_PRODUCT;
+import static br.com.wdc.shopping.persistence.impl.scheme.Sequences.SQ_PRODUCT;
+import static br.com.wdc.shopping.persistence.impl.scheme.tables.EnProduct.EN_PRODUCT;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -19,7 +19,7 @@ import br.com.wdc.shopping.domain.criteria.ProductCriteria;
 import br.com.wdc.framework.domain.exception.BusinessException;
 import br.com.wdc.shopping.domain.model.Product;
 import br.com.wdc.shopping.domain.repositories.ProductRepository;
-import br.com.wdc.shopping.persistence.impl.jooq.tables.EnProduct;
+import br.com.wdc.shopping.persistence.impl.scheme.tables.EnProduct;
 
 public class ProductRepositoryImpl implements ProductRepository {
 

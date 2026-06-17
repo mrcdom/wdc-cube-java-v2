@@ -40,8 +40,8 @@ public class GenerateJooqSchema {
 
     private static final String JDBC_URL = "jdbc:h2:mem:jooq_codegen;DB_CLOSE_DELAY=-1";
     private static final String JDBC_PASSWORD = "codegen";
-    private static final String OUTPUT_PACKAGE = "br.com.wdc.shopping.persistence.impl.jooq";
-    private static final String OUTPUT_DIR = "br.com.wdc.shopping/br.com.wdc.shopping.persistence/br.com.wdc.shopping.persistence.impl/src/main/java";
+    private static final String OUTPUT_PACKAGE = "br.com.wdc.shopping.persistence.impl.scheme";
+    private static final String OUTPUT_DIR = "br.com.wdc.shopping/br.com.wdc.shopping.persistence/persistence.impl/src/main/java";
 
     public static void main(String[] args) throws Exception {
         LOG.info("=== jOOQ Schema Generation ===");

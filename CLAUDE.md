@@ -39,7 +39,7 @@ Config externa: `work/config/application.toml` (resolução: system property `sh
 A camada de persistência foi **migrada de JDBI + Command Pattern para jOOQ** (branch `evolucoes-estruturais`). O README ainda descreve o modelo antigo — está desatualizado nesse ponto.
 
 - Repositórios (`*RepositoryImpl`) usam `JooqDSLContext.BEAN.get()` para obter o `DSLContext`.
-- Classes jOOQ geradas ficam em `br.com.wdc.shopping.persistence.impl.jooq.*` (`Tables`, `Sequences`, `tables.EnProduct`, etc.).
+- Classes jOOQ geradas ficam em `br.com.wdc.shopping.persistence.impl.scheme.*` (`Tables`, `Sequences`, `tables.EnProduct`, etc.) — `scheme` = esquema do banco; jOOQ é só a tecnologia de geração.
 - Não existem mais classes `*Cmd.java` (Command Pattern SQL foi removido).
 - Helpers de query JSON em `br.com.wdc.framework.jooq` (`JsonQuery`, `JsonQueryBuilder`, `JsonChildQueryBuilder`).
 

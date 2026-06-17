@@ -1,8 +1,8 @@
 package br.com.wdc.shopping.persistence.impl.repository;
 
 import static br.com.wdc.framework.domain.repository.Repository.changed;
-import static br.com.wdc.shopping.persistence.impl.jooq.Sequences.SQ_USER;
-import static br.com.wdc.shopping.persistence.impl.jooq.tables.EnUser.EN_USER;
+import static br.com.wdc.shopping.persistence.impl.scheme.Sequences.SQ_USER;
+import static br.com.wdc.shopping.persistence.impl.scheme.tables.EnUser.EN_USER;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -21,7 +21,7 @@ import br.com.wdc.framework.jooq.QueryContext;
 import br.com.wdc.shopping.domain.criteria.UserCriteria;
 import br.com.wdc.shopping.domain.model.User;
 import br.com.wdc.shopping.domain.repositories.UserRepository;
-import br.com.wdc.shopping.persistence.impl.jooq.tables.EnUser;
+import br.com.wdc.shopping.persistence.impl.scheme.tables.EnUser;
 
 public class UserRepositoryImpl implements UserRepository {
 
