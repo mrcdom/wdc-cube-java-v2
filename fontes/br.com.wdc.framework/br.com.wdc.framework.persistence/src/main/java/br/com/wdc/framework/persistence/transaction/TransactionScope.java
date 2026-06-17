@@ -15,7 +15,8 @@ import jakarta.transaction.TransactionManager;
  *
  * <ul>
  * <li><b>JTA</b> — quando {@link JtaTransactionManager#BEAN} está inicializado. Delega begin/commit/rollback ao
- * {@link TransactionManager} Narayana; a conexão JDBC é obtida do pool Agroal e enlistada como recurso XA.</li>
+ * {@link TransactionManager}; a conexão JDBC é obtida do {@link DataSource} que, sendo JTA-aware (configurado pelo
+ * host), é enlistada automaticamente como recurso XA na transação corrente.</li>
  * <li><b>JDBC</b> — quando {@link JtaTransactionManager#BEAN} é {@code null} (padrão). Gerencia a transação diretamente
  * via {@link Connection#commit()}/{@link Connection#rollback()}, sem TM externo.</li>
  * </ul>
@@ -89,7 +90,7 @@ public final class TransactionScope implements AutoCloseable {
         Connection connection;
         Transaction jtaTx;
         try {
-            connection = dataSource.getConnection(); // Agroal enlista automaticamente em tm
+            connection = dataSource.getConnection(); // DataSource JTA-aware enlista a conexão no tm
             jtaTx = tm.getTransaction();
         } catch (SQLException | SystemException e) {
             try {

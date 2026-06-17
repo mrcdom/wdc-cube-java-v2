@@ -2,6 +2,7 @@ package br.com.wdc.cube.backend;
 
 import java.util.concurrent.ScheduledExecutorService;
 
+import br.com.wdc.cube.backend.supports.JtaSupport;
 import br.com.wdc.cube.backend.supports.SqlDataSourceSupport;
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.commons.sql.SqlDataSource;
@@ -36,9 +37,18 @@ public class BusinessContext {
             });
 
             var dbPrefix = "";
+
+            // Transações: inicializa o TransactionManager Narayana se application.toml pedir
+            // (database.transaction = jta). Deve preceder o DataSource para que o pool seja enlistado.
+            var jtaSupport = new JtaSupport(dbPrefix, config);
+            jtaSupport.init(cleanUp);
+
             var dsSupport = new SqlDataSourceSupport(dbPrefix, config);
             SqlDataSource.BEAN.set(dsSupport.init(cleanUp));
             cleanUp.push(() -> SqlDataSource.BEAN.set(null));
+
+            // Avisa se pediram JTA mas o TransactionManager não subiu (rodando como JDBC direto).
+            jtaSupport.warnIfModeMismatch();
 
             RepositoryBootstrap.initialize(dsSupport.isLogEnabled(), dsSupport.getDialect(), cleanUp);
 

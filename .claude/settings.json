@@ -3,22 +3,14 @@
     "allow": [
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
-      "Bash(cd /Users/mrcdom/Works/WeDoCode/wdc-cube-java-v2/fontes/br.com.wdc.shopping/br.com.wdc.shopping.domain/src/main/java/br/com/wdc/shopping/domain; echo \"=== DOMAIN TREE ===\"; find . -name '*.java' | sort; echo; echo \"=== FRAMEWORK COMMONS ===\"; find ../../../../../../../../br.com.wdc.framework/br.com.wdc.framework.commons/src/main/java -name '*.java' 2>/dev/null | sed 's#.*/java/##' | sort)",
-      "Read(//br.com.wdc.framework/br.com.wdc.framework.commons/src/main/**)",
       "Bash(git -c core.quotepath=false status -s)",
       "Bash(git commit *)",
       "Bash(echo \"exit=$?\")",
-      "Bash(grep -vE 'persistence\\\\.\\(impl|client|rest\\)$')",
       "Bash(git -c core.quotepath=false status -s --find-renames=40%)",
       "Bash(grep -nE '\\(^|/\\)\\(bin|target\\)/?$|bin/|target/' .gitignore fontes/.gitignore)",
       "Bash(git check-ignore *)",
-      "Read(//Users/mrcdom/.m2/repository/br/com/wdc/shopping/**)",
-      "Read(//Users/mrcdom/.m2/repository/br/com/wdc/shopping/persistence.impl/1.0.0/**)",
-      "Bash(echo \"EXIT=$?\")",
-      "Bash([ -d \"$D/jooq\" ])",
       "Bash(grep -rh '^package ' __TRACKED_VAR__/scheme)",
-      "Bash(awk 'NR>=1{print NR\": \"$0}' pom.xml)",
-      "Bash(unzip -p target/br.com.wdc.cube.backend-1.0.0.jar META-INF/MANIFEST.MF)"
+      "Bash(awk 'NR>=1{print NR\": \"$0}' pom.xml)"
     ]
   }
 }
