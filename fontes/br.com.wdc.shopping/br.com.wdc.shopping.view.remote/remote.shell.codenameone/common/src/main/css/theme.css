@@ -15,6 +15,20 @@ Form {
     background-color: #f4f6f9;
 }
 
+/* Barra de título = app bar azul */
+TitleArea {
+    background-color: #0d66d0;
+    border: none;
+    padding: 1mm 2mm;
+}
+
+Title {
+    color: #ffffff;
+    background-color: transparent;
+    font-family: "native:MainBold";
+    font-size: 4mm;
+}
+
 /* Card branco arredondado com sombra suave */
 Card {
     background-color: #ffffff;

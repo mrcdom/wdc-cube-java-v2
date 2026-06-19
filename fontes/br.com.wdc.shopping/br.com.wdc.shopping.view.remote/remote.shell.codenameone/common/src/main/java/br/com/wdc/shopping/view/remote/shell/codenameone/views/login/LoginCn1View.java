@@ -33,8 +33,8 @@ public class LoginCn1View extends AbstractCn1View {
     @Override
     protected Container build() {
         Container root = new Container(BoxLayout.y());
-        root.setUIID("Card");
-        Cn1Dom.render(root, (dom, r) -> {
+        Cn1Dom.render(root, (dom, r) -> dom.boxY(card -> {
+            card.setUIID("Card");
             dom.label(l -> {
                 l.setText("Entrar");
                 l.setUIID("SectionTitle");
@@ -56,7 +56,7 @@ public class LoginCn1View extends AbstractCn1View {
                     submit(EVT_LOGIN, form);
                 });
             });
-        });
+        }));
         return root;
     }
 
