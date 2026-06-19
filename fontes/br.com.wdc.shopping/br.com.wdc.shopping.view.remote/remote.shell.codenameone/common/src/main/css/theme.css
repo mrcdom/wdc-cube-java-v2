@@ -132,7 +132,7 @@ BannerTitle {
 }
 
 BannerSubtitle {
-    color: #e8f1fc;
+    color: #f0f6ff;
     background-color: transparent;
     font-size: 2.4mm;
     text-align: center;
@@ -147,7 +147,7 @@ HeroTitle {
 }
 
 HeroSubtitle {
-    color: #e8f1fc;
+    color: #f0f6ff;
     background-color: transparent;
     font-size: 3mm;
     text-align: center;

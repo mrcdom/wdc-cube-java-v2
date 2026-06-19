@@ -79,7 +79,7 @@ public class LoginCn1View extends AbstractCn1View {
                 });
                 dom.spanLabel(l -> {
                     l.setText("Sua compra certa na internet.");
-                    l.setUIID("BannerSubtitle");
+                    l.setTextUIID("BannerSubtitle");
                 });
             });
 
@@ -90,7 +90,7 @@ public class LoginCn1View extends AbstractCn1View {
             });
             dom.spanLabel(l -> {
                 l.setText("Entre com suas credenciais para continuar");
-                l.setUIID("WelcomeSubtitle");
+                l.setTextUIID("WelcomeSubtitle");
             });
 
             // erro
@@ -134,7 +134,7 @@ public class LoginCn1View extends AbstractCn1View {
                 hint.setUIID("DemoHint");
                 dom.spanLabel(l -> {
                     l.setText("Acesso demo: admin / admin");
-                    l.setUIID("DemoText");
+                    l.setTextUIID("DemoText");
                 });
             });
         });
@@ -159,7 +159,7 @@ public class LoginCn1View extends AbstractCn1View {
             });
             dom.spanLabel(l -> {
                 l.setText("Sua compra certa na internet.");
-                l.setUIID("HeroSubtitle");
+                l.setTextUIID("HeroSubtitle");
             });
             feature(dom, FontImage.MATERIAL_VERIFIED_USER, "Compra segura");
             feature(dom, FontImage.MATERIAL_LOCAL_SHIPPING, "Entrega rápida");
