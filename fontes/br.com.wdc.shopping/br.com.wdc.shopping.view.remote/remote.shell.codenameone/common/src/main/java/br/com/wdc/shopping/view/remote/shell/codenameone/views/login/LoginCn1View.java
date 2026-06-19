@@ -44,13 +44,16 @@ public class LoginCn1View extends AbstractCn1View {
         Container card = buildCard();
 
         if (app.isExpanded()) {
-            card.setPreferredW(Display.getInstance().getDisplayWidth() * 4 / 10);
+            card.setPreferredW(Display.getInstance().getDisplayWidth() * 38 / 100);
+            Container cardWrap = new Container(new FlowLayout(Component.CENTER, Component.CENTER));
+            cardWrap.add(card);
             Container root = new Container(new BorderLayout());
             root.add(BorderLayout.CENTER, buildHero());
-            root.add(BorderLayout.EAST, card);
+            root.add(BorderLayout.EAST, cardWrap);
             return root;
         }
 
+        // compacto: card ocupa a largura, no topo
         Container root = new Container(BoxLayout.y());
         root.add(card);
         return root;
@@ -74,7 +77,7 @@ public class LoginCn1View extends AbstractCn1View {
                     l.setText("WDC Shopping");
                     l.setUIID("BannerTitle");
                 });
-                dom.label(l -> {
+                dom.spanLabel(l -> {
                     l.setText("Sua compra certa na internet.");
                     l.setUIID("BannerSubtitle");
                 });
@@ -85,7 +88,7 @@ public class LoginCn1View extends AbstractCn1View {
                 l.setText("Bem-vindo");
                 l.setUIID("WelcomeTitle");
             });
-            dom.label(l -> {
+            dom.spanLabel(l -> {
                 l.setText("Entre com suas credenciais para continuar");
                 l.setUIID("WelcomeSubtitle");
             });
@@ -129,7 +132,7 @@ public class LoginCn1View extends AbstractCn1View {
             // dica de acesso demo
             dom.boxY(hint -> {
                 hint.setUIID("DemoHint");
-                dom.label(l -> {
+                dom.spanLabel(l -> {
                     l.setText("Acesso demo: admin / admin");
                     l.setUIID("DemoText");
                 });
@@ -141,9 +144,11 @@ public class LoginCn1View extends AbstractCn1View {
     // :: Hero (layout expandido)
 
     private Container buildHero() {
-        Container hero = new Container(BoxLayout.y());
+        Container hero = new Container(new FlowLayout(Component.CENTER, Component.CENTER));
         hero.setUIID("LoginHero");
-        Cn1Dom.render(hero, (dom, h) -> {
+        Container content = new Container(BoxLayout.y());
+        hero.add(content);
+        Cn1Dom.render(content, (dom, h) -> {
             dom.container(new FlowLayout(Component.CENTER), null, row -> {
                 Label logo = dom.label(l -> l.getAllStyles().setFgColor(0xffffff));
                 FontImage.setMaterialIcon(logo, FontImage.MATERIAL_SHOPPING_BAG, 14f);
@@ -152,7 +157,7 @@ public class LoginCn1View extends AbstractCn1View {
                 l.setText("WDC Shopping");
                 l.setUIID("HeroTitle");
             });
-            dom.label(l -> {
+            dom.spanLabel(l -> {
                 l.setText("Sua compra certa na internet.");
                 l.setUIID("HeroSubtitle");
             });
