@@ -94,6 +94,103 @@ TextFieldHint {
     color: #6e6e73;
 }
 
+/* === Login === */
+LoginCard {
+    background-color: #ffffff;
+    border-radius: 3mm;
+    padding: 4mm;
+    margin: 3mm;
+}
+
+LoginHero {
+    background: linear-gradient(160deg, #0d66d0 0%, #1a8cff 40%, #4da6ff 100%);
+    padding: 8mm;
+}
+
+/* Banner azul no topo do card */
+LoginBanner {
+    background: linear-gradient(160deg, #0d66d0 0%, #1a8cff 40%, #4da6ff 100%);
+    border-radius: 2.5mm;
+    padding: 4mm;
+    margin: 0 0 3mm 0;
+}
+
+LogoBox {
+    color: #ffffff;
+    background-color: #2f86f0;
+    border-radius: 2.5mm;
+    padding: 2mm;
+    text-align: center;
+}
+
+BannerTitle {
+    color: #ffffff;
+    background-color: transparent;
+    font-family: "native:MainBold";
+    font-size: 4mm;
+    text-align: center;
+}
+
+BannerSubtitle {
+    color: #e8f1fc;
+    background-color: transparent;
+    font-size: 2.4mm;
+    text-align: center;
+}
+
+HeroTitle {
+    color: #ffffff;
+    background-color: transparent;
+    font-family: "native:MainBold";
+    font-size: 6mm;
+    text-align: center;
+}
+
+HeroSubtitle {
+    color: #e8f1fc;
+    background-color: transparent;
+    font-size: 3mm;
+    text-align: center;
+}
+
+FeatureText {
+    color: #ffffff;
+    background-color: transparent;
+    font-size: 3mm;
+}
+
+WelcomeTitle {
+    color: #1d1d1f;
+    font-family: "native:MainBold";
+    font-size: 4.5mm;
+}
+
+WelcomeSubtitle {
+    color: #6e6e73;
+    font-size: 2.8mm;
+}
+
+FieldLabel {
+    color: #1d1d1f;
+    font-family: "native:MainBold";
+    font-size: 2.8mm;
+    padding: 1.5mm 0 0.5mm 0;
+}
+
+DemoHint {
+    background-color: #f4f6f9;
+    border: 1px solid #e5e5ea;
+    border-radius: 2mm;
+    padding: 2mm;
+    margin: 3mm 0 0 0;
+}
+
+DemoText {
+    color: #6e6e73;
+    font-size: 2.6mm;
+    text-align: center;
+}
+
 /* App bar azul (fase 2 — header compartilhado) */
 AppBar {
     background-color: #0d66d0;
