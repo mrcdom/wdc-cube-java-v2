@@ -11,13 +11,13 @@ import com.codename1.ui.Label;
 import com.codename1.ui.layouts.BoxLayout;
 
 import br.com.wdc.shopping.view.remote.shell.codenameone.ShoppingCn1RemoteApp;
-import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractViewCn1;
+import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.BridgeSession;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Json;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Money;
 
 /** Carrinho (classId {@value #CLASS_ID}). */
-public class CartViewCn1 extends AbstractViewCn1 {
+public class CartCn1View extends AbstractCn1View {
 
     public static final String CLASS_ID = "7eb485e5f843";
     private static final int EVT_BUY = 1;
@@ -26,9 +26,9 @@ public class CartViewCn1 extends AbstractViewCn1 {
 
     private Container list;
     private Label total;
-    private final List<CartItemViewCn1> items = new ArrayList<>();
+    private final List<CartItemCn1View> items = new ArrayList<>();
 
-    public CartViewCn1(String vsid, BridgeSession session, ShoppingCn1RemoteApp app) {
+    public CartCn1View(String vsid, BridgeSession session, ShoppingCn1RemoteApp app) {
         super(vsid, session, app);
     }
 
@@ -54,7 +54,7 @@ public class CartViewCn1 extends AbstractViewCn1 {
     @Override
     public void doUpdate() {
         List<Object> cartItems = Json.asList(state().get("items"));
-        syncList(list, cartItems, items, () -> new CartItemViewCn1(this::removeProduct));
+        syncList(list, cartItems, items, () -> new CartItemCn1View(this::removeProduct));
 
         double sum = 0;
         for (Object o : cartItems) {

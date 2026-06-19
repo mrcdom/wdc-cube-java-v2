@@ -11,12 +11,12 @@ import com.codename1.ui.TextField;
 import com.codename1.ui.layouts.BoxLayout;
 
 import br.com.wdc.shopping.view.remote.shell.codenameone.ShoppingCn1RemoteApp;
-import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractViewCn1;
+import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.BridgeSession;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Json;
 
 /** Tela de login (classId {@value #CLASS_ID}). */
-public class LoginViewCn1 extends AbstractViewCn1 {
+public class LoginCn1View extends AbstractCn1View {
 
     public static final String CLASS_ID = "c677cda52d14";
     private static final int EVT_LOGIN = 1;
@@ -26,7 +26,7 @@ public class LoginViewCn1 extends AbstractViewCn1 {
     private Label loading;
     private Label error;
 
-    public LoginViewCn1(String vsid, BridgeSession session, ShoppingCn1RemoteApp app) {
+    public LoginCn1View(String vsid, BridgeSession session, ShoppingCn1RemoteApp app) {
         super(vsid, session, app);
     }
 

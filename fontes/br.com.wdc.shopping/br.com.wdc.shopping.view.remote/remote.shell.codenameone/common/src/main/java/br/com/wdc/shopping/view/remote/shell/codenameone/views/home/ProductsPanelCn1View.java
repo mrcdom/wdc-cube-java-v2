@@ -9,20 +9,20 @@ import com.codename1.ui.Container;
 import com.codename1.ui.layouts.BoxLayout;
 
 import br.com.wdc.shopping.view.remote.shell.codenameone.ShoppingCn1RemoteApp;
-import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractViewCn1;
+import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.BridgeSession;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Json;
 
 /** Painel/catálogo de produtos (classId {@value #CLASS_ID}). */
-public class ProductsPanelViewCn1 extends AbstractViewCn1 {
+public class ProductsPanelCn1View extends AbstractCn1View {
 
     public static final String CLASS_ID = "a1b2c3d4e5f6";
     private static final int EVT_OPEN_PRODUCT = 1;
 
     private Container list;
-    private final List<ProductItemViewCn1> items = new ArrayList<>();
+    private final List<ProductItemCn1View> items = new ArrayList<>();
 
-    public ProductsPanelViewCn1(String vsid, BridgeSession session, ShoppingCn1RemoteApp app) {
+    public ProductsPanelCn1View(String vsid, BridgeSession session, ShoppingCn1RemoteApp app) {
         super(vsid, session, app);
     }
 
@@ -36,7 +36,7 @@ public class ProductsPanelViewCn1 extends AbstractViewCn1 {
     @Override
     public void doUpdate() {
         List<Object> products = Json.asList(state().get("products"));
-        syncList(list, products, items, () -> new ProductItemViewCn1(this::openProduct));
+        syncList(list, products, items, () -> new ProductItemCn1View(this::openProduct));
     }
 
     private void openProduct(long productId) {

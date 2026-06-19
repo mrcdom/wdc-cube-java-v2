@@ -12,14 +12,14 @@ import com.codename1.ui.TextField;
 import com.codename1.ui.layouts.BoxLayout;
 
 import br.com.wdc.shopping.view.remote.shell.codenameone.ShoppingCn1RemoteApp;
-import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractViewCn1;
+import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.BridgeSession;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Images;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Json;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Money;
 
 /** Detalhe do produto (classId {@value #CLASS_ID}). */
-public class ProductViewCn1 extends AbstractViewCn1 {
+public class ProductCn1View extends AbstractCn1View {
 
     public static final String CLASS_ID = "48b693f67410";
     private static final int EVT_BACK = 1;
@@ -33,7 +33,7 @@ public class ProductViewCn1 extends AbstractViewCn1 {
     private TextField qty;
     private long currentId = -1;
 
-    public ProductViewCn1(String vsid, BridgeSession session, ShoppingCn1RemoteApp app) {
+    public ProductCn1View(String vsid, BridgeSession session, ShoppingCn1RemoteApp app) {
         super(vsid, session, app);
     }
 

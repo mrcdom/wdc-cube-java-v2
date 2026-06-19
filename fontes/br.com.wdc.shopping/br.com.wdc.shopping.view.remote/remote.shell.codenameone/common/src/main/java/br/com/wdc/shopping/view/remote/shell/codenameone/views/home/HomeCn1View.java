@@ -9,7 +9,7 @@ import com.codename1.ui.layouts.BorderLayout;
 import com.codename1.ui.layouts.BoxLayout;
 
 import br.com.wdc.shopping.view.remote.shell.codenameone.ShoppingCn1RemoteApp;
-import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractViewCn1;
+import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.BridgeSession;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Json;
 
@@ -18,7 +18,7 @@ import br.com.wdc.shopping.view.remote.shell.codenameone.util.Json;
  * conteúdo que mostra o painel de produtos por padrão, ou uma tela aninhada (produto/carrinho/
  * recibo) quando o servidor define {@code contentViewId}.
  */
-public class HomeViewCn1 extends AbstractViewCn1 {
+public class HomeCn1View extends AbstractCn1View {
 
     public static final String CLASS_ID = "473dbdd7a36a";
     private static final int EVT_LOGOUT = 1;
@@ -29,7 +29,7 @@ public class HomeViewCn1 extends AbstractViewCn1 {
     private Container contentPane;
     private String mountedVsid = "";
 
-    public HomeViewCn1(String vsid, BridgeSession session, ShoppingCn1RemoteApp app) {
+    public HomeCn1View(String vsid, BridgeSession session, ShoppingCn1RemoteApp app) {
         super(vsid, session, app);
     }
 
@@ -72,7 +72,7 @@ public class HomeViewCn1 extends AbstractViewCn1 {
                 contentPane.add(BorderLayout.CENTER, el);
             }
         }
-        AbstractViewCn1 view = childView(target);
+        AbstractCn1View view = childView(target);
         if (view != null) {
             view.doUpdate();
         }

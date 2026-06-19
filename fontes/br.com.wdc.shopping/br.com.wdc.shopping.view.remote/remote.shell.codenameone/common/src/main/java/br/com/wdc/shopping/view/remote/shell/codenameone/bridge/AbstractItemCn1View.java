@@ -7,7 +7,7 @@ import com.codename1.ui.Container;
  * representar cada item de uma coleção (produto, item de carrinho, etc.). Mesmo padrão não-reativo:
  * constrói os widgets uma vez, {@link #setState(Object)} muta-os a partir do dado do item.
  */
-public abstract class AbstractItemCn1<T> {
+public abstract class AbstractItemCn1View<T> {
 
     private Container element;
     private boolean built;

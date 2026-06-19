@@ -8,18 +8,18 @@ import com.codename1.ui.Container;
 import com.codename1.ui.Label;
 import com.codename1.ui.layouts.BorderLayout;
 
-import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractItemCn1;
+import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractItemCn1View;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Json;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Money;
 
 /** Item do carrinho: nome ×quantidade + preço, com botão de remover. */
-public class CartItemViewCn1 extends AbstractItemCn1<Object> {
+public class CartItemCn1View extends AbstractItemCn1View<Object> {
 
     private final Consumer<Long> onRemove;
     private Label label;
     private long currentId = -1;
 
-    public CartItemViewCn1(Consumer<Long> onRemove) {
+    public CartItemCn1View(Consumer<Long> onRemove) {
         this.onRemove = onRemove;
     }
 

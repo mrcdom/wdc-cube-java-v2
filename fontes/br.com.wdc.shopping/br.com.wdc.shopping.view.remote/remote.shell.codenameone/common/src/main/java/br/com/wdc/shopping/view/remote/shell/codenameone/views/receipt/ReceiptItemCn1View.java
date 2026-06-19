@@ -6,12 +6,12 @@ import com.codename1.ui.Container;
 import com.codename1.ui.Label;
 import com.codename1.ui.layouts.BorderLayout;
 
-import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractItemCn1;
+import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractItemCn1View;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Json;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Money;
 
 /** Item do recibo: descrição ×quantidade + valor. */
-public class ReceiptItemViewCn1 extends AbstractItemCn1<Object> {
+public class ReceiptItemCn1View extends AbstractItemCn1View<Object> {
 
     private Label label;
 

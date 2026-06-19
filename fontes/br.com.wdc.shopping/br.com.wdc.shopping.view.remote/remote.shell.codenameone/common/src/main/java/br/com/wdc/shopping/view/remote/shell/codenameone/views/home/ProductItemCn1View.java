@@ -7,13 +7,13 @@ import com.codename1.ui.Button;
 import com.codename1.ui.Container;
 import com.codename1.ui.layouts.BorderLayout;
 
-import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractItemCn1;
+import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractItemCn1View;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Images;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Json;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Money;
 
 /** Item da lista de produtos: thumbnail + nome/preço, abre o detalhe ao tocar. */
-public class ProductItemViewCn1 extends AbstractItemCn1<Object> {
+public class ProductItemCn1View extends AbstractItemCn1View<Object> {
 
     private static final int THUMB = 90;
 
@@ -21,7 +21,7 @@ public class ProductItemViewCn1 extends AbstractItemCn1<Object> {
     private Button button;
     private long currentId = -1;
 
-    public ProductItemViewCn1(Consumer<Long> onOpen) {
+    public ProductItemCn1View(Consumer<Long> onOpen) {
         this.onOpen = onOpen;
     }
 

@@ -22,7 +22,7 @@ import br.com.wdc.shopping.view.remote.shell.codenameone.ShoppingCn1RemoteApp;
  * filhas por vsid via {@link #childElement(String)}.
  * </p>
  */
-public abstract class AbstractViewCn1 {
+public abstract class AbstractCn1View {
 
     protected final String vsid;
     protected final BridgeSession session;
@@ -31,7 +31,7 @@ public abstract class AbstractViewCn1 {
     private Container element;
     private boolean built;
 
-    protected AbstractViewCn1(String vsid, BridgeSession session, ShoppingCn1RemoteApp app) {
+    protected AbstractCn1View(String vsid, BridgeSession session, ShoppingCn1RemoteApp app) {
         this.vsid = vsid;
         this.session = session;
         this.app = app;
@@ -77,11 +77,11 @@ public abstract class AbstractViewCn1 {
 
     /** Element de uma view filha (criada sob demanda via o app), ou {@code null}. */
     protected Container childElement(String childVsid) {
-        AbstractViewCn1 child = app.viewFor(childVsid);
+        AbstractCn1View child = app.viewFor(childVsid);
         return child != null ? child.getElement() : null;
     }
 
-    protected AbstractViewCn1 childView(String childVsid) {
+    protected AbstractCn1View childView(String childVsid) {
         return app.viewFor(childVsid);
     }
 
@@ -95,7 +95,7 @@ public abstract class AbstractViewCn1 {
      * Sincroniza uma lista de itens com uma lista de item-views, <b>reusando</b> as item-views
      * (cresce/encolhe/atualiza) — equivalente ao {@code syncListSlot} do Vaadin.
      */
-    protected <T, V extends AbstractItemCn1<T>> void syncList(Container container, List<T> items,
+    protected <T, V extends AbstractItemCn1View<T>> void syncList(Container container, List<T> items,
             List<V> viewList, Supplier<V> factory) {
         int n = items != null ? items.size() : 0;
         while (viewList.size() < n) {

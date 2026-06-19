@@ -4,19 +4,19 @@ import com.codename1.ui.Container;
 import com.codename1.ui.layouts.BorderLayout;
 
 import br.com.wdc.shopping.view.remote.shell.codenameone.ShoppingCn1RemoteApp;
-import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractViewCn1;
+import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.BridgeSession;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Json;
 
 /** Raiz do app (classId {@value #CLASS_ID}) — monta a view de conteúdo (login ou home). */
-public class RootViewCn1 extends AbstractViewCn1 {
+public class RootCn1View extends AbstractCn1View {
 
     public static final String CLASS_ID = "f2d345c4a610";
 
     private Container root;
     private String mountedVsid = "";
 
-    public RootViewCn1(String vsid, BridgeSession session, ShoppingCn1RemoteApp app) {
+    public RootCn1View(String vsid, BridgeSession session, ShoppingCn1RemoteApp app) {
         super(vsid, session, app);
     }
 
@@ -37,7 +37,7 @@ public class RootViewCn1 extends AbstractViewCn1 {
                 root.add(BorderLayout.CENTER, el);
             }
         }
-        AbstractViewCn1 content = childView(contentVsid);
+        AbstractCn1View content = childView(contentVsid);
         if (content != null) {
             content.doUpdate();
         }

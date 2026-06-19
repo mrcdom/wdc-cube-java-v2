@@ -10,17 +10,17 @@ import com.codename1.ui.CN;
 import com.codename1.ui.Form;
 import com.codename1.ui.layouts.BorderLayout;
 
-import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractViewCn1;
+import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.BridgeSession;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Images;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Json;
-import br.com.wdc.shopping.view.remote.shell.codenameone.views.RootViewCn1;
-import br.com.wdc.shopping.view.remote.shell.codenameone.views.cart.CartViewCn1;
-import br.com.wdc.shopping.view.remote.shell.codenameone.views.home.HomeViewCn1;
-import br.com.wdc.shopping.view.remote.shell.codenameone.views.home.ProductsPanelViewCn1;
-import br.com.wdc.shopping.view.remote.shell.codenameone.views.login.LoginViewCn1;
-import br.com.wdc.shopping.view.remote.shell.codenameone.views.product.ProductViewCn1;
-import br.com.wdc.shopping.view.remote.shell.codenameone.views.receipt.ReceiptViewCn1;
+import br.com.wdc.shopping.view.remote.shell.codenameone.views.RootCn1View;
+import br.com.wdc.shopping.view.remote.shell.codenameone.views.cart.CartCn1View;
+import br.com.wdc.shopping.view.remote.shell.codenameone.views.home.HomeCn1View;
+import br.com.wdc.shopping.view.remote.shell.codenameone.views.home.ProductsPanelCn1View;
+import br.com.wdc.shopping.view.remote.shell.codenameone.views.login.LoginCn1View;
+import br.com.wdc.shopping.view.remote.shell.codenameone.views.product.ProductCn1View;
+import br.com.wdc.shopping.view.remote.shell.codenameone.views.receipt.ReceiptCn1View;
 
 /**
  * Shell fino Codename One (remote-shell) — coordenador.
@@ -38,8 +38,8 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
 
     private BridgeSession session;
     private Form form;
-    private final Map<String, AbstractViewCn1> views = new HashMap<>();
-    private final Map<String, Function<String, AbstractViewCn1>> registry = new HashMap<>();
+    private final Map<String, AbstractCn1View> views = new HashMap<>();
+    private final Map<String, Function<String, AbstractCn1View>> registry = new HashMap<>();
     private String rootVsid = "";
     private boolean flushScheduled;
 
@@ -63,23 +63,23 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
     }
 
     private void registerViews() {
-        registry.put(RootViewCn1.CLASS_ID, vsid -> new RootViewCn1(vsid, session, this));
-        registry.put(LoginViewCn1.CLASS_ID, vsid -> new LoginViewCn1(vsid, session, this));
-        registry.put(HomeViewCn1.CLASS_ID, vsid -> new HomeViewCn1(vsid, session, this));
-        registry.put(ProductsPanelViewCn1.CLASS_ID, vsid -> new ProductsPanelViewCn1(vsid, session, this));
-        registry.put(ProductViewCn1.CLASS_ID, vsid -> new ProductViewCn1(vsid, session, this));
-        registry.put(CartViewCn1.CLASS_ID, vsid -> new CartViewCn1(vsid, session, this));
-        registry.put(ReceiptViewCn1.CLASS_ID, vsid -> new ReceiptViewCn1(vsid, session, this));
+        registry.put(RootCn1View.CLASS_ID, vsid -> new RootCn1View(vsid, session, this));
+        registry.put(LoginCn1View.CLASS_ID, vsid -> new LoginCn1View(vsid, session, this));
+        registry.put(HomeCn1View.CLASS_ID, vsid -> new HomeCn1View(vsid, session, this));
+        registry.put(ProductsPanelCn1View.CLASS_ID, vsid -> new ProductsPanelCn1View(vsid, session, this));
+        registry.put(ProductCn1View.CLASS_ID, vsid -> new ProductCn1View(vsid, session, this));
+        registry.put(CartCn1View.CLASS_ID, vsid -> new CartCn1View(vsid, session, this));
+        registry.put(ReceiptCn1View.CLASS_ID, vsid -> new ReceiptCn1View(vsid, session, this));
     }
 
     /** Retorna (criando sob demanda via registry) a view de um vsid; {@code null} se classId desconhecido. */
-    public AbstractViewCn1 viewFor(String vsid) {
+    public AbstractCn1View viewFor(String vsid) {
         if (vsid == null || vsid.isEmpty()) {
             return null;
         }
-        AbstractViewCn1 v = views.get(vsid);
+        AbstractCn1View v = views.get(vsid);
         if (v == null) {
-            Function<String, AbstractViewCn1> factory = registry.get(BridgeSession.classIdOf(vsid));
+            Function<String, AbstractCn1View> factory = registry.get(BridgeSession.classIdOf(vsid));
             if (factory == null) {
                 return null;
             }
@@ -109,13 +109,13 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
         }
         if (!rv.equals(rootVsid)) {
             rootVsid = rv;
-            AbstractViewCn1 root = viewFor(rv);
+            AbstractCn1View root = viewFor(rv);
             form.removeAll();
             if (root != null) {
                 form.add(BorderLayout.CENTER, root.getElement());
             }
         }
-        AbstractViewCn1 root = views.get(rootVsid);
+        AbstractCn1View root = views.get(rootVsid);
         if (root != null) {
             root.doUpdate();
         }
