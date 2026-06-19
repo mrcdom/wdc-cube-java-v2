@@ -2,7 +2,6 @@ package br.com.wdc.shopping.view.remote.shell.codenameone;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
 
 import com.codename1.components.SpanLabel;
 import com.codename1.system.Lifecycle;
@@ -39,14 +38,12 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
     private BridgeSession session;
     private Form form;
     private final Map<String, AbstractCn1View> views = new HashMap<>();
-    private final Map<String, Function<String, AbstractCn1View>> registry = new HashMap<>();
     private String rootVsid = "";
     private boolean flushScheduled;
 
     @Override
     public void runApp() {
         Images.setBaseUrl(BASE);
-        registerViews();
 
         form = new Form("WDC Shopping", new BorderLayout());
         form.add(BorderLayout.CENTER, new SpanLabel("Conectando ao servidor..."));
@@ -62,31 +59,43 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
         }).start();
     }
 
-    private void registerViews() {
-        registry.put(RootCn1View.CLASS_ID, vsid -> new RootCn1View(vsid, session, this));
-        registry.put(LoginCn1View.CLASS_ID, vsid -> new LoginCn1View(vsid, session, this));
-        registry.put(HomeCn1View.CLASS_ID, vsid -> new HomeCn1View(vsid, session, this));
-        registry.put(ProductsPanelCn1View.CLASS_ID, vsid -> new ProductsPanelCn1View(vsid, session, this));
-        registry.put(ProductCn1View.CLASS_ID, vsid -> new ProductCn1View(vsid, session, this));
-        registry.put(CartCn1View.CLASS_ID, vsid -> new CartCn1View(vsid, session, this));
-        registry.put(ReceiptCn1View.CLASS_ID, vsid -> new ReceiptCn1View(vsid, session, this));
-    }
-
-    /** Retorna (criando sob demanda via registry) a view de um vsid; {@code null} se classId desconhecido. */
+    /** Retorna (criando sob demanda) a view de um vsid; {@code null} se classId desconhecido. */
     public AbstractCn1View viewFor(String vsid) {
         if (vsid == null || vsid.isEmpty()) {
             return null;
         }
         AbstractCn1View v = views.get(vsid);
         if (v == null) {
-            Function<String, AbstractCn1View> factory = registry.get(BridgeSession.classIdOf(vsid));
-            if (factory == null) {
-                return null;
+            v = create(vsid);
+            if (v != null) {
+                views.put(vsid, v);
             }
-            v = factory.apply(vsid);
-            views.put(vsid, v);
         }
         return v;
+    }
+
+    /** Instancia a view do classId (switch direto — sem reflection nem lambda-factory). */
+    private AbstractCn1View create(String vsid) {
+        String classId = BridgeSession.classIdOf(vsid);
+        switch (classId) {
+            case RootCn1View.CLASS_ID:
+                return new RootCn1View(vsid, session, this);
+            case LoginCn1View.CLASS_ID:
+                return new LoginCn1View(vsid, session, this);
+            case HomeCn1View.CLASS_ID:
+                return new HomeCn1View(vsid, session, this);
+            case ProductsPanelCn1View.CLASS_ID:
+                return new ProductsPanelCn1View(vsid, session, this);
+            case ProductCn1View.CLASS_ID:
+                return new ProductCn1View(vsid, session, this);
+            case CartCn1View.CLASS_ID:
+                return new CartCn1View(vsid, session, this);
+            case ReceiptCn1View.CLASS_ID:
+                return new ReceiptCn1View(vsid, session, this);
+            default:
+                com.codename1.io.Log.p("CN1 shell: sem view para classId=" + classId + " (vsid=" + vsid + ")");
+                return null;
+        }
     }
 
     /** Agenda um flush coalescido (chamado por views após interação local). */
@@ -102,24 +111,29 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
 
     /** Re-sincroniza a árvore ativa a partir do estado do bridge (no EDT). */
     private void flush() {
-        Map<String, Object> browser = session.state(BridgeSession.BROWSER_VSID);
-        String rv = browser != null ? Json.str(browser, "contentViewId") : "";
-        if (rv.isEmpty()) {
-            return; // ainda sem estado
-        }
-        if (!rv.equals(rootVsid)) {
-            rootVsid = rv;
-            AbstractCn1View root = viewFor(rv);
-            form.removeAll();
-            if (root != null) {
-                form.add(BorderLayout.CENTER, root.getElement());
+        try {
+            Map<String, Object> browser = session.state(BridgeSession.BROWSER_VSID);
+            String rv = browser != null ? Json.str(browser, "contentViewId") : "";
+            if (rv.isEmpty()) {
+                return; // ainda sem estado
             }
+            if (!rv.equals(rootVsid)) {
+                rootVsid = rv;
+                AbstractCn1View root = viewFor(rv);
+                form.removeAll();
+                if (root != null) {
+                    form.add(BorderLayout.CENTER, root.getElement());
+                }
+            }
+            AbstractCn1View root = views.get(rootVsid);
+            if (root != null) {
+                root.doUpdate();
+            }
+            form.revalidate();
+        } catch (Exception e) {
+            com.codename1.io.Log.e(e);
+            showStatus("Erro ao renderizar: " + e);
         }
-        AbstractCn1View root = views.get(rootVsid);
-        if (root != null) {
-            root.doUpdate();
-        }
-        form.revalidate();
     }
 
     private void showStatus(String text) {

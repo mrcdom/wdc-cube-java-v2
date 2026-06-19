@@ -29,8 +29,9 @@ PrimaryButton {
     color: #ffffff;
     font-family: "native:MainBold";
     font-size: 3mm;
-    border-radius: 10mm;
-    padding: 2.5mm 6mm;
+    border-radius: 2.5mm;
+    padding: 2mm 4mm;
+    margin: 1mm 0;
     text-align: center;
     border: none;
 }
