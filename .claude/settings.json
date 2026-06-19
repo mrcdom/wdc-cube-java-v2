@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git -c core.quotepath=false status -s)",
+      "Bash(git commit *)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(git -c core.quotepath=false status -s --find-renames=40%)",
+      "Bash(grep -nE '\\(^|/\\)\\(bin|target\\)/?$|bin/|target/' .gitignore fontes/.gitignore)",
+      "Bash(git check-ignore *)",
+      "Bash(grep -rh '^package ' __TRACKED_VAR__/scheme)",
+      "Bash(awk 'NR>=1{print NR\": \"$0}' pom.xml)"
+    ]
+  }
+}

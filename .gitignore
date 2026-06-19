@@ -4,6 +4,9 @@
 # IDEs and local run configs
 .idea/
 .vscode/
+
+# Claude Code — overrides pessoais (settings.json compartilhado é versionado)
+.claude/settings.local.json
 *.iml
 .project
 .classpath
@@ -15,6 +18,10 @@
 .ecp-*/
 .mtj.tmp/
 settings/
+# pasta de saída do JDT Language Server (criada até em módulos pom agregadores)
+bin/
+# exceção: work/bin contém scripts de start versionados
+!work/bin/
 
 # Build outputs and generated files
 target/
@@ -25,7 +32,7 @@ node_modules/
 **/src/main/webapp/css/app.css
 
 # Parcel + TeaVM generated resources in backend
-fontes/br.com.wdc.shopping/br.com.wdc.shopping.backend/src/main/resources/META-INF/resources/
+fontes/br.com.wdc.cube.backend/src/main/resources/META-INF/resources/
 dependency-reduced-pom.xml
 .parcel-cache/
 *.class
@@ -37,7 +44,7 @@ hs_err_pid*
 **/work/data/*.trace.db
 
 # Backend work directory (runtime only — consolidated at root work/)
-fontes/br.com.wdc.shopping/br.com.wdc.shopping.backend/work/
+fontes/br.com.wdc.cube.backend/work/
 
 # Vaadin generated files
 **/frontend/generated/

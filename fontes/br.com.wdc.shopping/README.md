@@ -32,7 +32,7 @@ mvn clean package -DskipTests
 
 # 3. Execute
 java -jar \
-  br.com.wdc.shopping/br.com.wdc.shopping.backend/target/br.com.wdc.shopping.backend-1.0.0.jar
+  br.com.wdc.cube.backend/target/br.com.wdc.cube.backend-1.0.0.jar
 ```
 
 Abra **http://localhost:8080** e entre com `admin` / `admin`.
@@ -106,13 +106,12 @@ Java compilado para JavaScript via TeaVM, empacotado como app nativo com Tauri 2
 | [`presentation`](br.com.wdc.shopping.presentation/) | Presenters hierárquicos, ViewStates, serviços, navegação |
 | [`scripts`](br.com.wdc.shopping.scripts/) | Scripts DDL (DBCreate, DBReset) |
 | [`view.remote`](br.com.wdc.shopping.view.remote/) | Frontend web completo (React + Javalin + WebSocket) |
-| [`backend`](br.com.wdc.shopping.backend/) | Servidor Javalin 7 + Virtual Threads (fat JAR) |
 | [`view.vaadin`](br.com.wdc.shopping.view.vaadin/) | Frontend web server-side (Vaadin 24 + Jetty 12 + Lumo theme) |
 | [`view.swt`](br.com.wdc.shopping.view.swt/) | Frontend desktop nativo (Eclipse SWT) |
 | [`view.gluon`](br.com.wdc.shopping.view.gluon/) | Frontend multiplataforma (JavaFX + Gluon — Desktop, iOS, Android) |
 | [`view.teavm`](br.com.wdc.shopping.view.teavm/) | Frontend multiplataforma (TeaVM + Tauri — Web, Desktop, Android, iOS) |
-| [`persistence.rest`](br.com.wdc.shopping.persistence.rest/) | Controllers REST (Javalin) para expor repositórios via HTTP |
-| [`persistence.client`](br.com.wdc.shopping.persistence.client/) | Client REST (OkHttp + Gson) que implementa repositórios via HTTP |
+| [`persistence.rest`](br.com.wdc.shopping.persistence/persistence.rest/) | Controllers REST (Javalin) para expor repositórios via HTTP |
+| [`persistence.client`](br.com.wdc.shopping.persistence/persistence.client/) | Client REST (OkHttp + Gson) que implementa repositórios via HTTP |
 | [`tests`](br.com.wdc.shopping.tests/) | Testes de workflow e repositórios |
 
 ---

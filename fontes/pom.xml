@@ -14,7 +14,7 @@
 	</scm>
 
 	<groupId>br.com.wdc</groupId>
-	<artifactId>br.com.wdc.selecao</artifactId>
+	<artifactId>br.com.wdc.cube.parent</artifactId>
 	<version>2.0.0</version>
 
 	<packaging>pom</packaging>
@@ -64,6 +64,7 @@
 	<modules>
 		<module>br.com.wdc.framework</module>
 		<module>br.com.wdc.shopping</module>
+		<module>br.com.wdc.cube.backend</module>
 	</modules>
 
 	<build>

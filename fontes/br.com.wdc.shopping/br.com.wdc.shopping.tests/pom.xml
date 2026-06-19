@@ -16,7 +16,7 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<version>${project.version}</version>
-			<artifactId>br.com.wdc.shopping.persistence</artifactId>
+			<artifactId>persistence.impl</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -47,6 +47,22 @@
 			<artifactId>agroal-pool</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<!-- Integração JTA (Narayana) — só para o teste de fumaça do modo JTA -->
+		<dependency>
+			<groupId>io.agroal</groupId>
+			<artifactId>agroal-narayana</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.narayana.jta</groupId>
+			<artifactId>narayana-jta</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.logging</groupId>
+			<artifactId>jboss-logging</artifactId>
+			<scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
@@ -56,13 +72,13 @@
 		<!-- REST API server + client for integration tests -->
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>br.com.wdc.shopping.persistence.rest</artifactId>
+			<artifactId>persistence.rest</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>br.com.wdc.shopping.persistence.client</artifactId>
+			<artifactId>persistence.client</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>

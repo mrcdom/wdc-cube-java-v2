@@ -1,9 +1,10 @@
 package br.com.wdc.framework.jooq.dialect;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.jooq.Field;
+import org.jooq.QueryPart;
 import org.jooq.impl.DSL;
 
 import br.com.wdc.framework.jooq.JsonDialect;
@@ -39,6 +40,13 @@ import br.com.wdc.framework.jooq.JsonFieldEntry;
  *
  * <h2>jsonArrayAgg</h2>
  * <p>Usa {@code STRING_AGG}, disponível a partir do SQL Server 2017.</p>
+ *
+ * <h2>Preservação de bind values</h2>
+ * <p>Os campos ({@link JsonFieldEntry#field()} e o elemento do array) são embutidos via placeholders {@code {N}} de
+ * template do jOOQ — nunca renderizados para string crua. Isso garante que subqueries correlacionadas com critérios
+ * filtrados tenham seus bind values rastreados e vinculados na posição correta pelo jOOQ. Quando um campo é referenciado
+ * mais de uma vez na expressão (ex.: {@code IIF(col IS NULL, ..., col)}), o mesmo placeholder {@code {N}} é reutilizado —
+ * o jOOQ vincula o QueryPart corretamente em cada ocorrência.</p>
  */
 public final class SqlServerJsonDialect implements JsonDialect {
 
@@ -53,25 +61,31 @@ public final class SqlServerJsonDialect implements JsonDialect {
             return DSL.inline("{}");
         }
 
-        String parts = entries.stream()
-                .map(e -> "'\"" + escapeKey(e.key()) + "\":' + " + valueExpr(e))
-                .collect(Collectors.joining(" + ',' +\n  "));
+        var sql = new StringBuilder("('{' +\n  ");
+        var args = new ArrayList<QueryPart>();
+        for (int i = 0; i < entries.size(); i++) {
+            if (i > 0) {
+                sql.append(" + ',' +\n  ");
+            }
+            var e = entries.get(i);
+            sql.append("'\"").append(escapeKey(e.key())).append("\":' + ").append(valueExpr(e, args));
+        }
+        sql.append("\n+ '}')");
 
-        return DSL.field(
-                DSL.sql("('{' +\n  " + parts + "\n+ '}')"),
-                String.class);
+        return DSL.field(sql.toString(), String.class, args.toArray(new QueryPart[0]));
     }
 
     @Override
     public Field<String> jsonArrayAgg(Field<String> jsonElement) {
         // STRING_AGG disponível no SQL Server 2017+
-        return DSL.field(
-                DSL.sql("('[' + COALESCE(STRING_AGG(CAST(" + jsonElement + " AS nvarchar(max)), ','), '') + ']')"),
-                String.class);
+        return DSL.field("('[' + COALESCE(STRING_AGG(CAST({0} AS nvarchar(max)), ','), '') + ']')",
+                String.class, jsonElement);
     }
 
-    private String valueExpr(JsonFieldEntry e) {
-        String col = e.field().toString();
+    private String valueExpr(JsonFieldEntry e, List<QueryPart> args) {
+        int idx = args.size();
+        args.add(e.field());
+        String col = "{" + idx + "}";
         return switch (e.type()) {
             case NUMBER ->
                     "IIF(" + col + " IS NULL, 'null', CAST(" + col + " AS nvarchar(max)))";

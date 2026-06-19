@@ -15,6 +15,7 @@
 [O Módulo persistence.client — O Espelho HTTP](#o-módulo-persistenceclient-o-espelho-http)  
 [A Simetria Total — o Mesmo Código, Dois Mundos](#a-simetria-total-o-mesmo-código-dois-mundos)  
 [Fluxo Completo — Da View ao Banco](#fluxo-completo-da-view-ao-banco)  
+[Transações — Atomicidade e Modo Dual JTA/JDBC](#transações-atomicidade-e-modo-dual-jtajdbc)  
 [Conclusões](#conclusões)  
 
 ---
@@ -450,6 +451,83 @@ sequenceDiagram
 ```
 
 Do ponto de vista do Presenter, as duas sequências são indistinguíveis.
+
+---
+
+## Transações — Atomicidade e Modo Dual JTA/JDBC
+
+Uma operação de negócio raramente é uma única instrução SQL. Finalizar uma compra, por exemplo, insere a linha da compra **e** uma linha para cada item. Se a inserção falhar no meio, o que sobra no banco? Em modo *autocommit* — onde cada `INSERT` é confirmado isoladamente — sobra uma **compra órfã**, sem itens. A solução clássica é a transação: ou tudo é confirmado, ou nada é.
+
+O projeto resolve isso com uma camada de transação **programática no estilo CMT (Container-Managed Transaction)** do EJB, com uma propriedade rara: o mesmo código de domínio funciona com transação **JDBC direta** (padrão) ou **JTA/XA** (Narayana), trocando por configuração — e **sem que os repositórios mudem uma linha**.
+
+### O contrato — `TransactionService`
+
+A abstração vive em `framework.domain.transaction` (puro contrato, sem tecnologia). A fronteira da transação é sempre o trabalho fornecido (um lambda): em retorno normal **commita**, em qualquer exceção **reverte** e repropaga. O `TransactionContext` entregue ao trabalho serve para marcar rollback e introspecção.
+
+```java
+// holder por módulo, populado pelo backend (ex.: ShoppingTransactions.BEAN.get())
+ShoppingTransactions.BEAN.get().required(tx -> {
+    purchaseRepository.insert(purchase);   // compra + itens
+    if (regraDeNegocioFalhou) {
+        tx.setRollbackOnly();              // aborta sem lançar exceção
+    }
+});
+```
+
+Os atributos de propagação espelham o EJB (cada um com forma `void` e forma `…Call` que retorna valor, evitando ambiguidade de overload de lambda):
+
+| Propagação | Comportamento |
+|------------|---------------|
+| `required` | Junta-se à transação ativa ou abre uma nova |
+| `requiresNew` | Suspende a ativa, abre uma nova, retoma ao final |
+| `mandatory` | Exige transação ativa (senão `TransactionRequiredException`) |
+| `supports` | Participa se houver; senão executa sem transação |
+| `notSupported` | Suspende a ativa e executa sem transação |
+| `never` | Proíbe transação ativa (senão `TransactionNotAllowedException`) |
+
+### O motor — `TransactionScope` (modo dual)
+
+A implementação (`framework.persistence`) é um *frame* ligado à thread (`ThreadLocal`) que opera em dois modos, decididos em runtime:
+
+- **JDBC** (padrão): gerencia a transação direto na `Connection` (`autoCommit=false`, `commit`/`rollback`). Sem coordenador externo.
+- **JTA**: delega `begin`/`commit`/`rollback` a um `TransactionManager` (Narayana); a conexão, obtida de um `DataSource` *JTA-aware*, é enlistada como recurso **XA** — habilitando 2PC quando houver mais de um recurso.
+
+A reentrância de `required` compartilha a **mesma conexão física** do *owner*; só o *owner* commita/fecha (participantes são no-op).
+
+### Como os repositórios participam — sem mudar
+
+Os `*RepositoryImpl` continuam declarativos: usam o `DSLContext` compartilhado e nunca tocam em conexão ou transação. A ligação acontece num único ponto — o `DSLContext` é construído sobre um **`TransactionAwareConnectionProvider`** (em `framework.jooq`):
+
+- **dentro de uma transação**: entrega a conexão do `TransactionScope` corrente → todas as queries do bloco compartilham a mesma transação física;
+- **fora**: empresta uma conexão avulsa do pool (autocommit), como antes.
+
+O resultado: envolver uma operação em `required(...)` torna atômicas todas as queries que os repositórios executam dentro dela — em JDBC e em JTA — sem qualquer alteração nos repositórios.
+
+### Onde a transação é aberta
+
+A fronteira fica nos **casos de uso de escrita**, não nos repositórios:
+
+- **Fluxo Host** (presenters server-side): a finalização da compra (`CartManager.doPurchase`) envolve o `insert` da compra+itens. É *null-safe* — em ambientes sem `TransactionService` (ex.: TeaVM no browser, que usa repositórios HTTP) executa direto.
+- **Fluxo REST** (`persistence.rest`): um decorador `RepositoryApiRoutes.transactional(...)` envolve os handlers de escrita (`insert`/`update`/`delete`) no registro das rotas, preservando o tipo da exceção original para que os *exception mappers* do Javalin continuem funcionando.
+
+### Configuração e neutralidade
+
+O modo é escolhido em `application.toml`:
+
+```toml
+[database]
+# "jta" = TransactionManager Narayana + pool Agroal enlistado em XA
+# "non-jta" = JDBC direto (autocommit por statement) — padrão
+transaction = "jta"
+```
+
+Um princípio guia a separação: **a tecnologia concreta (Agroal, Narayana, driver XA) vive no host** (`cube.backend`), que constrói o `DataSource` e o `TransactionManager` e os injeta em holders neutros. O módulo `framework.persistence` permanece agnóstico — depende apenas de `javax.sql.DataSource` e `jakarta.transaction` (padrões), nunca de uma implementação de pool ou TM. Trocar Agroal/Narayana por outra stack é mudança isolada no host.
+
+### Contextualização por módulo (hexagonal)
+
+Não existe holder global de `DataSource` nem de `TransactionService`. Cada **módulo** expõe seus holders como SPI — `ShoppingDSLContext` (DSLContext) e `ShoppingTransactions` (TransactionService) — populados pelo **backend (composition root)**, que conhece todos os módulos. O `TransactionServiceImpl` recebe o `DataSource` do módulo na construção (`Supplier<DataSource>`), de modo que cada módulo tem sua transação ligada ao **seu** banco.
+
+Se o backend dá a dois módulos o mesmo `DataSource` (banco compartilhado) ou bancos distintos é decisão dele — **transparente para o módulo**, que apenas usa seu próprio holder. O `TransactionManager` JTA permanece **único por JVM** (coordenador): é ele que permite uma transação atravessar vários módulos/datasources em XA — por isso *não* é contextualizado por módulo.
 
 ---
 

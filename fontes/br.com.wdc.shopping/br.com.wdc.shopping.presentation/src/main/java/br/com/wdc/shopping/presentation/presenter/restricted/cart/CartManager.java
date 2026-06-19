@@ -8,11 +8,13 @@ import java.util.List;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.function.ThrowingRunnable;
+import br.com.wdc.framework.domain.transaction.TransactionService;
 import br.com.wdc.shopping.domain.exception.InvalidCartItemException;
 import br.com.wdc.shopping.domain.model.Product;
 import br.com.wdc.shopping.domain.model.Purchase;
 import br.com.wdc.shopping.domain.model.PurchaseItem;
 import br.com.wdc.shopping.domain.model.User;
+import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.structs.CartItem;
@@ -20,15 +22,27 @@ import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.Pr
 
 public class CartManager {
 
-    private final ShoppingApplication app;
     private List<CartItem> cart;
 
     private int listenerIdGen;
     private Map<Integer, ThrowingRunnable> commitListenerMap;
     private Map<Integer, ThrowingRunnable> changeListenerMap;
+    private TransactionService tx;
+    private PurchaseRepository purchaseRepository;
 
     public CartManager(ShoppingApplication app) {
-        this.app = app;
+        this.init();
+        this.tx = app.tx();
+        this.purchaseRepository = app.getPurchaseRepository();
+    }
+
+    public CartManager(TransactionService tx, PurchaseRepository purchaseRepository) {
+        this.init();
+        this.tx = tx;
+        this.purchaseRepository = purchaseRepository;
+    }
+
+    private void init() {
         this.cart = new ArrayList<>();
         this.commitListenerMap = new HashMap<>();
         this.changeListenerMap = new HashMap<>();
@@ -148,9 +162,11 @@ public class CartManager {
             purchase.items.add(purchaseItem);
         }
 
-        if (!app.getPurchaseRepository().insert(purchase)) {
-            throw new AssertionError("Record not inserted");
-        }
+        this.tx.required(tx -> {
+            if (!this.purchaseRepository.insert(purchase)) {
+                throw new AssertionError("Record not inserted");
+            }
+        });
 
         return purchase.id;
     }

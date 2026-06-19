@@ -1,12 +1,10 @@
 package br.com.wdc.framework.jooq.dialect;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.jooq.Field;
-import org.jooq.SQLDialect;
-import org.jooq.conf.RenderNameCase;
-import org.jooq.conf.Settings;
+import org.jooq.QueryPart;
 import org.jooq.impl.DSL;
 
 import br.com.wdc.framework.jooq.JsonDialect;
@@ -24,7 +22,10 @@ import br.com.wdc.framework.jooq.JsonFieldEntry;
  * PostgreSQL a partir do código-fonte.
  * </p>
  *
- * <p>Usa a combinação:</p>
+ * <p>
+ * Usa a combinação:
+ * </p>
+ *
  * <pre>{@code
  * '{' || array_to_string(array[
  *   '"id":' || coalesce(to_json(t.id), 'null'),
@@ -40,22 +41,16 @@ import br.com.wdc.framework.jooq.JsonFieldEntry;
  * <li>{@code to_json()} serializa qualquer tipo PostgreSQL para JSON válido.</li>
  * </ul>
  *
- * <p>Todas as funções são nativas — sem necessidade de {@code initialize()}.</p>
+ * <p>
+ * <b>Preservação de bind values:</b> os campos ({@link JsonFieldEntry#field()} e o elemento do array) são embutidos via
+ * placeholders {@code {N}} de template do jOOQ — nunca renderizados para string crua. Isso garante que subqueries
+ * correlacionadas com critérios filtrados (ex.: projeção lazy 1—N com {@code ProjectionList(prj, criteria)}) tenham
+ * seus bind values rastreados e vinculados na posição correta pelo jOOQ.
+ * </p>
  */
 public final class PostgresJsonDialect implements JsonDialect {
 
     public static final PostgresJsonDialect INSTANCE = new PostgresJsonDialect();
-
-    /**
-     * Usado para renderizar referências de campo dentro dos fragmentos DSL.sql().
-     * <p>
-     * As classes jOOQ geradas usam nomes em maiúsculas (do H2 codegen). O PostgreSQL armazena
-     * identificadores sem aspas em minúsculas. Este contexto aplica as mesmas configurações do
-     * RepositoryBootstrap (withRenderSchema=false, withRenderNameCase=LOWER) para que
-     * {@code e.field().toString()} produza {@code "u1"."id"} em vez de {@code "PUBLIC"."EN_USER"."ID"}.
-     */
-    private static final org.jooq.DSLContext RENDER_CTX = DSL.using(SQLDialect.POSTGRES,
-            new Settings().withRenderSchema(false).withRenderNameCase(RenderNameCase.LOWER));
 
     private PostgresJsonDialect() {
     }
@@ -66,30 +61,39 @@ public final class PostgresJsonDialect implements JsonDialect {
             return DSL.inline("{}");
         }
 
-        String parts = entries.stream()
-                .map(e -> "'\"" + escapeKey(e.key()) + "\":' || " + valueExpr(e))
-                .collect(Collectors.joining(",\n  "));
+        var sql = new StringBuilder("\n'{' || array_to_string(array[\n  ");
+        var args = new ArrayList<QueryPart>();
+        for (int i = 0; i < entries.size(); i++) {
+            if (i > 0) {
+                sql.append(",\n  ");
+            }
+            var e = entries.get(i);
+            sql.append("'\"").append(escapeKey(e.key())).append("\":' || ").append(valueExpr(e, args));
+        }
+        sql.append("\n], ',') || '}'");
 
-        return DSL.field(
-                DSL.sql("\n'{' || array_to_string(array[\n  " + parts + "\n], ',') || '}'"),
-                String.class);
+        return DSL.field(sql.toString(), String.class, args.toArray(new QueryPart[0]));
     }
 
     @Override
     public Field<String> jsonArrayAgg(Field<String> jsonElement) {
-        return DSL.field(
-                DSL.sql("'[' || COALESCE(string_agg(" + jsonElement + ", ','), '') || ']'"),
-                String.class);
+        return DSL.field("'[' || COALESCE(string_agg({0}, ','), '') || ']'", String.class, jsonElement);
     }
 
-    private String valueExpr(JsonFieldEntry e) {
-        String col = RENDER_CTX.render(e.field());
+    /**
+     * Monta a expressão de valor JSON do campo, registrando {@link JsonFieldEntry#field()} como QueryPart (placeholder
+     * {@code {N}}) na lista {@code args} — preservando eventuais bind values do campo (ex.: subqueries filtradas).
+     */
+    private String valueExpr(JsonFieldEntry e, List<QueryPart> args) {
+        int idx = args.size();
+        args.add(e.field());
+        String ph = "{" + idx + "}";
         return switch (e.type()) {
             // encode() inserts newlines every 76 chars (RFC 2045); getMimeDecoder() on
             // the Java side tolerates them, so no replace() needed here.
-            case BINARY -> "coalesce(to_json(encode(" + col + ", 'base64')), 'null')";
-            case RAW_JSON -> "coalesce(" + col + ", 'null')";
-            default -> "coalesce(to_json(" + col + "), 'null')";
+            case BINARY -> "coalesce(to_json(encode(" + ph + ", 'base64')), 'null')";
+            case RAW_JSON -> "coalesce(" + ph + ", 'null')";
+            default -> "coalesce(to_json(" + ph + "), 'null')";
         };
     }
 

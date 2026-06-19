@@ -8,9 +8,9 @@ import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.framework.commons.serialization.JsonStreamReader;
 import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
 import br.com.wdc.framework.commons.storage.ClientStorage;
-import br.com.wdc.shopping.domain.exception.BusinessException;
-import br.com.wdc.shopping.domain.security.AuthenticationService;
-import br.com.wdc.shopping.domain.security.SecurityContext;
+import br.com.wdc.framework.domain.exception.BusinessException;
+import br.com.wdc.framework.domain.security.AuthenticationService;
+import br.com.wdc.framework.domain.security.SecurityContext;
 
 /**
  * Implementação de {@link AuthenticationService} para TeaVM. Usa HttpTransport diretamente.

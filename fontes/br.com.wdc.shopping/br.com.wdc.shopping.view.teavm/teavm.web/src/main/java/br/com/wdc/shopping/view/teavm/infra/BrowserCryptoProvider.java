@@ -2,7 +2,7 @@ package br.com.wdc.shopping.view.teavm.infra;
 
 import org.teavm.jso.JSBody;
 
-import br.com.wdc.shopping.domain.security.CryptoProvider;
+import br.com.wdc.framework.domain.security.CryptoProvider;
 
 /**
  * Implementação de {@link CryptoProvider} para browser usando implementações

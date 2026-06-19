@@ -90,7 +90,7 @@ A pilha tecnológica do lado servidor — onde a lógica vive — é deliberadam
 | Build | Maven | 3.9+ |
 | Servidor HTTP | Javalin | 7.2.0 |
 | Banco de dados | H2 | 2.4.240 |
-| Acesso a dados | JDBI | 3.52.1 |
+| Acesso a dados | jOOQ | 3.19.16 |
 | Serialização | Gson | 2.13.2 |
 | Logging | SLF4J + Logback | 2.0.16 / 1.5.32 |
 | Testes | JUnit | 4.13.2 |
@@ -123,6 +123,7 @@ Os módulos estão organizados em dois grupos:
 | `framework.commons` | Interfaces funcionais com checked exceptions, serialização extensível, abstração SQL, criptografia (RSA, Base62), logging multiplataforma |
 | `framework.cube` | Motor do Cube MVP: presenters, views, navegação, intents, slots |
 | `framework.cube.remote` | Protocolo de Apresentação Remota: serialização de ViewStates, dispatcher WebSocket, bridges para React/Flutter/TeaVM |
+| `framework.jooq` | Suporte jOOQ: helpers de query JSON (`JsonQuery`, `JsonQueryBuilder`, `JsonChildQueryBuilder`); o `DSLContext` é injetado pela aplicação (sem holder global) |
 | `framework.dependencies` | BOM Maven para versões centralizadas |
 
 **Shopping** — a aplicação em si:
@@ -130,7 +131,7 @@ Os módulos estão organizados em dois grupos:
 | Módulo | Responsabilidade |
 |---|---|
 | `shopping.domain` | Modelos de domínio, repositórios, critérios de consulta |
-| `shopping.persistence` | H2 + JDBI + Command Pattern |
+| `shopping.persistence` | H2 + jOOQ (classes geradas) |
 | `shopping.persistence.rest` | REST controllers (Javalin) |
 | `shopping.persistence.client` | REST client (OkHttp + Gson) |
 | `shopping.presentation` | Presenters, ViewStates, navegação — **tecnologia-agnóstico** |

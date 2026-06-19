@@ -248,7 +248,7 @@ Use Java Flight Recorder (JFR) to monitor:
 ```bash
 # Enable JFR during startup
 java -XX:StartFlightRecording=duration=60s,filename=recording.jfr \
-     -jar br.com.wdc.shopping.backend-1.0.0.jar 8080
+     -jar br.com.wdc.cube.backend-1.0.0.jar 8080
 ```
 
 Key metrics to watch:

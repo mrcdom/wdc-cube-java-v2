@@ -1,9 +1,10 @@
 package br.com.wdc.framework.jooq.dialect;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.jooq.Field;
+import org.jooq.QueryPart;
 import org.jooq.impl.DSL;
 
 import br.com.wdc.framework.jooq.JsonDialect;
@@ -22,6 +23,12 @@ import br.com.wdc.framework.jooq.JsonFieldEntry;
  * }</pre>
  *
  * <p>{@code TO_BASE64} e {@code JSON_OBJECT} são funções nativas do MySQL 5.7+ e MariaDB 10.2+.</p>
+ *
+ * <p>
+ * <b>Preservação de bind values:</b> os campos ({@link JsonFieldEntry#field()} e o elemento do array) são embutidos via
+ * placeholders {@code {N}} de template do jOOQ — nunca renderizados para string crua. Isso garante que subqueries
+ * correlacionadas com critérios filtrados tenham seus bind values rastreados e vinculados na posição correta pelo jOOQ.
+ * </p>
  */
 public final class MySqlJsonDialect implements JsonDialect {
 
@@ -36,26 +43,32 @@ public final class MySqlJsonDialect implements JsonDialect {
             return DSL.inline("{}");
         }
 
-        String args = entries.stream()
-                .map(e -> "'" + escapeKey(e.key()) + "', " + valueExpr(e))
-                .collect(Collectors.joining(", "));
+        var sql = new StringBuilder("CAST(JSON_OBJECT(");
+        var args = new ArrayList<QueryPart>();
+        for (int i = 0; i < entries.size(); i++) {
+            if (i > 0) {
+                sql.append(", ");
+            }
+            var e = entries.get(i);
+            sql.append("'").append(escapeKey(e.key())).append("', ").append(valueExpr(e, args));
+        }
+        sql.append(") AS CHAR)");
 
-        return DSL.field(
-                DSL.sql("CAST(JSON_OBJECT(" + args + ") AS CHAR)"),
-                String.class);
+        return DSL.field(sql.toString(), String.class, args.toArray(new QueryPart[0]));
     }
 
     @Override
     public Field<String> jsonArrayAgg(Field<String> jsonElement) {
-        return DSL.field(
-                DSL.sql("CONCAT('[', COALESCE(GROUP_CONCAT(" + jsonElement + " SEPARATOR ','), ''), ']')"),
-                String.class);
+        return DSL.field("CONCAT('[', COALESCE(GROUP_CONCAT({0} SEPARATOR ','), ''), ']')", String.class, jsonElement);
     }
 
-    private String valueExpr(JsonFieldEntry e) {
+    private String valueExpr(JsonFieldEntry e, List<QueryPart> args) {
+        int idx = args.size();
+        args.add(e.field());
+        String ph = "{" + idx + "}";
         return switch (e.type()) {
-            case BINARY -> "TO_BASE64(" + e.field() + ")";
-            default -> e.field().toString();
+            case BINARY -> "TO_BASE64(" + ph + ")";
+            default -> ph;
         };
     }
 

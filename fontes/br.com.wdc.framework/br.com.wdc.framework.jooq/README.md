@@ -18,9 +18,8 @@ Permitir consultas SELECT com mapeamento bean ↔ tabela de forma type-safe, ond
 | `JsonQuery<B, T>` | Objeto imutável gerado pelo builder — executa fetch, projeção e parsing |
 | `JsonChildQueryBuilder<B, T>` | Builder para coleções filhas (subselects correlacionados) |
 | `JsonDialect` | Interface — gera `JSON_OBJECT` / `JSON_ARRAY` nativo por banco |
-| `JooqDSLContext` | Service locator estático (`AtomicReference<DSLContext>`) |
 | `JooqUtils` | Utilitários auxiliares para JOOQ |
-| `QueryContext` | Contexto de execução de uma query (conexão, dialeto) |
+| `QueryContext` | Contexto de execução de uma query (alias únicos + `DSLContext`); o `DSLContext` é **injetado** via `JsonQueryBuilder.setDSLContextSupplier` — o módulo não tem holder global |
 | `JsonFieldEntry` | Par (nome, Field) para projeção JSON |
 | `JsonFieldType` | Enum de tipos de campo suportados |
 

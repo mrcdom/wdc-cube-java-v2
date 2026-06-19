@@ -1,13 +1,13 @@
 package br.com.wdc.shopping.scripts.sgbd;
 
-import static br.com.wdc.shopping.persistence.jooq.Sequences.SQ_PRODUCT;
-import static br.com.wdc.shopping.persistence.jooq.Sequences.SQ_PURCHASE;
-import static br.com.wdc.shopping.persistence.jooq.Sequences.SQ_PURCHASEITEM;
-import static br.com.wdc.shopping.persistence.jooq.Sequences.SQ_USER;
-import static br.com.wdc.shopping.persistence.jooq.tables.EnProduct.EN_PRODUCT;
-import static br.com.wdc.shopping.persistence.jooq.tables.EnPurchase.EN_PURCHASE;
-import static br.com.wdc.shopping.persistence.jooq.tables.EnPurchaseitem.EN_PURCHASEITEM;
-import static br.com.wdc.shopping.persistence.jooq.tables.EnUser.EN_USER;
+import static br.com.wdc.shopping.persistence.impl.scheme.Sequences.SQ_PRODUCT;
+import static br.com.wdc.shopping.persistence.impl.scheme.Sequences.SQ_PURCHASE;
+import static br.com.wdc.shopping.persistence.impl.scheme.Sequences.SQ_PURCHASEITEM;
+import static br.com.wdc.shopping.persistence.impl.scheme.Sequences.SQ_USER;
+import static br.com.wdc.shopping.persistence.impl.scheme.tables.EnProduct.EN_PRODUCT;
+import static br.com.wdc.shopping.persistence.impl.scheme.tables.EnPurchase.EN_PURCHASE;
+import static br.com.wdc.shopping.persistence.impl.scheme.tables.EnPurchaseitem.EN_PURCHASEITEM;
+import static br.com.wdc.shopping.persistence.impl.scheme.tables.EnUser.EN_USER;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,7 +23,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import br.com.wdc.framework.jooq.JooqDSLContext;
+import br.com.wdc.shopping.persistence.impl.ShoppingDSLContext;
 import br.com.wdc.shopping.domain.model.Product;
 import br.com.wdc.shopping.domain.model.Purchase;
 import br.com.wdc.shopping.domain.model.PurchaseItem;
@@ -56,7 +56,7 @@ public class DBReset {
 	}
 
 	public static void run() {
-		var dsl = JooqDSLContext.BEAN.get();
+		var dsl = ShoppingDSLContext.BEAN.get();
 
 		/*
 		 * Clean all

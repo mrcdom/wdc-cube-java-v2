@@ -10,7 +10,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.storage.PreferencesClientStorage;
 import br.com.wdc.shopping.domain.ShoppingConfig;
-import br.com.wdc.shopping.domain.config.AppConfig;
 import br.com.wdc.shopping.persistence.client.OkHttpTransport;
 import br.com.wdc.shopping.persistence.client.RestRepositoryBootstrap;
 import br.com.wdc.shopping.presentation.presenter.Routes;
@@ -56,7 +55,7 @@ public class ShoppingGluonMain extends Application {
             }
         }
 
-        var config = AppConfig.load();
+        var config = ShoppingConfig.loadConfig();
 
         // On iOS, the working directory is "/" (read-only).
         // Use user.home (set by GluonFX substrate) as the writable base directory.

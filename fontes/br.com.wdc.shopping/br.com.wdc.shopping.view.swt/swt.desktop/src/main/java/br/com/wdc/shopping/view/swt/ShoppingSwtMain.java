@@ -18,14 +18,13 @@ import org.h2.jdbcx.JdbcDataSource;
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.log.Slf4jLogFactory;
-import br.com.wdc.framework.commons.sql.SqlDataSource;
-import br.com.wdc.framework.commons.sql.SqlDataSourceDelegate;
+import br.com.wdc.framework.commons.util.Defer;
+import br.com.wdc.framework.domain.config.AppConfig;
+import br.com.wdc.framework.domain.security.CryptoProvider;
+import br.com.wdc.framework.domain.security.JceCryptoProvider;
 import br.com.wdc.shopping.domain.ShoppingConfig;
-import br.com.wdc.shopping.domain.config.AppConfig;
-import br.com.wdc.shopping.domain.security.CryptoProvider;
-import br.com.wdc.shopping.domain.security.JceCryptoProvider;
 import br.com.wdc.shopping.domain.criteria.UserCriteria;
-import br.com.wdc.shopping.persistence.RepositoryBootstrap;
+import br.com.wdc.shopping.persistence.impl.ShoppingRepositoryBootstrap;
 import br.com.wdc.shopping.presentation.presenter.Routes;
 import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
 import br.com.wdc.shopping.scripts.sgbd.DBCreate;
@@ -38,6 +37,7 @@ public class ShoppingSwtMain {
     @SuppressWarnings({"unused", "java:S1450", "java:S1068"})
     private static Image dockIconImage;
 
+    private final Defer cleanUp = new Defer();
     private ScheduledExecutorService executorService;
     private ShoppingSwtApplication app;
     private boolean devMode;
@@ -84,7 +84,7 @@ public class ShoppingSwtMain {
 
     private void run() {
         try {
-            init();
+            init(cleanUp);
         } catch (Exception e) {
             LOG.error("Failed to initialize application", e);
             System.exit(1);
@@ -111,6 +111,8 @@ public class ShoppingSwtMain {
         shell.setLayout(new StackLayout());
 
         this.app = new ShoppingSwtApplication(display, shell);
+        cleanUp.push(this.app::release);
+
         this.app.setDevMode(this.devMode);
         this.app.start();
         tryRestoreSession();
@@ -138,24 +140,30 @@ public class ShoppingSwtMain {
         display.dispose();
     }
 
-    private void init() throws Exception {
-        var config = AppConfig.load();
+    private void init(Defer cleanUp) throws Exception {
+        var config = ShoppingConfig.loadConfig();
         ShoppingConfig.Internals.configure(config);
         this.devMode = config.getBoolean("dev.mode", false);
 
         CryptoProvider.BEAN.set(new JceCryptoProvider());
+        cleanUp.push(() -> CryptoProvider.BEAN.set(null));
 
         this.executorService = Executors.newScheduledThreadPool(2);
+        cleanUp.push(() -> {
+            this.executorService.shutdownNow();
+            this.executorService = null;
+        });
+
         ScheduledExecutor.BEAN.set(new ScheduledExecutorSwtAdapter(this.executorService, Display.getDefault()));
+        cleanUp.push(() -> ScheduledExecutor.BEAN.set(null));
 
         var dataDir = ShoppingConfig.getDataDir();
         var dataSource = new JdbcDataSource();
         dataSource.setURL(resolveJdbcUrl(config, dataDir));
         dataSource.setUser(config.get("database.username", "sa"));
         dataSource.setPassword(config.get("database.password", "sa"));
-        SqlDataSource.BEAN.set(new SqlDataSourceDelegate(dataSource));
 
-        RepositoryBootstrap.initialize();
+        ShoppingRepositoryBootstrap.initialize(dataSource, cleanUp);
 
         try (var connection = dataSource.getConnection()) {
             var command = new DBCreate().withConnection(connection);
@@ -214,19 +222,7 @@ public class ShoppingSwtMain {
     }
 
     private void stop() {
-        if (this.app != null) {
-            this.app.release();
-            this.app = null;
-        }
-
-        if (this.executorService != null) {
-            this.executorService.shutdownNow();
-            this.executorService = null;
-        }
-
-        RepositoryBootstrap.release();
-        ScheduledExecutor.BEAN.set(null);
-        SqlDataSource.BEAN.set(null);
+        cleanUp.run();
     }
 
     private void tryRestoreSession() {

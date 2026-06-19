@@ -11,6 +11,7 @@ import org.jooq.Table;
 import org.jooq.impl.DSL;
 
 import br.com.wdc.framework.jooq.JsonDialect;
+import br.com.wdc.shopping.scripts.codegen.GenerateJooqSchema;
 
 /**
  * Creates the database schema using jOOQ and runs pending migrations.
