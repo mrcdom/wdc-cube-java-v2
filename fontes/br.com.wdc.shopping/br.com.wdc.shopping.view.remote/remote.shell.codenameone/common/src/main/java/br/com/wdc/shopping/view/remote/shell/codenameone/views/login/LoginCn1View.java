@@ -3,12 +3,16 @@ package br.com.wdc.shopping.view.remote.shell.codenameone.views.login;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.codename1.ui.Component;
 import com.codename1.ui.Container;
+import com.codename1.ui.Display;
 import com.codename1.ui.FontImage;
 import com.codename1.ui.Label;
 import com.codename1.ui.TextArea;
 import com.codename1.ui.TextField;
+import com.codename1.ui.layouts.BorderLayout;
 import com.codename1.ui.layouts.BoxLayout;
+import com.codename1.ui.layouts.FlowLayout;
 
 import br.com.wdc.shopping.view.remote.shell.codenameone.ShoppingCn1RemoteApp;
 import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractCn1View;
@@ -17,9 +21,9 @@ import br.com.wdc.shopping.view.remote.shell.codenameone.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Json;
 
 /**
- * Tela de login (classId {@value #CLASS_ID}) — card com banner azul, "Bem-vindo", labels e hints
- * nos inputs e a dica de acesso demo (espelha o card do design React). Centralização/largura e o
- * hero do layout expandido são calibrados em seguida.
+ * Tela de login (classId {@value #CLASS_ID}) — espelha o design React: layout EXPANDIDO (hero azul
+ * à esquerda + card à direita) ou COMPACTO (só o card), conforme a largura. Card com banner azul,
+ * "Bem-vindo", labels e hints nos inputs e a dica de acesso demo.
  */
 public class LoginCn1View extends AbstractCn1View {
 
@@ -37,15 +41,35 @@ public class LoginCn1View extends AbstractCn1View {
 
     @Override
     protected Container build() {
-        Container root = new Container(BoxLayout.y()); // transparente; o card é filho
-        Cn1Dom.render(root, (dom, r) -> dom.boxY(card -> {
-            card.setUIID("LoginCard");
+        Container card = buildCard();
 
-            // banner azul: logo + título + subtítulo
+        if (app.isExpanded()) {
+            card.setPreferredW(Display.getInstance().getDisplayWidth() * 4 / 10);
+            Container root = new Container(new BorderLayout());
+            root.add(BorderLayout.CENTER, buildHero());
+            root.add(BorderLayout.EAST, card);
+            return root;
+        }
+
+        Container root = new Container(BoxLayout.y());
+        root.add(card);
+        return root;
+    }
+
+    // :: Card do formulário
+
+    private Container buildCard() {
+        Container card = new Container(BoxLayout.y());
+        card.setUIID("LoginCard");
+
+        Cn1Dom.render(card, (dom, c) -> {
+            // banner azul: logo (caixa pequena centralizada) + título + subtítulo
             dom.boxY(banner -> {
                 banner.setUIID("LoginBanner");
-                Label logo = dom.label(l -> l.setUIID("LogoBox"));
-                FontImage.setMaterialIcon(logo, FontImage.MATERIAL_SHOPPING_BAG, 7f);
+                dom.container(new FlowLayout(Component.CENTER), null, row -> {
+                    Label logo = dom.label(l -> l.setUIID("LogoBox"));
+                    FontImage.setMaterialIcon(logo, FontImage.MATERIAL_SHOPPING_BAG, 7f);
+                });
                 dom.label(l -> {
                     l.setText("WDC Shopping");
                     l.setUIID("BannerTitle");
@@ -110,8 +134,44 @@ public class LoginCn1View extends AbstractCn1View {
                     l.setUIID("DemoText");
                 });
             });
-        }));
-        return root;
+        });
+        return card;
+    }
+
+    // :: Hero (layout expandido)
+
+    private Container buildHero() {
+        Container hero = new Container(BoxLayout.y());
+        hero.setUIID("LoginHero");
+        Cn1Dom.render(hero, (dom, h) -> {
+            dom.container(new FlowLayout(Component.CENTER), null, row -> {
+                Label logo = dom.label(l -> l.getAllStyles().setFgColor(0xffffff));
+                FontImage.setMaterialIcon(logo, FontImage.MATERIAL_SHOPPING_BAG, 14f);
+            });
+            dom.label(l -> {
+                l.setText("WDC Shopping");
+                l.setUIID("HeroTitle");
+            });
+            dom.label(l -> {
+                l.setText("Sua compra certa na internet.");
+                l.setUIID("HeroSubtitle");
+            });
+            feature(dom, FontImage.MATERIAL_VERIFIED_USER, "Compra segura");
+            feature(dom, FontImage.MATERIAL_LOCAL_SHIPPING, "Entrega rápida");
+            feature(dom, FontImage.MATERIAL_AUTORENEW, "Troca garantida");
+        });
+        return hero;
+    }
+
+    private void feature(Cn1Dom dom, char icon, String text) {
+        dom.boxX(row -> {
+            Label ic = dom.label(l -> l.getAllStyles().setFgColor(0xffffff));
+            FontImage.setMaterialIcon(ic, icon, 4f);
+            dom.label(l -> {
+                l.setText(text);
+                l.setUIID("FeatureText");
+            });
+        });
     }
 
     private void doLogin() {

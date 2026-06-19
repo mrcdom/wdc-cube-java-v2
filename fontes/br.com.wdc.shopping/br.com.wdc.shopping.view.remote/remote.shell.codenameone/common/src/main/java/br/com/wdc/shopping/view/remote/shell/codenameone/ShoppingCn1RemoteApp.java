@@ -6,6 +6,7 @@ import java.util.Map;
 import com.codename1.components.SpanLabel;
 import com.codename1.system.Lifecycle;
 import com.codename1.ui.CN;
+import com.codename1.ui.Display;
 import com.codename1.ui.Form;
 import com.codename1.ui.layouts.BorderLayout;
 
@@ -40,13 +41,34 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
     private final Map<String, AbstractCn1View> views = new HashMap<>();
     private String rootVsid = "";
     private boolean flushScheduled;
+    private boolean wasExpanded;
+
+    /** Layout expandido (hero+card etc.) quando a largura é grande; senão compacto. */
+    public boolean isExpanded() {
+        return Display.getInstance().getDisplayWidth() >= 1100;
+    }
+
+    /** Ao cruzar o breakpoint de largura, descarta as views e reconstrói no novo tamanho. */
+    private void onResize() {
+        boolean now = isExpanded();
+        if (now != wasExpanded) {
+            wasExpanded = now;
+            views.clear();
+            rootVsid = "";
+            form.removeAll();
+            flush();
+        }
+    }
 
     @Override
     public void runApp() {
         Images.setBaseUrl(BASE);
+        wasExpanded = isExpanded();
 
-        form = new Form("WDC Shopping", new BorderLayout());
+        form = new Form(new BorderLayout());
+        form.getToolbar().hideToolbar(); // sem barra de título nativa; cada tela traz seu header
         form.add(BorderLayout.CENTER, new SpanLabel("Conectando ao servidor..."));
+        form.addSizeChangedListener(e -> onResize());
         form.show();
 
         session = new BridgeSession(BASE, s -> flush());
