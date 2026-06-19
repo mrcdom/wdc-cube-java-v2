@@ -26,6 +26,23 @@ public final class SecurityEnforcer {
      * @return o SecurityContext corrente, ou {@code null} se segurança não está ativa
      * @throws AccessDeniedException se segurança está ativa e o usuário não está autenticado ou sem permissão
      */
+    /**
+     * Exige apenas que haja um usuário <b>autenticado</b> (sem permissão específica). Retorna {@code null} se
+     * segurança não está ativa.
+     *
+     * @throws AccessDeniedException se segurança está ativa e não há usuário autenticado
+     */
+    public static SecurityContext requireAuthenticated() {
+        if (AuthenticationService.BEAN.get() == null) {
+            return null;
+        }
+        var sc = SecurityContext.CURRENT.get();
+        if (sc == null) {
+            throw new AccessDeniedException("Authentication required");
+        }
+        return sc;
+    }
+
     public static SecurityContext require(String entity, String operation) {
         if (AuthenticationService.BEAN.get() == null) {
             return null;

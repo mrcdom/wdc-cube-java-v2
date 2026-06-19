@@ -22,7 +22,9 @@ import br.com.wdc.shopping.persistence.client.HttpPurchaseItemRepository;
 import br.com.wdc.shopping.persistence.client.HttpPurchaseRepository;
 import br.com.wdc.shopping.persistence.client.HttpUserRepository;
 import br.com.wdc.shopping.persistence.client.OkHttpTransport;
+import br.com.wdc.framework.persistence.transaction.RemoteTransactionCoordinatorImpl;
 import br.com.wdc.shopping.persistence.impl.ShoppingRepositoryBootstrap;
+import br.com.wdc.shopping.persistence.rest.RemoteTransactions;
 import br.com.wdc.shopping.persistence.rest.RepositoryApiRoutes;
 import br.com.wdc.shopping.scripts.sgbd.DBCreate;
 import io.agroal.api.AgroalDataSource;
@@ -47,6 +49,7 @@ public class TestEnvironment extends ExternalResource {
     private AgroalDataSource datasource;
     private ScheduledExecutorForTest executor;
     private Javalin javalin;
+    private OkHttpTransport transport;
 
     private UserRepository userRepo;
     private ProductRepository productRepo;
@@ -73,6 +76,11 @@ public class TestEnvironment extends ExternalResource {
 
     public PurchaseItemRepository purchaseItemRepo() {
         return purchaseItemRepo;
+    }
+
+    /** Transporte HTTP usado pelos repositórios no modo REST (para criar um TransactionService remoto no teste). */
+    public OkHttpTransport transport() {
+        return transport;
     }
 
     public void resetDatabase() {
@@ -128,6 +136,11 @@ public class TestEnvironment extends ExternalResource {
             purchaseRepo = PurchaseRepository.BEAN.get();
             purchaseItemRepo = PurchaseItemRepository.BEAN.get();
         } else {
+            // Coordenador de transação remota: o servidor REST de teste é um composition root próprio
+            // (não passa pelo BusinessContext), então fia o coordenador aqui, como o backend faz.
+            RemoteTransactions.COORDINATOR.set(new RemoteTransactionCoordinatorImpl(() -> ds));
+            cleanUp.push(() -> RemoteTransactions.COORDINATOR.set(null));
+
             javalin = Javalin.create(config -> {
                 config.http.maxRequestSize = 10_000_000L;
                 RepositoryApiRoutes.configure(config, "");
@@ -137,7 +150,7 @@ public class TestEnvironment extends ExternalResource {
                 javalin = null;
             });
 
-            var transport = new OkHttpTransport("http://localhost:" + javalin.port());
+            this.transport = new OkHttpTransport("http://localhost:" + javalin.port());
             userRepo = new HttpUserRepository(transport, new UserModelCodec());
             productRepo = new HttpProductRepository(transport, new ProductModelCodec());
             purchaseRepo = new HttpPurchaseRepository(transport, new PurchaseModelCodec());
