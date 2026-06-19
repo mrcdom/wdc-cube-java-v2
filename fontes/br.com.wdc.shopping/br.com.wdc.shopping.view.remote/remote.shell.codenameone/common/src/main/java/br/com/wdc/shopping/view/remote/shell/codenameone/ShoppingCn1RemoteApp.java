@@ -34,11 +34,20 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
     /** classIds das telas (prefixo do vsid no protocolo bridge). */
     private static final String LOGIN_CLASS_ID = "c677cda52d14";
     private static final String HOME_CLASS_ID = "473dbdd7a36a";
+    private static final String PRODUCT_CLASS_ID = "48b693f67410";
+    private static final String CART_CLASS_ID = "7eb485e5f843";
+    private static final String RECEIPT_CLASS_ID = "e8d0bd8ae3bc";
 
     /** Event codes (espelham os skeletons dos presenters). */
     private static final int HOME_EVT_LOGOUT = 1;
     private static final int HOME_EVT_OPEN_CART = 2;
     private static final int PRODUCTS_EVT_OPEN_PRODUCT = 1;
+    private static final int PRODUCT_EVT_BACK = 1;
+    private static final int PRODUCT_EVT_ADD_TO_CART = 2;
+    private static final int CART_EVT_BUY = 1;
+    private static final int CART_EVT_REMOVE = 2;
+    private static final int CART_EVT_BACK = 3;
+    private static final int RECEIPT_EVT_BACK = 1;
 
     private BridgeSession session;
 
@@ -67,6 +76,12 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
             form = renderLogin(vsid, session.state(vsid));
         } else if (HOME_CLASS_ID.equals(classId)) {
             form = renderHome(vsid, session.state(vsid));
+        } else if (PRODUCT_CLASS_ID.equals(classId)) {
+            form = renderProduct(vsid, session.state(vsid));
+        } else if (CART_CLASS_ID.equals(classId)) {
+            form = renderCart(vsid, session.state(vsid));
+        } else if (RECEIPT_CLASS_ID.equals(classId)) {
+            form = renderReceipt(vsid, session.state(vsid));
         } else {
             form = renderDebug(vsid, classId);
         }
@@ -154,6 +169,102 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
         return f;
     }
 
+    // :: Produto
+
+    private Form renderProduct(String vsid, Map<String, Object> st) {
+        Form f = new Form("Produto", BoxLayout.y());
+        Map<String, Object> product = asMap(st != null ? st.get("product") : null);
+
+        f.add(new Label(strOf(product, "name")));
+        f.add(new Label("R$ " + strOf(product, "price")));
+        f.add(new SpanLabel(strOf(product, "description")));
+
+        f.add(new Label("Quantidade:"));
+        TextField qty = new TextField("1");
+        qty.setConstraint(TextArea.NUMERIC);
+        f.add(qty);
+
+        Button add = new Button("Adicionar ao carrinho");
+        add.addActionListener(e -> {
+            Map<String, Object> form = new HashMap<>();
+            form.put("p.quantity", parseIntOr(qty.getText(), 1));
+            session.submit(vsid, PRODUCT_EVT_ADD_TO_CART, form);
+        });
+        Button back = new Button("Voltar");
+        back.addActionListener(e -> session.submit(vsid, PRODUCT_EVT_BACK, new HashMap<>()));
+        f.add(add);
+        f.add(back);
+        return f;
+    }
+
+    // :: Carrinho
+
+    private Form renderCart(String vsid, Map<String, Object> st) {
+        Form f = new Form("Carrinho", BoxLayout.y());
+
+        double total = 0;
+        Object itemsObj = st != null ? st.get("items") : null;
+        if (itemsObj instanceof List) {
+            for (Object o : (List<?>) itemsObj) {
+                Map<String, Object> it = asMap(o);
+                if (it == null) {
+                    continue;
+                }
+                final long productId = (long) intOf(it, "id");
+                int quantity = intOf(it, "quantity");
+                total += doubleOf(it, "price") * quantity;
+
+                Container row = new Container(BoxLayout.x());
+                row.add(new Label(strOf(it, "name") + "  x" + quantity + "  R$ " + strOf(it, "price")));
+                Button remove = new Button("Remover");
+                remove.addActionListener(e -> {
+                    Map<String, Object> form = new HashMap<>();
+                    form.put("p.productId", productId);
+                    session.submit(vsid, CART_EVT_REMOVE, form);
+                });
+                row.add(remove);
+                f.add(row);
+            }
+        }
+
+        f.add(new Label("Total: R$ " + money(total)));
+        Button buy = new Button("Comprar");
+        buy.addActionListener(e -> session.submit(vsid, CART_EVT_BUY, new HashMap<>()));
+        Button cont = new Button("Continuar comprando");
+        cont.addActionListener(e -> session.submit(vsid, CART_EVT_BACK, new HashMap<>()));
+        f.add(buy);
+        f.add(cont);
+        return f;
+    }
+
+    // :: Recibo
+
+    private Form renderReceipt(String vsid, Map<String, Object> st) {
+        Form f = new Form("Recibo", BoxLayout.y());
+        f.add(new Label("Compra realizada com sucesso!"));
+
+        Map<String, Object> receipt = asMap(st != null ? st.get("receipt") : null);
+        if (receipt != null) {
+            f.add(new Label("Total: R$ " + strOf(receipt, "total")));
+            Object items = receipt.get("items");
+            if (items instanceof List) {
+                for (Object o : (List<?>) items) {
+                    Map<String, Object> it = asMap(o);
+                    if (it == null) {
+                        continue;
+                    }
+                    f.add(new Label(strOf(it, "description") + "  x" + intOf(it, "quantity")
+                            + "  R$ " + strOf(it, "value")));
+                }
+            }
+        }
+
+        Button back = new Button("Continuar comprando");
+        back.addActionListener(e -> session.submit(vsid, RECEIPT_EVT_BACK, new HashMap<>()));
+        f.add(back);
+        return f;
+    }
+
     // :: Fallback de depuração (telas ainda não mapeadas)
 
     private Form renderDebug(String vsid, String classId) {
@@ -184,6 +295,39 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
     private static String strOf(Map<String, Object> st, String key) {
         Object o = st != null ? st.get(key) : null;
         return o != null ? o.toString() : "";
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> asMap(Object o) {
+        return o instanceof Map ? (Map<String, Object>) o : null;
+    }
+
+    private static double doubleOf(Map<String, Object> st, String key) {
+        Object o = st != null ? st.get(key) : null;
+        if (o instanceof Number) {
+            return ((Number) o).doubleValue();
+        }
+        try {
+            return o != null ? Double.parseDouble(o.toString()) : 0;
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    private static int parseIntOr(String s, int def) {
+        try {
+            return Integer.parseInt(s.trim());
+        } catch (Exception e) {
+            return def;
+        }
+    }
+
+    /** Formata um valor monetário com 2 casas (evita lixo de ponto flutuante). */
+    private static String money(double v) {
+        long cents = Math.round(v * 100);
+        long whole = cents / 100;
+        long frac = Math.abs(cents % 100);
+        return whole + "." + (frac < 10 ? "0" + frac : "" + frac);
     }
 
     private static boolean boolOf(Map<String, Object> st, String key) {
