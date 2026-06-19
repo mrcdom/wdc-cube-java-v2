@@ -1,12 +1,14 @@
 package br.com.wdc.shopping.view.remote.shell.codenameone;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.codename1.components.SpanLabel;
 import com.codename1.system.Lifecycle;
 import com.codename1.ui.CN;
 import com.codename1.ui.Button;
+import com.codename1.ui.Container;
 import com.codename1.ui.Form;
 import com.codename1.ui.Label;
 import com.codename1.ui.TextArea;
@@ -29,8 +31,14 @@ import com.codename1.ui.layouts.BoxLayout;
  */
 public class ShoppingCn1RemoteApp extends Lifecycle {
 
-    /** classId da LoginView (prefixo do vsid no protocolo bridge). */
+    /** classIds das telas (prefixo do vsid no protocolo bridge). */
     private static final String LOGIN_CLASS_ID = "c677cda52d14";
+    private static final String HOME_CLASS_ID = "473dbdd7a36a";
+
+    /** Event codes (espelham os skeletons dos presenters). */
+    private static final int HOME_EVT_LOGOUT = 1;
+    private static final int HOME_EVT_OPEN_CART = 2;
+    private static final int PRODUCTS_EVT_OPEN_PRODUCT = 1;
 
     private BridgeSession session;
 
@@ -57,6 +65,8 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
         Form form;
         if (LOGIN_CLASS_ID.equals(classId)) {
             form = renderLogin(vsid, session.state(vsid));
+        } else if (HOME_CLASS_ID.equals(classId)) {
+            form = renderHome(vsid, session.state(vsid));
         } else {
             form = renderDebug(vsid, classId);
         }
@@ -101,6 +111,49 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
         return f;
     }
 
+    // :: Home
+
+    private Form renderHome(String vsid, Map<String, Object> st) {
+        Form f = new Form("WDC Shopping", BoxLayout.y());
+
+        String nick = strOf(st, "nickName");
+        int cart = intOf(st, "cartItemCount");
+        f.add(new Label("Olá, " + nick));
+
+        Container actions = new Container(BoxLayout.x());
+        Button cartBtn = new Button("Carrinho (" + cart + ")");
+        cartBtn.addActionListener(e -> session.submit(vsid, HOME_EVT_OPEN_CART, new HashMap<>()));
+        Button logout = new Button("Sair");
+        logout.addActionListener(e -> session.submit(vsid, HOME_EVT_LOGOUT, new HashMap<>()));
+        actions.add(cartBtn);
+        actions.add(logout);
+        f.add(actions);
+
+        f.add(new Label("Produtos"));
+        String panelVsid = strOf(st, "productsPanelViewId");
+        Map<String, Object> panel = session.state(panelVsid);
+        Object productsObj = panel != null ? panel.get("products") : null;
+        if (productsObj instanceof List) {
+            for (Object o : (List<?>) productsObj) {
+                if (!(o instanceof Map)) {
+                    continue;
+                }
+                @SuppressWarnings("unchecked")
+                Map<String, Object> p = (Map<String, Object>) o;
+                final long productId = (long) intOf(p, "id");
+                String label = strOf(p, "name") + "  —  R$ " + strOf(p, "price");
+                Button row = new Button(label);
+                row.addActionListener(e -> {
+                    Map<String, Object> form = new HashMap<>();
+                    form.put("p.productId", productId);
+                    session.submit(panelVsid, PRODUCTS_EVT_OPEN_PRODUCT, form);
+                });
+                f.add(row);
+            }
+        }
+        return f;
+    }
+
     // :: Fallback de depuração (telas ainda não mapeadas)
 
     private Form renderDebug(String vsid, String classId) {
@@ -126,6 +179,11 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
         Form f = new Form("WDC Shopping", BoxLayout.y());
         f.add(new SpanLabel(text));
         f.show();
+    }
+
+    private static String strOf(Map<String, Object> st, String key) {
+        Object o = st != null ? st.get(key) : null;
+        return o != null ? o.toString() : "";
     }
 
     private static boolean boolOf(Map<String, Object> st, String key) {
