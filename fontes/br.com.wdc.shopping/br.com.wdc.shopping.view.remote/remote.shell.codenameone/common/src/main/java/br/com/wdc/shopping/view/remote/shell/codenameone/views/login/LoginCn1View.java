@@ -3,16 +3,12 @@ package br.com.wdc.shopping.view.remote.shell.codenameone.views.login;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.codename1.ui.Component;
 import com.codename1.ui.Container;
-import com.codename1.ui.Display;
 import com.codename1.ui.FontImage;
 import com.codename1.ui.Label;
 import com.codename1.ui.TextArea;
 import com.codename1.ui.TextField;
-import com.codename1.ui.layouts.BorderLayout;
 import com.codename1.ui.layouts.BoxLayout;
-import com.codename1.ui.layouts.FlowLayout;
 
 import br.com.wdc.shopping.view.remote.shell.codenameone.ShoppingCn1RemoteApp;
 import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractCn1View;
@@ -21,9 +17,9 @@ import br.com.wdc.shopping.view.remote.shell.codenameone.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Json;
 
 /**
- * Tela de login (classId {@value #CLASS_ID}) — espelha o design React: dois layouts (expandido com
- * hero à esquerda + card à direita; compacto só com o card), banner azul, "Bem-vindo", labels e
- * hints nos inputs, e a dica de acesso demo.
+ * Tela de login (classId {@value #CLASS_ID}) — card com banner azul, "Bem-vindo", labels e hints
+ * nos inputs e a dica de acesso demo (espelha o card do design React). Centralização/largura e o
+ * hero do layout expandido são calibrados em seguida.
  */
 public class LoginCn1View extends AbstractCn1View {
 
@@ -41,32 +37,11 @@ public class LoginCn1View extends AbstractCn1View {
 
     @Override
     protected Container build() {
-        boolean expanded = Display.getInstance().getDisplayWidth() >= Display.getInstance().convertToPixels(150f);
-        Container card = buildCard();
+        Container root = new Container(BoxLayout.y()); // transparente; o card é filho
+        Cn1Dom.render(root, (dom, r) -> dom.boxY(card -> {
+            card.setUIID("LoginCard");
 
-        if (expanded) {
-            Container root = new Container(new BorderLayout());
-            root.add(BorderLayout.CENTER, buildHero());
-            Container right = new Container(new FlowLayout(Component.CENTER, Component.CENTER));
-            right.add(card);
-            root.add(BorderLayout.EAST, right);
-            return root;
-        }
-
-        Container root = new Container(new FlowLayout(Component.CENTER, Component.CENTER));
-        root.add(card);
-        return root;
-    }
-
-    // :: Card do formulário (compacto e expandido)
-
-    private Container buildCard() {
-        Container card = new Container(BoxLayout.y());
-        card.setUIID("LoginCard");
-        card.setPreferredW(Display.getInstance().convertToPixels(95f));
-
-        Cn1Dom.render(card, (dom, c) -> {
-            // banner azul (logo + título + subtítulo)
+            // banner azul: logo + título + subtítulo
             dom.boxY(banner -> {
                 banner.setUIID("LoginBanner");
                 Label logo = dom.label(l -> l.setUIID("LogoBox"));
@@ -135,42 +110,8 @@ public class LoginCn1View extends AbstractCn1View {
                     l.setUIID("DemoText");
                 });
             });
-        });
-        return card;
-    }
-
-    // :: Hero (layout expandido)
-
-    private Container buildHero() {
-        Container hero = new Container(BoxLayout.y());
-        hero.setUIID("LoginHero");
-        Cn1Dom.render(hero, (dom, h) -> {
-            Label logo = dom.label(l -> l.setUIID("HeroTitle"));
-            FontImage.setMaterialIcon(logo, FontImage.MATERIAL_SHOPPING_BAG, 14f);
-            dom.label(l -> {
-                l.setText("WDC Shopping");
-                l.setUIID("HeroTitle");
-            });
-            dom.label(l -> {
-                l.setText("Sua compra certa na internet.");
-                l.setUIID("HeroSubtitle");
-            });
-            feature(dom, FontImage.MATERIAL_VERIFIED_USER, "Compra segura");
-            feature(dom, FontImage.MATERIAL_LOCAL_SHIPPING, "Entrega rápida");
-            feature(dom, FontImage.MATERIAL_AUTORENEW, "Troca garantida");
-        });
-        return hero;
-    }
-
-    private void feature(Cn1Dom dom, char icon, String text) {
-        dom.boxX(row -> {
-            Label ic = dom.label(l -> l.getAllStyles().setFgColor(0xffffff));
-            FontImage.setMaterialIcon(ic, icon, 4f);
-            dom.label(l -> {
-                l.setText(text);
-                l.setUIID("FeatureText");
-            });
-        });
+        }));
+        return root;
     }
 
     private void doLogin() {
