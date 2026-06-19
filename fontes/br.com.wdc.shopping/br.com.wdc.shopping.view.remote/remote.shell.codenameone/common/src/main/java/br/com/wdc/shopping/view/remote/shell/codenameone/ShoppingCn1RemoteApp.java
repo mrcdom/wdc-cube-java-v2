@@ -2,102 +2,147 @@ package br.com.wdc.shopping.view.remote.shell.codenameone;
 
 import java.util.Map;
 
-import com.codename1.io.ConnectionRequest;
-import com.codename1.io.JSONParser;
-import com.codename1.io.NetworkManager;
 import com.codename1.components.SpanLabel;
-import com.codename1.io.WebSocket;
 import com.codename1.system.Lifecycle;
 import com.codename1.ui.CN;
+import com.codename1.ui.Button;
+import com.codename1.ui.Dialog;
 import com.codename1.ui.Form;
+import com.codename1.ui.Label;
+import com.codename1.ui.TextArea;
+import com.codename1.ui.TextField;
 import com.codename1.ui.layouts.BoxLayout;
 
 /**
- * Fase 0b — probe do protocolo bridge portado para Codename One (APIs core: ConnectionRequest,
- * JSONParser, WebSocket). Reproduz exatamente o probe Java puro da Fase 0a:
+ * Shell fino Codename One do padrão remote-shell.
  *
- *   1. GET /api/session/init  -> {appId, appSKey}
- *   2. WebSocket ws://host/dispatcher/{appId}
- *   3. envia {"secret":"probe-dummy","event":[]} (secret nao-vazio basta sem cripto)
- *   4. mostra o push de estado e navega para "login"
+ * <p>
+ * Fase 1 — render: conecta no bridge ({@link BridgeSession}) e renderiza a tela corrente a partir
+ * dos ViewStates recebidos. A primeira tela real é o <b>login</b> (classId {@code c677cda52d14}).
+ * Telas ainda não mapeadas caem num render de depuração que mostra o estado cru.
+ * </p>
  *
- * Objetivo: provar que o CN1 compila (passa o bytecode-compliance) e conecta no backend real.
- * Roda no simulador: ./run.sh simulator
+ * <p>
+ * O botão "Entrar" é placeholder: o login seguro exige o handshake de criptografia (cifra da senha),
+ * que entra na próxima fase. Navegação e render já funcionam sem cripto.
+ * </p>
  */
 public class ShoppingCn1RemoteApp extends Lifecycle {
 
-    private static final String BASE = "http://localhost:8080";
-    private static final String WS_BASE = "ws://localhost:8080"; // sem regex/replaceFirst
-    private static final String BROWSER_VSID = "7b32e816a191:0";
+    /** classId da LoginView (prefixo do vsid no protocolo bridge). */
+    private static final String LOGIN_CLASS_ID = "c677cda52d14";
 
-    private Form form;
-    private SpanLabel logLabel;
-    private final StringBuilder logBuf = new StringBuilder();
-    private boolean navigated;
+    private BridgeSession session;
 
     @Override
     public void runApp() {
-        form = new Form("Bridge Probe (CN1)", BoxLayout.y());
-        logLabel = new SpanLabel("iniciando...");
-        form.add(logLabel);
-        form.show();
+        showStatus("Conectando ao servidor...");
 
-        new Thread(this::runProbe).start();
-    }
-
-    private void runProbe() {
-        try {
-            log("WebSocket.isSupported() = " + WebSocket.isSupported());
-
-            // 1. session init (GET)
-            ConnectionRequest req = new ConnectionRequest();
-            req.setUrl(BASE + "/api/session/init");
-            req.setPost(false);
-            NetworkManager.getInstance().addToQueueAndWait(req);
-            log("session/init HTTP " + req.getResponseCode());
-
-            byte[] data = req.getResponseData();
-            if (data == null) {
-                log("!! sem corpo na resposta — backend no ar em " + BASE + "?");
-                return;
+        session = new BridgeSession("http://localhost:8080", s -> render());
+        new Thread(() -> {
+            try {
+                session.connect();
+            } catch (Exception e) {
+                CN.callSerially(() -> showStatus("Falha ao conectar: " + e.getMessage()));
             }
-            Map<String, Object> init = JSONParser.parseJSON(new String(data));
-            String appId = (String) init.get("appId");
-            log("appId = " + appId);
-
-            // 2. WebSocket
-            String wsUrl = WS_BASE + "/dispatcher/" + appId;
-            log("abrindo WS: " + wsUrl);
-
-            WebSocket.build(wsUrl)
-                    .onConnect(w -> {
-                        log("WS conectado");
-                        // 3. init message com secret dummy nao-vazio
-                        w.send("{\"secret\":\"probe-dummy\",\"event\":[]}");
-                    })
-                    .onTextMessage((w, msg) -> {
-                        log("<- " + msg);
-                        // 4. apos o 1o push, navega para login (uma vez so)
-                        if (!navigated) {
-                            navigated = true;
-                            w.send("{\"requestId\":1,\"event\":[\"" + BROWSER_VSID
-                                    + ":-1\"],\"" + BROWSER_VSID + "\":{\"p.path\":\"login\"}}");
-                        }
-                    })
-                    .onClose((w, code, reason) -> log("WS fechado: " + code + " " + reason))
-                    .onError((w, ex) -> log("!! WS erro: " + ex))
-                    .connect();
-
-        } catch (Exception e) {
-            log("!! excecao: " + e);
-        }
+        }).start();
     }
 
-    private void log(String s) {
-        logBuf.append(s).append("\n\n");
-        CN.callSerially(() -> {
-            logLabel.setText(logBuf.toString());
-            form.revalidate();
-        });
+    // :: Render dispatch
+
+    private void render() {
+        String vsid = session.currentScreenVsid();
+        String classId = BridgeSession.classIdOf(vsid);
+
+        Form form;
+        if (LOGIN_CLASS_ID.equals(classId)) {
+            form = renderLogin(vsid, session.state(vsid));
+        } else {
+            form = renderDebug(vsid, classId);
+        }
+        form.show();
+    }
+
+    // :: Login
+
+    private Form renderLogin(String vsid, Map<String, Object> st) {
+        Form f = new Form("WDC Shopping", BoxLayout.y());
+
+        f.add(new Label("Entrar"));
+
+        TextField user = new TextField();
+        user.setHint("Usuário");
+        TextField pass = new TextField();
+        pass.setHint("Senha");
+        pass.setConstraint(TextArea.PASSWORD);
+        f.add(user);
+        f.add(pass);
+
+        boolean loading = boolOf(st, "loading");
+        int errorCode = intOf(st, "errorCode");
+        if (loading) {
+            f.add(new Label("Entrando..."));
+        }
+        if (errorCode != 0) {
+            Label err = new Label("Falha no login (código " + errorCode + ")");
+            err.getAllStyles().setFgColor(0xcc0000);
+            f.add(err);
+        }
+
+        Button login = new Button("Entrar");
+        login.addActionListener(e -> Dialog.show("Login",
+                "O login seguro entra na próxima fase (handshake de criptografia).\n\n"
+                        + "A tela já é renderizada a partir do estado vindo do servidor.",
+                "OK", null));
+        f.add(login);
+
+        return f;
+    }
+
+    // :: Fallback de depuração (telas ainda não mapeadas)
+
+    private Form renderDebug(String vsid, String classId) {
+        Form f = new Form("Bridge (debug)", BoxLayout.y());
+        f.add(new Label("uri: " + session.uri()));
+        f.add(new Label("tela: " + classId + "  (" + vsid + ")"));
+        SpanLabel dump = new SpanLabel(dumpStates());
+        f.add(dump);
+        return f;
+    }
+
+    private String dumpStates() {
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, Map<String, Object>> e : session.allStates().entrySet()) {
+            sb.append(e.getKey()).append(" -> ").append(e.getValue()).append("\n\n");
+        }
+        return sb.toString();
+    }
+
+    // :: util
+
+    private void showStatus(String text) {
+        Form f = new Form("WDC Shopping", BoxLayout.y());
+        f.add(new SpanLabel(text));
+        f.show();
+    }
+
+    private static boolean boolOf(Map<String, Object> st, String key) {
+        Object o = st != null ? st.get(key) : null;
+        if (o instanceof Boolean) {
+            return (Boolean) o;
+        }
+        return o != null && "true".equals(o.toString());
+    }
+
+    private static int intOf(Map<String, Object> st, String key) {
+        Object o = st != null ? st.get(key) : null;
+        if (o instanceof Number) {
+            return ((Number) o).intValue();
+        }
+        try {
+            return o != null ? Integer.parseInt(o.toString()) : 0;
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 }
