@@ -8,7 +8,6 @@ import com.codename1.ui.Container;
 import com.codename1.ui.Label;
 import com.codename1.ui.TextArea;
 import com.codename1.ui.TextField;
-import com.codename1.ui.html.HTMLComponent;
 import com.codename1.ui.layouts.BoxLayout;
 
 import br.com.wdc.shopping.view.remote.shell.codenameone.ShoppingCn1RemoteApp;
@@ -17,6 +16,7 @@ import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.BridgeSession;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Images;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Json;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Money;
+import br.com.wdc.shopping.view.remote.shell.codenameone.util.SimpleHtml;
 
 /** Detalhe do produto (classId {@value #CLASS_ID}). */
 public class ProductCn1View extends AbstractCn1View {
@@ -29,7 +29,7 @@ public class ProductCn1View extends AbstractCn1View {
     private Label image;
     private Label name;
     private Label price;
-    private HTMLComponent description;
+    private Container description;
     private TextField qty;
     private long currentId = -1;
     private String lastHtml = "";
@@ -46,8 +46,7 @@ public class ProductCn1View extends AbstractCn1View {
         image = new Label();
         name = new Label("");
         price = new Label("");
-        description = new HTMLComponent();
-        description.setScrollableY(false); // o scroll é do container do produto, não do HTML
+        description = new Container(BoxLayout.y());
         qty = new TextField("1");
         qty.setConstraint(TextArea.NUMERIC);
 
@@ -84,7 +83,7 @@ public class ProductCn1View extends AbstractCn1View {
         String html = Json.str(p, "description");
         if (!html.equals(lastHtml)) {
             lastHtml = html;
-            description.setBodyText(html);
+            SimpleHtml.render(description, html);
         }
     }
 
