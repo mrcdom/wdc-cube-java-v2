@@ -38,13 +38,16 @@ public class HomeCn1View extends AbstractCn1View {
         Container root = new Container(new BorderLayout());
         Cn1Dom.render(root, (dom, r) -> {
             dom.boxX(BorderLayout.NORTH, header -> {
-                nick = dom.label(l -> { });
+                header.setUIID("AppBar");
+                nick = dom.label(l -> l.setUIID("AppBarTitle"));
                 cartBtn = dom.button(b -> {
                     b.setText("Carrinho");
+                    b.setUIID("AppBarTitle");
                     b.addActionListener(e -> submit(EVT_OPEN_CART));
                 });
                 dom.button(b -> {
                     b.setText("Sair");
+                    b.setUIID("AppBarTitle");
                     b.addActionListener(e -> submit(EVT_LOGOUT));
                 });
             });

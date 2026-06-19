@@ -1,69 +1,93 @@
-/** Define Theme Constants here */
+/**
+ * Tema do shell — paleta extraída do design React (app.scss :root).
+ *   accent #0d66d0  accent-light #e8f1fc  accent-dark #0a4f9e
+ *   bg #f4f6f9  surface #fff  text #1d1d1f  text-secondary #6e6e73  border #e5e5ea
+ * Estilo por UIID (CN1 não tem seletores de classe/descendente; Container nunca é restyled —
+ * cards/banners usam UIID próprio).
+ */
 #Constants {
     includeNativeBool: true;
     defaultSourceDPIInt: "0";
 }
 
-/** Style for Button class */
-Button {
-    font-family: "native:MainLight";
+/* Fundo da página (cinza-azulado claro) */
+Form {
+    background-color: #f4f6f9;
+}
+
+/* Card branco arredondado com sombra suave */
+Card {
+    background-color: #ffffff;
+    border-radius: 3mm;
+    padding: 3mm;
+    margin: 2mm;
+}
+
+/* Botão primário — pílula azul, texto branco */
+PrimaryButton {
+    background-color: #0d66d0;
+    color: #ffffff;
+    font-family: "native:MainBold";
     font-size: 3mm;
-}
-
-/** Style for App Title Bar Text */
-Title {
-    font-family: "native:MainLight";
-    font-size: 6mm;
-}
-
-/** Style for Dialog body */
-DialogBody {
-    font-family: "native:MainLight";
-    font-size: 2.8mm;
-}
-
-/** Style for Dialog title bar text */
-DialogTitle {
-    font-family: "native:MainLight";
-    font-size: 4.5mm;
-}
-
-/** Style for the side menu */
-SideNavigationPanel {
-    background: white;
-    padding: 2mm 1mm 1mm 1mm;
-}
-
-@media platform-ios {
-    /** iOS Only styles for side menu. */
-    SideNavigationPanel {
-        /** Extra top padding to deal with notch on iPhoneX */
-        padding: 6mm 1mm 1mm 1mm;
-    }
-}
-
-/** Style for commands in side menu. */
-SideCommand {
-    padding: 1mm;
+    border-radius: 10mm;
+    padding: 2.5mm 6mm;
+    text-align: center;
     border: none;
-    text-decoration: none;
-    color: black;
-    font-family: "native:MainLight";
-    font-size: 4mm;
-    border-bottom: 2px solid #cccccc;
 }
 
-/* Dark mode example - uncomment to override styles when the
- * device is in dark mode:
- *
- * @media (prefers-color-scheme: dark) {
- *     SideNavigationPanel {
- *         background: #0f172a;
- *     }
- *     SideCommand {
- *         color: #e2e8f0;
- *         background: #0f172a;
- *         border-bottom: 2px solid #334155;
- *     }
- * }
- */
+/* Botão de texto (link azul, sem fundo) */
+LinkButton {
+    background-color: transparent;
+    color: #0d66d0;
+    font-family: "native:MainBold";
+    font-size: 3mm;
+    border: none;
+    padding: 2mm 3mm;
+}
+
+/* Título de seção (escuro, bold) */
+SectionTitle {
+    color: #1d1d1f;
+    font-family: "native:MainBold";
+    font-size: 5mm;
+    padding: 1mm 0;
+}
+
+/* Texto secundário (cinza) */
+Muted {
+    color: #6e6e73;
+    font-size: 2.6mm;
+}
+
+/* Preço em azul-negrito */
+Price {
+    color: #0d66d0;
+    font-family: "native:MainBold";
+    font-size: 3.4mm;
+}
+
+/* Campo de texto */
+TextField {
+    color: #1d1d1f;
+    background-color: #ffffff;
+    border: 1px solid #e5e5ea;
+    border-radius: 2mm;
+    padding: 2mm;
+}
+
+TextFieldHint {
+    color: #6e6e73;
+}
+
+/* App bar azul (fase 2 — header compartilhado) */
+AppBar {
+    background-color: #0d66d0;
+    color: #ffffff;
+    padding: 2mm 3mm;
+}
+
+AppBarTitle {
+    color: #ffffff;
+    font-family: "native:MainBold";
+    font-size: 4mm;
+}

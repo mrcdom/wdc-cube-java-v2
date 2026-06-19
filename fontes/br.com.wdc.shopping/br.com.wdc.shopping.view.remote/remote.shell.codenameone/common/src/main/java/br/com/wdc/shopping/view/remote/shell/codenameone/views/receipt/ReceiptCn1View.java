@@ -33,12 +33,17 @@ public class ReceiptCn1View extends AbstractCn1View {
     protected Container build() {
         Container root = new Container(BoxLayout.y());
         root.setScrollableY(true);
+        root.setUIID("Card");
         Cn1Dom.render(root, (dom, r) -> {
-            dom.label(l -> l.setText("Compra realizada com sucesso!"));
-            total = dom.label(l -> { });
+            dom.label(l -> {
+                l.setText("Compra realizada com sucesso!");
+                l.setUIID("SectionTitle");
+            });
+            total = dom.label(l -> l.setUIID("Price"));
             list = dom.boxY(l -> { });
             dom.button(b -> {
                 b.setText("Continuar comprando");
+                b.setUIID("LinkButton");
                 b.addActionListener(e -> submit(EVT_BACK));
             });
         });

@@ -42,10 +42,11 @@ public class ProductCn1View extends AbstractCn1View {
     protected Container build() {
         Container root = new Container(BoxLayout.y());
         root.setScrollableY(true);
+        root.setUIID("Card");
         Cn1Dom.render(root, (dom, r) -> {
             image = dom.label(l -> { });
-            name = dom.label(l -> { });
-            price = dom.label(l -> { });
+            name = dom.label(l -> l.setUIID("SectionTitle"));
+            price = dom.label(l -> l.setUIID("Price"));
             description = dom.boxY(c -> { });
             dom.label(l -> l.setText("Quantidade:"));
             qty = dom.textField(tf -> {
@@ -54,6 +55,7 @@ public class ProductCn1View extends AbstractCn1View {
             });
             dom.button(b -> {
                 b.setText("Adicionar ao carrinho");
+                b.setUIID("PrimaryButton");
                 b.addActionListener(e -> {
                     Map<String, Object> form = new HashMap<>();
                     form.put("p.quantity", parseIntOr(qty.getText(), 1));
@@ -62,6 +64,7 @@ public class ProductCn1View extends AbstractCn1View {
             });
             dom.button(b -> {
                 b.setText("Voltar");
+                b.setUIID("LinkButton");
                 b.addActionListener(e -> submit(EVT_BACK));
             });
         });

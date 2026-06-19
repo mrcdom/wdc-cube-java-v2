@@ -36,15 +36,18 @@ public class CartCn1View extends AbstractCn1View {
     protected Container build() {
         Container root = new Container(BoxLayout.y());
         root.setScrollableY(true);
+        root.setUIID("Card");
         Cn1Dom.render(root, (dom, r) -> {
             list = dom.boxY(l -> { });
-            total = dom.label(l -> { });
+            total = dom.label(l -> l.setUIID("Price"));
             dom.button(b -> {
                 b.setText("Comprar");
+                b.setUIID("PrimaryButton");
                 b.addActionListener(e -> submit(EVT_BUY));
             });
             dom.button(b -> {
                 b.setText("Continuar comprando");
+                b.setUIID("LinkButton");
                 b.addActionListener(e -> submit(EVT_BACK));
             });
         });

@@ -33,8 +33,12 @@ public class LoginCn1View extends AbstractCn1View {
     @Override
     protected Container build() {
         Container root = new Container(BoxLayout.y());
+        root.setUIID("Card");
         Cn1Dom.render(root, (dom, r) -> {
-            dom.label(l -> l.setText("Entrar"));
+            dom.label(l -> {
+                l.setText("Entrar");
+                l.setUIID("SectionTitle");
+            });
             user = dom.textField(tf -> tf.setHint("Usuário"));
             pass = dom.textField(tf -> {
                 tf.setHint("Senha");
@@ -44,6 +48,7 @@ public class LoginCn1View extends AbstractCn1View {
             error = dom.label(l -> l.getAllStyles().setFgColor(0xcc0000));
             dom.button(b -> {
                 b.setText("Entrar");
+                b.setUIID("PrimaryButton");
                 b.addActionListener(e -> {
                     Map<String, Object> form = new HashMap<>();
                     form.put("p.userName", user.getText());
