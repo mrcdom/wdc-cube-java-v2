@@ -16,6 +16,7 @@
 [A Simetria Total — o Mesmo Código, Dois Mundos](#a-simetria-total-o-mesmo-código-dois-mundos)  
 [Fluxo Completo — Da View ao Banco](#fluxo-completo-da-view-ao-banco)  
 [Transações — Atomicidade e Modo Dual JTA/JDBC](#transações-atomicidade-e-modo-dual-jtajdbc)  
+[Transações Remotas Dirigidas pelo Cliente](#transações-remotas-dirigidas-pelo-cliente-sobre-rest)  
 [Conclusões](#conclusões)  
 
 ---
@@ -508,7 +509,7 @@ O resultado: envolver uma operação em `required(...)` torna atômicas todas as
 A fronteira fica nos **casos de uso de escrita**, não nos repositórios:
 
 - **Fluxo Host** (presenters server-side): a finalização da compra (`CartManager.doPurchase`) envolve o `insert` da compra+itens. É *null-safe* — em ambientes sem `TransactionService` (ex.: TeaVM no browser, que usa repositórios HTTP) executa direto.
-- **Fluxo REST** (`persistence.rest`): um decorador `RepositoryApiRoutes.transactional(...)` envolve os handlers de escrita (`insert`/`update`/`delete`) no registro das rotas, preservando o tipo da exceção original para que os *exception mappers* do Javalin continuem funcionando.
+- **Fluxo REST** (`persistence.rest`): um decorador `RepositoryApiRoutes.transactional(...)` envolve os handlers de escrita (`insert`/`update`/`delete`) no registro das rotas, preservando o tipo da exceção original para que os *exception mappers* do Javalin continuem funcionando. Esse decorador tem **dois comportamentos**: sem `X-Tx-Id`, abre uma transação isolada por requisição (o caso acima); com `X-Tx-Id`, junta-se a uma transação remota dirigida pelo cliente (próxima seção).
 
 ### Configuração e neutralidade
 
@@ -531,6 +532,58 @@ Se o backend dá a dois módulos o mesmo `DataSource` (banco compartilhado) ou b
 
 ---
 
+## Transações Remotas Dirigidas pelo Cliente (sobre REST)
+
+A seção anterior torna atômico um bloco que roda **dentro de uma fronteira**: um caso de uso no Host, ou *uma* requisição de escrita REST (o decorador `transactional`). Mas e um frontend que fala com o backend **por HTTP** (React, Flutter — usando os repositórios de `persistence.client`) e precisa que **várias chamadas REST separadas** — inserir a compra, depois inserir cada item — sejam atômicas? Cada chamada HTTP é uma requisição própria, com sua própria conexão no servidor; o decorador por requisição não consegue abranger todas.
+
+A solução mantém a transação física **viva entre requisições** no servidor, identificada por um `txId`, enquanto o cliente demarca a fronteira remotamente. O ponto-chave: isso reaproveita o **mesmo contrato `TransactionService`** — `ShoppingTransactions.BEAN.get().required(...)` funciona idêntico in-process (Host) ou sobre HTTP (cliente). Assim como os repositórios, **a fronteira da transação é simétrica** entre os dois mundos.
+
+### O cliente — `RestTransactionService`
+
+No cliente, `ShoppingTransactions.BEAN` resolve para `RestTransactionService` (uma implementação de `TransactionService` sobre HTTP, em `persistence.client`). Um `required(...)`:
+
+1. faz `POST /api/tx/begin` → recebe o `txId` e o prende à thread (`ThreadLocal`);
+2. propaga o `txId` no header **`X-Tx-Id`** em cada chamada de repositório do bloco (via `HttpTransport.setTransactionIdSupplier`) — o servidor as junta à mesma transação física;
+3. em retorno normal faz `POST /api/tx/commit`; em exceção (ou após `setRollbackOnly`), `POST /api/tx/rollback`.
+
+A matriz de propagação (`requiresNew`, `mandatory`, `supports`, `notSupported`, `never`) espelha a implementação in-process — single-thread, como o coordenador do servidor.
+
+### O servidor — `RemoteTransactionCoordinator`
+
+Do lado servidor, `TxApiController` expõe `/api/tx/{begin,commit,rollback}`, delegando a um `RemoteTransactionCoordinator`. Ele guarda, por `txId`, um `TransactionScope` **suspenso** (transação física viva, sem dono de thread):
+
+| Operação | Efeito |
+|----------|--------|
+| `begin` | abre a tx, suspende e devolve o `txId` |
+| `resume` / `suspend` | religa/desliga a tx na thread que atende cada requisição |
+| `commit` / `rollback` | finalizam e removem do registro |
+
+O elo com as escritas é o decorador `transactional` já citado: quando a requisição carrega `X-Tx-Id`, ele faz `resume` da tx remota, executa o handler e `suspend` — **sem commitar** (a fronteira é do cliente). Sem `X-Tx-Id`, cai no caso da seção anterior (tx isolada por requisição).
+
+```
+cliente (RestTransactionService)          servidor (TxApiController + coordinator)
+  begin ─────────────────────────────────▶ abre tx física, suspende, devolve txId
+  insert(compra)   [X-Tx-Id: txId] ───────▶ resume → executa na tx → suspend
+  insert(item)     [X-Tx-Id: txId] ───────▶ resume → executa na tx → suspend
+  commit           [X-Tx-Id: txId] ───────▶ resume → COMMIT → remove
+```
+
+Funciona nos **dois modos** do `TransactionScope`: JDBC (mantém uma conexão única aberta entre as requisições) e JTA (suspend/resume no `TransactionManager`).
+
+### Onde cada peça vive (e por quê)
+
+O coordenador é um SPI **puramente server-side de persistência** — por isso vive em `framework.persistence.transaction`, **não** em `framework.domain`. A camada de apresentação (os seis frontends) depende transitivamente do domínio; expor ali um mecanismo de servidor seria vazamento. No domínio fica só o contrato de **demarcação** (`TransactionService`/`TransactionContext`), esse sim usado pelos casos de uso.
+
+O holder `RemoteTransactions.COORDINATOR` vive em `persistence.rest` (lado servidor), populado pelos **composition roots** — `BusinessContext` (backend) e `TestEnvironment` (testes) — ligado ao `DataSource` do módulo. O `ShoppingTransactions` (domínio) guarda apenas o `TransactionService` da aplicação. É o mesmo princípio hexagonal da seção anterior: o contrato neutro no domínio, a tecnologia e os holders server-side fora dele.
+
+### Segurança e ciclo de vida
+
+- **Autenticação:** as rotas `/api/tx/*` ficam atrás do mesmo filtro de `/api/repo/*` (registrado só quando a segurança está ativa). A identidade do usuário vira o **dono** da transação (`ownerKey` = id do usuário); o coordenador revalida o dono em `resume`/`commit`/`rollback` — outro usuário não consegue sequestrar uma tx pelo `txId`. Com segurança desligada (testes/local), a tx é **sem dono**.
+- **Tx abandonadas:** cada `txId` segura uma conexão/transação viva até o fim. Um *reaper* (timeout ocioso, 60s por padrão, varredura preguiçosa no `begin`) reverte e remove transações abandonadas por clientes que somem — evitando vazamento de conexão.
+- **Concorrência:** uma tx é single-thread; uso concorrente do mesmo `txId` é rejeitado.
+
+---
+
 ## Conclusões
 
 A camada de dados do WDC Shopping demonstra que é possível ter **zero duplicação de lógica de negócio** entre um frontend servidor e um frontend cliente, desde que a fronteira seja definida no lugar certo — nas interfaces de repositório.
@@ -541,6 +594,7 @@ Os pontos que tornam essa arquitetura robusta:
 - **Critérios tipados e serializáveis** — o mesmo objeto que constrói a query SQL trafega como JSON entre cliente e servidor, sem mapeamento manual
 - **JsonQuery declarativo** — mapeamento bean↔tabela sem reflection em runtime, com projeção seletiva e relações lazy que eliminam N+1
 - **Segurança como contrato de domínio** — permissões definidas em `Role`, propagadas via `SecurityContext.CURRENT`, verificadas nos controllers REST
+- **Transação simétrica** — o mesmo `TransactionService.required(...)` torna escritas atômicas in-process (Host) ou através de várias chamadas REST (cliente), sem o caso de uso saber em qual mundo roda
 - **Simetria de bootstrap** — trocar de modo servidor para modo cliente é uma única linha de inicialização
 
 A consequência prática: quando um novo frontend é adicionado ao sistema, ele herda gratuitamente todo o comportamento de acesso a dados — incluindo segurança, projeção e paginação — simplesmente registrando a implementação adequada no BEAN.
