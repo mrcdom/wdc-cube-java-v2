@@ -24,6 +24,7 @@ public class OkHttpTransport implements HttpTransport {
     private final String baseUrl;
     private final OkHttpClient client;
     private final AtomicReference<Supplier<String>> accessTokenSupplier = new AtomicReference<>();
+    private final AtomicReference<Supplier<String>> txIdSupplier = new AtomicReference<>();
 
     public OkHttpTransport(String baseUrl) {
         this.baseUrl = baseUrl;
@@ -40,11 +41,17 @@ public class OkHttpTransport implements HttpTransport {
     }
 
     @Override
+    public void setTransactionIdSupplier(Supplier<String> txIdSupplier) {
+        this.txIdSupplier.set(txIdSupplier);
+    }
+
+    @Override
     public String postJson(String path, String body) {
         var requestBuilder = new Request.Builder()
                 .url(baseUrl + path)
                 .post(RequestBody.create(body, JSON_MEDIA_TYPE));
         addAuthHeader(requestBuilder);
+        addTxHeader(requestBuilder);
 
         try (var response = client.newCall(requestBuilder.build()).execute()) {
             var responseBody = response.body() != null ? response.body().string() : null;
@@ -202,6 +209,16 @@ public class OkHttpTransport implements HttpTransport {
             var token = supplier.get();
             if (token != null) {
                 builder.header("Authorization", "Bearer " + token);
+            }
+        }
+    }
+
+    private void addTxHeader(Request.Builder builder) {
+        var supplier = this.txIdSupplier.get();
+        if (supplier != null) {
+            var txId = supplier.get();
+            if (txId != null) {
+                builder.header("X-Tx-Id", txId);
             }
         }
     }

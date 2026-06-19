@@ -15,6 +15,8 @@ import br.com.wdc.shopping.domain.repositories.PurchaseItemRepository;
 import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
 import br.com.wdc.shopping.domain.repositories.UserRepository;
 import br.com.wdc.framework.domain.security.AuthenticationService;
+import br.com.wdc.shopping.domain.ShoppingTransactions;
+import br.com.wdc.shopping.persistence.client.RestTransactionService;
 
 /**
  * Bootstrap para TeaVM: registra repositórios usando os codecs unificados
@@ -31,9 +33,12 @@ public final class TeaVMRepositoryBootstrap {
         PurchaseRepository.BEAN.set(new HttpPurchaseRepository(transport, new PurchaseModelCodec()));
         PurchaseItemRepository.BEAN.set(new HttpPurchaseItemRepository(transport, new PurchaseItemModelCodec()));
         AuthenticationService.BEAN.set(new TeaVMAuthenticationService(transport, storage));
+        // TransactionService cliente: coordena transação remota dirigida pelo cliente (begin/commit/rollback + X-Tx-Id).
+        ShoppingTransactions.BEAN.set(new RestTransactionService(transport));
     }
 
     public static void release() {
+        ShoppingTransactions.BEAN.set(null);
         AuthenticationService.BEAN.set(null);
         UserRepository.BEAN.set(null);
         ProductRepository.BEAN.set(null);

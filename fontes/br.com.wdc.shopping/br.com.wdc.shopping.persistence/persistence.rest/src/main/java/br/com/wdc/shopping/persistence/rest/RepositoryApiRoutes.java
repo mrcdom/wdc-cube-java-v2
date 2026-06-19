@@ -37,6 +37,9 @@ public final class RepositoryApiRoutes {
             var securityFilter = new SecurityFilter();
             config.routes.before(prefix + "/api/repo/*", securityFilter::handle);
             config.routes.after(prefix + "/api/repo/*", ctx -> SecurityContext.CURRENT.remove());
+            // Endpoints de transação remota também exigem autenticação
+            config.routes.before(prefix + "/api/tx/*", securityFilter::handle);
+            config.routes.after(prefix + "/api/tx/*", ctx -> SecurityContext.CURRENT.remove());
         }
 
         // Exception handler para AccessDeniedException
@@ -50,6 +53,7 @@ public final class RepositoryApiRoutes {
         ProductApiController.configure(config, prefix);
         PurchaseApiController.configure(config, prefix);
         PurchaseItemApiController.configure(config, prefix);
+        TxApiController.configure(config, prefix);
 
         // OpenAPI document — served at GET {prefix}/openapi.json
         config.routes.get(prefix + "/openapi.json", ctx -> {
@@ -66,6 +70,22 @@ public final class RepositoryApiRoutes {
      */
     static Handler transactional(Handler delegate) {
         return ctx -> {
+            var txId = ctx.header(TxApiController.TX_HEADER);
+            var coordinator = RemoteTransactions.COORDINATOR.get();
+
+            // Transação remota dirigida pelo cliente: junta-se à tx do txId (resume/suspend), sem commitar —
+            // a fronteira (commit/rollback) é do cliente, via TxApiController.
+            if (txId != null && !txId.isBlank() && coordinator != null) {
+                coordinator.resume(txId, TxApiController.currentOwnerKey());
+                try {
+                    delegate.handle(ctx);
+                } finally {
+                    coordinator.suspend(txId);
+                }
+                return;
+            }
+
+            // Sem txId: transação por requisição (escrita atômica isolada).
             var tx = ShoppingTransactions.BEAN.get();
             if (tx == null) {
                 delegate.handle(ctx);

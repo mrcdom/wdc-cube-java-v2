@@ -19,6 +19,14 @@ public interface HttpTransport {
 	}
 
 	/**
+	 * Define o fornecedor do id de transação remota. Quando retornar não-nulo, a implementação deve incluir o header
+	 * {@code X-Tx-Id: {txId}} nas requisições, propagando a transação dirigida pelo cliente para o servidor.
+	 */
+	default void setTransactionIdSupplier(Supplier<String> txIdSupplier) {
+		// default no-op para transports que não suportam transação remota
+	}
+
+	/**
 	 * POST JSON com autenticação (se disponível).
 	 *
 	 * @param path caminho relativo (e.g. "/api/products/fetch")

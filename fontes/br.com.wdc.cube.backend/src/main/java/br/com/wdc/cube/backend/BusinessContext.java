@@ -8,9 +8,11 @@ import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.commons.util.Defer;
 import br.com.wdc.framework.domain.security.CryptoProvider;
 import br.com.wdc.framework.domain.security.JceCryptoProvider;
+import br.com.wdc.framework.persistence.transaction.RemoteTransactionCoordinatorImpl;
 import br.com.wdc.shopping.domain.ShoppingConfig;
 import br.com.wdc.shopping.persistence.impl.ShoppingRepositoryBootstrap;
 import br.com.wdc.shopping.persistence.impl.concurrent.ScheduledExecutorAdapter;
+import br.com.wdc.shopping.persistence.rest.RemoteTransactions;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
 import br.com.wdc.shopping.view.remote.host.RemoteHostBootstrap;
 
@@ -51,6 +53,12 @@ public class BusinessContext {
             // O DataSource do módulo é injetado no bootstrap (sem holder global): ele liga o DSLContext e o
             // TransactionService deste módulo a este DataSource.
             ShoppingRepositoryBootstrap.initialize(dataSource, dsSupport.isLogEnabled(), dsSupport.getDialect(), cleanUp);
+
+            // Coordenador de transação remota (servidor REST): transações dirigidas pelo cliente sobre HTTP,
+            // ligado ao DataSource deste módulo. Vive no host (composition root), não no bootstrap compartilhado
+            // — só o servidor REST precisa dele (views locais/testes não).
+            RemoteTransactions.COORDINATOR.set(new RemoteTransactionCoordinatorImpl(() -> dataSource));
+            cleanUp.push(() -> RemoteTransactions.COORDINATOR.set(null));
 
             var jwtSecret = ShoppingConfig.getJwtSecret();
             if (jwtSecret != null && !jwtSecret.isBlank()) {
