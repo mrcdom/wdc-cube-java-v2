@@ -106,19 +106,26 @@ public final class BridgeSession {
         CN.callSerially(() -> listener.onUpdate(this));
     }
 
-    /** vsid da tela corrente: browser -> contentViewId (root) -> contentViewId (tela). */
+    /**
+     * vsid da tela corrente: parte do browser e <b>desce a cadeia {@code contentViewId} até a
+     * folha</b>. O servidor aninha as telas (browser → root → home → produto/carrinho/recibo),
+     * então a tela "atual" é a view mais profunda sem {@code contentViewId}.
+     */
     public String currentScreenVsid() {
         Map<String, Object> browser = states.get(BROWSER_VSID);
         if (browser == null) {
             return null;
         }
-        String rootVsid = str(browser.get("contentViewId"));
-        Map<String, Object> root = rootVsid != null ? states.get(rootVsid) : null;
-        if (root == null) {
-            return rootVsid;
+        String vsid = str(browser.get("contentViewId"));
+        for (int depth = 0; depth < 16 && vsid != null; depth++) {
+            Map<String, Object> st = states.get(vsid);
+            String next = st != null ? str(st.get("contentViewId")) : null;
+            if (next == null) {
+                break;
+            }
+            vsid = next;
         }
-        String screen = str(root.get("contentViewId"));
-        return screen != null ? screen : rootVsid;
+        return vsid;
     }
 
     public Map<String, Object> state(String vsid) {
