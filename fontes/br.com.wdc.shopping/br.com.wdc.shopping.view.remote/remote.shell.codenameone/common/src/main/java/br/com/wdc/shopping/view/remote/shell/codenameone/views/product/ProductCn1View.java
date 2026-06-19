@@ -3,12 +3,12 @@ package br.com.wdc.shopping.view.remote.shell.codenameone.views.product;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.codename1.components.SpanLabel;
 import com.codename1.ui.Button;
 import com.codename1.ui.Container;
 import com.codename1.ui.Label;
 import com.codename1.ui.TextArea;
 import com.codename1.ui.TextField;
+import com.codename1.ui.html.HTMLComponent;
 import com.codename1.ui.layouts.BoxLayout;
 
 import br.com.wdc.shopping.view.remote.shell.codenameone.ShoppingCn1RemoteApp;
@@ -29,9 +29,10 @@ public class ProductCn1View extends AbstractCn1View {
     private Label image;
     private Label name;
     private Label price;
-    private SpanLabel description;
+    private HTMLComponent description;
     private TextField qty;
     private long currentId = -1;
+    private String lastHtml = "";
 
     public ProductCn1View(String vsid, BridgeSession session, ShoppingCn1RemoteApp app) {
         super(vsid, session, app);
@@ -45,7 +46,8 @@ public class ProductCn1View extends AbstractCn1View {
         image = new Label();
         name = new Label("");
         price = new Label("");
-        description = new SpanLabel("");
+        description = new HTMLComponent();
+        description.setScrollableY(false); // o scroll é do container do produto, não do HTML
         qty = new TextField("1");
         qty.setConstraint(TextArea.NUMERIC);
 
@@ -79,7 +81,11 @@ public class ProductCn1View extends AbstractCn1View {
         }
         name.setText(Json.str(p, "name"));
         price.setText(Money.format(Json.doubleOf(p, "price")));
-        description.setText(Json.str(p, "description"));
+        String html = Json.str(p, "description");
+        if (!html.equals(lastHtml)) {
+            lastHtml = html;
+            description.setBodyText(html);
+        }
     }
 
     private static int parseIntOr(String s, int def) {
