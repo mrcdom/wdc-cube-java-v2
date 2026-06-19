@@ -9,10 +9,13 @@ import com.codename1.system.Lifecycle;
 import com.codename1.ui.CN;
 import com.codename1.ui.Button;
 import com.codename1.ui.Container;
+import com.codename1.ui.EncodedImage;
 import com.codename1.ui.Form;
+import com.codename1.ui.Image;
 import com.codename1.ui.Label;
 import com.codename1.ui.TextArea;
 import com.codename1.ui.TextField;
+import com.codename1.ui.URLImage;
 import com.codename1.ui.layouts.BoxLayout;
 
 /**
@@ -30,6 +33,10 @@ import com.codename1.ui.layouts.BoxLayout;
  * </p>
  */
 public class ShoppingCn1RemoteApp extends Lifecycle {
+
+    private static final String BASE = "http://localhost:8080";
+    private static final int THUMB_PX = 90;
+    private static final int DETAIL_PX = 260;
 
     /** classIds das telas (prefixo do vsid no protocolo bridge). */
     private static final String LOGIN_CLASS_ID = "c677cda52d14";
@@ -55,7 +62,7 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
     public void runApp() {
         showStatus("Conectando ao servidor...");
 
-        session = new BridgeSession("http://localhost:8080", s -> render());
+        session = new BridgeSession(BASE, s -> render());
         new Thread(() -> {
             try {
                 session.connect();
@@ -157,7 +164,7 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
                 Map<String, Object> p = (Map<String, Object>) o;
                 final long productId = (long) intOf(p, "id");
                 String label = strOf(p, "name") + "  —  R$ " + strOf(p, "price");
-                Button row = new Button(label);
+                Button row = new Button(label, productImage(productId, THUMB_PX));
                 row.addActionListener(e -> {
                     Map<String, Object> form = new HashMap<>();
                     form.put("p.productId", productId);
@@ -175,6 +182,7 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
         Form f = new Form("Produto", BoxLayout.y());
         Map<String, Object> product = asMap(st != null ? st.get("product") : null);
 
+        f.add(new Label(productImage((long) intOf(product, "id"), DETAIL_PX)));
         f.add(new Label(strOf(product, "name")));
         f.add(new Label("R$ " + strOf(product, "price")));
         f.add(new SpanLabel(strOf(product, "description")));
@@ -328,6 +336,17 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
         long whole = cents / 100;
         long frac = Math.abs(cents % 100);
         return whole + "." + (frac < 10 ? "0" + frac : "" + frac);
+    }
+
+    /**
+     * Imagem do produto via {@code /image/product/{id}.png} — download assíncrono com cache em
+     * Storage ({@link URLImage}); mostra um placeholder até carregar e redimensiona para {@code size}.
+     */
+    private static Image productImage(long id, int size) {
+        EncodedImage placeholder = EncodedImage.createFromImage(Image.createImage(size, size, 0xffeeeeee), false);
+        String url = BASE + "/image/product/" + id + ".png";
+        String storage = "prod_" + id + "_" + size + ".png";
+        return URLImage.createToStorage(placeholder, storage, url, URLImage.RESIZE_SCALE_TO_FILL);
     }
 
     private static boolean boolOf(Map<String, Object> st, String key) {
