@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.codename1.ui.Button;
 import com.codename1.ui.Container;
 import com.codename1.ui.Label;
 import com.codename1.ui.layouts.BoxLayout;
@@ -12,6 +11,7 @@ import com.codename1.ui.layouts.BoxLayout;
 import br.com.wdc.shopping.view.remote.shell.codenameone.ShoppingCn1RemoteApp;
 import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.BridgeSession;
+import br.com.wdc.shopping.view.remote.shell.codenameone.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Json;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Money;
 
@@ -31,19 +31,18 @@ public class ReceiptCn1View extends AbstractCn1View {
 
     @Override
     protected Container build() {
-        Container c = new Container(BoxLayout.y());
-        c.setScrollableY(true);
-        c.add(new Label("Compra realizada com sucesso!"));
-        total = new Label("");
-        list = new Container(BoxLayout.y());
-
-        Button back = new Button("Continuar comprando");
-        back.addActionListener(e -> submit(EVT_BACK));
-
-        c.add(total);
-        c.add(list);
-        c.add(back);
-        return c;
+        Container root = new Container(BoxLayout.y());
+        root.setScrollableY(true);
+        Cn1Dom.render(root, (dom, r) -> {
+            dom.label(l -> l.setText("Compra realizada com sucesso!"));
+            total = dom.label(l -> { });
+            list = dom.boxY(l -> { });
+            dom.button(b -> {
+                b.setText("Continuar comprando");
+                b.addActionListener(e -> submit(EVT_BACK));
+            });
+        });
+        return root;
     }
 
     @Override

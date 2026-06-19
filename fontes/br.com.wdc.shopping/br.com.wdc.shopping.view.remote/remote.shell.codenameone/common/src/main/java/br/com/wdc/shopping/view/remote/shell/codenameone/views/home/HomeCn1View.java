@@ -6,11 +6,11 @@ import com.codename1.ui.Button;
 import com.codename1.ui.Container;
 import com.codename1.ui.Label;
 import com.codename1.ui.layouts.BorderLayout;
-import com.codename1.ui.layouts.BoxLayout;
 
 import br.com.wdc.shopping.view.remote.shell.codenameone.ShoppingCn1RemoteApp;
 import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.BridgeSession;
+import br.com.wdc.shopping.view.remote.shell.codenameone.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Json;
 
 /**
@@ -35,23 +35,22 @@ public class HomeCn1View extends AbstractCn1View {
 
     @Override
     protected Container build() {
-        Container c = new Container(new BorderLayout());
-
-        Container header = new Container(BoxLayout.x());
-        nick = new Label("");
-        cartBtn = new Button("Carrinho");
-        cartBtn.addActionListener(e -> submit(EVT_OPEN_CART));
-        Button logout = new Button("Sair");
-        logout.addActionListener(e -> submit(EVT_LOGOUT));
-        header.add(nick);
-        header.add(cartBtn);
-        header.add(logout);
-
-        contentPane = new Container(new BorderLayout());
-
-        c.add(BorderLayout.NORTH, header);
-        c.add(BorderLayout.CENTER, contentPane);
-        return c;
+        Container root = new Container(new BorderLayout());
+        Cn1Dom.render(root, (dom, r) -> {
+            dom.boxX(BorderLayout.NORTH, header -> {
+                nick = dom.label(l -> { });
+                cartBtn = dom.button(b -> {
+                    b.setText("Carrinho");
+                    b.addActionListener(e -> submit(EVT_OPEN_CART));
+                });
+                dom.button(b -> {
+                    b.setText("Sair");
+                    b.addActionListener(e -> submit(EVT_LOGOUT));
+                });
+            });
+            contentPane = dom.border(BorderLayout.CENTER, c -> { });
+        });
+        return root;
     }
 
     @Override

@@ -3,7 +3,6 @@ package br.com.wdc.shopping.view.remote.shell.codenameone.views.product;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.codename1.ui.Button;
 import com.codename1.ui.Container;
 import com.codename1.ui.Label;
 import com.codename1.ui.TextArea;
@@ -13,6 +12,7 @@ import com.codename1.ui.layouts.BoxLayout;
 import br.com.wdc.shopping.view.remote.shell.codenameone.ShoppingCn1RemoteApp;
 import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.BridgeSession;
+import br.com.wdc.shopping.view.remote.shell.codenameone.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Images;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Json;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Money;
@@ -40,34 +40,32 @@ public class ProductCn1View extends AbstractCn1View {
 
     @Override
     protected Container build() {
-        Container c = new Container(BoxLayout.y());
-        c.setScrollableY(true);
-
-        image = new Label();
-        name = new Label("");
-        price = new Label("");
-        description = new Container(BoxLayout.y());
-        qty = new TextField("1");
-        qty.setConstraint(TextArea.NUMERIC);
-
-        Button add = new Button("Adicionar ao carrinho");
-        add.addActionListener(e -> {
-            Map<String, Object> form = new HashMap<>();
-            form.put("p.quantity", parseIntOr(qty.getText(), 1));
-            submit(EVT_ADD_TO_CART, form);
+        Container root = new Container(BoxLayout.y());
+        root.setScrollableY(true);
+        Cn1Dom.render(root, (dom, r) -> {
+            image = dom.label(l -> { });
+            name = dom.label(l -> { });
+            price = dom.label(l -> { });
+            description = dom.boxY(c -> { });
+            dom.label(l -> l.setText("Quantidade:"));
+            qty = dom.textField(tf -> {
+                tf.setText("1");
+                tf.setConstraint(TextArea.NUMERIC);
+            });
+            dom.button(b -> {
+                b.setText("Adicionar ao carrinho");
+                b.addActionListener(e -> {
+                    Map<String, Object> form = new HashMap<>();
+                    form.put("p.quantity", parseIntOr(qty.getText(), 1));
+                    submit(EVT_ADD_TO_CART, form);
+                });
+            });
+            dom.button(b -> {
+                b.setText("Voltar");
+                b.addActionListener(e -> submit(EVT_BACK));
+            });
         });
-        Button back = new Button("Voltar");
-        back.addActionListener(e -> submit(EVT_BACK));
-
-        c.add(image);
-        c.add(name);
-        c.add(price);
-        c.add(description);
-        c.add(new Label("Quantidade:"));
-        c.add(qty);
-        c.add(add);
-        c.add(back);
-        return c;
+        return root;
     }
 
     @Override

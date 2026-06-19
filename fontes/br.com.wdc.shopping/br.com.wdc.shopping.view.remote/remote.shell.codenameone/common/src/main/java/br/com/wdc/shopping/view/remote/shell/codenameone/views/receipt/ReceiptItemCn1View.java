@@ -7,6 +7,7 @@ import com.codename1.ui.Label;
 import com.codename1.ui.layouts.BorderLayout;
 
 import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractItemCn1View;
+import br.com.wdc.shopping.view.remote.shell.codenameone.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Json;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Money;
 
@@ -17,10 +18,9 @@ public class ReceiptItemCn1View extends AbstractItemCn1View<Object> {
 
     @Override
     protected Container build() {
-        Container c = new Container(new BorderLayout());
-        label = new Label("");
-        c.add(BorderLayout.CENTER, label);
-        return c;
+        Container root = new Container(new BorderLayout());
+        Cn1Dom.render(root, (dom, r) -> label = dom.label(BorderLayout.CENTER, l -> { }));
+        return root;
     }
 
     @Override

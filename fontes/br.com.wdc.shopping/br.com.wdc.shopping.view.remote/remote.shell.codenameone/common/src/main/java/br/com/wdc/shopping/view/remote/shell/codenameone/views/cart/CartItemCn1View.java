@@ -3,12 +3,12 @@ package br.com.wdc.shopping.view.remote.shell.codenameone.views.cart;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import com.codename1.ui.Button;
 import com.codename1.ui.Container;
 import com.codename1.ui.Label;
 import com.codename1.ui.layouts.BorderLayout;
 
 import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractItemCn1View;
+import br.com.wdc.shopping.view.remote.shell.codenameone.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Json;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Money;
 
@@ -25,13 +25,15 @@ public class CartItemCn1View extends AbstractItemCn1View<Object> {
 
     @Override
     protected Container build() {
-        Container c = new Container(new BorderLayout());
-        label = new Label("");
-        Button remove = new Button("Remover");
-        remove.addActionListener(e -> onRemove.accept(currentId));
-        c.add(BorderLayout.CENTER, label);
-        c.add(BorderLayout.EAST, remove);
-        return c;
+        Container root = new Container(new BorderLayout());
+        Cn1Dom.render(root, (dom, r) -> {
+            label = dom.label(BorderLayout.CENTER, l -> { });
+            dom.button(BorderLayout.EAST, b -> {
+                b.setText("Remover");
+                b.addActionListener(e -> onRemove.accept(currentId));
+            });
+        });
+        return root;
     }
 
     @Override

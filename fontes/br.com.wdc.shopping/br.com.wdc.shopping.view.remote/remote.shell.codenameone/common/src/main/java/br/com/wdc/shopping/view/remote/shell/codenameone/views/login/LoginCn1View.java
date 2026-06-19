@@ -3,7 +3,6 @@ package br.com.wdc.shopping.view.remote.shell.codenameone.views.login;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.codename1.ui.Button;
 import com.codename1.ui.Container;
 import com.codename1.ui.Label;
 import com.codename1.ui.TextArea;
@@ -13,6 +12,7 @@ import com.codename1.ui.layouts.BoxLayout;
 import br.com.wdc.shopping.view.remote.shell.codenameone.ShoppingCn1RemoteApp;
 import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.BridgeSession;
+import br.com.wdc.shopping.view.remote.shell.codenameone.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Json;
 
 /** Tela de login (classId {@value #CLASS_ID}). */
@@ -32,33 +32,27 @@ public class LoginCn1View extends AbstractCn1View {
 
     @Override
     protected Container build() {
-        Container c = new Container(BoxLayout.y());
-        c.add(new Label("Entrar"));
-
-        user = new TextField();
-        user.setHint("Usuário");
-        pass = new TextField();
-        pass.setHint("Senha");
-        pass.setConstraint(TextArea.PASSWORD);
-
-        loading = new Label("Entrando...");
-        error = new Label("");
-        error.getAllStyles().setFgColor(0xcc0000);
-
-        Button login = new Button("Entrar");
-        login.addActionListener(e -> {
-            Map<String, Object> form = new HashMap<>();
-            form.put("p.userName", user.getText());
-            form.put("p.password", session.cipher(pass.getText()));
-            submit(EVT_LOGIN, form);
+        Container root = new Container(BoxLayout.y());
+        Cn1Dom.render(root, (dom, r) -> {
+            dom.label(l -> l.setText("Entrar"));
+            user = dom.textField(tf -> tf.setHint("Usuário"));
+            pass = dom.textField(tf -> {
+                tf.setHint("Senha");
+                tf.setConstraint(TextArea.PASSWORD);
+            });
+            loading = dom.label(l -> l.setText("Entrando..."));
+            error = dom.label(l -> l.getAllStyles().setFgColor(0xcc0000));
+            dom.button(b -> {
+                b.setText("Entrar");
+                b.addActionListener(e -> {
+                    Map<String, Object> form = new HashMap<>();
+                    form.put("p.userName", user.getText());
+                    form.put("p.password", session.cipher(pass.getText()));
+                    submit(EVT_LOGIN, form);
+                });
+            });
         });
-
-        c.add(user);
-        c.add(pass);
-        c.add(loading);
-        c.add(error);
-        c.add(login);
-        return c;
+        return root;
     }
 
     @Override

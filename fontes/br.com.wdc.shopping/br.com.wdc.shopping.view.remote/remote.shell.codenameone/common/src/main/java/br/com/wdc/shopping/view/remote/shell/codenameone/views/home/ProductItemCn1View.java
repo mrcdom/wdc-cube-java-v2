@@ -8,6 +8,7 @@ import com.codename1.ui.Container;
 import com.codename1.ui.layouts.BorderLayout;
 
 import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractItemCn1View;
+import br.com.wdc.shopping.view.remote.shell.codenameone.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Images;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Json;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Money;
@@ -27,11 +28,10 @@ public class ProductItemCn1View extends AbstractItemCn1View<Object> {
 
     @Override
     protected Container build() {
-        Container c = new Container(new BorderLayout());
-        button = new Button();
-        button.addActionListener(e -> onOpen.accept(currentId));
-        c.add(BorderLayout.CENTER, button);
-        return c;
+        Container root = new Container(new BorderLayout());
+        Cn1Dom.render(root, (dom, r) ->
+                button = dom.button(BorderLayout.CENTER, b -> b.addActionListener(e -> onOpen.accept(currentId))));
+        return root;
     }
 
     @Override
