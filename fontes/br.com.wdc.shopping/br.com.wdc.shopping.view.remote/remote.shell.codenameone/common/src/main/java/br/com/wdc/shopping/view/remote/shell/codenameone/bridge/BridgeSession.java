@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.shell.codenameone;
+package br.com.wdc.shopping.view.remote.shell.codenameone.bridge;
 
 import java.util.ArrayList;
 import java.util.HashMap;

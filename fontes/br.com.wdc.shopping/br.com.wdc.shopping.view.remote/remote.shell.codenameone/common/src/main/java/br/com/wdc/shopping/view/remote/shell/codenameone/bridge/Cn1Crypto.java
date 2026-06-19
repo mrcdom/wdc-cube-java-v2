@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.view.remote.shell.codenameone;
+package br.com.wdc.shopping.view.remote.shell.codenameone.bridge;
 
 import com.codename1.security.Cipher;
 import com.codename1.security.Hmac;
