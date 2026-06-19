@@ -1,12 +1,12 @@
 package br.com.wdc.shopping.view.remote.shell.codenameone;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import com.codename1.components.SpanLabel;
 import com.codename1.system.Lifecycle;
 import com.codename1.ui.CN;
 import com.codename1.ui.Button;
-import com.codename1.ui.Dialog;
 import com.codename1.ui.Form;
 import com.codename1.ui.Label;
 import com.codename1.ui.TextArea;
@@ -90,10 +90,12 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
         }
 
         Button login = new Button("Entrar");
-        login.addActionListener(e -> Dialog.show("Login",
-                "O login seguro entra na próxima fase (handshake de criptografia).\n\n"
-                        + "A tela já é renderizada a partir do estado vindo do servidor.",
-                "OK", null));
+        login.addActionListener(e -> {
+            Map<String, Object> form = new HashMap<>();
+            form.put("p.userName", user.getText());
+            form.put("p.password", session.cipher(pass.getText()));
+            session.submit(vsid, 1, form);
+        });
         f.add(login);
 
         return f;

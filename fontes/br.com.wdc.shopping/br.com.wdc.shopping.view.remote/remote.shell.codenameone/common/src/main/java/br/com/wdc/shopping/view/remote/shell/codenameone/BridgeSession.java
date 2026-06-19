@@ -40,6 +40,7 @@ public final class BridgeSession {
 
     private final Map<String, Map<String, Object>> states = new HashMap<>();
     private WebSocket ws;
+    private Cn1Crypto crypto;
     private String uri = "";
     private long requestCounter = 0;
 
@@ -62,12 +63,17 @@ public final class BridgeSession {
         }
         Map<String, Object> init = parse(new String(data));
         String appId = str(init.get("appId"));
-        if (appId == null) {
-            throw new RuntimeException("session/init sem appId");
+        String appSKey = str(init.get("appSKey"));
+        if (appId == null || appSKey == null) {
+            throw new RuntimeException("session/init sem appId/appSKey");
         }
 
+        // Handshake real (RSA + PBKDF2 + AES-GCM): habilita login seguro.
+        crypto = Cn1Crypto.generate(appSKey);
+        final String secret = crypto.signature();
+
         ws = WebSocket.build(wsBase + "/dispatcher/" + appId)
-                .onConnect(w -> w.send("{\"secret\":\"probe-dummy\",\"event\":[]}"))
+                .onConnect(w -> w.send("{\"secret\":\"" + secret + "\",\"event\":[]}"))
                 .onTextMessage((w, msg) -> handleMessage(msg))
                 .onClose((w, code, reason) -> { })
                 .onError((w, ex) -> { })
@@ -136,7 +142,12 @@ public final class BridgeSession {
         return i > 0 ? vsid.substring(0, i) : vsid;
     }
 
-    /** Submete um evento ao servidor (plumbing para as próximas fases). */
+    /** Cifra um valor sensível (ex.: senha) com a chave AES da sessão, para enviar ao servidor. */
+    public String cipher(String plaintext) {
+        return crypto.encipher(plaintext);
+    }
+
+    /** Submete um evento ao servidor. */
     public void submit(String vsid, int eventCode, Map<String, Object> form) {
         long id = ++requestCounter;
         Map<String, Object> msg = new HashMap<>();
