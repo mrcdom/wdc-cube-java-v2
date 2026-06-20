@@ -529,3 +529,144 @@ ProductImageBox {
     padding: 3mm;
     margin: 0 0 0 4mm;
 }
+
+/* === Recibo === */
+ReceiptPage {
+    background-color: #f4f6f9;
+    padding: 4mm;
+}
+
+/* alerta verde de sucesso */
+AlertSuccess {
+    background-color: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 2mm;
+    padding: 3mm 4mm;
+    margin: 0 0 4mm 0;
+}
+
+AlertSuccessIcon {
+    color: #16a34a;
+}
+
+AlertSuccessText {
+    color: #166534;
+    font-family: "native:MainBold";
+    font-size: 3mm;
+    padding: 0 0 0 2mm;
+}
+
+ReceiptCard {
+    background-color: #ffffff;
+    border: 1px solid #e5e5ea;
+    border-radius: 3mm;
+    padding: 5mm;
+}
+
+ReceiptHeaderRow {
+    padding: 0 0 4mm 0;
+}
+
+ReceiptIconBox {
+    color: #0d66d0;
+    background-color: #e8f1fc;
+    border-radius: 2.5mm;
+    padding: 2mm;
+    margin: 0 2.5mm 0 0;
+}
+
+ReceiptCardTitle {
+    color: #1d1d1f;
+    font-family: "native:MainBold";
+    font-size: 3.6mm;
+    padding: 0;
+    margin: 0;
+}
+
+ReceiptCardSub {
+    color: #6e6e73;
+    font-size: 2.4mm;
+    padding: 0;
+    margin: 0;
+}
+
+/* corpo (cupom) — fundo cinza, borda, fonte mono (definida em Java) */
+ReceiptBody {
+    background-color: #f4f6f9;
+    border: 1px solid #e5e5ea;
+    border-radius: 2mm;
+    padding: 4mm;
+}
+
+ReceiptDateRow {
+    border-bottom: 1px solid #e5e5ea;
+    padding: 0 0 2mm 0;
+    margin: 0 0 2mm 0;
+}
+
+ReceiptDateLabel {
+    color: #6e6e73;
+}
+
+ReceiptDateValue {
+    color: #1d1d1f;
+    font-family: "native:MainBold";
+    text-align: right;
+}
+
+ReceiptTableHeader {
+    border-bottom: 1px solid #e5e5ea;
+    padding: 0 0 1.5mm 0;
+    margin: 0 0 1mm 0;
+}
+
+ReceiptColHead {
+    color: #6e6e73;
+}
+
+ReceiptColHeadQty {
+    color: #6e6e73;
+    text-align: center;
+}
+
+ReceiptColHeadValue {
+    color: #6e6e73;
+    text-align: right;
+}
+
+ReceiptItemRow {
+    border-bottom: 1px solid #eeeeef;
+    padding: 1.5mm 0;
+}
+
+ReceiptItemDesc {
+    color: #1d1d1f;
+}
+
+ReceiptItemQty {
+    color: #6e6e73;
+    text-align: center;
+}
+
+ReceiptItemValue {
+    color: #1d1d1f;
+    font-family: "native:MainBold";
+    text-align: right;
+}
+
+ReceiptTotalRow {
+    border-top: 2px solid #0d66d0;
+    padding: 2.5mm 0 0 0;
+    margin: 2.5mm 0 0 0;
+}
+
+ReceiptTotalLabel {
+    color: #1d1d1f;
+    font-family: "native:MainBold";
+}
+
+ReceiptTotalValue {
+    color: #0d66d0;
+    font-family: "native:MainBold";
+    text-align: right;
+}

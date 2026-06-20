@@ -22,6 +22,16 @@ public final class Dates {
         return two(day) + "/" + two(month) + "/" + year;
     }
 
+    /** dd/MM/yyyy HH:mm */
+    public static String formatDateTime(long millis) {
+        if (millis <= 0) {
+            return "";
+        }
+        Calendar c = Calendar.getInstance();
+        c.setTime(new Date(millis));
+        return formatDate(millis) + " " + two(c.get(Calendar.HOUR_OF_DAY)) + ":" + two(c.get(Calendar.MINUTE));
+    }
+
     private static String two(int v) {
         return v < 10 ? "0" + v : Integer.toString(v);
     }
