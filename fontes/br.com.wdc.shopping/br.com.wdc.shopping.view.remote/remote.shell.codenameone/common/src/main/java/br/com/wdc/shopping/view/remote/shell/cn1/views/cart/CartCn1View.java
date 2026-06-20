@@ -16,6 +16,7 @@ import com.codename1.ui.layouts.BoxLayout;
 import com.codename1.ui.layouts.FlowLayout;
 import com.codename1.ui.plaf.RoundBorder;
 
+import br.com.wdc.shopping.view.remote.shell.cn1.Sel;
 import br.com.wdc.shopping.view.remote.shell.cn1.ShoppingCn1RemoteApp;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.BridgeSession;
@@ -53,9 +54,9 @@ public class CartCn1View extends AbstractCn1View {
     protected Container build() {
         Container root = new Container(BoxLayout.y());
         root.setScrollableY(true);
-        root.setUIID("CartPage");
+        root.setUIID(CartSel.CART_PAGE);
         Cn1Dom.render(root, (dom, r) -> dom.boxY(card -> {
-            card.setUIID("CartCard");
+            card.setUIID(CartSel.CART_CARD);
             dom.add(Widgets.cardHeader(FontImage.MATERIAL_SHOPPING_BAG, "Carrinho",
                     "Seus produtos selecionados"), null);
             body = dom.boxY(b -> { });
@@ -67,26 +68,26 @@ public class CartCn1View extends AbstractCn1View {
 
     private Container buildEmpty() {
         Container sec = new Container(BoxLayout.y());
-        sec.setUIID("CartEmpty");
+        sec.setUIID(CartSel.CART_EMPTY);
         Cn1Dom.render(sec, (dom, r) -> {
             dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, wrap -> {
-                Label iconBox = dom.label(l -> l.setUIID("CartEmptyIconBox"));
+                Label iconBox = dom.label(l -> l.setUIID(CartSel.CART_EMPTY_ICON_BOX));
                 iconBox.setPreferredSize(new Dimension(150, 150));
                 iconBox.getAllStyles().setBorder(RoundBorder.create().color(0xe8f1fc));
                 FontImage.setMaterialIcon(iconBox, FontImage.MATERIAL_SHOPPING_BAG, 8f);
             });
             dom.label(l -> {
                 l.setText("Carrinho vazio");
-                l.setUIID("CartEmptyTitle");
+                l.setUIID(CartSel.CART_EMPTY_TITLE);
             });
             dom.label(l -> {
                 l.setText("Adicione produtos para começar");
-                l.setUIID("CartEmptySub");
+                l.setUIID(CartSel.CART_EMPTY_SUB);
             });
             dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, wrap -> {
                 Button view = dom.button(b -> {
                     b.setText("Ver produtos");
-                    b.setUIID("PrimaryButton");
+                    b.setUIID(Sel.PRIMARY_BUTTON);
                     b.addActionListener(e -> submit(EVT_BACK));
                 });
                 FontImage.setMaterialIcon(view, FontImage.MATERIAL_VIEW_MODULE, 3.5f);
@@ -100,19 +101,19 @@ public class CartCn1View extends AbstractCn1View {
         Cn1Dom.render(sec, (dom, r) -> {
             list = dom.boxY(l -> { });
             dom.container(new FlowLayout(Component.RIGHT, Component.CENTER), null, footer -> {
-                footer.setUIID("CartFooter");
+                footer.setUIID(CartSel.CART_FOOTER);
                 dom.label(l -> {
                     l.setText("Total:");
-                    l.setUIID("CartFooterLabel");
+                    l.setUIID(CartSel.CART_FOOTER_LABEL);
                 });
-                total = dom.label(l -> l.setUIID("CartFooterTotal"));
+                total = dom.label(l -> l.setUIID(CartSel.CART_FOOTER_TOTAL));
             });
             dom.border(actions -> {
-                actions.setUIID("CartActions");
+                actions.setUIID(CartSel.CART_ACTIONS);
                 dom.add(Widgets.backButton("Continuar comprando", () -> submit(EVT_BACK)), BorderLayout.WEST);
                 Button buy = dom.button(BorderLayout.EAST, b -> {
                     b.setText("Finalizar pedido");
-                    b.setUIID("PrimaryButton");
+                    b.setUIID(Sel.PRIMARY_BUTTON);
                     b.addActionListener(e -> submit(EVT_BUY));
                 });
                 FontImage.setMaterialIcon(buy, FontImage.MATERIAL_CHECK_CIRCLE, 3.5f);

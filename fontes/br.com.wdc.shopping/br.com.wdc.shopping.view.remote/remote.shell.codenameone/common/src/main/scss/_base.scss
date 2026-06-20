@@ -143,7 +143,7 @@ BackButton {
     padding: 2mm 3.5mm;
 }
 
-// Botão +/- de quantidade (produto e carrinho).
+// Stepper de quantidade (produto e carrinho).
 QtyBtn {
     background-color: $bg;
     color: $accent;
@@ -151,6 +151,14 @@ QtyBtn {
     border-radius: $radius-pill;
     padding: 0;
     margin: 0 1mm;
+    text-align: center;
+}
+
+QtyValue {
+    color: $text;
+    font-family: $f-bold;
+    font-size: 3.6mm;
+    padding: 0 2mm;
     text-align: center;
 }
 

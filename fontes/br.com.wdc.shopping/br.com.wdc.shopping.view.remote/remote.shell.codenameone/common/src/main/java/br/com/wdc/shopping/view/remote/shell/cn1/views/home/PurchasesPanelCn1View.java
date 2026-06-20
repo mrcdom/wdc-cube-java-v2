@@ -68,21 +68,21 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
     @Override
     protected Container build() {
         Container root = new Container(new BorderLayout());
-        root.setUIID("PurchasesPanel");
+        root.setUIID(HomeSel.PURCHASES_PANEL);
         Cn1Dom.render(root, (dom, r) -> {
             // cabeçalho (ícone + título) + dica
             dom.boxY(BorderLayout.NORTH, head -> {
                 dom.boxX(row -> {
-                    Label icon = dom.label(l -> l.setUIID("PurchasesHeaderIcon"));
+                    Label icon = dom.label(l -> l.setUIID(HomeSel.PURCHASES_HEADER_ICON));
                     FontImage.setMaterialIcon(icon, FontImage.MATERIAL_HISTORY, 4f);
                     dom.label(l -> {
                         l.setText("Histórico");
-                        l.setUIID("PurchasesTitle");
+                        l.setUIID(HomeSel.PURCHASES_TITLE);
                     });
                 });
                 dom.label(l -> {
                     l.setText("Toque para ver detalhes");
-                    l.setUIID("PurchasesHint");
+                    l.setUIID(HomeSel.PURCHASES_HINT);
                 });
             });
 
@@ -91,11 +91,11 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
 
             // navegação de páginas — pílula cinza com setas e o "x / y" num box branco (como o React)
             pagination = dom.container(new FlowLayout(Component.CENTER), BorderLayout.SOUTH, nav -> {
-                nav.setUIID("PurchasePagination");
+                nav.setUIID(HomeSel.PURCHASE_PAGINATION);
                 pill = dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, p -> {
-                    p.setUIID("PurchasePagePill");
+                    p.setUIID(HomeSel.PURCHASE_PAGE_PILL);
                     prevBtn = dom.label(l -> {
-                        l.setUIID("PurchasePageBtn");
+                        l.setUIID(HomeSel.PURCHASE_PAGE_BTN);
                         l.addPointerPressedListener(e -> chevronIcon(l, FontImage.MATERIAL_CHEVRON_LEFT, CHEVRON_PRESSED));
                         l.addPointerReleasedListener(e -> {
                             chevronIcon(l, FontImage.MATERIAL_CHEVRON_LEFT, CHEVRON_ENABLED);
@@ -103,9 +103,9 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
                         });
                     });
                     chevronIcon(prevBtn, FontImage.MATERIAL_CHEVRON_LEFT, CHEVRON_ENABLED);
-                    pageInfo = dom.label(l -> l.setUIID("PurchasePageInfo"));
+                    pageInfo = dom.label(l -> l.setUIID(HomeSel.PURCHASE_PAGE_INFO));
                     nextBtn = dom.label(l -> {
-                        l.setUIID("PurchasePageBtn");
+                        l.setUIID(HomeSel.PURCHASE_PAGE_BTN);
                         l.addPointerPressedListener(e -> chevronIcon(l, FontImage.MATERIAL_CHEVRON_RIGHT, CHEVRON_PRESSED));
                         l.addPointerReleasedListener(e -> {
                             chevronIcon(l, FontImage.MATERIAL_CHEVRON_RIGHT, CHEVRON_ENABLED);

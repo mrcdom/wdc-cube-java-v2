@@ -21,15 +21,15 @@ public class ReceiptItemCn1View extends AbstractItemCn1View<Object> {
     @Override
     protected Container build() {
         Container root = new Container(new BorderLayout());
-        root.setUIID("ReceiptItemRow");
+        root.setUIID(ReceiptSel.RECEIPT_ITEM_ROW);
         Cn1Dom.render(root, (dom, r) -> {
-            desc = dom.label(BorderLayout.CENTER, l -> l.setUIID("ReceiptItemDesc"));
+            desc = dom.label(BorderLayout.CENTER, l -> l.setUIID(ReceiptSel.RECEIPT_ITEM_DESC));
             ReceiptCn1View.mono(desc);
             dom.boxX(BorderLayout.EAST, cols -> {
-                qty = dom.label(l -> l.setUIID("ReceiptItemQty"));
+                qty = dom.label(l -> l.setUIID(ReceiptSel.RECEIPT_ITEM_QTY));
                 qty.setPreferredW(ReceiptCn1View.COL_QTY_W);
                 ReceiptCn1View.mono(qty);
-                value = dom.label(l -> l.setUIID("ReceiptItemValue"));
+                value = dom.label(l -> l.setUIID(ReceiptSel.RECEIPT_ITEM_VALUE));
                 value.setPreferredW(ReceiptCn1View.COL_VALUE_W);
                 ReceiptCn1View.mono(value);
             });

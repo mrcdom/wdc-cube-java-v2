@@ -41,13 +41,13 @@ public class ProductItemCn1View extends AbstractItemCn1View<Object> {
         Cn1Dom.render(content, (dom, c) -> {
             // imagem centralizada num wrap (FlowLayout mantém o tamanho quadrado, sem distorcer)
             dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, wrap -> {
-                wrap.setUIID("ProductCardImage");
+                wrap.setUIID(HomeSel.PRODUCT_CARD_IMAGE);
                 image = dom.label(l -> { });
             });
-            name = dom.label(l -> l.setUIID("ProductCardName"));
-            price = dom.label(l -> l.setUIID("ProductCardPrice"));
+            name = dom.label(l -> l.setUIID(HomeSel.PRODUCT_CARD_NAME));
+            price = dom.label(l -> l.setUIID(HomeSel.PRODUCT_CARD_PRICE));
         });
-        Container card = Clickable.card("ProductCard", content, () -> onOpen.accept(currentId));
+        Container card = Clickable.card(HomeSel.PRODUCT_CARD, content, () -> onOpen.accept(currentId));
         card.setPreferredSize(new Dimension(CARD_W, CARD_H));
         return card;
     }

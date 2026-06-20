@@ -35,20 +35,20 @@ public class PurchaseItemCn1View extends AbstractItemCn1View<Object> {
         Container content = new Container(BoxLayout.y());
         Cn1Dom.render(content, (dom, c) -> {
             dom.border(line1 -> {
-                line1.setUIID("PurchaseLine");
-                idLabel = dom.label(BorderLayout.WEST, l -> l.setUIID("PurchaseId"));
-                dateLabel = dom.label(BorderLayout.EAST, l -> l.setUIID("PurchaseDate"));
+                line1.setUIID(HomeSel.PURCHASE_LINE);
+                idLabel = dom.label(BorderLayout.WEST, l -> l.setUIID(HomeSel.PURCHASE_ID));
+                dateLabel = dom.label(BorderLayout.EAST, l -> l.setUIID(HomeSel.PURCHASE_DATE));
             });
             dom.border(line2 -> {
-                line2.setUIID("PurchaseLine");
+                line2.setUIID(HomeSel.PURCHASE_LINE);
                 itemsLabel = dom.label(BorderLayout.CENTER, l -> {
-                    l.setUIID("PurchaseItems");
+                    l.setUIID(HomeSel.PURCHASE_ITEMS);
                     l.setEndsWith3Points(true); // elipsis quando não couber
                 });
-                totalLabel = dom.label(BorderLayout.EAST, l -> l.setUIID("PurchaseTotal"));
+                totalLabel = dom.label(BorderLayout.EAST, l -> l.setUIID(HomeSel.PURCHASE_TOTAL));
             });
         });
-        return Clickable.card("PurchaseCard", content, () -> onOpen.accept(currentId));
+        return Clickable.card(HomeSel.PURCHASE_CARD, content, () -> onOpen.accept(currentId));
     }
 
     @Override

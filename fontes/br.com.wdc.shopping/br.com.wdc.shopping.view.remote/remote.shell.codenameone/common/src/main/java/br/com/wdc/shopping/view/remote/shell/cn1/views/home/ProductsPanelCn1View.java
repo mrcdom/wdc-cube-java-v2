@@ -34,7 +34,7 @@ public class ProductsPanelCn1View extends AbstractCn1View {
     @Override
     protected Container build() {
         grid = new Container(new FlowLayout(Component.LEFT, Component.TOP));
-        grid.setUIID("ProductsPanel");
+        grid.setUIID(HomeSel.PRODUCTS_PANEL);
         grid.setScrollableY(true);
         return grid;
     }

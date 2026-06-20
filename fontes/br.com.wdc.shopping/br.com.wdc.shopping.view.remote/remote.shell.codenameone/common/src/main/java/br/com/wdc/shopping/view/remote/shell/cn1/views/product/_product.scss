@@ -57,14 +57,6 @@ QtyLabel {
     padding: 0 1mm 0 0;
 }
 
-QtyValue {
-    color: $text;
-    font-family: $f-bold;
-    font-size: 3.6mm;
-    padding: 0 2mm;
-    text-align: center;
-}
-
 ProductImageBox {
     @include img-gradient;
     border-radius: $radius-sm;

@@ -4,6 +4,8 @@ import com.codename1.ui.Button;
 import com.codename1.ui.Container;
 import com.codename1.ui.plaf.Style;
 
+import br.com.wdc.shopping.view.remote.shell.cn1.Sel;
+
 /**
  * Torna um <i>card</i> (Container composto) clicável como um todo. No Codename One, um
  * {@code addPointerReleasedListener} no Container <b>não</b> dispara (o evento vai para a folha sob o
@@ -26,7 +28,7 @@ public final class Clickable {
         applyHover(content);
 
         Button lead = new Button();
-        lead.setUIID("CardLead");
+        lead.setUIID(Sel.CARD_LEAD);
         lead.setPreferredH(0);
         content.add(lead);
         content.setLeadComponent(lead);

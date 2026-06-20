@@ -29,6 +29,7 @@ import br.com.wdc.shopping.view.remote.shell.cn1.views.home.HomeCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.views.home.ProductsPanelCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.views.home.PurchasesPanelCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.views.login.LoginCn1View;
+import br.com.wdc.shopping.view.remote.shell.cn1.views.login.LoginSel;
 import br.com.wdc.shopping.view.remote.shell.cn1.views.product.ProductCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.views.receipt.ReceiptCn1View;
 
@@ -191,11 +192,11 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
         content.add(FlowLayout.encloseCenter(logo));
 
         Label title = new Label("WDC Shopping");
-        title.setUIID("HeroTitle");
+        title.setUIID(LoginSel.HERO_TITLE);
         content.add(title);
 
         SpanLabel subtitle = new SpanLabel("Sua compra certa na internet.");
-        subtitle.setTextUIID("HeroSubtitle");
+        subtitle.setTextUIID(LoginSel.HERO_SUBTITLE);
         content.add(subtitle);
 
         if (!error) {
@@ -206,12 +207,12 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
         }
 
         Label statusLabel = new Label(status);
-        statusLabel.setUIID("SplashStatus");
+        statusLabel.setUIID(Sel.SPLASH_STATUS);
         content.add(FlowLayout.encloseCenter(statusLabel));
 
         if (onRetry != null) {
             Button retry = new Button("Tentar novamente");
-            retry.setUIID("SplashRetry");
+            retry.setUIID(Sel.SPLASH_RETRY);
             retry.addActionListener(e -> onRetry.run());
             content.add(FlowLayout.encloseCenter(retry));
         }
