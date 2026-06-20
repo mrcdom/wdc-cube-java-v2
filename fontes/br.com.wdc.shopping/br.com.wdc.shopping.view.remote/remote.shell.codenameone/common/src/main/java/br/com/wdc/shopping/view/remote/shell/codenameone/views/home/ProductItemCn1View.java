@@ -20,10 +20,10 @@ import br.com.wdc.shopping.view.remote.shell.codenameone.util.Money;
 /** Card de produto: imagem (fundo gradiente) + nome + preço; o card inteiro abre o detalhe. */
 public class ProductItemCn1View extends AbstractItemCn1View<Object> {
 
-    private static final int IMG = 160;
+    private static final int IMG = 190;
     /** Tamanho fixo do card — o FlowLayout do painel quebra a linha quando não couber. */
     private static final int CARD_W = 300;
-    private static final int CARD_H = 320;
+    private static final int CARD_H = 410;
 
     private final Consumer<Long> onOpen;
     private Label image;

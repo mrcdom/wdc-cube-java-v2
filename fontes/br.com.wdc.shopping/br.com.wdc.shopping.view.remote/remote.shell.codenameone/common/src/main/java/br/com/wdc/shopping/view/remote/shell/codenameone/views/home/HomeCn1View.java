@@ -86,19 +86,22 @@ public class HomeCn1View extends AbstractCn1View {
 
                 // centro: logo + Shopping (+ By WeDoCode só no expandido)
                 dom.container(new FlowLayout(Component.CENTER, Component.CENTER), BorderLayout.CENTER, center -> {
-                    Label logo = dom.label(l -> l.setUIID("AppBarLogoBox"));
-                    FontImage.setMaterialIcon(logo, FontImage.MATERIAL_SHOPPING_BAG, 5f);
-                    dom.boxY(t -> {
-                        dom.label(l -> {
-                            l.setText("Shopping");
-                            l.setUIID("AppBarBrand");
-                        });
-                        if (wide) {
+                    // grupo logo+marca com valign CENTER: a marca alinha pelo centro do ícone
+                    dom.container(new FlowLayout(Component.LEFT, Component.CENTER), null, group -> {
+                        Label logo = dom.label(l -> l.setUIID("AppBarLogoBox"));
+                        FontImage.setMaterialIcon(logo, FontImage.MATERIAL_SHOPPING_BAG, 5f);
+                        dom.boxY(t -> {
                             dom.label(l -> {
-                                l.setText("By WeDoCode");
-                                l.setUIID("AppBarBrandSub");
+                                l.setText("Shopping");
+                                l.setUIID("AppBarBrand");
                             });
-                        }
+                            if (wide) {
+                                dom.label(l -> {
+                                    l.setText("By WeDoCode");
+                                    l.setUIID("AppBarBrandSub");
+                                });
+                            }
+                        });
                     });
                 });
 
