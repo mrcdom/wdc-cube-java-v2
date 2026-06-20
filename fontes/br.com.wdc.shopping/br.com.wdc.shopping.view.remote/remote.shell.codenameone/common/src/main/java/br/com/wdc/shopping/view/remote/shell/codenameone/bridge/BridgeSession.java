@@ -8,6 +8,7 @@ import java.util.Map;
 import com.codename1.io.ConnectionRequest;
 import com.codename1.io.JSONParser;
 import com.codename1.io.NetworkManager;
+import com.codename1.io.Preferences;
 import com.codename1.io.WebSocket;
 import com.codename1.ui.CN;
 
@@ -28,6 +29,9 @@ public final class BridgeSession {
 
     /** vsid do BrowserPresenter (raiz da árvore de navegação). */
     public static final String BROWSER_VSID = "7b32e816a191:0";
+
+    /** Preferência (client-only) com o último path navegado, para restaurar a tela ao reabrir. */
+    private static final String INTENT_PREF = "wdc.lastIntent";
 
     /** Listener de atualização — chamado no EDT após cada push de estado. */
     public interface Listener {
@@ -90,6 +94,13 @@ public final class BridgeSession {
         if (!storage.isEmpty()) {
             boot.put("storage", storage);
         }
+        // Restaura a última tela: reenvia o path salvo como p.path do browser (createApp → safeGo).
+        String savedPath = Preferences.get(INTENT_PREF, "");
+        if (savedPath != null && !savedPath.isEmpty()) {
+            Map<String, Object> browserForm = new HashMap<>();
+            browserForm.put("p.path", savedPath);
+            boot.put(BROWSER_VSID, browserForm);
+        }
         return JSONParser.mapToJson(boot);
     }
 
@@ -99,6 +110,7 @@ public final class BridgeSession {
             Object u = resp.get("uri");
             if (u != null) {
                 uri = u.toString();
+                persistIntent(uri);
             }
             Object statesObj = resp.get("states");
             if (statesObj instanceof List) {
@@ -118,6 +130,14 @@ public final class BridgeSession {
             // mensagem malformada — ignora; o estado anterior permanece
         }
         CN.callSerially(() -> listener.onUpdate(this));
+    }
+
+    /** Salva o último path navegado (exceto login) para restaurar a tela ao reabrir o app. */
+    private void persistIntent(String u) {
+        if (u == null || u.isEmpty() || u.contains("login")) {
+            return;
+        }
+        Preferences.set(INTENT_PREF, u);
     }
 
     /** Aplica os deltas de storage do servidor: decifra os valores e grava (ou remove se {@code null}). */
