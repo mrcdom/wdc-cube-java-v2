@@ -563,11 +563,12 @@ ReceiptCard {
     padding: 5mm;
 }
 
-ReceiptHeaderRow {
+/* cabeçalho de card (compartilhado: recibo, carrinho) */
+CardHeaderRow {
     padding: 0 0 4mm 0;
 }
 
-ReceiptIconBox {
+CardHeaderIconBox {
     color: #0d66d0;
     background-color: #e8f1fc;
     border-radius: 2.5mm;
@@ -575,7 +576,7 @@ ReceiptIconBox {
     margin: 0 2.5mm 0 0;
 }
 
-ReceiptCardTitle {
+CardHeaderTitle {
     color: #1d1d1f;
     font-family: "native:MainBold";
     font-size: 3.6mm;
@@ -583,7 +584,7 @@ ReceiptCardTitle {
     margin: 0;
 }
 
-ReceiptCardSub {
+CardHeaderSub {
     color: #6e6e73;
     font-size: 2.4mm;
     padding: 0;
@@ -669,4 +670,96 @@ ReceiptTotalValue {
     color: #0d66d0;
     font-family: "native:MainBold";
     text-align: right;
+}
+
+/* === Carrinho === */
+CartPage {
+    background-color: #f4f6f9;
+    padding: 4mm;
+}
+
+CartCard {
+    background-color: #ffffff;
+    border: 1px solid #e5e5ea;
+    border-radius: 3mm;
+    padding: 5mm;
+}
+
+CartItemRow {
+    border-bottom: 1px solid #e5e5ea;
+    padding: 2mm 0;
+}
+
+CartItemName {
+    color: #1d1d1f;
+    font-family: "native:MainRegular";
+    font-size: 3mm;
+}
+
+CartStepper {
+    background-color: transparent;
+}
+
+CartItemSubtotal {
+    color: #0d66d0;
+    font-family: "native:MainBold";
+    font-size: 3mm;
+    text-align: right;
+    padding: 0 2mm;
+}
+
+CartRemoveBtn {
+    background-color: transparent;
+    color: #dc3545;
+    border: none;
+    padding: 0;
+    margin: 0 0 0 1mm;
+}
+
+CartFooter {
+    border-top: 1px solid #e5e5ea;
+    padding: 3mm 0 0 0;
+    margin: 2mm 0 0 0;
+}
+
+CartFooterLabel {
+    color: #6e6e73;
+    font-size: 2.8mm;
+}
+
+CartFooterTotal {
+    color: #0d66d0;
+    font-family: "native:MainBold";
+    font-size: 4.4mm;
+    padding: 0 0 0 1.5mm;
+}
+
+CartActions {
+    padding: 3mm 0 0 0;
+}
+
+/* estado vazio */
+CartEmpty {
+    padding: 6mm 4mm;
+}
+
+CartEmptyIconBox {
+    color: #0d66d0;
+    text-align: center;
+    margin: 0 0 3mm 0;
+}
+
+CartEmptyTitle {
+    color: #1d1d1f;
+    font-family: "native:MainBold";
+    font-size: 3.6mm;
+    text-align: center;
+    padding: 0 0 1mm 0;
+}
+
+CartEmptySub {
+    color: #6e6e73;
+    font-size: 2.8mm;
+    text-align: center;
+    padding: 0 0 3mm 0;
 }

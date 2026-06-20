@@ -1,7 +1,11 @@
 package br.com.wdc.shopping.view.remote.shell.codenameone.util;
 
 import com.codename1.ui.Button;
+import com.codename1.ui.Container;
 import com.codename1.ui.FontImage;
+import com.codename1.ui.Label;
+import com.codename1.ui.geom.Dimension;
+import com.codename1.ui.layouts.BoxLayout;
 import com.codename1.ui.plaf.RoundRectBorder;
 import com.codename1.ui.plaf.Style;
 
@@ -27,6 +31,40 @@ public final class Widgets {
             s.setBgColor(0xe5e7eb);
             s.setBgTransparency(255);
         }
+        b.addActionListener(e -> onClick.run());
+        return b;
+    }
+
+    /**
+     * Cabeçalho de card: ícone num box azul-claro + título e subtítulo. UIIDs {@code CardHeaderRow},
+     * {@code CardHeaderIconBox}, {@code CardHeaderTitle}, {@code CardHeaderSub}.
+     */
+    public static Container cardHeader(char icon, String title, String subtitle) {
+        Container row = new Container(BoxLayout.x());
+        row.setUIID("CardHeaderRow");
+
+        Label iconBox = new Label();
+        iconBox.setUIID("CardHeaderIconBox");
+        FontImage.setMaterialIcon(iconBox, icon, 4.5f);
+        row.add(iconBox);
+
+        Container col = new Container(BoxLayout.y());
+        Label t = new Label(title);
+        t.setUIID("CardHeaderTitle");
+        Label s = new Label(subtitle);
+        s.setUIID("CardHeaderSub");
+        col.add(t);
+        col.add(s);
+        row.add(col);
+        return row;
+    }
+
+    /** Botão de ícone com tamanho fixo (evita a altura mínima de toque do Button que o infla). */
+    public static Button iconButton(String uiid, char icon, float iconMm, int sizePx, Runnable onClick) {
+        Button b = new Button();
+        b.setUIID(uiid);
+        FontImage.setMaterialIcon(b, icon, iconMm);
+        b.setPreferredSize(new Dimension(sizePx, sizePx));
         b.addActionListener(e -> onClick.run());
         return b;
     }

@@ -69,22 +69,8 @@ public class ReceiptCn1View extends AbstractCn1View {
             dom.boxY(card -> {
                 card.setUIID("ReceiptCard");
 
-                // cabeçalho: ícone + título/subtítulo
-                dom.boxX(header -> {
-                    header.setUIID("ReceiptHeaderRow");
-                    Label icon = dom.label(l -> l.setUIID("ReceiptIconBox"));
-                    FontImage.setMaterialIcon(icon, FontImage.MATERIAL_RECEIPT, 4.5f);
-                    dom.boxY(titleCol -> {
-                        dom.label(l -> {
-                            l.setText("Recibo de Compra");
-                            l.setUIID("ReceiptCardTitle");
-                        });
-                        dom.label(l -> {
-                            l.setText("WDC Shopping");
-                            l.setUIID("ReceiptCardSub");
-                        });
-                    });
-                });
+                // cabeçalho: ícone + título/subtítulo (widget compartilhado)
+                dom.add(Widgets.cardHeader(FontImage.MATERIAL_RECEIPT, "Recibo de Compra", "WDC Shopping"), null);
 
                 // corpo (monoespaçado)
                 dom.boxY(body -> {
