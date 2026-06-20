@@ -412,10 +412,9 @@ PurchasePagination {
     padding: 3mm 0 3mm 0;
 }
 
-/* pílula cinza que envolve setas + indicador — baixa e justa ao conteúdo */
+/* pílula: fundo cinza + cantos arredondados vêm do RoundRectBorder em Java (o border-radius
+   grande do CSS reservava espaço vertical). Aqui só o padding horizontal. */
 PurchasePagePill {
-    background-color: #f4f6f9;
-    border-radius: 6mm;
     padding: 0 1mm;
 }
 

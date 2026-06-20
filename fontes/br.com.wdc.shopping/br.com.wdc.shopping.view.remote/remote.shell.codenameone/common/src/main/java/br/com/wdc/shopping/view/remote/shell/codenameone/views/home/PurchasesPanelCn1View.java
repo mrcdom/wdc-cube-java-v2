@@ -42,6 +42,7 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
 
     private Container list;
     private Container pagination;
+    private Container pill;
     private Label pageInfo;
     private Label prevBtn;
     private Label nextBtn;
@@ -83,8 +84,8 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
             // navegação de páginas — pílula cinza com setas e o "x / y" num box branco (como o React)
             pagination = dom.container(new FlowLayout(Component.CENTER), BorderLayout.SOUTH, nav -> {
                 nav.setUIID("PurchasePagination");
-                dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, pill -> {
-                    pill.setUIID("PurchasePagePill");
+                pill = dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, p -> {
+                    p.setUIID("PurchasePagePill");
                     prevBtn = dom.label(l -> {
                         l.setUIID("PurchasePageBtn");
                         l.addPointerReleasedListener(e -> changePage(-1));
@@ -119,6 +120,12 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
         pageInfo.getAllStyles().setBorder(infoBorder);
         pageInfo.getAllStyles().setBgColor(0xffffff);
         pageInfo.getAllStyles().setBgTransparency(255);
+
+        // Pílula arredondada via RoundRectBorder do Java (o border-radius grande do CSS reservava
+        // espaço vertical extra — o cinza que sobrava). Mesmo mecanismo do box, que fica justo.
+        pill.getAllStyles().setBorder(RoundRectBorder.create().cornerRadius(4f));
+        pill.getAllStyles().setBgColor(0xf4f6f9);
+        pill.getAllStyles().setBgTransparency(255);
 
         // Setas com EXATAMENTE a altura do box: assim a pílula = altura do box (sem cinza
         // sobrando) e as setas ficam centralizadas verticalmente com o indicador. A altura
