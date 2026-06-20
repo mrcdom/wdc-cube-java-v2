@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.codename1.ui.Button;
 import com.codename1.ui.Component;
 import com.codename1.ui.Container;
 import com.codename1.ui.FontImage;
@@ -43,8 +42,8 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
     private Container list;
     private Container pagination;
     private Label pageInfo;
-    private Button prevBtn;
-    private Button nextBtn;
+    private Label prevBtn;
+    private Label nextBtn;
     private final List<PurchaseItemCn1View> items = new ArrayList<>();
 
     private int totalPages = 1;
@@ -85,15 +84,15 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
                 nav.setUIID("PurchasePagination");
                 dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, pill -> {
                     pill.setUIID("PurchasePagePill");
-                    prevBtn = dom.button(b -> {
-                        b.setUIID("PurchasePageBtn");
-                        b.addActionListener(e -> changePage(-1));
+                    prevBtn = dom.label(l -> {
+                        l.setUIID("PurchasePageBtn");
+                        l.addPointerReleasedListener(e -> changePage(-1));
                     });
                     FontImage.setMaterialIcon(prevBtn, FontImage.MATERIAL_CHEVRON_LEFT, 3.2f);
                     pageInfo = dom.label(l -> l.setUIID("PurchasePageInfo"));
-                    nextBtn = dom.button(b -> {
-                        b.setUIID("PurchasePageBtn");
-                        b.addActionListener(e -> changePage(1));
+                    nextBtn = dom.label(l -> {
+                        l.setUIID("PurchasePageBtn");
+                        l.addPointerReleasedListener(e -> changePage(1));
                     });
                     FontImage.setMaterialIcon(nextBtn, FontImage.MATERIAL_CHEVRON_RIGHT, 3.2f);
                 });
