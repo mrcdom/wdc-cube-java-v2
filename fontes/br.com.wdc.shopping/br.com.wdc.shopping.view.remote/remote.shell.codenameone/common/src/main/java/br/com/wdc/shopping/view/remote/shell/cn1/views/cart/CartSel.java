@@ -11,19 +11,19 @@ public final class CartSel extends Sel {
         // singleton
     }
 
-    public final String CART_PAGE = "CartPage";
-    public final String CART_CARD = "CartCard";
-    public final String CART_ITEM_ROW = "CartItemRow";
-    public final String CART_ITEM_NAME = "CartItemName";
-    public final String CART_STEPPER = "CartStepper";
-    public final String CART_ITEM_SUBTOTAL = "CartItemSubtotal";
-    public final String CART_REMOVE_BTN = "CartRemoveBtn";
-    public final String CART_FOOTER = "CartFooter";
-    public final String CART_FOOTER_LABEL = "CartFooterLabel";
-    public final String CART_FOOTER_TOTAL = "CartFooterTotal";
-    public final String CART_ACTIONS = "CartActions";
-    public final String CART_EMPTY = "CartEmpty";
-    public final String CART_EMPTY_ICON_BOX = "CartEmptyIconBox";
-    public final String CART_EMPTY_TITLE = "CartEmptyTitle";
-    public final String CART_EMPTY_SUB = "CartEmptySub";
+    public final String CART_PAGE = "CartPageCrt";
+    public final String CART_CARD = "CartCardCrt";
+    public final String CART_ITEM_ROW = "CartItemRowCrt";
+    public final String CART_ITEM_NAME = "CartItemNameCrt";
+    public final String CART_STEPPER = "CartStepperCrt";
+    public final String CART_ITEM_SUBTOTAL = "CartItemSubtotalCrt";
+    public final String CART_REMOVE_BTN = "CartRemoveBtnCrt";
+    public final String CART_FOOTER = "CartFooterCrt";
+    public final String CART_FOOTER_LABEL = "CartFooterLabelCrt";
+    public final String CART_FOOTER_TOTAL = "CartFooterTotalCrt";
+    public final String CART_ACTIONS = "CartActionsCrt";
+    public final String CART_EMPTY = "CartEmptyCrt";
+    public final String CART_EMPTY_ICON_BOX = "CartEmptyIconBoxCrt";
+    public final String CART_EMPTY_TITLE = "CartEmptyTitleCrt";
+    public final String CART_EMPTY_SUB = "CartEmptySubCrt";
 }

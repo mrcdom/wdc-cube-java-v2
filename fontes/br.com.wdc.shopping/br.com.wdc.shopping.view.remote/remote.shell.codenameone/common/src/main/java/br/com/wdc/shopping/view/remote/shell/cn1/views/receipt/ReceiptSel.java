@@ -11,24 +11,24 @@ public final class ReceiptSel extends Sel {
         // singleton
     }
 
-    public final String RECEIPT_PAGE = "ReceiptPage";
-    public final String ALERT_SUCCESS = "AlertSuccess";
-    public final String ALERT_SUCCESS_ICON = "AlertSuccessIcon";
-    public final String ALERT_SUCCESS_TEXT = "AlertSuccessText";
-    public final String RECEIPT_CARD = "ReceiptCard";
-    public final String RECEIPT_BODY = "ReceiptBody";
-    public final String RECEIPT_DATE_ROW = "ReceiptDateRow";
-    public final String RECEIPT_DATE_LABEL = "ReceiptDateLabel";
-    public final String RECEIPT_DATE_VALUE = "ReceiptDateValue";
-    public final String RECEIPT_TABLE_HEADER = "ReceiptTableHeader";
-    public final String RECEIPT_COL_HEAD = "ReceiptColHead";
-    public final String RECEIPT_COL_HEAD_QTY = "ReceiptColHeadQty";
-    public final String RECEIPT_COL_HEAD_VALUE = "ReceiptColHeadValue";
-    public final String RECEIPT_ITEM_ROW = "ReceiptItemRow";
-    public final String RECEIPT_ITEM_DESC = "ReceiptItemDesc";
-    public final String RECEIPT_ITEM_QTY = "ReceiptItemQty";
-    public final String RECEIPT_ITEM_VALUE = "ReceiptItemValue";
-    public final String RECEIPT_TOTAL_ROW = "ReceiptTotalRow";
-    public final String RECEIPT_TOTAL_LABEL = "ReceiptTotalLabel";
-    public final String RECEIPT_TOTAL_VALUE = "ReceiptTotalValue";
+    public final String RECEIPT_PAGE = "ReceiptPageRcp";
+    public final String ALERT_SUCCESS = "AlertSuccessRcp";
+    public final String ALERT_SUCCESS_ICON = "AlertSuccessIconRcp";
+    public final String ALERT_SUCCESS_TEXT = "AlertSuccessTextRcp";
+    public final String RECEIPT_CARD = "ReceiptCardRcp";
+    public final String RECEIPT_BODY = "ReceiptBodyRcp";
+    public final String RECEIPT_DATE_ROW = "ReceiptDateRowRcp";
+    public final String RECEIPT_DATE_LABEL = "ReceiptDateLabelRcp";
+    public final String RECEIPT_DATE_VALUE = "ReceiptDateValueRcp";
+    public final String RECEIPT_TABLE_HEADER = "ReceiptTableHeaderRcp";
+    public final String RECEIPT_COL_HEAD = "ReceiptColHeadRcp";
+    public final String RECEIPT_COL_HEAD_QTY = "ReceiptColHeadQtyRcp";
+    public final String RECEIPT_COL_HEAD_VALUE = "ReceiptColHeadValueRcp";
+    public final String RECEIPT_ITEM_ROW = "ReceiptItemRowRcp";
+    public final String RECEIPT_ITEM_DESC = "ReceiptItemDescRcp";
+    public final String RECEIPT_ITEM_QTY = "ReceiptItemQtyRcp";
+    public final String RECEIPT_ITEM_VALUE = "ReceiptItemValueRcp";
+    public final String RECEIPT_TOTAL_ROW = "ReceiptTotalRowRcp";
+    public final String RECEIPT_TOTAL_LABEL = "ReceiptTotalLabelRcp";
+    public final String RECEIPT_TOTAL_VALUE = "ReceiptTotalValueRcp";
 }

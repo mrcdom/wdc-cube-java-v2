@@ -11,16 +11,16 @@ public final class LoginSel extends Sel {
         // singleton
     }
 
-    public final String LOGIN_CARD = "LoginCard";
-    public final String LOGIN_HERO = "LoginHero";
-    public final String LOGIN_BANNER = "LoginBanner";
-    public final String LOGO_BOX = "LogoBox";
-    public final String BANNER_TITLE = "BannerTitle";
-    public final String BANNER_SUBTITLE = "BannerSubtitle";
-    public final String FEATURE_TEXT = "FeatureText";
-    public final String WELCOME_TITLE = "WelcomeTitle";
-    public final String WELCOME_SUBTITLE = "WelcomeSubtitle";
-    public final String FIELD_LABEL = "FieldLabel";
-    public final String DEMO_HINT = "DemoHint";
-    public final String DEMO_TEXT = "DemoText";
+    public final String LOGIN_CARD = "LoginCardLgn";
+    public final String LOGIN_HERO = "LoginHeroLgn";
+    public final String LOGIN_BANNER = "LoginBannerLgn";
+    public final String LOGO_BOX = "LogoBoxLgn";
+    public final String BANNER_TITLE = "BannerTitleLgn";
+    public final String BANNER_SUBTITLE = "BannerSubtitleLgn";
+    public final String FEATURE_TEXT = "FeatureTextLgn";
+    public final String WELCOME_TITLE = "WelcomeTitleLgn";
+    public final String WELCOME_SUBTITLE = "WelcomeSubtitleLgn";
+    public final String FIELD_LABEL = "FieldLabelLgn";
+    public final String DEMO_HINT = "DemoHintLgn";
+    public final String DEMO_TEXT = "DemoTextLgn";
 }

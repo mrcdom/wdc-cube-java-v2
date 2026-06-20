@@ -5,31 +5,31 @@
 @use 'tokens' as *;
 @use 'mixins' as *;
 
-CartPage {
+CartPageCrt {
     @include page;
 }
 
-CartCard {
+CartCardCrt {
     @include card;
     padding: 5mm;
 }
 
-CartItemRow {
+CartItemRowCrt {
     border-bottom: 1px solid $border;
     padding: 2mm 0;
 }
 
-CartItemName {
+CartItemNameCrt {
     color: $text;
     font-family: $f-regular;
     font-size: 3mm;
 }
 
-CartStepper {
+CartStepperCrt {
     background-color: transparent;
 }
 
-CartItemSubtotal {
+CartItemSubtotalCrt {
     color: $accent;
     font-family: $f-bold;
     font-size: 3mm;
@@ -37,7 +37,7 @@ CartItemSubtotal {
     padding: 0 2mm;
 }
 
-CartRemoveBtn {
+CartRemoveBtnCrt {
     background-color: transparent;
     color: $danger;
     border: none;
@@ -45,41 +45,41 @@ CartRemoveBtn {
     margin: 0 0 0 1mm;
 }
 
-CartFooter {
+CartFooterCrt {
     border-top: 1px solid $border;
     padding: 3mm 0 0 0;
     margin: 2mm 0 0 0;
 }
 
-CartFooterLabel {
+CartFooterLabelCrt {
     color: $text-secondary;
     font-size: 2.8mm;
 }
 
-CartFooterTotal {
+CartFooterTotalCrt {
     color: $accent;
     font-family: $f-bold;
     font-size: 4.4mm;
     padding: 0 0 0 1.5mm;
 }
 
-CartActions {
+CartActionsCrt {
     padding: 3mm 0 0 0;
 }
 
 // -- Estado vazio --
 
-CartEmpty {
+CartEmptyCrt {
     padding: 6mm 4mm;
 }
 
-CartEmptyIconBox {
+CartEmptyIconBoxCrt {
     color: $accent;
     text-align: center;
     margin: 0 0 3mm 0;
 }
 
-CartEmptyTitle {
+CartEmptyTitleCrt {
     color: $text;
     font-family: $f-bold;
     font-size: 3.6mm;
@@ -87,7 +87,7 @@ CartEmptyTitle {
     padding: 0 0 1mm 0;
 }
 
-CartEmptySub {
+CartEmptySubCrt {
     color: $text-secondary;
     font-size: 2.8mm;
     text-align: center;
