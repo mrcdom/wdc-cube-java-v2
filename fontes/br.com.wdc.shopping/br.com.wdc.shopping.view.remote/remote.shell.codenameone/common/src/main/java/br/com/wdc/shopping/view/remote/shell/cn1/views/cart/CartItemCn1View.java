@@ -8,7 +8,6 @@ import com.codename1.ui.Container;
 import com.codename1.ui.FontImage;
 import com.codename1.ui.Label;
 import com.codename1.ui.layouts.BorderLayout;
-import com.codename1.ui.layouts.BoxLayout;
 
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.AbstractItemCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;

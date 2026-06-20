@@ -6,9 +6,8 @@
       <artifactId>remote.shell.codenameone</artifactId>
       <version>1.0.0</version>
   </parent>
-  <groupId>br.com.wdc.shopping</groupId>
+
   <artifactId>remote.shell.codenameone-javase</artifactId>
-  <version>1.0.0</version>
 
   <name>remote.shell.codenameone-javase</name>
   
@@ -25,9 +24,9 @@
             <plugin>
                 <artifactId>codenameone-maven-plugin</artifactId>
                 <groupId>com.codenameone</groupId>
-                <version>${cn1.plugin.version}</version>
                 <executions>
                     <execution>
+                        <?m2e execute onConfiguration,onIncremental?>
                         <id>add-se-sources</id>
                         <goals>
                             <goal>generate-javase-sources</goal>
@@ -55,17 +54,7 @@
       <dependency>
           <groupId>com.codenameone</groupId>
           <artifactId>codenameone-core</artifactId>
-          <scope>test</scope>
-      </dependency>
-      <dependency>
-          <groupId>com.codenameone</groupId>
-          <artifactId>codenameone-core</artifactId>
           <scope>provided</scope>
-      </dependency>
-      <dependency>
-          <groupId>com.codenameone</groupId>
-          <artifactId>codenameone-javase</artifactId>
-          <scope>test</scope>
       </dependency>
       <dependency>
           <groupId>com.codenameone</groupId>
@@ -362,7 +351,7 @@
       <profile>
           <!-- Profile used for debugging the Simulator in NetBeans.
 
-            NOTE: IntelliJ uses the idea-simulator profile for both run and debug.
+            NOTE_: IntelliJ uses the idea-simulator profile for both run and debug.
 
            -->
           <id>debug-simulator</id>
@@ -574,7 +563,7 @@
       </profile>
       <profile>
           <!-- Profile used for running the simulator.  This uses exec:exec to fork a Java process.
-            NOTE: IntelliJ does not use this profile for running the simulator.  It, instead uses
+            NOTE_: IntelliJ does not use this profile for running the simulator.  It, instead uses
             the ideas-simulator profile which uses exec:java instead because it works better with
             the IntelliJ debugger.
 

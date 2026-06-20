@@ -5,7 +5,6 @@ import java.util.Map;
 
 import com.codename1.ui.Component;
 import com.codename1.ui.Container;
-import com.codename1.ui.Display;
 import com.codename1.ui.FontImage;
 import com.codename1.ui.Label;
 import com.codename1.ui.TextArea;

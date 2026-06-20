@@ -6,9 +6,9 @@
         <artifactId>remote.shell.codenameone</artifactId>
         <version>1.0.0</version>
     </parent>
-    <groupId>br.com.wdc.shopping</groupId>
+
     <artifactId>remote.shell.codenameone-common</artifactId>
-    <version>1.0.0</version>
+
     <packaging>jar</packaging>
 
     <!-- Add your cn1lib dependencies to this section -->
@@ -345,6 +345,7 @@
                 </configuration>
                 <executions>
                     <execution>
+                        <?m2e execute onConfiguration,onIncremental?>
                         <id>compile-scss</id>
                         <phase>generate-resources</phase>
                         <goals>
@@ -386,6 +387,7 @@
 
                 <executions>
                     <execution>
+                        <?m2e execute onConfiguration,onIncremental?>
                         <!-- Build-time SVG transcoder: any SVG dropped into
                              src/main/css/ or src/main/svg/ is compiled into
                              a GeneratedSVGImage subclass plus an SVGRegistry,
@@ -399,6 +401,7 @@
                         </goals>
                     </execution>
                     <execution>
+                        <?m2e execute onConfiguration,onIncremental?>
                         <id>generate-gui-sources</id>
                         <phase>process-sources</phase>
                         <goals>
@@ -406,6 +409,7 @@
                         </goals>
                     </execution>
                     <execution>
+                        <?m2e ignore?>
                         <id>cn1-process-classes</id>
                         <phase>process-classes</phase>
                         <goals>

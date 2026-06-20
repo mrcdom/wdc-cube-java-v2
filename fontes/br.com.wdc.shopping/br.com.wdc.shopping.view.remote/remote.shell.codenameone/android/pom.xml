@@ -6,9 +6,8 @@
       <artifactId>remote.shell.codenameone</artifactId>
       <version>1.0.0</version>
   </parent>
-  <groupId>br.com.wdc.shopping</groupId>
+
   <artifactId>remote.shell.codenameone-android</artifactId>
-  <version>1.0.0</version>
 
   <name>remote.shell.codenameone-android</name>
   
@@ -54,7 +53,6 @@
             <plugin>
                 <groupId>com.codenameone</groupId>
                 <artifactId>codenameone-maven-plugin</artifactId>
-                <version>${cn1.plugin.version}</version>
                 <executions>
                     <execution>
                         <id>build-android</id>
