@@ -11,24 +11,24 @@ public final class ReceiptSel extends Sel {
         // singleton
     }
 
-    public final String RECEIPT_PAGE = "RcpReceiptPage";
+    public final String RECEIPT_PAGE = "RcpPage";
     public final String ALERT_SUCCESS = "RcpAlertSuccess";
     public final String ALERT_SUCCESS_ICON = "RcpAlertSuccessIcon";
     public final String ALERT_SUCCESS_TEXT = "RcpAlertSuccessText";
-    public final String RECEIPT_CARD = "RcpReceiptCard";
-    public final String RECEIPT_BODY = "RcpReceiptBody";
-    public final String RECEIPT_DATE_ROW = "RcpReceiptDateRow";
-    public final String RECEIPT_DATE_LABEL = "RcpReceiptDateLabel";
-    public final String RECEIPT_DATE_VALUE = "RcpReceiptDateValue";
-    public final String RECEIPT_TABLE_HEADER = "RcpReceiptTableHeader";
-    public final String RECEIPT_COL_HEAD = "RcpReceiptColHead";
-    public final String RECEIPT_COL_HEAD_QTY = "RcpReceiptColHeadQty";
-    public final String RECEIPT_COL_HEAD_VALUE = "RcpReceiptColHeadValue";
-    public final String RECEIPT_ITEM_ROW = "RcpReceiptItemRow";
-    public final String RECEIPT_ITEM_DESC = "RcpReceiptItemDesc";
-    public final String RECEIPT_ITEM_QTY = "RcpReceiptItemQty";
-    public final String RECEIPT_ITEM_VALUE = "RcpReceiptItemValue";
-    public final String RECEIPT_TOTAL_ROW = "RcpReceiptTotalRow";
-    public final String RECEIPT_TOTAL_LABEL = "RcpReceiptTotalLabel";
-    public final String RECEIPT_TOTAL_VALUE = "RcpReceiptTotalValue";
+    public final String RECEIPT_CARD = "RcpCard";
+    public final String RECEIPT_BODY = "RcpBody";
+    public final String RECEIPT_DATE_ROW = "RcpDateRow";
+    public final String RECEIPT_DATE_LABEL = "RcpDateLabel";
+    public final String RECEIPT_DATE_VALUE = "RcpDateValue";
+    public final String RECEIPT_TABLE_HEADER = "RcpTableHeader";
+    public final String RECEIPT_COL_HEAD = "RcpColHead";
+    public final String RECEIPT_COL_HEAD_QTY = "RcpColHeadQty";
+    public final String RECEIPT_COL_HEAD_VALUE = "RcpColHeadValue";
+    public final String RECEIPT_ITEM_ROW = "RcpItemRow";
+    public final String RECEIPT_ITEM_DESC = "RcpItemDesc";
+    public final String RECEIPT_ITEM_QTY = "RcpItemQty";
+    public final String RECEIPT_ITEM_VALUE = "RcpItemValue";
+    public final String RECEIPT_TOTAL_ROW = "RcpTotalRow";
+    public final String RECEIPT_TOTAL_LABEL = "RcpTotalLabel";
+    public final String RECEIPT_TOTAL_VALUE = "RcpTotalValue";
 }

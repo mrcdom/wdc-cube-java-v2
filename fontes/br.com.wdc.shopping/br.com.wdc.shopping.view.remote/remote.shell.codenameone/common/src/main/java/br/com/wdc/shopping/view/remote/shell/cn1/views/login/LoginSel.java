@@ -11,9 +11,9 @@ public final class LoginSel extends Sel {
         // singleton
     }
 
-    public final String LOGIN_CARD = "LgnLoginCard";
-    public final String LOGIN_HERO = "LgnLoginHero";
-    public final String LOGIN_BANNER = "LgnLoginBanner";
+    public final String LOGIN_CARD = "LgnCard";
+    public final String LOGIN_HERO = "LgnHero";
+    public final String LOGIN_BANNER = "LgnBanner";
     public final String LOGO_BOX = "LgnLogoBox";
     public final String BANNER_TITLE = "LgnBannerTitle";
     public final String BANNER_SUBTITLE = "LgnBannerSubtitle";

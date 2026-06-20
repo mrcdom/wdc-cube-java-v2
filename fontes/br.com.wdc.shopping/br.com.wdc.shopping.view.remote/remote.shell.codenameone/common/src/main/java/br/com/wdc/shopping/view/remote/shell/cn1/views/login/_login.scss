@@ -4,20 +4,20 @@
 @use 'tokens' as *;
 @use 'mixins' as *;
 
-LgnLoginCard {
+LgnCard {
     background-color: $surface;
     border-radius: $radius;
     padding: 4mm;
     margin: 3mm;
 }
 
-LgnLoginHero {
+LgnHero {
     @include hero-gradient;
     padding: 8mm;
 }
 
 // Banner azul no topo do card.
-LgnLoginBanner {
+LgnBanner {
     @include hero-gradient;
     border-radius: $radius-pill;
     padding: 4mm;

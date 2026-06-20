@@ -5,7 +5,7 @@
 @use 'tokens' as *;
 @use 'mixins' as *;
 
-RcpReceiptPage {
+RcpPage {
     @include page;
 }
 
@@ -29,87 +29,87 @@ RcpAlertSuccessText {
     padding: 0 0 0 2mm;
 }
 
-RcpReceiptCard {
+RcpCard {
     @include card;
     padding: 5mm;
 }
 
 // Corpo (cupom): fundo cinza, borda.
-RcpReceiptBody {
+RcpBody {
     background-color: $bg;
     border: 1px solid $border;
     border-radius: $radius-sm;
     padding: 4mm;
 }
 
-RcpReceiptDateRow {
+RcpDateRow {
     border-bottom: 1px solid $border;
     padding: 0 0 2mm 0;
     margin: 0 0 2mm 0;
 }
 
-RcpReceiptDateLabel {
+RcpDateLabel {
     color: $text-secondary;
 }
 
-RcpReceiptDateValue {
+RcpDateValue {
     color: $text;
     font-family: $f-bold;
     text-align: right;
 }
 
-RcpReceiptTableHeader {
+RcpTableHeader {
     border-bottom: 1px solid $border;
     padding: 0 0 1.5mm 0;
     margin: 0 0 1mm 0;
 }
 
-RcpReceiptColHead {
+RcpColHead {
     color: $text-secondary;
 }
 
-RcpReceiptColHeadQty {
+RcpColHeadQty {
     color: $text-secondary;
     text-align: center;
 }
 
-RcpReceiptColHeadValue {
+RcpColHeadValue {
     color: $text-secondary;
     text-align: right;
 }
 
-RcpReceiptItemRow {
+RcpItemRow {
     border-bottom: 1px solid $border-faint;
     padding: 1.5mm 0;
 }
 
-RcpReceiptItemDesc {
+RcpItemDesc {
     color: $text;
 }
 
-RcpReceiptItemQty {
+RcpItemQty {
     color: $text-secondary;
     text-align: center;
 }
 
-RcpReceiptItemValue {
+RcpItemValue {
     color: $text;
     font-family: $f-bold;
     text-align: right;
 }
 
-RcpReceiptTotalRow {
+RcpTotalRow {
     border-top: 2px solid $accent;
     padding: 2.5mm 0 0 0;
     margin: 2.5mm 0 0 0;
 }
 
-RcpReceiptTotalLabel {
+RcpTotalLabel {
     color: $text;
     font-family: $f-bold;
 }
 
-RcpReceiptTotalValue {
+RcpTotalValue {
     color: $accent;
     font-family: $f-bold;
     text-align: right;
