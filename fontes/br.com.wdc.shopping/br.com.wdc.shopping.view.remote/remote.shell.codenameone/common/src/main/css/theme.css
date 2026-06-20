@@ -287,3 +287,108 @@ CartBadge {
     font-size: 2.2mm;
     padding: 0.3mm 1.5mm;
 }
+
+/* === Abas da Home (layout compacto) === */
+TabNav {
+    background-color: #ffffff;
+    border: none;
+}
+
+TabItem {
+    background-color: #ffffff;
+    color: #6e6e73;
+    border: none;
+    font-family: "native:MainRegular";
+    font-size: 2.8mm;
+    padding: 3mm 0;
+    text-align: center;
+}
+
+TabItemActive {
+    background-color: #ffffff;
+    color: #0d66d0;
+    border: none;
+    font-family: "native:MainBold";
+    font-size: 2.8mm;
+    padding: 3mm 0;
+    text-align: center;
+}
+
+/* === Painel de histórico de compras === */
+PurchasesPanel {
+    background-color: #ffffff;
+    padding: 3mm;
+}
+
+PurchasesHeaderIcon {
+    color: #0d66d0;
+}
+
+PurchasesTitle {
+    color: #1d1d1f;
+    font-family: "native:MainBold";
+    font-size: 3.2mm;
+    padding: 0 0 0 1.5mm;
+}
+
+PurchasesHint {
+    color: #6e6e73;
+    font-size: 2.4mm;
+    padding: 0.5mm 0 2mm 0;
+}
+
+PurchaseCard {
+    background-color: #f4f6f9;
+    border: 1px solid #e5e5ea;
+    border-radius: 2mm;
+    margin: 0 0 2mm 0;
+    padding: 1.5mm 3mm;
+}
+
+PurchaseLine {
+    background-color: transparent;
+}
+
+PurchaseId {
+    color: #0d66d0;
+    font-family: "native:MainBold";
+    font-size: 2.6mm;
+}
+
+PurchaseDate {
+    color: #6e6e73;
+    font-size: 2.3mm;
+}
+
+PurchaseItems {
+    color: #6e6e73;
+    font-size: 2.4mm;
+}
+
+PurchaseTotal {
+    color: #1d1d1f;
+    font-family: "native:MainBold";
+    font-size: 2.6mm;
+}
+
+PurchasePagination {
+    background-color: #ffffff;
+    border-top: 1px solid #e5e5ea;
+    padding: 2mm 0 0 0;
+}
+
+PurchasePageBtn {
+    background-color: transparent;
+    color: #6e6e73;
+    border: none;
+    padding: 1mm 2mm;
+}
+
+PurchasePageInfo {
+    color: #1d1d1f;
+    background-color: #f4f6f9;
+    font-family: "native:MainBold";
+    font-size: 2.4mm;
+    border-radius: 3mm;
+    padding: 1mm 3mm;
+}
