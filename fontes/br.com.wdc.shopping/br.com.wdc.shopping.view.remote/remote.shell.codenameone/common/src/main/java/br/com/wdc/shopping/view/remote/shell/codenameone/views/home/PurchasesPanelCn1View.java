@@ -11,8 +11,10 @@ import com.codename1.ui.Container;
 import com.codename1.ui.FontImage;
 import com.codename1.ui.Form;
 import com.codename1.ui.Label;
+import com.codename1.ui.geom.Dimension;
 import com.codename1.ui.layouts.BorderLayout;
 import com.codename1.ui.layouts.FlowLayout;
+import com.codename1.ui.plaf.RoundRectBorder;
 import com.codename1.ui.util.UITimer;
 
 import br.com.wdc.shopping.view.remote.shell.codenameone.ShoppingCn1RemoteApp;
@@ -38,6 +40,8 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
     private static final int DEFAULT_ITEM_H = 110;
     /** Janela do debounce da notificação de capacidade (ms). */
     private static final int DEBOUNCE_MS = 250;
+    /** Lado (px) dos botões circulares de página (≈ 28px do React, em px de dispositivo). */
+    private static final int BTN_SIZE = 58;
 
     private Container list;
     private Container pagination;
@@ -98,7 +102,28 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
                 });
             });
         });
+        stylePaginator();
         return root;
+    }
+
+    /**
+     * Acabamento do paginador que o CSS do CN1 não cobre: setas como círculos de tamanho fixo
+     * (presença e respiro, como os page-btn 28px do React) e o box "x / y" branco <b>com sombra</b>
+     * (box-shadow não existe no CSS do CN1) via {@link RoundRectBorder}.
+     */
+    private void stylePaginator() {
+        Dimension btn = new Dimension(BTN_SIZE, BTN_SIZE);
+        prevBtn.setPreferredSize(btn);
+        nextBtn.setPreferredSize(btn);
+
+        RoundRectBorder infoBorder = RoundRectBorder.create()
+                .cornerRadius(2.2f)
+                .shadowOpacity(60)
+                .shadowSpread(0.6f)
+                .shadowY(1.2f);
+        pageInfo.getAllStyles().setBorder(infoBorder);
+        pageInfo.getAllStyles().setBgColor(0xffffff);
+        pageInfo.getAllStyles().setBgTransparency(255);
     }
 
     @Override

@@ -419,22 +419,21 @@ PurchasePagePill {
     padding: 0.8mm;
 }
 
+/* setas: tamanho fixo (circular) é dado em Java; aqui só cor/transparência */
 PurchasePageBtn {
     background-color: transparent;
     color: #6e6e73;
     border: none;
-    border-radius: 5mm;
-    padding: 0.6mm 1mm;
+    padding: 0;
     margin: 0;
 }
 
+/* box "x / y": borda arredondada + sombra são dadas em Java (RoundRectBorder) */
 PurchasePageInfo {
     color: #1d1d1f;
     background-color: #ffffff;
-    border: 1px solid #e5e5ea;
     font-family: "native:MainBold";
     font-size: 2mm;
-    border-radius: 3mm;
     padding: 0.8mm 2.2mm;
     margin: 0 0.6mm;
 }
