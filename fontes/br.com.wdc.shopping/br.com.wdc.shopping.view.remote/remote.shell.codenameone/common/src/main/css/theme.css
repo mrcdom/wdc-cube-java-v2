@@ -513,17 +513,14 @@ QtyBtn {
     text-align: center;
 }
 
-/* botão Voltar — container clicável; fundo do hover vem do RoundRectBorder em Java */
+/* botão Voltar — neutro/slate; fundo do realce de clique vem do RoundRectBorder em Java */
 BackButton {
     background-color: transparent;
-    padding: 2mm 3.5mm;
-}
-
-BackButtonText {
     color: #4b5563;
     font-family: "native:MainLight";
     font-size: 3mm;
-    padding: 0 0 0 1mm;
+    border: none;
+    padding: 2mm 3.5mm;
 }
 
 ProductImageBox {
