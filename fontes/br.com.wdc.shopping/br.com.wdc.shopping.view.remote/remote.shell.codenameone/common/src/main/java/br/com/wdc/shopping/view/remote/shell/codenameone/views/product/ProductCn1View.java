@@ -95,13 +95,7 @@ public class ProductCn1View extends AbstractCn1View {
 
             // ações: Voltar + Adicionar ao Carrinho
             dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, actions -> {
-                Button back = dom.button(b -> {
-                    b.setText("Voltar");
-                    b.setUIID("BackButton");
-                    b.addActionListener(e -> submit(EVT_BACK));
-                });
-                FontImage.setMaterialIcon(back, FontImage.MATERIAL_ARROW_BACK, 3.5f);
-                styleBackHover(back);
+                dom.add(buildBack(), null);
                 Button add = dom.button(b -> {
                     b.setText("Adicionar ao Carrinho");
                     b.setUIID("PrimaryButton");
@@ -114,14 +108,38 @@ public class ProductCn1View extends AbstractCn1View {
         return root;
     }
 
-    /** Fundo cinza arredondado no hover/clique do Voltar (CSS do CN1 não faz :hover). */
-    private void styleBackHover(Button b) {
-        b.getAllStyles().setBorder(RoundRectBorder.create().cornerRadius(3f));
-        b.getUnselectedStyle().setBgTransparency(0);
-        for (Style s : new Style[] { b.getSelectedStyle(), b.getPressedStyle() }) {
+    /**
+     * Voltar como container clicável com <b>lead component</b> — diferente de um Button simples, ele
+     * entra no estado <i>selected</i> no mouse-over (desktop), mostrando o fundo cinza arredondado do
+     * hover (o CSS do CN1 não faz {@code :hover}). Mesmo mecanismo do realce dos cards.
+     */
+    private Container buildBack() {
+        Container content = new Container(BoxLayout.y());
+        content.setUIID("BackButton");
+        content.getAllStyles().setBorder(RoundRectBorder.create().cornerRadius(3f));
+        content.getUnselectedStyle().setBgTransparency(0);
+        for (Style s : new Style[] { content.getSelectedStyle(), content.getPressedStyle() }) {
             s.setBgColor(0xe5e7eb);
             s.setBgTransparency(255);
         }
+
+        Container row = new Container(new FlowLayout(Component.CENTER, Component.CENTER));
+        Label arrow = new Label();
+        arrow.getAllStyles().setFgColor(0x4b5563);
+        FontImage.setMaterialIcon(arrow, FontImage.MATERIAL_ARROW_BACK, 3.5f);
+        Label txt = new Label("Voltar");
+        txt.setUIID("BackButtonText");
+        row.add(arrow);
+        row.add(txt);
+        content.add(row);
+
+        Button lead = new Button();
+        lead.setUIID("CardLead");
+        lead.setPreferredH(0);
+        content.add(lead);
+        content.setLeadComponent(lead);
+        lead.addActionListener(e -> submit(EVT_BACK));
+        return content;
     }
 
     private void stepBtn(Cn1Dom dom, char icon, int delta) {

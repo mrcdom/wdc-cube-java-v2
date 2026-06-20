@@ -513,14 +513,17 @@ QtyBtn {
     text-align: center;
 }
 
-/* botão Voltar — neutro/cinza (ActionButton quiet do React), diferente do accent azul */
+/* botão Voltar — container clicável; fundo do hover vem do RoundRectBorder em Java */
 BackButton {
     background-color: transparent;
+    padding: 2mm 3.5mm;
+}
+
+BackButtonText {
     color: #4b5563;
     font-family: "native:MainLight";
     font-size: 3mm;
-    border: none;
-    padding: 2mm 3.5mm;
+    padding: 0 0 0 1mm;
 }
 
 ProductImageBox {
