@@ -218,7 +218,8 @@ ProductCard {
 
 ProductCardImage {
     background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
-    padding: 3mm;
+    border-radius: 2.5mm;
+    padding: 1.5mm;
     text-align: center;
 }
 
@@ -272,6 +273,7 @@ AppBarLogoBox {
     background-color: #2f86f0;
     border-radius: 2mm;
     padding: 1.5mm;
+    margin: 0 2.5mm 0 0;
 }
 
 AppBarBrand {
@@ -296,7 +298,7 @@ CartBadge {
     border-radius: 2.5mm;
     font-family: "native:MainBold";
     font-size: 2.2mm;
-    padding: 0.8mm 1.8mm;
+    padding: 0.3mm 1.2mm;
     margin: 0 0 0 1.5mm;
     text-align: center;
 }
@@ -409,18 +411,29 @@ PurchasePagination {
     padding: 2mm 0 0 0;
 }
 
+/* pílula cinza que envolve setas + indicador (como o page-pill do React) */
+PurchasePagePill {
+    background-color: #f4f6f9;
+    border-radius: 5mm;
+    padding: 1mm;
+}
+
 PurchasePageBtn {
     background-color: transparent;
     color: #6e6e73;
     border: none;
-    padding: 1mm 2mm;
+    border-radius: 4mm;
+    padding: 1mm 1.5mm;
+    margin: 0;
 }
 
 PurchasePageInfo {
     color: #1d1d1f;
-    background-color: #f4f6f9;
+    background-color: #ffffff;
+    border: 1px solid #e5e5ea;
     font-family: "native:MainBold";
     font-size: 2.4mm;
     border-radius: 3mm;
     padding: 1mm 3mm;
+    margin: 0 1mm;
 }

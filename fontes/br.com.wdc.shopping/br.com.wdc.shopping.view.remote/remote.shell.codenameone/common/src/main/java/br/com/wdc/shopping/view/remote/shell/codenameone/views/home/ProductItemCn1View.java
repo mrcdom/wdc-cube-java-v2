@@ -3,9 +3,12 @@ package br.com.wdc.shopping.view.remote.shell.codenameone.views.home;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import com.codename1.ui.Component;
 import com.codename1.ui.Container;
 import com.codename1.ui.Label;
+import com.codename1.ui.geom.Dimension;
 import com.codename1.ui.layouts.BoxLayout;
+import com.codename1.ui.layouts.FlowLayout;
 
 import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractItemCn1View;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Clickable;
@@ -17,9 +20,10 @@ import br.com.wdc.shopping.view.remote.shell.codenameone.util.Money;
 /** Card de produto: imagem (fundo gradiente) + nome + preço; o card inteiro abre o detalhe. */
 public class ProductItemCn1View extends AbstractItemCn1View<Object> {
 
-    private static final int IMG = 200;
-    /** Largura fixa do card — o FlowLayout do painel quebra a linha quando não couber. */
-    private static final int CARD_W = 320;
+    private static final int IMG = 160;
+    /** Tamanho fixo do card — o FlowLayout do painel quebra a linha quando não couber. */
+    private static final int CARD_W = 300;
+    private static final int CARD_H = 320;
 
     private final Consumer<Long> onOpen;
     private Label image;
@@ -35,12 +39,16 @@ public class ProductItemCn1View extends AbstractItemCn1View<Object> {
     protected Container build() {
         Container content = new Container(BoxLayout.y());
         Cn1Dom.render(content, (dom, c) -> {
-            image = dom.label(l -> l.setUIID("ProductCardImage"));
+            // imagem centralizada num wrap (FlowLayout mantém o tamanho quadrado, sem distorcer)
+            dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, wrap -> {
+                wrap.setUIID("ProductCardImage");
+                image = dom.label(l -> { });
+            });
             name = dom.label(l -> l.setUIID("ProductCardName"));
             price = dom.label(l -> l.setUIID("ProductCardPrice"));
         });
         Container card = Clickable.card("ProductCard", content, () -> onOpen.accept(currentId));
-        card.setPreferredW(CARD_W);
+        card.setPreferredSize(new Dimension(CARD_W, CARD_H));
         return card;
     }
 

@@ -79,20 +79,23 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
             // lista de compras (rolável, ocupa o espaço restante)
             list = dom.boxY(BorderLayout.CENTER, l -> l.setScrollableY(true));
 
-            // navegação de páginas
+            // navegação de páginas — pílula cinza com setas e o "x / y" num box branco (como o React)
             pagination = dom.container(new FlowLayout(Component.CENTER), BorderLayout.SOUTH, nav -> {
                 nav.setUIID("PurchasePagination");
-                prevBtn = dom.button(b -> {
-                    b.setUIID("PurchasePageBtn");
-                    b.addActionListener(e -> changePage(-1));
+                dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, pill -> {
+                    pill.setUIID("PurchasePagePill");
+                    prevBtn = dom.button(b -> {
+                        b.setUIID("PurchasePageBtn");
+                        b.addActionListener(e -> changePage(-1));
+                    });
+                    FontImage.setMaterialIcon(prevBtn, FontImage.MATERIAL_CHEVRON_LEFT, 3.5f);
+                    pageInfo = dom.label(l -> l.setUIID("PurchasePageInfo"));
+                    nextBtn = dom.button(b -> {
+                        b.setUIID("PurchasePageBtn");
+                        b.addActionListener(e -> changePage(1));
+                    });
+                    FontImage.setMaterialIcon(nextBtn, FontImage.MATERIAL_CHEVRON_RIGHT, 3.5f);
                 });
-                FontImage.setMaterialIcon(prevBtn, FontImage.MATERIAL_CHEVRON_LEFT, 4f);
-                pageInfo = dom.label(l -> l.setUIID("PurchasePageInfo"));
-                nextBtn = dom.button(b -> {
-                    b.setUIID("PurchasePageBtn");
-                    b.addActionListener(e -> changePage(1));
-                });
-                FontImage.setMaterialIcon(nextBtn, FontImage.MATERIAL_CHEVRON_RIGHT, 4f);
             });
         });
         return root;
@@ -150,11 +153,18 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
         if (h <= 0) {
             return; // ainda sem layout; um próximo doUpdate/resize reagenda
         }
+        // passo real entre itens (inclui a margem) — evita contar um item a mais
         int itemH = DEFAULT_ITEM_H;
-        if (list.getComponentCount() > 0) {
-            int measured = list.getComponentAt(0).getHeight();
-            if (measured > 0) {
-                itemH = measured;
+        int n = list.getComponentCount();
+        if (n >= 2) {
+            int stride = list.getComponentAt(1).getY() - list.getComponentAt(0).getY();
+            if (stride > 0) {
+                itemH = stride;
+            }
+        } else if (n == 1) {
+            int h0 = list.getComponentAt(0).getHeight();
+            if (h0 > 0) {
+                itemH = h0;
             }
         }
         int capacity = Math.max(1, h / itemH);
