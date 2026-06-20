@@ -209,8 +209,15 @@ ProductsPanel {
 
 ProductCard {
     background-color: #ffffff;
+    border: 1px solid #e5e5ea;
     border-radius: 3mm;
     margin: 2mm;
+}
+
+/* hover/clique (via lead component) — realce azul-claro, como o card do React */
+ProductCard:selected, ProductCard:pressed {
+    background-color: #e8f1fc;
+    border: 1px solid #cfe1f8;
 }
 
 ProductCardImage {
@@ -361,6 +368,12 @@ PurchaseCard {
     border-radius: 2mm;
     margin: 0 0 1.5mm 0;
     padding: 1mm 2.5mm;
+}
+
+/* hover/clique (via lead component) */
+PurchaseCard:selected, PurchaseCard:pressed {
+    background-color: #e8f1fc;
+    border: 1px solid #cfe1f8;
 }
 
 PurchaseLine {

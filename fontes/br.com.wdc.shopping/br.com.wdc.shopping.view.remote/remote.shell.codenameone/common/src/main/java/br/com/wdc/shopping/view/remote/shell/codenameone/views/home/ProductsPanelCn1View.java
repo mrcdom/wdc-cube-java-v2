@@ -5,17 +5,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.codename1.ui.Component;
 import com.codename1.ui.Container;
-import com.codename1.ui.Display;
-import com.codename1.ui.layouts.BoxLayout;
-import com.codename1.ui.layouts.GridLayout;
+import com.codename1.ui.layouts.FlowLayout;
 
 import br.com.wdc.shopping.view.remote.shell.codenameone.ShoppingCn1RemoteApp;
 import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.BridgeSession;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Json;
 
-/** Painel/catálogo de produtos (classId {@value #CLASS_ID}) — grid responsivo de cards. */
+/**
+ * Painel/catálogo de produtos (classId {@value #CLASS_ID}) — grade fluida de cards: cada card tem
+ * largura fixa e o {@link FlowLayout} quebra para a próxima linha quando não há espaço, ajustando o
+ * número de colunas à largura disponível.
+ */
 public class ProductsPanelCn1View extends AbstractCn1View {
 
     public static final String CLASS_ID = "a1b2c3d4e5f6";
@@ -30,14 +33,10 @@ public class ProductsPanelCn1View extends AbstractCn1View {
 
     @Override
     protected Container build() {
-        grid = new Container(new GridLayout(columns()));
+        grid = new Container(new FlowLayout(Component.LEFT, Component.TOP));
         grid.setUIID("ProductsPanel");
-        // grid em BoxLayout.y => assume a altura preferida (linhas no topo, cards na altura do
-        // conteúdo) em vez de esticar para preencher o CENTER do BorderLayout.
-        Container wrapper = new Container(BoxLayout.y());
-        wrapper.setScrollableY(true);
-        wrapper.add(grid);
-        return wrapper;
+        grid.setScrollableY(true);
+        return grid;
     }
 
     @Override
@@ -50,17 +49,5 @@ public class ProductsPanelCn1View extends AbstractCn1View {
         Map<String, Object> form = new HashMap<>();
         form.put("p.productId", productId);
         submit(EVT_OPEN_PRODUCT, form);
-    }
-
-    /** Colunas conforme a largura (2 / 3 / 4), como o grid responsivo do React. */
-    private static int columns() {
-        int w = Display.getInstance().getDisplayWidth();
-        if (w >= 1600) {
-            return 4;
-        }
-        if (w >= 1100) {
-            return 3;
-        }
-        return 2;
     }
 }

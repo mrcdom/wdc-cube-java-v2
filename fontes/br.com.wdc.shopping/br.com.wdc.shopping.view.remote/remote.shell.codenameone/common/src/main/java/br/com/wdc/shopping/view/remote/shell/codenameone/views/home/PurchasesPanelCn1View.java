@@ -6,14 +6,14 @@ import java.util.List;
 import java.util.Map;
 
 import com.codename1.ui.Button;
-import com.codename1.ui.CN;
 import com.codename1.ui.Component;
 import com.codename1.ui.Container;
 import com.codename1.ui.FontImage;
+import com.codename1.ui.Form;
 import com.codename1.ui.Label;
 import com.codename1.ui.layouts.BorderLayout;
-import com.codename1.ui.layouts.BoxLayout;
 import com.codename1.ui.layouts.FlowLayout;
+import com.codename1.ui.util.UITimer;
 
 import br.com.wdc.shopping.view.remote.shell.codenameone.ShoppingCn1RemoteApp;
 import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractCn1View;
@@ -24,7 +24,8 @@ import br.com.wdc.shopping.view.remote.shell.codenameone.util.Json;
 /**
  * Painel de histórico de compras (classId {@value #CLASS_ID}) — cabeçalho, lista paginada de compras
  * (cada item abre o recibo) e navegação de páginas. O servidor só carrega os dados depois que a view
- * informa quantos itens cabem ({@link #computeCapacity()}, via evento {@value #EVT_PAGE_SIZE}).
+ * informa quantos itens cabem na altura disponível ({@value #EVT_PAGE_SIZE}); essa medição é refeita
+ * a cada redimensionamento e a notificação é <b>debounced</b> para não inundar o backend.
  */
 public class PurchasesPanelCn1View extends AbstractCn1View {
 
@@ -34,7 +35,9 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
     private static final int EVT_PAGE_SIZE = 3;
 
     /** Altura estimada (px) de um item antes de medir o primeiro renderizado. */
-    private static final int DEFAULT_ITEM_H = 120;
+    private static final int DEFAULT_ITEM_H = 110;
+    /** Janela do debounce da notificação de capacidade (ms). */
+    private static final int DEBOUNCE_MS = 250;
 
     private Container list;
     private Container pagination;
@@ -45,7 +48,8 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
 
     private int totalPages = 1;
     private int lastCapacity = -1;
-    private int computeRetries;
+    private int capacityToken;
+    private boolean resizeHooked;
 
     public PurchasesPanelCn1View(String vsid, BridgeSession session, ShoppingCn1RemoteApp app) {
         super(vsid, session, app);
@@ -110,18 +114,41 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
         nextBtn.setEnabled(page < totalPages - 1);
         visible(pagination, totalCount > 0);
 
-        computeRetries = 0;
-        computeCapacity();
+        hookResize();
+        requestCapacityCompute();
+    }
+
+    /** Recalcula a capacidade quando o form muda de tamanho (registra o listener uma vez). */
+    private void hookResize() {
+        if (resizeHooked) {
+            return;
+        }
+        Form f = list.getComponentForm();
+        if (f != null) {
+            f.addSizeChangedListener(e -> requestCapacityCompute());
+            resizeHooked = true;
+        }
+    }
+
+    /** Agenda a medição/notificação com debounce — só a última agendada dentro da janela executa. */
+    private void requestCapacityCompute() {
+        Form f = list.getComponentForm();
+        if (f == null) {
+            return;
+        }
+        final int my = ++capacityToken;
+        new UITimer(() -> {
+            if (my == capacityToken) {
+                computeCapacityNow();
+            }
+        }).schedule(DEBOUNCE_MS, false, f);
     }
 
     /** Quantos itens cabem sem rolar — mede a lista e o 1º item, como o painel React. */
-    private void computeCapacity() {
+    private void computeCapacityNow() {
         int h = list.getHeight();
         if (h <= 0) {
-            if (computeRetries++ < 30) {
-                CN.callSerially(this::computeCapacity); // ainda sem layout; tenta no próximo ciclo
-            }
-            return;
+            return; // ainda sem layout; um próximo doUpdate/resize reagenda
         }
         int itemH = DEFAULT_ITEM_H;
         if (list.getComponentCount() > 0) {
