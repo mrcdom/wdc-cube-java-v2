@@ -11,8 +11,6 @@ import com.codename1.ui.Label;
 import com.codename1.ui.geom.Dimension;
 import com.codename1.ui.layouts.BoxLayout;
 import com.codename1.ui.layouts.FlowLayout;
-import com.codename1.ui.plaf.RoundRectBorder;
-import com.codename1.ui.plaf.Style;
 
 import br.com.wdc.shopping.view.remote.shell.codenameone.ShoppingCn1RemoteApp;
 import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractCn1View;
@@ -22,6 +20,7 @@ import br.com.wdc.shopping.view.remote.shell.codenameone.util.Images;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Json;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Money;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.SimpleHtml;
+import br.com.wdc.shopping.view.remote.shell.codenameone.util.Widgets;
 
 /**
  * Detalhe do produto (classId {@value #CLASS_ID}) — espelha o design React: título + divisória,
@@ -95,13 +94,7 @@ public class ProductCn1View extends AbstractCn1View {
 
             // ações: Voltar + Adicionar ao Carrinho
             dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, actions -> {
-                Button back = dom.button(b -> {
-                    b.setText("Voltar");
-                    b.setUIID("BackButton");
-                    b.addActionListener(e -> submit(EVT_BACK));
-                });
-                FontImage.setMaterialIcon(back, FontImage.MATERIAL_ARROW_BACK, 3.5f);
-                styleBackHover(back);
+                dom.add(Widgets.backButton("Voltar", () -> submit(EVT_BACK)), null);
                 Button add = dom.button(b -> {
                     b.setText("Adicionar ao Carrinho");
                     b.setUIID("PrimaryButton");
@@ -112,16 +105,6 @@ public class ProductCn1View extends AbstractCn1View {
         });
         updateQty();
         return root;
-    }
-
-    /** Fundo cinza arredondado no clique do Voltar (o simulador CN1 não expõe hover de mouse). */
-    private void styleBackHover(Button b) {
-        b.getAllStyles().setBorder(RoundRectBorder.create().cornerRadius(3f));
-        b.getUnselectedStyle().setBgTransparency(0);
-        for (Style s : new Style[] { b.getSelectedStyle(), b.getPressedStyle() }) {
-            s.setBgColor(0xe5e7eb);
-            s.setBgTransparency(255);
-        }
     }
 
     private void stepBtn(Cn1Dom dom, char icon, int delta) {

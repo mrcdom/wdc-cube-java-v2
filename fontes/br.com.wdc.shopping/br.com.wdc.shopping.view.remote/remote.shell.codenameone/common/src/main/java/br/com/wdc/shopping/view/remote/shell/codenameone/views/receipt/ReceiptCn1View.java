@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.codename1.ui.Button;
 import com.codename1.ui.Component;
 import com.codename1.ui.Container;
 import com.codename1.ui.Font;
@@ -21,6 +20,7 @@ import br.com.wdc.shopping.view.remote.shell.codenameone.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Dates;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Json;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Money;
+import br.com.wdc.shopping.view.remote.shell.codenameone.util.Widgets;
 
 /**
  * Recibo da compra (classId {@value #CLASS_ID}) — espelha o React: alerta verde de sucesso, card com
@@ -134,12 +134,7 @@ public class ReceiptCn1View extends AbstractCn1View {
 
                 // voltar
                 dom.container(new FlowLayout(Component.LEFT, Component.CENTER), null, actions -> {
-                    Button back = dom.button(b -> {
-                        b.setText("Voltar aos produtos");
-                        b.setUIID("BackButton");
-                        b.addActionListener(e -> submit(EVT_BACK));
-                    });
-                    FontImage.setMaterialIcon(back, FontImage.MATERIAL_ARROW_BACK, 3.5f);
+                    dom.add(Widgets.backButton("Voltar aos produtos", () -> submit(EVT_BACK)), null);
                 });
             });
         });
