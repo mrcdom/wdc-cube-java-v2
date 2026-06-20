@@ -1,0 +1,73 @@
+// =============================================================================
+// Detalhe do produto (ProductCn1View): título+divisória, card de descrição,
+// preço/quantidade + imagem.
+// =============================================================================
+@use 'tokens' as *;
+@use 'mixins' as *;
+
+ProductPage {
+    @include page;
+}
+
+ProductTitle {
+    color: $text;
+    font-family: $f-bold;
+    font-size: 5mm;
+    padding: 0 0 2mm 0;
+}
+
+// Divisória azul abaixo do título (altura definida em Java).
+ProductDivider {
+    background-color: $accent;
+    padding: 0;
+    margin: 0 0 3mm 0;
+}
+
+ProductDescCard {
+    @include card;
+    padding: 4mm;
+    margin: 0 0 4mm 0;
+}
+
+ProductDescText {
+    color: $text;
+    font-size: 2.9mm;
+    padding: 0.5mm 0;
+}
+
+ProductPriceImageRow {
+    background-color: transparent;
+    padding: 0 0 3mm 0;
+}
+
+ProductPriceBadge {
+    background-color: $accent-light;
+    color: $accent;
+    font-family: $f-bold;
+    font-size: 4.4mm;
+    border-radius: $radius-sm;
+    padding: 2mm 4mm;
+    margin: 0 0 2mm 0;
+    text-align: center;
+}
+
+QtyLabel {
+    color: $text-secondary;
+    font-size: 2.8mm;
+    padding: 0 1mm 0 0;
+}
+
+QtyValue {
+    color: $text;
+    font-family: $f-bold;
+    font-size: 3.6mm;
+    padding: 0 2mm;
+    text-align: center;
+}
+
+ProductImageBox {
+    @include img-gradient;
+    border-radius: $radius-sm;
+    padding: 3mm;
+    margin: 0 0 0 4mm;
+}

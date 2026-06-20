@@ -1,0 +1,235 @@
+// =============================================================================
+// Home: app bar, grade de produtos, abas (compacto) e painel de histórico.
+// (HomeCn1View, ProductsPanelCn1View, ProductItemCn1View, PurchasesPanelCn1View,
+//  PurchaseItemCn1View)
+// =============================================================================
+@use 'tokens' as *;
+@use 'mixins' as *;
+
+// -- Grade de produtos --
+
+ProductsPanel {
+    background-color: transparent;
+    padding: 3mm;
+}
+
+// hover/clique: estados selected/pressed definidos em Java (Clickable) — o CSS do
+// CN1 não suporta pseudo-classes.
+ProductCard {
+    @include card;
+    margin: 2mm;
+}
+
+ProductCardImage {
+    @include img-gradient;
+    border-radius: $radius-pill;
+    padding: 1.5mm;
+    text-align: center;
+}
+
+ProductCardName {
+    color: $text;
+    font-family: $f-regular;
+    font-size: 2.8mm;
+    padding: 2mm 3mm 0 3mm;
+}
+
+ProductCardPrice {
+    color: $accent;
+    font-family: $f-bold;
+    font-size: 3.4mm;
+    padding: 0.5mm 3mm 2mm 3mm;
+}
+
+// -- App bar (HeaderPanel) --
+
+AppBar {
+    @include appbar-gradient;
+    padding: 2mm 3mm;
+}
+
+AppBarBtn {
+    background-color: transparent;
+    color: $surface;
+    border: none;
+    font-family: $f-regular;
+    font-size: 2.8mm;
+    padding: 1mm 2mm;
+}
+
+GreetingSmall {
+    color: $greeting;
+    font-family: $f-light;
+    font-size: 2.2mm;
+    margin: 0;
+    padding: 0;
+}
+
+GreetingName {
+    color: $surface;
+    font-family: $f-bold;
+    font-size: 2.8mm;
+    margin: 0;
+    padding: 0;
+}
+
+AppBarLogoBox {
+    color: $surface;
+    background-color: $logo-box;
+    border-radius: $radius-sm;
+    padding: 1.5mm;
+    margin: 0 2.5mm 0 0;
+}
+
+AppBarBrand {
+    color: $surface;
+    font-family: $f-bold;
+    font-size: 3.4mm;
+    margin: 0;
+    padding: 0;
+}
+
+AppBarBrandSub {
+    color: $greeting;
+    font-family: $f-light;
+    font-size: 2mm;
+    margin: 0;
+    padding: 0;
+}
+
+CartBadge {
+    color: $accent;
+    background-color: $surface;
+    border-radius: $radius-sm;
+    font-family: $f-bold;
+    font-size: 1.9mm;
+    padding: 0.1mm 0.8mm;
+    margin: 0 0 0 1.5mm;
+    text-align: center;
+}
+
+// -- Abas (layout compacto) --
+
+TabNav {
+    background-color: $surface;
+    border: none;
+}
+
+TabItem {
+    background-color: $surface;
+    color: $text-secondary;
+    border: none;
+    font-family: $f-regular;
+    font-size: 2.8mm;
+    padding: 3mm 0;
+    text-align: center;
+}
+
+TabItemActive {
+    background-color: $surface;
+    color: $accent;
+    border: none;
+    font-family: $f-bold;
+    font-size: 2.8mm;
+    padding: 3mm 0;
+    text-align: center;
+}
+
+// -- Painel de histórico --
+
+PurchasesPanel {
+    background-color: $surface;
+    padding: 3mm;
+}
+
+PurchasesHeaderIcon {
+    color: $accent;
+}
+
+PurchasesTitle {
+    color: $text;
+    font-family: $f-bold;
+    font-size: 3.2mm;
+    padding: 0 0 0 1.5mm;
+}
+
+PurchasesHint {
+    color: $text-secondary;
+    font-size: 2.4mm;
+    padding: 0.5mm 0 2mm 0;
+}
+
+// hover/clique: estados selected/pressed definidos em Java (Clickable).
+PurchaseCard {
+    background-color: $bg;
+    border: 1px solid $border;
+    border-radius: $radius-sm;
+    margin: 0 0 1.5mm 0;
+    padding: 1mm 2.5mm;
+}
+
+PurchaseLine {
+    background-color: transparent;
+    margin: 0;
+    padding: 0.3mm 0;
+}
+
+PurchaseId {
+    color: $accent;
+    font-family: $f-bold;
+    font-size: 2.6mm;
+    margin: 0;
+    padding: 0;
+}
+
+PurchaseDate {
+    color: $text-secondary;
+    font-size: 2.3mm;
+    margin: 0;
+    padding: 0;
+}
+
+PurchaseItems {
+    color: $text-secondary;
+    font-size: 2.4mm;
+    margin: 0;
+    padding: 0;
+}
+
+PurchaseTotal {
+    color: $text;
+    font-family: $f-bold;
+    font-size: 2.6mm;
+    margin: 0 0 0 1.5mm;
+    padding: 0;
+}
+
+// Paginador (page-pill do React): pílula/box/sombra das setas vêm do Java.
+PurchasePagination {
+    background-color: $surface;
+    border-top: 1px solid $border;
+    padding: 3mm 0 3mm 0;
+}
+
+PurchasePagePill {
+    padding: 0 1mm;
+}
+
+// font-size pequeno evita que o texto vazio do Button reserve a altura da fonte.
+PurchasePageBtn {
+    background-color: transparent;
+    color: $text-secondary;
+    border: none;
+    font-size: 1.5mm;
+    padding: 0 1mm;
+    margin: 0;
+}
+
+PurchasePageInfo {
+    color: $text;
+    background-color: $surface;
+    font-family: $f-bold;
+    font-size: 2.6mm;
+    padding: 0.4mm 2.5mm;
+    margin: 0 0.4mm;
+}

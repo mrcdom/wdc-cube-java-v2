@@ -326,6 +326,33 @@
 
     <build>
         <plugins>
+            <!-- Compila o SCSS (tokens/mixins/base + um partial por pacote de view) para
+                 src/main/css/theme.css ANTES do cn1:css (process-classes). Baixa o binário
+                 do Dart Sass (sem Node). Mesmo plugin do shell TeaVM. -->
+            <plugin>
+                <groupId>us.hebi.sass</groupId>
+                <artifactId>sass-cli-maven-plugin</artifactId>
+                <version>1.0.4</version>
+                <configuration>
+                    <sassVersion>1.87.0</sassVersion>
+                    <args>
+                        <arg>--load-path=${project.basedir}/src/main/scss</arg>
+                        <arg>--load-path=${project.basedir}/src/main/java/br/com/wdc/shopping/view/remote/shell/cn1/views</arg>
+                        <arg>${project.basedir}/src/main/scss/theme.scss:${project.basedir}/src/main/css/theme.css</arg>
+                        <arg>--no-source-map</arg>
+                        <arg>--style=expanded</arg>
+                    </args>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>compile-scss</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>

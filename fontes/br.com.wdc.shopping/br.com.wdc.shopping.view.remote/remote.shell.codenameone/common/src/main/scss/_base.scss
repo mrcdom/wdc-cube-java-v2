@@ -1,0 +1,175 @@
+// =============================================================================
+// Base — constantes do tema, UIIDs globais e widgets compartilhados entre telas
+// (cabeçalho de card, botão voltar, stepper de quantidade, splash).
+// =============================================================================
+@use 'tokens' as *;
+@use 'mixins' as *;
+
+#Constants {
+    includeNativeBool: true;
+    defaultSourceDPIInt: "0";
+}
+
+// -- Globais --
+
+Form {
+    background-color: $bg;
+}
+
+TitleArea {
+    background-color: $accent;
+    border: none;
+    padding: 1mm 2mm;
+}
+
+Title {
+    color: $surface;
+    background-color: transparent;
+    font-family: $f-bold;
+    font-size: 4mm;
+}
+
+Card {
+    @include card;
+    padding: 3mm;
+    margin: 2mm;
+}
+
+PrimaryButton {
+    background-color: $accent;
+    color: $surface;
+    font-family: $f-bold;
+    font-size: 3mm;
+    border-radius: $radius-pill;
+    padding: 2mm 4mm;
+    margin: 1mm 0;
+    text-align: center;
+    border: none;
+}
+
+LinkButton {
+    background-color: transparent;
+    color: $accent;
+    font-family: $f-bold;
+    font-size: 3mm;
+    border: none;
+    padding: 2mm 3mm;
+}
+
+SectionTitle {
+    color: $text;
+    font-family: $f-bold;
+    font-size: 5mm;
+    padding: 1mm 0;
+}
+
+Muted {
+    color: $text-secondary;
+    font-size: 2.6mm;
+}
+
+Price {
+    color: $accent;
+    font-family: $f-bold;
+    font-size: 3.4mm;
+}
+
+TextField {
+    color: $text;
+    background-color: $surface;
+    border: 1px solid $border;
+    border-radius: $radius-sm;
+    padding: 2mm;
+    font-family: $f-light;
+    font-size: 3mm;
+}
+
+TextFieldHint {
+    color: $text-secondary;
+    font-family: $f-light;
+    font-size: 3mm;
+}
+
+TextHint {
+    color: $text-secondary;
+    font-family: $f-light;
+    font-size: 3mm;
+}
+
+// Sobreposição transparente que captura o clique do card (lead component).
+CardLead {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+// -- Cabeçalho de card (compartilhado: recibo, carrinho) --
+
+CardHeaderRow {
+    padding: 0 0 4mm 0;
+}
+
+CardHeaderIconBox {
+    color: $accent;
+    background-color: $accent-light;
+    border-radius: $radius-pill;
+    padding: 2mm;
+    margin: 0 2.5mm 0 0;
+}
+
+CardHeaderTitle {
+    color: $text;
+    font-family: $f-bold;
+    font-size: 3.6mm;
+    padding: 0;
+    margin: 0;
+}
+
+CardHeaderSub {
+    color: $text-secondary;
+    font-size: 2.4mm;
+    padding: 0;
+    margin: 0;
+}
+
+// Botão "voltar" neutro/slate; o realce de clique vem do RoundRectBorder em Java.
+BackButton {
+    background-color: transparent;
+    color: $text-slate;
+    font-family: $f-light;
+    font-size: 3mm;
+    border: none;
+    padding: 2mm 3.5mm;
+}
+
+// Botão +/- de quantidade (produto e carrinho).
+QtyBtn {
+    background-color: $bg;
+    color: $accent;
+    border: 1px solid $border;
+    border-radius: $radius-pill;
+    padding: 0;
+    margin: 0 1mm;
+    text-align: center;
+}
+
+// -- Tela de conexão (splash) --
+
+SplashStatus {
+    color: $ice;
+    font-size: 2.9mm;
+    text-align: center;
+    padding: 3mm 0 0 0;
+}
+
+SplashRetry {
+    background-color: $surface;
+    color: $accent;
+    font-family: $f-bold;
+    font-size: 3mm;
+    border: none;
+    border-radius: $radius-pill;
+    padding: 2mm 5mm;
+    margin: 4mm 0 0 0;
+}

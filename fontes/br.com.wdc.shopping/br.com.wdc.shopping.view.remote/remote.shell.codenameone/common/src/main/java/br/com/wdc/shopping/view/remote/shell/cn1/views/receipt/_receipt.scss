@@ -1,0 +1,116 @@
+// =============================================================================
+// Recibo (ReceiptCn1View): alerta de sucesso, card e corpo estilo cupom.
+// O cabeçalho usa CardHeader* (base); a fonte mono é definida em Java.
+// =============================================================================
+@use 'tokens' as *;
+@use 'mixins' as *;
+
+ReceiptPage {
+    @include page;
+}
+
+// Alerta verde de sucesso.
+AlertSuccess {
+    background-color: $success-bg;
+    border: 1px solid $success-border;
+    border-radius: $radius-sm;
+    padding: 3mm 4mm;
+    margin: 0 0 4mm 0;
+}
+
+AlertSuccessIcon {
+    color: $success-icon;
+}
+
+AlertSuccessText {
+    color: $success-text;
+    font-family: $f-bold;
+    font-size: 3mm;
+    padding: 0 0 0 2mm;
+}
+
+ReceiptCard {
+    @include card;
+    padding: 5mm;
+}
+
+// Corpo (cupom): fundo cinza, borda.
+ReceiptBody {
+    background-color: $bg;
+    border: 1px solid $border;
+    border-radius: $radius-sm;
+    padding: 4mm;
+}
+
+ReceiptDateRow {
+    border-bottom: 1px solid $border;
+    padding: 0 0 2mm 0;
+    margin: 0 0 2mm 0;
+}
+
+ReceiptDateLabel {
+    color: $text-secondary;
+}
+
+ReceiptDateValue {
+    color: $text;
+    font-family: $f-bold;
+    text-align: right;
+}
+
+ReceiptTableHeader {
+    border-bottom: 1px solid $border;
+    padding: 0 0 1.5mm 0;
+    margin: 0 0 1mm 0;
+}
+
+ReceiptColHead {
+    color: $text-secondary;
+}
+
+ReceiptColHeadQty {
+    color: $text-secondary;
+    text-align: center;
+}
+
+ReceiptColHeadValue {
+    color: $text-secondary;
+    text-align: right;
+}
+
+ReceiptItemRow {
+    border-bottom: 1px solid $border-faint;
+    padding: 1.5mm 0;
+}
+
+ReceiptItemDesc {
+    color: $text;
+}
+
+ReceiptItemQty {
+    color: $text-secondary;
+    text-align: center;
+}
+
+ReceiptItemValue {
+    color: $text;
+    font-family: $f-bold;
+    text-align: right;
+}
+
+ReceiptTotalRow {
+    border-top: 2px solid $accent;
+    padding: 2.5mm 0 0 0;
+    margin: 2.5mm 0 0 0;
+}
+
+ReceiptTotalLabel {
+    color: $text;
+    font-family: $f-bold;
+}
+
+ReceiptTotalValue {
+    color: $accent;
+    font-family: $f-bold;
+    text-align: right;
+}
