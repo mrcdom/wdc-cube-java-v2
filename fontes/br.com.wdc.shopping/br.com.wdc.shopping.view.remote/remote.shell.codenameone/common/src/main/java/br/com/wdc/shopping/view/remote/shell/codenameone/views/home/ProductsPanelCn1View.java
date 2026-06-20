@@ -7,6 +7,7 @@ import java.util.Map;
 
 import com.codename1.ui.Container;
 import com.codename1.ui.Display;
+import com.codename1.ui.layouts.BoxLayout;
 import com.codename1.ui.layouts.GridLayout;
 
 import br.com.wdc.shopping.view.remote.shell.codenameone.ShoppingCn1RemoteApp;
@@ -31,8 +32,12 @@ public class ProductsPanelCn1View extends AbstractCn1View {
     protected Container build() {
         grid = new Container(new GridLayout(columns()));
         grid.setUIID("ProductsPanel");
-        grid.setScrollableY(true);
-        return grid;
+        // grid em BoxLayout.y => assume a altura preferida (linhas no topo, cards na altura do
+        // conteúdo) em vez de esticar para preencher o CENTER do BorderLayout.
+        Container wrapper = new Container(BoxLayout.y());
+        wrapper.setScrollableY(true);
+        wrapper.add(grid);
+        return wrapper;
     }
 
     @Override
