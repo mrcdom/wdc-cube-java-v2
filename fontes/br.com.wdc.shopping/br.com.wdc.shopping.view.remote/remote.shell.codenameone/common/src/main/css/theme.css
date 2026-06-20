@@ -419,11 +419,13 @@ PurchasePagePill {
     padding: 0 1mm;
 }
 
-/* setas: pequenas e coladas ao indicador */
+/* setas: pequenas e coladas ao indicador. font-size pequeno evita que o texto vazio do
+   Button reserve a altura da fonte padrão (que inflava a altura da pílula). */
 PurchasePageBtn {
     background-color: transparent;
     color: #6e6e73;
     border: none;
+    font-size: 1.5mm;
     padding: 0 1mm;
     margin: 0;
 }
