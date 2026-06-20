@@ -20,6 +20,8 @@ import br.com.wdc.shopping.view.remote.shell.cn1.util.Money;
 /** Card de produto: imagem (fundo gradiente) + nome + preço; o card inteiro abre o detalhe. */
 public class ProductItemCn1View extends AbstractItemCn1View<Object> {
 
+    private static final HomeSel sel = HomeSel.INSTANCE;
+
     private static final int IMG = 190;
     /** Tamanho fixo do card — o FlowLayout do painel quebra a linha quando não couber. */
     private static final int CARD_W = 300;
@@ -41,13 +43,13 @@ public class ProductItemCn1View extends AbstractItemCn1View<Object> {
         Cn1Dom.render(content, (dom, c) -> {
             // imagem centralizada num wrap (FlowLayout mantém o tamanho quadrado, sem distorcer)
             dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, wrap -> {
-                wrap.setUIID(HomeSel.PRODUCT_CARD_IMAGE);
+                wrap.setUIID(sel.PRODUCT_CARD_IMAGE);
                 image = dom.label(l -> { });
             });
-            name = dom.label(l -> l.setUIID(HomeSel.PRODUCT_CARD_NAME));
-            price = dom.label(l -> l.setUIID(HomeSel.PRODUCT_CARD_PRICE));
+            name = dom.label(l -> l.setUIID(sel.PRODUCT_CARD_NAME));
+            price = dom.label(l -> l.setUIID(sel.PRODUCT_CARD_PRICE));
         });
-        Container card = Clickable.card(HomeSel.PRODUCT_CARD, content, () -> onOpen.accept(currentId));
+        Container card = Clickable.card(sel.PRODUCT_CARD, content, () -> onOpen.accept(currentId));
         card.setPreferredSize(new Dimension(CARD_W, CARD_H));
         return card;
     }

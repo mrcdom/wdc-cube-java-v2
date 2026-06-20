@@ -30,6 +30,8 @@ import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
  */
 public class PurchasesPanelCn1View extends AbstractCn1View {
 
+    private static final HomeSel sel = HomeSel.INSTANCE;
+
     public static final String CLASS_ID = "b3c4d5e6f7a8";
     private static final int EVT_OPEN_RECEIPT = 1;
     private static final int EVT_PAGE_CHANGE = 2;
@@ -68,21 +70,21 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
     @Override
     protected Container build() {
         Container root = new Container(new BorderLayout());
-        root.setUIID(HomeSel.PURCHASES_PANEL);
+        root.setUIID(sel.PURCHASES_PANEL);
         Cn1Dom.render(root, (dom, r) -> {
             // cabeçalho (ícone + título) + dica
             dom.boxY(BorderLayout.NORTH, head -> {
                 dom.boxX(row -> {
-                    Label icon = dom.label(l -> l.setUIID(HomeSel.PURCHASES_HEADER_ICON));
+                    Label icon = dom.label(l -> l.setUIID(sel.PURCHASES_HEADER_ICON));
                     FontImage.setMaterialIcon(icon, FontImage.MATERIAL_HISTORY, 4f);
                     dom.label(l -> {
                         l.setText("Histórico");
-                        l.setUIID(HomeSel.PURCHASES_TITLE);
+                        l.setUIID(sel.PURCHASES_TITLE);
                     });
                 });
                 dom.label(l -> {
                     l.setText("Toque para ver detalhes");
-                    l.setUIID(HomeSel.PURCHASES_HINT);
+                    l.setUIID(sel.PURCHASES_HINT);
                 });
             });
 
@@ -91,11 +93,11 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
 
             // navegação de páginas — pílula cinza com setas e o "x / y" num box branco (como o React)
             pagination = dom.container(new FlowLayout(Component.CENTER), BorderLayout.SOUTH, nav -> {
-                nav.setUIID(HomeSel.PURCHASE_PAGINATION);
+                nav.setUIID(sel.PURCHASE_PAGINATION);
                 pill = dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, p -> {
-                    p.setUIID(HomeSel.PURCHASE_PAGE_PILL);
+                    p.setUIID(sel.PURCHASE_PAGE_PILL);
                     prevBtn = dom.label(l -> {
-                        l.setUIID(HomeSel.PURCHASE_PAGE_BTN);
+                        l.setUIID(sel.PURCHASE_PAGE_BTN);
                         l.addPointerPressedListener(e -> chevronIcon(l, FontImage.MATERIAL_CHEVRON_LEFT, CHEVRON_PRESSED));
                         l.addPointerReleasedListener(e -> {
                             chevronIcon(l, FontImage.MATERIAL_CHEVRON_LEFT, CHEVRON_ENABLED);
@@ -103,9 +105,9 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
                         });
                     });
                     chevronIcon(prevBtn, FontImage.MATERIAL_CHEVRON_LEFT, CHEVRON_ENABLED);
-                    pageInfo = dom.label(l -> l.setUIID(HomeSel.PURCHASE_PAGE_INFO));
+                    pageInfo = dom.label(l -> l.setUIID(sel.PURCHASE_PAGE_INFO));
                     nextBtn = dom.label(l -> {
-                        l.setUIID(HomeSel.PURCHASE_PAGE_BTN);
+                        l.setUIID(sel.PURCHASE_PAGE_BTN);
                         l.addPointerPressedListener(e -> chevronIcon(l, FontImage.MATERIAL_CHEVRON_RIGHT, CHEVRON_PRESSED));
                         l.addPointerReleasedListener(e -> {
                             chevronIcon(l, FontImage.MATERIAL_CHEVRON_RIGHT, CHEVRON_ENABLED);

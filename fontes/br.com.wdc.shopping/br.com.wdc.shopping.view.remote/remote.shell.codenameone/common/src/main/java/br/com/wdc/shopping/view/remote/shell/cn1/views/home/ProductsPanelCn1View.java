@@ -21,6 +21,8 @@ import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
  */
 public class ProductsPanelCn1View extends AbstractCn1View {
 
+    private static final HomeSel sel = HomeSel.INSTANCE;
+
     public static final String CLASS_ID = "a1b2c3d4e5f6";
     private static final int EVT_OPEN_PRODUCT = 1;
 
@@ -34,7 +36,7 @@ public class ProductsPanelCn1View extends AbstractCn1View {
     @Override
     protected Container build() {
         grid = new Container(new FlowLayout(Component.LEFT, Component.TOP));
-        grid.setUIID(HomeSel.PRODUCTS_PANEL);
+        grid.setUIID(sel.PRODUCTS_PANEL);
         grid.setScrollableY(true);
         return grid;
     }

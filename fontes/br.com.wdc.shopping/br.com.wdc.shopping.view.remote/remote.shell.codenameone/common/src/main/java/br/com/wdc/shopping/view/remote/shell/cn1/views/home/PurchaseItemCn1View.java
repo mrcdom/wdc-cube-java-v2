@@ -19,6 +19,8 @@ import br.com.wdc.shopping.view.remote.shell.cn1.util.Money;
 /** Item do histórico: linha 1 (#id + data) e linha 2 (itens + total); o card abre o recibo. */
 public class PurchaseItemCn1View extends AbstractItemCn1View<Object> {
 
+    private static final HomeSel sel = HomeSel.INSTANCE;
+
     private final Consumer<Long> onOpen;
     private Label idLabel;
     private Label dateLabel;
@@ -35,20 +37,20 @@ public class PurchaseItemCn1View extends AbstractItemCn1View<Object> {
         Container content = new Container(BoxLayout.y());
         Cn1Dom.render(content, (dom, c) -> {
             dom.border(line1 -> {
-                line1.setUIID(HomeSel.PURCHASE_LINE);
-                idLabel = dom.label(BorderLayout.WEST, l -> l.setUIID(HomeSel.PURCHASE_ID));
-                dateLabel = dom.label(BorderLayout.EAST, l -> l.setUIID(HomeSel.PURCHASE_DATE));
+                line1.setUIID(sel.PURCHASE_LINE);
+                idLabel = dom.label(BorderLayout.WEST, l -> l.setUIID(sel.PURCHASE_ID));
+                dateLabel = dom.label(BorderLayout.EAST, l -> l.setUIID(sel.PURCHASE_DATE));
             });
             dom.border(line2 -> {
-                line2.setUIID(HomeSel.PURCHASE_LINE);
+                line2.setUIID(sel.PURCHASE_LINE);
                 itemsLabel = dom.label(BorderLayout.CENTER, l -> {
-                    l.setUIID(HomeSel.PURCHASE_ITEMS);
+                    l.setUIID(sel.PURCHASE_ITEMS);
                     l.setEndsWith3Points(true); // elipsis quando não couber
                 });
-                totalLabel = dom.label(BorderLayout.EAST, l -> l.setUIID(HomeSel.PURCHASE_TOTAL));
+                totalLabel = dom.label(BorderLayout.EAST, l -> l.setUIID(sel.PURCHASE_TOTAL));
             });
         });
-        return Clickable.card(HomeSel.PURCHASE_CARD, content, () -> onOpen.accept(currentId));
+        return Clickable.card(sel.PURCHASE_CARD, content, () -> onOpen.accept(currentId));
     }
 
     @Override

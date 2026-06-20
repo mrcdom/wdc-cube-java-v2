@@ -162,6 +162,23 @@ QtyValue {
     text-align: center;
 }
 
+// -- Marca: hero do login + splash de conexão --
+
+HeroTitle {
+    color: $surface;
+    background-color: transparent;
+    font-family: $f-bold;
+    font-size: 6mm;
+    text-align: center;
+}
+
+HeroSubtitle {
+    color: $ice;
+    background-color: transparent;
+    font-size: 3mm;
+    text-align: center;
+}
+
 // -- Tela de conexão (splash) --
 
 SplashStatus {

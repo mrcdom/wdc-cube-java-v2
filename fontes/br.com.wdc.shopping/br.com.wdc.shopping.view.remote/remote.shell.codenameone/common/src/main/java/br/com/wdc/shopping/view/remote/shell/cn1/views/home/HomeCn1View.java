@@ -29,6 +29,8 @@ import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
  */
 public class HomeCn1View extends AbstractCn1View {
 
+    private static final HomeSel sel = HomeSel.INSTANCE;
+
     public static final String CLASS_ID = "473dbdd7a36a";
     private static final int EVT_LOGOUT = 1;
     private static final int EVT_OPEN_CART = 2;
@@ -63,13 +65,13 @@ public class HomeCn1View extends AbstractCn1View {
         Container root = new Container(new BorderLayout());
         Cn1Dom.render(root, (dom, r) -> {
             dom.border(BorderLayout.NORTH, bar -> {
-                bar.setUIID(HomeSel.APP_BAR);
+                bar.setUIID(sel.APP_BAR);
                 boolean wide = app.isExpanded();
 
                 // esquerda: sair + (saudação só no expandido)
                 dom.container(new FlowLayout(Component.LEFT, Component.CENTER), BorderLayout.WEST, west -> {
                     Button exit = dom.button(b -> {
-                        b.setUIID(HomeSel.APP_BAR_BTN);
+                        b.setUIID(sel.APP_BAR_BTN);
                         b.addActionListener(e -> submit(EVT_LOGOUT));
                     });
                     FontImage.setMaterialIcon(exit, FontImage.MATERIAL_LOGOUT, 5f);
@@ -77,9 +79,9 @@ public class HomeCn1View extends AbstractCn1View {
                         dom.boxY(greet -> {
                             dom.label(l -> {
                                 l.setText("Bem-vindo(a),");
-                                l.setUIID(HomeSel.GREETING_SMALL);
+                                l.setUIID(sel.GREETING_SMALL);
                             });
-                            nick = dom.label(l -> l.setUIID(HomeSel.GREETING_NAME));
+                            nick = dom.label(l -> l.setUIID(sel.GREETING_NAME));
                         });
                     }
                 });
@@ -90,19 +92,19 @@ public class HomeCn1View extends AbstractCn1View {
                     // seu conteúdo (valign CENTER) → a marca alinha pelo centro do ícone do logo.
                     dom.boxX(group -> {
                         dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, logoWrap -> {
-                            Label logo = dom.label(l -> l.setUIID(HomeSel.APP_BAR_LOGO_BOX));
+                            Label logo = dom.label(l -> l.setUIID(sel.APP_BAR_LOGO_BOX));
                             FontImage.setMaterialIcon(logo, FontImage.MATERIAL_SHOPPING_BAG, 5f);
                         });
                         dom.container(new FlowLayout(Component.LEFT, Component.CENTER), null, brandWrap -> {
                             dom.boxY(t -> {
                                 dom.label(l -> {
                                     l.setText("Shopping");
-                                    l.setUIID(HomeSel.APP_BAR_BRAND);
+                                    l.setUIID(sel.APP_BAR_BRAND);
                                 });
                                 if (wide) {
                                     dom.label(l -> {
                                         l.setText("By WeDoCode");
-                                        l.setUIID(HomeSel.APP_BAR_BRAND_SUB);
+                                        l.setUIID(sel.APP_BAR_BRAND_SUB);
                                     });
                                 }
                             });
@@ -116,11 +118,11 @@ public class HomeCn1View extends AbstractCn1View {
                         if (wide) {
                             b.setText("Carrinho");
                         }
-                        b.setUIID(HomeSel.APP_BAR_BTN);
+                        b.setUIID(sel.APP_BAR_BTN);
                         b.addActionListener(e -> submit(EVT_OPEN_CART));
                     });
                     FontImage.setMaterialIcon(cart, FontImage.MATERIAL_SHOPPING_CART, 5f);
-                    cartBadge = dom.label(l -> l.setUIID(HomeSel.CART_BADGE));
+                    cartBadge = dom.label(l -> l.setUIID(sel.CART_BADGE));
                 });
             });
 
@@ -145,7 +147,7 @@ public class HomeCn1View extends AbstractCn1View {
         } else {
             // abas comutam entre produtos e histórico
             Container tabs = new Container(new GridLayout(2));
-            tabs.setUIID(HomeSel.TAB_NAV);
+            tabs.setUIID(sel.TAB_NAV);
             tabProducts = tabButton("Produtos", FontImage.MATERIAL_VIEW_MODULE, true);
             tabHistory = tabButton("Histórico", FontImage.MATERIAL_HISTORY, false);
             tabs.add(tabProducts);
@@ -160,7 +162,7 @@ public class HomeCn1View extends AbstractCn1View {
 
     private Button tabButton(String text, char icon, boolean products) {
         Button b = new Button(text);
-        b.setUIID(products == showingProducts ? HomeSel.TAB_ITEM_ACTIVE : HomeSel.TAB_ITEM);
+        b.setUIID(products == showingProducts ? sel.TAB_ITEM_ACTIVE : sel.TAB_ITEM);
         FontImage.setMaterialIcon(b, icon, 3.5f);
         b.addActionListener(e -> switchTab(products));
         return b;
@@ -180,8 +182,8 @@ public class HomeCn1View extends AbstractCn1View {
         if (activeHolder == null) {
             return; // expandido: sem abas
         }
-        tabProducts.setUIID(showingProducts ? HomeSel.TAB_ITEM_ACTIVE : HomeSel.TAB_ITEM);
-        tabHistory.setUIID(showingProducts ? HomeSel.TAB_ITEM : HomeSel.TAB_ITEM_ACTIVE);
+        tabProducts.setUIID(showingProducts ? sel.TAB_ITEM_ACTIVE : sel.TAB_ITEM);
+        tabHistory.setUIID(showingProducts ? sel.TAB_ITEM : sel.TAB_ITEM_ACTIVE);
         activeHolder.removeAll();
         activeHolder.add(BorderLayout.CENTER, showingProducts ? productsHolder : purchasesHolder);
         activeHolder.revalidate();

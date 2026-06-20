@@ -29,7 +29,6 @@ import br.com.wdc.shopping.view.remote.shell.cn1.views.home.HomeCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.views.home.ProductsPanelCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.views.home.PurchasesPanelCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.views.login.LoginCn1View;
-import br.com.wdc.shopping.view.remote.shell.cn1.views.login.LoginSel;
 import br.com.wdc.shopping.view.remote.shell.cn1.views.product.ProductCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.views.receipt.ReceiptCn1View;
 
@@ -44,6 +43,8 @@ import br.com.wdc.shopping.view.remote.shell.cn1.views.receipt.ReceiptCn1View;
  * </p>
  */
 public class ShoppingCn1RemoteApp extends Lifecycle {
+
+    private static final Sel sel = Sel.INSTANCE;
 
     private static final String BASE = "http://localhost:8080";
 
@@ -192,11 +193,11 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
         content.add(FlowLayout.encloseCenter(logo));
 
         Label title = new Label("WDC Shopping");
-        title.setUIID(LoginSel.HERO_TITLE);
+        title.setUIID(sel.HERO_TITLE);
         content.add(title);
 
         SpanLabel subtitle = new SpanLabel("Sua compra certa na internet.");
-        subtitle.setTextUIID(LoginSel.HERO_SUBTITLE);
+        subtitle.setTextUIID(sel.HERO_SUBTITLE);
         content.add(subtitle);
 
         if (!error) {
@@ -207,12 +208,12 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
         }
 
         Label statusLabel = new Label(status);
-        statusLabel.setUIID(Sel.SPLASH_STATUS);
+        statusLabel.setUIID(sel.SPLASH_STATUS);
         content.add(FlowLayout.encloseCenter(statusLabel));
 
         if (onRetry != null) {
             Button retry = new Button("Tentar novamente");
-            retry.setUIID(Sel.SPLASH_RETRY);
+            retry.setUIID(sel.SPLASH_RETRY);
             retry.addActionListener(e -> onRetry.run());
             content.add(FlowLayout.encloseCenter(retry));
         }

@@ -10,7 +10,6 @@ import com.codename1.ui.Label;
 import com.codename1.ui.layouts.BorderLayout;
 import com.codename1.ui.layouts.BoxLayout;
 
-import br.com.wdc.shopping.view.remote.shell.cn1.Sel;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.AbstractItemCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
@@ -19,6 +18,8 @@ import br.com.wdc.shopping.view.remote.shell.cn1.util.Widgets;
 
 /** Linha do carrinho: nome | stepper (− qtd +) | subtotal | remover (×). */
 public class CartItemCn1View extends AbstractItemCn1View<Object> {
+
+    private static final CartSel sel = CartSel.INSTANCE;
 
     private static final int STEP_BTN = 50;
     private static final int REMOVE_BTN = 50;
@@ -39,20 +40,20 @@ public class CartItemCn1View extends AbstractItemCn1View<Object> {
     @Override
     protected Container build() {
         Container root = new Container(new BorderLayout());
-        root.setUIID(CartSel.CART_ITEM_ROW);
+        root.setUIID(sel.CART_ITEM_ROW);
         Cn1Dom.render(root, (dom, r) -> {
-            name = dom.label(BorderLayout.CENTER, l -> l.setUIID(CartSel.CART_ITEM_NAME));
+            name = dom.label(BorderLayout.CENTER, l -> l.setUIID(sel.CART_ITEM_NAME));
             dom.boxX(BorderLayout.EAST, east -> {
                 dom.boxX(stepper -> {
-                    stepper.setUIID(CartSel.CART_STEPPER);
-                    dom.add(Widgets.iconButton(Sel.QTY_BTN, FontImage.MATERIAL_REMOVE, 3f, STEP_BTN,
+                    stepper.setUIID(sel.CART_STEPPER);
+                    dom.add(Widgets.iconButton(sel.QTY_BTN, FontImage.MATERIAL_REMOVE, 3f, STEP_BTN,
                             () -> onModify.accept(currentId, currentQty - 1)), null);
-                    qty = dom.label(l -> l.setUIID(Sel.QTY_VALUE));
-                    dom.add(Widgets.iconButton(Sel.QTY_BTN, FontImage.MATERIAL_ADD, 3f, STEP_BTN,
+                    qty = dom.label(l -> l.setUIID(sel.QTY_VALUE));
+                    dom.add(Widgets.iconButton(sel.QTY_BTN, FontImage.MATERIAL_ADD, 3f, STEP_BTN,
                             () -> onModify.accept(currentId, currentQty + 1)), null);
                 });
-                subtotal = dom.label(l -> l.setUIID(CartSel.CART_ITEM_SUBTOTAL));
-                dom.add(Widgets.iconButton(CartSel.CART_REMOVE_BTN, FontImage.MATERIAL_CLOSE, 3f, REMOVE_BTN,
+                subtotal = dom.label(l -> l.setUIID(sel.CART_ITEM_SUBTOTAL));
+                dom.add(Widgets.iconButton(sel.CART_REMOVE_BTN, FontImage.MATERIAL_CLOSE, 3f, REMOVE_BTN,
                         () -> onRemove.accept(currentId)), null);
             });
         });

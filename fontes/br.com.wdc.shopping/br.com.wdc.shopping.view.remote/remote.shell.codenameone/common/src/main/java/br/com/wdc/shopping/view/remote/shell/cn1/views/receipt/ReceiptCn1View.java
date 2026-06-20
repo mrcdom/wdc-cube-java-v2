@@ -29,6 +29,8 @@ import br.com.wdc.shopping.view.remote.shell.cn1.util.Widgets;
  */
 public class ReceiptCn1View extends AbstractCn1View {
 
+    private static final ReceiptSel sel = ReceiptSel.INSTANCE;
+
     public static final String CLASS_ID = "e8d0bd8ae3bc";
     private static final int EVT_BACK = 1;
 
@@ -52,52 +54,52 @@ public class ReceiptCn1View extends AbstractCn1View {
     protected Container build() {
         Container root = new Container(BoxLayout.y());
         root.setScrollableY(true);
-        root.setUIID(ReceiptSel.RECEIPT_PAGE);
+        root.setUIID(sel.RECEIPT_PAGE);
         Cn1Dom.render(root, (dom, r) -> {
             // alerta verde de sucesso
             successAlert = dom.boxX(alert -> {
-                alert.setUIID(ReceiptSel.ALERT_SUCCESS);
-                Label icon = dom.label(l -> l.setUIID(ReceiptSel.ALERT_SUCCESS_ICON));
+                alert.setUIID(sel.ALERT_SUCCESS);
+                Label icon = dom.label(l -> l.setUIID(sel.ALERT_SUCCESS_ICON));
                 FontImage.setMaterialIcon(icon, FontImage.MATERIAL_CHECK_CIRCLE, 4f);
                 dom.label(l -> {
                     l.setText("Compra realizada com sucesso!");
-                    l.setUIID(ReceiptSel.ALERT_SUCCESS_TEXT);
+                    l.setUIID(sel.ALERT_SUCCESS_TEXT);
                 });
             });
 
             // card do recibo
             dom.boxY(card -> {
-                card.setUIID(ReceiptSel.RECEIPT_CARD);
+                card.setUIID(sel.RECEIPT_CARD);
 
                 // cabeçalho: ícone + título/subtítulo (widget compartilhado)
                 dom.add(Widgets.cardHeader(FontImage.MATERIAL_RECEIPT, "Recibo de Compra", "WDC Shopping"), null);
 
                 // corpo (monoespaçado)
                 dom.boxY(body -> {
-                    body.setUIID(ReceiptSel.RECEIPT_BODY);
+                    body.setUIID(sel.RECEIPT_BODY);
 
                     // data
                     dom.border(dateRow -> {
-                        dateRow.setUIID(ReceiptSel.RECEIPT_DATE_ROW);
-                        Label lbl = dom.label(BorderLayout.WEST, l -> l.setUIID(ReceiptSel.RECEIPT_DATE_LABEL));
+                        dateRow.setUIID(sel.RECEIPT_DATE_ROW);
+                        Label lbl = dom.label(BorderLayout.WEST, l -> l.setUIID(sel.RECEIPT_DATE_LABEL));
                         lbl.setText("Data:");
                         mono(lbl);
-                        dateValue = dom.label(BorderLayout.EAST, l -> l.setUIID(ReceiptSel.RECEIPT_DATE_VALUE));
+                        dateValue = dom.label(BorderLayout.EAST, l -> l.setUIID(sel.RECEIPT_DATE_VALUE));
                         mono(dateValue);
                     });
 
                     // cabeçalho da tabela
                     dom.border(th -> {
-                        th.setUIID(ReceiptSel.RECEIPT_TABLE_HEADER);
-                        Label item = dom.label(BorderLayout.CENTER, l -> l.setUIID(ReceiptSel.RECEIPT_COL_HEAD));
+                        th.setUIID(sel.RECEIPT_TABLE_HEADER);
+                        Label item = dom.label(BorderLayout.CENTER, l -> l.setUIID(sel.RECEIPT_COL_HEAD));
                         item.setText("ITEM");
                         mono(item);
                         dom.boxX(BorderLayout.EAST, cols -> {
-                            Label qtd = dom.label(l -> l.setUIID(ReceiptSel.RECEIPT_COL_HEAD_QTY));
+                            Label qtd = dom.label(l -> l.setUIID(sel.RECEIPT_COL_HEAD_QTY));
                             qtd.setText("QTD");
                             qtd.setPreferredW(COL_QTY_W);
                             mono(qtd);
-                            Label val = dom.label(l -> l.setUIID(ReceiptSel.RECEIPT_COL_HEAD_VALUE));
+                            Label val = dom.label(l -> l.setUIID(sel.RECEIPT_COL_HEAD_VALUE));
                             val.setText("VALOR");
                             val.setPreferredW(COL_VALUE_W);
                             mono(val);
@@ -109,11 +111,11 @@ public class ReceiptCn1View extends AbstractCn1View {
 
                     // total
                     dom.border(totalRow -> {
-                        totalRow.setUIID(ReceiptSel.RECEIPT_TOTAL_ROW);
-                        Label lbl = dom.label(BorderLayout.WEST, l -> l.setUIID(ReceiptSel.RECEIPT_TOTAL_LABEL));
+                        totalRow.setUIID(sel.RECEIPT_TOTAL_ROW);
+                        Label lbl = dom.label(BorderLayout.WEST, l -> l.setUIID(sel.RECEIPT_TOTAL_LABEL));
                         lbl.setText("TOTAL:");
                         mono(lbl);
-                        total = dom.label(BorderLayout.EAST, l -> l.setUIID(ReceiptSel.RECEIPT_TOTAL_VALUE));
+                        total = dom.label(BorderLayout.EAST, l -> l.setUIID(sel.RECEIPT_TOTAL_VALUE));
                         mono(total);
                     });
                 });

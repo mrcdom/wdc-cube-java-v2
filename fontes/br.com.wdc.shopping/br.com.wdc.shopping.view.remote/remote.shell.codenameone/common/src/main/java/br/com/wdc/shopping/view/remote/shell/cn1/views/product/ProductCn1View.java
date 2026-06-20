@@ -12,7 +12,6 @@ import com.codename1.ui.geom.Dimension;
 import com.codename1.ui.layouts.BoxLayout;
 import com.codename1.ui.layouts.FlowLayout;
 
-import br.com.wdc.shopping.view.remote.shell.cn1.Sel;
 import br.com.wdc.shopping.view.remote.shell.cn1.ShoppingCn1RemoteApp;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.BridgeSession;
@@ -29,6 +28,8 @@ import br.com.wdc.shopping.view.remote.shell.cn1.util.Widgets;
  * (Voltar / Adicionar ao Carrinho). A quantidade é controlada localmente (stepper − valor +).
  */
 public class ProductCn1View extends AbstractCn1View {
+
+    private static final ProductSel sel = ProductSel.INSTANCE;
 
     public static final String CLASS_ID = "48b693f67410";
     private static final int EVT_BACK = 1;
@@ -55,39 +56,39 @@ public class ProductCn1View extends AbstractCn1View {
     protected Container build() {
         Container root = new Container(BoxLayout.y());
         root.setScrollableY(true);
-        root.setUIID(ProductSel.PRODUCT_PAGE);
+        root.setUIID(sel.PRODUCT_PAGE);
         Cn1Dom.render(root, (dom, r) -> {
-            name = dom.label(l -> l.setUIID(ProductSel.PRODUCT_TITLE));
-            Label divider = dom.label(l -> l.setUIID(ProductSel.PRODUCT_DIVIDER));
+            name = dom.label(l -> l.setUIID(sel.PRODUCT_TITLE));
+            Label divider = dom.label(l -> l.setUIID(sel.PRODUCT_DIVIDER));
             divider.setPreferredH(DIVIDER_H);
 
             // card de descrição
             dom.boxY(card -> {
-                card.setUIID(ProductSel.PRODUCT_DESC_CARD);
+                card.setUIID(sel.PRODUCT_DESC_CARD);
                 description = dom.boxY(c -> { });
             });
 
             // preço/quantidade (esquerda) + imagem (direita), alinhados pelo centro vertical
             dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, row -> {
-                row.setUIID(ProductSel.PRODUCT_PRICE_IMAGE_ROW);
+                row.setUIID(sel.PRODUCT_PRICE_IMAGE_ROW);
                 // BoxLayout.x estica os dois wraps à mesma altura; cada wrap centraliza o conteúdo
                 dom.boxX(group -> {
                     dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, priceWrap -> {
                         dom.boxY(priceCol -> {
-                            price = dom.label(l -> l.setUIID(ProductSel.PRODUCT_PRICE_BADGE));
+                            price = dom.label(l -> l.setUIID(sel.PRODUCT_PRICE_BADGE));
                             dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, qtyRow -> {
                                 dom.label(l -> {
                                     l.setText("Qtd:");
-                                    l.setUIID(ProductSel.QTY_LABEL);
+                                    l.setUIID(sel.QTY_LABEL);
                                 });
                                 stepBtn(dom, FontImage.MATERIAL_REMOVE, -1);
-                                qtyValue = dom.label(l -> l.setUIID(Sel.QTY_VALUE));
+                                qtyValue = dom.label(l -> l.setUIID(sel.QTY_VALUE));
                                 stepBtn(dom, FontImage.MATERIAL_ADD, 1);
                             });
                         });
                     });
                     dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, box -> {
-                        box.setUIID(ProductSel.PRODUCT_IMAGE_BOX);
+                        box.setUIID(sel.PRODUCT_IMAGE_BOX);
                         image = dom.label(l -> { });
                     });
                 });
@@ -98,7 +99,7 @@ public class ProductCn1View extends AbstractCn1View {
                 dom.add(Widgets.backButton("Voltar", () -> submit(EVT_BACK)), null);
                 Button add = dom.button(b -> {
                     b.setText("Adicionar ao Carrinho");
-                    b.setUIID(Sel.PRIMARY_BUTTON);
+                    b.setUIID(sel.PRIMARY_BUTTON);
                     b.addActionListener(e -> addToCart());
                 });
                 FontImage.setMaterialIcon(add, FontImage.MATERIAL_ADD_SHOPPING_CART, 3.5f);
@@ -110,7 +111,7 @@ public class ProductCn1View extends AbstractCn1View {
 
     private void stepBtn(Cn1Dom dom, char icon, int delta) {
         Button b = dom.button(bt -> {
-            bt.setUIID(Sel.QTY_BTN);
+            bt.setUIID(sel.QTY_BTN);
             bt.addActionListener(e -> changeQty(delta));
         });
         FontImage.setMaterialIcon(b, icon, 3f);
@@ -148,7 +149,7 @@ public class ProductCn1View extends AbstractCn1View {
         String html = Json.str(p, "description");
         if (!html.equals(lastHtml)) {
             lastHtml = html;
-            SimpleHtml.render(description, html, ProductSel.PRODUCT_DESC_TEXT);
+            SimpleHtml.render(description, html, sel.PRODUCT_DESC_TEXT);
         }
     }
 }

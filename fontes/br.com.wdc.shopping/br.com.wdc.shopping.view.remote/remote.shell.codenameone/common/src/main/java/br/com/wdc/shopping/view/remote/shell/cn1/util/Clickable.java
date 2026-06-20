@@ -15,6 +15,8 @@ import br.com.wdc.shopping.view.remote.shell.cn1.Sel;
  */
 public final class Clickable {
 
+    private static final Sel sel = Sel.INSTANCE;
+
     private Clickable() {
         // NOOP
     }
@@ -28,7 +30,7 @@ public final class Clickable {
         applyHover(content);
 
         Button lead = new Button();
-        lead.setUIID(Sel.CARD_LEAD);
+        lead.setUIID(sel.CARD_LEAD);
         lead.setPreferredH(0);
         content.add(lead);
         content.setLeadComponent(lead);

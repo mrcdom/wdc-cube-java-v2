@@ -14,7 +14,6 @@ import com.codename1.ui.layouts.BorderLayout;
 import com.codename1.ui.layouts.BoxLayout;
 import com.codename1.ui.layouts.FlowLayout;
 
-import br.com.wdc.shopping.view.remote.shell.cn1.Sel;
 import br.com.wdc.shopping.view.remote.shell.cn1.ShoppingCn1RemoteApp;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.BridgeSession;
@@ -28,6 +27,8 @@ import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
  * "Bem-vindo", labels e hints nos inputs e a dica de acesso demo.
  */
 public class LoginCn1View extends AbstractCn1View {
+
+    private static final LoginSel sel = LoginSel.INSTANCE;
 
     public static final String CLASS_ID = "c677cda52d14";
     private static final int EVT_LOGIN = 1;
@@ -67,54 +68,54 @@ public class LoginCn1View extends AbstractCn1View {
 
     private Container buildCard() {
         Container card = new Container(BoxLayout.y());
-        card.setUIID(LoginSel.LOGIN_CARD);
+        card.setUIID(sel.LOGIN_CARD);
 
         Cn1Dom.render(card, (dom, c) -> {
             // banner azul: logo (caixa pequena centralizada) + título + subtítulo
             dom.boxY(banner -> {
-                banner.setUIID(LoginSel.LOGIN_BANNER);
+                banner.setUIID(sel.LOGIN_BANNER);
                 Decor.blueWithCircles(banner);
                 dom.container(new FlowLayout(Component.CENTER), null, row -> {
-                    Label logo = dom.label(l -> l.setUIID(LoginSel.LOGO_BOX));
+                    Label logo = dom.label(l -> l.setUIID(sel.LOGO_BOX));
                     FontImage.setMaterialIcon(logo, FontImage.MATERIAL_SHOPPING_BAG, 7f);
                 });
                 dom.label(l -> {
                     l.setText("WDC Shopping");
-                    l.setUIID(LoginSel.BANNER_TITLE);
+                    l.setUIID(sel.BANNER_TITLE);
                 });
                 dom.spanLabel(l -> {
                     l.setText("Sua compra certa na internet.");
-                    l.setTextUIID(LoginSel.BANNER_SUBTITLE);
+                    l.setTextUIID(sel.BANNER_SUBTITLE);
                 });
             });
 
             // boas-vindas
             dom.label(l -> {
                 l.setText("Bem-vindo");
-                l.setUIID(LoginSel.WELCOME_TITLE);
+                l.setUIID(sel.WELCOME_TITLE);
             });
             dom.spanLabel(l -> {
                 l.setText("Entre com suas credenciais para continuar");
-                l.setTextUIID(LoginSel.WELCOME_SUBTITLE);
+                l.setTextUIID(sel.WELCOME_SUBTITLE);
             });
 
             // erro
             error = dom.label(l -> {
-                l.setUIID(LoginSel.WELCOME_SUBTITLE);
+                l.setUIID(sel.WELCOME_SUBTITLE);
                 l.getAllStyles().setFgColor(0xcc0000);
             });
 
             // usuário
             dom.label(l -> {
                 l.setText("Usuário");
-                l.setUIID(LoginSel.FIELD_LABEL);
+                l.setUIID(sel.FIELD_LABEL);
             });
             user = dom.textField(tf -> tf.setHint("Digite seu usuário"));
 
             // senha
             dom.label(l -> {
                 l.setText("Senha");
-                l.setUIID(LoginSel.FIELD_LABEL);
+                l.setUIID(sel.FIELD_LABEL);
             });
             pass = dom.textField(tf -> {
                 tf.setHint("Digite sua senha");
@@ -125,22 +126,22 @@ public class LoginCn1View extends AbstractCn1View {
             // loading
             loading = dom.label(l -> {
                 l.setText("Entrando...");
-                l.setUIID(LoginSel.WELCOME_SUBTITLE);
+                l.setUIID(sel.WELCOME_SUBTITLE);
             });
 
             // entrar
             dom.button(b -> {
                 b.setText("Entrar");
-                b.setUIID(Sel.PRIMARY_BUTTON);
+                b.setUIID(sel.PRIMARY_BUTTON);
                 b.addActionListener(e -> doLogin());
             });
 
             // dica de acesso demo
             dom.boxY(hint -> {
-                hint.setUIID(LoginSel.DEMO_HINT);
+                hint.setUIID(sel.DEMO_HINT);
                 dom.spanLabel(l -> {
                     l.setText("Acesso demo: admin / admin");
-                    l.setTextUIID(LoginSel.DEMO_TEXT);
+                    l.setTextUIID(sel.DEMO_TEXT);
                 });
             });
         });
@@ -151,7 +152,7 @@ public class LoginCn1View extends AbstractCn1View {
 
     private Container buildHero() {
         Container hero = new Container(new FlowLayout(Component.CENTER, Component.CENTER));
-        hero.setUIID(LoginSel.LOGIN_HERO);
+        hero.setUIID(sel.LOGIN_HERO);
         Decor.blueWithCircles(hero);
         Container content = new Container(BoxLayout.y());
         hero.add(content);
@@ -162,11 +163,11 @@ public class LoginCn1View extends AbstractCn1View {
             });
             dom.label(l -> {
                 l.setText("WDC Shopping");
-                l.setUIID(LoginSel.HERO_TITLE);
+                l.setUIID(sel.HERO_TITLE);
             });
             dom.spanLabel(l -> {
                 l.setText("Sua compra certa na internet.");
-                l.setTextUIID(LoginSel.HERO_SUBTITLE);
+                l.setTextUIID(sel.HERO_SUBTITLE);
             });
             feature(dom, FontImage.MATERIAL_VERIFIED_USER, "Compra segura");
             feature(dom, FontImage.MATERIAL_LOCAL_SHIPPING, "Entrega rápida");
@@ -181,7 +182,7 @@ public class LoginCn1View extends AbstractCn1View {
             FontImage.setMaterialIcon(ic, icon, 4f);
             dom.label(l -> {
                 l.setText(text);
-                l.setUIID(LoginSel.FEATURE_TEXT);
+                l.setUIID(sel.FEATURE_TEXT);
             });
         });
     }

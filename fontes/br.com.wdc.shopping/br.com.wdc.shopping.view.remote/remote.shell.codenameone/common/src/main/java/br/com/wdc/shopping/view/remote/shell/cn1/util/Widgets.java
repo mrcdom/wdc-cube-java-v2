@@ -14,6 +14,8 @@ import br.com.wdc.shopping.view.remote.shell.cn1.Sel;
 /** Widgets reutilizáveis do shell. */
 public final class Widgets {
 
+    private static final Sel sel = Sel.INSTANCE;
+
     private Widgets() {
         // NOOP
     }
@@ -25,7 +27,7 @@ public final class Widgets {
      */
     public static Button backButton(String text, Runnable onClick) {
         Button b = new Button(text);
-        b.setUIID(Sel.BACK_BUTTON);
+        b.setUIID(sel.BACK_BUTTON);
         FontImage.setMaterialIcon(b, FontImage.MATERIAL_ARROW_BACK, 3.5f);
         b.getAllStyles().setBorder(RoundRectBorder.create().cornerRadius(3f));
         b.getUnselectedStyle().setBgTransparency(0);
@@ -43,18 +45,18 @@ public final class Widgets {
      */
     public static Container cardHeader(char icon, String title, String subtitle) {
         Container row = new Container(BoxLayout.x());
-        row.setUIID(Sel.CARD_HEADER_ROW);
+        row.setUIID(sel.CARD_HEADER_ROW);
 
         Label iconBox = new Label();
-        iconBox.setUIID(Sel.CARD_HEADER_ICON_BOX);
+        iconBox.setUIID(sel.CARD_HEADER_ICON_BOX);
         FontImage.setMaterialIcon(iconBox, icon, 4.5f);
         row.add(iconBox);
 
         Container col = new Container(BoxLayout.y());
         Label t = new Label(title);
-        t.setUIID(Sel.CARD_HEADER_TITLE);
+        t.setUIID(sel.CARD_HEADER_TITLE);
         Label s = new Label(subtitle);
-        s.setUIID(Sel.CARD_HEADER_SUB);
+        s.setUIID(sel.CARD_HEADER_SUB);
         col.add(t);
         col.add(s);
         row.add(col);

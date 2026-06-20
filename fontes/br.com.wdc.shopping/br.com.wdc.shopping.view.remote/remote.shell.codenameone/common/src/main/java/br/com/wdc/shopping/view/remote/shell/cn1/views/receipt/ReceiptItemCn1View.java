@@ -14,6 +14,8 @@ import br.com.wdc.shopping.view.remote.shell.cn1.util.Money;
 /** Linha do recibo (cupom): descrição | quantidade | valor, alinhada com o cabeçalho da tabela. */
 public class ReceiptItemCn1View extends AbstractItemCn1View<Object> {
 
+    private static final ReceiptSel sel = ReceiptSel.INSTANCE;
+
     private Label desc;
     private Label qty;
     private Label value;
@@ -21,15 +23,15 @@ public class ReceiptItemCn1View extends AbstractItemCn1View<Object> {
     @Override
     protected Container build() {
         Container root = new Container(new BorderLayout());
-        root.setUIID(ReceiptSel.RECEIPT_ITEM_ROW);
+        root.setUIID(sel.RECEIPT_ITEM_ROW);
         Cn1Dom.render(root, (dom, r) -> {
-            desc = dom.label(BorderLayout.CENTER, l -> l.setUIID(ReceiptSel.RECEIPT_ITEM_DESC));
+            desc = dom.label(BorderLayout.CENTER, l -> l.setUIID(sel.RECEIPT_ITEM_DESC));
             ReceiptCn1View.mono(desc);
             dom.boxX(BorderLayout.EAST, cols -> {
-                qty = dom.label(l -> l.setUIID(ReceiptSel.RECEIPT_ITEM_QTY));
+                qty = dom.label(l -> l.setUIID(sel.RECEIPT_ITEM_QTY));
                 qty.setPreferredW(ReceiptCn1View.COL_QTY_W);
                 ReceiptCn1View.mono(qty);
-                value = dom.label(l -> l.setUIID(ReceiptSel.RECEIPT_ITEM_VALUE));
+                value = dom.label(l -> l.setUIID(sel.RECEIPT_ITEM_VALUE));
                 value.setPreferredW(ReceiptCn1View.COL_VALUE_W);
                 ReceiptCn1View.mono(value);
             });
