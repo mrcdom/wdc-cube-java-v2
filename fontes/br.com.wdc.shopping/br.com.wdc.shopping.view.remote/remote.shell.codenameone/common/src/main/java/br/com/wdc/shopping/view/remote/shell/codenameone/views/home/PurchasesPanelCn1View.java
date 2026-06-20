@@ -109,12 +109,14 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
      * "flutuar" na pílula como no React.
      */
     private void stylePaginator() {
+        // sombra discreta: blur/Y pequenos para o RoundRectBorder reservar pouco espaço vertical
+        // (essa reserva é o que aparecia como "cinza" sobrando dentro da pílula)
         RoundRectBorder infoBorder = RoundRectBorder.create()
                 .cornerRadius(2.5f)
-                .shadowOpacity(35)
+                .shadowOpacity(45)
                 .shadowSpread(0f)
-                .shadowBlur(2.5f)
-                .shadowY(1f);
+                .shadowBlur(0.8f)
+                .shadowY(0.4f);
         pageInfo.getAllStyles().setBorder(infoBorder);
         pageInfo.getAllStyles().setBgColor(0xffffff);
         pageInfo.getAllStyles().setBgTransparency(255);
