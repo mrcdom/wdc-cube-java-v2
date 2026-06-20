@@ -78,6 +78,17 @@ public final class Cn1Crypto {
         return Base64.encodeNoNewline(out);
     }
 
+    /** Decifra um base64 cifrado pela sessão (inverso de {@link #encipher}); {@code null} se inválido. */
+    public String decipher(String b64) {
+        try {
+            byte[] in = Base64.decode(utf8(b64));
+            byte[] out = Cipher.aesDecrypt(Cipher.AES_GCM, new SecretKey("AES", aesKey), iv, new byte[0], in);
+            return new String(out, "UTF-8");
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     // -- PBKDF2-HMAC-SHA256 (dkLen == 32 == 1 bloco HMAC-SHA256) --
 
     private static byte[] pbkdf2(byte[] password, byte[] salt, int iterations, int dkLen) {

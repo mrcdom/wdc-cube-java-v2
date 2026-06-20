@@ -39,6 +39,7 @@ public final class BridgeSession {
     private final Listener listener;
 
     private final Map<String, Map<String, Object>> states = new HashMap<>();
+    private final Cn1ClientStorage clientStorage = new Cn1ClientStorage();
     private WebSocket ws;
     private Cn1Crypto crypto;
     private String uri = "";
@@ -73,11 +74,23 @@ public final class BridgeSession {
         final String secret = crypto.signature();
 
         ws = WebSocket.build(wsBase + "/dispatcher/" + appId)
-                .onConnect(w -> w.send("{\"secret\":\"" + secret + "\",\"event\":[]}"))
+                .onConnect(w -> w.send(bootstrapMessage(secret)))
                 .onTextMessage((w, msg) -> handleMessage(msg))
                 .onClose((w, code, reason) -> { })
                 .onError((w, ex) -> { })
                 .connect();
+    }
+
+    /** 1ª mensagem WS: secret + o client storage (cifrado) para o servidor popular os escopos. */
+    private String bootstrapMessage(String secret) {
+        Map<String, Object> boot = new HashMap<>();
+        boot.put("secret", secret);
+        boot.put("event", new ArrayList<>());
+        Map<String, Object> storage = clientStorage.bootstrap(crypto);
+        if (!storage.isEmpty()) {
+            boot.put("storage", storage);
+        }
+        return JSONParser.mapToJson(boot);
     }
 
     private void handleMessage(String msg) {
@@ -100,10 +113,42 @@ public final class BridgeSession {
                     }
                 }
             }
+            applyStorageDelta(resp.get("storage"));
         } catch (Exception ignore) {
             // mensagem malformada — ignora; o estado anterior permanece
         }
         CN.callSerially(() -> listener.onUpdate(this));
+    }
+
+    /** Aplica os deltas de storage do servidor: decifra os valores e grava (ou remove se {@code null}). */
+    private void applyStorageDelta(Object storageObj) {
+        if (!(storageObj instanceof Map)) {
+            return;
+        }
+        @SuppressWarnings("unchecked")
+        Map<String, Object> delta = (Map<String, Object>) storageObj;
+        applyScope(Cn1ClientStorage.SESSION, delta.get(Cn1ClientStorage.SESSION));
+        applyScope(Cn1ClientStorage.PERSISTENT, delta.get(Cn1ClientStorage.PERSISTENT));
+        applyScope(Cn1ClientStorage.PERSISTENT_SECURE, delta.get(Cn1ClientStorage.PERSISTENT_SECURE));
+    }
+
+    private void applyScope(String scope, Object scopeObj) {
+        if (!(scopeObj instanceof Map)) {
+            return;
+        }
+        @SuppressWarnings("unchecked")
+        Map<String, Object> m = (Map<String, Object>) scopeObj;
+        for (Map.Entry<String, Object> e : m.entrySet()) {
+            Object v = e.getValue();
+            if (v instanceof String && !((String) v).isEmpty()) {
+                String plain = crypto.decipher((String) v);
+                if (plain != null) {
+                    clientStorage.apply(scope, e.getKey(), plain);
+                }
+            } else {
+                clientStorage.apply(scope, e.getKey(), null); // null/vazio = remoção
+            }
+        }
     }
 
     /**
