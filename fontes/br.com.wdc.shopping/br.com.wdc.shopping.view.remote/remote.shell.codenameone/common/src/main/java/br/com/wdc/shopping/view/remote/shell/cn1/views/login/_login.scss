@@ -4,27 +4,27 @@
 @use 'tokens' as *;
 @use 'mixins' as *;
 
-LoginCardLgn {
+LgnLoginCard {
     background-color: $surface;
     border-radius: $radius;
     padding: 4mm;
     margin: 3mm;
 }
 
-LoginHeroLgn {
+LgnLoginHero {
     @include hero-gradient;
     padding: 8mm;
 }
 
 // Banner azul no topo do card.
-LoginBannerLgn {
+LgnLoginBanner {
     @include hero-gradient;
     border-radius: $radius-pill;
     padding: 4mm;
     margin: 0 0 3mm 0;
 }
 
-LogoBoxLgn {
+LgnLogoBox {
     color: $surface;
     background-color: $logo-box;
     border-radius: $radius-pill;
@@ -32,7 +32,7 @@ LogoBoxLgn {
     text-align: center;
 }
 
-BannerTitleLgn {
+LgnBannerTitle {
     color: $surface;
     background-color: transparent;
     font-family: $f-bold;
@@ -40,38 +40,38 @@ BannerTitleLgn {
     text-align: center;
 }
 
-BannerSubtitleLgn {
+LgnBannerSubtitle {
     color: $ice;
     background-color: transparent;
     font-size: 2.4mm;
     text-align: center;
 }
 
-FeatureTextLgn {
+LgnFeatureText {
     color: $surface;
     background-color: transparent;
     font-size: 3mm;
 }
 
-WelcomeTitleLgn {
+LgnWelcomeTitle {
     color: $text;
     font-family: $f-bold;
     font-size: 4.5mm;
 }
 
-WelcomeSubtitleLgn {
+LgnWelcomeSubtitle {
     color: $text-secondary;
     font-size: 2.8mm;
 }
 
-FieldLabelLgn {
+LgnFieldLabel {
     color: $text;
     font-family: $f-bold;
     font-size: 2.8mm;
     padding: 1.5mm 0 0.5mm 0;
 }
 
-DemoHintLgn {
+LgnDemoHint {
     background-color: $bg;
     border: 1px solid $border;
     border-radius: $radius-sm;
@@ -79,7 +79,7 @@ DemoHintLgn {
     margin: 3mm 0 0 0;
 }
 
-DemoTextLgn {
+LgnDemoText {
     color: $text-secondary;
     font-size: 2.6mm;
     text-align: center;

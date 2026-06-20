@@ -5,11 +5,11 @@
 @use 'tokens' as *;
 @use 'mixins' as *;
 
-ProductPagePrd {
+PrdProductPage {
     @include page;
 }
 
-ProductTitlePrd {
+PrdProductTitle {
     color: $text;
     font-family: $f-bold;
     font-size: 5mm;
@@ -17,30 +17,30 @@ ProductTitlePrd {
 }
 
 // Divisória azul abaixo do título (altura definida em Java).
-ProductDividerPrd {
+PrdProductDivider {
     background-color: $accent;
     padding: 0;
     margin: 0 0 3mm 0;
 }
 
-ProductDescCardPrd {
+PrdProductDescCard {
     @include card;
     padding: 4mm;
     margin: 0 0 4mm 0;
 }
 
-ProductDescTextPrd {
+PrdProductDescText {
     color: $text;
     font-size: 2.9mm;
     padding: 0.5mm 0;
 }
 
-ProductPriceImageRowPrd {
+PrdProductPriceImageRow {
     background-color: transparent;
     padding: 0 0 3mm 0;
 }
 
-ProductPriceBadgePrd {
+PrdProductPriceBadge {
     background-color: $accent-light;
     color: $accent;
     font-family: $f-bold;
@@ -51,13 +51,13 @@ ProductPriceBadgePrd {
     text-align: center;
 }
 
-QtyLabelPrd {
+PrdQtyLabel {
     color: $text-secondary;
     font-size: 2.8mm;
     padding: 0 1mm 0 0;
 }
 
-ProductImageBoxPrd {
+PrdProductImageBox {
     @include img-gradient;
     border-radius: $radius-sm;
     padding: 3mm;

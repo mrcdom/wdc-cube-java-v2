@@ -11,13 +11,13 @@ public final class ProductSel extends Sel {
         // singleton
     }
 
-    public final String PRODUCT_PAGE = "ProductPagePrd";
-    public final String PRODUCT_TITLE = "ProductTitlePrd";
-    public final String PRODUCT_DIVIDER = "ProductDividerPrd";
-    public final String PRODUCT_DESC_CARD = "ProductDescCardPrd";
-    public final String PRODUCT_DESC_TEXT = "ProductDescTextPrd";
-    public final String PRODUCT_PRICE_IMAGE_ROW = "ProductPriceImageRowPrd";
-    public final String PRODUCT_PRICE_BADGE = "ProductPriceBadgePrd";
-    public final String QTY_LABEL = "QtyLabelPrd";
-    public final String PRODUCT_IMAGE_BOX = "ProductImageBoxPrd";
+    public final String PRODUCT_PAGE = "PrdProductPage";
+    public final String PRODUCT_TITLE = "PrdProductTitle";
+    public final String PRODUCT_DIVIDER = "PrdProductDivider";
+    public final String PRODUCT_DESC_CARD = "PrdProductDescCard";
+    public final String PRODUCT_DESC_TEXT = "PrdProductDescText";
+    public final String PRODUCT_PRICE_IMAGE_ROW = "PrdProductPriceImageRow";
+    public final String PRODUCT_PRICE_BADGE = "PrdProductPriceBadge";
+    public final String QTY_LABEL = "PrdQtyLabel";
+    public final String PRODUCT_IMAGE_BOX = "PrdProductImageBox";
 }

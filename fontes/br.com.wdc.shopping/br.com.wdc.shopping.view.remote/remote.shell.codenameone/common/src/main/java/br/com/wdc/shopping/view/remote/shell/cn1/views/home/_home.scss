@@ -8,33 +8,33 @@
 
 // -- Grade de produtos --
 
-ProductsPanelHom {
+HomProductsPanel {
     background-color: transparent;
     padding: 3mm;
 }
 
 // hover/clique: estados selected/pressed definidos em Java (Clickable) — o CSS do
 // CN1 não suporta pseudo-classes.
-ProductCardHom {
+HomProductCard {
     @include card;
     margin: 2mm;
 }
 
-ProductCardImageHom {
+HomProductCardImage {
     @include img-gradient;
     border-radius: $radius-pill;
     padding: 1.5mm;
     text-align: center;
 }
 
-ProductCardNameHom {
+HomProductCardName {
     color: $text;
     font-family: $f-regular;
     font-size: 2.8mm;
     padding: 2mm 3mm 0 3mm;
 }
 
-ProductCardPriceHom {
+HomProductCardPrice {
     color: $accent;
     font-family: $f-bold;
     font-size: 3.4mm;
@@ -43,12 +43,12 @@ ProductCardPriceHom {
 
 // -- App bar (HeaderPanel) --
 
-AppBarHom {
+HomAppBar {
     @include appbar-gradient;
     padding: 2mm 3mm;
 }
 
-AppBarBtnHom {
+HomAppBarBtn {
     background-color: transparent;
     color: $surface;
     border: none;
@@ -57,7 +57,7 @@ AppBarBtnHom {
     padding: 1mm 2mm;
 }
 
-GreetingSmallHom {
+HomGreetingSmall {
     color: $greeting;
     font-family: $f-light;
     font-size: 2.2mm;
@@ -65,7 +65,7 @@ GreetingSmallHom {
     padding: 0;
 }
 
-GreetingNameHom {
+HomGreetingName {
     color: $surface;
     font-family: $f-bold;
     font-size: 2.8mm;
@@ -73,7 +73,7 @@ GreetingNameHom {
     padding: 0;
 }
 
-AppBarLogoBoxHom {
+HomAppBarLogoBox {
     color: $surface;
     background-color: $logo-box;
     border-radius: $radius-sm;
@@ -81,7 +81,7 @@ AppBarLogoBoxHom {
     margin: 0 2.5mm 0 0;
 }
 
-AppBarBrandHom {
+HomAppBarBrand {
     color: $surface;
     font-family: $f-bold;
     font-size: 3.4mm;
@@ -89,7 +89,7 @@ AppBarBrandHom {
     padding: 0;
 }
 
-AppBarBrandSubHom {
+HomAppBarBrandSub {
     color: $greeting;
     font-family: $f-light;
     font-size: 2mm;
@@ -97,7 +97,7 @@ AppBarBrandSubHom {
     padding: 0;
 }
 
-CartBadgeHom {
+HomCartBadge {
     color: $accent;
     background-color: $surface;
     border-radius: $radius-sm;
@@ -110,12 +110,12 @@ CartBadgeHom {
 
 // -- Abas (layout compacto) --
 
-TabNavHom {
+HomTabNav {
     background-color: $surface;
     border: none;
 }
 
-TabItemHom {
+HomTabItem {
     background-color: $surface;
     color: $text-secondary;
     border: none;
@@ -125,7 +125,7 @@ TabItemHom {
     text-align: center;
 }
 
-TabItemActiveHom {
+HomTabItemActive {
     background-color: $surface;
     color: $accent;
     border: none;
@@ -137,30 +137,30 @@ TabItemActiveHom {
 
 // -- Painel de histórico --
 
-PurchasesPanelHom {
+HomPurchasesPanel {
     background-color: $surface;
     padding: 3mm;
 }
 
-PurchasesHeaderIconHom {
+HomPurchasesHeaderIcon {
     color: $accent;
 }
 
-PurchasesTitleHom {
+HomPurchasesTitle {
     color: $text;
     font-family: $f-bold;
     font-size: 3.2mm;
     padding: 0 0 0 1.5mm;
 }
 
-PurchasesHintHom {
+HomPurchasesHint {
     color: $text-secondary;
     font-size: 2.4mm;
     padding: 0.5mm 0 2mm 0;
 }
 
 // hover/clique: estados selected/pressed definidos em Java (Clickable).
-PurchaseCardHom {
+HomPurchaseCard {
     background-color: $bg;
     border: 1px solid $border;
     border-radius: $radius-sm;
@@ -168,13 +168,13 @@ PurchaseCardHom {
     padding: 1mm 2.5mm;
 }
 
-PurchaseLineHom {
+HomPurchaseLine {
     background-color: transparent;
     margin: 0;
     padding: 0.3mm 0;
 }
 
-PurchaseIdHom {
+HomPurchaseId {
     color: $accent;
     font-family: $f-bold;
     font-size: 2.6mm;
@@ -182,21 +182,21 @@ PurchaseIdHom {
     padding: 0;
 }
 
-PurchaseDateHom {
+HomPurchaseDate {
     color: $text-secondary;
     font-size: 2.3mm;
     margin: 0;
     padding: 0;
 }
 
-PurchaseItemsHom {
+HomPurchaseItems {
     color: $text-secondary;
     font-size: 2.4mm;
     margin: 0;
     padding: 0;
 }
 
-PurchaseTotalHom {
+HomPurchaseTotal {
     color: $text;
     font-family: $f-bold;
     font-size: 2.6mm;
@@ -205,18 +205,18 @@ PurchaseTotalHom {
 }
 
 // Paginador (page-pill do React): pílula/box/sombra das setas vêm do Java.
-PurchasePaginationHom {
+HomPurchasePagination {
     background-color: $surface;
     border-top: 1px solid $border;
     padding: 3mm 0 3mm 0;
 }
 
-PurchasePagePillHom {
+HomPurchasePagePill {
     padding: 0 1mm;
 }
 
 // font-size pequeno evita que o texto vazio do Button reserve a altura da fonte.
-PurchasePageBtnHom {
+HomPurchasePageBtn {
     background-color: transparent;
     color: $text-secondary;
     border: none;
@@ -225,7 +225,7 @@ PurchasePageBtnHom {
     margin: 0;
 }
 
-PurchasePageInfoHom {
+HomPurchasePageInfo {
     color: $text;
     background-color: $surface;
     font-family: $f-bold;
