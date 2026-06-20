@@ -517,7 +517,7 @@ QtyBtn {
 BackButton {
     background-color: transparent;
     color: #6e6e73;
-    font-family: "native:MainRegular";
+    font-family: "native:MainLight";
     font-size: 3mm;
     border: none;
     padding: 2mm 3mm;
