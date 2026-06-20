@@ -123,7 +123,7 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
 
         // Pílula arredondada via RoundRectBorder do Java (o border-radius grande do CSS reservava
         // espaço vertical extra — o cinza que sobrava). Mesmo mecanismo do box, que fica justo.
-        pill.getAllStyles().setBorder(RoundRectBorder.create().cornerRadius(4f));
+        pill.getAllStyles().setBorder(RoundRectBorder.create().cornerRadius(2.5f));
         pill.getAllStyles().setBgColor(0xf4f6f9);
         pill.getAllStyles().setBgTransparency(255);
 
