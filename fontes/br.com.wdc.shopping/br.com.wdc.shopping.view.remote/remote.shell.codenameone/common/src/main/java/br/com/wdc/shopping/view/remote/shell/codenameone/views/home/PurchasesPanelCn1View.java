@@ -88,13 +88,13 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
                         b.setUIID("PurchasePageBtn");
                         b.addActionListener(e -> changePage(-1));
                     });
-                    FontImage.setMaterialIcon(prevBtn, FontImage.MATERIAL_CHEVRON_LEFT, 3.5f);
+                    FontImage.setMaterialIcon(prevBtn, FontImage.MATERIAL_CHEVRON_LEFT, 3f);
                     pageInfo = dom.label(l -> l.setUIID("PurchasePageInfo"));
                     nextBtn = dom.button(b -> {
                         b.setUIID("PurchasePageBtn");
                         b.addActionListener(e -> changePage(1));
                     });
-                    FontImage.setMaterialIcon(nextBtn, FontImage.MATERIAL_CHEVRON_RIGHT, 3.5f);
+                    FontImage.setMaterialIcon(nextBtn, FontImage.MATERIAL_CHEVRON_RIGHT, 3f);
                 });
             });
         });
