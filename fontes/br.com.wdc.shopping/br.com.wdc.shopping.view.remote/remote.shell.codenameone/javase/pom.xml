@@ -98,7 +98,7 @@
           <id>executable-jar</id>
           <properties>
               <codename1.platform>javase</codename1.platform>
-              <exec.mainClass>br.com.wdc.shopping.view.remote.shell.codenameone.ShoppingCn1RemoteAppStub</exec.mainClass>
+              <exec.mainClass>br.com.wdc.shopping.view.remote.shell.cn1.ShoppingCn1RemoteAppStub</exec.mainClass>
           </properties>
           <dependencies>
               <dependency>
@@ -221,7 +221,7 @@
           <id>run-desktop</id>
           <properties>
               <codename1.platform>javase</codename1.platform>
-              <exec.mainClass>br.com.wdc.shopping.view.remote.shell.codenameone.ShoppingCn1RemoteAppStub</exec.mainClass>
+              <exec.mainClass>br.com.wdc.shopping.view.remote.shell.cn1.ShoppingCn1RemoteAppStub</exec.mainClass>
           </properties>
           <dependencies>
               <dependency>
