@@ -10,6 +10,7 @@ import com.codename1.ui.Container;
 import com.codename1.ui.FontImage;
 import com.codename1.ui.Form;
 import com.codename1.ui.Label;
+import com.codename1.ui.geom.Dimension;
 import com.codename1.ui.layouts.BorderLayout;
 import com.codename1.ui.layouts.FlowLayout;
 import com.codename1.ui.plaf.RoundRectBorder;
@@ -88,13 +89,13 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
                         l.setUIID("PurchasePageBtn");
                         l.addPointerReleasedListener(e -> changePage(-1));
                     });
-                    FontImage.setMaterialIcon(prevBtn, FontImage.MATERIAL_CHEVRON_LEFT, 3.2f);
+                    FontImage.setMaterialIcon(prevBtn, FontImage.MATERIAL_CHEVRON_LEFT, 2.8f);
                     pageInfo = dom.label(l -> l.setUIID("PurchasePageInfo"));
                     nextBtn = dom.label(l -> {
                         l.setUIID("PurchasePageBtn");
                         l.addPointerReleasedListener(e -> changePage(1));
                     });
-                    FontImage.setMaterialIcon(nextBtn, FontImage.MATERIAL_CHEVRON_RIGHT, 3.2f);
+                    FontImage.setMaterialIcon(nextBtn, FontImage.MATERIAL_CHEVRON_RIGHT, 2.8f);
                 });
             });
         });
@@ -108,8 +109,7 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
      * "flutuar" na pílula como no React.
      */
     private void stylePaginator() {
-        // sombra discreta: blur/Y pequenos para o RoundRectBorder reservar pouco espaço vertical
-        // (essa reserva é o que aparecia como "cinza" sobrando dentro da pílula)
+        // sombra discreta no box "x / y"
         RoundRectBorder infoBorder = RoundRectBorder.create()
                 .cornerRadius(2.5f)
                 .shadowOpacity(45)
@@ -119,6 +119,16 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
         pageInfo.getAllStyles().setBorder(infoBorder);
         pageInfo.getAllStyles().setBgColor(0xffffff);
         pageInfo.getAllStyles().setBgTransparency(255);
+
+        // Setas com EXATAMENTE a altura do box: assim a pílula = altura do box (sem cinza
+        // sobrando) e as setas ficam centralizadas verticalmente com o indicador. A altura
+        // natural de um Label/Button é maior que a do box (reserva da fonte/toque), por isso
+        // travamos a altura aqui, mantendo a largura natural do ícone.
+        int h = pageInfo.getPreferredH();
+        if (h > 0) {
+            prevBtn.setPreferredSize(new Dimension(prevBtn.getPreferredW(), h));
+            nextBtn.setPreferredSize(new Dimension(nextBtn.getPreferredW(), h));
+        }
     }
 
     @Override
