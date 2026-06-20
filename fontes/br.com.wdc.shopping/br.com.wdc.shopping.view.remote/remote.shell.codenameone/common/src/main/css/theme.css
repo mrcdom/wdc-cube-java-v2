@@ -416,7 +416,7 @@ PurchasePagination {
 PurchasePagePill {
     background-color: #f4f6f9;
     border-radius: 6mm;
-    padding: 0.5mm 1mm;
+    padding: 0 1mm;
 }
 
 /* setas: pequenas e coladas ao indicador */
@@ -424,7 +424,7 @@ PurchasePageBtn {
     background-color: transparent;
     color: #6e6e73;
     border: none;
-    padding: 0.5mm 1mm;
+    padding: 0 1mm;
     margin: 0;
 }
 
@@ -434,6 +434,6 @@ PurchasePageInfo {
     background-color: #ffffff;
     font-family: "native:MainBold";
     font-size: 2.6mm;
-    padding: 0.6mm 2.5mm;
+    padding: 0.4mm 2.5mm;
     margin: 0 0.4mm;
 }
