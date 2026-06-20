@@ -40,6 +40,12 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
     /** Janela do debounce da notificação de capacidade (ms). */
     private static final int DEBOUNCE_MS = 250;
 
+    /** Tamanho (mm) e cores do ícone das setas (cor é "assada" na criação do ícone). */
+    private static final float CHEVRON_MM = 2.8f;
+    private static final int CHEVRON_ENABLED = 0x6e6e73;
+    private static final int CHEVRON_DISABLED = 0xc7c7cc;
+    private static final int CHEVRON_PRESSED = 0x0d66d0;
+
     private Container list;
     private Container pagination;
     private Container pill;
@@ -52,6 +58,8 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
     private int lastCapacity = -1;
     private int capacityToken;
     private boolean resizeHooked;
+    /** Altura travada das setas (= altura do box); re-aplicada após cada re-bake do ícone. */
+    private int chevronH;
 
     public PurchasesPanelCn1View(String vsid, BridgeSession session, ShoppingCn1RemoteApp app) {
         super(vsid, session, app);
@@ -88,15 +96,23 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
                     p.setUIID("PurchasePagePill");
                     prevBtn = dom.label(l -> {
                         l.setUIID("PurchasePageBtn");
-                        l.addPointerReleasedListener(e -> changePage(-1));
+                        l.addPointerPressedListener(e -> chevronIcon(l, FontImage.MATERIAL_CHEVRON_LEFT, CHEVRON_PRESSED));
+                        l.addPointerReleasedListener(e -> {
+                            chevronIcon(l, FontImage.MATERIAL_CHEVRON_LEFT, CHEVRON_ENABLED);
+                            changePage(-1);
+                        });
                     });
-                    FontImage.setMaterialIcon(prevBtn, FontImage.MATERIAL_CHEVRON_LEFT, 2.8f);
+                    chevronIcon(prevBtn, FontImage.MATERIAL_CHEVRON_LEFT, CHEVRON_ENABLED);
                     pageInfo = dom.label(l -> l.setUIID("PurchasePageInfo"));
                     nextBtn = dom.label(l -> {
                         l.setUIID("PurchasePageBtn");
-                        l.addPointerReleasedListener(e -> changePage(1));
+                        l.addPointerPressedListener(e -> chevronIcon(l, FontImage.MATERIAL_CHEVRON_RIGHT, CHEVRON_PRESSED));
+                        l.addPointerReleasedListener(e -> {
+                            chevronIcon(l, FontImage.MATERIAL_CHEVRON_RIGHT, CHEVRON_ENABLED);
+                            changePage(1);
+                        });
                     });
-                    FontImage.setMaterialIcon(nextBtn, FontImage.MATERIAL_CHEVRON_RIGHT, 2.8f);
+                    chevronIcon(nextBtn, FontImage.MATERIAL_CHEVRON_RIGHT, CHEVRON_ENABLED);
                 });
             });
         });
@@ -131,11 +147,30 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
         // sobrando) e as setas ficam centralizadas verticalmente com o indicador. A altura
         // natural de um Label/Button é maior que a do box (reserva da fonte/toque), por isso
         // travamos a altura aqui, mantendo a largura natural do ícone.
-        int h = pageInfo.getPreferredH();
-        if (h > 0) {
-            prevBtn.setPreferredSize(new Dimension(prevBtn.getPreferredW(), h));
-            nextBtn.setPreferredSize(new Dimension(nextBtn.getPreferredW(), h));
+        chevronH = pageInfo.getPreferredH();
+        lockChevronHeight(prevBtn);
+        lockChevronHeight(nextBtn);
+    }
+
+    /** Trava a altura da seta na altura do box (setIcon marca p/ recalcular, então re-aplicamos). */
+    private void lockChevronHeight(Label l) {
+        if (chevronH > 0) {
+            l.setPreferredSize(new Dimension(l.getPreferredW(), chevronH));
         }
+    }
+
+    /** (Re)gera o ícone da seta com a cor indicada — a cor é "assada" na criação do FontImage. */
+    private void chevronIcon(Label l, char icon, int color) {
+        l.getAllStyles().setFgColor(color);
+        FontImage.setMaterialIcon(l, icon, CHEVRON_MM);
+        lockChevronHeight(l); // setIcon marcou p/ recalcular; mantém a altura travada (sem cinza)
+        l.repaint();
+    }
+
+    /** Habilita/desabilita a seta: cinza-claro + sem clique quando não há para onde ir. */
+    private void setChevronEnabled(Label l, char icon, boolean enabled) {
+        l.setEnabled(enabled);
+        chevronIcon(l, icon, enabled ? CHEVRON_ENABLED : CHEVRON_DISABLED);
     }
 
     @Override
@@ -150,8 +185,8 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
         totalPages = Math.max(1, (totalCount + pageSize - 1) / pageSize);
 
         pageInfo.setText((page + 1) + " / " + totalPages);
-        prevBtn.setEnabled(page > 0);
-        nextBtn.setEnabled(page < totalPages - 1);
+        setChevronEnabled(prevBtn, FontImage.MATERIAL_CHEVRON_LEFT, page > 0);
+        setChevronEnabled(nextBtn, FontImage.MATERIAL_CHEVRON_RIGHT, page < totalPages - 1);
         visible(pagination, totalCount > 0);
 
         hookResize();
