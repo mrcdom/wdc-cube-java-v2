@@ -63,11 +63,11 @@ public class ProductCn1View extends AbstractCn1View {
             });
 
             // preço/quantidade (esquerda) + imagem (direita)
-            dom.container(new FlowLayout(Component.CENTER, Component.CENTER), row -> {
+            dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, row -> {
                 row.setUIID("ProductPriceImageRow");
                 dom.boxY(priceCol -> {
                     price = dom.label(l -> l.setUIID("ProductPriceBadge"));
-                    dom.container(new FlowLayout(Component.CENTER, Component.CENTER), qtyRow -> {
+                    dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, qtyRow -> {
                         dom.label(l -> {
                             l.setText("Qtd:");
                             l.setUIID("QtyLabel");
@@ -77,14 +77,14 @@ public class ProductCn1View extends AbstractCn1View {
                         stepBtn(dom, FontImage.MATERIAL_ADD, 1);
                     });
                 });
-                dom.container(new FlowLayout(Component.CENTER, Component.CENTER), box -> {
+                dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, box -> {
                     box.setUIID("ProductImageBox");
                     image = dom.label(l -> { });
                 });
             });
 
             // ações: Voltar + Adicionar ao Carrinho
-            dom.container(new FlowLayout(Component.CENTER, Component.CENTER), actions -> {
+            dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, actions -> {
                 Button back = dom.button(b -> {
                     b.setText("Voltar");
                     b.setUIID("LinkButton");
