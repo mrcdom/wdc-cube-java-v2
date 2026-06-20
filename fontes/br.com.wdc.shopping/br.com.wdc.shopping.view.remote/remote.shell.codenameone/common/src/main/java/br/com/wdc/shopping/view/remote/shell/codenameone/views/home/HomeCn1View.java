@@ -3,9 +3,12 @@ package br.com.wdc.shopping.view.remote.shell.codenameone.views.home;
 import java.util.Map;
 
 import com.codename1.ui.Button;
+import com.codename1.ui.Component;
 import com.codename1.ui.Container;
+import com.codename1.ui.FontImage;
 import com.codename1.ui.Label;
 import com.codename1.ui.layouts.BorderLayout;
+import com.codename1.ui.layouts.FlowLayout;
 
 import br.com.wdc.shopping.view.remote.shell.codenameone.ShoppingCn1RemoteApp;
 import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractCn1View;
@@ -14,9 +17,9 @@ import br.com.wdc.shopping.view.remote.shell.codenameone.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Json;
 
 /**
- * Tela principal (classId {@value #CLASS_ID}): cabeçalho (nick + carrinho + sair) e uma área de
- * conteúdo que mostra o painel de produtos por padrão, ou uma tela aninhada (produto/carrinho/
- * recibo) quando o servidor define {@code contentViewId}.
+ * Tela principal (classId {@value #CLASS_ID}): app bar (sair + saudação / logo "Shopping" / carrinho
+ * com badge) e uma área de conteúdo — painel de produtos por padrão, ou uma tela aninhada
+ * (produto/carrinho/recibo) quando o servidor define {@code contentViewId}.
  */
 public class HomeCn1View extends AbstractCn1View {
 
@@ -25,7 +28,7 @@ public class HomeCn1View extends AbstractCn1View {
     private static final int EVT_OPEN_CART = 2;
 
     private Label nick;
-    private Button cartBtn;
+    private Label cartBadge;
     private Container contentPane;
     private String mountedVsid = "";
 
@@ -37,20 +40,53 @@ public class HomeCn1View extends AbstractCn1View {
     protected Container build() {
         Container root = new Container(new BorderLayout());
         Cn1Dom.render(root, (dom, r) -> {
-            dom.boxX(BorderLayout.NORTH, header -> {
-                header.setUIID("AppBar");
-                nick = dom.label(l -> l.setUIID("AppBarTitle"));
-                cartBtn = dom.button(b -> {
-                    b.setText("Carrinho");
-                    b.setUIID("AppBarTitle");
-                    b.addActionListener(e -> submit(EVT_OPEN_CART));
+            dom.border(BorderLayout.NORTH, bar -> {
+                bar.setUIID("AppBar");
+
+                // esquerda: sair + saudação
+                dom.boxX(BorderLayout.WEST, west -> {
+                    Button exit = dom.button(b -> {
+                        b.setUIID("AppBarBtn");
+                        b.addActionListener(e -> submit(EVT_LOGOUT));
+                    });
+                    FontImage.setMaterialIcon(exit, FontImage.MATERIAL_LOGOUT, 5f);
+                    dom.boxY(greet -> {
+                        dom.label(l -> {
+                            l.setText("Bem-vindo(a),");
+                            l.setUIID("GreetingSmall");
+                        });
+                        nick = dom.label(l -> l.setUIID("GreetingName"));
+                    });
                 });
-                dom.button(b -> {
-                    b.setText("Sair");
-                    b.setUIID("AppBarTitle");
-                    b.addActionListener(e -> submit(EVT_LOGOUT));
+
+                // centro: logo + Shopping / By WeDoCode
+                dom.container(new FlowLayout(Component.CENTER, Component.CENTER), BorderLayout.CENTER, center -> {
+                    Label logo = dom.label(l -> l.setUIID("AppBarLogoBox"));
+                    FontImage.setMaterialIcon(logo, FontImage.MATERIAL_SHOPPING_BAG, 5f);
+                    dom.boxY(t -> {
+                        dom.label(l -> {
+                            l.setText("Shopping");
+                            l.setUIID("AppBarBrand");
+                        });
+                        dom.label(l -> {
+                            l.setText("By WeDoCode");
+                            l.setUIID("AppBarBrandSub");
+                        });
+                    });
+                });
+
+                // direita: carrinho + badge
+                dom.boxX(BorderLayout.EAST, east -> {
+                    Button cart = dom.button(b -> {
+                        b.setText("Carrinho");
+                        b.setUIID("AppBarBtn");
+                        b.addActionListener(e -> submit(EVT_OPEN_CART));
+                    });
+                    FontImage.setMaterialIcon(cart, FontImage.MATERIAL_SHOPPING_CART, 5f);
+                    cartBadge = dom.label(l -> l.setUIID("CartBadge"));
                 });
             });
+
             contentPane = dom.border(BorderLayout.CENTER, c -> { });
         });
         return root;
@@ -59,8 +95,8 @@ public class HomeCn1View extends AbstractCn1View {
     @Override
     public void doUpdate() {
         Map<String, Object> st = state();
-        nick.setText("Olá, " + Json.str(st, "nickName"));
-        cartBtn.setText("Carrinho (" + Json.intOf(st, "cartItemCount") + ")");
+        nick.setText(Json.str(st, "nickName"));
+        cartBadge.setText(String.valueOf(Json.intOf(st, "cartItemCount")));
 
         // tela aninhada (produto/carrinho/recibo) se houver; senão, o painel de produtos
         String content = Json.str(st, "contentViewId");

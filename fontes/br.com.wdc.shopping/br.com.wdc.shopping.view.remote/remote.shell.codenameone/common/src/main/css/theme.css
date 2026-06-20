@@ -201,15 +201,57 @@ DemoText {
     text-align: center;
 }
 
-/* App bar azul (fase 2 — header compartilhado) */
+/* === App bar da Home (HeaderPanel) === */
 AppBar {
-    background-color: #0d66d0;
-    color: #ffffff;
+    background: linear-gradient(135deg, #0d66d0 0%, #1a8cff 100%);
     padding: 2mm 3mm;
 }
 
-AppBarTitle {
+AppBarBtn {
+    background-color: transparent;
+    color: #ffffff;
+    border: none;
+    font-family: "native:MainRegular";
+    font-size: 2.8mm;
+    padding: 1mm 2mm;
+}
+
+GreetingSmall {
+    color: #dbe9ff;
+    font-family: "native:MainLight";
+    font-size: 2.2mm;
+}
+
+GreetingName {
     color: #ffffff;
     font-family: "native:MainBold";
-    font-size: 4mm;
+    font-size: 2.8mm;
+}
+
+AppBarLogoBox {
+    color: #ffffff;
+    background-color: #2f86f0;
+    border-radius: 2mm;
+    padding: 1.5mm;
+}
+
+AppBarBrand {
+    color: #ffffff;
+    font-family: "native:MainBold";
+    font-size: 3.4mm;
+}
+
+AppBarBrandSub {
+    color: #dbe9ff;
+    font-family: "native:MainLight";
+    font-size: 2mm;
+}
+
+CartBadge {
+    color: #0d66d0;
+    background-color: #ffffff;
+    border-radius: 3mm;
+    font-family: "native:MainBold";
+    font-size: 2.2mm;
+    padding: 0.3mm 1.5mm;
 }
