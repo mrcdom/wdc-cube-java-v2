@@ -516,11 +516,11 @@ QtyBtn {
 /* botão Voltar — neutro/cinza (ActionButton quiet do React), diferente do accent azul */
 BackButton {
     background-color: transparent;
-    color: #6e6e73;
+    color: #4b5563;
     font-family: "native:MainLight";
     font-size: 3mm;
     border: none;
-    padding: 2mm 3mm;
+    padding: 2mm 3.5mm;
 }
 
 ProductImageBox {

@@ -11,6 +11,8 @@ import com.codename1.ui.Label;
 import com.codename1.ui.geom.Dimension;
 import com.codename1.ui.layouts.BoxLayout;
 import com.codename1.ui.layouts.FlowLayout;
+import com.codename1.ui.plaf.RoundRectBorder;
+import com.codename1.ui.plaf.Style;
 
 import br.com.wdc.shopping.view.remote.shell.codenameone.ShoppingCn1RemoteApp;
 import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractCn1View;
@@ -99,6 +101,7 @@ public class ProductCn1View extends AbstractCn1View {
                     b.addActionListener(e -> submit(EVT_BACK));
                 });
                 FontImage.setMaterialIcon(back, FontImage.MATERIAL_ARROW_BACK, 3.5f);
+                styleBackHover(back);
                 Button add = dom.button(b -> {
                     b.setText("Adicionar ao Carrinho");
                     b.setUIID("PrimaryButton");
@@ -109,6 +112,16 @@ public class ProductCn1View extends AbstractCn1View {
         });
         updateQty();
         return root;
+    }
+
+    /** Fundo cinza arredondado no hover/clique do Voltar (CSS do CN1 não faz :hover). */
+    private void styleBackHover(Button b) {
+        b.getAllStyles().setBorder(RoundRectBorder.create().cornerRadius(3f));
+        b.getUnselectedStyle().setBgTransparency(0);
+        for (Style s : new Style[] { b.getSelectedStyle(), b.getPressedStyle() }) {
+            s.setBgColor(0xe5e7eb);
+            s.setBgTransparency(255);
+        }
     }
 
     private void stepBtn(Cn1Dom dom, char icon, int delta) {
