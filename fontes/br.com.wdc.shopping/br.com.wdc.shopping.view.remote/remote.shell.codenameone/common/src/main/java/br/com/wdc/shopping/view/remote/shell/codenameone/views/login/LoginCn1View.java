@@ -118,6 +118,7 @@ public class LoginCn1View extends AbstractCn1View {
             pass = dom.textField(tf -> {
                 tf.setHint("Digite sua senha");
                 tf.setConstraint(TextArea.PASSWORD);
+                tf.setDoneListener(e -> doLogin()); // Enter no campo dispara o login
             });
 
             // loading

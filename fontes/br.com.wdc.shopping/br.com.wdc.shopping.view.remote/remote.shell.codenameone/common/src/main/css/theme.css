@@ -88,10 +88,20 @@ TextField {
     border: 1px solid #e5e5ea;
     border-radius: 2mm;
     padding: 2mm;
+    font-family: "native:MainRegular";
+    font-size: 3mm;
 }
 
 TextFieldHint {
     color: #6e6e73;
+    font-family: "native:MainRegular";
+    font-size: 3mm;
+}
+
+TextHint {
+    color: #6e6e73;
+    font-family: "native:MainRegular";
+    font-size: 3mm;
 }
 
 /* === Login === */
