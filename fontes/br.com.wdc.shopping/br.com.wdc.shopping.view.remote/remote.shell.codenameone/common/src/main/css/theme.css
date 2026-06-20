@@ -438,3 +438,83 @@ PurchasePageInfo {
     padding: 0.4mm 2.5mm;
     margin: 0 0.4mm;
 }
+
+/* === Detalhe do produto === */
+ProductPage {
+    background-color: #f4f6f9;
+    padding: 4mm;
+}
+
+ProductTitle {
+    color: #1d1d1f;
+    font-family: "native:MainBold";
+    font-size: 5mm;
+    padding: 0 0 2mm 0;
+}
+
+/* divisória azul abaixo do título (altura definida em Java) */
+ProductDivider {
+    background-color: #0d66d0;
+    padding: 0;
+    margin: 0 0 3mm 0;
+}
+
+ProductDescCard {
+    background-color: #ffffff;
+    border: 1px solid #e5e5ea;
+    border-radius: 3mm;
+    padding: 4mm;
+    margin: 0 0 4mm 0;
+}
+
+ProductDescText {
+    color: #1d1d1f;
+    font-size: 2.9mm;
+    padding: 0.5mm 0;
+}
+
+ProductPriceImageRow {
+    background-color: transparent;
+    padding: 0 0 3mm 0;
+}
+
+ProductPriceBadge {
+    background-color: #e8f1fc;
+    color: #0d66d0;
+    font-family: "native:MainBold";
+    font-size: 4.4mm;
+    border-radius: 2mm;
+    padding: 2mm 4mm;
+    margin: 0 0 2mm 0;
+    text-align: center;
+}
+
+QtyLabel {
+    color: #6e6e73;
+    font-size: 2.8mm;
+    padding: 0 1mm 0 0;
+}
+
+QtyValue {
+    color: #1d1d1f;
+    font-family: "native:MainBold";
+    font-size: 3.6mm;
+    padding: 0 2mm;
+    text-align: center;
+}
+
+QtyBtn {
+    background-color: #f4f6f9;
+    color: #0d66d0;
+    border: 1px solid #e5e5ea;
+    border-radius: 5mm;
+    padding: 1mm;
+    margin: 0 0.5mm;
+}
+
+ProductImageBox {
+    background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+    border-radius: 2mm;
+    padding: 3mm;
+    margin: 0 0 0 4mm;
+}

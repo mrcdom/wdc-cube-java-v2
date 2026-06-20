@@ -20,6 +20,11 @@ public final class SimpleHtml {
 
     /** Limpa {@code target} e o preenche com a interpretação do {@code html}. */
     public static void render(Container target, String html) {
+        render(target, html, null);
+    }
+
+    /** Como {@link #render(Container, String)}, estilizando o texto de cada linha com {@code textUIID}. */
+    public static void render(Container target, String html, String textUIID) {
         target.removeAll();
         if (html == null || html.isEmpty()) {
             return;
@@ -38,7 +43,11 @@ public final class SimpleHtml {
         for (String line : splitLines(t)) {
             String s = line.trim();
             if (!s.isEmpty()) {
-                target.add(new SpanLabel(s));
+                SpanLabel span = new SpanLabel(s);
+                if (textUIID != null) {
+                    span.setTextUIID(textUIID);
+                }
+                target.add(span);
             }
         }
     }
