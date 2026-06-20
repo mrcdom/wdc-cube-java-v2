@@ -5,9 +5,10 @@ import java.util.function.Consumer;
 
 import com.codename1.ui.Container;
 import com.codename1.ui.Label;
-import com.codename1.ui.layouts.BorderLayout;
+import com.codename1.ui.layouts.BoxLayout;
 
 import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractItemCn1View;
+import br.com.wdc.shopping.view.remote.shell.codenameone.util.Clickable;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Images;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Json;
@@ -16,7 +17,7 @@ import br.com.wdc.shopping.view.remote.shell.codenameone.util.Money;
 /** Card de produto: imagem (fundo gradiente) + nome + preço; o card inteiro abre o detalhe. */
 public class ProductItemCn1View extends AbstractItemCn1View<Object> {
 
-    private static final int IMG = 240;
+    private static final int IMG = 220;
 
     private final Consumer<Long> onOpen;
     private Label image;
@@ -30,17 +31,13 @@ public class ProductItemCn1View extends AbstractItemCn1View<Object> {
 
     @Override
     protected Container build() {
-        Container card = new Container(new BorderLayout());
-        card.setUIID("ProductCard");
-        Cn1Dom.render(card, (dom, c) -> {
-            image = dom.label(BorderLayout.NORTH, l -> l.setUIID("ProductCardImage"));
-            dom.boxY(BorderLayout.CENTER, body -> {
-                name = dom.label(l -> l.setUIID("ProductCardName"));
-                price = dom.label(l -> l.setUIID("ProductCardPrice"));
-            });
+        Container content = new Container(BoxLayout.y());
+        Cn1Dom.render(content, (dom, c) -> {
+            image = dom.label(l -> l.setUIID("ProductCardImage"));
+            name = dom.label(l -> l.setUIID("ProductCardName"));
+            price = dom.label(l -> l.setUIID("ProductCardPrice"));
         });
-        card.addPointerReleasedListener(e -> onOpen.accept(currentId));
-        return card;
+        return Clickable.card("ProductCard", content, () -> onOpen.accept(currentId));
     }
 
     @Override

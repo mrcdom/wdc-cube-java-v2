@@ -252,12 +252,16 @@ GreetingSmall {
     color: #dbe9ff;
     font-family: "native:MainLight";
     font-size: 2.2mm;
+    margin: 0;
+    padding: 0;
 }
 
 GreetingName {
     color: #ffffff;
     font-family: "native:MainBold";
     font-size: 2.8mm;
+    margin: 0;
+    padding: 0;
 }
 
 AppBarLogoBox {
@@ -271,21 +275,35 @@ AppBarBrand {
     color: #ffffff;
     font-family: "native:MainBold";
     font-size: 3.4mm;
+    margin: 0;
+    padding: 0;
 }
 
 AppBarBrandSub {
     color: #dbe9ff;
     font-family: "native:MainLight";
     font-size: 2mm;
+    margin: 0;
+    padding: 0;
 }
 
 CartBadge {
     color: #0d66d0;
     background-color: #ffffff;
-    border-radius: 3mm;
+    border-radius: 2.5mm;
     font-family: "native:MainBold";
     font-size: 2.2mm;
-    padding: 0.3mm 1.5mm;
+    padding: 0.8mm 1.8mm;
+    margin: 0 0 0 1.5mm;
+    text-align: center;
+}
+
+/* Sobreposição transparente que captura o clique do card (lead component) */
+CardLead {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
 }
 
 /* === Abas da Home (layout compacto) === */
@@ -341,34 +359,44 @@ PurchaseCard {
     background-color: #f4f6f9;
     border: 1px solid #e5e5ea;
     border-radius: 2mm;
-    margin: 0 0 2mm 0;
-    padding: 1.5mm 3mm;
+    margin: 0 0 1.5mm 0;
+    padding: 1mm 2.5mm;
 }
 
 PurchaseLine {
     background-color: transparent;
+    margin: 0;
+    padding: 0.3mm 0;
 }
 
 PurchaseId {
     color: #0d66d0;
     font-family: "native:MainBold";
     font-size: 2.6mm;
+    margin: 0;
+    padding: 0;
 }
 
 PurchaseDate {
     color: #6e6e73;
     font-size: 2.3mm;
+    margin: 0;
+    padding: 0;
 }
 
 PurchaseItems {
     color: #6e6e73;
     font-size: 2.4mm;
+    margin: 0;
+    padding: 0;
 }
 
 PurchaseTotal {
     color: #1d1d1f;
     font-family: "native:MainBold";
     font-size: 2.6mm;
+    margin: 0 0 0 1.5mm;
+    padding: 0;
 }
 
 PurchasePagination {

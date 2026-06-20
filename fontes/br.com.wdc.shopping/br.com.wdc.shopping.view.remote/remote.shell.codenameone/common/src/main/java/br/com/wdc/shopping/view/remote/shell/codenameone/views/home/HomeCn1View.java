@@ -64,24 +64,27 @@ public class HomeCn1View extends AbstractCn1View {
         Cn1Dom.render(root, (dom, r) -> {
             dom.border(BorderLayout.NORTH, bar -> {
                 bar.setUIID("AppBar");
+                boolean wide = app.isExpanded();
 
-                // esquerda: sair + saudação
-                dom.boxX(BorderLayout.WEST, west -> {
+                // esquerda: sair + (saudação só no expandido)
+                dom.container(new FlowLayout(Component.LEFT, Component.CENTER), BorderLayout.WEST, west -> {
                     Button exit = dom.button(b -> {
                         b.setUIID("AppBarBtn");
                         b.addActionListener(e -> submit(EVT_LOGOUT));
                     });
                     FontImage.setMaterialIcon(exit, FontImage.MATERIAL_LOGOUT, 5f);
-                    dom.boxY(greet -> {
-                        dom.label(l -> {
-                            l.setText("Bem-vindo(a),");
-                            l.setUIID("GreetingSmall");
+                    if (wide) {
+                        dom.boxY(greet -> {
+                            dom.label(l -> {
+                                l.setText("Bem-vindo(a),");
+                                l.setUIID("GreetingSmall");
+                            });
+                            nick = dom.label(l -> l.setUIID("GreetingName"));
                         });
-                        nick = dom.label(l -> l.setUIID("GreetingName"));
-                    });
+                    }
                 });
 
-                // centro: logo + Shopping / By WeDoCode
+                // centro: logo + Shopping (+ By WeDoCode só no expandido)
                 dom.container(new FlowLayout(Component.CENTER, Component.CENTER), BorderLayout.CENTER, center -> {
                     Label logo = dom.label(l -> l.setUIID("AppBarLogoBox"));
                     FontImage.setMaterialIcon(logo, FontImage.MATERIAL_SHOPPING_BAG, 5f);
@@ -90,17 +93,21 @@ public class HomeCn1View extends AbstractCn1View {
                             l.setText("Shopping");
                             l.setUIID("AppBarBrand");
                         });
-                        dom.label(l -> {
-                            l.setText("By WeDoCode");
-                            l.setUIID("AppBarBrandSub");
-                        });
+                        if (wide) {
+                            dom.label(l -> {
+                                l.setText("By WeDoCode");
+                                l.setUIID("AppBarBrandSub");
+                            });
+                        }
                     });
                 });
 
-                // direita: carrinho + badge
-                dom.boxX(BorderLayout.EAST, east -> {
+                // direita: carrinho (texto só no expandido) + badge
+                dom.container(new FlowLayout(Component.RIGHT, Component.CENTER), BorderLayout.EAST, east -> {
                     Button cart = dom.button(b -> {
-                        b.setText("Carrinho");
+                        if (wide) {
+                            b.setText("Carrinho");
+                        }
                         b.setUIID("AppBarBtn");
                         b.addActionListener(e -> submit(EVT_OPEN_CART));
                     });
@@ -175,7 +182,9 @@ public class HomeCn1View extends AbstractCn1View {
     @Override
     public void doUpdate() {
         Map<String, Object> st = state();
-        nick.setText(Json.str(st, "nickName"));
+        if (nick != null) {
+            nick.setText(Json.str(st, "nickName")); // só existe no expandido
+        }
         cartBadge.setText(String.valueOf(Json.intOf(st, "cartItemCount")));
 
         String content = Json.str(st, "contentViewId");

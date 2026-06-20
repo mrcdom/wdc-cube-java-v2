@@ -10,6 +10,7 @@ import com.codename1.ui.layouts.BorderLayout;
 import com.codename1.ui.layouts.BoxLayout;
 
 import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractItemCn1View;
+import br.com.wdc.shopping.view.remote.shell.codenameone.util.Clickable;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Dates;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Json;
@@ -31,9 +32,8 @@ public class PurchaseItemCn1View extends AbstractItemCn1View<Object> {
 
     @Override
     protected Container build() {
-        Container card = new Container(BoxLayout.y());
-        card.setUIID("PurchaseCard");
-        Cn1Dom.render(card, (dom, c) -> {
+        Container content = new Container(BoxLayout.y());
+        Cn1Dom.render(content, (dom, c) -> {
             dom.border(line1 -> {
                 line1.setUIID("PurchaseLine");
                 idLabel = dom.label(BorderLayout.WEST, l -> l.setUIID("PurchaseId"));
@@ -41,12 +41,14 @@ public class PurchaseItemCn1View extends AbstractItemCn1View<Object> {
             });
             dom.border(line2 -> {
                 line2.setUIID("PurchaseLine");
-                itemsLabel = dom.label(BorderLayout.CENTER, l -> l.setUIID("PurchaseItems"));
+                itemsLabel = dom.label(BorderLayout.CENTER, l -> {
+                    l.setUIID("PurchaseItems");
+                    l.setEndsWith3Points(true); // elipsis quando não couber
+                });
                 totalLabel = dom.label(BorderLayout.EAST, l -> l.setUIID("PurchaseTotal"));
             });
         });
-        card.addPointerReleasedListener(e -> onOpen.accept(currentId));
-        return card;
+        return Clickable.card("PurchaseCard", content, () -> onOpen.accept(currentId));
     }
 
     @Override
