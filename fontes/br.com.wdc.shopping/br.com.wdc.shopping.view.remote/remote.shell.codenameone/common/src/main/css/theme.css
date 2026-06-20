@@ -412,19 +412,19 @@ PurchasePagination {
     padding: 3mm 0 3mm 0;
 }
 
-/* pílula cinza que envolve setas + indicador */
+/* pílula cinza que envolve setas + indicador — baixa e justa ao conteúdo */
 PurchasePagePill {
     background-color: #f4f6f9;
     border-radius: 6mm;
-    padding: 0.8mm;
+    padding: 0.5mm 1mm;
 }
 
-/* setas: tamanho fixo (circular) é dado em Java; aqui só cor/transparência */
+/* setas: pequenas e coladas ao indicador */
 PurchasePageBtn {
     background-color: transparent;
     color: #6e6e73;
     border: none;
-    padding: 0;
+    padding: 0.5mm 1mm;
     margin: 0;
 }
 
@@ -433,7 +433,7 @@ PurchasePageInfo {
     color: #1d1d1f;
     background-color: #ffffff;
     font-family: "native:MainBold";
-    font-size: 2mm;
-    padding: 0.8mm 2.2mm;
-    margin: 0 0.6mm;
+    font-size: 2.6mm;
+    padding: 0.6mm 2.5mm;
+    margin: 0 0.4mm;
 }
