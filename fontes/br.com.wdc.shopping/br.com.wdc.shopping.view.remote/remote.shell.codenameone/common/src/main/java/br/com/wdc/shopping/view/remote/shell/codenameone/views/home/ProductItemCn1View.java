@@ -3,8 +3,8 @@ package br.com.wdc.shopping.view.remote.shell.codenameone.views.home;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import com.codename1.ui.Button;
 import com.codename1.ui.Container;
+import com.codename1.ui.Label;
 import com.codename1.ui.layouts.BorderLayout;
 
 import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractItemCn1View;
@@ -13,13 +13,15 @@ import br.com.wdc.shopping.view.remote.shell.codenameone.util.Images;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Json;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Money;
 
-/** Item da lista de produtos: thumbnail + nome/preço, abre o detalhe ao tocar. */
+/** Card de produto: imagem (fundo gradiente) + nome + preço; o card inteiro abre o detalhe. */
 public class ProductItemCn1View extends AbstractItemCn1View<Object> {
 
-    private static final int THUMB = 90;
+    private static final int IMG = 240;
 
     private final Consumer<Long> onOpen;
-    private Button button;
+    private Label image;
+    private Label name;
+    private Label price;
     private long currentId = -1;
 
     public ProductItemCn1View(Consumer<Long> onOpen) {
@@ -28,20 +30,28 @@ public class ProductItemCn1View extends AbstractItemCn1View<Object> {
 
     @Override
     protected Container build() {
-        Container root = new Container(new BorderLayout());
-        Cn1Dom.render(root, (dom, r) ->
-                button = dom.button(BorderLayout.CENTER, b -> b.addActionListener(e -> onOpen.accept(currentId))));
-        return root;
+        Container card = new Container(new BorderLayout());
+        card.setUIID("ProductCard");
+        Cn1Dom.render(card, (dom, c) -> {
+            image = dom.label(BorderLayout.NORTH, l -> l.setUIID("ProductCardImage"));
+            dom.boxY(BorderLayout.CENTER, body -> {
+                name = dom.label(l -> l.setUIID("ProductCardName"));
+                price = dom.label(l -> l.setUIID("ProductCardPrice"));
+            });
+        });
+        card.addPointerReleasedListener(e -> onOpen.accept(currentId));
+        return card;
     }
 
     @Override
     protected void doUpdate() {
         Map<String, Object> m = Json.asMap(data);
         long id = Json.longOf(m, "id");
-        button.setText(Json.str(m, "name") + "  —  " + Money.format(Json.doubleOf(m, "price")));
+        name.setText(Json.str(m, "name"));
+        price.setText(Money.format(Json.doubleOf(m, "price")));
         if (id != currentId) {
             currentId = id;
-            button.setIcon(Images.product(id, THUMB));
+            image.setIcon(Images.product(id, IMG));
         }
     }
 }

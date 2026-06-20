@@ -201,6 +201,38 @@ DemoText {
     text-align: center;
 }
 
+/* === Grid de produtos (Home) === */
+ProductsPanel {
+    background-color: transparent;
+    padding: 3mm;
+}
+
+ProductCard {
+    background-color: #ffffff;
+    border-radius: 3mm;
+    margin: 2mm;
+}
+
+ProductCardImage {
+    background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+    padding: 3mm;
+    text-align: center;
+}
+
+ProductCardName {
+    color: #1d1d1f;
+    font-family: "native:MainRegular";
+    font-size: 2.8mm;
+    padding: 2mm 3mm 0 3mm;
+}
+
+ProductCardPrice {
+    color: #0d66d0;
+    font-family: "native:MainBold";
+    font-size: 3.4mm;
+    padding: 0.5mm 3mm 2mm 3mm;
+}
+
 /* === App bar da Home (HeaderPanel) === */
 AppBar {
     background: linear-gradient(135deg, #0d66d0 0%, #1a8cff 100%);
