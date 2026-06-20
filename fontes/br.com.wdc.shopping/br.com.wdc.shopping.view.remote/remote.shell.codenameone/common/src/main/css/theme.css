@@ -405,27 +405,26 @@ PurchaseTotal {
     padding: 0;
 }
 
-/* Paginador espelhando o .purchases__pagination/.page-pill do React (valores em px,
-   Retina Scale 2.0). */
+/* Paginador (page-pill do React) — respiro acima/abaixo e pílula de tamanho moderado. */
 PurchasePagination {
     background-color: #ffffff;
     border-top: 1px solid #e5e5ea;
-    padding: 10px 0 10px 0;
+    padding: 3mm 0 3mm 0;
 }
 
 /* pílula cinza que envolve setas + indicador */
 PurchasePagePill {
     background-color: #f4f6f9;
-    border-radius: 20px;
-    padding: 4px;
+    border-radius: 6mm;
+    padding: 0.8mm;
 }
 
 PurchasePageBtn {
     background-color: transparent;
     color: #6e6e73;
     border: none;
-    border-radius: 14px;
-    padding: 4px 6px;
+    border-radius: 5mm;
+    padding: 0.6mm 1mm;
     margin: 0;
 }
 
@@ -434,8 +433,8 @@ PurchasePageInfo {
     background-color: #ffffff;
     border: 1px solid #e5e5ea;
     font-family: "native:MainBold";
-    font-size: 2.1mm;
-    border-radius: 12px;
-    padding: 4px 12px;
-    margin: 0 4px;
+    font-size: 2mm;
+    border-radius: 3mm;
+    padding: 0.8mm 2.2mm;
+    margin: 0 0.6mm;
 }
