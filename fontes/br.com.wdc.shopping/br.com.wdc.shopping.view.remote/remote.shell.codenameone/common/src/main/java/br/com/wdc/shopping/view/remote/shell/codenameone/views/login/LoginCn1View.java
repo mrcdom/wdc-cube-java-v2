@@ -18,6 +18,7 @@ import br.com.wdc.shopping.view.remote.shell.codenameone.ShoppingCn1RemoteApp;
 import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.codenameone.bridge.BridgeSession;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Cn1Dom;
+import br.com.wdc.shopping.view.remote.shell.codenameone.util.Decor;
 import br.com.wdc.shopping.view.remote.shell.codenameone.util.Json;
 
 /**
@@ -29,6 +30,8 @@ public class LoginCn1View extends AbstractCn1View {
 
     public static final String CLASS_ID = "c677cda52d14";
     private static final int EVT_LOGIN = 1;
+    /** Largura fixa do card do formulário (no expandido). */
+    private static final int CARD_WIDTH = 820;
 
     private TextField user;
     private TextField pass;
@@ -44,7 +47,7 @@ public class LoginCn1View extends AbstractCn1View {
         Container card = buildCard();
 
         if (app.isExpanded()) {
-            card.setPreferredW(Display.getInstance().getDisplayWidth() * 38 / 100);
+            card.setPreferredW(CARD_WIDTH);
             Container cardWrap = new Container(new FlowLayout(Component.CENTER, Component.CENTER));
             cardWrap.add(card);
             Container root = new Container(new BorderLayout());
@@ -69,6 +72,7 @@ public class LoginCn1View extends AbstractCn1View {
             // banner azul: logo (caixa pequena centralizada) + título + subtítulo
             dom.boxY(banner -> {
                 banner.setUIID("LoginBanner");
+                Decor.blueWithCircles(banner);
                 dom.container(new FlowLayout(Component.CENTER), null, row -> {
                     Label logo = dom.label(l -> l.setUIID("LogoBox"));
                     FontImage.setMaterialIcon(logo, FontImage.MATERIAL_SHOPPING_BAG, 7f);
@@ -146,6 +150,7 @@ public class LoginCn1View extends AbstractCn1View {
     private Container buildHero() {
         Container hero = new Container(new FlowLayout(Component.CENTER, Component.CENTER));
         hero.setUIID("LoginHero");
+        Decor.blueWithCircles(hero);
         Container content = new Container(BoxLayout.y());
         hero.add(content);
         Cn1Dom.render(content, (dom, h) -> {
