@@ -439,6 +439,25 @@ PurchasePageInfo {
     margin: 0 0.4mm;
 }
 
+/* === Tela de conexão (splash) === */
+SplashStatus {
+    color: #f0f6ff;
+    font-size: 2.9mm;
+    text-align: center;
+    padding: 3mm 0 0 0;
+}
+
+SplashRetry {
+    background-color: #ffffff;
+    color: #0d66d0;
+    font-family: "native:MainBold";
+    font-size: 3mm;
+    border: none;
+    border-radius: 2.5mm;
+    padding: 2mm 5mm;
+    margin: 4mm 0 0 0;
+}
+
 /* === Detalhe do produto === */
 ProductPage {
     background-color: #f4f6f9;

@@ -3,15 +3,24 @@ package br.com.wdc.shopping.view.remote.shell.cn1;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.codename1.components.InfiniteProgress;
 import com.codename1.components.SpanLabel;
 import com.codename1.system.Lifecycle;
+import com.codename1.ui.Button;
 import com.codename1.ui.CN;
+import com.codename1.ui.Component;
+import com.codename1.ui.Container;
 import com.codename1.ui.Display;
+import com.codename1.ui.FontImage;
 import com.codename1.ui.Form;
+import com.codename1.ui.Label;
 import com.codename1.ui.layouts.BorderLayout;
+import com.codename1.ui.layouts.BoxLayout;
+import com.codename1.ui.layouts.FlowLayout;
 
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.BridgeSession;
+import br.com.wdc.shopping.view.remote.shell.cn1.util.Decor;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Images;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
 import br.com.wdc.shopping.view.remote.shell.cn1.views.RootCn1View;
@@ -68,16 +77,21 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
 
         form = new Form(new BorderLayout());
         form.getToolbar().hideToolbar(); // sem barra de título nativa; cada tela traz seu header
-        form.add(BorderLayout.CENTER, new SpanLabel("Conectando ao servidor..."));
         form.addSizeChangedListener(e -> onResize());
         form.show();
 
+        startConnect();
+    }
+
+    /** Mostra a tela de "conectando" e abre o bridge numa thread; em falha, mostra erro + retry. */
+    private void startConnect() {
+        showSplash(false, "Conectando ao servidor...", null);
         session = new BridgeSession(BASE, s -> flush());
         new Thread(() -> {
             try {
                 session.connect();
             } catch (Exception e) {
-                CN.callSerially(() -> showStatus("Falha ao conectar: " + e.getMessage()));
+                CN.callSerially(() -> showSplash(true, "Não foi possível conectar ao servidor.", this::startConnect));
             }
         }).start();
     }
@@ -157,13 +171,54 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
             form.revalidate();
         } catch (Exception e) {
             com.codename1.io.Log.e(e);
-            showStatus("Erro ao renderizar: " + e);
+            showSplash(true, "Erro ao renderizar a tela.", null);
         }
     }
 
-    private void showStatus(String text) {
+    /**
+     * Tela de "marca" exibida antes de receber o estado do backend (e em caso de falha): gradiente
+     * azul + logo + título, com um <b>spinner</b> (conectando) ou um ícone de erro + "Tentar novamente".
+     */
+    private void showSplash(boolean error, String status, Runnable onRetry) {
+        Container root = new Container(new FlowLayout(Component.CENTER, Component.CENTER));
+        Decor.blueWithCircles(root);
+
+        Container content = new Container(BoxLayout.y());
+
+        Label logo = new Label();
+        logo.getAllStyles().setFgColor(0xffffff);
+        FontImage.setMaterialIcon(logo, error ? FontImage.MATERIAL_CLOUD_OFF : FontImage.MATERIAL_SHOPPING_BAG, 13f);
+        content.add(FlowLayout.encloseCenter(logo));
+
+        Label title = new Label("WDC Shopping");
+        title.setUIID("HeroTitle");
+        content.add(title);
+
+        SpanLabel subtitle = new SpanLabel("Sua compra certa na internet.");
+        subtitle.setTextUIID("HeroSubtitle");
+        content.add(subtitle);
+
+        if (!error) {
+            InfiniteProgress spinner = new InfiniteProgress();
+            spinner.setMaterialDesignMode(true);
+            spinner.getAllStyles().setFgColor(0xffffff);
+            content.add(FlowLayout.encloseCenter(spinner));
+        }
+
+        Label statusLabel = new Label(status);
+        statusLabel.setUIID("SplashStatus");
+        content.add(FlowLayout.encloseCenter(statusLabel));
+
+        if (onRetry != null) {
+            Button retry = new Button("Tentar novamente");
+            retry.setUIID("SplashRetry");
+            retry.addActionListener(e -> onRetry.run());
+            content.add(FlowLayout.encloseCenter(retry));
+        }
+
+        root.add(content);
         form.removeAll();
-        form.add(BorderLayout.CENTER, new SpanLabel(text));
+        form.add(BorderLayout.CENTER, root);
         form.revalidate();
     }
 }
