@@ -1,13 +1,14 @@
 package br.com.wdc.shopping.view.remote.shell.cn1.util;
 
-import com.codename1.components.SpanLabel;
-import com.codename1.ui.Container;
-import com.codename1.ui.layouts.BoxLayout;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
- * Interpretador leve para o HTML <b>simples</b> das descrições de produto (ul/li, p, br, pre,
- * mais inline como b/i que são apenas removidos). Sem dependência do {@code HTMLComponent} legado
- * e sem regex (não suportado no CN1): converte em linhas de texto e preenche um container.
+ * Parser leve para o HTML <b>simples</b> das descrições de produto (ul/li, p, br, pre; inline como
+ * b/i é apenas removido). Sem o {@code HTMLComponent} legado e sem regex (não suportado no CN1):
+ * converte o HTML numa lista de <b>linhas de texto</b>. A renderização (linhas → componentes) é do
+ * widget {@code HtmlText} — aqui não há UI.
  *
  * <p>Blocos viram linhas: cada {@code <li>} ganha um marcador "•"; {@code </p>}, {@code </li>} e
  * {@code <br>} quebram linha. As demais tags são removidas e as entidades HTML, decodificadas.</p>
@@ -18,16 +19,10 @@ public final class SimpleHtml {
         // NOOP
     }
 
-    /** Limpa {@code target} e o preenche com a interpretação do {@code html}. */
-    public static void render(Container target, String html) {
-        render(target, html, null);
-    }
-
-    /** Como {@link #render(Container, String)}, estilizando o texto de cada linha com {@code textUIID}. */
-    public static void render(Container target, String html, String textUIID) {
-        target.removeAll();
+    /** Converte o HTML simples em linhas de texto (as vazias são descartadas). */
+    public static List<String> toLines(String html) {
         if (html == null || html.isEmpty()) {
-            return;
+            return Collections.emptyList();
         }
 
         // 1. marcadores de bloco (antes de remover as tags)
@@ -39,24 +34,15 @@ public final class SimpleHtml {
         // 2. remove as demais tags (ul, ol, p, pre, b, i, ...) e decodifica entidades
         t = decodeEntities(stripTags(t));
 
-        // 3. uma SpanLabel por linha não-vazia
+        // 3. linhas não-vazias
+        List<String> out = new ArrayList<>();
         for (String line : splitLines(t)) {
             String s = line.trim();
             if (!s.isEmpty()) {
-                SpanLabel span = new SpanLabel(s);
-                if (textUIID != null) {
-                    span.setTextUIID(textUIID);
-                }
-                target.add(span);
+                out.add(s);
             }
         }
-    }
-
-    /** Container novo já preenchido (conveniência). */
-    public static Container render(String html) {
-        Container c = new Container(BoxLayout.y());
-        render(c, html);
-        return c;
+        return out;
     }
 
     // -- internos --
@@ -88,8 +74,8 @@ public final class SimpleHtml {
                 .replace("&amp;", "&"); // por último para não re-decodificar
     }
 
-    private static java.util.List<String> splitLines(String s) {
-        java.util.List<String> out = new java.util.ArrayList<>();
+    private static List<String> splitLines(String s) {
+        List<String> out = new ArrayList<>();
         int start = 0;
         for (int i = 0; i < s.length(); i++) {
             if (s.charAt(i) == '\n') {

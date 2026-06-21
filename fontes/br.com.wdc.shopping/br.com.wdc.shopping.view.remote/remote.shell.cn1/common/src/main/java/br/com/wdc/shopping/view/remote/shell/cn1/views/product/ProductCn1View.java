@@ -19,8 +19,8 @@ import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Images;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Money;
-import br.com.wdc.shopping.view.remote.shell.cn1.util.SimpleHtml;
 import br.com.wdc.shopping.view.remote.shell.cn1.widgets.BackButton;
+import br.com.wdc.shopping.view.remote.shell.cn1.widgets.HtmlText;
 
 /**
  * Detalhe do produto (classId {@value #CLASS_ID}) — espelha o design React: título + divisória,
@@ -43,7 +43,7 @@ public class ProductCn1View extends AbstractCn1View {
     private Label price;
     private Label image;
     private Label qtyValue;
-    private Container description;
+    private HtmlText description;
     private long currentId = -1;
     private String lastHtml = "";
     private int quantity = 1;
@@ -64,7 +64,7 @@ public class ProductCn1View extends AbstractCn1View {
             // card de descrição
             dom.boxY(card -> {
                 card.setUIID(sel.PRODUCT_DESC_CARD);
-                description = dom.boxY(c -> { });
+                description = dom.add(new HtmlText(sel.PRODUCT_DESC_TEXT), null);
             });
 
             // preço/quantidade (esquerda) + imagem (direita), alinhados pelo centro vertical
@@ -148,7 +148,7 @@ public class ProductCn1View extends AbstractCn1View {
         String html = Json.str(p, "description");
         if (!html.equals(lastHtml)) {
             lastHtml = html;
-            SimpleHtml.render(description, html, sel.PRODUCT_DESC_TEXT);
+            description.setHtml(html);
         }
     }
 }
