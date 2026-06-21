@@ -52,10 +52,9 @@ public class ReceiptCn1View extends AbstractCn1View {
 
     @Override
     protected Container build() {
-        Container root = new Container(BoxLayout.y());
-        root.setScrollableY(true);
-        root.setUIID(sel.RECEIPT_PAGE);
-        Cn1Dom.render(root, (dom, r) -> {
+        return Cn1Dom.render(BoxLayout.y(), (dom, r) -> {
+            r.setScrollableY(true);
+            r.setUIID(sel.RECEIPT_PAGE);
             // alerta verde de sucesso
             successAlert = dom.boxX(alert -> {
                 alert.setUIID(sel.ALERT_SUCCESS);
@@ -126,7 +125,6 @@ public class ReceiptCn1View extends AbstractCn1View {
                 });
             });
         });
-        return root;
     }
 
     /** Aplica a fonte monoespaçada do cupom. */

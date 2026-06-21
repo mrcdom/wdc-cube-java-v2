@@ -53,24 +53,24 @@ public class CartCn1View extends AbstractCn1View {
 
     @Override
     protected Container build() {
-        Container root = new Container(BoxLayout.y());
-        root.setScrollableY(true);
-        root.setUIID(sel.CART_PAGE);
-        Cn1Dom.render(root, (dom, r) -> dom.boxY(card -> {
-            card.setUIID(sel.CART_CARD);
-            dom.add(Widgets.cardHeader(FontImage.MATERIAL_SHOPPING_BAG, "Carrinho",
-                    "Seus produtos selecionados"), null);
-            body = dom.boxY(b -> { });
-        }));
+        Container root = Cn1Dom.render(BoxLayout.y(), (dom, r) -> {
+            r.setScrollableY(true);
+            r.setUIID(sel.CART_PAGE);
+            dom.boxY(card -> {
+                card.setUIID(sel.CART_CARD);
+                dom.add(Widgets.cardHeader(FontImage.MATERIAL_SHOPPING_BAG, "Carrinho",
+                        "Seus produtos selecionados"), null);
+                body = dom.boxY(b -> { });
+            });
+        });
         emptySection = buildEmpty();
         itemsSection = buildItems();
         return root;
     }
 
     private Container buildEmpty() {
-        Container sec = new Container(BoxLayout.y());
-        sec.setUIID(sel.CART_EMPTY);
-        Cn1Dom.render(sec, (dom, r) -> {
+        return Cn1Dom.render(BoxLayout.y(), (dom, r) -> {
+            r.setUIID(sel.CART_EMPTY);
             dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, wrap -> {
                 Label iconBox = dom.label(l -> l.setUIID(sel.CART_EMPTY_ICON_BOX));
                 iconBox.setPreferredSize(new Dimension(150, 150));
@@ -94,12 +94,10 @@ public class CartCn1View extends AbstractCn1View {
                 FontImage.setMaterialIcon(view, FontImage.MATERIAL_VIEW_MODULE, 3.5f);
             });
         });
-        return sec;
     }
 
     private Container buildItems() {
-        Container sec = new Container(BoxLayout.y());
-        Cn1Dom.render(sec, (dom, r) -> {
+        return Cn1Dom.render(BoxLayout.y(), (dom, r) -> {
             list = dom.boxY(l -> { });
             dom.container(new FlowLayout(Component.RIGHT, Component.CENTER), null, footer -> {
                 footer.setUIID(sel.CART_FOOTER);
@@ -120,7 +118,6 @@ public class CartCn1View extends AbstractCn1View {
                 FontImage.setMaterialIcon(buy, FontImage.MATERIAL_CHECK_CIRCLE, 3.5f);
             });
         });
-        return sec;
     }
 
     @Override

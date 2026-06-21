@@ -49,27 +49,22 @@ public class LoginCn1View extends AbstractCn1View {
 
         if (app.isExpanded()) {
             card.setPreferredW(CARD_WIDTH);
-            Container cardWrap = new Container(new FlowLayout(Component.CENTER, Component.CENTER));
-            cardWrap.add(card);
-            Container root = new Container(new BorderLayout());
-            root.add(BorderLayout.CENTER, buildHero());
-            root.add(BorderLayout.EAST, cardWrap);
-            return root;
+            return Cn1Dom.render(new BorderLayout(), (dom, root) -> {
+                dom.add(buildHero(), BorderLayout.CENTER);
+                dom.container(new FlowLayout(Component.CENTER, Component.CENTER), BorderLayout.EAST,
+                        wrap -> dom.add(card, null));
+            });
         }
 
         // compacto: card ocupa a largura, no topo
-        Container root = new Container(BoxLayout.y());
-        root.add(card);
-        return root;
+        return Cn1Dom.render(BoxLayout.y(), (dom, root) -> dom.add(card, null));
     }
 
     // :: Card do formulário
 
     private Container buildCard() {
-        Container card = new Container(BoxLayout.y());
-        card.setUIID(sel.LOGIN_CARD);
-
-        Cn1Dom.render(card, (dom, c) -> {
+        return Cn1Dom.render(BoxLayout.y(), (dom, c) -> {
+            c.setUIID(sel.LOGIN_CARD);
             // banner azul: logo (caixa pequena centralizada) + título + subtítulo
             dom.boxY(banner -> {
                 banner.setUIID(sel.LOGIN_BANNER);
@@ -144,35 +139,33 @@ public class LoginCn1View extends AbstractCn1View {
                 });
             });
         });
-        return card;
     }
 
     // :: Hero (layout expandido)
 
     private Container buildHero() {
-        Container hero = new Container(new FlowLayout(Component.CENTER, Component.CENTER));
-        hero.setUIID(sel.LOGIN_HERO);
-        Decor.blueWithCircles(hero);
-        Container content = new Container(BoxLayout.y());
-        hero.add(content);
-        Cn1Dom.render(content, (dom, h) -> {
-            dom.container(new FlowLayout(Component.CENTER), null, row -> {
-                Label logo = dom.label(l -> l.getAllStyles().setFgColor(0xffffff));
-                FontImage.setMaterialIcon(logo, FontImage.MATERIAL_SHOPPING_BAG, 14f);
+        return Cn1Dom.render(new FlowLayout(Component.CENTER, Component.CENTER), (dom, hero) -> {
+            hero.setUIID(sel.LOGIN_HERO);
+            Decor.blueWithCircles(hero);
+
+            dom.boxY(content -> {
+                dom.container(new FlowLayout(Component.CENTER), null, row -> {
+                    Label logo = dom.label(l -> l.getAllStyles().setFgColor(0xffffff));
+                    FontImage.setMaterialIcon(logo, FontImage.MATERIAL_SHOPPING_BAG, 14f);
+                });
+                dom.label(l -> {
+                    l.setText("WDC Shopping");
+                    l.setUIID(sel.HERO_TITLE);
+                });
+                dom.spanLabel(l -> {
+                    l.setText("Sua compra certa na internet.");
+                    l.setTextUIID(sel.HERO_SUBTITLE);
+                });
+                feature(dom, FontImage.MATERIAL_VERIFIED_USER, "Compra segura");
+                feature(dom, FontImage.MATERIAL_LOCAL_SHIPPING, "Entrega rápida");
+                feature(dom, FontImage.MATERIAL_AUTORENEW, "Troca garantida");
             });
-            dom.label(l -> {
-                l.setText("WDC Shopping");
-                l.setUIID(sel.HERO_TITLE);
-            });
-            dom.spanLabel(l -> {
-                l.setText("Sua compra certa na internet.");
-                l.setTextUIID(sel.HERO_SUBTITLE);
-            });
-            feature(dom, FontImage.MATERIAL_VERIFIED_USER, "Compra segura");
-            feature(dom, FontImage.MATERIAL_LOCAL_SHIPPING, "Entrega rápida");
-            feature(dom, FontImage.MATERIAL_AUTORENEW, "Troca garantida");
         });
-        return hero;
     }
 
     private void feature(Cn1Dom dom, char icon, String text) {

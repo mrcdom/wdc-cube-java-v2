@@ -38,9 +38,8 @@ public class CartItemCn1View extends AbstractItemCn1View<Object> {
 
     @Override
     protected Container build() {
-        Container root = new Container(new BorderLayout());
-        root.setUIID(sel.CART_ITEM_ROW);
-        Cn1Dom.render(root, (dom, r) -> {
+        return Cn1Dom.render(new BorderLayout(), (dom, r) -> {
+            r.setUIID(sel.CART_ITEM_ROW);
             name = dom.label(BorderLayout.CENTER, l -> l.setUIID(sel.CART_ITEM_NAME));
             dom.boxX(BorderLayout.EAST, east -> {
                 dom.boxX(stepper -> {
@@ -56,7 +55,6 @@ public class CartItemCn1View extends AbstractItemCn1View<Object> {
                         () -> onRemove.accept(currentId)), null);
             });
         });
-        return root;
     }
 
     @Override

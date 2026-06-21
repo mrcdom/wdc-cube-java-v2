@@ -39,8 +39,7 @@ public class ProductItemCn1View extends AbstractItemCn1View<Object> {
 
     @Override
     protected Container build() {
-        Container content = new Container(BoxLayout.y());
-        Cn1Dom.render(content, (dom, c) -> {
+        Container content = Cn1Dom.render(BoxLayout.y(), (dom, c) -> {
             // imagem centralizada num wrap (FlowLayout mantém o tamanho quadrado, sem distorcer)
             dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, wrap -> {
                 wrap.setUIID(sel.PRODUCT_CARD_IMAGE);

@@ -34,8 +34,7 @@ public class PurchaseItemCn1View extends AbstractItemCn1View<Object> {
 
     @Override
     protected Container build() {
-        Container content = new Container(BoxLayout.y());
-        Cn1Dom.render(content, (dom, c) -> {
+        Container content = Cn1Dom.render(BoxLayout.y(), (dom, c) -> {
             dom.border(line1 -> {
                 line1.setUIID(sel.PURCHASE_LINE);
                 idLabel = dom.label(BorderLayout.WEST, l -> l.setUIID(sel.PURCHASE_ID));

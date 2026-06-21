@@ -69,9 +69,8 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
 
     @Override
     protected Container build() {
-        Container root = new Container(new BorderLayout());
-        root.setUIID(sel.PURCHASES_PANEL);
-        Cn1Dom.render(root, (dom, r) -> {
+        Container root = Cn1Dom.render(new BorderLayout(), (dom, r) -> {
+            r.setUIID(sel.PURCHASES_PANEL);
             // cabeçalho (ícone + título) + dica
             dom.boxY(BorderLayout.NORTH, head -> {
                 dom.boxX(row -> {

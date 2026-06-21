@@ -22,9 +22,8 @@ public class ReceiptItemCn1View extends AbstractItemCn1View<Object> {
 
     @Override
     protected Container build() {
-        Container root = new Container(new BorderLayout());
-        root.setUIID(sel.RECEIPT_ITEM_ROW);
-        Cn1Dom.render(root, (dom, r) -> {
+        return Cn1Dom.render(new BorderLayout(), (dom, r) -> {
+            r.setUIID(sel.RECEIPT_ITEM_ROW);
             desc = dom.label(BorderLayout.CENTER, l -> l.setUIID(sel.RECEIPT_ITEM_DESC));
             ReceiptCn1View.mono(desc);
             dom.boxX(BorderLayout.EAST, cols -> {
@@ -36,7 +35,6 @@ public class ReceiptItemCn1View extends AbstractItemCn1View<Object> {
                 ReceiptCn1View.mono(value);
             });
         });
-        return root;
     }
 
     @Override

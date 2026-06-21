@@ -42,8 +42,15 @@ public final class Cn1Dom {
         this.currentParent = root;
     }
 
-    public static void render(Container root, BiConsumer<Cn1Dom, Container> renderer) {
+    /** Executa a DSL sobre um root já existente e o devolve (para {@code return Cn1Dom.render(...)}). */
+    public static Container render(Container root, BiConsumer<Cn1Dom, Container> renderer) {
         renderer.accept(new Cn1Dom(root), root);
+        return root;
+    }
+
+    /** Cria o root com o layout dado, executa a DSL e o devolve — sem {@code new Container} manual. */
+    public static Container render(Layout layout, BiConsumer<Cn1Dom, Container> renderer) {
+        return render(new Container(layout), renderer);
     }
 
     // :: Containers

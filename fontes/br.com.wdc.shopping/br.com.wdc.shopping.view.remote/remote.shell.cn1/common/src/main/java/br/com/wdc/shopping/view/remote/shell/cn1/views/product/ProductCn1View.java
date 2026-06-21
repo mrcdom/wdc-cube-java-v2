@@ -54,10 +54,9 @@ public class ProductCn1View extends AbstractCn1View {
 
     @Override
     protected Container build() {
-        Container root = new Container(BoxLayout.y());
-        root.setScrollableY(true);
-        root.setUIID(sel.PRODUCT_PAGE);
-        Cn1Dom.render(root, (dom, r) -> {
+        Container root = Cn1Dom.render(BoxLayout.y(), (dom, r) -> {
+            r.setScrollableY(true);
+            r.setUIID(sel.PRODUCT_PAGE);
             name = dom.label(l -> l.setUIID(sel.PRODUCT_TITLE));
             Label divider = dom.label(l -> l.setUIID(sel.PRODUCT_DIVIDER));
             divider.setPreferredH(DIVIDER_H);

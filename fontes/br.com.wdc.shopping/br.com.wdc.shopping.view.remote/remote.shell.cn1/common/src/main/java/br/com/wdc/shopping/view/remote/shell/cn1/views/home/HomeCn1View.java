@@ -59,8 +59,7 @@ public class HomeCn1View extends AbstractCn1View {
 
     @Override
     protected Container build() {
-        Container root = new Container(new BorderLayout());
-        Cn1Dom.render(root, (dom, r) -> {
+        Container root = Cn1Dom.render(new BorderLayout(), (dom, r) -> {
             dom.border(BorderLayout.NORTH, bar -> {
                 bar.setUIID(sel.APP_BAR);
                 boolean wide = app.isExpanded();
