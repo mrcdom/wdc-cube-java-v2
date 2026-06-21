@@ -66,16 +66,25 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
         return Display.getInstance().getDisplayWidth() >= 1100;
     }
 
-    /** Ao cruzar o breakpoint de largura, descarta as views e reconstrói no novo tamanho. */
+    /**
+     * Resize. Dentro do mesmo breakpoint não fazemos <b>nada</b>: o CN1 relayouta sozinho e os
+     * painéis que dependem do backend (ex.: o histórico) avisam o servidor pelo seu próprio
+     * {@code sizeChangedListener} → a bridge traz o ajuste. Só ao <b>cruzar</b> o breakpoint a
+     * estrutura muda (abas↔colunas, saudação) — e como ela é decidida em {@code build()} (padrão
+     * build-once), aí sim descartamos as views e reconstruímos no novo tamanho.
+     */
     private void onResize() {
         boolean now = isExpanded();
-        if (now != wasExpanded) {
-            wasExpanded = now;
-            views.clear();
-            rootVsid = "";
-            form.removeAll();
-            flush();
+        if (now == wasExpanded) {
+            return;
         }
+        wasExpanded = now;
+        views.clear();
+        dirty.clear();
+        rootVsid = "";
+        form.removeAll();
+        mountRootIfChanged(); // recria a árvore ativa (getElement → build → doUpdate) no novo tamanho
+        form.revalidate();
     }
 
     @Override
