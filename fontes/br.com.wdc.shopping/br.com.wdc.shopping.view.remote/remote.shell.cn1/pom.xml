@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>br.com.wdc.shopping</groupId>
-  <artifactId>remote.shell.codenameone</artifactId>
+  <artifactId>remote.shell.cn1</artifactId>
   <version>1.0.0</version>
   <packaging>pom</packaging>
   <name>WDC Shopping CN1 Remote Shell</name>
@@ -29,7 +29,7 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
-    <cn1app.name>remote.shell.codenameone</cn1app.name>
+    <cn1app.name>remote.shell.cn1</cn1app.name>
   </properties>
   <dependencyManagement>
     <dependencies>

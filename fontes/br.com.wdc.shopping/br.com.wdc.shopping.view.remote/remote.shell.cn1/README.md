@@ -1,4 +1,4 @@
-# remote.shell.codenameone — shell fino Codename One
+# remote.shell.cn1 — shell fino Codename One
 
 Frontend **Codename One** do padrão *remote shell*: os presenters/ViewStates rodam no
 servidor (`remote.host`); este módulo é um **cliente fino** que fala o protocolo bridge por
