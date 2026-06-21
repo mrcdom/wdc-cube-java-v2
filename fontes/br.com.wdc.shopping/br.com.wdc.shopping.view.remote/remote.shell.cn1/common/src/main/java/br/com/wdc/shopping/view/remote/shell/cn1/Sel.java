@@ -20,7 +20,7 @@ public class Sel {
     public final String PRIMARY_BUTTON = "PrimaryButton";
     public final String CARD_LEAD = "CardLead";
 
-    // Cabeçalho de card (Widgets.cardHeader)
+    // Cabeçalho de card (widgets.CardHeader)
     public final String CARD_HEADER_ROW = "CardHeaderRow";
     public final String CARD_HEADER_ICON_BOX = "CardHeaderIconBox";
     public final String CARD_HEADER_TITLE = "CardHeaderTitle";

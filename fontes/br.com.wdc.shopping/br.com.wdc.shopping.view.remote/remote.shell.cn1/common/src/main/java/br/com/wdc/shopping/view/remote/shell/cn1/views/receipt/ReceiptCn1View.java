@@ -20,7 +20,8 @@ import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Dates;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Money;
-import br.com.wdc.shopping.view.remote.shell.cn1.util.Widgets;
+import br.com.wdc.shopping.view.remote.shell.cn1.widgets.BackButton;
+import br.com.wdc.shopping.view.remote.shell.cn1.widgets.CardHeader;
 
 /**
  * Recibo da compra (classId {@value #CLASS_ID}) — espelha o React: alerta verde de sucesso, card com
@@ -71,7 +72,7 @@ public class ReceiptCn1View extends AbstractCn1View {
                 card.setUIID(sel.RECEIPT_CARD);
 
                 // cabeçalho: ícone + título/subtítulo (widget compartilhado)
-                dom.add(Widgets.cardHeader(FontImage.MATERIAL_RECEIPT, "Recibo de Compra", "WDC Shopping"), null);
+                dom.add(new CardHeader(FontImage.MATERIAL_RECEIPT, "Recibo de Compra", "WDC Shopping"), null);
 
                 // corpo (monoespaçado)
                 dom.boxY(body -> {
@@ -121,7 +122,7 @@ public class ReceiptCn1View extends AbstractCn1View {
 
                 // voltar
                 dom.container(new FlowLayout(Component.LEFT, Component.CENTER), null, actions -> {
-                    dom.add(Widgets.backButton("Voltar aos produtos", () -> submit(EVT_BACK)), null);
+                    dom.add(new BackButton("Voltar aos produtos", () -> submit(EVT_BACK)), null);
                 });
             });
         });

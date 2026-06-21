@@ -22,7 +22,8 @@ import br.com.wdc.shopping.view.remote.shell.cn1.bridge.BridgeSession;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Money;
-import br.com.wdc.shopping.view.remote.shell.cn1.util.Widgets;
+import br.com.wdc.shopping.view.remote.shell.cn1.widgets.BackButton;
+import br.com.wdc.shopping.view.remote.shell.cn1.widgets.CardHeader;
 
 /**
  * Carrinho (classId {@value #CLASS_ID}) — espelha o React: card com cabeçalho e, conforme o estado,
@@ -58,7 +59,7 @@ public class CartCn1View extends AbstractCn1View {
             r.setUIID(sel.CART_PAGE);
             dom.boxY(card -> {
                 card.setUIID(sel.CART_CARD);
-                dom.add(Widgets.cardHeader(FontImage.MATERIAL_SHOPPING_BAG, "Carrinho",
+                dom.add(new CardHeader(FontImage.MATERIAL_SHOPPING_BAG, "Carrinho",
                         "Seus produtos selecionados"), null);
                 body = dom.boxY(b -> { });
             });
@@ -109,7 +110,7 @@ public class CartCn1View extends AbstractCn1View {
             });
             dom.border(actions -> {
                 actions.setUIID(sel.CART_ACTIONS);
-                dom.add(Widgets.backButton("Continuar comprando", () -> submit(EVT_BACK)), BorderLayout.WEST);
+                dom.add(new BackButton("Continuar comprando", () -> submit(EVT_BACK)), BorderLayout.WEST);
                 Button buy = dom.button(BorderLayout.EAST, b -> {
                     b.setText("Finalizar pedido");
                     b.setUIID(sel.PRIMARY_BUTTON);

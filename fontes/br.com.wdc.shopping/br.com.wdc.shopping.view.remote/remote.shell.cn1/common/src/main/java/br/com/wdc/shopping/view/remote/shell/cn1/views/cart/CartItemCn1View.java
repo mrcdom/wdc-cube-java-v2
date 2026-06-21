@@ -13,7 +13,7 @@ import br.com.wdc.shopping.view.remote.shell.cn1.bridge.AbstractItemCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Money;
-import br.com.wdc.shopping.view.remote.shell.cn1.util.Widgets;
+import br.com.wdc.shopping.view.remote.shell.cn1.widgets.IconButton;
 
 /** Linha do carrinho: nome | stepper (− qtd +) | subtotal | remover (×). */
 public class CartItemCn1View extends AbstractItemCn1View<Object> {
@@ -44,14 +44,14 @@ public class CartItemCn1View extends AbstractItemCn1View<Object> {
             dom.boxX(BorderLayout.EAST, east -> {
                 dom.boxX(stepper -> {
                     stepper.setUIID(sel.CART_STEPPER);
-                    dom.add(Widgets.iconButton(sel.QTY_BTN, FontImage.MATERIAL_REMOVE, 3f, STEP_BTN,
+                    dom.add(new IconButton(sel.QTY_BTN, FontImage.MATERIAL_REMOVE, 3f, STEP_BTN,
                             () -> onModify.accept(currentId, currentQty - 1)), null);
                     qty = dom.label(l -> l.setUIID(sel.QTY_VALUE));
-                    dom.add(Widgets.iconButton(sel.QTY_BTN, FontImage.MATERIAL_ADD, 3f, STEP_BTN,
+                    dom.add(new IconButton(sel.QTY_BTN, FontImage.MATERIAL_ADD, 3f, STEP_BTN,
                             () -> onModify.accept(currentId, currentQty + 1)), null);
                 });
                 subtotal = dom.label(l -> l.setUIID(sel.CART_ITEM_SUBTOTAL));
-                dom.add(Widgets.iconButton(sel.CART_REMOVE_BTN, FontImage.MATERIAL_CLOSE, 3f, REMOVE_BTN,
+                dom.add(new IconButton(sel.CART_REMOVE_BTN, FontImage.MATERIAL_CLOSE, 3f, REMOVE_BTN,
                         () -> onRemove.accept(currentId)), null);
             });
         });

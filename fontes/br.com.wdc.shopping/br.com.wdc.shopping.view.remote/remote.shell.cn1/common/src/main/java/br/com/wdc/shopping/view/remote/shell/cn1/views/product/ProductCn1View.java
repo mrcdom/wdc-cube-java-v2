@@ -20,7 +20,7 @@ import br.com.wdc.shopping.view.remote.shell.cn1.util.Images;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Money;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.SimpleHtml;
-import br.com.wdc.shopping.view.remote.shell.cn1.util.Widgets;
+import br.com.wdc.shopping.view.remote.shell.cn1.widgets.BackButton;
 
 /**
  * Detalhe do produto (classId {@value #CLASS_ID}) — espelha o design React: título + divisória,
@@ -95,7 +95,7 @@ public class ProductCn1View extends AbstractCn1View {
 
             // ações: Voltar + Adicionar ao Carrinho
             dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, actions -> {
-                dom.add(Widgets.backButton("Voltar", () -> submit(EVT_BACK)), null);
+                dom.add(new BackButton("Voltar", () -> submit(EVT_BACK)), null);
                 Button add = dom.button(b -> {
                     b.setText("Adicionar ao Carrinho");
                     b.setUIID(sel.PRIMARY_BUTTON);
