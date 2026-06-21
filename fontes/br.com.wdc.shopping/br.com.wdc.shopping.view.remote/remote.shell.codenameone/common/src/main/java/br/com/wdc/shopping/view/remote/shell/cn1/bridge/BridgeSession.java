@@ -33,9 +33,13 @@ public final class BridgeSession {
     /** Preferência (client-only) com o último path navegado, para restaurar a tela ao reabrir. */
     private static final String INTENT_PREF = "wdc.lastIntent";
 
-    /** Listener de atualização — chamado no EDT após cada push de estado. */
+    /**
+     * Notificação de push — no EDT, com os vsids das views <b>recebidas</b> (dirty no servidor) e
+     * <b>liberadas</b> neste push. Cada push passa suas próprias listas (sem estado compartilhado),
+     * então pushes em rajada não se sobrescrevem.
+     */
     public interface Listener {
-        void onUpdate(BridgeSession session);
+        void onPush(List<String> received, List<String> released);
     }
 
     private final String base;     // ex.: http://localhost:8080
@@ -43,8 +47,6 @@ public final class BridgeSession {
     private final Listener listener;
 
     private final Map<String, Map<String, Object>> states = new HashMap<>();
-    /** vsids cujos ViewStates vieram no último push — para o app despachar doUpdate só neles. */
-    private final List<String> lastReceived = new ArrayList<>();
     private final Cn1ClientStorage clientStorage = new Cn1ClientStorage();
     private WebSocket ws;
     private Cn1Crypto crypto;
@@ -114,9 +116,9 @@ public final class BridgeSession {
                 uri = u.toString();
                 persistIntent(uri);
             }
+            List<String> received = new ArrayList<>();
             Object statesObj = resp.get("states");
             if (statesObj instanceof List) {
-                lastReceived.clear();
                 for (Object o : (List<?>) statesObj) {
                     if (o instanceof Map) {
                         @SuppressWarnings("unchecked")
@@ -124,16 +126,29 @@ public final class BridgeSession {
                         Object id = st.get("#");
                         if (id != null) {
                             states.put(id.toString(), st);
-                            lastReceived.add(id.toString());
+                            received.add(id.toString());
                         }
                     }
                 }
             }
+
+            List<String> released = new ArrayList<>();
+            Object releasedObj = resp.get("releasedViews");
+            if (releasedObj instanceof List) {
+                for (Object o : (List<?>) releasedObj) {
+                    if (o != null) {
+                        String id = o.toString();
+                        states.remove(id);
+                        released.add(id);
+                    }
+                }
+            }
+
             applyStorageDelta(resp.get("storage"));
+            CN.callSerially(() -> listener.onPush(received, released));
         } catch (Exception ignore) {
             // mensagem malformada — ignora; o estado anterior permanece
         }
-        CN.callSerially(() -> listener.onUpdate(this));
     }
 
     /** Salva o último path navegado (exceto login) para restaurar a tela ao reabrir o app. */
@@ -199,11 +214,6 @@ public final class BridgeSession {
 
     public Map<String, Object> state(String vsid) {
         return vsid != null ? states.get(vsid) : null;
-    }
-
-    /** vsids cujos ViewStates chegaram no último push (as views "dirty" do servidor). */
-    public List<String> lastReceived() {
-        return lastReceived;
     }
 
     public Map<String, Map<String, Object>> allStates() {

@@ -174,12 +174,12 @@ public class HomeCn1View extends AbstractCn1View {
         }
         showingProducts = products;
         refreshTabs();
-        // interação local (sem ida ao servidor): re-sincroniza apenas o painel que ficou visível
+        // interação local (sem ida ao servidor): marca dirty apenas o painel que ficou visível
         // — ex.: o histórico recalcula a capacidade agora que tem altura.
         Map<String, Object> st = state();
         AbstractCn1View panel = childView(Json.str(st, products ? "productsPanelViewId" : "purchasesPanelViewId"));
         if (panel != null) {
-            panel.doUpdate();
+            app.markDirty(panel);
         }
     }
 

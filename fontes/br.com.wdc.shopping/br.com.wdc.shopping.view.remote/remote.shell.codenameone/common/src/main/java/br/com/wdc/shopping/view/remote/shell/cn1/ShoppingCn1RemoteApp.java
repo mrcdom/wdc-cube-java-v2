@@ -1,7 +1,11 @@
 package br.com.wdc.shopping.view.remote.shell.cn1;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.codename1.components.InfiniteProgress;
 import com.codename1.components.SpanLabel;
@@ -51,6 +55,8 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
     private BridgeSession session;
     private Form form;
     private final Map<String, AbstractCn1View> views = new HashMap<>();
+    /** Views a re-renderizar no próximo flush (primitivo único, como o {@code dirtyViews} do SWT). */
+    private final Set<AbstractCn1View> dirty = new LinkedHashSet<>();
     private String rootVsid = "";
     private boolean flushScheduled;
     private boolean wasExpanded;
@@ -88,7 +94,7 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
     /** Mostra a tela de "conectando" e abre o bridge numa thread; em falha, mostra erro + retry. */
     private void startConnect() {
         showSplash(false, "Conectando ao servidor...", null);
-        session = new BridgeSession(BASE, s -> flush());
+        session = new BridgeSession(BASE, this::onPush);
         new Thread(() -> {
             try {
                 session.connect();
@@ -139,43 +145,81 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
         }
     }
 
-    /** Agenda um flush coalescido (chamado por views após interação local). */
+    /**
+     * Recebe um push do servidor (no EDT): descarta as views liberadas, monta a raiz se mudou e
+     * marca <b>dirty</b> cada ViewState recebido — espelha o {@code applyResponse} do shell SWT.
+     * O render efetivo é feito pelo {@link #flush()} coalescido.
+     */
+    private void onPush(List<String> received, List<String> released) {
+        for (String vsid : released) {
+            evict(vsid);
+        }
+        mountRootIfChanged();
+        for (String vsid : received) {
+            AbstractCn1View v = views.get(vsid); // já criada/montada (criação é lazy, via o pai)
+            if (v != null) {
+                dirty.add(v);
+            }
+        }
+        requestFlush();
+    }
+
+    /** Descarta uma view liberada pelo servidor: tira do cache, do dirty e desmonta (evita vazamento). */
+    private void evict(String vsid) {
+        AbstractCn1View v = views.remove(vsid);
+        if (v == null) {
+            return;
+        }
+        dirty.remove(v);
+        com.codename1.ui.Container el = v.peekElement();
+        if (el != null && el.getParent() != null) {
+            el.getParent().removeComponent(el);
+        }
+    }
+
+    /** Monta a view raiz no form quando o browser passa a apontar para outra. */
+    private void mountRootIfChanged() {
+        Map<String, Object> browser = session.state(BridgeSession.BROWSER_VSID);
+        String rv = browser != null ? Json.str(browser, "contentViewId") : "";
+        if (rv.isEmpty() || rv.equals(rootVsid)) {
+            return;
+        }
+        rootVsid = rv;
+        AbstractCn1View root = viewFor(rv);
+        form.removeAll();
+        if (root != null) {
+            form.add(BorderLayout.CENTER, root.getElement());
+        }
+    }
+
+    /** Agenda re-render de uma view (primitivo único — push do servidor e interações locais). */
+    public void markDirty(AbstractCn1View view) {
+        if (view != null) {
+            dirty.add(view);
+            requestFlush();
+        }
+    }
+
+    /** Agenda um flush coalescido. */
     public void requestFlush() {
         if (!flushScheduled) {
             flushScheduled = true;
-            CN.callSerially(() -> {
-                flushScheduled = false;
-                flush();
-            });
+            CN.callSerially(this::flush);
         }
     }
 
     /**
-     * Re-sincroniza a árvore ativa (no EDT). Monta a raiz quando o browser aponta para outra e, em
-     * seguida, <b>despacha {@code doUpdate()} para cada ViewState recebido</b> no último push (as
-     * views "dirty" do servidor). Cada view cuida do próprio dado e da <i>montagem</i> das suas
-     * filhas; não há propagação manual de {@code doUpdate} pelos pais (cf. shells React/TeaVM).
+     * Render coalescido (no EDT): drena o conjunto {@code dirty} e chama {@code doUpdate()} em cada
+     * view. Cada view cuida do próprio dado e da <i>montagem</i> das suas filhas; não há propagação
+     * manual de {@code doUpdate} pelos pais (cf. shells React/TeaVM/SWT).
      */
     private void flush() {
+        flushScheduled = false;
         try {
-            Map<String, Object> browser = session.state(BridgeSession.BROWSER_VSID);
-            String rv = browser != null ? Json.str(browser, "contentViewId") : "";
-            if (rv.isEmpty()) {
-                return; // ainda sem estado
-            }
-            if (!rv.equals(rootVsid)) {
-                rootVsid = rv;
-                AbstractCn1View root = viewFor(rv);
-                form.removeAll();
-                if (root != null) {
-                    form.add(BorderLayout.CENTER, root.getElement());
-                }
-            }
-            for (String vsid : session.lastReceived()) {
-                AbstractCn1View v = views.get(vsid);
-                if (v != null) {
-                    v.doUpdate();
-                }
+            List<AbstractCn1View> batch = new ArrayList<>(dirty);
+            dirty.clear();
+            for (AbstractCn1View v : batch) {
+                v.doUpdate();
             }
             form.revalidate();
         } catch (Exception e) {

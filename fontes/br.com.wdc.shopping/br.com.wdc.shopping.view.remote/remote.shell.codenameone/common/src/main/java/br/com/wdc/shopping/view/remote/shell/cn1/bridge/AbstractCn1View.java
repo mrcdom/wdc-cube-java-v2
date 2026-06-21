@@ -51,15 +51,20 @@ public abstract class AbstractCn1View {
         return element;
     }
 
+    /** Element já construído, ou {@code null} se ainda não — não dispara o build (usado no descarte). */
+    public final Container peekElement() {
+        return element;
+    }
+
     /** Cria a árvore de widgets uma única vez. */
     protected abstract Container build();
 
     /** Sincroniza os widgets a partir do estado atual (muta, não reconstrói). */
     public abstract void doUpdate();
 
-    /** Agenda um flush (re-sincroniza a árvore ativa). */
+    /** Agenda um re-render desta view (primitivo único; igual ao {@code markDirty} do shell SWT). */
     public void update() {
-        app.requestFlush();
+        app.markDirty(this);
     }
 
     protected Map<String, Object> state() {
