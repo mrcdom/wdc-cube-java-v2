@@ -357,9 +357,12 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <!-- Java 8: contrato do Codename One (VM/biblioteca = subconjunto do Java 8). Não subir
+                     para 11/17 — sintaxe nova compilaria no simulador, mas arriscaria o build de
+                     dispositivo (ParparVM/transpiler). Igual aos módulos de plataforma. -->
                 <configuration>
-                    <source>17</source>
-                    <target>17</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
             </plugin>
             <plugin>
