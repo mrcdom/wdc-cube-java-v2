@@ -150,7 +150,12 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
         }
     }
 
-    /** Re-sincroniza a árvore ativa a partir do estado do bridge (no EDT). */
+    /**
+     * Re-sincroniza a árvore ativa (no EDT). Monta a raiz quando o browser aponta para outra e, em
+     * seguida, <b>despacha {@code doUpdate()} para cada ViewState recebido</b> no último push (as
+     * views "dirty" do servidor). Cada view cuida do próprio dado e da <i>montagem</i> das suas
+     * filhas; não há propagação manual de {@code doUpdate} pelos pais (cf. shells React/TeaVM).
+     */
     private void flush() {
         try {
             Map<String, Object> browser = session.state(BridgeSession.BROWSER_VSID);
@@ -166,9 +171,11 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
                     form.add(BorderLayout.CENTER, root.getElement());
                 }
             }
-            AbstractCn1View root = views.get(rootVsid);
-            if (root != null) {
-                root.doUpdate();
+            for (String vsid : session.lastReceived()) {
+                AbstractCn1View v = views.get(vsid);
+                if (v != null) {
+                    v.doUpdate();
+                }
             }
             form.revalidate();
         } catch (Exception e) {

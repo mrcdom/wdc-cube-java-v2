@@ -43,6 +43,8 @@ public final class BridgeSession {
     private final Listener listener;
 
     private final Map<String, Map<String, Object>> states = new HashMap<>();
+    /** vsids cujos ViewStates vieram no último push — para o app despachar doUpdate só neles. */
+    private final List<String> lastReceived = new ArrayList<>();
     private final Cn1ClientStorage clientStorage = new Cn1ClientStorage();
     private WebSocket ws;
     private Cn1Crypto crypto;
@@ -114,6 +116,7 @@ public final class BridgeSession {
             }
             Object statesObj = resp.get("states");
             if (statesObj instanceof List) {
+                lastReceived.clear();
                 for (Object o : (List<?>) statesObj) {
                     if (o instanceof Map) {
                         @SuppressWarnings("unchecked")
@@ -121,6 +124,7 @@ public final class BridgeSession {
                         Object id = st.get("#");
                         if (id != null) {
                             states.put(id.toString(), st);
+                            lastReceived.add(id.toString());
                         }
                     }
                 }
@@ -195,6 +199,11 @@ public final class BridgeSession {
 
     public Map<String, Object> state(String vsid) {
         return vsid != null ? states.get(vsid) : null;
+    }
+
+    /** vsids cujos ViewStates chegaram no último push (as views "dirty" do servidor). */
+    public List<String> lastReceived() {
+        return lastReceived;
     }
 
     public Map<String, Map<String, Object>> allStates() {

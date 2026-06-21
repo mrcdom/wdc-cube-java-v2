@@ -174,7 +174,13 @@ public class HomeCn1View extends AbstractCn1View {
         }
         showingProducts = products;
         refreshTabs();
-        update();
+        // interação local (sem ida ao servidor): re-sincroniza apenas o painel que ficou visível
+        // — ex.: o histórico recalcula a capacidade agora que tem altura.
+        Map<String, Object> st = state();
+        AbstractCn1View panel = childView(Json.str(st, products ? "productsPanelViewId" : "purchasesPanelViewId"));
+        if (panel != null) {
+            panel.doUpdate();
+        }
     }
 
     /** Atualiza o estilo das abas e qual painel está montado no holder ativo (compacto). */
@@ -205,7 +211,8 @@ public class HomeCn1View extends AbstractCn1View {
         }
     }
 
-    /** Tela aninhada (produto/carrinho/recibo) ocupando tudo — sem abas. */
+    /** Tela aninhada (produto/carrinho/recibo) ocupando tudo — sem abas. Só monta; o doUpdate da
+     *  filha é despachado pela bridge. */
     private void showContent(String contentVsid) {
         if (!"content".equals(mode) || !contentVsid.equals(mountedContentVsid)) {
             mode = "content";
@@ -216,10 +223,6 @@ public class HomeCn1View extends AbstractCn1View {
                 body.add(BorderLayout.CENTER, el);
             }
             body.revalidate();
-        }
-        AbstractCn1View view = childView(contentVsid);
-        if (view != null) {
-            view.doUpdate();
         }
     }
 
@@ -236,9 +239,7 @@ public class HomeCn1View extends AbstractCn1View {
 
         mountInto(productsHolder, Json.str(st, "productsPanelViewId"), false);
         mountInto(purchasesHolder, Json.str(st, "purchasesPanelViewId"), true);
-
-        refreshChild(Json.str(st, "productsPanelViewId"));
-        refreshChild(Json.str(st, "purchasesPanelViewId"));
+        // o doUpdate dos painéis é despachado pela bridge (ViewState recebido)
     }
 
     private void mountInto(Container holder, String childVsid, boolean purchases) {
@@ -260,12 +261,5 @@ public class HomeCn1View extends AbstractCn1View {
             holder.add(BorderLayout.CENTER, el);
         }
         holder.revalidate();
-    }
-
-    private void refreshChild(String childVsid) {
-        AbstractCn1View view = childView(childVsid);
-        if (view != null) {
-            view.doUpdate();
-        }
     }
 }

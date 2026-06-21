@@ -26,6 +26,11 @@ public class RootCn1View extends AbstractCn1View {
         return root;
     }
 
+    /**
+     * Apenas <b>monta</b> a tela de conteúdo (login/home) quando {@code contentViewId} muda. A
+     * atualização de dados da filha é despachada pela bridge (flush despacha doUpdate por ViewState
+     * recebido), então não há propagação manual aqui.
+     */
     @Override
     public void doUpdate() {
         String contentVsid = Json.str(state(), "contentViewId");
@@ -36,10 +41,6 @@ public class RootCn1View extends AbstractCn1View {
             if (el != null) {
                 root.add(BorderLayout.CENTER, el);
             }
-        }
-        AbstractCn1View content = childView(contentVsid);
-        if (content != null) {
-            content.doUpdate();
         }
     }
 }
