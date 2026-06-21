@@ -14,6 +14,7 @@ import com.codename1.ui.layouts.GridLayout;
 import br.com.wdc.shopping.view.remote.shell.cn1.ShoppingCn1RemoteApp;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.BridgeSession;
+import br.com.wdc.shopping.view.remote.shell.cn1.bridge.ViewSlot;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
 
@@ -40,21 +41,17 @@ public class HomeCn1View extends AbstractCn1View {
 
     private Label nick;
     private Label cartBadge;
-    private Container body;
+    /** Área de conteúdo: ou a tela aninhada (contentViewId) ou o split (chave local "split"). */
+    private ViewSlot bodySlot;
 
     // split (construído uma vez para o modo expandido/compacto corrente)
     private Container splitPane;
-    private Container productsHolder;
-    private Container purchasesHolder;
+    private ViewSlot productsSlot;
+    private ViewSlot purchasesSlot;
     private Container activeHolder; // só no compacto (abas)
     private Button tabProducts;
     private Button tabHistory;
     private boolean showingProducts = true;
-
-    private String mode = "";
-    private String mountedContentVsid = "";
-    private String mountedProductsVsid = "";
-    private String mountedPurchasesVsid = "";
 
     public HomeCn1View(String vsid, BridgeSession session, ShoppingCn1RemoteApp app) {
         super(vsid, session, app);
@@ -125,9 +122,10 @@ public class HomeCn1View extends AbstractCn1View {
                     cartBadge = dom.label(l -> l.setUIID(sel.CART_BADGE));
                 });
             });
-
-            body = dom.border(BorderLayout.CENTER, c -> { });
         });
+
+        bodySlot = new ViewSlot(app);
+        root.add(BorderLayout.CENTER, bodySlot);
 
         buildSplit();
         return root;
@@ -135,15 +133,15 @@ public class HomeCn1View extends AbstractCn1View {
 
     /** Constrói (uma vez) a estrutura do split conforme o modo de largura corrente. */
     private void buildSplit() {
-        productsHolder = new Container(new BorderLayout());
-        purchasesHolder = new Container(new BorderLayout());
+        productsSlot = new ViewSlot(app);
+        purchasesSlot = new ViewSlot(app);
 
         if (app.isExpanded()) {
             // produtos + histórico lado a lado (sem abas)
             splitPane = new Container(new BorderLayout());
-            splitPane.add(BorderLayout.CENTER, productsHolder);
-            purchasesHolder.setPreferredW(PURCHASES_WIDTH);
-            splitPane.add(BorderLayout.EAST, purchasesHolder);
+            splitPane.add(BorderLayout.CENTER, productsSlot);
+            purchasesSlot.setPreferredW(PURCHASES_WIDTH);
+            splitPane.add(BorderLayout.EAST, purchasesSlot);
         } else {
             // abas comutam entre produtos e histórico
             Container tabs = new Container(new GridLayout(2));
@@ -157,6 +155,7 @@ public class HomeCn1View extends AbstractCn1View {
             splitPane = new Container(new BorderLayout());
             splitPane.add(BorderLayout.NORTH, tabs);
             splitPane.add(BorderLayout.CENTER, activeHolder);
+            refreshTabs(); // popula o holder ativo com o painel inicial (produtos)
         }
     }
 
@@ -191,7 +190,7 @@ public class HomeCn1View extends AbstractCn1View {
         tabProducts.setUIID(showingProducts ? sel.TAB_ITEM_ACTIVE : sel.TAB_ITEM);
         tabHistory.setUIID(showingProducts ? sel.TAB_ITEM : sel.TAB_ITEM_ACTIVE);
         activeHolder.removeAll();
-        activeHolder.add(BorderLayout.CENTER, showingProducts ? productsHolder : purchasesHolder);
+        activeHolder.add(BorderLayout.CENTER, showingProducts ? productsSlot : purchasesSlot);
         activeHolder.revalidate();
     }
 
@@ -205,61 +204,14 @@ public class HomeCn1View extends AbstractCn1View {
 
         String content = Json.str(st, "contentViewId");
         if (!content.isEmpty()) {
-            showContent(content);
+            // tela aninhada (produto/carrinho/recibo) ocupa tudo — esconde as abas
+            bodySlot.mount(content);
         } else {
-            showSplit(st);
+            // split produtos + histórico (lado a lado no expandido, abas no compacto)
+            bodySlot.mountLocal("split", splitPane);
+            productsSlot.mount(Json.str(st, "productsPanelViewId"));
+            purchasesSlot.mount(Json.str(st, "purchasesPanelViewId"));
         }
-    }
-
-    /** Tela aninhada (produto/carrinho/recibo) ocupando tudo — sem abas. Só monta; o doUpdate da
-     *  filha é despachado pela bridge. */
-    private void showContent(String contentVsid) {
-        if (!"content".equals(mode) || !contentVsid.equals(mountedContentVsid)) {
-            mode = "content";
-            mountedContentVsid = contentVsid;
-            Container el = childElement(contentVsid);
-            body.removeAll();
-            if (el != null) {
-                body.add(BorderLayout.CENTER, el);
-            }
-            body.revalidate();
-        }
-    }
-
-    /** Split produtos + histórico (lado a lado no expandido, abas no compacto). */
-    private void showSplit(Map<String, Object> st) {
-        if (!"split".equals(mode)) {
-            mode = "split";
-            mountedContentVsid = "";
-            body.removeAll();
-            body.add(BorderLayout.CENTER, splitPane);
-            refreshTabs();
-            body.revalidate();
-        }
-
-        mountInto(productsHolder, Json.str(st, "productsPanelViewId"), false);
-        mountInto(purchasesHolder, Json.str(st, "purchasesPanelViewId"), true);
-        // o doUpdate dos painéis é despachado pela bridge (ViewState recebido)
-    }
-
-    private void mountInto(Container holder, String childVsid, boolean purchases) {
-        if (childVsid.isEmpty()) {
-            return;
-        }
-        String mounted = purchases ? mountedPurchasesVsid : mountedProductsVsid;
-        if (childVsid.equals(mounted)) {
-            return;
-        }
-        if (purchases) {
-            mountedPurchasesVsid = childVsid;
-        } else {
-            mountedProductsVsid = childVsid;
-        }
-        Container el = childElement(childVsid);
-        holder.removeAll();
-        if (el != null) {
-            holder.add(BorderLayout.CENTER, el);
-        }
-        holder.revalidate();
+        // o doUpdate das filhas (conteúdo/painéis) é despachado pela bridge (ViewState recebido)
     }
 }
