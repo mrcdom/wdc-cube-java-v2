@@ -20,6 +20,7 @@ import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Dates;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Money;
+import br.com.wdc.shopping.view.remote.shell.cn1.util.Px;
 import br.com.wdc.shopping.view.remote.shell.cn1.widgets.BackButton;
 import br.com.wdc.shopping.view.remote.shell.cn1.widgets.CardHeader;
 
@@ -35,9 +36,9 @@ public class ReceiptCn1View extends AbstractCn1View {
     public static final String CLASS_ID = "e8d0bd8ae3bc";
     private static final int EVT_BACK = 1;
 
-    /** Larguras (px) das colunas QTD e VALOR — compartilhadas com {@link ReceiptItemCn1View}. */
-    static final int COL_QTY_W = 130;
-    static final int COL_VALUE_W = 220;
+    /** Larguras (mm) das colunas QTD e VALOR — compartilhadas com {@link ReceiptItemCn1View}. */
+    static final float COL_QTY_W_MM = 12f;
+    static final float COL_VALUE_W_MM = 22f;
     /** Fonte monoespaçada do corpo do recibo (estilo cupom). */
     static final Font MONO = Font.createSystemFont(Font.FACE_MONOSPACE, Font.STYLE_PLAIN, Font.SIZE_MEDIUM);
 
@@ -97,11 +98,11 @@ public class ReceiptCn1View extends AbstractCn1View {
                         dom.boxX(BorderLayout.EAST, cols -> {
                             Label qtd = dom.label(l -> l.setUIID(sel.RECEIPT_COL_HEAD_QTY));
                             qtd.setText("QTD");
-                            qtd.setPreferredW(COL_QTY_W);
+                            qtd.setPreferredW(Px.mm(COL_QTY_W_MM));
                             mono(qtd);
                             Label val = dom.label(l -> l.setUIID(sel.RECEIPT_COL_HEAD_VALUE));
                             val.setText("VALOR");
-                            val.setPreferredW(COL_VALUE_W);
+                            val.setPreferredW(Px.mm(COL_VALUE_W_MM));
                             mono(val);
                         });
                     });

@@ -21,6 +21,7 @@ import br.com.wdc.shopping.view.remote.shell.cn1.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.BridgeSession;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
+import br.com.wdc.shopping.view.remote.shell.cn1.util.Px;
 
 /**
  * Painel de histórico de compras (classId {@value #CLASS_ID}) — cabeçalho, lista paginada de compras
@@ -37,8 +38,8 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
     private static final int EVT_PAGE_CHANGE = 2;
     private static final int EVT_PAGE_SIZE = 3;
 
-    /** Altura estimada (px) de um item antes de medir o primeiro renderizado. */
-    private static final int DEFAULT_ITEM_H = 110;
+    /** Altura estimada (mm) de um item antes de medir o primeiro renderizado — densidade-independente. */
+    private static final float DEFAULT_ITEM_H_MM = 15f;
     /** Janela do debounce da notificação de capacidade (ms). */
     private static final int DEBOUNCE_MS = 250;
 
@@ -227,7 +228,7 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
             return; // ainda sem layout; um próximo doUpdate/resize reagenda
         }
         // passo real entre itens (inclui a margem) — evita contar um item a mais
-        int itemH = DEFAULT_ITEM_H;
+        int itemH = Px.mm(DEFAULT_ITEM_H_MM);
         int n = list.getComponentCount();
         if (n >= 2) {
             int stride = list.getComponentAt(1).getY() - list.getComponentAt(0).getY();

@@ -18,6 +18,7 @@ import br.com.wdc.shopping.view.remote.shell.cn1.bridge.BridgeSession;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Images;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
+import br.com.wdc.shopping.view.remote.shell.cn1.util.Px;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Money;
 import br.com.wdc.shopping.view.remote.shell.cn1.widgets.BackButton;
 import br.com.wdc.shopping.view.remote.shell.cn1.widgets.HtmlText;
@@ -34,10 +35,11 @@ public class ProductCn1View extends AbstractCn1View {
     public static final String CLASS_ID = "48b693f67410";
     private static final int EVT_BACK = 1;
     private static final int EVT_ADD_TO_CART = 2;
-    private static final int DETAIL_PX = 200;
-    private static final int DIVIDER_H = 4;
-    /** Lado (px) dos botões +/- de quantidade — evita a altura mínima gigante do Button. */
-    private static final int QTY_BTN = 58;
+    // Dimensões em mm (densidade-independente) — ver util.Px.
+    private static final float DETAIL_MM = 28f;
+    private static final float DIVIDER_H_MM = 0.6f;
+    /** Lado (mm) dos botões +/- de quantidade — evita a altura mínima gigante do Button. */
+    private static final float QTY_BTN_MM = 8f;
 
     private Label name;
     private Label price;
@@ -59,7 +61,7 @@ public class ProductCn1View extends AbstractCn1View {
             r.setUIID(sel.PRODUCT_PAGE);
             name = dom.label(l -> l.setUIID(sel.PRODUCT_TITLE));
             Label divider = dom.label(l -> l.setUIID(sel.PRODUCT_DIVIDER));
-            divider.setPreferredH(DIVIDER_H);
+            divider.setPreferredH(Px.mm(DIVIDER_H_MM));
 
             // card de descrição
             dom.boxY(card -> {
@@ -67,30 +69,21 @@ public class ProductCn1View extends AbstractCn1View {
                 description = dom.add(new HtmlText(sel.PRODUCT_DESC_TEXT), null);
             });
 
-            // preço/quantidade (esquerda) + imagem (direita), alinhados pelo centro vertical
+            // preço/quantidade + imagem — lado a lado no expandido; empilhado (imagem em cima) no
+            // compacto, senão a soma das larguras estoura a tela do telefone e a imagem fica cortada.
             dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, row -> {
                 row.setUIID(sel.PRODUCT_PRICE_IMAGE_ROW);
-                // BoxLayout.x estica os dois wraps à mesma altura; cada wrap centraliza o conteúdo
-                dom.boxX(group -> {
-                    dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, priceWrap -> {
-                        dom.boxY(priceCol -> {
-                            price = dom.label(l -> l.setUIID(sel.PRODUCT_PRICE_BADGE));
-                            dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, qtyRow -> {
-                                dom.label(l -> {
-                                    l.setText("Qtd:");
-                                    l.setUIID(sel.QTY_LABEL);
-                                });
-                                stepBtn(dom, FontImage.MATERIAL_REMOVE, -1);
-                                qtyValue = dom.label(l -> l.setUIID(sel.QTY_VALUE));
-                                stepBtn(dom, FontImage.MATERIAL_ADD, 1);
-                            });
-                        });
+                if (app.isExpanded()) {
+                    dom.boxX(group -> {
+                        buildPriceQty(dom);
+                        buildImageBox(dom);
                     });
-                    dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, box -> {
-                        box.setUIID(sel.PRODUCT_IMAGE_BOX);
-                        image = dom.label(l -> { });
+                } else {
+                    dom.boxY(stack -> {
+                        buildImageBox(dom);
+                        buildPriceQty(dom);
                     });
-                });
+                }
             });
 
             // ações: Voltar + Adicionar ao Carrinho
@@ -114,7 +107,36 @@ public class ProductCn1View extends AbstractCn1View {
             bt.addActionListener(e -> changeQty(delta));
         });
         FontImage.setMaterialIcon(b, icon, 3f);
-        b.setPreferredSize(new Dimension(QTY_BTN, QTY_BTN)); // trava o tamanho (sem o mínimo de toque)
+        b.setPreferredSize(new Dimension(Px.mm(QTY_BTN_MM), Px.mm(QTY_BTN_MM))); // trava o tamanho (sem o mínimo de toque)
+    }
+
+    /** Caixa da imagem do produto (fundo gradiente), centralizada. */
+    private void buildImageBox(Cn1Dom dom) {
+        dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, box -> {
+            box.setUIID(sel.PRODUCT_IMAGE_BOX);
+            image = dom.label(l -> { });
+        });
+    }
+
+    /** Badge de preço + linha "Qtd: − valor +". O qty usa BoxLayout.x (centraliza na vertical, como o
+     *  stepper do carrinho); o FlowLayout externo o centraliza na horizontal. */
+    private void buildPriceQty(Cn1Dom dom) {
+        dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, priceWrap -> {
+            dom.boxY(priceCol -> {
+                price = dom.label(l -> l.setUIID(sel.PRODUCT_PRICE_BADGE));
+                dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, qtyWrap -> {
+                    dom.boxX(qtyRow -> {
+                        dom.label(l -> {
+                            l.setText("Qtd:");
+                            l.setUIID(sel.QTY_LABEL);
+                        });
+                        stepBtn(dom, FontImage.MATERIAL_REMOVE, -1);
+                        qtyValue = dom.label(l -> l.setUIID(sel.QTY_VALUE));
+                        stepBtn(dom, FontImage.MATERIAL_ADD, 1);
+                    });
+                });
+            });
+        });
     }
 
     private void changeQty(int delta) {
@@ -141,7 +163,7 @@ public class ProductCn1View extends AbstractCn1View {
         long id = Json.longOf(p, "id");
         if (id != currentId) {
             currentId = id;
-            image.setIcon(Images.product(id, DETAIL_PX));
+            image.setIcon(Images.product(id, Px.mm(DETAIL_MM)));
         }
         name.setText(Json.str(p, "name"));
         price.setText(Money.format(Json.doubleOf(p, "price")));

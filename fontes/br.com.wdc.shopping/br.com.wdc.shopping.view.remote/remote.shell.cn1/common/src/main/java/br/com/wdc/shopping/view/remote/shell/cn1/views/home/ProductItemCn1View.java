@@ -16,16 +16,19 @@ import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Images;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Money;
+import br.com.wdc.shopping.view.remote.shell.cn1.util.Px;
 
 /** Card de produto: imagem (fundo gradiente) + nome + preço; o card inteiro abre o detalhe. */
 public class ProductItemCn1View extends AbstractItemCn1View<Object> {
 
     private static final HomeSel sel = HomeSel.INSTANCE;
 
-    private static final int IMG = 190;
-    /** Tamanho fixo do card — o FlowLayout do painel quebra a linha quando não couber. */
-    private static final int CARD_W = 300;
-    private static final int CARD_H = 410;
+    // Dimensões em mm (densidade-independente). Em px fixos o card fica minúsculo em telas de alta
+    // densidade e o nome/preço (fonte escalada por densidade) não cabem. O FlowLayout do painel quebra
+    // a linha quando não couber; valores tunáveis (ex.: ~2 cards por linha no telefone).
+    private static final float IMG_MM = 17f;
+    private static final float CARD_W_MM = 26f;
+    private static final float CARD_H_MM = 38f;
 
     private final Consumer<Long> onOpen;
     private Label image;
@@ -45,11 +48,14 @@ public class ProductItemCn1View extends AbstractItemCn1View<Object> {
                 wrap.setUIID(sel.PRODUCT_CARD_IMAGE);
                 image = dom.label(l -> { });
             });
-            name = dom.label(l -> l.setUIID(sel.PRODUCT_CARD_NAME));
+            name = dom.label(l -> {
+                l.setUIID(sel.PRODUCT_CARD_NAME);
+                l.setEndsWith3Points(true); // nome longo vira "…" em vez de cortar no meio
+            });
             price = dom.label(l -> l.setUIID(sel.PRODUCT_CARD_PRICE));
         });
         Container card = Clickable.card(sel.PRODUCT_CARD, content, () -> onOpen.accept(currentId));
-        card.setPreferredSize(new Dimension(CARD_W, CARD_H));
+        card.setPreferredSize(new Dimension(Px.mm(CARD_W_MM), Px.mm(CARD_H_MM)));
         return card;
     }
 
@@ -61,7 +67,7 @@ public class ProductItemCn1View extends AbstractItemCn1View<Object> {
         price.setText(Money.format(Json.doubleOf(m, "price")));
         if (id != currentId) {
             currentId = id;
-            image.setIcon(Images.product(id, IMG));
+            image.setIcon(Images.product(id, Px.mm(IMG_MM)));
         }
     }
 }

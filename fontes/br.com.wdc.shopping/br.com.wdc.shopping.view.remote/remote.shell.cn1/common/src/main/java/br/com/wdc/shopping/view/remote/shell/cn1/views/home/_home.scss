@@ -97,14 +97,13 @@ HomAppBarBrandSub {
     padding: 0;
 }
 
+// Badge sobreposto ao ícone do carrinho. Forma circular via RoundBorder no Java (o border-radius
+// do CSS do CN1 reserva espaço vertical); aqui só texto/fonte/padding.
 HomCartBadge {
-    color: $accent;
-    background-color: $surface;
-    border-radius: $radius-sm;
+    color: $surface;
     font-family: $f-bold;
-    font-size: 1.9mm;
-    padding: 0.1mm 0.8mm;
-    margin: 0 0 0 1.5mm;
+    font-size: 1.6mm;
+    padding: 0.3mm 1mm;
     text-align: center;
 }
 

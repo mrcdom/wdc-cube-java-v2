@@ -10,6 +10,8 @@ import com.codename1.ui.Label;
 import com.codename1.ui.layouts.BorderLayout;
 import com.codename1.ui.layouts.FlowLayout;
 import com.codename1.ui.layouts.GridLayout;
+import com.codename1.ui.layouts.LayeredLayout;
+import com.codename1.ui.plaf.RoundBorder;
 
 import br.com.wdc.shopping.view.remote.shell.cn1.ShoppingCn1RemoteApp;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.AbstractCn1View;
@@ -17,6 +19,7 @@ import br.com.wdc.shopping.view.remote.shell.cn1.bridge.BridgeSession;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.ViewSlot;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
+import br.com.wdc.shopping.view.remote.shell.cn1.util.Px;
 
 /**
  * Tela principal (classId {@value #CLASS_ID}): app bar (sair + saudação / logo "Shopping" / carrinho
@@ -36,8 +39,11 @@ public class HomeCn1View extends AbstractCn1View {
     private static final int EVT_LOGOUT = 1;
     private static final int EVT_OPEN_CART = 2;
 
-    /** Largura fixa do painel de histórico no layout expandido. */
-    private static final int PURCHASES_WIDTH = 660;
+    /** Largura (mm) do painel de histórico no layout expandido — densidade-independente (ver util.Px). */
+    private static final float PURCHASES_WIDTH_MM = 80f;
+
+    /** Cor do badge do carrinho (vermelho de notificação, sobre o ícone). */
+    private static final int BADGE_COLOR = 0xff3b30;
 
     private Label nick;
     private Label cartBadge;
@@ -108,17 +114,25 @@ public class HomeCn1View extends AbstractCn1View {
                     });
                 });
 
-                // direita: carrinho (texto só no expandido) + badge
+                // direita: carrinho (texto só no expandido) + badge sobreposto ao ícone
                 dom.container(new FlowLayout(Component.RIGHT, Component.CENTER), BorderLayout.EAST, east -> {
-                    Button cart = dom.button(b -> {
-                        if (wide) {
-                            b.setText("Carrinho");
-                        }
-                        b.setUIID(sel.APP_BAR_BTN);
-                        b.addActionListener(e -> submit(EVT_OPEN_CART));
+                    Container cartWrap = dom.container(new LayeredLayout(), null, wrap -> {
+                        Button cart = dom.button(b -> {
+                            if (wide) {
+                                b.setText("Carrinho");
+                            }
+                            b.setUIID(sel.APP_BAR_BTN);
+                            b.addActionListener(e -> submit(EVT_OPEN_CART));
+                        });
+                        FontImage.setMaterialIcon(cart, FontImage.MATERIAL_SHOPPING_CART, 5f);
+                        // badge circular via RoundBorder no Java (o border-radius do CSS do CN1 reserva
+                        // espaço vertical); cor/fonte do texto ficam no SCSS.
+                        cartBadge = dom.label(l -> l.setUIID(sel.CART_BADGE));
+                        cartBadge.getAllStyles().setBgTransparency(0);
+                        cartBadge.getAllStyles().setBorder(RoundBorder.create().color(BADGE_COLOR));
                     });
-                    FontImage.setMaterialIcon(cart, FontImage.MATERIAL_SHOPPING_CART, 5f);
-                    cartBadge = dom.label(l -> l.setUIID(sel.CART_BADGE));
+                    // fixa o badge no canto superior direito, sobre o ícone (insets: top right bottom left)
+                    ((LayeredLayout) cartWrap.getLayout()).setInsets(cartBadge, "0 0 auto auto");
                 });
             });
         });
@@ -139,7 +153,7 @@ public class HomeCn1View extends AbstractCn1View {
             // produtos + histórico lado a lado (sem abas)
             splitPane = new Container(new BorderLayout());
             splitPane.add(BorderLayout.CENTER, productsSlot);
-            purchasesSlot.setPreferredW(PURCHASES_WIDTH);
+            purchasesSlot.setPreferredW(Px.mm(PURCHASES_WIDTH_MM));
             splitPane.add(BorderLayout.EAST, purchasesSlot);
         } else {
             // abas comutam entre produtos e histórico
@@ -199,7 +213,9 @@ public class HomeCn1View extends AbstractCn1View {
         if (nick != null) {
             nick.setText(Json.str(st, "nickName")); // só existe no expandido
         }
-        cartBadge.setText(String.valueOf(Json.intOf(st, "cartItemCount")));
+        int cartCount = Json.intOf(st, "cartItemCount");
+        cartBadge.setText(String.valueOf(cartCount));
+        visible(cartBadge, cartCount > 0); // badge some quando o carrinho está vazio (convenção)
 
         String content = Json.str(st, "contentViewId");
         if (!content.isEmpty()) {

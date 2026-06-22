@@ -11,7 +11,6 @@ import com.codename1.ui.Container;
 import com.codename1.ui.FontImage;
 import com.codename1.ui.Label;
 import com.codename1.ui.geom.Dimension;
-import com.codename1.ui.layouts.BorderLayout;
 import com.codename1.ui.layouts.BoxLayout;
 import com.codename1.ui.layouts.FlowLayout;
 import com.codename1.ui.plaf.RoundBorder;
@@ -22,6 +21,7 @@ import br.com.wdc.shopping.view.remote.shell.cn1.bridge.BridgeSession;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Money;
+import br.com.wdc.shopping.view.remote.shell.cn1.util.Px;
 import br.com.wdc.shopping.view.remote.shell.cn1.widgets.BackButton;
 import br.com.wdc.shopping.view.remote.shell.cn1.widgets.CardHeader;
 
@@ -39,6 +39,9 @@ public class CartCn1View extends AbstractCn1View {
     private static final int EVT_REMOVE = 2;
     private static final int EVT_BACK = 3;
     private static final int EVT_MODIFY = 4;
+
+    /** Lado (mm) do ícone redondo do estado vazio — densidade-independente (ver util.Px). */
+    private static final float EMPTY_ICON_MM = 20f;
 
     private Container body;
     private Container emptySection;
@@ -74,7 +77,7 @@ public class CartCn1View extends AbstractCn1View {
             r.setUIID(sel.CART_EMPTY);
             dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, wrap -> {
                 Label iconBox = dom.label(l -> l.setUIID(sel.CART_EMPTY_ICON_BOX));
-                iconBox.setPreferredSize(new Dimension(150, 150));
+                iconBox.setPreferredSize(new Dimension(Px.mm(EMPTY_ICON_MM), Px.mm(EMPTY_ICON_MM)));
                 iconBox.getAllStyles().setBorder(RoundBorder.create().color(0xe8f1fc));
                 FontImage.setMaterialIcon(iconBox, FontImage.MATERIAL_SHOPPING_BAG, 8f);
             });
@@ -108,10 +111,12 @@ public class CartCn1View extends AbstractCn1View {
                 });
                 total = dom.label(l -> l.setUIID(sel.CART_FOOTER_TOTAL));
             });
-            dom.border(actions -> {
+            // ações em FlowLayout centralizado: no compacto quebram a linha (empilham) em vez de cortar
+            // o texto; no expandido ficam lado a lado. Mesmo padrão das ações do ProductCn1View.
+            dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, actions -> {
                 actions.setUIID(sel.CART_ACTIONS);
-                dom.add(new BackButton("Continuar comprando", () -> submit(EVT_BACK)), BorderLayout.WEST);
-                Button buy = dom.button(BorderLayout.EAST, b -> {
+                dom.add(new BackButton("Continuar comprando", () -> submit(EVT_BACK)), null);
+                Button buy = dom.button(b -> {
                     b.setText("Finalizar pedido");
                     b.setUIID(sel.PRIMARY_BUTTON);
                     b.addActionListener(e -> submit(EVT_BUY));

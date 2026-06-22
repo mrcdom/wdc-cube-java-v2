@@ -19,6 +19,7 @@ import br.com.wdc.shopping.view.remote.shell.cn1.bridge.BridgeSession;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Decor;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
+import br.com.wdc.shopping.view.remote.shell.cn1.util.Px;
 
 /**
  * Tela de login (classId {@value #CLASS_ID}) — espelha o design React: layout EXPANDIDO (hero azul
@@ -31,8 +32,8 @@ public class LoginCn1View extends AbstractCn1View {
 
     public static final String CLASS_ID = "c677cda52d14";
     private static final int EVT_LOGIN = 1;
-    /** Largura fixa do card do formulário (no expandido). */
-    private static final int CARD_WIDTH = 820;
+    /** Largura (mm) do card do formulário no expandido — densidade-independente (ver util.Px). */
+    private static final float CARD_WIDTH_MM = 90f;
 
     private TextField user;
     private TextField pass;
@@ -48,7 +49,7 @@ public class LoginCn1View extends AbstractCn1View {
         Container card = buildCard();
 
         if (app.isExpanded()) {
-            card.setPreferredW(CARD_WIDTH);
+            card.setPreferredW(Px.mm(CARD_WIDTH_MM));
             return Cn1Dom.render(new BorderLayout(), (dom, root) -> {
                 dom.add(buildHero(), BorderLayout.CENTER);
                 dom.container(new FlowLayout(Component.CENTER, Component.CENTER), BorderLayout.EAST,

@@ -10,6 +10,7 @@ import br.com.wdc.shopping.view.remote.shell.cn1.bridge.AbstractItemCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Money;
+import br.com.wdc.shopping.view.remote.shell.cn1.util.Px;
 
 /** Linha do recibo (cupom): descrição | quantidade | valor, alinhada com o cabeçalho da tabela. */
 public class ReceiptItemCn1View extends AbstractItemCn1View<Object> {
@@ -28,10 +29,10 @@ public class ReceiptItemCn1View extends AbstractItemCn1View<Object> {
             ReceiptCn1View.mono(desc);
             dom.boxX(BorderLayout.EAST, cols -> {
                 qty = dom.label(l -> l.setUIID(sel.RECEIPT_ITEM_QTY));
-                qty.setPreferredW(ReceiptCn1View.COL_QTY_W);
+                qty.setPreferredW(Px.mm(ReceiptCn1View.COL_QTY_W_MM));
                 ReceiptCn1View.mono(qty);
                 value = dom.label(l -> l.setUIID(sel.RECEIPT_ITEM_VALUE));
-                value.setPreferredW(ReceiptCn1View.COL_VALUE_W);
+                value.setPreferredW(Px.mm(ReceiptCn1View.COL_VALUE_W_MM));
                 ReceiptCn1View.mono(value);
             });
         });
