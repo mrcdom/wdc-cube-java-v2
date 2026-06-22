@@ -80,8 +80,8 @@ public class HomeCn1View extends AbstractCn1View {
                     if (wide) {
                         dom.boxY(greet -> {
                             dom.label(l -> {
-                                l.setText("Bem-vindo(a),");
                                 l.setUIID(sel.GREETING_SMALL);
+                                l.setText("Bem-vindo(a),");
                             });
                             nick = dom.label(l -> l.setUIID(sel.GREETING_NAME));
                         });
@@ -102,13 +102,13 @@ public class HomeCn1View extends AbstractCn1View {
                         dom.container(new FlowLayout(Component.LEFT, Component.CENTER), null, brandWrap -> {
                             dom.boxY(t -> {
                                 dom.label(l -> {
-                                    l.setText("Shopping");
                                     l.setUIID(sel.APP_BAR_BRAND);
+                                    l.setText("Shopping");
                                 });
                                 if (wide) {
                                     dom.label(l -> {
-                                        l.setText("By WeDoCode");
                                         l.setUIID(sel.APP_BAR_BRAND_SUB);
+                                        l.setText("By WeDoCode");
                                     });
                                 }
                             });

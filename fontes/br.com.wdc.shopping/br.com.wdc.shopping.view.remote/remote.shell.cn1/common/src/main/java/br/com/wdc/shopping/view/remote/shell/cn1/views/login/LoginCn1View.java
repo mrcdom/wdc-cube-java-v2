@@ -77,23 +77,23 @@ public class LoginCn1View extends AbstractCn1View {
                     });
                 });
                 dom.label(l -> {
-                    l.setText("WDC Shopping");
                     l.setUIID(sel.BANNER_TITLE);
+                    l.setText("WDC Shopping");
                 });
                 dom.spanLabel(l -> {
-                    l.setText("Sua compra certa na internet.");
                     l.setTextUIID(sel.BANNER_SUBTITLE);
+                    l.setText("Sua compra certa na internet.");
                 });
             });
 
             // boas-vindas
             dom.label(l -> {
-                l.setText("Bem-vindo");
                 l.setUIID(sel.WELCOME_TITLE);
+                l.setText("Bem-vindo");
             });
             dom.spanLabel(l -> {
-                l.setText("Entre com suas credenciais para continuar");
                 l.setTextUIID(sel.WELCOME_SUBTITLE);
+                l.setText("Entre com suas credenciais para continuar");
             });
 
             // erro
@@ -104,15 +104,15 @@ public class LoginCn1View extends AbstractCn1View {
 
             // usuário
             dom.label(l -> {
-                l.setText("Usuário");
                 l.setUIID(sel.FIELD_LABEL);
+                l.setText("Usuário");
             });
             user = dom.textField(tf -> tf.setHint("Digite seu usuário"));
 
             // senha
             dom.label(l -> {
-                l.setText("Senha");
                 l.setUIID(sel.FIELD_LABEL);
+                l.setText("Senha");
             });
             pass = dom.textField(tf -> {
                 tf.setHint("Digite sua senha");
@@ -122,14 +122,14 @@ public class LoginCn1View extends AbstractCn1View {
 
             // loading
             loading = dom.label(l -> {
-                l.setText("Entrando...");
                 l.setUIID(sel.WELCOME_SUBTITLE);
+                l.setText("Entrando...");
             });
 
             // entrar
             dom.button(b -> {
-                b.setText("Entrar");
                 b.setUIID(sel.PRIMARY_BUTTON);
+                b.setText("Entrar");
                 b.addActionListener(e -> doLogin());
             });
 
@@ -137,8 +137,8 @@ public class LoginCn1View extends AbstractCn1View {
             dom.boxY(hint -> {
                 hint.setUIID(sel.DEMO_HINT);
                 dom.spanLabel(l -> {
-                    l.setText("Acesso demo: admin / admin");
                     l.setTextUIID(sel.DEMO_TEXT);
+                    l.setText("Acesso demo: admin / admin");
                 });
             });
         });
@@ -159,12 +159,12 @@ public class LoginCn1View extends AbstractCn1View {
                     });
                 });
                 dom.label(l -> {
-                    l.setText("WDC Shopping");
                     l.setUIID(sel.HERO_TITLE);
+                    l.setText("WDC Shopping");
                 });
                 dom.spanLabel(l -> {
-                    l.setText("Sua compra certa na internet.");
                     l.setTextUIID(sel.HERO_SUBTITLE);
+                    l.setText("Sua compra certa na internet.");
                 });
                 feature(dom, FontImage.MATERIAL_VERIFIED_USER, "Compra segura");
                 feature(dom, FontImage.MATERIAL_LOCAL_SHIPPING, "Entrega rápida");
@@ -180,8 +180,8 @@ public class LoginCn1View extends AbstractCn1View {
                 FontImage.setMaterialIcon(l, icon, 4f);
             });
             dom.label(l -> {
-                l.setText(text);
                 l.setUIID(sel.FEATURE_TEXT);
+                l.setText(text);
             });
         });
     }

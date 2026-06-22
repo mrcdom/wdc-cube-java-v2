@@ -83,13 +83,13 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
                         FontImage.setMaterialIcon(l, FontImage.MATERIAL_HISTORY, 4f);
                     });
                     dom.label(l -> {
-                        l.setText("Histórico");
                         l.setUIID(sel.PURCHASES_TITLE);
+                        l.setText("Histórico");
                     });
                 });
                 dom.label(l -> {
-                    l.setText("Toque para ver detalhes");
                     l.setUIID(sel.PURCHASES_HINT);
+                    l.setText("Toque para ver detalhes");
                 });
             });
 

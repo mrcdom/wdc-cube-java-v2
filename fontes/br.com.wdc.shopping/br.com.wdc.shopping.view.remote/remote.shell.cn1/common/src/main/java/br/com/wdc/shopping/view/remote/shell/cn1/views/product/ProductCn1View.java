@@ -126,8 +126,8 @@ public class ProductCn1View extends AbstractCn1View {
                 dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, qtyWrap -> {
                     dom.boxX(qtyRow -> {
                         dom.label(l -> {
-                            l.setText("Qtd:");
                             l.setUIID(sel.QTY_LABEL);
+                            l.setText("Qtd:");
                         });
                         stepBtn(dom, FontImage.MATERIAL_REMOVE, -1);
                         qtyValue = dom.label(l -> l.setUIID(sel.QTY_VALUE));

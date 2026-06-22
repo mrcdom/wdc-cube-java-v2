@@ -65,8 +65,8 @@ public class ReceiptCn1View extends AbstractCn1View {
                     FontImage.setMaterialIcon(l, FontImage.MATERIAL_CHECK_CIRCLE, 4f);
                 });
                 dom.label(l -> {
-                    l.setText("Compra realizada com sucesso!");
                     l.setUIID(sel.ALERT_SUCCESS_TEXT);
+                    l.setText("Compra realizada com sucesso!");
                 });
             });
 

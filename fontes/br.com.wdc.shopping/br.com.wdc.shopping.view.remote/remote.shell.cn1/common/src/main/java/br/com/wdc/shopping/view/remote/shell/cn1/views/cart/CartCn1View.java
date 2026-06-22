@@ -83,12 +83,12 @@ public class CartCn1View extends AbstractCn1View {
                 });
             });
             dom.label(l -> {
-                l.setText("Carrinho vazio");
                 l.setUIID(sel.CART_EMPTY_TITLE);
+                l.setText("Carrinho vazio");
             });
             dom.label(l -> {
-                l.setText("Adicione produtos para começar");
                 l.setUIID(sel.CART_EMPTY_SUB);
+                l.setText("Adicione produtos para começar");
             });
             dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, wrap -> {
                 dom.button(b -> {
@@ -107,8 +107,8 @@ public class CartCn1View extends AbstractCn1View {
             dom.container(new FlowLayout(Component.RIGHT, Component.CENTER), null, footer -> {
                 footer.setUIID(sel.CART_FOOTER);
                 dom.label(l -> {
-                    l.setText("Total:");
                     l.setUIID(sel.CART_FOOTER_LABEL);
+                    l.setText("Total:");
                 });
                 total = dom.label(l -> l.setUIID(sel.CART_FOOTER_TOTAL));
             });
