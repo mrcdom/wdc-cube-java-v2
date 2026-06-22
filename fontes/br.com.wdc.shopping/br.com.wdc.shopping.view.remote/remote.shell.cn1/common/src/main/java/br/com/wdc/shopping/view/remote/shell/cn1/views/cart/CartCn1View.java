@@ -144,8 +144,9 @@ public class CartCn1View extends AbstractCn1View {
         }
 
         if (!empty) {
+            boolean expanded = app.isExpanded();
             syncList(list, cartItems, items,
-                    () -> new CartItemCn1View(this::modifyQuantity, this::removeProduct));
+                    () -> new CartItemCn1View(expanded, this::modifyQuantity, this::removeProduct));
             double sum = 0;
             for (Object o : cartItems) {
                 Map<String, Object> m = Json.asMap(o);
