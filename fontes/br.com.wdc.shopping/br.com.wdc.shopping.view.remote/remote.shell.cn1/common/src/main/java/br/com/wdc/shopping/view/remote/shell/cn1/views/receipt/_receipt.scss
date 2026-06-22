@@ -19,10 +19,12 @@ RcpAlertSuccess {
 }
 
 RcpAlertSuccessIcon {
+    background-color: transparent;
     color: $success-icon;
 }
 
 RcpAlertSuccessText {
+    background-color: transparent;
     color: $success-text;
     font-family: $f-bold;
     font-size: 3mm;
@@ -49,10 +51,12 @@ RcpDateRow {
 }
 
 RcpDateLabel {
+    background-color: transparent;
     color: $text-secondary;
 }
 
 RcpDateValue {
+    background-color: transparent;
     color: $text;
     font-family: $f-bold;
     text-align: right;
@@ -65,15 +69,18 @@ RcpTableHeader {
 }
 
 RcpColHead {
+    background-color: transparent;
     color: $text-secondary;
 }
 
 RcpColHeadQty {
+    background-color: transparent;
     color: $text-secondary;
     text-align: center;
 }
 
 RcpColHeadValue {
+    background-color: transparent;
     color: $text-secondary;
     text-align: right;
 }
@@ -84,15 +91,18 @@ RcpItemRow {
 }
 
 RcpItemDesc {
+    background-color: transparent;
     color: $text;
 }
 
 RcpItemQty {
+    background-color: transparent;
     color: $text-secondary;
     text-align: center;
 }
 
 RcpItemValue {
+    background-color: transparent;
     color: $text;
     font-family: $f-bold;
     text-align: right;
@@ -105,11 +115,13 @@ RcpTotalRow {
 }
 
 RcpTotalLabel {
+    background-color: transparent;
     color: $text;
     font-family: $f-bold;
 }
 
 RcpTotalValue {
+    background-color: transparent;
     color: $accent;
     font-family: $f-bold;
     text-align: right;

@@ -20,6 +20,7 @@ CrtItemRow {
 }
 
 CrtItemName {
+    background-color: transparent;
     color: $text;
     font-family: $f-regular;
     font-size: 3mm;
@@ -30,6 +31,7 @@ CrtStepper {
 }
 
 CrtItemSubtotal {
+    background-color: transparent;
     color: $accent;
     font-family: $f-bold;
     font-size: 3mm;
@@ -52,11 +54,13 @@ CrtFooter {
 }
 
 CrtFooterLabel {
+    background-color: transparent;
     color: $text-secondary;
     font-size: 2.8mm;
 }
 
 CrtFooterTotal {
+    background-color: transparent;
     color: $accent;
     font-family: $f-bold;
     font-size: 4.4mm;
@@ -74,12 +78,14 @@ CrtEmpty {
 }
 
 CrtEmptyIconBox {
+    background-color: transparent;
     color: $accent;
     text-align: center;
     margin: 0 0 3mm 0;
 }
 
 CrtEmptyTitle {
+    background-color: transparent;
     color: $text;
     font-family: $f-bold;
     font-size: 3.6mm;
@@ -88,6 +94,7 @@ CrtEmptyTitle {
 }
 
 CrtEmptySub {
+    background-color: transparent;
     color: $text-secondary;
     font-size: 2.8mm;
     text-align: center;

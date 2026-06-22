@@ -57,6 +57,7 @@ LinkButton {
 }
 
 SectionTitle {
+    background-color: transparent;
     color: $text;
     font-family: $f-bold;
     font-size: 5mm;
@@ -64,11 +65,13 @@ SectionTitle {
 }
 
 Muted {
+    background-color: transparent;
     color: $text-secondary;
     font-size: 2.6mm;
 }
 
 Price {
+    background-color: transparent;
     color: $accent;
     font-family: $f-bold;
     font-size: 3.4mm;
@@ -119,6 +122,7 @@ CardHeaderIconBox {
 }
 
 CardHeaderTitle {
+    background-color: transparent;
     color: $text;
     font-family: $f-bold;
     font-size: 3.6mm;
@@ -127,6 +131,7 @@ CardHeaderTitle {
 }
 
 CardHeaderSub {
+    background-color: transparent;
     color: $text-secondary;
     font-size: 2.4mm;
     padding: 0;
@@ -155,6 +160,7 @@ QtyBtn {
 }
 
 QtyValue {
+    background-color: transparent;
     color: $text;
     font-family: $f-bold;
     font-size: 3.6mm;
@@ -184,6 +190,7 @@ HeroSubtitle {
 // -- Tela de conexão (splash) --
 
 SplashStatus {
+    background-color: transparent;
     color: $ice;
     font-size: 2.9mm;
     text-align: center;

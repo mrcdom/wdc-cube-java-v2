@@ -54,17 +54,20 @@ LgnFeatureText {
 }
 
 LgnWelcomeTitle {
+    background-color: transparent;
     color: $text;
     font-family: $f-bold;
     font-size: 4.5mm;
 }
 
 LgnWelcomeSubtitle {
+    background-color: transparent;
     color: $text-secondary;
     font-size: 2.8mm;
 }
 
 LgnFieldLabel {
+    background-color: transparent;
     color: $text;
     font-family: $f-bold;
     font-size: 2.8mm;
@@ -80,6 +83,7 @@ LgnDemoHint {
 }
 
 LgnDemoText {
+    background-color: transparent;
     color: $text-secondary;
     font-size: 2.6mm;
     text-align: center;
