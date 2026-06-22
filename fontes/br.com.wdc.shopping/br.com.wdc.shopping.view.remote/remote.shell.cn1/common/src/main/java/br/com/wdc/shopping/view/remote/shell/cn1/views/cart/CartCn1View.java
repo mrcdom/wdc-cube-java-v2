@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import com.codename1.ui.Component;
 import com.codename1.ui.Container;
 import com.codename1.ui.FontImage;
-import com.codename1.ui.Label;
 import com.codename1.ui.geom.Dimension;
 import com.codename1.ui.layouts.BoxLayout;
 import com.codename1.ui.layouts.FlowLayout;
@@ -18,6 +18,7 @@ import br.com.wdc.shopping.view.remote.shell.cn1.ShoppingCn1RemoteApp;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.BridgeSession;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;
+import br.com.wdc.shopping.view.remote.shell.cn1.util.Guard;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Money;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Px;
@@ -46,7 +47,7 @@ public class CartCn1View extends AbstractCn1View {
     private Container emptySection;
     private Container itemsSection;
     private Container list;
-    private Label total;
+    private Consumer<String> total;
     private Boolean mountedEmpty;
     private final List<CartItemCn1View> items = new ArrayList<>();
 
@@ -110,7 +111,10 @@ public class CartCn1View extends AbstractCn1View {
                     l.setUIID(sel.CART_FOOTER_LABEL);
                     l.setText("Total:");
                 });
-                total = dom.label(l -> l.setUIID(sel.CART_FOOTER_TOTAL));
+                dom.label(l -> {
+                    l.setUIID(sel.CART_FOOTER_TOTAL);
+                    total = Guard.text(l);
+                });
             });
             // ações em FlowLayout centralizado: no compacto quebram a linha (empilham) em vez de cortar
             // o texto; no expandido ficam lado a lado. Mesmo padrão das ações do ProductCn1View.
@@ -147,7 +151,7 @@ public class CartCn1View extends AbstractCn1View {
                 Map<String, Object> m = Json.asMap(o);
                 sum += Json.doubleOf(m, "price") * Json.intOf(m, "quantity");
             }
-            total.setText(Money.format(sum));
+            total.accept(Money.format(sum));
         }
     }
 

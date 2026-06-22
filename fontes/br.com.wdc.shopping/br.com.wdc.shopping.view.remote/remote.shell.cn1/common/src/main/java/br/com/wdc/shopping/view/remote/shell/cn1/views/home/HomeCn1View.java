@@ -1,6 +1,7 @@
 package br.com.wdc.shopping.view.remote.shell.cn1.views.home;
 
 import java.util.Map;
+import java.util.function.Consumer;
 
 import com.codename1.ui.Button;
 import com.codename1.ui.Component;
@@ -18,6 +19,7 @@ import br.com.wdc.shopping.view.remote.shell.cn1.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.BridgeSession;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.ViewSlot;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;
+import br.com.wdc.shopping.view.remote.shell.cn1.util.Guard;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Px;
 
@@ -45,7 +47,7 @@ public class HomeCn1View extends AbstractCn1View {
     /** Cor do badge do carrinho (vermelho de notificação, sobre o ícone). */
     private static final int BADGE_COLOR = 0xff3b30;
 
-    private Label nick;
+    private Consumer<String> nick;
     private Label cartBadge;
     /** Área de conteúdo: ou a tela aninhada (contentViewId) ou o split (chave local "split"). */
     private ViewSlot bodySlot;
@@ -83,7 +85,10 @@ public class HomeCn1View extends AbstractCn1View {
                                 l.setUIID(sel.GREETING_SMALL);
                                 l.setText("Bem-vindo(a),");
                             });
-                            nick = dom.label(l -> l.setUIID(sel.GREETING_NAME));
+                            dom.label(l -> {
+                                l.setUIID(sel.GREETING_NAME);
+                                nick = Guard.text(l);
+                            });
                         });
                     }
                 });
@@ -213,7 +218,7 @@ public class HomeCn1View extends AbstractCn1View {
     public void doUpdate() {
         Map<String, Object> st = state();
         if (nick != null) {
-            nick.setText(Json.str(st, "nickName")); // só existe no expandido
+            nick.accept(Json.str(st, "nickName")); // só existe no expandido
         }
         int cartCount = Json.intOf(st, "cartItemCount");
         cartBadge.setText(String.valueOf(cartCount));

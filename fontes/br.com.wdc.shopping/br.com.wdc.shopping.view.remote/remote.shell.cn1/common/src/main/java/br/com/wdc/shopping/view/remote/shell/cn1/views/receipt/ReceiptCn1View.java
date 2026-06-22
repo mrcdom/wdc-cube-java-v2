@@ -3,6 +3,7 @@ package br.com.wdc.shopping.view.remote.shell.cn1.views.receipt;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import com.codename1.ui.Component;
 import com.codename1.ui.Container;
@@ -18,6 +19,7 @@ import br.com.wdc.shopping.view.remote.shell.cn1.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.BridgeSession;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Dates;
+import br.com.wdc.shopping.view.remote.shell.cn1.util.Guard;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Money;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Px;
@@ -43,8 +45,8 @@ public class ReceiptCn1View extends AbstractCn1View {
     static final Font MONO = Font.createSystemFont(Font.FACE_MONOSPACE, Font.STYLE_PLAIN, Font.SIZE_MEDIUM);
 
     private Container successAlert;
-    private Label dateValue;
-    private Label total;
+    private Consumer<String> dateValue;
+    private Consumer<String> total;
     private Container list;
     private final List<ReceiptItemCn1View> items = new ArrayList<>();
 
@@ -87,8 +89,11 @@ public class ReceiptCn1View extends AbstractCn1View {
                         Label lbl = dom.label(BorderLayout.WEST, l -> l.setUIID(sel.RECEIPT_DATE_LABEL));
                         lbl.setText("Data:");
                         mono(lbl);
-                        dateValue = dom.label(BorderLayout.EAST, l -> l.setUIID(sel.RECEIPT_DATE_VALUE));
-                        mono(dateValue);
+                        dom.label(BorderLayout.EAST, l -> {
+                            l.setUIID(sel.RECEIPT_DATE_VALUE);
+                            mono(l);
+                            dateValue = Guard.text(l);
+                        });
                     });
 
                     // cabeçalho da tabela
@@ -118,8 +123,11 @@ public class ReceiptCn1View extends AbstractCn1View {
                         Label lbl = dom.label(BorderLayout.WEST, l -> l.setUIID(sel.RECEIPT_TOTAL_LABEL));
                         lbl.setText("TOTAL:");
                         mono(lbl);
-                        total = dom.label(BorderLayout.EAST, l -> l.setUIID(sel.RECEIPT_TOTAL_VALUE));
-                        mono(total);
+                        dom.label(BorderLayout.EAST, l -> {
+                            l.setUIID(sel.RECEIPT_TOTAL_VALUE);
+                            mono(l);
+                            total = Guard.text(l);
+                        });
                     });
                 });
 
@@ -142,8 +150,8 @@ public class ReceiptCn1View extends AbstractCn1View {
         visible(successAlert, Json.boolOf(st, "notifySuccess"));
 
         Map<String, Object> receipt = Json.asMap(st.get("receipt"));
-        dateValue.setText(Dates.formatDateTime(Json.longOf(receipt, "date")));
-        total.setText("R$ " + money(receipt, "total"));
+        dateValue.accept(Dates.formatDateTime(Json.longOf(receipt, "date")));
+        total.accept("R$ " + money(receipt, "total"));
 
         List<Object> receiptItems = Json.asList(receipt != null ? receipt.get("items") : null);
         syncList(list, receiptItems, items, ReceiptItemCn1View::new);

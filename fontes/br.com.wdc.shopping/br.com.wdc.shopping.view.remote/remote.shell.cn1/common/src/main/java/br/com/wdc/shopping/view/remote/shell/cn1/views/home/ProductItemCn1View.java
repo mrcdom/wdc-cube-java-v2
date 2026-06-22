@@ -13,6 +13,7 @@ import com.codename1.ui.layouts.FlowLayout;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.AbstractItemCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Clickable;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;
+import br.com.wdc.shopping.view.remote.shell.cn1.util.Guard;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Images;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Money;
@@ -32,8 +33,8 @@ public class ProductItemCn1View extends AbstractItemCn1View<Object> {
 
     private final Consumer<Long> onOpen;
     private Label image;
-    private Label name;
-    private Label price;
+    private Consumer<String> name;
+    private Consumer<String> price;
     private long currentId = -1;
 
     public ProductItemCn1View(Consumer<Long> onOpen) {
@@ -48,11 +49,15 @@ public class ProductItemCn1View extends AbstractItemCn1View<Object> {
                 wrap.setUIID(sel.PRODUCT_CARD_IMAGE);
                 image = dom.label(l -> { });
             });
-            name = dom.label(l -> {
+            dom.label(l -> {
                 l.setUIID(sel.PRODUCT_CARD_NAME);
                 l.setEndsWith3Points(true); // nome longo vira "…" em vez de cortar no meio
+                name = Guard.text(l);
             });
-            price = dom.label(l -> l.setUIID(sel.PRODUCT_CARD_PRICE));
+            dom.label(l -> {
+                l.setUIID(sel.PRODUCT_CARD_PRICE);
+                price = Guard.text(l);
+            });
         });
         Container card = Clickable.card(sel.PRODUCT_CARD, content, () -> onOpen.accept(currentId));
         card.setPreferredSize(new Dimension(Px.mm(CARD_W_MM), Px.mm(CARD_H_MM)));
@@ -63,8 +68,8 @@ public class ProductItemCn1View extends AbstractItemCn1View<Object> {
     protected void doUpdate() {
         Map<String, Object> m = Json.asMap(data);
         long id = Json.longOf(m, "id");
-        name.setText(Json.str(m, "name"));
-        price.setText(Money.format(Json.doubleOf(m, "price")));
+        name.accept(Json.str(m, "name"));
+        price.accept(Money.format(Json.doubleOf(m, "price")));
         if (id != currentId) {
             currentId = id;
             image.setIcon(Images.product(id, Px.mm(IMG_MM)));

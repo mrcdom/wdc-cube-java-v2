@@ -2,6 +2,7 @@ package br.com.wdc.shopping.view.remote.shell.cn1.views.product;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import com.codename1.ui.Component;
 import com.codename1.ui.Container;
@@ -15,6 +16,7 @@ import br.com.wdc.shopping.view.remote.shell.cn1.ShoppingCn1RemoteApp;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.BridgeSession;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;
+import br.com.wdc.shopping.view.remote.shell.cn1.util.Guard;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Images;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Px;
@@ -40,10 +42,10 @@ public class ProductCn1View extends AbstractCn1View {
     /** Lado (mm) dos botões +/- de quantidade — evita a altura mínima gigante do Button. */
     private static final float QTY_BTN_MM = 8f;
 
-    private Label name;
-    private Label price;
+    private Consumer<String> name;
+    private Consumer<String> price;
     private Label image;
-    private Label qtyValue;
+    private Consumer<String> qtyValue;
     private HtmlText description;
     private long currentId = -1;
     private String lastHtml = "";
@@ -58,7 +60,10 @@ public class ProductCn1View extends AbstractCn1View {
         Container root = Cn1Dom.render(BoxLayout.y(), (dom, r) -> {
             r.setScrollableY(true);
             r.setUIID(sel.PRODUCT_PAGE);
-            name = dom.label(l -> l.setUIID(sel.PRODUCT_TITLE));
+            dom.label(l -> {                
+                l.setUIID(sel.PRODUCT_TITLE);
+                name = Guard.text(l);
+            });
             Label divider = dom.label(l -> l.setUIID(sel.PRODUCT_DIVIDER));
             divider.setPreferredH(Px.mm(DIVIDER_H_MM));
 
@@ -122,7 +127,10 @@ public class ProductCn1View extends AbstractCn1View {
     private void buildPriceQty(Cn1Dom dom) {
         dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, priceWrap -> {
             dom.boxY(priceCol -> {
-                price = dom.label(l -> l.setUIID(sel.PRODUCT_PRICE_BADGE));
+                dom.label(l -> {
+                    l.setUIID(sel.PRODUCT_PRICE_BADGE);
+                    price = Guard.text(l);
+                });                
                 dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, qtyWrap -> {
                     dom.boxX(qtyRow -> {
                         dom.label(l -> {
@@ -130,7 +138,10 @@ public class ProductCn1View extends AbstractCn1View {
                             l.setText("Qtd:");
                         });
                         stepBtn(dom, FontImage.MATERIAL_REMOVE, -1);
-                        qtyValue = dom.label(l -> l.setUIID(sel.QTY_VALUE));
+                        dom.label(l -> {
+                            l.setUIID(sel.QTY_VALUE);
+                            qtyValue = Guard.text(l);
+                        });                        
                         stepBtn(dom, FontImage.MATERIAL_ADD, 1);
                     });
                 });
@@ -147,7 +158,7 @@ public class ProductCn1View extends AbstractCn1View {
     }
 
     private void updateQty() {
-        qtyValue.setText(String.valueOf(quantity));
+        qtyValue.accept(String.valueOf(quantity));
     }
 
     private void addToCart() {
@@ -164,8 +175,8 @@ public class ProductCn1View extends AbstractCn1View {
             currentId = id;
             image.setIcon(Images.product(id, Px.mm(DETAIL_MM)));
         }
-        name.setText(Json.str(p, "name"));
-        price.setText(Money.format(Json.doubleOf(p, "price")));
+        name.accept(Json.str(p, "name"));
+        price.accept(Money.format(Json.doubleOf(p, "price")));
         String html = Json.str(p, "description");
         if (!html.equals(lastHtml)) {
             lastHtml = html;
