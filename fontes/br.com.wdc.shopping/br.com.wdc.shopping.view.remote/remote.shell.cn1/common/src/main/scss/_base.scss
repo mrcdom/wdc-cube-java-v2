@@ -158,7 +158,9 @@ QtyValue {
     color: $text;
     font-family: $f-bold;
     font-size: 3.6mm;
-    padding: 0 2mm;
+    // 1mm vertical (embaixo). A largura é fixada no Java (setPreferredW) — a medição da fonte
+    // negrito nativa subestima o glifo, então a área de conteúdo precisa ser maior que ele.
+    padding: 1mm 1mm;
     text-align: center;
 }
 

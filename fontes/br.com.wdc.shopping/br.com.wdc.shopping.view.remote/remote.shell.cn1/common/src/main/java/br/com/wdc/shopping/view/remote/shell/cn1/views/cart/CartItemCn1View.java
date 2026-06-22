@@ -54,7 +54,8 @@ public class CartItemCn1View extends AbstractItemCn1View<Object> {
                             () -> onModify.accept(currentId, currentQty - 1)), null);
                     dom.label(l -> {
                         l.setUIID(sel.QTY_VALUE);
-                        qty = Guard.text(l);
+                        l.setPreferredW(Px.mm(11)); // largura fixa: a fonte negrito nativa mede menos
+                        qty = Guard.text(l);         // que o glifo e o cortaria; área de conteúdo maior
                     });
                     dom.add(new IconButton(sel.QTY_BTN, FontImage.MATERIAL_ADD, 3f, Px.mm(STEP_BTN_MM),
                             () -> onModify.accept(currentId, currentQty + 1)), null);

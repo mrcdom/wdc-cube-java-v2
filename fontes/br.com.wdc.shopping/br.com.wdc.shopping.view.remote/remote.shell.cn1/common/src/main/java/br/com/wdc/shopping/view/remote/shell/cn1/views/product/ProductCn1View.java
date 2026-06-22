@@ -140,7 +140,8 @@ public class ProductCn1View extends AbstractCn1View {
                         stepBtn(dom, FontImage.MATERIAL_REMOVE, -1);
                         dom.label(l -> {
                             l.setUIID(sel.QTY_VALUE);
-                            qtyValue = Guard.text(l);
+                            l.setPreferredW(Px.mm(11)); // largura fixa: a fonte negrito nativa mede menos
+                            qtyValue = Guard.text(l);    // que o glifo e o cortaria; área de conteúdo maior
                         });                        
                         stepBtn(dom, FontImage.MATERIAL_ADD, 1);
                     });
