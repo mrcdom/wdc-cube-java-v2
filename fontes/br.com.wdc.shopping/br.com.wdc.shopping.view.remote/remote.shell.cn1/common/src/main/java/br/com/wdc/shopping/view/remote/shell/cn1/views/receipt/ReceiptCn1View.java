@@ -60,8 +60,10 @@ public class ReceiptCn1View extends AbstractCn1View {
             // alerta verde de sucesso
             successAlert = dom.boxX(alert -> {
                 alert.setUIID(sel.ALERT_SUCCESS);
-                Label icon = dom.label(l -> l.setUIID(sel.ALERT_SUCCESS_ICON));
-                FontImage.setMaterialIcon(icon, FontImage.MATERIAL_CHECK_CIRCLE, 4f);
+                dom.label(l -> {
+                    l.setUIID(sel.ALERT_SUCCESS_ICON);
+                    FontImage.setMaterialIcon(l, FontImage.MATERIAL_CHECK_CIRCLE, 4f);
+                });
                 dom.label(l -> {
                     l.setText("Compra realizada com sucesso!");
                     l.setUIID(sel.ALERT_SUCCESS_TEXT);

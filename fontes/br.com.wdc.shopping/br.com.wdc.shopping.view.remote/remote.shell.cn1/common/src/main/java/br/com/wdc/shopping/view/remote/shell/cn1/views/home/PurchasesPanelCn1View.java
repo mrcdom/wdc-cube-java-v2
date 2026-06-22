@@ -78,8 +78,10 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
             // cabeçalho (ícone + título) + dica
             dom.boxY(BorderLayout.NORTH, head -> {
                 dom.boxX(row -> {
-                    Label icon = dom.label(l -> l.setUIID(sel.PURCHASES_HEADER_ICON));
-                    FontImage.setMaterialIcon(icon, FontImage.MATERIAL_HISTORY, 4f);
+                    dom.label(l -> {
+                        l.setUIID(sel.PURCHASES_HEADER_ICON);
+                        FontImage.setMaterialIcon(l, FontImage.MATERIAL_HISTORY, 4f);
+                    });
                     dom.label(l -> {
                         l.setText("Histórico");
                         l.setUIID(sel.PURCHASES_TITLE);

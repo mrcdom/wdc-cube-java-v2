@@ -24,6 +24,14 @@ import com.codename1.ui.layouts.Layout;
  * {@code constraint} para layouts como {@link BorderLayout}.
  * </p>
  *
+ * <p>
+ * <b>Convenção:</b> dentro do lambda de configuração, {@code setUIID(...)} (ou a cor base via
+ * {@code getAllStyles().setFgColor(...)}) deve ser a <b>primeira</b> ação. Helpers como
+ * {@code FontImage.setMaterialIcon} "assam" o ícone a partir do estilo do componente, então só dão a
+ * cor certa se rodarem <i>depois</i> do estilo definido — e assim tudo (criação, estilo, ícone) fica
+ * agrupado no mesmo lambda, sem precisar capturar a referência só para decorar fora.
+ * </p>
+ *
  * <pre>{@code
  * Cn1Dom.render(root, (dom, r) -> {
  *     dom.boxX(BorderLayout.NORTH, header -> {

@@ -3,7 +3,6 @@ package br.com.wdc.shopping.view.remote.shell.cn1.views.product;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.codename1.ui.Button;
 import com.codename1.ui.Component;
 import com.codename1.ui.Container;
 import com.codename1.ui.FontImage;
@@ -89,12 +88,12 @@ public class ProductCn1View extends AbstractCn1View {
             // ações: Voltar + Adicionar ao Carrinho
             dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, actions -> {
                 dom.add(new BackButton("Voltar", () -> submit(EVT_BACK)), null);
-                Button add = dom.button(b -> {
-                    b.setText("Adicionar ao Carrinho");
+                dom.button(b -> {
                     b.setUIID(sel.PRIMARY_BUTTON);
+                    b.setText("Adicionar ao Carrinho");
                     b.addActionListener(e -> addToCart());
+                    FontImage.setMaterialIcon(b, FontImage.MATERIAL_ADD_SHOPPING_CART, 3.5f);
                 });
-                FontImage.setMaterialIcon(add, FontImage.MATERIAL_ADD_SHOPPING_CART, 3.5f);
             });
         });
         updateQty();
@@ -102,12 +101,12 @@ public class ProductCn1View extends AbstractCn1View {
     }
 
     private void stepBtn(Cn1Dom dom, char icon, int delta) {
-        Button b = dom.button(bt -> {
+        dom.button(bt -> {
             bt.setUIID(sel.QTY_BTN);
+            FontImage.setMaterialIcon(bt, icon, 3f);
+            bt.setPreferredSize(new Dimension(Px.mm(QTY_BTN_MM), Px.mm(QTY_BTN_MM))); // trava o tamanho (sem o mínimo de toque)
             bt.addActionListener(e -> changeQty(delta));
         });
-        FontImage.setMaterialIcon(b, icon, 3f);
-        b.setPreferredSize(new Dimension(Px.mm(QTY_BTN_MM), Px.mm(QTY_BTN_MM))); // trava o tamanho (sem o mínimo de toque)
     }
 
     /** Caixa da imagem do produto (fundo gradiente), centralizada. */

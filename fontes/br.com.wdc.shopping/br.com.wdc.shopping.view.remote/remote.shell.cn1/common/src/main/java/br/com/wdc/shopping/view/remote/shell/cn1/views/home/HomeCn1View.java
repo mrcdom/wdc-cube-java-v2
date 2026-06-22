@@ -72,11 +72,11 @@ public class HomeCn1View extends AbstractCn1View {
 
                 // esquerda: sair + (saudação só no expandido)
                 dom.container(new FlowLayout(Component.LEFT, Component.CENTER), BorderLayout.WEST, west -> {
-                    Button exit = dom.button(b -> {
+                    dom.button(b -> {
                         b.setUIID(sel.APP_BAR_BTN);
                         b.addActionListener(e -> submit(EVT_LOGOUT));
+                        FontImage.setMaterialIcon(b, FontImage.MATERIAL_LOGOUT, 5f);
                     });
-                    FontImage.setMaterialIcon(exit, FontImage.MATERIAL_LOGOUT, 5f);
                     if (wide) {
                         dom.boxY(greet -> {
                             dom.label(l -> {
@@ -94,8 +94,10 @@ public class HomeCn1View extends AbstractCn1View {
                     // seu conteúdo (valign CENTER) → a marca alinha pelo centro do ícone do logo.
                     dom.boxX(group -> {
                         dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, logoWrap -> {
-                            Label logo = dom.label(l -> l.setUIID(sel.APP_BAR_LOGO_BOX));
-                            FontImage.setMaterialIcon(logo, FontImage.MATERIAL_SHOPPING_BAG, 5f);
+                            dom.label(l -> {
+                                l.setUIID(sel.APP_BAR_LOGO_BOX);
+                                FontImage.setMaterialIcon(l, FontImage.MATERIAL_SHOPPING_BAG, 5f);
+                            });
                         });
                         dom.container(new FlowLayout(Component.LEFT, Component.CENTER), null, brandWrap -> {
                             dom.boxY(t -> {
@@ -117,14 +119,14 @@ public class HomeCn1View extends AbstractCn1View {
                 // direita: carrinho (texto só no expandido) + badge sobreposto ao ícone
                 dom.container(new FlowLayout(Component.RIGHT, Component.CENTER), BorderLayout.EAST, east -> {
                     Container cartWrap = dom.container(new LayeredLayout(), null, wrap -> {
-                        Button cart = dom.button(b -> {
+                        dom.button(b -> {
+                            b.setUIID(sel.APP_BAR_BTN);
                             if (wide) {
                                 b.setText("Carrinho");
                             }
-                            b.setUIID(sel.APP_BAR_BTN);
                             b.addActionListener(e -> submit(EVT_OPEN_CART));
+                            FontImage.setMaterialIcon(b, FontImage.MATERIAL_SHOPPING_CART, 5f);
                         });
-                        FontImage.setMaterialIcon(cart, FontImage.MATERIAL_SHOPPING_CART, 5f);
                         // badge circular via RoundBorder no Java (o border-radius do CSS do CN1 reserva
                         // espaço vertical); cor/fonte do texto ficam no SCSS.
                         cartBadge = dom.label(l -> l.setUIID(sel.CART_BADGE));

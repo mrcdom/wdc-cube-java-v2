@@ -71,8 +71,10 @@ public class LoginCn1View extends AbstractCn1View {
                 banner.setUIID(sel.LOGIN_BANNER);
                 Decor.blueWithCircles(banner);
                 dom.container(new FlowLayout(Component.CENTER), null, row -> {
-                    Label logo = dom.label(l -> l.setUIID(sel.LOGO_BOX));
-                    FontImage.setMaterialIcon(logo, FontImage.MATERIAL_SHOPPING_BAG, 7f);
+                    dom.label(l -> {
+                        l.setUIID(sel.LOGO_BOX);
+                        FontImage.setMaterialIcon(l, FontImage.MATERIAL_SHOPPING_BAG, 7f);
+                    });
                 });
                 dom.label(l -> {
                     l.setText("WDC Shopping");
@@ -151,8 +153,10 @@ public class LoginCn1View extends AbstractCn1View {
 
             dom.boxY(content -> {
                 dom.container(new FlowLayout(Component.CENTER), null, row -> {
-                    Label logo = dom.label(l -> l.getAllStyles().setFgColor(0xffffff));
-                    FontImage.setMaterialIcon(logo, FontImage.MATERIAL_SHOPPING_BAG, 14f);
+                    dom.label(l -> {
+                        l.getAllStyles().setFgColor(0xffffff);
+                        FontImage.setMaterialIcon(l, FontImage.MATERIAL_SHOPPING_BAG, 14f);
+                    });
                 });
                 dom.label(l -> {
                     l.setText("WDC Shopping");
@@ -171,8 +175,10 @@ public class LoginCn1View extends AbstractCn1View {
 
     private void feature(Cn1Dom dom, char icon, String text) {
         dom.boxX(row -> {
-            Label ic = dom.label(l -> l.getAllStyles().setFgColor(0xffffff));
-            FontImage.setMaterialIcon(ic, icon, 4f);
+            dom.label(l -> {
+                l.getAllStyles().setFgColor(0xffffff);
+                FontImage.setMaterialIcon(l, icon, 4f);
+            });
             dom.label(l -> {
                 l.setText(text);
                 l.setUIID(sel.FEATURE_TEXT);

@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.codename1.ui.Button;
 import com.codename1.ui.Component;
 import com.codename1.ui.Container;
 import com.codename1.ui.FontImage;
@@ -76,10 +75,12 @@ public class CartCn1View extends AbstractCn1View {
         return Cn1Dom.render(BoxLayout.y(), (dom, r) -> {
             r.setUIID(sel.CART_EMPTY);
             dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, wrap -> {
-                Label iconBox = dom.label(l -> l.setUIID(sel.CART_EMPTY_ICON_BOX));
-                iconBox.setPreferredSize(new Dimension(Px.mm(EMPTY_ICON_MM), Px.mm(EMPTY_ICON_MM)));
-                iconBox.getAllStyles().setBorder(RoundBorder.create().color(0xe8f1fc));
-                FontImage.setMaterialIcon(iconBox, FontImage.MATERIAL_SHOPPING_BAG, 8f);
+                dom.label(l -> {
+                    l.setUIID(sel.CART_EMPTY_ICON_BOX);
+                    l.setPreferredSize(new Dimension(Px.mm(EMPTY_ICON_MM), Px.mm(EMPTY_ICON_MM)));
+                    l.getAllStyles().setBorder(RoundBorder.create().color(0xe8f1fc));
+                    FontImage.setMaterialIcon(l, FontImage.MATERIAL_SHOPPING_BAG, 8f);
+                });
             });
             dom.label(l -> {
                 l.setText("Carrinho vazio");
@@ -90,12 +91,12 @@ public class CartCn1View extends AbstractCn1View {
                 l.setUIID(sel.CART_EMPTY_SUB);
             });
             dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, wrap -> {
-                Button view = dom.button(b -> {
-                    b.setText("Ver produtos");
+                dom.button(b -> {
                     b.setUIID(sel.PRIMARY_BUTTON);
+                    b.setText("Ver produtos");
                     b.addActionListener(e -> submit(EVT_BACK));
+                    FontImage.setMaterialIcon(b, FontImage.MATERIAL_VIEW_MODULE, 3.5f);
                 });
-                FontImage.setMaterialIcon(view, FontImage.MATERIAL_VIEW_MODULE, 3.5f);
             });
         });
     }
@@ -116,12 +117,12 @@ public class CartCn1View extends AbstractCn1View {
             dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, actions -> {
                 actions.setUIID(sel.CART_ACTIONS);
                 dom.add(new BackButton("Continuar comprando", () -> submit(EVT_BACK)), null);
-                Button buy = dom.button(b -> {
-                    b.setText("Finalizar pedido");
+                dom.button(b -> {
                     b.setUIID(sel.PRIMARY_BUTTON);
+                    b.setText("Finalizar pedido");
                     b.addActionListener(e -> submit(EVT_BUY));
+                    FontImage.setMaterialIcon(b, FontImage.MATERIAL_CHECK_CIRCLE, 3.5f);
                 });
-                FontImage.setMaterialIcon(buy, FontImage.MATERIAL_CHECK_CIRCLE, 3.5f);
             });
         });
     }
