@@ -52,6 +52,9 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
 
     private static final String BASE = "http://localhost:8080";
 
+    /** Largura mínima (em mm) para o layout expandido — densidade-independente (tablet/desktop). */
+    private static final float EXPANDED_MIN_MM = 110f;
+
     private BridgeSession session;
     private Form form;
     private final Map<String, AbstractCn1View> views = new HashMap<>();
@@ -60,40 +63,66 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
     private String rootVsid = "";
     private boolean flushScheduled;
     private boolean wasExpanded;
+    private boolean wasPortrait;
 
-    /** Layout expandido (hero+card etc.) quando a largura é grande; senão compacto. */
+    /**
+     * Layout expandido (hero+card, split produtos+histórico) em <b>tablet/desktop</b>; compacto no
+     * telefone. Largura sozinha não basta: um telefone em <b>paisagem</b> (~145mm) ultrapassaria
+     * qualquer limiar e viraria "expandido", quebrando o split numa tela de telefone. Por isso o sinal
+     * de forma é {@code isTablet()}/{@code isDesktop()}; o limiar em mm fica só para o resize no desktop.
+     */
     public boolean isExpanded() {
-        return Display.getInstance().getDisplayWidth() >= 1100;
+        Display d = Display.getInstance();
+        if (d.isTablet()) {
+            return true; // tablet (iPad): sempre expandido
+        }
+        if (d.isDesktop()) {
+            return d.getDisplayWidth() >= d.convertToPixels(EXPANDED_MIN_MM); // desktop: por largura (resize)
+        }
+        return false; // telefone: compacto nas duas orientações (paisagem não é tablet)
     }
 
     /**
-     * Resize. Dentro do mesmo breakpoint não fazemos <b>nada</b>: o CN1 relayouta sozinho e os
-     * painéis que dependem do backend (ex.: o histórico) avisam o servidor pelo seu próprio
-     * {@code sizeChangedListener} → a bridge traz o ajuste. Só ao <b>cruzar</b> o breakpoint a
-     * estrutura muda (abas↔colunas, saudação) — e como ela é decidida em {@code build()} (padrão
-     * build-once), aí sim descartamos as views e reconstruímos no novo tamanho.
+     * Resize. Reconstrói ao <b>cruzar o breakpoint</b> (estrutura abas↔colunas, decidida em
+     * {@code build()}) <b>ou ao girar a tela</b> (orientação) — neste último o refluxo automático do
+     * CN1 deixa estado obsoleto (sizing dos cards, safe area da orientação anterior) e só um rebuild
+     * conserta (igual ao logout/login). Dentro do mesmo breakpoint+orientação não fazemos nada: o CN1
+     * relayouta sozinho e os painéis avisam o backend pelo seu próprio {@code sizeChangedListener}.
      */
     private void onResize() {
-        boolean now = isExpanded();
-        if (now == wasExpanded) {
+        boolean nowExpanded = isExpanded();
+        boolean nowPortrait = Display.getInstance().isPortrait();
+        if (nowExpanded == wasExpanded && nowPortrait == wasPortrait) {
             return;
         }
-        wasExpanded = now;
+        wasExpanded = nowExpanded;
+        wasPortrait = nowPortrait;
         views.clear();
         dirty.clear();
         rootVsid = "";
         form.removeAll();
         mountRootIfChanged(); // recria a árvore ativa (getElement → build → doUpdate) no novo tamanho
+        form.setSafeAreaChanged(); // recomputa a safe area para a nova orientação
         form.revalidate();
     }
 
     @Override
     public void runApp() {
+        // Workaround TEMPORÁRIO (iOS): força edição de texto síncrona. A edição nativa assíncrona
+        // (padrão) não aceitava input no simulador iOS 26 / Xcode 26 com o port do CN1 7.0.252. É
+        // global (vale device também), modo suportado e sem risco; o trade-off é só rolagem menos
+        // fluida em forms longos. Remover após um cn1:update que corrija a edição assíncrona no iOS 26.
+        Display.getInstance().setProperty("asyncEditing", "false");
+
         Images.setBaseUrl(BASE);
         wasExpanded = isExpanded();
+        wasPortrait = Display.getInstance().isPortrait();
 
         form = new Form(new BorderLayout());
         form.getToolbar().hideToolbar(); // sem barra de título nativa; cada tela traz seu header
+        // iOS (notch/Dynamic Island): sem toolbar, o CN1 não reserva a status bar e o header colaria
+        // sob ela (toques iriam para o iOS). Mantém o conteúdo dentro da safe area.
+        form.getContentPane().setSafeArea(true);
         form.addSizeChangedListener(e -> onResize());
         form.show();
 
