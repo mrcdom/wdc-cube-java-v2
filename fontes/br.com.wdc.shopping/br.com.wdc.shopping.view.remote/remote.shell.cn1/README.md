@@ -116,7 +116,11 @@ Abra o `.xcodeproj`/workspace no **Xcode** e rode no simulador ou no dispositivo
 
 ### Builds no servidor Codename One (exigem conta)
 
-Geram o artefato nativo final na nuvem do Codename One:
+Estes alvos **não compilam localmente**: o código é enviado para a **nuvem do
+Codename One** compilar e devolver o artefato. Por isso, na primeira vez, o comando
+**abre o navegador para você fazer login** numa conta Codename One (as credenciais
+ficam guardadas; gerencie com `./run.sh settings`). Não é erro — é o fluxo normal de
+um *cloud build*.
 
 | Plataforma                | Comando                  |
 |---------------------------|--------------------------|
@@ -129,6 +133,11 @@ Geram o artefato nativo final na nuvem do Codename One:
 | Windows desktop           | `./build.sh windows_desktop` |
 | Windows (UWP/device)      | `./build.sh windows_device` |
 | Linux nativo              | `./build.sh linux_device` |
+
+> **Web (JavaScript)** é o caso mais particular: diferente de Android/iOS, **não tem
+> variante `_source` local** (a transpilação Java→JS roda só no build server) e exige o
+> plano **Enterprise**. Para um frontend **web sem depender da nuvem do CN1**, use o
+> shell **TeaVM** do projeto (`view.teavm`), que transpila para JS localmente.
 
 Veja `./build.sh help` para a lista completa.
 
