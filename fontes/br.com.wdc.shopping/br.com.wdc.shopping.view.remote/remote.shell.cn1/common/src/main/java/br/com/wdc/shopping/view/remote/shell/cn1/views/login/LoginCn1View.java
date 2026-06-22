@@ -2,6 +2,7 @@ package br.com.wdc.shopping.view.remote.shell.cn1.views.login;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import com.codename1.ui.Component;
 import com.codename1.ui.Container;
@@ -18,6 +19,7 @@ import br.com.wdc.shopping.view.remote.shell.cn1.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.BridgeSession;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Decor;
+import br.com.wdc.shopping.view.remote.shell.cn1.util.Guard;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Px;
 
@@ -39,6 +41,7 @@ public class LoginCn1View extends AbstractCn1View {
     private TextField pass;
     private Label loading;
     private Label error;
+    private Consumer<String> errorText;
 
     public LoginCn1View(String vsid, BridgeSession session, ShoppingCn1RemoteApp app) {
         super(vsid, session, app);
@@ -100,6 +103,7 @@ public class LoginCn1View extends AbstractCn1View {
             error = dom.label(l -> {
                 l.setUIID(sel.WELCOME_SUBTITLE);
                 l.getAllStyles().setFgColor(0xcc0000);
+                errorText = Guard.text(l);
             });
 
             // usuário
@@ -197,8 +201,8 @@ public class LoginCn1View extends AbstractCn1View {
     public void doUpdate() {
         Map<String, Object> st = state();
         visible(loading, Json.boolOf(st, "loading"));
-        int errorCode = Json.intOf(st, "errorCode");
-        error.setText(errorCode != 0 ? "Usuário ou senha inválidos." : "");
-        visible(error, errorCode != 0);
+        boolean hasError = Json.intOf(st, "errorCode") != 0;
+        errorText.accept(hasError ? "Usuário ou senha inválidos." : "");
+        visible(error, hasError);
     }
 }

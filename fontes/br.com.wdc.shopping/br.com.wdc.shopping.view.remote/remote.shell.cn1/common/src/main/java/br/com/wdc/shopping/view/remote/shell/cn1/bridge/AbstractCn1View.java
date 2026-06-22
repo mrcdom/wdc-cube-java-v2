@@ -85,8 +85,15 @@ public abstract class AbstractCn1View {
         return app.viewFor(childVsid);
     }
 
-    /** Mostra/esconde um component removendo-o do layout quando escondido (idioma CN1). */
+    /**
+     * Mostra/esconde um component removendo-o do layout quando escondido (idioma CN1). Guardado: só
+     * toca o estado quando ele de fato muda — {@code setHidden}/{@code setVisible} re-marcam o layout,
+     * e o shell não-reativo re-roda {@code doUpdate()} a cada push (mesma motivação da {@code Guard.text}).
+     */
     protected static void visible(Component c, boolean v) {
+        if (c.isVisible() == v && c.isHidden() == !v) {
+            return;
+        }
         c.setHidden(!v);
         c.setVisible(v);
     }
