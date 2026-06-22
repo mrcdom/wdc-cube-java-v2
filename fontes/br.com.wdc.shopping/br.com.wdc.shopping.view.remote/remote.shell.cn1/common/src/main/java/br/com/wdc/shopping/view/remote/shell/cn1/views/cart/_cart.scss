@@ -15,6 +15,7 @@ CrtCard {
 }
 
 CrtItemRow {
+    background-color: transparent;
     border-bottom: 1px solid $border;
     padding: 2mm 0;
 }
@@ -48,6 +49,7 @@ CrtRemoveBtn {
 }
 
 CrtFooter {
+    background-color: transparent;
     border-top: 1px solid $border;
     padding: 3mm 0 0 0;
     margin: 2mm 0 0 0;
@@ -68,12 +70,14 @@ CrtFooterTotal {
 }
 
 CrtActions {
+    background-color: transparent;
     padding: 3mm 0 0 0;
 }
 
 // -- Estado vazio --
 
 CrtEmpty {
+    background-color: transparent;
     padding: 6mm 4mm;
 }
 

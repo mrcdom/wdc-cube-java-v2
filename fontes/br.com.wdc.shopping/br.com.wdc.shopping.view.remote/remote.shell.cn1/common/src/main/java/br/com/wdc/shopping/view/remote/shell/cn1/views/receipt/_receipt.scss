@@ -45,6 +45,7 @@ RcpBody {
 }
 
 RcpDateRow {
+    background-color: transparent;
     border-bottom: 1px solid $border;
     padding: 0 0 2mm 0;
     margin: 0 0 2mm 0;
@@ -63,6 +64,7 @@ RcpDateValue {
 }
 
 RcpTableHeader {
+    background-color: transparent;
     border-bottom: 1px solid $border;
     padding: 0 0 1.5mm 0;
     margin: 0 0 1mm 0;
@@ -86,6 +88,7 @@ RcpColHeadValue {
 }
 
 RcpItemRow {
+    background-color: transparent;
     border-bottom: 1px solid $border-faint;
     padding: 1.5mm 0;
 }
@@ -109,6 +112,7 @@ RcpItemValue {
 }
 
 RcpTotalRow {
+    background-color: transparent;
     border-top: 2px solid $accent;
     padding: 2.5mm 0 0 0;
     margin: 2.5mm 0 0 0;

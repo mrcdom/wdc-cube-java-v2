@@ -88,12 +88,14 @@ TextField {
 }
 
 TextFieldHint {
+    background-color: transparent;
     color: $text-secondary;
     font-family: $f-light;
     font-size: 3mm;
 }
 
 TextHint {
+    background-color: transparent;
     color: $text-secondary;
     font-family: $f-light;
     font-size: 3mm;
@@ -110,6 +112,7 @@ CardLead {
 // -- Cabeçalho de card (compartilhado: recibo, carrinho) --
 
 CardHeaderRow {
+    background-color: transparent;
     padding: 0 0 4mm 0;
 }
 

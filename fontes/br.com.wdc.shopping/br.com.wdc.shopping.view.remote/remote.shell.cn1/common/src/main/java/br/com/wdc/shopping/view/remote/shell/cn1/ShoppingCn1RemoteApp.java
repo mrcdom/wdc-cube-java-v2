@@ -288,6 +288,7 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
             InfiniteProgress spinner = new InfiniteProgress();
             spinner.setMaterialDesignMode(true);
             spinner.getAllStyles().setFgColor(0xffffff);
+            spinner.getAllStyles().setBgTransparency(0); // Android: o UIID nativo do progresso é branco opaco
             content.add(FlowLayout.encloseCenter(spinner));
         }
 
