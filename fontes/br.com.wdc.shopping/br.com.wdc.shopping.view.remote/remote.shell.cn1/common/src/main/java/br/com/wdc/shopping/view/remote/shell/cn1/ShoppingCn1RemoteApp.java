@@ -50,13 +50,13 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
 
     private static final Sel sel = Sel.INSTANCE;
 
-    private static final String BASE = "http://localhost:8080";
-
     /** Largura mínima (em mm) para o layout expandido — densidade-independente (tablet/desktop). */
     private static final float EXPANDED_MIN_MM = 110f;
 
     private BridgeSession session;
     private Form form;
+    /** URL base do backend, resolvida por plataforma/override no {@code runApp} (ver {@link ServerConfig}). */
+    private String baseUrl;
     private final Map<String, AbstractCn1View> views = new HashMap<>();
     /** Views a re-renderizar no próximo flush (primitivo único, como o {@code dirtyViews} do SWT). */
     private final Set<AbstractCn1View> dirty = new LinkedHashSet<>();
@@ -108,13 +108,8 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
 
     @Override
     public void runApp() {
-        // Workaround TEMPORÁRIO (iOS): força edição de texto síncrona. A edição nativa assíncrona
-        // (padrão) não aceitava input no simulador iOS 26 / Xcode 26 com o port do CN1 7.0.252. É
-        // global (vale device também), modo suportado e sem risco; o trade-off é só rolagem menos
-        // fluida em forms longos. Remover após um cn1:update que corrija a edição assíncrona no iOS 26.
-        Display.getInstance().setProperty("asyncEditing", "false");
-
-        Images.setBaseUrl(BASE);
+        baseUrl = ServerConfig.baseUrl();
+        Images.setBaseUrl(baseUrl);
         wasExpanded = isExpanded();
         wasPortrait = Display.getInstance().isPortrait();
 
@@ -132,7 +127,7 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
     /** Mostra a tela de "conectando" e abre o bridge numa thread; em falha, mostra erro + retry. */
     private void startConnect() {
         showSplash(false, "Conectando ao servidor...", null);
-        session = new BridgeSession(BASE, this::onPush);
+        session = new BridgeSession(baseUrl, this::onPush);
         new Thread(() -> {
             try {
                 session.connect();
