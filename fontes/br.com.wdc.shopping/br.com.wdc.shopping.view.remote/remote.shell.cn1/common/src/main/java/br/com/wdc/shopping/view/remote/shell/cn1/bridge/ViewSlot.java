@@ -18,9 +18,9 @@ import br.com.wdc.shopping.view.remote.shell.cn1.ShoppingCn1RemoteApp;
  *
  * <p>
  * O guard interno ({@code mountedKey}) pressupõe "mesmo vsid ⇒ mesma instância de view", o que vale
- * dentro do tempo de vida do slot. Em resize o app recria as views (e, portanto, os slots), então o
- * guard é sempre válido nas views; por isso o mount da raiz no app permanece manual (o form
- * sobrevive ao resize e seu guard precisa ser resetado por fora).
+ * dentro do tempo de vida do slot. Os slots aninhados vivem dentro das views e são recriados no
+ * resize junto com elas; o slot da <b>raiz</b> vive no {@code form}, que sobrevive ao resize — por
+ * isso o app chama {@link #reset()} nele para zerar o guard antes de remontar a árvore recriada.
  * </p>
  */
 public final class ViewSlot extends Container {
@@ -57,6 +57,15 @@ public final class ViewSlot extends Container {
      */
     public void mountLocal(String key, Component component) {
         setChild(key, component);
+    }
+
+    /**
+     * Esquece o filho montado e zera o guard — força o próximo {@link #mount}/{@link #mountLocal} a
+     * remontar. Usado quando o app recria as views (resize) mas o slot sobrevive (vive no {@code form}).
+     */
+    public void reset() {
+        mountedKey = "";
+        removeAll();
     }
 
     private void setChild(String key, Component child) {

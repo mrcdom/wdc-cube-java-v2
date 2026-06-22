@@ -15,12 +15,12 @@ import com.codename1.ui.Container;
 import com.codename1.ui.Display;
 import com.codename1.ui.FontImage;
 import com.codename1.ui.Form;
-import com.codename1.ui.Label;
 import com.codename1.ui.layouts.BorderLayout;
 import com.codename1.ui.layouts.FlowLayout;
 
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.BridgeSession;
+import br.com.wdc.shopping.view.remote.shell.cn1.bridge.ViewSlot;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Decor;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Images;
@@ -58,7 +58,8 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
     private final Map<String, AbstractCn1View> views = new HashMap<>();
     /** Views a re-renderizar no próximo flush (primitivo único, como o {@code dirtyViews} do SWT). */
     private final Set<AbstractCn1View> dirty = new LinkedHashSet<>();
-    private String rootVsid = "";
+    /** Único filho do form: acomoda a view raiz (e os splashes) — guard de "montar só na transição". */
+    private ViewSlot rootSlot;
     private boolean flushScheduled;
     private boolean wasExpanded;
     private boolean wasPortrait;
@@ -97,8 +98,7 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
         wasPortrait = nowPortrait;
         views.clear();
         dirty.clear();
-        rootVsid = "";
-        form.removeAll();
+        rootSlot.reset(); // views recriadas; zera o guard do slot p/ remontar a raiz no novo tamanho
         mountRootIfChanged(); // recria a árvore ativa (getElement → build → doUpdate) no novo tamanho
         form.setSafeAreaChanged(); // recomputa a safe area para a nova orientação
         form.revalidate();
@@ -116,6 +116,8 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
         // iOS (notch/Dynamic Island): sem toolbar, o CN1 não reserva a status bar e o header colaria
         // sob ela (toques iriam para o iOS). Mantém o conteúdo dentro da safe area.
         form.getContentPane().setSafeArea(true);
+        rootSlot = new ViewSlot(this);
+        form.add(BorderLayout.CENTER, rootSlot); // filho único e permanente; sobrevive ao resize
         form.addSizeChangedListener(e -> onResize());
         form.show();
 
@@ -208,19 +210,14 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
         }
     }
 
-    /** Monta a view raiz no form quando o browser passa a apontar para outra. */
+    /** Monta a view raiz no slot quando o browser passa a apontar para outra (guard interno do slot). */
     private void mountRootIfChanged() {
         Map<String, Object> browser = session.state(BridgeSession.BROWSER_VSID);
         String rv = browser != null ? Json.str(browser, "contentViewId") : "";
-        if (rv.isEmpty() || rv.equals(rootVsid)) {
-            return;
+        if (rv.isEmpty()) {
+            return; // push sem contentViewId não desmonta a raiz atual
         }
-        rootVsid = rv;
-        AbstractCn1View root = viewFor(rv);
-        form.removeAll();
-        if (root != null) {
-            form.add(BorderLayout.CENTER, root.getElement());
-        }
+        rootSlot.mount(rv); // re-monta só quando o vsid muda (criação lazy via viewFor)
     }
 
     /** Agenda re-render de uma view (primitivo único — push do servidor e interações locais). */
@@ -308,8 +305,7 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
                 }
             });
         });
-        form.removeAll();
-        form.add(BorderLayout.CENTER, root);
-        form.revalidate();
+        // monta pelo mesmo slot da raiz (chave por estado+status → troca de splash sempre re-monta)
+        rootSlot.mountLocal((error ? "splash-error:" : "splash-connecting:") + status, root);
     }
 }
