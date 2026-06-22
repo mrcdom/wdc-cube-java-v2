@@ -42,6 +42,8 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
     private static final float DEFAULT_ITEM_H_MM = 15f;
     /** Janela do debounce da notificação de capacidade (ms). */
     private static final int DEBOUNCE_MS = 250;
+    /** Máx. de re-tentativas da medição enquanto o painel ainda não tem layout (≈ 3s a 250ms). */
+    private static final int MAX_CAPACITY_RETRIES = 12;
 
     /** Tamanho (mm) e cores do ícone das setas (cor é "assada" na criação do ícone). */
     private static final float CHEVRON_MM = 2.8f;
@@ -60,6 +62,7 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
     private int totalPages = 1;
     private int lastCapacity = -1;
     private int capacityToken;
+    private int capacityRetries;
     private boolean resizeHooked;
     /** Altura travada das setas (= altura do box); re-aplicada após cada re-bake do ícone. */
     private int chevronH;
@@ -191,6 +194,7 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
         setChevronEnabled(nextBtn, FontImage.MATERIAL_CHEVRON_RIGHT, page < totalPages - 1);
         visible(pagination, totalCount > 0);
 
+        capacityRetries = 0; // nova atualização: renova o orçamento de re-tentativas da medição
         hookResize();
         requestCapacityCompute();
     }
@@ -225,8 +229,14 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
     private void computeCapacityNow() {
         int h = list.getHeight();
         if (h <= 0) {
-            return; // ainda sem layout; um próximo doUpdate/resize reagenda
+            // painel ainda sem layout (comum no device ao abrir a aba — mais lento que o debounce):
+            // reagenda em vez de desistir, com teto para não virar loop se ficar invisível.
+            if (capacityRetries++ < MAX_CAPACITY_RETRIES) {
+                requestCapacityCompute();
+            }
+            return;
         }
+        capacityRetries = 0;
         // passo real entre itens (inclui a margem) — evita contar um item a mais
         int itemH = Px.mm(DEFAULT_ITEM_H_MM);
         int n = list.getComponentCount();
