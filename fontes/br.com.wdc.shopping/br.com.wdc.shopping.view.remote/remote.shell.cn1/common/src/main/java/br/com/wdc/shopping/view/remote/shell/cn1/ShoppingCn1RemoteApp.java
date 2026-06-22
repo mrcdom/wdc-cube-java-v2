@@ -112,7 +112,6 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
         wasPortrait = Display.getInstance().isPortrait();
 
         form = new Form(new BorderLayout());
-        form.getToolbar().hideToolbar(); // sem barra de título nativa; cada tela traz seu header
         // iOS (notch/Dynamic Island): sem toolbar, o CN1 não reserva a status bar e o header colaria
         // sob ela (toques iriam para o iOS). Mantém o conteúdo dentro da safe area.
         form.getContentPane().setSafeArea(true);
@@ -120,6 +119,9 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
         form.add(BorderLayout.CENTER, rootSlot); // filho único e permanente; sobrevive ao resize
         form.addSizeChangedListener(e -> onResize());
         form.show();
+        // hideToolbar() exige o form já associado (getComponentForm()): no desktop/javase ele é null
+        // antes do show() (no device não). Como runApp roda no EDT e o paint vem depois, não pisca.
+        form.getToolbar().hideToolbar(); // sem barra de título nativa; cada tela traz seu header
 
         startConnect();
     }
