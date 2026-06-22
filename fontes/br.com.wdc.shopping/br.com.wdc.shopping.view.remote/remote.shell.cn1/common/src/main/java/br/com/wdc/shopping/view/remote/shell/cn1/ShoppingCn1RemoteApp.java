@@ -8,9 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.codename1.components.InfiniteProgress;
-import com.codename1.components.SpanLabel;
 import com.codename1.system.Lifecycle;
-import com.codename1.ui.Button;
 import com.codename1.ui.CN;
 import com.codename1.ui.Component;
 import com.codename1.ui.Container;
@@ -19,11 +17,11 @@ import com.codename1.ui.FontImage;
 import com.codename1.ui.Form;
 import com.codename1.ui.Label;
 import com.codename1.ui.layouts.BorderLayout;
-import com.codename1.ui.layouts.BoxLayout;
 import com.codename1.ui.layouts.FlowLayout;
 
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.BridgeSession;
+import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Decor;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Images;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
@@ -266,44 +264,50 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
      * azul + logo + título, com um <b>spinner</b> (conectando) ou um ícone de erro + "Tentar novamente".
      */
     private void showSplash(boolean error, String status, Runnable onRetry) {
-        Container root = new Container(new FlowLayout(Component.CENTER, Component.CENTER));
-        Decor.blueWithCircles(root);
+        Container root = Cn1Dom.render(new FlowLayout(Component.CENTER, Component.CENTER), (dom, r) -> {
+            Decor.blueWithCircles(r);
+            dom.boxY(content -> {
+                // logo (ícone branco) centralizado
+                dom.container(new FlowLayout(Component.CENTER), null, box -> dom.label(l -> {
+                    l.getAllStyles().setFgColor(0xffffff);
+                    l.getAllStyles().setBgTransparency(0); // Android: Label nativo é branco opaco
+                    FontImage.setMaterialIcon(l,
+                            error ? FontImage.MATERIAL_CLOUD_OFF : FontImage.MATERIAL_SHOPPING_BAG, 13f);
+                }));
 
-        Container content = new Container(BoxLayout.y());
+                dom.label(l -> {
+                    l.setUIID(sel.HERO_TITLE);
+                    l.setText("WDC Shopping");
+                });
+                dom.spanLabel(s -> {
+                    s.setTextUIID(sel.HERO_SUBTITLE);
+                    s.setText("Sua compra certa na internet.");
+                });
 
-        Label logo = new Label();
-        logo.getAllStyles().setFgColor(0xffffff);
-        FontImage.setMaterialIcon(logo, error ? FontImage.MATERIAL_CLOUD_OFF : FontImage.MATERIAL_SHOPPING_BAG, 13f);
-        content.add(FlowLayout.encloseCenter(logo));
+                if (!error) {
+                    dom.container(new FlowLayout(Component.CENTER), null, box -> {
+                        InfiniteProgress spinner = new InfiniteProgress();
+                        spinner.setMaterialDesignMode(true);
+                        spinner.getAllStyles().setFgColor(0xffffff);
+                        spinner.getAllStyles().setBgTransparency(0); // Android: UIID nativo do progresso é branco opaco
+                        dom.add(spinner, null);
+                    });
+                }
 
-        Label title = new Label("WDC Shopping");
-        title.setUIID(sel.HERO_TITLE);
-        content.add(title);
+                dom.container(new FlowLayout(Component.CENTER), null, box -> dom.label(l -> {
+                    l.setUIID(sel.SPLASH_STATUS);
+                    l.setText(status);
+                }));
 
-        SpanLabel subtitle = new SpanLabel("Sua compra certa na internet.");
-        subtitle.setTextUIID(sel.HERO_SUBTITLE);
-        content.add(subtitle);
-
-        if (!error) {
-            InfiniteProgress spinner = new InfiniteProgress();
-            spinner.setMaterialDesignMode(true);
-            spinner.getAllStyles().setFgColor(0xffffff);
-            spinner.getAllStyles().setBgTransparency(0); // Android: o UIID nativo do progresso é branco opaco
-            content.add(FlowLayout.encloseCenter(spinner));
-        }
-
-        Label statusLabel = new Label(status);
-        statusLabel.setUIID(sel.SPLASH_STATUS);
-        content.add(FlowLayout.encloseCenter(statusLabel));
-
-        if (onRetry != null) {
-            Button retry = new Button("Tentar novamente");
-            retry.setUIID(sel.SPLASH_RETRY);
-            retry.addActionListener(e -> onRetry.run());
-            content.add(FlowLayout.encloseCenter(retry));
-        }
-
-        root.add(content);
+                if (onRetry != null) {
+                    dom.container(new FlowLayout(Component.CENTER), null, box -> dom.button(b -> {
+                        b.setUIID(sel.SPLASH_RETRY);
+                        b.setText("Tentar novamente");
+                        b.addActionListener(e -> onRetry.run());
+                    }));
+                }
+            });
+        });
         form.removeAll();
         form.add(BorderLayout.CENTER, root);
         form.revalidate();
