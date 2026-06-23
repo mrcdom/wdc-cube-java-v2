@@ -177,6 +177,11 @@ public final class Cn1Dom {
     }
 
     private static void addChild(Container parent, Component child, Object constraint) {
+        // destaca do pai anterior: o CN1 lança "already contained" em add() se o child já tem pai
+        // (acontece ao reusar peças num re-arranjo de layout). Para um child novo é no-op.
+        if (child.getParent() != null) {
+            child.getParent().removeComponent(child);
+        }
         if (constraint != null) {
             parent.add(constraint, child);
         } else {

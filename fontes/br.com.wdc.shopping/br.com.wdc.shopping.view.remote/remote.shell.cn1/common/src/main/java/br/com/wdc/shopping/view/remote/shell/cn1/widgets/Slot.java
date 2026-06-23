@@ -30,6 +30,10 @@ public final class Slot extends Container {
         current = child;
         removeAll();
         if (child != null) {
+            // destaca do pai anterior (reuso de peça em re-arranjo): add() do CN1 lança se já tem pai
+            if (child.getParent() != null) {
+                child.getParent().removeComponent(child);
+            }
             add(BorderLayout.CENTER, child);
         }
         revalidate();
