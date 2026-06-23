@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import com.codename1.ui.Component;
 import com.codename1.ui.Container;
 
 import br.com.wdc.shopping.view.remote.shell.cn1.ShoppingCn1RemoteApp;
@@ -83,19 +82,6 @@ public abstract class AbstractCn1View {
     /** View filha (criada sob demanda via o app), ou {@code null}. Para montá-la, use {@link ViewSlot}. */
     protected AbstractCn1View childView(String childVsid) {
         return app.viewFor(childVsid);
-    }
-
-    /**
-     * Mostra/esconde um component removendo-o do layout quando escondido (idioma CN1). Guardado: só
-     * toca o estado quando ele de fato muda — {@code setHidden}/{@code setVisible} re-marcam o layout,
-     * e o shell não-reativo re-roda {@code doUpdate()} a cada push (mesma motivação da {@code Guard.text}).
-     */
-    protected static void visible(Component c, boolean v) {
-        if (c.isVisible() == v && c.isHidden() == !v) {
-            return;
-        }
-        c.setHidden(!v);
-        c.setVisible(v);
     }
 
     /**
