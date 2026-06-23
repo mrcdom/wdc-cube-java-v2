@@ -8,6 +8,7 @@ import com.codename1.ui.Container;
 import com.codename1.ui.layouts.BorderLayout;
 
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.AbstractItemCn1View;
+import br.com.wdc.shopping.view.remote.shell.cn1.theme.Fonts;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Guard;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
@@ -29,20 +30,20 @@ public class ReceiptItemCn1View extends AbstractItemCn1View<Object> {
             r.setUIID(sel.RECEIPT_ITEM_ROW);
             dom.label(BorderLayout.CENTER, l -> {
                 l.setUIID(sel.RECEIPT_ITEM_DESC);
-                ReceiptCn1View.mono(l);
+                l.getAllStyles().setFont(Fonts.MONO);
                 desc = Guard.text(l);
             });
             dom.boxX(BorderLayout.EAST, cols -> {
                 dom.label(l -> {
                     l.setUIID(sel.RECEIPT_ITEM_QTY);
                     l.setPreferredW(Px.mm(ReceiptCn1View.COL_QTY_W_MM));
-                    ReceiptCn1View.mono(l);
+                    l.getAllStyles().setFont(Fonts.MONO);
                     qty = Guard.text(l);
                 });
                 dom.label(l -> {
                     l.setUIID(sel.RECEIPT_ITEM_VALUE);
                     l.setPreferredW(Px.mm(ReceiptCn1View.COL_VALUE_W_MM));
-                    ReceiptCn1View.mono(l);
+                    l.getAllStyles().setFont(Fonts.MONO);
                     value = Guard.text(l);
                 });
             });
