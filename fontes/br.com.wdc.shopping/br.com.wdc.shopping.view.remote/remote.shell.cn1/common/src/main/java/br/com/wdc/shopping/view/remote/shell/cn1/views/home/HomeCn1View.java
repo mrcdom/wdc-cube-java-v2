@@ -124,7 +124,7 @@ public class HomeCn1View extends AbstractCn1View {
 
                 // direita: carrinho (texto só no expandido) + badge sobreposto ao ícone
                 dom.container(new FlowLayout(Component.RIGHT, Component.CENTER), BorderLayout.EAST, east -> {
-                    Container cartWrap = dom.container(new LayeredLayout(), null, wrap -> {
+                    dom.container(new LayeredLayout(), null, wrap -> {
                         dom.button(b -> {
                             b.setUIID(sel.APP_BAR_BTN);
                             if (wide) {
@@ -135,18 +135,19 @@ public class HomeCn1View extends AbstractCn1View {
                         });
                         // badge circular via RoundBorder no Java (o border-radius do CSS do CN1 reserva
                         // espaço vertical); cor/fonte do texto ficam no SCSS.
-                        cartBadge = dom.label(l -> l.setUIID(sel.CART_BADGE));
-                        cartBadge.getAllStyles().setBgTransparency(0);
-                        cartBadge.getAllStyles().setBorder(RoundBorder.create().color(BADGE_COLOR));
+                        cartBadge = dom.label(l -> {
+                            l.setUIID(sel.CART_BADGE);
+                            l.getAllStyles().setBgTransparency(0);
+                            l.getAllStyles().setBorder(RoundBorder.create().color(BADGE_COLOR));
+                        });
+                        // fixa o badge no canto superior direito, sobre o ícone (insets: top right bottom left)
+                        ((LayeredLayout) wrap.getLayout()).setInsets(cartBadge, "0 0 auto auto");
                     });
-                    // fixa o badge no canto superior direito, sobre o ícone (insets: top right bottom left)
-                    ((LayeredLayout) cartWrap.getLayout()).setInsets(cartBadge, "0 0 auto auto");
                 });
             });
-        });
 
-        bodySlot = new Slot();
-        root.add(BorderLayout.CENTER, bodySlot);
+            bodySlot = dom.add(new Slot(), BorderLayout.CENTER);
+        });
 
         buildSplit();
         return root;
@@ -159,33 +160,33 @@ public class HomeCn1View extends AbstractCn1View {
 
         if (app.isExpanded()) {
             // produtos + histórico lado a lado (sem abas)
-            splitPane = new Container(new BorderLayout());
-            splitPane.add(BorderLayout.CENTER, productsSlot);
             purchasesSlot.setPreferredW(Px.mm(PURCHASES_WIDTH_MM));
-            splitPane.add(BorderLayout.EAST, purchasesSlot);
+            splitPane = Cn1Dom.render(new BorderLayout(), (dom, pane) -> {
+                dom.add(productsSlot, BorderLayout.CENTER);
+                dom.add(purchasesSlot, BorderLayout.EAST);
+            });
         } else {
             // abas comutam entre produtos e histórico
-            Container tabs = new Container(new GridLayout(2));
-            tabs.setUIID(sel.TAB_NAV);
-            tabProducts = tabButton("Produtos", FontImage.MATERIAL_VIEW_MODULE, true);
-            tabHistory = tabButton("Histórico", FontImage.MATERIAL_HISTORY, false);
-            tabs.add(tabProducts);
-            tabs.add(tabHistory);
-
             activeHolder = new Slot();
-            splitPane = new Container(new BorderLayout());
-            splitPane.add(BorderLayout.NORTH, tabs);
-            splitPane.add(BorderLayout.CENTER, activeHolder);
+            splitPane = Cn1Dom.render(new BorderLayout(), (dom, pane) -> {
+                dom.container(new GridLayout(2), BorderLayout.NORTH, tabs -> {
+                    tabs.setUIID(sel.TAB_NAV);
+                    tabProducts = tabButton(dom, "Produtos", FontImage.MATERIAL_VIEW_MODULE, true);
+                    tabHistory = tabButton(dom, "Histórico", FontImage.MATERIAL_HISTORY, false);
+                });
+                dom.add(activeHolder, BorderLayout.CENTER);
+            });
             refreshTabs(); // popula o holder ativo com o painel inicial (produtos)
         }
     }
 
-    private Button tabButton(String text, char icon, boolean products) {
-        Button b = new Button(text);
-        b.setUIID(products == showingProducts ? sel.TAB_ITEM_ACTIVE : sel.TAB_ITEM);
-        FontImage.setMaterialIcon(b, icon, 3.5f);
-        b.addActionListener(e -> switchTab(products));
-        return b;
+    private Button tabButton(Cn1Dom dom, String text, char icon, boolean products) {
+        return dom.button(b -> {
+            b.setUIID(products == showingProducts ? sel.TAB_ITEM_ACTIVE : sel.TAB_ITEM);
+            b.setText(text);
+            FontImage.setMaterialIcon(b, icon, 3.5f);
+            b.addActionListener(e -> switchTab(products));
+        });
     }
 
     private void switchTab(boolean products) {
