@@ -43,7 +43,7 @@ public class HomeCn1View extends AbstractCn1View {
     private static final int EVT_OPEN_CART = 2;
 
     /** Largura (mm) do painel de histórico no layout expandido — densidade-independente (ver util.Px). */
-    private static final float PURCHASES_WIDTH_MM = 80f;
+    private static final float PURCHASES_WIDTH_MM = 65f;
 
     /** Cor do badge do carrinho (vermelho de notificação, sobre o ícone). */
     private static final int BADGE_COLOR = Colors.BADGE;
