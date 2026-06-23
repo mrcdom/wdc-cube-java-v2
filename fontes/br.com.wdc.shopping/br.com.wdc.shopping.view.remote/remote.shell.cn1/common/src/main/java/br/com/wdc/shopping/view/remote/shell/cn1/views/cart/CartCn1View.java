@@ -23,7 +23,6 @@ import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Money;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Px;
 import br.com.wdc.shopping.view.remote.shell.cn1.widgets.BackButton;
-import br.com.wdc.shopping.view.remote.shell.cn1.widgets.CardHeader;
 
 /**
  * Carrinho (classId {@value #CLASS_ID}) — espelha o React: card com cabeçalho e, conforme o estado,
@@ -58,13 +57,18 @@ public class CartCn1View extends AbstractCn1View {
     @Override
     protected Container build() {
         Container root = Cn1Dom.render(BoxLayout.y(), (dom, r) -> {
-            r.setScrollableY(true);
             r.setUIID(sel.CART_PAGE);
+            r.setScrollableY(true);
             dom.boxY(card -> {
                 card.setUIID(sel.CART_CARD);
-                dom.add(new CardHeader(FontImage.MATERIAL_SHOPPING_BAG, "Carrinho",
-                        "Seus produtos selecionados"), null);
-                body = dom.boxY(b -> { });
+                
+                dom.cardHeader(null, h -> {
+                    h.setIcon(FontImage.MATERIAL_SHOPPING_BAG);
+                    h.setTitle("Carrinho");
+                    h.setSubtitle("Seus produtos selecionados");
+                });
+
+                body = dom.boxY(Cn1Dom.NO_CONTENT);
             });
         });
         emptySection = buildEmpty();
@@ -104,7 +108,7 @@ public class CartCn1View extends AbstractCn1View {
 
     private Container buildItems() {
         return Cn1Dom.render(BoxLayout.y(), (dom, r) -> {
-            list = dom.boxY(l -> { });
+            list = dom.boxY(Cn1Dom.NO_CONTENT);
             dom.container(new FlowLayout(Component.RIGHT, Component.CENTER), null, footer -> {
                 footer.setUIID(sel.CART_FOOTER);
                 dom.label(l -> {

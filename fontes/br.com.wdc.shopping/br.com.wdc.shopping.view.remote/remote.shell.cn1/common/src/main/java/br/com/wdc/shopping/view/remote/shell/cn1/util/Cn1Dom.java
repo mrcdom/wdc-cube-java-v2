@@ -13,6 +13,8 @@ import com.codename1.ui.layouts.BorderLayout;
 import com.codename1.ui.layouts.BoxLayout;
 import com.codename1.ui.layouts.Layout;
 
+import br.com.wdc.shopping.view.remote.shell.cn1.widgets.CardHeader;
+
 /**
  * DSL fluente de construção da árvore de componentes — análogo do {@code VaadinDom}/{@code GluonDom}
  * para o Codename One.
@@ -43,6 +45,9 @@ import com.codename1.ui.layouts.Layout;
  * }</pre>
  */
 public final class Cn1Dom {
+    
+    /** Configurador vazio: o container é um ponto de montagem, preenchido depois no {@code doUpdate}. */
+    public static final Consumer<Container> NO_CONTENT = ignored -> {};
 
     private Container currentParent;
 
@@ -141,6 +146,13 @@ public final class Cn1Dom {
 
     public TextField textField(Object constraint, Consumer<TextField> fn) {
         TextField e = new TextField();
+        fn.accept(e);
+        addChild(this.currentParent, e, constraint);
+        return e;
+    }
+    
+    public CardHeader cardHeader(Object constraint, Consumer<CardHeader> fn) {
+        CardHeader e = new CardHeader();
         fn.accept(e);
         addChild(this.currentParent, e, constraint);
         return e;
