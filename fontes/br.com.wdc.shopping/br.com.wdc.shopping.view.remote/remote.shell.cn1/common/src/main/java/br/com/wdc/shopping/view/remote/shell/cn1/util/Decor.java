@@ -5,6 +5,8 @@ import com.codename1.ui.Graphics;
 import com.codename1.ui.Painter;
 import com.codename1.ui.geom.Rectangle;
 
+import br.com.wdc.shopping.view.remote.shell.cn1.theme.Colors;
+
 /**
  * Decoração dos painéis azuis (hero/banner do login): pinta o gradiente azul e os <b>círculos
  * decorativos</b> translúcidos do design React (branco com alpha baixo, parcialmente fora das
@@ -29,11 +31,11 @@ public final class Decor {
                 int h = rect.getHeight();
 
                 // gradiente azul (vertical — aproxima o 160deg do React)
-                g.fillLinearGradient(0x0d66d0, 0x4da6ff, x, y, w, h, false);
+                g.fillLinearGradient(Colors.ACCENT, Colors.ACCENT_3, x, y, w, h, false);
 
                 // círculos brancos translúcidos, parcialmente fora das bordas (recortados)
                 int oldAlpha = g.getAlpha();
-                g.setColor(0xffffff);
+                g.setColor(Colors.SURFACE);
                 int base = Math.min(w, h);
 
                 int d1 = base * 6 / 10; // grande — canto superior direito

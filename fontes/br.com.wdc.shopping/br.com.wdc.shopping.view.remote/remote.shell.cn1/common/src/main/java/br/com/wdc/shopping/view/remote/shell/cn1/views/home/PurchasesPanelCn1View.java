@@ -19,7 +19,9 @@ import com.codename1.ui.util.UITimer;
 import br.com.wdc.shopping.view.remote.shell.cn1.ShoppingCn1RemoteApp;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.BridgeSession;
+import br.com.wdc.shopping.view.remote.shell.cn1.theme.Colors;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;
+import br.com.wdc.shopping.view.remote.shell.cn1.util.Guard;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Px;
 
@@ -47,9 +49,9 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
 
     /** Tamanho (mm) e cores do ícone das setas (cor é "assada" na criação do ícone). */
     private static final float CHEVRON_MM = 2.8f;
-    private static final int CHEVRON_ENABLED = 0x6e6e73;
-    private static final int CHEVRON_DISABLED = 0xc7c7cc;
-    private static final int CHEVRON_PRESSED = 0x0d66d0;
+    private static final int CHEVRON_ENABLED = Colors.TEXT_SECONDARY;
+    private static final int CHEVRON_DISABLED = Colors.GRAY_DISABLED;
+    private static final int CHEVRON_PRESSED = Colors.ACCENT;
 
     private Container list;
     private Container pagination;
@@ -141,13 +143,13 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
                 .shadowBlur(0.8f)
                 .shadowY(0.4f);
         pageInfo.getAllStyles().setBorder(infoBorder);
-        pageInfo.getAllStyles().setBgColor(0xffffff);
+        pageInfo.getAllStyles().setBgColor(Colors.SURFACE);
         pageInfo.getAllStyles().setBgTransparency(255);
 
         // Pílula arredondada via RoundRectBorder do Java (o border-radius grande do CSS reservava
         // espaço vertical extra — o cinza que sobrava). Mesmo mecanismo do box, que fica justo.
         pill.getAllStyles().setBorder(RoundRectBorder.create().cornerRadius(2.5f));
-        pill.getAllStyles().setBgColor(0xf4f6f9);
+        pill.getAllStyles().setBgColor(Colors.BG);
         pill.getAllStyles().setBgTransparency(255);
 
         // Setas com EXATAMENTE a altura do box: assim a pílula = altura do box (sem cinza
@@ -194,7 +196,7 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
         pageInfo.setText((page + 1) + " / " + totalPages);
         setChevronEnabled(prevBtn, FontImage.MATERIAL_CHEVRON_LEFT, page > 0);
         setChevronEnabled(nextBtn, FontImage.MATERIAL_CHEVRON_RIGHT, page < totalPages - 1);
-        visible(pagination, totalCount > 0);
+        Guard.visible(pagination, totalCount > 0);
 
         capacityRetries = 0; // nova atualização: renova o orçamento de re-tentativas da medição
         hookResize();

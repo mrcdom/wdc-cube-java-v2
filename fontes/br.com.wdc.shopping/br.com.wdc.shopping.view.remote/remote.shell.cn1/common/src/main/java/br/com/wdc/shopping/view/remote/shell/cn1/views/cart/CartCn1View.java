@@ -17,6 +17,7 @@ import com.codename1.ui.plaf.RoundBorder;
 import br.com.wdc.shopping.view.remote.shell.cn1.ShoppingCn1RemoteApp;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.BridgeSession;
+import br.com.wdc.shopping.view.remote.shell.cn1.theme.Colors;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Guard;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
@@ -83,7 +84,7 @@ public class CartCn1View extends AbstractCn1View {
                 dom.label(l -> {
                     l.setUIID(sel.CART_EMPTY_ICON_BOX);
                     l.setPreferredSize(new Dimension(Px.mm(EMPTY_ICON_MM), Px.mm(EMPTY_ICON_MM)));
-                    l.getAllStyles().setBorder(RoundBorder.create().color(0xe8f1fc));
+                    l.getAllStyles().setBorder(RoundBorder.create().color(Colors.ACCENT_LIGHT));
                     FontImage.setMaterialIcon(l, FontImage.MATERIAL_SHOPPING_BAG, 8f);
                 });
             });

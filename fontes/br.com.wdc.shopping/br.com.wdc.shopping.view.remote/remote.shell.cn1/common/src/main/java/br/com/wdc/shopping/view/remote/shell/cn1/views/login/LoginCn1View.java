@@ -17,6 +17,7 @@ import com.codename1.ui.layouts.FlowLayout;
 import br.com.wdc.shopping.view.remote.shell.cn1.ShoppingCn1RemoteApp;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.BridgeSession;
+import br.com.wdc.shopping.view.remote.shell.cn1.theme.Colors;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Decor;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Guard;
@@ -102,7 +103,7 @@ public class LoginCn1View extends AbstractCn1View {
             // erro
             error = dom.label(l -> {
                 l.setUIID(sel.WELCOME_SUBTITLE);
-                l.getAllStyles().setFgColor(0xcc0000);
+                l.getAllStyles().setFgColor(Colors.ERROR);
                 errorText = Guard.text(l);
             });
 
@@ -158,7 +159,7 @@ public class LoginCn1View extends AbstractCn1View {
             dom.boxY(content -> {
                 dom.container(new FlowLayout(Component.CENTER), null, row -> {
                     dom.label(l -> {
-                        l.getAllStyles().setFgColor(0xffffff);
+                        l.getAllStyles().setFgColor(Colors.SURFACE);
                         FontImage.setMaterialIcon(l, FontImage.MATERIAL_SHOPPING_BAG, 14f);
                     });
                 });
@@ -180,7 +181,7 @@ public class LoginCn1View extends AbstractCn1View {
     private void feature(Cn1Dom dom, char icon, String text) {
         dom.boxX(row -> {
             dom.label(l -> {
-                l.getAllStyles().setFgColor(0xffffff);
+                l.getAllStyles().setFgColor(Colors.SURFACE);
                 FontImage.setMaterialIcon(l, icon, 4f);
             });
             dom.label(l -> {
@@ -200,9 +201,9 @@ public class LoginCn1View extends AbstractCn1View {
     @Override
     public void doUpdate() {
         Map<String, Object> st = state();
-        visible(loading, Json.boolOf(st, "loading"));
+        Guard.visible(loading, Json.boolOf(st, "loading"));
         boolean hasError = Json.intOf(st, "errorCode") != 0;
         errorText.accept(hasError ? "Usuário ou senha inválidos." : "");
-        visible(error, hasError);
+        Guard.visible(error, hasError);
     }
 }

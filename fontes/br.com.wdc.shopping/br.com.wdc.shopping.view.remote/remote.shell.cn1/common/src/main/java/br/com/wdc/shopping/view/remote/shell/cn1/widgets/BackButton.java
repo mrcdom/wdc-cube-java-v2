@@ -6,6 +6,7 @@ import com.codename1.ui.plaf.RoundRectBorder;
 import com.codename1.ui.plaf.Style;
 
 import br.com.wdc.shopping.view.remote.shell.cn1.Sel;
+import br.com.wdc.shopping.view.remote.shell.cn1.theme.Colors;
 
 /**
  * Botão "voltar" neutro (slate, fonte leve) com seta à esquerda e fundo cinza arredondado no clique
@@ -23,7 +24,7 @@ public final class BackButton extends Button {
         getAllStyles().setBorder(RoundRectBorder.create().cornerRadius(3f));
         getUnselectedStyle().setBgTransparency(0);
         for (Style s : new Style[] { getSelectedStyle(), getPressedStyle() }) {
-            s.setBgColor(0xe5e7eb);
+            s.setBgColor(Colors.NEUTRAL);
             s.setBgTransparency(255);
         }
         addActionListener(e -> onClick.run());

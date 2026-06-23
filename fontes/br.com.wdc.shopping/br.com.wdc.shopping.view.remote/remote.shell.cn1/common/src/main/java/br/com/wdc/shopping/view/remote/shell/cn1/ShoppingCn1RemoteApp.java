@@ -21,6 +21,7 @@ import com.codename1.ui.layouts.FlowLayout;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.BridgeSession;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.ViewSlot;
+import br.com.wdc.shopping.view.remote.shell.cn1.theme.Colors;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Decor;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Images;
@@ -268,7 +269,7 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
             dom.boxY(content -> {
                 // logo (ícone branco) centralizado
                 dom.container(new FlowLayout(Component.CENTER), null, box -> dom.label(l -> {
-                    l.getAllStyles().setFgColor(0xffffff);
+                    l.getAllStyles().setFgColor(Colors.SURFACE);
                     l.getAllStyles().setBgTransparency(0); // Android: Label nativo é branco opaco
                     FontImage.setMaterialIcon(l,
                             error ? FontImage.MATERIAL_CLOUD_OFF : FontImage.MATERIAL_SHOPPING_BAG, 13f);
@@ -287,7 +288,7 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
                     dom.container(new FlowLayout(Component.CENTER), null, box -> {
                         InfiniteProgress spinner = new InfiniteProgress();
                         spinner.setMaterialDesignMode(true);
-                        spinner.getAllStyles().setFgColor(0xffffff);
+                        spinner.getAllStyles().setFgColor(Colors.SURFACE);
                         spinner.getAllStyles().setBgTransparency(0); // Android: UIID nativo do progresso é branco opaco
                         dom.add(spinner, null);
                     });

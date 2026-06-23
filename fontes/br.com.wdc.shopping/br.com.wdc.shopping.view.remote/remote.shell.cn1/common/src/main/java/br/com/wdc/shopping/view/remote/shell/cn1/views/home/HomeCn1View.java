@@ -18,6 +18,7 @@ import br.com.wdc.shopping.view.remote.shell.cn1.ShoppingCn1RemoteApp;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.BridgeSession;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.ViewSlot;
+import br.com.wdc.shopping.view.remote.shell.cn1.theme.Colors;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Guard;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
@@ -45,7 +46,7 @@ public class HomeCn1View extends AbstractCn1View {
     private static final float PURCHASES_WIDTH_MM = 80f;
 
     /** Cor do badge do carrinho (vermelho de notificação, sobre o ícone). */
-    private static final int BADGE_COLOR = 0xff3b30;
+    private static final int BADGE_COLOR = Colors.BADGE;
 
     private Consumer<String> nick;
     private Label cartBadge;
@@ -222,7 +223,7 @@ public class HomeCn1View extends AbstractCn1View {
         }
         int cartCount = Json.intOf(st, "cartItemCount");
         cartBadge.setText(String.valueOf(cartCount));
-        visible(cartBadge, cartCount > 0); // badge some quando o carrinho está vazio (convenção)
+        Guard.visible(cartBadge, cartCount > 0); // badge some quando o carrinho está vazio (convenção)
 
         String content = Json.str(st, "contentViewId");
         if (!content.isEmpty()) {

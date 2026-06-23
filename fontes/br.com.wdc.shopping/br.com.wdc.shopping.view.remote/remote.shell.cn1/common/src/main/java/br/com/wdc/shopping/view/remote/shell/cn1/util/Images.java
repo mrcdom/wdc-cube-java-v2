@@ -4,6 +4,8 @@ import com.codename1.ui.EncodedImage;
 import com.codename1.ui.Image;
 import com.codename1.ui.URLImage;
 
+import br.com.wdc.shopping.view.remote.shell.cn1.theme.Colors;
+
 /** Imagens de produto via {@code /image/product/{id}.png} (download assíncrono + cache em Storage). */
 public final class Images {
 
@@ -18,7 +20,7 @@ public final class Images {
     }
 
     public static Image product(long id, int size) {
-        EncodedImage placeholder = EncodedImage.createFromImage(Image.createImage(size, size, 0xffeeeeee), false);
+        EncodedImage placeholder = EncodedImage.createFromImage(Image.createImage(size, size, Colors.IMAGE_PLACEHOLDER), false);
         String url = baseUrl + "/image/product/" + id + ".png";
         String storage = "prod_" + id + "_" + size + ".png";
         return URLImage.createToStorage(placeholder, storage, url, URLImage.RESIZE_SCALE_TO_FILL);

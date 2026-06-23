@@ -5,6 +5,7 @@ import com.codename1.ui.Container;
 import com.codename1.ui.plaf.Style;
 
 import br.com.wdc.shopping.view.remote.shell.cn1.Sel;
+import br.com.wdc.shopping.view.remote.shell.cn1.theme.Colors;
 
 /**
  * Torna um <i>card</i> (Container composto) clicável como um todo. No Codename One, um
@@ -22,7 +23,7 @@ public final class Clickable {
     }
 
     /** Realce de hover/clique (azul-claro do design). */
-    private static final int HOVER_BG = 0xe8f1fc;
+    private static final int HOVER_BG = Colors.ACCENT_LIGHT;
 
     /** Marca {@code content} (já com seus filhos visuais) como card de UIID {@code uiid} e clicável. */
     public static Container card(String uiid, Container content, Runnable onClick) {
