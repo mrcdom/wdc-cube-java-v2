@@ -15,7 +15,6 @@ public final class CartSel extends Sel {
     public final String CART_CARD = "CrtCard";
     public final String CART_ITEM_ROW = "CrtItemRow";
     public final String CART_ITEM_NAME = "CrtItemName";
-    public final String CART_STEPPER = "CrtStepper";
     public final String CART_ITEM_SUBTOTAL = "CrtItemSubtotal";
     public final String CART_REMOVE_BTN = "CrtRemoveBtn";
     public final String CART_FOOTER = "CrtFooter";
