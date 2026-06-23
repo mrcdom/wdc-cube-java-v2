@@ -7,25 +7,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.codename1.components.InfiniteProgress;
 import com.codename1.system.Lifecycle;
 import com.codename1.ui.CN;
-import com.codename1.ui.Component;
 import com.codename1.ui.Container;
 import com.codename1.ui.Display;
-import com.codename1.ui.FontImage;
 import com.codename1.ui.Form;
 import com.codename1.ui.layouts.BorderLayout;
-import com.codename1.ui.layouts.FlowLayout;
 
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.BridgeSession;
-import br.com.wdc.shopping.view.remote.shell.cn1.theme.Colors;
-import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;
-import br.com.wdc.shopping.view.remote.shell.cn1.util.Decor;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Images;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
 import br.com.wdc.shopping.view.remote.shell.cn1.views.RootCn1View;
+import br.com.wdc.shopping.view.remote.shell.cn1.views.SplashCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.views.cart.CartCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.views.home.HomeCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.views.home.ProductsPanelCn1View;
@@ -47,8 +41,6 @@ import br.com.wdc.shopping.view.remote.shell.cn1.widgets.Slot;
  */
 public class ShoppingCn1RemoteApp extends Lifecycle {
 
-    private static final Sel sel = Sel.INSTANCE;
-
     /** Largura mínima (em mm) para o layout expandido — densidade-independente (tablet/desktop). */
     private static final float EXPANDED_MIN_MM = 110f;
 
@@ -59,8 +51,10 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
     private final Map<String, AbstractCn1View> views = new HashMap<>();
     /** Views a re-renderizar no próximo flush (primitivo único, como o {@code dirtyViews} do SWT). */
     private final Set<AbstractCn1View> dirty = new LinkedHashSet<>();
-    /** Único filho do form: acomoda a view raiz (e os splashes) — guard de "montar só na transição". */
+    /** Único filho do form: acomoda a view raiz (e o splash) — guard de "montar só na transição". */
     private Slot rootSlot;
+    /** Splash (conexão/erro) — construído uma vez, reusado via setState. */
+    private SplashCn1View splash;
     private boolean flushScheduled;
     private boolean wasExpanded;
     private boolean wasPortrait;
@@ -270,51 +264,10 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
      * azul + logo + título, com um <b>spinner</b> (conectando) ou um ícone de erro + "Tentar novamente".
      */
     private void showSplash(boolean error, String status, Runnable onRetry) {
-        Container root = Cn1Dom.render(new FlowLayout(Component.CENTER, Component.CENTER), (dom, r) -> {
-            Decor.blueWithCircles(r);
-            dom.boxY(content -> {
-                // logo (ícone branco) centralizado
-                dom.container(new FlowLayout(Component.CENTER), null, box -> dom.label(l -> {
-                    l.getAllStyles().setFgColor(Colors.SURFACE);
-                    l.getAllStyles().setBgTransparency(0); // Android: Label nativo é branco opaco
-                    FontImage.setMaterialIcon(l,
-                            error ? FontImage.MATERIAL_CLOUD_OFF : FontImage.MATERIAL_SHOPPING_BAG, 13f);
-                }));
-
-                dom.label(l -> {
-                    l.setUIID(sel.HERO_TITLE);
-                    l.setText("WDC Shopping");
-                });
-                dom.spanLabel(s -> {
-                    s.setTextUIID(sel.HERO_SUBTITLE);
-                    s.setText("Sua compra certa na internet.");
-                });
-
-                if (!error) {
-                    dom.container(new FlowLayout(Component.CENTER), null, box -> {
-                        InfiniteProgress spinner = new InfiniteProgress();
-                        spinner.setMaterialDesignMode(true);
-                        spinner.getAllStyles().setFgColor(Colors.SURFACE);
-                        spinner.getAllStyles().setBgTransparency(0); // Android: UIID nativo do progresso é branco opaco
-                        dom.add(spinner, null);
-                    });
-                }
-
-                dom.container(new FlowLayout(Component.CENTER), null, box -> dom.label(l -> {
-                    l.setUIID(sel.SPLASH_STATUS);
-                    l.setText(status);
-                }));
-
-                if (onRetry != null) {
-                    dom.container(new FlowLayout(Component.CENTER), null, box -> dom.button(b -> {
-                        b.setUIID(sel.SPLASH_RETRY);
-                        b.setText("Tentar novamente");
-                        b.addActionListener(e -> onRetry.run());
-                    }));
-                }
-            });
-        });
-        // monta pelo mesmo slot da raiz; cada splash é um Container novo → referência != → sempre re-monta
-        rootSlot.mount(root);
+        if (splash == null) {
+            splash = new SplashCn1View(); // construída uma vez; reusada (build-once + setState)
+        }
+        splash.setState(new SplashCn1View.State(error, status, onRetry));
+        rootSlot.mount(splash.getElement()); // mesma referência sempre → só re-monta vindo da raiz
     }
 }
