@@ -122,17 +122,21 @@ Codename One** compilar e devolver o artefato. Por isso, na primeira vez, o coma
 ficam guardadas; gerencie com `./run.sh settings`). Não é erro — é o fluxo normal de
 um *cloud build*.
 
-| Plataforma                | Comando                  |
-|---------------------------|--------------------------|
-| Android (APK/AAB)         | `./build.sh android`     |
-| iOS (device)              | `./build.sh ios`         |
-| iOS (App Store)           | `./build.sh ios_release` |
-| Web (JavaScript)          | `./build.sh javascript`  |
-| macOS desktop             | `./build.sh mac_desktop` |
-| macOS nativo (sem JVM)    | `./build.sh mac_native`  |
-| Windows desktop           | `./build.sh windows_desktop` |
-| Windows (UWP/device)      | `./build.sh windows_device` |
-| Linux nativo              | `./build.sh linux_device` |
+> **`*` = requer conta Codename One** (cloud build com login no navegador). Os comandos
+> **sem** `*` (seção anterior — simulador, desktop, `jar`, `android_source`, `ios_source`)
+> são 100% locais e não pedem conta.
+
+| Plataforma                | Comando                       |     |
+|---------------------------|-------------------------------|-----|
+| Android (APK/AAB)         | `./build.sh android`          | `*` |
+| iOS (device)              | `./build.sh ios`              | `*` |
+| iOS (App Store)           | `./build.sh ios_release`      | `*` |
+| Web (JavaScript)          | `./build.sh javascript`       | `*` (Enterprise) |
+| macOS desktop             | `./build.sh mac_desktop`      | `*` |
+| macOS nativo (sem JVM)    | `./build.sh mac_native`       | `*` |
+| Windows desktop           | `./build.sh windows_desktop`  | `*` |
+| Windows (UWP/device)      | `./build.sh windows_device`   | `*` |
+| Linux nativo              | `./build.sh linux_device`     | `*` |
 
 > **Web (JavaScript)** é o caso mais particular: diferente de Android/iOS, **não tem
 > variante `_source` local** (a transpilação Java→JS roda só no build server) e exige o
