@@ -8,7 +8,6 @@ import com.codename1.ui.Component;
 import com.codename1.ui.Container;
 import com.codename1.ui.FontImage;
 import com.codename1.ui.Label;
-import com.codename1.ui.geom.Dimension;
 import com.codename1.ui.layouts.BoxLayout;
 import com.codename1.ui.layouts.FlowLayout;
 
@@ -23,6 +22,7 @@ import br.com.wdc.shopping.view.remote.shell.cn1.util.Px;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Money;
 import br.com.wdc.shopping.view.remote.shell.cn1.widgets.BackButton;
 import br.com.wdc.shopping.view.remote.shell.cn1.widgets.HtmlText;
+import br.com.wdc.shopping.view.remote.shell.cn1.widgets.QtyStepper;
 
 /**
  * Detalhe do produto (classId {@value #CLASS_ID}) — espelha o design React: título + divisória,
@@ -45,7 +45,7 @@ public class ProductCn1View extends AbstractCn1View {
     private Consumer<String> name;
     private Consumer<String> price;
     private Label image;
-    private Consumer<String> qtyValue;
+    private QtyStepper stepper;
     private HtmlText description;
     private long currentId = -1;
     private String lastHtml = "";
@@ -105,15 +105,6 @@ public class ProductCn1View extends AbstractCn1View {
         return root;
     }
 
-    private void stepBtn(Cn1Dom dom, char icon, int delta) {
-        dom.button(bt -> {
-            bt.setUIID(sel.QTY_BTN);
-            FontImage.setMaterialIcon(bt, icon, 3f);
-            bt.setPreferredSize(new Dimension(Px.mm(QTY_BTN_MM), Px.mm(QTY_BTN_MM))); // trava o tamanho (sem o mínimo de toque)
-            bt.addActionListener(e -> changeQty(delta));
-        });
-    }
-
     /** Caixa da imagem do produto (fundo gradiente), centralizada. */
     private void buildImageBox(Cn1Dom dom) {
         dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, box -> {
@@ -137,13 +128,8 @@ public class ProductCn1View extends AbstractCn1View {
                             l.setUIID(sel.QTY_LABEL);
                             l.setText("Qtd:");
                         });
-                        stepBtn(dom, FontImage.MATERIAL_REMOVE, -1);
-                        dom.label(l -> {
-                            l.setUIID(sel.QTY_VALUE);
-                            l.setPreferredW(Px.mm(11)); // largura fixa: a fonte negrito nativa mede menos
-                            qtyValue = Guard.text(l);    // que o glifo e o cortaria; área de conteúdo maior
-                        });                        
-                        stepBtn(dom, FontImage.MATERIAL_ADD, 1);
+                        stepper = dom.add(new QtyStepper(QTY_BTN_MM,
+                                () -> changeQty(-1), () -> changeQty(1)), null);
                     });
                 });
             });
@@ -159,7 +145,7 @@ public class ProductCn1View extends AbstractCn1View {
     }
 
     private void updateQty() {
-        qtyValue.accept(String.valueOf(quantity));
+        stepper.setValue(quantity);
     }
 
     private void addToCart() {

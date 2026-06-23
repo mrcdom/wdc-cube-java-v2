@@ -16,6 +16,7 @@ import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Money;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Px;
 import br.com.wdc.shopping.view.remote.shell.cn1.widgets.IconButton;
+import br.com.wdc.shopping.view.remote.shell.cn1.widgets.QtyStepper;
 
 /**
  * Linha do carrinho: nome | stepper (− qtd +) | subtotal | remover (×).
@@ -39,7 +40,7 @@ public class CartItemCn1View extends AbstractItemCn1View<Object> {
     private final BiConsumer<Long, Integer> onModify;
     private final Consumer<Long> onRemove;
     private Consumer<String> name;
-    private Consumer<String> qty;
+    private QtyStepper stepper;
     private Consumer<String> subtotal;
     private long currentId = -1;
     private int currentQty = 1;
@@ -61,7 +62,7 @@ public class CartItemCn1View extends AbstractItemCn1View<Object> {
             r.setUIID(sel.CART_ITEM_ROW);
             nameLabel(dom, BorderLayout.CENTER);
             dom.boxX(BorderLayout.EAST, east -> {
-                stepper(dom, null);
+                buildStepper(dom, null);
                 subtotalLabel(dom, null);
                 dom.add(removeBtn(), null);
             });
@@ -77,7 +78,7 @@ public class CartItemCn1View extends AbstractItemCn1View<Object> {
                 subtotalLabel(dom, BorderLayout.EAST);
             });
             dom.border(line2 -> {
-                stepper(dom, BorderLayout.WEST);
+                buildStepper(dom, BorderLayout.WEST);
                 dom.add(removeBtn(), BorderLayout.EAST);
             });
         });
@@ -91,19 +92,10 @@ public class CartItemCn1View extends AbstractItemCn1View<Object> {
         });
     }
 
-    private void stepper(Cn1Dom dom, Object constraint) {
-        dom.boxX(constraint, stepper -> {
-            stepper.setUIID(sel.CART_STEPPER);
-            dom.add(new IconButton(sel.QTY_BTN, FontImage.MATERIAL_REMOVE, 3f, Px.mm(STEP_BTN_MM),
-                    () -> onModify.accept(currentId, currentQty - 1)), null);
-            dom.label(l -> {
-                l.setUIID(sel.QTY_VALUE);
-                l.setPreferredW(Px.mm(11)); // largura fixa: a fonte negrito nativa mede menos
-                qty = Guard.text(l);         // que o glifo e o cortaria; área de conteúdo maior
-            });
-            dom.add(new IconButton(sel.QTY_BTN, FontImage.MATERIAL_ADD, 3f, Px.mm(STEP_BTN_MM),
-                    () -> onModify.accept(currentId, currentQty + 1)), null);
-        });
+    private void buildStepper(Cn1Dom dom, Object constraint) {
+        stepper = dom.add(new QtyStepper(STEP_BTN_MM,
+                () -> onModify.accept(currentId, currentQty - 1),
+                () -> onModify.accept(currentId, currentQty + 1)), constraint);
     }
 
     private void subtotalLabel(Cn1Dom dom, Object constraint) {
@@ -124,7 +116,7 @@ public class CartItemCn1View extends AbstractItemCn1View<Object> {
         currentId = Json.longOf(m, "id");
         currentQty = Json.intOf(m, "quantity");
         name.accept(Json.str(m, "name"));
-        qty.accept(String.valueOf(currentQty));
+        stepper.setValue(currentQty);
         subtotal.accept(Money.format(Json.doubleOf(m, "price") * currentQty));
     }
 }
