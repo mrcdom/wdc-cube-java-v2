@@ -24,6 +24,7 @@ import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Money;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Px;
 import br.com.wdc.shopping.view.remote.shell.cn1.widgets.BackButton;
+import br.com.wdc.shopping.view.remote.shell.cn1.widgets.Slot;
 
 /**
  * Carrinho (classId {@value #CLASS_ID}) — espelha o React: card com cabeçalho e, conforme o estado,
@@ -43,12 +44,11 @@ public class CartCn1View extends AbstractCn1View {
     /** Lado (mm) do ícone redondo do estado vazio — densidade-independente (ver util.Px). */
     private static final float EMPTY_ICON_MM = 20f;
 
-    private Container body;
+    private Slot body;
     private Container emptySection;
     private Container itemsSection;
     private Container list;
     private Consumer<String> total;
-    private Boolean mountedEmpty;
     private final List<CartItemCn1View> items = new ArrayList<>();
 
     public CartCn1View(String vsid, BridgeSession session, ShoppingCn1RemoteApp app) {
@@ -69,7 +69,7 @@ public class CartCn1View extends AbstractCn1View {
                     h.setSubtitle("Seus produtos selecionados");
                 });
 
-                body = dom.boxY(Cn1Dom.NO_CONTENT);
+                body = dom.add(new Slot(), null);
             });
         });
         emptySection = buildEmpty();
@@ -141,12 +141,7 @@ public class CartCn1View extends AbstractCn1View {
         List<Object> cartItems = Json.asList(state().get("items"));
         boolean empty = cartItems.isEmpty();
 
-        if (mountedEmpty == null || mountedEmpty.booleanValue() != empty) {
-            mountedEmpty = Boolean.valueOf(empty);
-            body.removeAll();
-            body.add(empty ? emptySection : itemsSection);
-            body.revalidate();
-        }
+        body.mount(empty ? emptySection : itemsSection); // troca só na transição (comparação de referência)
 
         if (!empty) {
             boolean expanded = app.isExpanded();

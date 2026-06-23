@@ -57,7 +57,7 @@ public class HomeCn1View extends AbstractCn1View {
     private Container splitPane;
     private Slot productsSlot;
     private Slot purchasesSlot;
-    private Container activeHolder; // só no compacto (abas)
+    private Slot activeHolder; // só no compacto (abas)
     private Button tabProducts;
     private Button tabHistory;
     private boolean showingProducts = true;
@@ -172,7 +172,7 @@ public class HomeCn1View extends AbstractCn1View {
             tabs.add(tabProducts);
             tabs.add(tabHistory);
 
-            activeHolder = new Container(new BorderLayout());
+            activeHolder = new Slot();
             splitPane = new Container(new BorderLayout());
             splitPane.add(BorderLayout.NORTH, tabs);
             splitPane.add(BorderLayout.CENTER, activeHolder);
@@ -210,9 +210,7 @@ public class HomeCn1View extends AbstractCn1View {
         }
         tabProducts.setUIID(showingProducts ? sel.TAB_ITEM_ACTIVE : sel.TAB_ITEM);
         tabHistory.setUIID(showingProducts ? sel.TAB_ITEM : sel.TAB_ITEM_ACTIVE);
-        activeHolder.removeAll();
-        activeHolder.add(BorderLayout.CENTER, showingProducts ? productsSlot : purchasesSlot);
-        activeHolder.revalidate();
+        activeHolder.mount(showingProducts ? productsSlot : purchasesSlot);
     }
 
     @Override
