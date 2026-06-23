@@ -33,28 +33,29 @@ import br.com.wdc.framework.domain.transaction.TransactionSystemException;
 public final class RemoteTransactionCoordinatorImpl implements RemoteTransactionCoordinator {
 
     /** Tempo máximo (ms) ocioso antes de uma transação remota ser revertida e removida. */
-    private static final long DEFAULT_IDLE_TIMEOUT_MS = 60_000L;
+    public static final long DEFAULT_IDLE_TIMEOUT_MS = 60_000L;
     /**
      * Tempo de vida <b>absoluto</b> (ms) desde a abertura: além disto a transação é revertida mesmo que ativa,
      * impedindo um cliente que "pinga" antes de cada idle-timeout de segurar uma conexão indefinidamente.
      */
-    private static final long DEFAULT_MAX_LIFETIME_MS = 600_000L; // 10 min
-    /** Teto global de transações remotas abertas (cada uma segura uma conexão) — protege o pool. */
-    private static final int DEFAULT_MAX_OPEN = 128;
-    /** Teto de transações remotas abertas por dono — impede um cliente monopolizar o pool. */
-    private static final int DEFAULT_MAX_OPEN_PER_OWNER = 16;
+    public static final long DEFAULT_MAX_LIFETIME_MS = 600_000L; // 10 min
     /** Janela (ms) que o desfecho de uma transação finalizada é lembrado, para tornar commit/rollback idempotentes. */
-    private static final long OUTCOME_RETENTION_MS = 300_000L; // 5 min
+    public static final long DEFAULT_OUTCOME_RETENTION_MS = 300_000L; // 5 min
+    /** Teto global de transações remotas abertas (cada uma segura uma conexão) — protege o pool. */
+    public static final int DEFAULT_MAX_OPEN = 128;
+    /** Teto de transações remotas abertas por dono — impede um cliente monopolizar o pool. */
+    public static final int DEFAULT_MAX_OPEN_PER_OWNER = 16;
 
     private final Supplier<DataSource> dataSourceSupplier;
     private final long idleTimeoutMs;
     private final long maxLifetimeMs;
+    private final long outcomeRetentionMs;
     private final int maxOpen;
     private final int maxOpenPerOwner;
     private final ConcurrentHashMap<String, Entry> registry = new ConcurrentHashMap<>();
     /** Índice dono → nº de transações abertas, para {@link #hasOpenTransactionForOwner} em O(1) (donos nulos não entram). */
     private final ConcurrentHashMap<String, Integer> openByOwner = new ConcurrentHashMap<>();
-    /** Desfecho de transações finalizadas (txId → committed/rolledback), retido por {@link #OUTCOME_RETENTION_MS} para idempotência. */
+    /** Desfecho de transações finalizadas (txId → committed/rolledback), retido por {@code outcomeRetentionMs} para idempotência. */
     private final ConcurrentHashMap<String, Finalized> outcomes = new ConcurrentHashMap<>();
 
     private static final Log LOG = Log.getLogger(RemoteTransactionCoordinatorImpl.class.getSimpleName());
@@ -67,25 +68,16 @@ public final class RemoteTransactionCoordinatorImpl implements RemoteTransaction
     private final AtomicLong rejectedByLimitCount = new AtomicLong();
 
     public RemoteTransactionCoordinatorImpl(Supplier<DataSource> dataSourceSupplier) {
-        this(dataSourceSupplier, DEFAULT_IDLE_TIMEOUT_MS);
+        this(dataSourceSupplier, RemoteTransactionOptions.defaults());
     }
 
-    public RemoteTransactionCoordinatorImpl(Supplier<DataSource> dataSourceSupplier, long idleTimeoutMs) {
-        this(dataSourceSupplier, idleTimeoutMs, DEFAULT_MAX_OPEN, DEFAULT_MAX_OPEN_PER_OWNER);
-    }
-
-    public RemoteTransactionCoordinatorImpl(Supplier<DataSource> dataSourceSupplier, long idleTimeoutMs, int maxOpen,
-            int maxOpenPerOwner) {
-        this(dataSourceSupplier, idleTimeoutMs, DEFAULT_MAX_LIFETIME_MS, maxOpen, maxOpenPerOwner);
-    }
-
-    public RemoteTransactionCoordinatorImpl(Supplier<DataSource> dataSourceSupplier, long idleTimeoutMs,
-            long maxLifetimeMs, int maxOpen, int maxOpenPerOwner) {
+    public RemoteTransactionCoordinatorImpl(Supplier<DataSource> dataSourceSupplier, RemoteTransactionOptions options) {
         this.dataSourceSupplier = dataSourceSupplier;
-        this.idleTimeoutMs = idleTimeoutMs;
-        this.maxLifetimeMs = maxLifetimeMs;
-        this.maxOpen = maxOpen;
-        this.maxOpenPerOwner = maxOpenPerOwner;
+        this.idleTimeoutMs = options.idleTimeoutMs();
+        this.maxLifetimeMs = options.maxLifetimeMs();
+        this.outcomeRetentionMs = options.outcomeRetentionMs();
+        this.maxOpen = options.maxOpen();
+        this.maxOpenPerOwner = options.maxOpenPerOwner();
     }
 
     @Override
@@ -276,7 +268,7 @@ public final class RemoteTransactionCoordinatorImpl implements RemoteTransaction
             }
         }
         if (!outcomes.isEmpty()) {
-            var outcomeDeadline = now - OUTCOME_RETENTION_MS;
+            var outcomeDeadline = now - outcomeRetentionMs;
             outcomes.entrySet().removeIf(en -> en.getValue().at < outcomeDeadline);
         }
     }
