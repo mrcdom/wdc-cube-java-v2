@@ -62,3 +62,7 @@ fontes/br.com.wdc.cube.backend/work/
 
 # Local Maven CLI overrides (machine/platform specific)
 **/.mvn/maven.config
+
+# MCP server config (ferramenta pessoal — ex.: Playwright para inspeção de navegador)
+.mcp.json
+.playwright-mcp/page-*.yml

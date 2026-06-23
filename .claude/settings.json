@@ -10,7 +10,11 @@
       "Bash(grep -nE '\\(^|/\\)\\(bin|target\\)/?$|bin/|target/' .gitignore fontes/.gitignore)",
       "Bash(git check-ignore *)",
       "Bash(grep -rh '^package ' __TRACKED_VAR__/scheme)",
-      "Bash(awk 'NR>=1{print NR\": \"$0}' pom.xml)"
+      "Bash(awk 'NR>=1{print NR\": \"$0}' pom.xml)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_console_messages"
     ]
   }
 }
