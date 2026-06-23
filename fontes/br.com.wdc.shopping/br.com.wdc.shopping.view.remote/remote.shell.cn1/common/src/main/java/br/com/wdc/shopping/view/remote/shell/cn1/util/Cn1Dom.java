@@ -14,6 +14,7 @@ import com.codename1.ui.layouts.BoxLayout;
 import com.codename1.ui.layouts.Layout;
 
 import br.com.wdc.shopping.view.remote.shell.cn1.widgets.CardHeader;
+import br.com.wdc.shopping.view.remote.shell.cn1.widgets.Slot;
 
 /**
  * DSL fluente de construção da árvore de componentes — análogo do {@code VaadinDom}/{@code GluonDom}
@@ -154,6 +155,17 @@ public final class Cn1Dom {
     public CardHeader cardHeader(Object constraint, Consumer<CardHeader> fn) {
         CardHeader e = new CardHeader();
         fn.accept(e);
+        addChild(this.currentParent, e, constraint);
+        return e;
+    }
+
+    public Slot slot() {
+        return slot(null);
+    }
+
+    /** Cria um {@link Slot} (filho único) e o adiciona ao parent corrente; o conteúdo entra depois via {@code mount}. */
+    public Slot slot(Object constraint) {
+        Slot e = new Slot();
         addChild(this.currentParent, e, constraint);
         return e;
     }

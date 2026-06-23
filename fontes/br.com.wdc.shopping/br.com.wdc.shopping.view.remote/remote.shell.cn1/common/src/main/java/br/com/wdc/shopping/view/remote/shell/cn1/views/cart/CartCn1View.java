@@ -69,7 +69,7 @@ public class CartCn1View extends AbstractCn1View {
                     h.setSubtitle("Seus produtos selecionados");
                 });
 
-                body = dom.add(new Slot(), null);
+                body = dom.slot();
             });
         });
         emptySection = buildEmpty();

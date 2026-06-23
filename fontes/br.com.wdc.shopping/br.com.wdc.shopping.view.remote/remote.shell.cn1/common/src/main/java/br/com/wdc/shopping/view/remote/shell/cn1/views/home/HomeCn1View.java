@@ -146,7 +146,7 @@ public class HomeCn1View extends AbstractCn1View {
                 });
             });
 
-            bodySlot = dom.add(new Slot(), BorderLayout.CENTER);
+            bodySlot = dom.slot(BorderLayout.CENTER);
         });
 
         buildSplit();
@@ -167,14 +167,13 @@ public class HomeCn1View extends AbstractCn1View {
             });
         } else {
             // abas comutam entre produtos e histórico
-            activeHolder = new Slot();
             splitPane = Cn1Dom.render(new BorderLayout(), (dom, pane) -> {
                 dom.container(new GridLayout(2), BorderLayout.NORTH, tabs -> {
                     tabs.setUIID(sel.TAB_NAV);
                     tabProducts = tabButton(dom, "Produtos", FontImage.MATERIAL_VIEW_MODULE, true);
                     tabHistory = tabButton(dom, "Histórico", FontImage.MATERIAL_HISTORY, false);
                 });
-                dom.add(activeHolder, BorderLayout.CENTER);
+                activeHolder = dom.slot(BorderLayout.CENTER);
             });
             refreshTabs(); // popula o holder ativo com o painel inicial (produtos)
         }
