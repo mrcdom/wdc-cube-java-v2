@@ -49,11 +49,15 @@ public class HomeCn1View extends AbstractCn1View {
     private static final int BADGE_COLOR = Colors.BADGE;
 
     private Consumer<String> nick;
+    private Container greetBox;   // saudação (west) — visível só no expandido
+    private Label brandSub;       // "By WeDoCode" (center) — visível só no expandido
+    private Consumer<String> cartText; // texto do botão carrinho — só no expandido
     private Label cartBadge;
-    /** Área de conteúdo: ou a tela aninhada (contentViewId) ou o split (chave local "split"). */
+    private Boolean builtExpanded;
+    /** Área de conteúdo: ou a tela aninhada (contentViewId) ou o split. */
     private Slot bodySlot;
 
-    // split (construído uma vez para o modo expandido/compacto corrente)
+    // split (reconstruído na troca de modo expandido/compacto; reusa os slots dos painéis)
     private Container splitPane;
     private Slot productsSlot;
     private Slot purchasesSlot;
@@ -68,33 +72,33 @@ public class HomeCn1View extends AbstractCn1View {
 
     @Override
     protected Container build() {
+        // slots dos painéis criados uma vez (reusados nos dois modos do split)
+        productsSlot = new Slot();
+        purchasesSlot = new Slot();
         Container root = Cn1Dom.render(new BorderLayout(), (dom, r) -> {
             dom.border(BorderLayout.NORTH, bar -> {
                 bar.setUIID(sel.APP_BAR);
-                boolean wide = app.isExpanded();
 
-                // esquerda: sair + (saudação só no expandido)
+                // esquerda: sair + saudação (visibilidade da saudação alternada no doUpdate)
                 dom.container(new FlowLayout(Component.LEFT, Component.CENTER), BorderLayout.WEST, west -> {
                     dom.button(b -> {
                         b.setUIID(sel.APP_BAR_BTN);
                         b.addActionListener(e -> submit(EVT_LOGOUT));
                         FontImage.setMaterialIcon(b, FontImage.MATERIAL_LOGOUT, 5f);
                     });
-                    if (wide) {
-                        dom.boxY(greet -> {
-                            dom.label(l -> {
-                                l.setUIID(sel.GREETING_SMALL);
-                                l.setText("Bem-vindo(a),");
-                            });
-                            dom.label(l -> {
-                                l.setUIID(sel.GREETING_NAME);
-                                nick = Guard.text(l);
-                            });
+                    greetBox = dom.boxY(greet -> {
+                        dom.label(l -> {
+                            l.setUIID(sel.GREETING_SMALL);
+                            l.setText("Bem-vindo(a),");
                         });
-                    }
+                        dom.label(l -> {
+                            l.setUIID(sel.GREETING_NAME);
+                            nick = Guard.text(l);
+                        });
+                    });
                 });
 
-                // centro: logo + Shopping (+ By WeDoCode só no expandido)
+                // centro: logo + Shopping (+ By WeDoCode, alternado no doUpdate)
                 dom.container(new FlowLayout(Component.CENTER, Component.CENTER), BorderLayout.CENTER, center -> {
                     // BoxLayout.x estica logo-wrap e marca-wrap à mesma altura; cada wrap centraliza
                     // seu conteúdo (valign CENTER) → a marca alinha pelo centro do ícone do logo.
@@ -111,28 +115,24 @@ public class HomeCn1View extends AbstractCn1View {
                                     l.setUIID(sel.APP_BAR_BRAND);
                                     l.setText("Shopping");
                                 });
-                                if (wide) {
-                                    dom.label(l -> {
-                                        l.setUIID(sel.APP_BAR_BRAND_SUB);
-                                        l.setText("By WeDoCode");
-                                    });
-                                }
+                                brandSub = dom.label(l -> {
+                                    l.setUIID(sel.APP_BAR_BRAND_SUB);
+                                    l.setText("By WeDoCode");
+                                });
                             });
                         });
                     });
                 });
 
-                // direita: carrinho (texto só no expandido) + badge sobreposto ao ícone
+                // direita: carrinho (texto alternado no doUpdate) + badge sobreposto ao ícone
                 dom.container(new FlowLayout(Component.RIGHT, Component.CENTER), BorderLayout.EAST, east -> {
                     dom.container(new LayeredLayout(), null, wrap -> {
-                        dom.button(b -> {
+                        Button cartBtn = dom.button(b -> {
                             b.setUIID(sel.APP_BAR_BTN);
-                            if (wide) {
-                                b.setText("Carrinho");
-                            }
                             b.addActionListener(e -> submit(EVT_OPEN_CART));
                             FontImage.setMaterialIcon(b, FontImage.MATERIAL_SHOPPING_CART, 5f);
                         });
+                        cartText = Guard.text(cartBtn); // Button é-um Label
                         // badge circular via RoundBorder no Java (o border-radius do CSS do CN1 reserva
                         // espaço vertical); cor/fonte do texto ficam no SCSS.
                         cartBadge = dom.label(l -> {
@@ -148,18 +148,14 @@ public class HomeCn1View extends AbstractCn1View {
 
             bodySlot = dom.slot(BorderLayout.CENTER);
         });
-
-        buildSplit();
         return root;
     }
 
-    /** Constrói (uma vez) a estrutura do split conforme o modo de largura corrente. */
+    /** (Re)constrói o split conforme o modo, reusando os slots dos painéis. Chamado pelo {@link #layoutSplit()}. */
     private void buildSplit() {
-        productsSlot = new Slot();
-        purchasesSlot = new Slot();
-
         if (app.isExpanded()) {
             // produtos + histórico lado a lado (sem abas)
+            activeHolder = null;
             purchasesSlot.setPreferredW(Px.mm(PURCHASES_WIDTH_MM));
             splitPane = Cn1Dom.render(new BorderLayout(), (dom, pane) -> {
                 dom.add(productsSlot, BorderLayout.CENTER);
@@ -175,8 +171,18 @@ public class HomeCn1View extends AbstractCn1View {
                 });
                 activeHolder = dom.slot(BorderLayout.CENTER);
             });
-            refreshTabs(); // popula o holder ativo com o painel inicial (produtos)
+            refreshTabs(); // popula o holder ativo com o painel inicial
         }
+    }
+
+    /** Reconstrói o split só quando o modo (expandido/compacto) muda. Reusa os slots dos painéis. */
+    private void layoutSplit() {
+        boolean expanded = app.isExpanded();
+        if (builtExpanded != null && builtExpanded.booleanValue() == expanded) {
+            return;
+        }
+        builtExpanded = Boolean.valueOf(expanded);
+        buildSplit();
     }
 
     private Button tabButton(Cn1Dom dom, String text, char icon, boolean products) {
@@ -215,10 +221,14 @@ public class HomeCn1View extends AbstractCn1View {
 
     @Override
     public void doUpdate() {
+        boolean wide = app.isExpanded();
+        layoutSplit();                       // reconstrói o split se o modo mudou
+        Guard.visible(greetBox, wide);       // saudação / "By WeDoCode" / texto do carrinho: só no expandido
+        Guard.visible(brandSub, wide);
+        cartText.accept(wide ? "Carrinho" : "");
+
         Map<String, Object> st = state();
-        if (nick != null) {
-            nick.accept(Json.str(st, "nickName")); // só existe no expandido
-        }
+        nick.accept(Json.str(st, "nickName"));
         int cartCount = Json.intOf(st, "cartItemCount");
         cartBadge.setText(String.valueOf(cartCount));
         Guard.visible(cartBadge, cartCount > 0); // badge some quando o carrinho está vazio (convenção)
