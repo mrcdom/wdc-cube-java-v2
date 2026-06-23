@@ -9,6 +9,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
 
+import br.com.wdc.framework.domain.exception.BusinessException;
 import br.com.wdc.shopping.domain.model.Product;
 import br.com.wdc.shopping.persistence.client.RestTransactionService;
 import br.com.wdc.shopping.test.util.ResetDatabaseRule;
@@ -67,6 +68,24 @@ public class RemoteTransactionRestTest {
         });
 
         assertNull("setRollbackOnly deveria reverter", env.productRepo().fetchById(p.id, null));
+    }
+
+    @Test
+    public void headerlessWrite_whileRemoteTxOpen_isRejected() {
+        // Cliente abre uma transação remota mas, por falha de propagação, deixa de enviar o X-Tx-Id nas escritas
+        // seguintes. O servidor deve REJEITAR a escrita — em vez de autocommitá-la fora da transação, o que deixaria
+        // um registro órfão (quebra de atomicidade). begin e escrita partem do mesmo transporte → mesmo X-Client-Id
+        // (mesmo dono), então a guarda correlaciona a escrita à transação aberta do cliente.
+        env.transport().postJson("/api/tx/begin", "{}"); // transação remota agora aberta para este cliente
+
+        try {
+            env.productRepo().insert(product("rtx-guard-orphan")); // escrita SEM X-Tx-Id
+            fail("escrita sem X-Tx-Id com transação remota aberta deveria ser rejeitada");
+        } catch (BusinessException expected) {
+            // esperado: 403 da guarda de atomicidade
+        }
+        // A transação aberta é abandonada de propósito; o coordenador a reverte por timeout (reaper) e o
+        // TestEnvironment fecha o datasource no teardown da classe.
     }
 
     @Test

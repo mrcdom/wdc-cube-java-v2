@@ -76,13 +76,24 @@ public final class RepositoryApiRoutes {
             // Transação remota dirigida pelo cliente: junta-se à tx do txId (resume/suspend), sem commitar —
             // a fronteira (commit/rollback) é do cliente, via TxApiController.
             if (txId != null && !txId.isBlank() && coordinator != null) {
-                coordinator.resume(txId, TxApiController.currentOwnerKey());
+                coordinator.resume(txId, TxApiController.currentOwnerKey(ctx));
                 try {
                     delegate.handle(ctx);
                 } finally {
                     coordinator.suspend(txId);
                 }
                 return;
+            }
+
+            // Sem txId, mas o solicitante tem transação remota aberta: o cabeçalho X-Tx-Id se perdeu no caminho.
+            // Rejeita em vez de autocommitar esta escrita fora da transação (que deixaria um registro órfão,
+            // quebrando a atomicidade do bloco). Defesa server-side da propagação do cliente.
+            if (coordinator != null) {
+                var owner = TxApiController.currentOwnerKey(ctx);
+                if (owner != null && coordinator.hasOpenTransactionForOwner(owner)) {
+                    throw new AccessDeniedException("Escrita sem " + TxApiController.TX_HEADER
+                            + " enquanto há transação remota aberta para o solicitante — abortada para preservar atomicidade");
+                }
             }
 
             // Sem txId: transação por requisição (escrita atômica isolada).

@@ -54,4 +54,11 @@ public interface RemoteTransactionCoordinator {
     /** @return {@code true} se há transação registrada para {@code txId}. */
     boolean exists(String txId);
 
+    /**
+     * @return {@code true} se há alguma transação remota aberta para este {@code ownerKey} (não-nulo). Permite ao host
+     *         detectar uma escrita que chegou <b>sem</b> o {@code txId} embora o solicitante tenha transação remota em
+     *         aberto — sinal de propagação quebrada do cabeçalho, que de outro modo autocommitaria fora da transação.
+     */
+    boolean hasOpenTransactionForOwner(String ownerKey);
+
 }

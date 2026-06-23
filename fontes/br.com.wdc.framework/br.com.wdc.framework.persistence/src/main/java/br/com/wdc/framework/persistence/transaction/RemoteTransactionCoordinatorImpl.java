@@ -34,6 +34,8 @@ public final class RemoteTransactionCoordinatorImpl implements RemoteTransaction
     private final Supplier<DataSource> dataSourceSupplier;
     private final long idleTimeoutMs;
     private final ConcurrentHashMap<String, Entry> registry = new ConcurrentHashMap<>();
+    /** Índice dono → nº de transações abertas, para {@link #hasOpenTransactionForOwner} em O(1) (donos nulos não entram). */
+    private final ConcurrentHashMap<String, Integer> openByOwner = new ConcurrentHashMap<>();
 
     public RemoteTransactionCoordinatorImpl(Supplier<DataSource> dataSourceSupplier) {
         this(dataSourceSupplier, DEFAULT_IDLE_TIMEOUT_MS);
@@ -52,6 +54,7 @@ public final class RemoteTransactionCoordinatorImpl implements RemoteTransaction
             TransactionScope.suspend(); // desliga da thread; o escopo segue vivo
             var txId = UUID.randomUUID().toString();
             registry.put(txId, new Entry(scope, ownerKey));
+            trackOwner(ownerKey);
             return txId;
         } catch (Exception e) {
             throw new TransactionSystemException("Falha ao abrir transação remota", e);
@@ -103,12 +106,33 @@ public final class RemoteTransactionCoordinatorImpl implements RemoteTransaction
         return txId != null && registry.containsKey(txId);
     }
 
+    @Override
+    public boolean hasOpenTransactionForOwner(String ownerKey) {
+        return ownerKey != null && openByOwner.containsKey(ownerKey);
+    }
+
     // -------------------------------------------------------------------------
+
+    /** Registra +1 transação aberta para o dono (ignora donos nulos). */
+    private void trackOwner(String owner) {
+        if (owner != null) {
+            openByOwner.merge(owner, 1, Integer::sum);
+        }
+    }
+
+    /** Registra -1 transação para o dono, removendo a entrada ao chegar a zero (ignora donos nulos). */
+    private void untrackOwner(String owner) {
+        if (owner != null) {
+            openByOwner.computeIfPresent(owner, (k, count) -> count <= 1 ? null : count - 1);
+        }
+    }
 
     private void finish(String txId, String ownerKey, boolean rollback) {
         var entry = require(txId);
         verifyOwner(entry, ownerKey);
-        registry.remove(txId);
+        if (registry.remove(txId, entry)) {
+            untrackOwner(entry.owner);
+        }
         try {
             if (rollback) {
                 entry.scope.setRollbackOnly();
@@ -128,6 +152,7 @@ public final class RemoteTransactionCoordinatorImpl implements RemoteTransaction
         for (var e : registry.entrySet()) {
             var entry = e.getValue();
             if (entry.lastUsedAt < deadline && !entry.inUse.get() && registry.remove(e.getKey(), entry)) {
+                untrackOwner(entry.owner);
                 rollbackQuietly(entry);
             }
         }

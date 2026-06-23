@@ -1,6 +1,8 @@
 package br.com.wdc.shopping.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
@@ -153,6 +155,26 @@ public class RemoteTransactionCoordinatorJtaTest {
         } finally {
             coordinator.rollback(txId, "user-1"); // dono correto limpa
         }
+    }
+
+    @Test
+    public void hasOpenTransactionForOwner_tracksOpenTransactions() throws Exception {
+        assertFalse("sem transação aberta para o dono", coordinator.hasOpenTransactionForOwner("owner-A"));
+
+        var txId = onThread(() -> coordinator.begin("owner-A"));
+        try {
+            assertTrue("dono com transação aberta", coordinator.hasOpenTransactionForOwner("owner-A"));
+            assertFalse("outro dono não casa", coordinator.hasOpenTransactionForOwner("owner-B"));
+            assertFalse("dono nulo nunca casa", coordinator.hasOpenTransactionForOwner(null));
+        } finally {
+            onThread(() -> {
+                coordinator.rollback(txId, "owner-A");
+                return null;
+            });
+        }
+
+        assertFalse("após finalizar, não há mais transação aberta",
+                coordinator.hasOpenTransactionForOwner("owner-A"));
     }
 
     // -------------------------------------------------------------------------
