@@ -44,6 +44,7 @@ public final class TxApiController {
         config.routes.post(prefix + "/api/tx/begin", TxApiController::begin);
         config.routes.post(prefix + "/api/tx/commit", TxApiController::commit);
         config.routes.post(prefix + "/api/tx/rollback", TxApiController::rollback);
+        config.routes.get(prefix + "/api/tx/status", TxApiController::status);
     }
 
     private static void begin(Context ctx) {
@@ -60,6 +61,11 @@ public final class TxApiController {
     private static void rollback(Context ctx) {
         coordinator().rollback(txIdHeader(ctx), currentOwnerKey(ctx));
         ctx.json(Map.of("status", "rolledback"));
+    }
+
+    /** Consulta o estado de uma transação (open/committed/rolledback/unknown) — desambigua resposta perdida. */
+    private static void status(Context ctx) {
+        ctx.json(Map.of("status", coordinator().status(txIdHeader(ctx), currentOwnerKey(ctx))));
     }
 
     /**

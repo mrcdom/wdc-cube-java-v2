@@ -45,14 +45,32 @@ public interface RemoteTransactionCoordinator {
     /** Desliga a transação da thread corrente, mantendo-a viva para a próxima requisição. */
     void suspend(String txId);
 
-    /** Finaliza com COMMIT e remove do registro (valida {@code ownerKey}). */
+    /**
+     * Finaliza com COMMIT e remove do registro (valida {@code ownerKey}). <b>Idempotente</b>: repetir o commit de uma
+     * transação já comitada (resposta anterior perdida) é um no-op de sucesso, dentro da janela de retenção do
+     * desfecho. Repetir como rollback algo já comitado conflita ({@code TransactionConflictException}).
+     */
     void commit(String txId, String ownerKey);
 
-    /** Finaliza com ROLLBACK e remove do registro (valida {@code ownerKey}). */
+    /**
+     * Finaliza com ROLLBACK e remove do registro (valida {@code ownerKey}). <b>Idempotente</b>, simétrico ao
+     * {@link #commit(String, String)}.
+     */
     void rollback(String txId, String ownerKey);
+
+    /**
+     * Estado da transação para o solicitante, desambiguando uma resposta de finalização perdida.
+     *
+     * @return {@code "open"} (registrada e viva), {@code "committed"}/{@code "rolledback"} (finalizada, dentro da
+     *         retenção) ou {@code "unknown"} (desconhecida — nunca existiu ou retenção expirada). Valida {@code ownerKey}.
+     */
+    String status(String txId, String ownerKey);
 
     /** @return {@code true} se há transação registrada para {@code txId}. */
     boolean exists(String txId);
+
+    /** @return snapshot de métricas (gauges atuais + contadores acumulados) para observabilidade. */
+    RemoteTransactionStats stats();
 
     /**
      * @return {@code true} se há alguma transação remota aberta para este {@code ownerKey} (não-nulo). Permite ao host

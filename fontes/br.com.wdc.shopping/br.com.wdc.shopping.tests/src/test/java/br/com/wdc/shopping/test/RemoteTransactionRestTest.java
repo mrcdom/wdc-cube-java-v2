@@ -2,6 +2,7 @@ package br.com.wdc.shopping.test;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.junit.ClassRule;
@@ -82,7 +83,9 @@ public class RemoteTransactionRestTest {
             env.productRepo().insert(product("rtx-guard-orphan")); // escrita SEM X-Tx-Id
             fail("escrita sem X-Tx-Id com transação remota aberta deveria ser rejeitada");
         } catch (BusinessException expected) {
-            // esperado: 403 da guarda de atomicidade
+            // esperado: 409 Conflict (conflito de estado transacional), não 403 (autorização)
+            assertTrue("guarda deveria responder 409, veio: " + expected.getMessage(),
+                    expected.getMessage().contains("409"));
         }
         // A transação aberta é abandonada de propósito; o coordenador a reverte por timeout (reaper) e o
         // TestEnvironment fecha o datasource no teardown da classe.

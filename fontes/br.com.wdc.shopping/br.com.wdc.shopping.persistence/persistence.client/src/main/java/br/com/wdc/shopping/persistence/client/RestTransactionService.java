@@ -28,6 +28,16 @@ import br.com.wdc.framework.domain.transaction.TransactionSystemException;
  */
 public final class RestTransactionService implements TransactionService {
 
+    /**
+     * Transação remota ativa, presa à thread. O isolamento entre fluxos concorrentes depende de uma <b>invariante</b>:
+     * cada ação independente do usuário roda na sua própria thread. No backend e nos clientes JVM isso é trivial
+     * (threads reais). No navegador (TeaVM, single-thread com event-loop) vale igual <b>porque</b> (1) cada ação é
+     * disparada numa green-thread própria (ex.: {@code safeAction} → {@code new Thread().start()}) e (2) o
+     * {@code ThreadLocal} do TeaVM é por-thread (armazena por {@code currentThread().key}). Assim, se um bloco
+     * {@code required} suspende num XHR e outra ação roda no event-loop, esta lê seu próprio {@code CURRENT} (vazio) e
+     * <b>não</b> herda o {@code txId} suspenso. <b>Cuidado ao refatorar:</b> rodar ações inline na main thread ou
+     * reusar threads de um pool quebraria esse isolamento.
+     */
     private static final ThreadLocal<TxState> CURRENT = new ThreadLocal<>();
     private static final TransactionContext NO_TX = new NoTxContext();
 

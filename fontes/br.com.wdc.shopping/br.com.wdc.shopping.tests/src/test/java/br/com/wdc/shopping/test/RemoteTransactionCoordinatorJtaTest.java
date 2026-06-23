@@ -18,6 +18,8 @@ import com.arjuna.ats.internal.jta.transaction.arjunacore.UserTransactionImple;
 import com.arjuna.ats.jta.common.jtaPropertyManager;
 
 import br.com.wdc.framework.domain.exception.AccessDeniedException;
+import br.com.wdc.framework.domain.exception.TransactionConflictException;
+import br.com.wdc.framework.domain.exception.TransactionLimitExceededException;
 import br.com.wdc.framework.persistence.transaction.JtaTransactionManager;
 import br.com.wdc.framework.persistence.transaction.RemoteTransactionCoordinator;
 import br.com.wdc.framework.persistence.transaction.RemoteTransactionCoordinatorImpl;
@@ -175,6 +177,114 @@ public class RemoteTransactionCoordinatorJtaTest {
 
         assertFalse("após finalizar, não há mais transação aberta",
                 coordinator.hasOpenTransactionForOwner("owner-A"));
+    }
+
+    @Test
+    public void exceedingMaxOpen_isRejected() throws Exception {
+        // coordenador com teto GLOBAL = 2 (por dono alto, para isolar o global)
+        var limited = new RemoteTransactionCoordinatorImpl(() -> dataSource, 60_000L, 2, 16);
+        var t1 = onThread(() -> limited.begin("o"));
+        var t2 = onThread(() -> limited.begin("o"));
+        try {
+            onThread(() -> limited.begin("o"));
+            fail("3ª transação deveria estourar o teto global");
+        } catch (RuntimeException e) {
+            assertTrue("esperado TransactionLimitExceededException, veio: " + e.getCause(),
+                    e.getCause() instanceof TransactionLimitExceededException);
+        } finally {
+            onThread(() -> { limited.rollback(t1, "o"); return null; });
+            onThread(() -> { limited.rollback(t2, "o"); return null; });
+        }
+    }
+
+    @Test
+    public void exceedingMaxOpenPerOwner_isRejected() throws Exception {
+        // teto POR DONO = 2 (global alto)
+        var limited = new RemoteTransactionCoordinatorImpl(() -> dataSource, 60_000L, 100, 2);
+        var a = onThread(() -> limited.begin("owner-X"));
+        var b = onThread(() -> limited.begin("owner-X"));
+        try {
+            onThread(() -> limited.begin("owner-X"));
+            fail("3ª tx do mesmo dono deveria estourar o teto por dono");
+        } catch (RuntimeException e) {
+            assertTrue("esperado TransactionLimitExceededException, veio: " + e.getCause(),
+                    e.getCause() instanceof TransactionLimitExceededException);
+        } finally {
+            onThread(() -> { limited.rollback(a, "owner-X"); return null; });
+            onThread(() -> { limited.rollback(b, "owner-X"); return null; });
+        }
+        // outro dono não é afetado pelo teto de owner-X
+        var c = onThread(() -> limited.begin("owner-Y"));
+        onThread(() -> { limited.rollback(c, "owner-Y"); return null; });
+    }
+
+    @Test
+    public void absoluteLifetime_reapsLongLivedTransaction() throws Exception {
+        // idle alto (60s), tempo de vida absoluto curto (50ms): isola a expiração por lifetime
+        var shortLife = new RemoteTransactionCoordinatorImpl(() -> dataSource, 60_000L, 50L, 100, 16);
+        var txId = onThread(() -> shortLife.begin("o"));
+        assertTrue("tx recém-aberta deveria existir", shortLife.exists(txId));
+
+        Thread.sleep(120); // ultrapassa o lifetime absoluto, mas não o idle
+
+        // o reaper roda na varredura preguiçosa do begin
+        var other = onThread(() -> shortLife.begin("o2"));
+        assertFalse("tx além do tempo de vida absoluto deveria ter sido revertida", shortLife.exists(txId));
+
+        onThread(() -> { shortLife.rollback(other, "o2"); return null; });
+    }
+
+    @Test
+    public void commitIsIdempotent_andStatusReflectsOutcome() throws Exception {
+        var txId = onThread(() -> coordinator.begin("o"));
+        assertEquals("open", coordinator.status(txId, "o"));
+
+        onThread(() -> { coordinator.commit(txId, "o"); return null; });
+        assertEquals("committed", coordinator.status(txId, "o"));
+
+        // retry do commit (resposta anterior "perdida") → no-op de sucesso, mesmo desfecho
+        onThread(() -> { coordinator.commit(txId, "o"); return null; });
+        assertEquals("committed", coordinator.status(txId, "o"));
+    }
+
+    @Test
+    public void commitAfterRollback_conflicts() throws Exception {
+        var txId = onThread(() -> coordinator.begin("o"));
+        onThread(() -> { coordinator.rollback(txId, "o"); return null; });
+        try {
+            onThread(() -> { coordinator.commit(txId, "o"); return null; });
+            fail("commit de uma tx já revertida deveria conflitar");
+        } catch (RuntimeException e) {
+            assertTrue("esperado TransactionConflictException, veio: " + e.getCause(),
+                    e.getCause() instanceof TransactionConflictException);
+        }
+    }
+
+    @Test
+    public void statusUnknown_forUnseenTxId() {
+        assertEquals("unknown", coordinator.status("nao-existe", "o"));
+    }
+
+    @Test
+    public void stats_reflectGaugesAndCounters() throws Exception {
+        // coordenador fresco → contadores determinísticos
+        var c = new RemoteTransactionCoordinatorImpl(() -> dataSource);
+        assertEquals(0, c.stats().openNow());
+        assertEquals(0L, c.stats().begun());
+
+        var tx1 = onThread(() -> c.begin("o"));
+        var tx2 = onThread(() -> c.begin("o"));
+        var open = c.stats();
+        assertEquals("2 transações abertas", 2, open.openNow());
+        assertEquals("1 dono com tx aberta", 1, open.ownersWithOpen());
+        assertEquals(2L, open.begun());
+
+        onThread(() -> { c.commit(tx1, "o"); return null; });
+        onThread(() -> { c.rollback(tx2, "o"); return null; });
+        var done = c.stats();
+        assertEquals("nenhuma aberta após finalizar", 0, done.openNow());
+        assertEquals(1L, done.committed());
+        assertEquals(1L, done.rolledBack());
     }
 
     // -------------------------------------------------------------------------
