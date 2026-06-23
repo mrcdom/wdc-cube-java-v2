@@ -23,6 +23,7 @@ import br.com.wdc.shopping.view.remote.shell.cn1.util.Money;
 import br.com.wdc.shopping.view.remote.shell.cn1.widgets.BackButton;
 import br.com.wdc.shopping.view.remote.shell.cn1.widgets.HtmlText;
 import br.com.wdc.shopping.view.remote.shell.cn1.widgets.QtyStepper;
+import br.com.wdc.shopping.view.remote.shell.cn1.widgets.Slot;
 
 /**
  * Detalhe do produto (classId {@value #CLASS_ID}) — espelha o design React: título + divisória,
@@ -47,6 +48,10 @@ public class ProductCn1View extends AbstractCn1View {
     private Label image;
     private QtyStepper stepper;
     private HtmlText description;
+    private Slot rowSlot;
+    private Container priceQty;
+    private Container imageBox;
+    private Boolean builtExpanded;
     private long currentId = -1;
     private String lastHtml = "";
     private int quantity = 1;
@@ -57,10 +62,13 @@ public class ProductCn1View extends AbstractCn1View {
 
     @Override
     protected Container build() {
+        // peças reusadas nos dois modos (campos ligados aqui); o arranjo é decidido no doUpdate
+        imageBox = buildImageBox();
+        priceQty = buildPriceQty();
         Container root = Cn1Dom.render(BoxLayout.y(), (dom, r) -> {
             r.setScrollableY(true);
             r.setUIID(sel.PRODUCT_PAGE);
-            dom.label(l -> {                
+            dom.label(l -> {
                 l.setUIID(sel.PRODUCT_TITLE);
                 name = Guard.text(l);
             });
@@ -73,22 +81,9 @@ public class ProductCn1View extends AbstractCn1View {
                 description = dom.add(new HtmlText(sel.PRODUCT_DESC_TEXT), null);
             });
 
-            // preço/quantidade + imagem — lado a lado no expandido; empilhado (imagem em cima) no
-            // compacto, senão a soma das larguras estoura a tela do telefone e a imagem fica cortada.
-            dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, row -> {
-                row.setUIID(sel.PRODUCT_PRICE_IMAGE_ROW);
-                if (app.isExpanded()) {
-                    dom.boxX(group -> {
-                        buildPriceQty(dom);
-                        buildImageBox(dom);
-                    });
-                } else {
-                    dom.boxY(stack -> {
-                        buildImageBox(dom);
-                        buildPriceQty(dom);
-                    });
-                }
-            });
+            // preço/quantidade + imagem — arranjo (lado a lado vs empilhado) decidido no layout()
+            rowSlot = dom.slot();
+            rowSlot.setUIID(sel.PRODUCT_PRICE_IMAGE_ROW);
 
             // ações: Voltar + Adicionar ao Carrinho
             dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, actions -> {
@@ -105,9 +100,35 @@ public class ProductCn1View extends AbstractCn1View {
         return root;
     }
 
+    /**
+     * Arranja preço/qtd + imagem conforme o modo: lado a lado no expandido; empilhado (imagem em cima)
+     * no compacto, senão a soma das larguras corta a imagem no telefone. Re-monta só na troca de modo,
+     * reusando as peças (preserva a quantidade escolhida no stepper).
+     */
+    private void layout() {
+        boolean expanded = app.isExpanded();
+        if (builtExpanded != null && builtExpanded.booleanValue() == expanded) {
+            return;
+        }
+        builtExpanded = Boolean.valueOf(expanded);
+        rowSlot.mount(Cn1Dom.render(new FlowLayout(Component.CENTER, Component.CENTER), (dom, w) -> {
+            if (expanded) {
+                dom.boxX(group -> {
+                    dom.add(priceQty, null);
+                    dom.add(imageBox, null);
+                });
+            } else {
+                dom.boxY(stack -> {
+                    dom.add(imageBox, null);
+                    dom.add(priceQty, null);
+                });
+            }
+        }));
+    }
+
     /** Caixa da imagem do produto (fundo gradiente), centralizada. */
-    private void buildImageBox(Cn1Dom dom) {
-        dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, box -> {
+    private Container buildImageBox() {
+        return Cn1Dom.render(new FlowLayout(Component.CENTER, Component.CENTER), (dom, box) -> {
             box.setUIID(sel.PRODUCT_IMAGE_BOX);
             image = dom.label(l -> { });
         });
@@ -115,13 +136,13 @@ public class ProductCn1View extends AbstractCn1View {
 
     /** Badge de preço + linha "Qtd: − valor +". O qty usa BoxLayout.x (centraliza na vertical, como o
      *  stepper do carrinho); o FlowLayout externo o centraliza na horizontal. */
-    private void buildPriceQty(Cn1Dom dom) {
-        dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, priceWrap -> {
+    private Container buildPriceQty() {
+        return Cn1Dom.render(new FlowLayout(Component.CENTER, Component.CENTER), (dom, priceWrap) -> {
             dom.boxY(priceCol -> {
                 dom.label(l -> {
                     l.setUIID(sel.PRODUCT_PRICE_BADGE);
                     price = Guard.text(l);
-                });                
+                });
                 dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, qtyWrap -> {
                     dom.boxX(qtyRow -> {
                         dom.label(l -> {
@@ -156,6 +177,7 @@ public class ProductCn1View extends AbstractCn1View {
 
     @Override
     public void doUpdate() {
+        layout(); // adapta o arranjo preço/imagem ao modo (re-monta só na troca)
         Map<String, Object> p = Json.asMap(state().get("product"));
         long id = Json.longOf(p, "id");
         if (id != currentId) {
