@@ -23,6 +23,7 @@ import br.com.wdc.shopping.view.remote.shell.cn1.util.Decor;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Guard;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Px;
+import br.com.wdc.shopping.view.remote.shell.cn1.widgets.Slot;
 
 /**
  * Tela de login (classId {@value #CLASS_ID}) — espelha o design React: layout EXPANDIDO (hero azul
@@ -38,6 +39,10 @@ public class LoginCn1View extends AbstractCn1View {
     /** Largura (mm) do card do formulário no expandido — densidade-independente (ver util.Px). */
     private static final float CARD_WIDTH_MM = 90f;
 
+    private Slot shell;
+    private Container card;
+    private Container hero;
+    private Boolean builtExpanded;
     private TextField user;
     private TextField pass;
     private Label loading;
@@ -50,19 +55,37 @@ public class LoginCn1View extends AbstractCn1View {
 
     @Override
     protected Container build() {
-        Container card = buildCard();
+        // peças construídas UMA vez (campos ligados aqui) e reusadas nos dois modos; o arranjo é no doUpdate
+        card = buildCard();
+        shell = new Slot();
+        return shell;
+    }
 
-        if (app.isExpanded()) {
+    /**
+     * Arranja as peças conforme o modo (expandido: hero + card; compacto: só o card), re-montando só
+     * quando o modo <b>muda</b>. Como reusa o {@code card}/{@code hero}, preserva o estado (ex.: texto
+     * já digitado) numa rotação — diferente de reconstruir do zero.
+     */
+    private void layout() {
+        boolean expanded = app.isExpanded();
+        if (builtExpanded != null && builtExpanded.booleanValue() == expanded) {
+            return;
+        }
+        builtExpanded = Boolean.valueOf(expanded);
+        if (expanded) {
+            if (hero == null) {
+                hero = buildHero();
+            }
             card.setPreferredW(Px.mm(CARD_WIDTH_MM));
-            return Cn1Dom.render(new BorderLayout(), (dom, root) -> {
-                dom.add(buildHero(), BorderLayout.CENTER);
+            shell.mount(Cn1Dom.render(new BorderLayout(), (dom, root) -> {
+                dom.add(hero, BorderLayout.CENTER);
                 dom.container(new FlowLayout(Component.CENTER, Component.CENTER), BorderLayout.EAST,
                         wrap -> dom.add(card, null));
-            });
+            }));
+        } else {
+            // compacto: card ocupa a largura, no topo (BoxLayout.y estica → ignora o preferredW do expandido)
+            shell.mount(Cn1Dom.render(BoxLayout.y(), (dom, root) -> dom.add(card, null)));
         }
-
-        // compacto: card ocupa a largura, no topo
-        return Cn1Dom.render(BoxLayout.y(), (dom, root) -> dom.add(card, null));
     }
 
     // :: Card do formulário
@@ -200,6 +223,7 @@ public class LoginCn1View extends AbstractCn1View {
 
     @Override
     public void doUpdate() {
+        layout(); // adapta a estrutura ao modo corrente (re-monta só na troca)
         Map<String, Object> st = state();
         Guard.visible(loading, Json.boolOf(st, "loading"));
         boolean hasError = Json.intOf(st, "errorCode") != 0;
