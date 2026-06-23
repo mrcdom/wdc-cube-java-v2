@@ -260,6 +260,30 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
     }
 
     /**
+     * Reconcilia <b>todas</b> as views montadas com o estado atual: roda {@code doUpdate()} em cada view
+     * do cache (vsid-backed) — que por sua vez re-sincroniza seus item-views via {@code syncList} — e no
+     * splash. Use para um re-render completo (ex.: após reconectar). O resize <b>não</b> usa isto: lá a
+     * estrutura muda (compacto↔expandido) e é preciso reconstruir, não só re-sincronizar.
+     *
+     * <p>Itera um <b>snapshot</b> de {@code views}: o {@code doUpdate} de uma raiz pode criar/cachear
+     * novas views ({@code viewFor}) e mutar o mapa durante a iteração.</p>
+     */
+    public void refreshAll() {
+        try {
+            for (AbstractCn1View v : new ArrayList<>(views.values())) {
+                v.doUpdate();
+            }
+            if (splash != null) {
+                splash.refresh();
+            }
+            form.revalidate();
+        } catch (Exception e) {
+            com.codename1.io.Log.e(e);
+            showSplash(true, "Erro ao renderizar a tela.", null);
+        }
+    }
+
+    /**
      * Tela de "marca" exibida antes de receber o estado do backend (e em caso de falha): gradiente
      * azul + logo + título, com um <b>spinner</b> (conectando) ou um ícone de erro + "Tentar novamente".
      */

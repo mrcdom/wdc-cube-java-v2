@@ -29,5 +29,12 @@ public abstract class AbstractItemCn1View<T> {
         doUpdate();
     }
 
+    /** Re-aplica o {@link #doUpdate()} a partir do último dado (no-op se ainda não construída/sem dado). */
+    public final void refresh() {
+        if (built && data != null) {
+            doUpdate();
+        }
+    }
+
     protected abstract void doUpdate();
 }
