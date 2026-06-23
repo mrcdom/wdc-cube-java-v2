@@ -5,15 +5,15 @@ import com.codename1.ui.Container;
 import br.com.wdc.shopping.view.remote.shell.cn1.ShoppingCn1RemoteApp;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.BridgeSession;
-import br.com.wdc.shopping.view.remote.shell.cn1.bridge.ViewSlot;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
+import br.com.wdc.shopping.view.remote.shell.cn1.widgets.Slot;
 
 /** Raiz do app (classId {@value #CLASS_ID}) — monta a view de conteúdo (login ou home). */
 public class RootCn1View extends AbstractCn1View {
 
     public static final String CLASS_ID = "f2d345c4a610";
 
-    private ViewSlot slot;
+    private Slot slot;
 
     public RootCn1View(String vsid, BridgeSession session, ShoppingCn1RemoteApp app) {
         super(vsid, session, app);
@@ -21,7 +21,7 @@ public class RootCn1View extends AbstractCn1View {
 
     @Override
     protected Container build() {
-        slot = new ViewSlot(app);
+        slot = new Slot();
         return slot;
     }
 
@@ -32,6 +32,6 @@ public class RootCn1View extends AbstractCn1View {
      */
     @Override
     public void doUpdate() {
-        slot.mount(Json.str(state(), "contentViewId"));
+        slot.mount(childElement(Json.str(state(), "contentViewId")));
     }
 }

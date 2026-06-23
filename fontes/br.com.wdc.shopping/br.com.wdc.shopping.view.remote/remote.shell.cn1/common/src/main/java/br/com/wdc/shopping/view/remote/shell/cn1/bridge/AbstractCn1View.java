@@ -18,7 +18,7 @@ import br.com.wdc.shopping.view.remote.shell.cn1.ShoppingCn1RemoteApp;
  * <p>
  * Sendo um shell <b>remoto</b>, o estado é lido como JSON por nome ({@link #state()} = mapa vindo do
  * bridge) e os eventos são submetidos pelo bridge ({@link #submit(int, Map)}). Views-pai montam
- * filhas por vsid via {@link ViewSlot}.
+ * filhas por vsid via {@code Slot} (passando {@link #childElement(String)}).
  * </p>
  */
 public abstract class AbstractCn1View {
@@ -79,9 +79,15 @@ public abstract class AbstractCn1View {
         session.submit(vsid, eventCode, new HashMap<>());
     }
 
-    /** View filha (criada sob demanda via o app), ou {@code null}. Para montá-la, use {@link ViewSlot}. */
+    /** View filha (criada sob demanda via o app), ou {@code null}. */
     protected AbstractCn1View childView(String childVsid) {
         return app.viewFor(childVsid);
+    }
+
+    /** Element da view filha de {@code childVsid} (criado sob demanda), ou {@code null}. Monte num {@code Slot}. */
+    protected Container childElement(String childVsid) {
+        AbstractCn1View v = childView(childVsid);
+        return v != null ? v.getElement() : null;
     }
 
     /**

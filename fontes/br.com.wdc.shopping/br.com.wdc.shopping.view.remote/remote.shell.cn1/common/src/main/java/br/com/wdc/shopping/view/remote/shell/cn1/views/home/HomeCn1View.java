@@ -17,12 +17,12 @@ import com.codename1.ui.plaf.RoundBorder;
 import br.com.wdc.shopping.view.remote.shell.cn1.ShoppingCn1RemoteApp;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.AbstractCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.bridge.BridgeSession;
-import br.com.wdc.shopping.view.remote.shell.cn1.bridge.ViewSlot;
 import br.com.wdc.shopping.view.remote.shell.cn1.theme.Colors;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Guard;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Px;
+import br.com.wdc.shopping.view.remote.shell.cn1.widgets.Slot;
 
 /**
  * Tela principal (classId {@value #CLASS_ID}): app bar (sair + saudação / logo "Shopping" / carrinho
@@ -51,12 +51,12 @@ public class HomeCn1View extends AbstractCn1View {
     private Consumer<String> nick;
     private Label cartBadge;
     /** Área de conteúdo: ou a tela aninhada (contentViewId) ou o split (chave local "split"). */
-    private ViewSlot bodySlot;
+    private Slot bodySlot;
 
     // split (construído uma vez para o modo expandido/compacto corrente)
     private Container splitPane;
-    private ViewSlot productsSlot;
-    private ViewSlot purchasesSlot;
+    private Slot productsSlot;
+    private Slot purchasesSlot;
     private Container activeHolder; // só no compacto (abas)
     private Button tabProducts;
     private Button tabHistory;
@@ -145,7 +145,7 @@ public class HomeCn1View extends AbstractCn1View {
             });
         });
 
-        bodySlot = new ViewSlot(app);
+        bodySlot = new Slot();
         root.add(BorderLayout.CENTER, bodySlot);
 
         buildSplit();
@@ -154,8 +154,8 @@ public class HomeCn1View extends AbstractCn1View {
 
     /** Constrói (uma vez) a estrutura do split conforme o modo de largura corrente. */
     private void buildSplit() {
-        productsSlot = new ViewSlot(app);
-        purchasesSlot = new ViewSlot(app);
+        productsSlot = new Slot();
+        purchasesSlot = new Slot();
 
         if (app.isExpanded()) {
             // produtos + histórico lado a lado (sem abas)
@@ -228,12 +228,12 @@ public class HomeCn1View extends AbstractCn1View {
         String content = Json.str(st, "contentViewId");
         if (!content.isEmpty()) {
             // tela aninhada (produto/carrinho/recibo) ocupa tudo — esconde as abas
-            bodySlot.mount(content);
+            bodySlot.mount(childElement(content));
         } else {
             // split produtos + histórico (lado a lado no expandido, abas no compacto)
-            bodySlot.mountLocal("split", splitPane);
-            productsSlot.mount(Json.str(st, "productsPanelViewId"));
-            purchasesSlot.mount(Json.str(st, "purchasesPanelViewId"));
+            bodySlot.mount(splitPane);
+            productsSlot.mount(childElement(Json.str(st, "productsPanelViewId")));
+            purchasesSlot.mount(childElement(Json.str(st, "purchasesPanelViewId")));
         }
         // o doUpdate das filhas (conteúdo/painéis) é despachado pela bridge (ViewState recebido)
     }
