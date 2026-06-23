@@ -27,8 +27,41 @@ function linux_device {
   "$MVNW" "package" "-DskipTests" "-Dcodename1.platform=linux" "-Dcodename1.buildTarget=linux-device" "-U" "-e"
 }
 function javascript {
-  
+
   "$MVNW" "package" "-DskipTests" "-Dcodename1.platform=javascript" "-Dcodename1.buildTarget=javascript" "-U" "-e"
+  deploy_javascript
+}
+
+# Deposita o app web (resultado do cloud build) + context.html em work/frontend/remote.shell.cn1,
+# tal qual remote.shell.teavm/react. A landing do backend lista a pasta e linka /<ctx>/index.html.
+function deploy_javascript {
+  local DEPLOY_DIR="../../../../work/frontend/remote.shell.cn1"
+  # o cloud build do CN1 baixa o app web como result.zip (pode vir empacotado num .war)
+  local RESULT
+  RESULT=$(find javascript/target -name "result.zip" 2>/dev/null | head -1)
+  if [ -z "$RESULT" ]; then
+    echo "AVISO: result.zip não encontrado em javascript/target — o cloud build completou? Deploy do JS pulado."
+  else
+    echo "Deploy do JS a partir de: $RESULT"
+    rm -rf "$DEPLOY_DIR"
+    mkdir -p "$DEPLOY_DIR"
+    local TMP
+    TMP=$(mktemp -d)
+    unzip -oq "$RESULT" -d "$TMP"
+    local WAR
+    WAR=$(find "$TMP" -name "*.war" 2>/dev/null | head -1)
+    if [ -n "$WAR" ]; then
+      # conteúdo web vive na raiz do .war (sem WEB-INF/META-INF)
+      unzip -oq "$WAR" -d "$DEPLOY_DIR" -x "WEB-INF/*" "META-INF/*"
+    else
+      # result.zip já é o app web
+      cp -R "$TMP"/. "$DEPLOY_DIR"/
+    fi
+    rm -rf "$TMP"
+  fi
+  mkdir -p "$DEPLOY_DIR"
+  cp "context.html" "$DEPLOY_DIR/context.html"
+  echo "Deploy concluído: $DEPLOY_DIR"
 }
 function android {
   

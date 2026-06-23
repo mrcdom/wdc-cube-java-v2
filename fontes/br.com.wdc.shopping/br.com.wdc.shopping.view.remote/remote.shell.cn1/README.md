@@ -140,8 +140,10 @@ um *cloud build*.
 
 > **Web (JavaScript)** é o caso mais particular: diferente de Android/iOS, **não tem
 > variante `_source` local** (a transpilação Java→JS roda só no build server) e exige o
-> plano **Enterprise**. Para um frontend **web sem depender da nuvem do CN1**, use o
-> shell **TeaVM** do projeto (`view.teavm`), que transpila para JS localmente.
+> plano **Enterprise**. Ao concluir, o `./build.sh javascript` **deposita o app web em
+> `work/frontend/remote.shell.cn1/`** (+ `context.html`), tal como os shells TeaVM/React —
+> a landing do backend lista a pasta e linka `/remote.shell.cn1/index.html`. Para um
+> frontend **web sem depender da nuvem do CN1**, use o shell **TeaVM** (`view.teavm`).
 
 Veja `./build.sh help` para a lista completa.
 
