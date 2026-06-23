@@ -41,7 +41,7 @@ import br.com.wdc.shopping.view.remote.shell.cn1.widgets.Slot;
  */
 public class ShoppingCn1RemoteApp extends Lifecycle {
 
-    /** Largura mínima (em mm) para o layout expandido — densidade-independente (tablet/desktop). */
+    /** Largura mínima (mm) que o layout expandido precisa; abaixo disso, compacto (densidade-independente). */
     private static final float EXPANDED_MIN_MM = 110f;
 
     private BridgeSession session;
@@ -60,20 +60,15 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
     private boolean wasPortrait;
 
     /**
-     * Layout expandido (hero+card, split produtos+histórico) em <b>tablet/desktop</b>; compacto no
-     * telefone. Largura sozinha não basta: um telefone em <b>paisagem</b> (~145mm) ultrapassaria
-     * qualquer limiar e viraria "expandido", quebrando o split numa tela de telefone. Por isso o sinal
-     * de forma é {@code isTablet()}/{@code isDesktop()}; o limiar em mm fica só para o resize no desktop.
+     * Layout expandido (hero+card, split produtos+histórico) quando a <b>largura disponível</b> comporta
+     * o espaço que o expandido precisa ({@code >= EXPANDED_MIN_MM}); senão, compacto. Critério puramente
+     * por <b>largura</b> (mm, densidade-independente) — independe de device (tablet/desktop/telefone) e de
+     * orientação: o que importa é caber. Ex.: telefone em paisagem largo o bastante fica expandido;
+     * estreito, compacto. (O limiar é o tamanho a ajustar se o split ficar apertado.)
      */
     public boolean isExpanded() {
         Display d = Display.getInstance();
-        if (d.isTablet()) {
-            return true; // tablet (iPad): sempre expandido
-        }
-        if (d.isDesktop()) {
-            return d.getDisplayWidth() >= d.convertToPixels(EXPANDED_MIN_MM); // desktop: por largura (resize)
-        }
-        return false; // telefone: compacto nas duas orientações (paisagem não é tablet)
+        return d.getDisplayWidth() >= d.convertToPixels(EXPANDED_MIN_MM);
     }
 
     /**
