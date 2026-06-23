@@ -77,11 +77,12 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
     }
 
     /**
-     * Resize. Reconstrói ao <b>cruzar o breakpoint</b> (estrutura abas↔colunas, decidida em
-     * {@code build()}) <b>ou ao girar a tela</b> (orientação) — neste último o refluxo automático do
-     * CN1 deixa estado obsoleto (sizing dos cards, safe area da orientação anterior) e só um rebuild
-     * conserta (igual ao logout/login). Dentro do mesmo breakpoint+orientação não fazemos nada: o CN1
-     * relayouta sozinho e os painéis avisam o backend pelo seu próprio {@code sizeChangedListener}.
+     * Resize. Ao <b>cruzar o breakpoint</b> ou <b>girar a tela</b>, re-sincroniza tudo via
+     * {@link #refreshAll()}: cada view adapta o próprio layout no {@code doUpdate()} (sem rebuild),
+     * preservando o estado (ex.: texto digitado). Recomputa a safe area da nova orientação antes do
+     * {@code revalidate} (feito pelo {@code refreshAll}). Dentro do mesmo breakpoint+orientação não faz
+     * nada: o CN1 relayouta sozinho e os painéis avisam o backend pelo seu próprio
+     * {@code sizeChangedListener}.
      */
     private void onResize() {
         boolean nowExpanded = isExpanded();
@@ -91,12 +92,8 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
         }
         wasExpanded = nowExpanded;
         wasPortrait = nowPortrait;
-        views.clear();
-        dirty.clear();
-        // views recriadas: o viewFor abaixo cria um element novo → referência != a do slot → remonta sozinho
-        mountRootIfChanged(); // recria a árvore ativa (getElement → build → doUpdate) no novo tamanho
-        form.setSafeAreaChanged(); // recomputa a safe area para a nova orientação
-        form.revalidate();
+        form.setSafeAreaChanged(); // recomputa a safe area para a nova orientação (antes do revalidate)
+        refreshAll();
     }
 
     @Override
