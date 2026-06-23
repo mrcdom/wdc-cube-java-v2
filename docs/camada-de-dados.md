@@ -578,9 +578,15 @@ O holder `RemoteTransactions.COORDINATOR` vive em `persistence.rest` (lado servi
 
 ### Segurança e ciclo de vida
 
-- **Autenticação:** as rotas `/api/tx/*` ficam atrás do mesmo filtro de `/api/repo/*` (registrado só quando a segurança está ativa). A identidade do usuário vira o **dono** da transação (`ownerKey` = id do usuário); o coordenador revalida o dono em `resume`/`commit`/`rollback` — outro usuário não consegue sequestrar uma tx pelo `txId`. Com segurança desligada (testes/local), a tx é **sem dono**.
-- **Tx abandonadas:** cada `txId` segura uma conexão/transação viva até o fim. Um *reaper* (timeout ocioso, 60s por padrão, varredura preguiçosa no `begin`) reverte e remove transações abandonadas por clientes que somem — evitando vazamento de conexão.
-- **Concorrência:** uma tx é single-thread; uso concorrente do mesmo `txId` é rejeitado.
+- **Autenticação e dono:** as rotas `/api/tx/*` ficam atrás do mesmo filtro de `/api/repo/*` (registrado só quando a segurança está ativa). O **dono** (`ownerKey`, derivado em `TxApiController.currentOwnerKey`) é `user:<userId>` quando autenticado, ou `anon:<X-Client-Id>` com segurança desligada — namespaces separados para um cliente anônimo não colidir com (nem se passar por) um usuário real. O coordenador revalida o dono em `resume`/`commit`/`rollback` — outro usuário não sequestra uma tx pelo `txId`.
+- **Guarda de atomicidade:** se chega uma escrita **sem** `X-Tx-Id` mas o dono **tem transação remota aberta** (`hasOpenTransactionForOwner`, índice O(1)), o decorador `transactional` **rejeita** (`409 Conflict`, via `TransactionConflictException`) em vez de autocommitar uma escrita órfã fora da transação — defesa server-side contra falha de propagação do header no cliente.
+- **Tetos (proteção do pool):** teto **global** e **por dono** de transações abertas no `begin` (cada uma segura uma conexão); estouro → `429`. Impede um cliente monopolizar/esgotar o pool.
+- **Tx abandonadas:** cada `txId` segura uma conexão/transação viva até o fim. Um *reaper* reverte e remove por **ociosidade** (60s) **ou** por **tempo de vida absoluto** (10 min — barra o cliente que "pinga" para nunca expirar), varredura preguiçosa no `begin`.
+- **Idempotência:** `commit`/`rollback` lembram o desfecho por uma janela de retenção — um retry (resposta anterior perdida) com o mesmo desfecho é no-op de sucesso; o oposto conflita (`409`). `GET /api/tx/status` (`open`/`committed`/`rolledback`/`unknown`) desambigua.
+- **Concorrência:** uma tx é single-thread; uso concorrente do mesmo `txId` é rejeitado — o cliente deve serializar as requisições de uma transação.
+- **Observabilidade:** o coordenador expõe `stats()` (gauges de abertas/donos + contadores acumulados) e loga reaper/rejeições.
+
+> **Desenho aprofundado:** quem é o dono de uma transação, como esse identificador é gerado com unicidade (estratégia local vs. emitido pelo servidor), o modelo de confiança contra ids forjados e a evolução para **posse por contexto (aba)** estão em [Transação Remota — Identidade do Cliente e Posse da Transação](transacao-remota-identidade-e-posse.md).
 
 ---
 

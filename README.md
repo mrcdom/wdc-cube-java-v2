@@ -5,7 +5,8 @@ Proposta arquitetural para construção de aplicações utilizando o padrão **C
 Este projeto serve como **referência arquitetural** para novos projetos, demonstrando a implementação completa de um sistema de e-commerce (Shopping) com backend Java e **seis implementações de frontend independentes** — React (web/remoto), Flutter (mobile/desktop/web remoto), Vaadin (web/server-side), SWT (desktop nativo), Gluon (desktop/iOS/Android via GraalVM Native Image) e TeaVM (web/desktop/Android/iOS via Tauri) — provando que a camada de visualização é totalmente desacoplada da lógica de apresentação.
 
 📄 [Cube MVP — Arquitetura de Apresentação Multiplataforma em Java](docs/cube-mvp-arquitetura-multiplataforma.md)  
-📄 [Camada de Dados — Domain, Persistence e API REST](docs/camada-de-dados.md)
+📄 [Camada de Dados — Domain, Persistence e API REST](docs/camada-de-dados.md)  
+📄 [Transação Remota — Identidade do Cliente e Posse da Transação](docs/transacao-remota-identidade-e-posse.md)
 
 ## Visão Geral da Arquitetura
 
