@@ -585,6 +585,7 @@ O holder `RemoteTransactions.COORDINATOR` vive em `persistence.rest` (lado servi
 - **Idempotência:** `commit`/`rollback` lembram o desfecho por uma janela de retenção — um retry (resposta anterior perdida) com o mesmo desfecho é no-op de sucesso; o oposto conflita (`409`). `GET /api/tx/status` (`open`/`committed`/`rolledback`/`unknown`) desambigua.
 - **Concorrência:** uma tx é single-thread; uso concorrente do mesmo `txId` é rejeitado — o cliente deve serializar as requisições de uma transação.
 - **Observabilidade:** o coordenador expõe `stats()` (gauges de abertas/donos + contadores acumulados) e loga reaper/rejeições.
+- **Configuração:** timeouts (idle/lifetime), retenção de desfecho e tetos vêm de `application.toml` (`[database]` → `remoteTransaction.*`, em segundos), via `RemoteTransactionOptions.fromConfig`; ausentes → defaults do coordenador.
 
 > **Desenho aprofundado:** quem é o dono de uma transação, como esse identificador é gerado com unicidade (estratégia local vs. emitido pelo servidor), o modelo de confiança contra ids forjados e a evolução para **posse por contexto (aba)** estão em [Transação Remota — Identidade do Cliente e Posse da Transação](transacao-remota-identidade-e-posse.md).
 

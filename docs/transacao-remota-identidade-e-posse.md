@@ -67,7 +67,11 @@ O dono (`ownerKey`) é derivado em `TxApiController.currentOwnerKey(Context)`:
 - A guarda usa `RemoteTransactionCoordinator.hasOpenTransactionForOwner(ownerKey)`, implementada em
   **O(1)** com um índice `dono → contagem de transações abertas`, mantido em `begin`/`finish`/`reap`.
 
-Esse estado já fecha o bug de atomicidade. O restante deste documento é **evolução proposta**.
+Esse estado já fecha o bug de atomicidade. Sobre ele, uma revisão adversarial endureceu o **ciclo de
+vida** da transação (tetos, tempo de vida absoluto, idempotência, status, 409, métricas) — ver
+[Robustez operacional](#robustez-operacional-implementada), **também já implementada e configurável via
+`application.toml`**. As seções intermediárias (posse por contexto, unicidade, identificadores emitidos
+pelo servidor, modelo de confiança) são **evolução proposta**.
 
 ---
 
@@ -306,6 +310,10 @@ transações que ele fizer.
 > **Pergunta:** o `X-Client-Id` é auto-afirmado pelo cliente. Um terceiro consegue forjar um id? Dá
 > para detectar e descartar?
 
+> Esta análise assume a **chave composta proposta** (`userId:clientId`). No estado **atual**, o dono
+> autenticado é `user:<userId>` e o `X-Client-Id` é **ignorado** quando há login — então forjá-lo não
+> tem efeito algum no modo autenticado (o caso anônimo só existe com a segurança inteira desligada).
+
 ### No desenho stateless, não há detecção estrutural — e não precisa
 
 O servidor não guarda "ids válidos", então não distingue um id legítimo de um inventado. O que protege
@@ -374,6 +382,11 @@ identidade). Resolvidos no coordenador (`RemoteTransactionCoordinatorImpl`) e no
 | 4 | `commit`/`rollback` não-idempotentes → desfecho ambíguo se a resposta se perde | Desfecho lembrado por janela de retenção (5 min): retry com mesmo desfecho é **no-op de sucesso**; oposto → **409**. Reaper grava `rolledback` (desambigua). Novo **`GET /api/tx/status`** → `open`/`committed`/`rolledback`/`unknown`. |
 | 5 | Guarda devolvia 403 (semântica de autorização) | **409 Conflict** via `TransactionConflictException` — conflito de estado, não negação de acesso. |
 
+> **Configuráveis:** idle timeout, tempo de vida absoluto, retenção de desfecho e os tetos são lidos de
+> `application.toml` sob `[database]` (`remoteTransaction.*`, durações em segundos) por
+> `RemoteTransactionOptions.fromConfig`, caindo nos defaults públicos do `RemoteTransactionCoordinatorImpl`
+> (`DEFAULT_*`) quando ausentes.
+
 ### Contrato do cliente — serialização dentro de uma transação (#7)
 
 O coordenador **rejeita uso concorrente do mesmo `txId`** (`resume` faz CAS em `inUse` →
@@ -412,6 +425,7 @@ quebraria o isolamento).
 | `commit`/`rollback` idempotentes + `GET /api/tx/status` | ✅ Implementado |
 | Guarda devolve 409 (não 403) | ✅ Implementado |
 | Observabilidade (`stats()` + logs) | ✅ Implementado |
+| Parâmetros (timeouts, retenção, tetos) configuráveis via `application.toml` | ✅ Implementado |
 | Re-entrância do `ThreadLocal` no cliente assíncrono | ✅ Investigado — não é bug (invariante documentada) |
 | Contrato de serialização dentro da tx / política de begin anônimo | ✅ Documentado |
 | Posse por aba (correlação pura, segurança ortogonal) | 🔭 Proposto |
