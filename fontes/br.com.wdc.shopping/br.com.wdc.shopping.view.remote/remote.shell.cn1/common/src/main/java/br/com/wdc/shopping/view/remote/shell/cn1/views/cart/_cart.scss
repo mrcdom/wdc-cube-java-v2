@@ -1,0 +1,102 @@
+// =============================================================================
+// Carrinho (CartCn1View, CartItemCn1View): lista de itens com stepper/subtotal/
+// remover, total e ações; e o estado vazio. Cabeçalho usa CardHeader* (base).
+// =============================================================================
+@use 'tokens' as *;
+@use 'mixins' as *;
+
+CrtPage {
+    @include page;
+}
+
+CrtCard {
+    @include card;
+    padding: 5mm;
+}
+
+CrtItemRow {
+    background-color: transparent;
+    border-bottom: 1px solid $border;
+    padding: 2mm 0;
+}
+
+CrtItemName {
+    background-color: transparent;
+    color: $text;
+    font-family: $f-regular;
+    font-size: 3mm;
+}
+
+CrtItemSubtotal {
+    background-color: transparent;
+    color: $accent;
+    font-family: $f-bold;
+    font-size: 3mm;
+    text-align: right;
+    padding: 0 2mm;
+}
+
+CrtRemoveBtn {
+    background-color: transparent;
+    color: $danger;
+    border: none;
+    padding: 0;
+    margin: 0 0 0 1mm;
+}
+
+CrtFooter {
+    background-color: transparent;
+    border-top: 1px solid $border;
+    padding: 3mm 0 0 0;
+    margin: 2mm 0 0 0;
+}
+
+CrtFooterLabel {
+    background-color: transparent;
+    color: $text-secondary;
+    font-size: 2.8mm;
+}
+
+CrtFooterTotal {
+    background-color: transparent;
+    color: $accent;
+    font-family: $f-bold;
+    font-size: 4.4mm;
+    padding: 0 0 0 1.5mm;
+}
+
+CrtActions {
+    background-color: transparent;
+    padding: 3mm 0 0 0;
+}
+
+// -- Estado vazio --
+
+CrtEmpty {
+    background-color: transparent;
+    padding: 6mm 4mm;
+}
+
+CrtEmptyIconBox {
+    background-color: transparent;
+    color: $accent;
+    text-align: center;
+    margin: 0 0 3mm 0;
+}
+
+CrtEmptyTitle {
+    background-color: transparent;
+    color: $text;
+    font-family: $f-bold;
+    font-size: 3.6mm;
+    text-align: center;
+    padding: 0 0 1mm 0;
+}
+
+CrtEmptySub {
+    background-color: transparent;
+    color: $text-secondary;
+    font-size: 2.8mm;
+    text-align: center;
+    padding: 0 0 3mm 0;
+}

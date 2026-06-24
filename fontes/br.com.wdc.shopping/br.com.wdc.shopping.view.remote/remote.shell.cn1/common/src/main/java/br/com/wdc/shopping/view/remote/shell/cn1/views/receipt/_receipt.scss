@@ -1,0 +1,132 @@
+// =============================================================================
+// Recibo (ReceiptCn1View): alerta de sucesso, card e corpo estilo cupom.
+// O cabeçalho usa CardHeader* (base); a fonte mono é definida em Java.
+// =============================================================================
+@use 'tokens' as *;
+@use 'mixins' as *;
+
+RcpPage {
+    @include page;
+}
+
+// Alerta verde de sucesso.
+RcpAlertSuccess {
+    background-color: $success-bg;
+    border: 1px solid $success-border;
+    border-radius: $radius-sm;
+    padding: 3mm 4mm;
+    margin: 0 0 4mm 0;
+}
+
+RcpAlertSuccessIcon {
+    background-color: transparent;
+    color: $success-icon;
+}
+
+RcpAlertSuccessText {
+    background-color: transparent;
+    color: $success-text;
+    font-family: $f-bold;
+    font-size: 3mm;
+    padding: 0 0 0 2mm;
+}
+
+RcpCard {
+    @include card;
+    padding: 5mm;
+}
+
+// Corpo (cupom): fundo cinza, borda.
+RcpBody {
+    background-color: $bg;
+    border: 1px solid $border;
+    border-radius: $radius-sm;
+    padding: 4mm;
+}
+
+RcpDateRow {
+    background-color: transparent;
+    border-bottom: 1px solid $border;
+    padding: 0 0 2mm 0;
+    margin: 0 0 2mm 0;
+}
+
+RcpDateLabel {
+    background-color: transparent;
+    color: $text-secondary;
+}
+
+RcpDateValue {
+    background-color: transparent;
+    color: $text;
+    font-family: $f-bold;
+    text-align: right;
+}
+
+RcpTableHeader {
+    background-color: transparent;
+    border-bottom: 1px solid $border;
+    padding: 0 0 1.5mm 0;
+    margin: 0 0 1mm 0;
+}
+
+RcpColHead {
+    background-color: transparent;
+    color: $text-secondary;
+}
+
+RcpColHeadQty {
+    background-color: transparent;
+    color: $text-secondary;
+    text-align: center;
+}
+
+RcpColHeadValue {
+    background-color: transparent;
+    color: $text-secondary;
+    text-align: right;
+}
+
+RcpItemRow {
+    background-color: transparent;
+    border-bottom: 1px solid $border-faint;
+    padding: 1.5mm 0;
+}
+
+RcpItemDesc {
+    background-color: transparent;
+    color: $text;
+}
+
+RcpItemQty {
+    background-color: transparent;
+    color: $text-secondary;
+    text-align: center;
+}
+
+RcpItemValue {
+    background-color: transparent;
+    color: $text;
+    font-family: $f-bold;
+    text-align: right;
+}
+
+RcpTotalRow {
+    background-color: transparent;
+    border-top: 2px solid $accent;
+    padding: 2.5mm 0 0 0;
+    margin: 2.5mm 0 0 0;
+}
+
+RcpTotalLabel {
+    background-color: transparent;
+    color: $text;
+    font-family: $f-bold;
+}
+
+RcpTotalValue {
+    background-color: transparent;
+    color: $accent;
+    font-family: $f-bold;
+    text-align: right;
+}

@@ -1,0 +1,90 @@
+// =============================================================================
+// Tela de login (LoginCn1View): hero azul, card com banner, labels/hints e demo.
+// =============================================================================
+@use 'tokens' as *;
+@use 'mixins' as *;
+
+LgnCard {
+    background-color: $surface;
+    border-radius: $radius;
+    padding: 4mm;
+    margin: 3mm;
+}
+
+LgnHero {
+    @include hero-gradient;
+    padding: 8mm;
+}
+
+// Banner azul no topo do card.
+LgnBanner {
+    @include hero-gradient;
+    border-radius: $radius-pill;
+    padding: 4mm;
+    margin: 0 0 3mm 0;
+}
+
+LgnLogoBox {
+    color: $surface;
+    background-color: $logo-box;
+    border-radius: $radius-pill;
+    padding: 2mm;
+    text-align: center;
+}
+
+LgnBannerTitle {
+    color: $surface;
+    background-color: transparent;
+    font-family: $f-bold;
+    font-size: 4mm;
+    text-align: center;
+}
+
+LgnBannerSubtitle {
+    color: $ice;
+    background-color: transparent;
+    font-size: 2.4mm;
+    text-align: center;
+}
+
+LgnFeatureText {
+    color: $surface;
+    background-color: transparent;
+    font-size: 3mm;
+}
+
+LgnWelcomeTitle {
+    background-color: transparent;
+    color: $text;
+    font-family: $f-bold;
+    font-size: 4.5mm;
+}
+
+LgnWelcomeSubtitle {
+    background-color: transparent;
+    color: $text-secondary;
+    font-size: 2.8mm;
+}
+
+LgnFieldLabel {
+    background-color: transparent;
+    color: $text;
+    font-family: $f-bold;
+    font-size: 2.8mm;
+    padding: 1.5mm 0 0.5mm 0;
+}
+
+LgnDemoHint {
+    background-color: $bg;
+    border: 1px solid $border;
+    border-radius: $radius-sm;
+    padding: 2mm;
+    margin: 3mm 0 0 0;
+}
+
+LgnDemoText {
+    background-color: transparent;
+    color: $text-secondary;
+    font-size: 2.6mm;
+    text-align: center;
+}

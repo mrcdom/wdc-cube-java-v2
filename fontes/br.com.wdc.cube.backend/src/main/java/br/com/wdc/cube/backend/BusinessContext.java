@@ -9,6 +9,7 @@ import br.com.wdc.framework.commons.util.Defer;
 import br.com.wdc.framework.domain.security.CryptoProvider;
 import br.com.wdc.framework.domain.security.JceCryptoProvider;
 import br.com.wdc.framework.persistence.transaction.RemoteTransactionCoordinatorImpl;
+import br.com.wdc.framework.persistence.transaction.RemoteTransactionOptions;
 import br.com.wdc.shopping.domain.ShoppingConfig;
 import br.com.wdc.shopping.persistence.impl.ShoppingRepositoryBootstrap;
 import br.com.wdc.shopping.persistence.impl.concurrent.ScheduledExecutorAdapter;
@@ -57,7 +58,8 @@ public class BusinessContext {
             // Coordenador de transação remota (servidor REST): transações dirigidas pelo cliente sobre HTTP,
             // ligado ao DataSource deste módulo. Vive no host (composition root), não no bootstrap compartilhado
             // — só o servidor REST precisa dele (views locais/testes não).
-            RemoteTransactions.COORDINATOR.set(new RemoteTransactionCoordinatorImpl(() -> dataSource));
+            RemoteTransactions.COORDINATOR.set(new RemoteTransactionCoordinatorImpl(() -> dataSource,
+                    RemoteTransactionOptions.fromConfig(config, dbPrefix)));
             cleanUp.push(() -> RemoteTransactions.COORDINATOR.set(null));
 
             var jwtSecret = ShoppingConfig.getJwtSecret();

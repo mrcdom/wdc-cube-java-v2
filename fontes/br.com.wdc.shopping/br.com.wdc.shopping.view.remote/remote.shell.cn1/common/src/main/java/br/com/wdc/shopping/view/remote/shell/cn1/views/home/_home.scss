@@ -1,0 +1,249 @@
+// =============================================================================
+// Home: app bar, grade de produtos, abas (compacto) e painel de histórico.
+// (HomeCn1View, ProductsPanelCn1View, ProductItemCn1View, PurchasesPanelCn1View,
+//  PurchaseItemCn1View)
+// =============================================================================
+@use 'tokens' as *;
+@use 'mixins' as *;
+
+// -- Grade de produtos --
+
+HomProductsPanel {
+    background-color: transparent;
+    padding: 3mm;
+}
+
+// hover/clique: estados selected/pressed definidos em Java (Clickable) — o CSS do
+// CN1 não suporta pseudo-classes.
+HomProductCard {
+    @include card;
+    margin: 2mm;
+}
+
+HomProductCardImage {
+    @include img-gradient;
+    border-radius: $radius-pill;
+    padding: 1.5mm;
+    text-align: center;
+}
+
+HomProductCardName {
+    background-color: transparent;
+    color: $text;
+    font-family: $f-regular;
+    font-size: 2.8mm;
+    padding: 2mm 3mm 0 3mm;
+}
+
+HomProductCardPrice {
+    background-color: transparent;
+    color: $accent;
+    font-family: $f-bold;
+    font-size: 3.4mm;
+    padding: 0.5mm 3mm 2mm 3mm;
+}
+
+// -- App bar (HeaderPanel) --
+
+HomAppBar {
+    @include appbar-gradient;
+    padding: 2mm 3mm;
+}
+
+HomAppBarBtn {
+    background-color: transparent;
+    color: $surface;
+    border: none;
+    font-family: $f-regular;
+    font-size: 2.8mm;
+    padding: 1mm 2mm;
+}
+
+HomGreetingSmall {
+    background-color: transparent;
+    color: $greeting;
+    font-family: $f-light;
+    font-size: 2.2mm;
+    margin: 0;
+    padding: 0;
+}
+
+HomGreetingName {
+    background-color: transparent;
+    color: $surface;
+    font-family: $f-bold;
+    font-size: 2.8mm;
+    margin: 0;
+    padding: 0;
+}
+
+HomAppBarLogoBox {
+    color: $surface;
+    background-color: $logo-box;
+    border-radius: $radius-sm;
+    padding: 1.5mm;
+    margin: 0 2.5mm 0 0;
+}
+
+HomAppBarBrand {
+    background-color: transparent;
+    color: $surface;
+    font-family: $f-bold;
+    font-size: 3.4mm;
+    margin: 0;
+    padding: 0;
+}
+
+HomAppBarBrandSub {
+    background-color: transparent;
+    color: $greeting;
+    font-family: $f-light;
+    font-size: 2mm;
+    margin: 0;
+    padding: 0;
+}
+
+// Badge sobreposto ao ícone do carrinho. Forma circular via RoundBorder no Java (o border-radius
+// do CSS do CN1 reserva espaço vertical); aqui só texto/fonte/padding.
+HomCartBadge {
+    background-color: transparent;
+    color: $surface;
+    font-family: $f-bold;
+    font-size: 1.6mm;
+    padding: 0.3mm 1mm;
+    text-align: center;
+}
+
+// -- Abas (layout compacto) --
+
+HomTabNav {
+    background-color: $surface;
+    border: none;
+}
+
+HomTabItem {
+    background-color: $surface;
+    color: $text-secondary;
+    border: none;
+    font-family: $f-regular;
+    font-size: 2.8mm;
+    padding: 3mm 0;
+    text-align: center;
+}
+
+HomTabItemActive {
+    background-color: $surface;
+    color: $accent;
+    border: none;
+    font-family: $f-bold;
+    font-size: 2.8mm;
+    padding: 3mm 0;
+    text-align: center;
+}
+
+// -- Painel de histórico --
+
+HomPurchasesPanel {
+    background-color: $surface;
+    padding: 3mm;
+}
+
+HomPurchasesHeaderIcon {
+    background-color: transparent;
+    color: $accent;
+}
+
+HomPurchasesTitle {
+    background-color: transparent;
+    color: $text;
+    font-family: $f-bold;
+    font-size: 3.2mm;
+    padding: 0 0 0 1.5mm;
+}
+
+HomPurchasesHint {
+    background-color: transparent;
+    color: $text-secondary;
+    font-size: 2.4mm;
+    padding: 0.5mm 0 2mm 0;
+}
+
+// hover/clique: estados selected/pressed definidos em Java (Clickable).
+HomPurchaseCard {
+    background-color: $bg;
+    border: 1px solid $border;
+    border-radius: $radius-sm;
+    margin: 0 0 1.5mm 0;
+    padding: 1mm 2.5mm;
+}
+
+HomPurchaseLine {
+    background-color: transparent;
+    margin: 0;
+    padding: 0.3mm 0;
+}
+
+HomPurchaseId {
+    background-color: transparent;
+    color: $accent;
+    font-family: $f-bold;
+    font-size: 2.6mm;
+    margin: 0;
+    padding: 0;
+}
+
+HomPurchaseDate {
+    background-color: transparent;
+    color: $text-secondary;
+    font-size: 2.3mm;
+    margin: 0;
+    padding: 0;
+}
+
+HomPurchaseItems {
+    background-color: transparent;
+    color: $text-secondary;
+    font-size: 2.4mm;
+    margin: 0;
+    padding: 0;
+}
+
+HomPurchaseTotal {
+    background-color: transparent;
+    color: $text;
+    font-family: $f-bold;
+    font-size: 2.6mm;
+    margin: 0 0 0 1.5mm;
+    padding: 0;
+}
+
+// Paginador (page-pill do React): pílula/box/sombra das setas vêm do Java.
+HomPurchasePagination {
+    background-color: $surface;
+    border-top: 1px solid $border;
+    padding: 3mm 0 3mm 0;
+}
+
+HomPurchasePagePill {
+    background-color: transparent;
+    padding: 0 1mm;
+}
+
+// font-size pequeno evita que o texto vazio do Button reserve a altura da fonte.
+HomPurchasePageBtn {
+    background-color: transparent;
+    color: $text-secondary;
+    border: none;
+    font-size: 1.5mm;
+    padding: 0 1mm;
+    margin: 0;
+}
+
+HomPurchasePageInfo {
+    color: $text;
+    background-color: $surface;
+    font-family: $f-bold;
+    font-size: 2.6mm;
+    padding: 0.4mm 2.5mm;
+    margin: 0 0.4mm;
+}

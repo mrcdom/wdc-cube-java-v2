@@ -29,6 +29,13 @@ public final class TxApiController {
 
     public static final String TX_HEADER = "X-Tx-Id";
 
+    /**
+     * Identificador opaco da <b>sessão de cliente</b> (gerado por instância da app cliente). Usado como dono da
+     * transação remota quando não há usuário autenticado (segurança desativada) — assim toda transação tem um dono
+     * distinguível, mesmo anônima.
+     */
+    public static final String CLIENT_HEADER = "X-Client-Id";
+
     private TxApiController() {
         // NOOP
     }
@@ -37,31 +44,47 @@ public final class TxApiController {
         config.routes.post(prefix + "/api/tx/begin", TxApiController::begin);
         config.routes.post(prefix + "/api/tx/commit", TxApiController::commit);
         config.routes.post(prefix + "/api/tx/rollback", TxApiController::rollback);
+        config.routes.get(prefix + "/api/tx/status", TxApiController::status);
     }
 
     private static void begin(Context ctx) {
         SecurityEnforcer.requireAuthenticated();
-        var txId = coordinator().begin(currentOwnerKey());
+        var txId = coordinator().begin(currentOwnerKey(ctx));
         ctx.json(Map.of("txId", txId));
     }
 
     private static void commit(Context ctx) {
-        coordinator().commit(txIdHeader(ctx), currentOwnerKey());
+        coordinator().commit(txIdHeader(ctx), currentOwnerKey(ctx));
         ctx.json(Map.of("status", "committed"));
     }
 
     private static void rollback(Context ctx) {
-        coordinator().rollback(txIdHeader(ctx), currentOwnerKey());
+        coordinator().rollback(txIdHeader(ctx), currentOwnerKey(ctx));
         ctx.json(Map.of("status", "rolledback"));
     }
 
+    /** Consulta o estado de uma transação (open/committed/rolledback/unknown) — desambigua resposta perdida. */
+    private static void status(Context ctx) {
+        ctx.json(Map.of("status", coordinator().status(txIdHeader(ctx), currentOwnerKey(ctx))));
+    }
+
     /**
-     * Chave opaca de dono da transação para o usuário corrente: o id do usuário, ou {@code null} se segurança está
-     * desativada (testes/local). Usada também pelo decorador {@code transactional} ao religar uma escrita.
+     * Chave opaca de dono da transação para o solicitante corrente. Em namespaces separados para evitar que um cliente
+     * anônimo se passe por (ou colida com) um usuário real:
+     * <ul>
+     * <li>autenticado → {@code "user:" + userId} (o {@value #CLIENT_HEADER} eventual é <b>ignorado</b>, não-spoofável);</li>
+     * <li>sem usuário (segurança desativada) → {@code "anon:" + }{@value #CLIENT_HEADER}, ou {@code null} se o cabeçalho
+     * não veio (cliente legado — mantém o comportamento anterior de transação por requisição).</li>
+     * </ul>
+     * Usada por begin/commit/rollback e pelo decorador {@code transactional} (religar/guarda).
      */
-    static String currentOwnerKey() {
+    static String currentOwnerKey(Context ctx) {
         var sc = SecurityContext.CURRENT.get();
-        return sc != null ? String.valueOf(sc.userId()) : null;
+        if (sc != null) {
+            return "user:" + sc.userId();
+        }
+        var clientId = ctx.header(CLIENT_HEADER);
+        return (clientId != null && !clientId.isBlank()) ? "anon:" + clientId : null;
     }
 
     private static String txIdHeader(Context ctx) {

@@ -63,6 +63,14 @@ logSql = false
 pool.maxSize = 100
 pool.minIdle = 20
 
+# Transação remota dirigida pelo cliente (coordenador REST). Durações em segundos / contagem.
+# Chaves ausentes → defaults do RemoteTransactionCoordinatorImpl (mostrados abaixo).
+# remoteTransaction.idleTimeoutSeconds = 60       # ocioso até o reaper reverter a tx
+# remoteTransaction.maxLifetimeSeconds = 600      # tempo de vida absoluto (mesmo ativa)
+# remoteTransaction.outcomeRetentionSeconds = 300 # janela de idempotência de commit/rollback
+# remoteTransaction.maxOpen = 128                 # teto global de tx abertas (protege o pool)
+# remoteTransaction.maxOpenPerOwner = 16          # teto por dono
+
 [server]
 # HTTP port
 # port = 8080

@@ -1,0 +1,45 @@
+// =============================================================================
+// Tokens do tema — paleta/fontes/raios (extraídos do design React).
+// Variáveis Sass (não `var()`: o CSS do CN1 não suporta custom properties);
+// viram valores literais no theme.css gerado.
+// =============================================================================
+
+// -- Cores --
+$accent:         #0d66d0;
+$accent-2:       #1a8cff;
+$accent-3:       #4da6ff;
+$accent-light:   #e8f1fc;
+$logo-box:       #2f86f0;
+
+$bg:             #f4f6f9;
+$surface:        #ffffff;
+$text:           #1d1d1f;
+$text-secondary: #6e6e73;
+$text-slate:     #4b5563;
+$border:         #e5e5ea;
+$border-faint:   #eeeeef;
+
+$ice:            #f0f6ff;  // branco-gelo (textos sobre azul)
+$greeting:       #dbe9ff;
+
+// Imagem de produto (fundo gradiente)
+$img-grad-from:  #f8fafc;
+$img-grad-to:    #eef2f7;
+
+// Alerta de sucesso (recibo)
+$success-bg:     #f0fdf4;
+$success-border: #bbf7d0;
+$success-icon:   #16a34a;
+$success-text:   #166534;
+
+$danger:         #dc3545;
+
+// -- Fontes nativas --
+$f-bold:    "native:MainBold";
+$f-regular: "native:MainRegular";
+$f-light:   "native:MainLight";
+
+// -- Raios --
+$radius:      3mm;
+$radius-sm:   2mm;
+$radius-pill: 2.5mm;

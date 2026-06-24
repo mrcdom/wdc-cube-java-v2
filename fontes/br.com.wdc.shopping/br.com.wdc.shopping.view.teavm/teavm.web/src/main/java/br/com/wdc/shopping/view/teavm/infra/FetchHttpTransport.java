@@ -25,6 +25,7 @@ public class FetchHttpTransport implements HttpTransport {
 
 	private final String baseUrl;
 	private final AtomicReference<Supplier<String>> accessTokenSupplier = new AtomicReference<>();
+	private final AtomicReference<Supplier<String>> txIdSupplier = new AtomicReference<>();
 
 	public FetchHttpTransport(String baseUrl) {
 		this.baseUrl = baseUrl;
@@ -36,14 +37,19 @@ public class FetchHttpTransport implements HttpTransport {
 	}
 
 	@Override
+	public void setTransactionIdSupplier(Supplier<String> txIdSupplier) {
+		this.txIdSupplier.set(txIdSupplier);
+	}
+
+	@Override
 	public String postJson(String path, String body) {
-		return doFetch(baseUrl + path, "POST", body, getToken());
+		return doFetch(baseUrl + path, "POST", body, getToken(), getTxId());
 	}
 
 	@Override
 	public String postJsonNullable(String path, String body) {
 		String token = getToken();
-		HttpResult result = asyncXhr(baseUrl + path, "POST", body, token, "application/json");
+		HttpResult result = asyncXhr(baseUrl + path, "POST", body, token, "application/json", getTxId());
 		if (result.status == 0) {
 			handleConnectionRefused();
 		}
@@ -61,23 +67,23 @@ public class FetchHttpTransport implements HttpTransport {
 
 	@Override
 	public String postJsonPublic(String path, String body) {
-		return doFetch(baseUrl + path, "POST", body, null);
+		return doFetch(baseUrl + path, "POST", body, null, null);
 	}
 
 	@Override
 	public String postJsonWithAuth(String path, String body, String token) {
-		return doFetch(baseUrl + path, "POST", body, token);
+		return doFetch(baseUrl + path, "POST", body, token, null);
 	}
 
 	@Override
 	public String getJson(String path) {
-		return doFetch(baseUrl + path, "GET", null, null);
+		return doFetch(baseUrl + path, "GET", null, null, null);
 	}
 
 	@Override
 	public byte[] getBytes(String path) {
 		String token = getToken();
-		HttpResult result = asyncXhr(baseUrl + path, "GET", null, token, "application/json");
+		HttpResult result = asyncXhr(baseUrl + path, "GET", null, token, "application/json", null);
 		if (result.status == 0) {
 			handleConnectionRefused();
 		}
@@ -97,7 +103,7 @@ public class FetchHttpTransport implements HttpTransport {
 	public boolean putBytes(String path, byte[] data) {
 		String token = getToken();
 		String bodyStr = data != null ? new String(data, StandardCharsets.UTF_8) : null;
-		HttpResult result = asyncXhr(baseUrl + path, "PUT", bodyStr, token, "application/octet-stream");
+		HttpResult result = asyncXhr(baseUrl + path, "PUT", bodyStr, token, "application/octet-stream", null);
 		if (result.status == 0) {
 			handleConnectionRefused();
 		}
@@ -127,8 +133,28 @@ public class FetchHttpTransport implements HttpTransport {
 		return supplier != null ? supplier.get() : null;
 	}
 
-	private String doFetch(String url, String method, String body, String token) {
-		HttpResult result = asyncXhr(url, method, body, token, "application/json");
+	/** Id de sessão de cliente, gerado uma vez por instância da app (browser) e enviado em X-Client-Id. */
+	private static String clientId;
+
+	private static String clientId() {
+		if (clientId == null) {
+			clientId = generateClientId();
+		}
+		return clientId;
+	}
+
+	@JSBody(params = {}, script = "return (self.crypto && self.crypto.randomUUID) ? self.crypto.randomUUID() "
+			+ ": 'xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx'.replace(/[xy]/g, function(c){var r=Math.random()*16|0;"
+			+ "return (c==='x'?r:(r&0x3|0x8)).toString(16);});")
+	private static native String generateClientId();
+
+	private String getTxId() {
+		var supplier = txIdSupplier.get();
+		return supplier != null ? supplier.get() : null;
+	}
+
+	private String doFetch(String url, String method, String body, String token, String txId) {
+		HttpResult result = asyncXhr(url, method, body, token, "application/json", txId);
 		if (result.status == 0) {
 			handleConnectionRefused();
 		}
@@ -149,16 +175,21 @@ public class FetchHttpTransport implements HttpTransport {
 	 * suspende a coroutine até o callback ser invocado.
 	 */
 	@Async
-	private static native HttpResult asyncXhr(String url, String method, String body, String token, String contentType);
+	private static native HttpResult asyncXhr(String url, String method, String body, String token, String contentType,
+			String txId);
 
 	@SuppressWarnings("java:S1144") // Called by TeaVM @Async infrastructure
-	private static void asyncXhr(String url, String method, String body, String token, String contentType,
+	private static void asyncXhr(String url, String method, String body, String token, String contentType, String txId,
 			AsyncCallback<HttpResult> callback) {
 		XMLHttpRequest xhr = new XMLHttpRequest();
 		xhr.open(method, url);
 		xhr.setRequestHeader("Content-Type", contentType);
+		xhr.setRequestHeader("X-Client-Id", clientId());
 		if (token != null) {
 			xhr.setRequestHeader("Authorization", "Bearer " + token);
+		}
+		if (txId != null) {
+			xhr.setRequestHeader("X-Tx-Id", txId);
 		}
 		xhr.setOnReadyStateChange(() -> {
 			if (xhr.getReadyState() != XMLHttpRequest.DONE) {

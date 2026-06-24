@@ -25,6 +25,8 @@ public class OkHttpTransport implements HttpTransport {
     private final OkHttpClient client;
     private final AtomicReference<Supplier<String>> accessTokenSupplier = new AtomicReference<>();
     private final AtomicReference<Supplier<String>> txIdSupplier = new AtomicReference<>();
+    /** Id de sessão de cliente (por instância = por app), enviado em X-Client-Id para identificar o dono de transações anônimas. */
+    private final String clientId = java.util.UUID.randomUUID().toString();
 
     public OkHttpTransport(String baseUrl) {
         this.baseUrl = baseUrl;
@@ -52,6 +54,7 @@ public class OkHttpTransport implements HttpTransport {
                 .post(RequestBody.create(body, JSON_MEDIA_TYPE));
         addAuthHeader(requestBuilder);
         addTxHeader(requestBuilder);
+        addClientHeader(requestBuilder);
 
         try (var response = client.newCall(requestBuilder.build()).execute()) {
             var responseBody = response.body() != null ? response.body().string() : null;
@@ -72,6 +75,7 @@ public class OkHttpTransport implements HttpTransport {
                 .url(baseUrl + path)
                 .post(RequestBody.create(body, JSON_MEDIA_TYPE));
         addAuthHeader(requestBuilder);
+        addClientHeader(requestBuilder);
 
         try (var response = client.newCall(requestBuilder.build()).execute()) {
             if (response.code() == 404) {
@@ -94,6 +98,7 @@ public class OkHttpTransport implements HttpTransport {
         var request = new Request.Builder()
                 .url(baseUrl + path)
                 .post(RequestBody.create(body, JSON_MEDIA_TYPE))
+                .header("X-Client-Id", clientId)
                 .build();
 
         try (var response = client.newCall(request).execute()) {
@@ -115,6 +120,7 @@ public class OkHttpTransport implements HttpTransport {
                 .url(baseUrl + path)
                 .post(RequestBody.create(body, JSON_MEDIA_TYPE))
                 .header("Authorization", "Bearer " + token)
+                .header("X-Client-Id", clientId)
                 .build();
 
         try (var response = client.newCall(request).execute()) {
@@ -135,6 +141,7 @@ public class OkHttpTransport implements HttpTransport {
         var request = new Request.Builder()
                 .url(baseUrl + path)
                 .get()
+                .header("X-Client-Id", clientId)
                 .build();
 
         try (var response = client.newCall(request).execute()) {
@@ -156,6 +163,7 @@ public class OkHttpTransport implements HttpTransport {
                 .url(baseUrl + path)
                 .get();
         addAuthHeader(requestBuilder);
+        addClientHeader(requestBuilder);
 
         try (var response = client.newCall(requestBuilder.build()).execute()) {
             if (response.code() == 404 || response.code() == 204) {
@@ -178,6 +186,7 @@ public class OkHttpTransport implements HttpTransport {
                 .url(baseUrl + path)
                 .put(RequestBody.create(data, MediaType.parse("application/octet-stream")));
         addAuthHeader(requestBuilder);
+        addClientHeader(requestBuilder);
 
         try (var response = client.newCall(requestBuilder.build()).execute()) {
             if (!response.isSuccessful()) {
@@ -221,6 +230,10 @@ public class OkHttpTransport implements HttpTransport {
                 builder.header("X-Tx-Id", txId);
             }
         }
+    }
+
+    private void addClientHeader(Request.Builder builder) {
+        builder.header("X-Client-Id", clientId);
     }
 
 }
