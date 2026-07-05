@@ -7,23 +7,6 @@ export { BROWSER_VID } from "./constants"
 export type { BrowserViewState, ViewComponent, ViewProps } from "./types"
 export { ViewScope } from "./ViewScope"
 
-async function static_updateAllViewStates(app: ViewStateCoordinator, vsids: string[]) {
-  const url = `view-state`
-
-  const resp = await fetch(url, {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-      "X-Application-Id": app.id,
-    },
-    body: JSON.stringify(vsids),
-  })
-
-  const viewStates = (await resp.json()) as { id: string }[]
-  app.applyViewStates(viewStates)
-}
-
 let privateApp: ViewStateCoordinator
 
 const publicApp = new (class {
@@ -87,10 +70,6 @@ const publicApp = new (class {
 
   bindView<T>(vsid: string) {
     return privateApp.bindView<T>(vsid)
-  }
-
-  updateViewState(vsid: string) {
-    static_updateAllViewStates(privateApp, [vsid])
   }
 
   onStart() {
