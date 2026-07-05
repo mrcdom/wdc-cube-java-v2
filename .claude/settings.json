@@ -14,7 +14,12 @@
       "mcp__playwright__browser_navigate",
       "mcp__playwright__browser_snapshot",
       "mcp__playwright__browser_click",
-      "mcp__playwright__browser_console_messages"
+      "mcp__playwright__browser_console_messages",
+      "mcp__playwright__browser_handle_dialog",
+      "mcp__playwright__browser_take_screenshot"
+    ],
+    "additionalDirectories": [
+      "/Users/mrcdom/Works/WeDoCode/wdc-cube-rust"
     ]
   }
 }
