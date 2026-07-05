@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -20,6 +22,7 @@ import br.com.wdc.cube.backend.controller.WebCacheController;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.log.Slf4jLogFactory;
 import br.com.wdc.framework.commons.util.Defer;
+import br.com.wdc.framework.domain.config.AppConfig;
 import br.com.wdc.shopping.domain.ShoppingConfig;
 import br.com.wdc.shopping.persistence.rest.RepositoryApiRoutes;
 import br.com.wdc.shopping.view.remote.host.RemoteHostBootstrap;
@@ -48,6 +51,24 @@ public class BackendServer {
 
     private static final int DEFAULT_PORT = 8080;
 
+    /**
+     * CORS allowlist applied when {@code server.cors.allowAll} is {@code false}.
+     * Covers the Tauri desktop app (its three origin schemes), Android WebView and local dev hosts.
+     */
+    private static final List<String> DEFAULT_ALLOWED_HOSTS = List.of(
+            "tauri://localhost", "https://tauri.localhost", "http://tauri.localhost",
+            "http://localhost:8080", "http://shopping-wdc.localhost:8080");
+
+    /**
+     * Resolved CORS policy. When {@code allowAll} is {@code true} any origin is reflected
+     * (suitable for development); otherwise only {@code allowedHosts} are accepted.
+     */
+    public record CorsSettings(boolean allowAll, List<String> allowedHosts, boolean allowCredentials) {
+        public static CorsSettings defaults() {
+            return new CorsSettings(false, DEFAULT_ALLOWED_HOSTS, true);
+        }
+    }
+
     static {
         LogBootstrap.initialize();
         Log.setFactory(new Slf4jLogFactory());
@@ -57,12 +78,18 @@ public class BackendServer {
     private final Defer cleanUp = new Defer();
     private final int port;
     private final boolean devMode;
+    private final CorsSettings corsSettings;
     private final BusinessContext businessContext = new BusinessContext();
     private Javalin app;
 
     public BackendServer(int port, boolean devMode) {
+        this(port, devMode, CorsSettings.defaults());
+    }
+
+    public BackendServer(int port, boolean devMode, CorsSettings corsSettings) {
         this.port = port;
         this.devMode = devMode;
+        this.corsSettings = corsSettings;
     }
 
     public BackendServer() {
@@ -92,12 +119,23 @@ public class BackendServer {
                 handler.addFilter(filterHolder, "/*", java.util.EnumSet.of(jakarta.servlet.DispatcherType.REQUEST));
             });
 
-            // Enable CORS for Tauri desktop app, Android WebView, and local dev
+            // Enable CORS. Policy resolved from config (server.cors.*): either reflect any origin
+            // (allowAll, for development) or restrict to an allowlist (Tauri desktop, Android WebView, local dev).
             config.bundledPlugins.enableCors(cors -> cors.addRule(rule -> {
-                rule.allowHost("tauri://localhost", "https://tauri.localhost",
-                        "http://tauri.localhost",
-                        "http://localhost:8080", "http://shopping-wdc.localhost:8080");
-                rule.allowCredentials = true;
+                if (corsSettings.allowAll()) {
+                    // reflectClientOrigin echoes the request Origin instead of emitting `*`, which is the
+                    // only way to allow any origin together with credentials (browsers reject `*` + credentials,
+                    // and Javalin's anyHost() throws in that case).
+                    LOG.info("CORS: reflecting any client origin (server.cors.allowAll=true)");
+                    rule.reflectClientOrigin = true;
+                } else {
+                    var hosts = corsSettings.allowedHosts().isEmpty()
+                            ? DEFAULT_ALLOWED_HOSTS
+                            : corsSettings.allowedHosts();
+                    LOG.info("CORS: restricting to allowed hosts {}", hosts);
+                    rule.allowHost(hosts.get(0), hosts.subList(1, hosts.size()).toArray(new String[0]));
+                }
+                rule.allowCredentials = corsSettings.allowCredentials();
             }));
 
             // Serve frontend assets from work/frontend/<subdir> (each subdir at its own context)
@@ -294,7 +332,8 @@ public class BackendServer {
         LOG.info("Starting WeDoCode Shopping React Server on port {}", port);
 
         boolean devMode = config.getBoolean("server.devMode", false);
-        BackendServer server = new BackendServer(port, devMode);
+        CorsSettings corsSettings = resolveCorsSettings(config);
+        BackendServer server = new BackendServer(port, devMode, corsSettings);
 
         // Graceful shutdown on JVM termination
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -310,5 +349,36 @@ public class BackendServer {
             LOG.info("Main thread interrupted");
             server.stop();
         }
+    }
+
+    /**
+     * Resolves the CORS policy from configuration (section {@code [server]}):
+     * <ul>
+     * <li>{@code cors.allowAll} — when {@code true}, any origin is reflected (development). Default {@code false}.</li>
+     * <li>{@code cors.allowedHosts} — comma-separated allowlist used when {@code allowAll} is {@code false}.
+     * When absent/blank, falls back to {@link #DEFAULT_ALLOWED_HOSTS}.</li>
+     * <li>{@code cors.allowCredentials} — whether to allow cookies/auth headers cross-origin. Default {@code true}.</li>
+     * </ul>
+     */
+    static CorsSettings resolveCorsSettings(AppConfig config) {
+        boolean allowAll = config.getBoolean("server.cors.allowAll", false);
+        boolean allowCredentials = config.getBoolean("server.cors.allowCredentials", true);
+        List<String> allowedHosts = parseHostList(config.get("server.cors.allowedHosts"), DEFAULT_ALLOWED_HOSTS);
+        return new CorsSettings(allowAll, allowedHosts, allowCredentials);
+    }
+
+    /**
+     * Parses a comma-separated host list, trimming entries and dropping blanks.
+     * Returns {@code defaults} when the raw value is {@code null}, blank or yields no entries.
+     */
+    static List<String> parseHostList(String raw, List<String> defaults) {
+        if (raw == null || raw.isBlank()) {
+            return defaults;
+        }
+        List<String> hosts = Arrays.stream(raw.split(","))
+                .map(String::strip)
+                .filter(s -> !s.isEmpty())
+                .toList();
+        return hosts.isEmpty() ? defaults : hosts;
     }
 }
