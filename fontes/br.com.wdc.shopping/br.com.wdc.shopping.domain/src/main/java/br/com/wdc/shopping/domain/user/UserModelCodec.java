@@ -1,13 +1,10 @@
-package br.com.wdc.shopping.domain.codec;
-
-import br.com.wdc.framework.domain.codec.ModelCodec;
+package br.com.wdc.shopping.domain.user;
 
 import br.com.wdc.framework.commons.serialization.EntityGraph;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectInput;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
-import br.com.wdc.shopping.domain.criteria.UserCriteria;
-import br.com.wdc.shopping.domain.model.User;
+import br.com.wdc.framework.domain.codec.ModelCodec;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
 
 public class UserModelCodec implements ModelCodec<User, UserCriteria> {

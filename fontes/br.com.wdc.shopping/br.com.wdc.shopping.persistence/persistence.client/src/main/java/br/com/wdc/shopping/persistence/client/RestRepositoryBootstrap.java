@@ -2,18 +2,18 @@ package br.com.wdc.shopping.persistence.client;
 
 import br.com.wdc.framework.commons.http.HttpTransport;
 import br.com.wdc.framework.commons.storage.ClientStorage;
-import br.com.wdc.shopping.domain.codec.ProductModelCodec;
-import br.com.wdc.shopping.domain.codec.PurchaseItemModelCodec;
-import br.com.wdc.shopping.domain.codec.PurchaseModelCodec;
-import br.com.wdc.shopping.domain.codec.UserModelCodec;
-import br.com.wdc.shopping.domain.repositories.ProductRepository;
-import br.com.wdc.shopping.domain.repositories.PurchaseItemRepository;
-import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
-import br.com.wdc.shopping.domain.repositories.UserRepository;
-import br.com.wdc.shopping.domain.ShoppingTransactions;
 import br.com.wdc.framework.domain.security.AuthenticationService;
 import br.com.wdc.framework.domain.security.CryptoProvider;
 import br.com.wdc.framework.domain.security.JceCryptoProvider;
+import br.com.wdc.shopping.domain.ShoppingTransactions;
+import br.com.wdc.shopping.domain.product.ProductModelCodec;
+import br.com.wdc.shopping.domain.product.ProductRepository;
+import br.com.wdc.shopping.domain.purchase.PurchaseModelCodec;
+import br.com.wdc.shopping.domain.purchase.PurchaseRepository;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemModelCodec;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemRepository;
+import br.com.wdc.shopping.domain.user.UserModelCodec;
+import br.com.wdc.shopping.domain.user.UserRepository;
 
 /**
  * Inicializa os repositórios REST e registra nos BEANs estáticos do domínio.

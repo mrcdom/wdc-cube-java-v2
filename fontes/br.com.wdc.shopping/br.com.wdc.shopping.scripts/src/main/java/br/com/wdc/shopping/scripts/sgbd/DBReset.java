@@ -23,14 +23,14 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
+import br.com.wdc.shopping.domain.product.Product;
+import br.com.wdc.shopping.domain.product.ProductRepository;
+import br.com.wdc.shopping.domain.purchase.Purchase;
+import br.com.wdc.shopping.domain.purchase.PurchaseRepository;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItem;
+import br.com.wdc.shopping.domain.user.User;
+import br.com.wdc.shopping.domain.user.UserRepository;
 import br.com.wdc.shopping.persistence.impl.ShoppingDSLContext;
-import br.com.wdc.shopping.domain.model.Product;
-import br.com.wdc.shopping.domain.model.Purchase;
-import br.com.wdc.shopping.domain.model.PurchaseItem;
-import br.com.wdc.shopping.domain.model.User;
-import br.com.wdc.shopping.domain.repositories.ProductRepository;
-import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
-import br.com.wdc.shopping.domain.repositories.UserRepository;
 
 @SuppressWarnings("java:S3008")
 public class DBReset {

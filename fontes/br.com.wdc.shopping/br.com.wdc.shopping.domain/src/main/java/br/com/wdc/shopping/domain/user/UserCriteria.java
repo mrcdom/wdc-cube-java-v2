@@ -1,6 +1,5 @@
-package br.com.wdc.shopping.domain.criteria;
+package br.com.wdc.shopping.domain.user;
 
-import br.com.wdc.shopping.domain.model.User;
 
 public class UserCriteria {
 

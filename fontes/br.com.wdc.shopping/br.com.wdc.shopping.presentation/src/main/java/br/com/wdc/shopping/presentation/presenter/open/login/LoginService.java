@@ -1,10 +1,10 @@
 package br.com.wdc.shopping.presentation.presenter.open.login;
 
-import br.com.wdc.shopping.domain.criteria.UserCriteria;
-import br.com.wdc.shopping.domain.repositories.UserRepository;
 import br.com.wdc.framework.domain.security.AuthenticationService;
 import br.com.wdc.framework.domain.security.PasswordUtil;
 import br.com.wdc.framework.domain.security.SecurityContext;
+import br.com.wdc.shopping.domain.user.UserCriteria;
+import br.com.wdc.shopping.domain.user.UserRepository;
 import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
 
 public class LoginService {

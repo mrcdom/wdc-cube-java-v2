@@ -86,6 +86,24 @@ graph LR
 
 O módulo `domain` é **puramente conceitual**. Não conhece banco de dados, nem HTTP, nem qualquer framework de persistência. Apenas define o que existe no sistema.
 
+### Organização: um pacote por entidade
+
+Os pacotes seguem as **entidades**, não os tipos de classe. Cada entidade reúne num único pacote tudo o que diz respeito a ela — modelo, critério de consulta, codec de serialização e contrato de repositório:
+
+```
+domain/
+  product/      Product, ProductCriteria, ProductModelCodec, ProductRepository
+  user/         User, UserCriteria, UserModelCodec, UserRepository
+  purchase/     Purchase, PurchaseCriteria, PurchaseModelCodec, PurchaseRepository
+  purchaseitem/ PurchaseItem, PurchaseItemCriteria, PurchaseItemModelCodec, PurchaseItemRepository
+
+  exception/    InvalidCartItemException
+  security/     Role
+  ShoppingConfig, ShoppingTransactions
+```
+
+Assim, mexer numa entidade é mexer numa pasta só, e uma entidade nova nasce como um pacote completo — em vez de quatro arquivos espalhados por quatro pacotes técnicos.
+
 ### Modelos
 
 POJOs simples com estado encapsulado e **API fluente** — a mesma superfície dos `XxxCriteria`: um acessor `campo()` e um setter `withCampo(...)` que devolve `this`. Sem anotações de persistência, sem herança obrigatória (apenas `KeyedEntity`, que expõe a chave de identidade para o detector de ciclos da serialização):

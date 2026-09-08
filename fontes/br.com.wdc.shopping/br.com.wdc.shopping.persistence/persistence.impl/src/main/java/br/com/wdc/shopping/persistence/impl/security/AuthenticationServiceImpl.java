@@ -9,13 +9,13 @@ import javax.crypto.spec.SecretKeySpec;
 
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.commons.log.Log;
-import br.com.wdc.shopping.domain.criteria.UserCriteria;
-import br.com.wdc.shopping.domain.model.User;
-import br.com.wdc.shopping.domain.repositories.UserRepository;
-import br.com.wdc.framework.domain.security.AuthenticationService;
-import br.com.wdc.shopping.domain.security.Role;
-import br.com.wdc.framework.domain.security.SecurityContext;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
+import br.com.wdc.framework.domain.security.AuthenticationService;
+import br.com.wdc.framework.domain.security.SecurityContext;
+import br.com.wdc.shopping.domain.security.Role;
+import br.com.wdc.shopping.domain.user.User;
+import br.com.wdc.shopping.domain.user.UserCriteria;
+import br.com.wdc.shopping.domain.user.UserRepository;
 
 /**
  * Implementação de {@link AuthenticationService}.

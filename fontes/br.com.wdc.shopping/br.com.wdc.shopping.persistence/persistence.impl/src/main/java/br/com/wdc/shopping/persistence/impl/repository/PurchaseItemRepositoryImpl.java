@@ -15,9 +15,9 @@ import br.com.wdc.framework.jooq.JsonChildQueryBuilder;
 import br.com.wdc.framework.jooq.JsonQuery;
 import br.com.wdc.framework.jooq.JsonQueryBuilder;
 import br.com.wdc.framework.jooq.QueryContext;
-import br.com.wdc.shopping.domain.criteria.PurchaseItemCriteria;
-import br.com.wdc.shopping.domain.model.PurchaseItem;
-import br.com.wdc.shopping.domain.repositories.PurchaseItemRepository;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItem;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemCriteria;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemRepository;
 import br.com.wdc.shopping.persistence.impl.scheme.tables.EnPurchaseitem;
 import br.com.wdc.shopping.persistence.impl.util.BaseRepositoryImpl;
 

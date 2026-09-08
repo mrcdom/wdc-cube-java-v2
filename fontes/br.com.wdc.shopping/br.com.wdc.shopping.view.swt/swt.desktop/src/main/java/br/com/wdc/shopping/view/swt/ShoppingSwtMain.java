@@ -23,7 +23,7 @@ import br.com.wdc.framework.domain.config.AppConfig;
 import br.com.wdc.framework.domain.security.CryptoProvider;
 import br.com.wdc.framework.domain.security.JceCryptoProvider;
 import br.com.wdc.shopping.domain.ShoppingConfig;
-import br.com.wdc.shopping.domain.criteria.UserCriteria;
+import br.com.wdc.shopping.domain.user.UserCriteria;
 import br.com.wdc.shopping.persistence.impl.ShoppingRepositoryBootstrap;
 import br.com.wdc.shopping.presentation.presenter.Routes;
 import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;

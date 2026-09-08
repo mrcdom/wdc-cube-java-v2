@@ -3,9 +3,9 @@ package br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs;
 import java.io.Serializable;
 import java.util.Optional;
 
-import br.com.wdc.shopping.domain.model.Product;
-import br.com.wdc.shopping.domain.model.PurchaseItem;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
+import br.com.wdc.shopping.domain.product.Product;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItem;
 
 public class ReceiptItem implements Serializable {
 

@@ -2,9 +2,9 @@ package br.com.wdc.shopping.persistence.client;
 
 import br.com.wdc.framework.commons.http.HttpTransport;
 import br.com.wdc.framework.domain.codec.ModelCodec;
-import br.com.wdc.shopping.domain.criteria.PurchaseCriteria;
-import br.com.wdc.shopping.domain.model.Purchase;
-import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
+import br.com.wdc.shopping.domain.purchase.Purchase;
+import br.com.wdc.shopping.domain.purchase.PurchaseCriteria;
+import br.com.wdc.shopping.domain.purchase.PurchaseRepository;
 
 public class HttpPurchaseRepository extends HttpRepository<Purchase, PurchaseCriteria, Long> implements PurchaseRepository {
 

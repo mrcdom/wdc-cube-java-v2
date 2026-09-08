@@ -1,4 +1,4 @@
-package br.com.wdc.shopping.domain.model;
+package br.com.wdc.shopping.domain.user;
 
 import br.com.wdc.framework.commons.serialization.KeyedEntity;
 

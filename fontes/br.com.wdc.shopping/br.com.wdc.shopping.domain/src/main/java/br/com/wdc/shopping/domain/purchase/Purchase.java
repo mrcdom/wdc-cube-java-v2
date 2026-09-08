@@ -1,9 +1,11 @@
-package br.com.wdc.shopping.domain.model;
+package br.com.wdc.shopping.domain.purchase;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 
 import br.com.wdc.framework.commons.serialization.KeyedEntity;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItem;
+import br.com.wdc.shopping.domain.user.User;
 
 public class Purchase implements KeyedEntity {
 

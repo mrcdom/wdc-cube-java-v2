@@ -1,12 +1,9 @@
-package br.com.wdc.shopping.domain.repositories;
-
-import br.com.wdc.framework.domain.repository.Repository;
+package br.com.wdc.shopping.domain.user;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-import br.com.wdc.shopping.domain.criteria.UserCriteria;
-import br.com.wdc.shopping.domain.model.User;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
+import br.com.wdc.framework.domain.repository.Repository;
 
 public interface UserRepository extends Repository<User, UserCriteria, Long> {
 

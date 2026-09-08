@@ -13,6 +13,7 @@ Idioma do projeto: **português** (docs, READMEs, mensagens de commit). Código 
 - `fontes/` — todo o código-fonte Maven (multi-módulo). **O build roda a partir daqui, não da raiz.**
   - `br.com.wdc.framework/` — framework reutilizável: `commons`, `domain` (abstrações genéricas: `Repository`, `Page`, `ModelCodec`, `Projection*`, exceções base, segurança/`PermissionModel`, `AppConfig`), `cube`, `cube.remote`, `jooq`, `dependencies` (BOM)
   - `br.com.wdc.shopping/` — app de exemplo: `domain`, `persistence` (agrupador de `persistence.impl` (jOOQ), `persistence.client` (HTTP/okhttp), `persistence.rest` (API Javalin)), `presentation`, `backend`, `scripts`, `tests`, `view.*`
+    - **`domain` é organizado por entidade, não por tipo de classe**: `domain.product`, `domain.user`, `domain.purchase`, `domain.purchaseitem` — cada pacote reúne as quatro classes daquela entidade (`Xxx`, `XxxCriteria`, `XxxModelCodec`, `XxxRepository`). Ao criar uma entidade nova, crie o pacote dela com o conjunto completo; não há mais pacotes `model`/`criteria`/`codec`/`repositories`. Fora disso, `domain` guarda `exception`, `security` e os holders de raiz (`ShoppingConfig`, `ShoppingTransactions`).
 - `work/` — diretório de runtime: `config/` (TOML), `bin/` (scripts de start), `data/`, `log/`, `frontend/`
 - `docs/` — documentação arquitetural detalhada (PT)
 
@@ -59,7 +60,7 @@ Controle programático estilo CMT via `TransactionService` (`framework.domain.tr
 - **Virtual Threads** (Java 21) para conexões WebSocket.
 - **Segurança RBAC**: HMAC challenge-response + JWT; repositórios decorados (`SecuredXxxRepository`); papéis ADMIN/CUSTOMER/MANAGER (modelo allow-wins). Transporte React: RSA + PBKDF2 + AES-GCM.
 - **Nomenclatura**: `*ViewState`, `*ViewImpl`, `*Presenter`, `*RepositoryImpl`, `*Criteria`, `Apply*Criteria`.
-- **Entidades (`domain.model`, implementam `KeyedEntity`) têm API fluente**, igual à dos `*Criteria`: campo `private`, acessor `campo()` e setter `withCampo(...)` que devolve `this`. Não há campos públicos — construa encadeando (`new Product().withName(x).withPrice(y)`), inclusive nas relações (`withPurchase(new Purchase().withId(id))`). Structs de apresentação (`presentation.**.structs`) seguem outro padrão: continuam com campos públicos.
+- **Entidades (implementam `KeyedEntity`) têm API fluente**, igual à dos `*Criteria`: campo `private`, acessor `campo()` e setter `withCampo(...)` que devolve `this`. Não há campos públicos — construa encadeando (`new Product().withName(x).withPrice(y)`), inclusive nas relações (`withPurchase(new Purchase().withId(id))`). Structs de apresentação (`presentation.**.structs`) seguem outro padrão: continuam com campos públicos.
 - **Formatação Java**: `fontes/wedocode-java-formatter.xml`. Frontend: Prettier (configurado no `.vscode/settings.json`, format-on-save).
 
 ## Mensagens de commit

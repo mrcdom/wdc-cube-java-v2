@@ -1,14 +1,12 @@
-package br.com.wdc.shopping.domain.repositories;
-
-import br.com.wdc.framework.domain.repository.Repository;
+package br.com.wdc.shopping.domain.purchaseitem;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-import br.com.wdc.shopping.domain.criteria.PurchaseItemCriteria;
-import br.com.wdc.shopping.domain.model.Product;
-import br.com.wdc.shopping.domain.model.Purchase;
-import br.com.wdc.shopping.domain.model.PurchaseItem;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
+import br.com.wdc.framework.domain.repository.Repository;
+import br.com.wdc.shopping.domain.product.Product;
+import br.com.wdc.shopping.domain.purchase.Purchase;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItem;
 
 public interface PurchaseItemRepository extends Repository<PurchaseItem, PurchaseItemCriteria, Long> {
 

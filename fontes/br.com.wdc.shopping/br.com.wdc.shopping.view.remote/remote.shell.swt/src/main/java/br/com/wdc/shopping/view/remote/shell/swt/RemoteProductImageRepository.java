@@ -10,9 +10,9 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import br.com.wdc.shopping.domain.criteria.ProductCriteria;
-import br.com.wdc.shopping.domain.model.Product;
-import br.com.wdc.shopping.domain.repositories.ProductRepository;
+import br.com.wdc.shopping.domain.product.Product;
+import br.com.wdc.shopping.domain.product.ProductCriteria;
+import br.com.wdc.shopping.domain.product.ProductRepository;
 
 /**
  * ProductRepository stub that fetches product images from the remote Host over HTTP.

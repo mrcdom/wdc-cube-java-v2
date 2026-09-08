@@ -7,7 +7,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
 
-import br.com.wdc.shopping.domain.repositories.PurchaseItemRepository;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemRepository;
 import br.com.wdc.shopping.scripts.sgbd.DBReset;
 import br.com.wdc.shopping.test.util.ResetDatabaseRule;
 import br.com.wdc.shopping.test.util.TestEnvironment;
@@ -36,11 +36,11 @@ public class PurchaseItemRepositoryTest extends AbstractPurchaseItemRepositoryTe
 
 	@Test
 	public void insert_newPurchaseItem_withPurchaseAssertion() {
-		var item = new br.com.wdc.shopping.domain.model.PurchaseItem()
+		var item = new br.com.wdc.shopping.domain.purchaseitem.PurchaseItem()
 				.withAmount(5)
 				.withPrice(15.50)
-				.withPurchase(new br.com.wdc.shopping.domain.model.Purchase().withId(DBReset.ADMIN_FIRST_PURCHASE_ID))
-				.withProduct(new br.com.wdc.shopping.domain.model.Product().withId(DBReset.PEN_DRIVE2GB_ID));
+				.withPurchase(new br.com.wdc.shopping.domain.purchase.Purchase().withId(DBReset.ADMIN_FIRST_PURCHASE_ID))
+				.withProduct(new br.com.wdc.shopping.domain.product.Product().withId(DBReset.PEN_DRIVE2GB_ID));
 
 		boolean inserted = repo().insert(item);
 		assertTrue(inserted);

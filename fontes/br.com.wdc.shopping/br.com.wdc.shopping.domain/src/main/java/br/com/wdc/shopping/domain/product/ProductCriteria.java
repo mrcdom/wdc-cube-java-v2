@@ -1,6 +1,5 @@
-package br.com.wdc.shopping.domain.criteria;
+package br.com.wdc.shopping.domain.product;
 
-import br.com.wdc.shopping.domain.model.Product;
 
 public class ProductCriteria {
 

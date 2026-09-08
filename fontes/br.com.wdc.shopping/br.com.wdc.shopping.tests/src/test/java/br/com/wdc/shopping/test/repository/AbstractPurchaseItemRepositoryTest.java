@@ -6,12 +6,12 @@ import java.util.List;
 
 import org.junit.Test;
 
-import br.com.wdc.shopping.domain.criteria.PurchaseItemCriteria;
-import br.com.wdc.shopping.domain.model.Product;
-import br.com.wdc.shopping.domain.model.Purchase;
-import br.com.wdc.shopping.domain.model.PurchaseItem;
-import br.com.wdc.shopping.domain.repositories.PurchaseItemRepository;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
+import br.com.wdc.shopping.domain.product.Product;
+import br.com.wdc.shopping.domain.purchase.Purchase;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItem;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemCriteria;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemRepository;
 import br.com.wdc.shopping.scripts.sgbd.DBReset;
 
 public abstract class AbstractPurchaseItemRepositoryTest {

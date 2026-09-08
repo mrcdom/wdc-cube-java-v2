@@ -4,7 +4,7 @@ import java.io.ByteArrayInputStream;
 
 import com.vaadin.flow.server.StreamResource;
 
-import br.com.wdc.shopping.domain.repositories.ProductRepository;
+import br.com.wdc.shopping.domain.product.ProductRepository;
 
 public class ResourceCatalog {
 

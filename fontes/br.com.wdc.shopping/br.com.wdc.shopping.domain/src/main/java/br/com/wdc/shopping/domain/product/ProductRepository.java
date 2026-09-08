@@ -1,12 +1,9 @@
-package br.com.wdc.shopping.domain.repositories;
-
-import br.com.wdc.framework.domain.repository.Repository;
+package br.com.wdc.shopping.domain.product;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-import br.com.wdc.shopping.domain.criteria.ProductCriteria;
-import br.com.wdc.shopping.domain.model.Product;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
+import br.com.wdc.framework.domain.repository.Repository;
 
 public interface ProductRepository extends Repository<Product, ProductCriteria, Long> {
 

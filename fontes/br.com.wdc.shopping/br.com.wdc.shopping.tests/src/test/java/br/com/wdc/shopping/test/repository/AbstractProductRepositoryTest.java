@@ -6,11 +6,11 @@ import java.util.List;
 
 import org.junit.Test;
 
-import br.com.wdc.shopping.domain.criteria.ProductCriteria;
 import br.com.wdc.framework.domain.exception.BusinessException;
-import br.com.wdc.shopping.domain.model.Product;
-import br.com.wdc.shopping.domain.repositories.ProductRepository;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
+import br.com.wdc.shopping.domain.product.Product;
+import br.com.wdc.shopping.domain.product.ProductCriteria;
+import br.com.wdc.shopping.domain.product.ProductRepository;
 import br.com.wdc.shopping.scripts.sgbd.DBReset;
 
 public abstract class AbstractProductRepositoryTest {

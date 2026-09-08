@@ -17,9 +17,9 @@ import br.com.wdc.framework.jooq.JsonChildQueryBuilder;
 import br.com.wdc.framework.jooq.JsonQuery;
 import br.com.wdc.framework.jooq.JsonQueryBuilder;
 import br.com.wdc.framework.jooq.QueryContext;
-import br.com.wdc.shopping.domain.criteria.UserCriteria;
-import br.com.wdc.shopping.domain.model.User;
-import br.com.wdc.shopping.domain.repositories.UserRepository;
+import br.com.wdc.shopping.domain.user.User;
+import br.com.wdc.shopping.domain.user.UserCriteria;
+import br.com.wdc.shopping.domain.user.UserRepository;
 import br.com.wdc.shopping.persistence.impl.scheme.tables.EnUser;
 import br.com.wdc.shopping.persistence.impl.util.BaseRepositoryImpl;
 

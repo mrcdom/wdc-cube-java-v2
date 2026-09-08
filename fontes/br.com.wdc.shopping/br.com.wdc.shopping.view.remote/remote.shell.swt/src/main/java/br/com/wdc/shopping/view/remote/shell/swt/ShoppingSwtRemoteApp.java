@@ -20,7 +20,7 @@ import br.com.wdc.framework.commons.storage.PreferencesClientStorage;
 import br.com.wdc.framework.cube.remote.bridge.java.HostClient;
 import br.com.wdc.framework.cube.remote.bridge.java.model.HostResponse;
 import br.com.wdc.framework.cube.remote.bridge.java.model.ViewStateSnapshot;
-import br.com.wdc.shopping.domain.repositories.ProductRepository;
+import br.com.wdc.shopping.domain.product.ProductRepository;
 import br.com.wdc.shopping.view.swt.AbstractViewSwt;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.util.ProductImageCache;

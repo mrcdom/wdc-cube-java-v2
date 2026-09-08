@@ -10,12 +10,12 @@ import org.junit.Test;
 import br.com.wdc.framework.commons.serialization.EntityGraph;
 import br.com.wdc.framework.commons.serialization.JsonStreamReader;
 import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
-import br.com.wdc.shopping.domain.codec.PurchaseItemModelCodec;
-import br.com.wdc.shopping.domain.codec.PurchaseModelCodec;
-import br.com.wdc.shopping.domain.model.Product;
-import br.com.wdc.shopping.domain.model.Purchase;
-import br.com.wdc.shopping.domain.model.PurchaseItem;
-import br.com.wdc.shopping.domain.model.User;
+import br.com.wdc.shopping.domain.product.Product;
+import br.com.wdc.shopping.domain.purchase.Purchase;
+import br.com.wdc.shopping.domain.purchase.PurchaseModelCodec;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItem;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemModelCodec;
+import br.com.wdc.shopping.domain.user.User;
 
 /**
  * Testa que a proteção contra recursão cíclica no grafo de entidades funciona

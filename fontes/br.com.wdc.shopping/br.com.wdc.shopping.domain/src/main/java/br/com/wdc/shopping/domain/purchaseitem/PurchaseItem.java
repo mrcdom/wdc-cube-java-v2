@@ -1,6 +1,8 @@
-package br.com.wdc.shopping.domain.model;
+package br.com.wdc.shopping.domain.purchaseitem;
 
 import br.com.wdc.framework.commons.serialization.KeyedEntity;
+import br.com.wdc.shopping.domain.product.Product;
+import br.com.wdc.shopping.domain.purchase.Purchase;
 
 public class PurchaseItem implements KeyedEntity {
 

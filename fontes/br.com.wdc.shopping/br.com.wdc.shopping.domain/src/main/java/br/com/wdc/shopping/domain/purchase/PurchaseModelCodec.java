@@ -1,6 +1,4 @@
-package br.com.wdc.shopping.domain.codec;
-
-import br.com.wdc.framework.domain.codec.ModelCodec;
+package br.com.wdc.shopping.domain.purchase;
 
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
@@ -12,11 +10,12 @@ import br.com.wdc.framework.commons.serialization.ExtensibleObjectInput;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.framework.commons.serialization.SerializationToken;
-import br.com.wdc.shopping.domain.criteria.PurchaseCriteria;
-import br.com.wdc.shopping.domain.model.Purchase;
-import br.com.wdc.shopping.domain.model.PurchaseItem;
-import br.com.wdc.shopping.domain.model.User;
+import br.com.wdc.framework.domain.codec.ModelCodec;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
+import br.com.wdc.shopping.domain.product.ProductModelCodec;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItem;
+import br.com.wdc.shopping.domain.user.User;
+import br.com.wdc.shopping.domain.user.UserModelCodec;
 
 public class PurchaseModelCodec implements ModelCodec<Purchase, PurchaseCriteria> {
 

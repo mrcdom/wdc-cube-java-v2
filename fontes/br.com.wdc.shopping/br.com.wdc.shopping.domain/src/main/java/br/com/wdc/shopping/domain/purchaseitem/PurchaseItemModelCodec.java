@@ -1,17 +1,17 @@
-package br.com.wdc.shopping.domain.codec;
-
-import br.com.wdc.framework.domain.codec.ModelCodec;
+package br.com.wdc.shopping.domain.purchaseitem;
 
 import br.com.wdc.framework.commons.serialization.EntityGraph;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectInput;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.framework.commons.serialization.SerializationToken;
-import br.com.wdc.shopping.domain.criteria.PurchaseItemCriteria;
-import br.com.wdc.shopping.domain.model.Product;
-import br.com.wdc.shopping.domain.model.Purchase;
-import br.com.wdc.shopping.domain.model.PurchaseItem;
+import br.com.wdc.framework.domain.codec.ModelCodec;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
+import br.com.wdc.shopping.domain.product.Product;
+import br.com.wdc.shopping.domain.product.ProductModelCodec;
+import br.com.wdc.shopping.domain.purchase.Purchase;
+import br.com.wdc.shopping.domain.purchase.PurchaseModelCodec;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItem;
 
 public class PurchaseItemModelCodec implements ModelCodec<PurchaseItem, PurchaseItemCriteria> {
 

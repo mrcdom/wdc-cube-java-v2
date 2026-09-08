@@ -11,7 +11,7 @@ import org.junit.Test;
 import org.junit.rules.ExternalResource;
 
 import br.com.wdc.framework.domain.exception.BusinessException;
-import br.com.wdc.shopping.domain.model.Product;
+import br.com.wdc.shopping.domain.product.Product;
 import br.com.wdc.shopping.persistence.client.RestTransactionService;
 import br.com.wdc.shopping.test.util.ResetDatabaseRule;
 import br.com.wdc.shopping.test.util.TestEnvironment;
