@@ -1,7 +1,5 @@
 package br.com.wdc.shopping.domain.purchaseitem;
 
-import br.com.wdc.shopping.domain.purchaseitem.PurchaseItem;
-
 public class PurchaseItemCriteria {
 
     // :: Projection

@@ -13,13 +13,12 @@ public interface UserRepository extends Repository<User, UserCriteria, Long> {
     default User newProjection() {
         var pv = ProjectionValues.INSTANCE;
 
-        User prj = new User()
+        return new User()
                 .withId(pv.i64)
                 .withUserName(pv.str)
                 .withPassword(pv.str)
                 .withName(pv.str)
                 .withRoles(pv.str);
-        return prj;
     }
 
 }

@@ -11,7 +11,6 @@ import br.com.wdc.shopping.domain.product.Product;
 import br.com.wdc.shopping.domain.product.ProductModelCodec;
 import br.com.wdc.shopping.domain.purchase.Purchase;
 import br.com.wdc.shopping.domain.purchase.PurchaseModelCodec;
-import br.com.wdc.shopping.domain.purchaseitem.PurchaseItem;
 
 public class PurchaseItemModelCodec implements ModelCodec<PurchaseItem, PurchaseItemCriteria> {
 
