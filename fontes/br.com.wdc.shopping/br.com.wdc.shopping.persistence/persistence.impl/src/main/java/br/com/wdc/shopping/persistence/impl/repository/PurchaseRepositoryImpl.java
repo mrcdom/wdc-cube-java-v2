@@ -43,7 +43,8 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
                     cq.dsl() .where()
                         .and(enUser.ID.eq(enPurchase.USERID))
                         .and(UserRepositoryImpl.applyConditions(cq));
-                });
+                },
+                key -> key.addI64("id", t -> t.USERID));
                 
                 qb.addBeanListField("items", p -> p.items(), (p, v) -> p.withItems(v), PurchaseItemRepositoryImpl.QUERY, cq -> {
                     var enPurchase = cq.getSuperTable();

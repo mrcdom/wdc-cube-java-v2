@@ -1,5 +1,6 @@
 package br.com.wdc.framework.jooq;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -49,6 +50,16 @@ public interface JsonQuery<B, T extends Table<?>> {
 
     /** Gera o campo de projeção JSON para a tabela. */
     Field<String> projection(QueryContext ctx, T jooqTable, B prjBean);
+
+    /**
+     * Se a projeção pede algum campo fora da lista informada.
+     *
+     * <p>
+     * Serve ao atalho de chave estrangeira: quando a projeção da associação não pede nada além da chave, o valor já
+     * está na coluna da linha corrente, e o subselect ao outro lado é dispensável.
+     * </p>
+     */
+    boolean projectsBeyond(B prjBean, Collection<String> fields);
 
     /** Parse de JSON string para bean. */
     B parseJson(String json);

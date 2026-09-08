@@ -40,7 +40,8 @@ public class PurchaseItemRepositoryImpl extends BaseRepositoryImpl  implements P
             		cq.dsl().where()
             			.and(enPurchase.ID.eq(enPurchaseItem.PURCHASEID))
             			.and(PurchaseRepositoryImpl.applyConditions(cq));
-            	})
+            	},
+            	key -> key.addI64("id", t -> t.PURCHASEID))
             	.addBeanField("product", pi -> pi.product(), (pi, v) -> pi.withProduct(v), ProductRepositoryImpl.QUERY, cq -> {
             		var enPurchaseItem = cq.getSuperTable();
             		var enProduct = cq.getChildTable();
@@ -48,7 +49,8 @@ public class PurchaseItemRepositoryImpl extends BaseRepositoryImpl  implements P
             		cq.dsl().where()
             			.and(enProduct.ID.eq(enPurchaseItem.PRODUCTID))
             			.and(ProductRepositoryImpl.applyConditions(cq));
-            	});
+            	},
+            	key -> key.addI64("id", t -> t.PRODUCTID));
             })
             .build();
     // @frmatter:on

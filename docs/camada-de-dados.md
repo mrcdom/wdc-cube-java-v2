@@ -86,6 +86,30 @@ graph LR
 
 O módulo `domain` é **puramente conceitual**. Não conhece banco de dados, nem HTTP, nem qualquer framework de persistência. Apenas define o que existe no sistema.
 
+### Associação projetada só pela chave não gera subselect
+
+Uma relação 1:1 declarada com `addBeanField` normalmente vira um subselect correlacionado. Mas a projeção mais comum traz a associação **apenas para carregar o id** — e esse id já está na linha, na coluna da chave estrangeira. Buscá-lo do outro lado é uma consulta para descobrir o que já se sabe.
+
+Declarando a chave na relação, o framework monta o objeto a partir da própria linha:
+
+```java
+.addBeanField("product", pi -> pi.product(), (pi, v) -> pi.withProduct(v), ProductRepositoryImpl.QUERY,
+        cq -> cq.dsl().where().and(cq.getChildTable().ID.eq(cq.getSuperTable().PRODUCTID)),
+        key -> key.addI64("id", t -> t.PRODUCTID))
+```
+
+Os nomes declarados em `key` são os do **JSON do filho** (`"id"`), e as colunas são as **desta** tabela (`PRODUCTID`) — é assim que a leitura do outro lado reconhece o objeto.
+
+O atalho é condicional: `JsonQuery.projectsBeyond(...)` pergunta se a projeção da associação pede algo além da chave. Se pedir, a consulta sai como antes. Com `PurchaseItem.newProjection()`, que projeta `purchase` e `product` só com id, os dois subselects por linha desaparecem:
+
+```sql
+-- antes: dois subselects correlacionados por linha
+KEY 'product' VALUE (select ... from "EN_PRODUCT" "p2" where "p2"."ID" = "pi1"."PRODUCTID")
+
+-- agora: a chave sai da própria linha
+KEY 'product' VALUE JSON_OBJECT(KEY 'id' VALUE "pi1"."PRODUCTID")
+```
+
 ### Organização: um pacote por entidade
 
 Os pacotes seguem as **entidades**, não os tipos de classe. Cada entidade reúne num único pacote tudo o que diz respeito a ela — modelo, critério de consulta, codec de serialização e contrato de repositório:

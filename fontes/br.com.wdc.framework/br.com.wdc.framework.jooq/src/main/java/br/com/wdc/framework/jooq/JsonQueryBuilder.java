@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -109,6 +111,15 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
     private Consumer<B> fillProjBean;
     private FieldProjectionCallback<B, T> fieldPrjList;
     private Map<String, FieldSetterCallback<B>> fieldSetterMap;
+    /**
+     * Como perguntar, a um bean de projeção, se cada campo foi pedido.
+     *
+     * <p>
+     * Existe para o atalho de chave estrangeira: é por aqui que {@code projectsBeyond} descobre se a projeção da
+     * associação pede algo além da chave. Cobre todo campo registrado — escalar ou relação.
+     * </p>
+     */
+    private final Map<String, Function<B, Object>> fieldPresenceMap = new LinkedHashMap<>();
     private Consumer<JsonQueryBuilder<B, T>> lazyInit; // guardado por lazyLock durante a inicialização
     private final ReentrantLock lazyLock = new ReentrantLock();
     private volatile boolean lazyDone = false;
@@ -166,6 +177,8 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
 
         this.fillProjBean = this.fillProjBean.andThen(bean -> setter.accept(bean, 0L));
 
+        this.fieldPresenceMap.put(fn, getter::apply);
+
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx0, bean, table) -> {
             if (getter.apply(bean) != null) {
                 fields.add(new JsonFieldEntry(fn, jooqField.apply(table), JsonFieldType.NUMBER));
@@ -187,6 +200,8 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
             BiConsumer<B, Integer> setter, Function<T, Field<? extends Number>> jooqField) {
 
         this.fillProjBean = this.fillProjBean.andThen(bean -> setter.accept(bean, 0));
+
+        this.fieldPresenceMap.put(fn, getter::apply);
 
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx0, bean, table) -> {
             if (getter.apply(bean) != null) {
@@ -225,6 +240,8 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
 
         this.fillProjBean = this.fillProjBean.andThen(bean -> setter.accept(bean, sentinel));
 
+        this.fieldPresenceMap.put(fn, getter::apply);
+
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx0, bean, table) -> {
             if (getter.apply(bean) != null) {
                 fields.add(new JsonFieldEntry(fn, jooqField.apply(table), JsonFieldType.STRING));
@@ -246,6 +263,8 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
             BiConsumer<B, String> setter, Function<T, Field<String>> jooqField) {
 
         this.fillProjBean = this.fillProjBean.andThen(bean -> setter.accept(bean, ""));
+
+        this.fieldPresenceMap.put(fn, getter::apply);
 
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx0, bean, table) -> {
             if (getter.apply(bean) != null) {
@@ -269,6 +288,8 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
 
         this.fillProjBean = this.fillProjBean.andThen(bean -> setter.accept(bean, Boolean.FALSE));
 
+        this.fieldPresenceMap.put(fn, getter::apply);
+
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx0, bean, table) -> {
             if (getter.apply(bean) != null) {
                 fields.add(new JsonFieldEntry(fn, jooqField.apply(table), JsonFieldType.BOOLEAN));
@@ -290,6 +311,8 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
             BiConsumer<B, OffsetDateTime> setter, Function<T, Field<OffsetDateTime>> jooqField) {
 
         this.fillProjBean = this.fillProjBean.andThen(bean -> setter.accept(bean, OffsetDateTime.MIN));
+
+        this.fieldPresenceMap.put(fn, getter::apply);
 
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx0, bean, table) -> {
             if (getter.apply(bean) != null) {
@@ -319,6 +342,8 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
             BiConsumer<B, OffsetDateTime> setter, Function<T, Field<java.time.LocalDateTime>> jooqField) {
 
         this.fillProjBean = this.fillProjBean.andThen(bean -> setter.accept(bean, OffsetDateTime.MIN));
+
+        this.fieldPresenceMap.put(fn, getter::apply);
 
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx0, bean, table) -> {
             if (getter.apply(bean) != null) {
@@ -352,6 +377,8 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
 
         this.fillProjBean = this.fillProjBean.andThen(bean -> setter.accept(bean, 0.0));
 
+        this.fieldPresenceMap.put(fn, getter::apply);
+
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx0, bean, table) -> {
             if (getter.apply(bean) != null) {
                 fields.add(new JsonFieldEntry(fn, jooqField.apply(table), JsonFieldType.NUMBER));
@@ -374,6 +401,8 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
 
         this.fillProjBean = this.fillProjBean.andThen(bean -> setter.accept(bean, java.math.BigDecimal.ZERO));
 
+        this.fieldPresenceMap.put(fn, getter::apply);
+
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx0, bean, table) -> {
             if (getter.apply(bean) != null) {
                 fields.add(new JsonFieldEntry(fn, jooqField.apply(table), JsonFieldType.NUMBER));
@@ -395,6 +424,8 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
             BiConsumer<B, byte[]> setter, Function<T, Field<byte[]>> jooqField) {
 
         this.fillProjBean = this.fillProjBean.andThen(bean -> setter.accept(bean, new byte[0]));
+
+        this.fieldPresenceMap.put(fn, getter::apply);
 
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx0, bean, table) -> {
             if (getter.apply(bean) != null) {
@@ -459,6 +490,8 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
             JsonQuery<C, U> childQuery,
             Consumer<JsonChildQueryBuilder<T, U>> childWhereClause) {
 
+        this.fieldPresenceMap.put(fn, getter::apply);
+
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx, bean, table) -> {
             var childPrjBeanSet = getter.apply(bean);
             if (childPrjBeanSet == null || childPrjBeanSet.isEmpty()) {
@@ -511,6 +544,8 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
             BiConsumer<B, List<C>> setter,
             JsonQuery<C, U> childQuery,
             Consumer<JsonChildQueryBuilder<T, U>> childWhereClause) {
+
+        this.fieldPresenceMap.put(fn, getter::apply);
 
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx, bean, table) -> {
             var childPrjBeanList = getter.apply(bean);
@@ -565,9 +600,55 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
             JsonQuery<C, U> childQuery,
             Consumer<JsonChildQueryBuilder<T, U>> childWhereClause) {
 
+        return addBeanField(fn, getter, setter, childQuery, childWhereClause, null);
+    }
+
+    /**
+     * Idem, declarando <b>qual coluna desta tabela guarda a chave</b> da entidade associada.
+     *
+     * <p>
+     * Com a chave declarada, a projeção que não pede nada além dela é montada a partir da própria linha, e o
+     * subselect não acontece — é o caso corrente de {@code newProjection()}, que traz a associação só para carregar
+     * o id. Sem a chave, ou quando a projeção pede qualquer outro campo, a relação é resolvida como antes.
+     * </p>
+     *
+     * <p>
+     * <b>Os nomes declarados na chave são os do JSON do filho</b>, e não os desta tabela: é assim que a leitura do
+     * outro lado reconhece o objeto que sai daqui.
+     * </p>
+     *
+     * @param key declara a correspondência campo-do-filho → coluna-desta-tabela; {@code null} desliga o atalho
+     */
+    public <C, U extends Table<?>> JsonQueryBuilder<B, T> addBeanField(String fn,
+            Function<B, C> getter,
+            BiConsumer<B, C> setter,
+            JsonQuery<C, U> childQuery,
+            Consumer<JsonChildQueryBuilder<T, U>> childWhereClause,
+            Consumer<RelationKey<T>> key) {
+
+        this.fieldPresenceMap.put(fn, getter::apply);
+
+        final RelationKey<T> relationKey;
+        if (key == null) {
+            relationKey = null;
+        } else {
+            relationKey = new RelationKey<>();
+            key.accept(relationKey);
+        }
+
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx, bean, table) -> {
             var childPrjBean = getter.apply(bean);
             if (childPrjBean == null) {
+                return;
+            }
+
+            // A chave já está nesta linha: se a projeção do associado não pede mais nada, montá-la aqui evita um
+            // subselect que só redescobriria a coluna da chave estrangeira.
+            if (relationKey != null && !relationKey.isEmpty()
+                    && !childQuery.projectsBeyond(childPrjBean, relationKey.names())) {
+                var dialect = JsonDialect.of(ctx.dsl().dialect());
+                fields.add(new JsonFieldEntry(fn,
+                        dialect.jsonObject(relationKey.entries(table)), JsonFieldType.RAW_JSON));
                 return;
             }
 
@@ -663,6 +744,20 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
                         prjBean != null ? prjBean : this.newProjectionBean(), jooqTable);
                 var dialect = JsonDialect.of(ctx.dsl().dialect());
                 return dialect.jsonObject(entries);
+            }
+
+            @Override
+            public boolean projectsBeyond(B prjBean, Collection<String> fields) {
+                me.runLazyInit();
+                if (prjBean == null) {
+                    return false;
+                }
+                for (var e : me.fieldPresenceMap.entrySet()) {
+                    if (!fields.contains(e.getKey()) && e.getValue().apply(prjBean) != null) {
+                        return true;
+                    }
+                }
+                return false;
             }
 
             @Override
