@@ -33,10 +33,10 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
             .setBeanFactory(Purchase::new)
             .setTableFactory(EN_PURCHASE::as)
             .setDSLContextSupplier(PurchaseRepositoryImpl::dsl)
-            .addI64("id", p -> p.id, (p, v) -> p.id = v, t -> t.ID)
-            .addLdt("buyDate", p -> p.buyDate, (p, v) -> p.buyDate = v, t -> t.BUYDATE)
+            .addI64("id", p -> p.id(), (p, v) -> p.withId(v), t -> t.ID)
+            .addLdt("buyDate", p -> p.buyDate(), (p, v) -> p.withBuyDate(v), t -> t.BUYDATE)
             .lazy(qb -> {
-                qb.addBeanField("user", p -> p.user, (p, v) -> p.user = v, UserRepositoryImpl.QUERY, cq -> {
+                qb.addBeanField("user", p -> p.user(), (p, v) -> p.withUser(v), UserRepositoryImpl.QUERY, cq -> {
                     var enPurchase = cq.getSuperTable();
                     var enUser = cq.getChildTable();
 
@@ -45,7 +45,7 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
                         .and(UserRepositoryImpl.applyConditions(cq));
                 });
                 
-                qb.addBeanListField("items", p -> p.items, (p, v) -> p.items = v, PurchaseItemRepositoryImpl.QUERY, cq -> {
+                qb.addBeanListField("items", p -> p.items(), (p, v) -> p.withItems(v), PurchaseItemRepositoryImpl.QUERY, cq -> {
                     var enPurchase = cq.getSuperTable();
                     var enPurchaseItem = cq.getChildTable();
                     
@@ -76,26 +76,26 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
     public boolean insert(Purchase purchase) {
         var dsl = dsl();
 
-        if (purchase.id == null) {
-            purchase.id = dsl.nextval(SQ_PURCHASE);
+        if (purchase.id() == null) {
+            purchase.withId(dsl.nextval(SQ_PURCHASE));
         }
 
         var step = dsl.insertInto(EN_PURCHASE)
-                .set(EN_PURCHASE.ID, purchase.id);
+                .set(EN_PURCHASE.ID, purchase.id());
 
-        if (purchase.user != null && purchase.user.id != null) {
-            step.set(EN_PURCHASE.USERID, purchase.user.id);
+        if (purchase.user() != null && purchase.user().id() != null) {
+            step.set(EN_PURCHASE.USERID, purchase.user().id());
         }
-        if (purchase.buyDate != null) {
-            step.set(EN_PURCHASE.BUYDATE, purchase.buyDate.toLocalDateTime());
+        if (purchase.buyDate() != null) {
+            step.set(EN_PURCHASE.BUYDATE, purchase.buyDate().toLocalDateTime());
         }
 
         var inserted = step.execute() > 0;
 
         // Insert items if present
-        if (inserted && purchase.items != null && !purchase.items.isEmpty()) {
-            for (var item : purchase.items) {
-                item.purchase = purchase;
+        if (inserted && purchase.items() != null && !purchase.items().isEmpty()) {
+            for (var item : purchase.items()) {
+                item.withPurchase(purchase);
                 insertItem(dsl, item);
             }
         }
@@ -104,24 +104,24 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
     }
 
     private void insertItem(org.jooq.DSLContext dsl, PurchaseItem item) {
-        if (item.id == null) {
-            item.id = dsl.nextval(SQ_PURCHASEITEM);
+        if (item.id() == null) {
+            item.withId(dsl.nextval(SQ_PURCHASEITEM));
         }
 
         var step = dsl.insertInto(EN_PURCHASEITEM)
-                .set(EN_PURCHASEITEM.ID, item.id);
+                .set(EN_PURCHASEITEM.ID, item.id());
 
-        if (item.purchase != null && item.purchase.id != null) {
-            step.set(EN_PURCHASEITEM.PURCHASEID, item.purchase.id);
+        if (item.purchase() != null && item.purchase().id() != null) {
+            step.set(EN_PURCHASEITEM.PURCHASEID, item.purchase().id());
         }
-        if (item.product != null && item.product.id != null) {
-            step.set(EN_PURCHASEITEM.PRODUCTID, item.product.id);
+        if (item.product() != null && item.product().id() != null) {
+            step.set(EN_PURCHASEITEM.PRODUCTID, item.product().id());
         }
-        if (item.amount != null) {
-            step.set(EN_PURCHASEITEM.AMOUNT, item.amount);
+        if (item.amount() != null) {
+            step.set(EN_PURCHASEITEM.AMOUNT, item.amount());
         }
-        if (item.price != null) {
-            step.set(EN_PURCHASEITEM.PRICE, BigDecimal.valueOf(item.price));
+        if (item.price() != null) {
+            step.set(EN_PURCHASEITEM.PRICE, BigDecimal.valueOf(item.price()));
         }
 
         step.execute();
@@ -133,7 +133,7 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
             throw new AssertionError("newBean is required");
         }
 
-        if (newBean.id == null) {
+        if (newBean.id() == null) {
             throw new AssertionError("Missing primary key");
         }
 
@@ -142,7 +142,7 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
         }
 
         var dsl = dsl();
-        var step = dsl.update(EN_PURCHASE).set(EN_PURCHASE.ID, newBean.id);
+        var step = dsl.update(EN_PURCHASE).set(EN_PURCHASE.ID, newBean.id());
 
         boolean hasChanges = false;
 
@@ -150,8 +150,8 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
             step.set(EN_PURCHASE.USERID, newBean.userId());
             hasChanges = true;
         }
-        if (changed(newBean, oldBean, projection, p -> p.buyDate)) {
-            step.set(EN_PURCHASE.BUYDATE, newBean.buyDate != null ? newBean.buyDate.toLocalDateTime() : null);
+        if (changed(newBean, oldBean, projection, p -> p.buyDate())) {
+            step.set(EN_PURCHASE.BUYDATE, newBean.buyDate() != null ? newBean.buyDate().toLocalDateTime() : null);
             hasChanges = true;
         }
 
@@ -159,7 +159,7 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
             return false;
         }
 
-        return step.where(EN_PURCHASE.ID.eq(newBean.id)).execute() > 0;
+        return step.where(EN_PURCHASE.ID.eq(newBean.id())).execute() > 0;
     }
 
     @Override
@@ -221,8 +221,8 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
     @Override
     public Purchase fetchById(Long purchaseId, Purchase projection) {
         var prjBean = projection != null ? projection : QUERY.newProjectionBean();
-        if (prjBean.id == null) {
-            prjBean.id = 0L;
+        if (prjBean.id() == null) {
+            prjBean.withId(0L);
         }
 
         return QUERY.fetchOne(prjBean, (t, q) -> q.where(t.ID.eq(purchaseId)));
@@ -233,8 +233,8 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
     private Purchase projectionFrom(PurchaseCriteria criteria) {
         if (criteria != null && criteria.projection() != null) {
             var prj = criteria.projection();
-            if (prj.id == null) {
-                prj.id = 0L;
+            if (prj.id() == null) {
+                prj.withId(0L);
             }
             return prj;
         }

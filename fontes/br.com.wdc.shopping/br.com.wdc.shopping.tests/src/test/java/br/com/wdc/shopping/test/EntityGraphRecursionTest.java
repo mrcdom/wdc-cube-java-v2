@@ -31,23 +31,23 @@ public class EntityGraphRecursionTest {
 	@Test
 	public void writeEntity_withCircularReference_doesNotStackOverflow() {
 		// Monta grafo cíclico: Purchase → items[0] → purchase → (mesma instância)
-		var purchase = new Purchase();
-		purchase.id = 1L;
-		purchase.buyDate = OffsetDateTime.now();
-		purchase.user = new User();
-		purchase.user.id = 10L;
-		purchase.user.userName = "admin";
+		var purchase = new Purchase()
+				.withId(1L)
+				.withBuyDate(OffsetDateTime.now())
+				.withUser(new User()
+		                .withId(10L)
+		                .withUserName("admin"));
 
-		var item = new PurchaseItem();
-		item.id = 100L;
-		item.amount = 2;
-		item.price = 19.99;
-		item.product = new Product();
-		item.product.id = 50L;
-		item.product.name = "Widget";
-		item.purchase = purchase; // back-reference cíclica!
+		var item = new PurchaseItem()
+				.withId(100L)
+				.withAmount(2)
+				.withPrice(19.99)
+				.withProduct(new Product()
+		                .withId(50L)
+		                .withName("Widget"));
+		item.withPurchase(purchase); // back-reference cíclica!
 
-		purchase.items = List.of(item);
+		purchase.withItems(List.of(item));
 
 		// writeEntity com EntityGraph NÃO deve entrar em loop infinito
 		var writer = new JsonStreamWriter();
@@ -65,15 +65,15 @@ public class EntityGraphRecursionTest {
 	public void writeEntity_withCircularReference_writesOnlyKeyForDuplicate() {
 		// PurchaseItem tem referência ao Purchase pai — ao serializar o item isoladamente,
 		// se purchase já foi rastreada, deve escrever apenas o id como stub
-		var purchase = new Purchase();
-		purchase.id = 42L;
-		purchase.buyDate = OffsetDateTime.now();
+		var purchase = new Purchase()
+				.withId(42L)
+				.withBuyDate(OffsetDateTime.now());
 
-		var item = new PurchaseItem();
-		item.id = 7L;
-		item.amount = 1;
-		item.price = 9.50;
-		item.purchase = purchase;
+		var item = new PurchaseItem()
+				.withId(7L)
+				.withAmount(1)
+				.withPrice(9.50)
+				.withPurchase(purchase);
 
 		// Simula que Purchase já foi rastreada antes
 		var graph = new EntityGraph();
@@ -91,12 +91,12 @@ public class EntityGraphRecursionTest {
 
 	@Test
 	public void writeEntity_sameEntityTwice_secondTimeWritesOnlyKey() {
-		var purchase = new Purchase();
-		purchase.id = 99L;
-		purchase.buyDate = OffsetDateTime.now();
-		purchase.user = new User();
-		purchase.user.id = 5L;
-		purchase.user.userName = "test";
+		var purchase = new Purchase()
+				.withId(99L)
+				.withBuyDate(OffsetDateTime.now())
+				.withUser(new User()
+		                .withId(5L)
+		                .withUserName("test"));
 
 		var graph = new EntityGraph();
 
@@ -128,20 +128,20 @@ public class EntityGraphRecursionTest {
 		var purchase = purchaseCodec.readEntity(reader);
 
 		assertNotNull(purchase);
-		assertEquals(Long.valueOf(1L), purchase.id);
-		assertNotNull(purchase.items);
-		assertEquals(2, purchase.items.size());
+		assertEquals(Long.valueOf(1L), purchase.id());
+		assertNotNull(purchase.items());
+		assertEquals(2, purchase.items().size());
 
 		// Cada item deve ter um stub de back-reference (purchase com apenas o id)
-		for (var item : purchase.items) {
-			assertNotNull("Item deve ter back-reference purchase", item.purchase);
-			assertEquals("Back-reference deve ter o id correto", Long.valueOf(1L), item.purchase.id);
+		for (var item : purchase.items()) {
+			assertNotNull("Item deve ter back-reference purchase", item.purchase());
+			assertEquals("Back-reference deve ter o id correto", Long.valueOf(1L), item.purchase().id());
 			// A instância NÃO deve ser o mesmo objeto (evita ciclo)
-			assertNotSame("Back-reference NÃO deve ser a mesma instância do parent", purchase, item.purchase);
+			assertNotSame("Back-reference NÃO deve ser a mesma instância do parent", purchase, item.purchase());
 			// Stub deve ter apenas o id (sem outros campos)
-			assertNull("Stub não deve ter buyDate", item.purchase.buyDate);
-			assertNull("Stub não deve ter user", item.purchase.user);
-			assertNull("Stub não deve ter items", item.purchase.items);
+			assertNull("Stub não deve ter buyDate", item.purchase().buyDate());
+			assertNull("Stub não deve ter user", item.purchase().user());
+			assertNull("Stub não deve ter items", item.purchase().items());
 		}
 	}
 
@@ -155,11 +155,11 @@ public class EntityGraphRecursionTest {
 		var purchase = purchaseCodec.readEntity(reader);
 
 		assertNotNull(purchase);
-		assertNull(purchase.id);
-		assertNotNull(purchase.items);
-		assertEquals(1, purchase.items.size());
+		assertNull(purchase.id());
+		assertNotNull(purchase.items());
+		assertEquals(1, purchase.items().size());
 		// Sem id no parent, não há como criar stub
-		assertNull("Sem id no parent, back-reference deve ser null", purchase.items.get(0).purchase);
+		assertNull("Sem id no parent, back-reference deve ser null", purchase.items().get(0).purchase());
 	}
 
 	// ── EntityGraph: rastreamento por identidade de instância ──
@@ -167,8 +167,8 @@ public class EntityGraphRecursionTest {
 	@Test
 	public void entityGraph_sameInstanceTwice_returnsFalseOnSecond() {
 		var graph = new EntityGraph();
-		var purchase = new Purchase();
-		purchase.id = 1L;
+		var purchase = new Purchase()
+				.withId(1L);
 
 		assertTrue("Primeiro track deve retornar true", graph.track(purchase));
 		assertFalse("Segundo track (mesma instância) deve retornar false", graph.track(purchase));
@@ -177,10 +177,10 @@ public class EntityGraphRecursionTest {
 	@Test
 	public void entityGraph_differentEntitiesSameKey_areIndependent() {
 		var graph = new EntityGraph();
-		var purchase = new Purchase();
-		purchase.id = 1L;
+		var purchase = new Purchase()
+				.withId(1L);
 		var product = new Product();
-		product.id = 1L; // mesmo valor de key, mas instância diferente
+		product.withId(1L); // mesmo valor de key, mas instância diferente
 
 		assertTrue("Purchase deve ser rastreada", graph.track(purchase));
 		assertTrue("Product (instância diferente) deve ser independente", graph.track(product));
@@ -197,10 +197,10 @@ public class EntityGraphRecursionTest {
 	@Test
 	public void entityGraph_differentInstancesSameKey_areNotDuplicate() {
 		var graph = new EntityGraph();
-		var p1 = new Purchase();
-		p1.id = 42L;
+		var p1 = new Purchase()
+				.withId(42L);
 		var p2 = new Purchase();
-		p2.id = 42L; // mesma chave, mas instância DIFERENTE — legítimo na projeção
+		p2.withId(42L); // mesma chave, mas instância DIFERENTE — legítimo na projeção
 
 		assertTrue(graph.track(p1));
 		assertTrue("Instância diferente com mesma chave NÃO é duplicata", graph.track(p2));

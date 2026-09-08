@@ -77,18 +77,18 @@ public class PurchasesPanelService {
     private Purchase purchaseProjection() {
         var pv = ProjectionValues.INSTANCE;
 
-        var prdPrj = new Product();
-        prdPrj.name = pv.str;
+        var prdPrj = new Product()
+                .withName(pv.str);
 
-        var itemPrj = new PurchaseItem();
-        itemPrj.price = pv.f64;
-        itemPrj.amount = pv.i32;
-        itemPrj.product = prdPrj;
+        var itemPrj = new PurchaseItem()
+                .withPrice(pv.f64)
+                .withAmount(pv.i32)
+                .withProduct(prdPrj);
 
-        var prj = new Purchase();
-        prj.id = pv.i64;
-        prj.buyDate = pv.offsetDateTime;
-        prj.items = Collections.singletonList(itemPrj);
+        var prj = new Purchase()
+                .withId(pv.i64)
+                .withBuyDate(pv.offsetDateTime)
+                .withItems(Collections.singletonList(itemPrj));
 
         return prj;
     }
@@ -101,20 +101,20 @@ public class PurchasesPanelService {
         var pv = ProjectionValues.INSTANCE;
 
         var tgt = new PurchaseInfo();
-        tgt.id = Optional.ofNullable(src.id).orElse(-1L);
+        tgt.id = Optional.ofNullable(src.id()).orElse(-1L);
 
-        var buyDate = CoerceUtils.asDate(src.buyDate);
+        var buyDate = CoerceUtils.asDate(src.buyDate());
         tgt.date = Optional.ofNullable(buyDate).orElse(pv.date).getTime();
         tgt.items = new ArrayList<>();
 
         var total = 0.0;
-        for (var item : Optional.ofNullable(src.items).orElse(Collections.emptyList())) {
-            var price = Optional.ofNullable(item.price).orElse(0.0);
-            var amount = Optional.ofNullable(item.amount).orElse(0);
+        for (var item : Optional.ofNullable(src.items()).orElse(Collections.emptyList())) {
+            var price = Optional.ofNullable(item.price()).orElse(0.0);
+            var amount = Optional.ofNullable(item.amount()).orElse(0);
             total += price * amount;
 
-            if (item.product != null && StringUtils.isNotBlank(item.product.name)) {
-                tgt.items.add(item.product.name);
+            if (item.product() != null && StringUtils.isNotBlank(item.product().name())) {
+                tgt.items.add(item.product().name());
             }
         }
 

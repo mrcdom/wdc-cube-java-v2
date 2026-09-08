@@ -86,7 +86,7 @@ public class UserApiController {
         var writer = new JsonStreamWriter();
         writer.beginObject();
         writer.name("success").value(success);
-        writer.name("id").value(user.id != null ? user.id : -1);
+        writer.name("id").value(user.id() != null ? user.id() : -1);
         writer.endObject();
         json(ctx, writer);
     }
@@ -228,7 +228,7 @@ public class UserApiController {
         writer.beginObject();
         writer.name("items").beginArray();
         for (var item : items) {
-            item.password = null;
+            item.withPassword(null);
             codec.writeEntity(writer, item);
         }
         writer.endArray();
@@ -280,7 +280,7 @@ public class UserApiController {
         writer.beginObject();
         writer.name("items").beginArray();
         for (var item : page.items()) {
-            item.password = null;
+            item.withPassword(null);
             codec.writeEntity(writer, item);
         }
         writer.endArray();
@@ -319,7 +319,7 @@ public class UserApiController {
             ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
             return;
         }
-        result.password = null;
+        result.withPassword(null);
         var writer = new JsonStreamWriter();
         codec.writeEntity(writer, result);
         json(ctx, writer);
@@ -362,13 +362,13 @@ public class UserApiController {
             return;
         }
         if (projection != null)
-            projection.password = null;
+            projection.withPassword(null);
         var result = repo().fetchById(id, projection);
         if (result == null) {
             ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
             return;
         }
-        result.password = null;
+        result.withPassword(null);
         var writer = new JsonStreamWriter();
         codec.writeEntity(writer, result);
         json(ctx, writer);
@@ -386,14 +386,14 @@ public class UserApiController {
         if (sc == null || user == null) {
             return;
         }
-        if (!sc.hasDataAll() && user.id != null && !user.id.equals(sc.userId())) {
+        if (!sc.hasDataAll() && user.id() != null && !user.id().equals(sc.userId())) {
             throw new AccessDeniedException("Cannot modify other user's data");
         }
     }
 
     private static void sanitizeProjection(UserCriteria criteria) {
         if (criteria.projection() != null) {
-            criteria.projection().password = null;
+            criteria.projection().withPassword(null);
         }
     }
 
@@ -420,9 +420,9 @@ public class UserApiController {
             return;
         }
         var sc = SecurityContext.CURRENT.get();
-        if (sc != null && user.password != null && !user.password.isBlank()) {
+        if (sc != null && user.password() != null && !user.password().isBlank()) {
             try {
-                user.password = rsaDecrypt(user.password, sc.privateKey());
+                user.withPassword(rsaDecrypt(user.password(), sc.privateKey()));
             } catch (Exception e) {
                 LOG.debug("Password not RSA-encrypted or decryption failed, using as-is");
             }

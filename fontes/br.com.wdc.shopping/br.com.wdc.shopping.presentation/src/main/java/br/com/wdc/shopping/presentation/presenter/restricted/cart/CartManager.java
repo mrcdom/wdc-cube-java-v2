@@ -142,24 +142,22 @@ public class CartManager {
     }
 
     private Long doPurchase(Long userId, List<CartItem> request) {
-        var purchase = new Purchase();
-        purchase.user = new User();
-        purchase.user.id = userId;
-        purchase.buyDate = OffsetDateTime.now();
+        var purchase = new Purchase()
+                .withUser(new User().withId(userId))
+                .withBuyDate(OffsetDateTime.now());
 
-        purchase.items = new ArrayList<>();
+        purchase.withItems(new ArrayList<>());
         for (var srcItem : request) {
             if (srcItem.quantity < 0) {
                 throw new InvalidCartItemException();
             }
 
-            var purchaseItem = new PurchaseItem();
-            purchaseItem.product = new Product();
-            purchaseItem.product.id = srcItem.id;
-            purchaseItem.price = srcItem.price;
-            purchaseItem.amount = srcItem.quantity;
+            var purchaseItem = new PurchaseItem()
+                    .withProduct(new Product().withId(srcItem.id));
+            purchaseItem.withPrice(srcItem.price)
+                    .withAmount(srcItem.quantity);
 
-            purchase.items.add(purchaseItem);
+            purchase.items().add(purchaseItem);
         }
 
         this.tx.required(tx -> {
@@ -168,7 +166,7 @@ public class CartManager {
             }
         });
 
-        return purchase.id;
+        return purchase.id();
     }
 
     public int getItemCount() {

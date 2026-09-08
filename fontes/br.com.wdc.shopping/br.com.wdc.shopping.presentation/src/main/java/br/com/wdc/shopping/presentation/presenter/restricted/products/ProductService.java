@@ -37,7 +37,7 @@ public class ProductService {
         var criteria = new ProductCriteria()
                 .withProjection(ProductInfo.projection());
 
-        criteria.projection().description = null;
+        criteria.projection().withDescription(null);
 
         return repo.fetch(criteria, 0, limit)
                 .stream().map(ProductInfo::create).toList();

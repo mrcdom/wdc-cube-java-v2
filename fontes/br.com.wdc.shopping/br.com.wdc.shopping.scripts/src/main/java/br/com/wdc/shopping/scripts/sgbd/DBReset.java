@@ -130,13 +130,13 @@ public class DBReset {
 	private static void addUser(long id, String userName, String password, String name, String roles) {
 		var userRepo = UserRepository.BEAN.get();
 		
-		var user = new User();
-		user.id = id;
-		user.userName = userName;
-		user.name = name;
-		user.roles = roles;
+		var user = new User()
+				.withId(id)
+				.withUserName(userName)
+				.withName(name)
+				.withRoles(roles);
 		if (StringUtils.isNotBlank(password)) {
-			user.password = new BigInteger(md5().digest(password.getBytes(StandardCharsets.UTF_8))).toString(36);
+			user.withPassword(new BigInteger(md5().digest(password.getBytes(StandardCharsets.UTF_8))).toString(36));
 		}
 		userRepo.insert(user);
 	}
@@ -144,17 +144,17 @@ public class DBReset {
 	private static void addProduct(long id, String name, double price, String description, String imageResource) {
 		var productRepo = ProductRepository.BEAN.get();
 		
-		var product = new Product();
-		product.id = id;
-		product.name = name;
-		product.price = price;
-		product.description = description;
+		var product = new Product()
+				.withId(id)
+				.withName(name)
+				.withPrice(price)
+				.withDescription(description);
 
 		if (imageResource != null) {
 			InputStream imageStream = DBReset.class.getResourceAsStream("/META-INF/" + imageResource);
 			if (imageStream != null) {
 				try (imageStream) {
-					product.image = IOUtils.toByteArray(imageStream);
+					product.withImage(IOUtils.toByteArray(imageStream));
 				} catch (IOException caught) {
 					throw ExceptionUtils.asRuntimeException(caught);
 				}
@@ -165,24 +165,22 @@ public class DBReset {
 	}
 
 	private static PurchaseItem newItem(long id, long productId, int amount, double price) {
-		var item = new PurchaseItem();
-		item.id = id;
-		item.product = new Product();
-		item.product.id = productId;
-		item.amount = amount;
-		item.price = price;
+		var item = new PurchaseItem()
+				.withId(id)
+				.withProduct(new Product().withId(productId));
+		item.withAmount(amount)
+				.withPrice(price);
 		return item;
 	}
 
 	private static void addPurchase(long id, long userId, OffsetDateTime buyDate, PurchaseItem... items) {
 		var purchaseRepo = PurchaseRepository.BEAN.get();
 		
-		var purchase = new Purchase();
-		purchase.id = id;
-		purchase.user = new User();
-		purchase.user.id = userId;
-		purchase.buyDate = buyDate;
-		purchase.items = List.of(items);
+		var purchase = new Purchase()
+				.withId(id)
+				.withUser(new User().withId(userId));
+		purchase.withBuyDate(buyDate)
+				.withItems(List.of(items));
 		purchaseRepo.insert(purchase);
 	}
 

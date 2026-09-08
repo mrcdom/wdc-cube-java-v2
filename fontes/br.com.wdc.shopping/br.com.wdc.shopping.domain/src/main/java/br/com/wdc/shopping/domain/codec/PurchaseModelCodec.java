@@ -32,20 +32,20 @@ public class PurchaseModelCodec implements ModelCodec<Purchase, PurchaseCriteria
 		if (!graph.track(entity)) {
 			// Entidade já serializada neste grafo — escreve apenas a chave
 			out.beginObject();
-			if (entity.id != null) out.name("id").value(entity.id);
+			if (entity.id() != null) out.name("id").value(entity.id());
 			out.endObject();
 			return;
 		}
 		out.beginObject();
-		if (entity.id != null) out.name("id").value(entity.id);
-		if (entity.buyDate != null) out.name("buyDate").value(entity.buyDate.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
-		if (entity.user != null) {
+		if (entity.id() != null) out.name("id").value(entity.id());
+		if (entity.buyDate() != null) out.name("buyDate").value(entity.buyDate().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+		if (entity.user() != null) {
 			out.name("user");
-			USER_CODEC.writeEntity(out, entity.user, graph);
+			USER_CODEC.writeEntity(out, entity.user(), graph);
 		}
-		if (entity.items != null) {
+		if (entity.items() != null) {
 			out.name("items").beginArray();
-			for (var item : entity.items) {
+			for (var item : entity.items()) {
 				writePurchaseItem(out, item, graph);
 			}
 			out.endArray();
@@ -56,15 +56,15 @@ public class PurchaseModelCodec implements ModelCodec<Purchase, PurchaseCriteria
 	@Override
 	public void writeEntityProjected(ExtensibleObjectOutput out, Purchase entity, Purchase projection) {
 		out.beginObject();
-		if (entity.id != null) out.name("id").value(entity.id);
-		if (projection.buyDate != null) {
+		if (entity.id() != null) out.name("id").value(entity.id());
+		if (projection.buyDate() != null) {
 			out.name("buyDate");
-			if (entity.buyDate != null) out.value(entity.buyDate.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)); else out.nullValue();
+			if (entity.buyDate() != null) out.value(entity.buyDate().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)); else out.nullValue();
 		}
-		if (projection.user != null) {
-			if (entity.user != null) {
+		if (projection.user() != null) {
+			if (entity.user() != null) {
 				out.name("user");
-				USER_CODEC.writeEntity(out, entity.user);
+				USER_CODEC.writeEntity(out, entity.user());
 			} else {
 				out.name("user").nullValue();
 			}
@@ -76,10 +76,9 @@ public class PurchaseModelCodec implements ModelCodec<Purchase, PurchaseCriteria
 	public Purchase computeProjection(Purchase newEntity, Purchase oldEntity) {
 		var pv = ProjectionValues.INSTANCE;
 		var projection = new Purchase();
-		if (!java.util.Objects.equals(newEntity.buyDate, oldEntity.buyDate)) projection.buyDate = pv.offsetDateTime;
+		if (!java.util.Objects.equals(newEntity.buyDate(), oldEntity.buyDate())) projection.withBuyDate(pv.offsetDateTime);
 		if (!java.util.Objects.equals(newEntity.userId(), oldEntity.userId())) {
-			projection.user = new User();
-			projection.user.id = pv.i64;
+			projection.withUser(new User().withId(pv.i64));
 		}
 		return projection;
 	}
@@ -90,18 +89,18 @@ public class PurchaseModelCodec implements ModelCodec<Purchase, PurchaseCriteria
 		in.beginObject();
 		while (in.hasNext()) {
 			switch (in.nextName()) {
-				case "id" -> purchase.id = InputCoerceUtils.asLong(in);
+				case "id" -> purchase.withId(InputCoerceUtils.asLong(in));
 				case "buyDate" -> {
 					var s = InputCoerceUtils.asString(in);
-					if (s != null) purchase.buyDate = OffsetDateTime.parse(s, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+					if (s != null) purchase.withBuyDate(OffsetDateTime.parse(s, DateTimeFormatter.ISO_OFFSET_DATE_TIME));
 				}
 				case "user" -> {
 					if (in.peek() == SerializationToken.NULL) { in.nextNull(); }
-					else purchase.user = USER_CODEC.readEntity(in);
+					else purchase.withUser(USER_CODEC.readEntity(in));
 				}
 				case "items" -> {
 					if (in.peek() == SerializationToken.NULL) { in.nextNull(); }
-					else purchase.items = readPurchaseItemList(in, purchase);
+					else purchase.withItems(readPurchaseItemList(in, purchase));
 				}
 				default -> in.skipValue();
 			}
@@ -118,17 +117,16 @@ public class PurchaseModelCodec implements ModelCodec<Purchase, PurchaseCriteria
 		in.beginObject();
 		while (in.hasNext()) {
 			switch (in.nextName()) {
-				case "id" -> { entity.id = InputCoerceUtils.asLong(in); projection.id = pv.i64; }
+				case "id" -> { entity.withId(InputCoerceUtils.asLong(in)); projection.withId(pv.i64); }
 				case "buyDate" -> {
 					var s = InputCoerceUtils.asString(in);
-					if (s != null) entity.buyDate = OffsetDateTime.parse(s, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-					projection.buyDate = pv.offsetDateTime;
+					if (s != null) entity.withBuyDate(OffsetDateTime.parse(s, DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+					projection.withBuyDate(pv.offsetDateTime);
 				}
 				case "user" -> {
 					if (in.peek() == SerializationToken.NULL) { in.nextNull(); }
-					else entity.user = USER_CODEC.readEntity(in);
-					projection.user = new User();
-					projection.user.id = pv.i64;
+					else entity.withUser(USER_CODEC.readEntity(in));
+					projection.withUser(new User().withId(pv.i64));
 				}
 				default -> in.skipValue();
 			}
@@ -165,7 +163,7 @@ public class PurchaseModelCodec implements ModelCodec<Purchase, PurchaseCriteria
 
 	@Override
 	public void setGeneratedId(Purchase entity, long id) {
-		entity.id = id;
+		entity.withId(id);
 	}
 
 	// ── PurchaseItem helpers ──
@@ -174,17 +172,17 @@ public class PurchaseModelCodec implements ModelCodec<Purchase, PurchaseCriteria
 		if (!graph.track(item)) {
 			// Entidade já serializada — escreve apenas a chave
 			out.beginObject();
-			if (item.id != null) out.name("id").value(item.id);
+			if (item.id() != null) out.name("id").value(item.id());
 			out.endObject();
 			return;
 		}
 		out.beginObject();
-		if (item.id != null) out.name("id").value(item.id);
-		if (item.amount != null) out.name("amount").value(item.amount.longValue());
-		if (item.price != null) out.name("price").value(item.price);
-		if (item.product != null) {
+		if (item.id() != null) out.name("id").value(item.id());
+		if (item.amount() != null) out.name("amount").value(item.amount().longValue());
+		if (item.price() != null) out.name("price").value(item.price());
+		if (item.product() != null) {
 			out.name("product");
-			new ProductModelCodec().writeEntity(out, item.product, graph);
+			new ProductModelCodec().writeEntity(out, item.product(), graph);
 		}
 		out.endObject();
 	}
@@ -192,20 +190,20 @@ public class PurchaseModelCodec implements ModelCodec<Purchase, PurchaseCriteria
 	private static PurchaseItem readPurchaseItem(ExtensibleObjectInput in, Purchase parent) {
 		var item = new PurchaseItem();
 		// Back-reference como stub (apenas chave) — evita referência cíclica no grafo
-		if (parent != null && parent.id != null) {
-			var stub = new Purchase();
-			stub.id = parent.id;
-			item.purchase = stub;
+		if (parent != null && parent.id() != null) {
+			var stub = new Purchase()
+					.withId(parent.id());
+			item.withPurchase(stub);
 		}
 		in.beginObject();
 		while (in.hasNext()) {
 			switch (in.nextName()) {
-				case "id" -> item.id = InputCoerceUtils.asLong(in);
-				case "amount" -> item.amount = InputCoerceUtils.asInteger(in);
-				case "price" -> item.price = InputCoerceUtils.asDouble(in);
+				case "id" -> item.withId(InputCoerceUtils.asLong(in));
+				case "amount" -> item.withAmount(InputCoerceUtils.asInteger(in));
+				case "price" -> item.withPrice(InputCoerceUtils.asDouble(in));
 				case "product" -> {
 					if (in.peek() == SerializationToken.NULL) { in.nextNull(); }
-					else item.product = new ProductModelCodec().readEntity(in);
+					else item.withProduct(new ProductModelCodec().readEntity(in));
 				}
 				default -> in.skipValue();
 			}

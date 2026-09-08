@@ -29,11 +29,11 @@ public class PurchaseItemRepositoryImpl extends BaseRepositoryImpl  implements P
             .setBeanFactory(PurchaseItem::new)
             .setTableFactory(EN_PURCHASEITEM::as)
             .setDSLContextSupplier(PurchaseItemRepositoryImpl::dsl)
-            .addI64("id", pi -> pi.id, (pi, v) -> pi.id = v, t -> t.ID)
-            .addI32("amount", pi -> pi.amount, (pi, v) -> pi.amount = v, t -> t.AMOUNT)
-            .addF64("price", pi -> pi.price, (pi, v) -> pi.price = v, t -> t.PRICE)
+            .addI64("id", pi -> pi.id(), (pi, v) -> pi.withId(v), t -> t.ID)
+            .addI32("amount", pi -> pi.amount(), (pi, v) -> pi.withAmount(v), t -> t.AMOUNT)
+            .addF64("price", pi -> pi.price(), (pi, v) -> pi.withPrice(v), t -> t.PRICE)
             .lazy(qb -> { qb
-            	.addBeanField("purchase", pi -> pi.purchase, (pi, v) -> pi.purchase = v, PurchaseRepositoryImpl.QUERY, cq -> {
+            	.addBeanField("purchase", pi -> pi.purchase(), (pi, v) -> pi.withPurchase(v), PurchaseRepositoryImpl.QUERY, cq -> {
             		var enPurchaseItem = cq.getSuperTable();
             		var enPurchase = cq.getChildTable();
             		
@@ -41,7 +41,7 @@ public class PurchaseItemRepositoryImpl extends BaseRepositoryImpl  implements P
             			.and(enPurchase.ID.eq(enPurchaseItem.PURCHASEID))
             			.and(PurchaseRepositoryImpl.applyConditions(cq));
             	})
-            	.addBeanField("product", pi -> pi.product, (pi, v) -> pi.product = v, ProductRepositoryImpl.QUERY, cq -> {
+            	.addBeanField("product", pi -> pi.product(), (pi, v) -> pi.withProduct(v), ProductRepositoryImpl.QUERY, cq -> {
             		var enPurchaseItem = cq.getSuperTable();
             		var enProduct = cq.getChildTable();
             		
@@ -72,24 +72,24 @@ public class PurchaseItemRepositoryImpl extends BaseRepositoryImpl  implements P
     public boolean insert(PurchaseItem item) {
         var dsl = dsl();
 
-        if (item.id == null) {
-            item.id = dsl.nextval(SQ_PURCHASEITEM);
+        if (item.id() == null) {
+            item.withId(dsl.nextval(SQ_PURCHASEITEM));
         }
 
         var step = dsl.insertInto(EN_PURCHASEITEM)
-                .set(EN_PURCHASEITEM.ID, item.id);
+                .set(EN_PURCHASEITEM.ID, item.id());
 
-        if (item.purchase != null && item.purchase.id != null) {
-            step.set(EN_PURCHASEITEM.PURCHASEID, item.purchase.id);
+        if (item.purchase() != null && item.purchase().id() != null) {
+            step.set(EN_PURCHASEITEM.PURCHASEID, item.purchase().id());
         }
-        if (item.product != null && item.product.id != null) {
-            step.set(EN_PURCHASEITEM.PRODUCTID, item.product.id);
+        if (item.product() != null && item.product().id() != null) {
+            step.set(EN_PURCHASEITEM.PRODUCTID, item.product().id());
         }
-        if (item.amount != null) {
-            step.set(EN_PURCHASEITEM.AMOUNT, item.amount);
+        if (item.amount() != null) {
+            step.set(EN_PURCHASEITEM.AMOUNT, item.amount());
         }
-        if (item.price != null) {
-            step.set(EN_PURCHASEITEM.PRICE, BigDecimal.valueOf(item.price));
+        if (item.price() != null) {
+            step.set(EN_PURCHASEITEM.PRICE, BigDecimal.valueOf(item.price()));
         }
 
         return step.execute() > 0;
@@ -101,7 +101,7 @@ public class PurchaseItemRepositoryImpl extends BaseRepositoryImpl  implements P
             throw new AssertionError("newBean is required");
         }
 
-        if (newBean.id == null) {
+        if (newBean.id() == null) {
             throw new AssertionError("Missing primary key");
         }
 
@@ -110,7 +110,7 @@ public class PurchaseItemRepositoryImpl extends BaseRepositoryImpl  implements P
         }
 
         var dsl = dsl();
-        var step = dsl.update(EN_PURCHASEITEM).set(EN_PURCHASEITEM.ID, newBean.id);
+        var step = dsl.update(EN_PURCHASEITEM).set(EN_PURCHASEITEM.ID, newBean.id());
 
         boolean hasChanges = false;
 
@@ -122,12 +122,12 @@ public class PurchaseItemRepositoryImpl extends BaseRepositoryImpl  implements P
             step.set(EN_PURCHASEITEM.PRODUCTID, newBean.productId());
             hasChanges = true;
         }
-        if (changed(newBean, oldBean, projection, pi -> pi.amount)) {
-            step.set(EN_PURCHASEITEM.AMOUNT, newBean.amount);
+        if (changed(newBean, oldBean, projection, pi -> pi.amount())) {
+            step.set(EN_PURCHASEITEM.AMOUNT, newBean.amount());
             hasChanges = true;
         }
-        if (changed(newBean, oldBean, projection, pi -> pi.price)) {
-            step.set(EN_PURCHASEITEM.PRICE, newBean.price != null ? BigDecimal.valueOf(newBean.price) : null);
+        if (changed(newBean, oldBean, projection, pi -> pi.price())) {
+            step.set(EN_PURCHASEITEM.PRICE, newBean.price() != null ? BigDecimal.valueOf(newBean.price()) : null);
             hasChanges = true;
         }
 
@@ -135,7 +135,7 @@ public class PurchaseItemRepositoryImpl extends BaseRepositoryImpl  implements P
             return false;
         }
 
-        return step.where(EN_PURCHASEITEM.ID.eq(newBean.id)).execute() > 0;
+        return step.where(EN_PURCHASEITEM.ID.eq(newBean.id())).execute() > 0;
     }
 
     @Override
@@ -182,8 +182,8 @@ public class PurchaseItemRepositoryImpl extends BaseRepositoryImpl  implements P
     @Override
     public PurchaseItem fetchById(Long purchaseItemId, PurchaseItem projection) {
         var prjBean = projection != null ? projection : QUERY.newProjectionBean();
-        if (prjBean.id == null) {
-            prjBean.id = 0L;
+        if (prjBean.id() == null) {
+            prjBean.withId(0L);
         }
 
         return QUERY.fetchOne(prjBean, (t, q) -> q.where(t.ID.eq(purchaseItemId)));
@@ -194,8 +194,8 @@ public class PurchaseItemRepositoryImpl extends BaseRepositoryImpl  implements P
     private PurchaseItem projectionFrom(PurchaseItemCriteria criteria) {
         if (criteria != null && criteria.projection() != null) {
             var prj = criteria.projection();
-            if (prj.id == null) {
-                prj.id = 0L;
+            if (prj.id() == null) {
+                prj.withId(0L);
             }
             return prj;
         }

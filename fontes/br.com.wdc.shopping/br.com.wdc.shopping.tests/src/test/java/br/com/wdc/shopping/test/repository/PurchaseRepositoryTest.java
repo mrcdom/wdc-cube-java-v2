@@ -42,23 +42,22 @@ public class PurchaseRepositoryTest extends AbstractPurchaseRepositoryTest {
 	public void fetchWithProjectionList_filterItemsByCriteria() {
 		var pv = ProjectionValues.INSTANCE;
 
-		var itemPrj = new PurchaseItem();
-		itemPrj.id = pv.i64;
-		itemPrj.amount = pv.i32;
-		itemPrj.product = new Product();
-		itemPrj.product.id = pv.i64;
+		var itemPrj = new PurchaseItem()
+				.withId(pv.i64)
+				.withAmount(pv.i32)
+				.withProduct(new Product().withId(pv.i64));
 
 		var itemCriteria = new PurchaseItemCriteria()
 				.withProductId(DBReset.BOLA_WILSON_ID);
 
-		var projection = new Purchase();
-		projection.id = pv.i64;
-		projection.items = pv.singletonList(itemPrj, itemCriteria);
+		var projection = new Purchase()
+				.withId(pv.i64)
+				.withItems(pv.singletonList(itemPrj, itemCriteria));
 
 		var purchase = repo().fetchById(DBReset.ADMIN_SECOND_PURCHASE_ID, projection);
 		assertNotNull(purchase);
-		assertNotNull(purchase.items);
-		assertEquals(1, purchase.items.size());
-		assertEquals(DBReset.BOLA_WILSON_ID, purchase.items.get(0).product.id);
+		assertNotNull(purchase.items());
+		assertEquals(1, purchase.items().size());
+		assertEquals(DBReset.BOLA_WILSON_ID, purchase.items().get(0).product().id());
 	}
 }

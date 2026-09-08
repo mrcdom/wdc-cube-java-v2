@@ -74,7 +74,7 @@ public final class AuthenticationServiceImpl implements AuthenticationService {
 			return null;
 		}
 
-		var expectedDigest = computeHmac(user.password, userName + nonce);
+		var expectedDigest = computeHmac(user.password(), userName + nonce);
 
 		if (!MessageDigest.isEqual(
 				expectedDigest.getBytes(StandardCharsets.UTF_8),
@@ -83,12 +83,12 @@ public final class AuthenticationServiceImpl implements AuthenticationService {
 			return null;
 		}
 
-		var roles = Role.parse(user.roles);
+		var roles = Role.parse(user.roles());
 		var permissions = Role.effectivePermissions(roles);
-		var session = cache.createSession(user.id, user.userName, permissions);
-		var accessToken = JwtUtil.create(user.id, user.userName, cache.accessTokenTtl(), cache.jwtSecret());
+		var session = cache.createSession(user.id(), user.userName(), permissions);
+		var accessToken = JwtUtil.create(user.id(), user.userName(), cache.accessTokenTtl(), cache.jwtSecret());
 
-		return new AuthResult(user.id, accessToken, session.refreshToken(), session.expiresAt(), session.publicKeyBase64());
+		return new AuthResult(user.id(), accessToken, session.refreshToken(), session.expiresAt(), session.publicKeyBase64());
 	}
 
 	@Override
@@ -148,24 +148,24 @@ public final class AuthenticationServiceImpl implements AuthenticationService {
 			return null;
 		}
 
-		var roles = Role.parse(user.roles);
+		var roles = Role.parse(user.roles());
 		var permissions = Role.effectivePermissions(roles);
-		var session = cache.createSession(user.id, user.userName, permissions);
-		var accessToken = JwtUtil.create(user.id, user.userName, cache.accessTokenTtl(), cache.jwtSecret());
+		var session = cache.createSession(user.id(), user.userName(), permissions);
+		var accessToken = JwtUtil.create(user.id(), user.userName(), cache.accessTokenTtl(), cache.jwtSecret());
 
-		LOG.info("Auto-login via persistent token for user: {} ({})", user.userName, user.id);
-		return new AuthResult(user.id, accessToken, session.refreshToken(), session.expiresAt(), session.publicKeyBase64());
+		LOG.info("Auto-login via persistent token for user: {} ({})", user.userName(), user.id());
+		return new AuthResult(user.id(), accessToken, session.refreshToken(), session.expiresAt(), session.publicKeyBase64());
 	}
 
 	// :: Internal
 
 	private User fetchUserForAuth(String userName) {
 		var pv = ProjectionValues.INSTANCE;
-		var prj = new User();
-		prj.id = pv.i64;
-		prj.userName = pv.str;
-		prj.password = pv.str;
-		prj.roles = pv.str;
+		var prj = new User()
+				.withId(pv.i64)
+				.withUserName(pv.str)
+				.withPassword(pv.str)
+				.withRoles(pv.str);
 
 		var users = rawUserRepo.fetch(new UserCriteria()
 				.withUserName(userName)
@@ -177,18 +177,18 @@ public final class AuthenticationServiceImpl implements AuthenticationService {
 
 		var user = users.get(0);
 		// CHAR(32) column pads with trailing spaces; trim for exact HMAC comparison
-		if (user.password != null) {
-			user.password = user.password.trim();
+		if (user.password() != null) {
+			user.withPassword(user.password().trim());
 		}
 		return user;
 	}
 
 	private User fetchUserById(Long userId) {
 		var pv = ProjectionValues.INSTANCE;
-		var prj = new User();
-		prj.id = pv.i64;
-		prj.userName = pv.str;
-		prj.roles = pv.str;
+		var prj = new User()
+				.withId(pv.i64)
+				.withUserName(pv.str)
+				.withRoles(pv.str);
 
 		var users = rawUserRepo.fetch(new UserCriteria()
 				.withUserId(userId)

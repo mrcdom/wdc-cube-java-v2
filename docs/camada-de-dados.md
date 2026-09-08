@@ -88,16 +88,38 @@ O módulo `domain` é **puramente conceitual**. Não conhece banco de dados, nem
 
 ### Modelos
 
-POJOs simples com campos públicos — sem anotações de persistência, sem herança obrigatória:
+POJOs simples com estado encapsulado e **API fluente** — a mesma superfície dos `XxxCriteria`: um acessor `campo()` e um setter `withCampo(...)` que devolve `this`. Sem anotações de persistência, sem herança obrigatória (apenas `KeyedEntity`, que expõe a chave de identidade para o detector de ciclos da serialização):
 
 ```java
-public class Product {
-    public Long id;
-    public String name;
-    public Double price;
-    public String description;
-    public byte[] image;
+public class Product implements KeyedEntity {
+
+    private Long id;
+
+    public Long id() {
+        return id;
+    }
+
+    public Product withId(Long id) {
+        this.id = id;
+        return this;
+    }
+
+    // ... name, price, description, image seguem o mesmo par
+
+    @Override
+    public Long key() {
+        return id;
+    }
 }
+```
+
+Isso deixa a construção legível em uma expressão só, inclusive nas relações:
+
+```java
+var prj = new PurchaseItem()
+        .withId(pv.i64)
+        .withAmount(pv.i32)
+        .withPurchase(new Purchase().withId(pv.i64));
 ```
 
 Nada de `@Entity`, `@Column`, `@JsonProperty`. O modelo é puro Java. Quem sabe mapeá-lo para banco é o módulo `persistence`. Quem sabe serializá-lo para JSON é o módulo `persistence.rest`.

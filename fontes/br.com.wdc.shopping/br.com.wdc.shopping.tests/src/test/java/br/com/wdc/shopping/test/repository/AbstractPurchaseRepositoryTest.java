@@ -24,11 +24,10 @@ public abstract class AbstractPurchaseRepositoryTest {
 
 	private Purchase purchaseProjectionWithUser() {
 		var pv = ProjectionValues.INSTANCE;
-		var prj = new Purchase();
-		prj.id = pv.i64;
-		prj.buyDate = pv.offsetDateTime;
-		prj.user = new User();
-		prj.user.id = pv.i64;
+		var prj = new Purchase()
+				.withId(pv.i64)
+				.withBuyDate(pv.offsetDateTime)
+				.withUser(new User().withId(pv.i64));
 		return prj;
 	}
 
@@ -44,9 +43,9 @@ public abstract class AbstractPurchaseRepositoryTest {
 	public void fetchById_returnsCorrectPurchase() {
 		var purchase = repo().fetchById(DBReset.ADMIN_FIRST_PURCHASE_ID, purchaseProjectionWithUser());
 		assertNotNull(purchase);
-		assertNotNull(purchase.buyDate);
-		assertNotNull(purchase.user);
-		assertEquals(DBReset.ADMIN_ID, purchase.user.id);
+		assertNotNull(purchase.buyDate());
+		assertNotNull(purchase.user());
+		assertEquals(DBReset.ADMIN_ID, purchase.user().id());
 	}
 
 	@Test
@@ -58,14 +57,14 @@ public abstract class AbstractPurchaseRepositoryTest {
 	@Test
 	public void fetchWithProjection_onlyRequestedFields() {
 		var pv = ProjectionValues.INSTANCE;
-		var projection = new Purchase();
-		projection.id = pv.i64;
-		projection.buyDate = pv.offsetDateTime;
+		var projection = new Purchase()
+				.withId(pv.i64)
+				.withBuyDate(pv.offsetDateTime);
 
 		var purchase = repo().fetchById(DBReset.ADMIN_FIRST_PURCHASE_ID, projection);
 		assertNotNull(purchase);
-		assertEquals(DBReset.ADMIN_FIRST_PURCHASE_ID, purchase.id);
-		assertNotNull(purchase.buyDate);
+		assertEquals(DBReset.ADMIN_FIRST_PURCHASE_ID, purchase.id());
+		assertNotNull(purchase.buyDate());
 	}
 
 	@Test
@@ -76,7 +75,7 @@ public abstract class AbstractPurchaseRepositoryTest {
 		var purchases = repo().fetch(criteria);
 		assertEquals(2, purchases.size());
 		for (var p : purchases) {
-			assertEquals(DBReset.ADMIN_ID, p.user.id);
+			assertEquals(DBReset.ADMIN_ID, p.user().id());
 		}
 	}
 
@@ -90,7 +89,7 @@ public abstract class AbstractPurchaseRepositoryTest {
 	public void fetchByPurchaseId() {
 		var purchases = repo().fetch(new PurchaseCriteria().withPurchaseId(DBReset.ADMIN_SECOND_PURCHASE_ID));
 		assertEquals(1, purchases.size());
-		assertEquals(DBReset.ADMIN_SECOND_PURCHASE_ID, purchases.get(0).id);
+		assertEquals(DBReset.ADMIN_SECOND_PURCHASE_ID, purchases.get(0).id());
 	}
 
 	@Test
@@ -105,7 +104,7 @@ public abstract class AbstractPurchaseRepositoryTest {
 		var purchases = repo().fetch(new PurchaseCriteria()
 				.withOrderBy(PurchaseCriteria.OrderBy.ASCENDING));
 		assertEquals(2, purchases.size());
-		assertTrue(purchases.get(0).id <= purchases.get(1).id);
+		assertTrue(purchases.get(0).id() <= purchases.get(1).id());
 	}
 
 	@Test
@@ -113,7 +112,7 @@ public abstract class AbstractPurchaseRepositoryTest {
 		var purchases = repo().fetch(new PurchaseCriteria()
 				.withOrderBy(PurchaseCriteria.OrderBy.DESCENDING));
 		assertEquals(2, purchases.size());
-		assertTrue(purchases.get(0).id >= purchases.get(1).id);
+		assertTrue(purchases.get(0).id() >= purchases.get(1).id());
 	}
 
 	// :: count
@@ -140,18 +139,17 @@ public abstract class AbstractPurchaseRepositoryTest {
 
 	@Test
 	public void insert_newPurchase() {
-		var purchase = new Purchase();
-		purchase.buyDate = OffsetDateTime.now();
-		purchase.user = new User();
-		purchase.user.id = DBReset.FULANO_ID;
+		var purchase = new Purchase()
+				.withBuyDate(OffsetDateTime.now())
+				.withUser(new User().withId(DBReset.FULANO_ID));
 
 		boolean inserted = repo().insert(purchase);
 		assertTrue(inserted);
-		assertNotNull(purchase.id);
+		assertNotNull(purchase.id());
 
-		var fetched = repo().fetchById(purchase.id, purchaseProjectionWithUser());
+		var fetched = repo().fetchById(purchase.id(), purchaseProjectionWithUser());
 		assertNotNull(fetched);
-		assertEquals(DBReset.FULANO_ID, fetched.user.id);
+		assertEquals(DBReset.FULANO_ID, fetched.user().id());
 	}
 
 	// :: update
@@ -162,17 +160,16 @@ public abstract class AbstractPurchaseRepositoryTest {
 		var original = repo().fetchById(DBReset.ADMIN_FIRST_PURCHASE_ID, prj);
 		assertNotNull(original);
 
-		var updated = new Purchase();
-		updated.id = original.id;
-		updated.buyDate = OffsetDateTime.now();
-		updated.user = new User();
-		updated.user.id = DBReset.BEOTRANO_ID;
+		var updated = new Purchase()
+				.withId(original.id())
+				.withBuyDate(OffsetDateTime.now())
+				.withUser(new User().withId(DBReset.BEOTRANO_ID));
 
 		boolean result = repo().update(updated, original);
 		assertTrue(result);
 
 		var fetched = repo().fetchById(DBReset.ADMIN_FIRST_PURCHASE_ID, prj);
-		assertEquals(DBReset.BEOTRANO_ID, fetched.user.id);
+		assertEquals(DBReset.BEOTRANO_ID, fetched.user().id());
 	}
 
 	// :: delete

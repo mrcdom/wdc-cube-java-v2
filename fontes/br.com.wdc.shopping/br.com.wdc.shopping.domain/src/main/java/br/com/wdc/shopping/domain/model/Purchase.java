@@ -7,11 +7,49 @@ import br.com.wdc.framework.commons.serialization.KeyedEntity;
 
 public class Purchase implements KeyedEntity {
 
-    public Long id;
-    public OffsetDateTime buyDate;
-    public User user;
+    private Long id;
 
-    public List<PurchaseItem> items;
+    public Long id() {
+        return id;
+    }
+
+    public Purchase withId(Long id) {
+        this.id = id;
+        return this;
+    }
+
+    private OffsetDateTime buyDate;
+
+    public OffsetDateTime buyDate() {
+        return buyDate;
+    }
+
+    public Purchase withBuyDate(OffsetDateTime buyDate) {
+        this.buyDate = buyDate;
+        return this;
+    }
+
+    private User user;
+
+    public User user() {
+        return user;
+    }
+
+    public Purchase withUser(User user) {
+        this.user = user;
+        return this;
+    }
+
+    private List<PurchaseItem> items;
+
+    public List<PurchaseItem> items() {
+        return items;
+    }
+
+    public Purchase withItems(List<PurchaseItem> items) {
+        this.items = items;
+        return this;
+    }
 
     @Override
     public Long key() {
@@ -19,7 +57,7 @@ public class Purchase implements KeyedEntity {
     }
 
     public Long userId() {
-        return user != null ? user.id : null;
+        return user != null ? user.id() : null;
     }
 
 }

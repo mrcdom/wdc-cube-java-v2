@@ -32,9 +32,9 @@ public class Subject implements Serializable {
     public static User projection() {
         var pv = ProjectionValues.INSTANCE;
 
-        var prj = new User();
-        prj.id = pv.i64;
-        prj.name = pv.str;
+        var prj = new User()
+                .withId(pv.i64)
+                .withName(pv.str);
         return prj;
     }
 
@@ -44,8 +44,8 @@ public class Subject implements Serializable {
         }
 
         Subject tgt = new Subject();
-        tgt.id = src.id;
-        tgt.nickName = src.name;
+        tgt.id = src.id();
+        tgt.nickName = src.name();
         return tgt;
     }
 

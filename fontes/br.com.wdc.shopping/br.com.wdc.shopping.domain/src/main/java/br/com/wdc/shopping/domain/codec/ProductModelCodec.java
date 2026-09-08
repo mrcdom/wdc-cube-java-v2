@@ -15,10 +15,10 @@ public class ProductModelCodec implements ModelCodec<Product, ProductCriteria> {
 	@Override
 	public void writeEntity(ExtensibleObjectOutput out, Product entity) {
 		out.beginObject();
-		if (entity.id != null) out.name("id").value(entity.id);
-		if (entity.name != null) out.name("name").value(entity.name);
-		if (entity.price != null) out.name("price").value(entity.price);
-		if (entity.description != null) out.name("description").value(entity.description);
+		if (entity.id() != null) out.name("id").value(entity.id());
+		if (entity.name() != null) out.name("name").value(entity.name());
+		if (entity.price() != null) out.name("price").value(entity.price());
+		if (entity.description() != null) out.name("description").value(entity.description());
 		out.endObject();
 	}
 
@@ -26,7 +26,7 @@ public class ProductModelCodec implements ModelCodec<Product, ProductCriteria> {
 	public void writeEntity(ExtensibleObjectOutput out, Product entity, EntityGraph graph) {
 		if (!graph.track(entity)) {
 			out.beginObject();
-			if (entity.id != null) out.name("id").value(entity.id);
+			if (entity.id() != null) out.name("id").value(entity.id());
 			out.endObject();
 			return;
 		}
@@ -36,18 +36,18 @@ public class ProductModelCodec implements ModelCodec<Product, ProductCriteria> {
 	@Override
 	public void writeEntityProjected(ExtensibleObjectOutput out, Product entity, Product projection) {
 		out.beginObject();
-		if (entity.id != null) out.name("id").value(entity.id);
-		if (projection.name != null) {
+		if (entity.id() != null) out.name("id").value(entity.id());
+		if (projection.name() != null) {
 			out.name("name");
-			if (entity.name != null) out.value(entity.name); else out.nullValue();
+			if (entity.name() != null) out.value(entity.name()); else out.nullValue();
 		}
-		if (projection.price != null) {
+		if (projection.price() != null) {
 			out.name("price");
-			if (entity.price != null) out.value(entity.price); else out.nullValue();
+			if (entity.price() != null) out.value(entity.price()); else out.nullValue();
 		}
-		if (projection.description != null) {
+		if (projection.description() != null) {
 			out.name("description");
-			if (entity.description != null) out.value(entity.description); else out.nullValue();
+			if (entity.description() != null) out.value(entity.description()); else out.nullValue();
 		}
 		out.endObject();
 	}
@@ -56,9 +56,9 @@ public class ProductModelCodec implements ModelCodec<Product, ProductCriteria> {
 	public Product computeProjection(Product newEntity, Product oldEntity) {
 		var pv = ProjectionValues.INSTANCE;
 		var projection = new Product();
-		if (!java.util.Objects.equals(newEntity.name, oldEntity.name)) projection.name = pv.str;
-		if (!java.util.Objects.equals(newEntity.price, oldEntity.price)) projection.price = pv.f64;
-		if (!java.util.Objects.equals(newEntity.description, oldEntity.description)) projection.description = pv.str;
+		if (!java.util.Objects.equals(newEntity.name(), oldEntity.name())) projection.withName(pv.str);
+		if (!java.util.Objects.equals(newEntity.price(), oldEntity.price())) projection.withPrice(pv.f64);
+		if (!java.util.Objects.equals(newEntity.description(), oldEntity.description())) projection.withDescription(pv.str);
 		return projection;
 	}
 
@@ -68,10 +68,10 @@ public class ProductModelCodec implements ModelCodec<Product, ProductCriteria> {
 		in.beginObject();
 		while (in.hasNext()) {
 			switch (in.nextName()) {
-				case "id" -> product.id = InputCoerceUtils.asLong(in);
-				case "name" -> product.name = InputCoerceUtils.asString(in);
-				case "price" -> product.price = InputCoerceUtils.asDouble(in);
-				case "description" -> product.description = InputCoerceUtils.asString(in);
+				case "id" -> product.withId(InputCoerceUtils.asLong(in));
+				case "name" -> product.withName(InputCoerceUtils.asString(in));
+				case "price" -> product.withPrice(InputCoerceUtils.asDouble(in));
+				case "description" -> product.withDescription(InputCoerceUtils.asString(in));
 				default -> in.skipValue();
 			}
 		}
@@ -87,10 +87,10 @@ public class ProductModelCodec implements ModelCodec<Product, ProductCriteria> {
 		in.beginObject();
 		while (in.hasNext()) {
 			switch (in.nextName()) {
-				case "id" -> { entity.id = InputCoerceUtils.asLong(in); projection.id = pv.i64; }
-				case "name" -> { entity.name = InputCoerceUtils.asString(in); projection.name = pv.str; }
-				case "price" -> { entity.price = InputCoerceUtils.asDouble(in); projection.price = pv.f64; }
-				case "description" -> { entity.description = InputCoerceUtils.asString(in); projection.description = pv.str; }
+				case "id" -> { entity.withId(InputCoerceUtils.asLong(in)); projection.withId(pv.i64); }
+				case "name" -> { entity.withName(InputCoerceUtils.asString(in)); projection.withName(pv.str); }
+				case "price" -> { entity.withPrice(InputCoerceUtils.asDouble(in)); projection.withPrice(pv.f64); }
+				case "description" -> { entity.withDescription(InputCoerceUtils.asString(in)); projection.withDescription(pv.str); }
 				default -> in.skipValue();
 			}
 		}
@@ -124,6 +124,6 @@ public class ProductModelCodec implements ModelCodec<Product, ProductCriteria> {
 
 	@Override
 	public void setGeneratedId(Product entity, long id) {
-		entity.id = id;
+		entity.withId(id);
 	}
 }

@@ -54,16 +54,16 @@ public class PurchaseItemApiController {
     private static PurchaseItem fullProjection() {
         var pv = ProjectionValues.INSTANCE;
 
-        var product = new Product();
-        product.id = pv.i64;
-        product.name = pv.str;
-        product.price = pv.f64;
+        var product = new Product()
+                .withId(pv.i64)
+                .withName(pv.str)
+                .withPrice(pv.f64);
 
-        var prj = new PurchaseItem();
-        prj.id = pv.i64;
-        prj.amount = pv.i32;
-        prj.price = pv.f64;
-        prj.product = product;
+        var prj = new PurchaseItem()
+                .withId(pv.i64)
+                .withAmount(pv.i32)
+                .withPrice(pv.f64)
+                .withProduct(product);
         return prj;
     }
 
@@ -93,7 +93,7 @@ public class PurchaseItemApiController {
         var writer = new JsonStreamWriter();
         writer.beginObject();
         writer.name("success").value(success);
-        writer.name("id").value(item.id != null ? item.id : -1);
+        writer.name("id").value(item.id() != null ? item.id() : -1);
         writer.endObject();
         json(ctx, writer);
     }
@@ -234,7 +234,7 @@ public class PurchaseItemApiController {
         writer.beginObject();
         writer.name("items").beginArray();
         for (var item : items) {
-            item.purchase = null;
+            item.withPurchase(null);
             codec.writeEntity(writer, item);
         }
         writer.endArray();
@@ -286,7 +286,7 @@ public class PurchaseItemApiController {
         writer.beginObject();
         writer.name("items").beginArray();
         for (var item : page.items()) {
-            item.purchase = null;
+            item.withPurchase(null);
             codec.writeEntity(writer, item);
         }
         writer.endArray();
@@ -321,7 +321,7 @@ public class PurchaseItemApiController {
             ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
             return;
         }
-        result.purchase = null;
+        result.withPurchase(null);
         var writer = new JsonStreamWriter();
         codec.writeEntity(writer, result);
         json(ctx, writer);
@@ -364,7 +364,7 @@ public class PurchaseItemApiController {
             ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
             return;
         }
-        result.purchase = null;
+        result.withPurchase(null);
         var writer = new JsonStreamWriter();
         codec.writeEntity(writer, result);
         json(ctx, writer);

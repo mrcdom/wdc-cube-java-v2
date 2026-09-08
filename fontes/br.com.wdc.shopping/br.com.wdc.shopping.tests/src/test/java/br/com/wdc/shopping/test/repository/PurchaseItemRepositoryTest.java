@@ -31,25 +31,23 @@ public class PurchaseItemRepositoryTest extends AbstractPurchaseItemRepositoryTe
 	public void fetchById_returnsCorrectItem_withPurchase() {
 		var item = repo().fetchById(DBReset.ADMIN_FIRST_PURCHASE_ITEM0_ID, projectionWithRelations());
 		assertNotNull(item);
-		assertNotNull(item.purchase);
+		assertNotNull(item.purchase());
 	}
 
 	@Test
 	public void insert_newPurchaseItem_withPurchaseAssertion() {
-		var item = new br.com.wdc.shopping.domain.model.PurchaseItem();
-		item.amount = 5;
-		item.price = 15.50;
-		item.purchase = new br.com.wdc.shopping.domain.model.Purchase();
-		item.purchase.id = DBReset.ADMIN_FIRST_PURCHASE_ID;
-		item.product = new br.com.wdc.shopping.domain.model.Product();
-		item.product.id = DBReset.PEN_DRIVE2GB_ID;
+		var item = new br.com.wdc.shopping.domain.model.PurchaseItem()
+				.withAmount(5)
+				.withPrice(15.50)
+				.withPurchase(new br.com.wdc.shopping.domain.model.Purchase().withId(DBReset.ADMIN_FIRST_PURCHASE_ID))
+				.withProduct(new br.com.wdc.shopping.domain.model.Product().withId(DBReset.PEN_DRIVE2GB_ID));
 
 		boolean inserted = repo().insert(item);
 		assertTrue(inserted);
 
-		var fetched = repo().fetchById(item.id, projectionWithRelations());
+		var fetched = repo().fetchById(item.id(), projectionWithRelations());
 		assertNotNull(fetched);
-		assertEquals(DBReset.ADMIN_FIRST_PURCHASE_ID, fetched.purchase.id);
-		assertEquals(DBReset.PEN_DRIVE2GB_ID, fetched.product.id);
+		assertEquals(DBReset.ADMIN_FIRST_PURCHASE_ID, fetched.purchase().id());
+		assertEquals(DBReset.PEN_DRIVE2GB_ID, fetched.product().id());
 	}
 }

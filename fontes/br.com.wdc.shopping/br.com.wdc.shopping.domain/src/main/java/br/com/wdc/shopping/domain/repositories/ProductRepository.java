@@ -16,12 +16,12 @@ public interface ProductRepository extends Repository<Product, ProductCriteria, 
     default Product newProjection() {
         var pv = ProjectionValues.INSTANCE;
 
-        var prj = new Product();
-        prj.id = pv.i64;
-        prj.name = pv.str;
-        prj.price = pv.f64;
-        prj.description = pv.str;
-        prj.image = null;
+        var prj = new Product()
+                .withId(pv.i64)
+                .withName(pv.str)
+                .withPrice(pv.f64)
+                .withDescription(pv.str)
+                .withImage(null);
         return prj;
     }
 

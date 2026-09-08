@@ -29,8 +29,8 @@ public abstract class AbstractProductRepositoryTest {
 	public void fetchById_returnsCorrectProduct() {
 		var product = repo().fetchById(DBReset.CAFETEIRA_ID, null);
 		assertNotNull(product);
-		assertNotNull(product.name);
-		assertNotNull(product.price);
+		assertNotNull(product.name());
+		assertNotNull(product.price());
 	}
 
 	@Test
@@ -42,21 +42,21 @@ public abstract class AbstractProductRepositoryTest {
 	@Test
 	public void fetchWithProjection_onlyRequestedFields() {
 		var pv = ProjectionValues.INSTANCE;
-		var projection = new Product();
-		projection.id = pv.i64;
-		projection.name = pv.str;
+		var projection = new Product()
+				.withId(pv.i64)
+				.withName(pv.str);
 
 		var product = repo().fetchById(DBReset.PEN_DRIVE2GB_ID, projection);
 		assertNotNull(product);
-		assertEquals(DBReset.PEN_DRIVE2GB_ID, product.id);
-		assertNotNull(product.name);
+		assertEquals(DBReset.PEN_DRIVE2GB_ID, product.id());
+		assertNotNull(product.name());
 	}
 
 	@Test
 	public void fetchByCriteria_productId() {
 		var products = repo().fetch(new ProductCriteria().withProductId(DBReset.BOLA_WILSON_ID));
 		assertEquals(1, products.size());
-		assertEquals(DBReset.BOLA_WILSON_ID, products.get(0).id);
+		assertEquals(DBReset.BOLA_WILSON_ID, products.get(0).id());
 	}
 
 	@Test
@@ -72,7 +72,7 @@ public abstract class AbstractProductRepositoryTest {
 				.withOrderBy(ProductCriteria.OrderBy.ASCENDING));
 		assertEquals(4, products.size());
 		for (int i = 1; i < products.size(); i++) {
-			assertTrue(products.get(i - 1).id <= products.get(i).id);
+			assertTrue(products.get(i - 1).id() <= products.get(i).id());
 		}
 	}
 
@@ -82,7 +82,7 @@ public abstract class AbstractProductRepositoryTest {
 				.withOrderBy(ProductCriteria.OrderBy.DESCENDING));
 		assertEquals(4, products.size());
 		for (int i = 1; i < products.size(); i++) {
-			assertTrue(products.get(i - 1).id >= products.get(i).id);
+			assertTrue(products.get(i - 1).id() >= products.get(i).id());
 		}
 	}
 
@@ -124,21 +124,21 @@ public abstract class AbstractProductRepositoryTest {
 
 	@Test
 	public void insert_newProduct() {
-		var product = new Product();
-		product.name = "Teclado USB";
-		product.price = 89.90;
-		product.description = "Teclado mecanico";
+		var product = new Product()
+				.withName("Teclado USB")
+				.withPrice(89.90)
+				.withDescription("Teclado mecanico");
 
 		boolean inserted = repo().insert(product);
 		assertTrue(inserted);
-		assertNotNull(product.id);
+		assertNotNull(product.id());
 
-		var fetched = repo().fetchById(product.id, null);
+		var fetched = repo().fetchById(product.id(), null);
 		assertNotNull(fetched);
-		assertEquals("Teclado USB", fetched.name);
-		assertEquals(89.90, fetched.price, 0.001);
-		assertNotNull(fetched.description);
-		assertTrue(fetched.description.contains("Teclado"));
+		assertEquals("Teclado USB", fetched.name());
+		assertEquals(89.90, fetched.price(), 0.001);
+		assertNotNull(fetched.description());
+		assertTrue(fetched.description().contains("Teclado"));
 	}
 
 	// :: update
@@ -148,44 +148,44 @@ public abstract class AbstractProductRepositoryTest {
 		var original = repo().fetchById(DBReset.PEN_DRIVE2GB_ID, null);
 		assertNotNull(original);
 
-		var updated = new Product();
-		updated.id = original.id;
-		updated.name = "Pen Drive 4GB";
-		updated.price = 35.0;
-		updated.description = original.description;
+		var updated = new Product()
+				.withId(original.id())
+				.withName("Pen Drive 4GB")
+				.withPrice(35.0)
+				.withDescription(original.description());
 
 		boolean result = repo().update(updated, original);
 		assertTrue(result);
 
 		var fetched = repo().fetchById(DBReset.PEN_DRIVE2GB_ID, null);
-		assertEquals("Pen Drive 4GB", fetched.name);
-		assertEquals(35.0, fetched.price, 0.001);
+		assertEquals("Pen Drive 4GB", fetched.name());
+		assertEquals(35.0, fetched.price(), 0.001);
 	}
 
 	@Test
 	public void update_partialFields_onlyChangesSpecifiedFields() {
 		var original = repo().fetchById(DBReset.PEN_DRIVE2GB_ID, null);
 		assertNotNull(original);
-		var originalDescription = original.description;
-		var originalPrice = original.price;
+		var originalDescription = original.description();
+		var originalPrice = original.price();
 
 		// projeção parcial: só id e name
 		var pv = ProjectionValues.INSTANCE;
-		var projection = new Product();
-		projection.id = pv.i64;
-		projection.name = pv.str;
+		var projection = new Product()
+				.withId(pv.i64)
+				.withName(pv.str);
 
-		var updated = new Product();
-		updated.id = original.id;
-		updated.name = "Pen Drive Renomeado";
+		var updated = new Product()
+				.withId(original.id())
+				.withName("Pen Drive Renomeado");
 
 		boolean result = repo().update(updated, original, projection);
 		assertTrue(result);
 
 		var fetched = repo().fetchById(DBReset.PEN_DRIVE2GB_ID, null);
-		assertEquals("Pen Drive Renomeado", fetched.name);
-		assertEquals(originalPrice, fetched.price, 0.001);
-		assertEquals(originalDescription, fetched.description);
+		assertEquals("Pen Drive Renomeado", fetched.name());
+		assertEquals(originalPrice, fetched.price(), 0.001);
+		assertEquals(originalDescription, fetched.description());
 	}
 
 	@Test
@@ -198,23 +198,23 @@ public abstract class AbstractProductRepositoryTest {
 
 		// projeção só com id e price — description NÃO está na projeção
 		var pv = ProjectionValues.INSTANCE;
-		var projection = new Product();
-		projection.id = pv.i64;
-		projection.price = pv.f64;
+		var projection = new Product()
+				.withId(pv.i64)
+				.withPrice(pv.f64);
 
-		var updated = new Product();
-		updated.id = original.id;
-		updated.price = 99.99;
-		updated.description = null; // null no newEntity, mas NÃO na projeção
+		var updated = new Product()
+				.withId(original.id())
+				.withPrice(99.99);
+		updated.withDescription(null); // null no newEntity, mas NÃO na projeção
 
 		boolean result = repo().update(updated, original, projection);
 		assertTrue(result);
 
 		var fetched = repo().fetchById(DBReset.PEN_DRIVE2GB_ID, null);
 		// description preservada (campo fora da projeção não é tocado)
-		assertEquals(original.description, fetched.description);
+		assertEquals(original.description(), fetched.description());
 		// price atualizado
-		assertEquals(99.99, fetched.price, 0.001);
+		assertEquals(99.99, fetched.price(), 0.001);
 	}
 
 	// :: delete

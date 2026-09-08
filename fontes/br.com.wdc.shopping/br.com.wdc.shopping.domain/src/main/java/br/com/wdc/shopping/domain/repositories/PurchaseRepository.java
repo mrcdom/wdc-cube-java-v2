@@ -17,11 +17,10 @@ public interface PurchaseRepository extends Repository<Purchase, PurchaseCriteri
     default Purchase newProjection() {
         var pv = ProjectionValues.INSTANCE;
 
-        Purchase prj = new Purchase();
-        prj.id = pv.i64;
-        prj.buyDate = pv.offsetDateTime;
-        prj.user = new User();
-        prj.user.id = pv.i64;
+        Purchase prj = new Purchase()
+                .withId(pv.i64)
+                .withBuyDate(pv.offsetDateTime)
+                .withUser(new User().withId(pv.i64));
         return prj;
     }
 

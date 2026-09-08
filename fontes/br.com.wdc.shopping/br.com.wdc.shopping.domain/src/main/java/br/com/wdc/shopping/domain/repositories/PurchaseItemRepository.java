@@ -18,14 +18,12 @@ public interface PurchaseItemRepository extends Repository<PurchaseItem, Purchas
     default PurchaseItem newProjection() {
         var pv = ProjectionValues.INSTANCE;
 
-        PurchaseItem prj = new PurchaseItem();
-        prj.id = pv.i64;
-        prj.amount = pv.i32;
-        prj.price = pv.f64;
-        prj.purchase = new Purchase();
-        prj.purchase.id = pv.i64;
-        prj.product = new Product();
-        prj.product.id = pv.i64;
+        PurchaseItem prj = new PurchaseItem()
+                .withId(pv.i64)
+                .withAmount(pv.i32)
+                .withPrice(pv.f64)
+                .withPurchase(new Purchase().withId(pv.i64))
+                .withProduct(new Product().withId(pv.i64));
         return prj;
     }
 

@@ -57,11 +57,11 @@ public class ProductApiController {
 
     private static Product fullProjection() {
         var pv = ProjectionValues.INSTANCE;
-        var prj = new Product();
-        prj.id = pv.i64;
-        prj.name = pv.str;
-        prj.price = pv.f64;
-        prj.description = pv.str;
+        var prj = new Product()
+                .withId(pv.i64)
+                .withName(pv.str)
+                .withPrice(pv.f64)
+                .withDescription(pv.str);
         return prj;
     }
 
@@ -91,7 +91,7 @@ public class ProductApiController {
         var writer = new JsonStreamWriter();
         writer.beginObject();
         writer.name("success").value(success);
-        writer.name("id").value(product.id != null ? product.id : -1);
+        writer.name("id").value(product.id() != null ? product.id() : -1);
         writer.endObject();
         json(ctx, writer);
     }

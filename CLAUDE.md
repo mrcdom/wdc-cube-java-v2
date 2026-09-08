@@ -59,6 +59,7 @@ Controle programático estilo CMT via `TransactionService` (`framework.domain.tr
 - **Virtual Threads** (Java 21) para conexões WebSocket.
 - **Segurança RBAC**: HMAC challenge-response + JWT; repositórios decorados (`SecuredXxxRepository`); papéis ADMIN/CUSTOMER/MANAGER (modelo allow-wins). Transporte React: RSA + PBKDF2 + AES-GCM.
 - **Nomenclatura**: `*ViewState`, `*ViewImpl`, `*Presenter`, `*RepositoryImpl`, `*Criteria`, `Apply*Criteria`.
+- **Entidades (`domain.model`, implementam `KeyedEntity`) têm API fluente**, igual à dos `*Criteria`: campo `private`, acessor `campo()` e setter `withCampo(...)` que devolve `this`. Não há campos públicos — construa encadeando (`new Product().withName(x).withPrice(y)`), inclusive nas relações (`withPurchase(new Purchase().withId(id))`). Structs de apresentação (`presentation.**.structs`) seguem outro padrão: continuam com campos públicos.
 - **Formatação Java**: `fontes/wedocode-java-formatter.xml`. Frontend: Prettier (configurado no `.vscode/settings.json`, format-on-save).
 
 ## Mensagens de commit

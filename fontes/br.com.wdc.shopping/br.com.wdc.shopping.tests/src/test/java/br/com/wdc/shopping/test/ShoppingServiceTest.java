@@ -41,25 +41,25 @@ public class ShoppingServiceTest extends BaseBusinessTest {
     public void test1() {
         var pv = ProjectionValues.INSTANCE;
 
-        var usrPrj = new User();
-        usrPrj.id = pv.i64;
-        usrPrj.userName = pv.str;
+        var usrPrj = new User()
+                .withId(pv.i64)
+                .withUserName(pv.str);
 
-        var prdPrj = new Product();
-        prdPrj.id = pv.i64;
-        prdPrj.name = pv.str;
+        var prdPrj = new Product()
+                .withId(pv.i64)
+                .withName(pv.str);
 
-        var pchPrj = new Purchase();
-        pchPrj.id = pv.i64;
-        pchPrj.user = usrPrj;
-        pchPrj.buyDate = pv.offsetDateTime;
+        var pchPrj = new Purchase()
+                .withId(pv.i64)
+                .withUser(usrPrj)
+                .withBuyDate(pv.offsetDateTime);
 
-        var itemPrj = new PurchaseItem();
-        itemPrj.id = pv.i64;
-        itemPrj.amount = pv.i32;
-        itemPrj.product = prdPrj;
-        itemPrj.price = pv.f64;
-        itemPrj.purchase = pchPrj;
+        var itemPrj = new PurchaseItem()
+                .withId(pv.i64)
+                .withAmount(pv.i32)
+                .withProduct(prdPrj)
+                .withPrice(pv.f64)
+                .withPurchase(pchPrj);
 
         var purchaseItemList = PurchaseItemRepository.BEAN.get().fetch(new PurchaseItemCriteria()
                 .withUserId(DBReset.ADMIN_ID)
@@ -120,30 +120,27 @@ public class ShoppingServiceTest extends BaseBusinessTest {
         Assert.assertNotNull(compras.get(1).items);
         Assert.assertEquals(2, compras.get(1).items.size());
 
-        Purchase purchase = new Purchase();
-        purchase.user = new User();
-        purchase.user.id = userId;
-        purchase.buyDate = OffsetDateTime.now();
-        purchase.items = new ArrayList<>();
-        purchase.items.add(LambdaUtils.supply(() -> {
-            var item = new PurchaseItem();
-            item.product = new Product();
-            item.product.id = DBReset.PEN_DRIVE2GB_ID;
-            item.price = 55.0;
-            item.amount = 1;
+        Purchase purchase = new Purchase()
+                .withUser(new User().withId(userId));
+        purchase.withBuyDate(OffsetDateTime.now())
+                .withItems(new ArrayList<>());
+        purchase.items().add(LambdaUtils.supply(() -> {
+            var item = new PurchaseItem()
+                    .withProduct(new Product().withId(DBReset.PEN_DRIVE2GB_ID));
+            item.withPrice(55.0)
+                    .withAmount(1);
             return item;
         }));
-        purchase.items.add(LambdaUtils.supply(() -> {
-            var item = new PurchaseItem();
-            item.product = new Product();
-            item.product.id = DBReset.FITA_VEDA_ROSCA_ID;
-            item.price = 5.0;
-            item.amount = 2;
+        purchase.items().add(LambdaUtils.supply(() -> {
+            var item = new PurchaseItem()
+                    .withProduct(new Product().withId(DBReset.FITA_VEDA_ROSCA_ID));
+            item.withPrice(5.0)
+                    .withAmount(2);
             return item;
         }));
 
         PurchaseRepository.BEAN.get().insert(purchase);
-        final long idCompra = purchase.id;
+        final long idCompra = purchase.id();
         Assert.assertEquals(DBReset.ADMIN_SECOND_PURCHASE_ID + 1, idCompra);
 
         compras = homeService.loadPurchasesOfUser(userId);
@@ -161,14 +158,14 @@ public class ShoppingServiceTest extends BaseBusinessTest {
         Assert.assertEquals(Double.valueOf(65), recibo.total);
         Assert.assertEquals(2, recibo.items.size());
 
-        var pedido0 = purchase.items.get(0);
-        Assert.assertEquals(pedido0.price, Double.valueOf(recibo.items.get(0).value));
-        Assert.assertEquals(pedido0.amount, Integer.valueOf(recibo.items.get(0).quantity));
+        var pedido0 = purchase.items().get(0);
+        Assert.assertEquals(pedido0.price(), Double.valueOf(recibo.items.get(0).value));
+        Assert.assertEquals(pedido0.amount(), Integer.valueOf(recibo.items.get(0).quantity));
         Assert.assertEquals("Pen Drive 2GB", recibo.items.get(0).description);
 
-        var pedido1 = purchase.items.get(1);
-        Assert.assertEquals(pedido1.price, Double.valueOf(recibo.items.get(1).value));
-        Assert.assertEquals(pedido1.amount, Integer.valueOf(recibo.items.get(1).quantity));
+        var pedido1 = purchase.items().get(1);
+        Assert.assertEquals(pedido1.price(), Double.valueOf(recibo.items.get(1).value));
+        Assert.assertEquals(pedido1.amount(), Integer.valueOf(recibo.items.get(1).quantity));
         Assert.assertEquals("Fita veda rosca", recibo.items.get(1).description);
     }
 

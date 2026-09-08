@@ -28,8 +28,8 @@ public abstract class AbstractUserRepositoryTest {
 	public void fetchById_returnsCorrectUser() {
 		var user = repo().fetchById(DBReset.ADMIN_ID, null);
 		assertNotNull(user);
-		assertEquals("admin", user.userName);
-		assertEquals("João da Silva", user.name);
+		assertEquals("admin", user.userName());
+		assertEquals("João da Silva", user.name());
 	}
 
 	@Test
@@ -41,21 +41,21 @@ public abstract class AbstractUserRepositoryTest {
 	@Test
 	public void fetchWithProjection_onlyRequestedFields() {
 		var pv = ProjectionValues.INSTANCE;
-		var projection = new User();
-		projection.id = pv.i64;
-		projection.userName = pv.str;
+		var projection = new User()
+				.withId(pv.i64)
+				.withUserName(pv.str);
 
 		var user = repo().fetchById(DBReset.ADMIN_ID, projection);
 		assertNotNull(user);
-		assertEquals(DBReset.ADMIN_ID, user.id);
-		assertEquals("admin", user.userName);
+		assertEquals(DBReset.ADMIN_ID, user.id());
+		assertEquals("admin", user.userName());
 	}
 
 	@Test
 	public void fetchByCriteria_userName() {
 		var users = repo().fetch(new UserCriteria().withUserName("fulano"));
 		assertEquals(1, users.size());
-		assertEquals(DBReset.FULANO_ID, users.get(0).id);
+		assertEquals(DBReset.FULANO_ID, users.get(0).id());
 	}
 
 	@Test
@@ -64,7 +64,7 @@ public abstract class AbstractUserRepositoryTest {
 				.withUserName("admin")
 				.withPassword("admin"));
 		assertEquals(1, users.size());
-		assertEquals(DBReset.ADMIN_ID, users.get(0).id);
+		assertEquals(DBReset.ADMIN_ID, users.get(0).id());
 	}
 
 	@Test
@@ -106,19 +106,19 @@ public abstract class AbstractUserRepositoryTest {
 
 	@Test
 	public void insert_newUser() {
-		var user = new User();
-		user.userName = "newuser";
-		user.password = "secret";
-		user.name = "New User";
+		var user = new User()
+				.withUserName("newuser")
+				.withPassword("secret")
+				.withName("New User");
 
 		boolean inserted = repo().insert(user);
 		assertTrue(inserted);
-		assertNotNull(user.id);
+		assertNotNull(user.id());
 
-		var fetched = repo().fetchById(user.id, null);
+		var fetched = repo().fetchById(user.id(), null);
 		assertNotNull(fetched);
-		assertEquals("newuser", fetched.userName);
-		assertEquals("New User", fetched.name);
+		assertEquals("newuser", fetched.userName());
+		assertEquals("New User", fetched.name());
 	}
 
 	// :: update
@@ -126,93 +126,93 @@ public abstract class AbstractUserRepositoryTest {
 	@Test
 	public void update_existingUser() {
 		var pv = ProjectionValues.INSTANCE;
-		var fullProjection = new User();
-		fullProjection.id = pv.i64;
-		fullProjection.userName = pv.str;
-		fullProjection.password = pv.str;
-		fullProjection.name = pv.str;
+		var fullProjection = new User()
+				.withId(pv.i64)
+				.withUserName(pv.str)
+				.withPassword(pv.str)
+				.withName(pv.str);
 
 		var original = repo().fetchById(DBReset.ADMIN_ID, fullProjection);
 		assertNotNull(original);
 
-		var updated = new User();
-		updated.id = original.id;
-		updated.userName = original.userName;
-		updated.password = original.password;
-		updated.name = "Nome Alterado";
+		var updated = new User()
+				.withId(original.id())
+				.withUserName(original.userName())
+				.withPassword(original.password())
+				.withName("Nome Alterado");
 
 		boolean result = repo().update(updated, original);
 		assertTrue(result);
 
 		var fetched = repo().fetchById(DBReset.ADMIN_ID, null);
-		assertEquals("Nome Alterado", fetched.name);
+		assertEquals("Nome Alterado", fetched.name());
 	}
 
 	@Test
 	public void update_partialFields_onlyChangesSpecifiedFields() {
 		var pv = ProjectionValues.INSTANCE;
-		var fullProjection = new User();
-		fullProjection.id = pv.i64;
-		fullProjection.userName = pv.str;
-		fullProjection.password = pv.str;
-		fullProjection.name = pv.str;
-		fullProjection.roles = pv.str;
+		var fullProjection = new User()
+				.withId(pv.i64)
+				.withUserName(pv.str)
+				.withPassword(pv.str)
+				.withName(pv.str)
+				.withRoles(pv.str);
 
 		var original = repo().fetchById(DBReset.ADMIN_ID, fullProjection);
 		assertNotNull(original);
-		var originalUserName = original.userName;
-		var originalPassword = original.password;
+		var originalUserName = original.userName();
+		var originalPassword = original.password();
 
 		// projeção parcial: só id e name
-		var projection = new User();
-		projection.id = pv.i64;
-		projection.name = pv.str;
+		var projection = new User()
+				.withId(pv.i64)
+				.withName(pv.str);
 
-		var updated = new User();
-		updated.id = original.id;
-		updated.name = "Nome Parcial";
+		var updated = new User()
+				.withId(original.id())
+				.withName("Nome Parcial");
 
 		boolean result = repo().update(updated, original, projection);
 		assertTrue(result);
 
 		var fetched = repo().fetchById(DBReset.ADMIN_ID, fullProjection);
-		assertEquals("Nome Parcial", fetched.name);
-		assertEquals(originalUserName, fetched.userName);
-		assertEquals(originalPassword, fetched.password);
+		assertEquals("Nome Parcial", fetched.name());
+		assertEquals(originalUserName, fetched.userName());
+		assertEquals(originalPassword, fetched.password());
 	}
 
 	@Test
 	public void update_setFieldToNull_clearsValue() {
 		var pv = ProjectionValues.INSTANCE;
-		var fullProjection = new User();
-		fullProjection.id = pv.i64;
-		fullProjection.userName = pv.str;
-		fullProjection.password = pv.str;
-		fullProjection.name = pv.str;
-		fullProjection.roles = pv.str;
+		var fullProjection = new User()
+				.withId(pv.i64)
+				.withUserName(pv.str)
+				.withPassword(pv.str)
+				.withName(pv.str)
+				.withRoles(pv.str);
 
 		// Garante que admin tem roles preenchido
 		var original = repo().fetchById(DBReset.ADMIN_ID, fullProjection);
 		assertNotNull(original);
-		assertNotNull(original.roles);
+		assertNotNull(original.roles());
 
 		// projeção inclui roles — valor será null para limpar
-		var projection = new User();
-		projection.id = pv.i64;
-		projection.roles = pv.str;
+		var projection = new User()
+				.withId(pv.i64)
+				.withRoles(pv.str);
 
-		var updated = new User();
-		updated.id = original.id;
-		updated.roles = null; // intencionalmente limpar
+		var updated = new User()
+				.withId(original.id());
+		updated.withRoles(null); // intencionalmente limpar
 
 		boolean result = repo().update(updated, original, projection);
 		assertTrue(result);
 
 		var fetched = repo().fetchById(DBReset.ADMIN_ID, fullProjection);
-		assertNull(fetched.roles);
+		assertNull(fetched.roles());
 		// demais campos intactos
-		assertEquals(original.userName, fetched.userName);
-		assertEquals(original.name, fetched.name);
+		assertEquals(original.userName(), fetched.userName());
+		assertEquals(original.name(), fetched.name());
 	}
 
 	// :: delete

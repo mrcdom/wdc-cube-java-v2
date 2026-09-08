@@ -38,9 +38,9 @@ public class ReceiptService {
     private Purchase projection() {
         var pv = ProjectionValues.INSTANCE;
 
-        var prj = new Purchase();
-        prj.buyDate = pv.offsetDateTime;
-        prj.items = Collections.singletonList(ReceiptItem.projection());
+        var prj = new Purchase()
+                .withBuyDate(pv.offsetDateTime)
+                .withItems(Collections.singletonList(ReceiptItem.projection()));
 
         return prj;
     }
@@ -52,15 +52,15 @@ public class ReceiptService {
 
         var tgt = new ReceiptForm();
 
-        tgt.date = src.buyDate == null ? null : src.buyDate.toInstant().toEpochMilli();
+        tgt.date = src.buyDate() == null ? null : src.buyDate().toInstant().toEpochMilli();
         tgt.items = new ArrayList<>();
 
         var total = 0.0;
-        if (src.items != null) {
-            for (var purchaseItem : src.items) {
-                if (purchaseItem.price != null) {
-                    var amount = purchaseItem.amount != null ? purchaseItem.amount : 0;
-                    total += purchaseItem.price * amount;
+        if (src.items() != null) {
+            for (var purchaseItem : src.items()) {
+                if (purchaseItem.price() != null) {
+                    var amount = purchaseItem.amount() != null ? purchaseItem.amount() : 0;
+                    total += purchaseItem.price() * amount;
                 }
 
                 tgt.items.add(ReceiptItem.create(purchaseItem));

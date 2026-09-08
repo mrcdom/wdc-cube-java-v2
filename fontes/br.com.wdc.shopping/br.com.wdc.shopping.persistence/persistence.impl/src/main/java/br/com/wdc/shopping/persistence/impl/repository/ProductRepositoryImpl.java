@@ -29,11 +29,11 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
             .setBeanFactory(Product::new)
             .setTableFactory(EN_PRODUCT::as)
             .setDSLContextSupplier(ProductRepositoryImpl::dsl)
-            .addI64("id", p -> p.id, (p, v) -> p.id = v, t -> t.ID)
-            .addStr("name", p -> p.name, (p, v) -> p.name = v, t -> t.NAME)
-            .addF64("price", p -> p.price, (p, v) -> p.price = v, t -> t.PRICE)
-            .addStr("description", p -> p.description, (p, v) -> p.description = v, t -> t.DESCRIPTION)
-            .addBin("image", p -> p.image, (p, v) -> p.image = v, t -> t.IMAGE)
+            .addI64("id", p -> p.id(), (p, v) -> p.withId(v), t -> t.ID)
+            .addStr("name", p -> p.name(), (p, v) -> p.withName(v), t -> t.NAME)
+            .addF64("price", p -> p.price(), (p, v) -> p.withPrice(v), t -> t.PRICE)
+            .addStr("description", p -> p.description(), (p, v) -> p.withDescription(v), t -> t.DESCRIPTION)
+            .addBin("image", p -> p.image(), (p, v) -> p.withImage(v), t -> t.IMAGE)
             .build();
     // @formatter:on
 
@@ -56,24 +56,24 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
     public boolean insert(Product product) {
         var dsl = dsl();
 
-        if (product.id == null) {
-            product.id = dsl.nextval(SQ_PRODUCT);
+        if (product.id() == null) {
+            product.withId(dsl.nextval(SQ_PRODUCT));
         }
 
         var step = dsl.insertInto(EN_PRODUCT)
-                .set(EN_PRODUCT.ID, product.id);
+                .set(EN_PRODUCT.ID, product.id());
 
-        if (product.name != null) {
-            step.set(EN_PRODUCT.NAME, product.name);
+        if (product.name() != null) {
+            step.set(EN_PRODUCT.NAME, product.name());
         }
-        if (product.price != null) {
-            step.set(EN_PRODUCT.PRICE, BigDecimal.valueOf(product.price));
+        if (product.price() != null) {
+            step.set(EN_PRODUCT.PRICE, BigDecimal.valueOf(product.price()));
         }
-        if (product.description != null) {
-            step.set(EN_PRODUCT.DESCRIPTION, product.description);
+        if (product.description() != null) {
+            step.set(EN_PRODUCT.DESCRIPTION, product.description());
         }
-        if (product.image != null) {
-            step.set(EN_PRODUCT.IMAGE, product.image);
+        if (product.image() != null) {
+            step.set(EN_PRODUCT.IMAGE, product.image());
         }
 
         return step.execute() > 0;
@@ -85,7 +85,7 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
             throw new AssertionError("newBean is required");
         }
 
-        if (newBean.id == null) {
+        if (newBean.id() == null) {
             throw new AssertionError("Missing primary key");
         }
 
@@ -94,24 +94,24 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
         }
 
         var dsl = dsl();
-        var step = dsl.update(EN_PRODUCT).set(EN_PRODUCT.ID, newBean.id);
+        var step = dsl.update(EN_PRODUCT).set(EN_PRODUCT.ID, newBean.id());
 
         boolean hasChanges = false;
 
-        if (changed(newBean, oldBean, projection, p -> p.name)) {
-            step.set(EN_PRODUCT.NAME, newBean.name);
+        if (changed(newBean, oldBean, projection, p -> p.name())) {
+            step.set(EN_PRODUCT.NAME, newBean.name());
             hasChanges = true;
         }
-        if (changed(newBean, oldBean, projection, p -> p.price)) {
-            step.set(EN_PRODUCT.PRICE, newBean.price != null ? BigDecimal.valueOf(newBean.price) : null);
+        if (changed(newBean, oldBean, projection, p -> p.price())) {
+            step.set(EN_PRODUCT.PRICE, newBean.price() != null ? BigDecimal.valueOf(newBean.price()) : null);
             hasChanges = true;
         }
-        if (changed(newBean, oldBean, projection, p -> p.description)) {
-            step.set(EN_PRODUCT.DESCRIPTION, newBean.description);
+        if (changed(newBean, oldBean, projection, p -> p.description())) {
+            step.set(EN_PRODUCT.DESCRIPTION, newBean.description());
             hasChanges = true;
         }
-        if (changed(newBean, oldBean, projection, p -> p.image)) {
-            step.set(EN_PRODUCT.IMAGE, newBean.image);
+        if (changed(newBean, oldBean, projection, p -> p.image())) {
+            step.set(EN_PRODUCT.IMAGE, newBean.image());
             hasChanges = true;
         }
 
@@ -119,7 +119,7 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
             return false;
         }
 
-        return step.where(EN_PRODUCT.ID.eq(newBean.id)).execute() > 0;
+        return step.where(EN_PRODUCT.ID.eq(newBean.id())).execute() > 0;
     }
 
     @Override
@@ -171,8 +171,8 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
     public Product fetchById(Long productId, Product projection) {
         var prjBean = projection != null ? projection : QUERY.newProjectionBean();
         // Ensure id is always projected
-        if (prjBean.id == null) {
-            prjBean.id = 0L;
+        if (prjBean.id() == null) {
+            prjBean.withId(0L);
         }
 
         return QUERY.fetchOne(prjBean, (t, q) -> q.where(t.ID.eq(productId)));
@@ -180,15 +180,15 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
 
     @Override
     public byte[] fetchImage(Long productId) {
-        var prjBean = new Product();
-        prjBean.id = 0L;
-        prjBean.image = new byte[0];
+        var prjBean = new Product()
+                .withId(0L)
+                .withImage(new byte[0]);
 
         var product = QUERY.fetchOne(prjBean, (t, q) -> q.where(t.ID.eq(productId)));
         if (product == null) {
             throw new BusinessException("Product not found: " + productId);
         }
-        return product.image;
+        return product.image();
     }
 
     @Override
@@ -206,8 +206,8 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
         if (criteria != null && criteria.projection() != null) {
             var prj = criteria.projection();
             // Always include id
-            if (prj.id == null) {
-                prj.id = 0L;
+            if (prj.id() == null) {
+                prj.withId(0L);
             }
             return prj;
         }

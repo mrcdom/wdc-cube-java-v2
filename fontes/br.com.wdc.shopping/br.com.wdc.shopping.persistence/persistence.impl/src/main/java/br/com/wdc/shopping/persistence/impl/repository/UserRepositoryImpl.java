@@ -31,11 +31,11 @@ public class UserRepositoryImpl extends BaseRepositoryImpl  implements UserRepos
             .setBeanFactory(User::new)
             .setTableFactory(EN_USER::as)
             .setDSLContextSupplier(UserRepositoryImpl::dsl)
-            .addI64("id", u -> u.id, (u, v) -> u.id = v, t -> t.ID)
-            .addStr("userName", u -> u.userName, (u, v) -> u.userName = v, t -> t.USERNAME)
-            .addStr("password", u -> u.password, (u, v) -> u.password = v, t -> t.PASSWORD)
-            .addStr("name", u -> u.name, (u, v) -> u.name = v, t -> t.NAME)
-            .addStr("roles", u -> u.roles, (u, v) -> u.roles = v, t -> t.ROLES)
+            .addI64("id", u -> u.id(), (u, v) -> u.withId(v), t -> t.ID)
+            .addStr("userName", u -> u.userName(), (u, v) -> u.withUserName(v), t -> t.USERNAME)
+            .addStr("password", u -> u.password(), (u, v) -> u.withPassword(v), t -> t.PASSWORD)
+            .addStr("name", u -> u.name(), (u, v) -> u.withName(v), t -> t.NAME)
+            .addStr("roles", u -> u.roles(), (u, v) -> u.withRoles(v), t -> t.ROLES)
             .build();
     // @formatter:on
 
@@ -58,24 +58,24 @@ public class UserRepositoryImpl extends BaseRepositoryImpl  implements UserRepos
     public boolean insert(User user) {
         var dsl = dsl();
 
-        if (user.id == null) {
-            user.id = dsl.nextval(SQ_USER);
+        if (user.id() == null) {
+            user.withId(dsl.nextval(SQ_USER));
         }
 
         var step = dsl.insertInto(EN_USER)
-                .set(EN_USER.ID, user.id);
+                .set(EN_USER.ID, user.id());
 
-        if (user.userName != null) {
-            step.set(EN_USER.USERNAME, user.userName);
+        if (user.userName() != null) {
+            step.set(EN_USER.USERNAME, user.userName());
         }
-        if (user.password != null) {
-            step.set(EN_USER.PASSWORD, user.password);
+        if (user.password() != null) {
+            step.set(EN_USER.PASSWORD, user.password());
         }
-        if (user.name != null) {
-            step.set(EN_USER.NAME, user.name);
+        if (user.name() != null) {
+            step.set(EN_USER.NAME, user.name());
         }
-        if (user.roles != null) {
-            step.set(EN_USER.ROLES, user.roles);
+        if (user.roles() != null) {
+            step.set(EN_USER.ROLES, user.roles());
         }
 
         return step.execute() > 0;
@@ -87,7 +87,7 @@ public class UserRepositoryImpl extends BaseRepositoryImpl  implements UserRepos
             throw new AssertionError("newBean is requeried");
         }
 
-        if (newBean.id == null) {
+        if (newBean.id() == null) {
             throw new AssertionError("Missing primary key");
         }
 
@@ -96,24 +96,24 @@ public class UserRepositoryImpl extends BaseRepositoryImpl  implements UserRepos
         }
 
         var dsl = dsl();
-        var step = dsl.update(EN_USER).set(EN_USER.ID, newBean.id);
+        var step = dsl.update(EN_USER).set(EN_USER.ID, newBean.id());
 
         boolean hasChanges = false;
 
-        if (changed(newBean, oldBean, projection, u -> u.userName)) {
-            step.set(EN_USER.USERNAME, newBean.userName);
+        if (changed(newBean, oldBean, projection, u -> u.userName())) {
+            step.set(EN_USER.USERNAME, newBean.userName());
             hasChanges = true;
         }
-        if (changed(newBean, oldBean, projection, u -> u.password)) {
-            step.set(EN_USER.PASSWORD, newBean.password);
+        if (changed(newBean, oldBean, projection, u -> u.password())) {
+            step.set(EN_USER.PASSWORD, newBean.password());
             hasChanges = true;
         }
-        if (changed(newBean, oldBean, projection, u -> u.name)) {
-            step.set(EN_USER.NAME, newBean.name);
+        if (changed(newBean, oldBean, projection, u -> u.name())) {
+            step.set(EN_USER.NAME, newBean.name());
             hasChanges = true;
         }
-        if (changed(newBean, oldBean, projection, u -> u.roles)) {
-            step.set(EN_USER.ROLES, newBean.roles);
+        if (changed(newBean, oldBean, projection, u -> u.roles())) {
+            step.set(EN_USER.ROLES, newBean.roles());
             hasChanges = true;
         }
 
@@ -121,7 +121,7 @@ public class UserRepositoryImpl extends BaseRepositoryImpl  implements UserRepos
             return false;
         }
 
-        return step.where(EN_USER.ID.eq(newBean.id)).execute() > 0;
+        return step.where(EN_USER.ID.eq(newBean.id())).execute() > 0;
     }
 
     @Override
@@ -173,8 +173,8 @@ public class UserRepositoryImpl extends BaseRepositoryImpl  implements UserRepos
     @Override
     public User fetchById(Long userId, User projection) {
         var prjBean = projection != null ? projection : QUERY.newProjectionBean();
-        if (prjBean.id == null) {
-            prjBean.id = 0L;
+        if (prjBean.id() == null) {
+            prjBean.withId(0L);
         }
 
         return QUERY.fetchOne(prjBean, (t, q) -> q.where(t.ID.eq(userId)));
@@ -185,8 +185,8 @@ public class UserRepositoryImpl extends BaseRepositoryImpl  implements UserRepos
     private User projectionFrom(UserCriteria criteria) {
         if (criteria != null && criteria.projection() != null) {
             var prj = criteria.projection();
-            if (prj.id == null) {
-                prj.id = 0L;
+            if (prj.id() == null) {
+                prj.withId(0L);
             }
             return prj;
         }

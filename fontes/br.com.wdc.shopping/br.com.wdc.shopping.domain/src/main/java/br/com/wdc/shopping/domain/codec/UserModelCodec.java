@@ -15,11 +15,11 @@ public class UserModelCodec implements ModelCodec<User, UserCriteria> {
 	@Override
 	public void writeEntity(ExtensibleObjectOutput out, User entity) {
 		out.beginObject();
-		if (entity.id != null) out.name("id").value(entity.id);
-		if (entity.userName != null) out.name("userName").value(entity.userName);
-		if (entity.name != null) out.name("name").value(entity.name);
-		if (entity.password != null) out.name("password").value(entity.password);
-		if (entity.roles != null) out.name("roles").value(entity.roles);
+		if (entity.id() != null) out.name("id").value(entity.id());
+		if (entity.userName() != null) out.name("userName").value(entity.userName());
+		if (entity.name() != null) out.name("name").value(entity.name());
+		if (entity.password() != null) out.name("password").value(entity.password());
+		if (entity.roles() != null) out.name("roles").value(entity.roles());
 		out.endObject();
 	}
 
@@ -27,7 +27,7 @@ public class UserModelCodec implements ModelCodec<User, UserCriteria> {
 	public void writeEntity(ExtensibleObjectOutput out, User entity, EntityGraph graph) {
 		if (!graph.track(entity)) {
 			out.beginObject();
-			if (entity.id != null) out.name("id").value(entity.id);
+			if (entity.id() != null) out.name("id").value(entity.id());
 			out.endObject();
 			return;
 		}
@@ -37,22 +37,22 @@ public class UserModelCodec implements ModelCodec<User, UserCriteria> {
 	@Override
 	public void writeEntityProjected(ExtensibleObjectOutput out, User entity, User projection) {
 		out.beginObject();
-		if (entity.id != null) out.name("id").value(entity.id);
-		if (projection.userName != null) {
+		if (entity.id() != null) out.name("id").value(entity.id());
+		if (projection.userName() != null) {
 			out.name("userName");
-			if (entity.userName != null) out.value(entity.userName); else out.nullValue();
+			if (entity.userName() != null) out.value(entity.userName()); else out.nullValue();
 		}
-		if (projection.name != null) {
+		if (projection.name() != null) {
 			out.name("name");
-			if (entity.name != null) out.value(entity.name); else out.nullValue();
+			if (entity.name() != null) out.value(entity.name()); else out.nullValue();
 		}
-		if (projection.password != null) {
+		if (projection.password() != null) {
 			out.name("password");
-			if (entity.password != null) out.value(entity.password); else out.nullValue();
+			if (entity.password() != null) out.value(entity.password()); else out.nullValue();
 		}
-		if (projection.roles != null) {
+		if (projection.roles() != null) {
 			out.name("roles");
-			if (entity.roles != null) out.value(entity.roles); else out.nullValue();
+			if (entity.roles() != null) out.value(entity.roles()); else out.nullValue();
 		}
 		out.endObject();
 	}
@@ -61,10 +61,10 @@ public class UserModelCodec implements ModelCodec<User, UserCriteria> {
 	public User computeProjection(User newEntity, User oldEntity) {
 		var pv = ProjectionValues.INSTANCE;
 		var projection = new User();
-		if (!java.util.Objects.equals(newEntity.userName, oldEntity.userName)) projection.userName = pv.str;
-		if (!java.util.Objects.equals(newEntity.name, oldEntity.name)) projection.name = pv.str;
-		if (!java.util.Objects.equals(newEntity.password, oldEntity.password)) projection.password = pv.str;
-		if (!java.util.Objects.equals(newEntity.roles, oldEntity.roles)) projection.roles = pv.str;
+		if (!java.util.Objects.equals(newEntity.userName(), oldEntity.userName())) projection.withUserName(pv.str);
+		if (!java.util.Objects.equals(newEntity.name(), oldEntity.name())) projection.withName(pv.str);
+		if (!java.util.Objects.equals(newEntity.password(), oldEntity.password())) projection.withPassword(pv.str);
+		if (!java.util.Objects.equals(newEntity.roles(), oldEntity.roles())) projection.withRoles(pv.str);
 		return projection;
 	}
 
@@ -74,11 +74,11 @@ public class UserModelCodec implements ModelCodec<User, UserCriteria> {
 		in.beginObject();
 		while (in.hasNext()) {
 			switch (in.nextName()) {
-				case "id" -> user.id = InputCoerceUtils.asLong(in);
-				case "userName" -> user.userName = InputCoerceUtils.asString(in);
-				case "name" -> user.name = InputCoerceUtils.asString(in);
-				case "password" -> user.password = InputCoerceUtils.asString(in);
-				case "roles" -> user.roles = InputCoerceUtils.asString(in);
+				case "id" -> user.withId(InputCoerceUtils.asLong(in));
+				case "userName" -> user.withUserName(InputCoerceUtils.asString(in));
+				case "name" -> user.withName(InputCoerceUtils.asString(in));
+				case "password" -> user.withPassword(InputCoerceUtils.asString(in));
+				case "roles" -> user.withRoles(InputCoerceUtils.asString(in));
 				default -> in.skipValue();
 			}
 		}
@@ -94,11 +94,11 @@ public class UserModelCodec implements ModelCodec<User, UserCriteria> {
 		in.beginObject();
 		while (in.hasNext()) {
 			switch (in.nextName()) {
-				case "id" -> { entity.id = InputCoerceUtils.asLong(in); projection.id = pv.i64; }
-				case "userName" -> { entity.userName = InputCoerceUtils.asString(in); projection.userName = pv.str; }
-				case "name" -> { entity.name = InputCoerceUtils.asString(in); projection.name = pv.str; }
-				case "password" -> { entity.password = InputCoerceUtils.asString(in); projection.password = pv.str; }
-				case "roles" -> { entity.roles = InputCoerceUtils.asString(in); projection.roles = pv.str; }
+				case "id" -> { entity.withId(InputCoerceUtils.asLong(in)); projection.withId(pv.i64); }
+				case "userName" -> { entity.withUserName(InputCoerceUtils.asString(in)); projection.withUserName(pv.str); }
+				case "name" -> { entity.withName(InputCoerceUtils.asString(in)); projection.withName(pv.str); }
+				case "password" -> { entity.withPassword(InputCoerceUtils.asString(in)); projection.withPassword(pv.str); }
+				case "roles" -> { entity.withRoles(InputCoerceUtils.asString(in)); projection.withRoles(pv.str); }
 				default -> in.skipValue();
 			}
 		}
@@ -136,6 +136,6 @@ public class UserModelCodec implements ModelCodec<User, UserCriteria> {
 
 	@Override
 	public void setGeneratedId(User entity, long id) {
-		entity.id = id;
+		entity.withId(id);
 	}
 }
