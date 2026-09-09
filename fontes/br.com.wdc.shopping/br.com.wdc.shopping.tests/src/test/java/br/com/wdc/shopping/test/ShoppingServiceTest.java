@@ -69,7 +69,7 @@ public class ShoppingServiceTest extends BaseBusinessTest {
 
     @Test
     public void login_wrongPassword_isRejected() {
-        // A senha deixou de ser campo de critério: quem a confere é o login, e é neste nível que o par
+        // A senha não é campo de critério: quem a confere é o login, e é neste nível que o par
         // "aceita a correta / recusa a errada" precisa ser garantido.
         var result = new LoginService(UserRepository.BEAN.get()).fetchSubject("admin", "senha-errada");
 

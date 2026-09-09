@@ -22,11 +22,9 @@ import br.com.wdc.shopping.test.util.TestEnvironment;
  * O que acontece quando chega um nome de ordenação que este servidor não conhece.
  *
  * <p>
- * O caso é real: o app TeaVM, compilado contra uma versão anterior do domínio, continuou pedindo
- * {@code "orderBy":"DESCENDING"} depois de o enumerado passar a {@code NEWEST_FIRST}. O
- * {@code Enum.valueOf} lançava {@code IllegalArgumentException}, a API devolvia 500 com a mensagem genérica e a tela
- * mostrava uma lista vazia — sem nada que apontasse para a incompatibilidade. Estes testes fixam a resposta que torna
- * esse descompasso legível.
+ * É o que um cliente defasado envia — o app compilado contra uma versão anterior do domínio, que segue pedindo um
+ * nome já renomeado. A resposta tem de nomear o valor recusado e os aceitos, e chegar como 400: é a única pista de
+ * quem chamou, para quem o sintoma é uma lista vazia na tela.
  * </p>
  */
 public class OrderByWireCompatibilityTest {

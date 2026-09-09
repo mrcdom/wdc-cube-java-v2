@@ -22,14 +22,7 @@ public interface ProductRepository extends Repository<Product, ProductCriteria, 
     }
 
     /**
-     * Busca pela chave — um {@code productId} com filtro de igualdade sobre a chave primária.
-     *
-     * <p>
-     * Mora aqui, e não em {@code Repository}, porque o contrato genérico não tem como montar o critério: ele conhece
-     * o tipo {@code C}, mas não qual dos campos dele é a chave. Cada entidade sabe, e é só o que falta — o resto é o
-     * {@code fetch} que todas as implementações já têm. Assim a busca por chave é a mesma consulta das outras, com o
-     * mesmo tratamento de projeção, de segurança e de transação, em vez de um caminho paralelo por implementação.
-     * </p>
+     * Busca pela chave: um {@code ProductCriteria} com igualdade sobre a chave primária, resolvido pelo {@code fetch}.
      *
      * @param projection {@code null} projeta {@link #newProjection()} — todos os campos rasos da entidade.
      * @return a entidade, ou {@code null} se não houver linha com essa chave.

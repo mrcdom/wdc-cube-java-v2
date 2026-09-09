@@ -333,8 +333,6 @@ public interface ProductRepository {
     List<Product> fetch(ProductCriteria criteria);
 
     // Busca pela chave: um ProductCriteria com igualdade sobre a chave primária.
-    // É default aqui, e não abstrato no Repository, porque o contrato genérico
-    // conhece o tipo do critério mas não qual campo dele é a chave.
     default Product fetchById(Long productId, Product projection) {
         var found = fetch(new ProductCriteria()
                 .withProductId(productId)
@@ -344,8 +342,9 @@ public interface ProductRepository {
 }
 ```
 
-Buscar pela chave é, então, a mesma consulta das outras — mesmo tratamento de projeção,
-de segurança e de transação — em vez de um caminho paralelo por implementação.
+O `default` mora na interface da entidade porque é ela que sabe qual campo do critério é a
+chave; o `Repository` genérico conhece apenas o tipo `C`. Com isso, buscar pela chave é a
+mesma consulta das outras, com o mesmo tratamento de projeção, de segurança e de transação.
 
 O campo estático `BEAN` é o ponto de injeção — um Service Locator leve baseado em `AtomicReference`. A implementação concreta é registrada durante o bootstrap da aplicação:
 

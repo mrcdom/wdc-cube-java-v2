@@ -51,9 +51,7 @@ public final class RepositoryApiRoutes {
             ctx.json(java.util.Map.of("error", e.getMessage()));
         });
 
-        // Pedido não interpretável (ex.: nome de ordenação que este servidor não conhece) → 400, não 500.
-        // É a resposta que distingue "o cliente pediu algo inválido" de "o servidor quebrou": um cliente defasado
-        // recebe o valor recusado e a lista dos aceitos, em vez do 500 genérico que só se diagnostica pelo log.
+        // Pedido não interpretável (ex.: nome de ordenação que este servidor não conhece) → 400, com o motivo no corpo
         config.routes.exception(InvalidRequestException.class, (e, ctx) -> {
             ctx.status(400);
             ctx.json(java.util.Map.of("error", e.getMessage()));

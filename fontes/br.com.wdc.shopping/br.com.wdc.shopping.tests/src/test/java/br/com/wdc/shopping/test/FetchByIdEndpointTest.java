@@ -16,10 +16,8 @@ import br.com.wdc.shopping.test.util.TestEnvironment;
  * Os dois endpoints de busca por chave, chamados diretamente.
  *
  * <p>
- * O cliente HTTP deixou de usá-los quando {@code fetchById} passou a ser um {@code default} sobre {@code fetch}: ele
- * agora monta o critério e vai por {@code /fetch}, como qualquer outra consulta. Os endpoints continuam servidos e
- * documentados no OpenAPI para quem consome a API de fora — e, sem estes testes, ficariam sem ninguém exercitando: o
- * caminho por onde uma quebra passaria despercebida.
+ * Eles servem quem consome a API de fora: o cliente HTTP deste projeto vai por {@code /fetch}, montando o critério.
+ * São, portanto, os únicos testes que os exercitam — sem eles, uma quebra aqui passa despercebida.
  * </p>
  */
 public class FetchByIdEndpointTest {

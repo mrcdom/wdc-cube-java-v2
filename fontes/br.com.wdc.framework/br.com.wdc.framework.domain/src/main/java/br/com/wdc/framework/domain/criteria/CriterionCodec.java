@@ -20,7 +20,7 @@ import br.com.wdc.framework.domain.exception.InvalidRequestException;
  * </p>
  *
  * <p>
- * A forma é um objeto com os pedidos, e não o valor solto que trafegava antes:
+ * A forma é um objeto com os pedidos:
  * </p>
  *
  * <pre>
@@ -163,8 +163,8 @@ public final class CriterionCodec {
      * </p>
      *
      * <p>
-     * <b>Aceita também o valor solto</b> ({@code "price": 10.0}), lendo-o como igualdade. É o formato que trafegava
-     * antes, e continuar entendendo-o custa um {@code if}.
+     * <b>Aceita também o valor solto</b> ({@code "price": 10.0}), lendo-o como igualdade — a forma mínima de um
+     * filtro de igualdade, e entendê-la custa um {@code if}.
      * </p>
      */
     public static <T> void read(ExtensibleObjectInput in, Criterion<?, T> criterion, ValueReader<T> valueReader) {
