@@ -39,6 +39,7 @@ public class UserCriteria implements Criteria {
         return userId;
     }
 
+    /** Se há critério neste campo. É por aqui que a tradução pergunta. */
     public boolean hasUserId() {
         return userId.isSet();
     }
@@ -54,6 +55,7 @@ public class UserCriteria implements Criteria {
         return userName;
     }
 
+    /** Se há critério neste campo. É por aqui que a tradução pergunta. */
     public boolean hasUserName() {
         return userName.isSet();
     }
@@ -63,12 +65,14 @@ public class UserCriteria implements Criteria {
         return value == null ? this : userName().eq(value);
     }
 
+    /** O valor é convertido em resumo MD5 antes de chegar à coluna — a comparação é sobre o resumo, e por isso só a igualdade dá resultado útil. */
     private final TextCriterion<UserCriteria> password = new TextCriterion<>(this, "password");
 
     public TextCriterion<UserCriteria> password() {
         return password;
     }
 
+    /** Se há critério neste campo. É por aqui que a tradução pergunta. */
     public boolean hasPassword() {
         return password.isSet();
     }
@@ -78,9 +82,42 @@ public class UserCriteria implements Criteria {
         return value == null ? this : password().eq(value);
     }
 
+    private final TextCriterion<UserCriteria> name = new TextCriterion<>(this, "name");
+
+    public TextCriterion<UserCriteria> name() {
+        return name;
+    }
+
+    /** Se há critério neste campo. É por aqui que a tradução pergunta. */
+    public boolean hasName() {
+        return name.isSet();
+    }
+
+    /** Atalho para {@code name().eq(valor)}; {@code null} não filtra. */
+    public UserCriteria withName(String value) {
+        return value == null ? this : name().eq(value);
+    }
+
+    /** Papéis separados por vírgula na coluna; {@code containing("ADMIN")} é o filtro usual. */
+    private final TextCriterion<UserCriteria> roles = new TextCriterion<>(this, "roles");
+
+    public TextCriterion<UserCriteria> roles() {
+        return roles;
+    }
+
+    /** Se há critério neste campo. É por aqui que a tradução pergunta. */
+    public boolean hasRoles() {
+        return roles.isSet();
+    }
+
+    /** Atalho para {@code roles().eq(valor)}; {@code null} não filtra. */
+    public UserCriteria withRoles(String value) {
+        return value == null ? this : roles().eq(value);
+    }
+
     @Override
     public List<Criterion<?, ?>> criterions() {
-        return List.of(userId, userName, password);
+        return List.of(userId, userName, password, name, roles);
     }
 
     // :: Order By

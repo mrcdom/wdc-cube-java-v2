@@ -156,6 +156,8 @@ public class PurchaseItemCodec implements ModelCodec<PurchaseItem, PurchaseItemC
 		CriterionCodec.write(out, "purchaseItemId", criteria.purchaseItemId(), CriterionCodec.LONG_OUT);
 		CriterionCodec.write(out, "purchaseId", criteria.purchaseId(), CriterionCodec.LONG_OUT);
 		CriterionCodec.write(out, "productId", criteria.productId(), CriterionCodec.LONG_OUT);
+		CriterionCodec.write(out, "amount", criteria.amount(), CriterionCodec.INT_OUT);
+		CriterionCodec.write(out, "price", criteria.price(), CriterionCodec.DOUBLE_OUT);
 		CriterionCodec.write(out, "userId", criteria.userId(), CriterionCodec.LONG_OUT);
 		if (criteria.orderBy() != null) out.name("orderBy").value(criteria.orderBy().name());
 	}
@@ -166,6 +168,8 @@ public class PurchaseItemCodec implements ModelCodec<PurchaseItem, PurchaseItemC
 			case "purchaseItemId" -> CriterionCodec.read(in, criteria.purchaseItemId(), CriterionCodec.LONG_IN);
 			case "purchaseId" -> CriterionCodec.read(in, criteria.purchaseId(), CriterionCodec.LONG_IN);
 			case "productId" -> CriterionCodec.read(in, criteria.productId(), CriterionCodec.LONG_IN);
+			case "amount" -> CriterionCodec.read(in, criteria.amount(), CriterionCodec.INT_IN);
+			case "price" -> CriterionCodec.read(in, criteria.price(), CriterionCodec.DOUBLE_IN);
 			case "userId" -> CriterionCodec.read(in, criteria.userId(), CriterionCodec.LONG_IN);
 			case "orderBy" -> {
 				var v = InputCoerceUtils.asString(in);

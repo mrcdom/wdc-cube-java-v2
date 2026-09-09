@@ -187,6 +187,7 @@ public class PurchaseCodec implements ModelCodec<Purchase, PurchaseCriteria> {
 	public void writeCriteriaFields(ExtensibleObjectOutput out, PurchaseCriteria criteria) {
 		CriterionCodec.write(out, "purchaseId", criteria.purchaseId(), CriterionCodec.LONG_OUT);
 		CriterionCodec.write(out, "userId", criteria.userId(), CriterionCodec.LONG_OUT);
+		CriterionCodec.write(out, "buyDate", criteria.buyDate(), CriterionCodec.ODT_OUT);
 		CriterionCodec.write(out, "productId", criteria.productId(), CriterionCodec.LONG_OUT);
 		if (criteria.orderBy() != null) out.name("orderBy").value(criteria.orderBy().name());
 	}
@@ -196,6 +197,7 @@ public class PurchaseCodec implements ModelCodec<Purchase, PurchaseCriteria> {
 		switch (fieldName) {
 			case "purchaseId" -> CriterionCodec.read(in, criteria.purchaseId(), CriterionCodec.LONG_IN);
 			case "userId" -> CriterionCodec.read(in, criteria.userId(), CriterionCodec.LONG_IN);
+			case "buyDate" -> CriterionCodec.read(in, criteria.buyDate(), CriterionCodec.ODT_IN);
 			case "productId" -> CriterionCodec.read(in, criteria.productId(), CriterionCodec.LONG_IN);
 			case "orderBy" -> {
 				var v = InputCoerceUtils.asString(in);

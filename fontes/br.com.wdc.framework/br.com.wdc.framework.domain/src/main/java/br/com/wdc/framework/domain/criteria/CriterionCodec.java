@@ -1,6 +1,9 @@
 package br.com.wdc.framework.domain.criteria;
 
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectInput;
@@ -59,6 +62,29 @@ public final class CriterionCodec {
 
     public static final ValueWriter<Boolean> BOOL_OUT = (out, v) -> out.value(v.booleanValue());
     public static final ValueReader<Boolean> BOOL_IN = InputCoerceUtils::asBoolean;
+
+    /** Data e hora como texto ISO-8601 — a forma em que o resto do transporte já as escreve. */
+    public static final ValueWriter<OffsetDateTime> ODT_OUT =
+            (out, v) -> out.value(v.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+    public static final ValueReader<OffsetDateTime> ODT_IN = (in) -> {
+        var text = InputCoerceUtils.asString(in);
+        return text == null ? null : OffsetDateTime.parse(text, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+    };
+
+    /**
+     * Binário em Base64.
+     *
+     * <p>
+     * Existe para completude: num campo binário o filtro que se usa é {@code isNull()} / {@code isNotNull()}, que não
+     * carrega valor algum. Comparar o conteúdo inteiro é possível, e por isso está aqui, mas raramente é o que se quer.
+     * </p>
+     */
+    public static final ValueWriter<byte[]> BYTES_OUT =
+            (out, v) -> out.value(Base64.getEncoder().encodeToString(v));
+    public static final ValueReader<byte[]> BYTES_IN = (in) -> {
+        var text = InputCoerceUtils.asString(in);
+        return text == null ? null : Base64.getDecoder().decode(text);
+    };
 
     private CriterionCodec() {
         // NOOP

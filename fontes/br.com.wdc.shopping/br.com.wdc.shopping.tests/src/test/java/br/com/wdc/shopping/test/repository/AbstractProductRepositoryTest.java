@@ -322,4 +322,65 @@ public abstract class AbstractProductRepositoryTest {
 			assertEquals(4, repo().count(new ProductCriteria()));
 		}
 	}
+
+	// :: Campos que não são a chave — a superfície de filtro cobre todos os campos da entidade
+
+	@Test
+	public void filterByName_text() {
+		var products = repo().fetch(new ProductCriteria().name().containing("Wilson"));
+
+		assertEquals(1, products.size());
+		assertEquals(DBReset.BOLA_WILSON_ID, products.get(0).id());
+	}
+
+	@Test
+	public void filterByPrice_range() {
+		// Preço é NUMERIC na coluna e Double no domínio: a conversão é do campo, e vale igual para between.
+		// Dos quatro preços — 199.99, 45.30, 2.67 e 16.00 —, três caem na faixa.
+		var products = repo().fetch(new ProductCriteria().price().between(2.0, 50.0));
+
+		assertEquals(3, products.size());
+		for (var p : products) {
+			assertTrue("preço fora da faixa pedida: " + p.price(), p.price() >= 2.0 && p.price() <= 50.0);
+		}
+	}
+
+	@Test
+	public void filterByPrice_greaterThan() {
+		var products = repo().fetch(new ProductCriteria().price().gt(100.0));
+
+		assertEquals(1, products.size());
+		assertEquals(DBReset.CAFETEIRA_ID, products.get(0).id());
+	}
+
+	@Test
+	public void filterByDescription_text() {
+		var products = repo().fetch(new ProductCriteria().description().containing("Teflon"));
+
+		assertEquals(1, products.size());
+		assertEquals(DBReset.FITA_VEDA_ROSCA_ID, products.get(0).id());
+	}
+
+	@Test
+	public void filterByImage_isNotNull() {
+		// Num campo binário é este o filtro que se usa: com ou sem imagem, não o conteúdo.
+		var comImagem = repo().fetch(new ProductCriteria().image().isNotNull()).size();
+		var semImagem = repo().fetch(new ProductCriteria().image().isNull()).size();
+
+		assertEquals("todo produto cai de um lado ou do outro", 4, comImagem + semImagem);
+	}
+
+	@Test
+	public void filterByTwoDifferentFields_combinesWithAnd() {
+		// Entre campos a junção é sempre AND, mesmo que cada um deles seja disjuntivo por dentro.
+		var criteria = new ProductCriteria();
+		criteria.name().containing("a");
+		criteria.price().lt(50.0);
+
+		var products = repo().fetch(criteria);
+		for (var p : products) {
+			assertTrue(p.name().toLowerCase().contains("a"));
+			assertTrue(p.price() < 50.0);
+		}
+	}
 }

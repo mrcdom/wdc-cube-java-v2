@@ -7,6 +7,7 @@ import static br.com.wdc.shopping.persistence.impl.scheme.tables.EnPurchase.EN_P
 import static br.com.wdc.shopping.persistence.impl.scheme.tables.EnPurchaseitem.EN_PURCHASEITEM;
 
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -291,6 +292,9 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
             return CriterionTranslator.and(Arrays.asList(
                     CriterionTranslator.translate(enPurchase.ID, criteria.purchaseId()),
                     CriterionTranslator.translate(enPurchase.USERID, criteria.userId()),
+                    // A coluna é TIMESTAMP sem fuso; o domínio fala em OffsetDateTime. Converter aqui mantém a
+                    // comparação no mesmo tipo dos dois lados.
+                    CriterionTranslator.translate(enPurchase.BUYDATE, criteria.buyDate(), OffsetDateTime::toLocalDateTime),
                     existsItemMatching(criteria)));
         }
 

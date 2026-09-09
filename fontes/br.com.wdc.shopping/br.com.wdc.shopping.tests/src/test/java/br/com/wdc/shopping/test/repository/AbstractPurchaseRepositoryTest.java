@@ -303,4 +303,27 @@ public abstract class AbstractPurchaseRepositoryTest {
 		var result = itemsOf(items);
 		assertEquals(List.of(DBReset.ADMIN_SECOND_PURCHASE_ITEM0_ID), idsOf(result));
 	}
+
+	// :: Campos que não são a chave
+
+	@Test
+	public void filterByBuyDate_range() {
+		// A coluna é TIMESTAMP sem fuso e o domínio fala em OffsetDateTime: a conversão acontece na tradução,
+		// e o intervalo pedido aqui é o que chega ao banco.
+		var de = OffsetDateTime.parse("2010-01-01T00:00:00Z");
+		var ate = OffsetDateTime.parse("2011-12-31T23:59:59Z");
+
+		var purchases = repo().fetch(new PurchaseCriteria().buyDate().between(de, ate));
+
+		assertEquals("as duas compras do seed estão nesse intervalo", 2, purchases.size());
+	}
+
+	@Test
+	public void filterByBuyDate_before() {
+		var corte = OffsetDateTime.parse("2011-01-01T00:00:00Z");
+		var purchases = repo().fetch(new PurchaseCriteria().buyDate().lt(corte));
+
+		assertEquals(1, purchases.size());
+		assertEquals(DBReset.ADMIN_FIRST_PURCHASE_ID, purchases.get(0).id());
+	}
 }

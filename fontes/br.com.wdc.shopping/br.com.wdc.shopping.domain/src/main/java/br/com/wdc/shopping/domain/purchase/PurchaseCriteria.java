@@ -1,5 +1,6 @@
 package br.com.wdc.shopping.domain.purchase;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 
 import br.com.wdc.framework.domain.criteria.ComparableCriterion;
@@ -32,13 +33,13 @@ public class PurchaseCriteria implements Criteria {
 
     // :: Criteria
 
-    private final ComparableCriterion<PurchaseCriteria, Long> purchaseId =
-            new ComparableCriterion<>(this, "purchaseId");
+    private final ComparableCriterion<PurchaseCriteria, Long> purchaseId = new ComparableCriterion<>(this, "purchaseId");
 
     public ComparableCriterion<PurchaseCriteria, Long> purchaseId() {
         return purchaseId;
     }
 
+    /** Se há critério neste campo. É por aqui que a tradução pergunta. */
     public boolean hasPurchaseId() {
         return purchaseId.isSet();
     }
@@ -54,6 +55,7 @@ public class PurchaseCriteria implements Criteria {
         return userId;
     }
 
+    /** Se há critério neste campo. É por aqui que a tradução pergunta. */
     public boolean hasUserId() {
         return userId.isSet();
     }
@@ -63,14 +65,31 @@ public class PurchaseCriteria implements Criteria {
         return value == null ? this : userId().eq(value);
     }
 
+    /** A coluna não guarda fuso: o valor é convertido em {@code LocalDateTime} antes da comparação. */
+    private final ComparableCriterion<PurchaseCriteria, OffsetDateTime> buyDate = new ComparableCriterion<>(this, "buyDate");
+
+    public ComparableCriterion<PurchaseCriteria, OffsetDateTime> buyDate() {
+        return buyDate;
+    }
+
+    /** Se há critério neste campo. É por aqui que a tradução pergunta. */
+    public boolean hasBuyDate() {
+        return buyDate.isSet();
+    }
+
+    /** Atalho para {@code buyDate().eq(valor)}; {@code null} não filtra. */
+    public PurchaseCriteria withBuyDate(OffsetDateTime value) {
+        return value == null ? this : buyDate().eq(value);
+    }
+
     /** Compras que contêm o produto — resolvido por {@code EXISTS} sobre os itens. */
-    private final ComparableCriterion<PurchaseCriteria, Long> productId =
-            new ComparableCriterion<>(this, "productId");
+    private final ComparableCriterion<PurchaseCriteria, Long> productId = new ComparableCriterion<>(this, "productId");
 
     public ComparableCriterion<PurchaseCriteria, Long> productId() {
         return productId;
     }
 
+    /** Se há critério neste campo. É por aqui que a tradução pergunta. */
     public boolean hasProductId() {
         return productId.isSet();
     }
@@ -82,7 +101,7 @@ public class PurchaseCriteria implements Criteria {
 
     @Override
     public List<Criterion<?, ?>> criterions() {
-        return List.of(purchaseId, userId, productId);
+        return List.of(purchaseId, userId, buyDate, productId);
     }
 
     // :: Order By
@@ -102,4 +121,5 @@ public class PurchaseCriteria implements Criteria {
         ASCENDING,
         DESCENDING
     }
+
 }

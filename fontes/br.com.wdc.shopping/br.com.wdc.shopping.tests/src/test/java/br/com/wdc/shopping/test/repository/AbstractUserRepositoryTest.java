@@ -292,4 +292,26 @@ public abstract class AbstractUserRepositoryTest {
 
 		assertEquals("texto vazio não acrescenta pedido", 3, repo().fetch(criteria).size());
 	}
+
+	// :: Campos que não são a chave
+
+	@Test
+	public void filterByName_text() {
+		var users = repo().fetch(new UserCriteria().name().containing("Silva"));
+
+		assertEquals(1, users.size());
+		assertEquals("admin", users.get(0).userName());
+	}
+
+	@Test
+	public void filterByRoles() {
+		assertEquals(1, repo().fetch(new UserCriteria().roles().eq("ADMIN")).size());
+		assertEquals(2, repo().fetch(new UserCriteria().roles().eq("CUSTOMER")).size());
+	}
+
+	@Test
+	public void filterByRoles_containing() {
+		// Papéis ficam separados por vírgula na coluna; conter é o filtro que responde "tem este papel".
+		assertEquals(1, repo().fetch(new UserCriteria().roles().containing("ADMIN")).size());
+	}
 }

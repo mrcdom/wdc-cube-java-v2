@@ -247,4 +247,38 @@ public abstract class AbstractPurchaseItemRepositoryTest {
 				.withPurchaseItemId(Long.MAX_VALUE));
 		assertEquals(0, deleted);
 	}
+
+	// :: Campos que não são a chave
+
+	@Test
+	public void filterByAmount() {
+		// Todos os itens do seed têm quantidade 1: o par abaixo mostra o filtro dos dois lados do corte,
+		// que é o que separa "filtrou" de "devolveu tudo".
+		var todos = repo().fetch(new PurchaseItemCriteria().amount().ge(1));
+		var nenhum = repo().fetch(new PurchaseItemCriteria().amount().ge(2));
+
+		assertEquals(3, todos.size());
+		assertEquals(0, nenhum.size());
+	}
+
+	@Test
+	public void filterByPrice_range() {
+		var items = repo().fetch(new PurchaseItemCriteria().price().between(2.0, 50.0));
+
+		for (var item : items) {
+			assertTrue("preço fora da faixa: " + item.price(), item.price() >= 2.0 && item.price() <= 50.0);
+		}
+	}
+
+	@Test
+	public void filterByPrice_and_amount_combineWithAnd() {
+		var criteria = new PurchaseItemCriteria();
+		criteria.price().gt(1.0);
+		criteria.amount().eq(1);
+
+		for (var item : repo().fetch(criteria)) {
+			assertTrue(item.price() > 1.0);
+			assertEquals(Integer.valueOf(1), item.amount());
+		}
+	}
 }

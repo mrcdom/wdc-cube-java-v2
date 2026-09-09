@@ -109,6 +109,8 @@ public class UserCodec implements ModelCodec<User, UserCriteria> {
 		CriterionCodec.write(out, "userId", criteria.userId(), CriterionCodec.LONG_OUT);
 		CriterionCodec.write(out, "userName", criteria.userName(), CriterionCodec.STRING_OUT);
 		CriterionCodec.write(out, "password", criteria.password(), CriterionCodec.STRING_OUT);
+		CriterionCodec.write(out, "name", criteria.name(), CriterionCodec.STRING_OUT);
+		CriterionCodec.write(out, "roles", criteria.roles(), CriterionCodec.STRING_OUT);
 		if (criteria.orderBy() != null) out.name("orderBy").value(criteria.orderBy().name());
 	}
 
@@ -118,6 +120,8 @@ public class UserCodec implements ModelCodec<User, UserCriteria> {
 			case "userId" -> CriterionCodec.read(in, criteria.userId(), CriterionCodec.LONG_IN);
 			case "userName" -> CriterionCodec.read(in, criteria.userName(), CriterionCodec.STRING_IN);
 			case "password" -> CriterionCodec.read(in, criteria.password(), CriterionCodec.STRING_IN);
+			case "name" -> CriterionCodec.read(in, criteria.name(), CriterionCodec.STRING_IN);
+			case "roles" -> CriterionCodec.read(in, criteria.roles(), CriterionCodec.STRING_IN);
 			case "orderBy" -> {
 				var v = InputCoerceUtils.asString(in);
 				if (v != null) criteria.withOrderBy(UserCriteria.OrderBy.valueOf(v));

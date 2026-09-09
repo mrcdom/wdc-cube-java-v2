@@ -40,6 +40,7 @@ export const FIELD_KINDS = {
   number: { operators: COMPARABLE_OPS, parse: (raw) => Number(raw), input: 'number' },
   text: { operators: TEXT_OPS, parse: (raw) => raw, input: 'text' },
   date: { operators: COMPARABLE_OPS, parse: (raw) => raw, input: 'datetime-local' },
+  binary: { operators: IDENTITY_OPS, parse: (raw) => raw, input: 'text' },
 };
 
 /**
@@ -69,6 +70,22 @@ export const ENTITIES = {
     ],
     criteria: [
       { name: 'productId', kind: 'number', label: 'productId', column: 'EN_PRODUCT.ID' },
+      { name: 'name', kind: 'text', label: 'name', column: 'EN_PRODUCT.NAME' },
+      {
+        name: 'price',
+        kind: 'number',
+        label: 'price',
+        column: 'EN_PRODUCT.PRICE',
+        note: 'A coluna é NUMERIC e o domínio fala em Double: o valor é convertido antes da comparação, e isso vale igual para between e in.',
+      },
+      { name: 'description', kind: 'text', label: 'description', column: 'EN_PRODUCT.DESCRIPTION' },
+      {
+        name: 'image',
+        kind: 'binary',
+        label: 'image',
+        column: 'EN_PRODUCT.IMAGE',
+        note: 'Binário: o filtro que se usa aqui é “é nulo” / “não é nulo” — produtos com ou sem imagem.',
+      },
     ],
   },
 
@@ -90,7 +107,15 @@ export const ENTITIES = {
         kind: 'text',
         label: 'password',
         column: 'EN_USER.PASSWORD',
-        note: 'O valor é convertido em resumo MD5 antes de chegar à coluna — a comparação é sobre o resumo.',
+        note: 'O valor é convertido em resumo MD5 antes de chegar à coluna — a comparação é sobre o resumo, e por isso só a igualdade dá resultado útil.',
+      },
+      { name: 'name', kind: 'text', label: 'name', column: 'EN_USER.NAME' },
+      {
+        name: 'roles',
+        kind: 'text',
+        label: 'roles',
+        column: 'EN_USER.ROLES',
+        note: 'Papéis separados por vírgula na coluna; “contém” é o filtro que responde “tem este papel”.',
       },
     ],
   },
@@ -113,6 +138,13 @@ export const ENTITIES = {
     criteria: [
       { name: 'purchaseId', kind: 'number', label: 'purchaseId', column: 'EN_PURCHASE.ID' },
       { name: 'userId', kind: 'number', label: 'userId', column: 'EN_PURCHASE.USERID' },
+      {
+        name: 'buyDate',
+        kind: 'date',
+        label: 'buyDate',
+        column: 'EN_PURCHASE.BUYDATE',
+        note: 'A coluna não guarda fuso: o valor é convertido em LocalDateTime antes da comparação.',
+      },
       {
         name: 'productId',
         kind: 'number',
@@ -138,6 +170,14 @@ export const ENTITIES = {
       { name: 'purchaseItemId', kind: 'number', label: 'purchaseItemId', column: 'EN_PURCHASEITEM.ID' },
       { name: 'purchaseId', kind: 'number', label: 'purchaseId', column: 'EN_PURCHASEITEM.PURCHASEID' },
       { name: 'productId', kind: 'number', label: 'productId', column: 'EN_PURCHASEITEM.PRODUCTID' },
+      { name: 'amount', kind: 'number', label: 'amount', column: 'EN_PURCHASEITEM.AMOUNT' },
+      {
+        name: 'price',
+        kind: 'number',
+        label: 'price',
+        column: 'EN_PURCHASEITEM.PRICE',
+        note: 'Como no produto, a coluna é NUMERIC e o valor é convertido antes da comparação.',
+      },
       {
         name: 'userId',
         kind: 'number',

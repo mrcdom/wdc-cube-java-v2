@@ -246,7 +246,9 @@ public class UserRepositoryImpl extends BaseRepositoryImpl  implements UserRepos
                     CriterionTranslator.translate(enUser.USERNAME, criteria.userName()),
                     // A coluna guarda o resumo, não a senha: o valor é convertido antes de chegar à comparação, e é o
                     // resumo que entra na consulta.
-                    CriterionTranslator.translate(enUser.PASSWORD, criteria.password(), ApplyConditions::md5Hash)));
+                    CriterionTranslator.translate(enUser.PASSWORD, criteria.password(), ApplyConditions::md5Hash),
+                    CriterionTranslator.translate(enUser.NAME, criteria.name()),
+                    CriterionTranslator.translate(enUser.ROLES, criteria.roles())));
         }
 
         /** O resumo MD5 em base 36, forma em que a senha é guardada. */
