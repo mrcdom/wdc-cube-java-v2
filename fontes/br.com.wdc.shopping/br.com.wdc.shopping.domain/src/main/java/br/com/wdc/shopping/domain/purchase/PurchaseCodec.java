@@ -12,15 +12,59 @@ import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.framework.commons.serialization.SerializationToken;
 import br.com.wdc.framework.domain.codec.ModelCodec;
 import br.com.wdc.framework.domain.criteria.CriterionCodec;
+import br.com.wdc.framework.domain.projection.ProjectionCollectionCodec;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
 import br.com.wdc.shopping.domain.product.ProductCodec;
 import br.com.wdc.shopping.domain.purchaseitem.PurchaseItem;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemCodec;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemCriteria;
 import br.com.wdc.shopping.domain.user.User;
 import br.com.wdc.shopping.domain.user.UserCodec;
 
 public class PurchaseCodec implements ModelCodec<Purchase, PurchaseCriteria> {
 
 	private static final UserCodec USER_CODEC = new UserCodec();
+
+	private static final PurchaseItemCodec ITEM_CODEC = new PurchaseItemCodec();
+
+	/**
+	 * Escreve a coleção {@code items}: envelope de projeção quando ela carrega critério ou recorte
+	 * ({@link ProjectionCollectionCodec}), array simples quando é resultado. O critério embutido é escrito pelo codec
+	 * do item, que conhece a estrutura expressiva.
+	 */
+	private static void writeItems(ExtensibleObjectOutput out, Purchase entity, EntityGraph graph) {
+		var items = entity.items();
+		if (items instanceof br.com.wdc.framework.commons.util.HasSlice
+				|| items instanceof br.com.wdc.framework.commons.util.HasCriteria) {
+			ProjectionCollectionCodec.write(out, "items", items,
+					(o, item) -> writePurchaseItem(o, item, graph),
+					(o, criteria) -> {
+						o.beginObject();
+						ITEM_CODEC.writeCriteriaFields(o, (PurchaseItemCriteria) criteria);
+						o.endObject();
+					});
+		} else {
+			out.name("items").beginArray();
+			for (var item : items) {
+				writePurchaseItem(out, item, graph);
+			}
+			out.endArray();
+		}
+	}
+
+	/** Reidrata o critério embutido da coleção projetada, pelo codec do item. */
+	private static PurchaseItemCriteria readItemCriteria(ExtensibleObjectInput in) {
+		var criteria = new PurchaseItemCriteria();
+		in.beginObject();
+		while (in.hasNext()) {
+			var name = in.nextName();
+			if (!ITEM_CODEC.readCriteriaField(in, name, criteria)) {
+				in.skipValue();
+			}
+		}
+		in.endObject();
+		return criteria;
+	}
 
 	@Override
 	public void writeEntity(ExtensibleObjectOutput out, Purchase entity) {
@@ -44,11 +88,7 @@ public class PurchaseCodec implements ModelCodec<Purchase, PurchaseCriteria> {
 			USER_CODEC.writeEntity(out, entity.user(), graph);
 		}
 		if (entity.items() != null) {
-			out.name("items").beginArray();
-			for (var item : entity.items()) {
-				writePurchaseItem(out, item, graph);
-			}
-			out.endArray();
+			writeItems(out, entity, graph);
 		}
 		out.endObject();
 	}
@@ -99,8 +139,16 @@ public class PurchaseCodec implements ModelCodec<Purchase, PurchaseCriteria> {
 					else purchase.withUser(USER_CODEC.readEntity(in));
 				}
 				case "items" -> {
-					if (in.peek() == SerializationToken.NULL) { in.nextNull(); }
-					else purchase.withItems(readPurchaseItemList(in, purchase));
+					if (in.peek() == SerializationToken.NULL) {
+						in.nextNull();
+					} else if (ProjectionCollectionCodec.isProjectionEnvelope(in)) {
+						// Envelope de projeção: forma + critério + recorte. Distingue-se do array de resultado pelo token.
+						purchase.withItems(ProjectionCollectionCodec.read(in,
+								i -> readPurchaseItem(i, purchase),
+								PurchaseCodec::readItemCriteria));
+					} else {
+						purchase.withItems(readPurchaseItemList(in, purchase));
+					}
 				}
 				default -> in.skipValue();
 			}

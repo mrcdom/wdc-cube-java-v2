@@ -135,6 +135,27 @@ Campo que não é coluna da tabela — `PurchaseCriteria.productId`, que vive no
 
 O valor solto não bastaria: um campo carrega vários pedidos, cada um com seu operador e sua aridade, e a disjunção é do campo. Reduzir isso a `"price": 10.0` descartaria tudo menos a igualdade, e em silêncio. O formato antigo continua sendo aceito na leitura, como igualdade.
 
+### Transporte da coleção projetada
+
+Tudo o que se descreveu — critério expressivo, ordem e recorte da coleção filha — vale igual em acesso direto e via REST, porque a projeção inteira trafega. O ponto sutil é a **coleção projetada**: uma `ProjectionList` não é uma lista de resultados, é *uma* forma de item mais o critério que a filtra e o recorte a aplicar. No transporte, ela vira um envelope, distinto do array de resultado pelo próprio formato:
+
+```json
+// projeção (cliente → servidor)
+"items": {
+  "shape":  { "id": 1, "amount": 1, "product": { "id": 1 } },
+  "where":  { "productId": { "p": [ { "o": "EQ", "v": [7] } ] }, "orderBy": "DESCENDING" },
+  "limit":  5,
+  "offset": 1
+}
+
+// resultado (servidor → cliente) — o array de sempre
+"items": [ { "id": 10, ... }, { "id": 11, ... } ]
+```
+
+O leitor decide pelo token: objeto é projeção, array é resultado — o mesmo campo `items` serve os dois sentidos, e o resultado segue inalterado. O `where` reusa o codec do item (`CriterionCodec`), de modo que `in`, `between` e a disjunção valem no sub-critério como valem no de topo. O `ProjectionCollectionCodec` cuida do envelope; o codec da entidade filha, do conteúdo do critério — os dois colaboram.
+
+Antes disso, `writeEntity` serializava a coleção só como a forma dos itens: em REST, pedir "os itens do produto X, ordenados, 5 primeiros" trazia todos os itens, sem filtro nem ordem. Os testes de coleção vivem agora nos `Abstract*RepositoryTest` e rodam nos dois modos, então a paridade é verificada, não presumida.
+
 ### Coleção filha ordenada e recortada
 
 A coleção 1:N declarada com `addBeanListField` pode ser ordenada e recortada pela própria projeção. A ordem vem do `OrderBy` do critério que a coleção carrega; o recorte, de `withLimit`/`withOffset`:
