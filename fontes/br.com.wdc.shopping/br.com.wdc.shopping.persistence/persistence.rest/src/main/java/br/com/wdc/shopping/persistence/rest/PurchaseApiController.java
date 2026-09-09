@@ -161,7 +161,7 @@ public class PurchaseApiController {
         var operation = new Operation()
                 .addTagsItem("purchase").summary("Delete purchases matching criteria")
                 .security(Doc.BEARER)
-                .requestBody(Doc.body("#/components/schemas/FetchRequest"))
+                .requestBody(Doc.body("#/components/schemas/PurchaseFetchRequest"))
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/CountResult"))
                         .addApiResponse("401", Doc.unauthorized())
@@ -192,7 +192,7 @@ public class PurchaseApiController {
         var operation = new Operation()
                 .addTagsItem("purchase").summary("Count purchases matching criteria")
                 .security(Doc.BEARER)
-                .requestBody(Doc.body("#/components/schemas/FetchRequest"))
+                .requestBody(Doc.body("#/components/schemas/PurchaseFetchRequest"))
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/CountResult"))
                         .addApiResponse("401", Doc.unauthorized()));
@@ -222,7 +222,7 @@ public class PurchaseApiController {
         var operation = new Operation()
                 .addTagsItem("purchase").summary("Fetch purchases matching criteria (offset/limit)")
                 .security(Doc.BEARER)
-                .requestBody(Doc.body("#/components/schemas/FetchRequest"))
+                .requestBody(Doc.body("#/components/schemas/PurchaseFetchRequest"))
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/PurchaseFetchResponse"))
                         .addApiResponse("401", Doc.unauthorized()));
@@ -277,7 +277,7 @@ public class PurchaseApiController {
         var operation = new Operation()
                 .addTagsItem("purchase").summary("Fetch purchases matching criteria (page/pageSize)")
                 .security(Doc.BEARER)
-                .requestBody(Doc.body("#/components/schemas/PageRequest"))
+                .requestBody(Doc.body("#/components/schemas/PurchasePageRequest"))
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/PurchasePageResponse"))
                         .addApiResponse("401", Doc.unauthorized()));

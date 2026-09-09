@@ -135,7 +135,7 @@ public class ProductApiController {
         var operation = new Operation()
                 .addTagsItem("product").summary("Delete products matching criteria")
                 .security(Doc.BEARER)
-                .requestBody(Doc.body("#/components/schemas/FetchRequest"))
+                .requestBody(Doc.body("#/components/schemas/ProductFetchRequest"))
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/CountResult"))
                         .addApiResponse("401", Doc.unauthorized())
@@ -165,7 +165,7 @@ public class ProductApiController {
         var operation = new Operation()
                 .addTagsItem("product").summary("Count products matching criteria")
                 .security(Doc.BEARER)
-                .requestBody(Doc.body("#/components/schemas/FetchRequest"))
+                .requestBody(Doc.body("#/components/schemas/ProductFetchRequest"))
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/CountResult"))
                         .addApiResponse("401", Doc.unauthorized()));
@@ -194,7 +194,7 @@ public class ProductApiController {
         var operation = new Operation()
                 .addTagsItem("product").summary("Fetch products matching criteria (offset/limit)")
                 .security(Doc.BEARER)
-                .requestBody(Doc.body("#/components/schemas/FetchRequest"))
+                .requestBody(Doc.body("#/components/schemas/ProductFetchRequest"))
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/ProductFetchResponse"))
                         .addApiResponse("401", Doc.unauthorized()));
@@ -245,7 +245,7 @@ public class ProductApiController {
         var operation = new Operation()
                 .addTagsItem("product").summary("Fetch products matching criteria (page/pageSize)")
                 .security(Doc.BEARER)
-                .requestBody(Doc.body("#/components/schemas/PageRequest"))
+                .requestBody(Doc.body("#/components/schemas/ProductPageRequest"))
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/ProductPageResponse"))
                         .addApiResponse("401", Doc.unauthorized()));

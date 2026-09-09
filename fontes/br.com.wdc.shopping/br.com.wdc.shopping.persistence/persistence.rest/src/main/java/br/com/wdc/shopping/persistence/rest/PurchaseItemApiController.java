@@ -137,7 +137,7 @@ public class PurchaseItemApiController {
         var operation = new Operation()
                 .addTagsItem("purchase-item").summary("Delete purchase items matching criteria")
                 .security(Doc.BEARER)
-                .requestBody(Doc.body("#/components/schemas/FetchRequest"))
+                .requestBody(Doc.body("#/components/schemas/PurchaseItemFetchRequest"))
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/CountResult"))
                         .addApiResponse("401", Doc.unauthorized())
@@ -168,7 +168,7 @@ public class PurchaseItemApiController {
         var operation = new Operation()
                 .addTagsItem("purchase-item").summary("Count purchase items matching criteria")
                 .security(Doc.BEARER)
-                .requestBody(Doc.body("#/components/schemas/FetchRequest"))
+                .requestBody(Doc.body("#/components/schemas/PurchaseItemFetchRequest"))
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/CountResult"))
                         .addApiResponse("401", Doc.unauthorized()));
@@ -198,7 +198,7 @@ public class PurchaseItemApiController {
         var operation = new Operation()
                 .addTagsItem("purchase-item").summary("Fetch purchase items matching criteria (offset/limit)")
                 .security(Doc.BEARER)
-                .requestBody(Doc.body("#/components/schemas/FetchRequest"))
+                .requestBody(Doc.body("#/components/schemas/PurchaseItemFetchRequest"))
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/PurchaseItemFetchResponse"))
                         .addApiResponse("401", Doc.unauthorized()));
@@ -251,7 +251,7 @@ public class PurchaseItemApiController {
         var operation = new Operation()
                 .addTagsItem("purchase-item").summary("Fetch purchase items matching criteria (page/pageSize)")
                 .security(Doc.BEARER)
-                .requestBody(Doc.body("#/components/schemas/PageRequest"))
+                .requestBody(Doc.body("#/components/schemas/PurchaseItemPageRequest"))
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/PurchaseItemPageResponse"))
                         .addApiResponse("401", Doc.unauthorized()));

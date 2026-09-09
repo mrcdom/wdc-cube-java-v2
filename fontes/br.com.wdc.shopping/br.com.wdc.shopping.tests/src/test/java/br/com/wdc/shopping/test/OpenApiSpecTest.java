@@ -1,9 +1,11 @@
 package br.com.wdc.shopping.test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -12,6 +14,11 @@ import org.junit.Test;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import br.com.wdc.framework.domain.criteria.Criteria;
+import br.com.wdc.shopping.domain.product.ProductCriteria;
+import br.com.wdc.shopping.domain.purchase.PurchaseCriteria;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemCriteria;
+import br.com.wdc.shopping.domain.user.UserCriteria;
 import br.com.wdc.shopping.persistence.rest.doc.RepositoryApiDocs;
 
 /**
@@ -105,5 +112,76 @@ public class OpenApiSpecTest {
         var json = RepositoryApiDocs.toJson("/api");
         assertFalse("sobrou marcador de rascunho na documentação", json.contains("TODO"));
         assertFalse(json.contains("FIXME"));
+    }
+
+    /**
+     * Os campos de critério documentados são os que o domínio realmente tem.
+     *
+     * <p>
+     * Não confere contra uma lista escrita aqui — confere contra {@code criterions()}. Uma lista fixa no teste
+     * envelheceria junto com a documentação, e os dois passariam a concordar sobre o que já não é verdade.
+     * </p>
+     */
+    @Test
+    public void criteriaFieldsMatchTheDomain() {
+        var schemas = spec().getAsJsonObject("components").getAsJsonObject("schemas");
+
+        record Caso(String schema, Criteria criteria, Enum<?>[] orderings) { }
+        var casos = List.of(
+                new Caso("ProductCriteria", new ProductCriteria(), ProductCriteria.OrderBy.values()),
+                new Caso("UserCriteria", new UserCriteria(), UserCriteria.OrderBy.values()),
+                new Caso("PurchaseCriteria", new PurchaseCriteria(), PurchaseCriteria.OrderBy.values()),
+                new Caso("PurchaseItemCriteria", new PurchaseItemCriteria(), PurchaseItemCriteria.OrderBy.values()));
+
+        for (var caso : casos) {
+            assertTrue("falta o esquema " + caso.schema(), schemas.has(caso.schema()));
+            var props = schemas.getAsJsonObject(caso.schema()).getAsJsonObject("properties");
+
+            for (var criterion : caso.criteria().criterions()) {
+                assertTrue(caso.schema() + " não documenta o campo " + criterion.name(),
+                        props.has(criterion.name()));
+            }
+
+            var documentados = new ArrayList<>(props.keySet());
+            documentados.remove("orderBy");
+            assertEquals(caso.schema() + " documenta campos que o critério não tem",
+                    caso.criteria().criterions().size(), documentados.size());
+        }
+    }
+
+    /** As ordenações documentadas são exatamente as constantes do enum da entidade. */
+    @Test
+    public void orderingsMatchTheDomain() {
+        var schemas = spec().getAsJsonObject("components").getAsJsonObject("schemas");
+
+        record Caso(String schema, Enum<?>[] orderings) { }
+        var casos = List.of(
+                new Caso("ProductCriteria", ProductCriteria.OrderBy.values()),
+                new Caso("UserCriteria", UserCriteria.OrderBy.values()),
+                new Caso("PurchaseCriteria", PurchaseCriteria.OrderBy.values()),
+                new Caso("PurchaseItemCriteria", PurchaseItemCriteria.OrderBy.values()));
+
+        for (var caso : casos) {
+            var orderBy = schemas.getAsJsonObject(caso.schema())
+                    .getAsJsonObject("properties").getAsJsonObject("orderBy");
+            assertTrue(caso.schema() + " não documenta os valores de orderBy", orderBy.has("enum"));
+
+            var documentadas = new ArrayList<String>();
+            orderBy.getAsJsonArray("enum").forEach(e -> documentadas.add(e.getAsString()));
+
+            var esperadas = Arrays.stream(caso.orderings()).map(Enum::name).toList();
+            assertEquals(caso.schema() + ": ordenações documentadas diferem do enum", esperadas, documentadas);
+        }
+    }
+
+    /** Cada operação de consulta aponta para o corpo da sua entidade, e não para o genérico. */
+    @Test
+    public void queryOperationsPointToTheirEntityBody() {
+        var json = RepositoryApiDocs.toJson("/api");
+
+        for (var entidade : List.of("Product", "User", "Purchase", "PurchaseItem")) {
+            assertTrue("falta o corpo de consulta de " + entidade,
+                    json.contains(entidade + "FetchRequest"));
+        }
     }
 }

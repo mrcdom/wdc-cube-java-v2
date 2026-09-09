@@ -1,8 +1,17 @@
 package br.com.wdc.shopping.persistence.rest.doc;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 
+import br.com.wdc.framework.domain.criteria.ComparableCriterion;
+import br.com.wdc.framework.domain.criteria.Criteria;
+import br.com.wdc.framework.domain.criteria.Criterion;
+import br.com.wdc.framework.domain.criteria.TextCriterion;
+import br.com.wdc.shopping.domain.product.ProductCriteria;
+import br.com.wdc.shopping.domain.purchase.PurchaseCriteria;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemCriteria;
+import br.com.wdc.shopping.domain.user.UserCriteria;
 import br.com.wdc.shopping.persistence.rest.AuthApiController;
 import br.com.wdc.shopping.persistence.rest.ProductApiController;
 import br.com.wdc.shopping.persistence.rest.PurchaseApiController;
@@ -129,6 +138,24 @@ public final class RepositoryApiDocs {
                 .addSchemas("FetchRequest", fetchRequest())
                 .addSchemas("PageRequest", pageRequest())
                 .addSchemas("FetchByIdRequest", fetchByIdRequest())
+                // Critérios por entidade — derivados do domínio, ver criteriaSchema
+                .addSchemas("ProductCriteria",
+                        criteriaSchema("Product", new ProductCriteria(), ProductCriteria.OrderBy.values()))
+                .addSchemas("UserCriteria",
+                        criteriaSchema("User", new UserCriteria(), UserCriteria.OrderBy.values()))
+                .addSchemas("PurchaseCriteria",
+                        criteriaSchema("Purchase", new PurchaseCriteria(), PurchaseCriteria.OrderBy.values()))
+                .addSchemas("PurchaseItemCriteria",
+                        criteriaSchema("PurchaseItem", new PurchaseItemCriteria(), PurchaseItemCriteria.OrderBy.values()))
+                // Corpos de consulta por entidade: paginação + critério
+                .addSchemas("ProductFetchRequest", requestOf("FetchRequest", "ProductCriteria"))
+                .addSchemas("ProductPageRequest", requestOf("PageRequest", "ProductCriteria"))
+                .addSchemas("UserFetchRequest", requestOf("FetchRequest", "UserCriteria"))
+                .addSchemas("UserPageRequest", requestOf("PageRequest", "UserCriteria"))
+                .addSchemas("PurchaseFetchRequest", requestOf("FetchRequest", "PurchaseCriteria"))
+                .addSchemas("PurchasePageRequest", requestOf("PageRequest", "PurchaseCriteria"))
+                .addSchemas("PurchaseItemFetchRequest", requestOf("FetchRequest", "PurchaseItemCriteria"))
+                .addSchemas("PurchaseItemPageRequest", requestOf("PageRequest", "PurchaseItemCriteria"))
                 // Auth shapes
                 .addSchemas("ChallengeResponse", challengeResponse())
                 .addSchemas("LoginRequest", loginRequest())
@@ -255,13 +282,85 @@ public final class RepositoryApiDocs {
                 .addRequiredItem("shape");
     }
 
+    // -- Criteria por entidade --
+
+    /**
+     * O esquema de critério de uma entidade, <b>derivado do próprio domínio</b>.
+     *
+     * <p>
+     * Os campos saem de {@link Criteria#criterions()} e as ordenações do {@code OrderBy} da entidade. Escrever essas
+     * listas à mão aqui seria duplicá-las, e documentação duplicada envelhece sem avisar — foi o que aconteceu quando
+     * o formato do critério mudou e a especificação seguiu descrevendo o anterior. Derivando, acrescentar um campo ao
+     * critério o faz aparecer na documentação no mesmo build.
+     * </p>
+     */
+    private static Schema<?> criteriaSchema(String entity, Criteria criteria, Enum<?>[] orderings) {
+        var schema = new ObjectSchema().description("""
+                Campos de critério de %s. Cada um é um `Criterion` — um objeto com os pedidos de comparação —, \
+                e campos diferentes combinam com `AND`. Envie-os ao lado dos parâmetros de paginação.""".formatted(entity));
+
+        for (var criterion : criteria.criterions()) {
+            schema.addProperty(criterion.name(), criterionRef(family(criterion)));
+        }
+
+        schema.addProperty("orderBy", new StringSchema()
+                ._enum(Arrays.stream(orderings).map(Enum::name).toList())
+                .description("""
+                        Ordenação provisionada. Cada valor é uma ordenação inteira, cujo nome diz o efeito obtido — \
+                        não é um campo com uma direção. Omitido, a ordem fica a cargo do banco."""));
+
+        return schema;
+    }
+
+    /**
+     * A família do campo, que decide quais operadores ele aceita.
+     *
+     * <p>
+     * Lida da classe do {@code Criterion}, e não de uma tabela paralela: é a mesma distinção que o compilador impõe
+     * do lado Java.
+     * </p>
+     */
+    private static String family(Criterion<?, ?> criterion) {
+        if (criterion instanceof TextCriterion) {
+            return "Texto — aceita também LIKE e ILIKE, além das comparações de ordem.";
+        }
+        if (criterion instanceof ComparableCriterion) {
+            return "Ordenável — aceita também GT, GE, LT, LE e BETWEEN.";
+        }
+        return "Identidade — EQ, NE, IN, IS_NULL e IS_NOT_NULL.";
+    }
+
+    /**
+     * Referência a {@code Criterion} com uma descrição própria.
+     *
+     * <p>
+     * Em OpenAPI 3.0 um {@code $ref} ao lado de outras chaves é ignorado; envolvê-lo em {@code allOf} é o que permite
+     * acrescentar a descrição sem perder a referência.
+     * </p>
+     */
+    @SuppressWarnings("rawtypes")
+    private static Schema<?> criterionRef(String description) {
+        List<Schema> ref = List.of(new Schema<>().$ref("#/components/schemas/Criterion"));
+        return new Schema<>().allOf(ref).description(description);
+    }
+
+    /** O corpo de uma consulta: a paginação comum mais os campos de critério da entidade. */
+    @SuppressWarnings("rawtypes")
+    private static Schema<?> requestOf(String base, String criteriaSchema) {
+        List<Schema> parts = List.of(
+                new Schema<>().$ref("#/components/schemas/" + base),
+                new Schema<>().$ref("#/components/schemas/" + criteriaSchema));
+        return new Schema<>().allOf(parts);
+    }
+
     // -- Generic request shapes --
 
     private static Schema<?> fetchRequest() {
         return new ObjectSchema()
                 .description("""
-                        Fetch request. Add entity-specific criteria fields alongside the pagination parameters — \
-                        each one a `Criterion` object keyed by the field name. An `orderBy` string is also accepted.""")
+                        Parâmetros comuns de uma consulta. Os campos de critério e o `orderBy` de cada entidade estão \
+                        no seu esquema — `ProductCriteria`, `UserCriteria`, `PurchaseCriteria`, \
+                        `PurchaseItemCriteria` —, e o corpo aceito é a união dos dois.""")
                 .addProperty("offset",
                         new IntegerSchema().description("Zero-based row offset").minimum(BigDecimal.ZERO))
                 .addProperty("limit",
@@ -274,9 +373,8 @@ public final class RepositoryApiDocs {
     private static Schema<?> pageRequest() {
         return new ObjectSchema()
                 .description("""
-                        Paginated fetch request. Add entity-specific criteria fields alongside the pagination \
-                        parameters — each one a `Criterion` object keyed by the field name. An `orderBy` string \
-                        is also accepted.""")
+                        Parâmetros comuns de uma consulta paginada. Os campos de critério e o `orderBy` de cada \
+                        entidade estão no seu esquema, e o corpo aceito é a união dos dois.""")
                 .addProperty("page", new IntegerSchema().description("Zero-based page index").minimum(BigDecimal.ZERO))
                 .addProperty("pageSize", new IntegerSchema().description("Rows per page").minimum(BigDecimal.ONE))
                 .addProperty("projection", new ObjectSchema()

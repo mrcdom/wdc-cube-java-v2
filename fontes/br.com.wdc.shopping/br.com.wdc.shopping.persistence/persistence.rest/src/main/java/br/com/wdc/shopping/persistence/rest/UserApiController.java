@@ -133,7 +133,7 @@ public class UserApiController {
         var operation = new Operation()
                 .addTagsItem("user").summary("Delete users matching criteria")
                 .security(Doc.BEARER)
-                .requestBody(Doc.body("#/components/schemas/FetchRequest"))
+                .requestBody(Doc.body("#/components/schemas/UserFetchRequest"))
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/CountResult"))
                         .addApiResponse("401", Doc.unauthorized())
@@ -164,7 +164,7 @@ public class UserApiController {
         var operation = new Operation()
                 .addTagsItem("user").summary("Count users matching criteria")
                 .security(Doc.BEARER)
-                .requestBody(Doc.body("#/components/schemas/FetchRequest"))
+                .requestBody(Doc.body("#/components/schemas/UserFetchRequest"))
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/CountResult"))
                         .addApiResponse("401", Doc.unauthorized()));
@@ -194,7 +194,7 @@ public class UserApiController {
         var operation = new Operation()
                 .addTagsItem("user").summary("Fetch users matching criteria (offset/limit)")
                 .security(Doc.BEARER)
-                .requestBody(Doc.body("#/components/schemas/FetchRequest"))
+                .requestBody(Doc.body("#/components/schemas/UserFetchRequest"))
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/UserFetchResponse"))
                         .addApiResponse("401", Doc.unauthorized()));
@@ -246,7 +246,7 @@ public class UserApiController {
         var operation = new Operation()
                 .addTagsItem("user").summary("Fetch users matching criteria (page/pageSize)")
                 .security(Doc.BEARER)
-                .requestBody(Doc.body("#/components/schemas/PageRequest"))
+                .requestBody(Doc.body("#/components/schemas/UserPageRequest"))
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/UserPageResponse"))
                         .addApiResponse("401", Doc.unauthorized()));

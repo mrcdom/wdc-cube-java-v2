@@ -137,6 +137,22 @@ Campo que não é coluna da tabela — `PurchaseCriteria.productId`, que vive no
 
 O valor solto não bastaria: um campo carrega vários pedidos, cada um com seu operador e sua aridade, e a disjunção é do campo. Reduzir isso a `"price": 10.0` descartaria tudo menos a igualdade, e em silêncio. O formato antigo continua sendo aceito na leitura, como igualdade.
 
+### A especificação OpenAPI é derivada do domínio
+
+O documento servido em `GET /openapi.json` não descreve os critérios por escrito: ele os **deriva**. Para cada
+entidade há um esquema — `ProductCriteria`, `UserCriteria`, … — cujos campos saem de `Criteria.criterions()` e cujo
+`orderBy` traz o `enum` do `OrderBy` daquela entidade. A família de cada campo (identidade, ordenável, texto) é lida
+da classe do próprio `Criterion`.
+
+Isso existe por uma razão concreta: a especificação já ficou para trás uma vez. Enquanto as listas eram escritas à
+mão, o formato do critério mudou e o documento seguiu descrevendo o anterior, sem que nada quebrasse — código que só
+descreve não falha quando o que ele descreve muda. Derivando, acrescentar um campo ao critério o faz aparecer na
+documentação no mesmo build.
+
+O `OpenApiSpecTest` fecha o resto: confere que os campos e as ordenações documentados são exatamente os do domínio.
+Vale notar o que esse teste **não** cobre — remover um campo do critério o remove dos dois lados, e ele continua
+passando. O que ele pega é a especificação ficar atrás do domínio, que é o defeito que de fato ocorreu.
+
 ### Ordenação: conceitos provisionados, não campos
 
 O `OrderBy` de cada `XxxCriteria` **não** é uma lista de campos ordenáveis com uma direção. Cada constante é uma **ordenação inteira** — um conceito —, cujo nome diz o efeito obtido, e a tradução decide por quais colunas isso se faz:
