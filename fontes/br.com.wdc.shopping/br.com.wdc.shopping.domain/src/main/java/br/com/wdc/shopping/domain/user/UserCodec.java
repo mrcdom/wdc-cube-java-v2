@@ -121,8 +121,8 @@ public class UserCodec implements ModelCodec<User, UserCriteria> {
 			case "name" -> CriterionCodec.read(in, criteria.name(), CriterionCodec.STRING_IN);
 			case "roles" -> CriterionCodec.read(in, criteria.roles(), CriterionCodec.STRING_IN);
 			case "orderBy" -> {
-				var v = InputCoerceUtils.asString(in);
-				if (v != null) criteria.withOrderBy(UserCriteria.OrderBy.valueOf(v));
+				var v = CriterionCodec.readOrderBy(in, UserCriteria.OrderBy.values());
+				if (v != null) criteria.withOrderBy(v);
 			}
 			default -> { return false; }
 		}

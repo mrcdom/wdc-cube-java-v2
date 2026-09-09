@@ -166,12 +166,17 @@ abaixo chama os quatro na ordem certa:
 ```bash
 ./work/bin/build-frontends.sh             # todos
 ./work/bin/build-frontends.sh react       # um alvo só
-./work/bin/build-frontends.sh --full      # instala antes os módulos Maven de que o TeaVM depende
+./work/bin/build-frontends.sh --skip-install   # não reinstala os módulos Maven antes do TeaVM
 ./work/bin/build-frontends.sh --list      # alvos e pré-requisitos
 ```
 
 Um alvo cuja ferramenta não esteja instalada é **pulado**, não falha o conjunto —
 sem Flutter no PATH os outros três continuam sendo gerados.
+
+> Os dois alvos TeaVM compilam contra os JARs do `~/.m2`, não contra o reator. Sem
+> reinstalar os módulos antes, eles geram **em silêncio** um app com a versão anterior
+> do domínio — que abre normalmente e só falha na chamada que mudou. Por isso o script
+> reinstala por padrão; `--skip-install` é para quando se sabe que o `~/.m2` está em dia.
 
 | Alvo | Módulo | Ferramenta | Destino |
 |------|--------|-----------|---------|

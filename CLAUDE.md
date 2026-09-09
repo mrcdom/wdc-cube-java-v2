@@ -30,7 +30,7 @@ cd fontes && mvn test                   # testes
 ./work/bin/start-h2-server.sh           # H2 em modo TCP (config aponta para tcp://localhost por padrão)
 
 # Frontends web (React, Flutter web, remote.shell.teavm, teavm.web → work/frontend/)
-./work/bin/build-frontends.sh            # todos; --list mostra alvos/pré-requisitos, --full instala deps Maven
+./work/bin/build-frontends.sh            # todos; --list mostra alvos/pré-requisitos, --skip-install pula o mvn install
 ./work/bin/build-frontends.sh react      # um alvo só
 
 # Desenvolvimento: cada módulo tem watch próprio
@@ -38,6 +38,8 @@ cd fontes/.../remote.shell.react && npm install && npm run watch
 ```
 
 Os quatro frontends web depositam seus artefatos em `work/frontend/<nome>`; cada um tem o seu `build.sh` no módulo de origem e o `build-frontends.sh` só orquestra os quatro. `work/frontend/{api.docs,openapi}` são estáticos.
+
+**Armadilha dos alvos TeaVM**: `remote.shell.teavm` e `teavm.web` compilam contra os JARs do `~/.m2`, não contra o reator — sem `mvn install` antes, geram em silêncio um app com a versão anterior do domínio (abre normalmente, falha só na chamada que mudou). O `build-frontends.sh` reinstala por padrão justamente por isso.
 
 Config externa: `work/config/application.toml` (resolução: system property `shopping.config.file` → fallback para esse arquivo). `application.local.toml` para overrides locais.
 

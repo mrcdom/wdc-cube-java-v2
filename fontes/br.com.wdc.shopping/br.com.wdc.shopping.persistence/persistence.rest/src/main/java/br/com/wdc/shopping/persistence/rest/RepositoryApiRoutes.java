@@ -1,6 +1,7 @@
 package br.com.wdc.shopping.persistence.rest;
 
 import br.com.wdc.framework.domain.exception.AccessDeniedException;
+import br.com.wdc.framework.domain.exception.InvalidRequestException;
 import br.com.wdc.framework.domain.exception.TransactionConflictException;
 import br.com.wdc.framework.domain.exception.TransactionLimitExceededException;
 import br.com.wdc.framework.domain.security.AuthenticationService;
@@ -47,6 +48,14 @@ public final class RepositoryApiRoutes {
         // Exception handler para AccessDeniedException
         config.routes.exception(AccessDeniedException.class, (e, ctx) -> {
             ctx.status(403);
+            ctx.json(java.util.Map.of("error", e.getMessage()));
+        });
+
+        // Pedido não interpretável (ex.: nome de ordenação que este servidor não conhece) → 400, não 500.
+        // É a resposta que distingue "o cliente pediu algo inválido" de "o servidor quebrou": um cliente defasado
+        // recebe o valor recusado e a lista dos aceitos, em vez do 500 genérico que só se diagnostica pelo log.
+        config.routes.exception(InvalidRequestException.class, (e, ctx) -> {
+            ctx.status(400);
             ctx.json(java.util.Map.of("error", e.getMessage()));
         });
 

@@ -200,8 +200,8 @@ public class PurchaseCodec implements ModelCodec<Purchase, PurchaseCriteria> {
 			case "buyDate" -> CriterionCodec.read(in, criteria.buyDate(), CriterionCodec.ODT_IN);
 			case "productId" -> CriterionCodec.read(in, criteria.productId(), CriterionCodec.LONG_IN);
 			case "orderBy" -> {
-				var v = InputCoerceUtils.asString(in);
-				if (v != null) criteria.withOrderBy(PurchaseCriteria.OrderBy.valueOf(v));
+				var v = CriterionCodec.readOrderBy(in, PurchaseCriteria.OrderBy.values());
+				if (v != null) criteria.withOrderBy(v);
 			}
 			default -> { return false; }
 		}

@@ -113,8 +113,8 @@ public class ProductCodec implements ModelCodec<Product, ProductCriteria> {
 			case "price" -> CriterionCodec.read(in, criteria.price(), CriterionCodec.DOUBLE_IN);
 			case "description" -> CriterionCodec.read(in, criteria.description(), CriterionCodec.STRING_IN);
 			case "orderBy" -> {
-				var v = InputCoerceUtils.asString(in);
-				if (v != null) criteria.withOrderBy(ProductCriteria.OrderBy.valueOf(v));
+				var v = CriterionCodec.readOrderBy(in, ProductCriteria.OrderBy.values());
+				if (v != null) criteria.withOrderBy(v);
 			}
 			default -> { return false; }
 		}

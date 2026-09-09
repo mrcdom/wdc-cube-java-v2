@@ -9,13 +9,18 @@
 # Uso:
 #   ./build-frontends.sh                      # todos os alvos disponíveis
 #   ./build-frontends.sh react teavm.web      # só os alvos citados
-#   ./build-frontends.sh --full               # instala antes os módulos Maven de que o TeaVM depende
+#   ./build-frontends.sh --skip-install       # não reinstala os módulos Maven antes do TeaVM
 #   ./build-frontends.sh --list               # mostra os alvos e o estado dos pré-requisitos
 #   SOURCE_MAPS=true ./build-frontends.sh flutter
 #
 # Um alvo sem a ferramenta necessária é PULADO, não é erro: quem não tem Flutter
 # instalado continua conseguindo gerar os outros três. O código de saída só é
 # diferente de zero se algum build de fato falhar.
+#
+# Os dois builds TeaVM compilam contra os JARs do ~/.m2, não contra o reator: sem
+# reinstalar os módulos antes, eles produzem, em silêncio, um app com a versão
+# anterior do domínio — o app abre e falha só na chamada que mudou. Por isso a
+# instalação é o padrão, e pular é que precisa ser pedido.
 
 set -uo pipefail
 
@@ -47,13 +52,13 @@ entry_of() {
 
 # ---------------------------------------------------------------- argumentos
 
-FULL=false
+SKIP_INSTALL=false
 LIST=false
 SELECTED=()
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        --full)  FULL=true ;;
+        --skip-install) SKIP_INSTALL=true ;;
         --list)  LIST=true ;;
         -h|--help)
             awk 'NR>2 && /^#/ { sub(/^# ?/, ""); print; next } NR>2 { exit }' "${BASH_SOURCE[0]}"
@@ -110,19 +115,27 @@ fi
 
 # ---------------------------------------------------------- dependências Maven
 
-# --full replica o que os dois build.sh do TeaVM fazem com a sua própria opção
-# --full, porém uma vez só: framework para o remote.shell.teavm e, para o
-# teavm.web, também os módulos de domínio/persistência/apresentação.
-if $FULL; then
+# Reúne, uma vez só, o que os dois build.sh do TeaVM fazem cada um com a sua
+# opção --full: framework para o remote.shell.teavm e, para o teavm.web, também
+# domínio/persistência/apresentação. Só roda se algum alvo TeaVM foi pedido.
+needs_maven_modules=false
+for name in "${SELECTED[@]}"; do
+    case "$name" in teavm.*) needs_maven_modules=true ;; esac
+done
+
+if $needs_maven_modules && ! $SKIP_INSTALL; then
     if reason=$(missing_tool mvn); then
-        echo "--full precisa do Maven: $reason" >&2
-        exit 2
+        echo "Instalação dos módulos Maven ignorada: $reason"
+    else
+        echo "=== Instalando módulos Maven (framework + shopping) ==="
+        echo "    Sem isto o TeaVM compilaria contra o ~/.m2 anterior — use --skip-install se souber que está em dia."
+        JAVA_HOME=$JAVA21_HOME mvn -f "$FONTES/br.com.wdc.framework/pom.xml" install -DskipTests -q || exit 1
+        JAVA_HOME=$JAVA21_HOME mvn -f "$FONTES/br.com.wdc.shopping/pom.xml" install \
+            -pl br.com.wdc.shopping.domain,br.com.wdc.shopping.persistence,:persistence.client,br.com.wdc.shopping.presentation \
+            -DskipTests -q || exit 1
     fi
-    echo "=== Instalando módulos Maven (framework + shopping) ==="
-    JAVA_HOME=$JAVA21_HOME mvn -f "$FONTES/br.com.wdc.framework/pom.xml" install -DskipTests -q || exit 1
-    JAVA_HOME=$JAVA21_HOME mvn -f "$FONTES/br.com.wdc.shopping/pom.xml" install \
-        -pl br.com.wdc.shopping.domain,br.com.wdc.shopping.persistence,:persistence.client,br.com.wdc.shopping.presentation \
-        -DskipTests -q || exit 1
+elif $needs_maven_modules; then
+    echo "=== --skip-install: TeaVM usará os JARs que já estão no ~/.m2 ==="
 fi
 
 # ------------------------------------------------------------------- execução

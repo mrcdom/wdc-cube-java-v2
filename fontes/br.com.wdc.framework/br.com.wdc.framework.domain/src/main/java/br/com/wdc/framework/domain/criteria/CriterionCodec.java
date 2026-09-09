@@ -9,6 +9,7 @@ import br.com.wdc.framework.commons.serialization.ExtensibleObjectInput;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.framework.commons.serialization.SerializationToken;
+import br.com.wdc.framework.domain.exception.InvalidRequestException;
 
 /**
  * Como um campo de critério trafega.
@@ -72,6 +73,45 @@ public final class CriterionCodec {
 
     private CriterionCodec() {
         // NOOP
+    }
+
+    /**
+     * Lê o nome da ordenação, recusando o que não reconhece.
+     *
+     * <p>
+     * <b>Ao contrário do operador desconhecido, que é descartado</b> (ver {@link #parseOperator}), aqui a leitura
+     * falha. A diferença é o que cada descarte produziria: sem um pedido, o filtro fica mais frouxo e o campo continua
+     * listado — o descompasso aparece; sem a ordenação, a lista volta numa ordem qualquer, e quem a exibe a apresenta
+     * como se fosse a ordem pedida. Não há como o outro lado notar.
+     * </p>
+     *
+     * <p>
+     * Recebe os valores aceitos em vez do {@code Class} porque {@code Enum.valueOf(Class, String)} depende de reflexão,
+     * e este código também é compilado para o navegador pelo TeaVM.
+     * </p>
+     *
+     * @throws InvalidRequestException se o nome não estiver entre os aceitos — o que a camada REST devolve como 400,
+     *         nomeando o valor recebido e os aceitos.
+     */
+    public static <E extends Enum<E>> E readOrderBy(ExtensibleObjectInput in, E[] accepted) {
+        var name = InputCoerceUtils.asString(in);
+        if (name == null) {
+            return null;
+        }
+        for (var candidate : accepted) {
+            if (candidate.name().equals(name)) {
+                return candidate;
+            }
+        }
+        var aceitas = new StringBuilder();
+        for (var candidate : accepted) {
+            if (aceitas.length() > 0) {
+                aceitas.append(", ");
+            }
+            aceitas.append(candidate.name());
+        }
+        throw new InvalidRequestException(
+                "ordenação desconhecida: '" + name + "' — aceitas: " + aceitas);
     }
 
     /**
