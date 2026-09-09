@@ -68,6 +68,22 @@ public class ShoppingServiceTest extends BaseBusinessTest {
     }
 
     @Test
+    public void login_wrongPassword_isRejected() {
+        // A senha deixou de ser campo de critério: quem a confere é o login, e é neste nível que o par
+        // "aceita a correta / recusa a errada" precisa ser garantido.
+        var result = new LoginService(UserRepository.BEAN.get()).fetchSubject("admin", "senha-errada");
+
+        Assert.assertNull("senha errada não pode autenticar", result);
+    }
+
+    @Test
+    public void login_unknownUser_isRejected() {
+        var result = new LoginService(UserRepository.BEAN.get()).fetchSubject("ninguem", "admin");
+
+        Assert.assertNull("usuário inexistente não pode autenticar", result);
+    }
+
+    @Test
     public void test() {
         var result = new LoginService(UserRepository.BEAN.get()).fetchSubject("admin", "admin");
         var subject = result != null ? result.subject() : null;

@@ -94,13 +94,6 @@ export const ENTITIES = {
     criteria: [
       { name: 'userId', kind: 'number', label: 'userId', column: 'EN_USER.ID' },
       { name: 'userName', kind: 'text', label: 'userName', column: 'EN_USER.USERNAME' },
-      {
-        name: 'password',
-        kind: 'text',
-        label: 'password',
-        column: 'EN_USER.PASSWORD',
-        note: 'O valor é convertido em resumo MD5 antes de chegar à coluna — a comparação é sobre o resumo, e por isso só a igualdade dá resultado útil.',
-      },
       { name: 'name', kind: 'text', label: 'name', column: 'EN_USER.NAME' },
       {
         name: 'roles',

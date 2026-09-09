@@ -8,6 +8,8 @@ import org.junit.rules.ExternalResource;
 
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.commons.util.Defer;
+import br.com.wdc.framework.domain.security.CryptoProvider;
+import br.com.wdc.framework.domain.security.JceCryptoProvider;
 import br.com.wdc.framework.persistence.transaction.RemoteTransactionCoordinatorImpl;
 import br.com.wdc.shopping.domain.ShoppingConfig;
 import br.com.wdc.shopping.domain.product.ProductCodec;
@@ -127,6 +129,12 @@ public class TestEnvironment extends ExternalResource {
         ShoppingConfig.Internals.setDataDir(basePath.resolve("data"));
         ShoppingConfig.Internals.setLogDir(basePath.resolve("log"));
         ShoppingConfig.Internals.setTempDir(basePath.resolve("temp"));
+
+        // Infraestrutura de criptografia: os hosts reais (backend, Vaadin, SWT, TeaVM) a instalam no seu
+        // composition root, e o ambiente de teste é um host como os outros. Sem ela, PasswordUtil recusa a
+        // operação — e é dele que o login depende para conferir o resumo da senha.
+        CryptoProvider.BEAN.set(new JceCryptoProvider());
+        cleanUp.push(() -> CryptoProvider.BEAN.set(null));
 
         ShoppingRepositoryBootstrap.initialize(ds, cleanUp);
 

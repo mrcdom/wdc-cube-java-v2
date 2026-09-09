@@ -59,23 +59,6 @@ public abstract class AbstractUserRepositoryTest {
 	}
 
 	@Test
-	public void fetchByCriteria_userNameAndPassword() {
-		var users = repo().fetch(new UserCriteria()
-				.withUserName("admin")
-				.withPassword("admin"));
-		assertEquals(1, users.size());
-		assertEquals(DBReset.ADMIN_ID, users.get(0).id());
-	}
-
-	@Test
-	public void fetchByCriteria_wrongPassword_returnsEmpty() {
-		var users = repo().fetch(new UserCriteria()
-				.withUserName("admin")
-				.withPassword("wrong"));
-		assertTrue(users.isEmpty());
-	}
-
-	@Test
 	public void fetchWithOffsetAndLimit() {
 		var users = repo().fetch(new UserCriteria()
 				.withOrderBy(UserCriteria.OrderBy.ASCENDING), 1, 1);

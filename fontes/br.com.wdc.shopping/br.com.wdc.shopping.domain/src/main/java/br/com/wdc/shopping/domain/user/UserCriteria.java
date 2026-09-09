@@ -65,23 +65,6 @@ public class UserCriteria implements Criteria {
         return value == null ? this : userName().eq(value);
     }
 
-    /** O valor é convertido em resumo MD5 antes de chegar à coluna — a comparação é sobre o resumo, e por isso só a igualdade dá resultado útil. */
-    private final TextCriterion<UserCriteria> password = new TextCriterion<>(this, "password");
-
-    public TextCriterion<UserCriteria> password() {
-        return password;
-    }
-
-    /** Se há critério neste campo. É por aqui que a tradução pergunta. */
-    public boolean hasPassword() {
-        return password.isSet();
-    }
-
-    /** Atalho para {@code password().eq(valor)}; {@code null} não filtra. */
-    public UserCriteria withPassword(String value) {
-        return value == null ? this : password().eq(value);
-    }
-
     private final TextCriterion<UserCriteria> name = new TextCriterion<>(this, "name");
 
     public TextCriterion<UserCriteria> name() {
@@ -117,7 +100,7 @@ public class UserCriteria implements Criteria {
 
     @Override
     public List<Criterion<?, ?>> criterions() {
-        return List.of(userId, userName, password, name, roles);
+        return List.of(userId, userName, name, roles);
     }
 
     // :: Order By
