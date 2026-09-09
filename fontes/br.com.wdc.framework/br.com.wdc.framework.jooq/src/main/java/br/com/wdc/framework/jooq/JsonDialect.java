@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 import org.jooq.Field;
+import org.jooq.SortField;
 import org.jooq.SQLDialect;
 
 import br.com.wdc.framework.jooq.dialect.DuckDbJsonDialect;
@@ -49,6 +50,30 @@ public interface JsonDialect {
      * @return expressão que agrega em {@code '[' || elem1 || ',' || elem2 || ... || ']'}
      */
     Field<String> jsonArrayAgg(Field<String> jsonElement);
+
+    /**
+     * Idem, com ordem definida <b>dentro</b> da agregação.
+     *
+     * <p>
+     * A ordem tem de entrar aqui, e não como {@code ORDER BY} da consulta: a coleção sai de uma subconsulta
+     * correlacionada com a linha do pai, e envolvê-la numa tabela derivada — onde caberia um {@code ORDER BY} — põe a
+     * correlação fora de alcance, porque uma derivada não enxerga o escopo externo.
+     * </p>
+     *
+     * <p>
+     * O padrão devolve a agregação <b>sem ordem</b>: nem todo banco sabe ordenar dentro do agregado, e emitir SQL que
+     * ele recusaria seria pior do que devolver a coleção na ordem do banco. Sobrescrevem este método os dialetos em
+     * que a construção existe — hoje H2 e PostgreSQL, os dois que a aplicação usa.
+     * </p>
+     */
+    default Field<String> jsonArrayAgg(Field<String> jsonElement, List<SortField<?>> order) {
+        return jsonArrayAgg(jsonElement);
+    }
+
+    /** Se este dialeto sabe ordenar dentro da agregação — ou seja, se {@link #jsonArrayAgg(Field, List)} honra a ordem. */
+    default boolean supportsOrderedAggregation() {
+        return false;
+    }
 
     /**
      * Hook de inicialização (ex: registrar funções SQL customizadas no H2).

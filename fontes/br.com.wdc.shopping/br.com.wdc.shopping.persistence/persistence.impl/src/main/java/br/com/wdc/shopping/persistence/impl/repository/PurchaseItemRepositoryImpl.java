@@ -8,6 +8,7 @@ import static br.com.wdc.shopping.persistence.impl.scheme.tables.EnPurchaseitem.
 import java.math.BigDecimal;
 import java.util.List;
 
+import org.jooq.SortField;
 import org.jooq.Condition;
 import org.jooq.impl.DSL;
 
@@ -29,6 +30,7 @@ public class PurchaseItemRepositoryImpl extends BaseRepositoryImpl  implements P
             .setBeanFactory(PurchaseItem::new)
             .setTableFactory(EN_PURCHASEITEM::as)
             .setDSLContextSupplier(PurchaseItemRepositoryImpl::dsl)
+            .setOrdering(PurchaseItemRepositoryImpl::orderingOf)
             .addI64("id", pi -> pi.id(), (pi, v) -> pi.withId(v), t -> t.ID)
             .addI32("amount", pi -> pi.amount(), (pi, v) -> pi.withAmount(v), t -> t.AMOUNT)
             .addF64("price", pi -> pi.price(), (pi, v) -> pi.withPrice(v), t -> t.PRICE)
@@ -54,6 +56,25 @@ public class PurchaseItemRepositoryImpl extends BaseRepositoryImpl  implements P
             })
             .build();
     // @frmatter:on
+
+    /**
+     * Traduz o {@code OrderBy} do critério em {@code ORDER BY}, contra a tabela informada.
+     *
+     * <p>
+     * Recebe {@code Object} porque também é chamado a partir da coleção filha de outro repositório, onde o critério
+     * pode não ser deste tipo — nesse caso não ordena nada. A tabela vem por parâmetro porque, dentro de um subselect
+     * correlacionado, a instância tem alias próprio.
+     * </p>
+     */
+    public static List<SortField<?>> orderingOf(EnPurchaseitem t, Object criteriaObj) {
+        if (!(criteriaObj instanceof PurchaseItemCriteria criteria) || criteria.orderBy() == null) {
+            return List.of();
+        }
+        return switch (criteria.orderBy()) {
+        case ASCENDING -> List.of(t.ID.asc());
+        case DESCENDING -> List.of(t.ID.desc());
+        };
+    }
 
     // :: Query helpers
     
@@ -165,12 +186,7 @@ public class PurchaseItemRepositoryImpl extends BaseRepositoryImpl  implements P
             var cond = applyConditions(t, criteria);
             var step = q.where(cond);
 
-            if (criteria != null && criteria.orderBy() != null) {
-                switch (criteria.orderBy()) {
-                    case ASCENDING -> step.orderBy(t.ID.asc());
-                    case DESCENDING -> step.orderBy(t.ID.desc());
-                }
-            }
+            step.orderBy(orderingOf(t, criteria));
 
             if (limit > 0) {
                 step.limit(limit);

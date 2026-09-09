@@ -72,9 +72,9 @@ public class RelationKeyProjectionTest {
     public void projectionWithOnlyKey_emitsNoSubselect() {
         String sql = sqlFor(env.purchaseItemRepo().newProjection());
 
-        assertEquals("purchase projetado só pela chave não deve gerar subselect",
+        assertEquals("purchase projetado só pela chave não deve gerar subselect\n" + sql,
                 0, subselectsOn(sql, "EN_PURCHASE"));
-        assertEquals("product projetado só pela chave não deve gerar subselect",
+        assertEquals("product projetado só pela chave não deve gerar subselect\n" + sql,
                 0, subselectsOn(sql, "EN_PRODUCT"));
     }
 
@@ -101,7 +101,7 @@ public class RelationKeyProjectionTest {
 
         assertTrue("pedir product.name volta a exigir a consulta ao outro lado",
                 subselectsOn(sql, "EN_PRODUCT") > 0);
-        assertEquals("purchase continua só com a chave, e segue sem subselect",
+        assertEquals("purchase continua só com a chave, e segue sem subselect\n" + sql,
                 0, subselectsOn(sql, "EN_PURCHASE"));
     }
 

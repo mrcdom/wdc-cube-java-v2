@@ -86,6 +86,46 @@ graph LR
 
 O módulo `domain` é **puramente conceitual**. Não conhece banco de dados, nem HTTP, nem qualquer framework de persistência. Apenas define o que existe no sistema.
 
+### Coleção filha ordenada e recortada
+
+A coleção 1:N declarada com `addBeanListField` pode ser ordenada e recortada pela própria projeção. A ordem vem do `OrderBy` do critério que a coleção carrega; o recorte, de `withLimit`/`withOffset`:
+
+```java
+var itens = pv.singletonList(itemPrj, new PurchaseItemCriteria()
+                .withOrderBy(PurchaseItemCriteria.OrderBy.DESCENDING))
+        .withOffset(1)
+        .withLimit(2);
+
+var prj = new Purchase().withId(pv.i64).withItems(itens);
+```
+
+Para o repositório saber traduzir o `OrderBy`, ele registra a tradução uma vez:
+
+```java
+.setOrdering(PurchaseItemRepositoryImpl::orderingOf)
+```
+
+**A forma do SQL não é livre.** A coleção sai de uma subconsulta correlacionada com a linha do pai (`filha.fk = pai.id`), e isso descarta o caminho óbvio — envolver a coleção numa tabela derivada, onde caberia um `ORDER BY ... LIMIT` comum. Uma derivada não enxerga o escopo externo, e a correlação fica fora de alcance: *column pai.id not found*. `LATERAL` também não serve — o H2 só o aceita depois de uma tabela à esquerda no `FROM`.
+
+O que funciona, e é o que o framework emite:
+
+```sql
+(select LISTAGG(<projeção>, ',') WITHIN GROUP (ORDER BY "pi2"."ID" desc)
+   from "EN_PURCHASEITEM" "pi2"
+  where "pi2"."PURCHASEID" = "p1"."ID"                    -- correlação com o pai
+    and "pi2"."ID" in (select "pi3"."ID"                  -- recorte: subconsulta correlacionada,
+          from "EN_PURCHASEITEM" "pi3"                    -- que enxerga o pai
+         where "pi3"."PURCHASEID" = "p1"."ID"
+         order by "pi3"."ID" desc
+         offset ? rows fetch next ? rows only))
+```
+
+Ou seja: a **ordem entra dentro da agregação** (`LISTAGG ... WITHIN GROUP` no H2, `string_agg(... ORDER BY ...)` no PostgreSQL), e o **recorte sai como `IN` sobre a chave primária** — a PK vem da tabela gerada pelo jOOQ, sem declaração. O `IN` repete o mesmo filtro da coleção, para que o corte caia sobre o conjunto já filtrado.
+
+Sem ordem nem recorte, a consulta sai exatamente como antes — mesmo SQL, mesmo plano.
+
+Dialeto que não sabe ordenar dentro do agregado **recusa** o pedido com exceção, em vez de devolver a coleção fora de ordem: um resultado ordenado errado passa por certo, e o erro só apareceria longe dali. Hoje honram a ordem H2 e PostgreSQL — os dois que a aplicação usa.
+
 ### Associação projetada só pela chave não gera subselect
 
 Uma relação 1:1 declarada com `addBeanField` normalmente vira um subselect correlacionado. Mas a projeção mais comum traz a associação **apenas para carregar o id** — e esse id já está na linha, na coluna da chave estrangeira. Buscá-lo do outro lado é uma consulta para descobrir o que já se sabe.
