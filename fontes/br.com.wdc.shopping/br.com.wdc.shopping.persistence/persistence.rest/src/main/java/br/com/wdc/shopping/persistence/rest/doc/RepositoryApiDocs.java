@@ -194,16 +194,18 @@ public final class RepositoryApiDocs {
     private static Schema<?> criterionPredicate() {
         return new ObjectSchema()
                 .description("A single comparison request within a criterion.")
+                // Os métodos tipados vêm antes de description(): em swagger-models description() devolve Schema cru,
+                // e o que se encadeia depois dele perde o tipo.
                 .addProperty("o", new StringSchema()
-                        .description("Operator")
                         ._enum(List.of("EQ", "NE", "GT", "GE", "LT", "LE",
-                                "LIKE", "ILIKE", "BETWEEN", "IN", "IS_NULL", "IS_NOT_NULL")))
+                                "LIKE", "ILIKE", "BETWEEN", "IN", "IS_NULL", "IS_NOT_NULL"))
+                        .description("Operator"))
                 .addProperty("v", new ArraySchema()
+                        .items(new Schema<>())
                         .description("""
                                 Values for the operator — one for EQ/NE/GT/GE/LT/LE/LIKE/ILIKE, \
                                 two for BETWEEN, many for IN, omitted for IS_NULL/IS_NOT_NULL. \
-                                LIKE and ILIKE take the wildcards as part of the value, as in SQL.""")
-                        .items(new Schema<>()))
+                                LIKE and ILIKE take the wildcards as part of the value, as in SQL."""))
                 .addRequiredItem("o");
     }
 
@@ -220,11 +222,11 @@ public final class RepositoryApiDocs {
                         They combine with `AND` unless `or` is true. A bare value is also accepted and read \
                         as equality.""")
                 .addProperty("or", new BooleanSchema()
-                        .description("Combine this field's requests with OR instead of AND. Defaults to false.")
-                        ._default(false))
+                        ._default(false)
+                        .description("Combine this field's requests with OR instead of AND. Defaults to false."))
                 .addProperty("p", new ArraySchema()
-                        .description("The comparison requests, in the order they were made")
-                        .items(new Schema<>().$ref("#/components/schemas/CriterionPredicate")));
+                        .items(new Schema<>().$ref("#/components/schemas/CriterionPredicate"))
+                        .description("The comparison requests, in the order they were made"));
     }
 
     /**
@@ -355,14 +357,29 @@ public final class RepositoryApiDocs {
                 .addProperty("buyDate", new StringSchema().format("date-time"))
                 .addProperty("user", new Schema<>().$ref("#/components/schemas/User"))
                 // Em resposta é o array de linhas; em projeção é o envelope que declara forma, critério e recorte.
-                .addProperty("items", new Schema<>()
-                        .description("""
-                                Line items. In a **response**, the array of rows. In a **projection**, a \
-                                `ProjectedCollection` object declaring the item shape plus the criteria, ordering \
-                                and slice to apply.""")
-                        .oneOf(List.of(
-                                new ArraySchema().items(new Schema<>().$ref("#/components/schemas/PurchaseItem")),
-                                new Schema<>().$ref("#/components/schemas/ProjectedCollection"))));
+                .addProperty("items", purchaseItems());
+    }
+
+    /**
+     * O campo {@code items} de {@code Purchase}, nas duas formas que ele assume.
+     *
+     * <p>
+     * Sai em método próprio porque {@code oneOf} recebe {@code List<Schema>} — lista de tipo cru, que não se monta
+     * inline sem perder o tipo. Aqui a lista é construída explicitamente e a supressão fica contida no ponto exato.
+     * </p>
+     */
+    @SuppressWarnings("rawtypes")
+    private static Schema<?> purchaseItems() {
+        List<Schema> forms = List.of(
+                new ArraySchema().items(new Schema<>().$ref("#/components/schemas/PurchaseItem")),
+                new Schema<>().$ref("#/components/schemas/ProjectedCollection"));
+
+        return new Schema<>()
+                .oneOf(forms)
+                .description("""
+                        Line items. In a **response**, the array of rows. In a **projection**, a \
+                        `ProjectedCollection` object declaring the item shape plus the criteria, ordering \
+                        and slice to apply.""");
     }
 
     private static Schema<?> purchaseItem() {
