@@ -80,6 +80,16 @@ public final class RepositoryApiDocs {
                         **Projection**: fetch operations accept an optional `projection`
                         field containing a partial entity — only the specified fields are
                         returned in the response.
+
+                        **Criteria**: each filterable field is sent as a `Criterion` object
+                        carrying one or more comparison requests — see the `Criterion`
+                        schema. Requests on the same field combine with `AND` unless the
+                        field sets `"or": true`; different fields always combine with `AND`.
+
+                        **Projected collections**: a one-to-many field in a *projection*
+                        is an object (`ProjectedCollection`) declaring the item shape plus
+                        the criteria, ordering and slice to apply to the collection. In a
+                        *response* the same field is the plain array of rows.
                         """)
                 .version("1.0.0")
                 .contact(new Contact().name("WeDoCode"));
@@ -111,6 +121,10 @@ public final class RepositoryApiDocs {
                 .addSchemas("InsertResult", insertResult())
                 .addSchemas("MutationResult", mutationResult())
                 .addSchemas("CountResult", countResult())
+                // Criteria shapes (every entity-specific criteria field uses these)
+                .addSchemas("CriterionPredicate", criterionPredicate())
+                .addSchemas("Criterion", criterion())
+                .addSchemas("ProjectedCollection", projectedCollection())
                 // Generic request shapes (criteria fields are entity-specific — pass alongside these)
                 .addSchemas("FetchRequest", fetchRequest())
                 .addSchemas("PageRequest", pageRequest())
@@ -167,11 +181,85 @@ public final class RepositoryApiDocs {
                 .addRequiredItem("count");
     }
 
+    // -- Criteria shapes --
+
+    /**
+     * One comparison request: the operator and the values it takes.
+     *
+     * <p>
+     * Arity follows the operator — {@code BETWEEN} takes two values, {@code IN} takes many, {@code IS_NULL} takes
+     * none. That is why a criterion cannot be reduced to a bare value on the wire.
+     * </p>
+     */
+    private static Schema<?> criterionPredicate() {
+        return new ObjectSchema()
+                .description("A single comparison request within a criterion.")
+                .addProperty("o", new StringSchema()
+                        .description("Operator")
+                        ._enum(List.of("EQ", "NE", "GT", "GE", "LT", "LE",
+                                "LIKE", "ILIKE", "BETWEEN", "IN", "IS_NULL", "IS_NOT_NULL")))
+                .addProperty("v", new ArraySchema()
+                        .description("""
+                                Values for the operator — one for EQ/NE/GT/GE/LT/LE/LIKE/ILIKE, \
+                                two for BETWEEN, many for IN, omitted for IS_NULL/IS_NOT_NULL. \
+                                LIKE and ILIKE take the wildcards as part of the value, as in SQL.""")
+                        .items(new Schema<>()))
+                .addRequiredItem("o");
+    }
+
+    /**
+     * A filterable field: the comparison requests made on it, and how they combine.
+     */
+    private static Schema<?> criterion() {
+        return new ObjectSchema()
+                .description("""
+                        A filterable field. Every criteria field of every entity uses this shape — pass it \
+                        alongside the pagination parameters, keyed by the field name (`productId`, `userName`, …).
+
+                        Requests accumulate: `{"p":[{"o":"GE","v":[10]},{"o":"LE","v":[20]}]}` means a range. \
+                        They combine with `AND` unless `or` is true. A bare value is also accepted and read \
+                        as equality.""")
+                .addProperty("or", new BooleanSchema()
+                        .description("Combine this field's requests with OR instead of AND. Defaults to false.")
+                        ._default(false))
+                .addProperty("p", new ArraySchema()
+                        .description("The comparison requests, in the order they were made")
+                        .items(new Schema<>().$ref("#/components/schemas/CriterionPredicate")));
+    }
+
+    /**
+     * A one-to-many field as it appears in a <em>projection</em>: item shape plus what to do with the collection.
+     */
+    private static Schema<?> projectedCollection() {
+        return new ObjectSchema()
+                .description("""
+                        A one-to-many field inside a projection. Declares the shape of one item plus the criteria, \
+                        ordering and slice to apply to the collection.
+
+                        In a **response** the same field is the plain array of rows instead — the two are told \
+                        apart by their JSON type.""")
+                .addProperty("shape", new ObjectSchema()
+                        .description("One partial item declaring which fields of each row to return"))
+                .addProperty("where", new ObjectSchema()
+                        .description("""
+                                Criteria for the child entity — same shape as a top-level criteria object, \
+                                with `Criterion` fields plus an optional `orderBy`."""))
+                .addProperty("limit", new IntegerSchema()
+                        .description("Maximum child rows to return. Order the collection too, or the cut is arbitrary.")
+                        .minimum(BigDecimal.ZERO))
+                .addProperty("offset", new IntegerSchema()
+                        .description("Child rows to skip. Order the collection too, or the skip is arbitrary.")
+                        .minimum(BigDecimal.ZERO))
+                .addRequiredItem("shape");
+    }
+
     // -- Generic request shapes --
 
     private static Schema<?> fetchRequest() {
         return new ObjectSchema()
-                .description("Fetch request. Add entity-specific criteria fields alongside the pagination parameters.")
+                .description("""
+                        Fetch request. Add entity-specific criteria fields alongside the pagination parameters — \
+                        each one a `Criterion` object keyed by the field name. An `orderBy` string is also accepted.""")
                 .addProperty("offset",
                         new IntegerSchema().description("Zero-based row offset").minimum(BigDecimal.ZERO))
                 .addProperty("limit",
@@ -183,8 +271,10 @@ public final class RepositoryApiDocs {
 
     private static Schema<?> pageRequest() {
         return new ObjectSchema()
-                .description(
-                        "Paginated fetch request. Add entity-specific criteria fields alongside the pagination parameters.")
+                .description("""
+                        Paginated fetch request. Add entity-specific criteria fields alongside the pagination \
+                        parameters — each one a `Criterion` object keyed by the field name. An `orderBy` string \
+                        is also accepted.""")
                 .addProperty("page", new IntegerSchema().description("Zero-based page index").minimum(BigDecimal.ZERO))
                 .addProperty("pageSize", new IntegerSchema().description("Rows per page").minimum(BigDecimal.ONE))
                 .addProperty("projection", new ObjectSchema()
@@ -264,8 +354,15 @@ public final class RepositoryApiDocs {
                 .addProperty("id", new IntegerSchema().format("int64"))
                 .addProperty("buyDate", new StringSchema().format("date-time"))
                 .addProperty("user", new Schema<>().$ref("#/components/schemas/User"))
-                .addProperty("items",
-                        new ArraySchema().items(new Schema<>().$ref("#/components/schemas/PurchaseItem")));
+                // Em resposta é o array de linhas; em projeção é o envelope que declara forma, critério e recorte.
+                .addProperty("items", new Schema<>()
+                        .description("""
+                                Line items. In a **response**, the array of rows. In a **projection**, a \
+                                `ProjectedCollection` object declaring the item shape plus the criteria, ordering \
+                                and slice to apply.""")
+                        .oneOf(List.of(
+                                new ArraySchema().items(new Schema<>().$ref("#/components/schemas/PurchaseItem")),
+                                new Schema<>().$ref("#/components/schemas/ProjectedCollection"))));
     }
 
     private static Schema<?> purchaseItem() {

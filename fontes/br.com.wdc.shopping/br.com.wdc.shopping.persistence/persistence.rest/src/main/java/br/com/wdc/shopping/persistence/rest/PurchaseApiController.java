@@ -69,15 +69,13 @@ public class PurchaseApiController {
                 .withPrice(pv.f64)
                 .withProduct(product);
 
-        var prj = new Purchase()
+        return new Purchase()
                 .withId(pv.i64)
                 .withBuyDate(pv.offsetDateTime)
                 .withUser(new User()
                         .withId(pv.i64)
                         .withName(pv.str))
                         .withItems(Collections.singletonList(item));
-
-        return prj;
     }
 
     private static Purchase simpleProjection() {

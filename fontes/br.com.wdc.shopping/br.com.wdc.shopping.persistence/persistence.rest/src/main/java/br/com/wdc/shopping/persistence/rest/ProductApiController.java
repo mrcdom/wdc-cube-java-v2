@@ -57,12 +57,11 @@ public class ProductApiController {
 
     private static Product fullProjection() {
         var pv = ProjectionValues.INSTANCE;
-        var prj = new Product()
+        return new Product()
                 .withId(pv.i64)
                 .withName(pv.str)
                 .withPrice(pv.f64)
                 .withDescription(pv.str);
-        return prj;
     }
 
     // :: Insert

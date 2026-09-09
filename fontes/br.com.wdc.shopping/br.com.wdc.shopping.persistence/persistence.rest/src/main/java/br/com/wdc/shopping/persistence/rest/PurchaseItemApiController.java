@@ -59,12 +59,11 @@ public class PurchaseItemApiController {
                 .withName(pv.str)
                 .withPrice(pv.f64);
 
-        var prj = new PurchaseItem()
+        return new PurchaseItem()
                 .withId(pv.i64)
                 .withAmount(pv.i32)
                 .withPrice(pv.f64)
                 .withProduct(product);
-        return prj;
     }
 
     // :: Insert
