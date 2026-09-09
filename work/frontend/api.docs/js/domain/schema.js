@@ -40,7 +40,6 @@ export const FIELD_KINDS = {
   number: { operators: COMPARABLE_OPS, parse: (raw) => Number(raw), input: 'number' },
   text: { operators: TEXT_OPS, parse: (raw) => raw, input: 'text' },
   date: { operators: COMPARABLE_OPS, parse: (raw) => raw, input: 'datetime-local' },
-  binary: { operators: IDENTITY_OPS, parse: (raw) => raw, input: 'text' },
 };
 
 /**
@@ -79,13 +78,6 @@ export const ENTITIES = {
         note: 'A coluna é NUMERIC e o domínio fala em Double: o valor é convertido antes da comparação, e isso vale igual para between e in.',
       },
       { name: 'description', kind: 'text', label: 'description', column: 'EN_PRODUCT.DESCRIPTION' },
-      {
-        name: 'image',
-        kind: 'binary',
-        label: 'image',
-        column: 'EN_PRODUCT.IMAGE',
-        note: 'Binário: o filtro que se usa aqui é “é nulo” / “não é nulo” — produtos com ou sem imagem.',
-      },
     ],
   },
 

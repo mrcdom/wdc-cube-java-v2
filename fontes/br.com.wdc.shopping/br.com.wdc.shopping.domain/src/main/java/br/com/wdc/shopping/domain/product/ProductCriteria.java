@@ -99,26 +99,9 @@ public class ProductCriteria implements Criteria {
         return value == null ? this : description().eq(value);
     }
 
-    /** Binário: o uso natural aqui é {@code isNull()} / {@code isNotNull()} — produtos com ou sem imagem. */
-    private final Criterion<ProductCriteria, byte[]> image = new Criterion<>(this, "image");
-
-    public Criterion<ProductCriteria, byte[]> image() {
-        return image;
-    }
-
-    /** Se há critério neste campo. É por aqui que a tradução pergunta. */
-    public boolean hasImage() {
-        return image.isSet();
-    }
-
-    /** Atalho para {@code image().eq(valor)}; {@code null} não filtra. */
-    public ProductCriteria withImage(byte[] value) {
-        return value == null ? this : image().eq(value);
-    }
-
     @Override
     public List<Criterion<?, ?>> criterions() {
-        return List.of(productId, name, price, description, image);
+        return List.of(productId, name, price, description);
     }
 
     // :: Order By

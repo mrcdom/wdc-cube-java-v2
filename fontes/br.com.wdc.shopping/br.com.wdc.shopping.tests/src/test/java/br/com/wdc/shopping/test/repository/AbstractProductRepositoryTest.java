@@ -362,15 +362,6 @@ public abstract class AbstractProductRepositoryTest {
 	}
 
 	@Test
-	public void filterByImage_isNotNull() {
-		// Num campo binário é este o filtro que se usa: com ou sem imagem, não o conteúdo.
-		var comImagem = repo().fetch(new ProductCriteria().image().isNotNull()).size();
-		var semImagem = repo().fetch(new ProductCriteria().image().isNull()).size();
-
-		assertEquals("todo produto cai de um lado ou do outro", 4, comImagem + semImagem);
-	}
-
-	@Test
 	public void filterByTwoDifferentFields_combinesWithAnd() {
 		// Entre campos a junção é sempre AND, mesmo que cada um deles seja disjuntivo por dentro.
 		var criteria = new ProductCriteria();

@@ -268,8 +268,7 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
                     // A coluna é NUMERIC; o domínio fala em Double. A conversão é do campo, não do operador,
                     // então vale igual para eq, between e in.
                     CriterionTranslator.translate(enProduct.PRICE, criteria.price(), BigDecimal::valueOf),
-                    CriterionTranslator.translate(enProduct.DESCRIPTION, criteria.description()),
-                    CriterionTranslator.translate(enProduct.IMAGE, criteria.image())));
+                    CriterionTranslator.translate(enProduct.DESCRIPTION, criteria.description())));
         }
     }
 }

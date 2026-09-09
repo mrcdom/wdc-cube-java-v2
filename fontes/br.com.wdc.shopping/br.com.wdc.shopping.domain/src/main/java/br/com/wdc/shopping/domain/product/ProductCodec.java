@@ -102,7 +102,6 @@ public class ProductCodec implements ModelCodec<Product, ProductCriteria> {
 		CriterionCodec.write(out, "name", criteria.name(), CriterionCodec.STRING_OUT);
 		CriterionCodec.write(out, "price", criteria.price(), CriterionCodec.DOUBLE_OUT);
 		CriterionCodec.write(out, "description", criteria.description(), CriterionCodec.STRING_OUT);
-		CriterionCodec.write(out, "image", criteria.image(), CriterionCodec.BYTES_OUT);
 		if (criteria.orderBy() != null) out.name("orderBy").value(criteria.orderBy().name());
 	}
 
@@ -113,7 +112,6 @@ public class ProductCodec implements ModelCodec<Product, ProductCriteria> {
 			case "name" -> CriterionCodec.read(in, criteria.name(), CriterionCodec.STRING_IN);
 			case "price" -> CriterionCodec.read(in, criteria.price(), CriterionCodec.DOUBLE_IN);
 			case "description" -> CriterionCodec.read(in, criteria.description(), CriterionCodec.STRING_IN);
-			case "image" -> CriterionCodec.read(in, criteria.image(), CriterionCodec.BYTES_IN);
 			case "orderBy" -> {
 				var v = InputCoerceUtils.asString(in);
 				if (v != null) criteria.withOrderBy(ProductCriteria.OrderBy.valueOf(v));
