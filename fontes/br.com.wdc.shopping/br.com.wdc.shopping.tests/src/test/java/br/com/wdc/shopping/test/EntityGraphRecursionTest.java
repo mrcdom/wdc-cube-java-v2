@@ -12,9 +12,9 @@ import br.com.wdc.framework.commons.serialization.JsonStreamReader;
 import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
 import br.com.wdc.shopping.domain.product.Product;
 import br.com.wdc.shopping.domain.purchase.Purchase;
-import br.com.wdc.shopping.domain.purchase.PurchaseModelCodec;
+import br.com.wdc.shopping.domain.purchase.PurchaseCodec;
 import br.com.wdc.shopping.domain.purchaseitem.PurchaseItem;
-import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemModelCodec;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemCodec;
 import br.com.wdc.shopping.domain.user.User;
 
 /**
@@ -23,8 +23,8 @@ import br.com.wdc.shopping.domain.user.User;
  */
 public class EntityGraphRecursionTest {
 
-	private final PurchaseModelCodec purchaseCodec = new PurchaseModelCodec();
-	private final PurchaseItemModelCodec itemCodec = new PurchaseItemModelCodec();
+	private final PurchaseCodec purchaseCodec = new PurchaseCodec();
+	private final PurchaseItemCodec itemCodec = new PurchaseItemCodec();
 
 	// ── Write: EntityGraph impede serialização infinita ──
 

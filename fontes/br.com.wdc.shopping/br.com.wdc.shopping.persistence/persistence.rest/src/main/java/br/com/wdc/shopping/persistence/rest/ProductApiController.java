@@ -7,7 +7,7 @@ import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
 import br.com.wdc.shopping.domain.product.Product;
 import br.com.wdc.shopping.domain.product.ProductCriteria;
-import br.com.wdc.shopping.domain.product.ProductModelCodec;
+import br.com.wdc.shopping.domain.product.ProductCodec;
 import br.com.wdc.shopping.domain.product.ProductRepository;
 import br.com.wdc.shopping.persistence.rest.doc.Doc;
 import br.com.wdc.shopping.persistence.rest.security.SecurityEnforcer;
@@ -53,7 +53,7 @@ public class ProductApiController {
         return ProductRepository.BEAN.get();
     }
 
-    private final ProductModelCodec codec = new ProductModelCodec();
+    private final ProductCodec codec = new ProductCodec();
 
     private static Product fullProjection() {
         var pv = ProjectionValues.INSTANCE;

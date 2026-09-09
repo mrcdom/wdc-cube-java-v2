@@ -9,13 +9,13 @@ import br.com.wdc.framework.domain.codec.ModelCodec;
 import br.com.wdc.framework.domain.criteria.CriterionCodec;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
 import br.com.wdc.shopping.domain.product.Product;
-import br.com.wdc.shopping.domain.product.ProductModelCodec;
+import br.com.wdc.shopping.domain.product.ProductCodec;
 import br.com.wdc.shopping.domain.purchase.Purchase;
-import br.com.wdc.shopping.domain.purchase.PurchaseModelCodec;
+import br.com.wdc.shopping.domain.purchase.PurchaseCodec;
 
-public class PurchaseItemModelCodec implements ModelCodec<PurchaseItem, PurchaseItemCriteria> {
+public class PurchaseItemCodec implements ModelCodec<PurchaseItem, PurchaseItemCriteria> {
 
-	private static final ProductModelCodec PRODUCT_CODEC = new ProductModelCodec();
+	private static final ProductCodec PRODUCT_CODEC = new ProductCodec();
 
 	@Override
 	public void writeEntity(ExtensibleObjectOutput out, PurchaseItem entity) {
@@ -101,7 +101,7 @@ public class PurchaseItemModelCodec implements ModelCodec<PurchaseItem, Purchase
 				}
 				case "purchase" -> {
 					if (in.peek() == SerializationToken.NULL) { in.nextNull(); }
-					else item.withPurchase(new PurchaseModelCodec().readEntity(in));
+					else item.withPurchase(new PurchaseCodec().readEntity(in));
 				}
 				case "purchaseId" -> {
 					var purchaseId = InputCoerceUtils.asLong(in);
@@ -134,7 +134,7 @@ public class PurchaseItemModelCodec implements ModelCodec<PurchaseItem, Purchase
 				}
 				case "purchase" -> {
 					if (in.peek() == SerializationToken.NULL) { in.nextNull(); }
-					else entity.withPurchase(new PurchaseModelCodec().readEntity(in));
+					else entity.withPurchase(new PurchaseCodec().readEntity(in));
 					projection.withPurchase(new Purchase().withId(pv.i64));
 				}
 				case "purchaseId" -> {

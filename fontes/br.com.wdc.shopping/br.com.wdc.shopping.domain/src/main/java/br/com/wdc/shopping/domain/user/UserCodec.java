@@ -8,7 +8,7 @@ import br.com.wdc.framework.domain.codec.ModelCodec;
 import br.com.wdc.framework.domain.criteria.CriterionCodec;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
 
-public class UserModelCodec implements ModelCodec<User, UserCriteria> {
+public class UserCodec implements ModelCodec<User, UserCriteria> {
 
 	@Override
 	public void writeEntity(ExtensibleObjectOutput out, User entity) {

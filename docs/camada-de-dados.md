@@ -205,10 +205,10 @@ Os pacotes seguem as **entidades**, não os tipos de classe. Cada entidade reún
 
 ```
 domain/
-  product/      Product, ProductCriteria, ProductModelCodec, ProductRepository
-  user/         User, UserCriteria, UserModelCodec, UserRepository
-  purchase/     Purchase, PurchaseCriteria, PurchaseModelCodec, PurchaseRepository
-  purchaseitem/ PurchaseItem, PurchaseItemCriteria, PurchaseItemModelCodec, PurchaseItemRepository
+  product/      Product, ProductCriteria, ProductCodec, ProductRepository
+  user/         User, UserCriteria, UserCodec, UserRepository
+  purchase/     Purchase, PurchaseCriteria, PurchaseCodec, PurchaseRepository
+  purchaseitem/ PurchaseItem, PurchaseItemCriteria, PurchaseItemCodec, PurchaseItemRepository
 
   exception/    InvalidCartItemException
   security/     Role

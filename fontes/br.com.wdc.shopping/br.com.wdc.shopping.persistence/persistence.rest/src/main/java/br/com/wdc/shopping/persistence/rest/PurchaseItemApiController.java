@@ -8,7 +8,7 @@ import br.com.wdc.framework.domain.security.SecurityContext;
 import br.com.wdc.shopping.domain.product.Product;
 import br.com.wdc.shopping.domain.purchaseitem.PurchaseItem;
 import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemCriteria;
-import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemModelCodec;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemCodec;
 import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemRepository;
 import br.com.wdc.shopping.persistence.rest.doc.Doc;
 import br.com.wdc.shopping.persistence.rest.security.SecurityEnforcer;
@@ -49,7 +49,7 @@ public class PurchaseItemApiController {
         return PurchaseItemRepository.BEAN.get();
     }
 
-    private final PurchaseItemModelCodec codec = new PurchaseItemModelCodec();
+    private final PurchaseItemCodec codec = new PurchaseItemCodec();
 
     private static PurchaseItem fullProjection() {
         var pv = ProjectionValues.INSTANCE;

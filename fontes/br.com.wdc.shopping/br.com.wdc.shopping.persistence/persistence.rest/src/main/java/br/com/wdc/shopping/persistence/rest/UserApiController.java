@@ -13,7 +13,7 @@ import br.com.wdc.framework.domain.exception.AccessDeniedException;
 import br.com.wdc.framework.domain.security.SecurityContext;
 import br.com.wdc.shopping.domain.user.User;
 import br.com.wdc.shopping.domain.user.UserCriteria;
-import br.com.wdc.shopping.domain.user.UserModelCodec;
+import br.com.wdc.shopping.domain.user.UserCodec;
 import br.com.wdc.shopping.domain.user.UserRepository;
 import br.com.wdc.shopping.persistence.rest.doc.Doc;
 import br.com.wdc.shopping.persistence.rest.security.SecurityEnforcer;
@@ -56,7 +56,7 @@ public class UserApiController {
         return UserRepository.BEAN.get();
     }
 
-    private final UserModelCodec codec = new UserModelCodec();
+    private final UserCodec codec = new UserCodec();
 
     // :: Insert
 
