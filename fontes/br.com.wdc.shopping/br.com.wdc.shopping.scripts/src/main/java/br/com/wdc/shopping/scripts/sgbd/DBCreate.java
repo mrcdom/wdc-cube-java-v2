@@ -111,6 +111,9 @@ public class DBCreate {
 				    CONSTRAINT PK_USER PRIMARY KEY (ID)
 				)""");
 		dsl.execute("CREATE SEQUENCE SQ_USER START WITH 1 INCREMENT BY 1");
+		// Sustentam as ordenações NAME_A_TO_Z e LOGIN_A_TO_Z de UserCriteria.
+		dsl.execute("CREATE INDEX IX_USER_NAME ON EN_USER (NAME)");
+		dsl.execute("CREATE INDEX IX_USER_USERNAME ON EN_USER (USERNAME)");
 	}
 
 	private void createTableProduct() {
@@ -128,6 +131,9 @@ public class DBCreate {
 				    CONSTRAINT PK_PRODUCT PRIMARY KEY (ID)
 				)""".formatted(nameType, descType, imageType));
 		dsl.execute("CREATE SEQUENCE SQ_PRODUCT START WITH 1 INCREMENT BY 1");
+		// Sustentam NAME_A_TO_Z, CHEAPEST_FIRST e MOST_EXPENSIVE_FIRST de ProductCriteria.
+		dsl.execute("CREATE INDEX IX_PRODUCT_NAME ON EN_PRODUCT (NAME)");
+		dsl.execute("CREATE INDEX IX_PRODUCT_PRICE ON EN_PRODUCT (PRICE)");
 	}
 
 	private void createTablePurchase() {
@@ -140,6 +146,8 @@ public class DBCreate {
 				    CONSTRAINT FK_PURCHASE_USER FOREIGN KEY (USERID) REFERENCES EN_USER(ID)
 				)""");
 		dsl.execute("CREATE SEQUENCE SQ_PURCHASE START WITH 1 INCREMENT BY 1");
+		// Sustenta MOST_RECENT_PURCHASE_FIRST e EARLIEST_PURCHASE_FIRST de PurchaseCriteria.
+		dsl.execute("CREATE INDEX IX_PURCHASE_BUYDATE ON EN_PURCHASE (BUYDATE)");
 	}
 
 	private void createTablePurchaseItem() {
@@ -155,5 +163,8 @@ public class DBCreate {
 				    CONSTRAINT FK_PURCHASEITEM_PURCHASE FOREIGN KEY (PURCHASEID) REFERENCES EN_PURCHASE(ID)
 				)""");
 		dsl.execute("CREATE SEQUENCE SQ_PURCHASEITEM START WITH 1 INCREMENT BY 1");
+		// Sustentam MOST_EXPENSIVE_FIRST e LARGEST_QUANTITY_FIRST de PurchaseItemCriteria.
+		dsl.execute("CREATE INDEX IX_PURCHASEITEM_PRICE ON EN_PURCHASEITEM (PRICE)");
+		dsl.execute("CREATE INDEX IX_PURCHASEITEM_AMOUNT ON EN_PURCHASEITEM (AMOUNT)");
 	}
 }

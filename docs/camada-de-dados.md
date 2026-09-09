@@ -135,6 +135,29 @@ Campo que não é coluna da tabela — `PurchaseCriteria.productId`, que vive no
 
 O valor solto não bastaria: um campo carrega vários pedidos, cada um com seu operador e sua aridade, e a disjunção é do campo. Reduzir isso a `"price": 10.0` descartaria tudo menos a igualdade, e em silêncio. O formato antigo continua sendo aceito na leitura, como igualdade.
 
+### Ordenação: conceitos provisionados, não campos
+
+O `OrderBy` de cada `XxxCriteria` **não** é uma lista de campos ordenáveis com uma direção. Cada constante é uma **ordenação inteira** — um conceito —, cujo nome diz o efeito obtido, e a tradução decide por quais colunas isso se faz:
+
+```java
+public enum OrderBy {
+    OLDEST_FIRST,          // ordem de cadastro
+    NEWEST_FIRST,
+    NAME_A_TO_Z,           // ORDER BY NAME asc, ID asc
+    CHEAPEST_FIRST,        // ORDER BY PRICE asc, ID asc
+    MOST_EXPENSIVE_FIRST,
+}
+```
+
+Os nomes anteriores — `ASCENDING` e `DESCENDING` — induziam ao erro de ler o enum como "campo mais direção", quando o que faziam era ordenar pela chave: ordem de criação. O nome atual diz isso.
+
+**A lista é curta de propósito.** Ordenação nova entra por decisão, e entra junto com o índice que a sustenta — é o que mantém explícito o que o banco precisa aguentar. Oferecer ordenação livre por qualquer campo pareceria generoso e produziria varredura completa na primeira consulta grande. Os índices vivem no `DBCreate`, ao lado da tabela, com o comentário dizendo qual ordenação cada um serve.
+
+Duas consequências práticas do desenho:
+
+- **A escolha das colunas mora no repositório**, não no critério. `MOST_RECENT_PURCHASE_FIRST` ordena por `BUYDATE desc, ID desc`; quem pede não precisa saber disso.
+- **Toda ordenação por campo não único desempata pela chave.** Sem isso, duas execuções da mesma consulta podem devolver as linhas em ordens diferentes — e, com recorte, trazer conjuntos diferentes.
+
 ### Transporte da coleção projetada
 
 Tudo o que se descreveu — critério expressivo, ordem e recorte da coleção filha — vale igual em acesso direto e via REST, porque a projeção inteira trafega. O ponto sutil é a **coleção projetada**: uma `ProjectionList` não é uma lista de resultados, é *uma* forma de item mais o critério que a filtra e o recorte a aplicar. No transporte, ela vira um envelope, distinto do array de resultado pelo próprio formato:

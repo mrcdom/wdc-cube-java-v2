@@ -44,12 +44,17 @@ public class UserRepositoryImpl extends BaseRepositoryImpl  implements UserRepos
     // @formatter:on
 
     /**
-     * Traduz o {@code OrderBy} do critério em {@code ORDER BY}, contra a tabela informada.
+     * Traduz a ordenação pedida em {@code ORDER BY}, contra a tabela informada.
+     *
+     * <p>
+     * É aqui que uma ordenação provisionada vira colunas: o critério nomeia o efeito, e a escolha das colunas — e do
+     * desempate — mora no repositório, que é quem conhece o esquema. Toda ordenação por campo não único desempata
+     * pela chave, sem o que duas execuções da mesma consulta podem devolver as linhas em ordens diferentes.
+     * </p>
      *
      * <p>
      * Recebe {@code Object} porque também é chamado a partir da coleção filha de outro repositório, onde o critério
-     * pode não ser deste tipo — nesse caso não ordena nada. A tabela vem por parâmetro porque, dentro de um subselect
-     * correlacionado, a instância tem alias próprio.
+     * pode não ser deste tipo — nesse caso não ordena nada.
      * </p>
      */
     public static List<SortField<?>> orderingOf(EnUser t, Object criteriaObj) {
@@ -57,8 +62,10 @@ public class UserRepositoryImpl extends BaseRepositoryImpl  implements UserRepos
             return List.of();
         }
         return switch (criteria.orderBy()) {
-        case ASCENDING -> List.of(t.ID.asc());
-        case DESCENDING -> List.of(t.ID.desc());
+        case OLDEST_FIRST -> List.of(t.ID.asc());
+        case NEWEST_FIRST -> List.of(t.ID.desc());
+        case NAME_A_TO_Z -> List.of(t.NAME.asc(), t.ID.asc());
+        case LOGIN_A_TO_Z -> List.of(t.USERNAME.asc(), t.ID.asc());
         };
     }
 

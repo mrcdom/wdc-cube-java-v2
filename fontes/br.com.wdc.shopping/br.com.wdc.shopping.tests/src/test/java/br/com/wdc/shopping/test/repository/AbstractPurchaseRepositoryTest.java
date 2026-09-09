@@ -98,14 +98,14 @@ public abstract class AbstractPurchaseRepositoryTest {
 	@Test
 	public void fetchWithOffsetAndLimit() {
 		var purchases = repo().fetch(new PurchaseCriteria()
-				.withOrderBy(PurchaseCriteria.OrderBy.ASCENDING), 0, 1);
+				.withOrderBy(PurchaseCriteria.OrderBy.OLDEST_FIRST), 0, 1);
 		assertEquals(1, purchases.size());
 	}
 
 	@Test
 	public void fetchWithOrderAscending() {
 		var purchases = repo().fetch(new PurchaseCriteria()
-				.withOrderBy(PurchaseCriteria.OrderBy.ASCENDING));
+				.withOrderBy(PurchaseCriteria.OrderBy.OLDEST_FIRST));
 		assertEquals(2, purchases.size());
 		assertTrue(purchases.get(0).id() <= purchases.get(1).id());
 	}
@@ -113,7 +113,7 @@ public abstract class AbstractPurchaseRepositoryTest {
 	@Test
 	public void fetchWithOrderDescending() {
 		var purchases = repo().fetch(new PurchaseCriteria()
-				.withOrderBy(PurchaseCriteria.OrderBy.DESCENDING));
+				.withOrderBy(PurchaseCriteria.OrderBy.NEWEST_FIRST));
 		assertEquals(2, purchases.size());
 		assertTrue(purchases.get(0).id() >= purchases.get(1).id());
 	}
@@ -243,43 +243,43 @@ public abstract class AbstractPurchaseRepositoryTest {
 	@Test
 	public void collection_ascending_orders() {
 		assertEquals(List.of(DBReset.ADMIN_SECOND_PURCHASE_ITEM0_ID, DBReset.ADMIN_SECOND_PURCHASE_ITEM1_ID),
-				idsOf(itemsOf(items(PurchaseItemCriteria.OrderBy.ASCENDING))));
+				idsOf(itemsOf(items(PurchaseItemCriteria.OrderBy.OLDEST_FIRST))));
 	}
 
 	@Test
 	public void collection_descending_reverses() {
 		assertEquals(List.of(DBReset.ADMIN_SECOND_PURCHASE_ITEM1_ID, DBReset.ADMIN_SECOND_PURCHASE_ITEM0_ID),
-				idsOf(itemsOf(items(PurchaseItemCriteria.OrderBy.DESCENDING))));
+				idsOf(itemsOf(items(PurchaseItemCriteria.OrderBy.NEWEST_FIRST))));
 	}
 
 	@Test
 	public void collection_limit_cuts() {
 		assertEquals(List.of(DBReset.ADMIN_SECOND_PURCHASE_ITEM0_ID),
-				idsOf(itemsOf(items(PurchaseItemCriteria.OrderBy.ASCENDING).withLimit(1))));
+				idsOf(itemsOf(items(PurchaseItemCriteria.OrderBy.OLDEST_FIRST).withLimit(1))));
 	}
 
 	@Test
 	public void collection_limit_respectsOrder() {
 		// Mesmo limite, ordem invertida: o item que sobra tem de ser o outro.
 		assertEquals(List.of(DBReset.ADMIN_SECOND_PURCHASE_ITEM1_ID),
-				idsOf(itemsOf(items(PurchaseItemCriteria.OrderBy.DESCENDING).withLimit(1))));
+				idsOf(itemsOf(items(PurchaseItemCriteria.OrderBy.NEWEST_FIRST).withLimit(1))));
 	}
 
 	@Test
 	public void collection_offset_skips() {
 		assertEquals(List.of(DBReset.ADMIN_SECOND_PURCHASE_ITEM1_ID),
-				idsOf(itemsOf(items(PurchaseItemCriteria.OrderBy.ASCENDING).withOffset(1))));
+				idsOf(itemsOf(items(PurchaseItemCriteria.OrderBy.OLDEST_FIRST).withOffset(1))));
 	}
 
 	@Test
 	public void collection_limitAndOffset() {
 		assertEquals(List.of(DBReset.ADMIN_SECOND_PURCHASE_ITEM1_ID),
-				idsOf(itemsOf(items(PurchaseItemCriteria.OrderBy.ASCENDING).withOffset(1).withLimit(1))));
+				idsOf(itemsOf(items(PurchaseItemCriteria.OrderBy.OLDEST_FIRST).withOffset(1).withLimit(1))));
 	}
 
 	@Test
 	public void collection_offsetBeyondEnd_bringsNothing() {
-		assertEquals(List.of(), idsOf(itemsOf(items(PurchaseItemCriteria.OrderBy.ASCENDING).withOffset(10))));
+		assertEquals(List.of(), idsOf(itemsOf(items(PurchaseItemCriteria.OrderBy.OLDEST_FIRST).withOffset(10))));
 	}
 
 	@Test
@@ -297,7 +297,7 @@ public abstract class AbstractPurchaseRepositoryTest {
 		// O recorte repete o mesmo filtro da coleção — o corte cai sobre o conjunto já filtrado.
 		var criteria = new PurchaseItemCriteria()
 				.withProductId(DBReset.BOLA_WILSON_ID)
-				.withOrderBy(PurchaseItemCriteria.OrderBy.ASCENDING);
+				.withOrderBy(PurchaseItemCriteria.OrderBy.OLDEST_FIRST);
 		var items = ProjectionValues.INSTANCE.singletonList(itemProjection(), criteria).withLimit(5);
 
 		var result = itemsOf(items);
@@ -325,5 +325,31 @@ public abstract class AbstractPurchaseRepositoryTest {
 
 		assertEquals(1, purchases.size());
 		assertEquals(DBReset.ADMIN_FIRST_PURCHASE_ID, purchases.get(0).id());
+	}
+
+	// :: Ordenações provisionadas
+
+	@Test
+	public void orderBy_mostRecentPurchaseFirst() {
+		var datas = repo().fetch(new PurchaseCriteria()
+				.withProjection(purchaseProjectionWithUser())
+				.withOrderBy(PurchaseCriteria.OrderBy.MOST_RECENT_PURCHASE_FIRST))
+				.stream().map(Purchase::buyDate).toList();
+
+		assertEquals(datas.stream().sorted().toList().reversed(), datas);
+	}
+
+	@Test
+	public void orderBy_earliestPurchaseFirst_isTheReverse() {
+		var recentes = repo().fetch(new PurchaseCriteria()
+				.withProjection(purchaseProjectionWithUser())
+				.withOrderBy(PurchaseCriteria.OrderBy.MOST_RECENT_PURCHASE_FIRST))
+				.stream().map(Purchase::id).toList();
+		var antigas = repo().fetch(new PurchaseCriteria()
+				.withProjection(purchaseProjectionWithUser())
+				.withOrderBy(PurchaseCriteria.OrderBy.EARLIEST_PURCHASE_FIRST))
+				.stream().map(Purchase::id).toList();
+
+		assertEquals(antigas.reversed(), recentes);
 	}
 }

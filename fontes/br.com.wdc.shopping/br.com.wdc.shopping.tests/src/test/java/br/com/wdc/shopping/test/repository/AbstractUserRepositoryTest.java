@@ -61,7 +61,7 @@ public abstract class AbstractUserRepositoryTest {
 	@Test
 	public void fetchWithOffsetAndLimit() {
 		var users = repo().fetch(new UserCriteria()
-				.withOrderBy(UserCriteria.OrderBy.ASCENDING), 1, 1);
+				.withOrderBy(UserCriteria.OrderBy.OLDEST_FIRST), 1, 1);
 		assertEquals(1, users.size());
 	}
 
@@ -296,5 +296,29 @@ public abstract class AbstractUserRepositoryTest {
 	public void filterByRoles_containing() {
 		// Papéis ficam separados por vírgula na coluna; conter é o filtro que responde "tem este papel".
 		assertEquals(1, repo().fetch(new UserCriteria().roles().containing("ADMIN")).size());
+	}
+
+	// :: Ordenações provisionadas
+
+	@Test
+	public void orderBy_nameAToZ() {
+		var nomes = repo().fetch(new UserCriteria()
+				.withOrderBy(UserCriteria.OrderBy.NAME_A_TO_Z)).stream().map(User::name).toList();
+
+		assertEquals(nomes.stream().sorted(String.CASE_INSENSITIVE_ORDER).toList(), nomes);
+	}
+
+	@Test
+	public void orderBy_loginAToZ_differsFromName() {
+		var porLogin = repo().fetch(new UserCriteria()
+				.withOrderBy(UserCriteria.OrderBy.LOGIN_A_TO_Z)).stream().map(User::userName).toList();
+
+		assertEquals(porLogin.stream().sorted(String.CASE_INSENSITIVE_ORDER).toList(), porLogin);
+
+		// Ordenar por login não é o mesmo que ordenar por nome: são conceitos distintos, e é essa a razão
+		// de existirem duas constantes em vez de uma "ordem alfabética".
+		var porNome = repo().fetch(new UserCriteria()
+				.withOrderBy(UserCriteria.OrderBy.NAME_A_TO_Z)).stream().map(User::userName).toList();
+		assertNotEquals(porNome, porLogin);
 	}
 }

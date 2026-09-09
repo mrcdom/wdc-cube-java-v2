@@ -54,12 +54,25 @@ export const TEXT_SHORTCUTS = {
   endingWith: { label: 'termina com', wrap: (v) => `%${v}`, explain: (v) => `termina com “${v}”` },
 };
 
-/** As quatro entidades: o caminho REST, os campos projetáveis e os campos filtráveis. */
+/**
+ * As quatro entidades: o caminho REST, os campos projetáveis, os campos filtráveis e as ordenações provisionadas.
+ *
+ * `orderings` não é uma lista de campos ordenáveis: cada entrada é uma ordenação inteira, com nome que diz o efeito
+ * e um `sql` que mostra por quais colunas ela se faz. Ordenação nova entra por decisão, junto com o índice que a
+ * sustenta — e é por isso que a lista é curta.
+ */
 export const ENTITIES = {
   product: {
     label: 'Produto',
     path: 'product',
     criteriaName: 'ProductCriteria',
+    orderings: [
+      { name: 'OLDEST_FIRST', label: 'mais antigo primeiro', sql: 'ID asc' },
+      { name: 'NEWEST_FIRST', label: 'mais recente primeiro', sql: 'ID desc' },
+      { name: 'NAME_A_TO_Z', label: 'nome (A → Z)', sql: 'NAME asc, ID asc' },
+      { name: 'CHEAPEST_FIRST', label: 'menor preço primeiro', sql: 'PRICE asc, ID asc' },
+      { name: 'MOST_EXPENSIVE_FIRST', label: 'maior preço primeiro', sql: 'PRICE desc, ID asc' },
+    ],
     fields: [
       { name: 'id', kind: 'number', label: 'id' },
       { name: 'name', kind: 'text', label: 'nome' },
@@ -85,6 +98,12 @@ export const ENTITIES = {
     label: 'Usuário',
     path: 'user',
     criteriaName: 'UserCriteria',
+    orderings: [
+      { name: 'OLDEST_FIRST', label: 'mais antigo primeiro', sql: 'ID asc' },
+      { name: 'NEWEST_FIRST', label: 'mais recente primeiro', sql: 'ID desc' },
+      { name: 'NAME_A_TO_Z', label: 'nome (A → Z)', sql: 'NAME asc, ID asc' },
+      { name: 'LOGIN_A_TO_Z', label: 'login (A → Z)', sql: 'USERNAME asc, ID asc' },
+    ],
     fields: [
       { name: 'id', kind: 'number', label: 'id' },
       { name: 'userName', kind: 'text', label: 'login' },
@@ -109,6 +128,12 @@ export const ENTITIES = {
     label: 'Compra',
     path: 'purchase',
     criteriaName: 'PurchaseCriteria',
+    orderings: [
+      { name: 'OLDEST_FIRST', label: 'mais antigo primeiro', sql: 'ID asc' },
+      { name: 'NEWEST_FIRST', label: 'mais recente primeiro', sql: 'ID desc' },
+      { name: 'MOST_RECENT_PURCHASE_FIRST', label: 'compra mais recente primeiro', sql: 'BUYDATE desc, ID desc' },
+      { name: 'EARLIEST_PURCHASE_FIRST', label: 'compra mais antiga primeiro', sql: 'BUYDATE asc, ID asc' },
+    ],
     fields: [
       { name: 'id', kind: 'number', label: 'id' },
       { name: 'buyDate', kind: 'date', label: 'data da compra' },
@@ -145,6 +170,12 @@ export const ENTITIES = {
     label: 'Item de compra',
     path: 'purchase-item',
     criteriaName: 'PurchaseItemCriteria',
+    orderings: [
+      { name: 'OLDEST_FIRST', label: 'mais antigo primeiro', sql: 'ID asc' },
+      { name: 'NEWEST_FIRST', label: 'mais recente primeiro', sql: 'ID desc' },
+      { name: 'MOST_EXPENSIVE_FIRST', label: 'maior preço primeiro', sql: 'PRICE desc, ID asc' },
+      { name: 'LARGEST_QUANTITY_FIRST', label: 'maior quantidade primeiro', sql: 'AMOUNT desc, ID asc' },
+    ],
     fields: [
       { name: 'id', kind: 'number', label: 'id' },
       { name: 'amount', kind: 'number', label: 'quantidade' },

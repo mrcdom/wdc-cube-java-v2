@@ -218,7 +218,16 @@ export function toSql(criteria) {
     return body;
   });
 
-  if (parts.length === 0) return '-- sem WHERE: o critério vazio não filtra nada';
+  // A ordenação não é "campo + direção": cada constante tem o seu ORDER BY, declarado no esquema.
+  const ordering = (criteria.meta.orderings ?? []).find((o) => o.name === criteria.orderBy);
+  const orderBy = ordering ? `ORDER BY ${ordering.sql}` : '';
+
+  // Sem filtro ainda pode haver ordenação: são coisas independentes, e omitir o ORDER BY aqui esconderia
+  // justamente o que a escolha de ordenação produz.
+  if (parts.length === 0) {
+    return `-- sem WHERE: o critério vazio não filtra nada${orderBy ? `\n${orderBy}` : ''}`;
+  }
+
   const where = parts.length > 1 ? parts.map((p) => `      ${p}`).join('\n  AND\n') : `      ${parts[0]}`;
-  return `WHERE\n${where}${criteria.orderBy ? `\nORDER BY id ${criteria.orderBy === 'DESCENDING' ? 'DESC' : 'ASC'}` : ''}`;
+  return `WHERE\n${where}${orderBy ? `\n${orderBy}` : ''}`;
 }

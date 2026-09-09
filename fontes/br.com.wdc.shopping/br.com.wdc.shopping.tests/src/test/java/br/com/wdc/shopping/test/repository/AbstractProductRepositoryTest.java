@@ -62,14 +62,14 @@ public abstract class AbstractProductRepositoryTest {
 	@Test
 	public void fetchWithOffsetAndLimit() {
 		var products = repo().fetch(new ProductCriteria()
-				.withOrderBy(ProductCriteria.OrderBy.ASCENDING), 0, 2);
+				.withOrderBy(ProductCriteria.OrderBy.OLDEST_FIRST), 0, 2);
 		assertEquals(2, products.size());
 	}
 
 	@Test
 	public void fetchWithOrderAscending() {
 		var products = repo().fetch(new ProductCriteria()
-				.withOrderBy(ProductCriteria.OrderBy.ASCENDING));
+				.withOrderBy(ProductCriteria.OrderBy.OLDEST_FIRST));
 		assertEquals(4, products.size());
 		for (int i = 1; i < products.size(); i++) {
 			assertTrue(products.get(i - 1).id() <= products.get(i).id());
@@ -79,7 +79,7 @@ public abstract class AbstractProductRepositoryTest {
 	@Test
 	public void fetchWithOrderDescending() {
 		var products = repo().fetch(new ProductCriteria()
-				.withOrderBy(ProductCriteria.OrderBy.DESCENDING));
+				.withOrderBy(ProductCriteria.OrderBy.NEWEST_FIRST));
 		assertEquals(4, products.size());
 		for (int i = 1; i < products.size(); i++) {
 			assertTrue(products.get(i - 1).id() >= products.get(i).id());
@@ -373,5 +373,51 @@ public abstract class AbstractProductRepositoryTest {
 			assertTrue(p.name().toLowerCase().contains("a"));
 			assertTrue(p.price() < 50.0);
 		}
+	}
+
+	// :: Ordenações provisionadas — cada uma é um efeito, não um campo com direção
+
+	private List<String> nomesOrdenadosPor(ProductCriteria.OrderBy order) {
+		return repo().fetch(new ProductCriteria().withOrderBy(order)).stream().map(Product::name).toList();
+	}
+
+	@Test
+	public void orderBy_nameAToZ() {
+		var nomes = nomesOrdenadosPor(ProductCriteria.OrderBy.NAME_A_TO_Z);
+
+		assertEquals(nomes.stream().sorted(String.CASE_INSENSITIVE_ORDER).toList(), nomes);
+		// E não coincide com a ordem de cadastro — sem isso o teste passaria mesmo sem ordenar.
+		assertNotEquals(nomesOrdenadosPor(ProductCriteria.OrderBy.OLDEST_FIRST), nomes);
+	}
+
+	@Test
+	public void orderBy_cheapestFirst() {
+		var precos = repo().fetch(new ProductCriteria()
+				.withOrderBy(ProductCriteria.OrderBy.CHEAPEST_FIRST))
+				.stream().map(Product::price).toList();
+
+		assertEquals(precos.stream().sorted().toList(), precos);
+	}
+
+	@Test
+	public void orderBy_mostExpensiveFirst_isTheReverse() {
+		var caros = repo().fetch(new ProductCriteria()
+				.withOrderBy(ProductCriteria.OrderBy.MOST_EXPENSIVE_FIRST))
+				.stream().map(Product::price).toList();
+		var baratos = repo().fetch(new ProductCriteria()
+				.withOrderBy(ProductCriteria.OrderBy.CHEAPEST_FIRST))
+				.stream().map(Product::price).toList();
+
+		assertEquals(baratos.reversed(), caros);
+	}
+
+	@Test
+	public void orderBy_oldestAndNewest_areOpposites() {
+		var antigos = repo().fetch(new ProductCriteria()
+				.withOrderBy(ProductCriteria.OrderBy.OLDEST_FIRST)).stream().map(Product::id).toList();
+		var novos = repo().fetch(new ProductCriteria()
+				.withOrderBy(ProductCriteria.OrderBy.NEWEST_FIRST)).stream().map(Product::id).toList();
+
+		assertEquals(antigos.reversed(), novos);
 	}
 }

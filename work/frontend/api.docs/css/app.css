@@ -216,7 +216,7 @@ main {
 .field footer { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 .or { display: flex; gap: 5px; align-items: center; font-size: 0.8rem; color: var(--ink-soft); cursor: help; }
 
-.order-by { display: flex; gap: 8px; align-items: center; margin-top: 12px; font-size: 0.85rem; }
+.order-by { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 12px; font-size: 0.85rem; }
 .order-by label { color: var(--ink-soft); }
 
 /* -- Projeção ------------------------------------------------------------ */
@@ -356,3 +356,10 @@ fieldset.ref legend { font-size: 0.8rem; color: var(--ink-soft); padding: 0 4px;
 .response-head .tip { color: var(--warn); }
 
 .pending { color: var(--ink-soft); font-style: italic; margin: 0; }
+
+.ordering-hint {
+  flex-basis: 100%;
+  font-size: 0.76rem;
+  color: var(--ink-soft);
+}
+.ordering-hint code { color: var(--accent); }

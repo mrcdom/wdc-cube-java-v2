@@ -117,9 +117,30 @@ public class PurchaseCriteria implements Criteria {
         return this;
     }
 
+    /**
+     * Ordenações provisionadas.
+     *
+     * <p>
+     * Cada constante é uma <b>ordenação inteira</b>, e não o pedido para ordenar por um campo: o nome diz o efeito
+     * que se obtém, e a tradução — no repositório — decide por quais colunas e em que sentido isso se faz. Não há
+     * composição; escolhe-se uma.
+     * </p>
+     *
+     * <p>
+     * <b>A lista é curta de propósito.</b> Ordenação nova entra por solicitação, e entra junto com o índice que a
+     * sustenta — é o que mantém explícito o que o banco precisa aguentar. Oferecer ordenação livre por qualquer campo
+     * pareceria generoso e produziria varredura completa na primeira consulta grande.
+     * </p>
+     */
     public enum OrderBy {
-        ASCENDING,
-        DESCENDING
+        /** Ordem de registro — a compra registrada primeiro aparece primeiro. */
+        OLDEST_FIRST,
+        /** Ordem de registro invertida. */
+        NEWEST_FIRST,
+        /** Pela data da compra, da mais recente para a mais antiga — a ordem usual de um extrato. */
+        MOST_RECENT_PURCHASE_FIRST,
+        /** Pela data da compra, da mais antiga para a mais recente. */
+        EARLIEST_PURCHASE_FIRST,
     }
 
 }

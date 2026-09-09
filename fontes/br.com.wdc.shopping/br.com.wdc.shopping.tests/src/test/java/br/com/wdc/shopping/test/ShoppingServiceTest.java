@@ -123,7 +123,7 @@ public class ShoppingServiceTest extends BaseBusinessTest {
         var homeService = new PurchasesPanelService(PurchaseRepository.BEAN.get());
 
         List<PurchaseInfo> compras = homeService.loadPurchases(new PurchaseCriteria()
-                .withOrderBy(OrderBy.ASCENDING));
+                .withOrderBy(OrderBy.OLDEST_FIRST));
 
         Assert.assertNotNull(compras);
         Assert.assertEquals(2, compras.size());

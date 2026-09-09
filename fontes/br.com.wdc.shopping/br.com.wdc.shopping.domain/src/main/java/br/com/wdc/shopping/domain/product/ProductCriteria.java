@@ -117,9 +117,32 @@ public class ProductCriteria implements Criteria {
         return this;
     }
 
+    /**
+     * Ordenações provisionadas.
+     *
+     * <p>
+     * Cada constante é uma <b>ordenação inteira</b>, e não o pedido para ordenar por um campo: o nome diz o efeito
+     * que se obtém, e a tradução — no repositório — decide por quais colunas e em que sentido isso se faz. Não há
+     * composição; escolhe-se uma.
+     * </p>
+     *
+     * <p>
+     * <b>A lista é curta de propósito.</b> Ordenação nova entra por solicitação, e entra junto com o índice que a
+     * sustenta — é o que mantém explícito o que o banco precisa aguentar. Oferecer ordenação livre por qualquer campo
+     * pareceria generoso e produziria varredura completa na primeira consulta grande.
+     * </p>
+     */
     public enum OrderBy {
-        ASCENDING,
-        DESCENDING
+        /** Ordem de cadastro — o mais antigo primeiro. */
+        OLDEST_FIRST,
+        /** Ordem de cadastro invertida — o cadastrado por último aparece primeiro. */
+        NEWEST_FIRST,
+        /** Alfabética pelo nome do produto. */
+        NAME_A_TO_Z,
+        /** Do menor para o maior preço. */
+        CHEAPEST_FIRST,
+        /** Do maior para o menor preço. */
+        MOST_EXPENSIVE_FIRST,
     }
 
 }

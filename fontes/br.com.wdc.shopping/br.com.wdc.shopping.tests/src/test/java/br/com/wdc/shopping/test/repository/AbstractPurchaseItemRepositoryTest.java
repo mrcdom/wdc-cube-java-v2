@@ -111,14 +111,14 @@ public abstract class AbstractPurchaseItemRepositoryTest {
 	@Test
 	public void fetchWithOffsetAndLimit() {
 		var items = repo().fetch(new PurchaseItemCriteria()
-				.withOrderBy(PurchaseItemCriteria.OrderBy.ASCENDING), 0, 2);
+				.withOrderBy(PurchaseItemCriteria.OrderBy.OLDEST_FIRST), 0, 2);
 		assertEquals(2, items.size());
 	}
 
 	@Test
 	public void fetchWithOrderAscending() {
 		var items = repo().fetch(new PurchaseItemCriteria()
-				.withOrderBy(PurchaseItemCriteria.OrderBy.ASCENDING));
+				.withOrderBy(PurchaseItemCriteria.OrderBy.OLDEST_FIRST));
 		assertEquals(3, items.size());
 		for (int i = 1; i < items.size(); i++) {
 			assertTrue(items.get(i - 1).id() <= items.get(i).id());
@@ -128,7 +128,7 @@ public abstract class AbstractPurchaseItemRepositoryTest {
 	@Test
 	public void fetchWithOrderDescending() {
 		var items = repo().fetch(new PurchaseItemCriteria()
-				.withOrderBy(PurchaseItemCriteria.OrderBy.DESCENDING));
+				.withOrderBy(PurchaseItemCriteria.OrderBy.NEWEST_FIRST));
 		assertEquals(3, items.size());
 		for (int i = 1; i < items.size(); i++) {
 			assertTrue(items.get(i - 1).id() >= items.get(i).id());

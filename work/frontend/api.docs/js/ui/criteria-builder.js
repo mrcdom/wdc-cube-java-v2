@@ -200,6 +200,15 @@ export class CriteriaBuilder extends EventTarget {
     `;
   }
 
+  /** Mostra por quais colunas a ordenação escolhida se faz — é o que a distingue de "ordenar por um campo". */
+  #orderingHint() {
+    const chosen = (this.criteria.meta.orderings ?? []).find((o) => o.name === this.criteria.orderBy);
+    if (!chosen) {
+      return html`<span class="ordering-hint">Cada opção é uma ordenação provisionada, não um campo.</span>`;
+    }
+    return html`<span class="ordering-hint"><code>${chosen.name}</code> → <code>ORDER BY ${chosen.sql}</code></span>`;
+  }
+
   render() {
     render(this.root, html`
       <div class="fields">
@@ -209,9 +218,11 @@ export class CriteriaBuilder extends EventTarget {
         <label>Ordenação</label>
         <select data-role="order-by">
           <option value="" ${!this.criteria.orderBy ? 'selected' : ''}>— a cargo do banco —</option>
-          <option value="ASCENDING" ${this.criteria.orderBy === 'ASCENDING' ? 'selected' : ''}>ASCENDING</option>
-          <option value="DESCENDING" ${this.criteria.orderBy === 'DESCENDING' ? 'selected' : ''}>DESCENDING</option>
+          ${(this.criteria.meta.orderings ?? []).map((o) => html`
+            <option value="${o.name}" title="ORDER BY ${o.sql}"
+                    ${this.criteria.orderBy === o.name ? 'selected' : ''}>${o.label}</option>`)}
         </select>
+        ${this.#orderingHint()}
       </div>
     `);
   }

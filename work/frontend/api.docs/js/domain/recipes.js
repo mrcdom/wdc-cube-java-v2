@@ -109,13 +109,13 @@ export const recipesFor = (entityKey) => RECIPES.filter((r) => r.entity === enti
 export const COLLECTION_RECIPE = {
   id: 'collection',
   title: 'Itens ordenados e recortados',
-  teaches: 'A coleção projetada leva forma, critério e recorte. Sem isso, pedir “os 1 primeiros itens em ordem decrescente” traria todos, sem ordem — que era o que acontecia antes deste envelope existir.',
+  teaches: 'A coleção projetada leva forma, critério e recorte. Sem isso, pedir “o item mais recente” traria todos, sem ordem — que era o que acontecia antes deste envelope existir.',
   apply: (projection) => {
     const { collection } = projection;
     collection.enabled = true;
     collection.limit = '1';
     collection.offset = null;
     collection.criteria.clear();
-    collection.criteria.orderBy = 'DESCENDING';
+    collection.criteria.orderBy = 'NEWEST_FIRST';
   },
 };
