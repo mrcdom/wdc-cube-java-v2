@@ -34,14 +34,14 @@ public class OrderByWireCompatibilityTest {
 
 	@Test
 	public void unknownOrderBy_isRejectedNamingValueAndAccepted() {
-		var in = new JsonStreamReader("\"DESCENDING\"");
+		var in = new JsonStreamReader("\"ORDENACAO_INEXISTENTE\"");
 		var criteria = new PurchaseCriteria();
 
 		var e = assertThrows(InvalidRequestException.class,
 				() -> new PurchaseCodec().readCriteriaField(in, "orderBy", criteria));
 
 		assertTrue("a mensagem deve nomear o valor recusado: " + e.getMessage(),
-				e.getMessage().contains("DESCENDING"));
+				e.getMessage().contains("ORDENACAO_INEXISTENTE"));
 		assertTrue("a mensagem deve listar as ordenações aceitas: " + e.getMessage(),
 				e.getMessage().contains("NEWEST_FIRST"));
 	}
@@ -49,13 +49,13 @@ public class OrderByWireCompatibilityTest {
 	@Test
 	public void unknownOrderBy_isRejectedInEveryEntity() {
 		assertThrows(InvalidRequestException.class,
-				() -> new ProductCodec().readCriteriaField(new JsonStreamReader("\"ASCENDING\""), "orderBy",
+				() -> new ProductCodec().readCriteriaField(new JsonStreamReader("\"ORDENACAO_INEXISTENTE\""), "orderBy",
 						new ProductCriteria()));
 		assertThrows(InvalidRequestException.class,
-				() -> new UserCodec().readCriteriaField(new JsonStreamReader("\"ASCENDING\""), "orderBy",
+				() -> new UserCodec().readCriteriaField(new JsonStreamReader("\"ORDENACAO_INEXISTENTE\""), "orderBy",
 						new UserCriteria()));
 		assertThrows(InvalidRequestException.class,
-				() -> new PurchaseItemCodec().readCriteriaField(new JsonStreamReader("\"ASCENDING\""), "orderBy",
+				() -> new PurchaseItemCodec().readCriteriaField(new JsonStreamReader("\"ORDENACAO_INEXISTENTE\""), "orderBy",
 						new PurchaseItemCriteria()));
 	}
 
@@ -90,17 +90,16 @@ public class OrderByWireCompatibilityTest {
 	}
 
 	/**
-	 * O caminho inteiro, pelo HTTP: o corpo é o mesmo que o app defasado enviava.
+	 * O caminho inteiro, pelo HTTP.
 	 *
 	 * <p>
-	 * Vale o teste ponta a ponta porque o que quebrou não foi a leitura em si — foi o <b>status</b>. A exceção
-	 * precisa atravessar o handler do Javalin e sair como 400, com a mensagem no corpo; se algum dia ela voltar a ser
-	 * mapeada como falha interna, o cliente perde de novo a única pista que tem.
+	 * O que importa aqui é o <b>status</b>: a exceção precisa atravessar o handler do Javalin e sair como 400, com a
+	 * mensagem no corpo. Mapeada como falha interna, o cliente fica sem a única pista que tem.
 	 * </p>
 	 */
 	@Test
 	public void unknownOrderBy_overHttp_answers400WithTheReason() {
-		var body = "{\"userId\":{\"p\":[{\"o\":\"EQ\",\"v\":[0]}]},\"orderBy\":\"DESCENDING\","
+		var body = "{\"userId\":{\"p\":[{\"o\":\"EQ\",\"v\":[0]}]},\"orderBy\":\"ORDENACAO_INEXISTENTE\","
 				+ "\"projection\":{\"id\":1},\"pageSize\":10}";
 
 		var e = assertThrows(BusinessException.class,
@@ -108,7 +107,7 @@ public class OrderByWireCompatibilityTest {
 
 		assertTrue("deve ser 400, não 500: " + e.getMessage(), e.getMessage().startsWith("HTTP 400"));
 		assertTrue("o corpo deve nomear o valor recusado: " + e.getMessage(),
-				e.getMessage().contains("DESCENDING"));
+				e.getMessage().contains("ORDENACAO_INEXISTENTE"));
 		assertTrue("o corpo deve listar as aceitas: " + e.getMessage(),
 				e.getMessage().contains("NEWEST_FIRST"));
 	}

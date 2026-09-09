@@ -167,7 +167,7 @@ public enum OrderBy {
 }
 ```
 
-Os nomes anteriores — `ASCENDING` e `DESCENDING` — induziam ao erro de ler o enum como "campo mais direção", quando o que faziam era ordenar pela chave: ordem de criação. O nome atual diz isso.
+Cada entrada nomeia o **efeito percebido**, não a coluna e a direção: quem pede não escolhe um campo e um sentido, escolhe uma ordenação que a aplicação provisionou.
 
 **A lista é curta de propósito.** Ordenação nova entra por decisão, e entra junto com o índice que a sustenta — é o que mantém explícito o que o banco precisa aguentar. Oferecer ordenação livre por qualquer campo pareceria generoso e produziria varredura completa na primeira consulta grande. Os índices vivem no `DBCreate`, ao lado da tabela, com o comentário dizendo qual ordenação cada um serve.
 
@@ -184,7 +184,7 @@ Tudo o que se descreveu — critério expressivo, ordem e recorte da coleção f
 // projeção (cliente → servidor)
 "items": {
   "shape":  { "id": 1, "amount": 1, "product": { "id": 1 } },
-  "where":  { "productId": { "p": [ { "o": "EQ", "v": [7] } ] }, "orderBy": "DESCENDING" },
+  "where":  { "productId": { "p": [ { "o": "EQ", "v": [7] } ] }, "orderBy": "MOST_EXPENSIVE_FIRST" },
   "limit":  5,
   "offset": 1
 }
@@ -195,7 +195,7 @@ Tudo o que se descreveu — critério expressivo, ordem e recorte da coleção f
 
 O leitor decide pelo token: objeto é projeção, array é resultado — o mesmo campo `items` serve os dois sentidos, e o resultado segue inalterado. O `where` reusa o codec do item (`CriterionCodec`), de modo que `in`, `between` e a disjunção valem no sub-critério como valem no de topo. O `ProjectionCollectionCodec` cuida do envelope; o codec da entidade filha, do conteúdo do critério — os dois colaboram.
 
-Antes disso, `writeEntity` serializava a coleção só como a forma dos itens: em REST, pedir "os itens do produto X, ordenados, 5 primeiros" trazia todos os itens, sem filtro nem ordem. Os testes de coleção vivem agora nos `Abstract*RepositoryTest` e rodam nos dois modos, então a paridade é verificada, não presumida.
+É o envelope que faz "os itens do produto X, ordenados, 5 primeiros" chegar como tal ao servidor — sem ele, `writeEntity` levaria apenas a forma dos itens, e o REST devolveria todos, sem filtro nem ordem. Os testes de coleção vivem nos `Abstract*RepositoryTest` e rodam nos dois modos, então a paridade é verificada, não presumida.
 
 ### Coleção filha ordenada e recortada
 
@@ -203,7 +203,7 @@ A coleção 1:N declarada com `addBeanListField` pode ser ordenada e recortada p
 
 ```java
 var itens = pv.singletonList(itemPrj, new PurchaseItemCriteria()
-                .withOrderBy(PurchaseItemCriteria.OrderBy.DESCENDING))
+                .withOrderBy(PurchaseItemCriteria.OrderBy.MOST_EXPENSIVE_FIRST))
         .withOffset(1)
         .withLimit(2);
 
