@@ -29,9 +29,15 @@ cd fontes && mvn test                   # testes
 ./work/bin/start-server.sh [porta]      # cd para work/, builda se faltar o JAR
 ./work/bin/start-h2-server.sh           # H2 em modo TCP (config aponta para tcp://localhost por padrão)
 
-# Frontend React (assets vão direto para remote.host/.../resources)
+# Frontends web (React, Flutter web, remote.shell.teavm, teavm.web → work/frontend/)
+./work/bin/build-frontends.sh            # todos; --list mostra alvos/pré-requisitos, --full instala deps Maven
+./work/bin/build-frontends.sh react      # um alvo só
+
+# Desenvolvimento: cada módulo tem watch próprio
 cd fontes/.../remote.shell.react && npm install && npm run watch
 ```
+
+Os quatro frontends web depositam seus artefatos em `work/frontend/<nome>`; cada um tem o seu `build.sh` no módulo de origem e o `build-frontends.sh` só orquestra os quatro. `work/frontend/{api.docs,openapi}` são estáticos.
 
 Config externa: `work/config/application.toml` (resolução: system property `shopping.config.file` → fallback para esse arquivo). `application.local.toml` para overrides locais.
 
