@@ -53,12 +53,16 @@ export const $$ = (selector, scope = document) => [...scope.querySelectorAll(sel
 /**
  * Delegação de eventos: um ouvinte na raiz atende os elementos que casam com o seletor, inclusive os que ainda nem
  * existem. É o que permite redesenhar um painel inteiro sem religar ouvinte nenhum.
+ *
+ * <b>O `signal` não é opcional na prática.</b> Quem monta um painel novo sobre a mesma raiz precisa descartar os
+ * ouvintes do anterior: eles continuam ligados à raiz, apontando para o modelo velho, e passam a responder por dados
+ * que já não existem. Um {@link AbortController} por painel resolve os dois lados — registra e descarta em bloco.
  */
-export const on = (root, type, selector, handler) => {
+export const on = (root, type, selector, handler, { signal } = {}) => {
   root.addEventListener(type, (event) => {
     const target = event.target.closest(selector);
     if (target && root.contains(target)) handler(event, target);
-  });
+  }, { signal });
 };
 
 /** JSON legível, com as chaves na ordem em que foram postas. */

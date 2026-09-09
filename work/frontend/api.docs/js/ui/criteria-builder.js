@@ -9,6 +9,14 @@ import { $$, html, on, render } from '../core/dom.js';
 import { OPERATORS, TEXT_SHORTCUTS, operatorsOf } from '../domain/schema.js';
 
 export class CriteriaBuilder extends EventTarget {
+  /**
+   * Descarta, de uma vez, todos os ouvintes deste painel.
+   *
+   * A delegação prende o ouvinte à raiz, que sobrevive à troca de entidade. Sem este descarte, o painel anterior
+   * continuaria atendendo cliques com o critério antigo — que não tem os campos da entidade nova.
+   */
+  #listeners = new AbortController();
+
   /** @param {HTMLElement} root @param {import('../domain/criteria.js').Criteria} criteria */
   constructor(root, criteria) {
     super();
@@ -16,6 +24,11 @@ export class CriteriaBuilder extends EventTarget {
     this.criteria = criteria;
     this.#wire();
     this.render();
+  }
+
+  /** Desliga o painel. Obrigatório antes de montar outro sobre a mesma raiz. */
+  destroy() {
+    this.#listeners.abort();
   }
 
   #changed() {
@@ -28,21 +41,23 @@ export class CriteriaBuilder extends EventTarget {
   }
 
   #wire() {
+    const { signal } = this.#listeners;
+
     on(this.root, 'click', '[data-action="add-predicate"]', (_e, el) => {
       const criterion = this.#criterionOf(el);
       criterion.add(operatorsOf(criterion.field)[0]);
       this.#changed();
-    });
+    }, { signal });
 
     on(this.root, 'click', '[data-action="remove-predicate"]', (_e, el) => {
       this.#criterionOf(el).remove(el.dataset.predicate);
       this.#changed();
-    });
+    }, { signal });
 
     on(this.root, 'click', '[data-action="clear-field"]', (_e, el) => {
       this.#criterionOf(el).clear();
       this.#changed();
-    });
+    }, { signal });
 
     on(this.root, 'change', '[data-role="operator"]', (_e, el) => {
       const criterion = this.#criterionOf(el);
@@ -57,12 +72,12 @@ export class CriteriaBuilder extends EventTarget {
       }
       predicate.values = [];
       this.#changed();
-    });
+    }, { signal });
 
     on(this.root, 'change', '[data-role="disjunctive"]', (_e, el) => {
       this.#criterionOf(el).disjunctive = el.checked;
       this.#changed();
-    });
+    }, { signal });
 
     // `input` em vez de `change`: o JSON e a explicação acompanham a digitação, que é o que faz a relação
     // entre o formulário e o corpo da requisição ficar evidente.
@@ -72,12 +87,12 @@ export class CriteriaBuilder extends EventTarget {
       predicate.values[Number(el.dataset.index)] = el.value;
       this.dispatchEvent(new CustomEvent('change'));
       this.#refreshBadges();
-    });
+    }, { signal });
 
     on(this.root, 'change', '[data-role="order-by"]', (_e, el) => {
       this.criteria.orderBy = el.value || null;
       this.#changed();
-    });
+    }, { signal });
   }
 
   /** Atualiza só os selos de estado, para não redesenhar campos enquanto se digita neles. */

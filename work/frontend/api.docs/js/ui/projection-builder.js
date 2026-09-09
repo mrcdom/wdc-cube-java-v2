@@ -12,6 +12,9 @@ import { CriteriaBuilder } from './criteria-builder.js';
 export class ProjectionBuilder extends EventTarget {
   #collectionCriteriaBuilder = null;
 
+  /** Ver {@link CriteriaBuilder#destroy}: a delegação sobrevive ao redesenho, o modelo não. */
+  #listeners = new AbortController();
+
   /** @param {HTMLElement} root @param {import('../domain/projection.js').Projection} projection */
   constructor(root, projection) {
     super();
@@ -21,37 +24,46 @@ export class ProjectionBuilder extends EventTarget {
     this.render();
   }
 
+  /** Desliga o painel e o construtor de critério da coleção. */
+  destroy() {
+    this.#listeners.abort();
+    this.#collectionCriteriaBuilder?.destroy();
+    this.#collectionCriteriaBuilder = null;
+  }
+
   #changed({ redraw = true } = {}) {
     if (redraw) this.render();
     this.dispatchEvent(new CustomEvent('change'));
   }
 
   #wire() {
+    const { signal } = this.#listeners;
+
     on(this.root, 'change', '[data-role="field"]', (_e, el) => {
       this.projection.toggle(el.dataset.name, el.checked);
       this.#changed({ redraw: false });
-    });
+    }, { signal });
 
     on(this.root, 'change', '[data-role="ref-field"]', (_e, el) => {
       this.projection.toggleRef(el.dataset.ref, el.dataset.name, el.checked);
       this.#changed({ redraw: false });
-    });
+    }, { signal });
 
     on(this.root, 'change', '[data-role="collection-enabled"]', (_e, el) => {
       this.projection.collection.enabled = el.checked;
       this.#changed();
-    });
+    }, { signal });
 
     on(this.root, 'change', '[data-role="shape-field"]', (_e, el) => {
       this.projection.collection.toggleShape(el.dataset.name, el.checked);
       this.#changed({ redraw: false });
-    });
+    }, { signal });
 
     on(this.root, 'input', '[data-role="slice"]', (_e, el) => {
       this.projection.collection[el.dataset.name] = el.value === '' ? null : el.value;
       this.#changed({ redraw: false });
       this.#refreshSliceWarning();
-    });
+    }, { signal });
   }
 
   /** O aviso só faz sentido enquanto houver recorte sem ordem — e some sozinho quando a ordem entra. */
@@ -148,6 +160,11 @@ export class ProjectionBuilder extends EventTarget {
 
     // O critério da coleção é o mesmo construtor da consulta principal: a estrutura do sub-critério é idêntica
     // à do critério de topo, e reusar a peça é a forma mais direta de mostrar isso.
+    // `render` roda várias vezes; sem descartar o anterior, cada desenho deixaria mais um painel atendendo
+    // os mesmos cliques.
+    this.#collectionCriteriaBuilder?.destroy();
+    this.#collectionCriteriaBuilder = null;
+
     const host = this.root.querySelector('[data-role="collection-criteria"]');
     if (host) {
       this.#collectionCriteriaBuilder = new CriteriaBuilder(host, this.projection.collection.criteria);

@@ -26,6 +26,7 @@ class Application {
 
   start() {
     this.#buildModel();
+    this.#wireTabs();
     this.#renderEntityTabs();
     this.#renderOperations();
     this.#wireAuth();
@@ -43,12 +44,13 @@ class Application {
 
   // -- Estrutura -----------------------------------------------------------
 
-  #renderEntityTabs() {
-    render($('#entity-tabs'), Object.entries(ENTITIES).map(([key, meta]) => html`
-      <button type="button" data-entity="${key}" class="${key === this.#entityKey ? 'active' : ''}">
-        ${meta.label}
-      </button>`));
-
+  /**
+   * Os ouvintes das abas são ligados uma única vez.
+   *
+   * Ligá-los dentro do desenho — que roda a cada troca — acrescentaria um ouvinte por vez, e um clique passaria a
+   * disparar tantas trocas quantas já tivessem ocorrido.
+   */
+  #wireTabs() {
     on($('#entity-tabs'), 'click', 'button', (_e, el) => {
       this.#entityKey = el.dataset.entity;
       this.#buildModel();
@@ -56,12 +58,6 @@ class Application {
       this.#mountBuilders();
       this.#refresh();
     });
-  }
-
-  #renderOperations() {
-    render($('#operations'), Object.entries(QUERY_OPERATIONS).map(([key, op]) => html`
-      <button type="button" data-operation="${key}" class="${key === this.#operation ? 'active' : ''}"
-              title="${op.describe}">${op.label}</button>`));
 
     on($('#operations'), 'click', 'button', (_e, el) => {
       this.#operation = el.dataset.operation;
@@ -70,7 +66,24 @@ class Application {
     });
   }
 
+  #renderEntityTabs() {
+    render($('#entity-tabs'), Object.entries(ENTITIES).map(([key, meta]) => html`
+      <button type="button" data-entity="${key}" class="${key === this.#entityKey ? 'active' : ''}">
+        ${meta.label}
+      </button>`));
+  }
+
+  #renderOperations() {
+    render($('#operations'), Object.entries(QUERY_OPERATIONS).map(([key, op]) => html`
+      <button type="button" data-operation="${key}" class="${key === this.#operation ? 'active' : ''}"
+              title="${op.describe}">${op.label}</button>`));
+  }
+
   #mountBuilders() {
+    // Os painéis anteriores ficaram ligados às mesmas raízes, apontando para o modelo da entidade que saiu.
+    this.#criteriaBuilder?.destroy();
+    this.#projectionBuilder?.destroy();
+
     this.#criteriaBuilder = new CriteriaBuilder($('#criteria'), this.#criteria);
     this.#criteriaBuilder.addEventListener('change', () => this.#refresh());
 
