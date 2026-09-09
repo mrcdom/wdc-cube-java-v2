@@ -1,7 +1,22 @@
 package br.com.wdc.shopping.domain.user;
 
+import java.util.List;
 
-public class UserCriteria {
+import br.com.wdc.framework.domain.criteria.ComparableCriterion;
+import br.com.wdc.framework.domain.criteria.Criteria;
+import br.com.wdc.framework.domain.criteria.Criterion;
+import br.com.wdc.framework.domain.criteria.TextCriterion;
+
+/**
+ * Critério de pesquisa de {@link User}.
+ *
+ * <p>
+ * O tipo do campo decide o que se pode pedir dele: {@code userId} é ordenável, {@code userName} é textual e aceita
+ * também {@code startingWith} e {@code containing}. É o que impede na compilação um {@code between} sobre um campo
+ * que não tem ordem útil.
+ * </p>
+ */
+public class UserCriteria implements Criteria {
 
     // :: Projection
 
@@ -18,37 +33,54 @@ public class UserCriteria {
 
     // :: Criteria
 
-    private Long userId;
+    private final ComparableCriterion<UserCriteria, Long> userId = new ComparableCriterion<>(this, "userId");
 
-    public Long userId() {
+    public ComparableCriterion<UserCriteria, Long> userId() {
         return userId;
     }
 
-    public UserCriteria withUserId(Long userId) {
-        this.userId = userId;
-        return this;
+    public boolean hasUserId() {
+        return userId.isSet();
     }
 
-    private String username;
-
-    public String userName() {
-        return username;
+    /** Atalho para {@code userId().eq(valor)}; {@code null} não filtra. */
+    public UserCriteria withUserId(Long value) {
+        return value == null ? this : userId().eq(value);
     }
 
-    public UserCriteria withUserName(String username) {
-        this.username = username;
-        return this;
+    private final TextCriterion<UserCriteria> userName = new TextCriterion<>(this, "userName");
+
+    public TextCriterion<UserCriteria> userName() {
+        return userName;
     }
 
-    private String password;
+    public boolean hasUserName() {
+        return userName.isSet();
+    }
 
-    public String password() {
+    /** Atalho para {@code userName().eq(valor)}; {@code null} não filtra. */
+    public UserCriteria withUserName(String value) {
+        return value == null ? this : userName().eq(value);
+    }
+
+    private final TextCriterion<UserCriteria> password = new TextCriterion<>(this, "password");
+
+    public TextCriterion<UserCriteria> password() {
         return password;
     }
 
-    public UserCriteria withPassword(String password) {
-        this.password = password;
-        return this;
+    public boolean hasPassword() {
+        return password.isSet();
+    }
+
+    /** Atalho para {@code password().eq(valor)}; {@code null} não filtra. */
+    public UserCriteria withPassword(String value) {
+        return value == null ? this : password().eq(value);
+    }
+
+    @Override
+    public List<Criterion<?, ?>> criterions() {
+        return List.of(userId, userName, password);
     }
 
     // :: Order By

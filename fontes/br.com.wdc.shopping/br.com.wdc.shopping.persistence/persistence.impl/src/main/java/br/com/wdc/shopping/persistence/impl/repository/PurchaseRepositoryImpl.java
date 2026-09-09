@@ -7,6 +7,7 @@ import static br.com.wdc.shopping.persistence.impl.scheme.tables.EnPurchase.EN_P
 import static br.com.wdc.shopping.persistence.impl.scheme.tables.EnPurchaseitem.EN_PURCHASEITEM;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 
 import org.jooq.SortField;
@@ -14,6 +15,7 @@ import org.jooq.Condition;
 import org.jooq.impl.DSL;
 
 import br.com.wdc.framework.domain.pagination.Page;
+import br.com.wdc.framework.jooq.CriterionTranslator;
 import br.com.wdc.framework.jooq.JsonChildQueryBuilder;
 import br.com.wdc.framework.jooq.JsonQuery;
 import br.com.wdc.framework.jooq.JsonQueryBuilder;
@@ -273,28 +275,47 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
             this.ctx = new QueryContext(dsl());
         }
 
+        /**
+         * As condições dos campos informados.
+         *
+         * <p>
+         * O percurso dos campos e a montagem do {@code AND} moram no {@link CriterionTranslator}; aqui fica só o que é
+         * próprio da entidade — a coluna de cada campo e, no caso de {@code productId}, o fato de ele não ser coluna
+         * desta tabela. Critério vazio resulta em {@code noCondition()}, e não numa condição falsa.
+         * </p>
+         */
         public Condition apply(PurchaseCriteria criteria) {
-            var condition = DSL.noCondition();
             if (criteria == null) {
-                return condition;
+                return DSL.noCondition();
             }
-            if (criteria.purchaseId() != null) {
-                condition = condition.and(enPurchase.ID.eq(criteria.purchaseId()));
-            }
-            if (criteria.userId() != null) {
-                condition = condition.and(enPurchase.USERID.eq(criteria.userId()));
-            }
-            if (criteria.productId() != null) {
-                var enPurchaseItem = EnPurchaseitem.EN_PURCHASEITEM.as(ctx.alias("p"));
+            return CriterionTranslator.and(Arrays.asList(
+                    CriterionTranslator.translate(enPurchase.ID, criteria.purchaseId()),
+                    CriterionTranslator.translate(enPurchase.USERID, criteria.userId()),
+                    existsItemMatching(criteria)));
+        }
 
-                condition = condition.and(DSL.exists(DSL.selectOne()
-                        .from(enPurchaseItem)
-                        .where()
-                        .and(enPurchaseItem.PURCHASEID.eq(enPurchase.ID))
-                        .and(enPurchaseItem.PRODUCTID.eq(criteria.productId()))));
-
+        /**
+         * Compras que contêm o produto pedido.
+         *
+         * <p>
+         * O produto não é coluna da compra — está nos itens. O critério, porém, continua sendo um campo como os
+         * outros: o que muda é onde a condição incide, e não como ela é escrita, de modo que {@code in},
+         * {@code between} e a disjunção valem aqui do mesmo jeito.
+         * </p>
+         */
+        private Condition existsItemMatching(PurchaseCriteria criteria) {
+            if (!criteria.hasProductId()) {
+                return null;
             }
-            return condition;
+            var enPurchaseItem = EnPurchaseitem.EN_PURCHASEITEM.as(ctx.alias("p"));
+            var onProduct = CriterionTranslator.translate(enPurchaseItem.PRODUCTID, criteria.productId());
+            if (onProduct == null) {
+                return null;
+            }
+            return DSL.exists(DSL.selectOne()
+                    .from(enPurchaseItem)
+                    .where(enPurchaseItem.PURCHASEID.eq(enPurchase.ID))
+                    .and(onProduct));
         }
 
     }

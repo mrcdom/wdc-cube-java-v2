@@ -8,12 +8,14 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.List;
 
 import org.jooq.SortField;
 import org.jooq.Condition;
 import org.jooq.impl.DSL;
 
+import br.com.wdc.framework.jooq.CriterionTranslator;
 import br.com.wdc.framework.jooq.JsonChildQueryBuilder;
 import br.com.wdc.framework.jooq.JsonQuery;
 import br.com.wdc.framework.jooq.JsonQueryBuilder;
@@ -147,7 +149,9 @@ public class UserRepositoryImpl extends BaseRepositoryImpl  implements UserRepos
 
     @Override
     public int delete(UserCriteria criteria) {
-        if (criteria == null || criteria.userId() == null) {
+        // O campo existe sempre; o que decide é ele estar informado. Sem esta guarda, critério vazio traduziria
+        // para noCondition() e o DELETE levaria a tabela inteira.
+        if (criteria == null || !criteria.hasUserId()) {
             throw new AssertionError("Missing primary key");
         }
 
@@ -224,23 +228,30 @@ public class UserRepositoryImpl extends BaseRepositoryImpl  implements UserRepos
             this.ctx = new QueryContext(dsl());
         }
 
+        /**
+         * As condições dos campos informados.
+         *
+         * <p>
+         * O percurso dos campos e a montagem do {@code AND} moram no {@link CriterionTranslator}; aqui fica só o que é
+         * próprio da entidade — a coluna de cada campo e, no caso da senha, a conversão do valor. Critério vazio
+         * resulta em {@code noCondition()}, e não numa condição falsa.
+         * </p>
+         */
         public Condition apply(UserCriteria criteria) {
-            var condition = DSL.noCondition();
             if (criteria == null) {
-                return condition;
+                return DSL.noCondition();
             }
-            if (criteria.userId() != null) {
-                condition = condition.and(enUser.ID.eq(criteria.userId()));
-            }
-            if (criteria.userName() != null) {
-                condition = condition.and(enUser.USERNAME.eq(criteria.userName()));
-            }
-            if (criteria.password() != null) {
-                var hashedPassword = new BigInteger(md5().digest(
-                        criteria.password().getBytes(StandardCharsets.UTF_8))).toString(36);
-                condition = condition.and(enUser.PASSWORD.eq(hashedPassword));
-            }
-            return condition;
+            return CriterionTranslator.and(Arrays.asList(
+                    CriterionTranslator.translate(enUser.ID, criteria.userId()),
+                    CriterionTranslator.translate(enUser.USERNAME, criteria.userName()),
+                    // A coluna guarda o resumo, não a senha: o valor é convertido antes de chegar à comparação, e é o
+                    // resumo que entra na consulta.
+                    CriterionTranslator.translate(enUser.PASSWORD, criteria.password(), ApplyConditions::md5Hash)));
+        }
+
+        /** O resumo MD5 em base 36, forma em que a senha é guardada. */
+        private static String md5Hash(String password) {
+            return new BigInteger(md5().digest(password.getBytes(StandardCharsets.UTF_8))).toString(36);
         }
 
         private static MessageDigest md5() {

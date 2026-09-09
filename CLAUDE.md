@@ -60,6 +60,7 @@ Controle programático estilo CMT via `TransactionService` (`framework.domain.tr
 - **Virtual Threads** (Java 21) para conexões WebSocket.
 - **Segurança RBAC**: HMAC challenge-response + JWT; repositórios decorados (`SecuredXxxRepository`); papéis ADMIN/CUSTOMER/MANAGER (modelo allow-wins). Transporte React: RSA + PBKDF2 + AES-GCM.
 - **Nomenclatura**: `*ViewState`, `*ViewImpl`, `*Presenter`, `*RepositoryImpl`, `*Criteria`, `Apply*Criteria`.
+- **Critérios**: cada campo de um `*Criteria` é um `Criterion` (`framework.domain.criteria`) — `Criterion` (eq/ne/in/isNull), `ComparableCriterion` (gt/ge/lt/le/between) ou `TextCriterion` (like/ilike/containing/startingWith). Pedidos acumulam em `AND`; `or()` torna o campo disjuntivo. **O campo nunca é `null`** — `criteria.xxx() == null` compila e é sempre falso; use `hasXxx()`. A tradução para jOOQ é única, no `CriterionTranslator`; cada entidade só mapeia campo→coluna no seu `ApplyConditions`.
 - **Entidades (implementam `KeyedEntity`) têm API fluente**, igual à dos `*Criteria`: campo `private`, acessor `campo()` e setter `withCampo(...)` que devolve `this`. Não há campos públicos — construa encadeando (`new Product().withName(x).withPrice(y)`), inclusive nas relações (`withPurchase(new Purchase().withId(id))`). Structs de apresentação (`presentation.**.structs`) seguem outro padrão: continuam com campos públicos.
 - **Formatação Java**: `fontes/wedocode-java-formatter.xml`. Frontend: Prettier (configurado no `.vscode/settings.json`, format-on-save).
 

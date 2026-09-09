@@ -5,6 +5,7 @@ import br.com.wdc.framework.commons.serialization.ExtensibleObjectInput;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.framework.domain.codec.ModelCodec;
+import br.com.wdc.framework.domain.criteria.CriterionCodec;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
 
 public class ProductModelCodec implements ModelCodec<Product, ProductCriteria> {
@@ -97,14 +98,14 @@ public class ProductModelCodec implements ModelCodec<Product, ProductCriteria> {
 
 	@Override
 	public void writeCriteriaFields(ExtensibleObjectOutput out, ProductCriteria criteria) {
-		if (criteria.productId() != null) out.name("productId").value(criteria.productId());
+		CriterionCodec.write(out, "productId", criteria.productId(), CriterionCodec.LONG_OUT);
 		if (criteria.orderBy() != null) out.name("orderBy").value(criteria.orderBy().name());
 	}
 
 	@Override
 	public boolean readCriteriaField(ExtensibleObjectInput in, String fieldName, ProductCriteria criteria) {
 		switch (fieldName) {
-			case "productId" -> criteria.withProductId(InputCoerceUtils.asLong(in));
+			case "productId" -> CriterionCodec.read(in, criteria.productId(), CriterionCodec.LONG_IN);
 			case "orderBy" -> {
 				var v = InputCoerceUtils.asString(in);
 				if (v != null) criteria.withOrderBy(ProductCriteria.OrderBy.valueOf(v));

@@ -230,4 +230,66 @@ public abstract class AbstractUserRepositoryTest {
 		int deleted = repo().delete(new UserCriteria().withUserId(Long.MAX_VALUE));
 		assertEquals(0, deleted);
 	}
+
+	// :: Critério textual — rodam também no modo REST, onde provam que os operadores trafegam
+
+	@Test
+	public void startingWith_anchorsAtTheBeginning() {
+		var users = repo().fetch(new UserCriteria().userName().startingWith("adm"));
+
+		assertEquals(1, users.size());
+		assertEquals("admin", users.get(0).userName());
+	}
+
+	@Test
+	public void startingWith_doesNotMatchInTheMiddle() {
+		// O que distingue startingWith de containing: "dmi" existe em "admin", mas não no início.
+		assertEquals(0, repo().fetch(new UserCriteria().userName().startingWith("dmi")).size());
+	}
+
+	@Test
+	public void containing_matchesAnywhere() {
+		var users = repo().fetch(new UserCriteria().userName().containing("ulan"));
+
+		assertEquals(1, users.size());
+		assertEquals("fulano", users.get(0).userName());
+	}
+
+	@Test
+	public void ilike_ignoresCase() {
+		var users = repo().fetch(new UserCriteria().userName().ilike("ADMIN"));
+
+		assertEquals(1, users.size());
+	}
+
+	@Test
+	public void like_doesNotIgnoreCase() {
+		// É o par que justifica existirem os dois operadores em vez de um só.
+		assertEquals(0, repo().fetch(new UserCriteria().userName().like("ADMIN")).size());
+		assertEquals(1, repo().fetch(new UserCriteria().userName().like("admin")).size());
+	}
+
+	@Test
+	public void wildcardsBelongToTheValue() {
+		// like("admin") não é like("%admin%"): os curingas fazem parte do valor, como em SQL.
+		assertEquals(0, repo().fetch(new UserCriteria().userName().like("dmi")).size());
+		assertEquals(1, repo().fetch(new UserCriteria().userName().like("%dmi%")).size());
+	}
+
+	@Test
+	public void or_acrossTextRequests() {
+		var criteria = new UserCriteria();
+		criteria.userName().or().eq("admin");
+		criteria.userName().eq("fulano");
+
+		assertEquals(2, repo().fetch(criteria).size());
+	}
+
+	@Test
+	public void emptyText_doesNotFilter() {
+		var criteria = new UserCriteria();
+		criteria.userName().startingWith("");
+
+		assertEquals("texto vazio não acrescenta pedido", 3, repo().fetch(criteria).size());
+	}
 }

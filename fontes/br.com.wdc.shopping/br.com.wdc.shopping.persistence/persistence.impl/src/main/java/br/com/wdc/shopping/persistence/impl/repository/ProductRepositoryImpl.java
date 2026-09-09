@@ -5,6 +5,7 @@ import static br.com.wdc.shopping.persistence.impl.scheme.Sequences.SQ_PRODUCT;
 import static br.com.wdc.shopping.persistence.impl.scheme.Tables.EN_PRODUCT;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 
 import org.jooq.SortField;
@@ -12,6 +13,7 @@ import org.jooq.Condition;
 import org.jooq.impl.DSL;
 
 import br.com.wdc.framework.domain.exception.BusinessException;
+import br.com.wdc.framework.jooq.CriterionTranslator;
 import br.com.wdc.framework.jooq.JsonChildQueryBuilder;
 import br.com.wdc.framework.jooq.JsonQuery;
 import br.com.wdc.framework.jooq.JsonQueryBuilder;
@@ -145,7 +147,9 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
 
     @Override
     public int delete(ProductCriteria criteria) {
-        if (criteria == null || criteria.productId() == null) {
+        // O campo existe sempre; o que decide é ele estar informado. Sem esta guarda, critério vazio traduziria
+        // para noCondition() e o DELETE levaria a tabela inteira.
+        if (criteria == null || !criteria.hasProductId()) {
             throw new AssertionError("Missing primary key");
         }
 
@@ -245,12 +249,21 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
             this.ctx = new QueryContext(dsl());
         }
 
+        /**
+         * As condições dos campos informados.
+         *
+         * <p>
+         * O percurso dos campos e a montagem do {@code AND} moram no {@link CriterionTranslator}; aqui fica só o que é
+         * próprio da entidade — a coluna de cada campo. Critério vazio resulta em {@code noCondition()}, e não numa
+         * condição falsa, que transformaria "sem filtro" em "nenhum resultado".
+         * </p>
+         */
         public Condition apply(ProductCriteria criteria) {
-            var condition = DSL.noCondition();
-            if (criteria != null && criteria.productId() != null) {
-                condition = condition.and(enProduct.ID.eq(criteria.productId()));
+            if (criteria == null) {
+                return DSL.noCondition();
             }
-            return condition;
+            return CriterionTranslator.and(Arrays.asList(
+                    CriterionTranslator.translate(enProduct.ID, criteria.productId())));
         }
     }
 }

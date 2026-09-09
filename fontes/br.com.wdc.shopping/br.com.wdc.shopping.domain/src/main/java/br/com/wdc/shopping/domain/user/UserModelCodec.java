@@ -5,6 +5,7 @@ import br.com.wdc.framework.commons.serialization.ExtensibleObjectInput;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.framework.domain.codec.ModelCodec;
+import br.com.wdc.framework.domain.criteria.CriterionCodec;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
 
 public class UserModelCodec implements ModelCodec<User, UserCriteria> {
@@ -105,18 +106,18 @@ public class UserModelCodec implements ModelCodec<User, UserCriteria> {
 
 	@Override
 	public void writeCriteriaFields(ExtensibleObjectOutput out, UserCriteria criteria) {
-		if (criteria.userId() != null) out.name("userId").value(criteria.userId());
-		if (criteria.userName() != null) out.name("userName").value(criteria.userName());
-		if (criteria.password() != null) out.name("password").value(criteria.password());
+		CriterionCodec.write(out, "userId", criteria.userId(), CriterionCodec.LONG_OUT);
+		CriterionCodec.write(out, "userName", criteria.userName(), CriterionCodec.STRING_OUT);
+		CriterionCodec.write(out, "password", criteria.password(), CriterionCodec.STRING_OUT);
 		if (criteria.orderBy() != null) out.name("orderBy").value(criteria.orderBy().name());
 	}
 
 	@Override
 	public boolean readCriteriaField(ExtensibleObjectInput in, String fieldName, UserCriteria criteria) {
 		switch (fieldName) {
-			case "userId" -> criteria.withUserId(InputCoerceUtils.asLong(in));
-			case "userName" -> criteria.withUserName(InputCoerceUtils.asString(in));
-			case "password" -> criteria.withPassword(InputCoerceUtils.asString(in));
+			case "userId" -> CriterionCodec.read(in, criteria.userId(), CriterionCodec.LONG_IN);
+			case "userName" -> CriterionCodec.read(in, criteria.userName(), CriterionCodec.STRING_IN);
+			case "password" -> CriterionCodec.read(in, criteria.password(), CriterionCodec.STRING_IN);
 			case "orderBy" -> {
 				var v = InputCoerceUtils.asString(in);
 				if (v != null) criteria.withOrderBy(UserCriteria.OrderBy.valueOf(v));

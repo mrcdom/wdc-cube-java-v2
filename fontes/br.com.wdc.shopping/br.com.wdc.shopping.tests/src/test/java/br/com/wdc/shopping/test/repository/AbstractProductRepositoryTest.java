@@ -231,4 +231,95 @@ public abstract class AbstractProductRepositoryTest {
 		int deleted = repo().delete(new ProductCriteria().withProductId(Long.MAX_VALUE));
 		assertEquals(0, deleted);
 	}
+
+	// :: Critério expressivo — rodam também no modo REST, onde provam que os operadores trafegam
+
+	@Test
+	public void in_bringsOnlyTheListedOnes() {
+		var products = repo().fetch(new ProductCriteria()
+				.productId().in(DBReset.CAFETEIRA_ID, DBReset.PEN_DRIVE2GB_ID));
+
+		assertEquals(2, products.size());
+	}
+
+	@Test
+	public void between_isInclusiveOnBothEnds() {
+		// ids 1..3 dos quatro produtos
+		var products = repo().fetch(new ProductCriteria()
+				.productId().between(DBReset.BOLA_WILSON_ID, DBReset.PEN_DRIVE2GB_ID));
+
+		assertEquals(3, products.size());
+	}
+
+	@Test
+	public void ne_excludesTheOne() {
+		var products = repo().fetch(new ProductCriteria().productId().ne(DBReset.CAFETEIRA_ID));
+
+		assertEquals(3, products.size());
+	}
+
+	@Test
+	public void twoNe_excludeBoth() {
+		// Dois pedidos no mesmo campo valem juntos: é o AND por padrão. Fosse OR, cada linha satisfaria um dos dois
+		// e a consulta devolveria os quatro.
+		var criteria = new ProductCriteria();
+		criteria.productId().ne(DBReset.CAFETEIRA_ID);
+		criteria.productId().ne(DBReset.BOLA_WILSON_ID);
+
+		assertEquals(2, repo().fetch(criteria).size());
+	}
+
+	@Test
+	public void or_turnsRequestsIntoAlternatives() {
+		var criteria = new ProductCriteria();
+		criteria.productId().or().eq(DBReset.CAFETEIRA_ID);
+		criteria.productId().eq(DBReset.BOLA_WILSON_ID);
+
+		// Com AND seriam zero: nenhum id é os dois ao mesmo tempo.
+		assertEquals(2, repo().fetch(criteria).size());
+	}
+
+	@Test
+	public void gt_comparesByOrder() {
+		var products = repo().fetch(new ProductCriteria().productId().gt(DBReset.BOLA_WILSON_ID));
+
+		assertEquals(2, products.size());
+	}
+
+	@Test
+	public void betweenWithOpenEnd_becomesASingleBound() {
+		// Só o início informado vira >=; é o filtro de tela com um campo preenchido só.
+		var products = repo().fetch(new ProductCriteria()
+				.productId().between(DBReset.FITA_VEDA_ROSCA_ID, null));
+
+		assertEquals(2, products.size());
+	}
+
+	@Test
+	public void emptyCriterion_doesNotFilter() {
+		var criteria = new ProductCriteria();
+		criteria.productId().eq(null);
+
+		assertEquals("valor nulo não acrescenta pedido", 4, repo().fetch(criteria).size());
+	}
+
+	@Test
+	public void clear_undoesWhatWasAsked() {
+		var criteria = new ProductCriteria().withProductId(DBReset.CAFETEIRA_ID);
+		assertEquals(1, repo().fetch(criteria).size());
+
+		criteria.productId().clear();
+		assertEquals(4, repo().fetch(criteria).size());
+	}
+
+	@Test
+	public void deleteWithEmptyCriteria_isRefused() {
+		// Sem esta guarda, critério vazio traduziria para noCondition() e o DELETE levaria a tabela inteira.
+		try {
+			repo().delete(new ProductCriteria());
+			fail("delete sem chave deveria ser recusado");
+		} catch (AssertionError | RuntimeException expected) {
+			assertEquals(4, repo().count(new ProductCriteria()));
+		}
+	}
 }

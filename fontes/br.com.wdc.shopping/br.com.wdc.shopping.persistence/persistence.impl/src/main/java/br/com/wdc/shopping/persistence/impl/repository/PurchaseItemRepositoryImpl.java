@@ -6,12 +6,14 @@ import static br.com.wdc.shopping.persistence.impl.scheme.tables.EnPurchase.EN_P
 import static br.com.wdc.shopping.persistence.impl.scheme.tables.EnPurchaseitem.EN_PURCHASEITEM;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 
 import org.jooq.SortField;
 import org.jooq.Condition;
 import org.jooq.impl.DSL;
 
+import br.com.wdc.framework.jooq.CriterionTranslator;
 import br.com.wdc.framework.jooq.JsonChildQueryBuilder;
 import br.com.wdc.framework.jooq.JsonQuery;
 import br.com.wdc.framework.jooq.JsonQueryBuilder;
@@ -235,29 +237,46 @@ public class PurchaseItemRepositoryImpl extends BaseRepositoryImpl  implements P
             this.ctx = new QueryContext(dsl());
         }
 
+        /**
+         * As condições dos campos informados.
+         *
+         * <p>
+         * O percurso dos campos e a montagem do {@code AND} moram no {@link CriterionTranslator}; aqui fica só o que é
+         * próprio da entidade — a coluna de cada campo e, no caso de {@code userId}, o fato de ele não ser coluna
+         * desta tabela. Critério vazio resulta em {@code noCondition()}, e não numa condição falsa.
+         * </p>
+         */
         public Condition apply(PurchaseItemCriteria criteria) {
-            var condition = DSL.noCondition();
             if (criteria == null) {
-                return condition;
+                return DSL.noCondition();
             }
-            if (criteria.purchaseItemId() != null) {
-                condition = condition.and(this.enPurchaseItem.ID.eq(criteria.purchaseItemId()));
+            return CriterionTranslator.and(Arrays.asList(
+                    CriterionTranslator.translate(this.enPurchaseItem.ID, criteria.purchaseItemId()),
+                    CriterionTranslator.translate(this.enPurchaseItem.PURCHASEID, criteria.purchaseId()),
+                    CriterionTranslator.translate(this.enPurchaseItem.PRODUCTID, criteria.productId()),
+                    existsPurchaseOfUser(criteria)));
+        }
+
+        /**
+         * Itens cujas compras são do usuário pedido.
+         *
+         * <p>
+         * O usuário é dono da compra, não do item: a condição incide sobre {@code EN_PURCHASE}, correlacionada pela
+         * chave estrangeira. Para quem monta o filtro, continua sendo um campo como os outros.
+         * </p>
+         */
+        private Condition existsPurchaseOfUser(PurchaseItemCriteria criteria) {
+            if (!criteria.hasUserId()) {
+                return null;
             }
-            if (criteria.purchaseId() != null) {
-                condition = condition.and(this.enPurchaseItem.PURCHASEID.eq(criteria.purchaseId()));
+            var onUser = CriterionTranslator.translate(EN_PURCHASE.USERID, criteria.userId());
+            if (onUser == null) {
+                return null;
             }
-            if (criteria.productId() != null) {
-                condition = condition.and(this.enPurchaseItem.PRODUCTID.eq(criteria.productId()));
-            }
-            if (criteria.userId() != null) {
-                // userId filter requires correlation with EN_PURCHASE
-                condition = condition.and(DSL.exists(
-                        DSL.selectOne()
-                                .from(EN_PURCHASE)
-                                .where(EN_PURCHASE.ID.eq(this.enPurchaseItem.PURCHASEID)
-                                        .and(EN_PURCHASE.USERID.eq(criteria.userId())))));
-            }
-            return condition;
+            return DSL.exists(DSL.selectOne()
+                    .from(EN_PURCHASE)
+                    .where(EN_PURCHASE.ID.eq(this.enPurchaseItem.PURCHASEID))
+                    .and(onUser));
         }
     }
 }

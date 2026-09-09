@@ -1,7 +1,22 @@
 package br.com.wdc.shopping.domain.product;
 
+import java.util.List;
 
-public class ProductCriteria {
+import br.com.wdc.framework.domain.criteria.ComparableCriterion;
+import br.com.wdc.framework.domain.criteria.Criteria;
+import br.com.wdc.framework.domain.criteria.Criterion;
+
+/**
+ * Critério de pesquisa de {@link Product}.
+ *
+ * <p>
+ * <b>Os campos nascem com o critério</b>, e não sob demanda: {@code productId()} nunca devolve {@code null}, e o que
+ * distingue "não filtra" de "filtra" é {@link Criterion#isSet()}. Entidade de dezenas de colunas pagaria por
+ * pré-criar todos, e aí valeria criá-los na primeira necessidade; com meia dúzia de campos, o custo não se mede e o
+ * código fica sem um {@code if} por acesso.
+ * </p>
+ */
+public class ProductCriteria implements Criteria {
 
     // :: Projection
 
@@ -18,15 +33,26 @@ public class ProductCriteria {
 
     // :: Criteria
 
-    private Long productId;
+    private final ComparableCriterion<ProductCriteria, Long> productId =
+            new ComparableCriterion<>(this, "productId");
 
-    public Long productId() {
+    public ComparableCriterion<ProductCriteria, Long> productId() {
         return productId;
     }
 
-    public ProductCriteria withProductId(Long productId) {
-        this.productId = productId;
-        return this;
+    /** Se há critério neste campo. É por aqui que a tradução pergunta. */
+    public boolean hasProductId() {
+        return productId.isSet();
+    }
+
+    /** Atalho para {@code productId().eq(valor)}; {@code null} não filtra. */
+    public ProductCriteria withProductId(Long value) {
+        return value == null ? this : productId().eq(value);
+    }
+
+    @Override
+    public List<Criterion<?, ?>> criterions() {
+        return List.of(productId);
     }
 
     // :: Order By

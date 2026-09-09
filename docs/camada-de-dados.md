@@ -86,6 +86,55 @@ graph LR
 
 O módulo `domain` é **puramente conceitual**. Não conhece banco de dados, nem HTTP, nem qualquer framework de persistência. Apenas define o que existe no sistema.
 
+### Critério: um campo, vários pedidos
+
+Cada campo filtrável de um `XxxCriteria` é um `Criterion`, e o tipo do campo decide o que se pode pedir dele:
+
+| Classe | Acrescenta | Para |
+|---|---|---|
+| `Criterion` | `eq` `ne` `in` `isNull` `isNotNull` | o que só se compara por identidade — enum, booleano, chave estrangeira |
+| `ComparableCriterion` | `gt` `ge` `lt` `le` `between` | número, data, timestamp |
+| `TextCriterion` | `like` `ilike` `containing` `startingWith` | texto |
+
+```java
+var criteria = new ProductCriteria();
+criteria.productId().in(1L, 2L, 3L);
+
+new UserCriteria().userName().startingWith("adm");
+```
+
+Isso impede na compilação um `between` sobre um campo sem ordem útil: quem declara o campo conhece o tipo da coluna e escolhe a classe.
+
+**Pedidos sucessivos acumulam, e por padrão valem juntos (`AND`).** É o que faz `ge(inicio)` seguido de `le(fim)` — como sai de dois campos de tela — significar intervalo, e `ne(1)` com `ne(2)` excluir os dois. Fosse `OR` o padrão, esses casos devolveriam quase toda a tabela sem nada indicar o erro. Alternativa se pede com `or()`, e a disjunção vale **dentro** do campo; entre campos é sempre `AND`:
+
+```java
+criteria.userName().or().eq("admin");
+criteria.userName().eq("fulano");     // (userName = 'admin' OR userName = 'fulano')
+```
+
+**Valor nulo não acrescenta pedido**, em vez de apagar os anteriores — é o que preserva o costume de montar filtro a partir de tela, onde vazio significa "não filtrar por isto". Para apagar, `clear()`; para comparar com nulo, `isNull()`. Os atalhos `withXxx(valor)` continuam existindo, e são `xxx().eq(valor)`.
+
+A tradução para jOOQ é escrita **uma vez**, no `CriterionTranslator`. O que resta a cada entidade é dizer qual coluna corresponde a cada campo e, quando o tipo do domínio difere do da coluna, como converter o valor:
+
+```java
+return CriterionTranslator.and(Arrays.asList(
+        CriterionTranslator.translate(enUser.ID, criteria.userId()),
+        CriterionTranslator.translate(enUser.USERNAME, criteria.userName()),
+        CriterionTranslator.translate(enUser.PASSWORD, criteria.password(), ApplyConditions::md5Hash)));
+```
+
+Campo que não é coluna da tabela — `PurchaseCriteria.productId`, que vive nos itens — continua saindo como `EXISTS`, mas a condição interna também vem do tradutor, de modo que `in`, `between` e a disjunção valem ali do mesmo jeito.
+
+> **Cuidado ao migrar:** `criteria.productId()` nunca é `null` — o campo existe sempre, informado ou não. Testar `criteria.productId() == null` compila e é sempre falso. O que decide é `hasProductId()`. Foi assim que duas guardas de `delete` — as que impedem apagar a tabela inteira — deixaram de valer na migração, sem o compilador dizer nada.
+
+**No transporte**, o campo vira um objeto com os pedidos, e não o valor solto que trafegava antes:
+
+```json
+"price": { "or": true, "p": [ { "o": "GE", "v": [10.0] }, { "o": "IS_NULL" } ] }
+```
+
+O valor solto não bastaria: um campo carrega vários pedidos, cada um com seu operador e sua aridade, e a disjunção é do campo. Reduzir isso a `"price": 10.0` descartaria tudo menos a igualdade, e em silêncio. O formato antigo continua sendo aceito na leitura, como igualdade.
+
 ### Coleção filha ordenada e recortada
 
 A coleção 1:N declarada com `addBeanListField` pode ser ordenada e recortada pela própria projeção. A ordem vem do `OrderBy` do critério que a coleção carrega; o recorte, de `withLimit`/`withOffset`:

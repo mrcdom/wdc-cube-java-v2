@@ -11,6 +11,7 @@ import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.framework.commons.serialization.SerializationToken;
 import br.com.wdc.framework.domain.codec.ModelCodec;
+import br.com.wdc.framework.domain.criteria.CriterionCodec;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
 import br.com.wdc.shopping.domain.product.ProductModelCodec;
 import br.com.wdc.shopping.domain.purchaseitem.PurchaseItem;
@@ -136,16 +137,18 @@ public class PurchaseModelCodec implements ModelCodec<Purchase, PurchaseCriteria
 
 	@Override
 	public void writeCriteriaFields(ExtensibleObjectOutput out, PurchaseCriteria criteria) {
-		if (criteria.purchaseId() != null) out.name("purchaseId").value(criteria.purchaseId());
-		if (criteria.userId() != null) out.name("userId").value(criteria.userId());
+		CriterionCodec.write(out, "purchaseId", criteria.purchaseId(), CriterionCodec.LONG_OUT);
+		CriterionCodec.write(out, "userId", criteria.userId(), CriterionCodec.LONG_OUT);
+		CriterionCodec.write(out, "productId", criteria.productId(), CriterionCodec.LONG_OUT);
 		if (criteria.orderBy() != null) out.name("orderBy").value(criteria.orderBy().name());
 	}
 
 	@Override
 	public boolean readCriteriaField(ExtensibleObjectInput in, String fieldName, PurchaseCriteria criteria) {
 		switch (fieldName) {
-			case "purchaseId" -> criteria.withPurchaseId(InputCoerceUtils.asLong(in));
-			case "userId" -> criteria.withUserId(InputCoerceUtils.asLong(in));
+			case "purchaseId" -> CriterionCodec.read(in, criteria.purchaseId(), CriterionCodec.LONG_IN);
+			case "userId" -> CriterionCodec.read(in, criteria.userId(), CriterionCodec.LONG_IN);
+			case "productId" -> CriterionCodec.read(in, criteria.productId(), CriterionCodec.LONG_IN);
 			case "orderBy" -> {
 				var v = InputCoerceUtils.asString(in);
 				if (v != null) criteria.withOrderBy(PurchaseCriteria.OrderBy.valueOf(v));

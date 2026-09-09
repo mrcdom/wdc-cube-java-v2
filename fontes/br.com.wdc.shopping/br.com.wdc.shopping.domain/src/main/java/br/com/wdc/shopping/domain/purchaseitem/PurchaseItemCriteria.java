@@ -1,6 +1,20 @@
 package br.com.wdc.shopping.domain.purchaseitem;
 
-public class PurchaseItemCriteria {
+import java.util.List;
+
+import br.com.wdc.framework.domain.criteria.ComparableCriterion;
+import br.com.wdc.framework.domain.criteria.Criteria;
+import br.com.wdc.framework.domain.criteria.Criterion;
+
+/**
+ * Critério de pesquisa de {@link PurchaseItem}.
+ *
+ * <p>
+ * {@code userId} não é coluna desta tabela — é do dono da compra. A tradução o resolve com {@code EXISTS} sobre
+ * {@code EN_PURCHASE}; para quem monta o filtro, é apenas mais um campo.
+ * </p>
+ */
+public class PurchaseItemCriteria implements Criteria {
 
     // :: Projection
 
@@ -17,48 +31,74 @@ public class PurchaseItemCriteria {
 
     // :: Criteria
 
-    private Long purchaseItemId;
+    private final ComparableCriterion<PurchaseItemCriteria, Long> purchaseItemId =
+            new ComparableCriterion<>(this, "purchaseItemId");
 
-    public Long purchaseItemId() {
+    public ComparableCriterion<PurchaseItemCriteria, Long> purchaseItemId() {
         return purchaseItemId;
     }
 
-    public PurchaseItemCriteria withPurchaseItemId(Long purchaseItemId) {
-        this.purchaseItemId = purchaseItemId;
-        return this;
+    public boolean hasPurchaseItemId() {
+        return purchaseItemId.isSet();
     }
 
-    private Long purchaseId;
+    /** Atalho para {@code purchaseItemId().eq(valor)}; {@code null} não filtra. */
+    public PurchaseItemCriteria withPurchaseItemId(Long value) {
+        return value == null ? this : purchaseItemId().eq(value);
+    }
 
-    public Long purchaseId() {
+    private final ComparableCriterion<PurchaseItemCriteria, Long> purchaseId =
+            new ComparableCriterion<>(this, "purchaseId");
+
+    public ComparableCriterion<PurchaseItemCriteria, Long> purchaseId() {
         return purchaseId;
     }
 
-    public PurchaseItemCriteria withPurchaseId(Long purchaseId) {
-        this.purchaseId = purchaseId;
-        return this;
+    public boolean hasPurchaseId() {
+        return purchaseId.isSet();
     }
 
-    private Long productId;
+    /** Atalho para {@code purchaseId().eq(valor)}; {@code null} não filtra. */
+    public PurchaseItemCriteria withPurchaseId(Long value) {
+        return value == null ? this : purchaseId().eq(value);
+    }
 
-    public Long productId() {
+    private final ComparableCriterion<PurchaseItemCriteria, Long> productId =
+            new ComparableCriterion<>(this, "productId");
+
+    public ComparableCriterion<PurchaseItemCriteria, Long> productId() {
         return productId;
     }
 
-    public PurchaseItemCriteria withProductId(Long productId) {
-        this.productId = productId;
-        return this;
+    public boolean hasProductId() {
+        return productId.isSet();
     }
 
-    private Long userId;
+    /** Atalho para {@code productId().eq(valor)}; {@code null} não filtra. */
+    public PurchaseItemCriteria withProductId(Long value) {
+        return value == null ? this : productId().eq(value);
+    }
 
-    public Long userId() {
+    /** Itens de compras do usuário — resolvido por {@code EXISTS} sobre a compra. */
+    private final ComparableCriterion<PurchaseItemCriteria, Long> userId =
+            new ComparableCriterion<>(this, "userId");
+
+    public ComparableCriterion<PurchaseItemCriteria, Long> userId() {
         return userId;
     }
 
-    public PurchaseItemCriteria withUserId(Long userId) {
-        this.userId = userId;
-        return this;
+    public boolean hasUserId() {
+        return userId.isSet();
+    }
+
+    /** Atalho para {@code userId().eq(valor)}; {@code null} não filtra. */
+    public PurchaseItemCriteria withUserId(Long value) {
+        return value == null ? this : userId().eq(value);
+    }
+
+    @Override
+    public List<Criterion<?, ?>> criterions() {
+        return List.of(purchaseItemId, purchaseId, productId, userId);
     }
 
     // :: Order By
