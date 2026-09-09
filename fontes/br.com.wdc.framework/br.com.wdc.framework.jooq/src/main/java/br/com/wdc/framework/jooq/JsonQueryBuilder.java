@@ -210,6 +210,56 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
         return (Field<Object>) (resolved != null ? resolved : column);
     }
 
+    /**
+     * A entrada JSON de uma coleção filha (1:N), com a ordem e o recorte que a própria coleção declara.
+     *
+     * <p>
+     * Comum a {@code addBeanSetField} e {@code addBeanListField}: o que muda entre os dois é o tipo da coleção, não
+     * como a subconsulta é montada. Devolve {@code null} quando não há o que projetar.
+     * </p>
+     */
+    private <C, U extends Table<?>> JsonFieldEntry childCollectionEntry(String fn, Collection<C> childPrjBeans,
+            QueryContext ctx, T table, JsonQuery<C, U> childQuery,
+            Consumer<JsonChildQueryBuilder<T, U>> childWhereClause) {
+
+        if (childPrjBeans == null || childPrjBeans.isEmpty()) {
+            return null;
+        }
+        var childPrjBean = childPrjBeans.iterator().next();
+        if (childPrjBean == null) {
+            return null;
+        }
+
+        var childQueryBuilder = new JsonChildQueryBuilder<T, U>(ctx, table);
+        if (childPrjBeans instanceof HasCriteria hasCriteria) {
+            childQueryBuilder.criteria = hasCriteria.getCriteria();
+        }
+        var clause = (BiConsumer<U, SelectJoinStep<Record1<String>>>) (tbChild, q) -> {
+            childQueryBuilder.childTable = tbChild;
+            childQueryBuilder.dsl = q;
+            childWhereClause.accept(childQueryBuilder);
+        };
+
+        // Ordem e recorte vêm do que a própria coleção declara: o critério que ela carrega (HasCriteria) traz o
+        // OrderBy da entidade filha, e HasSlice traz o limite e o deslocamento. Sem nenhum dos dois, a consulta sai
+        // exatamente como saía.
+        final var listCriteria = childQueryBuilder.criteria;
+        Function<U, List<SortField<?>>> order = null;
+        if (listCriteria != null && childQuery.hasOrdering()) {
+            order = tb -> childQuery.orderingOf(tb, listCriteria);
+        }
+        Integer limit = null;
+        Integer offset = null;
+        if (childPrjBeans instanceof HasSlice slice) {
+            limit = slice.getLimit();
+            offset = slice.getOffset();
+        }
+
+        return new JsonFieldEntry(fn,
+                DSL.field(childQuery.selectOrdered(ctx, childPrjBean, clause, order, limit, offset)),
+                JsonFieldType.RAW_JSON);
+    }
+
     private DSLContext requireDslContext() {
         if (dslContextSupplier == null) {
             throw new IllegalStateException("JsonQueryBuilder: setDSLContextSupplier(...) não foi configurado");
@@ -543,28 +593,10 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
         this.fieldPresenceMap.put(fn, getter::apply);
 
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx, bean, table) -> {
-            var childPrjBeanSet = getter.apply(bean);
-            if (childPrjBeanSet == null || childPrjBeanSet.isEmpty()) {
-                return;
+            var entry = childCollectionEntry(fn, getter.apply(bean), ctx, table, childQuery, childWhereClause);
+            if (entry != null) {
+                fields.add(entry);
             }
-
-            var childPrjBean = childPrjBeanSet.iterator().next();
-            if (childPrjBean == null) {
-                return;
-            }
-
-            var childQueryBuilder = new JsonChildQueryBuilder<T, U>(ctx, table);
-            if (childPrjBeanSet instanceof HasCriteria hasCriteria) {
-                childQueryBuilder.criteria = hasCriteria.getCriteria();
-            }
-            var clause = (BiConsumer<U, SelectJoinStep<Record1<String>>>) (tbChild, q) -> {
-                childQueryBuilder.childTable = tbChild;
-                childQueryBuilder.dsl = q;
-                childWhereClause.accept(childQueryBuilder);
-            };
-
-            fields.add(new JsonFieldEntry(fn,
-                    DSL.field(childQuery.select(ctx, childPrjBean, clause, true)), JsonFieldType.RAW_JSON));
         });
 
         this.fieldSetterMap.put(fn, (bean, reader) -> {
@@ -598,44 +630,10 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
         this.fieldPresenceMap.put(fn, getter::apply);
 
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx, bean, table) -> {
-            var childPrjBeanList = getter.apply(bean);
-            if (childPrjBeanList == null || childPrjBeanList.isEmpty()) {
-                return;
+            var entry = childCollectionEntry(fn, getter.apply(bean), ctx, table, childQuery, childWhereClause);
+            if (entry != null) {
+                fields.add(entry);
             }
-
-            var childPrjBean = childPrjBeanList.getFirst();
-            if (childPrjBean == null) {
-                return;
-            }
-
-            var childQueryBuilder = new JsonChildQueryBuilder<T, U>(ctx, table);
-            if (childPrjBeanList instanceof HasCriteria hasCriteria) {
-                childQueryBuilder.criteria = hasCriteria.getCriteria();
-            }
-            var clause = (BiConsumer<U, SelectJoinStep<Record1<String>>>) (tbChild, q) -> {
-                childQueryBuilder.childTable = tbChild;
-                childQueryBuilder.dsl = q;
-                childWhereClause.accept(childQueryBuilder);
-            };
-
-            // Ordem e recorte vêm do que a própria coleção declara: o critério que ela carrega (HasCriteria) traz o
-            // OrderBy da entidade filha, e HasSlice traz o limite e o deslocamento. Sem nenhum dos dois, a consulta
-            // sai exatamente como saía.
-            final var listCriteria = childQueryBuilder.criteria;
-            Function<U, List<SortField<?>>> order = null;
-            if (listCriteria != null && childQuery.hasOrdering()) {
-                order = tb -> childQuery.orderingOf(tb, listCriteria);
-            }
-            Integer limit = null;
-            Integer offset = null;
-            if (childPrjBeanList instanceof HasSlice slice) {
-                limit = slice.getLimit();
-                offset = slice.getOffset();
-            }
-
-            fields.add(new JsonFieldEntry(fn,
-                    DSL.field(childQuery.selectOrdered(ctx, childPrjBean, clause, order, limit, offset)),
-                    JsonFieldType.RAW_JSON));
         });
 
         this.fieldSetterMap.put(fn, (bean, reader) -> {
