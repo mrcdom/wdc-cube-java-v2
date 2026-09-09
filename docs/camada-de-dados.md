@@ -118,9 +118,11 @@ A tradução para jOOQ é escrita **uma vez**, no `CriterionTranslator`. O que r
 
 ```java
 return CriterionTranslator.and(Arrays.asList(
-        CriterionTranslator.translate(enUser.ID, criteria.userId()),
-        CriterionTranslator.translate(enUser.USERNAME, criteria.userName()),
-        CriterionTranslator.translate(enUser.PASSWORD, criteria.password(), ApplyConditions::md5Hash)));
+        CriterionTranslator.translate(enProduct.ID, criteria.productId()),
+        CriterionTranslator.translate(enProduct.NAME, criteria.name()),
+        // A coluna é NUMERIC e o domínio fala em Double: a conversão é do campo, e vale igual
+        // para eq, between e in.
+        CriterionTranslator.translate(enProduct.PRICE, criteria.price(), BigDecimal::valueOf)));
 ```
 
 Campo que não é coluna da tabela — `PurchaseCriteria.productId`, que vive nos itens — continua saindo como `EXISTS`, mas a condição interna também vem do tradutor, de modo que `in`, `between` e a disjunção valem ali do mesmo jeito.
