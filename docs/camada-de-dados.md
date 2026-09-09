@@ -331,9 +331,21 @@ public interface ProductRepository {
     int delete(ProductCriteria criteria);
     int count(ProductCriteria criteria);
     List<Product> fetch(ProductCriteria criteria);
-    Product fetchById(Long id, Product projection);
+
+    // Busca pela chave: um ProductCriteria com igualdade sobre a chave primária.
+    // É default aqui, e não abstrato no Repository, porque o contrato genérico
+    // conhece o tipo do critério mas não qual campo dele é a chave.
+    default Product fetchById(Long productId, Product projection) {
+        var found = fetch(new ProductCriteria()
+                .withProductId(productId)
+                .withProjection(projection != null ? projection : newProjection()), 0, 1);
+        return found.isEmpty() ? null : found.get(0);
+    }
 }
 ```
+
+Buscar pela chave é, então, a mesma consulta das outras — mesmo tratamento de projeção,
+de segurança e de transação — em vez de um caminho paralelo por implementação.
 
 O campo estático `BEAN` é o ponto de injeção — um Service Locator leve baseado em `AtomicReference`. A implementação concreta é registrada durante o bootstrap da aplicação:
 
@@ -558,7 +570,12 @@ Todas as entidades seguem o mesmo padrão de endpoints:
 | `POST` | `/api/repo/product/delete` | `ProductCriteria` | `int` |
 | `POST` | `/api/repo/product/count` | `ProductCriteria` | `int` |
 | `POST` | `/api/repo/product/fetch` | `ProductCriteria` | `List<Product>` |
-| `POST` | `/api/repo/product/fetchById` | `{ id, projection }` | `Product` |
+| `POST` | `/api/repo/product/fetch-by-id` | `{ id, projection }` | `Product` |
+| `GET` | `/api/repo/product/{id}` | — | `Product` (404 se não existir) |
+
+> Os dois últimos existem para quem consome a API de fora. O cliente HTTP deste projeto
+> **não** os usa: o `fetchById` dele é o `default` da interface, que monta o critério e vai
+> por `/fetch`. Quem os cobre é o `FetchByIdEndpointTest`.
 
 O critério e a projeção trafegam como JSON no body — estrutura idêntica ao objeto Java. Não há mapeamento manual entre parâmetros HTTP e objetos de domínio.
 

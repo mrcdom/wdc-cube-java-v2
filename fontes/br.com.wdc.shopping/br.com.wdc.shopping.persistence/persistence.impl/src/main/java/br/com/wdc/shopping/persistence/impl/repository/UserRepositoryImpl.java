@@ -197,15 +197,6 @@ public class UserRepositoryImpl extends BaseRepositoryImpl  implements UserRepos
         });
     }
 
-    @Override
-    public User fetchById(Long userId, User projection) {
-        var prjBean = projection != null ? projection : QUERY.newProjectionBean();
-        if (prjBean.id() == null) {
-            prjBean.withId(0L);
-        }
-
-        return QUERY.fetchOne(prjBean, (t, q) -> q.where(t.ID.eq(userId)));
-    }
 
     // :: Internal
 

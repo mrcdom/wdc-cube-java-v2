@@ -195,16 +195,6 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
         });
     }
 
-    @Override
-    public Product fetchById(Long productId, Product projection) {
-        var prjBean = projection != null ? projection : QUERY.newProjectionBean();
-        // Ensure id is always projected
-        if (prjBean.id() == null) {
-            prjBean.withId(0L);
-        }
-
-        return QUERY.fetchOne(prjBean, (t, q) -> q.where(t.ID.eq(productId)));
-    }
 
     @Override
     public byte[] fetchImage(Long productId) {

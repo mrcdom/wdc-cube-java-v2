@@ -245,15 +245,6 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
         return Page.of(items, page, pageSize, total);
     }
 
-    @Override
-    public Purchase fetchById(Long purchaseId, Purchase projection) {
-        var prjBean = projection != null ? projection : QUERY.newProjectionBean();
-        if (prjBean.id() == null) {
-            prjBean.withId(0L);
-        }
-
-        return QUERY.fetchOne(prjBean, (t, q) -> q.where(t.ID.eq(purchaseId)));
-    }
 
     // :: Internal
 

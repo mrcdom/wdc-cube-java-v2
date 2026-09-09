@@ -206,15 +206,6 @@ public class PurchaseItemRepositoryImpl extends BaseRepositoryImpl  implements P
         });
     }
 
-    @Override
-    public PurchaseItem fetchById(Long purchaseItemId, PurchaseItem projection) {
-        var prjBean = projection != null ? projection : QUERY.newProjectionBean();
-        if (prjBean.id() == null) {
-            prjBean.withId(0L);
-        }
-
-        return QUERY.fetchOne(prjBean, (t, q) -> q.where(t.ID.eq(purchaseItemId)));
-    }
 
     // :: Internal
 
