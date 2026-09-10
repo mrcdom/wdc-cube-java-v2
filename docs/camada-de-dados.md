@@ -49,7 +49,7 @@ graph TD
 
     subgraph Impl["Implementações"]
         DB["ProductRepositoryImpl<br/>(jOOQ + H2)"]
-        HTTP["RestProductRepository<br/>(OkHttp + JSON)"]
+        HTTP["HttpProductRepository<br/>(HttpTransport + codecs)"]
     end
 
     P --> R
@@ -66,7 +66,7 @@ graph LR
     domain["shopping.domain<br/><small>Contratos, modelos, critérios, RBAC</small>"]
     persistence["shopping.persistence<br/><small>jOOQ + H2 + JsonQuery</small>"]
     rest["shopping.persistence.rest<br/><small>Endpoints HTTP (Javalin)</small>"]
-    client["shopping.persistence.client<br/><small>REST client (OkHttp + Gson)</small>"]
+    client["shopping.persistence.client<br/><small>REST client (HttpTransport)</small>"]
 
     domain --> persistence
     domain --> client
@@ -77,8 +77,8 @@ graph LR
 |--------|-----------------------|-----------------|
 | `domain` | SLF4J, Commons IO | Modelos, interfaces, critérios, RBAC |
 | `persistence` | jOOQ, H2, Gson, framework.jooq | Implementação SQL dos repositórios |
-| `persistence.rest` | Javalin, Jackson | Expõe repositórios como API HTTP |
-| `persistence.client` | OkHttp, Gson | Consome a API HTTP como repositórios |
+| `persistence.rest` | Javalin, swagger-core | Expõe repositórios como API HTTP |
+| `persistence.client` | OkHttp (só no transporte JVM) | Consome a API HTTP como repositórios |
 
 ---
 
@@ -353,7 +353,7 @@ O campo estático `BEAN` é o ponto de injeção — um Service Locator leve bas
 ProductRepository.BEAN.set(new ProductRepositoryImpl());
 
 // Modo cliente (acesso via HTTP):
-ProductRepository.BEAN.set(new RestProductRepository(restConfig));
+ProductRepository.BEAN.set(new HttpProductRepository(transport, new ProductCodec()));
 ```
 
 Todo código que consome produtos faz simplesmente:
@@ -586,37 +586,62 @@ Um before-filter registrado em `/api/repo/*` extrai o JWT do header `Authorizati
 
 ## O Módulo persistence.client — O Espelho HTTP
 
-O módulo `persistence.client` implementa as mesmas interfaces de repositório do `domain`, mas cada chamada vira uma request HTTP via OkHttp:
+O módulo `persistence.client` implementa as mesmas interfaces de repositório do `domain`, mas cada chamada vira uma request HTTP. Quase tudo mora em `HttpRepository`, a base genérica: as sete operações do contrato têm a mesma forma em todas as entidades, e o que muda é só o `basePath` e o codec.
 
 ```java
-public class RestProductRepository implements ProductRepository {
+public class HttpProductRepository extends HttpRepository<Product, ProductCriteria, Long>
+        implements ProductRepository {
 
-    @Override
-    public List<Product> fetch(ProductCriteria criteria) {
-        return restConfig.postJson("/api/repo/product/fetch", criteria, productListType);
+    public HttpProductRepository(HttpTransport transport, ModelCodec<Product, ProductCriteria> codec) {
+        super(transport, codec, "/api/repo/product");
     }
 
+    // Só o que é específico da entidade: a imagem, que trafega como bytes e não como JSON.
     @Override
-    public Product fetchById(Long id, Product projection) {
-        return restConfig.postJson("/api/repo/product/fetchById",
-                Map.of("id", id, "projection", projection), Product.class);
+    public byte[] fetchImage(Long productId) {
+        return transport().getBytes(basePath() + "/" + productId + "/image");
     }
 }
 ```
 
-O `RestConfig` encapsula toda a infraestrutura HTTP:
-- Serialização/deserialização Gson com adapters para `OffsetDateTime` e exclusão de referências circulares
-- Injeção automática do Bearer token em todos os requests autenticados
-- Renovação transparente de token expirado via refresh endpoint
-- Tratamento de `AccessDeniedException` a partir de respostas HTTP 403
-
-O **bootstrap** é uma única chamada que registra todas as implementações REST nos BEANs:
+**Não há mapeamento por reflexão.** A serialização é a dos próprios codecs do domínio (`JsonStreamWriter`/`JsonStreamReader`), os mesmos que o lado servidor usa para ler — é o que garante que critério e projeção atravessem o fio com o mesmo significado dos dois lados:
 
 ```java
-var config = new RestConfig("http://localhost:8080");
-RestRepositoryBootstrap.initialize(config);
-// A partir daqui, ProductRepository.BEAN.get() retorna RestProductRepository
+public List<E> fetch(C criteria, int offset, int limit) {
+    var writer = new JsonStreamWriter();
+    writer.beginObject();
+    codec.writeCriteriaFields(writer, criteria);     // o critério expressivo, inteiro
+    writeProjection(writer, codec.getProjection(criteria));
+    if (offset > 0) writer.name("offset").value(offset);
+    if (limit > 0) writer.name("limit").value(limit);
+    writer.endObject();
+
+    var responseJson = transport.postJson(basePath + "/fetch", writer.result());
+    // ... lê "items" com codec.readEntityList
+}
 ```
+
+### O transporte é uma interface
+
+`HttpTransport` (em `framework.commons.http`) é o que o repositório enxerga: `postJson`, `getJson`, `getBytes`, `putBytes`. Duas implementações:
+
+| Implementação | Onde | Como |
+|---|---|---|
+| `OkHttpTransport` | JVM (Gluon, testes, SWT remoto) | OkHttp |
+| `FetchHttpTransport` | navegador (`teavm.web`) | `fetch` do próprio browser, via TeaVM |
+
+É por isso que o `persistence.client` roda compilado para JavaScript: nada nele depende de OkHttp — a dependência mora só no transporte JVM. O `OkHttpTransport` cuida do Bearer token (via `setAccessTokenSupplier`) e do `X-Tx-Id` da transação remota (via `setTransactionIdSupplier`).
+
+O **bootstrap** é uma chamada que registra todas as implementações nos BEANs:
+
+```java
+RestRepositoryBootstrap.initialize(transport, storage);
+// A partir daqui, ProductRepository.BEAN.get() retorna HttpProductRepository
+```
+
+Além dos quatro repositórios, ele registra o `AuthenticationService` (login HMAC challenge-response
+contra a API) e o `ShoppingTransactions.BEAN` (`RestTransactionService`, a transação remota dirigida
+pelo cliente).
 
 ---
 
@@ -629,7 +654,7 @@ Modo servidor (Vaadin, SWT, modo remoto):
   ProductRepository.BEAN → ProductRepositoryImpl → jOOQ → H2
 
 Modo cliente (TeaVM, Gluon):
-  ProductRepository.BEAN → RestProductRepository → OkHttp → /api/repo/product/fetch → ProductRepositoryImpl → jOOQ → H2
+  ProductRepository.BEAN → HttpProductRepository → HttpTransport → /api/repo/product/fetch → ProductRepositoryImpl → jOOQ → H2
 ```
 
 O `CartPresenter` que busca produtos para exibir no carrinho não tem uma linha de código diferente entre os dois modos. A diferença está apenas no bootstrap — em qual implementação é registrada no `BEAN`.
@@ -662,24 +687,24 @@ sequenceDiagram
 sequenceDiagram
     participant Presenter
     participant BEAN as ProductRepository.BEAN
-    participant Rest as RestProductRepository
-    participant HTTP as OkHttp
+    participant Http as HttpProductRepository
+    participant Transport as HttpTransport
     participant API as /api/repo/product/fetch
     participant Impl as ProductRepositoryImpl
     participant DB as H2
 
     note over Presenter,DB: Modo Cliente (TeaVM, Gluon)
     Presenter->>BEAN: fetch(criteria)
-    BEAN->>Rest: fetch(criteria)
-    Rest->>HTTP: POST /api/repo/product/fetch (criteria como JSON)
-    HTTP->>API: request + Bearer token
-    API->>Impl: fetch(criteria desserializado)
+    BEAN->>Http: fetch(criteria)
+    Http->>Transport: POST /api/repo/product/fetch (critério e projeção pelo codec)
+    Transport->>API: request + Bearer token
+    API->>Impl: fetch(criteria lido pelo mesmo codec)
     Impl->>DB: SELECT JSON_OBJECT(...)
     DB-->>Impl: JSON rows
     Impl-->>API: List<Product>
-    API-->>HTTP: JSON response
-    HTTP-->>Rest: List<Product> (desserializado)
-    Rest-->>Presenter: List<Product>
+    API-->>Transport: JSON response
+    Transport-->>Http: JSON
+    Http-->>Presenter: List<Product>
 ```
 
 Do ponto de vista do Presenter, as duas sequências são indistinguíveis.
