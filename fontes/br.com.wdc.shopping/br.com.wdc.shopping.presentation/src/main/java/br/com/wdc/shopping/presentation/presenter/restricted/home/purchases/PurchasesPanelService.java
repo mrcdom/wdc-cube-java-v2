@@ -52,7 +52,7 @@ public class PurchasesPanelService {
         return repo.fetch(new PurchaseCriteria()
                 .withUserId(userId)
                 .withProjection(purchaseProjection())
-                .withOrderBy(OrderBy.NEWEST_FIRST),
+                .withOrderBy(OrderBy.MOST_RECENT_PURCHASE_FIRST),
                 offset != null ? offset : 0,
                 limit != null ? limit : 0)
                 .stream().map(this::purchaseInfoCreate).toList();
@@ -66,7 +66,7 @@ public class PurchasesPanelService {
         var result = repo.fetchPage(new PurchaseCriteria()
                 .withUserId(userId)
                 .withProjection(purchaseProjection())
-                .withOrderBy(OrderBy.NEWEST_FIRST), page, pageSize);
+                .withOrderBy(OrderBy.MOST_RECENT_PURCHASE_FIRST), page, pageSize);
 
         var items = result.items().stream().map(this::purchaseInfoCreate).toList();
         return new Page<>(items, result.page(), result.totalPages(), result.totalItems());

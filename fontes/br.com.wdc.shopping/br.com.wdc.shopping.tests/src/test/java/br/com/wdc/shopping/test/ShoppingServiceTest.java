@@ -37,6 +37,41 @@ import br.com.wdc.shopping.test.util.BaseBusinessTest;
 @SuppressWarnings("java:S5961") // integration test — many assertions validate end-to-end flow
 public class ShoppingServiceTest extends BaseBusinessTest {
 
+
+    /**
+     * O extrato ordena pela data da compra, não pela ordem de cadastro.
+     *
+     * <p>
+     * As duas só divergem quando uma compra entra com data anterior à de outra já registrada — é o caso que este
+     * teste monta. Com a ordenação pela chave, a compra recém-inserida encabeçaria a lista mesmo tendo acontecido
+     * há dois anos.
+     * </p>
+     */
+    @Test
+    public void purchaseStatement_ordersByPurchaseDate_notByInsertionOrder() {
+        var service = new PurchasesPanelService(PurchaseRepository.BEAN.get());
+
+        // Última a ser cadastrada (maior id), porém a mais antiga de todas.
+        var atrasada = new Purchase()
+                .withUser(new User().withId(DBReset.ADMIN_ID))
+                .withBuyDate(OffsetDateTime.of(2009, 5, 20, 10, 0, 0, 0, java.time.ZoneOffset.UTC))
+                .withItems(new ArrayList<>());
+        atrasada.items().add(new PurchaseItem()
+                .withProduct(new Product().withId(DBReset.PEN_DRIVE2GB_ID))
+                .withPrice(55.0)
+                .withAmount(1));
+        PurchaseRepository.BEAN.get().insert(atrasada);
+
+        var extrato = service.loadPurchasesOfUser(DBReset.ADMIN_ID);
+
+        Assert.assertEquals("a compra de 2009 é a de maior id", Long.valueOf(atrasada.id()),
+                Long.valueOf(extrato.stream().mapToLong(p -> p.id).max().orElse(-1)));
+        Assert.assertNotEquals("a mais antiga não pode encabeçar o extrato", Long.valueOf(atrasada.id()),
+                Long.valueOf(extrato.get(0).id));
+        Assert.assertEquals("a mais antiga fecha a lista", Long.valueOf(atrasada.id()),
+                Long.valueOf(extrato.get(extrato.size() - 1).id));
+    }
+
     @Test
     public void test1() {
         var pv = ProjectionValues.INSTANCE;
