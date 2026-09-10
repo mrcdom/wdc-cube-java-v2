@@ -4,6 +4,7 @@
 # IDEs and local run configs
 .idea/
 .vscode/
+.eclipse/
 
 # Claude Code — overrides pessoais (settings.json compartilhado é versionado)
 .claude/settings.local.json

@@ -11,7 +11,7 @@ import org.junit.Test;
 import org.junit.rules.ExternalResource;
 
 import br.com.wdc.framework.domain.exception.BusinessException;
-import br.com.wdc.shopping.domain.model.Product;
+import br.com.wdc.shopping.domain.product.Product;
 import br.com.wdc.shopping.persistence.client.RestTransactionService;
 import br.com.wdc.shopping.test.util.ResetDatabaseRule;
 import br.com.wdc.shopping.test.util.TestEnvironment;
@@ -38,10 +38,10 @@ public class RemoteTransactionRestTest {
     }
 
     private static Product product(String name) {
-        var p = new Product();
-        p.name = name;
-        p.price = 9.99;
-        p.description = name + " desc";
+        var p = new Product()
+                .withName(name)
+                .withPrice(9.99)
+                .withDescription(name + " desc");
         return p;
     }
 
@@ -55,8 +55,8 @@ public class RemoteTransactionRestTest {
             env.productRepo().insert(p2);
         });
 
-        assertNotNull("p1 deveria ter sido comitado", env.productRepo().fetchById(p1.id, null));
-        assertNotNull("p2 deveria ter sido comitado", env.productRepo().fetchById(p2.id, null));
+        assertNotNull("p1 deveria ter sido comitado", env.productRepo().fetchById(p1.id(), null));
+        assertNotNull("p2 deveria ter sido comitado", env.productRepo().fetchById(p2.id(), null));
     }
 
     @Test
@@ -68,7 +68,7 @@ public class RemoteTransactionRestTest {
             t.setRollbackOnly();
         });
 
-        assertNull("setRollbackOnly deveria reverter", env.productRepo().fetchById(p.id, null));
+        assertNull("setRollbackOnly deveria reverter", env.productRepo().fetchById(p.id(), null));
     }
 
     @Test
@@ -107,7 +107,7 @@ public class RemoteTransactionRestTest {
             // esperado
         }
 
-        assertNull("p1 deveria ter sido revertido junto", env.productRepo().fetchById(p1.id, null));
-        assertNull("p2 deveria ter sido revertido junto", env.productRepo().fetchById(p2.id, null));
+        assertNull("p1 deveria ter sido revertido junto", env.productRepo().fetchById(p1.id(), null));
+        assertNull("p2 deveria ter sido revertido junto", env.productRepo().fetchById(p2.id(), null));
     }
 }

@@ -5,15 +5,15 @@ import java.util.Collections;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.framework.commons.serialization.JsonStreamReader;
 import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
-import br.com.wdc.shopping.domain.codec.PurchaseModelCodec;
-import br.com.wdc.shopping.domain.criteria.PurchaseCriteria;
-import br.com.wdc.shopping.domain.model.Product;
-import br.com.wdc.shopping.domain.model.Purchase;
-import br.com.wdc.shopping.domain.model.PurchaseItem;
-import br.com.wdc.shopping.domain.model.User;
-import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
-import br.com.wdc.framework.domain.security.SecurityContext;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
+import br.com.wdc.framework.domain.security.SecurityContext;
+import br.com.wdc.shopping.domain.product.Product;
+import br.com.wdc.shopping.domain.purchase.Purchase;
+import br.com.wdc.shopping.domain.purchase.PurchaseCriteria;
+import br.com.wdc.shopping.domain.purchase.PurchaseCodec;
+import br.com.wdc.shopping.domain.purchase.PurchaseRepository;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItem;
+import br.com.wdc.shopping.domain.user.User;
 import br.com.wdc.shopping.persistence.rest.doc.Doc;
 import br.com.wdc.shopping.persistence.rest.security.SecurityEnforcer;
 import io.javalin.config.JavalinConfig;
@@ -53,41 +53,39 @@ public class PurchaseApiController {
         return PurchaseRepository.BEAN.get();
     }
 
-    private final PurchaseModelCodec codec = new PurchaseModelCodec();
+    private final PurchaseCodec codec = new PurchaseCodec();
 
     private static Purchase fullProjectionWithItems() {
         var pv = ProjectionValues.INSTANCE;
 
-        var product = new Product();
-        product.id = pv.i64;
-        product.name = pv.str;
-        product.price = pv.f64;
+        var product = new Product()
+                .withId(pv.i64)
+                .withName(pv.str)
+                .withPrice(pv.f64);
 
-        var item = new PurchaseItem();
-        item.id = pv.i64;
-        item.amount = pv.i32;
-        item.price = pv.f64;
-        item.product = product;
+        var item = new PurchaseItem()
+                .withId(pv.i64)
+                .withAmount(pv.i32)
+                .withPrice(pv.f64)
+                .withProduct(product);
 
-        var prj = new Purchase();
-        prj.id = pv.i64;
-        prj.buyDate = pv.offsetDateTime;
-        prj.user = new User();
-        prj.user.id = pv.i64;
-        prj.user.name = pv.str;
-        prj.items = Collections.singletonList(item);
-
-        return prj;
+        return new Purchase()
+                .withId(pv.i64)
+                .withBuyDate(pv.offsetDateTime)
+                .withUser(new User()
+                        .withId(pv.i64)
+                        .withName(pv.str))
+                        .withItems(Collections.singletonList(item));
     }
 
     private static Purchase simpleProjection() {
         var pv = ProjectionValues.INSTANCE;
-        var prj = new Purchase();
-        prj.id = pv.i64;
-        prj.buyDate = pv.offsetDateTime;
-        prj.user = new User();
-        prj.user.id = pv.i64;
-        prj.user.name = pv.str;
+        var prj = new Purchase()
+                .withId(pv.i64)
+                .withBuyDate(pv.offsetDateTime)
+                .withUser(new User()
+                        .withId(pv.i64)
+                        .withName(pv.str));
         return prj;
     }
 
@@ -118,7 +116,7 @@ public class PurchaseApiController {
         var writer = new JsonStreamWriter();
         writer.beginObject();
         writer.name("success").value(success);
-        writer.name("id").value(purchase.id != null ? purchase.id : -1);
+        writer.name("id").value(purchase.id() != null ? purchase.id() : -1);
         writer.endObject();
         json(ctx, writer);
     }
@@ -163,7 +161,7 @@ public class PurchaseApiController {
         var operation = new Operation()
                 .addTagsItem("purchase").summary("Delete purchases matching criteria")
                 .security(Doc.BEARER)
-                .requestBody(Doc.body("#/components/schemas/FetchRequest"))
+                .requestBody(Doc.body("#/components/schemas/PurchaseFetchRequest"))
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/CountResult"))
                         .addApiResponse("401", Doc.unauthorized())
@@ -194,7 +192,7 @@ public class PurchaseApiController {
         var operation = new Operation()
                 .addTagsItem("purchase").summary("Count purchases matching criteria")
                 .security(Doc.BEARER)
-                .requestBody(Doc.body("#/components/schemas/FetchRequest"))
+                .requestBody(Doc.body("#/components/schemas/PurchaseFetchRequest"))
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/CountResult"))
                         .addApiResponse("401", Doc.unauthorized()));
@@ -224,7 +222,7 @@ public class PurchaseApiController {
         var operation = new Operation()
                 .addTagsItem("purchase").summary("Fetch purchases matching criteria (offset/limit)")
                 .security(Doc.BEARER)
-                .requestBody(Doc.body("#/components/schemas/FetchRequest"))
+                .requestBody(Doc.body("#/components/schemas/PurchaseFetchRequest"))
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/PurchaseFetchResponse"))
                         .addApiResponse("401", Doc.unauthorized()));
@@ -279,7 +277,7 @@ public class PurchaseApiController {
         var operation = new Operation()
                 .addTagsItem("purchase").summary("Fetch purchases matching criteria (page/pageSize)")
                 .security(Doc.BEARER)
-                .requestBody(Doc.body("#/components/schemas/PageRequest"))
+                .requestBody(Doc.body("#/components/schemas/PurchasePageRequest"))
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/PurchasePageResponse"))
                         .addApiResponse("401", Doc.unauthorized()));
@@ -348,7 +346,7 @@ public class PurchaseApiController {
         Long id = Long.parseLong(ctx.pathParam("id"));
         var result = repo().fetchById(id, fullProjectionWithItems());
         if (result == null
-                || (sc != null && !sc.hasDataAll() && result.user != null && !sc.userId().equals(result.user.id))) {
+                || (sc != null && !sc.hasDataAll() && result.user() != null && !sc.userId().equals(result.user().id()))) {
             ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
             return;
         }
@@ -391,7 +389,7 @@ public class PurchaseApiController {
         reader.endObject();
         var result = repo().fetchById(id, projection != null ? projection : fullProjectionWithItems());
         if (result == null
-                || (sc != null && !sc.hasDataAll() && result.user != null && !sc.userId().equals(result.user.id))) {
+                || (sc != null && !sc.hasDataAll() && result.user() != null && !sc.userId().equals(result.user().id()))) {
             ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
             return;
         }
@@ -413,10 +411,10 @@ public class PurchaseApiController {
             return;
         }
         if (!sc.hasDataAll()) {
-            if (purchase.user == null) {
-                purchase.user = new User();
+            if (purchase.user() == null) {
+                purchase.withUser(new User());
             }
-            purchase.user.id = sc.userId();
+            purchase.user().withId(sc.userId());
         }
     }
 

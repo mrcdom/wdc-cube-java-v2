@@ -63,6 +63,13 @@ public interface Repository<E, C, K> {
         return Page.of(items, page, pageSize, total);
     }
 
+    /**
+     * Busca pela chave. Implementada na interface de cada entidade, como um {@code default} que monta o
+     * {@code XxxCriteria} com igualdade sobre a chave e delega ao {@code fetch}.
+     *
+     * @param projection {@code null} projeta {@link #newProjection()}.
+     * @return a entidade, ou {@code null} se não houver linha com essa chave.
+     */
     E fetchById(K id, E projection);
 
     E newProjection();

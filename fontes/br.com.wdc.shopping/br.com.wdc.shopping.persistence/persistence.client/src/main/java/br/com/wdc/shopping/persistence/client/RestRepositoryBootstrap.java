@@ -2,18 +2,18 @@ package br.com.wdc.shopping.persistence.client;
 
 import br.com.wdc.framework.commons.http.HttpTransport;
 import br.com.wdc.framework.commons.storage.ClientStorage;
-import br.com.wdc.shopping.domain.codec.ProductModelCodec;
-import br.com.wdc.shopping.domain.codec.PurchaseItemModelCodec;
-import br.com.wdc.shopping.domain.codec.PurchaseModelCodec;
-import br.com.wdc.shopping.domain.codec.UserModelCodec;
-import br.com.wdc.shopping.domain.repositories.ProductRepository;
-import br.com.wdc.shopping.domain.repositories.PurchaseItemRepository;
-import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
-import br.com.wdc.shopping.domain.repositories.UserRepository;
-import br.com.wdc.shopping.domain.ShoppingTransactions;
 import br.com.wdc.framework.domain.security.AuthenticationService;
 import br.com.wdc.framework.domain.security.CryptoProvider;
 import br.com.wdc.framework.domain.security.JceCryptoProvider;
+import br.com.wdc.shopping.domain.ShoppingTransactions;
+import br.com.wdc.shopping.domain.product.ProductCodec;
+import br.com.wdc.shopping.domain.product.ProductRepository;
+import br.com.wdc.shopping.domain.purchase.PurchaseCodec;
+import br.com.wdc.shopping.domain.purchase.PurchaseRepository;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemCodec;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemRepository;
+import br.com.wdc.shopping.domain.user.UserCodec;
+import br.com.wdc.shopping.domain.user.UserRepository;
 
 /**
  * Inicializa os repositórios REST e registra nos BEANs estáticos do domínio.
@@ -27,10 +27,10 @@ public final class RestRepositoryBootstrap {
 
     public static void initialize(HttpTransport transport, ClientStorage storage) {
         CryptoProvider.BEAN.set(new JceCryptoProvider());
-        UserRepository.BEAN.set(new HttpUserRepository(transport, new UserModelCodec()));
-        ProductRepository.BEAN.set(new HttpProductRepository(transport, new ProductModelCodec()));
-        PurchaseRepository.BEAN.set(new HttpPurchaseRepository(transport, new PurchaseModelCodec()));
-        PurchaseItemRepository.BEAN.set(new HttpPurchaseItemRepository(transport, new PurchaseItemModelCodec()));
+        UserRepository.BEAN.set(new HttpUserRepository(transport, new UserCodec()));
+        ProductRepository.BEAN.set(new HttpProductRepository(transport, new ProductCodec()));
+        PurchaseRepository.BEAN.set(new HttpPurchaseRepository(transport, new PurchaseCodec()));
+        PurchaseItemRepository.BEAN.set(new HttpPurchaseItemRepository(transport, new PurchaseItemCodec()));
         AuthenticationService.BEAN.set(new RestAuthenticationService(transport, storage));
         // TransactionService cliente: coordena transação remota dirigida pelo cliente (begin/commit/rollback + X-Tx-Id).
         ShoppingTransactions.BEAN.set(new RestTransactionService(transport));

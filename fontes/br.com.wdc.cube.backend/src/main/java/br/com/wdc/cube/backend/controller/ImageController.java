@@ -2,7 +2,7 @@ package br.com.wdc.cube.backend.controller;
 
 import br.com.wdc.framework.commons.log.Log;
 
-import br.com.wdc.shopping.domain.repositories.ProductRepository;
+import br.com.wdc.shopping.domain.product.ProductRepository;
 import io.javalin.config.JavalinConfig;
 import io.javalin.http.Context;
 

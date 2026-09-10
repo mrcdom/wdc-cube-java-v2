@@ -2,8 +2,8 @@ package br.com.wdc.shopping.presentation.presenter.open.login.structs;
 
 import java.io.Serializable;
 
-import br.com.wdc.shopping.domain.model.User;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
+import br.com.wdc.shopping.domain.user.User;
 
 public class Subject implements Serializable {
 
@@ -32,9 +32,9 @@ public class Subject implements Serializable {
     public static User projection() {
         var pv = ProjectionValues.INSTANCE;
 
-        var prj = new User();
-        prj.id = pv.i64;
-        prj.name = pv.str;
+        var prj = new User()
+                .withId(pv.i64)
+                .withName(pv.str);
         return prj;
     }
 
@@ -44,8 +44,8 @@ public class Subject implements Serializable {
         }
 
         Subject tgt = new Subject();
-        tgt.id = src.id;
-        tgt.nickName = src.name;
+        tgt.id = src.id();
+        tgt.nickName = src.name();
         return tgt;
     }
 

@@ -4,11 +4,11 @@ import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.framework.commons.serialization.JsonStreamReader;
 import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
-import br.com.wdc.shopping.domain.codec.ProductModelCodec;
-import br.com.wdc.shopping.domain.criteria.ProductCriteria;
-import br.com.wdc.shopping.domain.model.Product;
-import br.com.wdc.shopping.domain.repositories.ProductRepository;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
+import br.com.wdc.shopping.domain.product.Product;
+import br.com.wdc.shopping.domain.product.ProductCriteria;
+import br.com.wdc.shopping.domain.product.ProductCodec;
+import br.com.wdc.shopping.domain.product.ProductRepository;
 import br.com.wdc.shopping.persistence.rest.doc.Doc;
 import br.com.wdc.shopping.persistence.rest.security.SecurityEnforcer;
 import io.javalin.config.JavalinConfig;
@@ -53,16 +53,15 @@ public class ProductApiController {
         return ProductRepository.BEAN.get();
     }
 
-    private final ProductModelCodec codec = new ProductModelCodec();
+    private final ProductCodec codec = new ProductCodec();
 
     private static Product fullProjection() {
         var pv = ProjectionValues.INSTANCE;
-        var prj = new Product();
-        prj.id = pv.i64;
-        prj.name = pv.str;
-        prj.price = pv.f64;
-        prj.description = pv.str;
-        return prj;
+        return new Product()
+                .withId(pv.i64)
+                .withName(pv.str)
+                .withPrice(pv.f64)
+                .withDescription(pv.str);
     }
 
     // :: Insert
@@ -91,7 +90,7 @@ public class ProductApiController {
         var writer = new JsonStreamWriter();
         writer.beginObject();
         writer.name("success").value(success);
-        writer.name("id").value(product.id != null ? product.id : -1);
+        writer.name("id").value(product.id() != null ? product.id() : -1);
         writer.endObject();
         json(ctx, writer);
     }
@@ -136,7 +135,7 @@ public class ProductApiController {
         var operation = new Operation()
                 .addTagsItem("product").summary("Delete products matching criteria")
                 .security(Doc.BEARER)
-                .requestBody(Doc.body("#/components/schemas/FetchRequest"))
+                .requestBody(Doc.body("#/components/schemas/ProductFetchRequest"))
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/CountResult"))
                         .addApiResponse("401", Doc.unauthorized())
@@ -166,7 +165,7 @@ public class ProductApiController {
         var operation = new Operation()
                 .addTagsItem("product").summary("Count products matching criteria")
                 .security(Doc.BEARER)
-                .requestBody(Doc.body("#/components/schemas/FetchRequest"))
+                .requestBody(Doc.body("#/components/schemas/ProductFetchRequest"))
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/CountResult"))
                         .addApiResponse("401", Doc.unauthorized()));
@@ -195,7 +194,7 @@ public class ProductApiController {
         var operation = new Operation()
                 .addTagsItem("product").summary("Fetch products matching criteria (offset/limit)")
                 .security(Doc.BEARER)
-                .requestBody(Doc.body("#/components/schemas/FetchRequest"))
+                .requestBody(Doc.body("#/components/schemas/ProductFetchRequest"))
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/ProductFetchResponse"))
                         .addApiResponse("401", Doc.unauthorized()));
@@ -246,7 +245,7 @@ public class ProductApiController {
         var operation = new Operation()
                 .addTagsItem("product").summary("Fetch products matching criteria (page/pageSize)")
                 .security(Doc.BEARER)
-                .requestBody(Doc.body("#/components/schemas/PageRequest"))
+                .requestBody(Doc.body("#/components/schemas/ProductPageRequest"))
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/ProductPageResponse"))
                         .addApiResponse("401", Doc.unauthorized()));

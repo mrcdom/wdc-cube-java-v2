@@ -2,8 +2,8 @@ package br.com.wdc.shopping.presentation.presenter.restricted.products;
 
 import java.util.List;
 
-import br.com.wdc.shopping.domain.criteria.ProductCriteria;
-import br.com.wdc.shopping.domain.repositories.ProductRepository;
+import br.com.wdc.shopping.domain.product.ProductCriteria;
+import br.com.wdc.shopping.domain.product.ProductRepository;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.exception.ProductNotFoundException;
 import br.com.wdc.shopping.presentation.exception.WrongParametersException;
@@ -37,7 +37,7 @@ public class ProductService {
         var criteria = new ProductCriteria()
                 .withProjection(ProductInfo.projection());
 
-        criteria.projection().description = null;
+        criteria.projection().withDescription(null);
 
         return repo.fetch(criteria, 0, limit)
                 .stream().map(ProductInfo::create).toList();

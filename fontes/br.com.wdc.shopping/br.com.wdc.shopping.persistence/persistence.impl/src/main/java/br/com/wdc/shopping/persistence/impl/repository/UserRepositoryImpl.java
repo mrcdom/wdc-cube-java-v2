@@ -8,18 +8,21 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.List;
 
+import org.jooq.SortField;
 import org.jooq.Condition;
 import org.jooq.impl.DSL;
 
+import br.com.wdc.framework.jooq.CriterionTranslator;
 import br.com.wdc.framework.jooq.JsonChildQueryBuilder;
 import br.com.wdc.framework.jooq.JsonQuery;
 import br.com.wdc.framework.jooq.JsonQueryBuilder;
 import br.com.wdc.framework.jooq.QueryContext;
-import br.com.wdc.shopping.domain.criteria.UserCriteria;
-import br.com.wdc.shopping.domain.model.User;
-import br.com.wdc.shopping.domain.repositories.UserRepository;
+import br.com.wdc.shopping.domain.user.User;
+import br.com.wdc.shopping.domain.user.UserCriteria;
+import br.com.wdc.shopping.domain.user.UserRepository;
 import br.com.wdc.shopping.persistence.impl.scheme.tables.EnUser;
 import br.com.wdc.shopping.persistence.impl.util.BaseRepositoryImpl;
 
@@ -31,13 +34,40 @@ public class UserRepositoryImpl extends BaseRepositoryImpl  implements UserRepos
             .setBeanFactory(User::new)
             .setTableFactory(EN_USER::as)
             .setDSLContextSupplier(UserRepositoryImpl::dsl)
-            .addI64("id", u -> u.id, (u, v) -> u.id = v, t -> t.ID)
-            .addStr("userName", u -> u.userName, (u, v) -> u.userName = v, t -> t.USERNAME)
-            .addStr("password", u -> u.password, (u, v) -> u.password = v, t -> t.PASSWORD)
-            .addStr("name", u -> u.name, (u, v) -> u.name = v, t -> t.NAME)
-            .addStr("roles", u -> u.roles, (u, v) -> u.roles = v, t -> t.ROLES)
+            .setOrdering(UserRepositoryImpl::orderingOf)
+            .addI64("id", u -> u.id(), (u, v) -> u.withId(v), t -> t.ID)
+            .addStr("userName", u -> u.userName(), (u, v) -> u.withUserName(v), t -> t.USERNAME)
+            .addStr("password", u -> u.password(), (u, v) -> u.withPassword(v), t -> t.PASSWORD)
+            .addStr("name", u -> u.name(), (u, v) -> u.withName(v), t -> t.NAME)
+            .addStr("roles", u -> u.roles(), (u, v) -> u.withRoles(v), t -> t.ROLES)
             .build();
     // @formatter:on
+
+    /**
+     * Traduz a ordenação pedida em {@code ORDER BY}, contra a tabela informada.
+     *
+     * <p>
+     * É aqui que uma ordenação provisionada vira colunas: o critério nomeia o efeito, e a escolha das colunas — e do
+     * desempate — mora no repositório, que é quem conhece o esquema. Toda ordenação por campo não único desempata
+     * pela chave, sem o que duas execuções da mesma consulta podem devolver as linhas em ordens diferentes.
+     * </p>
+     *
+     * <p>
+     * Recebe {@code Object} porque também é chamado a partir da coleção filha de outro repositório, onde o critério
+     * pode não ser deste tipo — nesse caso não ordena nada.
+     * </p>
+     */
+    public static List<SortField<?>> orderingOf(EnUser t, Object criteriaObj) {
+        if (!(criteriaObj instanceof UserCriteria criteria) || criteria.orderBy() == null) {
+            return List.of();
+        }
+        return switch (criteria.orderBy()) {
+        case OLDEST_FIRST -> List.of(t.ID.asc());
+        case NEWEST_FIRST -> List.of(t.ID.desc());
+        case NAME_A_TO_Z -> List.of(t.NAME.asc(), t.ID.asc());
+        case LOGIN_A_TO_Z -> List.of(t.USERNAME.asc(), t.ID.asc());
+        };
+    }
 
     // :: Query helpers
 
@@ -58,24 +88,24 @@ public class UserRepositoryImpl extends BaseRepositoryImpl  implements UserRepos
     public boolean insert(User user) {
         var dsl = dsl();
 
-        if (user.id == null) {
-            user.id = dsl.nextval(SQ_USER);
+        if (user.id() == null) {
+            user.withId(dsl.nextval(SQ_USER));
         }
 
         var step = dsl.insertInto(EN_USER)
-                .set(EN_USER.ID, user.id);
+                .set(EN_USER.ID, user.id());
 
-        if (user.userName != null) {
-            step.set(EN_USER.USERNAME, user.userName);
+        if (user.userName() != null) {
+            step.set(EN_USER.USERNAME, user.userName());
         }
-        if (user.password != null) {
-            step.set(EN_USER.PASSWORD, user.password);
+        if (user.password() != null) {
+            step.set(EN_USER.PASSWORD, user.password());
         }
-        if (user.name != null) {
-            step.set(EN_USER.NAME, user.name);
+        if (user.name() != null) {
+            step.set(EN_USER.NAME, user.name());
         }
-        if (user.roles != null) {
-            step.set(EN_USER.ROLES, user.roles);
+        if (user.roles() != null) {
+            step.set(EN_USER.ROLES, user.roles());
         }
 
         return step.execute() > 0;
@@ -87,7 +117,7 @@ public class UserRepositoryImpl extends BaseRepositoryImpl  implements UserRepos
             throw new AssertionError("newBean is requeried");
         }
 
-        if (newBean.id == null) {
+        if (newBean.id() == null) {
             throw new AssertionError("Missing primary key");
         }
 
@@ -96,24 +126,24 @@ public class UserRepositoryImpl extends BaseRepositoryImpl  implements UserRepos
         }
 
         var dsl = dsl();
-        var step = dsl.update(EN_USER).set(EN_USER.ID, newBean.id);
+        var step = dsl.update(EN_USER).set(EN_USER.ID, newBean.id());
 
         boolean hasChanges = false;
 
-        if (changed(newBean, oldBean, projection, u -> u.userName)) {
-            step.set(EN_USER.USERNAME, newBean.userName);
+        if (changed(newBean, oldBean, projection, u -> u.userName())) {
+            step.set(EN_USER.USERNAME, newBean.userName());
             hasChanges = true;
         }
-        if (changed(newBean, oldBean, projection, u -> u.password)) {
-            step.set(EN_USER.PASSWORD, newBean.password);
+        if (changed(newBean, oldBean, projection, u -> u.password())) {
+            step.set(EN_USER.PASSWORD, newBean.password());
             hasChanges = true;
         }
-        if (changed(newBean, oldBean, projection, u -> u.name)) {
-            step.set(EN_USER.NAME, newBean.name);
+        if (changed(newBean, oldBean, projection, u -> u.name())) {
+            step.set(EN_USER.NAME, newBean.name());
             hasChanges = true;
         }
-        if (changed(newBean, oldBean, projection, u -> u.roles)) {
-            step.set(EN_USER.ROLES, newBean.roles);
+        if (changed(newBean, oldBean, projection, u -> u.roles())) {
+            step.set(EN_USER.ROLES, newBean.roles());
             hasChanges = true;
         }
 
@@ -121,12 +151,14 @@ public class UserRepositoryImpl extends BaseRepositoryImpl  implements UserRepos
             return false;
         }
 
-        return step.where(EN_USER.ID.eq(newBean.id)).execute() > 0;
+        return step.where(EN_USER.ID.eq(newBean.id())).execute() > 0;
     }
 
     @Override
     public int delete(UserCriteria criteria) {
-        if (criteria == null || criteria.userId() == null) {
+        // O campo existe sempre; o que decide é ele estar informado. Sem esta guarda, critério vazio traduziria
+        // para noCondition() e o DELETE levaria a tabela inteira.
+        if (criteria == null || !criteria.hasUserId()) {
             throw new AssertionError("Missing primary key");
         }
 
@@ -154,12 +186,7 @@ public class UserRepositoryImpl extends BaseRepositoryImpl  implements UserRepos
             var cond = applyConditions(t, criteria);
             var step = q.where(cond);
 
-            if (criteria != null && criteria.orderBy() != null) {
-                switch (criteria.orderBy()) {
-                case ASCENDING -> step.orderBy(t.ID.asc());
-                case DESCENDING -> step.orderBy(t.ID.desc());
-                }
-            }
+            step.orderBy(orderingOf(t, criteria));
 
             if (limit > 0) {
                 step.limit(limit);
@@ -170,23 +197,14 @@ public class UserRepositoryImpl extends BaseRepositoryImpl  implements UserRepos
         });
     }
 
-    @Override
-    public User fetchById(Long userId, User projection) {
-        var prjBean = projection != null ? projection : QUERY.newProjectionBean();
-        if (prjBean.id == null) {
-            prjBean.id = 0L;
-        }
-
-        return QUERY.fetchOne(prjBean, (t, q) -> q.where(t.ID.eq(userId)));
-    }
 
     // :: Internal
 
     private User projectionFrom(UserCriteria criteria) {
         if (criteria != null && criteria.projection() != null) {
             var prj = criteria.projection();
-            if (prj.id == null) {
-                prj.id = 0L;
+            if (prj.id() == null) {
+                prj.withId(0L);
             }
             return prj;
         }
@@ -208,23 +226,24 @@ public class UserRepositoryImpl extends BaseRepositoryImpl  implements UserRepos
             this.ctx = new QueryContext(dsl());
         }
 
+        /**
+         * As condições dos campos informados.
+         *
+         * <p>
+         * O percurso dos campos e a montagem do {@code AND} moram no {@link CriterionTranslator}; aqui fica só o que é
+         * próprio da entidade — a coluna de cada campo e, no caso da senha, a conversão do valor. Critério vazio
+         * resulta em {@code noCondition()}, e não numa condição falsa.
+         * </p>
+         */
         public Condition apply(UserCriteria criteria) {
-            var condition = DSL.noCondition();
             if (criteria == null) {
-                return condition;
+                return DSL.noCondition();
             }
-            if (criteria.userId() != null) {
-                condition = condition.and(enUser.ID.eq(criteria.userId()));
-            }
-            if (criteria.userName() != null) {
-                condition = condition.and(enUser.USERNAME.eq(criteria.userName()));
-            }
-            if (criteria.password() != null) {
-                var hashedPassword = new BigInteger(md5().digest(
-                        criteria.password().getBytes(StandardCharsets.UTF_8))).toString(36);
-                condition = condition.and(enUser.PASSWORD.eq(hashedPassword));
-            }
-            return condition;
+            return CriterionTranslator.and(Arrays.asList(
+                    CriterionTranslator.translate(enUser.ID, criteria.userId()),
+                    CriterionTranslator.translate(enUser.USERNAME, criteria.userName()),
+                    CriterionTranslator.translate(enUser.NAME, criteria.name()),
+                    CriterionTranslator.translate(enUser.ROLES, criteria.roles())));
         }
 
         private static MessageDigest md5() {

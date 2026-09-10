@@ -1,14 +1,17 @@
 package br.com.wdc.framework.jooq;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.jooq.Field;
 import org.jooq.Record1;
 import org.jooq.SelectJoinStep;
 import org.jooq.SelectQuery;
+import org.jooq.SortField;
 import org.jooq.Table;
 
 import com.google.gson.stream.JsonReader;
@@ -47,8 +50,46 @@ public interface JsonQuery<B, T extends Table<?>> {
     SelectQuery<Record1<String>> select(QueryContext ctx, B prjBean,
             BiConsumer<T, SelectJoinStep<Record1<String>>> whereClause, boolean isAgg);
 
+    /** Se esta consulta sabe traduzir o {@code OrderBy} do seu critério. */
+    boolean hasOrdering();
+
+    /** Traduz o {@code OrderBy} do critério em {@code ORDER BY}, contra a tabela informada. */
+    List<SortField<?>> orderingOf(T table, Object criteria);
+
+    /**
+     * Monta o SELECT agregado de uma coleção filha, ordenado e/ou recortado.
+     *
+     * <p>
+     * <b>Ordenar e recortar não cabem na forma agregada.</b> A coleção sai de um
+     * {@code SELECT json_arrayagg(proj) FROM filha WHERE ...}; um {@code ORDER BY} ali incidiria sobre a consulta que
+     * já agregou. A saída é ordenar e cortar <b>antes</b> de agregar, numa tabela derivada.
+     * </p>
+     *
+     * <p>
+     * <b>A ordem é função da tabela</b>, e não uma lista pronta: a instância da tabela filha — com o alias único
+     * daquela consulta — só existe aqui dentro.
+     * </p>
+     *
+     * @param order  traduz o critério em {@code ORDER BY}; {@code null} deixa a ordem a cargo do banco
+     * @param limit  máximo de linhas, ou {@code null}
+     * @param offset linhas a pular, ou {@code null}
+     */
+    SelectQuery<Record1<String>> selectOrdered(QueryContext ctx, B prjBean,
+            BiConsumer<T, SelectJoinStep<Record1<String>>> whereClause,
+            Function<T, List<SortField<?>>> order, Integer limit, Integer offset);
+
     /** Gera o campo de projeção JSON para a tabela. */
     Field<String> projection(QueryContext ctx, T jooqTable, B prjBean);
+
+    /**
+     * Se a projeção pede algum campo fora da lista informada.
+     *
+     * <p>
+     * Serve ao atalho de chave estrangeira: quando a projeção da associação não pede nada além da chave, o valor já
+     * está na coluna da linha corrente, e o subselect ao outro lado é dispensável.
+     * </p>
+     */
+    boolean projectsBeyond(B prjBean, Collection<String> fields);
 
     /** Parse de JSON string para bean. */
     B parseJson(String json);

@@ -49,7 +49,7 @@ graph TD
 
     subgraph Impl["Implementações"]
         DB["ProductRepositoryImpl<br/>(jOOQ + H2)"]
-        HTTP["RestProductRepository<br/>(OkHttp + JSON)"]
+        HTTP["HttpProductRepository<br/>(HttpTransport + codecs)"]
     end
 
     P --> R
@@ -66,7 +66,7 @@ graph LR
     domain["shopping.domain<br/><small>Contratos, modelos, critérios, RBAC</small>"]
     persistence["shopping.persistence<br/><small>jOOQ + H2 + JsonQuery</small>"]
     rest["shopping.persistence.rest<br/><small>Endpoints HTTP (Javalin)</small>"]
-    client["shopping.persistence.client<br/><small>REST client (OkHttp + Gson)</small>"]
+    client["shopping.persistence.client<br/><small>REST client (HttpTransport)</small>"]
 
     domain --> persistence
     domain --> client
@@ -77,8 +77,8 @@ graph LR
 |--------|-----------------------|-----------------|
 | `domain` | SLF4J, Commons IO | Modelos, interfaces, critérios, RBAC |
 | `persistence` | jOOQ, H2, Gson, framework.jooq | Implementação SQL dos repositórios |
-| `persistence.rest` | Javalin, Jackson | Expõe repositórios como API HTTP |
-| `persistence.client` | OkHttp, Gson | Consome a API HTTP como repositórios |
+| `persistence.rest` | Javalin, swagger-core | Expõe repositórios como API HTTP |
+| `persistence.client` | OkHttp (só no transporte JVM) | Consome a API HTTP como repositórios |
 
 ---
 
@@ -86,18 +86,233 @@ graph LR
 
 O módulo `domain` é **puramente conceitual**. Não conhece banco de dados, nem HTTP, nem qualquer framework de persistência. Apenas define o que existe no sistema.
 
-### Modelos
+### Critério: um campo, vários pedidos
 
-POJOs simples com campos públicos — sem anotações de persistência, sem herança obrigatória:
+Cada campo filtrável de um `XxxCriteria` é um `Criterion`, e o tipo do campo decide o que se pode pedir dele:
+
+| Classe | Acrescenta | Para |
+|---|---|---|
+| `Criterion` | `eq` `ne` `in` `isNull` `isNotNull` | o que só se compara por identidade — enum, booleano, chave estrangeira |
+| `ComparableCriterion` | `gt` `ge` `lt` `le` `between` | número, data, timestamp |
+| `TextCriterion` | `like` `ilike` `containing` `startingWith` | texto |
 
 ```java
-public class Product {
-    public Long id;
-    public String name;
-    public Double price;
-    public String description;
-    public byte[] image;
+var criteria = new ProductCriteria();
+criteria.productId().in(1L, 2L, 3L);
+
+new UserCriteria().userName().startingWith("adm");
+```
+
+Isso impede na compilação um `between` sobre um campo sem ordem útil: quem declara o campo conhece o tipo da coluna e escolhe a classe.
+
+**Pedidos sucessivos acumulam, e por padrão valem juntos (`AND`).** É o que faz `ge(inicio)` seguido de `le(fim)` — como sai de dois campos de tela — significar intervalo, e `ne(1)` com `ne(2)` excluir os dois. Fosse `OR` o padrão, esses casos devolveriam quase toda a tabela sem nada indicar o erro. Alternativa se pede com `or()`, e a disjunção vale **dentro** do campo; entre campos é sempre `AND`:
+
+```java
+criteria.userName().or().eq("admin");
+criteria.userName().eq("fulano");     // (userName = 'admin' OR userName = 'fulano')
+```
+
+**Valor nulo não acrescenta pedido**, em vez de apagar os anteriores — é o que preserva o costume de montar filtro a partir de tela, onde vazio significa "não filtrar por isto". Para apagar, `clear()`; para comparar com nulo, `isNull()`. Os atalhos `withXxx(valor)` continuam existindo, e são `xxx().eq(valor)`.
+
+A tradução para jOOQ é escrita **uma vez**, no `CriterionTranslator`. O que resta a cada entidade é dizer qual coluna corresponde a cada campo e, quando o tipo do domínio difere do da coluna, como converter o valor:
+
+```java
+return CriterionTranslator.and(Arrays.asList(
+        CriterionTranslator.translate(enProduct.ID, criteria.productId()),
+        CriterionTranslator.translate(enProduct.NAME, criteria.name()),
+        // A coluna é NUMERIC e o domínio fala em Double: a conversão é do campo, e vale igual
+        // para eq, between e in.
+        CriterionTranslator.translate(enProduct.PRICE, criteria.price(), BigDecimal::valueOf)));
+```
+
+Campo que não é coluna da tabela — `PurchaseCriteria.productId`, que vive nos itens — continua saindo como `EXISTS`, mas a condição interna também vem do tradutor, de modo que `in`, `between` e a disjunção valem ali do mesmo jeito.
+
+> **Cuidado ao migrar:** `criteria.productId()` nunca é `null` — o campo existe sempre, informado ou não. Testar `criteria.productId() == null` compila e é sempre falso. O que decide é `hasProductId()`. Foi assim que duas guardas de `delete` — as que impedem apagar a tabela inteira — deixaram de valer na migração, sem o compilador dizer nada.
+
+**No transporte**, o campo vira um objeto com os pedidos, e não o valor solto que trafegava antes:
+
+```json
+"price": { "or": true, "p": [ { "o": "GE", "v": [10.0] }, { "o": "IS_NULL" } ] }
+```
+
+O valor solto não bastaria: um campo carrega vários pedidos, cada um com seu operador e sua aridade, e a disjunção é do campo. Reduzir isso a `"price": 10.0` descartaria tudo menos a igualdade, e em silêncio. O formato antigo continua sendo aceito na leitura, como igualdade.
+
+### A especificação OpenAPI é derivada do domínio
+
+O documento servido em `GET /openapi.json` não descreve os critérios por escrito: ele os **deriva**. Para cada
+entidade há um esquema — `ProductCriteria`, `UserCriteria`, … — cujos campos saem de `Criteria.criterions()` e cujo
+`orderBy` traz o `enum` do `OrderBy` daquela entidade. A família de cada campo (identidade, ordenável, texto) é lida
+da classe do próprio `Criterion`.
+
+Isso existe por uma razão concreta: a especificação já ficou para trás uma vez. Enquanto as listas eram escritas à
+mão, o formato do critério mudou e o documento seguiu descrevendo o anterior, sem que nada quebrasse — código que só
+descreve não falha quando o que ele descreve muda. Derivando, acrescentar um campo ao critério o faz aparecer na
+documentação no mesmo build.
+
+O `OpenApiSpecTest` fecha o resto: confere que os campos e as ordenações documentados são exatamente os do domínio.
+Vale notar o que esse teste **não** cobre — remover um campo do critério o remove dos dois lados, e ele continua
+passando. O que ele pega é a especificação ficar atrás do domínio, que é o defeito que de fato ocorreu.
+
+### Ordenação: conceitos provisionados, não campos
+
+O `OrderBy` de cada `XxxCriteria` **não** é uma lista de campos ordenáveis com uma direção. Cada constante é uma **ordenação inteira** — um conceito —, cujo nome diz o efeito obtido, e a tradução decide por quais colunas isso se faz:
+
+```java
+public enum OrderBy {
+    OLDEST_FIRST,          // ordem de cadastro
+    NEWEST_FIRST,
+    NAME_A_TO_Z,           // ORDER BY NAME asc, ID asc
+    CHEAPEST_FIRST,        // ORDER BY PRICE asc, ID asc
+    MOST_EXPENSIVE_FIRST,
 }
+```
+
+Cada entrada nomeia o **efeito percebido**, não a coluna e a direção: quem pede não escolhe um campo e um sentido, escolhe uma ordenação que a aplicação provisionou.
+
+**A lista é curta de propósito.** Ordenação nova entra por decisão, e entra junto com o índice que a sustenta — é o que mantém explícito o que o banco precisa aguentar. Oferecer ordenação livre por qualquer campo pareceria generoso e produziria varredura completa na primeira consulta grande. Os índices vivem no `DBCreate`, ao lado da tabela, com o comentário dizendo qual ordenação cada um serve.
+
+Duas consequências práticas do desenho:
+
+- **A escolha das colunas mora no repositório**, não no critério. `MOST_RECENT_PURCHASE_FIRST` ordena por `BUYDATE desc, ID desc`; quem pede não precisa saber disso.
+- **Toda ordenação por campo não único desempata pela chave.** Sem isso, duas execuções da mesma consulta podem devolver as linhas em ordens diferentes — e, com recorte, trazer conjuntos diferentes.
+
+### Transporte da coleção projetada
+
+Tudo o que se descreveu — critério expressivo, ordem e recorte da coleção filha — vale igual em acesso direto e via REST, porque a projeção inteira trafega. O ponto sutil é a **coleção projetada**: uma `ProjectionList` não é uma lista de resultados, é *uma* forma de item mais o critério que a filtra e o recorte a aplicar. No transporte, ela vira um envelope, distinto do array de resultado pelo próprio formato:
+
+```json
+// projeção (cliente → servidor)
+"items": {
+  "shape":  { "id": 1, "amount": 1, "product": { "id": 1 } },
+  "where":  { "productId": { "p": [ { "o": "EQ", "v": [7] } ] }, "orderBy": "MOST_EXPENSIVE_FIRST" },
+  "limit":  5,
+  "offset": 1
+}
+
+// resultado (servidor → cliente) — o array de sempre
+"items": [ { "id": 10, ... }, { "id": 11, ... } ]
+```
+
+O leitor decide pelo token: objeto é projeção, array é resultado — o mesmo campo `items` serve os dois sentidos, e o resultado segue inalterado. O `where` reusa o codec do item (`CriterionCodec`), de modo que `in`, `between` e a disjunção valem no sub-critério como valem no de topo. O `ProjectionCollectionCodec` cuida do envelope; o codec da entidade filha, do conteúdo do critério — os dois colaboram.
+
+É o envelope que faz "os itens do produto X, ordenados, 5 primeiros" chegar como tal ao servidor — sem ele, `writeEntity` levaria apenas a forma dos itens, e o REST devolveria todos, sem filtro nem ordem. Os testes de coleção vivem nos `Abstract*RepositoryTest` e rodam nos dois modos, então a paridade é verificada, não presumida.
+
+### Coleção filha ordenada e recortada
+
+A coleção 1:N declarada com `addBeanListField` pode ser ordenada e recortada pela própria projeção. A ordem vem do `OrderBy` do critério que a coleção carrega; o recorte, de `withLimit`/`withOffset`:
+
+```java
+var itens = pv.singletonList(itemPrj, new PurchaseItemCriteria()
+                .withOrderBy(PurchaseItemCriteria.OrderBy.MOST_EXPENSIVE_FIRST))
+        .withOffset(1)
+        .withLimit(2);
+
+var prj = new Purchase().withId(pv.i64).withItems(itens);
+```
+
+Para o repositório saber traduzir o `OrderBy`, ele registra a tradução uma vez:
+
+```java
+.setOrdering(PurchaseItemRepositoryImpl::orderingOf)
+```
+
+**A forma do SQL não é livre.** A coleção sai de uma subconsulta correlacionada com a linha do pai (`filha.fk = pai.id`), e isso descarta o caminho óbvio — envolver a coleção numa tabela derivada, onde caberia um `ORDER BY ... LIMIT` comum. Uma derivada não enxerga o escopo externo, e a correlação fica fora de alcance: *column pai.id not found*. `LATERAL` também não serve — o H2 só o aceita depois de uma tabela à esquerda no `FROM`.
+
+O que funciona, e é o que o framework emite:
+
+```sql
+(select LISTAGG(<projeção>, ',') WITHIN GROUP (ORDER BY "pi2"."ID" desc)
+   from "EN_PURCHASEITEM" "pi2"
+  where "pi2"."PURCHASEID" = "p1"."ID"                    -- correlação com o pai
+    and "pi2"."ID" in (select "pi3"."ID"                  -- recorte: subconsulta correlacionada,
+          from "EN_PURCHASEITEM" "pi3"                    -- que enxerga o pai
+         where "pi3"."PURCHASEID" = "p1"."ID"
+         order by "pi3"."ID" desc
+         offset ? rows fetch next ? rows only))
+```
+
+Ou seja: a **ordem entra dentro da agregação** (`LISTAGG ... WITHIN GROUP` no H2, `string_agg(... ORDER BY ...)` no PostgreSQL), e o **recorte sai como `IN` sobre a chave primária** — a PK vem da tabela gerada pelo jOOQ, sem declaração. O `IN` repete o mesmo filtro da coleção, para que o corte caia sobre o conjunto já filtrado.
+
+Sem ordem nem recorte, a consulta sai exatamente como antes — mesmo SQL, mesmo plano.
+
+Dialeto que não sabe ordenar dentro do agregado **recusa** o pedido com exceção, em vez de devolver a coleção fora de ordem: um resultado ordenado errado passa por certo, e o erro só apareceria longe dali. Hoje honram a ordem H2 e PostgreSQL — os dois que a aplicação usa.
+
+### Associação projetada só pela chave não gera subselect
+
+Uma relação 1:1 declarada com `addBeanField` normalmente vira um subselect correlacionado. Mas a projeção mais comum traz a associação **apenas para carregar o id** — e esse id já está na linha, na coluna da chave estrangeira. Buscá-lo do outro lado é uma consulta para descobrir o que já se sabe.
+
+Declarando a chave na relação, o framework monta o objeto a partir da própria linha:
+
+```java
+.addBeanField("product", pi -> pi.product(), (pi, v) -> pi.withProduct(v), ProductRepositoryImpl.QUERY,
+        cq -> cq.dsl().where().and(cq.getChildTable().ID.eq(cq.getSuperTable().PRODUCTID)),
+        key -> key.addI64("id", t -> t.PRODUCTID))
+```
+
+Os nomes declarados em `key` são os do **JSON do filho** (`"id"`), e as colunas são as **desta** tabela (`PRODUCTID`) — é assim que a leitura do outro lado reconhece o objeto.
+
+O atalho é condicional: `JsonQuery.projectsBeyond(...)` pergunta se a projeção da associação pede algo além da chave. Se pedir, a consulta sai como antes. Com `PurchaseItem.newProjection()`, que projeta `purchase` e `product` só com id, os dois subselects por linha desaparecem:
+
+```sql
+-- antes: dois subselects correlacionados por linha
+KEY 'product' VALUE (select ... from "EN_PRODUCT" "p2" where "p2"."ID" = "pi1"."PRODUCTID")
+
+-- agora: a chave sai da própria linha
+KEY 'product' VALUE JSON_OBJECT(KEY 'id' VALUE "pi1"."PRODUCTID")
+```
+
+### Organização: um pacote por entidade
+
+Os pacotes seguem as **entidades**, não os tipos de classe. Cada entidade reúne num único pacote tudo o que diz respeito a ela — modelo, critério de consulta, codec de serialização e contrato de repositório:
+
+```
+domain/
+  product/      Product, ProductCriteria, ProductCodec, ProductRepository
+  user/         User, UserCriteria, UserCodec, UserRepository
+  purchase/     Purchase, PurchaseCriteria, PurchaseCodec, PurchaseRepository
+  purchaseitem/ PurchaseItem, PurchaseItemCriteria, PurchaseItemCodec, PurchaseItemRepository
+
+  exception/    InvalidCartItemException
+  security/     Role
+  ShoppingConfig, ShoppingTransactions
+```
+
+Assim, mexer numa entidade é mexer numa pasta só, e uma entidade nova nasce como um pacote completo — em vez de quatro arquivos espalhados por quatro pacotes técnicos.
+
+### Modelos
+
+POJOs simples com estado encapsulado e **API fluente** — a mesma superfície dos `XxxCriteria`: um acessor `campo()` e um setter `withCampo(...)` que devolve `this`. Sem anotações de persistência, sem herança obrigatória (apenas `KeyedEntity`, que expõe a chave de identidade para o detector de ciclos da serialização):
+
+```java
+public class Product implements KeyedEntity {
+
+    private Long id;
+
+    public Long id() {
+        return id;
+    }
+
+    public Product withId(Long id) {
+        this.id = id;
+        return this;
+    }
+
+    // ... name, price, description, image seguem o mesmo par
+
+    @Override
+    public Long key() {
+        return id;
+    }
+}
+```
+
+Isso deixa a construção legível em uma expressão só, inclusive nas relações:
+
+```java
+var prj = new PurchaseItem()
+        .withId(pv.i64)
+        .withAmount(pv.i32)
+        .withPurchase(new Purchase().withId(pv.i64));
 ```
 
 Nada de `@Entity`, `@Column`, `@JsonProperty`. O modelo é puro Java. Quem sabe mapeá-lo para banco é o módulo `persistence`. Quem sabe serializá-lo para JSON é o módulo `persistence.rest`.
@@ -116,9 +331,20 @@ public interface ProductRepository {
     int delete(ProductCriteria criteria);
     int count(ProductCriteria criteria);
     List<Product> fetch(ProductCriteria criteria);
-    Product fetchById(Long id, Product projection);
+
+    // Busca pela chave: um ProductCriteria com igualdade sobre a chave primária.
+    default Product fetchById(Long productId, Product projection) {
+        var found = fetch(new ProductCriteria()
+                .withProductId(productId)
+                .withProjection(projection != null ? projection : newProjection()), 0, 1);
+        return found.isEmpty() ? null : found.get(0);
+    }
 }
 ```
+
+O `default` mora na interface da entidade porque é ela que sabe qual campo do critério é a
+chave; o `Repository` genérico conhece apenas o tipo `C`. Com isso, buscar pela chave é a
+mesma consulta das outras, com o mesmo tratamento de projeção, de segurança e de transação.
 
 O campo estático `BEAN` é o ponto de injeção — um Service Locator leve baseado em `AtomicReference`. A implementação concreta é registrada durante o bootstrap da aplicação:
 
@@ -127,7 +353,7 @@ O campo estático `BEAN` é o ponto de injeção — um Service Locator leve bas
 ProductRepository.BEAN.set(new ProductRepositoryImpl());
 
 // Modo cliente (acesso via HTTP):
-ProductRepository.BEAN.set(new RestProductRepository(restConfig));
+ProductRepository.BEAN.set(new HttpProductRepository(transport, new ProductCodec()));
 ```
 
 Todo código que consome produtos faz simplesmente:
@@ -343,7 +569,12 @@ Todas as entidades seguem o mesmo padrão de endpoints:
 | `POST` | `/api/repo/product/delete` | `ProductCriteria` | `int` |
 | `POST` | `/api/repo/product/count` | `ProductCriteria` | `int` |
 | `POST` | `/api/repo/product/fetch` | `ProductCriteria` | `List<Product>` |
-| `POST` | `/api/repo/product/fetchById` | `{ id, projection }` | `Product` |
+| `POST` | `/api/repo/product/fetch-by-id` | `{ id, projection }` | `Product` |
+| `GET` | `/api/repo/product/{id}` | — | `Product` (404 se não existir) |
+
+> Os dois últimos existem para quem consome a API de fora. O cliente HTTP deste projeto
+> **não** os usa: o `fetchById` dele é o `default` da interface, que monta o critério e vai
+> por `/fetch`. Quem os cobre é o `FetchByIdEndpointTest`.
 
 O critério e a projeção trafegam como JSON no body — estrutura idêntica ao objeto Java. Não há mapeamento manual entre parâmetros HTTP e objetos de domínio.
 
@@ -355,37 +586,62 @@ Um before-filter registrado em `/api/repo/*` extrai o JWT do header `Authorizati
 
 ## O Módulo persistence.client — O Espelho HTTP
 
-O módulo `persistence.client` implementa as mesmas interfaces de repositório do `domain`, mas cada chamada vira uma request HTTP via OkHttp:
+O módulo `persistence.client` implementa as mesmas interfaces de repositório do `domain`, mas cada chamada vira uma request HTTP. Quase tudo mora em `HttpRepository`, a base genérica: as sete operações do contrato têm a mesma forma em todas as entidades, e o que muda é só o `basePath` e o codec.
 
 ```java
-public class RestProductRepository implements ProductRepository {
+public class HttpProductRepository extends HttpRepository<Product, ProductCriteria, Long>
+        implements ProductRepository {
 
-    @Override
-    public List<Product> fetch(ProductCriteria criteria) {
-        return restConfig.postJson("/api/repo/product/fetch", criteria, productListType);
+    public HttpProductRepository(HttpTransport transport, ModelCodec<Product, ProductCriteria> codec) {
+        super(transport, codec, "/api/repo/product");
     }
 
+    // Só o que é específico da entidade: a imagem, que trafega como bytes e não como JSON.
     @Override
-    public Product fetchById(Long id, Product projection) {
-        return restConfig.postJson("/api/repo/product/fetchById",
-                Map.of("id", id, "projection", projection), Product.class);
+    public byte[] fetchImage(Long productId) {
+        return transport().getBytes(basePath() + "/" + productId + "/image");
     }
 }
 ```
 
-O `RestConfig` encapsula toda a infraestrutura HTTP:
-- Serialização/deserialização Gson com adapters para `OffsetDateTime` e exclusão de referências circulares
-- Injeção automática do Bearer token em todos os requests autenticados
-- Renovação transparente de token expirado via refresh endpoint
-- Tratamento de `AccessDeniedException` a partir de respostas HTTP 403
-
-O **bootstrap** é uma única chamada que registra todas as implementações REST nos BEANs:
+**Não há mapeamento por reflexão.** A serialização é a dos próprios codecs do domínio (`JsonStreamWriter`/`JsonStreamReader`), os mesmos que o lado servidor usa para ler — é o que garante que critério e projeção atravessem o fio com o mesmo significado dos dois lados:
 
 ```java
-var config = new RestConfig("http://localhost:8080");
-RestRepositoryBootstrap.initialize(config);
-// A partir daqui, ProductRepository.BEAN.get() retorna RestProductRepository
+public List<E> fetch(C criteria, int offset, int limit) {
+    var writer = new JsonStreamWriter();
+    writer.beginObject();
+    codec.writeCriteriaFields(writer, criteria);     // o critério expressivo, inteiro
+    writeProjection(writer, codec.getProjection(criteria));
+    if (offset > 0) writer.name("offset").value(offset);
+    if (limit > 0) writer.name("limit").value(limit);
+    writer.endObject();
+
+    var responseJson = transport.postJson(basePath + "/fetch", writer.result());
+    // ... lê "items" com codec.readEntityList
+}
 ```
+
+### O transporte é uma interface
+
+`HttpTransport` (em `framework.commons.http`) é o que o repositório enxerga: `postJson`, `getJson`, `getBytes`, `putBytes`. Duas implementações:
+
+| Implementação | Onde | Como |
+|---|---|---|
+| `OkHttpTransport` | JVM (Gluon, testes, SWT remoto) | OkHttp |
+| `FetchHttpTransport` | navegador (`teavm.web`) | `fetch` do próprio browser, via TeaVM |
+
+É por isso que o `persistence.client` roda compilado para JavaScript: nada nele depende de OkHttp — a dependência mora só no transporte JVM. O `OkHttpTransport` cuida do Bearer token (via `setAccessTokenSupplier`) e do `X-Tx-Id` da transação remota (via `setTransactionIdSupplier`).
+
+O **bootstrap** é uma chamada que registra todas as implementações nos BEANs:
+
+```java
+RestRepositoryBootstrap.initialize(transport, storage);
+// A partir daqui, ProductRepository.BEAN.get() retorna HttpProductRepository
+```
+
+Além dos quatro repositórios, ele registra o `AuthenticationService` (login HMAC challenge-response
+contra a API) e o `ShoppingTransactions.BEAN` (`RestTransactionService`, a transação remota dirigida
+pelo cliente).
 
 ---
 
@@ -398,7 +654,7 @@ Modo servidor (Vaadin, SWT, modo remoto):
   ProductRepository.BEAN → ProductRepositoryImpl → jOOQ → H2
 
 Modo cliente (TeaVM, Gluon):
-  ProductRepository.BEAN → RestProductRepository → OkHttp → /api/repo/product/fetch → ProductRepositoryImpl → jOOQ → H2
+  ProductRepository.BEAN → HttpProductRepository → HttpTransport → /api/repo/product/fetch → ProductRepositoryImpl → jOOQ → H2
 ```
 
 O `CartPresenter` que busca produtos para exibir no carrinho não tem uma linha de código diferente entre os dois modos. A diferença está apenas no bootstrap — em qual implementação é registrada no `BEAN`.
@@ -431,24 +687,24 @@ sequenceDiagram
 sequenceDiagram
     participant Presenter
     participant BEAN as ProductRepository.BEAN
-    participant Rest as RestProductRepository
-    participant HTTP as OkHttp
+    participant Http as HttpProductRepository
+    participant Transport as HttpTransport
     participant API as /api/repo/product/fetch
     participant Impl as ProductRepositoryImpl
     participant DB as H2
 
     note over Presenter,DB: Modo Cliente (TeaVM, Gluon)
     Presenter->>BEAN: fetch(criteria)
-    BEAN->>Rest: fetch(criteria)
-    Rest->>HTTP: POST /api/repo/product/fetch (criteria como JSON)
-    HTTP->>API: request + Bearer token
-    API->>Impl: fetch(criteria desserializado)
+    BEAN->>Http: fetch(criteria)
+    Http->>Transport: POST /api/repo/product/fetch (critério e projeção pelo codec)
+    Transport->>API: request + Bearer token
+    API->>Impl: fetch(criteria lido pelo mesmo codec)
     Impl->>DB: SELECT JSON_OBJECT(...)
     DB-->>Impl: JSON rows
     Impl-->>API: List<Product>
-    API-->>HTTP: JSON response
-    HTTP-->>Rest: List<Product> (desserializado)
-    Rest-->>Presenter: List<Product>
+    API-->>Transport: JSON response
+    Transport-->>Http: JSON
+    Http-->>Presenter: List<Product>
 ```
 
 Do ponto de vista do Presenter, as duas sequências são indistinguíveis.

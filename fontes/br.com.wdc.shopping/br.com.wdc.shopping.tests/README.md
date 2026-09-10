@@ -47,7 +47,7 @@ Cenários cobertos:
 
 - **Projeções** (`ProjectionValues`) para verificar que apenas campos solicitados são retornados
 - **Critérios de filtro** (por ID, por campos específicos, por FK)
-- **Paginação** (`offset` / `limit`) e **ordenação** (`OrderBy.ACENDING` / `DESCENDING`)
+- **Paginação** (`offset` / `limit`) e **ordenação** (as entradas de `OrderBy`, ex.: `NEWEST_FIRST`, `NAME_A_TO_Z`)
 - **Casos de borda**: IDs inexistentes, delete sem resultados, constraints de FK
 
 Cada teste parte de um banco limpo com dados de seed (`DBReset`), garantindo determinismo.

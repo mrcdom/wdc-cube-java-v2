@@ -13,6 +13,7 @@ Idioma do projeto: **português** (docs, READMEs, mensagens de commit). Código 
 - `fontes/` — todo o código-fonte Maven (multi-módulo). **O build roda a partir daqui, não da raiz.**
   - `br.com.wdc.framework/` — framework reutilizável: `commons`, `domain` (abstrações genéricas: `Repository`, `Page`, `ModelCodec`, `Projection*`, exceções base, segurança/`PermissionModel`, `AppConfig`), `cube`, `cube.remote`, `jooq`, `dependencies` (BOM)
   - `br.com.wdc.shopping/` — app de exemplo: `domain`, `persistence` (agrupador de `persistence.impl` (jOOQ), `persistence.client` (HTTP/okhttp), `persistence.rest` (API Javalin)), `presentation`, `backend`, `scripts`, `tests`, `view.*`
+    - **`domain` é organizado por entidade, não por tipo de classe**: `domain.product`, `domain.user`, `domain.purchase`, `domain.purchaseitem` — cada pacote reúne as quatro classes daquela entidade (`Xxx`, `XxxCriteria`, `XxxModelCodec`, `XxxRepository`). Ao criar uma entidade nova, crie o pacote dela com o conjunto completo; não há mais pacotes `model`/`criteria`/`codec`/`repositories`. Fora disso, `domain` guarda `exception`, `security` e os holders de raiz (`ShoppingConfig`, `ShoppingTransactions`).
 - `work/` — diretório de runtime: `config/` (TOML), `bin/` (scripts de start), `data/`, `log/`, `frontend/`
 - `docs/` — documentação arquitetural detalhada (PT)
 
@@ -28,9 +29,17 @@ cd fontes && mvn test                   # testes
 ./work/bin/start-server.sh [porta]      # cd para work/, builda se faltar o JAR
 ./work/bin/start-h2-server.sh           # H2 em modo TCP (config aponta para tcp://localhost por padrão)
 
-# Frontend React (assets vão direto para remote.host/.../resources)
+# Frontends web (React, Flutter web, remote.shell.teavm, teavm.web → work/frontend/)
+./work/bin/build-frontends.sh            # todos; --list mostra alvos/pré-requisitos, --skip-install pula o mvn install
+./work/bin/build-frontends.sh react      # um alvo só
+
+# Desenvolvimento: cada módulo tem watch próprio
 cd fontes/.../remote.shell.react && npm install && npm run watch
 ```
+
+Os quatro frontends web depositam seus artefatos em `work/frontend/<nome>`; cada um tem o seu `build.sh` no módulo de origem e o `build-frontends.sh` só orquestra os quatro. `work/frontend/{api.docs,openapi}` são estáticos.
+
+**Armadilha dos alvos TeaVM**: `remote.shell.teavm` e `teavm.web` compilam contra os JARs do `~/.m2`, não contra o reator — sem `mvn install` antes, geram em silêncio um app com a versão anterior do domínio (abre normalmente, falha só na chamada que mudou). O `build-frontends.sh` reinstala por padrão justamente por isso.
 
 Config externa: `work/config/application.toml` (resolução: system property `shopping.config.file` → fallback para esse arquivo). `application.local.toml` para overrides locais.
 
@@ -59,6 +68,8 @@ Controle programático estilo CMT via `TransactionService` (`framework.domain.tr
 - **Virtual Threads** (Java 21) para conexões WebSocket.
 - **Segurança RBAC**: HMAC challenge-response + JWT; repositórios decorados (`SecuredXxxRepository`); papéis ADMIN/CUSTOMER/MANAGER (modelo allow-wins). Transporte React: RSA + PBKDF2 + AES-GCM.
 - **Nomenclatura**: `*ViewState`, `*ViewImpl`, `*Presenter`, `*RepositoryImpl`, `*Criteria`, `Apply*Criteria`.
+- **Critérios**: cada campo de um `*Criteria` é um `Criterion` (`framework.domain.criteria`) — `Criterion` (eq/ne/in/isNull), `ComparableCriterion` (gt/ge/lt/le/between) ou `TextCriterion` (like/ilike/containing/startingWith). Pedidos acumulam em `AND`; `or()` torna o campo disjuntivo. **O campo nunca é `null`** — `criteria.xxx() == null` compila e é sempre falso; use `hasXxx()`. A tradução para jOOQ é única, no `CriterionTranslator`; cada entidade só mapeia campo→coluna no seu `ApplyConditions`.
+- **Entidades (implementam `KeyedEntity`) têm API fluente**, igual à dos `*Criteria`: campo `private`, acessor `campo()` e setter `withCampo(...)` que devolve `this`. Não há campos públicos — construa encadeando (`new Product().withName(x).withPrice(y)`), inclusive nas relações (`withPurchase(new Purchase().withId(id))`). Structs de apresentação (`presentation.**.structs`) seguem outro padrão: continuam com campos públicos.
 - **Formatação Java**: `fontes/wedocode-java-formatter.xml`. Frontend: Prettier (configurado no `.vscode/settings.json`, format-on-save).
 
 ## Mensagens de commit

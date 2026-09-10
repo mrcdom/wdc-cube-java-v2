@@ -6,10 +6,10 @@ import java.util.List;
 
 import org.junit.Test;
 
-import br.com.wdc.shopping.domain.criteria.UserCriteria;
-import br.com.wdc.shopping.domain.model.User;
-import br.com.wdc.shopping.domain.repositories.UserRepository;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
+import br.com.wdc.shopping.domain.user.User;
+import br.com.wdc.shopping.domain.user.UserCriteria;
+import br.com.wdc.shopping.domain.user.UserRepository;
 import br.com.wdc.shopping.scripts.sgbd.DBReset;
 
 public abstract class AbstractUserRepositoryTest {
@@ -28,8 +28,8 @@ public abstract class AbstractUserRepositoryTest {
 	public void fetchById_returnsCorrectUser() {
 		var user = repo().fetchById(DBReset.ADMIN_ID, null);
 		assertNotNull(user);
-		assertEquals("admin", user.userName);
-		assertEquals("João da Silva", user.name);
+		assertEquals("admin", user.userName());
+		assertEquals("João da Silva", user.name());
 	}
 
 	@Test
@@ -41,44 +41,27 @@ public abstract class AbstractUserRepositoryTest {
 	@Test
 	public void fetchWithProjection_onlyRequestedFields() {
 		var pv = ProjectionValues.INSTANCE;
-		var projection = new User();
-		projection.id = pv.i64;
-		projection.userName = pv.str;
+		var projection = new User()
+				.withId(pv.i64)
+				.withUserName(pv.str);
 
 		var user = repo().fetchById(DBReset.ADMIN_ID, projection);
 		assertNotNull(user);
-		assertEquals(DBReset.ADMIN_ID, user.id);
-		assertEquals("admin", user.userName);
+		assertEquals(DBReset.ADMIN_ID, user.id());
+		assertEquals("admin", user.userName());
 	}
 
 	@Test
 	public void fetchByCriteria_userName() {
 		var users = repo().fetch(new UserCriteria().withUserName("fulano"));
 		assertEquals(1, users.size());
-		assertEquals(DBReset.FULANO_ID, users.get(0).id);
-	}
-
-	@Test
-	public void fetchByCriteria_userNameAndPassword() {
-		var users = repo().fetch(new UserCriteria()
-				.withUserName("admin")
-				.withPassword("admin"));
-		assertEquals(1, users.size());
-		assertEquals(DBReset.ADMIN_ID, users.get(0).id);
-	}
-
-	@Test
-	public void fetchByCriteria_wrongPassword_returnsEmpty() {
-		var users = repo().fetch(new UserCriteria()
-				.withUserName("admin")
-				.withPassword("wrong"));
-		assertTrue(users.isEmpty());
+		assertEquals(DBReset.FULANO_ID, users.get(0).id());
 	}
 
 	@Test
 	public void fetchWithOffsetAndLimit() {
 		var users = repo().fetch(new UserCriteria()
-				.withOrderBy(UserCriteria.OrderBy.ASCENDING), 1, 1);
+				.withOrderBy(UserCriteria.OrderBy.OLDEST_FIRST), 1, 1);
 		assertEquals(1, users.size());
 	}
 
@@ -106,19 +89,19 @@ public abstract class AbstractUserRepositoryTest {
 
 	@Test
 	public void insert_newUser() {
-		var user = new User();
-		user.userName = "newuser";
-		user.password = "secret";
-		user.name = "New User";
+		var user = new User()
+				.withUserName("newuser")
+				.withPassword("secret")
+				.withName("New User");
 
 		boolean inserted = repo().insert(user);
 		assertTrue(inserted);
-		assertNotNull(user.id);
+		assertNotNull(user.id());
 
-		var fetched = repo().fetchById(user.id, null);
+		var fetched = repo().fetchById(user.id(), null);
 		assertNotNull(fetched);
-		assertEquals("newuser", fetched.userName);
-		assertEquals("New User", fetched.name);
+		assertEquals("newuser", fetched.userName());
+		assertEquals("New User", fetched.name());
 	}
 
 	// :: update
@@ -126,93 +109,93 @@ public abstract class AbstractUserRepositoryTest {
 	@Test
 	public void update_existingUser() {
 		var pv = ProjectionValues.INSTANCE;
-		var fullProjection = new User();
-		fullProjection.id = pv.i64;
-		fullProjection.userName = pv.str;
-		fullProjection.password = pv.str;
-		fullProjection.name = pv.str;
+		var fullProjection = new User()
+				.withId(pv.i64)
+				.withUserName(pv.str)
+				.withPassword(pv.str)
+				.withName(pv.str);
 
 		var original = repo().fetchById(DBReset.ADMIN_ID, fullProjection);
 		assertNotNull(original);
 
-		var updated = new User();
-		updated.id = original.id;
-		updated.userName = original.userName;
-		updated.password = original.password;
-		updated.name = "Nome Alterado";
+		var updated = new User()
+				.withId(original.id())
+				.withUserName(original.userName())
+				.withPassword(original.password())
+				.withName("Nome Alterado");
 
 		boolean result = repo().update(updated, original);
 		assertTrue(result);
 
 		var fetched = repo().fetchById(DBReset.ADMIN_ID, null);
-		assertEquals("Nome Alterado", fetched.name);
+		assertEquals("Nome Alterado", fetched.name());
 	}
 
 	@Test
 	public void update_partialFields_onlyChangesSpecifiedFields() {
 		var pv = ProjectionValues.INSTANCE;
-		var fullProjection = new User();
-		fullProjection.id = pv.i64;
-		fullProjection.userName = pv.str;
-		fullProjection.password = pv.str;
-		fullProjection.name = pv.str;
-		fullProjection.roles = pv.str;
+		var fullProjection = new User()
+				.withId(pv.i64)
+				.withUserName(pv.str)
+				.withPassword(pv.str)
+				.withName(pv.str)
+				.withRoles(pv.str);
 
 		var original = repo().fetchById(DBReset.ADMIN_ID, fullProjection);
 		assertNotNull(original);
-		var originalUserName = original.userName;
-		var originalPassword = original.password;
+		var originalUserName = original.userName();
+		var originalPassword = original.password();
 
 		// projeção parcial: só id e name
-		var projection = new User();
-		projection.id = pv.i64;
-		projection.name = pv.str;
+		var projection = new User()
+				.withId(pv.i64)
+				.withName(pv.str);
 
-		var updated = new User();
-		updated.id = original.id;
-		updated.name = "Nome Parcial";
+		var updated = new User()
+				.withId(original.id())
+				.withName("Nome Parcial");
 
 		boolean result = repo().update(updated, original, projection);
 		assertTrue(result);
 
 		var fetched = repo().fetchById(DBReset.ADMIN_ID, fullProjection);
-		assertEquals("Nome Parcial", fetched.name);
-		assertEquals(originalUserName, fetched.userName);
-		assertEquals(originalPassword, fetched.password);
+		assertEquals("Nome Parcial", fetched.name());
+		assertEquals(originalUserName, fetched.userName());
+		assertEquals(originalPassword, fetched.password());
 	}
 
 	@Test
 	public void update_setFieldToNull_clearsValue() {
 		var pv = ProjectionValues.INSTANCE;
-		var fullProjection = new User();
-		fullProjection.id = pv.i64;
-		fullProjection.userName = pv.str;
-		fullProjection.password = pv.str;
-		fullProjection.name = pv.str;
-		fullProjection.roles = pv.str;
+		var fullProjection = new User()
+				.withId(pv.i64)
+				.withUserName(pv.str)
+				.withPassword(pv.str)
+				.withName(pv.str)
+				.withRoles(pv.str);
 
 		// Garante que admin tem roles preenchido
 		var original = repo().fetchById(DBReset.ADMIN_ID, fullProjection);
 		assertNotNull(original);
-		assertNotNull(original.roles);
+		assertNotNull(original.roles());
 
 		// projeção inclui roles — valor será null para limpar
-		var projection = new User();
-		projection.id = pv.i64;
-		projection.roles = pv.str;
+		var projection = new User()
+				.withId(pv.i64)
+				.withRoles(pv.str);
 
-		var updated = new User();
-		updated.id = original.id;
-		updated.roles = null; // intencionalmente limpar
+		var updated = new User()
+				.withId(original.id());
+		updated.withRoles(null); // intencionalmente limpar
 
 		boolean result = repo().update(updated, original, projection);
 		assertTrue(result);
 
 		var fetched = repo().fetchById(DBReset.ADMIN_ID, fullProjection);
-		assertNull(fetched.roles);
+		assertNull(fetched.roles());
 		// demais campos intactos
-		assertEquals(original.userName, fetched.userName);
-		assertEquals(original.name, fetched.name);
+		assertEquals(original.userName(), fetched.userName());
+		assertEquals(original.name(), fetched.name());
 	}
 
 	// :: delete
@@ -229,5 +212,113 @@ public abstract class AbstractUserRepositoryTest {
 	public void deleteNonExistent_returnsZero() {
 		int deleted = repo().delete(new UserCriteria().withUserId(Long.MAX_VALUE));
 		assertEquals(0, deleted);
+	}
+
+	// :: Critério textual — rodam também no modo REST, onde provam que os operadores trafegam
+
+	@Test
+	public void startingWith_anchorsAtTheBeginning() {
+		var users = repo().fetch(new UserCriteria().userName().startingWith("adm"));
+
+		assertEquals(1, users.size());
+		assertEquals("admin", users.get(0).userName());
+	}
+
+	@Test
+	public void startingWith_doesNotMatchInTheMiddle() {
+		// O que distingue startingWith de containing: "dmi" existe em "admin", mas não no início.
+		assertEquals(0, repo().fetch(new UserCriteria().userName().startingWith("dmi")).size());
+	}
+
+	@Test
+	public void containing_matchesAnywhere() {
+		var users = repo().fetch(new UserCriteria().userName().containing("ulan"));
+
+		assertEquals(1, users.size());
+		assertEquals("fulano", users.get(0).userName());
+	}
+
+	@Test
+	public void ilike_ignoresCase() {
+		var users = repo().fetch(new UserCriteria().userName().ilike("ADMIN"));
+
+		assertEquals(1, users.size());
+	}
+
+	@Test
+	public void like_doesNotIgnoreCase() {
+		// É o par que justifica existirem os dois operadores em vez de um só.
+		assertEquals(0, repo().fetch(new UserCriteria().userName().like("ADMIN")).size());
+		assertEquals(1, repo().fetch(new UserCriteria().userName().like("admin")).size());
+	}
+
+	@Test
+	public void wildcardsBelongToTheValue() {
+		// like("admin") não é like("%admin%"): os curingas fazem parte do valor, como em SQL.
+		assertEquals(0, repo().fetch(new UserCriteria().userName().like("dmi")).size());
+		assertEquals(1, repo().fetch(new UserCriteria().userName().like("%dmi%")).size());
+	}
+
+	@Test
+	public void or_acrossTextRequests() {
+		var criteria = new UserCriteria();
+		criteria.userName().or().eq("admin");
+		criteria.userName().eq("fulano");
+
+		assertEquals(2, repo().fetch(criteria).size());
+	}
+
+	@Test
+	public void emptyText_doesNotFilter() {
+		var criteria = new UserCriteria();
+		criteria.userName().startingWith("");
+
+		assertEquals("texto vazio não acrescenta pedido", 3, repo().fetch(criteria).size());
+	}
+
+	// :: Campos que não são a chave
+
+	@Test
+	public void filterByName_text() {
+		var users = repo().fetch(new UserCriteria().name().containing("Silva"));
+
+		assertEquals(1, users.size());
+		assertEquals("admin", users.get(0).userName());
+	}
+
+	@Test
+	public void filterByRoles() {
+		assertEquals(1, repo().fetch(new UserCriteria().roles().eq("ADMIN")).size());
+		assertEquals(2, repo().fetch(new UserCriteria().roles().eq("CUSTOMER")).size());
+	}
+
+	@Test
+	public void filterByRoles_containing() {
+		// Papéis ficam separados por vírgula na coluna; conter é o filtro que responde "tem este papel".
+		assertEquals(1, repo().fetch(new UserCriteria().roles().containing("ADMIN")).size());
+	}
+
+	// :: Ordenações provisionadas
+
+	@Test
+	public void orderBy_nameAToZ() {
+		var nomes = repo().fetch(new UserCriteria()
+				.withOrderBy(UserCriteria.OrderBy.NAME_A_TO_Z)).stream().map(User::name).toList();
+
+		assertEquals(nomes.stream().sorted(String.CASE_INSENSITIVE_ORDER).toList(), nomes);
+	}
+
+	@Test
+	public void orderBy_loginAToZ_differsFromName() {
+		var porLogin = repo().fetch(new UserCriteria()
+				.withOrderBy(UserCriteria.OrderBy.LOGIN_A_TO_Z)).stream().map(User::userName).toList();
+
+		assertEquals(porLogin.stream().sorted(String.CASE_INSENSITIVE_ORDER).toList(), porLogin);
+
+		// Ordenar por login não é o mesmo que ordenar por nome: são conceitos distintos, e é essa a razão
+		// de existirem duas constantes em vez de uma "ordem alfabética".
+		var porNome = repo().fetch(new UserCriteria()
+				.withOrderBy(UserCriteria.OrderBy.NAME_A_TO_Z)).stream().map(User::userName).toList();
+		assertNotEquals(porNome, porLogin);
 	}
 }

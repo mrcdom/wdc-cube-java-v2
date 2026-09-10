@@ -1,6 +1,6 @@
 [
-  { "interfaces": ["br.com.wdc.shopping.domain.repositories.UserRepository"] },
-  { "interfaces": ["br.com.wdc.shopping.domain.repositories.ProductRepository"] },
-  { "interfaces": ["br.com.wdc.shopping.domain.repositories.PurchaseRepository"] },
-  { "interfaces": ["br.com.wdc.shopping.domain.repositories.PurchaseItemRepository"] }
+  { "interfaces": ["br.com.wdc.shopping.domain.user.UserRepository"] },
+  { "interfaces": ["br.com.wdc.shopping.domain.product.ProductRepository"] },
+  { "interfaces": ["br.com.wdc.shopping.domain.purchase.PurchaseRepository"] },
+  { "interfaces": ["br.com.wdc.shopping.domain.purchaseitem.PurchaseItemRepository"] }
 ]

@@ -9,12 +9,12 @@ import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.framework.commons.serialization.JsonStreamReader;
 import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
-import br.com.wdc.shopping.domain.codec.UserModelCodec;
-import br.com.wdc.shopping.domain.criteria.UserCriteria;
 import br.com.wdc.framework.domain.exception.AccessDeniedException;
-import br.com.wdc.shopping.domain.model.User;
-import br.com.wdc.shopping.domain.repositories.UserRepository;
 import br.com.wdc.framework.domain.security.SecurityContext;
+import br.com.wdc.shopping.domain.user.User;
+import br.com.wdc.shopping.domain.user.UserCriteria;
+import br.com.wdc.shopping.domain.user.UserCodec;
+import br.com.wdc.shopping.domain.user.UserRepository;
 import br.com.wdc.shopping.persistence.rest.doc.Doc;
 import br.com.wdc.shopping.persistence.rest.security.SecurityEnforcer;
 import io.javalin.config.JavalinConfig;
@@ -56,7 +56,7 @@ public class UserApiController {
         return UserRepository.BEAN.get();
     }
 
-    private final UserModelCodec codec = new UserModelCodec();
+    private final UserCodec codec = new UserCodec();
 
     // :: Insert
 
@@ -86,7 +86,7 @@ public class UserApiController {
         var writer = new JsonStreamWriter();
         writer.beginObject();
         writer.name("success").value(success);
-        writer.name("id").value(user.id != null ? user.id : -1);
+        writer.name("id").value(user.id() != null ? user.id() : -1);
         writer.endObject();
         json(ctx, writer);
     }
@@ -133,7 +133,7 @@ public class UserApiController {
         var operation = new Operation()
                 .addTagsItem("user").summary("Delete users matching criteria")
                 .security(Doc.BEARER)
-                .requestBody(Doc.body("#/components/schemas/FetchRequest"))
+                .requestBody(Doc.body("#/components/schemas/UserFetchRequest"))
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/CountResult"))
                         .addApiResponse("401", Doc.unauthorized())
@@ -164,7 +164,7 @@ public class UserApiController {
         var operation = new Operation()
                 .addTagsItem("user").summary("Count users matching criteria")
                 .security(Doc.BEARER)
-                .requestBody(Doc.body("#/components/schemas/FetchRequest"))
+                .requestBody(Doc.body("#/components/schemas/UserFetchRequest"))
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/CountResult"))
                         .addApiResponse("401", Doc.unauthorized()));
@@ -194,7 +194,7 @@ public class UserApiController {
         var operation = new Operation()
                 .addTagsItem("user").summary("Fetch users matching criteria (offset/limit)")
                 .security(Doc.BEARER)
-                .requestBody(Doc.body("#/components/schemas/FetchRequest"))
+                .requestBody(Doc.body("#/components/schemas/UserFetchRequest"))
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/UserFetchResponse"))
                         .addApiResponse("401", Doc.unauthorized()));
@@ -228,7 +228,7 @@ public class UserApiController {
         writer.beginObject();
         writer.name("items").beginArray();
         for (var item : items) {
-            item.password = null;
+            item.withPassword(null);
             codec.writeEntity(writer, item);
         }
         writer.endArray();
@@ -246,7 +246,7 @@ public class UserApiController {
         var operation = new Operation()
                 .addTagsItem("user").summary("Fetch users matching criteria (page/pageSize)")
                 .security(Doc.BEARER)
-                .requestBody(Doc.body("#/components/schemas/PageRequest"))
+                .requestBody(Doc.body("#/components/schemas/UserPageRequest"))
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/UserPageResponse"))
                         .addApiResponse("401", Doc.unauthorized()));
@@ -280,7 +280,7 @@ public class UserApiController {
         writer.beginObject();
         writer.name("items").beginArray();
         for (var item : page.items()) {
-            item.password = null;
+            item.withPassword(null);
             codec.writeEntity(writer, item);
         }
         writer.endArray();
@@ -319,7 +319,7 @@ public class UserApiController {
             ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
             return;
         }
-        result.password = null;
+        result.withPassword(null);
         var writer = new JsonStreamWriter();
         codec.writeEntity(writer, result);
         json(ctx, writer);
@@ -362,13 +362,13 @@ public class UserApiController {
             return;
         }
         if (projection != null)
-            projection.password = null;
+            projection.withPassword(null);
         var result = repo().fetchById(id, projection);
         if (result == null) {
             ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
             return;
         }
-        result.password = null;
+        result.withPassword(null);
         var writer = new JsonStreamWriter();
         codec.writeEntity(writer, result);
         json(ctx, writer);
@@ -386,14 +386,14 @@ public class UserApiController {
         if (sc == null || user == null) {
             return;
         }
-        if (!sc.hasDataAll() && user.id != null && !user.id.equals(sc.userId())) {
+        if (!sc.hasDataAll() && user.id() != null && !user.id().equals(sc.userId())) {
             throw new AccessDeniedException("Cannot modify other user's data");
         }
     }
 
     private static void sanitizeProjection(UserCriteria criteria) {
         if (criteria.projection() != null) {
-            criteria.projection().password = null;
+            criteria.projection().withPassword(null);
         }
     }
 
@@ -420,9 +420,9 @@ public class UserApiController {
             return;
         }
         var sc = SecurityContext.CURRENT.get();
-        if (sc != null && user.password != null && !user.password.isBlank()) {
+        if (sc != null && user.password() != null && !user.password().isBlank()) {
             try {
-                user.password = rsaDecrypt(user.password, sc.privateKey());
+                user.withPassword(rsaDecrypt(user.password(), sc.privateKey()));
             } catch (Exception e) {
                 LOG.debug("Password not RSA-encrypted or decryption failed, using as-is");
             }

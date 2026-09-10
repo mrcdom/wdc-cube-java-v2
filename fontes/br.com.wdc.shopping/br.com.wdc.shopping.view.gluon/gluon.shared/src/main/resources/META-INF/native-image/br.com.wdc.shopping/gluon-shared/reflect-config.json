@@ -12,22 +12,22 @@
     "methods": [{ "name": "<init>", "parameterTypes": [] }]
   },
   {
-    "name": "br.com.wdc.shopping.domain.model.User",
+    "name": "br.com.wdc.shopping.domain.user.User",
     "allDeclaredFields": true,
     "methods": [{ "name": "<init>", "parameterTypes": [] }]
   },
   {
-    "name": "br.com.wdc.shopping.domain.model.Product",
+    "name": "br.com.wdc.shopping.domain.product.Product",
     "allDeclaredFields": true,
     "methods": [{ "name": "<init>", "parameterTypes": [] }]
   },
   {
-    "name": "br.com.wdc.shopping.domain.model.Purchase",
+    "name": "br.com.wdc.shopping.domain.purchase.Purchase",
     "allDeclaredFields": true,
     "methods": [{ "name": "<init>", "parameterTypes": [] }]
   },
   {
-    "name": "br.com.wdc.shopping.domain.model.PurchaseItem",
+    "name": "br.com.wdc.shopping.domain.purchaseitem.PurchaseItem",
     "allDeclaredFields": true,
     "methods": [{ "name": "<init>", "parameterTypes": [] }]
   }

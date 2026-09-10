@@ -157,19 +157,41 @@ O fat JAR será gerado em:
 fontes/br.com.wdc.cube.backend/target/br.com.wdc.cube.backend-1.0.0.jar
 ```
 
-### Frontend (React)
+### Frontends web (artefatos em `work/frontend/`)
+
+Quatro frontends compilam para arquivos estáticos que o backend serve a partir de
+`work/frontend/`. Cada um tem o seu `build.sh`, num módulo diferente; o script
+abaixo chama os quatro na ordem certa:
 
 ```bash
-cd br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.shell.react
-
-npm install        # instalar dependências
-npm run build      # build de produção
-npm run watch      # modo desenvolvimento (hot reload)
+./work/bin/build-frontends.sh             # todos
+./work/bin/build-frontends.sh react       # um alvo só
+./work/bin/build-frontends.sh --skip-install   # não reinstala os módulos Maven antes do TeaVM
+./work/bin/build-frontends.sh --list      # alvos e pré-requisitos
 ```
 
-Os assets compilados são gerados diretamente em `remote.host/src/main/resources/META-INF/resources`.
+Um alvo cuja ferramenta não esteja instalada é **pulado**, não falha o conjunto —
+sem Flutter no PATH os outros três continuam sendo gerados.
 
-### Frontend (Flutter)
+> Os dois alvos TeaVM compilam contra os JARs do `~/.m2`, não contra o reator. Sem
+> reinstalar os módulos antes, eles geram **em silêncio** um app com a versão anterior
+> do domínio — que abre normalmente e só falha na chamada que mudou. Por isso o script
+> reinstala por padrão; `--skip-install` é para quando se sabe que o `~/.m2` está em dia.
+
+| Alvo | Módulo | Ferramenta | Destino |
+|------|--------|-----------|---------|
+| `react` | `view.remote/remote.shell.react` | Node 20+ / npm | `work/frontend/remote.shell.react` |
+| `flutter` | `view.remote/remote.shell.flutter/flutter.web` | Flutter 3.x | `work/frontend/remote.shell.flutter` |
+| `teavm.shell` | `view.remote/remote.shell.teavm` | Maven + `JAVA21_HOME` | `work/frontend/remote.shell.teavm` |
+| `teavm.web` | `view.teavm/teavm.web` | Maven + `JAVA21_HOME` | `work/frontend/teavm.web` |
+
+`work/frontend/api.docs` e `work/frontend/openapi` são páginas estáticas — não têm build.
+
+Para desenvolvimento, cada módulo tem também o seu modo de observação
+(`npm run watch` no React, `watch.sh` nos dois TeaVM e no `flutter.web`), que
+recompila sem passar por este script.
+
+### Frontend (Flutter — mobile/desktop)
 
 ```bash
 cd br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.shell.flutter/flutter.mobile
@@ -182,10 +204,6 @@ cd br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.shell.flutter/flut
 
 # Rodar no emulador Android
 ./deploy.sh run android-emu
-
-# Build web
-cd ../flutter.web
-./build.sh
 ```
 
 O deploy script suporta targets: `ios`, `ios-sim`, `ipad-sim`, `android`, `android-emu`, `android-tablet-emu`, `all`.

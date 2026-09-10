@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.jooq.Field;
 import org.jooq.QueryPart;
+import org.jooq.SortField;
 import org.jooq.impl.DSL;
 
 import br.com.wdc.framework.jooq.JsonDialect;
@@ -72,6 +73,20 @@ public final class H2JsonDialect implements JsonDialect {
     @Override
     public Field<String> jsonArrayAgg(Field<String> jsonElement) {
         return DSL.field("'[' || COALESCE(LISTAGG({0}, ','), '') || ']'", String.class, jsonElement);
+    }
+
+    @Override
+    public Field<String> jsonArrayAgg(Field<String> jsonElement, List<SortField<?>> order) {
+        if (order == null || order.isEmpty()) {
+            return jsonArrayAgg(jsonElement);
+        }
+        return DSL.field("'[' || COALESCE(LISTAGG({0}, ',') WITHIN GROUP (ORDER BY {1}), '') || ']'",
+                String.class, jsonElement, DSL.list(order.toArray(new QueryPart[0])));
+    }
+
+    @Override
+    public boolean supportsOrderedAggregation() {
+        return true;
     }
 
     private String valueExpr(JsonFieldEntry e, List<QueryPart> args) {

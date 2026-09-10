@@ -1,10 +1,11 @@
 package br.com.wdc.shopping.presentation.presenter.open.login;
 
-import br.com.wdc.shopping.domain.criteria.UserCriteria;
-import br.com.wdc.shopping.domain.repositories.UserRepository;
+import br.com.wdc.framework.domain.projection.ProjectionValues;
 import br.com.wdc.framework.domain.security.AuthenticationService;
 import br.com.wdc.framework.domain.security.PasswordUtil;
 import br.com.wdc.framework.domain.security.SecurityContext;
+import br.com.wdc.shopping.domain.user.UserCriteria;
+import br.com.wdc.shopping.domain.user.UserRepository;
 import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
 
 public class LoginService {
@@ -75,15 +76,34 @@ public class LoginService {
 
     /**
      * Fallback para ambientes sem segurança (testes unitários sem initializeSecurity).
+     *
+     * <p>
+     * Busca pelo login e <b>compara o resumo aqui</b>, em vez de mandá-lo como critério. A senha não é campo por onde
+     * se pesquisa: deixá-la na superfície do critério a exporia também na API REST, onde filtrar usuário por senha não
+     * serve a ninguém. É o mesmo caminho que o {@code AuthenticationServiceImpl} segue no fluxo real — projeta o
+     * resumo e o confere — só que sem o desafio, que aqui não existe.
+     * </p>
      */
     private LoginResult authenticateViaRepository(String userName, String password) {
-        var subject = userRepository.fetch(new UserCriteria()
+        var projection = Subject.projection()
+                .withPassword(ProjectionValues.INSTANCE.str);
+
+        var users = userRepository.fetch(new UserCriteria()
                 .withUserName(userName)
-                .withPassword(password)
-                .withProjection(Subject.projection()), 0, 1)
-                .stream().map(Subject::create)
-                .findFirst().orElse(null);
-        return subject != null ? new LoginResult(subject, null, null) : null;
+                .withProjection(projection), 0, 1);
+
+        if (users.isEmpty()) {
+            return null;
+        }
+
+        var user = users.get(0);
+        // A coluna é CHAR e vem preenchida com espaços à direita; sem o corte a comparação nunca casaria.
+        var stored = user.password() == null ? null : user.password().trim();
+        if (stored == null || !stored.equals(PasswordUtil.hashPassword(password))) {
+            return null;
+        }
+
+        return new LoginResult(Subject.create(user), null, null);
     }
 
 }

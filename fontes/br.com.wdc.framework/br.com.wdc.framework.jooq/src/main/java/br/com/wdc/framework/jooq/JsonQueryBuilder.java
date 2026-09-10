@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +14,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -22,6 +25,7 @@ import org.jooq.Field;
 import org.jooq.Record1;
 import org.jooq.SelectJoinStep;
 import org.jooq.SelectQuery;
+import org.jooq.SortField;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 
@@ -30,6 +34,7 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 
 import br.com.wdc.framework.commons.util.HasCriteria;
+import br.com.wdc.framework.commons.util.HasSlice;
 import br.com.wdc.framework.commons.function.ThrowingConsumer;
 
 /**
@@ -109,6 +114,17 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
     private Consumer<B> fillProjBean;
     private FieldProjectionCallback<B, T> fieldPrjList;
     private Map<String, FieldSetterCallback<B>> fieldSetterMap;
+    /**
+     * Como perguntar, a um bean de projeção, se cada campo foi pedido.
+     *
+     * <p>
+     * Existe para o atalho de chave estrangeira: é por aqui que {@code projectsBeyond} descobre se a projeção da
+     * associação pede algo além da chave. Cobre todo campo registrado — escalar ou relação.
+     * </p>
+     */
+    private final Map<String, Function<B, Object>> fieldPresenceMap = new LinkedHashMap<>();
+    /** Tradução do {@code OrderBy} do critério desta entidade; {@code null} quando a entidade não a registrou. */
+    private BiFunction<T, Object, List<SortField<?>>> ordering;
     private Consumer<JsonQueryBuilder<B, T>> lazyInit; // guardado por lazyLock durante a inicialização
     private final ReentrantLock lazyLock = new ReentrantLock();
     private volatile boolean lazyDone = false;
@@ -141,12 +157,107 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
     }
 
     /**
+     * Como traduzir o {@code OrderBy} do critério desta entidade em {@code ORDER BY}.
+     *
+     * <p>
+     * A tradução é por entidade e mora no repositório — é ele que conhece as constantes. Registrando-a aqui, a coleção
+     * filha passa a poder ser ordenada pelo mesmo vocabulário que a consulta de raiz já usa, sem inventar um segundo.
+     * </p>
+     *
+     * <p>
+     * Recebe o critério como {@code Object} porque a coleção filha carrega o critério da <b>sua</b> entidade, que o
+     * chamador não conhece estaticamente; a função é que confere o tipo e devolve lista vazia quando não reconhece.
+     * </p>
+     */
+    public JsonQueryBuilder<B, T> setOrdering(BiFunction<T, Object, List<SortField<?>>> ordering) {
+        this.ordering = ordering;
+        return this;
+    }
+
+    /**
      * Fornecedor do {@link DSLContext} usado nas queries. Cada aplicação injeta o seu (resolução lazy, por execução),
      * mantendo o {@code framework.jooq} livre de qualquer holder global de {@code DSLContext}.
      */
     public JsonQueryBuilder<B, T> setDSLContextSupplier(Supplier<DSLContext> dslContextSupplier) {
         this.dslContextSupplier = dslContextSupplier;
         return this;
+    }
+
+    /**
+     * A chave primária da tabela, resolvida na instância informada — que tem alias próprio dentro de um subselect.
+     *
+     * <p>
+     * Vem da tabela gerada pelo jOOQ, e não de declaração: o esquema já a conhece. Serve ao recorte de coleção filha,
+     * que precisa de algo por onde dizer "estas linhas, e não as outras".
+     * </p>
+     *
+     * @throws IllegalStateException se a tabela não declara chave primária, ou se ela é composta — o {@code IN} de
+     *         uma coluna só não a exprime, e emitir SQL aproximado devolveria a coleção errada em silêncio
+     */
+    @SuppressWarnings("unchecked")
+    private static Field<Object> primaryKeyOf(Table<?> table) {
+        var pk = table.getPrimaryKey();
+        if (pk == null || pk.getFields().isEmpty()) {
+            throw new IllegalStateException("recorte de coleção exige chave primária, e " + table.getName()
+                    + " não declara nenhuma");
+        }
+        if (pk.getFields().size() > 1) {
+            throw new IllegalStateException("recorte de coleção não suporta chave primária composta: "
+                    + table.getName() + " tem " + pk.getFields().size() + " colunas na chave");
+        }
+        var column = pk.getFields().get(0);
+        var resolved = table.field(column);
+        return (Field<Object>) (resolved != null ? resolved : column);
+    }
+
+    /**
+     * A entrada JSON de uma coleção filha (1:N), com a ordem e o recorte que a própria coleção declara.
+     *
+     * <p>
+     * Comum a {@code addBeanSetField} e {@code addBeanListField}: o que muda entre os dois é o tipo da coleção, não
+     * como a subconsulta é montada. Devolve {@code null} quando não há o que projetar.
+     * </p>
+     */
+    private <C, U extends Table<?>> JsonFieldEntry childCollectionEntry(String fn, Collection<C> childPrjBeans,
+            QueryContext ctx, T table, JsonQuery<C, U> childQuery,
+            Consumer<JsonChildQueryBuilder<T, U>> childWhereClause) {
+
+        if (childPrjBeans == null || childPrjBeans.isEmpty()) {
+            return null;
+        }
+        var childPrjBean = childPrjBeans.iterator().next();
+        if (childPrjBean == null) {
+            return null;
+        }
+
+        var childQueryBuilder = new JsonChildQueryBuilder<T, U>(ctx, table);
+        if (childPrjBeans instanceof HasCriteria hasCriteria) {
+            childQueryBuilder.criteria = hasCriteria.getCriteria();
+        }
+        var clause = (BiConsumer<U, SelectJoinStep<Record1<String>>>) (tbChild, q) -> {
+            childQueryBuilder.childTable = tbChild;
+            childQueryBuilder.dsl = q;
+            childWhereClause.accept(childQueryBuilder);
+        };
+
+        // Ordem e recorte vêm do que a própria coleção declara: o critério que ela carrega (HasCriteria) traz o
+        // OrderBy da entidade filha, e HasSlice traz o limite e o deslocamento. Sem nenhum dos dois, a consulta sai
+        // exatamente como saía.
+        final var listCriteria = childQueryBuilder.criteria;
+        Function<U, List<SortField<?>>> order = null;
+        if (listCriteria != null && childQuery.hasOrdering()) {
+            order = tb -> childQuery.orderingOf(tb, listCriteria);
+        }
+        Integer limit = null;
+        Integer offset = null;
+        if (childPrjBeans instanceof HasSlice slice) {
+            limit = slice.getLimit();
+            offset = slice.getOffset();
+        }
+
+        return new JsonFieldEntry(fn,
+                DSL.field(childQuery.selectOrdered(ctx, childPrjBean, clause, order, limit, offset)),
+                JsonFieldType.RAW_JSON);
     }
 
     private DSLContext requireDslContext() {
@@ -165,6 +276,8 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
             BiConsumer<B, Long> setter, Function<T, Field<? extends Number>> jooqField) {
 
         this.fillProjBean = this.fillProjBean.andThen(bean -> setter.accept(bean, 0L));
+
+        this.fieldPresenceMap.put(fn, getter::apply);
 
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx0, bean, table) -> {
             if (getter.apply(bean) != null) {
@@ -187,6 +300,8 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
             BiConsumer<B, Integer> setter, Function<T, Field<? extends Number>> jooqField) {
 
         this.fillProjBean = this.fillProjBean.andThen(bean -> setter.accept(bean, 0));
+
+        this.fieldPresenceMap.put(fn, getter::apply);
 
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx0, bean, table) -> {
             if (getter.apply(bean) != null) {
@@ -225,6 +340,8 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
 
         this.fillProjBean = this.fillProjBean.andThen(bean -> setter.accept(bean, sentinel));
 
+        this.fieldPresenceMap.put(fn, getter::apply);
+
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx0, bean, table) -> {
             if (getter.apply(bean) != null) {
                 fields.add(new JsonFieldEntry(fn, jooqField.apply(table), JsonFieldType.STRING));
@@ -246,6 +363,8 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
             BiConsumer<B, String> setter, Function<T, Field<String>> jooqField) {
 
         this.fillProjBean = this.fillProjBean.andThen(bean -> setter.accept(bean, ""));
+
+        this.fieldPresenceMap.put(fn, getter::apply);
 
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx0, bean, table) -> {
             if (getter.apply(bean) != null) {
@@ -269,6 +388,8 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
 
         this.fillProjBean = this.fillProjBean.andThen(bean -> setter.accept(bean, Boolean.FALSE));
 
+        this.fieldPresenceMap.put(fn, getter::apply);
+
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx0, bean, table) -> {
             if (getter.apply(bean) != null) {
                 fields.add(new JsonFieldEntry(fn, jooqField.apply(table), JsonFieldType.BOOLEAN));
@@ -290,6 +411,8 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
             BiConsumer<B, OffsetDateTime> setter, Function<T, Field<OffsetDateTime>> jooqField) {
 
         this.fillProjBean = this.fillProjBean.andThen(bean -> setter.accept(bean, OffsetDateTime.MIN));
+
+        this.fieldPresenceMap.put(fn, getter::apply);
 
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx0, bean, table) -> {
             if (getter.apply(bean) != null) {
@@ -319,6 +442,8 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
             BiConsumer<B, OffsetDateTime> setter, Function<T, Field<java.time.LocalDateTime>> jooqField) {
 
         this.fillProjBean = this.fillProjBean.andThen(bean -> setter.accept(bean, OffsetDateTime.MIN));
+
+        this.fieldPresenceMap.put(fn, getter::apply);
 
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx0, bean, table) -> {
             if (getter.apply(bean) != null) {
@@ -352,6 +477,8 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
 
         this.fillProjBean = this.fillProjBean.andThen(bean -> setter.accept(bean, 0.0));
 
+        this.fieldPresenceMap.put(fn, getter::apply);
+
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx0, bean, table) -> {
             if (getter.apply(bean) != null) {
                 fields.add(new JsonFieldEntry(fn, jooqField.apply(table), JsonFieldType.NUMBER));
@@ -374,6 +501,8 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
 
         this.fillProjBean = this.fillProjBean.andThen(bean -> setter.accept(bean, java.math.BigDecimal.ZERO));
 
+        this.fieldPresenceMap.put(fn, getter::apply);
+
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx0, bean, table) -> {
             if (getter.apply(bean) != null) {
                 fields.add(new JsonFieldEntry(fn, jooqField.apply(table), JsonFieldType.NUMBER));
@@ -395,6 +524,8 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
             BiConsumer<B, byte[]> setter, Function<T, Field<byte[]>> jooqField) {
 
         this.fillProjBean = this.fillProjBean.andThen(bean -> setter.accept(bean, new byte[0]));
+
+        this.fieldPresenceMap.put(fn, getter::apply);
 
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx0, bean, table) -> {
             if (getter.apply(bean) != null) {
@@ -459,29 +590,13 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
             JsonQuery<C, U> childQuery,
             Consumer<JsonChildQueryBuilder<T, U>> childWhereClause) {
 
+        this.fieldPresenceMap.put(fn, getter::apply);
+
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx, bean, table) -> {
-            var childPrjBeanSet = getter.apply(bean);
-            if (childPrjBeanSet == null || childPrjBeanSet.isEmpty()) {
-                return;
+            var entry = childCollectionEntry(fn, getter.apply(bean), ctx, table, childQuery, childWhereClause);
+            if (entry != null) {
+                fields.add(entry);
             }
-
-            var childPrjBean = childPrjBeanSet.iterator().next();
-            if (childPrjBean == null) {
-                return;
-            }
-
-            var childQueryBuilder = new JsonChildQueryBuilder<T, U>(ctx, table);
-            if (childPrjBeanSet instanceof HasCriteria hasCriteria) {
-                childQueryBuilder.criteria = hasCriteria.getCriteria();
-            }
-            var clause = (BiConsumer<U, SelectJoinStep<Record1<String>>>) (tbChild, q) -> {
-                childQueryBuilder.childTable = tbChild;
-                childQueryBuilder.dsl = q;
-                childWhereClause.accept(childQueryBuilder);
-            };
-
-            fields.add(new JsonFieldEntry(fn,
-                    DSL.field(childQuery.select(ctx, childPrjBean, clause, true)), JsonFieldType.RAW_JSON));
         });
 
         this.fieldSetterMap.put(fn, (bean, reader) -> {
@@ -512,29 +627,13 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
             JsonQuery<C, U> childQuery,
             Consumer<JsonChildQueryBuilder<T, U>> childWhereClause) {
 
+        this.fieldPresenceMap.put(fn, getter::apply);
+
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx, bean, table) -> {
-            var childPrjBeanList = getter.apply(bean);
-            if (childPrjBeanList == null || childPrjBeanList.isEmpty()) {
-                return;
+            var entry = childCollectionEntry(fn, getter.apply(bean), ctx, table, childQuery, childWhereClause);
+            if (entry != null) {
+                fields.add(entry);
             }
-
-            var childPrjBean = childPrjBeanList.getFirst();
-            if (childPrjBean == null) {
-                return;
-            }
-
-            var childQueryBuilder = new JsonChildQueryBuilder<T, U>(ctx, table);
-            if (childPrjBeanList instanceof HasCriteria hasCriteria) {
-                childQueryBuilder.criteria = hasCriteria.getCriteria();
-            }
-            var clause = (BiConsumer<U, SelectJoinStep<Record1<String>>>) (tbChild, q) -> {
-                childQueryBuilder.childTable = tbChild;
-                childQueryBuilder.dsl = q;
-                childWhereClause.accept(childQueryBuilder);
-            };
-
-            fields.add(new JsonFieldEntry(fn,
-                    DSL.field(childQuery.select(ctx, childPrjBean, clause, true)), JsonFieldType.RAW_JSON));
         });
 
         this.fieldSetterMap.put(fn, (bean, reader) -> {
@@ -565,9 +664,55 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
             JsonQuery<C, U> childQuery,
             Consumer<JsonChildQueryBuilder<T, U>> childWhereClause) {
 
+        return addBeanField(fn, getter, setter, childQuery, childWhereClause, null);
+    }
+
+    /**
+     * Idem, declarando <b>qual coluna desta tabela guarda a chave</b> da entidade associada.
+     *
+     * <p>
+     * Com a chave declarada, a projeção que não pede nada além dela é montada a partir da própria linha, e o
+     * subselect não acontece — é o caso corrente de {@code newProjection()}, que traz a associação só para carregar
+     * o id. Sem a chave, ou quando a projeção pede qualquer outro campo, a relação é resolvida como antes.
+     * </p>
+     *
+     * <p>
+     * <b>Os nomes declarados na chave são os do JSON do filho</b>, e não os desta tabela: é assim que a leitura do
+     * outro lado reconhece o objeto que sai daqui.
+     * </p>
+     *
+     * @param key declara a correspondência campo-do-filho → coluna-desta-tabela; {@code null} desliga o atalho
+     */
+    public <C, U extends Table<?>> JsonQueryBuilder<B, T> addBeanField(String fn,
+            Function<B, C> getter,
+            BiConsumer<B, C> setter,
+            JsonQuery<C, U> childQuery,
+            Consumer<JsonChildQueryBuilder<T, U>> childWhereClause,
+            Consumer<RelationKey<T>> key) {
+
+        this.fieldPresenceMap.put(fn, getter::apply);
+
+        final RelationKey<T> relationKey;
+        if (key == null) {
+            relationKey = null;
+        } else {
+            relationKey = new RelationKey<>();
+            key.accept(relationKey);
+        }
+
         this.fieldPrjList = this.fieldPrjList.andThen((fields, ctx, bean, table) -> {
             var childPrjBean = getter.apply(bean);
             if (childPrjBean == null) {
+                return;
+            }
+
+            // A chave já está nesta linha: se a projeção do associado não pede mais nada, montá-la aqui evita um
+            // subselect que só redescobriria a coluna da chave estrangeira.
+            if (relationKey != null && !relationKey.isEmpty()
+                    && !childQuery.projectsBeyond(childPrjBean, relationKey.names())) {
+                var dialect = JsonDialect.of(ctx.dsl().dialect());
+                fields.add(new JsonFieldEntry(fn,
+                        dialect.jsonObject(relationKey.entries(table)), JsonFieldType.RAW_JSON));
                 return;
             }
 
@@ -663,6 +808,98 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
                         prjBean != null ? prjBean : this.newProjectionBean(), jooqTable);
                 var dialect = JsonDialect.of(ctx.dsl().dialect());
                 return dialect.jsonObject(entries);
+            }
+
+            @Override
+            public boolean hasOrdering() {
+                return me.ordering != null;
+            }
+
+            @Override
+            public List<SortField<?>> orderingOf(T table, Object criteria) {
+                if (me.ordering == null) {
+                    return List.of();
+                }
+                var sort = me.ordering.apply(table, criteria);
+                return sort != null ? sort : List.of();
+            }
+
+            @Override
+            public SelectQuery<Record1<String>> selectOrdered(QueryContext ctx, B prjBean,
+                    BiConsumer<T, SelectJoinStep<Record1<String>>> whereClause,
+                    Function<T, List<SortField<?>>> order, Integer limit, Integer offset) {
+                me.runLazyInit();
+
+                if (order == null && limit == null && offset == null) {
+                    // Sem ordem nem recorte, a forma antiga: uma consulta a menos e o mesmo SQL de sempre. Quem não
+                    // pede nada continua vendo exatamente o mesmo plano.
+                    return select(ctx, prjBean, whereClause, true);
+                }
+
+                var tbRoot = me.tableFactory.apply(me.tableName + ctx.nextUniqueInt());
+                var dialect = JsonDialect.of(ctx.dsl().dialect());
+
+                var sort = order != null ? order.apply(tbRoot) : null;
+                if (sort != null && !sort.isEmpty() && !dialect.supportsOrderedAggregation()) {
+                    // Recusa em vez de devolver a coleção fora da ordem pedida: um resultado ordenado errado passa
+                    // por certo, e o erro só aparece longe daqui.
+                    throw new UnsupportedOperationException("o dialeto " + ctx.dsl().dialect()
+                            + " não sabe ordenar dentro da agregação; ordene a coleção do lado da aplicação");
+                }
+
+                // A ordem entra DENTRO da agregação. Envolver esta consulta numa tabela derivada — onde caberia um
+                // ORDER BY comum — poria a correlação com a linha do pai fora de alcance: derivada não enxerga o
+                // escopo externo, e o banco responde "column pai.id not found".
+                var agg = ctx.dsl()
+                        .select(dialect.jsonArrayAgg(projection(ctx, tbRoot, prjBean), sort)
+                                .as(me.tableName + "_json"))
+                        .from(tbRoot);
+                whereClause.accept(tbRoot, agg);
+                var aggQuery = agg.getQuery();
+
+                // O recorte não cabe na agregação, e pelo mesmo motivo não cabe numa derivada. Sai como um IN sobre a
+                // chave primária: uma subconsulta correlacionada — essa, sim, enxerga o pai — que repete o mesmo
+                // filtro, ordena e corta, devolvendo as chaves das linhas que ficam.
+                if (limit != null || offset != null) {
+                    var tbSlice = me.tableFactory.apply(me.tableName + ctx.nextUniqueInt());
+                    var keep = ctx.dsl().select(primaryKeyOf(tbSlice)).from(tbSlice);
+
+                    // O whereClause é tipado no Record da projeção porque é assim que o resto da API o usa; aqui ele
+                    // só acrescenta condições, e o tipo da coluna projetada não o alcança.
+                    @SuppressWarnings("unchecked")
+                    var keepAsProjection = (SelectJoinStep<Record1<String>>) (SelectJoinStep<?>) keep;
+                    whereClause.accept(tbSlice, keepAsProjection);
+
+                    var keepQuery = keep.getQuery();
+                    var sliceSort = order != null ? order.apply(tbSlice) : null;
+                    if (sliceSort != null && !sliceSort.isEmpty()) {
+                        keepQuery.addOrderBy(sliceSort);
+                    }
+                    if (limit != null) {
+                        keepQuery.addLimit(limit.intValue());
+                    }
+                    if (offset != null) {
+                        keepQuery.addOffset(offset.intValue());
+                    }
+
+                    aggQuery.addConditions(primaryKeyOf(tbRoot).in(keepQuery));
+                }
+
+                return aggQuery;
+            }
+
+            @Override
+            public boolean projectsBeyond(B prjBean, Collection<String> fields) {
+                me.runLazyInit();
+                if (prjBean == null) {
+                    return false;
+                }
+                for (var e : me.fieldPresenceMap.entrySet()) {
+                    if (!fields.contains(e.getKey()) && e.getValue().apply(prjBean) != null) {
+                        return true;
+                    }
+                }
+                return false;
             }
 
             @Override

@@ -160,20 +160,6 @@ public abstract class HttpRepository<E, C, K> implements Repository<E, C, K> {
         return Page.of(items, page, pageSize, totalItems);
     }
 
-    @Override
-    public E fetchById(K id, E projection) {
-        var writer = new JsonStreamWriter();
-        writer.beginObject();
-        writer.name("id").value(((Number) id).longValue());
-        writeProjection(writer, projection);
-        writer.endObject();
-
-        var responseJson = transport.postJsonNullable(basePath + "/fetch-by-id", writer.result());
-        if (responseJson == null) return null;
-
-        var reader = new JsonStreamReader(responseJson);
-        return codec.readEntity(reader);
-    }
 
     // ── Helpers ──
 

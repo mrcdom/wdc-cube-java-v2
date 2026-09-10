@@ -7,20 +7,24 @@ import static br.com.wdc.shopping.persistence.impl.scheme.tables.EnPurchase.EN_P
 import static br.com.wdc.shopping.persistence.impl.scheme.tables.EnPurchaseitem.EN_PURCHASEITEM;
 
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.util.Arrays;
 import java.util.List;
 
+import org.jooq.SortField;
 import org.jooq.Condition;
 import org.jooq.impl.DSL;
 
 import br.com.wdc.framework.domain.pagination.Page;
+import br.com.wdc.framework.jooq.CriterionTranslator;
 import br.com.wdc.framework.jooq.JsonChildQueryBuilder;
 import br.com.wdc.framework.jooq.JsonQuery;
 import br.com.wdc.framework.jooq.JsonQueryBuilder;
 import br.com.wdc.framework.jooq.QueryContext;
-import br.com.wdc.shopping.domain.criteria.PurchaseCriteria;
-import br.com.wdc.shopping.domain.model.Purchase;
-import br.com.wdc.shopping.domain.model.PurchaseItem;
-import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
+import br.com.wdc.shopping.domain.purchase.Purchase;
+import br.com.wdc.shopping.domain.purchase.PurchaseCriteria;
+import br.com.wdc.shopping.domain.purchase.PurchaseRepository;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItem;
 import br.com.wdc.shopping.persistence.impl.scheme.tables.EnPurchase;
 import br.com.wdc.shopping.persistence.impl.scheme.tables.EnPurchaseitem;
 import br.com.wdc.shopping.persistence.impl.util.BaseRepositoryImpl;
@@ -33,19 +37,21 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
             .setBeanFactory(Purchase::new)
             .setTableFactory(EN_PURCHASE::as)
             .setDSLContextSupplier(PurchaseRepositoryImpl::dsl)
-            .addI64("id", p -> p.id, (p, v) -> p.id = v, t -> t.ID)
-            .addLdt("buyDate", p -> p.buyDate, (p, v) -> p.buyDate = v, t -> t.BUYDATE)
+            .setOrdering(PurchaseRepositoryImpl::orderingOf)
+            .addI64("id", p -> p.id(), (p, v) -> p.withId(v), t -> t.ID)
+            .addLdt("buyDate", p -> p.buyDate(), (p, v) -> p.withBuyDate(v), t -> t.BUYDATE)
             .lazy(qb -> {
-                qb.addBeanField("user", p -> p.user, (p, v) -> p.user = v, UserRepositoryImpl.QUERY, cq -> {
+                qb.addBeanField("user", p -> p.user(), (p, v) -> p.withUser(v), UserRepositoryImpl.QUERY, cq -> {
                     var enPurchase = cq.getSuperTable();
                     var enUser = cq.getChildTable();
 
                     cq.dsl() .where()
                         .and(enUser.ID.eq(enPurchase.USERID))
                         .and(UserRepositoryImpl.applyConditions(cq));
-                });
+                },
+                key -> key.addI64("id", t -> t.USERID));
                 
-                qb.addBeanListField("items", p -> p.items, (p, v) -> p.items = v, PurchaseItemRepositoryImpl.QUERY, cq -> {
+                qb.addBeanListField("items", p -> p.items(), (p, v) -> p.withItems(v), PurchaseItemRepositoryImpl.QUERY, cq -> {
                     var enPurchase = cq.getSuperTable();
                     var enPurchaseItem = cq.getChildTable();
                     
@@ -56,6 +62,32 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
             })
             .build();
     // @formatter:on
+
+    /**
+     * Traduz a ordenação pedida em {@code ORDER BY}, contra a tabela informada.
+     *
+     * <p>
+     * É aqui que uma ordenação provisionada vira colunas: o critério nomeia o efeito, e a escolha das colunas — e do
+     * desempate — mora no repositório, que é quem conhece o esquema. Toda ordenação por campo não único desempata
+     * pela chave, sem o que duas execuções da mesma consulta podem devolver as linhas em ordens diferentes.
+     * </p>
+     *
+     * <p>
+     * Recebe {@code Object} porque também é chamado a partir da coleção filha de outro repositório, onde o critério
+     * pode não ser deste tipo — nesse caso não ordena nada.
+     * </p>
+     */
+    public static List<SortField<?>> orderingOf(EnPurchase t, Object criteriaObj) {
+        if (!(criteriaObj instanceof PurchaseCriteria criteria) || criteria.orderBy() == null) {
+            return List.of();
+        }
+        return switch (criteria.orderBy()) {
+        case OLDEST_FIRST -> List.of(t.ID.asc());
+        case NEWEST_FIRST -> List.of(t.ID.desc());
+        case MOST_RECENT_PURCHASE_FIRST -> List.of(t.BUYDATE.desc(), t.ID.desc());
+        case EARLIEST_PURCHASE_FIRST -> List.of(t.BUYDATE.asc(), t.ID.asc());
+        };
+    }
 
     // :: Query helpers
 
@@ -76,26 +108,26 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
     public boolean insert(Purchase purchase) {
         var dsl = dsl();
 
-        if (purchase.id == null) {
-            purchase.id = dsl.nextval(SQ_PURCHASE);
+        if (purchase.id() == null) {
+            purchase.withId(dsl.nextval(SQ_PURCHASE));
         }
 
         var step = dsl.insertInto(EN_PURCHASE)
-                .set(EN_PURCHASE.ID, purchase.id);
+                .set(EN_PURCHASE.ID, purchase.id());
 
-        if (purchase.user != null && purchase.user.id != null) {
-            step.set(EN_PURCHASE.USERID, purchase.user.id);
+        if (purchase.user() != null && purchase.user().id() != null) {
+            step.set(EN_PURCHASE.USERID, purchase.user().id());
         }
-        if (purchase.buyDate != null) {
-            step.set(EN_PURCHASE.BUYDATE, purchase.buyDate.toLocalDateTime());
+        if (purchase.buyDate() != null) {
+            step.set(EN_PURCHASE.BUYDATE, purchase.buyDate().toLocalDateTime());
         }
 
         var inserted = step.execute() > 0;
 
         // Insert items if present
-        if (inserted && purchase.items != null && !purchase.items.isEmpty()) {
-            for (var item : purchase.items) {
-                item.purchase = purchase;
+        if (inserted && purchase.items() != null && !purchase.items().isEmpty()) {
+            for (var item : purchase.items()) {
+                item.withPurchase(purchase);
                 insertItem(dsl, item);
             }
         }
@@ -104,24 +136,24 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
     }
 
     private void insertItem(org.jooq.DSLContext dsl, PurchaseItem item) {
-        if (item.id == null) {
-            item.id = dsl.nextval(SQ_PURCHASEITEM);
+        if (item.id() == null) {
+            item.withId(dsl.nextval(SQ_PURCHASEITEM));
         }
 
         var step = dsl.insertInto(EN_PURCHASEITEM)
-                .set(EN_PURCHASEITEM.ID, item.id);
+                .set(EN_PURCHASEITEM.ID, item.id());
 
-        if (item.purchase != null && item.purchase.id != null) {
-            step.set(EN_PURCHASEITEM.PURCHASEID, item.purchase.id);
+        if (item.purchase() != null && item.purchase().id() != null) {
+            step.set(EN_PURCHASEITEM.PURCHASEID, item.purchase().id());
         }
-        if (item.product != null && item.product.id != null) {
-            step.set(EN_PURCHASEITEM.PRODUCTID, item.product.id);
+        if (item.product() != null && item.product().id() != null) {
+            step.set(EN_PURCHASEITEM.PRODUCTID, item.product().id());
         }
-        if (item.amount != null) {
-            step.set(EN_PURCHASEITEM.AMOUNT, item.amount);
+        if (item.amount() != null) {
+            step.set(EN_PURCHASEITEM.AMOUNT, item.amount());
         }
-        if (item.price != null) {
-            step.set(EN_PURCHASEITEM.PRICE, BigDecimal.valueOf(item.price));
+        if (item.price() != null) {
+            step.set(EN_PURCHASEITEM.PRICE, BigDecimal.valueOf(item.price()));
         }
 
         step.execute();
@@ -133,7 +165,7 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
             throw new AssertionError("newBean is required");
         }
 
-        if (newBean.id == null) {
+        if (newBean.id() == null) {
             throw new AssertionError("Missing primary key");
         }
 
@@ -142,7 +174,7 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
         }
 
         var dsl = dsl();
-        var step = dsl.update(EN_PURCHASE).set(EN_PURCHASE.ID, newBean.id);
+        var step = dsl.update(EN_PURCHASE).set(EN_PURCHASE.ID, newBean.id());
 
         boolean hasChanges = false;
 
@@ -150,8 +182,8 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
             step.set(EN_PURCHASE.USERID, newBean.userId());
             hasChanges = true;
         }
-        if (changed(newBean, oldBean, projection, p -> p.buyDate)) {
-            step.set(EN_PURCHASE.BUYDATE, newBean.buyDate != null ? newBean.buyDate.toLocalDateTime() : null);
+        if (changed(newBean, oldBean, projection, p -> p.buyDate())) {
+            step.set(EN_PURCHASE.BUYDATE, newBean.buyDate() != null ? newBean.buyDate().toLocalDateTime() : null);
             hasChanges = true;
         }
 
@@ -159,7 +191,7 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
             return false;
         }
 
-        return step.where(EN_PURCHASE.ID.eq(newBean.id)).execute() > 0;
+        return step.where(EN_PURCHASE.ID.eq(newBean.id())).execute() > 0;
     }
 
     @Override
@@ -195,12 +227,7 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
             var cond = applyConditions(t, criteria);
             var step = q.where(cond);
 
-            if (criteria != null && criteria.orderBy() != null) {
-                switch (criteria.orderBy()) {
-                case ASCENDING -> step.orderBy(t.ID.asc());
-                case DESCENDING -> step.orderBy(t.ID.desc());
-                }
-            }
+            step.orderBy(orderingOf(t, criteria));
 
             if (limit > 0) {
                 step.limit(limit);
@@ -218,23 +245,14 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
         return Page.of(items, page, pageSize, total);
     }
 
-    @Override
-    public Purchase fetchById(Long purchaseId, Purchase projection) {
-        var prjBean = projection != null ? projection : QUERY.newProjectionBean();
-        if (prjBean.id == null) {
-            prjBean.id = 0L;
-        }
-
-        return QUERY.fetchOne(prjBean, (t, q) -> q.where(t.ID.eq(purchaseId)));
-    }
 
     // :: Internal
 
     private Purchase projectionFrom(PurchaseCriteria criteria) {
         if (criteria != null && criteria.projection() != null) {
             var prj = criteria.projection();
-            if (prj.id == null) {
-                prj.id = 0L;
+            if (prj.id() == null) {
+                prj.withId(0L);
             }
             return prj;
         }
@@ -256,28 +274,50 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
             this.ctx = new QueryContext(dsl());
         }
 
+        /**
+         * As condições dos campos informados.
+         *
+         * <p>
+         * O percurso dos campos e a montagem do {@code AND} moram no {@link CriterionTranslator}; aqui fica só o que é
+         * próprio da entidade — a coluna de cada campo e, no caso de {@code productId}, o fato de ele não ser coluna
+         * desta tabela. Critério vazio resulta em {@code noCondition()}, e não numa condição falsa.
+         * </p>
+         */
         public Condition apply(PurchaseCriteria criteria) {
-            var condition = DSL.noCondition();
             if (criteria == null) {
-                return condition;
+                return DSL.noCondition();
             }
-            if (criteria.purchaseId() != null) {
-                condition = condition.and(enPurchase.ID.eq(criteria.purchaseId()));
-            }
-            if (criteria.userId() != null) {
-                condition = condition.and(enPurchase.USERID.eq(criteria.userId()));
-            }
-            if (criteria.productId() != null) {
-                var enPurchaseItem = EnPurchaseitem.EN_PURCHASEITEM.as(ctx.alias("p"));
+            return CriterionTranslator.and(Arrays.asList(
+                    CriterionTranslator.translate(enPurchase.ID, criteria.purchaseId()),
+                    CriterionTranslator.translate(enPurchase.USERID, criteria.userId()),
+                    // A coluna é TIMESTAMP sem fuso; o domínio fala em OffsetDateTime. Converter aqui mantém a
+                    // comparação no mesmo tipo dos dois lados.
+                    CriterionTranslator.translate(enPurchase.BUYDATE, criteria.buyDate(), OffsetDateTime::toLocalDateTime),
+                    existsItemMatching(criteria)));
+        }
 
-                condition = condition.and(DSL.exists(DSL.selectOne()
-                        .from(enPurchaseItem)
-                        .where()
-                        .and(enPurchaseItem.PURCHASEID.eq(enPurchase.ID))
-                        .and(enPurchaseItem.PRODUCTID.eq(criteria.productId()))));
-
+        /**
+         * Compras que contêm o produto pedido.
+         *
+         * <p>
+         * O produto não é coluna da compra — está nos itens. O critério, porém, continua sendo um campo como os
+         * outros: o que muda é onde a condição incide, e não como ela é escrita, de modo que {@code in},
+         * {@code between} e a disjunção valem aqui do mesmo jeito.
+         * </p>
+         */
+        private Condition existsItemMatching(PurchaseCriteria criteria) {
+            if (!criteria.hasProductId()) {
+                return null;
             }
-            return condition;
+            var enPurchaseItem = EnPurchaseitem.EN_PURCHASEITEM.as(ctx.alias("p"));
+            var onProduct = CriterionTranslator.translate(enPurchaseItem.PRODUCTID, criteria.productId());
+            if (onProduct == null) {
+                return null;
+            }
+            return DSL.exists(DSL.selectOne()
+                    .from(enPurchaseItem)
+                    .where(enPurchaseItem.PURCHASEID.eq(enPurchase.ID))
+                    .and(onProduct));
         }
 
     }

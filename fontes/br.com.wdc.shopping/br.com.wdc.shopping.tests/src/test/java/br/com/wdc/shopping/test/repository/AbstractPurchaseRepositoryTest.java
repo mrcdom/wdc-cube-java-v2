@@ -7,13 +7,16 @@ import java.util.List;
 
 import org.junit.Test;
 
-import br.com.wdc.shopping.domain.criteria.PurchaseItemCriteria;
-import br.com.wdc.shopping.domain.criteria.PurchaseCriteria;
-import br.com.wdc.shopping.domain.model.Purchase;
-import br.com.wdc.shopping.domain.model.User;
-import br.com.wdc.shopping.domain.repositories.PurchaseItemRepository;
-import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
+import br.com.wdc.framework.domain.projection.ProjectionList;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
+import br.com.wdc.shopping.domain.purchase.Purchase;
+import br.com.wdc.shopping.domain.purchase.PurchaseCriteria;
+import br.com.wdc.shopping.domain.purchase.PurchaseRepository;
+import br.com.wdc.shopping.domain.product.Product;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItem;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemCriteria;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemRepository;
+import br.com.wdc.shopping.domain.user.User;
 import br.com.wdc.shopping.scripts.sgbd.DBReset;
 
 public abstract class AbstractPurchaseRepositoryTest {
@@ -24,11 +27,10 @@ public abstract class AbstractPurchaseRepositoryTest {
 
 	private Purchase purchaseProjectionWithUser() {
 		var pv = ProjectionValues.INSTANCE;
-		var prj = new Purchase();
-		prj.id = pv.i64;
-		prj.buyDate = pv.offsetDateTime;
-		prj.user = new User();
-		prj.user.id = pv.i64;
+		var prj = new Purchase()
+				.withId(pv.i64)
+				.withBuyDate(pv.offsetDateTime)
+				.withUser(new User().withId(pv.i64));
 		return prj;
 	}
 
@@ -44,9 +46,9 @@ public abstract class AbstractPurchaseRepositoryTest {
 	public void fetchById_returnsCorrectPurchase() {
 		var purchase = repo().fetchById(DBReset.ADMIN_FIRST_PURCHASE_ID, purchaseProjectionWithUser());
 		assertNotNull(purchase);
-		assertNotNull(purchase.buyDate);
-		assertNotNull(purchase.user);
-		assertEquals(DBReset.ADMIN_ID, purchase.user.id);
+		assertNotNull(purchase.buyDate());
+		assertNotNull(purchase.user());
+		assertEquals(DBReset.ADMIN_ID, purchase.user().id());
 	}
 
 	@Test
@@ -58,14 +60,14 @@ public abstract class AbstractPurchaseRepositoryTest {
 	@Test
 	public void fetchWithProjection_onlyRequestedFields() {
 		var pv = ProjectionValues.INSTANCE;
-		var projection = new Purchase();
-		projection.id = pv.i64;
-		projection.buyDate = pv.offsetDateTime;
+		var projection = new Purchase()
+				.withId(pv.i64)
+				.withBuyDate(pv.offsetDateTime);
 
 		var purchase = repo().fetchById(DBReset.ADMIN_FIRST_PURCHASE_ID, projection);
 		assertNotNull(purchase);
-		assertEquals(DBReset.ADMIN_FIRST_PURCHASE_ID, purchase.id);
-		assertNotNull(purchase.buyDate);
+		assertEquals(DBReset.ADMIN_FIRST_PURCHASE_ID, purchase.id());
+		assertNotNull(purchase.buyDate());
 	}
 
 	@Test
@@ -76,7 +78,7 @@ public abstract class AbstractPurchaseRepositoryTest {
 		var purchases = repo().fetch(criteria);
 		assertEquals(2, purchases.size());
 		for (var p : purchases) {
-			assertEquals(DBReset.ADMIN_ID, p.user.id);
+			assertEquals(DBReset.ADMIN_ID, p.user().id());
 		}
 	}
 
@@ -90,30 +92,30 @@ public abstract class AbstractPurchaseRepositoryTest {
 	public void fetchByPurchaseId() {
 		var purchases = repo().fetch(new PurchaseCriteria().withPurchaseId(DBReset.ADMIN_SECOND_PURCHASE_ID));
 		assertEquals(1, purchases.size());
-		assertEquals(DBReset.ADMIN_SECOND_PURCHASE_ID, purchases.get(0).id);
+		assertEquals(DBReset.ADMIN_SECOND_PURCHASE_ID, purchases.get(0).id());
 	}
 
 	@Test
 	public void fetchWithOffsetAndLimit() {
 		var purchases = repo().fetch(new PurchaseCriteria()
-				.withOrderBy(PurchaseCriteria.OrderBy.ASCENDING), 0, 1);
+				.withOrderBy(PurchaseCriteria.OrderBy.OLDEST_FIRST), 0, 1);
 		assertEquals(1, purchases.size());
 	}
 
 	@Test
 	public void fetchWithOrderAscending() {
 		var purchases = repo().fetch(new PurchaseCriteria()
-				.withOrderBy(PurchaseCriteria.OrderBy.ASCENDING));
+				.withOrderBy(PurchaseCriteria.OrderBy.OLDEST_FIRST));
 		assertEquals(2, purchases.size());
-		assertTrue(purchases.get(0).id <= purchases.get(1).id);
+		assertTrue(purchases.get(0).id() <= purchases.get(1).id());
 	}
 
 	@Test
 	public void fetchWithOrderDescending() {
 		var purchases = repo().fetch(new PurchaseCriteria()
-				.withOrderBy(PurchaseCriteria.OrderBy.DESCENDING));
+				.withOrderBy(PurchaseCriteria.OrderBy.NEWEST_FIRST));
 		assertEquals(2, purchases.size());
-		assertTrue(purchases.get(0).id >= purchases.get(1).id);
+		assertTrue(purchases.get(0).id() >= purchases.get(1).id());
 	}
 
 	// :: count
@@ -140,18 +142,17 @@ public abstract class AbstractPurchaseRepositoryTest {
 
 	@Test
 	public void insert_newPurchase() {
-		var purchase = new Purchase();
-		purchase.buyDate = OffsetDateTime.now();
-		purchase.user = new User();
-		purchase.user.id = DBReset.FULANO_ID;
+		var purchase = new Purchase()
+				.withBuyDate(OffsetDateTime.now())
+				.withUser(new User().withId(DBReset.FULANO_ID));
 
 		boolean inserted = repo().insert(purchase);
 		assertTrue(inserted);
-		assertNotNull(purchase.id);
+		assertNotNull(purchase.id());
 
-		var fetched = repo().fetchById(purchase.id, purchaseProjectionWithUser());
+		var fetched = repo().fetchById(purchase.id(), purchaseProjectionWithUser());
 		assertNotNull(fetched);
-		assertEquals(DBReset.FULANO_ID, fetched.user.id);
+		assertEquals(DBReset.FULANO_ID, fetched.user().id());
 	}
 
 	// :: update
@@ -162,17 +163,16 @@ public abstract class AbstractPurchaseRepositoryTest {
 		var original = repo().fetchById(DBReset.ADMIN_FIRST_PURCHASE_ID, prj);
 		assertNotNull(original);
 
-		var updated = new Purchase();
-		updated.id = original.id;
-		updated.buyDate = OffsetDateTime.now();
-		updated.user = new User();
-		updated.user.id = DBReset.BEOTRANO_ID;
+		var updated = new Purchase()
+				.withId(original.id())
+				.withBuyDate(OffsetDateTime.now())
+				.withUser(new User().withId(DBReset.BEOTRANO_ID));
 
 		boolean result = repo().update(updated, original);
 		assertTrue(result);
 
 		var fetched = repo().fetchById(DBReset.ADMIN_FIRST_PURCHASE_ID, prj);
-		assertEquals(DBReset.BEOTRANO_ID, fetched.user.id);
+		assertEquals(DBReset.BEOTRANO_ID, fetched.user().id());
 	}
 
 	// :: delete
@@ -202,5 +202,154 @@ public abstract class AbstractPurchaseRepositoryTest {
 	public void deleteNonExistent_returnsZero() {
 		int deleted = repo().delete(new PurchaseCriteria().withPurchaseId(Long.MAX_VALUE));
 		assertEquals(0, deleted);
+	}
+
+	// :: Coleção projetada — ordem, recorte e sub-critério da coleção filha.
+	//    Nos Abstract, então rodam em LOCAL e em REST: o segundo prova que forma + critério + recorte
+	//    da ProjectionList atravessam a serialização, não só a forma.
+
+	private PurchaseItem itemProjection() {
+		var pv = ProjectionValues.INSTANCE;
+		return new PurchaseItem()
+				.withId(pv.i64)
+				.withAmount(pv.i32)
+				.withProduct(new Product().withId(pv.i64));
+	}
+
+	private List<PurchaseItem> itemsOf(ProjectionList<PurchaseItem> items) {
+		var pv = ProjectionValues.INSTANCE;
+		var purchase = repo().fetchById(DBReset.ADMIN_SECOND_PURCHASE_ID,
+				new Purchase().withId(pv.i64).withItems(items));
+		assertNotNull(purchase);
+		assertNotNull(purchase.items());
+		return purchase.items();
+	}
+
+	private List<Long> idsOf(List<PurchaseItem> items) {
+		return items.stream().map(PurchaseItem::id).toList();
+	}
+
+	private ProjectionList<PurchaseItem> items(PurchaseItemCriteria.OrderBy order) {
+		var criteria = new PurchaseItemCriteria().withOrderBy(order);
+		return ProjectionValues.INSTANCE.singletonList(itemProjection(), criteria);
+	}
+
+	@Test
+	public void collection_withoutOrderOrSlice_bringsEveryItem() {
+		var items = ProjectionValues.INSTANCE.singletonList(itemProjection(), new PurchaseItemCriteria());
+		assertEquals(2, itemsOf(items).size());
+	}
+
+	@Test
+	public void collection_ascending_orders() {
+		assertEquals(List.of(DBReset.ADMIN_SECOND_PURCHASE_ITEM0_ID, DBReset.ADMIN_SECOND_PURCHASE_ITEM1_ID),
+				idsOf(itemsOf(items(PurchaseItemCriteria.OrderBy.OLDEST_FIRST))));
+	}
+
+	@Test
+	public void collection_descending_reverses() {
+		assertEquals(List.of(DBReset.ADMIN_SECOND_PURCHASE_ITEM1_ID, DBReset.ADMIN_SECOND_PURCHASE_ITEM0_ID),
+				idsOf(itemsOf(items(PurchaseItemCriteria.OrderBy.NEWEST_FIRST))));
+	}
+
+	@Test
+	public void collection_limit_cuts() {
+		assertEquals(List.of(DBReset.ADMIN_SECOND_PURCHASE_ITEM0_ID),
+				idsOf(itemsOf(items(PurchaseItemCriteria.OrderBy.OLDEST_FIRST).withLimit(1))));
+	}
+
+	@Test
+	public void collection_limit_respectsOrder() {
+		// Mesmo limite, ordem invertida: o item que sobra tem de ser o outro.
+		assertEquals(List.of(DBReset.ADMIN_SECOND_PURCHASE_ITEM1_ID),
+				idsOf(itemsOf(items(PurchaseItemCriteria.OrderBy.NEWEST_FIRST).withLimit(1))));
+	}
+
+	@Test
+	public void collection_offset_skips() {
+		assertEquals(List.of(DBReset.ADMIN_SECOND_PURCHASE_ITEM1_ID),
+				idsOf(itemsOf(items(PurchaseItemCriteria.OrderBy.OLDEST_FIRST).withOffset(1))));
+	}
+
+	@Test
+	public void collection_limitAndOffset() {
+		assertEquals(List.of(DBReset.ADMIN_SECOND_PURCHASE_ITEM1_ID),
+				idsOf(itemsOf(items(PurchaseItemCriteria.OrderBy.OLDEST_FIRST).withOffset(1).withLimit(1))));
+	}
+
+	@Test
+	public void collection_offsetBeyondEnd_bringsNothing() {
+		assertEquals(List.of(), idsOf(itemsOf(items(PurchaseItemCriteria.OrderBy.OLDEST_FIRST).withOffset(10))));
+	}
+
+	@Test
+	public void collection_filtersBySubCriteria() {
+		var criteria = new PurchaseItemCriteria().withProductId(DBReset.BOLA_WILSON_ID);
+		var items = ProjectionValues.INSTANCE.singletonList(itemProjection(), criteria);
+
+		var result = itemsOf(items);
+		assertEquals(1, result.size());
+		assertEquals(DBReset.BOLA_WILSON_ID, result.get(0).product().id());
+	}
+
+	@Test
+	public void collection_subCriteriaComposesWithSlice() {
+		// O recorte repete o mesmo filtro da coleção — o corte cai sobre o conjunto já filtrado.
+		var criteria = new PurchaseItemCriteria()
+				.withProductId(DBReset.BOLA_WILSON_ID)
+				.withOrderBy(PurchaseItemCriteria.OrderBy.OLDEST_FIRST);
+		var items = ProjectionValues.INSTANCE.singletonList(itemProjection(), criteria).withLimit(5);
+
+		var result = itemsOf(items);
+		assertEquals(List.of(DBReset.ADMIN_SECOND_PURCHASE_ITEM0_ID), idsOf(result));
+	}
+
+	// :: Campos que não são a chave
+
+	@Test
+	public void filterByBuyDate_range() {
+		// A coluna é TIMESTAMP sem fuso e o domínio fala em OffsetDateTime: a conversão acontece na tradução,
+		// e o intervalo pedido aqui é o que chega ao banco.
+		var de = OffsetDateTime.parse("2010-01-01T00:00:00Z");
+		var ate = OffsetDateTime.parse("2011-12-31T23:59:59Z");
+
+		var purchases = repo().fetch(new PurchaseCriteria().buyDate().between(de, ate));
+
+		assertEquals("as duas compras do seed estão nesse intervalo", 2, purchases.size());
+	}
+
+	@Test
+	public void filterByBuyDate_before() {
+		var corte = OffsetDateTime.parse("2011-01-01T00:00:00Z");
+		var purchases = repo().fetch(new PurchaseCriteria().buyDate().lt(corte));
+
+		assertEquals(1, purchases.size());
+		assertEquals(DBReset.ADMIN_FIRST_PURCHASE_ID, purchases.get(0).id());
+	}
+
+	// :: Ordenações provisionadas
+
+	@Test
+	public void orderBy_mostRecentPurchaseFirst() {
+		var datas = repo().fetch(new PurchaseCriteria()
+				.withProjection(purchaseProjectionWithUser())
+				.withOrderBy(PurchaseCriteria.OrderBy.MOST_RECENT_PURCHASE_FIRST))
+				.stream().map(Purchase::buyDate).toList();
+
+		assertEquals(datas.stream().sorted().toList().reversed(), datas);
+	}
+
+	@Test
+	public void orderBy_earliestPurchaseFirst_isTheReverse() {
+		var recentes = repo().fetch(new PurchaseCriteria()
+				.withProjection(purchaseProjectionWithUser())
+				.withOrderBy(PurchaseCriteria.OrderBy.MOST_RECENT_PURCHASE_FIRST))
+				.stream().map(Purchase::id).toList();
+		var antigas = repo().fetch(new PurchaseCriteria()
+				.withProjection(purchaseProjectionWithUser())
+				.withOrderBy(PurchaseCriteria.OrderBy.EARLIEST_PURCHASE_FIRST))
+				.stream().map(Purchase::id).toList();
+
+		assertEquals(antigas.reversed(), recentes);
 	}
 }

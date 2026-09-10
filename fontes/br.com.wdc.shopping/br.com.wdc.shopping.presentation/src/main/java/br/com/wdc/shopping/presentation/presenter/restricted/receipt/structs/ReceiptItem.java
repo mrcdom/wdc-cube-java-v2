@@ -3,9 +3,9 @@ package br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs;
 import java.io.Serializable;
 import java.util.Optional;
 
-import br.com.wdc.shopping.domain.model.Product;
-import br.com.wdc.shopping.domain.model.PurchaseItem;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
+import br.com.wdc.shopping.domain.product.Product;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItem;
 
 public class ReceiptItem implements Serializable {
 
@@ -19,14 +19,14 @@ public class ReceiptItem implements Serializable {
     public static PurchaseItem projection() {
         var pv = ProjectionValues.INSTANCE;
 
-        var prdPrj = new Product();
-        prdPrj.name = pv.str;
+        var prdPrj = new Product()
+                .withName(pv.str);
 
-        var prj = new PurchaseItem();
-        prj.id = pv.i64;
-        prj.price = pv.f64;
-        prj.amount = pv.i32;
-        prj.product = prdPrj;
+        var prj = new PurchaseItem()
+                .withId(pv.i64)
+                .withPrice(pv.f64)
+                .withAmount(pv.i32)
+                .withProduct(prdPrj);
         return prj;
     }
 
@@ -37,11 +37,11 @@ public class ReceiptItem implements Serializable {
 
         var tgt = new ReceiptItem();
 
-        tgt.value = Optional.ofNullable(src.price).orElse(0.0);
-        tgt.quantity = Optional.ofNullable(src.amount).orElse(0);
+        tgt.value = Optional.ofNullable(src.price()).orElse(0.0);
+        tgt.quantity = Optional.ofNullable(src.amount()).orElse(0);
 
-        if (src.product != null) {
-            tgt.description = src.product.name;
+        if (src.product() != null) {
+            tgt.description = src.product().name();
         }
 
         return tgt;

@@ -8,21 +8,23 @@ import org.junit.rules.ExternalResource;
 
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.commons.util.Defer;
+import br.com.wdc.framework.domain.security.CryptoProvider;
+import br.com.wdc.framework.domain.security.JceCryptoProvider;
+import br.com.wdc.framework.persistence.transaction.RemoteTransactionCoordinatorImpl;
 import br.com.wdc.shopping.domain.ShoppingConfig;
-import br.com.wdc.shopping.domain.codec.ProductModelCodec;
-import br.com.wdc.shopping.domain.codec.PurchaseItemModelCodec;
-import br.com.wdc.shopping.domain.codec.PurchaseModelCodec;
-import br.com.wdc.shopping.domain.codec.UserModelCodec;
-import br.com.wdc.shopping.domain.repositories.ProductRepository;
-import br.com.wdc.shopping.domain.repositories.PurchaseItemRepository;
-import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
-import br.com.wdc.shopping.domain.repositories.UserRepository;
+import br.com.wdc.shopping.domain.product.ProductCodec;
+import br.com.wdc.shopping.domain.product.ProductRepository;
+import br.com.wdc.shopping.domain.purchase.PurchaseCodec;
+import br.com.wdc.shopping.domain.purchase.PurchaseRepository;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemCodec;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemRepository;
+import br.com.wdc.shopping.domain.user.UserCodec;
+import br.com.wdc.shopping.domain.user.UserRepository;
 import br.com.wdc.shopping.persistence.client.HttpProductRepository;
 import br.com.wdc.shopping.persistence.client.HttpPurchaseItemRepository;
 import br.com.wdc.shopping.persistence.client.HttpPurchaseRepository;
 import br.com.wdc.shopping.persistence.client.HttpUserRepository;
 import br.com.wdc.shopping.persistence.client.OkHttpTransport;
-import br.com.wdc.framework.persistence.transaction.RemoteTransactionCoordinatorImpl;
 import br.com.wdc.shopping.persistence.impl.ShoppingRepositoryBootstrap;
 import br.com.wdc.shopping.persistence.rest.RemoteTransactions;
 import br.com.wdc.shopping.persistence.rest.RepositoryApiRoutes;
@@ -128,6 +130,12 @@ public class TestEnvironment extends ExternalResource {
         ShoppingConfig.Internals.setLogDir(basePath.resolve("log"));
         ShoppingConfig.Internals.setTempDir(basePath.resolve("temp"));
 
+        // Infraestrutura de criptografia: os hosts reais (backend, Vaadin, SWT, TeaVM) a instalam no seu
+        // composition root, e o ambiente de teste é um host como os outros. Sem ela, PasswordUtil recusa a
+        // operação — e é dele que o login depende para conferir o resumo da senha.
+        CryptoProvider.BEAN.set(new JceCryptoProvider());
+        cleanUp.push(() -> CryptoProvider.BEAN.set(null));
+
         ShoppingRepositoryBootstrap.initialize(ds, cleanUp);
 
         if (mode == Mode.LOCAL) {
@@ -151,10 +159,10 @@ public class TestEnvironment extends ExternalResource {
             });
 
             this.transport = new OkHttpTransport("http://localhost:" + javalin.port());
-            userRepo = new HttpUserRepository(transport, new UserModelCodec());
-            productRepo = new HttpProductRepository(transport, new ProductModelCodec());
-            purchaseRepo = new HttpPurchaseRepository(transport, new PurchaseModelCodec());
-            purchaseItemRepo = new HttpPurchaseItemRepository(transport, new PurchaseItemModelCodec());
+            userRepo = new HttpUserRepository(transport, new UserCodec());
+            productRepo = new HttpProductRepository(transport, new ProductCodec());
+            purchaseRepo = new HttpPurchaseRepository(transport, new PurchaseCodec());
+            purchaseItemRepo = new HttpPurchaseItemRepository(transport, new PurchaseItemCodec());
         }
     }
 

@@ -78,8 +78,15 @@ pool.minIdle = 20
 # Development mode: enables live-reload endpoints (/__dev/ws, /__dev/notify)
 devMode = true
 
-# Allow any origin for CORS (development mode)
+# CORS — controle de origens cross-origin aceitas pelo servidor.
+# allowAll = true reflete qualquer origem (somente para desenvolvimento).
+# Quando false, apenas as origens em allowedHosts são aceitas.
 cors.allowAll = true
+# Allowlist usada quando allowAll = false (separada por vírgula).
+# Se ausente/vazia, usa o padrão embutido (Tauri desktop, Android WebView, dev local).
+# cors.allowedHosts = "http://localhost:8080, http://shopping-wdc.localhost:8080, tauri://localhost, https://tauri.localhost, http://tauri.localhost"
+# Permite cookies/cabeçalhos de autenticação cross-origin (padrão: true).
+cors.allowCredentials = true
 
 # Maximum number of concurrent application sessions (Host/Shell protocol).
 # Connections beyond this limit are rejected with HTTP 503 (session/init)

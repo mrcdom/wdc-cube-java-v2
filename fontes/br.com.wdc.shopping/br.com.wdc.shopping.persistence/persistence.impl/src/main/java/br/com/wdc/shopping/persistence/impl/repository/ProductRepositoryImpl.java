@@ -5,19 +5,22 @@ import static br.com.wdc.shopping.persistence.impl.scheme.Sequences.SQ_PRODUCT;
 import static br.com.wdc.shopping.persistence.impl.scheme.Tables.EN_PRODUCT;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 
+import org.jooq.SortField;
 import org.jooq.Condition;
 import org.jooq.impl.DSL;
 
 import br.com.wdc.framework.domain.exception.BusinessException;
+import br.com.wdc.framework.jooq.CriterionTranslator;
 import br.com.wdc.framework.jooq.JsonChildQueryBuilder;
 import br.com.wdc.framework.jooq.JsonQuery;
 import br.com.wdc.framework.jooq.JsonQueryBuilder;
 import br.com.wdc.framework.jooq.QueryContext;
-import br.com.wdc.shopping.domain.criteria.ProductCriteria;
-import br.com.wdc.shopping.domain.model.Product;
-import br.com.wdc.shopping.domain.repositories.ProductRepository;
+import br.com.wdc.shopping.domain.product.Product;
+import br.com.wdc.shopping.domain.product.ProductCriteria;
+import br.com.wdc.shopping.domain.product.ProductRepository;
 import br.com.wdc.shopping.persistence.impl.scheme.tables.EnProduct;
 import br.com.wdc.shopping.persistence.impl.util.BaseRepositoryImpl;
 
@@ -29,13 +32,41 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
             .setBeanFactory(Product::new)
             .setTableFactory(EN_PRODUCT::as)
             .setDSLContextSupplier(ProductRepositoryImpl::dsl)
-            .addI64("id", p -> p.id, (p, v) -> p.id = v, t -> t.ID)
-            .addStr("name", p -> p.name, (p, v) -> p.name = v, t -> t.NAME)
-            .addF64("price", p -> p.price, (p, v) -> p.price = v, t -> t.PRICE)
-            .addStr("description", p -> p.description, (p, v) -> p.description = v, t -> t.DESCRIPTION)
-            .addBin("image", p -> p.image, (p, v) -> p.image = v, t -> t.IMAGE)
+            .setOrdering(ProductRepositoryImpl::orderingOf)
+            .addI64("id", p -> p.id(), (p, v) -> p.withId(v), t -> t.ID)
+            .addStr("name", p -> p.name(), (p, v) -> p.withName(v), t -> t.NAME)
+            .addF64("price", p -> p.price(), (p, v) -> p.withPrice(v), t -> t.PRICE)
+            .addStr("description", p -> p.description(), (p, v) -> p.withDescription(v), t -> t.DESCRIPTION)
+            .addBin("image", p -> p.image(), (p, v) -> p.withImage(v), t -> t.IMAGE)
             .build();
     // @formatter:on
+
+    /**
+     * Traduz a ordenação pedida em {@code ORDER BY}, contra a tabela informada.
+     *
+     * <p>
+     * É aqui que uma ordenação provisionada vira colunas: o critério nomeia o efeito, e a escolha das colunas — e do
+     * desempate — mora no repositório, que é quem conhece o esquema. Toda ordenação por campo não único desempata
+     * pela chave, sem o que duas execuções da mesma consulta podem devolver as linhas em ordens diferentes.
+     * </p>
+     *
+     * <p>
+     * Recebe {@code Object} porque também é chamado a partir da coleção filha de outro repositório, onde o critério
+     * pode não ser deste tipo — nesse caso não ordena nada.
+     * </p>
+     */
+    public static List<SortField<?>> orderingOf(EnProduct t, Object criteriaObj) {
+        if (!(criteriaObj instanceof ProductCriteria criteria) || criteria.orderBy() == null) {
+            return List.of();
+        }
+        return switch (criteria.orderBy()) {
+        case OLDEST_FIRST -> List.of(t.ID.asc());
+        case NEWEST_FIRST -> List.of(t.ID.desc());
+        case NAME_A_TO_Z -> List.of(t.NAME.asc(), t.ID.asc());
+        case CHEAPEST_FIRST -> List.of(t.PRICE.asc(), t.ID.asc());
+        case MOST_EXPENSIVE_FIRST -> List.of(t.PRICE.desc(), t.ID.asc());
+        };
+    }
 
     // :: Query helpers
 
@@ -56,24 +87,24 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
     public boolean insert(Product product) {
         var dsl = dsl();
 
-        if (product.id == null) {
-            product.id = dsl.nextval(SQ_PRODUCT);
+        if (product.id() == null) {
+            product.withId(dsl.nextval(SQ_PRODUCT));
         }
 
         var step = dsl.insertInto(EN_PRODUCT)
-                .set(EN_PRODUCT.ID, product.id);
+                .set(EN_PRODUCT.ID, product.id());
 
-        if (product.name != null) {
-            step.set(EN_PRODUCT.NAME, product.name);
+        if (product.name() != null) {
+            step.set(EN_PRODUCT.NAME, product.name());
         }
-        if (product.price != null) {
-            step.set(EN_PRODUCT.PRICE, BigDecimal.valueOf(product.price));
+        if (product.price() != null) {
+            step.set(EN_PRODUCT.PRICE, BigDecimal.valueOf(product.price()));
         }
-        if (product.description != null) {
-            step.set(EN_PRODUCT.DESCRIPTION, product.description);
+        if (product.description() != null) {
+            step.set(EN_PRODUCT.DESCRIPTION, product.description());
         }
-        if (product.image != null) {
-            step.set(EN_PRODUCT.IMAGE, product.image);
+        if (product.image() != null) {
+            step.set(EN_PRODUCT.IMAGE, product.image());
         }
 
         return step.execute() > 0;
@@ -85,7 +116,7 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
             throw new AssertionError("newBean is required");
         }
 
-        if (newBean.id == null) {
+        if (newBean.id() == null) {
             throw new AssertionError("Missing primary key");
         }
 
@@ -94,24 +125,24 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
         }
 
         var dsl = dsl();
-        var step = dsl.update(EN_PRODUCT).set(EN_PRODUCT.ID, newBean.id);
+        var step = dsl.update(EN_PRODUCT).set(EN_PRODUCT.ID, newBean.id());
 
         boolean hasChanges = false;
 
-        if (changed(newBean, oldBean, projection, p -> p.name)) {
-            step.set(EN_PRODUCT.NAME, newBean.name);
+        if (changed(newBean, oldBean, projection, p -> p.name())) {
+            step.set(EN_PRODUCT.NAME, newBean.name());
             hasChanges = true;
         }
-        if (changed(newBean, oldBean, projection, p -> p.price)) {
-            step.set(EN_PRODUCT.PRICE, newBean.price != null ? BigDecimal.valueOf(newBean.price) : null);
+        if (changed(newBean, oldBean, projection, p -> p.price())) {
+            step.set(EN_PRODUCT.PRICE, newBean.price() != null ? BigDecimal.valueOf(newBean.price()) : null);
             hasChanges = true;
         }
-        if (changed(newBean, oldBean, projection, p -> p.description)) {
-            step.set(EN_PRODUCT.DESCRIPTION, newBean.description);
+        if (changed(newBean, oldBean, projection, p -> p.description())) {
+            step.set(EN_PRODUCT.DESCRIPTION, newBean.description());
             hasChanges = true;
         }
-        if (changed(newBean, oldBean, projection, p -> p.image)) {
-            step.set(EN_PRODUCT.IMAGE, newBean.image);
+        if (changed(newBean, oldBean, projection, p -> p.image())) {
+            step.set(EN_PRODUCT.IMAGE, newBean.image());
             hasChanges = true;
         }
 
@@ -119,12 +150,14 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
             return false;
         }
 
-        return step.where(EN_PRODUCT.ID.eq(newBean.id)).execute() > 0;
+        return step.where(EN_PRODUCT.ID.eq(newBean.id())).execute() > 0;
     }
 
     @Override
     public int delete(ProductCriteria criteria) {
-        if (criteria == null || criteria.productId() == null) {
+        // O campo existe sempre; o que decide é ele estar informado. Sem esta guarda, critério vazio traduziria
+        // para noCondition() e o DELETE levaria a tabela inteira.
+        if (criteria == null || !criteria.hasProductId()) {
             throw new AssertionError("Missing primary key");
         }
 
@@ -151,12 +184,7 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
             var cond = applyConditions(t, criteria);
             var step = q.where(cond);
 
-            if (criteria != null && criteria.orderBy() != null) {
-                switch (criteria.orderBy()) {
-                case ASCENDING -> step.orderBy(t.ID.asc());
-                case DESCENDING -> step.orderBy(t.ID.desc());
-                }
-            }
+            step.orderBy(orderingOf(t, criteria));
 
             if (limit > 0) {
                 step.limit(limit);
@@ -167,28 +195,18 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
         });
     }
 
-    @Override
-    public Product fetchById(Long productId, Product projection) {
-        var prjBean = projection != null ? projection : QUERY.newProjectionBean();
-        // Ensure id is always projected
-        if (prjBean.id == null) {
-            prjBean.id = 0L;
-        }
-
-        return QUERY.fetchOne(prjBean, (t, q) -> q.where(t.ID.eq(productId)));
-    }
 
     @Override
     public byte[] fetchImage(Long productId) {
-        var prjBean = new Product();
-        prjBean.id = 0L;
-        prjBean.image = new byte[0];
+        var prjBean = new Product()
+                .withId(0L)
+                .withImage(new byte[0]);
 
         var product = QUERY.fetchOne(prjBean, (t, q) -> q.where(t.ID.eq(productId)));
         if (product == null) {
             throw new BusinessException("Product not found: " + productId);
         }
-        return product.image;
+        return product.image();
     }
 
     @Override
@@ -206,8 +224,8 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
         if (criteria != null && criteria.projection() != null) {
             var prj = criteria.projection();
             // Always include id
-            if (prj.id == null) {
-                prj.id = 0L;
+            if (prj.id() == null) {
+                prj.withId(0L);
             }
             return prj;
         }
@@ -229,12 +247,26 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
             this.ctx = new QueryContext(dsl());
         }
 
+        /**
+         * As condições dos campos informados.
+         *
+         * <p>
+         * O percurso dos campos e a montagem do {@code AND} moram no {@link CriterionTranslator}; aqui fica só o que é
+         * próprio da entidade — a coluna de cada campo. Critério vazio resulta em {@code noCondition()}, e não numa
+         * condição falsa, que transformaria "sem filtro" em "nenhum resultado".
+         * </p>
+         */
         public Condition apply(ProductCriteria criteria) {
-            var condition = DSL.noCondition();
-            if (criteria != null && criteria.productId() != null) {
-                condition = condition.and(enProduct.ID.eq(criteria.productId()));
+            if (criteria == null) {
+                return DSL.noCondition();
             }
-            return condition;
+            return CriterionTranslator.and(Arrays.asList(
+                    CriterionTranslator.translate(enProduct.ID, criteria.productId()),
+                    CriterionTranslator.translate(enProduct.NAME, criteria.name()),
+                    // A coluna é NUMERIC; o domínio fala em Double. A conversão é do campo, não do operador,
+                    // então vale igual para eq, between e in.
+                    CriterionTranslator.translate(enProduct.PRICE, criteria.price(), BigDecimal::valueOf),
+                    CriterionTranslator.translate(enProduct.DESCRIPTION, criteria.description())));
         }
     }
 }

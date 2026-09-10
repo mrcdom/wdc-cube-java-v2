@@ -3,8 +3,8 @@ package br.com.wdc.shopping.presentation.presenter.restricted.products.structs;
 import java.io.Serializable;
 import java.util.Optional;
 
-import br.com.wdc.shopping.domain.model.Product;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
+import br.com.wdc.shopping.domain.product.Product;
 
 public class ProductInfo implements Serializable {
 
@@ -19,11 +19,11 @@ public class ProductInfo implements Serializable {
     public static Product projection() {
         var pv = ProjectionValues.INSTANCE;
 
-        var prj = new Product();
-        prj.id = pv.i64;
-        prj.name = pv.str;
-        prj.price = pv.f64;
-        prj.description = pv.str;
+        var prj = new Product()
+                .withId(pv.i64)
+                .withName(pv.str)
+                .withPrice(pv.f64)
+                .withDescription(pv.str);
         return prj;
     }
 
@@ -33,10 +33,10 @@ public class ProductInfo implements Serializable {
         }
 
         var item = new ProductInfo();
-        item.id = Optional.ofNullable(product.id).orElse(-1L);
-        item.name = Optional.ofNullable(product.name).orElse("unknown");
-        item.price = Optional.ofNullable(product.price).orElse(0.0);
-        item.description = Optional.ofNullable(product.description).orElse("unknown");
+        item.id = Optional.ofNullable(product.id()).orElse(-1L);
+        item.name = Optional.ofNullable(product.name()).orElse("unknown");
+        item.price = Optional.ofNullable(product.price()).orElse(0.0);
+        item.description = Optional.ofNullable(product.description()).orElse("unknown");
         item.image = "image/product/" + item.id + ".png";
         return item;
     }

@@ -3,13 +3,13 @@ package br.com.wdc.shopping.persistence.rest;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.framework.commons.serialization.JsonStreamReader;
 import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
-import br.com.wdc.shopping.domain.codec.PurchaseItemModelCodec;
-import br.com.wdc.shopping.domain.criteria.PurchaseItemCriteria;
-import br.com.wdc.shopping.domain.model.Product;
-import br.com.wdc.shopping.domain.model.PurchaseItem;
-import br.com.wdc.shopping.domain.repositories.PurchaseItemRepository;
-import br.com.wdc.framework.domain.security.SecurityContext;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
+import br.com.wdc.framework.domain.security.SecurityContext;
+import br.com.wdc.shopping.domain.product.Product;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItem;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemCriteria;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemCodec;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemRepository;
 import br.com.wdc.shopping.persistence.rest.doc.Doc;
 import br.com.wdc.shopping.persistence.rest.security.SecurityEnforcer;
 import io.javalin.config.JavalinConfig;
@@ -49,22 +49,21 @@ public class PurchaseItemApiController {
         return PurchaseItemRepository.BEAN.get();
     }
 
-    private final PurchaseItemModelCodec codec = new PurchaseItemModelCodec();
+    private final PurchaseItemCodec codec = new PurchaseItemCodec();
 
     private static PurchaseItem fullProjection() {
         var pv = ProjectionValues.INSTANCE;
 
-        var product = new Product();
-        product.id = pv.i64;
-        product.name = pv.str;
-        product.price = pv.f64;
+        var product = new Product()
+                .withId(pv.i64)
+                .withName(pv.str)
+                .withPrice(pv.f64);
 
-        var prj = new PurchaseItem();
-        prj.id = pv.i64;
-        prj.amount = pv.i32;
-        prj.price = pv.f64;
-        prj.product = product;
-        return prj;
+        return new PurchaseItem()
+                .withId(pv.i64)
+                .withAmount(pv.i32)
+                .withPrice(pv.f64)
+                .withProduct(product);
     }
 
     // :: Insert
@@ -93,7 +92,7 @@ public class PurchaseItemApiController {
         var writer = new JsonStreamWriter();
         writer.beginObject();
         writer.name("success").value(success);
-        writer.name("id").value(item.id != null ? item.id : -1);
+        writer.name("id").value(item.id() != null ? item.id() : -1);
         writer.endObject();
         json(ctx, writer);
     }
@@ -138,7 +137,7 @@ public class PurchaseItemApiController {
         var operation = new Operation()
                 .addTagsItem("purchase-item").summary("Delete purchase items matching criteria")
                 .security(Doc.BEARER)
-                .requestBody(Doc.body("#/components/schemas/FetchRequest"))
+                .requestBody(Doc.body("#/components/schemas/PurchaseItemFetchRequest"))
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/CountResult"))
                         .addApiResponse("401", Doc.unauthorized())
@@ -169,7 +168,7 @@ public class PurchaseItemApiController {
         var operation = new Operation()
                 .addTagsItem("purchase-item").summary("Count purchase items matching criteria")
                 .security(Doc.BEARER)
-                .requestBody(Doc.body("#/components/schemas/FetchRequest"))
+                .requestBody(Doc.body("#/components/schemas/PurchaseItemFetchRequest"))
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/CountResult"))
                         .addApiResponse("401", Doc.unauthorized()));
@@ -199,7 +198,7 @@ public class PurchaseItemApiController {
         var operation = new Operation()
                 .addTagsItem("purchase-item").summary("Fetch purchase items matching criteria (offset/limit)")
                 .security(Doc.BEARER)
-                .requestBody(Doc.body("#/components/schemas/FetchRequest"))
+                .requestBody(Doc.body("#/components/schemas/PurchaseItemFetchRequest"))
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/PurchaseItemFetchResponse"))
                         .addApiResponse("401", Doc.unauthorized()));
@@ -234,7 +233,7 @@ public class PurchaseItemApiController {
         writer.beginObject();
         writer.name("items").beginArray();
         for (var item : items) {
-            item.purchase = null;
+            item.withPurchase(null);
             codec.writeEntity(writer, item);
         }
         writer.endArray();
@@ -252,7 +251,7 @@ public class PurchaseItemApiController {
         var operation = new Operation()
                 .addTagsItem("purchase-item").summary("Fetch purchase items matching criteria (page/pageSize)")
                 .security(Doc.BEARER)
-                .requestBody(Doc.body("#/components/schemas/PageRequest"))
+                .requestBody(Doc.body("#/components/schemas/PurchaseItemPageRequest"))
                 .responses(new ApiResponses()
                         .addApiResponse("200", Doc.ok("#/components/schemas/PurchaseItemPageResponse"))
                         .addApiResponse("401", Doc.unauthorized()));
@@ -286,7 +285,7 @@ public class PurchaseItemApiController {
         writer.beginObject();
         writer.name("items").beginArray();
         for (var item : page.items()) {
-            item.purchase = null;
+            item.withPurchase(null);
             codec.writeEntity(writer, item);
         }
         writer.endArray();
@@ -321,7 +320,7 @@ public class PurchaseItemApiController {
             ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
             return;
         }
-        result.purchase = null;
+        result.withPurchase(null);
         var writer = new JsonStreamWriter();
         codec.writeEntity(writer, result);
         json(ctx, writer);
@@ -364,7 +363,7 @@ public class PurchaseItemApiController {
             ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
             return;
         }
-        result.purchase = null;
+        result.withPurchase(null);
         var writer = new JsonStreamWriter();
         codec.writeEntity(writer, result);
         json(ctx, writer);

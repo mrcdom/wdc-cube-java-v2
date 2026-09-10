@@ -11,19 +11,19 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import br.com.wdc.framework.commons.util.LambdaUtils;
-import br.com.wdc.shopping.domain.criteria.ProductCriteria;
-import br.com.wdc.shopping.domain.criteria.PurchaseCriteria;
-import br.com.wdc.shopping.domain.criteria.PurchaseCriteria.OrderBy;
-import br.com.wdc.shopping.domain.criteria.PurchaseItemCriteria;
-import br.com.wdc.shopping.domain.model.Product;
-import br.com.wdc.shopping.domain.model.Purchase;
-import br.com.wdc.shopping.domain.model.PurchaseItem;
-import br.com.wdc.shopping.domain.model.User;
-import br.com.wdc.shopping.domain.repositories.ProductRepository;
-import br.com.wdc.shopping.domain.repositories.PurchaseItemRepository;
-import br.com.wdc.shopping.domain.repositories.PurchaseRepository;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
-import br.com.wdc.shopping.domain.repositories.UserRepository;
+import br.com.wdc.shopping.domain.product.Product;
+import br.com.wdc.shopping.domain.product.ProductCriteria;
+import br.com.wdc.shopping.domain.product.ProductRepository;
+import br.com.wdc.shopping.domain.purchase.Purchase;
+import br.com.wdc.shopping.domain.purchase.PurchaseCriteria.OrderBy;
+import br.com.wdc.shopping.domain.purchase.PurchaseCriteria;
+import br.com.wdc.shopping.domain.purchase.PurchaseRepository;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItem;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemCriteria;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemRepository;
+import br.com.wdc.shopping.domain.user.User;
+import br.com.wdc.shopping.domain.user.UserRepository;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginService;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelService;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
@@ -37,34 +37,85 @@ import br.com.wdc.shopping.test.util.BaseBusinessTest;
 @SuppressWarnings("java:S5961") // integration test — many assertions validate end-to-end flow
 public class ShoppingServiceTest extends BaseBusinessTest {
 
+
+    /**
+     * O extrato ordena pela data da compra, não pela ordem de cadastro.
+     *
+     * <p>
+     * As duas só divergem quando uma compra entra com data anterior à de outra já registrada — é o caso que este
+     * teste monta. Com a ordenação pela chave, a compra recém-inserida encabeçaria a lista mesmo tendo acontecido
+     * há dois anos.
+     * </p>
+     */
+    @Test
+    public void purchaseStatement_ordersByPurchaseDate_notByInsertionOrder() {
+        var service = new PurchasesPanelService(PurchaseRepository.BEAN.get());
+
+        // Última a ser cadastrada (maior id), porém a mais antiga de todas.
+        var atrasada = new Purchase()
+                .withUser(new User().withId(DBReset.ADMIN_ID))
+                .withBuyDate(OffsetDateTime.of(2009, 5, 20, 10, 0, 0, 0, java.time.ZoneOffset.UTC))
+                .withItems(new ArrayList<>());
+        atrasada.items().add(new PurchaseItem()
+                .withProduct(new Product().withId(DBReset.PEN_DRIVE2GB_ID))
+                .withPrice(55.0)
+                .withAmount(1));
+        PurchaseRepository.BEAN.get().insert(atrasada);
+
+        var extrato = service.loadPurchasesOfUser(DBReset.ADMIN_ID);
+
+        Assert.assertEquals("a compra de 2009 é a de maior id", Long.valueOf(atrasada.id()),
+                Long.valueOf(extrato.stream().mapToLong(p -> p.id).max().orElse(-1)));
+        Assert.assertNotEquals("a mais antiga não pode encabeçar o extrato", Long.valueOf(atrasada.id()),
+                Long.valueOf(extrato.get(0).id));
+        Assert.assertEquals("a mais antiga fecha a lista", Long.valueOf(atrasada.id()),
+                Long.valueOf(extrato.get(extrato.size() - 1).id));
+    }
+
     @Test
     public void test1() {
         var pv = ProjectionValues.INSTANCE;
 
-        var usrPrj = new User();
-        usrPrj.id = pv.i64;
-        usrPrj.userName = pv.str;
+        var usrPrj = new User()
+                .withId(pv.i64)
+                .withUserName(pv.str);
 
-        var prdPrj = new Product();
-        prdPrj.id = pv.i64;
-        prdPrj.name = pv.str;
+        var prdPrj = new Product()
+                .withId(pv.i64)
+                .withName(pv.str);
 
-        var pchPrj = new Purchase();
-        pchPrj.id = pv.i64;
-        pchPrj.user = usrPrj;
-        pchPrj.buyDate = pv.offsetDateTime;
+        var pchPrj = new Purchase()
+                .withId(pv.i64)
+                .withUser(usrPrj)
+                .withBuyDate(pv.offsetDateTime);
 
-        var itemPrj = new PurchaseItem();
-        itemPrj.id = pv.i64;
-        itemPrj.amount = pv.i32;
-        itemPrj.product = prdPrj;
-        itemPrj.price = pv.f64;
-        itemPrj.purchase = pchPrj;
+        var itemPrj = new PurchaseItem()
+                .withId(pv.i64)
+                .withAmount(pv.i32)
+                .withProduct(prdPrj)
+                .withPrice(pv.f64)
+                .withPurchase(pchPrj);
 
         var purchaseItemList = PurchaseItemRepository.BEAN.get().fetch(new PurchaseItemCriteria()
                 .withUserId(DBReset.ADMIN_ID)
                 .withProjection(itemPrj));
         assertEquals("purchaseItemList.size()", 3, purchaseItemList.size());
+    }
+
+    @Test
+    public void login_wrongPassword_isRejected() {
+        // A senha não é campo de critério: quem a confere é o login, e é neste nível que o par
+        // "aceita a correta / recusa a errada" precisa ser garantido.
+        var result = new LoginService(UserRepository.BEAN.get()).fetchSubject("admin", "senha-errada");
+
+        Assert.assertNull("senha errada não pode autenticar", result);
+    }
+
+    @Test
+    public void login_unknownUser_isRejected() {
+        var result = new LoginService(UserRepository.BEAN.get()).fetchSubject("ninguem", "admin");
+
+        Assert.assertNull("usuário inexistente não pode autenticar", result);
     }
 
     @Test
@@ -107,7 +158,7 @@ public class ShoppingServiceTest extends BaseBusinessTest {
         var homeService = new PurchasesPanelService(PurchaseRepository.BEAN.get());
 
         List<PurchaseInfo> compras = homeService.loadPurchases(new PurchaseCriteria()
-                .withOrderBy(OrderBy.ASCENDING));
+                .withOrderBy(OrderBy.OLDEST_FIRST));
 
         Assert.assertNotNull(compras);
         Assert.assertEquals(2, compras.size());
@@ -120,30 +171,27 @@ public class ShoppingServiceTest extends BaseBusinessTest {
         Assert.assertNotNull(compras.get(1).items);
         Assert.assertEquals(2, compras.get(1).items.size());
 
-        Purchase purchase = new Purchase();
-        purchase.user = new User();
-        purchase.user.id = userId;
-        purchase.buyDate = OffsetDateTime.now();
-        purchase.items = new ArrayList<>();
-        purchase.items.add(LambdaUtils.supply(() -> {
-            var item = new PurchaseItem();
-            item.product = new Product();
-            item.product.id = DBReset.PEN_DRIVE2GB_ID;
-            item.price = 55.0;
-            item.amount = 1;
+        Purchase purchase = new Purchase()
+                .withUser(new User().withId(userId));
+        purchase.withBuyDate(OffsetDateTime.now())
+                .withItems(new ArrayList<>());
+        purchase.items().add(LambdaUtils.supply(() -> {
+            var item = new PurchaseItem()
+                    .withProduct(new Product().withId(DBReset.PEN_DRIVE2GB_ID));
+            item.withPrice(55.0)
+                    .withAmount(1);
             return item;
         }));
-        purchase.items.add(LambdaUtils.supply(() -> {
-            var item = new PurchaseItem();
-            item.product = new Product();
-            item.product.id = DBReset.FITA_VEDA_ROSCA_ID;
-            item.price = 5.0;
-            item.amount = 2;
+        purchase.items().add(LambdaUtils.supply(() -> {
+            var item = new PurchaseItem()
+                    .withProduct(new Product().withId(DBReset.FITA_VEDA_ROSCA_ID));
+            item.withPrice(5.0)
+                    .withAmount(2);
             return item;
         }));
 
         PurchaseRepository.BEAN.get().insert(purchase);
-        final long idCompra = purchase.id;
+        final long idCompra = purchase.id();
         Assert.assertEquals(DBReset.ADMIN_SECOND_PURCHASE_ID + 1, idCompra);
 
         compras = homeService.loadPurchasesOfUser(userId);
@@ -161,14 +209,14 @@ public class ShoppingServiceTest extends BaseBusinessTest {
         Assert.assertEquals(Double.valueOf(65), recibo.total);
         Assert.assertEquals(2, recibo.items.size());
 
-        var pedido0 = purchase.items.get(0);
-        Assert.assertEquals(pedido0.price, Double.valueOf(recibo.items.get(0).value));
-        Assert.assertEquals(pedido0.amount, Integer.valueOf(recibo.items.get(0).quantity));
+        var pedido0 = purchase.items().get(0);
+        Assert.assertEquals(pedido0.price(), Double.valueOf(recibo.items.get(0).value));
+        Assert.assertEquals(pedido0.amount(), Integer.valueOf(recibo.items.get(0).quantity));
         Assert.assertEquals("Pen Drive 2GB", recibo.items.get(0).description);
 
-        var pedido1 = purchase.items.get(1);
-        Assert.assertEquals(pedido1.price, Double.valueOf(recibo.items.get(1).value));
-        Assert.assertEquals(pedido1.amount, Integer.valueOf(recibo.items.get(1).quantity));
+        var pedido1 = purchase.items().get(1);
+        Assert.assertEquals(pedido1.price(), Double.valueOf(recibo.items.get(1).value));
+        Assert.assertEquals(pedido1.amount(), Integer.valueOf(recibo.items.get(1).quantity));
         Assert.assertEquals("Fita veda rosca", recibo.items.get(1).description);
     }
 

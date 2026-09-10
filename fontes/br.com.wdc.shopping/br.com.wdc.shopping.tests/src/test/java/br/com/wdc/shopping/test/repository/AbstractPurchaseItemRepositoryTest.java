@@ -6,12 +6,12 @@ import java.util.List;
 
 import org.junit.Test;
 
-import br.com.wdc.shopping.domain.criteria.PurchaseItemCriteria;
-import br.com.wdc.shopping.domain.model.Product;
-import br.com.wdc.shopping.domain.model.Purchase;
-import br.com.wdc.shopping.domain.model.PurchaseItem;
-import br.com.wdc.shopping.domain.repositories.PurchaseItemRepository;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
+import br.com.wdc.shopping.domain.product.Product;
+import br.com.wdc.shopping.domain.purchase.Purchase;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItem;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemCriteria;
+import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemRepository;
 import br.com.wdc.shopping.scripts.sgbd.DBReset;
 
 public abstract class AbstractPurchaseItemRepositoryTest {
@@ -20,14 +20,12 @@ public abstract class AbstractPurchaseItemRepositoryTest {
 
 	protected PurchaseItem projectionWithRelations() {
 		var pv = ProjectionValues.INSTANCE;
-		var prj = new PurchaseItem();
-		prj.id = pv.i64;
-		prj.amount = pv.i32;
-		prj.price = pv.f64;
-		prj.purchase = new Purchase();
-		prj.purchase.id = pv.i64;
-		prj.product = new Product();
-		prj.product.id = pv.i64;
+		var prj = new PurchaseItem()
+				.withId(pv.i64)
+				.withAmount(pv.i32)
+				.withPrice(pv.f64)
+				.withPurchase(new Purchase().withId(pv.i64))
+				.withProduct(new Product().withId(pv.i64));
 		return prj;
 	}
 
@@ -43,9 +41,9 @@ public abstract class AbstractPurchaseItemRepositoryTest {
 	public void fetchById_returnsCorrectItem() {
 		var item = repo().fetchById(DBReset.ADMIN_FIRST_PURCHASE_ITEM0_ID, projectionWithRelations());
 		assertNotNull(item);
-		assertNotNull(item.amount);
-		assertNotNull(item.price);
-		assertNotNull(item.product);
+		assertNotNull(item.amount());
+		assertNotNull(item.price());
+		assertNotNull(item.product());
 	}
 
 	@Test
@@ -57,16 +55,16 @@ public abstract class AbstractPurchaseItemRepositoryTest {
 	@Test
 	public void fetchWithProjection_onlyRequestedFields() {
 		var pv = ProjectionValues.INSTANCE;
-		var projection = new PurchaseItem();
-		projection.id = pv.i64;
-		projection.amount = pv.i32;
-		projection.price = pv.f64;
+		var projection = new PurchaseItem()
+				.withId(pv.i64)
+				.withAmount(pv.i32)
+				.withPrice(pv.f64);
 
 		var item = repo().fetchById(DBReset.ADMIN_FIRST_PURCHASE_ITEM0_ID, projection);
 		assertNotNull(item);
-		assertEquals(DBReset.ADMIN_FIRST_PURCHASE_ITEM0_ID, item.id);
-		assertNotNull(item.amount);
-		assertNotNull(item.price);
+		assertEquals(DBReset.ADMIN_FIRST_PURCHASE_ITEM0_ID, item.id());
+		assertNotNull(item.amount());
+		assertNotNull(item.price());
 	}
 
 	@Test
@@ -74,7 +72,7 @@ public abstract class AbstractPurchaseItemRepositoryTest {
 		var items = repo().fetch(new PurchaseItemCriteria()
 				.withPurchaseId(DBReset.ADMIN_FIRST_PURCHASE_ID));
 		assertEquals(1, items.size());
-		assertEquals(DBReset.ADMIN_FIRST_PURCHASE_ITEM0_ID, items.get(0).id);
+		assertEquals(DBReset.ADMIN_FIRST_PURCHASE_ITEM0_ID, items.get(0).id());
 	}
 
 	@Test
@@ -106,34 +104,34 @@ public abstract class AbstractPurchaseItemRepositoryTest {
 		var items = repo().fetch(criteria);
 		assertFalse(items.isEmpty());
 		for (var item : items) {
-			assertEquals(DBReset.CAFETEIRA_ID, item.product.id);
+			assertEquals(DBReset.CAFETEIRA_ID, item.product().id());
 		}
 	}
 
 	@Test
 	public void fetchWithOffsetAndLimit() {
 		var items = repo().fetch(new PurchaseItemCriteria()
-				.withOrderBy(PurchaseItemCriteria.OrderBy.ASCENDING), 0, 2);
+				.withOrderBy(PurchaseItemCriteria.OrderBy.OLDEST_FIRST), 0, 2);
 		assertEquals(2, items.size());
 	}
 
 	@Test
 	public void fetchWithOrderAscending() {
 		var items = repo().fetch(new PurchaseItemCriteria()
-				.withOrderBy(PurchaseItemCriteria.OrderBy.ASCENDING));
+				.withOrderBy(PurchaseItemCriteria.OrderBy.OLDEST_FIRST));
 		assertEquals(3, items.size());
 		for (int i = 1; i < items.size(); i++) {
-			assertTrue(items.get(i - 1).id <= items.get(i).id);
+			assertTrue(items.get(i - 1).id() <= items.get(i).id());
 		}
 	}
 
 	@Test
 	public void fetchWithOrderDescending() {
 		var items = repo().fetch(new PurchaseItemCriteria()
-				.withOrderBy(PurchaseItemCriteria.OrderBy.DESCENDING));
+				.withOrderBy(PurchaseItemCriteria.OrderBy.NEWEST_FIRST));
 		assertEquals(3, items.size());
 		for (int i = 1; i < items.size(); i++) {
-			assertTrue(items.get(i - 1).id >= items.get(i).id);
+			assertTrue(items.get(i - 1).id() >= items.get(i).id());
 		}
 	}
 
@@ -170,23 +168,21 @@ public abstract class AbstractPurchaseItemRepositoryTest {
 
 	@Test
 	public void insert_newPurchaseItem() {
-		var item = new PurchaseItem();
-		item.amount = 5;
-		item.price = 15.50;
-		item.purchase = new Purchase();
-		item.purchase.id = DBReset.ADMIN_FIRST_PURCHASE_ID;
-		item.product = new Product();
-		item.product.id = DBReset.PEN_DRIVE2GB_ID;
+		var item = new PurchaseItem()
+				.withAmount(5)
+				.withPrice(15.50)
+				.withPurchase(new Purchase().withId(DBReset.ADMIN_FIRST_PURCHASE_ID))
+				.withProduct(new Product().withId(DBReset.PEN_DRIVE2GB_ID));
 
 		boolean inserted = repo().insert(item);
 		assertTrue(inserted);
-		assertNotNull(item.id);
+		assertNotNull(item.id());
 
-		var fetched = repo().fetchById(item.id, projectionWithRelations());
+		var fetched = repo().fetchById(item.id(), projectionWithRelations());
 		assertNotNull(fetched);
-		assertEquals(Integer.valueOf(5), fetched.amount);
-		assertEquals(15.50, fetched.price, 0.001);
-		assertEquals(DBReset.PEN_DRIVE2GB_ID, fetched.product.id);
+		assertEquals(Integer.valueOf(5), fetched.amount());
+		assertEquals(15.50, fetched.price(), 0.001);
+		assertEquals(DBReset.PEN_DRIVE2GB_ID, fetched.product().id());
 	}
 
 	// :: update
@@ -196,19 +192,19 @@ public abstract class AbstractPurchaseItemRepositoryTest {
 		var original = repo().fetchById(DBReset.ADMIN_FIRST_PURCHASE_ITEM0_ID, null);
 		assertNotNull(original);
 
-		var updated = new PurchaseItem();
-		updated.id = original.id;
-		updated.amount = 99;
-		updated.price = 999.99;
-		updated.purchase = original.purchase;
-		updated.product = original.product;
+		var updated = new PurchaseItem()
+				.withId(original.id())
+				.withAmount(99)
+				.withPrice(999.99)
+				.withPurchase(original.purchase())
+				.withProduct(original.product());
 
 		boolean result = repo().update(updated, original);
 		assertTrue(result);
 
 		var fetched = repo().fetchById(DBReset.ADMIN_FIRST_PURCHASE_ITEM0_ID, null);
-		assertEquals(Integer.valueOf(99), fetched.amount);
-		assertEquals(999.99, fetched.price, 0.001);
+		assertEquals(Integer.valueOf(99), fetched.amount());
+		assertEquals(999.99, fetched.price(), 0.001);
 	}
 
 	// :: delete
@@ -250,5 +246,39 @@ public abstract class AbstractPurchaseItemRepositoryTest {
 		int deleted = repo().delete(new PurchaseItemCriteria()
 				.withPurchaseItemId(Long.MAX_VALUE));
 		assertEquals(0, deleted);
+	}
+
+	// :: Campos que não são a chave
+
+	@Test
+	public void filterByAmount() {
+		// Todos os itens do seed têm quantidade 1: o par abaixo mostra o filtro dos dois lados do corte,
+		// que é o que separa "filtrou" de "devolveu tudo".
+		var todos = repo().fetch(new PurchaseItemCriteria().amount().ge(1));
+		var nenhum = repo().fetch(new PurchaseItemCriteria().amount().ge(2));
+
+		assertEquals(3, todos.size());
+		assertEquals(0, nenhum.size());
+	}
+
+	@Test
+	public void filterByPrice_range() {
+		var items = repo().fetch(new PurchaseItemCriteria().price().between(2.0, 50.0));
+
+		for (var item : items) {
+			assertTrue("preço fora da faixa: " + item.price(), item.price() >= 2.0 && item.price() <= 50.0);
+		}
+	}
+
+	@Test
+	public void filterByPrice_and_amount_combineWithAnd() {
+		var criteria = new PurchaseItemCriteria();
+		criteria.price().gt(1.0);
+		criteria.amount().eq(1);
+
+		for (var item : repo().fetch(criteria)) {
+			assertTrue(item.price() > 1.0);
+			assertEquals(Integer.valueOf(1), item.amount());
+		}
 	}
 }

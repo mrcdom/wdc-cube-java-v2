@@ -11,6 +11,8 @@ import org.junit.BeforeClass;
 
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.commons.util.Defer;
+import br.com.wdc.framework.domain.security.CryptoProvider;
+import br.com.wdc.framework.domain.security.JceCryptoProvider;
 import br.com.wdc.shopping.domain.ShoppingConfig;
 import br.com.wdc.shopping.persistence.impl.ShoppingRepositoryBootstrap;
 import br.com.wdc.shopping.scripts.sgbd.DBCreate;
@@ -60,6 +62,11 @@ public class BaseBusinessTest {
         ShoppingConfig.Internals.setTempDir(basePath.resolve("temp"));
 
         ScheduledExecutor.BEAN.set(executor);
+
+        // Infraestrutura de criptografia: os hosts reais a instalam no seu composition root, e este ambiente é
+        // um host como os outros. Sem ela, PasswordUtil recusa a operação — e é dele que o login depende.
+        CryptoProvider.BEAN.set(new JceCryptoProvider());
+        cleanUp.push(() -> CryptoProvider.BEAN.set(null));
 
         ShoppingRepositoryBootstrap.initialize(ds, cleanUp);
     }
