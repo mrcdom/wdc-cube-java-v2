@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-	Framework jOOQ — complementos genéricos ao jOOQ: DSLContext holder,
-	utilitários de field/record e query builders com suporte a JSON (PostgreSQL).
+	Framework Persistence — controle de transação programático estilo CMT, dual-mode
+	JTA/JDBC, e coordenador de transações remotas dirigidas pelo cliente (REST).
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"

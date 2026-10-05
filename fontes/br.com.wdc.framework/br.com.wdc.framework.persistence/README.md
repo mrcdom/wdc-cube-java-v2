@@ -9,7 +9,7 @@ Controle de transação **programático estilo CMT** (Container-Managed Transact
 | Artefato | Papel |
 |----------|-------|
 | `br.com.wdc.framework.domain` | Contrato `TransactionService` / `TransactionContext` e exceções |
-| `br.com.wdc.framework.commons` | `SqlDataSource` (holder do `DataSource`) |
+| `br.com.wdc.framework.commons` | `Log` (logging do coordenador remoto) |
 | `jakarta.transaction:jakarta.transaction-api` | Interfaces JTA (vendor-neutral) |
 
 **Não depende** de Agroal, Narayana ou drivers XA — isso vive no host (ex.: `br.com.wdc.cube.backend`).

@@ -19,15 +19,15 @@ import br.com.wdc.framework.domain.transaction.TransactionSystemException;
  *
  * <p>
  * Cada {@code txId} guarda um {@link TransactionScope} <b>suspenso</b> (transação física viva, sem dono de thread). A
- * cada requisição que carrega o {@code txId}, {@link #resume(String)} religa o escopo à thread corrente e
- * {@link #suspend(String)} o desliga ao final, mantendo-o vivo para a próxima. {@link #commit(String)}/
- * {@link #rollback(String)} finalizam e removem.
+ * cada requisição que carrega o {@code txId}, {@link #resume(String, String)} religa o escopo à thread corrente e
+ * {@link #suspend(String)} o desliga ao final, mantendo-o vivo para a próxima. {@link #commit(String, String)}/
+ * {@link #rollback(String, String)} finalizam e removem.
  * </p>
  *
  * <p>
  * Vale para os dois modos do {@code TransactionScope}: JDBC (conexão única mantida aberta) e JTA (suspend/resume no
  * TransactionManager). Transações ociosas além do timeout são revertidas e removidas (varredura preguiçosa no
- * {@link #begin()}), evitando vazamento de conexão por clientes que abandonam a transação.
+ * {@link #begin(String)}), evitando vazamento de conexão por clientes que abandonam a transação.
  * </p>
  */
 public final class RemoteTransactionCoordinatorImpl implements RemoteTransactionCoordinator {
