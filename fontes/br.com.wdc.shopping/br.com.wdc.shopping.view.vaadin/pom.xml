@@ -14,8 +14,8 @@
     <artifactId>br.com.wdc.shopping.view.vaadin</artifactId>
 
     <properties>
-        <vaadin.version>24.6.3</vaadin.version>
-        <jetty.version>12.0.41</jetty.version>
+        <vaadin.version>25.3.5</vaadin.version>
+        <jetty.version>12.1.15</jetty.version>
     </properties>
 
     <dependencyManagement>
@@ -69,6 +69,12 @@
         <dependency>
             <groupId>com.vaadin</groupId>
             <artifactId>vaadin-core</artifactId>
+        </dependency>
+        <!-- Modo de desenvolvimento (bundle de dev e ferramentas); desde o Vaadin 25 não vem mais pelo vaadin-core -->
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-dev</artifactId>
+            <optional>true</optional>
         </dependency>
 
         <!-- Embedded Jetty -->

@@ -9,17 +9,13 @@ import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.page.AppShellConfigurator;
-import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.shared.communication.PushMode;
 
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.shopping.presentation.presenter.Routes;
 
 @Route("")
-@Push(PushMode.AUTOMATIC)
-public class MainLayout extends Div implements AppShellConfigurator {
+public class MainLayout extends Div {
 
     private static final long serialVersionUID = 4950391997168214131L;
     private static final Log LOG = Log.getLogger(MainLayout.class);

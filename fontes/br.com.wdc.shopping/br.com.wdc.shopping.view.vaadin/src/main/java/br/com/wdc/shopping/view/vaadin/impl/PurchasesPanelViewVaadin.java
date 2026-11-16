@@ -165,7 +165,7 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelP
                         + "}"
                         + "return new Promise(r => requestAnimationFrame(() => r(compute())));",
                 BASE_ITEM_HEIGHT_PX, BASE_FONT_SIZE_PX).then(result -> {
-                    int ps = (int) result.asNumber();
+                    int ps = result.asInt();
                     if (ps > 0) {
                         this.presenter.onItemSizeCapacityChanged(ps);
                     }
@@ -173,8 +173,7 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelP
 
         // Listen for debounced resize-triggered page size changes
         this.contentArea.getElement().addEventListener("page-size", e -> {
-            var detail = e.getEventData().getNumber("event.detail");
-            int ps = (int) detail;
+            int ps = e.getEventData().get("event.detail").asInt();
             if (ps > 0) {
                 this.presenter.onItemSizeCapacityChanged(ps);
             }

@@ -1,6 +1,6 @@
 # br.com.wdc.shopping.view.vaadin
 
-Implementação web (Vaadin 24) da aplicação **WeDoCode Shopping**, demonstrando a **independência entre visualização e lógica de apresentação** no padrão **Cube MVP**.
+Implementação web (Vaadin 25) da aplicação **WeDoCode Shopping**, demonstrando a **independência entre visualização e lógica de apresentação** no padrão **Cube MVP**.
 
 ## Motivação
 
@@ -93,9 +93,9 @@ graph TD
     subgraph Main["src/main/java/.../view/vaadin/"]
         VaadinMain["ShoppingVaadinMain.java<br/><small>Entry point (Jetty)</small>"]
         VaadinApp["ShoppingVaadinApplication.java<br/><small>CubeApp + view factories</small>"]
-        MainLayout["MainLayout.java<br/><small>@Route + @Push</small>"]
+        MainLayout["MainLayout.java<br/><small>@Route</small>"]
+        AppShell["AppShell.java<br/><small>@Push + tema Lumo</small>"]
         AbstractV["AbstractViewVaadin.java<br/><small>Base CubeView</small>"]
-        ServiceInit["AppServiceInitListener.java"]
         SchedAdapter["ScheduledExecutorVaadinAdapter.java"]
 
         subgraph Util["util/"]
@@ -128,8 +128,8 @@ graph TD
 
 | Dependência | Versão | Uso |
 |-------------|--------|-----|
-| Vaadin (vaadin-core) | 24.6.3 | Framework de UI server-side |
-| Jetty (jetty-ee10-webapp) | 12.0.16 | Servidor embarcado |
+| Vaadin (vaadin-core) | 25.3.5 | Framework de UI server-side |
+| Jetty (jetty-ee10-webapp) | 12.1.15 | Servidor embarcado |
 | H2 Database | (gerenciada) | Banco embarcado |
 | SLF4J + Logback | (gerenciada) | Logging |
 
@@ -179,16 +179,17 @@ O arquivo `work/config/application.toml` permite configurar:
 
 ## Notas técnicas
 
-### Jetty e o bytecode do projeto
+### Jetty e a varredura de classes
 
-O ASM do Jetty só lê class files de versões que ele conhece. Para a varredura de anotações não depender do nível de bytecode do projeto, o `WebAppContext` é configurado para não escanear as classes dele:
+As classes vêm do classpath, não de um WAR: o `WebAppContext` aponta para um diretório WAR vazio, e o `ContainerIncludeJarPattern` limita a varredura de anotações aos JARs do Vaadin/Flow/Atmosphere e ao local deste módulo (`target/classes` ou o fat JAR). É essa varredura que registra o `AppShell` e a rota do `MainLayout`.
 
-- Um diretório WAR vazio é criado
-- O `ContainerIncludeJarPattern` é restrito a `.*vaadin.*\.jar$|.*flow.*\.jar$|.*atmosphere.*\.jar$`
+### Tema
+
+Desde o Vaadin 25 o tema padrão é o Aura. O `AppShell` declara o Lumo (`@StyleSheet(Lumo.STYLESHEET)`), porque o `styles/app.css` usa as variáveis `--lumo-*`. O app shell é uma classe à parte: o Vaadin não aceita um componente (como o `MainLayout`) nesse papel.
 
 ### Server Push
 
-O `@Push(PushMode.AUTOMATIC)` no `MainLayout` habilita push via Atmosphere/WebSocket, permitindo que atualizações de estado nos Presenters sejam refletidas automaticamente no browser.
+O `@Push(PushMode.AUTOMATIC)` no `AppShell` habilita push via Atmosphere/WebSocket, permitindo que atualizações de estado nos Presenters sejam refletidas automaticamente no browser.
 
 ## Arquitetura de Integração Cube MVP
 

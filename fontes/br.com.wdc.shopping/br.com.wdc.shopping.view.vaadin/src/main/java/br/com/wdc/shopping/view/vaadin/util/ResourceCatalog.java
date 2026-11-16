@@ -2,27 +2,30 @@ package br.com.wdc.shopping.view.vaadin.util;
 
 import java.io.ByteArrayInputStream;
 
-import com.vaadin.flow.server.StreamResource;
+import com.vaadin.flow.server.streams.DownloadHandler;
+import com.vaadin.flow.server.streams.DownloadResponse;
 
 import br.com.wdc.shopping.domain.product.ProductRepository;
 
 public class ResourceCatalog {
 
+    private static final String IMAGE_PNG = "image/png";
+
     private ResourceCatalog() {
         super();
     }
 
-    public static StreamResource getImageResource(String resourceId) {
+    public static DownloadHandler getImageResource(String resourceId) {
         if (resourceId != null && resourceId.startsWith("image/product/") && resourceId.endsWith(".png")) {
             return loadProductImageResource(resourceId);
         }
-        return new StreamResource(resourceId, () -> {
+        return DownloadHandler.fromInputStream(event -> {
             var stream = ResourceCatalog.class.getResourceAsStream("/META-INF/resources/" + resourceId);
             if (stream == null) {
                 stream = ResourceCatalog.class.getResourceAsStream("/META-INF/resources/images/no-image-found.png");
             }
-            return stream;
-        });
+            return new DownloadResponse(stream, resourceId, IMAGE_PNG, -1);
+        }, resourceId);
     }
 
     public static String getImageUrl(String resourceId) {
@@ -35,7 +38,7 @@ public class ResourceCatalog {
         return resourceId;
     }
 
-    private static StreamResource loadProductImageResource(String url) {
+    private static DownloadHandler loadProductImageResource(String url) {
         var beforePngIdx = url.indexOf(".png");
         if (beforePngIdx == -1) {
             return getImageResource("images/no-image-found.png");
@@ -43,13 +46,15 @@ public class ResourceCatalog {
         var lastSlashIdx = url.lastIndexOf('/');
         try {
             var productId = Long.parseLong(url.substring(lastSlashIdx + 1, beforePngIdx));
-            return new StreamResource("product-" + productId + ".png", () -> {
+            var fileName = "product-" + productId + ".png";
+            return DownloadHandler.fromInputStream(event -> {
                 var bytes = ProductRepository.BEAN.get().fetchImage(productId);
                 if (bytes != null) {
-                    return new ByteArrayInputStream(bytes);
+                    return new DownloadResponse(new ByteArrayInputStream(bytes), fileName, IMAGE_PNG, bytes.length);
                 }
-                return ResourceCatalog.class.getResourceAsStream("/META-INF/resources/images/no-image-found.png");
-            });
+                var fallback = ResourceCatalog.class.getResourceAsStream("/META-INF/resources/images/no-image-found.png");
+                return new DownloadResponse(fallback, fileName, IMAGE_PNG, -1);
+            }, fileName);
         } catch (Exception e) {
             return getImageResource("images/no-image-found.png");
         }

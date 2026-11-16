@@ -1,7 +1,9 @@
 package br.com.wdc.shopping.view.vaadin;
 
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.regex.Pattern;
 
 import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.ee10.webapp.WebAppContext;
@@ -63,16 +65,18 @@ public class ShoppingVaadinMain {
             var webapp = new WebAppContext();
             webapp.setContextPath("/");
 
-            // Point WAR to an empty temp dir so Jetty does not scan our .class files: its ASM
-            // must know the class file version, and ours follows the project's Java release
+            // WAR vazio: as classes vêm do classpath, não de um WEB-INF
             var webRoot = Files.createTempDirectory("vaadin-war");
             webapp.setWar(webRoot.toString());
 
-            // Only scan Vaadin/Flow/Atmosphere JARs (compiled with Java 17, ASM compatible)
-            // This avoids scanning project JARs/directories compiled with the project's release
+            // Varre só os JARs do Vaadin/Flow/Atmosphere e o local deste módulo (target/classes ou o
+            // fat JAR): é por essa varredura que o Vaadin registra o MainLayout como AppShellConfigurator
+            // e aplica o tema (@StyleSheet) e o @Push declarados nele
+            var ownPath = Path.of(MainLayout.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+            var ownLocation = ".*" + Pattern.quote(ownPath.toString()) + "/?$";
             webapp.setAttribute(
                     "org.eclipse.jetty.server.webapp.ContainerIncludeJarPattern",
-                    ".*vaadin.*\\.jar$|.*flow.*\\.jar$|.*atmosphere.*\\.jar$");
+                    ".*vaadin.*\\.jar$|.*flow.*\\.jar$|.*atmosphere.*\\.jar$|" + ownLocation);
 
             webapp.setParentLoaderPriority(true);
             webapp.setClassLoader(Thread.currentThread().getContextClassLoader());
