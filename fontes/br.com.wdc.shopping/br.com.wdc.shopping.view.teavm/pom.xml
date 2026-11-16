@@ -18,7 +18,7 @@
     <description>TeaVM-based views — web (browser) and native (Tauri: desktop, Android, iOS)</description>
 
     <properties>
-        <teavm.version>0.14.0</teavm.version>
+        <teavm.version>0.16.0</teavm.version>
         <maven.compiler.source>25</maven.compiler.source>
         <maven.compiler.target>25</maven.compiler.target>
         <!-- API server URL: empty = same origin (relative paths) for browser; override with -Dapi.base.url=http://host:port for cross-origin (Tauri mobile builds use this) -->

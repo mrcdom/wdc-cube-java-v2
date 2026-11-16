@@ -18,7 +18,7 @@
     <description>TeaVM-compiled frontend shell communicating with remote.host via WebSocket (replaces React shell)</description>
 
     <properties>
-        <teavm.version>0.14.0</teavm.version>
+        <teavm.version>0.16.0</teavm.version>
         <maven.compiler.source>25</maven.compiler.source>
         <maven.compiler.target>25</maven.compiler.target>
     </properties>

@@ -16,7 +16,7 @@
 	<description>TeaVM Shell bridge for the Cube MVP remote protocol, using the browser Web Crypto API</description>
 
 	<properties>
-		<teavm.version>0.14.0</teavm.version>
+		<teavm.version>0.16.0</teavm.version>
 	</properties>
 
 	<dependencyManagement>
