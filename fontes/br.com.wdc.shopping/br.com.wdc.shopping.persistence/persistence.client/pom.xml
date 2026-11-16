@@ -24,11 +24,11 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!-- OkHttp for HTTP calls -->
+        <!-- OkHttp for HTTP calls (5.x: no Maven o artefato com as classes é o okhttp-jvm) -->
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>okhttp</artifactId>
-            <version>4.12.0</version>
+            <artifactId>okhttp-jvm</artifactId>
+            <version>5.5.1</version>
         </dependency>
     </dependencies>
 </project>

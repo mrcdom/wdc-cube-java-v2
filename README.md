@@ -2,7 +2,7 @@
 
 Proposta arquitetural para construção de aplicações utilizando o padrão **Cube MVP** — uma variação do Model-View-Presenter com presenters hierárquicos, navegação por intents e serialização de estado das views.
 
-Este projeto serve como **referência arquitetural** para novos projetos, demonstrando a implementação completa de um sistema de e-commerce (Shopping) com backend Java e **seis implementações de frontend independentes** — React (web/remoto), Flutter (mobile/desktop/web remoto), Vaadin (web/server-side), SWT (desktop nativo), Gluon (desktop/iOS/Android via GraalVM Native Image) e TeaVM (web/desktop/Android/iOS via Tauri) — provando que a camada de visualização é totalmente desacoplada da lógica de apresentação.
+Este projeto serve como **referência arquitetural** para novos projetos, demonstrando a implementação completa de um sistema de e-commerce (Shopping) com backend Java e **cinco implementações de frontend independentes** — React (web/remoto), Flutter (mobile/desktop/web remoto), Vaadin (web/server-side), SWT (desktop nativo) e TeaVM (web/desktop/Android/iOS via Tauri) — provando que a camada de visualização é totalmente desacoplada da lógica de apresentação.
 
 📄 [Cube MVP — Arquitetura de Apresentação Multiplataforma em Java](docs/cube-mvp-arquitetura-multiplataforma.md)  
 📄 [Camada de Dados — Domain, Persistence e API REST](docs/camada-de-dados.md)  
@@ -15,9 +15,8 @@ graph TD
     subgraph Views["Camada de Visualização"]
         R["React 19 + MUI<br/><small>Browser / WebSocket</small>"]
         FL["Flutter 3 + Material<br/><small>iOS / Android / Desktop / Web<br/>WebSocket</small>"]
-        V["Vaadin 24 + Lumo<br/><small>Browser / Server Push</small>"]
+        V["Vaadin 25 + Lumo<br/><small>Browser / Server Push</small>"]
         SW["Eclipse SWT<br/><small>Desktop Nativo / macOS</small>"]
-        GLN["Gluon + JavaFX<br/><small>Desktop / iOS / Android</small>"]
         TVM["TeaVM + Tauri<br/><small>Web / Desktop / Android / iOS</small>"]
     end
 
@@ -33,7 +32,6 @@ graph TD
     FL --> P
     V --> P
     SW --> P
-    GLN --> P
     TVM --> P
     P --> SEC --> PER --> DOM --> DB
 ```
@@ -42,14 +40,13 @@ graph TD
 |----------|-----------|------------|--------|
 | **Web (SPA)** | React 19 + TypeScript + MUI 9 | WebSocket (JSON delta) | `view.remote` |
 | **Mobile/Desktop/Web** | Flutter 3 + Material Design | WebSocket (JSON delta) | `view.remote` |
-| **Web (SSR)** | Vaadin 24 + Lumo | Server Push (Atmosphere) | `view.vaadin` |
-| **Desktop Nativo** | Eclipse SWT 3.128.0 | Direto em memória | `view.swt` |
-| **Multiplataforma** | JavaFX + Gluon Mobile | REST (OkHttp) | `view.gluon` |
-| **Multiplataforma (TeaVM)** | TeaVM 0.14 + Tauri 2 + Bootstrap 5 | REST (OkHttp → JS) | `view.teavm` |
+| **Web (SSR)** | Vaadin 25 + Lumo | Server Push (Atmosphere) | `view.vaadin` |
+| **Desktop Nativo** | Eclipse SWT 3.135.0 | Direto em memória | `view.swt` |
+| **Multiplataforma (TeaVM)** | TeaVM 0.16 + Tauri 2 + Bootstrap 5 | REST (OkHttp → JS) | `view.teavm` |
 
 **Características principais:**
 
-- **Independência de visualização** — mesmos Presenters/ViewStates alimentam React (web), Flutter (mobile/desktop/web), Vaadin (web server-side), SWT (desktop nativo), Gluon (desktop/iOS/Android) e TeaVM (web/desktop/Android/iOS)
+- **Independência de visualização** — mesmos Presenters/ViewStates alimentam React (web), Flutter (mobile/desktop/web), Vaadin (web server-side), SWT (desktop nativo) e TeaVM (web/desktop/Android/iOS)
 - **Sem frameworks de DI** — injeção via `AtomicReference<T> BEAN` (service locator estático); services recebem dependências no construtor
 - **Virtual Threads** (Java 21+) — conexões WebSocket com consumo mínimo de memória
 - **Segurança RBAC** — autenticação HMAC challenge-response com JWT, controle de acesso por papéis (ADMIN, CUSTOMER, MANAGER), repositórios decorados com verificação de permissões
@@ -86,9 +83,8 @@ graph TD
             reactShellTeavm["remote.shell.teavm<br/><small>Frontend TeaVM (WebSocket)</small>"]
         end
 
-        viewVaadin["view.vaadin<br/><small>Vaadin 24 server-side</small>"]
+        viewVaadin["view.vaadin<br/><small>Vaadin 25 server-side</small>"]
         viewSwt["view.swt<br/><small>Eclipse SWT</small>"]
-        viewGluon["view.gluon<br/><small>JavaFX + Gluon (Desktop/iOS/Android)</small>"]
         viewTeavm["view.teavm<br/><small>TeaVM + Tauri (Web/Desktop/Android/iOS)</small>"]
     end
 
@@ -124,18 +120,16 @@ graph TD
 | **view.remote / remote.shell.teavm** | Frontend TeaVM para comunicação via WebSocket com o servidor |
 | **backend** | Servidor Javalin 7 com Virtual Threads, WebSocket dispatcher, controllers REST, banco H2 embarcado. Gera fat JAR (~11 MB) |
 | **view.remote / remote.host** | Implementações de view para o servidor (`GenericViewImpl`), segurança (`AppSecurity` — RSA/PBKDF2/AES-GCM, `DataSecurity`), SPI de WebSocket |
-| **view.vaadin** | Visualização web server-side com Vaadin 24 + Lumo theme + Jetty 12 embarcado — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin/README.md) |
-| **view.swt** | Visualização desktop nativa com Eclipse SWT 3.128.0 — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.swt/README.md) |
-| **view.gluon** | Multiplataforma (Desktop + iOS + Android) com JavaFX + Gluon Mobile + GraalVM Native Image — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/README.md) |
-| **view.teavm** | Multiplataforma (Web + Desktop + Android + iOS) com TeaVM 0.14 + Tauri 2 + Bootstrap 5 — Java compilado para JS — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.teavm/README.md) |
+| **view.vaadin** | Visualização web server-side com Vaadin 25 + Lumo theme + Jetty 12 embarcado — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin/README.md) |
+| **view.swt** | Visualização desktop nativa com Eclipse SWT 3.135.0 — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.swt/README.md) |
+| **view.teavm** | Multiplataforma (Web + Desktop + Android + iOS) com TeaVM 0.16 + Tauri 2 + Bootstrap 5 — Java compilado para JS — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.teavm/README.md) |
 | **persistence.rest** | Controllers REST (Javalin) para expor repositórios como endpoints HTTP, filtro de segurança JWT (`SecurityFilter`), endpoints de autenticação (`AuthApiController`) |
 | **persistence.client** | Client REST (OkHttp + Gson) que implementa as interfaces de repositório e `AuthenticationService` via HTTP, com Bearer token automático |
 
 ## Pré-requisitos
 
-- **Java 21** (LTS)
-  - **Temurin 21** ou **Microsoft JDK 21** — recomendado
-  - JDK com suporte a JavaFX necessário para a versão Gluon
+- **Java 25** (LTS)
+  - **Temurin 25** ou **Microsoft JDK 25** — recomendado
 - **Maven 3.9+**
 - **Node.js 20+** e **npm** (para o frontend React)
 - **Flutter 3.x** (para o frontend Flutter — mobile/desktop/web)
@@ -145,7 +139,7 @@ graph TD
 ### Backend (Java)
 
 ```bash
-export JAVA_HOME=<caminho-para-jdk-21>  # ex: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home
+export JAVA_HOME=<caminho-para-jdk-25>  # ex: /Library/Java/JavaVirtualMachines/temurin-25.jdk/Contents/Home
 export PATH="$JAVA_HOME/bin:$PATH"
 
 cd fontes
@@ -182,8 +176,8 @@ sem Flutter no PATH os outros três continuam sendo gerados.
 |------|--------|-----------|---------|
 | `react` | `view.remote/remote.shell.react` | Node 20+ / npm | `work/frontend/remote.shell.react` |
 | `flutter` | `view.remote/remote.shell.flutter/flutter.web` | Flutter 3.x | `work/frontend/remote.shell.flutter` |
-| `teavm.shell` | `view.remote/remote.shell.teavm` | Maven + `JAVA21_HOME` | `work/frontend/remote.shell.teavm` |
-| `teavm.web` | `view.teavm/teavm.web` | Maven + `JAVA21_HOME` | `work/frontend/teavm.web` |
+| `teavm.shell` | `view.remote/remote.shell.teavm` | Maven + `JAVA25_HOME` | `work/frontend/remote.shell.teavm` |
+| `teavm.web` | `view.teavm/teavm.web` | Maven + `JAVA25_HOME` | `work/frontend/teavm.web` |
 
 `work/frontend/api.docs` e `work/frontend/openapi` são páginas estáticas — não têm build.
 
@@ -250,7 +244,7 @@ cd ../flutter.web
 ### Versão Vaadin (Web — Server-Side)
 
 ```bash
-export JAVA_HOME=<caminho-para-jdk-21>
+export JAVA_HOME=<caminho-para-jdk-25>
 export PATH="$JAVA_HOME/bin:$PATH"
 
 cd br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin
@@ -260,18 +254,6 @@ java -cp "$(mvn -q dependency:build-classpath -Dmdep.outputFile=/dev/stdout):tar
 
 - **Aplicação:** http://localhost:8090
 - UI inteiramente server-side — sem código JavaScript/TypeScript customizado
-
-### Versão Gluon (Desktop / iOS / Android)
-
-```bash
-# Desktop (JVM)
-cd br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/gluon.desktop
-./build.sh
-
-# iOS (simulador — Apple Silicon)
-cd br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/gluon.ios
-./build.sh --native --sim --deploy
-```
 
 ## Testes
 
@@ -402,17 +384,15 @@ Cada presenter possui um **ViewState** serializável que é transmitido ao front
 |-----------|-----------|--------|
 | Linguagem | Java (Temurin/Microsoft) | 21 |
 | Build | Maven | 3.9+ |
-| Servidor HTTP | Javalin | 7.2.0 |
-| Web UI (server-side) | Vaadin | 24.6.3 |
+| Servidor HTTP | Javalin | 7.2.4 |
+| Web UI (server-side) | Vaadin | 25.3.5 |
 | Servlet Container | Jetty | 12 |
-| Desktop UI (nativo) | Eclipse SWT (Cocoa macOS aarch64) | 3.128.0 |
-| Desktop UI (JavaFX) | JavaFX (via Gluon) | 21.0.7 |
-| Multiplataforma | Gluon Mobile + GraalVM Native Image | 1.0.25 |
+| Desktop UI (nativo) | Eclipse SWT (Cocoa macOS aarch64) | 3.135.0 |
 | Mobile/Desktop/Web | Flutter + Dart | 3.x |
-| Banco de dados | H2 | 2.4.240 |
-| Acesso a dados | jOOQ | 3.19.16 |
+| Banco de dados | H2 | 2.5.252 |
+| Acesso a dados | jOOQ | 3.21.9 |
 | Serialização | Gson | 2.13.2 |
-| Logging | SLF4J + Logback | 2.0.16 / 1.5.32 |
+| Logging | SLF4J + Logback | 2.0.20 / 1.6.7 |
 | Testes | JUnit | 4.13.2 |
 | Frontend | React | 19 |
 | UI Components | MUI | 9 |

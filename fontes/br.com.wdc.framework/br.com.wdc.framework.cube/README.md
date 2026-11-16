@@ -75,8 +75,8 @@ graph LR
 
 ```xml
 <dependency>
-    <groupId>br.com.wdc.framework</groupId>
-    <artifactId>br.com.wdc.framework.cube</artifactId>
+    <groupId>io.github.mrcdom.wdc.java</groupId>
+    <artifactId>framework-cube</artifactId>
     <version>2.0.0</version>
 </dependency>
 ```

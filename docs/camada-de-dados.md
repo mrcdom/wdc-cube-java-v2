@@ -31,7 +31,7 @@ Esse documento descreve como o projeto WDC Shopping resolve esses problemas atra
 
 ## O Problema que essa Arquitetura Resolve
 
-Imagine que você tem seis implementações de frontend para o mesmo sistema. Algumas rodam no servidor (Vaadin, SWT, modo remoto) e acessam o banco diretamente. Outras rodam no cliente (TeaVM compilado para JavaScript, Gluon/GraalVM Native Image para mobile) e precisam acessar os dados via HTTP.
+Imagine que você tem cinco implementações de frontend para o mesmo sistema. Algumas rodam no servidor (Vaadin, SWT, modo remoto) e acessam o banco diretamente. Outras rodam no cliente (TeaVM compilado para JavaScript) e precisam acessar os dados via HTTP.
 
 A pergunta natural é: como o código de negócio — Presenters, serviços, regras — permanece **idêntico** em ambos os casos?
 
@@ -627,7 +627,7 @@ public List<E> fetch(C criteria, int offset, int limit) {
 
 | Implementação | Onde | Como |
 |---|---|---|
-| `OkHttpTransport` | JVM (Gluon, testes, SWT remoto) | OkHttp |
+| `OkHttpTransport` | JVM (testes, SWT remoto) | OkHttp |
 | `FetchHttpTransport` | navegador (`teavm.web`) | `fetch` do próprio browser, via TeaVM |
 
 É por isso que o `persistence.client` roda compilado para JavaScript: nada nele depende de OkHttp — a dependência mora só no transporte JVM. O `OkHttpTransport` cuida do Bearer token (via `setAccessTokenSupplier`) e do `X-Tx-Id` da transação remota (via `setTransactionIdSupplier`).
@@ -653,7 +653,7 @@ Esse é o ponto central da arquitetura. O código que consome repositórios — 
 Modo servidor (Vaadin, SWT, modo remoto):
   ProductRepository.BEAN → ProductRepositoryImpl → jOOQ → H2
 
-Modo cliente (TeaVM, Gluon):
+Modo cliente (TeaVM):
   ProductRepository.BEAN → HttpProductRepository → HttpTransport → /api/repo/product/fetch → ProductRepositoryImpl → jOOQ → H2
 ```
 
@@ -693,7 +693,7 @@ sequenceDiagram
     participant Impl as ProductRepositoryImpl
     participant DB as H2
 
-    note over Presenter,DB: Modo Cliente (TeaVM, Gluon)
+    note over Presenter,DB: Modo Cliente (TeaVM)
     Presenter->>BEAN: fetch(criteria)
     BEAN->>Http: fetch(criteria)
     Http->>Transport: POST /api/repo/product/fetch (critério e projeção pelo codec)
@@ -828,7 +828,7 @@ Funciona nos **dois modos** do `TransactionScope`: JDBC (mantém uma conexão ú
 
 ### Onde cada peça vive (e por quê)
 
-O coordenador é um SPI **puramente server-side de persistência** — por isso vive em `framework.persistence.transaction`, **não** em `framework.domain`. A camada de apresentação (os seis frontends) depende transitivamente do domínio; expor ali um mecanismo de servidor seria vazamento. No domínio fica só o contrato de **demarcação** (`TransactionService`/`TransactionContext`), esse sim usado pelos casos de uso.
+O coordenador é um SPI **puramente server-side de persistência** — por isso vive em `framework.persistence.transaction`, **não** em `framework.domain`. A camada de apresentação (os frontends) depende transitivamente do domínio; expor ali um mecanismo de servidor seria vazamento. No domínio fica só o contrato de **demarcação** (`TransactionService`/`TransactionContext`), esse sim usado pelos casos de uso.
 
 O holder `RemoteTransactions.COORDINATOR` vive em `persistence.rest` (lado servidor), populado pelos **composition roots** — `BusinessContext` (backend) e `TestEnvironment` (testes) — ligado ao `DataSource` do módulo. O `ShoppingTransactions` (domínio) guarda apenas o `TransactionService` da aplicação. É o mesmo princípio hexagonal da seção anterior: o contrato neutro no domínio, a tecnologia e os holders server-side fora dele.
 

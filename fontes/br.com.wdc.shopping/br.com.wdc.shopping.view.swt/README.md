@@ -1,7 +1,7 @@
 # WDC Shopping — SWT Desktop View
 
-Implementação desktop nativa do WDC Shopping usando **Eclipse SWT 3.128.0** (Cocoa/macOS aarch64).
-Compartilha a mesma camada de apresentação (Cube MVP) com as demais views (TeaVM, React, Gluon, Vaadin).
+Implementação desktop nativa do WDC Shopping usando **Eclipse SWT 3.135.0** (Cocoa/macOS aarch64).
+Compartilha a mesma camada de apresentação (Cube MVP) com as demais views (TeaVM, React, Flutter, Vaadin).
 
 ## Arquitetura
 
@@ -60,7 +60,7 @@ graph TD
 
 | Dependência | Versão | Propósito |
 |-------------|--------|-----------|
-| Eclipse SWT (Cocoa macOS aarch64) | 3.128.0 | Toolkit gráfico nativo |
+| Eclipse SWT (Cocoa macOS aarch64) | 3.135.0 | Toolkit gráfico nativo |
 | br.com.wdc.shopping.presentation | 1.0.0 | Presenters e state (Cube MVP) |
 | br.com.wdc.shopping.persistence | 1.0.0 | Repositórios (JOOQ + H2) |
 | H2 Database | — | Banco de dados embarcado |
@@ -70,14 +70,14 @@ graph TD
 
 ```bash
 cd fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.swt
-JAVA_HOME=$JAVA21_HOME mvn clean compile -DskipTests
+JAVA_HOME=$JAVA25_HOME mvn clean compile -DskipTests
 ```
 
 ## Execução
 
 ```bash
 cd fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.swt
-JAVA_HOME=$JAVA21_HOME mvn exec:java \
+JAVA_HOME=$JAVA25_HOME mvn exec:java \
   -Dexec.mainClass="br.com.wdc.shopping.view.swt.ShoppingSwtMain"
 ```
 

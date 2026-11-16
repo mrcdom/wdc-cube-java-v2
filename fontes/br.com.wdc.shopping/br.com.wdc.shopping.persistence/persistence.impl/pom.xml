@@ -20,16 +20,16 @@
 			<artifactId>br.com.wdc.shopping.domain</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>br.com.wdc.framework</groupId>
-			<artifactId>br.com.wdc.framework.commons</artifactId>
+			<groupId>io.github.mrcdom.wdc.java</groupId>
+			<artifactId>framework-commons</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>br.com.wdc.framework</groupId>
-			<artifactId>br.com.wdc.framework.jooq</artifactId>
+			<groupId>io.github.mrcdom.wdc.java</groupId>
+			<artifactId>framework-jooq</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>br.com.wdc.framework</groupId>
-			<artifactId>br.com.wdc.framework.persistence</artifactId>
+			<groupId>io.github.mrcdom.wdc.java</groupId>
+			<artifactId>framework-persistence</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
@@ -42,6 +42,17 @@
 		<dependency>
 			<groupId>org.jooq</groupId>
 			<artifactId>jooq</artifactId>
+		</dependency>
+		<!-- Drivers do LocalDataSource (views locais): opcionais, quem o usa declara os dois -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<optional>true</optional>
 		</dependency>
 	</dependencies>
 </project>

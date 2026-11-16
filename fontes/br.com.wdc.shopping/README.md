@@ -1,6 +1,6 @@
 # 🛒 WeDoCode Shopping
 
-Um **sistema de e-commerce completo** construído com arquitetura **Cube MVP**, demonstrando como a mesma lógica de negócio pode alimentar interfaces totalmente diferentes — **React (web)**, **Vaadin (web server-side)**, **SWT (desktop nativo)**, **Gluon (desktop/iOS/Android)** e **TeaVM (web/desktop/Android/iOS)** — sem duplicar uma única linha de código de apresentação.
+Um **sistema de e-commerce completo** construído com arquitetura **Cube MVP**, demonstrando como a mesma lógica de negócio pode alimentar interfaces totalmente diferentes — **React (web)**, **Vaadin (web server-side)**, **SWT (desktop nativo)** e **TeaVM (web/desktop/Android/iOS)** — sem duplicar uma única linha de código de apresentação.
 
 > **Cinco frontends. Mesma alma.**
 
@@ -26,8 +26,8 @@ Um **sistema de e-commerce completo** construído com arquitetura **Cube MVP**, 
 git clone https://github.com/mrcdom/wdc-cube-java-v2.git
 cd wdc-cube-java-v2/fontes
 
-# 2. Build (requer Java 21 + Maven 3.9+)
-export JAVA_HOME=<caminho-para-jdk-21>  # ex: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home
+# 2. Build (requer Java 25 + Maven 3.9+)
+export JAVA_HOME=<caminho-para-jdk-25>  # ex: /Library/Java/JavaVirtualMachines/temurin-25.jdk/Contents/Home
 mvn clean package -DskipTests
 
 # 3. Execute
@@ -39,39 +39,23 @@ Abra **http://localhost:8080** e entre com `admin` / `admin`.
 
 ---
 
-## Ou rode a versão Gluon (Desktop / iOS / Android)
-
-```bash
-# Desktop (JVM)
-cd br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/gluon.desktop
-./build.sh
-
-# iOS (simulador — Apple Silicon)
-cd br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/gluon.ios
-./build.sh --native --sim --deploy
-```
-
-Mesma aplicação, mesmo banco, mesma lógica — rodando nativamente em Desktop, iOS e Android via GraalVM.
-
----
-
 ## Ou rode a versão Web Server-Side (Vaadin)
 
 ```bash
-export JAVA_HOME=<caminho-para-jdk-21>
+export JAVA_HOME=<caminho-para-jdk-25>
 cd br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin
 java -cp "$(mvn -q dependency:build-classpath -Dmdep.outputFile=/dev/stdout):target/classes" \
   br.com.wdc.shopping.view.vaadin.ShoppingVaadinMain
 ```
 
-Abra **http://localhost:8090**. UI inteiramente server-side com Vaadin 24 + Lumo theme. Mesmos presenters, mesmo domínio.
+Abra **http://localhost:8090**. UI inteiramente server-side com Vaadin 25 + Lumo theme. Mesmos presenters, mesmo domínio.
 
 ---
 
 ## Ou rode a versão Desktop (Eclipse SWT)
 
 ```bash
-export JAVA_HOME=<caminho-para-jdk-21>
+export JAVA_HOME=<caminho-para-jdk-25>
 cd br.com.wdc.shopping/br.com.wdc.shopping.view.swt
 mvn exec:java \
   -Dexec.mainClass="br.com.wdc.shopping.view.swt.ShoppingSwtMain"
@@ -106,9 +90,8 @@ Java compilado para JavaScript via TeaVM, empacotado como app nativo com Tauri 2
 | [`presentation`](br.com.wdc.shopping.presentation/) | Presenters hierárquicos, ViewStates, serviços, navegação |
 | [`scripts`](br.com.wdc.shopping.scripts/) | Scripts DDL (DBCreate, DBReset) |
 | [`view.remote`](br.com.wdc.shopping.view.remote/) | Frontend web completo (React + Javalin + WebSocket) |
-| [`view.vaadin`](br.com.wdc.shopping.view.vaadin/) | Frontend web server-side (Vaadin 24 + Jetty 12 + Lumo theme) |
+| [`view.vaadin`](br.com.wdc.shopping.view.vaadin/) | Frontend web server-side (Vaadin 25 + Jetty 12 + Lumo theme) |
 | [`view.swt`](br.com.wdc.shopping.view.swt/) | Frontend desktop nativo (Eclipse SWT) |
-| [`view.gluon`](br.com.wdc.shopping.view.gluon/) | Frontend multiplataforma (JavaFX + Gluon — Desktop, iOS, Android) |
 | [`view.teavm`](br.com.wdc.shopping.view.teavm/) | Frontend multiplataforma (TeaVM + Tauri — Web, Desktop, Android, iOS) |
 | [`persistence.rest`](br.com.wdc.shopping.persistence/persistence.rest/) | Controllers REST (Javalin) para expor repositórios via HTTP |
 | [`persistence.client`](br.com.wdc.shopping.persistence/persistence.client/) | Client REST (OkHttp + Gson) que implementa repositórios via HTTP |
@@ -121,7 +104,7 @@ Java compilado para JavaScript via TeaVM, empacotado como app nativo com Tauri 2
 - **Sem Spring, sem CDI, sem magia** — injeção via `AtomicReference<T> BEAN`, 100% explícito
 - **Separação real de concerns** — troque a UI inteira sem tocar em lógica (múltiplos frontends provam isso)
 - **Padrões sólidos** — Command, Repository, Presenter, ViewState
-- **Tecnologia moderna** — Java 21, Virtual Threads, React 19, Vaadin 24, TypeScript
+- **Tecnologia moderna** — Java 25, Virtual Threads, React 19, Vaadin 25, TypeScript
 - **Código limpo** — ~3.5s de build completo, zero warnings
 - **Segurança real** — RSA + PBKDF2 + AES-GCM (não apenas demonstrativo)
 

@@ -84,10 +84,10 @@ done
 
 # ------------------------------------------------------------- pré-requisitos
 
-# Os builds TeaVM chamam `JAVA_HOME=$JAVA21_HOME mvn ...`; sem a variável o Maven
+# Os builds TeaVM chamam `JAVA_HOME=$JAVA25_HOME mvn ...`; sem a variável o Maven
 # rodaria com JAVA_HOME vazio.
-if [ -z "${JAVA21_HOME:-}" ] && [ -n "${JAVA_HOME:-}" ]; then
-    export JAVA21_HOME="$JAVA_HOME"
+if [ -z "${JAVA25_HOME:-}" ] && [ -n "${JAVA_HOME:-}" ]; then
+    export JAVA25_HOME="$JAVA_HOME"
 fi
 
 missing_tool() {
@@ -95,7 +95,7 @@ missing_tool() {
     case "$tool" in
         mvn)
             command -v mvn >/dev/null || { echo "mvn não encontrado no PATH"; return 0; }
-            [ -n "${JAVA21_HOME:-}" ] || { echo "JAVA21_HOME (ou JAVA_HOME) não aponta para um JDK 21"; return 0; }
+            [ -n "${JAVA25_HOME:-}" ] || { echo "JAVA25_HOME (ou JAVA_HOME) não aponta para um JDK 25"; return 0; }
             ;;
         *)
             command -v "$tool" >/dev/null || { echo "$tool não encontrado no PATH"; return 0; }
@@ -129,8 +129,8 @@ if $needs_maven_modules && ! $SKIP_INSTALL; then
     else
         echo "=== Instalando módulos Maven (framework + shopping) ==="
         echo "    Sem isto o TeaVM compilaria contra o ~/.m2 anterior — use --skip-install se souber que está em dia."
-        JAVA_HOME=$JAVA21_HOME mvn -f "$FONTES/br.com.wdc.framework/pom.xml" install -DskipTests -q || exit 1
-        JAVA_HOME=$JAVA21_HOME mvn -f "$FONTES/br.com.wdc.shopping/pom.xml" install \
+        JAVA_HOME=$JAVA25_HOME mvn -f "$FONTES/br.com.wdc.framework/pom.xml" install -DskipTests -q || exit 1
+        JAVA_HOME=$JAVA25_HOME mvn -f "$FONTES/br.com.wdc.shopping/pom.xml" install \
             -pl br.com.wdc.shopping.domain,br.com.wdc.shopping.persistence,:persistence.client,br.com.wdc.shopping.presentation \
             -DskipTests -q || exit 1
     fi

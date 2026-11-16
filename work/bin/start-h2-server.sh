@@ -26,7 +26,7 @@ DATA_DIR="${1:-$WORK_DIR/data}"
 DATA_DIR="$( cd "$DATA_DIR" && pwd )"
 
 # JAR locations (checked in priority order)
-H2_JAR="${HOME}/.m2/repository/com/h2database/h2/2.4.240/h2-2.4.240.jar"
+H2_JAR="${HOME}/.m2/repository/com/h2database/h2/2.5.252/h2-2.5.252.jar"
 BACKEND_JAR="$PROJECT_ROOT/fontes/br.com.wdc.cube.backend/target/br.com.wdc.cube.backend-1.0.0.jar"
 
 if [ ! -f "$H2_JAR" ]; then
@@ -61,7 +61,11 @@ echo ""
 echo "Press Ctrl+C to stop the H2 server."
 echo ""
 
-exec java -cp "$CLASSPATH" org.h2.tools.Server \
+# O fat JAR do backend é bytecode 25: o H2 precisa rodar num JDK 25
+JAVA_HOME="${JAVA25_HOME:-$JAVA_HOME}"
+JAVA="${JAVA_HOME:+$JAVA_HOME/bin/}java"
+
+exec "$JAVA" -cp "$CLASSPATH" org.h2.tools.Server \
     -tcp \
     -tcpAllowOthers \
     -tcpPort 9092 \

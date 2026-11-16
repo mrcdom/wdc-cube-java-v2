@@ -4,20 +4,22 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>br.com.wdc.framework</groupId>
-		<artifactId>br.com.wdc.framework</artifactId>
-		<version>1.0.0</version>
+		<groupId>io.github.mrcdom.wdc.java</groupId>
+		<artifactId>framework-parent</artifactId>
+		<version>2.0.0</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-	<artifactId>br.com.wdc.framework.commons</artifactId>
+	<artifactId>framework-commons</artifactId>
+	<name>framework-commons</name>
+	<description>Base utilities for the Cube MVP framework: JSON, logging, coercion, encoding and concurrency helpers</description>
 
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>br.com.wdc.framework</groupId>
-				<artifactId>br.com.wdc.framework.dependencies</artifactId>
-				<version>1.0.0</version>
+				<groupId>io.github.mrcdom.wdc.java</groupId>
+				<artifactId>framework-dependencies</artifactId>
+				<version>${project.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -58,7 +60,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>build-helper-maven-plugin</artifactId>
-				<version>3.6.1</version>
+				<version>3.8.0</version>
 				<executions>
 					<execution>
 						<id>add-source</id>

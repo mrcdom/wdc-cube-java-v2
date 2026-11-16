@@ -6,6 +6,7 @@ package br.com.wdc.shopping.persistence.impl.scheme;
 
 
 import org.jooq.Sequence;
+import org.jooq.impl.DSL;
 import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 
@@ -13,11 +14,11 @@ import org.jooq.impl.SQLDataType;
 @SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class Sequences {
 
-    public static final Sequence<Long> SQ_PRODUCT = Internal.createSequence("SQ_PRODUCT", Public.PUBLIC, SQLDataType.BIGINT, null, null, null, null, false, null);
+    public static final Sequence<Long> SQ_PRODUCT = Internal.createSequence("SQ_PRODUCT", Public.PUBLIC, DSL.comment(""), SQLDataType.BIGINT, null, null, null, null, false, null);
 
-    public static final Sequence<Long> SQ_PURCHASE = Internal.createSequence("SQ_PURCHASE", Public.PUBLIC, SQLDataType.BIGINT, null, null, null, null, false, null);
+    public static final Sequence<Long> SQ_PURCHASE = Internal.createSequence("SQ_PURCHASE", Public.PUBLIC, DSL.comment(""), SQLDataType.BIGINT, null, null, null, null, false, null);
 
-    public static final Sequence<Long> SQ_PURCHASEITEM = Internal.createSequence("SQ_PURCHASEITEM", Public.PUBLIC, SQLDataType.BIGINT, null, null, null, null, false, null);
+    public static final Sequence<Long> SQ_PURCHASEITEM = Internal.createSequence("SQ_PURCHASEITEM", Public.PUBLIC, DSL.comment(""), SQLDataType.BIGINT, null, null, null, null, false, null);
 
-    public static final Sequence<Long> SQ_USER = Internal.createSequence("SQ_USER", Public.PUBLIC, SQLDataType.BIGINT, null, null, null, null, false, null);
+    public static final Sequence<Long> SQ_USER = Internal.createSequence("SQ_USER", Public.PUBLIC, DSL.comment(""), SQLDataType.BIGINT, null, null, null, null, false, null);
 }

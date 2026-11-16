@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<name>WeDoCode Shopping :: root</name>
-	<description>Cube MVP architectural reference — Java 21 + React 19 e-commerce demo</description>
+	<description>Cube MVP architectural reference — Java 25 + React 19 e-commerce demo</description>
 	<url>https://github.com/mrcdom/wdc-cube-java-v2</url>
 	<inceptionYear>2026</inceptionYear>
 
@@ -44,8 +44,8 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-		<maven.compiler.source>21</maven.compiler.source>
-		<maven.compiler.target>21</maven.compiler.target>
+		<!-- Demos e backend; o framework (publicado no Central) fica em 21 no pom dele -->
+		<maven.compiler.release>25</maven.compiler.release>
 	</properties>
 
 	<distributionManagement>
@@ -78,9 +78,9 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
-					<version>3.13.0</version>
+					<version>3.16.0</version>
 					<configuration>
-						<release>21</release>
+						<release>25</release>
 					</configuration>
 				</plugin>
 			</plugins>

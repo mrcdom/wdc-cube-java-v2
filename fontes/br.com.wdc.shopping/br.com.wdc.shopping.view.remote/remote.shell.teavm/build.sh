@@ -10,16 +10,16 @@ if [[ "$1" == "--full" ]]; then
     echo "=== Installing dependency modules ==="
     FRAMEWORK_DIR="../../../br.com.wdc.framework"
 
-    JAVA_HOME=$JAVA21_HOME mvn -f "$FRAMEWORK_DIR/pom.xml" install -DskipTests -q
+    JAVA_HOME=$JAVA25_HOME mvn -f "$FRAMEWORK_DIR/pom.xml" install -DskipTests -q
     echo "=== Dependencies installed ==="
 fi
 
 # Always rebuild teavm.commons (shared VDom, Swc, interop)
-JAVA_HOME=$JAVA21_HOME mvn -f "$COMMONS_DIR/pom.xml" install -DskipTests -q
+JAVA_HOME=$JAVA25_HOME mvn -f "$COMMONS_DIR/pom.xml" install -DskipTests -q
 
 # Compile TeaVM (generates JS into $DEPLOY_DIR/js/ and copies webapp via maven-resources-plugin)
 # clean is required to force TeaVM recompilation when only dependency JARs changed
 rm -f "$DEPLOY_DIR/index.html"
-JAVA_HOME=$JAVA21_HOME mvn clean process-classes -DskipTests
+JAVA_HOME=$JAVA25_HOME mvn clean process-classes -DskipTests
 
 echo "Deploy complete: $DEPLOY_DIR"

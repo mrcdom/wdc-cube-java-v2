@@ -222,7 +222,7 @@ public final class TransactionScope implements AutoCloseable {
         CURRENT.remove();
 
         if (jdbcOldAutoCommit == null) {
-            // JTA: devolve conexão ao pool; TM comita/reverte via Synchronization.
+            // JTA: fecha o handle da conexão (o pool só a recicla ao término da transação) e finaliza pelo TM.
             silentClose(connection);
             commitOrRollbackJta();
         } else {

@@ -14,7 +14,7 @@
     <artifactId>remote.host</artifactId>
 
     <properties>
-        <javalin.version>7.2.0</javalin.version>
+        <javalin.version>7.2.4</javalin.version>
     </properties>
 
     <dependencies>
@@ -31,8 +31,8 @@
 
         <!-- Framework: remote application infrastructure -->
         <dependency>
-            <groupId>br.com.wdc.framework</groupId>
-            <artifactId>remote.backend</artifactId>
+            <groupId>io.github.mrcdom.wdc.java</groupId>
+            <artifactId>framework-cube-remote-backend</artifactId>
         </dependency>
 
         <!-- Javalin HTTP/WebSocket framework -->

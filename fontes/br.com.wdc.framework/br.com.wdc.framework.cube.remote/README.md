@@ -97,15 +97,15 @@ Equivalente Java/TeaVM do bridge React:
 ```xml
 <!-- Backend (servidor) -->
 <dependency>
-    <groupId>br.com.wdc.framework</groupId>
-    <artifactId>remote.backend</artifactId>
-    <version>1.0.0</version>
+    <groupId>io.github.mrcdom.wdc.java</groupId>
+    <artifactId>framework-cube-remote-backend</artifactId>
+    <version>2.0.0</version>
 </dependency>
 
 <!-- Bridge TeaVM (thin-client) -->
 <dependency>
-    <groupId>br.com.wdc.framework</groupId>
-    <artifactId>remote.bridge.teavm</artifactId>
-    <version>1.0.0</version>
+    <groupId>io.github.mrcdom.wdc.java</groupId>
+    <artifactId>framework-cube-remote-bridge-teavm</artifactId>
+    <version>2.0.0</version>
 </dependency>
 ```

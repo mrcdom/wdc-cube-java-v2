@@ -7,7 +7,7 @@ Módulo **cliente REST** da aplicação Shopping. Implementa as interfaces de re
 | Artefato | Papel |
 |----------|-------|
 | `br.com.wdc.shopping.domain` | Modelos de domínio, interfaces de repositório, contratos de segurança |
-| `com.squareup.okhttp3:okhttp` | Cliente HTTP (4.12.0) |
+| `com.squareup.okhttp3:okhttp-jvm` | Cliente HTTP (5.5.1) |
 | `com.google.code.gson:gson` | Serialização/deserialização JSON |
 | `slf4j-api` | Logging |
 
@@ -175,6 +175,6 @@ O módulo é usado por:
 
 | Consumidor | Contexto |
 |-----------|---------|
-| **Gluon Desktop** (`view.gluon.desktop`) | Modo remoto — acessa backend Javalin via rede |
+| **TeaVM Web** (`view.teavm/teavm.web`) | Modo cliente — compilado para JS, acessa o backend Javalin via REST |
 | **Testes de integração** (`shopping.tests`) | `RestXxxRepositoryTest` valida API end-to-end |
 | **Javalin** (`backend`) | Registra `RestAuthenticationService` para propagação de auth |

@@ -17,7 +17,7 @@ import br.com.wdc.shopping.view.remote.shell.cn1.widgets.CardHeader;
 import br.com.wdc.shopping.view.remote.shell.cn1.widgets.Slot;
 
 /**
- * DSL fluente de construção da árvore de componentes — análogo do {@code VaadinDom}/{@code GluonDom}
+ * DSL fluente de construção da árvore de componentes — análogo do {@code VaadinDom}/{@code SwtDom}
  * para o Codename One.
  *
  * <p>

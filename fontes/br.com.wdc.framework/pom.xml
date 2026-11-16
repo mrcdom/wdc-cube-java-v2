@@ -1,32 +1,60 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+	Pai dos módulos do framework, publicados no Maven Central. Não herda do pom raiz
+	(br.com.wdc.cube.parent): quem consome o framework resolve só esta árvore, sem os demos.
+
+	Publicação: cd fontes/br.com.wdc.framework && mvn -Prelease clean deploy
+	(credenciais do portal no server "central" do settings.xml; assinatura pelo gpg-agent).
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<groupId>br.com.wdc</groupId>
-		<artifactId>br.com.wdc.cube.parent</artifactId>
-		<version>2.0.0</version>
-		<relativePath>../pom.xml</relativePath>
-	</parent>
-
-	<groupId>br.com.wdc.framework</groupId>
-	<artifactId>br.com.wdc.framework</artifactId>
-	<version>1.0.0</version>
+	<!-- Namespace do Central verificado pela conta do GitHub; "wdc.java" espelha o "wdc.kt" da versão Kotlin -->
+	<groupId>io.github.mrcdom.wdc.java</groupId>
+	<artifactId>framework-parent</artifactId>
+	<version>2.0.0</version>
 
 	<packaging>pom</packaging>
 
-	<distributionManagement>
-		<repository>
-			<id>artifactory-wedocode-release</id>
-			<name>libs-release-local</name>
-			<url>${repo.url}/libs-release-local</url>
-		</repository>
-		<snapshotRepository>
-			<id>artifactory-wedocode-snapshot</id>
-			<name>libs-snapshot-local</name>
-			<url>${repo.url}/libs-snapshot-local</url>
-		</snapshotRepository>
-	</distributionManagement>
+	<name>framework-parent</name>
+	<description>Cube MVP framework for Java: hierarchical presenters, intent navigation, serializable ViewStates and the data access layer</description>
+	<url>https://github.com/mrcdom/wdc-cube-java-v2</url>
+	<inceptionYear>2026</inceptionYear>
+
+	<licenses>
+		<license>
+			<name>MIT License</name>
+			<url>https://opensource.org/licenses/MIT</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<organization>
+		<name>WeDoCode Consultoria LTDA</name>
+		<url>https://wedocode.com.br</url>
+	</organization>
+
+	<developers>
+		<developer>
+			<id>mrcdom</id>
+			<name>Marcelo Domingos</name>
+			<url>https://github.com/mrcdom</url>
+			<organization>WeDoCode Consultoria LTDA</organization>
+			<organizationUrl>https://wedocode.com.br</organizationUrl>
+		</developer>
+	</developers>
+
+	<scm>
+		<url>https://github.com/mrcdom/wdc-cube-java-v2</url>
+		<connection>scm:git:https://github.com/mrcdom/wdc-cube-java-v2.git</connection>
+		<developerConnection>scm:git:git@github.com:mrcdom/wdc-cube-java-v2.git</developerConnection>
+	</scm>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<maven.compiler.release>21</maven.compiler.release>
+	</properties>
 
 	<modules>
 		<module>br.com.wdc.framework.dependencies</module>
@@ -44,10 +72,81 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
-					<version>3.15.0</version>
+					<version>3.16.0</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>
 	</build>
+
+	<profiles>
+		<!-- O Central exige, por artefato: jar de fontes, jar de javadoc e assinatura GPG -->
+		<profile>
+			<id>release</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-source-plugin</artifactId>
+						<version>3.4.0</version>
+						<executions>
+							<execution>
+								<id>attach-sources</id>
+								<goals>
+									<goal>jar-no-fork</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<version>3.12.0</version>
+						<configuration>
+							<doclint>none</doclint>
+							<quiet>true</quiet>
+						</configuration>
+						<executions>
+							<execution>
+								<id>attach-javadocs</id>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>3.2.8</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.sonatype.central</groupId>
+						<artifactId>central-publishing-maven-plugin</artifactId>
+						<version>0.12.0</version>
+						<extensions>true</extensions>
+						<configuration>
+							<publishingServerId>central</publishingServerId>
+							<!-- Fica como "validated" no portal; a liberação é manual, como no Kotlin -->
+							<autoPublish>false</autoPublish>
+							<waitUntil>validated</waitUntil>
+							<!-- Fonte TypeScript sem jar: o bridge React não é artefato Maven -->
+							<excludeArtifacts>
+								<artifact>framework-cube-remote-bridge-react</artifact>
+							</excludeArtifacts>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 
 </project>

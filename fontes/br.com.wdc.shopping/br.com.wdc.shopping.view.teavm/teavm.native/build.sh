@@ -1,7 +1,7 @@
 #!/bin/bash
 # Build the WDC Shopping app using Tauri for desktop, Android or iOS
 # Prerequisites:
-#   - Java 21 (set JAVA21_HOME or JAVA_HOME)
+#   - Java 25 (set JAVA25_HOME or JAVA_HOME)
 #   - Maven
 #   - Rust toolchain with cargo tauri CLI: cargo install tauri-cli --version "^2"
 #   - For Android: Android SDK (ANDROID_HOME), adb
@@ -38,9 +38,9 @@ WEB_CACHE_SRC="$WORK_DIR/data/web-cache"
 WEB_CACHE_DST="$WORK_DIR/frontend/teavm.web/web-cache"
 
 # Resolve Java home
-JAVA=${JAVA21_HOME:-$JAVA_HOME}
+JAVA=${JAVA25_HOME:-$JAVA_HOME}
 if [ -z "$JAVA" ]; then
-    echo "ERROR: Set JAVA21_HOME or JAVA_HOME to a Java 21 installation"
+    echo "ERROR: Set JAVA25_HOME or JAVA_HOME to a Java 25 installation"
     exit 1
 fi
 

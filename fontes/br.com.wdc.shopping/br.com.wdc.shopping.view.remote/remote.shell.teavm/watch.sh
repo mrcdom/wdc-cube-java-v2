@@ -51,7 +51,7 @@ echo "Press Ctrl+C to stop."
 ./build.sh && inject_dev_reload && curl -s -X POST "$DEV_NOTIFY_URL" > /dev/null 2>&1 || true
 
 # Watch for changes and rebuild
-JAVA_HOME=$JAVA21_HOME mvn -q exec:java -Pwatch | while read; do
+JAVA_HOME=$JAVA25_HOME mvn -q exec:java -Pwatch | while read; do
     echo ""
     echo "=== Change detected, rebuilding... ==="
     if ./build.sh; then

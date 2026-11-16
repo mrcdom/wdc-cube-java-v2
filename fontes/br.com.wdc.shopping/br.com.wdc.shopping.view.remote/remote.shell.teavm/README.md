@@ -1,6 +1,6 @@
 # Remote Shell TeaVM
 
-Thin client Java compilado para JavaScript via **TeaVM 0.14.0**, usando **Virtual DOM** (VNode API) com Spectrum Web Components. Comunica-se com o `remote.host` via WebSocket — **sem lógica de negócio local**.
+Thin client Java compilado para JavaScript via **TeaVM 0.16.0**, usando **Virtual DOM** (VNode API) com Spectrum Web Components. Comunica-se com o `remote.host` via WebSocket — **sem lógica de negócio local**.
 
 ## Conceito
 
@@ -151,10 +151,10 @@ private interface Css {
 
 ```bash
 # Build simples
-JAVA21_HOME=<caminho-jdk-21> ./build.sh
+JAVA25_HOME=<caminho-jdk-25> ./build.sh
 
 # Build completo (instala dependências do framework antes)
-JAVA21_HOME=<caminho-jdk-21> ./build.sh --full
+JAVA25_HOME=<caminho-jdk-25> ./build.sh --full
 ```
 
 ### Output

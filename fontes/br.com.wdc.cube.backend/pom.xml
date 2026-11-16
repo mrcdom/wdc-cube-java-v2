@@ -19,7 +19,7 @@
     <description>Standalone Javalin-based HTTP backend that assembles application modules and launches a single process (monorepo host)</description>
 
     <properties>
-        <javalin.version>7.2.0</javalin.version>
+        <javalin.version>7.2.4</javalin.version>
         <!-- Versão dos módulos da aplicação Shopping empacotados por este backend -->
         <shopping.version>1.0.0</shopping.version>
         <!-- Working directory for exec:java (must contain config/application.toml) -->
@@ -30,9 +30,9 @@
         <dependencies>
             <!-- BOM do framework: versões gerenciadas (jackson, h2, agroal, postgresql, logback…) -->
             <dependency>
-                <groupId>br.com.wdc.framework</groupId>
-                <artifactId>br.com.wdc.framework.dependencies</artifactId>
-                <version>1.0.0</version>
+                <groupId>io.github.mrcdom.wdc.java</groupId>
+                <artifactId>framework-dependencies</artifactId>
+                <version>2.0.0</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -115,7 +115,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.6.0</version>
+                <version>3.6.2</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -153,7 +153,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>3.5.0</version>
+                <version>3.7.0</version>
                 <configuration>
                     <mainClass>br.com.wdc.cube.backend.BackendServer</mainClass>
                     <workingDirectory>${workdir}</workingDirectory>

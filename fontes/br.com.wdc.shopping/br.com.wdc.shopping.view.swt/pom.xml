@@ -18,7 +18,7 @@
     <description>Parent module for SWT-based views (commons shared views + desktop application)</description>
 
     <properties>
-        <swt.version>3.128.0</swt.version>
+        <swt.version>3.135.0</swt.version>
     </properties>
 
     <modules>

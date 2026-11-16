@@ -4,7 +4,7 @@ Guia para trabalhar neste repositório. Para visão arquitetural completa, ver [
 
 ## O que é
 
-**WDC Cube Java v2** — referência arquitetural do padrão **Cube MVP** (variação de MVP com presenters hierárquicos, navegação por intents e ViewStates serializáveis). Demonstra um e-commerce (Shopping) com backend Java 21 e **seis frontends independentes** (React, Flutter, Vaadin, SWT, Gluon, TeaVM) que compartilham os mesmos presenters/ViewStates — só a camada de renderização muda.
+**WDC Cube Java v2** — referência arquitetural do padrão **Cube MVP** (variação de MVP com presenters hierárquicos, navegação por intents e ViewStates serializáveis). Demonstra um e-commerce (Shopping) com backend Java 25 e **cinco frontends independentes** (React, Flutter, Vaadin, SWT, TeaVM) que compartilham os mesmos presenters/ViewStates — só a camada de renderização muda.
 
 Idioma do projeto: **português** (docs, READMEs, mensagens de commit). Código e identificadores em inglês/português conforme o existente no arquivo.
 
@@ -20,8 +20,8 @@ Idioma do projeto: **português** (docs, READMEs, mensagens de commit). Código 
 ## Build & Run
 
 ```bash
-# Build (Java 21 obrigatório)
-export JAVA_HOME=<jdk-21>     # ou defina JAVA21_HOME
+# Build (Java 25 obrigatório)
+export JAVA_HOME=$JAVA25_HOME  # demos/backend em release 25; o framework fica em release 21 (publicado no Central)
 cd fontes && mvn clean package          # fat JAR em br.com.wdc.cube.backend/target/
 cd fontes && mvn test                   # testes
 
@@ -40,6 +40,8 @@ cd fontes/.../remote.shell.react && npm install && npm run watch
 Os quatro frontends web depositam seus artefatos em `work/frontend/<nome>`; cada um tem o seu `build.sh` no módulo de origem e o `build-frontends.sh` só orquestra os quatro. `work/frontend/{api.docs,openapi}` são estáticos.
 
 **Armadilha dos alvos TeaVM**: `remote.shell.teavm` e `teavm.web` compilam contra os JARs do `~/.m2`, não contra o reator — sem `mvn install` antes, geram em silêncio um app com a versão anterior do domínio (abre normalmente, falha só na chamada que mudou). O `build-frontends.sh` reinstala por padrão justamente por isso.
+
+**Publicação do framework no Maven Central**: só `br.com.wdc.framework`, como `io.github.mrcdom.wdc.java:framework-*` — `cd fontes/br.com.wdc.framework && mvn -Prelease clean deploy` (detalhes no [README do framework](fontes/br.com.wdc.framework/README.md#publicação-no-maven-central)). O `framework-parent` não herda do pom raiz, de propósito: assim os demos não entram na resolução de quem consome.
 
 Config externa: `work/config/application.toml` (resolução: system property `shopping.config.file` → fallback para esse arquivo). `application.local.toml` para overrides locais.
 

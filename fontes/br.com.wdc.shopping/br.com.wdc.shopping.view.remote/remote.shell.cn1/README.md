@@ -6,8 +6,8 @@ presenters e ViewStates rodam no **servidor** (`remote.host`); este módulo é u
 nativa do Codename One — **uma única base Java** que vira app de **iOS, Android,
 desktop (Mac/Windows/Linux) e web**.
 
-É um dos seis frontends de referência do projeto (React, Flutter, Vaadin, SWT,
-Gluon e este). Todos compartilham os mesmos presenters server-side; só a camada de
+É um dos frontends de referência do projeto (React, Flutter, Vaadin, SWT,
+TeaVM e este). Todos compartilham os mesmos presenters server-side; só a camada de
 renderização muda.
 
 ---
@@ -38,7 +38,7 @@ renderização muda.
 
 ### Por que não reusa o core compartilhado
 
-Diferente dos frontends "gordos" (Gluon/SWT/Vaadin), este shell **não** depende de
+Diferente dos frontends "gordos" (SWT/Vaadin/TeaVM), este shell **não** depende de
 `presentation`/`domain`/`persistence.client` — como os shells React e Flutter, ele
 reimplementa o protocolo com APIs do CN1, mantendo o classpath leve e compatível com a
 VM restrita do Codename One.

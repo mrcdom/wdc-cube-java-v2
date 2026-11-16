@@ -11,20 +11,20 @@ if [[ "$1" == "--full" ]]; then
     FRAMEWORK_DIR="../../../br.com.wdc.framework"
     SHOPPING_DIR="../.."
 
-    JAVA_HOME=$JAVA21_HOME mvn -f "$FRAMEWORK_DIR/pom.xml" install -DskipTests -q
-    JAVA_HOME=$JAVA21_HOME mvn -f "$SHOPPING_DIR/pom.xml" install \
+    JAVA_HOME=$JAVA25_HOME mvn -f "$FRAMEWORK_DIR/pom.xml" install -DskipTests -q
+    JAVA_HOME=$JAVA25_HOME mvn -f "$SHOPPING_DIR/pom.xml" install \
         -pl br.com.wdc.shopping.domain,br.com.wdc.shopping.persistence,:persistence.client,br.com.wdc.shopping.presentation \
         -DskipTests -q
     echo "=== Dependencies installed ==="
 fi
 
 # Always rebuild teavm.commons (shared VDom, Swc, interop)
-JAVA_HOME=$JAVA21_HOME mvn -f "$COMMONS_DIR/pom.xml" install -DskipTests -q
+JAVA_HOME=$JAVA25_HOME mvn -f "$COMMONS_DIR/pom.xml" install -DskipTests -q
 
 # Compile TeaVM (generates JS into $DEPLOY_DIR/js/ and copies filtered index.html via maven-resources-plugin)
 # clean is required to force TeaVM recompilation when only dependency JARs changed
 rm -f "$DEPLOY_DIR/index.html"
-JAVA_HOME=$JAVA21_HOME mvn clean process-classes -DskipTests
+JAVA_HOME=$JAVA25_HOME mvn clean process-classes -DskipTests
 
 # Copy static assets for the landing page and browser
 cp src/main/webapp/context.html "$DEPLOY_DIR/context.html"

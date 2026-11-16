@@ -18,22 +18,22 @@
     <description>TeaVM-compiled frontend shell communicating with remote.host via WebSocket (replaces React shell)</description>
 
     <properties>
-        <teavm.version>0.14.0</teavm.version>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <teavm.version>0.16.0</teavm.version>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
     </properties>
 
     <dependencies>
 		<!-- Framework Commons -->
         <dependency>
-            <groupId>br.com.wdc.framework</groupId>
-            <artifactId>br.com.wdc.framework.commons</artifactId>
+            <groupId>io.github.mrcdom.wdc.java</groupId>
+            <artifactId>framework-commons</artifactId>
         </dependency>
 
         <!-- Remote Bridge (WebSocket coordinator, reconnect, GC) -->
         <dependency>
-            <groupId>br.com.wdc.framework</groupId>
-            <artifactId>remote.bridge.teavm</artifactId>
+            <groupId>io.github.mrcdom.wdc.java</groupId>
+            <artifactId>framework-cube-remote-bridge-teavm</artifactId>
         </dependency>
 
         <!-- Presentation (ViewState classes only — TeaVM tree-shakes unused code) -->
@@ -138,7 +138,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>3.3.1</version>
+                <version>3.5.0</version>
                 <executions>
                     <execution>
                         <id>copy-webapp</id>
@@ -175,7 +175,7 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
-                        <version>3.5.0</version>
+                        <version>3.7.0</version>
                         <configuration>
                             <mainClass>br.com.wdc.shopping.view.teavm.commons.devtools.DevWatcher</mainClass>
                             <systemProperties>

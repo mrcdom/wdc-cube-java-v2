@@ -19,7 +19,7 @@ Contém apenas o entry point e o wiring da aplicação. Toda a lógica de visual
 
 ## Pré-requisitos
 
-- **Java 21**
+- **Java 25**
 - **Maven 3.9+**
 - SWT selecionado automaticamente via profile Maven por plataforma (macOS aarch64, Linux x86_64, Windows x86_64)
 
