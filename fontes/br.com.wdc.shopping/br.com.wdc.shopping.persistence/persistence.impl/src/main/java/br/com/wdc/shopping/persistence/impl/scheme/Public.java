@@ -16,6 +16,7 @@ import java.util.List;
 import org.jooq.Catalog;
 import org.jooq.Sequence;
 import org.jooq.Table;
+import org.jooq.impl.DSL;
 import org.jooq.impl.SchemaImpl;
 
 
@@ -35,7 +36,7 @@ public class Public extends SchemaImpl {
     public final EnUser EN_USER = EnUser.EN_USER;
 
     private Public() {
-        super("PUBLIC", null);
+        super(DSL.name("PUBLIC"), null, DSL.comment(""));
     }
 
 

@@ -10,6 +10,7 @@ import br.com.wdc.shopping.persistence.impl.scheme.Public;
 import org.jooq.Field;
 import org.jooq.Parameter;
 import org.jooq.impl.AbstractRoutine;
+import org.jooq.impl.DSL;
 import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 
@@ -19,12 +20,12 @@ public class ToBase64 extends AbstractRoutine<String> {
 
     private static final long serialVersionUID = 1L;
 
-    public static final Parameter<String> RETURN_VALUE = Internal.createParameter("RETURN_VALUE", SQLDataType.VARCHAR, false, false);
+    public static final Parameter<String> RETURN_VALUE = Internal.createParameter("RETURN_VALUE", SQLDataType.VARCHAR, false);
 
-    public static final Parameter<byte[]> P1 = Internal.createParameter("P1", SQLDataType.VARBINARY(1000000000), false, false);
+    public static final Parameter<byte[]> P1 = Internal.createParameter("P1", SQLDataType.VARBINARY, false);
 
     public ToBase64() {
-        super("TO_BASE64", Public.PUBLIC, SQLDataType.VARCHAR);
+        super("TO_BASE64", Public.PUBLIC, DSL.comment(""), SQLDataType.VARCHAR);
 
         setReturnParameter(RETURN_VALUE);
         addInParameter(P1);

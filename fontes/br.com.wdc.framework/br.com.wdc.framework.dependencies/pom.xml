@@ -118,12 +118,12 @@
 			<dependency>
 				<groupId>org.jooq</groupId>
 				<artifactId>jooq</artifactId>
-				<version>3.19.16</version>
+				<version>3.21.9</version>
 			</dependency>
 			<dependency>
 				<groupId>org.jooq</groupId>
 				<artifactId>jooq-codegen</artifactId>
-				<version>3.19.16</version>
+				<version>3.21.9</version>
 			</dependency>
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>

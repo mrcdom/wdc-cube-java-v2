@@ -33,5 +33,5 @@ public class DefaultCatalog extends CatalogImpl {
         );
     }
 
-    private static final String REQUIRE_RUNTIME_JOOQ_VERSION = Constants.VERSION_3_19;
+    private static final String REQUIRE_RUNTIME_JOOQ_VERSION = Constants.VERSION_3_21;
 }

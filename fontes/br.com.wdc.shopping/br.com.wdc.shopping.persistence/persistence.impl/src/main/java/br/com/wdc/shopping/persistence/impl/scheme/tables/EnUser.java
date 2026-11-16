@@ -17,10 +17,10 @@ import org.jooq.QueryPart;
 import org.jooq.Record;
 import org.jooq.SQL;
 import org.jooq.Schema;
-import org.jooq.Select;
 import org.jooq.Stringly;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.TableLike;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
@@ -113,7 +113,7 @@ public class EnUser extends TableImpl<Record> {
 
     @Override
     public EnUser where(Condition condition) {
-        return new EnUser(getQualifiedName(), aliased() ? this : null, null, condition);
+        return new EnUser(getQualifiedName(), aliased() ? this : null, null, Internal.condition(this, condition));
     }
 
     @Override
@@ -156,12 +156,12 @@ public class EnUser extends TableImpl<Record> {
     }
 
     @Override
-    public EnUser whereExists(Select<?> select) {
+    public EnUser whereExists(TableLike<?> select) {
         return where(DSL.exists(select));
     }
 
     @Override
-    public EnUser whereNotExists(Select<?> select) {
+    public EnUser whereNotExists(TableLike<?> select) {
         return where(DSL.notExists(select));
     }
 }
