@@ -1,24 +1,22 @@
 package br.com.wdc.shopping.view.vaadin;
 
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 
 import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.ee10.webapp.WebAppContext;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.util.resource.ResourceFactory;
-import org.h2.jdbcx.JdbcDataSource;
 
 import com.vaadin.flow.server.VaadinServlet;
 
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.log.Slf4jLogFactory;
 import br.com.wdc.framework.commons.util.Defer;
-import br.com.wdc.framework.domain.config.AppConfig;
 import br.com.wdc.framework.domain.security.CryptoProvider;
 import br.com.wdc.framework.domain.security.JceCryptoProvider;
 import br.com.wdc.shopping.domain.ShoppingConfig;
+import br.com.wdc.shopping.persistence.impl.LocalDataSource;
 import br.com.wdc.shopping.persistence.impl.ShoppingRepositoryBootstrap;
 import br.com.wdc.shopping.scripts.sgbd.DBCreate;
 
@@ -41,15 +39,13 @@ public class ShoppingVaadinMain {
             cleanUp.push(() -> CryptoProvider.BEAN.set(null));
 
             var dataDir = ShoppingConfig.getDataDir();
-            var dataSource = new JdbcDataSource();
-            dataSource.setURL(resolveJdbcUrl(config, dataDir));
-            dataSource.setUser(config.get("database.username", "sa"));
-            dataSource.setPassword(config.get("database.password", "sa"));
+            var db = LocalDataSource.fromConfig(config, dataDir);
 
             // Antes do DBCreate: o DBReset (banco novo ou database.reset) grava pelos repositórios
-            ShoppingRepositoryBootstrap.initialize(dataSource, cleanUp);
+            ShoppingRepositoryBootstrap.initialize(db.dataSource(), config.getBoolean("database.logSql", false),
+                    db.dialect(), cleanUp);
 
-            try (var connection = dataSource.getConnection()) {
+            try (var connection = db.dataSource().getConnection()) {
                 var command = new DBCreate().withConnection(connection);
                 if (config.getBoolean("database.reset", false)) {
                     command.withReset();
@@ -57,7 +53,7 @@ public class ShoppingVaadinMain {
                 command.run();
             }
 
-            LOG.info("Backend initialized with database at {}", dataDir);
+            LOG.info("Backend initialized with database {}", db.url());
 
             var port = config.getInt("server.port", 8090);
             var server = new Server(port);
@@ -110,13 +106,5 @@ public class ShoppingVaadinMain {
             LOG.info("Vaadin application started on http://localhost:{}", port);
             server.join();
         }
-    }
-
-    private static String resolveJdbcUrl(AppConfig config, Path dataDir) {
-        var url = config.get("database.url");
-        if (url != null && !url.isBlank()) {
-            return url;
-        }
-        return "jdbc:h2:file:" + dataDir.resolve("wedocode-shopping").toAbsolutePath();
     }
 }

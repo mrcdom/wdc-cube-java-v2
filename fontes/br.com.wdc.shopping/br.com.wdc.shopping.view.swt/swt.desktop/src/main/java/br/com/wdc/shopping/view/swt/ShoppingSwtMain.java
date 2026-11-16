@@ -13,17 +13,16 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-import org.h2.jdbcx.JdbcDataSource;
 
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.log.Slf4jLogFactory;
 import br.com.wdc.framework.commons.util.Defer;
-import br.com.wdc.framework.domain.config.AppConfig;
 import br.com.wdc.framework.domain.security.CryptoProvider;
 import br.com.wdc.framework.domain.security.JceCryptoProvider;
 import br.com.wdc.shopping.domain.ShoppingConfig;
 import br.com.wdc.shopping.domain.user.UserCriteria;
+import br.com.wdc.shopping.persistence.impl.LocalDataSource;
 import br.com.wdc.shopping.persistence.impl.ShoppingRepositoryBootstrap;
 import br.com.wdc.shopping.presentation.presenter.Routes;
 import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
@@ -158,14 +157,12 @@ public class ShoppingSwtMain {
         cleanUp.push(() -> ScheduledExecutor.BEAN.set(null));
 
         var dataDir = ShoppingConfig.getDataDir();
-        var dataSource = new JdbcDataSource();
-        dataSource.setURL(resolveJdbcUrl(config, dataDir));
-        dataSource.setUser(config.get("database.username", "sa"));
-        dataSource.setPassword(config.get("database.password", "sa"));
+        var db = LocalDataSource.fromConfig(config, dataDir);
 
-        ShoppingRepositoryBootstrap.initialize(dataSource, cleanUp);
+        ShoppingRepositoryBootstrap.initialize(db.dataSource(), config.getBoolean("database.logSql", false),
+                db.dialect(), cleanUp);
 
-        try (var connection = dataSource.getConnection()) {
+        try (var connection = db.dataSource().getConnection()) {
             var command = new DBCreate().withConnection(connection);
             if (config.getBoolean("database.reset", false)) {
                 command.withReset();
@@ -173,7 +170,7 @@ public class ShoppingSwtMain {
             command.run();
         }
 
-        LOG.info("Backend initialized with database at {}", dataDir);
+        LOG.info("Backend initialized with database {}", db.url());
     }
 
     /**
@@ -260,13 +257,5 @@ public class ShoppingSwtMain {
         if (savedIntent.startsWith("login")) return null;
 
         return savedIntent;
-    }
-
-    private static String resolveJdbcUrl(AppConfig config, Path dataDir) {
-        var url = config.get("database.url");
-        if (url != null && !url.isBlank()) {
-            return url;
-        }
-        return "jdbc:h2:file:" + dataDir.resolve("wedocode-shopping").toAbsolutePath();
     }
 }
