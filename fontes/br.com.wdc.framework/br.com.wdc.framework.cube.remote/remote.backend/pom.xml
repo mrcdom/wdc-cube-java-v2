@@ -16,7 +16,7 @@
 	<description>Host side of the Cube MVP remote protocol on Javalin: secure handshake, sessions, events and ViewState deltas over WebSocket</description>
 
 	<properties>
-		<javalin.version>7.2.0</javalin.version>
+		<javalin.version>7.2.4</javalin.version>
 	</properties>
 
 	<dependencyManagement>

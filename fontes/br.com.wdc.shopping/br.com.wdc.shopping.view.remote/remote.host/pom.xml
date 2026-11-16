@@ -14,7 +14,7 @@
     <artifactId>remote.host</artifactId>
 
     <properties>
-        <javalin.version>7.2.0</javalin.version>
+        <javalin.version>7.2.4</javalin.version>
     </properties>
 
     <dependencies>

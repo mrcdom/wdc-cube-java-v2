@@ -18,7 +18,7 @@
     <description>SWT desktop shell communicating with remote.host via WebSocket — reuses swt.commons views with remote state</description>
 
     <properties>
-        <swt.version>3.128.0</swt.version>
+        <swt.version>3.135.0</swt.version>
     </properties>
 
     <dependencies>
@@ -138,7 +138,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.6.0</version>
+                <version>3.6.2</version>
                 <executions>
                     <execution>
                         <phase>package</phase>

@@ -18,8 +18,8 @@
     <description>Javalin-based REST API exposing repository operations</description>
 
     <properties>
-        <javalin.version>7.1.0</javalin.version>
-        <swagger-core.version>2.2.25</swagger-core.version>
+        <javalin.version>7.2.4</javalin.version>
+        <swagger-core.version>2.2.55</swagger-core.version>
     </properties>
 
     <dependencies>
