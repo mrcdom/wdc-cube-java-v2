@@ -13,7 +13,7 @@ import org.teavm.jso.dom.html.HTMLInputElement;
 
 /**
  * DSL builder for constructing HTML element trees declaratively.
- * Equivalent to GluonDom but targeting the browser DOM via TeaVM.
+ * Equivalent to VaadinDom/SwtDom but targeting the browser DOM via TeaVM.
  */
 public class HtmlDom {
 

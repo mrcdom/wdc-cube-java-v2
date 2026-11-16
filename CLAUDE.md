@@ -4,7 +4,7 @@ Guia para trabalhar neste repositório. Para visão arquitetural completa, ver [
 
 ## O que é
 
-**WDC Cube Java v2** — referência arquitetural do padrão **Cube MVP** (variação de MVP com presenters hierárquicos, navegação por intents e ViewStates serializáveis). Demonstra um e-commerce (Shopping) com backend Java 21 e **seis frontends independentes** (React, Flutter, Vaadin, SWT, Gluon, TeaVM) que compartilham os mesmos presenters/ViewStates — só a camada de renderização muda.
+**WDC Cube Java v2** — referência arquitetural do padrão **Cube MVP** (variação de MVP com presenters hierárquicos, navegação por intents e ViewStates serializáveis). Demonstra um e-commerce (Shopping) com backend Java 21 e **cinco frontends independentes** (React, Flutter, Vaadin, SWT, TeaVM) que compartilham os mesmos presenters/ViewStates — só a camada de renderização muda.
 
 Idioma do projeto: **português** (docs, READMEs, mensagens de commit). Código e identificadores em inglês/português conforme o existente no arquivo.
 

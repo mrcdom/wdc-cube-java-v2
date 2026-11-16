@@ -14,7 +14,7 @@
 [Controle de Acesso — Guardas de Navegação](#controle-de-acesso-guardas-de-navegação)  
 [Diagrama de Classes](#diagrama-de-classes)  
 [Composições de View — Slots](#composições-de-view-slots)  
-[A Camada de Visão — Seis Implementações Independentes](#a-camada-de-visão-seis-implementações-independentes)  
+[A Camada de Visão — Cinco Implementações Independentes](#a-camada-de-visão-cinco-implementações-independentes)  
 [Apresentação Remota — O Protocolo Host/Shell](#apresentação-remota-o-protocolo-hostshell)  
 [O ViewState como Contrato de Serialização](#o-viewstate-como-contrato-de-serialização)  
 [Conclusões](#conclusões)  
@@ -24,7 +24,7 @@
 
 ## Contextualização
 
-Este projeto é a materialização em Java da arquitetura de Visão Passiva Hierárquica definida em 2015 ([referência](https://docs.google.com/document/d/1Rcbt3gIjdX50j2gr2zqs9VqTQVg8527h9lOUF1xrhag/edit?tab=t.0#heading=h.3wkx7ie3r9yu)). O WDC Cube Java v2 mantém a mesma lógica de apresentação — os mesmos Presenters, os mesmos ViewStates, as mesmas regras de negócio e de navegação — e a executa em seis implementações de frontend completamente independentes:
+Este projeto é a materialização em Java da arquitetura de Visão Passiva Hierárquica definida em 2015 ([referência](https://docs.google.com/document/d/1Rcbt3gIjdX50j2gr2zqs9VqTQVg8527h9lOUF1xrhag/edit?tab=t.0#heading=h.3wkx7ie3r9yu)). O WDC Cube Java v2 mantém a mesma lógica de apresentação — os mesmos Presenters, os mesmos ViewStates, as mesmas regras de negócio e de navegação — e a executa em cinco implementações de frontend completamente independentes:
 
 | Implementação | Tecnologia | Plataformas |
 |---|---|---|
@@ -32,7 +32,6 @@ Este projeto é a materialização em Java da arquitetura de Visão Passiva Hier
 | `view.remote / remote.shell.flutter` | Flutter + Dart | Web, Desktop, Mobile |
 | `view.vaadin` | Vaadin 24 + Java | Web (server-side push) |
 | `view.swt` | Eclipse SWT + Java | Desktop nativo (Windows, Linux, macOS) |
-| `view.gluon` | JavaFX + Gluon Mobile | Desktop + iOS + Android (GraalVM Native Image) |
 | `view.teavm` | TeaVM + Tauri 2 + Java | Web, Desktop, Android, iOS |
 
 O princípio central da arquitetura é que a camada de apresentação não sabe nada sobre qual tecnologia renderiza a interface. A view é um artefato plugável — uma implementação de um contrato Java que recebe estado e notifica ações.
@@ -52,7 +51,7 @@ O sistema de navegação baseado em `CubeNavigation`, `CubePlace` e `CubeIntent`
 Java existe há mais de 30 anos. A camada de apresentação — Presenters e ViewStates — reside num módulo Maven sem dependências de UI.
 
 **Modelo de construção de software independente do ambiente de execução** ✅  
-A mesma lógica de apresentação compila e executa em browser (React, TeaVM, Vaadin), desktop (SWT, Gluon, TeaVM/Tauri) e mobile (Gluon/GraalVM, Flutter, TeaVM/Tauri).
+A mesma lógica de apresentação compila e executa em browser (React, TeaVM, Vaadin), desktop (SWT, Flutter, TeaVM/Tauri) e mobile (Flutter, TeaVM/Tauri).
 
 **Representação consistente do estado na URL do navegador** ✅  
 O sistema de navegação serializa o estado ativo em query-string. O protocolo de Apresentação Remota sincroniza o hash da URL entre shell e host.
@@ -64,7 +63,7 @@ Cada implementação reconstrói o estado a partir da URL no ciclo de `applyPara
 As factories de view (`Presenter.createView`) são referências estáticas substituíveis. Nos testes, basta apontar para implementações mock antes de executar a navegação.
 
 **Mais de uma implementação para a mesma visão** ✅  
-Esse é hoje o principal ponto de validação da arquitetura: seis implementações coexistindo sobre os mesmos Presenters.
+Esse é hoje o principal ponto de validação da arquitetura: cinco implementações coexistindo sobre os mesmos Presenters.
 
 **Contratos e sistemas de tipos para rastreabilidade** ✅  
 Java oferece verificação estática em tempo de compilação. O campo `public static Function<XxxPresenter, CubeView> createView` garante que cada implementação de view receba o tipo correto de Presenter.
@@ -105,7 +104,7 @@ Java oferece um sistema de tipos estático robusto com suporte nativo de ferrame
 
 Javalin é um framework HTTP leve para Java/Kotlin. No projeto, serve dois papéis distintos:
 
-1. **API REST** (`persistence.rest`) — expõe os repositórios de domínio para consumo pelo módulo `persistence.client`, usado pelas implementações de view client-side (TeaVM, Gluon).
+1. **API REST** (`persistence.rest`) — expõe os repositórios de domínio para consumo pelo módulo `persistence.client`, usado pelas implementações de view client-side (TeaVM).
 2. **WebSocket** (`view.remote / remote.host`) — canal bidirecional do protocolo de Apresentação Remota. Cada conexão WebSocket é tratada por uma Virtual Thread (Java 21), permitindo escalar para milhares de sessões simultâneas sem overhead de threading tradicional.
 
 ---
@@ -135,7 +134,7 @@ Os módulos estão organizados em dois grupos:
 | `shopping.persistence.rest` | REST controllers (Javalin) |
 | `shopping.persistence.client` | REST client (OkHttp + Gson) |
 | `shopping.presentation` | Presenters, ViewStates, navegação — **tecnologia-agnóstico** |
-| `shopping.view.*` | Seis implementações de frontend |
+| `shopping.view.*` | Cinco implementações de frontend |
 
 ---
 
@@ -143,12 +142,11 @@ Os módulos estão organizados em dois grupos:
 
 ```mermaid
 graph TD
-    subgraph Client["Clientes (6 implementações)"]
+    subgraph Client["Clientes (5 implementações)"]
         react["React 19 (browser)"]
         flutter["Flutter (mobile/desktop/web)"]
         vaadin["Vaadin (browser, server-side)"]
         swt["SWT (desktop nativo)"]
-        gluon["Gluon/JavaFX (desktop/iOS/Android)"]
         teavm["TeaVM + Tauri (web/desktop/Android/iOS)"]
     end
 
@@ -166,7 +164,6 @@ graph TD
     flutter -->|"WebSocket (JSON delta)"| presenters
     vaadin -->|"Acesso direto em memória + Server Push"| presenters
     swt -->|"Acesso direto em memória"| presenters
-    gluon -->|"REST (OkHttp)"| rest
     teavm -->|"REST (Fetch API)"| rest
     presenters --> navigation
     presenters --> rest
@@ -436,11 +433,11 @@ this.ownerSlot = intent.getViewSlot(PlaceAttributes.SLOT_OWNER);
 this.ownerSlot.setView(this.view);
 ```
 
-A view pai simplesmente renderiza `state.contentView` — seja lá qual for a view filha que o Presenter filho colocou ali. Essa mecânica funciona idêntica em todas as seis implementações de view.
+A view pai simplesmente renderiza `state.contentView` — seja lá qual for a view filha que o Presenter filho colocou ali. Essa mecânica funciona idêntica em todas as cinco implementações de view.
 
 ---
 
-## A Camada de Visão — Seis Implementações Independentes
+## A Camada de Visão — Cinco Implementações Independentes
 
 ### A Interface CubeView
 
@@ -508,8 +505,6 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
     private final JSFunction onConfirm = e -> this.presenter.onConfirm();
 }
 ```
-
-**view.gluon** — JavaFX com Gluon Mobile, compilado para binário nativo via GraalVM Native Image para iOS e Android. A view usa FXML ou API fluente JavaFX.
 
 **view.remote / remote.shell.react** — Shell React em TypeScript. A view é um componente funcional que renderiza o estado recebido via WebSocket e emite eventos de volta:
 

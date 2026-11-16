@@ -12,7 +12,7 @@ import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
 
 /**
  * Classe base para todas as views TeaVM.
- * Equivalente a AbstractViewGluon mas operando sobre HTMLElement via TeaVM.
+ * Equivalente a AbstractViewVaadin/AbstractViewSwt mas operando sobre HTMLElement via TeaVM.
  */
 public abstract class AbstractViewTeaVM<P> implements CubeView {
 
@@ -88,7 +88,7 @@ public abstract class AbstractViewTeaVM<P> implements CubeView {
     }
 
     /**
-     * Cria um slot de lista sincronizado com o DOM, padrão equivalente ao GluonDom.newListSlot.
+     * Cria um slot de lista sincronizado com o DOM, padrão equivalente ao AbstractViewVaadin.newListSlot.
      * Cresce a lista de views conforme necessário, esconde as excedentes e atualiza as visíveis.
      */
     protected <T, V extends AbstractViewTeaVM<?>> BiConsumer<List<T>, List<V>> newListSlot(

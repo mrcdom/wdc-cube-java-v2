@@ -1,6 +1,6 @@
 # 🛒 WeDoCode Shopping
 
-Um **sistema de e-commerce completo** construído com arquitetura **Cube MVP**, demonstrando como a mesma lógica de negócio pode alimentar interfaces totalmente diferentes — **React (web)**, **Vaadin (web server-side)**, **SWT (desktop nativo)**, **Gluon (desktop/iOS/Android)** e **TeaVM (web/desktop/Android/iOS)** — sem duplicar uma única linha de código de apresentação.
+Um **sistema de e-commerce completo** construído com arquitetura **Cube MVP**, demonstrando como a mesma lógica de negócio pode alimentar interfaces totalmente diferentes — **React (web)**, **Vaadin (web server-side)**, **SWT (desktop nativo)** e **TeaVM (web/desktop/Android/iOS)** — sem duplicar uma única linha de código de apresentação.
 
 > **Cinco frontends. Mesma alma.**
 
@@ -36,22 +36,6 @@ java -jar \
 ```
 
 Abra **http://localhost:8080** e entre com `admin` / `admin`.
-
----
-
-## Ou rode a versão Gluon (Desktop / iOS / Android)
-
-```bash
-# Desktop (JVM)
-cd br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/gluon.desktop
-./build.sh
-
-# iOS (simulador — Apple Silicon)
-cd br.com.wdc.shopping/br.com.wdc.shopping.view.gluon/gluon.ios
-./build.sh --native --sim --deploy
-```
-
-Mesma aplicação, mesmo banco, mesma lógica — rodando nativamente em Desktop, iOS e Android via GraalVM.
 
 ---
 
@@ -108,7 +92,6 @@ Java compilado para JavaScript via TeaVM, empacotado como app nativo com Tauri 2
 | [`view.remote`](br.com.wdc.shopping.view.remote/) | Frontend web completo (React + Javalin + WebSocket) |
 | [`view.vaadin`](br.com.wdc.shopping.view.vaadin/) | Frontend web server-side (Vaadin 24 + Jetty 12 + Lumo theme) |
 | [`view.swt`](br.com.wdc.shopping.view.swt/) | Frontend desktop nativo (Eclipse SWT) |
-| [`view.gluon`](br.com.wdc.shopping.view.gluon/) | Frontend multiplataforma (JavaFX + Gluon — Desktop, iOS, Android) |
 | [`view.teavm`](br.com.wdc.shopping.view.teavm/) | Frontend multiplataforma (TeaVM + Tauri — Web, Desktop, Android, iOS) |
 | [`persistence.rest`](br.com.wdc.shopping.persistence/persistence.rest/) | Controllers REST (Javalin) para expor repositórios via HTTP |
 | [`persistence.client`](br.com.wdc.shopping.persistence/persistence.client/) | Client REST (OkHttp + Gson) que implementa repositórios via HTTP |

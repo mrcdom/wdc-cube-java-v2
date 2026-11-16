@@ -259,7 +259,7 @@ public void doUpdate() {
 
 ### 4. VaadinDom — DSL de Construção de UI
 
-Análogo ao `GluonDom` e `SwtDom`, o `VaadinDom` fornece uma DSL fluente para construção de componentes Vaadin, com pilha implícita de container pai:
+Análogo ao `SwtDom` e ao `HtmlDom` (TeaVM), o `VaadinDom` fornece uma DSL fluente para construção de componentes Vaadin, com pilha implícita de container pai:
 
 ```java
 VaadinDom.render(rootLayout, (dom, pane) -> {
@@ -274,12 +274,12 @@ VaadinDom.render(rootLayout, (dom, pane) -> {
 });
 ```
 
-| Aspecto | SwtDom | GluonDom | VaadinDom |
-|---------|----------|----------|-----------|
-| Containers | `Composite` + GridLayout | `VBox`, `HBox` | `VerticalLayout`, `HorizontalLayout` |
-| Componentes | `Label`, `Button` (SWT) | `Label`, `Button` | `Span`, `Button`, `Grid` |
-| Semântica HTML | — | — | `H2`, `H3`, `H4`, `Div` |
-| Spacers | GridData hints | `Region` | `FlexLayout` / expand |
+| Aspecto | SwtDom | VaadinDom |
+|---------|----------|-----------|
+| Containers | `Composite` + GridLayout | `VerticalLayout`, `HorizontalLayout` |
+| Componentes | `Label`, `Button` (SWT) | `Span`, `Button`, `Grid` |
+| Semântica HTML | — | `H2`, `H3`, `H4`, `Div` |
+| Spacers | GridData hints | `FlexLayout` / expand |
 
 ### 5. Sincronização de Listas (newListSlot)
 

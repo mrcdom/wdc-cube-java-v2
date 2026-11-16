@@ -175,6 +175,6 @@ O módulo é usado por:
 
 | Consumidor | Contexto |
 |-----------|---------|
-| **Gluon Desktop** (`view.gluon.desktop`) | Modo remoto — acessa backend Javalin via rede |
+| **TeaVM Web** (`view.teavm/teavm.web`) | Modo cliente — compilado para JS, acessa o backend Javalin via REST |
 | **Testes de integração** (`shopping.tests`) | `RestXxxRepositoryTest` valida API end-to-end |
 | **Javalin** (`backend`) | Registra `RestAuthenticationService` para propagação de auth |

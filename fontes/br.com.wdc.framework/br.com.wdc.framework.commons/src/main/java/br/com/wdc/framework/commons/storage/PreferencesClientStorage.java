@@ -9,7 +9,7 @@ import java.util.prefs.Preferences;
  * Implementação de {@link ClientStorage} usando {@link Preferences} do JDK.
  * <p>
  * Persiste dados entre reinicializações da aplicação em plataformas JVM
- * (desktop, mobile via Gluon). O armazenamento é local ao usuário do SO.
+ * (desktop). O armazenamento é local ao usuário do SO.
  * <p>
  * {@link #secure()} retorna um {@link EncryptedPreferencesClientStorage} que
  * compartilha o mesmo nó de {@link Preferences}, armazenando os valores

@@ -30,7 +30,6 @@ graph TD
         viewReact["view.remote — React 19 + WebSocket"]
         viewVaadin["view.vaadin — Vaadin 24 + Jetty 12 + Lumo"]
         viewSwt["view.swt — Eclipse SWT (Desktop Nativo)"]
-        viewGluon["view.gluon — JavaFX + Gluon (Desktop, iOS, Android)"]
         viewTeavm["view.teavm — TeaVM + Tauri (Web, Desktop, Android, iOS)"]
     end
 
@@ -65,7 +64,6 @@ graph TD
 | **view.remote** | UI (Web) | Frontend React 19 + Material UI, comunicação WebSocket bidirecional, segurança RSA+AES-GCM. |
 | **view.vaadin** | UI (Web) | Frontend Vaadin 24 + Lumo theme, servidor Jetty 12 embarcado, UI puramente server-side com push automático. |
 | **view.swt** | UI (Desktop) | Frontend desktop nativo com Eclipse SWT 3.128.0 que reutiliza os mesmos presenters. |
-| **view.gluon** | UI (Multiplataforma) | Frontend JavaFX + Gluon Mobile compilado nativamente para Desktop, iOS e Android via GraalVM. |
 | **view.teavm** | UI (Multiplataforma) | Frontend Java compilado para JavaScript via TeaVM 0.14, empacotado como app nativo (Desktop, Android, iOS) via Tauri 2. |
 
 ---
