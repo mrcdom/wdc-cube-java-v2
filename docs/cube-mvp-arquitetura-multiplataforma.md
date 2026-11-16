@@ -30,7 +30,7 @@ Este projeto é a materialização em Java da arquitetura de Visão Passiva Hier
 |---|---|---|
 | `view.remote / remote.shell.react` | React 19 + TypeScript + MUI 9 | Web (browser) |
 | `view.remote / remote.shell.flutter` | Flutter + Dart | Web, Desktop, Mobile |
-| `view.vaadin` | Vaadin 24 + Java | Web (server-side push) |
+| `view.vaadin` | Vaadin 25 + Java | Web (server-side push) |
 | `view.swt` | Eclipse SWT + Java | Desktop nativo (Windows, Linux, macOS) |
 | `view.teavm` | TeaVM + Tauri 2 + Java | Web, Desktop, Android, iOS |
 
@@ -87,11 +87,11 @@ A pilha tecnológica do lado servidor — onde a lógica vive — é deliberadam
 |---|---|---|
 | Linguagem | Java (Temurin/Microsoft) | 21 |
 | Build | Maven | 3.9+ |
-| Servidor HTTP | Javalin | 7.2.0 |
+| Servidor HTTP | Javalin | 7.2.4 |
 | Banco de dados | H2 | 2.5.252 |
-| Acesso a dados | jOOQ | 3.19.16 |
+| Acesso a dados | jOOQ | 3.21.9 |
 | Serialização | Gson | 2.13.2 |
-| Logging | SLF4J + Logback | 2.0.16 / 1.5.32 |
+| Logging | SLF4J + Logback | 2.0.20 / 1.6.7 |
 | Testes | JUnit | 4.13.2 |
 
 Notavelmente ausente desta lista está qualquer framework de injeção de dependências (Spring, CDI, Guice). A injeção é feita via `AtomicReference<T>` estático — um service locator simples e transparente. Essa escolha elimina uma camada de mágica que, nas aplicações do ecossistema Spring, normalmente obscurece o fluxo de execução e dificulta a instrumentação das fábricas de view.

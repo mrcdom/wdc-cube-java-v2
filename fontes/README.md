@@ -28,7 +28,7 @@ graph TD
         backend["backend — Javalin 7 + Virtual Threads (fat JAR)"]
         tests["tests — JUnit 4"]
         viewReact["view.remote — React 19 + WebSocket"]
-        viewVaadin["view.vaadin — Vaadin 24 + Jetty 12 + Lumo"]
+        viewVaadin["view.vaadin — Vaadin 25 + Jetty 12 + Lumo"]
         viewSwt["view.swt — Eclipse SWT (Desktop Nativo)"]
         viewTeavm["view.teavm — TeaVM + Tauri (Web, Desktop, Android, iOS)"]
     end
@@ -62,9 +62,9 @@ graph TD
 | **backend** | Servidor | Javalin 7 + Virtual Threads, WebSocket dispatcher, banco H2 embarcado. Fat JAR (~11 MB). |
 | **tests** | Teste | Suíte de testes JUnit 4 para repositórios (82 testes) e integração de serviços. |
 | **view.remote** | UI (Web) | Frontend React 19 + Material UI, comunicação WebSocket bidirecional, segurança RSA+AES-GCM. |
-| **view.vaadin** | UI (Web) | Frontend Vaadin 24 + Lumo theme, servidor Jetty 12 embarcado, UI puramente server-side com push automático. |
-| **view.swt** | UI (Desktop) | Frontend desktop nativo com Eclipse SWT 3.128.0 que reutiliza os mesmos presenters. |
-| **view.teavm** | UI (Multiplataforma) | Frontend Java compilado para JavaScript via TeaVM 0.14, empacotado como app nativo (Desktop, Android, iOS) via Tauri 2. |
+| **view.vaadin** | UI (Web) | Frontend Vaadin 25 + Lumo theme, servidor Jetty 12 embarcado, UI puramente server-side com push automático. |
+| **view.swt** | UI (Desktop) | Frontend desktop nativo com Eclipse SWT 3.135.0 que reutiliza os mesmos presenters. |
+| **view.teavm** | UI (Multiplataforma) | Frontend Java compilado para JavaScript via TeaVM 0.16, empacotado como app nativo (Desktop, Android, iOS) via Tauri 2. |
 
 ---
 

@@ -48,7 +48,7 @@ java -cp "$(mvn -q dependency:build-classpath -Dmdep.outputFile=/dev/stdout):tar
   br.com.wdc.shopping.view.vaadin.ShoppingVaadinMain
 ```
 
-Abra **http://localhost:8090**. UI inteiramente server-side com Vaadin 24 + Lumo theme. Mesmos presenters, mesmo domínio.
+Abra **http://localhost:8090**. UI inteiramente server-side com Vaadin 25 + Lumo theme. Mesmos presenters, mesmo domínio.
 
 ---
 
@@ -90,7 +90,7 @@ Java compilado para JavaScript via TeaVM, empacotado como app nativo com Tauri 2
 | [`presentation`](br.com.wdc.shopping.presentation/) | Presenters hierárquicos, ViewStates, serviços, navegação |
 | [`scripts`](br.com.wdc.shopping.scripts/) | Scripts DDL (DBCreate, DBReset) |
 | [`view.remote`](br.com.wdc.shopping.view.remote/) | Frontend web completo (React + Javalin + WebSocket) |
-| [`view.vaadin`](br.com.wdc.shopping.view.vaadin/) | Frontend web server-side (Vaadin 24 + Jetty 12 + Lumo theme) |
+| [`view.vaadin`](br.com.wdc.shopping.view.vaadin/) | Frontend web server-side (Vaadin 25 + Jetty 12 + Lumo theme) |
 | [`view.swt`](br.com.wdc.shopping.view.swt/) | Frontend desktop nativo (Eclipse SWT) |
 | [`view.teavm`](br.com.wdc.shopping.view.teavm/) | Frontend multiplataforma (TeaVM + Tauri — Web, Desktop, Android, iOS) |
 | [`persistence.rest`](br.com.wdc.shopping.persistence/persistence.rest/) | Controllers REST (Javalin) para expor repositórios via HTTP |
@@ -104,7 +104,7 @@ Java compilado para JavaScript via TeaVM, empacotado como app nativo com Tauri 2
 - **Sem Spring, sem CDI, sem magia** — injeção via `AtomicReference<T> BEAN`, 100% explícito
 - **Separação real de concerns** — troque a UI inteira sem tocar em lógica (múltiplos frontends provam isso)
 - **Padrões sólidos** — Command, Repository, Presenter, ViewState
-- **Tecnologia moderna** — Java 25, Virtual Threads, React 19, Vaadin 24, TypeScript
+- **Tecnologia moderna** — Java 25, Virtual Threads, React 19, Vaadin 25, TypeScript
 - **Código limpo** — ~3.5s de build completo, zero warnings
 - **Segurança real** — RSA + PBKDF2 + AES-GCM (não apenas demonstrativo)
 

@@ -18,7 +18,7 @@ Fazer o wiring da aplicação Shopping com a infraestrutura `remote.backend` do 
 - `br.com.wdc.shopping.presentation` — Presenters e ViewStates da aplicação
 - `br.com.wdc.shopping.persistence` — Repositórios e acesso a dados
 - `remote.backend` — Infraestrutura do protocolo remoto (framework)
-- `io.javalin:javalin` 7.2.0 — HTTP/WebSocket
+- `io.javalin:javalin` 7.2.4 — HTTP/WebSocket
 
 ## Execução
 

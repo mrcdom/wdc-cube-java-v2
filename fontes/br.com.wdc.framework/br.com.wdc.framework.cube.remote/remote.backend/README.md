@@ -32,7 +32,7 @@ Gerencia o ciclo de vida de sessões remotas (handshake de segurança, recepçã
 ## Dependências
 
 - `br.com.wdc.framework.cube` — framework Cube MVP (base: View, Presenter, ViewState)
-- `io.javalin:javalin` 7.2.0 — HTTP/WebSocket
+- `io.javalin:javalin` 7.2.4 — HTTP/WebSocket
 - `com.google.code.gson` — serialização JSON
 - `org.apache.commons:commons-lang3`
 - `commons-codec` — codificação Base64/Hex para crypto

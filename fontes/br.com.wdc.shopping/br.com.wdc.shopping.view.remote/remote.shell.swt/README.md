@@ -36,7 +36,7 @@ remote.host  <──WebSocket──>  remote.shell.swt
 - `swt.commons` — Widgets e componentes SWT compartilhados
 - `remote.bridge.java` — `HostClient`, `ViewStateSnapshot`, protocolo WebSocket
 - `br.com.wdc.shopping.presentation` — Classes ViewState
-- `org.eclipse.platform:org.eclipse.swt.*` 3.128.0 (platform-specific via profile Maven)
+- `org.eclipse.platform:org.eclipse.swt.*` 3.135.0 (platform-specific via profile Maven)
 
 ## Pré-requisitos
 

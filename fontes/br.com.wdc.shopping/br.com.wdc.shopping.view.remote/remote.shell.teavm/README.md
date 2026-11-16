@@ -1,6 +1,6 @@
 # Remote Shell TeaVM
 
-Thin client Java compilado para JavaScript via **TeaVM 0.14.0**, usando **Virtual DOM** (VNode API) com Spectrum Web Components. Comunica-se com o `remote.host` via WebSocket — **sem lógica de negócio local**.
+Thin client Java compilado para JavaScript via **TeaVM 0.16.0**, usando **Virtual DOM** (VNode API) com Spectrum Web Components. Comunica-se com o `remote.host` via WebSocket — **sem lógica de negócio local**.
 
 ## Conceito
 

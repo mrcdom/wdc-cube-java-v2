@@ -1,6 +1,6 @@
 # WeDoCode Cube Backend
 
-Standalone HTTP server built with [Javalin 7.2.0](https://javalin.io) for serving the React frontend and managing backend session state.
+Standalone HTTP server built with [Javalin 7.2.4](https://javalin.io) for serving the React frontend and managing backend session state.
 
 ## Overview
 
@@ -73,7 +73,7 @@ All requests and errors are logged via SLF4J + Logback (configured in `br.com.wd
 
 ## Technical Details
 
-- **Framework**: Javalin 7.1.0
+- **Framework**: Javalin 7.2.4
 - **Java Version**: 26 (minimum)
 - **Fat JAR Size**: ~11 MB (all dependencies included)
 - **Assembly Method**: maven-shade-plugin with manifest configuration
@@ -86,7 +86,7 @@ Core dependencies:
 - `br.com.wdc.shopping.presentation` - Presenters and business logic
 - `br.com.wdc.shopping.persistence` - Database and persistence layer
 - `br.com.wdc.shopping.scripts` - DDL scripts (DBCreate, DBReset)
-- Javalin 7.2.0 - Web framework
+- Javalin 7.2.4 - Web framework
 - SLF4J + Logback - Logging
 - Jakarta servlet/websocket APIs (provided scope)
 

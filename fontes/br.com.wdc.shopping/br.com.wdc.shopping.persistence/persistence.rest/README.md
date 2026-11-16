@@ -7,7 +7,7 @@ Módulo de **API REST** da aplicação Shopping. Expõe os repositórios de dom�
 | Artefato | Papel |
 |----------|-------|
 | `br.com.wdc.shopping.domain` | Modelos de domínio, interfaces de repositório, contratos de segurança |
-| `io.javalin:javalin` | Framework HTTP (7.1.0) |
+| `io.javalin:javalin` | Framework HTTP (7.2.4) |
 | `com.fasterxml.jackson` | Serialização JSON |
 | `slf4j-api` | Logging |
 

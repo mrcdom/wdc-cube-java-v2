@@ -15,7 +15,7 @@ graph TD
     subgraph Views["Camada de Visualização"]
         R["React 19 + MUI<br/><small>Browser / WebSocket</small>"]
         FL["Flutter 3 + Material<br/><small>iOS / Android / Desktop / Web<br/>WebSocket</small>"]
-        V["Vaadin 24 + Lumo<br/><small>Browser / Server Push</small>"]
+        V["Vaadin 25 + Lumo<br/><small>Browser / Server Push</small>"]
         SW["Eclipse SWT<br/><small>Desktop Nativo / macOS</small>"]
         TVM["TeaVM + Tauri<br/><small>Web / Desktop / Android / iOS</small>"]
     end
@@ -40,9 +40,9 @@ graph TD
 |----------|-----------|------------|--------|
 | **Web (SPA)** | React 19 + TypeScript + MUI 9 | WebSocket (JSON delta) | `view.remote` |
 | **Mobile/Desktop/Web** | Flutter 3 + Material Design | WebSocket (JSON delta) | `view.remote` |
-| **Web (SSR)** | Vaadin 24 + Lumo | Server Push (Atmosphere) | `view.vaadin` |
-| **Desktop Nativo** | Eclipse SWT 3.128.0 | Direto em memória | `view.swt` |
-| **Multiplataforma (TeaVM)** | TeaVM 0.14 + Tauri 2 + Bootstrap 5 | REST (OkHttp → JS) | `view.teavm` |
+| **Web (SSR)** | Vaadin 25 + Lumo | Server Push (Atmosphere) | `view.vaadin` |
+| **Desktop Nativo** | Eclipse SWT 3.135.0 | Direto em memória | `view.swt` |
+| **Multiplataforma (TeaVM)** | TeaVM 0.16 + Tauri 2 + Bootstrap 5 | REST (OkHttp → JS) | `view.teavm` |
 
 **Características principais:**
 
@@ -83,7 +83,7 @@ graph TD
             reactShellTeavm["remote.shell.teavm<br/><small>Frontend TeaVM (WebSocket)</small>"]
         end
 
-        viewVaadin["view.vaadin<br/><small>Vaadin 24 server-side</small>"]
+        viewVaadin["view.vaadin<br/><small>Vaadin 25 server-side</small>"]
         viewSwt["view.swt<br/><small>Eclipse SWT</small>"]
         viewTeavm["view.teavm<br/><small>TeaVM + Tauri (Web/Desktop/Android/iOS)</small>"]
     end
@@ -120,9 +120,9 @@ graph TD
 | **view.remote / remote.shell.teavm** | Frontend TeaVM para comunicação via WebSocket com o servidor |
 | **backend** | Servidor Javalin 7 com Virtual Threads, WebSocket dispatcher, controllers REST, banco H2 embarcado. Gera fat JAR (~11 MB) |
 | **view.remote / remote.host** | Implementações de view para o servidor (`GenericViewImpl`), segurança (`AppSecurity` — RSA/PBKDF2/AES-GCM, `DataSecurity`), SPI de WebSocket |
-| **view.vaadin** | Visualização web server-side com Vaadin 24 + Lumo theme + Jetty 12 embarcado — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin/README.md) |
-| **view.swt** | Visualização desktop nativa com Eclipse SWT 3.128.0 — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.swt/README.md) |
-| **view.teavm** | Multiplataforma (Web + Desktop + Android + iOS) com TeaVM 0.14 + Tauri 2 + Bootstrap 5 — Java compilado para JS — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.teavm/README.md) |
+| **view.vaadin** | Visualização web server-side com Vaadin 25 + Lumo theme + Jetty 12 embarcado — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin/README.md) |
+| **view.swt** | Visualização desktop nativa com Eclipse SWT 3.135.0 — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.swt/README.md) |
+| **view.teavm** | Multiplataforma (Web + Desktop + Android + iOS) com TeaVM 0.16 + Tauri 2 + Bootstrap 5 — Java compilado para JS — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.teavm/README.md) |
 | **persistence.rest** | Controllers REST (Javalin) para expor repositórios como endpoints HTTP, filtro de segurança JWT (`SecurityFilter`), endpoints de autenticação (`AuthApiController`) |
 | **persistence.client** | Client REST (OkHttp + Gson) que implementa as interfaces de repositório e `AuthenticationService` via HTTP, com Bearer token automático |
 
@@ -384,15 +384,15 @@ Cada presenter possui um **ViewState** serializável que é transmitido ao front
 |-----------|-----------|--------|
 | Linguagem | Java (Temurin/Microsoft) | 21 |
 | Build | Maven | 3.9+ |
-| Servidor HTTP | Javalin | 7.2.0 |
-| Web UI (server-side) | Vaadin | 24.6.3 |
+| Servidor HTTP | Javalin | 7.2.4 |
+| Web UI (server-side) | Vaadin | 25.3.5 |
 | Servlet Container | Jetty | 12 |
-| Desktop UI (nativo) | Eclipse SWT (Cocoa macOS aarch64) | 3.128.0 |
+| Desktop UI (nativo) | Eclipse SWT (Cocoa macOS aarch64) | 3.135.0 |
 | Mobile/Desktop/Web | Flutter + Dart | 3.x |
 | Banco de dados | H2 | 2.5.252 |
-| Acesso a dados | jOOQ | 3.19.16 |
+| Acesso a dados | jOOQ | 3.21.9 |
 | Serialização | Gson | 2.13.2 |
-| Logging | SLF4J + Logback | 2.0.16 / 1.5.32 |
+| Logging | SLF4J + Logback | 2.0.20 / 1.6.7 |
 | Testes | JUnit | 4.13.2 |
 | Frontend | React | 19 |
 | UI Components | MUI | 9 |
