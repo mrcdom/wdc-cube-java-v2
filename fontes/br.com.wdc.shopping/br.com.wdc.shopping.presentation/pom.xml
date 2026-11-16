@@ -21,8 +21,8 @@
         </dependency>
 
         <dependency>
-            <groupId>br.com.wdc.framework</groupId>
-            <artifactId>br.com.wdc.framework.cube</artifactId>
+            <groupId>io.github.mrcdom.wdc.java</groupId>
+            <artifactId>framework-cube</artifactId>
         </dependency>
         <dependency>
             <groupId>com.google.code.findbugs</groupId>

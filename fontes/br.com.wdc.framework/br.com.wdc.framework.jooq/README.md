@@ -61,8 +61,8 @@ List<Usuario> list = QUERY.fetchToList(prj, (t, q) -> q.where(t.STATUS.eq("ATIVO
 
 ```xml
 <dependency>
-    <groupId>br.com.wdc.framework</groupId>
-    <artifactId>br.com.wdc.framework.jooq</artifactId>
-    <version>1.0.0</version>
+    <groupId>io.github.mrcdom.wdc.java</groupId>
+    <artifactId>framework-jooq</artifactId>
+    <version>2.0.0</version>
 </dependency>
 ```

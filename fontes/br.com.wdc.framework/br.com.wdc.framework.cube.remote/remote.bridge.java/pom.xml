@@ -5,13 +5,14 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>br.com.wdc.framework</groupId>
-        <artifactId>br.com.wdc.framework.cube.remote</artifactId>
-        <version>1.0.0</version>
+        <groupId>io.github.mrcdom.wdc.java</groupId>
+        <artifactId>framework-cube-remote-parent</artifactId>
+        <version>2.0.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>remote.bridge.java</artifactId>
+    <artifactId>framework-cube-remote-bridge-java</artifactId>
+    <name>framework-cube-remote-bridge-java</name>
 
     <description>
         Java bridge for the Host/Shell remote protocol.
@@ -24,9 +25,9 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>br.com.wdc.framework</groupId>
-                <artifactId>br.com.wdc.framework.dependencies</artifactId>
-                <version>1.0.0</version>
+                <groupId>io.github.mrcdom.wdc.java</groupId>
+                <artifactId>framework-dependencies</artifactId>
+                <version>${project.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -36,8 +37,8 @@
     <dependencies>
         <!-- Framework commons: Base62, Log -->
         <dependency>
-            <groupId>br.com.wdc.framework</groupId>
-            <artifactId>br.com.wdc.framework.commons</artifactId>
+            <groupId>io.github.mrcdom.wdc.java</groupId>
+            <artifactId>framework-commons</artifactId>
         </dependency>
 
         <!-- JSON parsing -->
@@ -46,10 +47,10 @@
             <artifactId>gson</artifactId>
         </dependency>
 
-        <!-- Logging runtime -->
+        <!-- Logging: só a API; a implementação é escolha de quem usa o bridge -->
         <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
         </dependency>
 
         <!-- Apache Commons: StringUtils -->

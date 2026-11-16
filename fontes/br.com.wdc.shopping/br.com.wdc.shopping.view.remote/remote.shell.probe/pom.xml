@@ -23,8 +23,8 @@
     <dependencies>
         <!-- Generic Java bridge for the remote protocol -->
         <dependency>
-            <groupId>br.com.wdc.framework</groupId>
-            <artifactId>remote.bridge.java</artifactId>
+            <groupId>io.github.mrcdom.wdc.java</groupId>
+            <artifactId>framework-cube-remote-bridge-java</artifactId>
         </dependency>
 
         <!-- Logging runtime -->

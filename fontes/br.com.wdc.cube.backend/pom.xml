@@ -30,9 +30,9 @@
         <dependencies>
             <!-- BOM do framework: versões gerenciadas (jackson, h2, agroal, postgresql, logback…) -->
             <dependency>
-                <groupId>br.com.wdc.framework</groupId>
-                <artifactId>br.com.wdc.framework.dependencies</artifactId>
-                <version>1.0.0</version>
+                <groupId>io.github.mrcdom.wdc.java</groupId>
+                <artifactId>framework-dependencies</artifactId>
+                <version>2.0.0</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

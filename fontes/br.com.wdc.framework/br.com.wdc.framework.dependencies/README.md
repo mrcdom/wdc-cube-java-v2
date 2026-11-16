@@ -57,8 +57,8 @@ Importar como parent ou via `<dependencyManagement>` com scope `import`:
 
 ```xml
 <parent>
-    <groupId>br.com.wdc.framework</groupId>
-    <artifactId>br.com.wdc.framework.dependencies</artifactId>
-    <version>1.0.0</version>
+    <groupId>io.github.mrcdom.wdc.java</groupId>
+    <artifactId>framework-dependencies</artifactId>
+    <version>2.0.0</version>
 </parent>
 ```

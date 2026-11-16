@@ -5,28 +5,17 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>br.com.wdc.framework</groupId>
-		<artifactId>br.com.wdc.framework</artifactId>
-		<version>1.0.0</version>
+		<groupId>io.github.mrcdom.wdc.java</groupId>
+		<artifactId>framework-parent</artifactId>
+		<version>2.0.0</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-	<artifactId>br.com.wdc.framework.dependencies</artifactId>
+	<artifactId>framework-dependencies</artifactId>
+	<name>framework-dependencies</name>
+	<description>BOM with the versions of the framework modules and of the libraries they are tested with</description>
 
 	<packaging>pom</packaging>
-
-	<distributionManagement>
-		<repository>
-			<id>artifactory-wedocode-release</id>
-			<name>libs-release-local</name>
-			<url>${repo.url}/libs-release-local</url>
-		</repository>
-		<snapshotRepository>
-			<id>artifactory-wedocode-snapshot</id>
-			<name>libs-snapshot-local</name>
-			<url>${repo.url}/libs-snapshot-local</url>
-		</snapshotRepository>
-	</distributionManagement>
 
 	<dependencyManagement>
 		<dependencies>
@@ -148,44 +137,44 @@
 			</dependency>
 
 			<dependency>
-				<groupId>br.com.wdc.framework</groupId>
-				<artifactId>br.com.wdc.framework.commons</artifactId>
-				<version>1.0.0</version>
+				<groupId>io.github.mrcdom.wdc.java</groupId>
+				<artifactId>framework-commons</artifactId>
+				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>br.com.wdc.framework</groupId>
-				<artifactId>br.com.wdc.framework.domain</artifactId>
-				<version>1.0.0</version>
+				<groupId>io.github.mrcdom.wdc.java</groupId>
+				<artifactId>framework-domain</artifactId>
+				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>br.com.wdc.framework</groupId>
-				<artifactId>br.com.wdc.framework.persistence</artifactId>
-				<version>1.0.0</version>
+				<groupId>io.github.mrcdom.wdc.java</groupId>
+				<artifactId>framework-persistence</artifactId>
+				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>br.com.wdc.framework</groupId>
-				<artifactId>br.com.wdc.framework.jooq</artifactId>
-				<version>1.0.0</version>
+				<groupId>io.github.mrcdom.wdc.java</groupId>
+				<artifactId>framework-jooq</artifactId>
+				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>br.com.wdc.framework</groupId>
-				<artifactId>br.com.wdc.framework.cube</artifactId>
-				<version>2.0.0</version>
+				<groupId>io.github.mrcdom.wdc.java</groupId>
+				<artifactId>framework-cube</artifactId>
+				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>br.com.wdc.framework</groupId>
-				<artifactId>remote.backend</artifactId>
-				<version>1.0.0</version>
+				<groupId>io.github.mrcdom.wdc.java</groupId>
+				<artifactId>framework-cube-remote-backend</artifactId>
+				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>br.com.wdc.framework</groupId>
-				<artifactId>remote.bridge.java</artifactId>
-				<version>1.0.0</version>
+				<groupId>io.github.mrcdom.wdc.java</groupId>
+				<artifactId>framework-cube-remote-bridge-java</artifactId>
+				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>br.com.wdc.framework</groupId>
-				<artifactId>remote.bridge.teavm</artifactId>
-				<version>1.0.0</version>
+				<groupId>io.github.mrcdom.wdc.java</groupId>
+				<artifactId>framework-cube-remote-bridge-teavm</artifactId>
+				<version>${project.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

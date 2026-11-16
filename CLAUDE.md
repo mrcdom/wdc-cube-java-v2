@@ -41,6 +41,8 @@ Os quatro frontends web depositam seus artefatos em `work/frontend/<nome>`; cada
 
 **Armadilha dos alvos TeaVM**: `remote.shell.teavm` e `teavm.web` compilam contra os JARs do `~/.m2`, não contra o reator — sem `mvn install` antes, geram em silêncio um app com a versão anterior do domínio (abre normalmente, falha só na chamada que mudou). O `build-frontends.sh` reinstala por padrão justamente por isso.
 
+**Publicação do framework no Maven Central**: só `br.com.wdc.framework`, como `io.github.mrcdom.wdc.java:framework-*` — `cd fontes/br.com.wdc.framework && mvn -Prelease clean deploy` (detalhes no [README do framework](fontes/br.com.wdc.framework/README.md#publicação-no-maven-central)). O `framework-parent` não herda do pom raiz, de propósito: assim os demos não entram na resolução de quem consome.
+
 Config externa: `work/config/application.toml` (resolução: system property `shopping.config.file` → fallback para esse arquivo). `application.local.toml` para overrides locais.
 
 ## Persistência: jOOQ (NÃO JDBI)

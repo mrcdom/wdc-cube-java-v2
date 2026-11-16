@@ -37,8 +37,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>br.com.wdc.framework</groupId>
-            <artifactId>br.com.wdc.framework.commons</artifactId>
+            <groupId>io.github.mrcdom.wdc.java</groupId>
+            <artifactId>framework-commons</artifactId>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>

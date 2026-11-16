@@ -26,14 +26,14 @@
     <dependencies>
 		<!-- Framework Commons -->
         <dependency>
-            <groupId>br.com.wdc.framework</groupId>
-            <artifactId>br.com.wdc.framework.commons</artifactId>
+            <groupId>io.github.mrcdom.wdc.java</groupId>
+            <artifactId>framework-commons</artifactId>
         </dependency>
 
         <!-- Remote Bridge (WebSocket coordinator, reconnect, GC) -->
         <dependency>
-            <groupId>br.com.wdc.framework</groupId>
-            <artifactId>remote.bridge.teavm</artifactId>
+            <groupId>io.github.mrcdom.wdc.java</groupId>
+            <artifactId>framework-cube-remote-bridge-teavm</artifactId>
         </dependency>
 
         <!-- Presentation (ViewState classes only — TeaVM tree-shakes unused code) -->

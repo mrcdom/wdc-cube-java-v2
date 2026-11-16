@@ -58,8 +58,8 @@ ThrowingConsumer<String> action = value -> {
 
 ```xml
 <dependency>
-    <groupId>br.com.wdc.framework</groupId>
-    <artifactId>br.com.wdc.framework.commons</artifactId>
-    <version>1.0.0</version>
+    <groupId>io.github.mrcdom.wdc.java</groupId>
+    <artifactId>framework-commons</artifactId>
+    <version>2.0.0</version>
 </dependency>
 ```

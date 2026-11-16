@@ -5,13 +5,15 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>br.com.wdc.framework</groupId>
-		<artifactId>br.com.wdc.framework.cube.remote</artifactId>
-		<version>1.0.0</version>
+		<groupId>io.github.mrcdom.wdc.java</groupId>
+		<artifactId>framework-cube-remote-parent</artifactId>
+		<version>2.0.0</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-	<artifactId>remote.bridge.react</artifactId>
+	<artifactId>framework-cube-remote-bridge-react</artifactId>
+	<name>framework-cube-remote-bridge-react</name>
+	<description>TypeScript/React Shell bridge for the Cube MVP remote protocol (source only, not a Maven artifact)</description>
 	<packaging>pom</packaging>
 
 </project>

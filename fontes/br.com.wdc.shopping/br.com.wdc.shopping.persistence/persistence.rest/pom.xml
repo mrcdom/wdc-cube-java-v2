@@ -32,8 +32,8 @@
         <!-- SPI server-side de transação remota (RemoteTransactionCoordinator): o host REST
              demarca/religa transações dirigidas pelo cliente. Contrato neutro, sem jOOQ. -->
         <dependency>
-            <groupId>br.com.wdc.framework</groupId>
-            <artifactId>br.com.wdc.framework.persistence</artifactId>
+            <groupId>io.github.mrcdom.wdc.java</groupId>
+            <artifactId>framework-persistence</artifactId>
         </dependency>
 
         <!-- Javalin HTTP framework -->
