@@ -124,8 +124,10 @@ graph TD
 O módulo não tem servidor próprio. O SPA é servido como recurso estático pelo servidor Javalin (`backend`) ou embutido pelo módulo `teavm.native` (Tauri):
 
 ```
-http://localhost:8080/teavm
+http://localhost:8080/teavm.web/index.html
 ```
+
+No navegador, o app chama a API na mesma origem que serviu o `index.html` (a meta `api-base-url` sai vazia do build), então funciona em qualquer porta do backend. O `teavm.native` gera o build com `-Dapi.base.url=<url>`, porque ali a página não é servida pelo backend.
 
 ## Estrutura do Projeto
 
