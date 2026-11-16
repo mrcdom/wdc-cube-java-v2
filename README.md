@@ -389,7 +389,7 @@ Cada presenter possui um **ViewState** serializável que é transmitido ao front
 | Servlet Container | Jetty | 12 |
 | Desktop UI (nativo) | Eclipse SWT (Cocoa macOS aarch64) | 3.128.0 |
 | Mobile/Desktop/Web | Flutter + Dart | 3.x |
-| Banco de dados | H2 | 2.4.240 |
+| Banco de dados | H2 | 2.5.252 |
 | Acesso a dados | jOOQ | 3.19.16 |
 | Serialização | Gson | 2.13.2 |
 | Logging | SLF4J + Logback | 2.0.16 / 1.5.32 |

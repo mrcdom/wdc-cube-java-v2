@@ -26,7 +26,7 @@ DATA_DIR="${1:-$WORK_DIR/data}"
 DATA_DIR="$( cd "$DATA_DIR" && pwd )"
 
 # JAR locations (checked in priority order)
-H2_JAR="${HOME}/.m2/repository/com/h2database/h2/2.4.240/h2-2.4.240.jar"
+H2_JAR="${HOME}/.m2/repository/com/h2database/h2/2.5.252/h2-2.5.252.jar"
 BACKEND_JAR="$PROJECT_ROOT/fontes/br.com.wdc.cube.backend/target/br.com.wdc.cube.backend-1.0.0.jar"
 
 if [ ! -f "$H2_JAR" ]; then

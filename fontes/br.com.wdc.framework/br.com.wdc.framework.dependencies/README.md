@@ -21,7 +21,7 @@ Módulo **POM-only** (BOM) que centraliza o gerenciamento de versões de todas a
 | Gson | 2.13.2 |
 | JOOQ | 3.19.16 |
 | Agroal Pool | 2.7.1 |
-| H2 Database | 2.4.240 |
+| H2 Database | 2.5.252 |
 | Commons Lang3 | 3.20.0 |
 | Commons Text | 1.15.0 |
 | Commons Codec | 1.18.0 |

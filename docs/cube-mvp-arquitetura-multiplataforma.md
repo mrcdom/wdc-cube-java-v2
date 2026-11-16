@@ -88,7 +88,7 @@ A pilha tecnológica do lado servidor — onde a lógica vive — é deliberadam
 | Linguagem | Java (Temurin/Microsoft) | 21 |
 | Build | Maven | 3.9+ |
 | Servidor HTTP | Javalin | 7.2.0 |
-| Banco de dados | H2 | 2.4.240 |
+| Banco de dados | H2 | 2.5.252 |
 | Acesso a dados | jOOQ | 3.19.16 |
 | Serialização | Gson | 2.13.2 |
 | Logging | SLF4J + Logback | 2.0.16 / 1.5.32 |
