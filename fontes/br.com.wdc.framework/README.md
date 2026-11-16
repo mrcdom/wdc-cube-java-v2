@@ -41,13 +41,13 @@ graph TD
 - **Zero DI frameworks** — injeção via `AtomicReference<T> BEAN` (service locator estático)
 - **Multiplataforma** — commons e cube compilam para JVM, Android (Kotlin/Java) e JavaScript (TeaVM)
 - **Sem dependências transitivas pesadas** — cada módulo declara apenas o mínimo necessário
-- **Java 21** — records, sealed interfaces, Virtual Threads onde aplicável
+- **Java 21** — records, sealed interfaces, Virtual Threads onde aplicável. O bytecode do framework fica em 21 (`maven.compiler.release`) para não impor uma versão mais nova a quem o consome; os demos e o backend do repositório compilam em 25
 
 ## Build
 
 ```bash
 cd fontes/br.com.wdc.framework
-JAVA_HOME=$JAVA21_HOME mvn clean install
+JAVA_HOME=$JAVA25_HOME mvn clean install
 ```
 
 ## Publicação no Maven Central
@@ -100,7 +100,7 @@ Publicação:
 
 ```bash
 cd fontes/br.com.wdc.framework
-JAVA_HOME=$JAVA21_HOME mvn -Prelease clean deploy
+JAVA_HOME=$JAVA25_HOME mvn -Prelease clean deploy
 ```
 
 O perfil `release` anexa fontes e javadoc, assina tudo e envia o bundle ao portal, onde ele fica como *validated*; a liberação é manual (*Publish* em central.sonatype.com → Deployments). Para conferir sem enviar: `mvn -Prelease clean verify -Dgpg.skip`. Vale a pena rodar depois de bumpar a versão, que é a do `framework-parent` e dos `<parent>` dos módulos (as referências internas usam `${project.version}`).

@@ -211,7 +211,7 @@ Apenas **views modificadas** (dirty) são enviadas a cada resposta — transfer�
 
 ## Pré-requisitos
 
-- **Java 21** (Temurin ou Microsoft JDK)
+- **Java 25** (Temurin ou Microsoft JDK)
 - **Maven 3.9+**
 - **Node.js 20+** (para build do client)
 

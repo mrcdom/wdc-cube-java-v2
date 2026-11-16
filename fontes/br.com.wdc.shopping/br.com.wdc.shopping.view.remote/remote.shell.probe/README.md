@@ -23,7 +23,7 @@ Não é um thin client de renderização — não exibe UI. É uma ferramenta de
 
 ## Pré-requisitos
 
-- **Java 21**
+- **Java 25**
 - **Maven 3.9+**
 - Backend rodando (porta 8080 por padrão)
 

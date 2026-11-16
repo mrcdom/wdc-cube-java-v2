@@ -4,7 +4,7 @@ Guia para trabalhar neste repositório. Para visão arquitetural completa, ver [
 
 ## O que é
 
-**WDC Cube Java v2** — referência arquitetural do padrão **Cube MVP** (variação de MVP com presenters hierárquicos, navegação por intents e ViewStates serializáveis). Demonstra um e-commerce (Shopping) com backend Java 21 e **cinco frontends independentes** (React, Flutter, Vaadin, SWT, TeaVM) que compartilham os mesmos presenters/ViewStates — só a camada de renderização muda.
+**WDC Cube Java v2** — referência arquitetural do padrão **Cube MVP** (variação de MVP com presenters hierárquicos, navegação por intents e ViewStates serializáveis). Demonstra um e-commerce (Shopping) com backend Java 25 e **cinco frontends independentes** (React, Flutter, Vaadin, SWT, TeaVM) que compartilham os mesmos presenters/ViewStates — só a camada de renderização muda.
 
 Idioma do projeto: **português** (docs, READMEs, mensagens de commit). Código e identificadores em inglês/português conforme o existente no arquivo.
 
@@ -20,8 +20,8 @@ Idioma do projeto: **português** (docs, READMEs, mensagens de commit). Código 
 ## Build & Run
 
 ```bash
-# Build (Java 21 obrigatório)
-export JAVA_HOME=<jdk-21>     # ou defina JAVA21_HOME
+# Build (Java 25 obrigatório)
+export JAVA_HOME=$JAVA25_HOME  # demos/backend em release 25; o framework fica em release 21 (publicado no Central)
 cd fontes && mvn clean package          # fat JAR em br.com.wdc.cube.backend/target/
 cd fontes && mvn test                   # testes
 

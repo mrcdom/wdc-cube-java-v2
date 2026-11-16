@@ -40,7 +40,7 @@ remote.host  <──WebSocket──>  remote.shell.swt
 
 ## Pré-requisitos
 
-- **Java 21**
+- **Java 25**
 - **Maven 3.9+**
 - `remote.host` rodando (porta 8080 por padrão)
 

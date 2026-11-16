@@ -47,7 +47,7 @@ Projeto [Tauri 2](https://tauri.app/) que empacota o SPA gerado pelo módulo web
 | UI Framework | [Bootstrap](https://getbootstrap.com/) | 5.3.3 |
 | Ícones | [Bootstrap Icons](https://icons.getbootstrap.com/) | 1.11.3 |
 | Wrapper nativo | [Tauri](https://tauri.app/) | 2.x |
-| Linguagem (views) | Java 21 | — |
+| Linguagem (views) | Java 25 | — |
 | Linguagem (nativo) | Rust | — |
 
 ## Como o TeaVM Funciona

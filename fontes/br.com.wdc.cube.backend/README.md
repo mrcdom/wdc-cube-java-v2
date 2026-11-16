@@ -94,7 +94,7 @@ All versions managed by `br.com.wdc.framework.dependencies` BOM.
 
 ## Deployment
 
-The fat JAR can be deployed to any environment that has Java 21+ installed:
+The fat JAR can be deployed to any environment that has Java 25+ installed:
 
 ```bash
 # Copy JAR to server

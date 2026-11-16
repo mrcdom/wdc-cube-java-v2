@@ -13,24 +13,21 @@ PROJECT_ROOT="$( cd "$WORK_DIR/.." && pwd )"
 # config/application.toml resolves relative to it
 cd "$WORK_DIR"
 
-# Ensure JAVA_HOME is set correctly (must point to a Java 21 JDK)
+# JDK 25: JAVA25_HOME tem precedência sobre o JAVA_HOME da sessão
+export JAVA_HOME="${JAVA25_HOME:-$JAVA_HOME}"
 if [ -z "$JAVA_HOME" ]; then
-    export JAVA_HOME=$JAVA21_HOME
-    if [ -z "$JAVA_HOME" ]; then
-        echo "Warning: JAVA_HOME not set. Please set it to a Java 21 JDK path."
-        echo "  Example: export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home"
-        exit 1
-    fi
+    echo "Error: set JAVA25_HOME (or JAVA_HOME) to a Java 25 JDK path."
+    echo "  Example: export JAVA25_HOME=/Library/Java/JavaVirtualMachines/jdk-25.jdk/Contents/Home"
+    exit 1
 fi
-
-# Check if Java is available
-if ! command -v java &> /dev/null; then
-    echo "Error: Java not found. Please set JAVA_HOME correctly."
+JAVA="$JAVA_HOME/bin/java"
+if [ ! -x "$JAVA" ]; then
+    echo "Error: $JAVA not found. Check JAVA25_HOME/JAVA_HOME."
     exit 1
 fi
 
 # Check Java version
-JAVA_VERSION=$(java -version 2>&1 | head -1)
+JAVA_VERSION=$("$JAVA" -version 2>&1 | head -1)
 echo "Using: $JAVA_VERSION"
 
 # Ensure JAR exists
@@ -60,10 +57,10 @@ echo ""
 # Run the server
 # JVM tuning for load test / production (10 GB heap, ~10000 sessions):
 #   -Xms4g -Xmx10g
-#   -XX:+UseZGC -XX:+ZGenerational   # pausas < 1 ms, ideal para WebSocket
+#   -XX:+UseZGC                      # geracional (único modo desde o JDK 24); pausas < 1 ms, ideal para WebSocket
 #   -XX:SoftMaxHeapSize=9g           # ZGC mantém abaixo de 9 GB; 1 GB de buffer para picos
 #   -XX:ZCollectionInterval=5        # GC preditivo: ZGC coleta a cada 5 s mesmo sem pressão
 #                                    # evita picos de memória em períodos de baixa carga
 #   -XX:MaxMetaspaceSize=512m
 #   -XX:ReservedCodeCacheSize=256m
-exec java -jar "$JAR_FILE" "$PORT"
+exec "$JAVA" -jar "$JAR_FILE" "$PORT"

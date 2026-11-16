@@ -99,10 +99,10 @@ O layout adapta-se a telas pequenas (iPhone SE) utilizando classes utilitárias 
 
 ```bash
 # Via script (recomendado)
-JAVA21_HOME=<caminho-para-jdk-21> bash build.sh
+JAVA25_HOME=<caminho-para-jdk-25> bash build.sh
 
 # Ou diretamente com Maven
-JAVA_HOME=$JAVA21_HOME mvn process-classes -DskipTests
+JAVA_HOME=$JAVA25_HOME mvn process-classes -DskipTests
 ```
 
 ### Output

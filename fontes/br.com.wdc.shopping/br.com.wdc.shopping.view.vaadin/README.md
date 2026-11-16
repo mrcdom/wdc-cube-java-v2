@@ -135,13 +135,13 @@ graph TD
 
 ## Pré-requisitos
 
-- **Java 21** (Temurin ou Microsoft JDK)
+- **Java 25** (Temurin ou Microsoft JDK)
 - **Maven 3.9+**
 
 ## Build
 
 ```bash
-export JAVA_HOME=<caminho-para-jdk-21>  # ex: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home
+export JAVA_HOME=<caminho-para-jdk-25>  # ex: /Library/Java/JavaVirtualMachines/temurin-25.jdk/Contents/Home
 export PATH="$JAVA_HOME/bin:$PATH"
 
 # Build completo (a partir da raiz do projeto)
@@ -179,9 +179,9 @@ O arquivo `work/config/application.toml` permite configurar:
 
 ## Notas técnicas
 
-### Jetty + Java 21
+### Jetty e o bytecode do projeto
 
-O Jetty 12 com Java 21 requer uma configuração especial do `WebAppContext` para evitar erros de ASM ao escanear classes:
+O ASM do Jetty só lê class files de versões que ele conhece. Para a varredura de anotações não depender do nível de bytecode do projeto, o `WebAppContext` é configurado para não escanear as classes dele:
 
 - Um diretório WAR vazio é criado
 - O `ContainerIncludeJarPattern` é restrito a `.*vaadin.*\.jar$|.*flow.*\.jar$|.*atmosphere.*\.jar$`

@@ -6,7 +6,7 @@ Projeto [Tauri 2](https://tauri.app/) que empacota o SPA TeaVM como aplicativo n
 
 - **Rust** toolchain (`rustup`)
 - **Tauri CLI**: `cargo install tauri-cli --version "^2"`
-- **Java 21** + **Maven** (para compilar o módulo `teavm.web`)
+- **Java 25** + **Maven** (para compilar o módulo `teavm.web`)
 - **Android**: Android SDK (`ANDROID_HOME`), NDK, `adb`
 - **iOS**: Xcode, `xcrun simctl`
 

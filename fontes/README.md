@@ -1,6 +1,6 @@
 # fontes/
 
-Raiz do código-fonte do projeto **WeDoCode Shopping** — um e-commerce de referência construído com a arquitetura **Cube MVP** sobre Java 21.
+Raiz do código-fonte do projeto **WeDoCode Shopping** — um e-commerce de referência construído com a arquitetura **Cube MVP** sobre Java 25.
 
 ---
 
@@ -71,10 +71,10 @@ graph TD
 ## Build
 
 ```bash
-export JAVA_HOME=<caminho-para-jdk-21>  # ex: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home
+export JAVA_HOME=<caminho-para-jdk-25>  # ex: /Library/Java/JavaVirtualMachines/temurin-25.jdk/Contents/Home
 export PATH="$JAVA_HOME/bin:$PATH"
 cd fontes/
 mvn clean install
 ```
 
-Requisitos: **Java 21** (LTS) e **Maven 3.9+**.
+Requisitos: **Java 25** (LTS) e **Maven 3.9+**.

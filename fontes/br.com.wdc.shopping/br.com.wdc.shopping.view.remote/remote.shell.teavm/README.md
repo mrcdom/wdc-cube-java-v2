@@ -151,10 +151,10 @@ private interface Css {
 
 ```bash
 # Build simples
-JAVA21_HOME=<caminho-jdk-21> ./build.sh
+JAVA25_HOME=<caminho-jdk-25> ./build.sh
 
 # Build completo (instala dependências do framework antes)
-JAVA21_HOME=<caminho-jdk-21> ./build.sh --full
+JAVA25_HOME=<caminho-jdk-25> ./build.sh --full
 ```
 
 ### Output

@@ -128,8 +128,8 @@ graph TD
 
 ## Pré-requisitos
 
-- **Java 21** (LTS)
-  - **Temurin 21** ou **Microsoft JDK 21** — recomendado
+- **Java 25** (LTS)
+  - **Temurin 25** ou **Microsoft JDK 25** — recomendado
 - **Maven 3.9+**
 - **Node.js 20+** e **npm** (para o frontend React)
 - **Flutter 3.x** (para o frontend Flutter — mobile/desktop/web)
@@ -139,7 +139,7 @@ graph TD
 ### Backend (Java)
 
 ```bash
-export JAVA_HOME=<caminho-para-jdk-21>  # ex: /Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home
+export JAVA_HOME=<caminho-para-jdk-25>  # ex: /Library/Java/JavaVirtualMachines/temurin-25.jdk/Contents/Home
 export PATH="$JAVA_HOME/bin:$PATH"
 
 cd fontes
@@ -176,8 +176,8 @@ sem Flutter no PATH os outros três continuam sendo gerados.
 |------|--------|-----------|---------|
 | `react` | `view.remote/remote.shell.react` | Node 20+ / npm | `work/frontend/remote.shell.react` |
 | `flutter` | `view.remote/remote.shell.flutter/flutter.web` | Flutter 3.x | `work/frontend/remote.shell.flutter` |
-| `teavm.shell` | `view.remote/remote.shell.teavm` | Maven + `JAVA21_HOME` | `work/frontend/remote.shell.teavm` |
-| `teavm.web` | `view.teavm/teavm.web` | Maven + `JAVA21_HOME` | `work/frontend/teavm.web` |
+| `teavm.shell` | `view.remote/remote.shell.teavm` | Maven + `JAVA25_HOME` | `work/frontend/remote.shell.teavm` |
+| `teavm.web` | `view.teavm/teavm.web` | Maven + `JAVA25_HOME` | `work/frontend/teavm.web` |
 
 `work/frontend/api.docs` e `work/frontend/openapi` são páginas estáticas — não têm build.
 
@@ -244,7 +244,7 @@ cd ../flutter.web
 ### Versão Vaadin (Web — Server-Side)
 
 ```bash
-export JAVA_HOME=<caminho-para-jdk-21>
+export JAVA_HOME=<caminho-para-jdk-25>
 export PATH="$JAVA_HOME/bin:$PATH"
 
 cd br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin

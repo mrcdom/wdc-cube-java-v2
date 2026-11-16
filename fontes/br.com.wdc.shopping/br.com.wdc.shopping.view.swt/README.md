@@ -70,14 +70,14 @@ graph TD
 
 ```bash
 cd fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.swt
-JAVA_HOME=$JAVA21_HOME mvn clean compile -DskipTests
+JAVA_HOME=$JAVA25_HOME mvn clean compile -DskipTests
 ```
 
 ## Execução
 
 ```bash
 cd fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.swt
-JAVA_HOME=$JAVA21_HOME mvn exec:java \
+JAVA_HOME=$JAVA25_HOME mvn exec:java \
   -Dexec.mainClass="br.com.wdc.shopping.view.swt.ShoppingSwtMain"
 ```
 

@@ -61,7 +61,11 @@ echo ""
 echo "Press Ctrl+C to stop the H2 server."
 echo ""
 
-exec java -cp "$CLASSPATH" org.h2.tools.Server \
+# O fat JAR do backend é bytecode 25: o H2 precisa rodar num JDK 25
+JAVA_HOME="${JAVA25_HOME:-$JAVA_HOME}"
+JAVA="${JAVA_HOME:+$JAVA_HOME/bin/}java"
+
+exec "$JAVA" -cp "$CLASSPATH" org.h2.tools.Server \
     -tcp \
     -tcpAllowOthers \
     -tcpPort 9092 \
