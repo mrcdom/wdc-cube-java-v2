@@ -46,6 +46,9 @@ public class ShoppingVaadinMain {
             dataSource.setUser(config.get("database.username", "sa"));
             dataSource.setPassword(config.get("database.password", "sa"));
 
+            // Antes do DBCreate: o DBReset (banco novo ou database.reset) grava pelos repositórios
+            ShoppingRepositoryBootstrap.initialize(dataSource, cleanUp);
+
             try (var connection = dataSource.getConnection()) {
                 var command = new DBCreate().withConnection(connection);
                 if (config.getBoolean("database.reset", false)) {
@@ -54,7 +57,6 @@ public class ShoppingVaadinMain {
                 command.run();
             }
 
-            ShoppingRepositoryBootstrap.initialize(dataSource, cleanUp);
             LOG.info("Backend initialized with database at {}", dataDir);
 
             var port = config.getInt("server.port", 8090);
