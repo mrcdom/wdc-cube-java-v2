@@ -1,10 +1,10 @@
 package br.com.wdc.framework.domain.exception;
 
 /**
- * Lançada quando uma requisição conflita com o <b>estado transacional</b> do solicitante — não é negação de
- * autorização. Caso típico: uma escrita chega sem o cabeçalho de transação ({@code X-Tx-Id}) enquanto o solicitante
- * tem uma transação remota aberta; aceitá-la (autocommit) deixaria um registro órfão. Mapeada para <b>HTTP 409
- * (Conflict)</b>, distinta de {@link AccessDeniedException} (403), para não poluir o tratamento de erros de segurança.
+ * Thrown when a request conflicts with the requester's <b>transactional state</b> — it is not an authorization
+ * denial. Typical case: a write arrives without the transaction header ({@code X-Tx-Id}) while the requester has an
+ * open remote transaction; accepting it (autocommit) would leave an orphan record. Mapped to <b>HTTP 409
+ * (Conflict)</b>, distinct from {@link AccessDeniedException} (403), so as not to pollute security error handling.
  */
 public class TransactionConflictException extends RuntimeException {
 

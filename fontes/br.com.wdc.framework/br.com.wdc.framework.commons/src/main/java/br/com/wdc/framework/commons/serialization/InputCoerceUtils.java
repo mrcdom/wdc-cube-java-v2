@@ -10,10 +10,10 @@ import java.time.ZonedDateTime;
 import br.com.wdc.framework.commons.lang.CoerceUtils;
 
 /**
- * Utilitários para leitura coercitiva de valores a partir de um {@link ExtensibleObjectInput}.
+ * Utilities for coercive reading of values from an {@link ExtensibleObjectInput}.
  * <p>
- * Cada método inspeciona o token atual ({@code peek()}) e tenta converter o valor lido
- * para o tipo desejado, retornando o {@code defaultValue} quando o token é {@code NULL}.
+ * Each method inspects the current token ({@code peek()}) and tries to convert the value read
+ * to the desired type, returning {@code defaultValue} when the token is {@code NULL}.
  */
 public final class InputCoerceUtils {
 

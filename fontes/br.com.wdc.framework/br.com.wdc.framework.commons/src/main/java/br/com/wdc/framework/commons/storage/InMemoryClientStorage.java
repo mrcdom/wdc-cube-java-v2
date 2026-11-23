@@ -3,17 +3,17 @@ package br.com.wdc.framework.commons.storage;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Implementação em memória de {@link ClientStorage}.
+ * In-memory implementation of {@link ClientStorage}.
  * <p>
- * Usada nos seguintes contextos:
+ * Used in the following contexts:
  * <ul>
- *   <li>{@code clientSessionStore()} em todas as plataformas — dados da sessão corrente.</li>
- *   <li>{@code clientPersistentStore()} no probe/bridge ({@code HostClient}) — sem persistência
- *       real; dados vivem enquanto a conexão estiver ativa.</li>
- *   <li>Testes e ambientes server-side onde persistência local não é desejada.</li>
+ *   <li>{@code clientSessionStore()} on every platform — data of the current session.</li>
+ *   <li>{@code clientPersistentStore()} in the probe/bridge ({@code HostClient}) — no real
+ *       persistence; data lives while the connection is active.</li>
+ *   <li>Tests and server-side environments where local persistence is not wanted.</li>
  * </ul>
- * {@link #secure()} retorna {@code this} — os dados já são efêmeros e criptografia
- * não agrega valor nesse contexto.
+ * {@link #secure()} returns {@code this} — the data is already ephemeral and encryption
+ * adds no value in this context.
  */
 public class InMemoryClientStorage implements ClientStorage {
 
@@ -21,7 +21,7 @@ public class InMemoryClientStorage implements ClientStorage {
 
 	@Override
 	public ClientStorage secure() {
-		return this; // dados efêmeros — backing seguro não acrescenta valor
+		return this; // ephemeral data — a secure backing adds no value
 	}
 
 	@Override

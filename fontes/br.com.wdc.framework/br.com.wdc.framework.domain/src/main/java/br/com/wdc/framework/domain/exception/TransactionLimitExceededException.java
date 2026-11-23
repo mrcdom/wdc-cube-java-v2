@@ -1,9 +1,9 @@
 package br.com.wdc.framework.domain.exception;
 
 /**
- * Lançada ao abrir uma transação remota quando um <b>teto</b> de transações abertas é atingido — global (proteção do
- * pool de conexões) ou por dono (impede um cliente monopolizar o pool). Mapeada para <b>HTTP 429 (Too Many
- * Requests)</b>: o solicitante deve finalizar transações pendentes e tentar de novo.
+ * Thrown when opening a remote transaction once a <b>cap</b> on open transactions is reached — global (protects the
+ * connection pool) or per owner (keeps one client from monopolizing the pool). Mapped to <b>HTTP 429 (Too Many
+ * Requests)</b>: the requester should finish pending transactions and try again.
  */
 public class TransactionLimitExceededException extends RuntimeException {
 

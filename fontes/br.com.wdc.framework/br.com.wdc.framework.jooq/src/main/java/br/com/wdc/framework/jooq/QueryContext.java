@@ -3,9 +3,9 @@ package br.com.wdc.framework.jooq;
 import org.jooq.DSLContext;
 
 /**
- * Contexto de execução de uma query: gerencia alias únicos e dá acesso ao {@link DSLContext}.
+ * Execution context of a query: manages unique aliases and gives access to the {@link DSLContext}.
  * <p>
- * O {@code DSLContext} é <b>injetado</b> (não lido de um holder global), de modo que cada aplicação forneça o seu — ver
+ * The {@code DSLContext} is <b>injected</b> (not read from a global holder), so that each application supplies its own — see
  * {@code JsonQueryBuilder.setDSLContextSupplier}.
  * </p>
  */

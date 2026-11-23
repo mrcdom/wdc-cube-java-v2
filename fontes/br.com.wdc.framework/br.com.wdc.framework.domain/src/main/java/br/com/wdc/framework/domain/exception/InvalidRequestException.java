@@ -1,11 +1,11 @@
 package br.com.wdc.framework.domain.exception;
 
 /**
- * O pedido não é interpretável: veio um valor que este lado não sabe honrar.
+ * The request cannot be interpreted: it carries a value this side does not know how to honor.
  *
  * <p>
- * Separa "o pedido está errado" de "o servidor quebrou". A camada REST a devolve como 400, com a mensagem no corpo —
- * que deve dizer qual valor chegou e quais são aceitos, já que é a única pista de quem chamou.
+ * Separates "the request is wrong" from "the server broke". The REST layer returns it as 400, with the message in the
+ * body — which should say which value arrived and which ones are accepted, since it is the caller's only clue.
  * </p>
  */
 public class InvalidRequestException extends BusinessException {

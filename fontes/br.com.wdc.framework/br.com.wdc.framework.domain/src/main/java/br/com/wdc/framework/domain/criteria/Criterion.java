@@ -7,27 +7,27 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Critério sobre um campo: os pedidos de comparação feitos e como eles se combinam.
+ * Criterion on a field: the comparison requests made and how they combine.
  *
  * <p>
- * Esta classe já cobre o campo cuja única comparação sensata é de identidade — enum, booleano, chave estrangeira.
- * Campos ordenáveis e textuais usam as subclasses, que acrescentam o que o tipo permite.
+ * This class alone covers the field whose only sensible comparison is identity — enum, boolean, foreign key. Ordered
+ * and text fields use the subclasses, which add what the type allows.
  * </p>
  *
  * <p>
- * É o singular de {@code XxxCriteria} — um critério agrega vários {@code Criterion}, um por campo filtrável, e cada
- * campo informado vira uma condição {@code AND} na consulta.
+ * It is the singular of {@code XxxCriteria} — a criteria aggregates several {@code Criterion}, one per filterable
+ * field, and each field that is set becomes an {@code AND} condition in the query.
  * </p>
  *
  * <p>
- * <b>Pedidos sucessivos acumulam, e por padrão valem juntos ({@code AND}).</b> É o que faz o intervalo montado em duas
- * linhas — {@code ge(inicio)} e depois {@code le(fim)}, como sai de dois campos de tela — significar o que se espera, e
- * o que faz {@code ne(1)} seguido de {@code ne(2)} excluir os dois. Fosse {@code OR} o padrão, esses dois casos
- * passariam a devolver quase toda a tabela sem nada indicar o erro.
+ * <b>Successive requests accumulate, and by default they hold together ({@code AND}).</b> That is what makes a range
+ * built in two lines — {@code ge(start)} then {@code le(end)}, as it comes out of two screen fields — mean what is
+ * expected, and what makes {@code ne(1)} followed by {@code ne(2)} exclude both. Were {@code OR} the default, these two
+ * cases would return nearly the whole table with nothing pointing out the error.
  * </p>
  *
  * <p>
- * <b>Alternativa se pede com {@link #or()}</b>, que marca o campo como disjuntivo:
+ * <b>Alternatives are requested with {@link #or()}</b>, which marks the field as disjunctive:
  * </p>
  *
  * <pre>
@@ -37,26 +37,26 @@ import java.util.List;
  * </pre>
  *
  * <p>
- * A disjunção vale <b>dentro</b> do campo; entre campos diferentes a junção é sempre {@code AND}.
+ * The disjunction applies <b>within</b> the field; across different fields the combination is always {@code AND}.
  * </p>
  *
  * <p>
- * <b>Valor nulo não acrescenta pedido</b>, em vez de apagar os anteriores: é o que preserva o costume de montar filtro
- * a partir de campos de tela, onde vazio significa "não filtrar por isto". Para apagar o que já foi pedido há
- * {@link #clear()}; para comparar com nulo, {@link #isNull()}.
+ * <b>A null value adds no request</b>, instead of erasing the previous ones: this preserves the habit of building a
+ * filter from screen fields, where empty means "do not filter by this". To erase what was already requested there is
+ * {@link #clear()}; to compare with null, {@link #isNull()}.
  * </p>
  *
  * <p>
- * Nenhum método aqui conhece jOOQ ou SQL. A tradução mora no {@code framework.jooq}, que casa {@link #name()} com a
- * coluna e converte o valor; o cliente REST apenas serializa. É o que mantém a mesma classe válida dos dois lados.
+ * No method here knows jOOQ or SQL. The translation lives in {@code framework.jooq}, which matches {@link #name()} to
+ * the column and converts the value; the REST client only serializes. This keeps the same class valid on both sides.
  * </p>
  *
- * @param <C> tipo do {@code XxxCriteria} que contém este campo
- * @param <T> tipo do valor comparado
+ * @param <C> type of the {@code XxxCriteria} that holds this field
+ * @param <T> type of the compared value
  */
 public class Criterion<C, T> {
 
-    /** Um pedido de comparação: o operador e os valores que o acompanham. */
+    /** A comparison request: the operator and the values that go with it. */
     public static final class Predicate<T> {
 
         private final Operator operator;
@@ -75,7 +75,7 @@ public class Criterion<C, T> {
             return Collections.unmodifiableList(values);
         }
 
-        /** Primeiro valor, ou {@code null} — atalho para os operadores de um valor só. */
+        /** First value, or {@code null} — shortcut for single-value operators. */
         public T value() {
             return values.isEmpty() ? null : values.get(0);
         }
@@ -87,12 +87,12 @@ public class Criterion<C, T> {
     }
 
     /**
-     * O {@code XxxCriteria} a que este campo pertence, para que os pedidos possam ser encadeados.
+     * The {@code XxxCriteria} this field belongs to, so that requests can be chained.
      *
      * <p>
-     * <b>Não é estado, é navegação</b> — e por isso não trafega. Serializar este campo fecharia um ciclo com o critério
-     * que o contém. O que descreve o filtro é o nome, os pedidos e a disjunção; o dono se restabelece do outro lado,
-     * quando o critério é remontado.
+     * <b>It is not state, it is navigation</b> — and so it does not travel. Serializing this field would close a cycle
+     * with the criteria that holds it. What describes the filter is the name, the requests and the disjunction; the
+     * owner is re-established on the other side, when the criteria is rebuilt.
      * </p>
      */
     private transient C owner;
@@ -109,46 +109,46 @@ public class Criterion<C, T> {
     }
 
     /**
-     * Devolve o dono a um critério que chegou sem ele — o caso de um critério reconstruído a partir do transporte.
+     * Gives the owner back to a criterion that arrived without it — the case of a criterion rebuilt from the transport.
      *
      * <p>
-     * Sem dono, {@code eq()} e companhia devolveriam {@code null} e o encadeamento quebraria no primeiro uso.
+     * Without an owner, {@code eq()} and friends would return {@code null} and the chain would break on first use.
      * </p>
      */
     public void rebind(C owner) {
         this.owner = owner;
     }
 
-    /** {@code true} quando o critério ainda não sabe a que {@code XxxCriteria} pertence. */
+    /** {@code true} when the criterion does not yet know which {@code XxxCriteria} it belongs to. */
     public boolean detached() {
         return owner == null;
     }
 
-    /** Nome lógico do campo — é por ele que a tradução encontra a coluna correspondente. */
+    /** Logical name of the field — it is how the translation finds the matching column. */
     public String name() {
         return name;
     }
 
-    /** Pedidos feitos sobre este campo, na ordem em que foram feitos. */
+    /** Requests made on this field, in the order they were made. */
     public List<Predicate<T>> predicates() {
         return Collections.unmodifiableList(predicates);
     }
 
-    /** {@code true} quando os pedidos deste campo se combinam com {@code OR}. */
+    /** {@code true} when the requests on this field combine with {@code OR}. */
     public boolean disjunctive() {
         return disjunctive;
     }
 
-    /** {@code true} quando há ao menos um pedido, ou seja, quando este campo deve virar condição. */
+    /** {@code true} when there is at least one request, i.e. when this field must become a condition. */
     public boolean isSet() {
         return !predicates.isEmpty();
     }
 
     /**
-     * Marca o campo como disjuntivo: os pedidos passam a valer com {@code OR} entre si.
+     * Marks the field as disjunctive: its requests combine with {@code OR} among themselves.
      *
      * <p>
-     * Vale para o campo inteiro, e não só para o pedido seguinte — chamar uma vez basta, em qualquer ponto.
+     * It applies to the whole field, not just to the next request — calling it once is enough, at any point.
      * </p>
      */
     public Criterion<C, T> or() {
@@ -156,29 +156,29 @@ public class Criterion<C, T> {
         return this;
     }
 
-    /** Volta a exigir todos os pedidos ({@code AND}), desfazendo {@link #or()}. */
+    /** Requires all requests again ({@code AND}), undoing {@link #or()}. */
     public Criterion<C, T> and() {
         this.disjunctive = false;
         return this;
     }
 
-    /** Apaga os pedidos deste campo, voltando a não filtrar. Não desfaz {@link #or()}. */
+    /** Erases the requests on this field, so it no longer filters. Does not undo {@link #or()}. */
     public C clear() {
         predicates.clear();
         return owner;
     }
 
-    /** Igualdade. {@code null} não acrescenta pedido. */
+    /** Equality. {@code null} adds no request. */
     public C eq(T value) {
         return value == null ? owner : add(Operator.EQ, value);
     }
 
-    /** Diferente de. {@code null} não acrescenta pedido. */
+    /** Not equal to. {@code null} adds no request. */
     public C ne(T value) {
         return value == null ? owner : add(Operator.NE, value);
     }
 
-    /** Pertence ao conjunto. Conjunto nulo ou vazio não acrescenta pedido — filtrar por "nenhum" seria inútil. */
+    /** Belongs to the set. A null or empty set adds no request — filtering by "none" would be pointless. */
     public C in(Collection<? extends T> values) {
         if (values == null || values.isEmpty()) {
             return owner;
@@ -187,7 +187,7 @@ public class Criterion<C, T> {
         return owner;
     }
 
-    /** Pertence ao conjunto. */
+    /** Belongs to the set. */
     @SafeVarargs
     public final C in(T... values) {
         return in(values == null ? null : Arrays.asList(values));
@@ -202,30 +202,30 @@ public class Criterion<C, T> {
     }
 
     /**
-     * Repõe um pedido tal como veio do transporte, sem passar pelas regras dos métodos fluentes.
+     * Restores a request exactly as it came from the transport, bypassing the rules of the fluent methods.
      *
      * <p>
-     * Existe para a desserialização, e só para ela: {@code eq(null)} não acrescenta pedido, o que é o certo para quem
-     * monta o filtro a partir de uma tela, mas apagaria em silêncio um {@code EQ NULL} que o outro lado enviou.
+     * It exists for deserialization, and only for it: {@code eq(null)} adds no request, which is right for whoever
+     * builds the filter from a screen, but would silently erase an {@code EQ NULL} the other side sent.
      * </p>
      */
     public void restore(Operator operator, List<T> values) {
         predicates.add(new Predicate<>(operator, values == null ? new ArrayList<>() : new ArrayList<>(values)));
     }
 
-    /** Marca a disjunção ao remontar o critério do transporte. */
+    /** Sets the disjunction when rebuilding the criterion from the transport. */
     public void restoreDisjunctive(boolean disjunctive) {
         this.disjunctive = disjunctive;
     }
 
-    /** Acrescenta um pedido; visível às subclasses, que oferecem os operadores conforme o tipo do campo. */
+    /** Adds a request; visible to the subclasses, which offer the operators according to the field type. */
     @SafeVarargs
     protected final C add(Operator operator, T... values) {
         predicates.add(new Predicate<>(operator, new ArrayList<>(Arrays.asList(values))));
         return owner;
     }
 
-    /** O critério dono, para as subclasses devolverem ao encadear. */
+    /** The owning criteria, for subclasses to return when chaining. */
     protected C owner() {
         return owner;
     }
@@ -233,8 +233,8 @@ public class Criterion<C, T> {
     @Override
     public String toString() {
         if (!isSet()) {
-            return name + " (não informado)";
+            return name + " (not set)";
         }
-        return name + " " + (disjunctive ? "qualquer de " : "todos de ") + predicates;
+        return name + " " + (disjunctive ? "any of " : "all of ") + predicates;
     }
 }

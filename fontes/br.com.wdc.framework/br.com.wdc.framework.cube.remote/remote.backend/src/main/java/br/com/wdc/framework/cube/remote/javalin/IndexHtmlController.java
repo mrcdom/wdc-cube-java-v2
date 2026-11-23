@@ -40,10 +40,10 @@ public final class IndexHtmlController {
         ctx.res().setHeader("Pragma", "no-cache");
         ctx.res().setDateHeader("Expires", 0);
 
-        // Atributo Secure só quando a requisição chega por HTTPS (direto ou via proxy,
-        // lido do X-Forwarded-Proto do nginx). Em HTTP puro (ex.: QA sem TLS), navegadores
-        // REJEITAM cookies Secure (Firefox sempre) — sem o app_id o handshake WS cai em
-        // 4001/reload em loop.
+        // Secure attribute only when the request arrives over HTTPS (directly or via proxy,
+        // read from nginx's X-Forwarded-Proto). On plain HTTP (e.g. QA without TLS), browsers
+        // REJECT Secure cookies (Firefox always) — without the app_id the WS handshake falls into
+        // a 4001/reload loop.
         boolean secure = isHttps(ctx);
 
         Cookie appIdCookie = new Cookie("app_id", makeAppId());

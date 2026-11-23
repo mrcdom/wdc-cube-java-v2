@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-	Framework jOOQ — complementos genéricos ao jOOQ: DSLContext holder,
-	utilitários de field/record e query builders com suporte a JSON (PostgreSQL).
+	Framework jOOQ — generic jOOQ add-ons: DSLContext holder,
+	field/record utilities and query builders with JSON support (PostgreSQL).
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -36,7 +36,7 @@
 			<groupId>io.github.mrcdom.wdc.java</groupId>
 			<artifactId>framework-commons</artifactId>
 		</dependency>
-		<!-- Abstração de transação (TransactionScope) — o módulo jOOQ conhece transações, não o contrário -->
+		<!-- Transaction abstraction (TransactionScope) — the jOOQ module knows about transactions, not the other way around -->
 		<dependency>
 			<groupId>io.github.mrcdom.wdc.java</groupId>
 			<artifactId>framework-persistence</artifactId>

@@ -14,9 +14,9 @@ import br.com.wdc.framework.jooq.JsonDialect;
 import br.com.wdc.framework.jooq.JsonFieldEntry;
 
 /**
- * Dialeto JSON para H2 e HSQLDB.
+ * JSON dialect for H2 and HSQLDB.
  *
- * <p>Usa a sintaxe padrão SQL:2016:</p>
+ * <p>Uses the standard SQL:2016 syntax:</p>
  * <pre>{@code
  * CAST(JSON_OBJECT(
  *     KEY 'id' VALUE t.ID,
@@ -26,12 +26,12 @@ import br.com.wdc.framework.jooq.JsonFieldEntry;
  * ) AS VARCHAR)
  * }</pre>
  *
- * <p>Para Base64, requer a função {@code TO_BASE64} registrada via {@link #initialize(Connection)}.</p>
+ * <p>For Base64, it requires the {@code TO_BASE64} function registered via {@link #initialize(Connection)}.</p>
  *
  * <p>
- * <b>Preservação de bind values:</b> os campos ({@link JsonFieldEntry#field()} e o elemento do array) são embutidos via
- * placeholders {@code {N}} de template do jOOQ — nunca renderizados para string crua. Isso garante que subqueries
- * correlacionadas com critérios filtrados tenham seus bind values rastreados e vinculados na posição correta pelo jOOQ.
+ * <b>Bind value preservation:</b> the fields ({@link JsonFieldEntry#field()} and the array element) are embedded via jOOQ
+ * template placeholders {@code {N}} — never rendered to a raw string. This ensures that correlated subqueries with
+ * filtered criteria have their bind values tracked and bound at the correct position by jOOQ.
  * </p>
  */
 public final class H2JsonDialect implements JsonDialect {
@@ -107,7 +107,7 @@ public final class H2JsonDialect implements JsonDialect {
     // :: H2 custom function
 
     /**
-     * Converte byte[] para string Base64. Registrado como {@code TO_BASE64} no H2.
+     * Converts byte[] to a Base64 string. Registered as {@code TO_BASE64} in H2.
      */
     public static String toBase64(byte[] value) {
         if (value == null) {

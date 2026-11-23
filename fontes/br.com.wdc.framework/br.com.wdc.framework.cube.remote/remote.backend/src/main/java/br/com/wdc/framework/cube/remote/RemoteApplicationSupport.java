@@ -623,18 +623,18 @@ public class RemoteApplicationSupport {
     private static String resolveClientIp(WsContext ctx) {
         var fwd = ctx.header("X-Forwarded-For");
         if (StringUtils.isNotBlank(fwd)) {
-            // X-Forwarded-For pode vir como "client, proxy1, proxy2" — fica o primeiro.
+            // X-Forwarded-For may come as "client, proxy1, proxy2" — the first one is kept.
             int comma = fwd.indexOf(',');
             return comma > 0 ? fwd.substring(0, comma).trim() : fwd.trim();
         }
         try {
-            // Jetty 12 (websocket-jetty-api 12.x): getRemoteSocketAddress() — não getRemoteAddress().
+            // Jetty 12 (websocket-jetty-api 12.x): getRemoteSocketAddress(), not getRemoteAddress().
             if (ctx.session.getRemoteSocketAddress() instanceof java.net.InetSocketAddress isa
                     && isa.getAddress() != null) {
                 return isa.getAddress().getHostAddress();
             }
         } catch (Exception e) {
-            LOG.debug("Não foi possível resolver IP remoto do WebSocket", e);
+            LOG.debug("Could not resolve the WebSocket remote IP", e);
         }
         return null;
     }

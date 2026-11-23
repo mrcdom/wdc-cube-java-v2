@@ -3,29 +3,29 @@ package br.com.wdc.framework.domain.security;
 import java.util.Set;
 
 /**
- * Avaliação genérica de permissões no formato {@code entidade:operação}.
+ * Generic evaluation of permissions in the {@code entity:operation} format.
  * <p>
- * Regras:
+ * Rules:
  * <ul>
- * <li>Uma permissão {@code entidade:operação} concede aquela operação na entidade.</li>
- * <li>O wildcard {@code entidade:*} concede todas as operações na entidade.</li>
- * <li>{@link #DATA_ALL} concede acesso irrestrito a dados de todos os usuários.</li>
+ * <li>A permission {@code entity:operation} grants that operation on the entity.</li>
+ * <li>The wildcard {@code entity:*} grants every operation on the entity.</li>
+ * <li>{@link #DATA_ALL} grants unrestricted access to the data of all users.</li>
  * </ul>
- * O modelo é <em>allow-wins</em>: o conjunto efetivo de permissões é a união das
- * permissões de todos os papéis do usuário; a aplicação define quais papéis e
- * permissões existem.
+ * The model is <em>allow-wins</em>: the effective permission set is the union of the
+ * permissions of all the user's roles; the application defines which roles and
+ * permissions exist.
  */
 public final class PermissionModel {
 
-    /** Permissão especial que concede acesso irrestrito a dados de todos os usuários. */
+    /** Special permission that grants unrestricted access to the data of all users. */
     public static final String DATA_ALL = "data:all";
 
     private PermissionModel() {
     }
 
     /**
-     * Verifica se o conjunto de permissões concede a operação na entidade
-     * (considerando o wildcard {@code entidade:*}).
+     * Checks whether the permission set grants the operation on the entity
+     * (taking the wildcard {@code entity:*} into account).
      */
     public static boolean grants(Set<String> permissions, String entity, String operation) {
         return permissions.contains(entity + ":" + operation)
@@ -33,7 +33,7 @@ public final class PermissionModel {
     }
 
     /**
-     * Verifica se as permissões incluem acesso irrestrito a dados de todos os usuários.
+     * Checks whether the permissions include unrestricted access to the data of all users.
      */
     public static boolean hasDataAll(Set<String> permissions) {
         return permissions.contains(DATA_ALL);

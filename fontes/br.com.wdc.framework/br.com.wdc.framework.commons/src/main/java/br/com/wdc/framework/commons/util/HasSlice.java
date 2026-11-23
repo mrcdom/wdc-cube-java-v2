@@ -1,24 +1,24 @@
 package br.com.wdc.framework.commons.util;
 
 /**
- * Coleção de projeção que recorta quantas linhas filhas trazer.
+ * Projection collection that slices how many child rows to fetch.
  *
  * <p>
- * Vive no {@code commons}, ao lado de {@link HasCriteria}, e pelo mesmo motivo: quem a implementa é o bean de
- * projeção, e o cliente REST precisa montá-la sem arrastar jOOQ para o seu classpath.
+ * Lives in {@code commons}, next to {@link HasCriteria}, for the same reason: the projection bean is what implements
+ * it, and the REST client needs to build it without dragging jOOQ onto its classpath.
  * </p>
  *
  * <p>
- * <b>Recortar sem ordenar devolve linhas em ordem indefinida</b> — o banco não promete ordem nenhuma sem
- * {@code ORDER BY}, e as mesmas cinco linhas podem sair diferentes entre duas execuções. A ordem vem do critério que a
- * coleção carrega, via {@link HasCriteria}: é lá que mora o {@code OrderBy} da entidade filha.
+ * <b>Slicing without ordering returns rows in undefined order</b> — the database promises no order at all without
+ * {@code ORDER BY}, and the same five rows may come out differently between two executions. The order comes from the
+ * criteria the collection carries, via {@link HasCriteria}: that is where the child entity's {@code OrderBy} lives.
  * </p>
  */
 public interface HasSlice {
 
-    /** Máximo de linhas filhas, ou {@code null} para trazer todas. */
+    /** Maximum number of child rows, or {@code null} to fetch all of them. */
     Integer getLimit();
 
-    /** Quantas linhas pular antes de começar, ou {@code null} para começar da primeira. */
+    /** How many rows to skip before starting, or {@code null} to start from the first one. */
     Integer getOffset();
 }

@@ -13,30 +13,31 @@ import br.com.wdc.framework.domain.transaction.TransactionService;
 import br.com.wdc.framework.domain.transaction.TransactionSystemException;
 
 /**
- * Implementação de {@link TransactionService} no estilo CMT do EJB, dual-mode (JTA/JDBC) e reentrante.
+ * {@link TransactionService} implementation in the EJB CMT style, dual-mode (JTA/JDBC) and reentrant.
  *
  * <p>
- * Apoia-se no frame {@link TransactionScope} (legenda {@code jdbcTx} nos helpers):
- * a propagação REQUIRED junta-se à transação ativa compartilhando a mesma conexão; REQUIRES_NEW/NOT_SUPPORTED suspendem
- * a corrente e retomam ao final (no modo JDBC, abrindo uma segunda conexão).
+ * Built on the {@link TransactionScope} frame (named {@code jdbcTx} in the helpers):
+ * REQUIRED propagation joins the active transaction sharing the same connection; REQUIRES_NEW/NOT_SUPPORTED suspend the
+ * current one and resume it at the end (in JDBC mode, opening a second connection).
  * </p>
  *
  * <p>
- * Semântica do {@code work}: COMMIT em retorno normal (apenas o owner comita), ROLLBACK em qualquer exceção (repropagada
- * intacta) ou se {@link TransactionContext#setRollbackOnly()} foi chamado. Falhas ao finalizar a transação viram
+ * {@code work} semantics: COMMIT on normal return (only the owner commits), ROLLBACK on any exception (rethrown intact)
+ * or if {@link TransactionContext#setRollbackOnly()} was called. Failures while finishing the transaction become
  * {@link TransactionSystemException}.
  * </p>
  *
  * <p>
- * <b>Single-thread:</b> a transação é presa à thread (ThreadLocal). Não compartilhe a conexão entre threads.
+ * <b>Single-thread:</b> the transaction is bound to the thread (ThreadLocal). Do not share the connection across
+ * threads.
  * </p>
  */
 public final class TransactionServiceImpl implements TransactionService {
 
-    /** Handle entregue ao {@code work}; lê o estado da transação ambiente. */
+    /** Handle given to {@code work}; reads the state of the ambient transaction. */
     private static final TransactionContext HANDLE = new AmbientContext();
 
-    /** DataSource deste contexto (por módulo). Resolução lazy — o backend o injeta no bootstrap do módulo. */
+    /** DataSource of this context (per module). Lazy resolution — the backend injects it in the module bootstrap. */
     private final Supplier<DataSource> dataSourceSupplier;
 
     public TransactionServiceImpl(Supplier<DataSource> dataSourceSupplier) {
@@ -82,7 +83,7 @@ public final class TransactionServiceImpl implements TransactionService {
     @Override
     public <T> T mandatoryCall(Function<TransactionContext, T> work) {
         if (!txActive()) {
-            throw new TransactionRequiredException("mandatory: nenhuma transação ativa no escopo");
+            throw new TransactionRequiredException("mandatory: no active transaction in scope");
         }
         return finish(beginRequired(), work);
     }
@@ -99,7 +100,7 @@ public final class TransactionServiceImpl implements TransactionService {
         if (txActive()) {
             return finish(beginRequired(), work);
         }
-        return work.apply(HANDLE); // sem transação
+        return work.apply(HANDLE); // no transaction
     }
 
     // :: NOT_SUPPORTED
@@ -113,7 +114,7 @@ public final class TransactionServiceImpl implements TransactionService {
     public <T> T notSupportedCall(Function<TransactionContext, T> work) {
         var suspended = TransactionScope.suspend();
         try {
-            return work.apply(HANDLE); // sem transação
+            return work.apply(HANDLE); // no transaction
         } finally {
             TransactionScope.resume(suspended);
         }
@@ -129,17 +130,17 @@ public final class TransactionServiceImpl implements TransactionService {
     @Override
     public <T> T neverCall(Function<TransactionContext, T> work) {
         if (txActive()) {
-            throw new TransactionNotAllowedException("never: há transação ativa no escopo");
+            throw new TransactionNotAllowedException("never: there is an active transaction in scope");
         }
         return work.apply(HANDLE);
     }
 
     // -------------------------------------------------------------------------
-    // :: Núcleo (frame jdbcTx)
+    // :: Core (jdbcTx frame)
 
     /**
-     * Executa o {@code work} no frame de transação: comita em sucesso (somente o owner comita; participante é no-op),
-     * faz rollback em exceção (repropagada) e encerra o frame.
+     * Runs {@code work} in the transaction frame: commits on success (only the owner commits; a participant is a
+     * no-op), rolls back on exception (rethrown) and closes the frame.
      */
     private static <T> T finish(TransactionScope jdbcTx,
             Function<TransactionContext, T> work) {
@@ -152,9 +153,9 @@ public final class TransactionServiceImpl implements TransactionService {
             throw e;
         }
         try {
-            jdbcTx.close(); // owner: commit (se não marcado) ou rollback; participante: no-op
+            jdbcTx.close(); // owner: commit (if not marked) or rollback; participant: no-op
         } catch (Exception e) {
-            throw new TransactionSystemException("Falha ao finalizar a transação", e);
+            throw new TransactionSystemException("Failed to finish the transaction", e);
         }
         return result;
     }
@@ -163,7 +164,7 @@ public final class TransactionServiceImpl implements TransactionService {
         try {
             return TransactionScope.begin(dataSource());
         } catch (Exception e) {
-            throw new TransactionSystemException("Falha ao abrir/juntar transação", e);
+            throw new TransactionSystemException("Failed to open/join the transaction", e);
         }
     }
 
@@ -171,7 +172,7 @@ public final class TransactionServiceImpl implements TransactionService {
         try {
             return TransactionScope.beginNew(dataSource());
         } catch (Exception e) {
-            throw new TransactionSystemException("Falha ao abrir nova transação", e);
+            throw new TransactionSystemException("Failed to open a new transaction", e);
         }
     }
 
@@ -179,7 +180,7 @@ public final class TransactionServiceImpl implements TransactionService {
         return TransactionScope.isActive();
     }
 
-    /** Fecha o frame em caminho de erro sem mascarar a exceção original (adiciona como suppressed). */
+    /** Closes the frame on the error path without masking the original exception (adds it as suppressed). */
     private static void closeSwallowing(TransactionScope jdbcTx, Throwable original) {
         try {
             jdbcTx.close();
@@ -191,7 +192,7 @@ public final class TransactionServiceImpl implements TransactionService {
     private DataSource dataSource() {
         var ds = dataSourceSupplier != null ? dataSourceSupplier.get() : null;
         if (ds == null) {
-            throw new TransactionSystemException("DataSource não inicializado para este TransactionService");
+            throw new TransactionSystemException("DataSource not initialized for this TransactionService");
         }
         return ds;
     }
@@ -204,7 +205,7 @@ public final class TransactionServiceImpl implements TransactionService {
     }
 
     // -------------------------------------------------------------------------
-    // :: Handle ambiente entregue ao work
+    // :: Ambient handle given to work
 
     private static final class AmbientContext implements TransactionContext {
 
@@ -212,7 +213,7 @@ public final class TransactionServiceImpl implements TransactionService {
         public void setRollbackOnly() {
             var current = TransactionScope.current();
             if (current == null) {
-                throw new IllegalStateException("setRollbackOnly: nenhuma transação ativa neste escopo");
+                throw new IllegalStateException("setRollbackOnly: no active transaction in this scope");
             }
             current.setRollbackOnly();
         }

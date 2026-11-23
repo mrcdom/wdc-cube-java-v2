@@ -11,9 +11,9 @@ import br.com.wdc.framework.jooq.JsonDialect;
 import br.com.wdc.framework.jooq.JsonFieldEntry;
 
 /**
- * Dialeto JSON para MySQL e MariaDB.
+ * JSON dialect for MySQL and MariaDB.
  *
- * <p>Usa:</p>
+ * <p>Uses:</p>
  * <pre>{@code
  * JSON_OBJECT(
  *     'id', t.ID,
@@ -22,12 +22,12 @@ import br.com.wdc.framework.jooq.JsonFieldEntry;
  * )
  * }</pre>
  *
- * <p>{@code TO_BASE64} e {@code JSON_OBJECT} são funções nativas do MySQL 5.7+ e MariaDB 10.2+.</p>
+ * <p>{@code TO_BASE64} and {@code JSON_OBJECT} are native functions of MySQL 5.7+ and MariaDB 10.2+.</p>
  *
  * <p>
- * <b>Preservação de bind values:</b> os campos ({@link JsonFieldEntry#field()} e o elemento do array) são embutidos via
- * placeholders {@code {N}} de template do jOOQ — nunca renderizados para string crua. Isso garante que subqueries
- * correlacionadas com critérios filtrados tenham seus bind values rastreados e vinculados na posição correta pelo jOOQ.
+ * <b>Bind value preservation:</b> the fields ({@link JsonFieldEntry#field()} and the array element) are embedded via jOOQ
+ * template placeholders {@code {N}} — never rendered to a raw string. This ensures that correlated subqueries with
+ * filtered criteria have their bind values tracked and bound at the correct position by jOOQ.
  * </p>
  */
 public final class MySqlJsonDialect implements JsonDialect {

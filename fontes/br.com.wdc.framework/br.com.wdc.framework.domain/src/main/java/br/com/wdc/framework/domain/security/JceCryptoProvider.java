@@ -7,8 +7,8 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 /**
- * Implementação de {@link CryptoProvider} usando JCE (Java Cryptography Extension).
- * Usada pelo servidor e clients desktop/mobile.
+ * {@link CryptoProvider} implementation using JCE (Java Cryptography Extension).
+ * Used by the server and by desktop/mobile clients.
  */
 public class JceCryptoProvider implements CryptoProvider {
 

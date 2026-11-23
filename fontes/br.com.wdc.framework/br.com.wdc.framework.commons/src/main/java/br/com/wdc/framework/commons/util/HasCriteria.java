@@ -1,11 +1,11 @@
 package br.com.wdc.framework.commons.util;
 
 /**
- * Interface marcadora para coleções que carregam um critério de filtragem adicional.
+ * Marker interface for collections that carry an additional filtering criteria.
  *
  * <p>
- * Implementada por coleções de projeção (ex: ProjectionList, ProjectionSet) para propagar critérios de filtro
- * em sub-queries correlacionadas.
+ * Implemented by projection collections (e.g. ProjectionList, ProjectionSet) to propagate filter criteria
+ * into correlated sub-queries.
  * </p>
  */
 public interface HasCriteria {

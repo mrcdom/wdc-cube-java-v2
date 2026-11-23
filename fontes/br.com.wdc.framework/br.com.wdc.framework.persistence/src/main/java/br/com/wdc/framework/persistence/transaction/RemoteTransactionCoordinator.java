@@ -1,81 +1,84 @@
 package br.com.wdc.framework.persistence.transaction;
 
 /**
- * Coordenador de transações <b>dirigidas pelo cliente sobre REST</b> (lado servidor).
+ * Coordinator of <b>client-driven transactions over REST</b> (server side).
  *
  * <p>
- * Permite que o cliente demarque uma transação que atravessa <b>várias requisições HTTP</b> contra o mesmo backend: o
- * servidor mantém a transação física aberta entre as chamadas, identificada por um {@code txId}, e a religa
- * (resume) à thread que atende cada requisição.
+ * Lets the client demarcate a transaction that spans <b>several HTTP requests</b> against the same backend: the server
+ * keeps the physical transaction open between calls, identified by a {@code txId}, and reattaches it (resume) to the
+ * thread serving each request.
  * </p>
  *
  * <ul>
- * <li>{@link #begin(String)} — abre uma transação, suspende-a e devolve seu {@code txId};</li>
- * <li>{@link #resume(String, String)} / {@link #suspend(String)} — religa/desliga a transação na thread corrente (em
- * torno de cada requisição que carrega o {@code txId});</li>
- * <li>{@link #commit(String, String)} / {@link #rollback(String, String)} — finalizam e removem do registro.</li>
+ * <li>{@link #begin(String)} — opens a transaction, suspends it and returns its {@code txId};</li>
+ * <li>{@link #resume(String, String)} / {@link #suspend(String)} — attaches/detaches the transaction on the current
+ * thread (around each request that carries the {@code txId});</li>
+ * <li>{@link #commit(String, String)} / {@link #rollback(String, String)} — finish it and remove it from the
+ * registry.</li>
  * </ul>
  *
  * <p>
- * <b>Dono (ownerKey):</b> uma chave <b>opaca</b> informada no {@link #begin(String)} e revalidada em todas as
- * operações seguintes — o coordenador apenas compara strings, sem conhecer o conceito de usuário. Se o {@code begin}
- * recebeu uma chave não-nula, qualquer operação com chave divergente é rejeitada. Quem traduz identidade → chave (e
- * o que fazer com {@code null}) é a camada chamadora.
+ * <b>Owner (ownerKey):</b> an <b>opaque</b> key given in {@link #begin(String)} and revalidated in every following
+ * operation — the coordinator only compares strings, with no notion of a user. If {@code begin} received a non-null
+ * key, any operation with a different key is rejected. Translating identity → key (and what to do with {@code null})
+ * is up to the calling layer.
  * </p>
  *
  * <p>
- * SPI <b>puramente server-side de persistência</b>: implementado neste módulo (ligado ao {@code DataSource} do
- * módulo) e consumido apenas pelo host REST. Não é visível à camada de apresentação — por isso vive em
- * {@code framework.persistence}, não em {@code framework.domain}. Cada {@code txId} mantém uma conexão/transação
- * viva até commit/rollback — por isso há timeout de limpeza para transações abandonadas.
+ * A <b>purely server-side persistence</b> SPI: implemented in this module (bound to the module's {@code DataSource})
+ * and consumed only by the REST host. It is not visible to the presentation layer — that is why it lives in
+ * {@code framework.persistence}, not in {@code framework.domain}. Each {@code txId} keeps a connection/transaction alive
+ * until commit/rollback — that is why there is a cleanup timeout for abandoned transactions.
  * </p>
  */
 public interface RemoteTransactionCoordinator {
 
     /**
-     * Abre uma transação (suspensa) e devolve seu identificador opaco.
+     * Opens a (suspended) transaction and returns its opaque identifier.
      *
-     * @param ownerKey chave opaca do dono (revalidada nas operações seguintes); {@code null} = sem dono
+     * @param ownerKey opaque owner key (revalidated in the following operations); {@code null} = no owner
      */
     String begin(String ownerKey);
 
-    /** Religa a transação à thread corrente. Falha se desconhecida, já em uso, ou se {@code ownerKey} divergir. */
+    /** Reattaches the transaction to the current thread. Fails if unknown, already in use, or if {@code ownerKey} differs. */
     void resume(String txId, String ownerKey);
 
-    /** Desliga a transação da thread corrente, mantendo-a viva para a próxima requisição. */
+    /** Detaches the transaction from the current thread, keeping it alive for the next request. */
     void suspend(String txId);
 
     /**
-     * Finaliza com COMMIT e remove do registro (valida {@code ownerKey}). <b>Idempotente</b>: repetir o commit de uma
-     * transação já comitada (resposta anterior perdida) é um no-op de sucesso, dentro da janela de retenção do
-     * desfecho. Repetir como rollback algo já comitado conflita ({@code TransactionConflictException}).
+     * Finishes with COMMIT and removes it from the registry (validates {@code ownerKey}). <b>Idempotent</b>: repeating
+     * the commit of an already committed transaction (previous response lost) is a successful no-op, within the outcome
+     * retention window. Repeating as a rollback something already committed conflicts
+     * ({@code TransactionConflictException}).
      */
     void commit(String txId, String ownerKey);
 
     /**
-     * Finaliza com ROLLBACK e remove do registro (valida {@code ownerKey}). <b>Idempotente</b>, simétrico ao
+     * Finishes with ROLLBACK and removes it from the registry (validates {@code ownerKey}). <b>Idempotent</b>, symmetric to
      * {@link #commit(String, String)}.
      */
     void rollback(String txId, String ownerKey);
 
     /**
-     * Estado da transação para o solicitante, desambiguando uma resposta de finalização perdida.
+     * Transaction state for the requester, disambiguating a lost finish response.
      *
-     * @return {@code "open"} (registrada e viva), {@code "committed"}/{@code "rolledback"} (finalizada, dentro da
-     *         retenção) ou {@code "unknown"} (desconhecida — nunca existiu ou retenção expirada). Valida {@code ownerKey}.
+     * @return {@code "open"} (registered and alive), {@code "committed"}/{@code "rolledback"} (finished, within
+     *         retention) or {@code "unknown"} (never existed or retention expired). Validates {@code ownerKey}.
      */
     String status(String txId, String ownerKey);
 
-    /** @return {@code true} se há transação registrada para {@code txId}. */
+    /** @return {@code true} if there is a registered transaction for {@code txId}. */
     boolean exists(String txId);
 
-    /** @return snapshot de métricas (gauges atuais + contadores acumulados) para observabilidade. */
+    /** @return metrics snapshot (current gauges + cumulative counters) for observability. */
     RemoteTransactionStats stats();
 
     /**
-     * @return {@code true} se há alguma transação remota aberta para este {@code ownerKey} (não-nulo). Permite ao host
-     *         detectar uma escrita que chegou <b>sem</b> o {@code txId} embora o solicitante tenha transação remota em
-     *         aberto — sinal de propagação quebrada do cabeçalho, que de outro modo autocommitaria fora da transação.
+     * @return {@code true} if there is any open remote transaction for this (non-null) {@code ownerKey}. Lets the host
+     *         detect a write that arrived <b>without</b> the {@code txId} although the requester has an open remote
+     *         transaction — a sign of broken header propagation, which would otherwise autocommit outside the
+     *         transaction.
      */
     boolean hasOpenTransactionForOwner(String ownerKey);
 

@@ -11,9 +11,9 @@ import br.com.wdc.framework.jooq.JsonDialect;
 import br.com.wdc.framework.jooq.JsonFieldEntry;
 
 /**
- * Dialeto JSON para SQLite (3.38+).
+ * JSON dialect for SQLite (3.38+).
  *
- * <p>Usa:</p>
+ * <p>Uses:</p>
  * <pre>{@code
  * json_object(
  *     'id', t.ID,
@@ -22,15 +22,15 @@ import br.com.wdc.framework.jooq.JsonFieldEntry;
  * }</pre>
  *
  * <p>
- * SQLite não possui função nativa de Base64. Campos BINARY são representados como hex string
- * via {@code hex()}. Para aplicações que requerem Base64, registrar via extensão C ou
- * usar um dialect customizado.
+ * SQLite has no native Base64 function. BINARY fields are represented as a hex string
+ * via {@code hex()}. Applications that require Base64 should register it through a C extension or
+ * use a custom dialect.
  * </p>
  *
  * <p>
- * <b>Preservação de bind values:</b> os campos ({@link JsonFieldEntry#field()} e o elemento do array) são embutidos via
- * placeholders {@code {N}} de template do jOOQ — nunca renderizados para string crua. Isso garante que subqueries
- * correlacionadas com critérios filtrados tenham seus bind values rastreados e vinculados na posição correta pelo jOOQ.
+ * <b>Bind value preservation:</b> the fields ({@link JsonFieldEntry#field()} and the array element) are embedded via jOOQ
+ * template placeholders {@code {N}} — never rendered to a raw string. This ensures that correlated subqueries with
+ * filtered criteria have their bind values tracked and bound at the correct position by jOOQ.
  * </p>
  */
 public final class SQLiteJsonDialect implements JsonDialect {

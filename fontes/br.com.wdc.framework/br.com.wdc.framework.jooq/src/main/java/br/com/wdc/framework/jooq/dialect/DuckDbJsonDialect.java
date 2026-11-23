@@ -11,19 +11,19 @@ import br.com.wdc.framework.jooq.JsonDialect;
 import br.com.wdc.framework.jooq.JsonFieldEntry;
 
 /**
- * Dialeto JSON para DuckDB.
+ * JSON dialect for DuckDB.
  *
- * <p>Usa:</p>
+ * <p>Uses:</p>
  * <pre>{@code
  * CAST(json_object('id', t.ID, 'name', t.NAME, 'image', base64(t.IMAGE)) AS VARCHAR)
  * }</pre>
  *
- * <p>DuckDB suporta {@code json_object()} e {@code base64()} nativamente.</p>
+ * <p>DuckDB supports {@code json_object()} and {@code base64()} natively.</p>
  *
  * <p>
- * <b>Preservação de bind values:</b> os campos ({@link JsonFieldEntry#field()} e o elemento do array) são embutidos via
- * placeholders {@code {N}} de template do jOOQ — nunca renderizados para string crua. Isso garante que subqueries
- * correlacionadas com critérios filtrados tenham seus bind values rastreados e vinculados na posição correta pelo jOOQ.
+ * <b>Bind value preservation:</b> the fields ({@link JsonFieldEntry#field()} and the array element) are embedded via jOOQ
+ * template placeholders {@code {N}} — never rendered to a raw string. This ensures that correlated subqueries with
+ * filtered criteria have their bind values tracked and bound at the correct position by jOOQ.
  * </p>
  */
 public final class DuckDbJsonDialect implements JsonDialect {

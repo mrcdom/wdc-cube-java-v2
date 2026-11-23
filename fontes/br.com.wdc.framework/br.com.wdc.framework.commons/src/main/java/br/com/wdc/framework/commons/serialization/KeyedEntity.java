@@ -1,16 +1,16 @@
 package br.com.wdc.framework.commons.serialization;
 
 /**
- * Contrato para entidades que possuem uma chave de identidade.
+ * Contract for entities that have an identity key.
  * <p>
- * Permite que mecanismos de serialização detectem referências repetidas no grafo de objetos
- * e substituam por stubs contendo apenas a chave, evitando recursão infinita.
+ * Lets serialization mechanisms detect repeated references in the object graph
+ * and replace them with stubs holding only the key, avoiding infinite recursion.
  */
 public interface KeyedEntity {
 
     /**
-     * Retorna a chave de identidade da entidade (tipicamente o ID).
-     * Pode ser {@code null} para entidades ainda não persistidas.
+     * Returns the entity's identity key (typically the ID).
+     * May be {@code null} for entities not yet persisted.
      */
     Object key();
 }

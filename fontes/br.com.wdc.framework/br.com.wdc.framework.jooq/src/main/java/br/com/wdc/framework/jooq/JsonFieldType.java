@@ -1,19 +1,19 @@
 package br.com.wdc.framework.jooq;
 
 /**
- * Tipo lógico de um campo no mapeamento JSON.
+ * Logical type of a field in the JSON mapping.
  */
 public enum JsonFieldType {
-    /** BIGINT, INT, DOUBLE, DECIMAL — sem aspas no JSON. */
+    /** BIGINT, INT, DOUBLE, DECIMAL — unquoted in the JSON. */
     NUMBER,
-    /** VARCHAR, CHAR, enum — com aspas e escape no JSON. */
+    /** VARCHAR, CHAR, enum — quoted and escaped in the JSON. */
     STRING,
-    /** BOOLEAN — true/false no JSON. */
+    /** BOOLEAN — true/false in the JSON. */
     BOOLEAN,
-    /** TIMESTAMP, TIMESTAMPTZ — serializado como string ISO-8601. */
+    /** TIMESTAMP, TIMESTAMPTZ — serialized as an ISO-8601 string. */
     DATETIME,
-    /** BINARY/BLOB — serializado como string Base64. */
+    /** BINARY/BLOB — serialized as a Base64 string. */
     BINARY,
-    /** Já é JSON válido (subqueries de relações). Incluído sem formatação adicional. */
+    /** Already valid JSON (relation subqueries). Included without further formatting. */
     RAW_JSON
 }

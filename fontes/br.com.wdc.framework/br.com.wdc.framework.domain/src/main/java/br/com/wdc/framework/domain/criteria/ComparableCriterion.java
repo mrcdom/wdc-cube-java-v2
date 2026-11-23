@@ -1,16 +1,16 @@
 package br.com.wdc.framework.domain.criteria;
 
 /**
- * Critério de campo ordenável — número, data, timestamp.
+ * Criterion for an ordered field — number, date, timestamp.
  *
  * <p>
- * Acrescenta à igualdade o que só faz sentido onde existe ordem. A separação em subclasse é o que impede
- * {@code criteria.roles().between(...)} de compilar: quem declara o campo conhece o tipo da coluna e escolhe a classe,
- * então a restrição não custa nada a quem escreve o critério e evita o erro na origem.
+ * Adds to equality what only makes sense where an order exists. Splitting it into a subclass is what keeps
+ * {@code criteria.roles().between(...)} from compiling: whoever declares the field knows the column type and picks the
+ * class, so the restriction costs nothing to whoever writes the criteria and prevents the error at its source.
  * </p>
  *
- * @param <C> tipo do {@code XxxCriteria} que contém este campo
- * @param <T> tipo do valor comparado
+ * @param <C> type of the {@code XxxCriteria} that holds this field
+ * @param <T> type of the compared value
  */
 public class ComparableCriterion<C, T> extends Criterion<C, T> {
 
@@ -18,7 +18,7 @@ public class ComparableCriterion<C, T> extends Criterion<C, T> {
         super(owner, name);
     }
 
-    // Retorno covariante: sem isto, or() devolveria Criterion e o encadeamento perderia between e as comparações.
+    // Covariant return: without it, or() would return Criterion and the chain would lose between and the comparisons.
     @Override
     public ComparableCriterion<C, T> or() {
         super.or();
@@ -31,33 +31,33 @@ public class ComparableCriterion<C, T> extends Criterion<C, T> {
         return this;
     }
 
-    /** Maior que. {@code null} não acrescenta pedido. */
+    /** Greater than. {@code null} adds no request. */
     public C gt(T value) {
         return value == null ? owner() : add(Operator.GT, value);
     }
 
-    /** Maior ou igual a. {@code null} não acrescenta pedido. */
+    /** Greater than or equal to. {@code null} adds no request. */
     public C ge(T value) {
         return value == null ? owner() : add(Operator.GE, value);
     }
 
-    /** Menor que. {@code null} não acrescenta pedido. */
+    /** Less than. {@code null} adds no request. */
     public C lt(T value) {
         return value == null ? owner() : add(Operator.LT, value);
     }
 
-    /** Menor ou igual a. {@code null} não acrescenta pedido. */
+    /** Less than or equal to. {@code null} adds no request. */
     public C le(T value) {
         return value == null ? owner() : add(Operator.LE, value);
     }
 
     /**
-     * Intervalo fechado nos dois extremos.
+     * Range closed at both ends.
      *
      * <p>
-     * <b>Aceita limite aberto.</b> Só o início vira {@code >=}; só o fim vira {@code <=}; nenhum dos dois não
-     * acrescenta pedido. É o caso corrente de filtro por período em tela, onde costuma-se preencher uma data só —
-     * exigir os dois extremos empurraria essa decisão para todo chamador.
+     * <b>Accepts an open bound.</b> Only the start becomes {@code >=}; only the end becomes {@code <=}; neither adds a
+     * request. This is the everyday case of a period filter on screen, where usually only one date is filled in —
+     * requiring both ends would push that decision onto every caller.
      * </p>
      */
     public C between(T start, T end) {

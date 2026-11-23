@@ -1,17 +1,17 @@
 package br.com.wdc.framework.persistence.transaction;
 
 /**
- * Snapshot de observabilidade do {@link RemoteTransactionCoordinator}: <b>gauges</b> instantâneos (estado atual) e
- * <b>contadores</b> acumulados (totais desde o início). Imutável — adequado para expor num endpoint de métricas.
+ * Observability snapshot of the {@link RemoteTransactionCoordinator}: instantaneous <b>gauges</b> (current state) and
+ * cumulative <b>counters</b> (totals since startup). Immutable — suitable for exposing on a metrics endpoint.
  *
- * @param openNow         transações remotas abertas neste instante (cada uma segura uma conexão)
- * @param ownersWithOpen  donos distintos com ao menos uma transação aberta
- * @param retainedOutcomes desfechos finalizados ainda retidos (para idempotência)
- * @param begun           total de transações abertas
- * @param committed       total comitadas
- * @param rolledBack      total revertidas (por commit-rollback explícito)
- * @param reaped          total revertidas pelo reaper (idle/lifetime — abandono)
- * @param rejectedByLimit total de aberturas rejeitadas por teto (global ou por dono)
+ * @param openNow         remote transactions open at this instant (each one holds a connection)
+ * @param ownersWithOpen  distinct owners with at least one open transaction
+ * @param retainedOutcomes finished outcomes still retained (for idempotency)
+ * @param begun           total transactions opened
+ * @param committed       total committed
+ * @param rolledBack      total rolled back (by explicit commit-rollback)
+ * @param reaped          total rolled back by the reaper (idle/lifetime — abandonment)
+ * @param rejectedByLimit total openings rejected by a cap (global or per owner)
  */
 public record RemoteTransactionStats(
         int openNow,

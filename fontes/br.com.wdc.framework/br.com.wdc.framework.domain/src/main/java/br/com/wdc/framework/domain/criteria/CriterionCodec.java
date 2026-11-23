@@ -12,15 +12,15 @@ import br.com.wdc.framework.commons.serialization.SerializationToken;
 import br.com.wdc.framework.domain.exception.InvalidRequestException;
 
 /**
- * Como um campo de critério trafega.
+ * How a criteria field travels.
  *
  * <p>
- * Escrito uma vez, aqui, em vez de repetido em cada {@code XxxModelCodec}: o que muda de campo para campo é o tipo do
- * valor, e não a forma. Cada codec de entidade só diz qual leitor/escritor de valor usar.
+ * Written once, here, instead of repeated in each {@code XxxModelCodec}: what changes from field to field is the value
+ * type, not the shape. Each entity codec only says which value reader/writer to use.
  * </p>
  *
  * <p>
- * A forma é um objeto com os pedidos:
+ * The shape is an object with the requests:
  * </p>
  *
  * <pre>
@@ -28,21 +28,22 @@ import br.com.wdc.framework.domain.exception.InvalidRequestException;
  * </pre>
  *
  * <p>
- * <b>O valor solto não bastaria.</b> Um campo carrega vários pedidos, cada um com seu operador e sua aridade —
- * {@code BETWEEN} leva dois valores, {@code IN} leva muitos, {@code IS NULL} nenhum —, e a disjunção é do campo, não
- * do pedido. Reduzir isso a {@code "price": 10.0} descartaria tudo menos a igualdade, e em silêncio: o outro lado
- * receberia um filtro mais frouxo do que o pedido, devolvendo linhas a mais sem nada indicar a perda.
+ * <b>A bare value would not be enough.</b> A field carries several requests, each with its operator and its arity —
+ * {@code BETWEEN} takes two values, {@code IN} takes many, {@code IS NULL} none — and the disjunction belongs to the
+ * field, not to the request. Reducing that to {@code "price": 10.0} would discard everything but equality, and
+ * silently: the other side would receive a looser filter than requested, returning extra rows with nothing pointing out
+ * the loss.
  * </p>
  */
 public final class CriterionCodec {
 
-    /** Como escrever um valor do tipo do campo. */
+    /** How to write a value of the field's type. */
     @FunctionalInterface
     public interface ValueWriter<T> {
         void write(ExtensibleObjectOutput out, T value);
     }
 
-    /** Como ler um valor do tipo do campo. */
+    /** How to read a value of the field's type. */
     @FunctionalInterface
     public interface ValueReader<T> {
         T read(ExtensibleObjectInput in);
@@ -63,7 +64,7 @@ public final class CriterionCodec {
     public static final ValueWriter<Boolean> BOOL_OUT = (out, v) -> out.value(v.booleanValue());
     public static final ValueReader<Boolean> BOOL_IN = InputCoerceUtils::asBoolean;
 
-    /** Data e hora como texto ISO-8601 — a forma em que o resto do transporte já as escreve. */
+    /** Date and time as ISO-8601 text — the form in which the rest of the transport writes them. */
     public static final ValueWriter<OffsetDateTime> ODT_OUT =
             (out, v) -> out.value(v.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
     public static final ValueReader<OffsetDateTime> ODT_IN = (in) -> {
@@ -76,22 +77,22 @@ public final class CriterionCodec {
     }
 
     /**
-     * Lê o nome da ordenação, recusando o que não reconhece.
+     * Reads the ordering name, rejecting what it does not recognize.
      *
      * <p>
-     * <b>Ao contrário do operador desconhecido, que é descartado</b> (ver {@link #parseOperator}), aqui a leitura
-     * falha. A diferença é o que cada descarte produziria: sem um pedido, o filtro fica mais frouxo e o campo continua
-     * listado — o descompasso aparece; sem a ordenação, a lista volta numa ordem qualquer, e quem a exibe a apresenta
-     * como se fosse a ordem pedida. Não há como o outro lado notar.
+     * <b>Unlike an unknown operator, which is discarded</b> (see {@link #parseOperator}), here the read fails. The
+     * difference is what each discard would produce: without a request, the filter gets looser and the field is still
+     * listed — the mismatch shows; without the ordering, the list comes back in arbitrary order, and whoever displays it
+     * presents it as if it were the requested order. The other side has no way to notice.
      * </p>
      *
      * <p>
-     * Recebe os valores aceitos em vez do {@code Class} porque {@code Enum.valueOf(Class, String)} depende de reflexão,
-     * e este código também é compilado para o navegador pelo TeaVM.
+     * Takes the accepted values instead of the {@code Class} because {@code Enum.valueOf(Class, String)} depends on
+     * reflection, and this code is also compiled for the browser by TeaVM.
      * </p>
      *
-     * @throws InvalidRequestException se o nome não estiver entre os aceitos — o que a camada REST devolve como 400,
-     *         nomeando o valor recebido e os aceitos.
+     * @throws InvalidRequestException if the name is not among the accepted ones — which the REST layer returns as 400,
+     *         naming the received value and the accepted ones.
      */
     public static <E extends Enum<E>> E readOrderBy(ExtensibleObjectInput in, E[] accepted) {
         var name = InputCoerceUtils.asString(in);
@@ -103,23 +104,23 @@ public final class CriterionCodec {
                 return candidate;
             }
         }
-        var aceitas = new StringBuilder();
+        var acceptedNames = new StringBuilder();
         for (var candidate : accepted) {
-            if (aceitas.length() > 0) {
-                aceitas.append(", ");
+            if (acceptedNames.length() > 0) {
+                acceptedNames.append(", ");
             }
-            aceitas.append(candidate.name());
+            acceptedNames.append(candidate.name());
         }
         throw new InvalidRequestException(
-                "ordenação desconhecida: '" + name + "' — aceitas: " + aceitas);
+                "unknown ordering: '" + name + "' — accepted: " + acceptedNames);
     }
 
     /**
-     * Escreve o campo, se houver o que escrever.
+     * Writes the field, if there is something to write.
      *
      * <p>
-     * Campo não informado não gera chave alguma — é o que mantém curto o critério que filtra por um campo só, o caso
-     * corrente.
+     * A field that is not set produces no key at all — this keeps short the criteria that filters by a single field, the
+     * common case.
      * </p>
      */
     public static <T> void write(ExtensibleObjectOutput out, String name, Criterion<?, T> criterion,
@@ -155,16 +156,16 @@ public final class CriterionCodec {
     }
 
     /**
-     * Lê o campo no formato acima, repondo os pedidos no {@code criterion}.
+     * Reads the field in the format above, restoring the requests into {@code criterion}.
      *
      * <p>
-     * Repõe por {@link Criterion#restore}, e não pelos métodos fluentes: {@code eq(null)} não acrescenta pedido — o
-     * certo para quem monta filtro de tela — e apagaria em silêncio o que o outro lado enviou.
+     * Restores through {@link Criterion#restore}, not through the fluent methods: {@code eq(null)} adds no request —
+     * right for whoever builds a screen filter — and would silently erase what the other side sent.
      * </p>
      *
      * <p>
-     * <b>Aceita também o valor solto</b> ({@code "price": 10.0}), lendo-o como igualdade — a forma mínima de um
-     * filtro de igualdade, e entendê-la custa um {@code if}.
+     * <b>It also accepts a bare value</b> ({@code "price": 10.0}), reading it as equality — the minimal form of an
+     * equality filter, and understanding it costs one {@code if}.
      * </p>
      */
     public static <T> void read(ExtensibleObjectInput in, Criterion<?, T> criterion, ValueReader<T> valueReader) {
@@ -219,12 +220,13 @@ public final class CriterionCodec {
     }
 
     /**
-     * Operador desconhecido é descartado, e não traduzido por aproximação.
+     * An unknown operator is discarded, not translated by approximation.
      *
      * <p>
-     * Acontece quando um lado é mais novo que o outro e envia um operador que este ainda não conhece. Escolher o
-     * "mais parecido" produziria um filtro diferente do pedido, sem nada assinalar; deixar o pedido de fora produz um
-     * filtro mais frouxo, que é igualmente errado — mas o campo continua listado, e o descompasso aparece.
+     * It happens when one side is newer than the other and sends an operator this one does not know yet. Picking the
+     * "closest" one would produce a filter different from the one requested, with nothing signaling it; leaving the
+     * request out produces a looser filter, which is equally wrong — but the field is still listed, and the mismatch
+     * shows.
      * </p>
      */
     private static Operator parseOperator(String name) {

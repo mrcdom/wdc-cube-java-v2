@@ -3,8 +3,8 @@ package br.com.wdc.framework.commons.sql;
 import javax.sql.DataSource;
 
 /**
- * Marca um {@link DataSource} da aplicação. O holder global foi removido: cada módulo recebe seu {@code DataSource} por
- * injeção no composition root (backend/view/teste), em vez de um {@code BEAN} estático compartilhado.
+ * Marks an application {@link DataSource}. There is no global holder: each module receives its {@code DataSource} by
+ * injection in the composition root (backend/view/test), not through a shared static {@code BEAN}.
  */
 public interface SqlDataSource extends DataSource {
 

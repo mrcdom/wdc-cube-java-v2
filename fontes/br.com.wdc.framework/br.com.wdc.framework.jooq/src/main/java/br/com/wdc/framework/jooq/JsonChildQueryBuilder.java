@@ -9,21 +9,21 @@ import org.jooq.Table;
 import br.com.wdc.framework.commons.util.HasCriteria;
 
 /**
- * Construtor de cláusula WHERE para queries filhas (relações 1:N).
+ * WHERE clause builder for child queries (1:N relations).
  *
  * <p>
- * Disponibiliza acesso à tabela pai ({@code superTable}) e à tabela filha ({@code childTable}) para que o chamador
- * defina a condição de correlação.
+ * Gives access to the parent table ({@code superTable}) and to the child table ({@code childTable}) so that the caller
+ * defines the correlation condition.
  * </p>
  *
  * <p>
- * Quando o bean de projeção pai contém uma coleção com critério ({@link HasCriteria}), o critério embutido é
- * propagado via {@link #getCriteria()} / {@link #getCriteriaAs(Class)} para que o {@code childWhereClause} possa
- * aplicá-lo na query filha.
+ * When the parent projection bean holds a collection with criteria ({@link HasCriteria}), the embedded criteria is
+ * propagated via {@link #getCriteria()} / {@link #getCriteriaAs(Class)} so that the {@code childWhereClause} can
+ * apply it to the child query.
  * </p>
  *
- * @param <S> tipo da tabela-schema pai (ex: TUsuario)
- * @param <C> tipo da tabela-schema filha (ex: TConector)
+ * @param <S> type of the parent schema table (e.g. TUser)
+ * @param <C> type of the child schema table (e.g. TConnector)
  */
 public class JsonChildQueryBuilder<S, C> {
 
@@ -60,16 +60,16 @@ public class JsonChildQueryBuilder<S, C> {
     }
 
     /**
-     * Critério propagado a partir de uma coleção {@link HasCriteria}, ou {@code null} se nenhum critério foi fornecido.
+     * Criteria propagated from a {@link HasCriteria} collection, or {@code null} if no criteria was supplied.
      */
     public Object getCriteria() {
         return criteria;
     }
 
     /**
-     * Retorna o critério convertido para o tipo esperado.
+     * Returns the criteria cast to the expected type.
      *
-     * @throws ClassCastException se o critério não for do tipo solicitado
+     * @throws ClassCastException if the criteria is not of the requested type
      */
     public <X> X getCriteriaAs(Class<X> type) {
         return type.cast(criteria);

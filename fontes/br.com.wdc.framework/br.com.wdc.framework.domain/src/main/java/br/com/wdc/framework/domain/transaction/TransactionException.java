@@ -1,7 +1,7 @@
 package br.com.wdc.framework.domain.transaction;
 
 /**
- * Exceção base (unchecked) do controle transacional do {@link TransactionService}.
+ * Base (unchecked) exception of the {@link TransactionService} transaction control.
  */
 public class TransactionException extends RuntimeException {
 

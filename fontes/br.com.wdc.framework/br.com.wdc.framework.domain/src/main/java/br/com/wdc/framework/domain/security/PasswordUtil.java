@@ -4,14 +4,14 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Utilitários de hashing para autenticação.
+ * Hashing utilities for authentication.
  * <p>
- * Centraliza a lógica de hash de senha (MD5→base36) e HMAC-SHA256
- * usados no fluxo challenge-response. Pode ser consumido por qualquer
- * camada (presentation, api-client, persistence).
+ * Centralizes the password hashing logic (MD5→base36) and the HMAC-SHA256
+ * used in the challenge-response flow. Can be consumed by any
+ * layer (presentation, api-client, persistence).
  * <p>
- * Requer que um {@link CryptoProvider} esteja registrado em
- * {@code CryptoProvider.BEAN} antes do uso.
+ * Requires a {@link CryptoProvider} to be registered in
+ * {@code CryptoProvider.BEAN} before use.
  */
 public final class PasswordUtil {
 
@@ -19,11 +19,11 @@ public final class PasswordUtil {
 	}
 
 	/**
-	 * Hash de senha: MD5 → BigInteger → base36.
-	 * Produz o mesmo valor armazenado no banco de dados.
+	 * Password hash: MD5 → BigInteger → base36.
+	 * Produces the same value stored in the database.
 	 *
-	 * @param plainPassword senha em texto plano
-	 * @return hash no formato base36
+	 * @param plainPassword plain-text password
+	 * @return hash in base36 format
 	 */
 	public static String hashPassword(String plainPassword) {
 		byte[] input = plainPassword.getBytes(StandardCharsets.UTF_8);
@@ -36,10 +36,10 @@ public final class PasswordUtil {
 	}
 
 	/**
-	 * HMAC-SHA256 para o fluxo challenge-response.
+	 * HMAC-SHA256 for the challenge-response flow.
 	 *
-	 * @param key  chave (passwordHash)
-	 * @param data dados (userName + nonce)
+	 * @param key  key (passwordHash)
+	 * @param data data (userName + nonce)
 	 * @return hex-encoded HMAC
 	 */
 	public static String computeHmac(String key, String data) {

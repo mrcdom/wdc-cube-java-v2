@@ -5,11 +5,11 @@ import java.util.concurrent.atomic.AtomicReference;
 import jakarta.transaction.TransactionManager;
 
 /**
- * Holder estático do {@link TransactionManager} JTA usado pela aplicação.
+ * Static holder of the JTA {@link TransactionManager} used by the application.
  *
  * <p>
- * Inicializado pelo bootstrap de transações da aplicação (ex.: {@code JtaSupport}, no módulo backend) durante a subida.
- * Acessado por {@link TransactionScope} para demarcação de transações JTA.
+ * Initialized by the application's transaction bootstrap (e.g. {@code JtaSupport}, in the backend module) during
+ * startup. Accessed by {@link TransactionScope} to demarcate JTA transactions.
  * </p>
  */
 public final class JtaTransactionManager {
@@ -21,15 +21,15 @@ public final class JtaTransactionManager {
     }
 
     /**
-     * Retorna o {@link TransactionManager} configurado.
+     * Returns the configured {@link TransactionManager}.
      *
-     * @throws IllegalStateException se o bootstrap ainda não foi executado
+     * @throws IllegalStateException if the bootstrap has not run yet
      */
     public static TransactionManager get() {
         var tm = BEAN.get();
         if (tm == null) {
             throw new IllegalStateException(
-                    "JtaTransactionManager não foi inicializado — verifique o bootstrap JTA (JtaSupport.init)");
+                    "JtaTransactionManager has not been initialized — check the JTA bootstrap (JtaSupport.init)");
         }
         return tm;
     }

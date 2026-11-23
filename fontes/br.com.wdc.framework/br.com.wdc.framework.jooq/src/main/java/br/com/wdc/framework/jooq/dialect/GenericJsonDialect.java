@@ -12,25 +12,25 @@ import br.com.wdc.framework.jooq.JsonDialect;
 import br.com.wdc.framework.jooq.JsonFieldEntry;
 
 /**
- * Dialeto JSON genérico (fallback) para bancos sem suporte nativo a JSON_OBJECT.
+ * Generic (fallback) JSON dialect for databases without native JSON_OBJECT support.
  *
- * <p>Aplica-se a: CUBRID, DERBY, FIREBIRD, IGNITE, TRINO, e qualquer outro dialeto desconhecido.</p>
+ * <p>Applies to: CUBRID, DERBY, FIREBIRD, IGNITE, TRINO, and any other unknown dialect.</p>
  *
- * <p>Usa concatenação SQL com operador {@code ||} para montar JSON manualmente:</p>
+ * <p>Uses SQL concatenation with the {@code ||} operator to build JSON manually:</p>
  * <pre>{@code
  * '{' || '"id":' || coalesce(cast(t.ID as varchar), 'null') || ',' ||
  *        '"name":' || case when t.NAME is null then 'null' else '"' || ... || '"' end || '}'
  * }</pre>
  *
  * <p>
- * Para campos BINARY, esta implementação <b>não suporta</b> Base64 nativamente (sem função genérica portável).
- * Use um dialeto específico ou registre uma função customizada.
+ * For BINARY fields, this implementation <b>does not support</b> Base64 natively (there is no portable generic function).
+ * Use a specific dialect or register a custom function.
  * </p>
  *
  * <p>
- * <b>Preservação de bind values:</b> os campos ({@link JsonFieldEntry#field()} e o elemento do array) são embutidos via
- * placeholders {@code {N}} de template do jOOQ — nunca renderizados para string crua. Isso garante que subqueries
- * correlacionadas com critérios filtrados tenham seus bind values rastreados e vinculados na posição correta pelo jOOQ.
+ * <b>Bind value preservation:</b> the fields ({@link JsonFieldEntry#field()} and the array element) are embedded via jOOQ
+ * template placeholders {@code {N}} — never rendered to a raw string. This ensures that correlated subqueries with
+ * filtered criteria have their bind values tracked and bound at the correct position by jOOQ.
  * </p>
  */
 public final class GenericJsonDialect implements JsonDialect {
@@ -79,7 +79,7 @@ public final class GenericJsonDialect implements JsonDialect {
                     + f + " then 'true' else 'false' end";
             case DATETIME -> "case when " + f + " is null then 'null' else '\"' || cast("
                     + f + " as varchar) || '\"' end";
-            case BINARY -> "'null'"; // Não suportado genericamente — sem base64 portável
+            case BINARY -> "'null'"; // Not supported generically — no portable base64
             case RAW_JSON -> "coalesce(" + f + ", 'null')";
         };
     }

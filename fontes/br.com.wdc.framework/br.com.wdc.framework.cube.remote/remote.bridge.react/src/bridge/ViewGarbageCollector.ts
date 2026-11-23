@@ -1,12 +1,12 @@
 import type { ViewStateCoordinator } from "./ViewStateCoordinator"
 
 /**
- * GC de ViewScopes baseado em autoridade do servidor.
+ * ViewScope GC driven by server authority.
  *
- * O servidor informa periodicamente (via resposta ao ping) quais views estão ativas.
- * O cliente remove da viewMap qualquer view que:
- *   1. NÃO conste na lista do servidor
- *   2. NÃO esteja montada (bindView ativo)
+ * The server periodically reports (via the ping response) which views are active.
+ * The client removes from the viewMap any view that:
+ *   1. is NOT in the server's list
+ *   2. is NOT mounted (no active bindView)
  */
 export class ViewGarbageCollector {
   private readonly app: ViewStateCoordinator
@@ -25,8 +25,8 @@ export class ViewGarbageCollector {
   }
 
   /**
-   * Remove views específicas que o servidor liberou (eager GC, ~15s).
-   * Só remove se não estiver montada.
+   * Removes specific views the server has released (eager GC, ~15s).
+   * Only removes a view that is not mounted.
    */
   release(releasedViews: string[]) {
     for (const vsid of releasedViews) {
@@ -37,8 +37,8 @@ export class ViewGarbageCollector {
   }
 
   /**
-   * Reconciliação completa: remove qualquer view não listada pelo servidor
-   * e não montada (full sweep, ~5min).
+   * Full reconciliation: removes any view not listed by the server
+   * and not mounted (full sweep, ~5min).
    */
   sweep(activeViews: string[]) {
     const serverActive = new Set(activeViews)

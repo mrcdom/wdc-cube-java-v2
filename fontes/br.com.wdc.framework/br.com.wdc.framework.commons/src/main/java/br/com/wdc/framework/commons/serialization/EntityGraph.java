@@ -5,14 +5,14 @@ import java.util.IdentityHashMap;
 import java.util.Set;
 
 /**
- * Rastreia entidades já processadas em uma operação de serialização/deserialização, usando
- * <b>identidade de instância</b> (referência Java {@code ==}) para detectar referências cíclicas.
+ * Tracks entities already processed in a serialization/deserialization operation, using
+ * <b>instance identity</b> (Java reference {@code ==}) to detect cyclic references.
  * <p>
- * Duas instâncias distintas com a mesma chave ({@link KeyedEntity#key()}) são consideradas independentes —
- * somente a mesma instância é detectada como duplicata. Quando detectada, o codec deve usar um stub
- * (nova instância com apenas a chave preenchida, obtida via {@link KeyedEntity#key()}).
+ * Two distinct instances with the same key ({@link KeyedEntity#key()}) are considered independent —
+ * only the same instance is detected as a duplicate. When detected, the codec must use a stub
+ * (a new instance with only the key filled in, obtained via {@link KeyedEntity#key()}).
  * <p>
- * Escopo: uma instância por operação top-level (um {@code writeEntity} ou {@code readEntity} raiz).
+ * Scope: one instance per top-level operation (one root {@code writeEntity} or {@code readEntity}).
  *
  * <pre>{@code
  * var graph = new EntityGraph();
@@ -30,10 +30,10 @@ public class EntityGraph {
     private final Set<Object> seen = Collections.newSetFromMap(new IdentityHashMap<>());
 
     /**
-     * Rastreia a entidade por identidade de instância. Retorna {@code true} se é a primeira ocorrência,
-     * {@code false} se esta mesma instância já foi rastreada (ciclo — usar stub com {@link KeyedEntity#key()}).
+     * Tracks the entity by instance identity. Returns {@code true} if this is the first occurrence,
+     * {@code false} if this same instance was already tracked (cycle — use a stub with {@link KeyedEntity#key()}).
      * <p>
-     * {@code null} sempre retorna {@code true} (não rastreável).
+     * {@code null} always returns {@code true} (not trackable).
      */
     public boolean track(KeyedEntity entity) {
         if (entity == null) return true;
@@ -41,7 +41,7 @@ public class EntityGraph {
     }
 
     /**
-     * Verifica se esta mesma instância já foi rastreada.
+     * Checks whether this same instance was already tracked.
      */
     public boolean isSeen(KeyedEntity entity) {
         if (entity == null) return false;
