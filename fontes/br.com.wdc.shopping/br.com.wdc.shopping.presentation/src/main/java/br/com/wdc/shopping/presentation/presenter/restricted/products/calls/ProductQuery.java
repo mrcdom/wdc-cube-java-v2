@@ -1,16 +1,16 @@
 package br.com.wdc.shopping.presentation.presenter.restricted.products.calls;
 
-import br.com.wdc.shopping.presentation.ShoppingCall;
+import br.com.wdc.shopping.presentation.ShoppingQuery;
 import br.com.wdc.shopping.presentation.exception.ProductNotFoundException;
 import br.com.wdc.shopping.presentation.exception.WrongParametersException;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
 
 /** A product, with its description. */
-public class LoadProductCall extends ShoppingCall<ProductInfo> {
+public class ProductQuery extends ShoppingQuery<ProductInfo> {
 
     private Long productId;
 
-    public LoadProductCall withProductId(Long productId) {
+    public ProductQuery withProductId(Long productId) {
         this.productId = productId;
         return this;
     }

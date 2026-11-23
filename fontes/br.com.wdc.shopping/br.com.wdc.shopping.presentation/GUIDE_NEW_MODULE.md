@@ -24,7 +24,7 @@ presenter/restricted/wishlist/
 ├── WishlistScope.java
 ├── WishlistKeys.java
 ├── calls/
-│   └── LoadWishlistCall.java     (se precisar acessar dados)
+│   └── WishlistQuery.java     (se precisar acessar dados)
 └── structs/
     └── WishlistItem.java         (DTOs, se houver)
 ```
@@ -110,7 +110,7 @@ public class WishlistPresenter extends AbstractCubePresenter<ShoppingApplication
 
     private void loadItems() {
         // A lista nova pede o redesenho (a view será marcada dirty e enviada ao frontend)
-        this.state.items.set(new LoadWishlistCall().withUserId(this.app.getSubject().getId()).run());
+        this.state.items.set(new WishlistQuery().withUserId(this.app.getSubject().getId()).run());
     }
 }
 ```
@@ -124,17 +124,17 @@ public class WishlistPresenter extends AbstractCubePresenter<ShoppingApplication
 
 ### 1.4 Criar as chamadas (opcional)
 
-Cada operação sobre os repositórios é uma `XxxCall` em `calls/`: a requisição se acumula em setters fluentes `withXxx(...)` e `run()` a responde. A base `ShoppingCall<R>` traz os acessos protegidos aos repositórios (adicione lá o de um repositório novo, como `wishlistRepository()`).
+Cada operação sobre os repositórios é uma classe em `calls/`: a requisição se acumula em setters fluentes `withXxx(...)` e `run()` a responde. Uma leitura é `XxxQuery extends ShoppingQuery<R>`; uma gravação é `XxxSave extends ShoppingSave<R>`, que implementa `save()` — o `run()` da base abre a transação. A raiz `ShoppingCall<R>` traz os acessos protegidos aos repositórios (adicione lá o de um repositório novo, como `wishlistRepository()`).
 
 ```java
 package br.com.wdc.shopping.presentation.presenter.restricted.wishlist.calls;
 
 /** Os itens da lista de desejos de um usuário. */
-public class LoadWishlistCall extends ShoppingCall<List<WishlistItem>> {
+public class WishlistQuery extends ShoppingQuery<List<WishlistItem>> {
 
     private Long userId;
 
-    public LoadWishlistCall withUserId(Long userId) {
+    public WishlistQuery withUserId(Long userId) {
         this.userId = userId;
         return this;
     }
@@ -346,7 +346,7 @@ E no frontend, adicionar um botão ou link que emita o evento correspondente.
 - [ ] **Presentation**
   - [ ] Criar `WishlistScope extends Scope` (campos `Prop`, criados com `prop(...)`)
   - [ ] Criar `WishlistPresenter extends AbstractCubePresenter<ShoppingApplication>`
-  - [ ] Criar as chamadas em `calls/` (`XxxCall extends ShoppingCall<R>`) se precisar de dados
+  - [ ] Criar as chamadas em `calls/` (`XxxQuery extends ShoppingQuery<R>`, `XxxSave extends ShoppingSave<R>`) se precisar de dados
   - [ ] Criar DTOs em `structs/` com `projection()` + `create()`
   - [ ] Criar `WishlistKeys extends HomeKeys` (prefixo único, `PLACE = HomeKeys.PLACE.child(...)`)
   - [ ] Registrar `WishlistKeys.PLACE` em `ShoppingApplication.PLACES`

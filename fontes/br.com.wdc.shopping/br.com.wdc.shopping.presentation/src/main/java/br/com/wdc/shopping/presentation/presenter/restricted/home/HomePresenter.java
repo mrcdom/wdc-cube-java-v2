@@ -14,9 +14,9 @@ import br.com.wdc.shopping.presentation.exception.ProductNotFoundException;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginKeys;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartKeys;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartManager;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.calls.LoadPurchasesPageCall;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.calls.PurchasesPageQuery;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductKeys;
-import br.com.wdc.shopping.presentation.presenter.restricted.products.calls.LoadProductsCall;
+import br.com.wdc.shopping.presentation.presenter.restricted.products.calls.ProductListQuery;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptKeys;
 
 public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
@@ -252,7 +252,7 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
             var subject = this.app.getSubject();
             if (subject != null) {
                 var panel = this.purchasesPanel;
-                var call = new LoadPurchasesPageCall()
+                var call = new PurchasesPageQuery()
                         .withUserId(subject.getId())
                         .withPage(panel.page.get())
                         .withPageSize(panel.pageSize.get());
@@ -276,7 +276,7 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     private void loadProducts() {
         try {
-            this.productsPanel.products.set(new LoadProductsCall().withLimit(1000).run());
+            this.productsPanel.products.set(new ProductListQuery().withLimit(1000).run());
         } catch (Exception caught) {
             LOG.error("Failed to load products", caught);
         }

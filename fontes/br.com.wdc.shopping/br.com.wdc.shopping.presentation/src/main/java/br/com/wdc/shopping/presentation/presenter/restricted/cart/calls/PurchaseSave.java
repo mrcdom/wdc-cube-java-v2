@@ -9,27 +9,27 @@ import br.com.wdc.shopping.domain.product.Product;
 import br.com.wdc.shopping.domain.purchase.Purchase;
 import br.com.wdc.shopping.domain.purchaseitem.PurchaseItem;
 import br.com.wdc.shopping.domain.user.User;
-import br.com.wdc.shopping.presentation.ShoppingCall;
+import br.com.wdc.shopping.presentation.ShoppingSave;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.structs.CartItem;
 
-/** Records the purchase of the items, in one transaction; answers its id. */
-public class PurchaseCall extends ShoppingCall<Long> {
+/** Records the purchase of the items; answers its id. */
+public class PurchaseSave extends ShoppingSave<Long> {
 
     private Long userId;
     private List<CartItem> items = List.of();
 
-    public PurchaseCall withUserId(Long userId) {
+    public PurchaseSave withUserId(Long userId) {
         this.userId = userId;
         return this;
     }
 
-    public PurchaseCall withItems(List<CartItem> items) {
+    public PurchaseSave withItems(List<CartItem> items) {
         this.items = items;
         return this;
     }
 
     @Override
-    public Long run() {
+    protected Long save() {
         var purchase = new Purchase()
                 .withUser(new User().withId(userId))
                 .withBuyDate(OffsetDateTime.now());
@@ -48,12 +48,9 @@ public class PurchaseCall extends ShoppingCall<Long> {
             purchase.items().add(purchaseItem);
         }
 
-        tx().required(tx -> {
-            if (!purchaseRepository().insert(purchase)) {
-                throw new AssertionError("Record not inserted");
-            }
-        });
-
+        if (!purchaseRepository().insert(purchase)) {
+            throw new AssertionError("Record not inserted");
+        }
         return purchase.id();
     }
 

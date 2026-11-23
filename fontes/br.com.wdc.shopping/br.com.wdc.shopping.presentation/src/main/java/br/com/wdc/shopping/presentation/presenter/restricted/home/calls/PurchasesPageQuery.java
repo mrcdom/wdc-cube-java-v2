@@ -14,28 +14,28 @@ import br.com.wdc.shopping.domain.purchase.Purchase;
 import br.com.wdc.shopping.domain.purchase.PurchaseCriteria;
 import br.com.wdc.shopping.domain.purchase.PurchaseCriteria.OrderBy;
 import br.com.wdc.shopping.domain.purchaseitem.PurchaseItem;
-import br.com.wdc.shopping.presentation.ShoppingCall;
+import br.com.wdc.shopping.presentation.ShoppingQuery;
 import br.com.wdc.shopping.presentation.exception.WrongParametersException;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
 
 /** A page of a user's purchases, the most recent first. */
-public class LoadPurchasesPageCall extends ShoppingCall<Page<PurchaseInfo>> {
+public class PurchasesPageQuery extends ShoppingQuery<Page<PurchaseInfo>> {
 
     private Long userId;
     private int page;
     private int pageSize;
 
-    public LoadPurchasesPageCall withUserId(Long userId) {
+    public PurchasesPageQuery withUserId(Long userId) {
         this.userId = userId;
         return this;
     }
 
-    public LoadPurchasesPageCall withPage(int page) {
+    public PurchasesPageQuery withPage(int page) {
         this.page = page;
         return this;
     }
 
-    public LoadPurchasesPageCall withPageSize(int pageSize) {
+    public PurchasesPageQuery withPageSize(int pageSize) {
         this.pageSize = pageSize;
         return this;
     }
@@ -50,7 +50,7 @@ public class LoadPurchasesPageCall extends ShoppingCall<Page<PurchaseInfo>> {
                 .withUserId(userId)
                 .withProjection(purchaseProjection())
                 .withOrderBy(OrderBy.MOST_RECENT_PURCHASE_FIRST), page, pageSize);
-        var items = result.items().stream().map(LoadPurchasesPageCall::purchaseInfoOf).toList();
+        var items = result.items().stream().map(PurchasesPageQuery::purchaseInfoOf).toList();
         return new Page<>(items, result.page(), result.totalPages(), result.totalItems());
     }
 

@@ -5,17 +5,17 @@ import java.util.Collections;
 
 import br.com.wdc.framework.domain.projection.ProjectionValues;
 import br.com.wdc.shopping.domain.purchase.Purchase;
-import br.com.wdc.shopping.presentation.ShoppingCall;
+import br.com.wdc.shopping.presentation.ShoppingQuery;
 import br.com.wdc.shopping.presentation.exception.WrongParametersException;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptForm;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptItem;
 
 /** The receipt of a purchase: its items, in the order they were bought, and the total; {@code null} for none. */
-public class LoadReceiptCall extends ShoppingCall<ReceiptForm> {
+public class ReceiptQuery extends ShoppingQuery<ReceiptForm> {
 
     private Long purchaseId;
 
-    public LoadReceiptCall withPurchaseId(Long purchaseId) {
+    public ReceiptQuery withPurchaseId(Long purchaseId) {
         this.purchaseId = purchaseId;
         return this;
     }

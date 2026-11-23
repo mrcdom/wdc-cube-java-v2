@@ -42,12 +42,12 @@ graph TD
     home --> HomeP["HomePresenter.java"]
     home --> HomeS["HomeScope.java (com ProductsPanelScope e PurchasesPanelScope)"]
     home --> HomeStructs["structs/PurchaseInfo.java"]
-    home --> HomeCalls["calls/LoadPurchasesPageCall.java"]
+    home --> HomeCalls["calls/PurchasesPageQuery.java"]
 
     restricted --> products["products/"]
     products --> ProductP["ProductPresenter.java"]
     products --> ProductS["ProductScope.java"]
-    products --> ProductCalls["calls/LoadProductCall.java, LoadProductsCall.java"]
+    products --> ProductCalls["calls/ProductQuery.java, ProductListQuery.java"]
     products --> ProductStructs["structs/ProductInfo.java"]
 
     restricted --> cart["cart/"]
@@ -59,7 +59,7 @@ graph TD
     restricted --> receipt["receipt/"]
     receipt --> ReceiptP["ReceiptPresenter.java"]
     receipt --> ReceiptS["ReceiptScope.java"]
-    receipt --> ReceiptCalls["calls/LoadReceiptCall.java"]
+    receipt --> ReceiptCalls["calls/ReceiptQuery.java"]
     receipt --> ReceiptStructs["structs/ReceiptForm.java, ReceiptItem.java"]
 ```
 
@@ -133,7 +133,7 @@ Classe abstrata que estende `CubeApplication`. Mantém o estado global:
 
 ### Repositórios e autorização
 
-Os repositórios são usados pelo service locator do domínio, através dos acessos protegidos de `ShoppingCall` (`productRepository()` lê `ProductRepository.BEAN` a cada uso). A autorização (RBAC) fica na fronteira de confiança: nos endpoints REST (`SecurityEnforcer`), por onde passa o teavm.web, cujos presenters rodam no navegador. Nos hosts em que os presenters rodam no servidor (Vaadin, SWT local, host remoto), o cliente só dispara ações e o presenter decide cada consulta.
+Os repositórios são usados pelo service locator do domínio, através dos acessos protegidos de `ShoppingCall` (`productRepository()` lê `ProductRepository.BEAN` a cada uso); a transação de uma gravação é aberta pelo `ShoppingSave`. A autorização (RBAC) fica na fronteira de confiança: nos endpoints REST (`SecurityEnforcer`), por onde passa o teavm.web, cujos presenters rodam no navegador. Nos hosts em que os presenters rodam no servidor (Vaadin, SWT local, host remoto), o cliente só dispara ações e o presenter decide cada consulta.
 
 ### Scope
 
@@ -163,22 +163,26 @@ O JSON gerado pelo serializer usa `"#"` como chave para o `instanceId`:
 
 ### Calls
 
-Cada operação que o presenter pede aos repositórios é uma classe `XxxCall`, no pacote `calls/` do módulo (irmão de `structs/`). A requisição se acumula na instância por setters fluentes `withXxx(...)` e `run()` a responde; uma instância nova a cada uso:
+Cada operação que o presenter pede aos repositórios é uma classe no pacote `calls/` do módulo (irmão de `structs/`), com o sufixo do que ela faz: `XxxQuery` para leitura, `XxxSave` para gravação e `XxxCall` para o que não é nem uma coisa nem outra (o login, que autentica). A requisição se acumula na instância por setters fluentes `withXxx(...)` e `run()` a responde; uma instância nova a cada uso:
 
 ```java
-var product = new LoadProductCall().withProductId(id).run();
+var product = new ProductQuery().withProductId(id).run();
 ```
 
-Todas estendem `ShoppingCall<R>`, que reúne numa seção logo no início os acessos protegidos aos repositórios e ao `TransactionService` (`productRepository()`, `purchaseRepository()`, `tx()`, ...), lidos do `BEAN` a cada uso. A resposta é um tipo que já existe; ou um struct do módulo (`structs/`), quando outras chamadas ou o escopo também o usam; ou uma classe interna da própria chamada, quando só leva a resposta de volta a quem chamou (`LoginCall.Result`).
+A raiz é `ShoppingCall<R>`, que reúne numa seção logo no início os acessos protegidos aos repositórios (`productRepository()`, `purchaseRepository()`, ...), lidos do `BEAN` a cada uso, e declara `run()`. Abaixo dela:
+
+- `ShoppingQuery<R>` — leitura: sem efeito colateral, pode ser repetida, sem transação própria.
+- `ShoppingSave<R>` — gravação: o `run()` (final) abre a transação (ou entra na de quem chamou) e chama o `save()` da subclasse, então nenhuma gravação fica fora de uma.
+ A resposta é um tipo que já existe; ou um struct do módulo (`structs/`), quando outras chamadas ou o escopo também o usam; ou uma classe interna da própria chamada, quando só leva a resposta de volta a quem chamou (`LoginCall.Result`).
 
 | Chamada | Requisição | Resposta |
 |---------|------------|----------|
 | `LoginCall` | `withUserName`, `withPassword` | `LoginCall.Result` (HMAC challenge-response via `AuthenticationService`) |
-| `LoadProductCall` | `withProductId` | `ProductInfo` |
-| `LoadProductsCall` | `withLimit` | `List<ProductInfo>` (sem descrição) |
-| `LoadPurchasesPageCall` | `withUserId`, `withPage`, `withPageSize` | `Page<PurchaseInfo>` (a mais recente primeiro) |
-| `LoadReceiptCall` | `withPurchaseId` | `ReceiptForm` |
-| `PurchaseCall` | `withUserId`, `withItems` | `Long` (id da compra, numa transação) |
+| `ProductQuery` | `withProductId` | `ProductInfo` |
+| `ProductListQuery` | `withLimit` | `List<ProductInfo>` (sem descrição) |
+| `PurchasesPageQuery` | `withUserId`, `withPage`, `withPageSize` | `Page<PurchaseInfo>` (a mais recente primeiro) |
+| `ReceiptQuery` | `withPurchaseId` | `ReceiptForm` |
+| `PurchaseSave` | `withUserId`, `withItems` | `Long` (id da compra) |
 
 ### DTOs (structs)
 
@@ -222,7 +226,7 @@ graph TD
     feature --> Presenter["&lt;Feature&gt;Presenter.java"]
     feature --> Scope["&lt;Feature&gt;Scope.java"]
     feature --> calls["calls/ (opcional)"]
-    calls --> Call["&lt;Verbo&gt;&lt;Coisa&gt;Call.java"]
+    calls --> Call["&lt;Coisa&gt;Query.java, &lt;Coisa&gt;Save.java"]
     feature --> structs["structs/ (opcional)"]
     structs --> DTO["&lt;FeatureDTO&gt;.java"]
 ```

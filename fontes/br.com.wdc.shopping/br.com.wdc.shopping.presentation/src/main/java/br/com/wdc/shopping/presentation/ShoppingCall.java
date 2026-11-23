@@ -1,7 +1,5 @@
 package br.com.wdc.shopping.presentation;
 
-import br.com.wdc.framework.domain.transaction.TransactionService;
-import br.com.wdc.shopping.domain.ShoppingTransactions;
 import br.com.wdc.shopping.domain.product.ProductRepository;
 import br.com.wdc.shopping.domain.purchase.PurchaseRepository;
 import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemRepository;
@@ -9,17 +7,19 @@ import br.com.wdc.shopping.domain.user.UserRepository;
 
 /**
  * One operation of the presentation, as an object: the request is gathered with fluent {@code withXxx(...)} setters
- * and {@link #run()} answers it. A new instance per use: {@code new LoadProductCall().withProductId(id).run()}.
+ * and {@link #run()} answers it. A new instance per use: {@code new ProductQuery().withProductId(id).run()}.
  * <p>
- * Each module keeps its calls in a {@code calls} package, sibling of {@code structs}. The answer is a type that already
- * exists; or a struct of the module, when other calls or the scope use it too; or an inner class of the call, when it
- * only carries this call's answer back to the caller.
+ * What it does names it: a read is an {@code XxxQuery} ({@link ShoppingQuery}), a write an {@code XxxSave}
+ * ({@link ShoppingSave}), and what is neither stays an {@code XxxCall} (the login, which authenticates). Each module
+ * keeps them in a {@code calls} package, sibling of {@code structs}. The answer is a type that already exists; or a
+ * struct of the module, when others use it too; or an inner class of the call, when it only carries this call's answer
+ * back to the caller.
  *
  * @param <R> the answer of {@link #run()}
  */
 public abstract class ShoppingCall<R> {
 
-    // :: Repositories and transactions
+    // :: Repositories
 
     protected static UserRepository userRepository() {
         return UserRepository.BEAN.get();
@@ -35,10 +35,6 @@ public abstract class ShoppingCall<R> {
 
     protected static PurchaseItemRepository purchaseItemRepository() {
         return PurchaseItemRepository.BEAN.get();
-    }
-
-    protected static TransactionService tx() {
-        return ShoppingTransactions.BEAN.get();
     }
 
     // :: Call

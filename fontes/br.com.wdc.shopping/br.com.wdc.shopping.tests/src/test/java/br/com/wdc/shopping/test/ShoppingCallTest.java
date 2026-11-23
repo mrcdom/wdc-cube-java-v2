@@ -16,17 +16,19 @@ import br.com.wdc.shopping.domain.product.Product;
 import br.com.wdc.shopping.domain.product.ProductCriteria;
 import br.com.wdc.shopping.domain.product.ProductRepository;
 import br.com.wdc.shopping.domain.purchase.Purchase;
+import br.com.wdc.shopping.domain.purchase.PurchaseCriteria;
 import br.com.wdc.shopping.domain.purchase.PurchaseRepository;
 import br.com.wdc.shopping.domain.purchaseitem.PurchaseItem;
 import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemCriteria;
 import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemRepository;
 import br.com.wdc.shopping.domain.user.User;
+import br.com.wdc.shopping.presentation.ShoppingSave;
 import br.com.wdc.shopping.presentation.presenter.open.login.calls.LoginCall;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.calls.LoadPurchasesPageCall;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.calls.PurchasesPageQuery;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
-import br.com.wdc.shopping.presentation.presenter.restricted.products.calls.LoadProductCall;
+import br.com.wdc.shopping.presentation.presenter.restricted.products.calls.ProductQuery;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
-import br.com.wdc.shopping.presentation.presenter.restricted.receipt.calls.LoadReceiptCall;
+import br.com.wdc.shopping.presentation.presenter.restricted.receipt.calls.ReceiptQuery;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptForm;
 import br.com.wdc.shopping.scripts.sgbd.DBReset;
 import br.com.wdc.shopping.test.util.BaseBusinessTest;
@@ -142,7 +144,7 @@ public class ShoppingCallTest extends BaseBusinessTest {
             Assert.assertTrue("Product price must be grater than or equal to 0.0", produto.price >= 0.0);
             Assert.assertTrue("Product description can not be empty", StringUtils.isNotBlank(produto.description));
 
-            final ProductInfo mesmoProduto = new LoadProductCall().withProductId(produto.id).run();
+            final ProductInfo mesmoProduto = new ProductQuery().withProductId(produto.id).run();
             Assert.assertEquals(produto.id, mesmoProduto.id);
             Assert.assertEquals(produto.name, mesmoProduto.name);
             Assert.assertEquals(produto.image, mesmoProduto.image);
@@ -197,7 +199,7 @@ public class ShoppingCallTest extends BaseBusinessTest {
         Assert.assertEquals(2, ultimaCompra.items.size());
         Assert.assertEquals(Double.valueOf(65.0), Double.valueOf(ultimaCompra.total));
 
-        final ReceiptForm recibo = new LoadReceiptCall().withPurchaseId(idCompra).run();
+        final ReceiptForm recibo = new ReceiptQuery().withPurchaseId(idCompra).run();
         Assert.assertNotNull(recibo);
         Assert.assertEquals(Double.valueOf(65), recibo.total);
         Assert.assertEquals(2, recibo.items.size());
@@ -213,9 +215,29 @@ public class ShoppingCallTest extends BaseBusinessTest {
         Assert.assertEquals("Fita veda rosca", recibo.items.get(1).description);
     }
 
+    @Test
+    public void aSaveThatFails_leavesNothingBehind() {
+        var antes = PurchaseRepository.BEAN.get().count(new PurchaseCriteria());
+
+        // Grava e só então falha: a transação que o ShoppingSave abriu é revertida
+        var gravacaoQueFalha = new ShoppingSave<Long>() {
+            @Override
+            protected Long save() {
+                purchaseRepository().insert(new Purchase()
+                        .withUser(new User().withId(DBReset.ADMIN_ID))
+                        .withBuyDate(OffsetDateTime.now())
+                        .withItems(new ArrayList<>()));
+                throw new IllegalStateException("falha depois de gravar");
+            }
+        };
+
+        Assert.assertThrows(IllegalStateException.class, gravacaoQueFalha::run);
+        Assert.assertEquals("nada gravado", antes, PurchaseRepository.BEAN.get().count(new PurchaseCriteria()));
+    }
+
     /** Todas as compras do usuário, a mais recente primeiro: uma página que as comporta. */
     private static List<PurchaseInfo> purchasesOf(Long userId) {
-        return new LoadPurchasesPageCall().withUserId(userId).withPage(0).withPageSize(100).run().items();
+        return new PurchasesPageQuery().withUserId(userId).withPage(0).withPageSize(100).run().items();
     }
 
 }

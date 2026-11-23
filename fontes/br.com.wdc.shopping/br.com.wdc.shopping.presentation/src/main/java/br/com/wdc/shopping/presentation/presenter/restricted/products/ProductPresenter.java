@@ -11,7 +11,7 @@ import br.com.wdc.framework.domain.exception.OfflineException;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartKeys;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
-import br.com.wdc.shopping.presentation.presenter.restricted.products.calls.LoadProductCall;
+import br.com.wdc.shopping.presentation.presenter.restricted.products.calls.ProductQuery;
 
 public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
@@ -50,7 +50,7 @@ public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication>
         }
 
         if (this.state.product.get() == null || !Objects.equals(newProductId, oldProductId)) {
-            var product = new LoadProductCall().withProductId(newProductId).run();
+            var product = new ProductQuery().withProductId(newProductId).run();
             this.state.product.set(product);
         }
 
