@@ -2,6 +2,7 @@ package br.com.wdc.framework.cube;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.log.Log;
@@ -159,6 +160,84 @@ public abstract class CubeApplication {
 	/** A failure nobody handled, such as one caught by a guarded action. Logs it; the application may also show it. */
 	public void alertUnexpectedError(String message, Throwable error) {
 		LOG.error(message, error);
+	}
+
+	// :: Views of scopes
+
+	private ScopeViews scopeViews = new ScopeViews();
+
+	private final List<Scope> liveScopes = new ArrayList<>();
+
+	/** The view layer's catalog of views by scope class. */
+	public void setScopeViews(ScopeViews scopeViews) {
+		this.scopeViews = scopeViews;
+	}
+
+	/**
+	 * The view that draws the scope, made the first time it is asked for: from then on, a change in the scope redraws
+	 * only that view. A scope that already has one (a client rebuilding scopes from a remote host attached it) keeps
+	 * it. {@code null} for no scope.
+	 */
+	public CubeView viewOf(Scope scope) {
+		if (scope == null) {
+			return null;
+		}
+		var existing = scope.view();
+		if (existing != null) {
+			return existing;
+		}
+		synchronized (this.liveScopes) {
+			existing = scope.view();
+			if (existing != null) {
+				return existing;
+			}
+			var made = this.scopeViews.factoryFor(scope).apply(this, scope);
+			scope.attachView(made);
+			scope.setUpdater(made::update);
+			this.liveScopes.add(scope);
+			// The first drawing: the view may need it before any change (to measure itself, for instance)
+			made.update();
+			return made;
+		}
+	}
+
+	/** Releases the view of the scope and of every scope inside it (its segments, its rows). */
+	public void releaseView(Scope scope) {
+		if (scope == null) {
+			return;
+		}
+		var released = new ArrayList<Scope>();
+		synchronized (this.liveScopes) {
+			var it = this.liveScopes.iterator();
+			while (it.hasNext()) {
+				var live = it.next();
+				if (isWithin(live, scope)) {
+					it.remove();
+					released.add(live);
+				}
+			}
+		}
+		for (var live : released) {
+			var view = live.view();
+			live.setUpdater(null);
+			live.attachView(null);
+			if (view != null) {
+				try {
+					view.release();
+				} catch (Exception caught) {
+					LOG.error("Releasing the view of " + live.getClass().getSimpleName() + ": " + caught.getMessage());
+				}
+			}
+		}
+	}
+
+	private static boolean isWithin(Scope scope, Scope ancestor) {
+		for (var s = scope; s != null; s = s.owner()) {
+			if (s == ancestor) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	// :: Attributes

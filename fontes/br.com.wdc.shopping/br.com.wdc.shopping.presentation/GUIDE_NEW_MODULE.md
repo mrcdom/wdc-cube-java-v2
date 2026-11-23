@@ -415,14 +415,13 @@ E no frontend, adicionar um botão ou link que emita o evento correspondente.
 
 ## Variante: Segmento (Painel)
 
-Se o novo módulo for um **painel embutido** dentro de outra view (como o painel de produtos dentro da Home), ele **não ganha presenter**: é um escopo menor, classe interna do escopo de quem o mostra. O presenter dono liga as ações dele e o encaixa numa view:
+Se o novo módulo for um **painel embutido** dentro de outra view (como o painel de produtos dentro da Home), ele **não ganha presenter**: é um escopo menor, classe interna do escopo de quem o mostra. O presenter dono liga as ações dele e o põe no escopo; quem escolhe a view é o host:
 
 ```java
 public static class HomeScope extends Scope {
 
     public static class WishlistPanelScope extends Scope {
         public static final String CLASS_ID = "e1f2a3b4c5d6";   // a view remota do segmento
-        public static BiFunction<ShoppingApplication, WishlistPanelScope, CubeView> createView;
 
         public final Prop<List<WishlistItem>> items = prop(List.of());
         public ActionOf<Long> onRemoveItem = ActionOf.noop();
@@ -434,12 +433,16 @@ public static class HomeScope extends Scope {
 // Em HomePresenter: no construtor, as ações (com código de evento, no skeleton do segmento)
 wishlistPanel.onRemoveItem = actionOf(wishlistPanel, 1, FormParam.asLong("p.itemId"), this::removeItem);
 
-// Na inicialização: encaixa numa view (a fábrica do host) e põe no escopo da Home
-this.state.wishlistPanel.set(attach(this.wishlistPanel, HomeScope.WishlistPanelScope.createView));
+// Na inicialização: só o põe no escopo da Home
+this.state.wishlistPanel.set(this.wishlistPanel);
+
+// Em cada host local: o catálogo de views (passado à app com setScopeViews)
+new ScopeViews()
+        .register(HomeScope.WishlistPanelScope.class,
+                (ShoppingVaadinApplication app, HomeScope.WishlistPanelScope s) -> new WishlistPanelViewVaadin(app, s));
 ```
 
 O segmento:
 - **Não** tem presenter, classe de chaves nem place
-- Redesenha só a própria view quando muda (o `attach` liga uma à outra) e é liberado com o presenter dono
-- No host remoto é uma view como qualquer outra: `new RemoteViewImpl(app, scope, WishlistPanelScope.CLASS_ID)`; o pai o referencia como `"wishlistPanelViewId"`
-- Nas views locais, a view do pai acha a do segmento por `state.wishlistPanel.get().view()`
+- A view nasce quando a do pai a pede (`app.viewOf(state.wishlistPanel.get())`); dali em diante uma mudança no segmento redesenha só ela (antes, redesenha o dono). É liberada com o presenter dono, ou com `detach(segmento)`
+- No host remoto o catálogo cai no `fallback(RemoteViewImpl::forScope)`, que lê o `CLASS_ID`: nada a registrar; o pai o referencia como `"wishlistPanelViewId"`

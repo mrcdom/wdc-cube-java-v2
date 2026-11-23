@@ -1,5 +1,6 @@
 package br.com.wdc.shopping.view.vaadin;
 
+import br.com.wdc.framework.cube.ScopeViews;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -42,6 +43,12 @@ public class ShoppingVaadinApplication extends ShoppingApplication {
 
     private static final Map<String, ShoppingVaadinApplication> APP_CACHE = new ConcurrentHashMap<>();
 
+    /** The views of the scopes that have no presenter of their own (segments, rows). */
+    private static final ScopeViews SCOPE_VIEWS = new ScopeViews()
+            .register(CartScope.CartItemScope.class, (ShoppingVaadinApplication app, CartScope.CartItemScope row) -> new CartItemViewVaadin(app, row))
+            .register(HomeScope.ProductsPanelScope.class, (ShoppingVaadinApplication app, HomeScope.ProductsPanelScope s) -> new ProductsPanelViewVaadin(app, s))
+            .register(HomeScope.PurchasesPanelScope.class, (ShoppingVaadinApplication app, HomeScope.PurchasesPanelScope s) -> new PurchasesPanelViewVaadin(app, s));
+
     static {
         RootPresenter.createView = RootViewVaadin::new;
         LoginPresenter.createView = LoginViewVaadin::new;
@@ -49,9 +56,6 @@ public class ShoppingVaadinApplication extends ShoppingApplication {
         CartPresenter.createView = CartViewVaadin::new;
         ProductPresenter.createView = ProductViewVaadin::new;
         ReceiptPresenter.createView = ReceiptViewVaadin::new;
-        CartScope.CartItemScope.createView = (app, row) -> new CartItemViewVaadin((ShoppingVaadinApplication) app, row);
-        HomeScope.ProductsPanelScope.createView = (app, scope) -> new ProductsPanelViewVaadin((ShoppingVaadinApplication) app, scope);
-        HomeScope.PurchasesPanelScope.createView = (app, scope) -> new PurchasesPanelViewVaadin((ShoppingVaadinApplication) app, scope);
     }
 
     private UI ui;
@@ -77,6 +81,7 @@ public class ShoppingVaadinApplication extends ShoppingApplication {
     }
 
     public ShoppingVaadinApplication(UI ui) {
+        this.setScopeViews(SCOPE_VIEWS);
         this.ui = ui;
     }
 

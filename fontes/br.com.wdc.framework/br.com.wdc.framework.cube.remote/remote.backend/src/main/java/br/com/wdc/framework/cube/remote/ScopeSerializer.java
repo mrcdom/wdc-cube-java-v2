@@ -8,6 +8,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Map;
+import java.util.function.Function;
 
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
 import br.com.wdc.framework.cube.Action;
@@ -46,8 +47,18 @@ public final class ScopeSerializer {
 
     private final ExtensibleObjectOutput json;
 
+    private final Function<Scope, CubeView> viewOf;
+
     public ScopeSerializer(ExtensibleObjectOutput json) {
+        this(json, Scope::view);
+    }
+
+    /**
+     * @param viewOf the view of a scope inside the one written (a segment, a row); the remote host makes it on demand
+     */
+    public ScopeSerializer(ExtensibleObjectOutput json, Function<Scope, CubeView> viewOf) {
         this.json = json;
+        this.viewOf = viewOf;
     }
 
     public void write(Object state, String instanceId) {
@@ -100,8 +111,9 @@ public final class ScopeSerializer {
             json.name(field.getName() + "ViewIds");
             json.beginArray();
             for (Object item : (Collection<?>) value) {
-                if (item instanceof Scope row && row.view() != null) {
-                    json.value(row.view().instanceId());
+                var rowView = item instanceof Scope row ? viewOf.apply(row) : null;
+                if (rowView != null) {
+                    json.value(rowView.instanceId());
                 }
             }
             json.endArray();
@@ -110,8 +122,9 @@ public final class ScopeSerializer {
 
         // A segment (a scope inside this one) is a view of its own: referred to by the id of that view
         if (value instanceof Scope segment) {
-            if (segment.view() != null) {
-                json.name(field.getName() + "ViewId").value(segment.view().instanceId());
+            var segmentView = viewOf.apply(segment);
+            if (segmentView != null) {
+                json.name(field.getName() + "ViewId").value(segmentView.instanceId());
             }
             return;
         }

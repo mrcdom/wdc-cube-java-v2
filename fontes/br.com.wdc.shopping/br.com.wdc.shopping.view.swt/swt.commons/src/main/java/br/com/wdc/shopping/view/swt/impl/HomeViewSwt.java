@@ -116,14 +116,14 @@ public class HomeViewSwt extends AbstractViewSwt {
         }
 
         // Products panel
-        if (state != null && state.productsPanel.get() != null && state.productsPanel.get().view() instanceof AbstractViewSwt productsView) {
+        if (state != null && app.viewOf(state.productsPanel.get()) instanceof AbstractViewSwt productsView) {
             this.productsPanelSlot.setContent(productsView.getElement());
         } else {
             this.productsPanelSlot.setContent(null);
         }
 
         // Purchases panel
-        if (state != null && state.purchasesPanel.get() != null && state.purchasesPanel.get().view() instanceof AbstractViewSwt purchasesView) {
+        if (state != null && app.viewOf(state.purchasesPanel.get()) instanceof AbstractViewSwt purchasesView) {
             this.purchasesPanelSlot.setContent(purchasesView.getElement());
         } else {
             this.purchasesPanelSlot.setContent(null);

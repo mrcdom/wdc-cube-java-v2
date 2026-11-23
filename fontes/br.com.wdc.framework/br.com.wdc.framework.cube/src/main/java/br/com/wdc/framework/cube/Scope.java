@@ -16,19 +16,26 @@ import java.util.function.Consumer;
  * or call the presenter's {@code update()}.
  * <p>
  * A scope can hold smaller scopes (declared as its inner classes): segments of the view with their own state and
- * actions, but no presenter of their own. The presenter binds their actions and attaches each one to a view
- * ({@code AbstractPresenter.attach}); a change in a segment redraws only its view. For a remote client the segment is
- * a view like any other: its own {@link #skeleton(String) skeleton}, dispatching to the actions bound with an event
- * code, and the parent refers to it by id.
+ * actions, but no presenter of their own. The presenter binds their actions and sets them into a prop of the owner;
+ * the view layer draws each one with the view its catalog pairs with the scope class ({@link ScopeViews}, asked
+ * through {@link CubeApplication#viewOf}). Until it has a view, a change in a segment redraws its owner; from then
+ * on, only its own view. For a remote client the segment is a view like any other: its own
+ * {@link #skeleton(String) skeleton}, dispatching to the actions bound with an event code, and the parent refers to
+ * it by id.
  */
 public abstract class Scope {
 
     private volatile Runnable updater;
 
-    private CubeView view;
+    /** The scope that holds this one, when it adopted it: who is told of a change while this one has no view. */
+    private volatile Scope owner;
+
+    private volatile CubeView view;
 
     /** The actions a remote client fires on this scope, by event code (a segment's; a presenter keeps its own). */
     private final Map<Integer, Consumer<Map<String, Object>>> events = new HashMap<>();
+
+    private Consumer<Map<String, Object>> syncState;
 
     /** A prop with no value. */
     protected final <T> Prop<T> prop() {
@@ -45,17 +52,55 @@ public abstract class Scope {
         this.updater = updater;
     }
 
-    /** The view that draws this scope, once a presenter attached it; {@code null} before. */
+    /** Asks for a redraw: of this scope's view, or of its owner's while it has none. */
+    public final void update() {
+        changed();
+    }
+
+    /** The scope that holds this one, when it adopted it. */
+    public final Scope owner() {
+        return owner;
+    }
+
+    /** The view that draws this scope, once the view layer made one ({@link CubeApplication#viewOf}); {@code null} before. */
     public final CubeView view() {
         return view;
     }
 
     /**
-     * Records the view that draws this scope. A presenter does it through {@code AbstractPresenter.attach}; a client
-     * that rebuilds scopes from what a remote host sends uses it directly, with the view the host referred to.
+     * Records the view that draws this scope. The application does it when it makes the view
+     * ({@link CubeApplication#viewOf}); a client that rebuilds scopes from what a remote host sends uses it directly,
+     * with the view the host referred to.
      */
     public final void attachView(CubeView view) {
         this.view = view;
+    }
+
+    /** What a remote client syncs into this scope before its events (a typed field, for instance). */
+    public final void onSync(Consumer<Map<String, Object>> syncState) {
+        this.syncState = syncState;
+    }
+
+    /**
+     * A scope set into a prop of this one (alone or in a collection) that still has no one to tell of its changes is
+     * adopted: its changes redraw this scope's view until it gets a view of its own.
+     */
+    final void adopt(Object value) {
+        if (value instanceof Scope child) {
+            adoptScope(child);
+        } else if (value instanceof Iterable<?> items) {
+            for (var item : items) {
+                if (item instanceof Scope child) {
+                    adoptScope(child);
+                }
+            }
+        }
+    }
+
+    private void adoptScope(Scope child) {
+        if (child != this && child.updater == null && child.owner == null) {
+            child.owner = this;
+        }
     }
 
     final void onEvent(int eventCode, Consumer<Map<String, Object>> handler, String owner) {
@@ -64,7 +109,7 @@ public abstract class Scope {
 
     /** The skeleton of this scope as a remote view: dispatches each event to the action bound with its code. */
     public final CubeSkeleton skeleton(String classId) {
-        return newSkeleton(classId, events, null, getClass().getSimpleName());
+        return newSkeleton(classId, events, syncState, getClass().getSimpleName());
     }
 
     static void putEvent(Map<Integer, Consumer<Map<String, Object>>> events, int eventCode,
@@ -105,6 +150,11 @@ public abstract class Scope {
         var u = this.updater;
         if (u != null) {
             u.run();
+            return;
+        }
+        var o = this.owner;
+        if (o != null) {
+            o.changed();
         }
     }
 }

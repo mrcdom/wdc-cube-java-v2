@@ -1,5 +1,6 @@
 package br.com.wdc.shopping.test.mock;
 
+import br.com.wdc.framework.cube.ScopeViews;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
 import java.util.Map;
@@ -30,6 +31,27 @@ import br.com.wdc.shopping.test.mock.viewimpl.RootViewMock;
 
 public class ShoppingApplicationMock extends ShoppingApplication {
 
+    /** The views of the scopes that have no presenter of their own (segments, rows). */
+    private static final ScopeViews SCOPE_VIEWS = new ScopeViews()
+            .register(CartScope.CartItemScope.class, (ShoppingApplicationMock app, CartScope.CartItemScope row) -> new CubeView() {
+                @Override
+                public String instanceId() {
+                    return "cart-row-mock-" + row.id.get();
+                }
+
+                @Override
+                public void update() {
+                    // NOOP
+                }
+
+                @Override
+                public void release() {
+                    // NOOP
+                }
+            })
+            .register(HomeScope.ProductsPanelScope.class, (ShoppingApplicationMock app, HomeScope.ProductsPanelScope s) -> new ProductsPanelViewMock(app, s))
+            .register(HomeScope.PurchasesPanelScope.class, (ShoppingApplicationMock app, HomeScope.PurchasesPanelScope s) -> new PurchasesPanelViewMock(app, s));
+
     static {
         RootPresenter.createView = RootViewMock::new;
         LoginPresenter.createView = LoginViewMock::new;
@@ -37,27 +59,10 @@ public class ShoppingApplicationMock extends ShoppingApplication {
         CartPresenter.createView = CartViewMock::new;
         ProductPresenter.createView = ProductViewMock::new;
         ReceiptPresenter.createView = ReceiptViewMock::new;
-        CartScope.CartItemScope.createView = (app, row) -> new CubeView() {
-            @Override
-            public String instanceId() {
-                return "cart-row-mock-" + row.id.get();
-            }
-
-            @Override
-            public void update() {
-                // NOOP
-            }
-
-            @Override
-            public void release() {
-                // NOOP
-            }
-        };
-        HomeScope.ProductsPanelScope.createView = (app, s) -> new ProductsPanelViewMock((ShoppingApplicationMock) app, s);
-        HomeScope.PurchasesPanelScope.createView = (app, s) -> new PurchasesPanelViewMock((ShoppingApplicationMock) app, s);
     }
 
     public ShoppingApplicationMock() {
+        this.setScopeViews(SCOPE_VIEWS);
         // NOOP
     }
 

@@ -15,6 +15,7 @@ public final class Prop<T> {
     Prop(Scope owner, T initial) {
         this.owner = owner;
         this.value = initial;
+        owner.adopt(initial);
     }
 
     /** The current value. */
@@ -28,6 +29,7 @@ public final class Prop<T> {
             return;
         }
         value = newValue;
+        owner.adopt(newValue);
         owner.changed();
     }
 

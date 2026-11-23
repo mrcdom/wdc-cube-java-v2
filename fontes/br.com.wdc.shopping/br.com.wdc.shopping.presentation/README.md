@@ -114,7 +114,7 @@ graph TD
 | O quê | Como | Uso |
 |------|------|-----|
 | **Presenter** | `AbstractCubePresenter<ShoppingApplication>`, gerenciado pela navegação via `applyParameters` | Places com sua classe de chaves (`XxxKeys`) |
-| **Segmento** | escopo interno (`HomeScope.ProductsPanelScope`), ações ligadas pelo presenter, view via `attach(scope, Scope.createView)` | Painéis embutidos na Home: sem presenter próprio |
+| **Segmento** | escopo interno (`HomeScope.ProductsPanelScope`), ações ligadas pelo presenter, view pelo catálogo do host (`ScopeViews`, pedida com `app.viewOf(scope)`) | Painéis embutidos na Home: sem presenter próprio |
 
 ## Componentes do Módulo
 

@@ -214,7 +214,7 @@ public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
     private void syncRows(List<CartItemScope> rows) {
         var wanted = new ArrayList<Component>(rows.size());
         for (var row : rows) {
-            if (row.view() instanceof AbstractViewVaadin<?> rowView) {
+            if (this.app.viewOf(row) instanceof AbstractViewVaadin<?> rowView) {
                 wanted.add(rowView.getElement());
             }
         }

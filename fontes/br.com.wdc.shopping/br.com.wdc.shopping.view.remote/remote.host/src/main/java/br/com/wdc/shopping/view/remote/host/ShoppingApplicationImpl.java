@@ -1,6 +1,6 @@
 package br.com.wdc.shopping.view.remote.host;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
+import br.com.wdc.framework.cube.ScopeViews;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -24,7 +24,6 @@ import br.com.wdc.shopping.presentation.presenter.RootPresenter;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
 
@@ -41,6 +40,12 @@ public class ShoppingApplicationImpl extends ShoppingApplication implements Remo
 	private static RemoteAppSecurity appSecurity;
 	private static RemoteApplicationRegistry<ShoppingApplicationImpl> registry;
 
+	/**
+	 * The views of the scopes that have no presenter of their own (segments, rows): every one a remote view, known to
+	 * the client by the CLASS_ID its scope class declares.
+	 */
+	private static final ScopeViews SCOPE_VIEWS = new ScopeViews().fallback(RemoteViewImpl::forScope);
+
 	static {
 		RootPresenter.createView = p -> new RemoteViewImpl((RemoteApplication) p.app, p, p.state, p.skeleton());
 		LoginPresenter.createView = p -> new RemoteViewImpl((RemoteApplication) p.app, p, p.state, p.skeleton());
@@ -48,11 +53,6 @@ public class ShoppingApplicationImpl extends ShoppingApplication implements Remo
 		ProductPresenter.createView = p -> new RemoteViewImpl((RemoteApplication) p.app, p, p.state, p.skeleton());
 		CartPresenter.createView = p -> new RemoteViewImpl((RemoteApplication) p.app, p, p.state, p.skeleton());
 		ReceiptPresenter.createView = p -> new RemoteViewImpl((RemoteApplication) p.app, p, p.state, p.skeleton());
-		// Rows of the cart: a view of their own, too
-		CartScope.CartItemScope.createView = (app, s) -> new RemoteViewImpl((RemoteApplication) app, s, CartScope.CartItemScope.CLASS_ID);
-		// Segments of the home: a view of their own, with no presenter behind
-		HomeScope.ProductsPanelScope.createView = (app, s) -> new RemoteViewImpl((RemoteApplication) app, s, HomeScope.ProductsPanelScope.CLASS_ID);
-		HomeScope.PurchasesPanelScope.createView = (app, s) -> new RemoteViewImpl((RemoteApplication) app, s, HomeScope.PurchasesPanelScope.CLASS_ID);
 	}
 
 	/**
@@ -75,6 +75,7 @@ public class ShoppingApplicationImpl extends ShoppingApplication implements Remo
 	// :: Constructor
 
 	public ShoppingApplicationImpl(String id) {
+		this.setScopeViews(SCOPE_VIEWS);
 		this.support = new RemoteApplicationSupport(id, new HostCallbacks(), appSecurity);
 		this.support.postConstruct(this);
 	}

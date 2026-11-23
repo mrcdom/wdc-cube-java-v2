@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
@@ -50,8 +49,6 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
         public static class CartItemScope extends Scope {
 
             public static final String CLASS_ID = "c8a1f0e2b7d4";
-
-            public static BiFunction<ShoppingApplication, CartItemScope, CubeView> createView;
 
             public final Prop<Long> id = prop();
             public final Prop<String> name = prop();
@@ -153,8 +150,8 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
     // :: Rows
 
     /**
-     * Brings the rows in line with the cart: a new item gets a row (and a view), a row whose item stays is reused and
-     * only its changed props redraw it, a row whose item left is detached.
+     * Brings the rows in line with the cart: a new item gets a row (the view layer draws it), a row whose item stays
+     * is reused and only its changed props redraw it, a row whose item left is detached (its view released).
      */
     private void syncRows() {
         var items = this.cart.getCartItems();
@@ -167,7 +164,6 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
             if (row == null) {
                 row = this.newRow(item.id);
                 this.rowsById.put(item.id, row);
-                attach(row, CartScope.CartItemScope.createView);
             }
             row.name.set(item.name);
             row.image.set(item.image);

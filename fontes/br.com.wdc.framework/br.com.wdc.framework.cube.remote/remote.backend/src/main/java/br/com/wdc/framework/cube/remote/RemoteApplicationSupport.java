@@ -576,7 +576,13 @@ public class RemoteApplicationSupport {
                 json.name("states");
                 json.beginArray();
 
-                for (var view : dirtyViews) {
+                var queue = new java.util.ArrayDeque<RemoteViewImpl>(dirtyViews);
+                var written = new java.util.HashSet<String>();
+                while (!queue.isEmpty()) {
+                    var view = queue.poll();
+                    if (!written.add(view.instanceId())) {
+                        continue;
+                    }
                     this.lock.lock();
                     try {
                         view.presenter().commitComputedState();
@@ -584,6 +590,17 @@ public class RemoteApplicationSupport {
                         this.lock.unlock();
                     }
                     view.writeState(json);
+
+                    // Views born while writing (a segment or a row drawn for the first time) go in this same
+                    // response: the state just written already refers to them
+                    if (queue.isEmpty()) {
+                        for (var born : this.dirtyViewMap.values()) {
+                            if (!written.contains(born.instanceId())) {
+                                this.dirtyViewMap.remove(born.instanceId());
+                                queue.add(born);
+                            }
+                        }
+                    }
                 }
 
                 json.endArray();

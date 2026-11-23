@@ -1,10 +1,7 @@
 package br.com.wdc.framework.cube;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 import br.com.wdc.framework.commons.function.ThrowingBiConsumer;
@@ -33,8 +30,8 @@ public abstract class AbstractPresenter<A extends CubeApplication> implements Pr
     /** The actions a remote client fires, by event code. */
     private final Map<Integer, Consumer<Map<String, Object>>> events = new HashMap<>();
 
-    /** The segments attached to a view, released with this presenter. */
-    private final List<Scope> segments = new ArrayList<>();
+    /** The scope bound to this presenter ({@link #bind}): the segments and rows inside it are released with it. */
+    private Scope scope;
 
     protected AbstractPresenter(A app) {
         this.app = app;
@@ -46,6 +43,7 @@ public abstract class AbstractPresenter<A extends CubeApplication> implements Pr
      */
     protected final <S extends Scope> S bind(S state) {
         state.setUpdater(this::update);
+        this.scope = state;
         return state;
     }
 
@@ -57,11 +55,10 @@ public abstract class AbstractPresenter<A extends CubeApplication> implements Pr
 
     @Override
     public void release() {
-        for (var segment : segments) {
-            segment.setUpdater(null);
-            segment.view().release();
+        // The views the view layer made for the segments and rows inside this presenter's scope
+        if (scope != null) {
+            app.releaseView(scope);
         }
-        segments.clear();
         if (view != null) {
             view.release();
             view = null;
@@ -150,28 +147,9 @@ public abstract class AbstractPresenter<A extends CubeApplication> implements Pr
         return action;
     }
 
-    // :: Segments
-
-    /**
-     * Attaches a segment to a view made by the host's factory: from then on, a change in the segment redraws only that
-     * view. The view is released with this presenter.
-     */
-    protected final <S extends Scope> S attach(S segment, BiFunction<A, S, CubeView> createView) {
-        var segmentView = createView.apply(app, segment);
-        segment.attachView(segmentView);
-        segment.setUpdater(segmentView::update);
-        segments.add(segment);
-        // The first drawing: the view may need it before any change (to measure itself, for instance)
-        segmentView.update();
-        return segment;
-    }
-
     /** Releases the view of a segment that left the screen (a row removed from a list). */
     protected final void detach(Scope segment) {
-        if (segments.remove(segment)) {
-            segment.setUpdater(null);
-            segment.view().release();
-        }
+        app.releaseView(segment);
     }
 
     /** The skeleton of a remote view: dispatches each event to the action bound with its code. */

@@ -148,7 +148,9 @@ public class ShoppingWorkflowTest extends BasePresentationTest {
         Assert.assertEquals("Uma linha por item", 2, cart.rows.get().size());
         var penDrive = cart.rows.get().get(0);
         Assert.assertEquals((long) DBReset.PEN_DRIVE2GB_ID, (long) penDrive.id.get());
-        Assert.assertNotNull("Cada linha tem a sua view", penDrive.view());
+        var penDriveView = app.viewOf(penDrive);
+        Assert.assertNotNull("Cada linha tem a sua view", penDriveView);
+        Assert.assertSame("Pedida de novo, é a mesma view", penDriveView, app.viewOf(penDrive));
         Assert.assertEquals(16.00 + 2 * 45.30, cart.total.get(), 0.001);
 
         // A ação é da linha: não leva o id do produto

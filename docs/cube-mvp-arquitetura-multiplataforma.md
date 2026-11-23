@@ -247,7 +247,6 @@ public static class HomeScope extends Scope {
 
     public static class ProductsPanelScope extends Scope {
         public static final String CLASS_ID = "a1b2c3d4e5f6";
-        public static BiFunction<ShoppingApplication, ProductsPanelScope, CubeView> createView;
 
         public final Prop<List<ProductInfo>> products = prop();
         public ActionOf<Long> onOpenProduct = ActionOf.noop();
@@ -258,11 +257,11 @@ public static class HomeScope extends Scope {
 }
 ```
 
-O `HomePresenter` liga as ações do segmento (`actionOf(productsPanel, 1, FormParam.asLong("p.productId"), this::openProduct)`) e o encaixa numa view com `attach(productsPanel, ProductsPanelScope.createView)`: daí em diante uma mudança no segmento redesenha só a view dele, e a view é liberada junto com o Presenter. A view nunca conhece o Presenter — só lê o escopo e dispara as ações dele —, então um Presenter pode orquestrar vários segmentos sem uma classe por segmento.
+O `HomePresenter` liga as ações do segmento (`actionOf(productsPanel, 1, FormParam.asLong("p.productId"), this::openProduct)`) e só o põe no escopo (`state.productsPanel.set(productsPanel)`). Quem escolhe a view é a camada de view, como na versão TypeScript: cada host monta um catálogo `ScopeViews` (classe do escopo → fábrica) e o entrega à aplicação com `setScopeViews`; a view da Home pede a do painel com `app.viewOf(scope)`, que a cria na primeira vez. Daí em diante uma mudança no segmento redesenha só a view dele (antes disso, redesenha o dono), e a view é liberada junto com o Presenter. O host remoto não registra nada: `fallback(RemoteViewImpl::forScope)` faz uma view remota para qualquer escopo, com o `CLASS_ID` dele. A view nunca conhece o Presenter — só lê o escopo e dispara as ações dele —, então um Presenter pode orquestrar vários segmentos sem uma classe por segmento.
 
 No modo remoto o segmento é uma view como qualquer outra: tem o seu `classId`, o seu skeleton (o despacho por código das ações ligadas nele) e o pai o referencia pelo id da view (`"productsPanelViewId"`).
 
-**Linhas de lista também são segmentos.** Cada linha do carrinho é um `CartScope.CartItemScope`, com view própria e ações ligadas ao próprio item (`onRemove`, `onModifyQuantity(quantidade)` — a linha não manda o id do produto de volta: ela *é* o item). O `CartScope` guarda `Prop<List<CartItemScope>> rows`, que o serializador escreve como `"rowsViewIds": [...]`, na ordem. O `CartPresenter` reaproveita a linha pelo id do produto enquanto o item fica, cria (`attach`) a de um item novo e libera (`detach`) a de um item que saiu; mudar uma quantidade redesenha só aquela linha, e o total (`CartScope.total`) vem do servidor.
+**Linhas de lista também são segmentos.** Cada linha do carrinho é um `CartScope.CartItemScope`, com view própria e ações ligadas ao próprio item (`onRemove`, `onModifyQuantity(quantidade)` — a linha não manda o id do produto de volta: ela *é* o item). O `CartScope` guarda `Prop<List<CartItemScope>> rows`, que o serializador escreve como `"rowsViewIds": [...]`, na ordem. O `CartPresenter` reaproveita a linha pelo id do produto enquanto o item fica, cria a de um item novo (a view nasce quando o carrinho a pede) e libera (`detach`) a de um item que saiu; mudar uma quantidade redesenha só aquela linha, e o total (`CartScope.total`) vem do servidor.
 
 ---
 

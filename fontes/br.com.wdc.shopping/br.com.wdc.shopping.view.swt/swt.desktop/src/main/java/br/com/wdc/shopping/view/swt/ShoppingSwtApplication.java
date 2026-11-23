@@ -21,6 +21,7 @@ import br.com.wdc.framework.commons.storage.PreferencesClientStorage;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubePresenter;
 import br.com.wdc.framework.cube.CubeView;
+import br.com.wdc.framework.cube.ScopeViews;
 import br.com.wdc.shopping.presentation.ProxyRepositoryWrapper;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.RootPresenter;
@@ -93,7 +94,7 @@ public class ShoppingSwtApplication extends ShoppingApplication implements SwtAp
 			var v = new CartViewSwt(app); v.stateSupplier = () -> p.state;
 			v.onOpenProducts = p.state.onOpenProducts::run; v.onBuy = p.state.onBuy::run;
 			v.rowElements = () -> p.state.rows.get().stream()
-					.map(row -> row.view() instanceof AbstractViewSwt rv ? rv.getElement() : null)
+					.map(row -> app.viewOf(row) instanceof AbstractViewSwt rv ? rv.getElement() : null)
 					.filter(Objects::nonNull).toList();
 			return v; });
 		ProductPresenter.createView = app.onUiThread(p -> {
@@ -103,16 +104,17 @@ public class ShoppingSwtApplication extends ShoppingApplication implements SwtAp
 		var cartItemView = app.onUiThread((CartScope.CartItemScope row) -> {
 			var v = new CartItemViewSwt(app); v.stateSupplier = () -> row;
 			v.onModifyQuantity = row.onModifyQuantity::run; v.onRemove = row.onRemove::run; return v; });
-		CartScope.CartItemScope.createView = (a, row) -> cartItemView.apply(row);
 		var productsPanelView = app.onUiThread((HomeScope.ProductsPanelScope s) -> {
 			var v = new ProductsPanelViewSwt(app); v.stateSupplier = () -> s;
 			v.onOpenProduct = s.onOpenProduct::run; return v; });
-		HomeScope.ProductsPanelScope.createView = (a, s) -> productsPanelView.apply(s);
 		var purchasesPanelView = app.onUiThread((HomeScope.PurchasesPanelScope s) -> {
 			var v = new PurchasesPanelViewSwt(app); v.stateSupplier = () -> s;
 			v.onPageChange = s.onPageChange::run; v.onItemSizeCapacityChanged = s.onItemSizeCapacityChanged::run;
 			v.onOpenReceipt = s.onOpenReceipt::run; return v; });
-		HomeScope.PurchasesPanelScope.createView = (a, s) -> purchasesPanelView.apply(s);
+		app.setScopeViews(new ScopeViews()
+				.register(CartScope.CartItemScope.class, (ShoppingSwtApplication a, CartScope.CartItemScope row) -> cartItemView.apply(row))
+				.register(HomeScope.ProductsPanelScope.class, (ShoppingSwtApplication a, HomeScope.ProductsPanelScope s) -> productsPanelView.apply(s))
+				.register(HomeScope.PurchasesPanelScope.class, (ShoppingSwtApplication a, HomeScope.PurchasesPanelScope s) -> purchasesPanelView.apply(s)));
 		ReceiptPresenter.createView = app.onUiThread(p -> {
 			var v = new ReceiptViewSwt(app); v.stateSupplier = () -> p.state;
 			v.onOpenProducts = p.state.onOpenProducts::run; return v; });

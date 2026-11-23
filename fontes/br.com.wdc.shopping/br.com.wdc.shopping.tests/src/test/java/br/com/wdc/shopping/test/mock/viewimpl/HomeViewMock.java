@@ -32,11 +32,11 @@ public class HomeViewMock extends AbstractViewMock<HomePresenter> {
     }
 
     public ProductsPanelScope getProductsPanelState() {
-        return ProductsPanelViewMock.cast(this.state.productsPanel.get().view()).state;
+        return ProductsPanelViewMock.cast(this.app.viewOf(this.state.productsPanel.get())).state;
     }
 
     public PurchasesPanelScope getPurchasesPanelState() {
-        return PurchasesPanelViewMock.cast(this.state.purchasesPanel.get().view()).state;
+        return PurchasesPanelViewMock.cast(this.app.viewOf(this.state.purchasesPanel.get())).state;
     }
 
     public void render() {

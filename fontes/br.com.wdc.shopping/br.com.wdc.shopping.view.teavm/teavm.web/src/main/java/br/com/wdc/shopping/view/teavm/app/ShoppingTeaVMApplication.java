@@ -1,5 +1,6 @@
 package br.com.wdc.shopping.view.teavm.app;
 
+import br.com.wdc.framework.cube.ScopeViews;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -63,6 +64,12 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
     private boolean renderScheduled;
     private boolean navigatingFromBrowser;
 
+    /** The views of the scopes that have no presenter of their own (segments, rows). */
+    private static final ScopeViews SCOPE_VIEWS = new ScopeViews()
+            .register(CartScope.CartItemScope.class, (ShoppingTeaVMApplication app, CartScope.CartItemScope row) -> new CartItemView(app, row))
+            .register(HomeScope.ProductsPanelScope.class, (ShoppingTeaVMApplication app, HomeScope.ProductsPanelScope s) -> new ProductsPanelView(app, s))
+            .register(HomeScope.PurchasesPanelScope.class, (ShoppingTeaVMApplication app, HomeScope.PurchasesPanelScope s) -> new PurchasesPanelView(app, s));
+
     static {
         // Wiring das view factories
         RootPresenter.createView = RootView::new;
@@ -71,12 +78,10 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
         CartPresenter.createView = CartView::new;
         ProductPresenter.createView = ProductView::new;
         ReceiptPresenter.createView = ReceiptView::new;
-        CartScope.CartItemScope.createView = (app, row) -> new CartItemView((ShoppingTeaVMApplication) app, row);
-        HomeScope.ProductsPanelScope.createView = (app, scope) -> new ProductsPanelView((ShoppingTeaVMApplication) app, scope);
-        HomeScope.PurchasesPanelScope.createView = (app, scope) -> new PurchasesPanelView((ShoppingTeaVMApplication) app, scope);
     }
 
     public ShoppingTeaVMApplication(String apiBaseUrl, String shellId) {
+        this.setScopeViews(SCOPE_VIEWS);
         this.apiBaseUrl = apiBaseUrl;
         this.persistentStore = new BrowserLocalStorage(shellId);
 

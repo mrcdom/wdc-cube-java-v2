@@ -2,7 +2,6 @@ package br.com.wdc.shopping.presentation.presenter.restricted.home;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import br.com.wdc.framework.commons.function.ThrowingRunnable;
@@ -47,13 +46,11 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
 
         /**
          * The products panel: a segment of the home, with no presenter of its own. The home presenter binds its
-         * action and attaches it to a view.
+         * action; the view layer draws it with the view registered for this class.
          */
         public static class ProductsPanelScope extends Scope {
 
             public static final String CLASS_ID = "a1b2c3d4e5f6";
-
-            public static BiFunction<ShoppingApplication, ProductsPanelScope, CubeView> createView;
 
             public final Prop<List<ProductInfo>> products = prop();
 
@@ -65,8 +62,6 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
         public static class PurchasesPanelScope extends Scope {
 
             public static final String CLASS_ID = "b3c4d5e6f7a8";
-
-            public static BiFunction<ShoppingApplication, PurchasesPanelScope, CubeView> createView;
 
             public final Prop<List<PurchaseInfo>> purchases = prop(Collections.emptyList());
             public final Prop<Integer> page = prop(0);
@@ -165,11 +160,11 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
 
             this.state.nickName.set(this.app.getSubject().getNickName());
 
-            this.state.productsPanel.set(attach(this.productsPanel, HomeScope.ProductsPanelScope.createView));
+            this.state.productsPanel.set(this.productsPanel);
             this.loadProducts();
 
             // The purchases load once its view measures how many fit (onItemSizeCapacityChanged)
-            this.state.purchasesPanel.set(attach(this.purchasesPanel, HomeScope.PurchasesPanelScope.createView));
+            this.state.purchasesPanel.set(this.purchasesPanel);
 
             this.cart = new CartManager(app);
             this.onCartCommitListenerRemover = this.cart.addCommitListener(this::onCartCommited);

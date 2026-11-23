@@ -62,9 +62,7 @@ public class ShoppingLoginTest extends BasePresentationTest {
         Assert.assertNotNull("Falta lista de produtos", productsState.products.get());
 
         // Simulate the view reporting capacity (no real view in tests)
-        var purchasesMock = br.com.wdc.shopping.test.mock.viewimpl.PurchasesPanelViewMock
-                .cast(restrictedView.state.purchasesPanel.get().view());
-        purchasesMock.state.onItemSizeCapacityChanged.run(3);
+        purchasesState.onItemSizeCapacityChanged.run(3);
 
         Assert.assertEquals("João da Silva", restrictedView.state.nickName.get());
         Assert.assertEquals(0, (int) restrictedView.state.cartItemCount.get());

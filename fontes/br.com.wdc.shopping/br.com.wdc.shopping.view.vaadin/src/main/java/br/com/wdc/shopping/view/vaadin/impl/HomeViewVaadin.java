@@ -51,10 +51,10 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomePresenter> {
         this.purchasesPanelSlot = null;
         this.currentContentView = null;
         // Recreate sub-panel views
-        if (this.state.productsPanel.get() != null && this.state.productsPanel.get().view() instanceof AbstractViewVaadin<?> v) {
+        if (this.app.viewOf(this.state.productsPanel.get()) instanceof AbstractViewVaadin<?> v) {
             v.recreate();
         }
-        if (this.state.purchasesPanel.get() != null && this.state.purchasesPanel.get().view() instanceof AbstractViewVaadin<?> v) {
+        if (this.app.viewOf(this.state.purchasesPanel.get()) instanceof AbstractViewVaadin<?> v) {
             v.recreate();
         }
     }
@@ -77,7 +77,7 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomePresenter> {
             this.cartCountOldValue = this.state.cartItemCount.get();
         }
 
-        if (this.state.productsPanel.get() != null && this.state.productsPanel.get().view() instanceof AbstractViewVaadin<?> ppv) {
+        if (this.app.viewOf(this.state.productsPanel.get()) instanceof AbstractViewVaadin<?> ppv) {
             if (!this.productsPanelSlot.getChildren().toList().contains(ppv.getElement())) {
                 this.productsPanelSlot.removeAll();
                 this.productsPanelSlot.add(ppv.getElement());
@@ -85,7 +85,7 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomePresenter> {
             ppv.doUpdate();
         }
 
-        if (this.state.purchasesPanel.get() != null && this.state.purchasesPanel.get().view() instanceof AbstractViewVaadin<?> ppv) {
+        if (this.app.viewOf(this.state.purchasesPanel.get()) instanceof AbstractViewVaadin<?> ppv) {
             if (!this.purchasesPanelSlot.getChildren().toList().contains(ppv.getElement())) {
                 this.purchasesPanelSlot.removeAll();
                 this.purchasesPanelSlot.add(ppv.getElement());
