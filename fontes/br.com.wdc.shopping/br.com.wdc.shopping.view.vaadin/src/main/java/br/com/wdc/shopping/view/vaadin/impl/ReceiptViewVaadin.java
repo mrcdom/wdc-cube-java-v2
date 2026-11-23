@@ -11,14 +11,13 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter.ReceiptScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptItem;
 import br.com.wdc.shopping.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.shopping.view.vaadin.ShoppingVaadinApplication;
 import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
-public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptPresenter> {
+public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptScope> {
 
     private final ReceiptScope state;
 
@@ -27,9 +26,9 @@ public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptPresenter> {
     private Span totalElm;
     private double totalOldValue;
 
-    public ReceiptViewVaadin(ReceiptPresenter presenter) {
-        super("receipt", (ShoppingVaadinApplication) presenter.app, presenter, new VerticalLayout());
-        this.state = presenter.state;
+    public ReceiptViewVaadin(ShoppingVaadinApplication app, ReceiptScope state) {
+        super("receipt", app, state, new VerticalLayout());
+        this.state = state;
     }
 
     @Override
@@ -120,7 +119,7 @@ public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptPresenter> {
             button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
             button.addClassName("back-button");
             button.getStyle().set("margin-top", "var(--lumo-space-m)");
-            button.addClickListener(e -> safeAction("Open products", this.presenter.state.onOpenProducts::run));
+            button.addClickListener(e -> safeAction("Open products", this.state.onOpenProducts::run));
         });
     }
 }

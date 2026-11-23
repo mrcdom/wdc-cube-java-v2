@@ -76,9 +76,14 @@ public class GuardedActionTest {
 
     // ── Event codes (remote clients) ───────────────────────────────────
 
+    static class FormScope extends Scope {
+        public static final String CLASS_ID = "abc123";
+    }
+
     static class RemotePresenter extends AbstractCubePresenter<RecordingApp> {
 
         final List<String> calls = new ArrayList<>();
+        final FormScope state = bind(new FormScope());
         String synced;
 
         final Action buy = action(1, () -> calls.add("buy"));
@@ -90,10 +95,12 @@ public class GuardedActionTest {
 
         RemotePresenter(RecordingApp app) {
             super(app);
+            state.onSync(formData -> synced = String.valueOf(formData.get("name")));
         }
 
+        /** The bound scope's skeleton dispatches to the actions the presenter bound with a code. */
         CubeSkeleton skeleton() {
-            return skeleton("abc123", formData -> synced = String.valueOf(formData.get("name")));
+            return state.skeleton(FormScope.CLASS_ID);
         }
     }
 

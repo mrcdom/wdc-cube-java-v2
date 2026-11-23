@@ -3,12 +3,11 @@ package br.com.wdc.shopping.test.mock.viewimpl;
 import org.junit.Assert;
 
 import br.com.wdc.framework.cube.CubeView;
-import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter.ProductScope;
 import br.com.wdc.shopping.test.mock.ShoppingApplicationMock;
 
 @SuppressWarnings("java:S106")
-public class ProductViewMock extends AbstractViewMock<ProductPresenter> {
+public class ProductViewMock extends AbstractViewMock<ProductScope> {
 
     public static ProductViewMock cast(CubeView view) {
         var cls = ProductViewMock.class;
@@ -18,11 +17,9 @@ public class ProductViewMock extends AbstractViewMock<ProductPresenter> {
         return (ProductViewMock) view;
     }
 
-    public ProductScope state;
 
-    public ProductViewMock(ProductPresenter presenter) {
-        super(((ShoppingApplicationMock) presenter.app), presenter);
-        this.state = presenter.state;
+    public ProductViewMock(ShoppingApplicationMock app, ProductScope state) {
+        super(app, state);
     }
 
     public void printProduto() {

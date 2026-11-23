@@ -12,7 +12,6 @@ import br.com.wdc.framework.commons.lang.CoerceUtils;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubeSkeleton;
-import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.PresenterBase;
 import br.com.wdc.framework.cube.Prop;
 import br.com.wdc.framework.cube.Scope;
@@ -29,7 +28,8 @@ public class RemoteBrowserPresenter implements PresenterBase {
         public final Prop<String> instanceId = prop();
         public final Prop<Integer> alertId = prop(0);
         public final Prop<List<String>> alertArgs = prop(Collections.emptyList());
-        public final Prop<CubeView> contentView = prop();
+        /** The root presenter's scope: drawn by the view the catalog gives it, made when this state is written. */
+        public final Prop<Scope> content = prop();
     }
 
     public final RemoteApplication app;
@@ -49,11 +49,7 @@ public class RemoteBrowserPresenter implements PresenterBase {
     @Override
     public void commitComputedState() {
         var rootPresenter = this.app.getRootPresenter();
-        CubeView rootView = null;
-        if (rootPresenter instanceof AbstractCubePresenter<?> acp) {
-            rootView = acp.view();
-        }
-        this.state.contentView.set(rootView);
+        this.state.content.set(rootPresenter instanceof AbstractCubePresenter<?> acp ? acp.scope() : null);
     }
 
     @Override

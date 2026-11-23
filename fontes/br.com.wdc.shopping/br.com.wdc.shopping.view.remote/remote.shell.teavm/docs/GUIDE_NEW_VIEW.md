@@ -14,10 +14,10 @@ A view **não possui lógica de negócio** — toda a lógica fica no Presenter 
 
 ## Pré-requisitos
 
-Antes de criar a view no shell, o Presenter correspondente já deve existir na camada `presentation`, com:
+Antes de criar a view no shell, o Presenter e o seu Scope já devem existir na camada `presentation`, com:
 
-- Um `classId()` definido no `skeleton()` (ex: `"a1b2c3d4e5f6"`)
-- Um `ViewState.write()` que serializa os campos em JSON
+- O classId declarado no escopo: `public static final String CLASS_ID = "a1b2c3d4e5f6";`
+- Os campos observados como `Prop`s públicas do escopo (o `ScopeSerializer` os escreve em JSON por reflexão)
 - Os códigos de evento, dados na ligação de cada ação (`action(1, ...)`, `actionOf(2, FormParam.asLong("p.itemId"), ...)`)
 
 ## Anatomia de uma View
@@ -37,7 +37,7 @@ import br.com.wdc.shopping.view.remote.shell.teavm.bridge.ViewScope;
 
 public class WishlistView extends AbstractRemoteView {
 
-    // 1. VIEW_ID — deve ser IDÊNTICO ao classId() do Presenter
+    // 1. VIEW_ID — deve ser IDÊNTICO ao CLASS_ID do escopo (WishlistScope.CLASS_ID)
     public static final String VIEW_ID = "a1b2c3d4e5f6";
 
     // 2. Event codes — devem ser IDÊNTICOS aos códigos das ações do Presenter (action(1, ...))
@@ -160,15 +160,17 @@ mvn -q -DskipTests compile -pl br.com.wdc.shopping/br.com.wdc.shopping.view.remo
 
 ### VIEW_ID e o Protocolo
 
-O `VIEW_ID` é um hash de 12 caracteres que vincula a view no shell ao Presenter no host:
+O `VIEW_ID` é um hash de 12 caracteres que vincula a view no shell ao escopo no host:
 
 ```
-Host (Presenter)                      Shell (View)
-┌─────────────────────┐               ┌──────────────────┐
-│ skeleton().classId() │ ←─ mesmo ─→  │ VIEW_ID          │
-│ = "a1b2c3d4e5f6"    │               │ = "a1b2c3d4e5f6" │
-└─────────────────────┘               └──────────────────┘
+Host (Scope)                          Shell (View)
+┌──────────────────────┐              ┌──────────────────┐
+│ XxxScope.CLASS_ID    │ ←─ mesmo ─→  │ VIEW_ID          │
+│ = "a1b2c3d4e5f6"     │              │ = "a1b2c3d4e5f6" │
+└──────────────────────┘              └──────────────────┘
 ```
+
+No host, `RemoteViewImpl::forScope` (o `fallback` do `ScopeViews` do `ShoppingApplicationImpl`) lê o `CLASS_ID` do escopo e o usa como classId da view remota e do skeleton.
 
 Quando o host envia um estado JSON com esse ID, o `ViewStateCoordinator` localiza a factory registrada, instancia a view (se nova) e entrega o estado via `ViewScope`.
 
@@ -200,7 +202,7 @@ setFormField("p.quantity", 3);
 submit(ON_ADD_TO_CART);  // Presenter recebe formData com os campos
 ```
 
-No Presenter, a ação diz o seu código e como ler o campo; o skeleton genérico despacha:
+No Presenter, a ação diz o seu código e como ler o campo; o skeleton do escopo (`scope.skeleton(CLASS_ID)`) despacha:
 
 ```java
 this.state.onRemoveItem = actionOf(1, FormParam.asLong("p.itemId"), this::removeItem);
@@ -409,7 +411,7 @@ private Product parseProduct(ViewScope scope) {
 
 ## Checklist para Nova View
 
-- [ ] `VIEW_ID` idêntico ao `classId()` do Presenter
+- [ ] `VIEW_ID` idêntico ao `CLASS_ID` do escopo
 - [ ] Event codes idênticos aos códigos das ações do Presenter
 - [ ] Registrada no `Main.java` com `app.registerView(VIEW_ID, View::new)`
 - [ ] Interface `Css` com aliases e suppressions

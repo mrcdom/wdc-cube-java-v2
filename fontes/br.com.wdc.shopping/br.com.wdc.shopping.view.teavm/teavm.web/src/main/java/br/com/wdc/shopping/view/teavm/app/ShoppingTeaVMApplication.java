@@ -1,7 +1,5 @@
 package br.com.wdc.shopping.view.teavm.app;
 
-import br.com.wdc.framework.cube.ScopeViews;
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,22 +12,21 @@ import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.commons.http.HttpTransport;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.storage.ClientStorage;
-import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubePresenter;
-import br.com.wdc.framework.domain.security.AuthenticationService.AuthResult;
+import br.com.wdc.framework.cube.ScopeViews;
 import br.com.wdc.framework.domain.security.AuthenticationService;
+import br.com.wdc.framework.domain.security.AuthenticationService.AuthResult;
 import br.com.wdc.framework.domain.security.CryptoProvider;
 import br.com.wdc.shopping.domain.user.UserCriteria;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
-import br.com.wdc.shopping.presentation.presenter.RootPresenter;
 import br.com.wdc.shopping.presentation.presenter.RootKeys;
-import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
+import br.com.wdc.shopping.presentation.presenter.RootPresenter.RootScope;
+import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginScope;
 import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope;
-import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
+import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter.ProductScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter.ReceiptScope;
 import br.com.wdc.shopping.view.teavm.commons.interop.Console;
 import br.com.wdc.shopping.view.teavm.infra.BrowserCryptoProvider;
 import br.com.wdc.shopping.view.teavm.infra.BrowserLocalStorage;
@@ -64,21 +61,17 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
     private boolean renderScheduled;
     private boolean navigatingFromBrowser;
 
-    /** The views of the scopes that have no presenter of their own (segments, rows). */
+    /** The view of each scope: the presenters', the segments' and the rows'. */
     private static final ScopeViews SCOPE_VIEWS = new ScopeViews()
+            .register(RootScope.class, RootView::new)
+            .register(LoginScope.class, LoginView::new)
+            .register(HomeScope.class, HomeView::new)
+            .register(ProductScope.class, ProductView::new)
+            .register(CartScope.class, CartView::new)
+            .register(ReceiptScope.class, ReceiptView::new)
             .register(CartScope.CartItemScope.class, (ShoppingTeaVMApplication app, CartScope.CartItemScope row) -> new CartItemView(app, row))
             .register(HomeScope.ProductsPanelScope.class, (ShoppingTeaVMApplication app, HomeScope.ProductsPanelScope s) -> new ProductsPanelView(app, s))
             .register(HomeScope.PurchasesPanelScope.class, (ShoppingTeaVMApplication app, HomeScope.PurchasesPanelScope s) -> new PurchasesPanelView(app, s));
-
-    static {
-        // Wiring das view factories
-        RootPresenter.createView = RootView::new;
-        LoginPresenter.createView = LoginView::new;
-        HomePresenter.createView = HomeView::new;
-        CartPresenter.createView = CartView::new;
-        ProductPresenter.createView = ProductView::new;
-        ReceiptPresenter.createView = ReceiptView::new;
-    }
 
     public ShoppingTeaVMApplication(String apiBaseUrl, String shellId) {
         this.setScopeViews(SCOPE_VIEWS);
@@ -245,13 +238,16 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
 
     @Override
     public void updateHistory() {
+        // The host draws the root presenter's scope; each view asks for the views of the scopes it holds
+        var rootPresenter = this.getRootPresenter();
+        if (rootPresenter != null) {
+            this.viewOf(rootPresenter.state);
+        }
+
         // Mark all active views as dirty for UI refresh
-        for (var presenter : this.presenterMap.values()) {
-            if (presenter instanceof AbstractCubePresenter<?> acp) {
-                var view = acp.view();
-                if (view instanceof AbstractViewTeaVM<?> teavmView) {
-                    this.markDirty(teavmView);
-                }
+        for (var view : this.liveViews()) {
+            if (view instanceof AbstractViewTeaVM<?> teavmView) {
+                this.markDirty(teavmView);
             }
         }
 

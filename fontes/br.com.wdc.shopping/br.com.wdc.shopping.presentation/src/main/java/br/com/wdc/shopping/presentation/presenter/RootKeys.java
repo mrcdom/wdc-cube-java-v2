@@ -3,7 +3,7 @@ package br.com.wdc.shopping.presentation.presenter;
 import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.CubeKeys;
 import br.com.wdc.framework.cube.CubePlace;
-import br.com.wdc.framework.cube.CubeViewSlot;
+import br.com.wdc.framework.cube.ScopeSlot;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 
 /**
@@ -62,13 +62,13 @@ public class RootKeys extends CubeKeys<ShoppingApplication> {
         super(app, intent, place);
     }
 
-    /** The slot where this level shows its view; a level with content republishes it for the level below. */
-    public CubeViewSlot parentSlot() {
-        return intent().getViewSlot(A.PARENT_SLOT);
+    /** The slot where this level shows its scope; a level with content republishes it for the level below. */
+    public ScopeSlot parentSlot() {
+        return intent().getSlot(A.PARENT_SLOT);
     }
 
-    public RootKeys withParentSlot(CubeViewSlot slot) {
-        intent().setViewSlot(A.PARENT_SLOT, slot);
+    public RootKeys withParentSlot(ScopeSlot slot) {
+        intent().setSlot(A.PARENT_SLOT, slot);
         return this;
     }
 

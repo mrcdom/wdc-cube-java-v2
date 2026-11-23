@@ -1,5 +1,7 @@
 package br.com.wdc.shopping.view.swt.impl;
 
+import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
+
 import java.util.Objects;
 import java.util.function.Supplier;
 
@@ -21,7 +23,6 @@ import br.com.wdc.shopping.view.swt.theme.Theme;
 import br.com.wdc.shopping.view.swt.util.SlotComposite;
 import br.com.wdc.shopping.view.swt.util.StackComposite;
 import br.com.wdc.shopping.view.swt.util.SwtDom;
-import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
 
 /**
  * Home view — header + content area (products grid + purchases panel).
@@ -103,7 +104,7 @@ public class HomeViewSwt extends AbstractViewSwt {
         }
 
         // Content overlay
-        if (state != null && state.contentView.get() instanceof AbstractViewSwt overlay) {
+        if (state != null && app.viewOf(state.content.get()) instanceof AbstractViewSwt overlay) {
             this.contentOverlaySlot.setContent(overlay.getElement());
             this.contentStack.showControl(this.contentOverlaySlot);
             this.purchasesPanelSlot.setVisible(false);

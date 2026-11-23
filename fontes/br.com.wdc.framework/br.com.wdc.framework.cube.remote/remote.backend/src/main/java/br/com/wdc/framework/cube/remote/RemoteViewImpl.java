@@ -12,9 +12,10 @@ import br.com.wdc.framework.cube.Scope;
 /**
  * Generic {@link CubeView} implementation for remote applications.
  * <p>
- * Each presenter gets one instance that manages dirty-tracking and
- * delegates submit/syncState to the skeleton. So does each segment (a scope inside a presenter's scope, with no
- * presenter of its own): see {@link #RemoteViewImpl(RemoteApplication, Scope, String)}.
+ * Each scope drawn for a client (a presenter's, a segment's, a row's) gets one instance, made by
+ * {@link #forScope}: it manages dirty-tracking and delegates submit/syncState to the scope's skeleton, which
+ * dispatches to the actions the presenter bound with an event code. The browser view is the one built with its own
+ * presenter and skeleton.
  */
 public class RemoteViewImpl implements CubeView {
 
@@ -26,13 +27,13 @@ public class RemoteViewImpl implements CubeView {
 
     protected int alertId;
 
-    /** No presenter behind a segment's view: there is no computed state to commit before writing it. */
+    /** No presenter behind a scope's view: the application commits the presenters' computed state before writing. */
     private static final PresenterBase NO_PRESENTER = new PresenterBase() {
     };
 
-    /** The view of a segment: its skeleton dispatches to the actions the presenter bound on the segment. */
-    public RemoteViewImpl(RemoteApplication app, Scope segment, String classId) {
-        this(app, NO_PRESENTER, segment, segment.skeleton(classId));
+    /** The view of a scope: its skeleton dispatches to the actions the presenter bound on the scope. */
+    public RemoteViewImpl(RemoteApplication app, Scope scope, String classId) {
+        this(app, NO_PRESENTER, scope, scope.skeleton(classId));
     }
 
     /**

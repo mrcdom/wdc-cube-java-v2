@@ -5,7 +5,6 @@ import java.util.Date;
 import org.junit.Assert;
 
 import br.com.wdc.framework.cube.CubeView;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope.ProductsPanelScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope.PurchasesPanelScope;
@@ -14,7 +13,7 @@ import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.Pr
 import br.com.wdc.shopping.test.mock.ShoppingApplicationMock;
 
 @SuppressWarnings("java:S106")
-public class HomeViewMock extends AbstractViewMock<HomePresenter> {
+public class HomeViewMock extends AbstractViewMock<HomeScope> {
 
     public static HomeViewMock cast(CubeView view) {
         var cls = HomeViewMock.class;
@@ -24,11 +23,9 @@ public class HomeViewMock extends AbstractViewMock<HomePresenter> {
         return (HomeViewMock) view;
     }
 
-    public HomeScope state;
 
-    public HomeViewMock(HomePresenter presenter) {
-        super(((ShoppingApplicationMock) presenter.app), presenter);
-        this.state = presenter.state;
+    public HomeViewMock(ShoppingApplicationMock app, HomeScope state) {
+        super(app, state);
     }
 
     public ProductsPanelScope getProductsPanelState() {

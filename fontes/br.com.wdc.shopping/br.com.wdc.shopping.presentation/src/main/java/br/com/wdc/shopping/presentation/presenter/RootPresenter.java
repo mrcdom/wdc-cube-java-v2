@@ -1,24 +1,21 @@
 package br.com.wdc.shopping.presentation.presenter;
 
-import java.util.function.Function;
 
 import org.apache.commons.lang3.StringUtils;
 
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubeIntent;
-import br.com.wdc.framework.cube.CubeSkeleton;
-import br.com.wdc.framework.cube.CubeView;
-import br.com.wdc.framework.cube.CubeViewSlot;
 import br.com.wdc.framework.cube.Prop;
 import br.com.wdc.framework.cube.Scope;
+import br.com.wdc.framework.cube.ScopeSlot;
 import br.com.wdc.framework.domain.security.AuthenticationService;
 import br.com.wdc.framework.domain.security.SecurityContext;
 import br.com.wdc.shopping.domain.user.UserCriteria;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
 import br.com.wdc.shopping.presentation.StorageKeys;
 import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
 
 public class RootPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
@@ -26,13 +23,15 @@ public class RootPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     private static final Log LOG = Log.getLogger(RootPresenter.class);
 
-    public static Function<RootPresenter, CubeView> createView;
 
     // :: Public Instance Fields
 
     public static class RootScope extends Scope {
 
-        public final Prop<CubeView> contentView = prop();
+        public static final String CLASS_ID = "f2d345c4a610";
+
+        /** The scope of the presenter below (the home, the login): the view layer draws it. */
+        public final Prop<Scope> content = prop();
         public final Prop<String> errorMessage = prop();
 
     }
@@ -41,27 +40,26 @@ public class RootPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     // :: Internal Instance Fields
 
-    private final CubeViewSlot contentSlot;
+    private final ScopeSlot contentSlot;
 
     // :: Constructor
 
     public RootPresenter(ShoppingApplication app) {
         super(app);
-        this.contentSlot = this::setContentView;
+        this.contentSlot = this::setContent;
     }
 
     // :: Cube API
 
     @Override
     public void release() {
-        this.state.contentView.set(null);
+        this.state.content.set(null);
         super.release();
     }
 
     @Override
     public boolean applyParameters(CubeIntent intent, boolean initialization, boolean deepest) {
         if (initialization) {
-            this.view = createView.apply(this);
             tryAutoLogin();
         }
 
@@ -153,14 +151,8 @@ public class RootPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     // :: Slots
 
-    private void setContentView(CubeView view) {
-        this.state.contentView.set(view);
-    }
-
-    // :: Controle remoto
-
-    public CubeSkeleton skeleton() {
-        return skeleton("f2d345c4a610");
+    private void setContent(Scope content) {
+        this.state.content.set(content);
     }
 
 }

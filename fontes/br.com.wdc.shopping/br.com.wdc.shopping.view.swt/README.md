@@ -23,7 +23,7 @@ sequenceDiagram
     participant App as ShoppingSwtApplication
     participant EDT as SWT Display Thread (EDT)
 
-    BG->>BG: presenter.state changes
+    BG->>BG: Prop do escopo muda (set)
     BG->>App: view.update()
     App->>App: markDirty(view)
     Note over EDT: Timer(16ms)

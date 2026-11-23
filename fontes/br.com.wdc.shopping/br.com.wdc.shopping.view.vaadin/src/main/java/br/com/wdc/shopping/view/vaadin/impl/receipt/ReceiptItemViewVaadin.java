@@ -7,13 +7,13 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
+import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter.ReceiptScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptItem;
 import br.com.wdc.shopping.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.shopping.view.vaadin.ShoppingVaadinApplication;
 import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
-public class ReceiptItemViewVaadin extends AbstractViewVaadin<ReceiptPresenter> {
+public class ReceiptItemViewVaadin extends AbstractViewVaadin<ReceiptScope> {
 
     private ReceiptItem state;
 
@@ -25,8 +25,8 @@ public class ReceiptItemViewVaadin extends AbstractViewVaadin<ReceiptPresenter> 
     private Span quantityElm;
     private int quantityOldValue;
 
-    public ReceiptItemViewVaadin(ShoppingVaadinApplication app, ReceiptPresenter presenter, int idx) {
-        super("receipt-item-" + idx, app, presenter, new HorizontalLayout());
+    public ReceiptItemViewVaadin(ShoppingVaadinApplication app, ReceiptScope state, int idx) {
+        super("receipt-item-" + idx, app, state, new HorizontalLayout());
     }
 
     public void setState(ReceiptItem state, boolean scheduleUpdate) {

@@ -65,7 +65,7 @@ Exercitam diretamente os serviços e repositórios do domínio (login, consulta 
 
 ### Testes de apresentação (`ShoppingLoginTest`, `ShoppingWorkflowTest`)
 
-Simulam a interação do usuário **no nível de apresentação** usando mocks de view. Cada view mock expõe o `state` e o `presenter`, permitindo:
+Simulam a interação do usuário **no nível de apresentação** usando mocks de view. Cada view mock expõe o `state` (o escopo que desenha), permitindo:
 
 1. Disparar as ações do state como o usuário faria (ex.: `loginView.state.onEnter.run("admin", "admin")`)
 2. Inspecionar o estado resultante (ex.: `restrictedView.state.errorCode`)
@@ -82,24 +82,24 @@ public class ShoppingWorkflowTest extends BasePresentationTest {
         var rootView = this.app.getRootView();
 
         // Login
-        var loginView = LoginViewMock.cast(rootView.state.contentView);
+        var loginView = LoginViewMock.cast(this.app.viewOf(rootView.state.content.get()));
         loginView.state.onEnter.run("admin", "admin");
 
         // Navegar para produto (a ação é do painel de produtos da home)
-        var homeView = HomeViewMock.cast(rootView.state.contentView);
+        var homeView = HomeViewMock.cast(this.app.viewOf(rootView.state.content.get()));
         homeView.getProductsPanelState().onOpenProduct.run(DBReset.PEN_DRIVE2GB_ID);
 
         // Adicionar ao carrinho
-        var produtoView = ProductViewMock.cast(homeView.state.contentView);
+        var produtoView = ProductViewMock.cast(this.app.viewOf(homeView.state.content.get()));
         produtoView.state.onAddToCart.run(1);
 
         // Finalizar compra
-        var carrinhoView = CartViewMock.cast(homeView.state.contentView);
+        var carrinhoView = CartViewMock.cast(this.app.viewOf(homeView.state.content.get()));
         carrinhoView.state.onBuy.run();
 
         // Verificar recibo
-        var reciboView = ReceiptViewMock.cast(homeView.state.contentView);
-        Assert.assertNotNull(reciboView.state.receipt);
+        var reciboView = ReceiptViewMock.cast(this.app.viewOf(homeView.state.content.get()));
+        Assert.assertNotNull(reciboView.state.receipt.get());
     }
 }
 ```
@@ -116,13 +116,13 @@ Este teste navega por **5 telas** (login → home → produto → carrinho → r
 
 ### `BasePresentationTest`
 
-Estende `BaseBusinessTest` e instancia `ShoppingApplicationMock`, que registra view mocks via `Presenter.createView`.
+Estende `BaseBusinessTest` e instancia `ShoppingApplicationMock`, que entrega à aplicação um catálogo `ScopeViews` com um view mock por classe de escopo (`register(CartScope.class, CartViewMock::new)`). `getRootView()` devolve a view do escopo raiz (`viewOf(getRootPresenter().state)`); as demais se obtêm com `app.viewOf(...)` sobre o escopo que o pai segura (`state.content.get()`).
 
 ### View mocks
 
-Cada mock (`LoginViewMock`, `CartViewMock`, etc.) estende `AbstractViewMock<P>` e expõe:
-- `state` — o `Scope` do presenter (acesso direto para leitura/escrita)
-- `presenter` — o presenter real para invocar ações
+Cada mock (`LoginViewMock`, `CartViewMock`, etc.) estende `AbstractViewMock<S extends Scope>`, é construído com `(app, scope)` (`new CartViewMock(app, state)`) e expõe:
+- `state` — o escopo que a view desenha (leitura do estado e disparo das ações, como faria o usuário)
+- `app` — a `ShoppingApplicationMock`, para pedir as views dos escopos internos (`app.viewOf(...)`)
 - `cast(CubeView)` — método estático para obter o mock com asserção de tipo
 
 ## Dependências

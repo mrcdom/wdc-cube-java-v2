@@ -6,8 +6,10 @@ public class AbstractCubePresenter<A extends CubeApplication> extends AbstractPr
         super(app);
     }
 
+    /** The view the view layer made for this presenter's scope; {@code null} while it has none. */
     public final CubeView view() {
-        return view;
+        var scope = scope();
+        return scope != null ? scope.view() : null;
     }
 
     @Override

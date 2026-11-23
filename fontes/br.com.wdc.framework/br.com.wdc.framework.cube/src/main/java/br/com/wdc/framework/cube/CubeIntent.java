@@ -90,13 +90,13 @@ public class CubeIntent {
         }
     }
 
-    public void setViewSlot(String name, CubeViewSlot slot) {
+    public void setSlot(String name, ScopeSlot slot) {
         this.setAttribute(name, slot);
     }
 
-    public CubeViewSlot getViewSlot(String name) {
+    public ScopeSlot getSlot(String name) {
         var value = this.getAttribute(name);
-        if (value instanceof CubeViewSlot v) {
+        if (value instanceof ScopeSlot v) {
             return v;
         }
         return null;

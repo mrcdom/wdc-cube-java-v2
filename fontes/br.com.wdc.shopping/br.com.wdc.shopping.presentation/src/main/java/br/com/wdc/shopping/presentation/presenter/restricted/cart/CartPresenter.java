@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.commons.function.Registration;
@@ -16,14 +15,12 @@ import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.Action;
 import br.com.wdc.framework.cube.ActionOf;
 import br.com.wdc.framework.cube.CubeIntent;
-import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.FormParam;
-import br.com.wdc.framework.cube.CubeView;
-import br.com.wdc.framework.cube.CubeViewSlot;
 import br.com.wdc.framework.cube.Prop;
 import br.com.wdc.framework.cube.Scope;
-import br.com.wdc.shopping.domain.exception.InvalidCartItemException;
+import br.com.wdc.framework.cube.ScopeSlot;
 import br.com.wdc.framework.domain.exception.OfflineException;
+import br.com.wdc.shopping.domain.exception.InvalidCartItemException;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptKeys;
@@ -34,13 +31,11 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     private static final Log LOG = Log.getLogger(CartPresenter.class);
 
-    // :: Public class Fields
-
-    public static Function<CartPresenter, CubeView> createView;
-
     // :: Public Instance Fields
 
     public static class CartScope extends Scope {
+
+        public static final String CLASS_ID = "7eb485e5f843";
 
         /**
          * A row of the cart: a segment with its own view and its own actions, bound to its item — the row does not
@@ -77,7 +72,7 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
     // :: Internal Instance Fields
 
     private CartManager cart;
-    private CubeViewSlot ownerSlot;
+    private ScopeSlot ownerSlot;
     private Registration pendingErrorClear;
 
     /** The rows by product id: a row is reused while its item stays in the cart. */
@@ -102,10 +97,9 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
         // Read on every call: a reused presenter goes where its parent puts it now, not where it was first put
         this.ownerSlot = new CartKeys(this.app, intent).parentSlot();
         if (initialization) {
-            this.view = createView.apply(this);
         }
 
-        this.ownerSlot.setView(this.view);
+        this.ownerSlot.setScope(this.state);
 
         return true;
     }
@@ -257,12 +251,6 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
         this.state.errorCode.set(6);
         this.state.errorMessage.set("Valor da quantiade está mal formado.");
         this.clearErrorAfterDelay();
-    }
-
-    // :: Controle remoto
-
-    public CubeSkeleton skeleton() {
-        return skeleton("7eb485e5f843");
     }
 
 }

@@ -13,14 +13,13 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter.ProductScope;
 import br.com.wdc.shopping.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.shopping.view.vaadin.ShoppingVaadinApplication;
 import br.com.wdc.shopping.view.vaadin.util.ResourceCatalog;
 import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
-public class ProductViewVaadin extends AbstractViewVaadin<ProductPresenter> {
+public class ProductViewVaadin extends AbstractViewVaadin<ProductScope> {
 
     private final ProductScope state;
 
@@ -36,9 +35,9 @@ public class ProductViewVaadin extends AbstractViewVaadin<ProductPresenter> {
     private Div descriptionElm;
     private String descriptionOldValue;
 
-    public ProductViewVaadin(ProductPresenter presenter) {
-        super("product", (ShoppingVaadinApplication) presenter.app, presenter, new VerticalLayout());
-        this.state = presenter.state;
+    public ProductViewVaadin(ShoppingVaadinApplication app, ProductScope state) {
+        super("product", app, state, new VerticalLayout());
+        this.state = state;
     }
 
     @Override
@@ -199,7 +198,7 @@ public class ProductViewVaadin extends AbstractViewVaadin<ProductPresenter> {
             button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
             button.addClassName("back-button");
             button.getStyle().set("margin-top", "var(--lumo-space-m)");
-            button.addClickListener(e -> safeAction("Open products", this.presenter.state.onOpenProducts::run));
+            button.addClickListener(e -> safeAction("Open products", this.state.onOpenProducts::run));
         });
     }
 
@@ -208,6 +207,6 @@ public class ProductViewVaadin extends AbstractViewVaadin<ProductPresenter> {
         if (quantity == null || quantity < 1) {
             quantity = 1;
         }
-        this.presenter.state.onAddToCart.run(quantity);
+        this.state.onAddToCart.run(quantity);
     }
 }

@@ -32,8 +32,8 @@ public abstract class Scope {
 
     private volatile CubeView view;
 
-    /** The actions a remote client fires on this scope, by event code (a segment's; a presenter keeps its own). */
-    private final Map<Integer, Consumer<Map<String, Object>>> events = new HashMap<>();
+    /** The actions a remote client fires on this scope, by event code (a presenter's scope shares the presenter's). */
+    private Map<Integer, Consumer<Map<String, Object>>> events = new HashMap<>();
 
     private Consumer<Map<String, Object>> syncState;
 
@@ -76,6 +76,20 @@ public abstract class Scope {
         this.view = view;
     }
 
+    /**
+     * A scope known only by the view that draws it: what a client rebuilding a remote host's scopes puts in a prop
+     * that holds another presenter's scope, whose type the reference alone does not tell. {@code null} for no view.
+     */
+    public static Scope drawnBy(CubeView view) {
+        if (view == null) {
+            return null;
+        }
+        var scope = new Scope() {
+        };
+        scope.attachView(view);
+        return scope;
+    }
+
     /** What a remote client syncs into this scope before its events (a typed field, for instance). */
     public final void onSync(Consumer<Map<String, Object>> syncState) {
         this.syncState = syncState;
@@ -101,6 +115,12 @@ public abstract class Scope {
         if (child != this && child.updater == null && child.owner == null) {
             child.owner = this;
         }
+    }
+
+    /** The presenter that binds this scope keeps the actions it binds with a code: the scope's skeleton sees them. */
+    final void shareEvents(Map<Integer, Consumer<Map<String, Object>>> presenterEvents) {
+        presenterEvents.putAll(this.events);
+        this.events = presenterEvents;
     }
 
     final void onEvent(int eventCode, Consumer<Map<String, Object>> handler, String owner) {

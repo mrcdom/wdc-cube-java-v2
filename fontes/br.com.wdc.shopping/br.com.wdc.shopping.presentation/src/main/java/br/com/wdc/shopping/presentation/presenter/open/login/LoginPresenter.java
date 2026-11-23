@@ -1,22 +1,19 @@
 package br.com.wdc.shopping.presentation.presenter.open.login;
 
-import java.util.function.Function;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.ActionOf2;
 import br.com.wdc.framework.cube.CubeIntent;
-import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.FormParam;
-import br.com.wdc.framework.cube.CubeView;
-import br.com.wdc.framework.cube.CubeViewSlot;
 import br.com.wdc.framework.cube.Prop;
 import br.com.wdc.framework.cube.Scope;
+import br.com.wdc.framework.cube.ScopeSlot;
 import br.com.wdc.framework.domain.exception.OfflineException;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
 import br.com.wdc.shopping.presentation.StorageKeys;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
 
 public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
@@ -27,7 +24,6 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     // :: Public Static
 
-    public static Function<LoginPresenter, CubeView> createView;
 
     public static void simulateSlowLogin(boolean value) {
         simulateSlowLogin = value;
@@ -36,6 +32,8 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
     // :: Public Instance Fields
 
     public static class LoginScope extends Scope {
+
+        public static final String CLASS_ID = "c677cda52d14";
 
         public final Prop<String> userName = prop();
         public final Prop<Integer> errorCode = prop(0);
@@ -51,7 +49,7 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
     // :: Internal Instance Fields
 
     private final LoginService loginService;
-    private CubeViewSlot ownerSlot;
+    private ScopeSlot ownerSlot;
 
     // :: Constructor
 
@@ -60,6 +58,12 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
         this.loginService = new LoginService(app.getUserRepository());
         this.state.onEnter = actionOf2(1, FormParam.asString("p.userName"),
                 FormParam.of("p.password", v -> app.b64Decipher(CoerceUtils.asString(v))), this::enter);
+        this.state.onSync(formData -> {
+            // The client already shows what it sends: no redraw to echo it back
+            if (formData.containsKey("userName")) {
+                state.userName.setSilently(CoerceUtils.asString(formData.get("userName")));
+            }
+        });
     }
 
     // :: Cube API
@@ -68,10 +72,9 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
     public boolean applyParameters(CubeIntent intent, boolean initialization, boolean deepest) {
         if (initialization) {
             ownerSlot = new LoginKeys(app, intent).parentSlot();
-            this.view = createView.apply(this);
         }
 
-        ownerSlot.setView(view);
+        ownerSlot.setScope(this.state);
 
         return true;
     }
@@ -138,16 +141,5 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
         } finally {
             state.loading.set(false);
         }
-    }
-
-    // :: Controle remoto
-
-    public CubeSkeleton skeleton() {
-        return skeleton("c677cda52d14", formData -> {
-            // The client already shows what it sends: no redraw to echo it back
-            if (formData.containsKey("userName")) {
-                state.userName.setSilently(CoerceUtils.asString(formData.get("userName")));
-            }
-        });
     }
 }

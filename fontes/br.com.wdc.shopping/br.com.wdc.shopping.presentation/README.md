@@ -95,7 +95,7 @@ Os presenters `OpenPresenter` e `RestrictedPresenter` funcionam como **guardas d
 
 ```mermaid
 graph TD
-    RootP["RootPresenter<br/><small>contentSlot → view filha<br/>Inner: RootScope</small>"]
+    RootP["RootPresenter<br/><small>contentSlot → escopo filho<br/>Inner: RootScope</small>"]
 
     RootP --> OpenP["OpenPresenter<br/><small>Guarda: redireciona se autenticado</small>"]
     RootP --> RestrictedP["RestrictedPresenter<br/><small>Guarda: redireciona se não autenticado</small>"]
@@ -135,10 +135,12 @@ Classe utilitária que cria proxies dinâmicos (via `java.lang.reflect.Proxy`) p
 
 ### Scope (inner class)
 
-Cada presenter define um `Scope` como **classe estática interna** (`public static class XxxScope extends Scope`). Cada campo observado é uma `Prop`, criada com `prop(...)`; o presenter liga o estado a si com `bind(...)`, e então `set` de um valor diferente (`equals`) pede o redesenho sozinho — o presenter não chama `this.update()` depois. A view lê com `get()`. A serialização remota é automática (`ScopeSerializer`, via reflection dos campos públicos, escrevendo o valor de cada `Prop`):
+Cada presenter define um `Scope` como **classe estática interna** (`public static class XxxScope extends Scope`). Cada campo observado é uma `Prop`, criada com `prop(...)`; o presenter liga o estado a si com `bind(...)`, e então `set` de um valor diferente (`equals`) pede o redesenho sozinho — o presenter não chama `this.update()` depois. A view lê com `get()`. O escopo declara o seu `CLASS_ID` (o classId do protocolo bridge); o presenter não cria view — cada host desenha o escopo com a view que o seu catálogo `ScopeViews` registra para a classe. A serialização remota é automática (`ScopeSerializer`, via reflection dos campos públicos, escrevendo o valor de cada `Prop`; um `Prop<Scope>`, como o `content` de Root e Home, sai como `"<campo>ViewId"`):
 
 ```java
 public static class ProductScope extends Scope {
+    public static final String CLASS_ID = "48b693f67410";
+
     public final Prop<ProductInfo> product = prop();
     public final Prop<Integer> errorCode = prop(0);
     public final Prop<String> errorMessage = prop();
@@ -222,26 +224,24 @@ public class XxxPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     // 2. Scope (inner class — campos observados são Props; serialização via reflection)
     public static class XxxScope extends Scope {
+        public static final String CLASS_ID = "<12 hex>";   // classId do protocolo bridge
         public final Prop<Integer> errorCode = prop(0);
         public final Prop<String> errorMessage = prop();
         // ... campos específicos
     }
 
-    // 3. Factory de view (injetada pelo skeleton)
-    public static Function<XxxPresenter, CubeView> createView;
+    // 3. Estado público (bind: o escopo compartilha os eventos do presenter e é liberado com ele)
+    public final XxxScope state = bind(new XxxScope());
 
-    // 4. Estado público
-    public final XxxScope state = new XxxScope();
+    // 4. Campos internos
+    private ScopeSlot ownerSlot;
 
-    // 5. Campos internos
-    private CubeViewSlot ownerSlot;
-
-    // 6. Constructor
+    // 5. Constructor (liga as ações do state)
     public XxxPresenter(ShoppingApplication app) { super(app); }
 
-    // 7. Cube API (applyParameters, publishParameters)
-    // 8. User Actions (onXxx)
-    // 9. Messages (alertXxx, errorXxx)
+    // 6. Cube API (applyParameters — termina com ownerSlot.setScope(this.state) —, publishParameters)
+    // 7. User Actions (onXxx)
+    // 8. Messages (alertXxx, errorXxx)
 }
 ```
 
@@ -272,4 +272,4 @@ public CartPresenter(ShoppingApplication app) {
 }
 ```
 
-A view dispara a ação pelo state (`presenter.state.onBuy.run()`), e o skeleton remoto mapeia o código do evento para ela.
+A view dispara a ação pelo escopo que desenha (`state.onBuy.run()`), e o skeleton remoto do escopo (`scope.skeleton(CLASS_ID)`) mapeia o código do evento para ela.

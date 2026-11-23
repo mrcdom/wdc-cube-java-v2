@@ -48,20 +48,18 @@ public class SegmentTest {
 
         final PageScope state = bind(new PageScope());
         final PageScope.PanelScope panel = new PageScope.PanelScope();
+        final CountingView pageView = new CountingView();
         final CountingView panelView = new CountingView();
-        int ownUpdates;
 
         PagePresenter() {
             super(new GuardedActionTest.RecordingApp());
             app.setScopeViews(new ScopeViews()
+                    .register(PageScope.class, (CubeApplication a, PageScope s) -> pageView)
                     .register(PageScope.PanelScope.class, (CubeApplication a, PageScope.PanelScope s) -> panelView));
             panel.onPageChange = actionOf(panel, 2, FormParam.asInteger("p.page"), panel.page::set);
             state.panel.set(panel);
-        }
-
-        @Override
-        public void update() {
-            ownUpdates++;
+            // The host draws the presenter's scope; the page's view then asks for the panel's when it needs it
+            app.viewOf(state);
         }
 
         void dropPanel() {
@@ -87,23 +85,23 @@ public class SegmentTest {
     @Test
     public void beforeItHasAViewTheSegmentRedrawsItsOwner() {
         var p = new PagePresenter();
-        var ownBefore = p.ownUpdates;
+        var ownBefore = p.pageView.updates;
 
         p.panel.page.set(3);
 
-        assertEquals("The owner draws the segment it holds", ownBefore + 1, p.ownUpdates);
+        assertEquals("The owner draws the segment it holds", ownBefore + 1, p.pageView.updates);
     }
 
     @Test
     public void withAViewAChangeInTheSegmentRedrawsOnlyItsView() {
         var p = new PagePresenter();
         p.app.viewOf(p.panel);
-        var ownBefore = p.ownUpdates;
+        var ownBefore = p.pageView.updates;
 
         p.panel.page.set(3);
 
         assertEquals(2, p.panelView.updates);
-        assertEquals("The presenter's own view is not redrawn", ownBefore, p.ownUpdates);
+        assertEquals("The presenter's own view is not redrawn", ownBefore, p.pageView.updates);
     }
 
     @Test
@@ -127,6 +125,7 @@ public class SegmentTest {
         p.panel.page.set(5);
 
         assertTrue(p.panelView.released);
+        assertTrue("The presenter's scope view goes too", p.pageView.released);
         assertEquals("A released segment no longer redraws its view", 1, p.panelView.updates);
     }
 

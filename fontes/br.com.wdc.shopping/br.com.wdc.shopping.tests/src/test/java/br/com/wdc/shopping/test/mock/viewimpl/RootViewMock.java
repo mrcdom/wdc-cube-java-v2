@@ -3,11 +3,10 @@ package br.com.wdc.shopping.test.mock.viewimpl;
 import org.junit.Assert;
 
 import br.com.wdc.framework.cube.CubeView;
-import br.com.wdc.shopping.presentation.presenter.RootPresenter;
 import br.com.wdc.shopping.presentation.presenter.RootPresenter.RootScope;
 import br.com.wdc.shopping.test.mock.ShoppingApplicationMock;
 
-public class RootViewMock extends AbstractViewMock<RootPresenter> {
+public class RootViewMock extends AbstractViewMock<RootScope> {
 
     public static RootViewMock cast(CubeView view) {
         var cls = RootViewMock.class;
@@ -17,11 +16,9 @@ public class RootViewMock extends AbstractViewMock<RootPresenter> {
         return (RootViewMock) view;
     }
 
-    public RootScope state;
 
-    public RootViewMock(RootPresenter presenter) {
-        super(((ShoppingApplicationMock) presenter.app), presenter);
-        this.state = presenter.state;
+    public RootViewMock(ShoppingApplicationMock app, RootScope state) {
+        super(app, state);
     }
 
 }

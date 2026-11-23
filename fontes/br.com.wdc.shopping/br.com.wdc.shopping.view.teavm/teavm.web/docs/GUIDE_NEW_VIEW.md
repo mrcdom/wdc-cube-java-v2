@@ -6,20 +6,19 @@ Este documento explica como criar uma nova view no módulo TeaVM Web — a imple
 
 Uma view neste projeto:
 
-1. Recebe o **Presenter** diretamente no construtor (acesso em memória)
-2. Lê o **Scope** do presenter para obter dados
+1. Recebe a aplicação e o **Scope** que desenha no construtor (acesso em memória) — nunca o Presenter
+2. Lê os campos do Scope para obter dados
 3. Renderiza uma árvore virtual (`VNode`) de forma declarativa
-4. Invoca métodos do presenter via `safeAction()` em resposta a interações
+4. Dispara as ações do Scope (ligadas pelo presenter) via `safeAction()` em resposta a interações
 
-Diferente do `remote.shell.teavm` (que recebe estado via WebSocket/JSON), aqui a view **acessa o presenter e o estado diretamente** — é um SPA puro.
+Diferente do `remote.shell.teavm` (que recebe estado via WebSocket/JSON), aqui a view **acessa o escopo diretamente** — é um SPA puro.
 
 ## Pré-requisitos
 
 O Presenter correspondente já deve existir na camada `presentation`, com:
 
-- Um `Scope` público com os campos necessários
-- Métodos de ação (`onXxx`) públicos
-- Uma factory estática: `public static Function<XxxPresenter, CubeView> createView;`
+- Um `Scope` público com os campos necessários (`Prop`s)
+- As ações (`onXxx`) como campos do Scope, ligadas no construtor do presenter
 
 ## Anatomia de uma View
 
@@ -35,13 +34,12 @@ import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
 
 import br.com.wdc.framework.vdom.*;
-import br.com.wdc.shopping.presentation.presenter.restricted.wishlist.WishlistPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.wishlist.WishlistPresenter.WishlistScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.wishlist.structs.WishlistItem;
 import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
 
-public class WishlistViewVDom extends AbstractVDomView<WishlistPresenter> {
+public class WishlistViewVDom extends AbstractVDomView<WishlistScope> {
 
     // 1. Interface Css — constantes de classe CSS (compact pattern)
     @SuppressWarnings({"java:S1214", "static-access"})
@@ -62,21 +60,21 @@ public class WishlistViewVDom extends AbstractVDomView<WishlistPresenter> {
         String ERROR_TEXT = c.ALERT_ERROR_TEXT;
     }
 
-    // 2. Referência ao Scope do presenter
+    // 2. O Scope que a view desenha
     private final WishlistScope state;
 
     // 3. Stable listeners — campos final para listeners sem parâmetros
-    private final EventListener<Event> onBack = evt -> safeAction("Back", this.presenter.state.onOpenProducts::run);
+    private final EventListener<Event> onBack = evt -> safeAction("Back", this.state.onOpenProducts::run);
 
     // 4. Factory methods para listeners paramétricos
     private EventListener<Event> mkOnRemove(long id) {
-        return evt -> safeAction("Remove", () -> this.presenter.state.onRemoveItem.run(id));
+        return evt -> safeAction("Remove", () -> this.state.onRemoveItem.run(id));
     }
 
-    // 5. Construtor — recebe o Presenter, extrai app e estado
-    public WishlistViewVDom(WishlistPresenter presenter) {
-        super("wishlist", (ShoppingTeaVMApplication) presenter.app, presenter);
-        this.state = presenter.state;
+    // 5. Construtor — recebe a aplicação e o escopo (a fábrica registrada no ScopeViews)
+    public WishlistViewVDom(ShoppingTeaVMApplication app, WishlistScope state) {
+        super("wishlist", app, state);
+        this.state = state;
     }
 
     // 6. render() — retorna a árvore virtual baseada no Scope
@@ -145,18 +143,17 @@ Crie o arquivo em:
 teavm.web/src/main/java/br/com/wdc/shopping/view/teavm/views/WishlistViewVDom.java
 ```
 
-### Passo 2 — Registrar a factory
+### Passo 2 — Registrar a view no catálogo
 
-No `ShoppingTeaVMApplication.java`, adicione no bloco `static {}`:
+No `ShoppingTeaVMApplication.java`, acrescente a view ao `SCOPE_VIEWS` (entregue à aplicação com `setScopeViews` no construtor):
 
 ```java
-static {
-    // ... factories existentes ...
-    WishlistPresenter.createView = WishlistViewVDom::new;
-}
+private static final ScopeViews SCOPE_VIEWS = new ScopeViews()
+        // ... views existentes ...
+        .register(WishlistScope.class, WishlistViewVDom::new);
 ```
 
-Isso conecta o Presenter à View: quando o Presenter é inicializado (em `applyParameters`), ele chama `createView.apply(this)` e recebe a instância da view.
+Isso conecta o escopo à view: o presenter só entrega o escopo ao pai (`ownerSlot.setScope(state)`), e a view do pai pede a deste escopo com `app.viewOf(state.content.get())` — a aplicação a cria na primeira vez, com a fábrica registrada.
 
 ### Passo 3 — Compilar e testar
 
@@ -173,12 +170,12 @@ mvn -q -DskipTests compile -pl br.com.wdc.shopping/br.com.wdc.shopping.view.teav
 
 | Aspecto | app.teavm (este módulo) | remote.shell.teavm |
 |---------|------------------------|--------------------|
-| **Acesso ao estado** | Direto via `presenter.state` | Indireto via `ViewScope` (JSON) |
-| **Invocação de ações** | `safeAction("ctx", presenter.state.onXxx::run)` | `submit(EVENT_CODE)` |
+| **Acesso ao estado** | Direto via o Scope recebido no construtor | Indireto via `ViewScope` (JSON) |
+| **Invocação de ações** | `safeAction("ctx", state.onXxx::run)` | `submit(EVENT_CODE)` |
 | **Passagem de dados** | Argumentos diretos nos métodos | `setFormField(key, value)` |
-| **Registro** | `XxxPresenter.createView = View::new` (static block) | `app.registerView(VIEW_ID, View::new)` (Main.java) |
-| **VIEW_ID** | Não necessário (binding direto) | Obrigatório (mesmo do `classId()`) |
-| **Construtor** | Recebe `Presenter` | Recebe `String vsid` |
+| **Registro** | `SCOPE_VIEWS.register(XxxScope.class, View::new)` | `app.registerView(VIEW_ID, View::new)` (Main.java) |
+| **VIEW_ID** | Não necessário (binding pela classe do escopo) | Obrigatório (igual ao `XxxScope.CLASS_ID`) |
+| **Construtor** | Recebe `(app, XxxScope)` | Recebe `String vsid` |
 | **Thread safety** | `safeAction()` roda em Thread TeaVM | Protocolo WS é serial |
 
 ---
@@ -187,10 +184,10 @@ mvn -q -DskipTests compile -pl br.com.wdc.shopping/br.com.wdc.shopping.view.teav
 
 ### safeAction() — Execução Segura
 
-Todas as chamadas ao presenter devem ser envelopadas em `safeAction()`:
+Todo disparo de ação do Scope (que chega ao presenter) deve ser envelopado em `safeAction()`:
 
 ```java
-private final EventListener<Event> onBuy = evt -> safeAction("Buy", this.presenter.state.onBuy::run);
+private final EventListener<Event> onBuy = evt -> safeAction("Buy", this.state.onBuy::run);
 ```
 
 **Por quê?** O TeaVM emula threads para suportar operações `@Async` (HTTP requests via `XMLHttpRequest`). O `safeAction` cria uma "thread" TeaVM que permite suspensão durante I/O. A falha da ação em si já é tratada pela guarda do presenter (a ação é ligada com `action(...)`); o `safeAction` ainda captura o que falhar no próprio código da view, delegando ao `RootPresenter`.
@@ -262,10 +259,10 @@ O VDom diff compara event listeners por **identidade de referência**. Mesma ref
 
 ```java
 // ✅ Bom — referência estável
-private final EventListener<Event> onBack = evt -> safeAction("Back", this.presenter.state.onOpenProducts::run);
+private final EventListener<Event> onBack = evt -> safeAction("Back", this.state.onOpenProducts::run);
 
 // ❌ Ruim — lambda nova a cada render
-.on("click", evt -> safeAction("Back", this.presenter.state.onOpenProducts::run))
+.on("click", evt -> safeAction("Back", this.state.onOpenProducts::run))
 ```
 
 ### useCallback(key, listener) — Listeners Paramétricos
@@ -274,7 +271,7 @@ Para listeners que dependem de dados variáveis:
 
 ```java
 private EventListener<Event> mkOnRemove(long id) {
-    return evt -> safeAction("Remove", () -> this.presenter.state.onRemoveProduct.run(id));
+    return evt -> safeAction("Remove", () -> this.state.onRemoveProduct.run(id));
 }
 
 // No render:
@@ -358,9 +355,9 @@ spDivider("s")               // <sp-divider size="s">
 
 ## Checklist para Nova View
 
-- [ ] Classe estende `AbstractVDomView<XxxPresenter>`
-- [ ] Construtor chama `super(instanceId, app, presenter)` e salva `presenter.state`
-- [ ] Factory registrada: `XxxPresenter.createView = XxxViewVDom::new` em `ShoppingTeaVMApplication`
+- [ ] Classe estende `AbstractVDomView<XxxScope>`
+- [ ] Construtor `(ShoppingTeaVMApplication app, XxxScope state)` chama `super(instanceId, app, state)` e salva `state`
+- [ ] View registrada no catálogo: `.register(XxxScope.class, XxxViewVDom::new)` no `SCOPE_VIEWS` de `ShoppingTeaVMApplication`
 - [ ] Interface `Css` com aliases e `@SuppressWarnings`
 - [ ] Listeners estáveis como campos `final` com `safeAction()`
 - [ ] Listeners paramétricos via `useCallback(key, factory)`

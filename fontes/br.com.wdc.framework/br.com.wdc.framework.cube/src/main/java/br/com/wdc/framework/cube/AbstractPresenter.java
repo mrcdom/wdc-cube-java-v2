@@ -9,7 +9,8 @@ import br.com.wdc.framework.commons.function.ThrowingConsumer;
 import br.com.wdc.framework.commons.function.ThrowingRunnable;
 
 /**
- * What every presenter has: the application, the view, the bound view state and the guarded actions.
+ * What every presenter has: the application, the bound scope and the guarded actions. The presenter never makes a
+ * view: the view layer draws its scope with the view its catalog pairs with the scope class ({@link ScopeViews}).
  * <p>
  * An action is bound once, usually in the constructor, into a field of the view state
  * ({@code state.onBuy = action(this::buy)}). The guard catches whatever the body did not handle and hands it to
@@ -19,13 +20,11 @@ import br.com.wdc.framework.commons.function.ThrowingRunnable;
  * <p>
  * An action a remote client fires is bound with its <b>event code</b>, and with how to read its values from the form
  * data ({@link FormParam}): {@code actionOf(2, FormParam.asLong("p.productId"), this::removeProduct)}. The code is the
- * contract with the client; the presenter's skeleton is then just {@code skeleton(classId)}, which dispatches by it.
+ * contract with the client; the bound scope's skeleton ({@link Scope#skeleton}) dispatches by it.
  */
 public abstract class AbstractPresenter<A extends CubeApplication> implements PresenterBase {
 
     public final A app;
-
-    protected CubeView view;
 
     /** The actions a remote client fires, by event code. */
     private final Map<Integer, Consumer<Map<String, Object>>> events = new HashMap<>();
@@ -38,30 +37,33 @@ public abstract class AbstractPresenter<A extends CubeApplication> implements Pr
     }
 
     /**
-     * Ties the view state to this presenter: setting one of its props to a different value calls {@link #update()}.
-     * Used on the field: {@code public final CartScope state = bind(new CartScope());}
+     * Ties the scope to this presenter: the actions it binds with an event code are dispatched by the scope's
+     * skeleton, and the scope's view (and those inside it) are released with it. Used on the field:
+     * {@code public final CartScope state = bind(new CartScope());}
      */
     protected final <S extends Scope> S bind(S state) {
-        state.setUpdater(this::update);
+        state.shareEvents(this.events);
         this.scope = state;
         return state;
     }
 
+    /** The bound scope ({@link #bind}). */
+    public final Scope scope() {
+        return scope;
+    }
+
+    /** Asks for a redraw of the scope: for a change inside a value already set, which no prop sees. */
     public void update() {
-        if (view != null) {
-            view.update();
+        if (scope != null) {
+            scope.update();
         }
     }
 
     @Override
     public void release() {
-        // The views the view layer made for the segments and rows inside this presenter's scope
+        // The views the view layer made for this presenter's scope and for the segments and rows inside it
         if (scope != null) {
             app.releaseView(scope);
-        }
-        if (view != null) {
-            view.release();
-            view = null;
         }
     }
 
@@ -150,20 +152,6 @@ public abstract class AbstractPresenter<A extends CubeApplication> implements Pr
     /** Releases the view of a segment that left the screen (a row removed from a list). */
     protected final void detach(Scope segment) {
         app.releaseView(segment);
-    }
-
-    /** The skeleton of a remote view: dispatches each event to the action bound with its code. */
-    protected final CubeSkeleton skeleton(String classId) {
-        return skeleton(classId, null);
-    }
-
-    /**
-     * The same, for a view that also syncs the form before the events ({@link CubeSkeleton#syncState}).
-     *
-     * @param syncState {@code null} when there is nothing to sync
-     */
-    protected final CubeSkeleton skeleton(String classId, Consumer<Map<String, Object>> syncState) {
-        return Scope.newSkeleton(classId, events, syncState, getClass().getSimpleName());
     }
 
     /** A failure the action did not handle. */

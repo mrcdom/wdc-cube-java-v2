@@ -1,20 +1,17 @@
 package br.com.wdc.shopping.presentation.presenter.restricted.receipt;
 
 import java.util.Objects;
-import java.util.function.Function;
 
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.Action;
 import br.com.wdc.framework.cube.CubeIntent;
-import br.com.wdc.framework.cube.CubeSkeleton;
-import br.com.wdc.framework.cube.CubeView;
-import br.com.wdc.framework.cube.CubeViewSlot;
 import br.com.wdc.framework.cube.Prop;
 import br.com.wdc.framework.cube.Scope;
+import br.com.wdc.framework.cube.ScopeSlot;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
 import br.com.wdc.shopping.presentation.exception.PurchaseNotFoundException;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptForm;
 
 public class ReceiptPresenter extends AbstractCubePresenter<ShoppingApplication> {
@@ -23,13 +20,11 @@ public class ReceiptPresenter extends AbstractCubePresenter<ShoppingApplication>
 
     private static final Log LOG = Log.getLogger(ReceiptPresenter.class);
 
-    // :: Public Class Fields
-
-    public static Function<ReceiptPresenter, CubeView> createView;
-
     // :: Public Instance Fields
 
     public static class ReceiptScope extends Scope {
+
+        public static final String CLASS_ID = "e8d0bd8ae3bc";
 
         public final Prop<Boolean> notifySuccess = prop(false);
         public final Prop<ReceiptForm> receipt = prop();
@@ -44,7 +39,7 @@ public class ReceiptPresenter extends AbstractCubePresenter<ShoppingApplication>
 
     private final ReceiptService receiptService;
     private Long purchaseId;
-    private CubeViewSlot ownerSlot;
+    private ScopeSlot ownerSlot;
 
     // :: Constructor
 
@@ -80,12 +75,10 @@ public class ReceiptPresenter extends AbstractCubePresenter<ShoppingApplication>
             if (this.state.receipt.get() == null) {
                 throw new AssertionError("Missing receipt");
             }
-
-            this.view = createView.apply(this);
             update();
         }
 
-        this.ownerSlot.setView(this.view);
+        this.ownerSlot.setScope(this.state);
 
         return true;
     }
@@ -103,12 +96,6 @@ public class ReceiptPresenter extends AbstractCubePresenter<ShoppingApplication>
             throw new PurchaseNotFoundException();
         }
         return receipt;
-    }
-
-    // :: Controle remoto
-
-    public CubeSkeleton skeleton() {
-        return skeleton("e8d0bd8ae3bc");
     }
 
 }

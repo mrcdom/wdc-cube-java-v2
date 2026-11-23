@@ -186,18 +186,37 @@ public abstract class CubeApplication {
 		if (existing != null) {
 			return existing;
 		}
+		// Made outside the lock: a factory may hop to the UI thread, which may be asking for another view meanwhile
+		var made = this.scopeViews.factoryFor(scope).apply(this, scope);
 		synchronized (this.liveScopes) {
 			existing = scope.view();
-			if (existing != null) {
-				return existing;
+			if (existing == null) {
+				scope.attachView(made);
+				scope.setUpdater(made::update);
+				this.liveScopes.add(scope);
 			}
-			var made = this.scopeViews.factoryFor(scope).apply(this, scope);
-			scope.attachView(made);
-			scope.setUpdater(made::update);
-			this.liveScopes.add(scope);
-			// The first drawing: the view may need it before any change (to measure itself, for instance)
-			made.update();
-			return made;
+		}
+		if (existing != null) {
+			// Someone else made it first
+			made.release();
+			return existing;
+		}
+		// The first drawing: the view may need it before any change (to measure itself, for instance)
+		made.update();
+		return made;
+	}
+
+	/** The views made so far and not yet released: the presenters', the segments' and the rows'. */
+	public List<CubeView> liveViews() {
+		synchronized (this.liveScopes) {
+			var views = new ArrayList<CubeView>(this.liveScopes.size());
+			for (var live : this.liveScopes) {
+				var view = live.view();
+				if (view != null) {
+					views.add(view);
+				}
+			}
+			return views;
 		}
 	}
 

@@ -60,16 +60,16 @@ O sistema de navegação serializa o estado ativo em query-string. O protocolo d
 Cada implementação reconstrói o estado a partir da URL no ciclo de `applyParameters`. O modo Remoto usa o `sessionId` para reconectar à sessão server-side.
 
 **Testar todos os fluxos de navegação via views mock** ✅  
-As factories de view (`Presenter.createView`) são referências estáticas substituíveis. Nos testes, basta apontar para implementações mock antes de executar a navegação.
+Quem cria as views é o catálogo `ScopeViews` que o host entrega à aplicação (`setScopeViews`). Nos testes, a aplicação mock registra views mock para cada classe de escopo e a navegação roda sem nenhuma UI.
 
 **Mais de uma implementação para a mesma visão** ✅  
 Esse é hoje o principal ponto de validação da arquitetura: cinco implementações coexistindo sobre os mesmos Presenters.
 
 **Contratos e sistemas de tipos para rastreabilidade** ✅  
-Java oferece verificação estática em tempo de compilação. O campo `public static Function<XxxPresenter, CubeView> createView` garante que cada implementação de view receba o tipo correto de Presenter.
+Java oferece verificação estática em tempo de compilação. O registro `ScopeViews.register(CartScope.class, CartViewVaadin::new)` garante que cada implementação de view receba o tipo correto de escopo (`(app, CartScope) -> CubeView`).
 
 **Gestão do escopo de propagação do estado nas composições** ✅  
-Slots (`CubeViewSlot`) são lambdas que encapsulam a atribuição de uma view a um ponto de composição específico, sem expor o Presenter pai.
+Slots (`ScopeSlot`) são lambdas que encapsulam a atribuição do escopo de um filho a um ponto de composição específico do pai, sem expor o Presenter pai.
 
 **Composição de Views independente da tecnologia** ✅  
 O conceito de slot é tecnologia-agnóstico. Cada implementação de view trata o slot à sua maneira.
@@ -180,7 +180,7 @@ O Cube MVP é uma variação do Passive View com dois princípios centrais:
 
 1. **A View tem acesso ao Scope, mas não ao Presenter.** O Scope é um objeto Java simples com campos públicos (`Prop`s e ações) — o estado público da tela. O Presenter é responsável por nutrir o Scope antes de sinalizar `update()`.
 
-2. **Nenhuma consulta cruzada entre Presenter e View.** O Presenter notifica a View via `view.update()`. A View notifica o Presenter via chamadas diretas de método (os handlers `onXxx`). Não há retorno de valores nessas comunicações.
+2. **Nenhuma consulta cruzada entre Presenter e View.** O Presenter notifica a View pelo Scope: a mudança numa `Prop` chama o `update()` da view que desenha aquele escopo. A View notifica o Presenter disparando as ações do Scope (os campos `onXxx`). Não há retorno de valores nessas comunicações.
 
 O nome "Cube" reflete a terceira dimensão da arquitetura: além do eixo Presenter/View, há o eixo da **hierarquia** — Presenters são compostos em árvore, cada nó responsável por uma porção do estado total da aplicação.
 
@@ -191,12 +191,12 @@ Todo Presenter navegável estende `AbstractCubePresenter<ShoppingApplication>` e
 ```java
 public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
-    // Factory de view — substituível (testes, implementações alternativas)
-    public static Function<CartPresenter, CubeView> createView;
-
     // Scope — estado público, lido pela view para renderização. Cada campo observado é uma Prop:
     // set() compara com equals e, se mudou, pede o redesenho — o presenter não chama update() depois
     public static class CartScope extends Scope {
+        // classId do protocolo bridge: identifica a view remota que desenha este escopo
+        public static final String CLASS_ID = "7eb485e5f843";
+
         public final Prop<List<CartItem>> items = prop(Collections.emptyList());
         public final Prop<Integer> errorCode = prop(0);
         public final Prop<String> errorMessage = prop();
@@ -208,12 +208,13 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
     // bind: o presenter passa a ser avisado quando uma prop do estado muda
     public final CartScope state = bind(new CartScope());
 
-    private CubeViewSlot ownerSlot;
+    private ScopeSlot ownerSlot;
 
     public CartPresenter(ShoppingApplication app) {
         super(app);
         // Ligada uma vez; a guarda manda a falha não tratada ao app e republica o endereço ao fim
-        this.state.onConfirm = action(this::confirm);
+        // Com código de evento: o skeleton do escopo despacha a ela o evento 1 de um cliente remoto
+        this.state.onConfirm = action(1, this::confirm);
     }
 
     // Chamado pelo motor de navegação ao ativar este Presenter
@@ -221,12 +222,9 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
     public boolean applyParameters(CubeIntent intent, boolean initialization, boolean deepest) {
         this.state.items.set(this.app.getCart().getCartItems());
 
-        if (initialization) {
-            this.ownerSlot = new CartKeys(this.app, intent).parentSlot();
-            this.view = createView.apply(this);
-        }
-
-        this.ownerSlot.setView(this.view);
+        // O pai põe o escopo num Prop<Scope> dele; a view do pai é que pede a view deste escopo
+        this.ownerSlot = new CartKeys(this.app, intent).parentSlot();
+        this.ownerSlot.setScope(this.state);
         return true;
     }
 
@@ -238,7 +236,7 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
 }
 ```
 
-O campo estático `createView` é um `Function<CartPresenter, CubeView>`. Cada implementação de view registra sua factory neste campo durante a inicialização da aplicação. Ao criar uma instância do Presenter, a factory é invocada — sem que o Presenter saiba qual tecnologia de UI está sendo usada.
+O Presenter nunca cria view: ele só nutre o escopo e o entrega ao pai pelo slot. A view é da camada de view — cada host monta um catálogo `ScopeViews` (classe do escopo → fábrica `(app, scope) -> CubeView`) e o entrega à aplicação com `setScopeViews`; `app.viewOf(scope)` cria a view na primeira vez que é pedida, sem que o Presenter saiba qual tecnologia de UI está sendo usada. O `CLASS_ID` estático do escopo é o classId do protocolo bridge, e o skeleton remoto é do escopo (`scope.skeleton(CLASS_ID)`), que despacha cada evento à ação ligada com aquele código.
 
 Todo Presenter é navegável (`AbstractCubePresenter<A>`, gerenciado pelo motor de navegação). Um pedaço de tela que não precisa de navegação própria — como os painéis de produtos e de compras da Home — **não ganha um Presenter**: é um **escopo menor**, declarado como classe interna do escopo de quem o mostra:
 
@@ -368,6 +366,10 @@ classDiagram
         +navigate() CubeNavigation
         +newIntent() CubeIntent
         +go(String path)
+        +setScopeViews(scopeViews)
+        +viewOf(scope) CubeView
+        +releaseView(scope)
+        +liveViews() List
     }
 
     class CubePresenter {
@@ -378,7 +380,9 @@ classDiagram
 
     class AbstractCubePresenter~A~ {
         +app: A
-        #view: CubeView
+        #bind(scope) Scope
+        +scope() Scope
+        +view() CubeView
         +update()
         +release()
     }
@@ -387,6 +391,15 @@ classDiagram
         <<abstract>>
         #prop(initial) Prop
         +setUpdater(updater)
+        +view() CubeView
+        +skeleton(classId) CubeSkeleton
+        +onSync(syncState)
+        +drawnBy(view)$ Scope
+    }
+
+    class ScopeViews {
+        +register(scopeClass, factory) ScopeViews
+        +fallback(factory) ScopeViews
     }
 
     class Prop {
@@ -401,9 +414,9 @@ classDiagram
         +release()
     }
 
-    class CubeViewSlot {
+    class ScopeSlot {
         <<interface>>
-        +setView(view)
+        +setScope(scope)
     }
 
     class CubePlace {
@@ -418,33 +431,38 @@ classDiagram
     class CubeIntent {
         +setParameter(key, value)
         +getParameter(key) Object
-        +getViewSlot(name) CubeViewSlot
-        +putViewSlot(name, slot)
+        +getSlot(name) ScopeSlot
+        +setSlot(name, slot)
     }
 
     CubePresenter <|.. AbstractCubePresenter
-    AbstractCubePresenter --> CubeView
     AbstractCubePresenter --> Scope : estado
+    Scope --> CubeView : desenhado por
     CubePlace --> CubePresenter : instancia
-    CubeIntent --> CubeViewSlot
-    CubeView --> CubeViewSlot : compõe em
+    CubeIntent --> ScopeSlot
+    ScopeSlot --> Scope : recebe
     CubeApplication --> AbstractCubePresenter : mantém
+    CubeApplication --> ScopeViews : viewOf(scope)
+    ScopeViews --> CubeView : cria
 ```
 
-A aplicação é um grafo de instâncias de `AbstractCubePresenter`. Cada instância conhece seu Scope (o campo `state`) e sua View (o campo `view`). A relação entre Presenter e View passa exclusivamente pela interface `CubeView` — nenhuma implementação de view é referenciada diretamente pelo Presenter.
+A aplicação é um grafo de instâncias de `AbstractCubePresenter`. Cada instância conhece só o seu Scope (o campo `state`, vinculado com `bind`). A view de cada Scope é criada pela camada de view: o catálogo `ScopeViews` do host diz qual fábrica desenha cada classe de escopo, e `CubeApplication.viewOf(scope)` a cria na primeira vez que é pedida. O Presenter nunca referencia uma view — quando muito, `view()` devolve a `CubeView` que desenha o seu escopo, se já houver uma.
 
 ---
 
 ## Composições de View — Slots
 
-Um slot é um ponto de composição declarado pelo Presenter pai, que permite que um Presenter filho se encaixe na árvore de views sem que haja acoplamento direto entre eles.
+Um slot é um ponto de composição declarado pelo Presenter pai, que permite que um Presenter filho se encaixe na árvore de escopos sem que haja acoplamento direto entre eles.
 
 ```java
-// HomePresenter declara um slot de conteúdo
-private final CubeViewSlot contentSlot = this::setContentView;
+// HomeScope guarda o escopo do Presenter filho (produto, carrinho, recibo)
+public final Prop<Scope> content = prop();
 
-private void setContentView(CubeView view) {
-    this.state.contentView.set(view);   // só redesenha se mudou
+// HomePresenter declara um slot de conteúdo
+private final ScopeSlot contentSlot = this::setContent;
+
+private void setContent(Scope scope) {
+    this.state.content.set(scope);   // só redesenha se mudou
 }
 ```
 
@@ -465,12 +483,12 @@ public boolean applyParameters(CubeIntent intent, boolean initialization, boolea
 O Presenter filho recebe o slot e o usa para se encaixar:
 
 ```java
-// ProductPresenter recebe o slot
+// ProductPresenter recebe o slot e entrega o seu escopo
 this.ownerSlot = new ProductKeys(this.app, intent).parentSlot();
-this.ownerSlot.setView(this.view);
+this.ownerSlot.setScope(this.state);
 ```
 
-A view pai simplesmente renderiza `state.contentView` — seja lá qual for a view filha que o Presenter filho colocou ali. Essa mecânica funciona idêntica em todas as cinco implementações de view.
+A view pai pede a view do escopo que estiver ali — `app.viewOf(state.content.get())` — seja lá qual for o Presenter filho que o colocou. O host só desenha o escopo do Presenter raiz (`viewOf(getRootPresenter().state)`); todas as outras views são pedidas pela view que segura o escopo. Até um escopo ganhar view, uma mudança nele redesenha o dono (o escopo que o segura num `Prop` o adota); depois, só a própria view. No modo remoto, um campo `Prop<Scope>` sai no JSON como `"<campo>ViewId"` (`content` → `"contentViewId"`). Essa mecânica funciona idêntica em todas as cinco implementações de view.
 
 ---
 
@@ -490,22 +508,24 @@ public interface CubeView {
 
 ### O Ciclo de Vida de uma View
 
-1. O Presenter chama `createView.apply(this)` — a factory registrada instancia a view e passa a si mesmo como argumento.  
-2. A view armazena a referência ao Presenter e ao Scope.  
-3. Quando `update()` é chamado, a view lê os campos do Scope e reconcilia a interface.  
-4. Quando o usuário interage, a view chama diretamente o método `onXxx` no Presenter.  
-5. Quando `release()` é chamado, a view libera recursos.
+1. Alguém pede a view de um escopo com `app.viewOf(scope)` — o host, para o escopo raiz, ou a view que segura o escopo num `Prop`. Na primeira vez, a fábrica registrada no `ScopeViews` instancia a view com `(app, scope)` e ela é desenhada uma vez.  
+2. A view armazena a referência à aplicação e ao Scope — nunca ao Presenter.  
+3. Quando `update()` é chamado (uma `Prop` do escopo mudou), a view lê os campos do Scope e reconcilia a interface.  
+4. Quando o usuário interage, a view dispara a ação `onXxx` do Scope, que o Presenter ligou.  
+5. Quando o Presenter é liberado (`release()`), `app.releaseView(scope)` libera a view do escopo e as dos segmentos e linhas dentro dele.
 
 ### As Implementações
 
 **view.swt** — Implementação nativa para desktop com Eclipse SWT (Windows, Linux, macOS). Cada view estende `AbstractViewSwt` e usa a DSL declarativa `SwtDom` para construir composições. O ciclo de atualização usa `Display.asyncExec()` para garantir execução na thread de eventos:
 
 ```java
-public class CartViewSwt extends AbstractViewSwt<CartPresenter> {
+public class CartViewSwt extends AbstractViewSwt {
+    public Supplier<CartScope> stateSupplier;   // ligado pela fábrica registrada no ScopeViews
+
     @Override
-    protected void performUpdate() {
-        var state = this.presenter.state;
-        this.itemList.setItems(state.items.stream()
+    public void doUpdate() {
+        var state = this.stateSupplier.get();
+        this.itemList.setItems(state.items.get().stream()
             .map(item -> item.name + " × " + item.quantity)
             .toArray(String[]::new));
     }
@@ -515,11 +535,17 @@ public class CartViewSwt extends AbstractViewSwt<CartPresenter> {
 **view.vaadin** — Implementação para browser via Vaadin Flow (server-side push). O Vaadin gerencia o transporte Atmosphere (WebSocket/Long Polling) e a reconciliação de componentes no DOM. A view usa `ui.access()` para garantir thread-safety nas atualizações:
 
 ```java
-public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
+public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
+    private final CartScope state;
+
+    public CartViewVaadin(ShoppingVaadinApplication app, CartScope state) {
+        super("cart", app, state, new VerticalLayout());
+        this.state = state;
+    }
+
     @Override
-    protected void doUpdate() {
-        var state = this.presenter.state;
-        this.grid.setItems(state.items);
+    public void doUpdate() {
+        this.grid.setItems(state.items.get());
     }
 }
 ```
@@ -527,19 +553,25 @@ public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
 **view.teavm** — As views Java são compiladas para JavaScript pelo plugin TeaVM. No browser, o resultado é um SPA completo. Para desktop, Android e iOS, o SPA é empacotado num WebView via Tauri 2 (Rust). As views estendem `AbstractVDomView` e implementam `render()` retornando uma árvore `VNode`:
 
 ```java
-public class CartViewVDom extends AbstractVDomView<CartPresenter> {
+public class CartViewVDom extends AbstractVDomView<CartScope> {
+    private final CartScope state;
+
+    public CartViewVDom(ShoppingTeaVMApplication app, CartScope state) {
+        super("cart", app, state);
+        this.state = state;
+    }
+
     @Override
     protected VNode render() {
-        var state = this.presenter.state;
         return div(Css.CART).children(
-            ul().children(state.items.stream()
+            ul().children(state.items.get().stream()
                 .map(item -> li().text(item.name + " × " + item.quantity))
                 .toArray(VNode[]::new)),
             spButton("accent").on("click", onConfirm).children(
                 span().text("Confirmar"))
         );
     }
-    private final JSFunction onConfirm = e -> this.presenter.state.onConfirm.run();
+    private final JSFunction onConfirm = e -> this.state.onConfirm.run();
 }
 ```
 
@@ -671,9 +703,9 @@ Os princípios que se mostraram mais duradouros:
 
 **O Scope como fronteira entre lógica e apresentação.** O Scope é simultaneamente simples (campos públicos Java) e poderoso (serialização automática, diff incremental no modo remoto). Ele resolve o problema de transferência de dados sem criar objetos de transferência de valor separados — o mesmo objeto serve ao Presenter para nutrir a view e ao protocolo remoto para transmitir o estado.
 
-**O slot como mecanismo de composição sem acoplamento.** O slot isola o Presenter pai do filho. O pai não sabe qual tipo de Presenter filho estará no slot — apenas que receberá uma `CubeView`. O filho não sabe em que parte da tela pai ele estará.
+**O slot como mecanismo de composição sem acoplamento.** O slot isola o Presenter pai do filho. O pai não sabe qual tipo de Presenter filho estará no slot — apenas que receberá um `Scope`. O filho não sabe em que parte da tela pai ele estará.
 
-**A factory de view como ponto de extensão.** O campo estático `Function<XxxPresenter, CubeView> createView` é o único ponto de variabilidade entre implementações de view. Basta registrar uma nova factory para trocar toda a camada de UI.
+**O catálogo de views como ponto de extensão.** O `ScopeViews` que cada host entrega à aplicação (`setScopeViews`) é o único ponto de variabilidade entre implementações de view. Basta registrar outras fábricas por classe de escopo para trocar toda a camada de UI — e o host remoto nem registra: `fallback(RemoteViewImpl::forScope)` desenha qualquer escopo pelo seu `CLASS_ID`.
 
 O **modo de Apresentação Remota** é a inovação central: ele demonstra que a separação entre lógica de apresentação e renderização não é apenas uma boa prática arquitetural — é uma propriedade física da arquitetura. O Presenter genuinamente não sabe onde a view roda: pode ser um processo local na mesma JVM, pode ser um browser a milhares de quilômetros de distância, ou um dispositivo móvel conectado via WebSocket.
 

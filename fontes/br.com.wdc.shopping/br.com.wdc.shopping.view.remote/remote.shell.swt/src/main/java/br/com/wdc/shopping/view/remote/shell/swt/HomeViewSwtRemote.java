@@ -2,6 +2,7 @@ package br.com.wdc.shopping.view.remote.shell.swt;
 
 import java.util.Map;
 
+import br.com.wdc.framework.cube.Scope;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.impl.HomeViewSwt;
@@ -38,7 +39,7 @@ class HomeViewSwtRemote extends HomeViewSwt {
 		var state = new HomeScope();
 		var contentId = s.getString("contentViewId");
 		if (contentId != null) {
-			state.contentView.set(this.ctx.viewLookup(contentId));
+			state.content.set(Scope.drawnBy(this.ctx.viewLookup(contentId)));
 		}
 		// The panels are segments drawn by views of their own: the host refers to each by the id of its view
 		var productsPanelId = s.getString("productsPanelViewId");

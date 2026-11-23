@@ -3,12 +3,11 @@ package br.com.wdc.shopping.test.mock.viewimpl;
 import org.junit.Assert;
 
 import br.com.wdc.framework.cube.CubeView;
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
 import br.com.wdc.shopping.test.mock.ShoppingApplicationMock;
 
 @SuppressWarnings({ "java:S106", "java:S1192" })
-public class CartViewMock extends AbstractViewMock<CartPresenter> {
+public class CartViewMock extends AbstractViewMock<CartScope> {
 
     public static CartViewMock cast(CubeView view) {
         var cls = CartViewMock.class;
@@ -18,11 +17,9 @@ public class CartViewMock extends AbstractViewMock<CartPresenter> {
         return (CartViewMock) view;
     }
 
-    public CartScope state;
 
-    public CartViewMock(CartPresenter presenter) {
-        super(((ShoppingApplicationMock) presenter.app), presenter);
-        this.state = presenter.state;
+    public CartViewMock(ShoppingApplicationMock app, CartScope state) {
+        super(app, state);
     }
 
 }

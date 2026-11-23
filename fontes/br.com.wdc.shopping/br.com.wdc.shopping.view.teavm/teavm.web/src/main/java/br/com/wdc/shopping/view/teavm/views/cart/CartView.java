@@ -2,26 +2,26 @@ package br.com.wdc.shopping.view.teavm.views.cart;
 
 import java.util.Objects;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
 import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
 import br.com.wdc.shopping.view.teavm.commons.views.cart.CartSharedView;
 import br.com.wdc.shopping.view.teavm.views.AbstractVDomView;
 import br.com.wdc.shopping.view.teavm.views.AbstractViewTeaVM;
 
-public class CartView extends AbstractVDomView<CartPresenter> {
+public class CartView extends AbstractVDomView<CartScope> {
 
     private final CartSharedView shared;
 
-    public CartView(CartPresenter presenter) {
-        super("cart", (ShoppingTeaVMApplication) presenter.app, presenter);
+    public CartView(ShoppingTeaVMApplication app, CartScope state) {
+        super("cart", app, state);
 
         this.shared = new CartSharedView();
-        this.shared.stateSupplier = () -> presenter.state;
-        this.shared.onBack = () -> safeAction("Back", presenter.state.onOpenProducts::run);
-        this.shared.onBuy = () -> safeAction("Buy", presenter.state.onBuy::run);
+        this.shared.stateSupplier = () -> state;
+        this.shared.onBack = () -> safeAction("Back", state.onOpenProducts::run);
+        this.shared.onBuy = () -> safeAction("Buy", state.onBuy::run);
         // The rows are views of their own (CartItemView): the cart lays their elements out in its order
-        this.shared.rowElements = () -> presenter.state.rows.get().stream()
+        this.shared.rowElements = () -> state.rows.get().stream()
                 .map(row -> this.app.viewOf(row) instanceof AbstractViewTeaVM<?> v ? v.getElement() : null)
                 .filter(Objects::nonNull)
                 .toList();

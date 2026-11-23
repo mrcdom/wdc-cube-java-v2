@@ -18,21 +18,18 @@ import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.storage.ClientStorage;
 import br.com.wdc.framework.commons.storage.InMemoryClientStorage;
 import br.com.wdc.framework.commons.storage.PreferencesClientStorage;
-import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubePresenter;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.ScopeViews;
 import br.com.wdc.shopping.presentation.ProxyRepositoryWrapper;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
-import br.com.wdc.shopping.presentation.presenter.RootPresenter;
-import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
+import br.com.wdc.shopping.presentation.presenter.RootPresenter.RootScope;
+import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginScope;
 import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
+import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter.ProductScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter.ReceiptScope;
 import br.com.wdc.shopping.view.swt.AbstractViewSwt;
 import br.com.wdc.shopping.view.swt.impl.CartItemViewSwt;
 import br.com.wdc.shopping.view.swt.impl.CartViewSwt;
@@ -79,28 +76,31 @@ public class ShoppingSwtApplication extends ShoppingApplication implements SwtAp
 	}
 
 	/**
-	 * Registers view factories with state suppliers and event callbacks for each presenter.
+	 * The view of each scope (the presenters', the segments', the rows'), with its state supplier and event callbacks.
 	 */
 	private static void bindViews(ShoppingSwtApplication app) {
-		RootPresenter.createView = app.onUiThread(p -> {
-			var v = new RootViewSwt(app); v.stateSupplier = () -> p.state; return v; });
-		LoginPresenter.createView = app.onUiThread(p -> {
-			var v = new LoginViewSwt(app); v.stateSupplier = () -> p.state;
-			v.onEnter = p.state.onEnter::run; return v; });
-		HomePresenter.createView = app.onUiThread(p -> {
-			var v = new HomeViewSwt(app); v.stateSupplier = () -> p.state;
-			v.onExit = p.state.onExit::run; v.onOpenCart = p.state.onOpenCart::run; return v; });
-		CartPresenter.createView = app.onUiThread(p -> {
-			var v = new CartViewSwt(app); v.stateSupplier = () -> p.state;
-			v.onOpenProducts = p.state.onOpenProducts::run; v.onBuy = p.state.onBuy::run;
-			v.rowElements = () -> p.state.rows.get().stream()
+		var rootView = app.onUiThread((RootScope s) -> {
+			var v = new RootViewSwt(app); v.stateSupplier = () -> s; return v; });
+		var loginView = app.onUiThread((LoginScope s) -> {
+			var v = new LoginViewSwt(app); v.stateSupplier = () -> s;
+			v.onEnter = s.onEnter::run; return v; });
+		var homeView = app.onUiThread((HomeScope s) -> {
+			var v = new HomeViewSwt(app); v.stateSupplier = () -> s;
+			v.onExit = s.onExit::run; v.onOpenCart = s.onOpenCart::run; return v; });
+		var cartView = app.onUiThread((CartScope s) -> {
+			var v = new CartViewSwt(app); v.stateSupplier = () -> s;
+			v.onOpenProducts = s.onOpenProducts::run; v.onBuy = s.onBuy::run;
+			v.rowElements = () -> s.rows.get().stream()
 					.map(row -> app.viewOf(row) instanceof AbstractViewSwt rv ? rv.getElement() : null)
 					.filter(Objects::nonNull).toList();
 			return v; });
-		ProductPresenter.createView = app.onUiThread(p -> {
-			var v = new ProductViewSwt(app); v.stateSupplier = () -> p.state;
-			v.onOpenProducts = p.state.onOpenProducts::run; v.onAddToCart = p.state.onAddToCart::run;
+		var productView = app.onUiThread((ProductScope s) -> {
+			var v = new ProductViewSwt(app); v.stateSupplier = () -> s;
+			v.onOpenProducts = s.onOpenProducts::run; v.onAddToCart = s.onAddToCart::run;
 			return v; });
+		var receiptView = app.onUiThread((ReceiptScope s) -> {
+			var v = new ReceiptViewSwt(app); v.stateSupplier = () -> s;
+			v.onOpenProducts = s.onOpenProducts::run; return v; });
 		var cartItemView = app.onUiThread((CartScope.CartItemScope row) -> {
 			var v = new CartItemViewSwt(app); v.stateSupplier = () -> row;
 			v.onModifyQuantity = row.onModifyQuantity::run; v.onRemove = row.onRemove::run; return v; });
@@ -112,12 +112,15 @@ public class ShoppingSwtApplication extends ShoppingApplication implements SwtAp
 			v.onPageChange = s.onPageChange::run; v.onItemSizeCapacityChanged = s.onItemSizeCapacityChanged::run;
 			v.onOpenReceipt = s.onOpenReceipt::run; return v; });
 		app.setScopeViews(new ScopeViews()
+				.register(RootScope.class, (ShoppingSwtApplication a, RootScope s) -> rootView.apply(s))
+				.register(LoginScope.class, (ShoppingSwtApplication a, LoginScope s) -> loginView.apply(s))
+				.register(HomeScope.class, (ShoppingSwtApplication a, HomeScope s) -> homeView.apply(s))
+				.register(CartScope.class, (ShoppingSwtApplication a, CartScope s) -> cartView.apply(s))
+				.register(ProductScope.class, (ShoppingSwtApplication a, ProductScope s) -> productView.apply(s))
+				.register(ReceiptScope.class, (ShoppingSwtApplication a, ReceiptScope s) -> receiptView.apply(s))
 				.register(CartScope.CartItemScope.class, (ShoppingSwtApplication a, CartScope.CartItemScope row) -> cartItemView.apply(row))
 				.register(HomeScope.ProductsPanelScope.class, (ShoppingSwtApplication a, HomeScope.ProductsPanelScope s) -> productsPanelView.apply(s))
 				.register(HomeScope.PurchasesPanelScope.class, (ShoppingSwtApplication a, HomeScope.PurchasesPanelScope s) -> purchasesPanelView.apply(s)));
-		ReceiptPresenter.createView = app.onUiThread(p -> {
-			var v = new ReceiptViewSwt(app); v.stateSupplier = () -> p.state;
-			v.onOpenProducts = p.state.onOpenProducts::run; return v; });
 	}
 
 	/**
@@ -257,16 +260,18 @@ public class ShoppingSwtApplication extends ShoppingApplication implements SwtAp
 
 	@Override
 	public void updateHistory() {
+		// The host draws the root presenter's scope; each view asks for the views of the scopes it holds
+		var rootPresenter = this.getRootPresenter();
+		if (rootPresenter != null) {
+			this.viewOf(rootPresenter.state);
+		}
 		this.historyDirty = true;
 	}
 
 	public void markAllViewsDirty() {
-		for (var presenter : this.presenterMap.values()) {
-			if (presenter instanceof AbstractCubePresenter<?> acp) {
-				var view = acp.view();
-				if (view instanceof AbstractViewSwt swtView) {
-					this.markDirty(swtView);
-				}
+		for (var view : this.liveViews()) {
+			if (view instanceof AbstractViewSwt swtView) {
+				this.markDirty(swtView);
 			}
 		}
 	}
@@ -346,12 +351,9 @@ var storage = clientPersistentStore();
 	public void rebuildAllViews() {
 		LOG.info("Rebuilding all SWT views...");
 		this.dirtyViewMap.clear();
-		for (var presenter : this.presenterMap.values()) {
-			if (presenter instanceof AbstractCubePresenter<?> acp) {
-				var view = acp.view();
-				if (view instanceof AbstractViewSwt swtView) {
-					swtView.rebuild();
-				}
+		for (var view : this.liveViews()) {
+			if (view instanceof AbstractViewSwt swtView) {
+				swtView.rebuild();
 			}
 		}
 		if (this.rootPane != null && !this.rootPane.isDisposed()) {

@@ -1,19 +1,16 @@
 package br.com.wdc.shopping.presentation.presenter.restricted.products;
 
 import java.util.Objects;
-import java.util.function.Function;
 
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.Action;
 import br.com.wdc.framework.cube.ActionOf;
 import br.com.wdc.framework.cube.CubeIntent;
-import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.FormParam;
-import br.com.wdc.framework.cube.CubeView;
-import br.com.wdc.framework.cube.CubeViewSlot;
 import br.com.wdc.framework.cube.Prop;
 import br.com.wdc.framework.cube.Scope;
+import br.com.wdc.framework.cube.ScopeSlot;
 import br.com.wdc.framework.domain.exception.OfflineException;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartKeys;
@@ -26,13 +23,11 @@ public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication>
 
     private static final Log LOG = Log.getLogger(ProductPresenter.class);
 
-    // :: Public Class Fields
-
-    public static Function<ProductPresenter, CubeView> createView;
-
     // :: Public Instance Fields
 
     public static class ProductScope extends Scope {
+
+        public static final String CLASS_ID = "48b693f67410";
 
         public final Prop<ProductInfo> product = prop();
         public final Prop<Integer> errorCode = prop(0);
@@ -48,7 +43,7 @@ public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication>
     // :: Internal Instance Fields
 
     private final ProductService productService;
-    private CubeViewSlot ownerSlot;
+    private ScopeSlot ownerSlot;
 
     // Constructor
 
@@ -87,12 +82,10 @@ public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication>
             if (this.state.product.get() == null) {
                 throw new AssertionError("Missing Product");
             }
-
-            this.view = createView.apply(this);
             this.update();
         }
 
-        this.ownerSlot.setView(this.view);
+        this.ownerSlot.setScope(this.state);
 
         return true;
     }
@@ -142,12 +135,6 @@ public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication>
     private void errorInvalidQuantity() {
         this.state.errorCode.set(3);
         this.state.errorMessage.set("Codificação errada da quantidade.");
-    }
-
-    // :: Controle remoto
-
-    public CubeSkeleton skeleton() {
-        return skeleton("48b693f67410");
     }
 
 }

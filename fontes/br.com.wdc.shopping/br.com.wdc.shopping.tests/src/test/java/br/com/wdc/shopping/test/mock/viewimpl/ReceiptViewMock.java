@@ -5,13 +5,12 @@ import java.util.Date;
 import org.junit.Assert;
 
 import br.com.wdc.framework.cube.CubeView;
-import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter.ReceiptScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptItem;
 import br.com.wdc.shopping.test.mock.ShoppingApplicationMock;
 
 @SuppressWarnings({ "java:S106", "java:S1192" })
-public class ReceiptViewMock extends AbstractViewMock<ReceiptPresenter> {
+public class ReceiptViewMock extends AbstractViewMock<ReceiptScope> {
 
     public static ReceiptViewMock cast(CubeView view) {
         var cls = ReceiptViewMock.class;
@@ -21,11 +20,9 @@ public class ReceiptViewMock extends AbstractViewMock<ReceiptPresenter> {
         return (ReceiptViewMock) view;
     }
 
-    public ReceiptScope state;
 
-    public ReceiptViewMock(ReceiptPresenter presenter) {
-        super(((ShoppingApplicationMock) presenter.app), presenter);
-        this.state = presenter.state;
+    public ReceiptViewMock(ShoppingApplicationMock app, ReceiptScope state) {
+        super(app, state);
     }
 
     public void printRecibo() {

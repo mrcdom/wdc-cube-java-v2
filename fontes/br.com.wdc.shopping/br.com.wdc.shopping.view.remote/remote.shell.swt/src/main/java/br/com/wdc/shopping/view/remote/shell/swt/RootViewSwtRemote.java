@@ -1,5 +1,6 @@
 package br.com.wdc.shopping.view.remote.shell.swt;
 
+import br.com.wdc.framework.cube.Scope;
 import br.com.wdc.shopping.presentation.presenter.RootPresenter.RootScope;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.impl.RootViewSwt;
@@ -26,7 +27,7 @@ class RootViewSwtRemote extends RootViewSwt {
 		var state = new RootScope();
 		var contentId = s.getString("contentViewId");
 		if (contentId != null) {
-			state.contentView.set(this.ctx.viewLookup(contentId));
+			state.content.set(Scope.drawnBy(this.ctx.viewLookup(contentId)));
 		}
 		state.errorMessage.set(s.getString("errorMessage"));
 		return state;

@@ -97,7 +97,7 @@ graph TD
 | Módulo | Descrição |
 |--------|-----------|
 | **framework.commons** | Interfaces funcionais com exceções checked (`ThrowingFunction`, `ThrowingConsumer`, etc.), serialização extensível, abstrações SQL (`SqlDataSource`), utilitários (`CoerceUtils`, `DateUtil`, `Defer`), criptografia (`RSA`, `Base62`), logging multiplataforma (`Log` — facade leve com backends JUL e SLF4J), concorrência (`ScheduledExecutor`) |
-| **framework.cube** | Motor do padrão Cube MVP: `CubeApplication`, `CubePresenter`, `AbstractCubePresenter`, `CubeView`/`CubeViewSlot`, `Scope`, `CubePlace`, `CubeIntent`, `CubeNavigation` |
+| **framework.cube** | Motor do padrão Cube MVP: `CubeApplication`, `CubePresenter`, `AbstractCubePresenter`, `CubeView`, `Scope`/`ScopeSlot`/`ScopeViews`, `CubePlace`, `CubeIntent`, `CubeNavigation` |
 | **framework.dependencies** | POM do tipo BOM para gerenciamento centralizado de versões de dependências |
 
 ### Shopping — Backend

@@ -19,7 +19,7 @@ public class ShoppingLoginTest extends BasePresentationTest {
 
         var rootView = this.app.getRootView();
 
-        var mainContent = LoginViewMock.cast(rootView.state.contentView.get());
+        var mainContent = LoginViewMock.cast(this.app.viewOf(rootView.state.content.get()));
         Assert.assertEquals("Usuário não poderia ter sido validado", 0, (int) mainContent.state.errorCode.get());
     }
 
@@ -29,12 +29,12 @@ public class ShoppingLoginTest extends BasePresentationTest {
 
         var rootView = this.app.getRootView();
 
-        var loginView = LoginViewMock.cast(rootView.state.contentView.get());
+        var loginView = LoginViewMock.cast(this.app.viewOf(rootView.state.content.get()));
         loginView.state.userName.set("admin");
-        loginView.presenter.state.onEnter.run("admin", "senha não reconhecida");
+        loginView.state.onEnter.run("admin", "senha não reconhecida");
 
         // Check if it keeps bean login view
-        loginView = LoginViewMock.cast(rootView.state.contentView.get());
+        loginView = LoginViewMock.cast(this.app.viewOf(rootView.state.content.get()));
         Assert.assertEquals("Usuário não poderia ter sido validado", 1, (int) loginView.state.errorCode.get());
     }
 
@@ -44,11 +44,11 @@ public class ShoppingLoginTest extends BasePresentationTest {
 
         var rootView = this.app.getRootView();
 
-        var loginView = LoginViewMock.cast(rootView.state.contentView.get());
+        var loginView = LoginViewMock.cast(this.app.viewOf(rootView.state.content.get()));
         loginView.state.userName.set("admin");
-        loginView.presenter.state.onEnter.run("admin", "admin");
+        loginView.state.onEnter.run("admin", "admin");
 
-        var restrictedView = HomeViewMock.cast(rootView.state.contentView.get());
+        var restrictedView = HomeViewMock.cast(this.app.viewOf(rootView.state.content.get()));
 
         Assert.assertTrue("Nome do usuário inválido", StringUtils.isNotBlank(restrictedView.state.nickName.get()));
         Assert.assertTrue("Quantidade itens no carrinho não pode ser negativo",

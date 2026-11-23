@@ -9,7 +9,7 @@ Criar um novo módulo envolve alterações em **3 camadas**:
 | Camada | Módulo Maven | O que criar |
 |--------|-------------|-------------|
 | **Presentation** | `br.com.wdc.shopping.presentation` | Presenter, Scope, Service, DTOs |
-| **Skeleton** (backend view) | `remote.host` | ViewImpl (wiring presenter ↔ React) |
+| **Skeleton** (contrato remoto) | `br.com.wdc.shopping.presentation` | `CLASS_ID` no Scope + código de evento em cada ação (o `remote.host` não registra nada) |
 | **React Client** (frontend) | `remote.shell.react` | Componente React + registro |
 
 ---
@@ -40,6 +40,9 @@ import br.com.wdc.framework.cube.Prop;
 import br.com.wdc.framework.cube.Scope;
 
 public class WishlistScope extends Scope {
+
+    // classId do protocolo bridge: o host remoto desenha este escopo com a view remota deste id
+    public static final String CLASS_ID = "d1e2f3a4b5c6";
 
     // Campos observados: set() de um valor diferente pede o redesenho sozinho
     public final Prop<List<WishlistItem>> items = prop(List.of());
@@ -88,13 +91,11 @@ O presenter contém a lógica de apresentação. Estenda `AbstractCubePresenter<
 ```java
 package br.com.wdc.shopping.presentation.presenter.restricted.wishlist;
 
-import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubeIntent;
-import br.com.wdc.framework.cube.CubeView;
-import br.com.wdc.framework.cube.CubeViewSlot;
+import br.com.wdc.framework.cube.ScopeSlot;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
 
@@ -102,14 +103,11 @@ public class WishlistPresenter extends AbstractCubePresenter<ShoppingApplication
 
     private static final Logger LOG = LoggerFactory.getLogger(WishlistPresenter.class);
 
-    // Factory de view — será injetada pelo skeleton no bloco static {}
-    public static Function<WishlistPresenter, CubeView> createView;
-
-    // Estado público — acessível pela ViewImpl para serialização
-    public final WishlistScope state = new WishlistScope();
+    // Estado público — lido pela view (local ou remota); bind liga as ações com código ao skeleton do escopo
+    public final WishlistScope state = bind(new WishlistScope());
 
     // Slot recebido do presenter pai (HomePresenter → contentSlot)
-    private CubeViewSlot ownerSlot;
+    private ScopeSlot ownerSlot;
 
     public WishlistPresenter(ShoppingApplication app) {
         super(app);
@@ -121,15 +119,15 @@ public class WishlistPresenter extends AbstractCubePresenter<ShoppingApplication
 
     @Override
     public boolean applyParameters(CubeIntent intent, boolean initialization, boolean deepest) {
+        // Lido a cada chamada: um presenter reaproveitado vai para onde o pai o põe agora
+        this.ownerSlot = new WishlistKeys(this.app, intent).parentSlot();
         if (initialization) {
-            this.ownerSlot = new WishlistKeys(this.app, intent).parentSlot();
-            this.view = createView.apply(this);
-
             // Carregar dados iniciais
             this.loadItems();
         }
 
-        this.ownerSlot.setView(this.view);
+        // O pai põe o escopo no seu Prop<Scope> content; a view do pai pede a deste escopo
+        this.ownerSlot.setScope(this.state);
         return true;
     }
 
@@ -155,7 +153,7 @@ public class WishlistPresenter extends AbstractCubePresenter<ShoppingApplication
 ```
 
 **Pontos-chave:**
-- `createView` é `static` e será atribuída pelo skeleton
+- O presenter **não cria view**: entrega o escopo ao pai (`ownerSlot.setScope(this.state)`), e a camada de view de cada host escolhe quem o desenha (`ScopeViews`)
 - `applyParameters()` é chamado pelo sistema de navegação
 - O state é criado com `bind(new WishlistScope())`: `set` de um valor diferente numa `Prop` marca a view como "dirty" para envio ao frontend, sem `this.update()`. Este só é preciso quando se mexe *dentro* de um valor já atribuído (um item de uma lista)
 - Ações são campos do state (`Action`, `ActionOf<T>`, `ActionOf2<T, U>`) ligados no construtor com `action(...)`/`actionOf(...)`/`actionOf2(...)`. A guarda manda a falha não tratada para `app.alertUnexpectedError()` e, ao fim, republica o endereço — o corpo não tem `try/catch` genérico, só trata as falhas esperadas
@@ -229,9 +227,9 @@ O **caminho hierárquico** sai da árvore: `new WishlistKeys(app).flip()` instan
 
 ## Passo 3 — Skeleton: expor o presenter ao bridge (backend)
 
-### 3.1 Escolher um VIEW_ID (classId)
+### 3.1 Escolher o `CLASS_ID` (classId)
 
-Um identificador hexadecimal de 12 caracteres, único entre os presenters (ex.: `"d1e2f3a4b5c6"`). É o mesmo que os shells remotos usam para achar a view (`VIEW_ID` no TeaVM/SWT, `BaseViewClass.FC` no React).
+Um identificador hexadecimal de 12 caracteres, único entre os escopos (ex.: `"d1e2f3a4b5c6"`), declarado no próprio escopo como `public static final String CLASS_ID` (Passo 1.2). É o mesmo que os shells remotos usam para achar a view (`VIEW_ID` no TeaVM/SWT, `BaseViewClass.FC` no React).
 
 ### 3.2 Dar um código de evento a cada ação
 
@@ -251,35 +249,23 @@ public WishlistPresenter(ShoppingApplication app) {
 
 ### 3.3 O skeleton
 
-Com os códigos nas ações, o skeleton é uma linha — o `AbstractPresenter` despacha cada evento para a ação do seu código:
+O presenter não declara skeleton: ele é do escopo. Com `bind(...)`, o escopo compartilha o mapa de eventos do presenter, e `scope.skeleton(CLASS_ID)` despacha cada evento para a ação do seu código — quem o pede é a view remota.
+
+Se o cliente também sincroniza campos antes dos eventos, registre o `syncState` no construtor do presenter com `onSync` (como o login faz com o nome do usuário; `setSilently` porque o cliente já mostra o que enviou):
 
 ```java
-public CubeSkeleton skeleton() {
-    return skeleton("d1e2f3a4b5c6");
-}
+this.state.onSync(formData -> {
+    if (formData.containsKey("userName")) {
+        state.userName.setSilently(CoerceUtils.asString(formData.get("userName")));
+    }
+});
 ```
 
-Se o cliente também sincroniza campos antes dos eventos, passe o `syncState` (como o login faz com o nome do usuário; `setSilently` porque o cliente já mostra o que enviou):
+### 3.4 O host remoto
 
-```java
-public CubeSkeleton skeleton() {
-    return skeleton("c677cda52d14", formData -> {
-        if (formData.containsKey("userName")) {
-            state.userName.setSilently(CoerceUtils.asString(formData.get("userName")));
-        }
-    });
-}
-```
+Nada a registrar: o catálogo de views do `ShoppingApplicationImpl` (`remote.host`) é `new ScopeViews().fallback(RemoteViewImpl::forScope)`, que faz uma view remota para qualquer escopo lendo o `CLASS_ID` dele por reflexão.
 
-### 3.4 Registrar a factory no host remoto
-
-No bloco `static {}` de `ShoppingApplicationImpl` (`remote.host`):
-
-```java
-WishlistPresenter.createView = p -> new RemoteViewImpl((RemoteApplication) p.app, p, p.state, p.skeleton());
-```
-
-O `RemoteViewImpl` serializa o `state` (o valor de cada `Prop`; as ações ficam de fora) e encaminha os eventos ao skeleton.
+O `RemoteViewImpl` serializa o escopo (o valor de cada `Prop`; as ações ficam de fora; um `Prop<Scope>` sai como `"<campo>ViewId"`) e encaminha os eventos ao skeleton do escopo.
 
 ---
 
@@ -297,7 +283,7 @@ import Typography from '@mui/material/Typography'
 import app, { type ViewProps } from '@root/App'
 import { BaseViewClass } from '@root/utils/ViewUtils'
 
-// :: Actions — devem corresponder aos event codes na ViewImpl
+// :: Actions — devem corresponder aos códigos de evento das ações do presenter
 const ON_REMOVE_ITEM = 1
 const ON_OPEN_PRODUCTS = 2
 
@@ -341,13 +327,13 @@ class WishlistViewClass extends BaseViewClass<ViewProps, WishlistScope> {
   }
 }
 
-// O VID aqui DEVE ser idêntico ao VID no WishlistReactViewImpl.java
+// O VID aqui DEVE ser idêntico ao WishlistScope.CLASS_ID
 export default BaseViewClass.FC(WishlistViewClass, 'd1e2f3a4b5c6')
 ```
 
 **Regras importantes:**
-- Os **event codes** (1, 2, ...) devem corresponder ao `switch` em `ViewImpl.submit()`
-- O **VID** no `BaseViewClass.FC()` deve ser idêntico ao da `GenericViewImpl` no Java
+- Os **event codes** (1, 2, ...) devem corresponder aos códigos com que o presenter ligou as ações (`action(1, ...)`, `actionOf(2, ...)`)
+- O **VID** no `BaseViewClass.FC()` deve ser idêntico ao `CLASS_ID` do escopo no Java
 - O **tipo do state** deve espelhar os campos emitidos por `Scope.write()`
 - Use `app.setFormField()` para enviar dados antes do `app.submit()`
 
@@ -400,10 +386,10 @@ E no frontend, adicionar um botão ou link que emita o evento correspondente.
   - [ ] Registrar `WishlistKeys.PLACE` em `ShoppingApplication.PLACES`
 
 - [ ] **Skeleton**
-  - [ ] Escolher VID único (12 hex chars)
+  - [ ] Declarar `public static final String CLASS_ID` único (12 hex chars) no `WishlistScope`
   - [ ] Dar um código de evento a cada ação (`action(1, ...)`, `actionOf(2, FormParam..., ...)`)
-  - [ ] `skeleton()` → `return skeleton(VID);` (com `syncState`, se houver)
-  - [ ] Registrar a factory no static block de `ShoppingApplicationImpl`
+  - [ ] `state.onSync(...)` no construtor, se o cliente sincroniza campos
+  - [ ] Em cada host local, registrar a view no `ScopeViews` (`register(WishlistScope.class, WishlistViewVaadin::new)`); o host remoto não registra nada
 
 - [ ] **React Client**
   - [ ] Criar `WishlistView.tsx` com `BaseViewClass.FC(Class, VID)`

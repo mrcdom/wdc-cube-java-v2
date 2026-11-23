@@ -576,6 +576,17 @@ public class RemoteApplicationSupport {
                 json.name("states");
                 json.beginArray();
 
+                // The presenters' computed state, once, before any scope is written
+                var cubeApp = host.getCubeApp();
+                if (cubeApp != null) {
+                    this.lock.lock();
+                    try {
+                        cubeApp.commitComputedState();
+                    } finally {
+                        this.lock.unlock();
+                    }
+                }
+
                 var queue = new java.util.ArrayDeque<RemoteViewImpl>(dirtyViews);
                 var written = new java.util.HashSet<String>();
                 while (!queue.isEmpty()) {

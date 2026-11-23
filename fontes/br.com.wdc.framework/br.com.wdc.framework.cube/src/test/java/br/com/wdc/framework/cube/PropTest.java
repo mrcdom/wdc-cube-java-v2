@@ -25,11 +25,25 @@ public class PropTest {
 
         CounterPresenter() {
             super(new CubePlaceTest.TestApp());
-        }
+            app.setScopeViews(new ScopeViews().register(CounterState.class, (CubeApplication a, CounterState s) -> new CubeView() {
+                @Override
+                public String instanceId() {
+                    return "counter:1";
+                }
 
-        @Override
-        public void update() {
-            updates++;
+                @Override
+                public void update() {
+                    updates++;
+                }
+
+                @Override
+                public void release() {
+                    // NOOP
+                }
+            }));
+            app.viewOf(state);
+            // Not the first drawing: only the redraws a change asks for
+            updates = 0;
         }
     }
 
@@ -44,7 +58,7 @@ public class PropTest {
     }
 
     @Test
-    public void aChangeAsksTheBoundPresenterForARedraw() {
+    public void aChangeRedrawsTheScopesView() {
         var p = new CounterPresenter();
 
         p.state.count.set(1);

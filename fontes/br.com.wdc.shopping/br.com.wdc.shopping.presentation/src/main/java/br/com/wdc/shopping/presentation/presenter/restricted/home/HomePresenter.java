@@ -2,7 +2,6 @@ package br.com.wdc.shopping.presentation.presenter.restricted.home;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
 
 import br.com.wdc.framework.commons.function.ThrowingRunnable;
 import br.com.wdc.framework.commons.log.Log;
@@ -10,25 +9,23 @@ import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.Action;
 import br.com.wdc.framework.cube.ActionOf;
 import br.com.wdc.framework.cube.CubeIntent;
-import br.com.wdc.framework.cube.CubeSkeleton;
-import br.com.wdc.framework.cube.CubeView;
-import br.com.wdc.framework.cube.CubeViewSlot;
 import br.com.wdc.framework.cube.FormParam;
 import br.com.wdc.framework.cube.Prop;
 import br.com.wdc.framework.cube.Scope;
+import br.com.wdc.framework.cube.ScopeSlot;
 import br.com.wdc.framework.domain.security.AuthenticationService;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
-import br.com.wdc.shopping.presentation.presenter.open.login.LoginKeys;
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartKeys;
-import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductKeys;
-import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptKeys;
 import br.com.wdc.shopping.presentation.StorageKeys;
 import br.com.wdc.shopping.presentation.exception.ProductNotFoundException;
+import br.com.wdc.shopping.presentation.presenter.open.login.LoginKeys;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartKeys;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartManager;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelService;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
+import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductKeys;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductService;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
+import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptKeys;
 
 public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
 
@@ -36,13 +33,11 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     private static final Log LOG = Log.getLogger(HomePresenter.class);
 
-    // :: Public Class Fields
-
-    public static Function<HomePresenter, CubeView> createView;
-
     // :: Public Instance Fields
 
     public static class HomeScope extends Scope {
+
+        public static final String CLASS_ID = "473dbdd7a36a";
 
         /**
          * The products panel: a segment of the home, with no presenter of its own. The home presenter binds its
@@ -74,7 +69,8 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
 
         }
 
-        public final Prop<CubeView> contentView = prop();
+        /** The scope of the presenter below (product, cart, receipt), or none for the home's own panels. */
+        public final Prop<Scope> content = prop();
         public final Prop<ProductsPanelScope> productsPanel = prop();
         public final Prop<PurchasesPanelScope> purchasesPanel = prop();
         public final Prop<String> nickName = prop();
@@ -91,9 +87,9 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     // :: Internal Instance Fields
 
-    private final CubeViewSlot contentSlot;
+    private final ScopeSlot contentSlot;
 
-    private CubeViewSlot ownerSlot;
+    private ScopeSlot ownerSlot;
     private CartManager cart;
     private final HomeScope.ProductsPanelScope productsPanel = new HomeScope.ProductsPanelScope();
     private final HomeScope.PurchasesPanelScope purchasesPanel = new HomeScope.PurchasesPanelScope();
@@ -106,7 +102,7 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     public HomePresenter(ShoppingApplication app) {
         super(app);
-        this.contentSlot = this::setContentView;
+        this.contentSlot = this::setContent;
         this.onCartCommitListenerRemover = ThrowingRunnable.noop();
         this.onCartChangeListenerRemover = ThrowingRunnable.noop();
         this.productService = new ProductService(app);
@@ -130,7 +126,7 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     @Override
     public void release() {
-        this.state.contentView.set(null);
+        this.state.content.set(null);
         this.state.productsPanel.set(null);
         this.state.purchasesPanel.set(null);
 
@@ -154,9 +150,8 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
             return false;
         }
 
-        if (initialization || this.view == null) {
+        if (initialization) {
             this.ownerSlot = keys.parentSlot();
-            this.view = createView.apply(this);
 
             this.state.nickName.set(this.app.getSubject().getNickName());
 
@@ -177,10 +172,10 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
             return false;
         }
 
-        this.ownerSlot.setView(this.view);
+        this.ownerSlot.setScope(this.state);
 
         if (deepest) {
-            this.setContentView(null);
+            this.setContent(null);
         } else {
             keys.withParentSlot(this.contentSlot);
         }
@@ -243,7 +238,7 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
     private void exit() {
         this.cart.clear();
         this.app.setSubject(null);
-        this.setContentView(null);
+        this.setContent(null);
 
         // Remover token persistente do storage seguro
         this.app.clientPersistentStore().secure().remove(StorageKeys.AUTH_TOKEN);
@@ -282,12 +277,12 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     // :: Slots
 
-    private void setContentView(CubeView view) {
-        if (this.state.contentView.get() != view) {
-            this.state.contentView.set(view);
+    private void setContent(Scope content) {
+        if (this.state.content.get() != content) {
+            this.state.content.set(content);
 
             // Reload purchases when returning to the main view
-            if (view == null && this.purchasesPanel.view() != null) {
+            if (content == null && this.purchasesPanel.view() != null) {
                 this.loadPurchases();
             }
         }
@@ -343,12 +338,6 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
         } catch (Exception caught) {
             LOG.error("Failed to load products", caught);
         }
-    }
-
-    // :: Controle remoto
-
-    public CubeSkeleton skeleton() {
-        return skeleton("473dbdd7a36a");
     }
 
 }

@@ -10,13 +10,12 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 
-import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginScope;
 import br.com.wdc.shopping.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.shopping.view.vaadin.ShoppingVaadinApplication;
 import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
-public class LoginViewVaadin extends AbstractViewVaadin<LoginPresenter> {
+public class LoginViewVaadin extends AbstractViewVaadin<LoginScope> {
 
     private final LoginScope state;
 
@@ -25,9 +24,9 @@ public class LoginViewVaadin extends AbstractViewVaadin<LoginPresenter> {
     private TextField passwordField;
     private Div errorDiv;
 
-    public LoginViewVaadin(LoginPresenter presenter) {
-        super("login", (ShoppingVaadinApplication) presenter.app, presenter, new VerticalLayout());
-        this.state = presenter.state;
+    public LoginViewVaadin(ShoppingVaadinApplication app, LoginScope state) {
+        super("login", app, state, new VerticalLayout());
+        this.state = state;
     }
 
     @Override
@@ -151,7 +150,7 @@ public class LoginViewVaadin extends AbstractViewVaadin<LoginPresenter> {
         safeAction("Login", () -> {
             var userName = this.userField.getValue();
             var password = this.passwordField.getValue();
-            this.presenter.state.onEnter.run(userName, password);
+            this.state.onEnter.run(userName, password);
         });
     }
 }

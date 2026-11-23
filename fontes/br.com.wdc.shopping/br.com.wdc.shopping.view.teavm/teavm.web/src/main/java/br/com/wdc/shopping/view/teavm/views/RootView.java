@@ -5,13 +5,12 @@ import static br.com.wdc.shopping.view.teavm.commons.VNode.*;
 
 import org.teavm.jso.dom.html.HTMLDocument;
 
-import br.com.wdc.shopping.view.teavm.commons.SelUtility;
-import br.com.wdc.shopping.view.teavm.commons.VNode;
-import br.com.wdc.shopping.presentation.presenter.RootPresenter;
 import br.com.wdc.shopping.presentation.presenter.RootPresenter.RootScope;
 import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
+import br.com.wdc.shopping.view.teavm.commons.SelUtility;
+import br.com.wdc.shopping.view.teavm.commons.VNode;
 
-public class RootView extends AbstractVDomView<RootPresenter> {
+public class RootView extends AbstractVDomView<RootScope> {
 
     @SuppressWarnings({"java:S1214", "static-access"})
     private interface Sel {
@@ -24,10 +23,10 @@ public class RootView extends AbstractVDomView<RootPresenter> {
     private final RootScope state;
     private boolean appended;
 
-    public RootView(RootPresenter presenter) {
-        super("root", (ShoppingTeaVMApplication) presenter.app, presenter,
+    public RootView(ShoppingTeaVMApplication app, RootScope state) {
+        super("root", app, state,
                 HTMLDocument.current().createElement("sp-theme"));
-        this.state = presenter.state;
+        this.state = state;
     }
 
     @Override
@@ -41,7 +40,7 @@ public class RootView extends AbstractVDomView<RootPresenter> {
 
     @Override
     protected VNode render() {
-        var contentElement = this.state.contentView.get() instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
+        var contentElement = this.app.viewOf(this.state.content.get()) instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
         // @formatter:off
         return spTheme("light", "medium", "spectrum")
           .cls(Sel.ROOT)

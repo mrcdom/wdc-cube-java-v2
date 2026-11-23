@@ -13,13 +13,12 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope;
 import br.com.wdc.shopping.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.shopping.view.vaadin.ShoppingVaadinApplication;
 import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
-public class HomeViewVaadin extends AbstractViewVaadin<HomePresenter> {
+public class HomeViewVaadin extends AbstractViewVaadin<HomeScope> {
 
     private final HomeScope state;
 
@@ -33,9 +32,9 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomePresenter> {
     private Div purchasesPanelSlot;
     private AbstractViewVaadin<?> currentContentView;
 
-    public HomeViewVaadin(HomePresenter presenter) {
-        super("home", (ShoppingVaadinApplication) presenter.app, presenter, new VerticalLayout());
-        this.state = presenter.state;
+    public HomeViewVaadin(ShoppingVaadinApplication app, HomeScope state) {
+        super("home", app, state, new VerticalLayout());
+        this.state = state;
     }
 
     @Override
@@ -93,7 +92,7 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomePresenter> {
             ppv.doUpdate();
         }
 
-        var newContentView = this.state.contentView.get() instanceof AbstractViewVaadin<?> v ? v : null;
+        var newContentView = this.app.viewOf(this.state.content.get()) instanceof AbstractViewVaadin<?> v ? v : null;
         if (this.currentContentView != newContentView) {
             this.contentPane.removeAll();
             if (newContentView != null) {
@@ -143,7 +142,7 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomePresenter> {
                     button.setIcon(exitIcon);
                     button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
                     button.getElement().setAttribute("title", "Sair");
-                    button.addClickListener(e -> safeAction("Exit", this.presenter.state.onExit::run));
+                    button.addClickListener(e -> safeAction("Exit", this.state.onExit::run));
                 });
 
                 dom.span(label -> {
@@ -190,7 +189,7 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomePresenter> {
                 this.cartCountOldValue = this.state.cartItemCount.get();
 
                 var cartButton = new Button("Carrinho", cartIcon,
-                        e -> safeAction("Open cart", this.presenter.state.onOpenCart::run));
+                        e -> safeAction("Open cart", this.state.onOpenCart::run));
                 cartButton.addClassName("cart-button");
                 cartButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
                 cartButton.getStyle().set("color", "white").set("position", "relative");

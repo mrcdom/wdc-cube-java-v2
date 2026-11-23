@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.vaadin.flow.component.Component;
-
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Div;
@@ -17,14 +16,13 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope.CartItemScope;
 import br.com.wdc.shopping.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.shopping.view.vaadin.ShoppingVaadinApplication;
 import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
-public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
+public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
 
     private final CartScope state;
 
@@ -37,9 +35,9 @@ public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
     private HorizontalLayout footerPane;
     private HorizontalLayout actionsPane;
 
-    public CartViewVaadin(CartPresenter presenter) {
-        super("cart", (ShoppingVaadinApplication) presenter.app, presenter, new VerticalLayout());
-        this.state = presenter.state;
+    public CartViewVaadin(ShoppingVaadinApplication app, CartScope state) {
+        super("cart", app, state, new VerticalLayout());
+        this.state = state;
     }
 
     @Override
@@ -155,7 +153,7 @@ public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
                 .set("font-size", "1.1rem").set("margin-top", "var(--lumo-space-m)");
         this.emptyCartPane.add(emptyText);
         var goShoppingBtn = new Button("Vamos às compras!",
-                e -> safeAction("Open products", this.presenter.state.onOpenProducts::run));
+                e -> safeAction("Open products", this.state.onOpenProducts::run));
         goShoppingBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         goShoppingBtn.getStyle().set("font-weight", "bold").set("font-size", "1rem").set("margin-top",
                 "var(--lumo-space-s)");
@@ -197,7 +195,7 @@ public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
                 button.setIcon(VaadinIcon.ARROW_LEFT.create());
                 button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
                 button.addClassName("back-button");
-                button.addClickListener(e -> safeAction("Open products", this.presenter.state.onOpenProducts::run));
+                button.addClickListener(e -> safeAction("Open products", this.state.onOpenProducts::run));
             });
 
             dom.button(button -> {
@@ -205,7 +203,7 @@ public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
                 button.setIcon(VaadinIcon.CHECK.create());
                 button.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
                 button.getStyle().set("background-color", "var(--lumo-success-color)");
-                button.addClickListener(e -> safeAction("Buy", this.presenter.state.onBuy::run));
+                button.addClickListener(e -> safeAction("Buy", this.state.onBuy::run));
             });
         });
     }

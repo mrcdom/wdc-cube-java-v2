@@ -2,13 +2,12 @@ package br.com.wdc.shopping.view.vaadin.impl;
 
 import com.vaadin.flow.component.html.Div;
 
-import br.com.wdc.shopping.presentation.presenter.RootPresenter;
 import br.com.wdc.shopping.presentation.presenter.RootPresenter.RootScope;
 import br.com.wdc.shopping.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.shopping.view.vaadin.ShoppingVaadinApplication;
 import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
-public class RootViewVaadin extends AbstractViewVaadin<RootPresenter> {
+public class RootViewVaadin extends AbstractViewVaadin<RootScope> {
 
     private final RootScope state;
 
@@ -16,9 +15,9 @@ public class RootViewVaadin extends AbstractViewVaadin<RootPresenter> {
     private Div contentPane;
     private AbstractViewVaadin<?> currentContentView;
 
-    public RootViewVaadin(RootPresenter presenter) {
-        super("root", (ShoppingVaadinApplication) presenter.app, presenter, new Div());
-        this.state = presenter.state;
+    public RootViewVaadin(ShoppingVaadinApplication app, RootScope state) {
+        super("root", app, state, new Div());
+        this.state = state;
     }
 
     @Override
@@ -38,7 +37,7 @@ public class RootViewVaadin extends AbstractViewVaadin<RootPresenter> {
             this.notRendered = false;
         }
 
-        var newContentView = this.state.contentView.get() instanceof AbstractViewVaadin<?> v ? v : null;
+        var newContentView = this.app.viewOf(this.state.content.get()) instanceof AbstractViewVaadin<?> v ? v : null;
         if (this.currentContentView != newContentView) {
             this.contentPane.removeAll();
             if (newContentView != null) {
