@@ -4,17 +4,16 @@ import static br.com.wdc.framework.domain.repository.Repository.changed;
 import static br.com.wdc.shopping.persistence.impl.scheme.Sequences.SQ_USER;
 import static br.com.wdc.shopping.persistence.impl.scheme.tables.EnUser.EN_USER;
 
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.List;
 
-import org.jooq.SortField;
 import org.jooq.Condition;
+import org.jooq.SortField;
 import org.jooq.impl.DSL;
 
+import br.com.wdc.framework.domain.exception.InvalidRequestException;
 import br.com.wdc.framework.jooq.CriterionTranslator;
 import br.com.wdc.framework.jooq.JsonChildQueryBuilder;
 import br.com.wdc.framework.jooq.JsonQuery;
@@ -114,11 +113,11 @@ public class UserRepositoryImpl extends BaseRepositoryImpl  implements UserRepos
     @Override
     public boolean update(User newBean, User oldBean, User projection) {
         if (newBean == null) {
-            throw new AssertionError("newBean is requeried");
+            throw new InvalidRequestException("update de User sem o novo estado");
         }
 
         if (newBean.id() == null) {
-            throw new AssertionError("Missing primary key");
+            throw new InvalidRequestException("update de User sem a chave (id)");
         }
 
         if (projection == null) {
@@ -159,7 +158,7 @@ public class UserRepositoryImpl extends BaseRepositoryImpl  implements UserRepos
         // O campo existe sempre; o que decide é ele estar informado. Sem esta guarda, critério vazio traduziria
         // para noCondition() e o DELETE levaria a tabela inteira.
         if (criteria == null || !criteria.hasUserId()) {
-            throw new AssertionError("Missing primary key");
+            throw new InvalidRequestException("delete de User sem a chave (id)");
         }
 
         var dsl = dsl();

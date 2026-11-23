@@ -7,6 +7,7 @@ import java.util.List;
 import org.junit.Test;
 
 import br.com.wdc.framework.domain.exception.BusinessException;
+import br.com.wdc.framework.domain.exception.InvalidRequestException;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
 import br.com.wdc.shopping.domain.product.Product;
 import br.com.wdc.shopping.domain.product.ProductCriteria;
@@ -318,7 +319,8 @@ public abstract class AbstractProductRepositoryTest {
 		try {
 			repo().delete(new ProductCriteria());
 			fail("delete sem chave deveria ser recusado");
-		} catch (AssertionError | RuntimeException expected) {
+		} catch (InvalidRequestException expected) {
+			// Local ou pela API (400): o mesmo pedido recusado, e nada apagado
 			assertEquals(4, repo().count(new ProductCriteria()));
 		}
 	}

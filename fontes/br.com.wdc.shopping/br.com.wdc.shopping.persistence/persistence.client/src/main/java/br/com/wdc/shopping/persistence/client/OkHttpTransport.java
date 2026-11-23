@@ -59,7 +59,7 @@ public class OkHttpTransport implements HttpTransport {
         try (var response = client.newCall(requestBuilder.build()).execute()) {
             var responseBody = response.body() != null ? response.body().string() : null;
             if (!response.isSuccessful()) {
-                throw new BusinessException("HTTP " + response.code() + ": " + responseBody);
+                throw HttpFailure.of(response.code(), responseBody);
             }
             return responseBody;
         } catch (BusinessException e) {
@@ -83,7 +83,7 @@ public class OkHttpTransport implements HttpTransport {
             }
             var responseBody = response.body() != null ? response.body().string() : null;
             if (!response.isSuccessful()) {
-                throw new BusinessException("HTTP " + response.code() + ": " + responseBody);
+                throw HttpFailure.of(response.code(), responseBody);
             }
             return responseBody;
         } catch (BusinessException e) {
@@ -104,7 +104,7 @@ public class OkHttpTransport implements HttpTransport {
         try (var response = client.newCall(request).execute()) {
             var responseBody = response.body() != null ? response.body().string() : null;
             if (!response.isSuccessful()) {
-                throw new BusinessException("HTTP " + response.code() + ": " + responseBody);
+                throw HttpFailure.of(response.code(), responseBody);
             }
             return responseBody;
         } catch (BusinessException e) {
@@ -126,7 +126,7 @@ public class OkHttpTransport implements HttpTransport {
         try (var response = client.newCall(request).execute()) {
             var responseBody = response.body() != null ? response.body().string() : null;
             if (!response.isSuccessful()) {
-                throw new BusinessException("HTTP " + response.code() + ": " + responseBody);
+                throw HttpFailure.of(response.code(), responseBody);
             }
             return responseBody;
         } catch (BusinessException e) {
@@ -147,7 +147,7 @@ public class OkHttpTransport implements HttpTransport {
         try (var response = client.newCall(request).execute()) {
             var responseBody = response.body() != null ? response.body().string() : null;
             if (!response.isSuccessful()) {
-                throw new BusinessException("HTTP " + response.code() + ": " + responseBody);
+                throw HttpFailure.of(response.code(), responseBody);
             }
             return responseBody;
         } catch (BusinessException e) {
@@ -170,7 +170,7 @@ public class OkHttpTransport implements HttpTransport {
                 return null; // NOSONAR S1168 — null means "resource not found", distinct from empty
             }
             if (!response.isSuccessful()) {
-                throw new BusinessException("HTTP " + response.code());
+                throw HttpFailure.of(response.code(), null);
             }
             return response.body() != null ? response.body().bytes() : new byte[0];
         } catch (BusinessException e) {
@@ -190,7 +190,7 @@ public class OkHttpTransport implements HttpTransport {
 
         try (var response = client.newCall(requestBuilder.build()).execute()) {
             if (!response.isSuccessful()) {
-                throw new BusinessException("HTTP " + response.code());
+                throw HttpFailure.of(response.code(), null);
             }
             var responseBody = response.body() != null ? response.body().string() : null;
             if (responseBody == null) return false;

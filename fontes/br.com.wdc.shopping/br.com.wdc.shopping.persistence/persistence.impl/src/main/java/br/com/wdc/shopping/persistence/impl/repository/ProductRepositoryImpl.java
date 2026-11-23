@@ -8,11 +8,12 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 
-import org.jooq.SortField;
 import org.jooq.Condition;
+import org.jooq.SortField;
 import org.jooq.impl.DSL;
 
 import br.com.wdc.framework.domain.exception.BusinessException;
+import br.com.wdc.framework.domain.exception.InvalidRequestException;
 import br.com.wdc.framework.jooq.CriterionTranslator;
 import br.com.wdc.framework.jooq.JsonChildQueryBuilder;
 import br.com.wdc.framework.jooq.JsonQuery;
@@ -113,11 +114,11 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
     @Override
     public boolean update(Product newBean, Product oldBean, Product projection) {
         if (newBean == null) {
-            throw new AssertionError("newBean is required");
+            throw new InvalidRequestException("update de Product sem o novo estado");
         }
 
         if (newBean.id() == null) {
-            throw new AssertionError("Missing primary key");
+            throw new InvalidRequestException("update de Product sem a chave (id)");
         }
 
         if (projection == null) {
@@ -158,7 +159,7 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
         // O campo existe sempre; o que decide é ele estar informado. Sem esta guarda, critério vazio traduziria
         // para noCondition() e o DELETE levaria a tabela inteira.
         if (criteria == null || !criteria.hasProductId()) {
-            throw new AssertionError("Missing primary key");
+            throw new InvalidRequestException("delete de Product sem a chave (id)");
         }
 
         return dsl()

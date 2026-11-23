@@ -6,7 +6,6 @@ import org.junit.ClassRule;
 import org.junit.Test;
 
 import br.com.wdc.framework.commons.serialization.JsonStreamReader;
-import br.com.wdc.framework.domain.exception.BusinessException;
 import br.com.wdc.framework.domain.exception.InvalidRequestException;
 import br.com.wdc.shopping.domain.product.ProductCodec;
 import br.com.wdc.shopping.domain.product.ProductCriteria;
@@ -102,10 +101,10 @@ public class OrderByWireCompatibilityTest {
 		var body = "{\"userId\":{\"p\":[{\"o\":\"EQ\",\"v\":[0]}]},\"orderBy\":\"ORDENACAO_INEXISTENTE\","
 				+ "\"projection\":{\"id\":1},\"pageSize\":10}";
 
-		var e = assertThrows(BusinessException.class,
+		// 400, não 500: volta como a exceção que o servidor lançou
+		var e = assertThrows(InvalidRequestException.class,
 				() -> env.transport().postJson("/api/repo/purchase/fetch-page", body));
 
-		assertTrue("deve ser 400, não 500: " + e.getMessage(), e.getMessage().startsWith("HTTP 400"));
 		assertTrue("o corpo deve nomear o valor recusado: " + e.getMessage(),
 				e.getMessage().contains("ORDENACAO_INEXISTENTE"));
 		assertTrue("o corpo deve listar as aceitas: " + e.getMessage(),

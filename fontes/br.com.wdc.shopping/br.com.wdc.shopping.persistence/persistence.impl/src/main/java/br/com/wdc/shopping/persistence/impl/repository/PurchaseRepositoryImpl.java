@@ -15,6 +15,7 @@ import org.jooq.Condition;
 import org.jooq.SortField;
 import org.jooq.impl.DSL;
 
+import br.com.wdc.framework.domain.exception.InvalidRequestException;
 import br.com.wdc.framework.domain.pagination.Page;
 import br.com.wdc.framework.jooq.CriterionTranslator;
 import br.com.wdc.framework.jooq.JsonChildQueryBuilder;
@@ -162,11 +163,11 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
     @Override
     public boolean update(Purchase newBean, Purchase oldBean, Purchase projection) {
         if (newBean == null) {
-            throw new AssertionError("newBean is required");
+            throw new InvalidRequestException("update de Purchase sem o novo estado");
         }
 
         if (newBean.id() == null) {
-            throw new AssertionError("Missing primary key");
+            throw new InvalidRequestException("update de Purchase sem a chave (id)");
         }
 
         if (projection == null) {
