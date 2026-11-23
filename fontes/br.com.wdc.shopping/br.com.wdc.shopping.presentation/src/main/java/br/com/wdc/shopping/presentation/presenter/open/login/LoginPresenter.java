@@ -6,6 +6,7 @@ import java.util.function.Function;
 import br.com.wdc.framework.commons.lang.CoerceUtils;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
+import br.com.wdc.framework.cube.ActionOf2;
 import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
@@ -41,6 +42,8 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
         public String errorMessage;
         public boolean loading;
 
+        public ActionOf2<String, String> onEnter = ActionOf2.noop();
+
     }
 
     public final LoginViewState state = new LoginViewState();
@@ -55,6 +58,7 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
     public LoginPresenter(ShoppingApplication app) {
         super(app);
         this.loginService = new LoginService(app.getUserRepository());
+        this.state.onEnter = actionOf2(this::enter);
     }
 
     // :: Cube API
@@ -95,7 +99,7 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     // :: User Actions
 
-    public void onEnter(String userName, String password) {
+    private void enter(String userName, String password) {
         state.userName = userName;
         state.loading = true;
         state.errorCode = 0;
@@ -132,7 +136,7 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
                 return;
             }
 
-            LOG.error("onEnter", caught);
+            LOG.error("enter", caught);
             this.alertConnectionError(caught);
         } finally {
             state.loading = false;
@@ -155,7 +159,7 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
                 if (eventCode == 1) {
                     var userName = CoerceUtils.asString(formData.get("p.userName"));
                     var password = app.b64Decipher(CoerceUtils.asString(formData.get("p.password")));
-                    onEnter(userName, password);
+                    state.onEnter.run(userName, password);
                 }
             }
 

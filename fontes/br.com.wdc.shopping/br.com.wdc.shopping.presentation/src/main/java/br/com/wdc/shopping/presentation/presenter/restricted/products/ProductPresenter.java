@@ -7,6 +7,8 @@ import java.util.function.Function;
 import br.com.wdc.framework.commons.lang.CoerceUtils;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
+import br.com.wdc.framework.cube.Action;
+import br.com.wdc.framework.cube.ActionOf;
 import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
@@ -37,6 +39,9 @@ public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication>
         public int errorCode;
         public String errorMessage;
 
+        public ActionOf<Integer> onAddToCart = ActionOf.noop();
+        public Action onOpenProducts = Action.NOOP;
+
     }
 
     public final ProductViewState state = new ProductViewState();
@@ -51,6 +56,8 @@ public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication>
     public ProductPresenter(ShoppingApplication app) {
         super(app);
         this.productService = new ProductService(app);
+        this.state.onAddToCart = actionOf(this::addToCart);
+        this.state.onOpenProducts = action(() -> Routes.home(this.app));
     }
 
     // :: Cube API
@@ -97,40 +104,27 @@ public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication>
 
     // :: User Actions
 
-    public void onAddToCart(Integer quantity) {
+    private void addToCart(Integer quantity) {
+        if (quantity == null) {
+            this.errorInvalidQuantity();
+            LOG.warn("addToCart.errorInvalidQuantity: {}", this.state.errorMessage);
+            return;
+        }
+
+        if (quantity < 1) {
+            this.alertCartItemWidthLessThanOneItem();
+            LOG.warn("addToCart.alertCartItemWidthLessThanOneItem: {}", this.state.errorMessage);
+            return;
+        }
+
         try {
-            if (quantity == null) {
-                this.errorInvalidQuantity();
-                LOG.warn("onAddToCart.errorInvalidQuantity: {}", this.state.errorMessage);
-                return;
-            }
-
-            if (quantity < 1) {
-                this.alertCartItemWidthLessThanOneItem();
-                LOG.warn("onAddToCart.alertCartItemWidthLessThanOneItem: {}", this.state.errorMessage);
-                return;
-            }
-
             app.getCart().addProduct(this.state.product, quantity);
 
             CubeIntent intent = this.app.newIntent();
             Routes.cart(this.app, intent);
-        } catch (Exception caught) {
-            if (caught instanceof OfflineException) {
-                this.alertDatabaseNotAvailable();
-                LOG.error(this.state.errorMessage, caught);
-                return;
-            }
-
-            app.alertUnexpectedError(LOG, "Adding an item to cart", caught);
-        }
-    }
-
-    public void onOpenProducts() {
-        try {
-            Routes.home(this.app);
-        } catch (Exception caught) {
-            this.app.alertUnexpectedError(LOG, "Going to home of restricted place", caught);
+        } catch (OfflineException caught) {
+            this.alertDatabaseNotAvailable();
+            LOG.error(this.state.errorMessage, caught);
         }
     }
 
@@ -167,8 +161,8 @@ public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication>
             @Override
             public void submit(int eventCode, int eventQtde, Map<String, Object> formData) throws Exception {
                 switch (eventCode) {
-                case 1 -> onOpenProducts();
-                case 2 -> onAddToCart(CoerceUtils.asInteger(formData.get("p.quantity")));
+                case 1 -> state.onOpenProducts.run();
+                case 2 -> state.onAddToCart.run(CoerceUtils.asInteger(formData.get("p.quantity")));
                 default -> new AssertionError("eventCode(" + eventCode + ") not handled");
                 }
             }

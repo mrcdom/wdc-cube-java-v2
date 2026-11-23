@@ -17,6 +17,8 @@ import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartManager;
 
 public abstract class ShoppingApplication extends CubeApplication {
 
+	private static final Log LOG = Log.getLogger(ShoppingApplication.class);
+
 	protected Subject subject;
 
 	protected CartManager cart;
@@ -109,6 +111,11 @@ public abstract class ShoppingApplication extends CubeApplication {
 	public abstract String b64Decipher(String b64Text);
 	
 	public abstract String getClientIp();
+
+	@Override
+	public void alertUnexpectedError(String message, Throwable error) {
+		this.alertUnexpectedError(LOG, message, error);
+	}
 
 	public void alertUnexpectedError(Log logger, String message, Throwable e) {
 		var rootPresenter = this.getRootPresenter();

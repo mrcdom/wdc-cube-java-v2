@@ -72,7 +72,7 @@ public class PurchaseItemViewVaadin extends AbstractViewVaadin<PurchasesPanelPre
         pane0.addClassName("purchase-item");
         pane0.setPadding(false);
         pane0.setSpacing(false);
-        pane0.addClickListener(e -> safeAction("Open receipt", () -> this.presenter.onOpenReceipt(this.state.id)));
+        pane0.addClickListener(e -> safeAction("Open receipt", () -> this.presenter.state.onOpenReceipt.run(this.state.id)));
 
         // Line 1: #id + date
         dom.horizontalLayout(pane1 -> {

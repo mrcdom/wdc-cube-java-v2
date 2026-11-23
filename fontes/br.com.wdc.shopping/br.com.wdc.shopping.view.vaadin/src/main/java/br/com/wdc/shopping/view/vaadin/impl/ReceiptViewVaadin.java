@@ -119,7 +119,7 @@ public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptPresenter> {
             button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
             button.addClassName("back-button");
             button.getStyle().set("margin-top", "var(--lumo-space-m)");
-            button.addClickListener(e -> safeAction("Open products", this.presenter::onOpenProducts));
+            button.addClickListener(e -> safeAction("Open products", this.presenter.state.onOpenProducts::run));
         });
     }
 }

@@ -152,11 +152,15 @@ public class ShoppingVaadinApplication extends ShoppingApplication {
         }
 
         // Sync browser URL hash with current MVP intent (signed)
-        if (!navigatingFromBrowser.get()) {
-            try {
-                var intent = this.newIntent();
-                var intentStr = intent.toString();
-                this.fragment = intentStr;
+        try {
+            var intent = this.newIntent();
+            var intentStr = intent.toString();
+            if (intentStr.equals(this.fragment)) {
+                // Every action republishes the address; only a change becomes a history entry
+                return;
+            }
+            this.fragment = intentStr;
+            if (!navigatingFromBrowser.get()) {
                 var signedUrl = intentSigner.sign(intentStr);
                 var newSignature = intentSigner.extractSignature(signedUrl);
                 // Update cache: remove old entry, add new
@@ -171,9 +175,9 @@ public class ShoppingVaadinApplication extends ShoppingApplication {
                                 "history.pushState(null, '', '#' + $0)", signedUrl);
                     });
                 });
-            } catch (Exception e) {
-                LOG.error("Failed to push browser history state", e);
             }
+        } catch (Exception e) {
+            LOG.error("Failed to push browser history state", e);
         }
     }
 

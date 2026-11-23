@@ -150,7 +150,7 @@ public class LoginViewVaadin extends AbstractViewVaadin<LoginPresenter> {
         safeAction("Login", () -> {
             var userName = this.userField.getValue();
             var password = this.passwordField.getValue();
-            this.presenter.onEnter(userName, password);
+            this.presenter.state.onEnter.run(userName, password);
         });
     }
 }

@@ -5,17 +5,11 @@ package br.com.wdc.framework.cube;
  * (not by the navigation/routing system).
  *
  * @param <A> application type
- * @param <O> owner presenter type
- * @param <S> state type
  */
-public abstract class AbstractChildPresenter<A extends CubeApplication> implements PresenterBase {
-
-    public final A app;
-
-    protected CubeView view;
+public abstract class AbstractChildPresenter<A extends CubeApplication> extends AbstractPresenter<A> {
 
     protected AbstractChildPresenter(A app) {
-        this.app = app;
+        super(app);
     }
 
     public final CubeView getView() {
@@ -26,20 +20,6 @@ public abstract class AbstractChildPresenter<A extends CubeApplication> implemen
         this.view = onCreateView();
         onInitialize();
         return this.view;
-    }
-
-    @Override
-    public void release() {
-        if (view != null) {
-            view.release();
-            view = null;
-        }
-    }
-
-    public void update() {
-        if (view != null) {
-            view.update();
-        }
     }
 
     protected abstract CubeView onCreateView();

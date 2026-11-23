@@ -16,9 +16,9 @@ public class PurchasesPanelView extends AbstractVDomView<PurchasesPanelPresenter
         this.shared = new PurchasesPanelSharedView();
         this.shared.stateSupplier = () -> presenter.state;
         this.shared.requestUpdate = this::update;
-        this.shared.onOpenReceipt = id -> safeAction("Open receipt", () -> presenter.onOpenReceipt(id));
-        this.shared.onPageChange = page -> safeAction("Page change", () -> presenter.onPageChange(page));
-        this.shared.onPageSizeChanged = capacity -> safeAction("PageSize", () -> presenter.onItemSizeCapacityChanged(capacity));
+        this.shared.onOpenReceipt = id -> safeAction("Open receipt", () -> presenter.state.onOpenReceipt.run(id));
+        this.shared.onPageChange = page -> safeAction("Page change", () -> presenter.state.onPageChange.run(page));
+        this.shared.onPageSizeChanged = capacity -> safeAction("PageSize", () -> presenter.state.onItemSizeCapacityChanged.run(capacity));
     }
 
     @Override

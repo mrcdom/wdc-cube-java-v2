@@ -44,6 +44,10 @@ public class WishlistViewState implements ViewState {
     public int errorCode;
     public String errorMessage;
 
+    // Ações que a view dispara — o presenter as liga no construtor; o serializador as ignora
+    public ActionOf<Long> onRemoveItem = ActionOf.noop();
+    public Action onOpenProducts = Action.NOOP;
+
     @Override
     public void write(String instanceId, ExtensibleObjectOutput json) {
         json.beginObject();
@@ -108,6 +112,8 @@ public class WishlistPresenter extends AbstractCubePresenter<ShoppingApplication
 
     public WishlistPresenter(ShoppingApplication app) {
         super(app);
+        this.state.onRemoveItem = actionOf(this::removeItem);
+        this.state.onOpenProducts = action(() -> Routes.home(this.app));
     }
 
     // :: Cube API
@@ -131,23 +137,11 @@ public class WishlistPresenter extends AbstractCubePresenter<ShoppingApplication
         // Publicar parâmetros de URL, se houver
     }
 
-    // :: User Actions — métodos chamados pela ViewImpl
+    // :: User Actions — corpo das ações ligadas no construtor
 
-    public void onRemoveItem(Long itemId) {
-        try {
-            // lógica de negócio...
-            this.loadItems();
-        } catch (Exception caught) {
-            this.app.alertUnexpectedError(LOG, "Removing wishlist item", caught);
-        }
-    }
-
-    public void onOpenProducts() {
-        try {
-            Routes.home(this.app);
-        } catch (Exception caught) {
-            this.app.alertUnexpectedError(LOG, "Going to home", caught);
-        }
+    private void removeItem(Long itemId) {
+        // lógica de negócio...
+        this.loadItems();
     }
 
     // :: Data load
@@ -163,7 +157,7 @@ public class WishlistPresenter extends AbstractCubePresenter<ShoppingApplication
 - `createView` é `static` e será atribuída pelo skeleton
 - `applyParameters()` é chamado pelo sistema de navegação
 - `this.update()` marca a view como "dirty" para envio ao frontend
-- Erros inesperados vão para `app.alertUnexpectedError()`
+- Ações são campos do state (`Action`, `ActionOf<T>`, `ActionOf2<T, U>`) ligados no construtor com `action(...)`/`actionOf(...)`/`actionOf2(...)`. A guarda manda a falha não tratada para `app.alertUnexpectedError()` e, ao fim, republica o endereço — o corpo não tem `try/catch` genérico, só trata as falhas esperadas
 - Erros de validação usam `errorCode` + `errorMessage` no state
 
 ### 1.4 Criar o Service (opcional)
@@ -266,9 +260,9 @@ public class WishlistReactViewImpl extends GenericViewImpl {
         switch (eventCode) {
             case 1 -> {
                 var itemId = CoerceUtils.asLong(formData.get("itemId"));
-                this.presenter.onRemoveItem(itemId);
+                this.presenter.state.onRemoveItem.run(itemId);
             }
-            case 2 -> this.presenter.onOpenProducts();
+            case 2 -> this.presenter.state.onOpenProducts.run();
         }
     }
 
@@ -282,7 +276,7 @@ public class WishlistReactViewImpl extends GenericViewImpl {
 
 **Responsabilidades da ViewImpl:**
 - `syncClientToServer()` — deserializa campos do formulário para `presenter.state`
-- `submit(eventCode, ...)` — mapeia event codes numéricos a métodos do presenter
+- `submit(eventCode, ...)` — mapeia event codes numéricos às ações do `presenter.state`
 - `writeState()` — delega a serialização para `presenter.state.write()`
 
 ### 3.3 Registrar a factory no bloco static de ApplicationReactImpl
@@ -402,14 +396,9 @@ app.registerComponents(
 Agora você pode navegar para o novo módulo a partir de qualquer presenter:
 
 ```java
-// Em HomePresenter ou qualquer outro presenter
-public void onOpenWishlist() {
-    try {
-        Routes.wishlist(this.app);
-    } catch (Exception caught) {
-        this.app.alertUnexpectedError(LOG, "Going to wishlist", caught);
-    }
-}
+// Em HomePresenter: um campo no state e a ligação no construtor
+public Action onOpenWishlist = Action.NOOP;              // HomeViewState
+this.state.onOpenWishlist = action(() -> Routes.wishlist(this.app));
 ```
 
 E no frontend, adicionar um botão ou link que emita o evento correspondente.

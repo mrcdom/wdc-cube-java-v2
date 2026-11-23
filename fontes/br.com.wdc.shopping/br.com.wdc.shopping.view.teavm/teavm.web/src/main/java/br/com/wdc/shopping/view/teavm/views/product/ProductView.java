@@ -17,8 +17,8 @@ public class ProductView extends AbstractVDomView<ProductPresenter> {
         this.shared.stateSupplier = () -> presenter.state;
         this.shared.imageResolver = app::resolveImageUrl;
         this.shared.requestUpdate = this::update;
-        this.shared.onBack = () -> safeAction("Back", presenter::onOpenProducts);
-        this.shared.onAddToCart = qty -> safeAction("AddToCart", () -> presenter.onAddToCart(qty));
+        this.shared.onBack = () -> safeAction("Back", presenter.state.onOpenProducts::run);
+        this.shared.onAddToCart = qty -> safeAction("AddToCart", () -> presenter.state.onAddToCart.run(qty));
     }
 
     @Override

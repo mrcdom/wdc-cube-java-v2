@@ -6,6 +6,7 @@ import java.util.function.Function;
 import br.com.wdc.framework.commons.function.ThrowingRunnable;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
+import br.com.wdc.framework.cube.Action;
 import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
@@ -44,6 +45,9 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
         public int errorCode;
         public String errorMessage;
 
+        public Action onOpenCart = Action.NOOP;
+        public Action onExit = Action.NOOP;
+
     }
 
     public final HomeViewState state = new HomeViewState();
@@ -66,6 +70,8 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
         this.contentSlot = this::setContentView;
         this.onCartCommitListenerRemover = ThrowingRunnable.noop();
         this.onCartChangeListenerRemover = ThrowingRunnable.noop();
+        this.state.onOpenCart = action(() -> Routes.cart(this.app));
+        this.state.onExit = action(this::exit);
     }
 
     // :: Cube API
@@ -162,7 +168,7 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
             this.productsPanel.loadProducts();
         }
         if (this.purchasesPanel != null) {
-            this.purchasesPanel.onPageChange(0);
+            this.purchasesPanel.changePage(0);
         }
     }
 
@@ -171,79 +177,58 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
         this.update();
     }
 
-    public void onOpenReceipt(Long purchaseId) {
-        try {
-            if (purchaseId == null) {
-                this.alertPurchaseIdRequired();
-                LOG.warn("onOpenReceipt: {}", this.state.errorMessage);
-                return;
-            }
+    /** Called from inside the purchases panel's guarded action. */
+    public void openReceipt(Long purchaseId) {
+        if (purchaseId == null) {
+            this.alertPurchaseIdRequired();
+            LOG.warn("openReceipt: {}", this.state.errorMessage);
+            return;
+        }
 
+        try {
             var intent = this.app.newIntent();
             intent.setParameter(PlaceParameters.PURCHASE_ID, purchaseId);
             Routes.receipt(this.app, intent);
-        } catch (Exception caught) {
-            if (caught instanceof ProductNotFoundException) {
-                this.alertPurchaseNotFound();
-                LOG.warn("{}: purchaseId={}", this.state.errorMessage, purchaseId);
-                return;
-            }
-
-            this.app.alertUnexpectedError(LOG, "Trying to go to receipt place to show purchaseId=" + purchaseId,
-                    caught);
+        } catch (ProductNotFoundException caught) {
+            this.alertPurchaseNotFound();
+            LOG.warn("{}: purchaseId={}", this.state.errorMessage, purchaseId);
         }
     }
 
-    public void onOpenProduct(Long productId) {
-        try {
-            if (productId == null) {
-                this.alertProductIdRequired();
-                LOG.warn("onOpenProduct: {}", this.state.errorMessage);
-                return;
-            }
+    /** Called from inside the products panel's guarded action. */
+    public void openProduct(Long productId) {
+        if (productId == null) {
+            this.alertProductIdRequired();
+            LOG.warn("openProduct: {}", this.state.errorMessage);
+            return;
+        }
 
+        try {
             var intent = this.app.newIntent();
             intent.setParameter(PlaceParameters.PRODUCT_ID, productId);
             Routes.product(this.app, intent);
-        } catch (Exception caught) {
-            if (caught instanceof ProductNotFoundException) {
-                this.alertProductNotFound();
-                LOG.warn("{}: productId={}", this.state.errorMessage, productId);
-                return;
-            }
-
-            this.app.alertUnexpectedError(LOG, "Trying to go to product place to show productId=" + productId, caught);
+        } catch (ProductNotFoundException caught) {
+            this.alertProductNotFound();
+            LOG.warn("{}: productId={}", this.state.errorMessage, productId);
         }
     }
 
-    public void onOpenCart() {
-        try {
-            Routes.cart(this.app);
-        } catch (Exception caught) {
-            this.app.alertUnexpectedError(LOG, "Trying to go to cart place", caught);
+    private void exit() {
+        this.cart.clear();
+        this.app.setSubject(null);
+        this.setContentView(null);
+
+        // Remover token persistente do storage seguro
+        this.app.clientPersistentStore().secure().remove(StorageKeys.AUTH_TOKEN);
+
+        // Logout via AuthenticationService (limpa tokens do ClientStorage)
+        var authService = AuthenticationService.BEAN.get();
+        if (authService != null) {
+            var refreshToken = this.app.clientPersistentStore().secure().get(StorageKeys.AUTH_REFRESH_TOKEN);
+            authService.logout(refreshToken);
         }
-    }
 
-    public void onExit() {
-        try {
-            this.cart.clear();
-            this.app.setSubject(null);
-            this.setContentView(null);
-
-            // Remover token persistente do storage seguro
-            this.app.clientPersistentStore().secure().remove(StorageKeys.AUTH_TOKEN);
-
-            // Logout via AuthenticationService (limpa tokens do ClientStorage)
-            var authService = AuthenticationService.BEAN.get();
-            if (authService != null) {
-                var refreshToken = this.app.clientPersistentStore().secure().get(StorageKeys.AUTH_REFRESH_TOKEN);
-                authService.logout(refreshToken);
-            }
-
-            Routes.login(this.app);
-        } catch (Exception caught) {
-            this.app.alertUnexpectedError(LOG, "Trying to go to login place", caught);
-        }
+        Routes.login(this.app);
     }
 
     // :: Messages
@@ -299,8 +284,8 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
             @Override
             public void submit(int eventCode, int eventQtde, Map<String, Object> formData) throws Exception {
                 switch (eventCode) {
-                case 1 -> onExit();
-                case 2 -> onOpenCart();
+                case 1 -> state.onExit.run();
+                case 2 -> state.onOpenCart.run();
                 default -> new AssertionError("eventCode(" + eventCode + ") not handled");
                 }
             }

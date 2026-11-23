@@ -249,11 +249,15 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
         }
 
         // Sync browser URL hash with signed intent
-        if (!navigatingFromBrowser) {
-            try {
-                var intent = this.newIntent();
-                var intentStr = intent.toString();
-                this.fragment = intentStr;
+        try {
+            var intent = this.newIntent();
+            var intentStr = intent.toString();
+            if (intentStr.equals(this.fragment)) {
+                // Every action republishes the address; only a change becomes a history entry
+                return;
+            }
+            this.fragment = intentStr;
+            if (!navigatingFromBrowser) {
                 var signedUrl = intentSigner.sign(intentStr);
                 pushState("#" + signedUrl);
                 // Persiste o intent para restauração no próximo launch (Tauri native).
@@ -261,9 +265,9 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
                 if (!intentStr.isBlank() && !intentStr.startsWith("login")) {
                     persistentStore.set("session.intent", intentStr);
                 }
-            } catch (Exception e) {
-                LOG.error("Failed to push browser history state: " + e.getMessage());
             }
+        } catch (Exception e) {
+            LOG.error("Failed to push browser history state: " + e.getMessage());
         }
     }
 

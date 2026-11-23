@@ -67,7 +67,7 @@ Exercitam diretamente os serviços e repositórios do domínio (login, consulta 
 
 Simulam a interação do usuário **no nível de apresentação** usando mocks de view. Cada view mock expõe o `state` e o `presenter`, permitindo:
 
-1. Chamar ações do presenter como o usuário faria (ex.: `loginView.presenter.onEnter()`)
+1. Disparar as ações do state como o usuário faria (ex.: `loginView.state.onEnter.run("admin", "admin")`)
 2. Inspecionar o estado resultante (ex.: `restrictedView.state.errorCode`)
 3. Navegar entre telas verificando transições (ex.: login → home → produto → carrinho → recibo)
 
@@ -83,24 +83,22 @@ public class ShoppingWorkflowTest extends BasePresentationTest {
 
         // Login
         var loginView = LoginViewMock.cast(rootView.state.contentView);
-        loginView.state.userName = "admin";
-        loginView.state.password = "admin";
-        loginView.presenter.onEnter();
+        loginView.state.onEnter.run("admin", "admin");
 
-        // Navegar para produto
-        var restrictedView = RestrictedViewMock.cast(rootView.state.contentView);
-        restrictedView.presenter.onOpenProduct(DBReset.PEN_DRIVE2GB_ID);
+        // Navegar para produto (a ação é do painel de produtos da home)
+        var homeView = HomeViewMock.cast(rootView.state.contentView);
+        homeView.getProductsPanelState().onOpenProduct.run(DBReset.PEN_DRIVE2GB_ID);
 
         // Adicionar ao carrinho
-        var produtoView = ProductViewMock.cast(restrictedView.state.contentView);
-        produtoView.presenter.onAddToCart(1);
+        var produtoView = ProductViewMock.cast(homeView.state.contentView);
+        produtoView.state.onAddToCart.run(1);
 
         // Finalizar compra
-        var carrinhoView = CartViewMock.cast(restrictedView.state.contentView);
-        carrinhoView.presenter.onBuy();
+        var carrinhoView = CartViewMock.cast(homeView.state.contentView);
+        carrinhoView.state.onBuy.run();
 
         // Verificar recibo
-        var reciboView = ReceiptViewMock.cast(restrictedView.state.contentView);
+        var reciboView = ReceiptViewMock.cast(homeView.state.contentView);
         Assert.assertNotNull(reciboView.state.receipt);
     }
 }

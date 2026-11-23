@@ -15,10 +15,10 @@ public class CartView extends AbstractVDomView<CartPresenter> {
 
         this.shared = new CartSharedView();
         this.shared.stateSupplier = () -> presenter.state;
-        this.shared.onBack = () -> safeAction("Back", presenter::onOpenProducts);
-        this.shared.onBuy = () -> safeAction("Buy", presenter::onBuy);
-        this.shared.onModifyQuantity = (id, qty) -> safeAction("ModifyQty", () -> presenter.onModifyQuantity(id, qty));
-        this.shared.onRemoveProduct = id -> safeAction("Remove item", () -> presenter.onRemoveProduct(id));
+        this.shared.onBack = () -> safeAction("Back", presenter.state.onOpenProducts::run);
+        this.shared.onBuy = () -> safeAction("Buy", presenter.state.onBuy::run);
+        this.shared.onModifyQuantity = (id, qty) -> safeAction("ModifyQty", () -> presenter.state.onModifyQuantity.run(id, qty));
+        this.shared.onRemoveProduct = id -> safeAction("Remove item", () -> presenter.state.onRemoveProduct.run(id));
     }
 
     @Override

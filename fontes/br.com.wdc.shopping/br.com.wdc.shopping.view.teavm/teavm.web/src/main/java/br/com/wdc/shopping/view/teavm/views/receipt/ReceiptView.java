@@ -15,7 +15,7 @@ public class ReceiptView extends AbstractVDomView<ReceiptPresenter> {
 
         this.shared = new ReceiptSharedView();
         this.shared.stateSupplier = () -> presenter.state;
-        this.shared.onBack = () -> safeAction("Back", presenter::onOpenProducts);
+        this.shared.onBack = () -> safeAction("Back", presenter.state.onOpenProducts::run);
     }
 
     @Override

@@ -101,7 +101,7 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelP
                 btn.getStyle().set("color", "#1976d2");
                 btn.getElement().setAttribute("aria-label", "Página anterior");
                 btn.addClickListener(
-                        e -> safeAction("Previous page", () -> this.presenter.onPageChange(this.state.page - 1)));
+                        e -> safeAction("Previous page", () -> this.presenter.state.onPageChange.run(this.state.page - 1)));
             });
 
             dom.span(label -> {
@@ -116,7 +116,7 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelP
                 btn.getStyle().set("color", "#1976d2");
                 btn.getElement().setAttribute("aria-label", "Próxima página");
                 btn.addClickListener(
-                        e -> safeAction("Next page", () -> this.presenter.onPageChange(this.state.page + 1)));
+                        e -> safeAction("Next page", () -> this.presenter.state.onPageChange.run(this.state.page + 1)));
             });
         });
     }
@@ -167,7 +167,7 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelP
                 BASE_ITEM_HEIGHT_PX, BASE_FONT_SIZE_PX).then(result -> {
                     int ps = result.asInt();
                     if (ps > 0) {
-                        this.presenter.onItemSizeCapacityChanged(ps);
+                        this.presenter.state.onItemSizeCapacityChanged.run(ps);
                     }
                 });
 
@@ -175,7 +175,7 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelP
         this.contentArea.getElement().addEventListener("page-size", e -> {
             int ps = e.getEventData().get("event.detail").asInt();
             if (ps > 0) {
-                this.presenter.onItemSizeCapacityChanged(ps);
+                this.presenter.state.onItemSizeCapacityChanged.run(ps);
             }
         }).addEventData("event.detail");
     }

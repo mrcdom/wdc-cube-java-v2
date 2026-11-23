@@ -256,8 +256,20 @@ private void alertProductNotFound() {
 }
 ```
 
-Erros inesperados são delegados ao `RootPresenter`:
+Erros inesperados não precisam de `try/catch`: as ações são guardadas. Cada ação é um campo do ViewState, ligado uma vez no construtor do presenter; a guarda manda a falha não tratada ao `RootPresenter` (via `app.alertUnexpectedError`) e, ao fim, republica o endereço:
 
 ```java
-this.app.alertUnexpectedError(LOG, "mensagem de contexto", caught);
+public static class CartViewState implements ViewState {
+    // ...
+    public ActionOf<Long> onRemoveProduct = ActionOf.noop();
+    public Action onBuy = Action.NOOP;
+}
+
+public CartPresenter(ShoppingApplication app) {
+    super(app);
+    this.state.onRemoveProduct = actionOf(this::removeProduct);
+    this.state.onBuy = action(this::buy);   // buy() só trata InvalidCartItemException e OfflineException
+}
 ```
+
+A view dispara a ação pelo state (`presenter.state.onBuy.run()`), e o skeleton remoto mapeia o código do evento para ela.

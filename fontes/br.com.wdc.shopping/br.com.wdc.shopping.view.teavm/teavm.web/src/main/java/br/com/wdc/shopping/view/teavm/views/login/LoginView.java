@@ -20,7 +20,7 @@ public class LoginView extends AbstractVDomView<LoginPresenter> {
         this.shared = new LoginSharedView();
         this.shared.stateSupplier = () -> presenter.state;
         this.shared.onEnter = (userName, password) -> safeAction("Login", () -> {
-            presenter.onEnter(userName, password);
+            presenter.state.onEnter.run(userName, password);
         });
     }
 

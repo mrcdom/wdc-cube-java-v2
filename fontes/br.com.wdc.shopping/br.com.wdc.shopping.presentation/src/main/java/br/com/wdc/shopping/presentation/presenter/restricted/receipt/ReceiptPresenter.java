@@ -6,6 +6,7 @@ import java.util.function.Function;
 
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
+import br.com.wdc.framework.cube.Action;
 import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
@@ -35,6 +36,8 @@ public class ReceiptPresenter extends AbstractCubePresenter<ShoppingApplication>
         public boolean notifySuccess;
         public ReceiptForm receipt;
 
+        public Action onOpenProducts = Action.NOOP;
+
     }
 
     public final ReceiptViewState state = new ReceiptViewState();
@@ -50,6 +53,7 @@ public class ReceiptPresenter extends AbstractCubePresenter<ShoppingApplication>
     public ReceiptPresenter(ShoppingApplication app) {
         super(app);
         this.receiptService = new ReceiptService(app);
+        this.state.onOpenProducts = action(() -> Routes.home(this.app));
     }
 
     // :: Cube API
@@ -93,20 +97,6 @@ public class ReceiptPresenter extends AbstractCubePresenter<ShoppingApplication>
         }
     }
 
-    // :: User Actions
-
-    public void onPrint() {
-        // Not implemented
-    }
-
-    public void onOpenProducts() {
-        try {
-            Routes.home(this.app);
-        } catch (Exception caught) {
-            this.app.alertUnexpectedError(LOG, "Going to restricted home place", caught);
-        }
-    }
-
     // :: Data Loaders
 
     private ReceiptForm loadReceipt(Long purchaseId) {
@@ -130,7 +120,7 @@ public class ReceiptPresenter extends AbstractCubePresenter<ShoppingApplication>
             @Override
             public void submit(int eventCode, int eventQtde, Map<String, Object> formData) throws Exception {
                 if (eventCode == 1) {
-                    onOpenProducts();
+                    state.onOpenProducts.run();
                 }
             }
         };

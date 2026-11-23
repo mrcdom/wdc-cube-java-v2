@@ -16,7 +16,7 @@ public class ProductsPanelView extends AbstractVDomView<ProductsPanelPresenter> 
         this.shared = new ProductsPanelSharedView();
         this.shared.stateSupplier = () -> presenter.state;
         this.shared.imageResolver = app::resolveImageUrl;
-        this.shared.onOpenProduct = id -> safeAction("Open product", () -> presenter.onOpenProduct(id));
+        this.shared.onOpenProduct = id -> safeAction("Open product", () -> presenter.state.onOpenProduct.run(id));
     }
 
     @Override

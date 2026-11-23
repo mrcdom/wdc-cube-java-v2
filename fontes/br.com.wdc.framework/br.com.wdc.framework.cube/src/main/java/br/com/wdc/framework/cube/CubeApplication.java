@@ -156,6 +156,11 @@ public abstract class CubeApplication {
 		return new java.util.HashMap<>();
 	}
 
+	/** A failure nobody handled, such as one caught by a guarded action. Logs it; the application may also show it. */
+	public void alertUnexpectedError(String message, Throwable error) {
+		LOG.error(message, error);
+	}
+
 	// :: Attributes
 
 	public Object setAttribute(String name, Object value) {

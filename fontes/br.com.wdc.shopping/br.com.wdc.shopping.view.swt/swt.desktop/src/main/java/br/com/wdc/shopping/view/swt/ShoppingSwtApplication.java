@@ -82,29 +82,29 @@ public class ShoppingSwtApplication extends ShoppingApplication implements SwtAp
 			var v = new RootViewSwt(app); v.stateSupplier = () -> p.state; return v; });
 		LoginPresenter.createView = app.onUiThread(p -> {
 			var v = new LoginViewSwt(app); v.stateSupplier = () -> p.state;
-			v.onEnter = p::onEnter; return v; });
+			v.onEnter = p.state.onEnter::run; return v; });
 		HomePresenter.createView = app.onUiThread(p -> {
 			var v = new HomeViewSwt(app); v.stateSupplier = () -> p.state;
-			v.onExit = p::onExit; v.onOpenCart = p::onOpenCart; return v; });
+			v.onExit = p.state.onExit::run; v.onOpenCart = p.state.onOpenCart::run; return v; });
 		CartPresenter.createView = app.onUiThread(p -> {
 			var v = new CartViewSwt(app); v.stateSupplier = () -> p.state;
-			v.onOpenProducts = p::onOpenProducts; v.onBuy = p::onBuy;
-			v.onModifyQuantity = p::onModifyQuantity; v.onRemoveProduct = p::onRemoveProduct;
+			v.onOpenProducts = p.state.onOpenProducts::run; v.onBuy = p.state.onBuy::run;
+			v.onModifyQuantity = p.state.onModifyQuantity::run; v.onRemoveProduct = p.state.onRemoveProduct::run;
 			return v; });
 		ProductPresenter.createView = app.onUiThread(p -> {
 			var v = new ProductViewSwt(app); v.stateSupplier = () -> p.state;
-			v.onOpenProducts = p::onOpenProducts; v.onAddToCart = p::onAddToCart;
+			v.onOpenProducts = p.state.onOpenProducts::run; v.onAddToCart = p.state.onAddToCart::run;
 			return v; });
 		ProductsPanelPresenter.createView = app.onUiThread(p -> {
 			var v = new ProductsPanelViewSwt(app); v.stateSupplier = () -> p.state;
-			v.onOpenProduct = p::onOpenProduct; return v; });
+			v.onOpenProduct = p.state.onOpenProduct::run; return v; });
 		PurchasesPanelPresenter.createView = app.onUiThread(p -> {
 			var v = new PurchasesPanelViewSwt(app); v.stateSupplier = () -> p.state;
-			v.onPageChange = p::onPageChange; v.onItemSizeCapacityChanged = p::onItemSizeCapacityChanged;
-			v.onOpenReceipt = p::onOpenReceipt; return v; });
+			v.onPageChange = p.state.onPageChange::run; v.onItemSizeCapacityChanged = p.state.onItemSizeCapacityChanged::run;
+			v.onOpenReceipt = p.state.onOpenReceipt::run; return v; });
 		ReceiptPresenter.createView = app.onUiThread(p -> {
 			var v = new ReceiptViewSwt(app); v.stateSupplier = () -> p.state;
-			v.onOpenProducts = p::onOpenProducts; return v; });
+			v.onOpenProducts = p.state.onOpenProducts::run; return v; });
 	}
 
 	/**

@@ -20,8 +20,8 @@ public class HomeView extends AbstractVDomView<HomePresenter> {
         this.shared = new HomeSharedView();
         this.shared.stateSupplier = this::buildViewData;
         this.shared.requestUpdate = this::update;
-        this.shared.onExit = () -> safeAction("Exit", presenter::onExit);
-        this.shared.onOpenCart = () -> safeAction("Open cart", presenter::onOpenCart);
+        this.shared.onExit = () -> safeAction("Exit", presenter.state.onExit::run);
+        this.shared.onOpenCart = () -> safeAction("Open cart", presenter.state.onOpenCart::run);
         this.shared.onNavigateBack = () -> safeAction("Back to home", () -> Routes.home(this.app));
         this.shared.onPurchasesPanelVisible = () -> {
             if (presenter.state.purchasesPanelView != null) {

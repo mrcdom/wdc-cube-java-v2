@@ -198,7 +198,7 @@ public class ProductViewVaadin extends AbstractViewVaadin<ProductPresenter> {
             button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
             button.addClassName("back-button");
             button.getStyle().set("margin-top", "var(--lumo-space-m)");
-            button.addClickListener(e -> safeAction("Open products", this.presenter::onOpenProducts));
+            button.addClickListener(e -> safeAction("Open products", this.presenter.state.onOpenProducts::run));
         });
     }
 
@@ -207,6 +207,6 @@ public class ProductViewVaadin extends AbstractViewVaadin<ProductPresenter> {
         if (quantity == null || quantity < 1) {
             quantity = 1;
         }
-        this.presenter.onAddToCart(quantity);
+        this.presenter.state.onAddToCart.run(quantity);
     }
 }

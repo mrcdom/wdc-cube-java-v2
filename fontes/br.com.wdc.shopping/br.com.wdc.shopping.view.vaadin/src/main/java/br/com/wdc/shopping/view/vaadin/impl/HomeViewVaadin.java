@@ -142,7 +142,7 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomePresenter> {
                     button.setIcon(exitIcon);
                     button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
                     button.getElement().setAttribute("title", "Sair");
-                    button.addClickListener(e -> safeAction("Exit", this.presenter::onExit));
+                    button.addClickListener(e -> safeAction("Exit", this.presenter.state.onExit::run));
                 });
 
                 dom.span(label -> {
@@ -189,7 +189,7 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomePresenter> {
                 this.cartCountOldValue = this.state.cartItemCount;
 
                 var cartButton = new Button("Carrinho", cartIcon,
-                        e -> safeAction("Open cart", this.presenter::onOpenCart));
+                        e -> safeAction("Open cart", this.presenter.state.onOpenCart::run));
                 cartButton.addClassName("cart-button");
                 cartButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
                 cartButton.getStyle().set("color", "white").set("position", "relative");

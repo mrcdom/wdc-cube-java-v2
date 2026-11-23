@@ -31,7 +31,7 @@ public class ShoppingLoginTest extends BasePresentationTest {
 
         var loginView = LoginViewMock.cast(rootView.state.contentView);
         loginView.state.userName = "admin";
-        loginView.presenter.onEnter("admin", "senha não reconhecida");
+        loginView.presenter.state.onEnter.run("admin", "senha não reconhecida");
 
         // Check if it keeps bean login view
         loginView = LoginViewMock.cast(rootView.state.contentView);
@@ -46,7 +46,7 @@ public class ShoppingLoginTest extends BasePresentationTest {
 
         var loginView = LoginViewMock.cast(rootView.state.contentView);
         loginView.state.userName = "admin";
-        loginView.presenter.onEnter("admin", "admin");
+        loginView.presenter.state.onEnter.run("admin", "admin");
 
         var restrictedView = HomeViewMock.cast(rootView.state.contentView);
 
@@ -64,7 +64,7 @@ public class ShoppingLoginTest extends BasePresentationTest {
         // Simulate the view reporting capacity (no real view in tests)
         var purchasesMock = br.com.wdc.shopping.test.mock.viewimpl.PurchasesPanelViewMock
                 .cast(restrictedView.state.purchasesPanelView);
-        purchasesMock.presenter.onItemSizeCapacityChanged(3);
+        purchasesMock.presenter.state.onItemSizeCapacityChanged.run(3);
 
         Assert.assertEquals("João da Silva", restrictedView.state.nickName);
         Assert.assertEquals(0, restrictedView.state.cartItemCount);

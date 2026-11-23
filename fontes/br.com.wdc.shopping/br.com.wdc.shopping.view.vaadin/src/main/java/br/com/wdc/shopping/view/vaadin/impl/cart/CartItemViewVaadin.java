@@ -105,7 +105,7 @@ public class CartItemViewVaadin extends AbstractViewVaadin<CartPresenter> {
                 img.setWidth("16px");
                 img.setHeight("16px");
                 img.getStyle().set("cursor", "pointer");
-                img.addClickListener(e -> safeAction("Remove product", () -> this.presenter.onRemoveProduct(this.state.id)));
+                img.addClickListener(e -> safeAction("Remove product", () -> this.presenter.state.onRemoveProduct.run(this.state.id)));
             });
         });
     }

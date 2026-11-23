@@ -199,6 +199,9 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
         public List<CartItem> items;
         public int errorCode;
         public String errorMessage;
+
+        // Ações que a view dispara (o serializador remoto as ignora)
+        public Action onConfirm = Action.NOOP;
     }
 
     public final CartViewState state = new CartViewState();
@@ -208,6 +211,8 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
     public CartPresenter(ShoppingApplication app) {
         super(app);
         this.state.items = Collections.emptyList();
+        // Ligada uma vez; a guarda manda a falha não tratada ao app e republica o endereço ao fim
+        this.state.onConfirm = action(this::confirm);
     }
 
     // Chamado pelo motor de navegação ao ativar este Presenter
@@ -225,8 +230,8 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
         return true;
     }
 
-    // Ação do usuário — chamada diretamente pela View
-    public void onConfirm() {
+    // Corpo da ação: só trata as falhas esperadas, sem try/catch genérico
+    private void confirm() {
         // lógica de negócio...
         this.update();
     }
@@ -506,7 +511,7 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
                 span().text("Confirmar"))
         );
     }
-    private final JSFunction onConfirm = e -> this.presenter.onConfirm();
+    private final JSFunction onConfirm = e -> this.presenter.state.onConfirm.run();
 }
 ```
 

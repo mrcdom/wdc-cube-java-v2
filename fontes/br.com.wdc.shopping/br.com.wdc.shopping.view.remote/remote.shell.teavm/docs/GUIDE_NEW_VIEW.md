@@ -203,7 +203,7 @@ submit(ON_ADD_TO_CART);  // Presenter recebe formData com os campos
 No Presenter, os dados chegam no `skeleton().submit(eventCode, eventQtde, formData)`:
 
 ```java
-case 1 -> onRemoveItem(CoerceUtils.asLong(formData.get("p.itemId")));
+case 1 -> state.onRemoveItem.run(CoerceUtils.asLong(formData.get("p.itemId")));
 ```
 
 ---

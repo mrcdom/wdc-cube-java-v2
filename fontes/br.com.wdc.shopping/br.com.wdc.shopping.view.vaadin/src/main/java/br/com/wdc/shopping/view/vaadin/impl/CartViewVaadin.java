@@ -135,7 +135,7 @@ public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
             layout.setAlignItems(FlexComponent.Alignment.CENTER);
             layout.add(new Span(String.valueOf(item.quantity)));
             var deleteBtn = new Button(VaadinIcon.TRASH.create(),
-                    e -> safeAction("Remove product", () -> this.presenter.onRemoveProduct(item.id)));
+                    e -> safeAction("Remove product", () -> this.presenter.state.onRemoveProduct.run(item.id)));
             deleteBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
             layout.add(deleteBtn);
             return layout;
@@ -161,7 +161,7 @@ public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
                 .set("font-size", "1.1rem").set("margin-top", "var(--lumo-space-m)");
         this.emptyCartPane.add(emptyText);
         var goShoppingBtn = new Button("Vamos às compras!",
-                e -> safeAction("Open products", this.presenter::onOpenProducts));
+                e -> safeAction("Open products", this.presenter.state.onOpenProducts::run));
         goShoppingBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         goShoppingBtn.getStyle().set("font-weight", "bold").set("font-size", "1rem").set("margin-top",
                 "var(--lumo-space-s)");
@@ -203,7 +203,7 @@ public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
                 button.setIcon(VaadinIcon.ARROW_LEFT.create());
                 button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
                 button.addClassName("back-button");
-                button.addClickListener(e -> safeAction("Open products", this.presenter::onOpenProducts));
+                button.addClickListener(e -> safeAction("Open products", this.presenter.state.onOpenProducts::run));
             });
 
             dom.button(button -> {
@@ -211,7 +211,7 @@ public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
                 button.setIcon(VaadinIcon.CHECK.create());
                 button.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
                 button.getStyle().set("background-color", "var(--lumo-success-color)");
-                button.addClickListener(e -> safeAction("Buy", this.presenter::onBuy));
+                button.addClickListener(e -> safeAction("Buy", this.presenter.state.onBuy::run));
             });
         });
     }

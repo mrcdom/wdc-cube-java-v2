@@ -11,6 +11,9 @@ import br.com.wdc.framework.commons.function.Registration;
 import br.com.wdc.framework.commons.lang.CoerceUtils;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
+import br.com.wdc.framework.cube.Action;
+import br.com.wdc.framework.cube.ActionOf;
+import br.com.wdc.framework.cube.ActionOf2;
 import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
@@ -42,6 +45,11 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
         public int errorCode;
         public String errorMessage;
 
+        public ActionOf2<Long, Integer> onModifyQuantity = ActionOf2.noop();
+        public ActionOf<Long> onRemoveProduct = ActionOf.noop();
+        public Action onBuy = Action.NOOP;
+        public Action onOpenProducts = Action.NOOP;
+
     }
 
     public final CartViewState state = new CartViewState();
@@ -58,6 +66,10 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
         super(app);
         this.cart = app.getCart();
         this.state.items = Collections.emptyList();
+        this.state.onModifyQuantity = actionOf2(this::modifyQuantity);
+        this.state.onRemoveProduct = actionOf(this::removeProduct);
+        this.state.onBuy = action(this::buy);
+        this.state.onOpenProducts = action(() -> Routes.home(this.app));
     }
 
     // :: Cube API
@@ -78,99 +90,75 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     // :: User Actions
 
-    public void onModifyQuantity(Long productId, Integer quantity) {
-        try {
-            if (productId == null) {
-                this.errorCodigoDeProdutoMalFormatado();
-                LOG.warn("onModifyQuantity.errorCodigoDeProdutoMalFormatado: {}", this.state.errorMessage);
-                return;
-            }
+    private void modifyQuantity(Long productId, Integer quantity) {
+        if (productId == null) {
+            this.errorCodigoDeProdutoMalFormatado();
+            LOG.warn("modifyQuantity.errorCodigoDeProdutoMalFormatado: {}", this.state.errorMessage);
+            return;
+        }
 
-            if (quantity == null) {
-                this.errorValorQuantidadeMalFormatado();
-                LOG.warn("onModifyQuantity.errorValorQuantidadeMalFormatado: {}", this.state.errorMessage);
-                return;
-            }
+        if (quantity == null) {
+            this.errorValorQuantidadeMalFormatado();
+            LOG.warn("modifyQuantity.errorValorQuantidadeMalFormatado: {}", this.state.errorMessage);
+            return;
+        }
 
-            if (quantity < 1) {
-                this.alertThereIsItemWhichValueIsLessThanOne();
-                LOG.warn("onModifyQuantity.alertThereIsItemWhichValueIsLessThanOne: {}", this.state.errorMessage);
-                return;
-            }
+        if (quantity < 1) {
+            this.alertThereIsItemWhichValueIsLessThanOne();
+            LOG.warn("modifyQuantity.alertThereIsItemWhichValueIsLessThanOne: {}", this.state.errorMessage);
+            return;
+        }
 
-            var found = this.cart.modifyProductQuantity(productId, quantity);
-            if (!found) {
-                this.alertProductNotFound();
-                LOG.warn("onModifyQuantity.alertProductNotFound: {}", this.state.errorMessage);
+        var found = this.cart.modifyProductQuantity(productId, quantity);
+        if (!found) {
+            this.alertProductNotFound();
+            LOG.warn("modifyQuantity.alertProductNotFound: {}", this.state.errorMessage);
+        } else {
+            this.state.errorCode = 0;
+            this.state.errorMessage = null;
+            this.state.items = this.cart.getCartItems();
+            this.update();
+        }
+    }
+
+    private void removeProduct(Long productId) {
+        if (productId == null) {
+            this.errorCodigoDeProdutoMalFormatado();
+            LOG.warn("removeProduct: {}", this.state.errorMessage);
+            return;
+        }
+
+        var modified = this.cart.removeProduct(productId);
+        if (modified) {
+            if (this.cart.getSize() == 0) {
+                Routes.home(this.app);
             } else {
-                this.state.errorCode = 0;
-                this.state.errorMessage = null;
                 this.state.items = this.cart.getCartItems();
                 this.update();
             }
-        } catch (Exception caught) {
-            this.app.alertUnexpectedError(LOG, "Removing a prouduct", caught);
         }
     }
 
-    public void onRemoveProduct(Long productId) {
-        try {
-            if (productId == null) {
-                this.errorCodigoDeProdutoMalFormatado();
-                LOG.warn("onRemoveProduct: {}", this.state.errorMessage);
-                return;
-            }
-
-            var modified = this.cart.removeProduct(productId);
-            if (modified) {
-                if (this.cart.getSize() == 0) {
-                    Routes.home(this.app);
-                } else {
-                    this.state.items = this.cart.getCartItems();
-                    this.update();
-                }
-            }
-        } catch (Exception caught) {
-            app.alertUnexpectedError(LOG, "Removing a prouduct", caught);
+    private void buy() {
+        if (this.cart.getSize() == 0) {
+            this.alertPurchaseOfEmptyCart();
+            LOG.warn("buy: {}", this.state.errorMessage);
+            return;
         }
-    }
 
-    public void onBuy() {
         try {
-            if (this.cart.getSize() == 0) {
-                this.alertPurchaseOfEmptyCart();
-                LOG.warn("onBuy: {}", this.state.errorMessage);
-                return;
-            }
-
             var purchaseId = this.cart.commit(this.app.getSubject());
 
             final var intent = this.app.newIntent();
             intent.setParameter(PlaceParameters.PURCHASE_ID, purchaseId);
             intent.setAttribute(PlaceAttributes.ATTR_PURCHASE_MADE, Boolean.TRUE);
             Routes.receipt(this.app, intent);
-        } catch (Exception caught) {
-            if (caught instanceof InvalidCartItemException) {
-                this.alertThereIsItemWhichValueIsLessThanOne();
-                LOG.error("onBuy.alertThereIsItemWhichValueIsLessThanOne: {}", this.state.errorMessage, caught);
-                return;
-            }
-
-            if (caught instanceof OfflineException) {
-                this.alertDatabaseOffline();
-                LOG.error("onBuy.alertDatabaseOffline: {}", this.state.errorMessage, caught);
-                return;
-            }
-
-            this.app.alertUnexpectedError(LOG, "Buying an product", caught);
-        }
-    }
-
-    public void onOpenProducts() {
-        try {
-            Routes.home(this.app);
-        } catch (Exception caught) {
-            this.app.alertUnexpectedError(LOG, "Going to root restricted place", caught);
+        } catch (InvalidCartItemException caught) {
+            this.alertThereIsItemWhichValueIsLessThanOne();
+            LOG.error("buy.alertThereIsItemWhichValueIsLessThanOne: {}", this.state.errorMessage, caught);
+        } catch (OfflineException caught) {
+            this.alertDatabaseOffline();
+            LOG.error("buy.alertDatabaseOffline: {}", this.state.errorMessage, caught);
         }
     }
 
@@ -242,10 +230,10 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
             @Override
             public void submit(int eventCode, int eventQtde, Map<String, Object> formData) throws Exception {
                 switch (eventCode) {
-                case 1 -> onBuy();
-                case 2 -> onRemoveProduct(CoerceUtils.asLong(formData.get("p.productId")));
-                case 3 -> onOpenProducts();
-                case 4 -> onModifyQuantity(CoerceUtils.asLong(formData.get("p.productId")), CoerceUtils.asInteger(formData.get("p.quantity")));
+                case 1 -> state.onBuy.run();
+                case 2 -> state.onRemoveProduct.run(CoerceUtils.asLong(formData.get("p.productId")));
+                case 3 -> state.onOpenProducts.run();
+                case 4 -> state.onModifyQuantity.run(CoerceUtils.asLong(formData.get("p.productId")), CoerceUtils.asInteger(formData.get("p.quantity")));
                 default -> new AssertionError("eventCode(" + eventCode + ") not handled");
                 }
             }

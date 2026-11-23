@@ -66,11 +66,11 @@ public class WishlistViewVDom extends AbstractVDomView<WishlistPresenter> {
     private final WishlistViewState state;
 
     // 3. Stable listeners — campos final para listeners sem parâmetros
-    private final EventListener<Event> onBack = evt -> safeAction("Back", this.presenter::onOpenProducts);
+    private final EventListener<Event> onBack = evt -> safeAction("Back", this.presenter.state.onOpenProducts::run);
 
     // 4. Factory methods para listeners paramétricos
     private EventListener<Event> mkOnRemove(long id) {
-        return evt -> safeAction("Remove", () -> this.presenter.onRemoveItem(id));
+        return evt -> safeAction("Remove", () -> this.presenter.state.onRemoveItem.run(id));
     }
 
     // 5. Construtor — recebe o Presenter, extrai app e estado
@@ -173,7 +173,7 @@ mvn -q -DskipTests compile -pl br.com.wdc.shopping/br.com.wdc.shopping.view.teav
 | Aspecto | app.teavm (este módulo) | remote.shell.teavm |
 |---------|------------------------|--------------------|
 | **Acesso ao estado** | Direto via `presenter.state` | Indireto via `ViewScope` (JSON) |
-| **Invocação de ações** | `safeAction("ctx", presenter::onXxx)` | `submit(EVENT_CODE)` |
+| **Invocação de ações** | `safeAction("ctx", presenter.state.onXxx::run)` | `submit(EVENT_CODE)` |
 | **Passagem de dados** | Argumentos diretos nos métodos | `setFormField(key, value)` |
 | **Registro** | `XxxPresenter.createView = View::new` (static block) | `app.registerView(VIEW_ID, View::new)` (Main.java) |
 | **VIEW_ID** | Não necessário (binding direto) | Obrigatório (mesmo do `classId()`) |
@@ -189,10 +189,10 @@ mvn -q -DskipTests compile -pl br.com.wdc.shopping/br.com.wdc.shopping.view.teav
 Todas as chamadas ao presenter devem ser envelopadas em `safeAction()`:
 
 ```java
-private final EventListener<Event> onBuy = evt -> safeAction("Buy", this.presenter::onBuy);
+private final EventListener<Event> onBuy = evt -> safeAction("Buy", this.presenter.state.onBuy::run);
 ```
 
-**Por quê?** O TeaVM emula threads para suportar operações `@Async` (HTTP requests via `XMLHttpRequest`). O `safeAction` cria uma "thread" TeaVM que permite suspensão durante I/O e captura exceções não tratadas, delegando-as ao `RootPresenter`.
+**Por quê?** O TeaVM emula threads para suportar operações `@Async` (HTTP requests via `XMLHttpRequest`). O `safeAction` cria uma "thread" TeaVM que permite suspensão durante I/O. A falha da ação em si já é tratada pela guarda do presenter (a ação é ligada com `action(...)`); o `safeAction` ainda captura o que falhar no próprio código da view, delegando ao `RootPresenter`.
 
 **Exceção**: Ações puramente locais (sem chamar o presenter) não precisam de `safeAction`:
 ```java
@@ -261,10 +261,10 @@ O VDom diff compara event listeners por **identidade de referência**. Mesma ref
 
 ```java
 // ✅ Bom — referência estável
-private final EventListener<Event> onBack = evt -> safeAction("Back", this.presenter::onOpenProducts);
+private final EventListener<Event> onBack = evt -> safeAction("Back", this.presenter.state.onOpenProducts::run);
 
 // ❌ Ruim — lambda nova a cada render
-.on("click", evt -> safeAction("Back", this.presenter::onOpenProducts))
+.on("click", evt -> safeAction("Back", this.presenter.state.onOpenProducts::run))
 ```
 
 ### useCallback(key, listener) — Listeners Paramétricos
@@ -273,7 +273,7 @@ Para listeners que dependem de dados variáveis:
 
 ```java
 private EventListener<Event> mkOnRemove(long id) {
-    return evt -> safeAction("Remove", () -> this.presenter.onRemoveProduct(id));
+    return evt -> safeAction("Remove", () -> this.presenter.state.onRemoveProduct.run(id));
 }
 
 // No render:

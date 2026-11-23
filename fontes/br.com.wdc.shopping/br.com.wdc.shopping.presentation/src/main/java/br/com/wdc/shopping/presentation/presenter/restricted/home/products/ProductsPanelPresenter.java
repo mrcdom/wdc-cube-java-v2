@@ -7,6 +7,7 @@ import java.util.function.Function;
 import br.com.wdc.framework.commons.lang.CoerceUtils;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.AbstractChildPresenter;
+import br.com.wdc.framework.cube.ActionOf;
 import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.ViewState;
@@ -33,6 +34,8 @@ public class ProductsPanelPresenter extends AbstractChildPresenter<ShoppingAppli
 
         public List<ProductInfo> products;
 
+        public ActionOf<Long> onOpenProduct = ActionOf.noop();
+
     }
 
     public final ProductsPanelViewState state = new ProductsPanelViewState();
@@ -51,6 +54,7 @@ public class ProductsPanelPresenter extends AbstractChildPresenter<ShoppingAppli
         super(app);
         this.owner = owner;
         this.productService = new ProductService(app);
+        this.state.onOpenProduct = actionOf(owner::openProduct);
     }
 
     // :: Life cycle
@@ -63,12 +67,6 @@ public class ProductsPanelPresenter extends AbstractChildPresenter<ShoppingAppli
     @Override
     protected void onInitialize() {
         this.loadProducts();
-    }
-
-    // :: User Actions
-
-    public void onOpenProduct(Long productId) {
-        this.owner.onOpenProduct(productId);
     }
 
     // :: Data load
@@ -95,7 +93,7 @@ public class ProductsPanelPresenter extends AbstractChildPresenter<ShoppingAppli
             @Override
             public void submit(int eventCode, int eventQtde, Map<String, Object> formData) throws Exception {
                 switch (eventCode) {
-                case 1 -> onOpenProduct(CoerceUtils.asLong(formData.get("p.productId")));
+                case 1 -> state.onOpenProduct.run(CoerceUtils.asLong(formData.get("p.productId")));
                 default -> new AssertionError("eventCode(" + eventCode + ") not handled");
                 }
             }

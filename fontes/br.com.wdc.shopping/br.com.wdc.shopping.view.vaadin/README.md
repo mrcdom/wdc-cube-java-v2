@@ -269,7 +269,7 @@ VaadinDom.render(rootLayout, (dom, pane) -> {
         dom.button(btn -> {
             btn.setText("Comprar");
             btn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-            btn.addClickListener(e -> safeAction("Buy", presenter::onBuy));
+            btn.addClickListener(e -> safeAction("Buy", presenter.state.onBuy::run));
         });
     });
 });
@@ -307,7 +307,7 @@ protected void safeAction(String context, Runnable action) {
 }
 ```
 
-Captura exceções em listeners Vaadin e exibe `Notification.show()` com a mensagem de erro.
+Captura exceções do próprio código do listener Vaadin e exibe `Notification.show()` com a mensagem de erro. A falha de uma ação do presenter não chega aqui: a ação é guardada no presenter (`action(...)`).
 
 ### 7. Restauração de Estado (F5 / refresh)
 

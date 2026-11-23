@@ -8,6 +8,9 @@ import java.util.Collection;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
+import br.com.wdc.framework.cube.Action;
+import br.com.wdc.framework.cube.ActionOf;
+import br.com.wdc.framework.cube.ActionOf2;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.ViewState;
 
@@ -20,7 +23,8 @@ import br.com.wdc.framework.cube.ViewState;
  *
  * <ul>
  * <li>Injects {@code "#"} as the first field (instanceId of the view).</li>
- * <li>{@code transient} and {@code static} fields are skipped.</li>
+ * <li>{@code transient} and {@code static} fields are skipped, and so are actions ({@code Action}, {@code ActionOf},
+ * {@code ActionOf2}).</li>
  * <li>{@link CubeView}/{@link ViewState} fields are serialized as {@code "<name>Id": vsid}.</li>
  * <li>Supported field types: all Java primitives/wrappers, {@link String}, {@link Character},
  * dates, {@link Collection}, {@link Map}, Records, and POJOs with public fields.</li>
@@ -68,6 +72,10 @@ public final class ViewStateSerializer {
         }
 
         if (value == null)
+            return;
+
+        // Actions are the presenter's entry points, not state: the client fires them by event code
+        if (value instanceof Action || value instanceof ActionOf<?> || value instanceof ActionOf2<?, ?>)
             return;
 
         if (value instanceof CubeView cv) {
