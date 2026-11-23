@@ -1,5 +1,7 @@
 package br.com.wdc.shopping.presentation;
 
+import java.util.List;
+
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.CubeApplication;
 import br.com.wdc.framework.cube.CubePlace;
@@ -11,13 +13,34 @@ import br.com.wdc.shopping.domain.purchase.PurchaseRepository;
 import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemRepository;
 import br.com.wdc.shopping.domain.user.UserRepository;
 import br.com.wdc.shopping.presentation.presenter.RootPresenter;
-import br.com.wdc.shopping.presentation.presenter.Routes;
+import br.com.wdc.shopping.presentation.presenter.RootKeys;
+import br.com.wdc.shopping.presentation.presenter.open.OpenKeys;
+import br.com.wdc.shopping.presentation.presenter.open.login.LoginKeys;
+import br.com.wdc.shopping.presentation.presenter.restricted.RestrictedKeys;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartKeys;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
+import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductKeys;
+import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptKeys;
 import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartManager;
 
 public abstract class ShoppingApplication extends CubeApplication {
 
 	private static final Log LOG = Log.getLogger(ShoppingApplication.class);
+
+	/**
+	 * Every place of the application, declared by its keys class. Listing them loads those classes, so the tree is
+	 * whole before an address is resolved by name ({@code PlaceKeysTest} checks no keys class is missing).
+	 */
+	public static final List<CubePlace> PLACES = List.of(
+			RootKeys.PLACE,
+			OpenKeys.PLACE,
+			LoginKeys.PLACE,
+			RestrictedKeys.PLACE,
+			HomeKeys.PLACE,
+			CartKeys.PLACE,
+			ProductKeys.PLACE,
+			ReceiptKeys.PLACE);
 
 	protected Subject subject;
 
@@ -34,11 +57,11 @@ public abstract class ShoppingApplication extends CubeApplication {
 
 	@Override
 	public CubePlace getRootPlace() {
-		return Routes.ROOT;
+		return RootKeys.PLACE;
 	}
 
 	public RootPresenter getRootPresenter() {
-		return (RootPresenter) this.presenterMap.get(Routes.ROOT.getId());
+		return (RootPresenter) this.presenterMap.get(RootKeys.PLACE.getId());
 	}
 
 	public Subject getSubject() {

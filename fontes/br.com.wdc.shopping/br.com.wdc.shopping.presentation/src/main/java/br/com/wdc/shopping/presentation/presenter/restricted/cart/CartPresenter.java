@@ -21,10 +21,9 @@ import br.com.wdc.framework.cube.CubeViewSlot;
 import br.com.wdc.framework.cube.ViewState;
 import br.com.wdc.shopping.domain.exception.InvalidCartItemException;
 import br.com.wdc.framework.domain.exception.OfflineException;
-import br.com.wdc.shopping.presentation.PlaceAttributes;
-import br.com.wdc.shopping.presentation.PlaceParameters;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
-import br.com.wdc.shopping.presentation.presenter.Routes;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
+import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptKeys;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.structs.CartItem;
 
 public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
@@ -69,7 +68,7 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
         this.state.onModifyQuantity = actionOf2(this::modifyQuantity);
         this.state.onRemoveProduct = actionOf(this::removeProduct);
         this.state.onBuy = action(this::buy);
-        this.state.onOpenProducts = action(() -> Routes.home(this.app));
+        this.state.onOpenProducts = action(() -> new HomeKeys(this.app).flip());
     }
 
     // :: Cube API
@@ -78,8 +77,9 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
     public boolean applyParameters(CubeIntent intent, boolean initialization, boolean deepest) {
         this.state.items = this.cart.getCartItems();
 
+        // Read on every call: a reused presenter goes where its parent puts it now, not where it was first put
+        this.ownerSlot = new CartKeys(this.app, intent).parentSlot();
         if (initialization) {
-            this.ownerSlot = intent.getViewSlot(PlaceAttributes.SLOT_OWNER);
             this.view = createView.apply(this);
         }
 
@@ -131,7 +131,7 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
         var modified = this.cart.removeProduct(productId);
         if (modified) {
             if (this.cart.getSize() == 0) {
-                Routes.home(this.app);
+                new HomeKeys(this.app).flip();
             } else {
                 this.state.items = this.cart.getCartItems();
                 this.update();
@@ -149,10 +149,7 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
         try {
             var purchaseId = this.cart.commit(this.app.getSubject());
 
-            final var intent = this.app.newIntent();
-            intent.setParameter(PlaceParameters.PURCHASE_ID, purchaseId);
-            intent.setAttribute(PlaceAttributes.ATTR_PURCHASE_MADE, Boolean.TRUE);
-            Routes.receipt(this.app, intent);
+            new ReceiptKeys(this.app).withPurchaseId(purchaseId).withPurchaseMade(true).flip();
         } catch (InvalidCartItemException caught) {
             this.alertThereIsItemWhichValueIsLessThanOne();
             LOG.error("buy.alertThereIsItemWhichValueIsLessThanOne: {}", this.state.errorMessage, caught);

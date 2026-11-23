@@ -93,9 +93,8 @@ import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.CubeViewSlot;
-import br.com.wdc.shopping.presentation.PlaceAttributes;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
-import br.com.wdc.shopping.presentation.presenter.Routes;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
 
 public class WishlistPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
@@ -113,7 +112,7 @@ public class WishlistPresenter extends AbstractCubePresenter<ShoppingApplication
     public WishlistPresenter(ShoppingApplication app) {
         super(app);
         this.state.onRemoveItem = actionOf(this::removeItem);
-        this.state.onOpenProducts = action(() -> Routes.home(this.app));
+        this.state.onOpenProducts = action(() -> new HomeKeys(this.app).flip());
     }
 
     // :: Cube API
@@ -121,7 +120,7 @@ public class WishlistPresenter extends AbstractCubePresenter<ShoppingApplication
     @Override
     public boolean applyParameters(CubeIntent intent, boolean initialization, boolean deepest) {
         if (initialization) {
-            this.ownerSlot = intent.getViewSlot(PlaceAttributes.SLOT_OWNER);
+            this.ownerSlot = new WishlistKeys(this.app, intent).parentSlot();
             this.view = createView.apply(this);
 
             // Carregar dados iniciais
@@ -181,33 +180,48 @@ public enum WishlistService {
 
 ## Passo 2 — Registrar a Rota de Navegação
 
-### 2.1 Adicionar o Place em `Routes.java`
+### 2.1 Criar `WishlistKeys`
 
-O place é criado como filho do place sob o qual a tela aparece. O nome vai no endereço (`#wishlist?...`) e precisa ser único na árvore — um nome repetido falha ao carregar a classe `Routes`.
-
-```java
-public static final CubePlace HOME = RESTRICTED.child("home", HomePresenter::new);
-// ...
-
-// NOVO: abaixo de HOME, que exige autenticação
-public static final CubePlace WISHLIST = HOME.child("wishlist", WishlistPresenter::new);
-```
-
-### 2.2 Adicionar o método de navegação
+Todo place tem uma classe de chaves, no pacote do seu presenter, que **declara o place** e é a única que conhece os nomes que ele lê e escreve no intent. Ela estende as chaves do place pai — abaixo de `HomeKeys`, a wishlist exige autenticação. O nome do place vai no endereço (`#wishlist?...`) e precisa ser único na árvore; o prefixo (duas letras) precisa ser único na aplicação.
 
 ```java
-// :: Wishlist
+public final class WishlistKeys extends HomeKeys {
 
-public static boolean wishlist(ShoppingApplication app) {
-    return wishlist(app, app.newIntent());
-}
+    public static final String PREFIX = "wl";
 
-public static boolean wishlist(ShoppingApplication app, CubeIntent intent) {
-    return app.navigate(WISHLIST, intent);
+    public static final CubePlace PLACE = HomeKeys.PLACE.child("wishlist", WishlistPresenter::new);
+
+    private static final class P {
+        /** A categoria filtrada. */
+        static final String CATEGORY = PREFIX + "-category";
+    }
+
+    public WishlistKeys(ShoppingApplication app) {
+        this(app, null);
+    }
+
+    public WishlistKeys(ShoppingApplication app, CubeIntent intent) {
+        super(app, intent, PLACE);
+    }
+
+    // Getter que nunca lança (o endereço vem de fora); setter que tira o nome do endereço no valor padrão
+    public String category() { ... }
+    public WishlistKeys withCategory(String category) { ... }
 }
 ```
 
-O **caminho hierárquico** sai da árvore: o sistema instancia os presenters necessários (Root → Restricted → Home → Wishlist) e chama `applyParameters` em cada um.
+### 2.2 Registrar em `ShoppingApplication.PLACES`
+
+```java
+public static final List<CubePlace> PLACES = List.of(
+        RootKeys.PLACE,
+        // ...
+        WishlistKeys.PLACE);
+```
+
+A lista carrega as classes de chaves — sem ela, um F5 em `#wishlist` cairia na raiz, porque o place só entra na árvore quando `WishlistKeys` carrega. O `PlaceKeysTest` falha se alguma ficar de fora.
+
+O **caminho hierárquico** sai da árvore: `new WishlistKeys(app).flip()` instancia os presenters necessários (Root → Restricted → Home → Wishlist) e chama `applyParameters` em cada um.
 
 ---
 
@@ -398,7 +412,7 @@ Agora você pode navegar para o novo módulo a partir de qualquer presenter:
 ```java
 // Em HomePresenter: um campo no state e a ligação no construtor
 public Action onOpenWishlist = Action.NOOP;              // HomeViewState
-this.state.onOpenWishlist = action(() -> Routes.wishlist(this.app));
+this.state.onOpenWishlist = action(() -> new WishlistKeys(this.app).flip());
 ```
 
 E no frontend, adicionar um botão ou link que emita o evento correspondente.
@@ -412,8 +426,8 @@ E no frontend, adicionar um botão ou link que emita o evento correspondente.
   - [ ] Criar `WishlistPresenter extends AbstractCubePresenter<ShoppingApplication>`
   - [ ] Criar `WishlistService` (enum BEAN) se precisar de dados
   - [ ] Criar DTOs em `structs/` com `projection()` + `create()`
-  - [ ] Adicionar `WISHLIST = HOME.child(...)` em `Routes.java`
-  - [ ] Adicionar método `Routes.wishlist()` com `app.navigate(WISHLIST, intent)`
+  - [ ] Criar `WishlistKeys extends HomeKeys` (prefixo único, `PLACE = HomeKeys.PLACE.child(...)`)
+  - [ ] Registrar `WishlistKeys.PLACE` em `ShoppingApplication.PLACES`
 
 - [ ] **Skeleton**
   - [ ] Escolher VID único (12 hex chars)
@@ -466,7 +480,7 @@ this.state.wishlistPanelView = this.wishlistPanel.initialize();
 ```
 
 O `AbstractChildPresenter`:
-- **Não** aparece no `Routes`
+- **Não** tem classe de chaves nem place
 - **Não** tem `applyParameters` / `publishParameters`
 - É gerenciado manualmente pelo pai (`initialize()` / `release()`)
 - Possui `onCreateView()` e `onInitialize()` como ciclo de vida

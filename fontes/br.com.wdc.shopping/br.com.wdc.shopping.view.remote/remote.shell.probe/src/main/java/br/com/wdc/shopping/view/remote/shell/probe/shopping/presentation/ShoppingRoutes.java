@@ -1,7 +1,8 @@
 package br.com.wdc.shopping.view.remote.shell.probe.shopping.presentation;
 
 /**
- * Client-side mirror of {@code Routes} from the Shopping presentation layer.
+ * Client-side mirror of the {@code XxxKeys} classes of the Shopping presentation layer (place names and the names
+ * they read from the address).
  * <p>
  * Static factory methods that build unsigned path strings for use with {@code HostClient.navigate()} — one method per
  * navigable place.
@@ -13,14 +14,14 @@ package br.com.wdc.shopping.view.remote.shell.probe.shopping.presentation;
  *   open_login()                    → "login"
  *   restrict_home()                 → "home"
  *   restrict_home_cart()            → "cart"
- *   restrict_home_product(id)       → "product?productId=&lt;id&gt;"
- *   restrict_home_receipt(id)       → "receipt?purchaseId=&lt;id&gt;"
+ *   restrict_home_product(id)       → "product?pr-id=&lt;id&gt;"
+ *   restrict_home_receipt(id)       → "receipt?rc-id=&lt;id&gt;"
  * </pre>
  *
  * <h3>Required parameters</h3>
  * <ul>
- * <li>{@link #restrict_home_product(long)} — {@code productId} — read by {@code ProductPresenter.applyParameters}</li>
- * <li>{@link #restrict_home_receipt(long)} — {@code purchaseId} — read by {@code ReceiptPresenter.applyParameters}</li>
+ * <li>{@link #restrict_home_product(long)} — {@code pr-id} — {@code ProductKeys.productId()}</li>
+ * <li>{@link #restrict_home_receipt(long)} — {@code rc-id} — {@code ReceiptKeys.purchaseId()}</li>
  * </ul>
  */
 @SuppressWarnings("java:S3400")
@@ -47,20 +48,18 @@ public final class ShoppingRoutes {
     /**
      * Path for the Product place.
      *
-     * @param productId required — corresponds to {@code PlaceParameters.PRODUCT_ID}, read by
-     *                  {@code ProductPresenter.applyParameters}
+     * @param productId required — {@code pr-id}, read by {@code ProductKeys.productId()}
      */
     public static String restrict_home_product(long productId) {
-        return "product?productId=" + productId;
+        return "product?pr-id=" + productId;
     }
 
     /**
      * Path for the Receipt place.
      *
-     * @param purchaseId required — corresponds to {@code PlaceParameters.PURCHASE_ID}, read by
-     *                   {@code ReceiptPresenter.applyParameters}
+     * @param purchaseId required — {@code rc-id}, read by {@code ReceiptKeys.purchaseId()}
      */
     public static String restrict_home_receipt(long purchaseId) {
-        return "receipt?purchaseId=" + purchaseId;
+        return "receipt?rc-id=" + purchaseId;
     }
 }

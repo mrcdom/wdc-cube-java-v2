@@ -24,7 +24,7 @@ import br.com.wdc.shopping.domain.ShoppingConfig;
 import br.com.wdc.shopping.domain.user.UserCriteria;
 import br.com.wdc.shopping.persistence.impl.LocalDataSource;
 import br.com.wdc.shopping.persistence.impl.ShoppingRepositoryBootstrap;
-import br.com.wdc.shopping.presentation.presenter.Routes;
+import br.com.wdc.shopping.presentation.presenter.RootKeys;
 import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
 import br.com.wdc.shopping.scripts.sgbd.DBCreate;
 
@@ -120,7 +120,7 @@ public class ShoppingSwtMain {
         if (savedIntent != null) {
             this.app.safeGo(savedIntent);
         } else {
-            this.app.runPresenterAction(() -> Routes.root(this.app));
+            this.app.runPresenterAction(() -> new RootKeys(this.app).flip());
         }
         this.app.runPresenterAction(() -> this.app.markAllViewsDirty());
 
@@ -250,7 +250,7 @@ public class ShoppingSwtMain {
         var savedIntent = storage.get("session.intent");
         if (savedIntent == null || savedIntent.isBlank()) return null;
 
-        // Don't restore login intent — let Routes.root decide
+        // Don't restore login intent — let the root decide
         if (savedIntent.startsWith("login")) return null;
 
         return savedIntent;

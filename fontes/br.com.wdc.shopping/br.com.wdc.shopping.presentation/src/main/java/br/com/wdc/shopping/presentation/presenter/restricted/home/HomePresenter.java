@@ -13,12 +13,13 @@ import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.CubeViewSlot;
 import br.com.wdc.framework.cube.ViewState;
 import br.com.wdc.framework.domain.security.AuthenticationService;
-import br.com.wdc.shopping.presentation.PlaceAttributes;
-import br.com.wdc.shopping.presentation.PlaceParameters;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
+import br.com.wdc.shopping.presentation.presenter.open.login.LoginKeys;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartKeys;
+import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductKeys;
+import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptKeys;
 import br.com.wdc.shopping.presentation.StorageKeys;
 import br.com.wdc.shopping.presentation.exception.ProductNotFoundException;
-import br.com.wdc.shopping.presentation.presenter.Routes;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartManager;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter;
@@ -70,7 +71,7 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
         this.contentSlot = this::setContentView;
         this.onCartCommitListenerRemover = ThrowingRunnable.noop();
         this.onCartChangeListenerRemover = ThrowingRunnable.noop();
-        this.state.onOpenCart = action(() -> Routes.cart(this.app));
+        this.state.onOpenCart = action(() -> new CartKeys(this.app).flip());
         this.state.onExit = action(this::exit);
     }
 
@@ -108,13 +109,14 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     @Override
     public boolean applyParameters(CubeIntent intent, boolean initialization, boolean deepest) {
+        var keys = new HomeKeys(this.app, intent);
         if (this.app.getSubject() == null) {
-            Routes.login(this.app, intent);
+            new LoginKeys(this.app, intent).flip();
             return false;
         }
 
         if (initialization || this.view == null) {
-            this.ownerSlot = intent.getViewSlot(PlaceAttributes.SLOT_OWNER);
+            this.ownerSlot = keys.parentSlot();
             this.view = createView.apply(this);
 
             this.state.nickName = this.app.getSubject().getNickName();
@@ -141,7 +143,7 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
         if (deepest) {
             this.setContentView(null);
         } else {
-            intent.setViewSlot(PlaceAttributes.SLOT_OWNER, this.contentSlot);
+            keys.withParentSlot(this.contentSlot);
         }
 
         return true;
@@ -179,16 +181,14 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     /** Called from inside the purchases panel's guarded action. */
     public void openReceipt(Long purchaseId) {
-        if (purchaseId == null) {
+        if (purchaseId == null || purchaseId < 0) {
             this.alertPurchaseIdRequired();
             LOG.warn("openReceipt: {}", this.state.errorMessage);
             return;
         }
 
         try {
-            var intent = this.app.newIntent();
-            intent.setParameter(PlaceParameters.PURCHASE_ID, purchaseId);
-            Routes.receipt(this.app, intent);
+            new ReceiptKeys(this.app).withPurchaseId(purchaseId).flip();
         } catch (ProductNotFoundException caught) {
             this.alertPurchaseNotFound();
             LOG.warn("{}: purchaseId={}", this.state.errorMessage, purchaseId);
@@ -197,16 +197,14 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     /** Called from inside the products panel's guarded action. */
     public void openProduct(Long productId) {
-        if (productId == null) {
+        if (productId == null || productId < 0) {
             this.alertProductIdRequired();
             LOG.warn("openProduct: {}", this.state.errorMessage);
             return;
         }
 
         try {
-            var intent = this.app.newIntent();
-            intent.setParameter(PlaceParameters.PRODUCT_ID, productId);
-            Routes.product(this.app, intent);
+            new ProductKeys(this.app).withProductId(productId).flip();
         } catch (ProductNotFoundException caught) {
             this.alertProductNotFound();
             LOG.warn("{}: productId={}", this.state.errorMessage, productId);
@@ -228,7 +226,7 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
             authService.logout(refreshToken);
         }
 
-        Routes.login(this.app);
+        new LoginKeys(this.app).flip();
     }
 
     // :: Messages

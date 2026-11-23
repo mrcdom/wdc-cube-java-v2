@@ -20,7 +20,7 @@ import br.com.wdc.framework.domain.security.CryptoProvider;
 import br.com.wdc.shopping.domain.user.UserCriteria;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.RootPresenter;
-import br.com.wdc.shopping.presentation.presenter.Routes;
+import br.com.wdc.shopping.presentation.presenter.RootKeys;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
 import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter;
@@ -216,7 +216,7 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
                     this.go(location);
                 } catch (Exception e) {
                     LOG.warn("Failed to navigate to hash '" + location + "': " + e.getMessage());
-                    Routes.root(this);
+                    new RootKeys(this).flip();
                 }
             } else {
                 // Tauri native: WebView inicia sem hash — restaura último intent salvo.
@@ -227,10 +227,10 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
                         this.go(savedIntent);
                     } catch (Exception e) {
                         LOG.warn("Failed to restore intent '" + savedIntent + "': " + e.getMessage());
-                        Routes.root(this);
+                        new RootKeys(this).flip();
                     }
                 } else {
-                    Routes.root(this);
+                    new RootKeys(this).flip();
                 }
             }
         }).start();

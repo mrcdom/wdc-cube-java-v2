@@ -12,11 +12,9 @@ import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.CubeViewSlot;
 import br.com.wdc.framework.cube.ViewState;
-import br.com.wdc.shopping.presentation.PlaceAttributes;
-import br.com.wdc.shopping.presentation.PlaceParameters;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
 import br.com.wdc.shopping.presentation.exception.PurchaseNotFoundException;
-import br.com.wdc.shopping.presentation.presenter.Routes;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptForm;
 
 public class ReceiptPresenter extends AbstractCubePresenter<ShoppingApplication> {
@@ -53,19 +51,21 @@ public class ReceiptPresenter extends AbstractCubePresenter<ShoppingApplication>
     public ReceiptPresenter(ShoppingApplication app) {
         super(app);
         this.receiptService = new ReceiptService(app);
-        this.state.onOpenProducts = action(() -> Routes.home(this.app));
+        this.state.onOpenProducts = action(() -> new HomeKeys(this.app).flip());
     }
 
     // :: Cube API
 
     @Override
     public boolean applyParameters(CubeIntent intent, boolean initialization, boolean deepest) {
-        this.state.notifySuccess = Boolean.TRUE.equals(intent.getAttribute(PlaceAttributes.ATTR_PURCHASE_MADE));
-
-        var pPurchaseId = intent.getParameterAsLong(PlaceParameters.PURCHASE_ID, this.purchaseId);
+        var keys = new ReceiptKeys(this.app, intent);
+        var pPurchaseId = keys.purchaseId() != null ? keys.purchaseId() : this.purchaseId;
         if (pPurchaseId == null) {
-            throw new AssertionError("Missing PURCHASE_ID");
+            // No usable id in the address: nothing to show; go to the home, with the intent in transit
+            new HomeKeys(this.app, intent).flip();
+            return false;
         }
+        this.state.notifySuccess = keys.purchaseMade();
 
         if (this.state.receipt == null || !Objects.equals(pPurchaseId, this.purchaseId)) {
             var receipt = this.loadReceipt(pPurchaseId);
@@ -74,8 +74,9 @@ public class ReceiptPresenter extends AbstractCubePresenter<ShoppingApplication>
             update();
         }
 
+        // Read on every call: a reused presenter goes where its parent puts it now, not where it was first put
+        this.ownerSlot = keys.parentSlot();
         if (initialization) {
-            this.ownerSlot = intent.getViewSlot(PlaceAttributes.SLOT_OWNER);
 
             if (this.state.receipt == null) {
                 throw new AssertionError("Missing receipt");
@@ -92,9 +93,7 @@ public class ReceiptPresenter extends AbstractCubePresenter<ShoppingApplication>
 
     @Override
     public void publishParameters(CubeIntent intent) {
-        if (this.purchaseId != null) {
-            intent.setParameter(PlaceParameters.PURCHASE_ID, this.purchaseId);
-        }
+        new ReceiptKeys(this.app, intent).withPurchaseId(this.purchaseId);
     }
 
     // :: Data Loaders

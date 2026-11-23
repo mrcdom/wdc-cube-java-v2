@@ -53,6 +53,7 @@ graph LR
 | `CubeViewSlot` | Slot onde uma `CubeView` é encaixada na view pai |
 | `CubePlace` | Nó da árvore de places — nome (único na árvore), pai, caminho, factory de presenter; o id cresce com a profundidade |
 | `CubeIntent` | Encapsula destino (place) + parâmetros tipados (parse de query-string) |
+| `CubeKeys<A>` | Base das classes de chaves do app: uma por place, declara o place e lê/escreve o intent com acessores tipados; `flip()` navega até o place |
 | `CubeNavigation<T>` | Engine que executa transições: cria, reutiliza e destrói presenters |
 | `CubeSkeleton` | Interface para comunicação remota: `submit(eventCode, formData)`, `syncState()` |
 | `ViewState` | Marker interface para estados da view |

@@ -18,8 +18,6 @@ graph TD
     root["br.com.wdc.shopping.presentation"]
     root --> ShoppingApp["ShoppingApplication.java"]
     root --> ProxyWrapper["ProxyRepositoryWrapper.java"]
-    root --> PlaceAttr["PlaceAttributes.java"]
-    root --> PlaceParams["PlaceParameters.java"]
 
     root --> exception["exception/"]
     exception --> WrongParams["WrongParametersException.java"]
@@ -27,7 +25,7 @@ graph TD
     exception --> PurchaseNotFound["PurchaseNotFoundException.java"]
 
     root --> presenter["presenter/"]
-    presenter --> Routes["Routes.java"]
+    presenter --> RootK["RootKeys.java"]
     presenter --> RootP["RootPresenter.java (+ RootViewState)"]
 
     presenter --> open["open/"]
@@ -75,18 +73,23 @@ graph TD
     ROOT --> RESTRICTED["RESTRICTED (restricted)<br/><small>guarda: se não autenticado → OPEN</small>"]
     OPEN --> LOGIN["LOGIN (login)<br/><small>área pública</small>"]
     RESTRICTED --> HOME["HOME (home)<br/><small>área restrita (requer Subject)</small>"]
-    HOME --> PRODUCT["PRODUCT (product)<br/><small>?productId=N</small>"]
+    HOME --> PRODUCT["PRODUCT (product)<br/><small>?pr-id=N</small>"]
     HOME --> CART["CART (cart)"]
-    HOME --> RECEIPT["RECEIPT (receipt)<br/><small>?purchaseId=N</small>"]
+    HOME --> RECEIPT["RECEIPT (receipt)<br/><small>?rc-id=N</small>"]
 ```
 
-A árvore é declarada em `Routes.java` como constantes (`ROOT.child("open", ...)`, `OPEN.child("login", ...)`), e cada rota é só `app.navigate(PLACE, intent)` — o caminho até o place sai da árvore:
+Cada place tem uma classe de chaves (`XxxKeys`, no pacote do seu presenter) que **declara o place** a partir do place das chaves que ela estende — `RootKeys → RestrictedKeys → HomeKeys → ProductKeys` — e é a única que conhece os nomes que o place lê e escreve no intent, todos com o prefixo de duas letras dela (`pr-id`, `rc-id`). Os getters validam e nunca lançam (o endereço vem de fora); o setter tira o nome do endereço quando recebe o padrão. `ShoppingApplication.PLACES` lista todos os places, o que carrega as classes antes de um endereço ser resolvido por nome. A convenção completa está no Javadoc de `RootKeys`; o `PlaceKeysTest` confere prefixos e árvore.
 
 ```java
-// Navegar para o detalhe de um produto
-var intent = app.newIntent();
-intent.setParameter(PlaceParameters.PRODUCT_ID, productId);
-Routes.product(app, intent);
+// Navegar para o detalhe de um produto, a partir do estado atual
+new ProductKeys(app).withProductId(productId).flip();
+
+// Dentro do applyParameters: ler, e redirecionar com o intent em trânsito
+var keys = new ProductKeys(this.app, intent);
+if (keys.productId() == null) {
+    new HomeKeys(this.app, intent).flip();
+    return false;
+}
 ```
 
 Os presenters `OpenPresenter` e `RestrictedPresenter` funcionam como **guardas de navegação**: redirecionam automaticamente com base na presença/ausência do `Subject`.
@@ -115,7 +118,7 @@ graph TD
 
 | Tipo | Classe base | Ciclo de vida | Uso |
 |------|------------|---------------|-----|
-| **Presenter navegável** | `AbstractCubePresenter<ShoppingApplication>` | Gerenciado pelo sistema de navegação via `applyParameters` | Places no `Routes` |
+| **Presenter navegável** | `AbstractCubePresenter<ShoppingApplication>` | Gerenciado pelo sistema de navegação via `applyParameters` | Places com sua classe de chaves (`XxxKeys`) |
 | **Presenter filho (painel)** | `AbstractChildPresenter<ShoppingApplication>` | Gerenciado manualmente pelo presenter pai via `initialize()`/`release()` | Painéis embutidos na Home |
 
 ## Componentes do Módulo
@@ -184,8 +187,7 @@ Objetos `Serializable` usados para transferir dados entre camadas. Cada DTO poss
 
 ### Constantes
 
-- **`PlaceAttributes`** — identificadores de view slots e atributos transientes de navegação
-- **`PlaceParameters`** — nomes de parâmetros de URL (`userId`, `productId`, `purchaseId`)
+- **`XxxKeys`** (uma por place, em `presenter/**`) — os nomes que cada place lê e escreve no intent, tipados; substituem as antigas `PlaceParameters`/`PlaceAttributes`
 
 ### CartManager
 

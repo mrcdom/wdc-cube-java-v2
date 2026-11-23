@@ -78,7 +78,7 @@ public class ShoppingWorkflowTest extends BasePresentationTest {
 
     @Test
     public void testComprarProduto() throws Exception {
-        Routes.login(this.app);
+        new LoginKeys(this.app).flip();
         var rootView = this.app.getRootView();
 
         // Login

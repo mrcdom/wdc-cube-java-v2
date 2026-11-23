@@ -13,10 +13,9 @@ import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.CubeViewSlot;
 import br.com.wdc.framework.cube.ViewState;
 import br.com.wdc.framework.domain.exception.OfflineException;
-import br.com.wdc.shopping.presentation.PlaceAttributes;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
 import br.com.wdc.shopping.presentation.StorageKeys;
-import br.com.wdc.shopping.presentation.presenter.Routes;
 
 public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
@@ -66,7 +65,7 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
     @Override
     public boolean applyParameters(CubeIntent intent, boolean initialization, boolean deepest) {
         if (initialization) {
-            ownerSlot = intent.getViewSlot(PlaceAttributes.SLOT_OWNER);
+            ownerSlot = new LoginKeys(app, intent).parentSlot();
             this.view = createView.apply(this);
         }
 
@@ -128,7 +127,7 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
                     app.clientPersistentStore().secure().set(StorageKeys.AUTH_TOKEN, result.persistentToken());
                 }
                 app.setSubject(result.subject());
-                Routes.home(app);
+                new HomeKeys(app).flip();
             }
         } catch (Exception caught) {
             if (caught instanceof OfflineException) {

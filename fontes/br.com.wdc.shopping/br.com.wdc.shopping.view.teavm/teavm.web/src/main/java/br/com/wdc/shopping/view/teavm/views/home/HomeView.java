@@ -1,6 +1,6 @@
 package br.com.wdc.shopping.view.teavm.views.home;
 
-import br.com.wdc.shopping.presentation.presenter.Routes;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
 import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
@@ -22,7 +22,7 @@ public class HomeView extends AbstractVDomView<HomePresenter> {
         this.shared.requestUpdate = this::update;
         this.shared.onExit = () -> safeAction("Exit", presenter.state.onExit::run);
         this.shared.onOpenCart = () -> safeAction("Open cart", presenter.state.onOpenCart::run);
-        this.shared.onNavigateBack = () -> safeAction("Back to home", () -> Routes.home(this.app));
+        this.shared.onNavigateBack = () -> safeAction("Back to home", () -> new HomeKeys(this.app).flip());
         this.shared.onPurchasesPanelVisible = () -> {
             if (presenter.state.purchasesPanelView != null) {
                 presenter.state.purchasesPanelView.update();

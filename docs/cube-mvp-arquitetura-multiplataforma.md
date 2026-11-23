@@ -221,7 +221,7 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
         this.state.items = this.app.getCart().getCartItems();
 
         if (initialization) {
-            this.ownerSlot = intent.getViewSlot(PlaceAttributes.SLOT_OWNER);
+            this.ownerSlot = new CartKeys(this.app, intent).parentSlot();
             this.view = createView.apply(this);
         }
 
@@ -262,36 +262,46 @@ graph TD
     ROOT --> RESTRICTED["RESTRICTED<br/><small>guarda: se não autenticado → OPEN</small>"]
     OPEN --> LOGIN["LOGIN<br/><small>/login</small>"]
     RESTRICTED --> HOME["HOME<br/><small>/home</small>"]
-    HOME --> PRODUCT["PRODUCT<br/><small>/home/product?productId=N</small>"]
+    HOME --> PRODUCT["PRODUCT<br/><small>/home/product?pr-id=N</small>"]
     HOME --> CART["CART<br/><small>/home/cart</small>"]
-    HOME --> RECEIPT["RECEIPT<br/><small>/home/receipt?purchaseId=N</small>"]
+    HOME --> RECEIPT["RECEIPT<br/><small>/home/receipt?rc-id=N</small>"]
 ```
 
-Os estados são aditivos. O estado `/home/product?productId=42` implica a ativação encadeada de `RootPresenter → RestrictedPresenter → HomePresenter → ProductPresenter`. Cada Presenter na cadeia recebe a URL e extrai os parâmetros que lhe cabem.
+Os estados são aditivos. O estado `/home/product?pr-id=42` implica a ativação encadeada de `RootPresenter → RestrictedPresenter → HomePresenter → ProductPresenter`. Cada Presenter na cadeia recebe a URL e extrai os parâmetros que lhe cabem.
 
-A parte dinâmica da URL — os parâmetros de query-string — é encapsulada em `CubeIntent`:
+A parte dinâmica da URL — os parâmetros de query-string — é encapsulada em `CubeIntent`, e cada place a lê e escreve por uma classe de chaves tipadas (`XxxKeys`, sobre o `CubeKeys` do framework):
 
 ```java
-// Navegar para o detalhe do produto 42
-var intent = app.newIntent();
-intent.setParameter(PlaceParameters.PRODUCT_ID, 42L);
-Routes.product(app, intent);
+// Navegar para o detalhe do produto 42, a partir do estado atual
+new ProductKeys(app).withProductId(42L).flip();
 ```
 
-A classe `Routes` declara a árvore de places como constantes, tornando todos os destinos possíveis rastreáveis estaticamente. Cada place nasce filho de outro, então o caminho até ele é dado pela própria árvore:
+**Cada place tem uma classe de chaves, que declara o place** a partir do place das chaves que ela estende — a árvore de classes é a árvore de places, e o caminho até um place é dado por ela:
 
 ```java
-public class Routes {
-    public static final CubePlace ROOT = CubePlace.root("public", RootPresenter::new);
-    public static final CubePlace RESTRICTED = ROOT.child("restricted", RestrictedPresenter::new);
-    public static final CubePlace HOME = RESTRICTED.child("home", HomePresenter::new);
-    public static final CubePlace PRODUCT = HOME.child("product", ProductPresenter::new);
+public class HomeKeys extends RestrictedKeys {
+    public static final String PREFIX = "hm";
+    public static final CubePlace PLACE = RestrictedKeys.PLACE.child("home", HomePresenter::new);
+    // ...
+}
 
-    public static boolean product(ShoppingApplication app, CubeIntent intent) {
-        return app.navigate(PRODUCT, intent);  // Root → Restricted → Home → Product
+public final class ProductKeys extends HomeKeys {
+    public static final String PREFIX = "pr";
+    public static final CubePlace PLACE = HomeKeys.PLACE.child("product", ProductPresenter::new);
+
+    private static final class P {
+        static final String PRODUCT_ID = PREFIX + "-id";   // só esta classe conhece o nome
     }
+
+    public Long productId() { /* 0 ou mais, ou null: o endereço vem de fora, o getter nunca lança */ }
+    public ProductKeys withProductId(Long id) { /* null (ou o padrão) tira o nome do endereço */ }
 }
 ```
+
+- **Prefixo de duas letras por classe**, único na aplicação; todo nome que ela declara começa por ele (`pr-id`). O `PlaceKeysTest` confere.
+- **Um place filho herda os getters do pai** para ler o que os níveis de cima passaram; o único nome reaproveitado de propósito é o slot de composição (`parentSlot()`).
+- **Sem intent, as chaves partem do estado atual** (`app.newIntent()`); dentro do `applyParameters`, um redirecionamento usa o intent em trânsito: `new HomeKeys(app, intent).flip()`.
+- Um place declarado num campo estático só entra na árvore quando sua classe carrega; por isso `ShoppingApplication.PLACES` lista todos.
 
 ---
 
@@ -308,7 +318,7 @@ O motor de navegação `CubeNavigation` executa transições entre states da seg
 5. Invoca `commitComputedState()` em todos — oportunidade para sincronizar estados derivados.  
 6. Propaga `update()` às views afetadas.
 
-Ao navegar de `/home/product?productId=5` para `/home/cart`, a sequência é:
+Ao navegar de `/home/product?pr-id=5` para `/home/cart`, a sequência é:
 
 - `applyParameters` invocado para `Root`, `Restricted`, `Home`, `Cart`  
 - `release()` invocado para `Product`  
@@ -324,7 +334,7 @@ Presenters compartilhados entre o state anterior e o novo não são recriados �
 public boolean applyParameters(CubeIntent intent, boolean initialization, boolean deepest) {
     if (this.app.getSubject() != null) {
         // Usuário já autenticado — redirecionar para área restrita
-        Routes.restricted(this.app, this.app.newIntent());
+        new RestrictedKeys(this.app, intent).flip();
         return false;
     }
     // Continuar navegação normal...
@@ -428,7 +438,7 @@ public boolean applyParameters(CubeIntent intent, boolean initialization, boolea
     // ...
     if (!deepest) {
         // Propagar slot para o Presenter filho
-        intent.putViewSlot(PlaceAttributes.SLOT_OWNER, this.contentSlot);
+        new HomeKeys(this.app, intent).withParentSlot(this.contentSlot);
     }
     return true;
 }
@@ -438,7 +448,7 @@ O Presenter filho recebe o slot e o usa para se encaixar:
 
 ```java
 // ProductPresenter recebe o slot
-this.ownerSlot = intent.getViewSlot(PlaceAttributes.SLOT_OWNER);
+this.ownerSlot = new ProductKeys(this.app, intent).parentSlot();
 this.ownerSlot.setView(this.view);
 ```
 
@@ -639,7 +649,7 @@ O modelo arquitetural provou-se robusto ao longo de uma década de evolução te
 
 Os princípios que se mostraram mais duradouros:
 
-**A hierarquia de Presenters como unidade de modularidade.** A divisão do estado da aplicação em Presenters hierárquicos mantém a complexidade localizada. Adicionar um novo módulo significa criar um novo Presenter, registrá-lo em `Routes` e implementar uma view em cada tecnologia de interesse — sem tocar no restante da aplicação.
+**A hierarquia de Presenters como unidade de modularidade.** A divisão do estado da aplicação em Presenters hierárquicos mantém a complexidade localizada. Adicionar um novo módulo significa criar um novo Presenter e a sua classe de chaves (que declara o place), listá-la em `ShoppingApplication.PLACES` e implementar uma view em cada tecnologia de interesse — sem tocar no restante da aplicação.
 
 **O ViewState como fronteira entre lógica e apresentação.** O ViewState é simultaneamente simples (campos públicos Java) e poderoso (serialização automática, diff incremental no modo remoto). Ele resolve o problema de transferência de dados sem criar objetos de transferência de valor separados — o mesmo objeto serve ao Presenter para nutrir a view e ao protocolo remoto para transmitir o estado.
 

@@ -3,7 +3,8 @@ package br.com.wdc.shopping.presentation.presenter.open;
 import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.CubePresenter;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
-import br.com.wdc.shopping.presentation.presenter.Routes;
+import br.com.wdc.shopping.presentation.presenter.open.login.LoginKeys;
+import br.com.wdc.shopping.presentation.presenter.restricted.RestrictedKeys;
 
 public class OpenPresenter implements CubePresenter {
 	
@@ -19,12 +20,12 @@ public class OpenPresenter implements CubePresenter {
 	    
 	    // Se o usuário já está autenticado, não há motivo para estar na área pública
         if (this.app.getSubject() != null) {
-            Routes.restricted(this.app, intent);
+            new RestrictedKeys(this.app, intent).flip();
             return false;
         }
 
         if (deepest) {
-            Routes.login(this.app, intent);
+            new LoginKeys(this.app, intent).flip();
             return false;
         }
 

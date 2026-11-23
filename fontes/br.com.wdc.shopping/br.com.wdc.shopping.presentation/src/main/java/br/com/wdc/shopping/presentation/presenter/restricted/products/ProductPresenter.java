@@ -15,10 +15,9 @@ import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.CubeViewSlot;
 import br.com.wdc.framework.cube.ViewState;
 import br.com.wdc.framework.domain.exception.OfflineException;
-import br.com.wdc.shopping.presentation.PlaceAttributes;
-import br.com.wdc.shopping.presentation.PlaceParameters;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
-import br.com.wdc.shopping.presentation.presenter.Routes;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartKeys;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
 
 public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication> {
@@ -57,18 +56,21 @@ public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication>
         super(app);
         this.productService = new ProductService(app);
         this.state.onAddToCart = actionOf(this::addToCart);
-        this.state.onOpenProducts = action(() -> Routes.home(this.app));
+        this.state.onOpenProducts = action(() -> new HomeKeys(this.app).flip());
     }
 
     // :: Cube API
 
     @Override
     public boolean applyParameters(CubeIntent intent, boolean initialization, boolean deepest) {
+        var keys = new ProductKeys(this.app, intent);
         var oldProductId = this.state.product != null ? this.state.product.id : null;
 
-        var newProductId = intent.getParameterAsLong(PlaceParameters.PRODUCT_ID, oldProductId);
+        var newProductId = keys.productId() != null ? keys.productId() : oldProductId;
         if (newProductId == null) {
-            throw new AssertionError("Missing PRODUCT_ID");
+            // No usable id in the address: nothing to show; go to the home, with the intent in transit
+            new HomeKeys(this.app, intent).flip();
+            return false;
         }
 
         if (this.state.product == null || !Objects.equals(newProductId, oldProductId)) {
@@ -77,8 +79,9 @@ public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication>
             this.update();
         }
 
+        // Read on every call: a reused presenter goes where its parent puts it now, not where it was first put
+        this.ownerSlot = keys.parentSlot();
         if (initialization) {
-            this.ownerSlot = intent.getViewSlot(PlaceAttributes.SLOT_OWNER);
 
             this.state.errorCode = 0;
             this.state.errorMessage = null;
@@ -97,9 +100,7 @@ public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication>
 
     @Override
     public void publishParameters(CubeIntent intent) {
-        if (this.state.product != null) {
-            intent.setParameter(PlaceParameters.PRODUCT_ID, this.state.product.id);
-        }
+        new ProductKeys(this.app, intent).withProductId(this.state.product != null ? this.state.product.id : null);
     }
 
     // :: User Actions
@@ -120,8 +121,7 @@ public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication>
         try {
             app.getCart().addProduct(this.state.product, quantity);
 
-            CubeIntent intent = this.app.newIntent();
-            Routes.cart(this.app, intent);
+            new CartKeys(this.app).flip();
         } catch (OfflineException caught) {
             this.alertDatabaseNotAvailable();
             LOG.error(this.state.errorMessage, caught);

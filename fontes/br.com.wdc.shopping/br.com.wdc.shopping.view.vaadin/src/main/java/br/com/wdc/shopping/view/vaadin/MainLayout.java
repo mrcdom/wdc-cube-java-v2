@@ -12,7 +12,7 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.router.Route;
 
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
-import br.com.wdc.shopping.presentation.presenter.Routes;
+import br.com.wdc.shopping.presentation.presenter.RootKeys;
 
 @Route("")
 public class MainLayout extends Div {
@@ -78,7 +78,7 @@ public class MainLayout extends Div {
     private void initFreshApp(com.vaadin.flow.component.UI ui) {
         this.app = new ShoppingVaadinApplication(ui);
         this.app.setRootContainer(this);
-        Routes.root(this.app);
+        new RootKeys(this.app).flip();
     }
 
     @ClientCallable

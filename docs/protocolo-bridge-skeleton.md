@@ -295,7 +295,7 @@ Opcionalmente com `storage` de bootstrap.
 {
   "requestId": 1,
   "event": ["7b32e816a191:0:-1"],
-  "7b32e816a191:0": { "p.path": "/home/product?productId=42&sign=AbC123" }
+  "7b32e816a191:0": { "p.path": "/home/product?pr-id=42&sign=AbC123" }
 }
 ```
 
@@ -435,7 +435,7 @@ O **servidor é a autoridade** sobre quais views existem. O cliente nunca cria v
 
 A navegação é **dirigida pelo servidor** e a URL é **assinada** para impedir que o cliente force estados não concedidos.
 
-**Emissão (servidor → cliente):** ao atualizar o histórico, o servidor monta o intent (place + parâmetros), calcula `sign = base62(signAsHash(bytes_utf8(intent.toString())))`, injeta o parâmetro `sign=<...>` no intent, e envia o resultado no campo `uri`. Exemplo: `/home/product?productId=42&sign=AbC123`.
+**Emissão (servidor → cliente):** ao atualizar o histórico, o servidor monta o intent (place + parâmetros), calcula `sign = base62(signAsHash(bytes_utf8(intent.toString())))`, injeta o parâmetro `sign=<...>` no intent, e envia o resultado no campo `uri`. Exemplo: `/home/product?pr-id=42&sign=AbC123`.
 
 **Recepção (cliente → servidor):** o cliente navega enviando `p.path` (a URI com `sign`) via eventos `-1`/`-2` na Browser View. O servidor:
 1. Faz o parse do path e **remove** o parâmetro `sign` (a assinatura recebida).

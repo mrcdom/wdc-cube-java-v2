@@ -15,9 +15,8 @@ import br.com.wdc.framework.cube.ViewState;
 import br.com.wdc.framework.domain.security.AuthenticationService;
 import br.com.wdc.framework.domain.security.SecurityContext;
 import br.com.wdc.shopping.domain.user.UserCriteria;
-import br.com.wdc.shopping.presentation.PlaceAttributes;
-import br.com.wdc.shopping.presentation.PlaceParameters;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
 import br.com.wdc.shopping.presentation.StorageKeys;
 import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
 
@@ -67,15 +66,16 @@ public class RootPresenter extends AbstractCubePresenter<ShoppingApplication> {
         }
 
         if (deepest) {
-            // The root has no screen of its own: it goes to the login or to the home
-            Routes.root(this.app, intent);
+            // The root has no screen of its own: it goes on to the home (which sends to the login when there is no user)
+            new HomeKeys(this.app, intent).flip();
             return false;
         } else {
             // Does not accept changing user id at URL
+            var keys = new RootKeys(this.app, intent);
             if (this.app.getSubject() != null) {
-                intent.setParameter(PlaceParameters.USER_ID, this.app.getSubject().getId());
+                keys.withUserId(this.app.getSubject().getId());
             }
-            intent.setViewSlot(PlaceAttributes.SLOT_OWNER, this.contentSlot);
+            keys.withParentSlot(this.contentSlot);
         }
 
         return true;
@@ -126,7 +126,7 @@ public class RootPresenter extends AbstractCubePresenter<ShoppingApplication> {
     @Override
     public void publishParameters(CubeIntent intent) {
         if (this.app.getSubject() != null) {
-            intent.setParameter(PlaceParameters.USER_ID, this.app.getSubject().getId());
+            new RootKeys(this.app, intent).withUserId(this.app.getSubject().getId());
         }
     }
 

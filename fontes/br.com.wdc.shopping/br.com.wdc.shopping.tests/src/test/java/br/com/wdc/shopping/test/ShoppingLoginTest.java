@@ -4,7 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
-import br.com.wdc.shopping.presentation.presenter.Routes;
+import br.com.wdc.shopping.presentation.presenter.open.login.LoginKeys;
 import br.com.wdc.shopping.scripts.sgbd.DBReset;
 import br.com.wdc.shopping.test.mock.viewimpl.HomeViewMock;
 import br.com.wdc.shopping.test.mock.viewimpl.LoginViewMock;
@@ -15,7 +15,7 @@ public class ShoppingLoginTest extends BasePresentationTest {
 
     @Test
     public void testLoginPrimeiroAcesso() {
-        Routes.login(this.app);
+        new LoginKeys(this.app).flip();
 
         var rootView = this.app.getRootView();
 
@@ -25,7 +25,7 @@ public class ShoppingLoginTest extends BasePresentationTest {
 
     @Test
     public void testLoginFalhaPorSenhaOuUsuarioNaoReconhecidos() {
-        Routes.login(this.app);
+        new LoginKeys(this.app).flip();
 
         var rootView = this.app.getRootView();
 
@@ -40,7 +40,7 @@ public class ShoppingLoginTest extends BasePresentationTest {
 
     @Test
     public void testLoginAcessoAoSistema() {
-        Routes.login(this.app);
+        new LoginKeys(this.app).flip();
 
         var rootView = this.app.getRootView();
 
