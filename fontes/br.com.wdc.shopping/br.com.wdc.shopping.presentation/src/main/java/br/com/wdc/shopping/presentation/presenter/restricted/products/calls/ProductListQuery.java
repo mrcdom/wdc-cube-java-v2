@@ -21,7 +21,8 @@ public class ProductListQuery extends ShoppingQuery<List<ProductInfo>> {
         var criteria = new ProductCriteria()
                 .withProjection(ProductInfo.projection());
 
-        criteria.projection().withDescription(null);
+        criteria.projection()
+                .withDescription(null);
 
         return productRepository().fetch(criteria, 0, limit)
                 .stream().map(ProductInfo::create).toList();

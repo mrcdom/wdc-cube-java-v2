@@ -87,7 +87,10 @@ public class TestEnvironment extends ExternalResource {
 
     public void resetDatabase() {
         try (var connection = datasource.getConnection()) {
-            new DBCreate().withConnection(connection).withReset().run();
+            new DBCreate()
+                    .withConnection(connection)
+                    .withReset()
+                    .run();
         } catch (SQLException caught) {
             throw ExceptionUtils.asRuntimeException(caught);
         }

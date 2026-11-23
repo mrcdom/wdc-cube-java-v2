@@ -83,7 +83,9 @@ Cada place tem uma classe de chaves (`XxxKeys`, no pacote do seu presenter) que 
 
 ```java
 // Navegar para o detalhe de um produto, a partir do estado atual
-new ProductKeys(app).withProductId(productId).flip();
+new ProductKeys(app)
+        .withProductId(productId)
+        .flip();
 
 // Dentro do applyParameters: ler, e redirecionar com o intent em trânsito
 var keys = new ProductKeys(this.app, intent);

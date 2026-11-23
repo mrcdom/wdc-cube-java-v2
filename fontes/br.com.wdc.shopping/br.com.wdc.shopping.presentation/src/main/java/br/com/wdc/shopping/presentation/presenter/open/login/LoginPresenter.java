@@ -96,7 +96,10 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
         }
 
         try {
-            var result = new LoginCall().withUserName(userName).withPassword(password).run();
+            var result = new LoginCall()
+                    .withUserName(userName)
+                    .withPassword(password)
+                    .run();
 
             if (result == null || result.subject() == null || result.subject().getId() == null) {
                 app.setSubject(null);

@@ -101,7 +101,10 @@ public class CartManager {
     }
 
     public Long commit(Subject subject) throws InvalidCartItemException {
-        var purchaseId = new PurchaseSave().withUserId(subject.getId()).withItems(this.cart).run();
+        var purchaseId = new PurchaseSave()
+                .withUserId(subject.getId())
+                .withItems(this.cart)
+                .run();
         this.clear();
 
         for (var listener : new ArrayList<>(this.changeListenerMap.values())) {

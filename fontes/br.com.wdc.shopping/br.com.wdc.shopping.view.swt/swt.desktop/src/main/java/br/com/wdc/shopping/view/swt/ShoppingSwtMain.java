@@ -161,7 +161,8 @@ public class ShoppingSwtMain {
                 db.dialect(), cleanUp);
 
         try (var connection = db.dataSource().getConnection()) {
-            var command = new DBCreate().withConnection(connection);
+            var command = new DBCreate()
+                    .withConnection(connection);
             if (config.getBoolean("database.reset", false)) {
                 command.withReset();
             }
@@ -230,7 +231,9 @@ public class ShoppingSwtMain {
         try {
             var userId = Long.parseLong(savedUserId);
             var users = UserRepository.BEAN.get().fetch(
-                    new UserCriteria().withUserId(userId).withProjection(Subject.projection()), 0, 1);
+                    new UserCriteria()
+                            .withUserId(userId)
+                            .withProjection(Subject.projection()), 0, 1);
             if (!users.isEmpty()) {
                 this.app.setSubject(Subject.create(users.get(0)));
                 LOG.info("Session restored for userId={}", userId);

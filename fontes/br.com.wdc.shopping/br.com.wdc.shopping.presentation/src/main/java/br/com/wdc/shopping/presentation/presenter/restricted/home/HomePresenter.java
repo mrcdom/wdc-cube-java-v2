@@ -153,7 +153,9 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
         }
 
         try {
-            new ReceiptKeys(this.app).withPurchaseId(purchaseId).flip();
+            new ReceiptKeys(this.app)
+                    .withPurchaseId(purchaseId)
+                    .flip();
         } catch (ProductNotFoundException caught) {
             this.alertPurchaseNotFound();
             LOG.warn("{}: purchaseId={}", this.state.errorMessage.get(), purchaseId);
@@ -168,7 +170,9 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
         }
 
         try {
-            new ProductKeys(this.app).withProductId(productId).flip();
+            new ProductKeys(this.app)
+                    .withProductId(productId)
+                    .flip();
         } catch (ProductNotFoundException caught) {
             this.alertProductNotFound();
             LOG.warn("{}: productId={}", this.state.errorMessage.get(), productId);
@@ -276,7 +280,9 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     private void loadProducts() {
         try {
-            this.productsPanel.products.set(new ProductListQuery().withLimit(1000).run());
+            this.productsPanel.products.set(new ProductListQuery()
+                    .withLimit(1000)
+                    .run());
         } catch (Exception caught) {
             LOG.error("Failed to load products", caught);
         }

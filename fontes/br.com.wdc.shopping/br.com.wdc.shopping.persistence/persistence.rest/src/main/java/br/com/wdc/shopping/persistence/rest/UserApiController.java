@@ -393,7 +393,8 @@ public class UserApiController {
 
     private static void sanitizeProjection(UserCriteria criteria) {
         if (criteria.projection() != null) {
-            criteria.projection().withPassword(null);
+            criteria.projection()
+                    .withPassword(null);
         }
     }
 

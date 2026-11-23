@@ -55,7 +55,8 @@ public abstract class AbstractProductRepositoryTest {
 
 	@Test
 	public void fetchByCriteria_productId() {
-		var products = repo().fetch(new ProductCriteria().withProductId(DBReset.BOLA_WILSON_ID));
+		var products = repo().fetch(new ProductCriteria()
+				.withProductId(DBReset.BOLA_WILSON_ID));
 		assertEquals(1, products.size());
 		assertEquals(DBReset.BOLA_WILSON_ID, products.get(0).id());
 	}
@@ -97,13 +98,15 @@ public abstract class AbstractProductRepositoryTest {
 
 	@Test
 	public void countByProductId_returnsOne() {
-		int count = repo().count(new ProductCriteria().withProductId(DBReset.CAFETEIRA_ID));
+		int count = repo().count(new ProductCriteria()
+				.withProductId(DBReset.CAFETEIRA_ID));
 		assertEquals(1, count);
 	}
 
 	@Test
 	public void countNonExistent_returnsZero() {
-		int count = repo().count(new ProductCriteria().withProductId(Long.MAX_VALUE));
+		int count = repo().count(new ProductCriteria()
+				.withProductId(Long.MAX_VALUE));
 		assertEquals(0, count);
 	}
 
@@ -222,14 +225,16 @@ public abstract class AbstractProductRepositoryTest {
 
 	@Test
 	public void deleteByProductId() {
-		int deleted = repo().delete(new ProductCriteria().withProductId(DBReset.PEN_DRIVE2GB_ID));
+		int deleted = repo().delete(new ProductCriteria()
+				.withProductId(DBReset.PEN_DRIVE2GB_ID));
 		assertEquals(1, deleted);
 		assertEquals(3, repo().count(new ProductCriteria()));
 	}
 
 	@Test
 	public void deleteNonExistent_returnsZero() {
-		int deleted = repo().delete(new ProductCriteria().withProductId(Long.MAX_VALUE));
+		int deleted = repo().delete(new ProductCriteria()
+				.withProductId(Long.MAX_VALUE));
 		assertEquals(0, deleted);
 	}
 
@@ -306,7 +311,8 @@ public abstract class AbstractProductRepositoryTest {
 
 	@Test
 	public void clear_undoesWhatWasAsked() {
-		var criteria = new ProductCriteria().withProductId(DBReset.CAFETEIRA_ID);
+		var criteria = new ProductCriteria()
+				.withProductId(DBReset.CAFETEIRA_ID);
 		assertEquals(1, repo().fetch(criteria).size());
 
 		criteria.productId().clear();
@@ -380,7 +386,8 @@ public abstract class AbstractProductRepositoryTest {
 	// :: Ordenações provisionadas — cada uma é um efeito, não um campo com direção
 
 	private List<String> nomesOrdenadosPor(ProductCriteria.OrderBy order) {
-		return repo().fetch(new ProductCriteria().withOrderBy(order)).stream().map(Product::name).toList();
+		return repo().fetch(new ProductCriteria()
+				.withOrderBy(order)).stream().map(Product::name).toList();
 	}
 
 	@Test

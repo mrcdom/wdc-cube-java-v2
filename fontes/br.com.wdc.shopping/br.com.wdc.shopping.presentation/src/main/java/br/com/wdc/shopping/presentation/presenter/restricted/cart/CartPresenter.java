@@ -161,7 +161,10 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
         try {
             var purchaseId = this.cart.commit(this.app.getSubject());
 
-            new ReceiptKeys(this.app).withPurchaseId(purchaseId).withPurchaseMade(true).flip();
+            new ReceiptKeys(this.app)
+                    .withPurchaseId(purchaseId)
+                    .withPurchaseMade(true)
+                    .flip();
         } catch (InvalidCartItemException caught) {
             this.alertThereIsItemWhichValueIsLessThanOne();
             LOG.error("buy.alertThereIsItemWhichValueIsLessThanOne: {}", this.state.errorMessage.get(), caught);

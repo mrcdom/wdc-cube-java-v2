@@ -83,7 +83,10 @@ public class BaseBusinessTest {
     @Before
     public void before() {
         try (var connection = BaseBusinessTest.datasource.getConnection()) {
-            new DBCreate().withConnection(connection).withReset().run();
+            new DBCreate()
+                    .withConnection(connection)
+                    .withReset()
+                    .run();
         } catch (SQLException caught) {
             throw ExceptionUtils.asRuntimeException(caught);
         }

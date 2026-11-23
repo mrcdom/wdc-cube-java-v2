@@ -167,7 +167,8 @@ public class DBReset {
 	private static PurchaseItem newItem(long id, long productId, int amount, double price) {
 		var item = new PurchaseItem()
 				.withId(id)
-				.withProduct(new Product().withId(productId));
+				.withProduct(new Product()
+						.withId(productId));
 		item.withAmount(amount)
 				.withPrice(price);
 		return item;
@@ -178,7 +179,8 @@ public class DBReset {
 		
 		var purchase = new Purchase()
 				.withId(id)
-				.withUser(new User().withId(userId));
+				.withUser(new User()
+						.withId(userId));
 		purchase.withBuyDate(buyDate)
 				.withItems(List.of(items));
 		purchaseRepo.insert(purchase);

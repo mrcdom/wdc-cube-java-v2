@@ -70,13 +70,16 @@ public class ReceiptPresenter extends AbstractCubePresenter<ShoppingApplication>
 
     @Override
     public void publishParameters(CubeIntent intent) {
-        new ReceiptKeys(this.app, intent).withPurchaseId(this.purchaseId);
+        new ReceiptKeys(this.app, intent)
+                .withPurchaseId(this.purchaseId);
     }
 
     // :: Data Loaders
 
     private ReceiptForm loadReceipt(Long purchaseId) {
-        var receipt = new ReceiptQuery().withPurchaseId(purchaseId).run();
+        var receipt = new ReceiptQuery()
+                .withPurchaseId(purchaseId)
+                .run();
         if (receipt == null) {
             throw new PurchaseNotFoundException();
         }

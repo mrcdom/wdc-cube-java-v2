@@ -207,7 +207,9 @@ var itens = pv.singletonList(itemPrj, new PurchaseItemCriteria()
         .withOffset(1)
         .withLimit(2);
 
-var prj = new Purchase().withId(pv.i64).withItems(itens);
+var prj = new Purchase()
+        .withId(pv.i64)
+        .withItems(itens);
 ```
 
 Para o repositório saber traduzir o `OrderBy`, ele registra a tradução uma vez:
@@ -312,7 +314,8 @@ Isso deixa a construção legível em uma expressão só, inclusive nas relaçõ
 var prj = new PurchaseItem()
         .withId(pv.i64)
         .withAmount(pv.i32)
-        .withPurchase(new Purchase().withId(pv.i64));
+        .withPurchase(new Purchase()
+                .withId(pv.i64));
 ```
 
 Nada de `@Entity`, `@Column`, `@JsonProperty`. O modelo é puro Java. Quem sabe mapeá-lo para banco é o módulo `persistence`. Quem sabe serializá-lo para JSON é o módulo `persistence.rest`.

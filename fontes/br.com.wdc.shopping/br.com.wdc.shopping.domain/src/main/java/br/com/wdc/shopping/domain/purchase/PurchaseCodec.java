@@ -118,7 +118,8 @@ public class PurchaseCodec implements ModelCodec<Purchase, PurchaseCriteria> {
 		var projection = new Purchase();
 		if (!java.util.Objects.equals(newEntity.buyDate(), oldEntity.buyDate())) projection.withBuyDate(pv.offsetDateTime);
 		if (!java.util.Objects.equals(newEntity.userId(), oldEntity.userId())) {
-			projection.withUser(new User().withId(pv.i64));
+			projection.withUser(new User()
+					.withId(pv.i64));
 		}
 		return projection;
 	}
@@ -174,7 +175,8 @@ public class PurchaseCodec implements ModelCodec<Purchase, PurchaseCriteria> {
 				case "user" -> {
 					if (in.peek() == SerializationToken.NULL) { in.nextNull(); }
 					else entity.withUser(USER_CODEC.readEntity(in));
-					projection.withUser(new User().withId(pv.i64));
+					projection.withUser(new User()
+							.withId(pv.i64));
 				}
 				default -> in.skipValue();
 			}

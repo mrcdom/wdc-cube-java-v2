@@ -91,7 +91,8 @@ public class RootPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
         // Fetch user and set Subject
         var users = UserRepository.BEAN.get().fetch(
-                new UserCriteria().withUserId(authResult.userId())
+                new UserCriteria()
+                        .withUserId(authResult.userId())
                         .withProjection(Subject.projection()),
                 0, 1);
         if (!users.isEmpty()) {
@@ -103,7 +104,8 @@ public class RootPresenter extends AbstractCubePresenter<ShoppingApplication> {
     @Override
     public void publishParameters(CubeIntent intent) {
         if (this.app.getSubject() != null) {
-            new RootKeys(this.app, intent).withUserId(this.app.getSubject().getId());
+            new RootKeys(this.app, intent)
+                    .withUserId(this.app.getSubject().getId());
         }
     }
 

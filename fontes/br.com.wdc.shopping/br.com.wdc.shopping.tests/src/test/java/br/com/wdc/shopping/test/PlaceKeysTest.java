@@ -186,7 +186,9 @@ public class PlaceKeysTest extends BasePresentationTest {
     @Test
     public void navigatingFromTheStatePutsTheNamesInTheAddress() {
         signIn();
-        new ProductKeys(this.app).withProductId(DBReset.PEN_DRIVE2GB_ID).flip();
+        new ProductKeys(this.app)
+                .withProductId(DBReset.PEN_DRIVE2GB_ID)
+                .flip();
         var productView = ProductViewMock.cast(this.app.viewOf(home().state.content.get()));
         Assert.assertEquals((long) DBReset.PEN_DRIVE2GB_ID, (long) productView.state.product.get().id);
         Assert.assertTrue(this.app.newIntent().toString(),

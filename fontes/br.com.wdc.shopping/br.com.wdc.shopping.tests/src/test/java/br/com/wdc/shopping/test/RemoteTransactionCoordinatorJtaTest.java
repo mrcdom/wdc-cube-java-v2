@@ -184,7 +184,8 @@ public class RemoteTransactionCoordinatorJtaTest {
     public void exceedingMaxOpen_isRejected() throws Exception {
         // coordenador com teto GLOBAL = 2 (por dono no default, para isolar o global)
         var limited = new RemoteTransactionCoordinatorImpl(() -> dataSource,
-                RemoteTransactionOptions.defaults().withMaxOpen(2));
+                RemoteTransactionOptions.defaults()
+                        .withMaxOpen(2));
         var t1 = onThread(() -> limited.begin("o"));
         var t2 = onThread(() -> limited.begin("o"));
         try {
@@ -203,7 +204,8 @@ public class RemoteTransactionCoordinatorJtaTest {
     public void exceedingMaxOpenPerOwner_isRejected() throws Exception {
         // teto POR DONO = 2 (global no default)
         var limited = new RemoteTransactionCoordinatorImpl(() -> dataSource,
-                RemoteTransactionOptions.defaults().withMaxOpenPerOwner(2));
+                RemoteTransactionOptions.defaults()
+                        .withMaxOpenPerOwner(2));
         var a = onThread(() -> limited.begin("owner-X"));
         var b = onThread(() -> limited.begin("owner-X"));
         try {
@@ -225,7 +227,8 @@ public class RemoteTransactionCoordinatorJtaTest {
     public void absoluteLifetime_reapsLongLivedTransaction() throws Exception {
         // idle no default (60s), tempo de vida absoluto curto (50ms): isola a expiração por lifetime
         var shortLife = new RemoteTransactionCoordinatorImpl(() -> dataSource,
-                RemoteTransactionOptions.defaults().withMaxLifetimeMs(50L));
+                RemoteTransactionOptions.defaults()
+                        .withMaxLifetimeMs(50L));
         var txId = onThread(() -> shortLife.begin("o"));
         assertTrue("tx recém-aberta deveria existir", shortLife.exists(txId));
 

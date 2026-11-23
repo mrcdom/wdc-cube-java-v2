@@ -17,7 +17,8 @@ public interface PurchaseRepository extends Repository<Purchase, PurchaseCriteri
         return new Purchase()
                 .withId(pv.i64)
                 .withBuyDate(pv.offsetDateTime)
-                .withUser(new User().withId(pv.i64));
+                .withUser(new User()
+                        .withId(pv.i64));
     }
 
     /**

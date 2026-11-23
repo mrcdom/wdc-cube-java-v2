@@ -71,7 +71,8 @@ public class OrderByWireCompatibilityTest {
 
 	@Test
 	public void absentOrderBy_leavesCriteriaUntouched() {
-		var criteria = new PurchaseCriteria().withOrderBy(PurchaseCriteria.OrderBy.OLDEST_FIRST);
+		var criteria = new PurchaseCriteria()
+				.withOrderBy(PurchaseCriteria.OrderBy.OLDEST_FIRST);
 		new PurchaseCodec().readCriteriaField(new JsonStreamReader("null"), "orderBy", criteria);
 		assertEquals("null não é ordenação: não deve apagar a que já estava",
 				PurchaseCriteria.OrderBy.OLDEST_FIRST, criteria.orderBy());

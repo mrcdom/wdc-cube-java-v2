@@ -50,11 +50,13 @@ public class ShoppingCallTest extends BaseBusinessTest {
     public void purchaseStatement_ordersByPurchaseDate_notByInsertionOrder() {
         // Última a ser cadastrada (maior id), porém a mais antiga de todas.
         var atrasada = new Purchase()
-                .withUser(new User().withId(DBReset.ADMIN_ID))
+                .withUser(new User()
+                        .withId(DBReset.ADMIN_ID))
                 .withBuyDate(OffsetDateTime.of(2009, 5, 20, 10, 0, 0, 0, java.time.ZoneOffset.UTC))
                 .withItems(new ArrayList<>());
         atrasada.items().add(new PurchaseItem()
-                .withProduct(new Product().withId(DBReset.PEN_DRIVE2GB_ID))
+                .withProduct(new Product()
+                        .withId(DBReset.PEN_DRIVE2GB_ID))
                 .withPrice(55.0)
                 .withAmount(1));
         PurchaseRepository.BEAN.get().insert(atrasada);
@@ -103,21 +105,30 @@ public class ShoppingCallTest extends BaseBusinessTest {
     public void login_wrongPassword_isRejected() {
         // A senha não é campo de critério: quem a confere é o login, e é neste nível que o par
         // "aceita a correta / recusa a errada" precisa ser garantido.
-        var result = new LoginCall().withUserName("admin").withPassword("senha-errada").run();
+        var result = new LoginCall()
+                .withUserName("admin")
+                .withPassword("senha-errada")
+                .run();
 
         Assert.assertNull("senha errada não pode autenticar", result);
     }
 
     @Test
     public void login_unknownUser_isRejected() {
-        var result = new LoginCall().withUserName("ninguem").withPassword("admin").run();
+        var result = new LoginCall()
+                .withUserName("ninguem")
+                .withPassword("admin")
+                .run();
 
         Assert.assertNull("usuário inexistente não pode autenticar", result);
     }
 
     @Test
     public void test() {
-        var result = new LoginCall().withUserName("admin").withPassword("admin").run();
+        var result = new LoginCall()
+                .withUserName("admin")
+                .withPassword("admin")
+                .run();
         var subject = result != null ? result.subject() : null;
         Assert.assertNotNull("Missing subject", subject);
 
@@ -144,7 +155,9 @@ public class ShoppingCallTest extends BaseBusinessTest {
             Assert.assertTrue("Product price must be grater than or equal to 0.0", produto.price >= 0.0);
             Assert.assertTrue("Product description can not be empty", StringUtils.isNotBlank(produto.description));
 
-            final ProductInfo mesmoProduto = new ProductQuery().withProductId(produto.id).run();
+            final ProductInfo mesmoProduto = new ProductQuery()
+                    .withProductId(produto.id)
+                    .run();
             Assert.assertEquals(produto.id, mesmoProduto.id);
             Assert.assertEquals(produto.name, mesmoProduto.name);
             Assert.assertEquals(produto.image, mesmoProduto.image);
@@ -167,19 +180,22 @@ public class ShoppingCallTest extends BaseBusinessTest {
         Assert.assertEquals(1, compras.get(1).items.size());
 
         Purchase purchase = new Purchase()
-                .withUser(new User().withId(userId));
+                .withUser(new User()
+                        .withId(userId));
         purchase.withBuyDate(OffsetDateTime.now())
                 .withItems(new ArrayList<>());
         purchase.items().add(LambdaUtils.supply(() -> {
             var item = new PurchaseItem()
-                    .withProduct(new Product().withId(DBReset.PEN_DRIVE2GB_ID));
+                    .withProduct(new Product()
+                            .withId(DBReset.PEN_DRIVE2GB_ID));
             item.withPrice(55.0)
                     .withAmount(1);
             return item;
         }));
         purchase.items().add(LambdaUtils.supply(() -> {
             var item = new PurchaseItem()
-                    .withProduct(new Product().withId(DBReset.FITA_VEDA_ROSCA_ID));
+                    .withProduct(new Product()
+                            .withId(DBReset.FITA_VEDA_ROSCA_ID));
             item.withPrice(5.0)
                     .withAmount(2);
             return item;
@@ -199,7 +215,9 @@ public class ShoppingCallTest extends BaseBusinessTest {
         Assert.assertEquals(2, ultimaCompra.items.size());
         Assert.assertEquals(Double.valueOf(65.0), Double.valueOf(ultimaCompra.total));
 
-        final ReceiptForm recibo = new ReceiptQuery().withPurchaseId(idCompra).run();
+        final ReceiptForm recibo = new ReceiptQuery()
+                .withPurchaseId(idCompra)
+                .run();
         Assert.assertNotNull(recibo);
         Assert.assertEquals(Double.valueOf(65), recibo.total);
         Assert.assertEquals(2, recibo.items.size());
@@ -224,7 +242,8 @@ public class ShoppingCallTest extends BaseBusinessTest {
             @Override
             protected Long save() {
                 purchaseRepository().insert(new Purchase()
-                        .withUser(new User().withId(DBReset.ADMIN_ID))
+                        .withUser(new User()
+                                .withId(DBReset.ADMIN_ID))
                         .withBuyDate(OffsetDateTime.now())
                         .withItems(new ArrayList<>()));
                 throw new IllegalStateException("falha depois de gravar");
@@ -237,7 +256,11 @@ public class ShoppingCallTest extends BaseBusinessTest {
 
     /** Todas as compras do usuário, a mais recente primeiro: uma página que as comporta. */
     private static List<PurchaseInfo> purchasesOf(Long userId) {
-        return new PurchasesPageQuery().withUserId(userId).withPage(0).withPageSize(100).run().items();
+        return new PurchasesPageQuery()
+                .withUserId(userId)
+                .withPage(0)
+                .withPageSize(100)
+                .run().items();
     }
 
 }

@@ -110,7 +110,9 @@ public class WishlistPresenter extends AbstractCubePresenter<ShoppingApplication
 
     private void loadItems() {
         // A lista nova pede o redesenho (a view será marcada dirty e enviada ao frontend)
-        this.state.items.set(new WishlistQuery().withUserId(this.app.getSubject().getId()).run());
+        this.state.items.set(new WishlistQuery()
+                .withUserId(this.app.getSubject().getId())
+                .run());
     }
 }
 ```
@@ -142,7 +144,8 @@ public class WishlistQuery extends ShoppingQuery<List<WishlistItem>> {
     @Override
     public List<WishlistItem> run() {
         return wishlistRepository()
-                .fetch(new WishlistCriteria().withUserId(userId))
+                .fetch(new WishlistCriteria()
+                        .withUserId(userId))
                 .stream().map(WishlistItem::create).toList();
     }
 }

@@ -31,7 +31,8 @@ public class PurchaseSave extends ShoppingSave<Long> {
     @Override
     protected Long save() {
         var purchase = new Purchase()
-                .withUser(new User().withId(userId))
+                .withUser(new User()
+                        .withId(userId))
                 .withBuyDate(OffsetDateTime.now());
 
         purchase.withItems(new ArrayList<>());
@@ -41,7 +42,8 @@ public class PurchaseSave extends ShoppingSave<Long> {
             }
 
             var purchaseItem = new PurchaseItem()
-                    .withProduct(new Product().withId(srcItem.id));
+                    .withProduct(new Product()
+                            .withId(srcItem.id));
             purchaseItem.withPrice(srcItem.price)
                     .withAmount(srcItem.quantity);
 

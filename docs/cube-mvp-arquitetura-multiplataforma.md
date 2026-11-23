@@ -287,7 +287,9 @@ A parte dinâmica da URL — os parâmetros de query-string — é encapsulada e
 
 ```java
 // Navegar para o detalhe do produto 42, a partir do estado atual
-new ProductKeys(app).withProductId(42L).flip();
+new ProductKeys(app)
+        .withProductId(42L)
+        .flip();
 ```
 
 **Cada place tem uma classe de chaves, que declara o place** a partir do place das chaves que ela estende — a árvore de classes é a árvore de places, e o caminho até um place é dado por ela:
@@ -476,7 +478,8 @@ public boolean applyParameters(CubeIntent intent, boolean initialization, boolea
     // ...
     if (!deepest) {
         // Propagar slot para o Presenter filho
-        new HomeKeys(this.app, intent).withParentSlot(this.contentSlot);
+        new HomeKeys(this.app, intent)
+                .withParentSlot(this.contentSlot);
     }
     return true;
 }

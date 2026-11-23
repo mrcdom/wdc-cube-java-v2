@@ -50,7 +50,9 @@ public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication>
         }
 
         if (this.state.product.get() == null || !Objects.equals(newProductId, oldProductId)) {
-            var product = new ProductQuery().withProductId(newProductId).run();
+            var product = new ProductQuery()
+                    .withProductId(newProductId)
+                    .run();
             this.state.product.set(product);
         }
 
@@ -73,7 +75,8 @@ public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication>
 
     @Override
     public void publishParameters(CubeIntent intent) {
-        new ProductKeys(this.app, intent).withProductId(this.state.product.get() != null ? this.state.product.get().id : null);
+        new ProductKeys(this.app, intent)
+                .withProductId(this.state.product.get() != null ? this.state.product.get().id : null);
     }
 
     // :: User Actions

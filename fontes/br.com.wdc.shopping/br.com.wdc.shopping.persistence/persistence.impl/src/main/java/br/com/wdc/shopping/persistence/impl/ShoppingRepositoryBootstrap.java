@@ -54,7 +54,8 @@ public class ShoppingRepositoryBootstrap {
      * @param dialect    dialeto SQL a usar (ex: {@link SQLDialect#H2}, {@link SQLDialect#POSTGRES})
      */
     public static void initialize(DataSource dataSource, boolean logSql, SQLDialect dialect, Defer cleanUp) {
-        var settings = new Settings().withExecuteLogging(logSql);
+        var settings = new Settings()
+                .withExecuteLogging(logSql);
         if (dialect == SQLDialect.POSTGRES) {
             // The jOOQ-generated classes reference schema "PUBLIC" (from H2 codegen).
             // PostgreSQL treats quoted identifiers as case-sensitive, so "PUBLIC" != "public".
