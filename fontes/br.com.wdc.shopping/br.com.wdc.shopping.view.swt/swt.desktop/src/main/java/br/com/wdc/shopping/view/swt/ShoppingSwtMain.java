@@ -22,6 +22,7 @@ import br.com.wdc.framework.domain.security.CryptoProvider;
 import br.com.wdc.framework.domain.security.JceCryptoProvider;
 import br.com.wdc.shopping.domain.ShoppingConfig;
 import br.com.wdc.shopping.domain.user.UserCriteria;
+import br.com.wdc.shopping.domain.user.UserRepository;
 import br.com.wdc.shopping.persistence.impl.LocalDataSource;
 import br.com.wdc.shopping.persistence.impl.ShoppingRepositoryBootstrap;
 import br.com.wdc.shopping.presentation.presenter.RootKeys;
@@ -228,7 +229,7 @@ public class ShoppingSwtMain {
 
         try {
             var userId = Long.parseLong(savedUserId);
-            var users = this.app.getUserRepository().fetch(
+            var users = UserRepository.BEAN.get().fetch(
                     new UserCriteria().withUserId(userId).withProjection(Subject.projection()), 0, 1);
             if (!users.isEmpty()) {
                 this.app.setSubject(Subject.create(users.get(0)));

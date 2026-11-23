@@ -23,17 +23,12 @@ graph TD
     root --> concurrent["concurrent/"]
     concurrent --> SchedAdapter["ScheduledExecutorAdapter.java"]
 
-    root --> security["security/ — RBAC Decorators"]
+    root --> security["security/ — autenticação (a autorização fica nos endpoints REST)"]
     security --> AccessCtx["AccessContext"]
     security --> AccessCache["AccessContextCache"]
     security --> AuthImpl["AuthenticationServiceImpl"]
     security --> JwtUtil["JwtUtil (HMAC-SHA256)"]
     security --> Nonce["NonceStore"]
-    security --> Enforcer["SecurityEnforcer"]
-    security --> SecUser["SecuredUserRepository"]
-    security --> SecProduct["SecuredProductRepository"]
-    security --> SecPurchase["SecuredPurchaseRepository"]
-    security --> SecPurchItem["SecuredPurchaseItemRepository"]
 
     root --> jooq["jooq/ — Código gerado pelo jOOQ"]
     jooq --> Tables["Tables.java, Keys.java, Sequences.java"]
@@ -60,7 +55,6 @@ graph TD
 | **JsonQuery (Declarativo)** | `public static final JsonQuery<B, T> QUERY` | Mapeamento bean↔tabela declarativo com projeção JSON |
 | **ApplyConditions** | Inner class `ApplyConditions` | Traduz critérios de negócio em `Condition` jOOQ |
 | **Lazy Relations** | `addBeanField` / `addBeanListField` | Relações 1:1 e 1:N via subquery correlacionada |
-| **Decorator (Security)** | `SecuredXxxRepository` | Envolve repositórios com verificação de permissões RBAC |
 
 ### Fluxo de uma Consulta
 

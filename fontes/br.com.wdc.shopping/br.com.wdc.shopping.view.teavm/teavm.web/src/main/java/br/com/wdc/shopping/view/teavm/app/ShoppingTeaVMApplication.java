@@ -18,6 +18,7 @@ import br.com.wdc.framework.domain.security.AuthenticationService;
 import br.com.wdc.framework.domain.security.AuthenticationService.AuthResult;
 import br.com.wdc.framework.domain.security.CryptoProvider;
 import br.com.wdc.shopping.domain.user.UserCriteria;
+import br.com.wdc.shopping.domain.user.UserRepository;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.RootKeys;
 import br.com.wdc.shopping.presentation.presenter.RootScope;
@@ -196,7 +197,7 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
                 AuthResult restored = authService.tryRestore();
                 if (restored != null && restored.userId() != null) {
                     // Restaurar o subject
-                    var users = getUserRepository().fetch(new UserCriteria()
+                    var users = UserRepository.BEAN.get().fetch(new UserCriteria()
                             .withUserId(restored.userId())
                             .withProjection(Subject.projection()), 0, 1);
                     if (!users.isEmpty()) {

@@ -15,7 +15,6 @@ import br.com.wdc.shopping.domain.purchase.Purchase;
 import br.com.wdc.shopping.domain.purchase.PurchaseRepository;
 import br.com.wdc.shopping.domain.purchaseitem.PurchaseItem;
 import br.com.wdc.shopping.domain.user.User;
-import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.structs.CartItem;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
@@ -29,12 +28,6 @@ public class CartManager {
     private Map<Integer, ThrowingRunnable> changeListenerMap;
     private TransactionService tx;
     private PurchaseRepository purchaseRepository;
-
-    public CartManager(ShoppingApplication app) {
-        this.init();
-        this.tx = app.tx();
-        this.purchaseRepository = app.getPurchaseRepository();
-    }
 
     public CartManager(TransactionService tx, PurchaseRepository purchaseRepository) {
         this.init();

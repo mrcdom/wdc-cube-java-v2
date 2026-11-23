@@ -18,7 +18,6 @@ import br.com.wdc.framework.cube.remote.RemoteApplication;
 import br.com.wdc.framework.cube.remote.RemoteApplicationRegistry;
 import br.com.wdc.framework.cube.remote.RemoteApplicationSupport;
 import br.com.wdc.framework.cube.remote.RemoteViewImpl;
-import br.com.wdc.shopping.presentation.ProxyRepositoryWrapper;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 
 /**
@@ -40,7 +39,6 @@ public class ShoppingApplicationImpl extends ShoppingApplication implements Remo
 	 * of the scopes it holds as it is written.
 	 */
 	private static final ScopeViews SCOPE_VIEWS = new ScopeViews().fallback(RemoteViewImpl::forScope);
-
 
 	/**
 	 * Initializes module-level references. Called once during bootstrap.
@@ -75,11 +73,6 @@ public class ShoppingApplicationImpl extends ShoppingApplication implements Remo
 	@Override
 	protected Map<String, Object> createAttributeMap() {
 		return new ConcurrentHashMap<>();
-	}
-
-	@Override
-	protected <T> T createDelegate(Class<T> repoInterface, T delegate) {
-		return ProxyRepositoryWrapper.wrap(repoInterface, delegate, this::getSecurityContext);
 	}
 
 	// :: ShoppingApplication overrides

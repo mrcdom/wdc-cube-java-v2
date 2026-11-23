@@ -6,7 +6,6 @@ import java.util.Collections;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
 import br.com.wdc.shopping.domain.purchase.Purchase;
 import br.com.wdc.shopping.domain.purchase.PurchaseRepository;
-import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.exception.WrongParametersException;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptForm;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptItem;
@@ -14,10 +13,6 @@ import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.Rec
 public class ReceiptService {
 
     private final PurchaseRepository repo;
-
-    public ReceiptService(ShoppingApplication app) {
-        this.repo = app.getPurchaseRepository();
-    }
 
     public ReceiptService(PurchaseRepository repo) {
         this.repo = repo;

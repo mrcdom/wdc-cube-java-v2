@@ -12,20 +12,15 @@ import br.com.wdc.framework.domain.pagination.Page;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
 import br.com.wdc.shopping.domain.product.Product;
 import br.com.wdc.shopping.domain.purchase.Purchase;
-import br.com.wdc.shopping.domain.purchase.PurchaseCriteria.OrderBy;
 import br.com.wdc.shopping.domain.purchase.PurchaseCriteria;
+import br.com.wdc.shopping.domain.purchase.PurchaseCriteria.OrderBy;
 import br.com.wdc.shopping.domain.purchase.PurchaseRepository;
 import br.com.wdc.shopping.domain.purchaseitem.PurchaseItem;
-import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
 
 public class PurchasesPanelService {
 
     private final PurchaseRepository repo;
-
-    public PurchasesPanelService(ShoppingApplication app) {
-        this.repo = app.getPurchaseRepository();
-    }
 
     public PurchasesPanelService(PurchaseRepository repo) {
         this.repo = repo;

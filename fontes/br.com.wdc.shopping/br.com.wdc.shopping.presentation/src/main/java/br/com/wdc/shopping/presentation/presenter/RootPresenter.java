@@ -8,8 +8,8 @@ import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.Scope;
 import br.com.wdc.framework.cube.ScopeSlot;
 import br.com.wdc.framework.domain.security.AuthenticationService;
-import br.com.wdc.framework.domain.security.SecurityContext;
 import br.com.wdc.shopping.domain.user.UserCriteria;
+import br.com.wdc.shopping.domain.user.UserRepository;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.StorageKeys;
 import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
@@ -68,8 +68,8 @@ public class RootPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     /**
      * Attempts auto-login using a persistent token stored as app attribute.
-     * Called once during initialization. If the token is valid, sets Subject
-     * and SecurityContext so the user skips the login screen.
+     * Called once during initialization. If the token is valid, sets the Subject
+     * so the user skips the login screen.
      */
     private void tryAutoLogin() {
         var token = this.app.clientPersistentStore().secure().get(StorageKeys.AUTH_TOKEN);
@@ -89,22 +89,14 @@ public class RootPresenter extends AbstractCubePresenter<ShoppingApplication> {
             return;
         }
 
-        // Resolve SecurityContext
-        var securityContext = authService.resolveToken(authResult.accessToken());
-        if (securityContext != null) {
-            SecurityContext.CURRENT.set(securityContext);
-            this.app.setSecurityContext(securityContext);
-        }
-
         // Fetch user and set Subject
-        var users = this.app.getUserRepository().fetch(
+        var users = UserRepository.BEAN.get().fetch(
                 new UserCriteria().withUserId(authResult.userId())
                         .withProjection(Subject.projection()),
                 0, 1);
         if (!users.isEmpty()) {
             this.app.setSubject(Subject.create(users.get(0)));
-            LOG.info("Auto-login successful for user: {}",
-                    securityContext != null ? securityContext.userName() : authResult.userId());
+            LOG.info("Auto-login successful for user: {}", authResult.userId());
         }
     }
 

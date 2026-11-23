@@ -17,7 +17,6 @@ Camada de apresentação do sistema Shopping, implementada com o padrão **Cube 
 graph TD
     root["br.com.wdc.shopping.presentation"]
     root --> ShoppingApp["ShoppingApplication.java"]
-    root --> ProxyWrapper["ProxyRepositoryWrapper.java"]
 
     root --> exception["exception/"]
     exception --> WrongParams["WrongParametersException.java"]
@@ -26,35 +25,41 @@ graph TD
 
     root --> presenter["presenter/"]
     presenter --> RootK["RootKeys.java"]
-    presenter --> RootP["RootPresenter.java (+ RootScope)"]
+    presenter --> RootP["RootPresenter.java"]
+    presenter --> RootS["RootScope.java"]
 
     presenter --> open["open/"]
     open --> OpenP["OpenPresenter.java"]
     open --> login["login/"]
-    login --> LoginP["LoginPresenter.java (+ LoginScope)"]
+    login --> LoginP["LoginPresenter.java"]
+    login --> LoginS["LoginScope.java"]
     login --> LoginSvc["LoginService.java"]
     login --> LoginStructs["structs/Subject.java"]
 
     presenter --> restricted["restricted/"]
     restricted --> RestrictedP["RestrictedPresenter.java"]
     restricted --> home["home/"]
-    home --> HomeP["HomePresenter.java (+ HomeScope, com ProductsPanelScope e PurchasesPanelScope)"]
+    home --> HomeP["HomePresenter.java"]
+    home --> HomeS["HomeScope.java (com ProductsPanelScope e PurchasesPanelScope)"]
     home --> HomeStructs["structs/PurchaseInfo.java"]
     home --> purchases_panel["purchases/"]
     purchases_panel --> PurchPanelSvc["PurchasesPanelService.java"]
 
     restricted --> products["products/"]
-    products --> ProductP["ProductPresenter.java (+ ProductScope)"]
+    products --> ProductP["ProductPresenter.java"]
+    products --> ProductS["ProductScope.java"]
     products --> ProductSvc["ProductService.java"]
     products --> ProductStructs["structs/ProductInfo.java"]
 
     restricted --> cart["cart/"]
-    cart --> CartP["CartPresenter.java (+ CartScope)"]
+    cart --> CartP["CartPresenter.java"]
+    cart --> CartS["CartScope.java (com CartItemScope)"]
     cart --> CartMgr["CartManager.java"]
     cart --> CartStructs["structs/CartItem.java"]
 
     restricted --> receipt["receipt/"]
-    receipt --> ReceiptP["ReceiptPresenter.java (+ ReceiptScope)"]
+    receipt --> ReceiptP["ReceiptPresenter.java"]
+    receipt --> ReceiptS["ReceiptScope.java"]
     receipt --> ReceiptSvc["ReceiptService.java"]
     receipt --> ReceiptStructs["structs/ReceiptForm.java, ReceiptItem.java"]
 ```
@@ -123,15 +128,14 @@ graph TD
 Classe abstrata que estende `CubeApplication`. Mantém o estado global:
 
 - `subject` — usuário autenticado (`Subject`)
-- `securityContext` — contexto de segurança (`SecurityContext`) com roles e permissões
 - `cart` — carrinho de compras (`CartManager`)
-- `createDelegate(Class, Object)` — hook para criação de proxies de repositório (ver `ProxyRepositoryWrapper`)
+- `tx()` — o `TransactionService` do módulo (`ShoppingTransactions.BEAN`)
 - `go(String)` / `go(CubeIntent)` — navegação programática
 - `alertUnexpectedError(...)` — exibição de erros via `RootPresenter`
 
-### ProxyRepositoryWrapper
+### Repositórios e autorização
 
-Classe utilitária que cria proxies dinâmicos (via `java.lang.reflect.Proxy`) para repositórios, envolvendo cada chamada com o `SecurityContext`. Usado em ambientes JVM multi-threaded (desktop, servidor). Não compatível com TeaVM/GraalVM native.
+Presenters e serviços usam os repositórios pelo service locator do domínio (`ProductRepository.BEAN.get()`); os serviços os recebem no construtor. A autorização (RBAC) fica na fronteira de confiança: nos endpoints REST (`SecurityEnforcer`), por onde passa o teavm.web, cujos presenters rodam no navegador. Nos hosts em que os presenters rodam no servidor (Vaadin, SWT local, host remoto), o cliente só dispara ações e o presenter decide cada consulta.
 
 ### Scope
 

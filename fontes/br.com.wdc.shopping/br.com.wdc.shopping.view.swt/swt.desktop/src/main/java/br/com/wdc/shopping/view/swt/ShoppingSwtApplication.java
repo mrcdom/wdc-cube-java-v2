@@ -21,7 +21,6 @@ import br.com.wdc.framework.commons.storage.PreferencesClientStorage;
 import br.com.wdc.framework.cube.CubePresenter;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.ScopeViews;
-import br.com.wdc.shopping.presentation.ProxyRepositoryWrapper;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.RootScope;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginScope;
@@ -159,11 +158,6 @@ public class ShoppingSwtApplication extends ShoppingApplication implements SwtAp
 	@Override
 	protected Map<String, Object> createAttributeMap() {
 		return new ConcurrentHashMap<>();
-	}
-
-	@Override
-	protected <T> T createDelegate(Class<T> repoInterface, T delegate) {
-		return ProxyRepositoryWrapper.wrap(repoInterface, delegate, this::getSecurityContext);
 	}
 
 	@Override

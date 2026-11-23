@@ -10,7 +10,6 @@ import br.com.wdc.framework.commons.storage.InMemoryClientStorage;
 import br.com.wdc.framework.cube.CubePresenter;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.ScopeViews;
-import br.com.wdc.shopping.presentation.ProxyRepositoryWrapper;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.RootScope;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginScope;
@@ -63,11 +62,6 @@ public class ShoppingApplicationMock extends ShoppingApplication {
     @Override
     protected Map<Integer, CubePresenter> createPresenterMap() {
         return new ConcurrentHashMap<>();
-    }
-
-    @Override
-    protected <T> T createDelegate(Class<T> repoInterface, T delegate) {
-        return ProxyRepositoryWrapper.wrap(repoInterface, delegate, this::getSecurityContext);
     }
 
     /** The host draws the root presenter's scope; every other view is asked for by the view that holds it. */
