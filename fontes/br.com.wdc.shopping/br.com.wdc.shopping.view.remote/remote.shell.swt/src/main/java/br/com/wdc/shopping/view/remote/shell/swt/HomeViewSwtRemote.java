@@ -9,7 +9,7 @@ import br.com.wdc.shopping.view.swt.impl.HomeViewSwt;
 
 class HomeViewSwtRemote extends HomeViewSwt {
 	
-	public static final String CID = "473dbdd7a36a";
+	public static final String CID = HomeScope.CLASS_ID;
 
 	final String vsid;
 	final RemoteViewContext ctx;

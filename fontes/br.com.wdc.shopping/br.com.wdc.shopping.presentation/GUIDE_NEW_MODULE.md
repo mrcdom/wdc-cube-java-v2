@@ -20,8 +20,8 @@ Criar um novo módulo envolve alterações em **3 camadas**:
 
 ```
 presenter/restricted/wishlist/
-├── WishlistPresenter.java
-├── WishlistScope.java
+├── WishlistPresenter.java        (com o WishlistScope como classe interna)
+├── WishlistKeys.java
 ├── WishlistService.java          (se precisar acessar dados)
 └── structs/
     └── WishlistItem.java         (DTOs, se houver)
@@ -29,17 +29,10 @@ presenter/restricted/wishlist/
 
 ### 1.2 Criar o Scope
 
-O Scope define quais dados a view vai exibir. Implemente `Scope` e o método `write()` para serializar em JSON:
+O Scope define o que a view exibe e o que ela dispara. É uma classe interna estática do presenter, com o `CLASS_ID` do protocolo bridge, um `Prop` por campo observado e uma ação por gesto da view:
 
 ```java
-package br.com.wdc.shopping.presentation.presenter.restricted.wishlist;
-
-import org.apache.commons.lang3.StringUtils;
-import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
-import br.com.wdc.framework.cube.Prop;
-import br.com.wdc.framework.cube.Scope;
-
-public class WishlistScope extends Scope {
+public static class WishlistScope extends Scope {
 
     // classId do protocolo bridge: o host remoto desenha este escopo com a view remota deste id
     public static final String CLASS_ID = "d1e2f3a4b5c6";
@@ -49,40 +42,14 @@ public class WishlistScope extends Scope {
     public final Prop<Integer> errorCode = prop(0);
     public final Prop<String> errorMessage = prop();
 
-    // Ações que a view dispara — o presenter as liga no construtor; o serializador as ignora
+    // Ações que a view dispara — o presenter as liga no construtor
     public ActionOf<Long> onRemoveItem = ActionOf.noop();
     public Action onOpenProducts = Action.NOOP;
 
-    @Override
-    public void write(String instanceId, ExtensibleObjectOutput json) {
-        json.beginObject();
-        {
-            json.name("id").value(instanceId);
-
-            json.name("items").beginArray();
-            if (this.items != null) {
-                this.items.forEach(item -> {
-                    json.beginObject();
-                    {
-                        json.name("id").value(item.id);
-                        json.name("name").value(item.name);
-                        json.name("price").value(item.price);
-                    }
-                    json.endObject();
-                });
-            }
-            json.endArray();
-
-            if (StringUtils.isNotBlank(this.errorMessage)) {
-                json.name("errorMessage").value(this.errorMessage);
-            }
-        }
-        json.endObject();
-    }
 }
 ```
 
-> **Regra**: O `write()` deve sempre emitir `json.name("id").value(instanceId)` como primeiro campo. Este é o identificador que o frontend usa para mapear o estado à view correta.
+Não há serialização a escrever: no host remoto o `ScopeSerializer` escreve o escopo por reflexão — `"#"` (o id da view) primeiro, depois o valor de cada `Prop` com o nome do campo (structs com campos públicos viram objetos, listas viram arrays, texto em branco é omitido). Ações ficam de fora: o cliente as dispara pelo código de evento. Um campo que guarda outro escopo sai como `"<campo>ViewId"`, e uma lista de escopos como `"<campo>ViewIds"`.
 
 ### 1.3 Criar o Presenter
 
@@ -91,17 +58,25 @@ O presenter contém a lógica de apresentação. Estenda `AbstractCubePresenter<
 ```java
 package br.com.wdc.shopping.presentation.presenter.restricted.wishlist;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.List;
+
 import br.com.wdc.framework.cube.AbstractCubePresenter;
+import br.com.wdc.framework.cube.Action;
+import br.com.wdc.framework.cube.ActionOf;
 import br.com.wdc.framework.cube.CubeIntent;
+import br.com.wdc.framework.cube.FormParam;
+import br.com.wdc.framework.cube.Prop;
+import br.com.wdc.framework.cube.Scope;
 import br.com.wdc.framework.cube.ScopeSlot;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
+import br.com.wdc.shopping.presentation.presenter.restricted.wishlist.structs.WishlistItem;
 
 public class WishlistPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(WishlistPresenter.class);
+    public static class WishlistScope extends Scope {
+        // ... (Passo 1.2)
+    }
 
     // Estado público — lido pela view (local ou remota); bind liga as ações com código ao skeleton do escopo
     public final WishlistScope state = bind(new WishlistScope());
@@ -111,29 +86,24 @@ public class WishlistPresenter extends AbstractCubePresenter<ShoppingApplication
 
     public WishlistPresenter(ShoppingApplication app) {
         super(app);
-        this.state.onRemoveItem = actionOf(this::removeItem);
-        this.state.onOpenProducts = action(() -> new HomeKeys(this.app).flip());
+        // O código de evento é o contrato com os clientes remotos (Passo 3.2)
+        this.state.onRemoveItem = actionOf(1, FormParam.asLong("p.itemId"), this::removeItem);
+        this.state.onOpenProducts = action(2, () -> new HomeKeys(this.app).flip());
     }
 
     // :: Cube API
 
     @Override
     public boolean applyParameters(CubeIntent intent, boolean initialization, boolean deepest) {
-        // Lido a cada chamada: um presenter reaproveitado vai para onde o pai o põe agora
+        // Lido a cada chamada: um presenter reaproveitado vai para onde o pai o põe a cada navegação
         this.ownerSlot = new WishlistKeys(this.app, intent).parentSlot();
         if (initialization) {
-            // Carregar dados iniciais
             this.loadItems();
         }
 
         // O pai põe o escopo no seu Prop<Scope> content; a view do pai pede a deste escopo
         this.ownerSlot.setScope(this.state);
         return true;
-    }
-
-    @Override
-    public void publishParameters(CubeIntent intent) {
-        // Publicar parâmetros de URL, se houver
     }
 
     // :: User Actions — corpo das ações ligadas no construtor
@@ -233,18 +203,10 @@ Um identificador hexadecimal de 12 caracteres, único entre os escopos (ex.: `"d
 
 ### 3.2 Dar um código de evento a cada ação
 
-O código vai na própria ligação da ação (Passo 1.3), junto com como ler os valores do `formData` que o cliente envia:
-
-```java
-public WishlistPresenter(ShoppingApplication app) {
-    super(app);
-    this.state.onRemoveItem = actionOf(1, FormParam.asLong("p.itemId"), this::removeItem);
-    this.state.onOpenProducts = action(2, () -> new HomeKeys(this.app).flip());
-}
-```
+O código vai na própria ligação da ação (Passo 1.3), junto com como ler os valores do `formData` que o cliente envia: `actionOf(1, FormParam.asLong("p.itemId"), this::removeItem)`.
 
 - `FormParam.asLong/asInteger/asString(nome)` cobrem o comum; `FormParam.of(nome, conversão)` cobre um valor que chega codificado (a senha do login chega cifrada).
-- O código é o contrato com os clientes remotos: tem de ser o mesmo nos shells. Um código repetido falha na construção do presenter; um código desconhecido vindo do cliente é erro (não é mais ignorado em silêncio).
+- O código é o contrato com os clientes remotos: tem de ser o mesmo nos shells. Um código repetido falha na construção do presenter; um código desconhecido vindo do cliente é erro.
 - As views locais (Vaadin, SWT, teavm.web) não usam o código: chamam `state.onRemoveItem.run(id)` direto.
 
 ### 3.3 O skeleton
@@ -287,7 +249,7 @@ import { BaseViewClass } from '@root/utils/ViewUtils'
 const ON_REMOVE_ITEM = 1
 const ON_OPEN_PRODUCTS = 2
 
-// :: View State — espelha os campos serializados pelo Scope.write()
+// :: View State — espelha os campos que o ScopeSerializer escreve do WishlistScope
 export type WishlistScope = {
   items?: { id: number; name: string; price: number }[]
   errorMessage?: string
@@ -334,7 +296,7 @@ export default BaseViewClass.FC(WishlistViewClass, 'd1e2f3a4b5c6')
 **Regras importantes:**
 - Os **event codes** (1, 2, ...) devem corresponder aos códigos com que o presenter ligou as ações (`action(1, ...)`, `actionOf(2, ...)`)
 - O **VID** no `BaseViewClass.FC()` deve ser idêntico ao `CLASS_ID` do escopo no Java
-- O **tipo do state** deve espelhar os campos emitidos por `Scope.write()`
+- O **tipo do state** deve espelhar os campos que o `ScopeSerializer` escreve do escopo (Passo 1.2)
 - Use `app.setFormField()` para enviar dados antes do `app.submit()`
 
 ### 4.2 Registrar a view

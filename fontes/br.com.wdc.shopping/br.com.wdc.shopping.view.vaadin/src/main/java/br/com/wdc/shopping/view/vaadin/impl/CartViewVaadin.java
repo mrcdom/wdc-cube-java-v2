@@ -24,7 +24,6 @@ import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
 public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
 
-    private final CartScope state;
 
     private boolean notRendered = true;
     private HorizontalLayout headerPane;
@@ -37,7 +36,6 @@ public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
 
     public CartViewVaadin(ShoppingVaadinApplication app, CartScope state) {
         super("cart", app, state, new VerticalLayout());
-        this.state = state;
     }
 
     @Override

@@ -5,17 +5,17 @@ import java.util.List;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
+import br.com.wdc.framework.cube.remote.bridge.teavm.ViewScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter.ReceiptScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptForm;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptItem;
+import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
 import br.com.wdc.shopping.view.teavm.commons.views.receipt.ReceiptSharedView;
-import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
-import br.com.wdc.framework.cube.remote.bridge.teavm.ViewScope;
 
 public class ReceiptView extends AbstractRemoteView {
 
-    public static final String VIEW_ID = "e8d0bd8ae3bc";
+    public static final String VIEW_ID = ReceiptScope.CLASS_ID;
 
     private static final int ON_BACK = 1;
 

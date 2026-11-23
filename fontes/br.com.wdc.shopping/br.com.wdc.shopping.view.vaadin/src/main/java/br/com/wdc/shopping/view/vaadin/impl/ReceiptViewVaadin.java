@@ -19,7 +19,6 @@ import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
 public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptScope> {
 
-    private final ReceiptScope state;
 
     private boolean notRendered = true;
     private Grid<ReceiptItem> grid;
@@ -28,7 +27,6 @@ public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptScope> {
 
     public ReceiptViewVaadin(ShoppingVaadinApplication app, ReceiptScope state) {
         super("receipt", app, state, new VerticalLayout());
-        this.state = state;
     }
 
     @Override

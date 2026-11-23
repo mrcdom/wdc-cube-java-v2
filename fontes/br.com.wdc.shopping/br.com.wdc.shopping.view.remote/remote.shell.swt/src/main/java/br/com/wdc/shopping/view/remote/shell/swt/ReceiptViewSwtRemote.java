@@ -13,7 +13,7 @@ import br.com.wdc.shopping.view.swt.impl.ReceiptViewSwt;
 
 class ReceiptViewSwtRemote extends ReceiptViewSwt {
 	
-	public static final String CID = "e8d0bd8ae3bc";
+	public static final String CID = ReceiptScope.CLASS_ID;
 
 	final String vsid;
 	final RemoteViewContext ctx;

@@ -6,7 +6,6 @@ import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
 import br.com.wdc.framework.cube.CubeApplication;
 import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
-import br.com.wdc.framework.cube.PresenterBase;
 import br.com.wdc.framework.cube.Scope;
 
 /**
@@ -14,26 +13,28 @@ import br.com.wdc.framework.cube.Scope;
  * <p>
  * Each scope drawn for a client (a presenter's, a segment's, a row's) gets one instance, made by
  * {@link #forScope}: it manages dirty-tracking and delegates submit/syncState to the scope's skeleton, which
- * dispatches to the actions the presenter bound with an event code. The browser view is the one built with its own
- * presenter and skeleton.
+ * dispatches to the actions the presenter bound with an event code.
  */
 public class RemoteViewImpl implements CubeView {
 
     protected final RemoteApplication app;
-    protected final PresenterBase presenter;
     protected final Scope state;
     protected final CubeSkeleton skeleton;
     protected final String instanceId;
 
-    protected int alertId;
-
-    /** No presenter behind a scope's view: the application commits the presenters' computed state before writing. */
-    private static final PresenterBase NO_PRESENTER = new PresenterBase() {
-    };
-
     /** The view of a scope: its skeleton dispatches to the actions the presenter bound on the scope. */
     public RemoteViewImpl(RemoteApplication app, Scope scope, String classId) {
-        this(app, NO_PRESENTER, scope, scope.skeleton(classId));
+        this(app, scope, classId, classId + ":" + app.nextInstanceId());
+    }
+
+    /** The same, with a given instance id (the browser's, which every client knows). */
+    public RemoteViewImpl(RemoteApplication app, Scope scope, String classId, String instanceId) {
+        this.app = app;
+        this.state = scope;
+        this.skeleton = scope.skeleton(classId);
+        this.instanceId = instanceId;
+        this.app.putView(this);
+        this.app.markDirty(this);
     }
 
     /**
@@ -54,28 +55,9 @@ public class RemoteViewImpl implements CubeView {
         }
     }
 
-    public RemoteViewImpl(RemoteApplication app, PresenterBase presenter, Scope state, CubeSkeleton skeleton) {
-        this(app, presenter, state, skeleton, skeleton.classId() + ":" + app.nextInstanceId());
-    }
-
-    public RemoteViewImpl(RemoteApplication app, PresenterBase presenter, Scope state, CubeSkeleton skeleton,
-            String vsid) {
-        this.app = app;
-        this.presenter = presenter;
-        this.state = state;
-        this.skeleton = skeleton;
-        this.instanceId = vsid;
-        this.app.putView(this);
-        this.app.markDirty(this);
-    }
-
     @Override
     public String instanceId() {
         return this.instanceId;
-    }
-
-    public PresenterBase presenter() {
-        return this.presenter;
     }
 
     @Override

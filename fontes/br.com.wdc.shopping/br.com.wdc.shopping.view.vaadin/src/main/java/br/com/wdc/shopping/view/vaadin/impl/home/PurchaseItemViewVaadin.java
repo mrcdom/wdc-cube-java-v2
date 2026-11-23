@@ -16,7 +16,7 @@ import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
 public class PurchaseItemViewVaadin extends AbstractViewVaadin<PurchasesPanelScope> {
 
-    private PurchaseInfo state;
+    private PurchaseInfo item;
 
     private boolean notRendered = true;
     private Span idElm;
@@ -32,8 +32,8 @@ public class PurchaseItemViewVaadin extends AbstractViewVaadin<PurchasesPanelSco
         super("purchase-item-" + idx, app, panel, new VerticalLayout());
     }
 
-    public void setState(PurchaseInfo state, boolean scheduleUpdate) {
-        this.state = state;
+    public void setItem(PurchaseInfo item, boolean scheduleUpdate) {
+        this.item = item;
         if (scheduleUpdate) {
             this.update();
         }
@@ -46,14 +46,14 @@ public class PurchaseItemViewVaadin extends AbstractViewVaadin<PurchasesPanelSco
             this.notRendered = false;
         }
 
-        if (this.idOldValue != this.state.id) {
-            this.idElm.setText("#" + this.state.id);
-            this.idOldValue = this.state.id;
+        if (this.idOldValue != this.item.id) {
+            this.idElm.setText("#" + this.item.id);
+            this.idOldValue = this.item.id;
         }
 
-        if (this.dateOldValue != this.state.date) {
+        if (this.dateOldValue != this.item.date) {
             this.dateElm.setText(this.getDateStr());
-            this.dateOldValue = this.state.date;
+            this.dateOldValue = this.item.date;
         }
 
         var itemsNewValue = this.getItemsStr();
@@ -62,9 +62,9 @@ public class PurchaseItemViewVaadin extends AbstractViewVaadin<PurchasesPanelSco
             this.itemsOldValue = itemsNewValue;
         }
 
-        if (this.totalOldValue != this.state.total) {
-            this.totalElm.setText(NumberFormat.getCurrencyInstance().format(this.state.total));
-            this.totalOldValue = this.state.total;
+        if (this.totalOldValue != this.item.total) {
+            this.totalElm.setText(NumberFormat.getCurrencyInstance().format(this.item.total));
+            this.totalOldValue = this.item.total;
         }
     }
 
@@ -72,7 +72,7 @@ public class PurchaseItemViewVaadin extends AbstractViewVaadin<PurchasesPanelSco
         pane0.addClassName("purchase-item");
         pane0.setPadding(false);
         pane0.setSpacing(false);
-        pane0.addClickListener(e -> safeAction("Open receipt", () -> this.presenter.onOpenReceipt.run(this.state.id)));
+        pane0.addClickListener(e -> safeAction("Open receipt", () -> this.state.onOpenReceipt.run(this.item.id)));
 
         // Line 1: #id + date
         dom.horizontalLayout(pane1 -> {
@@ -84,14 +84,14 @@ public class PurchaseItemViewVaadin extends AbstractViewVaadin<PurchasesPanelSco
             pane1.setAlignItems(com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment.CENTER);
             dom.span(label -> {
                 this.idElm = label;
-                this.idElm.setText("#" + this.state.id);
-                this.idOldValue = this.state.id;
+                this.idElm.setText("#" + this.item.id);
+                this.idOldValue = this.item.id;
             });
             dom.span(label -> {
                 this.dateElm = label;
                 this.dateElm.setText(this.getDateStr());
                 this.dateElm.getStyle().set("color", "var(--lumo-tertiary-text-color)").set("font-size", "0.7rem").set("font-weight", "normal");
-                this.dateOldValue = this.state.date;
+                this.dateOldValue = this.item.date;
             });
         });
 
@@ -116,20 +116,20 @@ public class PurchaseItemViewVaadin extends AbstractViewVaadin<PurchasesPanelSco
             });
             dom.span(label -> {
                 this.totalElm = label;
-                this.totalElm.setText(NumberFormat.getCurrencyInstance().format(this.state.total));
+                this.totalElm.setText(NumberFormat.getCurrencyInstance().format(this.item.total));
                 this.totalElm.getStyle().set("font-weight", "bold").set("white-space", "nowrap").set("color", "var(--lumo-body-text-color)");
-                this.totalOldValue = this.state.total;
+                this.totalOldValue = this.item.total;
             });
         });
     }
 
     private String getDateStr() {
-        var date = Instant.ofEpochMilli(this.state.date).atZone(ZoneId.systemDefault()).toLocalDate();
+        var date = Instant.ofEpochMilli(this.item.date).atZone(ZoneId.systemDefault()).toLocalDate();
         return date.toString();
     }
 
     private String getItemsStr() {
-        if (this.state.items == null || this.state.items.isEmpty()) return "";
-        return String.join(", ", this.state.items);
+        if (this.item.items == null || this.item.items.isEmpty()) return "";
+        return String.join(", ", this.item.items);
     }
 }

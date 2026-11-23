@@ -50,7 +50,7 @@ graph LR
 | `CubeApplication` | Singleton da app — mantém mapa de presenters e atributos, coordena navegação; `viewOf(scope)` cria a view do escopo na primeira vez que é pedida (e a desenha uma vez), `releaseView(scope)` a libera junto com as dos escopos dentro dele, `liveViews()` lista as views vivas |
 | `CubePresenter` | Contrato para presenters gerenciados pela navegação |
 | `AbstractPresenter<A>` | Base comum — app, `bind(state)` (vincula o escopo; ele passa a compartilhar o mapa de eventos do presenter), `scope()`, `update()` (pede o redesenho do escopo), `release()` (libera a view do escopo e as internas), `detach(segment)` (libera a view de um escopo menor que saiu — inclusive uma linha de uma lista) e as ações guardadas (`action`, `actionOf`, `actionOf2`, com ou sem código de evento). O presenter nunca cria view |
-| `AbstractCubePresenter<A>` | Presenter de um place — `applyParameters`/`publishParameters`; `view()` devolve a view do escopo, se já houver |
+| `AbstractCubePresenter<A>` | Presenter de um place — `applyParameters`/`publishParameters`; não conhece view: entrega o escopo ao slot do pai |
 | `CubeView` | Interface da view — `instanceId()`, `update()`, `release()` |
 | `ScopeSlot` | Onde um presenter filho se mostra no pai: `setScope(scope)` põe o escopo do filho num `Prop<Scope>` do pai (`content`). Viaja no intent (`CubeIntent.setSlot/getSlot`) |
 | `ScopeViews` | Catálogo da camada de view: classe do escopo → fábrica `(app, scope) -> CubeView` (`register`), com busca pelas superclasses e um `fallback`. Cada host monta o seu e o entrega com `CubeApplication.setScopeViews` |

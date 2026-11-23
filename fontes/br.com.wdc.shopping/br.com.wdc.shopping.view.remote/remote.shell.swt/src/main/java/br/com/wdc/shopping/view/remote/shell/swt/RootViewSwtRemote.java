@@ -7,7 +7,7 @@ import br.com.wdc.shopping.view.swt.impl.RootViewSwt;
 
 class RootViewSwtRemote extends RootViewSwt {
 
-	public static final String CID = "f2d345c4a610";
+	public static final String CID = RootScope.CLASS_ID;
 
 	final String vsid;
 	final RemoteViewContext ctx;

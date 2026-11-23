@@ -5,16 +5,17 @@ import java.util.List;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
+import br.com.wdc.framework.cube.remote.bridge.teavm.ViewScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope.PurchasesPanelScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
+import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
 import br.com.wdc.shopping.view.teavm.commons.views.home.PurchasesPanelSharedView;
-import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
-import br.com.wdc.framework.cube.remote.bridge.teavm.ViewScope;
 
 public class PurchasesPanelView extends AbstractRemoteView {
 
-    public static final String VIEW_ID = "b3c4d5e6f7a8";
+    public static final String VIEW_ID = HomeScope.PurchasesPanelScope.CLASS_ID;
 
     private static final int ON_OPEN_RECEIPT = 1;
     private static final int ON_PAGE_CHANGE = 2;

@@ -21,7 +21,6 @@ import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
 public class ProductViewVaadin extends AbstractViewVaadin<ProductScope> {
 
-    private final ProductScope state;
 
     private boolean notRendered = true;
     private Span nameElm1;
@@ -37,7 +36,6 @@ public class ProductViewVaadin extends AbstractViewVaadin<ProductScope> {
 
     public ProductViewVaadin(ShoppingVaadinApplication app, ProductScope state) {
         super("product", app, state, new VerticalLayout());
-        this.state = state;
     }
 
     @Override

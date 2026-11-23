@@ -17,7 +17,6 @@ import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
 public class LoginViewVaadin extends AbstractViewVaadin<LoginScope> {
 
-    private final LoginScope state;
 
     private boolean notRendered = true;
     private TextField userField;
@@ -26,7 +25,6 @@ public class LoginViewVaadin extends AbstractViewVaadin<LoginScope> {
 
     public LoginViewVaadin(ShoppingVaadinApplication app, LoginScope state) {
         super("login", app, state, new VerticalLayout());
-        this.state = state;
     }
 
     @Override

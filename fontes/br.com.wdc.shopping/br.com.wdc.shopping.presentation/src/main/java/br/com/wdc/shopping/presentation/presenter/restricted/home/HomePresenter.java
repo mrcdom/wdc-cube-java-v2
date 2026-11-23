@@ -281,8 +281,8 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
         if (this.state.content.get() != content) {
             this.state.content.set(content);
 
-            // Reload purchases when returning to the main view
-            if (content == null && this.purchasesPanel.view() != null) {
+            // Back to the home's own panels: reload the purchases, once the panel measured how many fit
+            if (content == null && this.purchasesPanel.pageSize.get() > 0) {
                 this.loadPurchases();
             }
         }

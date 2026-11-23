@@ -2,14 +2,15 @@ package br.com.wdc.shopping.view.remote.shell.teavm.views.home;
 
 import org.teavm.jso.JSBody;
 
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope;
+import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
 import br.com.wdc.shopping.view.teavm.commons.views.home.HomeSharedView;
 import br.com.wdc.shopping.view.teavm.commons.views.home.HomeSharedView.HomeViewData;
-import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 
 public class HomeView extends AbstractRemoteView {
 
-    public static final String VIEW_ID = "473dbdd7a36a";
+    public static final String VIEW_ID = HomeScope.CLASS_ID;
 
     private static final int ON_EXIT = 1;
     private static final int ON_OPEN_CART = 2;

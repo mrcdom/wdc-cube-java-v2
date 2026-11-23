@@ -60,24 +60,20 @@ public class WishlistViewVDom extends AbstractVDomView<WishlistScope> {
         String ERROR_TEXT = c.ALERT_ERROR_TEXT;
     }
 
-    // 2. O Scope que a view desenha
-    private final WishlistScope state;
-
-    // 3. Stable listeners — campos final para listeners sem parâmetros
+    // 2. Stable listeners (o escopo que a view desenha é o campo state, da base) — campos final para listeners sem parâmetros
     private final EventListener<Event> onBack = evt -> safeAction("Back", this.state.onOpenProducts::run);
 
-    // 4. Factory methods para listeners paramétricos
+    // 3. Factory methods para listeners paramétricos
     private EventListener<Event> mkOnRemove(long id) {
         return evt -> safeAction("Remove", () -> this.state.onRemoveItem.run(id));
     }
 
-    // 5. Construtor — recebe a aplicação e o escopo (a fábrica registrada no ScopeViews)
+    // 4. Construtor — recebe a aplicação e o escopo (a fábrica registrada no ScopeViews)
     public WishlistViewVDom(ShoppingTeaVMApplication app, WishlistScope state) {
         super("wishlist", app, state);
-        this.state = state;
     }
 
-    // 6. render() — retorna a árvore virtual baseada no Scope
+    // 5. render() — retorna a árvore virtual baseada no Scope
     @Override
     protected VNode render() {
         // Consumir erro one-shot
@@ -117,7 +113,7 @@ public class WishlistViewVDom extends AbstractVDomView<WishlistScope> {
         // @formatter:on
     }
 
-    // 7. Métodos de render auxiliares
+    // 6. Métodos de render auxiliares
     private VNode renderItem(WishlistItem item) {
         var key = String.valueOf(item.id);
 

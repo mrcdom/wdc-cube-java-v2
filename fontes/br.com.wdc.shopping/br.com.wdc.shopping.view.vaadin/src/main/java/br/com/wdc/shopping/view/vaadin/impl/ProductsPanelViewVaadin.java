@@ -15,7 +15,6 @@ import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
 public class ProductsPanelViewVaadin extends AbstractViewVaadin<ProductsPanelScope> {
 
-    private final ProductsPanelScope state;
 
     private boolean notRendered = true;
     private int itemIdx;
@@ -24,7 +23,6 @@ public class ProductsPanelViewVaadin extends AbstractViewVaadin<ProductsPanelSco
 
     public ProductsPanelViewVaadin(ShoppingVaadinApplication app, ProductsPanelScope scope) {
         super("products-panel", app, scope, new VerticalLayout());
-        this.state = scope;
     }
 
     @Override
@@ -61,11 +59,11 @@ public class ProductsPanelViewVaadin extends AbstractViewVaadin<ProductsPanelSco
     }
 
     private ProductItemViewVaadin newItemView() {
-        return new ProductItemViewVaadin(this.app, this.presenter, this.itemIdx++);
+        return new ProductItemViewVaadin(this.app, this.state, this.itemIdx++);
     }
 
-    private void updateItem(ProductItemViewVaadin itemView, ProductInfo state) {
-        itemView.setState(state, false);
+    private void updateItem(ProductItemViewVaadin itemView, ProductInfo item) {
+        itemView.setItem(item, false);
         itemView.doUpdate();
     }
 }

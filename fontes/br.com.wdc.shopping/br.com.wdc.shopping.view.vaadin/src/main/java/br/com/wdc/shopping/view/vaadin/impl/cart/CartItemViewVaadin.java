@@ -17,7 +17,6 @@ import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 /** The view of a cart row: a segment of the cart with its own state and actions. */
 public class CartItemViewVaadin extends AbstractViewVaadin<CartItemScope> {
 
-    private final CartItemScope state;
 
     private boolean notRendered = true;
     private Span nameElm;
@@ -29,7 +28,6 @@ public class CartItemViewVaadin extends AbstractViewVaadin<CartItemScope> {
 
     public CartItemViewVaadin(ShoppingVaadinApplication app, CartItemScope row) {
         super("cart-item-" + row.id.get(), app, row, new HorizontalLayout());
-        this.state = row;
     }
 
     @Override

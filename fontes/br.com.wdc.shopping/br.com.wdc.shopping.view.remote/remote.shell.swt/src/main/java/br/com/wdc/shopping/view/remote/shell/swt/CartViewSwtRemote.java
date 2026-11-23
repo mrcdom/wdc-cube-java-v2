@@ -12,7 +12,7 @@ import br.com.wdc.shopping.view.swt.impl.CartViewSwt;
 
 class CartViewSwtRemote extends CartViewSwt {
 	
-	public static final String CID = "7eb485e5f843";
+	public static final String CID = CartScope.CLASS_ID;
 
 	final String vsid;
 	final RemoteViewContext ctx;

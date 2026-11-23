@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope.PurchasesPanelScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
 import br.com.wdc.shopping.view.swt.SwtApp;
@@ -13,7 +14,7 @@ import br.com.wdc.shopping.view.swt.impl.PurchasesPanelViewSwt;
 
 class PurchasesPanelViewSwtRemote extends PurchasesPanelViewSwt {
 	
-	public static final String CID = "b3c4d5e6f7a8";
+	public static final String CID = HomeScope.PurchasesPanelScope.CLASS_ID;
 
 	final String vsid;
 	final RemoteViewContext ctx;

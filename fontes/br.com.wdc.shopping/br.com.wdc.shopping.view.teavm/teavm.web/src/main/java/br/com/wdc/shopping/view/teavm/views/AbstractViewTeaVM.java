@@ -8,27 +8,29 @@ import org.teavm.jso.dom.html.HTMLElement;
 
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.CubeView;
+import br.com.wdc.framework.cube.Scope;
 import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
 
 /**
  * Classe base para todas as views TeaVM.
  * Equivalente a AbstractViewVaadin/AbstractViewSwt mas operando sobre HTMLElement via TeaVM.
  */
-public abstract class AbstractViewTeaVM<P> implements CubeView {
+public abstract class AbstractViewTeaVM<S extends Scope> implements CubeView {
 
     private static final Log LOG = Log.getLogger(AbstractViewTeaVM.class);
 
     protected final String instanceId;
     protected final ShoppingTeaVMApplication app;
-    protected final P presenter;
+    /** The scope this view draws. */
+    protected final S state;
     protected final HTMLElement element;
     protected boolean notRendered = true;
     public long dirtyTimestamp;
 
-    protected AbstractViewTeaVM(String instanceId, ShoppingTeaVMApplication app, P presenter, HTMLElement element) {
+    protected AbstractViewTeaVM(String instanceId, ShoppingTeaVMApplication app, S state, HTMLElement element) {
         this.instanceId = instanceId;
         this.app = app;
-        this.presenter = presenter;
+        this.state = state;
         this.element = element;
     }
 
@@ -54,7 +56,7 @@ public abstract class AbstractViewTeaVM<P> implements CubeView {
     }
 
     /**
-     * Atualiza o DOM com base no estado atual do presenter.
+     * Atualiza o DOM com base no estado atual do escopo.
      * Chamado pelo render loop quando a view está marcada como dirty.
      */
     public abstract void doUpdate();

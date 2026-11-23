@@ -29,12 +29,12 @@ import br.com.wdc.framework.cube.Scope;
  * <li>Injects {@code "#"} as the first field (instanceId of the view).</li>
  * <li>{@code transient} and {@code static} fields are skipped, and so are actions ({@code Action}, {@code ActionOf},
  * {@code ActionOf2}).</li>
- * <li>{@link CubeView}/{@link Scope} fields are serialized as {@code "<name>Id": vsid}.</li>
  * <li>Supported field types: all Java primitives/wrappers, {@link String}, {@link Character},
  * dates, {@link Collection}, {@link Map}, Records, and POJOs with public fields.</li>
  * <li>Blank strings in direct fields are omitted.</li>
  * <li>A {@link Prop} field is written as its value.</li>
- * <li>A field holding a {@link Scope} (a segment, attached to its own view) is written as {@code "<name>ViewId": vsid}.</li>
+ * <li>A field holding a {@link Scope} (a presenter's below, a segment) is written as {@code "<name>ViewId": vsid}, the id
+ * of the view that draws it.</li>
  * <li>A field holding a list of segments (rows) is written as {@code "<name>ViewIds": [vsid, ...]}, in order.</li>
  * <li>Numeric primitives and boolean primitives are always serialized.</li>
  * </ul>
@@ -48,10 +48,6 @@ public final class ScopeSerializer {
     private final ExtensibleObjectOutput json;
 
     private final Function<Scope, CubeView> viewOf;
-
-    public ScopeSerializer(ExtensibleObjectOutput json) {
-        this(json, Scope::view);
-    }
 
     /**
      * @param viewOf the view of a scope inside the one written (a segment, a row); the remote host makes it on demand
@@ -100,11 +96,6 @@ public final class ScopeSerializer {
         // Actions are the presenter's entry points, not state: the client fires them by event code
         if (value instanceof Action || value instanceof ActionOf<?> || value instanceof ActionOf2<?, ?>)
             return;
-
-        if (value instanceof CubeView cv) {
-            json.name(field.getName() + "Id").value(cv.instanceId());
-            return;
-        }
 
         // A list of segments (rows): each row is a view of its own, referred to by id, in order
         if (isSegmentList(field)) {
@@ -186,11 +177,6 @@ public final class ScopeSerializer {
     private void writeValue(Object value) {
         if (value == null) {
             json.nullValue();
-            return;
-        }
-
-        if (value instanceof CubeView cv) {
-            json.value(cv.instanceId());
             return;
         }
 

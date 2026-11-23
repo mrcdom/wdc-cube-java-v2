@@ -10,9 +10,10 @@ import org.teavm.jso.dom.events.EventListener;
 import org.teavm.jso.dom.html.HTMLDocument;
 import org.teavm.jso.dom.html.HTMLElement;
 
+import br.com.wdc.framework.cube.Scope;
+import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.commons.VDom;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
-import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
 
 /**
  * Base para views TeaVM com Virtual DOM.
@@ -25,16 +26,16 @@ import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
  * <pre>{@code
  * import static br.com.wdc.shopping.view.teavm.vdom.VNode.*;
  *
- * public class MyView extends AbstractVDomView<MyPresenter> {
+ * public class MyView extends AbstractVDomView<MyScope> {
  *
- *     public MyView(MyPresenter presenter) {
- *         super("my-view", (ShoppingTeaVMApplication) presenter.app, presenter);
+ *     public MyView(ShoppingTeaVMApplication app, MyScope state) {
+ *         super("my-view", app, state);
  *     }
  *
  *     @Override
  *     protected VNode render() {
  *         return div("container").children(
- *             h5("title").text(state.title),
+ *             h5("title").text(state.title.get()),
  *             div("content").children(
  *                 items.stream().map(item ->
  *                     div("item").key(item.id).text(item.name)
@@ -46,7 +47,7 @@ import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
  * }
  * }</pre>
  */
-public abstract class AbstractVDomView<P> extends AbstractViewTeaVM<P> {
+public abstract class AbstractVDomView<S extends Scope> extends AbstractViewTeaVM<S> {
 
     private VNode prevTree;
 
@@ -54,12 +55,12 @@ public abstract class AbstractVDomView<P> extends AbstractViewTeaVM<P> {
     private Map<String, EventListener<? extends Event>> listenerCache = new HashMap<>();
     private Set<String> usedKeys = new HashSet<>();
 
-    protected AbstractVDomView(String instanceId, ShoppingTeaVMApplication app, P presenter) {
-        super(instanceId, app, presenter, HTMLDocument.current().createElement("div"));
+    protected AbstractVDomView(String instanceId, ShoppingTeaVMApplication app, S state) {
+        super(instanceId, app, state, HTMLDocument.current().createElement("div"));
     }
 
-    protected AbstractVDomView(String instanceId, ShoppingTeaVMApplication app, P presenter, HTMLElement element) {
-        super(instanceId, app, presenter, element);
+    protected AbstractVDomView(String instanceId, ShoppingTeaVMApplication app, S state, HTMLElement element) {
+        super(instanceId, app, state, element);
     }
 
     /**

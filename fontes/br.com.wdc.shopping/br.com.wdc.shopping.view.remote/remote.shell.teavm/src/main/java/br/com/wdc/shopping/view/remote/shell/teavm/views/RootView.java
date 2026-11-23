@@ -4,9 +4,10 @@ import static br.com.wdc.shopping.view.teavm.commons.Swc.spTheme;
 import static br.com.wdc.shopping.view.teavm.commons.VNode.clsx;
 import static br.com.wdc.shopping.view.teavm.commons.VNode.slot;
 
+import br.com.wdc.shopping.presentation.presenter.RootPresenter.RootScope;
+import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import br.com.wdc.shopping.view.teavm.commons.SelUtility;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
-import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 
 /**
  * Root view: hosts the current content view (login or home). Equivalent to RootView in remote.shell.react and
@@ -14,7 +15,7 @@ import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
  */
 public class RootView extends AbstractRemoteView {
 
-    public static final String VIEW_ID = "f2d345c4a610";
+    public static final String VIEW_ID = RootScope.CLASS_ID;
 
     @SuppressWarnings({ "java:S1214", "static-access" })
     private interface Sel {

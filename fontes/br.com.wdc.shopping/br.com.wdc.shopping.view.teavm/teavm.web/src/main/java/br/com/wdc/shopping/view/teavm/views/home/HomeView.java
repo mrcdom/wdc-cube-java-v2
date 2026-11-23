@@ -24,7 +24,7 @@ public class HomeView extends AbstractVDomView<HomeScope> {
         this.shared.onOpenCart = () -> safeAction("Open cart", state.onOpenCart::run);
         this.shared.onNavigateBack = () -> safeAction("Back to home", () -> new HomeKeys(this.app).flip());
         this.shared.onPurchasesPanelVisible = () -> {
-            var purchasesPanel = this.app.viewOf(state.purchasesPanel.get());
+            var purchasesPanel = this.app.viewOf(this.state.purchasesPanel.get());
             if (purchasesPanel != null) {
                 purchasesPanel.update();
             }
@@ -37,13 +37,12 @@ public class HomeView extends AbstractVDomView<HomeScope> {
     }
 
     private HomeViewData buildViewData() {
-        var state = this.presenter;
-        viewData.nickName = state.nickName.get() != null ? state.nickName.get() : "";
-        viewData.cartCount = String.valueOf(state.cartItemCount.get());
-        viewData.errorMessage = state.errorMessage.get();
-        viewData.productsPanelEl = this.app.viewOf(state.productsPanel.get()) instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
-        viewData.purchasesPanelEl = this.app.viewOf(state.purchasesPanel.get()) instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
-        viewData.contentViewEl = this.app.viewOf(state.content.get()) instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
+        viewData.nickName = this.state.nickName.get() != null ? this.state.nickName.get() : "";
+        viewData.cartCount = String.valueOf(this.state.cartItemCount.get());
+        viewData.errorMessage = this.state.errorMessage.get();
+        viewData.productsPanelEl = this.app.viewOf(this.state.productsPanel.get()) instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
+        viewData.purchasesPanelEl = this.app.viewOf(this.state.purchasesPanel.get()) instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
+        viewData.contentViewEl = this.app.viewOf(this.state.content.get()) instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
         return viewData;
     }
 }

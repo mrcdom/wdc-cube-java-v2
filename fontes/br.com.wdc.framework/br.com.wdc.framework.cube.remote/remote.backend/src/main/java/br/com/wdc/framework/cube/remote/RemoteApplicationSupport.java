@@ -582,14 +582,15 @@ public class RemoteApplicationSupport {
                 json.beginArray();
 
                 // The presenters' computed state, once, before any scope is written
-                var cubeApp = host.getCubeApp();
-                if (cubeApp != null) {
-                    this.lock.lock();
-                    try {
+                this.lock.lock();
+                try {
+                    var cubeApp = host.getCubeApp();
+                    if (cubeApp != null) {
                         cubeApp.commitComputedState();
-                    } finally {
-                        this.lock.unlock();
                     }
+                    this.browserPresenter.commitComputedState();
+                } finally {
+                    this.lock.unlock();
                 }
 
                 var queue = new java.util.ArrayDeque<RemoteViewImpl>(dirtyViews);
@@ -598,12 +599,6 @@ public class RemoteApplicationSupport {
                     var view = queue.poll();
                     if (!written.add(view.instanceId())) {
                         continue;
-                    }
-                    this.lock.lock();
-                    try {
-                        view.presenter().commitComputedState();
-                    } finally {
-                        this.lock.unlock();
                     }
                     view.writeState(json);
 

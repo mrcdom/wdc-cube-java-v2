@@ -9,7 +9,6 @@ import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
 public class RootViewVaadin extends AbstractViewVaadin<RootScope> {
 
-    private final RootScope state;
 
     private boolean notRendered = true;
     private Div contentPane;
@@ -17,7 +16,6 @@ public class RootViewVaadin extends AbstractViewVaadin<RootScope> {
 
     public RootViewVaadin(ShoppingVaadinApplication app, RootScope state) {
         super("root", app, state, new Div());
-        this.state = state;
     }
 
     @Override

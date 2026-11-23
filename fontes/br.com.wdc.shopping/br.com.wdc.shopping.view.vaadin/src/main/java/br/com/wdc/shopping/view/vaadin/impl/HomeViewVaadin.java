@@ -20,7 +20,6 @@ import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
 public class HomeViewVaadin extends AbstractViewVaadin<HomeScope> {
 
-    private final HomeScope state;
 
     private boolean notRendered = true;
     private Span nickNameElm;
@@ -34,7 +33,6 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomeScope> {
 
     public HomeViewVaadin(ShoppingVaadinApplication app, HomeScope state) {
         super("home", app, state, new VerticalLayout());
-        this.state = state;
     }
 
     @Override

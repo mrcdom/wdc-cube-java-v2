@@ -20,13 +20,11 @@ public class RootView extends AbstractVDomView<RootScope> {
         String CONTENT = clsx(u.FLEX_COL, u.FLEX_GROW, u.MIN_H_0);
     }
 
-    private final RootScope state;
     private boolean appended;
 
     public RootView(ShoppingTeaVMApplication app, RootScope state) {
         super("root", app, state,
                 HTMLDocument.current().createElement("sp-theme"));
-        this.state = state;
     }
 
     @Override

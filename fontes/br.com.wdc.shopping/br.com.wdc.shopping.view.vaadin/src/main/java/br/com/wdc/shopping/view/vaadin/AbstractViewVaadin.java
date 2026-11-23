@@ -4,26 +4,27 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-import br.com.wdc.framework.commons.log.Log;
-
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.HasComponents;
 
+import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.CubeView;
+import br.com.wdc.framework.cube.Scope;
 
-public abstract class AbstractViewVaadin<P> implements CubeView {
+public abstract class AbstractViewVaadin<S extends Scope> implements CubeView {
 
     private static final Log LOG = Log.getLogger(AbstractViewVaadin.class);
 
     protected final String instanceId;
     protected final ShoppingVaadinApplication app;
-    protected final P presenter;
+    /** The scope this view draws. */
+    protected final S state;
     protected Component element;
 
-    protected AbstractViewVaadin(String instanceId, ShoppingVaadinApplication app, P presenter, Component element) {
+    protected AbstractViewVaadin(String instanceId, ShoppingVaadinApplication app, S state, Component element) {
         this.instanceId = instanceId;
         this.app = app;
-        this.presenter = presenter;
+        this.state = state;
         this.element = element;
     }
 

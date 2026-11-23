@@ -2,6 +2,7 @@ package br.com.wdc.shopping.view.remote.shell.swt;
 
 import java.util.Map;
 
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope.CartItemScope;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.impl.CartItemViewSwt;
@@ -9,7 +10,7 @@ import br.com.wdc.shopping.view.swt.impl.CartItemViewSwt;
 /** A row of the cart: a view of its own, whose actions are the row's (no product id goes back). */
 class CartItemViewSwtRemote extends CartItemViewSwt {
 
-	public static final String CID = "c8a1f0e2b7d4";
+	public static final String CID = CartScope.CartItemScope.CLASS_ID;
 
 	final String vsid;
 	final RemoteViewContext ctx;

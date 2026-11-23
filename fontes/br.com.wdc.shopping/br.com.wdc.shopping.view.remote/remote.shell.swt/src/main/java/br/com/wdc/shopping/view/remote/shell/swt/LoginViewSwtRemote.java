@@ -6,7 +6,7 @@ import br.com.wdc.shopping.view.swt.impl.LoginViewSwt;
 
 class LoginViewSwtRemote extends LoginViewSwt {
 
-	public static final String CID = "c677cda52d14";
+	public static final String CID = LoginScope.CLASS_ID;
 
 	final String vsid;
 	final RemoteViewContext ctx;

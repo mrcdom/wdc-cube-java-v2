@@ -19,7 +19,6 @@ import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
 public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelScope> {
 
-    private final PurchasesPanelScope state;
 
     private boolean notRendered = true;
     private int itemIdx;
@@ -32,7 +31,6 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelS
 
     public PurchasesPanelViewVaadin(ShoppingVaadinApplication app, PurchasesPanelScope scope) {
         super("purchases-panel", app, scope, new VerticalLayout());
-        this.state = scope;
     }
 
     @Override
@@ -100,7 +98,7 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelS
                 btn.getStyle().set("color", "#1976d2");
                 btn.getElement().setAttribute("aria-label", "Página anterior");
                 btn.addClickListener(
-                        e -> safeAction("Previous page", () -> this.presenter.onPageChange.run(this.state.page.get() - 1)));
+                        e -> safeAction("Previous page", () -> this.state.onPageChange.run(this.state.page.get() - 1)));
             });
 
             dom.span(label -> {
@@ -115,17 +113,17 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelS
                 btn.getStyle().set("color", "#1976d2");
                 btn.getElement().setAttribute("aria-label", "Próxima página");
                 btn.addClickListener(
-                        e -> safeAction("Next page", () -> this.presenter.onPageChange.run(this.state.page.get() + 1)));
+                        e -> safeAction("Next page", () -> this.state.onPageChange.run(this.state.page.get() + 1)));
             });
         });
     }
 
     private PurchaseItemViewVaadin newItemView() {
-        return new PurchaseItemViewVaadin(this.app, this.presenter, this.itemIdx++);
+        return new PurchaseItemViewVaadin(this.app, this.state, this.itemIdx++);
     }
 
-    private void updateItem(PurchaseItemViewVaadin itemView, PurchaseInfo state) {
-        itemView.setState(state, false);
+    private void updateItem(PurchaseItemViewVaadin itemView, PurchaseInfo item) {
+        itemView.setItem(item, false);
         itemView.doUpdate();
     }
 
@@ -166,7 +164,7 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelS
                 BASE_ITEM_HEIGHT_PX, BASE_FONT_SIZE_PX).then(result -> {
                     int ps = result.asInt();
                     if (ps > 0) {
-                        this.presenter.onItemSizeCapacityChanged.run(ps);
+                        this.state.onItemSizeCapacityChanged.run(ps);
                     }
                 });
 
@@ -174,7 +172,7 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelS
         this.contentArea.getElement().addEventListener("page-size", e -> {
             int ps = e.getEventData().get("event.detail").asInt();
             if (ps > 0) {
-                this.presenter.onItemSizeCapacityChanged.run(ps);
+                this.state.onItemSizeCapacityChanged.run(ps);
             }
         }).addEventData("event.detail");
     }

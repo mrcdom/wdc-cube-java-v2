@@ -3,17 +3,17 @@ package br.com.wdc.shopping.view.remote.shell.teavm.views.cart;
 import java.util.ArrayList;
 import java.util.List;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
-import br.com.wdc.shopping.view.teavm.commons.VNode;
-import br.com.wdc.shopping.view.teavm.commons.views.cart.CartSharedView;
-import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import org.teavm.jso.dom.html.HTMLElement;
 
 import br.com.wdc.framework.cube.remote.bridge.teavm.ViewScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
+import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
+import br.com.wdc.shopping.view.teavm.commons.VNode;
+import br.com.wdc.shopping.view.teavm.commons.views.cart.CartSharedView;
 
 public class CartView extends AbstractRemoteView {
 
-    public static final String VIEW_ID = "7eb485e5f843";
+    public static final String VIEW_ID = CartScope.CLASS_ID;
 
     private static final int ON_BUY = 1;
     private static final int ON_BACK = 3;

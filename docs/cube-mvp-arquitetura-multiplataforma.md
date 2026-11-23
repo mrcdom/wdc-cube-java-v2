@@ -536,11 +536,10 @@ public class CartViewSwt extends AbstractViewSwt {
 
 ```java
 public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
-    private final CartScope state;
 
+    // O escopo desenhado fica no campo state da base
     public CartViewVaadin(ShoppingVaadinApplication app, CartScope state) {
         super("cart", app, state, new VerticalLayout());
-        this.state = state;
     }
 
     @Override
@@ -554,11 +553,9 @@ public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
 
 ```java
 public class CartViewVDom extends AbstractVDomView<CartScope> {
-    private final CartScope state;
 
     public CartViewVDom(ShoppingTeaVMApplication app, CartScope state) {
         super("cart", app, state);
-        this.state = state;
     }
 
     @Override
