@@ -1,5 +1,7 @@
 package br.com.wdc.shopping.view.swt.impl;
 
+import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
+
 import java.util.Objects;
 import java.util.function.Supplier;
 
@@ -13,7 +15,7 @@ import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeScope;
 import br.com.wdc.shopping.view.swt.AbstractViewSwt;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.theme.Surface;
@@ -21,7 +23,6 @@ import br.com.wdc.shopping.view.swt.theme.Theme;
 import br.com.wdc.shopping.view.swt.util.SlotComposite;
 import br.com.wdc.shopping.view.swt.util.StackComposite;
 import br.com.wdc.shopping.view.swt.util.SwtDom;
-import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
 
 /**
  * Home view — header + content area (products grid + purchases panel).
@@ -33,7 +34,7 @@ public class HomeViewSwt extends AbstractViewSwt {
     private static final int CART_BADGE_MIN_WIDTH = 18;
     private static final int CART_BADGE_H_PADDING = 6;
 
-    public Supplier<HomeViewState> stateSupplier;
+    public Supplier<HomeScope> stateSupplier;
     public Runnable onExit;
     public Runnable onOpenCart;
 
@@ -68,14 +69,14 @@ public class HomeViewSwt extends AbstractViewSwt {
         if (!Objects.equals(this.welcomeLabel.getText(), prefix)) {
             this.welcomeLabel.setText(prefix);
         }
-        String name = (state != null && state.nickName != null ? state.nickName : "") + "!";
+        String name = (state != null && state.nickName.get() != null ? state.nickName.get() : "") + "!";
         if (!Objects.equals(this.nickNameLabel.getText(), name)) {
             this.nickNameLabel.setText(name);
             this.nickNameLabel.getParent().layout(true);
         }
 
         // Cart badge (always visible, shows count)
-        String badge = String.valueOf(state != null ? state.cartItemCount : 0);
+        String badge = String.valueOf(state != null ? state.cartItemCount.get() : 0);
         if (!Objects.equals(this.cartBadgeText, badge)) {
             this.cartBadgeText = badge;
             updateCartBadgeSize();
@@ -85,11 +86,12 @@ public class HomeViewSwt extends AbstractViewSwt {
         // Error
         var newErrorDisplay = false;
         var newErrorMessage = "";
-        if (state != null && state.errorCode != 0) {
+        if (state != null && state.errorCode.get() != 0) {
             newErrorDisplay = true;
-            newErrorMessage = state.errorMessage;
-            state.errorCode = 0;
-            state.errorMessage = null;
+            newErrorMessage = state.errorMessage.get();
+            // Consumed while drawing: a redraw now would take the message away
+            state.errorCode.setSilently(0);
+            state.errorMessage.setSilently(null);
         }
         if (!Objects.equals(this.errorMessage, newErrorMessage)) {
             this.errorMessage = newErrorMessage;
@@ -102,7 +104,7 @@ public class HomeViewSwt extends AbstractViewSwt {
         }
 
         // Content overlay
-        if (state != null && state.contentView instanceof AbstractViewSwt overlay) {
+        if (state != null && app.viewOf(state.content.get()) instanceof AbstractViewSwt overlay) {
             this.contentOverlaySlot.setContent(overlay.getElement());
             this.contentStack.showControl(this.contentOverlaySlot);
             this.purchasesPanelSlot.setVisible(false);
@@ -115,14 +117,14 @@ public class HomeViewSwt extends AbstractViewSwt {
         }
 
         // Products panel
-        if (state != null && state.productsPanelView instanceof AbstractViewSwt productsView) {
+        if (state != null && app.viewOf(state.productsPanel.get()) instanceof AbstractViewSwt productsView) {
             this.productsPanelSlot.setContent(productsView.getElement());
         } else {
             this.productsPanelSlot.setContent(null);
         }
 
         // Purchases panel
-        if (state != null && state.purchasesPanelView instanceof AbstractViewSwt purchasesView) {
+        if (state != null && app.viewOf(state.purchasesPanel.get()) instanceof AbstractViewSwt purchasesView) {
             this.purchasesPanelSlot.setContent(purchasesView.getElement());
         } else {
             this.purchasesPanelSlot.setContent(null);

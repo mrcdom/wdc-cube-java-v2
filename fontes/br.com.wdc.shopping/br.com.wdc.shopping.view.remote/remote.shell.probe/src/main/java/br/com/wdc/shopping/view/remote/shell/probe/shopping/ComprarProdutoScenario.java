@@ -98,30 +98,28 @@ public class ComprarProdutoScenario {
 
         ScenarioAssert.assertEquals("Sem erros", 0, cart.errorCode());
         ScenarioAssert.assertEquals("Um item no carrinho", 1, cart.itemCount());
-        ScenarioAssert.assertEquals("Quantidade deve ser 1", 1L, quantityOf(cart.items().get(0)));
-        ScenarioAssert.assertEquals("ID no carrinho", PEN_DRIVE2GB_ID, idOf(cart.items().get(0)));
+        var penDrive = cart.rows().get(0);
+        ScenarioAssert.assertEquals("Quantidade deve ser 1", 1L, penDrive.quantity());
+        ScenarioAssert.assertEquals("ID no carrinho", PEN_DRIVE2GB_ID, penDrive.id());
 
         // -- [4] Tentar modificar quantidade para 0 (inválido) --
         LOG.info("[4] Modificar quantidade para 0 (inválido)");
-        cart.onModifyQuantity(PEN_DRIVE2GB_ID, 0);
+        penDrive.onModifyQuantity(0);
 
         cart = home.contentViewAs(CartPresenterClient.class);
         ScenarioAssert.assertEquals("errorCode deve indicar quantidade inválida", 1, cart.errorCode());
 
         // -- [5] Modificar quantidade para 2 (válido) --
         LOG.info("[5] Modificar quantidade para 2");
-        cart.onModifyQuantity(PEN_DRIVE2GB_ID, 2);
+        penDrive.onModifyQuantity(2);
 
         cart = home.contentViewAs(CartPresenterClient.class);
         ScenarioAssert.assertEquals("Sem erros", 0, cart.errorCode());
-        ScenarioAssert.assertEquals("Quantidade deve ser 2", 2L, quantityOf(cart.items().get(0)));
+        ScenarioAssert.assertEquals("Quantidade deve ser 2", 2L, cart.rows().get(0).quantity());
 
-        // -- [6] Produto ID inválido --
-        LOG.info("[6] Modificar quantidade com ID inválido");
-        cart.onModifyQuantity(Long.MIN_VALUE, 2);
-
-        cart = home.contentViewAs(CartPresenterClient.class);
-        ScenarioAssert.assertEquals("errorCode deve indicar produto não encontrado", 2, cart.errorCode());
+        // -- [6] A linha é reaproveitada: a mesma view, com a quantidade nova --
+        LOG.info("[6] Linha reaproveitada");
+        ScenarioAssert.assertTrue("Mesma view de linha", penDrive.instanceId().equals(cart.rows().get(0).instanceId()));
 
         // -- [7] Voltar para produtos e abrir Bola Wilson --
         LOG.info("[7] Voltar para produtos → abrir Bola Wilson (id={})", BOLA_WILSON_ID);
@@ -147,7 +145,7 @@ public class ComprarProdutoScenario {
 
         cart = home.contentViewAs(CartPresenterClient.class);
         ScenarioAssert.assertEquals("Dois itens no carrinho", 2, cart.itemCount());
-        ScenarioAssert.assertEquals("Segundo item com quantidade 1", 1L, quantityOf(cart.items().get(1)));
+        ScenarioAssert.assertEquals("Segundo item com quantidade 1", 1L, cart.rows().get(1).quantity());
 
         // -- [10] Comprar --
         LOG.info("[10] Comprar");
@@ -168,14 +166,6 @@ public class ComprarProdutoScenario {
     }
 
     // :: Map accessors for cart/receipt item fields
-
-    private static long quantityOf(Map<String, Object> item) {
-        return ((Number) item.get("quantity")).longValue();
-    }
-
-    private static long idOf(Map<String, Object> item) {
-        return ((Number) item.get("id")).longValue();
-    }
 
     @SuppressWarnings("unchecked")
     private static List<Object> itemsOf(Map<String, Object> receiptMap) {

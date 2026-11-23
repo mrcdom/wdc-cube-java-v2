@@ -4,26 +4,27 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-import br.com.wdc.framework.commons.log.Log;
-
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.HasComponents;
 
+import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.CubeView;
+import br.com.wdc.framework.cube.Scope;
 
-public abstract class AbstractViewVaadin<P> implements CubeView {
+public abstract class AbstractViewVaadin<S extends Scope> implements CubeView {
 
     private static final Log LOG = Log.getLogger(AbstractViewVaadin.class);
 
     protected final String instanceId;
     protected final ShoppingVaadinApplication app;
-    protected final P presenter;
+    /** The scope this view draws. */
+    protected final S state;
     protected Component element;
 
-    protected AbstractViewVaadin(String instanceId, ShoppingVaadinApplication app, P presenter, Component element) {
+    protected AbstractViewVaadin(String instanceId, ShoppingVaadinApplication app, S state, Component element) {
         this.instanceId = instanceId;
         this.app = app;
-        this.presenter = presenter;
+        this.state = state;
         this.element = element;
     }
 
@@ -78,8 +79,7 @@ public abstract class AbstractViewVaadin<P> implements CubeView {
         // Remove excess views
         if (oldSize > newSize) {
             for (int i = oldSize - 1; i >= newSize; i--) {
-                var view = viewList.remove(i);
-                container.remove(view.getElement());
+                container.remove(elementOf(viewList.remove(i)));
             }
         }
 
@@ -87,7 +87,7 @@ public abstract class AbstractViewVaadin<P> implements CubeView {
         while (viewList.size() < newSize) {
             var view = factory.get();
             viewList.add(view);
-            container.add(view.getElement());
+            container.add(elementOf(view));
         }
 
         // Update all
@@ -96,5 +96,10 @@ public abstract class AbstractViewVaadin<P> implements CubeView {
                 updater.accept(viewList.get(i), items.get(i));
             }
         }
+    }
+
+    /** The element of a view of the list (never null: the factory makes them). */
+    private static Component elementOf(AbstractViewVaadin<?> view) {
+        return view.getElement();
     }
 }

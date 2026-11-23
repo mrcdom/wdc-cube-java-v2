@@ -31,7 +31,10 @@ public class DevDbResetController {
             LOG.info("[DevDbReset] Resetting database...");
             // Conexão obtida do DSLContext do módulo (sem holder global de DataSource).
             ShoppingDSLContext.BEAN.get().connection(connection ->
-                    new DBCreate().withConnection(connection).withReset().run());
+                    new DBCreate()
+                            .withConnection(connection)
+                            .withReset()
+                            .run());
             LOG.info("[DevDbReset] Database reset complete");
             ctx.status(200).json(Map.of("status", "ok"));
         });

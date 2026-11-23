@@ -414,7 +414,8 @@ public class PurchaseApiController {
             if (purchase.user() == null) {
                 purchase.withUser(new User());
             }
-            purchase.user().withId(sc.userId());
+            purchase.user()
+                    .withId(sc.userId());
         }
     }
 

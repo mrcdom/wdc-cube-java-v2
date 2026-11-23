@@ -1,6 +1,5 @@
 package br.com.wdc.shopping.presentation.presenter.restricted.cart;
 
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -8,45 +7,19 @@ import java.util.List;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.function.ThrowingRunnable;
-import br.com.wdc.framework.domain.transaction.TransactionService;
 import br.com.wdc.shopping.domain.exception.InvalidCartItemException;
-import br.com.wdc.shopping.domain.product.Product;
-import br.com.wdc.shopping.domain.purchase.Purchase;
-import br.com.wdc.shopping.domain.purchase.PurchaseRepository;
-import br.com.wdc.shopping.domain.purchaseitem.PurchaseItem;
-import br.com.wdc.shopping.domain.user.User;
-import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.calls.PurchaseSave;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.structs.CartItem;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
 
 public class CartManager {
 
-    private List<CartItem> cart;
+    private final List<CartItem> cart = new ArrayList<>();
 
     private int listenerIdGen;
-    private Map<Integer, ThrowingRunnable> commitListenerMap;
-    private Map<Integer, ThrowingRunnable> changeListenerMap;
-    private TransactionService tx;
-    private PurchaseRepository purchaseRepository;
-
-    public CartManager(ShoppingApplication app) {
-        this.init();
-        this.tx = app.tx();
-        this.purchaseRepository = app.getPurchaseRepository();
-    }
-
-    public CartManager(TransactionService tx, PurchaseRepository purchaseRepository) {
-        this.init();
-        this.tx = tx;
-        this.purchaseRepository = purchaseRepository;
-    }
-
-    private void init() {
-        this.cart = new ArrayList<>();
-        this.commitListenerMap = new HashMap<>();
-        this.changeListenerMap = new HashMap<>();
-    }
+    private final Map<Integer, ThrowingRunnable> commitListenerMap = new HashMap<>();
+    private final Map<Integer, ThrowingRunnable> changeListenerMap = new HashMap<>();
 
     public ThrowingRunnable addCommitListener(ThrowingRunnable listener) {
         var listenerID = listenerIdGen++;
@@ -128,7 +101,10 @@ public class CartManager {
     }
 
     public Long commit(Subject subject) throws InvalidCartItemException {
-        var purchaseId = this.doPurchase(subject.getId(), this.cart);
+        var purchaseId = new PurchaseSave()
+                .withUserId(subject.getId())
+                .withItems(this.cart)
+                .run();
         this.clear();
 
         for (var listener : new ArrayList<>(this.changeListenerMap.values())) {
@@ -141,33 +117,6 @@ public class CartManager {
         return purchaseId;
     }
 
-    private Long doPurchase(Long userId, List<CartItem> request) {
-        var purchase = new Purchase()
-                .withUser(new User().withId(userId))
-                .withBuyDate(OffsetDateTime.now());
-
-        purchase.withItems(new ArrayList<>());
-        for (var srcItem : request) {
-            if (srcItem.quantity < 0) {
-                throw new InvalidCartItemException();
-            }
-
-            var purchaseItem = new PurchaseItem()
-                    .withProduct(new Product().withId(srcItem.id));
-            purchaseItem.withPrice(srcItem.price)
-                    .withAmount(srcItem.quantity);
-
-            purchase.items().add(purchaseItem);
-        }
-
-        this.tx.required(tx -> {
-            if (!this.purchaseRepository.insert(purchase)) {
-                throw new AssertionError("Record not inserted");
-            }
-        });
-
-        return purchase.id();
-    }
 
     public int getItemCount() {
         var count = 0;
@@ -184,5 +133,4 @@ public class CartManager {
     public void clear() {
         this.cart.clear();
     }
-
 }

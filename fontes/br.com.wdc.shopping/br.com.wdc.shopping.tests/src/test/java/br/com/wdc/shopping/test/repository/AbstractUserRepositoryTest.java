@@ -53,7 +53,8 @@ public abstract class AbstractUserRepositoryTest {
 
 	@Test
 	public void fetchByCriteria_userName() {
-		var users = repo().fetch(new UserCriteria().withUserName("fulano"));
+		var users = repo().fetch(new UserCriteria()
+				.withUserName("fulano"));
 		assertEquals(1, users.size());
 		assertEquals(DBReset.FULANO_ID, users.get(0).id());
 	}
@@ -75,13 +76,15 @@ public abstract class AbstractUserRepositoryTest {
 
 	@Test
 	public void countByUserId_returnsOne() {
-		int count = repo().count(new UserCriteria().withUserId(DBReset.ADMIN_ID));
+		int count = repo().count(new UserCriteria()
+				.withUserId(DBReset.ADMIN_ID));
 		assertEquals(1, count);
 	}
 
 	@Test
 	public void countByNonExistentId_returnsZero() {
-		int count = repo().count(new UserCriteria().withUserId(Long.MAX_VALUE));
+		int count = repo().count(new UserCriteria()
+				.withUserId(Long.MAX_VALUE));
 		assertEquals(0, count);
 	}
 
@@ -203,14 +206,16 @@ public abstract class AbstractUserRepositoryTest {
 	@Test
 	public void deleteByUserId_noFkDependency() {
 		// BEOTRANO has no purchases, so no FK violation
-		int deleted = repo().delete(new UserCriteria().withUserId(DBReset.BEOTRANO_ID));
+		int deleted = repo().delete(new UserCriteria()
+				.withUserId(DBReset.BEOTRANO_ID));
 		assertEquals(1, deleted);
 		assertEquals(2, repo().count(new UserCriteria()));
 	}
 
 	@Test
 	public void deleteNonExistent_returnsZero() {
-		int deleted = repo().delete(new UserCriteria().withUserId(Long.MAX_VALUE));
+		int deleted = repo().delete(new UserCriteria()
+				.withUserId(Long.MAX_VALUE));
 		assertEquals(0, deleted);
 	}
 

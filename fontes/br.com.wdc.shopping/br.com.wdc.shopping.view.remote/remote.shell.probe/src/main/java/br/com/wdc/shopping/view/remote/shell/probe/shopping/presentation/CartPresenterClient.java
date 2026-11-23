@@ -1,8 +1,8 @@
 package br.com.wdc.shopping.view.remote.shell.probe.shopping.presentation;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
@@ -16,10 +16,10 @@ import br.com.wdc.framework.cube.remote.bridge.java.model.HostResponse;
  * <pre>
  * Events:
  *   1 → onBuy()                              no params
- *   2 → onRemoveProduct(productId)           param: p.productId
  *   3 → onOpenProducts()                     no params
- *   4 → onModifyQuantity(productId, qty)     params: p.productId, p.quantity
  * </pre>
+ *
+ * The rows are views of their own ({@link CartItemPresenterClient}), referred to by {@code rowsViewIds}.
  */
 public class CartPresenterClient extends AbstractPresenterClient {
 
@@ -44,35 +44,33 @@ public class CartPresenterClient extends AbstractPresenterClient {
         return submit(1);
     }
 
-    /** Triggers {@code CartPresenter.onRemoveProduct(productId)}. */
-    public HostResponse onRemoveProduct(long productId) throws InterruptedException, TimeoutException {
-        param("productId", productId);
-        return submit(2);
-    }
-
     /** Triggers {@code CartPresenter.onOpenProducts()}. */
     public HostResponse onOpenProducts() throws InterruptedException, TimeoutException {
         return submit(3);
     }
 
-    /** Triggers {@code CartPresenter.onModifyQuantity(productId, quantity)}. */
-    public HostResponse onModifyQuantity(long productId, int quantity)
-            throws InterruptedException, TimeoutException {
-        param("productId", productId);
-        param("quantity", quantity);
-        return submit(4);
-    }
-
     // :: State accessors
 
-    /** The list of cart items ({@code productId}, {@code productName}, {@code quantity}, etc.). */
-    public List<Map<String, Object>> items() {
+    /** The rows, in the cart's order: each one a view of its own. */
+    public List<CartItemPresenterClient> rows() {
         var s = state();
-        if (s == null) return Collections.emptyList();
-        return s.getList("items");
+        if (s == null || !(s.fields().get("rowsViewIds") instanceof List<?> ids)) {
+            return Collections.emptyList();
+        }
+        var rows = new ArrayList<CartItemPresenterClient>(ids.size());
+        for (var id : ids) {
+            rows.add(client.presenterByInstanceId(String.valueOf(id), CartItemPresenterClient.class));
+        }
+        return rows;
     }
 
     public int itemCount() {
-        return items().size();
+        return rows().size();
+    }
+
+    public double total() {
+        var s = state();
+        var v = s != null ? s.getDouble("total") : null;
+        return v != null ? v : 0.0;
     }
 }

@@ -461,6 +461,14 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
         return this;
     }
 
+    /**
+     * O valor a gravar numa coluna TIMESTAMP sem fuso lida por {@link #addLdt}: o mesmo instante, em UTC — a leitura
+     * interpreta a coluna como UTC. {@code null} para {@code null}.
+     */
+    public static java.time.LocalDateTime toUtcLdt(OffsetDateTime value) {
+        return value != null ? value.withOffsetSameInstant(java.time.ZoneOffset.UTC).toLocalDateTime() : null;
+    }
+
     private static OffsetDateTime parseLdt(String s) {
         try {
             return OffsetDateTime.parse(s);

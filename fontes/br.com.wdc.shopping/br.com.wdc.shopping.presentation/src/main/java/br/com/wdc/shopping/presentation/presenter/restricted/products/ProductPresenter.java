@@ -1,23 +1,17 @@
 package br.com.wdc.shopping.presentation.presenter.restricted.products;
 
-import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
 
-import br.com.wdc.framework.commons.lang.CoerceUtils;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubeIntent;
-import br.com.wdc.framework.cube.CubeSkeleton;
-import br.com.wdc.framework.cube.CubeView;
-import br.com.wdc.framework.cube.CubeViewSlot;
-import br.com.wdc.framework.cube.ViewState;
+import br.com.wdc.framework.cube.FormParam;
+import br.com.wdc.framework.cube.ScopeSlot;
 import br.com.wdc.framework.domain.exception.OfflineException;
-import br.com.wdc.shopping.presentation.PlaceAttributes;
-import br.com.wdc.shopping.presentation.PlaceParameters;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
-import br.com.wdc.shopping.presentation.presenter.Routes;
-import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartKeys;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
+import br.com.wdc.shopping.presentation.presenter.restricted.products.calls.ProductQuery;
 
 public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
@@ -25,154 +19,106 @@ public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication>
 
     private static final Log LOG = Log.getLogger(ProductPresenter.class);
 
-    // :: Public Class Fields
-
-    public static Function<ProductPresenter, CubeView> createView;
-
     // :: Public Instance Fields
 
-    public static class ProductViewState implements ViewState {
-
-        public ProductInfo product;
-        public int errorCode;
-        public String errorMessage;
-
-    }
-
-    public final ProductViewState state = new ProductViewState();
+    public final ProductScope state = bind(new ProductScope());
 
     // :: Internal Instance Fields
 
-    private final ProductService productService;
-    private CubeViewSlot ownerSlot;
+    private ScopeSlot ownerSlot;
 
     // Constructor
 
     public ProductPresenter(ShoppingApplication app) {
         super(app);
-        this.productService = new ProductService(app);
+        this.state.onOpenProducts = action(1, () -> new HomeKeys(this.app).flip());
+        this.state.onAddToCart = actionOf(2, FormParam.asInteger("p.quantity"), this::addToCart);
     }
 
     // :: Cube API
 
     @Override
     public boolean applyParameters(CubeIntent intent, boolean initialization, boolean deepest) {
-        var oldProductId = this.state.product != null ? this.state.product.id : null;
+        var keys = new ProductKeys(this.app, intent);
+        var oldProductId = this.state.product.get() != null ? this.state.product.get().id : null;
 
-        var newProductId = intent.getParameterAsLong(PlaceParameters.PRODUCT_ID, oldProductId);
+        var newProductId = keys.productId() != null ? keys.productId() : oldProductId;
         if (newProductId == null) {
-            throw new AssertionError("Missing PRODUCT_ID");
+            // No usable id in the address: nothing to show; go to the home, with the intent in transit
+            new HomeKeys(this.app, intent).flip();
+            return false;
         }
 
-        if (this.state.product == null || !Objects.equals(newProductId, oldProductId)) {
-            var product = productService.loadProductById(newProductId);
-            this.state.product = product;
-            this.update();
+        if (this.state.product.get() == null || !Objects.equals(newProductId, oldProductId)) {
+            var product = new ProductQuery()
+                    .withProductId(newProductId)
+                    .run();
+            this.state.product.set(product);
         }
 
+        // Read on every call: a reused presenter goes where its parent puts it now, not where it was first put
+        this.ownerSlot = keys.parentSlot();
         if (initialization) {
-            this.ownerSlot = intent.getViewSlot(PlaceAttributes.SLOT_OWNER);
 
-            this.state.errorCode = 0;
-            this.state.errorMessage = null;
-            if (this.state.product == null) {
+            this.state.errorCode.set(0);
+            this.state.errorMessage.set(null);
+            if (this.state.product.get() == null) {
                 throw new AssertionError("Missing Product");
             }
-
-            this.view = createView.apply(this);
             this.update();
         }
 
-        this.ownerSlot.setView(this.view);
+        this.ownerSlot.setScope(this.state);
 
         return true;
     }
 
     @Override
     public void publishParameters(CubeIntent intent) {
-        if (this.state.product != null) {
-            intent.setParameter(PlaceParameters.PRODUCT_ID, this.state.product.id);
-        }
+        new ProductKeys(this.app, intent)
+                .withProductId(this.state.product.get() != null ? this.state.product.get().id : null);
     }
 
     // :: User Actions
 
-    public void onAddToCart(Integer quantity) {
-        try {
-            if (quantity == null) {
-                this.errorInvalidQuantity();
-                LOG.warn("onAddToCart.errorInvalidQuantity: {}", this.state.errorMessage);
-                return;
-            }
-
-            if (quantity < 1) {
-                this.alertCartItemWidthLessThanOneItem();
-                LOG.warn("onAddToCart.alertCartItemWidthLessThanOneItem: {}", this.state.errorMessage);
-                return;
-            }
-
-            app.getCart().addProduct(this.state.product, quantity);
-
-            CubeIntent intent = this.app.newIntent();
-            Routes.cart(this.app, intent);
-        } catch (Exception caught) {
-            if (caught instanceof OfflineException) {
-                this.alertDatabaseNotAvailable();
-                LOG.error(this.state.errorMessage, caught);
-                return;
-            }
-
-            app.alertUnexpectedError(LOG, "Adding an item to cart", caught);
+    private void addToCart(Integer quantity) {
+        if (quantity == null) {
+            this.errorInvalidQuantity();
+            LOG.warn("addToCart.errorInvalidQuantity: {}", this.state.errorMessage.get());
+            return;
         }
-    }
 
-    public void onOpenProducts() {
+        if (quantity < 1) {
+            this.alertCartItemWidthLessThanOneItem();
+            LOG.warn("addToCart.alertCartItemWidthLessThanOneItem: {}", this.state.errorMessage.get());
+            return;
+        }
+
         try {
-            Routes.home(this.app);
-        } catch (Exception caught) {
-            this.app.alertUnexpectedError(LOG, "Going to home of restricted place", caught);
+            app.getCart().addProduct(this.state.product.get(), quantity);
+
+            new CartKeys(this.app).flip();
+        } catch (OfflineException caught) {
+            this.alertDatabaseNotAvailable();
+            LOG.error(this.state.errorMessage.get(), caught);
         }
     }
 
     // :: Messages
 
     private void alertDatabaseNotAvailable() {
-        this.state.errorCode = 1;
-        this.state.errorMessage = "Carrinho não acessível. Aguarde alguns instantes e tente novamente.";
-        this.update();
+        this.state.errorCode.set(1);
+        this.state.errorMessage.set("Carrinho não acessível. Aguarde alguns instantes e tente novamente.");
     }
 
     private void alertCartItemWidthLessThanOneItem() {
-        this.state.errorCode = 2;
-        this.state.errorMessage = "A quantidade de itens no carrinho deve ser maior ou igual a 1 (um).";
-        this.update();
+        this.state.errorCode.set(2);
+        this.state.errorMessage.set("A quantidade de itens no carrinho deve ser maior ou igual a 1 (um).");
     }
 
     private void errorInvalidQuantity() {
-        this.state.errorCode = 3;
-        this.state.errorMessage = "Codificação errada da quantidade.";
-        this.update();
-    }
-
-    // :: Controle remoto
-
-    public CubeSkeleton skeleton() {
-        return new CubeSkeleton() {
-
-            @Override
-            public String classId() {
-                return "48b693f67410";
-            }
-
-            @Override
-            public void submit(int eventCode, int eventQtde, Map<String, Object> formData) throws Exception {
-                switch (eventCode) {
-                case 1 -> onOpenProducts();
-                case 2 -> onAddToCart(CoerceUtils.asInteger(formData.get("p.quantity")));
-                default -> new AssertionError("eventCode(" + eventCode + ") not handled");
-                }
-            }
-        };
+        this.state.errorCode.set(3);
+        this.state.errorMessage.set("Codificação errada da quantidade.");
     }
 
 }

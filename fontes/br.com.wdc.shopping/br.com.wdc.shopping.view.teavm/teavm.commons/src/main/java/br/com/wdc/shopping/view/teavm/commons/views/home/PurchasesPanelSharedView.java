@@ -14,7 +14,7 @@ import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
 import org.teavm.jso.dom.html.HTMLElement;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter.PurchasesPanelViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeScope.PurchasesPanelScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
 import br.com.wdc.shopping.view.teavm.commons.DateUtils;
 import br.com.wdc.shopping.view.teavm.commons.SelIcons;
@@ -56,7 +56,7 @@ public class PurchasesPanelSharedView extends SharedVDomView {
 
     // -- External bindings --
 
-    public Supplier<PurchasesPanelViewState> stateSupplier;
+    public Supplier<PurchasesPanelScope> stateSupplier;
     public Consumer<Long> onOpenReceipt;
     public Consumer<Integer> onPageChange;
     public Consumer<Integer> onPageSizeChanged;
@@ -81,7 +81,7 @@ public class PurchasesPanelSharedView extends SharedVDomView {
      */
     public void afterUpdate() {
         var state = stateSupplier.get();
-        if (state.pageSize <= 0) {
+        if (state.pageSize.get() <= 0) {
             Window.requestAnimationFrame(t -> computePageSize());
         }
     }
@@ -99,10 +99,10 @@ public class PurchasesPanelSharedView extends SharedVDomView {
     @Override
     public VNode render() {
         var state = stateSupplier.get();
-        var purchases = state.purchases;
-        int page = state.page;
-        int pageSize = Math.max(1, state.pageSize);
-        int totalPages = Math.max(1, (int) Math.ceil((double) state.totalCount / pageSize));
+        var purchases = state.purchases.get();
+        int page = state.page.get();
+        int pageSize = Math.max(1, state.pageSize.get());
+        int totalPages = Math.max(1, (int) Math.ceil((double) state.totalCount.get() / pageSize));
         var pageInfo = (page + 1) + " / " + totalPages;
 
         // @formatter:off

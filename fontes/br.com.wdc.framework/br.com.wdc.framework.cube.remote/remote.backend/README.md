@@ -15,7 +15,7 @@ Gerencia o ciclo de vida de sessões remotas (handshake de segurança, recepçã
 | `RemoteApplicationRegistry` | Registry de instâncias por sessão; cria, localiza e remove `RemoteApplication` por `sessionId`; aplica limite de capacidade |
 | `RemoteViewImpl` | Base abstrata para views remotas: `instanceId`, `markDirty()`, `syncClientToServer()`, `writeState()` |
 | `RemoteBrowserPresenter` | Coordena navegação e dispatch de intent entre views |
-| `ViewStateSerializer` | Serializa ViewStates para JSON (apenas campos dirty) |
+| `ScopeSerializer` | Serializa ViewStates para JSON (apenas campos dirty) |
 | `RemoteAppSecurity` | RSA + SHA256withRSA para assinatura de URLs de navegação |
 | `RemoteDataSecurity` | AES-GCM por sessão, chave derivada via PBKDF2 (250 000 iterações) para dados sensíveis |
 | `RemoteHostModule` | Configura o módulo no container (wiring) |

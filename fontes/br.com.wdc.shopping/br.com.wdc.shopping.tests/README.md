@@ -14,7 +14,7 @@ graph TD
     repository --> RestTests["Rest*RepositoryTest<br/><small>REST via API</small>"]
 
     root --> LoginTest["ShoppingLoginTest.java<br/><small>Fluxo de login</small>"]
-    root --> ServiceTest["ShoppingServiceTest.java<br/><small>Queries e projeções</small>"]
+    root --> CallTest["ShoppingCallTest.java<br/><small>Chamadas da apresentação</small>"]
     root --> WorkflowTest["ShoppingWorkflowTest.java<br/><small>Workflow completo (presentation)</small>"]
 
     root --> mock["mock/"]
@@ -59,15 +59,15 @@ Cada teste parte de um banco limpo com dados de seed (`DBReset`), garantindo det
 | `AbstractPurchaseRepositoryTest` | `PurchaseRepository` | 20 | SQL, REST |
 | `AbstractPurchaseItemRepositoryTest` | `PurchaseItemRepository` | 23 | SQL, REST |
 
-### Testes de serviço (`ShoppingServiceTest`)
+### Testes das chamadas (`ShoppingCallTest`)
 
-Exercitam diretamente os serviços e repositórios do domínio (login, consulta de produtos, compras, recibos) sobre um banco H2 in-memory populado com dados de seed (`DBReset`).
+Exercitam diretamente as chamadas da apresentação (`XxxCall`) e os repositórios do domínio (login, consulta de produtos, compras, recibos) sobre um banco H2 in-memory populado com dados de seed (`DBReset`).
 
 ### Testes de apresentação (`ShoppingLoginTest`, `ShoppingWorkflowTest`)
 
-Simulam a interação do usuário **no nível de apresentação** usando mocks de view. Cada view mock expõe o `state` e o `presenter`, permitindo:
+Simulam a interação do usuário **no nível de apresentação** usando mocks de view. Cada view mock expõe o `state` (o escopo que desenha), permitindo:
 
-1. Chamar ações do presenter como o usuário faria (ex.: `loginView.presenter.onEnter()`)
+1. Disparar as ações do state como o usuário faria (ex.: `loginView.state.onEnter.run("admin", "admin")`)
 2. Inspecionar o estado resultante (ex.: `restrictedView.state.errorCode`)
 3. Navegar entre telas verificando transições (ex.: login → home → produto → carrinho → recibo)
 
@@ -78,30 +78,28 @@ public class ShoppingWorkflowTest extends BasePresentationTest {
 
     @Test
     public void testComprarProduto() throws Exception {
-        Routes.login(this.app);
+        new LoginKeys(this.app).flip();
         var rootView = this.app.getRootView();
 
         // Login
-        var loginView = LoginViewMock.cast(rootView.state.contentView);
-        loginView.state.userName = "admin";
-        loginView.state.password = "admin";
-        loginView.presenter.onEnter();
+        var loginView = LoginViewMock.cast(this.app.viewOf(rootView.state.content.get()));
+        loginView.state.onEnter.run("admin", "admin");
 
-        // Navegar para produto
-        var restrictedView = RestrictedViewMock.cast(rootView.state.contentView);
-        restrictedView.presenter.onOpenProduct(DBReset.PEN_DRIVE2GB_ID);
+        // Navegar para produto (a ação é do painel de produtos da home)
+        var homeView = HomeViewMock.cast(this.app.viewOf(rootView.state.content.get()));
+        homeView.getProductsPanelState().onOpenProduct.run(DBReset.PEN_DRIVE2GB_ID);
 
         // Adicionar ao carrinho
-        var produtoView = ProductViewMock.cast(restrictedView.state.contentView);
-        produtoView.presenter.onAddToCart(1);
+        var produtoView = ProductViewMock.cast(this.app.viewOf(homeView.state.content.get()));
+        produtoView.state.onAddToCart.run(1);
 
         // Finalizar compra
-        var carrinhoView = CartViewMock.cast(restrictedView.state.contentView);
-        carrinhoView.presenter.onBuy();
+        var carrinhoView = CartViewMock.cast(this.app.viewOf(homeView.state.content.get()));
+        carrinhoView.state.onBuy.run();
 
         // Verificar recibo
-        var reciboView = ReceiptViewMock.cast(restrictedView.state.contentView);
-        Assert.assertNotNull(reciboView.state.receipt);
+        var reciboView = ReceiptViewMock.cast(this.app.viewOf(homeView.state.content.get()));
+        Assert.assertNotNull(reciboView.state.receipt.get());
     }
 }
 ```
@@ -118,19 +116,19 @@ Este teste navega por **5 telas** (login → home → produto → carrinho → r
 
 ### `BasePresentationTest`
 
-Estende `BaseBusinessTest` e instancia `ShoppingApplicationMock`, que registra view mocks via `Presenter.createView`.
+Estende `BaseBusinessTest` e instancia `ShoppingApplicationMock`, que entrega à aplicação um catálogo `ScopeViews` com um view mock por classe de escopo (`register(CartScope.class, CartViewMock::new)`). `getRootView()` devolve a view do escopo raiz (`viewOf(getRootPresenter().state)`); as demais se obtêm com `app.viewOf(...)` sobre o escopo que o pai segura (`state.content.get()`).
 
 ### View mocks
 
-Cada mock (`LoginViewMock`, `CartViewMock`, etc.) estende `AbstractViewMock<P>` e expõe:
-- `state` — o `ViewState` do presenter (acesso direto para leitura/escrita)
-- `presenter` — o presenter real para invocar ações
+Cada mock (`LoginViewMock`, `CartViewMock`, etc.) estende `AbstractViewMock<S extends Scope>`, é construído com `(app, scope)` (`new CartViewMock(app, state)`) e expõe:
+- `state` — o escopo que a view desenha (leitura do estado e disparo das ações, como faria o usuário)
+- `app` — a `ShoppingApplicationMock`, para pedir as views dos escopos internos (`app.viewOf(...)`)
 - `cast(CubeView)` — método estático para obter o mock com asserção de tipo
 
 ## Dependências
 
 - `persistence.impl` — repositórios SQL reais
-- `br.com.wdc.shopping.presentation` — presenters e serviços reais
+- `br.com.wdc.shopping.presentation` — presenters e chamadas reais
 - `br.com.wdc.shopping.scripts` — `DBCreate` / `DBReset` para setup do banco
 - `persistence.rest` — controllers REST (para testes REST)
 - `persistence.client` — client REST (OkHttp + Gson)

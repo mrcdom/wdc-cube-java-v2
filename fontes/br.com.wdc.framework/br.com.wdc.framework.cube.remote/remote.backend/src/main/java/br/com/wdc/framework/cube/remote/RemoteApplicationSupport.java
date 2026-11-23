@@ -150,8 +150,13 @@ public class RemoteApplicationSupport {
     }
 
     public void setWsSession(WsContext wsSession) {
+        var attached = wsSession != null && this.wsSession != wsSession;
         this.wsSession = wsSession;
         this.clientIp = wsSession != null ? resolveClientIp(wsSession) : "127.0.0.1";
+        // Views dirtied while there was no socket (the browser's, as the application is born) go out now
+        if (attached && !this.dirtyViewMap.isEmpty()) {
+            host.getRegistry().enqueueDirty(this.getOwnerAsRemoteApp());
+        }
     }
     
     public String getClientIp() {
@@ -576,14 +581,37 @@ public class RemoteApplicationSupport {
                 json.name("states");
                 json.beginArray();
 
-                for (var view : dirtyViews) {
-                    this.lock.lock();
-                    try {
-                        view.presenter().commitComputedState();
-                    } finally {
-                        this.lock.unlock();
+                // The presenters' computed state, once, before any scope is written
+                this.lock.lock();
+                try {
+                    var cubeApp = host.getCubeApp();
+                    if (cubeApp != null) {
+                        cubeApp.commitComputedState();
+                    }
+                    this.browserPresenter.commitComputedState();
+                } finally {
+                    this.lock.unlock();
+                }
+
+                var queue = new java.util.ArrayDeque<RemoteViewImpl>(dirtyViews);
+                var written = new java.util.HashSet<String>();
+                while (!queue.isEmpty()) {
+                    var view = queue.poll();
+                    if (!written.add(view.instanceId())) {
+                        continue;
                     }
                     view.writeState(json);
+
+                    // Views born while writing (a segment or a row drawn for the first time) go in this same
+                    // response: the state just written already refers to them
+                    if (queue.isEmpty()) {
+                        for (var born : this.dirtyViewMap.values()) {
+                            if (!written.contains(born.instanceId())) {
+                                this.dirtyViewMap.remove(born.instanceId());
+                                queue.add(born);
+                            }
+                        }
+                    }
                 }
 
                 json.endArray();

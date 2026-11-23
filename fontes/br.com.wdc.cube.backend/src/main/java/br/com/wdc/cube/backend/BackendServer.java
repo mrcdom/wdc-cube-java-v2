@@ -376,7 +376,7 @@ public class BackendServer {
             return defaults;
         }
         List<String> hosts = Arrays.stream(raw.split(","))
-                .map(String::strip)
+                .map(s -> s.strip())
                 .filter(s -> !s.isEmpty())
                 .toList();
         return hosts.isEmpty() ? defaults : hosts;

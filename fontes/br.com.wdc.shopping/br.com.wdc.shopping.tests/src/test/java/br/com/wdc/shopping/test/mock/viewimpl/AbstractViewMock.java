@@ -2,11 +2,11 @@ package br.com.wdc.shopping.test.mock.viewimpl;
 
 import org.apache.commons.lang3.mutable.MutableInt;
 
-import br.com.wdc.framework.cube.CubePresenter;
 import br.com.wdc.framework.cube.CubeView;
+import br.com.wdc.framework.cube.Scope;
 import br.com.wdc.shopping.test.mock.ShoppingApplicationMock;
 
-public abstract class AbstractViewMock<P extends CubePresenter> implements CubeView {
+public abstract class AbstractViewMock<S extends Scope> implements CubeView {
 
 	public static final MutableInt INSTANCE_ID_GEN = new MutableInt();
 
@@ -20,15 +20,15 @@ public abstract class AbstractViewMock<P extends CubePresenter> implements CubeV
 
 	public final ShoppingApplicationMock app;
 
-	public final P presenter;
+	public final S state;
 
 	/*
 	 * Constructor
 	 */
 
-	protected AbstractViewMock(ShoppingApplicationMock app, P presenter) {
+	protected AbstractViewMock(ShoppingApplicationMock app, S state) {
 		this.app = app;
-		this.presenter = presenter;
+		this.state = state;
 		this.instanceId = String.valueOf(INSTANCE_ID_GEN.incrementAndGet());
 	}
 

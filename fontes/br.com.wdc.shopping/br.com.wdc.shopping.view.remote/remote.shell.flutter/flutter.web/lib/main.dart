@@ -66,7 +66,7 @@ void main() async {
     ),
   );
 
-  // Read initial path from URL hash (e.g. #home?userId=0&sign=abc → home?userId=0&sign=abc)
+  // Read initial path from URL hash (e.g. #home?rt-user=0&sign=abc → home?rt-user=0&sign=abc)
   final hash = web.window.location.hash;
   if (hash.length > 1) {
     coordinator.path = hash.substring(1);

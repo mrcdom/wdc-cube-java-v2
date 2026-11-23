@@ -3,22 +3,22 @@ package br.com.wdc.shopping.view.remote.shell.teavm.views.product;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
-import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter.ProductViewState;
+import br.com.wdc.framework.cube.remote.bridge.teavm.ViewScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
+import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
 import br.com.wdc.shopping.view.teavm.commons.views.product.ProductSharedView;
-import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
-import br.com.wdc.framework.cube.remote.bridge.teavm.ViewScope;
 
 public class ProductView extends AbstractRemoteView {
 
-    public static final String VIEW_ID = "48b693f67410";
+    public static final String VIEW_ID = ProductScope.CLASS_ID;
 
     private static final int ON_BACK = 1;
     private static final int ON_ADD_TO_CART = 2;
 
     private final ProductSharedView shared;
-    private final ProductViewState adaptedState = new ProductViewState();
+    private final ProductScope adaptedState = new ProductScope();
     private final ProductInfo adaptedProduct = new ProductInfo();
 
     public ProductView(String vsid) {
@@ -39,10 +39,10 @@ public class ProductView extends AbstractRemoteView {
         return shared.renderTree();
     }
 
-    private ProductViewState adaptState() {
+    private ProductScope adaptState() {
         ViewScope scope = state();
-        adaptedState.errorMessage = scope.getString("errorMessage");
-        adaptedState.product = adaptProduct(scope);
+        adaptedState.errorMessage.set(scope.getString("errorMessage"));
+        adaptedState.product.set(adaptProduct(scope));
         return adaptedState;
     }
 

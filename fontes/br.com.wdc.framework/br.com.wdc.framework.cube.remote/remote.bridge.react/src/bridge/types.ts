@@ -4,10 +4,9 @@ export type BrowserViewState = {
   contentViewId?: string
   submitting?: boolean
 
-  alertMessage?: {
-    id: number
-    args?: string[]
-  }
+  /** Server alert: 0 = none, -1 = unexpected error */
+  alertId?: number
+  alertArgs?: string[]
 
   error?: {
     delay: number

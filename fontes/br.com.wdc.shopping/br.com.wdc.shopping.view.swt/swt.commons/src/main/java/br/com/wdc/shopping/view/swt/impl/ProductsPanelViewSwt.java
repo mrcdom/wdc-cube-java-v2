@@ -1,6 +1,8 @@
 package br.com.wdc.shopping.view.swt.impl;
 
 import java.util.List;
+import java.util.function.LongConsumer;
+import java.util.function.Supplier;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -12,10 +14,7 @@ import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 
-import java.util.function.LongConsumer;
-import java.util.function.Supplier;
-
-import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter.ProductsPanelViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeScope.ProductsPanelScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
 import br.com.wdc.shopping.view.swt.AbstractViewSwt;
 import br.com.wdc.shopping.view.swt.SwtApp;
@@ -34,7 +33,7 @@ public class ProductsPanelViewSwt extends AbstractViewSwt {
     private static final int CARD_PADDING = 12;
     private static final int GRID_GAP = 16;
 
-    public Supplier<ProductsPanelViewState> stateSupplier;
+    public Supplier<ProductsPanelScope> stateSupplier;
     public LongConsumer onOpenProduct;
 
     private boolean notRendered = true;
@@ -59,7 +58,7 @@ public class ProductsPanelViewSwt extends AbstractViewSwt {
         }
 
         var state = this.stateSupplier != null ? this.stateSupplier.get() : null;
-        var products = state != null ? state.products : null;
+        var products = state != null ? state.products.get() : null;
         int hash = products != null ? products.hashCode() : 0;
         if (hash != this.lastProductsHash) {
             this.lastProductsHash = hash;

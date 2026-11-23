@@ -25,7 +25,6 @@ public class CubeNavigation<T extends CubeApplication> {
 
     private CubeIntent sourceIntent;
 
-    private List<CubePlace> steps;
     private boolean notInterruped;
 
     @SuppressWarnings("unchecked")
@@ -35,19 +34,19 @@ public class CubeNavigation<T extends CubeApplication> {
         this.app = (T) app;
         this.curPresenterMap = app.presenterMap;
         this.newPresenterMap = new HashMap<>();
-        this.steps = new ArrayList<>();
 
         this.sourceIntent = app.newIntent();
     }
 
-    public CubeNavigation<T> step(CubePlace place) {
-        this.steps.add(place);
-        return this;
-    }
-
-    public boolean execute(CubeIntent targetIntent) {
+    /** Walks the path from the root down to the target place, applying the intent to each presenter. */
+    public boolean execute(CubePlace target, CubeIntent targetIntent) {
         try {
-            this.targetPlace = steps.get(steps.size() - 1);
+            if (target.isUnresolved()) {
+                throw new IllegalArgumentException("Cannot navigate to the unresolved place " + target);
+            }
+
+            this.targetPlace = target;
+            var steps = target.getPath();
 
             var result = true;
             var nextPresenters = new ArrayList<PresenterHolder>();
@@ -67,7 +66,7 @@ public class CubeNavigation<T extends CubeApplication> {
                     presenter = newPresenterMap.get(place.getId());
                 }
                 if (presenter == null) {
-                    var newPresenter = place.presenterFactory().apply(this.app);
+                    var newPresenter = place.createPresenter(this.app);
                     newPresenterMap.put(place.getId(), newPresenter);
                     holder.presenter = newPresenter;
                     holder.initialize = true;

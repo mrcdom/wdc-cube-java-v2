@@ -1,21 +1,21 @@
 package br.com.wdc.shopping.view.teavm.views.receipt;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
+import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptScope;
 import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
 import br.com.wdc.shopping.view.teavm.commons.views.receipt.ReceiptSharedView;
 import br.com.wdc.shopping.view.teavm.views.AbstractVDomView;
 
-public class ReceiptView extends AbstractVDomView<ReceiptPresenter> {
+public class ReceiptView extends AbstractVDomView<ReceiptScope> {
 
     private final ReceiptSharedView shared;
 
-    public ReceiptView(ReceiptPresenter presenter) {
-        super("receipt", (ShoppingTeaVMApplication) presenter.app, presenter);
+    public ReceiptView(ShoppingTeaVMApplication app, ReceiptScope state) {
+        super("receipt", app, state);
 
         this.shared = new ReceiptSharedView();
-        this.shared.stateSupplier = () -> presenter.state;
-        this.shared.onBack = () -> safeAction("Back", presenter::onOpenProducts);
+        this.shared.stateSupplier = () -> state;
+        this.shared.onBack = () -> safeAction("Back", state.onOpenProducts::run);
     }
 
     @Override

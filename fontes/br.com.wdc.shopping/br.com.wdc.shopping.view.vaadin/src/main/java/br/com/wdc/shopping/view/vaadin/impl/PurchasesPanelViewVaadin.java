@@ -10,17 +10,14 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter.PurchasesPanelViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeScope.PurchasesPanelScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
 import br.com.wdc.shopping.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.shopping.view.vaadin.ShoppingVaadinApplication;
 import br.com.wdc.shopping.view.vaadin.impl.home.PurchaseItemViewVaadin;
 import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
-public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelPresenter> {
-
-    private final PurchasesPanelViewState state;
+public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelScope> {
 
     private boolean notRendered = true;
     private int itemIdx;
@@ -31,9 +28,8 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelP
     private Button nextButton;
     private VerticalLayout contentArea;
 
-    public PurchasesPanelViewVaadin(PurchasesPanelPresenter presenter) {
-        super("purchases-panel", (ShoppingVaadinApplication) presenter.app, presenter, new VerticalLayout());
-        this.state = presenter.state;
+    public PurchasesPanelViewVaadin(ShoppingVaadinApplication app, PurchasesPanelScope scope) {
+        super("purchases-panel", app, scope, new VerticalLayout());
     }
 
     @Override
@@ -56,13 +52,13 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelP
             this.notRendered = false;
             schedulePageSizeComputation();
         }
-        this.contentSlot.accept(this.state.purchases, this.viewList);
+        this.contentSlot.accept(this.state.purchases.get(), this.viewList);
 
-        int pageSize = Math.max(1, this.state.pageSize);
-        int totalPages = Math.max(1, (int) Math.ceil((double) this.state.totalCount / pageSize));
-        this.pageInfoElm.setText((this.state.page + 1) + " / " + totalPages);
-        this.prevButton.setEnabled(this.state.page > 0);
-        this.nextButton.setEnabled(this.state.page < totalPages - 1);
+        int pageSize = Math.max(1, this.state.pageSize.get());
+        int totalPages = Math.max(1, (int) Math.ceil((double) this.state.totalCount.get() / pageSize));
+        this.pageInfoElm.setText((this.state.page.get() + 1) + " / " + totalPages);
+        this.prevButton.setEnabled(this.state.page.get() > 0);
+        this.nextButton.setEnabled(this.state.page.get() < totalPages - 1);
     }
 
     private void initialRender(VaadinDom dom, VerticalLayout pane0) {
@@ -101,7 +97,7 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelP
                 btn.getStyle().set("color", "#1976d2");
                 btn.getElement().setAttribute("aria-label", "Página anterior");
                 btn.addClickListener(
-                        e -> safeAction("Previous page", () -> this.presenter.onPageChange(this.state.page - 1)));
+                        e -> safeAction("Previous page", () -> this.state.onPageChange.run(this.state.page.get() - 1)));
             });
 
             dom.span(label -> {
@@ -116,17 +112,17 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelP
                 btn.getStyle().set("color", "#1976d2");
                 btn.getElement().setAttribute("aria-label", "Próxima página");
                 btn.addClickListener(
-                        e -> safeAction("Next page", () -> this.presenter.onPageChange(this.state.page + 1)));
+                        e -> safeAction("Next page", () -> this.state.onPageChange.run(this.state.page.get() + 1)));
             });
         });
     }
 
     private PurchaseItemViewVaadin newItemView() {
-        return new PurchaseItemViewVaadin(this.app, this.presenter, this.itemIdx++);
+        return new PurchaseItemViewVaadin(this.app, this.state, this.itemIdx++);
     }
 
-    private void updateItem(PurchaseItemViewVaadin itemView, PurchaseInfo state) {
-        itemView.setState(state, false);
+    private void updateItem(PurchaseItemViewVaadin itemView, PurchaseInfo item) {
+        itemView.setItem(item, false);
         itemView.doUpdate();
     }
 
@@ -167,7 +163,7 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelP
                 BASE_ITEM_HEIGHT_PX, BASE_FONT_SIZE_PX).then(result -> {
                     int ps = result.asInt();
                     if (ps > 0) {
-                        this.presenter.onItemSizeCapacityChanged(ps);
+                        this.state.onItemSizeCapacityChanged.run(ps);
                     }
                 });
 
@@ -175,7 +171,7 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelP
         this.contentArea.getElement().addEventListener("page-size", e -> {
             int ps = e.getEventData().get("event.detail").asInt();
             if (ps > 0) {
-                this.presenter.onItemSizeCapacityChanged(ps);
+                this.state.onItemSizeCapacityChanged.run(ps);
             }
         }).addEventData("event.detail");
     }

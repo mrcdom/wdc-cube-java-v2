@@ -5,13 +5,12 @@ import java.util.Date;
 import org.junit.Assert;
 
 import br.com.wdc.framework.cube.CubeView;
-import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter.ReceiptViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptItem;
 import br.com.wdc.shopping.test.mock.ShoppingApplicationMock;
 
 @SuppressWarnings({ "java:S106", "java:S1192" })
-public class ReceiptViewMock extends AbstractViewMock<ReceiptPresenter> {
+public class ReceiptViewMock extends AbstractViewMock<ReceiptScope> {
 
     public static ReceiptViewMock cast(CubeView view) {
         var cls = ReceiptViewMock.class;
@@ -21,15 +20,12 @@ public class ReceiptViewMock extends AbstractViewMock<ReceiptPresenter> {
         return (ReceiptViewMock) view;
     }
 
-    public ReceiptViewState state;
-
-    public ReceiptViewMock(ReceiptPresenter presenter) {
-        super(((ShoppingApplicationMock) presenter.app), presenter);
-        this.state = presenter.state;
+    public ReceiptViewMock(ShoppingApplicationMock app, ReceiptScope state) {
+        super(app, state);
     }
 
     public void printRecibo() {
-        if (this.state.notifySuccess) {
+        if (this.state.notifySuccess.get()) {
             System.out.println("Compra efetuada com sucesso");
             System.out.println();
         }
@@ -39,15 +35,15 @@ public class ReceiptViewMock extends AbstractViewMock<ReceiptPresenter> {
         System.out.println("------------------------------------------------------------");
         System.out.println("WeDoCode Shopping - SUA COMPRA CERTA NA INTERNET");
         System.out.println("Recibo de compra");
-        System.out.println("Data: " + new Date(this.state.receipt.date));
+        System.out.println("Data: " + new Date(this.state.receipt.get().date));
         System.out.println("------------------------------------------------------------");
-        for (final ReceiptItem item : this.state.receipt.items) {
+        for (final ReceiptItem item : this.state.receipt.get().items) {
             System.out.print(item.description);
             System.out.print("(" + item.quantity + ")=R$ ");
             System.out.println(item.value);
         }
         System.out.println("------------------------------------------------------------");
-        System.out.println("TOTAL: " + this.state.receipt.total);
+        System.out.println("TOTAL: " + this.state.receipt.get().total);
 
     }
 

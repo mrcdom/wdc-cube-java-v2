@@ -68,21 +68,26 @@ VaadinDom.render(rootLayout, (dom, pane) -> {
 });
 ```
 
-### Registro de View Factories
+### Catálogo de Views (`ScopeViews`)
 
 ```java
-static {
-    RootPresenter.createView = RootViewVaadin::new;
-    LoginPresenter.createView = LoginViewVaadin::new;
-    HomePresenter.createView = HomeViewVaadin::new;
-    CartPresenter.createView = CartViewVaadin::new;
-    ProductPresenter.createView = ProductViewVaadin::new;
-    ReceiptPresenter.createView = ReceiptViewVaadin::new;
+private static final ScopeViews SCOPE_VIEWS = new ScopeViews()
+        .register(RootScope.class, RootViewVaadin::new)
+        .register(LoginScope.class, LoginViewVaadin::new)
+        .register(HomeScope.class, HomeViewVaadin::new)
+        .register(ProductScope.class, ProductViewVaadin::new)
+        .register(CartScope.class, CartViewVaadin::new)
+        .register(ReceiptScope.class, ReceiptViewVaadin::new)
+        // ... segmentos e linhas (ProductsPanelScope, PurchasesPanelScope, CartItemScope)
+        ;
+
+public ShoppingVaadinApplication(UI ui) {
+    this.setScopeViews(SCOPE_VIEWS);
     // ...
 }
 ```
 
-Cada construtor de View recebe apenas o Presenter (que já carrega a referência `app`), permitindo o uso de method references. O Presenter nunca sabe qual tecnologia de UI está sendo usada.
+Cada construtor de View recebe a aplicação e o escopo que desenha — `public CartViewVaadin(ShoppingVaadinApplication app, CartScope state)` —, permitindo o uso de method references. O Presenter nunca sabe qual tecnologia de UI está sendo usada: ele só preenche o escopo.
 
 ## Estrutura
 
@@ -92,7 +97,7 @@ graph TD
 
     subgraph Main["src/main/java/.../view/vaadin/"]
         VaadinMain["ShoppingVaadinMain.java<br/><small>Entry point (Jetty)</small>"]
-        VaadinApp["ShoppingVaadinApplication.java<br/><small>CubeApp + view factories</small>"]
+        VaadinApp["ShoppingVaadinApplication.java<br/><small>CubeApp + catálogo de views (ScopeViews)</small>"]
         MainLayout["MainLayout.java<br/><small>@Route</small>"]
         AppShell["AppShell.java<br/><small>@Push + tema Lumo</small>"]
         AbstractV["AbstractViewVaadin.java<br/><small>Base CubeView</small>"]
@@ -195,20 +200,9 @@ O `@Push(PushMode.AUTOMATIC)` no `AppShell` habilita push via Atmosphere/WebSock
 
 A integração entre o Vaadin e a camada de apresentação (Cube MVP) resolve o desafio de conectar um framework server-side push-based ao ciclo de atualização do Cube:
 
-### 1. View Factories (registro estático)
+### 1. Catálogo de views por escopo
 
-Cada Presenter declara um campo estático `createView` preenchido pelo `ShoppingVaadinApplication`:
-
-```java
-static {
-    RootPresenter.createView = RootViewVaadin::new;
-    LoginPresenter.createView = LoginViewVaadin::new;
-    HomePresenter.createView = HomeViewVaadin::new;
-    // ...
-}
-```
-
-Cada construtor recebe apenas o Presenter e faz `(ShoppingVaadinApplication) presenter.app` internamente.
+O `ShoppingVaadinApplication` monta um `ScopeViews` (classe do escopo → construtor da view) e o entrega no construtor com `setScopeViews(...)`. A aplicação cria cada view na primeira vez que ela é pedida com `viewOf(scope)`: o host pede a do escopo raiz (`viewOf(getRootPresenter().state)` no `updateHistory`), e cada view pede as dos escopos que segura — a `HomeViewVaadin`, por exemplo, faz `app.viewOf(state.content.get())` para o conteúdo e `app.viewOf(state.productsPanel.get())` para o painel.
 
 ### 2. Flush via ui.access() (Server Push)
 
@@ -222,7 +216,7 @@ sequenceDiagram
     participant UI as Vaadin UI (EDT)
     participant B as Browser
 
-    P->>V: view.update()
+    P->>V: Prop.set() → view.update()
     V->>A: markDirty(this)
     A->>UI: ui.access(flushDirtyViews)
     UI->>V: doUpdate()
@@ -251,9 +245,9 @@ public void doUpdate() {
         this.notRendered = false;
     }
 
-    if (!Objects.equals(this.oldNickName, this.state.nickName)) {
-        this.nickNameElm.setText(this.state.nickName);
-        this.oldNickName = this.state.nickName;
+    if (!Objects.equals(this.oldNickName, this.state.nickName.get())) {
+        this.nickNameElm.setText(this.state.nickName.get());
+        this.oldNickName = this.state.nickName.get();
     }
 }
 ```
@@ -269,7 +263,7 @@ VaadinDom.render(rootLayout, (dom, pane) -> {
         dom.button(btn -> {
             btn.setText("Comprar");
             btn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-            btn.addClickListener(e -> safeAction("Buy", presenter::onBuy));
+            btn.addClickListener(e -> safeAction("Buy", state.onBuy::run));
         });
     });
 });
@@ -284,13 +278,13 @@ VaadinDom.render(rootLayout, (dom, pane) -> {
 
 ### 5. Sincronização de Listas (newListSlot)
 
-O mecanismo `newListSlot` sincroniza uma lista de dados (do ViewState) com views filhas (componentes Vaadin), reutilizando instâncias existentes:
+O mecanismo `newListSlot` sincroniza uma lista de dados (do Scope) com views filhas (componentes Vaadin), reutilizando instâncias existentes:
 
 ```java
 this.contentSlot = this.newListSlot(container, this::newItemView, this::updateItem);
 
 // Na doUpdate:
-this.contentSlot.accept(this.state.products, this.itemViewList);
+this.contentSlot.accept(this.state.products.get(), this.itemViewList);
 ```
 
 A operação `container.remove(view.getElement())` e `container.add(view.getElement())` do Vaadin é O(1) no servidor; o delta é enviado ao browser via push.
@@ -307,7 +301,7 @@ protected void safeAction(String context, Runnable action) {
 }
 ```
 
-Captura exceções em listeners Vaadin e exibe `Notification.show()` com a mensagem de erro.
+Captura exceções do próprio código do listener Vaadin e exibe `Notification.show()` com a mensagem de erro. A falha de uma ação do presenter não chega aqui: a ação é guardada no presenter (`action(...)`).
 
 ### 7. Restauração de Estado (F5 / refresh)
 
@@ -348,7 +342,7 @@ http://localhost:8080/#intent?sign=<Base62>
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Created: Presenter.createView()
+    [*] --> Created: app.viewOf(scope)
     Created --> FirstUpdate: app.markDirty()
     FirstUpdate --> Rendered: doUpdate() → buildUI via VaadinDom
     Rendered --> Dirty: presenter muda estado → view.update()
@@ -356,7 +350,7 @@ stateDiagram-v2
     Reconciled --> Dirty: nova mudança
     Reconciled --> Recreated: F5 → reattach() → recreate()
     Recreated --> Rendered: doUpdate() reconstrói componentes
-    Reconciled --> [*]: presenter.release()
+    Reconciled --> [*]: presenter.release() → app.releaseView(scope)
 ```
 
 ## Conclusão

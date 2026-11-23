@@ -5,16 +5,15 @@ import java.util.Date;
 import org.junit.Assert;
 
 import br.com.wdc.framework.cube.CubeView;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeViewState;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter.ProductsPanelViewState;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter.PurchasesPanelViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeScope.ProductsPanelScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeScope.PurchasesPanelScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
 import br.com.wdc.shopping.test.mock.ShoppingApplicationMock;
 
 @SuppressWarnings("java:S106")
-public class HomeViewMock extends AbstractViewMock<HomePresenter> {
+public class HomeViewMock extends AbstractViewMock<HomeScope> {
 
     public static HomeViewMock cast(CubeView view) {
         var cls = HomeViewMock.class;
@@ -24,27 +23,24 @@ public class HomeViewMock extends AbstractViewMock<HomePresenter> {
         return (HomeViewMock) view;
     }
 
-    public HomeViewState state;
-
-    public HomeViewMock(HomePresenter presenter) {
-        super(((ShoppingApplicationMock) presenter.app), presenter);
-        this.state = presenter.state;
+    public HomeViewMock(ShoppingApplicationMock app, HomeScope state) {
+        super(app, state);
     }
 
-    public ProductsPanelViewState getProductsPanelState() {
-        return ProductsPanelViewMock.cast(this.state.productsPanelView).state;
+    public ProductsPanelScope getProductsPanelState() {
+        return ProductsPanelViewMock.cast(this.app.viewOf(this.state.productsPanel.get())).state;
     }
 
-    public PurchasesPanelViewState getPurchasesPanelState() {
-        return PurchasesPanelViewMock.cast(this.state.purchasesPanelView).state;
+    public PurchasesPanelScope getPurchasesPanelState() {
+        return PurchasesPanelViewMock.cast(this.app.viewOf(this.state.purchasesPanel.get())).state;
     }
 
     public void render() {
-        System.out.println("Seja bem vindo, " + this.state.nickName + "!");
+        System.out.println("Seja bem vindo, " + this.state.nickName.get() + "!");
 
         System.out.println();
 
-        System.out.println("Carrinho[" + this.state.cartItemCount + "]");
+        System.out.println("Carrinho[" + this.state.cartItemCount.get() + "]");
         System.out.println();
 
         this.printCompras();
@@ -55,7 +51,7 @@ public class HomeViewMock extends AbstractViewMock<HomePresenter> {
 
     public void printCompras() {
         var purchasesState = this.getPurchasesPanelState();
-        for (final PurchaseInfo compra : purchasesState.purchases) {
+        for (final PurchaseInfo compra : purchasesState.purchases.get()) {
             System.out.println("COMPRA #" + compra.id);
             System.out.println("Data da compra: " + new Date(compra.date));
             System.out.println("Itens adquiridos: " + compra.items);
@@ -67,7 +63,7 @@ public class HomeViewMock extends AbstractViewMock<HomePresenter> {
 
     public void printProdutos() {
         var productsState = this.getProductsPanelState();
-        for (final ProductInfo produto : productsState.products) {
+        for (final ProductInfo produto : productsState.products.get()) {
             System.out.print("PRODUTO #" + produto.id);
             System.out.print("{nome: ");
             System.out.print(produto.name);

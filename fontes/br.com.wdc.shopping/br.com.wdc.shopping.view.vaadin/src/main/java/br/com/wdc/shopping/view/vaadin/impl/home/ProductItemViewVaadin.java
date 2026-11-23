@@ -7,16 +7,16 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeScope.ProductsPanelScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
 import br.com.wdc.shopping.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.shopping.view.vaadin.ShoppingVaadinApplication;
 import br.com.wdc.shopping.view.vaadin.util.ResourceCatalog;
 import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
-public class ProductItemViewVaadin extends AbstractViewVaadin<ProductsPanelPresenter> {
+public class ProductItemViewVaadin extends AbstractViewVaadin<ProductsPanelScope> {
 
-    private ProductInfo state;
+    private ProductInfo item;
 
     private boolean notRendered = true;
     private Image imageElm;
@@ -26,12 +26,12 @@ public class ProductItemViewVaadin extends AbstractViewVaadin<ProductsPanelPrese
     private Span priceElm;
     private double priceOldValue;
 
-    public ProductItemViewVaadin(ShoppingVaadinApplication app, ProductsPanelPresenter presenter, int idx) {
-        super("product-item-" + idx, app, presenter, new Div());
+    public ProductItemViewVaadin(ShoppingVaadinApplication app, ProductsPanelScope panel, int idx) {
+        super("product-item-" + idx, app, panel, new Div());
     }
 
-    public void setState(ProductInfo state, boolean scheduleUpdate) {
-        this.state = state;
+    public void setItem(ProductInfo item, boolean scheduleUpdate) {
+        this.item = item;
         if (scheduleUpdate) {
             this.update();
         }
@@ -44,19 +44,19 @@ public class ProductItemViewVaadin extends AbstractViewVaadin<ProductsPanelPrese
             this.notRendered = false;
         }
 
-        if (!Objects.equals(this.imageOldValue, this.state.image)) {
-            this.imageElm.setSrc(ResourceCatalog.getImageResource(this.state.image));
-            this.imageOldValue = this.state.image;
+        if (!Objects.equals(this.imageOldValue, this.item.image)) {
+            this.imageElm.setSrc(ResourceCatalog.getImageResource(this.item.image));
+            this.imageOldValue = this.item.image;
         }
 
-        if (!Objects.equals(this.nameOldValue, this.state.name)) {
-            this.nameElm.setText(this.state.name);
-            this.nameOldValue = this.state.name;
+        if (!Objects.equals(this.nameOldValue, this.item.name)) {
+            this.nameElm.setText(this.item.name);
+            this.nameOldValue = this.item.name;
         }
 
-        if (this.priceOldValue != this.state.price) {
-            this.priceElm.setText("R$ " + NumberFormat.getInstance().format(this.state.price));
-            this.priceOldValue = this.state.price;
+        if (this.priceOldValue != this.item.price) {
+            this.priceElm.setText("R$ " + NumberFormat.getInstance().format(this.item.price));
+            this.priceOldValue = this.item.price;
         }
     }
 
@@ -66,7 +66,7 @@ public class ProductItemViewVaadin extends AbstractViewVaadin<ProductsPanelPrese
                 .set("flex", "1 1 calc(50% - 12px)")
                 .set("min-width", "250px")
                 .set("max-width", "calc(50% - 12px)");
-        pane0.addClickListener(e -> safeAction("Open product", () -> this.presenter.onOpenProduct(this.state.id)));
+        pane0.addClickListener(e -> safeAction("Open product", () -> this.state.onOpenProduct.run(this.item.id)));
 
         dom.verticalLayout(pane1 -> {
             pane1.addClassName("product-selection-item");
@@ -78,8 +78,8 @@ public class ProductItemViewVaadin extends AbstractViewVaadin<ProductsPanelPrese
                     img.setHeight("140px");
                     img.getStyle().set("object-fit", "contain");
                     this.imageElm = img;
-                    this.imageElm.setSrc(ResourceCatalog.getImageResource(this.state.image));
-                    this.imageOldValue = this.state.image;
+                    this.imageElm.setSrc(ResourceCatalog.getImageResource(this.item.image));
+                    this.imageOldValue = this.item.image;
                 });
             });
 
@@ -88,14 +88,14 @@ public class ProductItemViewVaadin extends AbstractViewVaadin<ProductsPanelPrese
                 dom.span(label -> {
                     label.addClassName("label-name");
                     this.nameElm = label;
-                    this.nameElm.setText(this.state.name);
-                    this.nameOldValue = this.state.name;
+                    this.nameElm.setText(this.item.name);
+                    this.nameOldValue = this.item.name;
                 });
                 dom.span(label -> {
                     label.addClassName("label-price");
                     this.priceElm = label;
-                    this.priceElm.setText("R$ " + NumberFormat.getInstance().format(this.state.price));
-                    this.priceOldValue = this.state.price;
+                    this.priceElm.setText("R$ " + NumberFormat.getInstance().format(this.item.price));
+                    this.priceOldValue = this.item.price;
                 });
             });
         });

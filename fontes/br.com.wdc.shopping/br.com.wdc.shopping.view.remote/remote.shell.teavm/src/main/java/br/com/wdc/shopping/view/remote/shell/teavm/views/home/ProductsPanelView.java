@@ -5,21 +5,21 @@ import java.util.List;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter.ProductsPanelViewState;
+import br.com.wdc.framework.cube.remote.bridge.teavm.ViewScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
+import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
 import br.com.wdc.shopping.view.teavm.commons.views.home.ProductsPanelSharedView;
-import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
-import br.com.wdc.framework.cube.remote.bridge.teavm.ViewScope;
 
 public class ProductsPanelView extends AbstractRemoteView {
 
-    public static final String VIEW_ID = "a1b2c3d4e5f6";
+    public static final String VIEW_ID = HomeScope.ProductsPanelScope.CLASS_ID;
 
     private static final int ON_OPEN_PRODUCT = 1;
 
     private final ProductsPanelSharedView shared;
-    private final ProductsPanelViewState adaptedState = new ProductsPanelViewState();
+    private final HomeScope.ProductsPanelScope adaptedState = new HomeScope.ProductsPanelScope();
 
     public ProductsPanelView(String vsid) {
         super(vsid);
@@ -37,9 +37,9 @@ public class ProductsPanelView extends AbstractRemoteView {
         return shared.renderTree();
     }
 
-    private ProductsPanelViewState adaptState() {
+    private HomeScope.ProductsPanelScope adaptState() {
         ViewScope scope = state();
-        adaptedState.products = getProducts(scope);
+        adaptedState.products.set(getProducts(scope));
         return adaptedState;
     }
 

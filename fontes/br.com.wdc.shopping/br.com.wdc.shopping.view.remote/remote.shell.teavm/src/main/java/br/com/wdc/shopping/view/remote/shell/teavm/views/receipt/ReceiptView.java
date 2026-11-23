@@ -5,22 +5,22 @@ import java.util.List;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
-import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter.ReceiptViewState;
+import br.com.wdc.framework.cube.remote.bridge.teavm.ViewScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptForm;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptItem;
+import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
 import br.com.wdc.shopping.view.teavm.commons.views.receipt.ReceiptSharedView;
-import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
-import br.com.wdc.framework.cube.remote.bridge.teavm.ViewScope;
 
 public class ReceiptView extends AbstractRemoteView {
 
-    public static final String VIEW_ID = "e8d0bd8ae3bc";
+    public static final String VIEW_ID = ReceiptScope.CLASS_ID;
 
     private static final int ON_BACK = 1;
 
     private final ReceiptSharedView shared;
-    private final ReceiptViewState adaptedState = new ReceiptViewState();
+    private final ReceiptScope adaptedState = new ReceiptScope();
 
     public ReceiptView(String vsid) {
         super(vsid);
@@ -35,10 +35,10 @@ public class ReceiptView extends AbstractRemoteView {
         return shared.renderTree();
     }
 
-    private ReceiptViewState adaptState() {
+    private ReceiptScope adaptState() {
         ViewScope scope = state();
-        adaptedState.notifySuccess = scope.getBoolean("notifySuccess");
-        adaptedState.receipt = adaptReceipt(scope);
+        adaptedState.notifySuccess.set(scope.getBoolean("notifySuccess"));
+        adaptedState.receipt.set(adaptReceipt(scope));
         return adaptedState;
     }
 

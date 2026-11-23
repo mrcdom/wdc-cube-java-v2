@@ -5,14 +5,14 @@ import java.util.Collections;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter.ProductsPanelViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.impl.ProductsPanelViewSwt;
 
 class ProductsPanelViewSwtRemote extends ProductsPanelViewSwt {
 	
-	public static final String CID = "a1b2c3d4e5f6";
+	public static final String CID = HomeScope.ProductsPanelScope.CLASS_ID;
 
 	final String vsid;
 	final RemoteViewContext ctx;
@@ -29,12 +29,12 @@ class ProductsPanelViewSwtRemote extends ProductsPanelViewSwt {
 		this.ctx.submitEvent(this.vsid, 1, Map.of("p.productId", id));
 	}
 
-	private ProductsPanelViewState stateSupplierImpl() {
+	private HomeScope.ProductsPanelScope stateSupplierImpl() {
 		var s = this.ctx.viewState(this.vsid);
 		if (s == null) {
 			return null;
 		}
-		var state = new ProductsPanelViewState();
+		var state = new HomeScope.ProductsPanelScope();
 		var rawList = s.getList("products");
 		if (!rawList.isEmpty()) {
 			var products = new ArrayList<ProductInfo>(rawList.size());
@@ -46,9 +46,9 @@ class ProductsPanelViewSwtRemote extends ProductsPanelViewSwt {
 				p.image = (String) raw.get("image");
 				products.add(p);
 			}
-			state.products = products;
+			state.products.set(products);
 		} else {
-			state.products = Collections.emptyList();
+			state.products.set(Collections.emptyList());
 		}
 		return state;
 	}

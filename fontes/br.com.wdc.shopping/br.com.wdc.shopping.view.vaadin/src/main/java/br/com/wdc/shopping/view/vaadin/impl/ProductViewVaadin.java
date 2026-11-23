@@ -13,16 +13,13 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter.ProductViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductScope;
 import br.com.wdc.shopping.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.shopping.view.vaadin.ShoppingVaadinApplication;
 import br.com.wdc.shopping.view.vaadin.util.ResourceCatalog;
 import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
-public class ProductViewVaadin extends AbstractViewVaadin<ProductPresenter> {
-
-    private final ProductViewState state;
+public class ProductViewVaadin extends AbstractViewVaadin<ProductScope> {
 
     private boolean notRendered = true;
     private Span nameElm1;
@@ -36,9 +33,8 @@ public class ProductViewVaadin extends AbstractViewVaadin<ProductPresenter> {
     private Div descriptionElm;
     private String descriptionOldValue;
 
-    public ProductViewVaadin(ProductPresenter presenter) {
-        super("product", (ShoppingVaadinApplication) presenter.app, presenter, new VerticalLayout());
-        this.state = presenter.state;
+    public ProductViewVaadin(ShoppingVaadinApplication app, ProductScope state) {
+        super("product", app, state, new VerticalLayout());
     }
 
     @Override
@@ -64,33 +60,34 @@ public class ProductViewVaadin extends AbstractViewVaadin<ProductPresenter> {
             this.notRendered = false;
         }
 
-        if (!Objects.equals(this.nameOldValue, this.state.product.name)) {
-            this.nameElm1.setText(this.state.product.name);
-            this.nameElm2.setText(this.state.product.name);
-            this.nameOldValue = this.state.product.name;
+        if (!Objects.equals(this.nameOldValue, this.state.product.get().name)) {
+            this.nameElm1.setText(this.state.product.get().name);
+            this.nameElm2.setText(this.state.product.get().name);
+            this.nameOldValue = this.state.product.get().name;
         }
 
-        if (!Objects.equals(this.imageOldValue, this.state.product.image)) {
-            this.imageElm.setSrc(ResourceCatalog.getImageResource(this.state.product.image));
-            this.imageOldValue = this.state.product.image;
+        if (!Objects.equals(this.imageOldValue, this.state.product.get().image)) {
+            this.imageElm.setSrc(ResourceCatalog.getImageResource(this.state.product.get().image));
+            this.imageOldValue = this.state.product.get().image;
         }
 
-        if (this.priceOldValue != this.state.product.price) {
-            this.priceElm.setText(NumberFormat.getCurrencyInstance().format(this.state.product.price));
-            this.priceOldValue = this.state.product.price;
+        if (this.priceOldValue != this.state.product.get().price) {
+            this.priceElm.setText(NumberFormat.getCurrencyInstance().format(this.state.product.get().price));
+            this.priceOldValue = this.state.product.get().price;
         }
 
-        if (!Objects.equals(this.descriptionOldValue, this.state.product.description)) {
+        if (!Objects.equals(this.descriptionOldValue, this.state.product.get().description)) {
             this.descriptionElm.getElement().setProperty("innerHTML",
-                    this.state.product.description != null ? this.state.product.description : "");
-            this.descriptionOldValue = this.state.product.description;
+                    this.state.product.get().description != null ? this.state.product.get().description : "");
+            this.descriptionOldValue = this.state.product.get().description;
         }
 
-        if (this.state.errorCode != 0) {
-            Notification.show(this.state.errorMessage, 5000, Notification.Position.TOP_CENTER)
+        if (this.state.errorCode.get() != 0) {
+            Notification.show(this.state.errorMessage.get(), 5000, Notification.Position.TOP_CENTER)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
-            this.state.errorCode = 0;
-            this.state.errorMessage = null;
+            // Consumed while drawing: a redraw now would take the message away
+            this.state.errorCode.setSilently(0);
+            this.state.errorMessage.setSilently(null);
         }
     }
 
@@ -104,8 +101,8 @@ public class ProductViewVaadin extends AbstractViewVaadin<ProductPresenter> {
         dom.h3(h -> {
             this.nameElm1 = new Span();
             this.nameElm2 = new Span();
-            this.nameElm2.setText(this.state.product.name);
-            this.nameElm1.setText(this.state.product.name);
+            this.nameElm2.setText(this.state.product.get().name);
+            this.nameElm1.setText(this.state.product.get().name);
             h.add(this.nameElm2);
             h.getStyle().set("margin", "var(--lumo-space-xs) 0");
         });
@@ -132,8 +129,8 @@ public class ProductViewVaadin extends AbstractViewVaadin<ProductPresenter> {
 
             this.priceElm = new Span();
             this.priceElm.addClassName("lbl-price-val");
-            this.priceElm.setText(NumberFormat.getCurrencyInstance().format(this.state.product.price));
-            this.priceOldValue = this.state.product.price;
+            this.priceElm.setText(NumberFormat.getCurrencyInstance().format(this.state.product.get().price));
+            this.priceOldValue = this.state.product.get().price;
             infoPanel.add(this.priceElm);
 
             var actionRow = new com.vaadin.flow.component.orderedlayout.HorizontalLayout();
@@ -159,8 +156,8 @@ public class ProductViewVaadin extends AbstractViewVaadin<ProductPresenter> {
 
             // Right: product image
             this.imageElm = new com.vaadin.flow.component.html.Image();
-            this.imageElm.setSrc(ResourceCatalog.getImageResource(this.state.product.image));
-            this.imageOldValue = this.state.product.image;
+            this.imageElm.setSrc(ResourceCatalog.getImageResource(this.state.product.get().image));
+            this.imageOldValue = this.state.product.get().image;
             this.imageElm.getStyle()
                     .set("flex", "0 0 auto")
                     .set("width", "240px")
@@ -185,10 +182,10 @@ public class ProductViewVaadin extends AbstractViewVaadin<ProductPresenter> {
             descDiv.addClassName("description");
             descDiv.setWidthFull();
             this.descriptionElm = descDiv;
-            if (this.state.product.description != null) {
-                descDiv.getElement().setProperty("innerHTML", this.state.product.description);
+            if (this.state.product.get().description != null) {
+                descDiv.getElement().setProperty("innerHTML", this.state.product.get().description);
             }
-            this.descriptionOldValue = this.state.product.description;
+            this.descriptionOldValue = this.state.product.get().description;
         });
 
         // Back button - bottom
@@ -198,7 +195,7 @@ public class ProductViewVaadin extends AbstractViewVaadin<ProductPresenter> {
             button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
             button.addClassName("back-button");
             button.getStyle().set("margin-top", "var(--lumo-space-m)");
-            button.addClickListener(e -> safeAction("Open products", this.presenter::onOpenProducts));
+            button.addClickListener(e -> safeAction("Open products", this.state.onOpenProducts::run));
         });
     }
 
@@ -207,6 +204,6 @@ public class ProductViewVaadin extends AbstractViewVaadin<ProductPresenter> {
         if (quantity == null || quantity < 1) {
             quantity = 1;
         }
-        this.presenter.onAddToCart(quantity);
+        this.state.onAddToCart.run(quantity);
     }
 }

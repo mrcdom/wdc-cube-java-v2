@@ -4,6 +4,9 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
+import br.com.wdc.framework.cube.CubeView;
+import br.com.wdc.framework.cube.Scope;
+
 /**
  * Minimal contract that {@link AbstractViewSwt} depends on from its host application.
  * <p>
@@ -52,5 +55,13 @@ public interface SwtApp {
      */
     default void onActionError(String context, Throwable e) {
         // Default: silent — implementations may override to show a dialog
+    }
+
+    /**
+     * The view that draws a scope. The local application makes it through its catalog
+     * ({@code CubeApplication.viewOf}); the remote shell already attached it while rebuilding the scope.
+     */
+    default CubeView viewOf(Scope scope) {
+        return scope != null ? scope.view() : null;
     }
 }

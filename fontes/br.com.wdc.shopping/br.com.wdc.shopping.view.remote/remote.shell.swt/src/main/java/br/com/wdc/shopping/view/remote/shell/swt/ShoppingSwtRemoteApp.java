@@ -2,6 +2,7 @@ package br.com.wdc.shopping.view.remote.shell.swt;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -11,6 +12,7 @@ import java.util.function.Function;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +34,7 @@ import br.com.wdc.shopping.view.swt.util.ProductImageCache;
  * <ol>
  * <li>Connects to the Host via {@link HostClient}</li>
  * <li>Creates SWT views from {@code swt.commons} keyed by classId</li>
- * <li>Supplies each view with a {@code stateSupplier} that translates {@code ViewStateSnapshot} fields into typed ViewState objects</li>
+ * <li>Supplies each view with a {@code stateSupplier} that translates {@code ViewStateSnapshot} fields into typed Scope objects</li>
  * <li>Sends events back to the Host via non-blocking {@code submit()}</li>
  * <li>A background listener thread applies host responses on the UI thread</li>
  * <li>A render timer flushes dirty views at ~60 fps</li>
@@ -58,6 +60,9 @@ public class ShoppingSwtRemoteApp implements SwtApp, RemoteViewContext {
 
 	/** classId → factory(vsid) */
 	private final Map<String, Function<String, AbstractViewSwt>> viewFactories = new ConcurrentHashMap<>();
+
+	/** The host's alert being shown, so that a redraw of the browser does not show it twice. */
+	private int shownAlertId;
 
 	private final AtomicReference<Runnable> renderTimerRunnable = new AtomicReference<>(() -> {
 	});
@@ -161,6 +166,7 @@ public class ShoppingSwtRemoteApp implements SwtApp, RemoteViewContext {
 		this.viewFactories.put(LoginViewSwtRemote.CID, vsid -> new LoginViewSwtRemote(this, vsid, this));
 		this.viewFactories.put(HomeViewSwtRemote.CID, vsid -> new HomeViewSwtRemote(this, vsid, this));
 		this.viewFactories.put(CartViewSwtRemote.CID, vsid -> new CartViewSwtRemote(this, vsid, this));
+		this.viewFactories.put(CartItemViewSwtRemote.CID, vsid -> new CartItemViewSwtRemote(this, vsid, this));
 		this.viewFactories.put(ProductViewSwtRemote.CID, vsid -> new ProductViewSwtRemote(this, vsid, this));
 		this.viewFactories.put(ProductsPanelViewSwtRemote.CID, vsid -> new ProductsPanelViewSwtRemote(this, vsid, this));
 		this.viewFactories.put(PurchasesPanelViewSwtRemote.CID, vsid -> new PurchasesPanelViewSwtRemote(this, vsid, this));
@@ -187,6 +193,8 @@ public class ShoppingSwtRemoteApp implements SwtApp, RemoteViewContext {
 			}
 		}
 
+		this.showHostAlert();
+
 		// Dispose released views
 		for (var vsid : resp.releasedViews()) {
 			var view = this.viewRegistry.remove(vsid);
@@ -198,6 +206,44 @@ public class ShoppingSwtRemoteApp implements SwtApp, RemoteViewContext {
 				});
 			}
 		}
+	}
+
+	/**
+	 * The host's alert (browser {@code alertId}/{@code alertArgs}): shown until dismissed, which tells the host (event 1
+	 * of the browser), whose alert action may run then.
+	 */
+	private void showHostAlert() {
+		var browser = this.viewState(HostClient.BROWSER_VSID);
+		var alertId = browser != null && browser.getLong("alertId") != null ? browser.getLong("alertId").intValue() : 0;
+		if (alertId == 0 || alertId == this.shownAlertId) {
+			this.shownAlertId = alertId;
+			return;
+		}
+		this.shownAlertId = alertId;
+
+		var args = new ArrayList<String>();
+		if (browser.fields().get("alertArgs") instanceof List<?> list) {
+			for (var item : list) {
+				args.add(String.valueOf(item));
+			}
+		}
+		var message = switch (alertId) {
+			case -2 -> "A URI " + (args.isEmpty() ? "" : args.get(0)) + " não está acessível";
+			default -> args.isEmpty() ? "Ocorreu um erro não esperado" : args.get(0);
+		};
+		var detail = args.size() > 1 ? args.get(1) : null;
+
+		this.display.asyncExec(() -> {
+			if (this.shell.isDisposed()) {
+				return;
+			}
+			var box = new MessageBox(this.shell, SWT.ICON_WARNING | SWT.OK);
+			box.setText("Aviso!");
+			box.setMessage(detail != null ? message + "\n\n" + detail : message);
+			box.open();
+			this.shownAlertId = 0;
+			this.submitEvent(HostClient.BROWSER_VSID, 1, Map.of());
+		});
 	}
 
 	private void startListenerThread() {

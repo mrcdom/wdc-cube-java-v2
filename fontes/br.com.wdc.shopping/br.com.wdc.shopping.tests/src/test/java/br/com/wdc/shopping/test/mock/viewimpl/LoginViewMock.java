@@ -3,11 +3,10 @@ package br.com.wdc.shopping.test.mock.viewimpl;
 import org.junit.Assert;
 
 import br.com.wdc.framework.cube.CubeView;
-import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
-import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginViewState;
+import br.com.wdc.shopping.presentation.presenter.open.login.LoginScope;
 import br.com.wdc.shopping.test.mock.ShoppingApplicationMock;
 
-public class LoginViewMock extends AbstractViewMock<LoginPresenter> {
+public class LoginViewMock extends AbstractViewMock<LoginScope> {
 
     public static LoginViewMock cast(CubeView view) {
         var cls = LoginViewMock.class;
@@ -17,11 +16,8 @@ public class LoginViewMock extends AbstractViewMock<LoginPresenter> {
         return (LoginViewMock) view;
     }
 
-    public LoginViewState state;
-
-    public LoginViewMock(LoginPresenter presenter) {
-        super(((ShoppingApplicationMock) presenter.app), presenter);
-        this.state = presenter.state;
+    public LoginViewMock(ShoppingApplicationMock app, LoginScope state) {
+        super(app, state);
     }
 
 }

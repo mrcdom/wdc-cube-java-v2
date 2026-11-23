@@ -8,72 +8,52 @@ Criar um novo módulo envolve alterações em **3 camadas**:
 
 | Camada | Módulo Maven | O que criar |
 |--------|-------------|-------------|
-| **Presentation** | `br.com.wdc.shopping.presentation` | Presenter, ViewState, Service, DTOs |
-| **Skeleton** (backend view) | `remote.host` | ViewImpl (wiring presenter ↔ React) |
+| **Presentation** | `br.com.wdc.shopping.presentation` | Presenter, Scope, Calls, DTOs |
+| **Skeleton** (contrato remoto) | `br.com.wdc.shopping.presentation` | `CLASS_ID` no Scope + código de evento em cada ação (o `remote.host` não registra nada) |
 | **React Client** (frontend) | `remote.shell.react` | Componente React + registro |
 
 ---
 
-## Passo 1 — Presentation: Criar o Presenter e ViewState
+## Passo 1 — Presentation: Criar o Presenter e Scope
 
 ### 1.1 Criar a estrutura de pacotes
 
 ```
 presenter/restricted/wishlist/
 ├── WishlistPresenter.java
-├── WishlistViewState.java
-├── WishlistService.java          (se precisar acessar dados)
+├── WishlistScope.java
+├── WishlistKeys.java
+├── calls/
+│   └── WishlistQuery.java     (se precisar acessar dados)
 └── structs/
     └── WishlistItem.java         (DTOs, se houver)
 ```
 
-### 1.2 Criar o ViewState
+### 1.2 Criar o Scope
 
-O ViewState define quais dados a view vai exibir. Implemente `ViewState` e o método `write()` para serializar em JSON:
+O Scope define o que a view exibe e o que ela dispara. Fica em arquivo próprio, ao lado do presenter, com o `CLASS_ID` do protocolo bridge, um `Prop` por campo observado e uma ação por gesto da view. Um escopo que só existe dentro dele (um painel, a linha de uma lista) é uma classe interna pública estática dele:
 
 ```java
 package br.com.wdc.shopping.presentation.presenter.restricted.wishlist;
 
-import org.apache.commons.lang3.StringUtils;
-import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
-import br.com.wdc.framework.cube.ViewState;
+public class WishlistScope extends Scope {
 
-public class WishlistViewState implements ViewState {
+    // classId do protocolo bridge: o host remoto desenha este escopo com a view remota deste id
+    public static final String CLASS_ID = "d1e2f3a4b5c6";
 
-    public List<WishlistItem> items;
-    public int errorCode;
-    public String errorMessage;
+    // Campos observados: set() de um valor diferente pede o redesenho sozinho
+    public final Prop<List<WishlistItem>> items = prop(List.of());
+    public final Prop<Integer> errorCode = prop(0);
+    public final Prop<String> errorMessage = prop();
 
-    @Override
-    public void write(String instanceId, ExtensibleObjectOutput json) {
-        json.beginObject();
-        {
-            json.name("id").value(instanceId);
+    // Ações que a view dispara — o presenter as liga no construtor
+    public ActionOf<Long> onRemoveItem = ActionOf.noop();
+    public Action onOpenProducts = Action.NOOP;
 
-            json.name("items").beginArray();
-            if (this.items != null) {
-                this.items.forEach(item -> {
-                    json.beginObject();
-                    {
-                        json.name("id").value(item.id);
-                        json.name("name").value(item.name);
-                        json.name("price").value(item.price);
-                    }
-                    json.endObject();
-                });
-            }
-            json.endArray();
-
-            if (StringUtils.isNotBlank(this.errorMessage)) {
-                json.name("errorMessage").value(this.errorMessage);
-            }
-        }
-        json.endObject();
-    }
 }
 ```
 
-> **Regra**: O `write()` deve sempre emitir `json.name("id").value(instanceId)` como primeiro campo. Este é o identificador que o frontend usa para mapear o estado à view correta.
+Não há serialização a escrever: no host remoto o `ScopeSerializer` escreve o escopo por reflexão — `"#"` (o id da view) primeiro, depois o valor de cada `Prop` com o nome do campo (structs com campos públicos viram objetos, listas viram arrays, texto em branco é omitido). Ações ficam de fora: o cliente as dispara pelo código de evento. Um campo que guarda outro escopo sai como `"<campo>ViewId"`, e uma lista de escopos como `"<campo>ViewIds"`.
 
 ### 1.3 Criar o Presenter
 
@@ -82,238 +62,179 @@ O presenter contém a lógica de apresentação. Estenda `AbstractCubePresenter<
 ```java
 package br.com.wdc.shopping.presentation.presenter.restricted.wishlist;
 
-import java.util.function.Function;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubeIntent;
-import br.com.wdc.framework.cube.CubeView;
-import br.com.wdc.framework.cube.CubeViewSlot;
-import br.com.wdc.shopping.presentation.PlaceAttributes;
+import br.com.wdc.framework.cube.FormParam;
+import br.com.wdc.framework.cube.ScopeSlot;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
-import br.com.wdc.shopping.presentation.presenter.Routes;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
 
 public class WishlistPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(WishlistPresenter.class);
-
-    // Factory de view — será injetada pelo skeleton no bloco static {}
-    public static Function<WishlistPresenter, CubeView> createView;
-
-    // Estado público — acessível pela ViewImpl para serialização
-    public final WishlistViewState state = new WishlistViewState();
+    // Estado público — lido pela view (local ou remota); bind liga as ações com código ao skeleton do escopo
+    public final WishlistScope state = bind(new WishlistScope());
 
     // Slot recebido do presenter pai (HomePresenter → contentSlot)
-    private CubeViewSlot ownerSlot;
+    private ScopeSlot ownerSlot;
 
     public WishlistPresenter(ShoppingApplication app) {
         super(app);
+        // O código de evento é o contrato com os clientes remotos (Passo 3.2)
+        this.state.onRemoveItem = actionOf(1, FormParam.asLong("p.itemId"), this::removeItem);
+        this.state.onOpenProducts = action(2, () -> new HomeKeys(this.app).flip());
     }
 
     // :: Cube API
 
     @Override
     public boolean applyParameters(CubeIntent intent, boolean initialization, boolean deepest) {
+        // Lido a cada chamada: um presenter reaproveitado vai para onde o pai o põe a cada navegação
+        this.ownerSlot = new WishlistKeys(this.app, intent).parentSlot();
         if (initialization) {
-            this.ownerSlot = intent.getViewSlot(PlaceAttributes.SLOT_OWNER);
-            this.view = createView.apply(this);
-
-            // Carregar dados iniciais
             this.loadItems();
         }
 
-        this.ownerSlot.setView(this.view);
+        // O pai põe o escopo no seu Prop<Scope> content; a view do pai pede a deste escopo
+        this.ownerSlot.setScope(this.state);
         return true;
     }
 
-    @Override
-    public void publishParameters(CubeIntent intent) {
-        // Publicar parâmetros de URL, se houver
-    }
+    // :: User Actions — corpo das ações ligadas no construtor
 
-    // :: User Actions — métodos chamados pela ViewImpl
-
-    public void onRemoveItem(Long itemId) {
-        try {
-            // lógica de negócio...
-            this.loadItems();
-        } catch (Exception caught) {
-            this.app.alertUnexpectedError(LOG, "Removing wishlist item", caught);
-        }
-    }
-
-    public void onOpenProducts() {
-        try {
-            Routes.home(this.app);
-        } catch (Exception caught) {
-            this.app.alertUnexpectedError(LOG, "Going to home", caught);
-        }
+    private void removeItem(Long itemId) {
+        // lógica de negócio...
+        this.loadItems();
     }
 
     // :: Data load
 
     private void loadItems() {
-        this.state.items = WishlistService.BEAN.loadItems(this.app.getSubject().getId());
-        this.update(); // marca a view como dirty → será enviada ao frontend
+        // A lista nova pede o redesenho (a view será marcada dirty e enviada ao frontend)
+        this.state.items.set(new WishlistQuery()
+                .withUserId(this.app.getSubject().getId())
+                .run());
     }
 }
 ```
 
 **Pontos-chave:**
-- `createView` é `static` e será atribuída pelo skeleton
+- O presenter **não cria view**: entrega o escopo ao pai (`ownerSlot.setScope(this.state)`), e a camada de view de cada host escolhe quem o desenha (`ScopeViews`)
 - `applyParameters()` é chamado pelo sistema de navegação
-- `this.update()` marca a view como "dirty" para envio ao frontend
-- Erros inesperados vão para `app.alertUnexpectedError()`
+- O state é criado com `bind(new WishlistScope())`: `set` de um valor diferente numa `Prop` marca a view como "dirty" para envio ao frontend, sem `this.update()`. Este só é preciso quando se mexe *dentro* de um valor já atribuído (um item de uma lista)
+- Ações são campos do state (`Action`, `ActionOf<T>`, `ActionOf2<T, U>`) ligados no construtor com `action(...)`/`actionOf(...)`/`actionOf2(...)`. A guarda manda a falha não tratada para `app.alertUnexpectedError()` e, ao fim, republica o endereço — o corpo não tem `try/catch` genérico, só trata as falhas esperadas
 - Erros de validação usam `errorCode` + `errorMessage` no state
 
-### 1.4 Criar o Service (opcional)
+### 1.4 Criar as chamadas (opcional)
+
+Cada operação sobre os repositórios é uma classe em `calls/`: a requisição se acumula em setters fluentes `withXxx(...)` e `run()` a responde. Uma leitura é `XxxQuery extends ShoppingQuery<R>`; uma gravação é `XxxSave extends ShoppingSave<R>`, que implementa `save()` — o `run()` da base abre a transação. A raiz `ShoppingCall<R>` traz os acessos protegidos aos repositórios (adicione lá o de um repositório novo, como `wishlistRepository()`).
 
 ```java
-package br.com.wdc.shopping.presentation.presenter.restricted.wishlist;
+package br.com.wdc.shopping.presentation.presenter.restricted.wishlist.calls;
 
-public enum WishlistService {
-    BEAN;
+/** Os itens da lista de desejos de um usuário. */
+public class WishlistQuery extends ShoppingQuery<List<WishlistItem>> {
 
-    public List<WishlistItem> loadItems(Long userId) {
-        // Acessar repositório via BEAN estático
-        return WishlistRepository.BEAN.get()
-            .fetch(new WishlistCriteria().withUserId(userId))
-            .stream().map(WishlistItem::create).toList();
+    private Long userId;
+
+    public WishlistQuery withUserId(Long userId) {
+        this.userId = userId;
+        return this;
+    }
+
+    @Override
+    public List<WishlistItem> run() {
+        return wishlistRepository()
+                .fetch(new WishlistCriteria()
+                        .withUserId(userId))
+                .stream().map(WishlistItem::create).toList();
     }
 }
 ```
+
+A resposta é um tipo que já existe; ou um struct em `structs/`, quando outras chamadas ou o escopo também o usam; ou uma classe interna da chamada, quando só leva a resposta de volta a quem chamou.
 
 ---
 
 ## Passo 2 — Registrar a Rota de Navegação
 
-### 2.1 Adicionar o Place em `Routes.java`
+### 2.1 Criar `WishlistKeys`
+
+Todo place tem uma classe de chaves, no pacote do seu presenter, que **declara o place** e é a única que conhece os nomes que ele lê e escreve no intent. Ela estende as chaves do place pai — abaixo de `HomeKeys`, a wishlist exige autenticação. O nome do place vai no endereço (`#wishlist?...`) e precisa ser único na árvore; o prefixo (duas letras) precisa ser único na aplicação.
 
 ```java
-public enum Place implements CubePlace {
-    ROOT("public", Routes::root, RootPresenter::new),
-    LOGIN("public/login", Routes::login, LoginPresenter::new),
-    HOME("home", Routes::home, HomePresenter::new),
-    CART("cart", Routes::cart, CartPresenter::new),
-    PRODUCT("product", Routes::product, ProductPresenter::new),
-    RECEIPT("receipt", Routes::receipt, ReceiptPresenter::new),
+public final class WishlistKeys extends HomeKeys {
 
-    // NOVO:
-    WISHLIST("wishlist", Routes::wishlist, WishlistPresenter::new);
+    public static final String PREFIX = "wl";
 
-    // ... resto do enum inalterado
+    public static final CubePlace PLACE = HomeKeys.PLACE.child("wishlist", WishlistPresenter::new);
+
+    private static final class P {
+        /** A categoria filtrada. */
+        static final String CATEGORY = PREFIX + "-category";
+    }
+
+    public WishlistKeys(ShoppingApplication app) {
+        this(app, null);
+    }
+
+    public WishlistKeys(ShoppingApplication app, CubeIntent intent) {
+        super(app, intent, PLACE);
+    }
+
+    // Getter que nunca lança (o endereço vem de fora); setter que tira o nome do endereço no valor padrão
+    public String category() { ... }
+    public WishlistKeys withCategory(String category) { ... }
 }
 ```
 
-### 2.2 Adicionar o método de navegação
+### 2.2 Registrar em `ShoppingApplication.PLACES`
 
 ```java
-// :: Wishlist
-
-public static boolean wishlist(ShoppingApplication app) {
-    return wishlist(app, app.newIntent());
-}
-
-public static boolean wishlist(ShoppingApplication app, CubeIntent intent) {
-    //@formatter:off
-    return app.navigate()
-            .step(Place.ROOT)
-            .step(Place.HOME)      // ← nível pai (requer autenticação)
-            .step(Place.WISHLIST)  // ← novo place
-            .execute(intent);
-    //@formatter:on
-}
+public static final List<CubePlace> PLACES = List.of(
+        RootKeys.PLACE,
+        // ...
+        WishlistKeys.PLACE);
 ```
 
-A cadeia de `step()` define o **caminho hierárquico**. O sistema instancia os presenters necessários (Root → Home → Wishlist) e chama `applyParameters` em cada um.
+A lista carrega as classes de chaves — sem ela, um F5 em `#wishlist` cairia na raiz, porque o place só entra na árvore quando `WishlistKeys` carrega. O `PlaceKeysTest` falha se alguma ficar de fora.
+
+O **caminho hierárquico** sai da árvore: `new WishlistKeys(app).flip()` instancia os presenters necessários (Root → Restricted → Home → Wishlist) e chama `applyParameters` em cada um.
 
 ---
 
-## Passo 3 — Skeleton: Criar a ViewImpl (backend)
+## Passo 3 — Skeleton: expor o presenter ao bridge (backend)
 
-### 3.1 Escolher um VIEW_ID (VID)
+### 3.1 Escolher o `CLASS_ID` (classId)
 
-Gere um identificador único de 12 caracteres hexadecimais. Esse VID vincula o backend ao frontend:
+Um identificador hexadecimal de 12 caracteres, único entre os escopos (ex.: `"d1e2f3a4b5c6"`), declarado no próprio escopo como `public static final String CLASS_ID` (Passo 1.2). É o mesmo que os shells remotos usam para achar a view (`VIEW_ID` no TeaVM/SWT, `BaseViewClass.FC` no React).
 
-```
-VID = "d1e2f3a4b5c6"
-```
+### 3.2 Dar um código de evento a cada ação
 
-> **Regra**: O VID deve ser idêntico no Java (`GenericViewImpl`) e no TypeScript (`BaseViewClass.FC`).
+O código vai na própria ligação da ação (Passo 1.3), junto com como ler os valores do `formData` que o cliente envia: `actionOf(1, FormParam.asLong("p.itemId"), this::removeItem)`.
 
-### 3.2 Criar a ViewImpl
+- `FormParam.asLong/asInteger/asString(nome)` cobrem o comum; `FormParam.of(nome, conversão)` cobre um valor que chega codificado (a senha do login chega cifrada).
+- O código é o contrato com os clientes remotos: tem de ser o mesmo nos shells. Um código repetido falha na construção do presenter; um código desconhecido vindo do cliente é erro.
+- As views locais (Vaadin, SWT, teavm.web) não usam o código: chamam `state.onRemoveItem.run(id)` direto.
 
-```java
-package br.com.wdc.shopping.view.remote.host.viewimpl;
+### 3.3 O skeleton
 
-import java.util.Map;
-import br.com.wdc.framework.commons.lang.CoerceUtils;
-import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
-import br.com.wdc.shopping.presentation.ShoppingApplication;
-import br.com.wdc.shopping.presentation.presenter.restricted.wishlist.WishlistPresenter;
-import br.com.wdc.shopping.view.remote.host.util.GenericViewImpl;
+O presenter não declara skeleton: ele é do escopo. Com `bind(...)`, o escopo compartilha o mapa de eventos do presenter, e `scope.skeleton(CLASS_ID)` despacha cada evento para a ação do seu código — quem o pede é a view remota.
 
-public class WishlistReactViewImpl extends GenericViewImpl {
-
-    private static final String VID = "d1e2f3a4b5c6";
-
-    private final WishlistPresenter presenter;
-
-    public WishlistReactViewImpl(WishlistPresenter presenter) {
-        super(presenter.app(), VID);
-        this.presenter = presenter;
-    }
-
-    // Deserializar dados do formulário do frontend para o presenter.state
-    @Override
-    public void syncClientToServer(Map<String, Object> formData) {
-        // Extrair campos que o frontend envia antes de um evento
-        // Exemplo: nada a sincronizar neste caso
-    }
-
-    // Mapear event codes a métodos do presenter
-    @Override
-    public void submit(int eventCode, int eventQtde, Map<String, Object> formData)
-            throws Exception {
-        switch (eventCode) {
-            case 1 -> {
-                var itemId = CoerceUtils.asLong(formData.get("itemId"));
-                this.presenter.onRemoveItem(itemId);
-            }
-            case 2 -> this.presenter.onOpenProducts();
-        }
-    }
-
-    // Serializar o estado do presenter para JSON
-    @Override
-    public void writeState(ExtensibleObjectOutput json) {
-        this.presenter.state.write(this.instanceId, json);
-    }
-}
-```
-
-**Responsabilidades da ViewImpl:**
-- `syncClientToServer()` — deserializa campos do formulário para `presenter.state`
-- `submit(eventCode, ...)` — mapeia event codes numéricos a métodos do presenter
-- `writeState()` — delega a serialização para `presenter.state.write()`
-
-### 3.3 Registrar a factory no bloco static de ApplicationReactImpl
-
-No arquivo `ApplicationReactImpl.java`, adicione no bloco `static {}`:
+Se o cliente também sincroniza campos antes dos eventos, registre o `syncState` no construtor do presenter com `onSync` (como o login faz com o nome do usuário; `setSilently` porque o cliente já mostra o que enviou):
 
 ```java
-static {
-    RootPresenter.createView = RootReactViewImpl::new;
-    LoginPresenter.createView = LoginReactViewImpl::new;
-    HomePresenter.createView = HomeReactViewImpl::new;
-    ProductPresenter.createView = ProductReactViewImpl::new;
-    CartPresenter.createView = CartReactViewImpl::new;
-    ReceiptPresenter.createView = ReceiptReactViewImpl::new;
-
-    // NOVO:
-    WishlistPresenter.createView = WishlistReactViewImpl::new;
-}
+this.state.onSync(formData -> {
+    if (formData.containsKey("userName")) {
+        state.userName.setSilently(CoerceUtils.asString(formData.get("userName")));
+    }
+});
 ```
+
+### 3.4 O host remoto
+
+Nada a registrar: o catálogo de views do `ShoppingApplicationImpl` (`remote.host`) é `new ScopeViews().fallback(RemoteViewImpl::forScope)`, que faz uma view remota para qualquer escopo lendo o `CLASS_ID` dele por reflexão.
+
+O `RemoteViewImpl` serializa o escopo (o valor de cada `Prop`; as ações ficam de fora; um `Prop<Scope>` sai como `"<campo>ViewId"`) e encaminha os eventos ao skeleton do escopo.
 
 ---
 
@@ -331,17 +252,17 @@ import Typography from '@mui/material/Typography'
 import app, { type ViewProps } from '@root/App'
 import { BaseViewClass } from '@root/utils/ViewUtils'
 
-// :: Actions — devem corresponder aos event codes na ViewImpl
+// :: Actions — devem corresponder aos códigos de evento das ações do presenter
 const ON_REMOVE_ITEM = 1
 const ON_OPEN_PRODUCTS = 2
 
-// :: View State — espelha os campos serializados pelo ViewState.write()
-export type WishlistViewState = {
+// :: View State — espelha os campos que o ScopeSerializer escreve do WishlistScope
+export type WishlistScope = {
   items?: { id: number; name: string; price: number }[]
   errorMessage?: string
 }
 
-class WishlistViewClass extends BaseViewClass<ViewProps, WishlistViewState> {
+class WishlistViewClass extends BaseViewClass<ViewProps, WishlistScope> {
 
   override render({ className }: ViewProps): React.ReactNode {
     const { state } = this
@@ -375,14 +296,14 @@ class WishlistViewClass extends BaseViewClass<ViewProps, WishlistViewState> {
   }
 }
 
-// O VID aqui DEVE ser idêntico ao VID no WishlistReactViewImpl.java
+// O VID aqui DEVE ser idêntico ao WishlistScope.CLASS_ID
 export default BaseViewClass.FC(WishlistViewClass, 'd1e2f3a4b5c6')
 ```
 
 **Regras importantes:**
-- Os **event codes** (1, 2, ...) devem corresponder ao `switch` em `ViewImpl.submit()`
-- O **VID** no `BaseViewClass.FC()` deve ser idêntico ao da `GenericViewImpl` no Java
-- O **tipo do state** deve espelhar os campos emitidos por `ViewState.write()`
+- Os **event codes** (1, 2, ...) devem corresponder aos códigos com que o presenter ligou as ações (`action(1, ...)`, `actionOf(2, ...)`)
+- O **VID** no `BaseViewClass.FC()` deve ser idêntico ao `CLASS_ID` do escopo no Java
+- O **tipo do state** deve espelhar os campos que o `ScopeSerializer` escreve do escopo (Passo 1.2)
 - Use `app.setFormField()` para enviar dados antes do `app.submit()`
 
 ### 4.2 Registrar a view
@@ -414,14 +335,9 @@ app.registerComponents(
 Agora você pode navegar para o novo módulo a partir de qualquer presenter:
 
 ```java
-// Em HomePresenter ou qualquer outro presenter
-public void onOpenWishlist() {
-    try {
-        Routes.wishlist(this.app);
-    } catch (Exception caught) {
-        this.app.alertUnexpectedError(LOG, "Going to wishlist", caught);
-    }
-}
+// Em HomePresenter: um campo no state e a ligação no construtor
+public Action onOpenWishlist = Action.NOOP;              // HomeScope
+this.state.onOpenWishlist = action(() -> new WishlistKeys(this.app).flip());
 ```
 
 E no frontend, adicionar um botão ou link que emita o evento correspondente.
@@ -431,65 +347,57 @@ E no frontend, adicionar um botão ou link que emita o evento correspondente.
 ## Resumo — Checklist
 
 - [ ] **Presentation**
-  - [ ] Criar `WishlistViewState implements ViewState` com `write()`
+  - [ ] Criar `WishlistScope extends Scope` (campos `Prop`, criados com `prop(...)`)
   - [ ] Criar `WishlistPresenter extends AbstractCubePresenter<ShoppingApplication>`
-  - [ ] Criar `WishlistService` (enum BEAN) se precisar de dados
+  - [ ] Criar as chamadas em `calls/` (`XxxQuery extends ShoppingQuery<R>`, `XxxSave extends ShoppingSave<R>`) se precisar de dados
   - [ ] Criar DTOs em `structs/` com `projection()` + `create()`
-  - [ ] Adicionar `Place.WISHLIST` em `Routes.java`
-  - [ ] Adicionar método `Routes.wishlist()` com cadeia de steps
+  - [ ] Criar `WishlistKeys extends HomeKeys` (prefixo único, `PLACE = HomeKeys.PLACE.child(...)`)
+  - [ ] Registrar `WishlistKeys.PLACE` em `ShoppingApplication.PLACES`
 
 - [ ] **Skeleton**
-  - [ ] Escolher VID único (12 hex chars)
-  - [ ] Criar `WishlistReactViewImpl extends GenericViewImpl`
-  - [ ] Implementar `syncClientToServer()`, `submit()`, `writeState()`
-  - [ ] Registrar factory em `ApplicationReactImpl` static block
+  - [ ] Declarar `public static final String CLASS_ID` único (12 hex chars) no `WishlistScope`
+  - [ ] Dar um código de evento a cada ação (`action(1, ...)`, `actionOf(2, FormParam..., ...)`)
+  - [ ] `state.onSync(...)` no construtor, se o cliente sincroniza campos
+  - [ ] Em cada host local, registrar a view no `ScopeViews` (`register(WishlistScope.class, WishlistViewVaadin::new)`); o host remoto não registra nada
 
 - [ ] **React Client**
   - [ ] Criar `WishlistView.tsx` com `BaseViewClass.FC(Class, VID)`
-  - [ ] Definir event codes (devem bater com ViewImpl.submit)
-  - [ ] Definir type do state (deve bater com ViewState.write)
+  - [ ] Definir event codes (devem bater com os códigos das ações do presenter)
+  - [ ] Definir type do state (deve bater com os campos do Scope)
   - [ ] Registrar em `index.tsx` via `app.registerComponents()`
 
 ---
 
-## Variante: Presenter Filho (Painel)
+## Variante: Segmento (Painel)
 
-Se o novo módulo for um **painel embutido** dentro de outra view (como ProductsPanel dentro de Home), use `AbstractChildPresenter` em vez de `AbstractCubePresenter`:
+Se o novo módulo for um **painel embutido** dentro de outra view (como o painel de produtos dentro da Home), ele **não ganha presenter** nem arquivo: é um escopo menor, classe interna pública estática do escopo de quem o mostra. O presenter dono liga as ações dele e o põe no escopo; quem escolhe a view é o host:
 
 ```java
-public class WishlistPanelPresenter extends AbstractChildPresenter<ShoppingApplication> {
+public class HomeScope extends Scope {
 
-    public static Function<WishlistPanelPresenter, CubeView> createView;
-    public final WishlistPanelViewState state = new WishlistPanelViewState();
-    public final HomePresenter owner;
+    public static class WishlistPanelScope extends Scope {
+        public static final String CLASS_ID = "e1f2a3b4c5d6";   // a view remota do segmento
 
-    public WishlistPanelPresenter(ShoppingApplication app, HomePresenter owner) {
-        super(app);
-        this.owner = owner;
+        public final Prop<List<WishlistItem>> items = prop(List.of());
+        public ActionOf<Long> onRemoveItem = ActionOf.noop();
     }
 
-    @Override
-    protected CubeView onCreateView() {
-        return createView.apply(this);
-    }
-
-    @Override
-    protected void onInitialize() {
-        // Carregar dados iniciais
-    }
+    public final Prop<WishlistPanelScope> wishlistPanel = prop();
 }
+
+// Em HomePresenter: no construtor, as ações (com código de evento, no skeleton do segmento)
+wishlistPanel.onRemoveItem = actionOf(wishlistPanel, 1, FormParam.asLong("p.itemId"), this::removeItem);
+
+// Na inicialização: só o põe no escopo da Home
+this.state.wishlistPanel.set(this.wishlistPanel);
+
+// Em cada host local: o catálogo de views (passado à app com setScopeViews)
+new ScopeViews()
+        .register(HomeScope.WishlistPanelScope.class,
+                (ShoppingVaadinApplication app, HomeScope.WishlistPanelScope s) -> new WishlistPanelViewVaadin(app, s));
 ```
 
-O presenter pai instancia e gerencia o ciclo de vida:
-
-```java
-// Em HomePresenter.applyParameters():
-this.wishlistPanel = new WishlistPanelPresenter(this.app, this);
-this.state.wishlistPanelView = this.wishlistPanel.initialize();
-```
-
-O `AbstractChildPresenter`:
-- **Não** aparece no `Routes`
-- **Não** tem `applyParameters` / `publishParameters`
-- É gerenciado manualmente pelo pai (`initialize()` / `release()`)
-- Possui `onCreateView()` e `onInitialize()` como ciclo de vida
+O segmento:
+- **Não** tem presenter, classe de chaves nem place
+- A view nasce quando a do pai a pede (`app.viewOf(state.wishlistPanel.get())`); dali em diante uma mudança no segmento redesenha só ela (antes, redesenha o dono). É liberada com o presenter dono, ou com `detach(segmento)`
+- No host remoto o catálogo cai no `fallback(RemoteViewImpl::forScope)`, que lê o `CLASS_ID`: nada a registrar; o pai o referencia como `"wishlistPanelViewId"`

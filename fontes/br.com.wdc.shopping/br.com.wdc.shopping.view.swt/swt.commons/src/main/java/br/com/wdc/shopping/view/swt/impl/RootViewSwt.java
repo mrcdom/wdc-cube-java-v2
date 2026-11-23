@@ -1,20 +1,20 @@
 package br.com.wdc.shopping.view.swt.impl;
 
+import java.util.function.Supplier;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 
-import java.util.function.Supplier;
-
-import br.com.wdc.shopping.presentation.presenter.RootPresenter.RootViewState;
+import br.com.wdc.shopping.presentation.presenter.RootScope;
 import br.com.wdc.shopping.view.swt.AbstractViewSwt;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.util.SlotComposite;
 
 public class RootViewSwt extends AbstractViewSwt {
 
-    public Supplier<RootViewState> stateSupplier;
+    public Supplier<RootScope> stateSupplier;
 
     private boolean notRendered = true;
     private SlotComposite contentSlot;
@@ -41,7 +41,7 @@ public class RootViewSwt extends AbstractViewSwt {
         }
 
         var state = this.stateSupplier != null ? this.stateSupplier.get() : null;
-        var newContentView = state != null && state.contentView instanceof AbstractViewSwt v ? v : null;
+        var newContentView = state != null && app.viewOf(state.content.get()) instanceof AbstractViewSwt v ? v : null;
         if (this.currentContentView != newContentView) {
             this.contentSlot.setContent(newContentView != null ? newContentView.getElement() : null);
             this.currentContentView = newContentView;

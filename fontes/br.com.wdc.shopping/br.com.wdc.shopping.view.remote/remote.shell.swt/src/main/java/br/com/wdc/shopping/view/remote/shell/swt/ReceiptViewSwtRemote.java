@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
-import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter.ReceiptViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptForm;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptItem;
 import br.com.wdc.shopping.view.swt.SwtApp;
@@ -13,7 +13,7 @@ import br.com.wdc.shopping.view.swt.impl.ReceiptViewSwt;
 
 class ReceiptViewSwtRemote extends ReceiptViewSwt {
 	
-	public static final String CID = "e8d0bd8ae3bc";
+	public static final String CID = ReceiptScope.CLASS_ID;
 
 	final String vsid;
 	final RemoteViewContext ctx;
@@ -30,13 +30,13 @@ class ReceiptViewSwtRemote extends ReceiptViewSwt {
 		this.ctx.submitEvent(this.vsid, 1, Map.of());
 	}
 
-	private ReceiptViewState stateSupplierImpl() {
+	private ReceiptScope stateSupplierImpl() {
 		var s = this.ctx.viewState(this.vsid);
 		if (s == null) {
 			return null;
 		}
-		var state = new ReceiptViewState();
-		state.notifySuccess = Boolean.TRUE.equals(s.getBoolean("notifySuccess"));
+		var state = new ReceiptScope();
+		state.notifySuccess.set(Boolean.TRUE.equals(s.getBoolean("notifySuccess")));
 		var raw = s.getMap("receipt");
 		if (raw != null) {
 			var form = new ReceiptForm();
@@ -55,7 +55,7 @@ class ReceiptViewSwtRemote extends ReceiptViewSwt {
 				}
 				form.items = items;
 			}
-			state.receipt = form;
+			state.receipt.set(form);
 		}
 		return state;
 	}

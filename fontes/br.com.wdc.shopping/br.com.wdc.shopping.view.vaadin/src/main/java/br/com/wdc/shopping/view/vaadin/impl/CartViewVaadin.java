@@ -1,12 +1,13 @@
 package br.com.wdc.shopping.view.vaadin.impl;
 
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -14,38 +15,34 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.data.renderer.ComponentRenderer;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartViewState;
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.structs.CartItem;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartScope.CartItemScope;
 import br.com.wdc.shopping.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.shopping.view.vaadin.ShoppingVaadinApplication;
-import br.com.wdc.shopping.view.vaadin.util.ResourceCatalog;
 import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
-public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
-
-    private final CartViewState state;
+public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
 
     private boolean notRendered = true;
-    private Grid<CartItem> grid;
+    private HorizontalLayout headerPane;
+    private VerticalLayout rowsPane;
     private Span totalCostElm;
     private double totalCostOldValue;
     private Div emptyCartPane;
     private HorizontalLayout footerPane;
     private HorizontalLayout actionsPane;
 
-    public CartViewVaadin(CartPresenter presenter) {
-        super("cart", (ShoppingVaadinApplication) presenter.app, presenter, new VerticalLayout());
-        this.state = presenter.state;
+    public CartViewVaadin(ShoppingVaadinApplication app, CartScope state) {
+        super("cart", app, state, new VerticalLayout());
     }
 
     @Override
     public void recreate() {
         this.element = new VerticalLayout();
         this.notRendered = true;
-        this.grid = null;
+        this.headerPane = null;
+        this.rowsPane = null;
         this.totalCostElm = null;
         this.totalCostOldValue = 0;
         this.emptyCartPane = null;
@@ -60,11 +57,13 @@ public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
             this.notRendered = false;
         }
 
-        this.grid.setItems(this.state.items);
+        var rows = this.state.rows.get();
+        this.syncRows(rows);
 
-        boolean empty = this.state.items.isEmpty();
+        boolean empty = rows.isEmpty();
         this.emptyCartPane.setVisible(empty);
-        this.grid.setVisible(!empty);
+        this.headerPane.setVisible(!empty);
+        this.rowsPane.setVisible(!empty);
         this.footerPane.setVisible(!empty);
         if (this.actionsPane != null) {
             // Show only "Voltar" in actions when empty
@@ -75,17 +74,18 @@ public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
             });
         }
 
-        var totalCostNewValue = this.computeTotalCost();
+        var totalCostNewValue = this.state.total.get();
         if (totalCostNewValue != this.totalCostOldValue) {
             this.totalCostElm.setText(this.formatCurrency(totalCostNewValue));
             this.totalCostOldValue = totalCostNewValue;
         }
 
-        if (this.state.errorCode != 0) {
-            Notification.show(this.state.errorMessage, 5000, Notification.Position.TOP_CENTER)
+        if (this.state.errorCode.get() != 0) {
+            Notification.show(this.state.errorMessage.get(), 5000, Notification.Position.TOP_CENTER)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
-            this.state.errorCode = 0;
-            this.state.errorMessage = null;
+            // Consumed while drawing: a redraw now would take the message away
+            this.state.errorCode.setSilently(0);
+            this.state.errorMessage.setSilently(null);
         }
     }
 
@@ -104,7 +104,7 @@ public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
             });
 
             dom.h3(h -> {
-                h.setText("Carrinho [" + this.state.items.size() + "]");
+                h.setText("Carrinho");
                 h.getStyle().set("margin", "0 0 0 8px");
             });
         });
@@ -114,34 +114,23 @@ public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
             h.getStyle().set("color", "var(--lumo-secondary-text-color)");
         });
 
-        // Grid
-        this.grid = new Grid<>();
-        this.grid.setAllRowsVisible(true);
-        this.grid.addColumn(new ComponentRenderer<>(item -> {
-            var layout = new HorizontalLayout();
-            layout.setAlignItems(FlexComponent.Alignment.CENTER);
-            var img = new Image(ResourceCatalog.getImageResource(item.image), item.name);
-            img.setWidth("42px");
-            img.setHeight("40px");
-            layout.add(img, new Span(item.name));
-            return layout;
-        })).setHeader("ITEM").setFlexGrow(3);
+        // Rows: each one a view of its own (the cart's segments), laid out in the cart's order
+        dom.horizontalLayout(header -> {
+            this.headerPane = header;
+            header.addClassName("cart-row");
+            header.setWidthFull();
+            header.getStyle().set("font-weight", "bold").set("color", "var(--lumo-secondary-text-color)");
+            dom.span(label -> { label.addClassName("cell-1"); label.setText("ITEM"); });
+            dom.span(label -> { label.addClassName("cell-2"); label.setText("VALOR"); });
+            dom.span(label -> { label.addClassName("cell-3"); label.setText("QUANTIDADE"); });
+        });
 
-        this.grid.addColumn(item -> "R$ " + NumberFormat.getInstance().format(item.price))
-                .setHeader("VALOR").setFlexGrow(1);
-
-        this.grid.addColumn(new ComponentRenderer<>(item -> {
-            var layout = new HorizontalLayout();
-            layout.setAlignItems(FlexComponent.Alignment.CENTER);
-            layout.add(new Span(String.valueOf(item.quantity)));
-            var deleteBtn = new Button(VaadinIcon.TRASH.create(),
-                    e -> safeAction("Remove product", () -> this.presenter.onRemoveProduct(item.id)));
-            deleteBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
-            layout.add(deleteBtn);
-            return layout;
-        })).setHeader("QUANTIDADE").setFlexGrow(1);
-
-        pane0.add(this.grid);
+        dom.verticalLayout(rows -> {
+            this.rowsPane = rows;
+            rows.setWidthFull();
+            rows.setPadding(false);
+            rows.setSpacing(false);
+        });
 
         // Empty cart message
         this.emptyCartPane = new Div();
@@ -161,7 +150,7 @@ public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
                 .set("font-size", "1.1rem").set("margin-top", "var(--lumo-space-m)");
         this.emptyCartPane.add(emptyText);
         var goShoppingBtn = new Button("Vamos às compras!",
-                e -> safeAction("Open products", this.presenter::onOpenProducts));
+                e -> safeAction("Open products", this.state.onOpenProducts::run));
         goShoppingBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         goShoppingBtn.getStyle().set("font-weight", "bold").set("font-size", "1rem").set("margin-top",
                 "var(--lumo-space-s)");
@@ -182,7 +171,7 @@ public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
             });
 
             dom.span(label -> {
-                var totalCostNewValue = this.computeTotalCost();
+                var totalCostNewValue = this.state.total.get();
                 this.totalCostElm = label;
                 this.totalCostElm.setText(this.formatCurrency(totalCostNewValue));
                 this.totalCostElm.getStyle().set("font-size", "18px")
@@ -203,7 +192,7 @@ public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
                 button.setIcon(VaadinIcon.ARROW_LEFT.create());
                 button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
                 button.addClassName("back-button");
-                button.addClickListener(e -> safeAction("Open products", this.presenter::onOpenProducts));
+                button.addClickListener(e -> safeAction("Open products", this.state.onOpenProducts::run));
             });
 
             dom.button(button -> {
@@ -211,13 +200,24 @@ public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
                 button.setIcon(VaadinIcon.CHECK.create());
                 button.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
                 button.getStyle().set("background-color", "var(--lumo-success-color)");
-                button.addClickListener(e -> safeAction("Buy", this.presenter::onBuy));
+                button.addClickListener(e -> safeAction("Buy", this.state.onBuy::run));
             });
         });
     }
 
-    private double computeTotalCost() {
-        return this.state.items.stream().mapToDouble(v -> v.price * v.quantity).sum();
+    /** Puts the rows' views in the pane, in the cart's order; a row view is reused while its row stays. */
+    private void syncRows(List<CartItemScope> rows) {
+        var wanted = new ArrayList<Component>(rows.size());
+        for (var row : rows) {
+            if (this.app.viewOf(row) instanceof AbstractViewVaadin<?> rowView) {
+                wanted.add(rowView.getElement());
+            }
+        }
+        var current = this.rowsPane.getChildren().toList();
+        if (!current.equals(wanted)) {
+            this.rowsPane.removeAll();
+            wanted.forEach(this.rowsPane::add);
+        }
     }
 
     private String formatCurrency(double value) {

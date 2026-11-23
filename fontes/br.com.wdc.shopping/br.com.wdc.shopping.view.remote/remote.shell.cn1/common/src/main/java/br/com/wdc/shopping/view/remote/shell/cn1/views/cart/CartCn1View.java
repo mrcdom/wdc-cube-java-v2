@@ -1,9 +1,7 @@
 package br.com.wdc.shopping.view.remote.shell.cn1.views.cart;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 
 import com.codename1.ui.Component;
@@ -37,9 +35,7 @@ public class CartCn1View extends AbstractCn1View {
 
     public static final String CLASS_ID = "7eb485e5f843";
     private static final int EVT_BUY = 1;
-    private static final int EVT_REMOVE = 2;
     private static final int EVT_BACK = 3;
-    private static final int EVT_MODIFY = 4;
 
     /** Lado (mm) do ícone redondo do estado vazio — densidade-independente (ver util.Px). */
     private static final float EMPTY_ICON_MM = 20f;
@@ -49,7 +45,6 @@ public class CartCn1View extends AbstractCn1View {
     private Container itemsSection;
     private Container list;
     private Consumer<String> total;
-    private final List<CartItemCn1View> items = new ArrayList<>();
 
     public CartCn1View(String vsid, BridgeSession session, ShoppingCn1RemoteApp app) {
         super(vsid, session, app);
@@ -138,33 +133,41 @@ public class CartCn1View extends AbstractCn1View {
 
     @Override
     public void doUpdate() {
-        List<Object> cartItems = Json.asList(state().get("items"));
-        boolean empty = cartItems.isEmpty();
+        // As linhas são views próprias (CartItemCn1View), referidas por id na ordem do carrinho
+        List<Object> rowIds = Json.asList(state().get("rowsViewIds"));
+        boolean empty = rowIds.isEmpty();
 
         body.mount(empty ? emptySection : itemsSection); // troca só na transição (comparação de referência)
 
         if (!empty) {
-            syncList(list, cartItems, items,
-                    () -> new CartItemCn1View(app, this::modifyQuantity, this::removeProduct));
-            double sum = 0;
-            for (Object o : cartItems) {
-                Map<String, Object> m = Json.asMap(o);
-                sum += Json.doubleOf(m, "price") * Json.intOf(m, "quantity");
+            List<Container> rows = new ArrayList<>();
+            for (Object id : rowIds) {
+                Container row = childElement(String.valueOf(id));
+                if (row != null) {
+                    rows.add(row);
+                }
             }
-            total.accept(Money.format(sum));
+            syncRows(rows);
+            total.accept(Money.format(Json.doubleOf(state(), "total")));
         }
     }
 
-    private void modifyQuantity(long productId, int quantity) {
-        Map<String, Object> form = new HashMap<>();
-        form.put("p.productId", productId);
-        form.put("p.quantity", quantity);
-        submit(EVT_MODIFY, form);
-    }
-
-    private void removeProduct(long productId) {
-        Map<String, Object> form = new HashMap<>();
-        form.put("p.productId", productId);
-        submit(EVT_REMOVE, form);
+    /** Põe os elementos das linhas na lista, na ordem do carrinho; re-monta só quando a ordem muda. */
+    private void syncRows(List<Container> rows) {
+        boolean same = list.getComponentCount() == rows.size();
+        for (int i = 0; same && i < rows.size(); i++) {
+            same = list.getComponentAt(i) == rows.get(i);
+        }
+        if (same) {
+            return;
+        }
+        list.removeAll();
+        for (Container row : rows) {
+            if (row.getParent() != null) {
+                row.remove();
+            }
+            list.add(row);
+        }
+        list.revalidate();
     }
 }

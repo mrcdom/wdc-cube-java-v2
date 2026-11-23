@@ -1,11 +1,11 @@
 package br.com.wdc.shopping.view.remote.shell.teavm.views.login;
 
-import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginViewState;
-import br.com.wdc.shopping.view.teavm.commons.views.login.LoginSharedView;
-import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import br.com.wdc.framework.cube.remote.bridge.teavm.DataSecurity;
 import br.com.wdc.framework.cube.remote.bridge.teavm.ViewScope;
+import br.com.wdc.shopping.presentation.presenter.open.login.LoginScope;
+import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
+import br.com.wdc.shopping.view.teavm.commons.views.login.LoginSharedView;
 
 /**
  * Login view adapter for remote.shell.teavm (remote mode).
@@ -13,12 +13,12 @@ import br.com.wdc.shopping.view.teavm.commons.VNode;
  */
 public class LoginView extends AbstractRemoteView {
 
-    public static final String VIEW_ID = "c677cda52d14";
+    public static final String VIEW_ID = LoginScope.CLASS_ID;
 
     private static final int ON_ENTER = 1;
 
     private final LoginSharedView shared;
-    private final LoginViewState adaptedState = new LoginViewState();
+    private final LoginScope adaptedState = new LoginScope();
 
     public LoginView(String vsid) {
         super(vsid);
@@ -39,12 +39,12 @@ public class LoginView extends AbstractRemoteView {
         return shared.render();
     }
 
-    private LoginViewState adaptState() {
+    private LoginScope adaptState() {
         ViewScope scope = state();
-        adaptedState.loading = scope.getBoolean("loading");
-        adaptedState.errorMessage = scope.getString("errorMessage");
-        adaptedState.errorCode = scope.getInt("errorCode");
-        adaptedState.userName = scope.getString("userName");
+        adaptedState.loading.set(scope.getBoolean("loading"));
+        adaptedState.errorMessage.set(scope.getString("errorMessage"));
+        adaptedState.errorCode.set(scope.getInt("errorCode"));
+        adaptedState.userName.set(scope.getString("userName"));
         return adaptedState;
     }
 }

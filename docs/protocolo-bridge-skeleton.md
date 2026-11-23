@@ -295,7 +295,7 @@ Opcionalmente com `storage` de bootstrap.
 {
   "requestId": 1,
   "event": ["7b32e816a191:0:-1"],
-  "7b32e816a191:0": { "p.path": "/home/product?productId=42&sign=AbC123" }
+  "7b32e816a191:0": { "p.path": "/home/product?pr-id=42&sign=AbC123" }
 }
 ```
 
@@ -345,7 +345,8 @@ Um objeto JSON. Campos (todos opcionais). O envelope **não é enviado** se esti
 ```
 
 Notas:
-- Antes de serializar cada view, o servidor consolida o estado derivado do presenter, sob lock.
+- Antes de serializar os estados, o servidor consolida uma vez o estado derivado de todos os presenters (`commitComputedState`), sob lock.
+- Uma view que nasce enquanto o estado de outra é escrito (o escopo de um presenter filho, um segmento, uma linha, pedidos pela primeira vez) vai na **mesma** resposta: o estado já escrito a referencia.
 - Campos de erro (`errorCode`, `errorMessage`) vivem **dentro** dos fields de cada ViewState, não no envelope.
 - `accessToken` também pode aparecer no fluxo servidor→cliente (token cifrado AES-GCM) como mecanismo de auto-login; o cliente decifra com `b64Decipher`.
 
@@ -371,13 +372,15 @@ Enviado em resposta a `{ ping: true }`. Campos condicionais:
 | `1` | `onAlertOk()` | Confirma/dispensa o alerta atual. |
 | `2` | `onKeepAlive()` | Estende a vida da sessão. (Alternativa à mensagem `{ping:true}`.) |
 
-Eventos de views comuns usam códigos `>= 0` definidos por cada view. eventCodes negativos são reservados ao protocolo.
+Eventos de views comuns usam códigos `>= 0` definidos por cada view. eventCodes negativos são reservados ao protocolo. No servidor, cada código é o da ação que o presenter ligou no escopo (`action(1, ...)`, `actionOf(2, FormParam..., ...)`); um código que o escopo não conhece é erro.
 
 ### 10.2 Alertas (campos da Browser View)
 
 O estado da Browser View pode carregar um alerta comandado pelo servidor:
-- `alertMessage.id` (ou `alertId`): código do alerta; `-1` = erro inesperado; `0` = limpo (após OK).
-- `alertMessage.args`: `string[]` de argumentos.
+- `alertId`: código do alerta; `-1` = erro inesperado; `0` = nenhum (após o OK).
+- `alertArgs`: `string[]` de argumentos (no erro inesperado: só a mensagem — o stack trace fica no log do servidor).
+
+Com `alertId != 0`, o cliente mostra o alerta e, ao ser dispensado, dispara o evento `1` (`onAlertOk`) da Browser View.
 
 ### 10.3 Códigos de fechamento do WebSocket
 
@@ -397,14 +400,15 @@ O ViewState é o estado público de uma view, transmitido como objeto JSON. O **
 - O objeto injeta `"#"` como **primeiro** campo, valor = `instanceId` (vsid).
 - Campos booleanos são **sempre** presentes (mesmo `false`).
 - Campos `null` (não-booleanos) são **omitidos**.
-- Um campo cujo valor é uma **referência a outra view** é serializado como `"<nome>Id": <vsid da view referenciada>` — é assim que referências entre views viram ponteiros por id.
+- Um campo cujo valor é **outro escopo** (o de um presenter filho, um segmento) é serializado como `"<nome>ViewId": <vsid da view que o desenha>`; uma lista de escopos (linhas), como `"<nome>ViewIds": [vsid, ...]`, na ordem. É assim que referências entre views viram ponteiros por id. Ex.: `contentViewId`, `productsPanelViewId`, `rowsViewIds`.
+- Ações (`Action`, `ActionOf`, `ActionOf2`) não aparecem no fio: o cliente as dispara pelo código de evento.
 - Strings de topo são incluídas **apenas se não forem vazias/em branco** (strings em branco são omitidas nesse nível).
 - Campos numéricos são sempre incluídos.
 - Datas são serializadas em **ISO-8601**: data (`YYYY-MM-DD`), hora (`HH:MM:SS[.sss]`) ou data-hora com offset em **UTC**, conforme o tipo.
-- Valores aninhados (dentro de objetos e arrays): objetos → objeto JSON; listas → array JSON; escalares → valores diretos; referências a view aninhadas aparecem como o vsid puro (string, sem sufixo `Id`); strings aninhadas **não** são filtradas por vazio.
+- Valores aninhados (dentro de objetos e arrays): objetos → objeto JSON; listas → array JSON; escalares → valores diretos; strings aninhadas **não** são filtradas por vazio.
 - Campos marcados como não-serializáveis ou derivados/temporários **não** aparecem no fio.
 
-**Formação do instanceId:** `"<classId>:<n>"`. A Browser View é fixa em `7b32e816a191:0`. Demais views usam um contador incremental que inicia em `1`.
+**Formação do instanceId:** `"<classId>:<n>"`, onde `classId` é o `CLASS_ID` que a classe do escopo declara. A Browser View é fixa em `7b32e816a191:0`. Demais views usam um contador incremental que inicia em `1`.
 
 **Semântica de aplicação no cliente:** cada objeto de `states` **substitui integralmente** o ViewState anterior daquela vsid (replace total, não merge campo-a-campo). O cliente indexa por vsid; o campo `"#"` é removido e o restante vira o estado da view.
 
@@ -435,7 +439,7 @@ O **servidor é a autoridade** sobre quais views existem. O cliente nunca cria v
 
 A navegação é **dirigida pelo servidor** e a URL é **assinada** para impedir que o cliente force estados não concedidos.
 
-**Emissão (servidor → cliente):** ao atualizar o histórico, o servidor monta o intent (place + parâmetros), calcula `sign = base62(signAsHash(bytes_utf8(intent.toString())))`, injeta o parâmetro `sign=<...>` no intent, e envia o resultado no campo `uri`. Exemplo: `/home/product?productId=42&sign=AbC123`.
+**Emissão (servidor → cliente):** ao atualizar o histórico, o servidor monta o intent (place + parâmetros), calcula `sign = base62(signAsHash(bytes_utf8(intent.toString())))`, injeta o parâmetro `sign=<...>` no intent, e envia o resultado no campo `uri`. Exemplo: `/home/product?pr-id=42&sign=AbC123`.
 
 **Recepção (cliente → servidor):** o cliente navega enviando `p.path` (a URI com `sign`) via eventos `-1`/`-2` na Browser View. O servidor:
 1. Faz o parse do path e **remove** o parâmetro `sign` (a assinatura recebida).

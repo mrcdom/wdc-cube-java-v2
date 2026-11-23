@@ -5,8 +5,7 @@ import static br.com.wdc.shopping.test.mock.viewimpl.AbstractViewMock.INSTANCE_I
 import org.junit.Assert;
 
 import br.com.wdc.framework.cube.CubeView;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter.PurchasesPanelViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeScope.PurchasesPanelScope;
 import br.com.wdc.shopping.test.mock.ShoppingApplicationMock;
 
 public class PurchasesPanelViewMock implements CubeView {
@@ -20,13 +19,11 @@ public class PurchasesPanelViewMock implements CubeView {
     }
 
     public final ShoppingApplicationMock app;
-    public final PurchasesPanelPresenter presenter;
-    public PurchasesPanelViewState state;
+    public PurchasesPanelScope state;
 
-    public PurchasesPanelViewMock(PurchasesPanelPresenter presenter) {
-        this.app = (ShoppingApplicationMock) presenter.app;
-        this.presenter = presenter;
-        this.state = presenter.state;
+    public PurchasesPanelViewMock(ShoppingApplicationMock app, PurchasesPanelScope state) {
+        this.app = app;
+        this.state = state;
     }
 
     @Override

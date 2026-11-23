@@ -4,13 +4,16 @@ import static br.com.wdc.shopping.view.teavm.commons.VNode.div;
 import static br.com.wdc.shopping.view.teavm.commons.VNode.slot;
 import static br.com.wdc.shopping.view.teavm.commons.VNode.span;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.teavm.jso.JSBody;
 import org.teavm.jso.dom.html.HTMLDocument;
 
+import br.com.wdc.framework.cube.remote.bridge.teavm.ViewStateCoordinator;
+import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import br.com.wdc.shopping.view.teavm.commons.SelUtility;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
-import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
-import br.com.wdc.framework.cube.remote.bridge.teavm.ViewStateCoordinator;
 
 /**
  * Browser-level view: manages global submitting indicator and hosts the root view. Equivalent to BrowserView.tsx in
@@ -19,6 +22,9 @@ import br.com.wdc.framework.cube.remote.bridge.teavm.ViewStateCoordinator;
 public class BrowserView extends AbstractRemoteView {
 
     public static final String VIEW_ID = ViewStateCoordinator.BROWSER_VID;
+
+    // :: Events (codes of the browser's actions on the host)
+    private static final int ON_ALERT_OK = 1;
 
     @SuppressWarnings({"java:S1214", "static-access"})
     private interface Sel extends SelUtility {
@@ -65,8 +71,48 @@ public class BrowserView extends AbstractRemoteView {
         return div(Sel.CONTAINER).children(
           div(submitting ? Sel.LOADING_BAR : Sel.HIDDEN),
           errorCause != null ? renderConnectionAlert(scope.getInt("error.delay")) : null,
+          scope.getInt("alertId") != 0 ? renderAppAlert(scope.getInt("alertId"), alertArgs(scope.getState().get("alertArgs"))) : null,
           slot(Sel.CONTENT, contentEl));
         // @formatter:on
+    }
+
+    /** The host's alert: shown until dismissed, which tells the host (its alert action may run then). */
+    private VNode renderAppAlert(int code, List<String> args) {
+        String message;
+        String detail = null;
+        switch (code) {
+            case -1 -> {
+                message = args.isEmpty() ? "Ocorreu um erro não esperado" : args.get(0);
+                detail = args.size() > 1 ? args.get(1) : null;
+            }
+            case -2 -> {
+                message = "A URI " + (args.isEmpty() ? "" : args.get(0)) + " não está acessível";
+                detail = args.size() > 1 ? args.get(1) : null;
+            }
+            default -> message = args.isEmpty() ? "Ocorreu um erro não esperado" : args.get(0);
+        }
+
+        // @formatter:off
+        return div("alert-error").style("margin:16px").children(
+          div().style("flex:1").children(
+            div("font-bold text-sm").style("color:var(--app-error-text)").text("Aviso!"),
+            span("text-sm").style("color:var(--app-error-text)").text(message),
+            detail != null ? div("text-xs mt-4").style("color:var(--app-error-text)").text(detail) : null),
+          span("text-sm font-medium cursor-pointer ml-4")
+            .style("color:var(--app-accent)")
+            .text("Ok")
+            .on("click", useCallback("alertOk", e -> submit(ON_ALERT_OK))));
+        // @formatter:on
+    }
+
+    private static List<String> alertArgs(Object value) {
+        var args = new ArrayList<String>();
+        if (value instanceof List<?> list) {
+            for (var item : list) {
+                args.add(String.valueOf(item));
+            }
+        }
+        return args;
     }
 
     private VNode renderConnectionAlert(int delay) {

@@ -1,6 +1,10 @@
 package br.com.wdc.shopping.view.swt.impl;
 
+import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
+
 import java.util.Objects;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
@@ -14,16 +18,12 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
-import java.util.function.BiConsumer;
-import java.util.function.Supplier;
-
-import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginViewState;
+import br.com.wdc.shopping.presentation.presenter.open.login.LoginScope;
 import br.com.wdc.shopping.view.swt.AbstractViewSwt;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.theme.Surface;
 import br.com.wdc.shopping.view.swt.theme.Theme;
 import br.com.wdc.shopping.view.swt.util.SwtDom;
-import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
 
 /**
  * Login view matching the TeaVM web design:
@@ -32,7 +32,7 @@ import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
  */
 public class LoginViewSwt extends AbstractViewSwt {
 
-    public Supplier<LoginViewState> stateSupplier;
+    public Supplier<LoginScope> stateSupplier;
     public BiConsumer<String, String> onEnter;
 
     private boolean notRendered = true;
@@ -67,11 +67,12 @@ public class LoginViewSwt extends AbstractViewSwt {
         var s = this.stateSupplier != null ? this.stateSupplier.get() : null;
         var newErrorDisplay = false;
         var newErrorMessage = "";
-        if (s != null && s.errorCode != 0) {
+        if (s != null && s.errorCode.get() != 0) {
             newErrorDisplay = true;
-            newErrorMessage = s.errorMessage;
-            s.errorCode = 0;
-            s.errorMessage = null;
+            newErrorMessage = s.errorMessage.get();
+            // Consumed while drawing: a redraw now would take the message away
+            s.errorCode.setSilently(0);
+            s.errorMessage.setSilently(null);
         }
 
         if (!Objects.equals(this.errorMessage, newErrorMessage)) {

@@ -7,16 +7,14 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.structs.CartItem;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartScope.CartItemScope;
 import br.com.wdc.shopping.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.shopping.view.vaadin.ShoppingVaadinApplication;
 import br.com.wdc.shopping.view.vaadin.util.ResourceCatalog;
 import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
-public class CartItemViewVaadin extends AbstractViewVaadin<CartPresenter> {
-
-    private CartItem state;
+/** The view of a cart row: a segment of the cart with its own state and actions. */
+public class CartItemViewVaadin extends AbstractViewVaadin<CartItemScope> {
 
     private boolean notRendered = true;
     private Span nameElm;
@@ -26,15 +24,8 @@ public class CartItemViewVaadin extends AbstractViewVaadin<CartPresenter> {
     private Span quantityElm;
     private int quantityOldValue;
 
-    public CartItemViewVaadin(ShoppingVaadinApplication app, CartPresenter presenter, int idx) {
-        super("cart-item-" + idx, app, presenter, new HorizontalLayout());
-    }
-
-    public void setState(CartItem state, boolean scheduleUpdate) {
-        this.state = state;
-        if (scheduleUpdate) {
-            this.update();
-        }
+    public CartItemViewVaadin(ShoppingVaadinApplication app, CartItemScope row) {
+        super("cart-item-" + row.id.get(), app, row, new HorizontalLayout());
     }
 
     @Override
@@ -44,19 +35,19 @@ public class CartItemViewVaadin extends AbstractViewVaadin<CartPresenter> {
             this.notRendered = false;
         }
 
-        if (!Objects.equals(this.nameOldValue, this.state.name)) {
-            this.nameElm.setText(this.state.name);
-            this.nameOldValue = this.state.name;
+        if (!Objects.equals(this.nameOldValue, this.state.name.get())) {
+            this.nameElm.setText(this.state.name.get());
+            this.nameOldValue = this.state.name.get();
         }
 
-        if (this.priceOldValue != this.state.price) {
-            this.priceElm.setText("R$ " + NumberFormat.getInstance().format(this.state.price));
-            this.priceOldValue = this.state.price;
+        if (this.priceOldValue != this.state.price.get().doubleValue()) {
+            this.priceElm.setText("R$ " + NumberFormat.getInstance().format(this.state.price.get()));
+            this.priceOldValue = this.state.price.get();
         }
 
-        if (this.quantityOldValue != this.state.quantity) {
-            this.quantityElm.setText(String.valueOf(this.state.quantity));
-            this.quantityOldValue = this.state.quantity;
+        if (this.quantityOldValue != this.state.quantity.get().intValue()) {
+            this.quantityElm.setText(String.valueOf(this.state.quantity.get()));
+            this.quantityOldValue = this.state.quantity.get();
         }
     }
 
@@ -72,21 +63,21 @@ public class CartItemViewVaadin extends AbstractViewVaadin<CartPresenter> {
             dom.image(img -> {
                 img.setWidth("42px");
                 img.setHeight("40px");
-                img.setSrc(ResourceCatalog.getImageResource(this.state.image));
+                img.setSrc(ResourceCatalog.getImageResource(this.state.image.get()));
             });
 
             dom.span(label -> {
                 this.nameElm = label;
-                this.nameElm.setText(this.state.name);
-                this.nameOldValue = this.state.name;
+                this.nameElm.setText(this.state.name.get());
+                this.nameOldValue = this.state.name.get();
             });
         });
 
         dom.span(label -> {
             label.addClassName("cell-2");
             this.priceElm = label;
-            this.priceElm.setText("R$ " + NumberFormat.getInstance().format(this.state.price));
-            this.priceOldValue = this.state.price;
+            this.priceElm.setText("R$ " + NumberFormat.getInstance().format(this.state.price.get()));
+            this.priceOldValue = this.state.price.get();
         });
 
         dom.horizontalLayout(pane1 -> {
@@ -95,8 +86,8 @@ public class CartItemViewVaadin extends AbstractViewVaadin<CartPresenter> {
 
             dom.span(label -> {
                 this.quantityElm = label;
-                this.quantityElm.setText(String.valueOf(this.state.quantity));
-                this.quantityOldValue = this.state.quantity;
+                this.quantityElm.setText(String.valueOf(this.state.quantity.get()));
+                this.quantityOldValue = this.state.quantity.get();
             });
 
             dom.image(img -> {
@@ -105,7 +96,7 @@ public class CartItemViewVaadin extends AbstractViewVaadin<CartPresenter> {
                 img.setWidth("16px");
                 img.setHeight("16px");
                 img.getStyle().set("cursor", "pointer");
-                img.addClickListener(e -> safeAction("Remove product", () -> this.presenter.onRemoveProduct(this.state.id)));
+                img.addClickListener(e -> safeAction("Remove product", this.state.onRemove::run));
             });
         });
     }

@@ -6,26 +6,22 @@ import java.util.function.BiConsumer;
 
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter.ProductsPanelViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeScope.ProductsPanelScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
 import br.com.wdc.shopping.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.shopping.view.vaadin.ShoppingVaadinApplication;
 import br.com.wdc.shopping.view.vaadin.impl.home.ProductItemViewVaadin;
 import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
-public class ProductsPanelViewVaadin extends AbstractViewVaadin<ProductsPanelPresenter> {
-
-    private final ProductsPanelViewState state;
+public class ProductsPanelViewVaadin extends AbstractViewVaadin<ProductsPanelScope> {
 
     private boolean notRendered = true;
     private int itemIdx;
     private List<ProductItemViewVaadin> itemViewList = new ArrayList<>();
     private BiConsumer<List<ProductInfo>, List<ProductItemViewVaadin>> contentSlot;
 
-    public ProductsPanelViewVaadin(ProductsPanelPresenter presenter) {
-        super("products-panel", (ShoppingVaadinApplication) presenter.app, presenter, new VerticalLayout());
-        this.state = presenter.state;
+    public ProductsPanelViewVaadin(ShoppingVaadinApplication app, ProductsPanelScope scope) {
+        super("products-panel", app, scope, new VerticalLayout());
     }
 
     @Override
@@ -43,7 +39,7 @@ public class ProductsPanelViewVaadin extends AbstractViewVaadin<ProductsPanelPre
             VaadinDom.render((VerticalLayout) this.element, this::initialRender);
             this.notRendered = false;
         }
-        this.contentSlot.accept(this.state.products, this.itemViewList);
+        this.contentSlot.accept(this.state.products.get(), this.itemViewList);
     }
 
     private void initialRender(VaadinDom dom, VerticalLayout pane0) {
@@ -62,11 +58,11 @@ public class ProductsPanelViewVaadin extends AbstractViewVaadin<ProductsPanelPre
     }
 
     private ProductItemViewVaadin newItemView() {
-        return new ProductItemViewVaadin(this.app, this.presenter, this.itemIdx++);
+        return new ProductItemViewVaadin(this.app, this.state, this.itemIdx++);
     }
 
-    private void updateItem(ProductItemViewVaadin itemView, ProductInfo state) {
-        itemView.setState(state, false);
+    private void updateItem(ProductItemViewVaadin itemView, ProductInfo item) {
+        itemView.setItem(item, false);
         itemView.doUpdate();
     }
 }

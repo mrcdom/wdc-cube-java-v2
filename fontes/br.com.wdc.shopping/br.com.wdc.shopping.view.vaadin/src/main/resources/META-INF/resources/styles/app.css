@@ -438,3 +438,13 @@ html, body {
     padding: var(--lumo-space-xs) 0;
     border-bottom: 1px solid #e0e0e0;
 }
+
+/* Cart rows: the header and each row (a view of its own) share the same three columns */
+.cart-row {
+    display: grid !important;
+    grid-template-columns: 3fr 1fr 1fr;
+    align-items: center;
+    gap: var(--lumo-space-s);
+    padding: var(--lumo-space-xs) 0;
+    border-bottom: 1px solid var(--lumo-contrast-10pct);
+}

@@ -6,14 +6,14 @@ import java.util.List;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter.PurchasesPanelViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.impl.PurchasesPanelViewSwt;
 
 class PurchasesPanelViewSwtRemote extends PurchasesPanelViewSwt {
 	
-	public static final String CID = "b3c4d5e6f7a8";
+	public static final String CID = HomeScope.PurchasesPanelScope.CLASS_ID;
 
 	final String vsid;
 	final RemoteViewContext ctx;
@@ -40,18 +40,18 @@ class PurchasesPanelViewSwtRemote extends PurchasesPanelViewSwt {
 		this.ctx.submitEvent(this.vsid, 3, Map.of("p.capacity", cap));
 	}
 
-	private PurchasesPanelViewState stateSupplierImpl() {
+	private HomeScope.PurchasesPanelScope stateSupplierImpl() {
 		var s = this.ctx.viewState(this.vsid);
 		if (s == null) {
 			return null;
 		}
-		var state = new PurchasesPanelViewState();
+		var state = new HomeScope.PurchasesPanelScope();
 		var pageNum = s.getLong("page");
-		state.page = pageNum != null ? pageNum.intValue() : 0;
+		state.page.set(pageNum != null ? pageNum.intValue() : 0);
 		var pageSize = s.getLong("pageSize");
-		state.pageSize = pageSize != null ? pageSize.intValue() : -1;
+		state.pageSize.set(pageSize != null ? pageSize.intValue() : -1);
 		var totalCount = s.getLong("totalCount");
-		state.totalCount = totalCount != null ? totalCount.intValue() : 0;
+		state.totalCount.set(totalCount != null ? totalCount.intValue() : 0);
 		var rawList = s.getList("purchases");
 		if (!rawList.isEmpty()) {
 			var purchases = new ArrayList<PurchaseInfo>(rawList.size());
@@ -65,9 +65,9 @@ class PurchasesPanelViewSwtRemote extends PurchasesPanelViewSwt {
 				p.items = itemNames != null ? itemNames : Collections.emptyList();
 				purchases.add(p);
 			}
-			state.purchases = purchases;
+			state.purchases.set(purchases);
 		} else {
-			state.purchases = Collections.emptyList();
+			state.purchases.set(Collections.emptyList());
 		}
 		return state;
 	}

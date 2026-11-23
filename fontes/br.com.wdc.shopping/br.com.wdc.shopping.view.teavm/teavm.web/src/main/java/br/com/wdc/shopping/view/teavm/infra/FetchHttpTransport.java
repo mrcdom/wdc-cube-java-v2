@@ -13,6 +13,7 @@ import br.com.wdc.framework.commons.http.HttpTransport;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.framework.commons.serialization.JsonStreamReader;
 import br.com.wdc.framework.domain.exception.BusinessException;
+import br.com.wdc.shopping.persistence.client.HttpFailure;
 
 /**
  * Implementação de {@link HttpTransport} usando XMLHttpRequest assíncrono via coroutines do TeaVM.
@@ -60,7 +61,7 @@ public class FetchHttpTransport implements HttpTransport {
 			return null;
 		}
 		if (result.status < 200 || result.status >= 300) {
-			throw new BusinessException("HTTP " + result.status + ": " + result.body);
+			throw HttpFailure.of(result.status, result.body);
 		}
 		return result.body;
 	}
@@ -94,7 +95,7 @@ public class FetchHttpTransport implements HttpTransport {
 			return new byte[0];
 		}
 		if (result.status < 200 || result.status >= 300) {
-			throw new BusinessException("HTTP " + result.status);
+			throw HttpFailure.of(result.status, null);
 		}
 		return result.body != null ? result.body.getBytes(StandardCharsets.ISO_8859_1) : new byte[0];
 	}
@@ -111,7 +112,7 @@ public class FetchHttpTransport implements HttpTransport {
 			handleSessionExpired();
 		}
 		if (result.status < 200 || result.status >= 300) {
-			throw new BusinessException("HTTP " + result.status);
+			throw HttpFailure.of(result.status, null);
 		}
 		var reader = new JsonStreamReader(result.body);
 		reader.beginObject();
@@ -162,7 +163,7 @@ public class FetchHttpTransport implements HttpTransport {
 			handleSessionExpired();
 		}
 		if (result.status < 200 || result.status >= 300) {
-			throw new BusinessException("HTTP " + result.status + ": " + result.body);
+			throw HttpFailure.of(result.status, result.body);
 		}
 		return result.body;
 	}

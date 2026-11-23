@@ -13,7 +13,7 @@ import java.util.function.Supplier;
 import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter.ReceiptViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptItem;
 import br.com.wdc.shopping.view.teavm.commons.DateUtils;
 import br.com.wdc.shopping.view.teavm.commons.SelComponents;
@@ -65,7 +65,7 @@ public class ReceiptSharedView extends SharedVDomView {
 
     // -- External bindings --
 
-    public Supplier<ReceiptViewState> stateSupplier;
+    public Supplier<ReceiptScope> stateSupplier;
     public Runnable onBack;
 
     // -- Stable event listener --
@@ -77,18 +77,18 @@ public class ReceiptSharedView extends SharedVDomView {
     @Override
     public VNode render() {
         var state = stateSupplier.get();
-        boolean showSuccess = state.notifySuccess;
+        boolean showSuccess = state.notifySuccess.get();
 
         var items = Collections.<ReceiptItem>emptyList();
         var dateText = "";
         var totalText = "";
 
-        if (state.receipt != null) {
-            items = state.receipt.items != null ? state.receipt.items : Collections.emptyList();
-            if (state.receipt.date != null && state.receipt.date > 0) {
-                dateText = DateUtils.formatDateTime(state.receipt.date);
+        if (state.receipt.get() != null) {
+            items = state.receipt.get().items != null ? state.receipt.get().items : Collections.emptyList();
+            if (state.receipt.get().date != null && state.receipt.get().date > 0) {
+                dateText = DateUtils.formatDateTime(state.receipt.get().date);
             }
-            var total = state.receipt.total != null ? state.receipt.total : 0.0;
+            var total = state.receipt.get().total != null ? state.receipt.get().total : 0.0;
             totalText = "R$ " + String.format("%.2f", total);
         }
 

@@ -48,7 +48,8 @@ public class ShoppingVaadinMain {
                     db.dialect(), cleanUp);
 
             try (var connection = db.dataSource().getConnection()) {
-                var command = new DBCreate().withConnection(connection);
+                var command = new DBCreate()
+                        .withConnection(connection);
                 if (config.getBoolean("database.reset", false)) {
                     command.withReset();
                 }

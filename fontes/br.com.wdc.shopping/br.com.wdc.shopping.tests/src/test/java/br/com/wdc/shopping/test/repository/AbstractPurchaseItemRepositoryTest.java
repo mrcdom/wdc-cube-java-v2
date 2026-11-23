@@ -24,8 +24,10 @@ public abstract class AbstractPurchaseItemRepositoryTest {
 				.withId(pv.i64)
 				.withAmount(pv.i32)
 				.withPrice(pv.f64)
-				.withPurchase(new Purchase().withId(pv.i64))
-				.withProduct(new Product().withId(pv.i64));
+				.withPurchase(new Purchase()
+						.withId(pv.i64))
+				.withProduct(new Product()
+						.withId(pv.i64));
 		return prj;
 	}
 
@@ -171,8 +173,10 @@ public abstract class AbstractPurchaseItemRepositoryTest {
 		var item = new PurchaseItem()
 				.withAmount(5)
 				.withPrice(15.50)
-				.withPurchase(new Purchase().withId(DBReset.ADMIN_FIRST_PURCHASE_ID))
-				.withProduct(new Product().withId(DBReset.PEN_DRIVE2GB_ID));
+				.withPurchase(new Purchase()
+						.withId(DBReset.ADMIN_FIRST_PURCHASE_ID))
+				.withProduct(new Product()
+						.withId(DBReset.PEN_DRIVE2GB_ID));
 
 		boolean inserted = repo().insert(item);
 		assertTrue(inserted);

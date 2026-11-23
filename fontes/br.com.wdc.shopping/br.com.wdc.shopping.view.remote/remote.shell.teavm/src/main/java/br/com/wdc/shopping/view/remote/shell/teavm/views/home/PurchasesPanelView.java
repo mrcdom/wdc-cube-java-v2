@@ -5,23 +5,23 @@ import java.util.List;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter.PurchasesPanelViewState;
+import br.com.wdc.framework.cube.remote.bridge.teavm.ViewScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
+import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
 import br.com.wdc.shopping.view.teavm.commons.views.home.PurchasesPanelSharedView;
-import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
-import br.com.wdc.framework.cube.remote.bridge.teavm.ViewScope;
 
 public class PurchasesPanelView extends AbstractRemoteView {
 
-    public static final String VIEW_ID = "b3c4d5e6f7a8";
+    public static final String VIEW_ID = HomeScope.PurchasesPanelScope.CLASS_ID;
 
     private static final int ON_OPEN_RECEIPT = 1;
     private static final int ON_PAGE_CHANGE = 2;
     private static final int ON_PAGE_SIZE_CHANGED = 3;
 
     private final PurchasesPanelSharedView shared;
-    private final PurchasesPanelViewState adaptedState = new PurchasesPanelViewState();
+    private final HomeScope.PurchasesPanelScope adaptedState = new HomeScope.PurchasesPanelScope();
 
     public PurchasesPanelView(String vsid) {
         super(vsid);
@@ -54,12 +54,12 @@ public class PurchasesPanelView extends AbstractRemoteView {
         return shared.renderTree();
     }
 
-    private PurchasesPanelViewState adaptState() {
+    private HomeScope.PurchasesPanelScope adaptState() {
         ViewScope scope = state();
-        adaptedState.purchases = getPurchases(scope);
-        adaptedState.page = scope.getInt("page");
-        adaptedState.pageSize = scope.getInt("pageSize");
-        adaptedState.totalCount = scope.getInt("totalCount");
+        adaptedState.purchases.set(getPurchases(scope));
+        adaptedState.page.set(scope.getInt("page"));
+        adaptedState.pageSize.set(scope.getInt("pageSize"));
+        adaptedState.totalCount.set(scope.getInt("totalCount"));
         return adaptedState;
     }
 

@@ -97,7 +97,7 @@ graph TD
 | Módulo | Descrição |
 |--------|-----------|
 | **framework.commons** | Interfaces funcionais com exceções checked (`ThrowingFunction`, `ThrowingConsumer`, etc.), serialização extensível, abstrações SQL (`SqlDataSource`), utilitários (`CoerceUtils`, `DateUtil`, `Defer`), criptografia (`RSA`, `Base62`), logging multiplataforma (`Log` — facade leve com backends JUL e SLF4J), concorrência (`ScheduledExecutor`) |
-| **framework.cube** | Motor do padrão Cube MVP: `CubeApplication`, `CubePresenter`, `AbstractCubePresenter`, `AbstractChildPresenter`, `CubeView`/`CubeViewSlot`, `ViewState`, `CubePlace`, `CubeIntent`, `CubeNavigation` |
+| **framework.cube** | Motor do padrão Cube MVP: `CubeApplication`, `CubePresenter`, `AbstractCubePresenter`, `CubeView`, `Scope`/`ScopeSlot`/`ScopeViews`, `CubePlace`, `CubeIntent`, `CubeNavigation` |
 | **framework.dependencies** | POM do tipo BOM para gerenciamento centralizado de versões de dependências |
 
 ### Shopping — Backend
@@ -357,21 +357,21 @@ graph TD
     Root["RootPresenter (container)"]
     Root --> Login["LoginPresenter (aberto)"]
     Root --> Home["HomePresenter (restrito/autenticado)"]
-    Home --> ProductsPanel["ProductsPanelPresenter (painel)"]
-    Home --> PurchasesPanel["PurchasesPanelPresenter (painel)"]
+    Home --> ProductsPanel["ProductsPanelScope (segmento)"]
+    Home --> PurchasesPanel["PurchasesPanelScope (segmento)"]
     Home --> Product["ProductPresenter"]
     Home --> Cart["CartPresenter"]
     Home --> Receipt["ReceiptPresenter"]
 ```
 
-Cada presenter possui um **ViewState** serializável que é transmitido ao frontend via WebSocket. O frontend renderiza com base no estado recebido e envia eventos de volta ao presenter correspondente.
+Cada presenter possui um **Scope** serializável que é transmitido ao frontend via WebSocket. O frontend renderiza com base no estado recebido e envia eventos de volta ao presenter correspondente.
 
 ## Convenções de Nomenclatura
 
 | Tipo | Padrão | Exemplo |
 |------|--------|---------|
 | Tabela jOOQ (gerada) | `En` + `Entidade` | `EnProduct` / `EN_PRODUCT` |
-| View State | `*ViewState` | `ProductViewState` |
+| View State | `*Scope` | `ProductScope` |
 | View Impl | `*ViewImpl` | `RootReactViewImpl` |
 | Presenter | `*Presenter` | `CartPresenter` |
 | Repositório | `*RepositoryImpl` | `UserRepositoryImpl` |

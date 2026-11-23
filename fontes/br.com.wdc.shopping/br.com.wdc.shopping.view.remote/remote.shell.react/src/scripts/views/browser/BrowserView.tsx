@@ -41,9 +41,9 @@ class BrowserViewClass extends BaseViewClass<ViewProps, BrowserViewState> {
     }
 
     let alertView: ReactNode
-    if (state.alertMessage) {
+    if (state.alertId) {
       alertView = (
-        <AppAlert code={state.alertMessage.id} args={state.alertMessage.args ?? []} onDismiss={this.emitAlertOk} />
+        <AppAlert code={state.alertId} args={state.alertArgs ?? []} onDismiss={this.emitAlertOk} />
       )
     }
 

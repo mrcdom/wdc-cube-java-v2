@@ -18,12 +18,12 @@ import org.teavm.jso.dom.events.KeyboardEvent;
 import org.teavm.jso.dom.html.HTMLElement;
 import org.teavm.jso.dom.html.HTMLInputElement;
 
+import br.com.wdc.shopping.presentation.presenter.open.login.LoginScope;
 import br.com.wdc.shopping.view.teavm.commons.SelComponents;
 import br.com.wdc.shopping.view.teavm.commons.SelIcons;
 import br.com.wdc.shopping.view.teavm.commons.SelUtility;
 import br.com.wdc.shopping.view.teavm.commons.SharedVDomView;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
-import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginViewState;
 
 /**
  * Shared Login view implementation using Virtual DOM + Spectrum Web Components.
@@ -31,7 +31,7 @@ import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.Logi
  * This view is agnostic to the hosting mode (local presenter or remote bridge).
  * State and actions are injected via lambdas:
  * <ul>
- *   <li>{@link #stateSupplier} — provides the current {@link LoginViewState}</li>
+ *   <li>{@link #stateSupplier} — provides the current {@link LoginScope}</li>
  *   <li>{@link #onEnter} — action listener: receives (userName, password)</li>
  * </ul>
  */
@@ -42,7 +42,7 @@ public class LoginSharedView extends SharedVDomView {
     // -- External bindings (set by adapter) --
 
     /** Provides the current view state. */
-    public Supplier<LoginViewState> stateSupplier;
+    public Supplier<LoginScope> stateSupplier;
 
     /** Action: user requests login. Receives (userName, password). */
     public BiConsumer<String, String> onEnter;
@@ -115,8 +115,8 @@ public class LoginSharedView extends SharedVDomView {
     @Override
     public VNode render() {
         var state = stateSupplier.get();
-        var loading = state.loading;
-        var errorMessage = state.errorMessage;
+        var loading = state.loading.get();
+        var errorMessage = state.errorMessage.get();
         var showError = errorMessage != null && !errorMessage.isEmpty();
         
         var title = "WDC Shopping";

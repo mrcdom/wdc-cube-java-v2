@@ -59,7 +59,7 @@ O diff de event listeners compara por **identidade de referência** — mesma re
 
 1. **Stable fields** — listeners sem parâmetros extraídos para campos `final`:
    ```java
-   private final EventListener<Event> onBack = evt -> presenter.onOpenProducts();
+   private final EventListener<Event> onBack = evt -> state.onOpenProducts.run();
    ```
 
 2. **`useCallback(key, listener)`** — cache de listeners paramétricos (análogo ao React `useCallback`):

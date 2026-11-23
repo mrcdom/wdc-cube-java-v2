@@ -13,18 +13,15 @@ import com.vaadin.flow.server.VaadinService;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.storage.ClientStorage;
 import br.com.wdc.framework.commons.storage.InMemoryClientStorage;
-import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubePresenter;
-import br.com.wdc.shopping.presentation.ProxyRepositoryWrapper;
+import br.com.wdc.framework.cube.ScopeViews;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
-import br.com.wdc.shopping.presentation.presenter.RootPresenter;
-import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
+import br.com.wdc.shopping.presentation.presenter.RootScope;
+import br.com.wdc.shopping.presentation.presenter.open.login.LoginScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptScope;
 import br.com.wdc.shopping.view.vaadin.impl.CartViewVaadin;
 import br.com.wdc.shopping.view.vaadin.impl.HomeViewVaadin;
 import br.com.wdc.shopping.view.vaadin.impl.LoginViewVaadin;
@@ -33,6 +30,7 @@ import br.com.wdc.shopping.view.vaadin.impl.ProductsPanelViewVaadin;
 import br.com.wdc.shopping.view.vaadin.impl.PurchasesPanelViewVaadin;
 import br.com.wdc.shopping.view.vaadin.impl.ReceiptViewVaadin;
 import br.com.wdc.shopping.view.vaadin.impl.RootViewVaadin;
+import br.com.wdc.shopping.view.vaadin.impl.cart.CartItemViewVaadin;
 import br.com.wdc.shopping.view.vaadin.util.IntentSigner;
 
 public class ShoppingVaadinApplication extends ShoppingApplication {
@@ -41,16 +39,17 @@ public class ShoppingVaadinApplication extends ShoppingApplication {
 
     private static final Map<String, ShoppingVaadinApplication> APP_CACHE = new ConcurrentHashMap<>();
 
-    static {
-        RootPresenter.createView = RootViewVaadin::new;
-        LoginPresenter.createView = LoginViewVaadin::new;
-        HomePresenter.createView = HomeViewVaadin::new;
-        CartPresenter.createView = CartViewVaadin::new;
-        ProductPresenter.createView = ProductViewVaadin::new;
-        ReceiptPresenter.createView = ReceiptViewVaadin::new;
-        ProductsPanelPresenter.createView = ProductsPanelViewVaadin::new;
-        PurchasesPanelPresenter.createView = PurchasesPanelViewVaadin::new;
-    }
+    /** The view of each scope: the presenters', the segments' and the rows'. */
+    private static final ScopeViews SCOPE_VIEWS = new ScopeViews()
+            .register(RootScope.class, RootViewVaadin::new)
+            .register(LoginScope.class, LoginViewVaadin::new)
+            .register(HomeScope.class, HomeViewVaadin::new)
+            .register(ProductScope.class, ProductViewVaadin::new)
+            .register(CartScope.class, CartViewVaadin::new)
+            .register(ReceiptScope.class, ReceiptViewVaadin::new)
+            .register(CartScope.CartItemScope.class, (ShoppingVaadinApplication app, CartScope.CartItemScope row) -> new CartItemViewVaadin(app, row))
+            .register(HomeScope.ProductsPanelScope.class, (ShoppingVaadinApplication app, HomeScope.ProductsPanelScope s) -> new ProductsPanelViewVaadin(app, s))
+            .register(HomeScope.PurchasesPanelScope.class, (ShoppingVaadinApplication app, HomeScope.PurchasesPanelScope s) -> new PurchasesPanelViewVaadin(app, s));
 
     private UI ui;
     private Div rootContainer;
@@ -69,12 +68,8 @@ public class ShoppingVaadinApplication extends ShoppingApplication {
         return new ConcurrentHashMap<>();
     }
 
-    @Override
-    protected <T> T createDelegate(Class<T> repoInterface, T delegate) {
-        return ProxyRepositoryWrapper.wrap(repoInterface, delegate, this::getSecurityContext);
-    }
-
     public ShoppingVaadinApplication(UI ui) {
+        this.setScopeViews(SCOPE_VIEWS);
         this.ui = ui;
     }
 
@@ -132,31 +127,38 @@ public class ShoppingVaadinApplication extends ShoppingApplication {
 
         // Recreate Vaadin components in all views (old components are tied to destroyed UI)
         // Presenters and application state (subject, securityContext, cart) are preserved
-        for (var presenter : this.presenterMap.values()) {
-            if (presenter instanceof AbstractCubePresenter<?> acp && acp.view() instanceof AbstractViewVaadin<?> view) {
-                view.recreate();
+        for (var view : this.liveViews()) {
+            if (view instanceof AbstractViewVaadin<?> vaadinView) {
+                vaadinView.recreate();
             }
         }
     }
 
     @Override
     public void updateHistory() {
+        // The host draws the root presenter's scope; each view asks for the views of the scopes it holds
+        var rootPresenter = this.getRootPresenter();
+        if (rootPresenter != null) {
+            this.viewOf(rootPresenter.state);
+        }
+
         // Mark all active views as dirty for UI refresh
-        for (var presenter : this.presenterMap.values()) {
-            if (presenter instanceof AbstractCubePresenter<?> acp) {
-                var view = acp.view();
-                if (view instanceof AbstractViewVaadin<?> vaadinView) {
-                    this.markDirty(vaadinView);
-                }
+        for (var view : this.liveViews()) {
+            if (view instanceof AbstractViewVaadin<?> vaadinView) {
+                this.markDirty(vaadinView);
             }
         }
 
         // Sync browser URL hash with current MVP intent (signed)
-        if (!navigatingFromBrowser.get()) {
-            try {
-                var intent = this.newIntent();
-                var intentStr = intent.toString();
-                this.fragment = intentStr;
+        try {
+            var intent = this.newIntent();
+            var intentStr = intent.toString();
+            if (intentStr.equals(this.fragment)) {
+                // Every action republishes the address; only a change becomes a history entry
+                return;
+            }
+            this.fragment = intentStr;
+            if (!navigatingFromBrowser.get()) {
                 var signedUrl = intentSigner.sign(intentStr);
                 var newSignature = intentSigner.extractSignature(signedUrl);
                 // Update cache: remove old entry, add new
@@ -171,9 +173,9 @@ public class ShoppingVaadinApplication extends ShoppingApplication {
                                 "history.pushState(null, '', '#' + $0)", signedUrl);
                     });
                 });
-            } catch (Exception e) {
-                LOG.error("Failed to push browser history state", e);
             }
+        } catch (Exception e) {
+            LOG.error("Failed to push browser history state", e);
         }
     }
 

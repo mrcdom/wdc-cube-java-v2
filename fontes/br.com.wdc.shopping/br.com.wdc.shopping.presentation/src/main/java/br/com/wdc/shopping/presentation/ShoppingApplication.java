@@ -1,48 +1,53 @@
 package br.com.wdc.shopping.presentation;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
 
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.CubeApplication;
-import br.com.wdc.framework.cube.CubeIntent;
-import br.com.wdc.framework.cube.CubeNavigation;
 import br.com.wdc.framework.cube.CubePlace;
-import br.com.wdc.framework.domain.security.SecurityContext;
-import br.com.wdc.framework.domain.transaction.TransactionService;
-import br.com.wdc.shopping.domain.ShoppingTransactions;
-import br.com.wdc.shopping.domain.product.ProductRepository;
-import br.com.wdc.shopping.domain.purchase.PurchaseRepository;
-import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemRepository;
-import br.com.wdc.shopping.domain.user.UserRepository;
-import br.com.wdc.shopping.presentation.function.GoAction;
+import br.com.wdc.shopping.presentation.presenter.RootKeys;
 import br.com.wdc.shopping.presentation.presenter.RootPresenter;
-import br.com.wdc.shopping.presentation.presenter.Routes;
+import br.com.wdc.shopping.presentation.presenter.open.OpenKeys;
+import br.com.wdc.shopping.presentation.presenter.open.login.LoginKeys;
 import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
+import br.com.wdc.shopping.presentation.presenter.restricted.RestrictedKeys;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartKeys;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartManager;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
+import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductKeys;
+import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptKeys;
 
 public abstract class ShoppingApplication extends CubeApplication {
+
+	private static final Log LOG = Log.getLogger(ShoppingApplication.class);
+
+	/**
+	 * Every place of the application, declared by its keys class. Listing them loads those classes, so the tree is
+	 * whole before an address is resolved by name ({@code PlaceKeysTest} checks no keys class is missing).
+	 */
+	public static final List<CubePlace> PLACES = List.of(
+			RootKeys.PLACE,
+			OpenKeys.PLACE,
+			LoginKeys.PLACE,
+			RestrictedKeys.PLACE,
+			HomeKeys.PLACE,
+			CartKeys.PLACE,
+			ProductKeys.PLACE,
+			ReceiptKeys.PLACE);
 
 	protected Subject subject;
 
 	protected CartManager cart;
 
-	private SecurityContext securityContext;
-
-	private UserRepository userRepository;
-	private ProductRepository productRepository;
-	private PurchaseRepository purchaseRepository;
-	private PurchaseItemRepository purchaseItemRepository;
-
 	// :: Getters and Setters
 
 	@Override
 	public CubePlace getRootPlace() {
-		return Routes.Place.ROOT;
+		return RootKeys.PLACE;
 	}
 
 	public RootPresenter getRootPresenter() {
-		return (RootPresenter) this.presenterMap.get(Routes.Place.ROOT.getId());
+		return (RootPresenter) this.presenterMap.get(RootKeys.PLACE.getId());
 	}
 
 	public Subject getSubject() {
@@ -51,51 +56,6 @@ public abstract class ShoppingApplication extends CubeApplication {
 
 	public void setSubject(Subject subject) {
 		this.subject = subject;
-	}
-	
-	public TransactionService tx() {
-	    return ShoppingTransactions.BEAN.get();
-	}
-
-	public SecurityContext getSecurityContext() {
-		return this.securityContext;
-	}
-
-	public void setSecurityContext(SecurityContext securityContext) {
-		this.securityContext = securityContext;
-		// Recriar delegates quando o contexto muda
-		this.userRepository = null;
-		this.productRepository = null;
-		this.purchaseRepository = null;
-		this.purchaseItemRepository = null;
-	}
-
-	public UserRepository getUserRepository() {
-		if (userRepository == null) {
-			userRepository = createDelegate(UserRepository.class, UserRepository.BEAN.get());
-		}
-		return userRepository;
-	}
-
-	public ProductRepository getProductRepository() {
-		if (productRepository == null) {
-			productRepository = createDelegate(ProductRepository.class, ProductRepository.BEAN.get());
-		}
-		return productRepository;
-	}
-
-	public PurchaseRepository getPurchaseRepository() {
-		if (purchaseRepository == null) {
-			purchaseRepository = createDelegate(PurchaseRepository.class, PurchaseRepository.BEAN.get());
-		}
-		return purchaseRepository;
-	}
-
-	public PurchaseItemRepository getPurchaseItemRepository() {
-		if (purchaseItemRepository == null) {
-			purchaseItemRepository = createDelegate(PurchaseItemRepository.class, PurchaseItemRepository.BEAN.get());
-		}
-		return purchaseItemRepository;
 	}
 
 	public CartManager getCart() {
@@ -110,72 +70,22 @@ public abstract class ShoppingApplication extends CubeApplication {
 
 	// :: Extentions
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public CubeNavigation<ShoppingApplication> navigate() {
-		return super.navigate();
-	}
-
 	public abstract String b64Cipher(String text);
 
 	public abstract String b64Decipher(String b64Text);
 	
 	public abstract String getClientIp();
 
+	@Override
+	public void alertUnexpectedError(String message, Throwable error) {
+		this.alertUnexpectedError(LOG, message, error);
+	}
+
 	public void alertUnexpectedError(Log logger, String message, Throwable e) {
 		var rootPresenter = this.getRootPresenter();
 		if (rootPresenter != null) {
 			rootPresenter.alertUnexpectedError(logger, message, e);
 		}
-	}
-
-	public void go(String placeStr) {
-		this.go(CubeIntent.parse(placeStr));
-	}
-
-	public void go(CubeIntent intent) {
-		ShoppingApplication.Internals.go(this, intent);
-	}
-
-	// :: Internal Classes - Meant to be user on initialization only
-
-	public static class Internals {
-
-		private static final Map<String, GoAction> goActionMap = new ConcurrentHashMap<>();
-
-		private Internals() {
-			super();
-		}
-
-		public static void registerPlace(String tag, GoAction goAction) {
-			goActionMap.put(tag, goAction);
-		}
-
-		static Boolean go(ShoppingApplication app, CubeIntent place) {
-			var goAction = goActionMap.get(place.getPlace().getName());
-			if (goAction == null) {
-				goAction = goActionMap.get(app.getRootPlace().getName());
-			}
-
-			if (goAction != null) {
-				return goAction.apply(app, place);
-			}
-			return Boolean.FALSE;
-		}
-
-	}
-
-	// :: Repository delegate factory
-
-	/**
-	 * Cria (opcionalmente) um wrapper para o repositório que pode envolver cada chamada com o SecurityContext desta aplicação.
-	 * <p>
-	 * Implementação padrão retorna o delegate diretamente (sem proxy). Subclasses em ambientes multi-threaded (JVM desktop/server) devem override para usar
-	 * {@link ProxyRepositoryWrapper#wrap(Class, Object, java.util.function.Supplier)}.
-	 */
-	@SuppressWarnings("java:S1172") // repoInterface is used by subclass overrides (ProxyRepositoryWrapper)
-	protected <T> T createDelegate(Class<T> repoInterface, T delegate) {
-		return delegate;
 	}
 
 }

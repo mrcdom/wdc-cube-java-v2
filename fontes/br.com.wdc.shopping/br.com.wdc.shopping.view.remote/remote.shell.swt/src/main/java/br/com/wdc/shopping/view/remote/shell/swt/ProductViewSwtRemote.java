@@ -3,14 +3,14 @@ package br.com.wdc.shopping.view.remote.shell.swt;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
-import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter.ProductViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.impl.ProductViewSwt;
 
 class ProductViewSwtRemote extends ProductViewSwt {
 	
-	public static final String CID = "48b693f67410";
+	public static final String CID = ProductScope.CLASS_ID;
 
 	final String vsid;
 	final RemoteViewContext ctx;
@@ -32,15 +32,15 @@ class ProductViewSwtRemote extends ProductViewSwt {
 		this.ctx.submitEvent(this.vsid, 2, Map.of("p.quantity", qty));
 	}
 
-	private ProductViewState stateSupplierImpl() {
+	private ProductScope stateSupplierImpl() {
 		var s = this.ctx.viewState(this.vsid);
 		if (s == null) {
 			return null;
 		}
-		var state = new ProductViewState();
-		state.errorMessage = s.getString("errorMessage");
+		var state = new ProductScope();
+		state.errorMessage.set(s.getString("errorMessage"));
 		var code = s.getLong("errorCode");
-		state.errorCode = code != null ? code.intValue() : 0;
+		state.errorCode.set(code != null ? code.intValue() : 0);
 		var raw = s.getMap("product");
 		if (raw != null) {
 			var p = new ProductInfo();
@@ -49,7 +49,7 @@ class ProductViewSwtRemote extends ProductViewSwt {
 			p.description = CoerceUtils.asString(raw.get("description"));
 			p.price = CoerceUtils.asDouble(raw.get("price"), 0.0);
 			p.image = CoerceUtils.asString(raw.get("image"));
-			state.product = p;
+			state.product.set(p);
 		}
 		return state;
 	}

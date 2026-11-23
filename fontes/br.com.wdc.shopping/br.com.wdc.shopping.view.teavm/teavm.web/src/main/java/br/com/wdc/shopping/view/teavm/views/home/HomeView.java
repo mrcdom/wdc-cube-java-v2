@@ -1,7 +1,7 @@
 package br.com.wdc.shopping.view.teavm.views.home;
 
-import br.com.wdc.shopping.presentation.presenter.Routes;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeScope;
 import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
 import br.com.wdc.shopping.view.teavm.commons.views.home.HomeSharedView;
@@ -9,23 +9,24 @@ import br.com.wdc.shopping.view.teavm.commons.views.home.HomeSharedView.HomeView
 import br.com.wdc.shopping.view.teavm.views.AbstractVDomView;
 import br.com.wdc.shopping.view.teavm.views.AbstractViewTeaVM;
 
-public class HomeView extends AbstractVDomView<HomePresenter> {
+public class HomeView extends AbstractVDomView<HomeScope> {
 
     private final HomeSharedView shared;
     private final HomeViewData viewData = new HomeViewData();
 
-    public HomeView(HomePresenter presenter) {
-        super("home", (ShoppingTeaVMApplication) presenter.app, presenter);
+    public HomeView(ShoppingTeaVMApplication app, HomeScope state) {
+        super("home", app, state);
 
         this.shared = new HomeSharedView();
         this.shared.stateSupplier = this::buildViewData;
         this.shared.requestUpdate = this::update;
-        this.shared.onExit = () -> safeAction("Exit", presenter::onExit);
-        this.shared.onOpenCart = () -> safeAction("Open cart", presenter::onOpenCart);
-        this.shared.onNavigateBack = () -> safeAction("Back to home", () -> Routes.home(this.app));
+        this.shared.onExit = () -> safeAction("Exit", state.onExit::run);
+        this.shared.onOpenCart = () -> safeAction("Open cart", state.onOpenCart::run);
+        this.shared.onNavigateBack = () -> safeAction("Back to home", () -> new HomeKeys(this.app).flip());
         this.shared.onPurchasesPanelVisible = () -> {
-            if (presenter.state.purchasesPanelView != null) {
-                presenter.state.purchasesPanelView.update();
+            var purchasesPanel = this.app.viewOf(this.state.purchasesPanel.get());
+            if (purchasesPanel != null) {
+                purchasesPanel.update();
             }
         };
     }
@@ -36,13 +37,12 @@ public class HomeView extends AbstractVDomView<HomePresenter> {
     }
 
     private HomeViewData buildViewData() {
-        var state = this.presenter.state;
-        viewData.nickName = state.nickName != null ? state.nickName : "";
-        viewData.cartCount = String.valueOf(state.cartItemCount);
-        viewData.errorMessage = state.errorMessage;
-        viewData.productsPanelEl = state.productsPanelView instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
-        viewData.purchasesPanelEl = state.purchasesPanelView instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
-        viewData.contentViewEl = state.contentView instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
+        viewData.nickName = this.state.nickName.get() != null ? this.state.nickName.get() : "";
+        viewData.cartCount = String.valueOf(this.state.cartItemCount.get());
+        viewData.errorMessage = this.state.errorMessage.get();
+        viewData.productsPanelEl = this.app.viewOf(this.state.productsPanel.get()) instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
+        viewData.purchasesPanelEl = this.app.viewOf(this.state.purchasesPanel.get()) instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
+        viewData.contentViewEl = this.app.viewOf(this.state.content.get()) instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
         return viewData;
     }
 }

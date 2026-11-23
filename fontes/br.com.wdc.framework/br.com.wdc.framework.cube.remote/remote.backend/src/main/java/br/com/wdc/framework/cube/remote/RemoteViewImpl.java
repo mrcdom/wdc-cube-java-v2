@@ -3,49 +3,61 @@ package br.com.wdc.framework.cube.remote;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
+import br.com.wdc.framework.cube.CubeApplication;
 import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
-import br.com.wdc.framework.cube.PresenterBase;
-import br.com.wdc.framework.cube.ViewState;
+import br.com.wdc.framework.cube.Scope;
 
 /**
  * Generic {@link CubeView} implementation for remote applications.
  * <p>
- * Each presenter gets one instance that manages dirty-tracking and
- * delegates submit/syncState to the skeleton.
+ * Each scope drawn for a client (a presenter's, a segment's, a row's) gets one instance, made by
+ * {@link #forScope}: it manages dirty-tracking and delegates submit/syncState to the scope's skeleton, which
+ * dispatches to the actions the presenter bound with an event code.
  */
 public class RemoteViewImpl implements CubeView {
 
     protected final RemoteApplication app;
-    protected final PresenterBase presenter;
-    protected final ViewState state;
+    protected final Scope state;
     protected final CubeSkeleton skeleton;
     protected final String instanceId;
 
-    protected int alertId;
-
-    public RemoteViewImpl(RemoteApplication app, PresenterBase presenter, ViewState state, CubeSkeleton skeleton) {
-        this(app, presenter, state, skeleton, skeleton.classId() + ":" + app.nextInstanceId());
+    /** The view of a scope: its skeleton dispatches to the actions the presenter bound on the scope. */
+    public RemoteViewImpl(RemoteApplication app, Scope scope, String classId) {
+        this(app, scope, classId, classId + ":" + app.nextInstanceId());
     }
 
-    public RemoteViewImpl(RemoteApplication app, PresenterBase presenter, ViewState state, CubeSkeleton skeleton,
-            String vsid) {
+    /** The same, with a given instance id (the browser's, which every client knows). */
+    public RemoteViewImpl(RemoteApplication app, Scope scope, String classId, String instanceId) {
         this.app = app;
-        this.presenter = presenter;
-        this.state = state;
-        this.skeleton = skeleton;
-        this.instanceId = vsid;
+        this.state = scope;
+        this.skeleton = scope.skeleton(classId);
+        this.instanceId = instanceId;
         this.app.putView(this);
         this.app.markDirty(this);
+    }
+
+    /**
+     * The remote host's view for any scope: what a client knows it by is the {@code CLASS_ID} the scope class
+     * declares (a {@code public static final String}). Meant as the fallback of the host's
+     * {@link br.com.wdc.framework.cube.ScopeViews}.
+     */
+    public static RemoteViewImpl forScope(CubeApplication app, Scope scope) {
+        return new RemoteViewImpl((RemoteApplication) app, scope, classIdOf(scope.getClass()));
+    }
+
+    private static String classIdOf(Class<?> scopeClass) {
+        try {
+            var field = scopeClass.getField("CLASS_ID");
+            return (String) field.get(null);
+        } catch (ReflectiveOperationException | ClassCastException caught) {
+            throw new IllegalStateException(scopeClass.getName() + " declares no public static String CLASS_ID", caught);
+        }
     }
 
     @Override
     public String instanceId() {
         return this.instanceId;
-    }
-
-    public PresenterBase presenter() {
-        return this.presenter;
     }
 
     @Override
@@ -67,6 +79,11 @@ public class RemoteViewImpl implements CubeView {
     }
 
     public void writeState(ExtensibleObjectOutput json) {
-        new ViewStateSerializer(json).write(this.state, instanceId);
+        new ScopeSerializer(json, this::viewOf).write(this.state, instanceId);
+    }
+
+    /** The view of a scope inside this one (a segment, a row): made the first time it is written. */
+    private CubeView viewOf(Scope scope) {
+        return this.app instanceof CubeApplication cubeApp ? cubeApp.viewOf(scope) : scope.view();
     }
 }

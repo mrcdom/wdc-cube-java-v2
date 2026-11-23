@@ -1,25 +1,25 @@
 package br.com.wdc.shopping.view.swt.impl;
 
+import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.function.Supplier;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 
-import java.util.function.Supplier;
-
-import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter.ReceiptViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptScope;
 import br.com.wdc.shopping.view.swt.AbstractViewSwt;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.theme.Surface;
 import br.com.wdc.shopping.view.swt.theme.Theme;
 import br.com.wdc.shopping.view.swt.util.SwtDom;
-import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
 
 public class ReceiptViewSwt extends AbstractViewSwt {
 
-    public Supplier<ReceiptViewState> stateSupplier;
+    public Supplier<ReceiptScope> stateSupplier;
     public Runnable onOpenProducts;
 
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
@@ -48,7 +48,7 @@ public class ReceiptViewSwt extends AbstractViewSwt {
             root.setLayout(rootLayout);
 
             // Success banner (conditional)
-            if (state != null && state.notifySuccess) {
+            if (state != null && state.notifySuccess.get()) {
                 renderSuccessBanner(dom);
             }
 
@@ -94,7 +94,7 @@ public class ReceiptViewSwt extends AbstractViewSwt {
         });
     }
 
-    private void renderBody(SwtDom dom, ReceiptViewState state) {
+    private void renderBody(SwtDom dom, ReceiptScope state) {
         dom.col(SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND, body -> {
             body.setLayoutData(gdFillH(new GridData()));
             body.setBackground(Theme.BG_PAGE);
@@ -120,8 +120,8 @@ public class ReceiptViewSwt extends AbstractViewSwt {
                     lbl.setBackground(Theme.BG_PAGE);
                 });
 
-                var dateStr = state != null && state.receipt != null && state.receipt.date != null
-                        ? dateFormat.format(new Date(state.receipt.date))
+                var dateStr = state != null && state.receipt.get() != null && state.receipt.get().date != null
+                        ? dateFormat.format(new Date(state.receipt.get().date))
                         : "--";
                 dom.label(lbl -> {
                     lbl.setText(dateStr);
@@ -192,8 +192,8 @@ public class ReceiptViewSwt extends AbstractViewSwt {
             });
 
             // Items
-            if (state != null && state.receipt != null && state.receipt.items != null) {
-                for (var item : state.receipt.items) {
+            if (state != null && state.receipt.get() != null && state.receipt.get().items != null) {
+                for (var item : state.receipt.get().items) {
                     dom.row(3, row -> {
                         row.setLayoutData(gdFillH(new GridData()));
                         row.setBackground(Theme.BG_PAGE);
@@ -253,8 +253,8 @@ public class ReceiptViewSwt extends AbstractViewSwt {
                     lbl.setLayoutData(gdFillH(new GridData()));
                 });
 
-                var totalStr = state != null && state.receipt != null && state.receipt.total != null
-                        ? Theme.formatPrice(state.receipt.total)
+                var totalStr = state != null && state.receipt.get() != null && state.receipt.get().total != null
+                        ? Theme.formatPrice(state.receipt.get().total)
                         : "R$ 0,00";
                 dom.label(lbl -> {
                     lbl.setText(totalStr);

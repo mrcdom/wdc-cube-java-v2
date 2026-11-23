@@ -95,7 +95,8 @@ public class RelationKeyProjectionTest {
     @Test
     public void projectionBeyondKey_goesBackToSubselect() {
         PurchaseItem prj = env.purchaseItemRepo().newProjection();
-        prj.product().withName(ProjectionValues.INSTANCE.str);
+        prj.product()
+                .withName(ProjectionValues.INSTANCE.str);
 
         String sql = sqlFor(prj);
 
@@ -108,7 +109,8 @@ public class RelationKeyProjectionTest {
     @Test
     public void projectionBeyondKey_bringsTheRequestedField() {
         PurchaseItem prj = env.purchaseItemRepo().newProjection();
-        prj.product().withName(ProjectionValues.INSTANCE.str);
+        prj.product()
+                .withName(ProjectionValues.INSTANCE.str);
 
         PurchaseItem item = env.purchaseItemRepo().fetchById(DBReset.ADMIN_FIRST_PURCHASE_ITEM0_ID, prj);
 

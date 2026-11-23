@@ -12,7 +12,7 @@ import br.com.wdc.framework.domain.security.CryptoProvider;
  * A assinatura impede modificação casual do hash da URL pelo usuário.
  * Usa um secret aleatório por sessão (gerado via crypto.getRandomValues no browser).
  * <p>
- * Formato: {@code intent&s=<base62_signature>} (ex: {@code home?userId=0&s=3kTm8Gx2Rn1})
+ * Formato: {@code intent&s=<base62_signature>} (ex: {@code home?rt-user=0&s=3kTm8Gx2Rn1})
  */
 public class IntentSigner {
 

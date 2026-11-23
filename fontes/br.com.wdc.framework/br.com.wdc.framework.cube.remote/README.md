@@ -32,7 +32,7 @@ graph LR
 
 | Submódulo | Linguagem | Descrição |
 |-----------|-----------|-----------|
-| `remote.backend` | Java 21 | Servidor — `RemoteApplication`, `RemoteApplicationSupport`, `ViewStateSerializer`, controllers Javalin (WebSocket + HTTP index) |
+| `remote.backend` | Java 21 | Servidor — `RemoteApplication`, `RemoteApplicationSupport`, `ScopeSerializer`, controllers Javalin (WebSocket + HTTP index) |
 | `remote.bridge.java` | Java 21 | Bridge Java (fat-client) — `HostClient`, `HostClientSession`, `AbstractPresenterClient`, handshake RSA/AES-GCM; usado por `remote.shell.probe` e `remote.shell.swt` |
 | `remote.bridge.react` | TypeScript/React | Bridge do thin-client React — `ViewStateCoordinator`, reconnection, data security, GC de views |
 | `remote.bridge.teavm` | Java (TeaVM) | Bridge do thin-client TeaVM — mesma lógica que React, compilada para JavaScript via TeaVM |
@@ -48,9 +48,9 @@ Classes principais no servidor:
 | `RemoteApplication` | Contrato para apps remotas — autenticação, sessão WS, lifecycle |
 | `RemoteApplicationSupport` | Infraestrutura delegada — gerencia id, WsContext, expiração |
 | `RemoteApplicationRegistry` | Registra e localiza instâncias de `RemoteApplication` ativas |
-| `RemoteBrowserPresenter` | Presenter especial que controla o "browser" do thin-client |
-| `RemoteViewImpl` | Implementação de `CubeView` que serializa estado para o cliente |
-| `ViewStateSerializer` | Serializa `ViewState` → JSON para envio via WebSocket |
+| `RemoteBrowserPresenter` | Presenter do "browser" do thin-client (alerta, início, histórico, keep-alive): um `BrowserScope` com `CLASS_ID` e ações com código, como os demais; a view dele tem o id fixo `7b32e816a191:0` e o escopo guarda o do presenter raiz em `content` |
+| `RemoteViewImpl` | A view remota de um escopo (`forScope`, pelo `CLASS_ID`): serializa o estado e encaminha os eventos ao skeleton do escopo |
+| `ScopeSerializer` | Serializa o escopo → JSON por reflexão; um escopo dentro dele sai como `"<campo>ViewId"`, uma lista de escopos como `"<campo>ViewIds"` |
 | `RemoteHostModule` | Módulo Javalin que registra as rotas WS e HTTP |
 | `DispatcherController` | Controller WebSocket — recebe eventos e despacha para o `CubeSkeleton` |
 | `IndexHtmlController` | Serve o HTML do thin-client |

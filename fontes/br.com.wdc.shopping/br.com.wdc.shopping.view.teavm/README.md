@@ -65,7 +65,7 @@ dom.div("d-flex align-items-center gap-2", container -> {
     dom.button("btn btn-primary", btn -> {
         dom.icon(BsIcons.CART);
         dom.span(null, txt -> txt.setTextContent("Adicionar"));
-        btn.addEventListener("click", evt -> presenter.onAddToCart(1));
+        btn.addEventListener("click", evt -> state.onAddToCart.run(1));
     });
 });
 ```

@@ -78,10 +78,12 @@ public class PurchaseItemCodec implements ModelCodec<PurchaseItem, PurchaseItemC
 		if (!java.util.Objects.equals(newEntity.amount(), oldEntity.amount())) projection.withAmount(pv.i32);
 		if (!java.util.Objects.equals(newEntity.price(), oldEntity.price())) projection.withPrice(pv.f64);
 		if (!java.util.Objects.equals(newEntity.productId(), oldEntity.productId())) {
-			projection.withProduct(new Product().withId(pv.i64));
+			projection.withProduct(new Product()
+					.withId(pv.i64));
 		}
 		if (!java.util.Objects.equals(newEntity.purchaseId(), oldEntity.purchaseId())) {
-			projection.withPurchase(new Purchase().withId(pv.i64));
+			projection.withPurchase(new Purchase()
+					.withId(pv.i64));
 		}
 		return projection;
 	}
@@ -106,7 +108,8 @@ public class PurchaseItemCodec implements ModelCodec<PurchaseItem, PurchaseItemC
 				case "purchaseId" -> {
 					var purchaseId = InputCoerceUtils.asLong(in);
 					if (purchaseId != null) {
-						if (item.purchase() == null) item.withPurchase(new Purchase().withId(purchaseId));
+						if (item.purchase() == null) item.withPurchase(new Purchase()
+								.withId(purchaseId));
 					}
 				}
 				default -> in.skipValue();
@@ -130,19 +133,23 @@ public class PurchaseItemCodec implements ModelCodec<PurchaseItem, PurchaseItemC
 				case "product" -> {
 					if (in.peek() == SerializationToken.NULL) { in.nextNull(); }
 					else entity.withProduct(PRODUCT_CODEC.readEntity(in));
-					projection.withProduct(new Product().withId(pv.i64));
+					projection.withProduct(new Product()
+							.withId(pv.i64));
 				}
 				case "purchase" -> {
 					if (in.peek() == SerializationToken.NULL) { in.nextNull(); }
 					else entity.withPurchase(new PurchaseCodec().readEntity(in));
-					projection.withPurchase(new Purchase().withId(pv.i64));
+					projection.withPurchase(new Purchase()
+							.withId(pv.i64));
 				}
 				case "purchaseId" -> {
 					var purchaseId = InputCoerceUtils.asLong(in);
 					if (purchaseId != null) {
-						if (entity.purchase() == null) entity.withPurchase(new Purchase().withId(purchaseId));
+						if (entity.purchase() == null) entity.withPurchase(new Purchase()
+								.withId(purchaseId));
 					}
-					projection.withPurchase(new Purchase().withId(pv.i64));
+					projection.withPurchase(new Purchase()
+							.withId(pv.i64));
 				}
 				default -> in.skipValue();
 			}

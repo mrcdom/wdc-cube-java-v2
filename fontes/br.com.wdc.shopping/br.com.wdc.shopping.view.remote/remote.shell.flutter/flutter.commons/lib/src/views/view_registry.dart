@@ -8,6 +8,7 @@ import 'home_view.dart';
 import 'products_panel.dart';
 import 'purchases_panel.dart';
 import 'cart_view.dart';
+import 'cart_item_view.dart';
 import 'product_view.dart';
 import 'receipt_view.dart';
 
@@ -20,6 +21,7 @@ void registerAllViews(ViewStateCoordinator coordinator) {
   coordinator.registerView(ProductsPanel.viewId, (vsid, _) => ProductsPanel(key: ValueKey(vsid), vsid: vsid));
   coordinator.registerView(PurchasesPanel.viewId, (vsid, _) => PurchasesPanel(key: ValueKey(vsid), vsid: vsid));
   coordinator.registerView(CartView.viewId, (vsid, _) => CartView(key: ValueKey(vsid), vsid: vsid));
+  coordinator.registerView(CartItemView.viewId, (vsid, _) => CartItemView(key: ValueKey(vsid), vsid: vsid));
   coordinator.registerView(ProductView.viewId, (vsid, _) => ProductView(key: ValueKey(vsid), vsid: vsid));
   coordinator.registerView(ReceiptView.viewId, (vsid, _) => ReceiptView(key: ValueKey(vsid), vsid: vsid));
 }

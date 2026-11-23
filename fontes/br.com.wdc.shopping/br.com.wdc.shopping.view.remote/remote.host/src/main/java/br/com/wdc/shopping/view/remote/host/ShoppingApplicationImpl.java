@@ -12,21 +12,13 @@ import br.com.wdc.framework.commons.util.Defer;
 import br.com.wdc.framework.cube.CubeApplication;
 import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.CubePresenter;
+import br.com.wdc.framework.cube.ScopeViews;
 import br.com.wdc.framework.cube.remote.RemoteAppSecurity;
 import br.com.wdc.framework.cube.remote.RemoteApplication;
 import br.com.wdc.framework.cube.remote.RemoteApplicationRegistry;
 import br.com.wdc.framework.cube.remote.RemoteApplicationSupport;
 import br.com.wdc.framework.cube.remote.RemoteViewImpl;
-import br.com.wdc.shopping.presentation.ProxyRepositoryWrapper;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
-import br.com.wdc.shopping.presentation.presenter.RootPresenter;
-import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
 
 /**
  * Shopping-specific remote application implementation.
@@ -41,16 +33,12 @@ public class ShoppingApplicationImpl extends ShoppingApplication implements Remo
 	private static RemoteAppSecurity appSecurity;
 	private static RemoteApplicationRegistry<ShoppingApplicationImpl> registry;
 
-	static {
-		RootPresenter.createView = p -> new RemoteViewImpl((RemoteApplication) p.app, p, p.state, p.skeleton());
-		LoginPresenter.createView = p -> new RemoteViewImpl((RemoteApplication) p.app, p, p.state, p.skeleton());
-		HomePresenter.createView = p -> new RemoteViewImpl((RemoteApplication) p.app, p, p.state, p.skeleton());
-		ProductPresenter.createView = p -> new RemoteViewImpl((RemoteApplication) p.app, p, p.state, p.skeleton());
-		CartPresenter.createView = p -> new RemoteViewImpl((RemoteApplication) p.app, p, p.state, p.skeleton());
-		ReceiptPresenter.createView = p -> new RemoteViewImpl((RemoteApplication) p.app, p, p.state, p.skeleton());
-		ProductsPanelPresenter.createView = p -> new RemoteViewImpl((RemoteApplication) p.app, p, p.state, p.skeleton());
-		PurchasesPanelPresenter.createView = p -> new RemoteViewImpl((RemoteApplication) p.app, p, p.state, p.skeleton());
-	}
+	/**
+	 * The views of every scope (a presenter's, a segment's, a row's): a remote view, known to the client by the
+	 * CLASS_ID its scope class declares. The browser view draws the root presenter's scope; each view makes the views
+	 * of the scopes it holds as it is written.
+	 */
+	private static final ScopeViews SCOPE_VIEWS = new ScopeViews().fallback(RemoteViewImpl::forScope);
 
 	/**
 	 * Initializes module-level references. Called once during bootstrap.
@@ -72,6 +60,7 @@ public class ShoppingApplicationImpl extends ShoppingApplication implements Remo
 	// :: Constructor
 
 	public ShoppingApplicationImpl(String id) {
+		this.setScopeViews(SCOPE_VIEWS);
 		this.support = new RemoteApplicationSupport(id, new HostCallbacks(), appSecurity);
 		this.support.postConstruct(this);
 	}
@@ -84,11 +73,6 @@ public class ShoppingApplicationImpl extends ShoppingApplication implements Remo
 	@Override
 	protected Map<String, Object> createAttributeMap() {
 		return new ConcurrentHashMap<>();
-	}
-
-	@Override
-	protected <T> T createDelegate(Class<T> repoInterface, T delegate) {
-		return ProxyRepositoryWrapper.wrap(repoInterface, delegate, this::getSecurityContext);
 	}
 
 	// :: ShoppingApplication overrides

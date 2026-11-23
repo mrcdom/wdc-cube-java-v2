@@ -10,24 +10,20 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 
-import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
-import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginViewState;
+import br.com.wdc.shopping.presentation.presenter.open.login.LoginScope;
 import br.com.wdc.shopping.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.shopping.view.vaadin.ShoppingVaadinApplication;
 import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
-public class LoginViewVaadin extends AbstractViewVaadin<LoginPresenter> {
-
-    private final LoginViewState state;
+public class LoginViewVaadin extends AbstractViewVaadin<LoginScope> {
 
     private boolean notRendered = true;
     private TextField userField;
     private TextField passwordField;
     private Div errorDiv;
 
-    public LoginViewVaadin(LoginPresenter presenter) {
-        super("login", (ShoppingVaadinApplication) presenter.app, presenter, new VerticalLayout());
-        this.state = presenter.state;
+    public LoginViewVaadin(ShoppingVaadinApplication app, LoginScope state) {
+        super("login", app, state, new VerticalLayout());
     }
 
     @Override
@@ -46,11 +42,12 @@ public class LoginViewVaadin extends AbstractViewVaadin<LoginPresenter> {
             this.notRendered = false;
         }
 
-        if (this.state.errorCode != 0) {
+        if (this.state.errorCode.get() != 0) {
             this.errorDiv.setText("Usuário ou senha inválidos. Tente novamente.");
             this.errorDiv.setVisible(true);
-            this.state.errorCode = 0;
-            this.state.errorMessage = null;
+            // Consumed while drawing: a redraw now would take the message away
+            this.state.errorCode.setSilently(0);
+            this.state.errorMessage.setSilently(null);
         }
     }
 
@@ -150,7 +147,7 @@ public class LoginViewVaadin extends AbstractViewVaadin<LoginPresenter> {
         safeAction("Login", () -> {
             var userName = this.userField.getValue();
             var password = this.passwordField.getValue();
-            this.presenter.onEnter(userName, password);
+            this.state.onEnter.run(userName, password);
         });
     }
 }

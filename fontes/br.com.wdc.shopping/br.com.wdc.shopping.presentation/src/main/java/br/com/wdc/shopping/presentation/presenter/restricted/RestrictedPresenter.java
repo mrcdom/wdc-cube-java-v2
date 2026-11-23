@@ -3,7 +3,8 @@ package br.com.wdc.shopping.presentation.presenter.restricted;
 import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.CubePresenter;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
-import br.com.wdc.shopping.presentation.presenter.Routes;
+import br.com.wdc.shopping.presentation.presenter.open.OpenKeys;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
 
 public class RestrictedPresenter implements CubePresenter {
 
@@ -20,7 +21,7 @@ public class RestrictedPresenter implements CubePresenter {
 		if (this.app.getSubject() == null) {
 			// Se não temos usuário logado, não pode avançar na composição.
 			// Então, direcionamos para a área aberta do site.
-			Routes.open(this.app, intent);
+			new OpenKeys(this.app, intent).flip();
 			return false;
 		}
 
@@ -28,7 +29,7 @@ public class RestrictedPresenter implements CubePresenter {
 			// Se houve um direcionamento para este ponto, não podemos aceitar essa composição
 			// pois é uma composição de guarda apenas. Não possui tela associada.
 			// Então, direcionamentos para a tela default da área restrita
-			Routes.home(this.app, intent);
+			new HomeKeys(this.app, intent).flip();
 			return false;
 		}
 

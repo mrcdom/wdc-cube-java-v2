@@ -19,8 +19,10 @@ public interface PurchaseItemRepository extends Repository<PurchaseItem, Purchas
                 .withId(pv.i64)
                 .withAmount(pv.i32)
                 .withPrice(pv.f64)
-                .withPurchase(new Purchase().withId(pv.i64))
-                .withProduct(new Product().withId(pv.i64));
+                .withPurchase(new Purchase()
+                        .withId(pv.i64))
+                .withProduct(new Product()
+                        .withId(pv.i64));
     }
 
     /**

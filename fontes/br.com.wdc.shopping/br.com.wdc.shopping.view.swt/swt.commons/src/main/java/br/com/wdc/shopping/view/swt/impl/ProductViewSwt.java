@@ -1,5 +1,10 @@
 package br.com.wdc.shopping.view.swt.impl;
 
+import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
+
+import java.util.function.IntConsumer;
+import java.util.function.Supplier;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Rectangle;
@@ -8,10 +13,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Label;
 
-import java.util.function.IntConsumer;
-import java.util.function.Supplier;
-
-import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter.ProductViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductScope;
 import br.com.wdc.shopping.view.swt.AbstractViewSwt;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.components.ErrorBanner;
@@ -19,11 +21,10 @@ import br.com.wdc.shopping.view.swt.theme.Surface;
 import br.com.wdc.shopping.view.swt.theme.Theme;
 import br.com.wdc.shopping.view.swt.util.ProductImageCache;
 import br.com.wdc.shopping.view.swt.util.SwtDom;
-import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
 
 public class ProductViewSwt extends AbstractViewSwt {
 
-    public Supplier<ProductViewState> stateSupplier;
+    public Supplier<ProductScope> stateSupplier;
     public Runnable onOpenProducts;
     public IntConsumer onAddToCart;
 
@@ -45,9 +46,9 @@ public class ProductViewSwt extends AbstractViewSwt {
         // Update error visibility
         if (errorBanner != null && !errorBanner.isDisposed()) {
             var state = this.stateSupplier != null ? this.stateSupplier.get() : null;
-            boolean showError = state != null && state.errorMessage != null && !state.errorMessage.isEmpty();
+            boolean showError = state != null && state.errorMessage.get() != null && !state.errorMessage.get().isEmpty();
             if (showError) {
-                errorBanner.setMessage(state.errorMessage);
+                errorBanner.setMessage(state.errorMessage.get());
             }
             if (showError != errorBanner.isShown()) {
                 errorBanner.setShown(showError);
@@ -63,7 +64,7 @@ public class ProductViewSwt extends AbstractViewSwt {
 
     private void render() {
         var state = this.stateSupplier != null ? this.stateSupplier.get() : null;
-        var product = state != null ? state.product : null;
+        var product = state != null ? state.product.get() : null;
         String name = product != null ? product.name : "";
         String description = product != null ? product.description : "";
         double price = product != null ? product.price : 0;

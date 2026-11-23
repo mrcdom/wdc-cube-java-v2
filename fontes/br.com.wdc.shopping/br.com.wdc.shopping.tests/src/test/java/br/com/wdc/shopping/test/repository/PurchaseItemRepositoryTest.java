@@ -39,8 +39,10 @@ public class PurchaseItemRepositoryTest extends AbstractPurchaseItemRepositoryTe
 		var item = new br.com.wdc.shopping.domain.purchaseitem.PurchaseItem()
 				.withAmount(5)
 				.withPrice(15.50)
-				.withPurchase(new br.com.wdc.shopping.domain.purchase.Purchase().withId(DBReset.ADMIN_FIRST_PURCHASE_ID))
-				.withProduct(new br.com.wdc.shopping.domain.product.Product().withId(DBReset.PEN_DRIVE2GB_ID));
+				.withPurchase(new br.com.wdc.shopping.domain.purchase.Purchase()
+						.withId(DBReset.ADMIN_FIRST_PURCHASE_ID))
+				.withProduct(new br.com.wdc.shopping.domain.product.Product()
+						.withId(DBReset.PEN_DRIVE2GB_ID));
 
 		boolean inserted = repo().insert(item);
 		assertTrue(inserted);
