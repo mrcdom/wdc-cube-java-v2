@@ -9,15 +9,13 @@ import static br.com.wdc.shopping.view.teavm.commons.VNode.p;
 import static br.com.wdc.shopping.view.teavm.commons.VNode.span;
 
 import java.util.List;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import org.teavm.jso.dom.html.HTMLElement;
 import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
 
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.structs.CartItem;
 import br.com.wdc.shopping.view.teavm.commons.SelComponents;
 import br.com.wdc.shopping.view.teavm.commons.SelIcons;
 import br.com.wdc.shopping.view.teavm.commons.SelUtility;
@@ -56,14 +54,6 @@ public class CartSharedView extends SharedVDomView {
         String FOOTER_LABEL = "cart-footer-label";
         String FOOTER_TOTAL = "cart-footer-total";
         String ACTIONS_ROW = "cart-actions-row";
-        String ITEM_ROW = "cart-item-row";
-        String ITEM_NAME = "cart-item-name";
-        String STEPPER_ROW = "cart-stepper-row";
-        String STEPPER_MINUS_ICON = clsx(icon.DASH, "cart-stepper-icon");
-        String STEPPER_PLUS_ICON = clsx(icon.PLUS, "cart-stepper-icon");
-        String STEPPER_VALUE = "cart-stepper-value";
-        String ITEM_SUBTOTAL = "cart-item-subtotal";
-        String REMOVE_ICON = clsx(icon.X_LG, "cart-remove-icon");
         String ICON_VIEW_PRODUCTS = clsx(icon.GRID_3X3_GAP, u.MR_6);
         String ICON_FINALIZE = clsx(icon.CHECK2_CIRCLE, u.MR_6);
     }
@@ -73,21 +63,13 @@ public class CartSharedView extends SharedVDomView {
     public Supplier<CartScope> stateSupplier;
     public Runnable onBack;
     public Runnable onBuy;
-    public BiConsumer<Long, Integer> onModifyQuantity;
-    public Consumer<Long> onRemoveProduct;
+    /** The rows' elements, in the cart's order: each row is a view of its own ({@link CartItemSharedView}). */
+    public Supplier<List<HTMLElement>> rowElements;
 
     // -- Stable event listeners --
 
     private final EventListener<Event> backListener = evt -> onBack.run();
     private final EventListener<Event> buyListener = evt -> onBuy.run();
-
-    private EventListener<Event> mkOnModifyQuantity(long id, int qty) {
-        return evt -> onModifyQuantity.accept(id, qty);
-    }
-
-    private EventListener<Event> mkOnRemove(long id) {
-        return evt -> onRemoveProduct.accept(id);
-    }
 
     // -- Render --
 
@@ -96,9 +78,9 @@ public class CartSharedView extends SharedVDomView {
         var state = stateSupplier.get();
         var errorMessage = state.errorMessage.get();
         var showError = errorMessage != null && !errorMessage.isEmpty();
-        var items = state.items.get();
-        var empty = items == null || items.isEmpty();
-        var totalCost = computeTotalCost(items);
+        var rows = rowElements != null ? rowElements.get() : List.<HTMLElement>of();
+        var empty = rows.isEmpty();
+        var totalCost = state.total.get() != null ? state.total.get() : 0.0;
         var totalText = "R$ " + String.format("%.2f", totalCost);
 
         // @formatter:off
@@ -118,7 +100,7 @@ public class CartSharedView extends SharedVDomView {
               // Empty cart state
               renderEmptyState(empty),
               // Cart content
-              renderContent(items, empty, totalText))));
+              renderContent(rows, empty, totalText))));
         // @formatter:on
     }
 
@@ -135,10 +117,10 @@ public class CartSharedView extends SharedVDomView {
         // @formatter:on
     }
 
-    private VNode renderContent(List<CartItem> items, boolean empty, String totalText) {
+    private VNode renderContent(List<HTMLElement> rows, boolean empty, String totalText) {
         // @formatter:off
         return div(empty ? Sel.HIDDEN : "").children(
-          div().children(items != null ? items.stream().map(this::renderItem).toList() : List.of()),
+          div().children(rows.stream().map(VNode::slot).toList()),
           div(Sel.FOOTER).children(
             span(Sel.FOOTER_LABEL).text("Total: "),
             span(Sel.FOOTER_TOTAL).text(totalText)),
@@ -151,37 +133,5 @@ public class CartSharedView extends SharedVDomView {
               .children(span(Sel.ICON_FINALIZE), span().text("Finalizar pedido"))
               .on("click", buyListener)));
         // @formatter:on
-    }
-
-    private VNode renderItem(CartItem item) {
-        var name = item.name != null ? item.name : "";
-        var subtotal = "R$ " + String.format("%.2f", item.price * item.quantity);
-        var key = String.valueOf(item.id);
-
-        // @formatter:off
-        return div(Sel.ITEM_ROW).key(key).children(
-          span(Sel.ITEM_NAME).text(name),
-          div(Sel.STEPPER_ROW).children(
-            spActionButton("s")
-              .children(span(Sel.STEPPER_MINUS_ICON))
-              .on("click", useCallback("minus-" + key + "-" + item.quantity, mkOnModifyQuantity(item.id, item.quantity - 1))),
-            span(Sel.STEPPER_VALUE).text(String.valueOf(item.quantity)),
-            spActionButton("s")
-              .children(span(Sel.STEPPER_PLUS_ICON))
-              .on("click", useCallback("plus-" + key + "-" + item.quantity, mkOnModifyQuantity(item.id, item.quantity + 1)))),
-          span(Sel.ITEM_SUBTOTAL).text(subtotal),
-          spActionButton("s")
-            .children(span(Sel.REMOVE_ICON))
-            .on("click", useCallback("remove-" + key, mkOnRemove(item.id))));
-        // @formatter:on
-    }
-
-    private double computeTotalCost(List<CartItem> items) {
-        if (items == null) return 0;
-        double total = 0;
-        for (var item : items) {
-            total += item.price * item.quantity;
-        }
-        return total;
     }
 }

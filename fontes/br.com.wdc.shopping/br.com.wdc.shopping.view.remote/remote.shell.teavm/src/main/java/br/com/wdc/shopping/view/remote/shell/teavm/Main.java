@@ -6,6 +6,7 @@ import br.com.wdc.framework.cube.remote.bridge.teavm.ViewStateCoordinator;
 import br.com.wdc.shopping.view.teavm.commons.interop.Console;
 import br.com.wdc.shopping.view.remote.shell.teavm.views.RootView;
 import br.com.wdc.shopping.view.remote.shell.teavm.views.browser.BrowserView;
+import br.com.wdc.shopping.view.remote.shell.teavm.views.cart.CartItemView;
 import br.com.wdc.shopping.view.remote.shell.teavm.views.cart.CartView;
 import br.com.wdc.shopping.view.remote.shell.teavm.views.home.HomeView;
 import br.com.wdc.shopping.view.remote.shell.teavm.views.home.ProductsPanelView;
@@ -37,6 +38,7 @@ public class Main {
             app.registerView(LoginView.VIEW_ID, LoginView::new);
             app.registerView(HomeView.VIEW_ID, HomeView::new);
             app.registerView(CartView.VIEW_ID, CartView::new);
+            app.registerView(CartItemView.VIEW_ID, CartItemView::new);
             app.registerView(ProductView.VIEW_ID, ProductView::new);
             app.registerView(ReceiptView.VIEW_ID, ReceiptView::new);
             app.registerView(ProductsPanelView.VIEW_ID, ProductsPanelView::new);

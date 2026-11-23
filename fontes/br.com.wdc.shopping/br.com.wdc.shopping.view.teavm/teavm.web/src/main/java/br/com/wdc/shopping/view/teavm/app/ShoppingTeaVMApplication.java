@@ -1,6 +1,5 @@
 package br.com.wdc.shopping.view.teavm.app;
 
-import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,6 +40,7 @@ import br.com.wdc.shopping.view.teavm.repo.TeaVMAuthenticationService;
 import br.com.wdc.shopping.view.teavm.repo.TeaVMRepositoryBootstrap;
 import br.com.wdc.shopping.view.teavm.views.AbstractViewTeaVM;
 import br.com.wdc.shopping.view.teavm.views.RootView;
+import br.com.wdc.shopping.view.teavm.views.cart.CartItemView;
 import br.com.wdc.shopping.view.teavm.views.cart.CartView;
 import br.com.wdc.shopping.view.teavm.views.home.HomeView;
 import br.com.wdc.shopping.view.teavm.views.home.ProductsPanelView;
@@ -71,23 +71,7 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
         CartPresenter.createView = CartView::new;
         ProductPresenter.createView = ProductView::new;
         ReceiptPresenter.createView = ReceiptView::new;
-        // The rows still drawn from the inline items here: their views come with this host's migration
-        CartScope.CartItemScope.createView = (app, row) -> new CubeView() {
-            @Override
-            public String instanceId() {
-                return "cart-row-" + row.id.get();
-            }
-
-            @Override
-            public void update() {
-                // NOOP
-            }
-
-            @Override
-            public void release() {
-                // NOOP
-            }
-        };
+        CartScope.CartItemScope.createView = (app, row) -> new CartItemView((ShoppingTeaVMApplication) app, row);
         HomeScope.ProductsPanelScope.createView = (app, scope) -> new ProductsPanelView((ShoppingTeaVMApplication) app, scope);
         HomeScope.PurchasesPanelScope.createView = (app, scope) -> new PurchasesPanelView((ShoppingTeaVMApplication) app, scope);
     }
