@@ -1,14 +1,13 @@
 package br.com.wdc.shopping.presentation.presenter.restricted.home.products;
 
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 
-import br.com.wdc.framework.commons.lang.CoerceUtils;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.AbstractChildPresenter;
 import br.com.wdc.framework.cube.ActionOf;
 import br.com.wdc.framework.cube.CubeSkeleton;
+import br.com.wdc.framework.cube.FormParam;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.Prop;
 import br.com.wdc.framework.cube.ViewState;
@@ -55,7 +54,7 @@ public class ProductsPanelPresenter extends AbstractChildPresenter<ShoppingAppli
         super(app);
         this.owner = owner;
         this.productService = new ProductService(app);
-        this.state.onOpenProduct = actionOf(owner::openProduct);
+        this.state.onOpenProduct = actionOf(1, FormParam.asLong("p.productId"), owner::openProduct);
     }
 
     // :: Life cycle
@@ -83,22 +82,7 @@ public class ProductsPanelPresenter extends AbstractChildPresenter<ShoppingAppli
     // :: Controle remoto
 
     public CubeSkeleton skeleton() {
-        return new CubeSkeleton() {
-
-            @Override
-            public String classId() {
-                return "a1b2c3d4e5f6";
-            }
-
-            @Override
-            public void submit(int eventCode, int eventQtde, Map<String, Object> formData) throws Exception {
-                switch (eventCode) {
-                case 1 -> state.onOpenProduct.run(CoerceUtils.asLong(formData.get("p.productId")));
-                default -> new AssertionError("eventCode(" + eventCode + ") not handled");
-                }
-            }
-
-        };
+        return skeleton("a1b2c3d4e5f6");
     }
 
 }

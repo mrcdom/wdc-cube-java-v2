@@ -3,12 +3,10 @@ package br.com.wdc.shopping.presentation.presenter.restricted.cart;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.commons.function.Registration;
-import br.com.wdc.framework.commons.lang.CoerceUtils;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.Action;
@@ -16,6 +14,7 @@ import br.com.wdc.framework.cube.ActionOf;
 import br.com.wdc.framework.cube.ActionOf2;
 import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.CubeSkeleton;
+import br.com.wdc.framework.cube.FormParam;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.CubeViewSlot;
 import br.com.wdc.framework.cube.Prop;
@@ -66,10 +65,11 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
         super(app);
         this.cart = app.getCart();
         this.state.items.set(Collections.emptyList());
-        this.state.onModifyQuantity = actionOf2(this::modifyQuantity);
-        this.state.onRemoveProduct = actionOf(this::removeProduct);
-        this.state.onBuy = action(this::buy);
-        this.state.onOpenProducts = action(() -> new HomeKeys(this.app).flip());
+        this.state.onBuy = action(1, this::buy);
+        this.state.onRemoveProduct = actionOf(2, FormParam.asLong("p.productId"), this::removeProduct);
+        this.state.onOpenProducts = action(3, () -> new HomeKeys(this.app).flip());
+        this.state.onModifyQuantity = actionOf2(4, FormParam.asLong("p.productId"), FormParam.asInteger("p.quantity"),
+                this::modifyQuantity);
     }
 
     // :: Cube API
@@ -213,24 +213,7 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
     // :: Controle remoto
 
     public CubeSkeleton skeleton() {
-        return new CubeSkeleton() {
-
-            @Override
-            public String classId() {
-                return "7eb485e5f843";
-            }
-
-            @Override
-            public void submit(int eventCode, int eventQtde, Map<String, Object> formData) throws Exception {
-                switch (eventCode) {
-                case 1 -> state.onBuy.run();
-                case 2 -> state.onRemoveProduct.run(CoerceUtils.asLong(formData.get("p.productId")));
-                case 3 -> state.onOpenProducts.run();
-                case 4 -> state.onModifyQuantity.run(CoerceUtils.asLong(formData.get("p.productId")), CoerceUtils.asInteger(formData.get("p.quantity")));
-                default -> new AssertionError("eventCode(" + eventCode + ") not handled");
-                }
-            }
-        };
+        return skeleton("7eb485e5f843");
     }
 
 }

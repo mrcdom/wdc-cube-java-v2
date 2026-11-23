@@ -1,5 +1,9 @@
 package br.com.wdc.framework.cube;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Consumer;
+
 import br.com.wdc.framework.commons.function.ThrowingBiConsumer;
 import br.com.wdc.framework.commons.function.ThrowingConsumer;
 import br.com.wdc.framework.commons.function.ThrowingRunnable;
@@ -12,12 +16,19 @@ import br.com.wdc.framework.commons.function.ThrowingRunnable;
  * {@link CubeApplication#alertUnexpectedError}; at the end, failing or not, the application republishes the address,
  * since the action may have changed what the presenters publish. Expected failures (an invalid item, an offline
  * database) stay in the body, which turns them into messages in the view state.
+ * <p>
+ * An action a remote client fires is bound with its <b>event code</b>, and with how to read its values from the form
+ * data ({@link FormParam}): {@code actionOf(2, FormParam.asLong("p.productId"), this::removeProduct)}. The code is the
+ * contract with the client; the presenter's skeleton is then just {@code skeleton(classId)}, which dispatches by it.
  */
 public abstract class AbstractPresenter<A extends CubeApplication> implements PresenterBase {
 
     public final A app;
 
     protected CubeView view;
+
+    /** The actions a remote client fires, by event code. */
+    private final Map<Integer, Consumer<Map<String, Object>>> events = new HashMap<>();
 
     protected AbstractPresenter(A app) {
         this.app = app;
@@ -78,6 +89,71 @@ public abstract class AbstractPresenter<A extends CubeApplication> implements Pr
                 this.onActionFailure(caught);
             }
             this.afterAction();
+        };
+    }
+
+    // :: Actions a remote client fires, by event code
+
+    protected final Action action(int eventCode, ThrowingRunnable fn) {
+        var action = action(fn);
+        onEvent(eventCode, formData -> action.run());
+        return action;
+    }
+
+    protected final <T> ActionOf<T> actionOf(int eventCode, FormParam<T> param, ThrowingConsumer<T> fn) {
+        var action = actionOf(fn);
+        onEvent(eventCode, formData -> action.run(param.read(formData)));
+        return action;
+    }
+
+    protected final <T, U> ActionOf2<T, U> actionOf2(int eventCode, FormParam<T> first, FormParam<U> second,
+            ThrowingBiConsumer<T, U> fn) {
+        var action = actionOf2(fn);
+        onEvent(eventCode, formData -> action.run(first.read(formData), second.read(formData)));
+        return action;
+    }
+
+    private void onEvent(int eventCode, Consumer<Map<String, Object>> handler) {
+        if (events.putIfAbsent(eventCode, handler) != null) {
+            throw new IllegalStateException(
+                    getClass().getSimpleName() + " binds the event code " + eventCode + " more than once");
+        }
+    }
+
+    /** The skeleton of a remote view: dispatches each event to the action bound with its code. */
+    protected final CubeSkeleton skeleton(String classId) {
+        return skeleton(classId, null);
+    }
+
+    /**
+     * The same, for a view that also syncs the form before the events ({@link CubeSkeleton#syncState}).
+     *
+     * @param syncState {@code null} when there is nothing to sync
+     */
+    protected final CubeSkeleton skeleton(String classId, Consumer<Map<String, Object>> syncState) {
+        return new CubeSkeleton() {
+
+            @Override
+            public String classId() {
+                return classId;
+            }
+
+            @Override
+            public void submit(int eventCode, int eventQtde, Map<String, Object> formData) {
+                var handler = events.get(eventCode);
+                if (handler == null) {
+                    throw new IllegalArgumentException("eventCode(" + eventCode + ") not handled by "
+                            + AbstractPresenter.this.getClass().getSimpleName());
+                }
+                handler.accept(formData);
+            }
+
+            @Override
+            public void syncState(Map<String, Object> formData) {
+                if (syncState != null) {
+                    syncState.accept(formData);
+                }
+            }
         };
     }
 

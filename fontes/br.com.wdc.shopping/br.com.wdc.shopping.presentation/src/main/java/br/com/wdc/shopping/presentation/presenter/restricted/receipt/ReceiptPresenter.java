@@ -1,6 +1,5 @@
 package br.com.wdc.shopping.presentation.presenter.restricted.receipt;
 
-import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -52,7 +51,7 @@ public class ReceiptPresenter extends AbstractCubePresenter<ShoppingApplication>
     public ReceiptPresenter(ShoppingApplication app) {
         super(app);
         this.receiptService = new ReceiptService(app);
-        this.state.onOpenProducts = action(() -> new HomeKeys(this.app).flip());
+        this.state.onOpenProducts = action(1, () -> new HomeKeys(this.app).flip());
     }
 
     // :: Cube API
@@ -109,20 +108,7 @@ public class ReceiptPresenter extends AbstractCubePresenter<ShoppingApplication>
     // :: Controle remoto
 
     public CubeSkeleton skeleton() {
-        return new CubeSkeleton() {
-
-            @Override
-            public String classId() {
-                return "e8d0bd8ae3bc";
-            }
-
-            @Override
-            public void submit(int eventCode, int eventQtde, Map<String, Object> formData) throws Exception {
-                if (eventCode == 1) {
-                    state.onOpenProducts.run();
-                }
-            }
-        };
+        return skeleton("e8d0bd8ae3bc");
     }
 
 }

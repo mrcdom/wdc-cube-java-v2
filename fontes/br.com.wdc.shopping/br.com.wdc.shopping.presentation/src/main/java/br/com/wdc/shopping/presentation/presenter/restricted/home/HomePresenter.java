@@ -1,6 +1,5 @@
 package br.com.wdc.shopping.presentation.presenter.restricted.home;
 
-import java.util.Map;
 import java.util.function.Function;
 
 import br.com.wdc.framework.commons.function.ThrowingRunnable;
@@ -72,8 +71,8 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
         this.contentSlot = this::setContentView;
         this.onCartCommitListenerRemover = ThrowingRunnable.noop();
         this.onCartChangeListenerRemover = ThrowingRunnable.noop();
-        this.state.onOpenCart = action(() -> new CartKeys(this.app).flip());
-        this.state.onExit = action(this::exit);
+        this.state.onExit = action(1, this::exit);
+        this.state.onOpenCart = action(2, () -> new CartKeys(this.app).flip());
     }
 
     // :: Cube API
@@ -264,22 +263,7 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
     // :: Controle remoto
 
     public CubeSkeleton skeleton() {
-        return new CubeSkeleton() {
-
-            @Override
-            public String classId() {
-                return "473dbdd7a36a";
-            }
-
-            @Override
-            public void submit(int eventCode, int eventQtde, Map<String, Object> formData) throws Exception {
-                switch (eventCode) {
-                case 1 -> state.onExit.run();
-                case 2 -> state.onOpenCart.run();
-                default -> new AssertionError("eventCode(" + eventCode + ") not handled");
-                }
-            }
-        };
+        return skeleton("473dbdd7a36a");
     }
 
 }

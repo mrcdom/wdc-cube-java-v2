@@ -2,14 +2,13 @@ package br.com.wdc.shopping.presentation.presenter.restricted.home.purchases;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 
-import br.com.wdc.framework.commons.lang.CoerceUtils;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.AbstractChildPresenter;
 import br.com.wdc.framework.cube.ActionOf;
 import br.com.wdc.framework.cube.CubeSkeleton;
+import br.com.wdc.framework.cube.FormParam;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.Prop;
 import br.com.wdc.framework.cube.ViewState;
@@ -58,9 +57,9 @@ public class PurchasesPanelPresenter extends AbstractChildPresenter<ShoppingAppl
         super(app);
         this.owner = owner;
         this.purchasesPanelService = new PurchasesPanelService(app);
-        this.state.onPageChange = actionOf(this::changePage);
-        this.state.onItemSizeCapacityChanged = actionOf(this::changeItemSizeCapacity);
-        this.state.onOpenReceipt = actionOf(owner::openReceipt);
+        this.state.onOpenReceipt = actionOf(1, FormParam.asLong("p.purchaseId"), owner::openReceipt);
+        this.state.onPageChange = actionOf(2, FormParam.asInteger("p.page"), this::changePage);
+        this.state.onItemSizeCapacityChanged = actionOf(3, FormParam.asInteger("p.capacity"), this::changeItemSizeCapacity);
     }
 
     // :: Life cycle
@@ -124,23 +123,7 @@ public class PurchasesPanelPresenter extends AbstractChildPresenter<ShoppingAppl
     // :: Controle remoto
 
     public CubeSkeleton skeleton() {
-        return new CubeSkeleton() {
-
-            @Override
-            public String classId() {
-                return "b3c4d5e6f7a8";
-            }
-
-            @Override
-            public void submit(int eventCode, int eventQtde, Map<String, Object> formData) throws Exception {
-                switch (eventCode) {
-                case 1 -> state.onOpenReceipt.run(CoerceUtils.asLong(formData.get("p.purchaseId")));
-                case 2 -> state.onPageChange.run(CoerceUtils.asInteger(formData.get("p.page")));
-                case 3 -> state.onItemSizeCapacityChanged.run(CoerceUtils.asInteger(formData.get("p.capacity")));
-                default -> new AssertionError("eventCode(" + eventCode + ") not handled");
-                }
-            }
-        };
+        return skeleton("b3c4d5e6f7a8");
     }
 
 }

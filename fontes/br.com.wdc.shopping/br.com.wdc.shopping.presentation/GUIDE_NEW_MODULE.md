@@ -226,91 +226,59 @@ O **caminho hierárquico** sai da árvore: `new WishlistKeys(app).flip()` instan
 
 ---
 
-## Passo 3 — Skeleton: Criar a ViewImpl (backend)
+## Passo 3 — Skeleton: expor o presenter ao bridge (backend)
 
-### 3.1 Escolher um VIEW_ID (VID)
+### 3.1 Escolher um VIEW_ID (classId)
 
-Gere um identificador único de 12 caracteres hexadecimais. Esse VID vincula o backend ao frontend:
+Um identificador hexadecimal de 12 caracteres, único entre os presenters (ex.: `"d1e2f3a4b5c6"`). É o mesmo que os shells remotos usam para achar a view (`VIEW_ID` no TeaVM/SWT, `BaseViewClass.FC` no React).
 
-```
-VID = "d1e2f3a4b5c6"
-```
+### 3.2 Dar um código de evento a cada ação
 
-> **Regra**: O VID deve ser idêntico no Java (`GenericViewImpl`) e no TypeScript (`BaseViewClass.FC`).
-
-### 3.2 Criar a ViewImpl
+O código vai na própria ligação da ação (Passo 1.3), junto com como ler os valores do `formData` que o cliente envia:
 
 ```java
-package br.com.wdc.shopping.view.remote.host.viewimpl;
+public WishlistPresenter(ShoppingApplication app) {
+    super(app);
+    this.state.onRemoveItem = actionOf(1, FormParam.asLong("p.itemId"), this::removeItem);
+    this.state.onOpenProducts = action(2, () -> new HomeKeys(this.app).flip());
+}
+```
 
-import java.util.Map;
-import br.com.wdc.framework.commons.lang.CoerceUtils;
-import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
-import br.com.wdc.shopping.presentation.ShoppingApplication;
-import br.com.wdc.shopping.presentation.presenter.restricted.wishlist.WishlistPresenter;
-import br.com.wdc.shopping.view.remote.host.util.GenericViewImpl;
+- `FormParam.asLong/asInteger/asString(nome)` cobrem o comum; `FormParam.of(nome, conversão)` cobre um valor que chega codificado (a senha do login chega cifrada).
+- O código é o contrato com os clientes remotos: tem de ser o mesmo nos shells. Um código repetido falha na construção do presenter; um código desconhecido vindo do cliente é erro (não é mais ignorado em silêncio).
+- As views locais (Vaadin, SWT, teavm.web) não usam o código: chamam `state.onRemoveItem.run(id)` direto.
 
-public class WishlistReactViewImpl extends GenericViewImpl {
+### 3.3 O skeleton
 
-    private static final String VID = "d1e2f3a4b5c6";
+Com os códigos nas ações, o skeleton é uma linha — o `AbstractPresenter` despacha cada evento para a ação do seu código:
 
-    private final WishlistPresenter presenter;
+```java
+public CubeSkeleton skeleton() {
+    return skeleton("d1e2f3a4b5c6");
+}
+```
 
-    public WishlistReactViewImpl(WishlistPresenter presenter) {
-        super(presenter.app(), VID);
-        this.presenter = presenter;
-    }
+Se o cliente também sincroniza campos antes dos eventos, passe o `syncState` (como o login faz com o nome do usuário; `setSilently` porque o cliente já mostra o que enviou):
 
-    // Deserializar dados do formulário do frontend para o presenter.state
-    @Override
-    public void syncClientToServer(Map<String, Object> formData) {
-        // Extrair campos que o frontend envia antes de um evento
-        // Exemplo: nada a sincronizar neste caso
-    }
-
-    // Mapear event codes a métodos do presenter
-    @Override
-    public void submit(int eventCode, int eventQtde, Map<String, Object> formData)
-            throws Exception {
-        switch (eventCode) {
-            case 1 -> {
-                var itemId = CoerceUtils.asLong(formData.get("itemId"));
-                this.presenter.state.onRemoveItem.run(itemId);
-            }
-            case 2 -> this.presenter.state.onOpenProducts.run();
+```java
+public CubeSkeleton skeleton() {
+    return skeleton("c677cda52d14", formData -> {
+        if (formData.containsKey("userName")) {
+            state.userName.setSilently(CoerceUtils.asString(formData.get("userName")));
         }
-    }
-
-    // Serializar o estado do presenter para JSON
-    @Override
-    public void writeState(ExtensibleObjectOutput json) {
-        this.presenter.state.write(this.instanceId, json);
-    }
+    });
 }
 ```
 
-**Responsabilidades da ViewImpl:**
-- `syncClientToServer()` — deserializa campos do formulário para `presenter.state`
-- `submit(eventCode, ...)` — mapeia event codes numéricos às ações do `presenter.state`
-- `writeState()` — delega a serialização para `presenter.state.write()`
+### 3.4 Registrar a factory no host remoto
 
-### 3.3 Registrar a factory no bloco static de ApplicationReactImpl
-
-No arquivo `ApplicationReactImpl.java`, adicione no bloco `static {}`:
+No bloco `static {}` de `ShoppingApplicationImpl` (`remote.host`):
 
 ```java
-static {
-    RootPresenter.createView = RootReactViewImpl::new;
-    LoginPresenter.createView = LoginReactViewImpl::new;
-    HomePresenter.createView = HomeReactViewImpl::new;
-    ProductPresenter.createView = ProductReactViewImpl::new;
-    CartPresenter.createView = CartReactViewImpl::new;
-    ReceiptPresenter.createView = ReceiptReactViewImpl::new;
-
-    // NOVO:
-    WishlistPresenter.createView = WishlistReactViewImpl::new;
-}
+WishlistPresenter.createView = p -> new RemoteViewImpl((RemoteApplication) p.app, p, p.state, p.skeleton());
 ```
+
+O `RemoteViewImpl` serializa o `state` (o valor de cada `Prop`; as ações ficam de fora) e encaminha os eventos ao skeleton.
 
 ---
 
@@ -432,14 +400,14 @@ E no frontend, adicionar um botão ou link que emita o evento correspondente.
 
 - [ ] **Skeleton**
   - [ ] Escolher VID único (12 hex chars)
-  - [ ] Criar `WishlistReactViewImpl extends GenericViewImpl`
-  - [ ] Implementar `syncClientToServer()`, `submit()`, `writeState()`
-  - [ ] Registrar factory em `ApplicationReactImpl` static block
+  - [ ] Dar um código de evento a cada ação (`action(1, ...)`, `actionOf(2, FormParam..., ...)`)
+  - [ ] `skeleton()` → `return skeleton(VID);` (com `syncState`, se houver)
+  - [ ] Registrar a factory no static block de `ShoppingApplicationImpl`
 
 - [ ] **React Client**
   - [ ] Criar `WishlistView.tsx` com `BaseViewClass.FC(Class, VID)`
-  - [ ] Definir event codes (devem bater com ViewImpl.submit)
-  - [ ] Definir type do state (deve bater com ViewState.write)
+  - [ ] Definir event codes (devem bater com os códigos das ações do presenter)
+  - [ ] Definir type do state (deve bater com os campos do ViewState)
   - [ ] Registrar em `index.tsx` via `app.registerComponents()`
 
 ---

@@ -18,7 +18,7 @@ Antes de criar a view no shell, o Presenter correspondente já deve existir na c
 
 - Um `classId()` definido no `skeleton()` (ex: `"a1b2c3d4e5f6"`)
 - Um `ViewState.write()` que serializa os campos em JSON
-- Os `eventCode` definidos no `skeleton().submit(eventCode, ...)`
+- Os códigos de evento, dados na ligação de cada ação (`action(1, ...)`, `actionOf(2, FormParam.asLong("p.itemId"), ...)`)
 
 ## Anatomia de uma View
 
@@ -40,7 +40,7 @@ public class WishlistView extends AbstractRemoteView {
     // 1. VIEW_ID — deve ser IDÊNTICO ao classId() do Presenter
     public static final String VIEW_ID = "a1b2c3d4e5f6";
 
-    // 2. Event codes — devem ser IDÊNTICOS ao skeleton().submit(eventCode, ...)
+    // 2. Event codes — devem ser IDÊNTICOS aos códigos das ações do Presenter (action(1, ...))
     private static final int ON_REMOVE_ITEM = 1;
     private static final int ON_BACK = 2;
 
@@ -200,10 +200,10 @@ setFormField("p.quantity", 3);
 submit(ON_ADD_TO_CART);  // Presenter recebe formData com os campos
 ```
 
-No Presenter, os dados chegam no `skeleton().submit(eventCode, eventQtde, formData)`:
+No Presenter, a ação diz o seu código e como ler o campo; o skeleton genérico despacha:
 
 ```java
-case 1 -> state.onRemoveItem.run(CoerceUtils.asLong(formData.get("p.itemId")));
+this.state.onRemoveItem = actionOf(1, FormParam.asLong("p.itemId"), this::removeItem);
 ```
 
 ---
@@ -410,7 +410,7 @@ private Product parseProduct(ViewScope scope) {
 ## Checklist para Nova View
 
 - [ ] `VIEW_ID` idêntico ao `classId()` do Presenter
-- [ ] Event codes idênticos ao `skeleton().submit(eventCode, ...)` do Presenter
+- [ ] Event codes idênticos aos códigos das ações do Presenter
 - [ ] Registrada no `Main.java` com `app.registerView(VIEW_ID, View::new)`
 - [ ] Interface `Css` com aliases e suppressions
 - [ ] Listeners estáveis como campos `final`

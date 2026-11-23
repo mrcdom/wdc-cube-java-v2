@@ -1,6 +1,5 @@
 package br.com.wdc.shopping.presentation.presenter.open.login;
 
-import java.util.Map;
 import java.util.function.Function;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
@@ -9,6 +8,7 @@ import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.ActionOf2;
 import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.CubeSkeleton;
+import br.com.wdc.framework.cube.FormParam;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.CubeViewSlot;
 import br.com.wdc.framework.cube.Prop;
@@ -58,7 +58,8 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
     public LoginPresenter(ShoppingApplication app) {
         super(app);
         this.loginService = new LoginService(app.getUserRepository());
-        this.state.onEnter = actionOf2(this::enter);
+        this.state.onEnter = actionOf2(1, FormParam.asString("p.userName"),
+                FormParam.of("p.password", v -> app.b64Decipher(CoerceUtils.asString(v))), this::enter);
     }
 
     // :: Cube API
@@ -142,30 +143,11 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
     // :: Controle remoto
 
     public CubeSkeleton skeleton() {
-        return new CubeSkeleton() {
-
-            @Override
-            public String classId() {
-                return "c677cda52d14";
+        return skeleton("c677cda52d14", formData -> {
+            // The client already shows what it sends: no redraw to echo it back
+            if (formData.containsKey("userName")) {
+                state.userName.setSilently(CoerceUtils.asString(formData.get("userName")));
             }
-
-            @Override
-            public void submit(int eventCode, int eventQtde, Map<String, Object> formData) throws Exception {
-                if (eventCode == 1) {
-                    var userName = CoerceUtils.asString(formData.get("p.userName"));
-                    var password = app.b64Decipher(CoerceUtils.asString(formData.get("p.password")));
-                    state.onEnter.run(userName, password);
-                }
-            }
-
-            @Override
-            public void syncState(Map<String, Object> formData) {
-                var fn = "userName";
-                if (formData.containsKey(fn)) {
-                    state.userName.set(CoerceUtils.asString(formData.get(fn)));
-                }
-            }
-
-        };
+        });
     }
 }

@@ -46,7 +46,7 @@ graph LR
 |------------------|-----------------|
 | `CubeApplication` | Singleton da app — mantém mapa de presenters e atributos, coordena navegação |
 | `CubePresenter` | Contrato para presenters gerenciados pela navegação |
-| `AbstractPresenter<A>` | Base comum — app + view, `update()`/`release()`, `bind(state)` e as ações guardadas (`action`, `actionOf`, `actionOf2`) |
+| `AbstractPresenter<A>` | Base comum — app + view, `update()`/`release()`, `bind(state)`, as ações guardadas (`action`, `actionOf`, `actionOf2`, com ou sem código de evento) e o `skeleton(classId)` genérico |
 | `AbstractCubePresenter<A>` | Presenter de um place — `applyParameters`/`publishParameters` |
 | `AbstractChildPresenter<A>` | Presenters filhos cujo ciclo é gerenciado pelo owner (não pela navegação) |
 | `CubeView` | Interface da view — `instanceId()`, `update()`, `release()` |
@@ -55,7 +55,8 @@ graph LR
 | `CubeIntent` | Encapsula destino (place) + parâmetros tipados (parse de query-string) |
 | `CubeKeys<A>` | Base das classes de chaves do app: uma por place, declara o place e lê/escreve o intent com acessores tipados; `flip()` navega até o place |
 | `CubeNavigation<T>` | Engine que executa transições: cria, reutiliza e destrói presenters |
-| `CubeSkeleton` | Interface para comunicação remota: `submit(eventCode, formData)`, `syncState()` |
+| `CubeSkeleton` | Interface para comunicação remota: `submit(eventCode, formData)`, `syncState()`. O presenter não a implementa à mão: `skeleton(classId)` despacha cada evento para a ação ligada com aquele código |
+| `FormParam<T>` | Como uma ação lê um valor do `formData` do evento: nome do campo + conversão (`asLong`, `asInteger`, `asString`, `of`) |
 | `ViewState`, `Prop<T>` | Estado da view: campos observados são `Prop`s (`prop(...)`); com o estado ligado ao presenter (`bind(...)`), `set` de um valor diferente pede o redesenho sozinho. `setSilently` é para a view que consome uma mensagem de exibição única enquanto desenha |
 | `Action`, `ActionOf<T>`, `ActionOf2<T, U>` | Ações que a view dispara, guardadas como campos do ViewState; `NOOP`/`noop()` marcam a ação ainda não ligada |
 | `PresenterBase` | Interface raiz: `commitComputedState()` + `release()` |

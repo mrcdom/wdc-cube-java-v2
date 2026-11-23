@@ -1,6 +1,5 @@
 package br.com.wdc.shopping.presentation.presenter;
 
-import java.util.Map;
 import java.util.function.Function;
 
 import org.apache.commons.lang3.StringUtils;
@@ -161,18 +160,7 @@ public class RootPresenter extends AbstractCubePresenter<ShoppingApplication> {
     // :: Controle remoto
 
     public CubeSkeleton skeleton() {
-        return new CubeSkeleton() {
-
-            @Override
-            public String classId() {
-                return "f2d345c4a610";
-            }
-
-            @Override
-            public void submit(int eventCode, int eventQtde, Map<String, Object> formData) throws Exception {
-                // NOOP
-            }
-        };
+        return skeleton("f2d345c4a610");
     }
 
 }

@@ -1,16 +1,15 @@
 package br.com.wdc.shopping.presentation.presenter.restricted.products;
 
-import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
-import br.com.wdc.framework.commons.lang.CoerceUtils;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.Action;
 import br.com.wdc.framework.cube.ActionOf;
 import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.CubeSkeleton;
+import br.com.wdc.framework.cube.FormParam;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.CubeViewSlot;
 import br.com.wdc.framework.cube.Prop;
@@ -56,8 +55,8 @@ public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication>
     public ProductPresenter(ShoppingApplication app) {
         super(app);
         this.productService = new ProductService(app);
-        this.state.onAddToCart = actionOf(this::addToCart);
-        this.state.onOpenProducts = action(() -> new HomeKeys(this.app).flip());
+        this.state.onOpenProducts = action(1, () -> new HomeKeys(this.app).flip());
+        this.state.onAddToCart = actionOf(2, FormParam.asInteger("p.quantity"), this::addToCart);
     }
 
     // :: Cube API
@@ -148,22 +147,7 @@ public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication>
     // :: Controle remoto
 
     public CubeSkeleton skeleton() {
-        return new CubeSkeleton() {
-
-            @Override
-            public String classId() {
-                return "48b693f67410";
-            }
-
-            @Override
-            public void submit(int eventCode, int eventQtde, Map<String, Object> formData) throws Exception {
-                switch (eventCode) {
-                case 1 -> state.onOpenProducts.run();
-                case 2 -> state.onAddToCart.run(CoerceUtils.asInteger(formData.get("p.quantity")));
-                default -> new AssertionError("eventCode(" + eventCode + ") not handled");
-                }
-            }
-        };
+        return skeleton("48b693f67410");
     }
 
 }
