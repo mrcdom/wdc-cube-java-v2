@@ -8,23 +8,14 @@ import Sel from "./cart-sel"
 // :: Actions (must match server-side presenter)
 
 const ON_BUY = 1
-const ON_REMOVE = 2
 const ON_BACK = 3
-const ON_MODIFY_QUANTITY = 4
-
-// :: Types
-
-type CartItem = {
-  id: number
-  name: string
-  price: number
-  quantity: number
-}
 
 // :: View
 
 export type CartViewState = {
-  items?: CartItem[]
+  /** The rows: each one a view of its own (CartItemView), in the cart's order. */
+  rowsViewIds?: string[]
+  total?: number
   errorMessage?: string
 }
 
@@ -33,10 +24,9 @@ class CartViewClass extends BaseViewClass<ViewProps, CartViewState> {
 
   override render({ className }: ViewProps) {
     const { state } = this
-    const items = state.items ?? []
-    const empty = items.length === 0
-    const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
-    const totalText = `R$ ${total.toFixed(2)}`
+    const rows = state.rowsViewIds ?? []
+    const empty = rows.length === 0
+    const totalText = `R$ ${(state.total ?? 0).toFixed(2)}`
 
     return (
       <div className={clsx(Sel.pageScrollRoot, className)}>
@@ -77,7 +67,11 @@ class CartViewClass extends BaseViewClass<ViewProps, CartViewState> {
             ) : (
               <div>
                 {/* Items list */}
-                <div>{items.map((item) => this.renderItem(item))}</div>
+                <div>
+                  {rows.map((rowId) => (
+                    <React.Fragment key={rowId}>{bridge.createView(rowId)}</React.Fragment>
+                  ))}
+                </div>
 
                 {/* Footer total */}
                 <div className={Sel.footer}>
@@ -104,46 +98,6 @@ class CartViewClass extends BaseViewClass<ViewProps, CartViewState> {
     )
   }
 
-  private renderItem(item: CartItem) {
-    const subtotal = `R$ ${(item.price * item.quantity).toFixed(2)}`
-    return (
-      <div key={item.id} className={Sel.itemRow}>
-        <span className={Sel.itemName}>{item.name}</span>
-        <div className={Sel.stepperRow}>
-          <ActionButton
-            quiet
-            size="s"
-            ref={(el: HTMLElement | null) => {
-              if (el) el.onclick = () => this.emitModifyQuantity(item.id, item.quantity - 1)
-            }}
-          >
-            <span className={clsx("bi bi-dash", Sel.stepperIcon)}></span>
-          </ActionButton>
-          <span className={Sel.stepperValue}>{item.quantity}</span>
-          <ActionButton
-            quiet
-            size="s"
-            ref={(el: HTMLElement | null) => {
-              if (el) el.onclick = () => this.emitModifyQuantity(item.id, item.quantity + 1)
-            }}
-          >
-            <span className={clsx("bi bi-plus", Sel.stepperIcon)}></span>
-          </ActionButton>
-        </div>
-        <span className={Sel.itemSubtotal}>{subtotal}</span>
-        <ActionButton
-          quiet
-          size="s"
-          ref={(el: HTMLElement | null) => {
-            if (el) el.onclick = () => this.emitRemove(item.id)
-          }}
-        >
-          <span className={clsx("bi bi-x-lg", Sel.removeIcon)}></span>
-        </ActionButton>
-      </div>
-    )
-  }
-
   // :: Refs
 
   readonly backBtnRef = (el: HTMLElement | null) => {
@@ -166,17 +120,6 @@ class CartViewClass extends BaseViewClass<ViewProps, CartViewState> {
 
   readonly emitBuy = () => {
     bridge.submit(this.vsid, ON_BUY)
-  }
-
-  readonly emitModifyQuantity = (id: number, quantity: number) => {
-    bridge.setFormField(this.vsid, "p.productId", id)
-    bridge.setFormField(this.vsid, "p.quantity", quantity)
-    bridge.submit(this.vsid, ON_MODIFY_QUANTITY)
-  }
-
-  readonly emitRemove = (id: number) => {
-    bridge.setFormField(this.vsid, "p.productId", id)
-    bridge.submit(this.vsid, ON_REMOVE)
   }
 }
 

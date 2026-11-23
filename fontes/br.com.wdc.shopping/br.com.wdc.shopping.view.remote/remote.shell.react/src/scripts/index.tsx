@@ -12,6 +12,7 @@ import RootView from "./views/RootView"
 import LoginView from "./views/login/LoginView"
 import RestrictedView from "./views/home/HomeView"
 import CartView from "./views/cart/CartView"
+import CartItemView from "./views/cart/CartItemView"
 import ReceiptView from "./views/receipt/ReceiptView"
 import ProductView from "./views/product/ProductView"
 import ProductsPanel from "./views/home/ProductsPanel"
@@ -26,6 +27,7 @@ bridge.registerComponents(
   LoginView,
   RestrictedView,
   CartView,
+  CartItemView,
   ReceiptView,
   ProductView,
   ProductsPanel,
