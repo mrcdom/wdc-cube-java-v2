@@ -21,7 +21,9 @@ import br.com.wdc.shopping.presentation.presenter.RootPresenter;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope;
+import br.com.wdc.shopping.view.vaadin.impl.cart.CartItemViewVaadin;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
 import br.com.wdc.shopping.view.vaadin.impl.CartViewVaadin;
@@ -47,6 +49,7 @@ public class ShoppingVaadinApplication extends ShoppingApplication {
         CartPresenter.createView = CartViewVaadin::new;
         ProductPresenter.createView = ProductViewVaadin::new;
         ReceiptPresenter.createView = ReceiptViewVaadin::new;
+        CartScope.CartItemScope.createView = (app, row) -> new CartItemViewVaadin((ShoppingVaadinApplication) app, row);
         HomeScope.ProductsPanelScope.createView = (app, scope) -> new ProductsPanelViewVaadin((ShoppingVaadinApplication) app, scope);
         HomeScope.PurchasesPanelScope.createView = (app, scope) -> new PurchasesPanelViewVaadin((ShoppingVaadinApplication) app, scope);
     }

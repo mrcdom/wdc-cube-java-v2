@@ -1,5 +1,7 @@
 package br.com.wdc.shopping.test.mock;
 
+import br.com.wdc.framework.cube.CubeView;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -35,6 +37,22 @@ public class ShoppingApplicationMock extends ShoppingApplication {
         CartPresenter.createView = CartViewMock::new;
         ProductPresenter.createView = ProductViewMock::new;
         ReceiptPresenter.createView = ReceiptViewMock::new;
+        CartScope.CartItemScope.createView = (app, row) -> new CubeView() {
+            @Override
+            public String instanceId() {
+                return "cart-row-mock-" + row.id.get();
+            }
+
+            @Override
+            public void update() {
+                // NOOP
+            }
+
+            @Override
+            public void release() {
+                // NOOP
+            }
+        };
         HomeScope.ProductsPanelScope.createView = (app, s) -> new ProductsPanelViewMock((ShoppingApplicationMock) app, s);
         HomeScope.PurchasesPanelScope.createView = (app, s) -> new PurchasesPanelViewMock((ShoppingApplicationMock) app, s);
     }

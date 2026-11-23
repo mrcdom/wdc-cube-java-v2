@@ -135,4 +135,41 @@ public class ShoppingWorkflowTest extends BasePresentationTest {
                 homeView.state.contentView.get());
     }
 
+
+    @Test
+    public void cartRowsAreSegmentsWithTheirOwnActions() {
+        new LoginKeys(this.app).flip();
+        var rootView = this.app.getRootView();
+        LoginViewMock.cast(rootView.state.contentView.get()).state.onEnter.run("admin", "admin");
+
+        var homeView = HomeViewMock.cast(rootView.state.contentView.get());
+        homeView.getProductsPanelState().onOpenProduct.run(DBReset.PEN_DRIVE2GB_ID);
+        ProductViewMock.cast(homeView.state.contentView.get()).state.onAddToCart.run(1);
+        homeView.getProductsPanelState().onOpenProduct.run(DBReset.BOLA_WILSON_ID);
+        ProductViewMock.cast(homeView.state.contentView.get()).state.onAddToCart.run(2);
+
+        var cart = CartViewMock.cast(homeView.state.contentView.get()).state;
+        Assert.assertEquals("Uma linha por item", 2, cart.rows.get().size());
+        var penDrive = cart.rows.get().get(0);
+        Assert.assertEquals((long) DBReset.PEN_DRIVE2GB_ID, (long) penDrive.id.get());
+        Assert.assertNotNull("Cada linha tem a sua view", penDrive.view());
+        Assert.assertEquals(16.00 + 2 * 45.30, cart.total.get(), 0.001);
+
+        // A ação é da linha: não leva o id do produto
+        penDrive.onModifyQuantity.run(3);
+        Assert.assertEquals(3, (int) penDrive.quantity.get());
+        Assert.assertSame("A linha é reaproveitada enquanto o item fica", penDrive, cart.rows.get().get(0));
+        Assert.assertEquals(3 * 16.00 + 2 * 45.30, cart.total.get(), 0.001);
+
+        penDrive.onModifyQuantity.run(0);
+        Assert.assertEquals("Quantidade inválida", 1, (int) cart.errorCode.get());
+        Assert.assertEquals(3, (int) penDrive.quantity.get());
+
+        penDrive.onRemove.run();
+        Assert.assertEquals(1, cart.rows.get().size());
+        Assert.assertEquals((long) DBReset.BOLA_WILSON_ID, (long) cart.rows.get().get(0).id.get());
+
+        cart.rows.get().get(0).onRemove.run();
+        Assert.assertNull("Carrinho vazio volta para a home", homeView.state.contentView.get());
+    }
 }

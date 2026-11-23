@@ -1,5 +1,6 @@
 package br.com.wdc.shopping.view.remote.host;
 
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -47,6 +48,8 @@ public class ShoppingApplicationImpl extends ShoppingApplication implements Remo
 		ProductPresenter.createView = p -> new RemoteViewImpl((RemoteApplication) p.app, p, p.state, p.skeleton());
 		CartPresenter.createView = p -> new RemoteViewImpl((RemoteApplication) p.app, p, p.state, p.skeleton());
 		ReceiptPresenter.createView = p -> new RemoteViewImpl((RemoteApplication) p.app, p, p.state, p.skeleton());
+		// Rows of the cart: a view of their own, too
+		CartScope.CartItemScope.createView = (app, s) -> new RemoteViewImpl((RemoteApplication) app, s, CartScope.CartItemScope.CLASS_ID);
 		// Segments of the home: a view of their own, with no presenter behind
 		HomeScope.ProductsPanelScope.createView = (app, s) -> new RemoteViewImpl((RemoteApplication) app, s, HomeScope.ProductsPanelScope.CLASS_ID);
 		HomeScope.PurchasesPanelScope.createView = (app, s) -> new RemoteViewImpl((RemoteApplication) app, s, HomeScope.PurchasesPanelScope.CLASS_ID);

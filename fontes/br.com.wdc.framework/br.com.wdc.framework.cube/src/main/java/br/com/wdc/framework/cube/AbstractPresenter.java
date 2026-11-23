@@ -166,6 +166,14 @@ public abstract class AbstractPresenter<A extends CubeApplication> implements Pr
         return segment;
     }
 
+    /** Releases the view of a segment that left the screen (a row removed from a list). */
+    protected final void detach(Scope segment) {
+        if (segments.remove(segment)) {
+            segment.setUpdater(null);
+            segment.view().release();
+        }
+    }
+
     /** The skeleton of a remote view: dispatches each event to the action bound with its code. */
     protected final CubeSkeleton skeleton(String classId) {
         return skeleton(classId, null);

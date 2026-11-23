@@ -2,6 +2,8 @@ package br.com.wdc.framework.cube.remote;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
@@ -32,6 +34,7 @@ import br.com.wdc.framework.cube.Scope;
  * <li>Blank strings in direct fields are omitted.</li>
  * <li>A {@link Prop} field is written as its value.</li>
  * <li>A field holding a {@link Scope} (a segment, attached to its own view) is written as {@code "<name>ViewId": vsid}.</li>
+ * <li>A field holding a list of segments (rows) is written as {@code "<name>ViewIds": [vsid, ...]}, in order.</li>
  * <li>Numeric primitives and boolean primitives are always serialized.</li>
  * </ul>
  */
@@ -92,6 +95,19 @@ public final class ScopeSerializer {
             return;
         }
 
+        // A list of segments (rows): each row is a view of its own, referred to by id, in order
+        if (isSegmentList(field)) {
+            json.name(field.getName() + "ViewIds");
+            json.beginArray();
+            for (Object item : (Collection<?>) value) {
+                if (item instanceof Scope row && row.view() != null) {
+                    json.value(row.view().instanceId());
+                }
+            }
+            json.endArray();
+            return;
+        }
+
         // A segment (a scope inside this one) is a view of its own: referred to by the id of that view
         if (value instanceof Scope segment) {
             if (segment.view() != null) {
@@ -138,6 +154,20 @@ public final class ScopeSerializer {
 
         json.name(field.getName());
         writeValue(value);
+    }
+
+    /** Whether the field is a {@code Prop<List<X>>} (or any collection) of a {@link Scope} type: a list of segments. */
+    private static boolean isSegmentList(Field field) {
+        Type type = field.getGenericType();
+        if (type instanceof ParameterizedType prop && prop.getRawType() == Prop.class) {
+            type = prop.getActualTypeArguments()[0];
+        }
+        if (type instanceof ParameterizedType coll && coll.getRawType() instanceof Class<?> raw
+                && Collection.class.isAssignableFrom(raw)
+                && coll.getActualTypeArguments()[0] instanceof Class<?> element) {
+            return Scope.class.isAssignableFrom(element);
+        }
+        return false;
     }
 
     private void writeValue(Object value) {

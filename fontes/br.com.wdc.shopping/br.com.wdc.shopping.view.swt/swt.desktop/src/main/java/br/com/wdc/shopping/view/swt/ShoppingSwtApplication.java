@@ -1,5 +1,6 @@
 package br.com.wdc.shopping.view.swt;
 
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -94,6 +95,23 @@ public class ShoppingSwtApplication extends ShoppingApplication implements SwtAp
 			var v = new ProductViewSwt(app); v.stateSupplier = () -> p.state;
 			v.onOpenProducts = p.state.onOpenProducts::run; v.onAddToCart = p.state.onAddToCart::run;
 			return v; });
+		// The rows still drawn from the inline items here: their views come with this host's migration
+		CartScope.CartItemScope.createView = (a, row) -> new CubeView() {
+			@Override
+			public String instanceId() {
+				return "cart-row-" + row.id.get();
+			}
+
+			@Override
+			public void update() {
+				// NOOP
+			}
+
+			@Override
+			public void release() {
+				// NOOP
+			}
+		};
 		var productsPanelView = app.onUiThread((HomeScope.ProductsPanelScope s) -> {
 			var v = new ProductsPanelViewSwt(app); v.stateSupplier = () -> s;
 			v.onOpenProduct = s.onOpenProduct::run; return v; });

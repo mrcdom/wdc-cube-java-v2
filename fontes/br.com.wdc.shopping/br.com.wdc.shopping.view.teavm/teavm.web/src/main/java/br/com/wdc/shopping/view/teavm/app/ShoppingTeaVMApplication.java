@@ -1,5 +1,7 @@
 package br.com.wdc.shopping.view.teavm.app;
 
+import br.com.wdc.framework.cube.CubeView;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -69,6 +71,23 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
         CartPresenter.createView = CartView::new;
         ProductPresenter.createView = ProductView::new;
         ReceiptPresenter.createView = ReceiptView::new;
+        // The rows still drawn from the inline items here: their views come with this host's migration
+        CartScope.CartItemScope.createView = (app, row) -> new CubeView() {
+            @Override
+            public String instanceId() {
+                return "cart-row-" + row.id.get();
+            }
+
+            @Override
+            public void update() {
+                // NOOP
+            }
+
+            @Override
+            public void release() {
+                // NOOP
+            }
+        };
         HomeScope.ProductsPanelScope.createView = (app, scope) -> new ProductsPanelView((ShoppingTeaVMApplication) app, scope);
         HomeScope.PurchasesPanelScope.createView = (app, scope) -> new PurchasesPanelView((ShoppingTeaVMApplication) app, scope);
     }
