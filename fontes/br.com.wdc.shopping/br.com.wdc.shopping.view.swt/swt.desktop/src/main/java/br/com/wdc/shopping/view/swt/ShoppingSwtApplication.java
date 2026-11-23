@@ -29,7 +29,6 @@ import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptScope;
-import br.com.wdc.shopping.view.swt.AbstractViewSwt;
 import br.com.wdc.shopping.view.swt.impl.CartItemViewSwt;
 import br.com.wdc.shopping.view.swt.impl.CartViewSwt;
 import br.com.wdc.shopping.view.swt.impl.HomeViewSwt;

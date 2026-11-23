@@ -79,8 +79,7 @@ public abstract class AbstractViewVaadin<S extends Scope> implements CubeView {
         // Remove excess views
         if (oldSize > newSize) {
             for (int i = oldSize - 1; i >= newSize; i--) {
-                var view = viewList.remove(i);
-                container.remove(view.getElement());
+                container.remove(elementOf(viewList.remove(i)));
             }
         }
 
@@ -88,7 +87,7 @@ public abstract class AbstractViewVaadin<S extends Scope> implements CubeView {
         while (viewList.size() < newSize) {
             var view = factory.get();
             viewList.add(view);
-            container.add(view.getElement());
+            container.add(elementOf(view));
         }
 
         // Update all
@@ -97,5 +96,10 @@ public abstract class AbstractViewVaadin<S extends Scope> implements CubeView {
                 updater.accept(viewList.get(i), items.get(i));
             }
         }
+    }
+
+    /** The element of a view of the list (never null: the factory makes them). */
+    private static Component elementOf(AbstractViewVaadin<?> view) {
+        return view.getElement();
     }
 }

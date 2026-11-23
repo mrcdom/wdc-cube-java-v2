@@ -234,7 +234,10 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     // :: Purchases panel
 
-    private void changePage(int page) {
+    private void changePage(Integer page) {
+        if (page == null) {
+            return;
+        }
         this.purchasesPanel.page.set(Math.max(0, page));
         this.loadPurchases();
     }
@@ -242,7 +245,10 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
     /**
      * The view tells how many items fit without scrolling. Only reloads when the capacity actually changed.
      */
-    private void changeItemSizeCapacity(int capacity) {
+    private void changeItemSizeCapacity(Integer capacity) {
+        if (capacity == null) {
+            return;
+        }
         int newPageSize = Math.max(1, capacity);
         if (newPageSize != this.purchasesPanel.pageSize.get()) {
             this.purchasesPanel.pageSize.set(newPageSize);

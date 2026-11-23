@@ -2,7 +2,6 @@ package br.com.wdc.shopping.presentation.presenter.restricted.receipt;
 
 import java.util.Objects;
 
-import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.ScopeSlot;
@@ -15,8 +14,6 @@ import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.Rec
 public class ReceiptPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     // :: Private Class Fields
-
-    private static final Log LOG = Log.getLogger(ReceiptPresenter.class);
 
     // :: Public Instance Fields
 

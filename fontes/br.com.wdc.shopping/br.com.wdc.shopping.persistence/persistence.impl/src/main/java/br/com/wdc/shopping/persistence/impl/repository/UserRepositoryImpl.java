@@ -4,8 +4,6 @@ import static br.com.wdc.framework.domain.repository.Repository.changed;
 import static br.com.wdc.shopping.persistence.impl.scheme.Sequences.SQ_USER;
 import static br.com.wdc.shopping.persistence.impl.scheme.tables.EnUser.EN_USER;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -243,14 +241,6 @@ public class UserRepositoryImpl extends BaseRepositoryImpl  implements UserRepos
                     CriterionTranslator.translate(enUser.USERNAME, criteria.userName()),
                     CriterionTranslator.translate(enUser.NAME, criteria.name()),
                     CriterionTranslator.translate(enUser.ROLES, criteria.roles())));
-        }
-
-        private static MessageDigest md5() {
-            try {
-                return MessageDigest.getInstance("MD5");
-            } catch (NoSuchAlgorithmException e) {
-                throw new AssertionError(e);
-            }
         }
     }
 }

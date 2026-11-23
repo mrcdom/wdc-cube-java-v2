@@ -130,6 +130,8 @@ public class GuardedActionTest {
 
     @Test
     public void aCodeBoundTwiceFailsWhenThePresenterIsBuilt() {
+        // The fields exist only to bind the same code twice
+        @SuppressWarnings("unused")
         class Twice extends AbstractCubePresenter<RecordingApp> {
             final Action a = action(1, () -> { });
             final Action b = action(1, () -> { });

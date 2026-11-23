@@ -7,7 +7,6 @@ import static br.com.wdc.shopping.persistence.impl.scheme.tables.EnPurchase.EN_P
 import static br.com.wdc.shopping.persistence.impl.scheme.tables.EnPurchaseitem.EN_PURCHASEITEM;
 
 import java.math.BigDecimal;
-import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
 
