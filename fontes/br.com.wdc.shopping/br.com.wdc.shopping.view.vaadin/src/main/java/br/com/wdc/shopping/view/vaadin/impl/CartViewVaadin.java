@@ -16,14 +16,13 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope.CartItemScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartScope.CartItemScope;
 import br.com.wdc.shopping.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.shopping.view.vaadin.ShoppingVaadinApplication;
 import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
 public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
-
 
     private boolean notRendered = true;
     private HorizontalLayout headerPane;

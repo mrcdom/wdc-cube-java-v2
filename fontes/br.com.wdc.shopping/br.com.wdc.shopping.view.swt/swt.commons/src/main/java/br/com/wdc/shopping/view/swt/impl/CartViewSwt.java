@@ -1,5 +1,7 @@
 package br.com.wdc.shopping.view.swt.impl;
 
+import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -11,14 +13,12 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
-
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartScope;
 import br.com.wdc.shopping.view.swt.AbstractViewSwt;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.components.ErrorBanner;
 import br.com.wdc.shopping.view.swt.theme.Theme;
 import br.com.wdc.shopping.view.swt.util.SwtDom;
-import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
 
 public class CartViewSwt extends AbstractViewSwt {
 

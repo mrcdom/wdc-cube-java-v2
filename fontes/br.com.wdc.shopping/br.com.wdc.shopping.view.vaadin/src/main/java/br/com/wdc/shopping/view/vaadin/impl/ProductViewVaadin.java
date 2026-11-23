@@ -13,14 +13,13 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter.ProductScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductScope;
 import br.com.wdc.shopping.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.shopping.view.vaadin.ShoppingVaadinApplication;
 import br.com.wdc.shopping.view.vaadin.util.ResourceCatalog;
 import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
 public class ProductViewVaadin extends AbstractViewVaadin<ProductScope> {
-
 
     private boolean notRendered = true;
     private Span nameElm1;

@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope.CartItemScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartScope.CartItemScope;
 import br.com.wdc.shopping.view.teavm.commons.SelIcons;
 import br.com.wdc.shopping.view.teavm.commons.SharedVDomView;
 import br.com.wdc.shopping.view.teavm.commons.VNode;

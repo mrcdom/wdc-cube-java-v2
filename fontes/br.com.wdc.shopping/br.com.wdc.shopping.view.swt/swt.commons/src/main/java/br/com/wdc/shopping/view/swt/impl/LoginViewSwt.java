@@ -1,6 +1,10 @@
 package br.com.wdc.shopping.view.swt.impl;
 
+import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
+
 import java.util.Objects;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
@@ -14,16 +18,12 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
-import java.util.function.BiConsumer;
-import java.util.function.Supplier;
-
-import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginScope;
+import br.com.wdc.shopping.presentation.presenter.open.login.LoginScope;
 import br.com.wdc.shopping.view.swt.AbstractViewSwt;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.theme.Surface;
 import br.com.wdc.shopping.view.swt.theme.Theme;
 import br.com.wdc.shopping.view.swt.util.SwtDom;
-import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
 
 /**
  * Login view matching the TeaVM web design:

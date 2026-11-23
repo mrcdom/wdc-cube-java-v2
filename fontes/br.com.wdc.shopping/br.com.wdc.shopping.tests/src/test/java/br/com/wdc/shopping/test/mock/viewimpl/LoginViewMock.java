@@ -3,7 +3,7 @@ package br.com.wdc.shopping.test.mock.viewimpl;
 import org.junit.Assert;
 
 import br.com.wdc.framework.cube.CubeView;
-import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginScope;
+import br.com.wdc.shopping.presentation.presenter.open.login.LoginScope;
 import br.com.wdc.shopping.test.mock.ShoppingApplicationMock;
 
 public class LoginViewMock extends AbstractViewMock<LoginScope> {
@@ -15,7 +15,6 @@ public class LoginViewMock extends AbstractViewMock<LoginScope> {
                 cls.isInstance(view));
         return (LoginViewMock) view;
     }
-
 
     public LoginViewMock(ShoppingApplicationMock app, LoginScope state) {
         super(app, state);

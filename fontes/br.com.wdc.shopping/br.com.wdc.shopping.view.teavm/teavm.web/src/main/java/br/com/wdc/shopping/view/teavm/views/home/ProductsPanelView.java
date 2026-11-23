@@ -1,6 +1,6 @@
 package br.com.wdc.shopping.view.teavm.views.home;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope.ProductsPanelScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeScope.ProductsPanelScope;
 import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
 import br.com.wdc.shopping.view.teavm.commons.views.home.ProductsPanelSharedView;

@@ -8,7 +8,7 @@ import java.util.Objects;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope.PurchasesPanelScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeScope.PurchasesPanelScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
 import br.com.wdc.shopping.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.shopping.view.vaadin.ShoppingVaadinApplication;

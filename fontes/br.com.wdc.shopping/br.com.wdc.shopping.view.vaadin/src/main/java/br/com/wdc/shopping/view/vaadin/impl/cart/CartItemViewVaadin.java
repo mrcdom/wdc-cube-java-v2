@@ -1,6 +1,5 @@
 package br.com.wdc.shopping.view.vaadin.impl.cart;
 
-
 import java.text.NumberFormat;
 import java.util.Objects;
 
@@ -8,7 +7,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope.CartItemScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartScope.CartItemScope;
 import br.com.wdc.shopping.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.shopping.view.vaadin.ShoppingVaadinApplication;
 import br.com.wdc.shopping.view.vaadin.util.ResourceCatalog;
@@ -16,7 +15,6 @@ import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
 /** The view of a cart row: a segment of the cart with its own state and actions. */
 public class CartItemViewVaadin extends AbstractViewVaadin<CartItemScope> {
-
 
     private boolean notRendered = true;
     private Span nameElm;

@@ -5,7 +5,7 @@ import java.util.Date;
 import org.junit.Assert;
 
 import br.com.wdc.framework.cube.CubeView;
-import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter.ReceiptScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptItem;
 import br.com.wdc.shopping.test.mock.ShoppingApplicationMock;
 
@@ -19,7 +19,6 @@ public class ReceiptViewMock extends AbstractViewMock<ReceiptScope> {
                 cls.isInstance(view));
         return (ReceiptViewMock) view;
     }
-
 
     public ReceiptViewMock(ShoppingApplicationMock app, ReceiptScope state) {
         super(app, state);

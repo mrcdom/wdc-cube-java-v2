@@ -5,7 +5,7 @@ import static br.com.wdc.shopping.test.mock.viewimpl.AbstractViewMock.INSTANCE_I
 import org.junit.Assert;
 
 import br.com.wdc.framework.cube.CubeView;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope.ProductsPanelScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeScope.ProductsPanelScope;
 import br.com.wdc.shopping.test.mock.ShoppingApplicationMock;
 
 public class ProductsPanelViewMock implements CubeView {

@@ -1,8 +1,7 @@
 package br.com.wdc.shopping.view.remote.shell.teavm.views.cart;
 
 import br.com.wdc.framework.cube.remote.bridge.teavm.ViewScope;
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope.CartItemScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartScope;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
 import br.com.wdc.shopping.view.teavm.commons.views.cart.CartItemSharedView;
@@ -16,7 +15,7 @@ public class CartItemView extends AbstractRemoteView {
     private static final int ON_MODIFY_QUANTITY = 2;
 
     private final CartItemSharedView shared;
-    private final CartItemScope adaptedState = new CartItemScope();
+    private final CartScope.CartItemScope adaptedState = new CartScope.CartItemScope();
 
     public CartItemView(String vsid) {
         super(vsid);
@@ -35,7 +34,7 @@ public class CartItemView extends AbstractRemoteView {
         return shared.renderTree();
     }
 
-    private CartItemScope adaptState() {
+    private CartScope.CartItemScope adaptState() {
         ViewScope scope = state();
         adaptedState.name.set(scope.getString("name"));
         adaptedState.price.set(scope.getDouble("price"));

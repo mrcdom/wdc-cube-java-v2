@@ -34,7 +34,7 @@ import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
 
 import br.com.wdc.framework.vdom.*;
-import br.com.wdc.shopping.presentation.presenter.restricted.wishlist.WishlistPresenter.WishlistScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.wishlist.WishlistScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.wishlist.structs.WishlistItem;
 import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;

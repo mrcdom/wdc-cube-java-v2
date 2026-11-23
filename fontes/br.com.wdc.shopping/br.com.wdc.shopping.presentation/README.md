@@ -133,12 +133,12 @@ Classe abstrata que estende `CubeApplication`. Mantém o estado global:
 
 Classe utilitária que cria proxies dinâmicos (via `java.lang.reflect.Proxy`) para repositórios, envolvendo cada chamada com o `SecurityContext`. Usado em ambientes JVM multi-threaded (desktop, servidor). Não compatível com TeaVM/GraalVM native.
 
-### Scope (inner class)
+### Scope
 
-Cada presenter define um `Scope` como **classe estática interna** (`public static class XxxScope extends Scope`). Cada campo observado é uma `Prop`, criada com `prop(...)`; o presenter liga o estado a si com `bind(...)`, e então `set` de um valor diferente (`equals`) pede o redesenho sozinho — o presenter não chama `this.update()` depois. A view lê com `get()`. O escopo declara o seu `CLASS_ID` (o classId do protocolo bridge); o presenter não cria view — cada host desenha o escopo com a view que o seu catálogo `ScopeViews` registra para a classe. A serialização remota é automática (`ScopeSerializer`, via reflection dos campos públicos, escrevendo o valor de cada `Prop`; um `Prop<Scope>`, como o `content` de Root e Home, sai como `"<campo>ViewId"`):
+Cada presenter tem o seu `Scope` em **arquivo próprio**, ao lado dele (`XxxScope.java`, como o `xxx.scope.ts` da versão TypeScript). Um escopo que só existe dentro dele — um painel da Home, a linha do carrinho — é classe interna pública estática dele (`HomeScope.ProductsPanelScope`, `CartScope.CartItemScope`). Cada campo observado é uma `Prop`, criada com `prop(...)`; o presenter liga o estado a si com `bind(...)`, e então `set` de um valor diferente (`equals`) pede o redesenho sozinho — o presenter não chama `this.update()` depois. A view lê com `get()`. O escopo declara o seu `CLASS_ID` (o classId do protocolo bridge); o presenter não cria view — cada host desenha o escopo com a view que o seu catálogo `ScopeViews` registra para a classe. A serialização remota é automática (`ScopeSerializer`, via reflection dos campos públicos, escrevendo o valor de cada `Prop`; um `Prop<Scope>`, como o `content` de Root e Home, sai como `"<campo>ViewId"`):
 
 ```java
-public static class ProductScope extends Scope {
+public class ProductScope extends Scope {
     public static final String CLASS_ID = "48b693f67410";
 
     public final Prop<ProductInfo> product = prop();
@@ -146,6 +146,7 @@ public static class ProductScope extends Scope {
     public final Prop<String> errorMessage = prop();
 }
 
+// no ProductPresenter
 public final ProductScope state = bind(new ProductScope());
 ```
 
@@ -222,26 +223,18 @@ public class XxxPresenter extends AbstractCubePresenter<ShoppingApplication> {
     // 1. Logger
     private static final Logger LOG = LoggerFactory.getLogger(XxxPresenter.class);
 
-    // 2. Scope (inner class — campos observados são Props; serialização via reflection)
-    public static class XxxScope extends Scope {
-        public static final String CLASS_ID = "<12 hex>";   // classId do protocolo bridge
-        public final Prop<Integer> errorCode = prop(0);
-        public final Prop<String> errorMessage = prop();
-        // ... campos específicos
-    }
-
-    // 3. Estado público (bind: o escopo compartilha os eventos do presenter e é liberado com ele)
+    // 2. Estado público — o XxxScope fica em XxxScope.java, ao lado (campos observados são Props; serialização via reflection) (bind: o escopo compartilha os eventos do presenter e é liberado com ele)
     public final XxxScope state = bind(new XxxScope());
 
-    // 4. Campos internos
+    // 3. Campos internos
     private ScopeSlot ownerSlot;
 
-    // 5. Constructor (liga as ações do state)
+    // 4. Constructor (liga as ações do state)
     public XxxPresenter(ShoppingApplication app) { super(app); }
 
-    // 6. Cube API (applyParameters — termina com ownerSlot.setScope(this.state) —, publishParameters)
-    // 7. User Actions (onXxx)
-    // 8. Messages (alertXxx, errorXxx)
+    // 5. Cube API (applyParameters — termina com ownerSlot.setScope(this.state) —, publishParameters)
+    // 6. User Actions (onXxx)
+    // 7. Messages (alertXxx, errorXxx)
 }
 ```
 

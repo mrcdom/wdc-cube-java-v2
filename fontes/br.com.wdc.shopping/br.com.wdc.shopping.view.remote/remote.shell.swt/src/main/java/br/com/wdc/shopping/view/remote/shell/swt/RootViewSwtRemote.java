@@ -1,7 +1,7 @@
 package br.com.wdc.shopping.view.remote.shell.swt;
 
 import br.com.wdc.framework.cube.Scope;
-import br.com.wdc.shopping.presentation.presenter.RootPresenter.RootScope;
+import br.com.wdc.shopping.presentation.presenter.RootScope;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.impl.RootViewSwt;
 

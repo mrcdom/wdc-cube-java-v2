@@ -1,12 +1,10 @@
 package br.com.wdc.shopping.presentation.presenter;
 
-
 import org.apache.commons.lang3.StringUtils;
 
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubeIntent;
-import br.com.wdc.framework.cube.Prop;
 import br.com.wdc.framework.cube.Scope;
 import br.com.wdc.framework.cube.ScopeSlot;
 import br.com.wdc.framework.domain.security.AuthenticationService;
@@ -23,18 +21,7 @@ public class RootPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     private static final Log LOG = Log.getLogger(RootPresenter.class);
 
-
     // :: Public Instance Fields
-
-    public static class RootScope extends Scope {
-
-        public static final String CLASS_ID = "f2d345c4a610";
-
-        /** The scope of the presenter below (the home, the login): the view layer draws it. */
-        public final Prop<Scope> content = prop();
-        public final Prop<String> errorMessage = prop();
-
-    }
 
     public final RootScope state = bind(new RootScope());
 

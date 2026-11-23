@@ -3,7 +3,7 @@ package br.com.wdc.shopping.view.remote.shell.swt;
 import java.util.Map;
 
 import br.com.wdc.framework.cube.Scope;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeScope;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.impl.HomeViewSwt;
 

@@ -2,7 +2,7 @@ package br.com.wdc.shopping.view.remote.shell.teavm.views.home;
 
 import org.teavm.jso.JSBody;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeScope;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
 import br.com.wdc.shopping.view.teavm.commons.views.home.HomeSharedView;

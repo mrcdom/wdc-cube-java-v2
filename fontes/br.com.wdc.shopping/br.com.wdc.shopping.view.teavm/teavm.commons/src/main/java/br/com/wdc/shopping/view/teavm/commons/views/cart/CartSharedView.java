@@ -11,11 +11,11 @@ import static br.com.wdc.shopping.view.teavm.commons.VNode.span;
 import java.util.List;
 import java.util.function.Supplier;
 
-import org.teavm.jso.dom.html.HTMLElement;
 import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
+import org.teavm.jso.dom.html.HTMLElement;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartScope;
 import br.com.wdc.shopping.view.teavm.commons.SelComponents;
 import br.com.wdc.shopping.view.teavm.commons.SelIcons;
 import br.com.wdc.shopping.view.teavm.commons.SelUtility;

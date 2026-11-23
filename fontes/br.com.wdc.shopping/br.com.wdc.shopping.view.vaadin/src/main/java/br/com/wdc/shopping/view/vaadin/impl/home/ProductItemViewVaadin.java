@@ -7,7 +7,7 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope.ProductsPanelScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeScope.ProductsPanelScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
 import br.com.wdc.shopping.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.shopping.view.vaadin.ShoppingVaadinApplication;

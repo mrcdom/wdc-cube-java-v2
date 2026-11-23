@@ -10,7 +10,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope.PurchasesPanelScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeScope.PurchasesPanelScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
 import br.com.wdc.shopping.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.shopping.view.vaadin.ShoppingVaadinApplication;
@@ -18,7 +18,6 @@ import br.com.wdc.shopping.view.vaadin.impl.home.PurchaseItemViewVaadin;
 import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
 public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelScope> {
-
 
     private boolean notRendered = true;
     private int itemIdx;

@@ -6,8 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope.PurchasesPanelScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.impl.PurchasesPanelViewSwt;
@@ -41,12 +40,12 @@ class PurchasesPanelViewSwtRemote extends PurchasesPanelViewSwt {
 		this.ctx.submitEvent(this.vsid, 3, Map.of("p.capacity", cap));
 	}
 
-	private PurchasesPanelScope stateSupplierImpl() {
+	private HomeScope.PurchasesPanelScope stateSupplierImpl() {
 		var s = this.ctx.viewState(this.vsid);
 		if (s == null) {
 			return null;
 		}
-		var state = new PurchasesPanelScope();
+		var state = new HomeScope.PurchasesPanelScope();
 		var pageNum = s.getLong("page");
 		state.page.set(pageNum != null ? pageNum.intValue() : 0);
 		var pageSize = s.getLong("pageSize");

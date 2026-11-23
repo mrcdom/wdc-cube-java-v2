@@ -186,24 +186,26 @@ O nome "Cube" reflete a terceira dimensão da arquitetura: além do eixo Present
 
 ### O Presenter
 
-Todo Presenter navegável estende `AbstractCubePresenter<ShoppingApplication>` e define seu Scope como classe interna estática:
+Todo Presenter navegável estende `AbstractCubePresenter<ShoppingApplication>`. O seu Scope fica em arquivo próprio, ao lado dele (como o `xxx.scope.ts` da versão TypeScript):
+
+```java
+// CartScope.java — estado público, lido pela view para renderização. Cada campo observado é uma Prop:
+// set() compara com equals e, se mudou, pede o redesenho — o presenter não chama update() depois
+public class CartScope extends Scope {
+    // classId do protocolo bridge: identifica a view remota que desenha este escopo
+    public static final String CLASS_ID = "7eb485e5f843";
+
+    public final Prop<List<CartItem>> items = prop(Collections.emptyList());
+    public final Prop<Integer> errorCode = prop(0);
+    public final Prop<String> errorMessage = prop();
+
+    // Ações que a view dispara (o serializador remoto as ignora)
+    public Action onConfirm = Action.NOOP;
+}
+```
 
 ```java
 public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
-
-    // Scope — estado público, lido pela view para renderização. Cada campo observado é uma Prop:
-    // set() compara com equals e, se mudou, pede o redesenho — o presenter não chama update() depois
-    public static class CartScope extends Scope {
-        // classId do protocolo bridge: identifica a view remota que desenha este escopo
-        public static final String CLASS_ID = "7eb485e5f843";
-
-        public final Prop<List<CartItem>> items = prop(Collections.emptyList());
-        public final Prop<Integer> errorCode = prop(0);
-        public final Prop<String> errorMessage = prop();
-
-        // Ações que a view dispara (o serializador remoto as ignora)
-        public Action onConfirm = Action.NOOP;
-    }
 
     // bind: o presenter passa a ser avisado quando uma prop do estado muda
     public final CartScope state = bind(new CartScope());
@@ -238,10 +240,10 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
 O Presenter nunca cria view: ele só nutre o escopo e o entrega ao pai pelo slot. A view é da camada de view — cada host monta um catálogo `ScopeViews` (classe do escopo → fábrica `(app, scope) -> CubeView`) e o entrega à aplicação com `setScopeViews`; `app.viewOf(scope)` cria a view na primeira vez que é pedida, sem que o Presenter saiba qual tecnologia de UI está sendo usada. O `CLASS_ID` estático do escopo é o classId do protocolo bridge, e o skeleton remoto é do escopo (`scope.skeleton(CLASS_ID)`), que despacha cada evento à ação ligada com aquele código.
 
-Todo Presenter é navegável (`AbstractCubePresenter<A>`, gerenciado pelo motor de navegação). Um pedaço de tela que não precisa de navegação própria — como os painéis de produtos e de compras da Home — **não ganha um Presenter**: é um **escopo menor**, declarado como classe interna do escopo de quem o mostra:
+Todo Presenter é navegável (`AbstractCubePresenter<A>`, gerenciado pelo motor de navegação). Um pedaço de tela que não precisa de navegação própria — como os painéis de produtos e de compras da Home — **não ganha um Presenter**: é um **escopo menor**, declarado como classe interna pública estática do escopo de quem o mostra:
 
 ```java
-public static class HomeScope extends Scope {
+public class HomeScope extends Scope {
 
     public static class ProductsPanelScope extends Scope {
         public static final String CLASS_ID = "a1b2c3d4e5f6";

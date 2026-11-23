@@ -1,21 +1,21 @@
 package br.com.wdc.shopping.view.swt.impl;
 
+import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.function.Supplier;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 
-import java.util.function.Supplier;
-
-import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter.ReceiptScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptScope;
 import br.com.wdc.shopping.view.swt.AbstractViewSwt;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.theme.Surface;
 import br.com.wdc.shopping.view.swt.theme.Theme;
 import br.com.wdc.shopping.view.swt.util.SwtDom;
-import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
 
 public class ReceiptViewSwt extends AbstractViewSwt {
 

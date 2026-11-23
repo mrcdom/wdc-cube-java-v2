@@ -1,10 +1,15 @@
 package br.com.wdc.shopping.view.swt.impl;
 
+import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.function.IntConsumer;
+import java.util.function.LongConsumer;
+import java.util.function.Supplier;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
@@ -15,18 +20,13 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 
-import java.util.function.IntConsumer;
-import java.util.function.LongConsumer;
-import java.util.function.Supplier;
-
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope.PurchasesPanelScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeScope.PurchasesPanelScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
 import br.com.wdc.shopping.view.swt.AbstractViewSwt;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.theme.Surface;
 import br.com.wdc.shopping.view.swt.theme.Theme;
 import br.com.wdc.shopping.view.swt.util.SwtDom;
-import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
 
 /**
  * Purchases panel — list of purchase items with pagination.

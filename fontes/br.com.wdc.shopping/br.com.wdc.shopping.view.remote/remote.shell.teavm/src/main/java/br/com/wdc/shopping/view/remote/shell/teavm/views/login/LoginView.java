@@ -2,7 +2,7 @@ package br.com.wdc.shopping.view.remote.shell.teavm.views.login;
 
 import br.com.wdc.framework.cube.remote.bridge.teavm.DataSecurity;
 import br.com.wdc.framework.cube.remote.bridge.teavm.ViewScope;
-import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginScope;
+import br.com.wdc.shopping.presentation.presenter.open.login.LoginScope;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
 import br.com.wdc.shopping.view.teavm.commons.views.login.LoginSharedView;

@@ -4,7 +4,7 @@ import static br.com.wdc.shopping.view.teavm.commons.Swc.spTheme;
 import static br.com.wdc.shopping.view.teavm.commons.VNode.clsx;
 import static br.com.wdc.shopping.view.teavm.commons.VNode.slot;
 
-import br.com.wdc.shopping.presentation.presenter.RootPresenter.RootScope;
+import br.com.wdc.shopping.presentation.presenter.RootScope;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import br.com.wdc.shopping.view.teavm.commons.SelUtility;
 import br.com.wdc.shopping.view.teavm.commons.VNode;

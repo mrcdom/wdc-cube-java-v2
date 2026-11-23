@@ -1,6 +1,6 @@
 package br.com.wdc.shopping.view.remote.shell.swt;
 
-import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginScope;
+import br.com.wdc.shopping.presentation.presenter.open.login.LoginScope;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.impl.LoginViewSwt;
 

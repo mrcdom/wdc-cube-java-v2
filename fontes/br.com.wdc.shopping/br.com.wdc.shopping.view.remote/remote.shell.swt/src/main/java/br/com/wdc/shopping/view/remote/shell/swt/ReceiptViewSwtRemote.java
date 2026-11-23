@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
-import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter.ReceiptScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptForm;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptItem;
 import br.com.wdc.shopping.view.swt.SwtApp;

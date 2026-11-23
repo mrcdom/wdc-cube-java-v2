@@ -6,7 +6,7 @@ import java.util.List;
 import org.teavm.jso.dom.html.HTMLElement;
 
 import br.com.wdc.framework.cube.remote.bridge.teavm.ViewScope;
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartScope;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
 import br.com.wdc.shopping.view.teavm.commons.views.cart.CartSharedView;

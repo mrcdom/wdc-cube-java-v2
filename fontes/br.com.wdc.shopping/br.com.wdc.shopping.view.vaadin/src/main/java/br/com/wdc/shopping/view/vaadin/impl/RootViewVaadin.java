@@ -2,13 +2,12 @@ package br.com.wdc.shopping.view.vaadin.impl;
 
 import com.vaadin.flow.component.html.Div;
 
-import br.com.wdc.shopping.presentation.presenter.RootPresenter.RootScope;
+import br.com.wdc.shopping.presentation.presenter.RootScope;
 import br.com.wdc.shopping.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.shopping.view.vaadin.ShoppingVaadinApplication;
 import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
 public class RootViewVaadin extends AbstractViewVaadin<RootScope> {
-
 
     private boolean notRendered = true;
     private Div contentPane;

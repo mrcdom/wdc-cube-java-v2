@@ -4,10 +4,7 @@ import java.util.Objects;
 
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
-import br.com.wdc.framework.cube.Action;
 import br.com.wdc.framework.cube.CubeIntent;
-import br.com.wdc.framework.cube.Prop;
-import br.com.wdc.framework.cube.Scope;
 import br.com.wdc.framework.cube.ScopeSlot;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.exception.PurchaseNotFoundException;
@@ -21,17 +18,6 @@ public class ReceiptPresenter extends AbstractCubePresenter<ShoppingApplication>
     private static final Log LOG = Log.getLogger(ReceiptPresenter.class);
 
     // :: Public Instance Fields
-
-    public static class ReceiptScope extends Scope {
-
-        public static final String CLASS_ID = "e8d0bd8ae3bc";
-
-        public final Prop<Boolean> notifySuccess = prop(false);
-        public final Prop<ReceiptForm> receipt = prop();
-
-        public Action onOpenProducts = Action.NOOP;
-
-    }
 
     public final ReceiptScope state = bind(new ReceiptScope());
 

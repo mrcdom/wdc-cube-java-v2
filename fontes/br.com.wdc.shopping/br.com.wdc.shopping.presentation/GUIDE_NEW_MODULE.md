@@ -20,7 +20,8 @@ Criar um novo módulo envolve alterações em **3 camadas**:
 
 ```
 presenter/restricted/wishlist/
-├── WishlistPresenter.java        (com o WishlistScope como classe interna)
+├── WishlistPresenter.java
+├── WishlistScope.java
 ├── WishlistKeys.java
 ├── WishlistService.java          (se precisar acessar dados)
 └── structs/
@@ -29,10 +30,12 @@ presenter/restricted/wishlist/
 
 ### 1.2 Criar o Scope
 
-O Scope define o que a view exibe e o que ela dispara. É uma classe interna estática do presenter, com o `CLASS_ID` do protocolo bridge, um `Prop` por campo observado e uma ação por gesto da view:
+O Scope define o que a view exibe e o que ela dispara. Fica em arquivo próprio, ao lado do presenter, com o `CLASS_ID` do protocolo bridge, um `Prop` por campo observado e uma ação por gesto da view. Um escopo que só existe dentro dele (um painel, a linha de uma lista) é uma classe interna pública estática dele:
 
 ```java
-public static class WishlistScope extends Scope {
+package br.com.wdc.shopping.presentation.presenter.restricted.wishlist;
+
+public class WishlistScope extends Scope {
 
     // classId do protocolo bridge: o host remoto desenha este escopo com a view remota deste id
     public static final String CLASS_ID = "d1e2f3a4b5c6";
@@ -58,25 +61,14 @@ O presenter contém a lógica de apresentação. Estenda `AbstractCubePresenter<
 ```java
 package br.com.wdc.shopping.presentation.presenter.restricted.wishlist;
 
-import java.util.List;
-
 import br.com.wdc.framework.cube.AbstractCubePresenter;
-import br.com.wdc.framework.cube.Action;
-import br.com.wdc.framework.cube.ActionOf;
 import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.FormParam;
-import br.com.wdc.framework.cube.Prop;
-import br.com.wdc.framework.cube.Scope;
 import br.com.wdc.framework.cube.ScopeSlot;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
-import br.com.wdc.shopping.presentation.presenter.restricted.wishlist.structs.WishlistItem;
 
 public class WishlistPresenter extends AbstractCubePresenter<ShoppingApplication> {
-
-    public static class WishlistScope extends Scope {
-        // ... (Passo 1.2)
-    }
 
     // Estado público — lido pela view (local ou remota); bind liga as ações com código ao skeleton do escopo
     public final WishlistScope state = bind(new WishlistScope());
@@ -363,10 +355,10 @@ E no frontend, adicionar um botão ou link que emita o evento correspondente.
 
 ## Variante: Segmento (Painel)
 
-Se o novo módulo for um **painel embutido** dentro de outra view (como o painel de produtos dentro da Home), ele **não ganha presenter**: é um escopo menor, classe interna do escopo de quem o mostra. O presenter dono liga as ações dele e o põe no escopo; quem escolhe a view é o host:
+Se o novo módulo for um **painel embutido** dentro de outra view (como o painel de produtos dentro da Home), ele **não ganha presenter** nem arquivo: é um escopo menor, classe interna pública estática do escopo de quem o mostra. O presenter dono liga as ações dele e o põe no escopo; quem escolhe a view é o host:
 
 ```java
-public static class HomeScope extends Scope {
+public class HomeScope extends Scope {
 
     public static class WishlistPanelScope extends Scope {
         public static final String CLASS_ID = "e1f2a3b4c5d6";   // a view remota do segmento

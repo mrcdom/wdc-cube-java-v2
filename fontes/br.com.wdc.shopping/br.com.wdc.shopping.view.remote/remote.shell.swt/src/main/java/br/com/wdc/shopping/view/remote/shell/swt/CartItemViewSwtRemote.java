@@ -2,8 +2,7 @@ package br.com.wdc.shopping.view.remote.shell.swt;
 
 import java.util.Map;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope.CartItemScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartScope;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.impl.CartItemViewSwt;
 
@@ -24,12 +23,12 @@ class CartItemViewSwtRemote extends CartItemViewSwt {
 		this.onModifyQuantity = qty -> this.ctx.submitEvent(this.vsid, 2, Map.of("p.quantity", qty));
 	}
 
-	private CartItemScope stateSupplierImpl() {
+	private CartScope.CartItemScope stateSupplierImpl() {
 		var s = this.ctx.viewState(this.vsid);
 		if (s == null) {
 			return null;
 		}
-		var row = new CartItemScope();
+		var row = new CartScope.CartItemScope();
 		row.name.set(s.getString("name"));
 		var price = s.getDouble("price");
 		row.price.set(price != null ? price : 0.0);

@@ -6,7 +6,7 @@ import java.util.Map;
 
 import org.eclipse.swt.widgets.Composite;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartScope;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.impl.CartViewSwt;
 

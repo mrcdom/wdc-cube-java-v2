@@ -6,8 +6,7 @@ import java.util.Map;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
 import br.com.wdc.framework.cube.remote.bridge.teavm.ViewScope;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope.ProductsPanelScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
@@ -20,7 +19,7 @@ public class ProductsPanelView extends AbstractRemoteView {
     private static final int ON_OPEN_PRODUCT = 1;
 
     private final ProductsPanelSharedView shared;
-    private final ProductsPanelScope adaptedState = new ProductsPanelScope();
+    private final HomeScope.ProductsPanelScope adaptedState = new HomeScope.ProductsPanelScope();
 
     public ProductsPanelView(String vsid) {
         super(vsid);
@@ -38,7 +37,7 @@ public class ProductsPanelView extends AbstractRemoteView {
         return shared.renderTree();
     }
 
-    private ProductsPanelScope adaptState() {
+    private HomeScope.ProductsPanelScope adaptState() {
         ViewScope scope = state();
         adaptedState.products.set(getProducts(scope));
         return adaptedState;

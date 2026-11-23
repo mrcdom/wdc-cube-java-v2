@@ -5,8 +5,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope.ProductsPanelScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.impl.ProductsPanelViewSwt;
@@ -30,12 +29,12 @@ class ProductsPanelViewSwtRemote extends ProductsPanelViewSwt {
 		this.ctx.submitEvent(this.vsid, 1, Map.of("p.productId", id));
 	}
 
-	private ProductsPanelScope stateSupplierImpl() {
+	private HomeScope.ProductsPanelScope stateSupplierImpl() {
 		var s = this.ctx.viewState(this.vsid);
 		if (s == null) {
 			return null;
 		}
-		var state = new ProductsPanelScope();
+		var state = new HomeScope.ProductsPanelScope();
 		var rawList = s.getList("products");
 		if (!rawList.isEmpty()) {
 			var products = new ArrayList<ProductInfo>(rawList.size());

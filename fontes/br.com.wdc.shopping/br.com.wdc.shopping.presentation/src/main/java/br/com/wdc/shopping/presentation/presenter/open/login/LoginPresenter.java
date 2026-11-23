@@ -1,14 +1,10 @@
 package br.com.wdc.shopping.presentation.presenter.open.login;
 
-
 import br.com.wdc.framework.commons.lang.CoerceUtils;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
-import br.com.wdc.framework.cube.ActionOf2;
 import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.FormParam;
-import br.com.wdc.framework.cube.Prop;
-import br.com.wdc.framework.cube.Scope;
 import br.com.wdc.framework.cube.ScopeSlot;
 import br.com.wdc.framework.domain.exception.OfflineException;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
@@ -24,25 +20,11 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     // :: Public Static
 
-
     public static void simulateSlowLogin(boolean value) {
         simulateSlowLogin = value;
     }
 
     // :: Public Instance Fields
-
-    public static class LoginScope extends Scope {
-
-        public static final String CLASS_ID = "c677cda52d14";
-
-        public final Prop<String> userName = prop();
-        public final Prop<Integer> errorCode = prop(0);
-        public final Prop<String> errorMessage = prop();
-        public final Prop<Boolean> loading = prop(false);
-
-        public ActionOf2<String, String> onEnter = ActionOf2.noop();
-
-    }
 
     public final LoginScope state = bind(new LoginScope());
 

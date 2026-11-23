@@ -1,5 +1,10 @@
 package br.com.wdc.shopping.view.swt.impl;
 
+import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
+
+import java.util.function.IntConsumer;
+import java.util.function.Supplier;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Rectangle;
@@ -8,10 +13,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Label;
 
-import java.util.function.IntConsumer;
-import java.util.function.Supplier;
-
-import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter.ProductScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductScope;
 import br.com.wdc.shopping.view.swt.AbstractViewSwt;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.components.ErrorBanner;
@@ -19,7 +21,6 @@ import br.com.wdc.shopping.view.swt.theme.Surface;
 import br.com.wdc.shopping.view.swt.theme.Theme;
 import br.com.wdc.shopping.view.swt.util.ProductImageCache;
 import br.com.wdc.shopping.view.swt.util.SwtDom;
-import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
 
 public class ProductViewSwt extends AbstractViewSwt {
 

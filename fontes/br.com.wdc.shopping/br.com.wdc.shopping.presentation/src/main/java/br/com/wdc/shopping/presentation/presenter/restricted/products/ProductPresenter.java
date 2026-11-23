@@ -4,18 +4,13 @@ import java.util.Objects;
 
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
-import br.com.wdc.framework.cube.Action;
-import br.com.wdc.framework.cube.ActionOf;
 import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.FormParam;
-import br.com.wdc.framework.cube.Prop;
-import br.com.wdc.framework.cube.Scope;
 import br.com.wdc.framework.cube.ScopeSlot;
 import br.com.wdc.framework.domain.exception.OfflineException;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartKeys;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
-import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
 
 public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
@@ -24,19 +19,6 @@ public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication>
     private static final Log LOG = Log.getLogger(ProductPresenter.class);
 
     // :: Public Instance Fields
-
-    public static class ProductScope extends Scope {
-
-        public static final String CLASS_ID = "48b693f67410";
-
-        public final Prop<ProductInfo> product = prop();
-        public final Prop<Integer> errorCode = prop(0);
-        public final Prop<String> errorMessage = prop();
-
-        public ActionOf<Integer> onAddToCart = ActionOf.noop();
-        public Action onOpenProducts = Action.NOOP;
-
-    }
 
     public final ProductScope state = bind(new ProductScope());
 

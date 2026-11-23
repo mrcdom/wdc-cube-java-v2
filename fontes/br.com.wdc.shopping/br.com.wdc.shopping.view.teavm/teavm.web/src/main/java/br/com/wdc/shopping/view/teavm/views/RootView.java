@@ -5,7 +5,7 @@ import static br.com.wdc.shopping.view.teavm.commons.VNode.*;
 
 import org.teavm.jso.dom.html.HTMLDocument;
 
-import br.com.wdc.shopping.presentation.presenter.RootPresenter.RootScope;
+import br.com.wdc.shopping.presentation.presenter.RootScope;
 import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.commons.SelUtility;
 import br.com.wdc.shopping.view.teavm.commons.VNode;

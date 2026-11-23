@@ -18,12 +18,12 @@ import org.teavm.jso.dom.events.KeyboardEvent;
 import org.teavm.jso.dom.html.HTMLElement;
 import org.teavm.jso.dom.html.HTMLInputElement;
 
+import br.com.wdc.shopping.presentation.presenter.open.login.LoginScope;
 import br.com.wdc.shopping.view.teavm.commons.SelComponents;
 import br.com.wdc.shopping.view.teavm.commons.SelIcons;
 import br.com.wdc.shopping.view.teavm.commons.SelUtility;
 import br.com.wdc.shopping.view.teavm.commons.SharedVDomView;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
-import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginScope;
 
 /**
  * Shared Login view implementation using Virtual DOM + Spectrum Web Components.

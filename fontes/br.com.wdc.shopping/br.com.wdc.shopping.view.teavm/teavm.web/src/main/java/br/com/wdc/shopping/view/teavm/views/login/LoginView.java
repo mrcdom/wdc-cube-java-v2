@@ -1,6 +1,6 @@
 package br.com.wdc.shopping.view.teavm.views.login;
 
-import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginScope;
+import br.com.wdc.shopping.presentation.presenter.open.login.LoginScope;
 import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
 import br.com.wdc.shopping.view.teavm.commons.views.login.LoginSharedView;
