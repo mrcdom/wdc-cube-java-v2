@@ -1,23 +1,23 @@
 # WDC Shopping — TeaVM Web
 
-Código-fonte Java das views TeaVM e compilação para JavaScript. Este módulo contém a implementação completa da UI usando **Virtual DOM** (VNode API) com Spectrum Web Components, que é compilada pelo TeaVM para um SPA executável no browser.
+Java source code of the TeaVM views and their compilation to JavaScript. This module contains the complete UI implementation using a **Virtual DOM** (VNode API) with Spectrum Web Components, which TeaVM compiles into an SPA that runs in the browser.
 
-## Arquitetura
+## Architecture
 
 ```mermaid
 graph TD
     browser["Browser (JavaScript)"]
-    indexHtml["index.html<br/><small>Carrega Spectrum WC + CSS + app.js</small>"]
-    appJs["js/app.js<br/><small>Java compilado para JS pelo TeaVM</small>"]
+    indexHtml["index.html<br/><small>Loads Spectrum WC + CSS + app.js</small>"]
+    appJs["js/app.js<br/><small>Java compiled to JS by TeaVM</small>"]
     main["Main.java<br/><small>Entry point</small>"]
-    app["ShoppingTeaVMApplication.java<br/><small>Wiring de factories e render loop</small>"]
-    base["AbstractViewTeaVM.java<br/><small>Classe base (legacy HtmlDom)</small>"]
+    app["ShoppingTeaVMApplication.java<br/><small>Factory wiring and render loop</small>"]
+    base["AbstractViewTeaVM.java<br/><small>Base class (legacy HtmlDom)</small>"]
     vdom["vdom/<br/><small>AbstractVDomView.java — VDom base (render + diff + useCallback)</small>"]
     fetch["FetchHttpTransport.java<br/><small>XMLHttpRequest (REST API calls)</small>"]
     crypto["BrowserCryptoProvider.java<br/><small>Web Crypto API (HMAC-SHA256)</small>"]
     sched["ScheduledExecutorBrowser.java<br/><small>setTimeout/setInterval</small>"]
     interop["interop/<br/><small>JSO bridges (Console, Timers, Fetch)</small>"]
-    repo["repo/<br/><small>Repositórios via REST API</small>"]
+    repo["repo/<br/><small>Repositories via REST API</small>"]
     util["util/<br/><small>DateUtils</small>"]
     views["views/<br/><small>RootViewVDom · LoginViewVDom · HomeViewVDom<br/>ProductsPanelViewVDom · ProductViewVDom · CartViewVDom<br/>ReceiptViewVDom · PurchasesPanelViewVDom</small>"]
 
@@ -38,7 +38,7 @@ graph TD
 
 ## Virtual DOM
 
-As views utilizam a API `VNode` para construir árvores virtuais de forma declarativa. O framework realiza diff eficiente entre renders, aplicando apenas as mutações necessárias no DOM real:
+The views use the `VNode` API to build virtual trees declaratively. The framework performs an efficient diff between renders, applying only the necessary mutations to the real DOM:
 
 ```java
 @Override
@@ -48,29 +48,29 @@ protected VNode render() {
         h5(Css.TITLE).text(state.product.name),
         spButton("accent")
           .boolAttr("disabled", state.items.isEmpty())
-          .children(span(Css.ICON_ADD), span().text("Adicionar"))
+          .children(span(Css.ICON_ADD), span().text("Add"))
           .on("click", onAddToCart)));
 }
 ```
 
-### Otimizações de Referência
+### Reference Optimizations
 
-O diff de event listeners compara por **identidade de referência** — mesma referência = zero custo no DOM. Duas técnicas garantem estabilidade:
+The event listener diff compares by **reference identity** — same reference = zero DOM cost. Two techniques ensure stability:
 
-1. **Stable fields** — listeners sem parâmetros extraídos para campos `final`:
+1. **Stable fields** — parameterless listeners extracted into `final` fields:
    ```java
    private final EventListener<Event> onBack = evt -> state.onOpenProducts.run();
    ```
 
-2. **`useCallback(key, listener)`** — cache de listeners paramétricos (análogo ao React `useCallback`):
+2. **`useCallback(key, listener)`** — cache for parameterized listeners (analogous to React's `useCallback`):
    ```java
    .on("click", useCallback("remove-" + itemId, mkOnRemove(itemId)))
    ```
-   Retorna instância cacheada se a key já existe; após cada render, keys não utilizadas são descartadas automaticamente.
+   Returns the cached instance if the key already exists; after each render, unused keys are discarded automatically.
 
-### Padrão Compact Css
+### Compact Css Pattern
 
-Cada view define uma interface `Css` privada com aliases compactos para as classes do framework:
+Each view defines a private `Css` interface with compact aliases for the framework classes:
 
 ```java
 @SuppressWarnings({"java:S1214", "static-access"})
@@ -85,23 +85,23 @@ private interface Css {
 }
 ```
 
-Isso permite escrever `Css.ROOT` em vez de `CssUtility.PAGE_SCROLL_ROOT`, mantendo o render method limpo e legível.
+This lets you write `Css.ROOT` instead of `CssUtility.PAGE_SCROLL_ROOT`, keeping the render method clean and readable.
 
-## Comunicação com o Servidor
+## Communication with the Server
 
-As views se comunicam com o back-end Javalin via REST API usando `XMLHttpRequest` (implementado em `FetchHttpTransport`). A autenticação utiliza HMAC-SHA256 via Web Crypto API (`BrowserCryptoProvider`).
+The views communicate with the Javalin backend via REST API using `XMLHttpRequest` (implemented in `FetchHttpTransport`). Authentication uses HMAC-SHA256 via the Web Crypto API (`BrowserCryptoProvider`).
 
-## Responsividade
+## Responsiveness
 
-O layout adapta-se a telas pequenas (iPhone SE) utilizando classes utilitárias responsivas. No cabeçalho, textos auxiliares são ocultados em telas estreitas, mantendo apenas os ícones essenciais.
+The layout adapts to small screens (iPhone SE) using responsive utility classes. In the header, auxiliary text is hidden on narrow screens, keeping only the essential icons.
 
 ## Build
 
 ```bash
-# Via script (recomendado)
-JAVA25_HOME=<caminho-para-jdk-25> bash build.sh
+# Via script (recommended)
+JAVA25_HOME=<path-to-jdk-25> bash build.sh
 
-# Ou diretamente com Maven
+# Or directly with Maven
 JAVA_HOME=$JAVA25_HOME mvn process-classes -DskipTests
 ```
 
@@ -110,32 +110,32 @@ JAVA_HOME=$JAVA25_HOME mvn process-classes -DskipTests
 ```mermaid
 graph TD
     root["target/classes/META-INF/resources/teavm/"]
-    indexHtml["index.html<br/><small>Página HTML (carrega Spectrum WC + app.js)</small>"]
+    indexHtml["index.html<br/><small>HTML page (loads Spectrum WC + app.js)</small>"]
     js["js/"]
-    appJs["app.js<br/><small>Java compilado para JavaScript (~8000 métodos)</small>"]
+    appJs["app.js<br/><small>Java compiled to JavaScript (~8000 methods)</small>"]
 
     root --> indexHtml
     root --> js
     js --> appJs
 ```
 
-## Executar
+## Run
 
-O módulo não tem servidor próprio. O SPA é servido como recurso estático pelo servidor Javalin (`backend`) ou embutido pelo módulo `teavm.native` (Tauri):
+The module has no server of its own. The SPA is served as a static resource by the Javalin server (`backend`) or embedded by the `teavm.native` module (Tauri):
 
 ```
 http://localhost:8080/teavm.web/index.html
 ```
 
-No navegador, o app chama a API na mesma origem que serviu o `index.html` (a meta `api-base-url` sai vazia do build), então funciona em qualquer porta do backend. O `teavm.native` gera o build com `-Dapi.base.url=<url>`, porque ali a página não é servida pelo backend.
+In the browser, the app calls the API on the same origin that served `index.html` (the build leaves the `api-base-url` meta empty), so it works on any backend port. `teavm.native` builds with `-Dapi.base.url=<url>`, because there the page is not served by the backend.
 
-## Estrutura do Projeto
+## Project Structure
 
 ```mermaid
 graph TD
     root["br.com.wdc.shopping.view.teavm.web/"]
-    buildsh["build.sh<br/><small>Script de build simplificado</small>"]
-    pom["pom.xml<br/><small>Configuração Maven + plugin TeaVM</small>"]
+    buildsh["build.sh<br/><small>Simplified build script</small>"]
+    pom["pom.xml<br/><small>Maven configuration + TeaVM plugin</small>"]
     srcMain["src/main/"]
     java["java/.../view/teavm/"]
     main["Main.java"]
@@ -143,10 +143,10 @@ graph TD
     baseCls["AbstractViewTeaVM.java<br/><small>Legacy (HtmlDom)</small>"]
     vdom["vdom/<br/><small>AbstractVDomView.java — VDom base (render/diff/useCallback)</small>"]
     interop["interop/<br/><small>Console, Timers, FetchApi</small>"]
-    repo["repo/<br/><small>Repositórios REST</small>"]
+    repo["repo/<br/><small>REST repositories</small>"]
     util["util/<br/><small>DateUtils</small>"]
-    views["views/<br/><small>8 views VDom (Login, Home, Products, etc.)</small>"]
-    webapp["webapp/<br/><small>index.html + css/app.css (Utility classes + componentes + ícones)</small>"]
+    views["views/<br/><small>8 VDom views (Login, Home, Products, etc.)</small>"]
+    webapp["webapp/<br/><small>index.html + css/app.css (Utility classes + components + icons)</small>"]
 
     root --> buildsh
     root --> pom
@@ -169,30 +169,30 @@ graph TD
 
 ![Login](docs/screenshots/01-login.png)
 
-### Lista de Produtos
+### Product List
 
-![Produtos](docs/screenshots/02-products.png)
+![Products](docs/screenshots/02-products.png)
 
-### Detalhe do Produto
+### Product Detail
 
-![Detalhe do Produto](docs/screenshots/03-product-detail.png)
+![Product Detail](docs/screenshots/03-product-detail.png)
 
-### Carrinho
+### Cart
 
-![Carrinho](docs/screenshots/04-cart.png)
+![Cart](docs/screenshots/04-cart.png)
 
-### Carrinho Vazio
+### Empty Cart
 
-![Carrinho Vazio](docs/screenshots/04-cart-empty.png)
+![Empty Cart](docs/screenshots/04-cart-empty.png)
 
-### Recibo
+### Receipt
 
-![Recibo](docs/screenshots/05-receipt.png)
+![Receipt](docs/screenshots/05-receipt.png)
 
-### Histórico de Compras
+### Purchase History
 
-![Histórico](docs/screenshots/06-history.png)
+![History](docs/screenshots/06-history.png)
 
-## Guias
+## Guides
 
-- [Como criar uma nova View](docs/GUIDE_NEW_VIEW.md) — passo a passo para implementar uma view VDom neste projeto
+- [How to create a new View](docs/GUIDE_NEW_VIEW.md) — step-by-step guide to implementing a VDom view in this project

@@ -1,30 +1,30 @@
 # Shopping Remote — Flutter Web
 
-Shell web da aplicação **WeDoCode Shopping**, usando o protocolo de **Remote Presentation** via Flutter compilado para WebAssembly/JS. Thin client que renderiza ViewStates recebidos do servidor via WebSocket.
+Web shell for the **WeDoCode Shopping** application, using the **Remote Presentation** protocol via Flutter compiled to WebAssembly/JS. A thin client that renders ViewStates received from the server over WebSocket.
 
-## Características
+## Features
 
-- **Plataforma:** Browser (WebAssembly ou JS)
-- **Protocolo:** WebSocket bidirecional com criptografia RSA + AES-GCM
-- **Código compartilhado:** Usa `flutter_commons` para protocolo, views e widgets
-- **Alternativa ao shell React** — mesma funcionalidade, implementada em Dart/Flutter
+- **Platform:** Browser (WebAssembly or JS)
+- **Protocol:** Bidirectional WebSocket with RSA + AES-GCM encryption
+- **Shared code:** Uses `flutter_commons` for protocol, views and widgets
+- **Alternative to the React shell** — same functionality, implemented in Dart/Flutter
 
-## Pré-requisitos
+## Prerequisites
 
 - **Flutter 3.44+** (`flutter --version`)
-- **Backend rodando** na porta 8080 (ou endpoint configurado)
+- **Backend running** on port 8080 (or the configured endpoint)
 
-## Execução
+## Running
 
 ```bash
 # Dev (hot reload)
 flutter run -d chrome --dart-define=WDC_ENDPOINT=http://localhost:8080
 
-# Build release
+# Release build
 flutter build web --dart-define=WDC_ENDPOINT=http://localhost:8080
 ```
 
-## Estrutura
+## Structure
 
 ```mermaid
 graph TD
@@ -42,8 +42,8 @@ graph TD
     web --> index
 ```
 
-## Dependências
+## Dependencies
 
-| Package | Uso |
+| Package | Purpose |
 |---------|-----|
-| `flutter_commons` | Protocolo WS, views, widgets, segurança |
+| `flutter_commons` | WS protocol, views, widgets, security |

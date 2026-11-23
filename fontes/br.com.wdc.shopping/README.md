@@ -1,117 +1,118 @@
 # 🛒 WeDoCode Shopping
 
-Um **sistema de e-commerce completo** construído com arquitetura **Cube MVP**, demonstrando como a mesma lógica de negócio pode alimentar interfaces totalmente diferentes — **React (web)**, **Vaadin (web server-side)**, **SWT (desktop nativo)** e **TeaVM (web/desktop/Android/iOS)** — sem duplicar uma única linha de código de apresentação.
+A **complete e-commerce system** built on the **Cube MVP** architecture, showing how the same business logic can power entirely different interfaces — **React (web)**, **Vaadin (server-side web)**, **SWT (native desktop)** and **TeaVM (web/desktop/Android/iOS)** — without duplicating a single line of presentation code.
 
-> **Cinco frontends. Mesma alma.**
-
----
-
-## O que você vai encontrar
-
-✅ Catálogo de produtos com imagens e descrições  
-✅ Carrinho de compras com adição, remoção e cálculo de totais  
-✅ Fluxo completo de compra com recibo  
-✅ Histórico de compras paginado  
-✅ Autenticação segura (RSA + AES-GCM na versão web)  
-✅ Banco H2 embarcado — zero configuração para rodar  
-✅ Virtual Threads (Java 21+) — servidor web ultra-leve  
-✅ Fat JAR (~11 MB) — deploy trivial
+> **Five frontends. One soul.**
 
 ---
 
-## Rode em 3 comandos
+## What you will find
+
+✅ Product catalog with images and descriptions  
+✅ Shopping cart with adding, removing and total calculation  
+✅ Complete purchase flow with receipt  
+✅ Paginated purchase history  
+✅ Secure authentication (RSA + AES-GCM in the web version)  
+✅ Embedded H2 database — zero configuration to run  
+✅ Virtual Threads (Java 21+) — ultra-light web server  
+✅ Fat JAR (~11 MB) — trivial deployment
+
+---
+
+## Run it in 3 commands
 
 ```bash
 # 1. Clone
 git clone https://github.com/mrcdom/wdc-cube-java-v2.git
 cd wdc-cube-java-v2/fontes
 
-# 2. Build (requer Java 25 + Maven 3.9+)
-export JAVA_HOME=<caminho-para-jdk-25>  # ex: /Library/Java/JavaVirtualMachines/temurin-25.jdk/Contents/Home
+# 2. Build (requires Java 25 + Maven 3.9+)
+export JAVA_HOME=<path-to-jdk-25>  # e.g.: /Library/Java/JavaVirtualMachines/temurin-25.jdk/Contents/Home
 mvn clean package -DskipTests
 
-# 3. Execute
+# 3. Run
 java -jar \
   br.com.wdc.cube.backend/target/br.com.wdc.cube.backend-1.0.0.jar
 ```
 
-Abra **http://localhost:8080** e entre com `admin` / `admin`.
+Open **http://localhost:8080** and sign in with `admin` / `admin`.
 
 ---
 
-## Ou rode a versão Web Server-Side (Vaadin)
+## Or run the Server-Side Web version (Vaadin)
 
 ```bash
-export JAVA_HOME=<caminho-para-jdk-25>
+export JAVA_HOME=<path-to-jdk-25>
 cd br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin
 java -cp "$(mvn -q dependency:build-classpath -Dmdep.outputFile=/dev/stdout):target/classes" \
   br.com.wdc.shopping.view.vaadin.ShoppingVaadinMain
 ```
 
-Abra **http://localhost:8090**. UI inteiramente server-side com Vaadin 25 + Lumo theme. Mesmos presenters, mesmo domínio.
+Open **http://localhost:8090**. A fully server-side UI with Vaadin 25 + Lumo theme. Same presenters, same domain.
 
 ---
 
-## Ou rode a versão Desktop (Eclipse SWT)
+## Or run the Desktop version (Eclipse SWT)
 
 ```bash
-export JAVA_HOME=<caminho-para-jdk-25>
+export JAVA_HOME=<path-to-jdk-25>
 cd br.com.wdc.shopping/br.com.wdc.shopping.view.swt
 mvn exec:java \
   -Dexec.mainClass="br.com.wdc.shopping.view.swt.ShoppingSwtMain"
 ```
 
-Aplicação desktop nativa com Eclipse SWT. Mesmos presenters, mesmo domínio, banco H2 embarcado.
+A native desktop application with Eclipse SWT. Same presenters, same domain, embedded H2 database.
 
 ---
 
-## Ou rode a versão TeaVM (Web / Desktop / Android / iOS)
+## Or run the TeaVM version (Web / Desktop / Android / iOS)
 
 ```bash
-# Build TeaVM (compila Java → JavaScript)
+# TeaVM build (compiles Java → JavaScript)
 cd br.com.wdc.shopping/br.com.wdc.shopping.view.teavm
 bash build.sh
 
-# Desktop nativo (Tauri)
+# Native desktop (Tauri)
 cd br.com.wdc.shopping.view.teavm.native
 cargo tauri dev
 ```
 
-Java compilado para JavaScript via TeaVM, empacotado como app nativo com Tauri 2. Mesmos presenters, mesmo domínio — rodando em 4 plataformas.
+Java compiled to JavaScript via TeaVM, packaged as a native app with Tauri 2. Same presenters, same domain — running on 4 platforms.
 
 ---
 
-## Módulos
+## Modules
 
-| Módulo | Responsabilidade |
+| Module | Responsibility |
 |--------|-----------------|
-| [`domain`](br.com.wdc.shopping.domain/) | Modelos, repositórios (interfaces), critérios, exceções |
-| [`persistence`](br.com.wdc.shopping.persistence/) | Implementações SQL (JDBI + Command Pattern), DDL, DSL |
-| [`presentation`](br.com.wdc.shopping.presentation/) | Presenters hierárquicos, escopos, chamadas (calls), navegação |
-| [`scripts`](br.com.wdc.shopping.scripts/) | Scripts DDL (DBCreate, DBReset) |
-| [`view.remote`](br.com.wdc.shopping.view.remote/) | Frontend web completo (React + Javalin + WebSocket) |
-| [`view.vaadin`](br.com.wdc.shopping.view.vaadin/) | Frontend web server-side (Vaadin 25 + Jetty 12 + Lumo theme) |
-| [`view.swt`](br.com.wdc.shopping.view.swt/) | Frontend desktop nativo (Eclipse SWT) |
-| [`view.teavm`](br.com.wdc.shopping.view.teavm/) | Frontend multiplataforma (TeaVM + Tauri — Web, Desktop, Android, iOS) |
-| [`persistence.rest`](br.com.wdc.shopping.persistence/persistence.rest/) | Controllers REST (Javalin) para expor repositórios via HTTP |
-| [`persistence.client`](br.com.wdc.shopping.persistence/persistence.client/) | Client REST (OkHttp + Gson) que implementa repositórios via HTTP |
-| [`tests`](br.com.wdc.shopping.tests/) | Testes de workflow e repositórios |
+| [`domain`](br.com.wdc.shopping.domain/) | Entities, repository contracts, criteria and codecs per entity; roles, config and transaction holders |
+| [`persistence`](br.com.wdc.shopping.persistence/) | Groups the repository implementations: `persistence.impl` (jOOQ), `persistence.client` (HTTP/OkHttp) and `persistence.rest` (Javalin API) |
+| [`presentation`](br.com.wdc.shopping.presentation/) | Hierarchical presenters, scopes, calls, navigation |
+| [`scripts`](br.com.wdc.shopping.scripts/) | DDL scripts (DBCreate, DBReset) |
+| [`view.remote`](br.com.wdc.shopping.view.remote/) | Complete web frontend (React + Javalin + WebSocket) |
+| [`view.vaadin`](br.com.wdc.shopping.view.vaadin/) | Server-side web frontend (Vaadin 25 + Jetty 12 + Lumo theme) |
+| [`view.swt`](br.com.wdc.shopping.view.swt/) | Native desktop frontend (Eclipse SWT) |
+| [`view.teavm`](br.com.wdc.shopping.view.teavm/) | Cross-platform frontend (TeaVM + Tauri — Web, Desktop, Android, iOS) |
+| [`persistence.impl`](br.com.wdc.shopping.persistence/persistence.impl/) | jOOQ repositories (`*RepositoryImpl`), generated schema classes, data source |
+| [`persistence.rest`](br.com.wdc.shopping.persistence/persistence.rest/) | REST controllers (Javalin) that expose the repositories over HTTP |
+| [`persistence.client`](br.com.wdc.shopping.persistence/persistence.client/) | REST client (OkHttp + the domain codecs) that implements the repositories over HTTP |
+| [`tests`](br.com.wdc.shopping.tests/) | Workflow and repository tests |
 
 ---
 
-## Por que explorar este projeto?
+## Why explore this project?
 
-- **Sem Spring, sem CDI, sem magia** — injeção via `AtomicReference<T> BEAN`, 100% explícito
-- **Separação real de concerns** — troque a UI inteira sem tocar em lógica (múltiplos frontends provam isso)
-- **Padrões sólidos** — Command, Repository, Presenter, Scope
-- **Tecnologia moderna** — Java 25, Virtual Threads, React 19, Vaadin 25, TypeScript
-- **Código limpo** — ~3.5s de build completo, zero warnings
-- **Segurança real** — RSA + PBKDF2 + AES-GCM (não apenas demonstrativo)
+- **No Spring, no CDI, no magic** — injection via `AtomicReference<T> BEAN`, 100% explicit
+- **Real separation of concerns** — swap the whole UI without touching logic (multiple frontends prove it)
+- **Solid patterns** — Repository, Presenter, Scope
+- **Modern technology** — Java 25, Virtual Threads, React 19, Vaadin 25, TypeScript
+- **Clean code** — ~3.5s full build, zero warnings
+- **Real security** — RSA + PBKDF2 + AES-GCM (not just for show)
 
 ---
 
-## Licença
+## License
 
-[MIT License](https://github.com/mrcdom/wdc-cube-java-v2/blob/main/LICENSE) — use, modifique, distribua.
+[MIT License](https://github.com/mrcdom/wdc-cube-java-v2/blob/main/LICENSE) — use, modify, distribute.
 
 Copyright (c) 2026 Marcelo Domingos / WeDoCode Consultoria LTDA

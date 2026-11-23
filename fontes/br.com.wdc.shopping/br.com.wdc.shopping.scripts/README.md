@@ -1,42 +1,42 @@
 # br.com.wdc.shopping.scripts
 
-Módulo responsável pelos **scripts de banco de dados** da aplicação Shopping. Contempla tanto a criação do schema a partir do zero (bootstrap) quanto a migração incremental de uma versão anterior para o estado atual.
+The module responsible for the Shopping application's **database scripts**. It covers both creating the schema from scratch (bootstrap) and incrementally migrating from an earlier version to the current state.
 
-## Propósito
+## Purpose
 
-| Cenário | Descrição |
+| Scenario | Description |
 |---------|-----------|
-| **Bootstrap** | Cria todas as tabelas, sequências e dados iniciais em um banco vazio. |
-| **Migração** | Evolui um banco existente de uma versão anterior para a versão corrente, aplicando alterações estruturais e de dados de forma ordenada. |
+| **Bootstrap** | Creates all tables, sequences and initial data in an empty database. |
+| **Migration** | Evolves an existing database from an earlier version to the current version, applying structural and data changes in order. |
 
-## Estrutura atual
+## Current structure
 
 ```mermaid
 graph TD
     root["scripts/sgbd/"]
-    root --> DBCreate["DBCreate.java<br/><small>Cria tabelas e sequências</small>"]
-    root --> DBReset["DBReset.java<br/><small>Popula com dados de referência (seed)</small>"]
-    root --> MigRunner["MigrationRunner.java<br/><small>Executa e registra migrações</small>"]
-    root --> Mig0001["Migration_0001_AddUserRoles.java<br/><small>Adiciona coluna ROLES</small>"]
+    root --> DBCreate["DBCreate.java<br/><small>Creates tables and sequences</small>"]
+    root --> DBReset["DBReset.java<br/><small>Populates with reference data (seed)</small>"]
+    root --> MigRunner["MigrationRunner.java<br/><small>Runs and records migrations</small>"]
+    root --> Mig0001["Migration_0001_AddUserRoles.java<br/><small>Adds the ROLES column</small>"]
     root --> schema["schema/"]
-    schema --> EnMigLog["EnMigrationLog.java<br/><small>Tabela EN_MIGRATION_LOG</small>"]
+    schema --> EnMigLog["EnMigrationLog.java<br/><small>EN_MIGRATION_LOG table</small>"]
 ```
 
-## Abordagem híbrida SQL + Java
+## Hybrid SQL + Java approach
 
-Os scripts são implementados como **classes Java** que executam SQL via JDBC. Isso permite:
+The scripts are implemented as **Java classes** that execute SQL via JDBC. This allows:
 
-- Lógica condicional (verificar se tabela/coluna já existe antes de alterar)
-- Transformação de dados em memória quando a migração é complexa
-- Reuso de entidades e repositórios do módulo `persistence`
-- Controle transacional explícito por etapa
-- Testes unitários sobre a lógica de migração
+- Conditional logic (checking whether a table/column already exists before altering it)
+- In-memory data transformation when the migration is complex
+- Reuse of entities and repositories from the `persistence` module
+- Explicit transaction control per step
+- Unit tests over the migration logic
 
-## Convenção para migrações
+## Migration convention
 
-Cada roteiro de migração é uma classe Java cujos métodos públicos com prefixo `step` representam as ações sequenciais. O `MigrationRunner` descobre esses métodos automaticamente, ordena pelo número após o prefixo, pula os já executados (consultando `EN_MIGRATION_LOG`) e registra cada step concluído.
+Each migration script is a Java class whose public methods prefixed with `step` represent the sequential actions. `MigrationRunner` discovers these methods automatically, sorts them by the number after the prefix, skips the ones already executed (by querying `EN_MIGRATION_LOG`) and records each completed step.
 
-### Classe de migração
+### Migration class
 
 ```java
 public class Migration_0001_AddPurchaseStatus {
@@ -47,17 +47,17 @@ public class Migration_0001_AddPurchaseStatus {
         this.connection = connection;
     }
 
-    public void step1_adicionarColunaStatus() throws SQLException {
+    public void step1_addStatusColumn() throws SQLException {
         try (var stmt = connection.createStatement()) {
             stmt.execute("ALTER TABLE PURCHASE ADD COLUMN STATUS VARCHAR(20) DEFAULT 'PENDING'");
         }
     }
 
-    public void step2_popularValoresPadrao() throws SQLException {
-        // Lógica Java + SQL para transformar dados existentes
+    public void step2_populateDefaultValues() throws SQLException {
+        // Java + SQL logic to transform existing data
     }
 
-    public void step3_criarIndice() throws SQLException {
+    public void step3_createIndex() throws SQLException {
         try (var stmt = connection.createStatement()) {
             stmt.execute("CREATE INDEX IDX_PURCHASE_STATUS ON PURCHASE(STATUS)");
         }
@@ -65,28 +65,28 @@ public class Migration_0001_AddPurchaseStatus {
 }
 ```
 
-### Execução via MigrationRunner
+### Running via MigrationRunner
 
 ```java
 new MigrationRunner(connection)
     .run(new Migration_0001_AddPurchaseStatus(connection))
-    .run(new Migration_0002_OutraMigracao(connection));
+    .run(new Migration_0002_AnotherMigration(connection));
 ```
 
-- Métodos são ordenados numericamente pelo número após `step` (ex.: `step1` antes de `step10`)
-- Steps já executados são ignorados automaticamente (idempotência)
-- Cada step bem-sucedido é registrado na tabela `EN_MIGRATION_LOG`
-- Se um step falha, a execução para com `SQLException`
+- Methods are sorted numerically by the number after `step` (e.g.: `step1` before `step10`)
+- Steps already executed are skipped automatically (idempotence)
+- Each successful step is recorded in the `EN_MIGRATION_LOG` table
+- If a step fails, execution stops with a `SQLException`
 
-**Onde `XXXX`** no nome da classe é um número sequencial (ex.: `0001`, `0002`) que define a ordem de execução dos roteiros.
+**`XXXX`** in the class name is a sequential number (e.g.: `0001`, `0002`) that defines the order in which the scripts run.
 
-## Dependências
+## Dependencies
 
-- `br.com.wdc.shopping.persistence` — entidades e repositórios
-- `br.com.wdc.shopping.presentation` — constantes de domínio
-- H2 Database — driver JDBC (ambiente de desenvolvimento/teste)
+- `br.com.wdc.shopping.persistence` — entities and repositories
+- `br.com.wdc.shopping.presentation` — domain constants
+- H2 Database — JDBC driver (development/test environment)
 - SLF4J + Logback — logging
 
-## Execução
+## Execution
 
-O `DBCreate` é invocado na inicialização da aplicação e cria as tabelas (incluindo `EN_MIGRATION_LOG`) caso não existam. Migrações incrementais são executadas via `MigrationRunner` após o bootstrap. Não há framework de migração externo — o controle é feito diretamente pelo código Java.
+`DBCreate` is invoked at application startup and creates the tables (including `EN_MIGRATION_LOG`) if they do not exist. Incremental migrations run via `MigrationRunner` after the bootstrap. There is no external migration framework — control is handled directly by the Java code.

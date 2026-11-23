@@ -1,22 +1,22 @@
 /**
- * A projeção: quais campos trazer, e — quando há relação 1:N — o que fazer com a coleção.
+ * The projection: which fields to fetch and — when there is a 1:N relation — what to do with the collection.
  *
- * Um campo presente na projeção entra no SELECT; ausente, nem é consultado. O valor que se põe é irrelevante: serve de
- * sentinela, e é por isso que a interface só oferece caixas de seleção.
+ * A field present in the projection goes into the SELECT; absent, it is not even queried. The value set is
+ * irrelevant: it serves as a sentinel, which is why the interface offers only checkboxes.
  *
- * A coleção projetada é o caso que merece atenção. Ela não é uma lista de resultados: é *uma* forma de item mais o
- * critério que a filtra e o recorte a aplicar. No fio isso vira um envelope, distinto do array de resultado pelo
- * próprio formato:
+ * The projected collection is the case that deserves attention. It is not a list of results: it is *one* item shape
+ * plus the criteria that filter it and the slice to apply. On the wire this becomes an envelope, told apart from the
+ * result array by its very format:
  *
- *     "items": { "shape": {…um item…}, "where": {…critério…}, "limit": 5, "offset": 1 }
+ *     "items": { "shape": {…one item…}, "where": {…criteria…}, "limit": 5, "offset": 1 }
  *
- * Na resposta, o mesmo campo volta como o array de sempre. Quem lê decide pelo tipo do valor.
+ * In the response, the same field comes back as the usual array. The reader decides by the value's type.
  */
 
 import { Criteria } from './criteria.js';
 import { entity } from './schema.js';
 
-/** Sentinelas: qualquer valor não nulo marca o campo como pedido. O tipo só evita surpresa na desserialização. */
+/** Sentinels: any non-null value marks the field as requested. The type only avoids surprises in deserialization. */
 const SENTINEL = { number: 1, text: '~', date: '2000-01-01T00:00:00Z', ref: null };
 
 export class Projection {
@@ -24,9 +24,9 @@ export class Projection {
   constructor(entityKey) {
     this.entityKey = entityKey;
     this.meta = entity(entityKey);
-    /** @type {Set<string>} campos escalares pedidos */
+    /** @type {Set<string>} requested scalar fields */
     this.selected = new Set(this.meta.fields.filter((f) => !f.heavy && f.kind !== 'ref').map((f) => f.name));
-    /** @type {Map<string, Set<string>>} campos pedidos dentro de cada relação 1:1 */
+    /** @type {Map<string, Set<string>>} fields requested inside each 1:1 relation */
     this.refs = new Map();
     /** @type {CollectionProjection|null} */
     this.collection = this.meta.collection ? new CollectionProjection(this.meta.collection) : null;
@@ -45,7 +45,7 @@ export class Projection {
     else this.refs.delete(refName);
   }
 
-  /** Monta o objeto de projeção, ou `undefined` quando nada foi pedido — aí o servidor usa a projeção padrão. */
+  /** Builds the projection object, or `undefined` when nothing was requested — then the server uses its default. */
   toJSON() {
     const json = {};
 
@@ -70,7 +70,7 @@ export class Projection {
   }
 }
 
-/** A coleção projetada — forma, critério e recorte. */
+/** The projected collection — shape, criteria, and slice. */
 export class CollectionProjection {
   constructor(meta) {
     this.meta = meta;
@@ -88,7 +88,7 @@ export class CollectionProjection {
     else this.shape.delete(name);
   }
 
-  /** O envelope, ou `undefined` quando a coleção não foi pedida. */
+  /** The envelope, or `undefined` when the collection was not requested. */
   toJSON() {
     if (!this.enabled) return undefined;
 

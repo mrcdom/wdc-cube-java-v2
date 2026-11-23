@@ -1,22 +1,25 @@
 # WDC Shopping — Presentation
 
-Camada de apresentação do sistema Shopping, implementada com o padrão **Cube MVP**. Contém os presenters, escopos, chamadas (calls), DTOs e o sistema de navegação. Esta camada é agnóstica de tecnologia de view — não depende de React, Javalin ou qualquer framework de UI.
+Presentation layer of the Shopping system, implemented with the **Cube MVP** pattern. It contains the presenters, scopes, calls, DTOs and the navigation system. This layer is view-technology agnostic — it does not depend on React, Javalin or any UI framework.
 
-## Dependências
+## Dependencies
 
-| Artefato | Papel |
+| Artifact | Role |
 |----------|-------|
-| `br.com.wdc.shopping.domain` | Modelos de domínio, repositórios, critérios |
-| `br.com.wdc.framework.cube` | Motor Cube MVP (presenters, views, navegação) |
-| `slf4j-api` | Logging |
-| `jsr305` | Anotações `@Nullable` (scope provided) |
+| `br.com.wdc.shopping.domain` | Entities, repositories, criteria |
+| `framework-cube` | Cube MVP engine (presenters, scopes, views, navigation) |
+| `jsr305` | `@Nullable` annotations (scope provided) |
 
-## Estrutura de Pacotes
+Logging uses the framework's `Log` facade (`framework-commons`).
+
+## Package Structure
 
 ```mermaid
 graph TD
     root["br.com.wdc.shopping.presentation"]
     root --> ShoppingApp["ShoppingApplication.java"]
+    root --> CallBases["ShoppingCall.java, ShoppingQuery.java, ShoppingSave.java"]
+    root --> StorageKeys["StorageKeys.java"]
 
     root --> exception["exception/"]
     exception --> WrongParams["WrongParametersException.java"]
@@ -29,65 +32,66 @@ graph TD
     presenter --> RootS["RootScope.java"]
 
     presenter --> open["open/"]
-    open --> OpenP["OpenPresenter.java"]
+    open --> OpenP["OpenPresenter.java, OpenKeys.java"]
     open --> login["login/"]
-    login --> LoginP["LoginPresenter.java"]
+    login --> LoginP["LoginPresenter.java, LoginKeys.java"]
     login --> LoginS["LoginScope.java"]
     login --> LoginCalls["calls/LoginCall.java"]
     login --> LoginStructs["structs/Subject.java"]
 
     presenter --> restricted["restricted/"]
-    restricted --> RestrictedP["RestrictedPresenter.java"]
+    restricted --> RestrictedP["RestrictedPresenter.java, RestrictedKeys.java"]
     restricted --> home["home/"]
-    home --> HomeP["HomePresenter.java"]
-    home --> HomeS["HomeScope.java (com ProductsPanelScope e PurchasesPanelScope)"]
+    home --> HomeP["HomePresenter.java, HomeKeys.java"]
+    home --> HomeS["HomeScope.java (with ProductsPanelScope and PurchasesPanelScope)"]
     home --> HomeStructs["structs/PurchaseInfo.java"]
     home --> HomeCalls["calls/PurchasesPageQuery.java"]
 
     restricted --> products["products/"]
-    products --> ProductP["ProductPresenter.java"]
+    products --> ProductP["ProductPresenter.java, ProductKeys.java"]
     products --> ProductS["ProductScope.java"]
     products --> ProductCalls["calls/ProductQuery.java, ProductListQuery.java"]
     products --> ProductStructs["structs/ProductInfo.java"]
 
     restricted --> cart["cart/"]
-    cart --> CartP["CartPresenter.java"]
-    cart --> CartS["CartScope.java (com CartItemScope)"]
+    cart --> CartP["CartPresenter.java, CartKeys.java"]
+    cart --> CartS["CartScope.java (with CartItemScope)"]
     cart --> CartMgr["CartManager.java"]
+    cart --> CartCalls["calls/PurchaseSave.java"]
     cart --> CartStructs["structs/CartItem.java"]
 
     restricted --> receipt["receipt/"]
-    receipt --> ReceiptP["ReceiptPresenter.java"]
+    receipt --> ReceiptP["ReceiptPresenter.java, ReceiptKeys.java"]
     receipt --> ReceiptS["ReceiptScope.java"]
     receipt --> ReceiptCalls["calls/ReceiptQuery.java"]
     receipt --> ReceiptStructs["structs/ReceiptForm.java, ReceiptItem.java"]
 ```
 
-## Hierarquia de Navegação
+## Navigation Hierarchy
 
-O sistema possui 8 places organizados em 4 níveis:
+The system has 8 places organized in 4 levels:
 
 ```mermaid
 graph TD
     ROOT["ROOT (public)"]
-    ROOT --> OPEN["OPEN (open)<br/><small>guarda: se autenticado → RESTRICTED</small>"]
-    ROOT --> RESTRICTED["RESTRICTED (restricted)<br/><small>guarda: se não autenticado → OPEN</small>"]
-    OPEN --> LOGIN["LOGIN (login)<br/><small>área pública</small>"]
-    RESTRICTED --> HOME["HOME (home)<br/><small>área restrita (requer Subject)</small>"]
+    ROOT --> OPEN["OPEN (open)<br/><small>guard: if authenticated → RESTRICTED</small>"]
+    ROOT --> RESTRICTED["RESTRICTED (restricted)<br/><small>guard: if not authenticated → OPEN</small>"]
+    OPEN --> LOGIN["LOGIN (login)<br/><small>public area</small>"]
+    RESTRICTED --> HOME["HOME (home)<br/><small>restricted area (requires Subject)</small>"]
     HOME --> PRODUCT["PRODUCT (product)<br/><small>?pr-id=N</small>"]
     HOME --> CART["CART (cart)"]
     HOME --> RECEIPT["RECEIPT (receipt)<br/><small>?rc-id=N</small>"]
 ```
 
-Cada place tem uma classe de chaves (`XxxKeys`, no pacote do seu presenter) que **declara o place** a partir do place das chaves que ela estende — `RootKeys → RestrictedKeys → HomeKeys → ProductKeys` — e é a única que conhece os nomes que o place lê e escreve no intent, todos com o prefixo de duas letras dela (`pr-id`, `rc-id`). Os getters validam e nunca lançam (o endereço vem de fora); o setter tira o nome do endereço quando recebe o padrão. `ShoppingApplication.PLACES` lista todos os places, o que carrega as classes antes de um endereço ser resolvido por nome. A convenção completa está no Javadoc de `RootKeys`; o `PlaceKeysTest` confere prefixos e árvore.
+Each place has a keys class (`XxxKeys`, in its presenter's package) that **declares the place** from the place of the keys it extends — `RootKeys → RestrictedKeys → HomeKeys → ProductKeys` — and is the only one that knows the names the place reads and writes in the intent, all with its two-letter prefix (`pr-id`, `rc-id`). The getters validate and never throw (the address comes from outside); the setter removes the name from the address when it receives the default. `ShoppingApplication.PLACES` lists all places, which loads the classes before an address is resolved by name. The full convention is in the Javadoc of `RootKeys`; `PlaceKeysTest` checks prefixes and the tree.
 
 ```java
-// Navegar para o detalhe de um produto, a partir do estado atual
+// Navigate to a product's detail, from the current state
 new ProductKeys(app)
         .withProductId(productId)
         .flip();
 
-// Dentro do applyParameters: ler, e redirecionar com o intent em trânsito
+// Inside applyParameters: read, and redirect with the in-transit intent
 var keys = new ProductKeys(this.app, intent);
 if (keys.productId() == null) {
     new HomeKeys(this.app, intent).flip();
@@ -95,51 +99,52 @@ if (keys.productId() == null) {
 }
 ```
 
-Os presenters `OpenPresenter` e `RestrictedPresenter` funcionam como **guardas de navegação**: redirecionam automaticamente com base na presença/ausência do `Subject`.
+The `OpenPresenter` and `RestrictedPresenter` presenters act as **navigation guards**: they redirect automatically based on the presence/absence of the `Subject`.
 
-## Hierarquia de Presenters
+## Presenter Hierarchy
 
 ```mermaid
 graph TD
-    RootP["RootPresenter<br/><small>contentSlot → escopo filho<br/>Scope: RootScope</small>"]
+    RootP["RootPresenter<br/><small>contentSlot → child scope<br/>Scope: RootScope</small>"]
 
-    RootP --> OpenP["OpenPresenter<br/><small>Guarda: redireciona se autenticado</small>"]
-    RootP --> RestrictedP["RestrictedPresenter<br/><small>Guarda: redireciona se não autenticado</small>"]
+    RootP --> OpenP["OpenPresenter<br/><small>Guard: redirects if authenticated</small>"]
+    RootP --> RestrictedP["RestrictedPresenter<br/><small>Guard: redirects if not authenticated</small>"]
 
-    OpenP --> LoginP["LoginPresenter<br/><small>Autenticação<br/>Scope: LoginScope<br/>Chamada: LoginCall</small>"]
+    OpenP --> LoginP["LoginPresenter<br/><small>Authentication<br/>Scope: LoginScope<br/>Call: LoginCall</small>"]
 
-    RestrictedP --> HomeP["HomePresenter<br/><small>contentSlot + painéis (segmentos) + CartManager<br/>Scope: HomeScope ⊃ ProductsPanelScope, PurchasesPanelScope</small>"]
+    RestrictedP --> HomeP["HomePresenter<br/><small>contentSlot + panels (segments) + CartManager<br/>Scope: HomeScope ⊃ ProductsPanelScope, PurchasesPanelScope</small>"]
 
-    HomeP --> ProductP["ProductPresenter<br/><small>Detalhe + adicionar ao carrinho<br/>Scope: ProductScope</small>"]
-    HomeP --> CartP["CartPresenter<br/><small>Edição + efetivação de compra<br/>Scope: CartScope</small>"]
-    HomeP --> ReceiptP["ReceiptPresenter<br/><small>Comprovante<br/>Scope: ReceiptScope</small>"]
+    HomeP --> ProductP["ProductPresenter<br/><small>Detail + add to cart<br/>Scope: ProductScope</small>"]
+    HomeP --> CartP["CartPresenter<br/><small>Editing + purchase checkout<br/>Scope: CartScope</small>"]
+    HomeP --> ReceiptP["ReceiptPresenter<br/><small>Receipt<br/>Scope: ReceiptScope</small>"]
 ```
 
-### Presenters e segmentos
+### Presenters and segments
 
-| O quê | Como | Uso |
+| What | How | Use |
 |------|------|-----|
-| **Presenter** | `AbstractCubePresenter<ShoppingApplication>`, gerenciado pela navegação via `applyParameters` | Places com sua classe de chaves (`XxxKeys`) |
-| **Segmento** | escopo interno (`HomeScope.ProductsPanelScope`), ações ligadas pelo presenter, view pelo catálogo do host (`ScopeViews`, pedida com `app.viewOf(scope)`) | Painéis embutidos na Home: sem presenter próprio |
+| **Presenter** | `AbstractCubePresenter<ShoppingApplication>`, managed by navigation via `applyParameters` | Places with their keys class (`XxxKeys`) |
+| **Segment** | inner scope (`HomeScope.ProductsPanelScope`), actions bound by the presenter, view from the host's catalog (`ScopeViews`, requested with `app.viewOf(scope)`) | Panels embedded in Home: no presenter of their own |
 
-## Componentes do Módulo
+## Module Components
 
 ### ShoppingApplication
 
-Classe abstrata que estende `CubeApplication`. Mantém o estado global:
+Abstract class that extends `CubeApplication`. Holds the global state:
 
-- `subject` — usuário autenticado (`Subject`)
-- `cart` — carrinho de compras (`CartManager`)
-- `go(String)` / `go(CubeIntent)` — navegação programática
-- `alertUnexpectedError(...)` — exibição de erros via `RootPresenter`
+- `subject` — authenticated user (`Subject`)
+- `cart` — shopping cart (`CartManager`)
+- `go(String)` / `go(CubeIntent)` — programmatic navigation (from `CubeApplication`)
+- `PLACES` — the list of all places
+- `alertUnexpectedError(...)` — error display via `RootPresenter`
 
-### Repositórios e autorização
+### Repositories and authorization
 
-Os repositórios são usados pelo service locator do domínio, através dos acessos protegidos de `ShoppingCall` (`productRepository()` lê `ProductRepository.BEAN` a cada uso); a transação de uma gravação é aberta pelo `ShoppingSave`. A autorização (RBAC) fica na fronteira de confiança: nos endpoints REST (`SecurityEnforcer`), por onde passa o teavm.web, cujos presenters rodam no navegador. Nos hosts em que os presenters rodam no servidor (Vaadin, SWT local, host remoto), o cliente só dispara ações e o presenter decide cada consulta.
+The repositories are used through the domain's service locator, via the protected accessors of `ShoppingCall` (`productRepository()` reads `ProductRepository.BEAN` on each use); the transaction of a write is opened by `ShoppingSave`. Authorization (RBAC) sits at the trust boundary: in the REST endpoints (`SecurityEnforcer`), which teavm.web goes through, since its presenters run in the browser. In the hosts where the presenters run on the server (Vaadin, local SWT, remote host), the client only triggers actions and the presenter decides each query.
 
 ### Scope
 
-Cada presenter tem o seu `Scope` em **arquivo próprio**, ao lado dele (`XxxScope.java`, como o `xxx.scope.ts` da versão TypeScript). Um escopo que só existe dentro dele — um painel da Home, a linha do carrinho — é classe interna pública estática dele (`HomeScope.ProductsPanelScope`, `CartScope.CartItemScope`). Cada campo observado é uma `Prop`, criada com `prop(...)`; o presenter liga o estado a si com `bind(...)`, e então `set` de um valor diferente (`equals`) pede o redesenho sozinho — o presenter não chama `this.update()` depois. A view lê com `get()`. O escopo declara o seu `CLASS_ID` (o classId do protocolo bridge); o presenter não cria view — cada host desenha o escopo com a view que o seu catálogo `ScopeViews` registra para a classe. A serialização remota é automática (`ScopeSerializer`, via reflection dos campos públicos, escrevendo o valor de cada `Prop`; um `Prop<Scope>`, como o `content` de Root e Home, sai como `"<campo>ViewId"`):
+Each presenter has its `Scope` in **its own file**, next to it (`XxxScope.java`, like the `xxx.scope.ts` of the TypeScript version). A scope that only exists inside it — a Home panel, the cart row — is a public static inner class of it (`HomeScope.ProductsPanelScope`, `CartScope.CartItemScope`). Each observed field is a `Prop`, created with `prop(...)`; the presenter binds the state to itself with `bind(...)`, and then `set` with a different value (`equals`) requests the redraw on its own — the presenter does not call `this.update()` afterwards. The view reads with `get()`. The scope declares its `CLASS_ID` (the bridge protocol classId); the presenter does not create a view — each host draws the scope with the view its `ScopeViews` catalog registers for the class. Remote serialization is automatic (`ScopeSerializer`, via reflection over the public fields, writing the value of each `Prop`; a `Prop<Scope>`, like the `content` of Root and Home, is written as `"<field>ViewId"`):
 
 ```java
 public class ProductScope extends Scope {
@@ -150,137 +155,146 @@ public class ProductScope extends Scope {
     public final Prop<String> errorMessage = prop();
 }
 
-// no ProductPresenter
+// in ProductPresenter
 public final ProductScope state = bind(new ProductScope());
 ```
 
-**Mexer dentro de um valor já atribuído** (um item de uma lista) não passa pela prop: aí, ou se atribui um valor novo, ou se chama `this.update()` — como no `CartPresenter`, cujo carrinho altera os itens no lugar.
+**Changing something inside an already-assigned value** (an item of a list) does not go through the prop: in that case, either assign a new value or call `this.update()` — as in `CartPresenter`, whose cart changes items in place.
 
-O JSON gerado pelo serializer usa `"#"` como chave para o `instanceId`:
+The JSON generated by the serializer uses `"#"` as the key for the `instanceId`:
 
 ```json
 { "#": "view-instance-id", "product": {...}, "errorCode": 0, "errorMessage": null }
 ```
-```
 
 ### Calls
 
-Cada operação que o presenter pede aos repositórios é uma classe no pacote `calls/` do módulo (irmão de `structs/`), com o sufixo do que ela faz: `XxxQuery` para leitura, `XxxSave` para gravação e `XxxCall` para o que não é nem uma coisa nem outra (o login, que autentica). A requisição se acumula na instância por setters fluentes `withXxx(...)` e `run()` a responde; uma instância nova a cada uso:
+Each operation the presenter requests from the repositories is a class in the module's `calls/` package (sibling of `structs/`), with a suffix for what it does: `XxxQuery` for reads, `XxxSave` for writes, and `XxxCall` for what is neither (the login, which authenticates). The request accumulates on the instance through fluent `withXxx(...)` setters and `run()` answers it; a new instance for each use:
 
 ```java
-var product = new ProductQuery().withProductId(id).run();
+var product = new ProductQuery()
+        .withProductId(id)
+        .run();
 ```
 
-A raiz é `ShoppingCall<R>`, que reúne numa seção logo no início os acessos protegidos aos repositórios (`productRepository()`, `purchaseRepository()`, ...), lidos do `BEAN` a cada uso, e declara `run()`. Abaixo dela:
+The root is `ShoppingCall<R>`, which gathers in a section right at the top the protected accessors to the repositories (`productRepository()`, `purchaseRepository()`, ...), read from the `BEAN` on each use, and declares `run()`. Below it:
 
-- `ShoppingQuery<R>` — leitura: sem efeito colateral, pode ser repetida, sem transação própria.
-- `ShoppingSave<R>` — gravação: o `run()` (final) abre a transação (ou entra na de quem chamou) e chama o `save()` da subclasse, então nenhuma gravação fica fora de uma.
- A resposta é um tipo que já existe; ou um struct do módulo (`structs/`), quando outras chamadas ou o escopo também o usam; ou uma classe interna da própria chamada, quando só leva a resposta de volta a quem chamou (`LoginCall.Result`).
+- `ShoppingQuery<R>` — read: no side effects, can be repeated, no transaction of its own.
+- `ShoppingSave<R>` — write: the (final) `run()` opens the transaction (or joins the caller's) and calls the subclass's `save()`, so no write is left outside one.
 
-| Chamada | Requisição | Resposta |
+The response is an existing type; or a module struct (`structs/`), when other calls or the scope also use it; or an inner class of the call itself, when it only carries the response back to the caller (`LoginCall.Result`).
+
+| Call | Request | Response |
 |---------|------------|----------|
 | `LoginCall` | `withUserName`, `withPassword` | `LoginCall.Result` (HMAC challenge-response via `AuthenticationService`) |
 | `ProductQuery` | `withProductId` | `ProductInfo` |
-| `ProductListQuery` | `withLimit` | `List<ProductInfo>` (sem descrição) |
-| `PurchasesPageQuery` | `withUserId`, `withPage`, `withPageSize` | `Page<PurchaseInfo>` (a mais recente primeiro) |
+| `ProductListQuery` | `withLimit` | `List<ProductInfo>` (without description) |
+| `PurchasesPageQuery` | `withUserId`, `withPage`, `withPageSize` | `Page<PurchaseInfo>` (most recent first) |
 | `ReceiptQuery` | `withPurchaseId` | `ReceiptForm` |
-| `PurchaseSave` | `withUserId`, `withItems` | `Long` (id da compra) |
+| `PurchaseSave` | `withUserId`, `withItems` | `Long` (purchase id) |
 
 ### DTOs (structs)
 
-Objetos `Serializable` usados para transferir dados entre camadas. Cada DTO possui:
+`Serializable` objects used to transfer data between layers:
 
-- **Campos públicos** (sem getters/setters)
-- **`projection()`** — retorna uma instância do modelo de domínio indicando quais campos carregar
-- **`create(Model)`** — factory method que converte do modelo de domínio para o DTO
+- **Public fields** (no getters/setters) — except `Subject`, which keeps its fields private behind getters
+- **`projection()`** (static, in the DTOs built from an entity: `Subject`, `ProductInfo`, `ReceiptItem`) — returns an entity instance indicating which fields to load
+- **`create(...)`** (static) — factory that converts from the entity (or, for `CartItem`, from a `ProductInfo` and a quantity) to the DTO
 
-| DTO | Pacote | Campos principais |
+| DTO | Package | Main fields |
 |-----|--------|------------------|
 | `Subject` | `open/login/structs/` | id, nickName |
 | `ProductInfo` | `restricted/products/structs/` | id, image, name, description, price |
 | `CartItem` | `restricted/cart/structs/` | id, image, name, price, quantity |
-| `PurchaseInfo` | `restricted/home/structs/` | id, date, total, items (nomes) |
+| `PurchaseInfo` | `restricted/home/structs/` | id, date, total, items (names) |
 | `ReceiptForm` | `restricted/receipt/structs/` | date, total, items |
 | `ReceiptItem` | `restricted/receipt/structs/` | id, description, value, quantity |
 
-### Constantes
+### Constants
 
-- **`XxxKeys`** (uma por place, em `presenter/**`) — os nomes que cada place lê e escreve no intent, tipados; substituem as antigas `PlaceParameters`/`PlaceAttributes`
+- **`XxxKeys`** (one per place, in `presenter/**`) — the names each place reads and writes in the intent, typed
+- **`StorageKeys`** — the client storage keys of the authentication tokens
 
 ### CartManager
 
-Gerenciador de carrinho in-memory com sistema de eventos:
+In-memory cart manager with an event system:
 
-- `addProduct(ProductInfo, quantity)` — adiciona ou incrementa item
-- `modifyProductQuantity(productId, quantity)` — altera quantidade
-- `removeProduct(productId)` — remove item
-- `commit(Subject)` — persiste a compra diretamente via repositórios
-- `addCommitListener(Runnable)` / `addChangeListener(Runnable)` — listeners para recarregar painéis
+- `addProduct(ProductInfo, quantity)` — adds or increments an item
+- `modifyProductQuantity(productId, quantity)` — changes the quantity
+- `removeProduct(productId)` — removes an item
+- `commit(Subject)` — persists the purchase through `PurchaseSave` (one transaction) and returns its id
+- `addCommitListener(ThrowingRunnable)` / `addChangeListener(ThrowingRunnable)` — listeners to reload panels
 
-## Convenções
+## Conventions
 
-### Organização de pacotes por feature
+### Package organization by feature
 
-Cada feature segue a estrutura:
+Each feature follows the structure:
 ```mermaid
 graph TD
     feature["presenter/restricted/&lt;feature&gt;/"]
     feature --> Presenter["&lt;Feature&gt;Presenter.java"]
     feature --> Scope["&lt;Feature&gt;Scope.java"]
-    feature --> calls["calls/ (opcional)"]
-    calls --> Call["&lt;Coisa&gt;Query.java, &lt;Coisa&gt;Save.java"]
-    feature --> structs["structs/ (opcional)"]
+    feature --> calls["calls/ (optional)"]
+    calls --> Call["&lt;Thing&gt;Query.java, &lt;Thing&gt;Save.java"]
+    feature --> structs["structs/ (optional)"]
     structs --> DTO["&lt;FeatureDTO&gt;.java"]
 ```
 
-### Padrão de um Presenter
+### Presenter pattern
 
 ```java
 public class XxxPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     // 1. Logger
-    private static final Logger LOG = LoggerFactory.getLogger(XxxPresenter.class);
+    private static final Log LOG = Log.getLogger(XxxPresenter.class);
 
-    // 2. Estado público — o XxxScope fica em XxxScope.java, ao lado (campos observados são Props; serialização via reflection) (bind: o escopo compartilha os eventos do presenter e é liberado com ele)
+    // 2. Public state — XxxScope lives in XxxScope.java, alongside (observed fields are Props; serialization via reflection) (bind: the scope shares the presenter's events and is released with it)
     public final XxxScope state = bind(new XxxScope());
 
-    // 3. Campos internos
+    // 3. Internal fields
     private ScopeSlot ownerSlot;
 
-    // 4. Constructor (liga as ações do state)
+    // 4. Constructor (binds the state's actions with their bridge event codes)
     public XxxPresenter(ShoppingApplication app) { super(app); }
 
-    // 5. Cube API (applyParameters — termina com ownerSlot.setScope(this.state) —, publishParameters)
+    // 5. Cube API (applyParameters — ends with ownerSlot.setScope(this.state) —, publishParameters)
     // 6. User Actions (onXxx)
     // 7. Messages (alertXxx, errorXxx)
 }
 ```
 
-### Padrão de erros
+### Error pattern
 
-Os presenters não lançam exceções para a view. Em vez disso, usam `errorCode` + `errorMessage` no Scope — e o `set` já pede o redesenho:
+Presenters do not throw exceptions to the view. Instead, they use `errorCode` + `errorMessage` in the Scope — and `set` already requests the redraw:
 
 ```java
 private void alertProductNotFound() {
     this.state.errorCode.set(3);
-    this.state.errorMessage.set("Código do produto não localizado.");
+    this.state.errorMessage.set("Product code not found.");
 }
 ```
 
-Erros inesperados não precisam de `try/catch`: as ações são guardadas. Cada ação é um campo do Scope, ligado uma vez no construtor do presenter; a guarda manda a falha não tratada ao `RootPresenter` (via `app.alertUnexpectedError`) e, ao fim, republica o endereço:
+Unexpected errors do not need `try/catch`: actions are guarded. Each action is a Scope field, bound once in the presenter's constructor; the guard sends the unhandled failure to `RootPresenter` (via `app.alertUnexpectedError`) and, at the end, republishes the address:
 
 ```java
-public static class CartScope extends Scope {
+// CartScope.java
+public class CartScope extends Scope {
     // ...
-    public ActionOf<Long> onRemoveProduct = ActionOf.noop();
     public Action onBuy = Action.NOOP;
+    public Action onOpenProducts = Action.NOOP;
 }
 
 public CartPresenter(ShoppingApplication app) {
     super(app);
-    this.state.onRemoveProduct = actionOf(this::removeProduct);
-    this.state.onBuy = action(this::buy);   // buy() só trata InvalidCartItemException e OfflineException
+    this.cart = app.getCart();
+    this.state.onBuy = action(1, this::buy);   // buy() only handles InvalidCartItemException and OfflineException
+    this.state.onOpenProducts = action(3, () -> new HomeKeys(this.app).flip());
 }
+
+// a row (segment) gets its own actions, reading the formData
+row.onModifyQuantity = actionOf(row, 2, FormParam.asInteger("p.quantity"),
+        quantity -> this.modifyQuantity(productId, quantity));
 ```
 
-A view dispara a ação pelo escopo que desenha (`state.onBuy.run()`), e o skeleton remoto do escopo (`scope.skeleton(CLASS_ID)`) mapeia o código do evento para ela.
+The view triggers the action through the scope it draws (`state.onBuy.run()`), and the scope's remote skeleton (`scope.skeleton(CLASS_ID)`) maps the event code to it; a state that reads form fields on sync does it with `state.onSync(formData -> ...)` in the constructor (`LoginPresenter`).

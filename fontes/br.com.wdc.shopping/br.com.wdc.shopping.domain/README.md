@@ -1,130 +1,151 @@
 # br.com.wdc.shopping.domain
 
-Módulo de **domínio puro** da aplicação Shopping. Define modelos, contratos de repositório, critérios de consulta, exceções de negócio e configuração — sem dependência de frameworks de persistência ou apresentação.
+The **pure domain** module of the Shopping application. It defines the entities, repository contracts, query criteria, wire codecs, the business exception, the roles and the configuration holders — with no dependency on persistence or presentation frameworks.
 
-## Estrutura
+The generic abstractions it builds on live in `br.com.wdc.framework.domain` (`framework-domain`): `Repository`, `Page`, `ModelCodec`, `Criteria`/`Criterion`, `Projection*`, the base exceptions (`BusinessException`, `AccessDeniedException`, `OfflineException`, ...), `AppConfig`, `TransactionService` and the security contracts (`SecurityContext`, `AuthenticationService`, `PasswordUtil`, `PermissionModel`).
+
+## Structure
+
+The module is organized **by entity**: each entity package holds the four classes of that entity.
 
 ```mermaid
 graph TD
     root["domain/"]
-    root --> ShoppingConfig["ShoppingConfig.java<br/><small>Diretórios da aplicação</small>"]
+    root --> ShoppingConfig["ShoppingConfig.java<br/><small>Loads AppConfig, application directories, JWT secret</small>"]
+    root --> ShoppingTx["ShoppingTransactions.java<br/><small>BEAN holder of the module's TransactionService</small>"]
 
-    root --> config["config/"]
-    config --> AppConfig["AppConfig.java<br/><small>Carrega TOML</small>"]
+    root --> product["product/"]
+    product --> Product["Product"]
+    product --> ProductCrit["ProductCriteria"]
+    product --> ProductCodec["ProductCodec"]
+    product --> ProductRepo["ProductRepository"]
 
-    root --> model["model/ — POJOs"]
-    model --> User["User.java"]
-    model --> Product["Product.java"]
-    model --> Purchase["Purchase.java"]
-    model --> PurchaseItem["PurchaseItem.java"]
+    root --> user["user/"]
+    user --> User["User"]
+    user --> UserCrit["UserCriteria"]
+    user --> UserCodec["UserCodec"]
+    user --> UserRepo["UserRepository"]
 
-    root --> repos["repositories/ — Interfaces"]
-    repos --> UserRepo["UserRepository"]
-    repos --> ProductRepo["ProductRepository"]
-    repos --> PurchaseRepo["PurchaseRepository"]
-    repos --> PurchaseItemRepo["PurchaseItemRepository"]
+    root --> purchase["purchase/"]
+    purchase --> Purchase["Purchase"]
+    purchase --> PurchaseCrit["PurchaseCriteria"]
+    purchase --> PurchaseCodec["PurchaseCodec"]
+    purchase --> PurchaseRepo["PurchaseRepository"]
 
-    root --> criteria["criteria/ — Objetos de critério"]
-    criteria --> UserCrit["UserCriteria"]
-    criteria --> ProductCrit["ProductCriteria"]
-    criteria --> PurchaseCrit["PurchaseCriteria"]
-    criteria --> PurchaseItemCrit["PurchaseItemCriteria"]
+    root --> purchaseitem["purchaseitem/"]
+    purchaseitem --> PurchaseItem["PurchaseItem"]
+    purchaseitem --> PurchaseItemCrit["PurchaseItemCriteria"]
+    purchaseitem --> PurchaseItemCodec["PurchaseItemCodec"]
+    purchaseitem --> PurchaseItemRepo["PurchaseItemRepository"]
 
-    root --> exception["exception/ — Exceções de negócio"]
-    exception --> BusinessEx["BusinessException (base)"]
-    exception --> AccessDenied["AccessDeniedException"]
-    exception --> InvalidCart["InvalidCartItemException"]
-    exception --> Offline["OfflineException"]
+    root --> exception["exception/"]
+    exception --> InvalidCart["InvalidCartItemException<br/><small>extends framework BusinessException</small>"]
 
-    root --> security["security/ — RBAC"]
-    security --> AuthSvc["AuthenticationService"]
-    security --> AuthResult["AuthResult"]
-    security --> Challenge["ChallengeResult"]
-    security --> PasswordUtil["PasswordUtil (HMAC-SHA256)"]
+    root --> security["security/"]
     security --> Role["Role (ADMIN, CUSTOMER, MANAGER)"]
-    security --> SecCtx["SecurityContext"]
-    security --> SecHolder["SecurityContext.CURRENT"]
-
-    root --> utils["utils/ — Projeção"]
-    utils --> ProjValues["ProjectionValues"]
-    utils --> ProjList["ProjectionList"]
-    utils --> ProjSet["ProjectionSet"]
 ```
 
-## Princípios
+A new entity gets its own package with the complete set (`Xxx`, `XxxCriteria`, `XxxCodec`, `XxxRepository`).
 
-- **Sem dependências de infraestrutura** — apenas SLF4J e Commons IO
-- **Modelos simples** — POJOs com campos públicos, sem anotações de persistência
-- **Repositórios como interfaces** — registrados via `AtomicReference<XxxRepository> BEAN` (Service Locator leve)
-- **Critérios tipados** — cada entidade tem seu `XxxCriteria` com filtros, projeção, paginação e ordenação
-- **Segurança declarativa** — `Role` enum define permissões no formato `entity:operation`; `SecurityContext.CURRENT` propaga contexto via ThreadLocal
+## Principles
 
-## Modelos
+- **No infrastructure dependencies** — only the framework (`framework-commons`, `framework-domain`) and Commons IO
+- **Fluent entities** — each entity implements `KeyedEntity`, with `private` fields, a `field()` accessor and a `withField(...)` setter that returns `this`; no persistence annotations
+- **Repositories as interfaces** — registered via `AtomicReference<XxxRepository> BEAN` (lightweight Service Locator)
+- **Typed criteria** — each entity has its own `XxxCriteria`, whose fields are `Criterion` objects, plus projection and a closed set of orderings
+- **Declarative permissions** — the `Role` enum defines permissions in the `entity:operation` format
 
-| Modelo | Campos principais |
-|--------|-------------------|
-| `User` | `id`, `userName`, `password`, `name`, `roles` |
+## Entities
+
+| Entity | Fields |
+|--------|--------|
+| `User` | `id`, `userName`, `password`, `name`, `roles` (comma-separated string) |
 | `Product` | `id`, `name`, `price`, `description`, `image` |
 | `Purchase` | `id`, `buyDate`, `user`, `items` |
 | `PurchaseItem` | `id`, `amount`, `price`, `purchase`, `product` |
 
-## Repositórios
-
-Todos os repositórios seguem o mesmo contrato:
+Entities are built by chaining setters, relations included:
 
 ```java
-public interface XxxRepository {
-    AtomicReference<XxxRepository> BEAN = new AtomicReference<>();
+var item = new PurchaseItem()
+        .withAmount(2)
+        .withPrice(product.price())
+        .withPurchase(new Purchase()
+                .withId(purchaseId))
+        .withProduct(product);
+```
 
-    boolean insert(Xxx entity);
-    boolean update(Xxx newEntity, Xxx oldEntity);
-    boolean insertOrUpdate(Xxx entity);
-    int delete(XxxCriteria criteria);
-    int count(XxxCriteria criteria);
-    List<Xxx> fetch(XxxCriteria criteria);
-    Xxx fetchById(Long id, Xxx projection);
+## Repositories
+
+Each repository extends the generic `Repository<E, C, K>` from `framework.domain.repository`:
+
+```java
+public interface ProductRepository extends Repository<Product, ProductCriteria, Long> {
+    AtomicReference<ProductRepository> BEAN = new AtomicReference<>();
+    // newProjection() and fetchById(...) as default methods, plus entity-specific operations
 }
 ```
 
-A implementação concreta é injetada no `BEAN` pela camada de persistência na inicialização.
+The generic contract:
 
-## Critérios
+| Method | Notes |
+|--------|-------|
+| `boolean insert(E bean)` | |
+| `boolean update(E newBean, E oldBean, E projection)` | Overloads `update(newBean)` and `update(newBean, oldBean)` |
+| `boolean insertOrUpdate(E newBean, E oldBean)` | Inserts when `oldBean` is `null` |
+| `int delete(C criteria)` | |
+| `int count(C criteria)` | |
+| `List<E> fetch(C criteria, int offset, int limit)` | Overloads `fetch(criteria)` and `fetch(criteria, limit)` |
+| `Page<E> fetchPage(C criteria, int page, int pageSize)` | Default: `count` + `fetch` |
+| `E fetchById(K id, E projection)` | Default in each entity repository: a criteria with equality on the key |
+| `E newProjection()` | Projection with all the entity's shallow fields |
 
-Cada `XxxCriteria` oferece uma API fluente para construir consultas:
+`ProductRepository` adds `fetchImage(Long)` and `updateImage(Long, byte[])`. The concrete implementation (jOOQ in `persistence.impl`, or the REST client in `persistence.client`) is placed in the `BEAN` at startup.
+
+## Criteria
+
+Each field of an `XxxCriteria` is a `Criterion` created with the criteria:
+
+- `Criterion` — `eq`, `ne`, `in`, `isNull`, `isNotNull`
+- `ComparableCriterion` — adds `gt`, `ge`, `lt`, `le`, `between`
+- `TextCriterion` — adds `like`, `ilike`, `containing`, `startingWith`
+
+Requests on a field accumulate with `AND`; `or()` makes the field disjunctive. A field is **never `null`** — test it with `hasXxx()`. `withXxx(value)` is a shortcut for `xxx().eq(value)`, and `null` does not filter.
 
 ```java
 var criteria = new ProductCriteria()
-    .withProductId(42L)
-    .withProjection(projection)
-    .withOffset(0)
-    .withLimit(20)
-    .withOrderBy(ProductCriteria.OrderBy.NAME_ASC);
+        .withProjection(projection)
+        .withOrderBy(ProductCriteria.OrderBy.NAME_A_TO_Z);
+criteria.name().containing("phone");
+criteria.price().between(10.0, 100.0);
+
+var page = ProductRepository.BEAN.get().fetch(criteria, 0, 20);
 ```
 
-## Projeção
+`OrderBy` is a per-entity enum of complete orderings (e.g. `OLDEST_FIRST`, `NEWEST_FIRST`, `CHEAPEST_FIRST`); offset and limit are arguments of `fetch`.
 
-O mecanismo de projeção permite indicar quais campos devem ser carregados. Um objeto "projeção" é um modelo cujos campos não-nulos indicam que aquela coluna deve ser incluída no SELECT. `ProjectionValues` fornece valores sentinela para cada tipo primitivo.
+## Projection
 
-## Configuração
+A projection is an entity instance whose non-null fields mark the columns to load. `ProjectionValues` (framework) provides sentinel values for each type; each repository's `newProjection()` returns the projection of all shallow fields.
 
-`AppConfig` carrega configurações de `work/config/application.toml` (ou caminho definido via `-Dshopping.config.file`). `ShoppingConfig` resolve os diretórios padrão da aplicação (`config/`, `data/`, `log/`, `temp/`).
+## Codecs
 
-## Segurança (RBAC)
+`XxxCodec` implements `ModelCodec<Xxx, XxxCriteria>`: streaming serialization of entities (full, projected, graph-tracked) and criteria over `ExtensibleObjectOutput`/`ExtensibleObjectInput`, with no reflection — the same code runs on the JVM and under TeaVM. It is the wire format used by `persistence.rest` and `persistence.client`.
 
-O pacote `security/` define os contratos de autenticação e autorização:
+## Configuration and transactions
 
-| Classe | Responsabilidade |
-|--------|-----------------|
-| `Role` | Enum com papéis (ADMIN, CUSTOMER, MANAGER) e suas permissões no formato `entity:operation` |
-| `SecurityContext` | Contexto imutável do usuário autenticado (userId, userName, roles, permissions) |
-| `SecurityContext.CURRENT` | ThreadLocal para propagação do contexto entre camadas |
-| `AuthenticationService` | Contrato de autenticação: `challenge()` → `ChallengeResult`, `login(user, digest, nonce)` → `AuthResult` |
-| `PasswordUtil` | HMAC-SHA256 para gerar digest de autenticação sem trafegar senha em texto plano |
-| `AccessDeniedException` | Exceção lançada quando o usuário não possui permissão para a operação |
+`ShoppingConfig.loadConfig()` loads the framework's `AppConfig` from the path set via `-Dshopping.config.file`, falling back to `config/application.toml`. `ShoppingConfig.Internals.configure(config)` resolves the application directories (`config/`, `data/`, `log/`, `temp/`) under `app.basedir` and the JWT secret.
 
-O modelo é **allow-wins**: a permissão efetiva é a união de todos os papéis do usuário.
+`ShoppingTransactions.BEAN` holds the module's `TransactionService`, populated by the composition root.
 
-## Dependências
+## Security (RBAC)
 
-- SLF4J — logging
-- Commons IO — utilitários de I/O
+`Role` defines the roles (ADMIN, CUSTOMER, MANAGER) and their permissions in the `entity:operation` format (`*` grants every operation on the entity; `data:all` grants access to every user's data). `Role.effectivePermissions(...)` computes the union of a user's roles — the model is **allow-wins** — and `hasPermission`/`hasDataAll` delegate to the framework's `PermissionModel`.
+
+The authentication and context contracts (`AuthenticationService`, `SecurityContext` with its `CURRENT` ThreadLocal, `PasswordUtil`, `AccessDeniedException`) are in `br.com.wdc.framework.domain`.
+
+## Dependencies
+
+- `framework-commons` — serialization (`KeyedEntity`, `ExtensibleObjectOutput`/`Input`), logging
+- `framework-domain` — generic domain abstractions
+- Commons IO — I/O utilities

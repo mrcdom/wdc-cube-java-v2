@@ -1,21 +1,21 @@
 # remote.shell.flutter
 
-Shells Flutter da aplicação **WeDoCode Shopping** — implementações do thin client de Remote Presentation em Dart/Flutter para múltiplas plataformas.
+Flutter shells for the **WeDoCode Shopping** application — implementations of the Remote Presentation thin client in Dart/Flutter for multiple platforms.
 
-## Visão geral
+## Overview
 
-Todos os shells Flutter compartilham a mesma base de código (`flutter_commons`) e apenas diferem na plataforma-alvo e configuração de deploy. Cada um é um thin client sem lógica de negócio — renderiza ViewStates e emite eventos via WebSocket.
+All Flutter shells share the same codebase (`flutter_commons`) and differ only in target platform and deployment configuration. Each one is a thin client with no business logic — it renders ViewStates and emits events over WebSocket.
 
-## Módulos
+## Modules
 
-| Módulo | Plataformas | Descrição |
+| Module | Platforms | Description |
 |--------|-------------|-----------|
-| `flutter.commons` | — | Biblioteca compartilhada: protocolo WS, segurança, views, widgets |
-| `flutter.desktop` | macOS, Linux, Windows | App desktop nativo ("Shopping Native") |
-| `flutter.mobile` | iOS, Android | App mobile ("Shopping Remote") com badge F |
-| `flutter.web` | Browser (WASM/JS) | App web (alternativa Flutter ao shell React) |
+| `flutter.commons` | — | Shared library: WS protocol, security, views, widgets |
+| `flutter.desktop` | macOS, Linux, Windows | Native desktop app ("Shopping Native") |
+| `flutter.mobile` | iOS, Android | Mobile app ("Shopping Remote") with an F badge |
+| `flutter.web` | Browser (WASM/JS) | Web app (Flutter alternative to the React shell) |
 
-## Arquitetura
+## Architecture
 
 ```mermaid
 graph TD
@@ -35,11 +35,11 @@ graph TD
     web --> commons
 ```
 
-## Pré-requisitos
+## Prerequisites
 
 - **Flutter 3.44+**
 - **Dart SDK 3.12+**
-- Backend rodando (porta 8080 por padrão)
+- Backend running (port 8080 by default)
 
 ## Quick start
 
@@ -47,15 +47,15 @@ graph TD
 # Desktop (macOS/Linux/Windows)
 cd flutter.desktop && ./run.sh
 
-# Mobile — simuladores iOS
+# Mobile — iOS simulators
 cd flutter.mobile && ./deploy.sh run ios-sim      # iPhone Simulator
 cd flutter.mobile && ./deploy.sh run ipad-sim     # iPad Simulator
 
-# Mobile — emuladores Android
+# Mobile — Android emulators
 cd flutter.mobile && ./deploy.sh run android-emu         # phone emulator
 cd flutter.mobile && ./deploy.sh run android-tablet-emu  # tablet emulator
 
-# Mobile — devices físicos
+# Mobile — physical devices
 cd flutter.mobile && ./deploy.sh run ios
 cd flutter.mobile && ./deploy.sh run android
 
@@ -65,21 +65,21 @@ cd flutter.web && flutter run -d chrome --dart-define=WDC_ENDPOINT=http://localh
 
 ## Build via Maven (desktop)
 
-O módulo `remote.shell.flutter` possui um `pom.xml` que integra o build do desktop ao ciclo Maven:
+The `remote.shell.flutter` module has a `pom.xml` that integrates the desktop build into the Maven lifecycle:
 
 ```bash
-# A partir do diretório fontes/ — executa flutter pub get + flutter build desktop
+# From the fontes/ directory — runs flutter pub get + flutter build desktop
 mvn compile -pl br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.shell.flutter -am
 ```
 
-O `exec-maven-plugin` executa automaticamente:
-1. `flutter pub get` (fase `initialize`)
-2. `flutter.desktop/build.sh` — auto-detecta macOS/Linux/Windows (fase `compile`)
+The `exec-maven-plugin` automatically runs:
+1. `flutter pub get` (`initialize` phase)
+2. `flutter.desktop/build.sh` — auto-detects macOS/Linux/Windows (`compile` phase)
 
-## Estrutura de dependências
+## Dependency structure
 
 ```yaml
-# Cada shell referencia flutter.commons como path dependency:
+# Each shell references flutter.commons as a path dependency:
 dependencies:
   flutter_commons:
     path: ../flutter.commons

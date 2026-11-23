@@ -1,38 +1,38 @@
 # persistence.client
 
-Módulo **cliente REST** da aplicação Shopping. Implementa as interfaces de repositório e autenticação do domínio sobre HTTP, usando **OkHttp** e **Gson**. Permite que frontends remotos (Android, testes de integração) acessem o backend via API REST com autenticação JWT transparente.
+The **REST client** module of the Shopping application. It implements the domain's repository and authentication interfaces over HTTP, using **OkHttp** and **Gson**. It lets remote frontends (Android, integration tests) access the backend through the REST API with transparent JWT authentication.
 
-## Dependências
+## Dependencies
 
-| Artefato | Papel |
+| Artifact | Role |
 |----------|-------|
-| `br.com.wdc.shopping.domain` | Modelos de domínio, interfaces de repositório, contratos de segurança |
-| `com.squareup.okhttp3:okhttp-jvm` | Cliente HTTP (5.5.1) |
-| `com.google.code.gson:gson` | Serialização/deserialização JSON |
+| `br.com.wdc.shopping.domain` | Domain models, repository interfaces, security contracts |
+| `com.squareup.okhttp3:okhttp-jvm` | HTTP client (5.5.1) |
+| `com.google.code.gson:gson` | JSON serialization/deserialization |
 | `slf4j-api` | Logging |
 
-## Estrutura de Pacotes
+## Package Structure
 
 ```mermaid
 graph TD
     pkg["br.com.wdc.shopping.persistence.client"]
-    pkg --> RestConfig["RestConfig.java<br/><small>Infraestrutura HTTP (OkHttp + Gson)</small>"]
+    pkg --> RestConfig["RestConfig.java<br/><small>HTTP infrastructure (OkHttp + Gson)</small>"]
     pkg --> RestAuthClient["RestAuthClient.java<br/><small>Tokens + HMAC challenge-response</small>"]
-    pkg --> RestAuthSvc["RestAuthenticationService.java<br/><small>AuthenticationService sobre REST</small>"]
-    pkg --> Bootstrap["RestRepositoryBootstrap.java<br/><small>Registra impls REST nos BEANs</small>"]
+    pkg --> RestAuthSvc["RestAuthenticationService.java<br/><small>AuthenticationService over REST</small>"]
+    pkg --> Bootstrap["RestRepositoryBootstrap.java<br/><small>Registers REST impls in the BEANs</small>"]
     pkg --> RestUser["RestUserRepository.java"]
     pkg --> RestProduct["RestProductRepository.java"]
     pkg --> RestPurchase["RestPurchaseRepository.java"]
     pkg --> RestPurchaseItem["RestPurchaseItemRepository.java"]
 ```
 
-## Arquitetura
+## Architecture
 
-O módulo espelha a API server-side, implementando as mesmas interfaces de domínio:
+The module mirrors the server-side API, implementing the same domain interfaces:
 
 ```mermaid
 graph TD
-    subgraph Domain["Domínio (interfaces)"]
+    subgraph Domain["Domain (interfaces)"]
         UserRepo["UserRepository"]
         ProductRepo["ProductRepository"]
         AuthSvc["AuthService"]
@@ -58,79 +58,79 @@ graph TD
     AuthClient --> Javalin
 ```
 
-## Componentes
+## Components
 
 ### RestAuthenticationService
 
-Implementa `AuthenticationService` sobre REST. Suporta autenticação por credenciais e **auto-login por token persistente**:
+Implements `AuthenticationService` over REST. It supports credential authentication and **auto-login via a persistent token**:
 
-| Método | Descrição |
+| Method | Description |
 |--------|-----------|
-| `login(user, password)` | Autentica por credenciais; armazena refresh token em `clientPersistentStore().secure()` |
-| `tryRestore()` | Tenta restaurar sessão usando o refresh token persistido (auto-login) |
-| `loginWithPersistentToken(token)` | Renova access token via refresh token |
-| `createPersistentToken()` | Retorna o refresh token armazenado (para bootstrap de sessão remota) |
-| `resolveToken()` | Retorna `null` — token é resolvido internamente por `RestConfig` |
+| `login(user, password)` | Authenticates by credentials; stores the refresh token in `clientPersistentStore().secure()` |
+| `tryRestore()` | Tries to restore the session using the persisted refresh token (auto-login) |
+| `loginWithPersistentToken(token)` | Renews the access token via the refresh token |
+| `createPersistentToken()` | Returns the stored refresh token (for remote session bootstrap) |
+| `resolveToken()` | Returns `null` — the token is resolved internally by `RestConfig` |
 
 ### RestConfig
 
-Infraestrutura HTTP compartilhada por todos os repositórios:
+HTTP infrastructure shared by all repositories:
 
-| Método | Descrição |
+| Method | Description |
 |--------|-----------|
-| `postJson(path, body)` | POST autenticado (Bearer token automático) |
-| `postJsonNullable(path, body)` | POST autenticado, retorna `null` em 404 |
-| `postJsonPublic(path, body)` | POST sem autenticação (endpoints `/api/auth/*`) |
-| `getJson(path)` | GET sem autenticação |
-| `getBytes(path)` | GET binário autenticado (imagens) |
-| `putBytes(path, data)` | PUT binário autenticado (upload de imagens) |
-| `addProjection(body, projection)` | Serializa projeção de campos no body JSON |
+| `postJson(path, body)` | Authenticated POST (automatic Bearer token) |
+| `postJsonNullable(path, body)` | Authenticated POST, returns `null` on 404 |
+| `postJsonPublic(path, body)` | Unauthenticated POST (`/api/auth/*` endpoints) |
+| `getJson(path)` | Unauthenticated GET |
+| `getBytes(path)` | Authenticated binary GET (images) |
+| `putBytes(path, data)` | Authenticated binary PUT (image upload) |
+| `addProjection(body, projection)` | Serializes the field projection into the JSON body |
 
-Configuração do Gson:
-- `OffsetDateTimeAdapter` — datas como ISO-8601
-- `CircularRefExclusionStrategy` — exclui `PurchaseItem.purchase` e `Product.image`
+Gson configuration:
+- `OffsetDateTimeAdapter` — dates as ISO-8601
+- `CircularRefExclusionStrategy` — excludes `PurchaseItem.purchase` and `Product.image`
 - Timeouts: 30s (connect, read, write)
 
 ### RestAuthClient
 
-Gerenciador de autenticação no lado cliente:
+Client-side authentication manager:
 
-| Método | Descrição |
+| Method | Description |
 |--------|-----------|
-| `login(userName, passwordHash)` | Fluxo completo: challenge → HMAC-SHA256 digest → login → armazena tokens |
-| `refresh()` | Renova tokens via refresh endpoint |
-| `logout()` | Invalida tokens no servidor e limpa estado local |
-| `encryptPassword(plainPassword)` | Criptografa senha com RSA (chave pública da sessão) |
-| `accessToken()` | Retorna token atual (usado por `RestConfig` para auto-auth) |
-| `isAuthenticated()` | Verifica se há sessão ativa |
+| `login(userName, passwordHash)` | Full flow: challenge → HMAC-SHA256 digest → login → stores tokens |
+| `refresh()` | Renews tokens via the refresh endpoint |
+| `logout()` | Invalidates tokens on the server and clears local state |
+| `encryptPassword(plainPassword)` | Encrypts the password with RSA (the session's public key) |
+| `accessToken()` | Returns the current token (used by `RestConfig` for auto-auth) |
+| `isAuthenticated()` | Checks whether there is an active session |
 
-**Fluxo de autenticação:**
+**Authentication flow:**
 
 ```
 1. GET /api/auth/challenge → { nonce, expiresAt }
 2. digest = HMAC-SHA256(key=passwordHash, data=userName+nonce)
 3. POST /api/auth/login { userName, digest, nonce }
    → { accessToken, refreshToken, publicKey, expiresAt }
-4. Requests subsequentes: Authorization: Bearer <accessToken>
+4. Subsequent requests: Authorization: Bearer <accessToken>
 ```
 
 ### RestAuthenticationService
 
-Implementa `AuthenticationService` do domínio sobre HTTP:
+Implements the domain's `AuthenticationService` over HTTP:
 
-| Método | Delegação |
+| Method | Delegation |
 |--------|-----------|
 | `challenge()` | `GET /api/auth/challenge` → `ChallengeResult` |
 | `login(userName, digest, nonce)` | `POST /api/auth/login` → `AuthResult` |
 | `refresh(refreshToken)` | `POST /api/auth/refresh` → `AuthResult` |
 | `logout(refreshToken)` | `POST /api/auth/logout` |
-| `resolveToken()` | Retorna `null` (operação server-side apenas) |
+| `resolveToken()` | Returns `null` (server-side-only operation) |
 
-Ao receber tokens de login/refresh, atualiza automaticamente o `RestAuthClient` para que chamadas subsequentes aos repositórios incluam o Bearer token.
+On receiving tokens from login/refresh, it automatically updates the `RestAuthClient` so that subsequent repository calls include the Bearer token.
 
 ### RestRepositoryBootstrap
 
-Bootstrap que registra todas as implementações REST nos `BEAN` estáticos do domínio:
+Bootstrap that registers all REST implementations in the domain's static `BEAN`s:
 
 ```java
 var config = new RestConfig("http://localhost:8080");
@@ -141,15 +141,15 @@ RestRepositoryBootstrap.initialize(config);
 // PurchaseItemRepository.BEAN → RestPurchaseItemRepository
 // AuthenticationService.BEAN  → RestAuthenticationService
 
-// Ao finalizar:
+// On shutdown:
 RestRepositoryBootstrap.release();
 ```
 
-### Repositórios REST
+### REST Repositories
 
-Cada `RestXxxRepository` implementa a interface de domínio correspondente, mapeando operações para chamadas HTTP:
+Each `RestXxxRepository` implements the corresponding domain interface, mapping operations to HTTP calls:
 
-| Operação | HTTP | Path |
+| Operation | HTTP | Path |
 |----------|------|------|
 | `insert(entity)` | POST | `/api/repo/{entity}/insert` |
 | `update(newEntity, oldEntity)` | POST | `/api/repo/{entity}/update` |
@@ -159,22 +159,22 @@ Cada `RestXxxRepository` implementa a interface de domínio correspondente, mape
 | `fetch(criteria)` | POST | `/api/repo/{entity}/fetch` |
 | `fetchById(id, projection)` | POST | `/api/repo/{entity}/fetchById` |
 
-O `RestProductRepository` possui adicionalmente:
-- `fetchImage(id)` → `GET /api/repo/product/{id}/image` (bytes PNG)
+`RestProductRepository` additionally has:
+- `fetchImage(id)` → `GET /api/repo/product/{id}/image` (PNG bytes)
 - `updateImage(id, data)` → `PUT /api/repo/product/{id}/image` (upload)
 
-### Tratamento de Referências Circulares
+### Handling Circular References
 
-O Gson exclui automaticamente `PurchaseItem.purchase` e `Product.image` via `CircularRefExclusionStrategy`. Para compensar:
-- `RestPurchaseItemRepository` injeta manualmente `purchaseId` no body JSON antes de enviar
-- Imagens de produto são transferidas por endpoints binários dedicados
+Gson automatically excludes `PurchaseItem.purchase` and `Product.image` via `CircularRefExclusionStrategy`. To compensate:
+- `RestPurchaseItemRepository` manually injects `purchaseId` into the JSON body before sending
+- Product images are transferred through dedicated binary endpoints
 
-## Uso
+## Usage
 
-O módulo é usado por:
+The module is used by:
 
-| Consumidor | Contexto |
+| Consumer | Context |
 |-----------|---------|
-| **TeaVM Web** (`view.teavm/teavm.web`) | Modo cliente — compilado para JS, acessa o backend Javalin via REST |
-| **Testes de integração** (`shopping.tests`) | `RestXxxRepositoryTest` valida API end-to-end |
-| **Javalin** (`backend`) | Registra `RestAuthenticationService` para propagação de auth |
+| **TeaVM Web** (`view.teavm/teavm.web`) | Client mode — compiled to JS, accesses the Javalin backend via REST |
+| **Integration tests** (`shopping.tests`) | `RestXxxRepositoryTest` validates the API end-to-end |
+| **Javalin** (`backend`) | Registers `RestAuthenticationService` for auth propagation |

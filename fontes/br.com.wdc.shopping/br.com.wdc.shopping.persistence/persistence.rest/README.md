@@ -1,119 +1,119 @@
 # persistence.rest
 
-Módulo de **API REST** da aplicação Shopping. Expõe os repositórios de domínio como endpoints HTTP via **Javalin**, com autenticação HMAC challenge-response, autorização JWT e serialização Jackson.
+The **REST API** module of the Shopping application. It exposes the domain repositories as HTTP endpoints via **Javalin**, with HMAC challenge-response authentication, JWT authorization and Jackson serialization.
 
-## Dependências
+## Dependencies
 
-| Artefato | Papel |
+| Artifact | Role |
 |----------|-------|
-| `br.com.wdc.shopping.domain` | Modelos de domínio, interfaces de repositório, contratos de segurança |
-| `io.javalin:javalin` | Framework HTTP (7.2.4) |
-| `com.fasterxml.jackson` | Serialização JSON |
+| `br.com.wdc.shopping.domain` | Domain models, repository interfaces, security contracts |
+| `io.javalin:javalin` | HTTP framework (7.2.4) |
+| `com.fasterxml.jackson` | JSON serialization |
 | `slf4j-api` | Logging |
 
-## Estrutura de Pacotes
+## Package Structure
 
 ```mermaid
 graph TD
     root["br.com.wdc.shopping.persistence.rest"]
-    root --> Routes["RepositoryApiRoutes.java<br/><small>Rotas e filtros</small>"]
+    root --> Routes["RepositoryApiRoutes.java<br/><small>Routes and filters</small>"]
     root --> Mapper["ApiObjectMapper.java<br/><small>Jackson mixins/adapters</small>"]
     root --> AuthCtrl["AuthApiController.java<br/><small>challenge, login, refresh, logout</small>"]
-    root --> UserCtrl["UserApiController.java<br/><small>CRUD usuários</small>"]
-    root --> ProductCtrl["ProductApiController.java<br/><small>CRUD produtos + imagens</small>"]
-    root --> PurchaseCtrl["PurchaseApiController.java<br/><small>CRUD compras</small>"]
-    root --> PurchItemCtrl["PurchaseItemApiController.java<br/><small>CRUD itens</small>"]
+    root --> UserCtrl["UserApiController.java<br/><small>User CRUD</small>"]
+    root --> ProductCtrl["ProductApiController.java<br/><small>Product CRUD + images</small>"]
+    root --> PurchaseCtrl["PurchaseApiController.java<br/><small>Purchase CRUD</small>"]
+    root --> PurchItemCtrl["PurchaseItemApiController.java<br/><small>Item CRUD</small>"]
     root --> security["security/"]
     security --> Filter["SecurityFilter.java<br/><small>Bearer JWT → SecurityContext.CURRENT</small>"]
 ```
 
 ## Endpoints
 
-### Autenticação (`/api/auth/`)
+### Authentication (`/api/auth/`)
 
-| Método | Path | Descrição |
+| Method | Path | Description |
 |--------|------|-----------|
-| GET | `/api/auth/challenge` | Gera nonce com TTL para HMAC challenge-response |
-| POST | `/api/auth/login` | Valida digest HMAC + nonce, retorna `{accessToken, refreshToken, publicKey, expiresAt}` |
-| POST | `/api/auth/refresh` | Renova tokens via `refreshToken` |
-| POST | `/api/auth/logout` | Invalida refresh token |
+| GET | `/api/auth/challenge` | Generates a nonce with a TTL for HMAC challenge-response |
+| POST | `/api/auth/login` | Validates the HMAC digest + nonce, returns `{accessToken, refreshToken, publicKey, expiresAt}` |
+| POST | `/api/auth/refresh` | Renews tokens via `refreshToken` |
+| POST | `/api/auth/logout` | Invalidates the refresh token |
 
-### Repositórios (`/api/repo/`)
+### Repositories (`/api/repo/`)
 
-Todos os endpoints de repositório seguem o mesmo padrão CRUD:
+All repository endpoints follow the same CRUD pattern:
 
-| Método | Path | Descrição |
+| Method | Path | Description |
 |--------|------|-----------|
-| POST | `/api/repo/{entity}/insert` | Insere entidade |
-| POST | `/api/repo/{entity}/update` | Atualiza entidade |
-| POST | `/api/repo/{entity}/upsert` | Insert ou update |
-| POST | `/api/repo/{entity}/delete` | Remove por critério |
-| POST | `/api/repo/{entity}/count` | Conta por critério |
-| POST | `/api/repo/{entity}/fetch` | Busca por critério (com projeção, paginação, ordenação) |
-| POST | `/api/repo/{entity}/fetchById` | Busca por ID (com projeção) |
-| GET | `/api/repo/{entity}/{id}` | Busca por ID (projeção padrão) |
+| POST | `/api/repo/{entity}/insert` | Inserts an entity |
+| POST | `/api/repo/{entity}/update` | Updates an entity |
+| POST | `/api/repo/{entity}/upsert` | Insert or update |
+| POST | `/api/repo/{entity}/delete` | Deletes by criteria |
+| POST | `/api/repo/{entity}/count` | Counts by criteria |
+| POST | `/api/repo/{entity}/fetch` | Fetches by criteria (with projection, pagination, ordering) |
+| POST | `/api/repo/{entity}/fetchById` | Fetches by ID (with projection) |
+| GET | `/api/repo/{entity}/{id}` | Fetches by ID (default projection) |
 
-Onde `{entity}` é: `user`, `product`, `purchase`, `purchase-item`.
+Where `{entity}` is: `user`, `product`, `purchase`, `purchase-item`.
 
-#### Endpoints adicionais de produto
+#### Additional product endpoints
 
-| Método | Path | Descrição |
+| Method | Path | Description |
 |--------|------|-----------|
-| GET | `/api/repo/product/{id}/image` | Download da imagem (PNG) — **público, sem autenticação** |
-| PUT | `/api/repo/product/{id}/image` | Upload da imagem (bytes) |
+| GET | `/api/repo/product/{id}/image` | Image download (PNG) — **public, no authentication** |
+| PUT | `/api/repo/product/{id}/image` | Image upload (bytes) |
 
-## Segurança
+## Security
 
 ### SecurityFilter
 
-Before-filter registrado em `/api/repo/*` (condicional — só ativo quando `AuthenticationService.BEAN` está configurado):
+Before-filter registered on `/api/repo/*` (conditional — active only when `AuthenticationService.BEAN` is configured):
 
-1. Extrai `Authorization: Bearer <token>` do header
-2. Valida o JWT via `AuthenticationService.resolveToken()`
-3. Popula `SecurityContext.CURRENT` com o contexto do usuário (userId, roles, permissions)
-4. Rotas públicas (terminadas em `/image`) ignoram autenticação
-5. Retorna 401 para tokens ausentes/inválidos
+1. Extracts `Authorization: Bearer <token>` from the header
+2. Validates the JWT via `AuthenticationService.resolveToken()`
+3. Populates `SecurityContext.CURRENT` with the user's context (userId, roles, permissions)
+4. Public routes (ending in `/image`) skip authentication
+5. Returns 401 for missing/invalid tokens
 
-O `SecurityContext.CURRENT` é limpo automaticamente em um `after` handler registrado por `RepositoryApiRoutes`.
+`SecurityContext.CURRENT` is cleared automatically in an `after` handler registered by `RepositoryApiRoutes`.
 
-### Tratamento de Erros
+### Error Handling
 
 - `AccessDeniedException` → HTTP 403 (Forbidden)
-- Token ausente/inválido → HTTP 401 (Unauthorized)
+- Missing/invalid token → HTTP 401 (Unauthorized)
 
-### Senha via RSA
+### Password via RSA
 
-O `UserApiController` suporta recebimento de senha criptografada com RSA (`RSA/ECB/OAEPWithSHA-256AndMGF1Padding`). Se um `SecurityContext` com chave privada RSA estiver presente, a senha é descriptografada server-side antes de persistir.
+`UserApiController` supports receiving a password encrypted with RSA (`RSA/ECB/OAEPWithSHA-256AndMGF1Padding`). If a `SecurityContext` with an RSA private key is present, the password is decrypted server-side before being persisted.
 
-## Componentes
+## Components
 
 ### RepositoryApiRoutes
 
-Classe utilitária (construtor privado) que configura o Javalin:
+Utility class (private constructor) that configures Javalin:
 
 ```java
 RepositoryApiRoutes.configure(javalinConfig);
 ```
 
-- Registra `SecurityFilter` como before-filter (se auth habilitado)
-- Registra handler para `AccessDeniedException` → 403
-- Registra `after` handler para limpar `SecurityContext.CURRENT`
-- Registra endpoints de autenticação (`AuthApiController`)
-- Registra endpoints CRUD de todas as entidades
+- Registers `SecurityFilter` as a before-filter (if auth is enabled)
+- Registers a handler for `AccessDeniedException` → 403
+- Registers an `after` handler to clear `SecurityContext.CURRENT`
+- Registers the authentication endpoints (`AuthApiController`)
+- Registers the CRUD endpoints for all entities
 
 ### ApiObjectMapper
 
-`ObjectMapper` Jackson compartilhado, configurado com:
+Shared Jackson `ObjectMapper`, configured with:
 
-| Configuração | Efeito |
+| Setting | Effect |
 |-------------|--------|
-| `OffsetDateTime` ↔ ISO-8601 | Serialização de datas como string ISO |
-| `PurchaseItem.purchase` → `@JsonIgnore` | Evita referência circular |
-| `Product.image` → `@JsonIgnore` | Imagens servidas por endpoint dedicado |
-| `User.password` → `WRITE_ONLY` | Senha nunca retorna nas respostas |
-| `NON_NULL` inclusion | Campos nulos omitidos |
-| `FAIL_ON_UNKNOWN_PROPERTIES = false` | Tolerância a campos desconhecidos |
+| `OffsetDateTime` ↔ ISO-8601 | Serializes dates as ISO strings |
+| `PurchaseItem.purchase` → `@JsonIgnore` | Avoids a circular reference |
+| `Product.image` → `@JsonIgnore` | Images served by a dedicated endpoint |
+| `User.password` → `WRITE_ONLY` | The password is never returned in responses |
+| `NON_NULL` inclusion | Null fields omitted |
+| `FAIL_ON_UNKNOWN_PROPERTIES = false` | Tolerates unknown fields |
 
-### Projeção
+### Projection
 
-Os endpoints `fetch` e `fetchById` aceitam um campo `"projection"` no body JSON, indicando quais campos da entidade devem ser retornados. O `ApiObjectMapper.parseProjection()` converte o JSON em uma instância do modelo de domínio com os campos sentinela de `ProjectionValues`.
+The `fetch` and `fetchById` endpoints accept a `"projection"` field in the JSON body, indicating which of the entity's fields should be returned. `ApiObjectMapper.parseProjection()` converts the JSON into an instance of the domain model with the sentinel fields from `ProjectionValues`.

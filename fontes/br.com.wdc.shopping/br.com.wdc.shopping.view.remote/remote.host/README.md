@@ -1,35 +1,35 @@
 # remote.host
 
-Instância concreta do host do protocolo de apresentação remota para a aplicação **WeDoCode Shopping**. É o servidor WebSocket que recebe eventos dos shells (React, TeaVM, Flutter, SWT), despacha para os Presenters e devolve os ViewStates modificados.
+Concrete instance of the remote presentation protocol host for the **WeDoCode Shopping** application. It is the WebSocket server that receives events from the shells (React, TeaVM, Flutter, SWT), dispatches them to the Presenters and returns the modified ViewStates.
 
-## Responsabilidade
+## Responsibility
 
-Fazer o wiring da aplicação Shopping com a infraestrutura `remote.backend` do framework: registra a `ShoppingApplicationImpl` no registry, configura o servidor Javalin e sobe o host na porta configurada.
+Wire the Shopping application into the framework's `remote.backend` infrastructure: it registers `ShoppingApplicationImpl` in the registry, configures the Javalin server and starts the host on the configured port.
 
 ## Classes
 
-| Classe | Responsabilidade |
+| Class | Responsibility |
 |--------|------------------|
-| `RemoteHostBootstrap` | Entry point: configura Javalin, registra rotas HTTP/WS via `remote.backend`, inicia o servidor |
-| `ShoppingApplicationImpl` | `RemoteApplication` concreta: instancia as views/presenters da aplicação Shopping, wiring completo do grafo de objetos |
+| `RemoteHostBootstrap` | Entry point: configures Javalin, registers HTTP/WS routes via `remote.backend`, starts the server |
+| `ShoppingApplicationImpl` | Concrete `RemoteApplication`: instantiates the Shopping application's views/presenters, full wiring of the object graph |
 
-## Dependências
+## Dependencies
 
-- `br.com.wdc.shopping.presentation` — Presenters e ViewStates da aplicação
-- `br.com.wdc.shopping.persistence` — Repositórios e acesso a dados
-- `remote.backend` — Infraestrutura do protocolo remoto (framework)
+- `br.com.wdc.shopping.presentation` — the application's Presenters and ViewStates
+- `br.com.wdc.shopping.persistence` — Repositories and data access
+- `remote.backend` — Remote protocol infrastructure (framework)
 - `io.javalin:javalin` 7.2.4 — HTTP/WebSocket
 
-## Execução
+## Running
 
-O host é iniciado pelo `br.com.wdc.cube.backend` (que orquestra backend REST + host remoto na mesma JVM). Para executar apenas o host remoto isolado:
+The host is started by `br.com.wdc.cube.backend` (which orchestrates the REST backend + remote host in the same JVM). To run only the remote host in isolation:
 
 ```bash
 cd fontes && mvn clean package -pl br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.host -am
 java -cp target/... br.com.wdc.shopping.view.remote.host.RemoteHostBootstrap
 ```
 
-A porta padrão é configurada em `work/config/application.toml`.
+The default port is configured in `work/config/application.toml`.
 
 ## Build
 

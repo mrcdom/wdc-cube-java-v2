@@ -1,195 +1,195 @@
-# remote.shell.cn1 — shell fino Codename One
+# remote.shell.cn1 — Codename One thin shell
 
-Frontend **Codename One (CN1)** do padrão *remote shell* da WDC Shopping. Os
-presenters e ViewStates rodam no **servidor** (`remote.host`); este módulo é um
-**cliente fino** que fala o protocolo *bridge* por WebSocket e renderiza com a UI
-nativa do Codename One — **uma única base Java** que vira app de **iOS, Android,
-desktop (Mac/Windows/Linux) e web**.
+**Codename One (CN1)** frontend for the WDC Shopping *remote shell* pattern. The
+presenters and ViewStates run on the **server** (`remote.host`); this module is a
+**thin client** that speaks the *bridge* protocol over WebSocket and renders with
+Codename One's native UI — **a single Java codebase** that becomes an app for **iOS,
+Android, desktop (Mac/Windows/Linux) and web**.
 
-É um dos frontends de referência do projeto (React, Flutter, Vaadin, SWT,
-TeaVM e este). Todos compartilham os mesmos presenters server-side; só a camada de
-renderização muda.
+It is one of the project's reference frontends (React, Flutter, Vaadin, SWT,
+TeaVM and this one). They all share the same server-side presenters; only the
+rendering layer changes.
 
 ---
 
-## Arquitetura (resumo)
+## Architecture (summary)
 
-- **Protocolo bridge reimplementado** com APIs do próprio CN1 (sem `okhttp`/`gson`/
-  `java.net.http`/reflection — a VM do CN1 é restrita): `ConnectionRequest`
+- **Bridge protocol reimplemented** with CN1's own APIs (no `okhttp`/`gson`/
+  `java.net.http`/reflection — the CN1 VM is restricted): `ConnectionRequest`
   (`GET /api/session/init`), `com.codename1.io.WebSocket`
-  (`ws://host/dispatcher/{appId}`), `JSONParser`. Ver `bridge/BridgeSession`.
-- **Cripto de sessão** (`bridge/Cn1Crypto`, `bridge/Cn1ClientStorage`): chave pública
-  RSA vinda do `/api/session/init`, AES + HMAC por sessão (login seguro).
-- **Não-reativo (estilo Vaadin)**: cada view é **uma classe** que constrói os widgets
-  **uma vez** em `build()` e os **muta** em `doUpdate()`. Nada é reconstruído por push;
-  um `markDirty` + `flush()` coalescido re-renderiza só o que mudou.
-- **DSL de construção** (`util/Cn1Dom`): `render(layout, (dom, r) -> …)` com
-  `boxX/boxY/border/container/label/spanLabel/button`. Convenção: `setUIID` é a
-  **primeira** ação do lambda (helpers como `FontImage.setMaterialIcon` "assam" cor/
-  tamanho a partir do estilo).
-- **Montagem por slot** (`bridge/ViewSlot`): container de filho único com guard
-  ("re-monta só na transição"). A raiz do app e os pontos de troca de view usam slots.
-- **Tema em SCSS** (`common/src/main/scss` + `views/*/_*.scss`) → CSS → `theme.res`.
-  **Densidade-independente** (`util/Px.mm` → `convertToPixels`); **responsivo** por
-  forma (`app.isExpanded()` = tablet/desktop vs. compacto no telefone), com rebuild ao
-  cruzar o breakpoint **ou** girar a tela.
-- **URL do backend por destino** (`ServerConfig`): resolve sozinho a URL que o
-  emulador/simulador usa para alcançar o backend no host (ver tabela em *Backend*).
+  (`ws://host/dispatcher/{appId}`), `JSONParser`. See `bridge/BridgeSession`.
+- **Session crypto** (`bridge/Cn1Crypto`, `bridge/Cn1ClientStorage`): RSA public key
+  obtained from `/api/session/init`, per-session AES + HMAC (secure login).
+- **Non-reactive (Vaadin style)**: each view is **one class** that builds its widgets
+  **once** in `build()` and **mutates** them in `doUpdate()`. Nothing is rebuilt on push;
+  a coalesced `markDirty` + `flush()` re-renders only what changed.
+- **Construction DSL** (`util/Cn1Dom`): `render(layout, (dom, r) -> …)` with
+  `boxX/boxY/border/container/label/spanLabel/button`. Convention: `setUIID` is the
+  **first** action of the lambda (helpers such as `FontImage.setMaterialIcon` "bake" color/
+  size from the style).
+- **Slot mounting** (`bridge/ViewSlot`): single-child container with a guard
+  ("re-mounts only on transition"). The app root and the view-swap points use slots.
+- **SCSS theme** (`common/src/main/scss` + `views/*/_*.scss`) → CSS → `theme.res`.
+  **Density-independent** (`util/Px.mm` → `convertToPixels`); **responsive** by
+  form factor (`app.isExpanded()` = tablet/desktop vs. compact on the phone), with a rebuild when
+  crossing the breakpoint **or** rotating the screen.
+- **Backend URL per target** (`ServerConfig`): automatically resolves the URL the
+  emulator/simulator uses to reach the backend on the host (see the table under *Backend*).
 
-### Por que não reusa o core compartilhado
+### Why it does not reuse the shared core
 
-Diferente dos frontends "gordos" (SWT/Vaadin/TeaVM), este shell **não** depende de
-`presentation`/`domain`/`persistence.client` — como os shells React e Flutter, ele
-reimplementa o protocolo com APIs do CN1, mantendo o classpath leve e compatível com a
-VM restrita do Codename One.
+Unlike the "fat" frontends (SWT/Vaadin/TeaVM), this shell does **not** depend on
+`presentation`/`domain`/`persistence.client` — like the React and Flutter shells, it
+reimplements the protocol with CN1 APIs, keeping the classpath light and compatible with
+Codename One's restricted VM.
 
-### Projeto semi-destacado (fora do reactor Maven)
+### Semi-detached project (outside the Maven reactor)
 
-É um projeto Codename One completo, com **parent e plugin próprios**
-(`codenameone-maven-plugin`). Por isso **não** está nos `<modules>` de
-`view.remote/pom.xml` — o `mvn clean package` da raiz **não** o constrói. Build e
-execução são independentes (via `run.sh`/`build.sh`/`android.sh`/`mvnw`), como os
-shells não-Java.
+It is a complete Codename One project, with its **own parent and plugin**
+(`codenameone-maven-plugin`). That is why it is **not** in the `<modules>` of
+`view.remote/pom.xml` — the root `mvn clean package` does **not** build it. Build and
+execution are independent (via `run.sh`/`build.sh`/`android.sh`/`mvnw`), like the
+non-Java shells.
 
 ---
 
-## Pré-requisito comum: backend no ar
+## Common prerequisite: backend up
 
-Todas as formas de rodar precisam do backend (presenters server-side) na porta **8080**.
-A partir da **raiz do repositório**:
+Every way of running it needs the backend (server-side presenters) on port **8080**.
+From the **repository root**:
 
 ```bash
-./work/bin/start-server.sh        # backend, porta 8080
-./work/bin/start-h2-server.sh     # se o banco estiver configurado em modo TCP
+./work/bin/start-server.sh        # backend, port 8080
+./work/bin/start-h2-server.sh     # if the database is configured in TCP mode
 ```
 
-### URL do backend por plataforma (`ServerConfig`)
+### Backend URL per platform (`ServerConfig`)
 
-| Destino                              | URL usada            | Como ajustar |
+| Target                               | URL used             | How to adjust |
 |--------------------------------------|----------------------|--------------|
-| iOS (simulador), desktop, web        | `http://localhost:8080` | automático |
-| Android (emulador)                   | `http://10.0.2.2:8080`  | automático (alias do host no emulador) |
-| Aparelho real (iOS/Android)          | informar a URL          | `DEVICE_URL` em `ServerConfig` **ou** `-Dcodename1.arg.serverUrl=https://…` |
+| iOS (simulator), desktop, web        | `http://localhost:8080` | automatic |
+| Android (emulator)                   | `http://10.0.2.2:8080`  | automatic (host alias in the emulator) |
+| Real device (iOS/Android)            | provide the URL         | `DEVICE_URL` in `ServerConfig` **or** `-Dcodename1.arg.serverUrl=https://…` |
 
 ---
 
-## Como rodar em cada plataforma
+## How to run on each platform
 
-> Comandos a partir **desta pasta** (`remote.shell.cn1`), salvo o backend (raiz do repo).
+> Commands from **this folder** (`remote.shell.cn1`), except the backend (repo root).
 
-### Builds locais (sem conta Codename One)
+### Local builds (no Codename One account)
 
-| Plataforma            | Comando                       | Requisitos |
+| Platform              | Command                       | Requirements |
 |-----------------------|-------------------------------|-----------|
-| **Simulador CN1**     | `./run.sh simulator`          | JDK instalado |
-| **Desktop (rodar)**   | `./run.sh desktop`            | JDK instalado |
-| **Desktop (jar)**     | `./build.sh jar`              | gera `javase/target/*.jar` executável |
-| **Android (emulador)**| `./android.sh --gen`          | Android SDK + emulador rodando (ver abaixo) |
-| **iOS (sim/device)**  | `./build.sh ios_source`       | macOS + Xcode (abre projeto em `ios/target`) |
+| **CN1 simulator**     | `./run.sh simulator`          | JDK installed |
+| **Desktop (run)**     | `./run.sh desktop`            | JDK installed |
+| **Desktop (jar)**     | `./build.sh jar`              | produces an executable `javase/target/*.jar` |
+| **Android (emulator)**| `./android.sh --gen`          | Android SDK + running emulator (see below) |
+| **iOS (sim/device)**  | `./build.sh ios_source`       | macOS + Xcode (opens the project in `ios/target`) |
 
-#### Android — `android.sh` (recomendado)
+#### Android — `android.sh` (recommended)
 
-O `./build.sh android_source` gera um projeto Gradle, mas o CN1 o **recria a cada
-geração** e zera ajustes do ambiente local. O `android.sh` reaplica tudo e roda:
+`./build.sh android_source` generates a Gradle project, but CN1 **recreates it on every
+generation** and wipes local environment tweaks. `android.sh` reapplies everything and runs:
 
 ```bash
-./android.sh --gen          # regenera + corrige + installDebug + abre no emulador
-./android.sh                # sem regerar: só corrige, instala e abre
-./android.sh --gen --patch  # regenera + corrige, sem buildar → abrir/rodar no IntelliJ/Android Studio
+./android.sh --gen          # regenerate + fix + installDebug + open in the emulator
+./android.sh                # without regenerating: just fix, install and open
+./android.sh --gen --patch  # regenerate + fix, without building → open/run in IntelliJ/Android Studio
 ```
 
-Requisitos: **Android SDK** com *cmdline-tools* e ao menos uma plataforma **estável**
-(ex.: `android-36`); **JDK 17** para o Gradle (o Gradle 8.1 não roda sob JDK > 19; o
-script força isso); um **emulador (AVD) já rodando**. O `android.sh` cuida de: fixar
-`compileSdk/targetSdk` na maior plataforma estável, apontar o Gradle ao JDK 17 e o
-`sdk.dir`. (HTTP cleartext já vem de build hint.)
+Requirements: **Android SDK** with *cmdline-tools* and at least one **stable** platform
+(e.g. `android-36`); **JDK 17** for Gradle (Gradle 8.1 does not run under JDK > 19; the
+script enforces this); an **emulator (AVD) already running**. `android.sh` takes care of: pinning
+`compileSdk/targetSdk` to the highest stable platform, pointing Gradle at JDK 17, and
+`sdk.dir`. (Cleartext HTTP comes from a build hint.)
 
-Fluxo IDE: rode `./android.sh --gen --patch`, **abra o projeto gerado** (`android/
-target/*-android-source`) na IDE e dê Run — **não** regere de dentro dela.
+IDE flow: run `./android.sh --gen --patch`, **open the generated project** (`android/
+target/*-android-source`) in the IDE and hit Run — do **not** regenerate from inside it.
 
 #### iOS
 
 ```bash
-./build.sh ios_source       # gera o projeto Xcode em ios/target
+./build.sh ios_source       # generates the Xcode project in ios/target
 ```
-Abra o `.xcodeproj`/workspace no **Xcode** e rode no simulador ou no dispositivo.
+Open the `.xcodeproj`/workspace in **Xcode** and run it on the simulator or on the device.
 
-### Builds no servidor Codename One (exigem conta)
+### Builds on the Codename One server (require an account)
 
-Estes alvos **não compilam localmente**: o código é enviado para a **nuvem do
-Codename One** compilar e devolver o artefato. Por isso, na primeira vez, o comando
-**abre o navegador para você fazer login** numa conta Codename One (as credenciais
-ficam guardadas; gerencie com `./run.sh settings`). Não é erro — é o fluxo normal de
-um *cloud build*.
+These targets **do not compile locally**: the code is sent to the **Codename One
+cloud** to be compiled, and the artifact is sent back. Because of that, the first time, the command
+**opens the browser for you to log in** to a Codename One account (the credentials
+are stored; manage them with `./run.sh settings`). This is not an error — it is the normal flow of
+a *cloud build*.
 
-> **`*` = requer conta Codename One** (cloud build com login no navegador). Os comandos
-> **sem** `*` (seção anterior — simulador, desktop, `jar`, `android_source`, `ios_source`)
-> são 100% locais e não pedem conta.
+> **`*` = requires a Codename One account** (cloud build with browser login). The commands
+> **without** `*` (previous section — simulator, desktop, `jar`, `android_source`, `ios_source`)
+> are 100% local and do not ask for an account.
 
-| Plataforma                | Comando                       |     |
+| Platform                  | Command                       |     |
 |---------------------------|-------------------------------|-----|
 | Android (APK/AAB)         | `./build.sh android`          | `*` |
 | iOS (device)              | `./build.sh ios`              | `*` |
 | iOS (App Store)           | `./build.sh ios_release`      | `*` |
 | Web (JavaScript)          | `./build.sh javascript`       | `*` (Enterprise) |
 | macOS desktop             | `./build.sh mac_desktop`      | `*` |
-| macOS nativo (sem JVM)    | `./build.sh mac_native`       | `*` |
+| macOS native (no JVM)     | `./build.sh mac_native`       | `*` |
 | Windows desktop           | `./build.sh windows_desktop`  | `*` |
 | Windows (UWP/device)      | `./build.sh windows_device`   | `*` |
-| Linux nativo              | `./build.sh linux_device`     | `*` |
+| Linux native              | `./build.sh linux_device`     | `*` |
 
-> **Web (JavaScript)** é o caso mais particular: diferente de Android/iOS, **não tem
-> variante `_source` local** (a transpilação Java→JS roda só no build server) e exige o
-> plano **Enterprise**. Ao concluir, o `./build.sh javascript` **deposita o app web em
-> `work/frontend/remote.shell.cn1/`** (+ `context.html`), tal como os shells TeaVM/React —
-> a landing do backend lista a pasta e linka `/remote.shell.cn1/index.html`. Para um
-> frontend **web sem depender da nuvem do CN1**, use o shell **TeaVM** (`view.teavm`).
+> **Web (JavaScript)** is the most particular case: unlike Android/iOS, it **has no
+> local `_source` variant** (the Java→JS transpilation runs only on the build server) and requires the
+> **Enterprise** plan. When it finishes, `./build.sh javascript` **deposits the web app in
+> `work/frontend/remote.shell.cn1/`** (+ `context.html`), just like the TeaVM/React shells —
+> the backend landing page lists the folder and links `/remote.shell.cn1/index.html`. For a
+> **web frontend that does not depend on the CN1 cloud**, use the **TeaVM** shell (`view.teavm`).
 
-Veja `./build.sh help` para a lista completa.
+See `./build.sh help` for the full list.
 
-### Configurações do Codename One
+### Codename One settings
 
 ```bash
-./run.sh settings    # abre o editor de settings (codenameone_settings.properties)
-./run.sh update      # atualiza as libs do Codename One
+./run.sh settings    # opens the settings editor (codenameone_settings.properties)
+./run.sh update      # updates the Codename One libs
 ```
 
 ---
 
-## Estrutura
+## Structure
 
-| Pasta | Papel |
+| Folder | Role |
 |-------|-------|
-| `common/` | App: lifecycle, protocolo bridge, views, widgets, tema SCSS e `codenameone_settings.properties` |
-| `javase/` | Porta desktop/**simulador** (validável localmente, sem build server) |
-| `android/`, `ios/`, `javascript/`, `linux/` | Portas dos alvos nativos |
-| `build.sh` | Builds (locais e de servidor) por alvo |
-| `run.sh` | Simulador/desktop/settings |
-| `android.sh` | Build/run local no emulador Android (corrige o projeto gerado a cada vez) |
+| `common/` | App: lifecycle, bridge protocol, views, widgets, SCSS theme and `codenameone_settings.properties` |
+| `javase/` | Desktop/**simulator** port (verifiable locally, without the build server) |
+| `android/`, `ios/`, `javascript/`, `linux/` | Ports for the native targets |
+| `build.sh` | Builds (local and server) per target |
+| `run.sh` | Simulator/desktop/settings |
+| `android.sh` | Local build/run on the Android emulator (fixes the generated project each time) |
 
-### Pacotes em `common`
+### Packages in `common`
 
 ```
 …shell.cn1
-├─ ShoppingCn1RemoteApp   # Lifecycle: form, conexão, re-sync por push, slot raiz, splash
-├─ ServerConfig           # URL do backend por destino
-├─ Sel / *Sel             # UIIDs (seletores de tema) por pacote
+├─ ShoppingCn1RemoteApp   # Lifecycle: form, connection, re-sync on push, root slot, splash
+├─ ServerConfig           # Backend URL per target
+├─ Sel / *Sel             # UIIDs (theme selectors) per package
 ├─ bridge/                # BridgeSession, Cn1Crypto, Cn1ClientStorage, ViewSlot, Abstract*View
 ├─ util/                  # Cn1Dom (DSL), Px, Guard, Money, Json, Images, Decor, …
 ├─ widgets/               # BackButton, CardHeader, IconButton, HtmlText
 └─ views/                 # login, home, product, cart, receipt (+ RootCn1View)
 ```
 
-Classe de entrada: `ShoppingCn1RemoteApp` (estende `com.codename1.system.Lifecycle`);
-`mainName`/`packageName` em `common/codenameone_settings.properties`.
+Entry class: `ShoppingCn1RemoteApp` (extends `com.codename1.system.Lifecycle`);
+`mainName`/`packageName` in `common/codenameone_settings.properties`.
 
 ---
 
-## Validação rápida do tema/código
+## Quick theme/code validation
 
 ```bash
-# compila o common (Java + SCSS→CSS→theme.res); use sempre 'clean' (a IDE deixa .class stale)
+# compiles common (Java + SCSS→CSS→theme.res); always use 'clean' (the IDE leaves stale .class files)
 ./mvnw -q -pl common -DskipTests clean process-classes
 ```
 
-> Para a visão arquitetural completa do projeto, ver o README.md da raiz e a pasta `docs/`.
+> For the project's complete architectural overview, see the root README.md and the `docs/` folder.

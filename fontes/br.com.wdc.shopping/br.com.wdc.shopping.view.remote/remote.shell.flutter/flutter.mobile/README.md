@@ -1,60 +1,60 @@
 # Shopping Remote — Flutter Mobile
 
-Shell mobile (iOS & Android) da aplicação **WeDoCode Shopping**, usando o protocolo de **Remote Presentation**. O app é um thin client que renderiza ViewStates recebidos do servidor via WebSocket e emite eventos de interação do usuário.
+Mobile shell (iOS & Android) for the **WeDoCode Shopping** application, using the **Remote Presentation** protocol. The app is a thin client that renders ViewStates received from the server over WebSocket and emits user interaction events.
 
-## Características
+## Features
 
-- **Nome do app:** Shopping Remote
-- **Ícone:** Teal com carrinho WDC + badge "F" (Flutter)
-- **Plataformas:** iPhone, iPad, Android phone, Android tablet
-- **Protocolo:** WebSocket bidirecional com criptografia RSA + AES-GCM
-- **Persistência de sessão:** Access token via SharedPreferences (auto-login)
-- **Código compartilhado:** Usa `flutter_commons` para protocolo, views e widgets
+- **App name:** Shopping Remote
+- **Icon:** Teal with the WDC cart + "F" badge (Flutter)
+- **Platforms:** iPhone, iPad, Android phone, Android tablet
+- **Protocol:** Bidirectional WebSocket with RSA + AES-GCM encryption
+- **Session persistence:** Access token via SharedPreferences (auto-login)
+- **Shared code:** Uses `flutter_commons` for protocol, views and widgets
 
-## Pré-requisitos
+## Prerequisites
 
 - **Flutter 3.44+** (`flutter --version`)
-- **Xcode 15+** (para iOS)
-- **Android Studio** com SDK 34+ (para Android)
-- **Backend rodando** na porta 8080 (ou endpoint configurado)
+- **Xcode 15+** (for iOS)
+- **Android Studio** with SDK 34+ (for Android)
+- **Backend running** on port 8080 (or the configured endpoint)
 
 ## Deploy
 
-O script `deploy.sh` suporta todos os targets:
+The `deploy.sh` script supports every target:
 
 ```bash
-# Listar dispositivos disponíveis
+# List available devices
 ./deploy.sh list
 
-# Executar (modo debug com hot reload)
+# Run (debug mode with hot reload)
 ./deploy.sh run ios-sim              # iPhone Simulator
 ./deploy.sh run ipad-sim             # iPad Simulator
 ./deploy.sh run android-emu          # Android phone Emulator
 ./deploy.sh run android-tablet-emu   # Android tablet Emulator
-./deploy.sh run ios                  # iPhone físico
-./deploy.sh run android              # Android device físico
+./deploy.sh run ios                  # physical iPhone
+./deploy.sh run android              # physical Android device
 
-# Instalar (sem hot reload)
+# Install (no hot reload)
 ./deploy.sh install ios-sim
 ./deploy.sh install ipad-sim
 
-# Build release
+# Release build
 ./deploy.sh build ios
 ./deploy.sh build android
 ./deploy.sh build all
 ```
 
-### Opções
+### Options
 
-| Opção | Descrição |
+| Option | Description |
 |-------|-----------|
-| `--release` | Build em release mode |
-| `--debug` | Build em debug mode (padrão para `run`) |
-| `--endpoint=URL` | Endpoint do backend (padrão: `http://localhost:8080`) |
+| `--release` | Build in release mode |
+| `--debug` | Build in debug mode (default for `run`) |
+| `--endpoint=URL` | Backend endpoint (default: `http://localhost:8080`) |
 
-> **Nota:** Para emuladores Android, `localhost` é substituído automaticamente por `10.0.2.2`.
+> **Note:** For Android emulators, `localhost` is automatically replaced with `10.0.2.2`.
 
-## Estrutura
+## Structure
 
 ```mermaid
 graph TD
@@ -62,12 +62,12 @@ graph TD
     lib["lib/"]
     main["main.dart<br/><small>Entry point (session init, ViewStateCoordinator)</small>"]
     ios["ios/Runner/"]
-    infoPlist["Info.plist<br/><small>Nome, ATS config</small>"]
-    assets["Assets.xcassets/<br/><small>App icons (teal + badge F)</small>"]
+    infoPlist["Info.plist<br/><small>Name, ATS config</small>"]
+    assets["Assets.xcassets/<br/><small>App icons (teal + F badge)</small>"]
     android["android/app/src/main/"]
-    manifest["AndroidManifest.xml<br/><small>Nome</small>"]
+    manifest["AndroidManifest.xml<br/><small>Name</small>"]
     res["res/mipmap-*/<br/><small>App icons</small>"]
-    deploy["deploy.sh<br/><small>Script de deploy multi-target</small>"]
+    deploy["deploy.sh<br/><small>Multi-target deploy script</small>"]
     pubspec["pubspec.yaml"]
 
     root --> lib
@@ -82,9 +82,9 @@ graph TD
     android --> res
 ```
 
-## Dependências
+## Dependencies
 
-| Package | Uso |
+| Package | Purpose |
 |---------|-----|
-| `flutter_commons` | Protocolo WS, views, widgets, segurança |
-| `shared_preferences` | Persistência de access token |
+| `flutter_commons` | WS protocol, views, widgets, security |
+| `shared_preferences` | Access token persistence |

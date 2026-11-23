@@ -1,66 +1,66 @@
 # br.com.wdc.shopping.view.vaadin
 
-Implementação web (Vaadin 25) da aplicação **WeDoCode Shopping**, demonstrando a **independência entre visualização e lógica de apresentação** no padrão **Cube MVP**.
+Web implementation (Vaadin 25) of the **WeDoCode Shopping** application, demonstrating the **independence between view and presentation logic** in the **Cube MVP** pattern.
 
-## Motivação
+## Motivation
 
-A arquitetura Cube MVP separa rigorosamente os **Presenters** (que controlam estado e navegação) dos **Views** (que renderizam a interface). Os Presenters expõem **ViewStates** — objetos simples com os dados que a view precisa exibir — e a view implementa a interface `CubeView` para se conectar ao ciclo de atualização.
+The Cube MVP architecture strictly separates the **Presenters** (which control state and navigation) from the **Views** (which render the interface). The Presenters expose **ViewStates** — simple objects with the data the view needs to display — and the view implements the `CubeView` interface to connect to the update cycle.
 
-Este módulo utiliza **Vaadin Flow** — um framework server-side que renderiza componentes nativos no browser sem necessidade de código JavaScript/TypeScript customizado. A UI roda inteiramente no servidor (Java), e o Vaadin cuida do transporte via Atmosphere (WebSocket/Push) para manter o browser sincronizado.
+This module uses **Vaadin Flow** — a server-side framework that renders native components in the browser without any custom JavaScript/TypeScript code. The UI runs entirely on the server (Java), and Vaadin handles the transport via Atmosphere (WebSocket/Push) to keep the browser in sync.
 
-## Como funciona
+## How it works
 
-### Navegação e URLs
+### Navigation and URLs
 
-Diferente de um projeto Vaadin típico que usa `@Route` para navegação, este módulo utiliza uma **única rota** (`@Route("")` em `MainLayout`) e delega toda a navegação ao framework Cube MVP via `CubeNavigation.execute(intent)`.
+Unlike a typical Vaadin project that uses `@Route` for navigation, this module uses a **single route** (`@Route("")` in `MainLayout`) and delegates all navigation to the Cube MVP framework via `CubeNavigation.execute(intent)`.
 
-As URLs utilizam hash-based navigation com assinatura HMAC-SHA256:
+The URLs use hash-based navigation with an HMAC-SHA256 signature:
 
 ```
 http://localhost:8080/#intent?sign=abc123
 ```
 
-A classe `IntentSigner` gera e valida assinaturas usando Base62, garantindo que URLs não possam ser forjadas.
+The `IntentSigner` class generates and validates signatures using Base62, ensuring that URLs cannot be forged.
 
-### Restauração de estado (F5)
+### State restoration (F5)
 
-Ao pressionar F5, o estado completo da aplicação é preservado:
+When F5 is pressed, the complete application state is preserved:
 
-1. `ShoppingVaadinApplication` mantém um `APP_CACHE` estático (ConcurrentHashMap) indexado pela assinatura da URL
-2. No `onAttach` do `MainLayout`, se existe cache para a assinatura atual:
-   - Os presenters são preservados (contêm o estado de negócio)
-   - Apenas os componentes Vaadin são recriados via `view.recreate()`
-   - A hierarquia de navegação é recomposta via `go(location)`
+1. `ShoppingVaadinApplication` keeps a static `APP_CACHE` (ConcurrentHashMap) indexed by the URL signature
+2. In `MainLayout`'s `onAttach`, if there is a cache entry for the current signature:
+   - The presenters are preserved (they hold the business state)
+   - Only the Vaadin components are recreated via `view.recreate()`
+   - The navigation hierarchy is rebuilt via `go(location)`
 
-### Componentes Vaadin nativos
+### Native Vaadin components
 
-A UI é construída programaticamente usando componentes nativos do Vaadin:
+The UI is built programmatically using native Vaadin components:
 
-- **LoginForm** com `LoginI18n` (labels em Português)
-- **Grid** para listagens (carrinho, recibo)
-- **IntegerField** com step buttons para quantidade
-- **Notification** para mensagens de erro/sucesso
-- **Badge** para contador do carrinho
-- **Icon** (VaadinIcon) nos botões de ação
-- **ButtonVariant** (LUMO_PRIMARY, LUMO_TERTIARY, LUMO_SMALL) para estilos
-- **Scroller** para área de conteúdo com scroll
-- **H2, H3, H4** para títulos semânticos
+- **LoginForm** with `LoginI18n` (localized labels)
+- **Grid** for listings (cart, receipt)
+- **IntegerField** with step buttons for quantity
+- **Notification** for error/success messages
+- **Badge** for the cart counter
+- **Icon** (VaadinIcon) on action buttons
+- **ButtonVariant** (LUMO_PRIMARY, LUMO_TERTIARY, LUMO_SMALL) for styles
+- **Scroller** for the scrollable content area
+- **H2, H3, H4** for semantic headings
 
-O tema CSS utiliza **Lumo design tokens** (`var(--lumo-*)`) para manter a aparência nativa do Vaadin.
+The CSS theme uses **Lumo design tokens** (`var(--lumo-*)`) to keep Vaadin's native look.
 
-### DSL para construção de UI
+### DSL for building the UI
 
-A classe `VaadinDom` fornece uma DSL fluente para construção programática de componentes:
+The `VaadinDom` class provides a fluent DSL for building components programmatically:
 
 ```java
 VaadinDom.render(rootLayout, (dom, pane) -> {
-    dom.h3(h -> h.setText("Título"));
+    dom.h3(h -> h.setText("Title"));
     dom.horizontalLayout(row -> {
         dom.image(img -> img.setSrc("images/produto.png"));
         dom.verticalLayout(col -> {
-            dom.span(label -> label.setText("Descrição"));
+            dom.span(label -> label.setText("Description"));
             dom.button(btn -> {
-                btn.setText("Comprar");
+                btn.setText("Buy");
                 btn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             });
         });
@@ -68,7 +68,7 @@ VaadinDom.render(rootLayout, (dom, pane) -> {
 });
 ```
 
-### Catálogo de Views (`ScopeViews`)
+### View Catalog (`ScopeViews`)
 
 ```java
 private static final ScopeViews SCOPE_VIEWS = new ScopeViews()
@@ -78,7 +78,7 @@ private static final ScopeViews SCOPE_VIEWS = new ScopeViews()
         .register(ProductScope.class, ProductViewVaadin::new)
         .register(CartScope.class, CartViewVaadin::new)
         .register(ReceiptScope.class, ReceiptViewVaadin::new)
-        // ... segmentos e linhas (ProductsPanelScope, PurchasesPanelScope, CartItemScope)
+        // ... segments and rows (ProductsPanelScope, PurchasesPanelScope, CartItemScope)
         ;
 
 public ShoppingVaadinApplication(UI ui) {
@@ -87,9 +87,9 @@ public ShoppingVaadinApplication(UI ui) {
 }
 ```
 
-Cada construtor de View recebe a aplicação e o escopo que desenha — `public CartViewVaadin(ShoppingVaadinApplication app, CartScope state)` —, permitindo o uso de method references. O Presenter nunca sabe qual tecnologia de UI está sendo usada: ele só preenche o escopo.
+Each View constructor receives the application and the scope it draws — `public CartViewVaadin(ShoppingVaadinApplication app, CartScope state)` — which allows the use of method references. The Presenter never knows which UI technology is in use: it only fills in the scope.
 
-## Estrutura
+## Structure
 
 ```mermaid
 graph TD
@@ -97,14 +97,14 @@ graph TD
 
     subgraph Main["src/main/java/.../view/vaadin/"]
         VaadinMain["ShoppingVaadinMain.java<br/><small>Entry point (Jetty)</small>"]
-        VaadinApp["ShoppingVaadinApplication.java<br/><small>CubeApp + catálogo de views (ScopeViews)</small>"]
+        VaadinApp["ShoppingVaadinApplication.java<br/><small>CubeApp + view catalog (ScopeViews)</small>"]
         MainLayout["MainLayout.java<br/><small>@Route</small>"]
-        AppShell["AppShell.java<br/><small>@Push + tema Lumo</small>"]
+        AppShell["AppShell.java<br/><small>@Push + Lumo theme</small>"]
         AbstractV["AbstractViewVaadin.java<br/><small>Base CubeView</small>"]
         SchedAdapter["ScheduledExecutorVaadinAdapter.java"]
 
         subgraph Util["util/"]
-            VaadinDom["VaadinDom.java<br/><small>DSL fluente</small>"]
+            VaadinDom["VaadinDom.java<br/><small>Fluent DSL</small>"]
             IntentSigner["IntentSigner.java<br/><small>HMAC-SHA256</small>"]
             ResCatalog["ResourceCatalog.java"]
         end
@@ -123,53 +123,53 @@ graph TD
     end
 
     subgraph Resources["src/main/resources/"]
-        CSS["styles/app.css<br/><small>Tema Lumo customizado</small>"]
-        Images["images/<br/><small>Logo, produtos</small>"]
+        CSS["styles/app.css<br/><small>Custom Lumo theme</small>"]
+        Images["images/<br/><small>Logo, products</small>"]
         Logback["logback.xml"]
     end
 ```
 
-## Dependências principais
+## Main dependencies
 
-| Dependência | Versão | Uso |
+| Dependency | Version | Use |
 |-------------|--------|-----|
-| Vaadin (vaadin-core) | 25.3.5 | Framework de UI server-side |
-| Jetty (jetty-ee10-webapp) | 12.1.15 | Servidor embarcado |
-| H2 Database | (gerenciada) | Banco embarcado |
-| SLF4J + Logback | (gerenciada) | Logging |
+| Vaadin (vaadin-core) | 25.3.5 | Server-side UI framework |
+| Jetty (jetty-ee10-webapp) | 12.1.15 | Embedded server |
+| H2 Database | (managed) | Embedded database |
+| SLF4J + Logback | (managed) | Logging |
 
-## Pré-requisitos
+## Prerequisites
 
-- **Java 25** (Temurin ou Microsoft JDK)
+- **Java 25** (Temurin or Microsoft JDK)
 - **Maven 3.9+**
 
 ## Build
 
 ```bash
-export JAVA_HOME=<caminho-para-jdk-25>  # ex: /Library/Java/JavaVirtualMachines/temurin-25.jdk/Contents/Home
+export JAVA_HOME=<path-to-jdk-25>  # e.g.: /Library/Java/JavaVirtualMachines/temurin-25.jdk/Contents/Home
 export PATH="$JAVA_HOME/bin:$PATH"
 
-# Build completo (a partir da raiz do projeto)
+# Full build (from the project root)
 cd fontes && mvn -q -DskipTests clean install
 
-# Build apenas do módulo Vaadin
+# Build only the Vaadin module
 cd fontes && mvn -DskipTests compile -pl br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin -am
 ```
 
-## Execução
+## Running
 
 ```bash
 cd fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin
 mvn exec:java
 ```
 
-Ou via IDE usando a classe `ShoppingVaadinMain.java`.
+Or via the IDE using the `ShoppingVaadinMain.java` class.
 
-Acesse: **http://localhost:8080**
+Open: **http://localhost:8080**
 
-## Configuração
+## Configuration
 
-O arquivo `work/config/application.toml` permite configurar:
+The `work/config/application.toml` file lets you configure:
 
 ```toml
 [app]
@@ -182,31 +182,31 @@ O arquivo `work/config/application.toml` permite configurar:
 # reset = false
 ```
 
-## Notas técnicas
+## Technical notes
 
-### Jetty e a varredura de classes
+### Jetty and class scanning
 
-As classes vêm do classpath, não de um WAR: o `WebAppContext` aponta para um diretório WAR vazio, e o `ContainerIncludeJarPattern` limita a varredura de anotações aos JARs do Vaadin/Flow/Atmosphere e ao local deste módulo (`target/classes` ou o fat JAR). É essa varredura que registra o `AppShell` e a rota do `MainLayout`.
+The classes come from the classpath, not from a WAR: the `WebAppContext` points to an empty WAR directory, and the `ContainerIncludeJarPattern` limits annotation scanning to the Vaadin/Flow/Atmosphere JARs and to this module's location (`target/classes` or the fat JAR). This scan is what registers the `AppShell` and the `MainLayout` route.
 
-### Tema
+### Theme
 
-Desde o Vaadin 25 o tema padrão é o Aura. O `AppShell` declara o Lumo (`@StyleSheet(Lumo.STYLESHEET)`), porque o `styles/app.css` usa as variáveis `--lumo-*`. O app shell é uma classe à parte: o Vaadin não aceita um componente (como o `MainLayout`) nesse papel.
+Starting with Vaadin 25, the default theme is Aura. The `AppShell` declares Lumo (`@StyleSheet(Lumo.STYLESHEET)`), because `styles/app.css` uses the `--lumo-*` variables. The app shell is a separate class: Vaadin does not accept a component (such as `MainLayout`) in that role.
 
 ### Server Push
 
-O `@Push(PushMode.AUTOMATIC)` no `AppShell` habilita push via Atmosphere/WebSocket, permitindo que atualizações de estado nos Presenters sejam refletidas automaticamente no browser.
+The `@Push(PushMode.AUTOMATIC)` on `AppShell` enables push via Atmosphere/WebSocket, allowing state updates in the Presenters to be reflected automatically in the browser.
 
-## Arquitetura de Integração Cube MVP
+## Cube MVP Integration Architecture
 
-A integração entre o Vaadin e a camada de apresentação (Cube MVP) resolve o desafio de conectar um framework server-side push-based ao ciclo de atualização do Cube:
+The integration between Vaadin and the presentation layer (Cube MVP) solves the challenge of connecting a push-based server-side framework to the Cube update cycle:
 
-### 1. Catálogo de views por escopo
+### 1. View catalog by scope
 
-O `ShoppingVaadinApplication` monta um `ScopeViews` (classe do escopo → construtor da view) e o entrega no construtor com `setScopeViews(...)`. A aplicação cria cada view na primeira vez que ela é pedida com `viewOf(scope)`: o host pede a do escopo raiz (`viewOf(getRootPresenter().state)` no `updateHistory`), e cada view pede as dos escopos que segura — a `HomeViewVaadin`, por exemplo, faz `app.viewOf(state.content.get())` para o conteúdo e `app.viewOf(state.productsPanel.get())` para o painel.
+`ShoppingVaadinApplication` builds a `ScopeViews` (scope class → view constructor) and hands it over in the constructor with `setScopeViews(...)`. The application creates each view the first time it is requested with `viewOf(scope)`: the host requests the root scope's view (`viewOf(getRootPresenter().state)` in `updateHistory`), and each view requests those of the scopes it holds — `HomeViewVaadin`, for example, calls `app.viewOf(state.content.get())` for the content and `app.viewOf(state.productsPanel.get())` for the panel.
 
 ### 2. Flush via ui.access() (Server Push)
 
-O Vaadin não usa polling periódico. Em vez disso, utiliza **server-push** via `@Push(PushMode.AUTOMATIC)` para enviar atualizações ao browser sob demanda:
+Vaadin does not use periodic polling. Instead, it uses **server push** via `@Push(PushMode.AUTOMATIC)` to send updates to the browser on demand:
 
 ```mermaid
 sequenceDiagram
@@ -220,22 +220,22 @@ sequenceDiagram
     V->>A: markDirty(this)
     A->>UI: ui.access(flushDirtyViews)
     UI->>V: doUpdate()
-    Note over V: reconcilia estado → componentes Vaadin
+    Note over V: reconciles state → Vaadin components
     UI->>B: Push delta via WebSocket
 ```
 
-O `markDirty` agenda um `ui.access()` que executa `flushDirtyViews()` dentro do session lock do Vaadin, garantindo thread-safety sem necessidade de timer. Todas as views sujas são processadas de uma vez, e o Vaadin automaticamente envia as diferenças de DOM para o browser via Atmosphere/WebSocket.
+`markDirty` schedules a `ui.access()` that runs `flushDirtyViews()` inside Vaadin's session lock, ensuring thread safety without the need for a timer. All dirty views are processed at once, and Vaadin automatically sends the DOM differences to the browser via Atmosphere/WebSocket.
 
-| Aspecto | Detalhe |
+| Aspect | Detail |
 |---------|--------|
-| **Trigger** | `ui.access()` sob demanda (não periódico) |
-| **Thread de UI** | Vaadin session lock |
-| **Transporte** | WebSocket push (Atmosphere) |
-| **Throttling** | Sem throttling — push imediato após cada flush |
+| **Trigger** | On-demand `ui.access()` (not periodic) |
+| **UI thread** | Vaadin session lock |
+| **Transport** | WebSocket push (Atmosphere) |
+| **Throttling** | No throttling — immediate push after each flush |
 
-### 3. Reconciliação incremental (doUpdate)
+### 3. Incremental reconciliation (doUpdate)
 
-Cada view compara campo-a-campo o valor anterior com o atual e só muta o componente Vaadin quando há diferença:
+Each view compares the previous value with the current one field by field and only mutates the Vaadin component when there is a difference:
 
 ```java
 @Override
@@ -252,16 +252,16 @@ public void doUpdate() {
 }
 ```
 
-### 4. VaadinDom — DSL de Construção de UI
+### 4. VaadinDom — UI Building DSL
 
-Análogo ao `SwtDom` e ao `HtmlDom` (TeaVM), o `VaadinDom` fornece uma DSL fluente para construção de componentes Vaadin, com pilha implícita de container pai:
+Analogous to `SwtDom` and `HtmlDom` (TeaVM), `VaadinDom` provides a fluent DSL for building Vaadin components, with an implicit parent-container stack:
 
 ```java
 VaadinDom.render(rootLayout, (dom, pane) -> {
     dom.horizontalLayout(row -> {
-        dom.h3(h -> h.setText("Título"));
+        dom.h3(h -> h.setText("Title"));
         dom.button(btn -> {
-            btn.setText("Comprar");
+            btn.setText("Buy");
             btn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             btn.addClickListener(e -> safeAction("Buy", state.onBuy::run));
         });
@@ -269,27 +269,27 @@ VaadinDom.render(rootLayout, (dom, pane) -> {
 });
 ```
 
-| Aspecto | SwtDom | VaadinDom |
+| Aspect | SwtDom | VaadinDom |
 |---------|----------|-----------|
 | Containers | `Composite` + GridLayout | `VerticalLayout`, `HorizontalLayout` |
-| Componentes | `Label`, `Button` (SWT) | `Span`, `Button`, `Grid` |
-| Semântica HTML | — | `H2`, `H3`, `H4`, `Div` |
+| Components | `Label`, `Button` (SWT) | `Span`, `Button`, `Grid` |
+| HTML semantics | — | `H2`, `H3`, `H4`, `Div` |
 | Spacers | GridData hints | `FlexLayout` / expand |
 
-### 5. Sincronização de Listas (newListSlot)
+### 5. List Synchronization (newListSlot)
 
-O mecanismo `newListSlot` sincroniza uma lista de dados (do Scope) com views filhas (componentes Vaadin), reutilizando instâncias existentes:
+The `newListSlot` mechanism synchronizes a data list (from the Scope) with child views (Vaadin components), reusing existing instances:
 
 ```java
 this.contentSlot = this.newListSlot(container, this::newItemView, this::updateItem);
 
-// Na doUpdate:
+// In doUpdate:
 this.contentSlot.accept(this.state.products.get(), this.itemViewList);
 ```
 
-A operação `container.remove(view.getElement())` e `container.add(view.getElement())` do Vaadin é O(1) no servidor; o delta é enviado ao browser via push.
+Vaadin's `container.remove(view.getElement())` and `container.add(view.getElement())` operations are O(1) on the server; the delta is sent to the browser via push.
 
-### 6. safeAction — Tratamento de Erros em Callbacks
+### 6. safeAction — Error Handling in Callbacks
 
 ```java
 protected void safeAction(String context, Runnable action) {
@@ -301,11 +301,11 @@ protected void safeAction(String context, Runnable action) {
 }
 ```
 
-Captura exceções do próprio código do listener Vaadin e exibe `Notification.show()` com a mensagem de erro. A falha de uma ação do presenter não chega aqui: a ação é guardada no presenter (`action(...)`).
+It catches exceptions from the Vaadin listener's own code and shows `Notification.show()` with the error message. A failure of a presenter action does not reach this point: the action is guarded in the presenter (`action(...)`).
 
-### 7. Restauração de Estado (F5 / refresh)
+### 7. State Restoration (F5 / refresh)
 
-No modelo server-side do Vaadin, ao pressionar F5 o browser destrói o WebSocket e os componentes Java ficam desconectados. A solução:
+In Vaadin's server-side model, pressing F5 makes the browser destroy the WebSocket, and the Java components are left disconnected. The solution:
 
 ```mermaid
 sequenceDiagram
@@ -314,62 +314,62 @@ sequenceDiagram
     participant C as APP_CACHE
     participant A as ShoppingVaadinApplication
 
-    B->>S: F5 → nova sessão com hash assinado
+    B->>S: F5 → new session with signed hash
     S->>C: restoreFromCache(signedHash)
-    C-->>S: aplicação preservada (Presenters + estado)
+    C-->>S: preserved application (Presenters + state)
     S->>A: reattach(newUI, newRootContainer)
-    A->>A: view.recreate() em todas as views
-    Note over A: Presenters mantidos, apenas componentes Vaadin recriados
+    A->>A: view.recreate() on all views
+    Note over A: Presenters kept, only Vaadin components recreated
 ```
 
-- O `APP_CACHE` (ConcurrentHashMap estático) armazena a aplicação indexada pela assinatura HMAC da URL
-- No `reattach`, cada view executa `recreate()` — reseta o flag `notRendered` e cria novos componentes Vaadin
-- Os Presenters e seus estados são preservados intactos
+- The `APP_CACHE` (static ConcurrentHashMap) stores the application indexed by the URL's HMAC signature
+- On `reattach`, each view runs `recreate()` — it resets the `notRendered` flag and creates new Vaadin components
+- The Presenters and their states are preserved intact
 
-### 8. Navegação por URL com HMAC-SHA256
+### 8. URL Navigation with HMAC-SHA256
 
-A classe `IntentSigner` gera URLs hash-based com assinatura criptográfica:
+The `IntentSigner` class generates hash-based URLs with a cryptographic signature:
 
 ```
 http://localhost:8080/#intent?sign=<Base62>
 ```
 
-- Evita que o usuário forje URLs de navegação
-- Permite restauração de estado via cache
-- Bloqueia URLs com assinatura inválida (`handleBrowserNavigation` rejeita e restaura a URL válida)
+- Prevents the user from forging navigation URLs
+- Enables state restoration via the cache
+- Blocks URLs with an invalid signature (`handleBrowserNavigation` rejects them and restores the valid URL)
 
-### Fluxo de Vida de uma View
+### View Lifecycle
 
 ```mermaid
 stateDiagram-v2
     [*] --> Created: app.viewOf(scope)
     Created --> FirstUpdate: app.markDirty()
     FirstUpdate --> Rendered: doUpdate() → buildUI via VaadinDom
-    Rendered --> Dirty: presenter muda estado → view.update()
+    Rendered --> Dirty: presenter changes state → view.update()
     Dirty --> Reconciled: ui.access() → doUpdate()
-    Reconciled --> Dirty: nova mudança
+    Reconciled --> Dirty: new change
     Reconciled --> Recreated: F5 → reattach() → recreate()
-    Recreated --> Rendered: doUpdate() reconstrói componentes
+    Recreated --> Rendered: doUpdate() rebuilds components
     Reconciled --> [*]: presenter.release() → app.releaseView(scope)
 ```
 
-## Conclusão
+## Conclusion
 
-O módulo Vaadin demonstra que o padrão Cube MVP integra-se naturalmente a um framework server-side push-based: os **Presenters controlam estado e navegação**, os **ViewStates expõem dados** e as **Views Vaadin reconciliam componentes** — tudo conectado pelo ciclo `markDirty → ui.access → doUpdate → push`.
+The Vaadin module demonstrates that the Cube MVP pattern integrates naturally with a push-based server-side framework: the **Presenters control state and navigation**, the **ViewStates expose data** and the **Vaadin Views reconcile components** — all connected by the `markDirty → ui.access → doUpdate → push` cycle.
 
 ## Screenshots
 
 ### Login
 ![Login](docs/screenshots/01-login.png)
 
-### Home (Produtos + Histórico de Compras)
+### Home (Products + Purchase History)
 ![Home](docs/screenshots/02-home.png)
 
-### Detalhe do Produto
-![Produto](docs/screenshots/03-product.png)
+### Product Detail
+![Product](docs/screenshots/03-product.png)
 
-### Carrinho de Compras
-![Carrinho](docs/screenshots/04-cart.png)
+### Shopping Cart
+![Cart](docs/screenshots/04-cart.png)
 
-### Recibo
-![Recibo](docs/screenshots/05-receipt.png)
+### Receipt
+![Receipt](docs/screenshots/05-receipt.png)

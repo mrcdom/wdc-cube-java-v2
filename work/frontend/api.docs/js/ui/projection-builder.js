@@ -1,8 +1,8 @@
 /**
- * O construtor de projeção: quais campos trazer e, na relação 1:N, o que fazer com a coleção.
+ * The projection builder: which fields to fetch and, on the 1:N relation, what to do with the collection.
  *
- * A parte da coleção é o que vale ver: ligar o recorte sem ligar a ordenação mostra, na prática, por que uma coisa
- * pede a outra — cortar sem ordenar devolve linhas em ordem indefinida.
+ * The collection part is the one worth watching: turning on the slice without an ordering shows, in practice, why one
+ * calls for the other — slicing without ordering returns rows in an undefined order.
  */
 
 import { html, on, render } from '../core/dom.js';
@@ -12,7 +12,7 @@ import { CriteriaBuilder } from './criteria-builder.js';
 export class ProjectionBuilder extends EventTarget {
   #collectionCriteriaBuilder = null;
 
-  /** Ver {@link CriteriaBuilder#destroy}: a delegação sobrevive ao redesenho, o modelo não. */
+  /** See {@link CriteriaBuilder#destroy}: delegation survives the redraw, the model does not. */
   #listeners = new AbortController();
 
   /** @param {HTMLElement} root @param {import('../domain/projection.js').Projection} projection */
@@ -24,7 +24,7 @@ export class ProjectionBuilder extends EventTarget {
     this.render();
   }
 
-  /** Desliga o painel e o construtor de critério da coleção. */
+  /** Shuts down the panel and the collection's criteria builder. */
   destroy() {
     this.#listeners.abort();
     this.#collectionCriteriaBuilder?.destroy();
@@ -66,7 +66,7 @@ export class ProjectionBuilder extends EventTarget {
     }, { signal });
   }
 
-  /** O aviso só faz sentido enquanto houver recorte sem ordem — e some sozinho quando a ordem entra. */
+  /** The warning only makes sense while there is a slice without an ordering — it goes away once one is set. */
   #refreshSliceWarning() {
     const warning = this.root.querySelector('[data-role="slice-warning"]');
     if (!warning) return;
@@ -89,7 +89,7 @@ export class ProjectionBuilder extends EventTarget {
                        ${picked.has(f.name) ? 'checked' : ''}>
                 <code>${f.name}</code>
               </label>`)}
-            <p class="hint">Pedir só a chave evita o subselect: o valor já está na linha, na coluna da chave estrangeira.</p>
+            <p class="hint">Requesting only the key avoids the subselect: the value is already in the row, in the foreign key column.</p>
           </fieldset>`;
       }
 
@@ -99,7 +99,7 @@ export class ProjectionBuilder extends EventTarget {
                  ${this.projection.selected.has(field.name) ? 'checked' : ''}>
           <code>${field.name}</code>
           <span class="kind">${field.kind}</span>
-          ${field.heavy ? html`<span class="heavy" title="Campo pesado — traga só quando precisar">pesado</span>` : ''}
+          ${field.heavy ? html`<span class="heavy" title="Heavy field — fetch it only when needed">heavy</span>` : ''}
         </label>`;
     });
   }
@@ -122,7 +122,7 @@ export class ProjectionBuilder extends EventTarget {
         ${collection.enabled ? html`
           <div class="collection-body">
             <div class="shape">
-              <h4>shape <span class="sub">a forma de cada item</span></h4>
+              <h4>shape <span class="sub">the shape of each item</span></h4>
               ${itemMeta.fields.filter((f) => f.kind !== 'ref').map((f) => html`
                 <label class="check">
                   <input type="checkbox" data-role="shape-field" data-name="${f.name}"
@@ -132,20 +132,20 @@ export class ProjectionBuilder extends EventTarget {
             </div>
 
             <div class="slice">
-              <h4>recorte <span class="sub">limit e offset</span></h4>
+              <h4>slice <span class="sub">limit and offset</span></h4>
               <label>limit <input type="number" min="0" data-role="slice" data-name="limit"
-                                  value="${collection.limit ?? ''}" placeholder="todas"></label>
+                                  value="${collection.limit ?? ''}" placeholder="all"></label>
               <label>offset <input type="number" min="0" data-role="slice" data-name="offset"
                                    value="${collection.offset ?? ''}" placeholder="0"></label>
               <p class="warning" data-role="slice-warning"
                  ${(collection.limit !== null || collection.offset !== null) && !collection.criteria.orderBy ? '' : 'hidden'}>
-                Recortar sem ordenar devolve linhas em ordem indefinida — o banco não promete ordem sem
-                <code>ORDER BY</code>. Escolha uma ordenação abaixo.
+                Slicing without ordering returns rows in an undefined order — the database promises no order without
+                <code>ORDER BY</code>. Pick an ordering below.
               </p>
             </div>
 
             <div class="where">
-              <h4>where <span class="sub">o critério da entidade filha</span></h4>
+              <h4>where <span class="sub">the child entity's criteria</span></h4>
               <div data-role="collection-criteria"></div>
             </div>
           </div>` : ''}
@@ -158,10 +158,10 @@ export class ProjectionBuilder extends EventTarget {
       ${this.#collectionSection()}
     `);
 
-    // O critério da coleção é o mesmo construtor da consulta principal: a estrutura do sub-critério é idêntica
-    // à do critério de topo, e reusar a peça é a forma mais direta de mostrar isso.
-    // `render` roda várias vezes; sem descartar o anterior, cada desenho deixaria mais um painel atendendo
-    // os mesmos cliques.
+    // The collection's criteria use the same builder as the main query: the sub-criteria structure is identical to
+    // the top-level criteria, and reusing the piece is the most direct way to show it.
+    // `render` runs many times; without discarding the previous builder, each redraw would leave one more panel
+    // handling the same clicks.
     this.#collectionCriteriaBuilder?.destroy();
     this.#collectionCriteriaBuilder = null;
 

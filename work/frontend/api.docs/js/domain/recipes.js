@@ -1,16 +1,16 @@
 /**
- * Receitas: filtros prontos que mostram um ponto cada.
+ * Recipes: ready-made filters that each make one point.
  *
- * Cada uma existe para tornar visível uma regra que a documentação enuncia mas que só convence quando se vê o JSON e o
- * resultado. Clicar numa receita monta o filtro; o que se aprende é a diferença entre ela e a vizinha.
+ * Each one exists to make visible a rule that the documentation states but that only convinces once you see the JSON
+ * and the result. Clicking a recipe builds the filter; what you learn is the difference between it and its neighbor.
  */
 
 export const RECIPES = [
   {
     id: 'range',
     entity: 'product',
-    title: 'Intervalo em duas linhas',
-    teaches: 'Dois pedidos no mesmo campo valem juntos: é o AND por padrão, e é o que faz um intervalo montado a partir de dois campos de tela significar o que se espera.',
+    title: 'A range in two rows',
+    teaches: 'Two requests on the same field apply together: that is the default AND, and it is what makes a range built from two input fields mean what you expect.',
     apply: (criteria) => {
       const c = criteria.criterion('productId');
       c.clear();
@@ -21,8 +21,8 @@ export const RECIPES = [
   {
     id: 'between',
     entity: 'product',
-    title: 'O mesmo intervalo, com BETWEEN',
-    teaches: 'Um pedido só, com dois valores. O resultado é o mesmo da receita anterior — a diferença está no SQL gerado, não no conjunto devolvido.',
+    title: 'The same range, with BETWEEN',
+    teaches: 'A single request with two values. The result is the same as the previous recipe — the difference is in the generated SQL, not in the returned set.',
     apply: (criteria) => {
       const c = criteria.criterion('productId');
       c.clear();
@@ -32,8 +32,8 @@ export const RECIPES = [
   {
     id: 'two-ne',
     entity: 'product',
-    title: 'Excluir dois valores',
-    teaches: 'Dois “diferente de” excluem os dois. Fosse OR o padrão, cada linha satisfaria um dos dois e a consulta devolveria quase tudo — sem nada indicar o erro.',
+    title: 'Exclude two values',
+    teaches: 'Two “not equal to” exclude both. If OR were the default, every row would satisfy one of the two and the query would return almost everything — with nothing pointing to the mistake.',
     apply: (criteria) => {
       const c = criteria.criterion('productId');
       c.clear();
@@ -44,8 +44,8 @@ export const RECIPES = [
   {
     id: 'or',
     entity: 'product',
-    title: 'Alternativas com OU',
-    teaches: 'Com AND isto daria zero: nenhum id é dois valores ao mesmo tempo. A disjunção vale dentro do campo; entre campos a junção é sempre AND.',
+    title: 'Alternatives with OR',
+    teaches: 'With AND this would return zero: no id is two values at once. The disjunction applies within the field; between fields the join is always AND.',
     apply: (criteria) => {
       const c = criteria.criterion('productId');
       c.clear();
@@ -57,8 +57,8 @@ export const RECIPES = [
   {
     id: 'in',
     entity: 'product',
-    title: 'Vários valores com IN',
-    teaches: 'Um pedido de aridade variável. Diz o mesmo que a receita do OU, em uma linha — e é o que o banco costuma otimizar melhor.',
+    title: 'Several values with IN',
+    teaches: 'A variable-arity request. It says the same as the OR recipe, in one row — and it is what the database usually optimizes best.',
     apply: (criteria) => {
       const c = criteria.criterion('productId');
       c.clear();
@@ -68,8 +68,8 @@ export const RECIPES = [
   {
     id: 'starting-with',
     entity: 'user',
-    title: 'Texto ancorado no início',
-    teaches: 'O atalho “começa com” gera ILIKE com o curinga só no fim. Ancorar no início é o que permite ao banco usar índice — por isso ele é diferente de “contém”.',
+    title: 'Text anchored at the start',
+    teaches: 'The “starts with” shortcut generates ILIKE with the wildcard only at the end. Anchoring at the start is what lets the database use an index — which is why it differs from “contains”.',
     apply: (criteria) => {
       const c = criteria.criterion('userName');
       c.clear();
@@ -79,8 +79,8 @@ export const RECIPES = [
   {
     id: 'like-vs-ilike',
     entity: 'user',
-    title: 'LIKE não ignora maiúsculas',
-    teaches: 'Este devolve zero linhas; trocando para ILIKE, devolve o admin. É o par que justifica existirem os dois operadores — e lembra que os curingas fazem parte do valor.',
+    title: 'LIKE is case-sensitive',
+    teaches: 'This one returns zero rows; switch to ILIKE and it returns admin. It is the pair that justifies having both operators — and a reminder that wildcards are part of the value.',
     apply: (criteria) => {
       const c = criteria.criterion('userName');
       c.clear();
@@ -90,8 +90,8 @@ export const RECIPES = [
   {
     id: 'derived',
     entity: 'purchase',
-    title: 'Filtrar compra pelo produto',
-    teaches: 'productId não é coluna da compra — vive nos itens. A condição sai como EXISTS, mas o campo se usa como qualquer outro: in, between e a disjunção valem aqui também.',
+    title: 'Filter purchases by product',
+    teaches: 'productId is not a purchase column — it lives in the items. The condition comes out as EXISTS, but the field is used like any other: in, between, and the disjunction apply here too.',
     apply: (criteria) => {
       const c = criteria.criterion('productId');
       c.clear();
@@ -100,16 +100,16 @@ export const RECIPES = [
   },
 ];
 
-/** Receitas da entidade corrente. */
+/** Recipes for the current entity. */
 export const recipesFor = (entityKey) => RECIPES.filter((r) => r.entity === entityKey);
 
 /**
- * Receita da coleção projetada — mexe na projeção, não no critério, e por isso é tratada à parte.
+ * The projected collection recipe — it changes the projection, not the criteria, and so is handled separately.
  */
 export const COLLECTION_RECIPE = {
   id: 'collection',
-  title: 'Itens ordenados e recortados',
-  teaches: 'A coleção projetada leva forma, critério e recorte. Sem isso, pedir “o item mais recente” traria todos, sem ordem — que era o que acontecia antes deste envelope existir.',
+  title: 'Ordered and sliced items',
+  teaches: 'The projected collection carries shape, criteria, and slice. Without them, asking for “the most recent item” would bring all of them, in no order.',
   apply: (projection) => {
     const { collection } = projection;
     collection.enabled = true;

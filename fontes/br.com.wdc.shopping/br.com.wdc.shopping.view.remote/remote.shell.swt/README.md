@@ -1,50 +1,50 @@
 # remote.shell.swt
 
-Shell SWT desktop para o protocolo de apresentação remota do **WeDoCode Shopping**. Renderiza as views da aplicação usando widgets SWT nativos, comunicando-se com o `remote.host` via WebSocket — sem lógica de negócio local, sem banco de dados.
+SWT desktop shell for the **WeDoCode Shopping** remote presentation protocol. It renders the application's views using native SWT widgets, communicating with `remote.host` over WebSocket — no local business logic, no database.
 
-Reutiliza as implementações de views de `swt.commons`, sobrepondo-as com versões "remote" que obtêm o estado via `ViewStateSnapshot` (ao invés de Presenters locais).
+It reuses the view implementations from `swt.commons`, overriding them with "remote" versions that obtain their state via `ViewStateSnapshot` (instead of local Presenters).
 
-## Arquitetura
+## Architecture
 
 ```
 remote.host  <──WebSocket──>  remote.shell.swt
-                              ├── RemoteViewContext       (contexto compartilhado: HostClient, imagens)
-                              ├── ShoppingSwtRemoteApp    (lifecycle: conecta, navega, gerencia views)
+                              ├── RemoteViewContext       (shared context: HostClient, images)
+                              ├── ShoppingSwtRemoteApp    (lifecycle: connects, navigates, manages views)
                               ├── ShoppingSwtRemoteMain   (entry point: SWT Display, event loop)
-                              └── *ViewSwtRemote          (views SWT que consomem ViewStateSnapshot)
+                              └── *ViewSwtRemote          (SWT views that consume ViewStateSnapshot)
 ```
 
 ## Classes
 
-| Classe | Responsabilidade |
+| Class | Responsibility |
 |--------|------------------|
-| `ShoppingSwtRemoteMain` | Entry point: inicializa SWT Display, cria Shell, inicia event loop |
-| `ShoppingSwtRemoteApp` | Ciclo de vida da aplicação: conecta ao host, navega entre views conforme URI recebida |
-| `RemoteViewContext` | Contexto compartilhado entre views: `HostClient`, cache de imagens, tema |
-| `RemoteProductImageRepository` | Busca imagens de produto via HTTP a partir do endpoint do host |
-| `RootViewSwtRemote` | View raiz: container principal, gerencia a view ativa |
-| `LoginViewSwtRemote` | Tela de login — submete credenciais ao host via `HostClientSession.submit()` |
-| `HomeViewSwtRemote` | Home: lista de produtos e histórico de compras |
-| `ProductViewSwtRemote` | Detalhe do produto |
-| `ProductsPanelViewSwtRemote` | Painel de listagem de produtos |
-| `CartViewSwtRemote` | Carrinho de compras |
-| `ReceiptViewSwtRemote` | Recibo de compra |
-| `PurchasesPanelViewSwtRemote` | Histórico de compras |
+| `ShoppingSwtRemoteMain` | Entry point: initializes the SWT Display, creates the Shell, starts the event loop |
+| `ShoppingSwtRemoteApp` | Application lifecycle: connects to the host, navigates between views according to the received URI |
+| `RemoteViewContext` | Context shared between views: `HostClient`, image cache, theme |
+| `RemoteProductImageRepository` | Fetches product images over HTTP from the host endpoint |
+| `RootViewSwtRemote` | Root view: main container, manages the active view |
+| `LoginViewSwtRemote` | Login screen — submits credentials to the host via `HostClientSession.submit()` |
+| `HomeViewSwtRemote` | Home: product list and purchase history |
+| `ProductViewSwtRemote` | Product detail |
+| `ProductsPanelViewSwtRemote` | Product listing panel |
+| `CartViewSwtRemote` | Shopping cart |
+| `ReceiptViewSwtRemote` | Purchase receipt |
+| `PurchasesPanelViewSwtRemote` | Purchase history |
 
-## Dependências
+## Dependencies
 
-- `swt.commons` — Widgets e componentes SWT compartilhados
-- `remote.bridge.java` — `HostClient`, `ViewStateSnapshot`, protocolo WebSocket
-- `br.com.wdc.shopping.presentation` — Classes ViewState
-- `org.eclipse.platform:org.eclipse.swt.*` 3.135.0 (platform-specific via profile Maven)
+- `swt.commons` — Shared SWT widgets and components
+- `remote.bridge.java` — `HostClient`, `ViewStateSnapshot`, WebSocket protocol
+- `br.com.wdc.shopping.presentation` — ViewState classes
+- `org.eclipse.platform:org.eclipse.swt.*` 3.135.0 (platform-specific via Maven profile)
 
-## Pré-requisitos
+## Prerequisites
 
 - **Java 25**
 - **Maven 3.9+**
-- `remote.host` rodando (porta 8080 por padrão)
+- `remote.host` running (port 8080 by default)
 
-## Build e Execução
+## Build and Run
 
 ```bash
 cd fontes && mvn clean package -pl br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.shell.swt -am

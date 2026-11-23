@@ -1,10 +1,10 @@
 # WDC Framework — Cube
 
-Motor do padrão **Cube MVP** — gerencia presenters hierárquicos, views, navegação por intents e estado reativo.
+Engine of the **Cube MVP** pattern — manages hierarchical presenters, views, intent-based navigation and reactive state.
 
 ---
 
-## Conceitos
+## Concepts
 
 ```mermaid
 graph LR
@@ -18,66 +18,66 @@ graph LR
     State["Scope"]
     Views["ScopeViews"]
 
-    App -->|"contém"| Pres
-    App -->|"navega via"| Nav
-    Nav -->|"passos"| Place
+    App -->|"contains"| Pres
+    App -->|"navigates via"| Nav
+    Nav -->|"steps"| Place
     Place -->|"factory →"| Pres
-    Pres -.->|"estado"| State
-    Pres -->|"entrega o escopo ao pai"| Slot
-    Intent -->|"carrega parâmetros e slots"| Pres
+    Pres -.->|"state"| State
+    Pres -->|"hands the scope to the parent"| Slot
+    Intent -->|"carries parameters and slots"| Pres
     App -->|"viewOf(scope)"| Views
-    Views -->|"cria"| View
-    View -->|"desenha"| State
+    Views -->|"creates"| View
+    View -->|"draws"| State
 ```
 
-### Ciclo de Navegação
+### Navigation Cycle
 
-1. O app declara a árvore de places como constantes: `CubePlace.root("public", RootPresenter::new)` e, abaixo dela, `ROOT.child("home", HomePresenter::new)`. O caminho de cada place sai da árvore, e o nome é único nela.
-2. Monta um `CubeIntent` com parâmetros (key-value, query-string compatível).
-3. Chama `app.navigate(place, intent)` — ou `app.go("home?x=1")`, que acha o place pelo nome (nome desconhecido vai para a raiz). O motor percorre `place.getPath()` da raiz até o destino:
-   - Instancia os presenters que faltam pela factory do place.
-   - Invoca `applyParameters(intent, initialization, deepest)` em cada presenter.
-   - Remove presenters que não fazem mais parte da hierarquia (chama `release()`).
-   - Invoca `commitComputedState()` para todos.
-5. O host desenha o escopo do presenter raiz (`app.viewOf(rootPresenter.state)`); cada view pede a dos escopos que o seu segura (`app.viewOf(state.content.get())`). A UI é atualizada por `CubeView.update()`, chamado quando uma `Prop` do escopo muda.
-
----
-
-## Classes Principais
-
-| Classe/Interface | Responsabilidade |
-|------------------|-----------------|
-| `CubeApplication` | Singleton da app — mantém mapa de presenters e atributos, coordena navegação; `viewOf(scope)` cria a view do escopo na primeira vez que é pedida (e a desenha uma vez), `releaseView(scope)` a libera junto com as dos escopos dentro dele, `liveViews()` lista as views vivas |
-| `CubePresenter` | Contrato para presenters gerenciados pela navegação |
-| `AbstractPresenter<A>` | Base comum — app, `bind(state)` (vincula o escopo; ele passa a compartilhar o mapa de eventos do presenter), `scope()`, `update()` (pede o redesenho do escopo), `release()` (libera a view do escopo e as internas), `detach(segment)` (libera a view de um escopo menor que saiu — inclusive uma linha de uma lista) e as ações guardadas (`action`, `actionOf`, `actionOf2`, com ou sem código de evento). O presenter nunca cria view |
-| `AbstractCubePresenter<A>` | Presenter de um place — `applyParameters`/`publishParameters`; não conhece view: entrega o escopo ao slot do pai |
-| `CubeView` | Interface da view — `instanceId()`, `update()`, `release()` |
-| `ScopeSlot` | Onde um presenter filho se mostra no pai: `setScope(scope)` põe o escopo do filho num `Prop<Scope>` do pai (`content`). Viaja no intent (`CubeIntent.setSlot/getSlot`) |
-| `ScopeViews` | Catálogo da camada de view: classe do escopo → fábrica `(app, scope) -> CubeView` (`register`), com busca pelas superclasses e um `fallback`. Cada host monta o seu e o entrega com `CubeApplication.setScopeViews` |
-| `CubePlace` | Nó da árvore de places — nome (único na árvore), pai, caminho, factory de presenter; o id cresce com a profundidade |
-| `CubeIntent` | Encapsula destino (place) + parâmetros tipados (parse de query-string) |
-| `CubeKeys<A>` | Base das classes de chaves do app: uma por place, declara o place e lê/escreve o intent com acessores tipados; `flip()` navega até o place |
-| `CubeNavigation<T>` | Engine que executa transições: cria, reutiliza e destrói presenters |
-| `CubeSkeleton` | Interface para comunicação remota: `submit(eventCode, formData)`, `syncState()`. Ninguém a implementa à mão: `Scope.skeleton(classId)` despacha cada evento para a ação ligada com aquele código, e `Scope.onSync(...)` define o `syncState` |
-| `FormParam<T>` | Como uma ação lê um valor do `formData` do evento: nome do campo + conversão (`asLong`, `asInteger`, `asString`, `of`) |
-| `Scope`, `Prop<T>` | Estado da view: campos observados são `Prop`s (`prop(...)`); `set` de um valor diferente pede o redesenho sozinho — da view do escopo ou, enquanto ele não tem uma, do escopo dono que o segura num `Prop`. `setSilently` é para a view que consome uma mensagem de exibição única enquanto desenha. Cada escopo com view remota declara `public static final String CLASS_ID` (o classId do protocolo bridge). `Scope.drawnBy(view)` é o escopo que só carrega uma view já existente — usado por shells que reconstroem escopos a partir do que o host remoto envia |
-| `Action`, `ActionOf<T>`, `ActionOf2<T, U>` | Ações que a view dispara, guardadas como campos do Scope; `NOOP`/`noop()` marcam a ação ainda não ligada |
-| `PresenterBase` | Interface raiz: `commitComputedState()` + `release()` |
+1. The app declares the place tree as constants: `CubePlace.root("public", RootPresenter::new)` and, below it, `ROOT.child("home", HomePresenter::new)`. Each place's path comes from the tree, and its name is unique within it.
+2. Builds a `CubeIntent` with parameters (key-value, query-string compatible).
+3. Calls `app.navigate(place, intent)` — or `app.go("home?x=1")`, which finds the place by name (an unknown name goes to the root). The engine walks `place.getPath()` from the root to the destination:
+   - Instantiates the missing presenters through the place's factory.
+   - Invokes `applyParameters(intent, initialization, deepest)` on each presenter.
+   - Removes presenters that are not part of the hierarchy anymore (calls `release()`).
+   - Invokes `commitComputedState()` on all of them.
+5. The host draws the root presenter's scope (`app.viewOf(rootPresenter.state)`); each view asks for the views of the scopes it holds (`app.viewOf(state.content.get())`). The UI is updated by `CubeView.update()`, called when a scope `Prop` changes.
 
 ---
 
-## Utilitários
+## Main Classes
 
-| Classe | Descrição |
-|--------|-----------|
-| `QueryStringBuilder` | Serializa parâmetros de `CubeIntent` em query-string |
-| `QueryStringParser` | Deserializa query-string para `CubeIntent` |
-| `ArrayUtils` | Operações em arrays |
-| `ReflectArrayCompat` | Compatibilidade com reflexão em arrays (TeaVM) |
+| Class/Interface | Responsibility |
+|-----------------|----------------|
+| `CubeApplication` | App singleton — keeps the map of presenters and attributes, coordinates navigation; `viewOf(scope)` creates the scope's view the first time it is requested (and draws it once), `releaseView(scope)` releases it along with the views of the scopes inside it, `liveViews()` lists the live views |
+| `CubePresenter` | Contract for presenters managed by navigation |
+| `AbstractPresenter<A>` | Common base — app, `bind(state)` (binds the scope; it then shares the presenter's event map), `scope()`, `update()` (requests a redraw of the scope), `release()` (releases the scope's view and the inner ones), `detach(segment)` (releases the view of a smaller scope that left — including a list row) and the stored actions (`action`, `actionOf`, `actionOf2`, with or without an event code). The presenter never creates a view |
+| `AbstractCubePresenter<A>` | Presenter of a place — `applyParameters`/`publishParameters`; knows no view: it hands the scope to the parent's slot |
+| `CubeView` | View interface — `instanceId()`, `update()`, `release()` |
+| `ScopeSlot` | Where a child presenter shows up in the parent: `setScope(scope)` puts the child's scope into a `Prop<Scope>` of the parent (`content`). Travels in the intent (`CubeIntent.setSlot/getSlot`) |
+| `ScopeViews` | View-layer catalog: scope class → factory `(app, scope) -> CubeView` (`register`), with lookup through superclasses and a `fallback`. Each host builds its own and hands it over with `CubeApplication.setScopeViews` |
+| `CubePlace` | Node of the place tree — name (unique in the tree), parent, path, presenter factory; the id grows with depth |
+| `CubeIntent` | Encapsulates the destination (place) + typed parameters (query-string parsing) |
+| `CubeKeys<A>` | Base of the app's key classes: one per place, declares the place and reads/writes the intent with typed accessors; `flip()` navigates to the place |
+| `CubeNavigation<T>` | Engine that executes transitions: creates, reuses and destroys presenters |
+| `CubeSkeleton` | Interface for remote communication: `submit(eventCode, formData)`, `syncState()`. Nobody implements it by hand: `Scope.skeleton(classId)` dispatches each event to the action bound to that code, and `Scope.onSync(...)` defines `syncState` |
+| `FormParam<T>` | How an action reads a value from the event's `formData`: field name + conversion (`asLong`, `asInteger`, `asString`, `of`) |
+| `Scope`, `Prop<T>` | View state: observed fields are `Prop`s (`prop(...)`); `set` of a different value requests the redraw by itself — of the scope's view or, while it has none, of the owning scope that holds it in a `Prop`. `setSilently` is for the view that consumes a one-time display message while drawing. Each scope with a remote view declares `public static final String CLASS_ID` (the bridge protocol classId). `Scope.drawnBy(view)` is the scope that only carries an existing view — used by shells that rebuild scopes from what the remote host sends |
+| `Action`, `ActionOf<T>`, `ActionOf2<T, U>` | Actions the view fires, stored as Scope fields; `NOOP`/`noop()` mark an action not yet bound |
+| `PresenterBase` | Root interface: `commitComputedState()` + `release()` |
 
 ---
 
-## Coordenadas Maven
+## Utilities
+
+| Class | Description |
+|-------|-------------|
+| `QueryStringBuilder` | Serializes `CubeIntent` parameters into a query string |
+| `QueryStringParser` | Deserializes a query string into a `CubeIntent` |
+| `ArrayUtils` | Array operations |
+| `ReflectArrayCompat` | Compatibility with reflection on arrays (TeaVM) |
+
+---
+
+## Maven Coordinates
 
 ```xml
 <dependency>

@@ -6,7 +6,7 @@
 .vscode/
 .eclipse/
 
-# Claude Code — overrides pessoais (settings.json compartilhado é versionado)
+# Claude Code — personal overrides (the shared settings.json is versioned)
 .claude/settings.local.json
 *.iml
 .project
@@ -19,9 +19,9 @@
 .ecp-*/
 .mtj.tmp/
 settings/
-# pasta de saída do JDT Language Server (criada até em módulos pom agregadores)
+# JDT Language Server output folder (created even in aggregator pom modules)
 bin/
-# exceção: work/bin contém scripts de start versionados
+# exception: work/bin holds the versioned start scripts
 !work/bin/
 
 # Build outputs and generated files

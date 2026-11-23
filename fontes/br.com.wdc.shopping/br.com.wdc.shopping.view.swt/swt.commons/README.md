@@ -1,19 +1,19 @@
 # swt.commons
 
-Biblioteca compartilhada de views e componentes SWT para o **WeDoCode Shopping**. Contém as implementações concretas das telas da aplicação em SWT — reutilizadas tanto pelo app desktop local (`swt.desktop`) quanto pelo shell remoto (`remote.shell.swt`).
+Shared library of SWT views and components for **WeDoCode Shopping**. It contains the concrete SWT implementations of the application's screens — reused both by the local desktop app (`swt.desktop`) and by the remote shell (`remote.shell.swt`).
 
-## Responsabilidade
+## Responsibility
 
-Centralizar o código SWT que não depende de como o estado é obtido (local via Presenter ou remoto via ViewStateSnapshot). As views herdam de `AbstractViewSwt` e recebem dados por `update()`, independente da fonte.
+Centralize the SWT code that does not depend on how the state is obtained (locally via Presenter or remotely via ViewStateSnapshot). The views extend `AbstractViewSwt` and receive data through `update()`, regardless of the source.
 
-## Estrutura de Pacotes
+## Package Structure
 
 ```
 br.com.wdc.shopping.view.swt/
-├── AbstractViewSwt.java              # Base para todas as views (performUpdate/rebuild, thread-safety)
-├── SwtApp.java                       # Contrato da aplicação SWT (navegação, dirty-flush)
+├── AbstractViewSwt.java              # Base for all views (performUpdate/rebuild, thread safety)
+├── SwtApp.java                       # SWT application contract (navigation, dirty flush)
 ├── ScheduledExecutorSwtAdapter.java  # Bridge ConcurrentExecutor → SWT Display thread
-├── impl/                             # Implementações das views
+├── impl/                             # View implementations
 │   ├── RootViewSwt.java
 │   ├── LoginViewSwt.java
 │   ├── HomeViewSwt.java
@@ -22,7 +22,7 @@ br.com.wdc.shopping.view.swt/
 │   ├── CartViewSwt.java
 │   ├── ReceiptViewSwt.java
 │   └── PurchasesPanelViewSwt.java
-├── components/                       # Widgets customizados reutilizáveis
+├── components/                       # Reusable custom widgets
 │   ├── PrimaryButton.java
 │   ├── ActionButton.java
 │   ├── IconButton.java
@@ -33,22 +33,22 @@ br.com.wdc.shopping.view.swt/
 │   ├── ScrolledPage.java
 │   └── ErrorBanner.java
 ├── theme/
-│   ├── Theme.java                    # Paleta de cores, fontes, espaçamentos
-│   └── Surface.java                  # Enumeração de superfícies (background, card, ...)
+│   ├── Theme.java                    # Color palette, fonts, spacing
+│   └── Surface.java                  # Enumeration of surfaces (background, card, ...)
 └── util/
-    ├── SwtDom.java                   # DSL fluente para criação de widgets (`.row()`, `.col()`, ...)
-    ├── GridDataUtils.java            # Atalhos para GridData (fill, grab, hint)
-    ├── RowDataUtils.java             # Atalhos para RowData
-    ├── FormDataUtils.java            # Atalhos para FormData/FormAttachment
-    ├── SlotComposite.java            # Container que troca filho ativo (navegação em slot)
-    ├── StackComposite.java           # Container em pilha (CardLayout SWT)
-    └── ProductImageCache.java        # Cache de imagens de produto (SWT Image)
+    ├── SwtDom.java                   # Fluent DSL for creating widgets (`.row()`, `.col()`, ...)
+    ├── GridDataUtils.java            # Shortcuts for GridData (fill, grab, hint)
+    ├── RowDataUtils.java             # Shortcuts for RowData
+    ├── FormDataUtils.java            # Shortcuts for FormData/FormAttachment
+    ├── SlotComposite.java            # Container that swaps the active child (slot navigation)
+    ├── StackComposite.java           # Stacked container (SWT CardLayout)
+    └── ProductImageCache.java        # Product image cache (SWT Image)
 ```
 
-## Dependências
+## Dependencies
 
-- `br.com.wdc.shopping.presentation` — classes Scope (apenas leitura de estado)
-- `org.eclipse.platform:org.eclipse.swt.*` — via profile Maven (macos-aarch64, linux-x86_64, win32-x86_64)
+- `br.com.wdc.shopping.presentation` — Scope classes (state reading only)
+- `org.eclipse.platform:org.eclipse.swt.*` — via Maven profile (macos-aarch64, linux-x86_64, win32-x86_64)
 
 ## Build
 

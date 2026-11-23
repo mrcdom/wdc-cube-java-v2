@@ -1,32 +1,32 @@
 # teavm.commons
 
-Biblioteca compartilhada para views TeaVM da aplicação **WeDoCode Shopping**. Contém o motor Virtual DOM, o DSL de componentes Spectrum Web Components, interop com APIs do browser e utilitários compartilhados entre as views compiladas via **TeaVM**.
+Shared library for the TeaVM views of the **WeDoCode Shopping** application. It contains the Virtual DOM engine, the Spectrum Web Components DSL, interop with browser APIs and utilities shared among the views compiled via **TeaVM**.
 
-## Responsabilidade
+## Responsibility
 
-Fornecer a base de renderização e o protocolo de comunicação para o shell TeaVM. As views concretas da aplicação (em `teavm.web`) herdam deste módulo para declarar sua árvore virtual e reagir a ViewStates recebidos do host.
+Provide the rendering foundation and the communication protocol for the TeaVM shell. The application's concrete views (in `teavm.web`) build on this module to declare their virtual tree and react to ViewStates received from the host.
 
-## Estrutura de Pacotes
+## Package Structure
 
 ```
 br.com.wdc.shopping.view.teavm.commons/
-├── DateUtils.java                     # Formatação de datas para exibição (TeaVM-safe)
+├── DateUtils.java                     # Date formatting for display (TeaVM-safe)
 ├── devtools/
-│   └── DevWatcher.java                # Live-reload em modo desenvolvimento (watch de assets)
-└── interop/                           # JSO bridges para APIs do browser
+│   └── DevWatcher.java                # Live reload in development mode (asset watching)
+└── interop/                           # JSO bridges for browser APIs
     ├── Console.java                   # console.log/error/warn
-    ├── JsRunnable.java                # Callback JS sem parâmetros
-    ├── JsIntConsumer.java             # Callback JS com parâmetro int
-    └── JsStringConsumer.java          # Callback JS com parâmetro string
+    ├── JsRunnable.java                # JS callback with no parameters
+    ├── JsIntConsumer.java             # JS callback with an int parameter
+    └── JsStringConsumer.java          # JS callback with a string parameter
 ```
 
-> O motor VDom, o DSL Spectrum, `ViewStateCoordinator`, `ViewScope` e interop WebSocket/WebCrypto estão em `remote.bridge.teavm` (framework genérico, reutilizável por qualquer app TeaVM sobre o protocolo remoto).
+> The VDom engine, the Spectrum DSL, `ViewStateCoordinator`, `ViewScope` and the WebSocket/WebCrypto interop live in `remote.bridge.teavm` (a generic framework, reusable by any TeaVM app over the remote protocol).
 
-## Dependências
+## Dependencies
 
-- `br.com.wdc.shopping.presentation` — Scope classes (scope: provided; TeaVM faz tree-shaking)
+- `br.com.wdc.shopping.presentation` — Scope classes (scope: provided; TeaVM does tree shaking)
 - `org.teavm:teavm-jso` — JSO API (scope: provided)
-- `org.teavm:teavm-jso-apis` — APIs browser (scope: provided)
+- `org.teavm:teavm-jso-apis` — browser APIs (scope: provided)
 
 ## Build
 

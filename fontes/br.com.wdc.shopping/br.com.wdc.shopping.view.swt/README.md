@@ -1,9 +1,9 @@
 # WDC Shopping — SWT Desktop View
 
-Implementação desktop nativa do WDC Shopping usando **Eclipse SWT 3.135.0** (Cocoa/macOS aarch64).
-Compartilha a mesma camada de apresentação (Cube MVP) com as demais views (TeaVM, React, Flutter, Vaadin).
+Native desktop implementation of WDC Shopping using **Eclipse SWT 3.135.0** (Cocoa/macOS aarch64).
+It shares the same presentation layer (Cube MVP) with the other views (TeaVM, React, Flutter, Vaadin).
 
-## Arquitetura
+## Architecture
 
 ```mermaid
 graph TD
@@ -23,7 +23,7 @@ sequenceDiagram
     participant App as ShoppingSwtApplication
     participant EDT as SWT Display Thread (EDT)
 
-    BG->>BG: Prop do escopo muda (set)
+    BG->>BG: Scope Prop changes (set)
     BG->>App: view.update()
     App->>App: markDirty(view)
     Note over EDT: Timer(16ms)
@@ -32,7 +32,7 @@ sequenceDiagram
     EDT->>EDT: view.performUpdate()
 ```
 
-### Estrutura de Pacotes
+### Package Structure
 
 ```mermaid
 graph TD
@@ -56,14 +56,14 @@ graph TD
     root --> impl
 ```
 
-## Dependências Principais
+## Main Dependencies
 
-| Dependência | Versão | Propósito |
+| Dependency | Version | Purpose |
 |-------------|--------|-----------|
-| Eclipse SWT (Cocoa macOS aarch64) | 3.135.0 | Toolkit gráfico nativo |
+| Eclipse SWT (Cocoa macOS aarch64) | 3.135.0 | Native GUI toolkit |
 | br.com.wdc.shopping.presentation | 1.0.0 | Presenters e state (Cube MVP) |
-| br.com.wdc.shopping.persistence | 1.0.0 | Repositórios (JOOQ + H2) |
-| H2 Database | — | Banco de dados embarcado |
+| br.com.wdc.shopping.persistence | 1.0.0 | Repositories (JOOQ + H2) |
+| H2 Database | — | Embedded database |
 | Logback | — | Logging |
 
 ## Build
@@ -73,7 +73,7 @@ cd fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.swt
 JAVA_HOME=$JAVA25_HOME mvn clean compile -DskipTests
 ```
 
-## Execução
+## Running
 
 ```bash
 cd fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.swt
@@ -81,7 +81,7 @@ JAVA_HOME=$JAVA25_HOME mvn exec:java \
   -Dexec.mainClass="br.com.wdc.shopping.view.swt.ShoppingSwtMain"
 ```
 
-> A aplicação inclui backend embarcado (H2 + repositórios), não requer servidor externo.
+> The application includes an embedded backend (H2 + repositories) and requires no external server.
 
 ## Screenshots
 
@@ -93,18 +93,18 @@ JAVA_HOME=$JAVA25_HOME mvn exec:java \
 
 ![Home](docs/screenshots/swt-home.png)
 
-### Carrinho (vazio)
+### Cart (empty)
 
-![Carrinho vazio](docs/screenshots/swt-cart-empty.png)
+![Empty cart](docs/screenshots/swt-cart-empty.png)
 
-### Carrinho (com produtos)
+### Cart (with products)
 
-![Carrinho com produtos](docs/screenshots/swt-cart.png)
+![Cart with products](docs/screenshots/swt-cart.png)
 
-### Recibo (histórico)
+### Receipt (history)
 
-![Recibo](docs/screenshots/swt-receipt.png)
+![Receipt](docs/screenshots/swt-receipt.png)
 
-### Recibo (pós-compra)
+### Receipt (after purchase)
 
-![Recibo pós-compra](docs/screenshots/swt-receipt-purchased.png)
+![Receipt after purchase](docs/screenshots/swt-receipt-purchased.png)

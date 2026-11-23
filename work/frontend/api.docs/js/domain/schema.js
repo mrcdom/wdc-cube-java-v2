@@ -1,40 +1,41 @@
 /**
- * Metadados do domínio — a fonte de verdade desta demonstração.
+ * Domain metadata — the source of truth for this demonstration.
  *
- * Tudo o que a interface oferece sai daqui: quais entidades existem, que campos cada uma projeta, por quais campos se
- * pode filtrar e — o ponto que esta demonstração quer ensinar — que operadores cada tipo de campo aceita.
+ * Everything the interface offers comes from here: which entities exist, which fields each one projects, which fields
+ * can be filtered on and — the point this demonstration wants to teach — which operators each field type accepts.
  *
- * A restrição por tipo não é enfeite da tela: ela espelha as classes do domínio. `Criterion` cobre o que só se compara
- * por identidade, `ComparableCriterion` acrescenta ordem e `TextCriterion` acrescenta busca por padrão. Pedir
- * `between` num campo sem ordem nem compila do lado Java; aqui o campo simplesmente não oferece a opção.
+ * The per-type restriction is not screen decoration: it mirrors the domain classes. `Criterion` covers what is compared
+ * only by identity, `ComparableCriterion` adds ordering, and `TextCriterion` adds pattern matching. Asking for
+ * `between` on a field without ordering does not even compile on the Java side; here the field simply does not offer
+ * the option.
  */
 
-/** Operadores por família de critério, na ordem em que fazem sentido para quem monta o filtro. */
+/** Operators by criterion family, in the order that makes sense to whoever builds the filter. */
 export const OPERATORS = {
-  EQ: { label: 'igual a', arity: 1, sql: '=' },
-  NE: { label: 'diferente de', arity: 1, sql: '<>' },
-  GT: { label: 'maior que', arity: 1, sql: '>' },
-  GE: { label: 'maior ou igual a', arity: 1, sql: '>=' },
-  LT: { label: 'menor que', arity: 1, sql: '<' },
-  LE: { label: 'menor ou igual a', arity: 1, sql: '<=' },
-  BETWEEN: { label: 'entre', arity: 2, sql: 'BETWEEN' },
-  IN: { label: 'em (lista)', arity: -1, sql: 'IN' },
-  LIKE: { label: 'como (sensível a maiúsculas)', arity: 1, sql: 'LIKE' },
-  ILIKE: { label: 'como (ignora maiúsculas)', arity: 1, sql: 'ILIKE' },
-  IS_NULL: { label: 'é nulo', arity: 0, sql: 'IS NULL' },
-  IS_NOT_NULL: { label: 'não é nulo', arity: 0, sql: 'IS NOT NULL' },
+  EQ: { label: 'equal to', arity: 1, sql: '=' },
+  NE: { label: 'not equal to', arity: 1, sql: '<>' },
+  GT: { label: 'greater than', arity: 1, sql: '>' },
+  GE: { label: 'greater than or equal to', arity: 1, sql: '>=' },
+  LT: { label: 'less than', arity: 1, sql: '<' },
+  LE: { label: 'less than or equal to', arity: 1, sql: '<=' },
+  BETWEEN: { label: 'between', arity: 2, sql: 'BETWEEN' },
+  IN: { label: 'in (list)', arity: -1, sql: 'IN' },
+  LIKE: { label: 'like (case-sensitive)', arity: 1, sql: 'LIKE' },
+  ILIKE: { label: 'like (case-insensitive)', arity: 1, sql: 'ILIKE' },
+  IS_NULL: { label: 'is null', arity: 0, sql: 'IS NULL' },
+  IS_NOT_NULL: { label: 'is not null', arity: 0, sql: 'IS NOT NULL' },
 };
 
-/** Só identidade — enum, booleano, chave estrangeira. */
+/** Identity only — enum, boolean, foreign key. */
 const IDENTITY_OPS = ['EQ', 'NE', 'IN', 'IS_NULL', 'IS_NOT_NULL'];
 
-/** Identidade + ordem — número, data, timestamp. */
+/** Identity + ordering — number, date, timestamp. */
 const COMPARABLE_OPS = ['EQ', 'NE', 'GT', 'GE', 'LT', 'LE', 'BETWEEN', 'IN', 'IS_NULL', 'IS_NOT_NULL'];
 
-/** Tudo acima + busca por padrão. Texto também se ordena: `name().ge("M")` é consulta legítima. */
+/** All of the above + pattern matching. Text is ordered too: `name().ge("M")` is a legitimate query. */
 const TEXT_OPS = [...COMPARABLE_OPS, 'LIKE', 'ILIKE'];
 
-/** A família de critério de cada tipo de campo, e como o valor é lido do formulário. */
+/** The criterion family of each field type, and how the value is read from the form. */
 export const FIELD_KINDS = {
   identity: { operators: IDENTITY_OPS, parse: (raw) => raw, input: 'text' },
   number: { operators: COMPARABLE_OPS, parse: (raw) => Number(raw), input: 'number' },
@@ -43,42 +44,43 @@ export const FIELD_KINDS = {
 };
 
 /**
- * Atalhos textuais — não são operadores próprios, são `ILIKE` com os curingas já postos.
+ * Text shortcuts — not operators of their own, but `ILIKE` with the wildcards already in place.
  *
- * Existem porque os curingas fazem parte do valor, como em SQL: `like('CAFE')` não é `like('%CAFE%')`. Ancorar no
- * início é justamente o que permite ao banco usar índice, e por isso vale ter um atalho que deixa isso explícito.
+ * They exist because wildcards are part of the value, as in SQL: `like('COFFEE')` is not `like('%COFFEE%')`.
+ * Anchoring at the start is exactly what lets the database use an index, so a shortcut that makes it explicit is
+ * worth having.
  */
 export const TEXT_SHORTCUTS = {
-  startingWith: { label: 'começa com', wrap: (v) => `${v}%`, explain: (v) => `começa com “${v}”` },
-  containing: { label: 'contém', wrap: (v) => `%${v}%`, explain: (v) => `contém “${v}”` },
-  endingWith: { label: 'termina com', wrap: (v) => `%${v}`, explain: (v) => `termina com “${v}”` },
+  startingWith: { label: 'starts with', wrap: (v) => `${v}%`, explain: (v) => `starts with “${v}”` },
+  containing: { label: 'contains', wrap: (v) => `%${v}%`, explain: (v) => `contains “${v}”` },
+  endingWith: { label: 'ends with', wrap: (v) => `%${v}`, explain: (v) => `ends with “${v}”` },
 };
 
 /**
- * As quatro entidades: o caminho REST, os campos projetáveis, os campos filtráveis e as ordenações provisionadas.
+ * The four entities: the REST path, the projectable fields, the filterable fields, and the provisioned orderings.
  *
- * `orderings` não é uma lista de campos ordenáveis: cada entrada é uma ordenação inteira, com nome que diz o efeito
- * e um `sql` que mostra por quais colunas ela se faz. Ordenação nova entra por decisão, junto com o índice que a
- * sustenta — e é por isso que a lista é curta.
+ * `orderings` is not a list of sortable fields: each entry is a whole ordering, with a name that states its effect
+ * and an `sql` that shows which columns it sorts by. A new ordering comes in by decision, together with the index that
+ * supports it — which is why the list is short.
  */
 export const ENTITIES = {
   product: {
-    label: 'Produto',
+    label: 'Product',
     path: 'product',
     criteriaName: 'ProductCriteria',
     orderings: [
-      { name: 'OLDEST_FIRST', label: 'mais antigo primeiro', sql: 'ID asc' },
-      { name: 'NEWEST_FIRST', label: 'mais recente primeiro', sql: 'ID desc' },
-      { name: 'NAME_A_TO_Z', label: 'nome (A → Z)', sql: 'NAME asc, ID asc' },
-      { name: 'CHEAPEST_FIRST', label: 'menor preço primeiro', sql: 'PRICE asc, ID asc' },
-      { name: 'MOST_EXPENSIVE_FIRST', label: 'maior preço primeiro', sql: 'PRICE desc, ID asc' },
+      { name: 'OLDEST_FIRST', label: 'oldest first', sql: 'ID asc' },
+      { name: 'NEWEST_FIRST', label: 'newest first', sql: 'ID desc' },
+      { name: 'NAME_A_TO_Z', label: 'name (A → Z)', sql: 'NAME asc, ID asc' },
+      { name: 'CHEAPEST_FIRST', label: 'cheapest first', sql: 'PRICE asc, ID asc' },
+      { name: 'MOST_EXPENSIVE_FIRST', label: 'most expensive first', sql: 'PRICE desc, ID asc' },
     ],
     fields: [
       { name: 'id', kind: 'number', label: 'id' },
-      { name: 'name', kind: 'text', label: 'nome' },
-      { name: 'price', kind: 'number', label: 'preço' },
-      { name: 'description', kind: 'text', label: 'descrição' },
-      { name: 'image', kind: 'text', label: 'imagem (base64)', heavy: true },
+      { name: 'name', kind: 'text', label: 'name' },
+      { name: 'price', kind: 'number', label: 'price' },
+      { name: 'description', kind: 'text', label: 'description' },
+      { name: 'image', kind: 'text', label: 'image (base64)', heavy: true },
     ],
     criteria: [
       { name: 'productId', kind: 'number', label: 'productId', column: 'EN_PRODUCT.ID' },
@@ -88,27 +90,27 @@ export const ENTITIES = {
         kind: 'number',
         label: 'price',
         column: 'EN_PRODUCT.PRICE',
-        note: 'A coluna é NUMERIC e o domínio fala em Double: o valor é convertido antes da comparação, e isso vale igual para between e in.',
+        note: 'The column is NUMERIC and the domain speaks Double: the value is converted before the comparison, and the same holds for between and in.',
       },
       { name: 'description', kind: 'text', label: 'description', column: 'EN_PRODUCT.DESCRIPTION' },
     ],
   },
 
   user: {
-    label: 'Usuário',
+    label: 'User',
     path: 'user',
     criteriaName: 'UserCriteria',
     orderings: [
-      { name: 'OLDEST_FIRST', label: 'mais antigo primeiro', sql: 'ID asc' },
-      { name: 'NEWEST_FIRST', label: 'mais recente primeiro', sql: 'ID desc' },
-      { name: 'NAME_A_TO_Z', label: 'nome (A → Z)', sql: 'NAME asc, ID asc' },
+      { name: 'OLDEST_FIRST', label: 'oldest first', sql: 'ID asc' },
+      { name: 'NEWEST_FIRST', label: 'newest first', sql: 'ID desc' },
+      { name: 'NAME_A_TO_Z', label: 'name (A → Z)', sql: 'NAME asc, ID asc' },
       { name: 'LOGIN_A_TO_Z', label: 'login (A → Z)', sql: 'USERNAME asc, ID asc' },
     ],
     fields: [
       { name: 'id', kind: 'number', label: 'id' },
       { name: 'userName', kind: 'text', label: 'login' },
-      { name: 'name', kind: 'text', label: 'nome' },
-      { name: 'roles', kind: 'text', label: 'papéis' },
+      { name: 'name', kind: 'text', label: 'name' },
+      { name: 'roles', kind: 'text', label: 'roles' },
     ],
     criteria: [
       { name: 'userId', kind: 'number', label: 'userId', column: 'EN_USER.ID' },
@@ -119,31 +121,31 @@ export const ENTITIES = {
         kind: 'text',
         label: 'roles',
         column: 'EN_USER.ROLES',
-        note: 'Papéis separados por vírgula na coluna; “contém” é o filtro que responde “tem este papel”.',
+        note: 'Comma-separated roles in the column; “contains” is the filter that answers “has this role”.',
       },
     ],
   },
 
   purchase: {
-    label: 'Compra',
+    label: 'Purchase',
     path: 'purchase',
     criteriaName: 'PurchaseCriteria',
     orderings: [
-      { name: 'OLDEST_FIRST', label: 'mais antigo primeiro', sql: 'ID asc' },
-      { name: 'NEWEST_FIRST', label: 'mais recente primeiro', sql: 'ID desc' },
-      { name: 'MOST_RECENT_PURCHASE_FIRST', label: 'compra mais recente primeiro', sql: 'BUYDATE desc, ID desc' },
-      { name: 'EARLIEST_PURCHASE_FIRST', label: 'compra mais antiga primeiro', sql: 'BUYDATE asc, ID asc' },
+      { name: 'OLDEST_FIRST', label: 'oldest first', sql: 'ID asc' },
+      { name: 'NEWEST_FIRST', label: 'newest first', sql: 'ID desc' },
+      { name: 'MOST_RECENT_PURCHASE_FIRST', label: 'most recent purchase first', sql: 'BUYDATE desc, ID desc' },
+      { name: 'EARLIEST_PURCHASE_FIRST', label: 'earliest purchase first', sql: 'BUYDATE asc, ID asc' },
     ],
     fields: [
       { name: 'id', kind: 'number', label: 'id' },
-      { name: 'buyDate', kind: 'date', label: 'data da compra' },
-      { name: 'user', kind: 'ref', label: 'usuário', ref: 'user' },
+      { name: 'buyDate', kind: 'date', label: 'purchase date' },
+      { name: 'user', kind: 'ref', label: 'user', ref: 'user' },
     ],
     collection: {
       name: 'items',
-      label: 'itens',
+      label: 'items',
       of: 'purchaseItem',
-      note: 'Relação 1:N. Na projeção é um envelope com forma, critério e recorte; na resposta, o array de linhas.',
+      note: '1:N relation. In the projection it is an envelope with shape, criteria, and slice; in the response, the array of rows.',
     },
     criteria: [
       { name: 'purchaseId', kind: 'number', label: 'purchaseId', column: 'EN_PURCHASE.ID' },
@@ -153,34 +155,34 @@ export const ENTITIES = {
         kind: 'date',
         label: 'buyDate',
         column: 'EN_PURCHASE.BUYDATE',
-        note: 'A coluna não guarda fuso: o valor é convertido em LocalDateTime antes da comparação.',
+        note: 'The column stores no time zone: the value is converted to LocalDateTime before the comparison.',
       },
       {
         name: 'productId',
         kind: 'number',
         label: 'productId',
         column: 'EN_PURCHASEITEM.PRODUCTID',
-        derived: 'EXISTS sobre os itens',
-        note: 'Não é coluna da compra: o produto vive nos itens. A condição sai como EXISTS, mas o campo se usa como qualquer outro.',
+        derived: 'EXISTS over the items',
+        note: 'Not a purchase column: the product lives in the items. The condition comes out as EXISTS, but the field is used like any other.',
       },
     ],
   },
 
   purchaseItem: {
-    label: 'Item de compra',
+    label: 'Purchase item',
     path: 'purchase-item',
     criteriaName: 'PurchaseItemCriteria',
     orderings: [
-      { name: 'OLDEST_FIRST', label: 'mais antigo primeiro', sql: 'ID asc' },
-      { name: 'NEWEST_FIRST', label: 'mais recente primeiro', sql: 'ID desc' },
-      { name: 'MOST_EXPENSIVE_FIRST', label: 'maior preço primeiro', sql: 'PRICE desc, ID asc' },
-      { name: 'LARGEST_QUANTITY_FIRST', label: 'maior quantidade primeiro', sql: 'AMOUNT desc, ID asc' },
+      { name: 'OLDEST_FIRST', label: 'oldest first', sql: 'ID asc' },
+      { name: 'NEWEST_FIRST', label: 'newest first', sql: 'ID desc' },
+      { name: 'MOST_EXPENSIVE_FIRST', label: 'most expensive first', sql: 'PRICE desc, ID asc' },
+      { name: 'LARGEST_QUANTITY_FIRST', label: 'largest quantity first', sql: 'AMOUNT desc, ID asc' },
     ],
     fields: [
       { name: 'id', kind: 'number', label: 'id' },
-      { name: 'amount', kind: 'number', label: 'quantidade' },
-      { name: 'price', kind: 'number', label: 'preço' },
-      { name: 'product', kind: 'ref', label: 'produto', ref: 'product' },
+      { name: 'amount', kind: 'number', label: 'quantity' },
+      { name: 'price', kind: 'number', label: 'price' },
+      { name: 'product', kind: 'ref', label: 'product', ref: 'product' },
     ],
     criteria: [
       { name: 'purchaseItemId', kind: 'number', label: 'purchaseItemId', column: 'EN_PURCHASEITEM.ID' },
@@ -192,30 +194,30 @@ export const ENTITIES = {
         kind: 'number',
         label: 'price',
         column: 'EN_PURCHASEITEM.PRICE',
-        note: 'Como no produto, a coluna é NUMERIC e o valor é convertido antes da comparação.',
+        note: 'As with the product, the column is NUMERIC and the value is converted before the comparison.',
       },
       {
         name: 'userId',
         kind: 'number',
         label: 'userId',
         column: 'EN_PURCHASE.USERID',
-        derived: 'EXISTS sobre a compra',
-        note: 'O usuário é dono da compra, não do item. A condição incide sobre EN_PURCHASE, correlacionada pela chave estrangeira.',
+        derived: 'EXISTS over the purchase',
+        note: 'The user owns the purchase, not the item. The condition applies to EN_PURCHASE, correlated by the foreign key.',
       },
     ],
   },
 };
 
-/** Operações de consulta — as que carregam critério, e por isso interessam a esta demonstração. */
+/** Query operations — the ones that carry criteria, and so matter to this demonstration. */
 export const QUERY_OPERATIONS = {
-  fetch: { label: 'fetch', method: 'POST', suffix: '/fetch', paging: 'offset', describe: 'Lista as linhas que satisfazem o critério.' },
-  'fetch-page': { label: 'fetch-page', method: 'POST', suffix: '/fetch-page', paging: 'page', describe: 'Como fetch, devolvendo também o total de linhas.' },
-  count: { label: 'count', method: 'POST', suffix: '/count', paging: null, describe: 'Conta as linhas que satisfazem o critério, sem trazê-las.' },
+  fetch: { label: 'fetch', method: 'POST', suffix: '/fetch', paging: 'offset', describe: 'Lists the rows that satisfy the criteria.' },
+  'fetch-page': { label: 'fetch-page', method: 'POST', suffix: '/fetch-page', paging: 'page', describe: 'Like fetch, also returning the total row count.' },
+  count: { label: 'count', method: 'POST', suffix: '/count', paging: null, describe: 'Counts the rows that satisfy the criteria, without fetching them.' },
 };
 
 export const entity = (key) => ENTITIES[key];
 
 export const fieldKind = (kind) => FIELD_KINDS[kind] ?? FIELD_KINDS.identity;
 
-/** Os operadores oferecidos por um campo, segundo a família do seu tipo. */
+/** The operators a field offers, according to its type's family. */
 export const operatorsOf = (field) => fieldKind(field.kind).operators;

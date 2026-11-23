@@ -1,8 +1,8 @@
 /**
- * A aplicação: liga o modelo aos painéis e mantém as quatro vistas em sincronia.
+ * The application: wires the model to the panels and keeps the four views in sync.
  *
- * As quatro vistas são a mesma coisa vista de ângulos diferentes — o formulário, o JSON que ele produz, a frase que
- * ele significa e o SQL que ele vira. É a comparação entre elas que ensina, então todas se atualizam a cada tecla.
+ * The four views are the same thing seen from different angles — the form, the JSON it produces, the sentence it
+ * means, and the SQL it becomes. Comparing them is what teaches, so all of them update on every keystroke.
  */
 
 import { $, html, on, pretty, render } from './core/dom.js';
@@ -42,13 +42,13 @@ class Application {
     this.#projection = new Projection(this.#entityKey);
   }
 
-  // -- Estrutura -----------------------------------------------------------
+  // -- Structure -----------------------------------------------------------
 
   /**
-   * Os ouvintes das abas são ligados uma única vez.
+   * The tab listeners are wired exactly once.
    *
-   * Ligá-los dentro do desenho — que roda a cada troca — acrescentaria um ouvinte por vez, e um clique passaria a
-   * disparar tantas trocas quantas já tivessem ocorrido.
+   * Wiring them inside the rendering — which runs on every switch — would add one listener each time, and a single
+   * click would fire as many switches as had already happened.
    */
   #wireTabs() {
     on($('#entity-tabs'), 'click', 'button', (_e, el) => {
@@ -80,7 +80,7 @@ class Application {
   }
 
   #mountBuilders() {
-    // Os painéis anteriores ficaram ligados às mesmas raízes, apontando para o modelo da entidade que saiu.
+    // The previous panels are still attached to the same roots, pointing at the model of the entity that was left.
     this.#criteriaBuilder?.destroy();
     this.#projectionBuilder?.destroy();
 
@@ -104,9 +104,9 @@ class Application {
       </button>`));
   }
 
-  // -- Requisição ----------------------------------------------------------
+  // -- Request -------------------------------------------------------------
 
-  /** O corpo exato que será enviado — é ele que a aba JSON mostra. */
+  /** The exact body that will be sent — it is what the JSON tab shows. */
   #requestBody() {
     const body = this.#criteria.toJSON();
 
@@ -128,7 +128,7 @@ class Application {
     return `/api/repo/${entity(this.#entityKey).path}${QUERY_OPERATIONS[this.#operation].suffix}`;
   }
 
-  /** Redesenha as vistas derivadas. Chamado a cada tecla, então não pode custar caro. */
+  /** Redraws the derived views. Called on every keystroke, so it must stay cheap. */
   #refresh() {
     const body = this.#requestBody();
 
@@ -139,17 +139,17 @@ class Application {
 
     const active = this.#criteria.active.length;
     render($('#criteria-summary'), active === 0
-      ? html`<span class="off">nenhum campo informado — a consulta devolve todas as linhas</span>`
-      : html`<span class="on">${active} campo${active > 1 ? 's' : ''} no filtro</span>`);
+      ? html`<span class="off">no field set — the query returns every row</span>`
+      : html`<span class="on">${active} field${active > 1 ? 's' : ''} in the filter</span>`);
   }
 
-  // -- Autenticação --------------------------------------------------------
+  // -- Authentication ------------------------------------------------------
 
   #wireAuth() {
     $('#login').addEventListener('submit', async (event) => {
       event.preventDefault();
       const status = $('#auth-status');
-      status.textContent = 'autenticando…';
+      status.textContent = 'signing in…';
       status.className = 'auth-status pending';
       try {
         await this.#session.login($('#auth-user').value, $('#auth-pass').value);
@@ -165,12 +165,12 @@ class Application {
   #renderAuthState() {
     const status = $('#auth-status');
     const { authenticated, userName, userId } = this.#session;
-    status.textContent = authenticated ? `autenticado — ${userName} (userId ${userId})` : 'não autenticado';
+    status.textContent = authenticated ? `signed in — ${userName} (userId ${userId})` : 'not signed in';
     status.className = `auth-status ${authenticated ? 'yes' : 'no'}`;
     $('#logout').hidden = !authenticated;
   }
 
-  // -- Execução ------------------------------------------------------------
+  // -- Execution -----------------------------------------------------------
 
   #wireRun() {
     $('#run').addEventListener('click', () => this.#run());
@@ -201,7 +201,7 @@ class Application {
 
   async #run() {
     const target = $('#response');
-    render(target, html`<p class="pending">executando…</p>`);
+    render(target, html`<p class="pending">running…</p>`);
 
     const exchange = await this.#session.send('POST', this.#url(), this.#requestBody());
 
@@ -211,17 +211,17 @@ class Application {
 
     render(target, html`
       <div class="response-head ${exchange.ok ? 'ok' : 'fail'}">
-        <span class="status">${exchange.error ? 'erro de rede' : `HTTP ${exchange.status}`}</span>
+        <span class="status">${exchange.error ? 'network error' : `HTTP ${exchange.status}`}</span>
         <span class="elapsed">${exchange.elapsedMs} ms</span>
-        ${rows !== null ? html`<span class="rows">${rows} linha${rows === 1 ? '' : 's'}</span>` : ''}
-        ${exchange.status === 401 ? html`<span class="tip">autentique-se para esta operação</span>` : ''}
+        ${rows !== null ? html`<span class="rows">${rows} row${rows === 1 ? '' : 's'}</span>` : ''}
+        ${exchange.status === 401 ? html`<span class="tip">sign in to run this operation</span>` : ''}
       </div>
       <pre><code>${exchange.error ?? pretty(exchange.responseBody)}</code></pre>
     `);
   }
 }
 
-// As abas do painel de saída são pura apresentação — não precisam do modelo.
+// The output panel tabs are pure presentation — they do not need the model.
 const wireTabs = () => {
   on($('#output-tabs'), 'click', 'button', (_e, el) => {
     for (const button of $('#output-tabs').querySelectorAll('button')) {

@@ -1,8 +1,10 @@
 /**
- * A criptografia que o login exige: MD5 da senha no mesmo formato do servidor, e HMAC-SHA256 do desafio.
+ * The cryptography the login requires: the password's MD5 in the same format the server uses, and HMAC-SHA256 of the
+ * challenge.
  *
- * O servidor nunca recebe a senha. Ele guarda o resumo MD5 dela e, no login, manda um nonce; o cliente responde com
- * `HMAC-SHA256(resumo, usuário + nonce)`. Quem interceptar a resposta não consegue reusá-la — o nonce só vale uma vez.
+ * The server never receives the password. It stores the password's MD5 digest and, at login, sends a nonce; the client
+ * replies with `HMAC-SHA256(digest, user + nonce)`. Whoever intercepts the reply cannot reuse it — the nonce is valid
+ * only once.
  */
 
 const MD5_K = Int32Array.from({ length: 64 }, (_, i) => Math.floor(Math.abs(Math.sin(i + 1)) * 2 ** 32));
@@ -17,7 +19,7 @@ const MD5_S = [
 const rotl = (x, n) => ((x << n) | (x >>> (32 - n))) >>> 0;
 const add = (...xs) => xs.reduce((a, b) => (a + b) >>> 0, 0);
 
-/** MD5 (RFC 1321) — devolve os 16 bytes do resumo. */
+/** MD5 (RFC 1321) — returns the 16 bytes of the digest. */
 export function md5(text) {
   const utf8 = new TextEncoder().encode(text);
   const bitLen = utf8.length * 8;
@@ -65,19 +67,18 @@ export function md5(text) {
 }
 
 /**
- * Os bytes como o `BigInteger` do Java os lê: **com sinal**, em complemento de dois.
+ * The bytes as Java's `BigInteger` reads them: **signed**, in two's complement.
  *
- * O servidor guarda a senha como `new BigInteger(md5).toString(36)`, e esse construtor é com sinal — quando o primeiro
- * byte é ≥ 0x80 o número é negativo, e o texto começa com `-`. Ler os mesmos bytes como se fossem sempre positivos
- * produz outra string, e o login falha para cerca de metade das senhas. Foi o que acontecia aqui antes: o usuário
- * `beotrano` do próprio seed não conseguia entrar.
+ * The server stores the password as `new BigInteger(md5).toString(36)`, and that constructor is signed — when the
+ * first byte is ≥ 0x80 the number is negative, and the text starts with `-`. Reading the same bytes as if they were
+ * always positive produces a different string, and the login fails for about half of all passwords.
  */
 export function bytesToSignedBase36(bytes) {
   const negative = bytes[0] >= 0x80;
 
   let magnitude = 0n;
   if (negative) {
-    // Complemento de dois: inverte os bits e soma 1 para obter o módulo.
+    // Two's complement: invert the bits and add 1 to get the magnitude.
     const inverted = bytes.map((b) => ~b & 0xff);
     for (const b of inverted) magnitude = (magnitude << 8n) | BigInt(b);
     magnitude += 1n;
@@ -88,10 +89,10 @@ export function bytesToSignedBase36(bytes) {
   return (negative ? '-' : '') + magnitude.toString(36);
 }
 
-/** O resumo da senha no formato que o servidor guarda. */
+/** The password digest in the format the server stores. */
 export const passwordDigest = (password) => bytesToSignedBase36(md5(password));
 
-/** HMAC-SHA256 em hexadecimal, via Web Crypto. */
+/** HMAC-SHA256 in hexadecimal, via Web Crypto. */
 export async function hmacSha256(key, data) {
   const encoder = new TextEncoder();
   const cryptoKey = await crypto.subtle.importKey(

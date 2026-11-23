@@ -1,21 +1,21 @@
 # WDC Shopping — React Client
 
-Frontend SPA do sistema Shopping, construído com **React 19**, **TypeScript** e **MUI 9**. Comunica-se com o backend Java via **WebSocket bidirecional**, recebendo estados serializados dos presenters e enviando eventos de volta.
+SPA frontend for the Shopping system, built with **React 19**, **TypeScript** and **MUI 9**. It communicates with the Java backend over a **bidirectional WebSocket**, receiving serialized states from the presenters and sending events back.
 
 ## Stack
 
-| Tecnologia        | Versão | Finalidade                |
-| ----------------- | ------ | ------------------------- |
-| React             | 19     | UI reativa                |
-| TypeScript        | ES2024 | Tipagem estática          |
-| MUI (Material UI) | 9      | Componentes visuais       |
-| Emotion           | 11     | CSS-in-JS (engine do MUI) |
-| Parcel            | 2.13.3 | Bundler                   |
-| Prettier          | 3.8.2  | Formatação de código      |
-| history           | 5.3.0  | Navegação hash-based      |
-| universal-cookie  | 7.2.2  | Gerenciamento de cookies  |
+| Technology        | Version | Purpose                   |
+| ----------------- | ------- | ------------------------- |
+| React             | 19      | Reactive UI               |
+| TypeScript        | ES2024  | Static typing             |
+| MUI (Material UI) | 9       | Visual components         |
+| Emotion           | 11      | CSS-in-JS (MUI engine)    |
+| Parcel            | 2.13.3  | Bundler                   |
+| Prettier          | 3.8.2   | Code formatting           |
+| history           | 5.3.0   | Hash-based navigation     |
+| universal-cookie  | 7.2.2   | Cookie management         |
 
-## Estrutura do Projeto
+## Project Structure
 
 ```mermaid
 graph TD
@@ -23,28 +23,28 @@ graph TD
     src --> indexHtml["index.html"]
     src --> scripts["scripts/"]
 
-    scripts --> indexTsx["index.tsx<br/><small>Bootstrap: tema, registro, render</small>"]
-    scripts --> AppTsx["App.tsx<br/><small>Fachada da Application</small>"]
+    scripts --> indexTsx["index.tsx<br/><small>Bootstrap: theme, registration, render</small>"]
+    scripts --> AppTsx["App.tsx<br/><small>Application facade</small>"]
 
-    scripts --> bridge["bridge/ — Infraestrutura"]
-    bridge --> VSCoord["ViewStateCoordinator.ts<br/><small>Views, formulários, WebSocket</small>"]
-    bridge --> Flush["FlushRequestContext.ts<br/><small>Comunicação WS</small>"]
-    bridge --> Reconnect["ReconnectController.ts<br/><small>Backoff progressivo</small>"]
+    scripts --> bridge["bridge/ — Infrastructure"]
+    bridge --> VSCoord["ViewStateCoordinator.ts<br/><small>Views, forms, WebSocket</small>"]
+    bridge --> Flush["FlushRequestContext.ts<br/><small>WS communication</small>"]
+    bridge --> Reconnect["ReconnectController.ts<br/><small>Progressive backoff</small>"]
     bridge --> DataSec["DataSecurity.ts<br/><small>RSA + AES-GCM</small>"]
-    bridge --> ViewScope["ViewScope.ts<br/><small>Estado reativo</small>"]
+    bridge --> ViewScope["ViewScope.ts<br/><small>Reactive state</small>"]
     bridge --> ViewGC["ViewGarbageCollector.ts"]
     bridge --> constants["constants.ts + types.ts"]
 
-    scripts --> utils["utils/ — Utilitários"]
+    scripts --> utils["utils/ — Utilities"]
     utils --> ViewUtils["ViewUtils.tsx<br/><small>Base classes</small>"]
     utils --> CryptoUtils["RSA.ts, Base64.ts, BigIntUtils.ts"]
     utils --> FormatUtils["DateUtils.ts, NumberUtils.ts"]
     utils --> OtherUtils["LangUtils.ts, EndpointUtils.ts, UTF8.ts"]
 
-    scripts --> views["views/ — Componentes"]
-    views --> BrowserView["BrowserView.tsx<br/><small>Conexão, alertas, loading</small>"]
-    views --> RootView["RootView.tsx<br/><small>Container auth</small>"]
-    views --> SlotView["SlotView.tsx<br/><small>Slot genérico</small>"]
+    scripts --> views["views/ — Components"]
+    views --> BrowserView["BrowserView.tsx<br/><small>Connection, alerts, loading</small>"]
+    views --> RootView["RootView.tsx<br/><small>Auth container</small>"]
+    views --> SlotView["SlotView.tsx<br/><small>Generic slot</small>"]
     views --> LoginView["LoginView.tsx"]
     views --> HomeView["HomeView.tsx"]
     views --> ProductView["ProductView.tsx"]
@@ -53,97 +53,97 @@ graph TD
     views --> home["home/<br/><small>HeaderPanel, ContentPanel,<br/>ProductsPanel, PurchasesPanel</small>"]
 ```
 
-## Como Funciona
+## How It Works
 
-### Ciclo de Vida
+### Lifecycle
 
-1. **Bootstrap** (`index.tsx`): Cria o tema MUI, registra todas as views e renderiza a `BrowserView`
-2. **Conexão** (`BrowserView`): Ao montar, chama `app.onStart()` que abre o WebSocket
-3. **Recebimento de estado**: O backend envia `ViewStates` serializados via WebSocket → `Application.applyViewStates()` atualiza os `ViewScope`s → React re-renderiza
-4. **Envio de eventos**: Ações do usuário chamam `app.submit(vsid, eventId)` que envia o evento ao presenter correspondente no backend via WebSocket
+1. **Bootstrap** (`index.tsx`): Creates the MUI theme, registers all views and renders the `BrowserView`
+2. **Connection** (`BrowserView`): On mount, calls `app.onStart()`, which opens the WebSocket
+3. **Receiving state**: The backend sends serialized `ViewStates` over WebSocket → `Application.applyViewStates()` updates the `ViewScope`s → React re-renders
+4. **Sending events**: User actions call `app.submit(vsid, eventId)`, which sends the event to the corresponding presenter on the backend over WebSocket
 
-### Padrão de Views
+### View Pattern
 
-Cada view é uma classe que estende `BaseViewClass<Props, State>` e é convertida em Functional Component via `BaseViewClass.FC()`:
+Each view is a class that extends `BaseViewClass<Props, State>` and is converted into a Functional Component via `BaseViewClass.FC()`:
 
 ```typescript
 class LoginViewClass extends BaseViewClass<ViewProps, LoginScope> {
   override render({ className }: ViewProps): React.ReactNode {
     const { state } = this
-    // ... renderização baseada no state recebido do backend
+    // ... rendering based on the state received from the backend
   }
 }
 
 export default BaseViewClass.FC(LoginViewClass, "c677cda52d14")
 ```
 
-- O **estado** (`state`) vem do backend (presenter), não é gerenciado localmente
-- **Eventos** são enviados ao backend via `app.submit(vsid, eventId)`
-- **Dados de formulário** são anexados via `app.setFormField(vsid, field, value)` antes do submit
-- Cada view é identificada por um **VIEW_ID** único (hash) que mapeia ao presenter no backend
+- The **state** (`state`) comes from the backend (presenter); it is not managed locally
+- **Events** are sent to the backend via `app.submit(vsid, eventId)`
+- **Form data** is attached via `app.setFormField(vsid, field, value)` before the submit
+- Each view is identified by a unique **VIEW_ID** (hash) that maps to the presenter on the backend
 
-### Comunicação WebSocket
+### WebSocket Communication
 
-- **Protocolo**: WebSocket com subprotocolo `wdc`
-- **Keep-alive**: Automático a cada 15 segundos para manter a conexão ativa
-- **Reconexão**: Backoff progressivo (2s, 4s, 6s, ... até 120s) com opção de reconectar imediatamente
-- **Segurança**: Dados sensíveis cifrados com AES-GCM; chave trocada via RSA no handshake
+- **Protocol**: WebSocket with the `wdc` subprotocol
+- **Keep-alive**: Automatic every 15 seconds to keep the connection alive
+- **Reconnection**: Progressive backoff (2s, 4s, 6s, ... up to 120s) with an option to reconnect immediately
+- **Security**: Sensitive data encrypted with AES-GCM; key exchanged via RSA in the handshake
 
-### Indicador de Atividade
+### Activity Indicator
 
-Um `LinearProgress` (MUI) aparece no topo da página durante submits do usuário. Características:
+A `LinearProgress` (MUI) appears at the top of the page during user submits. Characteristics:
 
-- `position: fixed` — não afeta o layout
-- Debounce de 50ms — não pisca em operações rápidas
-- Timeout de 15s — auto-limpa se a resposta não chegar
-- Apenas para ações do usuário — keep-alive e ping são silenciosos
+- `position: fixed` — does not affect the layout
+- 50ms debounce — does not flicker on fast operations
+- 15s timeout — clears itself if the response does not arrive
+- Only for user actions — keep-alive and ping are silent
 
-## Alias de Importação
+## Import Alias
 
-O alias `@root/*` mapeia para `./src/scripts/*`:
+The `@root/*` alias maps to `./src/scripts/*`:
 
 ```typescript
 import app from "@root/App"
 import { BaseViewClass } from "@root/utils/ViewUtils"
 ```
 
-Configurado no `package.json` (Parcel) e `tsconfig.json` (TypeScript/IDE).
+Configured in `package.json` (Parcel) and `tsconfig.json` (TypeScript/IDE).
 
-## Saída do Build
+## Build Output
 
-Os assets compilados são gerados diretamente no módulo `skeleton`:
+The compiled assets are generated directly into the `skeleton` module:
 
 ```
 ../remote.host/src/main/resources/META-INF/resources/
 ```
 
-Isso permite que o servidor Javalin sirva os arquivos estáticos automaticamente via classpath.
+This lets the Javalin server serve the static files automatically via the classpath.
 
-## Comandos
+## Commands
 
 ```bash
-# Instalar dependências
+# Install dependencies
 npm install
 
-# Desenvolvimento (watch mode com hot reload)
+# Development (watch mode with hot reload)
 npm run watch
 
-# Build de produção
+# Production build
 npm run build
 
-# Formatar código
+# Format code
 npm run format
 
-# Verificar formatação
+# Check formatting
 npm run format:check
 ```
 
-## Formatação (Prettier)
+## Formatting (Prettier)
 
-| Regra           | Valor       |
+| Rule            | Value       |
 | --------------- | ----------- |
-| Ponto-e-vírgula | Não         |
-| Aspas           | Simples     |
-| Trailing comma  | Todas       |
-| Largura         | 120 colunas |
-| Indentação      | 2 espaços   |
+| Semicolons      | No          |
+| Quotes          | Single      |
+| Trailing comma  | All         |
+| Width           | 120 columns |
+| Indentation     | 2 spaces    |

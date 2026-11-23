@@ -1,138 +1,146 @@
 # br.com.wdc.shopping.tests
 
-Módulo de **testes automatizados** da aplicação Shopping. Contém testes que exercitam desde serviços de negócio até workflows completos na camada de apresentação, sem necessidade de servidor HTTP ou navegador.
+The **automated tests** module of the Shopping application. It contains tests that exercise everything from business services to complete workflows in the presentation layer, with no need for an HTTP server or browser.
 
-## Estrutura
+## Structure
 
 ```mermaid
 graph TD
     root["test/"]
 
-    root --> repository["repository/ — Testes de CRUD"]
-    repository --> AbstractTests["Abstract*RepositoryTest (bases)<br/><small>Product(19) Purchase(20) PurchaseItem(23) User(17)</small>"]
-    repository --> LocalTests["*RepositoryTest<br/><small>SQL local (H2)</small>"]
+    root --> repository["repository/ — CRUD tests"]
+    repository --> AbstractTests["Abstract*RepositoryTest (bases)<br/><small>Product(38) Purchase(34) PurchaseItem(26) User(28)</small>"]
+    repository --> LocalTests["*RepositoryTest<br/><small>jOOQ repositories (H2)</small>"]
     repository --> RestTests["Rest*RepositoryTest<br/><small>REST via API</small>"]
 
-    root --> LoginTest["ShoppingLoginTest.java<br/><small>Fluxo de login</small>"]
-    root --> CallTest["ShoppingCallTest.java<br/><small>Chamadas da apresentação</small>"]
-    root --> WorkflowTest["ShoppingWorkflowTest.java<br/><small>Workflow completo (presentation)</small>"]
+    root --> LoginTest["ShoppingLoginTest.java<br/><small>Login flow</small>"]
+    root --> CallTest["ShoppingCallTest.java<br/><small>Presentation calls</small>"]
+    root --> WorkflowTest["ShoppingWorkflowTest.java<br/><small>Complete workflow (presentation)</small>"]
+    root --> PlaceKeys["PlaceKeysTest.java<br/><small>Place keys and intents</small>"]
+    root --> Wire["EntityGraphRecursionTest, RelationKeyProjectionTest,<br/>FetchByIdEndpointTest, OrderByWireCompatibilityTest,<br/>OpenApiSpecTest<br/><small>Codecs, projections, REST API</small>"]
+    root --> Tx["TransactionServiceJtaTest,<br/>RemoteTransactionCoordinatorJtaTest,<br/>RemoteTransactionRestTest<br/><small>Transactions (JTA, remote)</small>"]
 
     root --> mock["mock/"]
     mock --> AppMock["ShoppingApplicationMock.java"]
-    mock --> viewimpl["viewimpl/ — Mocks de views"]
+    mock --> viewimpl["viewimpl/ — View mocks"]
     viewimpl --> AbstractVM["AbstractViewMock (base)"]
-    viewimpl --> ViewMocks["Root, Login, Restricted, Cart,<br/>Product, ProductsPanel,<br/>PurchasesPanel, Receipt"]
+    viewimpl --> ViewMocks["Root, Login, Home, Cart,<br/>Product, ProductsPanel,<br/>PurchasesPanel, Receipt"]
 
-    root --> util["util/ — Setup de testes"]
-    util --> BaseBusiness["BaseBusinessTest<br/><small>H2 in-memory + repos</small>"]
+    root --> util["util/ — Test setup"]
+    util --> BaseBusiness["BaseBusinessTest<br/><small>H2 in-memory + jOOQ repos</small>"]
     util --> BaseRest["BaseRestApiTest<br/><small>Javalin + REST client</small>"]
     util --> BasePresentation["BasePresentationTest<br/><small>+ ApplicationMock</small>"]
     util --> Rules["ResetDatabaseRule, TestEnvironment"]
     util --> Executors["ScheduledExecutorForTest*<br/><small>Sync/Async/Delayed</small>"]
 ```
 
-## Abordagem
+## Approach
 
-### Testes de repositório (`repository/`)
+### Repository tests (`repository/`)
 
-Os testes de repositório seguem uma hierarquia **Abstract → Concreto**:
+The repository tests follow an **Abstract → Concrete** hierarchy:
 
-- **`Abstract*RepositoryTest`** — define todos os cenários de teste (insert, update, delete, fetch, projeções, paginação, critérios, casos de borda)
-- **`*RepositoryTest`** — estende o abstrato usando repositórios SQL locais (H2 in-memory via JDBI)
-- **`Rest*RepositoryTest`** — estende o abstrato usando repositórios REST (OkHttp + Gson → Javalin → H2)
+- **`Abstract*RepositoryTest`** — defines all test scenarios (insert, update, delete, fetch, projections, pagination, criteria, edge cases)
+- **`*RepositoryTest`** — extends the abstract class using the jOOQ repositories (`TestEnvironment` in `LOCAL` mode, H2 in-memory)
+- **`Rest*RepositoryTest`** — extends the abstract class using the HTTP repositories (`TestEnvironment` in `REST` mode: OkHttp + domain codecs → Javalin → jOOQ → H2)
 
-Isso garante que ambas as implementações (SQL direta e REST) passam exatamente pelos mesmos testes de contrato.
+This guarantees that both implementations (jOOQ and REST) pass exactly the same contract tests.
 
-Cenários cobertos:
+Covered scenarios:
 
-- **Projeções** (`ProjectionValues`) para verificar que apenas campos solicitados são retornados
-- **Critérios de filtro** (por ID, por campos específicos, por FK)
-- **Paginação** (`offset` / `limit`) e **ordenação** (as entradas de `OrderBy`, ex.: `NEWEST_FIRST`, `NAME_A_TO_Z`)
-- **Casos de borda**: IDs inexistentes, delete sem resultados, constraints de FK
+- **Projections** (`ProjectionValues`) to verify that only the requested fields are returned
+- **Filter criteria** (`Criterion` operators by ID, by specific fields, by FK)
+- **Pagination** (`fetch(criteria, offset, limit)`, `fetchPage`) and **ordering** (the `OrderBy` entries, e.g.: `NEWEST_FIRST`, `NAME_A_TO_Z`)
+- **Edge cases**: nonexistent IDs, delete with no results, FK constraints
 
-Cada teste parte de um banco limpo com dados de seed (`DBReset`), garantindo determinismo.
+Each test starts from a clean database with seed data (`ResetDatabaseRule` → `DBCreate` with reset), guaranteeing determinism.
 
-| Classe base | Repositório | Testes | Implementações |
+| Base class | Repository | Tests | Implementations |
 |---|---|---|---|
-| `AbstractUserRepositoryTest` | `UserRepository` | 17 | SQL, REST |
-| `AbstractProductRepositoryTest` | `ProductRepository` + `fetchImage` | 19 | SQL, REST |
-| `AbstractPurchaseRepositoryTest` | `PurchaseRepository` | 20 | SQL, REST |
-| `AbstractPurchaseItemRepositoryTest` | `PurchaseItemRepository` | 23 | SQL, REST |
+| `AbstractUserRepositoryTest` | `UserRepository` | 28 | jOOQ, REST |
+| `AbstractProductRepositoryTest` | `ProductRepository` + `fetchImage` | 38 | jOOQ, REST |
+| `AbstractPurchaseRepositoryTest` | `PurchaseRepository` | 34 | jOOQ, REST |
+| `AbstractPurchaseItemRepositoryTest` | `PurchaseItemRepository` | 26 | jOOQ, REST |
 
-### Testes das chamadas (`ShoppingCallTest`)
+### Call tests (`ShoppingCallTest`)
 
-Exercitam diretamente as chamadas da apresentação (`XxxCall`) e os repositórios do domínio (login, consulta de produtos, compras, recibos) sobre um banco H2 in-memory populado com dados de seed (`DBReset`).
+They directly exercise the presentation calls (`LoginCall`, `ProductQuery`, `ReceiptQuery`, `PurchasesPageQuery`, a `ShoppingSave` that fails and rolls back) and the domain repositories over an in-memory H2 database populated with seed data (`DBReset`).
 
-### Testes de apresentação (`ShoppingLoginTest`, `ShoppingWorkflowTest`)
+### Presentation tests (`ShoppingLoginTest`, `ShoppingWorkflowTest`)
 
-Simulam a interação do usuário **no nível de apresentação** usando mocks de view. Cada view mock expõe o `state` (o escopo que desenha), permitindo:
+They simulate user interaction **at the presentation level** using view mocks. Each view mock exposes the `state` (the scope it draws), making it possible to:
 
-1. Disparar as ações do state como o usuário faria (ex.: `loginView.state.onEnter.run("admin", "admin")`)
-2. Inspecionar o estado resultante (ex.: `restrictedView.state.errorCode`)
-3. Navegar entre telas verificando transições (ex.: login → home → produto → carrinho → recibo)
+1. Fire the state's actions as the user would (e.g.: `loginView.state.onEnter.run("admin", "admin")`)
+2. Inspect the resulting state (e.g.: `homeView.state.errorCode.get()`)
+3. Navigate between screens, verifying transitions (e.g.: login → home → product → cart → receipt)
 
-#### Exemplo: workflow completo de compra
+#### Example: complete purchase workflow
 
 ```java
 public class ShoppingWorkflowTest extends BasePresentationTest {
 
     @Test
-    public void testComprarProduto() throws Exception {
+    public void testBuyProduct() {
         new LoginKeys(this.app).flip();
         var rootView = this.app.getRootView();
 
-        // Login
+        // Sign in
         var loginView = LoginViewMock.cast(this.app.viewOf(rootView.state.content.get()));
         loginView.state.onEnter.run("admin", "admin");
 
-        // Navegar para produto (a ação é do painel de produtos da home)
+        // Navigate to the product (the action belongs to the home's products panel)
         var homeView = HomeViewMock.cast(this.app.viewOf(rootView.state.content.get()));
-        homeView.getProductsPanelState().onOpenProduct.run(DBReset.PEN_DRIVE2GB_ID);
+        homeView.getProductsPanelState().onOpenProduct.run(DBReset.FLASH_DRIVE_2GB_ID);
 
-        // Adicionar ao carrinho
-        var produtoView = ProductViewMock.cast(this.app.viewOf(homeView.state.content.get()));
-        produtoView.state.onAddToCart.run(1);
+        // Add to cart
+        var productView = ProductViewMock.cast(this.app.viewOf(homeView.state.content.get()));
+        productView.state.onAddToCart.run(1);
 
-        // Finalizar compra
-        var carrinhoView = CartViewMock.cast(this.app.viewOf(homeView.state.content.get()));
-        carrinhoView.state.onBuy.run();
+        // Check out
+        var cartView = CartViewMock.cast(this.app.viewOf(homeView.state.content.get()));
+        cartView.state.onBuy.run();
 
-        // Verificar recibo
-        var reciboView = ReceiptViewMock.cast(this.app.viewOf(homeView.state.content.get()));
-        Assert.assertNotNull(reciboView.state.receipt.get());
+        // Verify the receipt
+        var receiptView = ReceiptViewMock.cast(this.app.viewOf(homeView.state.content.get()));
+        Assert.assertNotNull(receiptView.state.receipt.get());
     }
 }
 ```
 
-Este teste navega por **5 telas** (login → home → produto → carrinho → recibo) exercitando presenters reais com repositórios reais — apenas as views são mocks.
+The full test (`testBuyProduct`) navigates through **5 screens** (login → home → product → cart → receipt), exercising real presenters with real repositories — only the views are mocks.
 
-## Infraestrutura de teste
+## Test infrastructure
 
 ### `BaseBusinessTest`
 
-- Cria banco H2 in-memory (`jdbc:h2:mem:wedocode-shopping`)
-- Configura `SqlDataSource`, `ScheduledExecutor` e `RepositoryBootstrap`
-- No `@Before` de cada teste, executa `DBCreate` + `DBReset` (banco limpo a cada teste)
+- Creates an Agroal pool over an in-memory H2 database (`jdbc:h2:mem:wedocode-shopping`)
+- Configures `ShoppingConfig` directories, `ScheduledExecutor.BEAN`, `CryptoProvider.BEAN` and `ShoppingRepositoryBootstrap.initialize(...)` (jOOQ `DSLContext`, repository `BEAN`s, `ShoppingTransactions.BEAN`)
+- In each test's `@Before`, runs `DBCreate` with reset (a clean database for every test)
+
+### `TestEnvironment` and `ResetDatabaseRule`
+
+`TestEnvironment` is a JUnit `@ClassRule` with two modes: `LOCAL` exposes the jOOQ repositories; `REST` also starts an embedded Javalin with `RepositoryApiRoutes` and the `RemoteTransactions.COORDINATOR`, and exposes `Http*Repository` clients over an `OkHttpTransport`. `ResetDatabaseRule` resets the database before each test.
 
 ### `BasePresentationTest`
 
-Estende `BaseBusinessTest` e instancia `ShoppingApplicationMock`, que entrega à aplicação um catálogo `ScopeViews` com um view mock por classe de escopo (`register(CartScope.class, CartViewMock::new)`). `getRootView()` devolve a view do escopo raiz (`viewOf(getRootPresenter().state)`); as demais se obtêm com `app.viewOf(...)` sobre o escopo que o pai segura (`state.content.get()`).
+Extends `BaseBusinessTest` and instantiates `ShoppingApplicationMock`, which hands the application a `ScopeViews` catalog with one view mock per scope class (`register(CartScope.class, CartViewMock::new)`). `getRootView()` returns the root scope's view (`viewOf(getRootPresenter().state)`); the others are obtained with `app.viewOf(...)` on the scope the parent holds (`state.content.get()`).
 
 ### View mocks
 
-Cada mock (`LoginViewMock`, `CartViewMock`, etc.) estende `AbstractViewMock<S extends Scope>`, é construído com `(app, scope)` (`new CartViewMock(app, state)`) e expõe:
-- `state` — o escopo que a view desenha (leitura do estado e disparo das ações, como faria o usuário)
-- `app` — a `ShoppingApplicationMock`, para pedir as views dos escopos internos (`app.viewOf(...)`)
-- `cast(CubeView)` — método estático para obter o mock com asserção de tipo
+Each mock (`LoginViewMock`, `CartViewMock`, etc.) extends `AbstractViewMock<S extends Scope>`, is constructed with `(app, scope)` (`new CartViewMock(app, state)`) and exposes:
+- `state` — the scope the view draws (reading the state and firing the actions, as the user would)
+- `app` — the `ShoppingApplicationMock`, for requesting the views of inner scopes (`app.viewOf(...)`)
+- `cast(CubeView)` — static method to get the mock with a type assertion
 
-## Dependências
+## Dependencies
 
-- `persistence.impl` — repositórios SQL reais
-- `br.com.wdc.shopping.presentation` — presenters e chamadas reais
-- `br.com.wdc.shopping.scripts` — `DBCreate` / `DBReset` para setup do banco
-- `persistence.rest` — controllers REST (para testes REST)
-- `persistence.client` — client REST (OkHttp + Gson)
-- H2 Database — banco in-memory
-- Javalin — servidor HTTP embarcado para testes REST
-- JUnit 4 — framework de testes
-- Logback — logging nos testes
+- `persistence.impl` — real jOOQ repositories
+- `br.com.wdc.shopping.presentation` — real presenters and calls
+- `br.com.wdc.shopping.scripts` — `DBCreate` / `DBReset` for database setup
+- `persistence.rest` — REST controllers (for the REST tests)
+- `persistence.client` — REST client (OkHttp)
+- Agroal + Narayana — connection pool and JTA (JTA tests)
+- H2 Database — in-memory database
+- Javalin — embedded HTTP server for the REST tests
+- JUnit 4 — test framework
+- Logback — logging in the tests

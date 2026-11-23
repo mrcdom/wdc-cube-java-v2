@@ -1,26 +1,26 @@
-# Guia: Como Programar uma View para app.teavm (teavm.web)
+# Guide: How to Program a View for app.teavm (teavm.web)
 
-Este documento explica como criar uma nova view no módulo TeaVM Web — a implementação **client-side** (SPA) que acessa diretamente os Presenters em memória. Usaremos como exemplo uma view fictícia **"Wishlist"**.
+This document explains how to create a new view in the TeaVM Web module — the **client-side** implementation (SPA) that accesses the in-memory Presenters directly. We will use a fictitious **"Wishlist"** view as the example.
 
-## Visão Geral
+## Overview
 
-Uma view neste projeto:
+A view in this project:
 
-1. Recebe a aplicação e o **Scope** que desenha no construtor (acesso em memória) — nunca o Presenter
-2. Lê os campos do Scope para obter dados
-3. Renderiza uma árvore virtual (`VNode`) de forma declarativa
-4. Dispara as ações do Scope (ligadas pelo presenter) via `safeAction()` em resposta a interações
+1. Receives the application and the **Scope** it draws in its constructor (in-memory access) — never the Presenter
+2. Reads the Scope fields to obtain data
+3. Renders a virtual tree (`VNode`) declaratively
+4. Fires the Scope actions (bound by the presenter) via `safeAction()` in response to interactions
 
-Diferente do `remote.shell.teavm` (que recebe estado via WebSocket/JSON), aqui a view **acessa o escopo diretamente** — é um SPA puro.
+Unlike `remote.shell.teavm` (which receives state via WebSocket/JSON), here the view **accesses the scope directly** — it is a pure SPA.
 
-## Pré-requisitos
+## Prerequisites
 
-O Presenter correspondente já deve existir na camada `presentation`, com:
+The corresponding Presenter must already exist in the `presentation` layer, with:
 
-- Um `Scope` público com os campos necessários (`Prop`s)
-- As ações (`onXxx`) como campos do Scope, ligadas no construtor do presenter
+- A public `Scope` with the required fields (`Prop`s)
+- The actions (`onXxx`) as Scope fields, bound in the presenter's constructor
 
-## Anatomia de uma View
+## Anatomy of a View
 
 ```java
 package br.com.wdc.shopping.view.teavm.views;
@@ -41,7 +41,7 @@ import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
 
 public class WishlistViewVDom extends AbstractVDomView<WishlistScope> {
 
-    // 1. Interface Css — constantes de classe CSS (compact pattern)
+    // 1. Css interface — CSS class constants (compact pattern)
     @SuppressWarnings({"java:S1214", "static-access"})
     private interface Css {
         CssUtility u = CssUtility.INSTANCE;
@@ -60,29 +60,29 @@ public class WishlistViewVDom extends AbstractVDomView<WishlistScope> {
         String ERROR_TEXT = c.ALERT_ERROR_TEXT;
     }
 
-    // 2. Stable listeners (o escopo que a view desenha é o campo state, da base) — campos final para listeners sem parâmetros
+    // 2. Stable listeners (the scope the view draws is the state field, from the base) — final fields for parameterless listeners
     private final EventListener<Event> onBack = evt -> safeAction("Back", this.state.onOpenProducts::run);
 
-    // 3. Factory methods para listeners paramétricos
+    // 3. Factory methods for parameterized listeners
     private EventListener<Event> mkOnRemove(long id) {
         return evt -> safeAction("Remove", () -> this.state.onRemoveItem.run(id));
     }
 
-    // 4. Construtor — recebe a aplicação e o escopo (a fábrica registrada no ScopeViews)
+    // 4. Constructor — receives the application and the scope (the factory registered in ScopeViews)
     public WishlistViewVDom(ShoppingTeaVMApplication app, WishlistScope state) {
         super("wishlist", app, state);
     }
 
-    // 5. render() — retorna a árvore virtual baseada no Scope
+    // 5. render() — returns the virtual tree based on the Scope
     @Override
     protected VNode render() {
-        // Consumir erro one-shot
+        // Consume the one-shot error
         final boolean showError;
         final String errorMessage;
         if (this.state.errorCode.get() != 0) {
             showError = true;
             errorMessage = this.state.errorMessage.get();
-            // Consumido durante o desenho: um redesenho agora levaria a mensagem embora
+            // Consumed during drawing: a redraw now would take the message away
             this.state.errorCode.setSilently(0);
             this.state.errorMessage.setSilently(null);
         } else {
@@ -96,7 +96,7 @@ public class WishlistViewVDom extends AbstractVDomView<WishlistScope> {
         // @formatter:off
         return div(Css.ROOT).children(
           div(Css.WRAPPER).children(
-            h5(Css.TITLE).text("Minha Lista de Desejos"),
+            h5(Css.TITLE).text("My Wishlist"),
             // Error
             div(showError ? Css.ERROR_VISIBLE : Css.HIDDEN).children(
               span(Css.ERROR_ICON),
@@ -108,12 +108,12 @@ public class WishlistViewVDom extends AbstractVDomView<WishlistScope> {
                 : List.of()),
             // Back button
             spActionButton()
-              .children(span(CssIcons.ARROW_LEFT), span().text(" Voltar"))
+              .children(span(CssIcons.ARROW_LEFT), span().text(" Back"))
               .on("click", onBack)));
         // @formatter:on
     }
 
-    // 6. Métodos de render auxiliares
+    // 6. Auxiliary render methods
     private VNode renderItem(WishlistItem item) {
         var key = String.valueOf(item.id);
 
@@ -130,28 +130,28 @@ public class WishlistViewVDom extends AbstractVDomView<WishlistScope> {
 
 ---
 
-## Passo a Passo
+## Step by Step
 
-### Passo 1 — Criar a classe da View
+### Step 1 — Create the View class
 
-Crie o arquivo em:
+Create the file at:
 ```
 teavm.web/src/main/java/br/com/wdc/shopping/view/teavm/views/WishlistViewVDom.java
 ```
 
-### Passo 2 — Registrar a view no catálogo
+### Step 2 — Register the view in the catalog
 
-No `ShoppingTeaVMApplication.java`, acrescente a view ao `SCOPE_VIEWS` (entregue à aplicação com `setScopeViews` no construtor):
+In `ShoppingTeaVMApplication.java`, add the view to `SCOPE_VIEWS` (handed to the application with `setScopeViews` in the constructor):
 
 ```java
 private static final ScopeViews SCOPE_VIEWS = new ScopeViews()
-        // ... views existentes ...
+        // ... existing views ...
         .register(WishlistScope.class, WishlistViewVDom::new);
 ```
 
-Isso conecta o escopo à view: o presenter só entrega o escopo ao pai (`ownerSlot.setScope(state)`), e a view do pai pede a deste escopo com `app.viewOf(state.content.get())` — a aplicação a cria na primeira vez, com a fábrica registrada.
+This connects the scope to the view: the presenter only hands the scope to its parent (`ownerSlot.setScope(state)`), and the parent's view asks for this scope's view with `app.viewOf(state.content.get())` — the application creates it the first time, using the registered factory.
 
-### Passo 3 — Compilar e testar
+### Step 3 — Compile and test
 
 ```bash
 export JAVA_HOME=/Library/Java/JavaVirtualMachines/microsoft-21.jdk/Contents/Home
@@ -162,41 +162,41 @@ mvn -q -DskipTests compile -pl br.com.wdc.shopping/br.com.wdc.shopping.view.teav
 
 ---
 
-## Diferenças em relação ao remote.shell.teavm
+## Differences from remote.shell.teavm
 
-| Aspecto | app.teavm (este módulo) | remote.shell.teavm |
+| Aspect | app.teavm (this module) | remote.shell.teavm |
 |---------|------------------------|--------------------|
-| **Acesso ao estado** | Direto via o Scope recebido no construtor | Indireto via `ViewScope` (JSON) |
-| **Invocação de ações** | `safeAction("ctx", state.onXxx::run)` | `submit(EVENT_CODE)` |
-| **Passagem de dados** | Argumentos diretos nos métodos | `setFormField(key, value)` |
-| **Registro** | `SCOPE_VIEWS.register(XxxScope.class, View::new)` | `app.registerView(VIEW_ID, View::new)` (Main.java) |
-| **VIEW_ID** | Não necessário (binding pela classe do escopo) | Obrigatório (igual ao `XxxScope.CLASS_ID`) |
-| **Construtor** | Recebe `(app, XxxScope)` | Recebe `String vsid` |
-| **Thread safety** | `safeAction()` roda em Thread TeaVM | Protocolo WS é serial |
+| **State access** | Direct via the Scope received in the constructor | Indirect via `ViewScope` (JSON) |
+| **Action invocation** | `safeAction("ctx", state.onXxx::run)` | `submit(EVENT_CODE)` |
+| **Data passing** | Direct method arguments | `setFormField(key, value)` |
+| **Registration** | `SCOPE_VIEWS.register(XxxScope.class, View::new)` | `app.registerView(VIEW_ID, View::new)` (Main.java) |
+| **VIEW_ID** | Not needed (binding by the scope class) | Required (equal to `XxxScope.CLASS_ID`) |
+| **Constructor** | Receives `(app, XxxScope)` | Receives `String vsid` |
+| **Thread safety** | `safeAction()` runs in a TeaVM Thread | The WS protocol is serial |
 
 ---
 
-## Conceitos Fundamentais
+## Fundamental Concepts
 
-### safeAction() — Execução Segura
+### safeAction() — Safe Execution
 
-Todo disparo de ação do Scope (que chega ao presenter) deve ser envelopado em `safeAction()`:
+Every Scope action dispatch (which reaches the presenter) must be wrapped in `safeAction()`:
 
 ```java
 private final EventListener<Event> onBuy = evt -> safeAction("Buy", this.state.onBuy::run);
 ```
 
-**Por quê?** O TeaVM emula threads para suportar operações `@Async` (HTTP requests via `XMLHttpRequest`). O `safeAction` cria uma "thread" TeaVM que permite suspensão durante I/O. A falha da ação em si já é tratada pela guarda do presenter (a ação é ligada com `action(...)`); o `safeAction` ainda captura o que falhar no próprio código da view, delegando ao `RootPresenter`.
+**Why?** TeaVM emulates threads to support `@Async` operations (HTTP requests via `XMLHttpRequest`). `safeAction` creates a TeaVM "thread" that allows suspension during I/O. A failure of the action itself is already handled by the presenter's guard (the action is bound with `action(...)`); `safeAction` additionally catches whatever fails in the view's own code, delegating to the `RootPresenter`.
 
-**Exceção**: Ações puramente locais (sem chamar o presenter) não precisam de `safeAction`:
+**Exception**: Purely local actions (that do not call the presenter) do not need `safeAction`:
 ```java
-// ✅ OK sem safeAction — estado local, sem I/O
+// ✅ OK without safeAction — local state, no I/O
 private final EventListener<Event> onIncrement = evt -> { this.quantity++; update(); };
 ```
 
-### Padrão One-Shot Error
+### One-Shot Error Pattern
 
-O Scope usa `errorCode` + `errorMessage` como campos de exibição única. A view consome e limpa no render:
+The Scope uses `errorCode` + `errorMessage` as display-once fields. The view consumes and clears them in render:
 
 ```java
 final boolean showError;
@@ -204,42 +204,42 @@ final String errorMessage;
 if (this.state.errorCode.get() != 0) {
     showError = true;
     errorMessage = this.state.errorMessage.get();
-    this.state.errorCode.setSilently(0);        // ← limpa, sem pedir outro redesenho
-    this.state.errorMessage.setSilently(null);   // ← limpa, sem pedir outro redesenho
+    this.state.errorCode.setSilently(0);        // ← clears, without requesting another redraw
+    this.state.errorMessage.setSilently(null);   // ← clears, without requesting another redraw
 } else {
     showError = false;
     errorMessage = "";
 }
 ```
 
-Isso garante que o erro é exibido apenas uma vez. Se o presenter chamar `update()` novamente sem novo erro, a mensagem não reaparece.
+This guarantees the error is displayed only once. If the presenter calls `update()` again without a new error, the message does not reappear.
 
 ### update() vs forceUpdate()
 
-| Método | Quando usar |
+| Method | When to use |
 |--------|-------------|
-| `update()` | Marca a view como dirty no render loop da aplicação. Usa requestAnimationFrame. Método padrão. |
-| `forceUpdate()` | Força re-render imediato no próximo animation frame. Útil para estado local (ex: quantity stepper). |
+| `update()` | Marks the view as dirty in the application's render loop. Uses requestAnimationFrame. Default method. |
+| `forceUpdate()` | Forces an immediate re-render on the next animation frame. Useful for local state (e.g., quantity stepper). |
 
-Na prática, para mudanças de estado local (não vindas do presenter), use `update()`:
+In practice, for local state changes (not coming from the presenter), use `update()`:
 ```java
 private final EventListener<Event> onIncrement = evt -> { this.quantity++; update(); };
 ```
 
-### Acesso Direto ao Scope
+### Direct Access to the Scope
 
-Diferente do remote shell (que lê JSON via `ViewScope`), aqui você acessa os campos Java diretamente:
+Unlike the remote shell (which reads JSON via `ViewScope`), here you access the Java fields directly:
 
 ```java
-// Campos do Scope são públicos
+// Scope fields are public
 var items = this.state.items.get();          // List<CartItem>
 var product = this.state.product.get();      // ProductInfo
 var errorMsg = this.state.errorMessage.get(); // String
 ```
 
-Os DTOs da camada presentation (`CartItem`, `ProductInfo`, etc.) têm campos públicos:
+The presentation layer DTOs (`CartItem`, `ProductInfo`, etc.) have public fields:
 ```java
-// Usar diretamente — sem getters
+// Use directly — no getters
 item.name
 item.price
 item.quantity
@@ -247,40 +247,40 @@ item.quantity
 
 ---
 
-## Otimizações de Performance
+## Performance Optimizations
 
-### Stable Listeners (campos `final`)
+### Stable Listeners (`final` fields)
 
-O VDom diff compara event listeners por **identidade de referência**. Mesma referência = zero custo DOM.
+The VDom diff compares event listeners by **reference identity**. Same reference = zero DOM cost.
 
 ```java
-// ✅ Bom — referência estável
+// ✅ Good — stable reference
 private final EventListener<Event> onBack = evt -> safeAction("Back", this.state.onOpenProducts::run);
 
-// ❌ Ruim — lambda nova a cada render
+// ❌ Bad — new lambda on every render
 .on("click", evt -> safeAction("Back", this.state.onOpenProducts::run))
 ```
 
-### useCallback(key, listener) — Listeners Paramétricos
+### useCallback(key, listener) — Parameterized Listeners
 
-Para listeners que dependem de dados variáveis:
+For listeners that depend on variable data:
 
 ```java
 private EventListener<Event> mkOnRemove(long id) {
     return evt -> safeAction("Remove", () -> this.state.onRemoveProduct.run(id));
 }
 
-// No render:
+// In render:
 .on("click", useCallback("remove-" + itemId, mkOnRemove(itemId)))
 ```
 
-**Keys com invalidação**: Se os dados capturados mudam, inclua-os na key:
+**Keys with invalidation**: If the captured data changes, include it in the key:
 ```java
-// qty muda → listener precisa ser recriado
+// qty changes → listener must be recreated
 useCallback("minus-" + key + "-" + qty, mkOnModifyQty(id, qty - 1))
 ```
 
-### VNode.key() — Reconciliação de Listas
+### VNode.key() — List Reconciliation
 
 ```java
 return div(Css.ITEM_ROW).key(String.valueOf(item.id)).children(...);
@@ -288,7 +288,7 @@ return div(Css.ITEM_ROW).key(String.valueOf(item.id)).children(...);
 
 ---
 
-## Padrão Compact Css
+## Compact Css Pattern
 
 ```java
 @SuppressWarnings({"java:S1214", "static-access"})
@@ -300,23 +300,23 @@ private interface Css {
     String ROOT = u.PAGE_SCROLL_ROOT;
     String ERROR_VISIBLE = clsx(c.ALERT_ERROR, u.MB_12);
     String ICON_ADD = clsx(icon.BAG_PLUS, u.MR_6);
-    String MY_LOCAL_CLASS = "wishlist-custom-class";  // Definida no app.css
+    String MY_LOCAL_CLASS = "wishlist-custom-class";  // Defined in app.css
 }
 ```
 
 ---
 
-## VNode API — Referência Rápida
+## VNode API — Quick Reference
 
-### Elementos HTML
+### HTML Elements
 
 ```java
 div("class-name")             // <div class="class-name">
 span("icon bi-bag")           // <span class="icon bi-bag">
-h5("title").text("Olá")      // <h5 class="title">Olá</h5>
-p().text("Texto")            // <p>Texto</p>
+h5("title").text("Hello")    // <h5 class="title">Hello</h5>
+p().text("Text")             // <p>Text</p>
 img().attr("src", url)       // <img src="...">
-textNode("texto puro")       // nó de texto
+textNode("plain text")       // text node
 ```
 
 ### Spectrum Web Components (Swc)
@@ -327,37 +327,37 @@ spButton("accent", "l")      // <sp-button variant="accent" size="l">
 spActionButton()             // <sp-action-button>
 spActionButton("s")          // <sp-action-button size="s">
 spTextField("Label")         // <sp-textfield label="Label">
-spFieldLabel("Texto")        // <sp-field-label>Texto</sp-field-label>
+spFieldLabel("Text")         // <sp-field-label>Text</sp-field-label>
 spDivider("s")               // <sp-divider size="s">
 ```
 
-### Atributos, Eventos e Filhos
+### Attributes, Events and Children
 
 ```java
-.cls("extra-class")          // Adiciona classe ao className
-.attr("placeholder", "...")  // Atributo HTML
-.boolAttr("disabled", true)  // Atributo booleano (presença/ausência)
-.prop("value", obj)          // Propriedade JS (dados complexos)
+.cls("extra-class")          // Adds a class to className
+.attr("placeholder", "...")  // HTML attribute
+.boolAttr("disabled", true)  // Boolean attribute (presence/absence)
+.prop("value", obj)          // JS property (complex data)
 .style("color: red")         // Inline style
-.key("unique-id")            // Key para reconciliação
+.key("unique-id")            // Key for reconciliation
 .on("click", listener)       // Event listener
-.children(node1, node2)      // Filhos fixos (varargs)
-.children(listOfNodes)       // Filhos dinâmicos (List<VNode>)
-.text("conteúdo")            // Conteúdo texto
-.ref(el -> { ... })          // Acesso ao elemento DOM real
+.children(node1, node2)      // Fixed children (varargs)
+.children(listOfNodes)       // Dynamic children (List<VNode>)
+.text("content")             // Text content
+.ref(el -> { ... })          // Access to the real DOM element
 ```
 
 ---
 
-## Checklist para Nova View
+## New View Checklist
 
-- [ ] Classe estende `AbstractVDomView<XxxScope>`
-- [ ] Construtor `(ShoppingTeaVMApplication app, XxxScope state)` chama `super(instanceId, app, state)` e salva `state`
-- [ ] View registrada no catálogo: `.register(XxxScope.class, XxxViewVDom::new)` no `SCOPE_VIEWS` de `ShoppingTeaVMApplication`
-- [ ] Interface `Css` com aliases e `@SuppressWarnings`
-- [ ] Listeners estáveis como campos `final` com `safeAction()`
-- [ ] Listeners paramétricos via `useCallback(key, factory)`
-- [ ] `.key()` em itens de listas dinâmicas
-- [ ] Erros one-shot consumidos no início do `render()`
-- [ ] CSS da view adicionado em `src/main/webapp/css/app.css`
-- [ ] Compilação sem erros
+- [ ] Class extends `AbstractVDomView<XxxScope>`
+- [ ] Constructor `(ShoppingTeaVMApplication app, XxxScope state)` calls `super(instanceId, app, state)` and stores `state`
+- [ ] View registered in the catalog: `.register(XxxScope.class, XxxViewVDom::new)` in the `SCOPE_VIEWS` of `ShoppingTeaVMApplication`
+- [ ] `Css` interface with aliases and `@SuppressWarnings`
+- [ ] Stable listeners as `final` fields with `safeAction()`
+- [ ] Parameterized listeners via `useCallback(key, factory)`
+- [ ] `.key()` on dynamic list items
+- [ ] One-shot errors consumed at the start of `render()`
+- [ ] View CSS added to `src/main/webapp/css/app.css`
+- [ ] Compiles without errors

@@ -1,41 +1,41 @@
 # remote.backend
 
-Infraestrutura server-side do protocolo de apresentação remota do **Cube MVP**. Provê as abstrações genéricas que qualquer aplicação baseada no protocolo Host/Shell deve implementar — é o lado servidor do protocolo, independente de domínio de negócio.
+Server-side infrastructure for the **Cube MVP** remote presentation protocol. Provides the generic abstractions that any application based on the Host/Shell protocol must implement — it is the server side of the protocol, independent of business domain.
 
-## Responsabilidade
+## Responsibility
 
-Gerencia o ciclo de vida de sessões remotas (handshake de segurança, recepção de eventos, serialização de ViewStates, envio de deltas) expondo endpoints HTTP/WebSocket via **Javalin 7.2**. A aplicação concreta herda de `RemoteApplicationSupport` e registra suas views/presenters.
+Manages the lifecycle of remote sessions (security handshake, event reception, ViewState serialization, delta delivery) by exposing HTTP/WebSocket endpoints via **Javalin 7.2**. The concrete application extends `RemoteApplicationSupport` and registers its views/presenters.
 
-## Classes Principais
+## Main Classes
 
-| Classe | Responsabilidade |
-|--------|------------------|
-| `RemoteApplication` | SPI — interface que a aplicação concreta implementa (instanciar views, tratar eventos) |
-| `RemoteApplicationSupport` | Implementação base de `RemoteApplication`: dirty-tracking, dispatch de eventos, geração de resposta JSON delta |
-| `RemoteApplicationRegistry` | Registry de instâncias por sessão; cria, localiza e remove `RemoteApplication` por `sessionId`; aplica limite de capacidade |
-| `RemoteViewImpl` | Base abstrata para views remotas: `instanceId`, `markDirty()`, `syncClientToServer()`, `writeState()` |
-| `RemoteBrowserPresenter` | Coordena navegação e dispatch de intent entre views |
-| `ScopeSerializer` | Serializa ViewStates para JSON (apenas campos dirty) |
-| `RemoteAppSecurity` | RSA + SHA256withRSA para assinatura de URLs de navegação |
-| `RemoteDataSecurity` | AES-GCM por sessão, chave derivada via PBKDF2 (250 000 iterações) para dados sensíveis |
-| `RemoteHostModule` | Configura o módulo no container (wiring) |
-| `CapacityExceededException` | Lançada quando o número máximo de sessões simultâneas é atingido |
+| Class | Responsibility |
+|-------|----------------|
+| `RemoteApplication` | SPI — interface the concrete application implements (instantiate views, handle events) |
+| `RemoteApplicationSupport` | Base implementation of `RemoteApplication`: dirty tracking, event dispatch, JSON delta response generation |
+| `RemoteApplicationRegistry` | Registry of instances per session; creates, looks up and removes `RemoteApplication` by `sessionId`; enforces a capacity limit |
+| `RemoteViewImpl` | Abstract base for remote views: `instanceId`, `markDirty()`, `syncClientToServer()`, `writeState()` |
+| `RemoteBrowserPresenter` | Coordinates navigation and intent dispatch between views |
+| `ScopeSerializer` | Serializes ViewStates to JSON (dirty fields only) |
+| `RemoteAppSecurity` | RSA + SHA256withRSA for signing navigation URLs |
+| `RemoteDataSecurity` | Per-session AES-GCM, key derived via PBKDF2 (250,000 iterations) for sensitive data |
+| `RemoteHostModule` | Configures the module in the container (wiring) |
+| `CapacityExceededException` | Thrown when the maximum number of concurrent sessions is reached |
 
-### Controllers Javalin
+### Javalin Controllers
 
-| Classe | Responsabilidade |
-|--------|------------------|
-| `DispatcherController` | WebSocket `ws://.../dispatcher/{sessionId}` — recebe eventos do shell, executa dispatch, devolve delta de ViewStates |
-| `SessionInitController` | `GET /session-init` — handshake de segurança; negocia chave AES da sessão via RSA |
-| `IndexHtmlController` | `GET /` — serve o `index.html` do shell estático |
+| Class | Responsibility |
+|-------|----------------|
+| `DispatcherController` | WebSocket `ws://.../dispatcher/{sessionId}` — receives shell events, runs dispatch, returns the ViewState delta |
+| `SessionInitController` | `GET /session-init` — security handshake; negotiates the session AES key via RSA |
+| `IndexHtmlController` | `GET /` — serves the static shell's `index.html` |
 
-## Dependências
+## Dependencies
 
-- `br.com.wdc.framework.cube` — framework Cube MVP (base: View, Presenter, ViewState)
+- `br.com.wdc.framework.cube` — Cube MVP framework (base: View, Presenter, ViewState)
 - `io.javalin:javalin` 7.2.4 — HTTP/WebSocket
-- `com.google.code.gson` — serialização JSON
+- `com.google.code.gson` — JSON serialization
 - `org.apache.commons:commons-lang3`
-- `commons-codec` — codificação Base64/Hex para crypto
+- `commons-codec` — Base64/Hex encoding for crypto
 
 ## Build
 

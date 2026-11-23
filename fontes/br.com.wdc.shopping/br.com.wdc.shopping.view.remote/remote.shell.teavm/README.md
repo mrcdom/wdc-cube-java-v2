@@ -1,21 +1,21 @@
 # Remote Shell TeaVM
 
-Thin client Java compilado para JavaScript via **TeaVM 0.16.0**, usando **Virtual DOM** (VNode API) com Spectrum Web Components. Comunica-se com o `remote.host` via WebSocket — **sem lógica de negócio local**.
+Java thin client compiled to JavaScript via **TeaVM 0.16.0**, using a **Virtual DOM** (VNode API) with Spectrum Web Components. It communicates with `remote.host` over WebSocket — **no local business logic**.
 
-## Conceito
+## Concept
 
-Este módulo é uma implementação alternativa do shell (cliente leve) da arquitetura de Remote Presentation. Substitui o React como engine de renderização, mantendo o mesmo protocolo WebSocket bidirecional:
+This module is an alternative implementation of the shell (thin client) of the Remote Presentation architecture. It replaces React as the rendering engine while keeping the same bidirectional WebSocket protocol:
 
-- Recebe **ViewStates** serializados do host (apenas deltas/dirty)
-- Renderiza usando Virtual DOM (diff eficiente → DOM real)
-- Emite **eventos de interação** do usuário de volta ao host
+- Receives serialized **ViewStates** from the host (deltas/dirty only)
+- Renders using a Virtual DOM (efficient diff → real DOM)
+- Emits user **interaction events** back to the host
 
 ```mermaid
 graph TD
     subgraph browser["Browser (JavaScript)"]
-        main["js/app.js ← Java compilado para JS pelo TeaVM"]
-        mainClass["Main.java — Entry point: registra factories das views"]
-        bridge["bridge/ — Infra de comunicação WS + VDom base"]
+        main["js/app.js ← Java compiled to JS by TeaVM"]
+        mainClass["Main.java — Entry point: registers the view factories"]
+        bridge["bridge/ — WS communication infra + VDom base"]
         views["views/ — 9 views (thin renderers)"]
         main --> mainClass
         main --> bridge
@@ -23,7 +23,7 @@ graph TD
     end
 ```
 
-## Arquitetura
+## Architecture
 
 ```mermaid
 graph TD
@@ -31,9 +31,9 @@ graph TD
         coordinator["ViewStateCoordinator"]
         ws["WebSocket"]
         subgraph vdom["AbstractRemoteView (VDom)"]
-            scope["ViewScope (estado reativo)"]
+            scope["ViewScope (reactive state)"]
             render["render() → VNode tree"]
-            diff["diff/patch → DOM real"]
+            diff["diff/patch → real DOM"]
         end
         coordinator --> ws
         coordinator --> vdom
@@ -46,27 +46,27 @@ graph TD
     ws <--> host
 ```
 
-## Estrutura do Projeto
+## Project Structure
 
 ```mermaid
 graph TD
     root["remote.shell.teavm/"]
-    buildsh["build.sh<br/><small>Build simplificado (TeaVM → JS)</small>"]
-    watchsh["watch.sh<br/><small>Rebuild automático ao detectar mudanças</small>"]
-    pom["pom.xml<br/><small>Maven + plugin TeaVM</small>"]
+    buildsh["build.sh<br/><small>Simplified build (TeaVM → JS)</small>"]
+    watchsh["watch.sh<br/><small>Automatic rebuild on detected changes</small>"]
+    pom["pom.xml<br/><small>Maven + TeaVM plugin</small>"]
     docs["docs/<br/><small>GUIDE_NEW_VIEW.md</small>"]
     srcMain["src/main/"]
     java["java/.../shell/teavm/"]
-    main["Main.java<br/><small>Entry point (registra view factories)</small>"]
+    main["Main.java<br/><small>Entry point (registers view factories)</small>"]
     bridge["bridge/"]
-    arv["AbstractRemoteView.java<br/><small>Base VDom (render/diff/useCallback)</small>"]
-    vsc["ViewStateCoordinator.java<br/><small>Gerencia views ativas + protocolo WS</small>"]
-    vs["ViewScope.java<br/><small>Estado reativo recebido do host</small>"]
-    frc["FlushRequestContext.java<br/><small>Comunicação WS (request/response)</small>"]
-    rc["ReconnectController.java<br/><small>Backoff progressivo para reconexão</small>"]
-    ds["DataSecurity.java<br/><small>RSA + AES-GCM (criptografia de sessão)</small>"]
-    jp["JsonParser.java<br/><small>Parsing de respostas JSON do host</small>"]
-    vgc["ViewGarbageCollector.java<br/><small>Cleanup de views desalocadas</small>"]
+    arv["AbstractRemoteView.java<br/><small>VDom base (render/diff/useCallback)</small>"]
+    vsc["ViewStateCoordinator.java<br/><small>Manages active views + WS protocol</small>"]
+    vs["ViewScope.java<br/><small>Reactive state received from the host</small>"]
+    frc["FlushRequestContext.java<br/><small>WS communication (request/response)</small>"]
+    rc["ReconnectController.java<br/><small>Progressive backoff for reconnection</small>"]
+    ds["DataSecurity.java<br/><small>RSA + AES-GCM (session encryption)</small>"]
+    jp["JsonParser.java<br/><small>Parsing of JSON responses from the host</small>"]
+    vgc["ViewGarbageCollector.java<br/><small>Cleanup of deallocated views</small>"]
     interop["interop/<br/><small>JSO bridges — Console · Timers · JsConsumer/Runnable</small>"]
     views["views/<br/><small>BrowserView · RootView · LoginView · HomeView<br/>ProductsPanelView · ProductView · CartView · ReceiptView · PurchasesPanelView</small>"]
     webapp["webapp/<br/><small>index.html + css/app.css</small>"]
@@ -94,7 +94,7 @@ graph TD
 
 ## Virtual DOM
 
-As views estendem `AbstractRemoteView` e implementam `render()` retornando uma árvore `VNode`:
+Views extend `AbstractRemoteView` and implement `render()`, returning a `VNode` tree:
 
 ```java
 @Override
@@ -104,21 +104,21 @@ protected VNode render() {
         h5(Css.TITLE).text(state.title),
         spButton("accent")
             .on("click", onConfirm)
-            .children(span().text("Confirmar"))
+            .children(span().text("Confirm"))
     );
 }
 ```
 
-### Otimizações de Referência
+### Reference Optimizations
 
-O diff de event listeners compara por **identidade de referência**:
+The event listener diff compares by **reference identity**:
 
-1. **Stable fields** — listeners sem parâmetros:
+1. **Stable fields** — listeners without parameters:
    ```java
    private final EventListener<Event> onBack = evt -> flush("back");
    ```
 
-2. **`useCallback(key, listener)`** — listeners paramétricos cacheados:
+2. **`useCallback(key, listener)`** — cached parametric listeners:
    ```java
    .on("click", useCallback("remove-" + id, mkOnRemove(id)))
    ```
@@ -137,24 +137,24 @@ private interface Css {
 }
 ```
 
-## Diferença vs. app.teavm (teavm.web)
+## Difference vs. app.teavm (teavm.web)
 
-| Aspecto | remote.shell.teavm | app.teavm (teavm.web) |
+| Aspect | remote.shell.teavm | app.teavm (teavm.web) |
 |---------|-------------------|----------------------|
-| **Lógica de negócio** | Nenhuma (thin client) | Completa (SPA autônomo) |
-| **Comunicação** | WebSocket bidirecional | REST (XMLHttpRequest) |
-| **Estado** | Recebido do host (`ViewScope`) | Gerenciado localmente (Presenters) |
-| **Presenters** | Server-side (remote.host) | Client-side (compilados junto) |
-| **Vantagem** | Zero lógica no client | Funciona offline |
+| **Business logic** | None (thin client) | Complete (standalone SPA) |
+| **Communication** | Bidirectional WebSocket | REST (XMLHttpRequest) |
+| **State** | Received from the host (`ViewScope`) | Managed locally (Presenters) |
+| **Presenters** | Server-side (remote.host) | Client-side (compiled together) |
+| **Advantage** | Zero logic in the client | Works offline |
 
 ## Build
 
 ```bash
-# Build simples
-JAVA25_HOME=<caminho-jdk-25> ./build.sh
+# Simple build
+JAVA25_HOME=<path-to-jdk-25> ./build.sh
 
-# Build completo (instala dependências do framework antes)
-JAVA25_HOME=<caminho-jdk-25> ./build.sh --full
+# Full build (installs the framework dependencies first)
+JAVA25_HOME=<path-to-jdk-25> ./build.sh --full
 ```
 
 ### Output
@@ -165,7 +165,7 @@ graph TD
     index["index.html"]
     css["css/app.css"]
     js["js/"]
-    appJs["app.js<br/><small>Java compilado para JavaScript</small>"]
+    appJs["app.js<br/><small>Java compiled to JavaScript</small>"]
 
     root --> index
     root --> css
@@ -173,26 +173,26 @@ graph TD
     js --> appJs
 ```
 
-## Desenvolvimento
+## Development
 
 ```bash
-# Watch mode — rebuild automático ao salvar
+# Watch mode — automatic rebuild on save
 ./watch.sh
 ```
 
-Requer `fswatch` instalado (`brew install fswatch` no macOS).
+Requires `fswatch` installed (`brew install fswatch` on macOS).
 
-## Execução
+## Running
 
-O shell é servido como recurso estático pelo backend:
+The shell is served as a static resource by the backend:
 
 ```
 http://localhost:8080/remote.shell.teavm
 ```
 
-## Guias
+## Guides
 
-- [Como criar uma nova View](docs/GUIDE_NEW_VIEW.md) — passo a passo para implementar uma view neste projeto
+- [How to create a new View](docs/GUIDE_NEW_VIEW.md) — step by step to implement a view in this project
 
 ## Screenshots
 
@@ -200,26 +200,26 @@ http://localhost:8080/remote.shell.teavm
 
 ![Login](docs/screenshots/01-login.png)
 
-### Lista de Produtos
+### Product List
 
-![Produtos](docs/screenshots/02-products.png)
+![Products](docs/screenshots/02-products.png)
 
-### Detalhe do Produto
+### Product Detail
 
-![Detalhe do Produto](docs/screenshots/03-product-detail.png)
+![Product Detail](docs/screenshots/03-product-detail.png)
 
-### Carrinho
+### Cart
 
-![Carrinho](docs/screenshots/04-cart.png)
+![Cart](docs/screenshots/04-cart.png)
 
-### Carrinho Vazio
+### Empty Cart
 
-![Carrinho Vazio](docs/screenshots/04-cart-empty.png)
+![Empty Cart](docs/screenshots/04-cart-empty.png)
 
-### Recibo
+### Receipt
 
-![Recibo](docs/screenshots/05-receipt.png)
+![Receipt](docs/screenshots/05-receipt.png)
 
-### Histórico de Compras
+### Purchase History
 
-![Histórico](docs/screenshots/06-history.png)
+![History](docs/screenshots/06-history.png)

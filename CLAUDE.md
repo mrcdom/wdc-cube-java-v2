@@ -1,90 +1,89 @@
 # CLAUDE.md
 
-Guia para trabalhar neste repositório. Para visão arquitetural completa, ver [README.md](README.md) e [docs/](docs/).
+Guide for working in this repository. For the full architectural view, see [README.md](README.md) and [docs/](docs/).
 
-## O que é
+## What it is
 
-**WDC Cube Java v2** — referência arquitetural do padrão **Cube MVP** (variação de MVP com presenters hierárquicos, navegação por intents e ViewStates serializáveis). Demonstra um e-commerce (Shopping) com backend Java 25 e **cinco frontends independentes** (React, Flutter, Vaadin, SWT, TeaVM) que compartilham os mesmos presenters/ViewStates — só a camada de renderização muda.
+**WDC Cube Java v2** — architectural reference for the **Cube MVP** pattern (an MVP variation with hierarchical presenters, intent-based navigation and serializable ViewStates). It demonstrates an e-commerce application (Shopping) with a Java 25 backend and **five independent frontends** (React, Flutter, Vaadin, SWT, TeaVM) that share the same presenters/ViewStates — only the rendering layer changes.
 
-Idioma do projeto: **português** (docs, READMEs, mensagens de commit). Código e identificadores em inglês/português conforme o existente no arquivo.
+Project language: **US English** — docs, READMEs, code comments, strings, identifiers, database seed content and commit messages. The UI uses US dollars and en-US formats (e.g. `$16.00`, dates as MM/DD/YYYY).
 
 ## Layout
 
-- `fontes/` — todo o código-fonte Maven (multi-módulo). **O build roda a partir daqui, não da raiz.**
-  - `br.com.wdc.framework/` — framework reutilizável: `commons`, `domain` (abstrações genéricas: `Repository`, `Page`, `ModelCodec`, `Projection*`, exceções base, segurança/`PermissionModel`, `AppConfig`), `cube`, `cube.remote`, `jooq`, `dependencies` (BOM)
-  - `br.com.wdc.shopping/` — app de exemplo: `domain`, `persistence` (agrupador de `persistence.impl` (jOOQ), `persistence.client` (HTTP/okhttp), `persistence.rest` (API Javalin)), `presentation`, `backend`, `scripts`, `tests`, `view.*`
-    - **`domain` é organizado por entidade, não por tipo de classe**: `domain.product`, `domain.user`, `domain.purchase`, `domain.purchaseitem` — cada pacote reúne as quatro classes daquela entidade (`Xxx`, `XxxCriteria`, `XxxModelCodec`, `XxxRepository`). Ao criar uma entidade nova, crie o pacote dela com o conjunto completo; não há mais pacotes `model`/`criteria`/`codec`/`repositories`. Fora disso, `domain` guarda `exception`, `security` e os holders de raiz (`ShoppingConfig`, `ShoppingTransactions`).
-- `work/` — diretório de runtime: `config/` (TOML), `bin/` (scripts de start), `data/`, `log/`, `frontend/`
-- `docs/` — documentação arquitetural detalhada (PT)
+- `fontes/` — all the Maven source code (multi-module). **The build runs from here, not from the root.**
+  - `br.com.wdc.framework/` — reusable framework: `commons`, `domain` (generic abstractions: `Repository`, `Page`, `ModelCodec`, `Projection*`, base exceptions, security/`PermissionModel`, `AppConfig`), `cube`, `cube.remote`, `jooq`, `dependencies` (BOM)
+  - `br.com.wdc.shopping/` — sample app: `domain`, `persistence` (aggregator of `persistence.impl` (jOOQ), `persistence.client` (HTTP/okhttp), `persistence.rest` (Javalin API)), `presentation`, `backend`, `scripts`, `tests`, `view.*`
+    - **`domain` is organized by entity, not by class type**: `domain.product`, `domain.user`, `domain.purchase`, `domain.purchaseitem` — each package gathers the four classes of that entity (`Xxx`, `XxxCriteria`, `XxxModelCodec`, `XxxRepository`). When creating a new entity, create its package with the complete set; there are no `model`/`criteria`/`codec`/`repositories` packages. Beyond that, `domain` holds `exception`, `security` and the root holders (`ShoppingConfig`, `ShoppingTransactions`).
+- `work/` — runtime directory: `config/` (TOML), `bin/` (start scripts), `data/`, `log/`, `frontend/`
+- `docs/` — detailed architectural documentation
 
 ## Build & Run
 
 ```bash
-# Build (Java 25 obrigatório)
-export JAVA_HOME=$JAVA25_HOME  # demos/backend em release 25; o framework fica em release 21 (publicado no Central)
-cd fontes && mvn clean package          # fat JAR em br.com.wdc.cube.backend/target/
-cd fontes && mvn test                   # testes
+# Build (Java 25 required)
+export JAVA_HOME=$JAVA25_HOME  # demos/backend on release 25; the framework stays on release 21 (published to Central)
+cd fontes && mvn clean package          # fat JAR in br.com.wdc.cube.backend/target/
+cd fontes && mvn test                   # tests
 
-# Rodar o backend (React/Flutter via WebSocket, porta 8080)
-./work/bin/start-server.sh [porta]      # cd para work/, builda se faltar o JAR
-./work/bin/start-h2-server.sh           # H2 em modo TCP (config aponta para tcp://localhost por padrão)
+# Run the backend (React/Flutter via WebSocket, port 8080)
+./work/bin/start-server.sh [port]       # cd to work/, builds if the JAR is missing
+./work/bin/start-h2-server.sh           # H2 in TCP mode (config points to tcp://localhost by default)
 
-# Frontends web (React, Flutter web, remote.shell.teavm, teavm.web → work/frontend/)
-./work/bin/build-frontends.sh            # todos; --list mostra alvos/pré-requisitos, --skip-install pula o mvn install
-./work/bin/build-frontends.sh react      # um alvo só
+# Web frontends (React, Flutter web, remote.shell.teavm, teavm.web → work/frontend/)
+./work/bin/build-frontends.sh            # all; --list shows targets/prerequisites, --skip-install skips the mvn install
+./work/bin/build-frontends.sh react      # a single target
 
-# Desenvolvimento: cada módulo tem watch próprio
+# Development: each module has its own watch
 cd fontes/.../remote.shell.react && npm install && npm run watch
 ```
 
-Os quatro frontends web depositam seus artefatos em `work/frontend/<nome>`; cada um tem o seu `build.sh` no módulo de origem e o `build-frontends.sh` só orquestra os quatro. `work/frontend/{api.docs,openapi}` são estáticos.
+The four web frontends drop their artifacts in `work/frontend/<name>`; each one has its own `build.sh` in its source module, and `build-frontends.sh` only orchestrates the four. `work/frontend/{api.docs,openapi}` are static.
 
-**Armadilha dos alvos TeaVM**: `remote.shell.teavm` e `teavm.web` compilam contra os JARs do `~/.m2`, não contra o reator — sem `mvn install` antes, geram em silêncio um app com a versão anterior do domínio (abre normalmente, falha só na chamada que mudou). O `build-frontends.sh` reinstala por padrão justamente por isso.
+**TeaVM targets pitfall**: `remote.shell.teavm` and `teavm.web` compile against the JARs in `~/.m2`, not against the reactor — without a prior `mvn install`, they silently generate an app with the previous version of the domain (it opens normally and fails only on the call that changed). That is exactly why `build-frontends.sh` reinstalls by default.
 
-**Publicação do framework no Maven Central**: só `br.com.wdc.framework`, como `io.github.mrcdom.wdc.java:framework-*` — `cd fontes/br.com.wdc.framework && mvn -Prelease clean deploy` (detalhes no [README do framework](fontes/br.com.wdc.framework/README.md#publicação-no-maven-central)). O `framework-parent` não herda do pom raiz, de propósito: assim os demos não entram na resolução de quem consome.
+**Publishing the framework to Maven Central**: only `br.com.wdc.framework`, as `io.github.mrcdom.wdc.java:framework-*` — `cd fontes/br.com.wdc.framework && mvn -Prelease clean deploy` (details in the [framework README](fontes/br.com.wdc.framework/README.md#publishing-to-maven-central)). `framework-parent` does not inherit from the root pom, on purpose: that keeps the demos out of consumers' dependency resolution.
 
-Config externa: `work/config/application.toml` (resolução: system property `shopping.config.file` → fallback para esse arquivo). `application.local.toml` para overrides locais.
+External config: `work/config/application.toml` (resolution: system property `shopping.config.file` → fallback to that file). `application.local.toml` for local overrides.
 
-## Persistência: jOOQ (NÃO JDBI)
+## Persistence: jOOQ
 
-A camada de persistência foi **migrada de JDBI + Command Pattern para jOOQ** (branch `evolucoes-estruturais`). O README ainda descreve o modelo antigo — está desatualizado nesse ponto.
+The persistence layer uses **jOOQ**; queries are built with its type-safe DSL, with no SQL strings or command classes.
 
-- Repositórios (`*RepositoryImpl`) estendem `BaseRepositoryImpl` e obtêm o `DSLContext` via `dsl()` — que lê `ShoppingDSLContext.BEAN` (holder **do app**, em `persistence.impl`, não no framework). O `framework.jooq` recebe o `DSLContext` por injeção (`JsonQueryBuilder.setDSLContextSupplier`).
-- Classes jOOQ geradas ficam em `br.com.wdc.shopping.persistence.impl.scheme.*` (`Tables`, `Sequences`, `tables.EnProduct`, etc.) — `scheme` = esquema do banco; jOOQ é só a tecnologia de geração.
-- Não existem mais classes `*Cmd.java` (Command Pattern SQL foi removido).
-- Helpers de query JSON em `br.com.wdc.framework.jooq` (`JsonQuery`, `JsonQueryBuilder`, `JsonChildQueryBuilder`).
+- Repositories (`*RepositoryImpl`) extend `BaseRepositoryImpl` and obtain the `DSLContext` via `dsl()` — which reads `ShoppingDSLContext.BEAN` (an **app** holder, in `persistence.impl`, not in the framework). `framework.jooq` receives the `DSLContext` by injection (`JsonQueryBuilder.setDSLContextSupplier`).
+- Generated jOOQ classes live in `br.com.wdc.shopping.persistence.impl.scheme.*` (`Tables`, `Sequences`, `tables.EnProduct`, etc.) — `scheme` = database schema; jOOQ is just the generation technology.
+- JSON query helpers in `br.com.wdc.framework.jooq` (`JsonQuery`, `JsonQueryBuilder`, `JsonChildQueryBuilder`).
 
-### Transações (JTA/JDBC)
+### Transactions (JTA/JDBC)
 
-Controle programático estilo CMT via `TransactionService` (`framework.domain.transaction`, contrato) + `TransactionServiceImpl`/`TransactionScope` (`framework.persistence`, impl dual-mode). Detalhes: [docs/camada-de-dados.md → Transações](docs/camada-de-dados.md#transações-atomicidade-e-modo-dual-jtajdbc).
+CMT-style programmatic control via `TransactionService` (`framework.domain.transaction`, contract) + `TransactionServiceImpl`/`TransactionScope` (`framework.persistence`, dual-mode impl). Details: [docs/data-layer.md → Transactions](docs/data-layer.md#transactions--atomicity-and-dual-jtajdbc-mode).
 
-- Modo escolhido em `application.toml`: `database.transaction = "jta"` (Narayana + Agroal XA) ou `"non-jta"` (JDBC direto, padrão). Tecnologia concreta (Agroal/Narayana) só no host `br.com.wdc.cube.backend` (`supports/`); `framework.persistence` é neutro (`javax.sql.DataSource` + `jakarta.transaction`).
-- **Per-módulo (sem holder global)**: cada módulo expõe seus holders — `ShoppingDSLContext` (impl) e `ShoppingTransactions` (domain) — populados pelo backend (composition root). `TransactionServiceImpl(Supplier<DataSource>)` é ligado ao DataSource do módulo. **Não** existem `SqlDataSource.BEAN` nem `TransactionService.BEAN` globais. O TM JTA permanece único por JVM (coordenador).
-- Repositórios **não** demarcam transação. O `DSLContext` usa `TransactionAwareConnectionProvider` (`framework.jooq`): dentro de `ShoppingTransactions.BEAN.get().required(...)` compartilha a conexão do escopo; fora, conexão avulsa (autocommit).
-- Fronteira aberta nos casos de uso de escrita: checkout (`CartManager.doPurchase`) e handlers REST (`RepositoryApiRoutes.transactional(...)`).
-- **Transação remota dirigida pelo cliente (REST)**: o cliente HTTP (`RestTransactionService`, impl de `TransactionService` em `persistence.client`) torna **várias** chamadas REST atômicas — `begin`/`commit`/`rollback` via `/api/tx/*` (`TxApiController`), propagando o `txId` no header `X-Tx-Id`. Server-side: SPI `RemoteTransactionCoordinator` (`framework.persistence`, **não** no domain — é server-only) + holder `RemoteTransactions.COORDINATOR` (`persistence.rest`), populado pelos composition roots (`BusinessContext`, `TestEnvironment`). Mesma API `required(...)` que o modo in-process — fronteira simétrica Host/cliente. Detalhes: [docs/camada-de-dados.md → Transações Remotas](docs/camada-de-dados.md#transações-remotas-dirigidas-pelo-cliente-sobre-rest).
+- Mode chosen in `application.toml`: `database.transaction = "jta"` (Narayana + Agroal XA) or `"non-jta"` (direct JDBC, default). Concrete technology (Agroal/Narayana) only in the `br.com.wdc.cube.backend` host (`supports/`); `framework.persistence` is neutral (`javax.sql.DataSource` + `jakarta.transaction`).
+- **Per module (no global holder)**: each module exposes its holders — `ShoppingDSLContext` (impl) and `ShoppingTransactions` (domain) — populated by the backend (composition root). `TransactionServiceImpl(Supplier<DataSource>)` is bound to the module's DataSource. There are **no** global `SqlDataSource.BEAN` or `TransactionService.BEAN`. The JTA TM remains unique per JVM (coordinator).
+- Repositories do **not** demarcate transactions. The `DSLContext` uses `TransactionAwareConnectionProvider` (`framework.jooq`): inside `ShoppingTransactions.BEAN.get().required(...)` it shares the scope's connection; outside, a standalone connection (autocommit).
+- The boundary is opened in the write use cases: checkout (`CartManager.doPurchase`) and REST handlers (`RepositoryApiRoutes.transactional(...)`).
+- **Client-driven remote transaction (REST)**: the HTTP client (`RestTransactionService`, an impl of `TransactionService` in `persistence.client`) makes **several** REST calls atomic — `begin`/`commit`/`rollback` via `/api/tx/*` (`TxApiController`), propagating the `txId` in the `X-Tx-Id` header. Server-side: SPI `RemoteTransactionCoordinator` (`framework.persistence`, **not** in the domain — it is server-only) + holder `RemoteTransactions.COORDINATOR` (`persistence.rest`), populated by the composition roots (`BusinessContext`, `TestEnvironment`). Same `required(...)` API as the in-process mode — a symmetric Host/client boundary. Details: [docs/data-layer.md → Remote Transactions](docs/data-layer.md#client-driven-remote-transactions-over-rest).
 
-## Convenções
+## Conventions
 
-- **Injeção de dependências sem framework de DI**: service locator estático via `AtomicReference<T> BEAN` (ex.: `ShoppingDSLContext.BEAN`). Na apresentação, cada operação sobre os repositórios é uma classe no pacote `calls/` do módulo (irmão de `structs/`), com o sufixo do que faz: `XxxQuery extends ShoppingQuery<R>` (leitura), `XxxSave extends ShoppingSave<R>` (gravação: implementa `save()`, e o `run()` final da base abre a transação) ou `XxxCall extends ShoppingCall<R>` (nem uma nem outra, como o login). Requisição em setters fluentes `withXxx(...)`, resposta em `run()`, instância nova a cada uso (`new ProductQuery().withProductId(id).run()`); os acessos aos repositórios são os métodos protegidos de `ShoppingCall`, que leem o `BEAN`. A resposta é um tipo existente, um struct em `structs/` (se outros o usam) ou classe interna da chamada (se só leva a resposta, como `LoginCall.Result`). Componentes de infraestrutura (ex.: `TransactionServiceImpl`) recebem as dependências no construtor.
-- **Virtual Threads** (Java 21) para conexões WebSocket.
-- **Segurança RBAC**: HMAC challenge-response + JWT; a autorização fica nos endpoints REST (`SecurityEnforcer`), a fronteira por onde passa o teavm.web — nos hosts em que os presenters rodam no servidor, o presenter decide cada consulta e os repositórios são usados direto (`XxxRepository.BEAN.get()`); papéis ADMIN/CUSTOMER/MANAGER (modelo allow-wins). Transporte React: RSA + PBKDF2 + AES-GCM.
-- **Nomenclatura**: `*Scope`, `*ViewImpl`, `*Presenter`, `*RepositoryImpl`, `*Criteria`, `Apply*Criteria`.
-- **Critérios**: cada campo de um `*Criteria` é um `Criterion` (`framework.domain.criteria`) — `Criterion` (eq/ne/in/isNull), `ComparableCriterion` (gt/ge/lt/le/between) ou `TextCriterion` (like/ilike/containing/startingWith). Pedidos acumulam em `AND`; `or()` torna o campo disjuntivo. **O campo nunca é `null`** — `criteria.xxx() == null` compila e é sempre falso; use `hasXxx()`. A tradução para jOOQ é única, no `CriterionTranslator`; cada entidade só mapeia campo→coluna no seu `ApplyConditions`.
-- **Entidades (implementam `KeyedEntity`) têm API fluente**, igual à dos `*Criteria`: campo `private`, acessor `campo()` e setter `withCampo(...)` que devolve `this`. Não há campos públicos — construa encadeando (`new Product().withName(x).withPrice(y)`), inclusive nas relações (`withPurchase(new Purchase().withId(id))`). Structs de apresentação (`presentation.**.structs`) seguem outro padrão: continuam com campos públicos.
-- **Scope com `Prop`** (`framework.cube`): `XxxScope extends Scope`, em arquivo próprio ao lado do presenter (`CartScope.java`, como o `xxx.scope.ts` da versão TS); um escopo que só existe dentro dele (segmento, linha de lista) é classe interna pública estática dele (`CartScope.CartItemScope`). Cada campo observado é `public final Prop<T> x = prop(...)`, e o presenter cria o estado com `bind(new XxxScope())`. `set` de um valor diferente (`equals`) já pede o redesenho — **não** chame `this.update()` depois; ele só é preciso quando se mexe *dentro* de um valor já atribuído (o carrinho altera itens no lugar). A view lê com `get()`; a view que consome uma mensagem de exibição única durante o desenho usa `setSilently`. Ações (`Action`/`ActionOf`/`ActionOf2`) são campos comuns do state, ligados no construtor com o código de evento do bridge e a leitura do `formData`: `actionOf(2, FormParam.asLong("p.productId"), this::removeProduct)`. O presenter **não cria view nem declara skeleton**: o escopo declara `public static final String CLASS_ID` (classId do bridge) e o skeleton é do escopo (`scope.skeleton(CLASS_ID)`, que despacha às ações ligadas com código; `syncState` vira `state.onSync(formData -> ...)` no construtor). Composição: o filho se entrega ao pai com `ownerSlot.setScope(this.state)` (`ScopeSlot`, lido via `keys.parentSlot()`), o pai guarda `public final Prop<Scope> content = prop()` e a view do pai desenha `app.viewOf(state.content.get())`; o host só desenha o escopo do presenter raiz.
-- **Segmentos**: um pedaço de tela sem navegação própria (os painéis da Home) não ganha presenter — é um escopo menor, classe interna pública estática do escopo dono (`HomeScope.ProductsPanelScope`), com `CLASS_ID` estático. O presenter dono liga as ações (`actionOf(segment, código, FormParam..., fn)`) e só o põe num `Prop` do escopo dono — não conhece view. A view é da camada de view: cada host monta um catálogo `ScopeViews` (classe do escopo → fábrica; o host remoto usa `fallback(RemoteViewImpl::forScope)`, que lê o `CLASS_ID`) e o entrega com `setScopeViews`; a view do pai pede a do segmento com `app.viewOf(scope)` (criada na primeira vez; antes disso, mudar o segmento redesenha o dono). Remotamente sai como `"<campo>ViewId"`. Linhas de lista também: `Prop<List<XxxRowScope>>` sai como `"<campo>ViewIds"`; o presenter reaproveita a linha pela identidade do item e chama `detach` na que saiu (ver `CartPresenter.syncRows`).
-- **Places e chaves**: cada place tem sua `XxxKeys` (`CubeKeys`), que declara o place e é a única que conhece os nomes dele no intent (prefixo de duas letras); listar em `ShoppingApplication.PLACES`. Navegar: `new ProductKeys(app).withProductId(id).flip()`.
-- **Formatação Java**: `fontes/wedocode-java-formatter.xml`. Em toda cadeia fluente, cada `.withXxx(...)` fica na própria linha — inclusive numa cadeia aninhada dentro de um argumento —, e as chamadas seguintes da mesma cadeia (`.run()`, `.flip()`) também; a continuação recua 2 níveis (8 espaços ou 2 tabs, conforme o arquivo). Um setter isolado sobre uma variável (`criteria.withUserId(id);`) não é cadeia e fica na linha. O formatador não junta essas quebras (`join_wrapped_lines=false`). Frontend: Prettier (configurado no `.vscode/settings.json`, format-on-save).
+- **Dependency injection without a DI framework**: static service locator via `AtomicReference<T> BEAN` (e.g. `ShoppingDSLContext.BEAN`). In the presentation layer, each operation on the repositories is a class in the module's `calls/` package (sibling of `structs/`), with a suffix for what it does: `XxxQuery extends ShoppingQuery<R>` (read), `XxxSave extends ShoppingSave<R>` (write: implements `save()`, and the base's final `run()` opens the transaction) or `XxxCall extends ShoppingCall<R>` (neither, like login). Request in fluent `withXxx(...)` setters, response from `run()`, a new instance for each use (`new ProductQuery().withProductId(id).run()`); repository access goes through the protected methods of `ShoppingCall`, which read the `BEAN`. The response is an existing type, a struct in `structs/` (if others use it) or an inner class of the call (if it only carries the response, like `LoginCall.Result`). Infrastructure components (e.g. `TransactionServiceImpl`) receive their dependencies in the constructor.
+- **Virtual Threads** (Java 21) for WebSocket connections.
+- **RBAC security**: HMAC challenge-response + JWT; authorization lives in the REST endpoints (`SecurityEnforcer`), the boundary that teavm.web goes through — in the hosts where presenters run on the server, the presenter decides each query and the repositories are used directly (`XxxRepository.BEAN.get()`); roles ADMIN/CUSTOMER/MANAGER (allow-wins model). React transport: RSA + PBKDF2 + AES-GCM.
+- **Naming**: `*Scope`, `*ViewImpl`, `*Presenter`, `*RepositoryImpl`, `*Criteria`, `Apply*Criteria`.
+- **Criteria**: each field of a `*Criteria` is a `Criterion` (`framework.domain.criteria`) — `Criterion` (eq/ne/in/isNull), `ComparableCriterion` (gt/ge/lt/le/between) or `TextCriterion` (like/ilike/containing/startingWith). Requests accumulate with `AND`; `or()` makes the field disjunctive. **The field is never `null`** — `criteria.xxx() == null` compiles and is always false; use `hasXxx()`. The translation to jOOQ is single, in `CriterionTranslator`; each entity only maps field→column in its `ApplyConditions`.
+- **Entities (implementing `KeyedEntity`) have a fluent API**, like the `*Criteria`: `private` field, `field()` accessor and `withField(...)` setter that returns `this`. There are no public fields — build by chaining (`new Product().withName(x).withPrice(y)`), relations included (`withPurchase(new Purchase().withId(id))`). Presentation structs (`presentation.**.structs`) follow a different pattern: they keep public fields.
+- **Scope with `Prop`** (`framework.cube`): `XxxScope extends Scope`, in its own file next to the presenter (`CartScope.java`, like the `xxx.scope.ts` of the TS version); a scope that exists only inside it (segment, list row) is a public static inner class of it (`CartScope.CartItemScope`). Each observed field is `public final Prop<T> x = prop(...)`, and the presenter creates the state with `bind(new XxxScope())`. `set` of a different value (`equals`) already requests the redraw — do **not** call `this.update()` afterwards; it is only needed when something changes *inside* an already assigned value (the cart changes items in place). The view reads with `get()`; a view that consumes a one-time display message while drawing uses `setSilently`. Actions (`Action`/`ActionOf`/`ActionOf2`) are plain fields of the state, bound in the constructor with the bridge event code and the `formData` read: `actionOf(2, FormParam.asLong("p.productId"), this::removeProduct)`. The presenter **neither creates a view nor declares a skeleton**: the scope declares `public static final String CLASS_ID` (the bridge classId) and the skeleton belongs to the scope (`scope.skeleton(CLASS_ID)`, which dispatches to the actions bound with a code; `syncState` becomes `state.onSync(formData -> ...)` in the constructor). Composition: the child hands itself to the parent with `ownerSlot.setScope(this.state)` (`ScopeSlot`, read via `keys.parentSlot()`), the parent keeps `public final Prop<Scope> content = prop()` and the parent's view draws `app.viewOf(state.content.get())`; the host only draws the root presenter's scope.
+- **Segments**: a piece of screen without its own navigation (the Home panels) gets no presenter — it is a smaller scope, a public static inner class of the owner scope (`HomeScope.ProductsPanelScope`), with a static `CLASS_ID`. The owner presenter binds the actions (`actionOf(segment, code, FormParam..., fn)`) and just puts it in a `Prop` of the owner scope — it knows nothing about views. The view belongs to the view layer: each host assembles a `ScopeViews` catalog (scope class → factory; the remote host uses `fallback(RemoteViewImpl::forScope)`, which reads the `CLASS_ID`) and hands it over with `setScopeViews`; the parent's view asks for the segment's view with `app.viewOf(scope)` (created the first time; before that, changing the segment redraws the owner). Remotely it goes out as `"<field>ViewId"`. List rows too: `Prop<List<XxxRowScope>>` goes out as `"<field>ViewIds"`; the presenter reuses the row by item identity and calls `detach` on the one that left (see `CartPresenter.syncRows`).
+- **Places and keys**: each place has its `XxxKeys` (`CubeKeys`), which declares the place and is the only one that knows its names in the intent (two-letter prefix); list it in `ShoppingApplication.PLACES`. To navigate: `new ProductKeys(app).withProductId(id).flip()`.
+- **Java formatting**: `fontes/wedocode-java-formatter.xml`. In every fluent chain, each `.withXxx(...)` goes on its own line — including in a chain nested inside an argument —, and so do the following calls of the same chain (`.run()`, `.flip()`); the continuation indents 2 levels (8 spaces or 2 tabs, depending on the file). A single setter on a variable (`criteria.withUserId(id);`) is not a chain and stays on the line. The formatter does not join these breaks (`join_wrapped_lines=false`). Frontend: Prettier (configured in `.vscode/settings.json`, format-on-save).
 
-## Mensagens de commit
+## Commit messages
 
-Padrão observado no histórico: **emoji + `[TIPO]` em maiúsculas + descrição em português**.
+Pattern: **emoji + `[TYPE]` in uppercase + description in English**.
 
 ```
-🐛 [BUGFIX] descrição do que foi corrigido
-✨ [FEATURE] descrição da funcionalidade
-🧹 [CHORE] limpeza / refactor menor
+🐛 [BUGFIX] fix what was broken
+✨ [FEATURE] add the feature
+🧹 [CHORE] clean up / minor refactor
 ```
 
-Branch principal: `main`. Branch de trabalho atual: `evolucoes-estruturais`.
+Main branch: `main`. Current working branch: `evolucoes-estruturais`.

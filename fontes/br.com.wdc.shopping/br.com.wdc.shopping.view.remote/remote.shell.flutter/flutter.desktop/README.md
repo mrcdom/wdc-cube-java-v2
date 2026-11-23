@@ -1,54 +1,54 @@
 # Shopping Native — Flutter Desktop
 
-Shell desktop (macOS, Linux, Windows) da aplicação **WeDoCode Shopping**, usando o protocolo de **Remote Presentation**. O app é um thin client que renderiza ViewStates recebidos do servidor via WebSocket.
+Desktop shell (macOS, Linux, Windows) for the **WeDoCode Shopping** application, using the **Remote Presentation** protocol. The app is a thin client that renders ViewStates received from the server over WebSocket.
 
-## Características
+## Features
 
-- **Nome do app:** Shopping Native
-- **Plataformas:** macOS, Linux, Windows
-- **Protocolo:** WebSocket bidirecional com criptografia RSA + AES-GCM
-- **Persistência de sessão:** Access token via SharedPreferences (auto-login)
-- **Código compartilhado:** Usa `flutter_commons` para protocolo, views e widgets
+- **App name:** Shopping Native
+- **Platforms:** macOS, Linux, Windows
+- **Protocol:** Bidirectional WebSocket with RSA + AES-GCM encryption
+- **Session persistence:** Access token via SharedPreferences (auto-login)
+- **Shared code:** Uses `flutter_commons` for protocol, views and widgets
 
-## Pré-requisitos
+## Prerequisites
 
 - **Flutter 3.44+** (`flutter --version`)
-- **Backend rodando** na porta 8080 (ou endpoint configurado)
+- **Backend running** on port 8080 (or the configured endpoint)
 
-## Execução
+## Running
 
 ```bash
-# Run (detecção automática do OS)
+# Run (automatic OS detection)
 ./run.sh
 
-# Build release
+# Release build
 ./build.sh
 
-# Ou com endpoint customizado
-WDC_ENDPOINT=http://servidor:8080 ./run.sh
+# Or with a custom endpoint
+WDC_ENDPOINT=http://server:8080 ./run.sh
 ```
 
 ## Build via Maven
 
-O módulo pai `remote.shell.flutter` integra este build ao ciclo Maven:
+The parent module `remote.shell.flutter` integrates this build into the Maven lifecycle:
 
 ```bash
-# A partir de fontes/ — faz pub get + build release
+# From fontes/ — runs pub get + release build
 mvn compile -pl br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.shell.flutter -am
 ```
 
-## Estrutura
+## Structure
 
 ```mermaid
 graph TD
     root["flutter.desktop/"]
     lib["lib/"]
     main["main.dart<br/><small>Entry point (session init, ViewStateCoordinator)</small>"]
-    macos["macos/<br/><small>Config nativa macOS</small>"]
-    linux["linux/<br/><small>Config nativa Linux</small>"]
-    windows["windows/<br/><small>Config nativa Windows</small>"]
-    buildsh["build.sh<br/><small>Build release (auto-detecta OS)</small>"]
-    runsh["run.sh<br/><small>Run debug (auto-detecta OS)</small>"]
+    macos["macos/<br/><small>Native macOS config</small>"]
+    linux["linux/<br/><small>Native Linux config</small>"]
+    windows["windows/<br/><small>Native Windows config</small>"]
+    buildsh["build.sh<br/><small>Release build (auto-detects OS)</small>"]
+    runsh["run.sh<br/><small>Debug run (auto-detects OS)</small>"]
     pubspec["pubspec.yaml"]
 
     root --> lib
@@ -61,9 +61,9 @@ graph TD
     lib --> main
 ```
 
-## Dependências
+## Dependencies
 
-| Package | Uso |
+| Package | Purpose |
 |---------|-----|
-| `flutter_commons` | Protocolo WS, views, widgets, segurança |
-| `shared_preferences` | Persistência de access token |
+| `flutter_commons` | WS protocol, views, widgets, security |
+| `shared_preferences` | Access token persistence |

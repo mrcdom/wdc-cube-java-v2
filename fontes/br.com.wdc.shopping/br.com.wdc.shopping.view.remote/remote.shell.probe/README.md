@@ -1,52 +1,52 @@
 # remote.shell.probe
 
-Probe Java para execução de cenários sobre o **remote.host** da aplicação **WeDoCode Shopping**.
+Java probe for running scenarios against the **remote.host** of the **WeDoCode Shopping** application.
 
-## Propósito
+## Purpose
 
-Executa cenários programáticos contra o host via protocolo de apresentação remota. Serve para:
+Runs programmatic scenarios against the host through the remote presentation protocol. It is used for:
 
-- **Benchmarks de throughput** — mede quantas requisições por segundo o host suporta com múltiplas sessões paralelas
-- **Medição de memória** — quantifica o consumo de memória por sessão ativa
-- **Validação comportamental** — verifica que fluxos completos (ex: comprar produto) funcionam corretamente via protocolo
+- **Throughput benchmarks** — measures how many requests per second the host handles with multiple parallel sessions
+- **Memory measurement** — quantifies memory consumption per active session
+- **Behavioral validation** — verifies that complete flows (e.g. buying a product) work correctly through the protocol
 
-Não é um thin client de renderização — não exibe UI. É uma ferramenta de observabilidade e teste da camada de protocolo.
+It is not a rendering thin client — it shows no UI. It is an observability and testing tool for the protocol layer.
 
-## Cenários
+## Scenarios
 
-| Classe | Tipo | Descrição |
+| Class | Type | Description |
 |--------|------|-----------|
-| `ConcurrentThroughputScenario` | Benchmark | Dispara N sessões paralelas e mede throughput agregado |
-| `MemoryPerSessionScenario` | Benchmark | Abre K sessões e mede o heap por sessão |
-| `ComprarProdutoScenario` | Behavioral | Fluxo completo: login → home → produto → carrinho → recibo |
-| `ScenarioAssert` | Utilitário | Asserções para validação de estados de view |
+| `ConcurrentThroughputScenario` | Benchmark | Fires N parallel sessions and measures aggregate throughput |
+| `MemoryPerSessionScenario` | Benchmark | Opens K sessions and measures heap per session |
+| `BuyProductScenario` | Behavioral | Complete flow: login → home → product → cart → receipt |
+| `ScenarioAssert` | Utility | Assertions for validating view states |
 
-## Pré-requisitos
+## Prerequisites
 
 - **Java 25**
 - **Maven 3.9+**
-- Backend rodando (porta 8080 por padrão)
+- Backend running (port 8080 by default)
 
-## Execução
+## Running
 
 ```bash
-# Throughput concorrente
+# Concurrent throughput
 mvn exec:java -Dexec.mainClass="br.com.wdc.shopping.view.remote.shell.probe.ConcurrentThroughputScenario"
 
-# Memória por sessão
+# Memory per session
 mvn exec:java -Dexec.mainClass="br.com.wdc.shopping.view.remote.shell.probe.MemoryPerSessionScenario"
 
-# Exemplo básico
+# Basic example
 mvn exec:java -Dexec.mainClass="br.com.wdc.shopping.view.remote.shell.probe.ExampleMain"
 ```
 
-## Resultados de benchmark
+## Benchmark results
 
-Resultados históricos estão em `src/docs/benchmarks/`:
+Historical results are in `src/docs/benchmarks/`:
 
-- `concurrent-throughput-laptop.txt` — resultados em laptop de desenvolvimento
-- `concurrent-throughput-server.txt` — resultados em servidor de produção
+- `concurrent-throughput-laptop.txt` — results on a development laptop
+- `concurrent-throughput-server.txt` — results on a production server
 
-## Dependências
+## Dependencies
 
-- `remote.bridge.java` (framework) — base para conexão WebSocket com o host
+- `remote.bridge.java` (framework) — base for the WebSocket connection to the host

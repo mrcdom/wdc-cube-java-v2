@@ -1,39 +1,39 @@
 # br.com.wdc.shopping.view.remote
 
-Implementação da técnica de **Remote Presentation** para a aplicação **WeDoCode Shopping**, baseada no padrão **Cube MVP**.
+Implementation of the **Remote Presentation** technique for the **WeDoCode Shopping** application, based on the **Cube MVP** pattern.
 
-## Conceito
+## Concept
 
-O módulo implementa um protocolo proprietário de **apresentação remota** — conceito análogo a um Remote Desktop, mas operando na camada de dados da aplicação em vez de pixels. O servidor mantém toda a lógica de negócio e estado das views; o cliente é um thin shell que apenas renderiza estados recebidos e emite eventos de interação do usuário.
+The module implements a proprietary **remote presentation** protocol — a concept analogous to Remote Desktop, but operating at the application's data layer instead of pixels. The server holds all business logic and view state; the client is a thin shell that only renders received states and emits user interaction events.
 
-### Como funciona
+### How it works
 
-1. **O cliente (shell)** não possui lógica de negócio. Contém apenas as views, cada uma independente das demais. Eventos de interação do usuário são enviados diretamente dessas views. Um controle global no app utiliza o protocolo proprietário para encaminhar os pedidos ao servidor e receber de volta os novos estados das views que foram modificadas no backend — apenas as porções de dados que se tornaram "sujas" (dirty).
+1. **The client (shell)** has no business logic. It contains only the views, each one independent of the others. User interaction events are sent directly from these views. A global controller in the app uses the proprietary protocol to forward requests to the server and receive back the new states of the views that were modified on the backend — only the portions of data that became "dirty".
 
-2. **O servidor (host)** é a contraparte desse protocolo. Recebe os pedidos vindos do cliente e os encaminha para a camada de apresentação, invocando os métodos nos Presenters correspondentes a cada view que existe no lado cliente. Após o processamento, coleta os ViewStates que mudaram e serializa apenas os deltas de volta.
+2. **The server (host)** is the counterpart of this protocol. It receives the requests coming from the client and forwards them to the presentation layer, invoking the methods on the Presenters that correspond to each view existing on the client side. After processing, it collects the ViewStates that changed and serializes only the deltas back.
 
-O cliente atual é um browser (React), mas a arquitetura suporta qualquer tecnologia de renderização — poderia ser um aplicativo desktop nativo, mobile, ou qualquer outra superfície capaz de renderizar componentes e capturar eventos.
+The reference client is a browser (React), but the architecture supports any rendering technology — it could be a native desktop app, a mobile app, or any other surface capable of rendering components and capturing events.
 
 ```mermaid
 graph TD
     subgraph Shell["Shell (thin client)"]
-        views["Views independentes<br/><small>renderiza estados, emite eventos</small>"]
-        proto_c["Controle global do protocolo"]
+        views["Independent views<br/><small>renders states, emits events</small>"]
+        proto_c["Global protocol controller"]
     end
 
-    subgraph Transport["WebSocket bidirecional"]
-        up["↑ eventos / form data"]
-        down["↓ delta states (apenas dirty views)"]
+    subgraph Transport["Bidirectional WebSocket"]
+        up["↑ events / form data"]
+        down["↓ delta states (dirty views only)"]
     end
 
     subgraph Host["Host (server-side)"]
-        proto_s["Receptor do protocolo"]
-        dispatch["Despacha para Presenters"]
-        collect["Coleta dirty ViewStates"]
+        proto_s["Protocol receiver"]
+        dispatch["Dispatches to Presenters"]
+        collect["Collects dirty ViewStates"]
     end
 
     subgraph Core["Presenters + ViewStates (Cube MVP)"]
-        presenters["Compartilhados com todas as implementações de view"]
+        presenters["Shared with all view implementations"]
     end
 
     subgraph Data["Domain + Persistence"]
@@ -47,33 +47,33 @@ graph TD
     Core --> collect --> proto_s
 ```
 
-## Comparação com as outras implementações de view
+## Comparison with the other view implementations
 
-| Aspecto | Remote (este módulo) | Vaadin (server-side) | JFX (desktop) | TeaVM (multiplataforma) |
+| Aspect | Remote (this module) | Vaadin (server-side) | JFX (desktop) | TeaVM (multiplatform) |
 |---------|---------------------|----------------------|---------------|------------------------|
-| **Onde roda a UI** | Browser remoto (thin shell) | Browser via Server Push | JVM local | Browser / WebView (Tauri) |
-| **Modelo** | Server-driven (delta states) | Server-driven (component tree) | Acesso direto em memória | Client-side (SPA) |
-| **Transporte** | WebSocket (JSON delta) | Atmosphere (WebSocket/Push) | N/A (in-process) | REST (OkHttp → JS) |
-| **Segurança** | RSA + AES-GCM + URL signing | HMAC-SHA256 URL signing | N/A (processo local) | HMAC + JWT |
-| **Escalabilidade** | Virtual Threads (~1K por conexão) | Server Push automático | Instância única | Client-side (SPA) |
-| **Código de UI** | TypeScript (React) / Dart (Flutter) | Java | Java | Java (compilado para JS) |
-| **Presenters** | Mesmos | Mesmos | Mesmos | Mesmos |
-| **ViewStates** | Mesmos | Mesmos | Mesmos | Mesmos |
+| **Where the UI runs** | Remote browser (thin shell) | Browser via Server Push | Local JVM | Browser / WebView (Tauri) |
+| **Model** | Server-driven (delta states) | Server-driven (component tree) | Direct in-memory access | Client-side (SPA) |
+| **Transport** | WebSocket (JSON delta) | Atmosphere (WebSocket/Push) | N/A (in-process) | REST (OkHttp → JS) |
+| **Security** | RSA + AES-GCM + URL signing | HMAC-SHA256 URL signing | N/A (local process) | HMAC + JWT |
+| **Scalability** | Virtual Threads (~1K per connection) | Automatic Server Push | Single instance | Client-side (SPA) |
+| **UI code** | TypeScript (React) / Dart (Flutter) | Java | Java | Java (compiled to JS) |
+| **Presenters** | Same | Same | Same | Same |
+| **ViewStates** | Same | Same | Same | Same |
 
-## Estrutura de submódulos
+## Submodule structure
 
 ```mermaid
 graph TD
     root["view.remote/"]
-    host["remote.host/<br/><small>Host: contraparte server-side do protocolo (Maven/Java)</small>"]
-    react["remote.shell.react/<br/><small>Shell React: thin client no browser (Node.js/TypeScript)</small>"]
-    teavm["remote.shell.teavm/<br/><small>Shell TeaVM: thin client Java compilado para JS (VDom)</small>"]
-    flutter["remote.shell.flutter/<br/><small>Shells Flutter: thin clients multiplataforma (Dart)</small>"]
-    commons["flutter.commons/<br/><small>Código compartilhado (protocolo, views, widgets)</small>"]
+    host["remote.host/<br/><small>Host: server-side counterpart of the protocol (Maven/Java)</small>"]
+    react["remote.shell.react/<br/><small>React shell: thin client in the browser (Node.js/TypeScript)</small>"]
+    teavm["remote.shell.teavm/<br/><small>TeaVM shell: Java thin client compiled to JS (VDom)</small>"]
+    flutter["remote.shell.flutter/<br/><small>Flutter shells: multiplatform thin clients (Dart)</small>"]
+    commons["flutter.commons/<br/><small>Shared code (protocol, views, widgets)</small>"]
     desktop["flutter.desktop/<br/><small>Desktop: macOS, Linux, Windows</small>"]
     mobile["flutter.mobile/<br/><small>Mobile: iOS, Android</small>"]
     web["flutter.web/<br/><small>Web: browser (WASM/JS)</small>"]
-    probe["remote.shell.probe/<br/><small>Probe Java: cenários de teste e benchmark sobre o host (Maven/Java)</small>"]
+    probe["remote.shell.probe/<br/><small>Java probe: test and benchmark scenarios against the host (Maven/Java)</small>"]
 
     root --> host
     root --> react
@@ -86,57 +86,57 @@ graph TD
     flutter --> web
 ```
 
-Futuros clientes seguirão o padrão `remote.shell.<tecnologia>`.
+Future clients will follow the `remote.shell.<technology>` pattern.
 
 ### remote.host (Maven)
 
-Servidor do protocolo de apresentação remota — recebe eventos do shell, despacha para os Presenters e devolve os ViewStates modificados:
+Server of the remote presentation protocol — receives events from the shell, dispatches them to the Presenters and returns the modified ViewStates:
 
-| Classe | Responsabilidade |
+| Class | Responsibility |
 |--------|------------------|
-| `ApplicationReactImpl` | `ShoppingApplication` concreta; gerencia dirty views, dispatch de eventos, geração de resposta JSON |
-| `ApplicationReactRegistry` | Registry de instâncias por sessão, lifecycle e cleanup |
-| `GenericViewImpl` | Base abstrata: `instanceId`, `update()` (marca dirty), `syncClientToServer()`, `writeState()` |
-| `BrowserPresenter` | Coordena navegação e dispatch de intent entre views |
-| `AppSecurity` | RSA + SHA256withRSA para assinatura de URLs de navegação |
-| `DataSecurity` | AES-GCM por sessão (derivado via PBKDF2, 250k iterações) para dados sensíveis |
-| `ScopeSerializer` | Serialização eficiente de ViewStates para JSON (apenas campos dirty) |
-| `WebSocketConnection` | SPI — interface que o backend implementa para comunicação com o shell |
+| `ApplicationReactImpl` | Concrete `ShoppingApplication`; manages dirty views, event dispatch, JSON response generation |
+| `ApplicationReactRegistry` | Registry of per-session instances, lifecycle and cleanup |
+| `GenericViewImpl` | Abstract base: `instanceId`, `update()` (marks dirty), `syncClientToServer()`, `writeState()` |
+| `BrowserPresenter` | Coordinates navigation and intent dispatch between views |
+| `AppSecurity` | RSA + SHA256withRSA for signing navigation URLs |
+| `DataSecurity` | Per-session AES-GCM (derived via PBKDF2, 250k iterations) for sensitive data |
+| `ScopeSerializer` | Efficient serialization of ViewStates to JSON (dirty fields only) |
+| `WebSocketConnection` | SPI — interface the backend implements to communicate with the shell |
 
 ### remote.shell.react (Node.js — Parcel)
 
-Thin client que atua como superfície de renderização no browser:
+Thin client that acts as the rendering surface in the browser:
 
-- **React 19** + **MUI 9** (Material UI) para componentes visuais
-- **WebSocket** bidirecional para comunicação com o host
-- **Sem lógica de negócio** — cada view renderiza o ViewState recebido e emite eventos de interação
-- **Views independentes** — cada componente é autossuficiente, sem acoplamento entre views
-- Build via **Parcel 2.13** — output copiado para `remote.host/META-INF/resources/`
+- **React 19** + **MUI 9** (Material UI) for visual components
+- Bidirectional **WebSocket** for communication with the host
+- **No business logic** — each view renders the received ViewState and emits interaction events
+- **Independent views** — each component is self-sufficient, with no coupling between views
+- Built with **Parcel 2.13** — output copied to `remote.host/META-INF/resources/`
 
 ### remote.shell.teavm (Maven — TeaVM)
 
-Thin client em Java compilado para JavaScript via TeaVM, usando **Virtual DOM** (VNode API) com Spectrum Web Components:
+Thin client in Java compiled to JavaScript via TeaVM, using a **Virtual DOM** (VNode API) with Spectrum Web Components:
 
-- **VNode API** declarativa — `render()` retorna árvore virtual, framework faz diff eficiente
-- **WebSocket** bidirecional para comunicação com o host (mesmo protocolo do shell React)
-- **Sem lógica de negócio** — cada view renderiza o ViewState recebido via `ViewScope` e emite eventos
-- **useCallback(key, listener)** — cache de listeners paramétricos para estabilidade de referência no diff
-- **Stable fields** — listeners sem parâmetros extraídos para campos `final` (zero custo no diff)
-- **Compact Css** — aliases (`u`/`c`/`icon`) para classes utilitárias do design system
-- Build via **Maven + plugin TeaVM** — output em `target/classes/META-INF/resources/`
+- Declarative **VNode API** — `render()` returns a virtual tree, the framework does an efficient diff
+- Bidirectional **WebSocket** for communication with the host (same protocol as the React shell)
+- **No business logic** — each view renders the ViewState received via `ViewScope` and emits events
+- **useCallback(key, listener)** — cache of parameterized listeners for reference stability in the diff
+- **Stable fields** — parameterless listeners extracted into `final` fields (zero cost in the diff)
+- **Compact Css** — aliases (`u`/`c`/`icon`) for the design system's utility classes
+- Built with **Maven + TeaVM plugin** — output in `target/classes/META-INF/resources/`
 
 ```mermaid
 graph TD
     root["remote.shell.teavm/"]
     srcJava["src/main/java/.../shell/teavm/"]
     bridge["bridge/"]
-    arv["AbstractRemoteView.java<br/><small>Base VDom (render/diff/useCallback)</small>"]
-    vsc["ViewStateCoordinator.java<br/><small>Gerencia views ativas + protocolo WS</small>"]
-    vs["ViewScope.java<br/><small>Estado reativo recebido do host</small>"]
-    frc["FlushRequestContext.java<br/><small>Comunicação WS</small>"]
-    rc["ReconnectController.java<br/><small>Backoff progressivo</small>"]
+    arv["AbstractRemoteView.java<br/><small>VDom base (render/diff/useCallback)</small>"]
+    vsc["ViewStateCoordinator.java<br/><small>Manages active views + WS protocol</small>"]
+    vs["ViewScope.java<br/><small>Reactive state received from the host</small>"]
+    frc["FlushRequestContext.java<br/><small>WS communication</small>"]
+    rc["ReconnectController.java<br/><small>Progressive backoff</small>"]
     ds["DataSecurity.java<br/><small>RSA + AES-GCM</small>"]
-    vgc["ViewGarbageCollector.java<br/><small>Cleanup de views desalocadas</small>"]
+    vgc["ViewGarbageCollector.java<br/><small>Cleanup of deallocated views</small>"]
     interop["interop/<br/><small>JSO bridges (Console, Timers, WS)</small>"]
     views["views/<br/><small>9 views (Browser, Root, Login, Home, ...)</small>"]
     webapp["src/main/webapp/"]
@@ -161,85 +161,85 @@ graph TD
 
 ### remote.shell.flutter (Maven + Flutter/Dart)
 
-Shells Flutter multiplataforma — thin clients em Dart que compartilham código via `flutter.commons`:
+Multiplatform Flutter shells — thin clients in Dart that share code via `flutter.commons`:
 
-- **flutter.commons** — biblioteca compartilhada: protocolo WebSocket, segurança RSA+AES-GCM, views, widgets e design tokens
-- **flutter.desktop** — app nativo macOS/Linux/Windows; build via `build.sh` (auto-detecta plataforma)
-- **flutter.mobile** — app iOS/Android com deploy via `deploy.sh` (suporta simuladores, emuladores e devices físicos)
-- **flutter.web** — app web via Flutter WASM/JS
+- **flutter.commons** — shared library: WebSocket protocol, RSA+AES-GCM security, views, widgets and design tokens
+- **flutter.desktop** — native macOS/Linux/Windows app; built via `build.sh` (auto-detects the platform)
+- **flutter.mobile** — iOS/Android app deployed via `deploy.sh` (supports simulators, emulators and physical devices)
+- **flutter.web** — web app via Flutter WASM/JS
 
 ### remote.shell.probe (Maven/Java)
 
-Executa cenários programáticos sobre o host remoto — usado para benchmarks de throughput, medição de memória por sessão e validação comportamental:
+Runs programmatic scenarios against the remote host — used for throughput benchmarks, per-session memory measurement and behavioral validation:
 
-- **`ConcurrentThroughputScenario`** — mede throughput com múltiplas sessões paralelas
-- **`MemoryPerSessionScenario`** — mede consumo de memória por sessão ativa
-- **`ComprarProdutoScenario`** — valida fluxo completo de compra via protocolo remoto
-- Usa `remote.bridge.java` (framework) como base para conexão com o host
+- **`ConcurrentThroughputScenario`** — measures throughput with multiple parallel sessions
+- **`MemoryPerSessionScenario`** — measures memory consumption per active session
+- **`BuyProductScenario`** — validates the full purchase flow via the remote protocol
+- Uses `remote.bridge.java` (framework) as the base for connecting to the host
 
-## Fluxo de comunicação
+## Communication flow
 
 ```
-1. Shell conecta: ws://host/dispatcher/{sessionId}
-2. Handshake de segurança:
-   - Shell envia cookie app_signature (RSA-encrypted AES password)
-   - Host deriva chave AES-256 via PBKDF2 (salt + 250k iterações)
-3. Ciclo request/response:
+1. Shell connects: ws://host/dispatcher/{sessionId}
+2. Security handshake:
+   - Shell sends the app_signature cookie (RSA-encrypted AES password)
+   - Host derives an AES-256 key via PBKDF2 (salt + 250k iterations)
+3. Request/response cycle:
    - Shell → Host: { requestId, eventCode, formData }
    - Host:
-     a. syncClientToServer() — atualiza form data nas views
-     b. submit() — despacha evento para o Presenter correto
-     c. Presenter atualiza ViewState → marca views dirty
-     d. commitComputedState() — propaga estados derivados
-     e. Serializa apenas views dirty → JSON delta
+     a. syncClientToServer() — updates form data in the views
+     b. submit() — dispatches the event to the correct Presenter
+     c. Presenter updates the ViewState → marks views dirty
+     d. commitComputedState() — propagates derived states
+     e. Serializes only dirty views → JSON delta
    - Host → Shell: { requestId, uri, states: [...] }
-4. Shell aplica delta nos componentes (reconciliação React)
+4. Shell applies the delta to the components (React reconciliation)
 ```
 
-Apenas **views modificadas** (dirty) são enviadas a cada resposta — transferência mínima, análoga a um Remote Desktop enviando apenas as regiões da tela que mudaram.
+Only **modified (dirty) views** are sent in each response — minimal transfer, analogous to a Remote Desktop sending only the screen regions that changed.
 
-## Segurança
+## Security
 
-### Camada 1: Assinatura de navegação
-- Cada URL/intent inclui parâmetro `sign` = `Base62(MD5(SHA256withRSA(intent)))`
-- Servidor valida antes de navegar — previne manipulação de URLs
+### Layer 1: Navigation signing
+- Each URL/intent includes a `sign` parameter = `Base62(MD5(SHA256withRSA(intent)))`
+- The server validates it before navigating — prevents URL tampering
 
-### Camada 2: Criptografia de dados sensíveis
-- Chave AES-256 derivada por sessão via PBKDF2 (250.000 iterações)
-- Campos sensíveis (senhas, tokens) são AES-GCM encrypted em trânsito
-- Cada sessão possui chave única — comprometimento de uma não afeta outras
+### Layer 2: Encryption of sensitive data
+- AES-256 key derived per session via PBKDF2 (250,000 iterations)
+- Sensitive fields (passwords, tokens) are AES-GCM encrypted in transit
+- Each session has a unique key — compromising one does not affect the others
 
-## Pré-requisitos
+## Prerequisites
 
-- **Java 25** (Temurin ou Microsoft JDK)
+- **Java 25** (Temurin or Microsoft JDK)
 - **Maven 3.9+**
-- **Node.js 20+** (para build do client)
+- **Node.js 20+** (to build the client)
 
 ## Build
 
 ```bash
-# 1. Build do shell (gera assets em remote.host/META-INF/resources/)
+# 1. Build the shell (generates assets in remote.host/META-INF/resources/)
 cd fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.shell.react
 npm install && npm run build
 
-# 2. Build Maven (host + backend)
+# 2. Maven build (host + backend)
 cd fontes && mvn -q -DskipTests clean install
 ```
 
-## Execução
+## Running
 
 ```bash
-# Servidor (porta 8080 por padrão)
+# Server (port 8080 by default)
 cd fontes/br.com.wdc.cube.backend
 java -jar target/br.com.wdc.cube.backend-1.0.0.jar
 
-# Ou via script
+# Or via script
 ./start-server.sh
 ```
 
-### Configuração
+### Configuration
 
-Arquivo `work/config/application.toml`:
+File `work/config/application.toml`:
 
 ```toml
 [app]
@@ -255,28 +255,28 @@ Arquivo `work/config/application.toml`:
 # port = 8080
 ```
 
-### Desenvolvimento do shell
+### Shell development
 
 ```bash
 cd remote.shell.react
-npm run watch   # Parcel em modo watch (hot reload)
+npm run watch   # Parcel in watch mode (hot reload)
 ```
 
 ## Virtual Threads
 
-Este módulo utiliza Virtual Threads (Java 21+) para handlers HTTP e WebSocket, reduzindo o consumo de memória por conexão de ~1MB para ~1KB. Detalhes completos em [VIRTUAL_THREADS_STRATEGY.md](VIRTUAL_THREADS_STRATEGY.md).
+This module uses Virtual Threads (Java 21+) for HTTP and WebSocket handlers, reducing memory consumption per connection from ~1MB to ~1KB. Full details in [VIRTUAL_THREADS_STRATEGY.md](VIRTUAL_THREADS_STRATEGY.md).
 
 ## Screenshots
 
-| Tela | Preview |
+| Screen | Preview |
 |------|---------|
 | Login | ![Login](docs/screenshots/01-login.png) |
-| Home / Produtos | ![Home](docs/screenshots/02-home.png) |
-| Detalhe do Produto | ![Produto](docs/screenshots/03-product.png) |
-| Carrinho | ![Carrinho](docs/screenshots/04-cart.png) |
-| Recibo | ![Recibo](docs/screenshots/05-receipt.png) |
-| Histórico | ![Histórico](docs/screenshots/06-history.png) |
+| Home / Products | ![Home](docs/screenshots/02-home.png) |
+| Product Detail | ![Product](docs/screenshots/03-product.png) |
+| Cart | ![Cart](docs/screenshots/04-cart.png) |
+| Receipt | ![Receipt](docs/screenshots/05-receipt.png) |
+| History | ![History](docs/screenshots/06-history.png) |
 
-## Conclusão
+## Conclusion
 
-Este módulo valida que o padrão Cube MVP suporta **apresentação remota**: toda a lógica permanece server-side no **host**, e o **shell** é um thin client intercambiável que renderiza estados serializados e captura interações. A separação host/shell garante que a mesma infraestrutura de protocolo pode alimentar diferentes tecnologias de frontend — basta criar um novo `remote.shell.<tecnologia>` que implemente a renderização de ViewStates e a emissão de eventos.
+This module validates that the Cube MVP pattern supports **remote presentation**: all logic stays server-side in the **host**, and the **shell** is an interchangeable thin client that renders serialized states and captures interactions. The host/shell separation ensures that the same protocol infrastructure can feed different frontend technologies — all it takes is a new `remote.shell.<technology>` that implements ViewState rendering and event emission.

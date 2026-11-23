@@ -1,26 +1,26 @@
-# Guia: Como Programar uma View para remote.shell.teavm
+# Guide: How to Write a View for remote.shell.teavm
 
-Este documento explica como criar uma nova view no thin client TeaVM do módulo Remote Presentation. Usaremos como exemplo a criação de uma view fictícia **"Wishlist"**.
+This document explains how to create a new view in the TeaVM thin client of the Remote Presentation module. As an example, we will create a fictional **"Wishlist"** view.
 
-## Visão Geral
+## Overview
 
-Uma view neste projeto é um componente que:
+A view in this project is a component that:
 
-1. Recebe estado do servidor via WebSocket (JSON → `ViewScope`)
-2. Renderiza uma árvore virtual (`VNode`) de forma declarativa
-3. Emite eventos de interação de volta ao servidor (`submit`)
+1. Receives state from the server over WebSocket (JSON → `ViewScope`)
+2. Renders a virtual tree (`VNode`) declaratively
+3. Emits interaction events back to the server (`submit`)
 
-A view **não possui lógica de negócio** — toda a lógica fica no Presenter (server-side).
+The view **has no business logic** — all the logic lives in the Presenter (server-side).
 
-## Pré-requisitos
+## Prerequisites
 
-Antes de criar a view no shell, o Presenter e o seu Scope já devem existir na camada `presentation`, com:
+Before creating the view in the shell, the Presenter and its Scope must already exist in the `presentation` layer, with:
 
-- O classId declarado no escopo: `public static final String CLASS_ID = "a1b2c3d4e5f6";`
-- Os campos observados como `Prop`s públicas do escopo (o `ScopeSerializer` os escreve em JSON por reflexão)
-- Os códigos de evento, dados na ligação de cada ação (`action(1, ...)`, `actionOf(2, FormParam.asLong("p.itemId"), ...)`)
+- The classId declared in the scope: `public static final String CLASS_ID = "a1b2c3d4e5f6";`
+- The observed fields as public `Prop`s of the scope (the `ScopeSerializer` writes them to JSON via reflection)
+- The event codes, given when binding each action (`action(1, ...)`, `actionOf(2, FormParam.asLong("p.itemId"), ...)`)
 
-## Anatomia de uma View
+## Anatomy of a View
 
 ```java
 package br.com.wdc.shopping.view.remote.shell.teavm.views;
@@ -37,14 +37,14 @@ import br.com.wdc.shopping.view.remote.shell.teavm.bridge.ViewScope;
 
 public class WishlistView extends AbstractRemoteView {
 
-    // 1. VIEW_ID — deve ser IDÊNTICO ao CLASS_ID do escopo (WishlistScope.CLASS_ID)
+    // 1. VIEW_ID — must be IDENTICAL to the scope's CLASS_ID (WishlistScope.CLASS_ID)
     public static final String VIEW_ID = "a1b2c3d4e5f6";
 
-    // 2. Event codes — devem ser IDÊNTICOS aos códigos das ações do Presenter (action(1, ...))
+    // 2. Event codes — must be IDENTICAL to the codes of the Presenter's actions (action(1, ...))
     private static final int ON_REMOVE_ITEM = 1;
     private static final int ON_BACK = 2;
 
-    // 3. Interface Css — constantes de classe CSS (compact pattern)
+    // 3. Css interface — CSS class constants (compact pattern)
     @SuppressWarnings({"java:S1214", "static-access"})
     private interface Css {
         CssUtility u = CssUtility.INSTANCE;
@@ -63,10 +63,10 @@ public class WishlistView extends AbstractRemoteView {
         String ERROR_TEXT = c.ALERT_ERROR_TEXT;
     }
 
-    // 4. Stable listeners — campos final para listeners sem parâmetros
+    // 4. Stable listeners — final fields for listeners without parameters
     private final EventListener<Event> onBack = evt -> submit(ON_BACK);
 
-    // 5. Factory methods para listeners paramétricos
+    // 5. Factory methods for parametric listeners
     private EventListener<Event> mkOnRemove(Long id) {
         return evt -> {
             setFormField("p.itemId", id);
@@ -74,12 +74,12 @@ public class WishlistView extends AbstractRemoteView {
         };
     }
 
-    // 6. Construtor — recebe vsid (view-state ID)
+    // 6. Constructor — receives the vsid (view-state ID)
     public WishlistView(String vsid) {
         super(vsid);
     }
 
-    // 7. render() — retorna a árvore virtual
+    // 7. render() — returns the virtual tree
     @Override
     protected VNode render() {
         var scope = state();
@@ -91,7 +91,7 @@ public class WishlistView extends AbstractRemoteView {
         // @formatter:off
         return div(Css.ROOT).children(
           div(Css.WRAPPER).children(
-            h5(Css.TITLE).text("Minha Lista de Desejos"),
+            h5(Css.TITLE).text("My Wishlist"),
             // Error
             div(showError ? Css.ERROR_VISIBLE : Css.HIDDEN).children(
               span(Css.ERROR_ICON),
@@ -102,12 +102,12 @@ public class WishlistView extends AbstractRemoteView {
               : List.of()),
             // Back button
             spActionButton()
-              .children(span(CssIcons.ARROW_LEFT), span().text(" Voltar"))
+              .children(span(CssIcons.ARROW_LEFT), span().text(" Back"))
               .on("click", onBack)));
         // @formatter:on
     }
 
-    // 8. Métodos de render auxiliares (extrair para legibilidade)
+    // 8. Helper render methods (extract for readability)
     private VNode renderItem(Map<String, Object> item) {
         var id = CoerceUtils.asLong(item.get("id"));
         var name = CoerceUtils.asString(item.get("name"), "");
@@ -126,26 +126,26 @@ public class WishlistView extends AbstractRemoteView {
 
 ---
 
-## Passo a Passo
+## Step by Step
 
-### Passo 1 — Criar a classe da View
+### Step 1 — Create the View class
 
-Crie o arquivo em:
+Create the file at:
 ```
 remote.shell.teavm/src/main/java/br/com/wdc/shopping/view/remote/shell/teavm/views/WishlistView.java
 ```
 
-### Passo 2 — Registrar no Main.java
+### Step 2 — Register it in Main.java
 
-Adicione no `Main.java`:
+Add to `Main.java`:
 
 ```java
 app.registerView(WishlistView.VIEW_ID, WishlistView::new);
 ```
 
-O `VIEW_ID` é a chave que o servidor usa para identificar qual factory instanciar quando envia um estado para esta view.
+The `VIEW_ID` is the key the server uses to identify which factory to instantiate when it sends a state to this view.
 
-### Passo 3 — Compilar e testar
+### Step 3 — Compile and test
 
 ```bash
 export JAVA_HOME=/Library/Java/JavaVirtualMachines/microsoft-21.jdk/Contents/Home
@@ -156,53 +156,53 @@ mvn -q -DskipTests compile -pl br.com.wdc.shopping/br.com.wdc.shopping.view.remo
 
 ---
 
-## Conceitos Fundamentais
+## Fundamental Concepts
 
-### VIEW_ID e o Protocolo
+### VIEW_ID and the Protocol
 
-O `VIEW_ID` é um hash de 12 caracteres que vincula a view no shell ao escopo no host:
+The `VIEW_ID` is a 12-character hash that binds the view in the shell to the scope on the host:
 
 ```
 Host (Scope)                          Shell (View)
 ┌──────────────────────┐              ┌──────────────────┐
-│ XxxScope.CLASS_ID    │ ←─ mesmo ─→  │ VIEW_ID          │
+│ XxxScope.CLASS_ID    │ ←─ same ──→  │ VIEW_ID          │
 │ = "a1b2c3d4e5f6"     │              │ = "a1b2c3d4e5f6" │
 └──────────────────────┘              └──────────────────┘
 ```
 
-No host, `RemoteViewImpl::forScope` (o `fallback` do `ScopeViews` do `ShoppingApplicationImpl`) lê o `CLASS_ID` do escopo e o usa como classId da view remota e do skeleton.
+On the host, `RemoteViewImpl::forScope` (the `fallback` of the `ShoppingApplicationImpl`'s `ScopeViews`) reads the scope's `CLASS_ID` and uses it as the classId of the remote view and of the skeleton.
 
-Quando o host envia um estado JSON com esse ID, o `ViewStateCoordinator` localiza a factory registrada, instancia a view (se nova) e entrega o estado via `ViewScope`.
+When the host sends a JSON state with that ID, the `ViewStateCoordinator` looks up the registered factory, instantiates the view (if new) and delivers the state via `ViewScope`.
 
-### ViewScope — Leitura de Estado
+### ViewScope — Reading State
 
-O `ViewScope` é um wrapper sobre o `Map<String, Object>` recebido do servidor. Métodos disponíveis:
+`ViewScope` is a wrapper over the `Map<String, Object>` received from the server. Available methods:
 
-| Método | Retorno | Uso |
+| Method | Returns | Use |
 |--------|---------|-----|
-| `getString(key)` | `String` ou `null` | Campos texto |
-| `getString(key, default)` | `String` | Com fallback |
-| `getInt(key)` | `int` (0 se ausente) | Contadores, codes |
-| `getDouble(key)` | `double` | Valores monetários |
+| `getString(key)` | `String` or `null` | Text fields |
+| `getString(key, default)` | `String` | With fallback |
+| `getInt(key)` | `int` (0 if absent) | Counters, codes |
+| `getDouble(key)` | `double` | Monetary values |
 | `getBoolean(key)` | `boolean` | Flags |
-| `getMap(key)` | `Map<String, Object>` | Objetos aninhados |
-| `getList(key)` | `List<Map<String, Object>>` | Arrays de objetos |
+| `getMap(key)` | `Map<String, Object>` | Nested objects |
+| `getList(key)` | `List<Map<String, Object>>` | Arrays of objects |
 
-### submit() e setFormField() — Emissão de Eventos
+### submit() and setFormField() — Emitting Events
 
-Para comunicar ações do usuário ao servidor:
+To communicate user actions to the server:
 
 ```java
-// Evento simples (sem dados)
-submit(ON_BACK);   // Envia eventCode=2 ao Presenter
+// Simple event (no data)
+submit(ON_BACK);   // Sends eventCode=2 to the Presenter
 
-// Evento com dados (form fields)
+// Event with data (form fields)
 setFormField("p.itemId", itemId);
 setFormField("p.quantity", 3);
-submit(ON_ADD_TO_CART);  // Presenter recebe formData com os campos
+submit(ON_ADD_TO_CART);  // Presenter receives formData with the fields
 ```
 
-No Presenter, a ação diz o seu código e como ler o campo; o skeleton do escopo (`scope.skeleton(CLASS_ID)`) despacha:
+In the Presenter, the action states its code and how to read the field; the scope's skeleton (`scope.skeleton(CLASS_ID)`) dispatches:
 
 ```java
 this.state.onRemoveItem = actionOf(1, FormParam.asLong("p.itemId"), this::removeItem);
@@ -210,28 +210,28 @@ this.state.onRemoveItem = actionOf(1, FormParam.asLong("p.itemId"), this::remove
 
 ---
 
-## Otimizações de Performance
+## Performance Optimizations
 
-### Stable Listeners (campos `final`)
+### Stable Listeners (`final` fields)
 
-O VDom diff compara event listeners por **identidade de referência**. Se a mesma referência é passada entre renders, nenhuma operação DOM é realizada.
+The VDom diff compares event listeners by **reference identity**. If the same reference is passed between renders, no DOM operation is performed.
 
-**Regra**: Todo listener que não depende de parâmetros variáveis deve ser um campo `final`:
+**Rule**: Every listener that does not depend on variable parameters must be a `final` field:
 
 ```java
-// ✅ Bom — referência estável, zero custo no diff
+// ✅ Good — stable reference, zero cost in the diff
 private final EventListener<Event> onBack = evt -> submit(ON_BACK);
 
-// ❌ Ruim — lambda nova a cada render, re-registra no DOM
+// ❌ Bad — new lambda on every render, re-registers in the DOM
 .on("click", evt -> submit(ON_BACK))
 ```
 
-### useCallback(key, listener) — Listeners Paramétricos
+### useCallback(key, listener) — Parametric Listeners
 
-Quando o listener depende de dados variáveis (ex: ID de um item em uma lista), use `useCallback` para manter a referência estável enquanto a key não mudar:
+When the listener depends on variable data (e.g. the ID of an item in a list), use `useCallback` to keep the reference stable as long as the key does not change:
 
 ```java
-// Factory cria um novo listener com os dados capturados
+// Factory creates a new listener with the captured data
 private EventListener<Event> mkOnRemove(Long id) {
     return evt -> {
         setFormField("p.itemId", id);
@@ -239,24 +239,24 @@ private EventListener<Event> mkOnRemove(Long id) {
     };
 }
 
-// No render, useCallback retorna a instância cacheada se a key já existe
+// In render, useCallback returns the cached instance if the key already exists
 .on("click", useCallback("remove-" + itemId, mkOnRemove(itemId)))
 ```
 
-**Ciclo de vida**:
-1. Primeira vez que a key aparece → armazena o listener no cache
-2. Renders subsequentes com mesma key → retorna instância cacheada (sem alocar)
-3. Se a key desaparece (item removido da lista) → cleanup automático no fim do render
+**Lifecycle**:
+1. First time the key appears → stores the listener in the cache
+2. Subsequent renders with the same key → returns the cached instance (no allocation)
+3. If the key disappears (item removed from the list) → automatic cleanup at the end of the render
 
-**Dica para keys**: Inclua valores que invalidam o listener antigo:
+**Tip for keys**: Include values that invalidate the old listener:
 ```java
-// Se qty muda, o listener precisa ser recriado (pois captura qty+1 / qty-1)
+// If qty changes, the listener must be recreated (since it captures qty+1 / qty-1)
 useCallback("plus-" + itemId + "-" + qty, mkOnModifyQty(itemId, qty + 1))
 ```
 
-### VNode.key() — Reconciliação de Listas
+### VNode.key() — List Reconciliation
 
-Ao renderizar listas, use `.key(uniqueId)` para que o diff identifique movimentos e remoções sem destruir/recriar nós:
+When rendering lists, use `.key(uniqueId)` so the diff identifies moves and removals without destroying/recreating nodes:
 
 ```java
 return div(Css.ITEM_ROW).key(String.valueOf(item.id)).children(...);
@@ -264,46 +264,46 @@ return div(Css.ITEM_ROW).key(String.valueOf(item.id)).children(...);
 
 ---
 
-## Padrão Compact Css
+## Compact Css Pattern
 
-Cada view define uma interface `Css` privada que organiza todas as classes CSS em um único lugar:
+Each view defines a private `Css` interface that organizes all CSS classes in a single place:
 
 ```java
 @SuppressWarnings({"java:S1214", "static-access"})
 private interface Css {
-    CssUtility u = CssUtility.INSTANCE;       // Classes utilitárias (layout, spacing)
-    CssComponents c = CssComponents.INSTANCE; // Componentes reutilizáveis (cards, alerts)
+    CssUtility u = CssUtility.INSTANCE;       // Utility classes (layout, spacing)
+    CssComponents c = CssComponents.INSTANCE; // Reusable components (cards, alerts)
     CssIcons icon = CssIcons.INSTANCE;        // Bootstrap Icons
 
     // Framework classes via alias
     String ROOT = u.PAGE_SCROLL_ROOT;
     String HIDDEN = u.HIDDEN;
 
-    // Composição de classes (clsx = className join)
+    // Class composition (clsx = className join)
     String ERROR_VISIBLE = clsx(c.ALERT_ERROR, u.MB_12);
     String ERROR_ICON = clsx(icon.EXCLAMATION_CIRCLE, c.ALERT_ERROR_ICON);
 
-    // Classes específicas da view (definidas no app.css)
+    // View-specific classes (defined in app.css)
     String TITLE = "wishlist-title";
     String ITEM_ROW = "wishlist-item-row";
 }
 ```
 
-**Benefícios**:
-- Nomes curtos no render: `Css.ROOT` vs `CssUtility.PAGE_SCROLL_ROOT`
-- Composições pré-computadas em tempo de compilação
-- Todas as classes da view centralizadas em um único ponto
+**Benefits**:
+- Short names in render: `Css.ROOT` vs `CssUtility.PAGE_SCROLL_ROOT`
+- Compositions precomputed at compile time
+- All of the view's classes centralized in a single place
 
-**Regras**:
-- Sempre incluir `@SuppressWarnings({"java:S1214", "static-access"})`
-- Usar `clsx(...)` para combinar múltiplas classes em uma string
-- Apenas incluir aliases (`u`/`c`/`icon`) para as categorias efetivamente usadas
+**Rules**:
+- Always include `@SuppressWarnings({"java:S1214", "static-access"})`
+- Use `clsx(...)` to combine multiple classes into one string
+- Only include aliases (`u`/`c`/`icon`) for the categories actually used
 
 ---
 
-## VNode API — Referência Rápida
+## VNode API — Quick Reference
 
-### Elementos HTML
+### HTML Elements
 
 ```java
 import static br.com.wdc.framework.vdom.VNode.*;
@@ -311,10 +311,10 @@ import static br.com.wdc.framework.vdom.VNode.*;
 div("class-name")             // <div class="class-name">
 div()                         // <div>
 span("icon bi-bag")           // <span class="icon bi-bag">
-h5("title").text("Olá")      // <h5 class="title">Olá</h5>
-p().text("Texto")            // <p>Texto</p>
+h5("title").text("Hello")    // <h5 class="title">Hello</h5>
+p().text("Text")             // <p>Text</p>
 img().attr("src", url)       // <img src="...">
-textNode("texto puro")       // nó de texto
+textNode("plain text")       // text node
 ```
 
 ### Spectrum Web Components (Swc)
@@ -327,22 +327,22 @@ spButton("accent", "l")      // <sp-button variant="accent" size="l">
 spActionButton()             // <sp-action-button>
 spActionButton("s")          // <sp-action-button size="s">
 spTextField("Label")         // <sp-textfield label="Label">
-spFieldLabel("Texto")        // <sp-field-label>Texto</sp-field-label>
+spFieldLabel("Text")         // <sp-field-label>Text</sp-field-label>
 spDivider("s")               // <sp-divider size="s">
 ```
 
-### Atributos e Propriedades
+### Attributes and Properties
 
 ```java
-.cls("extra-class")          // Adiciona classe ao className
-.attr("placeholder", "...")  // Atributo HTML
-.boolAttr("disabled", true)  // Atributo booleano (presença/ausência)
-.prop("value", obj)          // Propriedade JS (dados complexos)
+.cls("extra-class")          // Adds a class to className
+.attr("placeholder", "...")  // HTML attribute
+.boolAttr("disabled", true)  // Boolean attribute (presence/absence)
+.prop("value", obj)          // JS property (complex data)
 .style("color: red")         // Inline style
-.key("unique-id")            // Key para reconciliação de listas
+.key("unique-id")            // Key for list reconciliation
 ```
 
-### Eventos
+### Events
 
 ```java
 .on("click", listener)       // addEventListener("click", ...)
@@ -351,48 +351,48 @@ spDivider("s")               // <sp-divider size="s">
 .on("input", listener)       // addEventListener("input", ...)
 ```
 
-### Filhos
+### Children
 
 ```java
-.children(node1, node2)      // Filhos fixos (varargs)
-.children(listOfNodes)       // Filhos dinâmicos (List<VNode>)
-.text("conteúdo")            // Conteúdo texto (atalho para textNode filho)
+.children(node1, node2)      // Fixed children (varargs)
+.children(listOfNodes)       // Dynamic children (List<VNode>)
+.text("content")             // Text content (shortcut for a child textNode)
 ```
 
-### Ref (acesso ao elemento DOM)
+### Ref (access to the DOM element)
 
 ```java
 .ref(el -> {
-    // Chamado quando o elemento é criado/atualizado no DOM
-    // Útil para innerHTML, foco programático, medições
+    // Called when the element is created/updated in the DOM
+    // Useful for innerHTML, programmatic focus, measurements
     ((HTMLInputElement) el).focus();
 })
 ```
 
 ---
 
-## Tratamento de Erros
+## Error Handling
 
-Padrão universal para exibir mensagens de erro vindas do Presenter:
+Universal pattern for displaying error messages coming from the Presenter:
 
 ```java
-// No render():
+// In render():
 var errorMessage = scope.getString("errorMessage");
 var showError = errorMessage != null && !errorMessage.isEmpty();
 
-// No VNode tree:
+// In the VNode tree:
 div(showError ? Css.ERROR_VISIBLE : Css.HIDDEN).children(
   span(Css.ERROR_ICON),
   span(Css.ERROR_TEXT).text(errorMessage != null ? errorMessage : ""))
 ```
 
-O Presenter define `errorCode` + `errorMessage` no ViewState (`state.errorCode.set(3)`, que já pede o redesenho). O protocolo envia o delta e a view re-renderiza automaticamente.
+The Presenter sets `errorCode` + `errorMessage` in the ViewState (`state.errorCode.set(3)`, which already requests the redraw). The protocol sends the delta and the view re-renders automatically.
 
 ---
 
-## Mapeamento de Estado (Records)
+## State Mapping (Records)
 
-Para estados complexos (objetos aninhados), use records para parsing tipado:
+For complex states (nested objects), use records for typed parsing:
 
 ```java
 private record Product(Long id, String name, Double price) {}
@@ -409,15 +409,15 @@ private Product parseProduct(ViewScope scope) {
 
 ---
 
-## Checklist para Nova View
+## New View Checklist
 
-- [ ] `VIEW_ID` idêntico ao `CLASS_ID` do escopo
-- [ ] Event codes idênticos aos códigos das ações do Presenter
-- [ ] Registrada no `Main.java` com `app.registerView(VIEW_ID, View::new)`
-- [ ] Interface `Css` com aliases e suppressions
-- [ ] Listeners estáveis como campos `final`
-- [ ] Listeners paramétricos via `useCallback(key, factory)`
-- [ ] `.key()` em itens de listas dinâmicas
-- [ ] Tratamento de erro padrão (`errorMessage` → alert hidden/visible)
-- [ ] CSS da view adicionado em `src/main/webapp/css/app.css`
-- [ ] Compilação sem erros
+- [ ] `VIEW_ID` identical to the scope's `CLASS_ID`
+- [ ] Event codes identical to the codes of the Presenter's actions
+- [ ] Registered in `Main.java` with `app.registerView(VIEW_ID, View::new)`
+- [ ] `Css` interface with aliases and suppressions
+- [ ] Stable listeners as `final` fields
+- [ ] Parametric listeners via `useCallback(key, factory)`
+- [ ] `.key()` on items of dynamic lists
+- [ ] Standard error handling (`errorMessage` → hidden/visible alert)
+- [ ] View CSS added to `src/main/webapp/css/app.css`
+- [ ] Compiles without errors

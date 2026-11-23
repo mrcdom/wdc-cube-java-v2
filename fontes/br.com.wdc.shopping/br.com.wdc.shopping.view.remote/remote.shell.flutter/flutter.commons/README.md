@@ -1,23 +1,23 @@
 # flutter_commons
 
-Biblioteca compartilhada para os shells Flutter (desktop, mobile, web) da aplicação **WeDoCode Shopping**.
+Shared library for the Flutter shells (desktop, mobile, web) of the **WeDoCode Shopping** application.
 
-Contém toda a infraestrutura necessária para que qualquer shell Flutter funcione como thin client do protocolo de Remote Presentation — sem lógica de negócio, apenas protocolo, renderização e interação.
+It contains all the infrastructure any Flutter shell needs to work as a thin client of the Remote Presentation protocol — no business logic, only protocol, rendering and interaction.
 
-## Módulos
+## Modules
 
 ```mermaid
 graph TD
     lib["lib/src/"]
-    bridge["bridge/<br/><small>Protocolo WebSocket, segurança, coordenação de views</small>"]
-    vsc["ViewStateCoordinator<br/><small>Gerencia views ativas, protocolo WS, dirty states</small>"]
-    ds["DataSecurity<br/><small>RSA key exchange + AES-GCM por sessão</small>"]
-    frc["FlushRequestContext<br/><small>Envio de eventos e form data</small>"]
-    rc["ReconnectController<br/><small>Backoff progressivo para reconexão</small>"]
-    dt["design_tokens.dart<br/><small>Cores, tipografia, espaçamentos do design system</small>"]
-    utils["utils/<br/><small>Helpers compartilhados</small>"]
-    views["views/<br/><small>Implementação das views (Home, Login, Root, etc.)</small>"]
-    widgets["widgets/<br/><small>Widgets reutilizáveis (formulários, tabelas, etc.)</small>"]
+    bridge["bridge/<br/><small>WebSocket protocol, security, view coordination</small>"]
+    vsc["ViewStateCoordinator<br/><small>Manages active views, WS protocol, dirty states</small>"]
+    ds["DataSecurity<br/><small>RSA key exchange + per-session AES-GCM</small>"]
+    frc["FlushRequestContext<br/><small>Sends events and form data</small>"]
+    rc["ReconnectController<br/><small>Progressive backoff for reconnection</small>"]
+    dt["design_tokens.dart<br/><small>Design system colors, typography, spacing</small>"]
+    utils["utils/<br/><small>Shared helpers</small>"]
+    views["views/<br/><small>View implementations (Home, Login, Root, etc.)</small>"]
+    widgets["widgets/<br/><small>Reusable widgets (forms, tables, etc.)</small>"]
 
     lib --> bridge
     lib --> dt
@@ -30,9 +30,9 @@ graph TD
     bridge --> rc
 ```
 
-## Uso
+## Usage
 
-Referenciado como path dependency nos shells:
+Referenced as a path dependency in the shells:
 
 ```yaml
 dependencies:
@@ -40,9 +40,9 @@ dependencies:
     path: ../flutter.commons
 ```
 
-## Dependências externas
+## External dependencies
 
-| Package | Uso |
+| Package | Purpose |
 |---------|-----|
-| `web_socket_channel` | Comunicação WebSocket com o host |
-| `pointycastle` | Criptografia RSA + AES-GCM |
+| `web_socket_channel` | WebSocket communication with the host |
+| `pointycastle` | RSA + AES-GCM cryptography |
