@@ -262,6 +262,8 @@ O `HomePresenter` liga as ações do segmento (`actionOf(productsPanel, 1, FormP
 
 No modo remoto o segmento é uma view como qualquer outra: tem o seu `classId`, o seu skeleton (o despacho por código das ações ligadas nele) e o pai o referencia pelo id da view (`"productsPanelViewId"`).
 
+**Linhas de lista também são segmentos.** Cada linha do carrinho é um `CartScope.CartItemScope`, com view própria e ações ligadas ao próprio item (`onRemove`, `onModifyQuantity(quantidade)` — a linha não manda o id do produto de volta: ela *é* o item). O `CartScope` guarda `Prop<List<CartItemScope>> rows`, que o serializador escreve como `"rowsViewIds": [...]`, na ordem. O `CartPresenter` reaproveita a linha pelo id do produto enquanto o item fica, cria (`attach`) a de um item novo e libera (`detach`) a de um item que saiu; mudar uma quantidade redesenha só aquela linha, e o total (`CartScope.total`) vem do servidor.
+
 ---
 
 ## Visão de Estados

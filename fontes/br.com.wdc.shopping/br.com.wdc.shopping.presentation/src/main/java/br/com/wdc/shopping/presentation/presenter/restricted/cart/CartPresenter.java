@@ -16,7 +16,6 @@ import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.Action;
 import br.com.wdc.framework.cube.ActionOf;
-import br.com.wdc.framework.cube.ActionOf2;
 import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.FormParam;
@@ -29,7 +28,6 @@ import br.com.wdc.framework.domain.exception.OfflineException;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptKeys;
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.structs.CartItem;
 
 public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
@@ -69,18 +67,9 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
         /** The rows, in the cart's order; changing a quantity redraws only its row (and the total). */
         public final Prop<List<CartItemScope>> rows = prop(Collections.emptyList());
         public final Prop<Double> total = prop(0.0);
-
-        /**
-         * The items inline, as before the rows: kept while the remote clients migrate to {@link #rows}.
-         * @deprecated goes away with the compatibility (codes 2 and 4 of the cart, too)
-         */
-        @Deprecated
-        public final Prop<List<CartItem>> items = prop();
         public final Prop<Integer> errorCode = prop(0);
         public final Prop<String> errorMessage = prop();
 
-        public ActionOf2<Long, Integer> onModifyQuantity = ActionOf2.noop();
-        public ActionOf<Long> onRemoveProduct = ActionOf.noop();
         public Action onBuy = Action.NOOP;
         public Action onOpenProducts = Action.NOOP;
 
@@ -102,13 +91,9 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
     public CartPresenter(ShoppingApplication app) {
         super(app);
         this.cart = app.getCart();
-        this.state.items.set(Collections.emptyList());
         this.state.onBuy = action(1, this::buy);
-        // Codes 2 and 4: the rows before they had views of their own (compatibility, while the clients migrate)
-        this.state.onRemoveProduct = actionOf(2, FormParam.asLong("p.productId"), this::removeProduct);
+        // Codes 2 and 4 were the rows' before they had views of their own: now each row has its actions
         this.state.onOpenProducts = action(3, () -> new HomeKeys(this.app).flip());
-        this.state.onModifyQuantity = actionOf2(4, FormParam.asLong("p.productId"), FormParam.asInteger("p.quantity"),
-                this::modifyQuantity);
     }
 
     // :: Cube API
@@ -130,13 +115,7 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     // :: User Actions
 
-    private void modifyQuantity(Long productId, Integer quantity) {
-        if (productId == null) {
-            this.errorCodigoDeProdutoMalFormatado();
-            LOG.warn("modifyQuantity.errorCodigoDeProdutoMalFormatado: {}", this.state.errorMessage.get());
-            return;
-        }
-
+    private void modifyQuantity(long productId, Integer quantity) {
         if (quantity == null) {
             this.errorValorQuantidadeMalFormatado();
             LOG.warn("modifyQuantity.errorValorQuantidadeMalFormatado: {}", this.state.errorMessage.get());
@@ -160,13 +139,7 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
         }
     }
 
-    private void removeProduct(Long productId) {
-        if (productId == null) {
-            this.errorCodigoDeProdutoMalFormatado();
-            LOG.warn("removeProduct: {}", this.state.errorMessage.get());
-            return;
-        }
-
+    private void removeProduct(long productId) {
         var modified = this.cart.removeProduct(productId);
         if (modified) {
             if (this.cart.getSize() == 0) {
@@ -217,10 +190,6 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
         this.state.rows.set(next);
         this.state.total.set(total);
-
-        // Compatibility: the inline items change in place, so the prop alone would not redraw them
-        this.state.items.set(items);
-        this.update();
     }
 
     private CartScope.CartItemScope newRow(long productId) {
@@ -285,12 +254,6 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
     protected void alertDatabaseOffline() {
         this.state.errorCode.set(4);
         this.state.errorMessage.set("O banco de dados encontra-se fora do ar no momento. Aguarde alguns instantes e tente novamente.");
-        this.clearErrorAfterDelay();
-    }
-
-    protected void errorCodigoDeProdutoMalFormatado() {
-        this.state.errorCode.set(5);
-        this.state.errorMessage.set("Código do produto mal formado.");
         this.clearErrorAfterDelay();
     }
 

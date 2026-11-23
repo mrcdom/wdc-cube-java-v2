@@ -78,27 +78,23 @@ public class ShoppingWorkflowTest extends BasePresentationTest {
         homeView = HomeViewMock.cast(rootView.state.contentView.get());
         var carrinhoView = CartViewMock.cast(homeView.state.contentView.get());
         Assert.assertEquals("Não deve haver indicação de erros", 0, (int) carrinhoView.state.errorCode.get());
-        Assert.assertEquals("Um item no carrinho", 1, carrinhoView.state.items.get().size());
-        Assert.assertEquals("O item deve ter quantidade 1", 1, carrinhoView.state.items.get().get(0).quantity);
+        Assert.assertEquals("Um item no carrinho", 1, carrinhoView.state.rows.get().size());
+        var penDrive = carrinhoView.state.rows.get().get(0);
+        Assert.assertEquals("O item deve ter quantidade 1", 1, (int) penDrive.quantity.get());
         Assert.assertEquals("ID no carriho <> " + DBReset.PEN_DRIVE2GB_ID,
-                (long) DBReset.PEN_DRIVE2GB_ID, carrinhoView.state.items.get().get(0).id);
+                (long) DBReset.PEN_DRIVE2GB_ID, (long) penDrive.id.get());
 
-        carrinhoView.presenter.state.onModifyQuantity.run(DBReset.PEN_DRIVE2GB_ID, 0);
+        penDrive.onModifyQuantity.run(0);
         homeView = HomeViewMock.cast(rootView.state.contentView.get());
         carrinhoView = CartViewMock.cast(homeView.state.contentView.get());
         Assert.assertEquals("Indicação de quantidade inválida", 1, (int) carrinhoView.state.errorCode.get());
         carrinhoView.state.errorCode.set(0);
 
-        carrinhoView.presenter.state.onModifyQuantity.run(DBReset.PEN_DRIVE2GB_ID, 2);
+        penDrive.onModifyQuantity.run(2);
         homeView = HomeViewMock.cast(rootView.state.contentView.get());
         carrinhoView = CartViewMock.cast(homeView.state.contentView.get());
         Assert.assertEquals("Tem que funcionar sem erro", 0, (int) carrinhoView.state.errorCode.get());
-        Assert.assertEquals("O item deve ter quantidade 2", 2, carrinhoView.state.items.get().get(0).quantity);
-
-        carrinhoView.presenter.state.onModifyQuantity.run(Long.MIN_VALUE, 2);
-        carrinhoView = CartViewMock.cast(homeView.state.contentView.get());
-        Assert.assertEquals("Produto não encontrado", 2, (int) carrinhoView.state.errorCode.get());
-        carrinhoView.state.errorCode.set(0);
+        Assert.assertEquals("O item deve ter quantidade 2", 2, (int) carrinhoView.state.rows.get().get(0).quantity.get());
 
         carrinhoView.presenter.state.onOpenProducts.run();
         homeView = HomeViewMock.cast(rootView.state.contentView.get());
@@ -119,8 +115,8 @@ public class ShoppingWorkflowTest extends BasePresentationTest {
         produtoView.presenter.state.onAddToCart.run(1);
         homeView = HomeViewMock.cast(rootView.state.contentView.get());
         carrinhoView = CartViewMock.cast(homeView.state.contentView.get());
-        Assert.assertEquals("Um item no carrinho", 2, carrinhoView.state.items.get().size());
-        Assert.assertEquals("O item deve ter quantidade 1", 1, carrinhoView.state.items.get().get(1).quantity);
+        Assert.assertEquals("Um item no carrinho", 2, carrinhoView.state.rows.get().size());
+        Assert.assertEquals("O item deve ter quantidade 1", 1, (int) carrinhoView.state.rows.get().get(1).quantity.get());
 
         carrinhoView.presenter.state.onBuy.run();
         homeView = HomeViewMock.cast(rootView.state.contentView.get());
