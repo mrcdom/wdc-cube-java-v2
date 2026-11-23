@@ -43,6 +43,12 @@
 			<groupId>org.jooq</groupId>
 			<artifactId>jooq</artifactId>
 		</dependency>
+		<!-- Only for the compiler: the jOOQ Settings is annotated with JAXB (optional in jOOQ) -->
+		<dependency>
+			<groupId>jakarta.xml.bind</groupId>
+			<artifactId>jakarta.xml.bind-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
 		<!-- Drivers do LocalDataSource (views locais): opcionais, quem o usa declara os dois -->
 		<dependency>
 			<groupId>com.h2database</groupId>

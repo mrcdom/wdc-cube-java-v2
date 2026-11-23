@@ -75,6 +75,50 @@
 					<artifactId>maven-war-plugin</artifactId>
 					<version>3.5.1</version>
 				</plugin>
+				<!--
+					The executable (fat) JARs: each module adds only its Main-Class transformer. Duplicate metadata of the
+					dependencies is dropped or merged here, so the build reports no overlaps.
+				-->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-shade-plugin</artifactId>
+					<version>3.6.2</version>
+					<configuration>
+						<createDependencyReducedPom>false</createDependencyReducedPom>
+						<transformers>
+							<!-- One entry per service provider of every dependency -->
+							<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+							<!-- One LICENSE, NOTICEs merged -->
+							<transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer" />
+							<transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer" />
+						</transformers>
+						<filters>
+							<filter>
+								<artifact>*:*</artifact>
+								<excludes>
+									<!-- A fat JAR is on the classpath, not a module -->
+									<exclude>module-info.class</exclude>
+									<exclude>META-INF/versions/*/module-info.class</exclude>
+									<!-- Signatures of the original JARs no longer match -->
+									<exclude>META-INF/*.SF</exclude>
+									<exclude>META-INF/*.DSA</exclude>
+									<exclude>META-INF/*.RSA</exclude>
+									<!-- The manifest is the module's own (ManifestResourceTransformer) -->
+									<exclude>META-INF/MANIFEST.MF</exclude>
+									<exclude>META-INF/versions/*/OSGI-INF/MANIFEST.MF</exclude>
+									<!-- Build and packaging metadata of the dependencies -->
+									<exclude>META-INF/maven/**</exclude>
+									<exclude>META-INF/proguard/**</exclude>
+									<exclude>META-INF/jandex.idx</exclude>
+									<exclude>META-INF/README*</exclude>
+									<exclude>META-INF/licenses.xml</exclude>
+									<exclude>about.html</exclude>
+									<exclude>about_files/**</exclude>
+								</excludes>
+							</filter>
+						</filters>
+					</configuration>
+				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>

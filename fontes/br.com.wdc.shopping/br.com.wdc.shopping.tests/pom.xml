@@ -12,6 +12,12 @@
 
 	<artifactId>br.com.wdc.shopping.tests</artifactId>
 
+	<!-- Only tests: nothing to package, install or deploy -->
+	<properties>
+		<maven.install.skip>true</maven.install.skip>
+		<maven.deploy.skip>true</maven.deploy.skip>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
@@ -96,6 +102,22 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>3.6.1</version>
+			</plugin>
+			<!-- No main classes: the incremental check would look for a target/classes that never exists -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<useIncrementalCompilation>false</useIncrementalCompilation>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.5.1</version>
+				<configuration>
+					<skipIfEmpty>true</skipIfEmpty>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
