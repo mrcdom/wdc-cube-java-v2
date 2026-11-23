@@ -3,9 +3,9 @@ package br.com.wdc.shopping.view.remote.shell.cn1.bridge;
 import com.codename1.ui.Container;
 
 /**
- * Base de uma <b>item-view</b> de lista (sem vsid próprio) — usada pelo {@code syncList} para
- * representar cada item de uma coleção (produto, item de carrinho, etc.). Mesmo padrão não-reativo:
- * constrói os widgets uma vez, {@link #setState(Object)} muta-os a partir do dado do item.
+ * Base of a list <b>item view</b> (no vsid of its own) — used by {@code syncList} to represent
+ * each item of a collection (product, cart item, etc.). Same non-reactive pattern: builds the
+ * widgets once, {@link #setState(Object)} mutates them from the item's data.
  */
 public abstract class AbstractItemCn1View<T> {
 
@@ -29,7 +29,8 @@ public abstract class AbstractItemCn1View<T> {
         doUpdate();
     }
 
-    /** Re-aplica o {@link #doUpdate()} a partir do último dado (no-op se ainda não construída/sem dado). */
+    /** Re-applies {@link #doUpdate()} from the last data (no-op if not built yet/no data).
+ */
     public final void refresh() {
         if (built && data != null) {
             doUpdate();

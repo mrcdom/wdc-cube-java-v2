@@ -1,5 +1,5 @@
 // =============================================================================
-// Tela de login (LoginCn1View): hero azul, card com banner, labels/hints e demo.
+// Login screen (LoginCn1View): blue hero, card with banner, labels/hints and demo.
 // =============================================================================
 @use 'tokens' as *;
 @use 'mixins' as *;
@@ -16,7 +16,7 @@ LgnHero {
     padding: 8mm;
 }
 
-// Banner azul no topo do card.
+// Blue banner at the top of the card.
 LgnBanner {
     @include hero-gradient;
     border-radius: $radius-pill;

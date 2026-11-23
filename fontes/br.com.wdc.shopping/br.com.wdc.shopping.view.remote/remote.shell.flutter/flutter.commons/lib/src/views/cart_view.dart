@@ -36,8 +36,8 @@ class _CartViewState extends BaseViewState<CartView> {
         // Header
         const ViewHeader(
           icon: Icons.shopping_bag_outlined,
-          title: 'Carrinho',
-          subtitle: 'Seus produtos selecionados',
+          title: 'Cart',
+          subtitle: 'Your selected products',
         ),
         const SizedBox(height: 20),
         // Error
@@ -57,16 +57,16 @@ class _CartViewState extends BaseViewState<CartView> {
             ),
           ),
           const SizedBox(height: 20),
-          const Center(child: Text('Carrinho vazio', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500))),
+          const Center(child: Text('Your cart is empty', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500))),
           const SizedBox(height: 8),
-          const Center(child: Text('Adicione produtos para começar', style: TextStyle(fontSize: 13, color: appTextSecondary))),
+          const Center(child: Text('Add products to get started', style: TextStyle(fontSize: 13, color: appTextSecondary))),
           const SizedBox(height: 16),
           Center(
             child: FilledButton.icon(
               onPressed: _emitBack,
               style: accentButtonStyle,
               icon: const Icon(Icons.grid_view, size: 18),
-              label: const Text('Ver produtos'),
+              label: const Text('View products'),
             ),
           ),
           const SizedBox(height: 40),
@@ -100,13 +100,13 @@ class _CartViewState extends BaseViewState<CartView> {
               TextButton.icon(
                 onPressed: _emitBack,
                 icon: const Icon(Icons.arrow_back, size: 18),
-                label: const Text('Continuar comprando'),
+                label: const Text('Continue shopping'),
               ),
               FilledButton.icon(
                 onPressed: _emitBuy,
                 style: accentButtonStyle,
                 icon: const Icon(Icons.check_circle_outline, size: 18),
-                label: const Text('Finalizar pedido'),
+                label: const Text('Checkout'),
               ),
             ],
           ),

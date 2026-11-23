@@ -18,14 +18,14 @@ import br.com.wdc.shopping.view.remote.shell.cn1.util.Decor;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Guard;
 
 /**
- * Tela de "marca" (splash) — gradiente azul + logo + título, com um <b>spinner</b> (conectando) ou um
- * ícone de erro + "Tentar novamente". View <b>local</b> (sem vsid/bridge), no padrão não-reativo: a
- * árvore é construída <b>uma vez</b> (spinner e botão sempre presentes) e o {@link #setState(State)}
- * muta logo/status e a <b>visibilidade</b> a partir do {@link State}.
+ * "Brand" screen (splash) — blue gradient + logo + title, with a <b>spinner</b> (connecting) or an
+ * error icon + "Try again". A <b>local</b> view (no vsid/bridge), in the non-reactive pattern: the
+ * tree is built <b>once</b> (spinner and button always present) and {@link #setState(State)}
+ * mutates logo/status and <b>visibility</b> from the {@link State}.
  */
 public final class SplashCn1View extends AbstractItemCn1View<SplashCn1View.State> {
 
-    /** Parâmetros do splash: modo erro, mensagem de status e ação de "tentar novamente" (ou {@code null}). */
+    /** Splash parameters: error mode, status message and "try again" action (or {@code null}). */
     public static final class State {
         public final boolean error;
         public final String status;
@@ -39,7 +39,7 @@ public final class SplashCn1View extends AbstractItemCn1View<SplashCn1View.State
     }
 
     private static final Sel sel = Sel.INSTANCE;
-    /** Tamanho do glifo do logo (param do FontImage). */
+    /** Logo glyph size (FontImage param). */
     private static final float LOGO_ICON = 13f;
 
     private Label logo;
@@ -54,10 +54,10 @@ public final class SplashCn1View extends AbstractItemCn1View<SplashCn1View.State
         return Cn1Dom.render(new FlowLayout(Component.CENTER, Component.CENTER), (dom, r) -> {
             Decor.blueWithCircles(r);
             dom.boxY(content -> {
-                // logo (ícone branco) centralizado — o glifo é definido no doUpdate (conectando/erro)
+                // centered logo (white icon) — the glyph is set in doUpdate (connecting/error)
                 dom.container(new FlowLayout(Component.CENTER), null, box -> logo = dom.label(l -> {
                     l.getAllStyles().setFgColor(Colors.SURFACE);
-                    l.getAllStyles().setBgTransparency(0); // Android: Label nativo é branco opaco
+                    l.getAllStyles().setBgTransparency(0); // Android: native Label is opaque white
                 }));
 
                 dom.label(l -> {
@@ -66,25 +66,25 @@ public final class SplashCn1View extends AbstractItemCn1View<SplashCn1View.State
                 });
                 dom.spanLabel(s -> {
                     s.setTextUIID(sel.HERO_SUBTITLE);
-                    s.setText("Sua compra certa na internet.");
+                    s.setText("Your trusted online store.");
                 });
 
-                // spinner: sempre presente, visível só ao conectar (doUpdate)
+                // spinner: always present, visible only while connecting (doUpdate)
                 dom.container(new FlowLayout(Component.CENTER), null, box -> {
                     InfiniteProgress sp = new InfiniteProgress();
                     sp.setMaterialDesignMode(true);
                     sp.getAllStyles().setFgColor(Colors.SURFACE);
-                    sp.getAllStyles().setBgTransparency(0); // Android: UIID nativo do progresso é branco
+                    sp.getAllStyles().setBgTransparency(0); // Android: the progress native UIID is white
                     spinner = dom.add(sp, null);
                 });
 
                 dom.container(new FlowLayout(Component.CENTER), null,
                         box -> status = Guard.text(dom.label(l -> l.setUIID(sel.SPLASH_STATUS))));
 
-                // botão "tentar novamente": sempre presente, visível só no modo erro (doUpdate)
+                // "try again" button: always present, visible only in error mode (doUpdate)
                 dom.container(new FlowLayout(Component.CENTER), null, box -> retry = dom.button(b -> {
                     b.setUIID(sel.SPLASH_RETRY);
-                    b.setText("Tentar novamente");
+                    b.setText("Try again");
                     b.addActionListener(e -> currentRetry.run());
                 }));
             });
@@ -101,7 +101,8 @@ public final class SplashCn1View extends AbstractItemCn1View<SplashCn1View.State
         Guard.visible(retry, s.onRetry != null);
     }
 
-    /** Troca o glifo do logo só quando muda (re-baking de FontImage re-marca o componente). */
+    /** Swaps the logo glyph only when it changes (re-baking a FontImage re-marks the component).
+ */
     private void setIcon(char icon) {
         if (icon != currentIcon) {
             currentIcon = icon;

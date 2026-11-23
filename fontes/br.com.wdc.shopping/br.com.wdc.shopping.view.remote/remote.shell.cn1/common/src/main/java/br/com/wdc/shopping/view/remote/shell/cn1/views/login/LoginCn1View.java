@@ -26,9 +26,9 @@ import br.com.wdc.shopping.view.remote.shell.cn1.util.Px;
 import br.com.wdc.shopping.view.remote.shell.cn1.widgets.Slot;
 
 /**
- * Tela de login (classId {@value #CLASS_ID}) — espelha o design React: layout EXPANDIDO (hero azul
- * à esquerda + card à direita) ou COMPACTO (só o card), conforme a largura. Card com banner azul,
- * "Bem-vindo", labels e hints nos inputs e a dica de acesso demo.
+ * Login screen (classId {@value #CLASS_ID}) — mirrors the React design: EXPANDED layout (blue hero
+ * on the left + card on the right) or COMPACT (card only), depending on the width. Card with a blue
+ * banner, "Welcome", labels and hints on the inputs and the demo access hint.
  */
 public class LoginCn1View extends AbstractCn1View {
 
@@ -36,7 +36,7 @@ public class LoginCn1View extends AbstractCn1View {
 
     public static final String CLASS_ID = "c677cda52d14";
     private static final int EVT_LOGIN = 1;
-    /** Largura (mm) do card do formulário no expandido — densidade-independente (ver util.Px). */
+    /** Width (mm) of the form card when expanded — density-independent (see util.Px). */
     private static final float CARD_WIDTH_MM = 90f;
 
     private Slot shell;
@@ -55,16 +55,16 @@ public class LoginCn1View extends AbstractCn1View {
 
     @Override
     protected Container build() {
-        // peças construídas UMA vez (campos ligados aqui) e reusadas nos dois modos; o arranjo é no doUpdate
+        // pieces built ONCE (fields bound here) and reused in both modes; the arrangement happens in doUpdate
         card = buildCard();
         shell = new Slot();
         return shell;
     }
 
     /**
-     * Arranja as peças conforme o modo (expandido: hero + card; compacto: só o card), re-montando só
-     * quando o modo <b>muda</b>. Como reusa o {@code card}/{@code hero}, preserva o estado (ex.: texto
-     * já digitado) numa rotação — diferente de reconstruir do zero.
+     * Arranges the pieces according to the mode (expanded: hero + card; compact: card only), re-mounting
+     * only when the mode <b>changes</b>. Since it reuses the {@code card}/{@code hero}, it preserves the
+     * state (e.g.: already typed text) across a rotation — unlike rebuilding from scratch.
      */
     private void layout() {
         boolean expanded = app.isExpanded();
@@ -83,17 +83,17 @@ public class LoginCn1View extends AbstractCn1View {
                         wrap -> dom.add(card, null));
             }));
         } else {
-            // compacto: card ocupa a largura, no topo (BoxLayout.y estica → ignora o preferredW do expandido)
+            // compact: the card fills the width, at the top (BoxLayout.y stretches → ignores the expanded preferredW)
             shell.mount(Cn1Dom.render(BoxLayout.y(), (dom, root) -> dom.add(card, null)));
         }
     }
 
-    // :: Card do formulário
+    // :: Form card
 
     private Container buildCard() {
         return Cn1Dom.render(BoxLayout.y(), (dom, c) -> {
             c.setUIID(sel.LOGIN_CARD);
-            // banner azul: logo (caixa pequena centralizada) + título + subtítulo
+            // blue banner: logo (small centered box) + title + subtitle
             dom.boxY(banner -> {
                 banner.setUIID(sel.LOGIN_BANNER);
                 Decor.blueWithCircles(banner);
@@ -109,70 +109,70 @@ public class LoginCn1View extends AbstractCn1View {
                 });
                 dom.spanLabel(l -> {
                     l.setTextUIID(sel.BANNER_SUBTITLE);
-                    l.setText("Sua compra certa na internet.");
+                    l.setText("Your trusted online store.");
                 });
             });
 
-            // boas-vindas
+            // welcome
             dom.label(l -> {
                 l.setUIID(sel.WELCOME_TITLE);
-                l.setText("Bem-vindo");
+                l.setText("Welcome");
             });
             dom.spanLabel(l -> {
                 l.setTextUIID(sel.WELCOME_SUBTITLE);
-                l.setText("Entre com suas credenciais para continuar");
+                l.setText("Sign in with your credentials to continue");
             });
 
-            // erro
+            // error
             error = dom.label(l -> {
                 l.setUIID(sel.WELCOME_SUBTITLE);
                 l.getAllStyles().setFgColor(Colors.ERROR);
                 errorText = Guard.text(l);
             });
 
-            // usuário
+            // username
             dom.label(l -> {
                 l.setUIID(sel.FIELD_LABEL);
-                l.setText("Usuário");
+                l.setText("Username");
             });
-            user = dom.textField(tf -> tf.setHint("Digite seu usuário"));
+            user = dom.textField(tf -> tf.setHint("Enter your username"));
 
-            // senha
+            // password
             dom.label(l -> {
                 l.setUIID(sel.FIELD_LABEL);
-                l.setText("Senha");
+                l.setText("Password");
             });
             pass = dom.textField(tf -> {
-                tf.setHint("Digite sua senha");
+                tf.setHint("Enter your password");
                 tf.setConstraint(TextArea.PASSWORD);
-                tf.setDoneListener(e -> doLogin()); // Enter no campo dispara o login
+                tf.setDoneListener(e -> doLogin()); // Enter in the field triggers the login
             });
 
             // loading
             loading = dom.label(l -> {
                 l.setUIID(sel.WELCOME_SUBTITLE);
-                l.setText("Entrando...");
+                l.setText("Signing in...");
             });
 
-            // entrar
+            // sign in
             dom.button(b -> {
                 b.setUIID(sel.PRIMARY_BUTTON);
-                b.setText("Entrar");
+                b.setText("Sign in");
                 b.addActionListener(e -> doLogin());
             });
 
-            // dica de acesso demo
+            // demo access hint
             dom.boxY(hint -> {
                 hint.setUIID(sel.DEMO_HINT);
                 dom.spanLabel(l -> {
                     l.setTextUIID(sel.DEMO_TEXT);
-                    l.setText("Acesso demo: admin / admin");
+                    l.setText("Demo access: admin / admin");
                 });
             });
         });
     }
 
-    // :: Hero (layout expandido)
+    // :: Hero (expanded layout)
 
     private Container buildHero() {
         return Cn1Dom.render(new FlowLayout(Component.CENTER, Component.CENTER), (dom, hero) -> {
@@ -192,11 +192,11 @@ public class LoginCn1View extends AbstractCn1View {
                 });
                 dom.spanLabel(l -> {
                     l.setTextUIID(sel.HERO_SUBTITLE);
-                    l.setText("Sua compra certa na internet.");
+                    l.setText("Your trusted online store.");
                 });
-                feature(dom, FontImage.MATERIAL_VERIFIED_USER, "Compra segura");
-                feature(dom, FontImage.MATERIAL_LOCAL_SHIPPING, "Entrega rápida");
-                feature(dom, FontImage.MATERIAL_AUTORENEW, "Troca garantida");
+                feature(dom, FontImage.MATERIAL_VERIFIED_USER, "Secure checkout");
+                feature(dom, FontImage.MATERIAL_LOCAL_SHIPPING, "Fast delivery");
+                feature(dom, FontImage.MATERIAL_AUTORENEW, "Hassle-free returns");
             });
         });
     }
@@ -223,11 +223,12 @@ public class LoginCn1View extends AbstractCn1View {
 
     @Override
     public void doUpdate() {
-        layout(); // adapta a estrutura ao modo corrente (re-monta só na troca)
+        layout(); // adapts the structure to the current mode (re-mounts only on a switch)
         Map<String, Object> st = state();
         Guard.visible(loading, Json.boolOf(st, "loading"));
         boolean hasError = Json.intOf(st, "errorCode") != 0;
-        errorText.accept(hasError ? "Usuário ou senha inválidos." : "");
+        errorText.accept(hasError ? "Invalid username or password."
+ : "");
         Guard.visible(error, hasError);
     }
 }

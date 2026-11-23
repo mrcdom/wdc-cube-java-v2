@@ -16,6 +16,6 @@ void main() {
     await tester.pumpWidget(const ConnectionErrorApp());
 
     expect(find.byIcon(Icons.cloud_off), findsOneWidget);
-    expect(find.text('Não foi possível conectar ao servidor.'), findsOneWidget);
+    expect(find.text('Could not connect to the server.'), findsOneWidget);
   });
 }

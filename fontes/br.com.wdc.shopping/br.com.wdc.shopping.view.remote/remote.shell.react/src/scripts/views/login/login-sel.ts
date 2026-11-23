@@ -1,6 +1,6 @@
 /**
- * Seletores CSS do módulo de login.
- * Importado por LoginView.tsx — não referenciar login.scss diretamente nas views.
+ * CSS selectors of the login module.
+ * Imported by LoginView.tsx — do not reference login.scss directly from the views.
  */
 import GlobalSel from "@root/global-sel"
 

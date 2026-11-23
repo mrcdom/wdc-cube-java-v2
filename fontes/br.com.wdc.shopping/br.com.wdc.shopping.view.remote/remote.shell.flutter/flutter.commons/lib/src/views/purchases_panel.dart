@@ -84,13 +84,13 @@ class _PurchasesPanelState extends BaseViewState<PurchasesPanel> {
               children: [
                 const Icon(Icons.history, size: 18, color: appAccent),
                 const SizedBox(width: 8),
-                const Text('Histórico', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                const Text('History', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
               ],
             ),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text('Toque para ver detalhes', style: TextStyle(fontSize: 12, color: appTextSecondary)),
+            child: Text('Tap for details', style: TextStyle(fontSize: 12, color: appTextSecondary)),
           ),
           const SizedBox(height: 12),
           // List

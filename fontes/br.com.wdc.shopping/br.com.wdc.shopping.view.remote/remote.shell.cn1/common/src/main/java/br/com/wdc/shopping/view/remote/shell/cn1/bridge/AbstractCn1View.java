@@ -11,14 +11,14 @@ import com.codename1.ui.Container;
 import br.com.wdc.shopping.view.remote.shell.cn1.ShoppingCn1RemoteApp;
 
 /**
- * Base de uma view do shell (uma por vsid), no padrão <b>não-reativo</b> (estilo
- * {@code AbstractViewVaadin}): os widgets são construídos <b>uma vez</b> em {@link #build()} e o
- * {@link #doUpdate()} <b>muta</b> os widgets a partir do estado — nunca reconstrói a árvore.
+ * Base of a shell view (one per vsid), in the <b>non-reactive</b> pattern ({@code AbstractViewVaadin}
+ * style): the widgets are built <b>once</b> in {@link #build()} and {@link #doUpdate()} <b>mutates</b>
+ * the widgets from the state — it never rebuilds the tree.
  *
  * <p>
- * Sendo um shell <b>remoto</b>, o estado é lido como JSON por nome ({@link #state()} = mapa vindo do
- * bridge) e os eventos são submetidos pelo bridge ({@link #submit(int, Map)}). Views-pai montam
- * filhas por vsid via {@code Slot} (passando {@link #childElement(String)}).
+ * Being a <b>remote</b> shell, the state is read as JSON by name ({@link #state()} = map coming from
+ * the bridge) and events are submitted through the bridge ({@link #submit(int, Map)}). Parent views
+ * mount children by vsid via {@code Slot} (passing {@link #childElement(String)}).
  * </p>
  */
 public abstract class AbstractCn1View {
@@ -40,7 +40,7 @@ public abstract class AbstractCn1View {
         return vsid;
     }
 
-    /** Component raiz — construído uma vez (lazy) e já sincronizado. */
+    /** Root component — built once (lazily) and already synced. */
     public final Container getElement() {
         if (!built) {
             built = true;
@@ -50,18 +50,18 @@ public abstract class AbstractCn1View {
         return element;
     }
 
-    /** Element já construído, ou {@code null} se ainda não — não dispara o build (usado no descarte). */
+    /** Element already built, or {@code null} if not yet — does not trigger the build (used on disposal). */
     public final Container peekElement() {
         return element;
     }
 
-    /** Cria a árvore de widgets uma única vez. */
+    /** Creates the widget tree a single time. */
     protected abstract Container build();
 
-    /** Sincroniza os widgets a partir do estado atual (muta, não reconstrói). */
+    /** Syncs the widgets from the current state (mutates, does not rebuild). */
     public abstract void doUpdate();
 
-    /** Agenda um re-render desta view (primitivo único; igual ao {@code markDirty} do shell SWT). */
+    /** Schedules a re-render of this view (single primitive; same as the SWT shell's {@code markDirty}). */
     public void update() {
         app.markDirty(this);
     }
@@ -79,20 +79,21 @@ public abstract class AbstractCn1View {
         session.submit(vsid, eventCode, new HashMap<>());
     }
 
-    /** View filha (criada sob demanda via o app), ou {@code null}. */
+    /** Child view (created on demand via the app), or {@code null}. */
     protected AbstractCn1View childView(String childVsid) {
         return app.viewFor(childVsid);
     }
 
-    /** Element da view filha de {@code childVsid} (criado sob demanda), ou {@code null}. Monte num {@code Slot}. */
+    /** Element of the {@code childVsid} child view (created on demand), or {@code null}. Mount it in a {@code Slot}. */
     protected Container childElement(String childVsid) {
         AbstractCn1View v = childView(childVsid);
         return v != null ? v.getElement() : null;
     }
 
     /**
-     * Sincroniza uma lista de itens com uma lista de item-views, <b>reusando</b> as item-views
-     * (cresce/encolhe/atualiza) — equivalente ao {@code syncListSlot} do Vaadin.
+     * Syncs a list of items with a list of item views, <b>reusing</b> the item views
+     * (grows/shrinks/updates) — equivalent to Vaadin's {@code syncListSlot}.
+
      */
     protected <T, V extends AbstractItemCn1View<T>> void syncList(Container container, List<T> items,
             List<V> viewList, Supplier<V> factory) {

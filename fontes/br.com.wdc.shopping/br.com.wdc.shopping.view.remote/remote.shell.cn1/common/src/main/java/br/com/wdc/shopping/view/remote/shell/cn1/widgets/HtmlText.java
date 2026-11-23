@@ -7,9 +7,9 @@ import com.codename1.ui.layouts.BoxLayout;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.SimpleHtml;
 
 /**
- * Exibe HTML <b>simples</b> (ver {@link SimpleHtml}) como uma {@link SpanLabel} por linha, numa
- * coluna. {@link #setHtml(String)} re-renderiza o conteúdo — tipicamente chamado no {@code doUpdate}
- * da view quando o texto muda. O {@code textUIID} (opcional) estiliza cada linha.
+ * Displays <b>simple</b> HTML (see {@link SimpleHtml}) as one {@link SpanLabel} per line, in a
+ * column. {@link #setHtml(String)} re-renders the content — typically called in the view's
+ * {@code doUpdate} when the text changes. The (optional) {@code textUIID} styles each line.
  */
 public final class HtmlText extends Container {
 
@@ -24,7 +24,8 @@ public final class HtmlText extends Container {
         this.textUIID = textUIID;
     }
 
-    /** Limpa e recria uma {@link SpanLabel} por linha do HTML simples. */
+    /** Clears and recreates one {@link SpanLabel} per line of the simple HTML.
+ */
     public void setHtml(String html) {
         removeAll();
         for (String line : SimpleHtml.toLines(html)) {

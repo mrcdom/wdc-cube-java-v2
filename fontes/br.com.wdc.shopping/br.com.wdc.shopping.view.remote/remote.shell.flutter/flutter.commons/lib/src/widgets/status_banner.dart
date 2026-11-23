@@ -58,7 +58,7 @@ class StatusBanner extends StatelessWidget {
             ),
           ),
           if (onDismiss != null)
-            TextButton(onPressed: onDismiss, child: const Text('Ok')),
+            TextButton(onPressed: onDismiss, child: const Text('OK')),
         ],
       ),
     );

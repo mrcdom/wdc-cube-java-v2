@@ -84,7 +84,7 @@ class _ProductViewState extends BaseViewState<ProductView> {
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Text('Qtd:', style: TextStyle(fontSize: 14, color: appTextSecondary)),
+                            const Text('Qty:', style: TextStyle(fontSize: 14, color: appTextSecondary)),
                             const SizedBox(width: 10),
                             IconButton(
                               icon: const Icon(Icons.remove, size: 18),
@@ -132,14 +132,14 @@ class _ProductViewState extends BaseViewState<ProductView> {
                     TextButton.icon(
                       onPressed: _emitGoHome,
                       icon: const Icon(Icons.arrow_back, size: 18),
-                      label: const Text('Voltar'),
+                      label: const Text('Back'),
                     ),
                     const SizedBox(width: 12),
                     FilledButton.icon(
                       onPressed: _emitAddToCart,
                       style: accentButtonStyle,
                       icon: const Icon(Icons.add_shopping_cart, size: 18),
-                      label: const Text('Adicionar ao Carrinho'),
+                      label: const Text('Add to Cart'),
                     ),
                   ],
                 ),

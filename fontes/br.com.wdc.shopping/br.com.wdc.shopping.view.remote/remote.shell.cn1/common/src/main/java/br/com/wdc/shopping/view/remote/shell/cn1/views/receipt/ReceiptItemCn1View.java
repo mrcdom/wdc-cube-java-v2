@@ -15,7 +15,7 @@ import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Money;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Px;
 
-/** Linha do recibo (cupom): descrição | quantidade | valor, alinhada com o cabeçalho da tabela. */
+/** Receipt (slip) row: description | quantity | price, aligned with the table header. */
 public class ReceiptItemCn1View extends AbstractItemCn1View<Object> {
 
     private static final ReceiptSel sel = ReceiptSel.INSTANCE;

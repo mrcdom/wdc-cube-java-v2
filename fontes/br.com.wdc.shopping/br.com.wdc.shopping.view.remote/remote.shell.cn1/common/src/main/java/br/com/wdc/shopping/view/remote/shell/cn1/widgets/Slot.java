@@ -5,13 +5,14 @@ import com.codename1.ui.Container;
 import com.codename1.ui.layouts.BorderLayout;
 
 /**
- * Container de <b>filho único</b>: acomoda um {@link Component} e só toca a árvore na transição.
+ * <b>Single-child</b> container: holds one {@link Component} and only touches the tree on transition.
  *
  * <p>
- * Detecta mudança por <b>comparação de referência</b>: como o app resolve um vsid sempre para a mesma
- * instância de view (e {@code view.getElement()} sempre o mesmo element), basta comparar a referência
- * do filho para saber se mudou. Por isso o widget é <b>genérico</b> — não conhece vsid nem o app; quem
- * chama resolve o {@code Component} (um {@code view.getElement()} ou um componente local) e o passa.
+ * Detects change by <b>reference comparison</b>: since the app always resolves a vsid to the same
+ * view instance (and {@code view.getElement()} always to the same element), comparing the child's
+ * reference is enough to know whether it changed. That is why the widget is <b>generic</b> — it knows
+ * neither vsid nor the app; the caller resolves the {@code Component} (a {@code view.getElement()} or a
+ * local component) and passes it.
  * </p>
  */
 public final class Slot extends Container {
@@ -22,7 +23,7 @@ public final class Slot extends Container {
         super(new BorderLayout());
     }
 
-    /** Garante que {@code child} seja o único filho ({@code null} limpa). Re-monta só quando a referência muda. */
+    /** Ensures {@code child} is the only child ({@code null} clears). Re-mounts only when the reference changes. */
     public void mount(Component child) {
         if (child == current) {
             return;
@@ -30,7 +31,8 @@ public final class Slot extends Container {
         current = child;
         removeAll();
         if (child != null) {
-            // destaca do pai anterior (reuso de peça em re-arranjo): add() do CN1 lança se já tem pai
+            // detaches from the previous parent (piece reuse in a rearrangement): CN1's add() throws if it already has a parent
+
             if (child.getParent() != null) {
                 child.getParent().removeComponent(child);
             }

@@ -23,16 +23,16 @@ import br.com.wdc.shopping.view.remote.shell.cn1.widgets.QtyStepper;
 import br.com.wdc.shopping.view.remote.shell.cn1.widgets.Slot;
 
 /**
- * Linha do carrinho (classId {@value #CLASS_ID}): nome | stepper (− qtd +) | subtotal | remover (×). É uma view
- * própria, cujas ações são as da linha — o item é a linha, nenhum id de produto volta ao servidor; o carrinho só
- * arruma os elementos das linhas na ordem dele.
+ * Cart row (classId {@value #CLASS_ID}): name | stepper (− qty +) | subtotal | remove (×). It is a view of
+ * its own, whose actions are the row's — the item is the row, no product id goes back to the server; the cart
+ * only arranges the row elements in its order.
  *
  * <p>
- * As peças são construídas <b>uma vez</b> e o {@code doUpdate()} as <b>arranja</b> conforme o modo,
- * re-montando só na troca (reusa as peças). No <b>expandido</b> tudo fica numa linha (nome à esquerda,
- * controles à direita); no <b>compacto</b> os controles não cabem ao lado do nome — o card estreito
- * espremeria o nome a zero e empurraria o × para fora da borda — então empilha em duas linhas:
- * nome | subtotal em cima, stepper | × embaixo.
+ * The pieces are built <b>once</b> and {@code doUpdate()} <b>arranges</b> them according to the mode,
+ * re-mounting only on a switch (reuses the pieces). When <b>expanded</b> everything sits on one line (name on
+ * the left, controls on the right); when <b>compact</b> the controls do not fit beside the name — the narrow
+ * card would squeeze the name to zero and push the × past the edge — so it stacks into two lines:
+ * name | subtotal on top, stepper | × below.
  * </p>
  */
 public class CartItemCn1View extends AbstractCn1View {
@@ -43,7 +43,7 @@ public class CartItemCn1View extends AbstractCn1View {
 
     private static final CartSel sel = CartSel.INSTANCE;
 
-    // Lado (mm) dos botões — densidade-independente (ver util.Px).
+    // Side (mm) of the buttons — density-independent (see util.Px).
     private static final float STEP_BTN_MM = 7f;
     private static final float REMOVE_BTN_MM = 7f;
 
@@ -64,10 +64,10 @@ public class CartItemCn1View extends AbstractCn1View {
 
     @Override
     protected Container build() {
-        // peças construídas uma vez (campos ligados aqui) e reusadas nos dois arranjos
+        // pieces built once (fields bound here) and reused in both arrangements
         nameComp = new Label("");
         nameComp.setUIID(sel.CART_ITEM_NAME);
-        nameComp.setEndsWith3Points(true); // nome longo vira "…" em vez de cortar no meio
+        nameComp.setEndsWith3Points(true); // a long name becomes "…" instead of being cut in the middle
         name = Guard.text(nameComp);
 
         stepper = new QtyStepper(STEP_BTN_MM,
@@ -85,7 +85,7 @@ public class CartItemCn1View extends AbstractCn1View {
         return shell;
     }
 
-    /** Arranja as peças conforme o modo (linha no expandido, empilhado no compacto); re-monta só na troca. */
+    /** Arranges the pieces according to the mode (row when expanded, stacked when compact); re-mounts only on a switch. */
     private void layout() {
         boolean expanded = app.isExpanded();
         if (builtExpanded != null && builtExpanded.booleanValue() == expanded) {
@@ -95,7 +95,7 @@ public class CartItemCn1View extends AbstractCn1View {
         shell.mount(expanded ? buildRow() : buildStacked());
     }
 
-    /** Expandido: nome (CENTER) | [stepper subtotal ×] (EAST), numa linha só. */
+    /** Expanded: name (CENTER) | [stepper subtotal ×] (EAST), on a single line. */
     private Container buildRow() {
         return Cn1Dom.render(new BorderLayout(), (dom, r) -> {
             r.setUIID(sel.CART_ITEM_ROW);
@@ -108,7 +108,8 @@ public class CartItemCn1View extends AbstractCn1View {
         });
     }
 
-    /** Compacto: linha 1 = nome | subtotal; linha 2 = stepper | ×. */
+    /** Compact: line 1 = name | subtotal; line 2 = stepper | ×.
+ */
     private Container buildStacked() {
         return Cn1Dom.render(BoxLayout.y(), (dom, r) -> {
             r.setUIID(sel.CART_ITEM_ROW);

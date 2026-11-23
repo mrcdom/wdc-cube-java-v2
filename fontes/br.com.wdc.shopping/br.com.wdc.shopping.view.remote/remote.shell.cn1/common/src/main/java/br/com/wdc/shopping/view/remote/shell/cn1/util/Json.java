@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-/** Acesso seguro a campos de um estado JSON (Map vindo do bridge). */
+/** Safe access to the fields of a JSON state (Map coming from the bridge). */
 public final class Json {
 
     private Json() {

@@ -3,8 +3,8 @@ package br.com.wdc.shopping.view.remote.shell.cn1.views.home;
 import br.com.wdc.shopping.view.remote.shell.cn1.Sel;
 
 /**
- * Seletores (UIIDs) do pacote home — app bar, grade de produtos, abas e histórico.
- * Espelha {@code views/home/_home.scss}. Herda os globais.
+ * Selectors (UIIDs) of the home package — app bar, product grid, tabs and history.
+ * Mirrors {@code views/home/_home.scss}. Inherits the global ones.
  */
 public final class HomeSel extends Sel {
 
@@ -14,7 +14,7 @@ public final class HomeSel extends Sel {
         // singleton
     }
 
-    // Grade de produtos
+    // Product grid
     public final String PRODUCTS_PANEL = "HomProductsPanel";
     public final String PRODUCT_CARD = "HomProductCard";
     public final String PRODUCT_CARD_IMAGE = "HomProductCardImage";
@@ -31,12 +31,13 @@ public final class HomeSel extends Sel {
     public final String APP_BAR_BRAND_SUB = "HomAppBarBrandSub";
     public final String CART_BADGE = "HomCartBadge";
 
-    // Abas (compacto)
+    // Tabs (compact)
     public final String TAB_NAV = "HomTabNav";
     public final String TAB_ITEM = "HomTabItem";
     public final String TAB_ITEM_ACTIVE = "HomTabItemActive";
 
-    // Histórico
+    // History
+
     public final String PURCHASES_PANEL = "HomPurchasesPanel";
     public final String PURCHASES_HEADER_ICON = "HomPurchasesHeaderIcon";
     public final String PURCHASES_TITLE = "HomPurchasesTitle";

@@ -146,7 +146,7 @@ class _HeaderPanel extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'Bem-vindo(a),',
+                      'Welcome,',
                       style: TextStyle(
                         fontSize: 11,
                         color: Colors.white.withValues(alpha: 0.7),
@@ -209,7 +209,7 @@ class _HeaderPanel extends StatelessWidget {
                       if (isExpanded) ...[
                         const SizedBox(width: 6),
                         const Text(
-                          'Carrinho',
+                          'Cart',
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -274,7 +274,7 @@ class _TabNav extends StatelessWidget {
           Expanded(
             child: _TabButton(
               icon: Icons.grid_view,
-              label: 'Produtos',
+              label: 'Products',
               active: showingProducts,
               onTap: () => onSwitch(true),
             ),
@@ -282,7 +282,7 @@ class _TabNav extends StatelessWidget {
           Expanded(
             child: _TabButton(
               icon: Icons.history,
-              label: 'Histórico',
+              label: 'History',
               active: !showingProducts,
               onTap: () => onSwitch(false),
             ),

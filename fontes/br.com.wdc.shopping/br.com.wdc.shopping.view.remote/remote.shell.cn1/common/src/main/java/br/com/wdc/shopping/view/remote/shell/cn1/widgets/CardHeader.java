@@ -10,8 +10,9 @@ import br.com.wdc.shopping.view.remote.shell.cn1.Sel;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;
 
 /**
- * Cabeçalho de card: ícone num box azul-claro + título e subtítulo. Componente composto (à la {@code MultiButton} do
- * CN1). UIIDs {@code CardHeaderRow}, {@code CardHeaderIconBox}, {@code CardHeaderTitle}, {@code CardHeaderSub}.
+ * Card header: icon in a light-blue box + title and subtitle. Composite component (à la CN1's
+ * {@code MultiButton}). UIIDs {@code CardHeaderRow}, {@code CardHeaderIconBox}, {@code CardHeaderTitle}, {@code CardHeaderSub}.
+
  */
 public final class CardHeader extends Container {
 

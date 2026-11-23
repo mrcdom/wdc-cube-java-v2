@@ -5,13 +5,13 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Parser leve para o HTML <b>simples</b> das descrições de produto (ul/li, p, br, pre; inline como
- * b/i é apenas removido). Sem o {@code HTMLComponent} legado e sem regex (não suportado no CN1):
- * converte o HTML numa lista de <b>linhas de texto</b>. A renderização (linhas → componentes) é do
- * widget {@code HtmlText} — aqui não há UI.
+ * Lightweight parser for the <b>simple</b> HTML of product descriptions (ul/li, p, br, pre; inline such
+ * as b/i is just removed). Without the legacy {@code HTMLComponent} and without regex (not supported in CN1):
+ * converts the HTML into a list of <b>text lines</b>. Rendering (lines → components) belongs to the
+ * {@code HtmlText} widget — there is no UI here.
  *
- * <p>Blocos viram linhas: cada {@code <li>} ganha um marcador "•"; {@code </p>}, {@code </li>} e
- * {@code <br>} quebram linha. As demais tags são removidas e as entidades HTML, decodificadas.</p>
+ * <p>Blocks become lines: each {@code <li>} gets a "•" bullet; {@code </p>}, {@code </li>} and
+ * {@code <br>} break the line. The other tags are removed and HTML entities decoded.</p>
  */
 public final class SimpleHtml {
 
@@ -19,22 +19,22 @@ public final class SimpleHtml {
         // NOOP
     }
 
-    /** Converte o HTML simples em linhas de texto (as vazias são descartadas). */
+    /** Converts the simple HTML into text lines (empty ones are discarded). */
     public static List<String> toLines(String html) {
         if (html == null || html.isEmpty()) {
             return Collections.emptyList();
         }
 
-        // 1. marcadores de bloco (antes de remover as tags)
+        // 1. block markers (before removing the tags)
         String t = html
                 .replace("<br/>", "\n").replace("<br />", "\n").replace("<br>", "\n")
                 .replace("</li>", "\n").replace("<li>", "\n• ")
                 .replace("</p>", "\n").replace("</pre>", "\n");
 
-        // 2. remove as demais tags (ul, ol, p, pre, b, i, ...) e decodifica entidades
+        // 2. removes the other tags (ul, ol, p, pre, b, i, ...) and decodes entities
         t = decodeEntities(stripTags(t));
 
-        // 3. linhas não-vazias
+        // 3. non-empty lines
         List<String> out = new ArrayList<>();
         for (String line : splitLines(t)) {
             String s = line.trim();
@@ -45,7 +45,7 @@ public final class SimpleHtml {
         return out;
     }
 
-    // -- internos --
+    // -- internals --
 
     private static String stripTags(String s) {
         StringBuilder sb = new StringBuilder(s.length());
@@ -71,7 +71,8 @@ public final class SimpleHtml {
                 .replace("&quot;", "\"")
                 .replace("&#39;", "'")
                 .replace("&apos;", "'")
-                .replace("&amp;", "&"); // por último para não re-decodificar
+                .replace("&amp;", "&"); // last, so as not to re-decode
+
     }
 
     private static List<String> splitLines(String s) {

@@ -15,9 +15,10 @@ import br.com.wdc.shopping.view.remote.shell.cn1.bridge.BridgeSession;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
 
 /**
- * Painel/catálogo de produtos (classId {@value #CLASS_ID}) — grade fluida de cards: cada card tem
- * largura fixa e o {@link FlowLayout} quebra para a próxima linha quando não há espaço, ajustando o
- * número de colunas à largura disponível.
+ * Product panel/catalog (classId {@value #CLASS_ID}) — fluid card grid: each card has a fixed
+ * width and the {@link FlowLayout} wraps to the next line when there is no room, fitting the
+ * number of columns to the available width.
+
  */
 public class ProductsPanelCn1View extends AbstractCn1View {
 

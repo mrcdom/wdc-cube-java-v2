@@ -4,7 +4,7 @@ import com.codename1.ui.Button;
 import com.codename1.ui.FontImage;
 import com.codename1.ui.geom.Dimension;
 
-/** Botão de ícone com tamanho fixo (evita a altura mínima de toque do Button que o infla). */
+/** Fixed-size icon button (avoids the Button minimum touch height that inflates it). */
 public final class IconButton extends Button {
 
     public IconButton(String uiid, char icon, float iconMm, int sizePx, Runnable onClick) {

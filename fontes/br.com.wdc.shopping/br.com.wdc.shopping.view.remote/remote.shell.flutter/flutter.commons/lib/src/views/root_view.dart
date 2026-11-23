@@ -34,7 +34,7 @@ class _RootViewState extends BaseViewState<RootView> {
 
     return const Padding(
       padding: EdgeInsets.all(16),
-      child: ErrorBanner(message: 'Falta conteúdo para a página inicial'),
+      child: ErrorBanner(message: 'Missing content for the home page'),
     );
   }
 }

@@ -1,17 +1,31 @@
+function pad2(value: number) {
+  return value < 10 ? "0" + value : String(value)
+}
+
+function toDate(dateOrMillis: number | Date) {
+  return typeof dateOrMillis === "number" ? new Date(dateOrMillis) : dateOrMillis
+}
+
+/** Formats a date as `MM/DD/YYYY`. */
 export function formatDate(dateOrMillis: number | Date | null | undefined) {
   if (dateOrMillis === undefined || dateOrMillis == null) {
-    console.error("Data não informada, ou inválida!")
-    return "Data indisponível"
+    console.error("Date missing or invalid!")
+    return "Date unavailable"
   }
 
-  const purchaseDate = typeof dateOrMillis === "number" ? new Date(dateOrMillis) : dateOrMillis
+  const date = toDate(dateOrMillis)
+  // getMonth() is zero-based
+  return pad2(date.getMonth() + 1) + "/" + pad2(date.getDate()) + "/" + date.getFullYear()
+}
 
-  let purchaseDay = purchaseDate.getDate()
-  let purchaseMonth = purchaseDate.getMonth() + 1 //Janeiro retorna zero
-  let purchaseFullYear = purchaseDate.getFullYear()
+/** Formats a date-time as `MM/DD/YYYY h:mm AM|PM` (12-hour clock). */
+export function formatDateTime(dateOrMillis: number | Date | null | undefined) {
+  if (dateOrMillis === undefined || dateOrMillis == null) {
+    return ""
+  }
 
-  let dayOutput = purchaseDay < 10 ? "0" + purchaseDay : purchaseDay
-  let monthOutput = purchaseMonth < 10 ? "0" + purchaseMonth : purchaseMonth
-
-  return dayOutput + "/" + monthOutput + "/" + purchaseFullYear
+  const date = toDate(dateOrMillis)
+  const hours = date.getHours()
+  const hour12 = hours % 12 === 0 ? 12 : hours % 12
+  return formatDate(date) + " " + hour12 + ":" + pad2(date.getMinutes()) + (hours < 12 ? " AM" : " PM")
 }

@@ -1,4 +1,4 @@
-# Mínimo aceito pelo Xcode atual; vale também para os pods (ver post_install)
+# Minimum accepted by the current Xcode; also applies to the pods (see post_install)
 platform :osx, '12.0'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
@@ -39,9 +39,9 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_macos_build_settings(target)
-    # Pods como o flutter_secure_storage_macos declaram 10.14, abaixo do que o Xcode aceita
+    # Pods such as flutter_secure_storage_macos declare 10.14, below what Xcode accepts
     target.build_configurations.each do |config|
-      # Só Apple Silicon, como o Runner (EXCLUDED_ARCHS no project.pbxproj)
+      # Apple Silicon only, like the Runner (EXCLUDED_ARCHS in project.pbxproj)
       config.build_settings['EXCLUDED_ARCHS'] = 'x86_64'
       if config.build_settings['MACOSX_DEPLOYMENT_TARGET'].to_f < 12.0
         config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '12.0'

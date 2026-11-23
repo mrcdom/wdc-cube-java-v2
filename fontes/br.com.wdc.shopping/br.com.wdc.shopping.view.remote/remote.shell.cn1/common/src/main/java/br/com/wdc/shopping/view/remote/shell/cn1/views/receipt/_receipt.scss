@@ -1,6 +1,6 @@
 // =============================================================================
-// Recibo (ReceiptCn1View): alerta de sucesso, card e corpo estilo cupom.
-// O cabeçalho usa CardHeader* (base); a fonte mono é definida em Java.
+// Receipt (ReceiptCn1View): success alert, card and slip-style body.
+// The header uses CardHeader* (base); the mono font is set in Java.
 // =============================================================================
 @use 'tokens' as *;
 @use 'mixins' as *;
@@ -9,7 +9,7 @@ RcpPage {
     @include page;
 }
 
-// Alerta verde de sucesso.
+// Green success alert.
 RcpAlertSuccess {
     background-color: $success-bg;
     border: 1px solid $success-border;
@@ -36,7 +36,7 @@ RcpCard {
     padding: 5mm;
 }
 
-// Corpo (cupom): fundo cinza, borda.
+// Body (slip): gray background, border.
 RcpBody {
     background-color: $bg;
     border: 1px solid $border;

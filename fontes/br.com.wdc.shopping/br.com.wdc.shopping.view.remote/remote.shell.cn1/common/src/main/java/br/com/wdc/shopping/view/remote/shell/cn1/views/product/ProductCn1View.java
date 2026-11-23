@@ -26,9 +26,9 @@ import br.com.wdc.shopping.view.remote.shell.cn1.widgets.QtyStepper;
 import br.com.wdc.shopping.view.remote.shell.cn1.widgets.Slot;
 
 /**
- * Detalhe do produto (classId {@value #CLASS_ID}) — espelha o design React: título + divisória,
- * card de descrição, linha com preço/quantidade à esquerda e imagem à direita, e a barra de ações
- * (Voltar / Adicionar ao Carrinho). A quantidade é controlada localmente (stepper − valor +).
+ * Product detail (classId {@value #CLASS_ID}) — mirrors the React design: title + divider,
+ * description card, a row with price/quantity on the left and image on the right, and the action bar
+ * (Back / Add to Cart). The quantity is controlled locally (stepper − value +).
  */
 public class ProductCn1View extends AbstractCn1View {
 
@@ -37,10 +37,10 @@ public class ProductCn1View extends AbstractCn1View {
     public static final String CLASS_ID = "48b693f67410";
     private static final int EVT_BACK = 1;
     private static final int EVT_ADD_TO_CART = 2;
-    // Dimensões em mm (densidade-independente) — ver util.Px.
+    // Dimensions in mm (density-independent) — see util.Px.
     private static final float DETAIL_MM = 28f;
     private static final float DIVIDER_H_MM = 0.6f;
-    /** Lado (mm) dos botões +/- de quantidade — evita a altura mínima gigante do Button. */
+    /** Side (mm) of the +/- quantity buttons — avoids the Button's huge minimum height. */
     private static final float QTY_BTN_MM = 8f;
 
     private Consumer<String> name;
@@ -62,7 +62,7 @@ public class ProductCn1View extends AbstractCn1View {
 
     @Override
     protected Container build() {
-        // peças reusadas nos dois modos (campos ligados aqui); o arranjo é decidido no doUpdate
+        // pieces reused in both modes (fields bound here); the arrangement is decided in doUpdate
         imageBox = buildImageBox();
         priceQty = buildPriceQty();
         Container root = Cn1Dom.render(BoxLayout.y(), (dom, r) -> {
@@ -75,22 +75,22 @@ public class ProductCn1View extends AbstractCn1View {
             Label divider = dom.label(l -> l.setUIID(sel.PRODUCT_DIVIDER));
             divider.setPreferredH(Px.mm(DIVIDER_H_MM));
 
-            // card de descrição
+            // description card
             dom.boxY(card -> {
                 card.setUIID(sel.PRODUCT_DESC_CARD);
                 description = dom.add(new HtmlText(sel.PRODUCT_DESC_TEXT), null);
             });
 
-            // preço/quantidade + imagem — arranjo (lado a lado vs empilhado) decidido no layout()
+            // price/quantity + image — arrangement (side by side vs stacked) decided in layout()
             rowSlot = dom.slot();
             rowSlot.setUIID(sel.PRODUCT_PRICE_IMAGE_ROW);
 
-            // ações: Voltar + Adicionar ao Carrinho
+            // actions: Back + Add to Cart
             dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, actions -> {
-                dom.add(new BackButton("Voltar", () -> submit(EVT_BACK)), null);
+                dom.add(new BackButton("Back", () -> submit(EVT_BACK)), null);
                 dom.button(b -> {
                     b.setUIID(sel.PRIMARY_BUTTON);
-                    b.setText("Adicionar ao Carrinho");
+                    b.setText("Add to Cart");
                     b.addActionListener(e -> addToCart());
                     FontImage.setMaterialIcon(b, FontImage.MATERIAL_ADD_SHOPPING_CART, 3.5f);
                 });
@@ -101,9 +101,9 @@ public class ProductCn1View extends AbstractCn1View {
     }
 
     /**
-     * Arranja preço/qtd + imagem conforme o modo: lado a lado no expandido; empilhado (imagem em cima)
-     * no compacto, senão a soma das larguras corta a imagem no telefone. Re-monta só na troca de modo,
-     * reusando as peças (preserva a quantidade escolhida no stepper).
+     * Arranges price/qty + image according to the mode: side by side when expanded; stacked (image on top)
+     * when compact, otherwise the sum of the widths cuts the image on a phone. Re-mounts only on a mode
+     * switch, reusing the pieces (preserves the quantity chosen in the stepper).
      */
     private void layout() {
         boolean expanded = app.isExpanded();
@@ -126,7 +126,7 @@ public class ProductCn1View extends AbstractCn1View {
         }));
     }
 
-    /** Caixa da imagem do produto (fundo gradiente), centralizada. */
+    /** Product image box (gradient background), centered. */
     private Container buildImageBox() {
         return Cn1Dom.render(new FlowLayout(Component.CENTER, Component.CENTER), (dom, box) -> {
             box.setUIID(sel.PRODUCT_IMAGE_BOX);
@@ -134,8 +134,8 @@ public class ProductCn1View extends AbstractCn1View {
         });
     }
 
-    /** Badge de preço + linha "Qtd: − valor +". O qty usa BoxLayout.x (centraliza na vertical, como o
-     *  stepper do carrinho); o FlowLayout externo o centraliza na horizontal. */
+    /** Price badge + "Qty: − value +" row. The qty uses BoxLayout.x (centers vertically, like the
+     *  cart stepper); the outer FlowLayout centers it horizontally. */
     private Container buildPriceQty() {
         return Cn1Dom.render(new FlowLayout(Component.CENTER, Component.CENTER), (dom, priceWrap) -> {
             dom.boxY(priceCol -> {
@@ -147,7 +147,7 @@ public class ProductCn1View extends AbstractCn1View {
                     dom.boxX(qtyRow -> {
                         dom.label(l -> {
                             l.setUIID(sel.QTY_LABEL);
-                            l.setText("Qtd:");
+                            l.setText("Qty:");
                         });
                         stepper = dom.add(new QtyStepper(QTY_BTN_MM,
                                 () -> changeQty(-1), () -> changeQty(1)), null);
@@ -177,7 +177,8 @@ public class ProductCn1View extends AbstractCn1View {
 
     @Override
     public void doUpdate() {
-        layout(); // adapta o arranjo preço/imagem ao modo (re-monta só na troca)
+        layout(); // adapts the price/image arrangement to the mode (re-mounts only on a switch)
+
         Map<String, Object> p = Json.asMap(state().get("product"));
         long id = Json.longOf(p, "id");
         if (id != currentId) {

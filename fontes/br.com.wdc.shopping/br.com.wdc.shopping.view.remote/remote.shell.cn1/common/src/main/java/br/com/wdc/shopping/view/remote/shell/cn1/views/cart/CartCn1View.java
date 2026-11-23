@@ -25,9 +25,9 @@ import br.com.wdc.shopping.view.remote.shell.cn1.widgets.BackButton;
 import br.com.wdc.shopping.view.remote.shell.cn1.widgets.Slot;
 
 /**
- * Carrinho (classId {@value #CLASS_ID}) — espelha o React: card com cabeçalho e, conforme o estado,
- * o <b>estado vazio</b> (ícone redondo + "Carrinho vazio" + "Ver produtos") ou a <b>lista de itens</b>
- * (nome | stepper | subtotal | remover), com total e ações (Continuar comprando / Finalizar pedido).
+ * Cart (classId {@value #CLASS_ID}) — mirrors React: card with header and, depending on the state,
+ * the <b>empty state</b> (round icon + "Your cart is empty" + "View products") or the <b>item list</b>
+ * (name | stepper | subtotal | remove), with total and actions (Continue shopping / Checkout).
  */
 public class CartCn1View extends AbstractCn1View {
 
@@ -37,7 +37,7 @@ public class CartCn1View extends AbstractCn1View {
     private static final int EVT_BUY = 1;
     private static final int EVT_BACK = 3;
 
-    /** Lado (mm) do ícone redondo do estado vazio — densidade-independente (ver util.Px). */
+    /** Side (mm) of the empty state's round icon — density-independent (see util.Px). */
     private static final float EMPTY_ICON_MM = 20f;
 
     private Slot body;
@@ -60,8 +60,8 @@ public class CartCn1View extends AbstractCn1View {
                 
                 dom.cardHeader(null, h -> {
                     h.setIcon(FontImage.MATERIAL_SHOPPING_BAG);
-                    h.setTitle("Carrinho");
-                    h.setSubtitle("Seus produtos selecionados");
+                    h.setTitle("Cart");
+                    h.setSubtitle("Your selected products");
                 });
 
                 body = dom.slot();
@@ -85,16 +85,16 @@ public class CartCn1View extends AbstractCn1View {
             });
             dom.label(l -> {
                 l.setUIID(sel.CART_EMPTY_TITLE);
-                l.setText("Carrinho vazio");
+                l.setText("Your cart is empty");
             });
             dom.label(l -> {
                 l.setUIID(sel.CART_EMPTY_SUB);
-                l.setText("Adicione produtos para começar");
+                l.setText("Add products to get started");
             });
             dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, wrap -> {
                 dom.button(b -> {
                     b.setUIID(sel.PRIMARY_BUTTON);
-                    b.setText("Ver produtos");
+                    b.setText("View products");
                     b.addActionListener(e -> submit(EVT_BACK));
                     FontImage.setMaterialIcon(b, FontImage.MATERIAL_VIEW_MODULE, 3.5f);
                 });
@@ -116,14 +116,14 @@ public class CartCn1View extends AbstractCn1View {
                     total = Guard.text(l);
                 });
             });
-            // ações em FlowLayout centralizado: no compacto quebram a linha (empilham) em vez de cortar
-            // o texto; no expandido ficam lado a lado. Mesmo padrão das ações do ProductCn1View.
+            // actions in a centered FlowLayout: when compact they wrap (stack) instead of cutting
+            // the text; when expanded they sit side by side. Same pattern as ProductCn1View's actions.
             dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, actions -> {
                 actions.setUIID(sel.CART_ACTIONS);
-                dom.add(new BackButton("Continuar comprando", () -> submit(EVT_BACK)), null);
+                dom.add(new BackButton("Continue shopping", () -> submit(EVT_BACK)), null);
                 dom.button(b -> {
                     b.setUIID(sel.PRIMARY_BUTTON);
-                    b.setText("Finalizar pedido");
+                    b.setText("Checkout");
                     b.addActionListener(e -> submit(EVT_BUY));
                     FontImage.setMaterialIcon(b, FontImage.MATERIAL_CHECK_CIRCLE, 3.5f);
                 });
@@ -133,11 +133,11 @@ public class CartCn1View extends AbstractCn1View {
 
     @Override
     public void doUpdate() {
-        // As linhas são views próprias (CartItemCn1View), referidas por id na ordem do carrinho
+        // The rows are views of their own (CartItemCn1View), referenced by id in cart order
         List<Object> rowIds = Json.asList(state().get("rowsViewIds"));
         boolean empty = rowIds.isEmpty();
 
-        body.mount(empty ? emptySection : itemsSection); // troca só na transição (comparação de referência)
+        body.mount(empty ? emptySection : itemsSection); // swaps only on transition (reference comparison)
 
         if (!empty) {
             List<Container> rows = new ArrayList<>();
@@ -152,7 +152,8 @@ public class CartCn1View extends AbstractCn1View {
         }
     }
 
-    /** Põe os elementos das linhas na lista, na ordem do carrinho; re-monta só quando a ordem muda. */
+    /** Puts the row elements in the list, in cart order; re-mounts only when the order changes.
+ */
     private void syncRows(List<Container> rows) {
         boolean same = list.getComponentCount() == rows.size();
         for (int i = 0; same && i < rows.size(); i++) {

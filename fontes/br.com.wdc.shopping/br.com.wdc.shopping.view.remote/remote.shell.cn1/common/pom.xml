@@ -326,9 +326,9 @@
 
     <build>
         <plugins>
-            <!-- Compila o SCSS (tokens/mixins/base + um partial por pacote de view) para
-                 src/main/css/theme.css ANTES do cn1:css (process-classes). Baixa o binário
-                 do Dart Sass (sem Node). Mesmo plugin do shell TeaVM. -->
+            <!-- Compiles the SCSS (tokens/mixins/base + one partial per view package) to
+                 src/main/css/theme.css BEFORE cn1:css (process-classes). Downloads the Dart Sass
+                 binary (no Node). Same plugin as the TeaVM shell. -->
             <plugin>
                 <groupId>us.hebi.sass</groupId>
                 <artifactId>sass-cli-maven-plugin</artifactId>
@@ -357,9 +357,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <!-- Java 8: contrato do Codename One (VM/biblioteca = subconjunto do Java 8). Não subir
-                     para 11/17 — sintaxe nova compilaria no simulador, mas arriscaria o build de
-                     dispositivo (ParparVM/transpiler). Igual aos módulos de plataforma. -->
+                <!-- Java 8: Codename One contract (VM/library = subset of Java 8). Do not raise
+                     to 11/17 — newer syntax would compile in the simulator, but would put the device
+                     build at risk (ParparVM/transpiler). Same as the platform modules. -->
+
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>

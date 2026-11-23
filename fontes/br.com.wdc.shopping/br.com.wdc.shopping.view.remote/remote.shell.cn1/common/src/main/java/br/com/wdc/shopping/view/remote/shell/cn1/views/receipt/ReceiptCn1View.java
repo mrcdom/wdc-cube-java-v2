@@ -26,9 +26,9 @@ import br.com.wdc.shopping.view.remote.shell.cn1.util.Px;
 import br.com.wdc.shopping.view.remote.shell.cn1.widgets.BackButton;
 
 /**
- * Recibo da compra (classId {@value #CLASS_ID}) — espelha o React: alerta verde de sucesso, card com
- * cabeçalho (ícone + título) e o corpo em fonte monoespaçada com a tabela (Data, ITEM/QTD/VALOR,
- * itens e TOTAL), além do link "Voltar aos produtos".
+ * Purchase receipt (classId {@value #CLASS_ID}) — mirrors React: green success alert, card with
+ * header (icon + title) and the body in a monospaced font with the table (Date, ITEM/QTY/PRICE,
+ * items and TOTAL), plus the "Back to products" link.
  */
 public class ReceiptCn1View extends AbstractCn1View {
 
@@ -37,7 +37,7 @@ public class ReceiptCn1View extends AbstractCn1View {
     public static final String CLASS_ID = "e8d0bd8ae3bc";
     private static final int EVT_BACK = 1;
 
-    /** Larguras (mm) das colunas QTD e VALOR — compartilhadas com {@link ReceiptItemCn1View}. */
+    /** Widths (mm) of the QTY and PRICE columns — shared with {@link ReceiptItemCn1View}. */
     static final float COL_QTY_W_MM = 12f;
     static final float COL_VALUE_W_MM = 22f;
 
@@ -57,7 +57,7 @@ public class ReceiptCn1View extends AbstractCn1View {
             r.setUIID(sel.RECEIPT_PAGE);
             r.setScrollableY(true);
 
-            // alerta verde de sucesso
+            // green success alert
             dom.boxX(alert -> {
                 alert.setUIID(sel.ALERT_SUCCESS);
                 dom.label(l -> {
@@ -66,32 +66,32 @@ public class ReceiptCn1View extends AbstractCn1View {
                 });
                 dom.label(l -> {
                     l.setUIID(sel.ALERT_SUCCESS_TEXT);
-                    l.setText("Compra realizada com sucesso!");
+                    l.setText("Purchase completed successfully!");
                 });
                 
                 successAlert = alert;
             });
 
-            // card do recibo
+            // receipt card
             dom.boxY(card -> {
                 card.setUIID(sel.RECEIPT_CARD);
 
                 dom.cardHeader(null, h -> {
                     h.setIcon(FontImage.MATERIAL_RECEIPT);
-                    h.setTitle("Recibo de Compra");
+                    h.setTitle("Purchase Receipt");
                     h.setSubtitle("WDC Shopping");
                 });
 
-                // corpo (monoespaçado)
+                // body (monospaced)
                 dom.boxY(body -> {
                     body.setUIID(sel.RECEIPT_BODY);
 
-                    // data
+                    // date
                     dom.border(dateRow -> {
                         dateRow.setUIID(sel.RECEIPT_DATE_ROW);
                         dom.label(BorderLayout.WEST, l -> {
                             l.setUIID(sel.RECEIPT_DATE_LABEL);
-                            l.setText("Data:");
+                            l.setText("Date:");
                             l.getAllStyles().setFont(Fonts.MONO);    
                         });
                         dom.label(BorderLayout.EAST, l -> {
@@ -101,7 +101,7 @@ public class ReceiptCn1View extends AbstractCn1View {
                         });
                     });
 
-                    // cabeçalho da tabela
+                    // table header
                     dom.border(th -> {
                         th.setUIID(sel.RECEIPT_TABLE_HEADER);
                         dom.label(BorderLayout.CENTER, l -> {
@@ -112,7 +112,7 @@ public class ReceiptCn1View extends AbstractCn1View {
                         dom.boxX(BorderLayout.EAST, cols -> {
                             dom.label(l -> {
                                 l.setUIID(sel.RECEIPT_COL_HEAD_QTY);
-                                l.setText("QTD");
+                                l.setText("QTY");
                                 l.setPreferredW(Px.mm(COL_QTY_W_MM));
                                 l.getAllStyles().setFont(Fonts.MONO);    
                             });                            
@@ -120,12 +120,12 @@ public class ReceiptCn1View extends AbstractCn1View {
                                 l.setUIID(sel.RECEIPT_COL_HEAD_VALUE);
                                 l.setPreferredW(Px.mm(COL_VALUE_W_MM));
                                 l.getAllStyles().setFont(Fonts.MONO);
-                                l.setText("VALOR");
+                                l.setText("PRICE");
                             });
                         });
                     });
 
-                    // itens
+                    // items
                     list = dom.boxY(Cn1Dom.NO_CONTENT);
 
                     // total
@@ -142,9 +142,9 @@ public class ReceiptCn1View extends AbstractCn1View {
                     });
                 });
 
-                // voltar
+                // back
                 dom.container(new FlowLayout(Component.LEFT, Component.CENTER), null, actions -> {
-                    dom.add(new BackButton("Voltar aos produtos", () -> submit(EVT_BACK)), null);
+                    dom.add(new BackButton("Back to products", () -> submit(EVT_BACK)), null);
                 });
             });
         });
@@ -157,13 +157,9 @@ public class ReceiptCn1View extends AbstractCn1View {
 
         Map<String, Object> receipt = Json.asMap(st.get("receipt"));
         dateValue.accept(Dates.formatDateTime(Json.longOf(receipt, "date")));
-        total.accept("R$ " + money(receipt, "total"));
+        total.accept(Money.format(Json.doubleOf(receipt, "total")));
 
         List<Object> receiptItems = Json.asList(receipt != null ? receipt.get("items") : null);
         syncList(list, receiptItems, items, ReceiptItemCn1View::new);
-    }
-
-    private static String money(Map<String, Object> m, String key) {
-        return Money.format(Json.doubleOf(m, key)).replace("R$ ", "");
     }
 }

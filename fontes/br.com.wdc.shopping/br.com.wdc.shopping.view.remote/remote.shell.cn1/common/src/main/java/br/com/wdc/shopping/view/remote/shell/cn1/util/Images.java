@@ -6,7 +6,7 @@ import com.codename1.ui.URLImage;
 
 import br.com.wdc.shopping.view.remote.shell.cn1.theme.Colors;
 
-/** Imagens de produto via {@code /image/product/{id}.png} (download assíncrono + cache em Storage). */
+/** Product images via {@code /image/product/{id}.png} (asynchronous download + Storage cache). */
 public final class Images {
 
     private static String baseUrl = "";

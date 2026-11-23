@@ -64,7 +64,7 @@ class HomeViewClass extends BaseViewClass<ViewProps, HomeViewState> {
             onClick={this.onTabProducts}
           >
             <span className="bi bi-grid-3x3-gap text-base"></span>
-            <span>Produtos</span>
+            <span>Products</span>
             {this.showingProducts ? <span className={Sel.tabIndicator}></span> : <span className={Sel.hidden}></span>}
           </button>
           <button
@@ -72,7 +72,7 @@ class HomeViewClass extends BaseViewClass<ViewProps, HomeViewState> {
             onClick={this.onTabHistory}
           >
             <span className="bi bi-clock-history text-base"></span>
-            <span>Histórico</span>
+            <span>History</span>
             {!this.showingProducts ? <span className={Sel.tabIndicator}></span> : <span className={Sel.hidden}></span>}
           </button>
         </nav>

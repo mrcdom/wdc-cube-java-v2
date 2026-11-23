@@ -89,19 +89,19 @@ class _AppAlert extends StatelessWidget {
     String? detail;
     switch (code) {
       case -1:
-        message = args.isNotEmpty ? args[0] : 'Erro inesperado';
+        message = args.isNotEmpty ? args[0] : 'Unexpected error';
         detail = args.length > 1 ? args[1] : null;
       case -2:
-        message = 'A URI ${args.isNotEmpty ? args[0] : ""} não está acessível';
+        message = 'The URI ${args.isNotEmpty ? args[0] : ""} is not accessible';
         detail = args.length > 1 ? args[1] : null;
       default:
-        message = args.isNotEmpty ? args[0] : 'Ocorreu um erro não esperado';
+        message = args.isNotEmpty ? args[0] : 'An unexpected error occurred';
     }
 
     return Padding(
       padding: const EdgeInsets.all(16),
       child: StatusBanner(
-        title: 'Aviso!',
+        title: 'Warning!',
         message: message,
         detail: detail,
         onDismiss: onDismiss,
@@ -132,10 +132,10 @@ class _ConnectionAlert extends StatelessWidget {
         minutes = seconds ~/ 60;
         seconds = seconds - minutes * 60;
       }
-      timeText = minutes > 0 ? 'Conectando em ${minutes}m e ${seconds}s...' : 'Conectando em ${seconds}s...';
+      timeText = minutes > 0 ? 'Reconnecting in ${minutes}m ${seconds}s...' : 'Reconnecting in ${seconds}s...';
       showRetry = true;
     } else {
-      timeText = 'Conectando agora...';
+      timeText = 'Reconnecting now...';
     }
 
     return Container(
@@ -151,14 +151,14 @@ class _ConnectionAlert extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text('Não conectado. ', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red.shade700, fontSize: 13)),
+          Text('Not connected. ', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red.shade700, fontSize: 13)),
           Text(timeText, style: TextStyle(color: Colors.red.shade700, fontSize: 13)),
           if (showRetry)
             Padding(
               padding: const EdgeInsets.only(left: 8),
               child: GestureDetector(
                 onTap: onRetry,
-                child: Text('Tentar agora',
+                child: Text('Retry now',
                     style: TextStyle(
                         color: appAccent, decoration: TextDecoration.underline, fontSize: 13)),
               ),

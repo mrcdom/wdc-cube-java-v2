@@ -8,7 +8,7 @@ import br.com.wdc.shopping.view.remote.shell.cn1.bridge.BridgeSession;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
 import br.com.wdc.shopping.view.remote.shell.cn1.widgets.Slot;
 
-/** Raiz do app (classId {@value #CLASS_ID}) — monta a view de conteúdo (login ou home). */
+/** App root (classId {@value #CLASS_ID}) — mounts the content view (login or home). */
 public class RootCn1View extends AbstractCn1View {
 
     public static final String CLASS_ID = "f2d345c4a610";
@@ -26,9 +26,10 @@ public class RootCn1View extends AbstractCn1View {
     }
 
     /**
-     * Apenas <b>monta</b> a tela de conteúdo (login/home). A atualização de dados da filha é
-     * despachada pela bridge (o flush despacha doUpdate por ViewState recebido), então não há
-     * propagação manual aqui.
+     * Only <b>mounts</b> the content screen (login/home). The child's data update is dispatched
+     * by the bridge (the flush dispatches doUpdate per received ViewState), so there is no
+     * manual propagation here.
+
      */
     @Override
     public void doUpdate() {

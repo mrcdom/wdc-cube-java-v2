@@ -2,7 +2,7 @@ package br.com.wdc.shopping.view.remote.shell.cn1.views.receipt;
 
 import br.com.wdc.shopping.view.remote.shell.cn1.Sel;
 
-/** Seletores (UIIDs) do recibo — espelha {@code views/receipt/_receipt.scss}. Herda os globais. */
+/** Receipt selectors (UIIDs) — mirrors {@code views/receipt/_receipt.scss}. Inherits the global ones. */
 public final class ReceiptSel extends Sel {
 
     public static final ReceiptSel INSTANCE = new ReceiptSel();

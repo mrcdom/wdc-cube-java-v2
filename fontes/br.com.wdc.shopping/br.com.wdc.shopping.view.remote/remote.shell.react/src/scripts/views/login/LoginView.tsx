@@ -34,19 +34,19 @@ class LoginViewClass extends BaseViewClass<ViewProps, LoginViewState> {
               <i className={clsx("bi bi-bag-check", Sel.logoIconLg)}></i>
             </div>
             <h1 className={Sel.titleLg}>WDC Shopping</h1>
-            <p className={Sel.subtitleLg}>Sua compra certa na internet.</p>
+            <p className={Sel.subtitleLg}>Your trusted online store.</p>
             <div className={Sel.featuresList}>
               <div className={Sel.featureRow}>
                 <i className={clsx("bi bi-shield-check", Sel.featureIcon)}></i>
-                <span className={Sel.featureText}>Compra segura</span>
+                <span className={Sel.featureText}>Secure checkout</span>
               </div>
               <div className={Sel.featureRow}>
                 <i className={clsx("bi bi-truck", Sel.featureIcon)}></i>
-                <span className={Sel.featureText}>Entrega rápida</span>
+                <span className={Sel.featureText}>Fast delivery</span>
               </div>
               <div className={Sel.featureRow}>
                 <i className={clsx("bi bi-arrow-repeat", Sel.featureIcon)}></i>
-                <span className={Sel.featureText}>Troca garantida</span>
+                <span className={Sel.featureText}>Hassle-free returns</span>
               </div>
             </div>
           </div>
@@ -64,14 +64,14 @@ class LoginViewClass extends BaseViewClass<ViewProps, LoginViewState> {
                   <i className={clsx("bi bi-bag-check", Sel.iconSm)}></i>
                 </div>
                 <div className={Sel.mobileTitle}>WDC Shopping</div>
-                <div className={Sel.mobileSubtitle}>Sua compra certa na internet.</div>
+                <div className={Sel.mobileSubtitle}>Your trusted online store.</div>
               </div>
             </div>
 
             {/* Welcome text */}
             <div className={Sel.welcomeWrap}>
-              <h2 className={Sel.welcomeTitle}>Bem-vindo</h2>
-              <p className={Sel.welcomeSubtitle}>Entre com suas credenciais para continuar</p>
+              <h2 className={Sel.welcomeTitle}>Welcome</h2>
+              <p className={Sel.welcomeSubtitle}>Sign in with your credentials to continue</p>
             </div>
 
             {/* Error message */}
@@ -86,11 +86,11 @@ class LoginViewClass extends BaseViewClass<ViewProps, LoginViewState> {
 
             {/* User field */}
             <FieldLabel for="login-user" className={Sel.fieldLabel}>
-              Usuário
+              Username
             </FieldLabel>
             <Textfield
               id="login-user"
-              placeholder="Digite seu usuário"
+              placeholder="Enter your username"
               className={Sel.field}
               disabled={state.loading || undefined}
               ref={this.userFieldRef}
@@ -98,12 +98,12 @@ class LoginViewClass extends BaseViewClass<ViewProps, LoginViewState> {
 
             {/* Password field */}
             <FieldLabel for="login-password" className={Sel.fieldLabel}>
-              Senha
+              Password
             </FieldLabel>
             <Textfield
               id="login-password"
               type="password"
-              placeholder="Digite sua senha"
+              placeholder="Enter your password"
               className={Sel.fieldPassword}
               disabled={state.loading || undefined}
               ref={this.passFieldRef}
@@ -118,12 +118,12 @@ class LoginViewClass extends BaseViewClass<ViewProps, LoginViewState> {
               pending={state.loading || undefined}
               ref={this.btnRef}
             >
-              {state.loading ? "Entrando..." : "Entrar"}
+              {state.loading ? "Signing in..." : "Sign in"}
             </Button>
 
             {/* Demo hint */}
             <div className={Sel.demoHint}>
-              <span className={Sel.demoText}>Acesso demo: </span>
+              <span className={Sel.demoText}>Demo access: </span>
               <span className={Sel.demoHighlight}>admin</span>
               <span className={Sel.demoText}> / </span>
               <span className={Sel.demoHighlight}>admin</span>

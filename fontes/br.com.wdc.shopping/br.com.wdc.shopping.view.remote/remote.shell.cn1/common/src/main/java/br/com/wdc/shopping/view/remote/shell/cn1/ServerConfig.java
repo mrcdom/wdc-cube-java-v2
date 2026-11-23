@@ -3,13 +3,13 @@ package br.com.wdc.shopping.view.remote.shell.cn1;
 import com.codename1.ui.Display;
 
 /**
- * Resolve a URL base do backend conforme o destino do build.
+ * Resolves the backend base URL according to the build target.
  *
  * <p>
- * <b>Padrão (dev):</b> a URL que o emulador/simulador usa para alcançar o backend rodando no host —
- * iOS/simulador/desktop por {@code localhost}, Android pelo alias {@code 10.0.2.2}. <b>Device real:</b>
- * nem {@code localhost} nem {@code 10.0.2.2} valem; informe a URL de destino via {@link #DEVICE_URL}
- * (ou o build hint {@code -Dcodename1.arg.serverUrl=...}), que tem prioridade.
+ * <b>Default (dev):</b> the URL the emulator/simulator uses to reach the backend running on the host —
+ * iOS/simulator/desktop via {@code localhost}, Android via the {@code 10.0.2.2} alias. <b>Real device:</b>
+ * neither {@code localhost} nor {@code 10.0.2.2} works; provide the target URL via {@link #DEVICE_URL}
+ * (or the build hint {@code -Dcodename1.arg.serverUrl=...}), which takes precedence.
  * </p>
  */
 public final class ServerConfig {
@@ -18,21 +18,22 @@ public final class ServerConfig {
         // NOOP
     }
 
-    /** Artefato final de device: defina a URL de produção aqui (ou via {@code -Dcodename1.arg.serverUrl}). */
+    /** Final device artifact: set the production URL here (or via {@code -Dcodename1.arg.serverUrl}). */
     private static final String DEVICE_URL = "";
 
-    /** URL base do backend: override (artefato de device) tem prioridade; senão o padrão por plataforma. */
+    /** Backend base URL: the override (device artifact) takes precedence; otherwise the per-platform default. */
     public static String baseUrl() {
         Display d = Display.getInstance();
-        // override: build hint serverUrl (se exposto pelo build) ou a constante DEVICE_URL.
+        // override: serverUrl build hint (if exposed by the build) or the DEVICE_URL constant.
         String override = d.getProperty("serverUrl", DEVICE_URL);
         if (override != null && !override.isEmpty()) {
             return override;
         }
-        // padrão de DEV: a URL que o emulador/simulador usa p/ alcançar o backend no host.
+        // DEV default: the URL the emulator/simulator uses to reach the backend on the host.
         if ("and".equals(d.getPlatformName())) {
-            return "http://10.0.2.2:8080"; // Android: alias do host no emulador
+            return "http://10.0.2.2:8080"; // Android: host alias in the emulator
         }
-        return "http://localhost:8080";    // iOS/simulador/desktop
+        return "http://localhost:8080";    // iOS/simulator/desktop
+
     }
 }

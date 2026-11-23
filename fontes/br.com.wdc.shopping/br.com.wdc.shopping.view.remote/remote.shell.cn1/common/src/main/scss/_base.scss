@@ -1,6 +1,6 @@
 // =============================================================================
-// Base — constantes do tema, UIIDs globais e widgets compartilhados entre telas
-// (cabeçalho de card, botão voltar, stepper de quantidade, splash).
+// Base — theme constants, global UIIDs and widgets shared across screens
+// (card header, back button, quantity stepper, splash).
 // =============================================================================
 @use 'tokens' as *;
 @use 'mixins' as *;
@@ -10,7 +10,7 @@
     defaultSourceDPIInt: "0";
 }
 
-// -- Globais --
+// -- Globals --
 
 Form {
     background-color: $bg;
@@ -101,7 +101,7 @@ TextHint {
     font-size: 3mm;
 }
 
-// Sobreposição transparente que captura o clique do card (lead component).
+// Transparent overlay that captures the card click (lead component).
 CardLead {
     background-color: transparent;
     border: none;
@@ -109,7 +109,7 @@ CardLead {
     margin: 0;
 }
 
-// -- Cabeçalho de card (compartilhado: recibo, carrinho) --
+// -- Card header (shared: receipt, cart) --
 
 CardHeaderRow {
     background-color: transparent;
@@ -141,7 +141,7 @@ CardHeaderSub {
     margin: 0;
 }
 
-// Botão "voltar" neutro/slate; o realce de clique vem do RoundRectBorder em Java.
+// Neutral/slate "back" button; the click highlight comes from the RoundRectBorder in Java.
 BackButton {
     background-color: transparent;
     color: $text-slate;
@@ -151,7 +151,7 @@ BackButton {
     padding: 2mm 3.5mm;
 }
 
-// Stepper de quantidade (produto e carrinho).
+// Quantity stepper (product and cart).
 QtyBtn {
     background-color: $bg;
     color: $accent;
@@ -167,13 +167,13 @@ QtyValue {
     color: $text;
     font-family: $f-bold;
     font-size: 3.6mm;
-    // 1mm vertical (embaixo). A largura é fixada no Java (setPreferredW) — a medição da fonte
-    // negrito nativa subestima o glifo, então a área de conteúdo precisa ser maior que ele.
+    // 1mm vertical (bottom). The width is fixed in Java (setPreferredW) — the native bold font's
+    // measurement underestimates the glyph, so the content area must be larger than it.
     padding: 1mm 1mm;
     text-align: center;
 }
 
-// -- Marca: hero do login + splash de conexão --
+// -- Brand: login hero + connection splash --
 
 HeroTitle {
     color: $surface;
@@ -190,7 +190,7 @@ HeroSubtitle {
     text-align: center;
 }
 
-// -- Tela de conexão (splash) --
+// -- Connection screen (splash) --
 
 SplashStatus {
     background-color: transparent;

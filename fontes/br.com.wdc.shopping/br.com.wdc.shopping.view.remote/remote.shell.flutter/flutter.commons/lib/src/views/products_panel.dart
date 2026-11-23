@@ -25,7 +25,7 @@ class _ProductsPanelState extends BaseViewState<ProductsPanel> {
     final products = (viewState['products'] as List?)?.cast<Map<String, dynamic>>() ?? [];
 
     if (products.isEmpty) {
-      return const Center(child: Text('Nenhum produto disponível'));
+      return const Center(child: Text('No products available'));
     }
 
     return LayoutBuilder(builder: (context, constraints) {

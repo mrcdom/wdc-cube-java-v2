@@ -3,6 +3,7 @@ import clsx from "clsx"
 import bridge, { type ViewProps } from "@root/bridge"
 import { BaseViewClass } from "@root/utils/ViewUtils"
 import { Button, ActionButton } from "@root/swc"
+import * as NumberUtils from "@root/utils/NumberUtils"
 import Sel from "./cart-sel"
 
 // :: Actions (must match server-side presenter)
@@ -26,7 +27,7 @@ class CartViewClass extends BaseViewClass<ViewProps, CartViewState> {
     const { state } = this
     const rows = state.rowsViewIds ?? []
     const empty = rows.length === 0
-    const totalText = `R$ ${(state.total ?? 0).toFixed(2)}`
+    const totalText = NumberUtils.formatCurrency(state.total ?? 0)
 
     return (
       <div className={clsx(Sel.pageScrollRoot, className)}>
@@ -38,8 +39,8 @@ class CartViewClass extends BaseViewClass<ViewProps, CartViewState> {
                 <span className={clsx("bi bi-bag", Sel.cardHeaderIcon)}></span>
               </div>
               <div>
-                <h5 className={Sel.cardHeaderTitle}>Carrinho</h5>
-                <span className={Sel.cardHeaderSubtitle}>Seus produtos selecionados</span>
+                <h5 className={Sel.cardHeaderTitle}>Cart</h5>
+                <span className={Sel.cardHeaderSubtitle}>Your selected products</span>
               </div>
             </div>
 
@@ -57,11 +58,11 @@ class CartViewClass extends BaseViewClass<ViewProps, CartViewState> {
                 <div className={Sel.emptyIconBox}>
                   <span className={clsx("bi bi-bag", Sel.emptyIcon)}></span>
                 </div>
-                <p className={Sel.emptyTitle}>Carrinho vazio</p>
-                <p className={Sel.emptySubtitle}>Adicione produtos para começar</p>
+                <p className={Sel.emptyTitle}>Your cart is empty</p>
+                <p className={Sel.emptySubtitle}>Add products to get started</p>
                 <Button variant="accent" ref={this.viewProductsBtnRef}>
                   <span className={clsx("bi bi-grid-3x3-gap", Sel.mr6)}></span>
-                  <span>Ver produtos</span>
+                  <span>View products</span>
                 </Button>
               </div>
             ) : (
@@ -83,11 +84,11 @@ class CartViewClass extends BaseViewClass<ViewProps, CartViewState> {
                 <div className={Sel.actionsRow}>
                   <ActionButton quiet ref={this.backBtnRef}>
                     <span className="bi bi-arrow-left"></span>
-                    <span> Continuar comprando</span>
+                    <span> Continue shopping</span>
                   </ActionButton>
                   <Button variant="accent" size="l" ref={this.buyBtnRef}>
                     <span className={clsx("bi bi-check2-circle", Sel.mr6)}></span>
-                    <span>Finalizar pedido</span>
+                    <span>Checkout</span>
                   </Button>
                 </div>
               </div>

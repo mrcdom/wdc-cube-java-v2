@@ -2,15 +2,15 @@
 # Build script for remote.shell.flutter (Flutter Web / WASM)
 #
 # Usage:
-#   ./build.sh                    — release build (sem source maps)
-#   SOURCE_MAPS=true ./build.sh   — release build com source maps para depurar no navegador
+#   ./build.sh                    — release build (no source maps)
+#   SOURCE_MAPS=true ./build.sh   — release build with source maps for debugging in the browser
 #
-# O build é feito em modo WASM (--wasm). O diretório de destino é limpo
-# completamente antes de cada build para evitar arquivos obsoletos.
+# The build runs in WASM mode (--wasm). The target directory is wiped
+# completely before each build to avoid stale files.
 #
-# Source maps: quando habilitados, arquivos .map são gerados ao lado dos assets
-# JS/WASM. O DevTools do navegador os usa automaticamente para exibir o código
-# Dart original em breakpoints e stack traces.
+# Source maps: when enabled, .map files are generated next to the JS/WASM
+# assets. The browser DevTools use them automatically to show the original
+# Dart code in breakpoints and stack traces.
 
 set -e
 cd "$(dirname "$0")"

@@ -2,7 +2,7 @@ package br.com.wdc.shopping.view.remote.shell.cn1.views.login;
 
 import br.com.wdc.shopping.view.remote.shell.cn1.Sel;
 
-/** Seletores (UIIDs) da tela de login — espelha {@code views/login/_login.scss}. Herda os globais. */
+/** Login screen selectors (UIIDs) — mirrors {@code views/login/_login.scss}. Inherits the global ones. */
 public final class LoginSel extends Sel {
 
     public static final LoginSel INSTANCE = new LoginSel();

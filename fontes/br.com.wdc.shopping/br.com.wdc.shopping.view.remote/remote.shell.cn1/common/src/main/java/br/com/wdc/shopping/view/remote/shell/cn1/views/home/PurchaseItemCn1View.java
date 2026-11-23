@@ -16,7 +16,7 @@ import br.com.wdc.shopping.view.remote.shell.cn1.util.Guard;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Money;
 
-/** Item do histórico: linha 1 (#id + data) e linha 2 (itens + total); o card abre o recibo. */
+/** History item: line 1 (#id + date) and line 2 (items + total); the card opens the receipt. */
 public class PurchaseItemCn1View extends AbstractItemCn1View<Object> {
 
     private static final HomeSel sel = HomeSel.INSTANCE;
@@ -50,7 +50,8 @@ public class PurchaseItemCn1View extends AbstractItemCn1View<Object> {
                 line2.setUIID(sel.PURCHASE_LINE);
                 dom.label(BorderLayout.CENTER, l -> {
                     l.setUIID(sel.PURCHASE_ITEMS);
-                    l.setEndsWith3Points(true); // elipsis quando não couber
+                    l.setEndsWith3Points(true); // ellipsis when it does not fit
+
                     itemsLabel = Guard.text(l);
                 });
                 dom.label(BorderLayout.EAST, l -> {

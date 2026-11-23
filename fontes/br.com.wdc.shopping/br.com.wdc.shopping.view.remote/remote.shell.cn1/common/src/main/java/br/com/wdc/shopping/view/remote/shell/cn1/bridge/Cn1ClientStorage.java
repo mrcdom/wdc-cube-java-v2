@@ -7,18 +7,18 @@ import com.codename1.io.JSONParser;
 import com.codename1.io.Preferences;
 
 /**
- * Storage do cliente para o protocolo bridge — três escopos espelhando o servidor
- * ({@code RemoteClientStorage}) e os demais shells (TeaVM/Flutter):
+ * Client storage for the bridge protocol — three scopes mirroring the server
+ * ({@code RemoteClientStorage}) and the other shells (TeaVM/Flutter):
  * <ul>
- * <li>{@code session} — em memória (vive enquanto o app está aberto);</li>
- * <li>{@code persistent} — persiste entre execuções (CN1 {@link Preferences});</li>
- * <li>{@code persistent-secure} — idem, em chave separada (backing "seguro" no dispositivo).</li>
+ * <li>{@code session} — in memory (lives while the app is open);</li>
+ * <li>{@code persistent} — persists across runs (CN1 {@link Preferences});</li>
+ * <li>{@code persistent-secure} — same, under a separate key ("secure" backing on the device).</li>
  * </ul>
  *
  * <p>
- * Os valores ficam em <b>plaintext em repouso</b> e são cifrados só no fio: o {@link #bootstrap}
- * cifra tudo para a 1ª mensagem WS; os deltas recebidos são decifrados e gravados via {@link #apply}.
- * Cada sessão usa uma chave AES nova, por isso não se pode guardar o ciphertext.
+ * Values are kept in <b>plaintext at rest</b> and enciphered only on the wire: {@link #bootstrap}
+ * enciphers everything for the 1st WS message; received deltas are deciphered and stored via {@link #apply}.
+ * Each session uses a new AES key, which is why the ciphertext cannot be stored.
  * </p>
  */
 public final class Cn1ClientStorage {
@@ -48,7 +48,7 @@ public final class Cn1ClientStorage {
         return sessionMap;
     }
 
-    /** Aplica um delta vindo do servidor: {@code value==null} remove; senão grava o plaintext. */
+    /** Applies a delta from the server: {@code value==null} removes; otherwise stores the plaintext. */
     public void apply(String scopeName, String key, String value) {
         Map<String, String> m = scope(scopeName);
         if (value == null) {
@@ -59,7 +59,7 @@ public final class Cn1ClientStorage {
         persist(scopeName);
     }
 
-    /** Payload do bootstrap: cada escopo não-vazio, com os valores cifrados pela sessão. */
+    /** Bootstrap payload: each non-empty scope, with the values enciphered by the session. */
     public Map<String, Object> bootstrap(Cn1Crypto crypto) {
         Map<String, Object> out = new HashMap<>();
         putScope(out, SESSION, sessionMap, crypto);
@@ -79,7 +79,7 @@ public final class Cn1ClientStorage {
         out.put(name, sub);
     }
 
-    // -- persistência (Preferences como blob JSON; session é só memória) --
+    // -- persistence (Preferences as a JSON blob; session is memory only) --
 
     private Map<String, String> load(String scopeName) {
         Map<String, String> m = new HashMap<>();
@@ -93,7 +93,7 @@ public final class Cn1ClientStorage {
                     }
                 }
             } catch (Exception ignore) {
-                // blob corrompido — começa vazio
+                // corrupted blob — starts empty
             }
         }
         return m;
@@ -101,7 +101,8 @@ public final class Cn1ClientStorage {
 
     private void persist(String scopeName) {
         if (SESSION.equals(scopeName)) {
-            return; // só memória
+            return; // memory only
+
         }
         Map<String, Object> blob = new HashMap<>(scope(scopeName));
         Preferences.set(PREF_PREFIX + scopeName, JSONParser.mapToJson(blob));

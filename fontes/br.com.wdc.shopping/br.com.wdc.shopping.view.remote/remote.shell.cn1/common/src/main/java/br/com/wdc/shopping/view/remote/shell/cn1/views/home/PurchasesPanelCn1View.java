@@ -26,10 +26,10 @@ import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Px;
 
 /**
- * Painel de histórico de compras (classId {@value #CLASS_ID}) — cabeçalho, lista paginada de compras
- * (cada item abre o recibo) e navegação de páginas. O servidor só carrega os dados depois que a view
- * informa quantos itens cabem na altura disponível ({@value #EVT_PAGE_SIZE}); essa medição é refeita
- * a cada redimensionamento e a notificação é <b>debounced</b> para não inundar o backend.
+ * Purchase history panel (classId {@value #CLASS_ID}) — header, paginated purchase list
+ * (each item opens the receipt) and page navigation. The server only loads the data after the view
+ * reports how many items fit in the available height ({@value #EVT_PAGE_SIZE}); that measurement is
+ * redone on every resize and the notification is <b>debounced</b> so as not to flood the backend.
  */
 public class PurchasesPanelCn1View extends AbstractCn1View {
 
@@ -40,14 +40,14 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
     private static final int EVT_PAGE_CHANGE = 2;
     private static final int EVT_PAGE_SIZE = 3;
 
-    /** Altura estimada (mm) de um item antes de medir o primeiro renderizado — densidade-independente. */
+    /** Estimated height (mm) of an item before measuring the first rendered one — density-independent. */
     private static final float DEFAULT_ITEM_H_MM = 15f;
-    /** Janela do debounce da notificação de capacidade (ms). */
+    /** Debounce window of the capacity notification (ms). */
     private static final int DEBOUNCE_MS = 250;
-    /** Máx. de re-tentativas da medição enquanto o painel ainda não tem layout (≈ 3s a 250ms). */
+    /** Max measurement retries while the panel has no layout yet (≈ 3s at 250ms). */
     private static final int MAX_CAPACITY_RETRIES = 12;
 
-    /** Tamanho (mm) e cores do ícone das setas (cor é "assada" na criação do ícone). */
+    /** Size (mm) and colors of the arrow icon (the color is "baked" when the icon is created). */
     private static final float CHEVRON_MM = 2.8f;
     private static final int CHEVRON_ENABLED = Colors.TEXT_SECONDARY;
     private static final int CHEVRON_DISABLED = Colors.GRAY_DISABLED;
@@ -66,7 +66,7 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
     private int capacityToken;
     private int capacityRetries;
     private boolean resizeHooked;
-    /** Altura travada das setas (= altura do box); re-aplicada após cada re-bake do ícone. */
+    /** Locked height of the arrows (= box height); re-applied after each icon re-bake. */
     private int chevronH;
 
     public PurchasesPanelCn1View(String vsid, BridgeSession session, ShoppingCn1RemoteApp app) {
@@ -77,7 +77,7 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
     protected Container build() {
         Container root = Cn1Dom.render(new BorderLayout(), (dom, r) -> {
             r.setUIID(sel.PURCHASES_PANEL);
-            // cabeçalho (ícone + título) + dica
+            // header (icon + title) + hint
             dom.boxY(BorderLayout.NORTH, head -> {
                 dom.boxX(row -> {
                     dom.label(l -> {
@@ -86,19 +86,19 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
                     });
                     dom.label(l -> {
                         l.setUIID(sel.PURCHASES_TITLE);
-                        l.setText("Histórico");
+                        l.setText("History");
                     });
                 });
                 dom.label(l -> {
                     l.setUIID(sel.PURCHASES_HINT);
-                    l.setText("Toque para ver detalhes");
+                    l.setText("Tap for details");
                 });
             });
 
-            // lista de compras (rolável, ocupa o espaço restante)
+            // purchase list (scrollable, fills the remaining space)
             list = dom.boxY(BorderLayout.CENTER, l -> l.setScrollableY(true));
 
-            // navegação de páginas — pílula cinza com setas e o "x / y" num box branco (como o React)
+            // page navigation — gray pill with arrows and the "x / y" in a white box (like React)
             pagination = dom.container(new FlowLayout(Component.CENTER), BorderLayout.SOUTH, nav -> {
                 nav.setUIID(sel.PURCHASE_PAGINATION);
                 pill = dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, p -> {
@@ -130,12 +130,12 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
     }
 
     /**
-     * Acabamento do box "x / y" que o CSS do CN1 não cobre: cantos arredondados + uma sombra
-     * <b>sutil</b> (box-shadow não existe no CSS do CN1) via {@link RoundRectBorder}, para o box
-     * "flutuar" na pílula como no React.
+     * Finishing of the "x / y" box that CN1's CSS does not cover: rounded corners + a <b>subtle</b>
+     * shadow (box-shadow does not exist in CN1's CSS) via {@link RoundRectBorder}, so the box
+     * "floats" on the pill as in React.
      */
     private void stylePaginator() {
-        // sombra discreta no box "x / y"
+        // subtle shadow on the "x / y" box
         RoundRectBorder infoBorder = RoundRectBorder.create()
                 .cornerRadius(2.5f)
                 .shadowOpacity(45)
@@ -146,37 +146,37 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
         pageInfo.getAllStyles().setBgColor(Colors.SURFACE);
         pageInfo.getAllStyles().setBgTransparency(255);
 
-        // Pílula arredondada via RoundRectBorder do Java (o border-radius grande do CSS reservava
-        // espaço vertical extra — o cinza que sobrava). Mesmo mecanismo do box, que fica justo.
+        // Rounded pill via Java's RoundRectBorder (a large CSS border-radius reserves extra vertical
+        // space — leftover gray). Same mechanism as the box, which stays tight.
         pill.getAllStyles().setBorder(RoundRectBorder.create().cornerRadius(2.5f));
         pill.getAllStyles().setBgColor(Colors.BG);
         pill.getAllStyles().setBgTransparency(255);
 
-        // Setas com EXATAMENTE a altura do box: assim a pílula = altura do box (sem cinza
-        // sobrando) e as setas ficam centralizadas verticalmente com o indicador. A altura
-        // natural de um Label/Button é maior que a do box (reserva da fonte/toque), por isso
-        // travamos a altura aqui, mantendo a largura natural do ícone.
+        // Arrows with EXACTLY the box height: so the pill = box height (no leftover gray)
+        // and the arrows are vertically centered with the indicator. The natural height
+        // of a Label/Button is larger than the box's (font/touch reserve), so we lock
+        // the height here, keeping the icon's natural width.
         chevronH = pageInfo.getPreferredH();
         lockChevronHeight(prevBtn);
         lockChevronHeight(nextBtn);
     }
 
-    /** Trava a altura da seta na altura do box (setIcon marca p/ recalcular, então re-aplicamos). */
+    /** Locks the arrow height to the box height (setIcon marks it for recalculation, so we re-apply it). */
     private void lockChevronHeight(Label l) {
         if (chevronH > 0) {
             l.setPreferredSize(new Dimension(l.getPreferredW(), chevronH));
         }
     }
 
-    /** (Re)gera o ícone da seta com a cor indicada — a cor é "assada" na criação do FontImage. */
+    /** (Re)generates the arrow icon with the given color — the color is "baked" when the FontImage is created. */
     private void chevronIcon(Label l, char icon, int color) {
         l.getAllStyles().setFgColor(color);
         FontImage.setMaterialIcon(l, icon, CHEVRON_MM);
-        lockChevronHeight(l); // setIcon marcou p/ recalcular; mantém a altura travada (sem cinza)
+        lockChevronHeight(l); // setIcon marked it for recalculation; keeps the height locked (no gray)
         l.repaint();
     }
 
-    /** Habilita/desabilita a seta: cinza-claro + sem clique quando não há para onde ir. */
+    /** Enables/disables the arrow: light gray + no click when there is nowhere to go. */
     private void setChevronEnabled(Label l, char icon, boolean enabled) {
         l.setEnabled(enabled);
         chevronIcon(l, icon, enabled ? CHEVRON_ENABLED : CHEVRON_DISABLED);
@@ -198,12 +198,12 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
         setChevronEnabled(nextBtn, FontImage.MATERIAL_CHEVRON_RIGHT, page < totalPages - 1);
         Guard.visible(pagination, totalCount > 0);
 
-        capacityRetries = 0; // nova atualização: renova o orçamento de re-tentativas da medição
+        capacityRetries = 0; // new update: renews the measurement retry budget
         hookResize();
         requestCapacityCompute();
     }
 
-    /** Recalcula a capacidade quando o form muda de tamanho (registra o listener uma vez). */
+    /** Recomputes the capacity when the form changes size (registers the listener once). */
     private void hookResize() {
         if (resizeHooked) {
             return;
@@ -215,7 +215,7 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
         }
     }
 
-    /** Agenda a medição/notificação com debounce — só a última agendada dentro da janela executa. */
+    /** Schedules the measurement/notification with debounce — only the last one scheduled within the window runs. */
     private void requestCapacityCompute() {
         Form f = list.getComponentForm();
         if (f == null) {
@@ -229,19 +229,20 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
         }).schedule(DEBOUNCE_MS, false, f);
     }
 
-    /** Quantos itens cabem sem rolar — mede a lista e o 1º item, como o painel React. */
+    /** How many items fit without scrolling — measures the list and the 1st item, like the React panel. */
     private void computeCapacityNow() {
         int h = list.getHeight();
         if (h <= 0) {
-            // painel ainda sem layout (comum no device ao abrir a aba — mais lento que o debounce):
-            // reagenda em vez de desistir, com teto para não virar loop se ficar invisível.
+            // panel has no layout yet (common on device when opening the tab — slower than the debounce):
+            // reschedules instead of giving up, with a cap so it does not loop if it stays invisible.
             if (capacityRetries++ < MAX_CAPACITY_RETRIES) {
                 requestCapacityCompute();
             }
             return;
         }
         capacityRetries = 0;
-        // passo real entre itens (inclui a margem) — evita contar um item a mais
+        // actual stride between items (includes the margin) — avoids counting one item too many
+
         int itemH = Px.mm(DEFAULT_ITEM_H_MM);
         int n = list.getComponentCount();
         if (n >= 2) {

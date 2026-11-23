@@ -12,23 +12,23 @@ import br.com.wdc.shopping.view.remote.shell.cn1.util.Guard;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Px;
 
 /**
- * Stepper de quantidade: {@code − [valor] +}. Widget não-reativo (build-once + {@link #setValue(int)}
- * guardado), no mesmo padrão do {@code CardHeader}. Os cliques são injetados no construtor
- * ({@code onDecrement}/{@code onIncrement}); o número exibido é mutado por {@code setValue}. Botões com
- * lado fixo em mm (densidade-independente, ver {@code util.Px}). UIIDs {@code QtyBtn}/{@code QtyValue}.
+ * Quantity stepper: {@code − [value] +}. Non-reactive widget (build-once + guarded {@link #setValue(int)}),
+ * in the same pattern as {@code CardHeader}. The clicks are injected in the constructor
+ * ({@code onDecrement}/{@code onIncrement}); the displayed number is mutated by {@code setValue}. Buttons
+ * with a fixed side in mm (density-independent, see {@code util.Px}). UIIDs {@code QtyBtn}/{@code QtyValue}.
  */
 public final class QtyStepper extends Container {
 
     private static final Sel sel = Sel.INSTANCE;
 
-    /** Largura fixa (mm) do valor: a fonte negrito nativa mede menos que o glifo e o cortaria. */
+    /** Fixed width (mm) of the value: the native bold font measures less than the glyph and would cut it. */
     private static final float VALUE_W_MM = 11f;
 
     private Consumer<String> value;
 
     public QtyStepper(float buttonMm, Runnable onDecrement, Runnable onIncrement) {
         super(BoxLayout.x());
-        getAllStyles().setBgTransparency(0); // Android: Container nativo é branco opaco
+        getAllStyles().setBgTransparency(0); // Android: native Container is opaque white
         Cn1Dom.render(this, (dom, me) -> {
             dom.add(new IconButton(sel.QTY_BTN, FontImage.MATERIAL_REMOVE, 3f, Px.mm(buttonMm), onDecrement), null);
             dom.label(l -> {
@@ -40,7 +40,8 @@ public final class QtyStepper extends Container {
         });
     }
 
-    /** Atualiza o número exibido (guardado: só troca quando muda). */
+    /** Updates the displayed number (guarded: only swaps when it changes).
+ */
     public void setValue(int qty) {
         value.accept(String.valueOf(qty));
     }

@@ -28,35 +28,35 @@ class ProductPanelClass extends BaseViewClass<ViewProps, ProductsPanelState> {
   override render({ className }: ViewProps): React.ReactNode {
     const { vsid, state } = this
 
-    const divProdutos: ReactNode[] = []
+    const productCards: ReactNode[] = []
     if (state.products) {
       for (let i = 0; i < state.products.length; i++) {
-        let produto = state.products[i]
-        divProdutos.push(<CardProduto key={produto.id} vsid={vsid} product={produto} />)
+        let product = state.products[i]
+        productCards.push(<ProductCard key={product.id} vsid={vsid} product={product} />)
       }
     }
 
     return (
       <div className={clsx(Sel.productsPanel, className)}>
-        <div className={Sel.productGrid}>{divProdutos}</div>
+        <div className={Sel.productGrid}>{productCards}</div>
       </div>
     )
   }
 }
 export default BaseViewClass.FC(ProductPanelClass, "a1b2c3d4e5f6")
 
-// :: Internal - CardProduto
+// :: Internal - ProductCard
 
-type CardProdutoProps = {
+type ProductCardProps = {
   vsid: string
   product: Product
 }
 
-class CardProdutoClass extends BasePanelClass<CardProdutoProps> {
+class ProductCardClass extends BasePanelClass<ProductCardProps> {
   vsid!: string
   product!: Product
 
-  override render({ vsid, product }: CardProdutoProps): React.ReactNode {
+  override render({ vsid, product }: ProductCardProps): React.ReactNode {
     this.vsid = vsid
     this.product = product
 
@@ -67,7 +67,7 @@ class CardProdutoClass extends BasePanelClass<CardProdutoProps> {
         </div>
         <div className={Sel.productCardBody}>
           <p className={Sel.productCardName}>{product.name}</p>
-          <span className={Sel.productCardPrice}>R$ {NumberUtils.format(product.price)}</span>
+          <span className={Sel.productCardPrice}>{NumberUtils.formatCurrency(product.price)}</span>
         </div>
       </div>
     )
@@ -82,4 +82,4 @@ class CardProdutoClass extends BasePanelClass<CardProdutoProps> {
   }
 }
 
-const CardProduto = BasePanelClass.FC(CardProdutoClass)
+const ProductCard = BasePanelClass.FC(ProductCardClass)

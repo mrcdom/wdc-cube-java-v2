@@ -82,25 +82,25 @@ public class BrowserView extends AbstractRemoteView {
         String detail = null;
         switch (code) {
             case -1 -> {
-                message = args.isEmpty() ? "Ocorreu um erro não esperado" : args.get(0);
+                message = args.isEmpty() ? "An unexpected error occurred" : args.get(0);
                 detail = args.size() > 1 ? args.get(1) : null;
             }
             case -2 -> {
-                message = "A URI " + (args.isEmpty() ? "" : args.get(0)) + " não está acessível";
+                message = "The URI " + (args.isEmpty() ? "" : args.get(0)) + " is not accessible";
                 detail = args.size() > 1 ? args.get(1) : null;
             }
-            default -> message = args.isEmpty() ? "Ocorreu um erro não esperado" : args.get(0);
+            default -> message = args.isEmpty() ? "An unexpected error occurred" : args.get(0);
         }
 
         // @formatter:off
         return div("alert-error").style("margin:16px").children(
           div().style("flex:1").children(
-            div("font-bold text-sm").style("color:var(--app-error-text)").text("Aviso!"),
+            div("font-bold text-sm").style("color:var(--app-error-text)").text("Warning!"),
             span("text-sm").style("color:var(--app-error-text)").text(message),
             detail != null ? div("text-xs mt-4").style("color:var(--app-error-text)").text(detail) : null),
           span("text-sm font-medium cursor-pointer ml-4")
             .style("color:var(--app-accent)")
-            .text("Ok")
+            .text("OK")
             .on("click", useCallback("alertOk", e -> submit(ON_ALERT_OK))));
         // @formatter:on
     }
@@ -126,25 +126,25 @@ public class BrowserView extends AbstractRemoteView {
                 seconds = seconds - minutes * 60;
             }
             timeText = minutes > 0
-                    ? "Conectando em " + minutes + "m e " + seconds + "s..."
-                    : "Conectando em " + seconds + "s...";
+                    ? "Reconnecting in " + minutes + "m " + seconds + "s..."
+                    : "Reconnecting in " + seconds + "s...";
             showRetry = true;
         } else {
-            timeText = "Conectando agora...";
+            timeText = "Reconnecting now...";
             showRetry = false;
         }
 
         var alert = div("alert-error")
                 .style("display:inline-flex;border-radius:0 0 8px 8px;padding:6px 12px;margin:0")
                 .children(
-                        span("font-bold text-sm").style("color:var(--app-error-text)").text("Não conectado. "),
+                        span("font-bold text-sm").style("color:var(--app-error-text)").text("Not connected. "),
                         span("text-sm").style("color:var(--app-error-text)").text(timeText));
 
         if (showRetry) {
             alert.children(
                     span("text-sm font-medium cursor-pointer ml-4")
                             .style("color:var(--app-accent);text-decoration:underline")
-                            .text("Tentar agora")
+                            .text("Retry now")
                             .on("click", e -> ViewStateCoordinator.INSTANCE.reconnectController.checkNow()));
         }
 

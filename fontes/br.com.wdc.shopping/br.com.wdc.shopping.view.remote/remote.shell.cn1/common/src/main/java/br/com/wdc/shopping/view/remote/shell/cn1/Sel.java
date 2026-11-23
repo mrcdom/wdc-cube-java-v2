@@ -1,26 +1,26 @@
 package br.com.wdc.shopping.view.remote.shell.cn1;
 
 /**
- * Seletores (UIIDs) <b>globais</b> do tema — compartilhados entre telas, espelhando o
- * {@code _base.scss}. É a base singleton dos seletores: cada pacote de view tem sua própria
- * subclasse {@code XxxSel extends Sel} com {@code INSTANCE} próprio, de modo que um único
- * {@code sel} expõe os globais (herdados) + os do pacote (análogo ao spread {@code ...GlobalSel}
- * dos {@code *-sel} do shell TeaVM).
+ * <b>Global</b> theme selectors (UIIDs) — shared across screens, mirroring
+ * {@code _base.scss}. It is the singleton base of the selectors: each view package has its own
+ * {@code XxxSel extends Sel} subclass with its own {@code INSTANCE}, so that a single
+ * {@code sel} exposes the global ones (inherited) + the package's (analogous to the {@code ...GlobalSel}
+ * spread of the TeaVM shell's {@code *-sel}).
  *
- * <p>Uso: {@code private static final XxxSel sel = XxxSel.INSTANCE;} e então {@code sel.FOO}.</p>
+ * <p>Usage: {@code private static final XxxSel sel = XxxSel.INSTANCE;} and then {@code sel.FOO}.</p>
  */
 public class Sel {
 
     public static final Sel INSTANCE = new Sel();
 
     protected Sel() {
-        // singleton (instanciado pelas subclasses)
+        // singleton (instantiated by the subclasses)
     }
 
     public final String PRIMARY_BUTTON = "PrimaryButton";
     public final String CARD_LEAD = "CardLead";
 
-    // Cabeçalho de card (widgets.CardHeader)
+    // Card header (widgets.CardHeader)
     public final String CARD_HEADER_ROW = "CardHeaderRow";
     public final String CARD_HEADER_ICON_BOX = "CardHeaderIconBox";
     public final String CARD_HEADER_TITLE = "CardHeaderTitle";
@@ -28,15 +28,16 @@ public class Sel {
 
     public final String BACK_BUTTON = "BackButton";
 
-    // Stepper de quantidade (produto e carrinho)
+    // Quantity stepper (product and cart)
     public final String QTY_BTN = "QtyBtn";
     public final String QTY_VALUE = "QtyValue";
 
-    // Marca (hero do login + splash de conexão)
+    // Brand (login hero + connection splash)
     public final String HERO_TITLE = "HeroTitle";
     public final String HERO_SUBTITLE = "HeroSubtitle";
 
-    // Tela de conexão (splash)
+    // Connection screen (splash)
+
     public final String SPLASH_STATUS = "SplashStatus";
     public final String SPLASH_RETRY = "SplashRetry";
 }

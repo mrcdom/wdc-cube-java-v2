@@ -1,6 +1,6 @@
 // =============================================================================
-// Detalhe do produto (ProductCn1View): título+divisória, card de descrição,
-// preço/quantidade + imagem.
+// Product detail (ProductCn1View): title+divider, description card,
+// price/quantity + image.
 // =============================================================================
 @use 'tokens' as *;
 @use 'mixins' as *;
@@ -17,7 +17,7 @@ PrdTitle {
     padding: 0 0 2mm 0;
 }
 
-// Divisória azul abaixo do título (altura definida em Java).
+// Blue divider below the title (height set in Java).
 PrdDivider {
     background-color: $accent;
     padding: 0;

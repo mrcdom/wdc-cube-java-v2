@@ -228,8 +228,8 @@ public class ShoppingSwtRemoteApp implements SwtApp, RemoteViewContext {
 			}
 		}
 		var message = switch (alertId) {
-			case -2 -> "A URI " + (args.isEmpty() ? "" : args.get(0)) + " não está acessível";
-			default -> args.isEmpty() ? "Ocorreu um erro não esperado" : args.get(0);
+			case -2 -> "The URI " + (args.isEmpty() ? "" : args.get(0)) + " is not accessible";
+			default -> args.isEmpty() ? "An unexpected error occurred" : args.get(0);
 		};
 		var detail = args.size() > 1 ? args.get(1) : null;
 
@@ -238,7 +238,7 @@ public class ShoppingSwtRemoteApp implements SwtApp, RemoteViewContext {
 				return;
 			}
 			var box = new MessageBox(this.shell, SWT.ICON_WARNING | SWT.OK);
-			box.setText("Aviso!");
+			box.setText("Warning!");
 			box.setMessage(detail != null ? message + "\n\n" + detail : message);
 			box.open();
 			this.shownAlertId = 0;

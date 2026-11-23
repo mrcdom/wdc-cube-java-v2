@@ -2,7 +2,7 @@ package br.com.wdc.shopping.view.remote.shell.cn1.views.cart;
 
 import br.com.wdc.shopping.view.remote.shell.cn1.Sel;
 
-/** Seletores (UIIDs) do carrinho — espelha {@code views/cart/_cart.scss}. Herda os globais. */
+/** Cart selectors (UIIDs) — mirrors {@code views/cart/_cart.scss}. Inherits the global ones. */
 public final class CartSel extends Sel {
 
     public static final CartSel INSTANCE = new CartSel();

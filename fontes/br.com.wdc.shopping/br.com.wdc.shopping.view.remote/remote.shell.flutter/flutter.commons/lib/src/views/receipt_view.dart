@@ -42,7 +42,7 @@ class _ReceiptViewState extends BaseViewState<ReceiptView> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 16),
                     child: StatusBanner(
-                      message: 'Compra realizada com sucesso!',
+                      message: 'Purchase completed successfully!',
                       severity: StatusSeverity.success,
                     ),
                   ),
@@ -56,7 +56,7 @@ class _ReceiptViewState extends BaseViewState<ReceiptView> {
                       // Header
                       const ViewHeader(
                         icon: Icons.receipt_long,
-                        title: 'Recibo de Compra',
+                        title: 'Purchase Receipt',
                         subtitle: 'WDC Shopping',
                       ),
                       const SizedBox(height: 20),
@@ -80,7 +80,7 @@ class _ReceiptViewState extends BaseViewState<ReceiptView> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text('Data:', style: monoSmall.copyWith(color: appTextSecondary)),
+                                  Text('Date:', style: monoSmall.copyWith(color: appTextSecondary)),
                                   Text(formatDateTime(dateMillis), style: monoBold),
                                 ],
                               ),
@@ -95,8 +95,8 @@ class _ReceiptViewState extends BaseViewState<ReceiptView> {
                               child: Row(
                                 children: [
                                   Expanded(child: Text('ITEM', style: monoSmall.copyWith(fontWeight: FontWeight.w700, color: appTextSecondary, letterSpacing: 0.5))),
-                                  SizedBox(width: 80, child: Text('QTD', textAlign: TextAlign.center, style: monoSmall.copyWith(fontWeight: FontWeight.w700, color: appTextSecondary, letterSpacing: 0.5))),
-                                  SizedBox(width: 100, child: Text('VALOR', textAlign: TextAlign.end, style: monoSmall.copyWith(fontWeight: FontWeight.w700, color: appTextSecondary, letterSpacing: 0.5))),
+                                  SizedBox(width: 80, child: Text('QTY', textAlign: TextAlign.center, style: monoSmall.copyWith(fontWeight: FontWeight.w700, color: appTextSecondary, letterSpacing: 0.5))),
+                                  SizedBox(width: 100, child: Text('PRICE', textAlign: TextAlign.end, style: monoSmall.copyWith(fontWeight: FontWeight.w700, color: appTextSecondary, letterSpacing: 0.5))),
                                 ],
                               ),
                             ),
@@ -145,7 +145,7 @@ class _ReceiptViewState extends BaseViewState<ReceiptView> {
                         child: TextButton.icon(
                           onPressed: _emitOpenProducts,
                           icon: const Icon(Icons.arrow_back, size: 18),
-                          label: const Text('Voltar aos produtos'),
+                          label: const Text('Back to products'),
                         ),
                       ),
                     ],

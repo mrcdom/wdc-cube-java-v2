@@ -32,43 +32,43 @@ import br.com.wdc.shopping.view.remote.shell.cn1.views.receipt.ReceiptCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.widgets.Slot;
 
 /**
- * Shell fino Codename One (remote-shell) — coordenador.
+ * Thin Codename One shell (remote-shell) — coordinator.
  *
  * <p>
- * Conecta no bridge ({@link BridgeSession}), mantém um registry classId→factory e um cache
- * vsid→view, e a cada push <b>re-sincroniza a árvore ativa</b> em cascata a partir da raiz. Cada
- * view é uma classe própria que constrói os widgets uma vez e os muta em {@code doUpdate()} (padrão
- * não-reativo, estilo Vaadin) — nada é reconstruído por push.
+ * Connects to the bridge ({@link BridgeSession}), keeps a classId→factory registry and a
+ * vsid→view cache, and on each push <b>re-syncs the active tree</b> in cascade from the root. Each
+ * view is its own class that builds its widgets once and mutates them in {@code doUpdate()}
+ * (non-reactive, Vaadin-style pattern) — nothing is rebuilt per push.
  * </p>
  */
 public class ShoppingCn1RemoteApp extends Lifecycle {
 
-    /** Largura mínima (mm) que o layout expandido precisa; abaixo disso, compacto (densidade-independente). */
+    /** Minimum width (mm) the expanded layout needs; below it, compact (density-independent). */
     private static final float EXPANDED_MIN_MM = 110f;
 
     private BridgeSession session;
     private Form form;
-    /** URL base do backend, resolvida por plataforma/override no {@code runApp} (ver {@link ServerConfig}). */
+    /** Backend base URL, resolved per platform/override in {@code runApp} (see {@link ServerConfig}). */
     private String baseUrl;
     private final Map<String, AbstractCn1View> views = new HashMap<>();
-    /** Views a re-renderizar no próximo flush (primitivo único, como o {@code dirtyViews} do SWT). */
+    /** Views to re-render on the next flush (single primitive, like SWT's {@code dirtyViews}). */
     private final Set<AbstractCn1View> dirty = new LinkedHashSet<>();
-    /** Único filho do form: acomoda a view raiz (e o splash) — guard de "montar só na transição". */
+    /** The form's only child: holds the root view (and the splash) — "mount only on transition" guard. */
     private Slot rootSlot;
-    /** Splash (conexão/erro) — construído uma vez, reusado via setState. */
+    /** Splash (connecting/error) — built once, reused via setState. */
     private SplashCn1View splash;
     private boolean flushScheduled;
     private boolean wasExpanded;
-    /** O alerta do host em exibição: um push do browser enquanto ele está aberto não o mostra de novo. */
+    /** The host alert being shown: a browser push while it is open does not show it again. */
     private int shownAlertId;
     private boolean wasPortrait;
 
     /**
-     * Layout expandido (hero+card, split produtos+histórico) quando a <b>largura disponível</b> comporta
-     * o espaço que o expandido precisa ({@code >= EXPANDED_MIN_MM}); senão, compacto. Critério puramente
-     * por <b>largura</b> (mm, densidade-independente) — independe de device (tablet/desktop/telefone) e de
-     * orientação: o que importa é caber. Ex.: telefone em paisagem largo o bastante fica expandido;
-     * estreito, compacto. (O limiar é o tamanho a ajustar se o split ficar apertado.)
+     * Expanded layout (hero+card, products+history split) when the <b>available width</b> fits the
+     * space the expanded layout needs ({@code >= EXPANDED_MIN_MM}); otherwise, compact. Purely a
+     * <b>width</b> criterion (mm, density-independent) — independent of device (tablet/desktop/phone) and
+     * orientation: what matters is fitting. E.g.: a phone in landscape wide enough is expanded; a narrow
+     * one, compact. (The threshold is the size to tune if the split gets cramped.)
      */
     public boolean isExpanded() {
         Display d = Display.getInstance();
@@ -76,11 +76,11 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
     }
 
     /**
-     * Resize. Ao <b>cruzar o breakpoint</b> ou <b>girar a tela</b>, re-sincroniza tudo via
-     * {@link #refreshAll()}: cada view adapta o próprio layout no {@code doUpdate()} (sem rebuild),
-     * preservando o estado (ex.: texto digitado). Recomputa a safe area da nova orientação antes do
-     * {@code revalidate} (feito pelo {@code refreshAll}). Dentro do mesmo breakpoint+orientação não faz
-     * nada: o CN1 relayouta sozinho e os painéis avisam o backend pelo seu próprio
+     * Resize. On <b>crossing the breakpoint</b> or <b>rotating the screen</b>, re-syncs everything via
+     * {@link #refreshAll()}: each view adapts its own layout in {@code doUpdate()} (no rebuild),
+     * preserving state (e.g.: typed text). Recomputes the safe area for the new orientation before the
+     * {@code revalidate} (done by {@code refreshAll}). Within the same breakpoint+orientation it does
+     * nothing: CN1 relays out by itself and the panels notify the backend through their own
      * {@code sizeChangedListener}.
      */
     private void onResize() {
@@ -91,7 +91,7 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
         }
         wasExpanded = nowExpanded;
         wasPortrait = nowPortrait;
-        form.setSafeAreaChanged(); // recomputa a safe area para a nova orientação (antes do revalidate)
+        form.setSafeAreaChanged(); // recomputes the safe area for the new orientation (before revalidate)
         refreshAll();
     }
 
@@ -103,34 +103,34 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
         wasPortrait = Display.getInstance().isPortrait();
 
         form = new Form(new BorderLayout());
-        // iOS (notch/Dynamic Island): sem toolbar, o CN1 não reserva a status bar e o header colaria
-        // sob ela (toques iriam para o iOS). Mantém o conteúdo dentro da safe area.
+        // iOS (notch/Dynamic Island): without a toolbar, CN1 does not reserve the status bar and the header
+        // would stick under it (touches would go to iOS). Keeps the content inside the safe area.
         form.getContentPane().setSafeArea(true);
         rootSlot = new Slot();
-        form.add(BorderLayout.CENTER, rootSlot); // filho único e permanente; sobrevive ao resize
+        form.add(BorderLayout.CENTER, rootSlot); // single, permanent child; survives resize
         form.addSizeChangedListener(e -> onResize());
         form.show();
-        // hideToolbar() exige o form já associado (getComponentForm()): no desktop/javase ele é null
-        // antes do show() (no device não). Como runApp roda no EDT e o paint vem depois, não pisca.
-        form.getToolbar().hideToolbar(); // sem barra de título nativa; cada tela traz seu header
+        // hideToolbar() requires the form to be attached (getComponentForm()): on desktop/javase it is null
+        // before show() (on device it is not). Since runApp runs on the EDT and paint comes later, no flicker.
+        form.getToolbar().hideToolbar(); // no native title bar; each screen brings its own header
 
         startConnect();
     }
 
-    /** Mostra a tela de "conectando" e abre o bridge numa thread; em falha, mostra erro + retry. */
+    /** Shows the "connecting" screen and opens the bridge on a thread; on failure, shows error + retry. */
     private void startConnect() {
-        showSplash(false, "Conectando ao servidor...", null);
+        showSplash(false, "Connecting to server...", null);
         session = new BridgeSession(baseUrl, this::onPush);
         new Thread(() -> {
             try {
                 session.connect();
             } catch (Exception e) {
-                CN.callSerially(() -> showSplash(true, "Não foi possível conectar ao servidor.", this::startConnect));
+                CN.callSerially(() -> showSplash(true, "Could not connect to the server.", this::startConnect));
             }
         }).start();
     }
 
-    /** Retorna (criando sob demanda) a view de um vsid; {@code null} se classId desconhecido. */
+    /** Returns (creating on demand) the view for a vsid; {@code null} if the classId is unknown. */
     public AbstractCn1View viewFor(String vsid) {
         if (vsid == null || vsid.isEmpty()) {
             return null;
@@ -145,7 +145,7 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
         return v;
     }
 
-    /** Instancia a view do classId (switch direto — sem reflection nem lambda-factory). */
+    /** Instantiates the classId's view (direct switch — no reflection or lambda factory). */
     private AbstractCn1View create(String vsid) {
         String classId = BridgeSession.classIdOf(vsid);
         switch (classId) {
@@ -168,15 +168,15 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
             case ReceiptCn1View.CLASS_ID:
                 return new ReceiptCn1View(vsid, session, this);
             default:
-                com.codename1.io.Log.p("CN1 shell: sem view para classId=" + classId + " (vsid=" + vsid + ")");
+                com.codename1.io.Log.p("CN1 shell: no view for classId=" + classId + " (vsid=" + vsid + ")");
                 return null;
         }
     }
 
     /**
-     * Recebe um push do servidor (no EDT): descarta as views liberadas, monta a raiz se mudou e
-     * marca <b>dirty</b> cada ViewState recebido — espelha o {@code applyResponse} do shell SWT.
-     * O render efetivo é feito pelo {@link #flush()} coalescido.
+     * Receives a server push (on the EDT): discards released views, mounts the root if it changed and
+     * marks each received ViewState <b>dirty</b> — mirrors the SWT shell's {@code applyResponse}.
+     * The actual render is done by the coalesced {@link #flush()}.
      */
     private void onPush(List<String> received, List<String> released) {
         for (String vsid : released) {
@@ -185,7 +185,7 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
         mountRootIfChanged();
         showHostAlert();
         for (String vsid : received) {
-            AbstractCn1View v = views.get(vsid); // já criada/montada (criação é lazy, via o pai)
+            AbstractCn1View v = views.get(vsid); // already created/mounted (creation is lazy, via the parent)
             if (v != null) {
                 dirty.add(v);
             }
@@ -193,7 +193,7 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
         requestFlush();
     }
 
-    /** Descarta uma view liberada pelo servidor: tira do cache, do dirty e desmonta (evita vazamento). */
+    /** Discards a view released by the server: removes it from the cache and dirty set and unmounts it (avoids leaks). */
     private void evict(String vsid) {
         AbstractCn1View v = views.remove(vsid);
         if (v == null) {
@@ -206,19 +206,19 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
         }
     }
 
-    /** Monta a view raiz no slot quando o browser passa a apontar para outra (guard interno do slot). */
+    /** Mounts the root view in the slot when the browser starts pointing to another one (slot's internal guard). */
     private void mountRootIfChanged() {
         Map<String, Object> browser = session.state(BridgeSession.BROWSER_VSID);
         String rv = browser != null ? Json.str(browser, "contentViewId") : "";
         if (rv.isEmpty()) {
-            return; // push sem contentViewId não desmonta a raiz atual
+            return; // a push without contentViewId does not unmount the current root
         }
-        rootSlot.mount(elementOf(rv)); // re-monta só quando a referência do element muda (mesmo vsid → mesma view)
+        rootSlot.mount(elementOf(rv)); // re-mounts only when the element reference changes (same vsid → same view)
     }
 
     /**
-     * O alerta do host ({@code alertId}/{@code alertArgs} do browser): fica na tela até ser dispensado, o que
-     * avisa o host (evento 1 do browser), cuja ação do alerta pode rodar então.
+     * The host alert (the browser's {@code alertId}/{@code alertArgs}): stays on screen until dismissed, which
+     * notifies the host (browser event 1), whose alert action can then run.
      */
     private void showHostAlert() {
         Map<String, Object> browser = session.state(BridgeSession.BROWSER_VSID);
@@ -235,26 +235,26 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
         }
         final String message;
         if (alertId == -2) {
-            message = "A URI " + (args.isEmpty() ? "" : args.get(0)) + " não está acessível";
+            message = "The URI " + (args.isEmpty() ? "" : args.get(0)) + " is not accessible";
         } else {
-            message = args.isEmpty() ? "Ocorreu um erro não esperado" : args.get(0);
+            message = args.isEmpty() ? "An unexpected error occurred" : args.get(0);
         }
         final String detail = args.size() > 1 ? args.get(1) : null;
 
         CN.callSerially(() -> {
-            Dialog.show("Aviso!", detail != null ? message + "\n\n" + detail : message, "Ok", null);
+            Dialog.show("Warning!", detail != null ? message + "\n\n" + detail : message, "OK", null);
             shownAlertId = 0;
             session.submit(BridgeSession.BROWSER_VSID, 1, new HashMap<String, Object>());
         });
     }
 
-    /** Element da view de {@code vsid} (criada sob demanda), ou {@code null}. */
+    /** Element of the {@code vsid} view (created on demand), or {@code null}. */
     private Container elementOf(String vsid) {
         AbstractCn1View v = viewFor(vsid);
         return v != null ? v.getElement() : null;
     }
 
-    /** Agenda re-render de uma view (primitivo único — push do servidor e interações locais). */
+    /** Schedules a view re-render (single primitive — server push and local interactions). */
     public void markDirty(AbstractCn1View view) {
         if (view != null) {
             dirty.add(view);
@@ -262,7 +262,7 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
         }
     }
 
-    /** Agenda um flush coalescido. */
+    /** Schedules a coalesced flush. */
     public void requestFlush() {
         if (!flushScheduled) {
             flushScheduled = true;
@@ -271,9 +271,9 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
     }
 
     /**
-     * Render coalescido (no EDT): drena o conjunto {@code dirty} e chama {@code doUpdate()} em cada
-     * view. Cada view cuida do próprio dado e da <i>montagem</i> das suas filhas; não há propagação
-     * manual de {@code doUpdate} pelos pais (cf. shells React/TeaVM/SWT).
+     * Coalesced render (on the EDT): drains the {@code dirty} set and calls {@code doUpdate()} on each
+     * view. Each view handles its own data and the <i>mounting</i> of its children; there is no manual
+     * propagation of {@code doUpdate} by the parents (cf. React/TeaVM/SWT shells).
      */
     private void flush() {
         flushScheduled = false;
@@ -286,18 +286,18 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
             form.revalidate();
         } catch (Exception e) {
             com.codename1.io.Log.e(e);
-            showSplash(true, "Erro ao renderizar a tela.", null);
+            showSplash(true, "Error rendering the screen.", null);
         }
     }
 
     /**
-     * Reconcilia <b>todas</b> as views montadas com o estado atual: roda {@code doUpdate()} em cada view
-     * do cache (vsid-backed) — que por sua vez re-sincroniza seus item-views via {@code syncList} — e no
-     * splash. Use para um re-render completo (ex.: após reconectar). O resize <b>não</b> usa isto: lá a
-     * estrutura muda (compacto↔expandido) e é preciso reconstruir, não só re-sincronizar.
+     * Reconciles <b>all</b> mounted views with the current state: runs {@code doUpdate()} on each cached
+     * (vsid-backed) view — which in turn re-syncs its item views via {@code syncList} — and on the
+     * splash. Use it for a full re-render (e.g.: after reconnecting) and on resize, where each view
+     * adapts its own layout (compact↔expanded) in {@code doUpdate()}.
      *
-     * <p>Itera um <b>snapshot</b> de {@code views}: o {@code doUpdate} de uma raiz pode criar/cachear
-     * novas views ({@code viewFor}) e mutar o mapa durante a iteração.</p>
+     * <p>Iterates a <b>snapshot</b> of {@code views}: a root's {@code doUpdate} can create/cache
+     * new views ({@code viewFor}) and mutate the map during iteration.</p>
      */
     public void refreshAll() {
         try {
@@ -310,19 +310,19 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
             form.revalidate();
         } catch (Exception e) {
             com.codename1.io.Log.e(e);
-            showSplash(true, "Erro ao renderizar a tela.", null);
+            showSplash(true, "Error rendering the screen.", null);
         }
     }
 
     /**
-     * Tela de "marca" exibida antes de receber o estado do backend (e em caso de falha): gradiente
-     * azul + logo + título, com um <b>spinner</b> (conectando) ou um ícone de erro + "Tentar novamente".
+     * "Brand" screen shown before receiving the backend state (and on failure): blue gradient
+     * + logo + title, with a <b>spinner</b> (connecting) or an error icon + "Try again".
      */
     private void showSplash(boolean error, String status, Runnable onRetry) {
         if (splash == null) {
-            splash = new SplashCn1View(); // construída uma vez; reusada (build-once + setState)
+            splash = new SplashCn1View(); // built once; reused (build-once + setState)
         }
         splash.setState(new SplashCn1View.State(error, status, onRetry));
-        rootSlot.mount(splash.getElement()); // mesma referência sempre → só re-monta vindo da raiz
+        rootSlot.mount(splash.getElement()); // always the same reference → only re-mounts when coming from the root
     }
 }

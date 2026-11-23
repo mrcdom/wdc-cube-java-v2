@@ -2,7 +2,8 @@ package br.com.wdc.shopping.view.remote.shell.cn1.views.product;
 
 import br.com.wdc.shopping.view.remote.shell.cn1.Sel;
 
-/** Seletores (UIIDs) do detalhe do produto — espelha {@code views/product/_product.scss}. Herda os globais. */
+/** Product detail selectors (UIIDs) — mirrors {@code views/product/_product.scss}. Inherits the global ones.
+ */
 public final class ProductSel extends Sel {
 
     public static final ProductSel INSTANCE = new ProductSel();

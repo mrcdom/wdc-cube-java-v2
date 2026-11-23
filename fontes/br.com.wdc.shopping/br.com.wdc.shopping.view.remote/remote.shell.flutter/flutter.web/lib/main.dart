@@ -111,8 +111,8 @@ void main() async {
   }).toJS;
 
   coordinator.onSessionInvalid = () {
-    // Descarta o app_id guardado antes de recarregar — senão o reload
-    // reconecta com o mesmo id inválido e entra em loop infinito.
+    // Discards the stored app_id before reloading — otherwise the reload
+    // reconnects with the same invalid id and loops forever.
     web.window.sessionStorage.removeItem('app_id');
     web.window.location.reload();
   };

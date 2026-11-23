@@ -3,7 +3,7 @@ package br.com.wdc.shopping.view.remote.shell.cn1.util;
 import java.util.Calendar;
 import java.util.Date;
 
-/** Formatação de data (dd/MM/yyyy) — espelha o {@code DateUtils.formatDate} do shell React. */
+/** Date formatting (en-US, MM/dd/yyyy) — mirrors the React shell's {@code DateUtils.formatDate}. */
 public final class Dates {
 
     private Dates() {
@@ -19,17 +19,19 @@ public final class Dates {
         int day = c.get(Calendar.DAY_OF_MONTH);
         int month = c.get(Calendar.MONTH) + 1;
         int year = c.get(Calendar.YEAR);
-        return two(day) + "/" + two(month) + "/" + year;
+        return two(month) + "/" + two(day) + "/" + year;
     }
 
-    /** dd/MM/yyyy HH:mm */
+    /** MM/dd/yyyy h:mm AM|PM (12-hour clock) */
     public static String formatDateTime(long millis) {
         if (millis <= 0) {
             return "";
         }
         Calendar c = Calendar.getInstance();
         c.setTime(new Date(millis));
-        return formatDate(millis) + " " + two(c.get(Calendar.HOUR_OF_DAY)) + ":" + two(c.get(Calendar.MINUTE));
+        int hour = c.get(Calendar.HOUR_OF_DAY);
+        int hour12 = hour % 12 == 0 ? 12 : hour % 12;
+        return formatDate(millis) + " " + hour12 + ":" + two(c.get(Calendar.MINUTE)) + (hour < 12 ? " AM" : " PM");
     }
 
     private static String two(int v) {

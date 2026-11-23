@@ -85,9 +85,9 @@ class PurchasesPanelClass extends BaseViewClass<ViewProps, PurchasesPanelState> 
       <div className={clsx(Sel.purchasesPanel, Sel.purchasesSlot, className)}>
         <div className={Sel.purchasesHeaderRow}>
           <i className={clsx("bi bi-clock-history", Sel.purchasesHeaderIcon)}></i>
-          <span className={Sel.purchasesHeaderTitle}>Histórico</span>
+          <span className={Sel.purchasesHeaderTitle}>History</span>
         </div>
-        <span className={Sel.purchasesHint}>Toque para ver detalhes</span>
+        <span className={Sel.purchasesHint}>Tap for details</span>
         <div ref={this.listRef} className={Sel.purchasesListContainer}>
           {this.#renderCompras()}
         </div>
@@ -99,7 +99,9 @@ class PurchasesPanelClass extends BaseViewClass<ViewProps, PurchasesPanelState> 
   #renderCompras(): React.ReactNode {
     const { vsid, state } = this
 
-    return (state.purchases ?? []).map((compra) => <PurchaseItemRow key={compra.id} vsid={vsid} purchase={compra} />)
+    return (state.purchases ?? []).map((purchase) => (
+      <PurchaseItemRow key={purchase.id} vsid={vsid} purchase={purchase} />
+    ))
   }
 
   #renderPageNavigation(): React.ReactNode {
@@ -178,7 +180,7 @@ class PurchaseItemRowClass extends BasePanelClass<PurchaseItemRowProps> {
         {/* Line 2: products + total */}
         <div className={Sel.purchasesItemLine2}>
           <span className={Sel.purchasesItemItems}>{formatItems(purchase.items)}</span>
-          <span className={Sel.purchasesItemTotal}>R$ {NumberUtils.format(purchase.total)}</span>
+          <span className={Sel.purchasesItemTotal}>{NumberUtils.formatCurrency(purchase.total)}</span>
         </div>
       </div>
     )

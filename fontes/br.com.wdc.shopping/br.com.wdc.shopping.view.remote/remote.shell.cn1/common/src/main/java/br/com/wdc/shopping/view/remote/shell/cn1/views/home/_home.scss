@@ -1,20 +1,20 @@
 // =============================================================================
-// Home: app bar, grade de produtos, abas (compacto) e painel de histórico.
+// Home: app bar, product grid, tabs (compact) and history panel.
 // (HomeCn1View, ProductsPanelCn1View, ProductItemCn1View, PurchasesPanelCn1View,
 //  PurchaseItemCn1View)
 // =============================================================================
 @use 'tokens' as *;
 @use 'mixins' as *;
 
-// -- Grade de produtos --
+// -- Product grid --
 
 HomProductsPanel {
     background-color: transparent;
     padding: 3mm;
 }
 
-// hover/clique: estados selected/pressed definidos em Java (Clickable) — o CSS do
-// CN1 não suporta pseudo-classes.
+// hover/click: selected/pressed states set in Java (Clickable) — CN1's CSS
+// does not support pseudo-classes.
 HomProductCard {
     @include card;
     margin: 2mm;
@@ -103,8 +103,8 @@ HomAppBarBrandSub {
     padding: 0;
 }
 
-// Badge sobreposto ao ícone do carrinho. Forma circular via RoundBorder no Java (o border-radius
-// do CSS do CN1 reserva espaço vertical); aqui só texto/fonte/padding.
+// Badge overlaid on the cart icon. Circular shape via RoundBorder in Java (CN1's CSS border-radius
+// reserves vertical space); here only text/font/padding.
 HomCartBadge {
     background-color: transparent;
     color: $surface;
@@ -114,7 +114,7 @@ HomCartBadge {
     text-align: center;
 }
 
-// -- Abas (layout compacto) --
+// -- Tabs (compact layout) --
 
 HomTabNav {
     background-color: $surface;
@@ -141,7 +141,7 @@ HomTabItemActive {
     text-align: center;
 }
 
-// -- Painel de histórico --
+// -- History panel --
 
 HomPurchasesPanel {
     background-color: $surface;
@@ -168,7 +168,7 @@ HomPurchasesHint {
     padding: 0.5mm 0 2mm 0;
 }
 
-// hover/clique: estados selected/pressed definidos em Java (Clickable).
+// hover/click: selected/pressed states set in Java (Clickable).
 HomPurchaseCard {
     background-color: $bg;
     border: 1px solid $border;
@@ -217,7 +217,7 @@ HomPurchaseTotal {
     padding: 0;
 }
 
-// Paginador (page-pill do React): pílula/box/sombra das setas vêm do Java.
+// Paginator (React's page-pill): pill/box/arrow shadow come from Java.
 HomPurchasePagination {
     background-color: $surface;
     border-top: 1px solid $border;
@@ -229,7 +229,7 @@ HomPurchasePagePill {
     padding: 0 1mm;
 }
 
-// font-size pequeno evita que o texto vazio do Button reserve a altura da fonte.
+// a small font-size keeps the Button's empty text from reserving the font height.
 HomPurchasePageBtn {
     background-color: transparent;
     color: $text-secondary;

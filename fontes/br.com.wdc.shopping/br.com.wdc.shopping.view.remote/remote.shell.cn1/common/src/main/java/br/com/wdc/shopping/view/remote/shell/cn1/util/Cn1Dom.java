@@ -17,22 +17,22 @@ import br.com.wdc.shopping.view.remote.shell.cn1.widgets.CardHeader;
 import br.com.wdc.shopping.view.remote.shell.cn1.widgets.Slot;
 
 /**
- * DSL fluente de construção da árvore de componentes — análogo do {@code VaadinDom}/{@code SwtDom}
- * para o Codename One.
+ * Fluent DSL for building the component tree — the Codename One analog of
+ * {@code VaadinDom}/{@code SwtDom}.
  *
  * <p>
- * Mantém um {@code currentParent}: cada método cria o componente, torna-o o parent corrente, executa
- * o {@link Consumer} (que o configura e aninha filhos via novas chamadas), adiciona-o ao parent
- * anterior e o retorna (para capturar a referência num campo da view). Os métodos têm sobrecarga com
- * {@code constraint} para layouts como {@link BorderLayout}.
+ * Keeps a {@code currentParent}: each method creates the component, makes it the current parent, runs
+ * the {@link Consumer} (which configures it and nests children via further calls), adds it to the
+ * previous parent and returns it (to capture the reference in a view field). The methods have overloads
+ * with a {@code constraint} for layouts such as {@link BorderLayout}.
  * </p>
  *
  * <p>
- * <b>Convenção:</b> dentro do lambda de configuração, {@code setUIID(...)} (ou a cor base via
- * {@code getAllStyles().setFgColor(...)}) deve ser a <b>primeira</b> ação. Helpers como
- * {@code FontImage.setMaterialIcon} "assam" o ícone a partir do estilo do componente, então só dão a
- * cor certa se rodarem <i>depois</i> do estilo definido — e assim tudo (criação, estilo, ícone) fica
- * agrupado no mesmo lambda, sem precisar capturar a referência só para decorar fora.
+ * <b>Convention:</b> inside the configuration lambda, {@code setUIID(...)} (or the base color via
+ * {@code getAllStyles().setFgColor(...)}) must be the <b>first</b> action. Helpers such as
+ * {@code FontImage.setMaterialIcon} "bake" the icon from the component's style, so they only give the
+ * right color if they run <i>after</i> the style is set — and so everything (creation, style, icon) stays
+ * grouped in the same lambda, without having to capture the reference just to decorate outside.
  * </p>
  *
  * <pre>{@code
@@ -47,7 +47,7 @@ import br.com.wdc.shopping.view.remote.shell.cn1.widgets.Slot;
  */
 public final class Cn1Dom {
     
-    /** Configurador vazio: o container é um ponto de montagem, preenchido depois no {@code doUpdate}. */
+    /** Empty configurator: the container is a mount point, filled later in {@code doUpdate}. */
     public static final Consumer<Container> NO_CONTENT = ignored -> {};
 
     private Container currentParent;
@@ -56,13 +56,13 @@ public final class Cn1Dom {
         this.currentParent = root;
     }
 
-    /** Executa a DSL sobre um root já existente e o devolve (para {@code return Cn1Dom.render(...)}). */
+    /** Runs the DSL over an existing root and returns it (for {@code return Cn1Dom.render(...)}). */
     public static Container render(Container root, BiConsumer<Cn1Dom, Container> renderer) {
         renderer.accept(new Cn1Dom(root), root);
         return root;
     }
 
-    /** Cria o root com o layout dado, executa a DSL e o devolve — sem {@code new Container} manual. */
+    /** Creates the root with the given layout, runs the DSL and returns it — no manual {@code new Container}. */
     public static Container render(Layout layout, BiConsumer<Cn1Dom, Container> renderer) {
         return render(new Container(layout), renderer);
     }
@@ -106,7 +106,7 @@ public final class Cn1Dom {
         }
     }
 
-    // :: Folhas
+    // :: Leaves
 
     public Label label(Consumer<Label> fn) {
         return label(null, fn);
@@ -163,22 +163,23 @@ public final class Cn1Dom {
         return slot(null);
     }
 
-    /** Cria um {@link Slot} (filho único) e o adiciona ao parent corrente; o conteúdo entra depois via {@code mount}. */
+    /** Creates a {@link Slot} (single child) and adds it to the current parent; the content comes later via {@code mount}. */
     public Slot slot(Object constraint) {
         Slot e = new Slot();
         addChild(this.currentParent, e, constraint);
         return e;
     }
 
-    /** Adiciona ao parent corrente um component já pronto (ex.: o element de uma sub-view). */
+    /** Adds a ready-made component to the current parent (e.g.: the element of a sub-view). */
     public <T extends Component> T add(T component, Object constraint) {
         addChild(this.currentParent, component, constraint);
         return component;
     }
 
     private static void addChild(Container parent, Component child, Object constraint) {
-        // destaca do pai anterior: o CN1 lança "already contained" em add() se o child já tem pai
-        // (acontece ao reusar peças num re-arranjo de layout). Para um child novo é no-op.
+        // detaches from the previous parent: CN1 throws "already contained" in add() if the child already
+        // has a parent (happens when reusing pieces in a layout rearrangement). For a new child it is a no-op.
+
         if (child.getParent() != null) {
             child.getParent().removeComponent(child);
         }

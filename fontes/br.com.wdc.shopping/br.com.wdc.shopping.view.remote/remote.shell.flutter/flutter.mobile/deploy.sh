@@ -30,19 +30,19 @@ cd "$(dirname "$0")"
 #   --endpoint=X  Backend endpoint (default: http://localhost:8080)
 #
 # Examples:
-# ./deploy.sh list                    # Listar dispositivos disponíveis
-# ./deploy.sh run ios-sim             # Executar no simulador iOS
-# ./deploy.sh run ios                 # Executar em iPhone físico
-# ./deploy.sh run android             # Executar em device Android
-# ./deploy.sh run android-emu         # Executar no emulador Android
-# ./deploy.sh build all               # Build release para iOS + Android (APK + AAB)
-# ./deploy.sh build android           # Só APK
-# ./deploy.sh build ios               # Só iOS
-# ./deploy.sh install ios-sim             # Build + instalar no iPhone simulator
-# ./deploy.sh install ipad-sim            # Build + instalar no iPad simulator
-# ./deploy.sh install android             # Build + instalar no device Android físico
-# ./deploy.sh install android-emu         # Build + instalar no emulador de phone
-# ./deploy.sh install android-tablet-emu  # Build + instalar no emulador de tablet
+# ./deploy.sh list                    # List available devices
+# ./deploy.sh run ios-sim             # Run on the iOS simulator
+# ./deploy.sh run ios                 # Run on a physical iPhone
+# ./deploy.sh run android             # Run on an Android device
+# ./deploy.sh run android-emu         # Run on the Android emulator
+# ./deploy.sh build all               # Release build for iOS + Android (APK + AAB)
+# ./deploy.sh build android           # APK only
+# ./deploy.sh build ios               # iOS only
+# ./deploy.sh install ios-sim             # Build + install on the iPhone simulator
+# ./deploy.sh install ipad-sim            # Build + install on the iPad simulator
+# ./deploy.sh install android             # Build + install on a physical Android device
+# ./deploy.sh install android-emu         # Build + install on the phone emulator
+# ./deploy.sh install android-tablet-emu  # Build + install on the tablet emulator
 # ──────────────────────────────────────────────────────────────────────────────
 
 ENDPOINT="${WDC_ENDPOINT:-http://localhost:8080}"

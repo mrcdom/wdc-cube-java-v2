@@ -9,9 +9,10 @@ import br.com.wdc.shopping.view.remote.shell.cn1.Sel;
 import br.com.wdc.shopping.view.remote.shell.cn1.theme.Colors;
 
 /**
- * Botão "voltar" neutro (slate, fonte leve) com seta à esquerda e fundo cinza arredondado no clique
- * — UIID {@code BackButton}. O simulador CN1 não expõe hover de mouse, então o realce aparece no
+ * Neutral "back" button (slate, light font) with a left arrow and a rounded gray background on click
+ * — UIID {@code BackButton}. The CN1 simulator does not expose mouse hover, so the highlight shows on
  * <i>pressed</i>.
+
  */
 public final class BackButton extends Button {
 

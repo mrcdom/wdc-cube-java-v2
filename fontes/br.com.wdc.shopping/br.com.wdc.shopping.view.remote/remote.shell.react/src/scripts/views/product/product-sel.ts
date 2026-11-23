@@ -1,6 +1,6 @@
 /**
- * Seletores CSS do módulo de produto (detalhe).
- * Importado por ProductView.tsx — não referenciar product.scss diretamente nas views.
+ * CSS selectors of the product (detail) module.
+ * Imported by ProductView.tsx — do not reference product.scss directly from the views.
  */
 import GlobalSel from "@root/global-sel"
 

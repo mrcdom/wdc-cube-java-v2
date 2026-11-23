@@ -3,9 +3,9 @@ package br.com.wdc.shopping.view.remote.shell.cn1.util;
 import com.codename1.ui.Display;
 
 /**
- * Conversão densidade-independente: <b>milímetros → pixels</b> do device. Tamanhos em px crus não
- * escalam — num iPhone de alta densidade um valor "150" vira ~8mm (minúsculo). Sempre dimensione em
- * mm e converta no momento do uso (o {@link Display} já está pronto em {@code build()}/{@code doUpdate()}).
+ * Density-independent conversion: <b>millimeters → device pixels</b>. Raw px sizes do not
+ * scale — on a high-density iPhone a value of "150" becomes ~8mm (tiny). Always size in
+ * mm and convert at the time of use (the {@link Display} is already ready in {@code build()}/{@code doUpdate()}).
  */
 public final class Px {
 
@@ -13,7 +13,8 @@ public final class Px {
         // NOOP
     }
 
-    /** Pixels equivalentes a {@code mm} milímetros na densidade do device. */
+    /** Pixels equivalent to {@code mm} millimeters at the device density.
+ */
     public static int mm(float mm) {
         return Display.getInstance().convertToPixels(mm);
     }

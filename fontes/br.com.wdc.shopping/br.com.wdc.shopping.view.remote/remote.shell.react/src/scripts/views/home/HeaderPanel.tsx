@@ -32,7 +32,7 @@ class HeaderPanelClass extends BasePanelClass<HeaderPanelProps> {
             <span className={clsx("bi bi-box-arrow-left", Sel.textLg, Sel.textWhite)}></span>
           </ActionButton>
           <div className={clsx(Sel.smShow, Sel.flexCol, Sel.leadingTight)}>
-            <span className={clsx(Sel.textXs, Sel.textWhite70, Sel.fontNormal)}>Bem-vindo(a),</span>
+            <span className={clsx(Sel.textXs, Sel.textWhite70, Sel.fontNormal)}>Welcome,</span>
             <span className={clsx(Sel.textSm, Sel.fontSemibold, Sel.textWhite)}>{nickName}</span>
           </div>
         </div>
@@ -54,7 +54,7 @@ class HeaderPanelClass extends BasePanelClass<HeaderPanelProps> {
         <div className={Sel.flexItemsCenter}>
           <ActionButton quiet className={Sel.relative} ref={this.cartBtnRef}>
             <span className={clsx("bi bi-bag", Sel.textXl, Sel.textWhite)}></span>
-            <span className={clsx(Sel.smShow, Sel.textSm, Sel.textWhite, Sel.fontMedium, Sel.ml6)}>Carrinho</span>
+            <span className={clsx(Sel.smShow, Sel.textSm, Sel.textWhite, Sel.fontMedium, Sel.ml6)}>Cart</span>
             <span className={Sel.cartBadge}>{cartItemCount}</span>
           </ActionButton>
         </div>

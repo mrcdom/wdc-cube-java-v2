@@ -1,6 +1,6 @@
 /**
- * Seletores CSS do módulo de recibo.
- * Importado por ReceiptView.tsx — não referenciar receipt.scss diretamente nas views.
+ * CSS selectors of the receipt module.
+ * Imported by ReceiptView.tsx — do not reference receipt.scss directly from the views.
  */
 import GlobalSel from "@root/global-sel"
 

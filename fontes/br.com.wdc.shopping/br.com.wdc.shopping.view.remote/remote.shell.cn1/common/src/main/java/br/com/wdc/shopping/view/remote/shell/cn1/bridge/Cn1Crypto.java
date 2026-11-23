@@ -8,17 +8,17 @@ import com.codename1.util.Base64;
 import com.codename1.util.BigInteger;
 
 /**
- * Handshake do bridge no Codename One — RSA (textbook, base36) + PBKDF2-HMAC-SHA256 + AES-256-GCM.
+ * Bridge handshake on Codename One — RSA (textbook, base36) + PBKDF2-HMAC-SHA256 + AES-256-GCM.
  *
  * <p>
- * Reproduz, com APIs nativas do CN1, exatamente o {@code ClientCrypto}/{@code SecretContext} do
- * bridge Java (e o {@code DataSecurity} do Flutter). Receita validada ponta-a-ponta por um probe
- * Java puro com login real (admin/admin) contra o servidor.
+ * Reproduces, with native CN1 APIs, exactly the Java bridge's {@code ClientCrypto}/{@code SecretContext}
+ * (and Flutter's {@code DataSecurity}). Recipe validated end to end by a plain Java probe with a real
+ * login (admin/admin) against the server.
  * </p>
  *
  * <ul>
- * <li>{@link #signature()} — valor do campo {@code "secret"} da 1ª mensagem WS;</li>
- * <li>{@link #encipher(String)} — cifra um valor (ex.: {@code p.password}) com a chave AES da sessão.</li>
+ * <li>{@link #signature()} — value of the {@code "secret"} field of the 1st WS message;</li>
+ * <li>{@link #encipher(String)} — enciphers a value (e.g.: {@code p.password}) with the session AES key.</li>
  * </ul>
  */
 public final class Cn1Crypto {
@@ -41,15 +41,15 @@ public final class Cn1Crypto {
     }
 
     /**
-     * Gera o segredo da sessão a partir da chave pública RSA do servidor
-     * ({@code appSKey} = {@code "expoente:modulo"} em base36, vinda do {@code /api/session/init}).
+     * Generates the session secret from the server's RSA public key
+     * ({@code appSKey} = {@code "exponent:modulus"} in base36, from {@code /api/session/init}).
      */
     public static Cn1Crypto generate(String appSKey) {
         int colon = appSKey.indexOf(':');
         BigInteger publicExponent = new BigInteger(appSKey.substring(0, colon), 36);
         BigInteger publicModulus = new BigInteger(appSKey.substring(colon + 1), 36);
 
-        // senha aleatória: 12 bytes -> base64url sem padding
+        // random password: 12 bytes -> base64url without padding
         byte[] randomBytes = SecureRandom.bytes(12);
         String pwd = stripPadding(Base64.encodeUrlSafe(randomBytes));
         byte[] pwdBytes = utf8(pwd);
@@ -60,9 +60,9 @@ public final class Cn1Crypto {
         // AES-256 via PBKDF2-HMAC-SHA256
         byte[] aesKey = pbkdf2(pwdBytes, salt, PBKDF2_ITERATIONS, AES_KEY_BYTES);
 
-        // RSA textbook: encripta os bytes do base64(pwdBytes); base36
-        String pwdBase64 = Base64.encodeNoNewline(pwdBytes); // base64 padrão (com padding)
-        BigInteger message = new BigInteger(1, utf8(pwdBase64)); // positivo (unsigned)
+        // textbook RSA: encrypts the bytes of base64(pwdBytes); base36
+        String pwdBase64 = Base64.encodeNoNewline(pwdBytes); // standard base64 (with padding)
+        BigInteger message = new BigInteger(1, utf8(pwdBase64)); // positive (unsigned)
         BigInteger encrypted = message.modPow(publicExponent, publicModulus);
 
         String signature = encrypted.toString(36)
@@ -72,13 +72,13 @@ public final class Cn1Crypto {
         return new Cn1Crypto(signature, aesKey, iv);
     }
 
-    /** Cifra um texto com AES-256-GCM (tag 128) da sessão e devolve base64 padrão. */
+    /** Enciphers a text with the session's AES-256-GCM (128-bit tag) and returns standard base64. */
     public String encipher(String plaintext) {
         byte[] out = Cipher.aesEncrypt(Cipher.AES_GCM, new SecretKey("AES", aesKey), iv, new byte[0], utf8(plaintext));
         return Base64.encodeNoNewline(out);
     }
 
-    /** Decifra um base64 cifrado pela sessão (inverso de {@link #encipher}); {@code null} se inválido. */
+    /** Deciphers a base64 enciphered by the session (inverse of {@link #encipher}); {@code null} if invalid. */
     public String decipher(String b64) {
         try {
             byte[] in = Base64.decode(utf8(b64));
@@ -89,7 +89,8 @@ public final class Cn1Crypto {
         }
     }
 
-    // -- PBKDF2-HMAC-SHA256 (dkLen == 32 == 1 bloco HMAC-SHA256) --
+    // -- PBKDF2-HMAC-SHA256 (dkLen == 32 == 1 HMAC-SHA256 block) --
+
 
     private static byte[] pbkdf2(byte[] password, byte[] salt, int iterations, int dkLen) {
         byte[] block = new byte[salt.length + 4];

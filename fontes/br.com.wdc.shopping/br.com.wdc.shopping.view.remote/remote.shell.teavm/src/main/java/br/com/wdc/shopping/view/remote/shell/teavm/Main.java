@@ -16,8 +16,8 @@ import br.com.wdc.shopping.view.remote.shell.teavm.views.product.ProductView;
 import br.com.wdc.shopping.view.remote.shell.teavm.views.receipt.ReceiptView;
 
 /**
- * Entry point da aplicação remote shell TeaVM.
- * Conecta via WebSocket ao remote.host e renderiza com VDom.
+ * Entry point of the TeaVM remote shell application.
+ * Connects to remote.host over WebSocket and renders with VDom.
  */
 public class Main {
 

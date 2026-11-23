@@ -199,7 +199,7 @@ class ConnectionErrorApp extends StatelessWidget {
               const Icon(Icons.cloud_off, size: 64, color: Colors.grey),
               const SizedBox(height: 16),
               const Text(
-                'Não foi possível conectar ao servidor.',
+                'Could not connect to the server.',
                 style: TextStyle(fontSize: 18),
               ),
               const SizedBox(height: 8),

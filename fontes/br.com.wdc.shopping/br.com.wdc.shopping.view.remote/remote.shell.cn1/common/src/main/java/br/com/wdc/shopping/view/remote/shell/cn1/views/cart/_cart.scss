@@ -1,6 +1,6 @@
 // =============================================================================
-// Carrinho (CartCn1View, CartItemCn1View): lista de itens com stepper/subtotal/
-// remover, total e ações; e o estado vazio. Cabeçalho usa CardHeader* (base).
+// Cart (CartCn1View, CartItemCn1View): item list with stepper/subtotal/
+// remove, total and actions; and the empty state. The header uses CardHeader* (base).
 // =============================================================================
 @use 'tokens' as *;
 @use 'mixins' as *;
@@ -70,7 +70,7 @@ CrtActions {
     padding: 3mm 0 0 0;
 }
 
-// -- Estado vazio --
+// -- Empty state --
 
 CrtEmpty {
     background-color: transparent;

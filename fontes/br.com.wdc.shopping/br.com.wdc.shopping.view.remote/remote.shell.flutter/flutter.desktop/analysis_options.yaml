@@ -9,7 +9,7 @@
 # packages, and plugins designed to encourage good coding practices.
 include: package:flutter_lints/flutter.yaml
 
-# Saída de build e pastas de plataforma: só código gerado ou de terceiros
+# Build output and platform folders: generated or third-party code only
 analyzer:
   exclude:
     - build/**

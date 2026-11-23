@@ -1,6 +1,6 @@
 /**
- * Seletores CSS do módulo home (header, tabs, layout de split products+purchases).
- * Importado por HomeView.tsx e painéis internos — não referenciar home.scss diretamente.
+ * CSS selectors of the home module (header, tabs, products+purchases split layout).
+ * Imported by HomeView.tsx and its inner panels — do not reference home.scss directly.
  */
 import GlobalSel from "@root/global-sel"
 

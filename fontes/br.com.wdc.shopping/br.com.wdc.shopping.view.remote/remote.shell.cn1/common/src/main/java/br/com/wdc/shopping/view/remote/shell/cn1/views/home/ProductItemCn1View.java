@@ -19,14 +19,14 @@ import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Money;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Px;
 
-/** Card de produto: imagem (fundo gradiente) + nome + preço; o card inteiro abre o detalhe. */
+/** Product card: image (gradient background) + name + price; the whole card opens the detail. */
 public class ProductItemCn1View extends AbstractItemCn1View<Object> {
 
     private static final HomeSel sel = HomeSel.INSTANCE;
 
-    // Dimensões em mm (densidade-independente). Em px fixos o card fica minúsculo em telas de alta
-    // densidade e o nome/preço (fonte escalada por densidade) não cabem. O FlowLayout do painel quebra
-    // a linha quando não couber; valores tunáveis (ex.: ~2 cards por linha no telefone).
+    // Dimensions in mm (density-independent). In fixed px the card gets tiny on high-density screens
+    // and the name/price (density-scaled font) do not fit. The panel's FlowLayout wraps the line when
+    // it does not fit; tunable values (e.g.: ~2 cards per row on a phone).
     private static final float IMG_MM = 17f;
     private static final float CARD_W_MM = 26f;
     private static final float CARD_H_MM = 38f;
@@ -44,14 +44,15 @@ public class ProductItemCn1View extends AbstractItemCn1View<Object> {
     @Override
     protected Container build() {
         Container content = Cn1Dom.render(BoxLayout.y(), (dom, c) -> {
-            // imagem centralizada num wrap (FlowLayout mantém o tamanho quadrado, sem distorcer)
+            // image centered in a wrap (FlowLayout keeps the square size, without distortion)
             dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, wrap -> {
                 wrap.setUIID(sel.PRODUCT_CARD_IMAGE);
                 image = dom.label(l -> { });
             });
             dom.label(l -> {
                 l.setUIID(sel.PRODUCT_CARD_NAME);
-                l.setEndsWith3Points(true); // nome longo vira "…" em vez de cortar no meio
+                l.setEndsWith3Points(true); // a long name becomes "…" instead of being cut in the middle
+
                 name = Guard.text(l);
             });
             dom.label(l -> {

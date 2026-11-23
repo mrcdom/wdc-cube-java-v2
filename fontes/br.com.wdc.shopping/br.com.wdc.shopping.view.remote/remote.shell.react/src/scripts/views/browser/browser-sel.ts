@@ -1,6 +1,6 @@
 /**
- * Seletores CSS do módulo browser (shell raiz).
- * Importado por BrowserView.tsx — não referenciar browser.scss diretamente nas views.
+ * CSS selectors of the browser module (root shell).
+ * Imported by BrowserView.tsx — do not reference browser.scss directly from the views.
  */
 import GlobalSel from "@root/global-sel"
 

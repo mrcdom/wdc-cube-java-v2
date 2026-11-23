@@ -13,37 +13,37 @@ import com.codename1.io.WebSocket;
 import com.codename1.ui.CN;
 
 /**
- * Cliente do protocolo bridge (lado Codename One) — conexão, estado e submissão de eventos.
+ * Bridge protocol client (Codename One side) — connection, state and event submission.
  *
  * <p>
- * Os presenters rodam no servidor (remote.host); aqui só mantemos o mapa de ViewStates recebido
- * (vsid -> campos) e re-renderizamos a tela corrente a cada push. Single-thread como os demais shells.
+ * The presenters run on the server (remote.host); here we only keep the map of received ViewStates
+ * (vsid -> fields) and re-render the current screen on each push. Single-threaded like the other shells.
  * </p>
  *
  * <p>
- * <b>Cripto adiada:</b> o handshake usa um {@code secret} placeholder não-vazio — suficiente para
- * conectar, receber estado e navegar. O login seguro (cifra da senha) entra numa fase posterior.
+ * The handshake is RSA + PBKDF2 + AES-GCM ({@link Cn1Crypto}): the {@code secret} of the 1st WS
+ * message carries the session key, and sensitive values (e.g. the password) are enciphered with it.
  * </p>
  */
 public final class BridgeSession {
 
-    /** vsid do BrowserPresenter (raiz da árvore de navegação). */
+    /** BrowserPresenter's vsid (root of the navigation tree). */
     public static final String BROWSER_VSID = "7b32e816a191:0";
 
-    /** Preferência (client-only) com o último path navegado, para restaurar a tela ao reabrir. */
+    /** Preference (client-only) with the last navigated path, to restore the screen on reopening. */
     private static final String INTENT_PREF = "wdc.lastIntent";
 
     /**
-     * Notificação de push — no EDT, com os vsids das views <b>recebidas</b> (dirty no servidor) e
-     * <b>liberadas</b> neste push. Cada push passa suas próprias listas (sem estado compartilhado),
-     * então pushes em rajada não se sobrescrevem.
+     * Push notification — on the EDT, with the vsids of the views <b>received</b> (dirty on the server) and
+     * <b>released</b> in this push. Each push passes its own lists (no shared state),
+     * so bursts of pushes do not overwrite each other.
      */
     public interface Listener {
         void onPush(List<String> received, List<String> released);
     }
 
-    private final String base;     // ex.: http://localhost:8080
-    private final String wsBase;   // ex.: ws://localhost:8080
+    private final String base;     // e.g.: http://localhost:8080
+    private final String wsBase;   // e.g.: ws://localhost:8080
     private final Listener listener;
 
     private final Map<String, Map<String, Object>> states = new HashMap<>();
@@ -55,11 +55,11 @@ public final class BridgeSession {
 
     public BridgeSession(String base, Listener listener) {
         this.base = base;
-        this.wsBase = "ws" + base.substring(4); // http:// -> ws:// (ambiente local)
+        this.wsBase = "ws" + base.substring(4); // http:// -> ws:// (local environment)
         this.listener = listener;
     }
 
-    /** Bloqueante (chamar fora do EDT): faz session/init e abre o WebSocket. */
+    /** Blocking (call off the EDT): performs session/init and opens the WebSocket. */
     public void connect() {
         ConnectionRequest req = new ConnectionRequest();
         req.setUrl(base + "/api/session/init");
@@ -68,16 +68,16 @@ public final class BridgeSession {
 
         byte[] data = req.getResponseData();
         if (data == null) {
-            throw new RuntimeException("session/init sem corpo (HTTP " + req.getResponseCode() + ")");
+            throw new RuntimeException("session/init without body (HTTP " + req.getResponseCode() + ")");
         }
         Map<String, Object> init = parse(new String(data));
         String appId = str(init.get("appId"));
         String appSKey = str(init.get("appSKey"));
         if (appId == null || appSKey == null) {
-            throw new RuntimeException("session/init sem appId/appSKey");
+            throw new RuntimeException("session/init without appId/appSKey");
         }
 
-        // Handshake real (RSA + PBKDF2 + AES-GCM): habilita login seguro.
+        // Real handshake (RSA + PBKDF2 + AES-GCM): enables secure login.
         crypto = Cn1Crypto.generate(appSKey);
         final String secret = crypto.signature();
 
@@ -89,7 +89,7 @@ public final class BridgeSession {
                 .connect();
     }
 
-    /** 1ª mensagem WS: secret + o client storage (cifrado) para o servidor popular os escopos. */
+    /** 1st WS message: secret + the client storage (enciphered) for the server to populate the scopes. */
     private String bootstrapMessage(String secret) {
         Map<String, Object> boot = new HashMap<>();
         boot.put("secret", secret);
@@ -98,7 +98,7 @@ public final class BridgeSession {
         if (!storage.isEmpty()) {
             boot.put("storage", storage);
         }
-        // Restaura a última tela: reenvia o path salvo como p.path do browser (createApp → safeGo).
+        // Restores the last screen: resends the saved path as the browser's p.path (createApp → safeGo).
         String savedPath = Preferences.get(INTENT_PREF, "");
         if (savedPath != null && !savedPath.isEmpty()) {
             Map<String, Object> browserForm = new HashMap<>();
@@ -147,11 +147,11 @@ public final class BridgeSession {
             applyStorageDelta(resp.get("storage"));
             CN.callSerially(() -> listener.onPush(received, released));
         } catch (Exception ignore) {
-            // mensagem malformada — ignora; o estado anterior permanece
+            // malformed message — ignored; the previous state remains
         }
     }
 
-    /** Salva o último path navegado (exceto login) para restaurar a tela ao reabrir o app. */
+    /** Saves the last navigated path (except login) to restore the screen when reopening the app. */
     private void persistIntent(String u) {
         if (u == null || u.isEmpty() || u.contains("login")) {
             return;
@@ -159,7 +159,7 @@ public final class BridgeSession {
         Preferences.set(INTENT_PREF, u);
     }
 
-    /** Aplica os deltas de storage do servidor: decifra os valores e grava (ou remove se {@code null}). */
+    /** Applies the server's storage deltas: deciphers the values and stores them (or removes if {@code null}). */
     private void applyStorageDelta(Object storageObj) {
         if (!(storageObj instanceof Map)) {
             return;
@@ -185,15 +185,15 @@ public final class BridgeSession {
                     clientStorage.apply(scope, e.getKey(), plain);
                 }
             } else {
-                clientStorage.apply(scope, e.getKey(), null); // null/vazio = remoção
+                clientStorage.apply(scope, e.getKey(), null); // null/empty = removal
             }
         }
     }
 
     /**
-     * vsid da tela corrente: parte do browser e <b>desce a cadeia {@code contentViewId} até a
-     * folha</b>. O servidor aninha as telas (browser → root → home → produto/carrinho/recibo),
-     * então a tela "atual" é a view mais profunda sem {@code contentViewId}.
+     * vsid of the current screen: starts from the browser and <b>walks down the {@code contentViewId}
+     * chain to the leaf</b>. The server nests the screens (browser → root → home → product/cart/receipt),
+     * so the "current" screen is the deepest view without {@code contentViewId}.
      */
     public String currentScreenVsid() {
         Map<String, Object> browser = states.get(BROWSER_VSID);
@@ -224,7 +224,7 @@ public final class BridgeSession {
         return uri;
     }
 
-    /** classId é o prefixo do vsid antes do ':'. */
+    /** classId is the vsid prefix before the ':'. */
     public static String classIdOf(String vsid) {
         if (vsid == null) {
             return null;
@@ -233,12 +233,12 @@ public final class BridgeSession {
         return i > 0 ? vsid.substring(0, i) : vsid;
     }
 
-    /** Cifra um valor sensível (ex.: senha) com a chave AES da sessão, para enviar ao servidor. */
+    /** Enciphers a sensitive value (e.g.: password) with the session AES key, to send to the server. */
     public String cipher(String plaintext) {
         return crypto.encipher(plaintext);
     }
 
-    /** Submete um evento ao servidor. */
+    /** Submits an event to the server. */
     public void submit(String vsid, int eventCode, Map<String, Object> form) {
         long id = ++requestCounter;
         Map<String, Object> msg = new HashMap<>();
@@ -256,7 +256,8 @@ public final class BridgeSession {
         try {
             return JSONParser.parseJSON(json);
         } catch (Exception e) {
-            throw new RuntimeException("JSON inválido", e);
+            throw new RuntimeException("Invalid JSON"
+, e);
         }
     }
 

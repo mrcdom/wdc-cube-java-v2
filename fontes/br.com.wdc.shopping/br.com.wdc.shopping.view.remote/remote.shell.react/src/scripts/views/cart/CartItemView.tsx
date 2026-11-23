@@ -3,6 +3,7 @@ import clsx from "clsx"
 import bridge, { type ViewProps } from "@root/bridge"
 import { BaseViewClass } from "@root/utils/ViewUtils"
 import { ActionButton } from "@root/swc"
+import * as NumberUtils from "@root/utils/NumberUtils"
 import Sel from "./cart-sel"
 
 // :: Actions (must match the row's actions on the server: CartScope.CartItemScope)
@@ -25,7 +26,7 @@ class CartItemViewClass extends BaseViewClass<ViewProps, CartItemViewState> {
     const { state } = this
     const price = state.price ?? 0
     const quantity = state.quantity ?? 0
-    const subtotal = `R$ ${(price * quantity).toFixed(2)}`
+    const subtotal = NumberUtils.formatCurrency(price * quantity)
     return (
       <div className={Sel.itemRow}>
         <span className={Sel.itemName}>{state.name}</span>

@@ -1,6 +1,6 @@
 /**
- * Seletores CSS do módulo carrinho.
- * Importado por CartView.tsx — não referenciar cart.scss diretamente nas views.
+ * CSS selectors of the cart module.
+ * Imported by CartView.tsx — do not reference cart.scss directly from the views.
  */
 import GlobalSel from "@root/global-sel"
 

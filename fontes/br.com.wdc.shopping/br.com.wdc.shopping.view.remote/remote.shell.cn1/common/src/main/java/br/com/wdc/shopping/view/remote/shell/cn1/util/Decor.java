@@ -8,12 +8,12 @@ import com.codename1.ui.geom.Rectangle;
 import br.com.wdc.shopping.view.remote.shell.cn1.theme.Colors;
 
 /**
- * Decoração dos painéis azuis (hero/banner do login): pinta o gradiente azul e os <b>círculos
- * decorativos</b> translúcidos do design React (branco com alpha baixo, parcialmente fora das
- * bordas, recortados pelos limites do painel).
+ * Decoration of the blue panels (login hero/banner): paints the blue gradient and the translucent
+ * <b>decorative circles</b> of the React design (white with low alpha, partly outside the
+ * edges, clipped by the panel bounds).
  *
- * <p>Feito via {@code bgPainter} (o painter substitui o fundo do estilo, então desenhamos também o
- * gradiente). Classe anônima de {@link Painter}, não lambda (o CN1 tropeça em lambdas armazenadas).</p>
+ * <p>Done via {@code bgPainter} (the painter replaces the style's background, so we also draw the
+ * gradient). An anonymous {@link Painter} class, not a lambda (CN1 trips over stored lambdas).</p>
  */
 public final class Decor {
 
@@ -30,23 +30,24 @@ public final class Decor {
                 int w = rect.getWidth();
                 int h = rect.getHeight();
 
-                // gradiente azul (vertical — aproxima o 160deg do React)
+                // blue gradient (vertical — approximates React's 160deg)
                 g.fillLinearGradient(Colors.ACCENT, Colors.ACCENT_3, x, y, w, h, false);
 
-                // círculos brancos translúcidos, parcialmente fora das bordas (recortados)
+                // translucent white circles, partly outside the edges (clipped)
                 int oldAlpha = g.getAlpha();
                 g.setColor(Colors.SURFACE);
                 int base = Math.min(w, h);
 
-                int d1 = base * 6 / 10; // grande — canto superior direito
+                int d1 = base * 6 / 10; // large — top-right corner
                 g.setAlpha(16);
                 g.fillArc(x + w - (d1 * 7 / 10), y - (d1 * 3 / 10), d1, d1, 0, 360);
 
-                int d2 = base * 5 / 10; // médio — canto inferior esquerdo
+                int d2 = base * 5 / 10; // medium — bottom-left corner
                 g.setAlpha(10);
                 g.fillArc(x - (d2 * 3 / 10), y + h - (d2 * 7 / 10), d2, d2, 0, 360);
 
-                int d3 = base * 25 / 100; // pequeno — meio-esquerda
+                int d3 = base * 25 / 100; // small — middle-left
+
                 g.setAlpha(13);
                 g.fillArc(x + (w / 5), y + (h * 2 / 5), d3, d3, 0, 360);
 

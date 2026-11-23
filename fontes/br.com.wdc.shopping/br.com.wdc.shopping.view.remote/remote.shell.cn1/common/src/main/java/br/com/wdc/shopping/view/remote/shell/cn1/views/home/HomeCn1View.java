@@ -25,13 +25,13 @@ import br.com.wdc.shopping.view.remote.shell.cn1.util.Px;
 import br.com.wdc.shopping.view.remote.shell.cn1.widgets.Slot;
 
 /**
- * Tela principal (classId {@value #CLASS_ID}): app bar (sair + saudação / logo "Shopping" / carrinho
- * com badge) e uma área de conteúdo responsiva:
+ * Main screen (classId {@value #CLASS_ID}): app bar (sign out + greeting / "Shopping" logo / cart
+ * with badge) and a responsive content area:
  * <ul>
- * <li><b>split</b> (padrão): produtos + histórico. No <b>expandido</b>, lado a lado; no
- * <b>compacto</b>, abas (Produtos / Histórico) comutam o painel visível.</li>
- * <li><b>conteúdo interno</b> (produto/carrinho/recibo): ocupa a área toda e <b>esconde as abas</b>
- * — elas pertencem só à Home.</li>
+ * <li><b>split</b> (default): products + history. In <b>expanded</b> mode, side by side; in
+ * <b>compact</b> mode, tabs (Products / History) switch the visible panel.</li>
+ * <li><b>inner content</b> (product/cart/receipt): fills the whole area and <b>hides the tabs</b>
+ * — they belong to Home only.</li>
  * </ul>
  */
 public class HomeCn1View extends AbstractCn1View {
@@ -42,26 +42,26 @@ public class HomeCn1View extends AbstractCn1View {
     private static final int EVT_LOGOUT = 1;
     private static final int EVT_OPEN_CART = 2;
 
-    /** Largura (mm) do painel de histórico no layout expandido — densidade-independente (ver util.Px). */
+    /** Width (mm) of the history panel in the expanded layout — density-independent (see util.Px). */
     private static final float PURCHASES_WIDTH_MM = 65f;
 
-    /** Cor do badge do carrinho (vermelho de notificação, sobre o ícone). */
+    /** Cart badge color (notification red, over the icon). */
     private static final int BADGE_COLOR = Colors.BADGE;
 
     private Consumer<String> nick;
-    private Container greetBox;   // saudação (west) — visível só no expandido
-    private Label brandSub;       // "By WeDoCode" (center) — visível só no expandido
-    private Consumer<String> cartText; // texto do botão carrinho — só no expandido
+    private Container greetBox;   // greeting (west) — visible only when expanded
+    private Label brandSub;       // "By WeDoCode" (center) — visible only when expanded
+    private Consumer<String> cartText; // cart button text — only when expanded
     private Label cartBadge;
     private Boolean builtExpanded;
-    /** Área de conteúdo: ou a tela aninhada (contentViewId) ou o split. */
+    /** Content area: either the nested screen (contentViewId) or the split. */
     private Slot bodySlot;
 
-    // split (reconstruído na troca de modo expandido/compacto; reusa os slots dos painéis)
+    // split (rebuilt when switching expanded/compact mode; reuses the panel slots)
     private Container splitPane;
     private Slot productsSlot;
     private Slot purchasesSlot;
-    private Slot activeHolder; // só no compacto (abas)
+    private Slot activeHolder; // compact only (tabs)
     private Button tabProducts;
     private Button tabHistory;
     private boolean showingProducts = true;
@@ -72,14 +72,14 @@ public class HomeCn1View extends AbstractCn1View {
 
     @Override
     protected Container build() {
-        // slots dos painéis criados uma vez (reusados nos dois modos do split)
+        // panel slots created once (reused in both split modes)
         productsSlot = new Slot();
         purchasesSlot = new Slot();
         Container root = Cn1Dom.render(new BorderLayout(), (dom, r) -> {
             dom.border(BorderLayout.NORTH, bar -> {
                 bar.setUIID(sel.APP_BAR);
 
-                // esquerda: sair + saudação (visibilidade da saudação alternada no doUpdate)
+                // left: sign out + greeting (greeting visibility toggled in doUpdate)
                 dom.container(new FlowLayout(Component.LEFT, Component.CENTER), BorderLayout.WEST, west -> {
                     dom.button(b -> {
                         b.setUIID(sel.APP_BAR_BTN);
@@ -89,7 +89,7 @@ public class HomeCn1View extends AbstractCn1View {
                     greetBox = dom.boxY(greet -> {
                         dom.label(l -> {
                             l.setUIID(sel.GREETING_SMALL);
-                            l.setText("Bem-vindo(a),");
+                            l.setText("Welcome,");
                         });
                         dom.label(l -> {
                             l.setUIID(sel.GREETING_NAME);
@@ -98,10 +98,10 @@ public class HomeCn1View extends AbstractCn1View {
                     });
                 });
 
-                // centro: logo + Shopping (+ By WeDoCode, alternado no doUpdate)
+                // center: logo + Shopping (+ By WeDoCode, toggled in doUpdate)
                 dom.container(new FlowLayout(Component.CENTER, Component.CENTER), BorderLayout.CENTER, center -> {
-                    // BoxLayout.x estica logo-wrap e marca-wrap à mesma altura; cada wrap centraliza
-                    // seu conteúdo (valign CENTER) → a marca alinha pelo centro do ícone do logo.
+                    // BoxLayout.x stretches logo-wrap and brand-wrap to the same height; each wrap centers
+                    // its content (valign CENTER) → the brand aligns with the center of the logo icon.
                     dom.boxX(group -> {
                         dom.container(new FlowLayout(Component.CENTER, Component.CENTER), null, logoWrap -> {
                             dom.label(l -> {
@@ -124,7 +124,7 @@ public class HomeCn1View extends AbstractCn1View {
                     });
                 });
 
-                // direita: carrinho (texto alternado no doUpdate) + badge sobreposto ao ícone
+                // right: cart (text toggled in doUpdate) + badge overlaid on the icon
                 dom.container(new FlowLayout(Component.RIGHT, Component.CENTER), BorderLayout.EAST, east -> {
                     dom.container(new LayeredLayout(), null, wrap -> {
                         Button cartBtn = dom.button(b -> {
@@ -132,15 +132,15 @@ public class HomeCn1View extends AbstractCn1View {
                             b.addActionListener(e -> submit(EVT_OPEN_CART));
                             FontImage.setMaterialIcon(b, FontImage.MATERIAL_SHOPPING_CART, 5f);
                         });
-                        cartText = Guard.text(cartBtn); // Button é-um Label
-                        // badge circular via RoundBorder no Java (o border-radius do CSS do CN1 reserva
-                        // espaço vertical); cor/fonte do texto ficam no SCSS.
+                        cartText = Guard.text(cartBtn); // Button is-a Label
+                        // circular badge via RoundBorder in Java (CN1's CSS border-radius reserves
+                        // vertical space); text color/font live in the SCSS.
                         cartBadge = dom.label(l -> {
                             l.setUIID(sel.CART_BADGE);
                             l.getAllStyles().setBgTransparency(0);
                             l.getAllStyles().setBorder(RoundBorder.create().color(BADGE_COLOR));
                         });
-                        // fixa o badge no canto superior direito, sobre o ícone (insets: top right bottom left)
+                        // pins the badge to the top-right corner, over the icon (insets: top right bottom left)
                         ((LayeredLayout) wrap.getLayout()).setInsets(cartBadge, "0 0 auto auto");
                     });
                 });
@@ -151,10 +151,10 @@ public class HomeCn1View extends AbstractCn1View {
         return root;
     }
 
-    /** (Re)constrói o split conforme o modo, reusando os slots dos painéis. Chamado pelo {@link #layoutSplit()}. */
+    /** (Re)builds the split according to the mode, reusing the panel slots. Called by {@link #layoutSplit()}. */
     private void buildSplit() {
         if (app.isExpanded()) {
-            // produtos + histórico lado a lado (sem abas)
+            // products + history side by side (no tabs)
             activeHolder = null;
             purchasesSlot.setPreferredW(Px.mm(PURCHASES_WIDTH_MM));
             splitPane = Cn1Dom.render(new BorderLayout(), (dom, pane) -> {
@@ -162,20 +162,20 @@ public class HomeCn1View extends AbstractCn1View {
                 dom.add(purchasesSlot, BorderLayout.EAST);
             });
         } else {
-            // abas comutam entre produtos e histórico
+            // tabs switch between products and history
             splitPane = Cn1Dom.render(new BorderLayout(), (dom, pane) -> {
                 dom.container(new GridLayout(2), BorderLayout.NORTH, tabs -> {
                     tabs.setUIID(sel.TAB_NAV);
-                    tabProducts = tabButton(dom, "Produtos", FontImage.MATERIAL_VIEW_MODULE, true);
-                    tabHistory = tabButton(dom, "Histórico", FontImage.MATERIAL_HISTORY, false);
+                    tabProducts = tabButton(dom, "Products", FontImage.MATERIAL_VIEW_MODULE, true);
+                    tabHistory = tabButton(dom, "History", FontImage.MATERIAL_HISTORY, false);
                 });
                 activeHolder = dom.slot(BorderLayout.CENTER);
             });
-            refreshTabs(); // popula o holder ativo com o painel inicial
+            refreshTabs(); // fills the active holder with the initial panel
         }
     }
 
-    /** Reconstrói o split só quando o modo (expandido/compacto) muda. Reusa os slots dos painéis. */
+    /** Rebuilds the split only when the mode (expanded/compact) changes. Reuses the panel slots. */
     private void layoutSplit() {
         boolean expanded = app.isExpanded();
         if (builtExpanded != null && builtExpanded.booleanValue() == expanded) {
@@ -200,8 +200,8 @@ public class HomeCn1View extends AbstractCn1View {
         }
         showingProducts = products;
         refreshTabs();
-        // interação local (sem ida ao servidor): marca dirty apenas o painel que ficou visível
-        // — ex.: o histórico recalcula a capacidade agora que tem altura.
+        // local interaction (no server round trip): marks dirty only the panel that became visible
+        // — e.g.: the history recomputes its capacity now that it has a height.
         Map<String, Object> st = state();
         AbstractCn1View panel = childView(Json.str(st, products ? "productsPanelViewId" : "purchasesPanelViewId"));
         if (panel != null) {
@@ -209,10 +209,10 @@ public class HomeCn1View extends AbstractCn1View {
         }
     }
 
-    /** Atualiza o estilo das abas e qual painel está montado no holder ativo (compacto). */
+    /** Updates the tab styles and which panel is mounted in the active holder (compact). */
     private void refreshTabs() {
         if (activeHolder == null) {
-            return; // expandido: sem abas
+            return; // expanded: no tabs
         }
         tabProducts.setUIID(showingProducts ? sel.TAB_ITEM_ACTIVE : sel.TAB_ITEM);
         tabHistory.setUIID(showingProducts ? sel.TAB_ITEM : sel.TAB_ITEM_ACTIVE);
@@ -222,27 +222,28 @@ public class HomeCn1View extends AbstractCn1View {
     @Override
     public void doUpdate() {
         boolean wide = app.isExpanded();
-        layoutSplit();                       // reconstrói o split se o modo mudou
-        Guard.visible(greetBox, wide);       // saudação / "By WeDoCode" / texto do carrinho: só no expandido
+        layoutSplit();                       // rebuilds the split if the mode changed
+        Guard.visible(greetBox, wide);       // greeting / "By WeDoCode" / cart text: only when expanded
         Guard.visible(brandSub, wide);
-        cartText.accept(wide ? "Carrinho" : "");
+        cartText.accept(wide ? "Cart" : "");
 
         Map<String, Object> st = state();
         nick.accept(Json.str(st, "nickName"));
         int cartCount = Json.intOf(st, "cartItemCount");
         cartBadge.setText(String.valueOf(cartCount));
-        Guard.visible(cartBadge, cartCount > 0); // badge some quando o carrinho está vazio (convenção)
+        Guard.visible(cartBadge, cartCount > 0); // badge hides when the cart is empty (convention)
 
         String content = Json.str(st, "contentViewId");
         if (!content.isEmpty()) {
-            // tela aninhada (produto/carrinho/recibo) ocupa tudo — esconde as abas
+            // nested screen (product/cart/receipt) fills everything — hides the tabs
             bodySlot.mount(childElement(content));
         } else {
-            // split produtos + histórico (lado a lado no expandido, abas no compacto)
+            // products + history split (side by side when expanded, tabs when compact)
             bodySlot.mount(splitPane);
             productsSlot.mount(childElement(Json.str(st, "productsPanelViewId")));
             purchasesSlot.mount(childElement(Json.str(st, "purchasesPanelViewId")));
         }
-        // o doUpdate das filhas (conteúdo/painéis) é despachado pela bridge (ViewState recebido)
+        // the children's doUpdate (content/panels) is dispatched by the bridge (ViewState received)
+
     }
 }
