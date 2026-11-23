@@ -9,12 +9,6 @@ import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
 
 public class LoginService {
 
-    private final UserRepository userRepository;
-
-    public LoginService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
-
     /**
      * Autentica o usuário e retorna o resultado completo.
      * Retorna {@code null} se as credenciais forem inválidas.
@@ -53,7 +47,7 @@ public class LoginService {
         }
 
         // 6. Buscar nome de exibição do usuário
-        var users = userRepository.fetch(new UserCriteria()
+        var users = userRepository().fetch(new UserCriteria()
                 .withUserId(authResult.userId())
                 .withProjection(Subject.projection()), 0, 1);
         var subject = users.isEmpty() ? null : Subject.create(users.get(0));
@@ -75,7 +69,7 @@ public class LoginService {
         var projection = Subject.projection()
                 .withPassword(ProjectionValues.INSTANCE.str);
 
-        var users = userRepository.fetch(new UserCriteria()
+        var users = userRepository().fetch(new UserCriteria()
                 .withUserName(userName)
                 .withProjection(projection), 0, 1);
 
@@ -93,4 +87,7 @@ public class LoginService {
         return new LoginResult(Subject.create(user), null);
     }
 
+    private static UserRepository userRepository() {
+        return UserRepository.BEAN.get();
+    }
 }

@@ -66,7 +66,7 @@ Controle programático estilo CMT via `TransactionService` (`framework.domain.tr
 
 ## Convenções
 
-- **Injeção de dependências sem framework de DI**: service locator estático via `AtomicReference<T> BEAN` (ex.: `ShoppingDSLContext.BEAN`). Services recebem dependências no construtor.
+- **Injeção de dependências sem framework de DI**: service locator estático via `AtomicReference<T> BEAN` (ex.: `ShoppingDSLContext.BEAN`). Os serviços da apresentação (`XxxService`, `CartManager`) leem o `BEAN` por um método privado (`private static ProductRepository productRepository() { return ProductRepository.BEAN.get(); }`), sem campo nem parâmetro de construtor; componentes de infraestrutura (ex.: `TransactionServiceImpl`) recebem as dependências no construtor.
 - **Virtual Threads** (Java 21) para conexões WebSocket.
 - **Segurança RBAC**: HMAC challenge-response + JWT; a autorização fica nos endpoints REST (`SecurityEnforcer`), a fronteira por onde passa o teavm.web — nos hosts em que os presenters rodam no servidor, o presenter decide cada consulta e os repositórios são usados direto (`XxxRepository.BEAN.get()`); papéis ADMIN/CUSTOMER/MANAGER (modelo allow-wins). Transporte React: RSA + PBKDF2 + AES-GCM.
 - **Nomenclatura**: `*Scope`, `*ViewImpl`, `*Presenter`, `*RepositoryImpl`, `*Criteria`, `Apply*Criteria`.

@@ -8,8 +8,6 @@ import br.com.wdc.framework.cube.FormParam;
 import br.com.wdc.framework.cube.Scope;
 import br.com.wdc.framework.cube.ScopeSlot;
 import br.com.wdc.framework.domain.security.AuthenticationService;
-import br.com.wdc.shopping.domain.product.ProductRepository;
-import br.com.wdc.shopping.domain.purchase.PurchaseRepository;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.StorageKeys;
 import br.com.wdc.shopping.presentation.exception.ProductNotFoundException;
@@ -51,8 +49,8 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
         this.contentSlot = this::setContent;
         this.onCartCommitListenerRemover = ThrowingRunnable.noop();
         this.onCartChangeListenerRemover = ThrowingRunnable.noop();
-        this.productService = new ProductService(ProductRepository.BEAN.get());
-        this.purchasesPanelService = new PurchasesPanelService(PurchaseRepository.BEAN.get());
+        this.productService = new ProductService();
+        this.purchasesPanelService = new PurchasesPanelService();
 
         this.state.onExit = action(1, this::exit);
         this.state.onOpenCart = action(2, () -> new CartKeys(this.app).flip());
@@ -107,7 +105,7 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
             // The purchases load once its view measures how many fit (onItemSizeCapacityChanged)
             this.state.purchasesPanel.set(this.purchasesPanel);
 
-            this.cart = new CartManager(app.tx(), PurchaseRepository.BEAN.get());
+            this.cart = new CartManager();
             this.onCartCommitListenerRemover = this.cart.addCommitListener(this::onCartCommited);
             this.onCartChangeListenerRemover = this.cart.addChangeListener(this::onCartChanged);
             this.app.setCart(this.cart);

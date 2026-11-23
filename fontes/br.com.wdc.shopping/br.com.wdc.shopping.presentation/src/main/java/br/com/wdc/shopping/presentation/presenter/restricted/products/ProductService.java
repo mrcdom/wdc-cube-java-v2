@@ -10,18 +10,12 @@ import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.Pr
 
 public class ProductService {
 
-    private final ProductRepository repo;
-
-    public ProductService(ProductRepository repo) {
-        this.repo = repo;
-    }
-
     public ProductInfo loadProductById(Long productId) {
         if (productId == null) {
             throw new WrongParametersException();
         }
 
-        var product = repo.fetchById(productId, ProductInfo.projection());
+        var product = productRepository().fetchById(productId, ProductInfo.projection());
         if (product == null) {
             throw new ProductNotFoundException();
         }
@@ -34,7 +28,11 @@ public class ProductService {
 
         criteria.projection().withDescription(null);
 
-        return repo.fetch(criteria, 0, limit)
+        return productRepository().fetch(criteria, 0, limit)
                 .stream().map(ProductInfo::create).toList();
+    }
+
+    private static ProductRepository productRepository() {
+        return ProductRepository.BEAN.get();
     }
 }

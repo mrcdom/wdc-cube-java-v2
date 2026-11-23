@@ -8,7 +8,6 @@ import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.FormParam;
 import br.com.wdc.framework.cube.ScopeSlot;
 import br.com.wdc.framework.domain.exception.OfflineException;
-import br.com.wdc.shopping.domain.product.ProductRepository;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartKeys;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
@@ -32,7 +31,7 @@ public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication>
 
     public ProductPresenter(ShoppingApplication app) {
         super(app);
-        this.productService = new ProductService(ProductRepository.BEAN.get());
+        this.productService = new ProductService();
         this.state.onOpenProducts = action(1, () -> new HomeKeys(this.app).flip());
         this.state.onAddToCart = actionOf(2, FormParam.asInteger("p.quantity"), this::addToCart);
     }

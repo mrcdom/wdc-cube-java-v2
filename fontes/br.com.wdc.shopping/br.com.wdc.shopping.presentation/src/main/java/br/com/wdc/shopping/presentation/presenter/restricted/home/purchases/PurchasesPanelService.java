@@ -20,19 +20,13 @@ import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.Purcha
 
 public class PurchasesPanelService {
 
-    private final PurchaseRepository repo;
-
-    public PurchasesPanelService(PurchaseRepository repo) {
-        this.repo = repo;
-    }
-
     public List<PurchaseInfo> loadPurchases(PurchaseCriteria criteria) {
-        return repo.fetch(criteria.withProjection(purchaseProjection()))
+        return purchaseRepository().fetch(criteria.withProjection(purchaseProjection()))
                 .stream().map(this::purchaseInfoCreate).toList();
     }
 
     public int countPurchasesOfUser(Long userId) {
-        return repo.count(new PurchaseCriteria().withUserId(userId));
+        return purchaseRepository().count(new PurchaseCriteria().withUserId(userId));
     }
 
     public List<PurchaseInfo> loadPurchasesOfUser(Long userId) {
@@ -44,7 +38,7 @@ public class PurchasesPanelService {
             throw new AssertionError("userId is required");
         }
 
-        return repo.fetch(new PurchaseCriteria()
+        return purchaseRepository().fetch(new PurchaseCriteria()
                 .withUserId(userId)
                 .withProjection(purchaseProjection())
                 .withOrderBy(OrderBy.MOST_RECENT_PURCHASE_FIRST),
@@ -58,7 +52,7 @@ public class PurchasesPanelService {
             throw new AssertionError("userId is required");
         }
 
-        var result = repo.fetchPage(new PurchaseCriteria()
+        var result = purchaseRepository().fetchPage(new PurchaseCriteria()
                 .withUserId(userId)
                 .withProjection(purchaseProjection())
                 .withOrderBy(OrderBy.MOST_RECENT_PURCHASE_FIRST), page, pageSize);
@@ -116,5 +110,9 @@ public class PurchasesPanelService {
         tgt.total = total;
 
         return tgt;
+    }
+
+    private static PurchaseRepository purchaseRepository() {
+        return PurchaseRepository.BEAN.get();
     }
 }

@@ -16,14 +16,13 @@ import br.com.wdc.shopping.domain.product.Product;
 import br.com.wdc.shopping.domain.product.ProductCriteria;
 import br.com.wdc.shopping.domain.product.ProductRepository;
 import br.com.wdc.shopping.domain.purchase.Purchase;
-import br.com.wdc.shopping.domain.purchase.PurchaseCriteria.OrderBy;
 import br.com.wdc.shopping.domain.purchase.PurchaseCriteria;
+import br.com.wdc.shopping.domain.purchase.PurchaseCriteria.OrderBy;
 import br.com.wdc.shopping.domain.purchase.PurchaseRepository;
 import br.com.wdc.shopping.domain.purchaseitem.PurchaseItem;
 import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemCriteria;
 import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemRepository;
 import br.com.wdc.shopping.domain.user.User;
-import br.com.wdc.shopping.domain.user.UserRepository;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginService;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelService;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
@@ -49,7 +48,7 @@ public class ShoppingServiceTest extends BaseBusinessTest {
      */
     @Test
     public void purchaseStatement_ordersByPurchaseDate_notByInsertionOrder() {
-        var service = new PurchasesPanelService(PurchaseRepository.BEAN.get());
+        var service = new PurchasesPanelService();
 
         // Última a ser cadastrada (maior id), porém a mais antiga de todas.
         var atrasada = new Purchase()
@@ -106,21 +105,21 @@ public class ShoppingServiceTest extends BaseBusinessTest {
     public void login_wrongPassword_isRejected() {
         // A senha não é campo de critério: quem a confere é o login, e é neste nível que o par
         // "aceita a correta / recusa a errada" precisa ser garantido.
-        var result = new LoginService(UserRepository.BEAN.get()).fetchSubject("admin", "senha-errada");
+        var result = new LoginService().fetchSubject("admin", "senha-errada");
 
         Assert.assertNull("senha errada não pode autenticar", result);
     }
 
     @Test
     public void login_unknownUser_isRejected() {
-        var result = new LoginService(UserRepository.BEAN.get()).fetchSubject("ninguem", "admin");
+        var result = new LoginService().fetchSubject("ninguem", "admin");
 
         Assert.assertNull("usuário inexistente não pode autenticar", result);
     }
 
     @Test
     public void test() {
-        var result = new LoginService(UserRepository.BEAN.get()).fetchSubject("admin", "admin");
+        var result = new LoginService().fetchSubject("admin", "admin");
         var subject = result != null ? result.subject() : null;
         Assert.assertNotNull("Missing subject", subject);
 
@@ -147,7 +146,7 @@ public class ShoppingServiceTest extends BaseBusinessTest {
             Assert.assertTrue("Product price must be grater than or equal to 0.0", produto.price >= 0.0);
             Assert.assertTrue("Product description can not be empty", StringUtils.isNotBlank(produto.description));
 
-            final ProductInfo mesmoProduto = new ProductService(ProductRepository.BEAN.get()).loadProductById(produto.id);
+            final ProductInfo mesmoProduto = new ProductService().loadProductById(produto.id);
             Assert.assertEquals(produto.id, mesmoProduto.id);
             Assert.assertEquals(produto.name, mesmoProduto.name);
             Assert.assertEquals(produto.image, mesmoProduto.image);
@@ -155,7 +154,7 @@ public class ShoppingServiceTest extends BaseBusinessTest {
             Assert.assertEquals(produto.description, mesmoProduto.description);
         }
 
-        var homeService = new PurchasesPanelService(PurchaseRepository.BEAN.get());
+        var homeService = new PurchasesPanelService();
 
         List<PurchaseInfo> compras = homeService.loadPurchases(new PurchaseCriteria()
                 .withOrderBy(OrderBy.OLDEST_FIRST));
@@ -204,7 +203,7 @@ public class ShoppingServiceTest extends BaseBusinessTest {
         Assert.assertEquals(2, ultimaCompra.items.size());
         Assert.assertEquals(Double.valueOf(65.0), Double.valueOf(ultimaCompra.total));
 
-        final ReceiptForm recibo = new ReceiptService(PurchaseRepository.BEAN.get()).loadReceipt(idCompra);
+        final ReceiptForm recibo = new ReceiptService().loadReceipt(idCompra);
         Assert.assertNotNull(recibo);
         Assert.assertEquals(Double.valueOf(65), recibo.total);
         Assert.assertEquals(2, recibo.items.size());

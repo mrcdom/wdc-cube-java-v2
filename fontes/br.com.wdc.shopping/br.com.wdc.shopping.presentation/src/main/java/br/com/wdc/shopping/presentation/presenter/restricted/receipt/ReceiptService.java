@@ -12,18 +12,12 @@ import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.Rec
 
 public class ReceiptService {
 
-    private final PurchaseRepository repo;
-
-    public ReceiptService(PurchaseRepository repo) {
-        this.repo = repo;
-    }
-
     public ReceiptForm loadReceipt(Long purchaseId) {
         if (purchaseId == null) {
             throw new WrongParametersException();
         }
 
-        var receipt = mapPurchaseToReceiptForm(repo.fetchById(purchaseId, projection()));
+        var receipt = mapPurchaseToReceiptForm(purchaseRepository().fetchById(purchaseId, projection()));
         if (receipt != null) {
             receipt.items.sort((a, b) -> Long.compare(a.id, b.id));
         }
@@ -64,5 +58,9 @@ public class ReceiptService {
         tgt.total = total;
 
         return tgt;
+    }
+
+    private static PurchaseRepository purchaseRepository() {
+        return PurchaseRepository.BEAN.get();
     }
 }

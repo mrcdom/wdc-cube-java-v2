@@ -6,7 +6,6 @@ import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.ScopeSlot;
-import br.com.wdc.shopping.domain.purchase.PurchaseRepository;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.exception.PurchaseNotFoundException;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
@@ -32,7 +31,7 @@ public class ReceiptPresenter extends AbstractCubePresenter<ShoppingApplication>
 
     public ReceiptPresenter(ShoppingApplication app) {
         super(app);
-        this.receiptService = new ReceiptService(PurchaseRepository.BEAN.get());
+        this.receiptService = new ReceiptService();
         this.state.onOpenProducts = action(1, () -> new HomeKeys(this.app).flip());
     }
 

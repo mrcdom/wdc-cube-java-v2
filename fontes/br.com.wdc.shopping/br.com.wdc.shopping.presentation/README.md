@@ -129,13 +129,12 @@ Classe abstrata que estende `CubeApplication`. Mantém o estado global:
 
 - `subject` — usuário autenticado (`Subject`)
 - `cart` — carrinho de compras (`CartManager`)
-- `tx()` — o `TransactionService` do módulo (`ShoppingTransactions.BEAN`)
 - `go(String)` / `go(CubeIntent)` — navegação programática
 - `alertUnexpectedError(...)` — exibição de erros via `RootPresenter`
 
 ### Repositórios e autorização
 
-Presenters e serviços usam os repositórios pelo service locator do domínio (`ProductRepository.BEAN.get()`); os serviços os recebem no construtor. A autorização (RBAC) fica na fronteira de confiança: nos endpoints REST (`SecurityEnforcer`), por onde passa o teavm.web, cujos presenters rodam no navegador. Nos hosts em que os presenters rodam no servidor (Vaadin, SWT local, host remoto), o cliente só dispara ações e o presenter decide cada consulta.
+Presenters e serviços usam os repositórios pelo service locator do domínio: cada serviço tem um método privado que o lê a cada uso (`private static ProductRepository productRepository() { return ProductRepository.BEAN.get(); }`), sem campo nem parâmetro de construtor — o `CartManager` faz o mesmo com o `TransactionService` (`ShoppingTransactions.BEAN`). A autorização (RBAC) fica na fronteira de confiança: nos endpoints REST (`SecurityEnforcer`), por onde passa o teavm.web, cujos presenters rodam no navegador. Nos hosts em que os presenters rodam no servidor (Vaadin, SWT local, host remoto), o cliente só dispara ações e o presenter decide cada consulta.
 
 ### Scope
 

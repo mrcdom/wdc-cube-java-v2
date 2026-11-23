@@ -7,7 +7,6 @@ import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.FormParam;
 import br.com.wdc.framework.cube.ScopeSlot;
 import br.com.wdc.framework.domain.exception.OfflineException;
-import br.com.wdc.shopping.domain.user.UserRepository;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.StorageKeys;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
@@ -38,7 +37,7 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     public LoginPresenter(ShoppingApplication app) {
         super(app);
-        this.loginService = new LoginService(UserRepository.BEAN.get());
+        this.loginService = new LoginService();
         this.state.onEnter = actionOf2(1, FormParam.asString("p.userName"),
                 FormParam.of("p.password", v -> app.b64Decipher(CoerceUtils.asString(v))), this::enter);
         this.state.onSync(formData -> {

@@ -9,6 +9,7 @@ import java.util.Map;
 
 import br.com.wdc.framework.commons.function.ThrowingRunnable;
 import br.com.wdc.framework.domain.transaction.TransactionService;
+import br.com.wdc.shopping.domain.ShoppingTransactions;
 import br.com.wdc.shopping.domain.exception.InvalidCartItemException;
 import br.com.wdc.shopping.domain.product.Product;
 import br.com.wdc.shopping.domain.purchase.Purchase;
@@ -21,25 +22,11 @@ import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.Pr
 
 public class CartManager {
 
-    private List<CartItem> cart;
+    private final List<CartItem> cart = new ArrayList<>();
 
     private int listenerIdGen;
-    private Map<Integer, ThrowingRunnable> commitListenerMap;
-    private Map<Integer, ThrowingRunnable> changeListenerMap;
-    private TransactionService tx;
-    private PurchaseRepository purchaseRepository;
-
-    public CartManager(TransactionService tx, PurchaseRepository purchaseRepository) {
-        this.init();
-        this.tx = tx;
-        this.purchaseRepository = purchaseRepository;
-    }
-
-    private void init() {
-        this.cart = new ArrayList<>();
-        this.commitListenerMap = new HashMap<>();
-        this.changeListenerMap = new HashMap<>();
-    }
+    private final Map<Integer, ThrowingRunnable> commitListenerMap = new HashMap<>();
+    private final Map<Integer, ThrowingRunnable> changeListenerMap = new HashMap<>();
 
     public ThrowingRunnable addCommitListener(ThrowingRunnable listener) {
         var listenerID = listenerIdGen++;
@@ -153,8 +140,8 @@ public class CartManager {
             purchase.items().add(purchaseItem);
         }
 
-        this.tx.required(tx -> {
-            if (!this.purchaseRepository.insert(purchase)) {
+        tx().required(tx -> {
+            if (!purchaseRepository().insert(purchase)) {
                 throw new AssertionError("Record not inserted");
             }
         });
@@ -178,4 +165,11 @@ public class CartManager {
         this.cart.clear();
     }
 
+    private static TransactionService tx() {
+        return ShoppingTransactions.BEAN.get();
+    }
+
+    private static PurchaseRepository purchaseRepository() {
+        return PurchaseRepository.BEAN.get();
+    }
 }

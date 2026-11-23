@@ -5,8 +5,6 @@ import java.util.List;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.CubeApplication;
 import br.com.wdc.framework.cube.CubePlace;
-import br.com.wdc.framework.domain.transaction.TransactionService;
-import br.com.wdc.shopping.domain.ShoppingTransactions;
 import br.com.wdc.shopping.presentation.presenter.RootKeys;
 import br.com.wdc.shopping.presentation.presenter.RootPresenter;
 import br.com.wdc.shopping.presentation.presenter.open.OpenKeys;
@@ -58,10 +56,6 @@ public abstract class ShoppingApplication extends CubeApplication {
 
 	public void setSubject(Subject subject) {
 		this.subject = subject;
-	}
-	
-	public TransactionService tx() {
-	    return ShoppingTransactions.BEAN.get();
 	}
 
 	public CartManager getCart() {
