@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import br.com.wdc.framework.commons.function.ThrowingRunnable;
 import br.com.wdc.framework.commons.log.Log;
@@ -90,24 +90,25 @@ public class RemoteBrowserPresenter extends AbstractPresenter<CubeApplication> {
 
     // :: Alerts
 
+    /**
+     * Shows the client the message of an unexpected error: what failed and the cause's message, as the local hosts
+     * do. The stack trace stays in the server's log.
+     */
     public void alertUnexpectedError(Log log, String msg, Throwable cause) {
-        int alertCode = -1;
-        if (msg == null) {
-            if (cause != null) {
-                msg = cause.getMessage();
-            } else {
-                msg = "Ocorreu um erro não previsto";
-            }
+        var causeMessage = cause != null ? cause.getMessage() : null;
+        String text;
+        if (StringUtils.isBlank(msg)) {
+            text = StringUtils.isBlank(causeMessage) ? "Ocorreu um erro não previsto" : causeMessage;
+        } else {
+            text = StringUtils.isBlank(causeMessage) ? msg : msg + ": " + causeMessage;
         }
 
         if (cause != null) {
-            log.error(msg, cause);
-            var detail = ExceptionUtils.getStackTrace(cause);
-            this.alert(ThrowingRunnable.noop(), alertCode, msg, detail);
+            log.error(text, cause);
         } else {
-            log.error(msg);
-            this.alert(ThrowingRunnable.noop(), alertCode, msg);
+            log.error(text);
         }
+        this.alert(ThrowingRunnable.noop(), -1, text);
     }
 
     public void alert(ThrowingRunnable action, int code, Object... args) {

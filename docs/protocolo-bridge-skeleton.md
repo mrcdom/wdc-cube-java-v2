@@ -378,7 +378,7 @@ Eventos de views comuns usam códigos `>= 0` definidos por cada view. eventCodes
 
 O estado da Browser View pode carregar um alerta comandado pelo servidor:
 - `alertId`: código do alerta; `-1` = erro inesperado; `0` = nenhum (após o OK).
-- `alertArgs`: `string[]` de argumentos (no erro inesperado: a mensagem e o detalhe).
+- `alertArgs`: `string[]` de argumentos (no erro inesperado: só a mensagem — o stack trace fica no log do servidor).
 
 Com `alertId != 0`, o cliente mostra o alerta e, ao ser dispensado, dispara o evento `1` (`onAlertOk`) da Browser View.
 
