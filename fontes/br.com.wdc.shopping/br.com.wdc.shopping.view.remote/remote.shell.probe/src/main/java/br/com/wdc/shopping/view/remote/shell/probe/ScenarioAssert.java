@@ -12,22 +12,22 @@ public final class ScenarioAssert {
 
     public static void assertEquals(String msg, long expected, long actual) {
         if (expected != actual)
-            throw new AssertionError(msg + " — esperado: " + expected + ", obtido: " + actual);
+            throw new AssertionError(msg + " — expected: " + expected + ", actual: " + actual);
     }
 
     public static void assertEquals(String msg, int expected, int actual) {
         if (expected != actual)
-            throw new AssertionError(msg + " — esperado: " + expected + ", obtido: " + actual);
+            throw new AssertionError(msg + " — expected: " + expected + ", actual: " + actual);
     }
 
     public static void assertNotNull(String msg, Object value) {
         if (value == null)
-            throw new AssertionError(msg + " — valor é null");
+            throw new AssertionError(msg + " — value is null");
     }
 
     public static void assertNull(String msg, Object value) {
         if (value != null)
-            throw new AssertionError(msg + " — esperado null, obtido: " + value);
+            throw new AssertionError(msg + " — expected null, actual: " + value);
     }
 
     public static void assertTrue(String msg, boolean condition) {

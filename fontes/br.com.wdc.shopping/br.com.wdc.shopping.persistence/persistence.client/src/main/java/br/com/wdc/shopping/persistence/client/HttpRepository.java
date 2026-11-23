@@ -11,14 +11,14 @@ import br.com.wdc.framework.domain.pagination.Page;
 import br.com.wdc.framework.domain.repository.Repository;
 
 /**
- * Implementação genérica de repositório HTTP que delega serialização ao {@link ModelCodec}.
+ * Generic HTTP repository implementation that delegates serialization to the {@link ModelCodec}.
  * <p>
- * Usa {@link JsonStreamWriter}/{@link JsonStreamReader} para serialização streaming
- * sem dependência de Gson, compatível com JVM e TeaVM.
+ * Uses {@link JsonStreamWriter}/{@link JsonStreamReader} for streaming serialization
+ * with no Gson dependency, compatible with the JVM and TeaVM.
  *
- * @param <E> tipo da entidade
- * @param <C> tipo do critério de pesquisa
- * @param <K> tipo da chave primária
+ * @param <E> entity type
+ * @param <C> search criteria type
+ * @param <K> primary key type
  */
 public abstract class HttpRepository<E, C, K> implements Repository<E, C, K> {
 

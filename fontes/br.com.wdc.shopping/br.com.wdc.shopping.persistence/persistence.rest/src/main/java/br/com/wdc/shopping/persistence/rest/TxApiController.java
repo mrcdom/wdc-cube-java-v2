@@ -10,19 +10,19 @@ import io.javalin.config.JavalinConfig;
 import io.javalin.http.Context;
 
 /**
- * Endpoints da <b>transação remota dirigida pelo cliente</b>: {@code begin}/{@code commit}/{@code rollback}.
+ * Endpoints of the <b>client-driven remote transaction</b>: {@code begin}/{@code commit}/{@code rollback}.
  *
  * <p>
- * O cliente abre uma transação ({@code begin} → {@code txId}), envia o {@code txId} no cabeçalho {@value #TX_HEADER}
- * nas chamadas de escrita subsequentes (que se juntam à mesma transação física no servidor) e finaliza com
- * {@code commit} ou {@code rollback}.
+ * The client opens a transaction ({@code begin} → {@code txId}), sends the {@code txId} in the {@value #TX_HEADER} header
+ * on subsequent write calls (which join the same physical transaction on the server) and finishes with
+ * {@code commit} or {@code rollback}.
  * </p>
  *
  * <p>
- * <b>Segurança:</b> os endpoints exigem autenticação (filtro em {@code /api/tx/*}). O <b>dono</b> da transação é o
- * próprio {@link RemoteTransactionCoordinator}: a identidade do usuário (id) é passada como {@code ownerKey} no
- * {@code begin} e revalidada pelo coordenador em resume/commit/rollback — outro usuário não consegue usá-la. Não há
- * estado de propriedade aqui (o ciclo de vida, incl. o reaper, é todo do coordenador).
+ * <b>Security:</b> the endpoints require authentication (filter on {@code /api/tx/*}). Ownership of the transaction is
+ * held by the {@link RemoteTransactionCoordinator} itself: the user's identity (id) is passed as {@code ownerKey} on
+ * {@code begin} and revalidated by the coordinator on resume/commit/rollback — another user cannot use it. There is no
+ * ownership state here (the whole lifecycle, incl. the reaper, belongs to the coordinator).
  * </p>
  */
 public final class TxApiController {
@@ -30,9 +30,9 @@ public final class TxApiController {
     public static final String TX_HEADER = "X-Tx-Id";
 
     /**
-     * Identificador opaco da <b>sessão de cliente</b> (gerado por instância da app cliente). Usado como dono da
-     * transação remota quando não há usuário autenticado (segurança desativada) — assim toda transação tem um dono
-     * distinguível, mesmo anônima.
+     * Opaque identifier of the <b>client session</b> (generated per client app instance). Used as the owner of the
+     * remote transaction when there is no authenticated user (security disabled) — so every transaction has a
+     * distinguishable owner, even an anonymous one.
      */
     public static final String CLIENT_HEADER = "X-Client-Id";
 
@@ -63,20 +63,20 @@ public final class TxApiController {
         ctx.json(Map.of("status", "rolledback"));
     }
 
-    /** Consulta o estado de uma transação (open/committed/rolledback/unknown) — desambigua resposta perdida. */
+    /** Queries the state of a transaction (open/committed/rolledback/unknown) — disambiguates a lost response. */
     private static void status(Context ctx) {
         ctx.json(Map.of("status", coordinator().status(txIdHeader(ctx), currentOwnerKey(ctx))));
     }
 
     /**
-     * Chave opaca de dono da transação para o solicitante corrente. Em namespaces separados para evitar que um cliente
-     * anônimo se passe por (ou colida com) um usuário real:
+     * Opaque transaction owner key for the current requester. In separate namespaces to keep an anonymous client from
+     * impersonating (or colliding with) a real user:
      * <ul>
-     * <li>autenticado → {@code "user:" + userId} (o {@value #CLIENT_HEADER} eventual é <b>ignorado</b>, não-spoofável);</li>
-     * <li>sem usuário (segurança desativada) → {@code "anon:" + }{@value #CLIENT_HEADER}, ou {@code null} se o cabeçalho
-     * não veio (cliente legado — mantém o comportamento anterior de transação por requisição).</li>
+     * <li>authenticated → {@code "user:" + userId} (any {@value #CLIENT_HEADER} is <b>ignored</b>, not spoofable);</li>
+     * <li>no user (security disabled) → {@code "anon:" + }{@value #CLIENT_HEADER}, or {@code null} if the header is
+     * absent (legacy client — falls back to per-request transactions).</li>
      * </ul>
-     * Usada por begin/commit/rollback e pelo decorador {@code transactional} (religar/guarda).
+     * Used by begin/commit/rollback and by the {@code transactional} decorator (rebind/guard).
      */
     static String currentOwnerKey(Context ctx) {
         var sc = SecurityContext.CURRENT.get();
@@ -90,7 +90,7 @@ public final class TxApiController {
     private static String txIdHeader(Context ctx) {
         var txId = ctx.header(TX_HEADER);
         if (txId == null || txId.isBlank()) {
-            throw new AccessDeniedException("Cabeçalho " + TX_HEADER + " ausente");
+            throw new AccessDeniedException("Missing " + TX_HEADER + " header");
         }
         return txId;
     }
@@ -98,7 +98,7 @@ public final class TxApiController {
     private static RemoteTransactionCoordinator coordinator() {
         var c = RemoteTransactions.COORDINATOR.get();
         if (c == null) {
-            throw new IllegalStateException("Coordenador de transação remota não inicializado");
+            throw new IllegalStateException("Remote transaction coordinator not initialized");
         }
         return c;
     }

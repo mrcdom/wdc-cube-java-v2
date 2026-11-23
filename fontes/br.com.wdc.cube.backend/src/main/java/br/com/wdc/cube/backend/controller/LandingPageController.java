@@ -31,11 +31,11 @@ public class LandingPageController {
 
         html.append("""
                 <!DOCTYPE html>
-                <html lang="pt-BR">
+                <html lang="en">
                 <head>
                     <meta charset="UTF-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>WeDoCode — Frontends Experimentais</title>
+                    <title>WeDoCode — Experimental Frontends</title>
                     <style>
                         * { margin: 0; padding: 0; box-sizing: border-box; }
                         body {
@@ -80,19 +80,19 @@ public class LandingPageController {
                     </style>
                 </head>
                 <body>
-                    <h1>WeDoCode — Frontends Experimentais</h1>
+                    <h1>WeDoCode — Experimental Frontends</h1>
                     <div class="intro">
                         <p>
-                            Esta página demonstra tecnologias de renderização que têm como alvo o navegador.
-                            Trata-se de experimentações e provas de conceito explorando diferentes abordagens
-                            para a camada de apresentação remota do framework Cube MVP.
+                            This page showcases rendering technologies that target the browser.
+                            These are experiments and proofs of concept exploring different approaches
+                            to the remote presentation layer of the Cube MVP framework.
                         </p>
                     </div>
                     <div class="contexts">
                 """);
 
         if (!Files.isDirectory(frontendBase)) {
-            html.append("<p class=\"no-contexts\">Nenhum contexto frontend disponível.</p>");
+            html.append("<p class=\"no-contexts\">No frontend context available.</p>");
         } else {
             try (Stream<Path> subdirs = Files.list(frontendBase)) {
                 subdirs.filter(Files::isDirectory).sorted().forEach(subdir -> {
@@ -108,7 +108,7 @@ public class LandingPageController {
                 });
             } catch (IOException e) {
                 LOG.warn("Failed to list frontend contexts", e);
-                html.append("<p class=\"no-contexts\">Erro ao listar contextos frontend.</p>");
+                html.append("<p class=\"no-contexts\">Error listing frontend contexts.</p>");
             }
         }
 
@@ -135,7 +135,7 @@ public class LandingPageController {
                 LOG.warn("Failed to read description file: {}", descFile, e);
             }
         }
-        return "<em>Sem descrição disponível.</em>";
+        return "<em>No description available.</em>";
     }
 
     private static String escapeHtml(String text) {

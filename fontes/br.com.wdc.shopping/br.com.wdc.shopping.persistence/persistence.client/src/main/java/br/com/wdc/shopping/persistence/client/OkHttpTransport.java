@@ -15,7 +15,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 
 /**
- * Implementação de {@link HttpTransport} usando OkHttp.
+ * {@link HttpTransport} implementation using OkHttp.
  */
 public class OkHttpTransport implements HttpTransport {
 
@@ -25,7 +25,7 @@ public class OkHttpTransport implements HttpTransport {
     private final OkHttpClient client;
     private final AtomicReference<Supplier<String>> accessTokenSupplier = new AtomicReference<>();
     private final AtomicReference<Supplier<String>> txIdSupplier = new AtomicReference<>();
-    /** Id de sessão de cliente (por instância = por app), enviado em X-Client-Id para identificar o dono de transações anônimas. */
+    /** Client session id (per instance = per app), sent in X-Client-Id to identify the owner of anonymous transactions. */
     private final String clientId = java.util.UUID.randomUUID().toString();
 
     public OkHttpTransport(String baseUrl) {

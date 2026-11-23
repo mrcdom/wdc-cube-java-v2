@@ -29,29 +29,29 @@ public class ShoppingRepositoryBootstrap {
     }
 
     /**
-     * Inicializa repositórios sem segurança (para testes ou views locais), sobre o {@code dataSource} do módulo.
+     * Initializes repositories without security (for tests or local views), over the module's {@code dataSource}.
      */
     public static void initialize(DataSource dataSource, Defer cleanUp) {
         initialize(dataSource, false, cleanUp);
     }
 
     /**
-     * Inicializa repositórios sem segurança, com opção de log de SQL.
+     * Initializes repositories without security, with optional SQL logging.
      *
-     * @param dataSource DataSource <b>deste módulo</b> (injetado pelo composition root)
-     * @param logSql     se {@code true}, jOOQ loga os SQLs executados via SLF4J (nível DEBUG)
+     * @param dataSource DataSource of <b>this module</b> (injected by the composition root)
+     * @param logSql     if {@code true}, jOOQ logs the executed SQL via SLF4J (DEBUG level)
      */
     public static void initialize(DataSource dataSource, boolean logSql, Defer cleanUp) {
         initialize(dataSource, logSql, SQLDialect.H2, cleanUp);
     }
 
     /**
-     * Inicializa repositórios sem segurança, com dialeto explícito.
+     * Initializes repositories without security, with an explicit dialect.
      *
-     * @param dataSource DataSource <b>deste módulo</b> — usado tanto pelo {@code DSLContext} quanto pelo
-     *                   {@code TransactionService} do módulo
-     * @param logSql     se {@code true}, jOOQ loga os SQLs executados via SLF4J (nível DEBUG)
-     * @param dialect    dialeto SQL a usar (ex: {@link SQLDialect#H2}, {@link SQLDialect#POSTGRES})
+     * @param dataSource DataSource of <b>this module</b> — used both by the {@code DSLContext} and by the
+     *                   module's {@code TransactionService}
+     * @param logSql     if {@code true}, jOOQ logs the executed SQL via SLF4J (DEBUG level)
+     * @param dialect    SQL dialect to use (e.g. {@link SQLDialect#H2}, {@link SQLDialect#POSTGRES})
      */
     public static void initialize(DataSource dataSource, boolean logSql, SQLDialect dialect, Defer cleanUp) {
         var settings = new Settings()
@@ -67,8 +67,8 @@ public class ShoppingRepositoryBootstrap {
             // "en_user" which matches the actual stored name.
             settings = settings.withRenderNameCase(RenderNameCase.LOWER);
         }
-        // DSLContext ciente do TransactionScope: dentro de uma transação as queries usam a conexão do escopo
-        // (mesma transação física); fora dela, conexão avulsa do pool (autocommit). Vale para JDBC e JTA.
+        // TransactionScope-aware DSLContext: inside a transaction, queries use the scope's connection
+        // (same physical transaction); outside it, a standalone pool connection (autocommit). Applies to JDBC and JTA.
         var connectionProvider = new TransactionAwareConnectionProvider(dataSource);
         ShoppingDSLContext.BEAN.set(DSL.using(connectionProvider, dialect, settings));
 
@@ -77,7 +77,7 @@ public class ShoppingRepositoryBootstrap {
         PurchaseRepository.BEAN.set(new PurchaseRepositoryImpl());
         PurchaseItemRepository.BEAN.set(new PurchaseItemRepositoryImpl());
 
-        // TransactionService do módulo, ligado ao DataSource deste módulo (não a um global compartilhado).
+        // The module's TransactionService, bound to this module's DataSource (not to a shared global one).
         ShoppingTransactions.BEAN.set(new TransactionServiceImpl(() -> dataSource));
 
         cleanUp.push(() -> {
@@ -91,13 +91,13 @@ public class ShoppingRepositoryBootstrap {
     }
 
     /**
-     * Ativa segurança: inicializa o {@link AuthenticationService} para autenticação JWT.
+     * Enables security: initializes the {@link AuthenticationService} for JWT authentication.
      * <p>
-     * A verificação de permissões e escopo é feita diretamente nos endpoints REST (ApiControllers).
+     * Permission and scope checks are done directly in the REST endpoints (ApiControllers).
      * <p>
-     * Deve ser chamado <b>após</b> {@link #initialize()}.
+     * Must be called <b>after</b> {@link #initialize()}.
      *
-     * @param jwtSecret segredo para assinatura JWT
+     * @param jwtSecret secret for JWT signing
      */
     public static void initializeSecurity(String jwtSecret, Defer cleanUp) {
         var rawUserRepo = UserRepository.BEAN.get();

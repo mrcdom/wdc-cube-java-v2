@@ -44,7 +44,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-		<!-- Demos e backend; o framework (publicado no Central) fica em 21 no pom dele -->
+		<!-- Demos and backend; the framework (published to Central) stays at 21 in its own pom -->
 		<maven.compiler.release>25</maven.compiler.release>
 	</properties>
 

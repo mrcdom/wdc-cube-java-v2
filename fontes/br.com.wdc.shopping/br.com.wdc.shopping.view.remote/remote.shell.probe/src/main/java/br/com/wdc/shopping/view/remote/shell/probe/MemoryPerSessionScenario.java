@@ -12,72 +12,72 @@ import br.com.wdc.shopping.view.remote.shell.probe.shopping.presentation.LoginPr
 import br.com.wdc.shopping.view.remote.shell.probe.shopping.presentation.ShoppingRoutes;
 
 /**
- * Mede o consumo de memória heap por sessão ativa no servidor em duas fases:
+ * Measures heap memory consumption per active session on the server, in two phases:
  *
  * <ol>
- *   <li><b>Idle footprint</b> — sessões abertas e autenticadas, sem navegação. Heap medido
- *       sem GC logo após o login. Captura os objetos de longa vida criados pela sessão
- *       (presenter tree, contexto de segurança, etc.).</li>
- *   <li><b>Working set</b> — sessões que navegaram (login → Cart → Produtos) antes da medição.
- *       Heap medido sem GC. Revela se a navegação deixa objetos adicionais vivos na sessão.</li>
+ *   <li><b>Idle footprint</b> — sessions opened and authenticated, with no navigation. Heap measured
+ *       without GC right after sign-in. Captures the long-lived objects the session creates
+ *       (presenter tree, security context, etc.).</li>
+ *   <li><b>Working set</b> — sessions that navigated (sign-in → Cart → Products) before the measurement.
+ *       Heap measured without GC. Shows whether navigation leaves extra objects alive in the session.</li>
  * </ol>
  *
- * <p>Em ambas as fases o GC é solicitado apenas antes do baseline de cada rodada,
- * não após as sessões serem abertas — isso evita que o ZGC colete objetos do baseline
- * e cause deltas negativos.</p>
+ * <p>In both phases GC is requested only before each round's baseline,
+ * not after the sessions are opened — this keeps ZGC from collecting baseline objects
+ * and producing negative deltas.</p>
  *
- * <h3>Pré-requisitos</h3>
+ * <h3>Prerequisites</h3>
  * <ul>
- *   <li>Host rodando em {@code http://localhost:8080} com {@code server.devMode=true}</li>
- *   <li>{@code server.sessionTtlSeconds=0} em {@code application.toml} — libera sessões
- *       imediatamente no disconnect, evitando acúmulo de sessões "zumbi" entre rodadas</li>
- *   <li>Usuário {@code admin/admin} existente (banco no estado pós-DBReset)</li>
- *   <li>H2 em modo TCP (externo) para isolar o heap do banco do heap do servidor</li>
+ *   <li>Host running at {@code http://localhost:8080} with {@code server.devMode=true}</li>
+ *   <li>{@code server.sessionTtlSeconds=0} in {@code application.toml} — releases sessions
+ *       immediately on disconnect, avoiding a buildup of "zombie" sessions between rounds</li>
+ *   <li>User {@code admin/admin} exists (database in the post-DBReset state)</li>
+ *   <li>H2 in TCP (external) mode to isolate the database heap from the server heap</li>
  * </ul>
  *
- * <h3>Configuração de JVM recomendada para o servidor</h3>
- * <p>O GC influencia diretamente o resultado. Use ZGC Generacional com coleta periódica
- * para resultados consistentes e representativos de produção:</p>
+ * <h3>Recommended server JVM configuration</h3>
+ * <p>The GC directly affects the result. Use Generational ZGC with periodic collection
+ * for consistent, production-representative results:</p>
  * <pre>
  *   -Xms4g -Xmx10g
  *   -XX:+UseZGC -XX:+ZGenerational
- *   -XX:SoftMaxHeapSize=9g       # ZGC mantém abaixo de 9 GB; 1 GB de buffer para picos
- *   -XX:ZCollectionInterval=5    # GC preditivo: coleta a cada 5 s mesmo sem pressão
- *                                # sem isso o ZGC pode não coletar entre rodadas,
- *                                # inflando o baseline da próxima rodada
+ *   -XX:SoftMaxHeapSize=9g       # ZGC stays below 9 GB; 1 GB of headroom for spikes
+ *   -XX:ZCollectionInterval=5    # predictive GC: collects every 5 s even without pressure
+ *                                # without it ZGC may not collect between rounds,
+ *                                # inflating the next round's baseline
  *   -XX:MaxMetaspaceSize=512m
  *   -XX:ReservedCodeCacheSize=256m
  * </pre>
- * <p><b>Atenção:</b> sem {@code ZCollectionInterval} o ZGC pode não coletar as sessões
- * liberadas entre rodadas antes do próximo {@code POST /__dev/gc}, fazendo o baseline
- * subir progressivamente e os deltas ficarem menores que o real.</p>
+ * <p><b>Warning:</b> without {@code ZCollectionInterval} ZGC may not collect the sessions
+ * released between rounds before the next {@code POST /__dev/gc}, making the baseline
+ * creep up and the deltas come out smaller than the real ones.</p>
  *
- * <h3>Execução</h3>
+ * <h3>Running</h3>
  * <pre>
  *   mvn exec:java -pl ...remote.shell.probe-client \
  *     -Dexec.mainClass=br.com.wdc.shopping.view.remote.javaclient.scenario.MemoryPerSessionScenario \
  *     [-Dexec.args="http://localhost:8080 1000"]
  * </pre>
- * <p>Use lotes grandes (≥ 1000) para diluir o overhead de warmup do JVM e obter
- * deltas proporcionais ao footprint real por sessão.</p>
+ * <p>Use large batches (≥ 1000) to dilute the JVM warmup overhead and get
+ * deltas proportional to the real per-session footprint.</p>
  */
 public class MemoryPerSessionScenario {
 
     static final PrintStream out = System.out; // NOSONAR
     static final PrintStream err = System.err; // NOSONAR
 
-    /** Número de sessões abertas por rodada de medição. */
+    /** Number of sessions opened per measurement round. */
     private static final int DEFAULT_BATCH = 30;
 
-    /** Número de rodadas de medição (a mediana é usada como resultado). */
+    /** Number of measurement rounds (the median is used as the result). */
     private static final int ROUNDS = 3;
 
-    /** Memórias-alvo para as quais calcular o maxSessions recomendado (em GB). */
+    /** Target heap sizes for which to compute the recommended maxSessions (in GB). */
     private static final int[] TARGET_HEAP_GB = { 1, 2, 4, 8, 10, 16, 32 };
 
     /**
-     * Fração do heap que reservamos para overhead de JVM, código, metaspace
-     * e picos de alocação durante requests. 35% = 65% disponível para sessões.
+     * Fraction of the heap reserved for JVM overhead, code, metaspace
+     * and allocation spikes during requests. 35% = 65% available for sessions.
      */
     private static final double OVERHEAD_FRACTION = 0.35;
 

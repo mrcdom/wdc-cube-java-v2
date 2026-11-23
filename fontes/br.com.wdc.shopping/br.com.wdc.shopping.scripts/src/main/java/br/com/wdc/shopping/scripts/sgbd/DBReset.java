@@ -36,13 +36,13 @@ import br.com.wdc.shopping.persistence.impl.ShoppingDSLContext;
 public class DBReset {
 
 	public static Long ADMIN_ID;
-	public static Long FULANO_ID;
-	public static Long BEOTRANO_ID;
+	public static Long JOHN_DOE_ID;
+	public static Long JANE_ROE_ID;
 
-	public static Long CAFETEIRA_ID;
-	public static Long BOLA_WILSON_ID;
-	public static Long FITA_VEDA_ROSCA_ID;
-	public static Long PEN_DRIVE2GB_ID;
+	public static Long COFFEE_MAKER_ID;
+	public static Long WILSON_BALL_ID;
+	public static Long THREAD_SEAL_TAPE_ID;
+	public static Long FLASH_DRIVE_2GB_ID;
 
 	public static Long ADMIN_FIRST_PURCHASE_ID;
 	public static Long ADMIN_FIRST_PURCHASE_ITEM0_ID;
@@ -74,9 +74,9 @@ public class DBReset {
 		 */
 
 		id = 0;
-		addUser(DBReset.ADMIN_ID = id++, "admin", "admin", "João da Silva", "ADMIN");
-		addUser(DBReset.FULANO_ID = id++, "fulano", "fulano", "Fulano de Tal", "CUSTOMER");
-		addUser(DBReset.BEOTRANO_ID = id++, "beotrano", "beotrano", "Beotrano de Alguma Coisa", "CUSTOMER");
+		addUser(DBReset.ADMIN_ID = id++, "admin", "admin", "John Smith", "ADMIN");
+		addUser(DBReset.JOHN_DOE_ID = id++, "jdoe", "jdoe", "John Doe", "CUSTOMER");
+		addUser(DBReset.JANE_ROE_ID = id++, "jroe", "jroe", "Jane Roe", "CUSTOMER");
 		dsl.alterSequence(SQ_USER).restartWith(id).execute();
 
 		/*
@@ -84,23 +84,23 @@ public class DBReset {
 		 */
 
 		id = 0;
-		addProduct(DBReset.CAFETEIRA_ID = id++, "Cafeteira design italiano", 199.99, "<ul>" + "<li>Capacidade para 30 cafés (50ml cada) ou 24 cafés (62ml cada)</li>" + "<li>Sistema corta-pingos</li>"
-				+ "<li>Acompanha filtro permanente removível e colher medidora</li>" + "<li>Permite uso de filtro de papel</li>"
-				+ "<li>Reservatório de água com graduação</li>" + "<li>Botão luminoso liga/desliga</li>" + "<li>Fácil de lavar</li>"
-				+ "<li>Peças podem ser lavadas em máquina de lavar louça (exceto a base motora)</li>"
-				+ "<li>Potência: 1000W - correspondente a 1 Kwh (Kilowatts hora).</li>" + "</ul>",
+		addProduct(DBReset.COFFEE_MAKER_ID = id++, "Italian Design Coffee Maker", 199.99, "<ul>" + "<li>Makes up to 30 cups (50 ml each) or 24 cups (62 ml each)</li>" + "<li>Drip-stop system</li>"
+				+ "<li>Includes a removable permanent filter and a measuring spoon</li>" + "<li>Works with paper filters</li>"
+				+ "<li>Water reservoir with level markings</li>" + "<li>Illuminated on/off switch</li>" + "<li>Easy to clean</li>"
+				+ "<li>Parts are dishwasher-safe (except the motor base)</li>"
+				+ "<li>Power: 1000 W - equivalent to 1 kWh (kilowatt-hour).</li>" + "</ul>",
 				"images/cafeteira.png");
 
-		addProduct(DBReset.BOLA_WILSON_ID = id++, "Bola Wilson", 45.30, "<ul>" + "<li>Bola Wilson Tamanho e Peso Oficial.</li>"
-				+ "<li>Garantia: Contra defeito de fabricação.</li>" + "<li>Origem: Importada.</li>" + "</ul>", "images/wilson.png");
+		addProduct(DBReset.WILSON_BALL_ID = id++, "Wilson Ball", 45.30, "<ul>" + "<li>Wilson ball, official size and weight.</li>"
+				+ "<li>Warranty: covers manufacturing defects.</li>" + "<li>Origin: imported.</li>" + "</ul>", "images/wilson.png");
 
-		addProduct(DBReset.FITA_VEDA_ROSCA_ID = id++, "Fita veda rosca", 2.67, "<ul>" + "<li>Marca Tigre.</li>" + "<li>Tamanho e medida: 18 mm x 10 m.</li>"
-				+ "<li>Composição: Teflon.</li>" + "<li>Utilização: vedação de juntas roscaveis.</li>" + "</ul>", "images/vedarosca.png");
+		addProduct(DBReset.THREAD_SEAL_TAPE_ID = id++, "Thread Seal Tape", 2.67, "<ul>" + "<li>Brand: Tigre.</li>" + "<li>Size: 18 mm x 10 m.</li>"
+				+ "<li>Material: Teflon.</li>" + "<li>Use: sealing threaded joints.</li>" + "</ul>", "images/vedarosca.png");
 
-		addProduct(DBReset.PEN_DRIVE2GB_ID = id++, "Pen Drive 2GB", 16.0, "Ideal para transporte de arquivos de dados, áudio, vídeo, "
-				+ "fotos e muito mais. Melhor valor para armazenamento e transferência de informação. Portátil, "
-				+ "fácil de usar e super leve, ele possui segurança com seus dados, led indicando o uso, além "
-				+ "de ser resistente a quedas. Pen Drive com capacidade de armazenamento de 2 GB, praticidade " + "e qualidade com seus arquivos!",
+		addProduct(DBReset.FLASH_DRIVE_2GB_ID = id++, "2GB Flash Drive", 16.0, "Ideal for carrying data files, audio, video, "
+				+ "photos and much more. The best value for storing and transferring information. Portable, "
+				+ "easy to use and super light, it keeps your data safe, has an activity LED and "
+				+ "is drop-resistant. A flash drive with 2 GB of storage: convenience " + "and quality for your files!",
 				"images/pendrive2gb.png");
 
 		dsl.alterSequence(SQ_PRODUCT).restartWith(id).execute();
@@ -114,14 +114,14 @@ public class DBReset {
 		DBReset.ADMIN_FIRST_PURCHASE_ID = id++;
 		DBReset.ADMIN_FIRST_PURCHASE_ITEM0_ID = 0L;
 		addPurchase(DBReset.ADMIN_FIRST_PURCHASE_ID, DBReset.ADMIN_ID, OffsetDateTime.of(2010, 1, 1, 14, 30, 0, 0, ZoneOffset.UTC),
-				newItem(DBReset.ADMIN_FIRST_PURCHASE_ITEM0_ID, DBReset.CAFETEIRA_ID, 1, 200.0));
+				newItem(DBReset.ADMIN_FIRST_PURCHASE_ITEM0_ID, DBReset.COFFEE_MAKER_ID, 1, 200.0));
 
 		DBReset.ADMIN_SECOND_PURCHASE_ID = id++;
 		DBReset.ADMIN_SECOND_PURCHASE_ITEM0_ID = 1L;
 		DBReset.ADMIN_SECOND_PURCHASE_ITEM1_ID = 2L;
 		addPurchase(DBReset.ADMIN_SECOND_PURCHASE_ID, DBReset.ADMIN_ID, OffsetDateTime.of(2011, 4, 3, 9, 15, 0, 0, ZoneOffset.UTC),
-				newItem(DBReset.ADMIN_SECOND_PURCHASE_ITEM0_ID, DBReset.BOLA_WILSON_ID, 1, 45.30),
-				newItem(DBReset.ADMIN_SECOND_PURCHASE_ITEM1_ID, DBReset.FITA_VEDA_ROSCA_ID, 1, 2.67));
+				newItem(DBReset.ADMIN_SECOND_PURCHASE_ITEM0_ID, DBReset.WILSON_BALL_ID, 1, 45.30),
+				newItem(DBReset.ADMIN_SECOND_PURCHASE_ITEM1_ID, DBReset.THREAD_SEAL_TAPE_ID, 1, 2.67));
 
 		dsl.alterSequence(SQ_PURCHASE).restartWith(id).execute();
 		dsl.alterSequence(SQ_PURCHASEITEM).restartWith(3L).execute();

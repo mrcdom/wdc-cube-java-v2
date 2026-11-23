@@ -12,14 +12,14 @@ import br.com.wdc.framework.domain.security.AuthenticationService;
 import br.com.wdc.framework.domain.security.SecurityContext;
 
 /**
- * Implementação de {@link AuthenticationService} sobre HTTP REST.
+ * {@link AuthenticationService} implementation over HTTP REST.
  * <p>
- * Encapsula as chamadas aos endpoints {@code /api/auth/*} e gerencia
- * o token de acesso automaticamente, permitindo que os repositórios REST
- * incluam o Bearer token em requisições subsequentes.
+ * Wraps the calls to the {@code /api/auth/*} endpoints and manages
+ * the access token automatically, so the REST repositories
+ * include the Bearer token in subsequent requests.
  * <p>
- * Persiste tokens no {@link ClientStorage} (se disponível) para que a sessão
- * possa ser restaurada após reinicialização da aplicação.
+ * Persists tokens in the {@link ClientStorage} (if available) so the session
+ * can be restored after the application restarts.
  */
 public class RestAuthenticationService implements AuthenticationService {
 
@@ -38,10 +38,10 @@ public class RestAuthenticationService implements AuthenticationService {
 	}
 
 	/**
-	 * Tenta restaurar a sessão a partir dos tokens salvos no {@link ClientStorage}.
-	 * Se o refresh token estiver presente, faz refresh e retorna o resultado.
+	 * Tries to restore the session from the tokens saved in the {@link ClientStorage}.
+	 * If the refresh token is present, refreshes and returns the result.
 	 *
-	 * @return resultado do refresh, ou {@code null} se não houver sessão salva ou o refresh falhar
+	 * @return the refresh result, or {@code null} if there is no saved session or the refresh fails
 	 */
 	public AuthResult tryRestore() {
 		var savedRefreshToken = storage.secure().get(KEY_REFRESH_TOKEN);
@@ -99,14 +99,14 @@ public class RestAuthenticationService implements AuthenticationService {
 
 		var result = parseAuthResult(responseJson);
 
-		// Atualiza o RestAuthClient para que REST repos incluam o Bearer token
+		// Updates the RestAuthClient so the REST repos include the Bearer token
 		authClient.setTokens(
 				result.accessToken(),
 				result.refreshToken(),
 				result.publicKey(),
 				result.expiresAt().getEpochSecond());
 
-		// Persiste tokens no storage seguro (AES-GCM) para restauração futura
+		// Persists tokens in secure storage (AES-GCM) for later restoration
 		storage.secure().set(KEY_ACCESS_TOKEN, result.accessToken());
 		storage.secure().set(KEY_REFRESH_TOKEN, result.refreshToken());
 
@@ -142,7 +142,7 @@ public class RestAuthenticationService implements AuthenticationService {
 				result.publicKey(),
 				result.expiresAt().getEpochSecond());
 
-		// Atualiza tokens no storage seguro (AES-GCM)
+		// Updates tokens in secure storage (AES-GCM)
 		storage.secure().set(KEY_ACCESS_TOKEN, result.accessToken());
 		storage.secure().set(KEY_REFRESH_TOKEN, result.refreshToken());
 
@@ -159,12 +159,12 @@ public class RestAuthenticationService implements AuthenticationService {
 				writer.endObject();
 				transport.postJsonPublic("/api/auth/logout", writer.result());
 			} catch (Exception ignored) {
-				// Ignora erros de rede no logout
+				// Ignores network errors on logout
 			}
 		}
 		authClient.clearTokens();
 
-		// Limpa tokens do storage — incondicional, independente do refreshToken
+		// Clears tokens from storage — unconditionally, regardless of the refreshToken
 		storage.secure().remove(KEY_ACCESS_TOKEN);
 		storage.secure().remove(KEY_REFRESH_TOKEN);
 	}

@@ -8,9 +8,9 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Armazena nonces descartáveis para o fluxo challenge-response de login.
+ * Stores disposable nonces for the challenge-response login flow.
  * <p>
- * Cada nonce é de uso único e expira após um TTL curto.
+ * Each nonce is single-use and expires after a short TTL.
  */
 public final class NonceStore {
 
@@ -19,7 +19,7 @@ public final class NonceStore {
 	private final ConcurrentHashMap<String, Instant> nonces = new ConcurrentHashMap<>();
 
 	/**
-	 * Gera e armazena um novo nonce.
+	 * Generates and stores a new nonce.
 	 */
 	public String generate() {
 		var nonce = UUID.randomUUID().toString();
@@ -28,14 +28,14 @@ public final class NonceStore {
 	}
 
 	/**
-	 * Retorna a data de expiração do nonce, sem removê-lo.
+	 * Returns the nonce's expiration time without removing it.
 	 */
 	public Instant expiresAt(String nonce) {
 		return nonces.get(nonce);
 	}
 
 	/**
-	 * Consome o nonce (uso único). Retorna true se válido e não expirado.
+	 * Consumes the nonce (single use). Returns true if valid and not expired.
 	 */
 	public boolean consume(String nonce) {
 		var expiresAt = nonces.remove(nonce);
@@ -43,7 +43,7 @@ public final class NonceStore {
 	}
 
 	/**
-	 * Remove nonces expirados. Chamado periodicamente.
+	 * Removes expired nonces. Called periodically.
 	 */
 	public void evictExpired() {
 		var now = Instant.now();

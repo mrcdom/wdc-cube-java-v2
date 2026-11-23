@@ -32,7 +32,7 @@ public class ShoppingConfig {
     }
 
     /**
-     * Carrega a configuração da aplicação aplicando as convenções do Shopping
+     * Loads the application configuration applying the Shopping conventions
      * (system property {@code shopping.config.file} → {@code config/application.toml}).
      */
     public static AppConfig loadConfig() {

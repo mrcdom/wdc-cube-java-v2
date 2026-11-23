@@ -1,26 +1,26 @@
 #!/bin/bash
 
-# Constrói os artefatos web que o backend serve a partir de work/frontend/.
+# Builds the web artifacts the backend serves from work/frontend/.
 #
-# Cada frontend já tem o seu build.sh, cada um em um módulo diferente e com
-# pré-requisitos diferentes; este script só sabe onde eles estão, em que ordem
-# chamá-los e o que fazer quando uma ferramenta não está instalada.
+# Each frontend already has its own build.sh, each in a different module and with
+# different prerequisites; this script only knows where they are, in which order
+# to call them and what to do when a tool is not installed.
 #
-# Uso:
-#   ./build-frontends.sh                      # todos os alvos disponíveis
-#   ./build-frontends.sh react teavm.web      # só os alvos citados
-#   ./build-frontends.sh --skip-install       # não reinstala os módulos Maven antes do TeaVM
-#   ./build-frontends.sh --list               # mostra os alvos e o estado dos pré-requisitos
+# Usage:
+#   ./build-frontends.sh                      # all available targets
+#   ./build-frontends.sh react teavm.web      # only the named targets
+#   ./build-frontends.sh --skip-install       # does not reinstall the Maven modules before TeaVM
+#   ./build-frontends.sh --list               # shows the targets and the state of their prerequisites
 #   SOURCE_MAPS=true ./build-frontends.sh flutter
 #
-# Um alvo sem a ferramenta necessária é PULADO, não é erro: quem não tem Flutter
-# instalado continua conseguindo gerar os outros três. O código de saída só é
-# diferente de zero se algum build de fato falhar.
+# A target without the required tool is SKIPPED, not an error: someone without Flutter
+# installed can still build the other three. The exit code is non-zero only
+# if some build actually fails.
 #
-# Os dois builds TeaVM compilam contra os JARs do ~/.m2, não contra o reator: sem
-# reinstalar os módulos antes, eles produzem, em silêncio, um app com a versão
-# anterior do domínio — o app abre e falha só na chamada que mudou. Por isso a
-# instalação é o padrão, e pular é que precisa ser pedido.
+# Both TeaVM builds compile against the JARs in ~/.m2, not against the reactor: without
+# reinstalling the modules first, they silently produce an app with the previous
+# version of the domain — the app opens and fails only on the call that changed. That
+# is why installing is the default, and skipping has to be requested.
 
 set -uo pipefail
 
@@ -31,7 +31,7 @@ FONTES="$ROOT_DIR/fontes"
 REMOTE="$FONTES/br.com.wdc.shopping/br.com.wdc.shopping.view.remote"
 TEAVM="$FONTES/br.com.wdc.shopping/br.com.wdc.shopping.view.teavm"
 
-# alvo | script de build | ferramenta exigida | pasta de destino em work/frontend
+# target | build script | required tool | destination folder in work/frontend
 TARGETS=(
     "react|$REMOTE/remote.shell.react/build.sh|npm|remote.shell.react"
     "flutter|$REMOTE/remote.shell.flutter/flutter.web/build.sh|flutter|remote.shell.flutter"
@@ -50,7 +50,7 @@ entry_of() {
     return 1
 }
 
-# ---------------------------------------------------------------- argumentos
+# ----------------------------------------------------------------- arguments
 
 SKIP_INSTALL=false
 LIST=false
@@ -65,14 +65,14 @@ while [ $# -gt 0 ]; do
             exit 0
             ;;
         -*)
-            echo "Opção desconhecida: $1" >&2
+            echo "Unknown option: $1" >&2
             exit 2
             ;;
         *)
             if entry_of "$1" >/dev/null; then
                 SELECTED+=("$1")
             else
-                echo "Alvo desconhecido: $1 (conhecidos: $(names | tr '\n' ' '))" >&2
+                echo "Unknown target: $1 (known: $(names | tr '\n' ' '))" >&2
                 exit 2
             fi
             ;;
@@ -82,10 +82,10 @@ done
 
 [ ${#SELECTED[@]} -eq 0 ] && while read -r n; do SELECTED+=("$n"); done < <(names)
 
-# ------------------------------------------------------------- pré-requisitos
+# -------------------------------------------------------------- prerequisites
 
-# Os builds TeaVM chamam `JAVA_HOME=$JAVA25_HOME mvn ...`; sem a variável o Maven
-# rodaria com JAVA_HOME vazio.
+# The TeaVM builds call `JAVA_HOME=$JAVA25_HOME mvn ...`; without the variable Maven
+# would run with an empty JAVA_HOME.
 if [ -z "${JAVA25_HOME:-}" ] && [ -n "${JAVA_HOME:-}" ]; then
     export JAVA25_HOME="$JAVA_HOME"
 fi
@@ -94,30 +94,30 @@ missing_tool() {
     local tool="$1"
     case "$tool" in
         mvn)
-            command -v mvn >/dev/null || { echo "mvn não encontrado no PATH"; return 0; }
-            [ -n "${JAVA25_HOME:-}" ] || { echo "JAVA25_HOME (ou JAVA_HOME) não aponta para um JDK 25"; return 0; }
+            command -v mvn >/dev/null || { echo "mvn not found in PATH"; return 0; }
+            [ -n "${JAVA25_HOME:-}" ] || { echo "JAVA25_HOME (or JAVA_HOME) does not point to a JDK 25"; return 0; }
             ;;
         *)
-            command -v "$tool" >/dev/null || { echo "$tool não encontrado no PATH"; return 0; }
+            command -v "$tool" >/dev/null || { echo "$tool not found in PATH"; return 0; }
             ;;
     esac
     return 1
 }
 
 if $LIST; then
-    printf '%-12s  %-22s  %s\n' ALVO DESTINO PRÉ-REQUISITO
+    printf '%-12s  %-22s  %s\n' TARGET DESTINATION PREREQUISITE
     for t in "${TARGETS[@]}"; do
-        reason=$(missing_tool "$(field "$t" 3)") && state="indisponível — $reason" || state="ok ($(field "$t" 3))"
+        reason=$(missing_tool "$(field "$t" 3)") && state="unavailable — $reason" || state="ok ($(field "$t" 3))"
         printf '%-12s  %-22s  %s\n' "$(field "$t" 1)" "work/frontend/$(field "$t" 4)" "$state"
     done
     exit 0
 fi
 
-# ---------------------------------------------------------- dependências Maven
+# ---------------------------------------------------------- Maven dependencies
 
-# Reúne, uma vez só, o que os dois build.sh do TeaVM fazem cada um com a sua
-# opção --full: framework para o remote.shell.teavm e, para o teavm.web, também
-# domínio/persistência/apresentação. Só roda se algum alvo TeaVM foi pedido.
+# Does, just once, what the two TeaVM build.sh scripts each do with their
+# --full option: the framework for remote.shell.teavm and, for teavm.web, also
+# domain/persistence/presentation. Runs only if some TeaVM target was requested.
 needs_maven_modules=false
 for name in "${SELECTED[@]}"; do
     case "$name" in teavm.*) needs_maven_modules=true ;; esac
@@ -125,20 +125,20 @@ done
 
 if $needs_maven_modules && ! $SKIP_INSTALL; then
     if reason=$(missing_tool mvn); then
-        echo "Instalação dos módulos Maven ignorada: $reason"
+        echo "Maven module installation skipped: $reason"
     else
-        echo "=== Instalando módulos Maven (framework + shopping) ==="
-        echo "    Sem isto o TeaVM compilaria contra o ~/.m2 anterior — use --skip-install se souber que está em dia."
+        echo "=== Installing Maven modules (framework + shopping) ==="
+        echo "    Without this TeaVM would compile against the previous ~/.m2 — use --skip-install if you know it is up to date."
         JAVA_HOME=$JAVA25_HOME mvn -f "$FONTES/br.com.wdc.framework/pom.xml" install -DskipTests -q || exit 1
         JAVA_HOME=$JAVA25_HOME mvn -f "$FONTES/br.com.wdc.shopping/pom.xml" install \
             -pl br.com.wdc.shopping.domain,br.com.wdc.shopping.persistence,:persistence.client,br.com.wdc.shopping.presentation \
             -DskipTests -q || exit 1
     fi
 elif $needs_maven_modules; then
-    echo "=== --skip-install: TeaVM usará os JARs que já estão no ~/.m2 ==="
+    echo "=== --skip-install: TeaVM will use the JARs already in ~/.m2 ==="
 fi
 
-# ------------------------------------------------------------------- execução
+# ------------------------------------------------------------------ execution
 
 RESULTS=()
 FAILED=0
@@ -155,14 +155,14 @@ for name in "${SELECTED[@]}"; do
     echo "=================================================="
 
     if reason=$(missing_tool "$tool"); then
-        echo "PULADO: $reason"
-        RESULTS+=("PULADO   $name  ($reason)")
+        echo "SKIPPED: $reason"
+        RESULTS+=("SKIPPED  $name  ($reason)")
         continue
     fi
 
     if [ ! -x "$script" ]; then
-        echo "PULADO: script não encontrado ou sem permissão de execução: $script"
-        RESULTS+=("PULADO   $name  (build.sh ausente)")
+        echo "SKIPPED: script not found or not executable: $script"
+        RESULTS+=("SKIPPED  $name  (build.sh missing)")
         continue
     fi
 
@@ -170,18 +170,18 @@ for name in "${SELECTED[@]}"; do
     if "$script"; then
         RESULTS+=("OK       $name  ($((SECONDS - started))s)")
     else
-        RESULTS+=("FALHOU   $name  ($((SECONDS - started))s)")
+        RESULTS+=("FAILED   $name  ($((SECONDS - started))s)")
         FAILED=1
     fi
 done
 
 echo ""
 echo "=================================================="
-echo "Resumo"
+echo "Summary"
 echo "=================================================="
 printf '%s\n' "${RESULTS[@]}"
 echo ""
-echo "Destino: $WORK_DIR/frontend"
-echo "Sirva com: $SCRIPT_DIR/start-server.sh"
+echo "Destination: $WORK_DIR/frontend"
+echo "Serve with: $SCRIPT_DIR/start-server.sh"
 
 exit $FAILED

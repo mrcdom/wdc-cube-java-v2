@@ -18,11 +18,11 @@ import br.com.wdc.shopping.domain.user.UserCriteria;
 import br.com.wdc.shopping.domain.user.UserRepository;
 
 /**
- * Implementação de {@link AuthenticationService}.
+ * {@link AuthenticationService} implementation.
  * <p>
- * Gerencia o fluxo HMAC challenge-response, sessões em memória e JWT.
- * Usa o repositório de usuários <b>não-decorado</b> (raw) para buscar
- * credenciais sem passar por verificação de permissão.
+ * Manages the HMAC challenge-response flow, in-memory sessions and JWT.
+ * Uses the <b>undecorated</b> (raw) user repository to fetch
+ * credentials without going through permission checks.
  */
 public final class AuthenticationServiceImpl implements AuthenticationService {
 
@@ -39,8 +39,8 @@ public final class AuthenticationServiceImpl implements AuthenticationService {
 		this.cache = new AccessContextCache(jwtSecret);
 		this.nonceStore = new NonceStore();
 
-		// Agenda limpeza periódica de sessões e nonces expirados.
-		// Intervalo de 1h é suficiente: refresh TTL é 7 dias, nonce TTL é 5 min.
+		// Schedules periodic cleanup of expired sessions and nonces.
+		// A 1h interval is enough: refresh TTL is 7 days, nonce TTL is 5 min.
 		var scheduler = ScheduledExecutor.BEAN.get();
 		if (scheduler != null) {
 			scheduler.scheduleAtFixedRate(() -> {

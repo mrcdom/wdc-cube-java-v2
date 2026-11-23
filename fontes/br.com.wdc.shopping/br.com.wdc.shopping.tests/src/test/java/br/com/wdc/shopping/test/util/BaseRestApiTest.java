@@ -35,12 +35,12 @@ import io.agroal.api.security.SimplePassword;
 import io.javalin.Javalin;
 
 /**
- * Base para testes de integração do api-client.
- * Sobe um servidor Javalin embarcado com a API REST real (usando H2 em memória)
- * e expõe instâncias REST client para os testes usarem diretamente.
+ * Base for api-client integration tests.
+ * Starts an embedded Javalin server with the real REST API (using in-memory H2)
+ * and exposes REST client instances for the tests to use directly.
  *
- * Os BEANs estáticos ficam apontando para a implementação de persistência local
- * (usada pelo servidor). Os testes usam os campos protegidos (REST client instances).
+ * The static BEANs point to the local persistence implementation
+ * (used by the server). The tests use the protected fields (REST client instances).
  */
 @SuppressWarnings("java:S2187") // base class — tests are in subclasses
 public class BaseRestApiTest {
@@ -62,7 +62,7 @@ public class BaseRestApiTest {
 		ScheduledExecutor.BEAN.set(executor);
         cleanUp.push(() -> ScheduledExecutor.BEAN.set(null));
 
-		// Datasource H2 em memória
+		// In-memory H2 datasource
 		var ds = AgroalDataSource.from(
 				new AgroalDataSourceConfigurationSupplier()
 						.connectionPoolConfiguration(cp -> cp
@@ -87,10 +87,10 @@ public class BaseRestApiTest {
 		ShoppingConfig.Internals.setLogDir(basePath.resolve("log"));
 		ShoppingConfig.Internals.setTempDir(basePath.resolve("temp"));
 
-		// Inicializa repositórios locais (persistence) — ficam nos BEANs para o servidor usar
+		// Initializes the local repositories (persistence) — they stay in the BEANs for the server to use
 		ShoppingRepositoryBootstrap.initialize(ds, cleanUp);
 
-		// Sobe o servidor Javalin embarcado (usa os BEANs → persistence local)
+		// Starts the embedded Javalin server (uses the BEANs → local persistence)
 		javalin = Javalin.create(config -> {
 			config.http.maxRequestSize = 10_000_000L; // 10MB
 			RepositoryApiRoutes.configure(config, "");
@@ -102,7 +102,7 @@ public class BaseRestApiTest {
 
 		int actualPort = javalin.port();
 
-		// Cria instâncias REST client (não sobrescrevem os BEANs)
+		// Creates REST client instances (they do not overwrite the BEANs)
 		var transport = new OkHttpTransport("http://localhost:" + actualPort);
 		userRepo = new HttpUserRepository(transport, new UserCodec());
 		productRepo = new HttpProductRepository(transport, new ProductCodec());

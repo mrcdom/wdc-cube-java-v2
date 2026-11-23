@@ -22,13 +22,13 @@ import br.com.wdc.shopping.domain.user.UserCriteria;
 import br.com.wdc.shopping.persistence.rest.doc.RepositoryApiDocs;
 
 /**
- * Guarda-corpo do documento OpenAPI.
+ * Guardrail for the OpenAPI document.
  *
  * <p>
- * A especificação é montada em código, e código que só descreve não quebra quando o que ele descreve muda — foi assim
- * que o formato do critério e o da coleção projetada mudaram sem que a documentação acusasse nada. Estes testes não
- * conferem a prosa, que continua por conta de quem edita; conferem o que é verificável: que o documento é JSON válido,
- * que nenhuma referência aponta para um esquema inexistente, e que os esquemas do formato corrente estão lá.
+ * The specification is built in code, and code that only describes does not break when what it describes changes. These
+ * tests do not check the prose, which remains up to whoever edits it; they check what is verifiable: that the document
+ * is valid JSON, that no reference points to a nonexistent schema, and that the schemas of the current format are
+ * there.
  * </p>
  */
 public class OpenApiSpecTest {
@@ -42,7 +42,7 @@ public class OpenApiSpecTest {
     @Test
     public void documentIsValidJson() {
         var spec = spec();
-        assertTrue("o documento precisa declarar a versão do OpenAPI", spec.has("openapi"));
+        assertTrue("the document must declare the OpenAPI version", spec.has("openapi"));
         assertTrue(spec.has("paths"));
         assertTrue(spec.has("components"));
     }
@@ -59,26 +59,26 @@ public class OpenApiSpecTest {
                 broken.add(m.group(1));
             }
         }
-        assertTrue("referências para esquemas inexistentes: " + broken, broken.isEmpty());
+        assertTrue("references to nonexistent schemas: " + broken, broken.isEmpty());
     }
 
     @Test
     public void criteriaShapeIsDocumented() {
         var schemas = spec().getAsJsonObject("components").getAsJsonObject("schemas");
 
-        // O critério trafega como objeto de pedidos; documentar só o valor solto descreveria uma API que não existe.
-        assertTrue("falta o esquema Criterion", schemas.has("Criterion"));
-        assertTrue("falta o esquema CriterionPredicate", schemas.has("CriterionPredicate"));
+        // The criterion travels as an object of requests; documenting only the bare value would describe an API that does not exist.
+        assertTrue("missing the Criterion schema", schemas.has("Criterion"));
+        assertTrue("missing the CriterionPredicate schema", schemas.has("CriterionPredicate"));
 
         var criterion = schemas.getAsJsonObject("Criterion").getAsJsonObject("properties");
-        assertTrue("Criterion precisa expor a disjunção", criterion.has("or"));
-        assertTrue("Criterion precisa expor os pedidos", criterion.has("p"));
+        assertTrue("Criterion must expose the disjunction", criterion.has("or"));
+        assertTrue("Criterion must expose the requests", criterion.has("p"));
 
         var operators = schemas.getAsJsonObject("CriterionPredicate")
                 .getAsJsonObject("properties").getAsJsonObject("o").getAsJsonArray("enum");
         var names = new ArrayList<String>();
         operators.forEach(e -> names.add(e.getAsString()));
-        assertTrue("os operadores documentados devem cobrir os que a API aceita",
+        assertTrue("the documented operators must cover the ones the API accepts",
                 names.containsAll(List.of("EQ", "NE", "GT", "GE", "LT", "LE",
                         "LIKE", "ILIKE", "BETWEEN", "IN", "IS_NULL", "IS_NOT_NULL")));
     }
@@ -87,7 +87,7 @@ public class OpenApiSpecTest {
     public void projectedCollectionShapeIsDocumented() {
         var schemas = spec().getAsJsonObject("components").getAsJsonObject("schemas");
 
-        assertTrue("falta o esquema ProjectedCollection", schemas.has("ProjectedCollection"));
+        assertTrue("missing the ProjectedCollection schema", schemas.has("ProjectedCollection"));
         var props = schemas.getAsJsonObject("ProjectedCollection").getAsJsonObject("properties");
         assertTrue(props.has("shape"));
         assertTrue(props.has("where"));
@@ -97,91 +97,91 @@ public class OpenApiSpecTest {
 
     @Test
     public void oneToManyFieldDocumentsBothItsForms() {
-        // items é array na resposta e envelope na projeção — descrever só uma das formas induziria ao erro.
+        // items is an array in the response and an envelope in the projection — describing only one of the forms would mislead.
         var items = spec().getAsJsonObject("components").getAsJsonObject("schemas")
                 .getAsJsonObject("Purchase").getAsJsonObject("properties").getAsJsonObject("items");
 
-        assertTrue("items precisa documentar as duas formas", items.has("oneOf"));
+        assertTrue("items must document both forms", items.has("oneOf"));
         var forms = items.getAsJsonArray("oneOf").toString();
-        assertTrue("falta a forma de resposta (array)", forms.contains("PurchaseItem"));
-        assertTrue("falta a forma de projeção (envelope)", forms.contains("ProjectedCollection"));
+        assertTrue("missing the response form (array)", forms.contains("PurchaseItem"));
+        assertTrue("missing the projection form (envelope)", forms.contains("ProjectedCollection"));
     }
 
     @Test
     public void descriptionsAreFreeOfPlaceholders() {
         var json = RepositoryApiDocs.toJson("/api");
-        assertFalse("sobrou marcador de rascunho na documentação", json.contains("TODO"));
+        assertFalse("a draft marker was left in the documentation", json.contains("TODO"));
         assertFalse(json.contains("FIXME"));
     }
 
     /**
-     * Os campos de critério documentados são os que o domínio realmente tem.
+     * The documented criteria fields are the ones the domain actually has.
      *
      * <p>
-     * Não confere contra uma lista escrita aqui — confere contra {@code criterions()}. Uma lista fixa no teste
-     * envelheceria junto com a documentação, e os dois passariam a concordar sobre o que já não é verdade.
+     * It does not check against a list written here — it checks against {@code criterions()}. A fixed list in the test
+     * would go stale along with the documentation, and the two would end up agreeing on what is no longer true.
      * </p>
      */
     @Test
     public void criteriaFieldsMatchTheDomain() {
         var schemas = spec().getAsJsonObject("components").getAsJsonObject("schemas");
 
-        record Caso(String schema, Criteria criteria, Enum<?>[] orderings) { }
-        var casos = List.of(
-                new Caso("ProductCriteria", new ProductCriteria(), ProductCriteria.OrderBy.values()),
-                new Caso("UserCriteria", new UserCriteria(), UserCriteria.OrderBy.values()),
-                new Caso("PurchaseCriteria", new PurchaseCriteria(), PurchaseCriteria.OrderBy.values()),
-                new Caso("PurchaseItemCriteria", new PurchaseItemCriteria(), PurchaseItemCriteria.OrderBy.values()));
+        record TestCase(String schema, Criteria criteria, Enum<?>[] orderings) { }
+        var testCases = List.of(
+                new TestCase("ProductCriteria", new ProductCriteria(), ProductCriteria.OrderBy.values()),
+                new TestCase("UserCriteria", new UserCriteria(), UserCriteria.OrderBy.values()),
+                new TestCase("PurchaseCriteria", new PurchaseCriteria(), PurchaseCriteria.OrderBy.values()),
+                new TestCase("PurchaseItemCriteria", new PurchaseItemCriteria(), PurchaseItemCriteria.OrderBy.values()));
 
-        for (var caso : casos) {
-            assertTrue("falta o esquema " + caso.schema(), schemas.has(caso.schema()));
-            var props = schemas.getAsJsonObject(caso.schema()).getAsJsonObject("properties");
+        for (var testCase : testCases) {
+            assertTrue("missing the schema " + testCase.schema(), schemas.has(testCase.schema()));
+            var props = schemas.getAsJsonObject(testCase.schema()).getAsJsonObject("properties");
 
-            for (var criterion : caso.criteria().criterions()) {
-                assertTrue(caso.schema() + " não documenta o campo " + criterion.name(),
+            for (var criterion : testCase.criteria().criterions()) {
+                assertTrue(testCase.schema() + " does not document the field " + criterion.name(),
                         props.has(criterion.name()));
             }
 
-            var documentados = new ArrayList<>(props.keySet());
-            documentados.remove("orderBy");
-            assertEquals(caso.schema() + " documenta campos que o critério não tem",
-                    caso.criteria().criterions().size(), documentados.size());
+            var documented = new ArrayList<>(props.keySet());
+            documented.remove("orderBy");
+            assertEquals(testCase.schema() + " documents fields the criteria do not have",
+                    testCase.criteria().criterions().size(), documented.size());
         }
     }
 
-    /** As ordenações documentadas são exatamente as constantes do enum da entidade. */
+    /** The documented orderings are exactly the constants of the entity's enum. */
     @Test
     public void orderingsMatchTheDomain() {
         var schemas = spec().getAsJsonObject("components").getAsJsonObject("schemas");
 
-        record Caso(String schema, Enum<?>[] orderings) { }
-        var casos = List.of(
-                new Caso("ProductCriteria", ProductCriteria.OrderBy.values()),
-                new Caso("UserCriteria", UserCriteria.OrderBy.values()),
-                new Caso("PurchaseCriteria", PurchaseCriteria.OrderBy.values()),
-                new Caso("PurchaseItemCriteria", PurchaseItemCriteria.OrderBy.values()));
+        record TestCase(String schema, Enum<?>[] orderings) { }
+        var testCases = List.of(
+                new TestCase("ProductCriteria", ProductCriteria.OrderBy.values()),
+                new TestCase("UserCriteria", UserCriteria.OrderBy.values()),
+                new TestCase("PurchaseCriteria", PurchaseCriteria.OrderBy.values()),
+                new TestCase("PurchaseItemCriteria", PurchaseItemCriteria.OrderBy.values()));
 
-        for (var caso : casos) {
-            var orderBy = schemas.getAsJsonObject(caso.schema())
+        for (var testCase : testCases) {
+            var orderBy = schemas.getAsJsonObject(testCase.schema())
                     .getAsJsonObject("properties").getAsJsonObject("orderBy");
-            assertTrue(caso.schema() + " não documenta os valores de orderBy", orderBy.has("enum"));
+            assertTrue(testCase.schema() + " does not document the orderBy values", orderBy.has("enum"));
 
-            var documentadas = new ArrayList<String>();
-            orderBy.getAsJsonArray("enum").forEach(e -> documentadas.add(e.getAsString()));
+            var documentedOrderings = new ArrayList<String>();
+            orderBy.getAsJsonArray("enum").forEach(e -> documentedOrderings.add(e.getAsString()));
 
-            var esperadas = Arrays.stream(caso.orderings()).map(Enum::name).toList();
-            assertEquals(caso.schema() + ": ordenações documentadas diferem do enum", esperadas, documentadas);
+            var expected = Arrays.stream(testCase.orderings()).map(Enum::name).toList();
+            assertEquals(testCase.schema() + ": documented orderings differ from the enum", expected, documentedOrderings);
         }
     }
 
-    /** Cada operação de consulta aponta para o corpo da sua entidade, e não para o genérico. */
+    /** Each query operation points to its entity's body, not to the generic one. */
     @Test
     public void queryOperationsPointToTheirEntityBody() {
         var json = RepositoryApiDocs.toJson("/api");
 
-        for (var entidade : List.of("Product", "User", "Purchase", "PurchaseItem")) {
-            assertTrue("falta o corpo de consulta de " + entidade,
-                    json.contains(entidade + "FetchRequest"));
+        for (var entity : List.of("Product", "User", "Purchase", "PurchaseItem")) {
+            assertTrue("missing the query body for " + entity,
+                    json.contains(entity + "FetchRequest"));
         }
     }
 }

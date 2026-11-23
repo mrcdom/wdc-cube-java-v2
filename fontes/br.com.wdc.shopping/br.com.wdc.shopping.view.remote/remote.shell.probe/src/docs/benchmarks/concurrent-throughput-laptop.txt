@@ -1,38 +1,38 @@
 ══════════════════════════════════════════════════════════════════════
-  MÁQUINA: MacBook Pro — Apple M4 Max (Mac16,6)
+  MACHINE: MacBook Pro — Apple M4 Max (Mac16,6)
 ══════════════════════════════════════════════════════════════════════
 
   CPU
     Chip         : Apple M4 Max
-    Cores totais : 16  (12 Performance + 4 Efficiency)
-    GPU cores    : integrada no SoC (Apple M4 Max GPU)
-    Arquitetura  : ARM64 (AArch64), single-die SoC
+    Total cores  : 16  (12 Performance + 4 Efficiency)
+    GPU cores    : integrated in the SoC (Apple M4 Max GPU)
+    Architecture : ARM64 (AArch64), single-die SoC
 
-  Memória
+  Memory
     RAM          : 64 GB unified memory (LPDDR5X)
-    Banda        : ~546 GB/s (M4 Max)
-    Swap         : SSD NVMe (transparente via macOS)
+    Bandwidth    : ~546 GB/s (M4 Max)
+    Swap         : NVMe SSD (transparent via macOS)
 
-  Armazenamento
-    Tipo         : SSD NVMe Apple interno
-    Capacidade   : 2 TB
-    Velocidade   : ~7.4 GB/s leitura sequencial (M4 Max)
+  Storage
+    Type         : internal Apple NVMe SSD
+    Capacity     : 2 TB
+    Speed        : ~7.4 GB/s sequential read (M4 Max)
 
-  JDK de referência
-    Versão       : Java 26 (JDK 26, 2026-03-17)
-    GC padrão    : ZGC Generacional
+  Reference JDK
+    Version      : Java 26 (JDK 26, 2026-03-17)
+    Default GC   : Generational ZGC
     -Xms10g -Xmx10g -XX:+UseZGC -XX:+ZGenerational -XX:SoftMaxHeapSize=9g -XX:ZCollectionInterval=5 -XX:MaxMetaspaceSize=512m -XX:ReservedCodeCacheSize=256m
 
-  Capacidade relevante para benchmarks
-    - Heap configurado nos testes : 10 GB (-Xms10g -Xmx10g)
-    - Memória disponível para OS  : ~54 GB livres para outros processos
-    - Cores disponíveis para JVM  : 16 (virtual threads mapeiam sobre todos)
-    - Saturação observada          : ~100 sessões simultâneas quando servidor
-                                     + cliente + banco rodam na mesma máquina
-                                     (~25.000 req/s, p50=5ms)
+  Capacity relevant to benchmarks
+    - Heap configured in the tests : 10 GB (-Xms10g -Xmx10g)
+    - Memory available to the OS   : ~54 GB free for other processes
+    - Cores available to the JVM   : 16 (virtual threads map onto all of them)
+    - Observed saturation          : ~100 simultaneous sessions when server
+                                     + client + database run on the same machine
+                                     (~25,000 req/s, p50=5ms)
 
 ══════════════════════════════════════════════════════════════════════
-  CONFIGURAÇÃO DA JVM  (start-server.sh)
+  JVM CONFIGURATION  (start-server.sh)
 ══════════════════════════════════════════════════════════════════════
 
   -Xms10g -Xmx10g
@@ -184,64 +184,64 @@
 ══════════════════════════════════════════════════════════════════════
 
 ══════════════════════════════════════════════════════════════════════
-  ANÁLISE DOS RESULTADOS
+  RESULTS ANALYSIS
 ══════════════════════════════════════════════════════════════════════
 
-  Topologia do teste
-  ──────────────────
+  Test topology
+  ─────────────
   Backend       : laptop (M4 Max, 16 cores — 12P + 4E)
-  PostgreSQL    : servidor remoto (2x Xeon, Docker), rede local (LAN)
-  Cliente       : laptop (mesmo processo/máquina que o backend)
+  PostgreSQL    : remote server (2x Xeon, Docker), local network (LAN)
+  Client        : laptop (same process/machine as the backend)
 
-  Curva de degradação — CPU do laptop é o gargalo
-  ─────────────────────────────────────────────────
-    100 sessões →  23.197 req/s   p50 =  5 ms
-    200 sessões →  18.287 req/s   p50 = 10 ms
-    500 sessões →  11.953 req/s   p50 = 50 ms
-    800 sessões →   9.234 req/s   p50 = 100 ms
+  Degradation curve — the laptop CPU is the bottleneck
+  ────────────────────────────────────────────────────
+    100 sessions →  23,197 req/s   p50 =  5 ms
+    200 sessions →  18,287 req/s   p50 = 10 ms
+    500 sessions →  11,953 req/s   p50 = 50 ms
+    800 sessions →   9,234 req/s   p50 = 100 ms
 
-  Com servidor e cliente no mesmo laptop, os 16 cores são disputados
-  pelos dois processos. A Lei de Little confirma a saturação de CPU:
+  With server and client on the same laptop, the two processes compete
+  for the 16 cores. Little's Law confirms the CPU saturation:
 
-    500 sessões / 11.953 req/s ≈ 42 ms de latência média  ✓ (p50 = 50 ms)
-    800 sessões /  9.234 req/s ≈ 87 ms de latência média  ✓ (p50 = 100 ms)
+    500 sessions / 11,953 req/s ≈ 42 ms mean latency  ✓ (p50 = 50 ms)
+    800 sessions /  9,234 req/s ≈ 87 ms mean latency  ✓ (p50 = 100 ms)
 
-  Melhoria em relação aos testes anteriores (PostgreSQL local)
-  ─────────────────────────────────────────────────────────────
-  Os testes anteriores rodavam PostgreSQL no próprio laptop. Com o banco
-  movido para o servidor remoto, o laptop ficou com CPU inteiramente
-  dedicada ao backend + cliente:
+  Comparison with a local PostgreSQL run
+  ──────────────────────────────────────
+  In the local run PostgreSQL ran on the laptop itself. With the database
+  on the remote server, the laptop CPU is fully dedicated to
+  backend + client:
 
-    500 sessões, PG local  →  7.455 req/s   (PostgreSQL competia pelos 16 cores)
-    500 sessões, PG remoto → 11.953 req/s   (+60%)
+    500 sessions, local PG  →  7,455 req/s   (PostgreSQL competed for the 16 cores)
+    500 sessions, remote PG → 11,953 req/s   (+60%)
 
-  Isso demonstra que o PostgreSQL local consumia ~37% da capacidade de
-  CPU do laptop nas condições do teste.
+  This shows that a local PostgreSQL took ~37% of the laptop's CPU
+  capacity under the test conditions.
 
-  Efeito do PostgreSQL remoto na latência base
-  ─────────────────────────────────────────────
-  A latência de cada requisição inclui 1–2 consultas SQL ao PostgreSQL
-  via LAN. O impacto é visível na distribuição a 100 sessões:
+  Effect of the remote PostgreSQL on base latency
+  ───────────────────────────────────────────────
+  Each request's latency includes 1–2 SQL queries to PostgreSQL
+  over the LAN. The impact shows in the distribution at 100 sessions:
 
-    100 sessões, PG local  →  60,7% ≤5 ms,  39,0% 5–10 ms
-    100 sessões, PG remoto →  60,7% ≤5 ms,  39,0% 5–10 ms  (idêntico)
+    100 sessions, local PG  →  60.7% ≤5 ms,  39.0% 5–10 ms
+    100 sessions, remote PG →  60.7% ≤5 ms,  39.0% 5–10 ms  (identical)
 
-  A LAN acrescenta ~1 ms por consulta, mas como as virtual threads
-  esperam em I/O sem bloquear carrier threads, esse overhead é absorvido
-  sem degradação de throughput a cargas moderadas.
+  The LAN adds ~1 ms per query, but since virtual threads wait on I/O
+  without blocking carrier threads, that overhead is absorbed with no
+  throughput degradation at moderate loads.
 
-  Ponto ótimo para este hardware
-  ───────────────────────────────
-  A 100–200 sessões o laptop entrega 18.000–23.000 req/s com p50 ≤ 10 ms.
-  Acima de 200 sessões o throughput cai de forma proporcional ao aumento
-  de sessões — saturação de CPU pelo compartilhamento backend + cliente.
+  Sweet spot for this hardware
+  ────────────────────────────
+  At 100–200 sessions the laptop delivers 18,000–23,000 req/s with p50 ≤ 10 ms.
+  Above 200 sessions throughput drops in proportion to the increase in
+  sessions — CPU saturation from backend + client sharing the machine.
 
-  Para escalar além de 200 sessões neste hardware, o cliente do teste
-  deve rodar em uma máquina separada.
+  To scale beyond 200 sessions on this hardware, the test client
+  must run on a separate machine.
 
   Heap
   ────
-  O heap diminui com o aumento de sessões (4,83 → 2,41 GB de 100 → 800):
-  mais sessões → requisições mais lentas → menos objetos criados por
-  segundo → ZGC mantém heap menor. Padrão consistente com ZGC Generacional.
+  The heap shrinks as sessions grow (4.83 → 2.41 GB from 100 → 800):
+  more sessions → slower requests → fewer objects created per
+  second → ZGC keeps a smaller heap. Pattern consistent with Generational ZGC.
 ══════════════════════════════════════════════════════════════════════

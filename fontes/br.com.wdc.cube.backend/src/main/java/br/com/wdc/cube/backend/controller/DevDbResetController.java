@@ -29,7 +29,7 @@ public class DevDbResetController {
     public static void configure(JavalinConfig config) {
         config.routes.post("/__dev/db-reset", ctx -> {
             LOG.info("[DevDbReset] Resetting database...");
-            // Conexão obtida do DSLContext do módulo (sem holder global de DataSource).
+            // Connection obtained from the module's DSLContext (no global DataSource holder).
             ShoppingDSLContext.BEAN.get().connection(connection ->
                     new DBCreate()
                             .withConnection(connection)

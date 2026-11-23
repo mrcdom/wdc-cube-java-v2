@@ -86,7 +86,7 @@ public abstract class AbstractPurchaseRepositoryTest {
 	@Test
 	public void fetchByUserId_noResults() {
 		var purchases = repo().fetch(new PurchaseCriteria()
-				.withUserId(DBReset.FULANO_ID));
+				.withUserId(DBReset.JOHN_DOE_ID));
 		assertTrue(purchases.isEmpty());
 	}
 
@@ -150,7 +150,7 @@ public abstract class AbstractPurchaseRepositoryTest {
 		var purchase = new Purchase()
 				.withBuyDate(OffsetDateTime.now())
 				.withUser(new User()
-						.withId(DBReset.FULANO_ID));
+						.withId(DBReset.JOHN_DOE_ID));
 
 		boolean inserted = repo().insert(purchase);
 		assertTrue(inserted);
@@ -158,7 +158,7 @@ public abstract class AbstractPurchaseRepositoryTest {
 
 		var fetched = repo().fetchById(purchase.id(), purchaseProjectionWithUser());
 		assertNotNull(fetched);
-		assertEquals(DBReset.FULANO_ID, fetched.user().id());
+		assertEquals(DBReset.JOHN_DOE_ID, fetched.user().id());
 	}
 
 	@Test
@@ -169,7 +169,7 @@ public abstract class AbstractPurchaseRepositoryTest {
 			var purchase = new Purchase()
 					.withBuyDate(buyDate)
 					.withUser(new User()
-							.withId(DBReset.FULANO_ID));
+							.withId(DBReset.JOHN_DOE_ID));
 			assertTrue(repo().insert(purchase));
 
 			var fetched = repo().fetchById(purchase.id(), purchaseProjectionWithUser());
@@ -183,16 +183,16 @@ public abstract class AbstractPurchaseRepositoryTest {
 		var earlier = new Purchase()
 				.withBuyDate(OffsetDateTime.parse("2026-03-10T17:00:00+05:00"))
 				.withUser(new User()
-						.withId(DBReset.FULANO_ID));
+						.withId(DBReset.JOHN_DOE_ID));
 		var later = new Purchase()
 				.withBuyDate(OffsetDateTime.parse("2026-03-10T09:01:00-03:00"))
 				.withUser(new User()
-						.withId(DBReset.FULANO_ID));
+						.withId(DBReset.JOHN_DOE_ID));
 		assertTrue(repo().insert(earlier));
 		assertTrue(repo().insert(later));
 
 		var ids = repo().fetch(new PurchaseCriteria()
-				.withUserId(DBReset.FULANO_ID)
+				.withUserId(DBReset.JOHN_DOE_ID)
 				.withOrderBy(PurchaseCriteria.OrderBy.MOST_RECENT_PURCHASE_FIRST))
 				.stream().map(Purchase::id).toList();
 		assertEquals(List.of(later.id(), earlier.id()), ids);
@@ -210,13 +210,13 @@ public abstract class AbstractPurchaseRepositoryTest {
 				.withId(original.id())
 				.withBuyDate(OffsetDateTime.now())
 				.withUser(new User()
-						.withId(DBReset.BEOTRANO_ID));
+						.withId(DBReset.JANE_ROE_ID));
 
 		boolean result = repo().update(updated, original);
 		assertTrue(result);
 
 		var fetched = repo().fetchById(DBReset.ADMIN_FIRST_PURCHASE_ID, prj);
-		assertEquals(DBReset.BEOTRANO_ID, fetched.user().id());
+		assertEquals(DBReset.JANE_ROE_ID, fetched.user().id());
 	}
 
 	// :: delete
@@ -251,9 +251,9 @@ public abstract class AbstractPurchaseRepositoryTest {
 		assertEquals(0, deleted);
 	}
 
-	// :: Coleção projetada — ordem, recorte e sub-critério da coleção filha.
-	//    Nos Abstract, então rodam em LOCAL e em REST: o segundo prova que forma + critério + recorte
-	//    da ProjectionList atravessam a serialização, não só a forma.
+	// :: Projected collection — order, slice and sub-criteria of the child collection.
+	//    They live in the Abstract class, so they run in LOCAL and in REST: the latter proves that the shape + criteria + slice
+	//    of the ProjectionList survive serialization, not just the shape.
 
 	private PurchaseItem itemProjection() {
 		var pv = ProjectionValues.INSTANCE;
@@ -312,7 +312,7 @@ public abstract class AbstractPurchaseRepositoryTest {
 
 	@Test
 	public void collection_limit_respectsOrder() {
-		// Mesmo limite, ordem invertida: o item que sobra tem de ser o outro.
+		// Same limit, reversed order: the remaining item must be the other one.
 		assertEquals(List.of(DBReset.ADMIN_SECOND_PURCHASE_ITEM1_ID),
 				idsOf(itemsOf(items(PurchaseItemCriteria.OrderBy.NEWEST_FIRST)
 						.withLimit(1))));
@@ -342,19 +342,19 @@ public abstract class AbstractPurchaseRepositoryTest {
 	@Test
 	public void collection_filtersBySubCriteria() {
 		var criteria = new PurchaseItemCriteria()
-				.withProductId(DBReset.BOLA_WILSON_ID);
+				.withProductId(DBReset.WILSON_BALL_ID);
 		var items = ProjectionValues.INSTANCE.singletonList(itemProjection(), criteria);
 
 		var result = itemsOf(items);
 		assertEquals(1, result.size());
-		assertEquals(DBReset.BOLA_WILSON_ID, result.get(0).product().id());
+		assertEquals(DBReset.WILSON_BALL_ID, result.get(0).product().id());
 	}
 
 	@Test
 	public void collection_subCriteriaComposesWithSlice() {
-		// O recorte repete o mesmo filtro da coleção — o corte cai sobre o conjunto já filtrado.
+		// The slice repeats the collection's filter — the cut applies to the already filtered set.
 		var criteria = new PurchaseItemCriteria()
-				.withProductId(DBReset.BOLA_WILSON_ID)
+				.withProductId(DBReset.WILSON_BALL_ID)
 				.withOrderBy(PurchaseItemCriteria.OrderBy.OLDEST_FIRST);
 		var items = ProjectionValues.INSTANCE.singletonList(itemProjection(), criteria)
 				.withLimit(5);
@@ -363,52 +363,52 @@ public abstract class AbstractPurchaseRepositoryTest {
 		assertEquals(List.of(DBReset.ADMIN_SECOND_PURCHASE_ITEM0_ID), idsOf(result));
 	}
 
-	// :: Campos que não são a chave
+	// :: Fields that are not the key
 
 	@Test
 	public void filterByBuyDate_range() {
-		// A coluna é TIMESTAMP sem fuso e o domínio fala em OffsetDateTime: a conversão acontece na tradução,
-		// e o intervalo pedido aqui é o que chega ao banco.
-		var de = OffsetDateTime.parse("2010-01-01T00:00:00Z");
-		var ate = OffsetDateTime.parse("2011-12-31T23:59:59Z");
+		// The column is a TIMESTAMP without time zone and the domain speaks OffsetDateTime: the conversion happens in the translation,
+		// and the range requested here is what reaches the database.
+		var from = OffsetDateTime.parse("2010-01-01T00:00:00Z");
+		var to = OffsetDateTime.parse("2011-12-31T23:59:59Z");
 
-		var purchases = repo().fetch(new PurchaseCriteria().buyDate().between(de, ate));
+		var purchases = repo().fetch(new PurchaseCriteria().buyDate().between(from, to));
 
-		assertEquals("as duas compras do seed estão nesse intervalo", 2, purchases.size());
+		assertEquals("both seed purchases fall within this range", 2, purchases.size());
 	}
 
 	@Test
 	public void filterByBuyDate_before() {
-		var corte = OffsetDateTime.parse("2011-01-01T00:00:00Z");
-		var purchases = repo().fetch(new PurchaseCriteria().buyDate().lt(corte));
+		var cutoff = OffsetDateTime.parse("2011-01-01T00:00:00Z");
+		var purchases = repo().fetch(new PurchaseCriteria().buyDate().lt(cutoff));
 
 		assertEquals(1, purchases.size());
 		assertEquals(DBReset.ADMIN_FIRST_PURCHASE_ID, purchases.get(0).id());
 	}
 
-	// :: Ordenações provisionadas
+	// :: Provisioned orderings
 
 	@Test
 	public void orderBy_mostRecentPurchaseFirst() {
-		var datas = repo().fetch(new PurchaseCriteria()
+		var dates = repo().fetch(new PurchaseCriteria()
 				.withProjection(purchaseProjectionWithUser())
 				.withOrderBy(PurchaseCriteria.OrderBy.MOST_RECENT_PURCHASE_FIRST))
 				.stream().map(Purchase::buyDate).toList();
 
-		assertEquals(datas.stream().sorted().toList().reversed(), datas);
+		assertEquals(dates.stream().sorted().toList().reversed(), dates);
 	}
 
 	@Test
 	public void orderBy_earliestPurchaseFirst_isTheReverse() {
-		var recentes = repo().fetch(new PurchaseCriteria()
+		var mostRecent = repo().fetch(new PurchaseCriteria()
 				.withProjection(purchaseProjectionWithUser())
 				.withOrderBy(PurchaseCriteria.OrderBy.MOST_RECENT_PURCHASE_FIRST))
 				.stream().map(Purchase::id).toList();
-		var antigas = repo().fetch(new PurchaseCriteria()
+		var earliest = repo().fetch(new PurchaseCriteria()
 				.withProjection(purchaseProjectionWithUser())
 				.withOrderBy(PurchaseCriteria.OrderBy.EARLIEST_PURCHASE_FIRST))
 				.stream().map(Purchase::id).toList();
 
-		assertEquals(antigas.reversed(), recentes);
+		assertEquals(earliest.reversed(), mostRecent);
 	}
 }

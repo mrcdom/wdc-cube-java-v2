@@ -21,12 +21,12 @@ public class ProductViewMock extends AbstractViewMock<ProductScope> {
         super(app, state);
     }
 
-    public void printProduto() {
-        System.out.println("PRODUTO #" + this.state.product.get().id);
-        System.out.println("Nome: " + this.state.product.get().name);
-        System.out.println("Preço: " + this.state.product.get().price);
-        System.out.println("Descrição: " + this.state.product.get().description);
-        System.out.println("Imagem: " + this.state.product.get().image);
+    public void printProduct() {
+        System.out.println("PRODUCT #" + this.state.product.get().id);
+        System.out.println("Name: " + this.state.product.get().name);
+        System.out.println("Price: " + this.state.product.get().price);
+        System.out.println("Description: " + this.state.product.get().description);
+        System.out.println("Image: " + this.state.product.get().image);
         System.out.println();
     }
 

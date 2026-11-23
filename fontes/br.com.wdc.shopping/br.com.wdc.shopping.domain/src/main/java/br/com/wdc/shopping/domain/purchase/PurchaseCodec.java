@@ -28,9 +28,9 @@ public class PurchaseCodec implements ModelCodec<Purchase, PurchaseCriteria> {
 	private static final PurchaseItemCodec ITEM_CODEC = new PurchaseItemCodec();
 
 	/**
-	 * Escreve a coleção {@code items}: envelope de projeção quando ela carrega critério ou recorte
-	 * ({@link ProjectionCollectionCodec}), array simples quando é resultado. O critério embutido é escrito pelo codec
-	 * do item, que conhece a estrutura expressiva.
+	 * Writes the {@code items} collection: a projection envelope when it carries criteria or a slice
+	 * ({@link ProjectionCollectionCodec}), a plain array when it is a result. The embedded criteria are written by the
+	 * item codec, which knows the expressive structure.
 	 */
 	private static void writeItems(ExtensibleObjectOutput out, Purchase entity, EntityGraph graph) {
 		var items = entity.items();
@@ -52,7 +52,7 @@ public class PurchaseCodec implements ModelCodec<Purchase, PurchaseCriteria> {
 		}
 	}
 
-	/** Reidrata o critério embutido da coleção projetada, pelo codec do item. */
+	/** Rehydrates the embedded criteria of the projected collection, through the item codec. */
 	private static PurchaseItemCriteria readItemCriteria(ExtensibleObjectInput in) {
 		var criteria = new PurchaseItemCriteria();
 		in.beginObject();
@@ -74,7 +74,7 @@ public class PurchaseCodec implements ModelCodec<Purchase, PurchaseCriteria> {
 	@Override
 	public void writeEntity(ExtensibleObjectOutput out, Purchase entity, EntityGraph graph) {
 		if (!graph.track(entity)) {
-			// Entidade já serializada neste grafo — escreve apenas a chave
+			// Entity already serialized in this graph — write only the key
 			out.beginObject();
 			if (entity.id() != null) out.name("id").value(entity.id());
 			out.endObject();
@@ -143,7 +143,7 @@ public class PurchaseCodec implements ModelCodec<Purchase, PurchaseCriteria> {
 					if (in.peek() == SerializationToken.NULL) {
 						in.nextNull();
 					} else if (ProjectionCollectionCodec.isProjectionEnvelope(in)) {
-						// Envelope de projeção: forma + critério + recorte. Distingue-se do array de resultado pelo token.
+						// Projection envelope: shape + criteria + slice. Told apart from the result array by the token.
 						purchase.withItems(ProjectionCollectionCodec.read(in,
 								i -> readPurchaseItem(i, purchase),
 								PurchaseCodec::readItemCriteria));
@@ -224,7 +224,7 @@ public class PurchaseCodec implements ModelCodec<Purchase, PurchaseCriteria> {
 
 	private static void writePurchaseItem(ExtensibleObjectOutput out, PurchaseItem item, EntityGraph graph) {
 		if (!graph.track(item)) {
-			// Entidade já serializada — escreve apenas a chave
+			// Entity already serialized — write only the key
 			out.beginObject();
 			if (item.id() != null) out.name("id").value(item.id());
 			out.endObject();
@@ -243,7 +243,7 @@ public class PurchaseCodec implements ModelCodec<Purchase, PurchaseCriteria> {
 
 	private static PurchaseItem readPurchaseItem(ExtensibleObjectInput in, Purchase parent) {
 		var item = new PurchaseItem();
-		// Back-reference como stub (apenas chave) — evita referência cíclica no grafo
+		// Back-reference as a stub (key only) — avoids a cyclic reference in the graph
 		if (parent != null && parent.id() != null) {
 			var stub = new Purchase()
 					.withId(parent.id());

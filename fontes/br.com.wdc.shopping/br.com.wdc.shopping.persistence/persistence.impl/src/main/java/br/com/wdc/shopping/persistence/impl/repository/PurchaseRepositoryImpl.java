@@ -64,17 +64,17 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
     // @formatter:on
 
     /**
-     * Traduz a ordenação pedida em {@code ORDER BY}, contra a tabela informada.
+     * Translates the requested ordering into {@code ORDER BY}, against the given table.
      *
      * <p>
-     * É aqui que uma ordenação provisionada vira colunas: o critério nomeia o efeito, e a escolha das colunas — e do
-     * desempate — mora no repositório, que é quem conhece o esquema. Toda ordenação por campo não único desempata
-     * pela chave, sem o que duas execuções da mesma consulta podem devolver as linhas em ordens diferentes.
+     * This is where a provisioned ordering becomes columns: the criteria name the effect, and the choice of columns — and
+     * of the tie-breaker — lives in the repository, which is what knows the schema. Every ordering by a non-unique field
+     * breaks ties by the key; without that, two runs of the same query could return the rows in different orders.
      * </p>
      *
      * <p>
-     * Recebe {@code Object} porque também é chamado a partir da coleção filha de outro repositório, onde o critério
-     * pode não ser deste tipo — nesse caso não ordena nada.
+     * Takes {@code Object} because it is also called from another repository's child collection, where the criteria may
+     * not be of this type — in that case it orders nothing.
      * </p>
      */
     public static List<SortField<?>> orderingOf(EnPurchase t, Object criteriaObj) {
@@ -162,11 +162,11 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
     @Override
     public boolean update(Purchase newBean, Purchase oldBean, Purchase projection) {
         if (newBean == null) {
-            throw new InvalidRequestException("update de Purchase sem o novo estado");
+            throw new InvalidRequestException("update of Purchase without the new state");
         }
 
         if (newBean.id() == null) {
-            throw new InvalidRequestException("update de Purchase sem a chave (id)");
+            throw new InvalidRequestException("update of Purchase without the key (id)");
         }
 
         if (projection == null) {
@@ -275,12 +275,12 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
         }
 
         /**
-         * As condições dos campos informados.
+         * The conditions for the fields that are set.
          *
          * <p>
-         * O percurso dos campos e a montagem do {@code AND} moram no {@link CriterionTranslator}; aqui fica só o que é
-         * próprio da entidade — a coluna de cada campo e, no caso de {@code productId}, o fato de ele não ser coluna
-         * desta tabela. Critério vazio resulta em {@code noCondition()}, e não numa condição falsa.
+         * Walking the fields and assembling the {@code AND} live in {@link CriterionTranslator}; here is only what is
+         * specific to the entity — the column of each field and, for {@code productId}, the fact that it is not a column
+         * of this table. Empty criteria result in {@code noCondition()}, not in a false condition.
          * </p>
          */
         public Condition apply(PurchaseCriteria criteria) {
@@ -290,19 +290,19 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
             return CriterionTranslator.and(Arrays.asList(
                     CriterionTranslator.translate(enPurchase.ID, criteria.purchaseId()),
                     CriterionTranslator.translate(enPurchase.USERID, criteria.userId()),
-                    // A coluna é TIMESTAMP sem fuso; o domínio fala em OffsetDateTime. Converter aqui mantém a
-                    // comparação no mesmo tipo dos dois lados.
+                    // The column is TIMESTAMP without time zone; the domain speaks OffsetDateTime. Converting here keeps
+                    // the comparison in the same type on both sides.
                     CriterionTranslator.translate(enPurchase.BUYDATE, criteria.buyDate(), JsonQueryBuilder::toUtcLdt),
                     existsItemMatching(criteria)));
         }
 
         /**
-         * Compras que contêm o produto pedido.
+         * Purchases that contain the requested product.
          *
          * <p>
-         * O produto não é coluna da compra — está nos itens. O critério, porém, continua sendo um campo como os
-         * outros: o que muda é onde a condição incide, e não como ela é escrita, de modo que {@code in},
-         * {@code between} e a disjunção valem aqui do mesmo jeito.
+         * The product is not a column of the purchase — it lives in the items. The criterion, however, is still a field
+         * like the others: what changes is where the condition applies, not how it is written, so {@code in},
+         * {@code between} and the disjunction work here just the same.
          * </p>
          */
         private Condition existsItemMatching(PurchaseCriteria criteria) {

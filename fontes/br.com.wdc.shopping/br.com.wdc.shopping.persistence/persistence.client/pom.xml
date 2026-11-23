@@ -24,7 +24,7 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!-- OkHttp for HTTP calls (5.x: no Maven o artefato com as classes é o okhttp-jvm) -->
+        <!-- OkHttp for HTTP calls (5.x: on Maven, the artifact with the classes is okhttp-jvm) -->
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp-jvm</artifactId>

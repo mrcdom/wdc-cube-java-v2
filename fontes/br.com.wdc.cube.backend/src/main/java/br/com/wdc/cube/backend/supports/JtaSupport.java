@@ -15,11 +15,11 @@ import br.com.wdc.framework.persistence.transaction.JtaTransactionManager;
 import br.com.wdc.shopping.domain.ShoppingConfig;
 
 /**
- * Suporte de bootstrap das <b>transações JTA</b> (Narayana).
+ * Bootstrap support for <b>JTA transactions</b> (Narayana).
  *
  * <p>
- * Inicializa (quando solicitado em {@code application.toml}) o {@link JtaTransactionManager#BEAN} e expõe a consulta de
- * modo ({@link #isJtaActive()}) usada pelos demais suportes de persistência.
+ * Initializes (when requested in {@code application.toml}) the {@link JtaTransactionManager#BEAN} and exposes the mode
+ * query ({@link #isJtaActive()}) used by the other persistence supports.
  * </p>
  */
 public final class JtaSupport {
@@ -34,58 +34,58 @@ public final class JtaSupport {
         this.txMode = config.get(prefix + "database.transaction", "non-jta");
     }
 
-    /** @return {@code true} se o modo JTA estiver ativo (TransactionManager Narayana inicializado). */
+    /** @return {@code true} if JTA mode is active (Narayana TransactionManager initialized). */
     public boolean isJtaActive() {
         return JtaTransactionManager.BEAN.get() != null;
     }
 
     /**
-     * Lê {@code database.transaction} e, se for {@code "jta"}, inicializa o TransactionManager Narayana.
+     * Reads {@code database.transaction} and, if it is {@code "jta"}, initializes the Narayana TransactionManager.
      *
-     * @return {@code true} se o modo JTA foi ativado.
+     * @return {@code true} if JTA mode was enabled.
      */
     public boolean init(Defer cleanUp) {
         if ("jta".equalsIgnoreCase(txMode)) {
             initJta(cleanUp);
             return true;
         }
-        LOG.info("Modo de transação: non-jta (JDBC direto)");
+        LOG.info("Transaction mode: non-jta (plain JDBC)");
         return false;
     }
 
     /**
-     * Emite aviso proeminente caso a configuração solicite JTA mas o TM não tenha sido inicializado. Indica falha
-     * silenciosa no bootstrap JTA ou misconfiguration.
+     * Emits a prominent warning if the configuration requests JTA but the TM was not initialized. Indicates a silent
+     * failure in the JTA bootstrap or a misconfiguration.
      */
     public void warnIfModeMismatch() {
         boolean jtaRequested = "jta".equalsIgnoreCase(this.txMode);
         if (jtaRequested && !isJtaActive()) {
             LOG.warn("╔════════════════════════════════════════════════════════╗");
-            LOG.warn("║  ATENÇÃO — MODO DE TRANSAÇÃO INCORRETO                 ║");
+            LOG.warn("║  WARNING — WRONG TRANSACTION MODE                      ║");
             LOG.warn("║                                                        ║");
-            LOG.warn("║  application.toml:  database.transaction = \"jta\"     ║");
-            LOG.warn("║  Modo ativo:        NON-JTA (JDBC direto)              ║");
+            LOG.warn("║  application.toml:  database.transaction = \"jta\"       ║");
+            LOG.warn("║  Active mode:       NON-JTA (plain JDBC)               ║");
             LOG.warn("║                                                        ║");
-            LOG.warn("║  O TransactionManager Narayana não foi inicializado.   ║");
-            LOG.warn("║  Transações NÃO são XA — consistência entre recursos   ║");
-            LOG.warn("║  distribuídos NÃO está garantida.                      ║");
+            LOG.warn("║  The Narayana TransactionManager was not initialized.  ║");
+            LOG.warn("║  Transactions are NOT XA — consistency across          ║");
+            LOG.warn("║  distributed resources is NOT guaranteed.              ║");
             LOG.warn("║                                                        ║");
-            LOG.warn("║  Verifique os logs de inicialização acima em busca de  ║");
-            LOG.warn("║  exceções em initTransactions/initJta.                 ║");
+            LOG.warn("║  Check the startup logs above for exceptions           ║");
+            LOG.warn("║  in initTransactions/initJta.                          ║");
             LOG.warn("╚════════════════════════════════════════════════════════╝");
         }
     }
 
     private void initJta(Defer cleanUp) {
-        // Direciona o ObjectStore (log de transações do Narayana) para work/data/tx-logs,
-        // evitando criar ./ObjectStore no diretório de trabalho do processo.
+        // Points the ObjectStore (Narayana's transaction log) at work/data/tx-logs,
+        // avoiding the creation of ./ObjectStore in the process's working directory.
         var txFolderName = (StringUtils.isBlank(prefix) ? "" : prefix + "-") + "tx-logs";
         var objectStoreDir = ShoppingConfig.getDataDir().resolve(txFolderName).toAbsolutePath().toString();
         arjPropertyManager.getObjectStoreEnvironmentBean().setObjectStoreDir(objectStoreDir);
         arjPropertyManager.getObjectStoreEnvironmentBean().setLocalOSRoot("defaultStore");
 
-        // Narayana inicializa-se automaticamente ao acessar as factories estáticas.
-        // jtaPropertyManager permite configuração programática antes do primeiro uso.
+        // Narayana initializes itself automatically when the static factories are accessed.
+        // jtaPropertyManager allows programmatic configuration before first use.
         jtaPropertyManager.getJTAEnvironmentBean()
                 .setTransactionManagerClassName(TransactionManagerImple.class.getName());
 
@@ -97,6 +97,6 @@ public final class JtaSupport {
         cleanUp.push(() -> JtaTransactionManager.BEAN.set(null));
 
         var initJta = (StringUtils.isBlank(prefix) ? "" : prefix + ".") + "initJta";
-        LOG.info(initJta + ": TransactionManager Narayana inicializado (objectStoreDir={})", objectStoreDir);
+        LOG.info(initJta + ": Narayana TransactionManager initialized (objectStoreDir={})", objectStoreDir);
     }
 }

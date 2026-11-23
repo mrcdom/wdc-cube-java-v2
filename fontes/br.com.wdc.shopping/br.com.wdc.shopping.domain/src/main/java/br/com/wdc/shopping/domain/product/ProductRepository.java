@@ -22,10 +22,10 @@ public interface ProductRepository extends Repository<Product, ProductCriteria, 
     }
 
     /**
-     * Busca pela chave: um {@code ProductCriteria} com igualdade sobre a chave primária, resolvido pelo {@code fetch}.
+     * Lookup by key: a {@code ProductCriteria} with equality on the primary key, resolved by {@code fetch}.
      *
-     * @param projection {@code null} projeta {@link #newProjection()} — todos os campos rasos da entidade.
-     * @return a entidade, ou {@code null} se não houver linha com essa chave.
+     * @param projection {@code null} projects {@link #newProjection()} — all the entity's shallow fields.
+     * @return the entity, or {@code null} if there is no row with that key.
      */
     @Override
     default Product fetchById(Long productId, Product projection) {

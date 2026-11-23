@@ -35,9 +35,9 @@ url = "jdbc:h2:tcp://localhost/./wedocode-shopping;DB_CLOSE_DELAY=-1;DB_CLOSE_ON
 # Reset database on startup (drops and recreates all tables)
 # reset = false
 
-# Modo de transação:
-#   "jta"     = TransactionManager Narayana + pool Agroal enlistado em XA
-#   "non-jta" = JDBC direto (autocommit por statement) — padrão
+# Transaction mode:
+#   "jta"     = Narayana TransactionManager + Agroal pool enlisted in XA
+#   "non-jta" = plain JDBC (autocommit per statement) — default
 transaction = "jta"
 
 # Log SQL statements executed by jOOQ (true/false)
@@ -63,13 +63,13 @@ logSql = false
 pool.maxSize = 100
 pool.minIdle = 20
 
-# Transação remota dirigida pelo cliente (coordenador REST). Durações em segundos / contagem.
-# Chaves ausentes → defaults do RemoteTransactionCoordinatorImpl (mostrados abaixo).
-# remoteTransaction.idleTimeoutSeconds = 60       # ocioso até o reaper reverter a tx
-# remoteTransaction.maxLifetimeSeconds = 600      # tempo de vida absoluto (mesmo ativa)
-# remoteTransaction.outcomeRetentionSeconds = 300 # janela de idempotência de commit/rollback
-# remoteTransaction.maxOpen = 128                 # teto global de tx abertas (protege o pool)
-# remoteTransaction.maxOpenPerOwner = 16          # teto por dono
+# Client-driven remote transaction (REST coordinator). Durations in seconds / counts.
+# Missing keys → RemoteTransactionCoordinatorImpl defaults (shown below).
+# remoteTransaction.idleTimeoutSeconds = 60       # idle time before the reaper rolls the tx back
+# remoteTransaction.maxLifetimeSeconds = 600      # absolute lifetime (even while active)
+# remoteTransaction.outcomeRetentionSeconds = 300 # commit/rollback idempotency window
+# remoteTransaction.maxOpen = 128                 # global cap on open txs (protects the pool)
+# remoteTransaction.maxOpenPerOwner = 16          # per-owner cap
 
 [server]
 # HTTP port
@@ -78,14 +78,14 @@ pool.minIdle = 20
 # Development mode: enables live-reload endpoints (/__dev/ws, /__dev/notify)
 devMode = true
 
-# CORS — controle de origens cross-origin aceitas pelo servidor.
-# allowAll = true reflete qualquer origem (somente para desenvolvimento).
-# Quando false, apenas as origens em allowedHosts são aceitas.
+# CORS — control of the cross-origin origins the server accepts.
+# allowAll = true reflects any origin (development only).
+# When false, only the origins in allowedHosts are accepted.
 cors.allowAll = true
-# Allowlist usada quando allowAll = false (separada por vírgula).
-# Se ausente/vazia, usa o padrão embutido (Tauri desktop, Android WebView, dev local).
+# Allowlist used when allowAll = false (comma-separated).
+# If absent/empty, uses the built-in default (Tauri desktop, Android WebView, local dev).
 # cors.allowedHosts = "http://localhost:8080, http://shopping-wdc.localhost:8080, tauri://localhost, https://tauri.localhost, http://tauri.localhost"
-# Permite cookies/cabeçalhos de autenticação cross-origin (padrão: true).
+# Allows cross-origin cookies/authentication headers (default: true).
 cors.allowCredentials = true
 
 # Maximum number of concurrent application sessions (Host/Shell protocol).

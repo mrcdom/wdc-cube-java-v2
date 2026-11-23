@@ -24,7 +24,7 @@ public class BusinessContext {
             var config = ShoppingConfig.loadConfig();
             ShoppingConfig.Internals.configure(config);
 
-            // CryptoProvider é necessário para PasswordUtil (usado pela presentation layer no login)
+            // CryptoProvider is required by PasswordUtil (used by the presentation layer on login)
             CryptoProvider.BEAN.set(new JceCryptoProvider());
             cleanUp.push(() -> CryptoProvider.BEAN.set(null));
 
@@ -40,24 +40,24 @@ public class BusinessContext {
 
             var dbPrefix = "";
 
-            // Transações: inicializa o TransactionManager Narayana se application.toml pedir
-            // (database.transaction = jta). Deve preceder o DataSource para que o pool seja enlistado.
+            // Transactions: initializes the Narayana TransactionManager if application.toml asks for it
+            // (database.transaction = jta). Must come before the DataSource so the pool gets enlisted.
             var jtaSupport = new JtaSupport(dbPrefix, config);
             jtaSupport.init(cleanUp);
 
             var dsSupport = new SqlDataSourceSupport(dbPrefix, config);
             var dataSource = dsSupport.init(cleanUp);
 
-            // Avisa se pediram JTA mas o TransactionManager não subiu (rodando como JDBC direto).
+            // Warns if JTA was requested but the TransactionManager did not start (running as plain JDBC).
             jtaSupport.warnIfModeMismatch();
 
-            // O DataSource do módulo é injetado no bootstrap (sem holder global): ele liga o DSLContext e o
-            // TransactionService deste módulo a este DataSource.
+            // The module's DataSource is injected into the bootstrap (no global holder): it binds this module's
+            // DSLContext and TransactionService to this DataSource.
             ShoppingRepositoryBootstrap.initialize(dataSource, dsSupport.isLogEnabled(), dsSupport.getDialect(), cleanUp);
 
-            // Coordenador de transação remota (servidor REST): transações dirigidas pelo cliente sobre HTTP,
-            // ligado ao DataSource deste módulo. Vive no host (composition root), não no bootstrap compartilhado
-            // — só o servidor REST precisa dele (views locais/testes não).
+            // Remote transaction coordinator (REST server): client-driven transactions over HTTP,
+            // bound to this module's DataSource. It lives in the host (composition root), not in the shared bootstrap
+            // — only the REST server needs it (local views/tests do not).
             RemoteTransactions.COORDINATOR.set(new RemoteTransactionCoordinatorImpl(() -> dataSource,
                     RemoteTransactionOptions.fromConfig(config, dbPrefix)));
             cleanUp.push(() -> RemoteTransactions.COORDINATOR.set(null));

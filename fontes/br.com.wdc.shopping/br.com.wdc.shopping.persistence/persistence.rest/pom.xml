@@ -29,8 +29,8 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!-- SPI server-side de transação remota (RemoteTransactionCoordinator): o host REST
-             demarca/religa transações dirigidas pelo cliente. Contrato neutro, sem jOOQ. -->
+        <!-- Server-side remote transaction SPI (RemoteTransactionCoordinator): the REST host
+             demarcates/rebinds client-driven transactions. Neutral contract, no jOOQ. -->
         <dependency>
             <groupId>io.github.mrcdom.wdc.java</groupId>
             <artifactId>framework-persistence</artifactId>

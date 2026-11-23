@@ -5,12 +5,12 @@ import java.util.concurrent.atomic.AtomicReference;
 import br.com.wdc.framework.domain.transaction.TransactionService;
 
 /**
- * SPI por módulo: holder do {@link TransactionService} da aplicação Shopping.
+ * Per-module SPI: holder of the Shopping application's {@link TransactionService}.
  *
  * <p>
- * Populado pelo backend (composition root) com uma instância ligada ao {@code DataSource} <b>deste</b> módulo. Assim
- * cada módulo tem seu próprio serviço de transação — e o fato de o backend compartilhar ou dedicar recursos é
- * transparente para o módulo, que apenas usa {@code ShoppingTransactions.BEAN.get()}.
+ * Populated by the backend (composition root) with an instance bound to <b>this</b> module's {@code DataSource}. That
+ * way each module has its own transaction service — and whether the backend shares or dedicates resources is
+ * transparent to the module, which just uses {@code ShoppingTransactions.BEAN.get()}.
  * </p>
  */
 public final class ShoppingTransactions {

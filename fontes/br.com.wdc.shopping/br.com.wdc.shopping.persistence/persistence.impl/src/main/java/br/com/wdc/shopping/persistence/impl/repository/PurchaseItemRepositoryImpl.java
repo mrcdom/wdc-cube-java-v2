@@ -61,17 +61,17 @@ public class PurchaseItemRepositoryImpl extends BaseRepositoryImpl  implements P
     // @frmatter:on
 
     /**
-     * Traduz a ordenação pedida em {@code ORDER BY}, contra a tabela informada.
+     * Translates the requested ordering into {@code ORDER BY}, against the given table.
      *
      * <p>
-     * É aqui que uma ordenação provisionada vira colunas: o critério nomeia o efeito, e a escolha das colunas — e do
-     * desempate — mora no repositório, que é quem conhece o esquema. Toda ordenação por campo não único desempata
-     * pela chave, sem o que duas execuções da mesma consulta podem devolver as linhas em ordens diferentes.
+     * This is where a provisioned ordering becomes columns: the criteria name the effect, and the choice of columns — and
+     * of the tie-breaker — lives in the repository, which is what knows the schema. Every ordering by a non-unique field
+     * breaks ties by the key; without that, two runs of the same query could return the rows in different orders.
      * </p>
      *
      * <p>
-     * Recebe {@code Object} porque também é chamado a partir da coleção filha de outro repositório, onde o critério
-     * pode não ser deste tipo — nesse caso não ordena nada.
+     * Takes {@code Object} because it is also called from another repository's child collection, where the criteria may
+     * not be of this type — in that case it orders nothing.
      * </p>
      */
     public static List<SortField<?>> orderingOf(EnPurchaseitem t, Object criteriaObj) {
@@ -131,11 +131,11 @@ public class PurchaseItemRepositoryImpl extends BaseRepositoryImpl  implements P
     @Override
     public boolean update(PurchaseItem newBean, PurchaseItem oldBean, PurchaseItem projection) {
         if (newBean == null) {
-            throw new InvalidRequestException("update de PurchaseItem sem o novo estado");
+            throw new InvalidRequestException("update of PurchaseItem without the new state");
         }
 
         if (newBean.id() == null) {
-            throw new InvalidRequestException("update de PurchaseItem sem a chave (id)");
+            throw new InvalidRequestException("update of PurchaseItem without the key (id)");
         }
 
         if (projection == null) {
@@ -237,12 +237,12 @@ public class PurchaseItemRepositoryImpl extends BaseRepositoryImpl  implements P
         }
 
         /**
-         * As condições dos campos informados.
+         * The conditions for the fields that are set.
          *
          * <p>
-         * O percurso dos campos e a montagem do {@code AND} moram no {@link CriterionTranslator}; aqui fica só o que é
-         * próprio da entidade — a coluna de cada campo e, no caso de {@code userId}, o fato de ele não ser coluna
-         * desta tabela. Critério vazio resulta em {@code noCondition()}, e não numa condição falsa.
+         * Walking the fields and assembling the {@code AND} live in {@link CriterionTranslator}; here is only what is
+         * specific to the entity — the column of each field and, for {@code userId}, the fact that it is not a column
+         * of this table. Empty criteria result in {@code noCondition()}, not in a false condition.
          * </p>
          */
         public Condition apply(PurchaseItemCriteria criteria) {
@@ -259,11 +259,11 @@ public class PurchaseItemRepositoryImpl extends BaseRepositoryImpl  implements P
         }
 
         /**
-         * Itens cujas compras são do usuário pedido.
+         * Items whose purchases belong to the requested user.
          *
          * <p>
-         * O usuário é dono da compra, não do item: a condição incide sobre {@code EN_PURCHASE}, correlacionada pela
-         * chave estrangeira. Para quem monta o filtro, continua sendo um campo como os outros.
+         * The user owns the purchase, not the item: the condition applies to {@code EN_PURCHASE}, correlated by the
+         * foreign key. For whoever builds the filter, it is still a field like the others.
          * </p>
          */
         private Condition existsPurchaseOfUser(PurchaseItemCriteria criteria) {

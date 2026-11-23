@@ -1,28 +1,28 @@
 ══════════════════════════════════════════════════════════════════════
-  SERVIDOR — ESPECIFICAÇÕES DE HARDWARE
+  SERVER — HARDWARE SPECIFICATIONS
 ══════════════════════════════════════════════════════════════════════
 
   CPU            : 2x Intel Xeon Platinum 8368 @ 2.40 GHz (Turbo 3.40 GHz)
   Sockets        : 2
-  Núcleos físicos: 76 (38 por socket)
-  Threads (vCPUs): 152 (Hyper-Threading habilitado)
-  Cache L1d      : 3.6 MiB  (76 instâncias)
-  Cache L1i      : 2.4 MiB  (76 instâncias)
-  Cache L2       : 95 MiB   (76 instâncias)
-  Cache L3       : 114 MiB  (2 instâncias — 57 MiB/socket)
+  Physical cores : 76 (38 per socket)
+  Threads (vCPUs): 152 (Hyper-Threading enabled)
+  Cache L1d      : 3.6 MiB  (76 instances)
+  Cache L1i      : 2.4 MiB  (76 instances)
+  Cache L2       : 95 MiB   (76 instances)
+  Cache L3       : 114 MiB  (2 instances — 57 MiB/socket)
 
-  RAM total      : 1.5 TiB
-  RAM disponível : ~556 GiB  (durante os testes)
-  Swap           : nenhum
+  Total RAM      : 1.5 TiB
+  Available RAM  : ~556 GiB  (during the tests)
+  Swap           : none
 
-  Disco          : 436 GiB (overlay/container), ~136 GiB livres
+  Disk           : 436 GiB (overlay/container), ~136 GiB free
 
   OS             : Ubuntu 24.04.4 LTS (Noble Numbat)
   Kernel         : 6.8.0-101-generic x86_64 (PREEMPT_DYNAMIC)
-  Ambiente       : Container (filesystem overlay)
+  Environment    : Container (overlay filesystem)
 
 ══════════════════════════════════════════════════════════════════════
-  CONFIGURAÇÃO DA JVM  (start-server.sh)
+  JVM CONFIGURATION  (start-server.sh)
 ══════════════════════════════════════════════════════════════════════
 
   -Xms10g -Xmx10g
@@ -138,70 +138,70 @@
 ══════════════════════════════════════════════════════════════════════
 
 ══════════════════════════════════════════════════════════════════════
-  ANÁLISE DOS RESULTADOS
+  RESULTS ANALYSIS
 ══════════════════════════════════════════════════════════════════════
 
-  Topologia do teste
-  ──────────────────
-  Backend       : servidor (2x Xeon Platinum 8368, 152 vCPUs, 1.5 TiB)
-  PostgreSQL    : container Docker no próprio servidor (acesso local)
-  Cliente       : mesmo servidor (ConcurrentThroughputScenario local)
+  Test topology
+  ─────────────
+  Backend       : server (2x Xeon Platinum 8368, 152 vCPUs, 1.5 TiB)
+  PostgreSQL    : Docker container on the server itself (local access)
+  Client        : same server (local ConcurrentThroughputScenario)
 
-  O gargalo é a velocidade de processamento por requisição no Xeon
+  The bottleneck is per-request processing speed on the Xeon
   ────────────────────────────────────────────────────────────────────
-  O throughput permanece quase constante entre 100 e 800 sessões:
+  Throughput stays almost constant between 100 and 800 sessions:
 
-    100 sessões →  6.878 req/s   (p50 = 20 ms)
-    500 sessões →  7.169 req/s   (p50 = 100 ms)
-    800 sessões →  7.397 req/s   (p50 = 100 ms)
+    100 sessions →  6,878 req/s   (p50 = 20 ms)
+    500 sessions →  7,169 req/s   (p50 = 100 ms)
+    800 sessions →  7,397 req/s   (p50 = 100 ms)
 
-  O mesmo PostgreSQL (mesmo container Docker, mesmo host) atendeu
-  o laptop com p50 = 5 ms e 23.197 req/s a 100 sessões — 3× mais
-  rápido, mesmo acessando o banco pela rede. Se o banco fosse o
-  gargalo, o servidor com acesso local seria mais rápido, não
-  mais lento. O PostgreSQL não é o gargalo.
+  The same PostgreSQL (same Docker container, same host) served
+  the laptop with p50 = 5 ms and 23,197 req/s at 100 sessions — 3×
+  faster, even reaching the database over the network. If the database
+  were the bottleneck, the server with local access would be faster,
+  not slower. PostgreSQL is not the bottleneck.
 
-  A Lei de Little revela que o teto é a latência por requisição:
+  Little's Law shows that the ceiling is the per-request latency:
 
-    throughput ≈ sessões / latência_média
+    throughput ≈ sessions / mean_latency
 
-    servidor: 100 / 0,0145 s ≈  6.900 req/s  ✓  (p50 = 20 ms)
-    laptop:   100 / 0,005  s ≈ 20.000 req/s  ✓  (p50 =  5 ms)
+    server: 100 / 0.0145 s ≈  6,900 req/s  ✓  (p50 = 20 ms)
+    laptop: 100 / 0.005  s ≈ 20,000 req/s  ✓  (p50 =  5 ms)
 
-  A diferença está na velocidade de processamento do pipeline
-  Javalin + jOOQ + JSON por requisição em cada hardware:
+  The difference lies in the per-request processing speed of the
+  Javalin + jOOQ + JSON pipeline on each hardware:
 
-  - M4 Max (~4+ GHz efetivo, Apple Silicon):
-    ~5 ms por requisição → 20.000 req/s possíveis a 100 sessões
-  - Xeon Platinum 8368 (2,4 GHz base, otimizado para throughput
-    paralelo, não single-thread):
-    ~20 ms por requisição → ~5.000–7.000 req/s a 100 sessões
+  - M4 Max (~4+ GHz effective, Apple Silicon):
+    ~5 ms per request → 20,000 req/s possible at 100 sessions
+  - Xeon Platinum 8368 (2.4 GHz base, optimized for parallel
+    throughput, not single-thread):
+    ~20 ms per request → ~5,000–7,000 req/s at 100 sessions
 
-  Com fire-and-wait cada virtual thread processa uma requisição de
-  cada vez. O throughput depende da velocidade por requisição, não
-  da contagem de cores. Com 100 sessões e 152 vCPUs, não há
-  contenção de CPU — o Xeon simplesmente processa mais devagar.
+  With fire-and-wait each virtual thread processes one request at
+  a time. Throughput depends on per-request speed, not on the core
+  count. With 100 sessions and 152 vCPUs there is no CPU
+  contention — the Xeon simply processes more slowly.
 
-  Distribuição de latência a 100 sessões
-  ───────────────────────────────────────
-  O cluster em 10–20 ms (46,9% das requisições) é a assinatura do
-  tempo de processamento no Xeon. Os 13,9% com ≤ 5 ms correspondem
-  a requisições que acertaram cache quente (JIT compilado, dados
-  em cache do PostgreSQL) e completaram no tempo mínimo do pipeline.
+  Latency distribution at 100 sessions
+  ────────────────────────────────────
+  The cluster at 10–20 ms (46.9% of requests) is the signature of
+  the processing time on the Xeon. The 13.9% at ≤ 5 ms are requests
+  that hit a warm cache (JIT-compiled code, data in the PostgreSQL
+  cache) and completed in the pipeline's minimum time.
 
   Heap
   ────
-  O heap mantém-se baixo (1,4–2,4 GB) mesmo com 800 sessões, pois o
-  PostgreSQL roda em processo separado e não consome heap da JVM.
-  Com 1,5 TiB de RAM disponível, memória não é restrição neste servidor.
+  The heap stays low (1.4–2.4 GB) even with 800 sessions, because
+  PostgreSQL runs in a separate process and does not use JVM heap.
+  With 1.5 TiB of RAM available, memory is not a constraint on this server.
 
-  Capacidade real do servidor
-  ────────────────────────────
-  O Xeon tem 152 vCPUs — capacidade paralela enorme. Para exercê-la,
-  o cenário precisa ter concorrência alta o suficiente para saturar
-  o processamento paralelo. Com fire-and-wait a 100–800 sessões,
-  cada core processa sequencialmente; o ganho vem de rodar mais
-  sessões simultâneas. O teto prático será quando os 152 vCPUs
-  estiverem todos ocupados — estimado em dezenas de milhares de
-  sessões concorrentes com carga real distribuída.
+  Real server capacity
+  ────────────────────
+  The Xeon has 152 vCPUs — huge parallel capacity. To exercise it,
+  the scenario needs enough concurrency to saturate parallel
+  processing. With fire-and-wait at 100–800 sessions, each core
+  processes sequentially; the gain comes from running more
+  simultaneous sessions. The practical ceiling is when all 152 vCPUs
+  are busy — estimated at tens of thousands of concurrent sessions
+  with a real distributed load.
 ══════════════════════════════════════════════════════════════════════

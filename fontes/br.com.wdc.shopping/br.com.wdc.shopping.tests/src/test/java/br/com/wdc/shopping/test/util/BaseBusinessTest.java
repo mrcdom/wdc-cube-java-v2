@@ -63,8 +63,8 @@ public class BaseBusinessTest {
 
         ScheduledExecutor.BEAN.set(executor);
 
-        // Infraestrutura de criptografia: os hosts reais a instalam no seu composition root, e este ambiente é
-        // um host como os outros. Sem ela, PasswordUtil recusa a operação — e é dele que o login depende.
+        // Cryptography infrastructure: the real hosts install it in their composition root, and this environment is
+        // a host like the others. Without it, PasswordUtil refuses the operation — and login depends on it.
         CryptoProvider.BEAN.set(new JceCryptoProvider());
         cleanUp.push(() -> CryptoProvider.BEAN.set(null));
 

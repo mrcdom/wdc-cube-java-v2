@@ -7,11 +7,11 @@ import br.com.wdc.framework.domain.criteria.Criteria;
 import br.com.wdc.framework.domain.criteria.Criterion;
 
 /**
- * Critério de pesquisa de {@link PurchaseItem}.
+ * Search criteria for {@link PurchaseItem}.
  *
  * <p>
- * {@code userId} não é coluna desta tabela — é do dono da compra. A tradução o resolve com {@code EXISTS} sobre
- * {@code EN_PURCHASE}; para quem monta o filtro, é apenas mais um campo.
+ * {@code userId} is not a column of this table — it belongs to the purchase owner. The translation resolves it with
+ * {@code EXISTS} over {@code EN_PURCHASE}; for whoever builds the filter, it is just another field.
  * </p>
  */
 public class PurchaseItemCriteria implements Criteria {
@@ -37,12 +37,12 @@ public class PurchaseItemCriteria implements Criteria {
         return purchaseItemId;
     }
 
-    /** Se há critério neste campo. É por aqui que a tradução pergunta. */
+    /** Whether this field has a criterion. This is what the translation checks. */
     public boolean hasPurchaseItemId() {
         return purchaseItemId.isSet();
     }
 
-    /** Atalho para {@code purchaseItemId().eq(valor)}; {@code null} não filtra. */
+    /** Shortcut for {@code purchaseItemId().eq(value)}; {@code null} does not filter. */
     public PurchaseItemCriteria withPurchaseItemId(Long value) {
         return value == null ? this : purchaseItemId().eq(value);
     }
@@ -53,12 +53,12 @@ public class PurchaseItemCriteria implements Criteria {
         return purchaseId;
     }
 
-    /** Se há critério neste campo. É por aqui que a tradução pergunta. */
+    /** Whether this field has a criterion. This is what the translation checks. */
     public boolean hasPurchaseId() {
         return purchaseId.isSet();
     }
 
-    /** Atalho para {@code purchaseId().eq(valor)}; {@code null} não filtra. */
+    /** Shortcut for {@code purchaseId().eq(value)}; {@code null} does not filter. */
     public PurchaseItemCriteria withPurchaseId(Long value) {
         return value == null ? this : purchaseId().eq(value);
     }
@@ -69,12 +69,12 @@ public class PurchaseItemCriteria implements Criteria {
         return productId;
     }
 
-    /** Se há critério neste campo. É por aqui que a tradução pergunta. */
+    /** Whether this field has a criterion. This is what the translation checks. */
     public boolean hasProductId() {
         return productId.isSet();
     }
 
-    /** Atalho para {@code productId().eq(valor)}; {@code null} não filtra. */
+    /** Shortcut for {@code productId().eq(value)}; {@code null} does not filter. */
     public PurchaseItemCriteria withProductId(Long value) {
         return value == null ? this : productId().eq(value);
     }
@@ -85,46 +85,46 @@ public class PurchaseItemCriteria implements Criteria {
         return amount;
     }
 
-    /** Se há critério neste campo. É por aqui que a tradução pergunta. */
+    /** Whether this field has a criterion. This is what the translation checks. */
     public boolean hasAmount() {
         return amount.isSet();
     }
 
-    /** Atalho para {@code amount().eq(valor)}; {@code null} não filtra. */
+    /** Shortcut for {@code amount().eq(value)}; {@code null} does not filter. */
     public PurchaseItemCriteria withAmount(Integer value) {
         return value == null ? this : amount().eq(value);
     }
 
-    /** O valor é convertido em {@code BigDecimal} antes de chegar à coluna. */
+    /** The value is converted to {@code BigDecimal} before it reaches the column. */
     private final ComparableCriterion<PurchaseItemCriteria, Double> price = new ComparableCriterion<>(this, "price");
 
     public ComparableCriterion<PurchaseItemCriteria, Double> price() {
         return price;
     }
 
-    /** Se há critério neste campo. É por aqui que a tradução pergunta. */
+    /** Whether this field has a criterion. This is what the translation checks. */
     public boolean hasPrice() {
         return price.isSet();
     }
 
-    /** Atalho para {@code price().eq(valor)}; {@code null} não filtra. */
+    /** Shortcut for {@code price().eq(value)}; {@code null} does not filter. */
     public PurchaseItemCriteria withPrice(Double value) {
         return value == null ? this : price().eq(value);
     }
 
-    /** Itens de compras do usuário — resolvido por {@code EXISTS} sobre a compra. */
+    /** Items of the user's purchases — resolved by {@code EXISTS} over the purchase. */
     private final ComparableCriterion<PurchaseItemCriteria, Long> userId = new ComparableCriterion<>(this, "userId");
 
     public ComparableCriterion<PurchaseItemCriteria, Long> userId() {
         return userId;
     }
 
-    /** Se há critério neste campo. É por aqui que a tradução pergunta. */
+    /** Whether this field has a criterion. This is what the translation checks. */
     public boolean hasUserId() {
         return userId.isSet();
     }
 
-    /** Atalho para {@code userId().eq(valor)}; {@code null} não filtra. */
+    /** Shortcut for {@code userId().eq(value)}; {@code null} does not filter. */
     public PurchaseItemCriteria withUserId(Long value) {
         return value == null ? this : userId().eq(value);
     }
@@ -148,28 +148,28 @@ public class PurchaseItemCriteria implements Criteria {
     }
 
     /**
-     * Ordenações provisionadas.
+     * Provisioned orderings.
      *
      * <p>
-     * Cada constante é uma <b>ordenação inteira</b>, e não o pedido para ordenar por um campo: o nome diz o efeito
-     * que se obtém, e a tradução — no repositório — decide por quais colunas e em que sentido isso se faz. Não há
-     * composição; escolhe-se uma.
+     * Each constant is a <b>complete ordering</b>, not a request to sort by a field: the name states the resulting
+     * effect, and the translation — in the repository — decides which columns and directions produce it. There is no
+     * composition; you pick one.
      * </p>
      *
      * <p>
-     * <b>A lista é curta de propósito.</b> Ordenação nova entra por solicitação, e entra junto com o índice que a
-     * sustenta — é o que mantém explícito o que o banco precisa aguentar. Oferecer ordenação livre por qualquer campo
-     * pareceria generoso e produziria varredura completa na primeira consulta grande.
+     * <b>The list is short on purpose.</b> A new ordering is added on request, together with the index that supports
+     * it — that keeps explicit what the database has to handle. Offering free ordering by any field would look generous
+     * and would produce a full scan on the first large query.
      * </p>
      */
     public enum OrderBy {
-        /** Ordem de inclusão do item. */
+        /** Order in which the items were added. */
         OLDEST_FIRST,
-        /** Ordem de inclusão invertida. */
+        /** Reverse order of addition. */
         NEWEST_FIRST,
-        /** Do maior para o menor preço de linha. */
+        /** From highest to lowest line price. */
         MOST_EXPENSIVE_FIRST,
-        /** Da maior para a menor quantidade. */
+        /** From largest to smallest quantity. */
         LARGEST_QUANTITY_FIRST,
     }
 

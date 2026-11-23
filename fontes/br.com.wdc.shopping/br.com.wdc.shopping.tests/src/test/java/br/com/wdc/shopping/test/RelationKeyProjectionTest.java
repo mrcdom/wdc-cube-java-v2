@@ -20,18 +20,19 @@ import br.com.wdc.shopping.test.util.ResetDatabaseRule;
 import br.com.wdc.shopping.test.util.TestEnvironment;
 
 /**
- * O atalho de chave estrangeira: uma associação projetada <b>só pela chave</b> sai da própria linha, sem subselect.
+ * The foreign-key shortcut: an association projected <b>by its key only</b> comes from the row itself, without a
+ * subselect.
  *
  * <p>
- * A projeção corrente de {@link PurchaseItem} traz {@code purchase} e {@code product} apenas para carregar o id —
- * dois subselects por linha que só redescobriam a coluna da chave estrangeira que já está ali. Declarada a chave em
- * {@code PurchaseItemRepositoryImpl}, esses subselects deixam de ser emitidos.
+ * The standard projection of {@link PurchaseItem} brings {@code purchase} and {@code product} only to carry the id —
+ * two subselects per row that would merely rediscover the foreign-key column already present. With the key declared
+ * in {@code PurchaseItemRepositoryImpl}, those subselects are not emitted.
  * </p>
  *
  * <p>
- * Os testes olham o SQL gerado, e não só o resultado: o resultado continuaria correto <b>com</b> os subselects, que é
- * justamente o que se quer eliminar. Os dois últimos garantem que o atalho não come o caso legítimo — projeção que
- * pede qualquer campo além da chave volta a consultar o outro lado.
+ * The tests inspect the generated SQL, not just the result: the result would still be correct <b>with</b> the
+ * subselects, which is exactly what is meant to be eliminated. The last two make sure the shortcut does not swallow
+ * the legitimate case — a projection asking for any field beyond the key queries the other side.
  * </p>
  */
 public class RelationKeyProjectionTest {
@@ -42,7 +43,7 @@ public class RelationKeyProjectionTest {
     @Rule
     public ExternalResource resetDb = new ResetDatabaseRule(env);
 
-    /** SQL do SELECT de PurchaseItem para a projeção informada. */
+    /** SQL of the PurchaseItem SELECT for the given projection. */
     private static String sqlFor(PurchaseItem projection) {
         return PurchaseItemRepositoryImpl.QUERY
                 .select(projection, (t, q) -> q.where(t.ID.eq(1L)))
@@ -50,11 +51,11 @@ public class RelationKeyProjectionTest {
     }
 
     /**
-     * Quantas vezes a tabela aparece num {@code FROM}.
+     * How many times the table appears in a {@code FROM}.
      *
      * <p>
-     * O jOOQ qualifica a tabela com o esquema — {@code from "PUBLIC"."EN_PRODUCT" "p2"} —, então o nome sozinho não
-     * serve de âncora.
+     * jOOQ qualifies the table with the schema — {@code from "PUBLIC"."EN_PRODUCT" "p2"} —, so the bare name does not
+     * work as an anchor.
      * </p>
      */
     private static int subselectsOn(String sql, String table) {
@@ -72,9 +73,9 @@ public class RelationKeyProjectionTest {
     public void projectionWithOnlyKey_emitsNoSubselect() {
         String sql = sqlFor(env.purchaseItemRepo().newProjection());
 
-        assertEquals("purchase projetado só pela chave não deve gerar subselect\n" + sql,
+        assertEquals("purchase projected by its key only must not generate a subselect\n" + sql,
                 0, subselectsOn(sql, "EN_PURCHASE"));
-        assertEquals("product projetado só pela chave não deve gerar subselect\n" + sql,
+        assertEquals("product projected by its key only must not generate a subselect\n" + sql,
                 0, subselectsOn(sql, "EN_PRODUCT"));
     }
 
@@ -84,11 +85,11 @@ public class RelationKeyProjectionTest {
                 .fetchById(DBReset.ADMIN_FIRST_PURCHASE_ITEM0_ID, env.purchaseItemRepo().newProjection());
 
         assertNotNull(item);
-        assertNotNull("a associação continua vindo, montada da própria linha", item.purchase());
+        assertNotNull("the association is still returned, built from the row itself", item.purchase());
         assertNotNull(item.product());
         assertEquals(DBReset.ADMIN_FIRST_PURCHASE_ID, item.purchase().id());
-        assertEquals(DBReset.CAFETEIRA_ID, item.product().id());
-        // Nada além da chave é trazido — é exatamente o que o atalho promete.
+        assertEquals(DBReset.COFFEE_MAKER_ID, item.product().id());
+        // Nothing beyond the key is fetched — exactly what the shortcut promises.
         assertNull(item.product().name());
     }
 
@@ -100,9 +101,9 @@ public class RelationKeyProjectionTest {
 
         String sql = sqlFor(prj);
 
-        assertTrue("pedir product.name volta a exigir a consulta ao outro lado",
+        assertTrue("asking for product.name requires querying the other side",
                 subselectsOn(sql, "EN_PRODUCT") > 0);
-        assertEquals("purchase continua só com a chave, e segue sem subselect\n" + sql,
+        assertEquals("purchase still has only the key, and stays without a subselect\n" + sql,
                 0, subselectsOn(sql, "EN_PURCHASE"));
     }
 
@@ -116,13 +117,13 @@ public class RelationKeyProjectionTest {
 
         assertNotNull(item);
         assertNotNull(item.product());
-        assertEquals(DBReset.CAFETEIRA_ID, item.product().id());
-        assertNotNull("o campo pedido além da chave chega preenchido", item.product().name());
+        assertEquals(DBReset.COFFEE_MAKER_ID, item.product().id());
+        assertNotNull("the field requested beyond the key arrives filled in", item.product().name());
     }
 
     @Test
     public void unrelatedProjection_isUnaffected() {
-        // Projeção que não pede associação alguma continua exatamente como era.
+        // A projection that asks for no association is left exactly as it is.
         var prj = new PurchaseItem()
                 .withId(ProjectionValues.INSTANCE.i64)
                 .withAmount(ProjectionValues.INSTANCE.i32);
@@ -133,7 +134,7 @@ public class RelationKeyProjectionTest {
         assertEquals(0, subselectsOn(sql, "EN_PRODUCT"));
     }
 
-    /** Guarda-corpo: a projeção usada acima é mesmo a que só toca a chave. */
+    /** Guard rail: the projection used above really is the one that touches only the key. */
     @Test
     public void projectionUnderTest_touchesOnlyTheKeyOfEachRelation() {
         PurchaseItem prj = env.purchaseItemRepo().newProjection();

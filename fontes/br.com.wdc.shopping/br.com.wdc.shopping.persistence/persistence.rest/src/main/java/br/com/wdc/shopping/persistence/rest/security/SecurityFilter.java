@@ -6,10 +6,10 @@ import br.com.wdc.framework.domain.security.SecurityContext;
 import io.javalin.http.Context;
 
 /**
- * Filtro de segurança HTTP para endpoints {@code /api/repo/**}.
+ * HTTP security filter for the {@code /api/repo/**} endpoints.
  * <p>
- * Extrai o Bearer token, delega validação ao {@link AuthenticationService}, e popula o {@link SecurityContextHolder}
- * para a requisição corrente.
+ * Extracts the Bearer token, delegates validation to the {@link AuthenticationService}, and populates the
+ * {@link SecurityContextHolder} for the current request.
  */
 public final class SecurityFilter {
 
@@ -17,9 +17,9 @@ public final class SecurityFilter {
     private static final String BEARER_PREFIX = "Bearer ";
 
     /**
-     * Handler a ser registrado como {@code before("/api/repo/*")}.
+     * Handler to be registered as {@code before("/api/repo/*")}.
      * <p>
-     * Rotas de imagem de produto são públicas (catálogo) e não exigem autenticação.
+     * Product image routes are public (catalog) and do not require authentication.
      */
     public void handle(Context ctx) {
         // Skip CORS preflight requests (OPTIONS) — handled by CORS plugin

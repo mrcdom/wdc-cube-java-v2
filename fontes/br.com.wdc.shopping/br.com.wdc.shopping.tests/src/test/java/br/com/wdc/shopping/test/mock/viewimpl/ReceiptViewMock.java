@@ -24,18 +24,18 @@ public class ReceiptViewMock extends AbstractViewMock<ReceiptScope> {
         super(app, state);
     }
 
-    public void printRecibo() {
+    public void printReceipt() {
         if (this.state.notifySuccess.get()) {
-            System.out.println("Compra efetuada com sucesso");
+            System.out.println("Purchase completed successfully");
             System.out.println();
         }
 
-        System.out.println("Imprima seu recibo:");
+        System.out.println("Print your receipt:");
 
         System.out.println("------------------------------------------------------------");
-        System.out.println("WeDoCode Shopping - SUA COMPRA CERTA NA INTERNET");
-        System.out.println("Recibo de compra");
-        System.out.println("Data: " + new Date(this.state.receipt.get().date));
+        System.out.println("WeDoCode Shopping - THE RIGHT WAY TO SHOP ONLINE");
+        System.out.println("Purchase receipt");
+        System.out.println("Date: " + new Date(this.state.receipt.get().date));
         System.out.println("------------------------------------------------------------");
         for (final ReceiptItem item : this.state.receipt.get().items) {
             System.out.print(item.description);

@@ -94,19 +94,19 @@ public abstract class AbstractPurchaseItemRepositoryTest {
 	@Test
 	public void fetchByUserId_noResults() {
 		var items = repo().fetch(new PurchaseItemCriteria()
-				.withUserId(DBReset.FULANO_ID));
+				.withUserId(DBReset.JOHN_DOE_ID));
 		assertTrue(items.isEmpty());
 	}
 
 	@Test
 	public void fetchByProductId() {
 		var criteria = new PurchaseItemCriteria()
-				.withProductId(DBReset.CAFETEIRA_ID)
+				.withProductId(DBReset.COFFEE_MAKER_ID)
 				.withProjection(projectionWithRelations());
 		var items = repo().fetch(criteria);
 		assertFalse(items.isEmpty());
 		for (var item : items) {
-			assertEquals(DBReset.CAFETEIRA_ID, item.product().id());
+			assertEquals(DBReset.COFFEE_MAKER_ID, item.product().id());
 		}
 	}
 
@@ -176,7 +176,7 @@ public abstract class AbstractPurchaseItemRepositoryTest {
 				.withPurchase(new Purchase()
 						.withId(DBReset.ADMIN_FIRST_PURCHASE_ID))
 				.withProduct(new Product()
-						.withId(DBReset.PEN_DRIVE2GB_ID));
+						.withId(DBReset.FLASH_DRIVE_2GB_ID));
 
 		boolean inserted = repo().insert(item);
 		assertTrue(inserted);
@@ -186,7 +186,7 @@ public abstract class AbstractPurchaseItemRepositoryTest {
 		assertNotNull(fetched);
 		assertEquals(Integer.valueOf(5), fetched.amount());
 		assertEquals(15.50, fetched.price(), 0.001);
-		assertEquals(DBReset.PEN_DRIVE2GB_ID, fetched.product().id());
+		assertEquals(DBReset.FLASH_DRIVE_2GB_ID, fetched.product().id());
 	}
 
 	// :: update
@@ -240,7 +240,7 @@ public abstract class AbstractPurchaseItemRepositoryTest {
 	@Test
 	public void deleteByUserId_noResults() {
 		int deleted = repo().delete(new PurchaseItemCriteria()
-				.withUserId(DBReset.FULANO_ID));
+				.withUserId(DBReset.JOHN_DOE_ID));
 		assertEquals(0, deleted);
 		assertEquals(3, repo().count(new PurchaseItemCriteria()));
 	}
@@ -252,17 +252,17 @@ public abstract class AbstractPurchaseItemRepositoryTest {
 		assertEquals(0, deleted);
 	}
 
-	// :: Campos que não são a chave
+	// :: Fields that are not the key
 
 	@Test
 	public void filterByAmount() {
-		// Todos os itens do seed têm quantidade 1: o par abaixo mostra o filtro dos dois lados do corte,
-		// que é o que separa "filtrou" de "devolveu tudo".
-		var todos = repo().fetch(new PurchaseItemCriteria().amount().ge(1));
-		var nenhum = repo().fetch(new PurchaseItemCriteria().amount().ge(2));
+		// Every seed item has amount 1: the pair below shows the filter on both sides of the cutoff,
+		// which is what tells "filtered" apart from "returned everything".
+		var all = repo().fetch(new PurchaseItemCriteria().amount().ge(1));
+		var none = repo().fetch(new PurchaseItemCriteria().amount().ge(2));
 
-		assertEquals(3, todos.size());
-		assertEquals(0, nenhum.size());
+		assertEquals(3, all.size());
+		assertEquals(0, none.size());
 	}
 
 	@Test
@@ -270,7 +270,7 @@ public abstract class AbstractPurchaseItemRepositoryTest {
 		var items = repo().fetch(new PurchaseItemCriteria().price().between(2.0, 50.0));
 
 		for (var item : items) {
-			assertTrue("preço fora da faixa: " + item.price(), item.price() >= 2.0 && item.price() <= 50.0);
+			assertTrue("price outside the range: " + item.price(), item.price() >= 2.0 && item.price() <= 50.0);
 		}
 	}
 

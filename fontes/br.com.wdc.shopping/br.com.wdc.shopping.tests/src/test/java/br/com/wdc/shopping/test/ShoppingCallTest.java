@@ -38,37 +38,37 @@ public class ShoppingCallTest extends BaseBusinessTest {
 
 
     /**
-     * O extrato ordena pela data da compra, não pela ordem de cadastro.
+     * The statement is ordered by purchase date, not by insertion order.
      *
      * <p>
-     * As duas só divergem quando uma compra entra com data anterior à de outra já registrada — é o caso que este
-     * teste monta. Com a ordenação pela chave, a compra recém-inserida encabeçaria a lista mesmo tendo acontecido
-     * há dois anos.
+     * The two only diverge when a purchase is entered with a date earlier than one already recorded — the case this
+     * test builds. Ordered by key, the newly inserted purchase would head the list even though it happened two years
+     * earlier.
      * </p>
      */
     @Test
     public void purchaseStatement_ordersByPurchaseDate_notByInsertionOrder() {
-        // Última a ser cadastrada (maior id), porém a mais antiga de todas.
-        var atrasada = new Purchase()
+        // Last one inserted (highest id), yet the oldest of all.
+        var backdated = new Purchase()
                 .withUser(new User()
                         .withId(DBReset.ADMIN_ID))
                 .withBuyDate(OffsetDateTime.of(2009, 5, 20, 10, 0, 0, 0, java.time.ZoneOffset.UTC))
                 .withItems(new ArrayList<>());
-        atrasada.items().add(new PurchaseItem()
+        backdated.items().add(new PurchaseItem()
                 .withProduct(new Product()
-                        .withId(DBReset.PEN_DRIVE2GB_ID))
+                        .withId(DBReset.FLASH_DRIVE_2GB_ID))
                 .withPrice(55.0)
                 .withAmount(1));
-        PurchaseRepository.BEAN.get().insert(atrasada);
+        PurchaseRepository.BEAN.get().insert(backdated);
 
-        var extrato = purchasesOf(DBReset.ADMIN_ID);
+        var statement = purchasesOf(DBReset.ADMIN_ID);
 
-        Assert.assertEquals("a compra de 2009 é a de maior id", Long.valueOf(atrasada.id()),
-                Long.valueOf(extrato.stream().mapToLong(p -> p.id).max().orElse(-1)));
-        Assert.assertNotEquals("a mais antiga não pode encabeçar o extrato", Long.valueOf(atrasada.id()),
-                Long.valueOf(extrato.get(0).id));
-        Assert.assertEquals("a mais antiga fecha a lista", Long.valueOf(atrasada.id()),
-                Long.valueOf(extrato.get(extrato.size() - 1).id));
+        Assert.assertEquals("the 2009 purchase has the highest id", Long.valueOf(backdated.id()),
+                Long.valueOf(statement.stream().mapToLong(p -> p.id).max().orElse(-1)));
+        Assert.assertNotEquals("the oldest one cannot head the statement", Long.valueOf(backdated.id()),
+                Long.valueOf(statement.get(0).id));
+        Assert.assertEquals("the oldest one closes the list", Long.valueOf(backdated.id()),
+                Long.valueOf(statement.get(statement.size() - 1).id));
     }
 
     @Test
@@ -103,24 +103,24 @@ public class ShoppingCallTest extends BaseBusinessTest {
 
     @Test
     public void login_wrongPassword_isRejected() {
-        // A senha não é campo de critério: quem a confere é o login, e é neste nível que o par
-        // "aceita a correta / recusa a errada" precisa ser garantido.
+        // The password is not a criteria field: the login checks it, and this is the level where the pair
+        // "accepts the right one / rejects the wrong one" must be guaranteed.
         var result = new LoginCall()
                 .withUserName("admin")
-                .withPassword("senha-errada")
+                .withPassword("wrong-password")
                 .run();
 
-        Assert.assertNull("senha errada não pode autenticar", result);
+        Assert.assertNull("a wrong password must not authenticate", result);
     }
 
     @Test
     public void login_unknownUser_isRejected() {
         var result = new LoginCall()
-                .withUserName("ninguem")
+                .withUserName("nobody")
                 .withPassword("admin")
                 .run();
 
-        Assert.assertNull("usuário inexistente não pode autenticar", result);
+        Assert.assertNull("a nonexistent user must not authenticate", result);
     }
 
     @Test
@@ -137,47 +137,47 @@ public class ShoppingCallTest extends BaseBusinessTest {
 
         Assert.assertEquals("UserId must be administrator", DBReset.ADMIN_ID, userId);
 
-        Assert.assertEquals("User name did not match", "João da Silva", subject.getNickName());
+        Assert.assertEquals("User name did not match", "John Smith", subject.getNickName());
 
-        var produtos = ProductRepository.BEAN.get().fetch(new ProductCriteria())
+        var products = ProductRepository.BEAN.get().fetch(new ProductCriteria())
                 .stream().map(ProductInfo::create).toList();
 
-        Assert.assertNotNull(produtos);
-        Assert.assertEquals(4, produtos.size());
-        Assert.assertEquals(DBReset.CAFETEIRA_ID, Long.valueOf(produtos.get(0).id));
-        Assert.assertEquals(DBReset.BOLA_WILSON_ID, Long.valueOf(produtos.get(1).id));
-        Assert.assertEquals(DBReset.FITA_VEDA_ROSCA_ID, Long.valueOf(produtos.get(2).id));
-        Assert.assertEquals(DBReset.PEN_DRIVE2GB_ID, Long.valueOf(produtos.get(3).id));
+        Assert.assertNotNull(products);
+        Assert.assertEquals(4, products.size());
+        Assert.assertEquals(DBReset.COFFEE_MAKER_ID, Long.valueOf(products.get(0).id));
+        Assert.assertEquals(DBReset.WILSON_BALL_ID, Long.valueOf(products.get(1).id));
+        Assert.assertEquals(DBReset.THREAD_SEAL_TAPE_ID, Long.valueOf(products.get(2).id));
+        Assert.assertEquals(DBReset.FLASH_DRIVE_2GB_ID, Long.valueOf(products.get(3).id));
 
-        for (final ProductInfo produto : produtos) {
-            Assert.assertTrue("Product name can not be empty", StringUtils.isNotBlank(produto.name));
-            Assert.assertTrue("Product image name can not end differently than .png", produto.image.endsWith(".png"));
-            Assert.assertTrue("Product price must be grater than or equal to 0.0", produto.price >= 0.0);
-            Assert.assertTrue("Product description can not be empty", StringUtils.isNotBlank(produto.description));
+        for (final ProductInfo product : products) {
+            Assert.assertTrue("Product name can not be empty", StringUtils.isNotBlank(product.name));
+            Assert.assertTrue("Product image name can not end differently than .png", product.image.endsWith(".png"));
+            Assert.assertTrue("Product price must be grater than or equal to 0.0", product.price >= 0.0);
+            Assert.assertTrue("Product description can not be empty", StringUtils.isNotBlank(product.description));
 
-            final ProductInfo mesmoProduto = new ProductQuery()
-                    .withProductId(produto.id)
+            final ProductInfo sameProduct = new ProductQuery()
+                    .withProductId(product.id)
                     .run();
-            Assert.assertEquals(produto.id, mesmoProduto.id);
-            Assert.assertEquals(produto.name, mesmoProduto.name);
-            Assert.assertEquals(produto.image, mesmoProduto.image);
-            Assert.assertEquals(produto.price, mesmoProduto.price, 0.001);
-            Assert.assertEquals(produto.description, mesmoProduto.description);
+            Assert.assertEquals(product.id, sameProduct.id);
+            Assert.assertEquals(product.name, sameProduct.name);
+            Assert.assertEquals(product.image, sameProduct.image);
+            Assert.assertEquals(product.price, sameProduct.price, 0.001);
+            Assert.assertEquals(product.description, sameProduct.description);
         }
 
-        // A mais recente primeiro
-        List<PurchaseInfo> compras = purchasesOf(userId);
+        // Most recent first
+        List<PurchaseInfo> purchases = purchasesOf(userId);
 
-        Assert.assertNotNull(compras);
-        Assert.assertEquals(2, compras.size());
+        Assert.assertNotNull(purchases);
+        Assert.assertEquals(2, purchases.size());
 
-        Assert.assertEquals(DBReset.ADMIN_SECOND_PURCHASE_ID, Long.valueOf(compras.get(0).id));
-        Assert.assertNotNull(compras.get(0).items);
-        Assert.assertEquals(2, compras.get(0).items.size());
+        Assert.assertEquals(DBReset.ADMIN_SECOND_PURCHASE_ID, Long.valueOf(purchases.get(0).id));
+        Assert.assertNotNull(purchases.get(0).items);
+        Assert.assertEquals(2, purchases.get(0).items.size());
 
-        Assert.assertEquals(DBReset.ADMIN_FIRST_PURCHASE_ID, Long.valueOf(compras.get(1).id));
-        Assert.assertNotNull(compras.get(1).items);
-        Assert.assertEquals(1, compras.get(1).items.size());
+        Assert.assertEquals(DBReset.ADMIN_FIRST_PURCHASE_ID, Long.valueOf(purchases.get(1).id));
+        Assert.assertNotNull(purchases.get(1).items);
+        Assert.assertEquals(1, purchases.get(1).items.size());
 
         Purchase purchase = new Purchase()
                 .withUser(new User()
@@ -187,7 +187,7 @@ public class ShoppingCallTest extends BaseBusinessTest {
         purchase.items().add(LambdaUtils.supply(() -> {
             var item = new PurchaseItem()
                     .withProduct(new Product()
-                            .withId(DBReset.PEN_DRIVE2GB_ID));
+                            .withId(DBReset.FLASH_DRIVE_2GB_ID));
             item.withPrice(55.0)
                     .withAmount(1);
             return item;
@@ -195,50 +195,50 @@ public class ShoppingCallTest extends BaseBusinessTest {
         purchase.items().add(LambdaUtils.supply(() -> {
             var item = new PurchaseItem()
                     .withProduct(new Product()
-                            .withId(DBReset.FITA_VEDA_ROSCA_ID));
+                            .withId(DBReset.THREAD_SEAL_TAPE_ID));
             item.withPrice(5.0)
                     .withAmount(2);
             return item;
         }));
 
         PurchaseRepository.BEAN.get().insert(purchase);
-        final long idCompra = purchase.id();
-        Assert.assertEquals(DBReset.ADMIN_SECOND_PURCHASE_ID + 1, idCompra);
+        final long purchaseId = purchase.id();
+        Assert.assertEquals(DBReset.ADMIN_SECOND_PURCHASE_ID + 1, purchaseId);
 
-        compras = purchasesOf(userId);
+        purchases = purchasesOf(userId);
 
-        Assert.assertNotNull(compras);
-        Assert.assertEquals(3, compras.size());
+        Assert.assertNotNull(purchases);
+        Assert.assertEquals(3, purchases.size());
 
-        var ultimaCompra = compras.get(0);
-        Assert.assertEquals(Long.valueOf(idCompra), Long.valueOf(ultimaCompra.id));
-        Assert.assertEquals(2, ultimaCompra.items.size());
-        Assert.assertEquals(Double.valueOf(65.0), Double.valueOf(ultimaCompra.total));
+        var latestPurchase = purchases.get(0);
+        Assert.assertEquals(Long.valueOf(purchaseId), Long.valueOf(latestPurchase.id));
+        Assert.assertEquals(2, latestPurchase.items.size());
+        Assert.assertEquals(Double.valueOf(65.0), Double.valueOf(latestPurchase.total));
 
-        final ReceiptForm recibo = new ReceiptQuery()
-                .withPurchaseId(idCompra)
+        final ReceiptForm receipt = new ReceiptQuery()
+                .withPurchaseId(purchaseId)
                 .run();
-        Assert.assertNotNull(recibo);
-        Assert.assertEquals(Double.valueOf(65), recibo.total);
-        Assert.assertEquals(2, recibo.items.size());
+        Assert.assertNotNull(receipt);
+        Assert.assertEquals(Double.valueOf(65), receipt.total);
+        Assert.assertEquals(2, receipt.items.size());
 
-        var pedido0 = purchase.items().get(0);
-        Assert.assertEquals(pedido0.price(), Double.valueOf(recibo.items.get(0).value));
-        Assert.assertEquals(pedido0.amount(), Integer.valueOf(recibo.items.get(0).quantity));
-        Assert.assertEquals("Pen Drive 2GB", recibo.items.get(0).description);
+        var item0 = purchase.items().get(0);
+        Assert.assertEquals(item0.price(), Double.valueOf(receipt.items.get(0).value));
+        Assert.assertEquals(item0.amount(), Integer.valueOf(receipt.items.get(0).quantity));
+        Assert.assertEquals("2GB Flash Drive", receipt.items.get(0).description);
 
-        var pedido1 = purchase.items().get(1);
-        Assert.assertEquals(pedido1.price(), Double.valueOf(recibo.items.get(1).value));
-        Assert.assertEquals(pedido1.amount(), Integer.valueOf(recibo.items.get(1).quantity));
-        Assert.assertEquals("Fita veda rosca", recibo.items.get(1).description);
+        var item1 = purchase.items().get(1);
+        Assert.assertEquals(item1.price(), Double.valueOf(receipt.items.get(1).value));
+        Assert.assertEquals(item1.amount(), Integer.valueOf(receipt.items.get(1).quantity));
+        Assert.assertEquals("Thread Seal Tape", receipt.items.get(1).description);
     }
 
     @Test
     public void aSaveThatFails_leavesNothingBehind() {
-        var antes = PurchaseRepository.BEAN.get().count(new PurchaseCriteria());
+        var before = PurchaseRepository.BEAN.get().count(new PurchaseCriteria());
 
-        // Grava e só então falha: a transação que o ShoppingSave abriu é revertida
-        var gravacaoQueFalha = new ShoppingSave<Long>() {
+        // Writes and only then fails: the transaction the ShoppingSave opened is rolled back
+        var failingSave = new ShoppingSave<Long>() {
             @Override
             protected Long save() {
                 purchaseRepository().insert(new Purchase()
@@ -246,15 +246,15 @@ public class ShoppingCallTest extends BaseBusinessTest {
                                 .withId(DBReset.ADMIN_ID))
                         .withBuyDate(OffsetDateTime.now())
                         .withItems(new ArrayList<>()));
-                throw new IllegalStateException("falha depois de gravar");
+                throw new IllegalStateException("failure after writing");
             }
         };
 
-        Assert.assertThrows(IllegalStateException.class, gravacaoQueFalha::run);
-        Assert.assertEquals("nada gravado", antes, PurchaseRepository.BEAN.get().count(new PurchaseCriteria()));
+        Assert.assertThrows(IllegalStateException.class, failingSave::run);
+        Assert.assertEquals("nothing written", before, PurchaseRepository.BEAN.get().count(new PurchaseCriteria()));
     }
 
-    /** Todas as compras do usuário, a mais recente primeiro: uma página que as comporta. */
+    /** All of the user's purchases, most recent first: one page large enough to hold them. */
     private static List<PurchaseInfo> purchasesOf(Long userId) {
         return new PurchasesPageQuery()
                 .withUserId(userId)

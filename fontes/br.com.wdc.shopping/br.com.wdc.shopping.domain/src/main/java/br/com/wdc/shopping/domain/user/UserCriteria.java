@@ -8,12 +8,12 @@ import br.com.wdc.framework.domain.criteria.Criterion;
 import br.com.wdc.framework.domain.criteria.TextCriterion;
 
 /**
- * Critério de pesquisa de {@link User}.
+ * Search criteria for {@link User}.
  *
  * <p>
- * O tipo do campo decide o que se pode pedir dele: {@code userId} é ordenável, {@code userName} é textual e aceita
- * também {@code startingWith} e {@code containing}. É o que impede na compilação um {@code between} sobre um campo
- * que não tem ordem útil.
+ * The field type decides what can be asked of it: {@code userId} is comparable, {@code userName} is textual and also
+ * accepts {@code startingWith} and {@code containing}. That is what rules out, at compile time, a {@code between} on a
+ * field that has no useful ordering.
  * </p>
  */
 public class UserCriteria implements Criteria {
@@ -39,12 +39,12 @@ public class UserCriteria implements Criteria {
         return userId;
     }
 
-    /** Se há critério neste campo. É por aqui que a tradução pergunta. */
+    /** Whether this field has a criterion. This is what the translation checks. */
     public boolean hasUserId() {
         return userId.isSet();
     }
 
-    /** Atalho para {@code userId().eq(valor)}; {@code null} não filtra. */
+    /** Shortcut for {@code userId().eq(value)}; {@code null} does not filter. */
     public UserCriteria withUserId(Long value) {
         return value == null ? this : userId().eq(value);
     }
@@ -55,12 +55,12 @@ public class UserCriteria implements Criteria {
         return userName;
     }
 
-    /** Se há critério neste campo. É por aqui que a tradução pergunta. */
+    /** Whether this field has a criterion. This is what the translation checks. */
     public boolean hasUserName() {
         return userName.isSet();
     }
 
-    /** Atalho para {@code userName().eq(valor)}; {@code null} não filtra. */
+    /** Shortcut for {@code userName().eq(value)}; {@code null} does not filter. */
     public UserCriteria withUserName(String value) {
         return value == null ? this : userName().eq(value);
     }
@@ -71,29 +71,29 @@ public class UserCriteria implements Criteria {
         return name;
     }
 
-    /** Se há critério neste campo. É por aqui que a tradução pergunta. */
+    /** Whether this field has a criterion. This is what the translation checks. */
     public boolean hasName() {
         return name.isSet();
     }
 
-    /** Atalho para {@code name().eq(valor)}; {@code null} não filtra. */
+    /** Shortcut for {@code name().eq(value)}; {@code null} does not filter. */
     public UserCriteria withName(String value) {
         return value == null ? this : name().eq(value);
     }
 
-    /** Papéis separados por vírgula na coluna; {@code containing("ADMIN")} é o filtro usual. */
+    /** Comma-separated roles in the column; {@code containing("ADMIN")} is the usual filter. */
     private final TextCriterion<UserCriteria> roles = new TextCriterion<>(this, "roles");
 
     public TextCriterion<UserCriteria> roles() {
         return roles;
     }
 
-    /** Se há critério neste campo. É por aqui que a tradução pergunta. */
+    /** Whether this field has a criterion. This is what the translation checks. */
     public boolean hasRoles() {
         return roles.isSet();
     }
 
-    /** Atalho para {@code roles().eq(valor)}; {@code null} não filtra. */
+    /** Shortcut for {@code roles().eq(value)}; {@code null} does not filter. */
     public UserCriteria withRoles(String value) {
         return value == null ? this : roles().eq(value);
     }
@@ -117,28 +117,28 @@ public class UserCriteria implements Criteria {
     }
 
     /**
-     * Ordenações provisionadas.
+     * Provisioned orderings.
      *
      * <p>
-     * Cada constante é uma <b>ordenação inteira</b>, e não o pedido para ordenar por um campo: o nome diz o efeito
-     * que se obtém, e a tradução — no repositório — decide por quais colunas e em que sentido isso se faz. Não há
-     * composição; escolhe-se uma.
+     * Each constant is a <b>complete ordering</b>, not a request to sort by a field: the name states the resulting
+     * effect, and the translation — in the repository — decides which columns and directions produce it. There is no
+     * composition; you pick one.
      * </p>
      *
      * <p>
-     * <b>A lista é curta de propósito.</b> Ordenação nova entra por solicitação, e entra junto com o índice que a
-     * sustenta — é o que mantém explícito o que o banco precisa aguentar. Oferecer ordenação livre por qualquer campo
-     * pareceria generoso e produziria varredura completa na primeira consulta grande.
+     * <b>The list is short on purpose.</b> A new ordering is added on request, together with the index that supports
+     * it — that keeps explicit what the database has to handle. Offering free ordering by any field would look generous
+     * and would produce a full scan on the first large query.
      * </p>
      */
     public enum OrderBy {
-        /** Ordem de cadastro — o mais antigo primeiro. */
+        /** Registration order — oldest first. */
         OLDEST_FIRST,
-        /** Ordem de cadastro invertida. */
+        /** Reverse registration order. */
         NEWEST_FIRST,
-        /** Alfabética pelo nome da pessoa. */
+        /** Alphabetical by the person's name. */
         NAME_A_TO_Z,
-        /** Alfabética pelo login. */
+        /** Alphabetical by login. */
         LOGIN_A_TO_Z,
     }
 

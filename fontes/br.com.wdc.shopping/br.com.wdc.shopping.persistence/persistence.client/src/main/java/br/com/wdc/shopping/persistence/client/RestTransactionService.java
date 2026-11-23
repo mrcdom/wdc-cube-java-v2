@@ -12,31 +12,31 @@ import br.com.wdc.framework.domain.transaction.TransactionService;
 import br.com.wdc.framework.domain.transaction.TransactionSystemException;
 
 /**
- * Implementação cliente (REST) do {@link TransactionService} — coordenador remoto dirigido pelo cliente.
+ * Client-side (REST) implementation of {@link TransactionService} — a client-driven remote coordinator.
  *
  * <p>
- * {@code required} abre uma transação remota (<b>begin</b> → {@code txId}), propaga o {@code txId} (via
- * {@code HttpTransport.setTransactionIdSupplier} → header {@code X-Tx-Id}) nas chamadas de repositório do bloco — que
- * se juntam à mesma transação física no servidor — e finaliza com <b>commit</b> (retorno normal, salvo
- * {@code setRollbackOnly}) ou <b>rollback</b> (exceção). Assim múltiplas escritas REST tornam-se atômicas.
+ * {@code required} opens a remote transaction (<b>begin</b> → {@code txId}), propagates the {@code txId} (via
+ * {@code HttpTransport.setTransactionIdSupplier} → {@code X-Tx-Id} header) on the block's repository calls — which
+ * join the same physical transaction on the server — and finishes with <b>commit</b> (normal return, unless
+ * {@code setRollbackOnly}) or <b>rollback</b> (exception). That way multiple REST writes become atomic.
  * </p>
  *
  * <p>
- * O {@code txId} corrente é preso à thread ({@link ThreadLocal}); aninhar {@code required} reaproveita a transação
- * ativa (participa). Single-thread, como o coordenador servidor.
+ * The current {@code txId} is bound to the thread ({@link ThreadLocal}); nesting {@code required} reuses the active
+ * transaction (participates). Single-threaded, like the server coordinator.
  * </p>
  */
 public final class RestTransactionService implements TransactionService {
 
     /**
-     * Transação remota ativa, presa à thread. O isolamento entre fluxos concorrentes depende de uma <b>invariante</b>:
-     * cada ação independente do usuário roda na sua própria thread. No backend e nos clientes JVM isso é trivial
-     * (threads reais). No navegador (TeaVM, single-thread com event-loop) vale igual <b>porque</b> (1) cada ação é
-     * disparada numa green-thread própria (ex.: {@code safeAction} → {@code new Thread().start()}) e (2) o
-     * {@code ThreadLocal} do TeaVM é por-thread (armazena por {@code currentThread().key}). Assim, se um bloco
-     * {@code required} suspende num XHR e outra ação roda no event-loop, esta lê seu próprio {@code CURRENT} (vazio) e
-     * <b>não</b> herda o {@code txId} suspenso. <b>Cuidado ao refatorar:</b> rodar ações inline na main thread ou
-     * reusar threads de um pool quebraria esse isolamento.
+     * Active remote transaction, bound to the thread. Isolation between concurrent flows relies on an
+     * <b>invariant</b>: each independent user action runs on its own thread. In the backend and in JVM clients this is
+     * trivial (real threads). In the browser (TeaVM, single-threaded with an event loop) it holds too <b>because</b> (1)
+     * each action is dispatched on its own green thread (e.g. {@code safeAction} → {@code new Thread().start()}) and
+     * (2) TeaVM's {@code ThreadLocal} is per-thread (stored by {@code currentThread().key}). So if a {@code required}
+     * block suspends on an XHR and another action runs on the event loop, that action reads its own {@code CURRENT}
+     * (empty) and does <b>not</b> inherit the suspended {@code txId}. <b>Careful when refactoring:</b> running actions
+     * inline on the main thread or reusing threads from a pool would break this isolation.
      */
     private static final ThreadLocal<TxState> CURRENT = new ThreadLocal<>();
     private static final TransactionContext NO_TX = new NoTxContext();
@@ -45,7 +45,7 @@ public final class RestTransactionService implements TransactionService {
 
     public RestTransactionService(HttpTransport transport) {
         this.transport = transport;
-        // O transporte enviará X-Tx-Id sempre que houver transação remota ativa nesta thread.
+        // The transport sends X-Tx-Id whenever there is an active remote transaction on this thread.
         transport.setTransactionIdSupplier(() -> {
             var state = CURRENT.get();
             return state != null ? state.txId : null;
@@ -63,7 +63,7 @@ public final class RestTransactionService implements TransactionService {
     public <T> T requiredCall(Function<TransactionContext, T> work) {
         var existing = CURRENT.get();
         if (existing != null) {
-            return work.apply(existing); // já em transação remota: participa
+            return work.apply(existing); // already in a remote transaction: participate
         }
         return runInNewTx(work);
     }
@@ -79,7 +79,7 @@ public final class RestTransactionService implements TransactionService {
     public <T> T requiresNewCall(Function<TransactionContext, T> work) {
         var outer = CURRENT.get();
         if (outer != null) {
-            CURRENT.remove(); // suspende: chamadas internas não levam o txId externo
+            CURRENT.remove(); // suspend: inner calls do not carry the outer txId
         }
         try {
             return runInNewTx(work);
@@ -101,7 +101,7 @@ public final class RestTransactionService implements TransactionService {
     public <T> T mandatoryCall(Function<TransactionContext, T> work) {
         var state = CURRENT.get();
         if (state == null) {
-            throw new TransactionRequiredException("mandatory: nenhuma transação remota ativa");
+            throw new TransactionRequiredException("mandatory: no active remote transaction");
         }
         return work.apply(state);
     }
@@ -130,7 +130,7 @@ public final class RestTransactionService implements TransactionService {
     public <T> T notSupportedCall(Function<TransactionContext, T> work) {
         var outer = CURRENT.get();
         if (outer != null) {
-            CURRENT.remove(); // suspende: chamadas internas não levam txId
+            CURRENT.remove(); // suspend: inner calls carry no txId
         }
         try {
             return work.apply(NO_TX);
@@ -151,7 +151,7 @@ public final class RestTransactionService implements TransactionService {
     @Override
     public <T> T neverCall(Function<TransactionContext, T> work) {
         if (CURRENT.get() != null) {
-            throw new TransactionNotAllowedException("never: há transação remota ativa");
+            throw new TransactionNotAllowedException("never: there is an active remote transaction");
         }
         return work.apply(NO_TX);
     }
@@ -191,12 +191,12 @@ public final class RestTransactionService implements TransactionService {
         }
         reader.endObject();
         if (txId == null || txId.isBlank()) {
-            throw new TransactionSystemException("Resposta de begin sem txId");
+            throw new TransactionSystemException("begin response without txId");
         }
         return txId;
     }
 
-    /** O txId vai no header X-Tx-Id (transporte), pois CURRENT ainda está setado durante o commit/rollback. */
+    /** The txId goes in the X-Tx-Id header (transport), since CURRENT is still set during commit/rollback. */
     private void remoteCommit() {
         transport.postJson("/api/tx/commit", "{}");
     }
@@ -209,7 +209,7 @@ public final class RestTransactionService implements TransactionService {
         try {
             remoteRollback();
         } catch (RuntimeException ignore) {
-            // melhor esforço: a exceção original do work é a relevante
+            // best effort: the work's original exception is the one that matters
         }
     }
 
@@ -220,7 +220,7 @@ public final class RestTransactionService implements TransactionService {
         };
     }
 
-    /** Handle de uma transação remota ativa. */
+    /** Handle of an active remote transaction. */
     private static final class TxState implements TransactionContext {
         final String txId;
         boolean rollbackOnly;
@@ -245,11 +245,11 @@ public final class RestTransactionService implements TransactionService {
         }
     }
 
-    /** Handle entregue quando não há transação (supports/notSupported/never sem tx ativa). */
+    /** Handle passed when there is no transaction (supports/notSupported/never without an active tx). */
     private static final class NoTxContext implements TransactionContext {
         @Override
         public void setRollbackOnly() {
-            throw new IllegalStateException("setRollbackOnly: nenhuma transação remota ativa neste escopo");
+            throw new IllegalStateException("setRollbackOnly: no active remote transaction in this scope");
         }
 
         @Override

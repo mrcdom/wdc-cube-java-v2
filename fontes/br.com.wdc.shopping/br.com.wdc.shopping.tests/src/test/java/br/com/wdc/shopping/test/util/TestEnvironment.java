@@ -36,8 +36,8 @@ import io.agroal.api.security.SimplePassword;
 import io.javalin.Javalin;
 
 /**
- * Ambiente de teste reutilizável via {@code @ClassRule}. Pode operar em modo LOCAL (persistence direta) ou REST (via
- * Javalin embarcado).
+ * Reusable test environment via {@code @ClassRule}. It can run in LOCAL mode (direct persistence) or REST mode (via
+ * embedded Javalin).
  */
 public class TestEnvironment extends ExternalResource {
 
@@ -80,7 +80,7 @@ public class TestEnvironment extends ExternalResource {
         return purchaseItemRepo;
     }
 
-    /** Transporte HTTP usado pelos repositórios no modo REST (para criar um TransactionService remoto no teste). */
+    /** HTTP transport used by the repositories in REST mode (to create a remote TransactionService in the test). */
     public OkHttpTransport transport() {
         return transport;
     }
@@ -133,9 +133,9 @@ public class TestEnvironment extends ExternalResource {
         ShoppingConfig.Internals.setLogDir(basePath.resolve("log"));
         ShoppingConfig.Internals.setTempDir(basePath.resolve("temp"));
 
-        // Infraestrutura de criptografia: os hosts reais (backend, Vaadin, SWT, TeaVM) a instalam no seu
-        // composition root, e o ambiente de teste é um host como os outros. Sem ela, PasswordUtil recusa a
-        // operação — e é dele que o login depende para conferir o resumo da senha.
+        // Cryptography infrastructure: the real hosts (backend, Vaadin, SWT, TeaVM) install it in their
+        // composition root, and the test environment is a host like the others. Without it, PasswordUtil refuses the
+        // operation — and login depends on it to check the password digest.
         CryptoProvider.BEAN.set(new JceCryptoProvider());
         cleanUp.push(() -> CryptoProvider.BEAN.set(null));
 
@@ -147,8 +147,8 @@ public class TestEnvironment extends ExternalResource {
             purchaseRepo = PurchaseRepository.BEAN.get();
             purchaseItemRepo = PurchaseItemRepository.BEAN.get();
         } else {
-            // Coordenador de transação remota: o servidor REST de teste é um composition root próprio
-            // (não passa pelo BusinessContext), então fia o coordenador aqui, como o backend faz.
+            // Remote transaction coordinator: the test REST server is a composition root of its own
+            // (it does not go through BusinessContext), so it wires the coordinator here, as the backend does.
             RemoteTransactions.COORDINATOR.set(new RemoteTransactionCoordinatorImpl(() -> ds));
             cleanUp.push(() -> RemoteTransactions.COORDINATOR.set(null));
 

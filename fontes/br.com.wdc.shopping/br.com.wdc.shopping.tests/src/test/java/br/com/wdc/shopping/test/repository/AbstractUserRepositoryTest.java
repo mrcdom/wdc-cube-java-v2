@@ -29,7 +29,7 @@ public abstract class AbstractUserRepositoryTest {
 		var user = repo().fetchById(DBReset.ADMIN_ID, null);
 		assertNotNull(user);
 		assertEquals("admin", user.userName());
-		assertEquals("João da Silva", user.name());
+		assertEquals("John Smith", user.name());
 	}
 
 	@Test
@@ -54,9 +54,9 @@ public abstract class AbstractUserRepositoryTest {
 	@Test
 	public void fetchByCriteria_userName() {
 		var users = repo().fetch(new UserCriteria()
-				.withUserName("fulano"));
+				.withUserName("jdoe"));
 		assertEquals(1, users.size());
-		assertEquals(DBReset.FULANO_ID, users.get(0).id());
+		assertEquals(DBReset.JOHN_DOE_ID, users.get(0).id());
 	}
 
 	@Test
@@ -125,13 +125,13 @@ public abstract class AbstractUserRepositoryTest {
 				.withId(original.id())
 				.withUserName(original.userName())
 				.withPassword(original.password())
-				.withName("Nome Alterado");
+				.withName("Changed Name");
 
 		boolean result = repo().update(updated, original);
 		assertTrue(result);
 
 		var fetched = repo().fetchById(DBReset.ADMIN_ID, null);
-		assertEquals("Nome Alterado", fetched.name());
+		assertEquals("Changed Name", fetched.name());
 	}
 
 	@Test
@@ -149,20 +149,20 @@ public abstract class AbstractUserRepositoryTest {
 		var originalUserName = original.userName();
 		var originalPassword = original.password();
 
-		// projeção parcial: só id e name
+		// partial projection: only id and name
 		var projection = new User()
 				.withId(pv.i64)
 				.withName(pv.str);
 
 		var updated = new User()
 				.withId(original.id())
-				.withName("Nome Parcial");
+				.withName("Partial Name");
 
 		boolean result = repo().update(updated, original, projection);
 		assertTrue(result);
 
 		var fetched = repo().fetchById(DBReset.ADMIN_ID, fullProjection);
-		assertEquals("Nome Parcial", fetched.name());
+		assertEquals("Partial Name", fetched.name());
 		assertEquals(originalUserName, fetched.userName());
 		assertEquals(originalPassword, fetched.password());
 	}
@@ -177,26 +177,26 @@ public abstract class AbstractUserRepositoryTest {
 				.withName(pv.str)
 				.withRoles(pv.str);
 
-		// Garante que admin tem roles preenchido
+		// Ensures admin has roles filled in
 		var original = repo().fetchById(DBReset.ADMIN_ID, fullProjection);
 		assertNotNull(original);
 		assertNotNull(original.roles());
 
-		// projeção inclui roles — valor será null para limpar
+		// the projection includes roles — the value is null to clear it
 		var projection = new User()
 				.withId(pv.i64)
 				.withRoles(pv.str);
 
 		var updated = new User()
 				.withId(original.id());
-		updated.withRoles(null); // intencionalmente limpar
+		updated.withRoles(null); // intentionally cleared
 
 		boolean result = repo().update(updated, original, projection);
 		assertTrue(result);
 
 		var fetched = repo().fetchById(DBReset.ADMIN_ID, fullProjection);
 		assertNull(fetched.roles());
-		// demais campos intactos
+		// other fields untouched
 		assertEquals(original.userName(), fetched.userName());
 		assertEquals(original.name(), fetched.name());
 	}
@@ -205,9 +205,9 @@ public abstract class AbstractUserRepositoryTest {
 
 	@Test
 	public void deleteByUserId_noFkDependency() {
-		// BEOTRANO has no purchases, so no FK violation
+		// JANE_ROE has no purchases, so no FK violation
 		int deleted = repo().delete(new UserCriteria()
-				.withUserId(DBReset.BEOTRANO_ID));
+				.withUserId(DBReset.JANE_ROE_ID));
 		assertEquals(1, deleted);
 		assertEquals(2, repo().count(new UserCriteria()));
 	}
@@ -219,7 +219,7 @@ public abstract class AbstractUserRepositoryTest {
 		assertEquals(0, deleted);
 	}
 
-	// :: Critério textual — rodam também no modo REST, onde provam que os operadores trafegam
+	// :: Text criterion — these also run in REST mode, where they prove the operators travel over the wire
 
 	@Test
 	public void startingWith_anchorsAtTheBeginning() {
@@ -231,16 +231,16 @@ public abstract class AbstractUserRepositoryTest {
 
 	@Test
 	public void startingWith_doesNotMatchInTheMiddle() {
-		// O que distingue startingWith de containing: "dmi" existe em "admin", mas não no início.
+		// What sets startingWith apart from containing: "dmi" occurs in "admin", but not at the start.
 		assertEquals(0, repo().fetch(new UserCriteria().userName().startingWith("dmi")).size());
 	}
 
 	@Test
 	public void containing_matchesAnywhere() {
-		var users = repo().fetch(new UserCriteria().userName().containing("ulan"));
+		var users = repo().fetch(new UserCriteria().userName().containing("doe"));
 
 		assertEquals(1, users.size());
-		assertEquals("fulano", users.get(0).userName());
+		assertEquals("jdoe", users.get(0).userName());
 	}
 
 	@Test
@@ -252,14 +252,14 @@ public abstract class AbstractUserRepositoryTest {
 
 	@Test
 	public void like_doesNotIgnoreCase() {
-		// É o par que justifica existirem os dois operadores em vez de um só.
+		// This pair is why there are two operators instead of one.
 		assertEquals(0, repo().fetch(new UserCriteria().userName().like("ADMIN")).size());
 		assertEquals(1, repo().fetch(new UserCriteria().userName().like("admin")).size());
 	}
 
 	@Test
 	public void wildcardsBelongToTheValue() {
-		// like("admin") não é like("%admin%"): os curingas fazem parte do valor, como em SQL.
+		// like("admin") is not like("%admin%"): the wildcards are part of the value, as in SQL.
 		assertEquals(0, repo().fetch(new UserCriteria().userName().like("dmi")).size());
 		assertEquals(1, repo().fetch(new UserCriteria().userName().like("%dmi%")).size());
 	}
@@ -268,7 +268,7 @@ public abstract class AbstractUserRepositoryTest {
 	public void or_acrossTextRequests() {
 		var criteria = new UserCriteria();
 		criteria.userName().or().eq("admin");
-		criteria.userName().eq("fulano");
+		criteria.userName().eq("jdoe");
 
 		assertEquals(2, repo().fetch(criteria).size());
 	}
@@ -278,14 +278,14 @@ public abstract class AbstractUserRepositoryTest {
 		var criteria = new UserCriteria();
 		criteria.userName().startingWith("");
 
-		assertEquals("texto vazio não acrescenta pedido", 3, repo().fetch(criteria).size());
+		assertEquals("empty text adds no request", 3, repo().fetch(criteria).size());
 	}
 
-	// :: Campos que não são a chave
+	// :: Fields that are not the key
 
 	@Test
 	public void filterByName_text() {
-		var users = repo().fetch(new UserCriteria().name().containing("Silva"));
+		var users = repo().fetch(new UserCriteria().name().containing("Smith"));
 
 		assertEquals(1, users.size());
 		assertEquals("admin", users.get(0).userName());
@@ -299,31 +299,31 @@ public abstract class AbstractUserRepositoryTest {
 
 	@Test
 	public void filterByRoles_containing() {
-		// Papéis ficam separados por vírgula na coluna; conter é o filtro que responde "tem este papel".
+		// Roles are comma-separated in the column; containing is the filter that answers "has this role".
 		assertEquals(1, repo().fetch(new UserCriteria().roles().containing("ADMIN")).size());
 	}
 
-	// :: Ordenações provisionadas
+	// :: Provisioned orderings
 
 	@Test
 	public void orderBy_nameAToZ() {
-		var nomes = repo().fetch(new UserCriteria()
+		var names = repo().fetch(new UserCriteria()
 				.withOrderBy(UserCriteria.OrderBy.NAME_A_TO_Z)).stream().map(User::name).toList();
 
-		assertEquals(nomes.stream().sorted(String.CASE_INSENSITIVE_ORDER).toList(), nomes);
+		assertEquals(names.stream().sorted(String.CASE_INSENSITIVE_ORDER).toList(), names);
 	}
 
 	@Test
 	public void orderBy_loginAToZ_differsFromName() {
-		var porLogin = repo().fetch(new UserCriteria()
+		var byLogin = repo().fetch(new UserCriteria()
 				.withOrderBy(UserCriteria.OrderBy.LOGIN_A_TO_Z)).stream().map(User::userName).toList();
 
-		assertEquals(porLogin.stream().sorted(String.CASE_INSENSITIVE_ORDER).toList(), porLogin);
+		assertEquals(byLogin.stream().sorted(String.CASE_INSENSITIVE_ORDER).toList(), byLogin);
 
-		// Ordenar por login não é o mesmo que ordenar por nome: são conceitos distintos, e é essa a razão
-		// de existirem duas constantes em vez de uma "ordem alfabética".
-		var porNome = repo().fetch(new UserCriteria()
+		// Ordering by login is not the same as ordering by name: they are distinct concepts, and that is why
+		// there are two constants instead of a single "alphabetical order".
+		var byName = repo().fetch(new UserCriteria()
 				.withOrderBy(UserCriteria.OrderBy.NAME_A_TO_Z)).stream().map(User::userName).toList();
-		assertNotEquals(porNome, porLogin);
+		assertNotEquals(byName, byLogin);
 	}
 }

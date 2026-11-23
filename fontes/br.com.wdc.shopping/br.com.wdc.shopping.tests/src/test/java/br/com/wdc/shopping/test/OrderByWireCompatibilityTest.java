@@ -18,12 +18,12 @@ import br.com.wdc.shopping.domain.user.UserCriteria;
 import br.com.wdc.shopping.test.util.TestEnvironment;
 
 /**
- * O que acontece quando chega um nome de ordenação que este servidor não conhece.
+ * What happens when an ordering name this server does not know arrives.
  *
  * <p>
- * É o que um cliente defasado envia — o app compilado contra uma versão anterior do domínio, que segue pedindo um
- * nome já renomeado. A resposta tem de nomear o valor recusado e os aceitos, e chegar como 400: é a única pista de
- * quem chamou, para quem o sintoma é uma lista vazia na tela.
+ * That is what an outdated client sends — the app compiled against an earlier version of the domain, which keeps
+ * asking for a name that has since been renamed. The response must name the rejected value and the accepted ones, and
+ * arrive as a 400: it is the caller's only clue, since for them the symptom is an empty list on screen.
  * </p>
  */
 public class OrderByWireCompatibilityTest {
@@ -33,28 +33,28 @@ public class OrderByWireCompatibilityTest {
 
 	@Test
 	public void unknownOrderBy_isRejectedNamingValueAndAccepted() {
-		var in = new JsonStreamReader("\"ORDENACAO_INEXISTENTE\"");
+		var in = new JsonStreamReader("\"NONEXISTENT_ORDERING\"");
 		var criteria = new PurchaseCriteria();
 
 		var e = assertThrows(InvalidRequestException.class,
 				() -> new PurchaseCodec().readCriteriaField(in, "orderBy", criteria));
 
-		assertTrue("a mensagem deve nomear o valor recusado: " + e.getMessage(),
-				e.getMessage().contains("ORDENACAO_INEXISTENTE"));
-		assertTrue("a mensagem deve listar as ordenações aceitas: " + e.getMessage(),
+		assertTrue("the message must name the rejected value: " + e.getMessage(),
+				e.getMessage().contains("NONEXISTENT_ORDERING"));
+		assertTrue("the message must list the accepted orderings: " + e.getMessage(),
 				e.getMessage().contains("NEWEST_FIRST"));
 	}
 
 	@Test
 	public void unknownOrderBy_isRejectedInEveryEntity() {
 		assertThrows(InvalidRequestException.class,
-				() -> new ProductCodec().readCriteriaField(new JsonStreamReader("\"ORDENACAO_INEXISTENTE\""), "orderBy",
+				() -> new ProductCodec().readCriteriaField(new JsonStreamReader("\"NONEXISTENT_ORDERING\""), "orderBy",
 						new ProductCriteria()));
 		assertThrows(InvalidRequestException.class,
-				() -> new UserCodec().readCriteriaField(new JsonStreamReader("\"ORDENACAO_INEXISTENTE\""), "orderBy",
+				() -> new UserCodec().readCriteriaField(new JsonStreamReader("\"NONEXISTENT_ORDERING\""), "orderBy",
 						new UserCriteria()));
 		assertThrows(InvalidRequestException.class,
-				() -> new PurchaseItemCodec().readCriteriaField(new JsonStreamReader("\"ORDENACAO_INEXISTENTE\""), "orderBy",
+				() -> new PurchaseItemCodec().readCriteriaField(new JsonStreamReader("\"NONEXISTENT_ORDERING\""), "orderBy",
 						new PurchaseItemCriteria()));
 	}
 
@@ -74,11 +74,11 @@ public class OrderByWireCompatibilityTest {
 		var criteria = new PurchaseCriteria()
 				.withOrderBy(PurchaseCriteria.OrderBy.OLDEST_FIRST);
 		new PurchaseCodec().readCriteriaField(new JsonStreamReader("null"), "orderBy", criteria);
-		assertEquals("null não é ordenação: não deve apagar a que já estava",
+		assertEquals("null is not an ordering: it must not erase the existing one",
 				PurchaseCriteria.OrderBy.OLDEST_FIRST, criteria.orderBy());
 	}
 
-	/** Ida e volta pelo formato do fio: o que a escrita produz, a leitura aceita. */
+	/** Round trip through the wire format: what the writer produces, the reader accepts. */
 	@Test
 	public void everyOrderingSurvivesTheRoundTrip() {
 		for (var ordering : PurchaseCriteria.OrderBy.values()) {
@@ -90,25 +90,25 @@ public class OrderByWireCompatibilityTest {
 	}
 
 	/**
-	 * O caminho inteiro, pelo HTTP.
+	 * The whole path, over HTTP.
 	 *
 	 * <p>
-	 * O que importa aqui é o <b>status</b>: a exceção precisa atravessar o handler do Javalin e sair como 400, com a
-	 * mensagem no corpo. Mapeada como falha interna, o cliente fica sem a única pista que tem.
+	 * What matters here is the <b>status</b>: the exception has to cross the Javalin handler and come out as a 400, with
+	 * the message in the body. Mapped as an internal failure, the client loses the only clue it has.
 	 * </p>
 	 */
 	@Test
 	public void unknownOrderBy_overHttp_answers400WithTheReason() {
-		var body = "{\"userId\":{\"p\":[{\"o\":\"EQ\",\"v\":[0]}]},\"orderBy\":\"ORDENACAO_INEXISTENTE\","
+		var body = "{\"userId\":{\"p\":[{\"o\":\"EQ\",\"v\":[0]}]},\"orderBy\":\"NONEXISTENT_ORDERING\","
 				+ "\"projection\":{\"id\":1},\"pageSize\":10}";
 
-		// 400, não 500: volta como a exceção que o servidor lançou
+		// 400, not 500: it comes back as the exception the server threw
 		var e = assertThrows(InvalidRequestException.class,
 				() -> env.transport().postJson("/api/repo/purchase/fetch-page", body));
 
-		assertTrue("o corpo deve nomear o valor recusado: " + e.getMessage(),
-				e.getMessage().contains("ORDENACAO_INEXISTENTE"));
-		assertTrue("o corpo deve listar as aceitas: " + e.getMessage(),
+		assertTrue("the body must name the rejected value: " + e.getMessage(),
+				e.getMessage().contains("NONEXISTENT_ORDERING"));
+		assertTrue("the body must list the accepted ones: " + e.getMessage(),
 				e.getMessage().contains("NEWEST_FIRST"));
 	}
 }

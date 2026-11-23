@@ -8,9 +8,9 @@ import br.com.wdc.framework.domain.exception.TransactionConflictException;
 import br.com.wdc.framework.domain.exception.TransactionLimitExceededException;
 
 /**
- * Uma resposta de erro da API como a exceção que o servidor lançou: o inverso do mapeamento de
- * {@code RepositoryApiRoutes} (400, 403, 409 e 429, com {@code {"error": "..."}} no corpo). Assim quem chama o
- * repositório remoto recebe a mesma exceção que receberia do repositório local.
+ * An API error response as the exception the server threw: the inverse of the {@code RepositoryApiRoutes} mapping
+ * (400, 403, 409 and 429, with {@code {"error": "..."}} in the body). That way whoever calls the remote repository
+ * gets the same exception it would get from the local repository.
  */
 public final class HttpFailure {
 
@@ -29,7 +29,7 @@ public final class HttpFailure {
         };
     }
 
-    /** O {@code error} do corpo JSON; o corpo inteiro quando não é esse JSON. */
+    /** The {@code error} of the JSON body; the whole body when it is not that JSON. */
     private static String errorMessageOf(String body) {
         if (body == null || body.isBlank()) {
             return "";

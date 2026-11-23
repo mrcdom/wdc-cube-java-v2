@@ -12,16 +12,16 @@ import org.postgresql.ds.PGSimpleDataSource;
 import br.com.wdc.framework.domain.config.AppConfig;
 
 /**
- * DataSource sem pool para as views locais (Vaadin, SWT), lido das mesmas chaves {@code database.*} do backend.
+ * Unpooled DataSource for the local views (Vaadin, SWT), read from the same {@code database.*} keys as the backend.
  * <p>
- * O banco é escolhido pela URL de {@code database.url}: PostgreSQL ({@code jdbc:postgresql:}) ou H2. Sem URL,
- * usa o H2 em arquivo dentro de {@code dataDir}. O backend não passa por aqui: monta o pool no host.
+ * The database is chosen by the {@code database.url} URL: PostgreSQL ({@code jdbc:postgresql:}) or H2. Without a URL,
+ * it uses a file-based H2 inside {@code dataDir}. The backend does not go through here: it builds the pool in the host.
  * <p>
- * Os drivers são dependências opcionais deste módulo; quem usa esta classe declara os dois.
+ * The drivers are optional dependencies of this module; whoever uses this class declares both.
  *
- * @param dataSource DataSource pronto para o {@link ShoppingRepositoryBootstrap}
- * @param dialect    dialeto correspondente à URL
- * @param url        URL JDBC efetiva (para log)
+ * @param dataSource DataSource ready for the {@link ShoppingRepositoryBootstrap}
+ * @param dialect    dialect matching the URL
+ * @param url        effective JDBC URL (for logging)
  */
 public record LocalDataSource(DataSource dataSource, SQLDialect dialect, String url) {
 

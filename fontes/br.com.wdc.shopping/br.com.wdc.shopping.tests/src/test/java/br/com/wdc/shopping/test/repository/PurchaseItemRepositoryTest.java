@@ -25,7 +25,7 @@ public class PurchaseItemRepositoryTest extends AbstractPurchaseItemRepositoryTe
 		return env.purchaseItemRepo();
 	}
 
-	// -- Testes exclusivos do modo LOCAL (assertam purchase, que REST não retorna) --
+	// -- LOCAL-mode-only tests (they assert on purchase, which REST does not return) --
 
 	@Test
 	public void fetchById_returnsCorrectItem_withPurchase() {
@@ -42,7 +42,7 @@ public class PurchaseItemRepositoryTest extends AbstractPurchaseItemRepositoryTe
 				.withPurchase(new br.com.wdc.shopping.domain.purchase.Purchase()
 						.withId(DBReset.ADMIN_FIRST_PURCHASE_ID))
 				.withProduct(new br.com.wdc.shopping.domain.product.Product()
-						.withId(DBReset.PEN_DRIVE2GB_ID));
+						.withId(DBReset.FLASH_DRIVE_2GB_ID));
 
 		boolean inserted = repo().insert(item);
 		assertTrue(inserted);
@@ -50,6 +50,6 @@ public class PurchaseItemRepositoryTest extends AbstractPurchaseItemRepositoryTe
 		var fetched = repo().fetchById(item.id(), projectionWithRelations());
 		assertNotNull(fetched);
 		assertEquals(DBReset.ADMIN_FIRST_PURCHASE_ID, fetched.purchase().id());
-		assertEquals(DBReset.PEN_DRIVE2GB_ID, fetched.product().id());
+		assertEquals(DBReset.FLASH_DRIVE_2GB_ID, fetched.product().id());
 	}
 }

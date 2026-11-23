@@ -11,8 +11,8 @@ import br.com.wdc.framework.domain.security.PermissionModel;
 import br.com.wdc.framework.domain.security.SecurityContext;
 
 /**
- * Implementação de {@link SecurityContext} para uma sessão autenticada.
- * Contém o userId, permissões efetivas e o par de chaves RSA efêmero.
+ * {@link SecurityContext} implementation for an authenticated session.
+ * Holds the userId, the effective permissions and the ephemeral RSA key pair.
  */
 public final class AccessContext implements SecurityContext {
 

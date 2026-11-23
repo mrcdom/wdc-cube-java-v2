@@ -138,7 +138,7 @@ public final class RepositoryApiDocs {
                 .addSchemas("FetchRequest", fetchRequest())
                 .addSchemas("PageRequest", pageRequest())
                 .addSchemas("FetchByIdRequest", fetchByIdRequest())
-                // Critérios por entidade — derivados do domínio, ver criteriaSchema
+                // Per-entity criteria — derived from the domain, see criteriaSchema
                 .addSchemas("ProductCriteria",
                         criteriaSchema("Product", new ProductCriteria(), ProductCriteria.OrderBy.values()))
                 .addSchemas("UserCriteria",
@@ -147,7 +147,7 @@ public final class RepositoryApiDocs {
                         criteriaSchema("Purchase", new PurchaseCriteria(), PurchaseCriteria.OrderBy.values()))
                 .addSchemas("PurchaseItemCriteria",
                         criteriaSchema("PurchaseItem", new PurchaseItemCriteria(), PurchaseItemCriteria.OrderBy.values()))
-                // Corpos de consulta por entidade: paginação + critério
+                // Per-entity query bodies: pagination + criteria
                 .addSchemas("ProductFetchRequest", requestOf("FetchRequest", "ProductCriteria"))
                 .addSchemas("ProductPageRequest", requestOf("PageRequest", "ProductCriteria"))
                 .addSchemas("UserFetchRequest", requestOf("FetchRequest", "UserCriteria"))
@@ -221,8 +221,8 @@ public final class RepositoryApiDocs {
     private static Schema<?> criterionPredicate() {
         return new ObjectSchema()
                 .description("A single comparison request within a criterion.")
-                // Os métodos tipados vêm antes de description(): em swagger-models description() devolve Schema cru,
-                // e o que se encadeia depois dele perde o tipo.
+                // The typed methods come before description(): in swagger-models description() returns a raw Schema,
+                // and whatever is chained after it loses the type.
                 .addProperty("o", new StringSchema()
                         ._enum(List.of("EQ", "NE", "GT", "GE", "LT", "LE",
                                 "LIKE", "ILIKE", "BETWEEN", "IN", "IS_NULL", "IS_NOT_NULL"))
@@ -282,22 +282,21 @@ public final class RepositoryApiDocs {
                 .addRequiredItem("shape");
     }
 
-    // -- Criteria por entidade --
+    // -- Per-entity criteria --
 
     /**
-     * O esquema de critério de uma entidade, <b>derivado do próprio domínio</b>.
+     * An entity's criteria schema, <b>derived from the domain itself</b>.
      *
      * <p>
-     * Os campos saem de {@link Criteria#criterions()} e as ordenações do {@code OrderBy} da entidade. Escrever essas
-     * listas à mão aqui seria duplicá-las, e documentação duplicada envelhece sem avisar — foi o que aconteceu quando
-     * o formato do critério mudou e a especificação seguiu descrevendo o anterior. Derivando, acrescentar um campo ao
-     * critério o faz aparecer na documentação no mesmo build.
+     * The fields come from {@link Criteria#criterions()} and the orderings from the entity's {@code OrderBy}. Writing
+     * those lists by hand here would duplicate them, and duplicated documentation goes stale without warning. Derived,
+     * adding a field to the criteria makes it show up in the documentation in the same build.
      * </p>
      */
     private static Schema<?> criteriaSchema(String entity, Criteria criteria, Enum<?>[] orderings) {
         var schema = new ObjectSchema().description("""
-                Campos de critério de %s. Cada um é um `Criterion` — um objeto com os pedidos de comparação —, \
-                e campos diferentes combinam com `AND`. Envie-os ao lado dos parâmetros de paginação.""".formatted(entity));
+                Criteria fields for %s. Each one is a `Criterion` — an object with the comparison requests — \
+                and different fields combine with `AND`. Send them alongside the pagination parameters.""".formatted(entity));
 
         for (var criterion : criteria.criterions()) {
             schema.addProperty(criterion.name(), criterionRef(family(criterion)));
@@ -306,36 +305,36 @@ public final class RepositoryApiDocs {
         schema.addProperty("orderBy", new StringSchema()
                 ._enum(Arrays.stream(orderings).map(Enum::name).toList())
                 .description("""
-                        Ordenação provisionada. Cada valor é uma ordenação inteira, cujo nome diz o efeito obtido — \
-                        não é um campo com uma direção. Omitido, a ordem fica a cargo do banco."""));
+                        Provisioned ordering. Each value is a complete ordering whose name states the resulting \
+                        effect — not a field with a direction. When omitted, the order is up to the database."""));
 
         return schema;
     }
 
     /**
-     * A família do campo, que decide quais operadores ele aceita.
+     * The field's family, which decides which operators it accepts.
      *
      * <p>
-     * Lida da classe do {@code Criterion}, e não de uma tabela paralela: é a mesma distinção que o compilador impõe
-     * do lado Java.
+     * Read from the {@code Criterion} class, not from a parallel table: it is the same distinction the compiler enforces
+     * on the Java side.
      * </p>
      */
     private static String family(Criterion<?, ?> criterion) {
         if (criterion instanceof TextCriterion) {
-            return "Texto — aceita também LIKE e ILIKE, além das comparações de ordem.";
+            return "Text — also accepts LIKE and ILIKE, besides the ordering comparisons.";
         }
         if (criterion instanceof ComparableCriterion) {
-            return "Ordenável — aceita também GT, GE, LT, LE e BETWEEN.";
+            return "Comparable — also accepts GT, GE, LT, LE and BETWEEN.";
         }
-        return "Identidade — EQ, NE, IN, IS_NULL e IS_NOT_NULL.";
+        return "Identity — EQ, NE, IN, IS_NULL and IS_NOT_NULL.";
     }
 
     /**
-     * Referência a {@code Criterion} com uma descrição própria.
+     * A reference to {@code Criterion} with its own description.
      *
      * <p>
-     * Em OpenAPI 3.0 um {@code $ref} ao lado de outras chaves é ignorado; envolvê-lo em {@code allOf} é o que permite
-     * acrescentar a descrição sem perder a referência.
+     * In OpenAPI 3.0 a {@code $ref} next to other keys is ignored; wrapping it in {@code allOf} is what allows adding the
+     * description without losing the reference.
      * </p>
      */
     @SuppressWarnings("rawtypes")
@@ -344,7 +343,7 @@ public final class RepositoryApiDocs {
         return new Schema<>().allOf(ref).description(description);
     }
 
-    /** O corpo de uma consulta: a paginação comum mais os campos de critério da entidade. */
+    /** A query body: the common pagination plus the entity's criteria fields. */
     @SuppressWarnings("rawtypes")
     private static Schema<?> requestOf(String base, String criteriaSchema) {
         List<Schema> parts = List.of(
@@ -358,9 +357,9 @@ public final class RepositoryApiDocs {
     private static Schema<?> fetchRequest() {
         return new ObjectSchema()
                 .description("""
-                        Parâmetros comuns de uma consulta. Os campos de critério e o `orderBy` de cada entidade estão \
-                        no seu esquema — `ProductCriteria`, `UserCriteria`, `PurchaseCriteria`, \
-                        `PurchaseItemCriteria` —, e o corpo aceito é a união dos dois.""")
+                        Common query parameters. Each entity's criteria fields and `orderBy` are in its own \
+                        schema — `ProductCriteria`, `UserCriteria`, `PurchaseCriteria`, \
+                        `PurchaseItemCriteria` — and the accepted body is the union of both.""")
                 .addProperty("offset",
                         new IntegerSchema().description("Zero-based row offset").minimum(BigDecimal.ZERO))
                 .addProperty("limit",
@@ -373,8 +372,8 @@ public final class RepositoryApiDocs {
     private static Schema<?> pageRequest() {
         return new ObjectSchema()
                 .description("""
-                        Parâmetros comuns de uma consulta paginada. Os campos de critério e o `orderBy` de cada \
-                        entidade estão no seu esquema, e o corpo aceito é a união dos dois.""")
+                        Common parameters of a paginated query. Each entity's criteria fields and `orderBy` are \
+                        in its own schema, and the accepted body is the union of both.""")
                 .addProperty("page", new IntegerSchema().description("Zero-based page index").minimum(BigDecimal.ZERO))
                 .addProperty("pageSize", new IntegerSchema().description("Rows per page").minimum(BigDecimal.ONE))
                 .addProperty("projection", new ObjectSchema()
@@ -454,16 +453,17 @@ public final class RepositoryApiDocs {
                 .addProperty("id", new IntegerSchema().format("int64"))
                 .addProperty("buyDate", new StringSchema().format("date-time"))
                 .addProperty("user", new Schema<>().$ref("#/components/schemas/User"))
-                // Em resposta é o array de linhas; em projeção é o envelope que declara forma, critério e recorte.
+                // In a response it is the array of rows; in a projection it is the envelope declaring shape, criteria and slice.
                 .addProperty("items", purchaseItems());
     }
 
     /**
-     * O campo {@code items} de {@code Purchase}, nas duas formas que ele assume.
+     * The {@code items} field of {@code Purchase}, in the two forms it takes.
      *
      * <p>
-     * Sai em método próprio porque {@code oneOf} recebe {@code List<Schema>} — lista de tipo cru, que não se monta
-     * inline sem perder o tipo. Aqui a lista é construída explicitamente e a supressão fica contida no ponto exato.
+     * It gets its own method because {@code oneOf} takes {@code List<Schema>} — a raw-typed list that cannot be built
+     * inline without losing the type. Here the list is built explicitly and the suppression stays confined to that exact
+     * spot.
      * </p>
      */
     @SuppressWarnings("rawtypes")

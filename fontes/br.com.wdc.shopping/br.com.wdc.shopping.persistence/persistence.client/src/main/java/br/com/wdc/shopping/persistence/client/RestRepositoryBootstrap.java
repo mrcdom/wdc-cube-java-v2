@@ -16,10 +16,10 @@ import br.com.wdc.shopping.domain.user.UserCodec;
 import br.com.wdc.shopping.domain.user.UserRepository;
 
 /**
- * Inicializa os repositórios REST e registra nos BEANs estáticos do domínio.
+ * Initializes the REST repositories and registers them in the domain's static BEANs.
  * <p>
- * Também registra o {@link AuthenticationService} para que o fluxo de login
- * via HMAC challenge-response funcione corretamente em clientes REST.
+ * Also registers the {@link AuthenticationService} so that the HMAC
+ * challenge-response login flow works correctly in REST clients.
  */
 public final class RestRepositoryBootstrap {
 
@@ -32,7 +32,7 @@ public final class RestRepositoryBootstrap {
         PurchaseRepository.BEAN.set(new HttpPurchaseRepository(transport, new PurchaseCodec()));
         PurchaseItemRepository.BEAN.set(new HttpPurchaseItemRepository(transport, new PurchaseItemCodec()));
         AuthenticationService.BEAN.set(new RestAuthenticationService(transport, storage));
-        // TransactionService cliente: coordena transação remota dirigida pelo cliente (begin/commit/rollback + X-Tx-Id).
+        // Client TransactionService: coordinates the client-driven remote transaction (begin/commit/rollback + X-Tx-Id).
         ShoppingTransactions.BEAN.set(new RestTransactionService(transport));
     }
 

@@ -5,18 +5,18 @@ import java.util.concurrent.atomic.AtomicReference;
 import br.com.wdc.framework.persistence.transaction.RemoteTransactionCoordinator;
 
 /**
- * Holder <b>server-side</b> do {@link RemoteTransactionCoordinator} usado pela camada REST.
+ * <b>Server-side</b> holder of the {@link RemoteTransactionCoordinator} used by the REST layer.
  *
  * <p>
- * Diferente de {@code ShoppingTransactions} (domínio — guarda o {@code TransactionService} de demarcação que a
- * aplicação usa), este holder pertence ao <b>host REST</b>: o coordenador é um SPI puramente server-side de
- * persistência (mantém transações físicas vivas entre requisições HTTP) e não deve ser visível à camada de
- * apresentação. Por isso vive aqui, e não no domínio.
+ * Unlike {@code ShoppingTransactions} (domain — holds the demarcation {@code TransactionService} the application uses),
+ * this holder belongs to the <b>REST host</b>: the coordinator is a purely server-side persistence SPI (it keeps
+ * physical transactions alive across HTTP requests) and must not be visible to the presentation layer. That is why it
+ * lives here and not in the domain.
  * </p>
  *
  * <p>
- * Populado pelo composition root (backend) com uma instância ligada ao {@code DataSource} do módulo; {@code null}
- * fora do servidor (ex.: views locais, testes que não exercitam o coordenador).
+ * Populated by the composition root (backend) with an instance bound to the module's {@code DataSource}; {@code null}
+ * outside the server (e.g. local views, tests that do not exercise the coordinator).
  * </p>
  */
 public final class RemoteTransactions {

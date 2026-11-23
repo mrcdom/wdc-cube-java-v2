@@ -36,41 +36,41 @@ public class HomeViewMock extends AbstractViewMock<HomeScope> {
     }
 
     public void render() {
-        System.out.println("Seja bem vindo, " + this.state.nickName.get() + "!");
+        System.out.println("Welcome, " + this.state.nickName.get() + "!");
 
         System.out.println();
 
-        System.out.println("Carrinho[" + this.state.cartItemCount.get() + "]");
+        System.out.println("Cart[" + this.state.cartItemCount.get() + "]");
         System.out.println();
 
-        this.printCompras();
-        this.printProdutos();
+        this.printPurchases();
+        this.printProducts();
 
         System.out.println("---------------------------------------------------------");
     }
 
-    public void printCompras() {
+    public void printPurchases() {
         var purchasesState = this.getPurchasesPanelState();
-        for (final PurchaseInfo compra : purchasesState.purchases.get()) {
-            System.out.println("COMPRA #" + compra.id);
-            System.out.println("Data da compra: " + new Date(compra.date));
-            System.out.println("Itens adquiridos: " + compra.items);
-            System.out.println("Valor total: R$ " + compra.total);
+        for (final PurchaseInfo purchase : purchasesState.purchases.get()) {
+            System.out.println("PURCHASE #" + purchase.id);
+            System.out.println("Purchase date: " + new Date(purchase.date));
+            System.out.println("Items purchased: " + purchase.items);
+            System.out.println("Total: R$ " + purchase.total);
             System.out.println();
         }
 
     }
 
-    public void printProdutos() {
+    public void printProducts() {
         var productsState = this.getProductsPanelState();
-        for (final ProductInfo produto : productsState.products.get()) {
-            System.out.print("PRODUTO #" + produto.id);
-            System.out.print("{nome: ");
-            System.out.print(produto.name);
-            System.out.print(", valor: ");
-            System.out.print(produto.price);
-            System.out.print(", imagem: ");
-            System.out.print(produto.image);
+        for (final ProductInfo product : productsState.products.get()) {
+            System.out.print("PRODUCT #" + product.id);
+            System.out.print("{name: ");
+            System.out.print(product.name);
+            System.out.print(", price: ");
+            System.out.print(product.price);
+            System.out.print(", image: ");
+            System.out.print(product.image);
             System.out.println("}");
         }
     }

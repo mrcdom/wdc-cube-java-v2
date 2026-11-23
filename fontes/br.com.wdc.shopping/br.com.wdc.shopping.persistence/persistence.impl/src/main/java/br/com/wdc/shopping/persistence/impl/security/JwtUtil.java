@@ -15,9 +15,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 /**
- * Utilitário JWT minimalista usando HMAC-SHA256.
+ * Minimalist JWT utility using HMAC-SHA256.
  * <p>
- * Usa Gson para manipulação de JSON (disponível no módulo persistence).
+ * Uses Gson for JSON handling (available in the persistence module).
  */
 public final class JwtUtil {
 
@@ -32,7 +32,7 @@ public final class JwtUtil {
 	}
 
 	/**
-	 * Cria um JWT com os claims sub (userId), usr (userName) e exp (expiração).
+	 * Creates a JWT with the claims sub (userId), usr (userName) and exp (expiration).
 	 */
 	public static String create(Long userId, String userName, Duration ttl, String secret) {
 		var now = Instant.now();
@@ -52,7 +52,7 @@ public final class JwtUtil {
 	}
 
 	/**
-	 * Valida o JWT e retorna os claims. Retorna null se inválido ou expirado.
+	 * Validates the JWT and returns the claims. Returns null if invalid or expired.
 	 */
 	public static Claims validate(String token, String secret) {
 		if (token == null || token.isBlank()) {
@@ -67,7 +67,7 @@ public final class JwtUtil {
 		var signingInput = parts[0] + "." + parts[1];
 		var expectedSignature = sign(signingInput, secret);
 
-		// Constant-time comparison para evitar timing attacks
+		// Constant-time comparison to prevent timing attacks
 		if (!MessageDigest.isEqual(
 				expectedSignature.getBytes(StandardCharsets.UTF_8),
 				parts[2].getBytes(StandardCharsets.UTF_8))) {
@@ -103,7 +103,7 @@ public final class JwtUtil {
 	}
 
 	/**
-	 * Claims extraídos de um JWT válido.
+	 * Claims extracted from a valid JWT.
 	 */
 	public record Claims(Long userId, String userName, Instant expiresAt) {
 	}

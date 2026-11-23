@@ -41,17 +41,17 @@ public class UserRepositoryImpl extends BaseRepositoryImpl  implements UserRepos
     // @formatter:on
 
     /**
-     * Traduz a ordenação pedida em {@code ORDER BY}, contra a tabela informada.
+     * Translates the requested ordering into {@code ORDER BY}, against the given table.
      *
      * <p>
-     * É aqui que uma ordenação provisionada vira colunas: o critério nomeia o efeito, e a escolha das colunas — e do
-     * desempate — mora no repositório, que é quem conhece o esquema. Toda ordenação por campo não único desempata
-     * pela chave, sem o que duas execuções da mesma consulta podem devolver as linhas em ordens diferentes.
+     * This is where a provisioned ordering becomes columns: the criteria name the effect, and the choice of columns — and
+     * of the tie-breaker — lives in the repository, which is what knows the schema. Every ordering by a non-unique field
+     * breaks ties by the key; without that, two runs of the same query could return the rows in different orders.
      * </p>
      *
      * <p>
-     * Recebe {@code Object} porque também é chamado a partir da coleção filha de outro repositório, onde o critério
-     * pode não ser deste tipo — nesse caso não ordena nada.
+     * Takes {@code Object} because it is also called from another repository's child collection, where the criteria may
+     * not be of this type — in that case it orders nothing.
      * </p>
      */
     public static List<SortField<?>> orderingOf(EnUser t, Object criteriaObj) {
@@ -111,11 +111,11 @@ public class UserRepositoryImpl extends BaseRepositoryImpl  implements UserRepos
     @Override
     public boolean update(User newBean, User oldBean, User projection) {
         if (newBean == null) {
-            throw new InvalidRequestException("update de User sem o novo estado");
+            throw new InvalidRequestException("update of User without the new state");
         }
 
         if (newBean.id() == null) {
-            throw new InvalidRequestException("update de User sem a chave (id)");
+            throw new InvalidRequestException("update of User without the key (id)");
         }
 
         if (projection == null) {
@@ -153,10 +153,10 @@ public class UserRepositoryImpl extends BaseRepositoryImpl  implements UserRepos
 
     @Override
     public int delete(UserCriteria criteria) {
-        // O campo existe sempre; o que decide é ele estar informado. Sem esta guarda, critério vazio traduziria
-        // para noCondition() e o DELETE levaria a tabela inteira.
+        // The field always exists; what matters is whether it is set. Without this guard, empty criteria would
+        // translate to noCondition() and the DELETE would wipe the whole table.
         if (criteria == null || !criteria.hasUserId()) {
-            throw new InvalidRequestException("delete de User sem a chave (id)");
+            throw new InvalidRequestException("delete of User without the key (id)");
         }
 
         var dsl = dsl();
@@ -224,12 +224,12 @@ public class UserRepositoryImpl extends BaseRepositoryImpl  implements UserRepos
         }
 
         /**
-         * As condições dos campos informados.
+         * The conditions for the fields that are set.
          *
          * <p>
-         * O percurso dos campos e a montagem do {@code AND} moram no {@link CriterionTranslator}; aqui fica só o que é
-         * próprio da entidade — a coluna de cada campo e, no caso da senha, a conversão do valor. Critério vazio
-         * resulta em {@code noCondition()}, e não numa condição falsa.
+         * Walking the fields and assembling the {@code AND} live in {@link CriterionTranslator}; here is only what is
+         * specific to the entity — the column of each field and, for the password, the value conversion. Empty criteria
+         * result in {@code noCondition()}, not in a false condition.
          * </p>
          */
         public Condition apply(UserCriteria criteria) {

@@ -20,7 +20,7 @@
 
     <properties>
         <javalin.version>7.2.4</javalin.version>
-        <!-- Versão dos módulos da aplicação Shopping empacotados por este backend -->
+        <!-- Version of the Shopping application modules packaged by this backend -->
         <shopping.version>1.0.0</shopping.version>
         <!-- Working directory for exec:java (must contain config/application.toml) -->
         <workdir>${project.basedir}/../../work</workdir>
@@ -28,7 +28,7 @@
 
     <dependencyManagement>
         <dependencies>
-            <!-- BOM do framework: versões gerenciadas (jackson, h2, agroal, postgresql, logback…) -->
+            <!-- Framework BOM: managed versions (jackson, h2, agroal, postgresql, logback…) -->
             <dependency>
                 <groupId>io.github.mrcdom.wdc.java</groupId>
                 <artifactId>framework-dependencies</artifactId>
@@ -40,14 +40,14 @@
     </dependencyManagement>
 
     <dependencies>
-        <!-- Aplicação Shopping: API REST de repositórios -->
+        <!-- Shopping application: repository REST API -->
         <dependency>
             <groupId>br.com.wdc.shopping</groupId>
             <artifactId>persistence.rest</artifactId>
             <version>${shopping.version}</version>
         </dependency>
 
-        <!-- Aplicação Shopping: host remoto (endpoints REST + lógica de negócio) -->
+        <!-- Shopping application: remote host (REST endpoints + business logic) -->
         <dependency>
             <groupId>br.com.wdc.shopping</groupId>
             <artifactId>remote.host</artifactId>
@@ -86,7 +86,7 @@
             <artifactId>postgresql</artifactId>
         </dependency>
         
-        <!-- Pool de conexões + integração JTA -->
+        <!-- Connection pool + JTA integration -->
 		<dependency>
 			<groupId>io.agroal</groupId>
 			<artifactId>agroal-api</artifactId>

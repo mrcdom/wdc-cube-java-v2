@@ -17,9 +17,9 @@ import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
 import br.com.wdc.framework.domain.exception.BusinessException;
 
 /**
- * Cliente REST para autenticação via API.
+ * REST client for authentication through the API.
  * <p>
- * Implementa o fluxo challenge-response (HMAC) e gerencia tokens.
+ * Implements the challenge-response (HMAC) flow and manages tokens.
  */
 public class RestAuthClient {
 
@@ -37,13 +37,13 @@ public class RestAuthClient {
 	}
 
 	/**
-	 * Realiza o login completo: challenge + HMAC + token.
+	 * Performs the full login: challenge + HMAC + token.
 	 *
-	 * @param userName     nome do usuário
-	 * @param passwordHash hash MD5-base36 da senha (como armazenado no banco)
+	 * @param userName     user name
+	 * @param passwordHash MD5-base36 hash of the password (as stored in the database)
 	 */
 	public void login(String userName, String passwordHash) {
-		// 1. Obter challenge (nonce)
+		// 1. Get the challenge (nonce)
 		var challengeJson = transport.getJson("/api/auth/challenge");
 		var challengeReader = new JsonStreamReader(challengeJson);
 		challengeReader.beginObject();
@@ -56,10 +56,10 @@ public class RestAuthClient {
 		}
 		challengeReader.endObject();
 
-		// 2. Calcular HMAC: key=passwordHash, data=userName+nonce
+		// 2. Compute the HMAC: key=passwordHash, data=userName+nonce
 		var digest = computeHmac(passwordHash, userName + nonce);
 
-		// 3. Enviar login
+		// 3. Send the login
 		var writer = new JsonStreamWriter();
 		writer.beginObject();
 		writer.name("userName").value(userName);
@@ -86,7 +86,7 @@ public class RestAuthClient {
 	}
 
 	/**
-	 * Renova o access token usando o refresh token.
+	 * Renews the access token using the refresh token.
 	 */
 	public void refresh() {
 		if (refreshToken == null) {
@@ -117,7 +117,7 @@ public class RestAuthClient {
 	}
 
 	/**
-	 * Logout — encerra a sessão no servidor.
+	 * Logout — ends the session on the server.
 	 */
 	public void logout() {
 		if (accessToken != null) {
@@ -127,7 +127,7 @@ public class RestAuthClient {
 				writer.endObject();
 				transport.postJsonWithAuth("/api/auth/logout", writer.result(), accessToken);
 			} catch (Exception e) {
-				// Ignora erros de rede no logout
+				// Ignores network errors on logout
 			}
 		}
 		this.accessToken = null;
@@ -153,7 +153,7 @@ public class RestAuthClient {
     }
 
 	/**
-	 * Define os tokens diretamente (usado por {@link RestAuthenticationService}).
+	 * Sets the tokens directly (used by {@link RestAuthenticationService}).
 	 */
 	void setTokens(String accessToken, String refreshToken, String publicKeyBase64, long expiresAtEpochSecond) {
 		this.accessToken = accessToken;
@@ -163,7 +163,7 @@ public class RestAuthClient {
 	}
 
 	/**
-	 * Limpa todos os tokens (usado por {@link RestAuthenticationService} no logout).
+	 * Clears all tokens (used by {@link RestAuthenticationService} on logout).
 	 */
 	void clearTokens() {
 		this.accessToken = null;
@@ -173,7 +173,7 @@ public class RestAuthClient {
 	}
 
 	/**
-	 * Criptografa uma senha com a chave pública RSA da sessão.
+	 * Encrypts a password with the session's RSA public key.
 	 */
 	public String encryptPassword(String plainPassword) {
 		if (publicKeyBase64 == null) {

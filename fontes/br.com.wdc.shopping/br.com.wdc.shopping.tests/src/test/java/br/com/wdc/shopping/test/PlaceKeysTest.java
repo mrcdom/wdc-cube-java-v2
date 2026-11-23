@@ -187,12 +187,12 @@ public class PlaceKeysTest extends BasePresentationTest {
     public void navigatingFromTheStatePutsTheNamesInTheAddress() {
         signIn();
         new ProductKeys(this.app)
-                .withProductId(DBReset.PEN_DRIVE2GB_ID)
+                .withProductId(DBReset.FLASH_DRIVE_2GB_ID)
                 .flip();
         var productView = ProductViewMock.cast(this.app.viewOf(home().state.content.get()));
-        Assert.assertEquals((long) DBReset.PEN_DRIVE2GB_ID, (long) productView.state.product.get().id);
+        Assert.assertEquals((long) DBReset.FLASH_DRIVE_2GB_ID, (long) productView.state.product.get().id);
         Assert.assertTrue(this.app.newIntent().toString(),
-                this.app.newIntent().toString().contains("pr-id=" + DBReset.PEN_DRIVE2GB_ID));
+                this.app.newIntent().toString().contains("pr-id=" + DBReset.FLASH_DRIVE_2GB_ID));
 
         this.app.go("receipt?rc-id=" + DBReset.ADMIN_SECOND_PURCHASE_ID);
         Assert.assertTrue(this.app.newIntent().toString(),

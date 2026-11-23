@@ -5,11 +5,11 @@ import br.com.wdc.framework.domain.security.AuthenticationService;
 import br.com.wdc.framework.domain.security.SecurityContext;
 
 /**
- * Utilitário de verificação de segurança para os endpoints REST.
+ * Security check utility for the REST endpoints.
  * <p>
- * Verifica que há um {@link SecurityContext} na thread corrente e que possui a permissão solicitada.
+ * Checks that there is a {@link SecurityContext} on the current thread and that it holds the requested permission.
  * <p>
- * Se o {@link AuthenticationService} não estiver configurado (modo teste/local), a verificação é ignorada e retorna
+ * If the {@link AuthenticationService} is not configured (test/local mode), the check is skipped and it returns
  * {@code null}.
  */
 public final class SecurityEnforcer {
@@ -18,19 +18,19 @@ public final class SecurityEnforcer {
     }
 
     /**
-     * Exige que haja um SecurityContext e que tenha a permissão solicitada.
+     * Requires a SecurityContext that holds the requested permission.
      * <p>
-     * Se o {@link AuthenticationService} não estiver configurado, retorna {@code null} (modo sem segurança — testes ou
-     * acesso local).
+     * If the {@link AuthenticationService} is not configured, returns {@code null} (no-security mode — tests or local
+     * access).
      *
-     * @return o SecurityContext corrente, ou {@code null} se segurança não está ativa
-     * @throws AccessDeniedException se segurança está ativa e o usuário não está autenticado ou sem permissão
+     * @return the current SecurityContext, or {@code null} if security is not active
+     * @throws AccessDeniedException if security is active and the user is not authenticated or lacks the permission
      */
     /**
-     * Exige apenas que haja um usuário <b>autenticado</b> (sem permissão específica). Retorna {@code null} se
-     * segurança não está ativa.
+     * Requires only an <b>authenticated</b> user (no specific permission). Returns {@code null} if security is not
+     * active.
      *
-     * @throws AccessDeniedException se segurança está ativa e não há usuário autenticado
+     * @throws AccessDeniedException if security is active and there is no authenticated user
      */
     public static SecurityContext requireAuthenticated() {
         if (AuthenticationService.BEAN.get() == null) {

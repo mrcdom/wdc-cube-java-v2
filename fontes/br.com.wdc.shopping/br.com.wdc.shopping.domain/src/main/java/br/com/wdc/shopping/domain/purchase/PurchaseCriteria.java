@@ -8,12 +8,12 @@ import br.com.wdc.framework.domain.criteria.Criteria;
 import br.com.wdc.framework.domain.criteria.Criterion;
 
 /**
- * Critério de pesquisa de {@link Purchase}.
+ * Search criteria for {@link Purchase}.
  *
  * <p>
- * {@code userId} e {@code productId} não são colunas desta tabela: o primeiro é a chave estrangeira, o segundo só
- * existe nos itens. A tradução resolve cada um à sua maneira, mas o critério não precisa saber disso — quem o monta
- * pede pelo que a compra tem a ver, não por onde o dado está guardado.
+ * {@code userId} and {@code productId} are not columns of this table: the first is the foreign key, the second exists
+ * only in the items. The translation resolves each in its own way, but the criteria need not know that — whoever
+ * builds it asks for what the purchase relates to, not for where the data is stored.
  * </p>
  */
 public class PurchaseCriteria implements Criteria {
@@ -39,12 +39,12 @@ public class PurchaseCriteria implements Criteria {
         return purchaseId;
     }
 
-    /** Se há critério neste campo. É por aqui que a tradução pergunta. */
+    /** Whether this field has a criterion. This is what the translation checks. */
     public boolean hasPurchaseId() {
         return purchaseId.isSet();
     }
 
-    /** Atalho para {@code purchaseId().eq(valor)}; {@code null} não filtra. */
+    /** Shortcut for {@code purchaseId().eq(value)}; {@code null} does not filter. */
     public PurchaseCriteria withPurchaseId(Long value) {
         return value == null ? this : purchaseId().eq(value);
     }
@@ -55,46 +55,46 @@ public class PurchaseCriteria implements Criteria {
         return userId;
     }
 
-    /** Se há critério neste campo. É por aqui que a tradução pergunta. */
+    /** Whether this field has a criterion. This is what the translation checks. */
     public boolean hasUserId() {
         return userId.isSet();
     }
 
-    /** Atalho para {@code userId().eq(valor)}; {@code null} não filtra. */
+    /** Shortcut for {@code userId().eq(value)}; {@code null} does not filter. */
     public PurchaseCriteria withUserId(Long value) {
         return value == null ? this : userId().eq(value);
     }
 
-    /** A coluna não guarda fuso: o valor é convertido em {@code LocalDateTime} antes da comparação. */
+    /** The column stores no time zone: the value is converted to {@code LocalDateTime} before the comparison. */
     private final ComparableCriterion<PurchaseCriteria, OffsetDateTime> buyDate = new ComparableCriterion<>(this, "buyDate");
 
     public ComparableCriterion<PurchaseCriteria, OffsetDateTime> buyDate() {
         return buyDate;
     }
 
-    /** Se há critério neste campo. É por aqui que a tradução pergunta. */
+    /** Whether this field has a criterion. This is what the translation checks. */
     public boolean hasBuyDate() {
         return buyDate.isSet();
     }
 
-    /** Atalho para {@code buyDate().eq(valor)}; {@code null} não filtra. */
+    /** Shortcut for {@code buyDate().eq(value)}; {@code null} does not filter. */
     public PurchaseCriteria withBuyDate(OffsetDateTime value) {
         return value == null ? this : buyDate().eq(value);
     }
 
-    /** Compras que contêm o produto — resolvido por {@code EXISTS} sobre os itens. */
+    /** Purchases that contain the product — resolved by {@code EXISTS} over the items. */
     private final ComparableCriterion<PurchaseCriteria, Long> productId = new ComparableCriterion<>(this, "productId");
 
     public ComparableCriterion<PurchaseCriteria, Long> productId() {
         return productId;
     }
 
-    /** Se há critério neste campo. É por aqui que a tradução pergunta. */
+    /** Whether this field has a criterion. This is what the translation checks. */
     public boolean hasProductId() {
         return productId.isSet();
     }
 
-    /** Atalho para {@code productId().eq(valor)}; {@code null} não filtra. */
+    /** Shortcut for {@code productId().eq(value)}; {@code null} does not filter. */
     public PurchaseCriteria withProductId(Long value) {
         return value == null ? this : productId().eq(value);
     }
@@ -118,28 +118,28 @@ public class PurchaseCriteria implements Criteria {
     }
 
     /**
-     * Ordenações provisionadas.
+     * Provisioned orderings.
      *
      * <p>
-     * Cada constante é uma <b>ordenação inteira</b>, e não o pedido para ordenar por um campo: o nome diz o efeito
-     * que se obtém, e a tradução — no repositório — decide por quais colunas e em que sentido isso se faz. Não há
-     * composição; escolhe-se uma.
+     * Each constant is a <b>complete ordering</b>, not a request to sort by a field: the name states the resulting
+     * effect, and the translation — in the repository — decides which columns and directions produce it. There is no
+     * composition; you pick one.
      * </p>
      *
      * <p>
-     * <b>A lista é curta de propósito.</b> Ordenação nova entra por solicitação, e entra junto com o índice que a
-     * sustenta — é o que mantém explícito o que o banco precisa aguentar. Oferecer ordenação livre por qualquer campo
-     * pareceria generoso e produziria varredura completa na primeira consulta grande.
+     * <b>The list is short on purpose.</b> A new ordering is added on request, together with the index that supports
+     * it — that keeps explicit what the database has to handle. Offering free ordering by any field would look generous
+     * and would produce a full scan on the first large query.
      * </p>
      */
     public enum OrderBy {
-        /** Ordem de registro — a compra registrada primeiro aparece primeiro. */
+        /** Recording order — the purchase recorded first comes first. */
         OLDEST_FIRST,
-        /** Ordem de registro invertida. */
+        /** Reverse recording order. */
         NEWEST_FIRST,
-        /** Pela data da compra, da mais recente para a mais antiga — a ordem usual de um extrato. */
+        /** By purchase date, most recent first — the usual order of a statement. */
         MOST_RECENT_PURCHASE_FIRST,
-        /** Pela data da compra, da mais antiga para a mais recente. */
+        /** By purchase date, oldest first. */
         EARLIEST_PURCHASE_FIRST,
     }
 

@@ -32,10 +32,10 @@ import io.agroal.api.security.SimplePassword;
 import io.agroal.narayana.NarayanaTransactionIntegration;
 
 /**
- * Exercita o {@link RemoteTransactionCoordinator} no <b>modo JTA</b> (Narayana + H2 XA), com cada fase
- * (begin / escrita / commit-rollback) numa <b>thread diferente</b> — reproduzindo o cenário real do servidor REST,
- * onde requisições da mesma transação são atendidas por threads distintas do pool. Valida o suspend/resume da
- * transação JTA entre threads.
+ * Exercises the {@link RemoteTransactionCoordinator} in <b>JTA mode</b> (Narayana + H2 XA), with each phase
+ * (begin / write / commit-rollback) on a <b>different thread</b> — reproducing the real REST server scenario, where
+ * requests of the same transaction are served by different pool threads. Validates the suspend/resume of the JTA
+ * transaction across threads.
  */
 public class RemoteTransactionCoordinatorJtaTest {
 
@@ -46,7 +46,7 @@ public class RemoteTransactionCoordinatorJtaTest {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-        // TransactionManager Narayana (ObjectStore em target/)
+        // Narayana TransactionManager (ObjectStore under target/)
         var objectStoreDir = new File("target/rtx-coord-store").getAbsolutePath();
         arjPropertyManager.getObjectStoreEnvironmentBean().setObjectStoreDir(objectStoreDir);
         arjPropertyManager.getObjectStoreEnvironmentBean().setLocalOSRoot("defaultStore");
@@ -56,7 +56,7 @@ public class RemoteTransactionCoordinatorJtaTest {
                 .setUserTransactionClassName(UserTransactionImple.class.getName());
         JtaTransactionManager.BEAN.set(com.arjuna.ats.jta.TransactionManager.transactionManager());
 
-        // DataSource H2 XA enlistado no TM
+        // H2 XA DataSource enlisted in the TM
         var tsr = jtaPropertyManager.getJTAEnvironmentBean().getTransactionSynchronizationRegistry();
         dataSource = AgroalDataSource.from(new AgroalDataSourceConfigurationSupplier()
                 .connectionPoolConfiguration(pool -> pool
@@ -90,7 +90,7 @@ public class RemoteTransactionCoordinatorJtaTest {
     public void commitAcrossThreads_persistsAllWrites() throws Exception {
         var txId = onThread(() -> coordinator.begin(null));
 
-        // requisição 1 (thread B): primeira escrita
+        // request 1 (thread B): first write
         onThread(() -> {
             coordinator.resume(txId, null);
             try {
@@ -101,7 +101,7 @@ public class RemoteTransactionCoordinatorJtaTest {
             return null;
         });
 
-        // requisição 2 (thread C): segunda escrita, mesma transação
+        // request 2 (thread C): second write, same transaction
         onThread(() -> {
             coordinator.resume(txId, null);
             try {
@@ -118,7 +118,7 @@ public class RemoteTransactionCoordinatorJtaTest {
             return null;
         });
 
-        assertEquals("ambas as escritas deveriam ter sido comitadas", 1, count(10));
+        assertEquals("both writes should have been committed", 1, count(10));
         assertEquals(1, count(11));
     }
 
@@ -142,7 +142,7 @@ public class RemoteTransactionCoordinatorJtaTest {
             return null;
         });
 
-        assertEquals("escritas deveriam ter sido revertidas", 0, count(20));
+        assertEquals("writes should have been rolled back", 0, count(20));
         assertEquals(0, count(21));
     }
 
@@ -150,25 +150,25 @@ public class RemoteTransactionCoordinatorJtaTest {
     public void ownerMismatch_isRejected() throws Exception {
         var txId = onThread(() -> coordinator.begin("user-1"));
         try {
-            // outro usuário tenta finalizar a transação alheia
+            // another user tries to finish someone else's transaction
             coordinator.commit(txId, "user-2");
-            fail("commit com dono divergente deveria ser rejeitado");
+            fail("commit with a mismatched owner should be rejected");
         } catch (AccessDeniedException expected) {
-            // esperado
+            // expected
         } finally {
-            coordinator.rollback(txId, "user-1"); // dono correto limpa
+            coordinator.rollback(txId, "user-1"); // the rightful owner cleans up
         }
     }
 
     @Test
     public void hasOpenTransactionForOwner_tracksOpenTransactions() throws Exception {
-        assertFalse("sem transação aberta para o dono", coordinator.hasOpenTransactionForOwner("owner-A"));
+        assertFalse("no open transaction for the owner", coordinator.hasOpenTransactionForOwner("owner-A"));
 
         var txId = onThread(() -> coordinator.begin("owner-A"));
         try {
-            assertTrue("dono com transação aberta", coordinator.hasOpenTransactionForOwner("owner-A"));
-            assertFalse("outro dono não casa", coordinator.hasOpenTransactionForOwner("owner-B"));
-            assertFalse("dono nulo nunca casa", coordinator.hasOpenTransactionForOwner(null));
+            assertTrue("owner with an open transaction", coordinator.hasOpenTransactionForOwner("owner-A"));
+            assertFalse("another owner does not match", coordinator.hasOpenTransactionForOwner("owner-B"));
+            assertFalse("a null owner never matches", coordinator.hasOpenTransactionForOwner(null));
         } finally {
             onThread(() -> {
                 coordinator.rollback(txId, "owner-A");
@@ -176,13 +176,13 @@ public class RemoteTransactionCoordinatorJtaTest {
             });
         }
 
-        assertFalse("após finalizar, não há mais transação aberta",
+        assertFalse("after finishing, there is no open transaction",
                 coordinator.hasOpenTransactionForOwner("owner-A"));
     }
 
     @Test
     public void exceedingMaxOpen_isRejected() throws Exception {
-        // coordenador com teto GLOBAL = 2 (por dono no default, para isolar o global)
+        // coordinator with a GLOBAL cap = 2 (per-owner left at the default, to isolate the global one)
         var limited = new RemoteTransactionCoordinatorImpl(() -> dataSource,
                 RemoteTransactionOptions.defaults()
                         .withMaxOpen(2));
@@ -190,9 +190,9 @@ public class RemoteTransactionCoordinatorJtaTest {
         var t2 = onThread(() -> limited.begin("o"));
         try {
             onThread(() -> limited.begin("o"));
-            fail("3ª transação deveria estourar o teto global");
+            fail("the 3rd transaction should exceed the global cap");
         } catch (RuntimeException e) {
-            assertTrue("esperado TransactionLimitExceededException, veio: " + e.getCause(),
+            assertTrue("expected TransactionLimitExceededException, got: " + e.getCause(),
                     e.getCause() instanceof TransactionLimitExceededException);
         } finally {
             onThread(() -> { limited.rollback(t1, "o"); return null; });
@@ -202,7 +202,7 @@ public class RemoteTransactionCoordinatorJtaTest {
 
     @Test
     public void exceedingMaxOpenPerOwner_isRejected() throws Exception {
-        // teto POR DONO = 2 (global no default)
+        // PER-OWNER cap = 2 (global left at the default)
         var limited = new RemoteTransactionCoordinatorImpl(() -> dataSource,
                 RemoteTransactionOptions.defaults()
                         .withMaxOpenPerOwner(2));
@@ -210,33 +210,33 @@ public class RemoteTransactionCoordinatorJtaTest {
         var b = onThread(() -> limited.begin("owner-X"));
         try {
             onThread(() -> limited.begin("owner-X"));
-            fail("3ª tx do mesmo dono deveria estourar o teto por dono");
+            fail("the 3rd tx of the same owner should exceed the per-owner cap");
         } catch (RuntimeException e) {
-            assertTrue("esperado TransactionLimitExceededException, veio: " + e.getCause(),
+            assertTrue("expected TransactionLimitExceededException, got: " + e.getCause(),
                     e.getCause() instanceof TransactionLimitExceededException);
         } finally {
             onThread(() -> { limited.rollback(a, "owner-X"); return null; });
             onThread(() -> { limited.rollback(b, "owner-X"); return null; });
         }
-        // outro dono não é afetado pelo teto de owner-X
+        // another owner is not affected by owner-X's cap
         var c = onThread(() -> limited.begin("owner-Y"));
         onThread(() -> { limited.rollback(c, "owner-Y"); return null; });
     }
 
     @Test
     public void absoluteLifetime_reapsLongLivedTransaction() throws Exception {
-        // idle no default (60s), tempo de vida absoluto curto (50ms): isola a expiração por lifetime
+        // idle at the default (60s), short absolute lifetime (50ms): isolates expiration by lifetime
         var shortLife = new RemoteTransactionCoordinatorImpl(() -> dataSource,
                 RemoteTransactionOptions.defaults()
                         .withMaxLifetimeMs(50L));
         var txId = onThread(() -> shortLife.begin("o"));
-        assertTrue("tx recém-aberta deveria existir", shortLife.exists(txId));
+        assertTrue("a freshly opened tx should exist", shortLife.exists(txId));
 
-        Thread.sleep(120); // ultrapassa o lifetime absoluto, mas não o idle
+        Thread.sleep(120); // exceeds the absolute lifetime, but not the idle timeout
 
-        // o reaper roda na varredura preguiçosa do begin
+        // the reaper runs in the lazy sweep of begin
         var other = onThread(() -> shortLife.begin("o2"));
-        assertFalse("tx além do tempo de vida absoluto deveria ter sido revertida", shortLife.exists(txId));
+        assertFalse("a tx past its absolute lifetime should have been rolled back", shortLife.exists(txId));
 
         onThread(() -> { shortLife.rollback(other, "o2"); return null; });
     }
@@ -249,7 +249,7 @@ public class RemoteTransactionCoordinatorJtaTest {
         onThread(() -> { coordinator.commit(txId, "o"); return null; });
         assertEquals("committed", coordinator.status(txId, "o"));
 
-        // retry do commit (resposta anterior "perdida") → no-op de sucesso, mesmo desfecho
+        // commit retry (previous response "lost") → successful no-op, same outcome
         onThread(() -> { coordinator.commit(txId, "o"); return null; });
         assertEquals("committed", coordinator.status(txId, "o"));
     }
@@ -260,21 +260,21 @@ public class RemoteTransactionCoordinatorJtaTest {
         onThread(() -> { coordinator.rollback(txId, "o"); return null; });
         try {
             onThread(() -> { coordinator.commit(txId, "o"); return null; });
-            fail("commit de uma tx já revertida deveria conflitar");
+            fail("committing an already rolled-back tx should conflict");
         } catch (RuntimeException e) {
-            assertTrue("esperado TransactionConflictException, veio: " + e.getCause(),
+            assertTrue("expected TransactionConflictException, got: " + e.getCause(),
                     e.getCause() instanceof TransactionConflictException);
         }
     }
 
     @Test
     public void statusUnknown_forUnseenTxId() {
-        assertEquals("unknown", coordinator.status("nao-existe", "o"));
+        assertEquals("unknown", coordinator.status("does-not-exist", "o"));
     }
 
     @Test
     public void stats_reflectGaugesAndCounters() throws Exception {
-        // coordenador fresco → contadores determinísticos
+        // fresh coordinator → deterministic counters
         var c = new RemoteTransactionCoordinatorImpl(() -> dataSource);
         assertEquals(0, c.stats().openNow());
         assertEquals(0L, c.stats().begun());
@@ -282,21 +282,21 @@ public class RemoteTransactionCoordinatorJtaTest {
         var tx1 = onThread(() -> c.begin("o"));
         var tx2 = onThread(() -> c.begin("o"));
         var open = c.stats();
-        assertEquals("2 transações abertas", 2, open.openNow());
-        assertEquals("1 dono com tx aberta", 1, open.ownersWithOpen());
+        assertEquals("2 open transactions", 2, open.openNow());
+        assertEquals("1 owner with an open tx", 1, open.ownersWithOpen());
         assertEquals(2L, open.begun());
 
         onThread(() -> { c.commit(tx1, "o"); return null; });
         onThread(() -> { c.rollback(tx2, "o"); return null; });
         var done = c.stats();
-        assertEquals("nenhuma aberta após finalizar", 0, done.openNow());
+        assertEquals("none open after finishing", 0, done.openNow());
         assertEquals(1L, done.committed());
         assertEquals(1L, done.rolledBack());
     }
 
     // -------------------------------------------------------------------------
 
-    /** Escreve usando a conexão da transação resumida na thread corrente. */
+    /** Writes using the connection of the transaction resumed on the current thread. */
     private static void insert(int id) {
         try {
             var conn = TransactionScope.current().connection();
@@ -309,7 +309,7 @@ public class RemoteTransactionCoordinatorJtaTest {
         }
     }
 
-    /** Conta fora de qualquer transação (vê apenas o comitado). */
+    /** Counts outside any transaction (sees only committed data). */
     private static int count(int id) {
         try (var conn = dataSource.getConnection();
                 var ps = conn.prepareStatement("SELECT COUNT(*) FROM RTX WHERE id = ?")) {
@@ -323,7 +323,7 @@ public class RemoteTransactionCoordinatorJtaTest {
         }
     }
 
-    /** Executa a tarefa numa thread nova e devolve o resultado — força o cross-thread do suspend/resume JTA. */
+    /** Runs the task on a new thread and returns the result — forces the JTA suspend/resume across threads. */
     private static <T> T onThread(Callable<T> task) throws Exception {
         var result = new Object[1];
         var error = new Throwable[1];
@@ -337,7 +337,7 @@ public class RemoteTransactionCoordinatorJtaTest {
         thread.start();
         thread.join();
         if (error[0] != null) {
-            throw new RuntimeException("Falha na thread de transação", error[0]);
+            throw new RuntimeException("Failure in the transaction thread", error[0]);
         }
         @SuppressWarnings("unchecked")
         T typed = (T) result[0];

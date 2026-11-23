@@ -8,13 +8,13 @@ import br.com.wdc.framework.domain.criteria.Criterion;
 import br.com.wdc.framework.domain.criteria.TextCriterion;
 
 /**
- * Critério de pesquisa de {@link Product}.
+ * Search criteria for {@link Product}.
  *
  * <p>
- * <b>Os campos nascem com o critério</b>, e não sob demanda: {@code productId()} nunca devolve {@code null}, e o que
- * distingue "não filtra" de "filtra" é {@link Criterion#isSet()}. Entidade de dezenas de colunas pagaria por
- * pré-criar todos, e aí valeria criá-los na primeira necessidade; com meia dúzia de campos, o custo não se mede e o
- * código fica sem um {@code if} por acesso.
+ * <b>The fields are created with the criteria</b>, not on demand: {@code productId()} never returns {@code null}, and
+ * what tells "does not filter" from "filters" is {@link Criterion#isSet()}. An entity with dozens of columns would pay
+ * for pre-creating them all, and then creating them on first use would be worth it; with half a dozen fields, the cost
+ * is negligible and the code is spared an {@code if} on every access.
  * </p>
  */
 public class ProductCriteria implements Criteria {
@@ -40,12 +40,12 @@ public class ProductCriteria implements Criteria {
         return productId;
     }
 
-    /** Se há critério neste campo. É por aqui que a tradução pergunta. */
+    /** Whether this field has a criterion. This is what the translation checks. */
     public boolean hasProductId() {
         return productId.isSet();
     }
 
-    /** Atalho para {@code productId().eq(valor)}; {@code null} não filtra. */
+    /** Shortcut for {@code productId().eq(value)}; {@code null} does not filter. */
     public ProductCriteria withProductId(Long value) {
         return value == null ? this : productId().eq(value);
     }
@@ -56,29 +56,29 @@ public class ProductCriteria implements Criteria {
         return name;
     }
 
-    /** Se há critério neste campo. É por aqui que a tradução pergunta. */
+    /** Whether this field has a criterion. This is what the translation checks. */
     public boolean hasName() {
         return name.isSet();
     }
 
-    /** Atalho para {@code name().eq(valor)}; {@code null} não filtra. */
+    /** Shortcut for {@code name().eq(value)}; {@code null} does not filter. */
     public ProductCriteria withName(String value) {
         return value == null ? this : name().eq(value);
     }
 
-    /** O valor é convertido em {@code BigDecimal} antes de chegar à coluna. */
+    /** The value is converted to {@code BigDecimal} before it reaches the column. */
     private final ComparableCriterion<ProductCriteria, Double> price = new ComparableCriterion<>(this, "price");
 
     public ComparableCriterion<ProductCriteria, Double> price() {
         return price;
     }
 
-    /** Se há critério neste campo. É por aqui que a tradução pergunta. */
+    /** Whether this field has a criterion. This is what the translation checks. */
     public boolean hasPrice() {
         return price.isSet();
     }
 
-    /** Atalho para {@code price().eq(valor)}; {@code null} não filtra. */
+    /** Shortcut for {@code price().eq(value)}; {@code null} does not filter. */
     public ProductCriteria withPrice(Double value) {
         return value == null ? this : price().eq(value);
     }
@@ -89,12 +89,12 @@ public class ProductCriteria implements Criteria {
         return description;
     }
 
-    /** Se há critério neste campo. É por aqui que a tradução pergunta. */
+    /** Whether this field has a criterion. This is what the translation checks. */
     public boolean hasDescription() {
         return description.isSet();
     }
 
-    /** Atalho para {@code description().eq(valor)}; {@code null} não filtra. */
+    /** Shortcut for {@code description().eq(value)}; {@code null} does not filter. */
     public ProductCriteria withDescription(String value) {
         return value == null ? this : description().eq(value);
     }
@@ -118,30 +118,30 @@ public class ProductCriteria implements Criteria {
     }
 
     /**
-     * Ordenações provisionadas.
+     * Provisioned orderings.
      *
      * <p>
-     * Cada constante é uma <b>ordenação inteira</b>, e não o pedido para ordenar por um campo: o nome diz o efeito
-     * que se obtém, e a tradução — no repositório — decide por quais colunas e em que sentido isso se faz. Não há
-     * composição; escolhe-se uma.
+     * Each constant is a <b>complete ordering</b>, not a request to sort by a field: the name states the resulting
+     * effect, and the translation — in the repository — decides which columns and directions produce it. There is no
+     * composition; you pick one.
      * </p>
      *
      * <p>
-     * <b>A lista é curta de propósito.</b> Ordenação nova entra por solicitação, e entra junto com o índice que a
-     * sustenta — é o que mantém explícito o que o banco precisa aguentar. Oferecer ordenação livre por qualquer campo
-     * pareceria generoso e produziria varredura completa na primeira consulta grande.
+     * <b>The list is short on purpose.</b> A new ordering is added on request, together with the index that supports
+     * it — that keeps explicit what the database has to handle. Offering free ordering by any field would look generous
+     * and would produce a full scan on the first large query.
      * </p>
      */
     public enum OrderBy {
-        /** Ordem de cadastro — o mais antigo primeiro. */
+        /** Registration order — oldest first. */
         OLDEST_FIRST,
-        /** Ordem de cadastro invertida — o cadastrado por último aparece primeiro. */
+        /** Reverse registration order — the most recently registered comes first. */
         NEWEST_FIRST,
-        /** Alfabética pelo nome do produto. */
+        /** Alphabetical by product name. */
         NAME_A_TO_Z,
-        /** Do menor para o maior preço. */
+        /** From lowest to highest price. */
         CHEAPEST_FIRST,
-        /** Do maior para o menor preço. */
+        /** From highest to lowest price. */
         MOST_EXPENSIVE_FIRST,
     }
 

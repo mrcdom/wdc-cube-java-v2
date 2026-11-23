@@ -17,47 +17,47 @@ import br.com.wdc.shopping.view.remote.shell.probe.shopping.presentation.Product
 import br.com.wdc.shopping.view.remote.shell.probe.shopping.presentation.ShoppingRoutes;
 
 /**
- * Mede a capacidade de atendimento concorrente do servidor Host/Shell.
+ * Measures the concurrent serving capacity of the Host/Shell server.
  *
- * <h3>Fases</h3>
+ * <h3>Phases</h3>
  * <ol>
- *   <li><b>Warmup</b> — abre N sessões, faz login em todas, navega uma vez cada uma.
- *       Aquece o JIT e os caches antes de medir.</li>
- *   <li><b>Sustained load</b> — todas as N sessões executam o worker loop
- *       simultaneamente por {@code holdSeconds} segundos. Os workers são
- *       coordenados por um {@link CountDownLatch} para saírem juntos.</li>
- *   <li><b>Report</b> — agrega histograma de latência, throughput, erros e heap
- *       do servidor. O heap é amostrado a cada 5 s em thread separada.</li>
+ *   <li><b>Warmup</b> — opens N sessions, signs in on all of them, navigates once in each.
+ *       Warms up the JIT and the caches before measuring.</li>
+ *   <li><b>Sustained load</b> — all N sessions run the worker loop
+ *       simultaneously for {@code holdSeconds} seconds. The workers are
+ *       coordinated by a {@link CountDownLatch} so they exit together.</li>
+ *   <li><b>Report</b> — aggregates the latency histogram, throughput, errors and server
+ *       heap. The heap is sampled every 5 s on a separate thread.</li>
  * </ol>
  *
- * <h3>Modo de envio</h3>
+ * <h3>Send mode</h3>
  * <ul>
- *   <li><b>fire-and-wait (padrão)</b> — cada worker espera a resposta antes de
- *       enviar a próxima requisição. O throughput total reflete a capacidade real
- *       do servidor para o RTT observado.</li>
- *   <li><b>fixed-rate</b> — cada worker envia no máximo {@code ratePerSession} req/s,
- *       independentemente do RTT. Permite descobrir o ponto de saturação.
- *       Ativado via argumento {@code --mode=rate:<req/s-por-sessão>} (ex: {@code --mode=rate:2}).</li>
+ *   <li><b>fire-and-wait (default)</b> — each worker waits for the response before
+ *       sending the next request. The total throughput reflects the server's real
+ *       capacity for the observed RTT.</li>
+ *   <li><b>fixed-rate</b> — each worker sends at most {@code ratePerSession} req/s,
+ *       regardless of the RTT. Finds the saturation point.
+ *       Enabled with the argument {@code --mode=rate:<req/s-per-session>} (e.g. {@code --mode=rate:2}).</li>
  * </ul>
  *
  * <h3>Worker loop</h3>
- * Cada sessão executa em loop:
+ * Each session runs in a loop:
  * <ol>
- *   <li>Navigate → Products (lista produtos)</li>
- *   <li>Navigate → Product detail (abre primeiro produto disponível)</li>
- *   <li>Navigate → Cart (lista itens do carrinho)</li>
- *   <li>Navigate → Home (volta ao início)</li>
+ *   <li>Navigate → Products (lists products)</li>
+ *   <li>Navigate → Product detail (opens the first available product)</li>
+ *   <li>Navigate → Cart (lists the cart items)</li>
+ *   <li>Navigate → Home (back to the start)</li>
  * </ol>
  *
- * <h3>Pré-requisitos</h3>
+ * <h3>Prerequisites</h3>
  * <ul>
- *   <li>Host rodando em {@code http://localhost:8080} com {@code server.devMode=true}</li>
- *   <li>{@code server.sessionTtlSeconds} ≥ {@code holdSeconds} + 60 s para evitar expiração durante o teste</li>
- *   <li>Usuário {@code admin/admin} existente (banco no estado pós-DBReset)</li>
- *   <li>H2 em modo TCP (externo) para isolar o heap do banco</li>
+ *   <li>Host running at {@code http://localhost:8080} with {@code server.devMode=true}</li>
+ *   <li>{@code server.sessionTtlSeconds} ≥ {@code holdSeconds} + 60 s to avoid expiration during the test</li>
+ *   <li>User {@code admin/admin} exists (database in the post-DBReset state)</li>
+ *   <li>H2 in TCP (external) mode to isolate the database heap</li>
  * </ul>
  *
- * <h3>Configuração de JVM recomendada para o servidor</h3>
+ * <h3>Recommended server JVM configuration</h3>
  * <pre>
  *   -Xms4g -Xmx10g
  *   -XX:+UseZGC -XX:+ZGenerational
@@ -67,13 +67,13 @@ import br.com.wdc.shopping.view.remote.shell.probe.shopping.presentation.Shoppin
  *   -XX:ReservedCodeCacheSize=256m
  * </pre>
  *
- * <h3>Execução</h3>
+ * <h3>Running</h3>
  * <pre>
  *   mvn exec:java -pl ...remote.shell.probe-client \
  *     -Dexec.mainClass=br.com.wdc.shopping.view.remote.javaclient.scenario.ConcurrentThroughputScenario \
  *     [-Dexec.args="http://localhost:8080 500 30 [--mode=rate:2]"]
  *
- *   Argumentos: &lt;serverUrl&gt; &lt;sessions&gt; &lt;holdSeconds&gt; [--mode=rate:&lt;req/s&gt;]
+ *   Arguments : &lt;serverUrl&gt; &lt;sessions&gt; &lt;holdSeconds&gt; [--mode=rate:&lt;req/s&gt;]
  *   Defaults   : http://localhost:8080  100  30
  * </pre>
  */

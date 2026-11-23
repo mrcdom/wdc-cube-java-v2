@@ -8,12 +8,12 @@ import java.util.stream.Collectors;
 import br.com.wdc.framework.domain.security.PermissionModel;
 
 /**
- * Papéis de acesso com permissões definidas em código.
+ * Access roles with permissions defined in code.
  * <p>
- * Permissões seguem o formato {@code entidade:operação}.
- * Wildcard {@code *} concede todas as operações na entidade.
+ * Permissions follow the {@code entity:operation} format.
+ * The {@code *} wildcard grants all operations on the entity.
  * <p>
- * Modelo allow-wins: a permissão efetiva é a UNIÃO de todos os papéis do usuário.
+ * Allow-wins model: the effective permission is the UNION of all the user's roles.
  */
 public enum Role {
 
@@ -45,7 +45,7 @@ public enum Role {
 	}
 
 	/**
-	 * Calcula as permissões efetivas (allow-wins) para um conjunto de papéis.
+	 * Computes the effective permissions (allow-wins) for a set of roles.
 	 */
 	public static Set<String> effectivePermissions(Set<Role> roles) {
 		return roles.stream()
@@ -54,8 +54,8 @@ public enum Role {
 	}
 
 	/**
-	 * Parseia uma string de papéis separados por vírgula (ex: "ADMIN,CUSTOMER").
-	 * Papéis desconhecidos são ignorados silenciosamente.
+	 * Parses a string of comma-separated roles (e.g. "ADMIN,CUSTOMER").
+	 * Unknown roles are silently ignored.
 	 */
 	public static Set<Role> parse(String rolesStr) {
 		if (rolesStr == null || rolesStr.isBlank()) {
@@ -75,14 +75,14 @@ public enum Role {
 	}
 
 	/**
-	 * Verifica se o conjunto de permissões concede acesso à operação na entidade.
+	 * Checks whether the set of permissions grants access to the operation on the entity.
 	 */
 	public static boolean hasPermission(Set<String> permissions, String entity, String operation) {
 		return PermissionModel.grants(permissions, entity, operation);
 	}
 
 	/**
-	 * Verifica se as permissões incluem acesso irrestrito a dados de todos os usuários.
+	 * Checks whether the permissions include unrestricted access to all users' data.
 	 */
 	public static boolean hasDataAll(Set<String> permissions) {
 		return PermissionModel.hasDataAll(permissions);

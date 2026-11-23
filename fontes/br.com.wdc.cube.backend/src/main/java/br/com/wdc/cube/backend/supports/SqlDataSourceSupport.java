@@ -26,18 +26,18 @@ import io.agroal.api.security.SimplePassword;
 import io.agroal.narayana.NarayanaTransactionIntegration;
 
 /**
- * Suporte de bootstrap do <b>DataSource</b> (pool Agroal) para o host.
+ * Bootstrap support for the host's <b>DataSource</b> (Agroal pool).
  *
  * <p>
- * Detecta o dialeto (H2/PostgreSQL) a partir da URL e configura o pool com validação de conexões idle (resiliência
- * contra sockets derrubados por firewall). Quando o modo JTA está ativo ({@link JtaTransactionManager#BEAN}
- * inicializado), enlista o pool no TransactionManager Narayana via {@link NarayanaTransactionIntegration} e usa o driver
- * XA do banco — caso contrário opera em JDBC direto.
+ * Detects the dialect (H2/PostgreSQL) from the URL and configures the pool with idle-connection validation (resilience
+ * against sockets dropped by a firewall). When JTA mode is active ({@link JtaTransactionManager#BEAN} initialized), it
+ * enlists the pool in the Narayana TransactionManager via {@link NarayanaTransactionIntegration} and uses the
+ * database's XA driver — otherwise it runs as plain JDBC.
  * </p>
  *
  * <p>
- * Toda a tecnologia concreta (Agroal, Narayana, drivers XA) vive aqui no host; o módulo {@code framework.persistence}
- * permanece neutro, consumindo apenas {@code javax.sql.DataSource} e {@code jakarta.transaction.TransactionManager}.
+ * All the concrete technology (Agroal, Narayana, XA drivers) lives here in the host; the {@code framework.persistence}
+ * module stays neutral, consuming only {@code javax.sql.DataSource} and {@code jakarta.transaction.TransactionManager}.
  * </p>
  */
 public class SqlDataSourceSupport {
@@ -82,13 +82,13 @@ public class SqlDataSourceSupport {
                 .connectionProviderClass(providerClass)
                 .credential(new NamePrincipal(username))
                 .credential(new SimplePassword(password));
-        // XADataSource recebe a URL via propriedade de bean; DataSource/Driver comum via jdbcUrl.
+        // XADataSource receives the URL through a bean property; a regular DataSource/Driver through jdbcUrl.
         if (jtaEnabled) {
             factoryConfig.jdbcProperty("url", jdbcUrl);
         } else {
             factoryConfig.jdbcUrl(jdbcUrl);
         }
-        // PostgreSQL com schema dedicado: posiciona o search_path em cada conexão nova.
+        // PostgreSQL with a dedicated schema: sets the search_path on each new connection.
         if (dialect == SQLDialect.POSTGRES && StringUtils.isNotBlank(schema)) {
             factoryConfig.initialSql("SET search_path TO " + schema);
         }
@@ -98,8 +98,8 @@ public class SqlDataSourceSupport {
                 .minSize(minIdle)
                 .initialSize(minIdle)
                 .acquisitionTimeout(Duration.ofSeconds(connTimeout))
-                // Resiliência: firewall/banco podem derrubar conexões idle silenciosamente. Sem isso o pool
-                // re-entrega sockets mortos. Valida após inatividade, recicla por idade e descarta erro fatal.
+                // Resilience: the firewall/database may silently drop idle connections. Without this the pool
+                // hands out dead sockets again. Validates after inactivity, recycles by age and discards on fatal error.
                 .connectionValidator(ConnectionValidator.defaultValidator())
                 .idleValidationTimeout(Duration.ofSeconds(60))
                 .reapTimeout(Duration.ofMinutes(10))
@@ -108,7 +108,7 @@ public class SqlDataSourceSupport {
         if (maxLifetimeMin > 0) {
             poolConfig.maxLifetime(Duration.ofMinutes(maxLifetimeMin));
         }
-        // Modo JTA: enlista o pool no TransactionManager (2PC). A tecnologia concreta fica contida aqui.
+        // JTA mode: enlists the pool in the TransactionManager (2PC). The concrete technology stays contained here.
         if (jtaEnabled) {
             var tsr = jtaPropertyManager.getJTAEnvironmentBean().getTransactionSynchronizationRegistry();
             poolConfig.transactionIntegration(new NarayanaTransactionIntegration(JtaTransactionManager.get(), tsr));
@@ -120,13 +120,13 @@ public class SqlDataSourceSupport {
         cleanUp.push(() -> {
             try {
                 dataSource.close();
-                LOG.info(this.prefixDot + "DataSource encerrado.");
+                LOG.info(this.prefixDot + "DataSource closed.");
             } catch (Exception e) {
-                LOG.warn("Falha ao encerrar AgroalDataSource", e);
+                LOG.warn("Failed to close AgroalDataSource", e);
             }
         });
 
-        // PostgreSQL + JTA exige max_prepared_transactions > 0 no servidor para 2PC.
+        // PostgreSQL + JTA requires max_prepared_transactions > 0 on the server for 2PC.
         if (jtaEnabled && dialect == SQLDialect.POSTGRES) {
             validateXaConfig(dataSource);
         }
@@ -155,8 +155,8 @@ public class SqlDataSourceSupport {
     }
 
     /**
-     * Classe provedora de conexões para o Agroal. No modo JTA precisa ser um {@code XADataSource} (2PC):
-     * {@code PGXADataSource} no PostgreSQL; o {@code JdbcDataSource} do H2 já é XA e serve aos dois modos.
+     * Connection provider class for Agroal. In JTA mode it must be an {@code XADataSource} (2PC):
+     * {@code PGXADataSource} on PostgreSQL; H2's {@code JdbcDataSource} is already XA and serves both modes.
      */
     private static Class<?> resolveProviderClass(SQLDialect dialect, boolean jtaEnabled) {
         return switch (dialect) {
@@ -168,7 +168,7 @@ public class SqlDataSourceSupport {
     }
 
     /**
-     * Verifica se o PostgreSQL está configurado para transações XA (2PC). Falha rápido na subida se
+     * Checks whether PostgreSQL is configured for XA (2PC) transactions. Fails fast at startup if
      * {@code max_prepared_transactions = 0}.
      */
     private void validateXaConfig(AgroalDataSource ds) {
@@ -179,15 +179,15 @@ public class SqlDataSourceSupport {
                 int value = Integer.parseInt(rs.getString(1).trim());
                 if (value == 0) {
                     throw new IllegalStateException(
-                            "PostgreSQL não está configurado para transações XA: max_prepared_transactions = 0. "
-                                    + "Defina max_prepared_transactions >= pool.maxSize em postgresql.conf e reinicie.");
+                            "PostgreSQL is not configured for XA transactions: max_prepared_transactions = 0. "
+                                    + "Set max_prepared_transactions >= pool.maxSize in postgresql.conf and restart.");
                 }
                 LOG.info(this.prefixDot + "validateXaConfig: max_prepared_transactions = {}", value);
             }
         } catch (IllegalStateException e) {
             throw e;
         } catch (Exception e) {
-            throw new IllegalStateException("Falha ao verificar max_prepared_transactions no PostgreSQL", e);
+            throw new IllegalStateException("Failed to check max_prepared_transactions on PostgreSQL", e);
         }
     }
 

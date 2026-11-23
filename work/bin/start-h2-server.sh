@@ -61,7 +61,7 @@ echo ""
 echo "Press Ctrl+C to stop the H2 server."
 echo ""
 
-# O fat JAR do backend é bytecode 25: o H2 precisa rodar num JDK 25
+# The backend fat JAR is Java 25 bytecode: H2 must run on a JDK 25
 JAVA_HOME="${JAVA25_HOME:-$JAVA_HOME}"
 JAVA="${JAVA_HOME:+$JAVA_HOME/bin/}java"
 

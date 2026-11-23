@@ -53,7 +53,7 @@
 			<artifactId>agroal-pool</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<!-- Integração JTA (Narayana) — só para o teste de fumaça do modo JTA -->
+		<!-- JTA integration (Narayana) — only for the JTA-mode smoke test -->
 		<dependency>
 			<groupId>io.agroal</groupId>
 			<artifactId>agroal-narayana</artifactId>

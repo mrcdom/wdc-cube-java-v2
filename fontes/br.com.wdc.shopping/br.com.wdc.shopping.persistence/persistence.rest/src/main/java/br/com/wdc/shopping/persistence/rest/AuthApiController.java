@@ -15,14 +15,14 @@ import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.responses.ApiResponses;
 
 /**
- * Adaptador HTTP para o {@link AuthenticationService}.
+ * HTTP adapter for the {@link AuthenticationService}.
  * <p>
  * Endpoints:
  * <ul>
- * <li>{@code GET /api/auth/challenge} — gera nonce para login</li>
- * <li>{@code POST /api/auth/login} — autentica via HMAC challenge-response</li>
- * <li>{@code POST /api/auth/refresh} — renova access token</li>
- * <li>{@code POST /api/auth/logout} — encerra sessão</li>
+ * <li>{@code GET /api/auth/challenge} — generates a nonce for login</li>
+ * <li>{@code POST /api/auth/login} — authenticates via HMAC challenge-response</li>
+ * <li>{@code POST /api/auth/refresh} — renews the access token</li>
+ * <li>{@code POST /api/auth/logout} — ends the session</li>
  * </ul>
  */
 public class AuthApiController {

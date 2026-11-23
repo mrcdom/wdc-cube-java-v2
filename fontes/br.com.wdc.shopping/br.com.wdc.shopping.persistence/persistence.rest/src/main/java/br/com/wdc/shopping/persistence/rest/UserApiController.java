@@ -414,7 +414,7 @@ public class UserApiController {
     }
 
     /**
-     * Decripta a senha se presente e criptografada com RSA (chave da sessão).
+     * Decrypts the password if present and RSA-encrypted (session key).
      */
     private static void decryptPasswordIfPresent(User user) {
         if (user == null) {

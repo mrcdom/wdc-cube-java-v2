@@ -49,7 +49,7 @@
 			<artifactId>jakarta.xml.bind-api</artifactId>
 			<scope>provided</scope>
 		</dependency>
-		<!-- Drivers do LocalDataSource (views locais): opcionais, quem o usa declara os dois -->
+		<!-- LocalDataSource drivers (local views): optional, whoever uses it declares both -->
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>

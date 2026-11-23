@@ -16,12 +16,12 @@ import br.com.wdc.shopping.test.util.ResetDatabaseRule;
 import br.com.wdc.shopping.test.util.TestEnvironment;
 
 /**
- * Verifica o <b>coordenador de transação remota</b> dirigido pelo cliente sobre REST: várias escritas HTTP
- * participam da mesma transação física no servidor (mesmo {@code txId}), comitando ou revertendo atomicamente.
+ * Verifies the client-driven <b>remote transaction coordinator</b> over REST: several HTTP writes take part in the
+ * same physical transaction on the server (same {@code txId}), committing or rolling back atomically.
  *
  * <p>
- * Usa o {@code TestEnvironment} no modo REST (Javalin embarcado + repositórios HTTP) e um
- * {@link RestTransactionService} sobre o mesmo transporte dos repositórios.
+ * Uses the {@code TestEnvironment} in REST mode (embedded Javalin + HTTP repositories) and a
+ * {@link RestTransactionService} over the same transport as the repositories.
  * </p>
  */
 public class RemoteTransactionRestTest {
@@ -54,8 +54,8 @@ public class RemoteTransactionRestTest {
             env.productRepo().insert(p2);
         });
 
-        assertNotNull("p1 deveria ter sido comitado", env.productRepo().fetchById(p1.id(), null));
-        assertNotNull("p2 deveria ter sido comitado", env.productRepo().fetchById(p2.id(), null));
+        assertNotNull("p1 should have been committed", env.productRepo().fetchById(p1.id(), null));
+        assertNotNull("p2 should have been committed", env.productRepo().fetchById(p2.id(), null));
     }
 
     @Test
@@ -67,25 +67,25 @@ public class RemoteTransactionRestTest {
             t.setRollbackOnly();
         });
 
-        assertNull("setRollbackOnly deveria reverter", env.productRepo().fetchById(p.id(), null));
+        assertNull("setRollbackOnly should roll back", env.productRepo().fetchById(p.id(), null));
     }
 
     @Test
     public void headerlessWrite_whileRemoteTxOpen_isRejected() {
-        // Cliente abre uma transação remota mas, por falha de propagação, deixa de enviar o X-Tx-Id nas escritas
-        // seguintes. O servidor deve REJEITAR a escrita — em vez de autocommitá-la fora da transação, o que deixaria
-        // um registro órfão (quebra de atomicidade). begin e escrita partem do mesmo transporte → mesmo X-Client-Id
-        // (mesmo dono), então a guarda correlaciona a escrita à transação aberta do cliente.
-        env.transport().postJson("/api/tx/begin", "{}"); // transação remota agora aberta para este cliente
+        // The client opens a remote transaction but, due to a propagation failure, does not send the X-Tx-Id on the
+        // following writes. The server must REJECT the write — instead of autocommitting it outside the transaction,
+        // which would leave an orphan record (broken atomicity). begin and write come from the same transport → same
+        // X-Client-Id (same owner), so the guard correlates the write with the client's open transaction.
+        env.transport().postJson("/api/tx/begin", "{}"); // remote transaction open for this client
 
         try {
-            env.productRepo().insert(product("rtx-guard-orphan")); // escrita SEM X-Tx-Id
-            fail("escrita sem X-Tx-Id com transação remota aberta deveria ser rejeitada");
+            env.productRepo().insert(product("rtx-guard-orphan")); // write WITHOUT X-Tx-Id
+            fail("a write without X-Tx-Id while a remote transaction is open should be rejected");
         } catch (TransactionConflictException expected) {
-            // esperado: 409 Conflict (conflito de estado transacional), não 403 (autorização) — volta como a exceção do servidor
+            // expected: 409 Conflict (transactional state conflict), not 403 (authorization) — comes back as the server's exception
         }
-        // A transação aberta é abandonada de propósito; o coordenador a reverte por timeout (reaper) e o
-        // TestEnvironment fecha o datasource no teardown da classe.
+        // The open transaction is abandoned on purpose; the coordinator rolls it back on timeout (reaper) and the
+        // TestEnvironment closes the datasource in the class teardown.
     }
 
     @Test
@@ -99,12 +99,12 @@ public class RemoteTransactionRestTest {
                 env.productRepo().insert(p2);
                 throw new IllegalStateException("boom");
             });
-            fail("a exceção deveria ter sido repropagada");
+            fail("the exception should have been rethrown");
         } catch (IllegalStateException expected) {
-            // esperado
+            // expected
         }
 
-        assertNull("p1 deveria ter sido revertido junto", env.productRepo().fetchById(p1.id(), null));
-        assertNull("p2 deveria ter sido revertido junto", env.productRepo().fetchById(p2.id(), null));
+        assertNull("p1 should have been rolled back too", env.productRepo().fetchById(p1.id(), null));
+        assertNull("p2 should have been rolled back too", env.productRepo().fetchById(p2.id(), null));
     }
 }

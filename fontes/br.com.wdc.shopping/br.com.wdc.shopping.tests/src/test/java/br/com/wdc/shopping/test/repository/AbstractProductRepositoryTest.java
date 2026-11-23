@@ -28,7 +28,7 @@ public abstract class AbstractProductRepositoryTest {
 
 	@Test
 	public void fetchById_returnsCorrectProduct() {
-		var product = repo().fetchById(DBReset.CAFETEIRA_ID, null);
+		var product = repo().fetchById(DBReset.COFFEE_MAKER_ID, null);
 		assertNotNull(product);
 		assertNotNull(product.name());
 		assertNotNull(product.price());
@@ -47,18 +47,18 @@ public abstract class AbstractProductRepositoryTest {
 				.withId(pv.i64)
 				.withName(pv.str);
 
-		var product = repo().fetchById(DBReset.PEN_DRIVE2GB_ID, projection);
+		var product = repo().fetchById(DBReset.FLASH_DRIVE_2GB_ID, projection);
 		assertNotNull(product);
-		assertEquals(DBReset.PEN_DRIVE2GB_ID, product.id());
+		assertEquals(DBReset.FLASH_DRIVE_2GB_ID, product.id());
 		assertNotNull(product.name());
 	}
 
 	@Test
 	public void fetchByCriteria_productId() {
 		var products = repo().fetch(new ProductCriteria()
-				.withProductId(DBReset.BOLA_WILSON_ID));
+				.withProductId(DBReset.WILSON_BALL_ID));
 		assertEquals(1, products.size());
-		assertEquals(DBReset.BOLA_WILSON_ID, products.get(0).id());
+		assertEquals(DBReset.WILSON_BALL_ID, products.get(0).id());
 	}
 
 	@Test
@@ -99,7 +99,7 @@ public abstract class AbstractProductRepositoryTest {
 	@Test
 	public void countByProductId_returnsOne() {
 		int count = repo().count(new ProductCriteria()
-				.withProductId(DBReset.CAFETEIRA_ID));
+				.withProductId(DBReset.COFFEE_MAKER_ID));
 		assertEquals(1, count);
 	}
 
@@ -114,7 +114,7 @@ public abstract class AbstractProductRepositoryTest {
 
 	@Test
 	public void fetchImage_returnsNonNullForSeededProduct() {
-		byte[] image = repo().fetchImage(DBReset.CAFETEIRA_ID);
+		byte[] image = repo().fetchImage(DBReset.COFFEE_MAKER_ID);
 		assertNotNull(image);
 		assertTrue(image.length > 0);
 	}
@@ -129,9 +129,9 @@ public abstract class AbstractProductRepositoryTest {
 	@Test
 	public void insert_newProduct() {
 		var product = new Product()
-				.withName("Teclado USB")
+				.withName("USB Keyboard")
 				.withPrice(89.90)
-				.withDescription("Teclado mecanico");
+				.withDescription("Mechanical keyboard");
 
 		boolean inserted = repo().insert(product);
 		assertTrue(inserted);
@@ -139,41 +139,41 @@ public abstract class AbstractProductRepositoryTest {
 
 		var fetched = repo().fetchById(product.id(), null);
 		assertNotNull(fetched);
-		assertEquals("Teclado USB", fetched.name());
+		assertEquals("USB Keyboard", fetched.name());
 		assertEquals(89.90, fetched.price(), 0.001);
 		assertNotNull(fetched.description());
-		assertTrue(fetched.description().contains("Teclado"));
+		assertTrue(fetched.description().contains("keyboard"));
 	}
 
 	// :: update
 
 	@Test
 	public void update_existingProduct() {
-		var original = repo().fetchById(DBReset.PEN_DRIVE2GB_ID, null);
+		var original = repo().fetchById(DBReset.FLASH_DRIVE_2GB_ID, null);
 		assertNotNull(original);
 
 		var updated = new Product()
 				.withId(original.id())
-				.withName("Pen Drive 4GB")
+				.withName("4GB Flash Drive")
 				.withPrice(35.0)
 				.withDescription(original.description());
 
 		boolean result = repo().update(updated, original);
 		assertTrue(result);
 
-		var fetched = repo().fetchById(DBReset.PEN_DRIVE2GB_ID, null);
-		assertEquals("Pen Drive 4GB", fetched.name());
+		var fetched = repo().fetchById(DBReset.FLASH_DRIVE_2GB_ID, null);
+		assertEquals("4GB Flash Drive", fetched.name());
 		assertEquals(35.0, fetched.price(), 0.001);
 	}
 
 	@Test
 	public void update_partialFields_onlyChangesSpecifiedFields() {
-		var original = repo().fetchById(DBReset.PEN_DRIVE2GB_ID, null);
+		var original = repo().fetchById(DBReset.FLASH_DRIVE_2GB_ID, null);
 		assertNotNull(original);
 		var originalDescription = original.description();
 		var originalPrice = original.price();
 
-		// projeção parcial: só id e name
+		// partial projection: only id and name
 		var pv = ProjectionValues.INSTANCE;
 		var projection = new Product()
 				.withId(pv.i64)
@@ -181,26 +181,25 @@ public abstract class AbstractProductRepositoryTest {
 
 		var updated = new Product()
 				.withId(original.id())
-				.withName("Pen Drive Renomeado");
+				.withName("Renamed Flash Drive");
 
 		boolean result = repo().update(updated, original, projection);
 		assertTrue(result);
 
-		var fetched = repo().fetchById(DBReset.PEN_DRIVE2GB_ID, null);
-		assertEquals("Pen Drive Renomeado", fetched.name());
+		var fetched = repo().fetchById(DBReset.FLASH_DRIVE_2GB_ID, null);
+		assertEquals("Renamed Flash Drive", fetched.name());
 		assertEquals(originalPrice, fetched.price(), 0.001);
 		assertEquals(originalDescription, fetched.description());
 	}
 
 	@Test
 	public void update_setFieldToNull_clearsValue() {
-		// Insere um produto com description nullable para este teste
-		// Como DESCRIPTION é NOT NULL no schema, testamos que um campo fora da projeção
-		// não é afetado mesmo que esteja null no newEntity
-		var original = repo().fetchById(DBReset.PEN_DRIVE2GB_ID, null);
+		// DESCRIPTION is NOT NULL in the schema, so this test checks that a field outside the projection
+		// is not affected even when it is null in newEntity
+		var original = repo().fetchById(DBReset.FLASH_DRIVE_2GB_ID, null);
 		assertNotNull(original);
 
-		// projeção só com id e price — description NÃO está na projeção
+		// projection with only id and price — description is NOT in the projection
 		var pv = ProjectionValues.INSTANCE;
 		var projection = new Product()
 				.withId(pv.i64)
@@ -209,15 +208,15 @@ public abstract class AbstractProductRepositoryTest {
 		var updated = new Product()
 				.withId(original.id())
 				.withPrice(99.99);
-		updated.withDescription(null); // null no newEntity, mas NÃO na projeção
+		updated.withDescription(null); // null in newEntity, but NOT in the projection
 
 		boolean result = repo().update(updated, original, projection);
 		assertTrue(result);
 
-		var fetched = repo().fetchById(DBReset.PEN_DRIVE2GB_ID, null);
-		// description preservada (campo fora da projeção não é tocado)
+		var fetched = repo().fetchById(DBReset.FLASH_DRIVE_2GB_ID, null);
+		// description preserved (a field outside the projection is not touched)
 		assertEquals(original.description(), fetched.description());
-		// price atualizado
+		// price updated
 		assertEquals(99.99, fetched.price(), 0.001);
 	}
 
@@ -226,7 +225,7 @@ public abstract class AbstractProductRepositoryTest {
 	@Test
 	public void deleteByProductId() {
 		int deleted = repo().delete(new ProductCriteria()
-				.withProductId(DBReset.PEN_DRIVE2GB_ID));
+				.withProductId(DBReset.FLASH_DRIVE_2GB_ID));
 		assertEquals(1, deleted);
 		assertEquals(3, repo().count(new ProductCriteria()));
 	}
@@ -238,39 +237,39 @@ public abstract class AbstractProductRepositoryTest {
 		assertEquals(0, deleted);
 	}
 
-	// :: Critério expressivo — rodam também no modo REST, onde provam que os operadores trafegam
+	// :: Expressive criterion — these also run in REST mode, where they prove the operators travel over the wire
 
 	@Test
 	public void in_bringsOnlyTheListedOnes() {
 		var products = repo().fetch(new ProductCriteria()
-				.productId().in(DBReset.CAFETEIRA_ID, DBReset.PEN_DRIVE2GB_ID));
+				.productId().in(DBReset.COFFEE_MAKER_ID, DBReset.FLASH_DRIVE_2GB_ID));
 
 		assertEquals(2, products.size());
 	}
 
 	@Test
 	public void between_isInclusiveOnBothEnds() {
-		// ids 1..3 dos quatro produtos
+		// ids 1..3 of the four products
 		var products = repo().fetch(new ProductCriteria()
-				.productId().between(DBReset.BOLA_WILSON_ID, DBReset.PEN_DRIVE2GB_ID));
+				.productId().between(DBReset.WILSON_BALL_ID, DBReset.FLASH_DRIVE_2GB_ID));
 
 		assertEquals(3, products.size());
 	}
 
 	@Test
 	public void ne_excludesTheOne() {
-		var products = repo().fetch(new ProductCriteria().productId().ne(DBReset.CAFETEIRA_ID));
+		var products = repo().fetch(new ProductCriteria().productId().ne(DBReset.COFFEE_MAKER_ID));
 
 		assertEquals(3, products.size());
 	}
 
 	@Test
 	public void twoNe_excludeBoth() {
-		// Dois pedidos no mesmo campo valem juntos: é o AND por padrão. Fosse OR, cada linha satisfaria um dos dois
-		// e a consulta devolveria os quatro.
+		// Two requests on the same field apply together: AND is the default. With OR, every row would satisfy one of
+		// them and the query would return all four.
 		var criteria = new ProductCriteria();
-		criteria.productId().ne(DBReset.CAFETEIRA_ID);
-		criteria.productId().ne(DBReset.BOLA_WILSON_ID);
+		criteria.productId().ne(DBReset.COFFEE_MAKER_ID);
+		criteria.productId().ne(DBReset.WILSON_BALL_ID);
 
 		assertEquals(2, repo().fetch(criteria).size());
 	}
@@ -278,25 +277,25 @@ public abstract class AbstractProductRepositoryTest {
 	@Test
 	public void or_turnsRequestsIntoAlternatives() {
 		var criteria = new ProductCriteria();
-		criteria.productId().or().eq(DBReset.CAFETEIRA_ID);
-		criteria.productId().eq(DBReset.BOLA_WILSON_ID);
+		criteria.productId().or().eq(DBReset.COFFEE_MAKER_ID);
+		criteria.productId().eq(DBReset.WILSON_BALL_ID);
 
-		// Com AND seriam zero: nenhum id é os dois ao mesmo tempo.
+		// With AND it would be zero: no id is both at once.
 		assertEquals(2, repo().fetch(criteria).size());
 	}
 
 	@Test
 	public void gt_comparesByOrder() {
-		var products = repo().fetch(new ProductCriteria().productId().gt(DBReset.BOLA_WILSON_ID));
+		var products = repo().fetch(new ProductCriteria().productId().gt(DBReset.WILSON_BALL_ID));
 
 		assertEquals(2, products.size());
 	}
 
 	@Test
 	public void betweenWithOpenEnd_becomesASingleBound() {
-		// Só o início informado vira >=; é o filtro de tela com um campo preenchido só.
+		// Only the given start becomes >=; it is the screen filter with just one field filled in.
 		var products = repo().fetch(new ProductCriteria()
-				.productId().between(DBReset.FITA_VEDA_ROSCA_ID, null));
+				.productId().between(DBReset.THREAD_SEAL_TAPE_ID, null));
 
 		assertEquals(2, products.size());
 	}
@@ -306,13 +305,13 @@ public abstract class AbstractProductRepositoryTest {
 		var criteria = new ProductCriteria();
 		criteria.productId().eq(null);
 
-		assertEquals("valor nulo não acrescenta pedido", 4, repo().fetch(criteria).size());
+		assertEquals("null value adds no request", 4, repo().fetch(criteria).size());
 	}
 
 	@Test
 	public void clear_undoesWhatWasAsked() {
 		var criteria = new ProductCriteria()
-				.withProductId(DBReset.CAFETEIRA_ID);
+				.withProductId(DBReset.COFFEE_MAKER_ID);
 		assertEquals(1, repo().fetch(criteria).size());
 
 		criteria.productId().clear();
@@ -321,35 +320,35 @@ public abstract class AbstractProductRepositoryTest {
 
 	@Test
 	public void deleteWithEmptyCriteria_isRefused() {
-		// Sem esta guarda, critério vazio traduziria para noCondition() e o DELETE levaria a tabela inteira.
+		// Without this guard, an empty criteria would translate to noCondition() and the DELETE would wipe the whole table.
 		try {
 			repo().delete(new ProductCriteria());
-			fail("delete sem chave deveria ser recusado");
+			fail("delete without a key should be refused");
 		} catch (InvalidRequestException expected) {
-			// Local ou pela API (400): o mesmo pedido recusado, e nada apagado
+			// Local or through the API (400): the same request refused, and nothing deleted
 			assertEquals(4, repo().count(new ProductCriteria()));
 		}
 	}
 
-	// :: Campos que não são a chave — a superfície de filtro cobre todos os campos da entidade
+	// :: Fields that are not the key — the filter surface covers every field of the entity
 
 	@Test
 	public void filterByName_text() {
 		var products = repo().fetch(new ProductCriteria().name().containing("Wilson"));
 
 		assertEquals(1, products.size());
-		assertEquals(DBReset.BOLA_WILSON_ID, products.get(0).id());
+		assertEquals(DBReset.WILSON_BALL_ID, products.get(0).id());
 	}
 
 	@Test
 	public void filterByPrice_range() {
-		// Preço é NUMERIC na coluna e Double no domínio: a conversão é do campo, e vale igual para between.
-		// Dos quatro preços — 199.99, 45.30, 2.67 e 16.00 —, três caem na faixa.
+		// Price is NUMERIC in the column and Double in the domain: the conversion belongs to the field, and applies to between too.
+		// Of the four prices — 199.99, 45.30, 2.67 and 16.00 — three fall within the range.
 		var products = repo().fetch(new ProductCriteria().price().between(2.0, 50.0));
 
 		assertEquals(3, products.size());
 		for (var p : products) {
-			assertTrue("preço fora da faixa pedida: " + p.price(), p.price() >= 2.0 && p.price() <= 50.0);
+			assertTrue("price outside the requested range: " + p.price(), p.price() >= 2.0 && p.price() <= 50.0);
 		}
 	}
 
@@ -358,7 +357,7 @@ public abstract class AbstractProductRepositoryTest {
 		var products = repo().fetch(new ProductCriteria().price().gt(100.0));
 
 		assertEquals(1, products.size());
-		assertEquals(DBReset.CAFETEIRA_ID, products.get(0).id());
+		assertEquals(DBReset.COFFEE_MAKER_ID, products.get(0).id());
 	}
 
 	@Test
@@ -366,12 +365,12 @@ public abstract class AbstractProductRepositoryTest {
 		var products = repo().fetch(new ProductCriteria().description().containing("Teflon"));
 
 		assertEquals(1, products.size());
-		assertEquals(DBReset.FITA_VEDA_ROSCA_ID, products.get(0).id());
+		assertEquals(DBReset.THREAD_SEAL_TAPE_ID, products.get(0).id());
 	}
 
 	@Test
 	public void filterByTwoDifferentFields_combinesWithAnd() {
-		// Entre campos a junção é sempre AND, mesmo que cada um deles seja disjuntivo por dentro.
+		// Across fields the join is always AND, even when each of them is disjunctive inside.
 		var criteria = new ProductCriteria();
 		criteria.name().containing("a");
 		criteria.price().lt(50.0);
@@ -383,50 +382,50 @@ public abstract class AbstractProductRepositoryTest {
 		}
 	}
 
-	// :: Ordenações provisionadas — cada uma é um efeito, não um campo com direção
+	// :: Provisioned orderings — each one is an effect, not a field with a direction
 
-	private List<String> nomesOrdenadosPor(ProductCriteria.OrderBy order) {
+	private List<String> namesOrderedBy(ProductCriteria.OrderBy order) {
 		return repo().fetch(new ProductCriteria()
 				.withOrderBy(order)).stream().map(Product::name).toList();
 	}
 
 	@Test
 	public void orderBy_nameAToZ() {
-		var nomes = nomesOrdenadosPor(ProductCriteria.OrderBy.NAME_A_TO_Z);
+		var names = namesOrderedBy(ProductCriteria.OrderBy.NAME_A_TO_Z);
 
-		assertEquals(nomes.stream().sorted(String.CASE_INSENSITIVE_ORDER).toList(), nomes);
-		// E não coincide com a ordem de cadastro — sem isso o teste passaria mesmo sem ordenar.
-		assertNotEquals(nomesOrdenadosPor(ProductCriteria.OrderBy.OLDEST_FIRST), nomes);
+		assertEquals(names.stream().sorted(String.CASE_INSENSITIVE_ORDER).toList(), names);
+		// And it does not match the insertion order — otherwise the test would pass even without sorting.
+		assertNotEquals(namesOrderedBy(ProductCriteria.OrderBy.OLDEST_FIRST), names);
 	}
 
 	@Test
 	public void orderBy_cheapestFirst() {
-		var precos = repo().fetch(new ProductCriteria()
+		var prices = repo().fetch(new ProductCriteria()
 				.withOrderBy(ProductCriteria.OrderBy.CHEAPEST_FIRST))
 				.stream().map(Product::price).toList();
 
-		assertEquals(precos.stream().sorted().toList(), precos);
+		assertEquals(prices.stream().sorted().toList(), prices);
 	}
 
 	@Test
 	public void orderBy_mostExpensiveFirst_isTheReverse() {
-		var caros = repo().fetch(new ProductCriteria()
+		var mostExpensive = repo().fetch(new ProductCriteria()
 				.withOrderBy(ProductCriteria.OrderBy.MOST_EXPENSIVE_FIRST))
 				.stream().map(Product::price).toList();
-		var baratos = repo().fetch(new ProductCriteria()
+		var cheapest = repo().fetch(new ProductCriteria()
 				.withOrderBy(ProductCriteria.OrderBy.CHEAPEST_FIRST))
 				.stream().map(Product::price).toList();
 
-		assertEquals(baratos.reversed(), caros);
+		assertEquals(cheapest.reversed(), mostExpensive);
 	}
 
 	@Test
 	public void orderBy_oldestAndNewest_areOpposites() {
-		var antigos = repo().fetch(new ProductCriteria()
+		var oldest = repo().fetch(new ProductCriteria()
 				.withOrderBy(ProductCriteria.OrderBy.OLDEST_FIRST)).stream().map(Product::id).toList();
-		var novos = repo().fetch(new ProductCriteria()
+		var newest = repo().fetch(new ProductCriteria()
 				.withOrderBy(ProductCriteria.OrderBy.NEWEST_FIRST)).stream().map(Product::id).toList();
 
-		assertEquals(antigos.reversed(), novos);
+		assertEquals(oldest.reversed(), newest);
 	}
 }

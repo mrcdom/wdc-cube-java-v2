@@ -28,13 +28,13 @@ import io.agroal.api.security.SimplePassword;
 import io.agroal.narayana.NarayanaTransactionIntegration;
 
 /**
- * Teste de fumaça do {@link TransactionService} (estilo CMT) no <b>modo JTA</b>, com pool Agroal enlistado no
- * TransactionManager Narayana sobre H2 em modo <b>XA</b>.
+ * Smoke test of the {@link TransactionService} (CMT style) in <b>JTA mode</b>, with an Agroal pool enlisted in the
+ * Narayana TransactionManager over H2 in <b>XA</b> mode.
  *
  * <p>
- * Reproduz o caminho de produção de {@code SqlDataSourceSupport}/{@code JtaSupport} (que vivem no módulo backend) para
- * exercitar a demarcação real: COMMIT em retorno normal, ROLLBACK em exceção ou {@code setRollbackOnly()}, e as
- * propagações REQUIRES_NEW / MANDATORY / NEVER.
+ * Reproduces the production path of {@code SqlDataSourceSupport}/{@code JtaSupport} (which live in the backend module)
+ * to exercise real demarcation: COMMIT on normal return, ROLLBACK on exception or {@code setRollbackOnly()}, and the
+ * REQUIRES_NEW / MANDATORY / NEVER propagations.
  * </p>
  */
 public class TransactionServiceJtaTest {
@@ -45,7 +45,7 @@ public class TransactionServiceJtaTest {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-        // 1) TransactionManager Narayana — ObjectStore em target/ para não poluir o cwd
+        // 1) Narayana TransactionManager — ObjectStore under target/ so the cwd stays clean
         var objectStoreDir = new File("target/tx-smoke-store").getAbsolutePath();
         arjPropertyManager.getObjectStoreEnvironmentBean().setObjectStoreDir(objectStoreDir);
         arjPropertyManager.getObjectStoreEnvironmentBean().setLocalOSRoot("defaultStore");
@@ -55,7 +55,7 @@ public class TransactionServiceJtaTest {
                 .setUserTransactionClassName(UserTransactionImple.class.getName());
         JtaTransactionManager.BEAN.set(com.arjuna.ats.jta.TransactionManager.transactionManager());
 
-        // 2) DataSource H2 XA enlistado no TM (espelha o ramo JTA de SqlDataSourceSupport)
+        // 2) H2 XA DataSource enlisted in the TM (mirrors the JTA branch of SqlDataSourceSupport)
         var tsr = jtaPropertyManager.getJTAEnvironmentBean().getTransactionSynchronizationRegistry();
         dataSource = AgroalDataSource.from(new AgroalDataSourceConfigurationSupplier()
                 .connectionPoolConfiguration(pool -> pool
@@ -72,7 +72,7 @@ public class TransactionServiceJtaTest {
 
         ShoppingTransactions.BEAN.set(new TransactionServiceImpl(() -> dataSource));
 
-        // 3) Tabela de apoio (fora de transação)
+        // 3) Support table (outside any transaction)
         try (var conn = dataSource.getConnection(); var st = conn.createStatement()) {
             st.execute("CREATE TABLE IF NOT EXISTS TX_SMOKE (id INT PRIMARY KEY)");
         }
@@ -91,7 +91,7 @@ public class TransactionServiceJtaTest {
         return ShoppingTransactions.BEAN.get();
     }
 
-    /** Insere usando a conexão da transação corrente (participa do escopo JTA). */
+    /** Inserts using the current transaction's connection (takes part in the JTA scope). */
     private static void insert(int id) {
         try {
             var conn = TransactionScope.current().connection();
@@ -104,7 +104,7 @@ public class TransactionServiceJtaTest {
         }
     }
 
-    /** Conta linhas fora de qualquer transação (vê apenas o que foi comitado). */
+    /** Counts rows outside any transaction (sees only what was committed). */
     private static int count(int id) {
         try (var conn = dataSource.getConnection();
                 var ps = conn.prepareStatement("SELECT COUNT(*) FROM TX_SMOKE WHERE id = ?")) {
@@ -121,7 +121,7 @@ public class TransactionServiceJtaTest {
     @Test
     public void required_normalReturn_commits() {
         tx().required(t -> insert(1));
-        assertEquals("REQUIRED deveria comitar em retorno normal", 1, count(1));
+        assertEquals("REQUIRED should commit on normal return", 1, count(1));
     }
 
     @Test
@@ -131,11 +131,11 @@ public class TransactionServiceJtaTest {
                 insert(2);
                 throw new IllegalStateException("boom");
             });
-            fail("a exceção deveria ter sido repropagada");
+            fail("the exception should have been rethrown");
         } catch (IllegalStateException expected) {
-            // esperado
+            // expected
         }
-        assertEquals("REQUIRED deveria reverter quando o work lança", 0, count(2));
+        assertEquals("REQUIRED should roll back when the work throws", 0, count(2));
     }
 
     @Test
@@ -144,7 +144,7 @@ public class TransactionServiceJtaTest {
             insert(3);
             t.setRollbackOnly();
         });
-        assertEquals("setRollbackOnly deveria reverter mesmo em retorno normal", 0, count(3));
+        assertEquals("setRollbackOnly should roll back even on normal return", 0, count(3));
     }
 
     @Test
@@ -157,9 +157,9 @@ public class TransactionServiceJtaTest {
     public void mandatory_withoutActiveTx_throws() {
         try {
             tx().mandatory(t -> insert(5));
-            fail("MANDATORY deveria exigir transação ativa");
+            fail("MANDATORY should require an active transaction");
         } catch (TransactionRequiredException expected) {
-            // esperado
+            // expected
         }
         assertEquals(0, count(5));
     }
@@ -170,9 +170,9 @@ public class TransactionServiceJtaTest {
             try {
                 tx().never(inner -> {
                 });
-                fail("NEVER deveria proibir transação ativa");
+                fail("NEVER should forbid an active transaction");
             } catch (TransactionNotAllowedException expected) {
-                // esperado
+                // expected
             }
         });
     }

@@ -13,11 +13,11 @@ import br.com.wdc.shopping.test.util.ResetDatabaseRule;
 import br.com.wdc.shopping.test.util.TestEnvironment;
 
 /**
- * Os dois endpoints de busca por chave, chamados diretamente.
+ * The two lookup-by-key endpoints, called directly.
  *
  * <p>
- * Eles servem quem consome a API de fora: o cliente HTTP deste projeto vai por {@code /fetch}, montando o critério.
- * São, portanto, os únicos testes que os exercitam — sem eles, uma quebra aqui passa despercebida.
+ * They serve external consumers of the API: this project's HTTP client goes through {@code /fetch}, building the
+ * criteria. These are therefore the only tests that exercise them — without them, a breakage here goes unnoticed.
  * </p>
  */
 public class FetchByIdEndpointTest {
@@ -30,11 +30,11 @@ public class FetchByIdEndpointTest {
 
 	@Test
 	public void getById_returnsTheEntity() {
-		var json = env.transport().getJson("/api/repo/product/" + DBReset.CAFETEIRA_ID);
+		var json = env.transport().getJson("/api/repo/product/" + DBReset.COFFEE_MAKER_ID);
 
 		assertNotNull(json);
-		assertTrue("deve trazer o id pedido: " + json, json.contains("\"id\":" + DBReset.CAFETEIRA_ID));
-		assertTrue("deve trazer o nome: " + json, json.contains("Cafeteira"));
+		assertTrue("must return the requested id: " + json, json.contains("\"id\":" + DBReset.COFFEE_MAKER_ID));
+		assertTrue("must return the name: " + json, json.contains("Coffee Maker"));
 	}
 
 	@Test
@@ -42,17 +42,17 @@ public class FetchByIdEndpointTest {
 		var e = assertThrows(BusinessException.class,
 				() -> env.transport().getJson("/api/repo/product/" + Long.MAX_VALUE));
 
-		assertTrue("chave inexistente deve ser 404: " + e.getMessage(), e.getMessage().startsWith("HTTP 404"));
+		assertTrue("a nonexistent key must be 404: " + e.getMessage(), e.getMessage().startsWith("HTTP 404"));
 	}
 
 	@Test
 	public void postFetchById_honoursTheProjection() {
 		var json = env.transport().postJsonNullable("/api/repo/product/fetch-by-id",
-				"{\"id\":" + DBReset.CAFETEIRA_ID + ",\"projection\":{\"id\":1,\"name\":\"~\"}}");
+				"{\"id\":" + DBReset.COFFEE_MAKER_ID + ",\"projection\":{\"id\":1,\"name\":\"~\"}}");
 
 		assertNotNull(json);
-		assertTrue("deve trazer o nome projetado: " + json, json.contains("Cafeteira"));
-		assertFalse("não deve trazer campo fora da projeção: " + json, json.contains("\"price\""));
+		assertTrue("must return the projected name: " + json, json.contains("Coffee Maker"));
+		assertFalse("must not return a field outside the projection: " + json, json.contains("\"price\""));
 	}
 
 	@Test
@@ -60,6 +60,6 @@ public class FetchByIdEndpointTest {
 		var json = env.transport().postJsonNullable("/api/repo/product/fetch-by-id",
 				"{\"id\":" + Long.MAX_VALUE + "}");
 
-		assertNull("chave inexistente não deve devolver corpo", json);
+		assertNull("a nonexistent key must not return a body", json);
 	}
 }
