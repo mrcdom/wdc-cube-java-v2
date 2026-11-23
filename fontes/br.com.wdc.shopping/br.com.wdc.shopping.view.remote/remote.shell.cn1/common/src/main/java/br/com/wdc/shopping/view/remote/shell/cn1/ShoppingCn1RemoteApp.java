@@ -10,6 +10,7 @@ import java.util.Set;
 import com.codename1.system.Lifecycle;
 import com.codename1.ui.CN;
 import com.codename1.ui.Container;
+import com.codename1.ui.Dialog;
 import com.codename1.ui.Display;
 import com.codename1.ui.Form;
 import com.codename1.ui.layouts.BorderLayout;
@@ -58,6 +59,8 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
     private SplashCn1View splash;
     private boolean flushScheduled;
     private boolean wasExpanded;
+    /** O alerta do host em exibição: um push do browser enquanto ele está aberto não o mostra de novo. */
+    private int shownAlertId;
     private boolean wasPortrait;
 
     /**
@@ -180,6 +183,7 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
             evict(vsid);
         }
         mountRootIfChanged();
+        showHostAlert();
         for (String vsid : received) {
             AbstractCn1View v = views.get(vsid); // já criada/montada (criação é lazy, via o pai)
             if (v != null) {
@@ -210,6 +214,38 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
             return; // push sem contentViewId não desmonta a raiz atual
         }
         rootSlot.mount(elementOf(rv)); // re-monta só quando a referência do element muda (mesmo vsid → mesma view)
+    }
+
+    /**
+     * O alerta do host ({@code alertId}/{@code alertArgs} do browser): fica na tela até ser dispensado, o que
+     * avisa o host (evento 1 do browser), cuja ação do alerta pode rodar então.
+     */
+    private void showHostAlert() {
+        Map<String, Object> browser = session.state(BridgeSession.BROWSER_VSID);
+        final int alertId = browser != null ? Json.intOf(browser, "alertId") : 0;
+        if (alertId == 0 || alertId == shownAlertId) {
+            shownAlertId = alertId;
+            return;
+        }
+        shownAlertId = alertId;
+
+        List<String> args = new ArrayList<>();
+        for (Object item : Json.asList(browser.get("alertArgs"))) {
+            args.add(String.valueOf(item));
+        }
+        final String message;
+        if (alertId == -2) {
+            message = "A URI " + (args.isEmpty() ? "" : args.get(0)) + " não está acessível";
+        } else {
+            message = args.isEmpty() ? "Ocorreu um erro não esperado" : args.get(0);
+        }
+        final String detail = args.size() > 1 ? args.get(1) : null;
+
+        CN.callSerially(() -> {
+            Dialog.show("Aviso!", detail != null ? message + "\n\n" + detail : message, "Ok", null);
+            shownAlertId = 0;
+            session.submit(BridgeSession.BROWSER_VSID, 1, new HashMap<String, Object>());
+        });
     }
 
     /** Element da view de {@code vsid} (criada sob demanda), ou {@code null}. */
