@@ -9,6 +9,7 @@ import br.com.wdc.framework.cube.ScopeSlot;
 import br.com.wdc.framework.domain.exception.OfflineException;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.StorageKeys;
+import br.com.wdc.shopping.presentation.presenter.open.login.calls.LoginCall;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
 
 public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
@@ -30,14 +31,12 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     // :: Internal Instance Fields
 
-    private final LoginService loginService;
     private ScopeSlot ownerSlot;
 
     // :: Constructor
 
     public LoginPresenter(ShoppingApplication app) {
         super(app);
-        this.loginService = new LoginService();
         this.state.onEnter = actionOf2(1, FormParam.asString("p.userName"),
                 FormParam.of("p.password", v -> app.b64Decipher(CoerceUtils.asString(v))), this::enter);
         this.state.onSync(formData -> {
@@ -97,7 +96,7 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
         }
 
         try {
-            var result = loginService.fetchSubject(userName, password);
+            var result = new LoginCall().withUserName(userName).withPassword(password).run();
 
             if (result == null || result.subject() == null || result.subject().getId() == null) {
                 app.setSubject(null);

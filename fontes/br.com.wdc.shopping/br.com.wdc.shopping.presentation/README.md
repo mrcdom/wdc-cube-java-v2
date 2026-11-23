@@ -1,6 +1,6 @@
 # WDC Shopping — Presentation
 
-Camada de apresentação do sistema Shopping, implementada com o padrão **Cube MVP**. Contém os presenters, view states, serviços de apresentação, DTOs e o sistema de navegação. Esta camada é agnóstica de tecnologia de view — não depende de React, Javalin ou qualquer framework de UI.
+Camada de apresentação do sistema Shopping, implementada com o padrão **Cube MVP**. Contém os presenters, escopos, chamadas (calls), DTOs e o sistema de navegação. Esta camada é agnóstica de tecnologia de view — não depende de React, Javalin ou qualquer framework de UI.
 
 ## Dependências
 
@@ -33,7 +33,7 @@ graph TD
     open --> login["login/"]
     login --> LoginP["LoginPresenter.java"]
     login --> LoginS["LoginScope.java"]
-    login --> LoginSvc["LoginService.java"]
+    login --> LoginCalls["calls/LoginCall.java"]
     login --> LoginStructs["structs/Subject.java"]
 
     presenter --> restricted["restricted/"]
@@ -42,13 +42,12 @@ graph TD
     home --> HomeP["HomePresenter.java"]
     home --> HomeS["HomeScope.java (com ProductsPanelScope e PurchasesPanelScope)"]
     home --> HomeStructs["structs/PurchaseInfo.java"]
-    home --> purchases_panel["purchases/"]
-    purchases_panel --> PurchPanelSvc["PurchasesPanelService.java"]
+    home --> HomeCalls["calls/LoadPurchasesPageCall.java"]
 
     restricted --> products["products/"]
     products --> ProductP["ProductPresenter.java"]
     products --> ProductS["ProductScope.java"]
-    products --> ProductSvc["ProductService.java"]
+    products --> ProductCalls["calls/LoadProductCall.java, LoadProductsCall.java"]
     products --> ProductStructs["structs/ProductInfo.java"]
 
     restricted --> cart["cart/"]
@@ -60,7 +59,7 @@ graph TD
     restricted --> receipt["receipt/"]
     receipt --> ReceiptP["ReceiptPresenter.java"]
     receipt --> ReceiptS["ReceiptScope.java"]
-    receipt --> ReceiptSvc["ReceiptService.java"]
+    receipt --> ReceiptCalls["calls/LoadReceiptCall.java"]
     receipt --> ReceiptStructs["structs/ReceiptForm.java, ReceiptItem.java"]
 ```
 
@@ -100,18 +99,18 @@ Os presenters `OpenPresenter` e `RestrictedPresenter` funcionam como **guardas d
 
 ```mermaid
 graph TD
-    RootP["RootPresenter<br/><small>contentSlot → escopo filho<br/>Inner: RootScope</small>"]
+    RootP["RootPresenter<br/><small>contentSlot → escopo filho<br/>Scope: RootScope</small>"]
 
     RootP --> OpenP["OpenPresenter<br/><small>Guarda: redireciona se autenticado</small>"]
     RootP --> RestrictedP["RestrictedPresenter<br/><small>Guarda: redireciona se não autenticado</small>"]
 
-    OpenP --> LoginP["LoginPresenter<br/><small>Autenticação<br/>Inner: LoginScope<br/>Serviço: LoginService</small>"]
+    OpenP --> LoginP["LoginPresenter<br/><small>Autenticação<br/>Scope: LoginScope<br/>Chamada: LoginCall</small>"]
 
-    RestrictedP --> HomeP["HomePresenter<br/><small>contentSlot + painéis (segmentos) + CartManager<br/>Inner: HomeScope ⊃ ProductsPanelScope, PurchasesPanelScope</small>"]
+    RestrictedP --> HomeP["HomePresenter<br/><small>contentSlot + painéis (segmentos) + CartManager<br/>Scope: HomeScope ⊃ ProductsPanelScope, PurchasesPanelScope</small>"]
 
-    HomeP --> ProductP["ProductPresenter<br/><small>Detalhe + adicionar ao carrinho<br/>Inner: ProductScope</small>"]
-    HomeP --> CartP["CartPresenter<br/><small>Edição + efetivação de compra<br/>Inner: CartScope</small>"]
-    HomeP --> ReceiptP["ReceiptPresenter<br/><small>Comprovante<br/>Inner: ReceiptScope</small>"]
+    HomeP --> ProductP["ProductPresenter<br/><small>Detalhe + adicionar ao carrinho<br/>Scope: ProductScope</small>"]
+    HomeP --> CartP["CartPresenter<br/><small>Edição + efetivação de compra<br/>Scope: CartScope</small>"]
+    HomeP --> ReceiptP["ReceiptPresenter<br/><small>Comprovante<br/>Scope: ReceiptScope</small>"]
 ```
 
 ### Presenters e segmentos
@@ -134,7 +133,7 @@ Classe abstrata que estende `CubeApplication`. Mantém o estado global:
 
 ### Repositórios e autorização
 
-Presenters e serviços usam os repositórios pelo service locator do domínio: cada serviço tem um método privado que o lê a cada uso (`private static ProductRepository productRepository() { return ProductRepository.BEAN.get(); }`), sem campo nem parâmetro de construtor — o `CartManager` faz o mesmo com o `TransactionService` (`ShoppingTransactions.BEAN`). A autorização (RBAC) fica na fronteira de confiança: nos endpoints REST (`SecurityEnforcer`), por onde passa o teavm.web, cujos presenters rodam no navegador. Nos hosts em que os presenters rodam no servidor (Vaadin, SWT local, host remoto), o cliente só dispara ações e o presenter decide cada consulta.
+Os repositórios são usados pelo service locator do domínio, através dos acessos protegidos de `ShoppingCall` (`productRepository()` lê `ProductRepository.BEAN` a cada uso). A autorização (RBAC) fica na fronteira de confiança: nos endpoints REST (`SecurityEnforcer`), por onde passa o teavm.web, cujos presenters rodam no navegador. Nos hosts em que os presenters rodam no servidor (Vaadin, SWT local, host remoto), o cliente só dispara ações e o presenter decide cada consulta.
 
 ### Scope
 
@@ -162,16 +161,24 @@ O JSON gerado pelo serializer usa `"#"` como chave para o `instanceId`:
 ```
 ```
 
-### Services
+### Calls
 
-Serviços são classes com injeção de dependências via construtor (`ShoppingApplication` ou repositório específico), fazendo a ponte entre a camada de apresentação e os repositórios:
+Cada operação que o presenter pede aos repositórios é uma classe `XxxCall`, no pacote `calls/` do módulo (irmão de `structs/`). A requisição se acumula na instância por setters fluentes `withXxx(...)` e `run()` a responde; uma instância nova a cada uso:
 
-| Serviço | Responsabilidade |
-|---------|------------------|
-| `LoginService` | Autenticação via HMAC challenge-response (usa `AuthenticationService`) |
-| `ProductService` | Carga de produtos (por ID, lista sem descrição) |
-| `PurchasesPanelService` | Consulta de compras (paginação, contagem) |
-| `ReceiptService` | Carga de recibos |
+```java
+var product = new LoadProductCall().withProductId(id).run();
+```
+
+Todas estendem `ShoppingCall<R>`, que reúne numa seção logo no início os acessos protegidos aos repositórios e ao `TransactionService` (`productRepository()`, `purchaseRepository()`, `tx()`, ...), lidos do `BEAN` a cada uso. A resposta é um tipo que já existe; ou um struct do módulo (`structs/`), quando outras chamadas ou o escopo também o usam; ou uma classe interna da própria chamada, quando só leva a resposta de volta a quem chamou (`LoginCall.Result`).
+
+| Chamada | Requisição | Resposta |
+|---------|------------|----------|
+| `LoginCall` | `withUserName`, `withPassword` | `LoginCall.Result` (HMAC challenge-response via `AuthenticationService`) |
+| `LoadProductCall` | `withProductId` | `ProductInfo` |
+| `LoadProductsCall` | `withLimit` | `List<ProductInfo>` (sem descrição) |
+| `LoadPurchasesPageCall` | `withUserId`, `withPage`, `withPageSize` | `Page<PurchaseInfo>` (a mais recente primeiro) |
+| `LoadReceiptCall` | `withPurchaseId` | `ReceiptForm` |
+| `PurchaseCall` | `withUserId`, `withItems` | `Long` (id da compra, numa transação) |
 
 ### DTOs (structs)
 
@@ -212,8 +219,10 @@ Cada feature segue a estrutura:
 ```mermaid
 graph TD
     feature["presenter/restricted/&lt;feature&gt;/"]
-    feature --> Presenter["&lt;Feature&gt;Presenter.java<br/><small>(inner: &lt;Feature&gt;Scope)</small>"]
-    feature --> Service["&lt;Feature&gt;Service.java (opcional)"]
+    feature --> Presenter["&lt;Feature&gt;Presenter.java"]
+    feature --> Scope["&lt;Feature&gt;Scope.java"]
+    feature --> calls["calls/ (opcional)"]
+    calls --> Call["&lt;Verbo&gt;&lt;Coisa&gt;Call.java"]
     feature --> structs["structs/ (opcional)"]
     structs --> DTO["&lt;FeatureDTO&gt;.java"]
 ```

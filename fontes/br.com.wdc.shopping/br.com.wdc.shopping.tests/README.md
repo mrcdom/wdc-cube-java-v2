@@ -14,7 +14,7 @@ graph TD
     repository --> RestTests["Rest*RepositoryTest<br/><small>REST via API</small>"]
 
     root --> LoginTest["ShoppingLoginTest.java<br/><small>Fluxo de login</small>"]
-    root --> ServiceTest["ShoppingServiceTest.java<br/><small>Queries e projeções</small>"]
+    root --> CallTest["ShoppingCallTest.java<br/><small>Chamadas da apresentação</small>"]
     root --> WorkflowTest["ShoppingWorkflowTest.java<br/><small>Workflow completo (presentation)</small>"]
 
     root --> mock["mock/"]
@@ -59,9 +59,9 @@ Cada teste parte de um banco limpo com dados de seed (`DBReset`), garantindo det
 | `AbstractPurchaseRepositoryTest` | `PurchaseRepository` | 20 | SQL, REST |
 | `AbstractPurchaseItemRepositoryTest` | `PurchaseItemRepository` | 23 | SQL, REST |
 
-### Testes de serviço (`ShoppingServiceTest`)
+### Testes das chamadas (`ShoppingCallTest`)
 
-Exercitam diretamente os serviços e repositórios do domínio (login, consulta de produtos, compras, recibos) sobre um banco H2 in-memory populado com dados de seed (`DBReset`).
+Exercitam diretamente as chamadas da apresentação (`XxxCall`) e os repositórios do domínio (login, consulta de produtos, compras, recibos) sobre um banco H2 in-memory populado com dados de seed (`DBReset`).
 
 ### Testes de apresentação (`ShoppingLoginTest`, `ShoppingWorkflowTest`)
 
@@ -128,7 +128,7 @@ Cada mock (`LoginViewMock`, `CartViewMock`, etc.) estende `AbstractViewMock<S ex
 ## Dependências
 
 - `persistence.impl` — repositórios SQL reais
-- `br.com.wdc.shopping.presentation` — presenters e serviços reais
+- `br.com.wdc.shopping.presentation` — presenters e chamadas reais
 - `br.com.wdc.shopping.scripts` — `DBCreate` / `DBReset` para setup do banco
 - `persistence.rest` — controllers REST (para testes REST)
 - `persistence.client` — client REST (OkHttp + Gson)

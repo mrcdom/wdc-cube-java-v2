@@ -9,6 +9,7 @@ import br.com.wdc.framework.cube.ScopeSlot;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.exception.PurchaseNotFoundException;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
+import br.com.wdc.shopping.presentation.presenter.restricted.receipt.calls.LoadReceiptCall;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptForm;
 
 public class ReceiptPresenter extends AbstractCubePresenter<ShoppingApplication> {
@@ -23,7 +24,6 @@ public class ReceiptPresenter extends AbstractCubePresenter<ShoppingApplication>
 
     // :: Internal Instance Fields
 
-    private final ReceiptService receiptService;
     private Long purchaseId;
     private ScopeSlot ownerSlot;
 
@@ -31,7 +31,6 @@ public class ReceiptPresenter extends AbstractCubePresenter<ShoppingApplication>
 
     public ReceiptPresenter(ShoppingApplication app) {
         super(app);
-        this.receiptService = new ReceiptService();
         this.state.onOpenProducts = action(1, () -> new HomeKeys(this.app).flip());
     }
 
@@ -77,7 +76,7 @@ public class ReceiptPresenter extends AbstractCubePresenter<ShoppingApplication>
     // :: Data Loaders
 
     private ReceiptForm loadReceipt(Long purchaseId) {
-        var receipt = receiptService.loadReceipt(purchaseId);
+        var receipt = new LoadReceiptCall().withPurchaseId(purchaseId).run();
         if (receipt == null) {
             throw new PurchaseNotFoundException();
         }

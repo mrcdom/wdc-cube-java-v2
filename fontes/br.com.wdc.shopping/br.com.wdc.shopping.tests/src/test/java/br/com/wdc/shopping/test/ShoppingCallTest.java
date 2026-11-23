@@ -16,25 +16,23 @@ import br.com.wdc.shopping.domain.product.Product;
 import br.com.wdc.shopping.domain.product.ProductCriteria;
 import br.com.wdc.shopping.domain.product.ProductRepository;
 import br.com.wdc.shopping.domain.purchase.Purchase;
-import br.com.wdc.shopping.domain.purchase.PurchaseCriteria;
-import br.com.wdc.shopping.domain.purchase.PurchaseCriteria.OrderBy;
 import br.com.wdc.shopping.domain.purchase.PurchaseRepository;
 import br.com.wdc.shopping.domain.purchaseitem.PurchaseItem;
 import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemCriteria;
 import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemRepository;
 import br.com.wdc.shopping.domain.user.User;
-import br.com.wdc.shopping.presentation.presenter.open.login.LoginService;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelService;
+import br.com.wdc.shopping.presentation.presenter.open.login.calls.LoginCall;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.calls.LoadPurchasesPageCall;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
-import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductService;
+import br.com.wdc.shopping.presentation.presenter.restricted.products.calls.LoadProductCall;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
-import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptService;
+import br.com.wdc.shopping.presentation.presenter.restricted.receipt.calls.LoadReceiptCall;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptForm;
 import br.com.wdc.shopping.scripts.sgbd.DBReset;
 import br.com.wdc.shopping.test.util.BaseBusinessTest;
 
 @SuppressWarnings("java:S5961") // integration test — many assertions validate end-to-end flow
-public class ShoppingServiceTest extends BaseBusinessTest {
+public class ShoppingCallTest extends BaseBusinessTest {
 
 
     /**
@@ -48,8 +46,6 @@ public class ShoppingServiceTest extends BaseBusinessTest {
      */
     @Test
     public void purchaseStatement_ordersByPurchaseDate_notByInsertionOrder() {
-        var service = new PurchasesPanelService();
-
         // Última a ser cadastrada (maior id), porém a mais antiga de todas.
         var atrasada = new Purchase()
                 .withUser(new User().withId(DBReset.ADMIN_ID))
@@ -61,7 +57,7 @@ public class ShoppingServiceTest extends BaseBusinessTest {
                 .withAmount(1));
         PurchaseRepository.BEAN.get().insert(atrasada);
 
-        var extrato = service.loadPurchasesOfUser(DBReset.ADMIN_ID);
+        var extrato = purchasesOf(DBReset.ADMIN_ID);
 
         Assert.assertEquals("a compra de 2009 é a de maior id", Long.valueOf(atrasada.id()),
                 Long.valueOf(extrato.stream().mapToLong(p -> p.id).max().orElse(-1)));
@@ -105,21 +101,21 @@ public class ShoppingServiceTest extends BaseBusinessTest {
     public void login_wrongPassword_isRejected() {
         // A senha não é campo de critério: quem a confere é o login, e é neste nível que o par
         // "aceita a correta / recusa a errada" precisa ser garantido.
-        var result = new LoginService().fetchSubject("admin", "senha-errada");
+        var result = new LoginCall().withUserName("admin").withPassword("senha-errada").run();
 
         Assert.assertNull("senha errada não pode autenticar", result);
     }
 
     @Test
     public void login_unknownUser_isRejected() {
-        var result = new LoginService().fetchSubject("ninguem", "admin");
+        var result = new LoginCall().withUserName("ninguem").withPassword("admin").run();
 
         Assert.assertNull("usuário inexistente não pode autenticar", result);
     }
 
     @Test
     public void test() {
-        var result = new LoginService().fetchSubject("admin", "admin");
+        var result = new LoginCall().withUserName("admin").withPassword("admin").run();
         var subject = result != null ? result.subject() : null;
         Assert.assertNotNull("Missing subject", subject);
 
@@ -146,7 +142,7 @@ public class ShoppingServiceTest extends BaseBusinessTest {
             Assert.assertTrue("Product price must be grater than or equal to 0.0", produto.price >= 0.0);
             Assert.assertTrue("Product description can not be empty", StringUtils.isNotBlank(produto.description));
 
-            final ProductInfo mesmoProduto = new ProductService().loadProductById(produto.id);
+            final ProductInfo mesmoProduto = new LoadProductCall().withProductId(produto.id).run();
             Assert.assertEquals(produto.id, mesmoProduto.id);
             Assert.assertEquals(produto.name, mesmoProduto.name);
             Assert.assertEquals(produto.image, mesmoProduto.image);
@@ -154,21 +150,19 @@ public class ShoppingServiceTest extends BaseBusinessTest {
             Assert.assertEquals(produto.description, mesmoProduto.description);
         }
 
-        var homeService = new PurchasesPanelService();
-
-        List<PurchaseInfo> compras = homeService.loadPurchases(new PurchaseCriteria()
-                .withOrderBy(OrderBy.OLDEST_FIRST));
+        // A mais recente primeiro
+        List<PurchaseInfo> compras = purchasesOf(userId);
 
         Assert.assertNotNull(compras);
         Assert.assertEquals(2, compras.size());
 
-        Assert.assertEquals(DBReset.ADMIN_FIRST_PURCHASE_ID, Long.valueOf(compras.get(0).id));
+        Assert.assertEquals(DBReset.ADMIN_SECOND_PURCHASE_ID, Long.valueOf(compras.get(0).id));
         Assert.assertNotNull(compras.get(0).items);
-        Assert.assertEquals(1, compras.get(0).items.size());
+        Assert.assertEquals(2, compras.get(0).items.size());
 
-        Assert.assertEquals(DBReset.ADMIN_SECOND_PURCHASE_ID, Long.valueOf(compras.get(1).id));
+        Assert.assertEquals(DBReset.ADMIN_FIRST_PURCHASE_ID, Long.valueOf(compras.get(1).id));
         Assert.assertNotNull(compras.get(1).items);
-        Assert.assertEquals(2, compras.get(1).items.size());
+        Assert.assertEquals(1, compras.get(1).items.size());
 
         Purchase purchase = new Purchase()
                 .withUser(new User().withId(userId));
@@ -193,7 +187,7 @@ public class ShoppingServiceTest extends BaseBusinessTest {
         final long idCompra = purchase.id();
         Assert.assertEquals(DBReset.ADMIN_SECOND_PURCHASE_ID + 1, idCompra);
 
-        compras = homeService.loadPurchasesOfUser(userId);
+        compras = purchasesOf(userId);
 
         Assert.assertNotNull(compras);
         Assert.assertEquals(3, compras.size());
@@ -203,7 +197,7 @@ public class ShoppingServiceTest extends BaseBusinessTest {
         Assert.assertEquals(2, ultimaCompra.items.size());
         Assert.assertEquals(Double.valueOf(65.0), Double.valueOf(ultimaCompra.total));
 
-        final ReceiptForm recibo = new ReceiptService().loadReceipt(idCompra);
+        final ReceiptForm recibo = new LoadReceiptCall().withPurchaseId(idCompra).run();
         Assert.assertNotNull(recibo);
         Assert.assertEquals(Double.valueOf(65), recibo.total);
         Assert.assertEquals(2, recibo.items.size());
@@ -217,6 +211,11 @@ public class ShoppingServiceTest extends BaseBusinessTest {
         Assert.assertEquals(pedido1.price(), Double.valueOf(recibo.items.get(1).value));
         Assert.assertEquals(pedido1.amount(), Integer.valueOf(recibo.items.get(1).quantity));
         Assert.assertEquals("Fita veda rosca", recibo.items.get(1).description);
+    }
+
+    /** Todas as compras do usuário, a mais recente primeiro: uma página que as comporta. */
+    private static List<PurchaseInfo> purchasesOf(Long userId) {
+        return new LoadPurchasesPageCall().withUserId(userId).withPage(0).withPageSize(100).run().items();
     }
 
 }

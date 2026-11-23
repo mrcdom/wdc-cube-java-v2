@@ -1,6 +1,5 @@
 package br.com.wdc.shopping.presentation.presenter.restricted.cart;
 
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -8,15 +7,9 @@ import java.util.List;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.function.ThrowingRunnable;
-import br.com.wdc.framework.domain.transaction.TransactionService;
-import br.com.wdc.shopping.domain.ShoppingTransactions;
 import br.com.wdc.shopping.domain.exception.InvalidCartItemException;
-import br.com.wdc.shopping.domain.product.Product;
-import br.com.wdc.shopping.domain.purchase.Purchase;
-import br.com.wdc.shopping.domain.purchase.PurchaseRepository;
-import br.com.wdc.shopping.domain.purchaseitem.PurchaseItem;
-import br.com.wdc.shopping.domain.user.User;
 import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.calls.PurchaseCall;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.structs.CartItem;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
 
@@ -108,7 +101,7 @@ public class CartManager {
     }
 
     public Long commit(Subject subject) throws InvalidCartItemException {
-        var purchaseId = this.doPurchase(subject.getId(), this.cart);
+        var purchaseId = new PurchaseCall().withUserId(subject.getId()).withItems(this.cart).run();
         this.clear();
 
         for (var listener : new ArrayList<>(this.changeListenerMap.values())) {
@@ -121,33 +114,6 @@ public class CartManager {
         return purchaseId;
     }
 
-    private Long doPurchase(Long userId, List<CartItem> request) {
-        var purchase = new Purchase()
-                .withUser(new User().withId(userId))
-                .withBuyDate(OffsetDateTime.now());
-
-        purchase.withItems(new ArrayList<>());
-        for (var srcItem : request) {
-            if (srcItem.quantity < 0) {
-                throw new InvalidCartItemException();
-            }
-
-            var purchaseItem = new PurchaseItem()
-                    .withProduct(new Product().withId(srcItem.id));
-            purchaseItem.withPrice(srcItem.price)
-                    .withAmount(srcItem.quantity);
-
-            purchase.items().add(purchaseItem);
-        }
-
-        tx().required(tx -> {
-            if (!purchaseRepository().insert(purchase)) {
-                throw new AssertionError("Record not inserted");
-            }
-        });
-
-        return purchase.id();
-    }
 
     public int getItemCount() {
         var count = 0;
@@ -163,13 +129,5 @@ public class CartManager {
 
     public void clear() {
         this.cart.clear();
-    }
-
-    private static TransactionService tx() {
-        return ShoppingTransactions.BEAN.get();
-    }
-
-    private static PurchaseRepository purchaseRepository() {
-        return PurchaseRepository.BEAN.get();
     }
 }

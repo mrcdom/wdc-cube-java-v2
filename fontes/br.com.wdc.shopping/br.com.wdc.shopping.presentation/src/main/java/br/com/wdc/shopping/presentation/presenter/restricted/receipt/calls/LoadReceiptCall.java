@@ -1,49 +1,55 @@
-package br.com.wdc.shopping.presentation.presenter.restricted.receipt;
+package br.com.wdc.shopping.presentation.presenter.restricted.receipt.calls;
 
 import java.util.ArrayList;
 import java.util.Collections;
 
 import br.com.wdc.framework.domain.projection.ProjectionValues;
 import br.com.wdc.shopping.domain.purchase.Purchase;
-import br.com.wdc.shopping.domain.purchase.PurchaseRepository;
+import br.com.wdc.shopping.presentation.ShoppingCall;
 import br.com.wdc.shopping.presentation.exception.WrongParametersException;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptForm;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptItem;
 
-public class ReceiptService {
+/** The receipt of a purchase: its items, in the order they were bought, and the total; {@code null} for none. */
+public class LoadReceiptCall extends ShoppingCall<ReceiptForm> {
 
-    public ReceiptForm loadReceipt(Long purchaseId) {
+    private Long purchaseId;
+
+    public LoadReceiptCall withPurchaseId(Long purchaseId) {
+        this.purchaseId = purchaseId;
+        return this;
+    }
+
+    @Override
+    public ReceiptForm run() {
         if (purchaseId == null) {
             throw new WrongParametersException();
         }
 
-        var receipt = mapPurchaseToReceiptForm(purchaseRepository().fetchById(purchaseId, projection()));
+        var receipt = receiptOf(purchaseRepository().fetchById(purchaseId, projection()));
         if (receipt != null) {
             receipt.items.sort((a, b) -> Long.compare(a.id, b.id));
         }
         return receipt;
     }
 
-    private Purchase projection() {
-        var pv = ProjectionValues.INSTANCE;
+    // :: Internal
 
-        var prj = new Purchase()
+    private static Purchase projection() {
+        var pv = ProjectionValues.INSTANCE;
+        return new Purchase()
                 .withBuyDate(pv.offsetDateTime)
                 .withItems(Collections.singletonList(ReceiptItem.projection()));
-
-        return prj;
     }
 
-    public ReceiptForm mapPurchaseToReceiptForm(Purchase src) {
+    private static ReceiptForm receiptOf(Purchase src) {
         if (src == null) {
             return null;
         }
 
         var tgt = new ReceiptForm();
-
         tgt.date = src.buyDate() == null ? null : src.buyDate().toInstant().toEpochMilli();
         tgt.items = new ArrayList<>();
-
         var total = 0.0;
         if (src.items() != null) {
             for (var purchaseItem : src.items()) {
@@ -51,16 +57,11 @@ public class ReceiptService {
                     var amount = purchaseItem.amount() != null ? purchaseItem.amount() : 0;
                     total += purchaseItem.price() * amount;
                 }
-
                 tgt.items.add(ReceiptItem.create(purchaseItem));
             }
         }
         tgt.total = total;
-
         return tgt;
     }
 
-    private static PurchaseRepository purchaseRepository() {
-        return PurchaseRepository.BEAN.get();
-    }
 }

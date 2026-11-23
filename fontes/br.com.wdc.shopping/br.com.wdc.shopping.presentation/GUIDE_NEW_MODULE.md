@@ -8,7 +8,7 @@ Criar um novo módulo envolve alterações em **3 camadas**:
 
 | Camada | Módulo Maven | O que criar |
 |--------|-------------|-------------|
-| **Presentation** | `br.com.wdc.shopping.presentation` | Presenter, Scope, Service, DTOs |
+| **Presentation** | `br.com.wdc.shopping.presentation` | Presenter, Scope, Calls, DTOs |
 | **Skeleton** (contrato remoto) | `br.com.wdc.shopping.presentation` | `CLASS_ID` no Scope + código de evento em cada ação (o `remote.host` não registra nada) |
 | **React Client** (frontend) | `remote.shell.react` | Componente React + registro |
 
@@ -23,7 +23,8 @@ presenter/restricted/wishlist/
 ├── WishlistPresenter.java
 ├── WishlistScope.java
 ├── WishlistKeys.java
-├── WishlistService.java          (se precisar acessar dados)
+├── calls/
+│   └── LoadWishlistCall.java     (se precisar acessar dados)
 └── structs/
     └── WishlistItem.java         (DTOs, se houver)
 ```
@@ -109,7 +110,7 @@ public class WishlistPresenter extends AbstractCubePresenter<ShoppingApplication
 
     private void loadItems() {
         // A lista nova pede o redesenho (a view será marcada dirty e enviada ao frontend)
-        this.state.items.set(WishlistService.BEAN.loadItems(this.app.getSubject().getId()));
+        this.state.items.set(new LoadWishlistCall().withUserId(this.app.getSubject().getId()).run());
     }
 }
 ```
@@ -121,22 +122,33 @@ public class WishlistPresenter extends AbstractCubePresenter<ShoppingApplication
 - Ações são campos do state (`Action`, `ActionOf<T>`, `ActionOf2<T, U>`) ligados no construtor com `action(...)`/`actionOf(...)`/`actionOf2(...)`. A guarda manda a falha não tratada para `app.alertUnexpectedError()` e, ao fim, republica o endereço — o corpo não tem `try/catch` genérico, só trata as falhas esperadas
 - Erros de validação usam `errorCode` + `errorMessage` no state
 
-### 1.4 Criar o Service (opcional)
+### 1.4 Criar as chamadas (opcional)
+
+Cada operação sobre os repositórios é uma `XxxCall` em `calls/`: a requisição se acumula em setters fluentes `withXxx(...)` e `run()` a responde. A base `ShoppingCall<R>` traz os acessos protegidos aos repositórios (adicione lá o de um repositório novo, como `wishlistRepository()`).
 
 ```java
-package br.com.wdc.shopping.presentation.presenter.restricted.wishlist;
+package br.com.wdc.shopping.presentation.presenter.restricted.wishlist.calls;
 
-public enum WishlistService {
-    BEAN;
+/** Os itens da lista de desejos de um usuário. */
+public class LoadWishlistCall extends ShoppingCall<List<WishlistItem>> {
 
-    public List<WishlistItem> loadItems(Long userId) {
-        // Acessar repositório via BEAN estático
-        return WishlistRepository.BEAN.get()
-            .fetch(new WishlistCriteria().withUserId(userId))
-            .stream().map(WishlistItem::create).toList();
+    private Long userId;
+
+    public LoadWishlistCall withUserId(Long userId) {
+        this.userId = userId;
+        return this;
+    }
+
+    @Override
+    public List<WishlistItem> run() {
+        return wishlistRepository()
+                .fetch(new WishlistCriteria().withUserId(userId))
+                .stream().map(WishlistItem::create).toList();
     }
 }
 ```
+
+A resposta é um tipo que já existe; ou um struct em `structs/`, quando outras chamadas ou o escopo também o usam; ou uma classe interna da chamada, quando só leva a resposta de volta a quem chamou.
 
 ---
 
@@ -334,7 +346,7 @@ E no frontend, adicionar um botão ou link que emita o evento correspondente.
 - [ ] **Presentation**
   - [ ] Criar `WishlistScope extends Scope` (campos `Prop`, criados com `prop(...)`)
   - [ ] Criar `WishlistPresenter extends AbstractCubePresenter<ShoppingApplication>`
-  - [ ] Criar `WishlistService` (enum BEAN) se precisar de dados
+  - [ ] Criar as chamadas em `calls/` (`XxxCall extends ShoppingCall<R>`) se precisar de dados
   - [ ] Criar DTOs em `structs/` com `projection()` + `create()`
   - [ ] Criar `WishlistKeys extends HomeKeys` (prefixo único, `PLACE = HomeKeys.PLACE.child(...)`)
   - [ ] Registrar `WishlistKeys.PLACE` em `ShoppingApplication.PLACES`

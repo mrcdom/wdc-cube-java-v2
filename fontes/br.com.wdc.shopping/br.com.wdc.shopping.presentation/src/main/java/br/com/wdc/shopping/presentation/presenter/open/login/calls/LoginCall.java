@@ -1,27 +1,49 @@
-package br.com.wdc.shopping.presentation.presenter.open.login;
+package br.com.wdc.shopping.presentation.presenter.open.login.calls;
 
 import br.com.wdc.framework.domain.projection.ProjectionValues;
 import br.com.wdc.framework.domain.security.AuthenticationService;
 import br.com.wdc.framework.domain.security.PasswordUtil;
 import br.com.wdc.shopping.domain.user.UserCriteria;
-import br.com.wdc.shopping.domain.user.UserRepository;
+import br.com.wdc.shopping.presentation.ShoppingCall;
 import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
 
-public class LoginService {
+/** Autentica o usuário; {@code null} se as credenciais forem inválidas. */
+public class LoginCall extends ShoppingCall<LoginCall.Result> {
 
     /**
-     * Autentica o usuário e retorna o resultado completo.
-     * Retorna {@code null} se as credenciais forem inválidas.
+     * Resultado de uma autenticação bem-sucedida.
+     *
+     * @param subject         dados do usuário autenticado
+     * @param persistentToken token de auto-login (remember me); {@code null} em clientes REST
      */
-    public LoginResult fetchSubject(String userName, String password) {
-        var authService = AuthenticationService.BEAN.get();
-        if (authService != null) {
-            return authenticateViaAuthService(authService, userName, password);
-        }
-        return authenticateViaRepository(userName, password);
+    public record Result(Subject subject, String persistentToken) {
     }
 
-    private LoginResult authenticateViaAuthService(AuthenticationService authService, String userName, String password) {
+    private String userName;
+    private String password;
+
+    public LoginCall withUserName(String userName) {
+        this.userName = userName;
+        return this;
+    }
+
+    public LoginCall withPassword(String password) {
+        this.password = password;
+        return this;
+    }
+
+    @Override
+    public Result run() {
+        var authService = AuthenticationService.BEAN.get();
+        if (authService != null) {
+            return authenticateViaAuthService(authService);
+        }
+        return authenticateViaRepository();
+    }
+
+    // :: Internal
+
+    private Result authenticateViaAuthService(AuthenticationService authService) {
         // 1. Hash da senha (MD5 → base36, mesmo formato do banco)
         var passwordHash = PasswordUtil.hashPassword(password);
 
@@ -52,7 +74,7 @@ public class LoginService {
                 .withProjection(Subject.projection()), 0, 1);
         var subject = users.isEmpty() ? null : Subject.create(users.get(0));
 
-        return new LoginResult(subject, persistentToken);
+        return new Result(subject, persistentToken);
     }
 
     /**
@@ -65,7 +87,7 @@ public class LoginService {
      * resumo e o confere — só que sem o desafio, que aqui não existe.
      * </p>
      */
-    private LoginResult authenticateViaRepository(String userName, String password) {
+    private Result authenticateViaRepository() {
         var projection = Subject.projection()
                 .withPassword(ProjectionValues.INSTANCE.str);
 
@@ -84,10 +106,7 @@ public class LoginService {
             return null;
         }
 
-        return new LoginResult(Subject.create(user), null);
+        return new Result(Subject.create(user), null);
     }
 
-    private static UserRepository userRepository() {
-        return UserRepository.BEAN.get();
-    }
 }

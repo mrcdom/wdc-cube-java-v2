@@ -11,6 +11,7 @@ import br.com.wdc.framework.domain.exception.OfflineException;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartKeys;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
+import br.com.wdc.shopping.presentation.presenter.restricted.products.calls.LoadProductCall;
 
 public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
@@ -24,14 +25,12 @@ public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication>
 
     // :: Internal Instance Fields
 
-    private final ProductService productService;
     private ScopeSlot ownerSlot;
 
     // Constructor
 
     public ProductPresenter(ShoppingApplication app) {
         super(app);
-        this.productService = new ProductService();
         this.state.onOpenProducts = action(1, () -> new HomeKeys(this.app).flip());
         this.state.onAddToCart = actionOf(2, FormParam.asInteger("p.quantity"), this::addToCart);
     }
@@ -51,7 +50,7 @@ public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication>
         }
 
         if (this.state.product.get() == null || !Objects.equals(newProductId, oldProductId)) {
-            var product = productService.loadProductById(newProductId);
+            var product = new LoadProductCall().withProductId(newProductId).run();
             this.state.product.set(product);
         }
 

@@ -14,9 +14,9 @@ import br.com.wdc.shopping.presentation.exception.ProductNotFoundException;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginKeys;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartKeys;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartManager;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelService;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.calls.LoadPurchasesPageCall;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductKeys;
-import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductService;
+import br.com.wdc.shopping.presentation.presenter.restricted.products.calls.LoadProductsCall;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptKeys;
 
 public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
@@ -37,8 +37,6 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
     private CartManager cart;
     private final HomeScope.ProductsPanelScope productsPanel = new HomeScope.ProductsPanelScope();
     private final HomeScope.PurchasesPanelScope purchasesPanel = new HomeScope.PurchasesPanelScope();
-    private final ProductService productService;
-    private final PurchasesPanelService purchasesPanelService;
     private ThrowingRunnable onCartCommitListenerRemover;
     private ThrowingRunnable onCartChangeListenerRemover;
 
@@ -49,8 +47,6 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
         this.contentSlot = this::setContent;
         this.onCartCommitListenerRemover = ThrowingRunnable.noop();
         this.onCartChangeListenerRemover = ThrowingRunnable.noop();
-        this.productService = new ProductService();
-        this.purchasesPanelService = new PurchasesPanelService();
 
         this.state.onExit = action(1, this::exit);
         this.state.onOpenCart = action(2, () -> new CartKeys(this.app).flip());
@@ -256,13 +252,15 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
             var subject = this.app.getSubject();
             if (subject != null) {
                 var panel = this.purchasesPanel;
-                var result = purchasesPanelService.fetchPageOfUser(subject.getId(), panel.page.get(),
-                        panel.pageSize.get());
+                var call = new LoadPurchasesPageCall()
+                        .withUserId(subject.getId())
+                        .withPage(panel.page.get())
+                        .withPageSize(panel.pageSize.get());
+                var result = call.run();
 
                 // If requested page exceeds total, clamp to last page and refetch
                 if (result.items().isEmpty() && result.totalPages() > 0) {
-                    result = purchasesPanelService.fetchPageOfUser(subject.getId(), result.totalPages() - 1,
-                            panel.pageSize.get());
+                    result = call.withPage(result.totalPages() - 1).run();
                 }
 
                 panel.page.set(result.page());
@@ -278,7 +276,7 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     private void loadProducts() {
         try {
-            this.productsPanel.products.set(productService.loadProductsWithoutDescription(1000));
+            this.productsPanel.products.set(new LoadProductsCall().withLimit(1000).run());
         } catch (Exception caught) {
             LOG.error("Failed to load products", caught);
         }
