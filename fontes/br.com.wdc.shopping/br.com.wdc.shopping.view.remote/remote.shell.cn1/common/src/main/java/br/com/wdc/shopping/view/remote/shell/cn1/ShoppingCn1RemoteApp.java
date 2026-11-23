@@ -21,6 +21,7 @@ import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
 import br.com.wdc.shopping.view.remote.shell.cn1.views.RootCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.views.SplashCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.views.cart.CartCn1View;
+import br.com.wdc.shopping.view.remote.shell.cn1.views.cart.CartItemCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.views.home.HomeCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.views.home.ProductsPanelCn1View;
 import br.com.wdc.shopping.view.remote.shell.cn1.views.home.PurchasesPanelCn1View;
@@ -159,6 +160,8 @@ public class ShoppingCn1RemoteApp extends Lifecycle {
                 return new ProductCn1View(vsid, session, this);
             case CartCn1View.CLASS_ID:
                 return new CartCn1View(vsid, session, this);
+            case CartItemCn1View.CLASS_ID:
+                return new CartItemCn1View(vsid, session, this);
             case ReceiptCn1View.CLASS_ID:
                 return new ReceiptCn1View(vsid, session, this);
             default:

@@ -1,7 +1,7 @@
 package br.com.wdc.shopping.view.remote.shell.cn1.views.cart;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import com.codename1.ui.Container;
@@ -11,7 +11,8 @@ import com.codename1.ui.layouts.BorderLayout;
 import com.codename1.ui.layouts.BoxLayout;
 
 import br.com.wdc.shopping.view.remote.shell.cn1.ShoppingCn1RemoteApp;
-import br.com.wdc.shopping.view.remote.shell.cn1.bridge.AbstractItemCn1View;
+import br.com.wdc.shopping.view.remote.shell.cn1.bridge.AbstractCn1View;
+import br.com.wdc.shopping.view.remote.shell.cn1.bridge.BridgeSession;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Cn1Dom;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Guard;
 import br.com.wdc.shopping.view.remote.shell.cn1.util.Json;
@@ -22,7 +23,9 @@ import br.com.wdc.shopping.view.remote.shell.cn1.widgets.QtyStepper;
 import br.com.wdc.shopping.view.remote.shell.cn1.widgets.Slot;
 
 /**
- * Linha do carrinho: nome | stepper (− qtd +) | subtotal | remover (×).
+ * Linha do carrinho (classId {@value #CLASS_ID}): nome | stepper (− qtd +) | subtotal | remover (×). É uma view
+ * própria, cujas ações são as da linha — o item é a linha, nenhum id de produto volta ao servidor; o carrinho só
+ * arruma os elementos das linhas na ordem dele.
  *
  * <p>
  * As peças são construídas <b>uma vez</b> e o {@code doUpdate()} as <b>arranja</b> conforme o modo,
@@ -32,7 +35,11 @@ import br.com.wdc.shopping.view.remote.shell.cn1.widgets.Slot;
  * nome | subtotal em cima, stepper | × embaixo.
  * </p>
  */
-public class CartItemCn1View extends AbstractItemCn1View<Object> {
+public class CartItemCn1View extends AbstractCn1View {
+
+    public static final String CLASS_ID = "c8a1f0e2b7d4";
+    private static final int EVT_REMOVE = 1;
+    private static final int EVT_MODIFY = 2;
 
     private static final CartSel sel = CartSel.INSTANCE;
 
@@ -40,9 +47,6 @@ public class CartItemCn1View extends AbstractItemCn1View<Object> {
     private static final float STEP_BTN_MM = 7f;
     private static final float REMOVE_BTN_MM = 7f;
 
-    private final ShoppingCn1RemoteApp app;
-    private final BiConsumer<Long, Integer> onModify;
-    private final Consumer<Long> onRemove;
 
     private Slot shell;
     private Label nameComp;
@@ -52,13 +56,10 @@ public class CartItemCn1View extends AbstractItemCn1View<Object> {
     private Consumer<String> name;
     private Consumer<String> subtotal;
     private Boolean builtExpanded;
-    private long currentId = -1;
     private int currentQty = 1;
 
-    public CartItemCn1View(ShoppingCn1RemoteApp app, BiConsumer<Long, Integer> onModify, Consumer<Long> onRemove) {
-        this.app = app;
-        this.onModify = onModify;
-        this.onRemove = onRemove;
+    public CartItemCn1View(String vsid, BridgeSession session, ShoppingCn1RemoteApp app) {
+        super(vsid, session, app);
     }
 
     @Override
@@ -70,15 +71,15 @@ public class CartItemCn1View extends AbstractItemCn1View<Object> {
         name = Guard.text(nameComp);
 
         stepper = new QtyStepper(STEP_BTN_MM,
-                () -> onModify.accept(currentId, currentQty - 1),
-                () -> onModify.accept(currentId, currentQty + 1));
+                () -> modifyQuantity(currentQty - 1),
+                () -> modifyQuantity(currentQty + 1));
 
         subtotalComp = new Label("");
         subtotalComp.setUIID(sel.CART_ITEM_SUBTOTAL);
         subtotal = Guard.text(subtotalComp);
 
         removeComp = new IconButton(sel.CART_REMOVE_BTN, FontImage.MATERIAL_CLOSE, 3f, Px.mm(REMOVE_BTN_MM),
-                () -> onRemove.accept(currentId));
+                () -> submit(EVT_REMOVE));
 
         shell = new Slot();
         return shell;
@@ -123,13 +124,18 @@ public class CartItemCn1View extends AbstractItemCn1View<Object> {
     }
 
     @Override
-    protected void doUpdate() {
+    public void doUpdate() {
         layout();
-        Map<String, Object> m = Json.asMap(data);
-        currentId = Json.longOf(m, "id");
+        Map<String, Object> m = state();
         currentQty = Json.intOf(m, "quantity");
         name.accept(Json.str(m, "name"));
         stepper.setValue(currentQty);
         subtotal.accept(Money.format(Json.doubleOf(m, "price") * currentQty));
+    }
+
+    private void modifyQuantity(int quantity) {
+        Map<String, Object> form = new HashMap<>();
+        form.put("p.quantity", quantity);
+        submit(EVT_MODIFY, form);
     }
 }
