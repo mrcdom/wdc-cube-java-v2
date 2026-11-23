@@ -39,7 +39,7 @@ public class ProductsPanelView extends AbstractRemoteView {
 
     private ProductsPanelViewState adaptState() {
         ViewScope scope = state();
-        adaptedState.products = getProducts(scope);
+        adaptedState.products.set(getProducts(scope));
         return adaptedState;
     }
 

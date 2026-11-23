@@ -384,7 +384,7 @@ div(showError ? Css.ERROR_VISIBLE : Css.HIDDEN).children(
   span(Css.ERROR_TEXT).text(errorMessage != null ? errorMessage : ""))
 ```
 
-O Presenter define `errorCode` + `errorMessage` no ViewState e chama `this.update()`. O protocolo envia o delta e a view re-renderiza automaticamente.
+O Presenter define `errorCode` + `errorMessage` no ViewState (`state.errorCode.set(3)`, que já pede o redesenho). O protocolo envia o delta e a view re-renderiza automaticamente.
 
 ---
 

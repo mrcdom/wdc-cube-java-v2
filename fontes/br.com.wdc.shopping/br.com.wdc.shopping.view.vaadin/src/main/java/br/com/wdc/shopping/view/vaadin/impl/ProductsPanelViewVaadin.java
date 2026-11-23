@@ -43,7 +43,7 @@ public class ProductsPanelViewVaadin extends AbstractViewVaadin<ProductsPanelPre
             VaadinDom.render((VerticalLayout) this.element, this::initialRender);
             this.notRendered = false;
         }
-        this.contentSlot.accept(this.state.products, this.itemViewList);
+        this.contentSlot.accept(this.state.products.get(), this.itemViewList);
     }
 
     private void initialRender(VaadinDom dom, VerticalLayout pane0) {

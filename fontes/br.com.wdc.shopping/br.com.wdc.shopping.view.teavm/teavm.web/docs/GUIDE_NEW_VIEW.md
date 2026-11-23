@@ -85,17 +85,18 @@ public class WishlistViewVDom extends AbstractVDomView<WishlistPresenter> {
         // Consumir erro one-shot
         final boolean showError;
         final String errorMessage;
-        if (this.state.errorCode != 0) {
+        if (this.state.errorCode.get() != 0) {
             showError = true;
-            errorMessage = this.state.errorMessage;
-            this.state.errorCode = 0;
-            this.state.errorMessage = null;
+            errorMessage = this.state.errorMessage.get();
+            // Consumido durante o desenho: um redesenho agora levaria a mensagem embora
+            this.state.errorCode.setSilently(0);
+            this.state.errorMessage.setSilently(null);
         } else {
             showError = false;
             errorMessage = "";
         }
 
-        var items = this.state.items;
+        var items = this.state.items.get();
         var empty = items == null || items.isEmpty();
 
         // @formatter:off
@@ -207,11 +208,11 @@ O ViewState usa `errorCode` + `errorMessage` como campos de exibição única. A
 ```java
 final boolean showError;
 final String errorMessage;
-if (this.state.errorCode != 0) {
+if (this.state.errorCode.get() != 0) {
     showError = true;
-    errorMessage = this.state.errorMessage;
-    this.state.errorCode = 0;        // ← limpa
-    this.state.errorMessage = null;   // ← limpa
+    errorMessage = this.state.errorMessage.get();
+    this.state.errorCode.setSilently(0);        // ← limpa, sem pedir outro redesenho
+    this.state.errorMessage.setSilently(null);   // ← limpa, sem pedir outro redesenho
 } else {
     showError = false;
     errorMessage = "";
@@ -238,9 +239,9 @@ Diferente do remote shell (que lê JSON via `ViewScope`), aqui você acessa os c
 
 ```java
 // Campos do ViewState são públicos
-var items = this.state.items;          // List<CartItem>
-var product = this.state.product;      // ProductInfo
-var errorMsg = this.state.errorMessage; // String
+var items = this.state.items.get();          // List<CartItem>
+var product = this.state.product.get();      // ProductInfo
+var errorMsg = this.state.errorMessage.get(); // String
 ```
 
 Os DTOs da camada presentation (`CartItem`, `ProductInfo`, etc.) têm campos públicos:

@@ -26,9 +26,9 @@ class RootViewSwtRemote extends RootViewSwt {
 		var state = new RootViewState();
 		var contentId = s.getString("contentViewId");
 		if (contentId != null) {
-			state.contentView = this.ctx.viewLookup(contentId);
+			state.contentView.set(this.ctx.viewLookup(contentId));
 		}
-		state.errorMessage = s.getString("errorMessage");
+		state.errorMessage.set(s.getString("errorMessage"));
 		return state;
 	}
 }

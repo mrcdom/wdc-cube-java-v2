@@ -32,19 +32,19 @@ public class HomeViewMock extends AbstractViewMock<HomePresenter> {
     }
 
     public ProductsPanelViewState getProductsPanelState() {
-        return ProductsPanelViewMock.cast(this.state.productsPanelView).state;
+        return ProductsPanelViewMock.cast(this.state.productsPanelView.get()).state;
     }
 
     public PurchasesPanelViewState getPurchasesPanelState() {
-        return PurchasesPanelViewMock.cast(this.state.purchasesPanelView).state;
+        return PurchasesPanelViewMock.cast(this.state.purchasesPanelView.get()).state;
     }
 
     public void render() {
-        System.out.println("Seja bem vindo, " + this.state.nickName + "!");
+        System.out.println("Seja bem vindo, " + this.state.nickName.get() + "!");
 
         System.out.println();
 
-        System.out.println("Carrinho[" + this.state.cartItemCount + "]");
+        System.out.println("Carrinho[" + this.state.cartItemCount.get() + "]");
         System.out.println();
 
         this.printCompras();
@@ -55,7 +55,7 @@ public class HomeViewMock extends AbstractViewMock<HomePresenter> {
 
     public void printCompras() {
         var purchasesState = this.getPurchasesPanelState();
-        for (final PurchaseInfo compra : purchasesState.purchases) {
+        for (final PurchaseInfo compra : purchasesState.purchases.get()) {
             System.out.println("COMPRA #" + compra.id);
             System.out.println("Data da compra: " + new Date(compra.date));
             System.out.println("Itens adquiridos: " + compra.items);
@@ -67,7 +67,7 @@ public class HomeViewMock extends AbstractViewMock<HomePresenter> {
 
     public void printProdutos() {
         var productsState = this.getProductsPanelState();
-        for (final ProductInfo produto : productsState.products) {
+        for (final ProductInfo produto : productsState.products.get()) {
             System.out.print("PRODUTO #" + produto.id);
             System.out.print("{nome: ");
             System.out.print(produto.name);

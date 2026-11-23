@@ -11,6 +11,7 @@ import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.CubeViewSlot;
+import br.com.wdc.framework.cube.Prop;
 import br.com.wdc.framework.cube.ViewState;
 import br.com.wdc.framework.domain.security.AuthenticationService;
 import br.com.wdc.framework.domain.security.SecurityContext;
@@ -30,14 +31,14 @@ public class RootPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     // :: Public Instance Fields
 
-    public static class RootViewState implements ViewState {
+    public static class RootViewState extends ViewState {
 
-        public CubeView contentView;
-        public String errorMessage;
+        public final Prop<CubeView> contentView = prop();
+        public final Prop<String> errorMessage = prop();
 
     }
 
-    public final RootViewState state = new RootViewState();
+    public final RootViewState state = bind(new RootViewState());
 
     // :: Internal Instance Fields
 
@@ -54,7 +55,7 @@ public class RootPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     @Override
     public void release() {
-        this.state.contentView = null;
+        this.state.contentView.set(null);
         super.release();
     }
 
@@ -138,25 +139,23 @@ public class RootPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     public void alertUnexpectedError(Log logger, String message, Throwable caught) {
         if (StringUtils.isBlank(caught.getMessage())) {
-            this.state.errorMessage = message;
+            this.state.errorMessage.set(message);
         } else {
-            this.state.errorMessage = message + ": " + caught.getMessage();
+            this.state.errorMessage.set(message + ": " + caught.getMessage());
         }
+        // The same message again is still a new alert: the prop alone would not redraw
         this.update();
         if (logger != null) {
-            logger.error(this.state.errorMessage, caught);
+            logger.error(this.state.errorMessage.get(), caught);
         } else {
-            LOG.error(this.state.errorMessage, caught);
+            LOG.error(this.state.errorMessage.get(), caught);
         }
     }
 
     // :: Slots
 
     private void setContentView(CubeView view) {
-        if (this.state.contentView != view) {
-            this.state.contentView = view;
-            this.update();
-        }
+        this.state.contentView.set(view);
     }
 
     // :: Controle remoto

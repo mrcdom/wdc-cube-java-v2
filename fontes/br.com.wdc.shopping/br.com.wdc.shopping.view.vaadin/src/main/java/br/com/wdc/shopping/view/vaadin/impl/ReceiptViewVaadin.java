@@ -48,18 +48,19 @@ public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptPresenter> {
             this.notRendered = false;
         }
 
-        if (this.state.notifySuccess) {
+        if (this.state.notifySuccess.get()) {
             Notification.show("COMPRA EFETUADA COM SUCESSO!", 5000, Notification.Position.TOP_CENTER)
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-            this.state.notifySuccess = false;
+            // Consumed while drawing: a one-shot notice needs no redraw
+            this.state.notifySuccess.setSilently(false);
         }
 
-        if (this.totalOldValue != this.state.receipt.total) {
-            this.totalElm.setText(NumberFormat.getCurrencyInstance().format(this.state.receipt.total));
-            this.totalOldValue = this.state.receipt.total;
+        if (this.totalOldValue != this.state.receipt.get().total) {
+            this.totalElm.setText(NumberFormat.getCurrencyInstance().format(this.state.receipt.get().total));
+            this.totalOldValue = this.state.receipt.get().total;
         }
 
-        this.grid.setItems(this.state.receipt.items);
+        this.grid.setItems(this.state.receipt.get().items);
     }
 
     private void initialRender(VaadinDom dom, VerticalLayout pane0) {
@@ -104,11 +105,11 @@ public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptPresenter> {
 
                 dom.span(label -> {
                     this.totalElm = label;
-                    this.totalElm.setText(NumberFormat.getCurrencyInstance().format(this.state.receipt.total));
+                    this.totalElm.setText(NumberFormat.getCurrencyInstance().format(this.state.receipt.get().total));
                     this.totalElm.getStyle().set("font-size", "18px")
                             .set("font-weight", "bold")
                             .set("color", "var(--lumo-primary-color)");
-                    this.totalOldValue = this.state.receipt.total;
+                    this.totalOldValue = this.state.receipt.get().total;
                 });
             });
         });

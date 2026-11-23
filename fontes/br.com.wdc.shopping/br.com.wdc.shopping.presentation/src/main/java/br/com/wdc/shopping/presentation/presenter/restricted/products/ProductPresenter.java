@@ -13,6 +13,7 @@ import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.CubeViewSlot;
+import br.com.wdc.framework.cube.Prop;
 import br.com.wdc.framework.cube.ViewState;
 import br.com.wdc.framework.domain.exception.OfflineException;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
@@ -32,18 +33,18 @@ public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication>
 
     // :: Public Instance Fields
 
-    public static class ProductViewState implements ViewState {
+    public static class ProductViewState extends ViewState {
 
-        public ProductInfo product;
-        public int errorCode;
-        public String errorMessage;
+        public final Prop<ProductInfo> product = prop();
+        public final Prop<Integer> errorCode = prop(0);
+        public final Prop<String> errorMessage = prop();
 
         public ActionOf<Integer> onAddToCart = ActionOf.noop();
         public Action onOpenProducts = Action.NOOP;
 
     }
 
-    public final ProductViewState state = new ProductViewState();
+    public final ProductViewState state = bind(new ProductViewState());
 
     // :: Internal Instance Fields
 
@@ -64,7 +65,7 @@ public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication>
     @Override
     public boolean applyParameters(CubeIntent intent, boolean initialization, boolean deepest) {
         var keys = new ProductKeys(this.app, intent);
-        var oldProductId = this.state.product != null ? this.state.product.id : null;
+        var oldProductId = this.state.product.get() != null ? this.state.product.get().id : null;
 
         var newProductId = keys.productId() != null ? keys.productId() : oldProductId;
         if (newProductId == null) {
@@ -73,19 +74,18 @@ public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication>
             return false;
         }
 
-        if (this.state.product == null || !Objects.equals(newProductId, oldProductId)) {
+        if (this.state.product.get() == null || !Objects.equals(newProductId, oldProductId)) {
             var product = productService.loadProductById(newProductId);
-            this.state.product = product;
-            this.update();
+            this.state.product.set(product);
         }
 
         // Read on every call: a reused presenter goes where its parent puts it now, not where it was first put
         this.ownerSlot = keys.parentSlot();
         if (initialization) {
 
-            this.state.errorCode = 0;
-            this.state.errorMessage = null;
-            if (this.state.product == null) {
+            this.state.errorCode.set(0);
+            this.state.errorMessage.set(null);
+            if (this.state.product.get() == null) {
                 throw new AssertionError("Missing Product");
             }
 
@@ -100,7 +100,7 @@ public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication>
 
     @Override
     public void publishParameters(CubeIntent intent) {
-        new ProductKeys(this.app, intent).withProductId(this.state.product != null ? this.state.product.id : null);
+        new ProductKeys(this.app, intent).withProductId(this.state.product.get() != null ? this.state.product.get().id : null);
     }
 
     // :: User Actions
@@ -108,44 +108,41 @@ public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication>
     private void addToCart(Integer quantity) {
         if (quantity == null) {
             this.errorInvalidQuantity();
-            LOG.warn("addToCart.errorInvalidQuantity: {}", this.state.errorMessage);
+            LOG.warn("addToCart.errorInvalidQuantity: {}", this.state.errorMessage.get());
             return;
         }
 
         if (quantity < 1) {
             this.alertCartItemWidthLessThanOneItem();
-            LOG.warn("addToCart.alertCartItemWidthLessThanOneItem: {}", this.state.errorMessage);
+            LOG.warn("addToCart.alertCartItemWidthLessThanOneItem: {}", this.state.errorMessage.get());
             return;
         }
 
         try {
-            app.getCart().addProduct(this.state.product, quantity);
+            app.getCart().addProduct(this.state.product.get(), quantity);
 
             new CartKeys(this.app).flip();
         } catch (OfflineException caught) {
             this.alertDatabaseNotAvailable();
-            LOG.error(this.state.errorMessage, caught);
+            LOG.error(this.state.errorMessage.get(), caught);
         }
     }
 
     // :: Messages
 
     private void alertDatabaseNotAvailable() {
-        this.state.errorCode = 1;
-        this.state.errorMessage = "Carrinho não acessível. Aguarde alguns instantes e tente novamente.";
-        this.update();
+        this.state.errorCode.set(1);
+        this.state.errorMessage.set("Carrinho não acessível. Aguarde alguns instantes e tente novamente.");
     }
 
     private void alertCartItemWidthLessThanOneItem() {
-        this.state.errorCode = 2;
-        this.state.errorMessage = "A quantidade de itens no carrinho deve ser maior ou igual a 1 (um).";
-        this.update();
+        this.state.errorCode.set(2);
+        this.state.errorMessage.set("A quantidade de itens no carrinho deve ser maior ou igual a 1 (um).");
     }
 
     private void errorInvalidQuantity() {
-        this.state.errorCode = 3;
-        this.state.errorMessage = "Codificação errada da quantidade.";
-        this.update();
+        this.state.errorCode.set(3);
+        this.state.errorMessage.set("Codificação errada da quantidade.");
     }
 
     // :: Controle remoto

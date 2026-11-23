@@ -94,9 +94,9 @@ public class CartSharedView extends SharedVDomView {
     @Override
     public VNode render() {
         var state = stateSupplier.get();
-        var errorMessage = state.errorMessage;
+        var errorMessage = state.errorMessage.get();
         var showError = errorMessage != null && !errorMessage.isEmpty();
-        var items = state.items;
+        var items = state.items.get();
         var empty = items == null || items.isEmpty();
         var totalCost = computeTotalCost(items);
         var totalText = "R$ " + String.format("%.2f", totalCost);

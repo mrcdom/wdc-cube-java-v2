@@ -50,9 +50,9 @@ class CartViewSwtRemote extends CartViewSwt {
 			return null;
 		}
 		var state = new CartViewState();
-		state.errorMessage = s.getString("errorMessage");
+		state.errorMessage.set(s.getString("errorMessage"));
 		var code = s.getLong("errorCode");
-		state.errorCode = code != null ? code.intValue() : 0;
+		state.errorCode.set(code != null ? code.intValue() : 0);
 		var rawItems = s.getList("items");
 		if (!rawItems.isEmpty()) {
 			var items = new ArrayList<CartItem>(rawItems.size());
@@ -65,9 +65,9 @@ class CartViewSwtRemote extends CartViewSwt {
 				item.quantity = CoerceUtils.asInteger(raw.get("quantity"), 0);
 				items.add(item);
 			}
-			state.items = items;
+			state.items.set(items);
 		} else {
-			state.items = Collections.emptyList();
+			state.items.set(Collections.emptyList());
 		}
 		return state;
 	}

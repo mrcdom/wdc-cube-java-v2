@@ -11,6 +11,7 @@ import br.com.wdc.framework.cube.AbstractChildPresenter;
 import br.com.wdc.framework.cube.ActionOf;
 import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
+import br.com.wdc.framework.cube.Prop;
 import br.com.wdc.framework.cube.ViewState;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
@@ -28,12 +29,12 @@ public class PurchasesPanelPresenter extends AbstractChildPresenter<ShoppingAppl
 
     // :: View State
 
-    public static class PurchasesPanelViewState implements ViewState {
+    public static class PurchasesPanelViewState extends ViewState {
 
-        public List<PurchaseInfo> purchases = Collections.emptyList();
-        public int page;
-        public int pageSize = -1;
-        public int totalCount;
+        public final Prop<List<PurchaseInfo>> purchases = prop(Collections.emptyList());
+        public final Prop<Integer> page = prop(0);
+        public final Prop<Integer> pageSize = prop(-1);
+        public final Prop<Integer> totalCount = prop(0);
 
         public ActionOf<Integer> onPageChange = ActionOf.noop();
         public ActionOf<Integer> onItemSizeCapacityChanged = ActionOf.noop();
@@ -41,7 +42,7 @@ public class PurchasesPanelPresenter extends AbstractChildPresenter<ShoppingAppl
 
     }
 
-    public final PurchasesPanelViewState state = new PurchasesPanelViewState();
+    public final PurchasesPanelViewState state = bind(new PurchasesPanelViewState());
 
     // :: Public Instance Fields
 
@@ -79,7 +80,7 @@ public class PurchasesPanelPresenter extends AbstractChildPresenter<ShoppingAppl
     // :: User Actions
 
     public void changePage(int page) {
-        this.state.page = Math.max(0, page);
+        this.state.page.set(Math.max(0, page));
         this.loadPurchases();
     }
 
@@ -89,9 +90,9 @@ public class PurchasesPanelPresenter extends AbstractChildPresenter<ShoppingAppl
      */
     private void changeItemSizeCapacity(int capacity) {
         int newPageSize = Math.max(1, capacity);
-        if (newPageSize != this.state.pageSize) {
-            this.state.pageSize = newPageSize;
-            this.state.page = 0;
+        if (newPageSize != this.state.pageSize.get()) {
+            this.state.pageSize.set(newPageSize);
+            this.state.page.set(0);
             this.loadPurchases();
         }
     }
@@ -103,18 +104,17 @@ public class PurchasesPanelPresenter extends AbstractChildPresenter<ShoppingAppl
             var subject = this.app.getSubject();
             if (subject != null) {
                 var result = purchasesPanelService.fetchPageOfUser(
-                        subject.getId(), this.state.page, this.state.pageSize);
+                        subject.getId(), this.state.page.get(), this.state.pageSize.get());
 
                 // If requested page exceeds total, clamp to last page and refetch
                 if (result.items().isEmpty() && result.totalPages() > 0) {
                     result = purchasesPanelService.fetchPageOfUser(
-                            subject.getId(), result.totalPages() - 1, this.state.pageSize);
+                            subject.getId(), result.totalPages() - 1, this.state.pageSize.get());
                 }
 
-                this.state.page = result.page();
-                this.state.totalCount = result.totalItems();
-                this.state.purchases = result.items();
-                this.update();
+                this.state.page.set(result.page());
+                this.state.totalCount.set(result.totalItems());
+                this.state.purchases.set(result.items());
             }
         } catch (Exception caught) {
             LOG.error("Failed to load purchases", caught);

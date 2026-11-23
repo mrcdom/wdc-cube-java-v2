@@ -59,7 +59,7 @@ public class ProductsPanelViewSwt extends AbstractViewSwt {
         }
 
         var state = this.stateSupplier != null ? this.stateSupplier.get() : null;
-        var products = state != null ? state.products : null;
+        var products = state != null ? state.products.get() : null;
         int hash = products != null ? products.hashCode() : 0;
         if (hash != this.lastProductsHash) {
             this.lastProductsHash = hash;

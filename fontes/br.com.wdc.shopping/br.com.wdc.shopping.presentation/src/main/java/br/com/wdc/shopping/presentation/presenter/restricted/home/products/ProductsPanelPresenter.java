@@ -10,6 +10,7 @@ import br.com.wdc.framework.cube.AbstractChildPresenter;
 import br.com.wdc.framework.cube.ActionOf;
 import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
+import br.com.wdc.framework.cube.Prop;
 import br.com.wdc.framework.cube.ViewState;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
@@ -30,15 +31,15 @@ public class ProductsPanelPresenter extends AbstractChildPresenter<ShoppingAppli
 
     // :: View State
 
-    public static class ProductsPanelViewState implements ViewState {
+    public static class ProductsPanelViewState extends ViewState {
 
-        public List<ProductInfo> products;
+        public final Prop<List<ProductInfo>> products = prop();
 
         public ActionOf<Long> onOpenProduct = ActionOf.noop();
 
     }
 
-    public final ProductsPanelViewState state = new ProductsPanelViewState();
+    public final ProductsPanelViewState state = bind(new ProductsPanelViewState());
 
     // :: Public Instance Fields
 
@@ -73,8 +74,7 @@ public class ProductsPanelPresenter extends AbstractChildPresenter<ShoppingAppli
 
     public void loadProducts() {
         try {
-            this.state.products = productService.loadProductsWithoutDescription(1000);
-            this.update();
+            this.state.products.set(productService.loadProductsWithoutDescription(1000));
         } catch (Exception caught) {
             LOG.error("Failed to load products", caught);
         }

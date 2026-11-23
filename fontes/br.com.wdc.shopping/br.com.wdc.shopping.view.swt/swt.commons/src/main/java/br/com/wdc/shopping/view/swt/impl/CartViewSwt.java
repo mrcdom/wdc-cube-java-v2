@@ -71,7 +71,7 @@ public class CartViewSwt extends AbstractViewSwt {
         }
 
         var state = this.stateSupplier != null ? this.stateSupplier.get() : null;
-        var items = state != null ? state.items : null;
+        var items = state != null ? state.items.get() : null;
         boolean empty = items == null || items.isEmpty();
 
         // Toggle empty/filled visibility
@@ -79,9 +79,9 @@ public class CartViewSwt extends AbstractViewSwt {
         setCardVisible(this.filledCard, !empty);
 
         // Sync error banner
-        boolean showError = state != null && state.errorMessage != null && !state.errorMessage.isEmpty();
+        boolean showError = state != null && state.errorMessage.get() != null && !state.errorMessage.get().isEmpty();
         if (showError) {
-            errorBanner.setMessage(state.errorMessage);
+            errorBanner.setMessage(state.errorMessage.get());
         }
 
         if (showError != errorBanner.isShown()) {

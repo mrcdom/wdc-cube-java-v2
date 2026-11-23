@@ -41,7 +41,7 @@ public class RootView extends AbstractVDomView<RootPresenter> {
 
     @Override
     protected VNode render() {
-        var contentElement = this.state.contentView instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
+        var contentElement = this.state.contentView.get() instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
         // @formatter:off
         return spTheme("light", "medium", "spectrum")
           .cls(Sel.ROOT)

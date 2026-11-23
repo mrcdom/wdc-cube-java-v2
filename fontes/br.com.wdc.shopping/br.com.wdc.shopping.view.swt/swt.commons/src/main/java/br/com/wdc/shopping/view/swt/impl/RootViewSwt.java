@@ -41,7 +41,7 @@ public class RootViewSwt extends AbstractViewSwt {
         }
 
         var state = this.stateSupplier != null ? this.stateSupplier.get() : null;
-        var newContentView = state != null && state.contentView instanceof AbstractViewSwt v ? v : null;
+        var newContentView = state != null && state.contentView.get() instanceof AbstractViewSwt v ? v : null;
         if (this.currentContentView != newContentView) {
             this.contentSlot.setContent(newContentView != null ? newContentView.getElement() : null);
             this.currentContentView = newContentView;

@@ -140,15 +140,19 @@ Classe utilitária que cria proxies dinâmicos (via `java.lang.reflect.Proxy`) p
 
 ### ViewState (inner class)
 
-Cada presenter define um `ViewState` como **classe estática interna** (`public static class XxxViewState implements ViewState`). A interface `ViewState` é marcadora (sem métodos) — a serialização é feita automaticamente pelo `ViewStateSerializer` via reflection dos campos públicos:
+Cada presenter define um `ViewState` como **classe estática interna** (`public static class XxxViewState extends ViewState`). Cada campo observado é uma `Prop`, criada com `prop(...)`; o presenter liga o estado a si com `bind(...)`, e então `set` de um valor diferente (`equals`) pede o redesenho sozinho — o presenter não chama `this.update()` depois. A view lê com `get()`. A serialização remota é automática (`ViewStateSerializer`, via reflection dos campos públicos, escrevendo o valor de cada `Prop`):
 
 ```java
-public static class ProductViewState implements ViewState {
-    public ProductInfo product;
-    public int errorCode;
-    public String errorMessage;
+public static class ProductViewState extends ViewState {
+    public final Prop<ProductInfo> product = prop();
+    public final Prop<Integer> errorCode = prop(0);
+    public final Prop<String> errorMessage = prop();
 }
+
+public final ProductViewState state = bind(new ProductViewState());
 ```
+
+**Mexer dentro de um valor já atribuído** (um item de uma lista) não passa pela prop: aí, ou se atribui um valor novo, ou se chama `this.update()` — como no `CartPresenter`, cujo carrinho altera os itens no lugar.
 
 O JSON gerado pelo serializer usa `"#"` como chave para o `instanceId`:
 
@@ -221,10 +225,10 @@ public class XxxPresenter extends AbstractCubePresenter<ShoppingApplication> {
     // 1. Logger
     private static final Logger LOG = LoggerFactory.getLogger(XxxPresenter.class);
 
-    // 2. ViewState (inner class — interface marcadora, serialização via reflection)
-    public static class XxxViewState implements ViewState {
-        public int errorCode;
-        public String errorMessage;
+    // 2. ViewState (inner class — campos observados são Props; serialização via reflection)
+    public static class XxxViewState extends ViewState {
+        public final Prop<Integer> errorCode = prop(0);
+        public final Prop<String> errorMessage = prop();
         // ... campos específicos
     }
 
@@ -248,20 +252,19 @@ public class XxxPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
 ### Padrão de erros
 
-Os presenters não lançam exceções para a view. Em vez disso, usam `errorCode` + `errorMessage` no ViewState e chamam `this.update()`:
+Os presenters não lançam exceções para a view. Em vez disso, usam `errorCode` + `errorMessage` no ViewState — e o `set` já pede o redesenho:
 
 ```java
 private void alertProductNotFound() {
-    this.state.errorCode = 3;
-    this.state.errorMessage = "Código do produto não localizado.";
-    this.update();
+    this.state.errorCode.set(3);
+    this.state.errorMessage.set("Código do produto não localizado.");
 }
 ```
 
 Erros inesperados não precisam de `try/catch`: as ações são guardadas. Cada ação é um campo do ViewState, ligado uma vez no construtor do presenter; a guarda manda a falha não tratada ao `RootPresenter` (via `app.alertUnexpectedError`) e, ao fim, republica o endereço:
 
 ```java
-public static class CartViewState implements ViewState {
+public static class CartViewState extends ViewState {
     // ...
     public ActionOf<Long> onRemoveProduct = ActionOf.noop();
     public Action onBuy = Action.NOOP;

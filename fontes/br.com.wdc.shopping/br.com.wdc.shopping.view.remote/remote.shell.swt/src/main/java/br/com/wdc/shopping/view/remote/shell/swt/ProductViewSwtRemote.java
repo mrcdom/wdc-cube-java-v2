@@ -38,9 +38,9 @@ class ProductViewSwtRemote extends ProductViewSwt {
 			return null;
 		}
 		var state = new ProductViewState();
-		state.errorMessage = s.getString("errorMessage");
+		state.errorMessage.set(s.getString("errorMessage"));
 		var code = s.getLong("errorCode");
-		state.errorCode = code != null ? code.intValue() : 0;
+		state.errorCode.set(code != null ? code.intValue() : 0);
 		var raw = s.getMap("product");
 		if (raw != null) {
 			var p = new ProductInfo();
@@ -49,7 +49,7 @@ class ProductViewSwtRemote extends ProductViewSwt {
 			p.description = CoerceUtils.asString(raw.get("description"));
 			p.price = CoerceUtils.asDouble(raw.get("price"), 0.0);
 			p.image = CoerceUtils.asString(raw.get("image"));
-			state.product = p;
+			state.product.set(p);
 		}
 		return state;
 	}

@@ -46,9 +46,9 @@ class ProductsPanelViewSwtRemote extends ProductsPanelViewSwt {
 				p.image = (String) raw.get("image");
 				products.add(p);
 			}
-			state.products = products;
+			state.products.set(products);
 		} else {
-			state.products = Collections.emptyList();
+			state.products.set(Collections.emptyList());
 		}
 		return state;
 	}

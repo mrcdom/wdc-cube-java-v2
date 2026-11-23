@@ -81,7 +81,7 @@ public class PurchasesPanelSharedView extends SharedVDomView {
      */
     public void afterUpdate() {
         var state = stateSupplier.get();
-        if (state.pageSize <= 0) {
+        if (state.pageSize.get() <= 0) {
             Window.requestAnimationFrame(t -> computePageSize());
         }
     }
@@ -99,10 +99,10 @@ public class PurchasesPanelSharedView extends SharedVDomView {
     @Override
     public VNode render() {
         var state = stateSupplier.get();
-        var purchases = state.purchases;
-        int page = state.page;
-        int pageSize = Math.max(1, state.pageSize);
-        int totalPages = Math.max(1, (int) Math.ceil((double) state.totalCount / pageSize));
+        var purchases = state.purchases.get();
+        int page = state.page.get();
+        int pageSize = Math.max(1, state.pageSize.get());
+        int totalPages = Math.max(1, (int) Math.ceil((double) state.totalCount.get() / pageSize));
         var pageInfo = (page + 1) + " / " + totalPages;
 
         // @formatter:off

@@ -63,10 +63,10 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt {
 
         // Rebuild list if data changed
         var state = this.stateSupplier != null ? this.stateSupplier.get() : null;
-        var purchases = state != null ? state.purchases : null;
+        var purchases = state != null ? state.purchases.get() : null;
         int hash = purchases != null ? purchases.hashCode() : 0;
-        hash = hash * 31 + (state != null ? state.page : 0);
-        hash = hash * 31 + (state != null ? state.totalCount : 0);
+        hash = hash * 31 + (state != null ? state.page.get() : 0);
+        hash = hash * 31 + (state != null ? state.totalCount.get() : 0);
         if (hash != this.lastHash) {
             this.lastHash = hash;
             rebuildList(purchases);
@@ -161,14 +161,14 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt {
                     int arrowSize = 28;
                     if (ev.x < arrowSize + 4) {
                         var st = PurchasesPanelViewSwt.this.stateSupplier != null ? PurchasesPanelViewSwt.this.stateSupplier.get() : null;
-                        int page = st != null ? st.page : 0;
+                        int page = st != null ? st.page.get() : 0;
                         if (page > 0) {
                             safeAction("prevPage", () -> { if (PurchasesPanelViewSwt.this.onPageChange != null) PurchasesPanelViewSwt.this.onPageChange.accept(page - 1); });
                         }
                     } else if (ev.x > area.width - arrowSize - 4) {
                         int totalPages = getTotalPages();
                         var st2 = PurchasesPanelViewSwt.this.stateSupplier != null ? PurchasesPanelViewSwt.this.stateSupplier.get() : null;
-                        int page = st2 != null ? st2.page : 0;
+                        int page = st2 != null ? st2.page.get() : 0;
                         if (page < totalPages - 1) {
                             safeAction("nextPage", () -> { if (PurchasesPanelViewSwt.this.onPageChange != null) PurchasesPanelViewSwt.this.onPageChange.accept(page + 1); });
                         }
@@ -331,7 +331,7 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt {
         gc.setForeground(Theme.FG_TEXT_DARK);
         int totalPages = getTotalPages();
         var st = this.stateSupplier != null ? this.stateSupplier.get() : null;
-        String pageStr = totalPages > 0 && st != null ? (st.page + 1) + " / " + totalPages : "";
+        String pageStr = totalPages > 0 && st != null ? (st.page.get() + 1) + " / " + totalPages : "";
         var textExtent = gc.textExtent(pageStr);
         int tx = cx + (centerW - textExtent.x) / 2;
         int ty = cy + (centerH - textExtent.y) / 2;
@@ -345,7 +345,7 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt {
 
     private int getTotalPages() {
         var st = this.stateSupplier != null ? this.stateSupplier.get() : null;
-        if (st == null || st.pageSize <= 0) return 0;
-        return (int) Math.ceil((double) st.totalCount / st.pageSize);
+        if (st == null || st.pageSize.get() <= 0) return 0;
+        return (int) Math.ceil((double) st.totalCount.get() / st.pageSize.get());
     }
 }

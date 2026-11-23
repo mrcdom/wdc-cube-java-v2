@@ -67,11 +67,12 @@ public class LoginViewSwt extends AbstractViewSwt {
         var s = this.stateSupplier != null ? this.stateSupplier.get() : null;
         var newErrorDisplay = false;
         var newErrorMessage = "";
-        if (s != null && s.errorCode != 0) {
+        if (s != null && s.errorCode.get() != 0) {
             newErrorDisplay = true;
-            newErrorMessage = s.errorMessage;
-            s.errorCode = 0;
-            s.errorMessage = null;
+            newErrorMessage = s.errorMessage.get();
+            // Consumed while drawing: a redraw now would take the message away
+            s.errorCode.setSilently(0);
+            s.errorMessage.setSilently(null);
         }
 
         if (!Objects.equals(this.errorMessage, newErrorMessage)) {

@@ -56,13 +56,13 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelP
             this.notRendered = false;
             schedulePageSizeComputation();
         }
-        this.contentSlot.accept(this.state.purchases, this.viewList);
+        this.contentSlot.accept(this.state.purchases.get(), this.viewList);
 
-        int pageSize = Math.max(1, this.state.pageSize);
-        int totalPages = Math.max(1, (int) Math.ceil((double) this.state.totalCount / pageSize));
-        this.pageInfoElm.setText((this.state.page + 1) + " / " + totalPages);
-        this.prevButton.setEnabled(this.state.page > 0);
-        this.nextButton.setEnabled(this.state.page < totalPages - 1);
+        int pageSize = Math.max(1, this.state.pageSize.get());
+        int totalPages = Math.max(1, (int) Math.ceil((double) this.state.totalCount.get() / pageSize));
+        this.pageInfoElm.setText((this.state.page.get() + 1) + " / " + totalPages);
+        this.prevButton.setEnabled(this.state.page.get() > 0);
+        this.nextButton.setEnabled(this.state.page.get() < totalPages - 1);
     }
 
     private void initialRender(VaadinDom dom, VerticalLayout pane0) {
@@ -101,7 +101,7 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelP
                 btn.getStyle().set("color", "#1976d2");
                 btn.getElement().setAttribute("aria-label", "Página anterior");
                 btn.addClickListener(
-                        e -> safeAction("Previous page", () -> this.presenter.state.onPageChange.run(this.state.page - 1)));
+                        e -> safeAction("Previous page", () -> this.presenter.state.onPageChange.run(this.state.page.get() - 1)));
             });
 
             dom.span(label -> {
@@ -116,7 +116,7 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelP
                 btn.getStyle().set("color", "#1976d2");
                 btn.getElement().setAttribute("aria-label", "Próxima página");
                 btn.addClickListener(
-                        e -> safeAction("Next page", () -> this.presenter.state.onPageChange.run(this.state.page + 1)));
+                        e -> safeAction("Next page", () -> this.presenter.state.onPageChange.run(this.state.page.get() + 1)));
             });
         });
     }

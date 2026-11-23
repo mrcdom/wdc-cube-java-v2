@@ -38,7 +38,7 @@ public class RootViewVaadin extends AbstractViewVaadin<RootPresenter> {
             this.notRendered = false;
         }
 
-        var newContentView = this.state.contentView instanceof AbstractViewVaadin<?> v ? v : null;
+        var newContentView = this.state.contentView.get() instanceof AbstractViewVaadin<?> v ? v : null;
         if (this.currentContentView != newContentView) {
             this.contentPane.removeAll();
             if (newContentView != null) {

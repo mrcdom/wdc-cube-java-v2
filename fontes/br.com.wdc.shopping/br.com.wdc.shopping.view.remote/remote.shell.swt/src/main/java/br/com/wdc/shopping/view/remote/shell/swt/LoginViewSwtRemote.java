@@ -29,11 +29,11 @@ class LoginViewSwtRemote extends LoginViewSwt {
 			return null;
 		}
 		var state = new LoginViewState();
-		state.userName = s.getString("userName");
-		state.errorMessage = s.getString("errorMessage");
+		state.userName.set(s.getString("userName"));
+		state.errorMessage.set(s.getString("errorMessage"));
 		var code = s.getLong("errorCode");
-		state.errorCode = code != null ? code.intValue() : 0;
-		state.loading = Boolean.TRUE.equals(s.getBoolean("loading"));
+		state.errorCode.set(code != null ? code.intValue() : 0);
+		state.loading.set(Boolean.TRUE.equals(s.getBoolean("loading")));
 		return state;
 	}
 }

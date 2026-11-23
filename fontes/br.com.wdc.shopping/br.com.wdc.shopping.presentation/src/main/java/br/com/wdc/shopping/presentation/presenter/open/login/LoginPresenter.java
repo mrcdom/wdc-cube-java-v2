@@ -11,6 +11,7 @@ import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.CubeViewSlot;
+import br.com.wdc.framework.cube.Prop;
 import br.com.wdc.framework.cube.ViewState;
 import br.com.wdc.framework.domain.exception.OfflineException;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
@@ -34,18 +35,18 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     // :: Public Instance Fields
 
-    public static class LoginViewState implements ViewState {
+    public static class LoginViewState extends ViewState {
 
-        public String userName;
-        public int errorCode;
-        public String errorMessage;
-        public boolean loading;
+        public final Prop<String> userName = prop();
+        public final Prop<Integer> errorCode = prop(0);
+        public final Prop<String> errorMessage = prop();
+        public final Prop<Boolean> loading = prop(false);
 
         public ActionOf2<String, String> onEnter = ActionOf2.noop();
 
     }
 
-    public final LoginViewState state = new LoginViewState();
+    public final LoginViewState state = bind(new LoginViewState());
 
     // :: Internal Instance Fields
 
@@ -77,33 +78,29 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
     // :: Messages
 
     private void alertUserOrPasswordNotRecognize() {
-        state.errorCode = 1;
-        state.errorMessage = "Usuário ou senha não reconhecido!";
-        this.update();
+        state.errorCode.set(1);
+        state.errorMessage.set("Usuário ou senha não reconhecido!");
     }
 
     private void alertDatabaseIsOffline() {
-        state.errorCode = 4;
-        state.errorMessage = "Banco de dados esta fora do ar!";
-        this.update();
+        state.errorCode.set(4);
+        state.errorMessage.set("Banco de dados esta fora do ar!");
     }
 
     private void alertConnectionError(Throwable caught) {
-        state.errorCode = 5;
-        state.errorMessage = "Falha de comunicação com o servidor. Verifique sua conexão.";
-        this.update();
+        state.errorCode.set(5);
+        state.errorMessage.set("Falha de comunicação com o servidor. Verifique sua conexão.");
 
-        LOG.error(state.errorMessage, caught);
+        LOG.error(state.errorMessage.get(), caught);
     }
 
     // :: User Actions
 
     private void enter(String userName, String password) {
-        state.userName = userName;
-        state.loading = true;
-        state.errorCode = 0;
-        state.errorMessage = null;
-        this.update();
+        state.userName.set(userName);
+        state.loading.set(true);
+        state.errorCode.set(0);
+        state.errorMessage.set(null);
 
         if (simulateSlowLogin) {
             try {
@@ -138,8 +135,7 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
             LOG.error("enter", caught);
             this.alertConnectionError(caught);
         } finally {
-            state.loading = false;
-            this.update();
+            state.loading.set(false);
         }
     }
 
@@ -166,7 +162,7 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
             public void syncState(Map<String, Object> formData) {
                 var fn = "userName";
                 if (formData.containsKey(fn)) {
-                    state.userName = CoerceUtils.asString(formData.get(fn));
+                    state.userName.set(CoerceUtils.asString(formData.get(fn)));
                 }
             }
 

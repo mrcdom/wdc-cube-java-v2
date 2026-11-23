@@ -46,11 +46,12 @@ public class LoginViewVaadin extends AbstractViewVaadin<LoginPresenter> {
             this.notRendered = false;
         }
 
-        if (this.state.errorCode != 0) {
+        if (this.state.errorCode.get() != 0) {
             this.errorDiv.setText("Usuário ou senha inválidos. Tente novamente.");
             this.errorDiv.setVisible(true);
-            this.state.errorCode = 0;
-            this.state.errorMessage = null;
+            // Consumed while drawing: a redraw now would take the message away
+            this.state.errorCode.setSilently(0);
+            this.state.errorMessage.setSilently(null);
         }
     }
 

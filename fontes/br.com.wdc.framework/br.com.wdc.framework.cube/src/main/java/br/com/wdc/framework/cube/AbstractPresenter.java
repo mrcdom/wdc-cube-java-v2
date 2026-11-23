@@ -5,7 +5,7 @@ import br.com.wdc.framework.commons.function.ThrowingConsumer;
 import br.com.wdc.framework.commons.function.ThrowingRunnable;
 
 /**
- * What every presenter has: the application, the view and the guarded actions.
+ * What every presenter has: the application, the view, the bound view state and the guarded actions.
  * <p>
  * An action is bound once, usually in the constructor, into a field of the view state
  * ({@code state.onBuy = action(this::buy)}). The guard catches whatever the body did not handle and hands it to
@@ -21,6 +21,15 @@ public abstract class AbstractPresenter<A extends CubeApplication> implements Pr
 
     protected AbstractPresenter(A app) {
         this.app = app;
+    }
+
+    /**
+     * Ties the view state to this presenter: setting one of its props to a different value calls {@link #update()}.
+     * Used on the field: {@code public final CartViewState state = bind(new CartViewState());}
+     */
+    protected final <S extends ViewState> S bind(S state) {
+        state.setUpdater(this::update);
+        return state;
     }
 
     public void update() {

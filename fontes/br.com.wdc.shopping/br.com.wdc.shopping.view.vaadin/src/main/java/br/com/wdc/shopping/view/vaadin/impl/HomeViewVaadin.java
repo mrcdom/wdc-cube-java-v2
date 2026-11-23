@@ -51,10 +51,10 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomePresenter> {
         this.purchasesPanelSlot = null;
         this.currentContentView = null;
         // Recreate sub-panel views
-        if (this.state.productsPanelView instanceof AbstractViewVaadin<?> v) {
+        if (this.state.productsPanelView.get() instanceof AbstractViewVaadin<?> v) {
             v.recreate();
         }
-        if (this.state.purchasesPanelView instanceof AbstractViewVaadin<?> v) {
+        if (this.state.purchasesPanelView.get() instanceof AbstractViewVaadin<?> v) {
             v.recreate();
         }
     }
@@ -66,18 +66,18 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomePresenter> {
             this.notRendered = false;
         }
 
-        if (this.nickNameOldValue == null || !this.nickNameOldValue.equals(this.state.nickName)) {
-            this.nickNameElm.setText("Olá, " + this.state.nickName);
-            this.nickNameOldValue = this.state.nickName;
+        if (this.nickNameOldValue == null || !this.nickNameOldValue.equals(this.state.nickName.get())) {
+            this.nickNameElm.setText("Olá, " + this.state.nickName.get());
+            this.nickNameOldValue = this.state.nickName.get();
         }
 
-        if (this.cartCountOldValue != this.state.cartItemCount) {
-            this.cartBadge.setText(String.valueOf(this.state.cartItemCount));
-            this.cartBadge.setVisible(this.state.cartItemCount > 0);
-            this.cartCountOldValue = this.state.cartItemCount;
+        if (this.cartCountOldValue != this.state.cartItemCount.get()) {
+            this.cartBadge.setText(String.valueOf(this.state.cartItemCount.get()));
+            this.cartBadge.setVisible(this.state.cartItemCount.get() > 0);
+            this.cartCountOldValue = this.state.cartItemCount.get();
         }
 
-        if (this.state.productsPanelView instanceof AbstractViewVaadin<?> ppv) {
+        if (this.state.productsPanelView.get() instanceof AbstractViewVaadin<?> ppv) {
             if (!this.productsPanelSlot.getChildren().toList().contains(ppv.getElement())) {
                 this.productsPanelSlot.removeAll();
                 this.productsPanelSlot.add(ppv.getElement());
@@ -85,7 +85,7 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomePresenter> {
             ppv.doUpdate();
         }
 
-        if (this.state.purchasesPanelView instanceof AbstractViewVaadin<?> ppv) {
+        if (this.state.purchasesPanelView.get() instanceof AbstractViewVaadin<?> ppv) {
             if (!this.purchasesPanelSlot.getChildren().toList().contains(ppv.getElement())) {
                 this.purchasesPanelSlot.removeAll();
                 this.purchasesPanelSlot.add(ppv.getElement());
@@ -93,7 +93,7 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomePresenter> {
             ppv.doUpdate();
         }
 
-        var newContentView = this.state.contentView instanceof AbstractViewVaadin<?> v ? v : null;
+        var newContentView = this.state.contentView.get() instanceof AbstractViewVaadin<?> v ? v : null;
         if (this.currentContentView != newContentView) {
             this.contentPane.removeAll();
             if (newContentView != null) {
@@ -106,11 +106,12 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomePresenter> {
             this.currentContentView = newContentView;
         }
 
-        if (this.state.errorCode != 0) {
-            Notification.show(this.state.errorMessage, 5000, Notification.Position.TOP_CENTER)
+        if (this.state.errorCode.get() != 0) {
+            Notification.show(this.state.errorMessage.get(), 5000, Notification.Position.TOP_CENTER)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
-            this.state.errorCode = 0;
-            this.state.errorMessage = null;
+            // Consumed while drawing: a redraw now would take the message away
+            this.state.errorCode.setSilently(0);
+            this.state.errorMessage.setSilently(null);
         }
     }
 
@@ -148,8 +149,8 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomePresenter> {
                 dom.span(label -> {
                     this.nickNameElm = label;
                     label.addClassName("welcome-label");
-                    label.setText("Olá, " + this.state.nickName);
-                    this.nickNameOldValue = this.state.nickName;
+                    label.setText("Olá, " + this.state.nickName.get());
+                    this.nickNameOldValue = this.state.nickName.get();
                 });
             });
 
@@ -177,7 +178,7 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomePresenter> {
                 cartIcon.setSize("24px");
                 cartIcon.setColor("white");
 
-                this.cartBadge = new Span(String.valueOf(this.state.cartItemCount));
+                this.cartBadge = new Span(String.valueOf(this.state.cartItemCount.get()));
                 this.cartBadge.getElement().getThemeList().add("badge pill small");
                 this.cartBadge.getStyle().set("position", "absolute")
                         .set("top", "-4px").set("right", "-8px")
@@ -185,8 +186,8 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomePresenter> {
                         .set("text-align", "center")
                         .set("background-color", "#ff9800")
                         .set("color", "white");
-                this.cartBadge.setVisible(this.state.cartItemCount > 0);
-                this.cartCountOldValue = this.state.cartItemCount;
+                this.cartBadge.setVisible(this.state.cartItemCount.get() > 0);
+                this.cartCountOldValue = this.state.cartItemCount.get();
 
                 var cartButton = new Button("Carrinho", cartIcon,
                         e -> safeAction("Open cart", this.presenter.state.onOpenCart::run));

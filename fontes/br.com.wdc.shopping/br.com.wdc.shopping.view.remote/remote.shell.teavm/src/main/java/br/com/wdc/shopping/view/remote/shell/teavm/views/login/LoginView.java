@@ -41,10 +41,10 @@ public class LoginView extends AbstractRemoteView {
 
     private LoginViewState adaptState() {
         ViewScope scope = state();
-        adaptedState.loading = scope.getBoolean("loading");
-        adaptedState.errorMessage = scope.getString("errorMessage");
-        adaptedState.errorCode = scope.getInt("errorCode");
-        adaptedState.userName = scope.getString("userName");
+        adaptedState.loading.set(scope.getBoolean("loading"));
+        adaptedState.errorMessage.set(scope.getString("errorMessage"));
+        adaptedState.errorCode.set(scope.getInt("errorCode"));
+        adaptedState.userName.set(scope.getString("userName"));
         return adaptedState;
     }
 }

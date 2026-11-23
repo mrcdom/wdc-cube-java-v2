@@ -45,9 +45,9 @@ public class ProductViewSwt extends AbstractViewSwt {
         // Update error visibility
         if (errorBanner != null && !errorBanner.isDisposed()) {
             var state = this.stateSupplier != null ? this.stateSupplier.get() : null;
-            boolean showError = state != null && state.errorMessage != null && !state.errorMessage.isEmpty();
+            boolean showError = state != null && state.errorMessage.get() != null && !state.errorMessage.get().isEmpty();
             if (showError) {
-                errorBanner.setMessage(state.errorMessage);
+                errorBanner.setMessage(state.errorMessage.get());
             }
             if (showError != errorBanner.isShown()) {
                 errorBanner.setShown(showError);
@@ -63,7 +63,7 @@ public class ProductViewSwt extends AbstractViewSwt {
 
     private void render() {
         var state = this.stateSupplier != null ? this.stateSupplier.get() : null;
-        var product = state != null ? state.product : null;
+        var product = state != null ? state.product.get() : null;
         String name = product != null ? product.name : "";
         String description = product != null ? product.description : "";
         double price = product != null ? product.price : 0;

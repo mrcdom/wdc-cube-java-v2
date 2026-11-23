@@ -36,7 +36,7 @@ class ReceiptViewSwtRemote extends ReceiptViewSwt {
 			return null;
 		}
 		var state = new ReceiptViewState();
-		state.notifySuccess = Boolean.TRUE.equals(s.getBoolean("notifySuccess"));
+		state.notifySuccess.set(Boolean.TRUE.equals(s.getBoolean("notifySuccess")));
 		var raw = s.getMap("receipt");
 		if (raw != null) {
 			var form = new ReceiptForm();
@@ -55,7 +55,7 @@ class ReceiptViewSwtRemote extends ReceiptViewSwt {
 				}
 				form.items = items;
 			}
-			state.receipt = form;
+			state.receipt.set(form);
 		}
 		return state;
 	}

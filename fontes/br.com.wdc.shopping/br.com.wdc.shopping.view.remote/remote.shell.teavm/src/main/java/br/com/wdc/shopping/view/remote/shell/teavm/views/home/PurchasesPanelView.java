@@ -56,10 +56,10 @@ public class PurchasesPanelView extends AbstractRemoteView {
 
     private PurchasesPanelViewState adaptState() {
         ViewScope scope = state();
-        adaptedState.purchases = getPurchases(scope);
-        adaptedState.page = scope.getInt("page");
-        adaptedState.pageSize = scope.getInt("pageSize");
-        adaptedState.totalCount = scope.getInt("totalCount");
+        adaptedState.purchases.set(getPurchases(scope));
+        adaptedState.page.set(scope.getInt("page"));
+        adaptedState.pageSize.set(scope.getInt("pageSize"));
+        adaptedState.totalCount.set(scope.getInt("totalCount"));
         return adaptedState;
     }
 

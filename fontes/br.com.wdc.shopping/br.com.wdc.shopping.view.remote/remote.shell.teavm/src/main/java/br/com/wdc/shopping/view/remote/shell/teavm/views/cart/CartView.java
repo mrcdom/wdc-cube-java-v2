@@ -49,8 +49,8 @@ public class CartView extends AbstractRemoteView {
 
     private CartViewState adaptState() {
         ViewScope scope = state();
-        adaptedState.errorMessage = scope.getString("errorMessage");
-        adaptedState.items = getItems(scope);
+        adaptedState.errorMessage.set(scope.getString("errorMessage"));
+        adaptedState.items.set(getItems(scope));
         return adaptedState;
     }
 

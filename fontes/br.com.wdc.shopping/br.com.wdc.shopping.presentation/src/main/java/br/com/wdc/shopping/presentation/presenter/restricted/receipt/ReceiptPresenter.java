@@ -11,6 +11,7 @@ import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.CubeViewSlot;
+import br.com.wdc.framework.cube.Prop;
 import br.com.wdc.framework.cube.ViewState;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
@@ -29,16 +30,16 @@ public class ReceiptPresenter extends AbstractCubePresenter<ShoppingApplication>
 
     // :: Public Instance Fields
 
-    public static class ReceiptViewState implements ViewState {
+    public static class ReceiptViewState extends ViewState {
 
-        public boolean notifySuccess;
-        public ReceiptForm receipt;
+        public final Prop<Boolean> notifySuccess = prop(false);
+        public final Prop<ReceiptForm> receipt = prop();
 
         public Action onOpenProducts = Action.NOOP;
 
     }
 
-    public final ReceiptViewState state = new ReceiptViewState();
+    public final ReceiptViewState state = bind(new ReceiptViewState());
 
     // :: Internal Instance Fields
 
@@ -65,20 +66,19 @@ public class ReceiptPresenter extends AbstractCubePresenter<ShoppingApplication>
             new HomeKeys(this.app, intent).flip();
             return false;
         }
-        this.state.notifySuccess = keys.purchaseMade();
+        this.state.notifySuccess.set(keys.purchaseMade());
 
-        if (this.state.receipt == null || !Objects.equals(pPurchaseId, this.purchaseId)) {
+        if (this.state.receipt.get() == null || !Objects.equals(pPurchaseId, this.purchaseId)) {
             var receipt = this.loadReceipt(pPurchaseId);
             this.purchaseId = pPurchaseId;
-            this.state.receipt = receipt;
-            update();
+            this.state.receipt.set(receipt);
         }
 
         // Read on every call: a reused presenter goes where its parent puts it now, not where it was first put
         this.ownerSlot = keys.parentSlot();
         if (initialization) {
 
-            if (this.state.receipt == null) {
+            if (this.state.receipt.get() == null) {
                 throw new AssertionError("Missing receipt");
             }
 

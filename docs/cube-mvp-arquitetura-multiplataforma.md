@@ -194,23 +194,24 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
     // Factory de view — substituível (testes, implementações alternativas)
     public static Function<CartPresenter, CubeView> createView;
 
-    // ViewState — estado público, lido pela view para renderização
-    public static class CartViewState implements ViewState {
-        public List<CartItem> items;
-        public int errorCode;
-        public String errorMessage;
+    // ViewState — estado público, lido pela view para renderização. Cada campo observado é uma Prop:
+    // set() compara com equals e, se mudou, pede o redesenho — o presenter não chama update() depois
+    public static class CartViewState extends ViewState {
+        public final Prop<List<CartItem>> items = prop(Collections.emptyList());
+        public final Prop<Integer> errorCode = prop(0);
+        public final Prop<String> errorMessage = prop();
 
         // Ações que a view dispara (o serializador remoto as ignora)
         public Action onConfirm = Action.NOOP;
     }
 
-    public final CartViewState state = new CartViewState();
+    // bind: o presenter passa a ser avisado quando uma prop do estado muda
+    public final CartViewState state = bind(new CartViewState());
 
     private CubeViewSlot ownerSlot;
 
     public CartPresenter(ShoppingApplication app) {
         super(app);
-        this.state.items = Collections.emptyList();
         // Ligada uma vez; a guarda manda a falha não tratada ao app e republica o endereço ao fim
         this.state.onConfirm = action(this::confirm);
     }
@@ -218,7 +219,7 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
     // Chamado pelo motor de navegação ao ativar este Presenter
     @Override
     public boolean applyParameters(CubeIntent intent, boolean initialization, boolean deepest) {
-        this.state.items = this.app.getCart().getCartItems();
+        this.state.items.set(this.app.getCart().getCartItems());
 
         if (initialization) {
             this.ownerSlot = new CartKeys(this.app, intent).parentSlot();
@@ -226,14 +227,13 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
         }
 
         this.ownerSlot.setView(this.view);
-        this.update();
         return true;
     }
 
     // Corpo da ação: só trata as falhas esperadas, sem try/catch genérico
     private void confirm() {
         // lógica de negócio...
-        this.update();
+        this.state.errorCode.set(0);   // a mudança já pede o redesenho
     }
 }
 ```
@@ -370,7 +370,14 @@ classDiagram
     }
 
     class ViewState {
-        <<interface>>
+        <<abstract>>
+        #prop(initial) Prop
+        +setUpdater(updater)
+    }
+
+    class Prop {
+        +get() T
+        +set(value)
     }
 
     class CubeView {
@@ -423,10 +430,7 @@ Um slot é um ponto de composição declarado pelo Presenter pai, que permite qu
 private final CubeViewSlot contentSlot = this::setContentView;
 
 private void setContentView(CubeView view) {
-    if (this.state.contentView != view) {
-        this.state.contentView = view;
-        this.update();
-    }
+    this.state.contentView.set(view);   // só redesenha se mudou
 }
 ```
 

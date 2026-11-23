@@ -165,12 +165,12 @@ public class PlaceKeysTest extends BasePresentationTest {
 
     private void signIn() {
         new LoginKeys(this.app).flip();
-        var loginView = LoginViewMock.cast(this.app.getRootView().state.contentView);
+        var loginView = LoginViewMock.cast(this.app.getRootView().state.contentView.get());
         loginView.state.onEnter.run("admin", "admin");
     }
 
     private HomeViewMock home() {
-        return HomeViewMock.cast(this.app.getRootView().state.contentView);
+        return HomeViewMock.cast(this.app.getRootView().state.contentView.get());
     }
 
     @Test
@@ -178,7 +178,7 @@ public class PlaceKeysTest extends BasePresentationTest {
         signIn();
         for (var address : List.of("product?pr-id=abc", "product", "receipt?rc-id=-1", "receipt", "public")) {
             this.app.go(address);
-            Assert.assertNull(address + ": the home shows no inner place", home().state.contentView);
+            Assert.assertNull(address + ": the home shows no inner place", home().state.contentView.get());
             Assert.assertSame(address, HomeKeys.PLACE, this.app.getLastPlace());
         }
     }
@@ -187,8 +187,8 @@ public class PlaceKeysTest extends BasePresentationTest {
     public void navigatingFromTheStatePutsTheNamesInTheAddress() {
         signIn();
         new ProductKeys(this.app).withProductId(DBReset.PEN_DRIVE2GB_ID).flip();
-        var productView = ProductViewMock.cast(home().state.contentView);
-        Assert.assertEquals((long) DBReset.PEN_DRIVE2GB_ID, (long) productView.state.product.id);
+        var productView = ProductViewMock.cast(home().state.contentView.get());
+        Assert.assertEquals((long) DBReset.PEN_DRIVE2GB_ID, (long) productView.state.product.get().id);
         Assert.assertTrue(this.app.newIntent().toString(),
                 this.app.newIntent().toString().contains("pr-id=" + DBReset.PEN_DRIVE2GB_ID));
 

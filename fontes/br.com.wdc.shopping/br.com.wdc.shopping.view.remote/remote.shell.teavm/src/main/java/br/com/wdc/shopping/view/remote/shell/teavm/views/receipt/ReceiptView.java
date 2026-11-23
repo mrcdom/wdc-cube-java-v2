@@ -37,8 +37,8 @@ public class ReceiptView extends AbstractRemoteView {
 
     private ReceiptViewState adaptState() {
         ViewScope scope = state();
-        adaptedState.notifySuccess = scope.getBoolean("notifySuccess");
-        adaptedState.receipt = adaptReceipt(scope);
+        adaptedState.notifySuccess.set(scope.getBoolean("notifySuccess"));
+        adaptedState.receipt.set(adaptReceipt(scope));
         return adaptedState;
     }
 

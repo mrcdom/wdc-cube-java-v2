@@ -47,11 +47,11 @@ class PurchasesPanelViewSwtRemote extends PurchasesPanelViewSwt {
 		}
 		var state = new PurchasesPanelViewState();
 		var pageNum = s.getLong("page");
-		state.page = pageNum != null ? pageNum.intValue() : 0;
+		state.page.set(pageNum != null ? pageNum.intValue() : 0);
 		var pageSize = s.getLong("pageSize");
-		state.pageSize = pageSize != null ? pageSize.intValue() : -1;
+		state.pageSize.set(pageSize != null ? pageSize.intValue() : -1);
 		var totalCount = s.getLong("totalCount");
-		state.totalCount = totalCount != null ? totalCount.intValue() : 0;
+		state.totalCount.set(totalCount != null ? totalCount.intValue() : 0);
 		var rawList = s.getList("purchases");
 		if (!rawList.isEmpty()) {
 			var purchases = new ArrayList<PurchaseInfo>(rawList.size());
@@ -65,9 +65,9 @@ class PurchasesPanelViewSwtRemote extends PurchasesPanelViewSwt {
 				p.items = itemNames != null ? itemNames : Collections.emptyList();
 				purchases.add(p);
 			}
-			state.purchases = purchases;
+			state.purchases.set(purchases);
 		} else {
-			state.purchases = Collections.emptyList();
+			state.purchases.set(Collections.emptyList());
 		}
 		return state;
 	}

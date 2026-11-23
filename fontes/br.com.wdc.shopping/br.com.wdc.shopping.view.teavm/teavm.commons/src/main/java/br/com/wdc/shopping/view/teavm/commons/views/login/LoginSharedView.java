@@ -115,8 +115,8 @@ public class LoginSharedView extends SharedVDomView {
     @Override
     public VNode render() {
         var state = stateSupplier.get();
-        var loading = state.loading;
-        var errorMessage = state.errorMessage;
+        var loading = state.loading.get();
+        var errorMessage = state.errorMessage.get();
         var showError = errorMessage != null && !errorMessage.isEmpty();
         
         var title = "WDC Shopping";

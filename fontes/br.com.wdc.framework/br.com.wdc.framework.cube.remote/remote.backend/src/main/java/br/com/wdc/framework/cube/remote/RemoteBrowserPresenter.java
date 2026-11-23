@@ -14,6 +14,7 @@ import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.PresenterBase;
+import br.com.wdc.framework.cube.Prop;
 import br.com.wdc.framework.cube.ViewState;
 
 /**
@@ -24,11 +25,11 @@ import br.com.wdc.framework.cube.ViewState;
  */
 public class RemoteBrowserPresenter implements PresenterBase {
 
-    public static class BrowserState implements ViewState {
-        public String instanceId;
-        public int alertId;
-        public List<String> alertArgs = Collections.emptyList();
-        public CubeView contentView;
+    public static class BrowserState extends ViewState {
+        public final Prop<String> instanceId = prop();
+        public final Prop<Integer> alertId = prop(0);
+        public final Prop<List<String>> alertArgs = prop(Collections.emptyList());
+        public final Prop<CubeView> contentView = prop();
     }
 
     public final RemoteApplication app;
@@ -41,7 +42,8 @@ public class RemoteBrowserPresenter implements PresenterBase {
     public RemoteBrowserPresenter(RemoteApplication app) {
         this.app = app;
         this.view = new RemoteViewImpl(app, this, this.state, this.skeleton, this.skeleton.classId() + ":0");
-        this.state.instanceId = this.view.instanceId();
+        this.state.setUpdater(this::update);
+        this.state.instanceId.set(this.view.instanceId());
     }
 
     @Override
@@ -51,9 +53,7 @@ public class RemoteBrowserPresenter implements PresenterBase {
         if (rootPresenter instanceof AbstractCubePresenter<?> acp) {
             rootView = acp.view();
         }
-        if (this.state.contentView != rootView) {
-            this.state.contentView = rootView;
-        }
+        this.state.contentView.set(rootView);
     }
 
     @Override
@@ -96,15 +96,15 @@ public class RemoteBrowserPresenter implements PresenterBase {
             action.runThrows();
         };
 
-        this.state.alertId = code;
-        this.state.alertArgs = Collections.emptyList();
-
-        if (args != null && args.length > 0) {
-            this.state.alertArgs = new ArrayList<>(args.length);
+        var alertArgs = new ArrayList<String>(args != null ? args.length : 0);
+        if (args != null) {
             for (Object arg : args) {
-                this.state.alertArgs.add(String.valueOf(arg));
+                alertArgs.add(String.valueOf(arg));
             }
         }
+        this.state.alertId.set(code);
+        this.state.alertArgs.set(alertArgs);
+        // The same alert again is still a new alert
         this.update();
     }
 
@@ -124,8 +124,8 @@ public class RemoteBrowserPresenter implements PresenterBase {
 
     private boolean onAlertOk() {
         try {
-            this.state.alertId = 0;
-            this.state.alertArgs = Collections.emptyList();
+            this.state.alertId.set(0);
+            this.state.alertArgs.set(Collections.emptyList());
             this.alertAction.run();
         } finally {
             this.alertAction = ThrowingRunnable.noop();

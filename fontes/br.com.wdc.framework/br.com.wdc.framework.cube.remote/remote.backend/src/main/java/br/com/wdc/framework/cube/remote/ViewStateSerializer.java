@@ -12,6 +12,7 @@ import br.com.wdc.framework.cube.Action;
 import br.com.wdc.framework.cube.ActionOf;
 import br.com.wdc.framework.cube.ActionOf2;
 import br.com.wdc.framework.cube.CubeView;
+import br.com.wdc.framework.cube.Prop;
 import br.com.wdc.framework.cube.ViewState;
 
 /**
@@ -29,6 +30,7 @@ import br.com.wdc.framework.cube.ViewState;
  * <li>Supported field types: all Java primitives/wrappers, {@link String}, {@link Character},
  * dates, {@link Collection}, {@link Map}, Records, and POJOs with public fields.</li>
  * <li>Blank strings in direct fields are omitted.</li>
+ * <li>A {@link Prop} field is written as its value.</li>
  * <li>Numeric primitives and boolean primitives are always serialized.</li>
  * </ul>
  */
@@ -65,6 +67,12 @@ public final class ViewStateSerializer {
 
     private void writeField(Field field, Object value) {
         Class<?> type = field.getType();
+
+        // An observed field: what goes out is its value, with the same rules as a plain field of the value's type
+        if (value instanceof Prop<?> prop) {
+            value = prop.get();
+            type = value != null ? value.getClass() : Object.class;
+        }
 
         if (type == boolean.class) {
             json.name(field.getName()).value((boolean) value);

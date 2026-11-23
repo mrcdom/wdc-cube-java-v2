@@ -48,7 +48,7 @@ public class ProductsPanelSharedView extends SharedVDomView {
     @Override
     public VNode render() {
         var state = stateSupplier.get();
-        var products = state.products;
+        var products = state.products.get();
 
         // @formatter:off
         return div(Sel.PANEL).children(

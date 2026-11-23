@@ -11,6 +11,7 @@ import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.CubeViewSlot;
+import br.com.wdc.framework.cube.Prop;
 import br.com.wdc.framework.cube.ViewState;
 import br.com.wdc.framework.domain.security.AuthenticationService;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
@@ -36,22 +37,22 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     // :: Public Instance Fields
 
-    public static class HomeViewState implements ViewState {
+    public static class HomeViewState extends ViewState {
 
-        public CubeView contentView;
-        public CubeView productsPanelView;
-        public CubeView purchasesPanelView;
-        public String nickName;
-        public int cartItemCount;
-        public int errorCode;
-        public String errorMessage;
+        public final Prop<CubeView> contentView = prop();
+        public final Prop<CubeView> productsPanelView = prop();
+        public final Prop<CubeView> purchasesPanelView = prop();
+        public final Prop<String> nickName = prop();
+        public final Prop<Integer> cartItemCount = prop(0);
+        public final Prop<Integer> errorCode = prop(0);
+        public final Prop<String> errorMessage = prop();
 
         public Action onOpenCart = Action.NOOP;
         public Action onExit = Action.NOOP;
 
     }
 
-    public final HomeViewState state = new HomeViewState();
+    public final HomeViewState state = bind(new HomeViewState());
 
     // :: Internal Instance Fields
 
@@ -79,18 +80,18 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     @Override
     public void release() {
-        this.state.contentView = null;
+        this.state.contentView.set(null);
 
         if (this.productsPanel != null) {
             this.productsPanel.release();
             this.productsPanel = null;
-            this.state.productsPanelView = null;
+            this.state.productsPanelView.set(null);
         }
 
         if (this.purchasesPanel != null) {
             this.purchasesPanel.release();
             this.purchasesPanel = null;
-            this.state.purchasesPanelView = null;
+            this.state.purchasesPanelView.set(null);
         }
 
         this.app.setCart(null);
@@ -119,13 +120,13 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
             this.ownerSlot = keys.parentSlot();
             this.view = createView.apply(this);
 
-            this.state.nickName = this.app.getSubject().getNickName();
+            this.state.nickName.set(this.app.getSubject().getNickName());
 
             this.productsPanel = new ProductsPanelPresenter(this.app, this);
-            this.state.productsPanelView = this.productsPanel.initialize();
+            this.state.productsPanelView.set(this.productsPanel.initialize());
 
             this.purchasesPanel = new PurchasesPanelPresenter(this.app, this);
-            this.state.purchasesPanelView = this.purchasesPanel.initialize();
+            this.state.purchasesPanelView.set(this.purchasesPanel.initialize());
 
             this.cart = new CartManager(app);
             this.onCartCommitListenerRemover = this.cart.addCommitListener(this::onCartCommited);
@@ -157,10 +158,7 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
     @Override
     public void commitComputedState() {
         var newCartItemCount = this.cart != null ? this.cart.getItemCount() : 0;
-        if (this.state.cartItemCount != newCartItemCount) {
-            this.state.cartItemCount = newCartItemCount;
-            this.update();
-        }
+        this.state.cartItemCount.set(newCartItemCount);
     }
 
     // :: User Actions
@@ -175,15 +173,14 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
     }
 
     private void onCartChanged() {
-        this.state.cartItemCount = this.cart.getItemCount();
-        this.update();
+        this.state.cartItemCount.set(this.cart.getItemCount());
     }
 
     /** Called from inside the purchases panel's guarded action. */
     public void openReceipt(Long purchaseId) {
         if (purchaseId == null || purchaseId < 0) {
             this.alertPurchaseIdRequired();
-            LOG.warn("openReceipt: {}", this.state.errorMessage);
+            LOG.warn("openReceipt: {}", this.state.errorMessage.get());
             return;
         }
 
@@ -191,7 +188,7 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
             new ReceiptKeys(this.app).withPurchaseId(purchaseId).flip();
         } catch (ProductNotFoundException caught) {
             this.alertPurchaseNotFound();
-            LOG.warn("{}: purchaseId={}", this.state.errorMessage, purchaseId);
+            LOG.warn("{}: purchaseId={}", this.state.errorMessage.get(), purchaseId);
         }
     }
 
@@ -199,7 +196,7 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
     public void openProduct(Long productId) {
         if (productId == null || productId < 0) {
             this.alertProductIdRequired();
-            LOG.warn("openProduct: {}", this.state.errorMessage);
+            LOG.warn("openProduct: {}", this.state.errorMessage.get());
             return;
         }
 
@@ -207,7 +204,7 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
             new ProductKeys(this.app).withProductId(productId).flip();
         } catch (ProductNotFoundException caught) {
             this.alertProductNotFound();
-            LOG.warn("{}: productId={}", this.state.errorMessage, productId);
+            LOG.warn("{}: productId={}", this.state.errorMessage.get(), productId);
         }
     }
 
@@ -232,35 +229,30 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
     // :: Messages
 
     private void alertProductNotFound() {
-        this.state.errorCode = 3;
-        this.state.errorMessage = "Código do produto não localizado.";
-        this.update();
+        this.state.errorCode.set(3);
+        this.state.errorMessage.set("Código do produto não localizado.");
     }
 
     private void alertPurchaseNotFound() {
-        this.state.errorCode = 5;
-        this.state.errorMessage = "Código do recibo não localizado.";
-        this.update();
+        this.state.errorCode.set(5);
+        this.state.errorMessage.set("Código do recibo não localizado.");
     }
 
     private void alertProductIdRequired() {
-        this.state.errorCode = 6;
-        this.state.errorMessage = "Código do produto é um argumento obrigatório.";
-        this.update();
+        this.state.errorCode.set(6);
+        this.state.errorMessage.set("Código do produto é um argumento obrigatório.");
     }
 
     private void alertPurchaseIdRequired() {
-        this.state.errorCode = 7;
-        this.state.errorMessage = "Código do recibo é um argumento obrigatório.";
-        this.update();
+        this.state.errorCode.set(7);
+        this.state.errorMessage.set("Código do recibo é um argumento obrigatório.");
     }
 
     // :: Slots
 
     private void setContentView(CubeView view) {
-        if (this.state.contentView != view) {
-            this.state.contentView = view;
-            this.update();
+        if (this.state.contentView.get() != view) {
+            this.state.contentView.set(view);
 
             // Reload purchases when returning to the main view
             if (view == null && this.purchasesPanel != null) {

@@ -251,9 +251,9 @@ public void doUpdate() {
         this.notRendered = false;
     }
 
-    if (!Objects.equals(this.oldNickName, this.state.nickName)) {
-        this.nickNameElm.setText(this.state.nickName);
-        this.oldNickName = this.state.nickName;
+    if (!Objects.equals(this.oldNickName, this.state.nickName.get())) {
+        this.nickNameElm.setText(this.state.nickName.get());
+        this.oldNickName = this.state.nickName.get();
     }
 }
 ```
@@ -290,7 +290,7 @@ O mecanismo `newListSlot` sincroniza uma lista de dados (do ViewState) com views
 this.contentSlot = this.newListSlot(container, this::newItemView, this::updateItem);
 
 // Na doUpdate:
-this.contentSlot.accept(this.state.products, this.itemViewList);
+this.contentSlot.accept(this.state.products.get(), this.itemViewList);
 ```
 
 A operação `container.remove(view.getElement())` e `container.add(view.getElement())` do Vaadin é O(1) no servidor; o delta é enviado ao browser via push.

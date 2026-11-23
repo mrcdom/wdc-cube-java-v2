@@ -48,7 +48,7 @@ public class ReceiptViewSwt extends AbstractViewSwt {
             root.setLayout(rootLayout);
 
             // Success banner (conditional)
-            if (state != null && state.notifySuccess) {
+            if (state != null && state.notifySuccess.get()) {
                 renderSuccessBanner(dom);
             }
 
@@ -120,8 +120,8 @@ public class ReceiptViewSwt extends AbstractViewSwt {
                     lbl.setBackground(Theme.BG_PAGE);
                 });
 
-                var dateStr = state != null && state.receipt != null && state.receipt.date != null
-                        ? dateFormat.format(new Date(state.receipt.date))
+                var dateStr = state != null && state.receipt.get() != null && state.receipt.get().date != null
+                        ? dateFormat.format(new Date(state.receipt.get().date))
                         : "--";
                 dom.label(lbl -> {
                     lbl.setText(dateStr);
@@ -192,8 +192,8 @@ public class ReceiptViewSwt extends AbstractViewSwt {
             });
 
             // Items
-            if (state != null && state.receipt != null && state.receipt.items != null) {
-                for (var item : state.receipt.items) {
+            if (state != null && state.receipt.get() != null && state.receipt.get().items != null) {
+                for (var item : state.receipt.get().items) {
                     dom.row(3, row -> {
                         row.setLayoutData(gdFillH(new GridData()));
                         row.setBackground(Theme.BG_PAGE);
@@ -253,8 +253,8 @@ public class ReceiptViewSwt extends AbstractViewSwt {
                     lbl.setLayoutData(gdFillH(new GridData()));
                 });
 
-                var totalStr = state != null && state.receipt != null && state.receipt.total != null
-                        ? Theme.formatPrice(state.receipt.total)
+                var totalStr = state != null && state.receipt.get() != null && state.receipt.get().total != null
+                        ? Theme.formatPrice(state.receipt.get().total)
                         : "R$ 0,00";
                 dom.label(lbl -> {
                     lbl.setText(totalStr);

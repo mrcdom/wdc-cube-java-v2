@@ -38,22 +38,22 @@ class HomeViewSwtRemote extends HomeViewSwt {
 		var state = new HomeViewState();
 		var contentId = s.getString("contentViewId");
 		if (contentId != null) {
-			state.contentView = this.ctx.viewLookup(contentId);
+			state.contentView.set(this.ctx.viewLookup(contentId));
 		}
 		var productsPanelId = s.getString("productsPanelViewId");
 		if (productsPanelId != null) {
-			state.productsPanelView = this.ctx.viewLookup(productsPanelId);
+			state.productsPanelView.set(this.ctx.viewLookup(productsPanelId));
 		}
 		var purchasesPanelId = s.getString("purchasesPanelViewId");
 		if (purchasesPanelId != null) {
-			state.purchasesPanelView = this.ctx.viewLookup(purchasesPanelId);
+			state.purchasesPanelView.set(this.ctx.viewLookup(purchasesPanelId));
 		}
-		state.nickName = s.getString("nickName");
+		state.nickName.set(s.getString("nickName"));
 		var cartCount = s.getLong("cartItemCount");
-		state.cartItemCount = cartCount != null ? cartCount.intValue() : 0;
-		state.errorMessage = s.getString("errorMessage");
+		state.cartItemCount.set(cartCount != null ? cartCount.intValue() : 0);
+		state.errorMessage.set(s.getString("errorMessage"));
 		var code = s.getLong("errorCode");
-		state.errorCode = code != null ? code.intValue() : 0;
+		state.errorCode.set(code != null ? code.intValue() : 0);
 		return state;
 	}
 }

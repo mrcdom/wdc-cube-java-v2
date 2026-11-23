@@ -60,9 +60,9 @@ public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
             this.notRendered = false;
         }
 
-        this.grid.setItems(this.state.items);
+        this.grid.setItems(this.state.items.get());
 
-        boolean empty = this.state.items.isEmpty();
+        boolean empty = this.state.items.get().isEmpty();
         this.emptyCartPane.setVisible(empty);
         this.grid.setVisible(!empty);
         this.footerPane.setVisible(!empty);
@@ -81,11 +81,12 @@ public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
             this.totalCostOldValue = totalCostNewValue;
         }
 
-        if (this.state.errorCode != 0) {
-            Notification.show(this.state.errorMessage, 5000, Notification.Position.TOP_CENTER)
+        if (this.state.errorCode.get() != 0) {
+            Notification.show(this.state.errorMessage.get(), 5000, Notification.Position.TOP_CENTER)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
-            this.state.errorCode = 0;
-            this.state.errorMessage = null;
+            // Consumed while drawing: a redraw now would take the message away
+            this.state.errorCode.setSilently(0);
+            this.state.errorMessage.setSilently(null);
         }
     }
 
@@ -104,7 +105,7 @@ public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
             });
 
             dom.h3(h -> {
-                h.setText("Carrinho [" + this.state.items.size() + "]");
+                h.setText("Carrinho [" + this.state.items.get().size() + "]");
                 h.getStyle().set("margin", "0 0 0 8px");
             });
         });
@@ -217,7 +218,7 @@ public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
     }
 
     private double computeTotalCost() {
-        return this.state.items.stream().mapToDouble(v -> v.price * v.quantity).sum();
+        return this.state.items.get().stream().mapToDouble(v -> v.price * v.quantity).sum();
     }
 
     private String formatCurrency(double value) {

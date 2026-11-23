@@ -89,15 +89,15 @@ public class ProductSharedView extends SharedVDomView {
     @Override
     public VNode render() {
         var state = stateSupplier.get();
-        var errorMessage = state.errorMessage;
+        var errorMessage = state.errorMessage.get();
         var showError = errorMessage != null && !errorMessage.isEmpty();
 
         String name = "";
         String image = "";
         String price = "";
         String description = "";
-        if (state.product != null) {
-            var p = state.product;
+        if (state.product.get() != null) {
+            var p = state.product.get();
             name = p.name != null ? p.name : "";
             image = p.image != null ? imageResolver.apply(p.image) : "";
             price = p.price > 0 ? "R$ " + String.format("%.2f", p.price) : "";

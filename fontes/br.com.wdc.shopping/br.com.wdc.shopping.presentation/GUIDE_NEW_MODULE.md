@@ -38,11 +38,12 @@ import org.apache.commons.lang3.StringUtils;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
 import br.com.wdc.framework.cube.ViewState;
 
-public class WishlistViewState implements ViewState {
+public class WishlistViewState extends ViewState {
 
-    public List<WishlistItem> items;
-    public int errorCode;
-    public String errorMessage;
+    // Campos observados: set() de um valor diferente pede o redesenho sozinho
+    public final Prop<List<WishlistItem>> items = prop(List.of());
+    public final Prop<Integer> errorCode = prop(0);
+    public final Prop<String> errorMessage = prop();
 
     // Ações que a view dispara — o presenter as liga no construtor; o serializador as ignora
     public ActionOf<Long> onRemoveItem = ActionOf.noop();
@@ -146,8 +147,8 @@ public class WishlistPresenter extends AbstractCubePresenter<ShoppingApplication
     // :: Data load
 
     private void loadItems() {
-        this.state.items = WishlistService.BEAN.loadItems(this.app.getSubject().getId());
-        this.update(); // marca a view como dirty → será enviada ao frontend
+        // A lista nova pede o redesenho (a view será marcada dirty e enviada ao frontend)
+        this.state.items.set(WishlistService.BEAN.loadItems(this.app.getSubject().getId()));
     }
 }
 ```
@@ -155,7 +156,7 @@ public class WishlistPresenter extends AbstractCubePresenter<ShoppingApplication
 **Pontos-chave:**
 - `createView` é `static` e será atribuída pelo skeleton
 - `applyParameters()` é chamado pelo sistema de navegação
-- `this.update()` marca a view como "dirty" para envio ao frontend
+- O state é criado com `bind(new WishlistViewState())`: `set` de um valor diferente numa `Prop` marca a view como "dirty" para envio ao frontend, sem `this.update()`. Este só é preciso quando se mexe *dentro* de um valor já atribuído (um item de uma lista)
 - Ações são campos do state (`Action`, `ActionOf<T>`, `ActionOf2<T, U>`) ligados no construtor com `action(...)`/`actionOf(...)`/`actionOf2(...)`. A guarda manda a falha não tratada para `app.alertUnexpectedError()` e, ao fim, republica o endereço — o corpo não tem `try/catch` genérico, só trata as falhas esperadas
 - Erros de validação usam `errorCode` + `errorMessage` no state
 
@@ -422,7 +423,7 @@ E no frontend, adicionar um botão ou link que emita o evento correspondente.
 ## Resumo — Checklist
 
 - [ ] **Presentation**
-  - [ ] Criar `WishlistViewState implements ViewState` com `write()`
+  - [ ] Criar `WishlistViewState extends ViewState` (campos `Prop`, criados com `prop(...)`)
   - [ ] Criar `WishlistPresenter extends AbstractCubePresenter<ShoppingApplication>`
   - [ ] Criar `WishlistService` (enum BEAN) se precisar de dados
   - [ ] Criar DTOs em `structs/` com `projection()` + `create()`
@@ -476,7 +477,7 @@ O presenter pai instancia e gerencia o ciclo de vida:
 ```java
 // Em HomePresenter.applyParameters():
 this.wishlistPanel = new WishlistPanelPresenter(this.app, this);
-this.state.wishlistPanelView = this.wishlistPanel.initialize();
+this.state.wishlistPanelView.set(this.wishlistPanel.initialize());
 ```
 
 O `AbstractChildPresenter`:
