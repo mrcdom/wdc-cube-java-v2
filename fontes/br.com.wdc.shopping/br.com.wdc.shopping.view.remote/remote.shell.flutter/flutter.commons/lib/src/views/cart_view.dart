@@ -9,9 +9,7 @@ import 'package:remote_bridge_flutter/remote_bridge_flutter.dart';
 
 /// Actions
 const _onBuy = 1;
-const _onRemove = 2;
 const _onBack = 3;
-const _onModifyQuantity = 4;
 
 /// CartView — shopping cart with items, quantity controls, and checkout.
 class CartView extends BaseView {
@@ -27,11 +25,11 @@ class _CartViewState extends BaseViewState<CartView> {
   @override
   Widget build(BuildContext context) {
     final state = viewState;
-    final items = (state['items'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+    // The rows are views of their own (CartItemView), referred to by id in the cart's order
+    final rows = (state['rowsViewIds'] as List?)?.cast<String>() ?? [];
     final errorMessage = state['errorMessage'] as String?;
-    final empty = items.isEmpty;
-    final total = items.fold<double>(
-        0, (sum, item) => sum + ((item['price'] as num?)?.toDouble() ?? 0) * ((item['quantity'] as num?)?.toInt() ?? 0));
+    final empty = rows.isEmpty;
+    final total = (state['total'] as num?)?.toDouble() ?? 0.0;
 
     return PageCard(
       children: [
@@ -75,7 +73,7 @@ class _CartViewState extends BaseViewState<CartView> {
         ],
         // Items list
         if (!empty) ...[
-          ...items.map(_buildItem),
+          ...rows.map(slot),
           // Footer total
           Container(
             padding: const EdgeInsets.only(top: 16),
@@ -117,59 +115,6 @@ class _CartViewState extends BaseViewState<CartView> {
     );
   }
 
-  Widget _buildItem(Map<String, dynamic> item) {
-    final id = (item['id'] as num?)?.toInt() ?? 0;
-    final name = item['name'] as String? ?? '';
-    final price = (item['price'] as num?)?.toDouble() ?? 0.0;
-    final quantity = (item['quantity'] as num?)?.toInt() ?? 0;
-    final subtotal = price * quantity;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: appBorder)),
-      ),
-      child: Row(
-        children: [
-          Expanded(child: Text(name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500))),
-          IconButton(
-            icon: const Icon(Icons.remove, size: 16),
-            onPressed: quantity > 1 ? () => _emitModifyQuantity(id, quantity - 1) : null,
-            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-            padding: EdgeInsets.zero,
-          ),
-          Text('$quantity', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
-          IconButton(
-            icon: const Icon(Icons.add, size: 16),
-            onPressed: () => _emitModifyQuantity(id, quantity + 1),
-            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-            padding: EdgeInsets.zero,
-          ),
-          const SizedBox(width: 4),
-          Text(formatCurrency(subtotal),
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: appAccent)),
-          IconButton(
-            icon: const Icon(Icons.close, size: 16, color: appDanger),
-            onPressed: () => _emitRemove(id),
-            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-            padding: EdgeInsets.zero,
-          ),
-        ],
-      ),
-    );
-  }
-
   void _emitBack() => submit(_onBack);
   void _emitBuy() => submit(_onBuy);
-
-  void _emitModifyQuantity(int productId, int quantity) {
-    setFormField('p.productId', productId);
-    setFormField('p.quantity', quantity);
-    submit(_onModifyQuantity);
-  }
-
-  void _emitRemove(int productId) {
-    setFormField('p.productId', productId);
-    submit(_onRemove);
-  }
 }
