@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.structs.CartItem;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.impl.CartViewSwt;
@@ -44,12 +44,12 @@ class CartViewSwtRemote extends CartViewSwt {
 		this.ctx.submitEvent(this.vsid, 4, Map.of("p.productId", id, "p.quantity", qty));
 	}
 
-	private CartViewState stateSupplierImpl() {
+	private CartScope stateSupplierImpl() {
 		var s = this.ctx.viewState(this.vsid);
 		if (s == null) {
 			return null;
 		}
-		var state = new CartViewState();
+		var state = new CartScope();
 		state.errorMessage.set(s.getString("errorMessage"));
 		var code = s.getLong("errorCode");
 		state.errorCode.set(code != null ? code.intValue() : 0);

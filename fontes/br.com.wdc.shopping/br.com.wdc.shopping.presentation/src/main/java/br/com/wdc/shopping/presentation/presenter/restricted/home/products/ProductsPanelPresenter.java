@@ -10,7 +10,7 @@ import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.FormParam;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.Prop;
-import br.com.wdc.framework.cube.ViewState;
+import br.com.wdc.framework.cube.Scope;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductService;
@@ -30,7 +30,7 @@ public class ProductsPanelPresenter extends AbstractChildPresenter<ShoppingAppli
 
     // :: View State
 
-    public static class ProductsPanelViewState extends ViewState {
+    public static class ProductsPanelScope extends Scope {
 
         public final Prop<List<ProductInfo>> products = prop();
 
@@ -38,7 +38,7 @@ public class ProductsPanelPresenter extends AbstractChildPresenter<ShoppingAppli
 
     }
 
-    public final ProductsPanelViewState state = bind(new ProductsPanelViewState());
+    public final ProductsPanelScope state = bind(new ProductsPanelScope());
 
     // :: Public Instance Fields
 

@@ -16,7 +16,7 @@
 [Composições de View — Slots](#composições-de-view-slots)  
 [A Camada de Visão — Cinco Implementações Independentes](#a-camada-de-visão-cinco-implementações-independentes)  
 [Apresentação Remota — O Protocolo Host/Shell](#apresentação-remota-o-protocolo-hostshell)  
-[O ViewState como Contrato de Serialização](#o-viewstate-como-contrato-de-serialização)  
+[O Scope como Contrato de Serialização](#o-scope-como-contrato-de-serialização)  
 [Conclusões](#conclusões)  
 [Trabalhos Futuros](#trabalhos-futuros)
 
@@ -178,7 +178,7 @@ A separação é estrutural, não apenas conceitual: o módulo `shopping.present
 
 O Cube MVP é uma variação do Passive View com dois princípios centrais:
 
-1. **A View tem acesso ao ViewState, mas não ao Presenter.** O ViewState é um objeto Java simples com campos públicos — o estado público da tela. O Presenter é responsável por nutrir o ViewState antes de sinalizar `update()`.
+1. **A View tem acesso ao Scope, mas não ao Presenter.** O Scope é um objeto Java simples com campos públicos (`Prop`s e ações) — o estado público da tela. O Presenter é responsável por nutrir o Scope antes de sinalizar `update()`.
 
 2. **Nenhuma consulta cruzada entre Presenter e View.** O Presenter notifica a View via `view.update()`. A View notifica o Presenter via chamadas diretas de método (os handlers `onXxx`). Não há retorno de valores nessas comunicações.
 
@@ -186,7 +186,7 @@ O nome "Cube" reflete a terceira dimensão da arquitetura: além do eixo Present
 
 ### O Presenter
 
-Todo Presenter navegável estende `AbstractCubePresenter<ShoppingApplication>` e define seu ViewState como classe interna estática:
+Todo Presenter navegável estende `AbstractCubePresenter<ShoppingApplication>` e define seu Scope como classe interna estática:
 
 ```java
 public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
@@ -194,9 +194,9 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
     // Factory de view — substituível (testes, implementações alternativas)
     public static Function<CartPresenter, CubeView> createView;
 
-    // ViewState — estado público, lido pela view para renderização. Cada campo observado é uma Prop:
+    // Scope — estado público, lido pela view para renderização. Cada campo observado é uma Prop:
     // set() compara com equals e, se mudou, pede o redesenho — o presenter não chama update() depois
-    public static class CartViewState extends ViewState {
+    public static class CartScope extends Scope {
         public final Prop<List<CartItem>> items = prop(Collections.emptyList());
         public final Prop<Integer> errorCode = prop(0);
         public final Prop<String> errorMessage = prop();
@@ -206,7 +206,7 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
     }
 
     // bind: o presenter passa a ser avisado quando uma prop do estado muda
-    public final CartViewState state = bind(new CartViewState());
+    public final CartScope state = bind(new CartScope());
 
     private CubeViewSlot ownerSlot;
 
@@ -369,7 +369,7 @@ classDiagram
         +release()
     }
 
-    class ViewState {
+    class Scope {
         <<abstract>>
         #prop(initial) Prop
         +setUpdater(updater)
@@ -410,14 +410,14 @@ classDiagram
 
     CubePresenter <|.. AbstractCubePresenter
     AbstractCubePresenter --> CubeView
-    AbstractCubePresenter --> ViewState : estado
+    AbstractCubePresenter --> Scope : estado
     CubePlace --> CubePresenter : instancia
     CubeIntent --> CubeViewSlot
     CubeView --> CubeViewSlot : compõe em
     CubeApplication --> AbstractCubePresenter : mantém
 ```
 
-A aplicação é um grafo de instâncias de `AbstractCubePresenter`. Cada instância conhece seu ViewState (o campo `state`) e sua View (o campo `view`). A relação entre Presenter e View passa exclusivamente pela interface `CubeView` — nenhuma implementação de view é referenciada diretamente pelo Presenter.
+A aplicação é um grafo de instâncias de `AbstractCubePresenter`. Cada instância conhece seu Scope (o campo `state`) e sua View (o campo `view`). A relação entre Presenter e View passa exclusivamente pela interface `CubeView` — nenhuma implementação de view é referenciada diretamente pelo Presenter.
 
 ---
 
@@ -477,8 +477,8 @@ public interface CubeView {
 ### O Ciclo de Vida de uma View
 
 1. O Presenter chama `createView.apply(this)` — a factory registrada instancia a view e passa a si mesmo como argumento.  
-2. A view armazena a referência ao Presenter e ao ViewState.  
-3. Quando `update()` é chamado, a view lê os campos do ViewState e reconcilia a interface.  
+2. A view armazena a referência ao Presenter e ao Scope.  
+3. Quando `update()` é chamado, a view lê os campos do Scope e reconcilia a interface.  
 4. Quando o usuário interage, a view chama diretamente o método `onXxx` no Presenter.  
 5. Quando `release()` é chamado, a view libera recursos.
 
@@ -532,7 +532,7 @@ public class CartViewVDom extends AbstractVDomView<CartPresenter> {
 **view.remote / remote.shell.react** — Shell React em TypeScript. A view é um componente funcional que renderiza o estado recebido via WebSocket e emite eventos de volta:
 
 ```tsx
-const CartView: React.FC<{ scope: ViewScope<CartViewState> }> = ({ scope }) => {
+const CartView: React.FC<{ scope: ViewScope<CartScope> }> = ({ scope }) => {
   const state = scope.useSnapshot();
   return (
     <Stack>
@@ -549,7 +549,7 @@ const CartView: React.FC<{ scope: ViewScope<CartViewState> }> = ({ scope }) => {
 
 ```dart
 class CartViewWidget extends StatelessWidget {
-  final ViewScope<CartViewState> scope;
+  final ViewScope<CartScope> scope;
   const CartViewWidget({required this.scope});
 
   @override
@@ -610,7 +610,7 @@ Adicionalmente, a URL da sessão é assinada com HMAC-SHA256, impedindo que um c
 
 Uma propriedade crucial do protocolo é que apenas os ViewStates que mudaram (*dirty*) são enviados a cada ciclo. Isso é possível porque o Presenter marca explicitamente sua view como dirty ao chamar `app.markDirty(view)`. O host coleta apenas as views marcadas, serializa seus ViewStates para JSON e transmite o delta.
 
-O ViewState é serializado pelo `ViewStateSerializer` do framework, que inspeciona os campos `public` por reflection:
+O Scope é serializado pelo `ScopeSerializer` do framework, que inspeciona os campos `public` por reflection:
 
 ```json
 {
@@ -631,19 +631,19 @@ Cada sessão WebSocket é gerenciada por uma Virtual Thread (Java 21). Diferente
 
 ---
 
-## O ViewState como Contrato de Serialização
+## O Scope como Contrato de Serialização
 
-Além de ser o estado público lido pela view para renderização, o `ViewState` serve como contrato de serialização para o modo remoto.
+Além de ser o estado público lido pela view para renderização, o `Scope` serve como contrato de serialização para o modo remoto.
 
-A interface `ViewState` é puramente marcadora — sem métodos. A serialização é feita exclusivamente pelo `ViewStateSerializer` do framework:
+O `Scope` não implementa serialização: seus campos são `Prop`s (e as ações, campos comuns). A serialização é feita exclusivamente pelo `ScopeSerializer` do framework:
 
-- Itera todos os campos `public` do ViewState via reflection
+- Itera todos os campos `public` do Scope via reflection
 - Pula campos `static` e `transient`
 - Injeta `"#": instanceId` como primeiro campo do objeto JSON
-- Serializa campos `CubeView`/`ViewState` como `"<nome>Id": vsid` (referência por ID)
+- Serializa campos `CubeView`/`Scope` como `"<nome>Id": vsid` (referência por ID)
 - Suporta primitivos, `String`, coleções, `Map`, `Record` e POJOs com campos públicos
 
-O `ViewState` em si nunca implementa lógica de serialização — isso é responsabilidade do framework, não do código de aplicação.
+O `Scope` em si nunca implementa lógica de serialização — isso é responsabilidade do framework, não do código de aplicação.
 
 ---
 
@@ -655,7 +655,7 @@ Os princípios que se mostraram mais duradouros:
 
 **A hierarquia de Presenters como unidade de modularidade.** A divisão do estado da aplicação em Presenters hierárquicos mantém a complexidade localizada. Adicionar um novo módulo significa criar um novo Presenter e a sua classe de chaves (que declara o place), listá-la em `ShoppingApplication.PLACES` e implementar uma view em cada tecnologia de interesse — sem tocar no restante da aplicação.
 
-**O ViewState como fronteira entre lógica e apresentação.** O ViewState é simultaneamente simples (campos públicos Java) e poderoso (serialização automática, diff incremental no modo remoto). Ele resolve o problema de transferência de dados sem criar objetos de transferência de valor separados — o mesmo objeto serve ao Presenter para nutrir a view e ao protocolo remoto para transmitir o estado.
+**O Scope como fronteira entre lógica e apresentação.** O Scope é simultaneamente simples (campos públicos Java) e poderoso (serialização automática, diff incremental no modo remoto). Ele resolve o problema de transferência de dados sem criar objetos de transferência de valor separados — o mesmo objeto serve ao Presenter para nutrir a view e ao protocolo remoto para transmitir o estado.
 
 **O slot como mecanismo de composição sem acoplamento.** O slot isola o Presenter pai do filho. O pai não sabe qual tipo de Presenter filho estará no slot — apenas que receberá uma `CubeView`. O filho não sabe em que parte da tela pai ele estará.
 
@@ -672,4 +672,4 @@ A escolha do Java foi determinante. O sistema de tipos estático elimina uma cla
 - **Carga dinâmica de módulos**: a arquitetura suporta o conceito, mas não há implementação de referência para lazy loading de módulos Java no modo remoto.  
 - **Rascunhos persistentes**: a instância da aplicação no backend pode ser descartada por diversos motivos — reinício do servidor, fechamento e reabertura da página, expiração de sessão. Ao retomar, o Presenter poderia usar um identificador presente na URL para buscar em storage externo (banco de dados, Redis, etc.) os dados de rascunho previamente salvos. Para o usuário, seria imperceptível que se trata de uma nova instância de aplicação no backend — o estado do formulário estaria preservado exatamente como foi deixado.  
 - **Portabilidade do modo remoto para outros ambientes**: o protocolo host/shell está documentado o suficiente para ser implementado em Swift (iOS nativo) ou Kotlin (Android nativo) sem Flutter.  
-- **Testes de integração end-to-end do protocolo remoto**: hoje os fluxos de navegação são testados via views mock. Seria valioso adicionar testes que exercitem o ciclo completo — WebSocket → Presenter → ViewState serializado → deserialização no shell.
+- **Testes de integração end-to-end do protocolo remoto**: hoje os fluxos de navegação são testados via views mock. Seria valioso adicionar testes que exercitem o ciclo completo — WebSocket → Presenter → Scope serializado → deserialização no shell.

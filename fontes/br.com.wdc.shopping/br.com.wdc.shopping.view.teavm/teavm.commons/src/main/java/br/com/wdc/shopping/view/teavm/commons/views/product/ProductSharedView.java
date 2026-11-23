@@ -16,7 +16,7 @@ import java.util.function.UnaryOperator;
 import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter.ProductViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter.ProductScope;
 import br.com.wdc.shopping.view.teavm.commons.SelComponents;
 import br.com.wdc.shopping.view.teavm.commons.SelIcons;
 import br.com.wdc.shopping.view.teavm.commons.SelUtility;
@@ -58,7 +58,7 @@ public class ProductSharedView extends SharedVDomView {
 
     // -- External bindings --
 
-    public Supplier<ProductViewState> stateSupplier;
+    public Supplier<ProductScope> stateSupplier;
     public Runnable onBack;
     public Consumer<Integer> onAddToCart;
     public UnaryOperator<String> imageResolver = path -> "/" + path;

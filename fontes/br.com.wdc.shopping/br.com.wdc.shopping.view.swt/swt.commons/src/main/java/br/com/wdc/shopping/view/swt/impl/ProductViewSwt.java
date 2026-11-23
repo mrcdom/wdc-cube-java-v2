@@ -11,7 +11,7 @@ import org.eclipse.swt.widgets.Label;
 import java.util.function.IntConsumer;
 import java.util.function.Supplier;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter.ProductViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter.ProductScope;
 import br.com.wdc.shopping.view.swt.AbstractViewSwt;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.components.ErrorBanner;
@@ -23,7 +23,7 @@ import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
 
 public class ProductViewSwt extends AbstractViewSwt {
 
-    public Supplier<ProductViewState> stateSupplier;
+    public Supplier<ProductScope> stateSupplier;
     public Runnable onOpenProducts;
     public IntConsumer onAddToCart;
 

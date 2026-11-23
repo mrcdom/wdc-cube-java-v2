@@ -24,7 +24,7 @@ br.com.wdc.shopping.view.teavm.commons/
 
 ## Dependências
 
-- `br.com.wdc.shopping.presentation` — ViewState classes (scope: provided; TeaVM faz tree-shaking)
+- `br.com.wdc.shopping.presentation` — Scope classes (scope: provided; TeaVM faz tree-shaking)
 - `org.teavm:teavm-jso` — JSO API (scope: provided)
 - `org.teavm:teavm-jso-apis` — APIs browser (scope: provided)
 

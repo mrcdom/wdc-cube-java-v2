@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter.ProductsPanelViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter.ProductsPanelScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
 import br.com.wdc.shopping.view.teavm.commons.views.home.ProductsPanelSharedView;
@@ -19,7 +19,7 @@ public class ProductsPanelView extends AbstractRemoteView {
     private static final int ON_OPEN_PRODUCT = 1;
 
     private final ProductsPanelSharedView shared;
-    private final ProductsPanelViewState adaptedState = new ProductsPanelViewState();
+    private final ProductsPanelScope adaptedState = new ProductsPanelScope();
 
     public ProductsPanelView(String vsid) {
         super(vsid);
@@ -37,7 +37,7 @@ public class ProductsPanelView extends AbstractRemoteView {
         return shared.renderTree();
     }
 
-    private ProductsPanelViewState adaptState() {
+    private ProductsPanelScope adaptState() {
         ViewScope scope = state();
         adaptedState.products.set(getProducts(scope));
         return adaptedState;

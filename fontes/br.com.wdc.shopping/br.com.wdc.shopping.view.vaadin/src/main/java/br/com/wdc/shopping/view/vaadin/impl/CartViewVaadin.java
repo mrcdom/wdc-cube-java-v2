@@ -17,7 +17,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.structs.CartItem;
 import br.com.wdc.shopping.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.shopping.view.vaadin.ShoppingVaadinApplication;
@@ -26,7 +26,7 @@ import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
 public class CartViewVaadin extends AbstractViewVaadin<CartPresenter> {
 
-    private final CartViewState state;
+    private final CartScope state;
 
     private boolean notRendered = true;
     private Grid<CartItem> grid;

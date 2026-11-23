@@ -12,7 +12,7 @@ import br.com.wdc.framework.cube.FormParam;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.CubeViewSlot;
 import br.com.wdc.framework.cube.Prop;
-import br.com.wdc.framework.cube.ViewState;
+import br.com.wdc.framework.cube.Scope;
 import br.com.wdc.framework.domain.exception.OfflineException;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
@@ -35,7 +35,7 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     // :: Public Instance Fields
 
-    public static class LoginViewState extends ViewState {
+    public static class LoginScope extends Scope {
 
         public final Prop<String> userName = prop();
         public final Prop<Integer> errorCode = prop(0);
@@ -46,7 +46,7 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     }
 
-    public final LoginViewState state = bind(new LoginViewState());
+    public final LoginScope state = bind(new LoginScope());
 
     // :: Internal Instance Fields
 

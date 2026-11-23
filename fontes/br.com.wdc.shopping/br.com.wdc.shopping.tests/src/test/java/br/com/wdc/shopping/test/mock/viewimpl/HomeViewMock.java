@@ -6,9 +6,9 @@ import org.junit.Assert;
 
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeViewState;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter.ProductsPanelViewState;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter.PurchasesPanelViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter.ProductsPanelScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter.PurchasesPanelScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
 import br.com.wdc.shopping.test.mock.ShoppingApplicationMock;
@@ -24,18 +24,18 @@ public class HomeViewMock extends AbstractViewMock<HomePresenter> {
         return (HomeViewMock) view;
     }
 
-    public HomeViewState state;
+    public HomeScope state;
 
     public HomeViewMock(HomePresenter presenter) {
         super(((ShoppingApplicationMock) presenter.app), presenter);
         this.state = presenter.state;
     }
 
-    public ProductsPanelViewState getProductsPanelState() {
+    public ProductsPanelScope getProductsPanelState() {
         return ProductsPanelViewMock.cast(this.state.productsPanelView.get()).state;
     }
 
-    public PurchasesPanelViewState getPurchasesPanelState() {
+    public PurchasesPanelScope getPurchasesPanelState() {
         return PurchasesPanelViewMock.cast(this.state.purchasesPanelView.get()).state;
     }
 

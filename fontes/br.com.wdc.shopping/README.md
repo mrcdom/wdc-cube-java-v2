@@ -103,7 +103,7 @@ Java compilado para JavaScript via TeaVM, empacotado como app nativo com Tauri 2
 
 - **Sem Spring, sem CDI, sem magia** — injeção via `AtomicReference<T> BEAN`, 100% explícito
 - **Separação real de concerns** — troque a UI inteira sem tocar em lógica (múltiplos frontends provam isso)
-- **Padrões sólidos** — Command, Repository, Presenter, ViewState
+- **Padrões sólidos** — Command, Repository, Presenter, Scope
 - **Tecnologia moderna** — Java 25, Virtual Threads, React 19, Vaadin 25, TypeScript
 - **Código limpo** — ~3.5s de build completo, zero warnings
 - **Segurança real** — RSA + PBKDF2 + AES-GCM (não apenas demonstrativo)

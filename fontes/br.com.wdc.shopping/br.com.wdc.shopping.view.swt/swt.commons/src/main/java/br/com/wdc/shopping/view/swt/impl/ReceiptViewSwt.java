@@ -9,7 +9,7 @@ import org.eclipse.swt.layout.GridLayout;
 
 import java.util.function.Supplier;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter.ReceiptViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter.ReceiptScope;
 import br.com.wdc.shopping.view.swt.AbstractViewSwt;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.theme.Surface;
@@ -19,7 +19,7 @@ import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
 
 public class ReceiptViewSwt extends AbstractViewSwt {
 
-    public Supplier<ReceiptViewState> stateSupplier;
+    public Supplier<ReceiptScope> stateSupplier;
     public Runnable onOpenProducts;
 
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
@@ -94,7 +94,7 @@ public class ReceiptViewSwt extends AbstractViewSwt {
         });
     }
 
-    private void renderBody(SwtDom dom, ReceiptViewState state) {
+    private void renderBody(SwtDom dom, ReceiptScope state) {
         dom.col(SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND, body -> {
             body.setLayoutData(gdFillH(new GridData()));
             body.setBackground(Theme.BG_PAGE);

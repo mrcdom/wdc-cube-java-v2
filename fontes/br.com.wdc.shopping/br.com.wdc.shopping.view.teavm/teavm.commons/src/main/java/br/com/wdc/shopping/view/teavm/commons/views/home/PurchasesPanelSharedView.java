@@ -14,7 +14,7 @@ import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
 import org.teavm.jso.dom.html.HTMLElement;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter.PurchasesPanelViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter.PurchasesPanelScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
 import br.com.wdc.shopping.view.teavm.commons.DateUtils;
 import br.com.wdc.shopping.view.teavm.commons.SelIcons;
@@ -56,7 +56,7 @@ public class PurchasesPanelSharedView extends SharedVDomView {
 
     // -- External bindings --
 
-    public Supplier<PurchasesPanelViewState> stateSupplier;
+    public Supplier<PurchasesPanelScope> stateSupplier;
     public Consumer<Long> onOpenReceipt;
     public Consumer<Integer> onPageChange;
     public Consumer<Integer> onPageSizeChanged;

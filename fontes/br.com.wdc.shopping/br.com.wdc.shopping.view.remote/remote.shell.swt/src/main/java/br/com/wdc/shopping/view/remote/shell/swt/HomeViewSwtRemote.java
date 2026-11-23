@@ -2,7 +2,7 @@ package br.com.wdc.shopping.view.remote.shell.swt;
 
 import java.util.Map;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.impl.HomeViewSwt;
 
@@ -30,12 +30,12 @@ class HomeViewSwtRemote extends HomeViewSwt {
 		this.ctx.submitEvent(this.vsid, 2, Map.of());
 	}
 
-	private HomeViewState stateSupplierImpl() {
+	private HomeScope stateSupplierImpl() {
 		var s = this.ctx.viewState(this.vsid);
 		if (s == null) {
 			return null;
 		}
-		var state = new HomeViewState();
+		var state = new HomeScope();
 		var contentId = s.getString("contentViewId");
 		if (contentId != null) {
 			state.contentView.set(this.ctx.viewLookup(contentId));

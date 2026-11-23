@@ -12,7 +12,7 @@ public class PropTest {
 
     // ── Helper ─────────────────────────────────────────────────────────
 
-    static class CounterState extends ViewState {
+    static class CounterState extends Scope {
         public final Prop<Integer> count = prop(0);
         public final Prop<String> message = prop();
         public final Prop<List<String>> lines = prop(List.of());

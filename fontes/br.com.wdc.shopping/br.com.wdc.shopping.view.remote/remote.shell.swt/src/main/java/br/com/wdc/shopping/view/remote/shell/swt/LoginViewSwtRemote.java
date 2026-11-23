@@ -1,6 +1,6 @@
 package br.com.wdc.shopping.view.remote.shell.swt;
 
-import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginViewState;
+import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginScope;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.impl.LoginViewSwt;
 
@@ -23,12 +23,12 @@ class LoginViewSwtRemote extends LoginViewSwt {
 		this.ctx.submitLogin(this.vsid, user, pass);
 	}
 
-	private LoginViewState stateSupplierImpl() {
+	private LoginScope stateSupplierImpl() {
 		var s = this.ctx.viewState(this.vsid);
 		if (s == null) {
 			return null;
 		}
-		var state = new LoginViewState();
+		var state = new LoginScope();
 		state.userName.set(s.getString("userName"));
 		state.errorMessage.set(s.getString("errorMessage"));
 		var code = s.getLong("errorCode");

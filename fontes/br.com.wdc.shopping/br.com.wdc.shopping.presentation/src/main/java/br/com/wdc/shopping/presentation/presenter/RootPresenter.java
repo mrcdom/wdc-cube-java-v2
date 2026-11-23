@@ -11,7 +11,7 @@ import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.CubeViewSlot;
 import br.com.wdc.framework.cube.Prop;
-import br.com.wdc.framework.cube.ViewState;
+import br.com.wdc.framework.cube.Scope;
 import br.com.wdc.framework.domain.security.AuthenticationService;
 import br.com.wdc.framework.domain.security.SecurityContext;
 import br.com.wdc.shopping.domain.user.UserCriteria;
@@ -30,14 +30,14 @@ public class RootPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     // :: Public Instance Fields
 
-    public static class RootViewState extends ViewState {
+    public static class RootScope extends Scope {
 
         public final Prop<CubeView> contentView = prop();
         public final Prop<String> errorMessage = prop();
 
     }
 
-    public final RootViewState state = bind(new RootViewState());
+    public final RootScope state = bind(new RootScope());
 
     // :: Internal Instance Fields
 

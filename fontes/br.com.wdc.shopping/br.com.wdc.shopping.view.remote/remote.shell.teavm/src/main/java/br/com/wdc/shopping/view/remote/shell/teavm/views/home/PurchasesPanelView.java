@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter.PurchasesPanelViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter.PurchasesPanelScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
 import br.com.wdc.shopping.view.teavm.commons.views.home.PurchasesPanelSharedView;
@@ -21,7 +21,7 @@ public class PurchasesPanelView extends AbstractRemoteView {
     private static final int ON_PAGE_SIZE_CHANGED = 3;
 
     private final PurchasesPanelSharedView shared;
-    private final PurchasesPanelViewState adaptedState = new PurchasesPanelViewState();
+    private final PurchasesPanelScope adaptedState = new PurchasesPanelScope();
 
     public PurchasesPanelView(String vsid) {
         super(vsid);
@@ -54,7 +54,7 @@ public class PurchasesPanelView extends AbstractRemoteView {
         return shared.renderTree();
     }
 
-    private PurchasesPanelViewState adaptState() {
+    private PurchasesPanelScope adaptState() {
         ViewScope scope = state();
         adaptedState.purchases.set(getPurchases(scope));
         adaptedState.page.set(scope.getInt("page"));

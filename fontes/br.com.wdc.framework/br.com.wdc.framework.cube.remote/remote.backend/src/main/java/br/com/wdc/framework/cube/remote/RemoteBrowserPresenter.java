@@ -15,7 +15,7 @@ import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.PresenterBase;
 import br.com.wdc.framework.cube.Prop;
-import br.com.wdc.framework.cube.ViewState;
+import br.com.wdc.framework.cube.Scope;
 
 /**
  * Generic browser presenter: represents the top-level browser view
@@ -25,7 +25,7 @@ import br.com.wdc.framework.cube.ViewState;
  */
 public class RemoteBrowserPresenter implements PresenterBase {
 
-    public static class BrowserState extends ViewState {
+    public static class BrowserScope extends Scope {
         public final Prop<String> instanceId = prop();
         public final Prop<Integer> alertId = prop(0);
         public final Prop<List<String>> alertArgs = prop(Collections.emptyList());
@@ -33,7 +33,7 @@ public class RemoteBrowserPresenter implements PresenterBase {
     }
 
     public final RemoteApplication app;
-    public final BrowserState state = new BrowserState();
+    public final BrowserScope state = new BrowserScope();
 
     private final CubeSkeleton skeleton = skeleton();
     private RemoteViewImpl view;

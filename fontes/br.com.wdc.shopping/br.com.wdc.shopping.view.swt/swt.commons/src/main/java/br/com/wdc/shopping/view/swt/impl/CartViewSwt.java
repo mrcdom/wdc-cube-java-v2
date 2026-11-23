@@ -19,7 +19,7 @@ import br.com.wdc.framework.commons.function.ThrowingBiConsumer;
 import br.com.wdc.framework.commons.function.ThrowingSupplier;
 import java.util.function.LongConsumer;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.structs.CartItem;
 import br.com.wdc.shopping.view.swt.AbstractViewSwt;
 import br.com.wdc.shopping.view.swt.SwtApp;
@@ -30,7 +30,7 @@ import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
 
 public class CartViewSwt extends AbstractViewSwt {
 
-    public Supplier<CartViewState> stateSupplier;
+    public Supplier<CartScope> stateSupplier;
     public Runnable onOpenProducts;
     public Runnable onBuy;
     public BiConsumer<Long, Integer> onModifyQuantity;

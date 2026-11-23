@@ -47,7 +47,7 @@ br.com.wdc.shopping.view.swt/
 
 ## Dependências
 
-- `br.com.wdc.shopping.presentation` — classes ViewState (apenas leitura de estado)
+- `br.com.wdc.shopping.presentation` — classes Scope (apenas leitura de estado)
 - `org.eclipse.platform:org.eclipse.swt.*` — via profile Maven (macos-aarch64, linux-x86_64, win32-x86_64)
 
 ## Build

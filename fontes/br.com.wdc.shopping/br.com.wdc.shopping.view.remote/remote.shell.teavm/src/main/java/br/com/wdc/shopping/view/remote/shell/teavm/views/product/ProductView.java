@@ -3,7 +3,7 @@ package br.com.wdc.shopping.view.remote.shell.teavm.views.product;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
-import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter.ProductViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter.ProductScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
 import br.com.wdc.shopping.view.teavm.commons.views.product.ProductSharedView;
@@ -18,7 +18,7 @@ public class ProductView extends AbstractRemoteView {
     private static final int ON_ADD_TO_CART = 2;
 
     private final ProductSharedView shared;
-    private final ProductViewState adaptedState = new ProductViewState();
+    private final ProductScope adaptedState = new ProductScope();
     private final ProductInfo adaptedProduct = new ProductInfo();
 
     public ProductView(String vsid) {
@@ -39,7 +39,7 @@ public class ProductView extends AbstractRemoteView {
         return shared.renderTree();
     }
 
-    private ProductViewState adaptState() {
+    private ProductScope adaptState() {
         ViewScope scope = state();
         adaptedState.errorMessage.set(scope.getString("errorMessage"));
         adaptedState.product.set(adaptProduct(scope));

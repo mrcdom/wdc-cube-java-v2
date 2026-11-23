@@ -13,7 +13,7 @@ import java.util.function.UnaryOperator;
 import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter.ProductsPanelViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter.ProductsPanelScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
 import br.com.wdc.shopping.view.teavm.commons.SharedVDomView;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
@@ -35,7 +35,7 @@ public class ProductsPanelSharedView extends SharedVDomView {
 
     // -- External bindings --
 
-    public Supplier<ProductsPanelViewState> stateSupplier;
+    public Supplier<ProductsPanelScope> stateSupplier;
     public Consumer<Long> onOpenProduct;
     public UnaryOperator<String> imageResolver = path -> "/" + path;
 

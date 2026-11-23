@@ -13,7 +13,7 @@ import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope;
 import br.com.wdc.shopping.view.swt.AbstractViewSwt;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.theme.Surface;
@@ -33,7 +33,7 @@ public class HomeViewSwt extends AbstractViewSwt {
     private static final int CART_BADGE_MIN_WIDTH = 18;
     private static final int CART_BADGE_H_PADDING = 6;
 
-    public Supplier<HomeViewState> stateSupplier;
+    public Supplier<HomeScope> stateSupplier;
     public Runnable onExit;
     public Runnable onOpenCart;
 

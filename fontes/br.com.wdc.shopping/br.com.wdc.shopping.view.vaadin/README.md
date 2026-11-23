@@ -284,7 +284,7 @@ VaadinDom.render(rootLayout, (dom, pane) -> {
 
 ### 5. Sincronização de Listas (newListSlot)
 
-O mecanismo `newListSlot` sincroniza uma lista de dados (do ViewState) com views filhas (componentes Vaadin), reutilizando instâncias existentes:
+O mecanismo `newListSlot` sincroniza uma lista de dados (do Scope) com views filhas (componentes Vaadin), reutilizando instâncias existentes:
 
 ```java
 this.contentSlot = this.newListSlot(container, this::newItemView, this::updateItem);

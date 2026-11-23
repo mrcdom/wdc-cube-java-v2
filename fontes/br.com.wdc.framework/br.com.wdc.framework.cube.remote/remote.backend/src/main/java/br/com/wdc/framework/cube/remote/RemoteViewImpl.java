@@ -6,7 +6,7 @@ import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
 import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.PresenterBase;
-import br.com.wdc.framework.cube.ViewState;
+import br.com.wdc.framework.cube.Scope;
 
 /**
  * Generic {@link CubeView} implementation for remote applications.
@@ -18,17 +18,17 @@ public class RemoteViewImpl implements CubeView {
 
     protected final RemoteApplication app;
     protected final PresenterBase presenter;
-    protected final ViewState state;
+    protected final Scope state;
     protected final CubeSkeleton skeleton;
     protected final String instanceId;
 
     protected int alertId;
 
-    public RemoteViewImpl(RemoteApplication app, PresenterBase presenter, ViewState state, CubeSkeleton skeleton) {
+    public RemoteViewImpl(RemoteApplication app, PresenterBase presenter, Scope state, CubeSkeleton skeleton) {
         this(app, presenter, state, skeleton, skeleton.classId() + ":" + app.nextInstanceId());
     }
 
-    public RemoteViewImpl(RemoteApplication app, PresenterBase presenter, ViewState state, CubeSkeleton skeleton,
+    public RemoteViewImpl(RemoteApplication app, PresenterBase presenter, Scope state, CubeSkeleton skeleton,
             String vsid) {
         this.app = app;
         this.presenter = presenter;
@@ -67,6 +67,6 @@ public class RemoteViewImpl implements CubeView {
     }
 
     public void writeState(ExtensibleObjectOutput json) {
-        new ViewStateSerializer(json).write(this.state, instanceId);
+        new ScopeSerializer(json).write(this.state, instanceId);
     }
 }

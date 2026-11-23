@@ -16,7 +16,7 @@ import java.util.function.Supplier;
 import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.structs.CartItem;
 import br.com.wdc.shopping.view.teavm.commons.SelComponents;
 import br.com.wdc.shopping.view.teavm.commons.SelIcons;
@@ -70,7 +70,7 @@ public class CartSharedView extends SharedVDomView {
 
     // -- External bindings --
 
-    public Supplier<CartViewState> stateSupplier;
+    public Supplier<CartScope> stateSupplier;
     public Runnable onBack;
     public Runnable onBuy;
     public BiConsumer<Long, Integer> onModifyQuantity;

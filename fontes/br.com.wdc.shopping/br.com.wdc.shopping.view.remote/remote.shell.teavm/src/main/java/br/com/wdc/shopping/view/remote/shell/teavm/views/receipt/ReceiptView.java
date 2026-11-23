@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
-import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter.ReceiptViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter.ReceiptScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptForm;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptItem;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
@@ -20,7 +20,7 @@ public class ReceiptView extends AbstractRemoteView {
     private static final int ON_BACK = 1;
 
     private final ReceiptSharedView shared;
-    private final ReceiptViewState adaptedState = new ReceiptViewState();
+    private final ReceiptScope adaptedState = new ReceiptScope();
 
     public ReceiptView(String vsid) {
         super(vsid);
@@ -35,7 +35,7 @@ public class ReceiptView extends AbstractRemoteView {
         return shared.renderTree();
     }
 
-    private ReceiptViewState adaptState() {
+    private ReceiptScope adaptState() {
         ViewScope scope = state();
         adaptedState.notifySuccess.set(scope.getBoolean("notifySuccess"));
         adaptedState.receipt.set(adaptReceipt(scope));

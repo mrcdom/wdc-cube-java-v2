@@ -36,9 +36,9 @@ public abstract class AbstractPresenter<A extends CubeApplication> implements Pr
 
     /**
      * Ties the view state to this presenter: setting one of its props to a different value calls {@link #update()}.
-     * Used on the field: {@code public final CartViewState state = bind(new CartViewState());}
+     * Used on the field: {@code public final CartScope state = bind(new CartScope());}
      */
-    protected final <S extends ViewState> S bind(S state) {
+    protected final <S extends Scope> S bind(S state) {
         state.setUpdater(this::update);
         return state;
     }

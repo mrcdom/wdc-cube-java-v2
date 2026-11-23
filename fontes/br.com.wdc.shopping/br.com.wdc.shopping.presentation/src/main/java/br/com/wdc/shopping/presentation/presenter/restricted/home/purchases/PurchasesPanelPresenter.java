@@ -11,7 +11,7 @@ import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.FormParam;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.Prop;
-import br.com.wdc.framework.cube.ViewState;
+import br.com.wdc.framework.cube.Scope;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
@@ -28,7 +28,7 @@ public class PurchasesPanelPresenter extends AbstractChildPresenter<ShoppingAppl
 
     // :: View State
 
-    public static class PurchasesPanelViewState extends ViewState {
+    public static class PurchasesPanelScope extends Scope {
 
         public final Prop<List<PurchaseInfo>> purchases = prop(Collections.emptyList());
         public final Prop<Integer> page = prop(0);
@@ -41,7 +41,7 @@ public class PurchasesPanelPresenter extends AbstractChildPresenter<ShoppingAppl
 
     }
 
-    public final PurchasesPanelViewState state = bind(new PurchasesPanelViewState());
+    public final PurchasesPanelScope state = bind(new PurchasesPanelScope());
 
     // :: Public Instance Fields
 

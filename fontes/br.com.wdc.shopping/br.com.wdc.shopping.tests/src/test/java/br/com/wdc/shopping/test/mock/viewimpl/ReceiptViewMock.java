@@ -6,7 +6,7 @@ import org.junit.Assert;
 
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter.ReceiptViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter.ReceiptScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptItem;
 import br.com.wdc.shopping.test.mock.ShoppingApplicationMock;
 
@@ -21,7 +21,7 @@ public class ReceiptViewMock extends AbstractViewMock<ReceiptPresenter> {
         return (ReceiptViewMock) view;
     }
 
-    public ReceiptViewState state;
+    public ReceiptScope state;
 
     public ReceiptViewMock(ReceiptPresenter presenter) {
         super(((ShoppingApplicationMock) presenter.app), presenter);

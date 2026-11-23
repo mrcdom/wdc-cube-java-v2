@@ -121,7 +121,7 @@ Estende `BaseBusinessTest` e instancia `ShoppingApplicationMock`, que registra v
 ### View mocks
 
 Cada mock (`LoginViewMock`, `CartViewMock`, etc.) estende `AbstractViewMock<P>` e expõe:
-- `state` — o `ViewState` do presenter (acesso direto para leitura/escrita)
+- `state` — o `Scope` do presenter (acesso direto para leitura/escrita)
 - `presenter` — o presenter real para invocar ações
 - `cast(CubeView)` — método estático para obter o mock com asserção de tipo
 

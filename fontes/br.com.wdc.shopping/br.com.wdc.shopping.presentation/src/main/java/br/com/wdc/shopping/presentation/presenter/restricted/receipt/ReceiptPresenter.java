@@ -11,7 +11,7 @@ import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.CubeViewSlot;
 import br.com.wdc.framework.cube.Prop;
-import br.com.wdc.framework.cube.ViewState;
+import br.com.wdc.framework.cube.Scope;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomeKeys;
 import br.com.wdc.shopping.presentation.exception.PurchaseNotFoundException;
@@ -29,7 +29,7 @@ public class ReceiptPresenter extends AbstractCubePresenter<ShoppingApplication>
 
     // :: Public Instance Fields
 
-    public static class ReceiptViewState extends ViewState {
+    public static class ReceiptScope extends Scope {
 
         public final Prop<Boolean> notifySuccess = prop(false);
         public final Prop<ReceiptForm> receipt = prop();
@@ -38,7 +38,7 @@ public class ReceiptPresenter extends AbstractCubePresenter<ShoppingApplication>
 
     }
 
-    public final ReceiptViewState state = bind(new ReceiptViewState());
+    public final ReceiptScope state = bind(new ReceiptScope());
 
     // :: Internal Instance Fields
 

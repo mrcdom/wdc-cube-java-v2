@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
-import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter.ReceiptViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter.ReceiptScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptForm;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptItem;
 import br.com.wdc.shopping.view.swt.SwtApp;
@@ -30,12 +30,12 @@ class ReceiptViewSwtRemote extends ReceiptViewSwt {
 		this.ctx.submitEvent(this.vsid, 1, Map.of());
 	}
 
-	private ReceiptViewState stateSupplierImpl() {
+	private ReceiptScope stateSupplierImpl() {
 		var s = this.ctx.viewState(this.vsid);
 		if (s == null) {
 			return null;
 		}
-		var state = new ReceiptViewState();
+		var state = new ReceiptScope();
 		state.notifySuccess.set(Boolean.TRUE.equals(s.getBoolean("notifySuccess")));
 		var raw = s.getMap("receipt");
 		if (raw != null) {

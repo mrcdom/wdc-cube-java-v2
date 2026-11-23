@@ -15,7 +15,7 @@ graph LR
     Pres["CubePresenter"]
     View["CubeView"]
     Slot["CubeViewSlot"]
-    State["ViewState"]
+    State["Scope"]
 
     App -->|"contém"| Pres
     App -->|"navega via"| Nav
@@ -57,8 +57,8 @@ graph LR
 | `CubeNavigation<T>` | Engine que executa transições: cria, reutiliza e destrói presenters |
 | `CubeSkeleton` | Interface para comunicação remota: `submit(eventCode, formData)`, `syncState()`. O presenter não a implementa à mão: `skeleton(classId)` despacha cada evento para a ação ligada com aquele código |
 | `FormParam<T>` | Como uma ação lê um valor do `formData` do evento: nome do campo + conversão (`asLong`, `asInteger`, `asString`, `of`) |
-| `ViewState`, `Prop<T>` | Estado da view: campos observados são `Prop`s (`prop(...)`); com o estado ligado ao presenter (`bind(...)`), `set` de um valor diferente pede o redesenho sozinho. `setSilently` é para a view que consome uma mensagem de exibição única enquanto desenha |
-| `Action`, `ActionOf<T>`, `ActionOf2<T, U>` | Ações que a view dispara, guardadas como campos do ViewState; `NOOP`/`noop()` marcam a ação ainda não ligada |
+| `Scope`, `Prop<T>` | Estado da view: campos observados são `Prop`s (`prop(...)`); com o estado ligado ao presenter (`bind(...)`), `set` de um valor diferente pede o redesenho sozinho. `setSilently` é para a view que consome uma mensagem de exibição única enquanto desenha |
+| `Action`, `ActionOf<T>`, `ActionOf2<T, U>` | Ações que a view dispara, guardadas como campos do Scope; `NOOP`/`noop()` marcam a ação ainda não ligada |
 | `PresenterBase` | Interface raiz: `commitComputedState()` + `release()` |
 
 ---

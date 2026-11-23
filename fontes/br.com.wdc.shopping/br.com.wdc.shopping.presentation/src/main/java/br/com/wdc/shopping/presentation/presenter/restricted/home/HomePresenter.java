@@ -11,7 +11,7 @@ import br.com.wdc.framework.cube.CubeSkeleton;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.CubeViewSlot;
 import br.com.wdc.framework.cube.Prop;
-import br.com.wdc.framework.cube.ViewState;
+import br.com.wdc.framework.cube.Scope;
 import br.com.wdc.framework.domain.security.AuthenticationService;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginKeys;
@@ -36,7 +36,7 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     // :: Public Instance Fields
 
-    public static class HomeViewState extends ViewState {
+    public static class HomeScope extends Scope {
 
         public final Prop<CubeView> contentView = prop();
         public final Prop<CubeView> productsPanelView = prop();
@@ -51,7 +51,7 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     }
 
-    public final HomeViewState state = bind(new HomeViewState());
+    public final HomeScope state = bind(new HomeScope());
 
     // :: Internal Instance Fields
 

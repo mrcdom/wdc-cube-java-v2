@@ -4,7 +4,7 @@ import org.junit.Assert;
 
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter.ProductViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter.ProductScope;
 import br.com.wdc.shopping.test.mock.ShoppingApplicationMock;
 
 @SuppressWarnings("java:S106")
@@ -18,7 +18,7 @@ public class ProductViewMock extends AbstractViewMock<ProductPresenter> {
         return (ProductViewMock) view;
     }
 
-    public ProductViewState state;
+    public ProductScope state;
 
     public ProductViewMock(ProductPresenter presenter) {
         super(((ShoppingApplicationMock) presenter.app), presenter);

@@ -11,14 +11,14 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
-import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginViewState;
+import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginScope;
 import br.com.wdc.shopping.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.shopping.view.vaadin.ShoppingVaadinApplication;
 import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
 public class LoginViewVaadin extends AbstractViewVaadin<LoginPresenter> {
 
-    private final LoginViewState state;
+    private final LoginScope state;
 
     private boolean notRendered = true;
     private TextField userField;

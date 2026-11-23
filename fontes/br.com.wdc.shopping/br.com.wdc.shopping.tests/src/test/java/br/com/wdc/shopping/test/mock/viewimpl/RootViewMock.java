@@ -4,7 +4,7 @@ import org.junit.Assert;
 
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.shopping.presentation.presenter.RootPresenter;
-import br.com.wdc.shopping.presentation.presenter.RootPresenter.RootViewState;
+import br.com.wdc.shopping.presentation.presenter.RootPresenter.RootScope;
 import br.com.wdc.shopping.test.mock.ShoppingApplicationMock;
 
 public class RootViewMock extends AbstractViewMock<RootPresenter> {
@@ -17,7 +17,7 @@ public class RootViewMock extends AbstractViewMock<RootPresenter> {
         return (RootViewMock) view;
     }
 
-    public RootViewState state;
+    public RootScope state;
 
     public RootViewMock(RootPresenter presenter) {
         super(((ShoppingApplicationMock) presenter.app), presenter);

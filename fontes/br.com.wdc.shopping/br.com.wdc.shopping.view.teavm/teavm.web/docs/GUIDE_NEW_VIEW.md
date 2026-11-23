@@ -7,7 +7,7 @@ Este documento explica como criar uma nova view no módulo TeaVM Web — a imple
 Uma view neste projeto:
 
 1. Recebe o **Presenter** diretamente no construtor (acesso em memória)
-2. Lê o **ViewState** do presenter para obter dados
+2. Lê o **Scope** do presenter para obter dados
 3. Renderiza uma árvore virtual (`VNode`) de forma declarativa
 4. Invoca métodos do presenter via `safeAction()` em resposta a interações
 
@@ -17,7 +17,7 @@ Diferente do `remote.shell.teavm` (que recebe estado via WebSocket/JSON), aqui a
 
 O Presenter correspondente já deve existir na camada `presentation`, com:
 
-- Um `ViewState` público com os campos necessários
+- Um `Scope` público com os campos necessários
 - Métodos de ação (`onXxx`) públicos
 - Uma factory estática: `public static Function<XxxPresenter, CubeView> createView;`
 
@@ -36,7 +36,7 @@ import org.teavm.jso.dom.events.EventListener;
 
 import br.com.wdc.framework.vdom.*;
 import br.com.wdc.shopping.presentation.presenter.restricted.wishlist.WishlistPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.wishlist.WishlistPresenter.WishlistViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.wishlist.WishlistPresenter.WishlistScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.wishlist.structs.WishlistItem;
 import br.com.wdc.shopping.view.teavm.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.vdom.AbstractVDomView;
@@ -62,8 +62,8 @@ public class WishlistViewVDom extends AbstractVDomView<WishlistPresenter> {
         String ERROR_TEXT = c.ALERT_ERROR_TEXT;
     }
 
-    // 2. Referência ao ViewState do presenter
-    private final WishlistViewState state;
+    // 2. Referência ao Scope do presenter
+    private final WishlistScope state;
 
     // 3. Stable listeners — campos final para listeners sem parâmetros
     private final EventListener<Event> onBack = evt -> safeAction("Back", this.presenter.state.onOpenProducts::run);
@@ -79,7 +79,7 @@ public class WishlistViewVDom extends AbstractVDomView<WishlistPresenter> {
         this.state = presenter.state;
     }
 
-    // 6. render() — retorna a árvore virtual baseada no ViewState
+    // 6. render() — retorna a árvore virtual baseada no Scope
     @Override
     protected VNode render() {
         // Consumir erro one-shot
@@ -203,7 +203,7 @@ private final EventListener<Event> onIncrement = evt -> { this.quantity++; updat
 
 ### Padrão One-Shot Error
 
-O ViewState usa `errorCode` + `errorMessage` como campos de exibição única. A view consome e limpa no render:
+O Scope usa `errorCode` + `errorMessage` como campos de exibição única. A view consome e limpa no render:
 
 ```java
 final boolean showError;
@@ -233,12 +233,12 @@ Na prática, para mudanças de estado local (não vindas do presenter), use `upd
 private final EventListener<Event> onIncrement = evt -> { this.quantity++; update(); };
 ```
 
-### Acesso Direto ao ViewState
+### Acesso Direto ao Scope
 
 Diferente do remote shell (que lê JSON via `ViewScope`), aqui você acessa os campos Java diretamente:
 
 ```java
-// Campos do ViewState são públicos
+// Campos do Scope são públicos
 var items = this.state.items.get();          // List<CartItem>
 var product = this.state.product.get();      // ProductInfo
 var errorMsg = this.state.errorMessage.get(); // String

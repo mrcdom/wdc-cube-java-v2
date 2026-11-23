@@ -13,10 +13,10 @@ import br.com.wdc.framework.cube.ActionOf;
 import br.com.wdc.framework.cube.ActionOf2;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.Prop;
-import br.com.wdc.framework.cube.ViewState;
+import br.com.wdc.framework.cube.Scope;
 
 /**
- * Command class that serializes a {@link ViewState} to JSON.
+ * Command class that serializes a {@link Scope} to JSON.
  *
  * <p>
  * Each instance encapsulates the context of a single serialization execution.
@@ -26,7 +26,7 @@ import br.com.wdc.framework.cube.ViewState;
  * <li>Injects {@code "#"} as the first field (instanceId of the view).</li>
  * <li>{@code transient} and {@code static} fields are skipped, and so are actions ({@code Action}, {@code ActionOf},
  * {@code ActionOf2}).</li>
- * <li>{@link CubeView}/{@link ViewState} fields are serialized as {@code "<name>Id": vsid}.</li>
+ * <li>{@link CubeView}/{@link Scope} fields are serialized as {@code "<name>Id": vsid}.</li>
  * <li>Supported field types: all Java primitives/wrappers, {@link String}, {@link Character},
  * dates, {@link Collection}, {@link Map}, Records, and POJOs with public fields.</li>
  * <li>Blank strings in direct fields are omitted.</li>
@@ -34,7 +34,7 @@ import br.com.wdc.framework.cube.ViewState;
  * <li>Numeric primitives and boolean primitives are always serialized.</li>
  * </ul>
  */
-public final class ViewStateSerializer {
+public final class ScopeSerializer {
 
     private static final DateTimeFormatter DATE_TIME_FMT = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ISO_LOCAL_DATE;
@@ -42,7 +42,7 @@ public final class ViewStateSerializer {
 
     private final ExtensibleObjectOutput json;
 
-    public ViewStateSerializer(ExtensibleObjectOutput json) {
+    public ScopeSerializer(ExtensibleObjectOutput json) {
         this.json = json;
     }
 
@@ -61,7 +61,7 @@ public final class ViewStateSerializer {
 
             json.endObject();
         } catch (IllegalAccessException e) {
-            throw new RuntimeException("Failed to serialize ViewState: " + state.getClass().getSimpleName(), e);
+            throw new RuntimeException("Failed to serialize Scope: " + state.getClass().getSimpleName(), e);
         }
     }
 

@@ -3,7 +3,7 @@ package br.com.wdc.shopping.view.remote.shell.swt;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
-import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter.ProductViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter.ProductScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.impl.ProductViewSwt;
@@ -32,12 +32,12 @@ class ProductViewSwtRemote extends ProductViewSwt {
 		this.ctx.submitEvent(this.vsid, 2, Map.of("p.quantity", qty));
 	}
 
-	private ProductViewState stateSupplierImpl() {
+	private ProductScope stateSupplierImpl() {
 		var s = this.ctx.viewState(this.vsid);
 		if (s == null) {
 			return null;
 		}
-		var state = new ProductViewState();
+		var state = new ProductScope();
 		state.errorMessage.set(s.getString("errorMessage"));
 		var code = s.getLong("errorCode");
 		state.errorCode.set(code != null ? code.intValue() : 0);

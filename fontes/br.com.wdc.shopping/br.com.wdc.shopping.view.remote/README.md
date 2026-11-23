@@ -100,7 +100,7 @@ Servidor do protocolo de apresentação remota — recebe eventos do shell, desp
 | `BrowserPresenter` | Coordena navegação e dispatch de intent entre views |
 | `AppSecurity` | RSA + SHA256withRSA para assinatura de URLs de navegação |
 | `DataSecurity` | AES-GCM por sessão (derivado via PBKDF2, 250k iterações) para dados sensíveis |
-| `ViewStateSerializer` | Serialização eficiente de ViewStates para JSON (apenas campos dirty) |
+| `ScopeSerializer` | Serialização eficiente de ViewStates para JSON (apenas campos dirty) |
 | `WebSocketConnection` | SPI — interface que o backend implementa para comunicação com o shell |
 
 ### remote.shell.react (Node.js — Parcel)

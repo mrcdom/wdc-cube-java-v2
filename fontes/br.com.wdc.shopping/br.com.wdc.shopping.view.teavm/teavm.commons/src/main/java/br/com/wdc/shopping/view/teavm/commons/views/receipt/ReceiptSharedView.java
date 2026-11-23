@@ -13,7 +13,7 @@ import java.util.function.Supplier;
 import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter.ReceiptViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter.ReceiptScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.structs.ReceiptItem;
 import br.com.wdc.shopping.view.teavm.commons.DateUtils;
 import br.com.wdc.shopping.view.teavm.commons.SelComponents;
@@ -65,7 +65,7 @@ public class ReceiptSharedView extends SharedVDomView {
 
     // -- External bindings --
 
-    public Supplier<ReceiptViewState> stateSupplier;
+    public Supplier<ReceiptScope> stateSupplier;
     public Runnable onBack;
 
     // -- Stable event listener --

@@ -7,7 +7,7 @@ import java.util.function.BiConsumer;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
 import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter.ProductsPanelViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter.ProductsPanelScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
 import br.com.wdc.shopping.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.shopping.view.vaadin.ShoppingVaadinApplication;
@@ -16,7 +16,7 @@ import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
 public class ProductsPanelViewVaadin extends AbstractViewVaadin<ProductsPanelPresenter> {
 
-    private final ProductsPanelViewState state;
+    private final ProductsPanelScope state;
 
     private boolean notRendered = true;
     private int itemIdx;

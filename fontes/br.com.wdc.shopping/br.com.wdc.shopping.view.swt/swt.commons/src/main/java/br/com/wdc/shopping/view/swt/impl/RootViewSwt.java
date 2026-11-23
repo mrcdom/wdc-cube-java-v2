@@ -7,14 +7,14 @@ import org.eclipse.swt.widgets.Composite;
 
 import java.util.function.Supplier;
 
-import br.com.wdc.shopping.presentation.presenter.RootPresenter.RootViewState;
+import br.com.wdc.shopping.presentation.presenter.RootPresenter.RootScope;
 import br.com.wdc.shopping.view.swt.AbstractViewSwt;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.util.SlotComposite;
 
 public class RootViewSwt extends AbstractViewSwt {
 
-    public Supplier<RootViewState> stateSupplier;
+    public Supplier<RootScope> stateSupplier;
 
     private boolean notRendered = true;
     private SlotComposite contentSlot;

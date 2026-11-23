@@ -1,6 +1,6 @@
 package br.com.wdc.shopping.view.remote.shell.teavm.views.login;
 
-import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginViewState;
+import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginScope;
 import br.com.wdc.shopping.view.teavm.commons.views.login.LoginSharedView;
 import br.com.wdc.shopping.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import br.com.wdc.framework.cube.remote.bridge.teavm.DataSecurity;
@@ -18,7 +18,7 @@ public class LoginView extends AbstractRemoteView {
     private static final int ON_ENTER = 1;
 
     private final LoginSharedView shared;
-    private final LoginViewState adaptedState = new LoginViewState();
+    private final LoginScope adaptedState = new LoginScope();
 
     public LoginView(String vsid) {
         super(vsid);
@@ -39,7 +39,7 @@ public class LoginView extends AbstractRemoteView {
         return shared.render();
     }
 
-    private LoginViewState adaptState() {
+    private LoginScope adaptState() {
         ViewScope scope = state();
         adaptedState.loading.set(scope.getBoolean("loading"));
         adaptedState.errorMessage.set(scope.getString("errorMessage"));

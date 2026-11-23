@@ -18,7 +18,7 @@ import br.com.wdc.framework.cube.FormParam;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.CubeViewSlot;
 import br.com.wdc.framework.cube.Prop;
-import br.com.wdc.framework.cube.ViewState;
+import br.com.wdc.framework.cube.Scope;
 import br.com.wdc.shopping.domain.exception.InvalidCartItemException;
 import br.com.wdc.framework.domain.exception.OfflineException;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
@@ -38,7 +38,7 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     // :: Public Instance Fields
 
-    public static class CartViewState extends ViewState {
+    public static class CartScope extends Scope {
 
         public final Prop<List<CartItem>> items = prop();
         public final Prop<Integer> errorCode = prop(0);
@@ -51,7 +51,7 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     }
 
-    public final CartViewState state = bind(new CartViewState());
+    public final CartScope state = bind(new CartScope());
 
     // :: Internal Instance Fields
 

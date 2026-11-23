@@ -3,16 +3,16 @@ package br.com.wdc.framework.cube;
 import java.util.Objects;
 
 /**
- * An observed field of a {@link ViewState}. {@link #set} keeps the value and, only when it changed
+ * An observed field of a {@link Scope}. {@link #set} keeps the value and, only when it changed
  * ({@link Objects#equals}), tells the state, which asks for the redraw.
  */
 public final class Prop<T> {
 
-    private final ViewState owner;
+    private final Scope owner;
 
     private volatile T value;
 
-    Prop(ViewState owner, T initial) {
+    Prop(Scope owner, T initial) {
         this.owner = owner;
         this.value = initial;
     }

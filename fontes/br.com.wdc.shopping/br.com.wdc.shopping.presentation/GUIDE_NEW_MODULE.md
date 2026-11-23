@@ -8,37 +8,38 @@ Criar um novo módulo envolve alterações em **3 camadas**:
 
 | Camada | Módulo Maven | O que criar |
 |--------|-------------|-------------|
-| **Presentation** | `br.com.wdc.shopping.presentation` | Presenter, ViewState, Service, DTOs |
+| **Presentation** | `br.com.wdc.shopping.presentation` | Presenter, Scope, Service, DTOs |
 | **Skeleton** (backend view) | `remote.host` | ViewImpl (wiring presenter ↔ React) |
 | **React Client** (frontend) | `remote.shell.react` | Componente React + registro |
 
 ---
 
-## Passo 1 — Presentation: Criar o Presenter e ViewState
+## Passo 1 — Presentation: Criar o Presenter e Scope
 
 ### 1.1 Criar a estrutura de pacotes
 
 ```
 presenter/restricted/wishlist/
 ├── WishlistPresenter.java
-├── WishlistViewState.java
+├── WishlistScope.java
 ├── WishlistService.java          (se precisar acessar dados)
 └── structs/
     └── WishlistItem.java         (DTOs, se houver)
 ```
 
-### 1.2 Criar o ViewState
+### 1.2 Criar o Scope
 
-O ViewState define quais dados a view vai exibir. Implemente `ViewState` e o método `write()` para serializar em JSON:
+O Scope define quais dados a view vai exibir. Implemente `Scope` e o método `write()` para serializar em JSON:
 
 ```java
 package br.com.wdc.shopping.presentation.presenter.restricted.wishlist;
 
 import org.apache.commons.lang3.StringUtils;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
-import br.com.wdc.framework.cube.ViewState;
+import br.com.wdc.framework.cube.Prop;
+import br.com.wdc.framework.cube.Scope;
 
-public class WishlistViewState extends ViewState {
+public class WishlistScope extends Scope {
 
     // Campos observados: set() de um valor diferente pede o redesenho sozinho
     public final Prop<List<WishlistItem>> items = prop(List.of());
@@ -105,7 +106,7 @@ public class WishlistPresenter extends AbstractCubePresenter<ShoppingApplication
     public static Function<WishlistPresenter, CubeView> createView;
 
     // Estado público — acessível pela ViewImpl para serialização
-    public final WishlistViewState state = new WishlistViewState();
+    public final WishlistScope state = new WishlistScope();
 
     // Slot recebido do presenter pai (HomePresenter → contentSlot)
     private CubeViewSlot ownerSlot;
@@ -156,7 +157,7 @@ public class WishlistPresenter extends AbstractCubePresenter<ShoppingApplication
 **Pontos-chave:**
 - `createView` é `static` e será atribuída pelo skeleton
 - `applyParameters()` é chamado pelo sistema de navegação
-- O state é criado com `bind(new WishlistViewState())`: `set` de um valor diferente numa `Prop` marca a view como "dirty" para envio ao frontend, sem `this.update()`. Este só é preciso quando se mexe *dentro* de um valor já atribuído (um item de uma lista)
+- O state é criado com `bind(new WishlistScope())`: `set` de um valor diferente numa `Prop` marca a view como "dirty" para envio ao frontend, sem `this.update()`. Este só é preciso quando se mexe *dentro* de um valor já atribuído (um item de uma lista)
 - Ações são campos do state (`Action`, `ActionOf<T>`, `ActionOf2<T, U>`) ligados no construtor com `action(...)`/`actionOf(...)`/`actionOf2(...)`. A guarda manda a falha não tratada para `app.alertUnexpectedError()` e, ao fim, republica o endereço — o corpo não tem `try/catch` genérico, só trata as falhas esperadas
 - Erros de validação usam `errorCode` + `errorMessage` no state
 
@@ -300,13 +301,13 @@ import { BaseViewClass } from '@root/utils/ViewUtils'
 const ON_REMOVE_ITEM = 1
 const ON_OPEN_PRODUCTS = 2
 
-// :: View State — espelha os campos serializados pelo ViewState.write()
-export type WishlistViewState = {
+// :: View State — espelha os campos serializados pelo Scope.write()
+export type WishlistScope = {
   items?: { id: number; name: string; price: number }[]
   errorMessage?: string
 }
 
-class WishlistViewClass extends BaseViewClass<ViewProps, WishlistViewState> {
+class WishlistViewClass extends BaseViewClass<ViewProps, WishlistScope> {
 
   override render({ className }: ViewProps): React.ReactNode {
     const { state } = this
@@ -347,7 +348,7 @@ export default BaseViewClass.FC(WishlistViewClass, 'd1e2f3a4b5c6')
 **Regras importantes:**
 - Os **event codes** (1, 2, ...) devem corresponder ao `switch` em `ViewImpl.submit()`
 - O **VID** no `BaseViewClass.FC()` deve ser idêntico ao da `GenericViewImpl` no Java
-- O **tipo do state** deve espelhar os campos emitidos por `ViewState.write()`
+- O **tipo do state** deve espelhar os campos emitidos por `Scope.write()`
 - Use `app.setFormField()` para enviar dados antes do `app.submit()`
 
 ### 4.2 Registrar a view
@@ -380,7 +381,7 @@ Agora você pode navegar para o novo módulo a partir de qualquer presenter:
 
 ```java
 // Em HomePresenter: um campo no state e a ligação no construtor
-public Action onOpenWishlist = Action.NOOP;              // HomeViewState
+public Action onOpenWishlist = Action.NOOP;              // HomeScope
 this.state.onOpenWishlist = action(() -> new WishlistKeys(this.app).flip());
 ```
 
@@ -391,7 +392,7 @@ E no frontend, adicionar um botão ou link que emita o evento correspondente.
 ## Resumo — Checklist
 
 - [ ] **Presentation**
-  - [ ] Criar `WishlistViewState extends ViewState` (campos `Prop`, criados com `prop(...)`)
+  - [ ] Criar `WishlistScope extends Scope` (campos `Prop`, criados com `prop(...)`)
   - [ ] Criar `WishlistPresenter extends AbstractCubePresenter<ShoppingApplication>`
   - [ ] Criar `WishlistService` (enum BEAN) se precisar de dados
   - [ ] Criar DTOs em `structs/` com `projection()` + `create()`
@@ -407,7 +408,7 @@ E no frontend, adicionar um botão ou link que emita o evento correspondente.
 - [ ] **React Client**
   - [ ] Criar `WishlistView.tsx` com `BaseViewClass.FC(Class, VID)`
   - [ ] Definir event codes (devem bater com os códigos das ações do presenter)
-  - [ ] Definir type do state (deve bater com os campos do ViewState)
+  - [ ] Definir type do state (deve bater com os campos do Scope)
   - [ ] Registrar em `index.tsx` via `app.registerComponents()`
 
 ---

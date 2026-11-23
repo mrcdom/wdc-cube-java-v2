@@ -11,7 +11,7 @@ package br.com.wdc.framework.cube;
  * Changing something INSIDE a value already set (an item of the list) does not go through the prop: set a new value,
  * or call the presenter's {@code update()}.
  */
-public abstract class ViewState {
+public abstract class Scope {
 
     private volatile Runnable updater;
 

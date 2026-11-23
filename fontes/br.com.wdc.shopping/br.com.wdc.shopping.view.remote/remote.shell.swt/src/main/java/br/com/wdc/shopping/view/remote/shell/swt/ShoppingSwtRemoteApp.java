@@ -32,7 +32,7 @@ import br.com.wdc.shopping.view.swt.util.ProductImageCache;
  * <ol>
  * <li>Connects to the Host via {@link HostClient}</li>
  * <li>Creates SWT views from {@code swt.commons} keyed by classId</li>
- * <li>Supplies each view with a {@code stateSupplier} that translates {@code ViewStateSnapshot} fields into typed ViewState objects</li>
+ * <li>Supplies each view with a {@code stateSupplier} that translates {@code ViewStateSnapshot} fields into typed Scope objects</li>
  * <li>Sends events back to the Host via non-blocking {@code submit()}</li>
  * <li>A background listener thread applies host responses on the UI thread</li>
  * <li>A render timer flushes dirty views at ~60 fps</li>

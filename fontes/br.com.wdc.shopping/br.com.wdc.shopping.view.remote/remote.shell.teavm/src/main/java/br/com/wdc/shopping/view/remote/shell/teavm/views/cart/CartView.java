@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.lang.CoerceUtils;
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartViewState;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.structs.CartItem;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
 import br.com.wdc.shopping.view.teavm.commons.views.cart.CartSharedView;
@@ -22,7 +22,7 @@ public class CartView extends AbstractRemoteView {
     private static final int ON_MODIFY_QUANTITY = 4;
 
     private final CartSharedView shared;
-    private final CartViewState adaptedState = new CartViewState();
+    private final CartScope adaptedState = new CartScope();
 
     public CartView(String vsid) {
         super(vsid);
@@ -47,7 +47,7 @@ public class CartView extends AbstractRemoteView {
         return shared.renderTree();
     }
 
-    private CartViewState adaptState() {
+    private CartScope adaptState() {
         ViewScope scope = state();
         adaptedState.errorMessage.set(scope.getString("errorMessage"));
         adaptedState.items.set(getItems(scope));

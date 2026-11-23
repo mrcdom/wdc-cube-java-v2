@@ -26,38 +26,38 @@ graph TD
 
     root --> presenter["presenter/"]
     presenter --> RootK["RootKeys.java"]
-    presenter --> RootP["RootPresenter.java (+ RootViewState)"]
+    presenter --> RootP["RootPresenter.java (+ RootScope)"]
 
     presenter --> open["open/"]
     open --> OpenP["OpenPresenter.java"]
     open --> login["login/"]
-    login --> LoginP["LoginPresenter.java (+ LoginViewState)"]
+    login --> LoginP["LoginPresenter.java (+ LoginScope)"]
     login --> LoginSvc["LoginService.java"]
     login --> LoginStructs["structs/Subject.java"]
 
     presenter --> restricted["restricted/"]
     restricted --> RestrictedP["RestrictedPresenter.java"]
     restricted --> home["home/"]
-    home --> HomeP["HomePresenter.java (+ HomeViewState)"]
+    home --> HomeP["HomePresenter.java (+ HomeScope)"]
     home --> HomeStructs["structs/PurchaseInfo.java"]
     home --> products_panel["products/"]
-    products_panel --> ProdPanelP["ProductsPanelPresenter.java (+ ViewState)"]
+    products_panel --> ProdPanelP["ProductsPanelPresenter.java (+ Scope)"]
     home --> purchases_panel["purchases/"]
-    purchases_panel --> PurchPanelP["PurchasesPanelPresenter.java (+ ViewState)"]
+    purchases_panel --> PurchPanelP["PurchasesPanelPresenter.java (+ Scope)"]
     purchases_panel --> PurchPanelSvc["PurchasesPanelService.java"]
 
     restricted --> products["products/"]
-    products --> ProductP["ProductPresenter.java (+ ProductViewState)"]
+    products --> ProductP["ProductPresenter.java (+ ProductScope)"]
     products --> ProductSvc["ProductService.java"]
     products --> ProductStructs["structs/ProductInfo.java"]
 
     restricted --> cart["cart/"]
-    cart --> CartP["CartPresenter.java (+ CartViewState)"]
+    cart --> CartP["CartPresenter.java (+ CartScope)"]
     cart --> CartMgr["CartManager.java"]
     cart --> CartStructs["structs/CartItem.java"]
 
     restricted --> receipt["receipt/"]
-    receipt --> ReceiptP["ReceiptPresenter.java (+ ReceiptViewState)"]
+    receipt --> ReceiptP["ReceiptPresenter.java (+ ReceiptScope)"]
     receipt --> ReceiptSvc["ReceiptService.java"]
     receipt --> ReceiptStructs["structs/ReceiptForm.java, ReceiptItem.java"]
 ```
@@ -98,20 +98,20 @@ Os presenters `OpenPresenter` e `RestrictedPresenter` funcionam como **guardas d
 
 ```mermaid
 graph TD
-    RootP["RootPresenter<br/><small>contentSlot → view filha<br/>Inner: RootViewState</small>"]
+    RootP["RootPresenter<br/><small>contentSlot → view filha<br/>Inner: RootScope</small>"]
 
     RootP --> OpenP["OpenPresenter<br/><small>Guarda: redireciona se autenticado</small>"]
     RootP --> RestrictedP["RestrictedPresenter<br/><small>Guarda: redireciona se não autenticado</small>"]
 
-    OpenP --> LoginP["LoginPresenter<br/><small>Autenticação<br/>Inner: LoginViewState<br/>Serviço: LoginService</small>"]
+    OpenP --> LoginP["LoginPresenter<br/><small>Autenticação<br/>Inner: LoginScope<br/>Serviço: LoginService</small>"]
 
-    RestrictedP --> HomeP["HomePresenter<br/><small>contentSlot + painéis + CartManager<br/>Inner: HomeViewState</small>"]
+    RestrictedP --> HomeP["HomePresenter<br/><small>contentSlot + painéis + CartManager<br/>Inner: HomeScope</small>"]
 
-    HomeP --> ProdPanelP["ProductsPanelPresenter<br/><small>AbstractChildPresenter<br/>Inner: ProductsPanelViewState</small>"]
-    HomeP --> PurchPanelP["PurchasesPanelPresenter<br/><small>AbstractChildPresenter<br/>Inner: PurchasesPanelViewState</small>"]
-    HomeP --> ProductP["ProductPresenter<br/><small>Detalhe + adicionar ao carrinho<br/>Inner: ProductViewState</small>"]
-    HomeP --> CartP["CartPresenter<br/><small>Edição + efetivação de compra<br/>Inner: CartViewState</small>"]
-    HomeP --> ReceiptP["ReceiptPresenter<br/><small>Comprovante<br/>Inner: ReceiptViewState</small>"]
+    HomeP --> ProdPanelP["ProductsPanelPresenter<br/><small>AbstractChildPresenter<br/>Inner: ProductsPanelScope</small>"]
+    HomeP --> PurchPanelP["PurchasesPanelPresenter<br/><small>AbstractChildPresenter<br/>Inner: PurchasesPanelScope</small>"]
+    HomeP --> ProductP["ProductPresenter<br/><small>Detalhe + adicionar ao carrinho<br/>Inner: ProductScope</small>"]
+    HomeP --> CartP["CartPresenter<br/><small>Edição + efetivação de compra<br/>Inner: CartScope</small>"]
+    HomeP --> ReceiptP["ReceiptPresenter<br/><small>Comprovante<br/>Inner: ReceiptScope</small>"]
 ```
 
 ### Dois tipos de presenter
@@ -138,18 +138,18 @@ Classe abstrata que estende `CubeApplication`. Mantém o estado global:
 
 Classe utilitária que cria proxies dinâmicos (via `java.lang.reflect.Proxy`) para repositórios, envolvendo cada chamada com o `SecurityContext`. Usado em ambientes JVM multi-threaded (desktop, servidor). Não compatível com TeaVM/GraalVM native.
 
-### ViewState (inner class)
+### Scope (inner class)
 
-Cada presenter define um `ViewState` como **classe estática interna** (`public static class XxxViewState extends ViewState`). Cada campo observado é uma `Prop`, criada com `prop(...)`; o presenter liga o estado a si com `bind(...)`, e então `set` de um valor diferente (`equals`) pede o redesenho sozinho — o presenter não chama `this.update()` depois. A view lê com `get()`. A serialização remota é automática (`ViewStateSerializer`, via reflection dos campos públicos, escrevendo o valor de cada `Prop`):
+Cada presenter define um `Scope` como **classe estática interna** (`public static class XxxScope extends Scope`). Cada campo observado é uma `Prop`, criada com `prop(...)`; o presenter liga o estado a si com `bind(...)`, e então `set` de um valor diferente (`equals`) pede o redesenho sozinho — o presenter não chama `this.update()` depois. A view lê com `get()`. A serialização remota é automática (`ScopeSerializer`, via reflection dos campos públicos, escrevendo o valor de cada `Prop`):
 
 ```java
-public static class ProductViewState extends ViewState {
+public static class ProductScope extends Scope {
     public final Prop<ProductInfo> product = prop();
     public final Prop<Integer> errorCode = prop(0);
     public final Prop<String> errorMessage = prop();
 }
 
-public final ProductViewState state = bind(new ProductViewState());
+public final ProductScope state = bind(new ProductScope());
 ```
 
 **Mexer dentro de um valor já atribuído** (um item de uma lista) não passa pela prop: aí, ou se atribui um valor novo, ou se chama `this.update()` — como no `CartPresenter`, cujo carrinho altera os itens no lugar.
@@ -211,7 +211,7 @@ Cada feature segue a estrutura:
 ```mermaid
 graph TD
     feature["presenter/restricted/&lt;feature&gt;/"]
-    feature --> Presenter["&lt;Feature&gt;Presenter.java<br/><small>(inner: &lt;Feature&gt;ViewState)</small>"]
+    feature --> Presenter["&lt;Feature&gt;Presenter.java<br/><small>(inner: &lt;Feature&gt;Scope)</small>"]
     feature --> Service["&lt;Feature&gt;Service.java (opcional)"]
     feature --> structs["structs/ (opcional)"]
     structs --> DTO["&lt;FeatureDTO&gt;.java"]
@@ -225,8 +225,8 @@ public class XxxPresenter extends AbstractCubePresenter<ShoppingApplication> {
     // 1. Logger
     private static final Logger LOG = LoggerFactory.getLogger(XxxPresenter.class);
 
-    // 2. ViewState (inner class — campos observados são Props; serialização via reflection)
-    public static class XxxViewState extends ViewState {
+    // 2. Scope (inner class — campos observados são Props; serialização via reflection)
+    public static class XxxScope extends Scope {
         public final Prop<Integer> errorCode = prop(0);
         public final Prop<String> errorMessage = prop();
         // ... campos específicos
@@ -236,7 +236,7 @@ public class XxxPresenter extends AbstractCubePresenter<ShoppingApplication> {
     public static Function<XxxPresenter, CubeView> createView;
 
     // 4. Estado público
-    public final XxxViewState state = new XxxViewState();
+    public final XxxScope state = new XxxScope();
 
     // 5. Campos internos
     private CubeViewSlot ownerSlot;
@@ -252,7 +252,7 @@ public class XxxPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
 ### Padrão de erros
 
-Os presenters não lançam exceções para a view. Em vez disso, usam `errorCode` + `errorMessage` no ViewState — e o `set` já pede o redesenho:
+Os presenters não lançam exceções para a view. Em vez disso, usam `errorCode` + `errorMessage` no Scope — e o `set` já pede o redesenho:
 
 ```java
 private void alertProductNotFound() {
@@ -261,10 +261,10 @@ private void alertProductNotFound() {
 }
 ```
 
-Erros inesperados não precisam de `try/catch`: as ações são guardadas. Cada ação é um campo do ViewState, ligado uma vez no construtor do presenter; a guarda manda a falha não tratada ao `RootPresenter` (via `app.alertUnexpectedError`) e, ao fim, republica o endereço:
+Erros inesperados não precisam de `try/catch`: as ações são guardadas. Cada ação é um campo do Scope, ligado uma vez no construtor do presenter; a guarda manda a falha não tratada ao `RootPresenter` (via `app.alertUnexpectedError`) e, ao fim, republica o endereço:
 
 ```java
-public static class CartViewState extends ViewState {
+public static class CartScope extends Scope {
     // ...
     public ActionOf<Long> onRemoveProduct = ActionOf.noop();
     public Action onBuy = Action.NOOP;

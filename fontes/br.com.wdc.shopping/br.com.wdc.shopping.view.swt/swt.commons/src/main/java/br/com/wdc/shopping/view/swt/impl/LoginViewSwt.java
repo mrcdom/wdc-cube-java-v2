@@ -17,7 +17,7 @@ import org.eclipse.swt.widgets.Text;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginViewState;
+import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter.LoginScope;
 import br.com.wdc.shopping.view.swt.AbstractViewSwt;
 import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.theme.Surface;
@@ -32,7 +32,7 @@ import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
  */
 public class LoginViewSwt extends AbstractViewSwt {
 
-    public Supplier<LoginViewState> stateSupplier;
+    public Supplier<LoginScope> stateSupplier;
     public BiConsumer<String, String> onEnter;
 
     private boolean notRendered = true;

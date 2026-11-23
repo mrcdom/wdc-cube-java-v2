@@ -67,7 +67,7 @@ graph TD
 Cada view é uma classe que estende `BaseViewClass<Props, State>` e é convertida em Functional Component via `BaseViewClass.FC()`:
 
 ```typescript
-class LoginViewClass extends BaseViewClass<ViewProps, LoginViewState> {
+class LoginViewClass extends BaseViewClass<ViewProps, LoginScope> {
   override render({ className }: ViewProps): React.ReactNode {
     const { state } = this
     // ... renderização baseada no state recebido do backend

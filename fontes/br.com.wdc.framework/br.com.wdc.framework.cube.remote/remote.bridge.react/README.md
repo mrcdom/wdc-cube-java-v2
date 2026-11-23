@@ -35,7 +35,7 @@ src/
 const coordinator = new ViewStateCoordinator(wsUrl)
 
 // Em um componente:
-const viewState = ViewScope.use<LoginViewState>("login")
+const viewState = ViewScope.use<LoginScope>("login")
 coordinator.submit({ eventCode: "LOGIN", formData: { username, password } })
 ```
 
