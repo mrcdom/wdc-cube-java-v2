@@ -155,6 +155,36 @@ public abstract class AbstractPurchaseRepositoryTest {
 		assertEquals(DBReset.FULANO_ID, fetched.user().id());
 	}
 
+	@Test
+	public void insert_keepsTheInstantWhateverTheOffset() {
+		var instant = OffsetDateTime.parse("2026-03-10T12:00:00Z");
+		for (var offset : List.of("+05:00", "-03:00", "Z")) {
+			var buyDate = instant.withOffsetSameInstant(java.time.ZoneOffset.of(offset));
+			var purchase = new Purchase().withBuyDate(buyDate).withUser(new User().withId(DBReset.FULANO_ID));
+			assertTrue(repo().insert(purchase));
+
+			var fetched = repo().fetchById(purchase.id(), purchaseProjectionWithUser());
+			assertEquals("Offset " + offset, instant.toInstant(), fetched.buyDate().toInstant());
+		}
+	}
+
+	@Test
+	public void mostRecentFirst_followsTheInstantNotTheLocalTime() {
+		// The later purchase has the earlier local time: 12:01Z is 09:01 at -03:00, 12:00Z is 17:00 at +05:00
+		var earlier = new Purchase().withBuyDate(OffsetDateTime.parse("2026-03-10T17:00:00+05:00"))
+				.withUser(new User().withId(DBReset.FULANO_ID));
+		var later = new Purchase().withBuyDate(OffsetDateTime.parse("2026-03-10T09:01:00-03:00"))
+				.withUser(new User().withId(DBReset.FULANO_ID));
+		assertTrue(repo().insert(earlier));
+		assertTrue(repo().insert(later));
+
+		var ids = repo().fetch(new PurchaseCriteria()
+				.withUserId(DBReset.FULANO_ID)
+				.withOrderBy(PurchaseCriteria.OrderBy.MOST_RECENT_PURCHASE_FIRST))
+				.stream().map(Purchase::id).toList();
+		assertEquals(List.of(later.id(), earlier.id()), ids);
+	}
+
 	// :: update
 
 	@Test

@@ -11,8 +11,8 @@ import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
 
-import org.jooq.SortField;
 import org.jooq.Condition;
+import org.jooq.SortField;
 import org.jooq.impl.DSL;
 
 import br.com.wdc.framework.domain.pagination.Page;
@@ -119,7 +119,7 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
             step.set(EN_PURCHASE.USERID, purchase.user().id());
         }
         if (purchase.buyDate() != null) {
-            step.set(EN_PURCHASE.BUYDATE, purchase.buyDate().toLocalDateTime());
+            step.set(EN_PURCHASE.BUYDATE, JsonQueryBuilder.toUtcLdt(purchase.buyDate()));
         }
 
         var inserted = step.execute() > 0;
@@ -183,7 +183,7 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
             hasChanges = true;
         }
         if (changed(newBean, oldBean, projection, p -> p.buyDate())) {
-            step.set(EN_PURCHASE.BUYDATE, newBean.buyDate() != null ? newBean.buyDate().toLocalDateTime() : null);
+            step.set(EN_PURCHASE.BUYDATE, JsonQueryBuilder.toUtcLdt(newBean.buyDate()));
             hasChanges = true;
         }
 
@@ -292,7 +292,7 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
                     CriterionTranslator.translate(enPurchase.USERID, criteria.userId()),
                     // A coluna é TIMESTAMP sem fuso; o domínio fala em OffsetDateTime. Converter aqui mantém a
                     // comparação no mesmo tipo dos dois lados.
-                    CriterionTranslator.translate(enPurchase.BUYDATE, criteria.buyDate(), OffsetDateTime::toLocalDateTime),
+                    CriterionTranslator.translate(enPurchase.BUYDATE, criteria.buyDate(), JsonQueryBuilder::toUtcLdt),
                     existsItemMatching(criteria)));
         }
 
