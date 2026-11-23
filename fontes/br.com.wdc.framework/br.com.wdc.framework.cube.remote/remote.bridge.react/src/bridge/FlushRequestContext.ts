@@ -1,6 +1,6 @@
 import type { ViewStateCoordinator } from "./ViewStateCoordinator"
 import type { BrowserViewState, FormMapType } from "./types"
-import { BROWSER_VSID, KEEP_ALIVE_INTERVAL } from "./constants"
+import { BROWSER_VSID, CAUTHED, KEEP_ALIVE_INTERVAL } from "./constants"
 
 export class FlushRequestContext {
   private readonly app: ViewStateCoordinator
