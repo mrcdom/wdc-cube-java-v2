@@ -161,6 +161,7 @@ public class ShoppingSwtRemoteApp implements SwtApp, RemoteViewContext {
 		this.viewFactories.put(LoginViewSwtRemote.CID, vsid -> new LoginViewSwtRemote(this, vsid, this));
 		this.viewFactories.put(HomeViewSwtRemote.CID, vsid -> new HomeViewSwtRemote(this, vsid, this));
 		this.viewFactories.put(CartViewSwtRemote.CID, vsid -> new CartViewSwtRemote(this, vsid, this));
+		this.viewFactories.put(CartItemViewSwtRemote.CID, vsid -> new CartItemViewSwtRemote(this, vsid, this));
 		this.viewFactories.put(ProductViewSwtRemote.CID, vsid -> new ProductViewSwtRemote(this, vsid, this));
 		this.viewFactories.put(ProductsPanelViewSwtRemote.CID, vsid -> new ProductsPanelViewSwtRemote(this, vsid, this));
 		this.viewFactories.put(PurchasesPanelViewSwtRemote.CID, vsid -> new PurchasesPanelViewSwtRemote(this, vsid, this));

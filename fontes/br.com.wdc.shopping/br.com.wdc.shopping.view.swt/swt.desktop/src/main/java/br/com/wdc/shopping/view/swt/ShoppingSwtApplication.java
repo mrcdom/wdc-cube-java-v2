@@ -1,7 +1,7 @@
 package br.com.wdc.shopping.view.swt;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -26,11 +26,14 @@ import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.presenter.RootPresenter;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
 import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
+import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter.CartScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
+import br.com.wdc.shopping.view.swt.AbstractViewSwt;
+import br.com.wdc.shopping.view.swt.impl.CartItemViewSwt;
 import br.com.wdc.shopping.view.swt.impl.CartViewSwt;
 import br.com.wdc.shopping.view.swt.impl.HomeViewSwt;
 import br.com.wdc.shopping.view.swt.impl.LoginViewSwt;
@@ -89,29 +92,18 @@ public class ShoppingSwtApplication extends ShoppingApplication implements SwtAp
 		CartPresenter.createView = app.onUiThread(p -> {
 			var v = new CartViewSwt(app); v.stateSupplier = () -> p.state;
 			v.onOpenProducts = p.state.onOpenProducts::run; v.onBuy = p.state.onBuy::run;
-			v.onModifyQuantity = p.state.onModifyQuantity::run; v.onRemoveProduct = p.state.onRemoveProduct::run;
+			v.rowElements = () -> p.state.rows.get().stream()
+					.map(row -> row.view() instanceof AbstractViewSwt rv ? rv.getElement() : null)
+					.filter(Objects::nonNull).toList();
 			return v; });
 		ProductPresenter.createView = app.onUiThread(p -> {
 			var v = new ProductViewSwt(app); v.stateSupplier = () -> p.state;
 			v.onOpenProducts = p.state.onOpenProducts::run; v.onAddToCart = p.state.onAddToCart::run;
 			return v; });
-		// The rows still drawn from the inline items here: their views come with this host's migration
-		CartScope.CartItemScope.createView = (a, row) -> new CubeView() {
-			@Override
-			public String instanceId() {
-				return "cart-row-" + row.id.get();
-			}
-
-			@Override
-			public void update() {
-				// NOOP
-			}
-
-			@Override
-			public void release() {
-				// NOOP
-			}
-		};
+		var cartItemView = app.onUiThread((CartScope.CartItemScope row) -> {
+			var v = new CartItemViewSwt(app); v.stateSupplier = () -> row;
+			v.onModifyQuantity = row.onModifyQuantity::run; v.onRemove = row.onRemove::run; return v; });
+		CartScope.CartItemScope.createView = (a, row) -> cartItemView.apply(row);
 		var productsPanelView = app.onUiThread((HomeScope.ProductsPanelScope s) -> {
 			var v = new ProductsPanelViewSwt(app); v.stateSupplier = () -> s;
 			v.onOpenProduct = s.onOpenProduct::run; return v; });
