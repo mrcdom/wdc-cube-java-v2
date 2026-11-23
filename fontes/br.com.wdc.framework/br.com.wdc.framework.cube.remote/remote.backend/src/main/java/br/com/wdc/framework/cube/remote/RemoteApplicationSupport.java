@@ -150,8 +150,13 @@ public class RemoteApplicationSupport {
     }
 
     public void setWsSession(WsContext wsSession) {
+        var attached = wsSession != null && this.wsSession != wsSession;
         this.wsSession = wsSession;
         this.clientIp = wsSession != null ? resolveClientIp(wsSession) : "127.0.0.1";
+        // Views dirtied while there was no socket (the browser's, as the application is born) go out now
+        if (attached && !this.dirtyViewMap.isEmpty()) {
+            host.getRegistry().enqueueDirty(this.getOwnerAsRemoteApp());
+        }
     }
     
     public String getClientIp() {
