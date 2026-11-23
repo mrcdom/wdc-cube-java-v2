@@ -5,7 +5,7 @@ import org.teavm.jso.JSFunctor;
 import org.teavm.jso.JSObject;
 
 /**
- * Interop com APIs de timer do browser.
+ * Interop with the browser's timer APIs.
  */
 public final class Timers {
 

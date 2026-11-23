@@ -109,8 +109,8 @@ public class PurchasesPanelSharedView extends SharedVDomView {
         return div(Sel.ROOT).children(
           div(Sel.HEADER_ROW).children(
             span(Sel.HEADER_ICON),
-            span(Sel.HEADER_TITLE).text("Histórico")),
-          span(Sel.HINT).text("Toque para ver detalhes"),
+            span(Sel.HEADER_TITLE).text("History")),
+          span(Sel.HINT).text("Tap for details"),
           div(Sel.LIST_CONTAINER)
             .ref(el -> this.listContainer = el)
             .children(purchases != null ? purchases.stream().map(this::renderItem).toList() : List.of()),
@@ -131,7 +131,7 @@ public class PurchasesPanelSharedView extends SharedVDomView {
         var idStr = "#" + purchase.id;
         var date = purchase.date > 0 ? formatDate(purchase.date) : "";
         var items = purchase.items != null ? String.join(", ", purchase.items) : "";
-        var total = purchase.total > 0 ? "R$ " + String.format("%.2f", purchase.total) : "";
+        var total = purchase.total > 0 ? "$" + String.format("%.2f", purchase.total) : "";
 
         // @formatter:off
         return div(Sel.ITEM_CARD).key(key)

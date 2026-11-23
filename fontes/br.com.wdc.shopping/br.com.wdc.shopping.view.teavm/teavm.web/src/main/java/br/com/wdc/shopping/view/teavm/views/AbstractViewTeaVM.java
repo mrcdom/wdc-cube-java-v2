@@ -12,8 +12,8 @@ import br.com.wdc.framework.cube.Scope;
 import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
 
 /**
- * Classe base para todas as views TeaVM.
- * Equivalente a AbstractViewVaadin/AbstractViewSwt mas operando sobre HTMLElement via TeaVM.
+ * Base class for all TeaVM views.
+ * Equivalent to AbstractViewVaadin/AbstractViewSwt but operating on HTMLElement through TeaVM.
  */
 public abstract class AbstractViewTeaVM<S extends Scope> implements CubeView {
 
@@ -56,15 +56,15 @@ public abstract class AbstractViewTeaVM<S extends Scope> implements CubeView {
     }
 
     /**
-     * Atualiza o DOM com base no estado atual do escopo.
-     * Chamado pelo render loop quando a view está marcada como dirty.
+     * Updates the DOM based on the current state of the scope.
+     * Called by the render loop when the view is marked as dirty.
      */
     public abstract void doUpdate();
 
     /**
-     * Executa uma ação do presenter em um Thread TeaVM (contexto de coroutine),
-     * permitindo que chamadas {@code @Async} (como HTTP requests) possam suspender.
-     * Erros são propagados para a aplicação via {@code alertUnexpectedError}.
+     * Runs a presenter action on a TeaVM Thread (coroutine context),
+     * allowing {@code @Async} calls (such as HTTP requests) to suspend.
+     * Errors are propagated to the application through {@code alertUnexpectedError}.
      */
     protected void safeAction(String context, Runnable action) {
         new Thread(() -> {
@@ -77,7 +77,7 @@ public abstract class AbstractViewTeaVM<S extends Scope> implements CubeView {
     }
 
     /**
-     * Mostra/esconde elemento usando a classe Bootstrap d-none.
+     * Shows/hides an element using the Bootstrap d-none class.
      */
     protected void setVisible(HTMLElement el, boolean visible) {
         if (el != null) {
@@ -90,8 +90,8 @@ public abstract class AbstractViewTeaVM<S extends Scope> implements CubeView {
     }
 
     /**
-     * Cria um slot de lista sincronizado com o DOM, padrão equivalente ao AbstractViewVaadin.newListSlot.
-     * Cresce a lista de views conforme necessário, esconde as excedentes e atualiza as visíveis.
+     * Creates a list slot synchronized with the DOM, the same pattern as AbstractViewVaadin.newListSlot.
+     * Grows the view list as needed, hides the extra ones and updates the visible ones.
      */
     protected <T, V extends AbstractViewTeaVM<?>> BiConsumer<List<T>, List<V>> newListSlot(
             HTMLElement container, Supplier<V> viewFactory, BiConsumer<V, T> updater) {

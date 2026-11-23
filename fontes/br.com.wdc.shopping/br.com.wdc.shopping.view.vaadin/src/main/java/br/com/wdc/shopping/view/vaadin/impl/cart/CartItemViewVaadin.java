@@ -1,6 +1,7 @@
 package br.com.wdc.shopping.view.vaadin.impl.cart;
 
 import java.text.NumberFormat;
+import java.util.Locale;
 import java.util.Objects;
 
 import com.vaadin.flow.component.html.Span;
@@ -41,7 +42,7 @@ public class CartItemViewVaadin extends AbstractViewVaadin<CartItemScope> {
         }
 
         if (this.priceOldValue != this.state.price.get().doubleValue()) {
-            this.priceElm.setText("R$ " + NumberFormat.getInstance().format(this.state.price.get()));
+            this.priceElm.setText(NumberFormat.getCurrencyInstance(Locale.US).format(this.state.price.get()));
             this.priceOldValue = this.state.price.get();
         }
 
@@ -76,7 +77,7 @@ public class CartItemViewVaadin extends AbstractViewVaadin<CartItemScope> {
         dom.span(label -> {
             label.addClassName("cell-2");
             this.priceElm = label;
-            this.priceElm.setText("R$ " + NumberFormat.getInstance().format(this.state.price.get()));
+            this.priceElm.setText(NumberFormat.getCurrencyInstance(Locale.US).format(this.state.price.get()));
             this.priceOldValue = this.state.price.get();
         });
 
@@ -92,7 +93,7 @@ public class CartItemViewVaadin extends AbstractViewVaadin<CartItemScope> {
 
             dom.image(img -> {
                 img.setSrc("images/delet.png");
-                img.setAlt("Remover");
+                img.setAlt("Remove");
                 img.setWidth("16px");
                 img.setHeight("16px");
                 img.getStyle().set("cursor", "pointer");

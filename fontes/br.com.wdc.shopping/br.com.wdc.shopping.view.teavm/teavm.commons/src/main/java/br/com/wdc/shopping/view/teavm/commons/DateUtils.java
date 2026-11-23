@@ -7,7 +7,7 @@ import java.time.ZoneOffset;
 import org.teavm.jso.JSBody;
 
 /**
- * Utilitário para formatação de datas usando o timezone do navegador.
+ * Date formatting utility (en-US) using the browser's time zone.
  */
 public final class DateUtils {
 
@@ -36,25 +36,26 @@ public final class DateUtils {
     }
 
     /**
-     * Formata epoch millis como "dd/MM/yyyy HH:mm" no timezone do navegador.
+     * Formats epoch millis as "MM/dd/yyyy h:mm AM|PM" in the browser's time zone.
      */
     public static String formatDateTime(long millis) {
         var ldt = Instant.ofEpochMilli(millis)
                 .atZone(getZone())
                 .toLocalDateTime();
-        return String.format("%02d/%02d/%04d %02d:%02d",
-                ldt.getDayOfMonth(), ldt.getMonthValue(), ldt.getYear(),
-                ldt.getHour(), ldt.getMinute());
+        var hour = ldt.getHour() % 12 == 0 ? 12 : ldt.getHour() % 12;
+        return String.format("%02d/%02d/%04d %d:%02d %s",
+                ldt.getMonthValue(), ldt.getDayOfMonth(), ldt.getYear(),
+                hour, ldt.getMinute(), ldt.getHour() < 12 ? "AM" : "PM");
     }
 
     /**
-     * Formata epoch millis como "dd/MM/yyyy" no timezone do navegador.
+     * Formats epoch millis as "MM/dd/yyyy" in the browser's time zone.
      */
     public static String formatDate(long millis) {
         var ldt = Instant.ofEpochMilli(millis)
                 .atZone(getZone())
                 .toLocalDateTime();
         return String.format("%02d/%02d/%04d",
-                ldt.getDayOfMonth(), ldt.getMonthValue(), ldt.getYear());
+                ldt.getMonthValue(), ldt.getDayOfMonth(), ldt.getYear());
     }
 }

@@ -16,9 +16,9 @@ public class OpenPresenter implements CubePresenter {
 
 	@Override
 	public boolean applyParameters(CubeIntent intent, boolean initialization, boolean deepest) {
-        // :: Coloque regras necessárias para a parte pública do site
+        // :: Rules required by the public area of the site
 	    
-	    // Se o usuário já está autenticado, não há motivo para estar na área pública
+	    // An authenticated user has no reason to be in the public area
         if (this.app.getSubject() != null) {
             new RestrictedKeys(this.app, intent).flip();
             return false;

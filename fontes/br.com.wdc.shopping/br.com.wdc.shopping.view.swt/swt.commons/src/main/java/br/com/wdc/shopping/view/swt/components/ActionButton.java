@@ -11,7 +11,7 @@ import br.com.wdc.shopping.view.swt.theme.Theme;
 
 /**
  * A text button with an optional leading icon. Shows hover background + border on mouse over.
- * Used for secondary actions like "Continuar comprando" or "Voltar".
+ * Used for secondary actions like "Continue shopping" or "Back".
  */
 public class ActionButton extends Canvas {
 

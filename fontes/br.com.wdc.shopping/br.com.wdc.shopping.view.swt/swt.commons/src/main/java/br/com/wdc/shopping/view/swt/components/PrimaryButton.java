@@ -11,7 +11,7 @@ import br.com.wdc.shopping.view.swt.theme.Theme;
 
 /**
  * A filled primary button (blue background, white text) with an optional leading icon.
- * Used for primary actions like "Finalizar pedido" or "Adicionar ao Carrinho".
+ * Used for primary actions like "Checkout" or "Add to Cart".
  */
 public class PrimaryButton extends Canvas {
 

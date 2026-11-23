@@ -61,7 +61,7 @@ public class CartItemSharedView extends SharedVDomView {
         var name = row.name.get() != null ? row.name.get() : "";
         var price = row.price.get() != null ? row.price.get() : 0.0;
         var quantity = quantity();
-        var subtotal = "R$ " + String.format("%.2f", price * quantity);
+        var subtotal = "$" + String.format("%.2f", price * quantity);
 
         // @formatter:off
         return div(Sel.ITEM_ROW).children(

@@ -4,7 +4,7 @@ import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
 
 /**
- * Interop com console do browser.
+ * Interop with the browser console.
  */
 public final class Console {
 

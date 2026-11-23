@@ -12,50 +12,50 @@ import br.com.wdc.shopping.view.teavm.commons.interop.JsObjectConsumer;
 import br.com.wdc.shopping.view.teavm.commons.interop.JsStringConsumer;
 
 /**
- * Implementação de {@link ClientStorage} com criptografia AES-GCM via Web Crypto API.
+ * {@link ClientStorage} implementation with AES-GCM encryption through the Web Crypto API.
  * <p>
- * A chave AES-256 é criada com {@code extractable: false} e persiste no IndexedDB
- * da origem. Por ser não-exportável, os bytes da chave nunca ficam acessíveis ao
- * JavaScript — nem por XSS. Os valores são cifrados com IV aleatório por entrada
- * e armazenados em {@code localStorage} no formato {@code base64(iv[12] + ciphertext)}.
+ * The AES-256 key is created with {@code extractable: false} and persists in the origin's
+ * IndexedDB. Being non-exportable, the key bytes are never accessible to
+ * JavaScript — not even through XSS. Values are encrypted with a random IV per entry
+ * and stored in {@code localStorage} in the {@code base64(iv[12] + ciphertext)} format.
  * <p>
- * Fluxo de inicialização:
+ * Initialization flow:
  * <ol>
- *   <li>Abre (ou cria) IndexedDB {@code _sec}, object store {@code k}.</li>
- *   <li>Se a chave já existe (reloads subsequentes): recupera e usa.</li>
- *   <li>Se não existe (primeira execução): gera com
- *       {@code crypto.subtle.generateKey}, armazena no IndexedDB.</li>
- *   <li>Decifra todas as entradas {@code sec.*} do localStorage para o cache em memória.</li>
- *   <li>Chama {@code onReady} — a partir daí, leituras e escritas são síncronas
- *       (via cache) com persistência assíncrona.</li>
+ *   <li>Opens (or creates) IndexedDB {@code _sec}, object store {@code k}.</li>
+ *   <li>If the key already exists (subsequent reloads): retrieves and uses it.</li>
+ *   <li>If it does not exist (first run): generates it with
+ *       {@code crypto.subtle.generateKey} and stores it in IndexedDB.</li>
+ *   <li>Decrypts all {@code sec.*} entries of localStorage into the in-memory cache.</li>
+ *   <li>Calls {@code onReady} — from then on, reads and writes are synchronous
+ *       (through the cache) with asynchronous persistence.</li>
  * </ol>
  * <p>
- * Fallback: se o IndexedDB não estiver disponível (ex.: modo privado em alguns browsers),
- * o storage funciona somente em memória (valores não sobrevivem ao reload).
+ * Fallback: if IndexedDB is not available (e.g. private mode in some browsers),
+ * the storage works in memory only (values do not survive a reload).
  * <p>
- * <strong>Deve-se chamar {@link #initialize(Runnable)} antes de usar o storage.</strong>
+ * <strong>{@link #initialize(Runnable)} must be called before using the storage.</strong>
  */
 public class EncryptedLocalStorage implements ClientStorage {
 
     public static final EncryptedLocalStorage INSTANCE = new EncryptedLocalStorage();
 
-    /** Cache em memória dos valores decifrados. Populado durante {@link #initialize}. */
+    /** In-memory cache of the decrypted values. Populated during {@link #initialize}. */
     private final Map<String, String> cache = new LinkedHashMap<>();
 
-    /** Chave AES-GCM não-exportável, obtida do IndexedDB. Null se indisponível. */
+    /** Non-exportable AES-GCM key, obtained from IndexedDB. Null if unavailable. */
     private static JSObject cryptoKey;
 
     /**
-     * Prefixo no localStorage: {@code "{shellId}:sec."}.
-     * Configurado por {@link #configure(String)} antes de {@link #initialize(Runnable)}.
+     * Prefix in localStorage: {@code "{shellId}:sec."}.
+     * Set by {@link #configure(String)} before {@link #initialize(Runnable)}.
      */
     private static String LS_PREFIX = "sec.";
 
     /**
-     * Configura o prefixo de namespace específico do shell.
-     * Deve ser chamado antes de {@link #initialize(Runnable)}.
+     * Sets the shell-specific namespace prefix.
+     * Must be called before {@link #initialize(Runnable)}.
      *
-     * @param shellId identificador curto do shell (ex: {@code "tw"})
+     * @param shellId short shell identifier (e.g. {@code "tw"})
      */
     public static void configure(String shellId) {
         LS_PREFIX = shellId + ":sec.";
@@ -65,21 +65,21 @@ public class EncryptedLocalStorage implements ClientStorage {
     }
 
     /**
-     * Inicializa a chave de criptografia e pré-decifra todos os valores armazenados
-     * para o cache em memória. Deve ser chamado uma vez antes de {@code app.start()}.
+     * Initializes the encryption key and pre-decrypts all stored values
+     * into the in-memory cache. Must be called once before {@code app.start()}.
      *
-     * @param onReady callback chamado quando o storage está pronto para uso
+     * @param onReady callback called when the storage is ready for use
      */
     public static void initialize(Runnable onReady) {
         openOrCreateKey(key -> {
             cryptoKey = key;
             if (key == null) {
-                // IndexedDB indisponível — funciona apenas em memória
+                // IndexedDB unavailable — works in memory only
                 onReady.run();
                 return;
             }
 
-            // Coleta snapshot síncrono das chaves sec.* no localStorage
+            // Takes a synchronous snapshot of the sec.* keys in localStorage
             int len = lsLength();
             var secEntries = new ArrayList<String>();
             for (int i = 0; i < len; i++) {
@@ -107,7 +107,7 @@ public class EncryptedLocalStorage implements ClientStorage {
                     if (plaintext != null && !plaintext.isEmpty()) {
                         INSTANCE.cache.put(shortKey, plaintext);
                     }
-                    // Else: valor com chave antiga/corrompido — descartado silenciosamente
+                    // Else: value with an old/corrupted key — silently discarded
                     if (--remaining[0] == 0) onReady.run();
                 });
             }
@@ -132,9 +132,9 @@ public class EncryptedLocalStorage implements ClientStorage {
         }
         cache.put(key, value);
         if (cryptoKey != null) {
-            // Persiste assincronamente no localStorage cifrado.
-            // Verifica cache.containsKey ao final para evitar race condition com remove():
-            // se remove() foi chamado antes do callback completar, não grava no localStorage.
+            // Persists asynchronously to the encrypted localStorage.
+            // Checks cache.containsKey at the end to avoid a race condition with remove():
+            // if remove() was called before the callback completed, it does not write to localStorage.
             encryptValue(cryptoKey, value, b64 -> {
                 if (b64 != null && !b64.isEmpty() && cache.containsKey(key)) {
                     lsSetItem(LS_PREFIX + key, b64);
@@ -157,9 +157,9 @@ public class EncryptedLocalStorage implements ClientStorage {
     // -- JS interop --
 
     /**
-     * Abre (ou cria) o IndexedDB {@code _sec} e retorna a chave AES-GCM armazenada.
-     * Se não existir, gera uma nova chave não-exportável e a persiste no IndexedDB.
-     * Chama callback com {@code null} se o IndexedDB não estiver disponível.
+     * Opens (or creates) the IndexedDB {@code _sec} and returns the stored AES-GCM key.
+     * If it does not exist, generates a new non-exportable key and persists it in IndexedDB.
+     * Calls callback with {@code null} if IndexedDB is not available.
      */
     @JSBody(params = { "callback" }, script = """
             try {
@@ -204,8 +204,8 @@ public class EncryptedLocalStorage implements ClientStorage {
     private static native void openOrCreateKey(JsObjectConsumer callback);
 
     /**
-     * Cifra {@code text} com AES-GCM usando a chave fornecida.
-     * Retorna {@code base64(iv[12] + ciphertext)} via callback, ou string vazia em caso de erro.
+     * Encrypts {@code text} with AES-GCM using the given key.
+     * Returns {@code base64(iv[12] + ciphertext)} through callback, or an empty string on error.
      */
     @JSBody(params = { "key", "text", "callback" }, script = """
             var iv = crypto.getRandomValues(new Uint8Array(12));
@@ -226,9 +226,9 @@ public class EncryptedLocalStorage implements ClientStorage {
     private static native void encryptValue(JSObject key, String text, JsStringConsumer callback);
 
     /**
-     * Decifra um valor {@code base64(iv[12] + ciphertext)} produzido por {@link #encryptValue}.
-     * Retorna o texto plano via callback, ou string vazia se falhar
-     * (chave diferente, dado corrompido, etc.).
+     * Decrypts a {@code base64(iv[12] + ciphertext)} value produced by {@link #encryptValue}.
+     * Returns the plain text through callback, or an empty string if it fails
+     * (different key, corrupted data, etc.).
      */
     @JSBody(params = { "key", "b64", "callback" }, script = """
             try {

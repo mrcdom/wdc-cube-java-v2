@@ -60,7 +60,7 @@ public class ProductsPanelSharedView extends SharedVDomView {
     private VNode renderCard(ProductInfo product) {
         var imageUrl = product.image != null ? imageResolver.apply(product.image) : "";
         var name = product.name != null ? product.name : "";
-        var price = product.price > 0 ? "R$ " + String.format("%.2f", product.price) : "";
+        var price = product.price > 0 ? "$" + String.format("%.2f", product.price) : "";
         var key = String.valueOf(product.id);
 
         // @formatter:off

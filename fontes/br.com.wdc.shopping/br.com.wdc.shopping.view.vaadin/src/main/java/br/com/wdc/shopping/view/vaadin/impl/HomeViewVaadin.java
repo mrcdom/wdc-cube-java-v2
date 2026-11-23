@@ -63,7 +63,7 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomeScope> {
         }
 
         if (this.nickNameOldValue == null || !this.nickNameOldValue.equals(this.state.nickName.get())) {
-            this.nickNameElm.setText("Olá, " + this.state.nickName.get());
+            this.nickNameElm.setText("Hello, " + this.state.nickName.get());
             this.nickNameOldValue = this.state.nickName.get();
         }
 
@@ -138,14 +138,14 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomeScope> {
                     button.addClassName("exit-button");
                     button.setIcon(exitIcon);
                     button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
-                    button.getElement().setAttribute("title", "Sair");
+                    button.getElement().setAttribute("title", "Sign out");
                     button.addClickListener(e -> safeAction("Exit", this.state.onExit::run));
                 });
 
                 dom.span(label -> {
                     this.nickNameElm = label;
                     label.addClassName("welcome-label");
-                    label.setText("Olá, " + this.state.nickName.get());
+                    label.setText("Hello, " + this.state.nickName.get());
                     this.nickNameOldValue = this.state.nickName.get();
                 });
             });
@@ -185,7 +185,7 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomeScope> {
                 this.cartBadge.setVisible(this.state.cartItemCount.get() > 0);
                 this.cartCountOldValue = this.state.cartItemCount.get();
 
-                var cartButton = new Button("Carrinho", cartIcon,
+                var cartButton = new Button("Cart", cartIcon,
                         e -> safeAction("Open cart", this.state.onOpenCart::run));
                 cartButton.addClassName("cart-button");
                 cartButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);

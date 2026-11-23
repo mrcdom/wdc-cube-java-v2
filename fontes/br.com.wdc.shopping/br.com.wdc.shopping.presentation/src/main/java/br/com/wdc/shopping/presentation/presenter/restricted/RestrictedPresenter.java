@@ -16,19 +16,19 @@ public class RestrictedPresenter implements CubePresenter {
 
 	@Override
 	public boolean applyParameters(CubeIntent intent, boolean initialization, boolean deepest) {
-		// :: Coloque regras necessárias para a parte restrita do site
+		// :: Rules required by the restricted area of the site
 
 		if (this.app.getSubject() == null) {
-			// Se não temos usuário logado, não pode avançar na composição.
-			// Então, direcionamos para a área aberta do site.
+			// With no signed-in user, the composition cannot go further.
+			// So we redirect to the open area of the site.
 			new OpenKeys(this.app, intent).flip();
 			return false;
 		}
 
 		if (deepest) {
-			// Se houve um direcionamento para este ponto, não podemos aceitar essa composição
-			// pois é uma composição de guarda apenas. Não possui tela associada.
-			// Então, direcionamentos para a tela default da área restrita
+			// A navigation that ends at this point cannot be accepted, since this
+			// composition is only a guard and has no screen of its own.
+			// So we redirect to the default screen of the restricted area
 			new HomeKeys(this.app, intent).flip();
 			return false;
 		}

@@ -1,6 +1,7 @@
 package br.com.wdc.shopping.view.vaadin.impl;
 
 import java.text.NumberFormat;
+import java.util.Locale;
 
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
@@ -45,14 +46,14 @@ public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptScope> {
         }
 
         if (this.state.notifySuccess.get()) {
-            Notification.show("COMPRA EFETUADA COM SUCESSO!", 5000, Notification.Position.TOP_CENTER)
+            Notification.show("PURCHASE COMPLETED SUCCESSFULLY!", 5000, Notification.Position.TOP_CENTER)
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             // Consumed while drawing: a one-shot notice needs no redraw
             this.state.notifySuccess.setSilently(false);
         }
 
         if (this.totalOldValue != this.state.receipt.get().total) {
-            this.totalElm.setText(NumberFormat.getCurrencyInstance().format(this.state.receipt.get().total));
+            this.totalElm.setText(NumberFormat.getCurrencyInstance(Locale.US).format(this.state.receipt.get().total));
             this.totalOldValue = this.state.receipt.get().total;
         }
 
@@ -64,7 +65,7 @@ public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptScope> {
         pane0.setMaxWidth("900px");
 
         dom.h3(h -> {
-            h.setText("IMPRIMA SEU RECIBO:");
+            h.setText("PRINT YOUR RECEIPT:");
             h.getStyle().set("color", "var(--lumo-secondary-text-color)");
         });
 
@@ -73,20 +74,20 @@ public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptScope> {
 
             dom.span(label -> {
                 label.addClassName("caption-1");
-                label.setText("WEDOCODE SHOPPING - SUA COMPRA CERTA NA INTERNET");
+                label.setText("WEDOCODE SHOPPING - YOUR TRUSTED ONLINE STORE");
             });
             dom.span(label -> {
                 label.addClassName("caption-2");
-                label.setText("Recibo de compra");
+                label.setText("Purchase Receipt");
             });
 
             // Grid
             this.grid = new Grid<>();
             this.grid.setAllRowsVisible(true);
             this.grid.addColumn(item -> item.description).setHeader("ITEM").setFlexGrow(3);
-            this.grid.addColumn(item -> NumberFormat.getCurrencyInstance().format(item.value))
-                    .setHeader("VALOR").setFlexGrow(1);
-            this.grid.addColumn(item -> item.quantity).setHeader("QUANTIDADE").setFlexGrow(1);
+            this.grid.addColumn(item -> NumberFormat.getCurrencyInstance(Locale.US).format(item.value))
+                    .setHeader("PRICE").setFlexGrow(1);
+            this.grid.addColumn(item -> item.quantity).setHeader("QUANTITY").setFlexGrow(1);
             pane1.add(this.grid);
 
             dom.horizontalLayout(footer -> {
@@ -95,13 +96,13 @@ public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptScope> {
                 footer.getStyle().set("padding-top", "12px");
 
                 dom.span(label -> {
-                    label.setText("VALOR TOTAL: ");
+                    label.setText("TOTAL: ");
                     label.getStyle().set("font-weight", "bold");
                 });
 
                 dom.span(label -> {
                     this.totalElm = label;
-                    this.totalElm.setText(NumberFormat.getCurrencyInstance().format(this.state.receipt.get().total));
+                    this.totalElm.setText(NumberFormat.getCurrencyInstance(Locale.US).format(this.state.receipt.get().total));
                     this.totalElm.getStyle().set("font-size", "18px")
                             .set("font-weight", "bold")
                             .set("color", "var(--lumo-primary-color)");
@@ -111,7 +112,7 @@ public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptScope> {
         });
 
         dom.button(button -> {
-            button.setText("Voltar aos produtos");
+            button.setText("Back to products");
             button.setIcon(VaadinIcon.ARROW_LEFT.create());
             button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
             button.addClassName("back-button");

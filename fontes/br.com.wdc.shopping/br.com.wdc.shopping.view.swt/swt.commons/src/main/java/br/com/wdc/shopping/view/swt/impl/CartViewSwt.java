@@ -140,7 +140,7 @@ public class CartViewSwt extends AbstractViewSwt {
         this.emptyCard = dom.card(card -> {
             card.setLayoutData(gdFill(new GridData()));
 
-            dom.cardHeader(Theme.ICON_BAG, "Carrinho", "Seus produtos selecionados");
+            dom.cardHeader(Theme.ICON_BAG, "Cart", "Your selected products");
             dom.spacer(40);
 
             int circleSize = 120;
@@ -155,7 +155,7 @@ public class CartViewSwt extends AbstractViewSwt {
             });
 
             dom.label(SWT.CENTER, lbl -> {
-                lbl.setText("Carrinho vazio");
+                lbl.setText("Your cart is empty");
                 lbl.setFont(Theme.FONT_NAV_TITLE);
                 lbl.setForeground(Theme.FG_TEXT_DARK);
                 lbl.setBackground(Theme.BG_WHITE);
@@ -167,7 +167,7 @@ public class CartViewSwt extends AbstractViewSwt {
             });
 
             dom.label(SWT.CENTER, lbl -> {
-                lbl.setText("Adicione produtos para começar");
+                lbl.setText("Add products to get started");
                 lbl.setFont(Theme.FONT_BODY);
                 lbl.setForeground(Theme.FG_TEXT_SUBTLE);
                 lbl.setBackground(Theme.BG_WHITE);
@@ -178,7 +178,7 @@ public class CartViewSwt extends AbstractViewSwt {
                 lbl.setLayoutData(lblGd);
             });
 
-            dom.primaryButton(Theme.ICON_GRID_3X3_GAP, "Ver produtos", btn -> {
+            dom.primaryButton(Theme.ICON_GRID_3X3_GAP, "Browse products", btn -> {
                 var gd = new GridData(SWT.CENTER, SWT.CENTER, false, false);
                 gd.verticalIndent = 20;
                 btn.setLayoutData(gd);
@@ -198,7 +198,7 @@ public class CartViewSwt extends AbstractViewSwt {
             gdTop(cardGd);
             card.setLayoutData(cardGd);
 
-            dom.cardHeader(Theme.ICON_BAG, "Carrinho", "Seus produtos selecionados");
+            dom.cardHeader(Theme.ICON_BAG, "Cart", "Your selected products");
 
             // Items container — slots will be synced here
             this.itemsContainer = dom.col(col -> {
@@ -241,12 +241,12 @@ public class CartViewSwt extends AbstractViewSwt {
                 actionsRow.setLayoutData(actionsRowGd);
                 actionsRow.setBackground(Theme.BG_WHITE);
 
-                dom.actionButton(Theme.ICON_ARROW_LEFT, "Continuar comprando", Theme.BG_WHITE, btn -> {
+                dom.actionButton(Theme.ICON_ARROW_LEFT, "Continue shopping", Theme.BG_WHITE, btn -> {
                     btn.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
                     btn.addListener(SWT.MouseUp, evt -> safeAction("onOpenProducts", () -> { if (onOpenProducts != null) onOpenProducts.run(); }));
                 });
 
-                dom.primaryButton(Theme.ICON_CHECK2_SQUARE, "Finalizar pedido", btn -> {
+                dom.primaryButton(Theme.ICON_CHECK2_SQUARE, "Checkout", btn -> {
                     btn.addListener(SWT.MouseUp, evt -> safeAction("onBuy", () -> { if (onBuy != null) onBuy.run(); }));
                 });
             });

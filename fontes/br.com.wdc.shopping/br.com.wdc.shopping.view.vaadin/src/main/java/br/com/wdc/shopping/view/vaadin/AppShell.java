@@ -7,10 +7,10 @@ import com.vaadin.flow.shared.communication.PushMode;
 import com.vaadin.flow.theme.lumo.Lumo;
 
 /**
- * Configuração da página (app shell). O Vaadin exige que seja uma classe à parte, que não seja componente.
+ * Page configuration (app shell). Vaadin requires it to be a separate class that is not a component.
  * <p>
- * O Lumo é declarado aqui porque, desde o Vaadin 25, o tema padrão é o Aura, e o {@code styles/app.css} usa as
- * variáveis {@code --lumo-*}.
+ * Lumo is declared here because, since Vaadin 25, the default theme is Aura, and {@code styles/app.css} uses the
+ * {@code --lumo-*} variables.
  */
 @Push(PushMode.AUTOMATIC)
 @StyleSheet(Lumo.STYLESHEET)

@@ -13,9 +13,9 @@ import br.com.wdc.framework.domain.security.AuthenticationService;
 import br.com.wdc.framework.domain.security.SecurityContext;
 
 /**
- * Implementação de {@link AuthenticationService} para TeaVM. Usa HttpTransport diretamente.
+ * {@link AuthenticationService} implementation for TeaVM. Uses HttpTransport directly.
  * <p>
- * Persiste tokens no {@link ClientStorage} para que a sessão sobreviva ao reload (F5).
+ * Persists tokens in the {@link ClientStorage} so the session survives a reload (F5).
  */
 public class TeaVMAuthenticationService implements AuthenticationService {
 
@@ -34,10 +34,10 @@ public class TeaVMAuthenticationService implements AuthenticationService {
     }
 
     /**
-     * Tenta restaurar a sessão a partir dos tokens salvos no {@link ClientStorage}.
-     * Se o refresh token estiver presente, faz refresh e retorna o resultado.
+     * Tries to restore the session from the tokens saved in the {@link ClientStorage}.
+     * If the refresh token is present, refreshes and returns the result.
      *
-     * @return resultado do refresh, ou {@code null} se não houver sessão salva ou o refresh falhar
+     * @return the refresh result, or {@code null} if there is no saved session or the refresh fails
      */
     public AuthResult tryRestore() {
         var savedRefreshToken = storage.secure().get(KEY_REFRESH_TOKEN);
@@ -47,7 +47,7 @@ public class TeaVMAuthenticationService implements AuthenticationService {
 
         var result = refresh(savedRefreshToken);
         if (result == null) {
-            // Token expirado ou inválido — limpar storage
+            // Expired or invalid token — clear the storage
             storage.secure().remove(KEY_ACCESS_TOKEN);
             storage.secure().remove(KEY_REFRESH_TOKEN);
         }
@@ -96,11 +96,11 @@ public class TeaVMAuthenticationService implements AuthenticationService {
 
         var result = parseAuthResult(responseJson);
 
-        // Guarda access token para requisições subsequentes
+        // Keeps the access token for subsequent requests
         this.accessToken = result.accessToken();
         transport.setAccessTokenSupplier(() -> this.accessToken);
 
-        // Persiste no storage seguro (AES-GCM) para sobreviver ao F5
+        // Persists in the secure storage (AES-GCM) to survive F5
         storage.secure().set(KEY_ACCESS_TOKEN, result.accessToken());
         storage.secure().set(KEY_REFRESH_TOKEN, result.refreshToken());
 
@@ -131,7 +131,7 @@ public class TeaVMAuthenticationService implements AuthenticationService {
         this.accessToken = result.accessToken();
         transport.setAccessTokenSupplier(() -> this.accessToken);
 
-        // Atualiza tokens no storage seguro (AES-GCM)
+        // Updates the tokens in the secure storage (AES-GCM)
         storage.secure().set(KEY_ACCESS_TOKEN, result.accessToken());
         storage.secure().set(KEY_REFRESH_TOKEN, result.refreshToken());
 
@@ -154,7 +154,7 @@ public class TeaVMAuthenticationService implements AuthenticationService {
         this.accessToken = null;
         transport.setAccessTokenSupplier(null);
 
-        // Limpa tokens do storage seguro — incondicional, independente do refreshToken
+        // Clears the tokens from the secure storage — unconditionally, regardless of refreshToken
         storage.secure().remove(KEY_ACCESS_TOKEN);
         storage.secure().remove(KEY_REFRESH_TOKEN);
     }

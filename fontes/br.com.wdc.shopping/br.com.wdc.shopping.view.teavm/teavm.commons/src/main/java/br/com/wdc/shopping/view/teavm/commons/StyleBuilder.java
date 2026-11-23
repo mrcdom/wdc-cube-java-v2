@@ -2,9 +2,9 @@
 package br.com.wdc.shopping.view.teavm.commons;
 
 /**
- * Builder fluente para construir strings de estilo CSS inline.
+ * Fluent builder for inline CSS style strings.
  * <p>
- * Uso:
+ * Usage:
  * <pre>{@code
  * import static br.com.wdc.shopping.view.teavm.commons.StyleBuilder.css;
  *

@@ -13,15 +13,15 @@ import org.teavm.jso.dom.events.EventListener;
 import org.teavm.jso.dom.html.HTMLElement;
 
 /**
- * Nó virtual representando um elemento DOM ou texto. Usado pelo {@link VDom} para diffing e patching eficiente.
+ * Virtual node representing a DOM element or text. Used by {@link VDom} for efficient diffing and patching.
  * <p>
- * Uso:
+ * Usage:
  * 
  * <pre>{@code
  * import static br.com.wdc.shopping.view.teavm.commons.VNode.*;
  *
  * var tree = el("div").cls("card shadow").children(
- *     el("h5").text("Título"),
+ *     el("h5").text("Title"),
  *     el("input").attr("type", "text").attr("value", name),
  *     el("button").cls("btn btn-primary").text("OK").on("click", e -> doSomething())
  * );
@@ -51,7 +51,7 @@ public class VNode {
     // ---- Factory methods ----
 
     /**
-     * Cria um nó de elemento.
+     * Creates an element node.
      */
     public static VNode el(String tag) {
         var n = new VNode();
@@ -60,7 +60,7 @@ public class VNode {
     }
 
     /**
-     * Cria um nó de texto puro.
+     * Creates a plain text node.
      */
     public static VNode textNode(String content) {
         var n = new VNode();
@@ -72,14 +72,14 @@ public class VNode {
     // ---- Fluent builder ----
 
     /**
-     * Define classes CSS (separadas por espaço).
+     * Sets CSS classes (space-separated).
      */
     public VNode cls(String classes) {
         return attr("class", classes);
     }
 
     /**
-     * Define um atributo.
+     * Sets an attribute.
      */
     public VNode attr(String name, String value) {
         if (this.attrs == null) {
@@ -92,27 +92,27 @@ public class VNode {
     }
 
     /**
-     * Define o atributo style.
+     * Sets the style attribute.
      */
     public VNode style(String css) {
         return attr("style", css);
     }
 
     /**
-     * Define um atributo booleano (presença/ausência no DOM). Web Components usam este padrão:
+     * Sets a boolean attribute (presence/absence in the DOM). Web Components use this pattern:
      * {@code <sp-button disabled>}.
      */
     public VNode boolAttr(String name, boolean present) {
         if (present) {
             return attr(name, "");
         }
-        // Não adiciona → diffAttrs remove se existia antes
+        // Not added → diffAttrs removes it if it existed before
         return this;
     }
 
     /**
-     * Define uma propriedade JavaScript no elemento (não um atributo HTML). Usado para Web Components que aceitam dados
-     * complexos via propriedade. Valores suportados: String, Boolean, Integer, Double, JSObject.
+     * Sets a JavaScript property on the element (not an HTML attribute). Used for Web Components that take complex
+     * data through a property. Supported values: String, Boolean, Integer, Double, JSObject.
      */
     public VNode prop(String name, Object value) {
         if (this.props == null) {
@@ -123,7 +123,7 @@ public class VNode {
     }
 
     /**
-     * Define uma key para reconciliação de listas.
+     * Sets a key for list reconciliation.
      */
     public VNode key(String key) {
         this.key = key;
@@ -131,7 +131,7 @@ public class VNode {
     }
 
     /**
-     * Define o texto como único filho (shortcut para um text node filho).
+     * Sets the text as the only child (shortcut for a child text node).
      */
     public VNode text(String content) {
         if (this.children == null) {
@@ -142,7 +142,7 @@ public class VNode {
     }
 
     /**
-     * Registra um event listener.
+     * Registers an event listener.
      */
     public VNode on(String eventType, EventListener<? extends Event> listener) {
         if (this.events == null) {
@@ -153,7 +153,7 @@ public class VNode {
     }
 
     /**
-     * Captura referência ao elemento DOM real (chamado após criação/patch). Similar ao React useRef/callback ref.
+     * Captures a reference to the real DOM element (called after creation/patch). Similar to React useRef/callback ref.
      */
     @SuppressWarnings("unchecked")
     public <T extends HTMLElement> VNode ref(Consumer<T> refCallback) {
@@ -162,7 +162,7 @@ public class VNode {
     }
 
     /**
-     * Define os filhos.
+     * Sets the children.
      */
     public VNode children(VNode... nodes) {
         if (this.children == null) {
@@ -177,7 +177,7 @@ public class VNode {
     }
 
     /**
-     * Adiciona filhos de uma lista (útil para loops/listas dinâmicas).
+     * Adds children from a list (useful for loops/dynamic lists).
      */
     public VNode children(List<VNode> nodes) {
         if (nodes == null || nodes.isEmpty()) {
@@ -335,10 +335,10 @@ public class VNode {
     // ---- Slot (hosts external element without diffing children) ----
 
     /**
-     * Cria um nó slot que hospeda um elemento DOM externo. O VDom cria/mantém um container div e o ref cuida de
-     * hospedar o elemento — nunca diffa filhos.
+     * Creates a slot node that hosts an external DOM element. The VDom creates/keeps a container div and the ref takes
+     * care of hosting the element — it never diffs children.
      *
-     * @param hosted elemento externo a hospedar (pode ser null)
+     * @param hosted external element to host (may be null)
      */
     public static VNode slot(HTMLElement hosted) {
         var n = new VNode();
@@ -363,7 +363,7 @@ public class VNode {
     // ---- Conditional rendering ----
 
     /**
-     * Retorna este nó se condition for true, senão null (ignorado pelo children()).
+     * Returns this node if condition is true, otherwise null (ignored by children()).
      */
     public VNode when(boolean condition) {
         return condition ? this : null;

@@ -10,8 +10,8 @@ import br.com.wdc.framework.commons.function.ThrowingRunnable;
 import br.com.wdc.shopping.view.teavm.commons.interop.Console;
 
 /**
- * Implementação de {@link ScheduledExecutor} para browser via setTimeout/setInterval.
- * Single-threaded — executa tudo na thread principal do browser.
+ * {@link ScheduledExecutor} implementation for the browser through setTimeout/setInterval.
+ * Single-threaded — runs everything on the browser's main thread.
  */
 public class ScheduledExecutorBrowser implements ScheduledExecutor {
 

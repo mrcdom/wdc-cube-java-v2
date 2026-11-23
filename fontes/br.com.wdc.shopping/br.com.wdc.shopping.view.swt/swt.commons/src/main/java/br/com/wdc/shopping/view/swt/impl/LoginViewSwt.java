@@ -134,9 +134,9 @@ public class LoginViewSwt extends AbstractViewSwt {
                     formLayout.marginWidth = 40;
                     formLayout.verticalSpacing = 0;
 
-                    // "Bem-vindo" title
+                    // "Welcome" title
                     dom.label(lbl -> {
-                        lbl.setText("Bem-vindo");
+                        lbl.setText("Welcome");
                         lbl.setFont(Theme.FONT_WELCOME);
                         lbl.setForeground(Theme.FG_TEXT_DARK);
                         lbl.setBackground(Theme.BG_WHITE);
@@ -150,7 +150,7 @@ public class LoginViewSwt extends AbstractViewSwt {
 
                     // Subtitle
                     dom.label(lbl -> {
-                        lbl.setText("Entre com suas credenciais para continuar");
+                        lbl.setText("Enter your credentials to continue");
                         lbl.setFont(Theme.FONT_SUBTITLE);
                         lbl.setForeground(Theme.FG_TEXT_SUBTLE);
                         lbl.setBackground(Theme.BG_WHITE);
@@ -184,9 +184,9 @@ public class LoginViewSwt extends AbstractViewSwt {
                         lbl.setVisible(false);
                     });
 
-                    // "Usuário" label
+                    // "Username" label
                     dom.label(lbl -> {
-                        lbl.setText("Usuário");
+                        lbl.setText("Username");
                         lbl.setFont(Theme.FONT_FIELD_LABEL);
                         lbl.setForeground(Theme.FG_TEXT_DARK);
                         lbl.setBackground(Theme.BG_WHITE);
@@ -199,13 +199,13 @@ public class LoginViewSwt extends AbstractViewSwt {
                     dom.spacer(4);
 
                     // User text field
-                    this.userNameField = createBorderedTextField(dom, SWT.SINGLE, "Digite seu usuário");
+                    this.userNameField = createBorderedTextField(dom, SWT.SINGLE, "Enter your username");
 
                     dom.spacer(16);
 
-                    // "Senha" label
+                    // "Password" label
                     dom.label(lbl -> {
-                        lbl.setText("Senha");
+                        lbl.setText("Password");
                         lbl.setFont(Theme.FONT_FIELD_LABEL);
                         lbl.setForeground(Theme.FG_TEXT_DARK);
                         lbl.setBackground(Theme.BG_WHITE);
@@ -218,14 +218,14 @@ public class LoginViewSwt extends AbstractViewSwt {
                     dom.spacer(4);
 
                     // Password field
-                    this.passwordField = createBorderedTextField(dom, SWT.SINGLE | SWT.PASSWORD, "Digite sua senha");
+                    this.passwordField = createBorderedTextField(dom, SWT.SINGLE | SWT.PASSWORD, "Enter your password");
                     this.passwordField.addListener(SWT.DefaultSelection, _e -> emitEnter());
 
                     dom.spacer(24);
 
                     // Login button
                     dom.button(btn -> {
-                        btn.setText("Entrar");
+                        btn.setText("Sign in");
                         btn.setFont(Theme.FONT_BUTTON);
                         btn.setBackground(Theme.PRIMARY_BLUE);
                         btn.setForeground(Theme.FG_TEXT_WHITE);
@@ -301,16 +301,16 @@ public class LoginViewSwt extends AbstractViewSwt {
 
         // Subtitle
         gc.setFont(Theme.FONT_SUBTITLE);
-        String subtitle = "Sua compra certa na internet.";
+        String subtitle = "Your trusted online store.";
         Point subtitleSize = gc.textExtent(subtitle);
         gc.drawText(subtitle, (bounds.width - subtitleSize.x) / 2, titleY + titleSize.y + 8, true);
 
         // Feature list
         int featureY = titleY + titleSize.y + 60;
         String[][] features = {
-                { Theme.ICON_SHIELD_CHECK, "  Compra segura" },
-                { Theme.ICON_TRUCK, "  Entrega rápida" },
-                { Theme.ICON_ARROW_REPEAT, "  Troca garantida" }
+                { Theme.ICON_SHIELD_CHECK, "  Secure checkout" },
+                { Theme.ICON_TRUCK, "  Fast delivery" },
+                { Theme.ICON_ARROW_REPEAT, "  Hassle-free returns" }
         };
         for (String[] feature : features) {
             gc.setFont(Theme.FONT_ICON);
@@ -370,7 +370,7 @@ public class LoginViewSwt extends AbstractViewSwt {
         // Subtitle
         gc.setAlpha(180);
         gc.setFont(Theme.FONT_BANNER_SUBTITLE);
-        String sub = "Sua compra certa na internet.";
+        String sub = "Your trusted online store.";
         Point subSize = gc.textExtent(sub);
         gc.drawText(sub, (bounds.width - subSize.x) / 2, titleY + titleSize.y + 4, true);
         gc.setAlpha(255);
@@ -385,7 +385,7 @@ public class LoginViewSwt extends AbstractViewSwt {
         Surface.drawOutlinedPanel(gc, area);
         gc.setForeground(Theme.FG_TEXT_SUBTLE);
         gc.setFont(Theme.FONT_SUBTITLE);
-        String text = "Acesso demo: admin / admin";
+        String text = "Demo access: admin / admin";
         Point size = gc.textExtent(text);
         gc.drawText(text, (area.width - size.x) / 2, (area.height - size.y) / 2, true);
     }

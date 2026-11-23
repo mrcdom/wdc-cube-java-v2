@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.IntConsumer;
 import java.util.function.LongConsumer;
 import java.util.function.Supplier;
@@ -41,7 +42,7 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt {
     private static final int ITEM_HEIGHT = 50;
     private static final int LIST_SPACING = 8;
 
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy", Locale.US);
 
     private boolean notRendered = true;
     private Composite listPanel;
@@ -116,7 +117,7 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt {
                     lbl.setFont(Theme.FONT_HEADER);
                     lbl.setForeground(Theme.FG_TEXT_DARK);
                     lbl.setBackground(Theme.BG_WHITE);
-                    lbl.setText("Histórico");
+                    lbl.setText("History");
                     lbl.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
                 });
             });
@@ -126,7 +127,7 @@ public class PurchasesPanelViewSwt extends AbstractViewSwt {
                 lbl.setFont(Theme.FONT_BODY);
                 lbl.setForeground(Theme.FG_TEXT_SUBTLE);
                 lbl.setBackground(Theme.BG_WHITE);
-                lbl.setText("Toque para ver detalhes");
+                lbl.setText("Tap for details");
                 var gd = new GridData();
                 gdFillH(gd);
                 gdTop(gd);

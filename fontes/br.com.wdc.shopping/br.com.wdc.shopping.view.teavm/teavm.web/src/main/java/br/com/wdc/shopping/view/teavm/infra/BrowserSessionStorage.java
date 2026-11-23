@@ -5,16 +5,16 @@ import org.teavm.jso.JSBody;
 import br.com.wdc.framework.commons.storage.ClientStorage;
 
 /**
- * Implementação de {@link ClientStorage} usando {@code window.sessionStorage} do browser.
+ * {@link ClientStorage} implementation using the browser's {@code window.sessionStorage}.
  * <p>
- * Os dados persistem durante a sessão da aba (sobrevivem ao F5/reload),
- * mas são descartados ao fechar a aba ou o browser.
+ * Data persists during the tab session (survives F5/reload),
+ * but is discarded when the tab or the browser is closed.
  */
 public class BrowserSessionStorage implements ClientStorage {
 
 	@Override
 	public ClientStorage secure() {
-		return this; // sessionStorage do browser é efêmero — sem backing seguro extra
+		return this; // the browser's sessionStorage is ephemeral — no extra secure backing
 	}
 
 	@Override

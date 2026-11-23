@@ -184,10 +184,10 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
         this.app.setSubject(null);
         this.setContent(null);
 
-        // Remover token persistente do storage seguro
+        // Remove the persistent token from secure storage
         this.app.clientPersistentStore().secure().remove(StorageKeys.AUTH_TOKEN);
 
-        // Logout via AuthenticationService (limpa tokens do ClientStorage)
+        // Logout through AuthenticationService (clears the tokens from ClientStorage)
         var authService = AuthenticationService.BEAN.get();
         if (authService != null) {
             var refreshToken = this.app.clientPersistentStore().secure().get(StorageKeys.AUTH_REFRESH_TOKEN);
@@ -201,22 +201,22 @@ public class HomePresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     private void alertProductNotFound() {
         this.state.errorCode.set(3);
-        this.state.errorMessage.set("Código do produto não localizado.");
+        this.state.errorMessage.set("Product code not found.");
     }
 
     private void alertPurchaseNotFound() {
         this.state.errorCode.set(5);
-        this.state.errorMessage.set("Código do recibo não localizado.");
+        this.state.errorMessage.set("Receipt code not found.");
     }
 
     private void alertProductIdRequired() {
         this.state.errorCode.set(6);
-        this.state.errorMessage.set("Código do produto é um argumento obrigatório.");
+        this.state.errorMessage.set("Product code is a required argument.");
     }
 
     private void alertPurchaseIdRequired() {
         this.state.errorCode.set(7);
-        this.state.errorMessage.set("Código do recibo é um argumento obrigatório.");
+        this.state.errorMessage.set("Receipt code is a required argument.");
     }
 
     // :: Slots

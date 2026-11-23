@@ -7,14 +7,14 @@ import br.com.wdc.shopping.domain.user.UserCriteria;
 import br.com.wdc.shopping.presentation.ShoppingCall;
 import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
 
-/** Autentica o usuário; {@code null} se as credenciais forem inválidas. */
+/** Authenticates the user; {@code null} if the credentials are invalid. */
 public class LoginCall extends ShoppingCall<LoginCall.Result> {
 
     /**
-     * Resultado de uma autenticação bem-sucedida.
+     * Result of a successful authentication.
      *
-     * @param subject         dados do usuário autenticado
-     * @param persistentToken token de auto-login (remember me); {@code null} em clientes REST
+     * @param subject         data of the authenticated user
+     * @param persistentToken auto-login token (remember me); {@code null} on REST clients
      */
     public record Result(Subject subject, String persistentToken) {
     }
@@ -44,31 +44,31 @@ public class LoginCall extends ShoppingCall<LoginCall.Result> {
     // :: Internal
 
     private Result authenticateViaAuthService(AuthenticationService authService) {
-        // 1. Hash da senha (MD5 → base36, mesmo formato do banco)
+        // 1. Password hash (MD5 → base36, same format as the database)
         var passwordHash = PasswordUtil.hashPassword(password);
 
-        // 2. Obter challenge (nonce de uso único)
+        // 2. Get the challenge (single-use nonce)
         var challenge = authService.challenge();
 
-        // 3. Calcular HMAC-SHA256(key=passwordHash, data=userName+nonce)
+        // 3. Compute HMAC-SHA256(key=passwordHash, data=userName+nonce)
         var digest = PasswordUtil.computeHmac(passwordHash, userName + challenge.nonce());
 
-        // 4. Autenticar
+        // 4. Authenticate
         var authResult = authService.login(userName, digest, challenge.nonce());
         if (authResult == null) {
             return null;
         }
 
-        // 5. Token persistente para auto-login (remember me)
-        // REST clients gerenciam sessão via refresh token; lança UnsupportedOperationException.
+        // 5. Persistent token for auto-login (remember me)
+        // REST clients manage the session through a refresh token; throws UnsupportedOperationException.
         String persistentToken = null;
         try {
             persistentToken = authService.createPersistentToken(authResult.userId(), userName);
         } catch (UnsupportedOperationException ignored) {
-            // REST client: sem persistent token
+            // REST client: no persistent token
         }
 
-        // 6. Buscar nome de exibição do usuário
+        // 6. Fetch the user's display name
         var users = userRepository().fetch(new UserCriteria()
                 .withUserId(authResult.userId())
                 .withProjection(Subject.projection()), 0, 1);
@@ -78,13 +78,13 @@ public class LoginCall extends ShoppingCall<LoginCall.Result> {
     }
 
     /**
-     * Fallback para ambientes sem segurança (testes unitários sem initializeSecurity).
+     * Fallback for environments without security (unit tests without initializeSecurity).
      *
      * <p>
-     * Busca pelo login e <b>compara o resumo aqui</b>, em vez de mandá-lo como critério. A senha não é campo por onde
-     * se pesquisa: deixá-la na superfície do critério a exporia também na API REST, onde filtrar usuário por senha não
-     * serve a ninguém. É o mesmo caminho que o {@code AuthenticationServiceImpl} segue no fluxo real — projeta o
-     * resumo e o confere — só que sem o desafio, que aqui não existe.
+     * Looks up by login and <b>compares the digest here</b>, instead of sending it as a criterion. The password is not
+     * a searchable field: leaving it on the criteria surface would also expose it on the REST API, where filtering users
+     * by password serves no one. It is the same path {@code AuthenticationServiceImpl} follows in the real flow — it
+     * projects the digest and checks it — only without the challenge, which does not exist here.
      * </p>
      */
     private Result authenticateViaRepository() {
@@ -100,7 +100,7 @@ public class LoginCall extends ShoppingCall<LoginCall.Result> {
         }
 
         var user = users.get(0);
-        // A coluna é CHAR e vem preenchida com espaços à direita; sem o corte a comparação nunca casaria.
+        // The column is CHAR and comes right-padded with spaces; without the trim the comparison would never match.
         var stored = user.password() == null ? null : user.password().trim();
         if (stored == null || !stored.equals(PasswordUtil.hashPassword(password))) {
             return null;

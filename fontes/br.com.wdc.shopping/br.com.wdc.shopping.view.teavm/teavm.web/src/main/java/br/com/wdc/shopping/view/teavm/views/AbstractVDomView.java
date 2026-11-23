@@ -16,13 +16,13 @@ import br.com.wdc.shopping.view.teavm.commons.VDom;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
 
 /**
- * Base para views TeaVM com Virtual DOM.
+ * Base for TeaVM views with a Virtual DOM.
  * <p>
- * Substitui o padrão imperativo (criar DOM + atualizar manualmente) por um
- * modelo declarativo: a view implementa {@link #render()} que retorna uma árvore
- * de {@link VNode}. O VDom cuida do diffing e patching automático.
+ * Replaces the imperative pattern (create the DOM + update it by hand) with a
+ * declarative model: the view implements {@link #render()}, which returns a tree
+ * of {@link VNode}. The VDom takes care of the automatic diffing and patching.
  * <p>
- * Exemplo:
+ * Example:
  * <pre>{@code
  * import static br.com.wdc.shopping.view.teavm.vdom.VNode.*;
  *
@@ -64,8 +64,8 @@ public abstract class AbstractVDomView<S extends Scope> extends AbstractViewTeaV
     }
 
     /**
-     * Descreve a árvore virtual da view com base no estado atual.
-     * Chamado a cada ciclo de render — o VDom aplica apenas as diferenças no DOM real.
+     * Describes the view's virtual tree based on the current state.
+     * Called on every render cycle — the VDom applies only the differences to the real DOM.
      */
     protected abstract VNode render();
 

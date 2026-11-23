@@ -43,7 +43,7 @@ public class LoginViewVaadin extends AbstractViewVaadin<LoginScope> {
         }
 
         if (this.state.errorCode.get() != 0) {
-            this.errorDiv.setText("Usuário ou senha inválidos. Tente novamente.");
+            this.errorDiv.setText("Invalid username or password. Please try again.");
             this.errorDiv.setVisible(true);
             // Consumed while drawing: a redraw now would take the message away
             this.state.errorCode.setSilently(0);
@@ -91,11 +91,11 @@ public class LoginViewVaadin extends AbstractViewVaadin<LoginScope> {
                 // Title
                 var title = new Div();
                 title.addClassName("login-title");
-                title.setText("Acesso ao sistema");
+                title.setText("Account access");
                 body.add(title);
 
                 // User field
-                this.userField = new TextField("Usuário");
+                this.userField = new TextField("Username");
                 this.userField.setWidthFull();
                 this.userField.setAutocomplete(com.vaadin.flow.component.textfield.Autocomplete.OFF);
                 this.userField.getElement()
@@ -105,7 +105,7 @@ public class LoginViewVaadin extends AbstractViewVaadin<LoginScope> {
                 // Password field — uses TextField with CSS masking to prevent
                 // Chrome from detecting it as a password field and triggering
                 // the password manager (which causes page reloads via Vaadin Push)
-                this.passwordField = new TextField("Senha");
+                this.passwordField = new TextField("Password");
                 this.passwordField.setWidthFull();
                 this.passwordField.setAutocomplete(com.vaadin.flow.component.textfield.Autocomplete.OFF);
                 this.passwordField.getElement().executeJs(
@@ -123,7 +123,7 @@ public class LoginViewVaadin extends AbstractViewVaadin<LoginScope> {
                 body.add(this.errorDiv);
 
                 // Login button
-                var loginButton = new Button("Entrar", e -> doLogin());
+                var loginButton = new Button("Sign in", e -> doLogin());
                 loginButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
                 loginButton.setWidthFull();
                 loginButton.getStyle()
@@ -137,7 +137,7 @@ public class LoginViewVaadin extends AbstractViewVaadin<LoginScope> {
                 var demoHint = new Div();
                 demoHint.addClassName("login-demo-hint");
                 demoHint.getElement().setProperty("innerHTML",
-                        "Acesso demo: usuário <strong>admin</strong> / senha <strong>admin</strong>");
+                        "Demo access: username <strong>admin</strong> / password <strong>admin</strong>");
                 body.add(demoHint);
             });
         });

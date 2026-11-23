@@ -68,8 +68,8 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     private void modifyQuantity(long productId, Integer quantity) {
         if (quantity == null) {
-            this.errorValorQuantidadeMalFormatado();
-            LOG.warn("modifyQuantity.errorValorQuantidadeMalFormatado: {}", this.state.errorMessage.get());
+            this.errorMalformedQuantityValue();
+            LOG.warn("modifyQuantity.errorMalformedQuantityValue: {}", this.state.errorMessage.get());
             return;
         }
 
@@ -188,31 +188,31 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     protected void alertThereIsItemWhichValueIsLessThanOne() {
         this.state.errorCode.set(1);
-        this.state.errorMessage.set("Deve existir pelo menos um item no carrinhro para se efetivar uma compra");
+        this.state.errorMessage.set("The cart must have at least one item to complete a purchase");
         this.clearErrorAfterDelay();
     }
 
     protected void alertProductNotFound() {
         this.state.errorCode.set(2);
-        this.state.errorMessage.set("Produdo não localizado na base dados.");
+        this.state.errorMessage.set("Product not found in the database.");
         this.clearErrorAfterDelay();
     }
 
     protected void alertPurchaseOfEmptyCart() {
         this.state.errorCode.set(3);
-        this.state.errorMessage.set("Existem produtos com menos de um item na quantidade. Impossível comprar.");
+        this.state.errorMessage.set("Some products have a quantity of less than one item. Unable to purchase.");
         this.clearErrorAfterDelay();
     }
 
     protected void alertDatabaseOffline() {
         this.state.errorCode.set(4);
-        this.state.errorMessage.set("O banco de dados encontra-se fora do ar no momento. Aguarde alguns instantes e tente novamente.");
+        this.state.errorMessage.set("The database is currently offline. Please wait a moment and try again.");
         this.clearErrorAfterDelay();
     }
 
-    protected void errorValorQuantidadeMalFormatado() {
+    protected void errorMalformedQuantityValue() {
         this.state.errorCode.set(6);
-        this.state.errorMessage.set("Valor da quantiade está mal formado.");
+        this.state.errorMessage.set("The quantity value is malformed.");
         this.clearErrorAfterDelay();
     }
 

@@ -132,7 +132,7 @@ public class HomeSharedView extends SharedVDomView {
               .children(span(Sel.EXIT_ICON))
               .on("click", exitListener),
             div(Sel.GREETING_WRAP).children(
-              span(Sel.GREETING_LABEL).text("Bem-vindo(a),"),
+              span(Sel.GREETING_LABEL).text("Welcome,"),
               span(Sel.GREETING_NAME).text(nickName))),
           // Center: logo
           div(Sel.NAV_GROUP).children(
@@ -147,7 +147,7 @@ public class HomeSharedView extends SharedVDomView {
               .on("click", openCartListener)
               .children(
                 span(Sel.CART_ICON),
-                span(Sel.CART_LABEL).text("Carrinho"),
+                span(Sel.CART_LABEL).text("Cart"),
                 span(Sel.CART_BADGE).text(cartCount))));
         // @formatter:on
     }
@@ -177,13 +177,13 @@ public class HomeSharedView extends SharedVDomView {
             .on("click", tabProductsListener)
             .children(
               span(Sel.TAB_ICON_PRODUCTS),
-              span().text("Produtos"),
+              span().text("Products"),
               this.showingProducts ? span(Sel.TAB_INDICATOR) : span(Sel.HIDDEN)),
           button(this.showingProducts ? Sel.TAB_INACTIVE : Sel.TAB_ACTIVE)
             .on("click", tabHistoryListener)
             .children(
               span(Sel.TAB_ICON_HISTORY),
-              span().text("Histórico"),
+              span().text("History"),
               !this.showingProducts ? span(Sel.TAB_INDICATOR) : span(Sel.HIDDEN)));
         // @formatter:on
     }

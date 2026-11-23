@@ -64,17 +64,17 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
     private void alertUserOrPasswordNotRecognize() {
         state.errorCode.set(1);
-        state.errorMessage.set("Usuário ou senha não reconhecido!");
+        state.errorMessage.set("Username or password not recognized!");
     }
 
     private void alertDatabaseIsOffline() {
         state.errorCode.set(4);
-        state.errorMessage.set("Banco de dados esta fora do ar!");
+        state.errorMessage.set("The database is offline!");
     }
 
     private void alertConnectionError(Throwable caught) {
         state.errorCode.set(5);
-        state.errorMessage.set("Falha de comunicação com o servidor. Verifique sua conexão.");
+        state.errorMessage.set("Could not reach the server. Check your connection.");
 
         LOG.error(state.errorMessage.get(), caught);
     }

@@ -81,7 +81,7 @@ public class CartSharedView extends SharedVDomView {
         var rows = rowElements != null ? rowElements.get() : List.<HTMLElement>of();
         var empty = rows.isEmpty();
         var totalCost = state.total.get() != null ? state.total.get() : 0.0;
-        var totalText = "R$ " + String.format("%.2f", totalCost);
+        var totalText = "$" + String.format("%.2f", totalCost);
 
         // @formatter:off
         return div(Sel.ROOT).children(
@@ -91,8 +91,8 @@ public class CartSharedView extends SharedVDomView {
                 div(Sel.HEADER_ICON_BOX)
                   .children(span(Sel.HEADER_ICON)),
                 div().children(
-                  h5(Sel.HEADER_TITLE).text("Carrinho"),
-                  span(Sel.HEADER_SUBTITLE).text("Seus produtos selecionados"))),
+                  h5(Sel.HEADER_TITLE).text("Cart"),
+                  span(Sel.HEADER_SUBTITLE).text("Your selected products"))),
               // Error
               div(showError ? Sel.ERROR_VISIBLE : Sel.HIDDEN).children(
                 span(Sel.ERROR_ICON),
@@ -109,10 +109,10 @@ public class CartSharedView extends SharedVDomView {
         return div(empty ? Sel.EMPTY_STATE : Sel.HIDDEN).children(
           div(Sel.EMPTY_ICON_BOX)
             .children(span(Sel.EMPTY_ICON)),
-          p(Sel.EMPTY_TITLE).text("Carrinho vazio"),
-          p(Sel.EMPTY_SUBTITLE).text("Adicione produtos para começar"),
+          p(Sel.EMPTY_TITLE).text("Your cart is empty"),
+          p(Sel.EMPTY_SUBTITLE).text("Add products to get started"),
           spButton("accent")
-            .children(span(Sel.ICON_VIEW_PRODUCTS), span().text("Ver produtos"))
+            .children(span(Sel.ICON_VIEW_PRODUCTS), span().text("Browse products"))
             .on("click", backListener));
         // @formatter:on
     }
@@ -126,11 +126,11 @@ public class CartSharedView extends SharedVDomView {
             span(Sel.FOOTER_TOTAL).text(totalText)),
           div(Sel.ACTIONS_ROW).children(
             spActionButton()
-              .children(span(SelIcons.ARROW_LEFT), span().text(" Continuar comprando"))
+              .children(span(SelIcons.ARROW_LEFT), span().text(" Continue shopping"))
               .on("click", backListener),
             spButton("accent", "l")
               .boolAttr("disabled", empty)
-              .children(span(Sel.ICON_FINALIZE), span().text("Finalizar pedido"))
+              .children(span(Sel.ICON_FINALIZE), span().text("Checkout"))
               .on("click", buyListener)));
         // @formatter:on
     }

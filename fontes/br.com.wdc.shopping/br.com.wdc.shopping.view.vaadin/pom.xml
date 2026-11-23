@@ -70,7 +70,7 @@
             <groupId>com.vaadin</groupId>
             <artifactId>vaadin-core</artifactId>
         </dependency>
-        <!-- Modo de desenvolvimento (bundle de dev e ferramentas); desde o Vaadin 25 não vem mais pelo vaadin-core -->
+        <!-- Development mode (dev bundle and tools); since Vaadin 25 it is not part of vaadin-core -->
         <dependency>
             <groupId>com.vaadin</groupId>
             <artifactId>vaadin-dev</artifactId>

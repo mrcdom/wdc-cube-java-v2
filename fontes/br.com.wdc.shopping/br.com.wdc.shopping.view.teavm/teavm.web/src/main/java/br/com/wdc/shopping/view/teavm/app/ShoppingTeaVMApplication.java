@@ -49,8 +49,8 @@ import br.com.wdc.shopping.view.teavm.views.product.ProductView;
 import br.com.wdc.shopping.view.teavm.views.receipt.ReceiptView;
 
 /**
- * Implementação de {@link ShoppingApplication} para o browser via TeaVM. Usa Material Web components para UI e
- * requestAnimationFrame para render loop.
+ * {@link ShoppingApplication} implementation for the browser through TeaVM. Uses Material Web components for the UI and
+ * requestAnimationFrame for the render loop.
  */
 public class ShoppingTeaVMApplication extends ShoppingApplication {
 
@@ -79,22 +79,22 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
         this.apiBaseUrl = apiBaseUrl;
         this.persistentStore = new BrowserLocalStorage(shellId);
 
-        // Configura CryptoProvider para browser (antes de qualquer auth)
+        // Sets up the browser CryptoProvider (before any auth)
         CryptoProvider.BEAN.set(new BrowserCryptoProvider());
 
-        // Gera secret aleatório por sessão para assinatura de URL
+        // Generates a random per-session secret for URL signing
         this.intentSigner = new IntentSigner(generateRandomBytes(32));
 
-        // Configura ScheduledExecutor para browser
+        // Sets up the browser ScheduledExecutor
         ScheduledExecutor.BEAN.set(new ScheduledExecutorBrowser());
 
-        // Configura HTTP transport e registra repositórios.
-        // Auth tokens (accessToken, refreshToken) são persistidos em localStorage
-        // para que a sessão sobreviva ao fechar e reabrir o browser.
+        // Sets up the HTTP transport and registers the repositories.
+        // Auth tokens (accessToken, refreshToken) are persisted in localStorage
+        // so the session survives closing and reopening the browser.
         HttpTransport transport = new FetchHttpTransport(apiBaseUrl);
         TeaVMRepositoryBootstrap.initialize(transport, persistentStore);
 
-        // Escuta popstate (Back/Forward do browser)
+        // Listens to popstate (browser Back/Forward)
         Window.current().addEventListener("popstate", evt -> onPopState());
     }
 
@@ -154,7 +154,7 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
     }
 
     /**
-     * Marca uma view como dirty para re-render no próximo frame.
+     * Marks a view as dirty to re-render on the next frame.
      */
     public void markDirty(AbstractViewTeaVM<?> view) {
         long now = System.currentTimeMillis();
@@ -186,8 +186,8 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
     }
 
     /**
-     * Inicia a aplicação. Tenta restaurar a sessão anterior via refresh token.
-     * Se bem-sucedido, navega direto para home; caso contrário, vai para login.
+     * Starts the application. Tries to restore the previous session through the refresh token.
+     * If it succeeds, navigates straight to home; otherwise, goes to login.
      */
     public void start() {
         Console.log("ShoppingTeaVMApplication starting...");
@@ -196,7 +196,7 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
                 var authService = (TeaVMAuthenticationService) AuthenticationService.BEAN.get();
                 AuthResult restored = authService.tryRestore();
                 if (restored != null && restored.userId() != null) {
-                    // Restaurar o subject
+                    // Restore the subject
                     var users = UserRepository.BEAN.get().fetch(new UserCriteria()
                             .withUserId(restored.userId())
                             .withProjection(Subject.projection()), 0, 1);
@@ -208,10 +208,10 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
                 LOG.warn("Session restore failed: " + e.getMessage());
             }
 
-            // Navegar para o hash da URL se presente, senão para root
+            // Navigate to the URL hash if present, otherwise to root
             var hash = getLocationHash();
             if (hash != null && hash.startsWith("#") && hash.length() > 1) {
-                // No boot, o secret é novo (F5 gera outro), então strip assinatura antiga se houver
+                // On boot the secret is new (F5 generates another one), so strip any old signature
                 var location = intentSigner.stripSignature(hash.substring(1));
                 try {
                     this.go(location);
@@ -220,8 +220,8 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
                     new RootKeys(this).flip();
                 }
             } else {
-                // Tauri native: WebView inicia sem hash — restaura último intent salvo.
-                // No browser isso só acontece na primeira visita; neste caso savedIntent é null.
+                // Tauri native: the WebView starts without a hash — restores the last saved intent.
+                // In the browser this only happens on the first visit; in that case savedIntent is null.
                 var savedIntent = persistentStore.get("session.intent");
                 if (savedIntent != null && !savedIntent.isBlank() && !savedIntent.startsWith("login")) {
                     try {
@@ -264,8 +264,8 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
             if (!navigatingFromBrowser) {
                 var signedUrl = intentSigner.sign(intentStr);
                 pushState("#" + signedUrl);
-                // Persiste o intent para restauração no próximo launch (Tauri native).
-                // No browser, o hash já cobre isso; aqui é redundante mas inofensivo.
+                // Persists the intent for restoration on the next launch (Tauri native).
+                // In the browser the hash already covers this; here it is redundant but harmless.
                 if (!intentStr.isBlank() && !intentStr.startsWith("login")) {
                     persistentStore.set("session.intent", intentStr);
                 }
@@ -287,7 +287,7 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
             return;
         }
 
-        // Verifica assinatura - rejeita URLs adulteradas e restaura hash legítimo
+        // Checks the signature - rejects tampered URLs and restores the legitimate hash
         if (!intentSigner.verify(hash)) {
             LOG.warn("Invalid URL signature, restoring current state: " + hash);
             pushState("#" + intentSigner.sign(this.fragment));

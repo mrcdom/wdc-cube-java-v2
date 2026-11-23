@@ -4,6 +4,7 @@ import static br.com.wdc.shopping.view.swt.util.GridDataUtils.*;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 import java.util.function.Supplier;
 
 import org.eclipse.swt.SWT;
@@ -22,7 +23,7 @@ public class ReceiptViewSwt extends AbstractViewSwt {
     public Supplier<ReceiptScope> stateSupplier;
     public Runnable onOpenProducts;
 
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy h:mm a", Locale.US);
     private boolean notRendered = true;
 
     public ReceiptViewSwt(SwtApp app) {
@@ -56,7 +57,7 @@ public class ReceiptViewSwt extends AbstractViewSwt {
             dom.card(32, 32, 20, card -> {
                 card.setLayoutData(gdFillH(new GridData()));
 
-                dom.cardHeader(Theme.ICON_RECEIPT, "Recibo de Compra", "WDC Shopping");
+                dom.cardHeader(Theme.ICON_RECEIPT, "Purchase Receipt", "WDC Shopping");
 
                 renderBody(dom, state);
                 renderBackButton(dom);
@@ -85,7 +86,7 @@ public class ReceiptViewSwt extends AbstractViewSwt {
             });
 
             dom.label(lbl -> {
-                lbl.setText("Compra realizada com sucesso!");
+                lbl.setText("Purchase completed successfully!");
                 lbl.setFont(Theme.FONT_BODY_BOLD);
                 lbl.setForeground(Theme.FG_SUCCESS);
                 lbl.setBackground(Theme.BG_SUCCESS);
@@ -114,7 +115,7 @@ public class ReceiptViewSwt extends AbstractViewSwt {
                 dateLayout.marginHeight = 0;
 
                 dom.label(lbl -> {
-                    lbl.setText("Data:");
+                    lbl.setText("Date:");
                     lbl.setFont(Theme.FONT_MONO);
                     lbl.setForeground(Theme.FG_TEXT_SUBTLE);
                     lbl.setBackground(Theme.BG_PAGE);
@@ -159,7 +160,7 @@ public class ReceiptViewSwt extends AbstractViewSwt {
                 });
 
                 dom.label(lbl -> {
-                    lbl.setText("QTD");
+                    lbl.setText("QTY");
                     lbl.setFont(Theme.FONT_MONO_BOLD);
                     lbl.setForeground(Theme.FG_TEXT_SUBTLE);
                     lbl.setBackground(Theme.BG_PAGE);
@@ -170,7 +171,7 @@ public class ReceiptViewSwt extends AbstractViewSwt {
                 });
 
                 dom.label(lbl -> {
-                    lbl.setText("VALOR");
+                    lbl.setText("PRICE");
                     lbl.setFont(Theme.FONT_MONO_BOLD);
                     lbl.setForeground(Theme.FG_TEXT_SUBTLE);
                     lbl.setBackground(Theme.BG_PAGE);
@@ -255,7 +256,7 @@ public class ReceiptViewSwt extends AbstractViewSwt {
 
                 var totalStr = state != null && state.receipt.get() != null && state.receipt.get().total != null
                         ? Theme.formatPrice(state.receipt.get().total)
-                        : "R$ 0,00";
+                        : Theme.formatPrice(0);
                 dom.label(lbl -> {
                     lbl.setText(totalStr);
                     lbl.setFont(Theme.FONT_PRICE);
@@ -268,7 +269,7 @@ public class ReceiptViewSwt extends AbstractViewSwt {
     }
 
     private void renderBackButton(SwtDom dom) {
-        dom.actionButton(Theme.ICON_ARROW_LEFT, "Voltar aos produtos", Theme.BG_WHITE, btn -> {
+        dom.actionButton(Theme.ICON_ARROW_LEFT, "Back to products", Theme.BG_WHITE, btn -> {
             var gd = new GridData(SWT.LEFT, SWT.CENTER, false, false);
             gd.verticalIndent = 4;
             btn.setLayoutData(gd);

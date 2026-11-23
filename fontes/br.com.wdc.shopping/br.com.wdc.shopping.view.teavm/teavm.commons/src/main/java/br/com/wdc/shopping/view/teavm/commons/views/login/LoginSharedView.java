@@ -120,7 +120,7 @@ public class LoginSharedView extends SharedVDomView {
         var showError = errorMessage != null && !errorMessage.isEmpty();
         
         var title = "WDC Shopping";
-        var subtitle = "Sua compra certa na internet.";
+        var subtitle = "Your trusted online store.";
 
         // @formatter:off
         return div(Sel.LOGIN_ROOT).children(
@@ -135,9 +135,9 @@ public class LoginSharedView extends SharedVDomView {
               div(Sel.TITLE_LG).children(textNode(title)),
               div(Sel.SUBTITLE_LG).children(textNode(subtitle)),
               div(Sel.FEATURES_LIST).children(
-                renderFeature(SelIcons.SHIELD_CHECK, "Compra segura"),
-                renderFeature(SelIcons.TRUCK, "Entrega rápida"),
-                renderFeature(SelIcons.ARROW_REPEAT, "Troca garantida")))),
+                renderFeature(SelIcons.SHIELD_CHECK, "Secure checkout"),
+                renderFeature(SelIcons.TRUCK, "Fast delivery"),
+                renderFeature(SelIcons.ARROW_REPEAT, "Hassle-free returns")))),
           // Right: form panel
           div(Sel.FORM_PANEL).children(
             div(Sel.FORM_CONTENT).children(
@@ -152,15 +152,15 @@ public class LoginSharedView extends SharedVDomView {
                   div(Sel.MOBILE_SUBTITLE).children(textNode(subtitle)))),
               // Welcome text
               div(Sel.WELCOME_WRAP).children(
-                div(Sel.WELCOME_TITLE).children(textNode("Bem-vindo")),
-                div(Sel.WELCOME_SUBTITLE).children(textNode("Entre com suas credenciais para continuar"))),
+                div(Sel.WELCOME_TITLE).children(textNode("Welcome")),
+                div(Sel.WELCOME_SUBTITLE).children(textNode("Enter your credentials to continue"))),
               // Error alert
               div(showError ? Sel.ERROR_VISIBLE : Sel.HIDDEN).children(
                 span(Sel.ERROR_ICON),
                 span(Sel.ERROR_TEXT).text(errorMessage != null ? errorMessage : "")),
               // User field
-              spFieldLabel("login-user", "Usuário").cls(Sel.FIELD_LABEL),
-              spTextField("Digite seu usuário")
+              spFieldLabel("login-user", "Username").cls(Sel.FIELD_LABEL),
+              spTextField("Enter your username")
                 .attr("id", "login-user")
                 .attr("autocomplete", "off")
                 .attr("autocapitalize", "off")
@@ -172,8 +172,8 @@ public class LoginSharedView extends SharedVDomView {
                     patchInputAttrs(el);
                 }),
               // Password field
-              spFieldLabel("login-pass", "Senha").cls(Sel.FIELD_LABEL),
-              spTextField("Digite sua senha", "password")
+              spFieldLabel("login-pass", "Password").cls(Sel.FIELD_LABEL),
+              spTextField("Enter your password", "password")
                 .attr("id", "login-pass")
                 .attr("autocomplete", "off")
                 .attr("autocapitalize", "off")
@@ -191,10 +191,10 @@ public class LoginSharedView extends SharedVDomView {
                 .boolAttr("pending", loading)
                 .cls(Sel.ENTER_BUTTON)
                 .on("click", onClickEnter)
-                .children(textNode(loading ? "Entrando..." : "Entrar")),
+                .children(textNode(loading ? "Signing in..." : "Sign in")),
               // Demo hint
               div(Sel.DEMO_HINT).children(
-                span(Sel.DEMO_TEXT).text("Acesso demo: "),
+                span(Sel.DEMO_TEXT).text("Demo access: "),
                 span(Sel.DEMO_HIGHLIGHT).text("admin"),
                 span(Sel.DEMO_TEXT).text(" / "),
                 span(Sel.DEMO_HIGHLIGHT).text("admin")))));

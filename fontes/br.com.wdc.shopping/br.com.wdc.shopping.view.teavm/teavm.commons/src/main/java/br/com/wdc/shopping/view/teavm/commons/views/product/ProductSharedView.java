@@ -100,7 +100,7 @@ public class ProductSharedView extends SharedVDomView {
             var p = state.product.get();
             name = p.name != null ? p.name : "";
             image = p.image != null ? imageResolver.apply(p.image) : "";
-            price = p.price > 0 ? "R$ " + String.format("%.2f", p.price) : "";
+            price = p.price > 0 ? "$" + String.format("%.2f", p.price) : "";
             description = p.description != null ? p.description : "";
         }
 
@@ -125,7 +125,7 @@ public class ProductSharedView extends SharedVDomView {
               div(Sel.PRICE_COL).children(
                 span(Sel.PRICE_BADGE).text(price),
                 div(Sel.QTY_ROW).children(
-                  span(Sel.QTY_LABEL).text("Qtd:"),
+                  span(Sel.QTY_LABEL).text("Qty:"),
                   spActionButton("s")
                     .children(span(SelIcons.DASH))
                     .on("click", onDecrement),
@@ -138,10 +138,10 @@ public class ProductSharedView extends SharedVDomView {
             // Action buttons row
             div(Sel.ACTIONS_ROW).children(
               spActionButton()
-                .children(span(SelIcons.ARROW_LEFT), span().text(" Voltar"))
+                .children(span(SelIcons.ARROW_LEFT), span().text(" Back"))
                 .on("click", backListener),
               spButton("accent", "l")
-                .children(span(Sel.ICON_ADD_CART), span().text("Adicionar ao Carrinho"))
+                .children(span(Sel.ICON_ADD_CART), span().text("Add to Cart"))
                 .on("click", addToCartListener))),
           // Error
           div(showError ? Sel.ERROR_VISIBLE : Sel.HIDDEN).children(

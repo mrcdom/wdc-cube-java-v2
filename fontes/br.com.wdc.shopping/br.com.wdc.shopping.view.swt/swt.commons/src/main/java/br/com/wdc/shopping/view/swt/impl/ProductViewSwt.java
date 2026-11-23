@@ -152,7 +152,7 @@ public class ProductViewSwt extends AbstractViewSwt {
                             qtyLayout.horizontalSpacing = 10;
 
                             page.label(lbl -> {
-                                lbl.setText("Qtd:");
+                                lbl.setText("Qty:");
                                 lbl.setFont(Theme.FONT_QTY);
                                 lbl.setForeground(Theme.FG_TEXT_SUBTLE);
                                 lbl.setBackground(Theme.BG_PAGE);
@@ -210,12 +210,12 @@ public class ProductViewSwt extends AbstractViewSwt {
                     var actionsLayout = (GridLayout) actionsRow.getLayout();
                     actionsLayout.horizontalSpacing = 20;
 
-                    page.actionButton(Theme.ICON_ARROW_LEFT, "Voltar", Theme.BG_PAGE, btn -> {
+                    page.actionButton(Theme.ICON_ARROW_LEFT, "Back", Theme.BG_PAGE, btn -> {
                         btn.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
                         btn.addListener(SWT.MouseUp, evt -> safeAction("product.onOpenProducts", () -> { if (onOpenProducts != null) onOpenProducts.run(); }));
                     });
 
-                    page.primaryButton(Theme.ICON_BAG_PLUS, "Adicionar ao Carrinho", Theme.BG_PAGE, btn -> {
+                    page.primaryButton(Theme.ICON_BAG_PLUS, "Add to Cart", Theme.BG_PAGE, btn -> {
                         btn.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
                         btn.addListener(SWT.MouseUp, evt -> {
                             safeAction("product.onAddToCart", () -> { if (onAddToCart != null) onAddToCart.accept(this.quantity); });
@@ -230,7 +230,7 @@ public class ProductViewSwt extends AbstractViewSwt {
     }
 
     private String[] parseDescription(String desc) {
-        if (desc == null || desc.isBlank()) return new String[]{"Sem descrição."};
+        if (desc == null || desc.isBlank()) return new String[]{"No description."};
         desc = desc.replaceAll("</?ul>|</?ol>", "");
         desc = desc.replaceAll("<br\\s*/?>", "\n");
         if (desc.contains("<li>")) {

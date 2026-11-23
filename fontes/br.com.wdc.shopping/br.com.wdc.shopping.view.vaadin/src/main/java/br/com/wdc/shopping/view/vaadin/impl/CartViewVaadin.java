@@ -3,6 +3,7 @@ package br.com.wdc.shopping.view.vaadin.impl;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -66,9 +67,9 @@ public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
         this.rowsPane.setVisible(!empty);
         this.footerPane.setVisible(!empty);
         if (this.actionsPane != null) {
-            // Show only "Voltar" in actions when empty
+            // Show only "Back to products" in actions when empty
             this.actionsPane.getChildren().forEach(c -> {
-                if (c instanceof Button btn && "FINALIZAR PEDIDO".equals(btn.getText())) {
+                if (c instanceof Button btn && "CHECKOUT".equals(btn.getText())) {
                     btn.setVisible(!empty);
                 }
             });
@@ -104,13 +105,13 @@ public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
             });
 
             dom.h3(h -> {
-                h.setText("Carrinho");
+                h.setText("Cart");
                 h.getStyle().set("margin", "0 0 0 8px");
             });
         });
 
         dom.h4(h -> {
-            h.setText("LISTA DE PRODUTOS");
+            h.setText("PRODUCT LIST");
             h.getStyle().set("color", "var(--lumo-secondary-text-color)");
         });
 
@@ -121,8 +122,8 @@ public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
             header.setWidthFull();
             header.getStyle().set("font-weight", "bold").set("color", "var(--lumo-secondary-text-color)");
             dom.span(label -> { label.addClassName("cell-1"); label.setText("ITEM"); });
-            dom.span(label -> { label.addClassName("cell-2"); label.setText("VALOR"); });
-            dom.span(label -> { label.addClassName("cell-3"); label.setText("QUANTIDADE"); });
+            dom.span(label -> { label.addClassName("cell-2"); label.setText("PRICE"); });
+            dom.span(label -> { label.addClassName("cell-3"); label.setText("QUANTITY"); });
         });
 
         dom.verticalLayout(rows -> {
@@ -145,11 +146,11 @@ public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
         var emptyCartIcon = new Div();
         emptyCartIcon.addClassName("cart-empty-icon");
         this.emptyCartPane.add(emptyCartIcon);
-        var emptyText = new Span("Seu carrinho está vazio");
+        var emptyText = new Span("Your cart is empty");
         emptyText.getStyle().set("display", "block").set("color", "var(--lumo-secondary-text-color)")
                 .set("font-size", "1.1rem").set("margin-top", "var(--lumo-space-m)");
         this.emptyCartPane.add(emptyText);
-        var goShoppingBtn = new Button("Vamos às compras!",
+        var goShoppingBtn = new Button("Let's go shopping!",
                 e -> safeAction("Open products", this.state.onOpenProducts::run));
         goShoppingBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         goShoppingBtn.getStyle().set("font-weight", "bold").set("font-size", "1rem").set("margin-top",
@@ -166,7 +167,7 @@ public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
             footer.getStyle().set("padding", "12px 0");
 
             dom.span(label -> {
-                label.setText("VALOR TOTAL: ");
+                label.setText("TOTAL: ");
                 label.getStyle().set("font-weight", "bold");
             });
 
@@ -188,7 +189,7 @@ public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
             actions.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 
             dom.button(button -> {
-                button.setText("Voltar aos produtos");
+                button.setText("Back to products");
                 button.setIcon(VaadinIcon.ARROW_LEFT.create());
                 button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
                 button.addClassName("back-button");
@@ -196,7 +197,7 @@ public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
             });
 
             dom.button(button -> {
-                button.setText("FINALIZAR PEDIDO");
+                button.setText("CHECKOUT");
                 button.setIcon(VaadinIcon.CHECK.create());
                 button.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
                 button.getStyle().set("background-color", "var(--lumo-success-color)");
@@ -221,6 +222,6 @@ public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
     }
 
     private String formatCurrency(double value) {
-        return "R$ " + NumberFormat.getInstance().format(value);
+        return NumberFormat.getCurrencyInstance(Locale.US).format(value);
     }
 }

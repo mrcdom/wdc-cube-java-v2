@@ -89,7 +89,7 @@ public class ReceiptSharedView extends SharedVDomView {
                 dateText = DateUtils.formatDateTime(state.receipt.get().date);
             }
             var total = state.receipt.get().total != null ? state.receipt.get().total : 0.0;
-            totalText = "R$ " + String.format("%.2f", total);
+            totalText = "$" + String.format("%.2f", total);
         }
 
         // @formatter:off
@@ -98,19 +98,19 @@ public class ReceiptSharedView extends SharedVDomView {
             // Success banner
             div(showSuccess ? Sel.SUCCESS_VISIBLE : Sel.HIDDEN).children(
               span(Sel.SUCCESS_ICON),
-              span(Sel.SUCCESS_TEXT).text("Compra realizada com sucesso!")),
+              span(Sel.SUCCESS_TEXT).text("Purchase completed successfully!")),
             div(Sel.CARD).children(
               // Header
               div(Sel.HEADER_ROW).children(
                 div(Sel.HEADER_ICON_BOX)
                   .children(span(Sel.HEADER_ICON)),
                 div().children(
-                  h5(Sel.HEADER_TITLE).text("Recibo de Compra"),
+                  h5(Sel.HEADER_TITLE).text("Purchase Receipt"),
                   span(Sel.HEADER_SUBTITLE).text("WDC Shopping"))),
               // Receipt content
               div(Sel.RECEIPT_BODY).children(
                 div(Sel.DATE_ROW).children(
-                  span(Sel.DATE_LABEL).text("Data:"),
+                  span(Sel.DATE_LABEL).text("Date:"),
                   span(Sel.DATE_VALUE).text(dateText)),
                 renderItemsTable(items),
                 div(Sel.TOTAL_ROW).children(
@@ -118,7 +118,7 @@ public class ReceiptSharedView extends SharedVDomView {
                   span(Sel.TOTAL_VALUE).text(totalText))),
               // Back button
               spActionButton().cls(Sel.BACK_BTN)
-                .children(span(SelIcons.ARROW_LEFT), span().text(" Voltar aos produtos"))
+                .children(span(SelIcons.ARROW_LEFT), span().text(" Back to products"))
                 .on("click", backListener))));
         // @formatter:on
     }
@@ -128,8 +128,8 @@ public class ReceiptSharedView extends SharedVDomView {
         return div().children(
           div(Sel.TABLE_HEADER).children(
             span(Sel.COL_ITEM).text("ITEM"),
-            span(Sel.COL_QTY).text("QTD"),
-            span(Sel.COL_VALUE).text("VALOR")),
+            span(Sel.COL_QTY).text("QTY"),
+            span(Sel.COL_VALUE).text("PRICE")),
           div().children(items.stream().map(this::renderItemRow).toList()));
         // @formatter:on
     }
@@ -137,7 +137,7 @@ public class ReceiptSharedView extends SharedVDomView {
     private VNode renderItemRow(ReceiptItem item) {
         var desc = item.description != null ? item.description : "";
         var qty = String.valueOf(item.quantity);
-        var value = "R$ " + String.format("%.2f", item.value);
+        var value = "$" + String.format("%.2f", item.value);
 
         // @formatter:off
         return div(Sel.ITEM_ROW).key(desc + qty).children(

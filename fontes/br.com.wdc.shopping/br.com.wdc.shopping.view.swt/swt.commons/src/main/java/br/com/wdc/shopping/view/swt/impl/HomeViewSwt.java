@@ -65,7 +65,7 @@ public class HomeViewSwt extends AbstractViewSwt {
         var state = this.stateSupplier != null ? this.stateSupplier.get() : null;
 
         // Welcome
-        String prefix = "Bem-vindo(a),";
+        String prefix = "Welcome,";
         if (!Objects.equals(this.welcomeLabel.getText(), prefix)) {
             this.welcomeLabel.setText(prefix);
         }
@@ -200,7 +200,7 @@ public class HomeViewSwt extends AbstractViewSwt {
                 exitBtn.addListener(SWT.MouseDown, _e -> safeAction("exit", () -> { if (onExit != null) onExit.run(); }));
             });
 
-            // Welcome area: "Bem-vindo(a)," + "Nome!"
+            // Welcome area: "Welcome," + "Name!"
             dom.row(2, welcomeArea -> {
                 welcomeArea.setBackground(null);
                 var welcomeGd = new GridData();
@@ -298,7 +298,7 @@ public class HomeViewSwt extends AbstractViewSwt {
 
                 var cartLabel = dom.label(lbl -> {
                     lbl.setFont(Theme.FONT_BODY);
-                    lbl.setText("Carrinho");
+                    lbl.setText("Cart");
                     lbl.setForeground(Theme.FG_TEXT_WHITE);
                     lbl.setBackground(null);
                     var cartLabelGd = new GridData();

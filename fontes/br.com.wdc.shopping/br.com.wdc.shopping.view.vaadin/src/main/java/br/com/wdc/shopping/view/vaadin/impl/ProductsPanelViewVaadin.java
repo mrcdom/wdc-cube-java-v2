@@ -46,7 +46,7 @@ public class ProductsPanelViewVaadin extends AbstractViewVaadin<ProductsPanelSco
         pane0.addClassName("products-panel");
 
         dom.h3(h -> {
-            h.setText("PRODUTOS");
+            h.setText("PRODUCTS");
             h.getStyle().set("color", "var(--lumo-secondary-text-color)").set("margin", "0 0 12px 0");
         });
 

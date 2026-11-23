@@ -7,12 +7,12 @@ import br.com.wdc.framework.commons.codec.Base62;
 import br.com.wdc.framework.domain.security.CryptoProvider;
 
 /**
- * Assina e verifica fragments de URL usando HMAC-SHA256 truncado + Base62.
+ * Signs and verifies URL fragments using truncated HMAC-SHA256 + Base62.
  * <p>
- * A assinatura impede modificação casual do hash da URL pelo usuário.
- * Usa um secret aleatório por sessão (gerado via crypto.getRandomValues no browser).
+ * The signature prevents casual tampering with the URL hash by the user.
+ * Uses a random per-session secret (generated through crypto.getRandomValues in the browser).
  * <p>
- * Formato: {@code intent&s=<base62_signature>} (ex: {@code home?rt-user=0&s=3kTm8Gx2Rn1})
+ * Format: {@code intent&s=<base62_signature>} (e.g. {@code home?rt-user=0&s=3kTm8Gx2Rn1})
  */
 public class IntentSigner {
 

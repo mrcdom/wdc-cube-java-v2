@@ -43,7 +43,7 @@ public class ShoppingVaadinMain {
             var dataDir = ShoppingConfig.getDataDir();
             var db = LocalDataSource.fromConfig(config, dataDir);
 
-            // Antes do DBCreate: o DBReset (banco novo ou database.reset) grava pelos repositórios
+            // Before DBCreate: DBReset (new database or database.reset) writes through the repositories
             ShoppingRepositoryBootstrap.initialize(db.dataSource(), config.getBoolean("database.logSql", false),
                     db.dialect(), cleanUp);
 
@@ -66,13 +66,13 @@ public class ShoppingVaadinMain {
             var webapp = new WebAppContext();
             webapp.setContextPath("/");
 
-            // WAR vazio: as classes vêm do classpath, não de um WEB-INF
+            // Empty WAR: the classes come from the classpath, not from a WEB-INF
             var webRoot = Files.createTempDirectory("vaadin-war");
             webapp.setWar(webRoot.toString());
 
-            // Varre só os JARs do Vaadin/Flow/Atmosphere e o local deste módulo (target/classes ou o
-            // fat JAR): é por essa varredura que o Vaadin registra o MainLayout como AppShellConfigurator
-            // e aplica o tema (@StyleSheet) e o @Push declarados nele
+            // Scans only the Vaadin/Flow/Atmosphere JARs and this module's location (target/classes or the
+            // fat JAR): this scan is how Vaadin registers MainLayout as AppShellConfigurator
+            // and applies the theme (@StyleSheet) and the @Push declared on it
             var ownPath = Path.of(MainLayout.class.getProtectionDomain().getCodeSource().getLocation().toURI());
             var ownLocation = ".*" + Pattern.quote(ownPath.toString()) + "/?$";
             webapp.setAttribute(

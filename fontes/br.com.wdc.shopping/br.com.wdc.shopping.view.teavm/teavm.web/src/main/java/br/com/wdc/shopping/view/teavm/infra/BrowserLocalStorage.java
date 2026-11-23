@@ -7,22 +7,22 @@ import org.teavm.jso.JSBody;
 import br.com.wdc.framework.commons.storage.ClientStorage;
 
 /**
- * Implementação de {@link ClientStorage} usando {@code window.localStorage} do browser.
+ * {@link ClientStorage} implementation using the browser's {@code window.localStorage}.
  * <p>
- * Os dados persistem entre reloads (F5) e fechamentos de aba/browser,
- * até que o usuário limpe os dados do browser ou o app remova explicitamente.
+ * Data persists across reloads (F5) and tab/browser closes,
+ * until the user clears the browser data or the app removes it explicitly.
  * <p>
- * Cada shell recebe um {@code shellId} curto que é prefixado nas chaves do
- * localStorage (ex: {@code "tw:auth.token"}) para isolar dados entre shells
- * que rodam na mesma origem. O IndexedDB (e a chave AES) são compartilhados.
+ * Each shell gets a short {@code shellId} that prefixes the localStorage keys
+ * (e.g. {@code "tw:auth.token"}) to isolate data between shells
+ * running on the same origin. IndexedDB (and the AES key) are shared.
  */
 public class BrowserLocalStorage implements ClientStorage {
 
     private final String keyPrefix;
 
     /**
-     * @param shellId identificador curto do shell (ex: {@code "tw"}).
-     *                Usado como prefixo de namespace em localStorage.
+     * @param shellId short shell identifier (e.g. {@code "tw"}).
+     *                Used as the namespace prefix in localStorage.
      */
     public BrowserLocalStorage(String shellId) {
         this.keyPrefix = shellId.isEmpty() ? "" : shellId + ":";

@@ -16,19 +16,19 @@ import org.teavm.jso.dom.html.HTMLInputElement;
 import org.teavm.jso.dom.xml.Node;
 
 /**
- * Motor de Virtual DOM minimalista para TeaVM.
+ * Minimalist Virtual DOM engine for TeaVM.
  * <p>
- * Implementa diffing e patching eficiente: compara duas árvores {@link VNode}
- * e aplica apenas as mudanças necessárias no DOM real.
+ * Implements efficient diffing and patching: compares two {@link VNode} trees
+ * and applies only the necessary changes to the real DOM.
  * <p>
- * Modelo inspirado no React/Preact:
+ * Model inspired by React/Preact:
  * <ol>
- *   <li>A view descreve o estado como árvore de VNodes (render declarativo)</li>
- *   <li>O VDom compara a árvore nova com a anterior</li>
- *   <li>Aplica patches mínimos no DOM real</li>
+ *   <li>The view describes the state as a tree of VNodes (declarative render)</li>
+ *   <li>The VDom compares the new tree with the previous one</li>
+ *   <li>Applies minimal patches to the real DOM</li>
  * </ol>
  *
- * Uso típico:
+ * Typical usage:
  * <pre>{@code
  * public class MyView {
  *     private VNode prev;
@@ -54,22 +54,22 @@ public final class VDom {
     }
 
     /**
-     * Aplica diff entre oldTree e newTree, patchando o DOM sob container.
-     * Os atributos do VNode raiz são aplicados diretamente no container (diffados).
-     * Os filhos do VNode raiz são diffados como filhos diretos do container.
+     * Diffs oldTree against newTree, patching the DOM under container.
+     * The attributes of the root VNode are applied directly to the container (diffed).
+     * The children of the root VNode are diffed as direct children of the container.
      *
-     * @param container elemento DOM que contém a árvore renderizada
-     * @param oldTree   árvore anterior (null no primeiro render)
-     * @param newTree   nova árvore descritiva
-     * @return newTree (use como oldTree na próxima chamada)
+     * @param container DOM element that holds the rendered tree
+     * @param oldTree   previous tree (null on the first render)
+     * @param newTree   new descriptive tree
+     * @return newTree (use it as oldTree on the next call)
      */
     public static VNode patch(HTMLElement container, VNode oldTree, VNode newTree) {
-        // Aplicar atributos do VNode raiz no container (com diffing)
+        // Apply the root VNode's attributes to the container (with diffing)
         diffAttrs(container, oldTree != null ? oldTree.attrs : null, newTree.attrs);
         diffProps(container, oldTree != null ? oldTree.props : null, newTree.props);
         diffEvents(container, oldTree != null ? oldTree.events : null, newTree.events);
 
-        // Diffa os filhos do VNode raiz como filhos diretos do container
+        // Diff the root VNode's children as direct children of the container
         diffChildren(container, oldTree != null ? oldTree.children : null, newTree.children);
 
         // Ref callback
@@ -87,7 +87,7 @@ public final class VDom {
             return HTMLDocument.current().createTextNode(vnode.text);
         }
 
-        // Slot: container div que hospeda elemento externo (nunca diffa filhos)
+        // Slot: container div that hosts an external element (never diffs children)
         if (VNode.SLOT_TAG.equals(vnode.tag)) {
             var elm = HTMLDocument.current().createElement("div");
             if (vnode.attrs != null) {
@@ -103,28 +103,28 @@ public final class VDom {
 
         var elm = HTMLDocument.current().createElement(vnode.tag);
 
-        // Atributos
+        // Attributes
         if (vnode.attrs != null) {
             for (var entry : vnode.attrs.entrySet()) {
                 setAttr(elm, entry.getKey(), entry.getValue());
             }
         }
 
-        // Propriedades (Web Components)
+        // Properties (Web Components)
         if (vnode.props != null) {
             for (var entry : vnode.props.entrySet()) {
                 setProp(elm, entry.getKey(), entry.getValue());
             }
         }
 
-        // Eventos
+        // Events
         if (vnode.events != null) {
             for (var entry : vnode.events.entrySet()) {
                 addEventListener(elm, entry.getKey(), entry.getValue());
             }
         }
 
-        // Filhos
+        // Children
         if (vnode.children != null) {
             for (var child : vnode.children) {
                 elm.appendChild(createDom(child));
@@ -143,7 +143,7 @@ public final class VDom {
 
     private static void diff(HTMLElement parent, Node domNode, VNode oldNode, VNode newNode) {
         if (newNode == null) {
-            // Nó removido
+            // Node removed
             if (domNode != null) {
                 parent.removeChild(domNode);
             }
@@ -151,19 +151,19 @@ public final class VDom {
         }
 
         if (oldNode == null) {
-            // Nó adicionado
+            // Node added
             parent.appendChild(createDom(newNode));
             return;
         }
 
-        // Tags diferentes → substituir
+        // Different tags → replace
         if (!Objects.equals(oldNode.tag, newNode.tag)) {
             var newDom = createDom(newNode);
             parent.replaceChild(newDom, domNode);
             return;
         }
 
-        // Text node → atualizar conteúdo
+        // Text node → update content
         if (VNode.TEXT_TAG.equals(newNode.tag)) {
             if (!Objects.equals(oldNode.text, newNode.text)) {
                 domNode.setNodeValue(newNode.text);
@@ -171,7 +171,7 @@ public final class VDom {
             return;
         }
 
-        // Slot node — apenas diffa attrs e chama ref (que gerencia o hosted element)
+        // Slot node — only diffs attrs and calls ref (which manages the hosted element)
         if (VNode.SLOT_TAG.equals(newNode.tag)) {
             var elm = (HTMLElement) domNode;
             diffAttrs(elm, oldNode.attrs, newNode.attrs);
@@ -181,14 +181,14 @@ public final class VDom {
             return;
         }
 
-        // Mesmo tag → diff atributos, eventos e filhos
+        // Same tag → diff attributes, events and children
         var elm = (HTMLElement) domNode;
         diffAttrs(elm, oldNode.attrs, newNode.attrs);
         diffProps(elm, oldNode.props, newNode.props);
         diffEvents(elm, oldNode.events, newNode.events);
         diffChildren(elm, oldNode.children, newNode.children);
 
-        // Ref callback (atualiza referência a cada render)
+        // Ref callback (updates the reference on every render)
         if (newNode.ref != null) {
             newNode.ref.accept(elm);
         }
@@ -200,14 +200,14 @@ public final class VDom {
         var oldMap = oldAttrs != null ? oldAttrs : Collections.<String, String>emptyMap();
         var newMap = newAttrs != null ? newAttrs : Collections.<String, String>emptyMap();
 
-        // Remover atributos que não existem mais
+        // Remove attributes that no longer exist
         for (var key : oldMap.keySet()) {
             if (!newMap.containsKey(key)) {
                 removeAttr(elm, key);
             }
         }
 
-        // Adicionar/atualizar atributos
+        // Add/update attributes
         for (var entry : newMap.entrySet()) {
             var key = entry.getKey();
             var newVal = entry.getValue();
@@ -225,7 +225,7 @@ public final class VDom {
         }
         switch (name) {
             case "value":
-                // Propriedade DOM (não atributo) — para inputs
+                // DOM property (not attribute) — for inputs
                 if (elm instanceof HTMLInputElement input) {
                     if (!Objects.equals(input.getValue(), value)) {
                         input.setValue(value);
@@ -278,14 +278,14 @@ public final class VDom {
         var oldMap = oldProps != null ? oldProps : Collections.<String, Object>emptyMap();
         var newMap = newProps != null ? newProps : Collections.<String, Object>emptyMap();
 
-        // Remover propriedades que não existem mais
+        // Remove properties that no longer exist
         for (var key : oldMap.keySet()) {
             if (!newMap.containsKey(key)) {
                 setJsProp(elm, key, null);
             }
         }
 
-        // Adicionar/atualizar propriedades
+        // Add/update properties
         for (var entry : newMap.entrySet()) {
             var key = entry.getKey();
             var newVal = entry.getValue();
@@ -336,14 +336,14 @@ public final class VDom {
         var oldMap = oldEvents != null ? oldEvents : Collections.<String, EventListener<? extends Event>>emptyMap();
         var newMap = newEvents != null ? newEvents : Collections.<String, EventListener<? extends Event>>emptyMap();
 
-        // Remover eventos que não existem mais
+        // Remove events that no longer exist
         for (var entry : oldMap.entrySet()) {
             if (!newMap.containsKey(entry.getKey())) {
                 removeEventListener(elm, entry.getKey(), entry.getValue());
             }
         }
 
-        // Adicionar/substituir eventos
+        // Add/replace events
         for (var entry : newMap.entrySet()) {
             var type = entry.getKey();
             var newListener = entry.getValue();
@@ -376,13 +376,13 @@ public final class VDom {
         var oldLen = oldList.size();
         var newLen = newList.size();
 
-        // Se todos os novos filhos têm key, usar reconciliação por key
+        // If all new children have a key, use keyed reconciliation
         if (newLen > 0 && allKeyed(newList)) {
             diffKeyedChildren(parent, oldList, newList);
             return;
         }
 
-        // Reconciliação posicional simples
+        // Simple positional reconciliation
         var maxLen = Math.max(oldLen, newLen);
         var domChild = parent.getFirstChild();
 
@@ -393,7 +393,7 @@ public final class VDom {
 
             diff(parent, domChild, oldNode, newNode);
 
-            // Avançar para o próximo filho DOM
+            // Advance to the next DOM child
             domChild = nextDom;
         }
     }
@@ -408,7 +408,7 @@ public final class VDom {
     }
 
     private static void diffKeyedChildren(HTMLElement parent, List<VNode> oldList, List<VNode> newList) {
-        // Mapa de key → (oldVNode, domNode)
+        // Map of key → (oldVNode, domNode)
         Map<String, KeyedEntry> oldMap = new HashMap<>();
         var domChild = parent.getFirstChild();
         for (var oldNode : oldList) {
@@ -416,12 +416,12 @@ public final class VDom {
             domChild = domChild != null ? domChild.getNextSibling() : null;
         }
 
-        // Processar novos filhos na ordem
+        // Process new children in order
         Node lastInserted = null;
         for (var newNode : newList) {
             var entry = oldMap.remove(newNode.key);
             if (entry != null) {
-                // Existe no antigo: diff e reposicionar se necessário
+                // Exists in the old one: diff and reposition if needed
                 diff(parent, entry.dom, entry.vnode, newNode);
                 var expectedNext = lastInserted != null ? lastInserted.getNextSibling() : parent.getFirstChild();
                 if (entry.dom != expectedNext) {
@@ -433,7 +433,7 @@ public final class VDom {
                 }
                 lastInserted = entry.dom;
             } else {
-                // Novo: criar e inserir
+                // New: create and insert
                 var newDom = createDom(newNode);
                 if (lastInserted != null) {
                     parent.insertBefore(newDom, lastInserted.getNextSibling());
@@ -444,7 +444,7 @@ public final class VDom {
             }
         }
 
-        // Remover filhos antigos que sobraram
+        // Remove leftover old children
         for (var entry : oldMap.values()) {
             if (entry.dom != null && entry.dom.getParentNode() != null) {
                 parent.removeChild(entry.dom);

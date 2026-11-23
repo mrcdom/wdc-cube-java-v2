@@ -68,7 +68,7 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelS
 
         dom.h4(h -> {
             h.addClassName("title");
-            h.setText("Seu histórico de compras");
+            h.setText("Your purchase history");
             h.getStyle().set("margin", "0 0 12px 0");
         });
 
@@ -95,7 +95,7 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelS
                 btn.setIcon(VaadinIcon.ANGLE_LEFT.create());
                 btn.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON);
                 btn.getStyle().set("color", "#1976d2");
-                btn.getElement().setAttribute("aria-label", "Página anterior");
+                btn.getElement().setAttribute("aria-label", "Previous page");
                 btn.addClickListener(
                         e -> safeAction("Previous page", () -> this.state.onPageChange.run(this.state.page.get() - 1)));
             });
@@ -110,7 +110,7 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelS
                 btn.setIcon(VaadinIcon.ANGLE_RIGHT.create());
                 btn.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON);
                 btn.getStyle().set("color", "#1976d2");
-                btn.getElement().setAttribute("aria-label", "Próxima página");
+                btn.getElement().setAttribute("aria-label", "Next page");
                 btn.addClickListener(
                         e -> safeAction("Next page", () -> this.state.onPageChange.run(this.state.page.get() + 1)));
             });

@@ -238,7 +238,7 @@ public final class Theme {
 
     // ========== HELPERS ==========
 
-    private static final NumberFormat PRICE_FORMAT = NumberFormat.getCurrencyInstance(Locale.of("pt", "BR"));
+    private static final NumberFormat PRICE_FORMAT = NumberFormat.getCurrencyInstance(Locale.US);
 
     public static String formatPrice(double value) {
         return PRICE_FORMAT.format(value);

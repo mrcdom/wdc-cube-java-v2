@@ -16,11 +16,11 @@ import br.com.wdc.framework.domain.exception.BusinessException;
 import br.com.wdc.shopping.persistence.client.HttpFailure;
 
 /**
- * Implementação de {@link HttpTransport} usando XMLHttpRequest assíncrono via coroutines do TeaVM.
+ * {@link HttpTransport} implementation using asynchronous XMLHttpRequest through TeaVM coroutines.
  * <p>
- * Usa {@code @Async} + {@link AsyncCallback} para suspender a coroutine enquanto
- * aguarda a resposta HTTP, evitando bloqueio da thread principal do browser.
- * A API Java permanece síncrona (transparente para o chamador).
+ * Uses {@code @Async} + {@link AsyncCallback} to suspend the coroutine while
+ * waiting for the HTTP response, avoiding blocking the browser's main thread.
+ * The Java API stays synchronous (transparent to the caller).
  */
 public class FetchHttpTransport implements HttpTransport {
 
@@ -134,7 +134,7 @@ public class FetchHttpTransport implements HttpTransport {
 		return supplier != null ? supplier.get() : null;
 	}
 
-	/** Id de sessão de cliente, gerado uma vez por instância da app (browser) e enviado em X-Client-Id. */
+	/** Client session id, generated once per app instance (browser) and sent in X-Client-Id. */
 	private static String clientId;
 
 	private static String clientId() {
@@ -171,9 +171,9 @@ public class FetchHttpTransport implements HttpTransport {
 	// ── Coroutine-based async XHR ───────────────────────────────────────────
 
 	/**
-	 * Executa XMLHttpRequest de forma assíncrona usando coroutines do TeaVM.
-	 * O método aparenta ser síncrono para o chamador Java, mas internamente
-	 * suspende a coroutine até o callback ser invocado.
+	 * Runs XMLHttpRequest asynchronously using TeaVM coroutines.
+	 * The method looks synchronous to the Java caller, but internally
+	 * suspends the coroutine until the callback is invoked.
 	 */
 	@Async
 	private static native HttpResult asyncXhr(String url, String method, String body, String token, String contentType,
@@ -209,19 +209,19 @@ public class FetchHttpTransport implements HttpTransport {
 
 	private static void handleConnectionRefused() {
 		showConnectionRefusedDialog();
-		throw new BusinessException("Servidor indisponível");
+		throw new BusinessException("Server unavailable");
 	}
 
-	@JSBody(params = {}, script = "alert('Não foi possível conectar ao servidor.\\nVerifique se o servidor está em execução.');")
+	@JSBody(params = {}, script = "alert('Could not connect to the server.\\nCheck that the server is running.');")
 	private static native void showConnectionRefusedDialog();
 
 	private static void handleSessionExpired() {
 		showSessionExpiredDialog();
 		reloadPage();
-		throw new BusinessException("Sessão expirada");
+		throw new BusinessException("Session expired");
 	}
 
-	@JSBody(params = {}, script = "alert('Sua sessão no servidor foi encerrada.\\nVocê será redirecionado ao login.');")
+	@JSBody(params = {}, script = "alert('Your server session has ended.\\nYou will be redirected to sign in.');")
 	private static native void showSessionExpiredDialog();
 
 	@JSBody(params = {}, script = "window.location.reload();")

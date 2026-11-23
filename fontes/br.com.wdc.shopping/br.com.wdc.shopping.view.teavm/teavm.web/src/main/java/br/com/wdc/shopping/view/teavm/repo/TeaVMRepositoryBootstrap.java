@@ -19,8 +19,8 @@ import br.com.wdc.shopping.persistence.client.HttpUserRepository;
 import br.com.wdc.shopping.persistence.client.RestTransactionService;
 
 /**
- * Bootstrap para TeaVM: registra repositórios usando os codecs unificados
- * (mesmos usados no JVM) nos BEANs estáticos do domínio.
+ * TeaVM bootstrap: registers repositories using the unified codecs
+ * (the same ones used on the JVM) in the domain's static BEANs.
  */
 public final class TeaVMRepositoryBootstrap {
 
@@ -33,7 +33,7 @@ public final class TeaVMRepositoryBootstrap {
         PurchaseRepository.BEAN.set(new HttpPurchaseRepository(transport, new PurchaseCodec()));
         PurchaseItemRepository.BEAN.set(new HttpPurchaseItemRepository(transport, new PurchaseItemCodec()));
         AuthenticationService.BEAN.set(new TeaVMAuthenticationService(transport, storage));
-        // TransactionService cliente: coordena transação remota dirigida pelo cliente (begin/commit/rollback + X-Tx-Id).
+        // Client TransactionService: coordinates the client-driven remote transaction (begin/commit/rollback + X-Tx-Id).
         ShoppingTransactions.BEAN.set(new RestTransactionService(transport));
     }
 

@@ -5,11 +5,11 @@ import org.teavm.jso.JSBody;
 import br.com.wdc.framework.domain.security.CryptoProvider;
 
 /**
- * Implementação de {@link CryptoProvider} para browser usando implementações
- * JavaScript puras de MD5 e HMAC-SHA256 (síncronas).
+ * {@link CryptoProvider} implementation for the browser using pure
+ * JavaScript implementations of MD5 and HMAC-SHA256 (synchronous).
  * <p>
- * Não usa Web Crypto API (que é assíncrona) para manter compatibilidade
- * com a interface síncrona existente.
+ * Does not use the Web Crypto API (which is asynchronous) to stay compatible
+ * with the existing synchronous interface.
  */
 @SuppressWarnings("java:S6126") // String concatenation in @JSBody is intentional for TeaVM JS interop
 public class BrowserCryptoProvider implements CryptoProvider {
@@ -44,8 +44,8 @@ public class BrowserCryptoProvider implements CryptoProvider {
     }
 
     /**
-     * MD5 implementado em JavaScript puro (RFC 1321).
-     * Retorna hex string.
+     * MD5 implemented in pure JavaScript (RFC 1321).
+     * Returns a hex string.
      */
     @JSBody(params = { "input" }, script = ""
             + "function md5(bytes){"
@@ -107,8 +107,8 @@ public class BrowserCryptoProvider implements CryptoProvider {
     private static native String md5Hex(int[] input);
 
     /**
-     * HMAC-SHA256 implementado em JavaScript puro.
-     * Retorna hex string.
+     * HMAC-SHA256 implemented in pure JavaScript.
+     * Returns a hex string.
      */
     @JSBody(params = { "key", "data" }, script = ""
             + "function sha256(bytes){"

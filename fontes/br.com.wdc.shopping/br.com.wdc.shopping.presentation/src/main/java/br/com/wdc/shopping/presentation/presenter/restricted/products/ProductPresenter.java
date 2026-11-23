@@ -108,17 +108,17 @@ public class ProductPresenter extends AbstractCubePresenter<ShoppingApplication>
 
     private void alertDatabaseNotAvailable() {
         this.state.errorCode.set(1);
-        this.state.errorMessage.set("Carrinho não acessível. Aguarde alguns instantes e tente novamente.");
+        this.state.errorMessage.set("Cart unavailable. Please wait a moment and try again.");
     }
 
     private void alertCartItemWidthLessThanOneItem() {
         this.state.errorCode.set(2);
-        this.state.errorMessage.set("A quantidade de itens no carrinho deve ser maior ou igual a 1 (um).");
+        this.state.errorMessage.set("The quantity of items in the cart must be at least 1 (one).");
     }
 
     private void errorInvalidQuantity() {
         this.state.errorCode.set(3);
-        this.state.errorMessage.set("Codificação errada da quantidade.");
+        this.state.errorMessage.set("Invalid quantity encoding.");
     }
 
 }

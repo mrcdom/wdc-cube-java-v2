@@ -1,6 +1,7 @@
 package br.com.wdc.shopping.view.vaadin.impl.home;
 
 import java.text.NumberFormat;
+import java.util.Locale;
 import java.util.Objects;
 
 import com.vaadin.flow.component.html.Div;
@@ -55,7 +56,7 @@ public class ProductItemViewVaadin extends AbstractViewVaadin<ProductsPanelScope
         }
 
         if (this.priceOldValue != this.item.price) {
-            this.priceElm.setText("R$ " + NumberFormat.getInstance().format(this.item.price));
+            this.priceElm.setText(NumberFormat.getCurrencyInstance(Locale.US).format(this.item.price));
             this.priceOldValue = this.item.price;
         }
     }
@@ -94,7 +95,7 @@ public class ProductItemViewVaadin extends AbstractViewVaadin<ProductsPanelScope
                 dom.span(label -> {
                     label.addClassName("label-price");
                     this.priceElm = label;
-                    this.priceElm.setText("R$ " + NumberFormat.getInstance().format(this.item.price));
+                    this.priceElm.setText(NumberFormat.getCurrencyInstance(Locale.US).format(this.item.price));
                     this.priceOldValue = this.item.price;
                 });
             });
