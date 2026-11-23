@@ -413,44 +413,33 @@ E no frontend, adicionar um botão ou link que emita o evento correspondente.
 
 ---
 
-## Variante: Presenter Filho (Painel)
+## Variante: Segmento (Painel)
 
-Se o novo módulo for um **painel embutido** dentro de outra view (como ProductsPanel dentro de Home), use `AbstractChildPresenter` em vez de `AbstractCubePresenter`:
+Se o novo módulo for um **painel embutido** dentro de outra view (como o painel de produtos dentro da Home), ele **não ganha presenter**: é um escopo menor, classe interna do escopo de quem o mostra. O presenter dono liga as ações dele e o encaixa numa view:
 
 ```java
-public class WishlistPanelPresenter extends AbstractChildPresenter<ShoppingApplication> {
+public static class HomeScope extends Scope {
 
-    public static Function<WishlistPanelPresenter, CubeView> createView;
-    public final WishlistPanelViewState state = new WishlistPanelViewState();
-    public final HomePresenter owner;
+    public static class WishlistPanelScope extends Scope {
+        public static final String CLASS_ID = "e1f2a3b4c5d6";   // a view remota do segmento
+        public static BiFunction<ShoppingApplication, WishlistPanelScope, CubeView> createView;
 
-    public WishlistPanelPresenter(ShoppingApplication app, HomePresenter owner) {
-        super(app);
-        this.owner = owner;
+        public final Prop<List<WishlistItem>> items = prop(List.of());
+        public ActionOf<Long> onRemoveItem = ActionOf.noop();
     }
 
-    @Override
-    protected CubeView onCreateView() {
-        return createView.apply(this);
-    }
-
-    @Override
-    protected void onInitialize() {
-        // Carregar dados iniciais
-    }
+    public final Prop<WishlistPanelScope> wishlistPanel = prop();
 }
+
+// Em HomePresenter: no construtor, as ações (com código de evento, no skeleton do segmento)
+wishlistPanel.onRemoveItem = actionOf(wishlistPanel, 1, FormParam.asLong("p.itemId"), this::removeItem);
+
+// Na inicialização: encaixa numa view (a fábrica do host) e põe no escopo da Home
+this.state.wishlistPanel.set(attach(this.wishlistPanel, HomeScope.WishlistPanelScope.createView));
 ```
 
-O presenter pai instancia e gerencia o ciclo de vida:
-
-```java
-// Em HomePresenter.applyParameters():
-this.wishlistPanel = new WishlistPanelPresenter(this.app, this);
-this.state.wishlistPanelView.set(this.wishlistPanel.initialize());
-```
-
-O `AbstractChildPresenter`:
-- **Não** tem classe de chaves nem place
-- **Não** tem `applyParameters` / `publishParameters`
-- É gerenciado manualmente pelo pai (`initialize()` / `release()`)
-- Possui `onCreateView()` e `onInitialize()` como ciclo de vida
+O segmento:
+- **Não** tem presenter, classe de chaves nem place
+- Redesenha só a própria view quando muda (o `attach` liga uma à outra) e é liberado com o presenter dono
+- No host remoto é uma view como qualquer outra: `new RemoteViewImpl(app, scope, WishlistPanelScope.CLASS_ID)`; o pai o referencia como `"wishlistPanelViewId"`
+- Nas views locais, a view do pai acha a do segmento por `state.wishlistPanel.get().view()`

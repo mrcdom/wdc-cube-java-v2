@@ -23,8 +23,7 @@ import br.com.wdc.shopping.presentation.presenter.RootPresenter;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
 
@@ -48,8 +47,9 @@ public class ShoppingApplicationImpl extends ShoppingApplication implements Remo
 		ProductPresenter.createView = p -> new RemoteViewImpl((RemoteApplication) p.app, p, p.state, p.skeleton());
 		CartPresenter.createView = p -> new RemoteViewImpl((RemoteApplication) p.app, p, p.state, p.skeleton());
 		ReceiptPresenter.createView = p -> new RemoteViewImpl((RemoteApplication) p.app, p, p.state, p.skeleton());
-		ProductsPanelPresenter.createView = p -> new RemoteViewImpl((RemoteApplication) p.app, p, p.state, p.skeleton());
-		PurchasesPanelPresenter.createView = p -> new RemoteViewImpl((RemoteApplication) p.app, p, p.state, p.skeleton());
+		// Segments of the home: a view of their own, with no presenter behind
+		HomeScope.ProductsPanelScope.createView = (app, s) -> new RemoteViewImpl((RemoteApplication) app, s, HomeScope.ProductsPanelScope.CLASS_ID);
+		HomeScope.PurchasesPanelScope.createView = (app, s) -> new RemoteViewImpl((RemoteApplication) app, s, HomeScope.PurchasesPanelScope.CLASS_ID);
 	}
 
 	/**

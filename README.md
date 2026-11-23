@@ -97,7 +97,7 @@ graph TD
 | Módulo | Descrição |
 |--------|-----------|
 | **framework.commons** | Interfaces funcionais com exceções checked (`ThrowingFunction`, `ThrowingConsumer`, etc.), serialização extensível, abstrações SQL (`SqlDataSource`), utilitários (`CoerceUtils`, `DateUtil`, `Defer`), criptografia (`RSA`, `Base62`), logging multiplataforma (`Log` — facade leve com backends JUL e SLF4J), concorrência (`ScheduledExecutor`) |
-| **framework.cube** | Motor do padrão Cube MVP: `CubeApplication`, `CubePresenter`, `AbstractCubePresenter`, `AbstractChildPresenter`, `CubeView`/`CubeViewSlot`, `Scope`, `CubePlace`, `CubeIntent`, `CubeNavigation` |
+| **framework.cube** | Motor do padrão Cube MVP: `CubeApplication`, `CubePresenter`, `AbstractCubePresenter`, `CubeView`/`CubeViewSlot`, `Scope`, `CubePlace`, `CubeIntent`, `CubeNavigation` |
 | **framework.dependencies** | POM do tipo BOM para gerenciamento centralizado de versões de dependências |
 
 ### Shopping — Backend
@@ -357,8 +357,8 @@ graph TD
     Root["RootPresenter (container)"]
     Root --> Login["LoginPresenter (aberto)"]
     Root --> Home["HomePresenter (restrito/autenticado)"]
-    Home --> ProductsPanel["ProductsPanelPresenter (painel)"]
-    Home --> PurchasesPanel["PurchasesPanelPresenter (painel)"]
+    Home --> ProductsPanel["ProductsPanelScope (segmento)"]
+    Home --> PurchasesPanel["PurchasesPanelScope (segmento)"]
     Home --> Product["ProductPresenter"]
     Home --> Cart["CartPresenter"]
     Home --> Receipt["ReceiptPresenter"]

@@ -63,8 +63,8 @@ public class ShoppingLoginTest extends BasePresentationTest {
 
         // Simulate the view reporting capacity (no real view in tests)
         var purchasesMock = br.com.wdc.shopping.test.mock.viewimpl.PurchasesPanelViewMock
-                .cast(restrictedView.state.purchasesPanelView.get());
-        purchasesMock.presenter.state.onItemSizeCapacityChanged.run(3);
+                .cast(restrictedView.state.purchasesPanel.get().view());
+        purchasesMock.state.onItemSizeCapacityChanged.run(3);
 
         Assert.assertEquals("João da Silva", restrictedView.state.nickName.get());
         Assert.assertEquals(0, (int) restrictedView.state.cartItemCount.get());

@@ -240,14 +240,27 @@ public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
 
 O campo estático `createView` é um `Function<CartPresenter, CubeView>`. Cada implementação de view registra sua factory neste campo durante a inicialização da aplicação. Ao criar uma instância do Presenter, a factory é invocada — sem que o Presenter saiba qual tecnologia de UI está sendo usada.
 
-Há dois tipos de Presenter no projeto:
+Todo Presenter é navegável (`AbstractCubePresenter<A>`, gerenciado pelo motor de navegação). Um pedaço de tela que não precisa de navegação própria — como os painéis de produtos e de compras da Home — **não ganha um Presenter**: é um **escopo menor**, declarado como classe interna do escopo de quem o mostra:
 
-| Tipo | Classe base | Ciclo de vida |
-|---|---|---|
-| **Navegável** | `AbstractCubePresenter<A>` | Gerenciado pelo motor de navegação (`applyParameters`, `release`) |
-| **Filho (painel)** | `AbstractChildPresenter<A>` | Gerenciado manualmente pelo Presenter pai (`initialize()`, `release()`) |
+```java
+public static class HomeScope extends Scope {
 
-O segundo tipo é usado para painéis embutidos — como `ProductsPanelPresenter` e `PurchasesPanelPresenter`, que vivem dentro de `HomePresenter` e não são endereçáveis diretamente pela navegação.
+    public static class ProductsPanelScope extends Scope {
+        public static final String CLASS_ID = "a1b2c3d4e5f6";
+        public static BiFunction<ShoppingApplication, ProductsPanelScope, CubeView> createView;
+
+        public final Prop<List<ProductInfo>> products = prop();
+        public ActionOf<Long> onOpenProduct = ActionOf.noop();
+    }
+
+    public final Prop<ProductsPanelScope> productsPanel = prop();
+    // ...
+}
+```
+
+O `HomePresenter` liga as ações do segmento (`actionOf(productsPanel, 1, FormParam.asLong("p.productId"), this::openProduct)`) e o encaixa numa view com `attach(productsPanel, ProductsPanelScope.createView)`: daí em diante uma mudança no segmento redesenha só a view dele, e a view é liberada junto com o Presenter. A view nunca conhece o Presenter — só lê o escopo e dispara as ações dele —, então um Presenter pode orquestrar vários segmentos sem uma classe por segmento.
+
+No modo remoto o segmento é uma view como qualquer outra: tem o seu `classId`, o seu skeleton (o despacho por código das ações ligadas nele) e o pai o referencia pelo id da view (`"productsPanelViewId"`).
 
 ---
 

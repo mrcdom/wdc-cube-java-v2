@@ -40,13 +40,18 @@ class HomeViewSwtRemote extends HomeViewSwt {
 		if (contentId != null) {
 			state.contentView.set(this.ctx.viewLookup(contentId));
 		}
+		// The panels are segments drawn by views of their own: the host refers to each by the id of its view
 		var productsPanelId = s.getString("productsPanelViewId");
 		if (productsPanelId != null) {
-			state.productsPanelView.set(this.ctx.viewLookup(productsPanelId));
+			var panel = new HomeScope.ProductsPanelScope();
+			panel.attachView(this.ctx.viewLookup(productsPanelId));
+			state.productsPanel.set(panel);
 		}
 		var purchasesPanelId = s.getString("purchasesPanelViewId");
 		if (purchasesPanelId != null) {
-			state.purchasesPanelView.set(this.ctx.viewLookup(purchasesPanelId));
+			var panel = new HomeScope.PurchasesPanelScope();
+			panel.attachView(this.ctx.viewLookup(purchasesPanelId));
+			state.purchasesPanel.set(panel);
 		}
 		state.nickName.set(s.getString("nickName"));
 		var cartCount = s.getLong("cartItemCount");

@@ -46,9 +46,8 @@ graph LR
 |------------------|-----------------|
 | `CubeApplication` | Singleton da app — mantém mapa de presenters e atributos, coordena navegação |
 | `CubePresenter` | Contrato para presenters gerenciados pela navegação |
-| `AbstractPresenter<A>` | Base comum — app + view, `update()`/`release()`, `bind(state)`, as ações guardadas (`action`, `actionOf`, `actionOf2`, com ou sem código de evento) e o `skeleton(classId)` genérico |
+| `AbstractPresenter<A>` | Base comum — app + view, `update()`/`release()`, `bind(state)`, `attach(segment, createView)` (um escopo menor numa view própria, sem presenter), as ações guardadas (`action`, `actionOf`, `actionOf2`, com ou sem código de evento) e o `skeleton(classId)` genérico |
 | `AbstractCubePresenter<A>` | Presenter de um place — `applyParameters`/`publishParameters` |
-| `AbstractChildPresenter<A>` | Presenters filhos cujo ciclo é gerenciado pelo owner (não pela navegação) |
 | `CubeView` | Interface da view — `instanceId()`, `update()`, `release()` |
 | `CubeViewSlot` | Slot onde uma `CubeView` é encaixada na view pai |
 | `CubePlace` | Nó da árvore de places — nome (único na árvore), pai, caminho, factory de presenter; o id cresce com a profundidade |

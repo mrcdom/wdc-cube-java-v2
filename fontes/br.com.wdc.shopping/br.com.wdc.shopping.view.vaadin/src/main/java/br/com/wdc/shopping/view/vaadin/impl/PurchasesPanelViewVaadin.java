@@ -10,15 +10,14 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter.PurchasesPanelScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope.PurchasesPanelScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
 import br.com.wdc.shopping.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.shopping.view.vaadin.ShoppingVaadinApplication;
 import br.com.wdc.shopping.view.vaadin.impl.home.PurchaseItemViewVaadin;
 import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
-public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelPresenter> {
+public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelScope> {
 
     private final PurchasesPanelScope state;
 
@@ -31,9 +30,9 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelP
     private Button nextButton;
     private VerticalLayout contentArea;
 
-    public PurchasesPanelViewVaadin(PurchasesPanelPresenter presenter) {
-        super("purchases-panel", (ShoppingVaadinApplication) presenter.app, presenter, new VerticalLayout());
-        this.state = presenter.state;
+    public PurchasesPanelViewVaadin(ShoppingVaadinApplication app, PurchasesPanelScope scope) {
+        super("purchases-panel", app, scope, new VerticalLayout());
+        this.state = scope;
     }
 
     @Override
@@ -101,7 +100,7 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelP
                 btn.getStyle().set("color", "#1976d2");
                 btn.getElement().setAttribute("aria-label", "Página anterior");
                 btn.addClickListener(
-                        e -> safeAction("Previous page", () -> this.presenter.state.onPageChange.run(this.state.page.get() - 1)));
+                        e -> safeAction("Previous page", () -> this.presenter.onPageChange.run(this.state.page.get() - 1)));
             });
 
             dom.span(label -> {
@@ -116,7 +115,7 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelP
                 btn.getStyle().set("color", "#1976d2");
                 btn.getElement().setAttribute("aria-label", "Próxima página");
                 btn.addClickListener(
-                        e -> safeAction("Next page", () -> this.presenter.state.onPageChange.run(this.state.page.get() + 1)));
+                        e -> safeAction("Next page", () -> this.presenter.onPageChange.run(this.state.page.get() + 1)));
             });
         });
     }
@@ -167,7 +166,7 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelP
                 BASE_ITEM_HEIGHT_PX, BASE_FONT_SIZE_PX).then(result -> {
                     int ps = result.asInt();
                     if (ps > 0) {
-                        this.presenter.state.onItemSizeCapacityChanged.run(ps);
+                        this.presenter.onItemSizeCapacityChanged.run(ps);
                     }
                 });
 
@@ -175,7 +174,7 @@ public class PurchasesPanelViewVaadin extends AbstractViewVaadin<PurchasesPanelP
         this.contentArea.getElement().addEventListener("page-size", e -> {
             int ps = e.getEventData().get("event.detail").asInt();
             if (ps > 0) {
-                this.presenter.state.onItemSizeCapacityChanged.run(ps);
+                this.presenter.onItemSizeCapacityChanged.run(ps);
             }
         }).addEventData("event.detail");
     }

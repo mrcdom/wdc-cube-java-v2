@@ -25,8 +25,7 @@ import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
 import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
 import br.com.wdc.shopping.view.teavm.commons.interop.Console;
@@ -70,8 +69,8 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
         CartPresenter.createView = CartView::new;
         ProductPresenter.createView = ProductView::new;
         ReceiptPresenter.createView = ReceiptView::new;
-        ProductsPanelPresenter.createView = ProductsPanelView::new;
-        PurchasesPanelPresenter.createView = PurchasesPanelView::new;
+        HomeScope.ProductsPanelScope.createView = (app, scope) -> new ProductsPanelView((ShoppingTeaVMApplication) app, scope);
+        HomeScope.PurchasesPanelScope.createView = (app, scope) -> new PurchasesPanelView((ShoppingTeaVMApplication) app, scope);
     }
 
     public ShoppingTeaVMApplication(String apiBaseUrl, String shellId) {

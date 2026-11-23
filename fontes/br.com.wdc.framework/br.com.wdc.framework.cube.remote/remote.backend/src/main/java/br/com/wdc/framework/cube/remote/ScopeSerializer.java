@@ -31,6 +31,7 @@ import br.com.wdc.framework.cube.Scope;
  * dates, {@link Collection}, {@link Map}, Records, and POJOs with public fields.</li>
  * <li>Blank strings in direct fields are omitted.</li>
  * <li>A {@link Prop} field is written as its value.</li>
+ * <li>A field holding a {@link Scope} (a segment, attached to its own view) is written as {@code "<name>ViewId": vsid}.</li>
  * <li>Numeric primitives and boolean primitives are always serialized.</li>
  * </ul>
  */
@@ -88,6 +89,14 @@ public final class ScopeSerializer {
 
         if (value instanceof CubeView cv) {
             json.name(field.getName() + "Id").value(cv.instanceId());
+            return;
+        }
+
+        // A segment (a scope inside this one) is a view of its own: referred to by the id of that view
+        if (value instanceof Scope segment) {
+            if (segment.view() != null) {
+                json.name(field.getName() + "ViewId").value(segment.view().instanceId());
+            }
             return;
         }
 

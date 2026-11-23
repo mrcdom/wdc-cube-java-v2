@@ -1,22 +1,22 @@
 package br.com.wdc.shopping.view.teavm.views.home;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope.ProductsPanelScope;
 import br.com.wdc.shopping.view.teavm.app.ShoppingTeaVMApplication;
 import br.com.wdc.shopping.view.teavm.commons.VNode;
 import br.com.wdc.shopping.view.teavm.commons.views.home.ProductsPanelSharedView;
 import br.com.wdc.shopping.view.teavm.views.AbstractVDomView;
 
-public class ProductsPanelView extends AbstractVDomView<ProductsPanelPresenter> {
+public class ProductsPanelView extends AbstractVDomView<ProductsPanelScope> {
 
     private final ProductsPanelSharedView shared;
 
-    public ProductsPanelView(ProductsPanelPresenter presenter) {
-        super("products-panel", (ShoppingTeaVMApplication) presenter.app, presenter);
+    public ProductsPanelView(ShoppingTeaVMApplication app, ProductsPanelScope scope) {
+        super("products-panel", app, scope);
 
         this.shared = new ProductsPanelSharedView();
-        this.shared.stateSupplier = () -> presenter.state;
+        this.shared.stateSupplier = () -> scope;
         this.shared.imageResolver = app::resolveImageUrl;
-        this.shared.onOpenProduct = id -> safeAction("Open product", () -> presenter.state.onOpenProduct.run(id));
+        this.shared.onOpenProduct = id -> safeAction("Open product", () -> scope.onOpenProduct.run(id));
     }
 
     @Override

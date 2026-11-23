@@ -27,8 +27,7 @@ import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
 import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
 import br.com.wdc.shopping.view.swt.impl.CartViewSwt;
@@ -95,13 +94,15 @@ public class ShoppingSwtApplication extends ShoppingApplication implements SwtAp
 			var v = new ProductViewSwt(app); v.stateSupplier = () -> p.state;
 			v.onOpenProducts = p.state.onOpenProducts::run; v.onAddToCart = p.state.onAddToCart::run;
 			return v; });
-		ProductsPanelPresenter.createView = app.onUiThread(p -> {
-			var v = new ProductsPanelViewSwt(app); v.stateSupplier = () -> p.state;
-			v.onOpenProduct = p.state.onOpenProduct::run; return v; });
-		PurchasesPanelPresenter.createView = app.onUiThread(p -> {
-			var v = new PurchasesPanelViewSwt(app); v.stateSupplier = () -> p.state;
-			v.onPageChange = p.state.onPageChange::run; v.onItemSizeCapacityChanged = p.state.onItemSizeCapacityChanged::run;
-			v.onOpenReceipt = p.state.onOpenReceipt::run; return v; });
+		var productsPanelView = app.onUiThread((HomeScope.ProductsPanelScope s) -> {
+			var v = new ProductsPanelViewSwt(app); v.stateSupplier = () -> s;
+			v.onOpenProduct = s.onOpenProduct::run; return v; });
+		HomeScope.ProductsPanelScope.createView = (a, s) -> productsPanelView.apply(s);
+		var purchasesPanelView = app.onUiThread((HomeScope.PurchasesPanelScope s) -> {
+			var v = new PurchasesPanelViewSwt(app); v.stateSupplier = () -> s;
+			v.onPageChange = s.onPageChange::run; v.onItemSizeCapacityChanged = s.onItemSizeCapacityChanged::run;
+			v.onOpenReceipt = s.onOpenReceipt::run; return v; });
+		HomeScope.PurchasesPanelScope.createView = (a, s) -> purchasesPanelView.apply(s);
 		ReceiptPresenter.createView = app.onUiThread(p -> {
 			var v = new ReceiptViewSwt(app); v.stateSupplier = () -> p.state;
 			v.onOpenProducts = p.state.onOpenProducts::run; return v; });

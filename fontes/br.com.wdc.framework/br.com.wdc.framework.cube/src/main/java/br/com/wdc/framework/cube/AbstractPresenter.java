@@ -1,7 +1,10 @@
 package br.com.wdc.framework.cube;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 import br.com.wdc.framework.commons.function.ThrowingBiConsumer;
@@ -30,6 +33,9 @@ public abstract class AbstractPresenter<A extends CubeApplication> implements Pr
     /** The actions a remote client fires, by event code. */
     private final Map<Integer, Consumer<Map<String, Object>>> events = new HashMap<>();
 
+    /** The segments attached to a view, released with this presenter. */
+    private final List<Scope> segments = new ArrayList<>();
+
     protected AbstractPresenter(A app) {
         this.app = app;
     }
@@ -51,6 +57,11 @@ public abstract class AbstractPresenter<A extends CubeApplication> implements Pr
 
     @Override
     public void release() {
+        for (var segment : segments) {
+            segment.setUpdater(null);
+            segment.view().release();
+        }
+        segments.clear();
         if (view != null) {
             view.release();
             view = null;
@@ -114,10 +125,45 @@ public abstract class AbstractPresenter<A extends CubeApplication> implements Pr
     }
 
     private void onEvent(int eventCode, Consumer<Map<String, Object>> handler) {
-        if (events.putIfAbsent(eventCode, handler) != null) {
-            throw new IllegalStateException(
-                    getClass().getSimpleName() + " binds the event code " + eventCode + " more than once");
-        }
+        Scope.putEvent(events, eventCode, handler, getClass().getSimpleName());
+    }
+
+    // :: Actions of a segment (a scope inside the presenter's scope), by event code
+
+    protected final Action action(Scope target, int eventCode, ThrowingRunnable fn) {
+        var action = action(fn);
+        target.onEvent(eventCode, formData -> action.run(), target.getClass().getSimpleName());
+        return action;
+    }
+
+    protected final <T> ActionOf<T> actionOf(Scope target, int eventCode, FormParam<T> param, ThrowingConsumer<T> fn) {
+        var action = actionOf(fn);
+        target.onEvent(eventCode, formData -> action.run(param.read(formData)), target.getClass().getSimpleName());
+        return action;
+    }
+
+    protected final <T, U> ActionOf2<T, U> actionOf2(Scope target, int eventCode, FormParam<T> first,
+            FormParam<U> second, ThrowingBiConsumer<T, U> fn) {
+        var action = actionOf2(fn);
+        target.onEvent(eventCode, formData -> action.run(first.read(formData), second.read(formData)),
+                target.getClass().getSimpleName());
+        return action;
+    }
+
+    // :: Segments
+
+    /**
+     * Attaches a segment to a view made by the host's factory: from then on, a change in the segment redraws only that
+     * view. The view is released with this presenter.
+     */
+    protected final <S extends Scope> S attach(S segment, BiFunction<A, S, CubeView> createView) {
+        var segmentView = createView.apply(app, segment);
+        segment.attachView(segmentView);
+        segment.setUpdater(segmentView::update);
+        segments.add(segment);
+        // The first drawing: the view may need it before any change (to measure itself, for instance)
+        segmentView.update();
+        return segment;
     }
 
     /** The skeleton of a remote view: dispatches each event to the action bound with its code. */
@@ -131,30 +177,7 @@ public abstract class AbstractPresenter<A extends CubeApplication> implements Pr
      * @param syncState {@code null} when there is nothing to sync
      */
     protected final CubeSkeleton skeleton(String classId, Consumer<Map<String, Object>> syncState) {
-        return new CubeSkeleton() {
-
-            @Override
-            public String classId() {
-                return classId;
-            }
-
-            @Override
-            public void submit(int eventCode, int eventQtde, Map<String, Object> formData) {
-                var handler = events.get(eventCode);
-                if (handler == null) {
-                    throw new IllegalArgumentException("eventCode(" + eventCode + ") not handled by "
-                            + AbstractPresenter.this.getClass().getSimpleName());
-                }
-                handler.accept(formData);
-            }
-
-            @Override
-            public void syncState(Map<String, Object> formData) {
-                if (syncState != null) {
-                    syncState.accept(formData);
-                }
-            }
-        };
+        return Scope.newSkeleton(classId, events, syncState, getClass().getSimpleName());
     }
 
     /** A failure the action did not handle. */

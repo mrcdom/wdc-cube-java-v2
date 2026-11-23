@@ -8,13 +8,13 @@ import java.util.Objects;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope.PurchasesPanelScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.structs.PurchaseInfo;
 import br.com.wdc.shopping.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.shopping.view.vaadin.ShoppingVaadinApplication;
 import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
-public class PurchaseItemViewVaadin extends AbstractViewVaadin<PurchasesPanelPresenter> {
+public class PurchaseItemViewVaadin extends AbstractViewVaadin<PurchasesPanelScope> {
 
     private PurchaseInfo state;
 
@@ -28,8 +28,8 @@ public class PurchaseItemViewVaadin extends AbstractViewVaadin<PurchasesPanelPre
     private Span totalElm;
     private double totalOldValue;
 
-    public PurchaseItemViewVaadin(ShoppingVaadinApplication app, PurchasesPanelPresenter presenter, int idx) {
-        super("purchase-item-" + idx, app, presenter, new VerticalLayout());
+    public PurchaseItemViewVaadin(ShoppingVaadinApplication app, PurchasesPanelScope panel, int idx) {
+        super("purchase-item-" + idx, app, panel, new VerticalLayout());
     }
 
     public void setState(PurchaseInfo state, boolean scheduleUpdate) {
@@ -72,7 +72,7 @@ public class PurchaseItemViewVaadin extends AbstractViewVaadin<PurchasesPanelPre
         pane0.addClassName("purchase-item");
         pane0.setPadding(false);
         pane0.setSpacing(false);
-        pane0.addClickListener(e -> safeAction("Open receipt", () -> this.presenter.state.onOpenReceipt.run(this.state.id)));
+        pane0.addClickListener(e -> safeAction("Open receipt", () -> this.presenter.onOpenReceipt.run(this.state.id)));
 
         // Line 1: #id + date
         dom.horizontalLayout(pane1 -> {

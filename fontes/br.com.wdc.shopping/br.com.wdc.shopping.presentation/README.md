@@ -38,12 +38,9 @@ graph TD
     presenter --> restricted["restricted/"]
     restricted --> RestrictedP["RestrictedPresenter.java"]
     restricted --> home["home/"]
-    home --> HomeP["HomePresenter.java (+ HomeScope)"]
+    home --> HomeP["HomePresenter.java (+ HomeScope, com ProductsPanelScope e PurchasesPanelScope)"]
     home --> HomeStructs["structs/PurchaseInfo.java"]
-    home --> products_panel["products/"]
-    products_panel --> ProdPanelP["ProductsPanelPresenter.java (+ Scope)"]
     home --> purchases_panel["purchases/"]
-    purchases_panel --> PurchPanelP["PurchasesPanelPresenter.java (+ Scope)"]
     purchases_panel --> PurchPanelSvc["PurchasesPanelService.java"]
 
     restricted --> products["products/"]
@@ -105,21 +102,19 @@ graph TD
 
     OpenP --> LoginP["LoginPresenter<br/><small>Autenticação<br/>Inner: LoginScope<br/>Serviço: LoginService</small>"]
 
-    RestrictedP --> HomeP["HomePresenter<br/><small>contentSlot + painéis + CartManager<br/>Inner: HomeScope</small>"]
+    RestrictedP --> HomeP["HomePresenter<br/><small>contentSlot + painéis (segmentos) + CartManager<br/>Inner: HomeScope ⊃ ProductsPanelScope, PurchasesPanelScope</small>"]
 
-    HomeP --> ProdPanelP["ProductsPanelPresenter<br/><small>AbstractChildPresenter<br/>Inner: ProductsPanelScope</small>"]
-    HomeP --> PurchPanelP["PurchasesPanelPresenter<br/><small>AbstractChildPresenter<br/>Inner: PurchasesPanelScope</small>"]
     HomeP --> ProductP["ProductPresenter<br/><small>Detalhe + adicionar ao carrinho<br/>Inner: ProductScope</small>"]
     HomeP --> CartP["CartPresenter<br/><small>Edição + efetivação de compra<br/>Inner: CartScope</small>"]
     HomeP --> ReceiptP["ReceiptPresenter<br/><small>Comprovante<br/>Inner: ReceiptScope</small>"]
 ```
 
-### Dois tipos de presenter
+### Presenters e segmentos
 
-| Tipo | Classe base | Ciclo de vida | Uso |
-|------|------------|---------------|-----|
-| **Presenter navegável** | `AbstractCubePresenter<ShoppingApplication>` | Gerenciado pelo sistema de navegação via `applyParameters` | Places com sua classe de chaves (`XxxKeys`) |
-| **Presenter filho (painel)** | `AbstractChildPresenter<ShoppingApplication>` | Gerenciado manualmente pelo presenter pai via `initialize()`/`release()` | Painéis embutidos na Home |
+| O quê | Como | Uso |
+|------|------|-----|
+| **Presenter** | `AbstractCubePresenter<ShoppingApplication>`, gerenciado pela navegação via `applyParameters` | Places com sua classe de chaves (`XxxKeys`) |
+| **Segmento** | escopo interno (`HomeScope.ProductsPanelScope`), ações ligadas pelo presenter, view via `attach(scope, Scope.createView)` | Painéis embutidos na Home: sem presenter próprio |
 
 ## Componentes do Módulo
 

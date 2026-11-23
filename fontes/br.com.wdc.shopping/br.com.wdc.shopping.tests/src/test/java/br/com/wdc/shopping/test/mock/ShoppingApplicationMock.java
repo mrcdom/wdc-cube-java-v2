@@ -14,8 +14,7 @@ import br.com.wdc.shopping.presentation.presenter.RootPresenter;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.cart.CartPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.purchases.PurchasesPanelPresenter;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.ProductPresenter;
 import br.com.wdc.shopping.presentation.presenter.restricted.receipt.ReceiptPresenter;
 import br.com.wdc.shopping.test.mock.viewimpl.CartViewMock;
@@ -36,8 +35,8 @@ public class ShoppingApplicationMock extends ShoppingApplication {
         CartPresenter.createView = CartViewMock::new;
         ProductPresenter.createView = ProductViewMock::new;
         ReceiptPresenter.createView = ReceiptViewMock::new;
-        ProductsPanelPresenter.createView = ProductsPanelViewMock::new;
-        PurchasesPanelPresenter.createView = PurchasesPanelViewMock::new;
+        HomeScope.ProductsPanelScope.createView = (app, s) -> new ProductsPanelViewMock((ShoppingApplicationMock) app, s);
+        HomeScope.PurchasesPanelScope.createView = (app, s) -> new PurchasesPanelViewMock((ShoppingApplicationMock) app, s);
     }
 
     public ShoppingApplicationMock() {

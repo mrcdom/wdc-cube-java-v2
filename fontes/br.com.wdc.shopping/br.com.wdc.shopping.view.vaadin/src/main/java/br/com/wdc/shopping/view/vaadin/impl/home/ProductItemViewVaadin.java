@@ -7,14 +7,14 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope.ProductsPanelScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
 import br.com.wdc.shopping.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.shopping.view.vaadin.ShoppingVaadinApplication;
 import br.com.wdc.shopping.view.vaadin.util.ResourceCatalog;
 import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
-public class ProductItemViewVaadin extends AbstractViewVaadin<ProductsPanelPresenter> {
+public class ProductItemViewVaadin extends AbstractViewVaadin<ProductsPanelScope> {
 
     private ProductInfo state;
 
@@ -26,8 +26,8 @@ public class ProductItemViewVaadin extends AbstractViewVaadin<ProductsPanelPrese
     private Span priceElm;
     private double priceOldValue;
 
-    public ProductItemViewVaadin(ShoppingVaadinApplication app, ProductsPanelPresenter presenter, int idx) {
-        super("product-item-" + idx, app, presenter, new Div());
+    public ProductItemViewVaadin(ShoppingVaadinApplication app, ProductsPanelScope panel, int idx) {
+        super("product-item-" + idx, app, panel, new Div());
     }
 
     public void setState(ProductInfo state, boolean scheduleUpdate) {
@@ -66,7 +66,7 @@ public class ProductItemViewVaadin extends AbstractViewVaadin<ProductsPanelPrese
                 .set("flex", "1 1 calc(50% - 12px)")
                 .set("min-width", "250px")
                 .set("max-width", "calc(50% - 12px)");
-        pane0.addClickListener(e -> safeAction("Open product", () -> this.presenter.state.onOpenProduct.run(this.state.id)));
+        pane0.addClickListener(e -> safeAction("Open product", () -> this.presenter.onOpenProduct.run(this.state.id)));
 
         dom.verticalLayout(pane1 -> {
             pane1.addClassName("product-selection-item");

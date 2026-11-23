@@ -6,15 +6,14 @@ import java.util.function.BiConsumer;
 
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
-import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter;
-import br.com.wdc.shopping.presentation.presenter.restricted.home.products.ProductsPanelPresenter.ProductsPanelScope;
+import br.com.wdc.shopping.presentation.presenter.restricted.home.HomePresenter.HomeScope.ProductsPanelScope;
 import br.com.wdc.shopping.presentation.presenter.restricted.products.structs.ProductInfo;
 import br.com.wdc.shopping.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.shopping.view.vaadin.ShoppingVaadinApplication;
 import br.com.wdc.shopping.view.vaadin.impl.home.ProductItemViewVaadin;
 import br.com.wdc.shopping.view.vaadin.util.VaadinDom;
 
-public class ProductsPanelViewVaadin extends AbstractViewVaadin<ProductsPanelPresenter> {
+public class ProductsPanelViewVaadin extends AbstractViewVaadin<ProductsPanelScope> {
 
     private final ProductsPanelScope state;
 
@@ -23,9 +22,9 @@ public class ProductsPanelViewVaadin extends AbstractViewVaadin<ProductsPanelPre
     private List<ProductItemViewVaadin> itemViewList = new ArrayList<>();
     private BiConsumer<List<ProductInfo>, List<ProductItemViewVaadin>> contentSlot;
 
-    public ProductsPanelViewVaadin(ProductsPanelPresenter presenter) {
-        super("products-panel", (ShoppingVaadinApplication) presenter.app, presenter, new VerticalLayout());
-        this.state = presenter.state;
+    public ProductsPanelViewVaadin(ShoppingVaadinApplication app, ProductsPanelScope scope) {
+        super("products-panel", app, scope, new VerticalLayout());
+        this.state = scope;
     }
 
     @Override
