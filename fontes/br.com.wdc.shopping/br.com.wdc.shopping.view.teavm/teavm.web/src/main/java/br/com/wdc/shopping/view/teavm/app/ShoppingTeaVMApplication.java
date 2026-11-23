@@ -208,8 +208,6 @@ public class ShoppingTeaVMApplication extends ShoppingApplication {
             }
 
             // Navegar para o hash da URL se presente, senão para root
-            // Força inicialização do enum Routes.Place (registra GoActions no mapa)
-            Routes.Place.values();
             var hash = getLocationHash();
             if (hash != null && hash.startsWith("#") && hash.length() > 1) {
                 // No boot, o secret é novo (F5 gera outro), então strip assinatura antiga se houver

@@ -19,7 +19,6 @@ import br.com.wdc.shopping.presentation.PlaceAttributes;
 import br.com.wdc.shopping.presentation.PlaceParameters;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.StorageKeys;
-import br.com.wdc.shopping.presentation.exception.WrongPlace;
 import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
 
 public class RootPresenter extends AbstractCubePresenter<ShoppingApplication> {
@@ -68,7 +67,9 @@ public class RootPresenter extends AbstractCubePresenter<ShoppingApplication> {
         }
 
         if (deepest) {
-            throw new WrongPlace();
+            // The root has no screen of its own: it goes to the login or to the home
+            Routes.root(this.app, intent);
+            return false;
         } else {
             // Does not accept changing user id at URL
             if (this.app.getSubject() != null) {

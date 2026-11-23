@@ -6,7 +6,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -31,41 +30,14 @@ public class CubeIntent {
         if (StringUtils.isNotBlank(placeStr)) {
             // First, we are going to brake the URI into two parts
             String[] parts = placeStr.split("\\?");
-            intent.setPlace(new GenericStep(-1, parts[0]));
+            intent.setPlace(CubePlace.unresolved(parts[0]));
             if (parts.length > 1) {
                 QueryStringParser.parse(intent, parts[1], StandardCharsets.UTF_8);
             }
         } else {
-            intent.setPlace(new GenericStep(-1, "unknown"));
+            intent.setPlace(CubePlace.unresolved("unknown"));
         }
         return intent;
-    }
-
-    private static class GenericStep implements CubePlace {
-
-        private Integer id;
-
-        private String name;
-
-        public GenericStep(Integer id, String name) {
-            this.id = id;
-            this.name = name;
-        }
-
-        @Override
-        public Integer getId() {
-            return this.id;
-        }
-
-        @Override
-        public String getName() {
-            return this.name;
-        }
-
-        @Override
-        public <A extends CubeApplication> Function<A, CubePresenter> presenterFactory() {
-            throw new AssertionError("Must no me invoked");
-        }
     }
 
     // :: Instance

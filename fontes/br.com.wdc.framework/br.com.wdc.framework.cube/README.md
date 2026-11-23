@@ -29,11 +29,10 @@ graph LR
 
 ### Ciclo de Navegação
 
-1. O código cria um `CubeNavigation` passando a instância de `CubeApplication`.
-2. Registra os passos desejados: `nav.step(place1).step(place2)`.
-3. Monta um `CubeIntent` com parâmetros (key-value, query-string compatível).
-4. Chama `nav.execute(intent)` — o motor:
-   - Instancia presenters novos via `CubePlace.presenterFactory()`.
+1. O app declara a árvore de places como constantes: `CubePlace.root("public", RootPresenter::new)` e, abaixo dela, `ROOT.child("home", HomePresenter::new)`. O caminho de cada place sai da árvore, e o nome é único nela.
+2. Monta um `CubeIntent` com parâmetros (key-value, query-string compatível).
+3. Chama `app.navigate(place, intent)` — ou `app.go("home?x=1")`, que acha o place pelo nome (nome desconhecido vai para a raiz). O motor percorre `place.getPath()` da raiz até o destino:
+   - Instancia os presenters que faltam pela factory do place.
    - Invoca `applyParameters(intent, initialization, deepest)` em cada presenter.
    - Remove presenters que não fazem mais parte da hierarquia (chama `release()`).
    - Invoca `commitComputedState()` para todos.
@@ -51,7 +50,7 @@ graph LR
 | `AbstractChildPresenter<A>` | Presenters filhos cujo ciclo é gerenciado pelo owner (não pela navegação) |
 | `CubeView` | Interface da view — `instanceId()`, `update()`, `release()` |
 | `CubeViewSlot` | Slot onde uma `CubeView` é encaixada na view pai |
-| `CubePlace` | Identifica uma "tela" — id, nome, factory de presenter |
+| `CubePlace` | Nó da árvore de places — nome (único na árvore), pai, caminho, factory de presenter; o id cresce com a profundidade |
 | `CubeIntent` | Encapsula destino (place) + parâmetros tipados (parse de query-string) |
 | `CubeNavigation<T>` | Engine que executa transições: cria, reutiliza e destrói presenters |
 | `CubeSkeleton` | Interface para comunicação remota: `submit(eventCode, formData)`, `syncState()` |

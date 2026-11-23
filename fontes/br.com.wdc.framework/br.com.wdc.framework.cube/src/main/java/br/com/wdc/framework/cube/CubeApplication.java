@@ -81,7 +81,37 @@ public abstract class CubeApplication {
 
 	CubeNavigation<?> navigation;
 
-	protected <T extends CubeApplication> CubeNavigation<T> navigate() {
+	/** Goes to the place, walking its path from the root. {@code false} when some presenter interrupted the walk. */
+	public boolean navigate(CubePlace target, CubeIntent intent) {
+		return this.newNavigation().execute(target, intent);
+	}
+
+	/** Goes to the place named in the address ({@code name?param=value}). */
+	public boolean go(String address) {
+		return this.go(CubeIntent.parse(address));
+	}
+
+	/** Goes to the intent's place, resolving it by name in the place tree; an unknown name goes to the root. */
+	public boolean go(CubeIntent intent) {
+		var place = this.resolvePlace(intent.getPlace());
+		intent.setPlace(place);
+		return this.navigate(place, intent);
+	}
+
+	/** The place of the tree with the same name; the root when there is none. */
+	public CubePlace resolvePlace(CubePlace place) {
+		var root = this.getRootPlace();
+		if (place == null) {
+			return root;
+		}
+		if (!place.isUnresolved()) {
+			return place;
+		}
+		var found = root.find(place.getName());
+		return found != null ? found : root;
+	}
+
+	private CubeNavigation<?> newNavigation() {
         if (this.navigation != null) {
             this.navigation.interrupt();
 
@@ -89,7 +119,7 @@ public abstract class CubeApplication {
                 throw new AssertionError("Navigation recursion detected");
             }
 
-            var newContext = new CubeNavigation<T>(this);
+            var newContext = new CubeNavigation<>(this);
             newContext.reflowCount = this.navigation.reflowCount + 1;
 
             // Migrate created presenters from interrupted navigation
@@ -98,7 +128,7 @@ public abstract class CubeApplication {
             this.navigation = newContext;
             return newContext;
         } else {
-            var newContext = new CubeNavigation<T>(this);
+            var newContext = new CubeNavigation<>(this);
             this.navigation = newContext;
             return newContext;
         }

@@ -1,12 +1,7 @@
 package br.com.wdc.shopping.presentation;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.CubeApplication;
-import br.com.wdc.framework.cube.CubeIntent;
-import br.com.wdc.framework.cube.CubeNavigation;
 import br.com.wdc.framework.cube.CubePlace;
 import br.com.wdc.framework.domain.security.SecurityContext;
 import br.com.wdc.framework.domain.transaction.TransactionService;
@@ -15,7 +10,6 @@ import br.com.wdc.shopping.domain.product.ProductRepository;
 import br.com.wdc.shopping.domain.purchase.PurchaseRepository;
 import br.com.wdc.shopping.domain.purchaseitem.PurchaseItemRepository;
 import br.com.wdc.shopping.domain.user.UserRepository;
-import br.com.wdc.shopping.presentation.function.GoAction;
 import br.com.wdc.shopping.presentation.presenter.RootPresenter;
 import br.com.wdc.shopping.presentation.presenter.Routes;
 import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
@@ -38,11 +32,11 @@ public abstract class ShoppingApplication extends CubeApplication {
 
 	@Override
 	public CubePlace getRootPlace() {
-		return Routes.Place.ROOT;
+		return Routes.ROOT;
 	}
 
 	public RootPresenter getRootPresenter() {
-		return (RootPresenter) this.presenterMap.get(Routes.Place.ROOT.getId());
+		return (RootPresenter) this.presenterMap.get(Routes.ROOT.getId());
 	}
 
 	public Subject getSubject() {
@@ -110,12 +104,6 @@ public abstract class ShoppingApplication extends CubeApplication {
 
 	// :: Extentions
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public CubeNavigation<ShoppingApplication> navigate() {
-		return super.navigate();
-	}
-
 	public abstract String b64Cipher(String text);
 
 	public abstract String b64Decipher(String b64Text);
@@ -127,42 +115,6 @@ public abstract class ShoppingApplication extends CubeApplication {
 		if (rootPresenter != null) {
 			rootPresenter.alertUnexpectedError(logger, message, e);
 		}
-	}
-
-	public void go(String placeStr) {
-		this.go(CubeIntent.parse(placeStr));
-	}
-
-	public void go(CubeIntent intent) {
-		ShoppingApplication.Internals.go(this, intent);
-	}
-
-	// :: Internal Classes - Meant to be user on initialization only
-
-	public static class Internals {
-
-		private static final Map<String, GoAction> goActionMap = new ConcurrentHashMap<>();
-
-		private Internals() {
-			super();
-		}
-
-		public static void registerPlace(String tag, GoAction goAction) {
-			goActionMap.put(tag, goAction);
-		}
-
-		static Boolean go(ShoppingApplication app, CubeIntent place) {
-			var goAction = goActionMap.get(place.getPlace().getName());
-			if (goAction == null) {
-				goAction = goActionMap.get(app.getRootPlace().getName());
-			}
-
-			if (goAction != null) {
-				return goAction.apply(app, place);
-			}
-			return Boolean.FALSE;
-		}
-
 	}
 
 	// :: Repository delegate factory

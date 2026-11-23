@@ -273,17 +273,17 @@ intent.setParameter(PlaceParameters.PRODUCT_ID, 42L);
 Routes.product(app, intent);
 ```
 
-A classe `Routes` centraliza as composições de navegação, tornando todos os destinos possíveis rastreáveis estaticamente:
+A classe `Routes` declara a árvore de places como constantes, tornando todos os destinos possíveis rastreáveis estaticamente. Cada place nasce filho de outro, então o caminho até ele é dado pela própria árvore:
 
 ```java
 public class Routes {
-    public static void product(ShoppingApplication app, CubeIntent intent) {
-        app.navigate()
-           .step(Places.ROOT)
-           .step(Places.RESTRICTED)
-           .step(Places.HOME)
-           .step(Places.PRODUCT)
-           .execute(intent);
+    public static final CubePlace ROOT = CubePlace.root("public", RootPresenter::new);
+    public static final CubePlace RESTRICTED = ROOT.child("restricted", RestrictedPresenter::new);
+    public static final CubePlace HOME = RESTRICTED.child("home", HomePresenter::new);
+    public static final CubePlace PRODUCT = HOME.child("product", ProductPresenter::new);
+
+    public static boolean product(ShoppingApplication app, CubeIntent intent) {
+        return app.navigate(PRODUCT, intent);  // Root → Restricted → Home → Product
     }
 }
 ```
@@ -296,8 +296,8 @@ public class Routes {
 
 O motor de navegação `CubeNavigation` executa transições entre states da seguinte forma:
 
-1. Para cada `CubePlace` na cadeia solicitada, verifica se já existe uma instância do Presenter correspondente.  
-2. Se não existe, instancia via `CubePlace.presenterFactory()`.  
+1. Para cada `CubePlace` do caminho até o destino (`place.getPath()`, da raiz para baixo), verifica se já existe uma instância do Presenter correspondente.  
+2. Se não existe, instancia pela factory do place.  
 3. Invoca `applyParameters(intent, initialization, deepest)` em cada Presenter da cadeia, na ordem da hierarquia.  
 4. Invoca `release()` nos Presenters que não fazem mais parte do state ativo, na ordem inversa (do mais profundo para o mais raso).  
 5. Invoca `commitComputedState()` em todos — oportunidade para sincronizar estados derivados.  
@@ -371,8 +371,12 @@ classDiagram
     }
 
     class CubePlace {
-        +id: String
-        +presenterFactory: Function
+        +id: int
+        +name: String
+        +parent: CubePlace
+        +child(name, factory) CubePlace
+        +getPath() List
+        +find(name) CubePlace
     }
 
     class CubeIntent {

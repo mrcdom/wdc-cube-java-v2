@@ -189,20 +189,14 @@ public enum WishlistService {
 
 ### 2.1 Adicionar o Place em `Routes.java`
 
+O place é criado como filho do place sob o qual a tela aparece. O nome vai no endereço (`#wishlist?...`) e precisa ser único na árvore — um nome repetido falha ao carregar a classe `Routes`.
+
 ```java
-public enum Place implements CubePlace {
-    ROOT("public", Routes::root, RootPresenter::new),
-    LOGIN("public/login", Routes::login, LoginPresenter::new),
-    HOME("home", Routes::home, HomePresenter::new),
-    CART("cart", Routes::cart, CartPresenter::new),
-    PRODUCT("product", Routes::product, ProductPresenter::new),
-    RECEIPT("receipt", Routes::receipt, ReceiptPresenter::new),
+public static final CubePlace HOME = RESTRICTED.child("home", HomePresenter::new);
+// ...
 
-    // NOVO:
-    WISHLIST("wishlist", Routes::wishlist, WishlistPresenter::new);
-
-    // ... resto do enum inalterado
-}
+// NOVO: abaixo de HOME, que exige autenticação
+public static final CubePlace WISHLIST = HOME.child("wishlist", WishlistPresenter::new);
 ```
 
 ### 2.2 Adicionar o método de navegação
@@ -215,17 +209,11 @@ public static boolean wishlist(ShoppingApplication app) {
 }
 
 public static boolean wishlist(ShoppingApplication app, CubeIntent intent) {
-    //@formatter:off
-    return app.navigate()
-            .step(Place.ROOT)
-            .step(Place.HOME)      // ← nível pai (requer autenticação)
-            .step(Place.WISHLIST)  // ← novo place
-            .execute(intent);
-    //@formatter:on
+    return app.navigate(WISHLIST, intent);
 }
 ```
 
-A cadeia de `step()` define o **caminho hierárquico**. O sistema instancia os presenters necessários (Root → Home → Wishlist) e chama `applyParameters` em cada um.
+O **caminho hierárquico** sai da árvore: o sistema instancia os presenters necessários (Root → Restricted → Home → Wishlist) e chama `applyParameters` em cada um.
 
 ---
 
@@ -435,8 +423,8 @@ E no frontend, adicionar um botão ou link que emita o evento correspondente.
   - [ ] Criar `WishlistPresenter extends AbstractCubePresenter<ShoppingApplication>`
   - [ ] Criar `WishlistService` (enum BEAN) se precisar de dados
   - [ ] Criar DTOs em `structs/` com `projection()` + `create()`
-  - [ ] Adicionar `Place.WISHLIST` em `Routes.java`
-  - [ ] Adicionar método `Routes.wishlist()` com cadeia de steps
+  - [ ] Adicionar `WISHLIST = HOME.child(...)` em `Routes.java`
+  - [ ] Adicionar método `Routes.wishlist()` com `app.navigate(WISHLIST, intent)`
 
 - [ ] **Skeleton**
   - [ ] Escolher VID único (12 hex chars)

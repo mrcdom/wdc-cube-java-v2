@@ -21,11 +21,7 @@ graph TD
     root --> PlaceAttr["PlaceAttributes.java"]
     root --> PlaceParams["PlaceParameters.java"]
 
-    root --> function["function/"]
-    function --> GoAction["GoAction.java"]
-
     root --> exception["exception/"]
-    exception --> WrongPlace["WrongPlace.java"]
     exception --> WrongParams["WrongParametersException.java"]
     exception --> ProductNotFound["ProductNotFoundException.java"]
     exception --> PurchaseNotFound["PurchaseNotFoundException.java"]
@@ -84,7 +80,7 @@ graph TD
     HOME --> RECEIPT["RECEIPT (receipt)<br/><small>?purchaseId=N</small>"]
 ```
 
-A navegação é definida em `Routes.java` usando o builder `app.navigate().step(Place).execute(intent)`:
+A árvore é declarada em `Routes.java` como constantes (`ROOT.child("open", ...)`, `OPEN.child("login", ...)`), e cada rota é só `app.navigate(PLACE, intent)` — o caminho até o place sai da árvore:
 
 ```java
 // Navegar para o detalhe de um produto

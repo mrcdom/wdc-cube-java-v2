@@ -116,9 +116,6 @@ public class ShoppingSwtMain {
         this.app.start();
         tryRestoreSession();
 
-        // Ensure Routes.Place enum is class-loaded (registers GoActions)
-        Routes.Place.values();
-
         var savedIntent = tryRestoreIntent();
         if (savedIntent != null) {
             this.app.safeGo(savedIntent);
