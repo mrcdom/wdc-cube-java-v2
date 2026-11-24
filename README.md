@@ -6,7 +6,8 @@ This project serves as an **architectural reference** for new projects, demonstr
 
 📄 [Cube MVP — Multiplatform Presentation Architecture in Java](docs/cube-mvp-multiplatform-architecture.md)  
 📄 [Data Layer — Domain, Persistence and REST API](docs/data-layer.md)  
-📄 [Remote Transaction — Client Identity and Transaction Ownership](docs/remote-transaction-identity-and-ownership.md)
+📄 [Remote Transaction — Client Identity and Transaction Ownership](docs/remote-transaction-identity-and-ownership.md)  
+📄 [Data Access Policy — Who Reads and Writes What Through the REST API](docs/data-access-policy.md)
 
 ## Architecture Overview
 
@@ -98,7 +99,7 @@ graph TD
 |--------|-----------|
 | **framework.commons** | Functional interfaces with checked exceptions (`ThrowingFunction`, `ThrowingConsumer`, etc.), extensible serialization, SQL abstractions (`SqlDataSource`), utilities (`CoerceUtils`, `DateUtil`, `Defer`), cryptography (`RSA`, `Base62`), multiplatform logging (`Log` — a lightweight facade with JUL and SLF4J backends), concurrency (`ScheduledExecutor`) |
 | **framework.cube** | Engine of the Cube MVP pattern: `CubeApplication`, `CubePresenter`, `AbstractCubePresenter`, `CubeView`, `Scope`/`ScopeSlot`/`ScopeViews`, `CubePlace`, `CubeIntent`, `CubeNavigation` |
-| **framework.domain** | Generic domain abstractions: `Repository`, `Page`, `ModelCodec`, `Criteria`/`Criterion`, `Projection*`, base exceptions (`BusinessException`, `AccessDeniedException`, ...), security contracts (`SecurityContext`, `AuthenticationService`, `PermissionModel`), `AppConfig`, `TransactionService` |
+| **framework.domain** | Generic domain abstractions: `Repository`, `Page`, `ModelCodec`, `Criteria`/`Criterion`, `Projection*`, base exceptions (`BusinessException`, `AccessDeniedException`, ...), security contracts (`SecurityContext`, `AuthenticationService`, `PermissionModel`), the data access policy (`security.policy`: `DataPolicy`, `DataGrant`, `RowScope`, `Mask`), `AppConfig`, `TransactionService` |
 | **framework.jooq** | JSON query helpers over jOOQ (`JsonQuery`, `JsonQueryBuilder`, `JsonChildQueryBuilder`), `CriterionTranslator`, `TransactionAwareConnectionProvider` |
 | **framework.persistence** | CMT-style transactions in dual JTA/JDBC mode (`TransactionServiceImpl`, `TransactionScope`), `RemoteTransactionCoordinator` SPI |
 | **framework.cube.remote** | Remote protocol of the Cube MVP engine: WebSocket backend (`ScopeSerializer`, `RemoteViewImpl`) and client bridges (Java, TeaVM, React, Flutter) |
@@ -109,7 +110,7 @@ graph TD
 | Module | Description |
 |--------|-----------|
 | **domain** | One package per entity (`product`, `user`, `purchase`, `purchaseitem`), each with the fluent entity, its `Criterion`-based criteria, codec and repository interface; `InvalidCartItemException`, `Role` (RBAC permissions), `StoreConfig`, `StoreTransactions` |
-| **persistence** | Groups `persistence.impl` — **jOOQ** implementation (type-safe DSL, classes generated in `br.com.wdc.store.persistence.impl.scheme.*` from the H2 schema), `*RepositoryImpl` classes that obtain the `DSLContext` via `StoreDSLContext.BEAN`, the framework's JSON query helpers, `StoreRepositoryBootstrap` for wiring —, `persistence.rest` (Javalin API; authorization and the `userId` scope restriction via `SecurityEnforcer`) and `persistence.client` (HTTP repositories over OkHttp) |
+| **persistence** | Groups `persistence.impl` — **jOOQ** implementation (type-safe DSL, classes generated in `br.com.wdc.store.persistence.impl.scheme.*` from the H2 schema), `*RepositoryImpl` classes that obtain the `DSLContext` via `StoreDSLContext.BEAN`, the framework's JSON query helpers, `StoreRepositoryBootstrap` for wiring —, `persistence.rest` (Javalin API; authorization via the data policies — `UserDataPolicy` — and, for the entities not yet migrated, `SecurityEnforcer`) and `persistence.client` (HTTP repositories over OkHttp) |
 | **presentation** | `StoreApplication` (subject, cart, `PLACES`), presenter hierarchy (Root → Open/Restricted guards → Login \| Home → Product/Cart/Receipt, with the Products/Purchases panels as segments of Home), scopes with observed `Prop`s, calls named by verb (`XxxQuery`, `XxxCreate`/`XxxSave`/`XxxUpdate`/`XxxDelete`, or a verb of their own like `CredentialsCheck`) over the repositories, `CartManager`, places with `XxxKeys` and navigation by intents |
 
 ### Store — Frontend (View Implementations)
@@ -330,20 +331,30 @@ The password never travels in plain text — only the HMAC-SHA256 digest with a 
 
 ### Authorization — Roles and Permissions
 
+The users are under a **data access policy** (`UserDataPolicy`): per role, the rows reached, the fields read (as they are or masked) and the fields written.
+
+| Role | Users |
+|-------|-----------|
+| **ADMIN** | Every user: reads login, name and roles; creates, updates and deletes |
+| **CUSTOMER** | Its own user |
+| **MANAGER** | Its own user in full; the others by name, with the login masked (`j***`) |
+
+The other entities still use `entity:operation` permissions, until their policies are written:
+
 | Role | Permissions |
 |-------|-----------|
-| **ADMIN** | `user:*`, `product:*`, `purchase:*`, `purchase-item:*`, `data:all` |
-| **CUSTOMER** | `user:read`, `product:read`, `purchase:read/write`, `purchase-item:read/write` |
-| **MANAGER** | `user:read`, `product:read/write`, `purchase:read`, `purchase-item:read` |
+| **ADMIN** | `product:*`, `purchase:*`, `purchase-item:*`, `data:all` |
+| **CUSTOMER** | `product:read`, `purchase:read/write`, `purchase-item:read/write` |
+| **MANAGER** | `product:read/write`, `purchase:read`, `purchase-item:read` |
 
-**Allow-wins** model: effective permission = union of all the user's roles. Without `data:all`, the REST endpoints restrict reads of users and purchases to the authenticated user's own records.
+**Allow-wins** model: a user gets everything each of its roles allows. Under a policy, the fields are decided per row, by the grants that reach that row; without `data:all`, the REST endpoints restrict purchases to the authenticated user's own records. Details: [docs/data-access-policy.md](docs/data-access-policy.md).
 
 ### Security Layers
 
 | Layer | Component | Responsibility |
 |--------|-----------|-----------------|
 | **HTTP** | `SecurityFilter` | Validates the Bearer JWT, populates `SecurityContext.CURRENT` |
-| **REST endpoint** | `SecurityEnforcer` + `*ApiController` | `SecurityEnforcer.require(entity, operation)` checks the permission of each operation; without `data:all`, the controllers restrict users and purchases to the authenticated user's own records |
+| **REST endpoint** | `DataPolicy` / `SecurityEnforcer` + `*ApiController` | The entity's data policy checks each request (projected, filtered and written fields, rows reached) and shapes each returned row; the entities not yet migrated use `SecurityEnforcer.require(entity, operation)` and the `data:all` restriction |
 | **Transport** | `RemoteAppSecurity` / `RemoteDataSecurity` (`framework.cube.remote`) | RSA + PBKDF2 + AES-GCM for sensitive data over WebSocket |
 
 In the hosts where the presenters run on the server (Vaadin, local SWT, remote host), the client only triggers actions and the presenter decides each query; the repositories are used directly.

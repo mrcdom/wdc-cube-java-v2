@@ -113,6 +113,18 @@ criteria.userName().or().eq("admin");
 criteria.userName().eq("jdoe");       // (userName = 'admin' OR userName = 'jdoe')
 ```
 
+On the server, a disjunction **across** fields goes in **alternative groups**: each group is a criteria of the same entity, its fields in `AND`, and the criteria requires its own fields and at least one group. A group may have groups of its own; a group with no field matches every row.
+
+```java
+new UserCriteria()
+        .withAnyOf(
+                new UserCriteria()
+                        .withUserName("admin"),
+                new UserCriteria().name().containing("Roe"));   // userName = 'admin' OR name LIKE '%Roe%'
+```
+
+Each entity's `ApplyConditions` translates the groups with the same `apply`, through `CriterionTranslator.anyOf`. The data access policy relies on them to restrict rows. **They do not travel**: the codecs refuse them on both sides of the wire, so a client cannot send any tree of `OR`s over any columns. A client's search of one term in several columns is a criteria field of its own, which the repository translates with `CriterionTranslator.translateAny(columns, criterion)` — a provisioned disjunction, like the orderings ([docs/data-access-policy.md](data-access-policy.md#server-side-only)).
+
 **A null value adds no request**, instead of erasing the previous ones — this preserves the habit of building a filter from a screen, where empty means "do not filter by this". To erase, `clear()`; to compare against null, `isNull()`. The `withXxx(value)` shortcuts exist too, and are `xxx().eq(value)`.
 
 The translation to jOOQ is written **once**, in `CriterionTranslator`. What remains for each entity is to say which column corresponds to each field and, when the domain type differs from the column type, how to convert the value:
@@ -556,14 +568,16 @@ Permissions are defined in the `entity:operation` format:
 
 ```java
 public enum Role {
-    ADMIN(Set.of("user:*", "product:*", "purchase:*", "purchase-item:*", "data:all")),
-    CUSTOMER(Set.of("user:read", "product:read", "purchase:read", "purchase:write",
+    ADMIN(Set.of("product:*", "purchase:*", "purchase-item:*", "data:all")),
+    CUSTOMER(Set.of("product:read", "purchase:read", "purchase:write",
             "purchase-item:read", "purchase-item:write")),
-    MANAGER(Set.of("user:read", "product:read", "product:write", "purchase:read", "purchase-item:read"));
+    MANAGER(Set.of("product:read", "product:write", "purchase:read", "purchase-item:read"));
 }
 ```
 
-`*` grants every operation on the entity. Without `data:all`, the REST endpoints restrict reads of users and purchases to the authenticated user's own records.
+`*` grants every operation on the entity. Without `data:all`, the REST endpoints restrict reads of purchases to the authenticated user's own records.
+
+The users are no longer here: they are under a **data access policy** (`UserDataPolicy`), which says per role which rows are reached, which fields are read — as they are or masked — and which are written, decided per row. It replaces the permissions entity by entity: [docs/data-access-policy.md](data-access-policy.md).
 
 ---
 

@@ -46,6 +46,7 @@ public class TestEnvironment extends ExternalResource {
     }
 
     private final Mode mode;
+    private boolean security;
 
     private final Defer cleanUp = new Defer();
     private AgroalDataSource datasource;
@@ -60,6 +61,20 @@ public class TestEnvironment extends ExternalResource {
 
     public TestEnvironment(Mode mode) {
         this.mode = mode;
+    }
+
+    /**
+     * Turns authentication on, as the backend does when it has a JWT secret: the REST endpoints then require a token
+     * and apply the data policies. Each test logs in with its own transport (see {@link #baseUrl()}).
+     */
+    public TestEnvironment withSecurity() {
+        this.security = true;
+        return this;
+    }
+
+    /** Address of the embedded REST server (REST mode). */
+    public String baseUrl() {
+        return "http://localhost:" + javalin.port();
     }
 
     // :: Accessors
@@ -140,6 +155,9 @@ public class TestEnvironment extends ExternalResource {
         cleanUp.push(() -> CryptoProvider.BEAN.set(null));
 
         StoreRepositoryBootstrap.initialize(ds, cleanUp);
+        if (security) {
+            StoreRepositoryBootstrap.initializeSecurity("test-jwt-secret-of-the-store-test-environment", cleanUp);
+        }
 
         if (mode == Mode.LOCAL) {
             userRepo = UserRepository.BEAN.get();

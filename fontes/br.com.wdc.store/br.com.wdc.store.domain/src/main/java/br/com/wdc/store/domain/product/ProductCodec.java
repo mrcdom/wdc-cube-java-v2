@@ -98,6 +98,7 @@ public class ProductCodec implements ModelCodec<Product, ProductCriteria> {
 
 	@Override
 	public void writeCriteriaFields(ExtensibleObjectOutput out, ProductCriteria criteria) {
+		CriterionCodec.refuseAnyOf(criteria);
 		CriterionCodec.write(out, "productId", criteria.productId(), CriterionCodec.LONG_OUT);
 		CriterionCodec.write(out, "name", criteria.name(), CriterionCodec.STRING_OUT);
 		CriterionCodec.write(out, "price", criteria.price(), CriterionCodec.DOUBLE_OUT);
@@ -112,6 +113,7 @@ public class ProductCodec implements ModelCodec<Product, ProductCriteria> {
 			case "name" -> CriterionCodec.read(in, criteria.name(), CriterionCodec.STRING_IN);
 			case "price" -> CriterionCodec.read(in, criteria.price(), CriterionCodec.DOUBLE_IN);
 			case "description" -> CriterionCodec.read(in, criteria.description(), CriterionCodec.STRING_IN);
+			case CriterionCodec.ANY_OF -> throw CriterionCodec.anyOfDoesNotTravel();
 			case "orderBy" -> {
 				var v = CriterionCodec.readOrderBy(in, ProductCriteria.OrderBy.values());
 				if (v != null) criteria.withOrderBy(v);

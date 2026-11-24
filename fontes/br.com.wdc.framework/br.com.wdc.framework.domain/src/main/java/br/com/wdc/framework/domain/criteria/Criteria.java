@@ -27,4 +27,28 @@ public interface Criteria {
      * </p>
      */
     List<Criterion<?, ?>> criterions();
+
+    /**
+     * The alternative groups: the criteria matches when its own fields match <b>and</b> at least one group matches.
+     *
+     * <p>
+     * The fields of a criteria always join with {@code AND}, and {@code or()} only joins the requests of a single field.
+     * A disjunction across fields — "my purchases, or the ones of my store" — needs groups: each one is a criteria of
+     * the same entity, with its fields in {@code AND}, and the groups join with {@code OR}. A group may have groups of
+     * its own. An empty list means no alternative; a group with no field set matches every row.
+     * </p>
+     *
+     * <p>
+     * Only the filter fields of a group count: its projection and its ordering are ignored, since the query has one of
+     * each, and they belong to the outer criteria.
+     * </p>
+     *
+     * <p>
+     * <b>The groups are for code on the server</b> — the data policy uses them to restrict the rows a role reaches —
+     * and do not travel: the codecs refuse them on both sides of the wire ({@code CriterionCodec.refuseAnyOf}). A
+     * disjunction chosen by the client would be any tree of {@code OR}s over any columns; what a client needs, a term
+     * searched in several columns, is a criteria field of its own, translated by the repository.
+     * </p>
+     */
+    List<? extends Criteria> anyOf();
 }

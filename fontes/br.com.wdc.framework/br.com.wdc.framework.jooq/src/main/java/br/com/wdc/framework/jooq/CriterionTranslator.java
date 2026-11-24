@@ -72,6 +72,32 @@ public final class CriterionTranslator {
     }
 
     /**
+     * Condition of a field that applies to <b>several</b> columns: matches the row where any of them satisfies the
+     * whole field — each column gets all of the field's requests, and the columns join with {@code OR}.
+     *
+     * <p>
+     * It is the search for a term in several places — name, login, document — with a single criteria field. The
+     * repository chooses the columns, so the disjunction stays a provisioned concept, like an ordering: the client
+     * asks for the term, not for an {@code OR} over columns of its choice.
+     * </p>
+     *
+     * @return {@code null} when the field is not set, or there are no columns — as {@link #translate(Field, Criterion)}
+     */
+    public static <V> Condition translateAny(List<? extends Field<V>> columns, Criterion<?, V> criterion) {
+        var ofColumns = new ArrayList<Condition>(columns.size());
+        for (var column : columns) {
+            var c = translate(column, criterion);
+            if (c != null) {
+                ofColumns.add(c);
+            }
+        }
+        if (ofColumns.isEmpty()) {
+            return null;
+        }
+        return ofColumns.size() == 1 ? ofColumns.get(0) : DSL.or(ofColumns);
+    }
+
+    /**
      * Condition of a field over the given table, not over the one that declared the column.
      *
      * <p>
@@ -110,6 +136,33 @@ public final class CriterionTranslator {
                     "column " + column.getName() + " does not exist in " + t.getName());
         }
         return field;
+    }
+
+    /**
+     * Condition of the alternative groups ({@code Criteria.anyOf()}): at least one of them has to hold.
+     *
+     * <p>
+     * Each group is translated by the same {@code apply} that translates the outer criteria, so a group has every
+     * operator, and groups of its own. <b>A group that translates to no condition holds for every row</b>, and makes
+     * the whole alternative hold: the result is then {@code null}, as for a field that is not set. Skipping that group
+     * instead would turn "or anything" into "only the other groups".
+     * </p>
+     *
+     * @return {@code null} when there are no groups, or when one of them does not filter
+     */
+    public static <C> Condition anyOf(List<C> groups, Function<C, Condition> apply) {
+        if (groups == null || groups.isEmpty()) {
+            return null;
+        }
+        var alternatives = new ArrayList<Condition>(groups.size());
+        for (var group : groups) {
+            var c = apply.apply(group);
+            if (c == null || DSL.noCondition().equals(c)) {
+                return null;
+            }
+            alternatives.add(c);
+        }
+        return alternatives.size() == 1 ? alternatives.get(0) : DSL.or(alternatives);
     }
 
     /** Joins the remaining conditions; an empty list returns {@code noCondition()}. */

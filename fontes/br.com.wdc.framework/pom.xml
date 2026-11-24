@@ -9,7 +9,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<!-- Central namespace verified through the GitHub account; "wdc.java" mirrors the "wdc.kt" of the Kotlin version -->
+	<!-- Central namespace verified through the GitHub account -->
 	<groupId>io.github.mrcdom.wdc.java</groupId>
 	<artifactId>framework-parent</artifactId>
 	<version>2.0.0</version>
@@ -135,7 +135,7 @@
 						<extensions>true</extensions>
 						<configuration>
 							<publishingServerId>central</publishingServerId>
-							<!-- Stays "validated" on the portal; the release is manual, as in Kotlin -->
+							<!-- Stays "validated" on the portal; the release is manual -->
 							<autoPublish>false</autoPublish>
 							<waitUntil>validated</waitUntil>
 							<!-- TypeScript source without a jar: the React bridge is not a Maven artifact -->

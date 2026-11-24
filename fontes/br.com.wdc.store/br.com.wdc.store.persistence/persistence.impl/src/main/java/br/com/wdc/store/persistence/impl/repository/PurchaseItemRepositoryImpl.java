@@ -255,7 +255,8 @@ public class PurchaseItemRepositoryImpl extends BaseRepositoryImpl  implements P
                     CriterionTranslator.translate(this.enPurchaseItem.PRODUCTID, criteria.productId()),
                     CriterionTranslator.translate(this.enPurchaseItem.AMOUNT, criteria.amount()),
                     CriterionTranslator.translate(this.enPurchaseItem.PRICE, criteria.price(), BigDecimal::valueOf),
-                    existsPurchaseOfUser(criteria)));
+                    existsPurchaseOfUser(criteria),
+                    CriterionTranslator.anyOf(criteria.anyOf(), this::apply)));
         }
 
         /**

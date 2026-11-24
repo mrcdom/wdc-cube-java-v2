@@ -293,7 +293,8 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
                     // The column is TIMESTAMP without time zone; the domain speaks OffsetDateTime. Converting here keeps
                     // the comparison in the same type on both sides.
                     CriterionTranslator.translate(enPurchase.BUYDATE, criteria.buyDate(), JsonQueryBuilder::toUtcLdt),
-                    existsItemMatching(criteria)));
+                    existsItemMatching(criteria),
+                    CriterionTranslator.anyOf(criteria.anyOf(), this::apply)));
         }
 
         /**

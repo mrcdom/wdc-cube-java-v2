@@ -137,6 +137,7 @@ public class OpenApiSpecTest {
             assertTrue("missing the schema " + testCase.schema(), schemas.has(testCase.schema()));
             var props = schemas.getAsJsonObject(testCase.schema()).getAsJsonObject("properties");
 
+            assertFalse(testCase.schema() + " documents the alternative groups, which do not travel", props.has("anyOf"));
             for (var criterion : testCase.criteria().criterions()) {
                 assertTrue(testCase.schema() + " does not document the field " + criterion.name(),
                         props.has(criterion.name()));

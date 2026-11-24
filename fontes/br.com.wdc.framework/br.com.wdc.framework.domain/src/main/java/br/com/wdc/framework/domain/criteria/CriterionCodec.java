@@ -49,6 +49,7 @@ public final class CriterionCodec {
         T read(ExtensibleObjectInput in);
     }
 
+
     public static final ValueWriter<Long> LONG_OUT = (out, v) -> out.value(v.longValue());
     public static final ValueReader<Long> LONG_IN = InputCoerceUtils::asLong;
 
@@ -153,6 +154,39 @@ public final class CriterionCodec {
         }
         out.endArray();
         out.endObject();
+    }
+
+    /** The name the alternative groups would have on the wire, where they are refused. */
+    public static final String ANY_OF = "anyOf";
+
+    /**
+     * Refuses to write a criteria that has alternative groups ({@link Criteria#anyOf()}): they are for code on the
+     * server, and do not travel.
+     *
+     * <p>
+     * A disjunction across fields chosen by the client would let it send any tree of {@code OR}s over any columns —
+     * the queries the provisioned orderings exist to avoid. Leaving the groups out instead would send a looser filter
+     * than the one built, with nothing pointing out the loss; hence the failure, on the side that built it. A search
+     * of one term over several columns is a criteria field of its own, which the repository translates with
+     * {@code CriterionTranslator.translateAny}.
+     * </p>
+     *
+     * @throws InvalidRequestException if the criteria has groups
+     */
+    public static void refuseAnyOf(Criteria criteria) {
+        if (criteria != null && !criteria.anyOf().isEmpty()) {
+            throw anyOfDoesNotTravel();
+        }
+    }
+
+    /**
+     * The failure for alternative groups on the wire — thrown by the reader that meets an {@value #ANY_OF} key, which
+     * the REST layer returns as 400 instead of skipping it and answering with a looser filter.
+     */
+    public static InvalidRequestException anyOfDoesNotTravel() {
+        return new InvalidRequestException(
+                "alternative groups (anyOf) are server-side only and do not travel; search several columns with a "
+                        + "criteria field of its own");
     }
 
     /**

@@ -15,27 +15,25 @@ import br.com.wdc.framework.domain.security.PermissionModel;
  * <p>
  * Allow-wins model: the effective permission is the UNION of all the user's roles.
  * <p>
- * Without {@code data:all}, the REST endpoints restrict reads of users and purchases to the authenticated user's own
- * records: {@code user:read} lets a customer read their own account (the client needs it to show who signed in), not
- * anyone else's.
+ * Without {@code data:all}, the REST endpoints restrict reads of purchases to the authenticated user's own records.
+ * <p>
+ * The users are not here: what each role may do with them — rows, fields, masks — is declared in the REST layer's
+ * {@code UserDataPolicy}, by the role names.
  */
 public enum Role {
 
 	ADMIN(Set.of(
-			"user:*",
 			"product:*",
 			"purchase:*",
 			"purchase-item:*",
 			"data:all")),
 
 	CUSTOMER(Set.of(
-			"user:read",
 			"product:read",
 			"purchase:read", "purchase:write",
 			"purchase-item:read", "purchase-item:write")),
 
 	MANAGER(Set.of(
-			"user:read",
 			"product:read", "product:write",
 			"purchase:read",
 			"purchase-item:read"));
@@ -56,6 +54,15 @@ public enum Role {
 	public static Set<String> effectivePermissions(Set<Role> roles) {
 		return roles.stream()
 				.flatMap(r -> r.permissions.stream())
+				.collect(Collectors.toUnmodifiableSet());
+	}
+
+	/**
+	 * The names of the roles, as a {@code SecurityContext} carries them.
+	 */
+	public static Set<String> names(Set<Role> roles) {
+		return roles.stream()
+				.map(Role::name)
 				.collect(Collectors.toUnmodifiableSet());
 	}
 

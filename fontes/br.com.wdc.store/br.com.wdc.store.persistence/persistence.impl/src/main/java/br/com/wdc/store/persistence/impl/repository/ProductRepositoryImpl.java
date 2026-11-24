@@ -267,7 +267,8 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
                     // The column is NUMERIC; the domain speaks Double. The conversion belongs to the field, not the
                     // operator, so it applies equally to eq, between and in.
                     CriterionTranslator.translate(enProduct.PRICE, criteria.price(), BigDecimal::valueOf),
-                    CriterionTranslator.translate(enProduct.DESCRIPTION, criteria.description())));
+                    CriterionTranslator.translate(enProduct.DESCRIPTION, criteria.description()),
+                    CriterionTranslator.anyOf(criteria.anyOf(), this::apply)));
         }
     }
 }

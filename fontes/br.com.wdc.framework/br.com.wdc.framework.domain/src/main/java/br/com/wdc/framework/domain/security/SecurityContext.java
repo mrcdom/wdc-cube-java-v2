@@ -17,6 +17,9 @@ public interface SecurityContext {
 
 	String userName();
 
+	/** The names of the user's roles — what a {@code DataPolicy} grants by. */
+	Set<String> roles();
+
 	Set<String> permissions();
 
 	boolean hasPermission(String entity, String operation);

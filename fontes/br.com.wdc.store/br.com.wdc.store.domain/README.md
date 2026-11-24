@@ -110,7 +110,7 @@ Each field of an `XxxCriteria` is a `Criterion` created with the criteria:
 - `ComparableCriterion` — adds `gt`, `ge`, `lt`, `le`, `between`
 - `TextCriterion` — adds `like`, `ilike`, `containing`, `startingWith`
 
-Requests on a field accumulate with `AND`; `or()` makes the field disjunctive. A field is **never `null`** — test it with `hasXxx()`. `withXxx(value)` is a shortcut for `xxx().eq(value)`, and `null` does not filter.
+Requests on a field accumulate with `AND`; `or()` makes the field disjunctive. A disjunction across fields goes in alternative groups, `withAnyOf(group, ...)`: each group is a criteria of the same entity, and at least one must match besides the outer fields. The groups are server-side only — the codecs refuse them on the wire. A field is **never `null`** — test it with `hasXxx()`. `withXxx(value)` is a shortcut for `xxx().eq(value)`, and `null` does not filter.
 
 ```java
 var criteria = new ProductCriteria()
@@ -141,6 +141,8 @@ A projection is an entity instance whose non-null fields mark the columns to loa
 ## Security (RBAC)
 
 `Role` defines the roles (ADMIN, CUSTOMER, MANAGER) and their permissions in the `entity:operation` format (`*` grants every operation on the entity; `data:all` grants access to every user's data). `Role.effectivePermissions(...)` computes the union of a user's roles — the model is **allow-wins** — and `hasPermission`/`hasDataAll` delegate to the framework's `PermissionModel`.
+
+The users have no permissions here: what each role may do with them is a data access policy in the REST layer (`UserDataPolicy`), by role name — `Role.names(...)` is what the security context carries. The other entities move to policies the same way ([docs/data-access-policy.md](../../../docs/data-access-policy.md)).
 
 The authentication and context contracts (`AuthenticationService`, `SecurityContext` with its `CURRENT` ThreadLocal, `PasswordUtil`, `AccessDeniedException`) are in `br.com.wdc.framework.domain`.
 

@@ -9,14 +9,15 @@ import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.framework.commons.serialization.JsonStreamReader;
 import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
-import br.com.wdc.framework.domain.exception.AccessDeniedException;
 import br.com.wdc.framework.domain.security.SecurityContext;
+import br.com.wdc.framework.domain.security.policy.DataAccess;
 import br.com.wdc.store.domain.user.User;
 import br.com.wdc.store.domain.user.UserCriteria;
 import br.com.wdc.store.domain.user.UserCodec;
 import br.com.wdc.store.domain.user.UserRepository;
 import br.com.wdc.store.persistence.rest.doc.Doc;
 import br.com.wdc.store.persistence.rest.security.SecurityEnforcer;
+import br.com.wdc.store.persistence.rest.security.UserDataPolicy;
 import io.javalin.config.JavalinConfig;
 import io.javalin.http.Context;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -77,11 +78,11 @@ public class UserApiController {
     }
 
     private void insert(Context ctx) {
-        var sc = SecurityEnforcer.require("user", "write");
+        var access = access();
         var reader = new JsonStreamReader(ctx.body());
         var user = codec.readEntity(reader);
+        access.checkCreate(user);
         decryptPasswordIfPresent(user);
-        enforceUserScope(sc, user);
         boolean success = repo().insert(user);
         var writer = new JsonStreamWriter();
         writer.beginObject();
@@ -110,11 +111,11 @@ public class UserApiController {
     }
 
     private void update(Context ctx) {
-        var sc = SecurityEnforcer.require("user", "write");
+        var access = access();
         var reader = new JsonStreamReader(ctx.body());
         var data = codec.readEntityForUpdate(reader);
+        access.checkUpdate(data.entity(), data.projection(), (row, projection) -> repo().fetchById(row.id(), projection));
         decryptPasswordIfPresent(data.entity());
-        enforceUserScope(sc, data.entity());
         boolean success = repo().update(data.entity(), null, data.projection());
         var writer = new JsonStreamWriter();
         writer.beginObject();
@@ -142,10 +143,10 @@ public class UserApiController {
     }
 
     private void delete(Context ctx) {
-        var sc = SecurityEnforcer.require("user", "delete");
+        var access = access();
         var reader = new JsonStreamReader(ctx.body());
         var criteria = readCriteria(reader);
-        enforceUserScope(sc, criteria);
+        access.restrictDelete(criteria);
         int count = repo().delete(criteria);
         var writer = new JsonStreamWriter();
         writer.beginObject();
@@ -172,10 +173,10 @@ public class UserApiController {
     }
 
     private void count(Context ctx) {
-        var sc = SecurityEnforcer.require("user", "read");
+        var access = access();
         var reader = new JsonStreamReader(ctx.body());
         var criteria = readCriteria(reader);
-        enforceUserScope(sc, criteria);
+        access.restrictCount(criteria);
         int count = repo().count(criteria);
         var writer = new JsonStreamWriter();
         writer.beginObject();
@@ -202,7 +203,7 @@ public class UserApiController {
     }
 
     private void fetch(Context ctx) {
-        var sc = SecurityEnforcer.require("user", "read");
+        var access = access();
         var reader = new JsonStreamReader(ctx.body());
         var criteria = new UserCriteria();
         int offset = 0;
@@ -221,15 +222,13 @@ public class UserApiController {
             }
         }
         reader.endObject();
-        enforceUserScope(sc, criteria);
-        sanitizeProjection(criteria);
-        var items = repo().fetch(criteria, offset, limit);
+        var plan = access.prepareRead(criteria);
+        var items = plan.apply(repo().fetch(criteria, offset, limit));
         var writer = new JsonStreamWriter();
         writer.beginObject();
         writer.name("items").beginArray();
         for (var item : items) {
-            item.withPassword(null);
-            codec.writeEntity(writer, item);
+            writeUser(writer, item);
         }
         writer.endArray();
         writer.endObject();
@@ -254,7 +253,7 @@ public class UserApiController {
     }
 
     private void fetchPage(Context ctx) {
-        var sc = SecurityEnforcer.require("user", "read");
+        var access = access();
         var reader = new JsonStreamReader(ctx.body());
         var criteria = new UserCriteria();
         int pageIx = 0;
@@ -273,15 +272,13 @@ public class UserApiController {
             }
         }
         reader.endObject();
-        enforceUserScope(sc, criteria);
-        sanitizeProjection(criteria);
+        var plan = access.prepareRead(criteria);
         var page = repo().fetchPage(criteria, pageIx, pageSz);
         var writer = new JsonStreamWriter();
         writer.beginObject();
         writer.name("items").beginArray();
-        for (var item : page.items()) {
-            item.withPassword(null);
-            codec.writeEntity(writer, item);
+        for (var item : plan.apply(page.items())) {
+            writeUser(writer, item);
         }
         writer.endArray();
         writer.name("totalItems").value(page.totalItems());
@@ -308,20 +305,15 @@ public class UserApiController {
     }
 
     private void fetchById(Context ctx) {
-        var sc = SecurityEnforcer.require("user", "read");
+        var access = access();
         Long id = Long.parseLong(ctx.pathParam("id"));
-        if (sc != null && !sc.hasDataAll() && !id.equals(sc.userId())) {
-            ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
-            return;
-        }
-        var result = repo().fetchById(id, null);
+        var result = fetchOne(access, id, null);
         if (result == null) {
             ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
             return;
         }
-        result.withPassword(null);
         var writer = new JsonStreamWriter();
-        codec.writeEntity(writer, result);
+        writeUser(writer, result);
         json(ctx, writer);
     }
 
@@ -344,7 +336,7 @@ public class UserApiController {
     }
 
     private void fetchByIdPost(Context ctx) {
-        var sc = SecurityEnforcer.require("user", "read");
+        var access = access();
         var reader = new JsonStreamReader(ctx.body());
         Long id = null;
         User projection = null;
@@ -357,45 +349,43 @@ public class UserApiController {
             }
         }
         reader.endObject();
-        if (sc != null && !sc.hasDataAll() && id != null && !id.equals(sc.userId())) {
-            ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
-            return;
-        }
-        if (projection != null)
-            projection.withPassword(null);
-        var result = repo().fetchById(id, projection);
+        var result = fetchOne(access, id, projection);
         if (result == null) {
             ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
             return;
         }
-        result.withPassword(null);
         var writer = new JsonStreamWriter();
-        codec.writeEntity(writer, result);
+        writeUser(writer, result);
         json(ctx, writer);
     }
 
     // :: Security helpers
 
-    private static void enforceUserScope(SecurityContext sc, UserCriteria criteria) {
-        if (sc != null && !sc.hasDataAll()) {
-            criteria.withUserId(sc.userId());
-        }
+    /**
+     * What the requester may do with the users, by {@link UserDataPolicy}; without security (local or test mode),
+     * everything.
+     */
+    private static DataAccess<User, UserCriteria> access() {
+        return UserDataPolicy.POLICY.accessFor(SecurityEnforcer.requireAuthenticated());
     }
 
-    private static void enforceUserScope(SecurityContext sc, User user) {
-        if (sc == null || user == null) {
-            return;
+    /** The user by id, through the same rules as a fetch; {@code null} when absent or out of reach. */
+    private static User fetchOne(DataAccess<User, UserCriteria> access, Long id, User projection) {
+        if (id == null) {
+            return null;
         }
-        if (!sc.hasDataAll() && user.id() != null && !user.id().equals(sc.userId())) {
-            throw new AccessDeniedException("Cannot modify other user's data");
-        }
+        var criteria = new UserCriteria()
+                .withUserId(id)
+                .withProjection(projection);
+        var plan = access.prepareRead(criteria);
+        var users = repo().fetch(criteria, 0, 1);
+        return users.isEmpty() ? null : plan.apply(users.get(0));
     }
 
-    private static void sanitizeProjection(UserCriteria criteria) {
-        if (criteria.projection() != null) {
-            criteria.projection()
-                    .withPassword(null);
-        }
+    /** The password never leaves the server, with or without security. */
+    private void writeUser(JsonStreamWriter writer, User user) {
+        user.withPassword(null);
+        codec.writeEntity(writer, user);
     }
 
     // :: Helpers

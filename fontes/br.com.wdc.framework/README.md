@@ -102,7 +102,7 @@ Prerequisites, once per machine:
   </server>
   ```
 
-- GPG key in `gpg-agent`, published to a keyserver (the same one used for the Kotlin version works).
+- GPG key in `gpg-agent`, published to a keyserver.
 
 Publishing:
 

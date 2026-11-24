@@ -12,21 +12,23 @@ import br.com.wdc.framework.domain.security.SecurityContext;
 
 /**
  * {@link SecurityContext} implementation for an authenticated session.
- * Holds the userId, the effective permissions and the ephemeral RSA key pair.
+ * Holds the userId, the roles, the effective permissions and the ephemeral RSA key pair.
  */
 public final class AccessContext implements SecurityContext {
 
 	private final Long userId;
 	private final String userName;
+	private final Set<String> roles;
 	private final Set<String> permissions;
 	private final KeyPair rsaKeyPair;
 	private final Instant expiresAt;
 	private final String refreshToken;
 
-	public AccessContext(Long userId, String userName, Set<String> permissions,
+	public AccessContext(Long userId, String userName, Set<String> roles, Set<String> permissions,
 			KeyPair rsaKeyPair, Instant expiresAt, String refreshToken) {
 		this.userId = userId;
 		this.userName = userName;
+		this.roles = roles;
 		this.permissions = permissions;
 		this.rsaKeyPair = rsaKeyPair;
 		this.expiresAt = expiresAt;
@@ -41,6 +43,11 @@ public final class AccessContext implements SecurityContext {
 	@Override
 	public String userName() {
 		return userName;
+	}
+
+	@Override
+	public Set<String> roles() {
+		return roles;
 	}
 
 	@Override

@@ -85,7 +85,7 @@ public final class AuthenticationServiceImpl implements AuthenticationService {
 
 		var roles = Role.parse(user.roles());
 		var permissions = Role.effectivePermissions(roles);
-		var session = cache.createSession(user.id(), user.userName(), permissions);
+		var session = cache.createSession(user.id(), user.userName(), Role.names(roles), permissions);
 		var accessToken = JwtUtil.create(user.id(), user.userName(), cache.accessTokenTtl(), cache.jwtSecret());
 
 		return new AuthResult(user.id(), accessToken, session.refreshToken(), session.expiresAt(), session.publicKeyBase64());
@@ -150,7 +150,7 @@ public final class AuthenticationServiceImpl implements AuthenticationService {
 
 		var roles = Role.parse(user.roles());
 		var permissions = Role.effectivePermissions(roles);
-		var session = cache.createSession(user.id(), user.userName(), permissions);
+		var session = cache.createSession(user.id(), user.userName(), Role.names(roles), permissions);
 		var accessToken = JwtUtil.create(user.id(), user.userName(), cache.accessTokenTtl(), cache.jwtSecret());
 
 		LOG.info("Auto-login via persistent token for user: {} ({})", user.userName(), user.id());

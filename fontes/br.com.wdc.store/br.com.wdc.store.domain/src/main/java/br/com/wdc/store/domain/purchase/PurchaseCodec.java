@@ -187,6 +187,7 @@ public class PurchaseCodec implements ModelCodec<Purchase, PurchaseCriteria> {
 
 	@Override
 	public void writeCriteriaFields(ExtensibleObjectOutput out, PurchaseCriteria criteria) {
+		CriterionCodec.refuseAnyOf(criteria);
 		CriterionCodec.write(out, "purchaseId", criteria.purchaseId(), CriterionCodec.LONG_OUT);
 		CriterionCodec.write(out, "userId", criteria.userId(), CriterionCodec.LONG_OUT);
 		CriterionCodec.write(out, "buyDate", criteria.buyDate(), CriterionCodec.ODT_OUT);
@@ -201,6 +202,7 @@ public class PurchaseCodec implements ModelCodec<Purchase, PurchaseCriteria> {
 			case "userId" -> CriterionCodec.read(in, criteria.userId(), CriterionCodec.LONG_IN);
 			case "buyDate" -> CriterionCodec.read(in, criteria.buyDate(), CriterionCodec.ODT_IN);
 			case "productId" -> CriterionCodec.read(in, criteria.productId(), CriterionCodec.LONG_IN);
+			case CriterionCodec.ANY_OF -> throw CriterionCodec.anyOfDoesNotTravel();
 			case "orderBy" -> {
 				var v = CriterionCodec.readOrderBy(in, PurchaseCriteria.OrderBy.values());
 				if (v != null) criteria.withOrderBy(v);

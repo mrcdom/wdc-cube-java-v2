@@ -106,6 +106,7 @@ public class UserCodec implements ModelCodec<User, UserCriteria> {
 
 	@Override
 	public void writeCriteriaFields(ExtensibleObjectOutput out, UserCriteria criteria) {
+		CriterionCodec.refuseAnyOf(criteria);
 		CriterionCodec.write(out, "userId", criteria.userId(), CriterionCodec.LONG_OUT);
 		CriterionCodec.write(out, "userName", criteria.userName(), CriterionCodec.STRING_OUT);
 		CriterionCodec.write(out, "name", criteria.name(), CriterionCodec.STRING_OUT);
@@ -120,6 +121,7 @@ public class UserCodec implements ModelCodec<User, UserCriteria> {
 			case "userName" -> CriterionCodec.read(in, criteria.userName(), CriterionCodec.STRING_IN);
 			case "name" -> CriterionCodec.read(in, criteria.name(), CriterionCodec.STRING_IN);
 			case "roles" -> CriterionCodec.read(in, criteria.roles(), CriterionCodec.STRING_IN);
+			case CriterionCodec.ANY_OF -> throw CriterionCodec.anyOfDoesNotTravel();
 			case "orderBy" -> {
 				var v = CriterionCodec.readOrderBy(in, UserCriteria.OrderBy.values());
 				if (v != null) criteria.withOrderBy(v);

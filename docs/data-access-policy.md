@@ -1,0 +1,208 @@
+# Data Access Policy — Who Reads and Writes What Through the REST API
+
+> **Status (11/2026):** the mechanism is in the framework (`br.com.wdc.framework.domain.security.policy`), and the **user** entity is under it (`UserDataPolicy`). Products, purchases and purchase items still use the `entity:operation` permissions of `Role`; [Rollout](#rollout) lists what is left.
+
+## The Problem
+
+The REST repository API is flexible on purpose: the client sends any criteria and any projection, and gets back exactly the fields it asked for. That is what lets teavm.web run the same presenters as the server without a transfer object per screen.
+
+The same flexibility is a risk at a boundary open to external clients. Anyone holding a token can build a request by hand. Without a policy, each controller has to defend itself by hand — remove the password from the projection in every read endpoint, add `userId = me` to the criteria when the user lacks `data:all` — and each new field or endpoint depends on someone remembering the rule. Nor is there a way to say that a role reads a field only partially (a document number with the last digits), or only on some rows.
+
+The policy replaces that with a declaration per entity: per role, which rows, which fields, which masks, which writes. **The projection stays the contract.** No transfer object is created: the client asks with the projection it already uses, and the policy decides whether that projection is allowed.
+
+## Where It Applies
+
+**Only at the REST repository API.** That is the trust boundary: the request is assembled by a client the server does not control — teavm.web, whose presenters run in the browser, or any HTTP client.
+
+Where the presenters run on the server (Vaadin, local SWT, the remote host behind React, Flutter and the TeaVM remote shell), the presenter is server code: it picks the criteria, the projection and what goes into its scope, and the user cannot change any of that. Those hosts use the repositories directly, without a policy. The presenter still owns two duties there:
+
+- **Ownership of ids coming from the client.** An id in the intent or in the form data was chosen by the user; the presenter checks that the record belongs to them.
+- **What goes into the scope.** In the remote hosts the scope crosses the wire, so it must not carry a field the screen does not show. When the screen shows a masked value, the presenter applies the mask (the same `Mask` functions are available to it).
+
+## The Model
+
+A **`DataPolicy`** gives each **role** one or more **`DataGrant`s** over an entity. A grant says:
+
+| Part | Meaning |
+|------|---------|
+| `rows(scope)` | Which rows it reaches — every row by default, or a `RowScope` (the requester's own user, their purchases) |
+| `read(projection)` | Fields read as they are. Only these can be used in filters and orderings |
+| `mask(projection, mask)` | Fields read through a `Mask` — textual fields only |
+| `create(projection)` | Fields that may be set when creating a row |
+| `update(projection)` | Fields that may be changed in a reachable row |
+| `delete()` | The reachable rows may be deleted |
+
+The key is never declared: whoever reads a row reads its key, and the key is never written, because it identifies the row.
+
+A role that reaches different rows with different fields has one grant for each. The MANAGER, for instance, reads its own user in full and the others by name, with the login masked:
+
+```java
+public static final DataPolicy<User, UserCriteria> POLICY = DataPolicy.on(USER)
+        .grant(Role.ADMIN.name(), g -> g
+                .read(new User()
+                        .withUserName(PV.str)
+                        .withName(PV.str)
+                        .withRoles(PV.str))
+                .create(...)
+                .update(...)
+                .delete())
+        .grant(Role.CUSTOMER.name(), g -> g
+                .rows(OWN)
+                .read(ownUser()))
+        .grant(Role.MANAGER.name(), g -> g
+                .rows(OWN)
+                .read(ownUser()))
+        .grant(Role.MANAGER.name(), g -> g
+                .read(new User()
+                        .withName(PV.str))
+                .mask(new User()
+                        .withUserName(PV.str), Mask.keepFirst(1)))
+        .build();
+```
+
+The fields are declared with **projections**, the same objects a query uses: a renamed field breaks the policy at compile time. The password appears in no read grant, so no role reads it back.
+
+An **`EntityDescriptor`** tells the policy what it cannot infer: each field's wire name, how to get and set it, which entity field each criteria field filters (`userId` → `id`), and which fields each provisioned ordering sorts by.
+
+## Rules
+
+### Roles combine row by row
+
+The model is **allow-wins**: a user gets every grant of every role, and a request passes when some grant allows it. The fields, though, are decided **per row**: a returned row shows what the grants that **reach that row** allow.
+
+The reason is a combination that no single role grants. Say SUPPORT reads everyone's name and CUSTOMER reads its own document number. Adding up the columns of both roles and the rows of both would hand a user with both roles **everyone's document**. Per row, the other users' rows are reached only by SUPPORT, so they come with the name alone.
+
+Per field of each row:
+
+1. some grant that reaches the row reads it → **as it is**;
+2. otherwise, some grant that reaches it masks it → **masked**;
+3. otherwise → **absent** (cleared).
+
+To decide which grants reach a row, each `RowScope` is written twice, and both must agree: `restrict(group, sc)` as criteria, so the database returns only reachable rows; `covers(row, sc)` in memory, on the returned row. The fields `covers` reads are fetched even when the client did not ask for them, then cleared before the response.
+
+### Filtering and sorting count as reading
+
+Filtering by a field reveals its values: `startingWith("1")`, `startingWith("12")`, ... reads a document number one digit at a time without ever projecting it. Hence:
+
+- every field the criteria filters (including inside its alternative groups) or sorts by must be **read as it is** by one grant — a masked field cannot be filtered or sorted;
+- only the rows of the grants that read **all** those fields are returned.
+
+So the MANAGER filtering by login gets only its own row (the only grant that reads the login as it is), while sorting by name reaches everyone. No grant reading all the filtered fields → **403**, naming them.
+
+### Writing
+
+- **Create**: one grant must allow every field set in the new row, and reach it.
+- **Update**: one grant must reach the **stored** row, allow every changed field, and **still reach the row after the change**. A grant over one's own rows cannot hand a row to someone else by changing its owner.
+- **Delete**: only the rows of grants that delete, filtered by fields those grants read.
+- **A masked value is never written**: a grant that masks a field cannot also write it — the builder refuses that declaration. A client that echoes a masked value back gets a 403, never an overwrite.
+
+### Refusing, not trimming
+
+A forbidden request gets **403** with the fields at fault: `not allowed to read user fields [password]`. Quietly trimming the request would make a screen show blanks with no one knowing why.
+
+The client does **not** receive the policy. A correct client — a presenter built for its roles — never asks for what its roles do not allow, so the 403 is treated like any unexpected error (`RootPresenter.alertUnexpectedError`). The list of fields is there for whoever reads the server log or debugs the request.
+
+### No projection means "everything allowed"
+
+A read without a projection (`GET /api/repo/user/{id}`, a `fetch` without `projection`) gets every field some grant of the requester sees, with the per-row rules above. It never fails because of a field.
+
+### Without security
+
+When no `AuthenticationService` is configured (local and test modes), there is no requester and `accessFor(null)` lets everything through. The password is still cleared from every user response, with or without security.
+
+## Alternative Groups in the Criteria (`anyOf`)
+
+Combining row scopes needs a disjunction **across fields**: "my user, or the users of my store". The fields of a criteria always join with `AND`, and `or()` only joins the requests of a single field. So `Criteria` has **alternative groups**:
+
+```java
+// CUSTOMER and (jdoe or jroe), or admin
+var criteria = new UserCriteria()
+        .withAnyOf(
+                new UserCriteria().roles().eq("CUSTOMER")
+                        .withAnyOf(
+                                new UserCriteria()
+                                        .withUserName("jdoe"),
+                                new UserCriteria()
+                                        .withUserName("jroe")),
+                new UserCriteria()
+                        .withUserName("admin"));
+```
+
+The criteria matches when its own fields match **and** at least one group matches. A group is a criteria of the same entity, may have groups of its own, and a group with no field matches every row. The projection and ordering of a group are ignored. Each entity's `ApplyConditions` translates the groups with the same `apply`, through `CriterionTranslator.anyOf`.
+
+The policy uses them to restrict the rows. When one of the eligible grants reaches every row, nothing is added. Otherwise each distinct `RowScope` becomes a group, and each group carries the groups the criteria already had, so they still hold inside the reachable rows:
+
+```
+criteria: fields AND (a1 OR a2)
+policy:   fields AND ( (own AND (a1 OR a2)) OR (store AND (a1 OR a2)) )
+```
+
+### Server-side only
+
+**The groups do not travel.** Each entity codec refuses them on both sides of the wire — `CriterionCodec.refuseAnyOf` when writing (the HTTP client fails before sending) and an `anyOf` key read by the server is a 400 — instead of skipping them and answering with a looser filter than the one built. They are not in the OpenAPI document.
+
+The reason is the one behind the [provisioned orderings](data-layer.md#ordering-provisioned-concepts-not-fields): a client free to send any tree of `OR`s over any columns sends, sooner or later, the query no index supports. What a client actually needs from a disjunction across columns is a **search** — a term looked up in the name, the login, the document. That is a criteria field of its own, whose columns the repository chooses, translated by `CriterionTranslator.translateAny(columns, criterion)`: each column gets all of the field's requests, and the columns join with `OR`. The disjunction stays a provisioned concept, added on request with the index that supports it.
+
+## How a Request Flows
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant Ctl as UserApiController
+    participant A as DataAccess
+    participant R as UserRepository
+    C->>Ctl: POST /api/repo/user/fetch {criteria, projection}
+    Ctl->>A: POLICY.accessFor(SecurityContext)
+    Ctl->>A: prepareRead(criteria)
+    Note over A: projected fields seen by some grant?<br/>filtered fields read by one grant?<br/>row groups added to anyOf<br/>row-check fields added to the projection
+    A-->>Ctl: ReadPlan (or 403)
+    Ctl->>R: fetch(criteria)
+    R-->>Ctl: rows
+    Ctl->>A: plan.apply(rows)
+    Note over A: per row: as it is, masked or cleared
+    Ctl-->>C: items
+```
+
+The controller calls one `DataAccess` method per operation: `prepareRead` (fetch, fetch-page, fetch-by-id), `restrictCount`, `checkCreate`, `checkUpdate` (with a loader for the stored row) and `restrictDelete`.
+
+## Where the Pieces Live
+
+| Piece | Module | Why there |
+|-------|--------|-----------|
+| `DataPolicy`, `DataGrant`, `DataAccess`, `RowScope`, `Mask`, `EntityDescriptor` | `framework.domain` (`security.policy`) | Contracts with no technology, next to `SecurityContext` and the `PermissionModel` they replace |
+| `Criteria.anyOf`, `CriterionCodec.refuseAnyOf` | `framework.domain` (`criteria`) | A capability of every criteria on the server; refused on the wire |
+| `CriterionTranslator.anyOf`, `CriterionTranslator.translateAny` | `framework.jooq` | The single translation to SQL — of the groups, and of a search field over several columns |
+| `UserDataPolicy` | `persistence.rest` (`security`) | The policy applies only at the REST boundary |
+| `SecurityContext.roles()` | `framework.domain`; filled by `AccessContext` | The policy grants by role name |
+
+## Rollout
+
+Done:
+
+- the mechanism, with unit tests (`DataPolicyTest`) and REST tests with authentication on (`UserDataPolicyRestTest`);
+- `anyOf` in the four entities, server-side only: translated and tested locally (`UserRepositoryTest`), refused by the client and by the server over REST (`RestUserRepositoryTest`);
+- `CriterionTranslator.translateAny`, for a future search field (`CriterionTranslatorTest`);
+- the user entity: `UserApiController` goes through `UserDataPolicy` only, and `Role` no longer has `user:*` / `user:read`.
+
+Left:
+
+1. **Products, purchases and purchase items** — one policy each, replacing `SecurityEnforcer.require(...)` and the `hasDataAll()` checks in their controllers. The purchase item scope ("items of my purchases") is a correlated condition, already expressible as a criteria field (`PurchaseItemCriteria.userId`).
+2. **Nested projections.** A purchase fetched with `user.name` in its projection is checked only against the purchase rules, not the user policy. Today that leaks nothing (non-admins reach only their own purchases), but once the purchase policy exists, each nested entity in a projection must go through its own policy.
+3. **Removing `entity:operation` and `data:all`** from `Role`, `PermissionModel` and `SecurityEnforcer.require` once the last controller is migrated.
+
+## Decisions
+
+| Topic | Decision |
+|-------|----------|
+| Where it applies | Only at the REST API; presenters on the server are trusted |
+| Profiles | The existing roles (ADMIN, CUSTOMER, MANAGER) |
+| Declaration | Java, with projections for the fields and criteria for the rows |
+| `entity:operation` and `data:all` | Absorbed by the policy (done for the user entity) |
+| Several roles | Resolved row by row |
+| Forbidden request | 403 naming the fields |
+| Policy on the client | Not sent; the 403 is an unexpected error |
+| Filter and ordering | Only fields read as they are |
+| Writing | Fields per grant for create and update; row scope on update and delete; masked values never written |
+| No projection | Everything the requester may read |
+| Masks | Textual fields only |
+| Disjunction of row scopes | Alternative groups (`anyOf`) in every criteria, server-side only; a client's search over several columns is a provisioned field (`translateAny`) |
