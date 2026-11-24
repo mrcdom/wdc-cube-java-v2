@@ -27,6 +27,23 @@ public class StoreWorkflowTest extends BasePresentationTest {
     }
 
     @Test
+    public void aReceiptOfAnotherUser_isNotFound() {
+        // jdoe sends, in the "open receipt" event, the id of one of admin's purchases — the event's form data comes
+        // from the client, and a remote shell lets it be anything
+        new LoginKeys(this.app).flip();
+        var rootView = this.app.getRootView();
+        var loginView = LoginViewMock.cast(this.app.viewOf(rootView.scope.content.get()));
+        loginView.scope.onEnter.run("jdoe", "jdoe");
+        var homeView = HomeViewMock.cast(this.app.viewOf(rootView.scope.content.get()));
+
+        homeView.getPurchasesPanelScope().onOpenReceipt.run(DBReset.ADMIN_FIRST_PURCHASE_ID);
+
+        homeView = HomeViewMock.cast(this.app.viewOf(rootView.scope.content.get()));
+        Assert.assertEquals("purchase not found: " + homeView.scope.errorMessage.get(), 5,
+                (int) homeView.scope.errorCode.get());
+    }
+
+    @Test
     public void testViewNonexistentProduct() {
         var restrictedView = gotoRestricted();
         var rootView = this.app.getRootView();
