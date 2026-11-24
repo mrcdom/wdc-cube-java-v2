@@ -1,7 +1,11 @@
 package br.com.wdc.store.view.vaadin.impl;
 
 import java.text.NumberFormat;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.util.Objects;
 
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
@@ -20,7 +24,12 @@ import br.com.wdc.store.view.vaadin.util.VaadinDom;
 
 public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptScope> {
 
+    private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("MM/dd/yyyy h:mm a",
+            Locale.US);
+
     private boolean notRendered = true;
+    private Span dateElm;
+    private Long dateOldValue;
     private Grid<ReceiptItem> grid;
     private Span totalElm;
     private double totalOldValue;
@@ -33,6 +42,8 @@ public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptScope> {
     public void recreate() {
         this.element = new VerticalLayout();
         this.notRendered = true;
+        this.dateElm = null;
+        this.dateOldValue = null;
         this.grid = null;
         this.totalElm = null;
         this.totalOldValue = 0;
@@ -50,6 +61,11 @@ public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptScope> {
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             // Consumed while drawing: a one-shot notice needs no redraw
             this.state.notifySuccess.setSilently(false);
+        }
+
+        if (!Objects.equals(this.dateOldValue, this.state.receipt.get().date)) {
+            this.dateElm.setText(formatDate(this.state.receipt.get().date));
+            this.dateOldValue = this.state.receipt.get().date;
         }
 
         if (this.totalOldValue != this.state.receipt.get().total) {
@@ -79,6 +95,19 @@ public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptScope> {
             dom.span(label -> {
                 label.addClassName("caption-2");
                 label.setText("Purchase Receipt");
+            });
+
+            dom.horizontalLayout(dateRow -> {
+                dateRow.addClassName("receipt-date");
+                dom.span(label -> {
+                    label.setText("Date:");
+                    label.getStyle().set("font-weight", "bold");
+                });
+                dom.span(label -> {
+                    this.dateElm = label;
+                    this.dateElm.setText(formatDate(this.state.receipt.get().date));
+                    this.dateOldValue = this.state.receipt.get().date;
+                });
             });
 
             // Grid
@@ -119,5 +148,10 @@ public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptScope> {
             button.getStyle().set("margin-top", "var(--lumo-space-m)");
             button.addClickListener(e -> safeAction("Open products", this.state.onOpenProducts::run));
         });
+    }
+
+    /** The purchase's date and time, in the server's zone (as the other hosts show it). */
+    private static String formatDate(Long millis) {
+        return millis == null ? "" : DATE_TIME_FORMAT.format(Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()));
     }
 }
