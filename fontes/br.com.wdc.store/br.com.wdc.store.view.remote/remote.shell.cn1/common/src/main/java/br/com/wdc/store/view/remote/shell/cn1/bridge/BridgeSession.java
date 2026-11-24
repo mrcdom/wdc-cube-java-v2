@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import com.codename1.io.ConnectionRequest;
 import com.codename1.io.JSONParser;
@@ -24,6 +26,11 @@ import com.codename1.ui.CN;
  * The handshake is RSA + PBKDF2 + AES-GCM ({@link Cn1Crypto}): the {@code secret} of the 1st WS
  * message carries the session key, and sensitive values (e.g. the password) are enciphered with it.
  * </p>
+ *
+ * <p>
+ * While connected, the keep-alive ({@code {"ping":true}}) goes every {@link #PING_INTERVAL_MS}: the server extends the
+ * session's life and answers with the views it released ({@code releasedViews}), which the push discards.
+ * </p>
  */
 public final class BridgeSession {
 
@@ -32,6 +39,9 @@ public final class BridgeSession {
 
     /** Preference (client-only) with the last navigated path, to restore the screen on reopening. */
     private static final String INTENT_PREF = "wdc.lastIntent";
+
+    /** How often the keep-alive goes to the server. */
+    private static final long PING_INTERVAL_MS = 15000L;
 
     /**
      * Push notification — on the EDT, with the vsids of the views <b>received</b> (dirty on the server) and
@@ -52,6 +62,7 @@ public final class BridgeSession {
     private Cn1Crypto crypto;
     private String uri = "";
     private long requestCounter = 0;
+    private Timer pinger;
 
     public BridgeSession(String base, Listener listener) {
         this.base = base;
@@ -82,11 +93,37 @@ public final class BridgeSession {
         final String secret = crypto.signature();
 
         ws = WebSocket.build(wsBase + "/dispatcher/" + appId)
-                .onConnect(w -> w.send(bootstrapMessage(secret)))
+                .onConnect(w -> {
+                    w.send(bootstrapMessage(secret));
+                    startPinging();
+                })
                 .onTextMessage((w, msg) -> handleMessage(msg))
-                .onClose((w, code, reason) -> { })
-                .onError((w, ex) -> { })
+                .onClose((w, code, reason) -> stopPinging())
+                .onError((w, ex) -> stopPinging())
                 .connect();
+    }
+
+    /** Sends the keep-alive on the EDT, like every other message, while the socket is open. */
+    private synchronized void startPinging() {
+        stopPinging();
+        pinger = new Timer();
+        pinger.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                CN.callSerially(() -> {
+                    if (ws != null) {
+                        ws.send("{\"ping\":true}");
+                    }
+                });
+            }
+        }, PING_INTERVAL_MS, PING_INTERVAL_MS);
+    }
+
+    private synchronized void stopPinging() {
+        if (pinger != null) {
+            pinger.cancel();
+            pinger = null;
+        }
     }
 
     /** 1st WS message: secret + the client storage (enciphered) for the server to populate the scopes. */
