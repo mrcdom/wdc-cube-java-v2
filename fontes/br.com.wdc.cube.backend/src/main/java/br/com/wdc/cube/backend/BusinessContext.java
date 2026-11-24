@@ -15,6 +15,7 @@ import br.com.wdc.shopping.persistence.impl.ShoppingRepositoryBootstrap;
 import br.com.wdc.shopping.persistence.impl.concurrent.ScheduledExecutorAdapter;
 import br.com.wdc.shopping.persistence.rest.RemoteTransactions;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
+import br.com.wdc.shopping.scripts.sgbd.DBCreate;
 import br.com.wdc.shopping.view.remote.host.RemoteHostBootstrap;
 
 public class BusinessContext {
@@ -54,6 +55,17 @@ public class BusinessContext {
             // The module's DataSource is injected into the bootstrap (no global holder): it binds this module's
             // DSLContext and TransactionService to this DataSource.
             ShoppingRepositoryBootstrap.initialize(dataSource, dsSupport.isLogEnabled(), dsSupport.getDialect(), cleanUp);
+
+            // Schema: creates what is missing and seeds a new database; database.reset recreates everything.
+            // After the bootstrap, because DBReset writes through the repositories.
+            try (var connection = dataSource.getConnection()) {
+                var command = new DBCreate()
+                        .withConnection(connection);
+                if (config.getBoolean(dbPrefix + "database.reset", false)) {
+                    command.withReset();
+                }
+                command.run();
+            }
 
             // Remote transaction coordinator (REST server): client-driven transactions over HTTP,
             // bound to this module's DataSource. It lives in the host (composition root), not in the shared bootstrap

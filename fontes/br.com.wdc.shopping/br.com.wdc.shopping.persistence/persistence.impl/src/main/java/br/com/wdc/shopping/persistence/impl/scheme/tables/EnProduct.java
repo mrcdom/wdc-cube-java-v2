@@ -50,7 +50,7 @@ public class EnProduct extends TableImpl<Record> {
 
     public final TableField<Record, String> DESCRIPTION = createField(DSL.name("DESCRIPTION"), SQLDataType.VARCHAR(1000000).nullable(false), this, "");
 
-    public final TableField<Record, byte[]> IMAGE = createField(DSL.name("IMAGE"), SQLDataType.BINARY(1000000), this, "");
+    public final TableField<Record, byte[]> IMAGE = createField(DSL.name("IMAGE"), SQLDataType.VARBINARY(1000000), this, "");
 
     private EnProduct(Name alias, Table<Record> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);

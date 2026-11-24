@@ -119,7 +119,7 @@ public class DBCreate {
 	private void createTableProduct() {
 		boolean isPostgres = dsl.dialect() == SQLDialect.POSTGRES;
 		String nameType  = isPostgres ? "TEXT"  : "VARCHAR_IGNORECASE(1000000)";
-		String imageType = isPostgres ? "BYTEA" : "BINARY(1000000)";
+		String imageType = isPostgres ? "BYTEA" : "VARBINARY(1000000)";
 		String descType  = isPostgres ? "TEXT"  : "VARCHAR(1000000)";
 		dsl.execute("""
 				CREATE TABLE EN_PRODUCT (
