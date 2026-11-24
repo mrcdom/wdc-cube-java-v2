@@ -14,7 +14,7 @@
     <artifactId>swt.desktop</artifactId>
     <packaging>jar</packaging>
 
-    <name>WeDoCode Store View SWT Desktop</name>
+    <name>WDC Store View SWT Desktop</name>
     <description>Desktop application entry point and wiring — binds SWT commons views to local presenters</description>
 
     <dependencies>

@@ -31,10 +31,8 @@ import io.javalin.config.JavalinConfig;
 import io.javalin.http.staticfiles.Location;
 
 /**
- * Standalone Javalin-based HTTP server for WeDoCode Store React frontend.
- * 
- * This server: - Serves React static assets (HTML, CSS, JS) from classpath - Manages ApplicationReactImpl instances for
- * session state - Cleans up expired sessions periodically
+ * The Javalin HTTP server of the WDC Store: serves the web frontends from {@code work/frontend}, the remote host's
+ * WebSocket sessions, the REST API ({@code /api/repo}, {@code /api/auth}, {@code /api/tx}) and the product images.
  */
 @SuppressWarnings({ "java:S2139", "java:S1192" })
 public class BackendServer {
@@ -329,7 +327,7 @@ public class BackendServer {
             }
         }
 
-        LOG.info("Starting WeDoCode Store React Server on port {}", port);
+        LOG.info("Starting the WDC Store server on port {}", port);
 
         boolean devMode = config.getBoolean("server.devMode", false);
         CorsSettings corsSettings = resolveCorsSettings(config);

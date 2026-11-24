@@ -101,7 +101,7 @@ public class StoreSwtMain {
         if (appIcon != null) {
             shell.setImage(appIcon);
         }
-        shell.setText("WeDoCode Store");
+        shell.setText("WDC Store");
         shell.setSize(800, 820);
 
         var monitor = display.getPrimaryMonitor().getBounds();

@@ -14,7 +14,7 @@
     <artifactId>remote.shell.swt</artifactId>
     <packaging>jar</packaging>
 
-    <name>WeDoCode Store View Remote - SWT Shell</name>
+    <name>WDC Store View Remote - SWT Shell</name>
     <description>SWT desktop shell communicating with remote.host via WebSocket — reuses swt.commons views with remote state</description>
 
     <properties>

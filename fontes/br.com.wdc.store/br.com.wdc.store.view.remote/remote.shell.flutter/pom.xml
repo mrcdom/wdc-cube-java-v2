@@ -14,7 +14,7 @@
     <artifactId>remote.shell.flutter</artifactId>
     <packaging>pom</packaging>
 
-    <name>WeDoCode Store View Remote - Flutter Desktop</name>
+    <name>WDC Store View Remote - Flutter Desktop</name>
 
     <description>
         Flutter desktop shell for the Host/Shell remote protocol.

@@ -14,7 +14,7 @@
     <artifactId>remote.shell.teavm</artifactId>
     <packaging>jar</packaging>
 
-    <name>WeDoCode Store View Remote - TeaVM Shell</name>
+    <name>WDC Store View Remote - TeaVM Shell</name>
     <description>TeaVM-compiled frontend shell communicating with remote.host via WebSocket (replaces React shell)</description>
 
     <properties>

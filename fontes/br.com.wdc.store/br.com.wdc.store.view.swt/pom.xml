@@ -14,7 +14,7 @@
     <artifactId>br.com.wdc.store.view.swt</artifactId>
     <packaging>pom</packaging>
 
-    <name>WeDoCode Store View SWT</name>
+    <name>WDC Store View SWT</name>
     <description>Parent module for SWT-based views (commons shared views + desktop application)</description>
 
     <properties>

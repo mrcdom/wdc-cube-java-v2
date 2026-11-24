@@ -14,7 +14,7 @@
     <artifactId>persistence.client</artifactId>
     <packaging>jar</packaging>
 
-    <name>WeDoCode Store Repository REST Client</name>
+    <name>WDC Store Repository REST Client</name>
     <description>Java HTTP client implementing repository interfaces via REST API</description>
 
     <dependencies>

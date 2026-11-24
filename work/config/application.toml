@@ -1,4 +1,4 @@
-# WeDoCode Store - Application Configuration
+# WDC Store - Application Configuration
 # Place this file at: {CWD}/config/application.toml
 # (start-server.sh sets CWD to the work/ directory)
 
@@ -32,7 +32,7 @@ url = "jdbc:h2:tcp://localhost/./wedocode-store;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EX
 # password = "changeme"
 
 
-# Reset database on startup (drops and recreates all tables)
+# Reset database on startup (clears all rows and seeds the sample data again)
 # reset = false
 
 # Transaction mode:
