@@ -30,8 +30,8 @@ graph TD
     root --> RemoteTx["RemoteTransactions<br/><small>holder of the RemoteTransactionCoordinator</small>"]
     root --> security["security/"]
     security --> Filter["SecurityFilter<br/><small>Bearer JWT → SecurityContext.CURRENT</small>"]
-    security --> Enforcer["SecurityEnforcer<br/><small>authenticated requester; permission check (entities not yet under a policy)</small>"]
-    security --> UserPolicy["UserDataPolicy<br/><small>rows, fields and masks of the users, per role</small>"]
+    security --> Enforcer["SecurityEnforcer<br/><small>the authenticated requester</small>"]
+    security --> Policies["UserDataPolicy, ProductDataPolicy,<br/>PurchaseDataPolicy, PurchaseItemDataPolicy<br/><small>rows, fields, masks and writes per role</small>"]
     root --> doc["doc/"]
     doc --> Docs["RepositoryApiDocs<br/><small>assembles the OpenAPI document</small>"]
     doc --> DocHelpers["Doc<br/><small>operation builders</small>"]
@@ -99,13 +99,11 @@ When `AuthenticationService.BEAN` is registered, `RepositoryApiRoutes` registers
 
 1. Reads `Authorization: Bearer <token>`.
 2. Resolves the JWT through `AuthenticationService.resolveToken()`.
-3. Sets `SecurityContext.CURRENT` (userId, roles, permissions); an `after` handler clears it.
+3. Sets `SecurityContext.CURRENT` (userId, roles); an `after` handler clears it.
 4. Routes ending in `/image` are public and skip it.
 5. A missing or invalid token gets 401.
 
-The **users** are under a data access policy: `UserApiController` gets the requester's access with `UserDataPolicy.POLICY.accessFor(SecurityEnforcer.requireAuthenticated())` and calls one method per operation — `prepareRead` (whose plan shapes each returned row), `restrictCount`, `checkCreate`, `checkUpdate`, `restrictDelete`. The policy refuses with `AccessDeniedException` (403) naming the fields at fault, restricts the rows through the criteria's alternative groups, and decides each row's fields by the grants that reach it — as they are, masked, or absent. The password is cleared from every user response. Details: [docs/data-access-policy.md](../../../../docs/data-access-policy.md).
-
-The other entities, not yet under a policy, ask `SecurityEnforcer` for the permission they need — `SecurityEnforcer.require("product", "write")` — which throws `AccessDeniedException` when it is missing, and restrict purchases to the requester's own without `data:all`.
+Each entity has a **data access policy** (`XxxDataPolicy`). Its controller gets the requester's access with `XxxDataPolicy.POLICY.accessFor(SecurityEnforcer.requireAuthenticated())` and calls one method per operation — `prepareRead` (whose plan shapes each returned row; fetch, fetch-page and fetch-by-id), `restrictCount`, `checkCreate`, `checkUpdate`, `restrictDelete`; the image upload is checked as an update of the product's `image`. The policy refuses with `AccessDeniedException` (403) naming the fields at fault, restricts the rows through the criteria's alternative groups — those of a projected collection too —, and decides each row's fields by the grants that reach it: as they are, masked, or absent. What a request asks inside a relation goes through the related entity's policy. The password is cleared from every user response. Details: [docs/data-access-policy.md](../../../../docs/data-access-policy.md).
 
 Without an `AuthenticationService` (local or test mode), the checks are skipped: `accessFor(null)` lets everything through.
 

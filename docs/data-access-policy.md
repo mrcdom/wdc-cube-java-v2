@@ -1,12 +1,12 @@
 # Data Access Policy — Who Reads and Writes What Through the REST API
 
-> **Status (11/2026):** the mechanism is in the framework (`br.com.wdc.framework.domain.security.policy`), and the four entities of the store are under it — `UserDataPolicy`, `ProductDataPolicy`, `PurchaseDataPolicy`, `PurchaseItemDataPolicy`. The `entity:operation` permissions are still in `Role`, unused; [Rollout](#rollout) lists what is left.
+> **Status (11/2026):** the mechanism is in the framework (`br.com.wdc.framework.domain.security.policy`), and the four entities of the store are under it — `UserDataPolicy`, `ProductDataPolicy`, `PurchaseDataPolicy`, `PurchaseItemDataPolicy`. It is the only authorization of the REST API: `Role` is the list of roles, and there are no `entity:operation` permissions.
 
 ## The Problem
 
 The REST repository API is flexible on purpose: the client sends any criteria and any projection, and gets back exactly the fields it asked for. That is what lets teavm.web run the same presenters as the server without a transfer object per screen.
 
-The same flexibility is a risk at a boundary open to external clients. Anyone holding a token can build a request by hand. Without a policy, each controller has to defend itself by hand — remove the password from the projection in every read endpoint, add `userId = me` to the criteria when the user lacks `data:all` — and each new field or endpoint depends on someone remembering the rule. Nor is there a way to say that a role reads a field only partially (a document number with the last digits), or only on some rows.
+The same flexibility is a risk at a boundary open to external clients. Anyone holding a token can build a request by hand. Without a policy, each controller has to defend itself by hand — remove the password from the projection in every read endpoint, add `userId = me` to the criteria of a user who may see only their own rows — and each new field or endpoint depends on someone remembering the rule. Nor is there a way to say that a role reads a field only partially (a document number with the last digits), or only on some rows.
 
 The policy replaces that with a declaration per entity: per role, which rows, which fields, which masks, which writes. **The projection stays the contract.** No transfer object is created: the client asks with the projection it already uses, and the policy decides whether that projection is allowed.
 
@@ -202,25 +202,19 @@ The controller calls one `DataAccess` method per operation: `prepareRead` (fetch
 
 | Piece | Module | Why there |
 |-------|--------|-----------|
-| `DataPolicy`, `DataGrant`, `DataAccess`, `RowScope`, `Mask`, `EntityDescriptor` | `framework.domain` (`security.policy`) | Contracts with no technology, next to `SecurityContext` and the `PermissionModel` they replace |
+| `DataPolicy`, `DataGrant`, `DataAccess`, `RowScope`, `Mask`, `EntityDescriptor` | `framework.domain` (`security.policy`) | Contracts with no technology, next to `SecurityContext` |
 | `Criteria.anyOf`, `CriterionCodec.refuseAnyOf` | `framework.domain` (`criteria`) | A capability of every criteria on the server; refused on the wire |
 | `CriterionTranslator.anyOf`, `CriterionTranslator.translateAny` | `framework.jooq` | The single translation to SQL — of the groups, and of a search field over several columns |
 | `UserDataPolicy`, `ProductDataPolicy`, `PurchaseDataPolicy`, `PurchaseItemDataPolicy` | `persistence.rest` (`security`) | The policies apply only at the REST boundary |
 | Price of a new item | `persistence.impl` (`PurchaseItemRepositoryImpl.priceOf`) | The server decides what an item costs, in every host |
 | `SecurityContext.roles()` | `framework.domain`; filled by `AccessContext` | The policy grants by role name |
 
-## Rollout
-
-Done:
+## Coverage
 
 - the mechanism, with relations and collections, with unit tests (`DataPolicyTest`) and REST tests with authentication on (`UserDataPolicyRestTest`, `PurchaseDataPolicyRestTest`);
 - `anyOf` in the four entities, server-side only: translated and tested locally (`UserRepositoryTest`), refused by the client and by the server over REST (`RestUserRepositoryTest`);
 - `CriterionTranslator.translateAny`, for a future search field (`CriterionTranslatorTest`);
-- the four entities: each controller goes through its policy only.
-
-Left:
-
-1. **Removing `entity:operation` and `data:all`** — the permissions of `Role`, `PermissionModel`, `SecurityEnforcer.require` and the permission methods of `SecurityContext` — which no controller uses anymore.
+- the four entities: each controller goes through its policy, and through nothing else — `Role` is the list of roles, and `SecurityEnforcer.requireAuthenticated()` only says who the requester is.
 
 ## Decisions
 
@@ -229,7 +223,7 @@ Left:
 | Where it applies | Only at the REST API; presenters on the server are trusted |
 | Profiles | The existing roles (ADMIN, CUSTOMER, MANAGER) |
 | Declaration | Java, with projections for the fields and criteria for the rows |
-| `entity:operation` and `data:all` | Absorbed by the policy |
+| Permissions | No `entity:operation` permissions: the policy is the only authorization, `Role` the list of roles |
 | Several roles | Resolved row by row |
 | Forbidden request | 403 naming the fields |
 | Policy on the client | Not sent; the 403 is an unexpected error |

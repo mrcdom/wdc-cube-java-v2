@@ -86,7 +86,7 @@ public final class Doc {
     /** 403 Forbidden. */
     public static ApiResponse forbidden() {
         return new ApiResponse()
-                .description("Forbidden — insufficient permissions")
+                .description("Forbidden — the requester's roles do not allow the request; the message names the fields at fault")
                 .content(jsonContent(new Schema<>().$ref("#/components/schemas/ErrorResponse")));
     }
 

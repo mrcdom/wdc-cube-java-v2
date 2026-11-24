@@ -139,7 +139,7 @@ Abstract class that extends `CubeApplication`. Holds the global state:
 
 ### Repositories and authorization
 
-Each call reaches the repositories it needs through the domain's service locator, read on each use (`ProductRepository.BEAN.get()`); the transaction of a write is opened by `ResourceWrite`, the base of the write verbs. Authorization (RBAC) sits at the trust boundary: in the REST endpoints (the data access policies, and `SecurityEnforcer` for the entities not yet migrated), which teavm.web goes through, since its presenters run in the browser. In the hosts where the presenters run on the server (Vaadin, local SWT, remote host), the client only triggers actions and the presenter decides each query.
+Each call reaches the repositories it needs through the domain's service locator, read on each use (`ProductRepository.BEAN.get()`); the transaction of a write is opened by `ResourceWrite`, the base of the write verbs. Authorization (RBAC) sits at the trust boundary: in the REST endpoints (a data access policy per entity), which teavm.web goes through, since its presenters run in the browser. In the hosts where the presenters run on the server (Vaadin, local SWT, remote host), the client only triggers actions and the presenter decides each query.
 
 ### Scope
 

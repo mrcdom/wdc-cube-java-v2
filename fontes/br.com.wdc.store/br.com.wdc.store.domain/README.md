@@ -2,7 +2,7 @@
 
 The **pure domain** module of the WDC Store application. It defines the entities, repository contracts, query criteria, wire codecs, the business exception, the roles and the configuration holders — with no dependency on persistence or presentation frameworks.
 
-The generic abstractions it builds on live in `br.com.wdc.framework.domain` (`framework-domain`): `Repository`, `Page`, `ModelCodec`, `Criteria`/`Criterion`, `Projection*`, the base exceptions (`BusinessException`, `AccessDeniedException`, `OfflineException`, ...), `AppConfig`, `TransactionService` and the security contracts (`SecurityContext`, `AuthenticationService`, `PasswordUtil`, `PermissionModel`).
+The generic abstractions it builds on live in `br.com.wdc.framework.domain` (`framework-domain`): `Repository`, `Page`, `ModelCodec`, `Criteria`/`Criterion`, `Projection*`, the base exceptions (`BusinessException`, `AccessDeniedException`, `OfflineException`, ...), `AppConfig`, `TransactionService` and the security contracts (`SecurityContext`, `AuthenticationService`, `PasswordUtil`) and the data access policy (`security.policy`).
 
 ## Structure
 
@@ -53,7 +53,7 @@ A new entity gets its own package with the complete set (`Xxx`, `XxxCriteria`, `
 - **Fluent entities** — each entity implements `KeyedEntity`, with `private` fields, a `field()` accessor and a `withField(...)` setter that returns `this`; no persistence annotations
 - **Repositories as interfaces** — registered via `AtomicReference<XxxRepository> BEAN` (lightweight Service Locator)
 - **Typed criteria** — each entity has its own `XxxCriteria`, whose fields are `Criterion` objects, plus projection and a closed set of orderings
-- **Declarative permissions** — the `Role` enum defines permissions in the `entity:operation` format
+- **Roles, not permissions** — the `Role` enum lists the roles; what each one may do with the data is declared by the data access policies of the REST layer
 
 ## Entities
 
@@ -140,9 +140,7 @@ A projection is an entity instance whose non-null fields mark the columns to loa
 
 ## Security (RBAC)
 
-`Role` defines the roles (ADMIN, CUSTOMER, MANAGER) and their permissions in the `entity:operation` format (`*` grants every operation on the entity; `data:all` grants access to every user's data). `Role.effectivePermissions(...)` computes the union of a user's roles — the model is **allow-wins** — and `hasPermission`/`hasDataAll` delegate to the framework's `PermissionModel`.
-
-The users have no permissions here: what each role may do with them is a data access policy in the REST layer (`UserDataPolicy`), by role name — `Role.names(...)` is what the security context carries. The other entities move to policies the same way ([docs/data-access-policy.md](../../../docs/data-access-policy.md)).
+`Role` is the list of roles (ADMIN, CUSTOMER, MANAGER). `Role.parse(...)` reads the user's `roles` column, ignoring unknown names, and `Role.names(...)` is what the security context carries. A role has no permissions of its own: what each one may do with the data is declared by the data access policies of the REST layer (`XxxDataPolicy`), by role name — the model is **allow-wins** ([docs/data-access-policy.md](../../../docs/data-access-policy.md)).
 
 The authentication and context contracts (`AuthenticationService`, `SecurityContext` with its `CURRENT` ThreadLocal, `PasswordUtil`, `AccessDeniedException`) are in `br.com.wdc.framework.domain`.
 

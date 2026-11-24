@@ -520,15 +520,15 @@ SELECT JSON_OBJECT(
 
 ---
 
-## RBAC Security — Permissions as a Domain Contract
+## RBAC Security — Roles, and a Data Policy per Entity
 
-The security architecture is defined in the `domain` module — not in the persistence layer, not in HTTP. This ensures that access rules are central and independent of where the request originated.
+The security contracts are defined in the `domain` module — not in the persistence layer, not in HTTP: who the requester is (`SecurityContext`), how they authenticate (`AuthenticationService`), and which roles exist (`Role`). What each role may do with the data is declared once per entity, by a **data access policy** applied at the REST boundary.
 
 ```mermaid
 graph TD
     subgraph Domain["domain — Contracts"]
         Role["Role<br/><small>ADMIN, CUSTOMER, MANAGER</small>"]
-        SecCtx["SecurityContext<br/><small>userId, userName, permissions, privateKey</small>"]
+        SecCtx["SecurityContext<br/><small>userId, userName, roles, privateKey</small>"]
         SecHolder["SecurityContext.CURRENT<br/><small>ThreadLocal</small>"]
         AuthSvc["AuthenticationService.BEAN"]
     end
@@ -540,12 +540,14 @@ graph TD
 
     subgraph REST["persistence.rest — HTTP Surface"]
         Filter["SecurityFilter<br/><small>Bearer JWT → SecurityContext.CURRENT</small>"]
+        Policies["XxxDataPolicy<br/><small>rows, fields and writes per role</small>"]
     end
 
     AuthSvc -->|"implemented by"| AuthImpl
     AuthImpl -->|"produces"| AccessCtx
     Filter -->|"populates"| SecHolder
     SecHolder -->|"propagates to"| Persistence
+    SecHolder -->|"roles"| Policies
 ```
 
 The authentication flow uses **HMAC challenge-response** so the password never travels in plain text:
@@ -562,22 +564,9 @@ The authentication flow uses **HMAC challenge-response** so the password never t
 4. Subsequent requests: Authorization: Bearer <accessToken>
 ```
 
-`SecurityContext.CURRENT` propagates the context through a `ThreadLocal` — any code running on the same thread (including repositories) can check permissions without receiving extra parameters.
+`SecurityContext.CURRENT` propagates the context through a `ThreadLocal` — any code running on the same thread knows who the requester is and which roles they have, without receiving extra parameters.
 
-Permissions are defined in the `entity:operation` format:
-
-```java
-public enum Role {
-    ADMIN(Set.of("product:*", "purchase:*", "purchase-item:*", "data:all")),
-    CUSTOMER(Set.of("product:read", "purchase:read", "purchase:write",
-            "purchase-item:read", "purchase-item:write")),
-    MANAGER(Set.of("product:read", "product:write", "purchase:read", "purchase-item:read"));
-}
-```
-
-`*` grants every operation on the entity. Without `data:all`, the REST endpoints restrict reads of purchases to the authenticated user's own records.
-
-The users are no longer here: they are under a **data access policy** (`UserDataPolicy`), which says per role which rows are reached, which fields are read — as they are or masked — and which are written, decided per row. It replaces the permissions entity by entity: [docs/data-access-policy.md](data-access-policy.md).
+`Role` is only the list of roles — `ADMIN`, `CUSTOMER`, `MANAGER` —, parsed from the user's `roles` column. What each one may do is in the data access policies of `persistence.rest` (`UserDataPolicy`, `ProductDataPolicy`, `PurchaseDataPolicy`, `PurchaseItemDataPolicy`): per role, the rows reached, the fields read — as they are or masked — and the fields written, decided per row, with relations going through the policy of the related entity. Details: [docs/data-access-policy.md](data-access-policy.md).
 
 ---
 

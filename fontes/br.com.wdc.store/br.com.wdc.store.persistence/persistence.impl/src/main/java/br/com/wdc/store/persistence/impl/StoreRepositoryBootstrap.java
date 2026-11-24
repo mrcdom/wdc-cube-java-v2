@@ -93,7 +93,7 @@ public class StoreRepositoryBootstrap {
     /**
      * Enables security: initializes the {@link AuthenticationService} for JWT authentication.
      * <p>
-     * Permission and scope checks are done directly in the REST endpoints (ApiControllers).
+     * What each requester may do with the data is decided in the REST endpoints, by the data policies.
      * <p>
      * Must be called <b>after</b> {@link #initialize()}.
      *

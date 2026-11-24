@@ -305,21 +305,6 @@ public class DataPolicyTest {
 			}
 
 			@Override
-			public Set<String> permissions() {
-				return Set.of();
-			}
-
-			@Override
-			public boolean hasPermission(String entity, String operation) {
-				return false;
-			}
-
-			@Override
-			public boolean hasDataAll() {
-				return false;
-			}
-
-			@Override
 			public PrivateKey privateKey() {
 				return null;
 			}
