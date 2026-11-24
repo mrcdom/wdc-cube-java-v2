@@ -1,6 +1,6 @@
 # Data Access Policy — Who Reads and Writes What Through the REST API
 
-> **Status (11/2026):** the mechanism is in the framework (`br.com.wdc.framework.domain.security.policy`), and the **user** entity is under it (`UserDataPolicy`). Products, purchases and purchase items still use the `entity:operation` permissions of `Role`; [Rollout](#rollout) lists what is left.
+> **Status (11/2026):** the mechanism is in the framework (`br.com.wdc.framework.domain.security.policy`), and the four entities of the store are under it — `UserDataPolicy`, `ProductDataPolicy`, `PurchaseDataPolicy`, `PurchaseItemDataPolicy`. The `entity:operation` permissions are still in `Role`, unused; [Rollout](#rollout) lists what is left.
 
 ## The Problem
 
@@ -32,6 +32,8 @@ A **`DataPolicy`** gives each **role** one or more **`DataGrant`s** over an enti
 | `update(projection)` | Fields that may be changed in a reachable row |
 | `delete()` | The reachable rows may be deleted |
 
+A field is a value, a **relation** to one row of another entity (`purchase.user`, `item.product`) or a **collection** of rows of another entity (`purchase.items`). In a grant, a relation or a collection is one field: reading it means reading the key of the related row (or rows); what is read **inside** it is decided by the policy of the other entity — see [Relations](#relations).
+
 The key is never declared: whoever reads a row reads its key, and the key is never written, because it identifies the row.
 
 A role that reaches different rows with different fields has one grant for each. The MANAGER, for instance, reads its own user in full and the others by name, with the login masked:
@@ -62,7 +64,7 @@ public static final DataPolicy<User, UserCriteria> POLICY = DataPolicy.on(USER)
 
 The fields are declared with **projections**, the same objects a query uses: a renamed field breaks the policy at compile time. The password appears in no read grant, so no role reads it back.
 
-An **`EntityDescriptor`** tells the policy what it cannot infer: each field's wire name, how to get and set it, which entity field each criteria field filters (`userId` → `id`), and which fields each provisioned ordering sorts by.
+An **`EntityDescriptor`** tells the policy what it cannot infer: each field's wire name, how to get and set it, which entity field each criteria field filters (`userId` → `id`, or the relation `user` of a purchase), which fields each provisioned ordering sorts by, and, for a relation or a collection, the policy of the other entity. That policy is given as a `Supplier`, because entities refer to each other — the purchase to its items, the item to its purchase.
 
 ## Rules
 
@@ -78,7 +80,7 @@ Per field of each row:
 2. otherwise, some grant that reaches it masks it → **masked**;
 3. otherwise → **absent** (cleared).
 
-To decide which grants reach a row, each `RowScope` is written twice, and both must agree: `restrict(group, sc)` as criteria, so the database returns only reachable rows; `covers(row, sc)` in memory, on the returned row. The fields `covers` reads are fetched even when the client did not ask for them, then cleared before the response.
+To decide which grants reach a row, each `RowScope` is written twice, and both must agree: `restrict(group, sc)` as criteria, so the database returns only reachable rows; `covers(row, sc)` in memory, on the returned row. What `covers` reads is declared as a projection (`RowScope.projection()`), which may go into relations — the items of one's own purchases read `purchase.user`. It is fetched even when the client did not ask for it, then cleared before the response.
 
 ### Filtering and sorting count as reading
 
@@ -95,6 +97,8 @@ So the MANAGER filtering by login gets only its own row (the only grant that rea
 - **Update**: one grant must reach the **stored** row, allow every changed field, and **still reach the row after the change**. A grant over one's own rows cannot hand a row to someone else by changing its owner.
 - **Delete**: only the rows of grants that delete, filtered by fields those grants read.
 - **A masked value is never written**: a grant that masks a field cannot also write it — the builder refuses that declaration. A client that echoes a masked value back gets a 403, never an overwrite.
+- **A relation is written by its key only**: a purchase sent with `user: {id, name}` is refused — it would look like a write of the user, which it is not.
+- **What the server decides is not writable**: a customer's grant over purchase items leaves `price` out. The price of a new item is the price of its product at that moment, filled in by the repository; a client that sends one gets a 403.
 
 ### Refusing, not trimming
 
@@ -104,11 +108,40 @@ The client does **not** receive the policy. A correct client — a presenter bui
 
 ### No projection means "everything allowed"
 
-A read without a projection (`GET /api/repo/user/{id}`, a `fetch` without `projection`) gets every field some grant of the requester sees, with the per-row rules above. It never fails because of a field.
+A read without a projection (`GET /api/repo/user/{id}`, a `fetch` without `projection`) gets every value field some grant of the requester sees, and its relations by key, with the per-row rules above; collections stay out. It never fails because of a field. The purchase, purchase item and product endpoints have documented default shapes of their own (a purchase with its items, for instance), which go through the policy like any projection a client sends.
 
 ### Without security
 
 When no `AuthenticationService` is configured (local and test modes), there is no requester and `accessFor(null)` lets everything through. The password is still cleared from every user response, with or without security.
+
+## Relations
+
+Each entity has **one set of rules, wherever it appears**. A purchase's buyer goes through `UserDataPolicy`, its items through `PurchaseItemDataPolicy`, an item's product through `ProductDataPolicy` — whether the user is fetched on its own or inside a purchase. Otherwise the same row would have two sets of rules, and the looser one would win.
+
+**Reading.** The owner's grant decides whether the relation is read at all — that is, its key. What the projection asks inside it goes through the other entity's policy:
+
+- the fields asked inside must be seen by some grant of the other entity — `purchase.user.password` is a 403, even for an ADMIN, because no user grant reads a password;
+- each related row is shaped by the grants of its own entity that reach it, row by row;
+- the rows of a **collection** are also restricted by the other entity's policy: the policy adds its row groups to the criteria of the collection (`ProjectionList`), which the repository translates in the subquery — a purchase's items come only from items its reader reaches;
+- a relation asked by its key alone comes back with the key alone, even when more was fetched for a row check.
+
+**Writing.** A relation is written by its key only. The rows of a collection sent with a new owner — the items of a new purchase, which the repository inserts with it — are created through the other entity's policy, **as children of that owner**: the descriptor names the relation of each child that points back (`items` → `purchase`), and it is set before the child is checked, so "items of my purchases" reaches the items of the purchase being created.
+
+A row scope that reads through a relation may have to look it up on a write. An item sent on its own to `purchase-item/insert` comes with its purchase by key; `PurchaseItemDataPolicy.OWN` then fetches the owner of that purchase to decide.
+
+## What the Policies Refuse
+
+The REST tests with authentication on (`UserDataPolicyRestTest`, `PurchaseDataPolicyRestTest`) exercise each of these:
+
+| Request | Answer |
+|---------|--------|
+| A customer reads, counts or fetches by id another user, purchase or purchase item — with or without the owner in the projection | Not found / not counted |
+| Any role projects a password, directly or through `purchase.user` | 403 |
+| A customer updates or deletes a purchase or an item, its own included — a purchase is a receipt | 403 |
+| A customer creates a purchase for someone else, or adds an item to someone else's purchase | 403 |
+| A customer sends the price of an item | 403; the repository fills in the product's price |
+| A customer writes products, or uploads a product image | 403 |
+| A manager filters users by login, or sorts them by login | Only its own row |
 
 ## Alternative Groups in the Criteria (`anyOf`)
 
@@ -172,23 +205,22 @@ The controller calls one `DataAccess` method per operation: `prepareRead` (fetch
 | `DataPolicy`, `DataGrant`, `DataAccess`, `RowScope`, `Mask`, `EntityDescriptor` | `framework.domain` (`security.policy`) | Contracts with no technology, next to `SecurityContext` and the `PermissionModel` they replace |
 | `Criteria.anyOf`, `CriterionCodec.refuseAnyOf` | `framework.domain` (`criteria`) | A capability of every criteria on the server; refused on the wire |
 | `CriterionTranslator.anyOf`, `CriterionTranslator.translateAny` | `framework.jooq` | The single translation to SQL — of the groups, and of a search field over several columns |
-| `UserDataPolicy` | `persistence.rest` (`security`) | The policy applies only at the REST boundary |
+| `UserDataPolicy`, `ProductDataPolicy`, `PurchaseDataPolicy`, `PurchaseItemDataPolicy` | `persistence.rest` (`security`) | The policies apply only at the REST boundary |
+| Price of a new item | `persistence.impl` (`PurchaseItemRepositoryImpl.priceOf`) | The server decides what an item costs, in every host |
 | `SecurityContext.roles()` | `framework.domain`; filled by `AccessContext` | The policy grants by role name |
 
 ## Rollout
 
 Done:
 
-- the mechanism, with unit tests (`DataPolicyTest`) and REST tests with authentication on (`UserDataPolicyRestTest`);
+- the mechanism, with relations and collections, with unit tests (`DataPolicyTest`) and REST tests with authentication on (`UserDataPolicyRestTest`, `PurchaseDataPolicyRestTest`);
 - `anyOf` in the four entities, server-side only: translated and tested locally (`UserRepositoryTest`), refused by the client and by the server over REST (`RestUserRepositoryTest`);
 - `CriterionTranslator.translateAny`, for a future search field (`CriterionTranslatorTest`);
-- the user entity: `UserApiController` goes through `UserDataPolicy` only, and `Role` no longer has `user:*` / `user:read`.
+- the four entities: each controller goes through its policy only.
 
 Left:
 
-1. **Products, purchases and purchase items** — one policy each, replacing `SecurityEnforcer.require(...)` and the `hasDataAll()` checks in their controllers. The purchase item scope ("items of my purchases") is a correlated condition, already expressible as a criteria field (`PurchaseItemCriteria.userId`).
-2. **Nested projections.** A purchase fetched with `user.name` in its projection is checked only against the purchase rules, not the user policy. Today that leaks nothing (non-admins reach only their own purchases), but once the purchase policy exists, each nested entity in a projection must go through its own policy.
-3. **Removing `entity:operation` and `data:all`** from `Role`, `PermissionModel` and `SecurityEnforcer.require` once the last controller is migrated.
+1. **Removing `entity:operation` and `data:all`** — the permissions of `Role`, `PermissionModel`, `SecurityEnforcer.require` and the permission methods of `SecurityContext` — which no controller uses anymore.
 
 ## Decisions
 
@@ -197,7 +229,7 @@ Left:
 | Where it applies | Only at the REST API; presenters on the server are trusted |
 | Profiles | The existing roles (ADMIN, CUSTOMER, MANAGER) |
 | Declaration | Java, with projections for the fields and criteria for the rows |
-| `entity:operation` and `data:all` | Absorbed by the policy (done for the user entity) |
+| `entity:operation` and `data:all` | Absorbed by the policy |
 | Several roles | Resolved row by row |
 | Forbidden request | 403 naming the fields |
 | Policy on the client | Not sent; the 403 is an unexpected error |
@@ -205,4 +237,8 @@ Left:
 | Writing | Fields per grant for create and update; row scope on update and delete; masked values never written |
 | No projection | Everything the requester may read |
 | Masks | Textual fields only |
+| Relations | Each entity follows its own policy wherever it appears; the owner's grant decides the key |
+| Purchases | A receipt: customers read and create their own; only an ADMIN changes or deletes |
+| Items of a new purchase | Created through the item policy, as items of that purchase |
+| Price of an item | Not writable by a customer; the repository fills in the product's price |
 | Disjunction of row scopes | Alternative groups (`anyOf`) in every criteria, server-side only; a client's search over several columns is a provisioned field (`translateAny`) |

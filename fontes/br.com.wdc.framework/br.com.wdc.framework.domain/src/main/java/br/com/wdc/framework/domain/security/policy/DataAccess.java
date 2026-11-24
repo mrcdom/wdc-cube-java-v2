@@ -1,18 +1,24 @@
 package br.com.wdc.framework.domain.security.policy;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import br.com.wdc.framework.commons.util.HasCriteria;
+import br.com.wdc.framework.commons.util.HasSlice;
 import br.com.wdc.framework.domain.criteria.Criteria;
 import br.com.wdc.framework.domain.exception.AccessDeniedException;
 import br.com.wdc.framework.domain.exception.InvalidRequestException;
+import br.com.wdc.framework.domain.projection.ProjectionList;
 import br.com.wdc.framework.domain.security.SecurityContext;
+import br.com.wdc.framework.domain.security.policy.EntityDescriptor.Kind;
 
 /**
  * What one requester may do with an entity: the grants of their roles, applied to each request before it reaches the
@@ -27,9 +33,12 @@ import br.com.wdc.framework.domain.security.SecurityContext;
  * <ul>
  * <li><b>Reading</b> ({@link #prepareRead}): every projected field must be seen by some grant; every field the criteria
  * filters or sorts by must be read as it is by one grant, and only the rows of the grants that do so are returned; each
- * row then shows, per field, what the grants that reach that row allow — as it is, masked, or nothing.</li>
+ * row then shows, per field, what the grants that reach that row allow — as it is, masked, or nothing. What the
+ * projection asks <b>inside</b> a relation or a collection goes through the policy of that entity, row by row; the rows
+ * of a collection are restricted by it too.</li>
  * <li><b>Counting</b> ({@link #restrictCount}): the same rows as reading.</li>
- * <li><b>Creating</b> ({@link #checkCreate}): one grant must allow every field sent, and reach the new row.</li>
+ * <li><b>Creating</b> ({@link #checkCreate}): one grant must allow every field sent, and reach the new row; a relation
+ * is written by its key only, and each row of a collection is created through the policy of its entity.</li>
  * <li><b>Updating</b> ({@link #checkUpdate}): one grant must reach the stored row, allow every changed field, and
  * still reach the row after the change.</li>
  * <li><b>Deleting</b> ({@link #restrictDelete}): only the rows of grants that delete, filtered by fields they read.</li>
@@ -75,19 +84,31 @@ public class DataAccess<E, C extends Criteria> {
 
     /**
      * Adapts a read: checks the projection and the filtered fields, restricts the rows, and fetches what the row check
-     * needs. Without a projection, the read gets every field some grant sees.
+     * needs. Without a projection, the read gets every value field some grant sees, and the relations by key.
      *
      * @return the plan that shapes each returned row; apply it before writing the response
      */
     public ReadPlan<E> prepareRead(C criteria) {
-        var readers = grantsWhere(DataGrant::reads);
-        if (readers.isEmpty()) {
-            throw denied("not allowed to read " + entity.name());
-        }
+        var shape = shape(entity.projection(criteria), criteria);
+        entity.setProjection(criteria, shape.fetch);
+        return shape::apply;
+    }
 
-        var requested = requestedFields(criteria, readers);
+    /** Restricts a count to the rows a read with the same criteria would return. */
+    public void restrictCount(C criteria) {
+        restrictRows(criteria, eligibleToFilter(criteria, readers()));
+    }
+
+    /**
+     * One level of a read: what is asked of this entity, the rows the criteria may reach (when there is a criteria — a
+     * relation has none: its row is the one the owner points to), and what to fetch.
+     */
+    private Shape shape(E requested, C criteria) {
+        var readers = readers();
+        var fields = requestedFields(requested, readers);
+
         var unseen = new LinkedHashSet<String>();
-        for (var field : requested) {
+        for (var field : fields) {
             if (readers.stream().noneMatch(g -> g.sees(field))) {
                 unseen.add(field);
             }
@@ -96,88 +117,195 @@ public class DataAccess<E, C extends Criteria> {
             throw denied("not allowed to read " + entity.name() + " fields " + unseen);
         }
 
-        restrictRows(criteria, eligibleToFilter(criteria, readers));
+        if (criteria != null) {
+            restrictRows(criteria, eligibleToFilter(criteria, readers));
+        }
 
-        var fetched = new LinkedHashSet<>(requested);
+        var fetch = entity.newEntity();
+        entity.key().mark(fetch);
+        var nested = new HashMap<String, DataAccess<?, ?>.Shape>();
+        for (var fieldName : fields) {
+            var field = entity.field(fieldName);
+            var inside = requested == null ? null : field.get(requested);
+            switch (field.kind()) {
+            case VALUE -> field.mark(fetch);
+            case RELATION -> {
+                if (inside != null && !field.targetEntity().fieldsSetIn(inside).isEmpty()) {
+                    var shape = field.targetPolicy().accessFor(sc).shape(inside, null);
+                    field.setRaw(fetch, shape.fetch);
+                    nested.put(fieldName, shape);
+                } else {
+                    field.mark(fetch);
+                }
+            }
+            case COLLECTION -> {
+                if (inside instanceof List<?> list && !list.isEmpty()) {
+                    var childCriteria = list instanceof HasCriteria hc && hc.getCriteria() instanceof Criteria c
+                            ? c
+                            : field.targetEntity().newCriteria();
+                    var shape = field.targetPolicy().accessFor(sc).shape(list.get(0), childCriteria);
+                    var children = new ProjectionList<>(shape.fetch, childCriteria);
+                    if (list instanceof HasSlice slice) {
+                        children.withLimit(slice.getLimit())
+                                .withOffset(slice.getOffset());
+                    }
+                    field.setRaw(fetch, children);
+                    nested.put(fieldName, shape);
+                } else {
+                    field.mark(fetch);
+                }
+            }
+            }
+        }
         for (var grant : readers) {
-            fetched.addAll(grant.rows().fields());
+            entity.merge(fetch, grant.rows().projection());
         }
-        fetched.remove(entity.keyName());
-        entity.setProjection(criteria, entity.projectionOf(fetched));
-
-        return row -> shape(row, requested, readers);
+        return new Shape(fields, readers, nested, fetch);
     }
 
-    /** Restricts a count to the rows a read with the same criteria would return. */
-    public void restrictCount(C criteria) {
-        var readers = grantsWhere(DataGrant::reads);
-        if (readers.isEmpty()) {
-            throw denied("not allowed to read " + entity.name());
-        }
-        restrictRows(criteria, eligibleToFilter(criteria, readers));
-    }
-
-    private Set<String> requestedFields(C criteria, List<DataGrant<E, C>> readers) {
-        var projection = entity.projection(criteria);
-        if (projection != null) {
-            return entity.fieldsSetIn(projection);
+    private Set<String> requestedFields(E requested, List<DataGrant<E, C>> readers) {
+        if (requested != null) {
+            return entity.fieldsSetIn(requested);
         }
         var all = new LinkedHashSet<String>();
-        for (var field : entity.fieldNames()) {
-            if (readers.stream().anyMatch(g -> g.sees(field))) {
-                all.add(field);
+        for (var fieldName : entity.fieldNames()) {
+            if (entity.field(fieldName).kind() != Kind.COLLECTION && readers.stream().anyMatch(g -> g.sees(fieldName))) {
+                all.add(fieldName);
             }
         }
         return all;
     }
 
-    /** The field values of a row: as they are, masked, or cleared, by the grants that reach it. */
-    private E shape(E row, Set<String> requested, List<DataGrant<E, C>> readers) {
-        if (row == null) {
-            return null;
+    /** A planned level of a read, and how it shapes each returned row. */
+    private final class Shape {
+
+        final Set<String> fields;
+        final List<DataGrant<E, C>> readers;
+        final Map<String, DataAccess<?, ?>.Shape> nested;
+        final E fetch;
+
+        Shape(Set<String> fields, List<DataGrant<E, C>> readers, Map<String, DataAccess<?, ?>.Shape> nested, E fetch) {
+            this.fields = fields;
+            this.readers = readers;
+            this.nested = nested;
+            this.fetch = fetch;
         }
-        var reaching = new ArrayList<DataGrant<E, C>>();
-        for (var grant : readers) {
-            if (grant.rows().covers(row, sc)) {
-                reaching.add(grant);
+
+        /** The field values of a row: as they are, masked, or cleared, by the grants that reach it. */
+        E apply(E row) {
+            if (row == null) {
+                return null;
+            }
+            var reaching = new ArrayList<DataGrant<E, C>>();
+            for (var grant : readers) {
+                if (grant.rows().covers(row, sc)) {
+                    reaching.add(grant);
+                }
+            }
+            for (var fieldName : entity.fieldNames()) {
+                var field = entity.field(fieldName);
+                if (!fields.contains(fieldName)) {
+                    field.clear(row);
+                    continue;
+                }
+                var readAsItIs = reaching.stream().anyMatch(g -> g.read().contains(fieldName));
+                if (field.kind() != Kind.VALUE) {
+                    if (readAsItIs) {
+                        shapeRelated(fieldName, field, row);
+                    } else {
+                        field.clear(row);
+                    }
+                    continue;
+                }
+                if (readAsItIs) {
+                    continue;
+                }
+                var mask = reaching.stream()
+                        .map(g -> g.masked().get(fieldName))
+                        .filter(m -> m != null)
+                        .findFirst()
+                        .orElse(null);
+                if (mask != null) {
+                    field.mask(row, mask);
+                } else {
+                    field.clear(row);
+                }
+            }
+            return row;
+        }
+
+        /** The related row (or rows): through the related entity's plan, or reduced to the key when only it was asked. */
+        private void shapeRelated(String fieldName, EntityDescriptor.Field<E, ?> field, E row) {
+            var inside = nested.get(fieldName);
+            var value = field.get(row);
+            if (value instanceof List<?> children) {
+                for (var child : children) {
+                    shapeOne(inside, field, child);
+                }
+            } else if (value != null) {
+                shapeOne(inside, field, value);
             }
         }
-        for (var fieldName : entity.fieldNames()) {
-            var field = entity.field(fieldName);
-            if (!requested.contains(fieldName)) {
-                field.clear(row);
-                continue;
-            }
-            if (reaching.stream().anyMatch(g -> g.read().contains(fieldName))) {
-                continue;
-            }
-            var mask = reaching.stream()
-                    .map(g -> g.masked().get(fieldName))
-                    .filter(m -> m != null)
-                    .findFirst()
-                    .orElse(null);
-            if (mask != null) {
-                field.mask(row, mask);
+
+        @SuppressWarnings({ "unchecked", "rawtypes" })
+        private void shapeOne(DataAccess<?, ?>.Shape inside, EntityDescriptor.Field<E, ?> field, Object related) {
+            if (inside != null) {
+                ((DataAccess.Shape) inside).apply(related);
             } else {
-                field.clear(row);
+                field.targetEntity().keepKeyOnly(related);
             }
         }
-        return row;
     }
 
     // :: Writing
 
-    /** Checks a new row: one grant must allow every field set in it and reach it. */
+    /**
+     * Checks a new row: one grant must allow every field set in it and reach it. A relation is written by its key
+     * only; each row of a collection — the items of a new purchase — is checked as a new row of its entity, belonging
+     * to this one.
+     */
     public void checkCreate(E row) {
+        checkCreate(row, null);
+    }
+
+    /** @param owner the relation that points to the row this one is created inside, set by the owner's check */
+    private void checkCreate(E row, String owner) {
         var fields = entity.fieldsSetIn(row);
         var creators = grantsWhere(g -> !g.create().isEmpty());
         if (creators.isEmpty()) {
             throw denied("not allowed to create " + entity.name());
         }
+        requireRelationsByKey(row, fields, owner);
         var allowed = creators.stream()
                 .anyMatch(g -> g.create().containsAll(fields) && g.rows().covers(row, sc));
         if (!allowed) {
             throw denied("not allowed to create " + entity.name() + " with " + notIn(fields, creators, DataGrant::create));
+        }
+        for (var fieldName : fields) {
+            var field = entity.field(fieldName);
+            if (field.kind() == Kind.COLLECTION) {
+                checkCreateChildren(field, row);
+            }
+        }
+    }
+
+    private void checkCreateChildren(EntityDescriptor.Field<E, ?> field, E row) {
+        var inverse = field.targetEntity().field(field.inverse());
+        var access = field.targetPolicy().accessFor(sc);
+        for (var child : (List<?>) field.get(row)) {
+            inverse.setRaw(child, row);
+            access.checkCreate(child, inverse.name());
+        }
+    }
+
+    /** A relation sent with more than its key would look like a write of the related row, which it is not. */
+    private void requireRelationsByKey(E row, Set<String> fields, String owner) {
+        for (var fieldName : fields) {
+            var field = entity.field(fieldName);
+            if (field.kind() == Kind.RELATION && !fieldName.equals(owner)
+                    && !field.targetEntity().fieldsSetIn(field.get(row)).isEmpty()) {
+                throw denied(entity.name() + "." + fieldName + " is written by its key only");
+            }
         }
     }
 
@@ -202,13 +330,13 @@ public class DataAccess<E, C extends Criteria> {
         if (fields.isEmpty()) {
             return;
         }
+        requireRelationsByKey(row, fields, null);
 
-        var scopeFields = new LinkedHashSet<String>();
+        var scope = entity.projectionOf(Set.of());
         for (var grant : updaters) {
-            scopeFields.addAll(grant.rows().fields());
+            entity.merge(scope, grant.rows().projection());
         }
-        scopeFields.remove(entity.keyName());
-        var stored = loader.apply(row, entity.projectionOf(scopeFields));
+        var stored = loader.apply(row, scope);
         if (stored == null) {
             return;
         }
@@ -225,7 +353,7 @@ public class DataAccess<E, C extends Criteria> {
 
         var changed = entity.newEntity();
         entity.key().copy(stored, changed);
-        for (var fieldName : scopeFields) {
+        for (var fieldName : entity.fieldsSetIn(scope)) {
             entity.field(fieldName).copy(stored, changed);
         }
         for (var fieldName : fields) {
@@ -249,6 +377,14 @@ public class DataAccess<E, C extends Criteria> {
     }
 
     // :: Rows
+
+    private List<DataGrant<E, C>> readers() {
+        var readers = grantsWhere(DataGrant::reads);
+        if (readers.isEmpty()) {
+            throw denied("not allowed to read " + entity.name());
+        }
+        return readers;
+    }
 
     /**
      * The grants that read, as they are, every field the criteria filters or sorts by. Filtering by a field reveals its
@@ -282,12 +418,12 @@ public class DataAccess<E, C extends Criteria> {
             }
             scopes.put(grant.rows(), Boolean.TRUE);
         }
-        var clientGroups = entity.anyOf(criteria);
+        var existing = entity.anyOf(criteria);
         var groups = new ArrayList<C>(scopes.size());
         for (var scope : scopes.keySet()) {
             var group = entity.newCriteria();
             scope.restrict(group, sc);
-            entity.setAnyOf(group, clientGroups);
+            entity.setAnyOf(group, existing);
             groups.add(group);
         }
         entity.setAnyOf(criteria, groups);

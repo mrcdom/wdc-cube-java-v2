@@ -62,8 +62,8 @@ public final class UserDataPolicy {
         }
 
         @Override
-        public Set<String> fields() {
-            return Set.of();
+        public User projection() {
+            return null;
         }
 
         @Override

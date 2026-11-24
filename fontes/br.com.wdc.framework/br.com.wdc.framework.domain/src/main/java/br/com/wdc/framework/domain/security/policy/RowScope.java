@@ -1,7 +1,5 @@
 package br.com.wdc.framework.domain.security.policy;
 
-import java.util.Set;
-
 import br.com.wdc.framework.domain.security.SecurityContext;
 
 /**
@@ -12,7 +10,8 @@ import br.com.wdc.framework.domain.security.SecurityContext;
  * It is said twice, in two languages, and both must agree: {@link #restrict} as criteria, so the database returns only
  * the reachable rows; {@link #covers} in memory, so each returned row gets the fields of the grants that reach it. A
  * user with two roles may reach a row through one and not the other, and the fields of that row are the ones of the
- * grants that reach it — not the union of everything the user may read anywhere.
+ * grants that reach it — not the union of everything the user may read anywhere. On a write, {@code covers} runs on
+ * the row being created, and on the stored row loaded for an update.
  * </p>
  *
  * <p>
@@ -39,8 +38,8 @@ public interface RowScope<E, C> {
         }
 
         @Override
-        public Set<String> fields() {
-            return Set.of();
+        public Object projection() {
+            return null;
         }
 
         @Override
@@ -57,9 +56,12 @@ public interface RowScope<E, C> {
     /** Sets on {@code group} — an empty criteria — the fields that select the reachable rows. */
     void restrict(C group, SecurityContext sc);
 
-    /** Whether {@code row} is reachable; it reads only the {@link #fields()}, which are fetched for that. */
+    /** Whether {@code row} is reachable; it reads only what {@link #projection()} names, which is fetched for that. */
     boolean covers(E row, SecurityContext sc);
 
-    /** The fields {@link #covers} reads. */
-    Set<String> fields();
+    /**
+     * A projection of what {@link #covers} reads beyond the key — it may go into relations, as the items of one's own
+     * purchases read {@code purchase.user}. {@code null} when it reads only the key.
+     */
+    E projection();
 }

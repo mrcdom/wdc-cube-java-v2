@@ -22,14 +22,11 @@ import br.com.wdc.framework.domain.exception.AccessDeniedException;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
 import br.com.wdc.framework.domain.security.PasswordUtil;
 import br.com.wdc.store.domain.user.User;
-import br.com.wdc.store.domain.user.UserCodec;
 import br.com.wdc.store.domain.user.UserCriteria;
 import br.com.wdc.store.domain.user.UserRepository;
-import br.com.wdc.store.persistence.client.HttpUserRepository;
-import br.com.wdc.store.persistence.client.OkHttpTransport;
-import br.com.wdc.store.persistence.client.RestAuthClient;
 import br.com.wdc.store.scripts.sgbd.DBReset;
 import br.com.wdc.store.test.util.ResetDatabaseRule;
+import br.com.wdc.store.test.util.RestSession;
 import br.com.wdc.store.test.util.TestEnvironment;
 
 /**
@@ -69,13 +66,13 @@ public class UserDataPolicyRestTest {
 	public void customer_readsOnlyTheirOwnUser() {
 		var jdoe = signIn("jdoe");
 
-		var users = jdoe.repo().fetch(new UserCriteria()
+		var users = jdoe.users().fetch(new UserCriteria()
 				.withProjection(login()));
 
 		assertEquals(1, users.size());
 		assertEquals("jdoe", users.get(0).userName());
-		assertEquals("the count sees the same rows", 1, jdoe.repo().count(new UserCriteria()));
-		assertNull("another user is out of reach", jdoe.repo().fetchById(DBReset.ADMIN_ID, login()));
+		assertEquals("the count sees the same rows", 1, jdoe.users().count(new UserCriteria()));
+		assertNull("another user is out of reach", jdoe.users().fetchById(DBReset.ADMIN_ID, login()));
 	}
 
 	@Test
@@ -96,7 +93,7 @@ public class UserDataPolicyRestTest {
 	public void aFieldNoRoleReads_isRefusedByName() {
 		var admin = signIn("admin");
 
-		var e = assertThrows(AccessDeniedException.class, () -> admin.repo().fetch(new UserCriteria()
+		var e = assertThrows(AccessDeniedException.class, () -> admin.users().fetch(new UserCriteria()
 				.withProjection(new User()
 						.withName(PV.str)
 						.withPassword(PV.str))));
@@ -108,7 +105,7 @@ public class UserDataPolicyRestTest {
 	public void withoutProjection_returnsWhatTheRoleReads() {
 		var admin = signIn("admin");
 
-		var users = admin.repo().fetch(new UserCriteria());
+		var users = admin.users().fetch(new UserCriteria());
 
 		assertEquals(4, users.size());
 		for (var user : users) {
@@ -122,7 +119,7 @@ public class UserDataPolicyRestTest {
 	public void manager_seesTheirOwnRowInFull_andTheOthersMasked() {
 		var manager = signIn("mmajor");
 
-		var byLogin = byId(manager.repo().fetch(new UserCriteria()
+		var byLogin = byId(manager.users().fetch(new UserCriteria()
 				.withProjection(new User()
 						.withUserName(PV.str)
 						.withName(PV.str)
@@ -145,14 +142,14 @@ public class UserDataPolicyRestTest {
 		var manager = signIn("mmajor");
 
 		// Filtering by the login of others would reveal it, letter by letter; only the own grant reads it as it is
-		assertTrue(manager.repo().fetch(new UserCriteria().userName().startingWith("j")).isEmpty());
-		assertEquals(1, manager.repo().fetch(new UserCriteria()
+		assertTrue(manager.users().fetch(new UserCriteria().userName().startingWith("j")).isEmpty());
+		assertEquals(1, manager.users().fetch(new UserCriteria()
 				.withUserName("mmajor")).size());
 
 		// The same for the ordering by login; ordering by name, which every grant reads, reaches everyone
-		assertEquals(1, manager.repo().fetch(new UserCriteria()
+		assertEquals(1, manager.users().fetch(new UserCriteria()
 				.withOrderBy(UserCriteria.OrderBy.LOGIN_A_TO_Z)).size());
-		assertEquals(4, manager.repo().fetch(new UserCriteria()
+		assertEquals(4, manager.users().fetch(new UserCriteria()
 				.withOrderBy(UserCriteria.OrderBy.NAME_A_TO_Z)).size());
 	}
 
@@ -167,16 +164,16 @@ public class UserDataPolicyRestTest {
 				.withPassword(PasswordUtil.hashPassword("newbie"))
 				.withName("New Customer")
 				.withRoles("CUSTOMER");
-		assertTrue(admin.repo().insert(created));
+		assertTrue(admin.users().insert(created));
 
 		var renamed = new User()
 				.withId(created.id())
 				.withName("Renamed Customer");
-		assertTrue(admin.repo().update(renamed, new User()
+		assertTrue(admin.users().update(renamed, new User()
 				.withId(created.id())
 				.withName("New Customer")));
 
-		assertEquals(1, admin.repo().delete(new UserCriteria()
+		assertEquals(1, admin.users().delete(new UserCriteria()
 				.withUserId(created.id())));
 	}
 
@@ -184,35 +181,27 @@ public class UserDataPolicyRestTest {
 	public void customer_cannotWriteUsers() {
 		var jdoe = signIn("jdoe");
 
-		assertThrows(AccessDeniedException.class, () -> jdoe.repo().insert(new User()
+		assertThrows(AccessDeniedException.class, () -> jdoe.users().insert(new User()
 				.withUserName("intruder")
 				.withName("Intruder")
 				.withRoles("ADMIN")));
 
 		// Not even their own roles
-		var e = assertThrows(AccessDeniedException.class, () -> jdoe.repo().update(new User()
+		var e = assertThrows(AccessDeniedException.class, () -> jdoe.users().update(new User()
 				.withId(DBReset.JOHN_DOE_ID)
 				.withRoles("ADMIN"), new User()
 						.withId(DBReset.JOHN_DOE_ID)
 						.withRoles("CUSTOMER")));
 		assertTrue(e.getMessage(), e.getMessage().contains("update"));
 
-		assertThrows(AccessDeniedException.class, () -> jdoe.repo().delete(new UserCriteria()
+		assertThrows(AccessDeniedException.class, () -> jdoe.users().delete(new UserCriteria()
 				.withUserId(DBReset.JOHN_DOE_ID)));
 	}
 
 	// :: Helpers
 
-	private record Session(OkHttpTransport transport, UserRepository repo) {
-	}
-
-	/** Logs in through the REST API — the seed's passwords are the logins. */
-	private static Session signIn(String userName) {
-		var transport = new OkHttpTransport(env.baseUrl());
-		var auth = new RestAuthClient(transport);
-		auth.login(userName, PasswordUtil.hashPassword(userName));
-		transport.setAccessTokenSupplier(auth::accessToken);
-		return new Session(transport, new HttpUserRepository(transport, new UserCodec()));
+	private static RestSession signIn(String userName) {
+		return RestSession.signIn(env, userName);
 	}
 
 	private static User login() {

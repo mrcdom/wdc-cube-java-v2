@@ -6,7 +6,6 @@ import static br.com.wdc.store.persistence.impl.scheme.Sequences.SQ_PURCHASEITEM
 import static br.com.wdc.store.persistence.impl.scheme.tables.EnPurchase.EN_PURCHASE;
 import static br.com.wdc.store.persistence.impl.scheme.tables.EnPurchaseitem.EN_PURCHASEITEM;
 
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 
@@ -152,8 +151,9 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
         if (item.amount() != null) {
             step.set(EN_PURCHASEITEM.AMOUNT, item.amount());
         }
-        if (item.price() != null) {
-            step.set(EN_PURCHASEITEM.PRICE, BigDecimal.valueOf(item.price()));
+        var price = PurchaseItemRepositoryImpl.priceOf(dsl, item);
+        if (price != null) {
+            step.set(EN_PURCHASEITEM.PRICE, price);
         }
 
         step.execute();

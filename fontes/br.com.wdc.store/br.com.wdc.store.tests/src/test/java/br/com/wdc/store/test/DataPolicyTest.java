@@ -45,8 +45,9 @@ public class DataPolicyTest {
 		}
 
 		@Override
-		public Set<String> fields() {
-			return Set.of("name");
+		public User projection() {
+			return new User()
+					.withName(PV.str);
 		}
 	};
 

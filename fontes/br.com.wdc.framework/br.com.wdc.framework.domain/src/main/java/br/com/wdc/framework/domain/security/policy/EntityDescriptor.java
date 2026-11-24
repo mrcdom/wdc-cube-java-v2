@@ -14,15 +14,24 @@ import java.util.function.Supplier;
 
 import br.com.wdc.framework.domain.criteria.Criteria;
 import br.com.wdc.framework.domain.criteria.Criterion;
+import br.com.wdc.framework.domain.projection.ProjectionList;
 
 /**
- * What a {@link DataPolicy} needs to know about an entity: its fields, by the names they have on the wire, and how its
- * criteria refer to them.
+ * What a {@link DataPolicy} needs to know about an entity: its fields, by the names they have on the wire, its
+ * relations to other entities, and how its criteria refer to them.
  *
  * <p>
  * A policy is declared with projections — {@code new User().withName(pv.str)} — and the descriptor is what turns a
  * projection into the set of fields it names, and back. It also says which field each criteria field filters and which
  * fields each ordering sorts by, because filtering or sorting by a field reveals its values as much as reading it does.
+ * </p>
+ *
+ * <p>
+ * A field is a <b>value</b>, a <b>relation</b> to one row of another entity ({@code purchase.user}), or a
+ * <b>collection</b> of rows of another entity ({@code purchase.items}). A relation or collection names the policy of
+ * the other entity: what is read inside it goes through that policy, so an entity has one set of rules wherever it
+ * appears. The policy is given as a {@link Supplier} because entities refer to each other — the purchase to its items,
+ * the item to its purchase.
  * </p>
  *
  * <p>
@@ -35,8 +44,13 @@ import br.com.wdc.framework.domain.criteria.Criterion;
  */
 public final class EntityDescriptor<E, C extends Criteria> {
 
+    /** What a field holds. */
+    enum Kind {
+        VALUE, RELATION, COLLECTION
+    }
+
     /**
-     * A field of the entity: its name, how to read and write it, and the value that marks it in a projection.
+     * A field of the entity: its name, how to read and write it, and how it is marked in a projection.
      *
      * @param <E> the entity
      * @param <T> the field type
@@ -44,24 +58,51 @@ public final class EntityDescriptor<E, C extends Criteria> {
     public static final class Field<E, T> {
 
         private final String name;
+        private final Kind kind;
         private final Function<E, T> getter;
         private final BiConsumer<E, T> setter;
         private final T marker;
+        private final Supplier<? extends DataPolicy<?, ?>> target;
+        private final String inverse;
 
-        Field(String name, Function<E, T> getter, BiConsumer<E, T> setter, T marker) {
+        Field(String name, Kind kind, Function<E, T> getter, BiConsumer<E, T> setter, T marker,
+                Supplier<? extends DataPolicy<?, ?>> target, String inverse) {
             this.name = name;
+            this.kind = kind;
             this.getter = getter;
             this.setter = setter;
             this.marker = marker;
+            this.target = target;
+            this.inverse = inverse;
         }
 
         public String name() {
             return name;
         }
 
+        Kind kind() {
+            return kind;
+        }
+
         /** Whether the field is textual — only a textual field can be masked. */
         public boolean textual() {
-            return marker instanceof String;
+            return kind == Kind.VALUE && marker instanceof String;
+        }
+
+        /** The policy of the related entity — for a relation or a collection. */
+        @SuppressWarnings({ "unchecked", "rawtypes" })
+        DataPolicy<Object, Criteria> targetPolicy() {
+            return (DataPolicy) target.get();
+        }
+
+        /** The descriptor of the related entity — for a relation or a collection. */
+        EntityDescriptor<Object, Criteria> targetEntity() {
+            return targetPolicy().entity();
+        }
+
+        /** For a collection: the field of each child that points back to the owner. */
+        String inverse() {
+            return inverse;
         }
 
         T get(E entity) {
@@ -76,8 +117,19 @@ public final class EntityDescriptor<E, C extends Criteria> {
             setter.accept(entity, null);
         }
 
+        @SuppressWarnings("unchecked")
+        void setRaw(E entity, Object value) {
+            setter.accept(entity, (T) value);
+        }
+
+        /** Marks the field in a projection: the marker of a value; the key of a relation or of the collection's rows. */
+        @SuppressWarnings({ "unchecked", "rawtypes" })
         void mark(E projection) {
-            setter.accept(projection, marker);
+            switch (kind) {
+            case VALUE -> setter.accept(projection, marker);
+            case RELATION -> setter.accept(projection, (T) targetEntity().projectionOf(Set.of()));
+            case COLLECTION -> setter.accept(projection, (T) new ProjectionList(targetEntity().projectionOf(Set.of()), null));
+            }
         }
 
         void copy(E from, E to) {
@@ -152,7 +204,10 @@ public final class EntityDescriptor<E, C extends Criteria> {
         return key;
     }
 
-    /** The fields, other than the key, that are set in {@code entity} — for a projection, the fields it asks for. */
+    /**
+     * The fields, other than the key, that are set in {@code entity} — for a projection, the fields it asks for. A
+     * relation or a collection counts when it is present, whatever it carries inside.
+     */
     Set<String> fieldsSetIn(E entity) {
         var names = new LinkedHashSet<String>();
         if (entity == null) {
@@ -166,7 +221,7 @@ public final class EntityDescriptor<E, C extends Criteria> {
         return names;
     }
 
-    /** A projection with the key and the given fields. */
+    /** A projection with the key and the given fields — relations and collections by key only. */
     E projectionOf(Set<String> fieldNames) {
         var projection = entityFactory.get();
         key.mark(projection);
@@ -174,6 +229,39 @@ public final class EntityDescriptor<E, C extends Criteria> {
             field(fieldName).mark(projection);
         }
         return projection;
+    }
+
+    /**
+     * Adds to {@code into} what {@code from} asks for, going into the relations. It is how the fields a row scope reads
+     * join the projection of a read. A collection cannot be merged: a row scope does not reach through one.
+     */
+    void merge(E into, E from) {
+        if (from == null) {
+            return;
+        }
+        for (var fieldName : fieldsSetIn(from)) {
+            var field = field(fieldName);
+            switch (field.kind()) {
+            case VALUE -> field.mark(into);
+            case RELATION -> {
+                if (!field.isSet(into)) {
+                    field.mark(into);
+                }
+                field.targetEntity().merge(field.get(into), field.get(from));
+            }
+            case COLLECTION -> throw new IllegalStateException(
+                    name + "." + fieldName + " is a collection, and a row scope cannot read through it");
+            }
+        }
+    }
+
+    /** Clears every field of {@code row} but the key — a related row read by its key only. */
+    void keepKeyOnly(E row) {
+        for (var field : fields.values()) {
+            if (field != key) {
+                field.clear(row);
+            }
+        }
     }
 
     E newEntity() {
@@ -268,13 +356,32 @@ public final class EntityDescriptor<E, C extends Criteria> {
         }
 
         public <T> Builder<E, C> key(String fieldName, Function<E, T> getter, BiConsumer<E, T> setter, T marker) {
-            this.key = new Field<>(fieldName, getter, setter, marker);
+            this.key = new Field<>(fieldName, Kind.VALUE, getter, setter, marker, null, null);
             fields.put(fieldName, key);
             return this;
         }
 
         public <T> Builder<E, C> field(String fieldName, Function<E, T> getter, BiConsumer<E, T> setter, T marker) {
-            fields.put(fieldName, new Field<>(fieldName, getter, setter, marker));
+            fields.put(fieldName, new Field<>(fieldName, Kind.VALUE, getter, setter, marker, null, null));
+            return this;
+        }
+
+        /** A relation to one row of another entity, read through that entity's policy. */
+        public <R> Builder<E, C> relation(String fieldName, Function<E, R> getter, BiConsumer<E, R> setter,
+                Supplier<? extends DataPolicy<R, ?>> target) {
+            fields.put(fieldName, new Field<>(fieldName, Kind.RELATION, getter, setter, null, target, null));
+            return this;
+        }
+
+        /**
+         * A collection of rows of another entity, read and created through that entity's policy.
+         *
+         * @param inverse the relation of each child that points back to the owner — set on the children of a new row
+         *        before they are checked, since a child of a new row belongs to it
+         */
+        public <R> Builder<E, C> collection(String fieldName, Function<E, List<R>> getter,
+                BiConsumer<E, List<R>> setter, Supplier<? extends DataPolicy<R, ?>> target, String inverse) {
+            fields.put(fieldName, new Field<>(fieldName, Kind.COLLECTION, getter, setter, null, target, inverse));
             return this;
         }
 

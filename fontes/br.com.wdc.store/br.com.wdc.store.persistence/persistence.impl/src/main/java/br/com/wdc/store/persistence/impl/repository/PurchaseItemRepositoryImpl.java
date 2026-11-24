@@ -2,6 +2,7 @@ package br.com.wdc.store.persistence.impl.repository;
 
 import static br.com.wdc.framework.domain.repository.Repository.changed;
 import static br.com.wdc.store.persistence.impl.scheme.Sequences.SQ_PURCHASEITEM;
+import static br.com.wdc.store.persistence.impl.scheme.tables.EnProduct.EN_PRODUCT;
 import static br.com.wdc.store.persistence.impl.scheme.tables.EnPurchase.EN_PURCHASE;
 import static br.com.wdc.store.persistence.impl.scheme.tables.EnPurchaseitem.EN_PURCHASEITEM;
 
@@ -10,6 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.jooq.Condition;
+import org.jooq.DSLContext;
 import org.jooq.SortField;
 import org.jooq.impl.DSL;
 
@@ -121,11 +123,33 @@ public class PurchaseItemRepositoryImpl extends BaseRepositoryImpl  implements P
         if (item.amount() != null) {
             step.set(EN_PURCHASEITEM.AMOUNT, item.amount());
         }
-        if (item.price() != null) {
-            step.set(EN_PURCHASEITEM.PRICE, BigDecimal.valueOf(item.price()));
+        var price = priceOf(dsl, item);
+        if (price != null) {
+            step.set(EN_PURCHASEITEM.PRICE, price);
         }
 
         return step.execute() > 0;
+    }
+
+    /**
+     * The price a new item is recorded with: the one it carries, or else the price of its product now.
+     *
+     * <p>
+     * Whoever sends a purchase from the browser sends what it wants, so the price of an item a customer buys is decided
+     * here, on the server; the REST data policy does not let a customer send one.
+     * </p>
+     */
+    static BigDecimal priceOf(DSLContext dsl, PurchaseItem item) {
+        if (item.price() != null) {
+            return BigDecimal.valueOf(item.price());
+        }
+        if (item.product() == null || item.product().id() == null) {
+            return null;
+        }
+        return dsl.select(EN_PRODUCT.PRICE)
+                .from(EN_PRODUCT)
+                .where(EN_PRODUCT.ID.eq(item.product().id()))
+                .fetchOne(EN_PRODUCT.PRICE);
     }
 
     @Override
