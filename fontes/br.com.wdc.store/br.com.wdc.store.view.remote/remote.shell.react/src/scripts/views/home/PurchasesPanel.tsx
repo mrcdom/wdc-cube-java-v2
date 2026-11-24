@@ -23,7 +23,7 @@ export type Purchase = {
   items: string[]
 }
 
-type PurchasesPanelState = {
+type PurchasesPanelScope = {
   purchases?: Purchase[]
   page: number
   pageSize: number
@@ -32,7 +32,7 @@ type PurchasesPanelState = {
 
 // :: View
 
-class PurchasesPanelClass extends BaseViewClass<ViewProps, PurchasesPanelState> {
+class PurchasesPanelClass extends BaseViewClass<ViewProps, PurchasesPanelScope> {
   totalPages!: number
   private resizeHandler: (() => void) | null = null
   private resizeTimer: number | null = null
@@ -53,7 +53,7 @@ class PurchasesPanelClass extends BaseViewClass<ViewProps, PurchasesPanelState> 
       itemHeight = firstItem.offsetHeight + parseFloat(style.marginTop) + parseFloat(style.marginBottom)
     }
     const capacity = Math.max(1, Math.floor(containerHeight / itemHeight))
-    if (capacity === this.state.pageSize) return
+    if (capacity === this.scope.pageSize) return
     const { vsid } = this
     bridge.setFormField(vsid, "p.capacity", capacity)
     bridge.submit(vsid, ON_PAGE_SIZE_CHANGE)
@@ -67,17 +67,17 @@ class PurchasesPanelClass extends BaseViewClass<ViewProps, PurchasesPanelState> 
   // :: Renders
 
   override render({ className }: ViewProps, initial?: boolean): React.ReactNode {
-    const { state } = this
-    const pageSize = Math.max(1, state.pageSize || 1)
-    const totalCount = state.totalCount || 0
-    const page = state.page || 0
+    const { scope } = this
+    const pageSize = Math.max(1, scope.pageSize || 1)
+    const totalCount = scope.totalCount || 0
+    const page = scope.page || 0
     this.totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
 
     if (initial && !this.resizeHandler) {
       this.resizeHandler = this.onResize
       requestAnimationFrame(this.computePageSize)
       window.addEventListener("resize", this.onResize)
-    } else if (!state.pageSize) {
+    } else if (!scope.pageSize) {
       requestAnimationFrame(this.computePageSize)
     }
 
@@ -97,15 +97,15 @@ class PurchasesPanelClass extends BaseViewClass<ViewProps, PurchasesPanelState> 
   }
 
   #renderCompras(): React.ReactNode {
-    const { vsid, state } = this
+    const { vsid, scope } = this
 
-    return (state.purchases ?? []).map((purchase) => (
+    return (scope.purchases ?? []).map((purchase) => (
       <PurchaseItemRow key={purchase.id} vsid={vsid} purchase={purchase} />
     ))
   }
 
   #renderPageNavigation(): React.ReactNode {
-    const page = this.state.page || 0
+    const page = this.scope.page || 0
     return (
       <div className={Sel.purchasesPagination}>
         <div className={Sel.purchasesPagePill}>
@@ -138,12 +138,12 @@ class PurchasesPanelClass extends BaseViewClass<ViewProps, PurchasesPanelState> 
   }
 
   readonly emitNextPage = () => {
-    const page = this.state.page || 0
+    const page = this.scope.page || 0
     this.emitPageChange(page + 1)
   }
 
   readonly emitPreviousPage = () => {
-    const page = this.state.page || 0
+    const page = this.scope.page || 0
     this.emitPageChange(page - 1)
   }
 }

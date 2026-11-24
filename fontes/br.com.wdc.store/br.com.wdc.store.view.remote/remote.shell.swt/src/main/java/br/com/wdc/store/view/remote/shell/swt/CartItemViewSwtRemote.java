@@ -18,13 +18,13 @@ class CartItemViewSwtRemote extends CartItemViewSwt {
 		super(app);
 		this.vsid = vsid;
 		this.ctx = ctx;
-		this.stateSupplier = this::stateSupplierImpl;
+		this.scopeSupplier = this::scopeSupplierImpl;
 		this.onRemove = () -> this.ctx.submitEvent(this.vsid, 1, Map.of());
 		this.onModifyQuantity = qty -> this.ctx.submitEvent(this.vsid, 2, Map.of("p.quantity", qty));
 	}
 
-	private CartScope.CartItemScope stateSupplierImpl() {
-		var s = this.ctx.viewState(this.vsid);
+	private CartScope.CartItemScope scopeSupplierImpl() {
+		var s = this.ctx.scope(this.vsid);
 		if (s == null) {
 			return null;
 		}

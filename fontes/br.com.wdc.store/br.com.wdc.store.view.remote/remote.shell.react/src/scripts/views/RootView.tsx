@@ -3,30 +3,30 @@ import bridge, { type ViewProps } from "@root/bridge"
 import { BaseViewClass } from "@root/utils/ViewUtils"
 import GlobalSel from "@root/global-sel"
 
-export type RootViewState = {
+export type RootScope = {
   contentViewId?: string
   errorMessage?: string
 }
 
-class RootViewClass extends BaseViewClass<ViewProps, RootViewState> {
+class RootViewClass extends BaseViewClass<ViewProps, RootScope> {
   // :: Renderes
 
   override render({ className }: ViewProps) {
-    const { state } = this
+    const { scope } = this
 
-    if (state.errorMessage) {
+    if (scope.errorMessage) {
       return (
         <div className={GlobalSel.alertError} style={{ margin: "16px" }}>
           <span className={GlobalSel.alertErrorIcon}>
             <i className="bi bi-exclamation-circle"></i>
           </span>
-          <span className={GlobalSel.alertErrorText}>{state.errorMessage}</span>
+          <span className={GlobalSel.alertErrorText}>{scope.errorMessage}</span>
         </div>
       )
     }
 
-    if (state.contentViewId) {
-      return bridge.createView(state.contentViewId)
+    if (scope.contentViewId) {
+      return bridge.createView(scope.contentViewId)
     }
 
     return (

@@ -7,7 +7,7 @@ import Sel from "./home-sel"
 
 // :: View
 
-export type HomeViewState = {
+export type HomeScope = {
   nickName: string
   cartItemCount: number
   productsPanelViewId?: string
@@ -16,22 +16,22 @@ export type HomeViewState = {
   errorMessage: string
 }
 
-class HomeViewClass extends BaseViewClass<ViewProps, HomeViewState> {
+class HomeViewClass extends BaseViewClass<ViewProps, HomeScope> {
   private showingProducts = true
 
   // :: Renderes
 
   override render({ vsid }: ViewProps) {
-    const { state } = this
+    const { scope } = this
 
     return (
       <div className={clsx(Sel.flexCol, Sel.flexGrow, Sel.flex1, Sel.minH0, Sel.overflowHidden)}>
-        <HeaderPanel vsid={vsid} nickName={state.nickName} cartItemCount={state.cartItemCount} />
+        <HeaderPanel vsid={vsid} nickName={scope.nickName} cartItemCount={scope.cartItemCount} />
         {/* Error */}
-        {state.errorMessage ? (
+        {scope.errorMessage ? (
           <div className={Sel.alertError}>
             <span className={clsx("bi bi-exclamation-circle", Sel.alertErrorIcon)}></span>
-            <span className={Sel.alertErrorText}>{state.errorMessage}</span>
+            <span className={Sel.alertErrorText}>{scope.errorMessage}</span>
           </div>
         ) : null}
         {this.renderContentPane()}
@@ -40,13 +40,13 @@ class HomeViewClass extends BaseViewClass<ViewProps, HomeViewState> {
   }
 
   private renderContentPane() {
-    const { state } = this
+    const { scope } = this
 
     // When a content child (product detail, cart, receipt) is showing
-    if (state.contentViewId) {
+    if (scope.contentViewId) {
       return (
         <div className={clsx(Sel.flexCol, Sel.flexGrow, Sel.overflowAuto, Sel.minH0, Sel.bgDefault)}>
-          {bridge.createView(state.contentViewId)}
+          {bridge.createView(scope.contentViewId)}
         </div>
       )
     }
@@ -79,10 +79,10 @@ class HomeViewClass extends BaseViewClass<ViewProps, HomeViewState> {
         {/* Split row: products + purchases */}
         <div className={clsx(Sel.mdRow, Sel.flex, Sel.flexGrow, Sel.overflowAuto, Sel.minH0, Sel.bgDefault)}>
           <div className={clsx(productsHide, Sel.flexCol, Sel.flexGrow, Sel.hFull)}>
-            {bridge.createView(state.productsPanelViewId)}
+            {bridge.createView(scope.productsPanelViewId)}
           </div>
           <div className={clsx(Sel.purchasesSlot, Sel.mdGrow0, purchasesHide, Sel.flexCol, Sel.flexGrow, Sel.hFull)}>
-            {bridge.createView(state.purchasesPanelViewId)}
+            {bridge.createView(scope.purchasesPanelViewId)}
           </div>
         </div>
       </div>
@@ -100,8 +100,8 @@ class HomeViewClass extends BaseViewClass<ViewProps, HomeViewState> {
   }
 
   private switchTab(showProducts: boolean) {
-    const { state } = this
-    if (state.contentViewId) {
+    const { scope } = this
+    if (scope.contentViewId) {
       window.history.back()
     }
     this.showingProducts = showProducts

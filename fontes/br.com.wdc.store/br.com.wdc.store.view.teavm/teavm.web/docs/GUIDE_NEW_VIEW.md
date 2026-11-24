@@ -10,7 +10,7 @@ A view in this module:
 2. Hands that Scope to a **shared view** from `teavm.commons`, which renders the virtual tree (`VNode`)
 3. Fires the Scope actions (bound by the presenter) via `safeAction()` in response to interactions
 
-The rendering lives in `teavm.commons` (`XxxSharedView extends SharedVDomView`) and is the same one `remote.shell.teavm` uses; this module only supplies the state and the action callbacks. Unlike `remote.shell.teavm` (which receives state via WebSocket/JSON), here the view **passes the scope itself** — it is a pure SPA. `RootView` is the exception: it renders directly in this module.
+The rendering lives in `teavm.commons` (`XxxSharedView extends SharedVDomView`) and is the same one `remote.shell.teavm` uses; this module only supplies the scope and the action callbacks. Unlike `remote.shell.teavm` (which receives the scope via WebSocket/JSON), here the view **passes the scope itself** — it is a pure SPA. `RootView` is the exception: it renders directly in this module.
 
 ## Prerequisites
 
@@ -43,7 +43,7 @@ public class WishlistScope extends Scope {
 Create `WishlistSharedView` in `teavm.commons/src/main/java/br/com/wdc/store/view/teavm/commons/views/wishlist/`, with its `_wishlist.scss` partial next to it. The full example is in [remote.shell.teavm's guide](../../../br.com.wdc.store.view.remote/remote.shell.teavm/docs/GUIDE_NEW_VIEW.md#step-1--the-shared-view-teavmcommons); it exposes:
 
 ```java
-public Supplier<WishlistScope> stateSupplier;
+public Supplier<WishlistScope> scopeSupplier;
 public Consumer<Long> onRemoveItem;
 public Runnable onBack;
 ```
@@ -66,13 +66,13 @@ public class WishlistView extends AbstractVDomView<WishlistScope> {
     private final WishlistSharedView shared;
 
     // Constructor — receives the application and the scope (the factory registered in ScopeViews)
-    public WishlistView(StoreTeaVMApplication app, WishlistScope state) {
-        super("wishlist", app, state);
+    public WishlistView(StoreTeaVMApplication app, WishlistScope scope) {
+        super("wishlist", app, scope);
 
         this.shared = new WishlistSharedView();
-        this.shared.stateSupplier = () -> state;
-        this.shared.onRemoveItem = id -> safeAction("Remove", () -> state.onRemoveItem.run(id));
-        this.shared.onBack = () -> safeAction("Back", state.onBack::run);
+        this.shared.scopeSupplier = () -> scope;
+        this.shared.onRemoveItem = id -> safeAction("Remove", () -> scope.onRemoveItem.run(id));
+        this.shared.onBack = () -> safeAction("Back", scope.onBack::run);
     }
 
     // render() — delegates to the shared view
@@ -93,7 +93,7 @@ private static final ScopeViews SCOPE_VIEWS = new ScopeViews()
         .register(WishlistScope.class, WishlistView::new);
 ```
 
-This connects the scope to the view: the presenter only hands the scope to its parent (`ownerSlot.setScope(state)`), and the parent's view asks for this scope's view with `app.viewOf(state.content.get())` — the application creates it the first time, using the registered factory.
+This connects the scope to the view: the presenter only hands the scope to its parent (`ownerSlot.setScope(this.scope)`), and the parent's view asks for this scope's view with `app.viewOf(scope.content.get())` — the application creates it the first time, using the registered factory.
 
 ### Step 4 — Styles
 
@@ -113,8 +113,8 @@ Add `@use 'wishlist/wishlist';` to `teavm.web/src/main/scss/app.scss`. The Maven
 
 | Aspect | teavm.web (this module) | remote.shell.teavm |
 |---------|------------------------|--------------------|
-| **State access** | The Scope received in the constructor, passed to the shared view | `ViewScope` (JSON), adapted into a Scope instance |
-| **Action invocation** | `safeAction("ctx", state.onXxx::run)` | `submit(EVENT_CODE)` |
+| **Scope access** | The Scope received in the constructor, passed to the shared view | `ViewScope` (JSON), adapted into a Scope instance |
+| **Action invocation** | `safeAction("ctx", scope.onXxx::run)` | `submit(EVENT_CODE)` |
 | **Data passing** | Direct method arguments | `setFormField(key, value)` |
 | **Registration** | `SCOPE_VIEWS.register(XxxScope.class, View::new)` | `app.registerView(VIEW_ID, View::new)` (Main.java) |
 | **VIEW_ID** | Not needed (binding by the scope class) | Required (`XxxScope.CLASS_ID`) |
@@ -130,7 +130,7 @@ Add `@use 'wishlist/wishlist';` to `teavm.web/src/main/scss/app.scss`. The Maven
 Every Scope action dispatch (which reaches the presenter) must be wrapped in `safeAction()`:
 
 ```java
-this.shared.onBuy = () -> safeAction("Buy", state.onBuy::run);
+this.shared.onBuy = () -> safeAction("Buy", scope.onBuy::run);
 ```
 
 **Why?** TeaVM emulates threads to support `@Async` operations (HTTP requests via `XMLHttpRequest`). `safeAction` runs the action in a TeaVM `Thread`, which allows suspension during I/O. A failure of the action itself is handled by the presenter's guard (the action is bound with `action(...)`); `safeAction` additionally catches whatever fails on the view side and reports it through `app.alertUnexpectedError`.
@@ -148,8 +148,8 @@ A segment or list row with a scope of its own has its own view. The parent gets 
 Here the Java fields are read directly:
 
 ```java
-var items = this.state.items.get();            // List<WishlistItem>
-var errorMsg = this.state.errorMessage.get();  // String
+var items = this.scope.items.get();            // List<WishlistItem>
+var errorMsg = this.scope.errorMessage.get();  // String
 ```
 
 The presentation layer structs (`ProductInfo`, `PurchaseInfo`, etc.) have public fields — no getters:
@@ -176,8 +176,8 @@ The same guide has the `Sel` pattern (`SelUtility`/`SelComponents`/`SelIcons`) a
 ## New View Checklist
 
 - [ ] Shared view `XxxSharedView extends SharedVDomView` in `teavm.commons/.../views/<x>/`
-- [ ] View extends `AbstractVDomView<XxxScope>`, constructor `(StoreTeaVMApplication app, XxxScope state)` calls `super(instanceId, app, state)`
-- [ ] Shared view bound: `stateSupplier = () -> state`, each callback wrapped in `safeAction()`
+- [ ] View extends `AbstractVDomView<XxxScope>`, constructor `(StoreTeaVMApplication app, XxxScope scope)` calls `super(instanceId, app, scope)`
+- [ ] Shared view bound: `scopeSupplier = () -> scope`, each callback wrapped in `safeAction()`
 - [ ] View registered in the catalog: `.register(XxxScope.class, XxxView::new)` in the `SCOPE_VIEWS` of `StoreTeaVMApplication`
 - [ ] `_x.scss` partial added to `src/main/scss/app.scss`
 - [ ] `./work/bin/build-frontends.sh teavm.web` builds without errors

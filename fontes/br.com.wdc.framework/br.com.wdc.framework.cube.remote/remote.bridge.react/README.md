@@ -1,6 +1,6 @@
 # remote.bridge.react
 
-TypeScript/React bridge for the **Remote Cube MVP** Host/Shell protocol. Implements the client (shell) side of the protocol in the browser — connects to `remote.host` over WebSocket, performs the RSA/AES-GCM security handshake, manages ViewStates and exposes a small API (`bridge`, the default export) for UI components to render states and emit events.
+TypeScript/React bridge for the **Remote Cube MVP** Host/Shell protocol. Implements the client (shell) side of the protocol in the browser — connects to `remote.host` over WebSocket, performs the RSA/AES-GCM security handshake, keeps the scopes the host publishes (each presenter's view state, serialized) and exposes a small API (`bridge`, the default export) for UI components to render scopes and emit events.
 
 It is the React counterpart of the Java (`remote.bridge.java`) and TeaVM (`remote.bridge.teavm`) bridges. Consumed by `remote.shell.react` (WDC Store application) and any other React shell on the same protocol.
 
@@ -11,8 +11,8 @@ It is the React counterpart of the Java (`remote.bridge.java`) and TeaVM (`remot
 ```
 src/
   bridge/
-    ViewStateCoordinator.ts   # Manages the WS session, dispatches events, distributes ViewState updates
-    ViewScope.ts              # State of one view (getState/setState); calls forceUpdate() on a new state
+    ScopeCoordinator.ts       # Manages the WS session, dispatches events, distributes scope updates
+    ViewScope.ts              # Holds one view's scope (getValues/setValues); calls forceUpdate() on a new scope
     DataSecurity.ts           # Handshake (textbook RSA + PBKDF2) and AES-GCM; Web Crypto when available,
                               # @noble/hashes + @noble/ciphers on plain HTTP
     ClientStorage.ts          # ClientStorage contract + InMemoryClientStorage; secure entries use the "sec." prefix
@@ -20,7 +20,7 @@ src/
     FlushRequestContext.ts    # Serialization and delivery of events to the host
     ReconnectController.ts    # Linear backoff on WS reconnection: min(2000·n, 120000) ms
     ViewGarbageCollector.ts   # Cleanup of deallocated views
-    types.ts                  # Shared types (HostResponse, ViewStateSnapshot, ...)
+    types.ts                  # Shared types (BrowserScope, ViewProps, ...)
     constants.ts              # Protocol constants
     index.tsx                 # Public entrypoint of the bridge
   utils/

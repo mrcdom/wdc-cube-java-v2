@@ -23,7 +23,7 @@ import br.com.wdc.store.view.teavm.commons.SharedVDomView;
 import br.com.wdc.store.view.teavm.commons.VNode;
 
 /**
- * Shared Cart view. State and actions injected via lambdas.
+ * Shared Cart view. Scope and actions injected via lambdas.
  */
 public class CartSharedView extends SharedVDomView {
 
@@ -60,7 +60,7 @@ public class CartSharedView extends SharedVDomView {
 
     // -- External bindings --
 
-    public Supplier<CartScope> stateSupplier;
+    public Supplier<CartScope> scopeSupplier;
     public Runnable onBack;
     public Runnable onBuy;
     /** The rows' elements, in the cart's order: each row is a view of its own ({@link CartItemSharedView}). */
@@ -75,12 +75,12 @@ public class CartSharedView extends SharedVDomView {
 
     @Override
     public VNode render() {
-        var state = stateSupplier.get();
-        var errorMessage = state.errorMessage.get();
+        var scope = scopeSupplier.get();
+        var errorMessage = scope.errorMessage.get();
         var showError = errorMessage != null && !errorMessage.isEmpty();
         var rows = rowElements != null ? rowElements.get() : List.<HTMLElement>of();
         var empty = rows.isEmpty();
-        var totalCost = state.total.get() != null ? state.total.get() : 0.0;
+        var totalCost = scope.total.get() != null ? scope.total.get() : 0.0;
         var totalText = "$" + String.format("%.2f", totalCost);
 
         // @formatter:off

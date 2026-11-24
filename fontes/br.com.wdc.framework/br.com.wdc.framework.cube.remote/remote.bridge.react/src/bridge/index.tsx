@@ -1,26 +1,26 @@
 import React from "react"
-import { ViewStateCoordinator } from "./ViewStateCoordinator"
+import { ScopeCoordinator } from "./ScopeCoordinator"
 import { BROWSER_VSID } from "./constants"
 import type { IViewFactory, ViewComponent } from "./types"
 
 export { BROWSER_VID } from "./constants"
-export type { BrowserViewState, ViewComponent, ViewProps } from "./types"
+export type { BrowserScope, ViewComponent, ViewProps } from "./types"
 export { ViewScope } from "./ViewScope"
 
-let privateApp: ViewStateCoordinator
+let privateApp: ScopeCoordinator
 
 const publicApp = new (class {
   configure(syncNamespace: string) {
-    privateApp = new ViewStateCoordinator(syncNamespace)
+    privateApp = new ScopeCoordinator(syncNamespace)
   }
 
   getBaseUrl() {
     return privateApp.baseWebSocketUtl
   }
 
-  getViewState<T>(vsid: string) {
+  getScope<T>(vsid: string) {
     const viewScope = privateApp.viewMap.get(vsid)
-    return viewScope ? (viewScope.getState() as T) : ({} as T)
+    return viewScope ? (viewScope.getValues() as T) : ({} as T)
   }
 
   connect() {

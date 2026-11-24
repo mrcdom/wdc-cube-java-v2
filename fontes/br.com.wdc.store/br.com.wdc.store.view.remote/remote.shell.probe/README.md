@@ -19,7 +19,7 @@ It is not a rendering thin client — it shows no UI. It is an observability and
 | `ConcurrentThroughputScenario` | Benchmark | Fires N parallel sessions and measures aggregate throughput |
 | `MemoryPerSessionScenario` | Benchmark | Opens K sessions and measures heap per session |
 | `BuyProductScenario` | Behavioral | Complete flow: login → home → product → cart → receipt |
-| `ScenarioAssert` | Utility | Assertions for validating view states |
+| `ScenarioAssert` | Utility | Assertions for validating scopes |
 
 ## Prerequisites
 

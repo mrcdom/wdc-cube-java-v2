@@ -143,7 +143,7 @@ Each call reaches the repositories it needs through the domain's service locator
 
 ### Scope
 
-Each presenter has its `Scope` in **its own file**, next to it (`XxxScope.java`, like the `xxx.scope.ts` of the TypeScript version). A scope that only exists inside it — a Home panel, the cart row — is a public static inner class of it (`HomeScope.ProductsPanelScope`, `CartScope.CartItemScope`). Each observed field is a `Prop`, created with `prop(...)`; the presenter binds the state to itself with `bind(...)`, and then `set` with a different value (`equals`) requests the redraw on its own — the presenter does not call `this.update()` afterwards. The view reads with `get()`. The scope declares its `CLASS_ID` (the bridge protocol classId); the presenter does not create a view — each host draws the scope with the view its `ScopeViews` catalog registers for the class. Remote serialization is automatic (`ScopeSerializer`, via reflection over the public fields, writing the value of each `Prop`; a `Prop<Scope>`, like the `content` of Root and Home, is written as `"<field>ViewId"`):
+Each presenter has its `Scope` in **its own file**, next to it (`XxxScope.java`, like the `xxx.scope.ts` of the TypeScript version). A scope that only exists inside it — a Home panel, the cart row — is a public static inner class of it (`HomeScope.ProductsPanelScope`, `CartScope.CartItemScope`). Each observed field is a `Prop`, created with `prop(...)`; the presenter binds the scope to itself with `bind(...)`, and then `set` with a different value (`equals`) requests the redraw on its own — the presenter does not call `this.update()` afterwards. The view reads with `get()`. The scope declares its `CLASS_ID` (the bridge protocol classId); the presenter does not create a view — each host draws the scope with the view its `ScopeViews` catalog registers for the class. Remote serialization is automatic (`ScopeSerializer`, via reflection over the public fields, writing the value of each `Prop`; a `Prop<Scope>`, like the `content` of Root and Home, is written as `"<field>ViewId"`):
 
 ```java
 public class ProductScope extends Scope {
@@ -155,7 +155,7 @@ public class ProductScope extends Scope {
 }
 
 // in ProductPresenter
-public final ProductScope state = bind(new ProductScope());
+public final ProductScope scope = bind(new ProductScope());
 ```
 
 **Changing something inside an already-assigned value** (an item of a list) does not go through the prop: in that case, either assign a new value or call `this.update()`. `RootPresenter.alertUnexpectedError` calls it because the same message again is still a new alert, and `set` of an equal value does not redraw. A list whose items change gets one row scope per item instead (`CartScope.CartItemScope`, reconciled by `CartPresenter.syncRows`), so only the changed row redraws.
@@ -258,16 +258,16 @@ public class XxxPresenter extends AbstractCubePresenter<StoreApplication> {
     // 1. Logger
     private static final Log LOG = Log.getLogger(XxxPresenter.class);
 
-    // 2. Public state — XxxScope lives in XxxScope.java, alongside (observed fields are Props; serialization via reflection) (bind: the scope shares the presenter's events and is released with it)
-    public final XxxScope state = bind(new XxxScope());
+    // 2. Public scope — XxxScope lives in XxxScope.java, alongside (observed fields are Props; serialization via reflection) (bind: the scope shares the presenter's events and is released with it)
+    public final XxxScope scope = bind(new XxxScope());
 
     // 3. Internal fields
     private ScopeSlot ownerSlot;
 
-    // 4. Constructor (binds the state's actions with their bridge event codes)
+    // 4. Constructor (binds the scope's actions with their bridge event codes)
     public XxxPresenter(StoreApplication app) { super(app); }
 
-    // 5. Cube API (applyParameters — ends with ownerSlot.setScope(this.state) —, publishParameters)
+    // 5. Cube API (applyParameters — ends with ownerSlot.setScope(this.scope) —, publishParameters)
     // 6. User Actions (onXxx)
     // 7. Messages (alertXxx, errorXxx)
 }
@@ -279,8 +279,8 @@ Presenters do not throw exceptions to the view. Instead, they use `errorCode` + 
 
 ```java
 private void alertProductNotFound() {
-    this.state.errorCode.set(3);
-    this.state.errorMessage.set("Product code not found.");
+    this.scope.errorCode.set(3);
+    this.scope.errorMessage.set("Product code not found.");
 }
 ```
 
@@ -297,8 +297,8 @@ public class CartScope extends Scope {
 public CartPresenter(StoreApplication app) {
     super(app);
     this.cart = app.getCart();
-    this.state.onBuy = action(1, this::buy);   // buy() only handles InvalidCartItemException and OfflineException
-    this.state.onOpenProducts = action(3, () -> new HomeKeys(this.app).flip());
+    this.scope.onBuy = action(1, this::buy);   // buy() only handles InvalidCartItemException and OfflineException
+    this.scope.onOpenProducts = action(3, () -> new HomeKeys(this.app).flip());
 }
 
 // a row (segment) gets its own actions, reading the formData
@@ -306,4 +306,4 @@ row.onModifyQuantity = actionOf(row, 2, FormParam.asInteger("p.quantity"),
         quantity -> this.modifyQuantity(productId, quantity));
 ```
 
-The view triggers the action through the scope it draws (`state.onBuy.run()`), and the scope's remote skeleton (`scope.skeleton(CLASS_ID)`) maps the event code to it; a state that reads form fields on sync does it with `state.onSync(formData -> ...)` in the constructor (`LoginPresenter`).
+The view triggers the action through the scope it draws (`scope.onBuy.run()`), and the scope's remote skeleton (`scope.skeleton(CLASS_ID)`) maps the event code to it; a scope that reads form fields on sync does it with `scope.onSync(formData -> ...)` in the constructor (`LoginPresenter`).

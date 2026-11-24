@@ -8,7 +8,7 @@ import br.com.wdc.framework.cube.remote.bridge.java.HostClient;
 /**
  * Client mirror of {@code RootPresenter} (classId {@value #CLASS_ID}).
  * <p>
- * The root presenter is the frame/shell that sits between the browser ViewState
+ * The root presenter is the frame/shell that sits between the browser scope
  * ({@code 7b32e816a191:0}) and the active page (login, home, etc.).
  *
  * <pre>
@@ -33,17 +33,17 @@ public class RootPresenterClient extends AbstractPresenterClient {
      * Returns the {@code RootPresenterClient} by following the browser composition chain.
      * Equivalent to {@code BrowserPresenterClient.get(client).root()}.
      *
-     * @return the root presenter, or {@link Optional#empty()} if the browser state is not yet available
+     * @return the root presenter, or {@link Optional#empty()} if the browser scope is not yet available
      */
     public static Optional<RootPresenterClient> get(HostClient client) {
-        var browserState = client.viewState(HostClient.BROWSER_VSID);
-        if (browserState == null) return Optional.empty();
-        var rootId = browserState.getString("contentViewId");
+        var browserScope = client.scope(HostClient.BROWSER_VSID);
+        if (browserScope == null) return Optional.empty();
+        var rootId = browserScope.getString("contentViewId");
         if (rootId == null) return Optional.empty();
         return Optional.of(client.presenterByInstanceId(rootId, RootPresenterClient.class));
     }
 
-    // :: State accessors
+    // :: Scope accessors
 
     /**
      * Returns the instanceId of the currently active page presenter
@@ -51,13 +51,13 @@ public class RootPresenterClient extends AbstractPresenterClient {
      * or {@code null} when no page is active.
      */
     public String contentViewId() {
-        var s = state();
+        var s = scope();
         return s != null ? s.getString("contentViewId") : null;
     }
 
     /**
      * Returns the currently active page as a typed presenter, using the
-     * {@code contentViewId} field from this presenter's ViewState.
+     * {@code contentViewId} field from this presenter's scope.
      *
      * @throws IllegalStateException if no page is currently active
      */

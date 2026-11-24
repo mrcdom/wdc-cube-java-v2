@@ -20,12 +20,12 @@ public class ReceiptViewMock extends AbstractViewMock<ReceiptScope> {
         return (ReceiptViewMock) view;
     }
 
-    public ReceiptViewMock(StoreApplicationMock app, ReceiptScope state) {
-        super(app, state);
+    public ReceiptViewMock(StoreApplicationMock app, ReceiptScope scope) {
+        super(app, scope);
     }
 
     public void printReceipt() {
-        if (this.state.notifySuccess.get()) {
+        if (this.scope.notifySuccess.get()) {
             System.out.println("Purchase completed successfully");
             System.out.println();
         }
@@ -35,15 +35,15 @@ public class ReceiptViewMock extends AbstractViewMock<ReceiptScope> {
         System.out.println("------------------------------------------------------------");
         System.out.println("WDC Store - THE RIGHT WAY TO SHOP ONLINE");
         System.out.println("Purchase receipt");
-        System.out.println("Date: " + new Date(this.state.receipt.get().date));
+        System.out.println("Date: " + new Date(this.scope.receipt.get().date));
         System.out.println("------------------------------------------------------------");
-        for (final ReceiptItem item : this.state.receipt.get().items) {
+        for (final ReceiptItem item : this.scope.receipt.get().items) {
             System.out.print(item.description);
             System.out.print("(" + item.quantity + ")=R$ ");
             System.out.println(item.value);
         }
         System.out.println("------------------------------------------------------------");
-        System.out.println("TOTAL: " + this.state.receipt.get().total);
+        System.out.println("TOTAL: " + this.scope.receipt.get().total);
 
     }
 

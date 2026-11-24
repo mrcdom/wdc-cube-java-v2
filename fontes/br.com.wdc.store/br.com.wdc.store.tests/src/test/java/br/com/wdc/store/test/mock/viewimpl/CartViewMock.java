@@ -17,8 +17,8 @@ public class CartViewMock extends AbstractViewMock<CartScope> {
         return (CartViewMock) view;
     }
 
-    public CartViewMock(StoreApplicationMock app, CartScope state) {
-        super(app, state);
+    public CartViewMock(StoreApplicationMock app, CartScope scope) {
+        super(app, scope);
     }
 
 }

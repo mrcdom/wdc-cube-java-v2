@@ -1,6 +1,6 @@
 # remote.bridge.flutter
 
-Flutter/Dart bridge for the **Remote Cube MVP** Host/Shell protocol. Implements the client (shell) side of the protocol in Dart — connects to `remote.host` over WebSocket, performs the RSA/AES-GCM security handshake, manages ViewStates and provides base classes for Flutter widgets to render states and emit events.
+Flutter/Dart bridge for the **Remote Cube MVP** Host/Shell protocol. Implements the client (shell) side of the protocol in Dart — connects to `remote.host` over WebSocket, performs the RSA/AES-GCM security handshake, keeps the scopes — the view state each presenter publishes for its view, serialized as a JSON map — and provides base classes for Flutter widgets to render them and emit events.
 
 It is the Flutter counterpart of the React (`remote.bridge.react`), TeaVM (`remote.bridge.teavm`) and Java (`remote.bridge.java`) bridges. Consumed by `flutter_commons` (and indirectly by all Flutter shells).
 
@@ -11,9 +11,9 @@ lib/
   remote_bridge_flutter.dart        # Public entrypoint — exports the whole API
   src/
     bridge/
-      ViewStateCoordinator          # Central orchestrator: view registry, WS lifecycle,
+      ScopeCoordinator              # Central orchestrator: view registry, WS lifecycle,
                                     # submit, history, security, form data
-      ViewScope                     # State of a view (JSON map from the server);
+      ViewScope                     # Holder of a view's scope (JSON map from the server);
                                     # notifies the widget via forceUpdate()
       ClientStorage                 # Client storage contract (session / persistent, with a secure view)
       DataSecurity                  # Per-session RSA + PBKDF2 + AES-GCM handshake
@@ -24,7 +24,7 @@ lib/
       constants.dart                # Protocol constants (fixed viewIds, timeouts, ...)
     views/
       BaseView / BaseViewState      # Base StatefulWidget for bridge-driven views; binds to the
-                                    # ViewScope via vsid, rebuilds on new state; viewState,
+                                    # ViewScope via vsid, rebuilds on a new scope; scope,
                                     # submit(eventId), setFormField(...), slot(vsid)
       SlotView                      # View that renders the child the server assigned to the slot
     utils/
@@ -54,7 +54,7 @@ Initialize the bridge in `main.dart` (the shell gets `appId`/`appSKey` from `GET
 ```dart
 import 'package:remote_bridge_flutter/remote_bridge_flutter.dart';
 
-final coordinator = ViewStateCoordinator(
+final coordinator = ScopeCoordinator(
   CoordinatorConfig(
     appId: appId,
     securityKey: appSKey,
@@ -63,7 +63,7 @@ final coordinator = ViewStateCoordinator(
 );
 coordinator.registerView(LoginView.viewId, (vsid, _) => LoginView(key: ValueKey(vsid), vsid: vsid));
 
-// A view: reads the server state from viewState and fires events by code
+// A view: reads its scope from the server and fires events by code
 class LoginView extends BaseView {
   const LoginView({super.key, required super.vsid});
 
@@ -76,13 +76,13 @@ class LoginView extends BaseView {
 class _LoginViewState extends BaseViewState<LoginView> {
   @override
   Widget build(BuildContext context) {
-    final errorMessage = viewState['errorMessage'] as String?;
+    final errorMessage = scope['errorMessage'] as String?;
     // ...
   }
 
   void _emitLogin() {
     setFormField('p.userName', userName);
-    setFormField('p.password', ViewStateCoordinator.instance.dataSecurity.b64Cipher(password));
+    setFormField('p.password', ScopeCoordinator.instance.dataSecurity.b64Cipher(password));
     submit(1);
   }
 }

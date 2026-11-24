@@ -195,11 +195,11 @@ public class RemoteApplicationSupport {
         this.viewMap.put(view.instanceId(), view);
     }
 
-    public void removeView(String stateId) {
-        this.dirtyViewMap.remove(stateId);
-        var removed = this.viewMap.remove(stateId);
+    public void removeView(String instanceId) {
+        this.dirtyViewMap.remove(instanceId);
+        var removed = this.viewMap.remove(instanceId);
         if (removed != null) {
-            this.releasedViews.add(stateId);
+            this.releasedViews.add(instanceId);
         }
     }
 
@@ -436,7 +436,7 @@ public class RemoteApplicationSupport {
 
     private void runDispatchPhase(Map<String, Object> request) throws Exception {
         this.updateSecret(request);
-        this.updateApplicationState(request);
+        this.syncScopes(request);
 
         @SuppressWarnings("unchecked")
         var eventList = (List<String>) request.get("event");
@@ -483,7 +483,7 @@ public class RemoteApplicationSupport {
         }
     }
 
-    private void updateApplicationState(Map<String, Object> request) {
+    private void syncScopes(Map<String, Object> request) {
         this.lock.lock();
         try {
             for (final Map.Entry<String, Object> entry : request.entrySet()) {
@@ -578,7 +578,7 @@ public class RemoteApplicationSupport {
             }
 
             if (!dirtyViews.isEmpty()) {
-                json.name("states");
+                json.name("scopes");
                 json.beginArray();
 
                 // The presenters' computed state, once, before any scope is written
@@ -600,10 +600,10 @@ public class RemoteApplicationSupport {
                     if (!written.add(view.instanceId())) {
                         continue;
                     }
-                    view.writeState(json);
+                    view.writeScope(json);
 
                     // Views born while writing (a segment or a row drawn for the first time) go in this same
-                    // response: the state just written already refers to them
+                    // response: the scope just written already refers to them
                     if (queue.isEmpty()) {
                         for (var born : this.dirtyViewMap.values()) {
                             if (!written.contains(born.instanceId())) {

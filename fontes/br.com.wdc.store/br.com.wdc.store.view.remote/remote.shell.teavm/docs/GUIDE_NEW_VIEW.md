@@ -6,11 +6,11 @@ This document explains how to create a new view in the TeaVM thin client of the 
 
 A view in this shell is a thin adapter that:
 
-1. Receives state from the server over WebSocket (JSON → `ViewScope`)
+1. Receives its scope from the server over WebSocket (JSON → `ViewScope`)
 2. Adapts that JSON into the presentation `Scope` type and hands it to a **shared view** from `teavm.commons`, which renders the virtual tree (`VNode`)
 3. Emits interaction events back to the server (`setFormField` + `submit`)
 
-The view **has no business logic** — all the logic lives in the Presenter (server-side). The rendering itself lives in `teavm.commons` (`XxxSharedView extends SharedVDomView`), so the same tree is drawn by this shell and by `teavm.web`; each shell only supplies the state and the action callbacks. `BrowserView` and `RootView` are the exceptions: they render directly in the shell.
+The view **has no business logic** — all the logic lives in the Presenter (server-side). The rendering itself lives in `teavm.commons` (`XxxSharedView extends SharedVDomView`), so the same tree is drawn by this shell and by `teavm.web`; each shell only supplies the scope and the action callbacks. `BrowserView` and `RootView` are the exceptions: they render directly in the shell.
 
 ## Prerequisites
 
@@ -39,7 +39,7 @@ public class WishlistScope extends Scope {
 
 ## Step 1 — The shared view (teavm.commons)
 
-Create `teavm.commons/src/main/java/br/com/wdc/store/view/teavm/commons/views/wishlist/WishlistSharedView.java`. It knows nothing about WebSocket or presenters: state comes from a `Supplier`, actions go out through plain callbacks.
+Create `teavm.commons/src/main/java/br/com/wdc/store/view/teavm/commons/views/wishlist/WishlistSharedView.java`. It knows nothing about WebSocket or presenters: the scope comes from a `Supplier`, actions go out through plain callbacks.
 
 ```java
 package br.com.wdc.store.view.teavm.commons.views.wishlist;
@@ -87,7 +87,7 @@ public class WishlistSharedView extends SharedVDomView {
     }
 
     // 2. External bindings — set by each shell
-    public Supplier<WishlistScope> stateSupplier;
+    public Supplier<WishlistScope> scopeSupplier;
     public Consumer<Long> onRemoveItem;
     public Runnable onBack;
 
@@ -102,10 +102,10 @@ public class WishlistSharedView extends SharedVDomView {
     // 5. render() — returns the virtual tree
     @Override
     public VNode render() {
-        var state = stateSupplier.get();
-        var errorMessage = state.errorMessage.get();
+        var scope = scopeSupplier.get();
+        var errorMessage = scope.errorMessage.get();
         var showError = errorMessage != null && !errorMessage.isEmpty();
-        var items = state.items.get();
+        var items = scope.items.get();
 
         // @formatter:off
         return div(Sel.ROOT).children(
@@ -143,7 +143,7 @@ Add its styles as a partial next to it, `views/wishlist/_wishlist.scss`.
 
 ## Step 2 — The adapter (remote.shell.teavm)
 
-Create `remote.shell.teavm/src/main/java/br/com/wdc/store/view/remote/shell/teavm/views/wishlist/WishlistView.java`. It reads the JSON state, fills an instance of the scope type for the shared view, and turns each callback into `setFormField` + `submit`:
+Create `remote.shell.teavm/src/main/java/br/com/wdc/store/view/remote/shell/teavm/views/wishlist/WishlistView.java`. It reads the JSON scope, fills an instance of the scope type for the shared view, and turns each callback into `setFormField` + `submit`:
 
 ```java
 package br.com.wdc.store.view.remote.shell.teavm.views.wishlist;
@@ -170,14 +170,14 @@ public class WishlistView extends AbstractRemoteView {
     private static final int ON_BACK = 2;
 
     private final WishlistSharedView shared;
-    private final WishlistScope adaptedState = new WishlistScope();
+    private final WishlistScope adaptedScope = new WishlistScope();
 
     // 3. Constructor — receives the vsid (view-state ID) and binds the shared view
     public WishlistView(String vsid) {
         super(vsid);
 
         this.shared = new WishlistSharedView();
-        this.shared.stateSupplier = this::adaptState;
+        this.shared.scopeSupplier = this::adaptScope;
         this.shared.onRemoveItem = id -> {
             setFormField("p.itemId", id);
             submit(ON_REMOVE_ITEM);
@@ -192,16 +192,16 @@ public class WishlistView extends AbstractRemoteView {
     }
 
     // 5. JSON → scope adaptation
-    private WishlistScope adaptState() {
-        ViewScope scope = state();
-        adaptedState.errorMessage.set(scope.getString("errorMessage"));
-        adaptedState.items.set(getItems(scope));
-        return adaptedState;
+    private WishlistScope adaptScope() {
+        ViewScope scope = scope();
+        adaptedScope.errorMessage.set(scope.getString("errorMessage"));
+        adaptedScope.items.set(getItems(scope));
+        return adaptedScope;
     }
 
     private List<WishlistItem> getItems(ViewScope scope) {
         var result = new ArrayList<WishlistItem>();
-        if (scope.getState().get("items") instanceof List<?> list) {
+        if (scope.getValues().get("items") instanceof List<?> list) {
             for (var entry : list) {
                 if (entry instanceof Map<?, ?> m) {
                     var item = new WishlistItem();
@@ -224,7 +224,7 @@ Add to `Main.java`:
 app.registerView(WishlistView.VIEW_ID, WishlistView::new);
 ```
 
-The `VIEW_ID` is the key the server uses to identify which factory to instantiate when it sends a state to this view.
+The `VIEW_ID` is the key the server uses to identify which factory to instantiate when it sends a scope to this view.
 
 ## Step 4 — Styles
 
@@ -256,9 +256,9 @@ Host (Scope)                          Shell (View)
 
 On the host, `RemoteViewImpl::forScope` (the `fallback` of the `StoreApplicationImpl`'s `ScopeViews`) reads the scope's `CLASS_ID` and uses it as the classId of the remote view and of the skeleton.
 
-When the host sends a JSON state with that ID, the `ViewStateCoordinator` looks up the registered factory, instantiates the view (if new) and delivers the state via `ViewScope`.
+When the host sends a JSON scope with that ID, the `ScopeCoordinator` looks up the registered factory, instantiates the view (if new) and delivers its values via `ViewScope`.
 
-### ViewScope — Reading State
+### ViewScope — Reading the Scope
 
 `ViewScope` (`br.com.wdc.framework.cube.remote.bridge.teavm`) is a wrapper over the `Map<String, Object>` received from the server. Available methods:
 
@@ -270,7 +270,7 @@ When the host sends a JSON state with that ID, the `ViewStateCoordinator` looks 
 | `getDouble(key)` | `double` (0 if absent) | Monetary values |
 | `getBoolean(key)` | `boolean` | Flags |
 | `getMap(key)` | `Map<String, Object>` (empty if absent) | Nested objects |
-| `getState()` | `Map<String, Object>` | Raw access, e.g. lists (`getState().get("items") instanceof List<?> list`) |
+| `getValues()` | `Map<String, Object>` | Raw access, e.g. lists (`getValues().get("items") instanceof List<?> list`) |
 
 ### Child views
 
@@ -290,7 +290,7 @@ submit(ON_REMOVE_ITEM);  // Presenter receives formData with the fields
 In the Presenter, the action states its code and how to read the field; the scope's skeleton (`scope.skeleton(CLASS_ID)`) dispatches:
 
 ```java
-this.state.onRemoveItem = actionOf(1, FormParam.asLong("p.itemId"), this::removeItem);
+this.scope.onRemoveItem = actionOf(1, FormParam.asLong("p.itemId"), this::removeItem);
 ```
 
 ---
@@ -413,7 +413,7 @@ spDivider("s")                // <sp-divider size="s">
 
 ## New View Checklist
 
-- [ ] Shared view `XxxSharedView extends SharedVDomView` in `teavm.commons/.../views/<x>/`, with `stateSupplier` and action callbacks
+- [ ] Shared view `XxxSharedView extends SharedVDomView` in `teavm.commons/.../views/<x>/`, with `scopeSupplier` and action callbacks
 - [ ] Adapter `XxxView extends AbstractRemoteView` with `VIEW_ID = XxxScope.CLASS_ID`
 - [ ] Event codes identical to the codes of the Presenter's actions
 - [ ] Registered in `Main.java` with `app.registerView(VIEW_ID, XxxView::new)`

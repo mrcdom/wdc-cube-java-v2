@@ -6,12 +6,12 @@ It is the TeaVM counterpart of the React (`remote.bridge.react`) and Java (`remo
 
 ## Main Classes
 
-### Protocol & State
+### Protocol & Scopes
 
 | Class | Responsibility |
 |-------|----------------|
-| `ViewStateCoordinator` | Manages the WS connection and the request/response cycle, distributes ViewState updates to the active views |
-| `ViewScope` | State of a view: receives snapshots from the coordinator (`setState`) and notifies the view via `forceUpdate()` |
+| `ScopeCoordinator` | Manages the WS connection and the request/response cycle, distributes scope updates to the active views |
+| `ViewScope` | Scope of a view: receives its values from the coordinator (`setValues`) and notifies the view via `forceUpdate()` |
 | `RemoteView` | Interface of the TeaVM remote views: `getVsid()`, `getElement()`, `forceUpdate()` |
 | `FlushRequestContext` | Serializes and sends events to the host; manages the queue of pending flushes |
 | `ReconnectController` | Linear backoff on WebSocket reconnection: `min(2000·n, 120000)` ms |

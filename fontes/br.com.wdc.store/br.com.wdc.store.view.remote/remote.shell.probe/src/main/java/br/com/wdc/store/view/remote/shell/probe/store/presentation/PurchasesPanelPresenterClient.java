@@ -60,17 +60,17 @@ public class PurchasesPanelPresenterClient extends AbstractPresenterClient {
         return submit(3);
     }
 
-    // :: State accessors
+    // :: Scope accessors
 
     public List<Map<String, Object>> purchases() {
-        var s = state();
+        var s = scope();
         if (s == null)
             return Collections.emptyList();
         return s.getList("purchases");
     }
 
     public int page() {
-        var s = state();
+        var s = scope();
         if (s == null)
             return 0;
         var v = s.getLong("page");
@@ -78,7 +78,7 @@ public class PurchasesPanelPresenterClient extends AbstractPresenterClient {
     }
 
     public int pageSize() {
-        var s = state();
+        var s = scope();
         if (s == null)
             return -1;
         var v = s.getLong("pageSize");
@@ -86,7 +86,7 @@ public class PurchasesPanelPresenterClient extends AbstractPresenterClient {
     }
 
     public int totalCount() {
-        var s = state();
+        var s = scope();
         if (s == null)
             return 0;
         var v = s.getLong("totalCount");

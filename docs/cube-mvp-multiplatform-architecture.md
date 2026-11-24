@@ -24,7 +24,7 @@
 
 ## Background
 
-This project is the Java realization of the Hierarchical Passive View architecture defined in 2015 ([reference](https://docs.google.com/document/d/1Rcbt3gIjdX50j2gr2zqs9VqTQVg8527h9lOUF1xrhag/edit?tab=t.0#heading=h.3wkx7ie3r9yu)). WDC Cube Java v2 keeps the same presentation logic — the same Presenters, the same ViewStates, the same business and navigation rules — and runs it on five completely independent frontend implementations:
+This project is the Java realization of the Hierarchical Passive View architecture defined in 2015 ([reference](https://docs.google.com/document/d/1Rcbt3gIjdX50j2gr2zqs9VqTQVg8527h9lOUF1xrhag/edit?tab=t.0#heading=h.3wkx7ie3r9yu)). WDC Cube Java v2 keeps the same presentation logic — the same Presenters, the same Scopes, the same business and navigation rules — and runs it on five completely independent frontend implementations:
 
 | Implementation | Technology | Platforms |
 |---|---|---|
@@ -34,7 +34,7 @@ This project is the Java realization of the Hierarchical Passive View architectu
 | `view.swt` | Eclipse SWT + Java | Native desktop (Windows, Linux, macOS) |
 | `view.teavm` | TeaVM + Tauri 2 + Java | Web, Desktop, Android, iOS |
 
-The central principle of the architecture is that the presentation layer knows nothing about which technology renders the interface. The view is a pluggable artifact — an implementation of a Java contract that receives state and reports actions.
+The central principle of the architecture is that the presentation layer knows nothing about which technology renders the interface. The view is a pluggable artifact — an implementation of a Java contract that receives a scope and reports actions.
 
 This article describes how this architecture was consolidated, which problems were solved, which innovations emerged (especially the Remote Presentation protocol), and what remains as future work.
 
@@ -48,7 +48,7 @@ The following requirements guided the project's architectural decisions and make
 The navigation system based on `CubeNavigation`, `CubePlace` and `CubeIntent` is pure Java and references no UI technology.
 
 **Maximize the portion of code committed only to long-lived technologies** ✅  
-Java has existed for more than 30 years. The presentation layer — Presenters and ViewStates — lives in a Maven module with no UI dependencies.
+Java has existed for more than 30 years. The presentation layer — Presenters and Scopes — lives in a Maven module with no UI dependencies.
 
 **Software construction model independent of the runtime environment** ✅  
 The same presentation logic compiles and runs in the browser (React, TeaVM, Vaadin), on the desktop (SWT, Flutter, TeaVM/Tauri) and on mobile (Flutter, TeaVM/Tauri).
@@ -123,7 +123,7 @@ The modules are organized into two groups:
 | `framework.domain` | Generic domain abstractions: `Repository`, `Page`, criteria, projections, `TransactionService`, security, and the resource calls (`ResourceQuery`, `ResourceCreate`/`Save`/`Update`/`Delete`) |
 | `framework.persistence` | Neutral persistence support (`javax.sql.DataSource` + `jakarta.transaction`): `TransactionServiceImpl`, `TransactionScope`, `RemoteTransactionCoordinator` |
 | `framework.cube` | Cube MVP engine: presenters, views, navigation, intents, slots |
-| `framework.cube.remote` | Remote Presentation protocol: ViewState serialization, WebSocket dispatcher, bridges for React/Flutter/TeaVM |
+| `framework.cube.remote` | Remote Presentation protocol: scope serialization, WebSocket dispatcher, bridges for React/Flutter/TeaVM |
 | `framework.jooq` | jOOQ support: JSON query helpers (`JsonQuery`, `JsonQueryBuilder`, `JsonChildQueryBuilder`); the `DSLContext` is injected by the application (no global holder) |
 | `framework.dependencies` | Maven BOM for centralized versions |
 
@@ -135,7 +135,7 @@ The modules are organized into two groups:
 | `store.persistence` | H2 + jOOQ (generated classes) |
 | `store.persistence.rest` | REST controllers (Javalin) |
 | `store.persistence.client` | REST client (OkHttp + Gson) |
-| `store.presentation` | Presenters, ViewStates, navigation — **technology-agnostic** |
+| `store.presentation` | Presenters, Scopes, navigation — **technology-agnostic** |
 | `store.view.*` | Five frontend implementations |
 
 ---
@@ -153,7 +153,7 @@ graph TD
     end
 
     subgraph Presentation["Presentation Layer (Java — technology-agnostic)"]
-        presenters["Presenters + ViewStates"]
+        presenters["Presenters + Scopes"]
         navigation["Navigation System (Places, Intents, CubeNavigation)"]
     end
 
@@ -182,7 +182,7 @@ The separation is structural, not just conceptual: the `store.presentation` modu
 
 Cube MVP is a variation of Passive View with two core principles:
 
-1. **The View has access to the Scope, but not to the Presenter.** The Scope is a plain Java object with public fields (`Prop`s and actions) — the public state of the screen. The Presenter feeds the Scope's `Prop`s; setting a different value requests the redraw by itself.
+1. **The View has access to the Scope, but not to the Presenter.** The Scope is a plain Java object with public fields (`Prop`s and actions) — the view state the Presenter publishes for its screen. The Presenter feeds the Scope's `Prop`s; setting a different value requests the redraw by itself.
 
 2. **No cross-queries between Presenter and View.** The Presenter notifies the View through the Scope: a change in a `Prop` calls `update()` on the view that draws that scope. The View notifies the Presenter by firing the Scope's actions (the `onXxx` fields). These communications return no values.
 
@@ -193,7 +193,7 @@ The name "Cube" reflects the third dimension of the architecture: besides the Pr
 Every navigable Presenter extends `AbstractCubePresenter<StoreApplication>`. Its Scope lives in its own file, next to it (like the `xxx.scope.ts` of the TypeScript version):
 
 ```java
-// CartScope.java — public state, read by the view for rendering. Each observed field is a Prop:
+// CartScope.java — the scope, read by the view for rendering. Each observed field is a Prop:
 // set() compares with equals and, if it changed, requests a redraw — the presenter does not call update() afterwards
 public class CartScope extends Scope {
     // classId of the bridge protocol: identifies the remote view that draws this scope
@@ -216,8 +216,8 @@ public class CartScope extends Scope {
 ```java
 public class CartPresenter extends AbstractCubePresenter<StoreApplication> {
 
-    // bind: the presenter is notified when a state prop changes
-    public final CartScope state = bind(new CartScope());
+    // bind: the presenter is notified when a scope prop changes
+    public final CartScope scope = bind(new CartScope());
 
     private ScopeSlot ownerSlot;
 
@@ -225,25 +225,25 @@ public class CartPresenter extends AbstractCubePresenter<StoreApplication> {
         super(app);
         // Bound once; the guard sends unhandled failures to the app and republishes the address at the end
         // With an event code: the scope's skeleton dispatches event 1 from a remote client to it
-        this.state.onBuy = action(1, this::buy);
-        this.state.onOpenProducts = action(3, () -> new HomeKeys(this.app).flip());
+        this.scope.onBuy = action(1, this::buy);
+        this.scope.onOpenProducts = action(3, () -> new HomeKeys(this.app).flip());
     }
 
     // Called by the navigation engine when activating this Presenter
     @Override
     public boolean applyParameters(CubeIntent intent, boolean initialization, boolean deepest) {
-        this.syncRows();   // brings state.rows and state.total in line with the cart
+        this.syncRows();   // brings scope.rows and scope.total in line with the cart
 
         // The parent puts the scope into one of its Prop<Scope>; the parent's view is the one that requests this scope's view
         this.ownerSlot = new CartKeys(this.app, intent).parentSlot();
-        this.ownerSlot.setScope(this.state);
+        this.ownerSlot.setScope(this.scope);
         return true;
     }
 
     // Action body: handles only the expected failures, no generic try/catch
     private void buy() {
         // business logic...
-        this.state.errorCode.set(0);   // the change already requests the redraw
+        this.scope.errorCode.set(0);   // the change already requests the redraw
     }
 }
 ```
@@ -267,7 +267,7 @@ public class HomeScope extends Scope {
 }
 ```
 
-The `HomePresenter` binds the segment's actions (`actionOf(productsPanel, 1, FormParam.asLong("p.productId"), this::openProduct)`) and only puts it into the scope (`state.productsPanel.set(productsPanel)`). The view layer chooses the view, as in the TypeScript version: each host builds a `ScopeViews` catalog (scope class → factory) and hands it to the application with `setScopeViews`; the Home view requests the panel's view with `app.viewOf(scope)`, which creates it the first time. From then on, a change in the segment redraws only its own view (until then, it redraws the owner), and the view is released together with the Presenter. The remote host registers nothing: `fallback(RemoteViewImpl::forScope)` makes a remote view for any scope, using its `CLASS_ID`. The view never knows the Presenter — it only reads the scope and fires its actions —, so one Presenter can orchestrate several segments without a class per segment.
+The `HomePresenter` binds the segment's actions (`actionOf(productsPanel, 1, FormParam.asLong("p.productId"), this::openProduct)`) and only puts it into the scope (`scope.productsPanel.set(productsPanel)`). The view layer chooses the view, as in the TypeScript version: each host builds a `ScopeViews` catalog (scope class → factory) and hands it to the application with `setScopeViews`; the Home view requests the panel's view with `app.viewOf(scope)`, which creates it the first time. From then on, a change in the segment redraws only its own view (until then, it redraws the owner), and the view is released together with the Presenter. The remote host registers nothing: `fallback(RemoteViewImpl::forScope)` makes a remote view for any scope, using its `CLASS_ID`. The view never knows the Presenter — it only reads the scope and fires its actions —, so one Presenter can orchestrate several segments without a class per segment.
 
 In remote mode the segment is a view like any other: it has its own `classId`, its own skeleton (the code-based dispatch of the actions bound on it), and the parent references it by the view id (`"productsPanelViewId"`).
 
@@ -343,7 +343,7 @@ The `CubeNavigation` navigation engine performs transitions between states as fo
 4. It invokes `release()` on the Presenters that are not part of the active state, in reverse order (from deepest to shallowest).  
 5. It calls `app.updateHistory()` so the host republishes the address.
 
-The views are not redrawn by the engine: each `Prop` a Presenter changes requests the redraw of the view that draws its scope. `commitComputedState()` (an opportunity to synchronize derived state) is called by the remote host on all Presenters, once, before it serializes the dirty states.
+The views are not redrawn by the engine: each `Prop` a Presenter changes requests the redraw of the view that draws its scope. `commitComputedState()` (an opportunity to synchronize derived state) is called by the remote host on all Presenters, once, before it serializes the dirty scopes.
 
 When navigating from `product?pr-id=5` to `cart`, the sequence is:
 
@@ -407,7 +407,7 @@ classDiagram
         +setUpdater(updater)
         +view() CubeView
         +skeleton(classId) CubeSkeleton
-        +onSync(syncState)
+        +onSync(syncScope)
         +drawnBy(view)$ Scope
     }
 
@@ -451,7 +451,7 @@ classDiagram
     }
 
     CubePresenter <|.. AbstractCubePresenter
-    AbstractCubePresenter --> Scope : state
+    AbstractCubePresenter --> Scope : scope
     Scope --> CubeView : drawn by
     CubePlace --> CubePresenter : instantiates
     CubeIntent --> ScopeSlot
@@ -461,7 +461,7 @@ classDiagram
     ScopeViews --> CubeView : creates
 ```
 
-The application is a graph of `AbstractCubePresenter` instances. Each instance knows only its own Scope (the `state` field, bound with `bind`). The view of each Scope is created by the view layer: the host's `ScopeViews` catalog says which factory draws each scope class, and `CubeApplication.viewOf(scope)` creates it the first time it is requested. The Presenter never references a view — at most, `scope().view()` returns the `CubeView` that draws its scope, if there already is one.
+The application is a graph of `AbstractCubePresenter` instances. Each instance knows only its own Scope (the `scope` field, bound with `bind`). The view of each Scope is created by the view layer: the host's `ScopeViews` catalog says which factory draws each scope class, and `CubeApplication.viewOf(scope)` creates it the first time it is requested. The Presenter never references a view — at most, `scope().view()` returns the `CubeView` that draws its scope, if there already is one.
 
 ---
 
@@ -476,8 +476,8 @@ public final Prop<Scope> content = prop();
 // HomePresenter declares a content slot
 private final ScopeSlot contentSlot = this::setContent;
 
-private void setContent(Scope scope) {
-    this.state.content.set(scope);   // redraws only if it changed
+private void setContent(Scope content) {
+    this.scope.content.set(content);   // redraws only if it changed
 }
 ```
 
@@ -501,10 +501,10 @@ The child Presenter receives the slot and uses it to fit in:
 ```java
 // ProductPresenter receives the slot and hands over its scope
 this.ownerSlot = new ProductKeys(this.app, intent).parentSlot();
-this.ownerSlot.setScope(this.state);
+this.ownerSlot.setScope(this.scope);
 ```
 
-The parent view requests the view of whatever scope is there — `app.viewOf(state.content.get())` — regardless of which child Presenter put it there. The host only draws the root Presenter's scope (`viewOf(getRootPresenter().state)`); every other view is requested by the view that holds the scope. Until a scope gets a view, a change in it redraws the owner (the scope that holds it in a `Prop` adopts it); after that, only its own view. In remote mode, a `Prop<Scope>` field goes out in the JSON as `"<field>ViewId"` (`content` → `"contentViewId"`). This mechanism works identically in all five view implementations.
+The parent view requests the view of whatever scope is there — `app.viewOf(scope.content.get())` — regardless of which child Presenter put it there. The host only draws the root Presenter's scope (`viewOf(getRootPresenter().scope)`); every other view is requested by the view that holds the scope. Until a scope gets a view, a change in it redraws the owner (the scope that holds it in a `Prop` adopts it); after that, only its own view. In remote mode, a `Prop<Scope>` field goes out in the JSON as `"<field>ViewId"` (`content` → `"contentViewId"`). This mechanism works identically in all five view implementations.
 
 ---
 
@@ -517,7 +517,7 @@ Every view implementation implements `CubeView`:
 ```java
 public interface CubeView {
     String instanceId();  // unique identifier — used by the remote protocol
-    void update();        // Presenter signals that the state changed
+    void update();        // Presenter signals that the scope changed
     void release();       // lifecycle ended
 }
 ```
@@ -536,7 +536,7 @@ public interface CubeView {
 
 ```java
 var cartView = app.onUiThread((CartScope s) -> {
-        var v = new CartViewSwt(app); v.stateSupplier = () -> s;
+        var v = new CartViewSwt(app); v.scopeSupplier = () -> s;
         v.onOpenProducts = s.onOpenProducts::run; v.onBuy = s.onBuy::run;
         v.rowElements = () -> s.rows.get().stream()
                 .map(row -> app.viewOf(row) instanceof AbstractViewSwt rv ? rv.getElement() : null)
@@ -547,7 +547,7 @@ var cartView = app.onUiThread((CartScope s) -> {
 ```java
 public class CartViewSwt extends AbstractViewSwt {
 
-    public Supplier<CartScope> stateSupplier;
+    public Supplier<CartScope> scopeSupplier;
     public Runnable onOpenProducts;
     public Runnable onBuy;
     /** The rows' elements, in the cart's order: each row is a view of its own ({@link CartItemViewSwt}). */
@@ -556,7 +556,7 @@ public class CartViewSwt extends AbstractViewSwt {
     @Override
     public void doUpdate() {
         // ... first render ...
-        var state = this.stateSupplier != null ? this.stateSupplier.get() : null;
+        var scope = this.scopeSupplier != null ? this.scopeSupplier.get() : null;
         var rows = this.rowElements != null ? this.rowElements.get() : List.<Composite>of();
         // ... toggles the empty/filled cards, syncs the error banner, the rows and the total
     }
@@ -568,17 +568,17 @@ public class CartViewSwt extends AbstractViewSwt {
 ```java
 public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
 
-    // The drawn scope lives in the base class's state field
-    public CartViewVaadin(StoreVaadinApplication app, CartScope state) {
-        super("cart", app, state, new VerticalLayout());
+    // The drawn scope lives in the base class's scope field
+    public CartViewVaadin(StoreVaadinApplication app, CartScope scope) {
+        super("cart", app, scope, new VerticalLayout());
     }
 
     @Override
     public void doUpdate() {
         // ... first render ...
-        var rows = this.state.rows.get();
+        var rows = this.scope.rows.get();
         this.syncRows(rows);
-        // ... toggles the empty/filled panes and updates the total from this.state.total.get()
+        // ... toggles the empty/filled panes and updates the total from this.scope.total.get()
     }
 }
 ```
@@ -590,15 +590,15 @@ public class CartView extends AbstractVDomView<CartScope> {
 
     private final CartSharedView shared;
 
-    public CartView(StoreTeaVMApplication app, CartScope state) {
-        super("cart", app, state);
+    public CartView(StoreTeaVMApplication app, CartScope scope) {
+        super("cart", app, scope);
 
         this.shared = new CartSharedView();
-        this.shared.stateSupplier = () -> state;
-        this.shared.onBack = () -> safeAction("Back", state.onOpenProducts::run);
-        this.shared.onBuy = () -> safeAction("Buy", state.onBuy::run);
+        this.shared.scopeSupplier = () -> scope;
+        this.shared.onBack = () -> safeAction("Back", scope.onOpenProducts::run);
+        this.shared.onBuy = () -> safeAction("Buy", scope.onBuy::run);
         // The rows are views of their own (CartItemView): the cart lays their elements out in its order
-        this.shared.rowElements = () -> state.rows.get().stream()
+        this.shared.rowElements = () -> scope.rows.get().stream()
                 .map(row -> this.app.viewOf(row) instanceof AbstractViewTeaVM<?> v ? v.getElement() : null)
                 .filter(Objects::nonNull)
                 .toList();
@@ -611,21 +611,21 @@ public class CartView extends AbstractVDomView<CartScope> {
 }
 ```
 
-**view.remote / remote.shell.react** — React shell in TypeScript. Each view is a `BaseViewClass` registered under the scope's `CLASS_ID`; it renders the state received over WebSocket and emits events back by code (`bridge.submit(vsid, eventCode)`). A row is a view of its own, created from its vsid:
+**view.remote / remote.shell.react** — React shell in TypeScript. Each view is a `BaseViewClass` registered under the scope's `CLASS_ID`; it renders the scope received over WebSocket and emits events back by code (`bridge.submit(vsid, eventCode)`). A row is a view of its own, created from its vsid:
 
 ```tsx
 const ON_BUY = 1
 const ON_BACK = 3
 
-export type CartViewState = {
+export type CartScope = {
   rowsViewIds?: string[]
   total?: number
   errorMessage?: string
 }
 
-class CartViewClass extends BaseViewClass<ViewProps, CartViewState> {
+class CartViewClass extends BaseViewClass<ViewProps, CartScope> {
   override render({ className }: ViewProps) {
-    const rows = this.state.rowsViewIds ?? []
+    const rows = this.scope.rowsViewIds ?? []
     // ... header, error banner, empty state ...
     return (
       <div className={className}>
@@ -649,7 +649,7 @@ class CartViewClass extends BaseViewClass<ViewProps, CartViewState> {
 export default BaseViewClass.FC(CartViewClass, "7eb485e5f843")
 ```
 
-**view.remote / remote.shell.flutter** — Flutter shell in Dart. The same WebSocket protocol, but with Flutter widgets for rendering; each view is a `BaseView` whose state reads the `viewState` map and submits events by code:
+**view.remote / remote.shell.flutter** — Flutter shell in Dart. The same WebSocket protocol, but with Flutter widgets for rendering; each view is a `BaseView` whose `State` reads the `scope` map and submits events by code:
 
 ```dart
 const _onBuy = 1;
@@ -667,9 +667,8 @@ class CartView extends BaseView {
 class _CartViewState extends BaseViewState<CartView> {
   @override
   Widget build(BuildContext context) {
-    final state = viewState;
-    final rows = (state['rowsViewIds'] as List?)?.cast<String>() ?? [];
-    final total = (state['total'] as num?)?.toDouble() ?? 0.0;
+    final rows = (scope['rowsViewIds'] as List?)?.cast<String>() ?? [];
+    final total = (scope['total'] as num?)?.toDouble() ?? 0.0;
     return PageCard(
       children: [
         ...rows.map(slot),
@@ -687,30 +686,30 @@ class _CartViewState extends BaseViewState<CartView> {
 
 ## Remote Presentation — The Host/Shell Protocol
 
-The Remote Presentation protocol transfers state and receives events, making the client a thin shell with no business logic.
+The Remote Presentation protocol transfers scopes and receives events, making the client a thin shell with no business logic.
 
 ### Analogy with Remote Desktop
 
-The protocol is analogous to a Remote Desktop, but it operates on the application's data layer instead of pixels. The server holds all the logic — Presenters, ViewStates, business rules, navigation. The client renders serialized states and sends interaction events back.
+The protocol is analogous to a Remote Desktop, but it operates on the application's data layer instead of pixels. The server holds all the logic — Presenters, scopes, business rules, navigation. The client renders serialized scopes and sends interaction events back.
 
 ```mermaid
 sequenceDiagram
     participant Shell as Shell (React/Flutter)
     participant WS as WebSocket
     participant Host as Host (Java/Javalin)
-    participant Presenters as Presenters + ViewStates
+    participant Presenters as Presenters + Scopes
 
     Shell->>WS: CONNECT /dispatcher/{appId}
     WS->>Host: onConnect
     Host->>Presenters: initialize session
     Host->>WS: { initial dirty views }
-    WS->>Shell: render states
+    WS->>Shell: render scopes
 
     Shell->>WS: { requestId, event:["<vsid>:<eventCode>"], "<vsid>": formData }
     WS->>Host: onMessage
     Host->>Presenters: syncClientToServer() → submit()
     Presenters->>Presenters: logic + navigation
-    Host->>WS: { dirty ViewStates (only the modified ones) }
+    Host->>WS: { dirty scopes (only the modified ones) }
     WS->>Shell: reconcile affected views
 ```
 
@@ -721,11 +720,11 @@ The protocol implements session encryption in two layers:
 1. **RSA handshake**: at the start of the session, the shell generates an ephemeral password, encrypts it with the server's RSA public key (textbook RSA) and sends it, with the salt and the IV, as the `secret` — in the `app_signature` cookie or in the first WebSocket message. Both sides derive the session AES-256 key from the password via PBKDF2-HMAC-SHA256 (250,000 iterations).  
 2. **AES-GCM values**: after the handshake, the sensitive values (client storage, access token, `p.password`) travel encrypted with the session AES-256-GCM key.
 
-Additionally, the session id (`appId`) and the navigation address (the `sign` parameter) are signed with the server's RSA key (SHA256withRSA reduced by MD5, `signAsHash`), preventing a client from forging a session or navigating to states it was not granted. See [bridge-skeleton-protocol.md](bridge-skeleton-protocol.md) for the wire-level details.
+Additionally, the session id (`appId`) and the navigation address (the `sign` parameter) are signed with the server's RSA key (SHA256withRSA reduced by MD5, `signAsHash`), preventing a client from forging a session or navigating to places it was not granted. See [bridge-skeleton-protocol.md](bridge-skeleton-protocol.md) for the wire-level details.
 
-### Delta Serialization of ViewStates
+### Delta Serialization of Scopes
 
-A crucial property of the protocol is that only the ViewStates that changed (*dirty*) are sent in each cycle. This is possible because each scope drawn for a client has a `RemoteViewImpl` whose `update()` marks it dirty (`app.markDirty(this)`) — and a `Prop` change calls `update()` on the view that draws the scope. The host collects only the marked views, serializes their ViewStates to JSON and transmits the delta.
+A crucial property of the protocol is that only the scopes that changed (*dirty*) are sent in each cycle. This is possible because each scope drawn for a client has a `RemoteViewImpl` whose `update()` marks it dirty (`app.markDirty(this)`) — and a `Prop` change calls `update()` on the view that draws the scope. The host collects only the marked views, serializes their scopes to JSON and transmits the delta.
 
 The Scope is serialized by the framework's `ScopeSerializer`, which inspects the `public` fields via reflection:
 
@@ -738,7 +737,7 @@ The Scope is serialized by the framework's `ScopeSerializer`, which inspects the
 }
 ```
 
-The `"#"` field is the `instanceId` (`"<CLASS_ID>:<n>"`) that binds the JSON state to the corresponding view instance in the shell. A `null` value (here, `errorMessage`) is omitted; each row is a view of its own, sent as its own state.
+The `"#"` field is the `instanceId` (`"<CLASS_ID>:<n>"`) that binds the JSON scope to the corresponding view instance in the shell. A `null` value (here, `errorMessage`) is omitted; each row is a view of its own, sent as its own scope.
 
 ### Virtual Threads for Scalability
 
@@ -748,7 +747,7 @@ Each WebSocket session is managed by a Virtual Thread (Java 21). Unlike platform
 
 ## The Scope as a Serialization Contract
 
-Besides being the public state read by the view for rendering, the `Scope` serves as the serialization contract for remote mode.
+Besides being what the view reads for rendering, the `Scope` serves as the serialization contract for remote mode.
 
 The `Scope` does not implement serialization: its fields are `Prop`s (and the actions, plain fields). Serialization is done exclusively by the framework's `ScopeSerializer`:
 
@@ -771,7 +770,7 @@ The principles that proved most durable:
 
 **The Presenter hierarchy as the unit of modularity.** Dividing the application state into hierarchical Presenters keeps complexity localized. Adding a new module means creating a new Presenter and its keys class (which declares the place), listing it in `StoreApplication.PLACES` and implementing a view in each technology of interest — without touching the rest of the application.
 
-**The Scope as the boundary between logic and presentation.** The Scope is at once simple (public Java fields) and powerful (automatic serialization, incremental diff in remote mode). It solves the data transfer problem without creating separate value transfer objects — the same object serves the Presenter to feed the view and the remote protocol to transmit the state.
+**The Scope as the boundary between logic and presentation.** The Scope is at once simple (public Java fields) and powerful (automatic serialization, incremental diff in remote mode). It solves the data transfer problem without creating separate value transfer objects — the same object serves the Presenter to feed the view and the remote protocol to transmit it.
 
 **The slot as a coupling-free composition mechanism.** The slot isolates the parent Presenter from the child. The parent does not know which type of child Presenter will be in the slot — only that it will receive a `Scope`. The child does not know which part of the parent screen it will be in.
 

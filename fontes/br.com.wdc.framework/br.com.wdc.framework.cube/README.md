@@ -1,6 +1,6 @@
 # WDC Framework — Cube
 
-Engine of the **Cube MVP** pattern — manages hierarchical presenters, views, intent-based navigation and reactive state.
+Engine of the **Cube MVP** pattern — manages hierarchical presenters, views, intent-based navigation and reactive scopes.
 
 ---
 
@@ -15,19 +15,19 @@ graph LR
     Pres["CubePresenter"]
     View["CubeView"]
     Slot["ScopeSlot"]
-    State["Scope"]
+    Scope["Scope"]
     Views["ScopeViews"]
 
     App -->|"contains"| Pres
     App -->|"navigates via"| Nav
     Nav -->|"steps"| Place
     Place -->|"factory →"| Pres
-    Pres -.->|"state"| State
+    Pres -.->|"scope"| Scope
     Pres -->|"hands the scope to the parent"| Slot
     Intent -->|"carries parameters and slots"| Pres
     App -->|"viewOf(scope)"| Views
     Views -->|"creates"| View
-    View -->|"draws"| State
+    View -->|"draws"| Scope
 ```
 
 ### Navigation Cycle
@@ -39,7 +39,7 @@ graph LR
    - Invokes `applyParameters(intent, initialization, deepest)` on each presenter.
    - Releases the presenters that are not part of the hierarchy (calls `release()`, deepest first).
    - Calls `app.updateHistory()` so the host republishes the address.
-4. The host draws the root presenter's scope (`app.viewOf(rootPresenter.state)`); each view asks for the views of the scopes it holds (`app.viewOf(state.content.get())`). The UI is updated by `CubeView.update()`, called when a scope `Prop` changes. `commitComputedState()` (derived state) is not part of the navigation: the remote host calls it on all presenters (`CubeApplication.commitComputedState()`) before writing the dirty states.
+4. The host draws the root presenter's scope (`app.viewOf(rootPresenter.scope)`); each view asks for the views of the scopes it holds (`app.viewOf(scope.content.get())`). The UI is updated by `CubeView.update()`, called when a scope `Prop` changes. `commitComputedState()` (derived state) is not part of the navigation: the remote host calls it on all presenters (`CubeApplication.commitComputedState()`) before writing the dirty scopes.
 
 ---
 
@@ -49,7 +49,7 @@ graph LR
 |-----------------|----------------|
 | `CubeApplication` | App singleton — keeps the map of presenters and attributes, coordinates navigation; `viewOf(scope)` creates the scope's view the first time it is requested (and draws it once), `releaseView(scope)` releases it along with the views of the scopes inside it, `liveViews()` lists the live views |
 | `CubePresenter` | Contract for presenters managed by navigation |
-| `AbstractPresenter<A>` | Common base — app, `bind(state)` (binds the scope; it then shares the presenter's event map), `scope()`, `update()` (requests a redraw of the scope), `release()` (releases the scope's view and the inner ones), `detach(segment)` (releases the view of a smaller scope that left — including a list row) and the stored actions (`action`, `actionOf`, `actionOf2`, with or without an event code). The presenter never creates a view |
+| `AbstractPresenter<A>` | Common base — app, `bind(scope)` (binds the scope; it then shares the presenter's event map), `scope()`, `update()` (requests a redraw of the scope), `release()` (releases the scope's view and the inner ones), `detach(segment)` (releases the view of a smaller scope that left — including a list row) and the stored actions (`action`, `actionOf`, `actionOf2`, with or without an event code). The presenter never creates a view |
 | `AbstractCubePresenter<A>` | Presenter of a place — `applyParameters`/`publishParameters`; knows no view: it hands the scope to the parent's slot |
 | `CubeView` | View interface — `instanceId()`, `update()`, `release()` |
 | `ScopeSlot` | Where a child presenter shows up in the parent: `setScope(scope)` puts the child's scope into a `Prop<Scope>` of the parent (`content`). Travels in the intent (`CubeIntent.setSlot/getSlot`) |
@@ -58,9 +58,9 @@ graph LR
 | `CubeIntent` | Encapsulates the destination (place) + typed parameters (query-string parsing) |
 | `CubeKeys<A>` | Base of the app's key classes: one per place, declares the place and reads/writes the intent with typed accessors; `flip()` navigates to the place |
 | `CubeNavigation<T>` | Engine that executes transitions: creates, reuses and destroys presenters |
-| `CubeSkeleton` | Interface for remote communication: `classId()`, `submit(eventCode, eventQtde, formData)`, `syncState(formData)`. Nobody implements it by hand: `Scope.skeleton(classId)` dispatches each event to the action bound to that code, and `Scope.onSync(...)` defines `syncState` |
+| `CubeSkeleton` | Interface for remote communication: `classId()`, `submit(eventCode, eventQtde, formData)`, `syncScope(formData)`. Nobody implements it by hand: `Scope.skeleton(classId)` dispatches each event to the action bound to that code, and `Scope.onSync(...)` defines `syncScope` |
 | `FormParam<T>` | How an action reads a value from the event's `formData`: field name + conversion (`asLong`, `asInteger`, `asString`, `of`) |
-| `Scope`, `Prop<T>` | View state: observed fields are `Prop`s (`prop(...)`); `set` of a different value requests the redraw by itself — of the scope's view or, while it has none, of the owning scope that holds it in a `Prop`. `setSilently` is for the view that consumes a one-time display message while drawing. Each scope with a remote view declares `public static final String CLASS_ID` (the bridge protocol classId). `Scope.drawnBy(view)` is the scope that only carries an existing view — used by shells that rebuild scopes from what the remote host sends |
+| `Scope`, `Prop<T>` | The view state a presenter publishes for its view: observed fields are `Prop`s (`prop(...)`); `set` of a different value requests the redraw by itself — of the scope's view or, while it has none, of the owning scope that holds it in a `Prop`. `setSilently` is for the view that consumes a one-time display message while drawing. Each scope with a remote view declares `public static final String CLASS_ID` (the bridge protocol classId). `Scope.drawnBy(view)` is the scope that only carries an existing view — used by shells that rebuild scopes from what the remote host sends |
 | `Action`, `ActionOf<T>`, `ActionOf2<T, U>` | Actions the view fires, stored as Scope fields; `NOOP`/`noop()` mark an action not yet bound |
 | `PresenterBase` | Root interface: `commitComputedState()` + `release()` |
 

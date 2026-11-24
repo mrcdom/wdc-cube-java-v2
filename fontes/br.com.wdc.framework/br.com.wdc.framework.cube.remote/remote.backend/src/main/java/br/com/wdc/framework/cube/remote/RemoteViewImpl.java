@@ -12,13 +12,13 @@ import br.com.wdc.framework.cube.Scope;
  * Generic {@link CubeView} implementation for remote applications.
  * <p>
  * Each scope drawn for a client (a presenter's, a segment's, a row's) gets one instance, made by
- * {@link #forScope}: it manages dirty-tracking and delegates submit/syncState to the scope's skeleton, which
+ * {@link #forScope}: it manages dirty-tracking and delegates submit/syncScope to the scope's skeleton, which
  * dispatches to the actions the presenter bound with an event code.
  */
 public class RemoteViewImpl implements CubeView {
 
     protected final RemoteApplication app;
-    protected final Scope state;
+    protected final Scope scope;
     protected final CubeSkeleton skeleton;
     protected final String instanceId;
 
@@ -30,7 +30,7 @@ public class RemoteViewImpl implements CubeView {
     /** The same, with a given instance id (the browser's, which every client knows). */
     public RemoteViewImpl(RemoteApplication app, Scope scope, String classId, String instanceId) {
         this.app = app;
-        this.state = scope;
+        this.scope = scope;
         this.skeleton = scope.skeleton(classId);
         this.instanceId = instanceId;
         this.app.putView(this);
@@ -71,15 +71,15 @@ public class RemoteViewImpl implements CubeView {
     }
 
     public void syncClientToServer(Map<String, Object> formData) {
-        this.skeleton.syncState(formData);
+        this.skeleton.syncScope(formData);
     }
 
     public void submit(int eventCode, int eventQtde, Map<String, Object> formData) throws Exception {
         this.skeleton.submit(eventCode, eventQtde, formData);
     }
 
-    public void writeState(ExtensibleObjectOutput json) {
-        new ScopeSerializer(json, this::viewOf).write(this.state, instanceId);
+    public void writeScope(ExtensibleObjectOutput json) {
+        new ScopeSerializer(json, this::viewOf).write(this.scope, instanceId);
     }
 
     /** The view of a scope inside this one (a segment, a row): made the first time it is written. */

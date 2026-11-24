@@ -1,6 +1,6 @@
 # WDC Store — Flutter Mobile
 
-Mobile shell (iOS & Android) for the **WDC Store** application, using the **Remote Presentation** protocol. The app is a thin client that renders ViewStates received from the server over WebSocket and emits user interaction events.
+Mobile shell (iOS & Android) for the **WDC Store** application, using the **Remote Presentation** protocol. The app is a thin client that renders scopes received from the server over WebSocket and emits user interaction events.
 
 ## Features
 
@@ -60,7 +60,7 @@ The `deploy.sh` script supports every target:
 graph TD
     root["flutter.mobile/"]
     lib["lib/"]
-    main["main.dart<br/><small>Entry point (session init, ViewStateCoordinator)</small>"]
+    main["main.dart<br/><small>Entry point (session init, ScopeCoordinator)</small>"]
     ios["ios/Runner/"]
     infoPlist["Info.plist<br/><small>Name, ATS config</small>"]
     assets["Assets.xcassets/<br/><small>App icons (teal + F badge)</small>"]

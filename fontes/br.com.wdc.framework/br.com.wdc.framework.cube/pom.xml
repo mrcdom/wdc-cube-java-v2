@@ -12,7 +12,7 @@
 
 	<artifactId>framework-cube</artifactId>
 	<name>framework-cube</name>
-	<description>Cube MVP engine: hierarchical presenters, intent-based navigation and serializable ViewStates</description>
+	<description>Cube MVP engine: hierarchical presenters, intent-based navigation and serializable scopes</description>
 
 	<dependencyManagement>
 		<dependencies>

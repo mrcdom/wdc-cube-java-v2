@@ -35,7 +35,7 @@ public class RootView extends AbstractRemoteView {
 
     @Override
     protected VNode render() {
-        var scope = state();
+        var scope = scope();
         var contentVsid = scope.getString("contentViewId");
         var contentEl = getChildViewElement(contentVsid);
 

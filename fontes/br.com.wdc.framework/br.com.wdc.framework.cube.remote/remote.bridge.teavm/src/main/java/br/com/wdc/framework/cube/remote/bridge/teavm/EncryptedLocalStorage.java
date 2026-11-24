@@ -31,7 +31,7 @@ import br.com.wdc.framework.cube.remote.bridge.teavm.interop.JsStringConsumer;
  */
 public final class EncryptedLocalStorage implements ClientStorage {
 
-    /** Singleton — shared between {@link ViewStateCoordinator} and startup. */
+    /** Singleton — shared between {@link ScopeCoordinator} and startup. */
     public static final EncryptedLocalStorage INSTANCE = new EncryptedLocalStorage();
 
     /**

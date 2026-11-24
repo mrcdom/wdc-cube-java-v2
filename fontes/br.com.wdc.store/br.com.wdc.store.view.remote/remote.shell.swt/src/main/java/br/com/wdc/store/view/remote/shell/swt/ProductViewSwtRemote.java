@@ -19,7 +19,7 @@ class ProductViewSwtRemote extends ProductViewSwt {
 		super(app);
 		this.vsid = vsid;
 		this.ctx = ctx;
-		this.stateSupplier = this::stateSupplierImpl;
+		this.scopeSupplier = this::scopeSupplierImpl;
 		this.onOpenProducts = this::callOnOpenProducts;
 		this.onAddToCart = this::callOnAddToCart;
 	}
@@ -32,15 +32,15 @@ class ProductViewSwtRemote extends ProductViewSwt {
 		this.ctx.submitEvent(this.vsid, 2, Map.of("p.quantity", qty));
 	}
 
-	private ProductScope stateSupplierImpl() {
-		var s = this.ctx.viewState(this.vsid);
+	private ProductScope scopeSupplierImpl() {
+		var s = this.ctx.scope(this.vsid);
 		if (s == null) {
 			return null;
 		}
-		var state = new ProductScope();
-		state.errorMessage.set(s.getString("errorMessage"));
+		var scope = new ProductScope();
+		scope.errorMessage.set(s.getString("errorMessage"));
 		var code = s.getLong("errorCode");
-		state.errorCode.set(code != null ? code.intValue() : 0);
+		scope.errorCode.set(code != null ? code.intValue() : 0);
 		var raw = s.getMap("product");
 		if (raw != null) {
 			var p = new ProductInfo();
@@ -49,8 +49,8 @@ class ProductViewSwtRemote extends ProductViewSwt {
 			p.description = CoerceUtils.asString(raw.get("description"));
 			p.price = CoerceUtils.asDouble(raw.get("price"), 0.0);
 			p.image = CoerceUtils.asString(raw.get("image"));
-			state.product.set(p);
+			scope.product.set(p);
 		}
-		return state;
+		return scope;
 	}
 }

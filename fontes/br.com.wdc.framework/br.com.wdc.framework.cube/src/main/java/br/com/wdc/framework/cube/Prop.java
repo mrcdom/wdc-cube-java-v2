@@ -4,7 +4,7 @@ import java.util.Objects;
 
 /**
  * An observed field of a {@link Scope}. {@link #set} keeps the value and, only when it changed
- * ({@link Objects#equals}), tells the state, which asks for the redraw.
+ * ({@link Objects#equals}), tells its scope, which asks for the redraw.
  */
 public final class Prop<T> {
 
@@ -23,7 +23,7 @@ public final class Prop<T> {
         return value;
     }
 
-    /** Replaces the value; tells the state only when it changed. */
+    /** Replaces the value; tells the scope only when it changed. */
     public void set(T newValue) {
         if (Objects.equals(value, newValue)) {
             return;
@@ -34,7 +34,7 @@ public final class Prop<T> {
     }
 
     /**
-     * Replaces the value without telling the state. Only for a view that, while drawing, consumes a one-shot message
+     * Replaces the value without telling the scope. Only for a view that, while drawing, consumes a one-shot message
      * (an error shown once): it is already drawing, and a redraw would take the message away.
      */
     public void setSilently(T newValue) {

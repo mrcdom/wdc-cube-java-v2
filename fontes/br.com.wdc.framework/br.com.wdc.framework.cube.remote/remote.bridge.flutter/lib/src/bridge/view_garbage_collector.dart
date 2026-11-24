@@ -1,4 +1,4 @@
-import 'view_state_coordinator.dart';
+import 'scope_coordinator.dart';
 
 /// Server-authoritative view garbage collector.
 ///
@@ -7,7 +7,7 @@ import 'view_state_coordinator.dart';
 ///   1. Is NOT in the server's active list
 ///   2. Is NOT currently mounted (widget alive)
 class ViewGarbageCollector {
-  final ViewStateCoordinator app;
+  final ScopeCoordinator app;
   final Set<String> _mountedViews = {};
 
   ViewGarbageCollector(this.app);

@@ -18,20 +18,20 @@ export type Product = {
   price: number
 }
 
-type ProductsPanelState = {
+type ProductsPanelScope = {
   products?: Product[]
 }
 
 // :: View
 
-class ProductPanelClass extends BaseViewClass<ViewProps, ProductsPanelState> {
+class ProductPanelClass extends BaseViewClass<ViewProps, ProductsPanelScope> {
   override render({ className }: ViewProps): React.ReactNode {
-    const { vsid, state } = this
+    const { vsid, scope } = this
 
     const productCards: ReactNode[] = []
-    if (state.products) {
-      for (let i = 0; i < state.products.length; i++) {
-        let product = state.products[i]
+    if (scope.products) {
+      for (let i = 0; i < scope.products.length; i++) {
+        let product = scope.products[i]
         productCards.push(<ProductCard key={product.id} vsid={vsid} product={product} />)
       }
     }

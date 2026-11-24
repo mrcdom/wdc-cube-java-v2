@@ -12,22 +12,22 @@ import java.util.Map;
  *   <li>A <em>reply</em> to a client request — contains {@code requestId}</li>
  *   <li>An <em>async push</em> from the registry — no {@code requestId}</li>
  * </ul>
- * Both types update the {@link ViewStateMap} via {@link #viewStates()}.
+ * Both types update the {@link ScopeMap} via {@link #scopes()}.
  */
 public record HostResponse(Long requestId, String uri,
-                           List<ViewStateSnapshot> viewStates,
+                           List<ScopeSnapshot> scopes,
                            List<String> releasedViews,
                            String cipheredAccessToken,
                            Map<String, Object> storageDelta) {
 
     public HostResponse {
-        viewStates = viewStates != null ? Collections.unmodifiableList(viewStates) : Collections.emptyList();
+        scopes = scopes != null ? Collections.unmodifiableList(scopes) : Collections.emptyList();
         releasedViews = releasedViews != null ? Collections.unmodifiableList(releasedViews) : Collections.emptyList();
     }
 
-    /** Whether this response contains at least one ViewState update. */
-    public boolean hasStates() {
-        return !viewStates.isEmpty();
+    /** Whether this response contains at least one scope update. */
+    public boolean hasScopes() {
+        return !scopes.isEmpty();
     }
 
 }

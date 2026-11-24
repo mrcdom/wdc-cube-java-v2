@@ -21,8 +21,8 @@ import com.google.gson.ToNumberPolicy;
 import com.google.gson.reflect.TypeToken;
 
 import br.com.wdc.framework.cube.remote.bridge.java.model.HostResponse;
-import br.com.wdc.framework.cube.remote.bridge.java.model.ViewStateMap;
-import br.com.wdc.framework.cube.remote.bridge.java.model.ViewStateSnapshot;
+import br.com.wdc.framework.cube.remote.bridge.java.model.ScopeMap;
+import br.com.wdc.framework.cube.remote.bridge.java.model.ScopeSnapshot;
 
 /**
  * Low-level WebSocket session for the Host/Shell protocol.
@@ -47,12 +47,12 @@ final class HostClientSession implements AutoCloseable {
     private final HttpClient http;
     private WebSocket ws;
     private final LinkedBlockingQueue<HostResponse> inbound = new LinkedBlockingQueue<>();
-    private final ViewStateMap viewStateMap;
+    private final ScopeMap scopeMap;
     private volatile boolean closed = false;
 
-    HostClientSession(ViewStateMap viewStateMap) {
+    HostClientSession(ScopeMap scopeMap) {
         this.http = HttpClient.newHttpClient();
-        this.viewStateMap = viewStateMap;
+        this.scopeMap = scopeMap;
     }
 
     void connect(String wsUrl) {
@@ -80,8 +80,8 @@ final class HostClientSession implements AutoCloseable {
 
     /**
      * Blocks until a server message with the given {@code requestId} arrives, or the timeout elapses.
-     * Intermediate messages (no requestId or different requestId) are discarded — their states are
-     * already applied to the shared {@link ViewStateMap} by the WebSocket listener.
+     * Intermediate messages (no requestId or different requestId) are discarded — their scopes are
+     * already applied to the shared {@link ScopeMap} by the WebSocket listener.
      *
      * @return the matching response, or {@code null} on timeout
      */
@@ -151,24 +151,24 @@ final class HostClientSession implements AutoCloseable {
                 storageDelta = (Map<String, Object>) storageMap;
             }
 
-            // Parse states
-            List<ViewStateSnapshot> snapshots = Collections.emptyList();
-            Object rawStates = msg.get("states");
-            if (rawStates instanceof List<?> stateList && !stateList.isEmpty()) {
-                snapshots = new ArrayList<>(stateList.size());
-                for (Object entry : stateList) {
+            // Parse scopes
+            List<ScopeSnapshot> snapshots = Collections.emptyList();
+            Object rawScopes = msg.get("scopes");
+            if (rawScopes instanceof List<?> scopeList && !scopeList.isEmpty()) {
+                snapshots = new ArrayList<>(scopeList.size());
+                for (Object entry : scopeList) {
                     if (entry instanceof Map<?, ?> rawMap) {
-                        var stateMap = new java.util.HashMap<String, Object>();
-                        ((Map<String, Object>) rawMap).forEach(stateMap::put);
-                        String instanceId = String.valueOf(stateMap.remove("#"));
+                        var values = new java.util.HashMap<String, Object>();
+                        ((Map<String, Object>) rawMap).forEach(values::put);
+                        String instanceId = String.valueOf(values.remove("#"));
                         if (instanceId != null && !instanceId.equals("null")) {
-                            snapshots.add(new ViewStateSnapshot(instanceId, stateMap));
+                            snapshots.add(new ScopeSnapshot(instanceId, values));
                         }
                     }
                 }
                 // Apply to shared map
-                List<Object> rawList = (List<Object>) rawStates;
-                viewStateMap.applyStates(rawList);
+                List<Object> rawList = (List<Object>) rawScopes;
+                scopeMap.applyScopes(rawList);
             }
 
             // Parse released views
@@ -179,7 +179,7 @@ final class HostClientSession implements AutoCloseable {
                 for (Object r : relList) {
                     released.add(String.valueOf(r));
                 }
-                viewStateMap.applyReleased(released);
+                scopeMap.applyReleased(released);
             }
 
             return new HostResponse(requestId, uri, snapshots, released, accessToken, storageDelta);

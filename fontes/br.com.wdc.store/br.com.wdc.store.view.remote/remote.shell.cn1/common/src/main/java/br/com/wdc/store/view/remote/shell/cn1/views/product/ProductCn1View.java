@@ -179,7 +179,7 @@ public class ProductCn1View extends AbstractCn1View {
     public void doUpdate() {
         layout(); // adapts the price/image arrangement to the mode (re-mounts only on a switch)
 
-        Map<String, Object> p = Json.asMap(state().get("product"));
+        Map<String, Object> p = Json.asMap(scope().get("product"));
         long id = Json.longOf(p, "id");
         if (id != currentId) {
             currentId = id;

@@ -1,6 +1,6 @@
 # WDC Store — React Client
 
-SPA frontend for the WDC Store system, built with **React 19**, **TypeScript** and **Spectrum Web Components** (`@swc-react`). It communicates with the Java backend over a **bidirectional WebSocket**, receiving serialized states from the presenters and sending events back.
+SPA frontend for the WDC Store system, built with **React 19**, **TypeScript** and **Spectrum Web Components** (`@swc-react`). It communicates with the Java backend over a **bidirectional WebSocket**, receiving the presenters' serialized scopes (each one's view state) and sending events back.
 
 ## Stack
 
@@ -46,7 +46,7 @@ graph TD
     views --> cart["cart/<br/><small>CartView, CartItemView</small>"]
     views --> receipt["receipt/ReceiptView.tsx"]
 
-    bridgeFw["remote.bridge.react (framework)<br/><small>ViewStateCoordinator, FlushRequestContext, ReconnectController,<br/>DataSecurity, ViewScope, ViewGarbageCollector, ClientStorage, EncryptedLocalStorage</small>"]
+    bridgeFw["remote.bridge.react (framework)<br/><small>ScopeCoordinator, FlushRequestContext, ReconnectController,<br/>DataSecurity, ViewScope, ViewGarbageCollector, ClientStorage, EncryptedLocalStorage</small>"]
     bridge --> bridgeFw
 ```
 
@@ -56,25 +56,25 @@ graph TD
 
 1. **Bootstrap** (`index.tsx`): Calls `bridge.configure("~rr:")`, registers all views with `bridge.registerComponents(...)` and renders `bridge.createBrowserView()` inside the Spectrum `<Theme>`
 2. **Connection** (`BrowserView`): On mount, calls `bridge.onStart()`, which opens the WebSocket
-3. **Receiving state**: The backend sends serialized states over WebSocket → `applyViewStates()` updates the `ViewScope`s → React re-renders
+3. **Receiving scopes**: The backend sends serialized scopes over WebSocket → `applyScopes()` updates the `ViewScope`s → React re-renders
 4. **Sending events**: User actions call `bridge.submit(vsid, eventId)`, which sends the event to the corresponding presenter on the backend over WebSocket
 
 ### View Pattern
 
-Each view is a class that extends `BaseViewClass<Props, State>` and is converted into a Functional Component via `BaseViewClass.FC()`:
+Each view is a class that extends `BaseViewClass<Props, Scope>` and is converted into a Functional Component via `BaseViewClass.FC()`:
 
 ```typescript
-class LoginViewClass extends BaseViewClass<ViewProps, LoginViewState> {
+class LoginViewClass extends BaseViewClass<ViewProps, LoginScope> {
   override render({ className }: ViewProps) {
-    const { state } = this
-    // ... rendering based on the state received from the backend
+    const { scope } = this
+    // ... rendering based on the scope received from the backend
   }
 }
 
 export default BaseViewClass.FC(LoginViewClass, "c677cda52d14")
 ```
 
-- The **state** (`state`) comes from the backend (presenter); it is not managed locally
+- The **scope** (`this.scope`) comes from the backend (presenter); it is not managed locally
 - **Events** are sent to the backend via `bridge.submit(vsid, eventId)`
 - **Form data** is attached via `bridge.setFormField(vsid, field, value)` before the submit
 - Each view is identified by its **VIEW_ID**, the `CLASS_ID` of the scope it draws on the backend
@@ -88,7 +88,7 @@ export default BaseViewClass.FC(LoginViewClass, "c677cda52d14")
 
 ### Activity Indicator
 
-While a user submit is in flight (`state.submitting` of the browser view), `BrowserView` shows a thin animated bar (`browser.scss`, `&__loading-bar`) with `position: fixed` at the top of the page, so it does not affect the layout. It appears only if the response takes more than 200 ms and clears itself after 15 s; keep-alives do not trigger it.
+While a user submit is in flight (`submitting` in the browser view's scope), `BrowserView` shows a thin animated bar (`browser.scss`, `&__loading-bar`) with `position: fixed` at the top of the page, so it does not affect the layout. It appears only if the response takes more than 200 ms and clears itself after 15 s; keep-alives do not trigger it.
 
 ## Import Alias
 

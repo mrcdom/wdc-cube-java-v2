@@ -13,8 +13,8 @@ public class RootViewVaadin extends AbstractViewVaadin<RootScope> {
     private Div contentPane;
     private AbstractViewVaadin<?> currentContentView;
 
-    public RootViewVaadin(StoreVaadinApplication app, RootScope state) {
-        super("root", app, state, new Div());
+    public RootViewVaadin(StoreVaadinApplication app, RootScope scope) {
+        super("root", app, scope, new Div());
     }
 
     @Override
@@ -34,7 +34,7 @@ public class RootViewVaadin extends AbstractViewVaadin<RootScope> {
             this.notRendered = false;
         }
 
-        var newContentView = this.app.viewOf(this.state.content.get()) instanceof AbstractViewVaadin<?> v ? v : null;
+        var newContentView = this.app.viewOf(this.scope.content.get()) instanceof AbstractViewVaadin<?> v ? v : null;
         if (this.currentContentView != newContentView) {
             this.contentPane.removeAll();
             if (newContentView != null) {

@@ -22,7 +22,7 @@ class ProductsPanel extends BaseView {
 class _ProductsPanelState extends BaseViewState<ProductsPanel> {
   @override
   Widget build(BuildContext context) {
-    final products = (viewState['products'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+    final products = (scope['products'] as List?)?.cast<Map<String, dynamic>>() ?? [];
 
     if (products.isEmpty) {
       return const Center(child: Text('No products available'));

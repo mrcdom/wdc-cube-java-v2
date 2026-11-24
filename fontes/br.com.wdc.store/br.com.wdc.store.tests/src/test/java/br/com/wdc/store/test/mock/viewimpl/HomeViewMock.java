@@ -23,24 +23,24 @@ public class HomeViewMock extends AbstractViewMock<HomeScope> {
         return (HomeViewMock) view;
     }
 
-    public HomeViewMock(StoreApplicationMock app, HomeScope state) {
-        super(app, state);
+    public HomeViewMock(StoreApplicationMock app, HomeScope scope) {
+        super(app, scope);
     }
 
-    public ProductsPanelScope getProductsPanelState() {
-        return ProductsPanelViewMock.cast(this.app.viewOf(this.state.productsPanel.get())).state;
+    public ProductsPanelScope getProductsPanelScope() {
+        return ProductsPanelViewMock.cast(this.app.viewOf(this.scope.productsPanel.get())).scope;
     }
 
-    public PurchasesPanelScope getPurchasesPanelState() {
-        return PurchasesPanelViewMock.cast(this.app.viewOf(this.state.purchasesPanel.get())).state;
+    public PurchasesPanelScope getPurchasesPanelScope() {
+        return PurchasesPanelViewMock.cast(this.app.viewOf(this.scope.purchasesPanel.get())).scope;
     }
 
     public void render() {
-        System.out.println("Welcome, " + this.state.nickName.get() + "!");
+        System.out.println("Welcome, " + this.scope.nickName.get() + "!");
 
         System.out.println();
 
-        System.out.println("Cart[" + this.state.cartItemCount.get() + "]");
+        System.out.println("Cart[" + this.scope.cartItemCount.get() + "]");
         System.out.println();
 
         this.printPurchases();
@@ -50,8 +50,8 @@ public class HomeViewMock extends AbstractViewMock<HomeScope> {
     }
 
     public void printPurchases() {
-        var purchasesState = this.getPurchasesPanelState();
-        for (final PurchaseInfo purchase : purchasesState.purchases.get()) {
+        var purchasesScope = this.getPurchasesPanelScope();
+        for (final PurchaseInfo purchase : purchasesScope.purchases.get()) {
             System.out.println("PURCHASE #" + purchase.id);
             System.out.println("Purchase date: " + new Date(purchase.date));
             System.out.println("Items purchased: " + purchase.items);
@@ -62,8 +62,8 @@ public class HomeViewMock extends AbstractViewMock<HomeScope> {
     }
 
     public void printProducts() {
-        var productsState = this.getProductsPanelState();
-        for (final ProductInfo product : productsState.products.get()) {
+        var productsScope = this.getProductsPanelScope();
+        for (final ProductInfo product : productsScope.products.get()) {
             System.out.print("PRODUCT #" + product.id);
             System.out.print("{name: ");
             System.out.print(product.name);

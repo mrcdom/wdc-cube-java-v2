@@ -7,7 +7,7 @@ Shared library for the TeaVM frontends of the **WeDoCode Store** application. It
 Hold everything about *drawing* a Scope, independently of where the Scope comes from. Each shared view (`XxxSharedView extends SharedVDomView`) receives the presentation Scope through a `Supplier` and reports interactions through plain callbacks; it knows neither presenters nor the remote protocol. Two modules use it:
 
 - **`teavm.web`** — the client-side SPA: its views (`AbstractVDomView<XxxScope>`) hand the in-memory Scope to the shared view and wrap each callback in `safeAction(...)`.
-- **`remote.shell.teavm`** — the thin client: its views (`AbstractRemoteView`) adapt the JSON state received from the host (`ViewScope`) into a Scope instance and turn each callback into `setFormField` + `submit`.
+- **`remote.shell.teavm`** — the thin client: its views (`AbstractRemoteView`) adapt the JSON scope received from the host (`ViewScope`) into a Scope instance and turn each callback into `setFormField` + `submit`.
 
 ## Package Structure
 
@@ -42,20 +42,20 @@ br.com.wdc.store.view.teavm.commons/
 
 Global styles live in `src/main/scss/` (`_utilities.scss`, `_components.scss`, `_swc.scss`). Each frontend's `app.scss` `@use`s them and the views' partials (both folders are on its Sass load path) and compiles everything into its own `css/app.css`.
 
-The remote protocol (`ViewStateCoordinator`, `ViewScope`, WebSocket, security) lives in the framework module `remote.bridge.teavm`, used only by `remote.shell.teavm`.
+The remote protocol (`ScopeCoordinator`, `ViewScope`, WebSocket, security) lives in the framework module `remote.bridge.teavm`, used only by `remote.shell.teavm`.
 
 ## Shared view shape
 
 ```java
 public class CartItemSharedView extends SharedVDomView {
 
-    public Supplier<CartItemScope> stateSupplier;   // the Scope to draw
+    public Supplier<CartItemScope> scopeSupplier;   // the Scope to draw
     public IntConsumer onModifyQuantity;           // callbacks bound by each frontend
     public Runnable onRemove;
 
     @Override
     public VNode render() {
-        var row = stateSupplier.get();
+        var row = scopeSupplier.get();
         // ... VNode tree
     }
 }

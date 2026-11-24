@@ -15,7 +15,7 @@ class LoginViewSwtRemote extends LoginViewSwt {
 		super(app);
 		this.vsid = vsid;
 		this.ctx = ctx;
-		this.stateSupplier = this::stateSupplierImpl;
+		this.scopeSupplier = this::scopeSupplierImpl;
 		this.onEnter = this::callOnEnter;
 	}
 
@@ -23,17 +23,17 @@ class LoginViewSwtRemote extends LoginViewSwt {
 		this.ctx.submitLogin(this.vsid, user, pass);
 	}
 
-	private LoginScope stateSupplierImpl() {
-		var s = this.ctx.viewState(this.vsid);
+	private LoginScope scopeSupplierImpl() {
+		var s = this.ctx.scope(this.vsid);
 		if (s == null) {
 			return null;
 		}
-		var state = new LoginScope();
-		state.userName.set(s.getString("userName"));
-		state.errorMessage.set(s.getString("errorMessage"));
+		var scope = new LoginScope();
+		scope.userName.set(s.getString("userName"));
+		scope.errorMessage.set(s.getString("errorMessage"));
 		var code = s.getLong("errorCode");
-		state.errorCode.set(code != null ? code.intValue() : 0);
-		state.loading.set(Boolean.TRUE.equals(s.getBoolean("loading")));
-		return state;
+		scope.errorCode.set(code != null ? code.intValue() : 0);
+		scope.loading.set(Boolean.TRUE.equals(s.getBoolean("loading")));
+		return scope;
 	}
 }

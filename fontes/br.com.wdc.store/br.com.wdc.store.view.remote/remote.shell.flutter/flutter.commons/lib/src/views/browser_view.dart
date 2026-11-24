@@ -36,12 +36,11 @@ class _BrowserViewState extends BaseViewState<BrowserView> {
 
   @override
   Widget build(BuildContext context) {
-    final state = viewState;
-    final submitting = state['submitting'] == true;
-    final error = state['error'] as Map<String, dynamic>?;
-    final alertId = (state['alertId'] as num?)?.toInt() ?? 0;
-    final alertArgs = (state['alertArgs'] as List?)?.cast<String>() ?? const <String>[];
-    final contentViewId = state['contentViewId'] as String?;
+    final submitting = scope['submitting'] == true;
+    final error = scope['error'] as Map<String, dynamic>?;
+    final alertId = (scope['alertId'] as num?)?.toInt() ?? 0;
+    final alertArgs = (scope['alertArgs'] as List?)?.cast<String>() ?? const <String>[];
+    final contentViewId = scope['contentViewId'] as String?;
 
     return Column(
       children: [

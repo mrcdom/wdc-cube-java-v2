@@ -1,6 +1,6 @@
 # WDC Store — Flutter Desktop
 
-Desktop shell (macOS, Linux, Windows) for the **WDC Store** application, using the **Remote Presentation** protocol. The app is a thin client that renders ViewStates received from the server over WebSocket.
+Desktop shell (macOS, Linux, Windows) for the **WDC Store** application, using the **Remote Presentation** protocol. The app is a thin client that renders scopes received from the server over WebSocket.
 
 ## Features
 
@@ -43,7 +43,7 @@ mvn compile -pl br.com.wdc.store/br.com.wdc.store.view.remote/remote.shell.flutt
 graph TD
     root["flutter.desktop/"]
     lib["lib/"]
-    main["main.dart<br/><small>Entry point (session init, ViewStateCoordinator)</small>"]
+    main["main.dart<br/><small>Entry point (session init, ScopeCoordinator)</small>"]
     macos["macos/<br/><small>Native macOS config</small>"]
     linux["linux/<br/><small>Native Linux config</small>"]
     windows["windows/<br/><small>Native Windows config</small>"]

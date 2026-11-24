@@ -20,13 +20,13 @@ public class ReceiptView extends AbstractRemoteView {
     private static final int ON_BACK = 1;
 
     private final ReceiptSharedView shared;
-    private final ReceiptScope adaptedState = new ReceiptScope();
+    private final ReceiptScope adaptedScope = new ReceiptScope();
 
     public ReceiptView(String vsid) {
         super(vsid);
 
         this.shared = new ReceiptSharedView();
-        this.shared.stateSupplier = this::adaptState;
+        this.shared.scopeSupplier = this::adaptScope;
         this.shared.onBack = () -> submit(ON_BACK);
     }
 
@@ -35,11 +35,11 @@ public class ReceiptView extends AbstractRemoteView {
         return shared.renderTree();
     }
 
-    private ReceiptScope adaptState() {
-        ViewScope scope = state();
-        adaptedState.notifySuccess.set(scope.getBoolean("notifySuccess"));
-        adaptedState.receipt.set(adaptReceipt(scope));
-        return adaptedState;
+    private ReceiptScope adaptScope() {
+        ViewScope scope = scope();
+        adaptedScope.notifySuccess.set(scope.getBoolean("notifySuccess"));
+        adaptedScope.receipt.set(adaptReceipt(scope));
+        return adaptedScope;
     }
 
     @SuppressWarnings("unchecked")

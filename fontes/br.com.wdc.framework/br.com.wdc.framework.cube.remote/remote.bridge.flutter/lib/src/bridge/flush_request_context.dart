@@ -6,14 +6,14 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'client_storage.dart';
 import 'constants.dart';
 import 'types.dart';
-import 'view_state_coordinator.dart';
+import 'scope_coordinator.dart';
 
 /// Manages the WebSocket connection and request queue.
 ///
 /// Responsible for: flushing pending requests, keepalive pings,
 /// processing server responses, and tracking the "submitting" state.
 class FlushRequestContext {
-  final ViewStateCoordinator app;
+  final ScopeCoordinator app;
 
   WebSocketChannel? _channel;
   bool _isOpen = false;
@@ -217,8 +217,8 @@ class FlushRequestContext {
       app.applyStorageDelta(response['storage'] as Map<String, dynamic>);
     }
 
-    if (response['states'] != null) {
-      app.applyViewStates(response['states'] as List<dynamic>);
+    if (response['scopes'] != null) {
+      app.applyScopes(response['scopes'] as List<dynamic>);
     }
 
     flush();
@@ -294,7 +294,7 @@ class FlushRequestContext {
 
   void _applySubmitting(bool value) {
     final scope = app.viewMap[browserVsid];
-    if (scope != null && scope.state['submitting'] != value) {
+    if (scope != null && scope.values['submitting'] != value) {
       scope.patchField('submitting', value);
     }
   }

@@ -165,12 +165,12 @@ public class PlaceKeysTest extends BasePresentationTest {
 
     private void signIn() {
         new LoginKeys(this.app).flip();
-        var loginView = LoginViewMock.cast(this.app.viewOf(this.app.getRootView().state.content.get()));
-        loginView.state.onEnter.run("admin", "admin");
+        var loginView = LoginViewMock.cast(this.app.viewOf(this.app.getRootView().scope.content.get()));
+        loginView.scope.onEnter.run("admin", "admin");
     }
 
     private HomeViewMock home() {
-        return HomeViewMock.cast(this.app.viewOf(this.app.getRootView().state.content.get()));
+        return HomeViewMock.cast(this.app.viewOf(this.app.getRootView().scope.content.get()));
     }
 
     @Test
@@ -178,7 +178,7 @@ public class PlaceKeysTest extends BasePresentationTest {
         signIn();
         for (var address : List.of("product?pr-id=abc", "product", "receipt?rc-id=-1", "receipt", "public")) {
             this.app.go(address);
-            Assert.assertNull(address + ": the home shows no inner place", home().state.content.get());
+            Assert.assertNull(address + ": the home shows no inner place", home().scope.content.get());
             Assert.assertSame(address, HomeKeys.PLACE, this.app.getLastPlace());
         }
     }
@@ -189,8 +189,8 @@ public class PlaceKeysTest extends BasePresentationTest {
         new ProductKeys(this.app)
                 .withProductId(DBReset.FLASH_DRIVE_2GB_ID)
                 .flip();
-        var productView = ProductViewMock.cast(this.app.viewOf(home().state.content.get()));
-        Assert.assertEquals((long) DBReset.FLASH_DRIVE_2GB_ID, (long) productView.state.product.get().id);
+        var productView = ProductViewMock.cast(this.app.viewOf(home().scope.content.get()));
+        Assert.assertEquals((long) DBReset.FLASH_DRIVE_2GB_ID, (long) productView.scope.product.get().id);
         Assert.assertTrue(this.app.newIntent().toString(),
                 this.app.newIntent().toString().contains("pr-id=" + DBReset.FLASH_DRIVE_2GB_ID));
 

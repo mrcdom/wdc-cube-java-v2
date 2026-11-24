@@ -27,23 +27,23 @@ type ReceiptForm = {
 
 // :: View
 
-export type ReceiptViewState = {
+export type ReceiptScope = {
   receipt: ReceiptForm
   notifySuccess?: boolean
 }
 
-class ReceiptViewClass extends BaseViewClass<ViewProps, ReceiptViewState> {
+class ReceiptViewClass extends BaseViewClass<ViewProps, ReceiptScope> {
   // :: Renderes
 
   override render({ className }: ViewProps) {
-    const { state } = this
-    const receiptItems = state.receipt?.items ?? []
+    const { scope } = this
+    const receiptItems = scope.receipt?.items ?? []
 
     return (
       <div className={clsx(Sel.pageScrollRoot, className)}>
         <div className={Sel.pageWrapper}>
           {/* Success alert */}
-          {state.notifySuccess && (
+          {scope.notifySuccess && (
             <div className={Sel.alertSuccess}>
               <span className={Sel.alertSuccessIcon}>
                 <i className="bi bi-check-circle-fill"></i>
@@ -71,7 +71,7 @@ class ReceiptViewClass extends BaseViewClass<ViewProps, ReceiptViewState> {
               <div className={Sel.dateRow}>
                 <span className={Sel.dateLabel}>Date:</span>
                 <span className={Sel.dateValue}>
-                  {state.receipt?.date ? DateUtils.formatDateTime(state.receipt.date) : ""}
+                  {scope.receipt?.date ? DateUtils.formatDateTime(scope.receipt.date) : ""}
                 </span>
               </div>
 
@@ -94,7 +94,7 @@ class ReceiptViewClass extends BaseViewClass<ViewProps, ReceiptViewState> {
               {/* Total */}
               <div className={Sel.totalRow}>
                 <span className={Sel.totalLabel}>TOTAL:</span>
-                <span className={Sel.totalValue}>{NumberUtils.formatCurrency(state.receipt?.total ?? 0)}</span>
+                <span className={Sel.totalValue}>{NumberUtils.formatCurrency(scope.receipt?.total ?? 0)}</span>
               </div>
             </div>
 

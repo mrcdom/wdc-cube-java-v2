@@ -45,15 +45,15 @@ public class LoginPresenterClient extends AbstractPresenterClient {
         return submit(1);
     }
 
-    // :: State accessors
+    // :: Scope accessors
 
     public String userName() {
-        var s = state();
+        var s = scope();
         return s != null ? s.getString("userName") : null;
     }
 
     public boolean loading() {
-        var s = state();
+        var s = scope();
         return s != null && Boolean.TRUE.equals(s.getBoolean("loading"));
     }
 }

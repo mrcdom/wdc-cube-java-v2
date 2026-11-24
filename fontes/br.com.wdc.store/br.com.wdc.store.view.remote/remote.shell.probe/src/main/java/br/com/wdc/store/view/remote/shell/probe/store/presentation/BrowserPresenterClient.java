@@ -19,7 +19,7 @@ import br.com.wdc.framework.cube.remote.bridge.java.model.HostResponse;
  *         └── contentViewId → active page
  * </pre>
  *
- * State fields: {@code instanceId}, {@code alertId}, {@code alertArgs}, {@code contentViewId}.
+ * Scope fields: {@code instanceId}, {@code alertId}, {@code alertArgs}, {@code contentViewId}.
  *
  * <pre>
  * Events:
@@ -55,14 +55,14 @@ public class BrowserPresenterClient extends AbstractPresenterClient {
         return submit(2);
     }
 
-    // :: State accessors
+    // :: Scope accessors
 
     /**
      * Returns the instanceId of the currently active root/frame presenter,
      * or {@code null} if not yet populated.
      */
     public String contentViewId() {
-        var s = state();
+        var s = scope();
         return s != null ? s.getString("contentViewId") : null;
     }
 
@@ -70,7 +70,7 @@ public class BrowserPresenterClient extends AbstractPresenterClient {
      * Returns the current alert code ({@code 0} when no alert is active).
      */
     public int alertId() {
-        var s = state();
+        var s = scope();
         if (s == null) return 0;
         var v = s.getLong("alertId");
         return v != null ? v.intValue() : 0;
@@ -81,9 +81,9 @@ public class BrowserPresenterClient extends AbstractPresenterClient {
      */
     @SuppressWarnings("unchecked")
     public List<String> alertArgs() {
-        var s = state();
+        var s = scope();
         if (s == null) return List.of();
-        Object v = s.fields().get("alertArgs");
+        Object v = s.values().get("alertArgs");
         if (v instanceof List<?> l) return (List<String>) l;
         return List.of();
     }
@@ -98,7 +98,7 @@ public class BrowserPresenterClient extends AbstractPresenterClient {
     // :: Composition helpers
 
     /**
-     * Returns the root/frame presenter by following {@code contentViewId} from this presenter's state.
+     * Returns the root/frame presenter by following {@code contentViewId} from this presenter's scope.
      *
      * @throws IllegalStateException if no root presenter is currently active
      */

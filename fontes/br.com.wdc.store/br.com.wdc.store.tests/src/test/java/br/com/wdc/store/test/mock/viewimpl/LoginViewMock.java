@@ -16,8 +16,8 @@ public class LoginViewMock extends AbstractViewMock<LoginScope> {
         return (LoginViewMock) view;
     }
 
-    public LoginViewMock(StoreApplicationMock app, LoginScope state) {
-        super(app, state);
+    public LoginViewMock(StoreApplicationMock app, LoginScope scope) {
+        super(app, scope);
     }
 
 }

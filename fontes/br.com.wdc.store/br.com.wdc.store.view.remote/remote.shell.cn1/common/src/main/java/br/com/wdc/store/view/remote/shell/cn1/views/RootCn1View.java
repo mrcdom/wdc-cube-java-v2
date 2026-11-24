@@ -27,12 +27,12 @@ public class RootCn1View extends AbstractCn1View {
 
     /**
      * Only <b>mounts</b> the content screen (login/home). The child's data update is dispatched
-     * by the bridge (the flush dispatches doUpdate per received ViewState), so there is no
+     * by the bridge (the flush dispatches doUpdate per received scope), so there is no
      * manual propagation here.
 
      */
     @Override
     public void doUpdate() {
-        slot.mount(childElement(Json.str(state(), "contentViewId")));
+        slot.mount(childElement(Json.str(scope(), "contentViewId")));
     }
 }

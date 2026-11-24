@@ -15,7 +15,7 @@
     <packaging>jar</packaging>
 
     <name>WDC Store View Remote - SWT Shell</name>
-    <description>SWT desktop shell communicating with remote.host via WebSocket — reuses swt.commons views with remote state</description>
+    <description>SWT desktop shell communicating with remote.host via WebSocket — reuses swt.commons views with remote scopes</description>
 
     <properties>
         <swt.version>3.135.0</swt.version>
@@ -29,13 +29,13 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!-- Remote bridge (HostClient, ViewStateSnapshot, HostResponse) -->
+        <!-- Remote bridge (HostClient, ScopeSnapshot, HostResponse) -->
         <dependency>
             <groupId>io.github.mrcdom.wdc.java</groupId>
             <artifactId>framework-cube-remote-bridge-java</artifactId>
         </dependency>
 
-        <!-- Presentation (ViewState classes) -->
+        <!-- Presentation (scope classes) -->
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>br.com.wdc.store.presentation</artifactId>

@@ -4,7 +4,7 @@ Web implementation (Vaadin 25) of the **WDC Store** application, demonstrating t
 
 ## Motivation
 
-The Cube MVP architecture strictly separates the **Presenters** (which control state and navigation) from the **Views** (which render the interface). The Presenters expose **Scopes** — objects whose `Prop` fields hold the data the view needs to display — and the view implements the `CubeView` interface to connect to the update cycle.
+The Cube MVP architecture strictly separates the **Presenters** (which control navigation and publish the scopes) from the **Views** (which render the interface). The Presenters expose **Scopes** — objects whose `Prop` fields hold the data the view needs to display — and the view implements the `CubeView` interface to connect to the update cycle.
 
 This module uses **Vaadin Flow** — a server-side framework that renders native components in the browser without any custom JavaScript/TypeScript code. The UI runs entirely on the server (Java), and Vaadin handles the transport via Atmosphere (WebSocket/Push) to keep the browser in sync.
 
@@ -87,7 +87,7 @@ public StoreVaadinApplication(UI ui) {
 }
 ```
 
-Each View constructor receives the application and the scope it draws — `public CartViewVaadin(StoreVaadinApplication app, CartScope state)` — which allows the use of method references. The Presenter never knows which UI technology is in use: it only fills in the scope.
+Each View constructor receives the application and the scope it draws — `public CartViewVaadin(StoreVaadinApplication app, CartScope scope)` — which allows the use of method references. The Presenter never knows which UI technology is in use: it only fills in the scope.
 
 ## Structure
 
@@ -200,7 +200,7 @@ Starting with Vaadin 25, the default theme is Aura. The `AppShell` declares Lumo
 
 ### Server Push
 
-The `@Push(PushMode.AUTOMATIC)` on `AppShell` enables push via Atmosphere/WebSocket, allowing state updates in the Presenters to be reflected automatically in the browser.
+The `@Push(PushMode.AUTOMATIC)` on `AppShell` enables push via Atmosphere/WebSocket, allowing scope updates in the Presenters to be reflected automatically in the browser.
 
 ## Cube MVP Integration Architecture
 
@@ -208,7 +208,7 @@ The integration between Vaadin and the presentation layer (Cube MVP) solves the 
 
 ### 1. View catalog by scope
 
-`StoreVaadinApplication` builds a `ScopeViews` (scope class → view constructor) and hands it over in the constructor with `setScopeViews(...)`. The application creates each view the first time it is requested with `viewOf(scope)`: the host requests the root scope's view (`viewOf(getRootPresenter().state)` in `updateHistory`), and each view requests those of the scopes it holds — `HomeViewVaadin`, for example, calls `app.viewOf(state.content.get())` for the content and `app.viewOf(state.productsPanel.get())` for the panel.
+`StoreVaadinApplication` builds a `ScopeViews` (scope class → view constructor) and hands it over in the constructor with `setScopeViews(...)`. The application creates each view the first time it is requested with `viewOf(scope)`: the host requests the root scope's view (`viewOf(getRootPresenter().scope)` in `updateHistory`), and each view requests those of the scopes it holds — `HomeViewVaadin`, for example, calls `app.viewOf(scope.content.get())` for the content and `app.viewOf(scope.productsPanel.get())` for the panel.
 
 ### 2. Flush via ui.access() (Server Push)
 
@@ -226,7 +226,7 @@ sequenceDiagram
     V->>A: markDirty(this)
     A->>UI: ui.access(flushDirtyViews)
     UI->>V: doUpdate()
-    Note over V: reconciles state → Vaadin components
+    Note over V: reconciles scope → Vaadin components
     UI->>B: Push delta via WebSocket
 ```
 
@@ -251,9 +251,9 @@ public void doUpdate() {
         this.notRendered = false;
     }
 
-    if (!Objects.equals(this.oldNickName, this.state.nickName.get())) {
-        this.nickNameElm.setText(this.state.nickName.get());
-        this.oldNickName = this.state.nickName.get();
+    if (!Objects.equals(this.oldNickName, this.scope.nickName.get())) {
+        this.nickNameElm.setText(this.scope.nickName.get());
+        this.oldNickName = this.scope.nickName.get();
     }
 }
 ```
@@ -269,7 +269,7 @@ VaadinDom.render(rootLayout, (dom, pane) -> {
         dom.button(btn -> {
             btn.setText("Buy");
             btn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-            btn.addClickListener(e -> safeAction("Buy", state.onBuy::run));
+            btn.addClickListener(e -> safeAction("Buy", this.scope.onBuy::run));
         });
     });
 });
@@ -290,7 +290,7 @@ The `newListSlot` mechanism synchronizes a data list (from the Scope) with child
 this.contentSlot = this.newListSlot(container, this::newItemView, this::updateItem);
 
 // In doUpdate:
-this.contentSlot.accept(this.state.products.get(), this.itemViewList);
+this.contentSlot.accept(this.scope.products.get(), this.itemViewList);
 ```
 
 Vaadin's `container.remove(view.getElement())` and `container.add(view.getElement())` operations are O(1) on the server; the delta is sent to the browser via push.
@@ -322,7 +322,7 @@ sequenceDiagram
 
     B->>S: F5 → new session with signed hash
     S->>C: restoreFromCache(signedHash)
-    C-->>S: preserved application (Presenters + state)
+    C-->>S: preserved application (Presenters + scopes)
     S->>A: reattach(newUI, newRootContainer)
     A->>A: view.recreate() on all views
     Note over A: Presenters kept, only Vaadin components recreated
@@ -330,7 +330,7 @@ sequenceDiagram
 
 - The `APP_CACHE` (static ConcurrentHashMap) stores the application indexed by the URL's HMAC signature
 - On `reattach`, each view runs `recreate()` — it resets the `notRendered` flag and creates new Vaadin components
-- The Presenters and their states are preserved intact
+- The Presenters and their scopes are preserved intact
 
 ### 8. URL Navigation with HMAC-SHA256
 
@@ -351,7 +351,7 @@ stateDiagram-v2
     [*] --> Created: app.viewOf(scope)
     Created --> FirstUpdate: app.markDirty()
     FirstUpdate --> Rendered: doUpdate() → buildUI via VaadinDom
-    Rendered --> Dirty: presenter changes state → view.update()
+    Rendered --> Dirty: presenter changes the scope → view.update()
     Dirty --> Reconciled: ui.access() → doUpdate()
     Reconciled --> Dirty: new change
     Reconciled --> Recreated: F5 → reattach() → recreate()
@@ -361,7 +361,7 @@ stateDiagram-v2
 
 ## Conclusion
 
-The Vaadin module demonstrates that the Cube MVP pattern integrates naturally with a push-based server-side framework: the **Presenters control state and navigation**, the **Scopes expose data** and the **Vaadin Views reconcile components** — all connected by the `markDirty → ui.access → doUpdate → push` cycle.
+The Vaadin module demonstrates that the Cube MVP pattern integrates naturally with a push-based server-side framework: the **Presenters control navigation and publish the scopes**, the **Scopes expose data** and the **Vaadin Views reconcile components** — all connected by the `markDirty → ui.access → doUpdate → push` cycle.
 
 ## Screenshots
 

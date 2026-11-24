@@ -119,7 +119,7 @@ void main() async {
   );
   final sessionStorage = InMemoryClientStorage();
 
-  final coordinator = ViewStateCoordinator(
+  final coordinator = ScopeCoordinator(
     CoordinatorConfig(
       appId: appId,
       securityKey: appSKey,

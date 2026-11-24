@@ -22,13 +22,13 @@ public class HomeView extends AbstractRemoteView {
         super(vsid);
 
         this.shared = new HomeSharedView();
-        this.shared.stateSupplier = this::buildViewData;
+        this.shared.scopeSupplier = this::buildViewData;
         this.shared.requestUpdate = this::forceUpdate;
         this.shared.onExit = () -> submit(ON_EXIT);
         this.shared.onOpenCart = () -> submit(ON_OPEN_CART);
         this.shared.onNavigateBack = HomeView::historyBack;
         this.shared.onPurchasesPanelVisible = () -> {
-            var purchasesVsid = state().getString("purchasesPanelViewId");
+            var purchasesVsid = scope().getString("purchasesPanelViewId");
             if (purchasesVsid != null && !purchasesVsid.isEmpty()) {
                 // The purchases panel will re-render on next server push
             }
@@ -41,7 +41,7 @@ public class HomeView extends AbstractRemoteView {
     }
 
     private HomeViewData buildViewData() {
-        var scope = state();
+        var scope = scope();
         viewData.nickName = scope.getString("nickName", "");
         viewData.cartCount = String.valueOf(scope.getInt("cartItemCount"));
         viewData.errorMessage = scope.getString("errorMessage");

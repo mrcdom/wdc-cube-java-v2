@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 import br.com.wdc.framework.cube.remote.bridge.java.model.HostResponse;
-import br.com.wdc.framework.cube.remote.bridge.java.model.ViewStateSnapshot;
+import br.com.wdc.framework.cube.remote.bridge.java.model.ScopeSnapshot;
 
 /**
  * Base class for typed client-side presenter mirrors.
@@ -16,7 +16,7 @@ import br.com.wdc.framework.cube.remote.bridge.java.model.ViewStateSnapshot;
  *   <li>Knows its {@code instanceId} (e.g., {@code "c677cda52d14:0"})</li>
  *   <li>Exposes {@code onXxx()} methods that map 1-to-1 to the server presenter's events</li>
  *   <li>Accumulates form field values via {@link #param} / {@link #field} before each submit</li>
- *   <li>Reads current view state via {@link #state()} — always fresh from the live {@link HostClient}</li>
+ *   <li>Reads its current scope via {@link #scope()} — always fresh from the live {@link HostClient}</li>
  * </ul>
  *
  * <h3>Parameter prefix convention</h3>
@@ -74,14 +74,14 @@ public abstract class AbstractPresenterClient {
         return timeout != null ? client.awaitResponseFor(reqId, timeout) : client.awaitResponseFor(reqId);
     }
 
-    // :: State access
+    // :: Scope access
 
     /**
-     * Returns the current {@link ViewStateSnapshot} for this presenter, or {@code null}
-     * if the server has not yet pushed a state for this instance.
+     * Returns the current {@link ScopeSnapshot} for this presenter, or {@code null}
+     * if the server has not yet pushed a scope for this instance.
      */
-    public ViewStateSnapshot state() {
-        return client.viewState(instanceId);
+    public ScopeSnapshot scope() {
+        return client.scope(instanceId);
     }
 
     /** The presenter's instance ID (e.g., {@code "c677cda52d14:0"}). */
@@ -89,19 +89,19 @@ public abstract class AbstractPresenterClient {
         return instanceId;
     }
 
-    // :: Common state accessors (available on most presenters)
+    // :: Common scope accessors (available on most presenters)
 
-    /** Returns the current {@code errorCode} from the view state, or {@code 0} if absent. */
+    /** Returns the current {@code errorCode} from the scope, or {@code 0} if absent. */
     public int errorCode() {
-        var s = state();
+        var s = scope();
         if (s == null) return 0;
         var v = s.getLong("errorCode");
         return v != null ? v.intValue() : 0;
     }
 
-    /** Returns the current {@code errorMessage} from the view state, or {@code null} if absent. */
+    /** Returns the current {@code errorMessage} from the scope, or {@code null} if absent. */
     public String errorMessage() {
-        var s = state();
+        var s = scope();
         return s != null ? s.getString("errorMessage") : null;
     }
 

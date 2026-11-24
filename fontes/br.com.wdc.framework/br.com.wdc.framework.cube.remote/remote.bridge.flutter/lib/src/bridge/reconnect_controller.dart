@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'constants.dart';
-import 'view_state_coordinator.dart';
+import 'scope_coordinator.dart';
 
 /// Manages exponential-backoff reconnection to the WebSocket server.
 class ReconnectController {
-  final ViewStateCoordinator app;
+  final ScopeCoordinator app;
   late String url;
   int count = 0;
   Timer? _reconnectTimer;

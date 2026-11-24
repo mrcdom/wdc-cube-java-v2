@@ -21,7 +21,7 @@ class CartViewSwtRemote extends CartViewSwt {
 		super(app);
 		this.vsid = vsid;
 		this.ctx = ctx;
-		this.stateSupplier = this::stateSupplierImpl;
+		this.scopeSupplier = this::scopeSupplierImpl;
 		this.onBuy = this::callOnBuy;
 		this.onOpenProducts = this::callOnOpenProducts;
 		// The rows are views of their own (CartItemViewSwtRemote), referred to by id in the cart's order
@@ -36,24 +36,24 @@ class CartViewSwtRemote extends CartViewSwt {
 		this.ctx.submitEvent(this.vsid, 3, Map.of());
 	}
 
-	private CartScope stateSupplierImpl() {
-		var s = this.ctx.viewState(this.vsid);
+	private CartScope scopeSupplierImpl() {
+		var s = this.ctx.scope(this.vsid);
 		if (s == null) {
 			return null;
 		}
-		var state = new CartScope();
-		state.errorMessage.set(s.getString("errorMessage"));
+		var scope = new CartScope();
+		scope.errorMessage.set(s.getString("errorMessage"));
 		var code = s.getLong("errorCode");
-		state.errorCode.set(code != null ? code.intValue() : 0);
+		scope.errorCode.set(code != null ? code.intValue() : 0);
 		var total = s.getDouble("total");
-		state.total.set(total != null ? total : 0.0);
-		return state;
+		scope.total.set(total != null ? total : 0.0);
+		return scope;
 	}
 
 	private List<Composite> rowElementsImpl() {
-		var s = this.ctx.viewState(this.vsid);
+		var s = this.ctx.scope(this.vsid);
 		var result = new ArrayList<Composite>();
-		if (s != null && s.fields().get("rowsViewIds") instanceof List<?> ids) {
+		if (s != null && s.values().get("rowsViewIds") instanceof List<?> ids) {
 			for (var id : ids) {
 				var row = this.ctx.viewLookup(String.valueOf(id));
 				if (row != null) {

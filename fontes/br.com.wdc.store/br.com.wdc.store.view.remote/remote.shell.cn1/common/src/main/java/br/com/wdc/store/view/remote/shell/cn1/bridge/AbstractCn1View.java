@@ -13,10 +13,10 @@ import br.com.wdc.store.view.remote.shell.cn1.StoreCn1RemoteApp;
 /**
  * Base of a shell view (one per vsid), in the <b>non-reactive</b> pattern ({@code AbstractViewVaadin}
  * style): the widgets are built <b>once</b> in {@link #build()} and {@link #doUpdate()} <b>mutates</b>
- * the widgets from the state — it never rebuilds the tree.
+ * the widgets from the scope — it never rebuilds the tree.
  *
  * <p>
- * Being a <b>remote</b> shell, the state is read as JSON by name ({@link #state()} = map coming from
+ * Being a <b>remote</b> shell, the scope is read as JSON by name ({@link #scope()} = map coming from
  * the bridge) and events are submitted through the bridge ({@link #submit(int, Map)}). Parent views
  * mount children by vsid via {@code Slot} (passing {@link #childElement(String)}).
  * </p>
@@ -58,7 +58,7 @@ public abstract class AbstractCn1View {
     /** Creates the widget tree a single time. */
     protected abstract Container build();
 
-    /** Syncs the widgets from the current state (mutates, does not rebuild). */
+    /** Syncs the widgets from the current scope (mutates, does not rebuild). */
     public abstract void doUpdate();
 
     /** Schedules a re-render of this view (single primitive; same as the SWT shell's {@code markDirty}). */
@@ -66,8 +66,8 @@ public abstract class AbstractCn1View {
         app.markDirty(this);
     }
 
-    protected Map<String, Object> state() {
-        Map<String, Object> s = session.state(vsid);
+    protected Map<String, Object> scope() {
+        Map<String, Object> s = session.scope(vsid);
         return s != null ? s : Collections.emptyMap();
     }
 

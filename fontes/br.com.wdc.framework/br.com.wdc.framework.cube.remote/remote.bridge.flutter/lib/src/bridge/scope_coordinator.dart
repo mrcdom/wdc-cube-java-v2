@@ -13,9 +13,9 @@ import 'view_scope.dart';
 
 /// Central orchestrator: view registry, form data, history, security init,
 /// submit routing, and WebSocket lifecycle.
-class ViewStateCoordinator {
+class ScopeCoordinator {
   /// The active coordinator instance (set after construction).
-  static late ViewStateCoordinator instance;
+  static late ScopeCoordinator instance;
 
   final String id;
   final String baseWebSocketUrl;
@@ -54,7 +54,7 @@ class ViewStateCoordinator {
   /// Sync initialization (security key derivation) — called once on start.
   void Function() readyToStart = _noopSync;
 
-  ViewStateCoordinator(CoordinatorConfig config)
+  ScopeCoordinator(CoordinatorConfig config)
     : id = config.appId,
       baseWebSocketUrl = config.baseWebSocketUrl {
     instance = this;
@@ -81,13 +81,13 @@ class ViewStateCoordinator {
   }
 
   /// Convenience factory that generates a random appId.
-  factory ViewStateCoordinator.withRandomId({
+  factory ScopeCoordinator.withRandomId({
     required String baseWebSocketUrl,
     String? securityKey,
     void Function(String name, String value)? onSetCookie,
   }) {
     final appId = _makeUniqueId();
-    return ViewStateCoordinator(
+    return ScopeCoordinator(
       CoordinatorConfig(
         appId: appId,
         securityKey: securityKey,
@@ -146,10 +146,10 @@ class ViewStateCoordinator {
 
   // :: State Management
 
-  void applyViewStates(List<dynamic> stateList) {
-    for (final viewState in stateList) {
-      if (viewState is! Map<String, dynamic>) continue;
-      final vsid = viewState['#'] as String?;
+  void applyScopes(List<dynamic> scopeList) {
+    for (final scope in scopeList) {
+      if (scope is! Map<String, dynamic>) continue;
+      final vsid = scope['#'] as String?;
       if (vsid == null) continue;
 
       var viewScope = viewMap[vsid];
@@ -157,7 +157,7 @@ class ViewStateCoordinator {
         viewScope = ViewScope(vsid);
         viewMap[vsid] = viewScope;
       }
-      viewScope.setState(Map<String, dynamic>.from(viewState));
+      viewScope.setValues(Map<String, dynamic>.from(scope));
     }
   }
 

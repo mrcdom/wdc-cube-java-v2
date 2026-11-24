@@ -13,21 +13,21 @@ const ON_BACK = 3
 
 // :: View
 
-export type CartViewState = {
+export type CartScope = {
   /** The rows: each one a view of its own (CartItemView), in the cart's order. */
   rowsViewIds?: string[]
   total?: number
   errorMessage?: string
 }
 
-class CartViewClass extends BaseViewClass<ViewProps, CartViewState> {
+class CartViewClass extends BaseViewClass<ViewProps, CartScope> {
   // :: Renderes
 
   override render({ className }: ViewProps) {
-    const { state } = this
-    const rows = state.rowsViewIds ?? []
+    const { scope } = this
+    const rows = scope.rowsViewIds ?? []
     const empty = rows.length === 0
-    const totalText = NumberUtils.formatCurrency(state.total ?? 0)
+    const totalText = NumberUtils.formatCurrency(scope.total ?? 0)
 
     return (
       <div className={clsx(Sel.pageScrollRoot, className)}>
@@ -45,10 +45,10 @@ class CartViewClass extends BaseViewClass<ViewProps, CartViewState> {
             </div>
 
             {/* Error */}
-            {state.errorMessage && (
+            {scope.errorMessage && (
               <div className={clsx(Sel.alertError, Sel.mb16)}>
                 <span className={clsx("bi bi-exclamation-circle", Sel.alertErrorIcon)}></span>
-                <span className={Sel.alertErrorText}>{state.errorMessage}</span>
+                <span className={Sel.alertErrorText}>{scope.errorMessage}</span>
               </div>
             )}
 

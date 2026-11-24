@@ -23,7 +23,7 @@ public class FlushRequestContext {
 
     private static final int KEEP_ALIVE_INTERVAL = 15_000;
 
-    private final ViewStateCoordinator app;
+    private final ScopeCoordinator app;
 
     private JSObject socket;
     private final Map<Integer, Map<String, Object>> requestMap = new LinkedHashMap<>();
@@ -39,7 +39,7 @@ public class FlushRequestContext {
     private String pendingSecret;
     Map<String, Object> pendingStorage;
 
-    public FlushRequestContext(ViewStateCoordinator app) {
+    public FlushRequestContext(ScopeCoordinator app) {
         this.app = app;
 
         String savedSeq = getSessionItem("req_seq");
@@ -238,9 +238,9 @@ public class FlushRequestContext {
             app.persistUri(u);
         }
 
-        Object states = response.get("states");
-        if (states instanceof List<?> list) {
-            app.applyViewStates(list);
+        Object scopes = response.get("scopes");
+        if (scopes instanceof List<?> list) {
+            app.applyScopes(list);
         }
 
         Object storage = response.get("storage");
@@ -327,13 +327,13 @@ public class FlushRequestContext {
     }
 
     private void applySubmitting(boolean value) {
-        var scope = app.viewMap.get(ViewStateCoordinator.BROWSER_VSID);
+        var scope = app.viewMap.get(ScopeCoordinator.BROWSER_VSID);
         if (scope != null) {
-            var state = scope.getState();
-            Object current = state.get("submitting");
+            var values = scope.getValues();
+            Object current = values.get("submitting");
             boolean currentVal = current instanceof Boolean b && b;
             if (currentVal != value) {
-                state.put("submitting", value);
+                values.put("submitting", value);
                 scope.forceUpdate();
             }
         }

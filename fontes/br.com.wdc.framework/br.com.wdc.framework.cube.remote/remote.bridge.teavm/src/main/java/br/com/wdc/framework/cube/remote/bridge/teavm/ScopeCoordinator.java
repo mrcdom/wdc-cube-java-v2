@@ -21,21 +21,21 @@ import br.com.wdc.framework.cube.remote.bridge.teavm.interop.WebCrypto;
  * <li>Reconnection with exponential backoff (via ReconnectController)</li>
  * <li>View garbage collection (via ViewGarbageCollector)</li>
  * <li>View factory registry (viewId → view constructor)</li>
- * <li>View state distribution (vsid → ViewScope)</li>
+ * <li>Scope distribution (vsid → ViewScope)</li>
  * <li>Form field collection and event submission</li>
  * <li>Render scheduling via requestAnimationFrame (no recursion)</li>
  * </ul>
  */
-public class ViewStateCoordinator {
+public class ScopeCoordinator {
 
-    public static ViewStateCoordinator INSTANCE;
+    public static ScopeCoordinator INSTANCE;
 
     /**
      * Configures and creates the singleton. Must be called once by the shell
      * before any other use, passing the sync namespace (e.g. {@code "~rt:"}).
      */
     public static void configure(String syncNamespace) {
-        INSTANCE = new ViewStateCoordinator(syncNamespace);
+        INSTANCE = new ScopeCoordinator(syncNamespace);
     }
 
     public static final String BROWSER_VID = "7b32e816a191";
@@ -67,7 +67,7 @@ public class ViewStateCoordinator {
     private Map<String, Object> formMap = new LinkedHashMap<>();
     private String baseWebSocketUrl = "";
 
-    private ViewStateCoordinator(String syncNamespace) {
+    private ScopeCoordinator(String syncNamespace) {
         viewMap.put(BROWSER_VSID, new ViewScope(BROWSER_VSID));
 
         String appIdFromCookie = Cookies.get("app_id");
@@ -238,21 +238,21 @@ public class ViewStateCoordinator {
         persistentStorage.set(STORAGE_KEY_INTENT, u);
     }
 
-    // -- View state application --
+    // -- Scope application --
 
     @SuppressWarnings("unchecked")
-    public void applyViewStates(List<?> stateList) {
-        for (int i = 0, len = stateList.size(); i < len; i++) {
-            var item = stateList.get(i);
-            if (item instanceof Map<?, ?> stateMap) {
-                var map = (Map<String, Object>) stateMap;
+    public void applyScopes(List<?> scopeList) {
+        for (int i = 0, len = scopeList.size(); i < len; i++) {
+            var item = scopeList.get(i);
+            if (item instanceof Map<?, ?> scopeMap) {
+                var map = (Map<String, Object>) scopeMap;
                 var vsidObj = map.get("#");
                 if (vsidObj instanceof String vsid) {
                     ViewScope viewScope = viewMap.computeIfAbsent(vsid, ViewScope::new);
 
                     ensureViewInstance(vsid);
 
-                    viewScope.setState(map);
+                    viewScope.setValues(map);
                 }
             }
         }

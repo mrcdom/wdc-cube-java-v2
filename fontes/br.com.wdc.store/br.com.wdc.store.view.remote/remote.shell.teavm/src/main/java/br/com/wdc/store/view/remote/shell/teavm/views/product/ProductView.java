@@ -18,14 +18,14 @@ public class ProductView extends AbstractRemoteView {
     private static final int ON_ADD_TO_CART = 2;
 
     private final ProductSharedView shared;
-    private final ProductScope adaptedState = new ProductScope();
+    private final ProductScope adaptedScope = new ProductScope();
     private final ProductInfo adaptedProduct = new ProductInfo();
 
     public ProductView(String vsid) {
         super(vsid);
 
         this.shared = new ProductSharedView();
-        this.shared.stateSupplier = this::adaptState;
+        this.shared.scopeSupplier = this::adaptScope;
         this.shared.requestUpdate = this::forceUpdate;
         this.shared.onBack = () -> submit(ON_BACK);
         this.shared.onAddToCart = qty -> {
@@ -39,11 +39,11 @@ public class ProductView extends AbstractRemoteView {
         return shared.renderTree();
     }
 
-    private ProductScope adaptState() {
-        ViewScope scope = state();
-        adaptedState.errorMessage.set(scope.getString("errorMessage"));
-        adaptedState.product.set(adaptProduct(scope));
-        return adaptedState;
+    private ProductScope adaptScope() {
+        ViewScope scope = scope();
+        adaptedScope.errorMessage.set(scope.getString("errorMessage"));
+        adaptedScope.product.set(adaptProduct(scope));
+        return adaptedScope;
     }
 
     private ProductInfo adaptProduct(ViewScope scope) {

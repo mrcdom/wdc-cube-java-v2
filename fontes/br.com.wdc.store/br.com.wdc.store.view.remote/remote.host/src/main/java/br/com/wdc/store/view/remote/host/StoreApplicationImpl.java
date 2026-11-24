@@ -156,9 +156,9 @@ public class StoreApplicationImpl extends StoreApplication implements RemoteAppl
 			var path = app.getFragment();
 			var browserViewId = app.getSupport().getBrowserPresenter().getView().instanceId();
 
-			Map<String, Object> browserViewState = (Map<String, Object>) request.get(browserViewId);
-			if (browserViewState != null) {
-				var requestPath = (String) browserViewState.get("p.path");
+			Map<String, Object> browserFormData = (Map<String, Object>) request.get(browserViewId);
+			if (browserFormData != null) {
+				var requestPath = (String) browserFormData.get("p.path");
 				if (StringUtils.isNotBlank(requestPath)) {
 					path = requestPath;
 				}

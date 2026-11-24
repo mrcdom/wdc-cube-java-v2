@@ -17,9 +17,8 @@ class RootView extends BaseView {
 class _RootViewState extends BaseViewState<RootView> {
   @override
   Widget build(BuildContext context) {
-    final state = viewState;
-    final errorMessage = state['errorMessage'] as String?;
-    final contentViewId = state['contentViewId'] as String?;
+    final errorMessage = scope['errorMessage'] as String?;
+    final contentViewId = scope['contentViewId'] as String?;
 
     if (errorMessage != null) {
       return Padding(

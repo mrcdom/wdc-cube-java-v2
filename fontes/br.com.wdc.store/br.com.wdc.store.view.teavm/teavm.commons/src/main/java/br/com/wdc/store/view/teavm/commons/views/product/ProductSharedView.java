@@ -58,7 +58,7 @@ public class ProductSharedView extends SharedVDomView {
 
     // -- External bindings --
 
-    public Supplier<ProductScope> stateSupplier;
+    public Supplier<ProductScope> scopeSupplier;
     public Runnable onBack;
     public Consumer<Integer> onAddToCart;
     public UnaryOperator<String> imageResolver = path -> "/" + path;
@@ -88,16 +88,16 @@ public class ProductSharedView extends SharedVDomView {
 
     @Override
     public VNode render() {
-        var state = stateSupplier.get();
-        var errorMessage = state.errorMessage.get();
+        var scope = scopeSupplier.get();
+        var errorMessage = scope.errorMessage.get();
         var showError = errorMessage != null && !errorMessage.isEmpty();
 
         String name = "";
         String image = "";
         String price = "";
         String description = "";
-        if (state.product.get() != null) {
-            var p = state.product.get();
+        if (scope.product.get() != null) {
+            var p = scope.product.get();
             name = p.name != null ? p.name : "";
             image = p.image != null ? imageResolver.apply(p.image) : "";
             price = p.price > 0 ? "$" + String.format("%.2f", p.price) : "";

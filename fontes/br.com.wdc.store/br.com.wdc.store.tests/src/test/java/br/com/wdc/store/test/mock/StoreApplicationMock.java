@@ -67,7 +67,7 @@ public class StoreApplicationMock extends StoreApplication {
     /** The host draws the root presenter's scope; every other view is asked for by the view that holds it. */
     public RootViewMock getRootView() {
         var rootPresenter = this.getRootPresenter();
-        if (rootPresenter != null && this.viewOf(rootPresenter.state) instanceof RootViewMock rootView) {
+        if (rootPresenter != null && this.viewOf(rootPresenter.scope) instanceof RootViewMock rootView) {
             return rootView;
         } else {
             return null;

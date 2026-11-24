@@ -36,7 +36,7 @@
             <artifactId>framework-cube-remote-bridge-teavm</artifactId>
         </dependency>
 
-        <!-- Presentation (ViewState classes only — TeaVM tree-shakes unused code) -->
+        <!-- Presentation (scope classes only — TeaVM tree-shakes unused code) -->
         <dependency>
             <groupId>${project.groupId}</groupId>
             <version>${project.version}</version>

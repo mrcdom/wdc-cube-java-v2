@@ -15,7 +15,7 @@ graph TD
     utils["utils/<br/><small>format_utils, url_utils</small>"]
     views["views/<br/><small>browser, root, login, home, products_panel, purchases_panel,<br/>product, cart, cart_item, receipt + view_registry</small>"]
     widgets["widgets/<br/><small>error_banner, hover_card, html_text, page_card, status_banner, view_header</small>"]
-    bridge["remote_bridge_flutter (framework)<br/><small>ViewStateCoordinator, DataSecurity, FlushRequestContext,<br/>ReconnectController, ViewScope, ClientStorage</small>"]
+    bridge["remote_bridge_flutter (framework)<br/><small>ScopeCoordinator, DataSecurity, FlushRequestContext,<br/>ReconnectController, ViewScope, ClientStorage</small>"]
 
     lib --> entry
     lib --> src

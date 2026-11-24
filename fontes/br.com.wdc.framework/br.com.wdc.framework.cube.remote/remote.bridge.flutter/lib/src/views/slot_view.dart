@@ -15,7 +15,7 @@ class SlotView extends BaseView {
 class _SlotViewState extends BaseViewState<SlotView> {
   @override
   Widget build(BuildContext context) {
-    final slotViewId = viewState['slot'] as String?;
+    final slotViewId = scope['slot'] as String?;
     if (slotViewId == null) return const SizedBox.shrink();
     return slot(slotViewId);
   }

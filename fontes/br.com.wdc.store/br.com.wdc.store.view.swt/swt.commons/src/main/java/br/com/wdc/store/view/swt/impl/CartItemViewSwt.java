@@ -18,12 +18,12 @@ import br.com.wdc.store.view.swt.theme.Theme;
 import br.com.wdc.store.view.swt.util.SwtDom;
 
 /**
- * The view of a cart row: a segment of the cart with its own state and actions (the item is the row — no product id
+ * The view of a cart row: a segment of the cart with its own scope and actions (the item is the row — no product id
  * goes back). Its element is born offscreen; the cart moves it into its list, in the cart's order.
  */
 public class CartItemViewSwt extends AbstractViewSwt {
 
-    public Supplier<CartItemScope> stateSupplier;
+    public Supplier<CartItemScope> scopeSupplier;
     public IntConsumer onModifyQuantity;
     public Runnable onRemove;
 
@@ -45,7 +45,7 @@ public class CartItemViewSwt extends AbstractViewSwt {
     }
 
     private int quantity() {
-        var row = this.stateSupplier != null ? this.stateSupplier.get() : null;
+        var row = this.scopeSupplier != null ? this.scopeSupplier.get() : null;
         var q = row != null ? row.quantity.get() : null;
         return q != null ? q : 0;
     }
@@ -59,7 +59,7 @@ public class CartItemViewSwt extends AbstractViewSwt {
             changed = true;
         }
 
-        var row = this.stateSupplier != null ? this.stateSupplier.get() : null;
+        var row = this.scopeSupplier != null ? this.scopeSupplier.get() : null;
         if (row != null) {
             var name = row.name.get() != null ? row.name.get() : "";
             if (!name.equals(this.nameToDraw)) {

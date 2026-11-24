@@ -17,16 +17,16 @@ public class ProductViewMock extends AbstractViewMock<ProductScope> {
         return (ProductViewMock) view;
     }
 
-    public ProductViewMock(StoreApplicationMock app, ProductScope state) {
-        super(app, state);
+    public ProductViewMock(StoreApplicationMock app, ProductScope scope) {
+        super(app, scope);
     }
 
     public void printProduct() {
-        System.out.println("PRODUCT #" + this.state.product.get().id);
-        System.out.println("Name: " + this.state.product.get().name);
-        System.out.println("Price: " + this.state.product.get().price);
-        System.out.println("Description: " + this.state.product.get().description);
-        System.out.println("Image: " + this.state.product.get().image);
+        System.out.println("PRODUCT #" + this.scope.product.get().id);
+        System.out.println("Name: " + this.scope.product.get().name);
+        System.out.println("Price: " + this.scope.product.get().price);
+        System.out.println("Description: " + this.scope.product.get().description);
+        System.out.println("Image: " + this.scope.product.get().image);
         System.out.println();
     }
 

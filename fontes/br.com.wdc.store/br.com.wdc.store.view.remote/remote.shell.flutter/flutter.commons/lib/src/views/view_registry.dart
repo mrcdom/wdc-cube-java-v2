@@ -13,7 +13,7 @@ import 'product_view.dart';
 import 'receipt_view.dart';
 
 /// Registers all store view factories with the coordinator.
-void registerAllViews(ViewStateCoordinator coordinator) {
+void registerAllViews(ScopeCoordinator coordinator) {
   coordinator.registerView(RootView.viewId, (vsid, _) => RootView(key: ValueKey(vsid), vsid: vsid));
   coordinator.registerView(SlotView.viewId, (vsid, _) => SlotView(key: ValueKey(vsid), vsid: vsid));
   coordinator.registerView(LoginView.viewId, (vsid, _) => LoginView(key: ValueKey(vsid), vsid: vsid));

@@ -75,39 +75,39 @@ public class StoreSwtApplication extends StoreApplication implements SwtApp {
 	}
 
 	/**
-	 * The view of each scope (the presenters', the segments', the rows'), with its state supplier and event callbacks.
+	 * The view of each scope (the presenters', the segments', the rows'), with its scope supplier and event callbacks.
 	 */
 	private static void bindViews(StoreSwtApplication app) {
 		var rootView = app.onUiThread((RootScope s) -> {
-			var v = new RootViewSwt(app); v.stateSupplier = () -> s; return v; });
+			var v = new RootViewSwt(app); v.scopeSupplier = () -> s; return v; });
 		var loginView = app.onUiThread((LoginScope s) -> {
-			var v = new LoginViewSwt(app); v.stateSupplier = () -> s;
+			var v = new LoginViewSwt(app); v.scopeSupplier = () -> s;
 			v.onEnter = s.onEnter::run; return v; });
 		var homeView = app.onUiThread((HomeScope s) -> {
-			var v = new HomeViewSwt(app); v.stateSupplier = () -> s;
+			var v = new HomeViewSwt(app); v.scopeSupplier = () -> s;
 			v.onExit = s.onExit::run; v.onOpenCart = s.onOpenCart::run; return v; });
 		var cartView = app.onUiThread((CartScope s) -> {
-			var v = new CartViewSwt(app); v.stateSupplier = () -> s;
+			var v = new CartViewSwt(app); v.scopeSupplier = () -> s;
 			v.onOpenProducts = s.onOpenProducts::run; v.onBuy = s.onBuy::run;
 			v.rowElements = () -> s.rows.get().stream()
 					.map(row -> app.viewOf(row) instanceof AbstractViewSwt rv ? rv.getElement() : null)
 					.filter(Objects::nonNull).toList();
 			return v; });
 		var productView = app.onUiThread((ProductScope s) -> {
-			var v = new ProductViewSwt(app); v.stateSupplier = () -> s;
+			var v = new ProductViewSwt(app); v.scopeSupplier = () -> s;
 			v.onOpenProducts = s.onOpenProducts::run; v.onAddToCart = s.onAddToCart::run;
 			return v; });
 		var receiptView = app.onUiThread((ReceiptScope s) -> {
-			var v = new ReceiptViewSwt(app); v.stateSupplier = () -> s;
+			var v = new ReceiptViewSwt(app); v.scopeSupplier = () -> s;
 			v.onOpenProducts = s.onOpenProducts::run; return v; });
 		var cartItemView = app.onUiThread((CartScope.CartItemScope row) -> {
-			var v = new CartItemViewSwt(app); v.stateSupplier = () -> row;
+			var v = new CartItemViewSwt(app); v.scopeSupplier = () -> row;
 			v.onModifyQuantity = row.onModifyQuantity::run; v.onRemove = row.onRemove::run; return v; });
 		var productsPanelView = app.onUiThread((HomeScope.ProductsPanelScope s) -> {
-			var v = new ProductsPanelViewSwt(app); v.stateSupplier = () -> s;
+			var v = new ProductsPanelViewSwt(app); v.scopeSupplier = () -> s;
 			v.onOpenProduct = s.onOpenProduct::run; return v; });
 		var purchasesPanelView = app.onUiThread((HomeScope.PurchasesPanelScope s) -> {
-			var v = new PurchasesPanelViewSwt(app); v.stateSupplier = () -> s;
+			var v = new PurchasesPanelViewSwt(app); v.scopeSupplier = () -> s;
 			v.onPageChange = s.onPageChange::run; v.onItemSizeCapacityChanged = s.onItemSizeCapacityChanged::run;
 			v.onOpenReceipt = s.onOpenReceipt::run; return v; });
 		app.setScopeViews(new ScopeViews()
@@ -267,7 +267,7 @@ public class StoreSwtApplication extends StoreApplication implements SwtApp {
 		// The host draws the root presenter's scope; each view asks for the views of the scopes it holds
 		var rootPresenter = this.getRootPresenter();
 		if (rootPresenter != null) {
-			this.viewOf(rootPresenter.state);
+			this.viewOf(rootPresenter.scope);
 		}
 		this.historyDirty = true;
 	}

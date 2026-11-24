@@ -29,9 +29,9 @@ import br.com.wdc.store.view.teavm.commons.VNode;
  * Shared Login view implementation using Virtual DOM + Spectrum Web Components.
  * <p>
  * This view is agnostic to the hosting mode (local presenter or remote bridge).
- * State and actions are injected via lambdas:
+ * Scope and actions are injected via lambdas:
  * <ul>
- *   <li>{@link #stateSupplier} — provides the current {@link LoginScope}</li>
+ *   <li>{@link #scopeSupplier} — provides the current {@link LoginScope}</li>
  *   <li>{@link #onEnter} — action listener: receives (userName, password)</li>
  * </ul>
  */
@@ -41,8 +41,8 @@ public class LoginSharedView extends SharedVDomView {
 
     // -- External bindings (set by adapter) --
 
-    /** Provides the current view state. */
-    public Supplier<LoginScope> stateSupplier;
+    /** Provides the current scope. */
+    public Supplier<LoginScope> scopeSupplier;
 
     /** Action: user requests login. Receives (userName, password). */
     public BiConsumer<String, String> onEnter;
@@ -114,9 +114,9 @@ public class LoginSharedView extends SharedVDomView {
 
     @Override
     public VNode render() {
-        var state = stateSupplier.get();
-        var loading = state.loading.get();
-        var errorMessage = state.errorMessage.get();
+        var scope = scopeSupplier.get();
+        var loading = scope.loading.get();
+        var errorMessage = scope.errorMessage.get();
         var showError = errorMessage != null && !errorMessage.isEmpty();
         
         var title = "WDC Store";

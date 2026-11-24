@@ -13,15 +13,15 @@ public class CartView extends AbstractVDomView<CartScope> {
 
     private final CartSharedView shared;
 
-    public CartView(StoreTeaVMApplication app, CartScope state) {
-        super("cart", app, state);
+    public CartView(StoreTeaVMApplication app, CartScope scope) {
+        super("cart", app, scope);
 
         this.shared = new CartSharedView();
-        this.shared.stateSupplier = () -> state;
-        this.shared.onBack = () -> safeAction("Back", state.onOpenProducts::run);
-        this.shared.onBuy = () -> safeAction("Buy", state.onBuy::run);
+        this.shared.scopeSupplier = () -> scope;
+        this.shared.onBack = () -> safeAction("Back", scope.onOpenProducts::run);
+        this.shared.onBuy = () -> safeAction("Buy", scope.onBuy::run);
         // The rows are views of their own (CartItemView): the cart lays their elements out in its order
-        this.shared.rowElements = () -> state.rows.get().stream()
+        this.shared.rowElements = () -> scope.rows.get().stream()
                 .map(row -> this.app.viewOf(row) instanceof AbstractViewTeaVM<?> v ? v.getElement() : null)
                 .filter(Objects::nonNull)
                 .toList();

@@ -1,6 +1,6 @@
 # WDC Store — Flutter Web
 
-Web shell for the **WDC Store** application, using the **Remote Presentation** protocol via Flutter compiled to WebAssembly/JS. A thin client that renders ViewStates received from the server over WebSocket.
+Web shell for the **WDC Store** application, using the **Remote Presentation** protocol via Flutter compiled to WebAssembly/JS. A thin client that renders scopes received from the server over WebSocket.
 
 ## Features
 
@@ -44,7 +44,7 @@ Open `http://localhost:8080/remote.shell.flutter/`.
 graph TD
     root["flutter.web/"]
     lib["lib/"]
-    main["main.dart<br/><small>Entry point (storage scopes, ViewStateCoordinator, hash navigation)</small>"]
+    main["main.dart<br/><small>Entry point (storage scopes, ScopeCoordinator, hash navigation)</small>"]
     enc["encrypted_web_storage.dart<br/><small>AES-GCM secure storage</small>"]
     web["web/"]
     index["index.html<br/><small>HTML host</small>"]

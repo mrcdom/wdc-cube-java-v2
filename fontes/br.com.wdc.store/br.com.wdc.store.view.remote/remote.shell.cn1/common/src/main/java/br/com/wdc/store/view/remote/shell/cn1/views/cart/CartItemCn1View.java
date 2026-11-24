@@ -127,7 +127,7 @@ public class CartItemCn1View extends AbstractCn1View {
     @Override
     public void doUpdate() {
         layout();
-        Map<String, Object> m = state();
+        Map<String, Object> m = scope();
         currentQty = Json.intOf(m, "quantity");
         name.accept(Json.str(m, "name"));
         stepper.setValue(currentQty);

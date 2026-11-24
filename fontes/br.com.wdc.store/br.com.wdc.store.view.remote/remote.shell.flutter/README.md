@@ -4,7 +4,7 @@ Flutter shells for the **WDC Store** application — implementations of the Remo
 
 ## Overview
 
-All Flutter shells share the same codebase (`flutter_commons`) and differ only in target platform and deployment configuration. Each one is a thin client with no business logic — it renders ViewStates and emits events over WebSocket.
+All Flutter shells share the same codebase (`flutter_commons`) and differ only in target platform and deployment configuration. Each one is a thin client with no business logic — it renders scopes and emits events over WebSocket.
 
 ## Modules
 

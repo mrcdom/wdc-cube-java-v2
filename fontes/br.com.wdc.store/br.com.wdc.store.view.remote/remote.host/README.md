@@ -1,6 +1,6 @@
 # remote.host
 
-Concrete instance of the remote presentation protocol host for the **WDC Store** application. It is the WebSocket server that receives events from the shells (React, TeaVM, Flutter, SWT), dispatches them to the Presenters and returns the modified ViewStates.
+Concrete instance of the remote presentation protocol host for the **WDC Store** application. It is the WebSocket server that receives events from the shells (React, TeaVM, Flutter, SWT), dispatches them to the Presenters and returns the modified scopes.
 
 ## Responsibility
 
@@ -15,7 +15,7 @@ Wire the WDC Store application into the framework's `remote.backend` infrastruct
 
 ## Dependencies
 
-- `br.com.wdc.store.presentation` — the application's Presenters and ViewStates
+- `br.com.wdc.store.presentation` — the application's Presenters and Scopes
 - `persistence.impl` — Repositories (jOOQ) and data access
 - `remote.backend` — Remote protocol infrastructure (framework)
 - `io.javalin:javalin` 7.2.4 — HTTP/WebSocket

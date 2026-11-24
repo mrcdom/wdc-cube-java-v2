@@ -20,15 +20,15 @@ public abstract class AbstractViewMock<S extends Scope> implements CubeView {
 
 	public final StoreApplicationMock app;
 
-	public final S state;
+	public final S scope;
 
 	/*
 	 * Constructor
 	 */
 
-	protected AbstractViewMock(StoreApplicationMock app, S state) {
+	protected AbstractViewMock(StoreApplicationMock app, S scope) {
 		this.app = app;
-		this.state = state;
+		this.scope = scope;
 		this.instanceId = String.valueOf(INSTANCE_ID_GEN.incrementAndGet());
 	}
 

@@ -5,17 +5,17 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 /**
- * The render state: what the view draws. Observed fields are {@link Prop}s made with {@link #prop}; actions are plain
+ * The view state: what the view draws. Observed fields are {@link Prop}s made with {@link #prop}; actions are plain
  * fields ({@link Action}, {@link ActionOf}, {@link ActionOf2}) the presenter binds.
  * <p>
  * The presenter installs who is told of a change ({@link #setUpdater}, done by {@code AbstractPresenter.bind}): setting
- * a prop to a different value asks for a redraw, so the presenter does not call {@code update()} after it. A state with
+ * a prop to a different value asks for a redraw, so the presenter does not call {@code update()} after it. A scope with
  * no updater (one a remote shell fills from JSON) just keeps the values.
  * <p>
  * Changing something INSIDE a value already set (an item of the list) does not go through the prop: set a new value,
  * or call the presenter's {@code update()}.
  * <p>
- * A scope can hold smaller scopes (declared as its inner classes): segments of the view with their own state and
+ * A scope can hold smaller scopes (declared as its inner classes): segments of the view with their own props and
  * actions, but no presenter of their own. The presenter binds their actions and sets them into a prop of the owner;
  * the view layer draws each one with the view its catalog pairs with the scope class ({@link ScopeViews}, asked
  * through {@link CubeApplication#viewOf}). Until it has a view, a change in a segment redraws its owner; from then
@@ -35,7 +35,7 @@ public abstract class Scope {
     /** The actions a remote client fires on this scope, by event code (a presenter's scope shares the presenter's). */
     private Map<Integer, Consumer<Map<String, Object>>> events = new HashMap<>();
 
-    private Consumer<Map<String, Object>> syncState;
+    private Consumer<Map<String, Object>> syncScope;
 
     /** A prop with no value. */
     protected final <T> Prop<T> prop() {
@@ -91,8 +91,8 @@ public abstract class Scope {
     }
 
     /** What a remote client syncs into this scope before its events (a typed field, for instance). */
-    public final void onSync(Consumer<Map<String, Object>> syncState) {
-        this.syncState = syncState;
+    public final void onSync(Consumer<Map<String, Object>> syncScope) {
+        this.syncScope = syncScope;
     }
 
     /**
@@ -129,7 +129,7 @@ public abstract class Scope {
 
     /** The skeleton of this scope as a remote view: dispatches each event to the action bound with its code. */
     public final CubeSkeleton skeleton(String classId) {
-        return newSkeleton(classId, events, syncState, getClass().getSimpleName());
+        return newSkeleton(classId, events, syncScope, getClass().getSimpleName());
     }
 
     static void putEvent(Map<Integer, Consumer<Map<String, Object>>> events, int eventCode,
@@ -140,7 +140,7 @@ public abstract class Scope {
     }
 
     static CubeSkeleton newSkeleton(String classId, Map<Integer, Consumer<Map<String, Object>>> events,
-            Consumer<Map<String, Object>> syncState, String owner) {
+            Consumer<Map<String, Object>> syncScope, String owner) {
         return new CubeSkeleton() {
 
             @Override
@@ -158,9 +158,9 @@ public abstract class Scope {
             }
 
             @Override
-            public void syncState(Map<String, Object> formData) {
-                if (syncState != null) {
-                    syncState.accept(formData);
+            public void syncScope(Map<String, Object> formData) {
+                if (syncScope != null) {
+                    syncScope.accept(formData);
                 }
             }
         };

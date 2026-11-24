@@ -134,7 +134,7 @@ public class CartCn1View extends AbstractCn1View {
     @Override
     public void doUpdate() {
         // The rows are views of their own (CartItemCn1View), referenced by id in cart order
-        List<Object> rowIds = Json.asList(state().get("rowsViewIds"));
+        List<Object> rowIds = Json.asList(scope().get("rowsViewIds"));
         boolean empty = rowIds.isEmpty();
 
         body.mount(empty ? emptySection : itemsSection); // swaps only on transition (reference comparison)
@@ -148,7 +148,7 @@ public class CartCn1View extends AbstractCn1View {
                 }
             }
             syncRows(rows);
-            total.accept(Money.format(Json.doubleOf(state(), "total")));
+            total.accept(Money.format(Json.doubleOf(scope(), "total")));
         }
     }
 

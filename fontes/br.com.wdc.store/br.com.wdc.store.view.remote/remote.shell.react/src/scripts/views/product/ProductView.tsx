@@ -30,19 +30,19 @@ const DefaultProduct: Product = {
 
 // :: View
 
-export type ProductViewState = {
+export type ProductScope = {
   product: Product
   quantity: number
   errorMessage?: string
 }
 
-class ProductViewClass extends BaseViewClass<ViewProps, ProductViewState> {
+class ProductViewClass extends BaseViewClass<ViewProps, ProductScope> {
   // :: Renderes
 
   override render({ className }: ViewProps) {
-    const { state } = this
-    const quantity = (state.quantity = state.quantity ?? 1)
-    const product = state.product ?? DefaultProduct
+    const { scope } = this
+    const quantity = (scope.quantity = scope.quantity ?? 1)
+    const product = scope.product ?? DefaultProduct
 
     return (
       <div className={clsx(Sel.pageScrollRoot, className)}>
@@ -89,12 +89,12 @@ class ProductViewClass extends BaseViewClass<ViewProps, ProductViewState> {
           </div>
 
           {/* Error */}
-          {state.errorMessage && (
+          {scope.errorMessage && (
             <div className={clsx(Sel.alertError, Sel.mt16)}>
               <span className={Sel.alertErrorIcon}>
                 <i className="bi bi-exclamation-circle"></i>
               </span>
-              <span className={Sel.alertErrorText}>{state.errorMessage}</span>
+              <span className={Sel.alertErrorText}>{scope.errorMessage}</span>
             </div>
           )}
         </div>
@@ -105,8 +105,8 @@ class ProductViewClass extends BaseViewClass<ViewProps, ProductViewState> {
   // :: Emissors
 
   readonly emitAddToCart = () => {
-    const { vsid, state } = this
-    bridge.setFormField(vsid, "p.quantity", state.quantity)
+    const { vsid, scope } = this
+    bridge.setFormField(vsid, "p.quantity", scope.quantity)
     bridge.submit(vsid, ON_ADD_TO_CART)
   }
 
@@ -116,18 +116,18 @@ class ProductViewClass extends BaseViewClass<ViewProps, ProductViewState> {
   }
 
   readonly emitIncrement = () => {
-    const { vsid, state } = this
-    state.quantity = (state.quantity ?? 1) + 1
-    bridge.setFormField(vsid, "quantity", state.quantity)
+    const { vsid, scope } = this
+    scope.quantity = (scope.quantity ?? 1) + 1
+    bridge.setFormField(vsid, "quantity", scope.quantity)
     this.forceUpdate()
   }
 
   readonly emitDecrement = () => {
-    const { vsid, state } = this
-    const cur = state.quantity ?? 1
+    const { vsid, scope } = this
+    const cur = scope.quantity ?? 1
     if (cur > 1) {
-      state.quantity = cur - 1
-      bridge.setFormField(vsid, "quantity", state.quantity)
+      scope.quantity = cur - 1
+      bridge.setFormField(vsid, "quantity", scope.quantity)
       this.forceUpdate()
     }
   }

@@ -28,18 +28,17 @@ class _ProductViewState extends BaseViewState<ProductView> {
 
   @override
   Widget build(BuildContext context) {
-    final state = viewState;
-    final product = state['product'] as Map<String, dynamic>? ?? {};
+    final product = scope['product'] as Map<String, dynamic>? ?? {};
     final name = product['name'] as String? ?? '';
     final description = product['description'] as String? ?? '';
     final price = (product['price'] as num?)?.toDouble() ?? 0.0;
     final productId = product['id'];
-    final errorMessage = state['errorMessage'] as String?;
+    final errorMessage = scope['errorMessage'] as String?;
 
     // Re-sync quantity when product changes
     if (productId != _lastProductId) {
       _lastProductId = productId;
-      _localQuantity = (state['quantity'] as num?)?.toInt() ?? 1;
+      _localQuantity = (scope['quantity'] as num?)?.toInt() ?? 1;
     }
 
     return PageCard(

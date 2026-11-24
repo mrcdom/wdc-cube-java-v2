@@ -16,8 +16,8 @@ public class RootViewMock extends AbstractViewMock<RootScope> {
         return (RootViewMock) view;
     }
 
-    public RootViewMock(StoreApplicationMock app, RootScope state) {
-        super(app, state);
+    public RootViewMock(StoreApplicationMock app, RootScope scope) {
+        super(app, scope);
     }
 
 }

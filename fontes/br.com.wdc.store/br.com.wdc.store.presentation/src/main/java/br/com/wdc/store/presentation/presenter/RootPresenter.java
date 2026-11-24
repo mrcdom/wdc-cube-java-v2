@@ -23,7 +23,7 @@ public class RootPresenter extends AbstractCubePresenter<StoreApplication> {
 
     // :: Public Instance Fields
 
-    public final RootScope state = bind(new RootScope());
+    public final RootScope scope = bind(new RootScope());
 
     // :: Internal Instance Fields
 
@@ -40,7 +40,7 @@ public class RootPresenter extends AbstractCubePresenter<StoreApplication> {
 
     @Override
     public void release() {
-        this.state.content.set(null);
+        this.scope.content.set(null);
         super.release();
     }
 
@@ -117,23 +117,23 @@ public class RootPresenter extends AbstractCubePresenter<StoreApplication> {
 
     public void alertUnexpectedError(Log logger, String message, Throwable caught) {
         if (StringUtils.isBlank(caught.getMessage())) {
-            this.state.errorMessage.set(message);
+            this.scope.errorMessage.set(message);
         } else {
-            this.state.errorMessage.set(message + ": " + caught.getMessage());
+            this.scope.errorMessage.set(message + ": " + caught.getMessage());
         }
         // The same message again is still a new alert: the prop alone would not redraw
         this.update();
         if (logger != null) {
-            logger.error(this.state.errorMessage.get(), caught);
+            logger.error(this.scope.errorMessage.get(), caught);
         } else {
-            LOG.error(this.state.errorMessage.get(), caught);
+            LOG.error(this.scope.errorMessage.get(), caught);
         }
     }
 
     // :: Slots
 
     private void setContent(Scope content) {
-        this.state.content.set(content);
+        this.scope.content.set(content);
     }
 
 }

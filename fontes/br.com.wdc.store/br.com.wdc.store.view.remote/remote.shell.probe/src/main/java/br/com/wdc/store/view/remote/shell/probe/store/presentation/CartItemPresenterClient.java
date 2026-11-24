@@ -35,16 +35,16 @@ public class CartItemPresenterClient extends AbstractPresenterClient {
         return submit(2);
     }
 
-    // :: State accessors
+    // :: Scope accessors
 
     public long id() {
-        var s = state();
+        var s = scope();
         var v = s != null ? s.getLong("id") : null;
         return v != null ? v : -1L;
     }
 
     public long quantity() {
-        var s = state();
+        var s = scope();
         var v = s != null ? s.getLong("quantity") : null;
         return v != null ? v : 0L;
     }

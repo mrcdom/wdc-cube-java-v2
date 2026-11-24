@@ -28,8 +28,8 @@ import br.com.wdc.framework.commons.storage.ClientStorage;
 import br.com.wdc.framework.commons.storage.InMemoryClientStorage;
 import br.com.wdc.framework.cube.remote.bridge.java.model.HostResponse;
 import br.com.wdc.framework.cube.remote.bridge.java.model.SecretContext;
-import br.com.wdc.framework.cube.remote.bridge.java.model.ViewStateMap;
-import br.com.wdc.framework.cube.remote.bridge.java.model.ViewStateSnapshot;
+import br.com.wdc.framework.cube.remote.bridge.java.model.ScopeMap;
+import br.com.wdc.framework.cube.remote.bridge.java.model.ScopeSnapshot;
 
 /**
  * Main facade for connecting a Java program to the Host as a Shell.
@@ -37,12 +37,12 @@ import br.com.wdc.framework.cube.remote.bridge.java.model.ViewStateSnapshot;
  * Usage:
  * <pre>{@code
  * var client = HostClient.connect("http://localhost:8080");
- * HostResponse initial = client.awaitResponse();          // async initial state push
+ * HostResponse initial = client.awaitResponse();          // async initial scope push
  * client.navigate(initial.uri());                         // navigate via signed URI
  * HostResponse afterNav = client.awaitResponse();
  * client.submit("productList:1", 3, Map.of());            // submit view event
  * HostResponse after = client.awaitResponse();
- * ViewStateSnapshot cart = client.viewState("cart:1");
+ * ScopeSnapshot cart = client.scope("cart:1");
  * client.close();
  * }</pre>
  *
@@ -52,7 +52,7 @@ import br.com.wdc.framework.cube.remote.bridge.java.model.ViewStateSnapshot;
  *   <li>Build secret from {@code appSKey} (RSA + PBKDF2 key derivation)</li>
  *   <li>WS connect {@code ws://host/dispatcher/{appId}} (sub-protocol {@code wdc})</li>
  *   <li>Send: {@code {"secret": "...", "event": []}} -- no requestId</li>
- *   <li>Server responds asynchronously with initial states push</li>
+ *   <li>Server responds asynchronously with the initial scopes push</li>
  *   <li>Navigate: {@code {"requestId": N, "event": ["7b32e816a191:0:-1"], "7b32e816a191:0": {"p.path": uri}}}</li>
  *   <li>Submit: {@code {"requestId": N, "event": ["instanceId:eventCode"], "instanceId": {formData}}}</li>
  * </ol>
@@ -62,8 +62,8 @@ public final class HostClient implements AutoCloseable {
     private static final Logger LOG = LoggerFactory.getLogger(HostClient.class);
 
     /**
-     * The instanceId of the browser ViewState — the root of the server-side view composition tree.
-     * Use {@code viewState(BROWSER_VSID)} to read the browser state directly.
+     * The instanceId of the browser scope — the root of the server-side view composition tree.
+     * Use {@code scope(BROWSER_VSID)} to read the browser scope directly.
      */
     public static final String BROWSER_VSID = HostClientSession.BROWSER_VSID;
 
@@ -80,17 +80,17 @@ public final class HostClient implements AutoCloseable {
     private final String serverUrl;
     private final SecretContext secret;
     private final HostClientSession session;
-    private final ViewStateMap states;
+    private final ScopeMap scopes;
     private final ClientStorage sessionStorage;
     private final ClientStorage persistentStorage;
     private final AtomicLong requestCounter = new AtomicLong(0);
 
     private HostClient(String serverUrl, SecretContext secret, HostClientSession session,
-                       ViewStateMap states, ClientStorage sessionStorage, ClientStorage persistentStorage) {
+                       ScopeMap scopes, ClientStorage sessionStorage, ClientStorage persistentStorage) {
         this.serverUrl = serverUrl;
         this.secret = secret;
         this.session = session;
-        this.states = states;
+        this.scopes = scopes;
         this.sessionStorage = sessionStorage;
         this.persistentStorage = persistentStorage;
     }
@@ -105,7 +105,7 @@ public final class HostClient implements AutoCloseable {
      *   <li>Calls {@code GET /api/session/init}</li>
      *   <li>Derives session keys via {@link ClientCrypto}</li>
      *   <li>Opens a WebSocket to {@code ws://host/dispatcher/{appId}}</li>
-     *   <li>Sends the init message, triggering the async state push</li>
+     *   <li>Sends the init message, triggering the async scope push</li>
      * </ol>
      *
      * @param serverUrl base URL of the Host server (e.g., {@code http://localhost:8080})
@@ -148,14 +148,14 @@ public final class HostClient implements AutoCloseable {
         SecretContext secret = ClientCrypto.generateSecret(appSKey);
 
         // 3. Open WebSocket
-        var sharedStates = new ViewStateMap();
+        var sharedScopes = new ScopeMap();
         var wsBase = serverUrl.replaceFirst("^http", "ws");
         var wsUrl = wsBase + "/dispatcher/" + appId;
 
-        var clientSession = new HostClientSession(sharedStates);
+        var clientSession = new HostClientSession(sharedScopes);
         clientSession.connect(wsUrl);
 
-        // 4. Send init message (no requestId -- triggers async state push)
+        // 4. Send init message (no requestId -- triggers the async scope push)
         Map<String, Object> initMsg = new HashMap<>();
         initMsg.put("secret", secret.signature());
         initMsg.put("event", List.of());
@@ -171,7 +171,7 @@ public final class HostClient implements AutoCloseable {
         clientSession.send(GSON.toJson(initMsg));
 
         LOG.info("Connected and init message sent");
-        return new HostClient(serverUrl, secret, clientSession, sharedStates, new InMemoryClientStorage(), persistentStorage);
+        return new HostClient(serverUrl, secret, clientSession, sharedScopes, new InMemoryClientStorage(), persistentStorage);
     }
 
     // :: Navigation
@@ -179,8 +179,8 @@ public final class HostClient implements AutoCloseable {
     /**
      * Sends a navigation event and blocks until the server confirms the navigation
      * (i.e., until the response with the matching {@code requestId} arrives).
-     * Intermediate messages (loading states, async pushes) are discarded from the
-     * caller's perspective — they are already applied to the shared {@link ViewStateMap}.
+     * Intermediate messages (loading scopes, async pushes) are discarded from the
+     * caller's perspective — they are already applied to the shared {@link ScopeMap}.
      *
      * @param path the navigation path (plain place token, e.g., {@code "login"}, {@code "home"})
      * @return the server response confirming the navigation
@@ -262,7 +262,7 @@ public final class HostClient implements AutoCloseable {
      * <p>
      * Intermediate messages (no {@code requestId} or a different one) are discarded
      * from the caller's perspective — they are already applied to the
-     * shared {@link ViewStateMap} by the WebSocket listener.
+     * shared {@link ScopeMap} by the WebSocket listener.
      *
      * @throws TimeoutException if the matching response does not arrive within the default timeout
      */
@@ -285,32 +285,32 @@ public final class HostClient implements AutoCloseable {
         return response;
     }
 
-    // :: ViewState access
+    // :: Scope access
 
     /**
      * Returns the current snapshot of the given view instance, or {@code null} if not present.
      */
-    public ViewStateSnapshot viewState(String instanceId) {
-        return states.get(instanceId);
+    public ScopeSnapshot scope(String instanceId) {
+        return scopes.get(instanceId);
     }
 
     /**
-     * Returns all currently active ViewState snapshots.
+     * Returns the snapshots of all currently active scopes.
      */
-    public Collection<ViewStateSnapshot> allViewStates() {
-        return states.all();
+    public Collection<ScopeSnapshot> allScopes() {
+        return scopes.all();
     }
 
     /**
-     * Returns all active ViewState snapshots for the given classId.
+     * Returns the snapshots of all active scopes of the given classId.
      * <p>
      * Useful when a presenter spawns multiple instances (e.g., several {@code productList} views).
      * Matches any instanceId with the pattern {@code "classId:N"}.
      *
      * @param classId the view class ID (e.g., {@code "productList"}, {@code "cart"})
      */
-    public Collection<ViewStateSnapshot> viewStatesByClass(String classId) {
-        return states.allByClassId(classId);
+    public Collection<ScopeSnapshot> scopesByClass(String classId) {
+        return scopes.allByClassId(classId);
     }
 
     /**
@@ -340,7 +340,7 @@ public final class HostClient implements AutoCloseable {
      * Returns the presenter currently shown as the top-level page by following the
      * view composition chain: {@code browser → frame → page}.
      * <p>
-     * The browser ViewState ({@code 7b32e816a191:0}) holds a {@code contentViewId}
+     * The browser scope ({@code 7b32e816a191:0}) holds a {@code contentViewId}
      * pointing to the frame/shell view, which in turn holds a {@code contentViewId}
      * pointing to the active page (login, home, etc.).
      *
@@ -348,13 +348,13 @@ public final class HostClient implements AutoCloseable {
      * @return the typed presenter, or {@link Optional#empty()} if the chain is incomplete
      */
     public <T extends AbstractPresenterClient> Optional<T> currentPagePresenter(Class<T> presenterType) {
-        var browserState = states.get(BROWSER_VSID);
-        if (browserState == null) return Optional.empty();
-        var frameId = browserState.getString("contentViewId");
+        var browserScope = scopes.get(BROWSER_VSID);
+        if (browserScope == null) return Optional.empty();
+        var frameId = browserScope.getString("contentViewId");
         if (frameId == null) return Optional.empty();
-        var frameState = states.get(frameId);
-        if (frameState == null) return Optional.empty();
-        var pageId = frameState.getString("contentViewId");
+        var frameScope = scopes.get(frameId);
+        if (frameScope == null) return Optional.empty();
+        var pageId = frameScope.getString("contentViewId");
         if (pageId == null) return Optional.empty();
         return Optional.of(presenterByInstanceId(pageId, presenterType));
     }
@@ -371,7 +371,7 @@ public final class HostClient implements AutoCloseable {
         try {
             var ctor = presenterType.getConstructor(HostClient.class, String.class);
             var result = new ArrayList<T>();
-            for (var vs : states.allByClassId(classId)) {
+            for (var vs : scopes.allByClassId(classId)) {
                 result.add(ctor.newInstance(this, vs.instanceId()));
             }
             return result;
@@ -394,7 +394,7 @@ public final class HostClient implements AutoCloseable {
             String classId, Class<T> presenterType) {
         try {
             var ctor = presenterType.getConstructor(HostClient.class, String.class);
-            return states.allByClassId(classId).stream()
+            return scopes.allByClassId(classId).stream()
                     .findFirst()
                     .map(vs -> {
                         try {

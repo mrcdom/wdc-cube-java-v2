@@ -34,8 +34,8 @@ public class ProductViewVaadin extends AbstractViewVaadin<ProductScope> {
     private Div descriptionElm;
     private String descriptionOldValue;
 
-    public ProductViewVaadin(StoreVaadinApplication app, ProductScope state) {
-        super("product", app, state, new VerticalLayout());
+    public ProductViewVaadin(StoreVaadinApplication app, ProductScope scope) {
+        super("product", app, scope, new VerticalLayout());
     }
 
     @Override
@@ -61,34 +61,34 @@ public class ProductViewVaadin extends AbstractViewVaadin<ProductScope> {
             this.notRendered = false;
         }
 
-        if (!Objects.equals(this.nameOldValue, this.state.product.get().name)) {
-            this.nameElm1.setText(this.state.product.get().name);
-            this.nameElm2.setText(this.state.product.get().name);
-            this.nameOldValue = this.state.product.get().name;
+        if (!Objects.equals(this.nameOldValue, this.scope.product.get().name)) {
+            this.nameElm1.setText(this.scope.product.get().name);
+            this.nameElm2.setText(this.scope.product.get().name);
+            this.nameOldValue = this.scope.product.get().name;
         }
 
-        if (!Objects.equals(this.imageOldValue, this.state.product.get().image)) {
-            this.imageElm.setSrc(ResourceCatalog.getImageResource(this.state.product.get().image));
-            this.imageOldValue = this.state.product.get().image;
+        if (!Objects.equals(this.imageOldValue, this.scope.product.get().image)) {
+            this.imageElm.setSrc(ResourceCatalog.getImageResource(this.scope.product.get().image));
+            this.imageOldValue = this.scope.product.get().image;
         }
 
-        if (this.priceOldValue != this.state.product.get().price) {
-            this.priceElm.setText(NumberFormat.getCurrencyInstance(Locale.US).format(this.state.product.get().price));
-            this.priceOldValue = this.state.product.get().price;
+        if (this.priceOldValue != this.scope.product.get().price) {
+            this.priceElm.setText(NumberFormat.getCurrencyInstance(Locale.US).format(this.scope.product.get().price));
+            this.priceOldValue = this.scope.product.get().price;
         }
 
-        if (!Objects.equals(this.descriptionOldValue, this.state.product.get().description)) {
+        if (!Objects.equals(this.descriptionOldValue, this.scope.product.get().description)) {
             this.descriptionElm.getElement().setProperty("innerHTML",
-                    this.state.product.get().description != null ? this.state.product.get().description : "");
-            this.descriptionOldValue = this.state.product.get().description;
+                    this.scope.product.get().description != null ? this.scope.product.get().description : "");
+            this.descriptionOldValue = this.scope.product.get().description;
         }
 
-        if (this.state.errorCode.get() != 0) {
-            Notification.show(this.state.errorMessage.get(), 5000, Notification.Position.TOP_CENTER)
+        if (this.scope.errorCode.get() != 0) {
+            Notification.show(this.scope.errorMessage.get(), 5000, Notification.Position.TOP_CENTER)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
             // Consumed while drawing: a redraw now would take the message away
-            this.state.errorCode.setSilently(0);
-            this.state.errorMessage.setSilently(null);
+            this.scope.errorCode.setSilently(0);
+            this.scope.errorMessage.setSilently(null);
         }
     }
 
@@ -102,8 +102,8 @@ public class ProductViewVaadin extends AbstractViewVaadin<ProductScope> {
         dom.h3(h -> {
             this.nameElm1 = new Span();
             this.nameElm2 = new Span();
-            this.nameElm2.setText(this.state.product.get().name);
-            this.nameElm1.setText(this.state.product.get().name);
+            this.nameElm2.setText(this.scope.product.get().name);
+            this.nameElm1.setText(this.scope.product.get().name);
             h.add(this.nameElm2);
             h.getStyle().set("margin", "var(--lumo-space-xs) 0");
         });
@@ -130,8 +130,8 @@ public class ProductViewVaadin extends AbstractViewVaadin<ProductScope> {
 
             this.priceElm = new Span();
             this.priceElm.addClassName("lbl-price-val");
-            this.priceElm.setText(NumberFormat.getCurrencyInstance(Locale.US).format(this.state.product.get().price));
-            this.priceOldValue = this.state.product.get().price;
+            this.priceElm.setText(NumberFormat.getCurrencyInstance(Locale.US).format(this.scope.product.get().price));
+            this.priceOldValue = this.scope.product.get().price;
             infoPanel.add(this.priceElm);
 
             var actionRow = new com.vaadin.flow.component.orderedlayout.HorizontalLayout();
@@ -157,8 +157,8 @@ public class ProductViewVaadin extends AbstractViewVaadin<ProductScope> {
 
             // Right: product image
             this.imageElm = new com.vaadin.flow.component.html.Image();
-            this.imageElm.setSrc(ResourceCatalog.getImageResource(this.state.product.get().image));
-            this.imageOldValue = this.state.product.get().image;
+            this.imageElm.setSrc(ResourceCatalog.getImageResource(this.scope.product.get().image));
+            this.imageOldValue = this.scope.product.get().image;
             this.imageElm.getStyle()
                     .set("flex", "0 0 auto")
                     .set("width", "240px")
@@ -183,10 +183,10 @@ public class ProductViewVaadin extends AbstractViewVaadin<ProductScope> {
             descDiv.addClassName("description");
             descDiv.setWidthFull();
             this.descriptionElm = descDiv;
-            if (this.state.product.get().description != null) {
-                descDiv.getElement().setProperty("innerHTML", this.state.product.get().description);
+            if (this.scope.product.get().description != null) {
+                descDiv.getElement().setProperty("innerHTML", this.scope.product.get().description);
             }
-            this.descriptionOldValue = this.state.product.get().description;
+            this.descriptionOldValue = this.scope.product.get().description;
         });
 
         // Back button - bottom
@@ -196,7 +196,7 @@ public class ProductViewVaadin extends AbstractViewVaadin<ProductScope> {
             button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
             button.addClassName("back-button");
             button.getStyle().set("margin-top", "var(--lumo-space-m)");
-            button.addClickListener(e -> safeAction("Open products", this.state.onOpenProducts::run));
+            button.addClickListener(e -> safeAction("Open products", this.scope.onOpenProducts::run));
         });
     }
 
@@ -205,6 +205,6 @@ public class ProductViewVaadin extends AbstractViewVaadin<ProductScope> {
         if (quantity == null || quantity < 1) {
             quantity = 1;
         }
-        this.state.onAddToCart.run(quantity);
+        this.scope.onAddToCart.run(quantity);
     }
 }

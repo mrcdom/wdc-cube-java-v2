@@ -6,7 +6,7 @@ Java thin client compiled to JavaScript via **TeaVM 0.16.0**, using a **Virtual 
 
 This module is an alternative implementation of the shell (thin client) of the Remote Presentation architecture. It replaces React as the rendering engine while keeping the same bidirectional WebSocket protocol:
 
-- Receives serialized **ViewStates** from the host (deltas/dirty only)
+- Receives serialized **scopes** (the view state of each presenter) from the host (deltas/dirty only)
 - Renders using a Virtual DOM (efficient diff → real DOM)
 - Emits user **interaction events** back to the host
 
@@ -28,10 +28,10 @@ graph TD
 ```mermaid
 graph TD
     subgraph browser["Browser (remote.shell.teavm)"]
-        coordinator["ViewStateCoordinator"]
+        coordinator["ScopeCoordinator"]
         ws["WebSocket"]
         subgraph vdom["AbstractRemoteView (VDom)"]
-            scope["ViewScope (state received from the host)"]
+            scope["ViewScope (scope received from the host)"]
             adapt["adapts JSON → XxxScope"]
             shared["XxxSharedView.renderTree() → VNode tree"]
             diff["diff/patch → real DOM"]
@@ -47,7 +47,7 @@ graph TD
     ws <--> host
 ```
 
-The protocol infrastructure (`ViewStateCoordinator`, `ViewScope`, `FlushRequestContext`, `ReconnectController`, `DataSecurity`, `SecurityBoot`, `EncryptedLocalStorage`, `JsonParser`, `ViewGarbageCollector`) lives in the framework module `remote.bridge.teavm`; the VDom engine, the Spectrum Web Components DSL, the `Sel*` class catalogs and the shared views live in `teavm.commons` (also used by `teavm.web`).
+The protocol infrastructure (`ScopeCoordinator`, `ViewScope`, `FlushRequestContext`, `ReconnectController`, `DataSecurity`, `SecurityBoot`, `EncryptedLocalStorage`, `JsonParser`, `ViewGarbageCollector`) lives in the framework module `remote.bridge.teavm`; the VDom engine, the Spectrum Web Components DSL, the `Sel*` class catalogs and the shared views live in `teavm.commons` (also used by `teavm.web`).
 
 ## Project Structure
 
@@ -62,7 +62,7 @@ graph TD
     java["java/.../shell/teavm/"]
     main["Main.java<br/><small>Entry point (registers view factories)</small>"]
     bridge["bridge/"]
-    arv["AbstractRemoteView.java<br/><small>VDom base (render/diff/useCallback, state/submit/setFormField)</small>"]
+    arv["AbstractRemoteView.java<br/><small>VDom base (render/diff/useCallback, scope/submit/setFormField)</small>"]
     views["views/<br/><small>BrowserView · RootView · LoginView · HomeView · ProductsPanelView<br/>PurchasesPanelView · ProductView · CartView · CartItemView · ReceiptView</small>"]
     scss["scss/<br/><small>app.scss (+ browser/_browser.scss)</small>"]
     webapp["webapp/<br/><small>index.html, context.html, css/app.css (generated)</small>"]
@@ -83,14 +83,14 @@ graph TD
 
 ## Virtual DOM
 
-Views extend `AbstractRemoteView` and implement `render()`, returning a `VNode` tree. Most of them delegate to a shared view, after adapting the JSON state into the presentation scope type (`CartView`):
+Views extend `AbstractRemoteView` and implement `render()`, returning a `VNode` tree. Most of them delegate to a shared view, after adapting the JSON scope into the presentation scope type (`CartView`):
 
 ```java
 public CartView(String vsid) {
     super(vsid);
 
     this.shared = new CartSharedView();
-    this.shared.stateSupplier = this::adaptState;
+    this.shared.scopeSupplier = this::adaptScope;
     this.shared.onBack = () -> submit(ON_BACK);
     this.shared.onBuy = () -> submit(ON_BUY);
     this.shared.rowElements = this::rowElements;
@@ -101,11 +101,11 @@ protected VNode render() {
     return shared.renderTree();
 }
 
-private CartScope adaptState() {
-    ViewScope scope = state();
-    adaptedState.errorMessage.set(scope.getString("errorMessage"));
-    adaptedState.total.set(scope.getDouble("total"));
-    return adaptedState;
+private CartScope adaptScope() {
+    ViewScope scope = scope();
+    adaptedScope.errorMessage.set(scope.getString("errorMessage"));
+    adaptedScope.total.set(scope.getDouble("total"));
+    return adaptedScope;
 }
 ```
 
@@ -114,7 +114,7 @@ private CartScope adaptState() {
 ```java
 @Override
 protected VNode render() {
-    var scope = state();
+    var scope = scope();
     var contentEl = getChildViewElement(scope.getString("contentViewId"));
     return spTheme("light", "medium", "spectrum").cls(Sel.ROOT).children(
       slot(contentEl).cls(Sel.CONTENT));
@@ -155,7 +155,7 @@ private interface Sel {
 |---------|-------------------|----------------------|
 | **Business logic** | None (thin client) | Complete (standalone SPA) |
 | **Communication** | Bidirectional WebSocket | REST (XMLHttpRequest) |
-| **State** | Received from the host (`ViewScope`) | Managed locally (Presenters) |
+| **Scope** | Received from the host (`ViewScope`) | Managed locally (Presenters) |
 | **Presenters** | Server-side (remote.host) | Client-side (compiled together) |
 | **Rendering** | `teavm.commons` shared views | `teavm.commons` shared views |
 

@@ -4,35 +4,35 @@ Implementation of the **Remote Presentation** technique for the **WDC Store** ap
 
 ## Concept
 
-The module implements a proprietary **remote presentation** protocol — a concept analogous to Remote Desktop, but operating at the application's data layer instead of pixels. The server holds all business logic and view state; the client is a thin shell that only renders received states and emits user interaction events.
+The module implements a proprietary **remote presentation** protocol — a concept analogous to Remote Desktop, but operating at the application's data layer instead of pixels. The server holds all business logic and the scopes — the view state each presenter publishes for its view; the client is a thin shell that only renders the scopes it receives and emits user interaction events.
 
 ### How it works
 
-1. **The client (shell)** has no business logic. It contains only the views, each one independent of the others. User interaction events are sent directly from these views. A global controller in the app uses the proprietary protocol to forward requests to the server and receive back the new states of the views that were modified on the backend — only the portions of data that became "dirty".
+1. **The client (shell)** has no business logic. It contains only the views, each one independent of the others. User interaction events are sent directly from these views. A global controller in the app uses the proprietary protocol to forward requests to the server and receive back the new scopes of the views that were modified on the backend — only the portions of data that became "dirty".
 
-2. **The server (host)** is the counterpart of this protocol. It receives the requests coming from the client and forwards them to the presentation layer, invoking the methods on the Presenters that correspond to each view existing on the client side. After processing, it collects the ViewStates that changed and serializes only the deltas back.
+2. **The server (host)** is the counterpart of this protocol. It receives the requests coming from the client and forwards them to the presentation layer, invoking the methods on the Presenters that correspond to each view existing on the client side. After processing, it collects the scopes that changed and serializes only the deltas back.
 
 The reference client is a browser (React), but the architecture supports any rendering technology — it could be a native desktop app, a mobile app, or any other surface capable of rendering components and capturing events.
 
 ```mermaid
 graph TD
     subgraph Shell["Shell (thin client)"]
-        views["Independent views<br/><small>renders states, emits events</small>"]
+        views["Independent views<br/><small>renders scopes, emits events</small>"]
         proto_c["Global protocol controller"]
     end
 
     subgraph Transport["Bidirectional WebSocket"]
         up["↑ events / form data"]
-        down["↓ delta states (dirty views only)"]
+        down["↓ delta scopes (dirty views only)"]
     end
 
     subgraph Host["Host (server-side)"]
         proto_s["Protocol receiver"]
         dispatch["Dispatches to Presenters"]
-        collect["Collects dirty ViewStates"]
+        collect["Collects dirty scopes"]
     end
 
-    subgraph Core["Presenters + ViewStates (Cube MVP)"]
+    subgraph Core["Presenters + Scopes (Cube MVP)"]
         presenters["Shared with all view implementations"]
     end
 
@@ -52,13 +52,13 @@ graph TD
 | Aspect | Remote (this module) | Vaadin (server-side) | SWT (desktop) | TeaVM (multiplatform) |
 |---------|---------------------|----------------------|---------------|------------------------|
 | **Where the UI runs** | Remote browser (thin shell) | Browser via Server Push | Local JVM | Browser / WebView (Tauri) |
-| **Model** | Server-driven (delta states) | Server-driven (component tree) | Direct in-memory access | Client-side (SPA) |
+| **Model** | Server-driven (delta scopes) | Server-driven (component tree) | Direct in-memory access | Client-side (SPA) |
 | **Transport** | WebSocket (JSON delta) | Atmosphere (WebSocket/Push) | N/A (in-process) | REST (XMLHttpRequest) |
 | **Security** | RSA + AES-GCM + URL signing | HMAC-SHA256 URL signing | N/A (local process) | HMAC + JWT |
 | **Scalability** | Virtual Threads (~1K per connection) | Automatic Server Push | Single instance | Client-side (SPA) |
 | **UI code** | TypeScript (React) / Dart (Flutter) / Java (TeaVM, SWT, Codename One) | Java | Java | Java (compiled to JS) |
 | **Presenters** | Same | Same | Same | Same |
-| **ViewStates** | Same | Same | Same | Same |
+| **Scopes** | Same | Same | Same | Same |
 
 ## Submodule structure
 
@@ -107,7 +107,7 @@ Generic pieces, in framework `remote.backend` (`br.com.wdc.framework.cube.remote
 |--------|------------------|
 | `RemoteApplicationSupport` | Dirty views, event dispatch, JSON response generation |
 | `RemoteApplicationRegistry` | Registry of per-session instances, lifecycle and cleanup |
-| `RemoteViewImpl` | Remote view of a scope: `syncClientToServer()`, state writing, the scope's skeleton |
+| `RemoteViewImpl` | Remote view of a scope: `syncClientToServer()`, scope writing (`writeScope()`), the scope's skeleton |
 | `RemoteBrowserPresenter` | Coordinates navigation and intent dispatch |
 | `RemoteAppSecurity` | RSA (key exchange) + SHA256withRSA for signing navigation URLs |
 | `RemoteDataSecurity` | Per-session AES-GCM (derived via PBKDF2, 250k iterations) for sensitive data |
@@ -120,7 +120,7 @@ Thin client that acts as the rendering surface in the browser:
 
 - **React 19** + **Spectrum Web Components** (`@swc-react`) for visual components
 - Bidirectional **WebSocket** for communication with the host
-- **No business logic** — each view renders the received ViewState and emits interaction events
+- **No business logic** — each view renders the received scope and emits interaction events
 - **Independent views** — each component is self-sufficient, with no coupling between views
 - Built with **Parcel 2.13** — output in `work/frontend/remote.shell.react/`, served by the backend
 
@@ -130,7 +130,7 @@ Thin client in Java compiled to JavaScript via TeaVM, using a **Virtual DOM** (V
 
 - Declarative **VNode API** — `render()` returns a virtual tree, the framework does an efficient diff
 - Bidirectional **WebSocket** for communication with the host (same protocol as the React shell)
-- **No business logic** — each view adapts the state received via `ViewScope` and delegates rendering to a `teavm.commons` shared view
+- **No business logic** — each view adapts the scope received via `ViewScope` and delegates rendering to a `teavm.commons` shared view
 - **useCallback(key, listener)** — cache of parameterized listeners for reference stability in the diff
 - **Stable fields** — parameterless listeners extracted into `final` fields (zero cost in the diff)
 - **Compact Sel** — aliases (`u`/`c`/`icon`) for the `SelUtility`/`SelComponents`/`SelIcons` class catalogs
@@ -146,7 +146,7 @@ graph TD
     webapp["src/main/webapp/"]
     index["index.html"]
     css["css/app.css (generated from src/main/scss)"]
-    fw["remote.bridge.teavm (framework)<br/><small>ViewStateCoordinator, ViewScope, FlushRequestContext,<br/>ReconnectController, DataSecurity, ViewGarbageCollector, interop</small>"]
+    fw["remote.bridge.teavm (framework)<br/><small>ScopeCoordinator, ViewScope, FlushRequestContext,<br/>ReconnectController, DataSecurity, ViewGarbageCollector, interop</small>"]
     commons["teavm.commons<br/><small>VNode/VDom, Swc, Sel*, shared views</small>"]
 
     root --> srcJava
@@ -171,7 +171,7 @@ Multiplatform Flutter shells — thin clients in Dart that share code via `flutt
 
 ### remote.shell.swt (Maven/Java)
 
-Native desktop thin client with SWT widgets: reuses the views of `swt.commons`, fed from `ViewStateSnapshot`s received through `HostClient` (`remote.bridge.java`).
+Native desktop thin client with SWT widgets: reuses the views of `swt.commons`, fed from `ScopeSnapshot`s received through `HostClient` (`remote.bridge.java`).
 
 ### remote.shell.cn1 (Codename One)
 
@@ -198,10 +198,10 @@ Runs programmatic scenarios against the remote host — used for throughput benc
    - Host:
      a. syncClientToServer() — updates form data in the views
      b. submit() — dispatches the event to the correct Presenter
-     c. Presenter updates the ViewState → marks views dirty
-     d. commitComputedState() — propagates derived states
+     c. Presenter updates the scope → marks views dirty
+     d. commitComputedState() — propagates derived state
      e. Serializes only dirty views → JSON delta
-   - Host → Shell: { requestId, uri, states: [...] }
+   - Host → Shell: { requestId, uri, scopes: [...] }
 4. Shell applies the delta to the components (React reconciliation)
 ```
 
@@ -288,4 +288,4 @@ The Flutter shell (web build) at iPad portrait size (834×1210).
 
 ## Conclusion
 
-This module validates that the Cube MVP pattern supports **remote presentation**: all logic stays server-side in the **host**, and the **shell** is an interchangeable thin client that renders serialized states and captures interactions. The host/shell separation ensures that the same protocol infrastructure can feed different frontend technologies — all it takes is a new `remote.shell.<technology>` that implements ViewState rendering and event emission.
+This module validates that the Cube MVP pattern supports **remote presentation**: all logic stays server-side in the **host**, and the **shell** is an interchangeable thin client that renders serialized scopes and captures interactions. The host/shell separation ensures that the same protocol infrastructure can feed different frontend technologies — all it takes is a new `remote.shell.<technology>` that implements scope rendering and event emission.

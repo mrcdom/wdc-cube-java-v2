@@ -22,15 +22,15 @@ public abstract class AbstractViewTeaVM<S extends Scope> implements CubeView {
     protected final String instanceId;
     protected final StoreTeaVMApplication app;
     /** The scope this view draws. */
-    protected final S state;
+    protected final S scope;
     protected final HTMLElement element;
     protected boolean notRendered = true;
     public long dirtyTimestamp;
 
-    protected AbstractViewTeaVM(String instanceId, StoreTeaVMApplication app, S state, HTMLElement element) {
+    protected AbstractViewTeaVM(String instanceId, StoreTeaVMApplication app, S scope, HTMLElement element) {
         this.instanceId = instanceId;
         this.app = app;
-        this.state = state;
+        this.scope = scope;
         this.element = element;
     }
 
@@ -56,7 +56,7 @@ public abstract class AbstractViewTeaVM<S extends Scope> implements CubeView {
     }
 
     /**
-     * Updates the DOM based on the current state of the scope.
+     * Updates the DOM based on the current scope.
      * Called by the render loop when the view is marked as dirty.
      */
     public abstract void doUpdate();

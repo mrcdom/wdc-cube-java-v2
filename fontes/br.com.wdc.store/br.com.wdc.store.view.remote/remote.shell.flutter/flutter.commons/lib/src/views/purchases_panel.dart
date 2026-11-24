@@ -46,7 +46,7 @@ class _PurchasesPanelState extends BaseViewState<PurchasesPanel> {
     _measureFirstItem();
     final itemHeight = _measuredItemHeight > 0 ? _measuredItemHeight : _fallbackItemHeight;
     final capacity = (_lastHeight / itemHeight).floor().clamp(1, 100);
-    final currentPageSize = (viewState['pageSize'] as num?)?.toInt() ?? 0;
+    final currentPageSize = (scope['pageSize'] as num?)?.toInt() ?? 0;
     if (capacity == currentPageSize) return;
     setFormField('p.capacity', capacity);
     submit(_onPageSizeChange);
@@ -63,10 +63,10 @@ class _PurchasesPanelState extends BaseViewState<PurchasesPanel> {
 
   @override
   Widget build(BuildContext context) {
-    final purchases = (viewState['purchases'] as List?)?.cast<Map<String, dynamic>>() ?? [];
-    final page = (viewState['page'] as num?)?.toInt() ?? 0;
-    final pageSize = (viewState['pageSize'] as num?)?.toInt().clamp(1, 100) ?? 1;
-    final totalCount = (viewState['totalCount'] as num?)?.toInt() ?? 0;
+    final purchases = (scope['purchases'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+    final page = (scope['page'] as num?)?.toInt() ?? 0;
+    final pageSize = (scope['pageSize'] as num?)?.toInt().clamp(1, 100) ?? 1;
+    final totalCount = (scope['totalCount'] as num?)?.toInt() ?? 0;
     final totalPages = (totalCount / pageSize).ceil().clamp(1, 9999);
 
     return Container(

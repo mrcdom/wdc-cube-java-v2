@@ -1,12 +1,12 @@
 import 'package:flutter/widgets.dart';
 
 import '../bridge/view_scope.dart';
-import '../bridge/view_state_coordinator.dart';
+import '../bridge/scope_coordinator.dart';
 
 /// Base widget for views driven by the remote bridge.
 ///
 /// Binds to a [ViewScope] via [vsid] and rebuilds when the server
-/// pushes new state.
+/// pushes a new scope.
 abstract class BaseView extends StatefulWidget {
   final String vsid;
 
@@ -15,28 +15,28 @@ abstract class BaseView extends StatefulWidget {
 
 /// Base state for [BaseView] widgets.
 ///
-/// Subclasses override [build] and read state from [scope].
+/// Subclasses override [build] and read the server scope from [scope].
 abstract class BaseViewState<T extends BaseView> extends State<T> {
-  late final ViewScope scope;
+  late final ViewScope viewScope;
 
-  ViewStateCoordinator get coordinator => ViewStateCoordinator.instance;
+  ScopeCoordinator get coordinator => ScopeCoordinator.instance;
 
-  Map<String, dynamic> get viewState => scope.state;
+  Map<String, dynamic> get scope => viewScope.values;
 
   @override
   void initState() {
     super.initState();
-    scope = coordinator.viewMap[widget.vsid] ?? ViewScope(widget.vsid);
-    coordinator.viewMap[widget.vsid] = scope;
-    scope.forceUpdate = _rebuild;
+    viewScope = coordinator.viewMap[widget.vsid] ?? ViewScope(widget.vsid);
+    coordinator.viewMap[widget.vsid] = viewScope;
+    viewScope.forceUpdate = _rebuild;
     coordinator.viewGarbageCollector.mount(widget.vsid);
   }
 
   @override
   void dispose() {
     coordinator.viewGarbageCollector.unmount(widget.vsid);
-    if (scope.forceUpdate == _rebuild) {
-      scope.forceUpdate = ViewScope.noop;
+    if (viewScope.forceUpdate == _rebuild) {
+      viewScope.forceUpdate = ViewScope.noop;
     }
     super.dispose();
   }

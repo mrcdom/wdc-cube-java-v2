@@ -37,7 +37,7 @@ The shared views use the `VNode` API (`br.com.wdc.store.view.teavm.commons`) to 
 ```java
 @Override
 public VNode render() {
-    var state = stateSupplier.get();
+    var scope = scopeSupplier.get();
     // ...
     return div(Sel.ROOT).children(
       div(Sel.WRAPPER).children(

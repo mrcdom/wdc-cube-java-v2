@@ -23,9 +23,8 @@ class ReceiptView extends BaseView {
 class _ReceiptViewState extends BaseViewState<ReceiptView> {
   @override
   Widget build(BuildContext context) {
-    final state = viewState;
-    final receipt = state['receipt'] as Map<String, dynamic>? ?? {};
-    final notifySuccess = state['notifySuccess'] == true;
+    final receipt = scope['receipt'] as Map<String, dynamic>? ?? {};
+    final notifySuccess = scope['notifySuccess'] == true;
     final items = (receipt['items'] as List?)?.cast<Map<String, dynamic>>() ?? [];
     final total = (receipt['total'] as num?)?.toDouble() ?? 0.0;
     final dateMillis = (receipt['date'] as num?)?.toInt() ?? 0;

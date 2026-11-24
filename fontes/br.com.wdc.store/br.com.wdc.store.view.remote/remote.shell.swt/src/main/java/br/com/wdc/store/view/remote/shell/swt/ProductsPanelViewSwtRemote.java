@@ -21,7 +21,7 @@ class ProductsPanelViewSwtRemote extends ProductsPanelViewSwt {
 		super(app);
 		this.vsid = vsid;
 		this.ctx = ctx;
-		this.stateSupplier = this::stateSupplierImpl;
+		this.scopeSupplier = this::scopeSupplierImpl;
 		this.onOpenProduct = this::callOnOpenProduct;
 	}
 
@@ -29,12 +29,12 @@ class ProductsPanelViewSwtRemote extends ProductsPanelViewSwt {
 		this.ctx.submitEvent(this.vsid, 1, Map.of("p.productId", id));
 	}
 
-	private HomeScope.ProductsPanelScope stateSupplierImpl() {
-		var s = this.ctx.viewState(this.vsid);
+	private HomeScope.ProductsPanelScope scopeSupplierImpl() {
+		var s = this.ctx.scope(this.vsid);
 		if (s == null) {
 			return null;
 		}
-		var state = new HomeScope.ProductsPanelScope();
+		var scope = new HomeScope.ProductsPanelScope();
 		var rawList = s.getList("products");
 		if (!rawList.isEmpty()) {
 			var products = new ArrayList<ProductInfo>(rawList.size());
@@ -46,10 +46,10 @@ class ProductsPanelViewSwtRemote extends ProductsPanelViewSwt {
 				p.image = (String) raw.get("image");
 				products.add(p);
 			}
-			state.products.set(products);
+			scope.products.set(products);
 		} else {
-			state.products.set(Collections.emptyList());
+			scope.products.set(Collections.emptyList());
 		}
-		return state;
+		return scope;
 	}
 }

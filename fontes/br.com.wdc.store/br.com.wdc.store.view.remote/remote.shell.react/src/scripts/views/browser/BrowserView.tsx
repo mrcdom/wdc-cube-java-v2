@@ -1,6 +1,6 @@
 import React, { ReactNode } from "react"
 import clsx from "clsx"
-import bridge, { type ViewProps, BROWSER_VID, type BrowserViewState } from "@root/bridge"
+import bridge, { type ViewProps, BROWSER_VID, type BrowserScope } from "@root/bridge"
 import { BaseViewClass } from "@root/utils/ViewUtils"
 import { ActionButton, ProgressCircle } from "@root/swc"
 import Sel from "./browser-sel"
@@ -11,11 +11,11 @@ const ON_ALERT_OK = 1
 
 // :: View
 
-class BrowserViewClass extends BaseViewClass<ViewProps, BrowserViewState> {
+class BrowserViewClass extends BaseViewClass<ViewProps, BrowserScope> {
   // :: Renderes
 
   override render({ className }: ViewProps) {
-    const { state } = this
+    const { scope } = this
 
     React.useEffect(() => {
       bridge.onStart()
@@ -25,13 +25,13 @@ class BrowserViewClass extends BaseViewClass<ViewProps, BrowserViewState> {
     }, [])
 
     let connectionAlert: ReactNode
-    if (state.error) {
-      connectionAlert = <ConnectionAlert delay={state.error.delay} onReconnectNow={this.onRecconectNow} />
+    if (scope.error) {
+      connectionAlert = <ConnectionAlert delay={scope.error.delay} onReconnectNow={this.onRecconectNow} />
     }
 
     let rootView: ReactNode
-    if (state.contentViewId) {
-      rootView = bridge.createView(state.contentViewId)
+    if (scope.contentViewId) {
+      rootView = bridge.createView(scope.contentViewId)
     } else {
       rootView = (
         <div className={Sel.flexCenter} style={{ minHeight: "100vh" }}>
@@ -41,13 +41,13 @@ class BrowserViewClass extends BaseViewClass<ViewProps, BrowserViewState> {
     }
 
     let alertView: ReactNode
-    if (state.alertId) {
-      alertView = <AppAlert code={state.alertId} args={state.alertArgs ?? []} onDismiss={this.emitAlertOk} />
+    if (scope.alertId) {
+      alertView = <AppAlert code={scope.alertId} args={scope.alertArgs ?? []} onDismiss={this.emitAlertOk} />
     }
 
     return (
       <div className={clsx(Sel.host, className)}>
-        {state.submitting && <div className={Sel.loadingBar} />}
+        {scope.submitting && <div className={Sel.loadingBar} />}
         {connectionAlert}
         {alertView}
         {rootView}

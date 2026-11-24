@@ -1,7 +1,7 @@
 # remote.shell.cn1 — Codename One thin shell
 
 **Codename One (CN1)** frontend for the WDC Store *remote shell* pattern. The
-presenters and ViewStates run on the **server** (`remote.host`); this module is a
+presenters and their scopes run on the **server** (`remote.host`); this module is a
 **thin client** that speaks the *bridge* protocol over WebSocket and renders with
 Codename One's native UI — **a single Java codebase** that becomes an app for **iOS,
 Android, desktop (Mac/Windows/Linux) and web**.

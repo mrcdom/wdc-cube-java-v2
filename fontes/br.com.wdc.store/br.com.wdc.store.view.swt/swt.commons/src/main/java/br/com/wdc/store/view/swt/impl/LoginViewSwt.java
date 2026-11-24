@@ -32,7 +32,7 @@ import br.com.wdc.store.view.swt.util.SwtDom;
  */
 public class LoginViewSwt extends AbstractViewSwt {
 
-    public Supplier<LoginScope> stateSupplier;
+    public Supplier<LoginScope> scopeSupplier;
     public BiConsumer<String, String> onEnter;
 
     private boolean notRendered = true;
@@ -64,7 +64,7 @@ public class LoginViewSwt extends AbstractViewSwt {
             this.notRendered = false;
         }
 
-        var s = this.stateSupplier != null ? this.stateSupplier.get() : null;
+        var s = this.scopeSupplier != null ? this.scopeSupplier.get() : null;
         var newErrorDisplay = false;
         var newErrorMessage = "";
         if (s != null && s.errorCode.get() != 0) {

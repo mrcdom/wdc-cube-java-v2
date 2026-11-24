@@ -18,13 +18,13 @@ public class LoginView extends AbstractRemoteView {
     private static final int ON_ENTER = 1;
 
     private final LoginSharedView shared;
-    private final LoginScope adaptedState = new LoginScope();
+    private final LoginScope adaptedScope = new LoginScope();
 
     public LoginView(String vsid) {
         super(vsid);
 
         this.shared = new LoginSharedView();
-        this.shared.stateSupplier = this::adaptState;
+        this.shared.scopeSupplier = this::adaptScope;
         this.shared.onEnter = (userName, password) -> {
             setFormField("p.userName", userName);
             DataSecurity.cipher(password, encryptedPassword -> {
@@ -39,12 +39,12 @@ public class LoginView extends AbstractRemoteView {
         return shared.render();
     }
 
-    private LoginScope adaptState() {
-        ViewScope scope = state();
-        adaptedState.loading.set(scope.getBoolean("loading"));
-        adaptedState.errorMessage.set(scope.getString("errorMessage"));
-        adaptedState.errorCode.set(scope.getInt("errorCode"));
-        adaptedState.userName.set(scope.getString("userName"));
-        return adaptedState;
+    private LoginScope adaptScope() {
+        ViewScope scope = scope();
+        adaptedScope.loading.set(scope.getBoolean("loading"));
+        adaptedScope.errorMessage.set(scope.getString("errorMessage"));
+        adaptedScope.errorCode.set(scope.getInt("errorCode"));
+        adaptedScope.userName.set(scope.getString("userName"));
+        return adaptedScope;
     }
 }
