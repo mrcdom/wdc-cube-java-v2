@@ -5,6 +5,7 @@ import java.util.Collections;
 
 import br.com.wdc.framework.domain.projection.ProjectionValues;
 import br.com.wdc.store.domain.purchase.Purchase;
+import br.com.wdc.store.domain.purchase.PurchaseRepository;
 import br.com.wdc.store.presentation.StoreQuery;
 import br.com.wdc.store.presentation.exception.WrongParametersException;
 import br.com.wdc.store.presentation.presenter.restricted.receipt.structs.ReceiptForm;
@@ -26,7 +27,7 @@ public class ReceiptQuery extends StoreQuery<ReceiptForm> {
             throw new WrongParametersException();
         }
 
-        var receipt = receiptOf(purchaseRepository().fetchById(purchaseId, projection()));
+        var receipt = receiptOf(PurchaseRepository.BEAN.get().fetchById(purchaseId, projection()));
         if (receipt != null) {
             receipt.items.sort((a, b) -> Long.compare(a.id, b.id));
         }

@@ -241,7 +241,7 @@ public class StoreCallTest extends BaseBusinessTest {
         var failingCreate = new StoreCreate<Long>() {
             @Override
             protected Long create() {
-                purchaseRepository().insert(new Purchase()
+                PurchaseRepository.BEAN.get().insert(new Purchase()
                         .withUser(new User()
                                 .withId(DBReset.ADMIN_ID))
                         .withBuyDate(OffsetDateTime.now())

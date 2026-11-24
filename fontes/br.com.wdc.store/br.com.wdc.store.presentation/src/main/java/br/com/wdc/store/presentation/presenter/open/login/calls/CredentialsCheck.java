@@ -4,6 +4,7 @@ import br.com.wdc.framework.domain.projection.ProjectionValues;
 import br.com.wdc.framework.domain.security.AuthenticationService;
 import br.com.wdc.framework.domain.security.PasswordUtil;
 import br.com.wdc.store.domain.user.UserCriteria;
+import br.com.wdc.store.domain.user.UserRepository;
 import br.com.wdc.store.presentation.StoreCall;
 import br.com.wdc.store.presentation.presenter.open.login.structs.Subject;
 
@@ -69,7 +70,7 @@ public class CredentialsCheck extends StoreCall<CredentialsCheck.Result> {
         }
 
         // 6. Fetch the user's display name
-        var users = userRepository().fetch(new UserCriteria()
+        var users = UserRepository.BEAN.get().fetch(new UserCriteria()
                 .withUserId(authResult.userId())
                 .withProjection(Subject.projection()), 0, 1);
         var subject = users.isEmpty() ? null : Subject.create(users.get(0));
@@ -91,7 +92,7 @@ public class CredentialsCheck extends StoreCall<CredentialsCheck.Result> {
         var projection = Subject.projection()
                 .withPassword(ProjectionValues.INSTANCE.str);
 
-        var users = userRepository().fetch(new UserCriteria()
+        var users = UserRepository.BEAN.get().fetch(new UserCriteria()
                 .withUserName(userName)
                 .withProjection(projection), 0, 1);
 

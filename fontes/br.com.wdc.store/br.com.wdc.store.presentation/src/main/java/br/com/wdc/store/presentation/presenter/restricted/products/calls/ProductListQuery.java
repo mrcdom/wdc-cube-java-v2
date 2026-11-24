@@ -3,6 +3,7 @@ package br.com.wdc.store.presentation.presenter.restricted.products.calls;
 import java.util.List;
 
 import br.com.wdc.store.domain.product.ProductCriteria;
+import br.com.wdc.store.domain.product.ProductRepository;
 import br.com.wdc.store.presentation.StoreQuery;
 import br.com.wdc.store.presentation.presenter.restricted.products.structs.ProductInfo;
 
@@ -24,7 +25,7 @@ public class ProductListQuery extends StoreQuery<List<ProductInfo>> {
         criteria.projection()
                 .withDescription(null);
 
-        return productRepository().fetch(criteria, 0, limit)
+        return ProductRepository.BEAN.get().fetch(criteria, 0, limit)
                 .stream().map(ProductInfo::create).toList();
     }
 

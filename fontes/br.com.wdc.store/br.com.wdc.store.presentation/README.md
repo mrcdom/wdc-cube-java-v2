@@ -140,7 +140,7 @@ Abstract class that extends `CubeApplication`. Holds the global state:
 
 ### Repositories and authorization
 
-The repositories are used through the domain's service locator, via the protected accessors of `StoreCall` (`productRepository()` reads `ProductRepository.BEAN` on each use); the transaction of a write is opened by `StoreWrite`, the base of the write verbs. Authorization (RBAC) sits at the trust boundary: in the REST endpoints (`SecurityEnforcer`), which teavm.web goes through, since its presenters run in the browser. In the hosts where the presenters run on the server (Vaadin, local SWT, remote host), the client only triggers actions and the presenter decides each query.
+Each call reaches the repositories it needs through the domain's service locator, read on each use (`ProductRepository.BEAN.get()`); the transaction of a write is opened by `StoreWrite`, the base of the write verbs. Authorization (RBAC) sits at the trust boundary: in the REST endpoints (`SecurityEnforcer`), which teavm.web goes through, since its presenters run in the browser. In the hosts where the presenters run on the server (Vaadin, local SWT, remote host), the client only triggers actions and the presenter decides each query.
 
 ### Scope
 
@@ -177,7 +177,7 @@ var product = new ProductQuery()
         .run();
 ```
 
-The root is `StoreCall<R>`, which gathers in a section right at the top the protected accessors to the repositories (`productRepository()`, `purchaseRepository()`, ...), read from the `BEAN` on each use, and declares `run()`. Below it:
+The root is `StoreCall<R>`, which only declares `run()`; each call reaches the repositories it uses itself, through their `BEAN` (`ProductRepository.BEAN.get()`). Below it:
 
 | Suffix | HTTP | Safe | Idempotent | Base | The call implements |
 |--------|------|------|------------|------|---------------------|

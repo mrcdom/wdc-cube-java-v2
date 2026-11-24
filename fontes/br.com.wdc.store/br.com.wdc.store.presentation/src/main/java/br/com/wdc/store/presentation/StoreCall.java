@@ -1,10 +1,5 @@
 package br.com.wdc.store.presentation;
 
-import br.com.wdc.store.domain.product.ProductRepository;
-import br.com.wdc.store.domain.purchase.PurchaseRepository;
-import br.com.wdc.store.domain.purchaseitem.PurchaseItemRepository;
-import br.com.wdc.store.domain.user.UserRepository;
-
 /**
  * One operation of the presentation, as an object: the request is gathered with fluent {@code withXxx(...)} setters
  * and {@link #run()} answers it. A new instance per use: {@code new ProductQuery().withProductId(id).run()}.
@@ -21,26 +16,6 @@ import br.com.wdc.store.domain.user.UserRepository;
  * @param <R> the answer of {@link #run()}
  */
 public abstract class StoreCall<R> {
-
-    // :: Repositories
-
-    protected static UserRepository userRepository() {
-        return UserRepository.BEAN.get();
-    }
-
-    protected static ProductRepository productRepository() {
-        return ProductRepository.BEAN.get();
-    }
-
-    protected static PurchaseRepository purchaseRepository() {
-        return PurchaseRepository.BEAN.get();
-    }
-
-    protected static PurchaseItemRepository purchaseItemRepository() {
-        return PurchaseItemRepository.BEAN.get();
-    }
-
-    // :: Call
 
     /** Answers the request gathered so far. */
     public abstract R run();

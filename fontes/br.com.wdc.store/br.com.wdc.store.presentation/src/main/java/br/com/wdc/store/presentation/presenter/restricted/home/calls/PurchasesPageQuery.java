@@ -13,6 +13,7 @@ import br.com.wdc.store.domain.product.Product;
 import br.com.wdc.store.domain.purchase.Purchase;
 import br.com.wdc.store.domain.purchase.PurchaseCriteria;
 import br.com.wdc.store.domain.purchase.PurchaseCriteria.OrderBy;
+import br.com.wdc.store.domain.purchase.PurchaseRepository;
 import br.com.wdc.store.domain.purchaseitem.PurchaseItem;
 import br.com.wdc.store.presentation.StoreQuery;
 import br.com.wdc.store.presentation.exception.WrongParametersException;
@@ -46,7 +47,7 @@ public class PurchasesPageQuery extends StoreQuery<Page<PurchaseInfo>> {
             throw new WrongParametersException();
         }
 
-        var result = purchaseRepository().fetchPage(new PurchaseCriteria()
+        var result = PurchaseRepository.BEAN.get().fetchPage(new PurchaseCriteria()
                 .withUserId(userId)
                 .withProjection(purchaseProjection())
                 .withOrderBy(OrderBy.MOST_RECENT_PURCHASE_FIRST), page, pageSize);

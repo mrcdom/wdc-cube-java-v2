@@ -7,6 +7,7 @@ import java.util.List;
 import br.com.wdc.store.domain.exception.InvalidCartItemException;
 import br.com.wdc.store.domain.product.Product;
 import br.com.wdc.store.domain.purchase.Purchase;
+import br.com.wdc.store.domain.purchase.PurchaseRepository;
 import br.com.wdc.store.domain.purchaseitem.PurchaseItem;
 import br.com.wdc.store.domain.user.User;
 import br.com.wdc.store.presentation.StoreCreate;
@@ -50,7 +51,7 @@ public class PurchaseCreate extends StoreCreate<Long> {
             purchase.items().add(purchaseItem);
         }
 
-        if (!purchaseRepository().insert(purchase)) {
+        if (!PurchaseRepository.BEAN.get().insert(purchase)) {
             throw new AssertionError("Record not inserted");
         }
         return purchase.id();
