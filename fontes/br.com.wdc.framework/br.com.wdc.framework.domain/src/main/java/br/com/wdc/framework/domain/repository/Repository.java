@@ -7,7 +7,7 @@ import java.util.function.Function;
 import br.com.wdc.framework.domain.pagination.Page;
 
 /**
- * Base read contract for SGS repositories.
+ * Base contract of the repositories.
  *
  * @param <E> entity type
  * @param <C> search criteria type

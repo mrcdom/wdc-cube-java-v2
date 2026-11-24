@@ -340,8 +340,8 @@ writes header-less under Y), or simply **not use a transaction**. In both cases 
 **own** transaction; the writes are still individually authorized.
 
 > You cannot *force* atomicity on a hostile client through headers. Atomicity guaranteed independently
-> of the client has to live **on the server** — as checkout does with `transactional()` /
-> `CartManager.doPurchase`, which wrap the transaction server-side.
+> of the client has to live **on the server** — as the REST write handlers do with `transactional()`, and
+> the checkout's `PurchaseCreate` where the presenters run on the server, which wrap the transaction server-side.
 
 ### If you DO want real detection
 
