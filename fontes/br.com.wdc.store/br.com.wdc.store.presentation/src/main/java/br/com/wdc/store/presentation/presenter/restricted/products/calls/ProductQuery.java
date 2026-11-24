@@ -1,13 +1,13 @@
 package br.com.wdc.store.presentation.presenter.restricted.products.calls;
 
+import br.com.wdc.framework.domain.resource.ResourceQuery;
 import br.com.wdc.store.domain.product.ProductRepository;
-import br.com.wdc.store.presentation.StoreQuery;
 import br.com.wdc.store.presentation.exception.ProductNotFoundException;
 import br.com.wdc.store.presentation.exception.WrongParametersException;
 import br.com.wdc.store.presentation.presenter.restricted.products.structs.ProductInfo;
 
 /** A product, with its description. */
-public class ProductQuery extends StoreQuery<ProductInfo> {
+public class ProductQuery extends ResourceQuery<ProductInfo> {
 
     private Long productId;
 

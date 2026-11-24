@@ -1,4 +1,8 @@
-package br.com.wdc.store.presentation;
+package br.com.wdc.framework.domain.resource;
+
+import java.util.function.Supplier;
+
+import br.com.wdc.framework.domain.transaction.TransactionService;
 
 /**
  * Creates a new record: not idempotent, each run creates another one, so a run is never repeated on its own.
@@ -8,7 +12,12 @@ package br.com.wdc.store.presentation;
  *
  * @param <R> the answer of {@link #run()}
  */
-public abstract class StoreCreate<R> extends StoreWrite<R> {
+public abstract class ResourceCreate<R> extends ResourceWrite<R> {
+
+    /** @param transactions the transaction service of the call's module, read when the call runs */
+    protected ResourceCreate(Supplier<TransactionService> transactions) {
+        super(transactions);
+    }
 
     @Override
     final R write() {

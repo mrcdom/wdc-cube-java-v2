@@ -4,15 +4,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import br.com.wdc.framework.domain.projection.ProjectionValues;
+import br.com.wdc.framework.domain.resource.ResourceQuery;
 import br.com.wdc.store.domain.purchase.Purchase;
 import br.com.wdc.store.domain.purchase.PurchaseRepository;
-import br.com.wdc.store.presentation.StoreQuery;
 import br.com.wdc.store.presentation.exception.WrongParametersException;
 import br.com.wdc.store.presentation.presenter.restricted.receipt.structs.ReceiptForm;
 import br.com.wdc.store.presentation.presenter.restricted.receipt.structs.ReceiptItem;
 
 /** The receipt of a purchase: its items, in the order they were bought, and the total; {@code null} for none. */
-public class ReceiptQuery extends StoreQuery<ReceiptForm> {
+public class ReceiptQuery extends ResourceQuery<ReceiptForm> {
 
     private Long purchaseId;
 

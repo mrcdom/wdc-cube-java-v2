@@ -9,18 +9,18 @@ import org.apache.commons.lang3.StringUtils;
 import br.com.wdc.framework.commons.lang.CoerceUtils;
 import br.com.wdc.framework.domain.pagination.Page;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
+import br.com.wdc.framework.domain.resource.ResourceQuery;
 import br.com.wdc.store.domain.product.Product;
 import br.com.wdc.store.domain.purchase.Purchase;
 import br.com.wdc.store.domain.purchase.PurchaseCriteria;
 import br.com.wdc.store.domain.purchase.PurchaseCriteria.OrderBy;
 import br.com.wdc.store.domain.purchase.PurchaseRepository;
 import br.com.wdc.store.domain.purchaseitem.PurchaseItem;
-import br.com.wdc.store.presentation.StoreQuery;
 import br.com.wdc.store.presentation.exception.WrongParametersException;
 import br.com.wdc.store.presentation.presenter.restricted.home.structs.PurchaseInfo;
 
 /** A page of a user's purchases, the most recent first. */
-public class PurchasesPageQuery extends StoreQuery<Page<PurchaseInfo>> {
+public class PurchasesPageQuery extends ResourceQuery<Page<PurchaseInfo>> {
 
     private Long userId;
     private int page;

@@ -12,6 +12,8 @@ import org.junit.Test;
 
 import br.com.wdc.framework.commons.util.LambdaUtils;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
+import br.com.wdc.framework.domain.resource.ResourceCreate;
+import br.com.wdc.store.domain.StoreTransactions;
 import br.com.wdc.store.domain.product.Product;
 import br.com.wdc.store.domain.product.ProductCriteria;
 import br.com.wdc.store.domain.product.ProductRepository;
@@ -22,7 +24,6 @@ import br.com.wdc.store.domain.purchaseitem.PurchaseItem;
 import br.com.wdc.store.domain.purchaseitem.PurchaseItemCriteria;
 import br.com.wdc.store.domain.purchaseitem.PurchaseItemRepository;
 import br.com.wdc.store.domain.user.User;
-import br.com.wdc.store.presentation.StoreCreate;
 import br.com.wdc.store.presentation.presenter.open.login.calls.CredentialsCheck;
 import br.com.wdc.store.presentation.presenter.restricted.home.calls.PurchasesPageQuery;
 import br.com.wdc.store.presentation.presenter.restricted.home.structs.PurchaseInfo;
@@ -237,8 +238,8 @@ public class StoreCallTest extends BaseBusinessTest {
     public void aWriteThatFails_leavesNothingBehind() {
         var before = PurchaseRepository.BEAN.get().count(new PurchaseCriteria());
 
-        // Writes and only then fails: the transaction the StoreCreate opened is rolled back
-        var failingCreate = new StoreCreate<Long>() {
+        // Writes and only then fails: the transaction the ResourceCreate opened is rolled back
+        var failingCreate = new ResourceCreate<Long>(StoreTransactions.BEAN::get) {
             @Override
             protected Long create() {
                 PurchaseRepository.BEAN.get().insert(new Purchase()

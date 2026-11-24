@@ -1,15 +1,15 @@
 package br.com.wdc.store.presentation.presenter.open.login.calls;
 
 import br.com.wdc.framework.domain.projection.ProjectionValues;
+import br.com.wdc.framework.domain.resource.ResourceCall;
 import br.com.wdc.framework.domain.security.AuthenticationService;
 import br.com.wdc.framework.domain.security.PasswordUtil;
 import br.com.wdc.store.domain.user.UserCriteria;
 import br.com.wdc.store.domain.user.UserRepository;
-import br.com.wdc.store.presentation.StoreCall;
 import br.com.wdc.store.presentation.presenter.open.login.structs.Subject;
 
 /** Authenticates the user; {@code null} if the credentials are invalid. */
-public class CredentialsCheck extends StoreCall<CredentialsCheck.Result> {
+public class CredentialsCheck extends ResourceCall<CredentialsCheck.Result> {
 
     /**
      * Result of a successful authentication.

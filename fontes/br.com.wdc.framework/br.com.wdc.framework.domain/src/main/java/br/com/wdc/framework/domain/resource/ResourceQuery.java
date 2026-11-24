@@ -1,4 +1,4 @@
-package br.com.wdc.store.presentation;
+package br.com.wdc.framework.domain.resource;
 
 /**
  * A read: no side effects, safe to repeat, no transaction of its own (it reads in the caller's, if there is one).
@@ -7,6 +7,6 @@ package br.com.wdc.store.presentation;
  *
  * @param <R> the answer of {@link #run()}
  */
-public abstract class StoreQuery<R> extends StoreCall<R> {
+public abstract class ResourceQuery<R> extends ResourceCall<R> {
 
 }

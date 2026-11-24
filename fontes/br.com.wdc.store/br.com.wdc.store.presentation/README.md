@@ -18,7 +18,6 @@ Logging uses the framework's `Log` facade (`framework-commons`).
 graph TD
     root["br.com.wdc.store.presentation"]
     root --> StoreApp["StoreApplication.java"]
-    root --> CallBases["StoreCall.java, StoreQuery.java, StoreWrite.java,<br/>StoreCreate.java, StoreSave.java, StoreUpdate.java, StoreDelete.java"]
     root --> StorageKeys["StorageKeys.java"]
 
     root --> exception["exception/"]
@@ -140,7 +139,7 @@ Abstract class that extends `CubeApplication`. Holds the global state:
 
 ### Repositories and authorization
 
-Each call reaches the repositories it needs through the domain's service locator, read on each use (`ProductRepository.BEAN.get()`); the transaction of a write is opened by `StoreWrite`, the base of the write verbs. Authorization (RBAC) sits at the trust boundary: in the REST endpoints (`SecurityEnforcer`), which teavm.web goes through, since its presenters run in the browser. In the hosts where the presenters run on the server (Vaadin, local SWT, remote host), the client only triggers actions and the presenter decides each query.
+Each call reaches the repositories it needs through the domain's service locator, read on each use (`ProductRepository.BEAN.get()`); the transaction of a write is opened by `ResourceWrite`, the base of the write verbs. Authorization (RBAC) sits at the trust boundary: in the REST endpoints (`SecurityEnforcer`), which teavm.web goes through, since its presenters run in the browser. In the hosts where the presenters run on the server (Vaadin, local SWT, remote host), the client only triggers actions and the presenter decides each query.
 
 ### Scope
 
@@ -177,19 +176,19 @@ var product = new ProductQuery()
         .run();
 ```
 
-The root is `StoreCall<R>`, which only declares `run()`; each call reaches the repositories it uses itself, through their `BEAN` (`ProductRepository.BEAN.get()`). Below it:
+The bases are generic and come from the framework (`br.com.wdc.framework.domain.resource`). The root is `ResourceCall<R>`, which only declares `run()`; each call reaches the repositories it uses itself, through their `BEAN` (`ProductRepository.BEAN.get()`). Below it:
 
 | Suffix | HTTP | Safe | Idempotent | Base | The call implements |
 |--------|------|------|------------|------|---------------------|
-| `Query` | `GET` / `QUERY` | yes | yes | `StoreQuery<R>` | `run()` |
-| `Create` | `POST` | no | no | `StoreCreate<R>` | `create()` |
-| `Save` | `PUT` | no | yes | `StoreSave<R>` | `save()` |
-| `Update` | `PATCH` | no | not in general | `StoreUpdate<R>` | `update()` |
-| `Delete` | `DELETE` | no | yes | `StoreDelete<R>` | `delete()` |
+| `Query` | `GET` / `QUERY` | yes | yes | `ResourceQuery<R>` | `run()` |
+| `Create` | `POST` | no | no | `ResourceCreate<R>` | `create()` |
+| `Save` | `PUT` | no | yes | `ResourceSave<R>` | `save()` |
+| `Update` | `PATCH` | no | not in general | `ResourceUpdate<R>` | `update()` |
+| `Delete` | `DELETE` | no | yes | `ResourceDelete<R>` | `delete()` |
 
-*Safe* means it changes nothing; *idempotent*, that running the same request again leaves the same state — what tells whether a call may be repeated (a `Create` never is: each run creates another record). A read has no transaction of its own (it reads in the caller's, if there is one). The four write verbs extend `StoreWrite<R>`, whose final `run()` opens the transaction (or joins the caller's) and hands over to the verb's method, so no write is left outside one; its constructor is package-private, which keeps the list of write verbs closed.
+*Safe* means it changes nothing; *idempotent*, that running the same request again leaves the same state — what tells whether a call may be repeated (a `Create` never is: each run creates another record). A read has no transaction of its own (it reads in the caller's, if there is one). The four write verbs extend `ResourceWrite<R>`, whose final `run()` opens the transaction (or joins the caller's) and hands over to the verb's method, so no write is left outside one; its constructor is package-private, which keeps the list of write verbs closed. A write call hands over the transaction service of its module in the constructor, read when it runs: `super(StoreTransactions.BEAN::get)`.
 
-What fits none of the verbs gets a verb of its own that says what it does, and extends `StoreCall<R>` directly: `CredentialsCheck` authenticates the login (it checks the credentials, and also issues the auto-login token).
+What fits none of the verbs gets a verb of its own that says what it does, and extends `ResourceCall<R>` directly: `CredentialsCheck` authenticates the login (it checks the credentials, and also issues the auto-login token).
 
 The response is an existing type; or a module struct (`structs/`), when other calls or the scope also use it; or an inner class of the call itself, when it only carries the response back to the caller (`CredentialsCheck.Result`).
 

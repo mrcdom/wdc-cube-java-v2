@@ -1,4 +1,8 @@
-package br.com.wdc.store.presentation;
+package br.com.wdc.framework.domain.resource;
+
+import java.util.function.Supplier;
+
+import br.com.wdc.framework.domain.transaction.TransactionService;
 
 /**
  * Writes a record whole, creating it or replacing it: idempotent, the same request twice leaves the same state.
@@ -8,7 +12,12 @@ package br.com.wdc.store.presentation;
  *
  * @param <R> the answer of {@link #run()}
  */
-public abstract class StoreSave<R> extends StoreWrite<R> {
+public abstract class ResourceSave<R> extends ResourceWrite<R> {
+
+    /** @param transactions the transaction service of the call's module, read when the call runs */
+    protected ResourceSave(Supplier<TransactionService> transactions) {
+        super(transactions);
+    }
 
     @Override
     final R write() {

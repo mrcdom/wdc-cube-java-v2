@@ -126,13 +126,13 @@ public class WishlistPresenter extends AbstractCubePresenter<StoreApplication> {
 
 ### 1.4 Create the calls (optional)
 
-Each operation on the repositories is a class in `calls/`: the request accumulates in fluent `withXxx(...)` setters and `run()` answers it. The suffix is a verb, as in the HTTP methods: a read is `XxxQuery extends StoreQuery<R>`; a write extends the verb that fits it — `StoreCreate` (`create()`, a new record), `StoreSave` (`save()`, the record whole), `StoreUpdate` (`update()`, some fields) or `StoreDelete` (`delete()`) — and the base class's `run()` opens the transaction. The verbs and their guarantees are in the [presentation README](README.md#calls). The call reaches the repositories it uses through their `BEAN` (`WishlistRepository.BEAN.get()`).
+Each operation on the repositories is a class in `calls/`: the request accumulates in fluent `withXxx(...)` setters and `run()` answers it. The suffix is a verb, as in the HTTP methods: a read is `XxxQuery extends ResourceQuery<R>`; a write extends the verb that fits it — `ResourceCreate` (`create()`, a new record), `ResourceSave` (`save()`, the record whole), `ResourceUpdate` (`update()`, some fields) or `ResourceDelete` (`delete()`) — and the base class's `run()` opens the transaction of the module the call names in its constructor (`super(StoreTransactions.BEAN::get)`). The bases come from the framework (`br.com.wdc.framework.domain.resource`). The verbs and their guarantees are in the [presentation README](README.md#calls). The call reaches the repositories it uses through their `BEAN` (`WishlistRepository.BEAN.get()`).
 
 ```java
 package br.com.wdc.store.presentation.presenter.restricted.wishlist.calls;
 
 /** The wishlist items of a user. */
-public class WishlistQuery extends StoreQuery<List<WishlistItem>> {
+public class WishlistQuery extends ResourceQuery<List<WishlistItem>> {
 
     private Long userId;
 
@@ -349,7 +349,7 @@ And in the frontend, add a button or link that emits the corresponding event.
 - [ ] **Presentation**
   - [ ] Create `WishlistScope extends Scope` (`Prop` fields, created with `prop(...)`)
   - [ ] Create `WishlistPresenter extends AbstractCubePresenter<StoreApplication>`
-  - [ ] Create the calls in `calls/` (`XxxQuery extends StoreQuery<R>`, or the write verb: `XxxCreate`/`XxxSave`/`XxxUpdate`/`XxxDelete`) if you need data
+  - [ ] Create the calls in `calls/` (`XxxQuery extends ResourceQuery<R>`, or the write verb: `XxxCreate`/`XxxSave`/`XxxUpdate`/`XxxDelete`) if you need data
   - [ ] Create DTOs in `structs/` with `projection()` + `create()`
   - [ ] Create `WishlistKeys extends HomeKeys` (unique prefix, `PLACE = HomeKeys.PLACE.child(...)`)
   - [ ] Register `WishlistKeys.PLACE` in `StoreApplication.PLACES`

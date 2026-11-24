@@ -4,20 +4,25 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import br.com.wdc.framework.domain.resource.ResourceCreate;
+import br.com.wdc.store.domain.StoreTransactions;
 import br.com.wdc.store.domain.exception.InvalidCartItemException;
 import br.com.wdc.store.domain.product.Product;
 import br.com.wdc.store.domain.purchase.Purchase;
 import br.com.wdc.store.domain.purchase.PurchaseRepository;
 import br.com.wdc.store.domain.purchaseitem.PurchaseItem;
 import br.com.wdc.store.domain.user.User;
-import br.com.wdc.store.presentation.StoreCreate;
 import br.com.wdc.store.presentation.presenter.restricted.cart.structs.CartItem;
 
 /** Records the purchase of the items; answers its id. */
-public class PurchaseCreate extends StoreCreate<Long> {
+public class PurchaseCreate extends ResourceCreate<Long> {
 
     private Long userId;
     private List<CartItem> items = List.of();
+
+    public PurchaseCreate() {
+        super(StoreTransactions.BEAN::get);
+    }
 
     public PurchaseCreate withUserId(Long userId) {
         this.userId = userId;

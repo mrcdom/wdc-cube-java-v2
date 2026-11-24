@@ -64,7 +64,7 @@ Each test starts from a clean database with seed data (`ResetDatabaseRule` → `
 
 ### Call tests (`StoreCallTest`)
 
-They directly exercise the presentation calls (`CredentialsCheck`, `ProductQuery`, `ReceiptQuery`, `PurchasesPageQuery`, a `StoreCreate` that fails and rolls back) and the domain repositories over an in-memory H2 database populated with seed data (`DBReset`).
+They directly exercise the presentation calls (`CredentialsCheck`, `ProductQuery`, `ReceiptQuery`, `PurchasesPageQuery`, a `ResourceCreate` that fails and rolls back) and the domain repositories over an in-memory H2 database populated with seed data (`DBReset`).
 
 ### Presentation tests (`StoreLoginTest`, `StoreWorkflowTest`)
 
