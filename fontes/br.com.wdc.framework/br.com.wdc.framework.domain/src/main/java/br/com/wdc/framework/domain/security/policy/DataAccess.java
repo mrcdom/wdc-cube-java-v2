@@ -84,12 +84,21 @@ public class DataAccess<E, C extends Criteria> {
 
     /**
      * Adapts a read: checks the projection and the filtered fields, restricts the rows, and fetches what the row check
-     * needs. Without a projection, the read gets every value field some grant sees, and the relations by key.
+     * needs.
+     *
+     * <p>
+     * Without a projection, the read gets the entity's default shape ({@code EntityDescriptor.defaultShape}),
+     * <b>trimmed</b> to what the requester may read instead of refused: the client asked for nothing in particular, so
+     * nothing it asked for is forbidden.
+     * </p>
      *
      * @return the plan that shapes each returned row; apply it before writing the response
      */
     public ReadPlan<E> prepareRead(C criteria) {
-        var shape = shape(entity.projection(criteria), criteria);
+        var requested = entity.projection(criteria);
+        var shape = requested != null
+                ? shape(requested, criteria, false)
+                : shape(entity.defaultShape(), criteria, true);
         entity.setProjection(criteria, shape.fetch);
         return shape::apply;
     }
@@ -102,10 +111,13 @@ public class DataAccess<E, C extends Criteria> {
     /**
      * One level of a read: what is asked of this entity, the rows the criteria may reach (when there is a criteria — a
      * relation has none: its row is the one the owner points to), and what to fetch.
+     *
+     * @param trim whether what the requester may not read is left out (the default shape) instead of refused (a
+     *        projection the client sent)
      */
-    private Shape shape(E requested, C criteria) {
+    private Shape shape(E requested, C criteria, boolean trim) {
         var readers = readers();
-        var fields = requestedFields(requested, readers);
+        var fields = entity.fieldsSetIn(requested);
 
         var unseen = new LinkedHashSet<String>();
         for (var field : fields) {
@@ -113,7 +125,9 @@ public class DataAccess<E, C extends Criteria> {
                 unseen.add(field);
             }
         }
-        if (!unseen.isEmpty()) {
+        if (trim) {
+            fields.removeAll(unseen);
+        } else if (!unseen.isEmpty()) {
             throw denied("not allowed to read " + entity.name() + " fields " + unseen);
         }
 
@@ -124,14 +138,17 @@ public class DataAccess<E, C extends Criteria> {
         var fetch = entity.newEntity();
         entity.key().mark(fetch);
         var nested = new HashMap<String, DataAccess<?, ?>.Shape>();
+        var unreadable = new LinkedHashSet<String>();
         for (var fieldName : fields) {
             var field = entity.field(fieldName);
-            var inside = requested == null ? null : field.get(requested);
+            var inside = field.get(requested);
             switch (field.kind()) {
             case VALUE -> field.mark(fetch);
             case RELATION -> {
-                if (inside != null && !field.targetEntity().fieldsSetIn(inside).isEmpty()) {
-                    var shape = field.targetPolicy().accessFor(sc).shape(inside, null);
+                var access = field.targetPolicy().accessFor(sc);
+                if (inside != null && !field.targetEntity().fieldsSetIn(inside).isEmpty()
+                        && !(trim && access.readsNothing())) {
+                    var shape = access.shape(inside, null, trim);
                     field.setRaw(fetch, shape.fetch);
                     nested.put(fieldName, shape);
                 } else {
@@ -139,11 +156,14 @@ public class DataAccess<E, C extends Criteria> {
                 }
             }
             case COLLECTION -> {
-                if (inside instanceof List<?> list && !list.isEmpty()) {
+                var access = field.targetPolicy().accessFor(sc);
+                if (trim && access.readsNothing()) {
+                    unreadable.add(fieldName);
+                } else if (inside instanceof List<?> list && !list.isEmpty()) {
                     var childCriteria = list instanceof HasCriteria hc && hc.getCriteria() instanceof Criteria c
                             ? c
                             : field.targetEntity().newCriteria();
-                    var shape = field.targetPolicy().accessFor(sc).shape(list.get(0), childCriteria);
+                    var shape = access.shape(list.get(0), childCriteria, trim);
                     var children = new ProjectionList<>(shape.fetch, childCriteria);
                     if (list instanceof HasSlice slice) {
                         children.withLimit(slice.getLimit())
@@ -157,23 +177,16 @@ public class DataAccess<E, C extends Criteria> {
             }
             }
         }
+        fields.removeAll(unreadable);
         for (var grant : readers) {
             entity.merge(fetch, grant.rows().projection());
         }
         return new Shape(fields, readers, nested, fetch);
     }
 
-    private Set<String> requestedFields(E requested, List<DataGrant<E, C>> readers) {
-        if (requested != null) {
-            return entity.fieldsSetIn(requested);
-        }
-        var all = new LinkedHashSet<String>();
-        for (var fieldName : entity.fieldNames()) {
-            if (entity.field(fieldName).kind() != Kind.COLLECTION && readers.stream().anyMatch(g -> g.sees(fieldName))) {
-                all.add(fieldName);
-            }
-        }
-        return all;
+    /** Whether no grant reads this entity — then, in a default shape, a relation to it goes by key, a collection out. */
+    private boolean readsNothing() {
+        return grantsWhere(DataGrant::reads).isEmpty();
     }
 
     /** A planned level of a read, and how it shapes each returned row. */

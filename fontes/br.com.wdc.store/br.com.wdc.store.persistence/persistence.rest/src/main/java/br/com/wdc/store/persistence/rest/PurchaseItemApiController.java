@@ -3,9 +3,7 @@ package br.com.wdc.store.persistence.rest;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.framework.commons.serialization.JsonStreamReader;
 import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
-import br.com.wdc.framework.domain.projection.ProjectionValues;
 import br.com.wdc.framework.domain.security.policy.DataAccess;
-import br.com.wdc.store.domain.product.Product;
 import br.com.wdc.store.domain.purchaseitem.PurchaseItem;
 import br.com.wdc.store.domain.purchaseitem.PurchaseItemCriteria;
 import br.com.wdc.store.domain.purchaseitem.PurchaseItemCodec;
@@ -52,20 +50,6 @@ public class PurchaseItemApiController {
 
     private final PurchaseItemCodec codec = new PurchaseItemCodec();
 
-    private static PurchaseItem fullProjection() {
-        var pv = ProjectionValues.INSTANCE;
-
-        var product = new Product()
-                .withId(pv.i64)
-                .withName(pv.str)
-                .withPrice(pv.f64);
-
-        return new PurchaseItem()
-                .withId(pv.i64)
-                .withAmount(pv.i32)
-                .withPrice(pv.f64)
-                .withProduct(product);
-    }
 
     // :: Insert
 
@@ -228,8 +212,6 @@ public class PurchaseItemApiController {
             }
         }
         reader.endObject();
-        if (criteria.projection() == null)
-            criteria.withProjection(fullProjection());
         var plan = access.prepareRead(criteria);
         var items = plan.apply(repo().fetch(criteria, offset, limit));
         var writer = new JsonStreamWriter();
@@ -280,8 +262,6 @@ public class PurchaseItemApiController {
             }
         }
         reader.endObject();
-        if (criteria.projection() == null)
-            criteria.withProjection(fullProjection());
         var plan = access.prepareRead(criteria);
         var page = repo().fetchPage(criteria, pageIx, pageSz);
         var writer = new JsonStreamWriter();
@@ -317,7 +297,7 @@ public class PurchaseItemApiController {
     private void fetchById(Context ctx) {
         var access = access();
         Long id = Long.parseLong(ctx.pathParam("id"));
-        var result = fetchOne(access, id, fullProjection());
+        var result = fetchOne(access, id, null);
         if (result == null) {
             ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
             return;
@@ -359,7 +339,7 @@ public class PurchaseItemApiController {
             }
         }
         reader.endObject();
-        var result = fetchOne(access, id, projection != null ? projection : fullProjection());
+        var result = fetchOne(access, id, projection);
         if (result == null) {
             ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
             return;

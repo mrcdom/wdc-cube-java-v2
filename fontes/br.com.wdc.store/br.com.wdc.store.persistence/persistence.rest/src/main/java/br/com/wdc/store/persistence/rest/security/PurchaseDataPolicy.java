@@ -10,6 +10,7 @@ import br.com.wdc.framework.domain.security.policy.EntityDescriptor;
 import br.com.wdc.framework.domain.security.policy.RowScope;
 import br.com.wdc.store.domain.purchase.Purchase;
 import br.com.wdc.store.domain.purchase.PurchaseCriteria;
+import br.com.wdc.store.domain.purchaseitem.PurchaseItemCriteria;
 import br.com.wdc.store.domain.security.Role;
 import br.com.wdc.store.domain.user.User;
 
@@ -50,6 +51,7 @@ public final class PurchaseDataPolicy {
             .criterion("userId", "user")
             .criterion("productId", "items")
             .orderings(PurchaseDataPolicy::orderingFields)
+            .defaultShape(PurchaseDataPolicy::defaultShape)
             .build();
     // @formatter:on
 
@@ -102,6 +104,15 @@ public final class PurchaseDataPolicy {
                 .withBuyDate(PV.offsetDateTime)
                 .withUser(new User())
                 .withItems(List.of());
+    }
+
+    /** A read without a projection: the receipt — date, buyer's name, and the items with their products. */
+    private static Purchase defaultShape() {
+        return new Purchase()
+                .withBuyDate(PV.offsetDateTime)
+                .withUser(new User()
+                        .withName(PV.str))
+                .withItems(PV.singletonList(PurchaseItemDataPolicy.defaultShape(), new PurchaseItemCriteria()));
     }
 
     /** The fields each provisioned ordering sorts by; the tie-breaker is the key, which is not checked. */

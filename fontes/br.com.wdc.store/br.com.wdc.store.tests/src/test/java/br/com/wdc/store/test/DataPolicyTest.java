@@ -268,6 +268,24 @@ public class DataPolicyTest {
 	}
 
 	@Test
+	public void withoutProjection_theDefaultShapeIsTrimmed_notRefused() {
+		var policy = DataPolicy.on(UserDataPolicy.USER)
+				.grant("R", g -> g
+						.read(new User()
+								.withName(PV.str)))
+				.build();
+
+		// The default shape of a user has every field — the password and the login included, which this role does not
+		// read. The client asked for nothing in particular, so nothing it asked for is refused.
+		var criteria = new UserCriteria();
+		policy.accessFor(as("R")).prepareRead(criteria);
+
+		assertEquals("~", criteria.projection().name());
+		assertNull(criteria.projection().userName());
+		assertNull(criteria.projection().password());
+	}
+
+	@Test
 	public void withoutSecurity_everythingPasses() {
 		var criteria = new UserCriteria()
 				.withUserName("jdoe");

@@ -1,19 +1,13 @@
 package br.com.wdc.store.persistence.rest;
 
-import java.util.Collections;
-
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.framework.commons.serialization.JsonStreamReader;
 import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
-import br.com.wdc.framework.domain.projection.ProjectionValues;
 import br.com.wdc.framework.domain.security.policy.DataAccess;
-import br.com.wdc.store.domain.product.Product;
 import br.com.wdc.store.domain.purchase.Purchase;
 import br.com.wdc.store.domain.purchase.PurchaseCriteria;
 import br.com.wdc.store.domain.purchase.PurchaseCodec;
 import br.com.wdc.store.domain.purchase.PurchaseRepository;
-import br.com.wdc.store.domain.purchaseitem.PurchaseItem;
-import br.com.wdc.store.domain.user.User;
 import br.com.wdc.store.persistence.rest.doc.Doc;
 import br.com.wdc.store.persistence.rest.security.PurchaseDataPolicy;
 import br.com.wdc.store.persistence.rest.security.SecurityEnforcer;
@@ -56,39 +50,7 @@ public class PurchaseApiController {
 
     private final PurchaseCodec codec = new PurchaseCodec();
 
-    private static Purchase fullProjectionWithItems() {
-        var pv = ProjectionValues.INSTANCE;
 
-        var product = new Product()
-                .withId(pv.i64)
-                .withName(pv.str)
-                .withPrice(pv.f64);
-
-        var item = new PurchaseItem()
-                .withId(pv.i64)
-                .withAmount(pv.i32)
-                .withPrice(pv.f64)
-                .withProduct(product);
-
-        return new Purchase()
-                .withId(pv.i64)
-                .withBuyDate(pv.offsetDateTime)
-                .withUser(new User()
-                        .withId(pv.i64)
-                        .withName(pv.str))
-                        .withItems(Collections.singletonList(item));
-    }
-
-    private static Purchase simpleProjection() {
-        var pv = ProjectionValues.INSTANCE;
-        var prj = new Purchase()
-                .withId(pv.i64)
-                .withBuyDate(pv.offsetDateTime)
-                .withUser(new User()
-                        .withId(pv.i64)
-                        .withName(pv.str));
-        return prj;
-    }
 
     // :: Insert
 
@@ -237,7 +199,6 @@ public class PurchaseApiController {
         var criteria = new PurchaseCriteria();
         int offset = 0;
         int limit = 0;
-        boolean includeItems = true;
         reader.beginObject();
         while (reader.hasNext()) {
             var name = reader.nextName();
@@ -245,7 +206,6 @@ public class PurchaseApiController {
             case "projection" -> criteria.withProjection(codec.readEntity(reader));
             case "offset" -> offset = InputCoerceUtils.asInteger(reader, 0);
             case "limit" -> limit = InputCoerceUtils.asInteger(reader, 0);
-            case "includeItems" -> includeItems = Boolean.TRUE.equals(InputCoerceUtils.asBoolean(reader));
             default -> {
                 if (!codec.readCriteriaField(reader, name, criteria))
                     reader.skipValue();
@@ -253,9 +213,6 @@ public class PurchaseApiController {
             }
         }
         reader.endObject();
-        if (criteria.projection() == null) {
-            criteria.withProjection(includeItems ? fullProjectionWithItems() : simpleProjection());
-        }
         var plan = access.prepareRead(criteria);
         var items = plan.apply(repo().fetch(criteria, offset, limit));
         var writer = new JsonStreamWriter();
@@ -292,7 +249,6 @@ public class PurchaseApiController {
         var criteria = new PurchaseCriteria();
         int pageIx = 0;
         int pageSz = 0;
-        boolean includeItems = true;
         reader.beginObject();
         while (reader.hasNext()) {
             var name = reader.nextName();
@@ -300,7 +256,6 @@ public class PurchaseApiController {
             case "projection" -> criteria.withProjection(codec.readEntity(reader));
             case "page" -> pageIx = InputCoerceUtils.asInteger(reader, 0);
             case "pageSize" -> pageSz = InputCoerceUtils.asInteger(reader, 0);
-            case "includeItems" -> includeItems = Boolean.TRUE.equals(InputCoerceUtils.asBoolean(reader));
             default -> {
                 if (!codec.readCriteriaField(reader, name, criteria))
                     reader.skipValue();
@@ -308,9 +263,6 @@ public class PurchaseApiController {
             }
         }
         reader.endObject();
-        if (criteria.projection() == null) {
-            criteria.withProjection(includeItems ? fullProjectionWithItems() : simpleProjection());
-        }
         var plan = access.prepareRead(criteria);
         var page = repo().fetchPage(criteria, pageIx, pageSz);
         var writer = new JsonStreamWriter();
@@ -346,7 +298,7 @@ public class PurchaseApiController {
     private void fetchById(Context ctx) {
         var access = access();
         Long id = Long.parseLong(ctx.pathParam("id"));
-        var result = fetchOne(access, id, fullProjectionWithItems());
+        var result = fetchOne(access, id, null);
         if (result == null) {
             ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
             return;
@@ -388,7 +340,7 @@ public class PurchaseApiController {
             }
         }
         reader.endObject();
-        var result = fetchOne(access, id, projection != null ? projection : fullProjectionWithItems());
+        var result = fetchOne(access, id, projection);
         if (result == null) {
             ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
             return;

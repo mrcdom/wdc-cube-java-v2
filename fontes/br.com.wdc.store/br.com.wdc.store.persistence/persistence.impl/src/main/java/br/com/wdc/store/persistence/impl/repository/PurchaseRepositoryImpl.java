@@ -2,7 +2,6 @@ package br.com.wdc.store.persistence.impl.repository;
 
 import static br.com.wdc.framework.domain.repository.Repository.changed;
 import static br.com.wdc.store.persistence.impl.scheme.Sequences.SQ_PURCHASE;
-import static br.com.wdc.store.persistence.impl.scheme.Sequences.SQ_PURCHASEITEM;
 import static br.com.wdc.store.persistence.impl.scheme.tables.EnPurchase.EN_PURCHASE;
 import static br.com.wdc.store.persistence.impl.scheme.tables.EnPurchaseitem.EN_PURCHASEITEM;
 
@@ -127,37 +126,13 @@ public class PurchaseRepositoryImpl extends BaseRepositoryImpl  implements Purch
         if (inserted && purchase.items() != null && !purchase.items().isEmpty()) {
             for (var item : purchase.items()) {
                 item.withPurchase(purchase);
-                insertItem(dsl, item);
+                PurchaseItemRepositoryImpl.insertRow(dsl, item);
             }
         }
 
         return inserted;
     }
 
-    private void insertItem(org.jooq.DSLContext dsl, PurchaseItem item) {
-        if (item.id() == null) {
-            item.withId(dsl.nextval(SQ_PURCHASEITEM));
-        }
-
-        var step = dsl.insertInto(EN_PURCHASEITEM)
-                .set(EN_PURCHASEITEM.ID, item.id());
-
-        if (item.purchase() != null && item.purchase().id() != null) {
-            step.set(EN_PURCHASEITEM.PURCHASEID, item.purchase().id());
-        }
-        if (item.product() != null && item.product().id() != null) {
-            step.set(EN_PURCHASEITEM.PRODUCTID, item.product().id());
-        }
-        if (item.amount() != null) {
-            step.set(EN_PURCHASEITEM.AMOUNT, item.amount());
-        }
-        var price = PurchaseItemRepositoryImpl.priceOf(dsl, item);
-        if (price != null) {
-            step.set(EN_PURCHASEITEM.PRICE, price);
-        }
-
-        step.execute();
-    }
 
     @Override
     public boolean update(Purchase newBean, Purchase oldBean, Purchase projection) {

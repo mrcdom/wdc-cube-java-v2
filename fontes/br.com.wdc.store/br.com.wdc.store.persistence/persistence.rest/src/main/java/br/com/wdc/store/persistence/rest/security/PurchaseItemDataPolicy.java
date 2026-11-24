@@ -53,6 +53,7 @@ public final class PurchaseItemDataPolicy {
             .criterion("productId", "product")
             .criterion("userId", "purchase")
             .orderings(PurchaseItemDataPolicy::orderingFields)
+            .defaultShape(PurchaseItemDataPolicy::defaultShape)
             .build();
     // @formatter:on
 
@@ -126,6 +127,16 @@ public final class PurchaseItemDataPolicy {
                 .withPrice(PV.f64)
                 .withPurchase(new Purchase())
                 .withProduct(new Product());
+    }
+
+    /** A read without a projection: quantity, price and the product's name and price — also a receipt's line. */
+    static PurchaseItem defaultShape() {
+        return new PurchaseItem()
+                .withAmount(PV.i32)
+                .withPrice(PV.f64)
+                .withProduct(new Product()
+                        .withName(PV.str)
+                        .withPrice(PV.f64));
     }
 
     /** The fields each provisioned ordering sorts by; the tie-breaker is the key, which is not checked. */

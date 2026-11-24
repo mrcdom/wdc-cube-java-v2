@@ -98,7 +98,7 @@ So the MANAGER filtering by login gets only its own row (the only grant that rea
 - **Delete**: only the rows of grants that delete, filtered by fields those grants read.
 - **A masked value is never written**: a grant that masks a field cannot also write it — the builder refuses that declaration. A client that echoes a masked value back gets a 403, never an overwrite.
 - **A relation is written by its key only**: a purchase sent with `user: {id, name}` is refused — it would look like a write of the user, which it is not.
-- **What the server decides is not writable**: a customer's grant over purchase items leaves `price` out. The price of a new item is the price of its product at that moment, filled in by the repository; a client that sends one gets a 403.
+- **What the server decides is not writable**: a customer's grant over purchase items leaves `price` out; a client that sends one gets a 403. The repository records a new item without a price at the price of its product, read by a subquery in the same `INSERT`, and `RETURNING` puts the recorded price back on the item.
 
 ### Refusing, not trimming
 
@@ -106,9 +106,17 @@ A forbidden request gets **403** with the fields at fault: `not allowed to read 
 
 The client does **not** receive the policy. A correct client — a presenter built for its roles — never asks for what its roles do not allow, so the 403 is treated like any unexpected error (`RootPresenter.alertUnexpectedError`). The list of fields is there for whoever reads the server log or debugs the request.
 
-### No projection means "everything allowed"
+### No projection means "the default shape, trimmed"
 
-A read without a projection (`GET /api/repo/user/{id}`, a `fetch` without `projection`) gets every value field some grant of the requester sees, and its relations by key, with the per-row rules above; collections stay out. It never fails because of a field. The purchase, purchase item and product endpoints have documented default shapes of their own (a purchase with its items, for instance), which go through the policy like any projection a client sends.
+A read without a projection (`GET /api/repo/purchase/{id}`, a `fetch` without `projection`) gets the entity's **default shape**, declared once in its descriptor (`EntityDescriptor.Builder.defaultShape`), **trimmed** to what the requester may read — the per-row rules above, and, inside relations, the related entity's rules. It is never refused: the client asked for nothing in particular, so nothing it asked for is forbidden. A field no grant reads is left out; a relation to an entity the requester does not read comes by key; a collection of such an entity stays out.
+
+| Entity | Default shape |
+|--------|---------------|
+| User, product | Every field but the collections, relations by key (what an entity gets when it declares none) |
+| Purchase | The receipt: date, the buyer's name, and the items — quantity, price, and the product's name and price |
+| Purchase item | Quantity, price, and the product's name and price |
+
+Following the relations "all the way" would have no natural end — a purchase's items point back to the purchase — and would make a response grow on its own as a role gains access; a declared shape is what a reader of the endpoint expects to get. A client that wants something else sends a projection.
 
 ### Without security
 
@@ -206,7 +214,7 @@ The controller calls one `DataAccess` method per operation: `prepareRead` (fetch
 | `Criteria.anyOf`, `CriterionCodec.refuseAnyOf` | `framework.domain` (`criteria`) | A capability of every criteria on the server; refused on the wire |
 | `CriterionTranslator.anyOf`, `CriterionTranslator.translateAny` | `framework.jooq` | The single translation to SQL — of the groups, and of a search field over several columns |
 | `UserDataPolicy`, `ProductDataPolicy`, `PurchaseDataPolicy`, `PurchaseItemDataPolicy` | `persistence.rest` (`security`) | The policies apply only at the REST boundary |
-| Price of a new item | `persistence.impl` (`PurchaseItemRepositoryImpl.priceOf`) | The server decides what an item costs, in every host |
+| Price of a new item | `persistence.impl` (`PurchaseItemRepositoryImpl.insertRow`, used by both inserts of an item) | The server decides what an item costs, in every host |
 | `SecurityContext.roles()` | `framework.domain`; filled by `AccessContext` | The policy grants by role name |
 
 ## Coverage
@@ -229,10 +237,10 @@ The controller calls one `DataAccess` method per operation: `prepareRead` (fetch
 | Policy on the client | Not sent; the 403 is an unexpected error |
 | Filter and ordering | Only fields read as they are |
 | Writing | Fields per grant for create and update; row scope on update and delete; masked values never written |
-| No projection | Everything the requester may read |
+| No projection | The entity's default shape, trimmed to what the requester may read — never refused |
 | Masks | Textual fields only |
 | Relations | Each entity follows its own policy wherever it appears; the owner's grant decides the key |
 | Purchases | A receipt: customers read and create their own; only an ADMIN changes or deletes |
 | Items of a new purchase | Created through the item policy, as items of that purchase |
-| Price of an item | Not writable by a customer; the repository fills in the product's price |
+| Price of an item | Not writable by a customer; the repository fills in the product's price in the `INSERT` itself, and returns it |
 | Disjunction of row scopes | Alternative groups (`anyOf`) in every criteria, server-side only; a client's search over several columns is a provisioned field (`translateAny`) |

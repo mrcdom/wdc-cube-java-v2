@@ -185,6 +185,17 @@ public class PurchaseDataPolicyRestTest {
 	}
 
 	@Test
+	public void withoutProjection_aPurchaseComesAsAReceipt() {
+		var json = jdoe.transport().postJsonNullable("/api/repo/purchase/fetch-by-id", "{\"id\":" + jdoePurchaseId + "}");
+
+		assertNotNull(json);
+		assertTrue("the buyer's name: " + json, json.contains("John Doe"));
+		assertTrue("the items with their products: " + json, json.contains("Italian Design Coffee Maker"));
+		assertTrue("the price recorded: " + json, json.contains("199.99"));
+		assertFalse("the buyer's login is not in the shape: " + json, json.contains("\"userName\""));
+	}
+
+	@Test
 	public void customer_readsOnlyTheItemsOfTheirOwnPurchases() {
 		var page = jdoe.items().fetchPage(new PurchaseItemCriteria()
 				.withProjection(new PurchaseItem()

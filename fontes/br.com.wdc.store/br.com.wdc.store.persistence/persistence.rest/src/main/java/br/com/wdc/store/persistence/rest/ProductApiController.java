@@ -57,14 +57,6 @@ public class ProductApiController {
 
     private final ProductCodec codec = new ProductCodec();
 
-    private static Product fullProjection() {
-        var pv = ProjectionValues.INSTANCE;
-        return new Product()
-                .withId(pv.i64)
-                .withName(pv.str)
-                .withPrice(pv.f64)
-                .withDescription(pv.str);
-    }
 
     // :: Insert
 
@@ -227,8 +219,6 @@ public class ProductApiController {
             }
         }
         reader.endObject();
-        if (criteria.projection() == null)
-            criteria.withProjection(fullProjection());
         var plan = access.prepareRead(criteria);
         var items = plan.apply(repo().fetch(criteria, offset, limit));
         var writer = new JsonStreamWriter();
@@ -279,8 +269,6 @@ public class ProductApiController {
             }
         }
         reader.endObject();
-        if (criteria.projection() == null)
-            criteria.withProjection(fullProjection());
         var plan = access.prepareRead(criteria);
         var page = repo().fetchPage(criteria, pageIx, pageSz);
         var writer = new JsonStreamWriter();
@@ -316,7 +304,7 @@ public class ProductApiController {
     private void fetchById(Context ctx) {
         var access = access();
         Long id = Long.parseLong(ctx.pathParam("id"));
-        var result = fetchOne(access, id, fullProjection());
+        var result = fetchOne(access, id, null);
         if (result == null) {
             ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
             return;
@@ -358,7 +346,7 @@ public class ProductApiController {
             }
         }
         reader.endObject();
-        var result = fetchOne(access, id, projection != null ? projection : fullProjection());
+        var result = fetchOne(access, id, projection);
         if (result == null) {
             ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
             return;

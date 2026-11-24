@@ -12,6 +12,7 @@ import java.util.List;
 
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.Field;
 import org.jooq.SortField;
 import org.jooq.impl.DSL;
 
@@ -105,8 +106,20 @@ public class PurchaseItemRepositoryImpl extends BaseRepositoryImpl  implements P
 
     @Override
     public boolean insert(PurchaseItem item) {
-        var dsl = dsl();
+        return insertRow(dsl(), item);
+    }
 
+    /**
+     * Inserts the item — on its own, or as part of a new purchase ({@code PurchaseRepositoryImpl.insert}).
+     *
+     * <p>
+     * <b>The price is decided here, on the server.</b> An item without one is recorded with the price of its product,
+     * read by a subquery in the same {@code INSERT}, so it is the price at the moment the row is written. Whoever sends
+     * a purchase from the browser sends what it wants; the REST data policy does not let a customer send a price. The
+     * price recorded comes back through {@code RETURNING} and is put on the item.
+     * </p>
+     */
+    static boolean insertRow(DSLContext dsl, PurchaseItem item) {
         if (item.id() == null) {
             item.withId(dsl.nextval(SQ_PURCHASEITEM));
         }
@@ -123,33 +136,32 @@ public class PurchaseItemRepositoryImpl extends BaseRepositoryImpl  implements P
         if (item.amount() != null) {
             step.set(EN_PURCHASEITEM.AMOUNT, item.amount());
         }
-        var price = priceOf(dsl, item);
+        var price = priceOf(item);
         if (price != null) {
             step.set(EN_PURCHASEITEM.PRICE, price);
         }
 
-        return step.execute() > 0;
+        var inserted = step.returning(EN_PURCHASEITEM.PRICE)
+                .fetchOne();
+        if (inserted == null) {
+            return false;
+        }
+        var recorded = inserted.get(EN_PURCHASEITEM.PRICE);
+        item.withPrice(recorded == null ? null : recorded.doubleValue());
+        return true;
     }
 
-    /**
-     * The price a new item is recorded with: the one it carries, or else the price of its product now.
-     *
-     * <p>
-     * Whoever sends a purchase from the browser sends what it wants, so the price of an item a customer buys is decided
-     * here, on the server; the REST data policy does not let a customer send one.
-     * </p>
-     */
-    static BigDecimal priceOf(DSLContext dsl, PurchaseItem item) {
+    /** The price of a new item: the one it carries, or else its product's, as a subquery; {@code null} with neither. */
+    private static Field<BigDecimal> priceOf(PurchaseItem item) {
         if (item.price() != null) {
-            return BigDecimal.valueOf(item.price());
+            return DSL.val(BigDecimal.valueOf(item.price()));
         }
         if (item.product() == null || item.product().id() == null) {
             return null;
         }
-        return dsl.select(EN_PRODUCT.PRICE)
+        return DSL.field(DSL.select(EN_PRODUCT.PRICE)
                 .from(EN_PRODUCT)
-                .where(EN_PRODUCT.ID.eq(item.product().id()))
-                .fetchOne(EN_PRODUCT.PRICE);
+                .where(EN_PRODUCT.ID.eq(item.product().id())));
     }
 
     @Override

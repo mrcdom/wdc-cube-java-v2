@@ -156,6 +156,7 @@ public final class EntityDescriptor<E, C extends Criteria> {
     private final Map<String, Field<E, ?>> fields;
     private final Map<String, String> criterionFields;
     private final Function<C, Set<String>> orderingFields;
+    private final Supplier<E> defaultShape;
 
     private EntityDescriptor(Builder<E, C> b) {
         this.name = b.name;
@@ -169,6 +170,7 @@ public final class EntityDescriptor<E, C extends Criteria> {
         this.fields = Collections.unmodifiableMap(new LinkedHashMap<>(b.fields));
         this.criterionFields = Collections.unmodifiableMap(new HashMap<>(b.criterionFields));
         this.orderingFields = b.orderingFields;
+        this.defaultShape = b.defaultShape;
     }
 
     public static <E, C extends Criteria> Builder<E, C> builder(String name) {
@@ -268,6 +270,23 @@ public final class EntityDescriptor<E, C extends Criteria> {
         return entityFactory.get();
     }
 
+    /**
+     * What a read without a projection gets, before it is trimmed to what the requester may read: the shape the entity
+     * declares, or else every field but the collections, relations by key.
+     */
+    E defaultShape() {
+        if (defaultShape != null) {
+            return defaultShape.get();
+        }
+        var shallow = new LinkedHashSet<String>();
+        for (var field : fields.values()) {
+            if (field != key && field.kind() != Kind.COLLECTION) {
+                shallow.add(field.name());
+            }
+        }
+        return projectionOf(shallow);
+    }
+
     C newCriteria() {
         return criteriaFactory.get();
     }
@@ -328,6 +347,7 @@ public final class EntityDescriptor<E, C extends Criteria> {
         private final Map<String, Field<E, ?>> fields = new LinkedHashMap<>();
         private final Map<String, String> criterionFields = new HashMap<>();
         private Function<C, Set<String>> orderingFields = c -> Set.of();
+        private Supplier<E> defaultShape;
 
         private Builder(String name) {
             this.name = name;
@@ -394,6 +414,16 @@ public final class EntityDescriptor<E, C extends Criteria> {
         /** The fields each ordering of the criteria sorts by. */
         public Builder<E, C> orderings(Function<C, Set<String>> orderingFields) {
             this.orderingFields = orderingFields;
+            return this;
+        }
+
+        /**
+         * The shape a read without a projection gets — it may go into relations and collections, as a receipt does with
+         * its items. A new projection on each call: a read changes the one it is given. Without it, every field but the
+         * collections, relations by key.
+         */
+        public Builder<E, C> defaultShape(Supplier<E> shape) {
+            this.defaultShape = shape;
             return this;
         }
 

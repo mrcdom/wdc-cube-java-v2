@@ -19,7 +19,7 @@ graph TD
     root --> PlaceKeys["PlaceKeysTest.java<br/><small>Place keys and intents</small>"]
     root --> CartRestore["CartRestoreTest.java (7)<br/><small>Cart kept in the session scope and restored on reload</small>"]
     root --> RoleTestN["RoleTest.java (3)<br/><small>Parsing the roles</small>"]
-    root --> Policy["DataPolicyTest (12), UserDataPolicyRestTest (8),<br/>PurchaseDataPolicyRestTest (13)<br/><small>Data access policy: rules, and the REST API with authentication on</small>"]
+    root --> Policy["DataPolicyTest (13), UserDataPolicyRestTest (8),<br/>PurchaseDataPolicyRestTest (14)<br/><small>Data access policy: rules, and the REST API with authentication on</small>"]
     root --> Wire["EntityGraphRecursionTest, RelationKeyProjectionTest,<br/>FetchByIdEndpointTest, OrderByWireCompatibilityTest,<br/>OpenApiSpecTest<br/><small>Codecs, projections, REST API</small>"]
     root --> Tx["TransactionServiceJtaTest,<br/>RemoteTransactionCoordinatorJtaTest,<br/>RemoteTransactionRestTest<br/><small>Transactions (JTA, remote)</small>"]
 
