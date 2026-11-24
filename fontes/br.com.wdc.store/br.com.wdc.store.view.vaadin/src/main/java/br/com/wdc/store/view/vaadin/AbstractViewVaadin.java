@@ -118,7 +118,9 @@ public abstract class AbstractViewVaadin<S extends Scope> {
             return;
         }
         this.released = true;
-        this.scope.clearUpdater(this.updater);
+        if (this.scope != null) {
+            this.scope.clearUpdater(this.updater);
+        }
         this.app.forgetView(this);
         try {
             this.onRelease();

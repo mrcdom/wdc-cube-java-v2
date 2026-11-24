@@ -113,7 +113,9 @@ public abstract class AbstractViewTeaVM<S extends Scope> {
             return;
         }
         this.released = true;
-        this.scope.clearUpdater(this.updater);
+        if (this.scope != null) {
+            this.scope.clearUpdater(this.updater);
+        }
         this.app.forgetView(this);
         if (this.element.getParentNode() != null) {
             this.element.getParentNode().removeChild(this.element);
