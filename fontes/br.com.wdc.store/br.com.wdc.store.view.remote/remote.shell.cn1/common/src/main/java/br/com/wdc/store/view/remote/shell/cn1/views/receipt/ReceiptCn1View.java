@@ -152,10 +152,10 @@ public class ReceiptCn1View extends AbstractCn1View {
 
     @Override
     public void doUpdate() {
-        Map<String, Object> st = state();
-        Guard.visible(successAlert, Json.boolOf(st, "notifySuccess"));
+        Map<String, Object> scope = scope();
+        Guard.visible(successAlert, Json.boolOf(scope, "notifySuccess"));
 
-        Map<String, Object> receipt = Json.asMap(st.get("receipt"));
+        Map<String, Object> receipt = Json.asMap(scope.get("receipt"));
         dateValue.accept(Dates.formatDateTime(Json.longOf(receipt, "date")));
         total.accept(Money.format(Json.doubleOf(receipt, "total")));
 

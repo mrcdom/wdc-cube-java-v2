@@ -1,10 +1,10 @@
 # swt.commons
 
-Shared library of SWT views and components for **WeDoCode Store**. It contains the concrete SWT implementations of the application's screens — reused both by the local desktop app (`swt.desktop`) and by the remote shell (`remote.shell.swt`).
+Shared library of SWT views and components for **WDC Store**. It contains the concrete SWT implementations of the application's screens — reused both by the local desktop app (`swt.desktop`) and by the remote shell (`remote.shell.swt`).
 
 ## Responsibility
 
-Centralize the SWT code that does not depend on how the state is obtained (locally via Presenter or remotely via ViewStateSnapshot). The views extend `AbstractViewSwt` and receive data through `update()`, regardless of the source.
+Centralize the SWT code that does not depend on how the scope is obtained (locally via Presenter or remotely via ScopeSnapshot). The views extend `AbstractViewSwt` and receive data through `update()`, regardless of the source.
 
 ## Package Structure
 
@@ -20,6 +20,7 @@ br.com.wdc.store.view.swt/
 │   ├── ProductViewSwt.java
 │   ├── ProductsPanelViewSwt.java
 │   ├── CartViewSwt.java
+│   ├── CartItemViewSwt.java
 │   ├── ReceiptViewSwt.java
 │   └── PurchasesPanelViewSwt.java
 ├── components/                       # Reusable custom widgets
@@ -47,8 +48,8 @@ br.com.wdc.store.view.swt/
 
 ## Dependencies
 
-- `br.com.wdc.store.presentation` — Scope classes (state reading only)
-- `org.eclipse.platform:org.eclipse.swt.*` — via Maven profile (macos-aarch64, linux-x86_64, win32-x86_64)
+- `br.com.wdc.store.presentation` — Scope classes (read only)
+- `org.eclipse.platform:org.eclipse.swt.*` — via Maven profile (macos-aarch64, macos-x86_64, linux-x86_64, win32-x86_64, win32-aarch64)
 
 ## Build
 

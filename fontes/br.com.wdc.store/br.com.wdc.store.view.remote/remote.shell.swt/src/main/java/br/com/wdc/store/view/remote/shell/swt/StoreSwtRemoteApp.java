@@ -21,20 +21,20 @@ import br.com.wdc.framework.commons.storage.ClientStorage;
 import br.com.wdc.framework.commons.storage.PreferencesClientStorage;
 import br.com.wdc.framework.cube.remote.bridge.java.HostClient;
 import br.com.wdc.framework.cube.remote.bridge.java.model.HostResponse;
-import br.com.wdc.framework.cube.remote.bridge.java.model.ViewStateSnapshot;
+import br.com.wdc.framework.cube.remote.bridge.java.model.ScopeSnapshot;
 import br.com.wdc.store.domain.product.ProductRepository;
 import br.com.wdc.store.view.swt.AbstractViewSwt;
 import br.com.wdc.store.view.swt.SwtApp;
 import br.com.wdc.store.view.swt.util.ProductImageCache;
 
 /**
- * SWT shell application that renders WDC Store using remote state from the Host server.
+ * SWT shell application that renders WDC Store using the scopes it receives from the Host server.
  * <p>
  * The app:
  * <ol>
  * <li>Connects to the Host via {@link HostClient}</li>
  * <li>Creates SWT views from {@code swt.commons} keyed by classId</li>
- * <li>Supplies each view with a {@code stateSupplier} that translates {@code ViewStateSnapshot} fields into typed Scope objects</li>
+ * <li>Supplies each view with a {@code scopeSupplier} that translates {@code ScopeSnapshot} values into typed Scope objects</li>
  * <li>Sends events back to the Host via non-blocking {@code submit()}</li>
  * <li>A background listener thread applies host responses on the UI thread</li>
  * <li>A render timer flushes dirty views at ~60 fps</li>
@@ -119,7 +119,7 @@ public class StoreSwtRemoteApp implements SwtApp, RemoteViewContext {
 	private static final String STORAGE_KEY_INTENT = "session.intent";
 
 	/**
-	 * Connects to the Host, awaits the initial state push, starts the listener thread and render loop. Call from the UI thread before the event loop.
+	 * Connects to the Host, awaits the initial scope push, starts the listener thread and render loop. Call from the UI thread before the event loop.
 	 */
 	public void connect(String serverUrl) throws Exception {
 		LOG.info("Connecting to {}", serverUrl);
@@ -175,7 +175,7 @@ public class StoreSwtRemoteApp implements SwtApp, RemoteViewContext {
 
 	private void applyResponse(HostResponse resp) {
 		// Create views for newly published vsids
-		for (var snapshot : resp.viewStates()) {
+		for (var snapshot : resp.scopes()) {
 			var vsid = snapshot.instanceId();
 			if (!this.viewRegistry.containsKey(vsid)) {
 				var classId = classIdOf(vsid);
@@ -213,7 +213,7 @@ public class StoreSwtRemoteApp implements SwtApp, RemoteViewContext {
 	 * of the browser), whose alert action may run then.
 	 */
 	private void showHostAlert() {
-		var browser = this.viewState(HostClient.BROWSER_VSID);
+		var browser = this.scope(HostClient.BROWSER_VSID);
 		var alertId = browser != null && browser.getLong("alertId") != null ? browser.getLong("alertId").intValue() : 0;
 		if (alertId == 0 || alertId == this.shownAlertId) {
 			this.shownAlertId = alertId;
@@ -222,7 +222,7 @@ public class StoreSwtRemoteApp implements SwtApp, RemoteViewContext {
 		this.shownAlertId = alertId;
 
 		var args = new ArrayList<String>();
-		if (browser.fields().get("alertArgs") instanceof List<?> list) {
+		if (browser.values().get("alertArgs") instanceof List<?> list) {
 			for (var item : list) {
 				args.add(String.valueOf(item));
 			}
@@ -306,8 +306,8 @@ public class StoreSwtRemoteApp implements SwtApp, RemoteViewContext {
 	}
 
 	@Override
-	public ViewStateSnapshot viewState(String vsid) {
-		return this.hostClient != null ? this.hostClient.viewState(vsid) : null;
+	public ScopeSnapshot scope(String vsid) {
+		return this.hostClient != null ? this.hostClient.scope(vsid) : null;
 	}
 
 	@Override

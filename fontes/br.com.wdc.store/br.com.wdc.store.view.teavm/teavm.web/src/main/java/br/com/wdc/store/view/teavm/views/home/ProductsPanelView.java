@@ -14,7 +14,7 @@ public class ProductsPanelView extends AbstractVDomView<ProductsPanelScope> {
         super("products-panel", app, scope);
 
         this.shared = new ProductsPanelSharedView();
-        this.shared.stateSupplier = () -> scope;
+        this.shared.scopeSupplier = () -> scope;
         this.shared.imageResolver = app::resolveImageUrl;
         this.shared.onOpenProduct = id -> safeAction("Open product", () -> scope.onOpenProduct.run(id));
     }

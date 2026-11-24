@@ -10,15 +10,15 @@ public class ProductView extends AbstractVDomView<ProductScope> {
 
     private final ProductSharedView shared;
 
-    public ProductView(StoreTeaVMApplication app, ProductScope state) {
-        super("product", app, state);
+    public ProductView(StoreTeaVMApplication app, ProductScope scope) {
+        super("product", app, scope);
 
         this.shared = new ProductSharedView();
-        this.shared.stateSupplier = () -> state;
+        this.shared.scopeSupplier = () -> scope;
         this.shared.imageResolver = app::resolveImageUrl;
         this.shared.requestUpdate = this::update;
-        this.shared.onBack = () -> safeAction("Back", state.onOpenProducts::run);
-        this.shared.onAddToCart = qty -> safeAction("AddToCart", () -> state.onAddToCart.run(qty));
+        this.shared.onBack = () -> safeAction("Back", scope.onOpenProducts::run);
+        this.shared.onAddToCart = qty -> safeAction("AddToCart", () -> scope.onAddToCart.run(qty));
     }
 
     @Override

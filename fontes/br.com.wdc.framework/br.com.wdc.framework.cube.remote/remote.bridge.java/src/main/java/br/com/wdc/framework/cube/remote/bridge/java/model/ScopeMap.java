@@ -10,28 +10,28 @@ import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
- * Thread-safe registry of all ViewStates currently active in the session.
+ * Thread-safe registry of all scopes currently active in the session.
  * <p>
  * Updated by each incoming server message. Views are added/replaced on
- * {@code states} payloads and removed on {@code releasedViews} payloads.
+ * {@code scopes} payloads and removed on {@code releasedViews} payloads.
  */
-public final class ViewStateMap {
+public final class ScopeMap {
 
-    private final ConcurrentHashMap<String, ViewStateSnapshot> map = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, ScopeSnapshot> map = new ConcurrentHashMap<>();
 
     /**
-     * Applies a list of state objects from the server {@code "states"} array.
+     * Applies a list of scope objects from the server {@code "scopes"} array.
      * Each object must contain a {@code "#"} field with the instanceId.
      */
     @SuppressWarnings("unchecked")
-    public void applyStates(List<Object> stateList) {
-        if (stateList == null) return;
-        for (Object rawState : stateList) {
-            if (rawState instanceof Map<?, ?> rawMap) {
-                var stateMap = new HashMap<String, Object>((Map<String, Object>) rawMap);
-                String instanceId = String.valueOf(stateMap.remove("#"));
+    public void applyScopes(List<Object> scopeList) {
+        if (scopeList == null) return;
+        for (Object rawScope : scopeList) {
+            if (rawScope instanceof Map<?, ?> rawMap) {
+                var values = new HashMap<String, Object>((Map<String, Object>) rawMap);
+                String instanceId = String.valueOf(values.remove("#"));
                 if (instanceId != null && !instanceId.equals("null")) {
-                    map.put(instanceId, new ViewStateSnapshot(instanceId, stateMap));
+                    map.put(instanceId, new ScopeSnapshot(instanceId, values));
                 }
             }
         }
@@ -48,19 +48,19 @@ public final class ViewStateMap {
     /**
      * Returns the current snapshot for a given instanceId, or {@code null} if not present.
      */
-    public ViewStateSnapshot get(String instanceId) {
+    public ScopeSnapshot get(String instanceId) {
         return map.get(instanceId);
     }
 
     /**
-     * Returns all currently active ViewState snapshots.
+     * Returns the snapshots of all currently active scopes.
      */
-    public Collection<ViewStateSnapshot> all() {
+    public Collection<ScopeSnapshot> all() {
         return Collections.unmodifiableCollection(map.values());
     }
 
     /**
-     * Returns all active ViewState snapshots whose instanceId belongs to the given classId,
+     * Returns the snapshots of all active scopes whose instanceId belongs to the given classId,
      * sorted by instance number descending so that the most recently created instance comes first.
      * <p>
      * The instanceId format is {@code "classId:instanceNumber"} (e.g., {@code "productList:1"}).
@@ -70,16 +70,16 @@ public final class ViewStateMap {
      * for them (e.g., when navigating away from a product to another product). Sorting by
      * instance number descending ensures {@code findFirst()} returns the most recent instance.
      */
-    public Collection<ViewStateSnapshot> allByClassId(String classId) {
+    public Collection<ScopeSnapshot> allByClassId(String classId) {
         String prefix = classId + ":";
         return map.values().stream()
-                .filter(vs -> vs.instanceId().startsWith(prefix))
-                .sorted(Comparator.comparingInt(ViewStateMap::instanceNumber).reversed())
+                .filter(snapshot -> snapshot.instanceId().startsWith(prefix))
+                .sorted(Comparator.comparingInt(ScopeMap::instanceNumber).reversed())
                 .toList();
     }
 
-    private static int instanceNumber(ViewStateSnapshot vs) {
-        String id = vs.instanceId();
+    private static int instanceNumber(ScopeSnapshot snapshot) {
+        String id = snapshot.instanceId();
         int colon = id.lastIndexOf(':');
         if (colon < 0) return 0;
         try {
@@ -97,7 +97,7 @@ public final class ViewStateMap {
     }
 
     /**
-     * Clears all state (used on reconnect).
+     * Clears all scopes (used on reconnect).
      */
     public void clear() {
         map.clear();

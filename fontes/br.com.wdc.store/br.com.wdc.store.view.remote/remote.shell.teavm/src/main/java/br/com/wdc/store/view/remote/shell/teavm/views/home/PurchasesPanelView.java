@@ -21,13 +21,13 @@ public class PurchasesPanelView extends AbstractRemoteView {
     private static final int ON_PAGE_SIZE_CHANGED = 3;
 
     private final PurchasesPanelSharedView shared;
-    private final HomeScope.PurchasesPanelScope adaptedState = new HomeScope.PurchasesPanelScope();
+    private final HomeScope.PurchasesPanelScope adaptedScope = new HomeScope.PurchasesPanelScope();
 
     public PurchasesPanelView(String vsid) {
         super(vsid);
 
         this.shared = new PurchasesPanelSharedView();
-        this.shared.stateSupplier = this::adaptState;
+        this.shared.scopeSupplier = this::adaptScope;
         this.shared.requestUpdate = this::forceUpdate;
         this.shared.onOpenReceipt = id -> {
             setFormField("p.purchaseId", id);
@@ -54,19 +54,19 @@ public class PurchasesPanelView extends AbstractRemoteView {
         return shared.renderTree();
     }
 
-    private HomeScope.PurchasesPanelScope adaptState() {
-        ViewScope scope = state();
-        adaptedState.purchases.set(getPurchases(scope));
-        adaptedState.page.set(scope.getInt("page"));
-        adaptedState.pageSize.set(scope.getInt("pageSize"));
-        adaptedState.totalCount.set(scope.getInt("totalCount"));
-        return adaptedState;
+    private HomeScope.PurchasesPanelScope adaptScope() {
+        ViewScope scope = scope();
+        adaptedScope.purchases.set(getPurchases(scope));
+        adaptedScope.page.set(scope.getInt("page"));
+        adaptedScope.pageSize.set(scope.getInt("pageSize"));
+        adaptedScope.totalCount.set(scope.getInt("totalCount"));
+        return adaptedScope;
     }
 
     @SuppressWarnings("unchecked")
     private List<PurchaseInfo> getPurchases(ViewScope scope) {
         if (scope == null) return List.of();
-        var v = scope.getState().get("purchases");
+        var v = scope.getValues().get("purchases");
         if (v instanceof List<?> list) {
             var result = new ArrayList<PurchaseInfo>();
             for (var item : list) {

@@ -46,7 +46,7 @@ public class SegmentTest {
 
     static class PagePresenter extends AbstractCubePresenter<GuardedActionTest.RecordingApp> {
 
-        final PageScope state = bind(new PageScope());
+        final PageScope scope = bind(new PageScope());
         final PageScope.PanelScope panel = new PageScope.PanelScope();
         final CountingView pageView = new CountingView();
         final CountingView panelView = new CountingView();
@@ -57,13 +57,13 @@ public class SegmentTest {
                     .register(PageScope.class, (CubeApplication a, PageScope s) -> pageView)
                     .register(PageScope.PanelScope.class, (CubeApplication a, PageScope.PanelScope s) -> panelView));
             panel.onPageChange = actionOf(panel, 2, FormParam.asInteger("p.page"), panel.page::set);
-            state.panel.set(panel);
+            scope.panel.set(panel);
             // The host draws the presenter's scope; the page's view then asks for the panel's when it needs it
-            app.viewOf(state);
+            app.viewOf(scope);
         }
 
         void dropPanel() {
-            state.panel.set(null);
+            scope.panel.set(null);
             detach(panel);
         }
     }

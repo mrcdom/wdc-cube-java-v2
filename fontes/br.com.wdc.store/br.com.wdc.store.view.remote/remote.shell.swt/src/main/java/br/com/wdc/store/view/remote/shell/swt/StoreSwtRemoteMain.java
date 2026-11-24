@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Entry point for the SWT Remote Shell.
  * <p>
- * Connects to the WDC Store Host server and renders the application using SWT widgets from {@code swt.commons}, driven by remote state.
+ * Connects to the WDC Store Host server and renders the application using SWT widgets from {@code swt.commons}, driven by the remote scopes.
  *
  * <h3>Usage</h3>
  *
@@ -57,7 +57,7 @@ public class StoreSwtRemoteMain {
 
 			shell.open();
 
-			// Connect & await initial state push (blocks briefly on UI thread before loop)
+			// Connect & await initial scope push (blocks briefly on UI thread before loop)
 			try {
 				app.connect(serverUrl);
 			} catch (Exception e) {

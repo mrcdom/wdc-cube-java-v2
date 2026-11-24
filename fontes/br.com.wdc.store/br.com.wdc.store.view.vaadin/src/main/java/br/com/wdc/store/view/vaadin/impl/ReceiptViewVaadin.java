@@ -34,8 +34,8 @@ public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptScope> {
     private Span totalElm;
     private double totalOldValue;
 
-    public ReceiptViewVaadin(StoreVaadinApplication app, ReceiptScope state) {
-        super("receipt", app, state, new VerticalLayout());
+    public ReceiptViewVaadin(StoreVaadinApplication app, ReceiptScope scope) {
+        super("receipt", app, scope, new VerticalLayout());
     }
 
     @Override
@@ -56,24 +56,24 @@ public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptScope> {
             this.notRendered = false;
         }
 
-        if (this.state.notifySuccess.get()) {
+        if (this.scope.notifySuccess.get()) {
             Notification.show("PURCHASE COMPLETED SUCCESSFULLY!", 5000, Notification.Position.TOP_CENTER)
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             // Consumed while drawing: a one-shot notice needs no redraw
-            this.state.notifySuccess.setSilently(false);
+            this.scope.notifySuccess.setSilently(false);
         }
 
-        if (!Objects.equals(this.dateOldValue, this.state.receipt.get().date)) {
-            this.dateElm.setText(formatDate(this.state.receipt.get().date));
-            this.dateOldValue = this.state.receipt.get().date;
+        if (!Objects.equals(this.dateOldValue, this.scope.receipt.get().date)) {
+            this.dateElm.setText(formatDate(this.scope.receipt.get().date));
+            this.dateOldValue = this.scope.receipt.get().date;
         }
 
-        if (this.totalOldValue != this.state.receipt.get().total) {
-            this.totalElm.setText(NumberFormat.getCurrencyInstance(Locale.US).format(this.state.receipt.get().total));
-            this.totalOldValue = this.state.receipt.get().total;
+        if (this.totalOldValue != this.scope.receipt.get().total) {
+            this.totalElm.setText(NumberFormat.getCurrencyInstance(Locale.US).format(this.scope.receipt.get().total));
+            this.totalOldValue = this.scope.receipt.get().total;
         }
 
-        this.grid.setItems(this.state.receipt.get().items);
+        this.grid.setItems(this.scope.receipt.get().items);
     }
 
     private void initialRender(VaadinDom dom, VerticalLayout pane0) {
@@ -105,8 +105,8 @@ public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptScope> {
                 });
                 dom.span(label -> {
                     this.dateElm = label;
-                    this.dateElm.setText(formatDate(this.state.receipt.get().date));
-                    this.dateOldValue = this.state.receipt.get().date;
+                    this.dateElm.setText(formatDate(this.scope.receipt.get().date));
+                    this.dateOldValue = this.scope.receipt.get().date;
                 });
             });
 
@@ -131,11 +131,11 @@ public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptScope> {
 
                 dom.span(label -> {
                     this.totalElm = label;
-                    this.totalElm.setText(NumberFormat.getCurrencyInstance(Locale.US).format(this.state.receipt.get().total));
+                    this.totalElm.setText(NumberFormat.getCurrencyInstance(Locale.US).format(this.scope.receipt.get().total));
                     this.totalElm.getStyle().set("font-size", "18px")
                             .set("font-weight", "bold")
                             .set("color", "var(--lumo-primary-color)");
-                    this.totalOldValue = this.state.receipt.get().total;
+                    this.totalOldValue = this.scope.receipt.get().total;
                 });
             });
         });
@@ -146,7 +146,7 @@ public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptScope> {
             button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
             button.addClassName("back-button");
             button.getStyle().set("margin-top", "var(--lumo-space-m)");
-            button.addClickListener(e -> safeAction("Open products", this.state.onOpenProducts::run));
+            button.addClickListener(e -> safeAction("Open products", this.scope.onOpenProducts::run));
         });
     }
 

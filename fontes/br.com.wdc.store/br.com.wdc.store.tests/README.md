@@ -17,6 +17,8 @@ graph TD
     root --> CallTest["StoreCallTest.java<br/><small>Presentation calls</small>"]
     root --> WorkflowTest["StoreWorkflowTest.java<br/><small>Complete workflow (presentation)</small>"]
     root --> PlaceKeys["PlaceKeysTest.java<br/><small>Place keys and intents</small>"]
+    root --> CartRestore["CartRestoreTest.java (7)<br/><small>Cart kept in the session scope and restored on reload</small>"]
+    root --> RoleTestN["RoleTest.java (3)<br/><small>Role permissions (user read, data:all, user write)</small>"]
     root --> Wire["EntityGraphRecursionTest, RelationKeyProjectionTest,<br/>FetchByIdEndpointTest, OrderByWireCompatibilityTest,<br/>OpenApiSpecTest<br/><small>Codecs, projections, REST API</small>"]
     root --> Tx["TransactionServiceJtaTest,<br/>RemoteTransactionCoordinatorJtaTest,<br/>RemoteTransactionRestTest<br/><small>Transactions (JTA, remote)</small>"]
 
@@ -68,10 +70,10 @@ They directly exercise the presentation calls (`CredentialsCheck`, `ProductQuery
 
 ### Presentation tests (`StoreLoginTest`, `StoreWorkflowTest`)
 
-They simulate user interaction **at the presentation level** using view mocks. Each view mock exposes the `state` (the scope it draws), making it possible to:
+They simulate user interaction **at the presentation level** using view mocks. Each view mock exposes the `scope` it draws, making it possible to:
 
-1. Fire the state's actions as the user would (e.g.: `loginView.state.onEnter.run("admin", "admin")`)
-2. Inspect the resulting state (e.g.: `homeView.state.errorCode.get()`)
+1. Fire the scope's actions as the user would (e.g.: `loginView.scope.onEnter.run("admin", "admin")`)
+2. Inspect the resulting scope (e.g.: `homeView.scope.errorCode.get()`)
 3. Navigate between screens, verifying transitions (e.g.: login → home → product → cart → receipt)
 
 #### Example: complete purchase workflow
@@ -85,24 +87,24 @@ public class StoreWorkflowTest extends BasePresentationTest {
         var rootView = this.app.getRootView();
 
         // Sign in
-        var loginView = LoginViewMock.cast(this.app.viewOf(rootView.state.content.get()));
-        loginView.state.onEnter.run("admin", "admin");
+        var loginView = LoginViewMock.cast(this.app.viewOf(rootView.scope.content.get()));
+        loginView.scope.onEnter.run("admin", "admin");
 
         // Navigate to the product (the action belongs to the home's products panel)
-        var homeView = HomeViewMock.cast(this.app.viewOf(rootView.state.content.get()));
-        homeView.getProductsPanelState().onOpenProduct.run(DBReset.FLASH_DRIVE_2GB_ID);
+        var homeView = HomeViewMock.cast(this.app.viewOf(rootView.scope.content.get()));
+        homeView.getProductsPanelScope().onOpenProduct.run(DBReset.FLASH_DRIVE_2GB_ID);
 
         // Add to cart
-        var productView = ProductViewMock.cast(this.app.viewOf(homeView.state.content.get()));
-        productView.state.onAddToCart.run(1);
+        var productView = ProductViewMock.cast(this.app.viewOf(homeView.scope.content.get()));
+        productView.scope.onAddToCart.run(1);
 
         // Check out
-        var cartView = CartViewMock.cast(this.app.viewOf(homeView.state.content.get()));
-        cartView.state.onBuy.run();
+        var cartView = CartViewMock.cast(this.app.viewOf(homeView.scope.content.get()));
+        cartView.scope.onBuy.run();
 
         // Verify the receipt
-        var receiptView = ReceiptViewMock.cast(this.app.viewOf(homeView.state.content.get()));
-        Assert.assertNotNull(receiptView.state.receipt.get());
+        var receiptView = ReceiptViewMock.cast(this.app.viewOf(homeView.scope.content.get()));
+        Assert.assertNotNull(receiptView.scope.receipt.get());
     }
 }
 ```
@@ -123,12 +125,12 @@ The full test (`testBuyProduct`) navigates through **5 screens** (login → home
 
 ### `BasePresentationTest`
 
-Extends `BaseBusinessTest` and instantiates `StoreApplicationMock`, which hands the application a `ScopeViews` catalog with one view mock per scope class (`register(CartScope.class, CartViewMock::new)`). `getRootView()` returns the root scope's view (`viewOf(getRootPresenter().state)`); the others are obtained with `app.viewOf(...)` on the scope the parent holds (`state.content.get()`).
+Extends `BaseBusinessTest` and instantiates `StoreApplicationMock`, which hands the application a `ScopeViews` catalog with one view mock per scope class (`register(CartScope.class, CartViewMock::new)`). `getRootView()` returns the root scope's view (`viewOf(getRootPresenter().scope)`); the others are obtained with `app.viewOf(...)` on the scope the parent holds (`scope.content.get()`).
 
 ### View mocks
 
-Each mock (`LoginViewMock`, `CartViewMock`, etc.) extends `AbstractViewMock<S extends Scope>`, is constructed with `(app, scope)` (`new CartViewMock(app, state)`) and exposes:
-- `state` — the scope the view draws (reading the state and firing the actions, as the user would)
+Each mock (`LoginViewMock`, `CartViewMock`, etc.) extends `AbstractViewMock<S extends Scope>`, is constructed with `(app, scope)` (`new CartViewMock(app, scope)`) and exposes:
+- `scope` — the scope the view draws (reading its values and firing the actions, as the user would)
 - `app` — the `StoreApplicationMock`, for requesting the views of inner scopes (`app.viewOf(...)`)
 - `cast(CubeView)` — static method to get the mock with a type assertion
 

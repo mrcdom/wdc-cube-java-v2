@@ -1,19 +1,21 @@
 # WDC Store — React Client
 
-SPA frontend for the WDC Store system, built with **React 19**, **TypeScript** and **MUI 9**. It communicates with the Java backend over a **bidirectional WebSocket**, receiving serialized states from the presenters and sending events back.
+SPA frontend for the WDC Store system, built with **React 19**, **TypeScript** and **Spectrum Web Components** (`@swc-react`). It communicates with the Java backend over a **bidirectional WebSocket**, receiving the presenters' serialized scopes (each one's view state) and sending events back.
 
 ## Stack
 
-| Technology        | Version | Purpose                   |
-| ----------------- | ------- | ------------------------- |
-| React             | 19      | Reactive UI               |
-| TypeScript        | ES2024  | Static typing             |
-| MUI (Material UI) | 9       | Visual components         |
-| Emotion           | 11      | CSS-in-JS (MUI engine)    |
-| Parcel            | 2.13.3  | Bundler                   |
-| Prettier          | 3.8.2   | Code formatting           |
-| history           | 5.3.0   | Hash-based navigation     |
-| universal-cookie  | 7.2.2   | Cookie management         |
+| Technology                          | Version | Purpose                   |
+| ----------------------------------- | ------- | ------------------------- |
+| React                               | 19      | Reactive UI               |
+| TypeScript                          | ES2024  | Static typing             |
+| Spectrum Web Components (@swc-react) | 1.12    | Visual components         |
+| Bootstrap Icons                     | 1.11.3  | Icons (`bi bi-*` classes) |
+| Sass (@parcel/transformer-sass)     | 2.16    | View stylesheets          |
+| Parcel                              | 2.13.3  | Bundler                   |
+| Prettier                            | 3.8.2   | Code formatting           |
+| universal-cookie                    | 7.2.2   | Cookie management         |
+
+The protocol client (coordinator, WebSocket, crypto, storage) is the framework module `remote.bridge.react`, imported through the `@wdc/remote-bridge-react` alias.
 
 ## Project Structure
 
@@ -21,66 +23,61 @@ SPA frontend for the WDC Store system, built with **React 19**, **TypeScript** a
 graph TD
     src["src/"]
     src --> indexHtml["index.html"]
+    src --> scss["scss/<br/><small>app.scss, _swc.scss, _utilities.scss</small>"]
     src --> scripts["scripts/"]
 
-    scripts --> indexTsx["index.tsx<br/><small>Bootstrap: theme, registration, render</small>"]
-    scripts --> AppTsx["App.tsx<br/><small>Application facade</small>"]
+    scripts --> indexTsx["index.tsx<br/><small>Bootstrap: configure, register views, render</small>"]
+    scripts --> swcTs["swc.ts<br/><small>Re-exports of the @swc-react components</small>"]
+    scripts --> globalSel["global-sel.ts<br/><small>Global class names</small>"]
 
-    scripts --> bridge["bridge/ — Infrastructure"]
-    bridge --> VSCoord["ViewStateCoordinator.ts<br/><small>Views, forms, WebSocket</small>"]
-    bridge --> Flush["FlushRequestContext.ts<br/><small>WS communication</small>"]
-    bridge --> Reconnect["ReconnectController.ts<br/><small>Progressive backoff</small>"]
-    bridge --> DataSec["DataSecurity.ts<br/><small>RSA + AES-GCM</small>"]
-    bridge --> ViewScope["ViewScope.ts<br/><small>Reactive state</small>"]
-    bridge --> ViewGC["ViewGarbageCollector.ts"]
-    bridge --> constants["constants.ts + types.ts"]
+    scripts --> bridge["bridge/index.tsx<br/><small>Re-exports @wdc/remote-bridge-react</small>"]
 
     scripts --> utils["utils/ — Utilities"]
-    utils --> ViewUtils["ViewUtils.tsx<br/><small>Base classes</small>"]
-    utils --> CryptoUtils["RSA.ts, Base64.ts, BigIntUtils.ts"]
-    utils --> FormatUtils["DateUtils.ts, NumberUtils.ts"]
-    utils --> OtherUtils["LangUtils.ts, EndpointUtils.ts, UTF8.ts"]
+    utils --> ViewUtils["ViewUtils.tsx<br/><small>BaseViewClass, BasePanelClass</small>"]
+    utils --> OtherUtils["DateUtils.ts, NumberUtils.ts, EndpointUtils.ts"]
 
-    scripts --> views["views/ — Components"]
-    views --> BrowserView["BrowserView.tsx<br/><small>Connection, alerts, loading</small>"]
+    scripts --> views["views/ — Components (each with its *-sel.ts and .scss)"]
     views --> RootView["RootView.tsx<br/><small>Auth container</small>"]
     views --> SlotView["SlotView.tsx<br/><small>Generic slot</small>"]
-    views --> LoginView["LoginView.tsx"]
-    views --> HomeView["HomeView.tsx"]
-    views --> ProductView["ProductView.tsx"]
-    views --> CartView["CartView.tsx"]
-    views --> ReceiptView["ReceiptView.tsx"]
-    views --> home["home/<br/><small>HeaderPanel, ContentPanel,<br/>ProductsPanel, PurchasesPanel</small>"]
+    views --> browser["browser/BrowserView.tsx<br/><small>Connection, alerts, loading</small>"]
+    views --> login["login/LoginView.tsx"]
+    views --> home["home/<br/><small>HomeView, HeaderPanel, ContentPanel,<br/>ProductsPanel, PurchasesPanel, StoreLogo</small>"]
+    views --> product["product/ProductView.tsx"]
+    views --> cart["cart/<br/><small>CartView, CartItemView</small>"]
+    views --> receipt["receipt/ReceiptView.tsx"]
+
+    bridgeFw["remote.bridge.react (framework)<br/><small>ScopeCoordinator, FlushRequestContext, ReconnectController,<br/>DataSecurity, ViewScope, ViewGarbageCollector, ClientStorage, EncryptedLocalStorage</small>"]
+    bridge --> bridgeFw
 ```
 
 ## How It Works
 
 ### Lifecycle
 
-1. **Bootstrap** (`index.tsx`): Creates the MUI theme, registers all views and renders the `BrowserView`
-2. **Connection** (`BrowserView`): On mount, calls `app.onStart()`, which opens the WebSocket
-3. **Receiving state**: The backend sends serialized `ViewStates` over WebSocket → `Application.applyViewStates()` updates the `ViewScope`s → React re-renders
-4. **Sending events**: User actions call `app.submit(vsid, eventId)`, which sends the event to the corresponding presenter on the backend over WebSocket
+1. **Bootstrap** (`index.tsx`): Calls `bridge.configure("~rr:")`, registers all views with `bridge.registerComponents(...)` and renders `bridge.createBrowserView()` inside the Spectrum `<Theme>`
+2. **Connection** (`BrowserView`): On mount, calls `bridge.onStart()`, which opens the WebSocket
+3. **Receiving scopes**: The backend sends serialized scopes over WebSocket → `applyScopes()` updates the `ViewScope`s → React re-renders
+4. **Sending events**: User actions call `bridge.submit(vsid, eventId)`, which sends the event to the corresponding presenter on the backend over WebSocket
 
 ### View Pattern
 
-Each view is a class that extends `BaseViewClass<Props, State>` and is converted into a Functional Component via `BaseViewClass.FC()`:
+Each view is a class that extends `BaseViewClass<Props, Scope>` and is converted into a Functional Component via `BaseViewClass.FC()`:
 
 ```typescript
 class LoginViewClass extends BaseViewClass<ViewProps, LoginScope> {
-  override render({ className }: ViewProps): React.ReactNode {
-    const { state } = this
-    // ... rendering based on the state received from the backend
+  override render({ className }: ViewProps) {
+    const { scope } = this
+    // ... rendering based on the scope received from the backend
   }
 }
 
 export default BaseViewClass.FC(LoginViewClass, "c677cda52d14")
 ```
 
-- The **state** (`state`) comes from the backend (presenter); it is not managed locally
-- **Events** are sent to the backend via `app.submit(vsid, eventId)`
-- **Form data** is attached via `app.setFormField(vsid, field, value)` before the submit
-- Each view is identified by a unique **VIEW_ID** (hash) that maps to the presenter on the backend
+- The **scope** (`this.scope`) comes from the backend (presenter); it is not managed locally
+- **Events** are sent to the backend via `bridge.submit(vsid, eventId)`
+- **Form data** is attached via `bridge.setFormField(vsid, field, value)` before the submit
+- Each view is identified by its **VIEW_ID**, the `CLASS_ID` of the scope it draws on the backend
 
 ### WebSocket Communication
 
@@ -91,19 +88,14 @@ export default BaseViewClass.FC(LoginViewClass, "c677cda52d14")
 
 ### Activity Indicator
 
-A `LinearProgress` (MUI) appears at the top of the page during user submits. Characteristics:
-
-- `position: fixed` — does not affect the layout
-- 50ms debounce — does not flicker on fast operations
-- 15s timeout — clears itself if the response does not arrive
-- Only for user actions — keep-alive and ping are silent
+While a user submit is in flight (`submitting` in the browser view's scope), `BrowserView` shows a thin animated bar (`browser.scss`, `&__loading-bar`) with `position: fixed` at the top of the page, so it does not affect the layout. It appears only if the response takes more than 200 ms and clears itself after 15 s; keep-alives do not trigger it.
 
 ## Import Alias
 
 The `@root/*` alias maps to `./src/scripts/*`:
 
 ```typescript
-import app from "@root/App"
+import bridge from "@root/bridge"
 import { BaseViewClass } from "@root/utils/ViewUtils"
 ```
 
@@ -111,13 +103,13 @@ Configured in `package.json` (Parcel) and `tsconfig.json` (TypeScript/IDE).
 
 ## Build Output
 
-The compiled assets are generated directly into the `skeleton` module:
+The compiled assets are generated into:
 
 ```
-../remote.host/src/main/resources/META-INF/resources/
+work/frontend/remote.shell.react/
 ```
 
-This lets the Javalin server serve the static files automatically via the classpath.
+The backend serves that folder (plus the copied `context.html`) at `/remote.shell.react/`.
 
 ## Commands
 
@@ -125,7 +117,7 @@ This lets the Javalin server serve the static files automatically via the classp
 # Install dependencies
 npm install
 
-# Development (watch mode with hot reload)
+# Development (watch mode; re-injects externals after each rebuild)
 npm run watch
 
 # Production build
@@ -138,12 +130,14 @@ npm run format
 npm run format:check
 ```
 
+From the repository root, `./work/bin/build-frontends.sh react` runs this module's `build.sh` (clean build).
+
 ## Formatting (Prettier)
 
 | Rule            | Value       |
 | --------------- | ----------- |
 | Semicolons      | No          |
-| Quotes          | Single      |
+| Quotes          | Double      |
 | Trailing comma  | All         |
 | Width           | 120 columns |
 | Indentation     | 2 spaces    |

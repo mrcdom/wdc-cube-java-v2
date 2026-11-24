@@ -14,7 +14,7 @@ import { EncryptedLocalStorage } from "./EncryptedLocalStorage"
 
 const Cookie = new CookieConstructor()
 
-export class ViewStateCoordinator {
+export class ScopeCoordinator {
   readonly id: string
 
   /** Session-scoped storage: in-memory, lives while the tab is open. */
@@ -134,14 +134,14 @@ export class ViewStateCoordinator {
   }
 
   bindView<T>(vsid: string) {
-    let scope = this.viewMap.get(vsid)
-    if (!scope) {
-      scope = new ViewScope(vsid)
-      this.viewMap.set(vsid, scope)
+    let viewScope = this.viewMap.get(vsid)
+    if (!viewScope) {
+      viewScope = new ViewScope(vsid)
+      this.viewMap.set(vsid, viewScope)
     }
 
     const [, setUpdateCount] = React.useState(0) // NOSONAR: bindView is called from function components only
-    scope.forceUpdate = () => setUpdateCount((count) => count + 1)
+    viewScope.forceUpdate = () => setUpdateCount((count) => count + 1)
 
     React.useEffect(() => {
       // NOSONAR: bindView is called from function components only
@@ -153,7 +153,7 @@ export class ViewStateCoordinator {
       }
     }, [])
 
-    return { state: scope.getState() as T, scope }
+    return { scope: viewScope.getValues() as T, viewScope }
   }
 
   onStart() {
@@ -200,12 +200,12 @@ export class ViewStateCoordinator {
     this.submit(BROWSER_VSID, -2)
   }
 
-  applyViewStates(stateList: { "#": string }[]) {
-    for (const viewState of stateList) {
-      if (!viewState?.["#"]) {
+  applyScopes(scopes: { "#": string }[]) {
+    for (const scope of scopes) {
+      if (!scope?.["#"]) {
         continue
       }
-      const vsid = viewState["#"]
+      const vsid = scope["#"]
 
       let viewScope = this.viewMap.get(vsid)
       if (!viewScope) {
@@ -213,7 +213,7 @@ export class ViewStateCoordinator {
         this.viewMap.set(vsid, viewScope)
       }
 
-      viewScope.setState(viewState)
+      viewScope.setValues(scope)
     }
   }
 

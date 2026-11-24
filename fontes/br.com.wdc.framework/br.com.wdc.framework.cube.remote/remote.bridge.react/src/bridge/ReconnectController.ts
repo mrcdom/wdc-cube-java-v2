@@ -1,16 +1,16 @@
-import type { ViewStateCoordinator } from "./ViewStateCoordinator"
-import type { BrowserViewState } from "./types"
+import type { ScopeCoordinator } from "./ScopeCoordinator"
+import type { BrowserScope } from "./types"
 import { BROWSER_VSID } from "./constants"
 
 export class ReconnectController {
-  app: ViewStateCoordinator
+  app: ScopeCoordinator
   url = ""
   count = 0
   reconnectHandler = 0
   delay = 0
   cause: unknown
 
-  constructor(app: ViewStateCoordinator) {
+  constructor(app: ScopeCoordinator) {
     this.app = app
     this.url = app.getBaseWebSocketUrl() + "/dispatcher/" + app.id
   }
@@ -28,15 +28,15 @@ export class ReconnectController {
     this.cause = cause
 
     {
-      const bvScope = app.viewMap.get(BROWSER_VSID)
-      if (bvScope) {
-        const bvState = bvScope.getState() as BrowserViewState
-        bvState.error = {
+      const bvView = app.viewMap.get(BROWSER_VSID)
+      if (bvView) {
+        const bvScope = bvView.getValues() as BrowserScope
+        bvScope.error = {
           cause: this.cause,
           numAttempt: this.count,
           delay: this.delay,
         }
-        bvScope.forceUpdate()
+        bvView.forceUpdate()
       }
     }
 
@@ -47,8 +47,8 @@ export class ReconnectController {
 
   check() {
     const app = this.app
-    const bvScope = app.viewMap.get(BROWSER_VSID)
-    if (!bvScope) {
+    const bvView = app.viewMap.get(BROWSER_VSID)
+    if (!bvView) {
       this.reset()
       return
     }
@@ -58,8 +58,8 @@ export class ReconnectController {
       return
     }
 
-    const bvState = bvScope.getState() as BrowserViewState
-    bvState.error = {
+    const bvScope = bvView.getValues() as BrowserScope
+    bvScope.error = {
       cause: this.cause,
       numAttempt: this.count,
       delay: this.delay,
@@ -68,10 +68,10 @@ export class ReconnectController {
     if (this.delay > 0) {
       this.delay -= 1000
       this.delay < 0 && (this.delay = 0)
-      bvState.error.delay = this.delay
+      bvScope.error.delay = this.delay
     }
 
-    bvScope.forceUpdate()
+    bvView.forceUpdate()
 
     if (this.delay <= 0) {
       globalThis.setTimeout(app.assureContextExchangerIsConnected, 16)
@@ -82,9 +82,9 @@ export class ReconnectController {
     const app = this.app
     const browserView = app.viewMap.get(BROWSER_VSID)
     if (browserView) {
-      const browserViewState = browserView.getState()
-      browserViewState.error = undefined
-      browserView.setState(browserViewState)
+      const browserScope = browserView.getValues()
+      browserScope.error = undefined
+      browserView.setValues(browserScope)
     }
 
     this.count = 0

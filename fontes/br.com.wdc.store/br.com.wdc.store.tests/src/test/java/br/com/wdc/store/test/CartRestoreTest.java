@@ -24,16 +24,16 @@ public class CartRestoreTest extends BasePresentationTest {
     private static HomeViewMock signIn(StoreApplicationMock app, String user) {
         new LoginKeys(app).flip();
         var rootView = app.getRootView();
-        var loginView = LoginViewMock.cast(app.viewOf(rootView.state.content.get()));
-        loginView.state.userName.set(user);
-        loginView.state.onEnter.run(user, user);
-        return HomeViewMock.cast(app.viewOf(rootView.state.content.get()));
+        var loginView = LoginViewMock.cast(app.viewOf(rootView.scope.content.get()));
+        loginView.scope.userName.set(user);
+        loginView.scope.onEnter.run(user, user);
+        return HomeViewMock.cast(app.viewOf(rootView.scope.content.get()));
     }
 
     private static void addToCart(StoreApplicationMock app, HomeViewMock homeView, long productId, int quantity) {
-        homeView.getProductsPanelState().onOpenProduct.run(productId);
-        var productView = ProductViewMock.cast(app.viewOf(homeView.state.content.get()));
-        productView.state.onAddToCart.run(quantity);
+        homeView.getProductsPanelScope().onOpenProduct.run(productId);
+        var productView = ProductViewMock.cast(app.viewOf(homeView.scope.content.get()));
+        productView.scope.onAddToCart.run(quantity);
     }
 
     /** A new application over the same session scope: what a reloaded page gets. */
@@ -63,7 +63,7 @@ public class CartRestoreTest extends BasePresentationTest {
 
         assertEquals(DBReset.ADMIN_ID + "|" + DBReset.FLASH_DRIVE_2GB_ID + ":3",
                 this.app.clientSessionStore().get(StorageKeys.CART));
-        assertEquals(Integer.valueOf(3), homeView.state.cartItemCount.get());
+        assertEquals(Integer.valueOf(3), homeView.scope.cartItemCount.get());
     }
 
     @Test
@@ -76,7 +76,7 @@ public class CartRestoreTest extends BasePresentationTest {
         try {
             var reloadedHome = signIn(reloaded, "admin");
 
-            assertEquals(Integer.valueOf(2), reloadedHome.state.cartItemCount.get());
+            assertEquals(Integer.valueOf(2), reloadedHome.scope.cartItemCount.get());
             var items = reloaded.getCart().getCartItems();
             assertEquals(1, items.size());
             assertEquals("2GB Flash Drive", items.get(0).name);
@@ -97,7 +97,7 @@ public class CartRestoreTest extends BasePresentationTest {
         try {
             var reloadedHome = signIn(reloaded, "jdoe");
 
-            assertEquals(Integer.valueOf(0), reloadedHome.state.cartItemCount.get());
+            assertEquals(Integer.valueOf(0), reloadedHome.scope.cartItemCount.get());
             assertTrue(reloaded.getCart().getCartItems().isEmpty());
         } finally {
             reloaded.release();
@@ -109,7 +109,7 @@ public class CartRestoreTest extends BasePresentationTest {
         var homeView = signIn(this.app, "admin");
         addToCart(this.app, homeView, DBReset.FLASH_DRIVE_2GB_ID, 1);
 
-        homeView.state.onExit.run();
+        homeView.scope.onExit.run();
 
         assertNull(this.app.clientSessionStore().get(StorageKeys.CART));
     }

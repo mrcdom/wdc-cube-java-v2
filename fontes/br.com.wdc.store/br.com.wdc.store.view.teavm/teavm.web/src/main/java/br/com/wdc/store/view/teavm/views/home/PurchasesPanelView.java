@@ -14,7 +14,7 @@ public class PurchasesPanelView extends AbstractVDomView<PurchasesPanelScope> {
         super("purchases-panel", app, scope);
 
         this.shared = new PurchasesPanelSharedView();
-        this.shared.stateSupplier = () -> scope;
+        this.shared.scopeSupplier = () -> scope;
         this.shared.requestUpdate = this::update;
         this.shared.onOpenReceipt = id -> safeAction("Open receipt", () -> scope.onOpenReceipt.run(id));
         this.shared.onPageChange = page -> safeAction("Page change", () -> scope.onPageChange.run(page));

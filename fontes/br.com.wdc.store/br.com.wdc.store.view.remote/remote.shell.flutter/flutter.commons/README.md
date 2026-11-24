@@ -1,6 +1,6 @@
 # flutter_commons
 
-Shared library for the Flutter shells (desktop, mobile, web) of the **WeDoCode Store** application.
+Shared library for the Flutter shells (desktop, mobile, web) of the **WDC Store** application.
 
 It contains all the infrastructure any Flutter shell needs to work as a thin client of the Remote Presentation protocol — no business logic, only protocol, rendering and interaction.
 
@@ -8,27 +8,25 @@ It contains all the infrastructure any Flutter shell needs to work as a thin cli
 
 ```mermaid
 graph TD
-    lib["lib/src/"]
-    bridge["bridge/<br/><small>WebSocket protocol, security, view coordination</small>"]
-    vsc["ViewStateCoordinator<br/><small>Manages active views, WS protocol, dirty states</small>"]
-    ds["DataSecurity<br/><small>RSA key exchange + per-session AES-GCM</small>"]
-    frc["FlushRequestContext<br/><small>Sends events and form data</small>"]
-    rc["ReconnectController<br/><small>Progressive backoff for reconnection</small>"]
+    lib["lib/"]
+    entry["flutter_commons.dart<br/><small>Exports the package; re-exports remote_bridge_flutter</small>"]
+    src["src/"]
     dt["design_tokens.dart<br/><small>Design system colors, typography, spacing</small>"]
-    utils["utils/<br/><small>Shared helpers</small>"]
-    views["views/<br/><small>View implementations (Home, Login, Root, etc.)</small>"]
-    widgets["widgets/<br/><small>Reusable widgets (forms, tables, etc.)</small>"]
+    utils["utils/<br/><small>format_utils, url_utils</small>"]
+    views["views/<br/><small>browser, root, login, home, products_panel, purchases_panel,<br/>product, cart, cart_item, receipt + view_registry</small>"]
+    widgets["widgets/<br/><small>error_banner, hover_card, html_text, page_card, status_banner, view_header</small>"]
+    bridge["remote_bridge_flutter (framework)<br/><small>ScopeCoordinator, DataSecurity, FlushRequestContext,<br/>ReconnectController, ViewScope, ClientStorage</small>"]
 
-    lib --> bridge
-    lib --> dt
-    lib --> utils
-    lib --> views
-    lib --> widgets
-    bridge --> vsc
-    bridge --> ds
-    bridge --> frc
-    bridge --> rc
+    lib --> entry
+    lib --> src
+    src --> dt
+    src --> utils
+    src --> views
+    src --> widgets
+    entry --> bridge
 ```
+
+The protocol client (WebSocket, RSA key exchange + per-session AES-GCM, reconnection backoff, client storage) is the framework package `remote_bridge_flutter`; this package holds the WDC Store views and widgets.
 
 ## Usage
 
@@ -44,5 +42,6 @@ dependencies:
 
 | Package | Purpose |
 |---------|-----|
+| `remote_bridge_flutter` | Remote protocol client (framework, path dependency) |
 | `web_socket_channel` | WebSocket communication with the host |
 | `pointycastle` | RSA + AES-GCM cryptography |

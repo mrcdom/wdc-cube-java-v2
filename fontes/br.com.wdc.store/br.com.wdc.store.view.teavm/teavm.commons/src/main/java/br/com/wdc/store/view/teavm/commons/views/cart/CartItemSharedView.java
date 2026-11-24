@@ -38,7 +38,7 @@ public class CartItemSharedView extends SharedVDomView {
 
     // -- External bindings --
 
-    public Supplier<CartItemScope> stateSupplier;
+    public Supplier<CartItemScope> scopeSupplier;
     public IntConsumer onModifyQuantity;
     public Runnable onRemove;
 
@@ -49,7 +49,7 @@ public class CartItemSharedView extends SharedVDomView {
     private final EventListener<Event> removeListener = evt -> onRemove.run();
 
     private int quantity() {
-        var q = stateSupplier.get().quantity.get();
+        var q = scopeSupplier.get().quantity.get();
         return q != null ? q : 0;
     }
 
@@ -57,7 +57,7 @@ public class CartItemSharedView extends SharedVDomView {
 
     @Override
     public VNode render() {
-        var row = stateSupplier.get();
+        var row = scopeSupplier.get();
         var name = row.name.get() != null ? row.name.get() : "";
         var price = row.price.get() != null ? row.price.get() : 0.0;
         var quantity = quantity();

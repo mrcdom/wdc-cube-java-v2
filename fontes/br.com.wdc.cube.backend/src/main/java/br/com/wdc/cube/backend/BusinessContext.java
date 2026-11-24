@@ -56,7 +56,7 @@ public class BusinessContext {
             // DSLContext and TransactionService to this DataSource.
             StoreRepositoryBootstrap.initialize(dataSource, dsSupport.isLogEnabled(), dsSupport.getDialect(), cleanUp);
 
-            // Schema: creates what is missing and seeds a new database; database.reset recreates everything.
+            // Schema: creates what is missing and seeds a new database; database.reset clears the rows and seeds again.
             // After the bootstrap, because DBReset writes through the repositories.
             try (var connection = dataSource.getConnection()) {
                 var command = new DBCreate()
@@ -92,9 +92,8 @@ public class BusinessContext {
     /**
      * Creates a Virtual Thread-based executor service for scheduled tasks.
      * 
-     * This executor is used by ScheduledTasksManager for all background tasks. Virtual Threads are ideal for: -
-     * I/O-bound operations (session cleanup, monitoring) - Infrequent scheduled work that doesn't require OS thread
-     * preservation - Applications with many concurrent tasks
+     * Registered in {@code ScheduledExecutor.BEAN}; it runs the background work, such as the remote sessions' flush
+     * and expiry ({@code RemoteApplicationRegistry}). Virtual threads suit that work: short, I/O-bound and infrequent.
      * 
      * @return a new ScheduledExecutorService using Virtual Thread factory
      */

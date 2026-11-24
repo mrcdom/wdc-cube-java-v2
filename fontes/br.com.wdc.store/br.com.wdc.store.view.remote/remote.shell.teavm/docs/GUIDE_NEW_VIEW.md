@@ -4,52 +4,75 @@ This document explains how to create a new view in the TeaVM thin client of the 
 
 ## Overview
 
-A view in this project is a component that:
+A view in this shell is a thin adapter that:
 
-1. Receives state from the server over WebSocket (JSON → `ViewScope`)
-2. Renders a virtual tree (`VNode`) declaratively
-3. Emits interaction events back to the server (`submit`)
+1. Receives its scope from the server over WebSocket (JSON → `ViewScope`)
+2. Adapts that JSON into the presentation `Scope` type and hands it to a **shared view** from `teavm.commons`, which renders the virtual tree (`VNode`)
+3. Emits interaction events back to the server (`setFormField` + `submit`)
 
-The view **has no business logic** — all the logic lives in the Presenter (server-side).
+The view **has no business logic** — all the logic lives in the Presenter (server-side). The rendering itself lives in `teavm.commons` (`XxxSharedView extends SharedVDomView`), so the same tree is drawn by this shell and by `teavm.web`; each shell only supplies the scope and the action callbacks. `BrowserView` and `RootView` are the exceptions: they render directly in the shell.
 
 ## Prerequisites
 
 Before creating the view in the shell, the Presenter and its Scope must already exist in the `presentation` layer, with:
 
-- The classId declared in the scope: `public static final String CLASS_ID = "a1b2c3d4e5f6";`
-- The observed fields as public `Prop`s of the scope (the `ScopeSerializer` writes them to JSON via reflection)
-- The event codes, given when binding each action (`action(1, ...)`, `actionOf(2, FormParam.asLong("p.itemId"), ...)`)
+- The classId declared in the scope: `public static final String CLASS_ID = "5f1e2d3c4b6a";` (12 hex characters, unique among the scopes)
+- The observed fields as public `Prop`s of the scope (the `ScopeSerializer` writes them to JSON)
+- The event codes, given when binding each action (`action(2, ...)`, `actionOf(1, FormParam.asLong("p.itemId"), ...)`)
 
-## Anatomy of a View
+For the example, assume this scope (hypothetical, following `HomeScope.ProductsPanelScope`):
 
 ```java
-package br.com.wdc.store.view.remote.shell.teavm.views;
+public class WishlistScope extends Scope {
 
-import static br.com.wdc.framework.vdom.Swc.*;
-import static br.com.wdc.framework.vdom.VNode.*;
+    public static final String CLASS_ID = "5f1e2d3c4b6a";
+
+    public final Prop<List<WishlistItem>> items = prop();   // WishlistItem: public long id; public String name;
+    public final Prop<String> errorMessage = prop();
+
+    public ActionOf<Long> onRemoveItem = ActionOf.noop();     // bound with actionOf(1, FormParam.asLong("p.itemId"), ...)
+    public Action onBack = Action.NOOP;                       // bound with action(2, ...)
+}
+```
+
+---
+
+## Step 1 — The shared view (teavm.commons)
+
+Create `teavm.commons/src/main/java/br/com/wdc/store/view/teavm/commons/views/wishlist/WishlistSharedView.java`. It knows nothing about WebSocket or presenters: the scope comes from a `Supplier`, actions go out through plain callbacks.
+
+```java
+package br.com.wdc.store.view.teavm.commons.views.wishlist;
+
+import static br.com.wdc.store.view.teavm.commons.Swc.spActionButton;
+import static br.com.wdc.store.view.teavm.commons.VNode.clsx;
+import static br.com.wdc.store.view.teavm.commons.VNode.div;
+import static br.com.wdc.store.view.teavm.commons.VNode.h5;
+import static br.com.wdc.store.view.teavm.commons.VNode.span;
+
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
 
-import br.com.wdc.framework.vdom.*;
-import br.com.wdc.store.view.remote.shell.teavm.bridge.AbstractRemoteView;
-import br.com.wdc.store.view.remote.shell.teavm.bridge.ViewScope;
+import br.com.wdc.store.presentation.presenter.restricted.wishlist.WishlistScope;
+import br.com.wdc.store.presentation.presenter.restricted.wishlist.structs.WishlistItem;
+import br.com.wdc.store.view.teavm.commons.SelComponents;
+import br.com.wdc.store.view.teavm.commons.SelIcons;
+import br.com.wdc.store.view.teavm.commons.SelUtility;
+import br.com.wdc.store.view.teavm.commons.SharedVDomView;
+import br.com.wdc.store.view.teavm.commons.VNode;
 
-public class WishlistView extends AbstractRemoteView {
+public class WishlistSharedView extends SharedVDomView {
 
-    // 1. VIEW_ID — must be IDENTICAL to the scope's CLASS_ID (WishlistScope.CLASS_ID)
-    public static final String VIEW_ID = "a1b2c3d4e5f6";
-
-    // 2. Event codes — must be IDENTICAL to the codes of the Presenter's actions (action(1, ...))
-    private static final int ON_REMOVE_ITEM = 1;
-    private static final int ON_BACK = 2;
-
-    // 3. Css interface — CSS class constants (compact pattern)
+    // 1. Sel interface — CSS class constants (compact pattern)
     @SuppressWarnings({"java:S1214", "static-access"})
-    private interface Css {
-        CssUtility u = CssUtility.INSTANCE;
-        CssComponents c = CssComponents.INSTANCE;
-        CssIcons icon = CssIcons.INSTANCE;
+    private interface Sel {
+        SelUtility u = SelUtility.INSTANCE;
+        SelComponents c = SelComponents.INSTANCE;
+        SelIcons icon = SelIcons.INSTANCE;
 
         String ROOT = u.PAGE_SCROLL_ROOT;
         String WRAPPER = u.PAGE_WRAPPER;
@@ -63,79 +86,137 @@ public class WishlistView extends AbstractRemoteView {
         String ERROR_TEXT = c.ALERT_ERROR_TEXT;
     }
 
-    // 4. Stable listeners — final fields for listeners without parameters
-    private final EventListener<Event> onBack = evt -> submit(ON_BACK);
+    // 2. External bindings — set by each shell
+    public Supplier<WishlistScope> scopeSupplier;
+    public Consumer<Long> onRemoveItem;
+    public Runnable onBack;
 
-    // 5. Factory methods for parametric listeners
-    private EventListener<Event> mkOnRemove(Long id) {
-        return evt -> {
-            setFormField("p.itemId", id);
-            submit(ON_REMOVE_ITEM);
-        };
+    // 3. Stable listeners — final fields for listeners without parameters
+    private final EventListener<Event> backListener = evt -> onBack.run();
+
+    // 4. Factory for parametric listeners
+    private EventListener<Event> mkOnRemove(long id) {
+        return evt -> onRemoveItem.accept(id);
     }
 
-    // 6. Constructor — receives the vsid (view-state ID)
-    public WishlistView(String vsid) {
-        super(vsid);
-    }
-
-    // 7. render() — returns the virtual tree
+    // 5. render() — returns the virtual tree
     @Override
-    protected VNode render() {
-        var scope = state();
-        var errorMessage = scope.getString("errorMessage");
+    public VNode render() {
+        var scope = scopeSupplier.get();
+        var errorMessage = scope.errorMessage.get();
         var showError = errorMessage != null && !errorMessage.isEmpty();
-        var items = scope.getList("items");
-        var empty = items == null || items.isEmpty();
+        var items = scope.items.get();
 
         // @formatter:off
-        return div(Css.ROOT).children(
-          div(Css.WRAPPER).children(
-            h5(Css.TITLE).text("My Wishlist"),
+        return div(Sel.ROOT).children(
+          div(Sel.WRAPPER).children(
+            h5(Sel.TITLE).text("My Wishlist"),
             // Error
-            div(showError ? Css.ERROR_VISIBLE : Css.HIDDEN).children(
-              span(Css.ERROR_ICON),
-              span(Css.ERROR_TEXT).text(errorMessage != null ? errorMessage : "")),
+            div(showError ? Sel.ERROR_VISIBLE : Sel.HIDDEN).children(
+              span(Sel.ERROR_ICON),
+              span(Sel.ERROR_TEXT).text(errorMessage != null ? errorMessage : "")),
             // Items
-            div().children(items != null
-              ? items.stream().map(this::renderItem).toList()
-              : List.of()),
+            div().children(items != null ? items.stream().map(this::renderItem).toList() : List.of()),
             // Back button
             spActionButton()
-              .children(span(CssIcons.ARROW_LEFT), span().text(" Back"))
-              .on("click", onBack)));
+              .children(span(SelIcons.ARROW_LEFT), span().text(" Back"))
+              .on("click", backListener)));
         // @formatter:on
     }
 
-    // 8. Helper render methods (extract for readability)
-    private VNode renderItem(Map<String, Object> item) {
-        var id = CoerceUtils.asLong(item.get("id"));
-        var name = CoerceUtils.asString(item.get("name"), "");
-        var key = String.valueOf(id);
+    // 6. Helper render methods
+    private VNode renderItem(WishlistItem item) {
+        var key = String.valueOf(item.id);
 
         // @formatter:off
-        return div(Css.ITEM_ROW).key(key).children(
-          span(Css.ITEM_NAME).text(name),
+        return div(Sel.ITEM_ROW).key(key).children(
+          span(Sel.ITEM_NAME).text(item.name != null ? item.name : ""),
           spActionButton("s")
-            .children(span(Css.REMOVE_ICON))
-            .on("click", useCallback("remove-" + key, mkOnRemove(id))));
+            .children(span(Sel.REMOVE_ICON))
+            .on("click", useCallback("remove-" + key, mkOnRemove(item.id))));
         // @formatter:on
     }
 }
 ```
 
----
+Add its styles as a partial next to it, `views/wishlist/_wishlist.scss`.
 
-## Step by Step
+## Step 2 — The adapter (remote.shell.teavm)
 
-### Step 1 — Create the View class
+Create `remote.shell.teavm/src/main/java/br/com/wdc/store/view/remote/shell/teavm/views/wishlist/WishlistView.java`. It reads the JSON scope, fills an instance of the scope type for the shared view, and turns each callback into `setFormField` + `submit`:
 
-Create the file at:
+```java
+package br.com.wdc.store.view.remote.shell.teavm.views.wishlist;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import br.com.wdc.framework.commons.lang.CoerceUtils;
+import br.com.wdc.framework.cube.remote.bridge.teavm.ViewScope;
+import br.com.wdc.store.presentation.presenter.restricted.wishlist.WishlistScope;
+import br.com.wdc.store.presentation.presenter.restricted.wishlist.structs.WishlistItem;
+import br.com.wdc.store.view.remote.shell.teavm.bridge.AbstractRemoteView;
+import br.com.wdc.store.view.teavm.commons.VNode;
+import br.com.wdc.store.view.teavm.commons.views.wishlist.WishlistSharedView;
+
+public class WishlistView extends AbstractRemoteView {
+
+    // 1. VIEW_ID — the scope's CLASS_ID
+    public static final String VIEW_ID = WishlistScope.CLASS_ID;
+
+    // 2. Event codes — IDENTICAL to the codes of the Presenter's actions
+    private static final int ON_REMOVE_ITEM = 1;
+    private static final int ON_BACK = 2;
+
+    private final WishlistSharedView shared;
+    private final WishlistScope adaptedScope = new WishlistScope();
+
+    // 3. Constructor — receives the vsid (the view's instanceId) and binds the shared view
+    public WishlistView(String vsid) {
+        super(vsid);
+
+        this.shared = new WishlistSharedView();
+        this.shared.scopeSupplier = this::adaptScope;
+        this.shared.onRemoveItem = id -> {
+            setFormField("p.itemId", id);
+            submit(ON_REMOVE_ITEM);
+        };
+        this.shared.onBack = () -> submit(ON_BACK);
+    }
+
+    // 4. render() — delegates to the shared view
+    @Override
+    protected VNode render() {
+        return shared.renderTree();
+    }
+
+    // 5. JSON → scope adaptation
+    private WishlistScope adaptScope() {
+        ViewScope scope = scope();
+        adaptedScope.errorMessage.set(scope.getString("errorMessage"));
+        adaptedScope.items.set(getItems(scope));
+        return adaptedScope;
+    }
+
+    private List<WishlistItem> getItems(ViewScope scope) {
+        var result = new ArrayList<WishlistItem>();
+        if (scope.getValues().get("items") instanceof List<?> list) {
+            for (var entry : list) {
+                if (entry instanceof Map<?, ?> m) {
+                    var item = new WishlistItem();
+                    item.id = CoerceUtils.asLong(m.get("id"), 0L);
+                    item.name = CoerceUtils.asString(m.get("name"), "");
+                    result.add(item);
+                }
+            }
+        }
+        return result;
+    }
+}
 ```
-remote.shell.teavm/src/main/java/br/com/wdc/store/view/remote/shell/teavm/views/WishlistView.java
-```
 
-### Step 2 — Register it in Main.java
+## Step 3 — Register it in Main.java
 
 Add to `Main.java`:
 
@@ -143,16 +224,19 @@ Add to `Main.java`:
 app.registerView(WishlistView.VIEW_ID, WishlistView::new);
 ```
 
-The `VIEW_ID` is the key the server uses to identify which factory to instantiate when it sends a state to this view.
+The `VIEW_ID` is the key the server uses to identify which factory to instantiate when it sends a scope to this view.
 
-### Step 3 — Compile and test
+## Step 4 — Styles
+
+Add `@use 'wishlist/wishlist';` to `src/main/scss/app.scss`. The Maven build compiles it (with `teavm.commons/src/main/scss` and `teavm.commons/.../commons/views` on the load path) into `src/main/webapp/css/app.css`, which is a generated file.
+
+## Step 5 — Build and test
 
 ```bash
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/microsoft-21.jdk/Contents/Home
-export PATH="$JAVA_HOME/bin:$PATH"
-cd fontes
-mvn -q -DskipTests compile -pl br.com.wdc.store/br.com.wdc.store.view.remote/remote.shell.teavm -am
+./work/bin/build-frontends.sh teavm.shell
 ```
+
+The shell compiles against the `presentation` and `teavm.commons` JARs in `~/.m2`; `build-frontends.sh` reinstalls them first, so the new scope is picked up. The output goes to `work/frontend/remote.shell.teavm/`.
 
 ---
 
@@ -160,37 +244,39 @@ mvn -q -DskipTests compile -pl br.com.wdc.store/br.com.wdc.store.view.remote/rem
 
 ### VIEW_ID and the Protocol
 
-The `VIEW_ID` is a 12-character hash that binds the view in the shell to the scope on the host:
+The `VIEW_ID` is the 12-character classId that binds the view in the shell to the scope on the host:
 
 ```
 Host (Scope)                          Shell (View)
-┌──────────────────────┐              ┌──────────────────┐
-│ XxxScope.CLASS_ID    │ ←─ same ──→  │ VIEW_ID          │
-│ = "a1b2c3d4e5f6"     │              │ = "a1b2c3d4e5f6" │
-└──────────────────────┘              └──────────────────┘
+┌──────────────────────┐              ┌──────────────────────┐
+│ XxxScope.CLASS_ID    │ ←─ same ──→  │ VIEW_ID              │
+│ = "5f1e2d3c4b6a"     │              │ = XxxScope.CLASS_ID  │
+└──────────────────────┘              └──────────────────────┘
 ```
 
 On the host, `RemoteViewImpl::forScope` (the `fallback` of the `StoreApplicationImpl`'s `ScopeViews`) reads the scope's `CLASS_ID` and uses it as the classId of the remote view and of the skeleton.
 
-When the host sends a JSON state with that ID, the `ViewStateCoordinator` looks up the registered factory, instantiates the view (if new) and delivers the state via `ViewScope`.
+When the host sends a JSON scope with that ID, the `ScopeCoordinator` looks up the registered factory, instantiates the view (if new) and delivers its values via `ViewScope`.
 
-### ViewScope — Reading State
+### ViewScope — Reading the Scope
 
-`ViewScope` is a wrapper over the `Map<String, Object>` received from the server. Available methods:
+`ViewScope` (`br.com.wdc.framework.cube.remote.bridge.teavm`) is a wrapper over the `Map<String, Object>` received from the server. Available methods:
 
 | Method | Returns | Use |
 |--------|---------|-----|
 | `getString(key)` | `String` or `null` | Text fields |
 | `getString(key, default)` | `String` | With fallback |
 | `getInt(key)` | `int` (0 if absent) | Counters, codes |
-| `getDouble(key)` | `double` | Monetary values |
+| `getDouble(key)` | `double` (0 if absent) | Monetary values |
 | `getBoolean(key)` | `boolean` | Flags |
-| `getMap(key)` | `Map<String, Object>` | Nested objects |
-| `getList(key)` | `List<Map<String, Object>>` | Arrays of objects |
+| `getMap(key)` | `Map<String, Object>` (empty if absent) | Nested objects |
+| `getValues()` | `Map<String, Object>` | Raw access, e.g. lists (`getValues().get("items") instanceof List<?> list`) |
+
+### Child views
+
+A segment or list row with a scope of its own goes out as a view id: a `Prop<XxxScope>` field as `"<field>ViewId"`, a `Prop<List<XxxRowScope>>` as `"<field>ViewIds"`. The parent gets the child's element with `getChildViewElement(vsid)` and mounts it with `VNode.slot(element)` — see `RootView` (`contentViewId`) and `CartView` (`rowsViewIds`).
 
 ### submit() and setFormField() — Emitting Events
-
-To communicate user actions to the server:
 
 ```java
 // Simple event (no data)
@@ -198,14 +284,13 @@ submit(ON_BACK);   // Sends eventCode=2 to the Presenter
 
 // Event with data (form fields)
 setFormField("p.itemId", itemId);
-setFormField("p.quantity", 3);
-submit(ON_ADD_TO_CART);  // Presenter receives formData with the fields
+submit(ON_REMOVE_ITEM);  // Presenter receives formData with the fields
 ```
 
 In the Presenter, the action states its code and how to read the field; the scope's skeleton (`scope.skeleton(CLASS_ID)`) dispatches:
 
 ```java
-this.state.onRemoveItem = actionOf(1, FormParam.asLong("p.itemId"), this::removeItem);
+this.scope.onRemoveItem = actionOf(1, FormParam.asLong("p.itemId"), this::removeItem);
 ```
 
 ---
@@ -220,82 +305,60 @@ The VDom diff compares event listeners by **reference identity**. If the same re
 
 ```java
 // ✅ Good — stable reference, zero cost in the diff
-private final EventListener<Event> onBack = evt -> submit(ON_BACK);
+private final EventListener<Event> backListener = evt -> onBack.run();
 
 // ❌ Bad — new lambda on every render, re-registers in the DOM
-.on("click", evt -> submit(ON_BACK))
+.on("click", evt -> onBack.run())
 ```
 
 ### useCallback(key, listener) — Parametric Listeners
 
-When the listener depends on variable data (e.g. the ID of an item in a list), use `useCallback` to keep the reference stable as long as the key does not change:
+When the listener depends on variable data (e.g. the ID of an item in a list), use `useCallback` (available in both `SharedVDomView` and `AbstractRemoteView`) to keep the reference stable as long as the key does not change:
 
 ```java
-// Factory creates a new listener with the captured data
-private EventListener<Event> mkOnRemove(Long id) {
-    return evt -> {
-        setFormField("p.itemId", id);
-        submit(ON_REMOVE_ITEM);
-    };
-}
-
-// In render, useCallback returns the cached instance if the key already exists
-.on("click", useCallback("remove-" + itemId, mkOnRemove(itemId)))
+.on("click", useCallback("remove-" + key, mkOnRemove(item.id)))
 ```
 
 **Lifecycle**:
 1. First time the key appears → stores the listener in the cache
-2. Subsequent renders with the same key → returns the cached instance (no allocation)
+2. Subsequent renders with the same key → returns the cached instance
 3. If the key disappears (item removed from the list) → automatic cleanup at the end of the render
 
-**Tip for keys**: Include values that invalidate the old listener:
-```java
-// If qty changes, the listener must be recreated (since it captures qty+1 / qty-1)
-useCallback("plus-" + itemId + "-" + qty, mkOnModifyQty(itemId, qty + 1))
-```
+**Tip for keys**: include every value the listener captures, so a change recreates it.
 
 ### VNode.key() — List Reconciliation
 
 When rendering lists, use `.key(uniqueId)` so the diff identifies moves and removals without destroying/recreating nodes:
 
 ```java
-return div(Css.ITEM_ROW).key(String.valueOf(item.id)).children(...);
+return div(Sel.ITEM_ROW).key(String.valueOf(item.id)).children(...);
 ```
 
 ---
 
-## Compact Css Pattern
+## Compact Sel Pattern
 
-Each view defines a private `Css` interface that organizes all CSS classes in a single place:
+Each view defines a private `Sel` interface that organizes all CSS classes in a single place:
 
 ```java
 @SuppressWarnings({"java:S1214", "static-access"})
-private interface Css {
-    CssUtility u = CssUtility.INSTANCE;       // Utility classes (layout, spacing)
-    CssComponents c = CssComponents.INSTANCE; // Reusable components (cards, alerts)
-    CssIcons icon = CssIcons.INSTANCE;        // Bootstrap Icons
+private interface Sel {
+    SelUtility u = SelUtility.INSTANCE;       // Utility classes (layout, spacing)
+    SelComponents c = SelComponents.INSTANCE; // Reusable components (cards, alerts)
+    SelIcons icon = SelIcons.INSTANCE;        // Bootstrap Icons
 
-    // Framework classes via alias
     String ROOT = u.PAGE_SCROLL_ROOT;
     String HIDDEN = u.HIDDEN;
-
-    // Class composition (clsx = className join)
     String ERROR_VISIBLE = clsx(c.ALERT_ERROR, u.MB_12);
     String ERROR_ICON = clsx(icon.EXCLAMATION_CIRCLE, c.ALERT_ERROR_ICON);
 
-    // View-specific classes (defined in app.css)
+    // View-specific classes (defined in the view's .scss partial)
     String TITLE = "wishlist-title";
-    String ITEM_ROW = "wishlist-item-row";
 }
 ```
 
-**Benefits**:
-- Short names in render: `Css.ROOT` vs `CssUtility.PAGE_SCROLL_ROOT`
-- Compositions precomputed at compile time
-- All of the view's classes centralized in a single place
-
 **Rules**:
-- Always include `@SuppressWarnings({"java:S1214", "static-access"})`
+- Include `@SuppressWarnings({"java:S1214", "static-access"})` when using the aliases (`"java:S1214"` alone otherwise)
 - Use `clsx(...)` to combine multiple classes into one string
 - Only include aliases (`u`/`c`/`icon`) for the categories actually used
 
@@ -303,121 +366,59 @@ private interface Css {
 
 ## VNode API — Quick Reference
 
+All in `br.com.wdc.store.view.teavm.commons` (`VNode`, `Swc`).
+
 ### HTML Elements
 
 ```java
-import static br.com.wdc.framework.vdom.VNode.*;
-
 div("class-name")             // <div class="class-name">
 div()                         // <div>
-span("icon bi-bag")           // <span class="icon bi-bag">
-h5("title").text("Hello")    // <h5 class="title">Hello</h5>
-p().text("Text")             // <p>Text</p>
-img().attr("src", url)       // <img src="...">
-textNode("plain text")       // text node
+span("bi bi-bag")             // <span class="bi bi-bag">
+h5("title").text("Hello")     // <h5 class="title">Hello</h5>
+p().text("Text")              // <p>Text</p>
+img().attr("src", url)        // <img src="...">
+textNode("plain text")        // text node
+slot(element)                 // mounts an existing element (a child view)
 ```
 
 ### Spectrum Web Components (Swc)
 
 ```java
-import static br.com.wdc.framework.vdom.Swc.*;
-
-spButton("accent")           // <sp-button variant="accent">
-spButton("accent", "l")      // <sp-button variant="accent" size="l">
-spActionButton()             // <sp-action-button>
-spActionButton("s")          // <sp-action-button size="s">
-spTextField("Label")         // <sp-textfield label="Label">
-spFieldLabel("Text")         // <sp-field-label>Text</sp-field-label>
-spDivider("s")               // <sp-divider size="s">
+spButton("accent")            // <sp-button variant="accent">
+spButton("accent", "l")       // <sp-button variant="accent" size="l">
+spActionButton()              // <sp-action-button>
+spActionButton("s")           // <sp-action-button size="s">
+spTextField("Placeholder")    // <sp-textfield placeholder="Placeholder">
+spFieldLabel("id", "Text")    // <sp-field-label for="id">Text</sp-field-label>
+spDivider("s")                // <sp-divider size="s">
 ```
 
-### Attributes and Properties
+### Attributes, Events and Children
 
 ```java
-.cls("extra-class")          // Adds a class to className
-.attr("placeholder", "...")  // HTML attribute
-.boolAttr("disabled", true)  // Boolean attribute (presence/absence)
-.prop("value", obj)          // JS property (complex data)
-.style("color: red")         // Inline style
-.key("unique-id")            // Key for list reconciliation
-```
-
-### Events
-
-```java
-.on("click", listener)       // addEventListener("click", ...)
-.on("keydown", listener)     // addEventListener("keydown", ...)
-.on("change", listener)      // addEventListener("change", ...)
-.on("input", listener)       // addEventListener("input", ...)
-```
-
-### Children
-
-```java
-.children(node1, node2)      // Fixed children (varargs)
-.children(listOfNodes)       // Dynamic children (List<VNode>)
-.text("content")             // Text content (shortcut for a child textNode)
-```
-
-### Ref (access to the DOM element)
-
-```java
-.ref(el -> {
-    // Called when the element is created/updated in the DOM
-    // Useful for innerHTML, programmatic focus, measurements
-    ((HTMLInputElement) el).focus();
-})
-```
-
----
-
-## Error Handling
-
-Universal pattern for displaying error messages coming from the Presenter:
-
-```java
-// In render():
-var errorMessage = scope.getString("errorMessage");
-var showError = errorMessage != null && !errorMessage.isEmpty();
-
-// In the VNode tree:
-div(showError ? Css.ERROR_VISIBLE : Css.HIDDEN).children(
-  span(Css.ERROR_ICON),
-  span(Css.ERROR_TEXT).text(errorMessage != null ? errorMessage : ""))
-```
-
-The Presenter sets `errorCode` + `errorMessage` in the ViewState (`state.errorCode.set(3)`, which already requests the redraw). The protocol sends the delta and the view re-renders automatically.
-
----
-
-## State Mapping (Records)
-
-For complex states (nested objects), use records for typed parsing:
-
-```java
-private record Product(Long id, String name, Double price) {}
-
-private Product parseProduct(ViewScope scope) {
-    Map<String, Object> map = scope.getMap("product");
-    if (map.isEmpty()) return new Product(-1L, "", 0.0);
-    return new Product(
-        CoerceUtils.asLong(map.get("id")),
-        CoerceUtils.asString(map.get("name"), ""),
-        CoerceUtils.asDouble(map.get("price"), 0.0));
-}
+.cls("extra-class")           // Adds a class to className
+.attr("placeholder", "...")   // HTML attribute
+.boolAttr("disabled", true)   // Boolean attribute (presence/absence)
+.prop("value", obj)           // JS property (complex data)
+.style("color: red")          // Inline style
+.key("unique-id")             // Key for list reconciliation
+.on("click", listener)        // addEventListener
+.children(node1, node2)       // Fixed children (varargs)
+.children(listOfNodes)        // Dynamic children (List<VNode>)
+.text("content")              // Text content
+.ref(el -> { ... })           // Access to the real DOM element
 ```
 
 ---
 
 ## New View Checklist
 
-- [ ] `VIEW_ID` identical to the scope's `CLASS_ID`
+- [ ] Shared view `XxxSharedView extends SharedVDomView` in `teavm.commons/.../views/<x>/`, with `scopeSupplier` and action callbacks
+- [ ] Adapter `XxxView extends AbstractRemoteView` with `VIEW_ID = XxxScope.CLASS_ID`
 - [ ] Event codes identical to the codes of the Presenter's actions
-- [ ] Registered in `Main.java` with `app.registerView(VIEW_ID, View::new)`
-- [ ] `Css` interface with aliases and suppressions
-- [ ] Stable listeners as `final` fields
-- [ ] Parametric listeners via `useCallback(key, factory)`
+- [ ] Registered in `Main.java` with `app.registerView(VIEW_ID, XxxView::new)`
+- [ ] `Sel` interface with aliases and suppressions
+- [ ] Stable listeners as `final` fields; parametric ones via `useCallback(key, factory)`
 - [ ] `.key()` on items of dynamic lists
-- [ ] Standard error handling (`errorMessage` → hidden/visible alert)
-- [ ] View CSS added to `src/main/webapp/css/app.css`
-- [ ] Compiles without errors
+- [ ] `_x.scss` partial added to `src/main/scss/app.scss`
+- [ ] `./work/bin/build-frontends.sh teavm.shell` builds without errors

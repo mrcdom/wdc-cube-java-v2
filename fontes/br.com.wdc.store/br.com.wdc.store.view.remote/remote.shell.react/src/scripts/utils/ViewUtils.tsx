@@ -7,14 +7,14 @@ const ZERO_DEPS: React.DependencyList = []
 
 export abstract class BaseViewClass<P extends ViewProps, S> {
   vsid!: string
-  state!: S
-  scope!: ViewScope
+  scope!: S
+  viewScope!: ViewScope
   initialized!: boolean
 
   abstract render(props: P, initial?: boolean): React.ReactNode
 
   protected forceUpdate() {
-    this.scope.forceUpdate()
+    this.viewScope.forceUpdate()
   }
 
   static FC<P extends ViewProps, S>(ctor: new (props: P) => BaseViewClass<P, S>, viewId: string) {
@@ -25,10 +25,10 @@ export abstract class BaseViewClass<P extends ViewProps, S> {
     function View(props: P) {
       const memo = React.useMemo(memoFactory.bind(undefined, props), ZERO_DEPS)
 
-      const { state, scope } = app.bindView<S>(props.vsid)
+      const { scope, viewScope } = app.bindView<S>(props.vsid)
       memo.vsid = props.vsid
-      memo.state = state
       memo.scope = scope
+      memo.viewScope = viewScope
 
       if (memo.initialized) {
         return memo.render(props, false)

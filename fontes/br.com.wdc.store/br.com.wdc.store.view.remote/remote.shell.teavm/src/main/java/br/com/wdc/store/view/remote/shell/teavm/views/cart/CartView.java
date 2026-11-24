@@ -19,13 +19,13 @@ public class CartView extends AbstractRemoteView {
     private static final int ON_BACK = 3;
 
     private final CartSharedView shared;
-    private final CartScope adaptedState = new CartScope();
+    private final CartScope adaptedScope = new CartScope();
 
     public CartView(String vsid) {
         super(vsid);
 
         this.shared = new CartSharedView();
-        this.shared.stateSupplier = this::adaptState;
+        this.shared.scopeSupplier = this::adaptScope;
         this.shared.onBack = () -> submit(ON_BACK);
         this.shared.onBuy = () -> submit(ON_BUY);
         // The rows are views of their own (CartItemView), referred to by id in the cart's order
@@ -37,16 +37,16 @@ public class CartView extends AbstractRemoteView {
         return shared.renderTree();
     }
 
-    private CartScope adaptState() {
-        ViewScope scope = state();
-        adaptedState.errorMessage.set(scope.getString("errorMessage"));
-        adaptedState.total.set(scope.getDouble("total"));
-        return adaptedState;
+    private CartScope adaptScope() {
+        ViewScope scope = scope();
+        adaptedScope.errorMessage.set(scope.getString("errorMessage"));
+        adaptedScope.total.set(scope.getDouble("total"));
+        return adaptedScope;
     }
 
     private List<HTMLElement> rowElements() {
         var result = new ArrayList<HTMLElement>();
-        if (state().getState().get("rowsViewIds") instanceof List<?> ids) {
+        if (scope().getValues().get("rowsViewIds") instanceof List<?> ids) {
             for (var id : ids) {
                 var element = getChildViewElement(String.valueOf(id));
                 if (element != null) {

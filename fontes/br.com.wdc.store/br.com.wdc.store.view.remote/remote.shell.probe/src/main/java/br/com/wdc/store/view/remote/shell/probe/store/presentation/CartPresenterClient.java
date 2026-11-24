@@ -49,12 +49,12 @@ public class CartPresenterClient extends AbstractPresenterClient {
         return submit(3);
     }
 
-    // :: State accessors
+    // :: Scope accessors
 
     /** The rows, in the cart's order: each one a view of its own. */
     public List<CartItemPresenterClient> rows() {
-        var s = state();
-        if (s == null || !(s.fields().get("rowsViewIds") instanceof List<?> ids)) {
+        var s = scope();
+        if (s == null || !(s.values().get("rowsViewIds") instanceof List<?> ids)) {
             return Collections.emptyList();
         }
         var rows = new ArrayList<CartItemPresenterClient>(ids.size());
@@ -69,7 +69,7 @@ public class CartPresenterClient extends AbstractPresenterClient {
     }
 
     public double total() {
-        var s = state();
+        var s = scope();
         var v = s != null ? s.getDouble("total") : null;
         return v != null ? v : 0.0;
     }

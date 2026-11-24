@@ -17,7 +17,7 @@
 	<packaging>pom</packaging>
 
 	<name>framework-parent</name>
-	<description>Cube MVP framework for Java: hierarchical presenters, intent navigation, serializable ViewStates and the data access layer</description>
+	<description>Cube MVP framework for Java: hierarchical presenters, intent navigation, serializable scopes and the data access layer</description>
 	<url>https://github.com/mrcdom/wdc-cube-java-v2</url>
 	<inceptionYear>2026</inceptionYear>
 

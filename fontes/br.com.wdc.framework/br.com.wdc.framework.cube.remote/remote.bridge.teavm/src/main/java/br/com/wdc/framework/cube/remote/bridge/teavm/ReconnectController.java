@@ -7,7 +7,7 @@ import br.com.wdc.framework.cube.remote.bridge.teavm.interop.Timers;
  */
 public class ReconnectController {
 
-    private final ViewStateCoordinator app;
+    private final ScopeCoordinator app;
 
     String url = "";
     int count = 0;
@@ -15,7 +15,7 @@ public class ReconnectController {
     int delay = 0;
     String cause = "";
 
-    public ReconnectController(ViewStateCoordinator app) {
+    public ReconnectController(ScopeCoordinator app) {
         this.app = app;
         this.url = app.getBaseWebSocketUrl() + "/dispatcher/" + app.id;
     }
@@ -32,12 +32,12 @@ public class ReconnectController {
         this.delay = Math.min(2000 * this.count, 120000);
         this.cause = cause;
 
-        var bvScope = app.viewMap.get(ViewStateCoordinator.BROWSER_VSID);
+        var bvScope = app.viewMap.get(ScopeCoordinator.BROWSER_VSID);
         if (bvScope != null) {
-            var state = bvScope.getState();
-            state.put("error.cause", cause);
-            state.put("error.numAttempt", count);
-            state.put("error.delay", delay);
+            var values = bvScope.getValues();
+            values.put("error.cause", cause);
+            values.put("error.numAttempt", count);
+            values.put("error.delay", delay);
             bvScope.forceUpdate();
         }
 
@@ -47,7 +47,7 @@ public class ReconnectController {
     }
 
     private void check() {
-        var bvScope = app.viewMap.get(ViewStateCoordinator.BROWSER_VSID);
+        var bvScope = app.viewMap.get(ScopeCoordinator.BROWSER_VSID);
         if (bvScope == null) {
             reset();
             return;
@@ -58,10 +58,10 @@ public class ReconnectController {
             return;
         }
 
-        var state = bvScope.getState();
-        state.put("error.cause", cause);
-        state.put("error.numAttempt", count);
-        state.put("error.delay", delay);
+        var values = bvScope.getValues();
+        values.put("error.cause", cause);
+        values.put("error.numAttempt", count);
+        values.put("error.delay", delay);
 
         if (delay > 0) {
             delay -= 1000;
@@ -76,12 +76,12 @@ public class ReconnectController {
     }
 
     public void reset() {
-        var browserView = app.viewMap.get(ViewStateCoordinator.BROWSER_VSID);
+        var browserView = app.viewMap.get(ScopeCoordinator.BROWSER_VSID);
         if (browserView != null) {
-            var state = browserView.getState();
-            state.remove("error.cause");
-            state.remove("error.numAttempt");
-            state.remove("error.delay");
+            var values = browserView.getValues();
+            values.remove("error.cause");
+            values.remove("error.numAttempt");
+            values.remove("error.delay");
             browserView.forceUpdate();
         }
 

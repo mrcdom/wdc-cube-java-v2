@@ -1,6 +1,6 @@
 # WDC Cube Java v2
 
-An architectural proposal for building applications with the **Cube MVP** pattern — a variation of Model-View-Presenter with hierarchical presenters, intent-based navigation and serialization of view state.
+An architectural proposal for building applications with the **Cube MVP** pattern — a variation of Model-View-Presenter with hierarchical presenters, intent-based navigation and serializable scopes (the view state each presenter publishes).
 
 This project serves as an **architectural reference** for new projects, demonstrating the complete implementation of an e-commerce system (WDC Store) with a Java backend and **five independent frontend implementations** — React (web/remote), Flutter (mobile/desktop/remote web), Vaadin (web/server-side), SWT (native desktop) and TeaVM (web/desktop/Android/iOS via Tauri) — proving that the view layer is fully decoupled from the presentation logic.
 
@@ -13,7 +13,7 @@ This project serves as an **architectural reference** for new projects, demonstr
 ```mermaid
 graph TD
     subgraph Views["View Layer"]
-        R["React 19 + MUI<br/><small>Browser / WebSocket</small>"]
+        R["React 19 + Spectrum WC<br/><small>Browser / WebSocket</small>"]
         FL["Flutter 3 + Material<br/><small>iOS / Android / Desktop / Web<br/>WebSocket</small>"]
         V["Vaadin 25 + Lumo<br/><small>Browser / Server Push</small>"]
         SW["Eclipse SWT<br/><small>Native Desktop / macOS</small>"]
@@ -21,7 +21,7 @@ graph TD
     end
 
     subgraph Core["Shared Layers"]
-        P["Presentation<br/><small>Presenters + ViewStates + Navigation</small>"]
+        P["Presentation<br/><small>Presenters + Scopes + Navigation</small>"]
         SEC["Security · RBAC<br/><small>HMAC + JWT + Secured Repos</small>"]
         PER["Persistence<br/><small>Repositories + jOOQ (type-safe SQL)</small>"]
         DOM["Domain<br/><small>Models + Contracts + Config</small>"]
@@ -38,7 +38,7 @@ graph TD
 
 | Frontend | Technology | Transport | Module |
 |----------|-----------|------------|--------|
-| **Web (SPA)** | React 19 + TypeScript + MUI 9 | WebSocket (JSON delta) | `view.remote` |
+| **Web (SPA)** | React 19 + TypeScript + Spectrum Web Components | WebSocket (JSON delta) | `view.remote` |
 | **Mobile/Desktop/Web** | Flutter 3 + Material Design | WebSocket (JSON delta) | `view.remote` |
 | **Web (SSR)** | Vaadin 25 + Lumo | Server Push (Atmosphere) | `view.vaadin` |
 | **Native Desktop** | Eclipse SWT 3.135.0 | Direct, in memory | `view.swt` |
@@ -46,7 +46,7 @@ graph TD
 
 **Key features:**
 
-- **View independence** — the same Presenters/ViewStates feed React (web), Flutter (mobile/desktop/web), Vaadin (server-side web), SWT (native desktop) and TeaVM (web/desktop/Android/iOS)
+- **View independence** — the same Presenters/Scopes feed React (web), Flutter (mobile/desktop/web), Vaadin (server-side web), SWT (native desktop) and TeaVM (web/desktop/Android/iOS)
 - **No DI frameworks** — injection via `AtomicReference<T> BEAN` (static service locator); services receive their dependencies in the constructor
 - **Virtual Threads** (Java 21+) — WebSocket connections with minimal memory consumption
 - **RBAC security** — HMAC challenge-response authentication with JWT, role-based access control (ADMIN, CUSTOMER, MANAGER) enforced at the REST endpoints
@@ -71,7 +71,7 @@ graph TD
         persistence["persistence<br/><small>H2 + jOOQ + generated classes</small>"]
         persistRest["persistence.rest<br/><small>REST controllers (Javalin)</small>"]
         persistClient["persistence.client<br/><small>REST client (OkHttp + Gson)</small>"]
-        presentation["presentation<br/><small>Presenters, ViewStates, navigation</small>"]
+        presentation["presentation<br/><small>Presenters, Scopes, navigation</small>"]
         scripts["scripts<br/><small>DDL (DBCreate, DBReset)</small>"]
         backend["backend<br/><small>Javalin 7 + Virtual Threads (fat JAR)</small>"]
         tests["tests<br/><small>Unit and workflow tests</small>"]
@@ -114,16 +114,16 @@ graph TD
 
 ### Store — Frontend (View Implementations)
 
-> **Core principle:** every implementation uses exactly the same Presenters, ViewStates and business rules. Only the rendering layer changes.
+> **Core principle:** every implementation uses exactly the same Presenters, Scopes and business rules. Only the rendering layer changes.
 
 | Module | Description |
 |--------|-----------|
 | **view.remote** | Remote view via the browser — [details](fontes/br.com.wdc.store/br.com.wdc.store.view.remote/README.md) |
-| **view.remote / remote.shell.react** | SPA in React 19 + TypeScript + MUI 9, bundled with Parcel. Bidirectional WebSocket communication, reconnection management, client-side security |
+| **view.remote / remote.shell.react** | SPA in React 19 + TypeScript + Spectrum Web Components (`@swc-react`), bundled with Parcel. Bidirectional WebSocket communication, reconnection management, client-side security |
 | **view.remote / remote.shell.flutter** | Flutter 3 + Material Design for iOS, Android, Desktop (macOS) and Web. Bidirectional WebSocket communication, same protocol as React — [details](fontes/br.com.wdc.store/br.com.wdc.store.view.remote/remote.shell.flutter/README.md) |
 | **view.remote / remote.shell.teavm** | TeaVM frontend that communicates with the server over WebSocket |
-| **backend** | Javalin 7 server with Virtual Threads, WebSocket dispatcher, REST controllers, embedded H2 database. Produces a fat JAR (~11 MB) |
-| **view.remote / remote.host** | Server-side view implementations (`GenericViewImpl`), security (`AppSecurity` — RSA/PBKDF2/AES-GCM, `DataSecurity`), WebSocket SPI |
+| **backend** | Javalin 7 server with Virtual Threads, WebSocket dispatcher, REST controllers; database H2 (TCP or file) or PostgreSQL. Produces a fat JAR (~41 MB) |
+| **view.remote / remote.host** | `StoreApplicationImpl`, whose view catalog is `new ScopeViews().fallback(RemoteViewImpl::forScope)` (a remote view for any scope, found by its `CLASS_ID`), and `RemoteHostBootstrap`, which writes development RSA keys into `application.local.toml` when absent. Transport security (`RemoteAppSecurity`, `RemoteDataSecurity` — RSA/PBKDF2/AES-GCM) comes from `framework.cube.remote` |
 | **view.vaadin** | Server-side web view with Vaadin 25 + Lumo theme + embedded Jetty 12 — [details](fontes/br.com.wdc.store/br.com.wdc.store.view.vaadin/README.md) |
 | **view.swt** | Native desktop view with Eclipse SWT 3.135.0 — [details](fontes/br.com.wdc.store/br.com.wdc.store.view.swt/README.md) |
 | **view.teavm** | Multiplatform (Web + Desktop + Android + iOS) with TeaVM 0.16 + Tauri 2 + Bootstrap 5 — Java compiled to JS — [details](fontes/br.com.wdc.store/br.com.wdc.store.view.teavm/README.md) |
@@ -192,7 +192,7 @@ recompiles without going through this script.
 ### Frontend (Flutter — mobile/desktop)
 
 ```bash
-cd br.com.wdc.store/br.com.wdc.store.view.remote/remote.shell.flutter/flutter.mobile
+cd fontes/br.com.wdc.store/br.com.wdc.store.view.remote/remote.shell.flutter/flutter.mobile
 
 # List available devices
 ./deploy.sh list
@@ -211,12 +211,15 @@ The deploy script supports the targets: `ios`, `ios-sim`, `ipad-sim`, `android`,
 ### React Version (Web)
 
 ```bash
-# Via script
-cd fontes/br.com.wdc.cube.backend
-./start-server.sh [port]
+# The default work/config/application.toml points to H2 in TCP mode: start the H2 server first
+./work/bin/start-h2-server.sh
 
-# Or directly
-java -jar target/br.com.wdc.cube.backend-1.0.0.jar [port]
+# Via script (runs from work/, builds the JAR if it is missing)
+./work/bin/start-server.sh [port]
+
+# Or directly, from work/ (the config file is resolved relative to the working directory)
+cd work
+java -jar ../fontes/br.com.wdc.cube.backend/target/br.com.wdc.cube.backend-1.0.0.jar [port]
 ```
 
 - **Application:** http://localhost:8080
@@ -228,7 +231,7 @@ java -jar target/br.com.wdc.cube.backend-1.0.0.jar [port]
 Requires the Javalin backend running (same port 8080 — WebSocket):
 
 ```bash
-cd br.com.wdc.store/br.com.wdc.store.view.remote/remote.shell.flutter/flutter.mobile
+cd fontes/br.com.wdc.store/br.com.wdc.store.view.remote/remote.shell.flutter/flutter.mobile
 
 # iOS Simulator
 ./deploy.sh run ios-sim
@@ -251,12 +254,13 @@ cd ../flutter.web
 export JAVA_HOME=<path-to-jdk-25>
 export PATH="$JAVA_HOME/bin:$PATH"
 
-cd br.com.wdc.store/br.com.wdc.store.view.vaadin
-java -cp "$(mvn -q dependency:build-classpath -Dmdep.outputFile=/dev/stdout):target/classes" \
-  br.com.wdc.store.view.vaadin.StoreVaadinMain
+# Fat JAR produced by the build (cd fontes && mvn clean package); the module has its own config in work/config/
+cd fontes/br.com.wdc.store/br.com.wdc.store.view.vaadin
+java -Dstore.config.file=work/config/application.toml \
+  -jar target/br.com.wdc.store.view.vaadin-1.0.0.jar
 ```
 
-- **Application:** http://localhost:8090
+- **Application:** http://localhost:8090 (default of `server.port`; the Vaadin config has its own H2 file database)
 - Entirely server-side UI — no custom JavaScript/TypeScript code
 
 ## Tests
@@ -275,14 +279,14 @@ Test structure:
 
 ## Configuration
 
-Both implementations use the `work/config/application.toml` file for external configuration:
+Every Java host reads a TOML file: the backend uses `work/config/application.toml`; the Vaadin and local SWT hosts each have their own `work/config/application.toml` inside their module. `application.local.toml`, next to it, overrides its keys.
 
 ```toml
 [app]
-# basedir = "work"
+basedir = ".."   # required; resolved relative to the config file's directory
 
 [database]
-# url = "jdbc:h2:file:..."
+# url = "jdbc:h2:file:..."   # default: H2 file database in the data directory
 # username = "sa"
 # password = "sa"
 # reset = false
@@ -294,7 +298,7 @@ Both implementations use the `work/config/application.toml` file for external co
 # jwt.secret = "your-secret-key"   # enables JWT authentication on the REST API
 ```
 
-Resolution: system property `store.config.file` → fallback to `work/config/application.toml`.
+Resolution: system property `store.config.file` → fallback to `config/application.toml` relative to the working directory (`start-server.sh` runs from `work/`). A missing file stops the startup.
 
 ## Security (RBAC)
 
@@ -339,9 +343,10 @@ The password never travels in plain text — only the HMAC-SHA256 digest with a 
 | Layer | Component | Responsibility |
 |--------|-----------|-----------------|
 | **HTTP** | `SecurityFilter` | Validates the Bearer JWT, populates `SecurityContext.CURRENT` |
-| **Repository** | `*RepositoryImpl` (jOOQ) | Restricts the scope to the `userId` via criteria for non-admin users |
-| **Presentation** | `SecurityContextDelegate` (proxy) | Propagates the `SecurityContext` to the current thread on each call |
-| **Transport** | `AppSecurity` (React) | RSA + PBKDF2 + AES-GCM for sensitive data over WebSocket |
+| **REST endpoint** | `SecurityEnforcer` + `*ApiController` | `SecurityEnforcer.require(entity, operation)` checks the permission of each operation; without `data:all`, the controllers restrict users and purchases to the authenticated user's own records |
+| **Transport** | `RemoteAppSecurity` / `RemoteDataSecurity` (`framework.cube.remote`) | RSA + PBKDF2 + AES-GCM for sensitive data over WebSocket |
+
+In the hosts where the presenters run on the server (Vaadin, local SWT, remote host), the client only triggers actions and the presenter decides each query; the repositories are used directly.
 
 ### Configuration
 
@@ -368,7 +373,7 @@ graph TD
     Home --> Receipt["ReceiptPresenter"]
 ```
 
-Each presenter has a serializable **Scope** that is sent to the frontend over WebSocket. The frontend renders based on the received state and sends events back to the corresponding presenter.
+Each presenter has a serializable **Scope** that is sent to the frontend over WebSocket. The frontend renders the received scope and sends events back to the corresponding presenter.
 
 ## Naming Conventions
 
@@ -376,17 +381,17 @@ Each presenter has a serializable **Scope** that is sent to the frontend over We
 |------|--------|---------|
 | jOOQ table (generated) | `En` + `Entity` | `EnProduct` / `EN_PRODUCT` |
 | View State | `*Scope` | `ProductScope` |
-| View Impl | `*ViewImpl` | `RootReactViewImpl` |
+| View Impl | `*ViewImpl` | `RemoteViewImpl` |
 | Presenter | `*Presenter` | `CartPresenter` |
 | Repository | `*RepositoryImpl` | `UserRepositoryImpl` |
 | Criteria | `*Criteria` | `ProductCriteria` |
-| Criteria applier | `Apply` + `Entity` + `Criteria` | `ApplyProductCriteria` |
+| Criteria applier | `ApplyConditions` (inner class of each `*RepositoryImpl`) | `ProductRepositoryImpl.ApplyConditions` |
 
 ## Main Dependencies
 
 | Category | Technology | Version |
 |-----------|-----------|--------|
-| Language | Java (Temurin/Microsoft) | 21 |
+| Language | Java (Temurin/Microsoft) | 25 (framework modules: release 21) |
 | Build | Maven | 3.9+ |
 | HTTP server | Javalin | 7.2.4 |
 | Web UI (server-side) | Vaadin | 25.3.5 |
@@ -395,11 +400,11 @@ Each presenter has a serializable **Scope** that is sent to the frontend over We
 | Mobile/Desktop/Web | Flutter + Dart | 3.x |
 | Database | H2 | 2.5.252 |
 | Data access | jOOQ | 3.21.9 |
-| Serialization | Gson | 2.13.2 |
+| Serialization | Gson | 2.15.0 |
 | Logging | SLF4J + Logback | 2.0.20 / 1.6.7 |
 | Tests | JUnit | 4.13.2 |
 | Frontend | React | 19 |
-| UI Components | MUI | 9 |
+| UI Components | Spectrum Web Components (`@swc-react`) | 1.12 |
 | Bundler | Parcel | 2.13.3 |
 | Language (frontend) | TypeScript | ES2024 |
 

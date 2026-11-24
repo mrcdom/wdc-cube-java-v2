@@ -10,12 +10,12 @@ public class ReceiptView extends AbstractVDomView<ReceiptScope> {
 
     private final ReceiptSharedView shared;
 
-    public ReceiptView(StoreTeaVMApplication app, ReceiptScope state) {
-        super("receipt", app, state);
+    public ReceiptView(StoreTeaVMApplication app, ReceiptScope scope) {
+        super("receipt", app, scope);
 
         this.shared = new ReceiptSharedView();
-        this.shared.stateSupplier = () -> state;
-        this.shared.onBack = () -> safeAction("Back", state.onOpenProducts::run);
+        this.shared.scopeSupplier = () -> scope;
+        this.shared.onBack = () -> safeAction("Back", scope.onOpenProducts::run);
     }
 
     @Override

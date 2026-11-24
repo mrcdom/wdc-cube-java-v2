@@ -33,7 +33,7 @@ public class ProductsPanelViewSwt extends AbstractViewSwt {
     private static final int CARD_PADDING = 12;
     private static final int GRID_GAP = 16;
 
-    public Supplier<ProductsPanelScope> stateSupplier;
+    public Supplier<ProductsPanelScope> scopeSupplier;
     public LongConsumer onOpenProduct;
 
     private boolean notRendered = true;
@@ -57,8 +57,8 @@ public class ProductsPanelViewSwt extends AbstractViewSwt {
             this.notRendered = false;
         }
 
-        var state = this.stateSupplier != null ? this.stateSupplier.get() : null;
-        var products = state != null ? state.products.get() : null;
+        var scope = this.scopeSupplier != null ? this.scopeSupplier.get() : null;
+        var products = scope != null ? scope.products.get() : null;
         int hash = products != null ? products.hashCode() : 0;
         if (hash != this.lastProductsHash) {
             this.lastProductsHash = hash;

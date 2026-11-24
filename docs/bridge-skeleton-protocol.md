@@ -2,7 +2,7 @@
 
 > **Status:** normative. This is the source of truth for the protocol used by the *thin* clients (web browser, desktop applications, and mobile applications) that remotely access the presentation layer on the server.
 >
-> **Purpose of this document:** to capture every wire-level detail — identity, security, authority over ViewStates, page and site storage, connection lifecycle, refresh flow — so that the protocol can be faithfully reimplemented in **any** technology, on both client and server, on any platform.
+> **Purpose of this document:** to capture every wire-level detail — identity, security, authority over scopes, page and site storage, connection lifecycle, refresh flow — so that the protocol can be faithfully reimplemented in **any** technology, on both client and server, on any platform.
 >
 > The specification is **independent of language and UI library**: it describes the wire contract and the observable behavior, not an implementation. Where it mentions platforms (browser, desktop, mobile), it is because the protocol was designed with the requirements of those platforms in mind. The reference implementations (host and client shells) live in this repository under the remote presentation modules; where this document diverges from them, **the implementations prevail** — report the divergence.
 
@@ -18,8 +18,8 @@
 8. [Message Format — Client → Server](#8-message-format--client--server)
 9. [Message Format — Server → Client](#9-message-format--server--client)
 10. [Event Codes and Close Codes](#10-event-codes-and-close-codes)
-11. [ViewState Serialization](#11-viewstate-serialization)
-12. [Authority over ViewStates and View Garbage Collection](#12-authority-over-viewstates-and-view-garbage-collection)
+11. [Scope Serialization](#11-scope-serialization)
+12. [Authority over Scopes and View Garbage Collection](#12-authority-over-scopes-and-view-garbage-collection)
 13. [Navigation and URL Signing](#13-navigation-and-url-signing)
 14. [Client Storage — Page and Site](#14-client-storage--page-and-site)
 15. [Refresh (F5) Flow and Reconnection](#15-refresh-f5-flow-and-reconnection)
@@ -31,18 +31,18 @@
 
 ## 1. Conceptual Model and Roles
 
-The protocol is analogous to a **Remote Desktop operating on the application's data layer** rather than on pixels. All logic — Presenters, ViewStates, business rules, navigation — lives in the **Host** (server). The **Shell** (client) is *thin*: it only renders serialized states and sends interaction events back.
+The protocol is analogous to a **Remote Desktop operating on the application's data layer** rather than on pixels. All logic — Presenters, scopes, business rules, navigation — lives in the **Host** (server). The **Shell** (client) is *thin*: it only renders serialized scopes and sends interaction events back.
 
 | Role | Responsibility |
 |---|---|
-| **Host** | Holds the Presenter/ViewState tree, processes events, performs navigation, serializes state deltas, and is the **authority** over which views exist. |
-| **Shell** | Establishes the session, performs the cryptographic handshake, renders ViewStates, emits user events, keeps local storage, reconnects after a drop. |
+| **Host** | Holds the Presenter/Scope tree, processes events, performs navigation, serializes scope deltas, and is the **authority** over which views exist. |
+| **Shell** | Establishes the session, performs the cryptographic handshake, renders scopes, emits user events, keeps local storage, reconnects after a drop. |
 | **Bridge** | The code layer, on both sides, that speaks this protocol. On the client, a core reusable across UI platforms is desirable. |
 
 **Fundamental invariants:**
 
 - The Shell **never** contains business logic or navigation rules. It does not decide where to navigate; it **asks**, and the Host decides.
-- Every renderable state is a **ViewState** identified by an `instanceId` (vsid). The Host sends only the *dirty* ViewStates (delta).
+- Everything a view renders is a **scope** identified by an `instanceId` (vsid). The Host sends only the *dirty* scopes (delta).
 - The Host is the **only** authority over the existence and identity of views. The Shell never invents vsids.
 - A special, fixed view, the **Browser View** (vsid `7b32e816a191:0`), is the root of the shell and the channel through which navigation, alerts, and keep-alive travel. (The name "Browser" designates the root view that "browses" between places; it does not refer to a web browser.)
 
@@ -51,19 +51,19 @@ sequenceDiagram
     participant Shell
     participant WS as WebSocket /dispatcher/{appId}
     participant Host
-    participant P as Presenters + ViewStates
+    participant P as Presenters + Scopes
 
     Note over Shell,Host: bootstrap → handshake → connection
     Shell->>WS: 1st message { secret, event:[] }  (+ storage bootstrap)
     WS->>Host: onMessage (validates secret, creates/retrieves app)
     Host->>P: initializes/retrieves session
-    Host->>WS: { states:[ initial ViewStates ], uri }
+    Host->>WS: { scopes:[ initial scopes ], uri }
     WS->>Shell: renders
 
-    Shell->>WS: { requestId, event:["cart:3:1"], "cart:3":{formData} }
-    WS->>Host: submit → syncs state + event
+    Shell->>WS: { requestId, event:["7eb485e5f843:3:1"], "7eb485e5f843:3":{formData} }
+    WS->>Host: submit → syncs scope + event
     Host->>P: logic + navigation, marks dirty
-    Host->>WS: { requestId, states:[ dirty only ], uri? , storage? }
+    Host->>WS: { requestId, scopes:[ dirty only ], uri? , storage? }
     WS->>Shell: reconciles affected views
 ```
 
@@ -75,12 +75,12 @@ sequenceDiagram
 |---|---|
 | **`appId`** | Session identifier. Signed format `part1.part2` (see §3). Goes in the WebSocket path: `/dispatcher/{appId}`. |
 | **`appSKey`** | The server's RSA public key for the handshake, as the string `"exponent:modulus"` in **base36**. |
-| **`vsid` (View State ID / instanceId)** | Identity of a view instance. Format `"<classId>:<n>"`, e.g. `cart:3`, `7b32e816a191:0`. `classId` may be a name or a hex hash. `n` is the instance number. |
-| **`classId`** | Identity of the view's *class*. It is `parts[0]` of the vsid. |
+| **`vsid` (ViewScope ID / instanceId)** | Identity of a view instance. Format `"<classId>:<n>"`, e.g. `7eb485e5f843:3`, `7b32e816a191:0`. `n` is the instance number. |
+| **`classId`** | Identity of the view's *class*: the `CLASS_ID` (a 12-digit hex string) declared by the scope class the view draws. It is `parts[0]` of the vsid. |
 | **`secret`** | Session signature carrying the AES-GCM handshake material. Three-part format: `<rsa(pwd) base36>.<salt base64url>.<iv base64url>`. |
 | **Browser View** | Singleton root view of the shell. `classId = 7b32e816a191`, fixed vsid `7b32e816a191:0`. |
 | **`p.path`** | formData field carrying the route (the application's query path) in navigation events. |
-| **`"#"`** | Reserved field inside each serialized ViewState object, whose value is that state's vsid. |
+| **`"#"`** | Reserved field inside each serialized scope object, whose value is that scope's vsid. |
 
 **vsid parsing rule inside an event:** an `event` item has the format `"<vsid>:<eventCode>"`. Since the `vsid` itself contains `:`, parsing uses the **last** `:` as the separator: everything before it is the vsid, the integer after it is the `eventCode`. E.g.: `"7b32e816a191:0:-1"` → vsid `7b32e816a191:0`, eventCode `-1`.
 
@@ -262,7 +262,7 @@ Phases:
 4. **Connected** — sends the 1st message, receives the initial push, operates.
 5. **Reconnecting** — on a drop, applies backoff and reconnects (§15).
 
-A reusable client core must offer, at a minimum: waiting for the next message, or waiting for the response correlated with a specific `requestId` — discarding intermediate messages (whose ViewStates **have already been applied** to the local state before enqueueing, which makes discarding safe). Recommended response and connection timeout: **10 seconds**.
+A reusable client core must offer, at a minimum: waiting for the next message, or waiting for the response correlated with a specific `requestId` — discarding intermediate messages (whose scopes **have already been applied** to the local scope map before enqueueing, which makes discarding safe). Recommended response and connection timeout: **10 seconds**.
 
 ---
 
@@ -295,20 +295,22 @@ Optionally with a bootstrap `storage`.
 {
   "requestId": 1,
   "event": ["7b32e816a191:0:-1"],
-  "7b32e816a191:0": { "p.path": "/home/product?pr-id=42&sign=AbC123" }
+  "7b32e816a191:0": { "p.path": "product?pr-id=42&sign=AbC123" }
 }
 ```
 
 **History navigation (event `-2`):** identical to the previous one with the eventCode changed to `-2`.
 
-**View event submit (e.g. confirming the cart, eventCode `1`):**
+**View event submit (e.g. changing the quantity of a cart row, eventCode `2` on a `CartItemScope` view, classId `c8a1f0e2b7d4`):**
 ```json
 {
   "requestId": 7,
-  "event": ["cart:3:1"],
-  "cart:3": { "p.quantity": 2 }
+  "event": ["c8a1f0e2b7d4:5:2"],
+  "c8a1f0e2b7d4:5": { "p.quantity": 2 }
 }
 ```
+
+An event with no parameter (e.g. the cart's checkout, eventCode `1` on the `CartScope` view, classId `7eb485e5f843`) carries only the `event` item: `{ "requestId": 8, "event": ["7eb485e5f843:3:1"] }`.
 
 **Keep-alive:**
 ```json
@@ -319,7 +321,7 @@ Optionally with a bootstrap `storage`.
 
 ## 9. Message Format — Server → Client
 
-### 9.1 Response / State Push Envelope
+### 9.1 Response / Scope Push Envelope
 
 A JSON object. Fields (all optional). The envelope is **not sent** if it is empty (`{}`).
 
@@ -328,26 +330,29 @@ A JSON object. Fields (all optional). The envelope is **not sent** if it is empt
 | `requestId` | 64-bit integer | Echoed when the response corresponds to a request. **Absent** in background flushes (asynchronous push). |
 | `storage` | `object` | Client storage delta (§14). Per scope → per key → encrypted value (`b64Cipher`) or `null` (removal). |
 | `uri` | `string` | Current navigation fragment/hash (with the `sign` parameter). Sent when navigation happened or the fragment changed. |
-| `states` | `object[]` | Array of serialized *dirty* ViewStates. Each object has `"#"` = vsid (§11). |
+| `scopes` | `object[]` | Array of serialized *dirty* scopes. Each object has `"#"` = vsid (§11). |
 
 **Example:**
 ```json
 {
   "requestId": 7,
-  "uri": "/home/cart?sign=AbC123",
-  "states": [
-    { "#": "cart:3",
-      "items": [ { "id": 1, "name": "Product A", "price": 49.9, "quantity": 2 } ],
-      "errorCode": 0 }
+  "uri": "cart?sign=AbC123",
+  "scopes": [
+    { "#": "7eb485e5f843:3",
+      "rowsViewIds": [ "c8a1f0e2b7d4:5" ],
+      "total": 99.8,
+      "errorCode": 0 },
+    { "#": "c8a1f0e2b7d4:5",
+      "id": 1, "name": "Product A", "price": 49.9, "quantity": 2 }
   ],
   "storage": { "persistent": { "authToken": "k8s2...==" } }
 }
 ```
 
 Notes:
-- Before serializing the states, the server consolidates the derived state of all presenters once (`commitComputedState`), under a lock.
-- A view born while another's state is being written (the scope of a child presenter, a segment, a row, requested for the first time) goes in the **same** response: the already-written state references it.
-- Error fields (`errorCode`, `errorMessage`) live **inside** the fields of each ViewState, not in the envelope.
+- Before serializing the scopes, the server consolidates the derived state of all presenters once (`commitComputedState`), under a lock.
+- A view born while another's scope is being written (the scope of a child presenter, a segment, a row, requested for the first time) goes in the **same** response: the already-written scope references it.
+- Error fields (`errorCode`, `errorMessage`) live **inside** the fields of each scope, not in the envelope.
 - `accessToken` may also appear in the server→client flow (AES-GCM-encrypted token) as an auto-login mechanism; the client decrypts it with `b64Decipher`.
 
 ### 9.2 Ping/Control Envelope
@@ -376,7 +381,7 @@ Events of regular views use codes `>= 0` defined by each view. Negative eventCod
 
 ### 10.2 Alerts (Browser View Fields)
 
-The Browser View state may carry a server-commanded alert:
+The Browser View scope may carry a server-commanded alert:
 - `alertId`: alert code; `-1` = unexpected error; `0` = none (after OK).
 - `alertArgs`: `string[]` of arguments (for the unexpected error: only the message — the stack trace stays in the server log).
 
@@ -388,14 +393,14 @@ They use the range reserved for applications (`4000–4999`):
 
 | Code | Reason | Expected client action |
 |---|---|---|
-| `4001` | `reload_required` | Invalid/forged sessionId, missing/bad signature, or 1st message without `secret`. The client **must** discard the persisted `appId` and reload/restart to obtain a new `appId`. |
+| `4001` | `reload_required` | Invalid/forged `appId`, missing/bad signature, or 1st message without `secret`. The client **must** discard the persisted `appId` and reload/restart to obtain a new `appId`. |
 | `4003` | `capacity_exceeded` | Server at its session limit. Equivalent to the init endpoint's HTTP `503 {"error":"capacity_exceeded"}`. |
 
 ---
 
-## 11. ViewState Serialization
+## 11. Scope Serialization
 
-The ViewState is a view's public state, transmitted as a JSON object. The **observable contract** is:
+A scope is the view state a presenter publishes for its view; it travels as a JSON object. The **observable contract** is:
 
 - The object injects `"#"` as its **first** field, value = `instanceId` (vsid).
 - Boolean fields are **always** present (even when `false`).
@@ -410,21 +415,21 @@ The ViewState is a view's public state, transmitted as a JSON object. The **obse
 
 **instanceId formation:** `"<classId>:<n>"`, where `classId` is the `CLASS_ID` declared by the scope's class. The Browser View is fixed at `7b32e816a191:0`. Other views use an incremental counter starting at `1`.
 
-**Client-side application semantics:** each object in `states` **fully replaces** the previous ViewState of that vsid (total replace, not field-by-field merge). The client indexes by vsid; the `"#"` field is removed and the rest becomes the view's state.
+**Client-side application semantics:** each object in `scopes` **fully replaces** the previous scope of that vsid (total replace, not field-by-field merge). The client indexes by vsid; the `"#"` field is removed and the rest becomes the view's scope (`values` in the client's `ViewScope`).
 
 ---
 
-## 12. Authority over ViewStates and View Garbage Collection
+## 12. Authority over Scopes and View Garbage Collection
 
 The **server is the authority** over which views exist. The client never creates vsids.
 
 **On the server:**
 - A `vsid → view` map is the authoritative list. Every view is registered when created.
 - **Input validation:** when processing formData/events, the server only accepts vsids that exist in that map. An unknown vsid:
-  - in state synchronization: is ignored;
+  - in scope synchronization: is ignored;
   - in an event: the server resynchronizes **all** views at the end of the dispatch, to correct the out-of-sync client. This neutralizes forgery attempts.
 - **Dirty tracking:** marking a view as dirty enqueues it for flushing (immediately while processing a submit; otherwise in the background flush every ~50 ms).
-- **Delta collection:** the server atomically takes the dirty views to serialize into `states`.
+- **Delta collection:** the server atomically takes the dirty views to serialize into `scopes`.
 - **Release:** when a view is removed, its vsid is enqueued and sent as `releasedViews` in the next ping response.
 
 **On the client (view garbage collector):**
@@ -437,14 +442,14 @@ The **server is the authority** over which views exist. The client never creates
 
 ## 13. Navigation and URL Signing
 
-Navigation is **server-driven** and the URL is **signed** to prevent the client from forcing states it was not granted.
+Navigation is **server-driven** and the URL is **signed** to prevent the client from forcing places it was not granted.
 
-**Emission (server → client):** when updating the history, the server builds the intent (place + parameters), computes `sign = base62(signAsHash(utf8_bytes(intent.toString())))`, injects the `sign=<...>` parameter into the intent, and sends the result in the `uri` field. Example: `/home/product?pr-id=42&sign=AbC123`.
+**Emission (server → client):** when updating the history, the server builds the intent (place + parameters), computes `sign = base62(signAsHash(utf8_bytes(intent.toString())))`, injects the `sign=<...>` parameter into the intent, and sends the result in the `uri` field. The address is the name of the deepest place plus its query string (`CubeIntent.toString()`), e.g. `product?pr-id=42&sign=AbC123`.
 
 **Reception (client → server):** the client navigates by sending `p.path` (the URI with `sign`) via events `-1`/`-2` on the Browser View. The server:
 1. Parses the path and **removes** the `sign` parameter (the received signature).
 2. Recomputes `expected = base62(signAsHash(utf8_bytes(intent.toString())))`.
-3. If the received signature ≠ expected → the URL was tampered with: the client's intent is **discarded** and the server navigates to the root place, forcing a history update. This way, the client cannot forge navigation to arbitrary unsigned parameters/places.
+3. If the received signature ≠ expected → the URL was tampered with: the client's intent is **discarded** and the server navigates to its current state instead (the last place with the parameters the presenters publish; the root place when there is none), forcing a history update. This way, the client cannot forge navigation to arbitrary unsigned parameters/places.
 
 **Reflection in the history (browser):** the `uri` field is applied to the browser history as a hash (`#`): *replace* on the first URI response and on navigation coming from back/forward; *push* in all other cases. The shell derives the initial route from the URL hash at boot.
 
@@ -515,12 +520,12 @@ The goal is that, for the user, an F5 (or a reconnection) is imperceptible: same
 
 ### 15.3 Sequence (Server Side)
 
-1. The server finds/creates the handler. The **application** (Presenters/ViewStates) persists in the session registry as long as it has not expired.
+1. The server finds/creates the handler. The **application** (Presenters/Scopes) persists in the session registry as long as it has not expired.
 2. If the session's application is still alive: it reattaches the new connection and **reinitializes the session for reconnection**:
    - forces resending the `uri` (clears the last sent fragment);
    - marks the history as dirty;
    - clears the `releasedViews` queue;
-   - marks **all** views as dirty → the next flush resends the **full state**.
+   - marks **all** views as dirty → the next flush resends **every scope**.
 3. **Old (superseded) connection:** the previous connection's `onClose` is ignored if it is no longer the active one, avoiding bringing down the freshly reconnected session.
 4. **If the session expired** (removed by TTL without a connection): the application is **recreated** on the first message from `secret` + `storage` (bootstrap) + `event -1` (`p.path`), reconstituting the state. If the server is full → `4003 capacity_exceeded`.
 5. **Dedup:** the per-session `lastRequestId` discards requests with an id `<=` the one already processed. In a recreated session, it restarts at `-1`.
@@ -538,7 +543,7 @@ On receiving close `4001 reload_required`, the client **removes** the persisted 
 
 ### 15.6 Reconnection in Non-Browser Clients
 
-A minimal client core may not implement automatic reconnection — in that case, it exposes a hook to clear the ViewState map and leaves the reconnection policy to each shell. A desktop/mobile shell that wants parity with the browser must: persist the `appId` and the request counter, and on reconnecting redo `init → handshake → WS → bootstrap(storage) → event -1`. Alternatively, it rebuilds the session from scratch via a new init.
+A minimal client core may not implement automatic reconnection — in that case, it exposes a hook to clear the scope map and leaves the reconnection policy to each shell. A desktop/mobile shell that wants parity with the browser must: persist the `appId` and the request counter, and on reconnecting redo `init → handshake → WS → bootstrap(storage) → event -1`. Alternatively, it rebuilds the session from scratch via a new init.
 
 ---
 
@@ -579,7 +584,7 @@ This protocol was designed for multiple client platforms: **web browser, desktop
 - `secret` format = `<rsa(pwd) base36>.<salt b64url>.<iv b64url>` (§6).
 - Cryptographic primitives: *textbook* RSA via modular exponentiation with the public key `"exponent:modulus"` base36; PBKDF2-HMAC-SHA256, **250000 iterations**, **256-bit** output; AES-256-GCM, **128-bit tag**, **IV fixed per session** in the protocol payload; Base64 encodings (standard for payload, URL-safe without padding for salt/IV).
 - WebSocket path `/dispatcher/{appId}` and (optional) `wdc` subprotocol.
-- Message fields in both directions (§8, §9), including `"#"` in the ViewState and `"<vsid>:<eventCode>"` in `event`, parsed on the **last** `:`.
+- Message fields in both directions (§8, §9), including `"#"` in the scope and `"<vsid>:<eventCode>"` in `event`, parsed on the **last** `:`.
 - Reserved event codes (`-1`, `-2`, `1`, `2`) and close codes (`4001`, `4003`).
 - Three storage scopes (`session`, `persistent`, `persistent-secure`), with in-transit encryption for **all** of them and `secure` as an at-rest hint.
 - URL fragment signature (`sign`) — the client must **never** try to navigate to unsigned paths; it only echoes the `p.path` it received.
@@ -588,7 +593,7 @@ This protocol was designed for multiple client platforms: **web browser, desktop
 - How to obtain `appId`/`appSKey`: cookies (browser mode) **or** the init endpoint (explicit mode). A desktop/mobile client typically uses the **explicit init mode**.
 - Backing of the storage scopes: on desktop/mobile, `session` = memory; `persistent` = file/preferences; `persistent-secure` = the platform's secret vault (Keychain on macOS/iOS, KeyStore on Android, an equivalent secret store on desktop).
 - Reconnection: implement backoff and `appId` reuse (parity with the browser) **or** recreate the session via a new init.
-- Rendering: the view reads the ViewState (indexed by vsid) and emits events via `submit(vsid, eventCode, formData)`; the UI technology is irrelevant to the protocol.
+- Rendering: the view reads its scope (indexed by vsid) and emits events via `submit(vsid, eventCode, formData)`; the UI technology is irrelevant to the protocol.
 
 **Platform requirements to observe:**
 - **Browser:** native cryptography usually requires a secure context (HTTPS/localhost); over plain HTTP, an own implementation of the primitives is needed, with identical parameters. `Secure` cookies only work over HTTPS. Route reflection uses the URL hash (`#`).
@@ -599,7 +604,7 @@ This protocol was designed for multiple client platforms: **web browser, desktop
 - PBKDF2 receives the password as the UTF-8 bytes of the base64url string (not the 12 raw bytes).
 - The password is RSA-encrypted **after** being re-wrapped in standard Base64 (not the raw password bytes).
 - `event` parsing uses the **last** `:` (the vsid contains `:`).
-- The client-side ViewState is a **total replace** per vsid, not a merge.
+- The client-side scope is a **total replace** per vsid, not a merge.
 - The client is subordinate: it never invents vsids, never navigates without `sign`, and only garbage-collects views the server no longer lists **and** that are not mounted.
 
 ---
@@ -610,7 +615,7 @@ This protocol was designed for multiple client platforms: **web browser, desktop
 |---|---|
 | Browser View classId | `7b32e816a191` |
 | Browser View vsid | `7b32e816a191:0` |
-| vsid field in the ViewState | `#` |
+| vsid field in the scope | `#` |
 | Route field in the formData | `p.path` |
 | Method parameter prefix | `p.` |
 | Init endpoint | `GET /api/session/init` → `{appId, appSKey}` |

@@ -34,8 +34,8 @@ public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
     private HorizontalLayout footerPane;
     private HorizontalLayout actionsPane;
 
-    public CartViewVaadin(StoreVaadinApplication app, CartScope state) {
-        super("cart", app, state, new VerticalLayout());
+    public CartViewVaadin(StoreVaadinApplication app, CartScope scope) {
+        super("cart", app, scope, new VerticalLayout());
     }
 
     @Override
@@ -58,7 +58,7 @@ public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
             this.notRendered = false;
         }
 
-        var rows = this.state.rows.get();
+        var rows = this.scope.rows.get();
         this.syncRows(rows);
 
         boolean empty = rows.isEmpty();
@@ -75,18 +75,18 @@ public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
             });
         }
 
-        var totalCostNewValue = this.state.total.get();
+        var totalCostNewValue = this.scope.total.get();
         if (totalCostNewValue != this.totalCostOldValue) {
             this.totalCostElm.setText(this.formatCurrency(totalCostNewValue));
             this.totalCostOldValue = totalCostNewValue;
         }
 
-        if (this.state.errorCode.get() != 0) {
-            Notification.show(this.state.errorMessage.get(), 5000, Notification.Position.TOP_CENTER)
+        if (this.scope.errorCode.get() != 0) {
+            Notification.show(this.scope.errorMessage.get(), 5000, Notification.Position.TOP_CENTER)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
             // Consumed while drawing: a redraw now would take the message away
-            this.state.errorCode.setSilently(0);
-            this.state.errorMessage.setSilently(null);
+            this.scope.errorCode.setSilently(0);
+            this.scope.errorMessage.setSilently(null);
         }
     }
 
@@ -151,7 +151,7 @@ public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
                 .set("font-size", "1.1rem").set("margin-top", "var(--lumo-space-m)");
         this.emptyCartPane.add(emptyText);
         var goShoppingBtn = new Button("Let's go shopping!",
-                e -> safeAction("Open products", this.state.onOpenProducts::run));
+                e -> safeAction("Open products", this.scope.onOpenProducts::run));
         goShoppingBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         goShoppingBtn.getStyle().set("font-weight", "bold").set("font-size", "1rem").set("margin-top",
                 "var(--lumo-space-s)");
@@ -172,7 +172,7 @@ public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
             });
 
             dom.span(label -> {
-                var totalCostNewValue = this.state.total.get();
+                var totalCostNewValue = this.scope.total.get();
                 this.totalCostElm = label;
                 this.totalCostElm.setText(this.formatCurrency(totalCostNewValue));
                 this.totalCostElm.getStyle().set("font-size", "18px")
@@ -193,7 +193,7 @@ public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
                 button.setIcon(VaadinIcon.ARROW_LEFT.create());
                 button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
                 button.addClassName("back-button");
-                button.addClickListener(e -> safeAction("Open products", this.state.onOpenProducts::run));
+                button.addClickListener(e -> safeAction("Open products", this.scope.onOpenProducts::run));
             });
 
             dom.button(button -> {
@@ -201,7 +201,7 @@ public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
                 button.setIcon(VaadinIcon.CHECK.create());
                 button.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
                 button.getStyle().set("background-color", "var(--lumo-success-color)");
-                button.addClickListener(e -> safeAction("Buy", this.state.onBuy::run));
+                button.addClickListener(e -> safeAction("Buy", this.scope.onBuy::run));
             });
         });
     }

@@ -22,8 +22,8 @@ public class RootView extends AbstractVDomView<RootScope> {
 
     private boolean appended;
 
-    public RootView(StoreTeaVMApplication app, RootScope state) {
-        super("root", app, state,
+    public RootView(StoreTeaVMApplication app, RootScope scope) {
+        super("root", app, scope,
                 HTMLDocument.current().createElement("sp-theme"));
     }
 
@@ -38,7 +38,7 @@ public class RootView extends AbstractVDomView<RootScope> {
 
     @Override
     protected VNode render() {
-        var contentElement = this.app.viewOf(this.state.content.get()) instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
+        var contentElement = this.app.viewOf(this.scope.content.get()) instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
         // @formatter:off
         return spTheme("light", "medium", "spectrum")
           .cls(Sel.ROOT)

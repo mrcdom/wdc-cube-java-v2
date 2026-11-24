@@ -6,17 +6,18 @@ It is the TeaVM counterpart of the React (`remote.bridge.react`) and Java (`remo
 
 ## Main Classes
 
-### Protocol & State
+### Protocol & Scopes
 
 | Class | Responsibility |
 |-------|----------------|
-| `ViewStateCoordinator` | Manages the WS connection and the request/response cycle, distributes ViewState updates to the active views |
-| `ViewScope` | Reactive state of a view: receives snapshots from the coordinator and notifies the view via `update()` |
-| `RemoteView` | Base interface for TeaVM remote views: `render()` + `onViewState(ViewScope)` |
+| `ScopeCoordinator` | Manages the WS connection and the request/response cycle, distributes scope updates to the active views |
+| `ViewScope` | Scope of a view: receives its values from the coordinator (`setValues`) and notifies the view via `forceUpdate()` |
+| `RemoteView` | Interface of the TeaVM remote views: `getVsid()`, `getElement()`, `forceUpdate()` |
 | `FlushRequestContext` | Serializes and sends events to the host; manages the queue of pending flushes |
-| `ReconnectController` | Progressive backoff on WebSocket reconnection |
+| `ReconnectController` | Linear backoff on WebSocket reconnection: `min(2000·n, 120000)` ms |
 | `ViewGarbageCollector` | Cleanup of deallocated views when the host sends a removal signal |
-| `DataSecurity` | RSA + AES-GCM handshake via Web Crypto API; mirrors the server's `RemoteDataSecurity` |
+| `DataSecurity` | Handshake (textbook RSA, no padding) + AES-GCM with a PBKDF2-derived key; mirrors the server's `RemoteDataSecurity` |
+| `ClientStorage` / `EncryptedLocalStorage` | Client storage scopes; secure entries live in `localStorage` under the `sec.` prefix, encrypted at rest |
 | `SecurityBoot` | Initializes `DataSecurity` when the session opens |
 | `JsonParser` | Lightweight JSON parser compiled to JS (no external library dependency) |
 
@@ -31,6 +32,7 @@ It is the TeaVM counterpart of the React (`remote.bridge.react`) and Java (`remo
 | `JsRunnable` | JS callback with no parameters |
 | `JsIntConsumer` | JS callback with an integer parameter |
 | `JsStringConsumer` | JS callback with a string parameter |
+| `JsObjectConsumer` | JS callback with an object parameter |
 | `JsBiObjectConsumer` | JS callback with two object parameters |
 
 ## Dependencies

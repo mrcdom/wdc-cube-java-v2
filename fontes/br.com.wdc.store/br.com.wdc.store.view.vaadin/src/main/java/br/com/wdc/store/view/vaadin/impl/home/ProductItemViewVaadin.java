@@ -67,7 +67,7 @@ public class ProductItemViewVaadin extends AbstractViewVaadin<ProductsPanelScope
                 .set("flex", "1 1 calc(50% - 12px)")
                 .set("min-width", "250px")
                 .set("max-width", "calc(50% - 12px)");
-        pane0.addClickListener(e -> safeAction("Open product", () -> this.state.onOpenProduct.run(this.item.id)));
+        pane0.addClickListener(e -> safeAction("Open product", () -> this.scope.onOpenProduct.run(this.item.id)));
 
         dom.verticalLayout(pane1 -> {
             pane1.addClassName("product-selection-item");

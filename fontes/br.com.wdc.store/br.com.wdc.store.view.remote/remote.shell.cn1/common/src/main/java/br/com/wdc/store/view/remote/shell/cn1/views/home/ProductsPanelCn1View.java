@@ -44,7 +44,7 @@ public class ProductsPanelCn1View extends AbstractCn1View {
 
     @Override
     public void doUpdate() {
-        List<Object> products = Json.asList(state().get("products"));
+        List<Object> products = Json.asList(scope().get("products"));
         syncList(grid, products, items, () -> new ProductItemCn1View(this::openProduct));
     }
 

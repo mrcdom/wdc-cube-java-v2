@@ -27,7 +27,7 @@ public class CartPresenter extends AbstractCubePresenter<StoreApplication> {
 
     // :: Public Instance Fields
 
-    public final CartScope state = bind(new CartScope());
+    public final CartScope scope = bind(new CartScope());
 
     // :: Internal Instance Fields
 
@@ -43,9 +43,9 @@ public class CartPresenter extends AbstractCubePresenter<StoreApplication> {
     public CartPresenter(StoreApplication app) {
         super(app);
         this.cart = app.getCart();
-        this.state.onBuy = action(1, this::buy);
+        this.scope.onBuy = action(1, this::buy);
         // Codes 2 and 4 were the rows' before they had views of their own: now each row has its actions
-        this.state.onOpenProducts = action(3, () -> new HomeKeys(this.app).flip());
+        this.scope.onOpenProducts = action(3, () -> new HomeKeys(this.app).flip());
     }
 
     // :: Cube API
@@ -59,7 +59,7 @@ public class CartPresenter extends AbstractCubePresenter<StoreApplication> {
         if (initialization) {
         }
 
-        this.ownerSlot.setScope(this.state);
+        this.ownerSlot.setScope(this.scope);
 
         return true;
     }
@@ -69,23 +69,23 @@ public class CartPresenter extends AbstractCubePresenter<StoreApplication> {
     private void modifyQuantity(long productId, Integer quantity) {
         if (quantity == null) {
             this.errorMalformedQuantityValue();
-            LOG.warn("modifyQuantity.errorMalformedQuantityValue: {}", this.state.errorMessage.get());
+            LOG.warn("modifyQuantity.errorMalformedQuantityValue: {}", this.scope.errorMessage.get());
             return;
         }
 
         if (quantity < 1) {
             this.alertThereIsItemWhichValueIsLessThanOne();
-            LOG.warn("modifyQuantity.alertThereIsItemWhichValueIsLessThanOne: {}", this.state.errorMessage.get());
+            LOG.warn("modifyQuantity.alertThereIsItemWhichValueIsLessThanOne: {}", this.scope.errorMessage.get());
             return;
         }
 
         var found = this.cart.modifyProductQuantity(productId, quantity);
         if (!found) {
             this.alertProductNotFound();
-            LOG.warn("modifyQuantity.alertProductNotFound: {}", this.state.errorMessage.get());
+            LOG.warn("modifyQuantity.alertProductNotFound: {}", this.scope.errorMessage.get());
         } else {
-            this.state.errorCode.set(0);
-            this.state.errorMessage.set(null);
+            this.scope.errorCode.set(0);
+            this.scope.errorMessage.set(null);
             this.syncRows();
         }
     }
@@ -138,8 +138,8 @@ public class CartPresenter extends AbstractCubePresenter<StoreApplication> {
             }
         }
 
-        this.state.rows.set(next);
-        this.state.total.set(total);
+        this.scope.rows.set(next);
+        this.scope.total.set(total);
     }
 
     private CartScope.CartItemScope newRow(long productId) {
@@ -154,7 +154,7 @@ public class CartPresenter extends AbstractCubePresenter<StoreApplication> {
     private void buy() {
         if (this.cart.getSize() == 0) {
             this.alertPurchaseOfEmptyCart();
-            LOG.warn("buy: {}", this.state.errorMessage.get());
+            LOG.warn("buy: {}", this.scope.errorMessage.get());
             return;
         }
 
@@ -167,10 +167,10 @@ public class CartPresenter extends AbstractCubePresenter<StoreApplication> {
                     .flip();
         } catch (InvalidCartItemException caught) {
             this.alertThereIsItemWhichValueIsLessThanOne();
-            LOG.error("buy.alertThereIsItemWhichValueIsLessThanOne: {}", this.state.errorMessage.get(), caught);
+            LOG.error("buy.alertThereIsItemWhichValueIsLessThanOne: {}", this.scope.errorMessage.get(), caught);
         } catch (OfflineException caught) {
             this.alertDatabaseOffline();
-            LOG.error("buy.alertDatabaseOffline: {}", this.state.errorMessage.get(), caught);
+            LOG.error("buy.alertDatabaseOffline: {}", this.scope.errorMessage.get(), caught);
         }
     }
 
@@ -181,38 +181,38 @@ public class CartPresenter extends AbstractCubePresenter<StoreApplication> {
             this.pendingErrorClear.remove();
         }
         this.pendingErrorClear = ScheduledExecutor.BEAN.get().schedule(() -> {
-            this.state.errorCode.set(0);
-            this.state.errorMessage.set(null);
+            this.scope.errorCode.set(0);
+            this.scope.errorMessage.set(null);
         }, Duration.ofSeconds(3));
     }
 
     protected void alertThereIsItemWhichValueIsLessThanOne() {
-        this.state.errorCode.set(1);
-        this.state.errorMessage.set("The cart must have at least one item to complete a purchase");
+        this.scope.errorCode.set(1);
+        this.scope.errorMessage.set("The cart must have at least one item to complete a purchase");
         this.clearErrorAfterDelay();
     }
 
     protected void alertProductNotFound() {
-        this.state.errorCode.set(2);
-        this.state.errorMessage.set("Product not found in the database.");
+        this.scope.errorCode.set(2);
+        this.scope.errorMessage.set("Product not found in the database.");
         this.clearErrorAfterDelay();
     }
 
     protected void alertPurchaseOfEmptyCart() {
-        this.state.errorCode.set(3);
-        this.state.errorMessage.set("Some products have a quantity of less than one item. Unable to purchase.");
+        this.scope.errorCode.set(3);
+        this.scope.errorMessage.set("Some products have a quantity of less than one item. Unable to purchase.");
         this.clearErrorAfterDelay();
     }
 
     protected void alertDatabaseOffline() {
-        this.state.errorCode.set(4);
-        this.state.errorMessage.set("The database is currently offline. Please wait a moment and try again.");
+        this.scope.errorCode.set(4);
+        this.scope.errorMessage.set("The database is currently offline. Please wait a moment and try again.");
         this.clearErrorAfterDelay();
     }
 
     protected void errorMalformedQuantityValue() {
-        this.state.errorCode.set(6);
-        this.state.errorMessage.set("The quantity value is malformed.");
+        this.scope.errorCode.set(6);
+        this.scope.errorMessage.set("The quantity value is malformed.");
         this.clearErrorAfterDelay();
     }
 

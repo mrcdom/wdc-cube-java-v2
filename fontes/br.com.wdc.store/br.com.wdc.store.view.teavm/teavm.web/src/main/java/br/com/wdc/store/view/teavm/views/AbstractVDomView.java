@@ -28,14 +28,14 @@ import br.com.wdc.store.view.teavm.commons.VNode;
  *
  * public class MyView extends AbstractVDomView<MyScope> {
  *
- *     public MyView(StoreTeaVMApplication app, MyScope state) {
- *         super("my-view", app, state);
+ *     public MyView(StoreTeaVMApplication app, MyScope scope) {
+ *         super("my-view", app, scope);
  *     }
  *
  *     @Override
  *     protected VNode render() {
  *         return div("container").children(
- *             h5("title").text(state.title.get()),
+ *             h5("title").text(scope.title.get()),
  *             div("content").children(
  *                 items.stream().map(item ->
  *                     div("item").key(item.id).text(item.name)
@@ -55,16 +55,16 @@ public abstract class AbstractVDomView<S extends Scope> extends AbstractViewTeaV
     private Map<String, EventListener<? extends Event>> listenerCache = new HashMap<>();
     private Set<String> usedKeys = new HashSet<>();
 
-    protected AbstractVDomView(String instanceId, StoreTeaVMApplication app, S state) {
-        super(instanceId, app, state, HTMLDocument.current().createElement("div"));
+    protected AbstractVDomView(String instanceId, StoreTeaVMApplication app, S scope) {
+        super(instanceId, app, scope, HTMLDocument.current().createElement("div"));
     }
 
-    protected AbstractVDomView(String instanceId, StoreTeaVMApplication app, S state, HTMLElement element) {
-        super(instanceId, app, state, element);
+    protected AbstractVDomView(String instanceId, StoreTeaVMApplication app, S scope, HTMLElement element) {
+        super(instanceId, app, scope, element);
     }
 
     /**
-     * Describes the view's virtual tree based on the current state.
+     * Describes the view's virtual tree based on the current scope.
      * Called on every render cycle — the VDom applies only the differences to the real DOM.
      */
     protected abstract VNode render();

@@ -65,7 +65,7 @@ public class ReceiptSharedView extends SharedVDomView {
 
     // -- External bindings --
 
-    public Supplier<ReceiptScope> stateSupplier;
+    public Supplier<ReceiptScope> scopeSupplier;
     public Runnable onBack;
 
     // -- Stable event listener --
@@ -76,19 +76,19 @@ public class ReceiptSharedView extends SharedVDomView {
 
     @Override
     public VNode render() {
-        var state = stateSupplier.get();
-        boolean showSuccess = state.notifySuccess.get();
+        var scope = scopeSupplier.get();
+        boolean showSuccess = scope.notifySuccess.get();
 
         var items = Collections.<ReceiptItem>emptyList();
         var dateText = "";
         var totalText = "";
 
-        if (state.receipt.get() != null) {
-            items = state.receipt.get().items != null ? state.receipt.get().items : Collections.emptyList();
-            if (state.receipt.get().date != null && state.receipt.get().date > 0) {
-                dateText = DateUtils.formatDateTime(state.receipt.get().date);
+        if (scope.receipt.get() != null) {
+            items = scope.receipt.get().items != null ? scope.receipt.get().items : Collections.emptyList();
+            if (scope.receipt.get().date != null && scope.receipt.get().date > 0) {
+                dateText = DateUtils.formatDateTime(scope.receipt.get().date);
             }
-            var total = state.receipt.get().total != null ? state.receipt.get().total : 0.0;
+            var total = scope.receipt.get().total != null ? scope.receipt.get().total : 0.0;
             totalText = "$" + String.format("%.2f", total);
         }
 

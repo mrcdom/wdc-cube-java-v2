@@ -41,19 +41,19 @@ public class ReceiptPresenterClient extends AbstractPresenterClient {
         return submit(1);
     }
 
-    // :: State accessors
+    // :: Scope accessors
 
     public boolean notifySuccess() {
-        var s = state();
+        var s = scope();
         return s != null && Boolean.TRUE.equals(s.getBoolean("notifySuccess"));
     }
 
     /** The receipt map ({@code id}, {@code items}, {@code total}, etc.). */
     public Map<String, Object> receipt() {
-        var s = state();
+        var s = scope();
         if (s == null)
             return Collections.emptyMap();
-        var v = s.fields().get("receipt");
+        var v = s.values().get("receipt");
         if (v instanceof Map<?, ?> m) {
             @SuppressWarnings("unchecked")
             var typed = (Map<String, Object>) m;

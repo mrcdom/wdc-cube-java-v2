@@ -22,8 +22,8 @@ public class LoginViewVaadin extends AbstractViewVaadin<LoginScope> {
     private TextField passwordField;
     private Div errorDiv;
 
-    public LoginViewVaadin(StoreVaadinApplication app, LoginScope state) {
-        super("login", app, state, new VerticalLayout());
+    public LoginViewVaadin(StoreVaadinApplication app, LoginScope scope) {
+        super("login", app, scope, new VerticalLayout());
     }
 
     @Override
@@ -42,12 +42,12 @@ public class LoginViewVaadin extends AbstractViewVaadin<LoginScope> {
             this.notRendered = false;
         }
 
-        if (this.state.errorCode.get() != 0) {
+        if (this.scope.errorCode.get() != 0) {
             this.errorDiv.setText("Invalid username or password. Please try again.");
             this.errorDiv.setVisible(true);
             // Consumed while drawing: a redraw now would take the message away
-            this.state.errorCode.setSilently(0);
-            this.state.errorMessage.setSilently(null);
+            this.scope.errorCode.setSilently(0);
+            this.scope.errorMessage.setSilently(null);
         }
     }
 
@@ -147,7 +147,7 @@ public class LoginViewVaadin extends AbstractViewVaadin<LoginScope> {
         safeAction("Login", () -> {
             var userName = this.userField.getValue();
             var password = this.passwordField.getValue();
-            this.state.onEnter.run(userName, password);
+            this.scope.onEnter.run(userName, password);
         });
     }
 }

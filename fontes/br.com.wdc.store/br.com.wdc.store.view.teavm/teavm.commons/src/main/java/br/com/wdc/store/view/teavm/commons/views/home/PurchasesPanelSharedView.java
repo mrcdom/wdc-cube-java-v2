@@ -56,7 +56,7 @@ public class PurchasesPanelSharedView extends SharedVDomView {
 
     // -- External bindings --
 
-    public Supplier<PurchasesPanelScope> stateSupplier;
+    public Supplier<PurchasesPanelScope> scopeSupplier;
     public Consumer<Long> onOpenReceipt;
     public Consumer<Integer> onPageChange;
     public Consumer<Integer> onPageSizeChanged;
@@ -80,8 +80,8 @@ public class PurchasesPanelSharedView extends SharedVDomView {
      * Called after DOM patch. Checks if page size needs computing.
      */
     public void afterUpdate() {
-        var state = stateSupplier.get();
-        if (state.pageSize.get() <= 0) {
+        var scope = scopeSupplier.get();
+        if (scope.pageSize.get() <= 0) {
             Window.requestAnimationFrame(t -> computePageSize());
         }
     }
@@ -98,11 +98,11 @@ public class PurchasesPanelSharedView extends SharedVDomView {
 
     @Override
     public VNode render() {
-        var state = stateSupplier.get();
-        var purchases = state.purchases.get();
-        int page = state.page.get();
-        int pageSize = Math.max(1, state.pageSize.get());
-        int totalPages = Math.max(1, (int) Math.ceil((double) state.totalCount.get() / pageSize));
+        var scope = scopeSupplier.get();
+        var purchases = scope.purchases.get();
+        int page = scope.page.get();
+        int pageSize = Math.max(1, scope.pageSize.get());
+        int totalPages = Math.max(1, (int) Math.ceil((double) scope.totalCount.get() / pageSize));
         var pageInfo = (page + 1) + " / " + totalPages;
 
         // @formatter:off

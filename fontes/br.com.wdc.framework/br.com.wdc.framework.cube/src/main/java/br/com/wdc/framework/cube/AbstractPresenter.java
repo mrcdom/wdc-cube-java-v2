@@ -12,11 +12,11 @@ import br.com.wdc.framework.commons.function.ThrowingRunnable;
  * What every presenter has: the application, the bound scope and the guarded actions. The presenter never makes a
  * view: the view layer draws its scope with the view its catalog pairs with the scope class ({@link ScopeViews}).
  * <p>
- * An action is bound once, usually in the constructor, into a field of the view state
- * ({@code state.onBuy = action(this::buy)}). The guard catches whatever the body did not handle and hands it to
+ * An action is bound once, usually in the constructor, into a field of the scope
+ * ({@code scope.onBuy = action(this::buy)}). The guard catches whatever the body did not handle and hands it to
  * {@link CubeApplication#alertUnexpectedError}; at the end, failing or not, the application republishes the address,
  * since the action may have changed what the presenters publish. Expected failures (an invalid item, an offline
- * database) stay in the body, which turns them into messages in the view state.
+ * database) stay in the body, which turns them into messages in the scope.
  * <p>
  * An action a remote client fires is bound with its <b>event code</b>, and with how to read its values from the form
  * data ({@link FormParam}): {@code actionOf(2, FormParam.asLong("p.productId"), this::removeProduct)}. The code is the
@@ -39,12 +39,12 @@ public abstract class AbstractPresenter<A extends CubeApplication> implements Pr
     /**
      * Ties the scope to this presenter: the actions it binds with an event code are dispatched by the scope's
      * skeleton, and the scope's view (and those inside it) are released with it. Used on the field:
-     * {@code public final CartScope state = bind(new CartScope());}
+     * {@code public final CartScope scope = bind(new CartScope());}
      */
-    protected final <S extends Scope> S bind(S state) {
-        state.shareEvents(this.events);
-        this.scope = state;
-        return state;
+    protected final <S extends Scope> S bind(S scope) {
+        scope.shareEvents(this.events);
+        this.scope = scope;
+        return scope;
     }
 
     /** The bound scope ({@link #bind}). */

@@ -22,6 +22,11 @@
   - **JTA**: delegates to the `TransactionManager`; the connection, coming from a JTA-aware `DataSource`, enlists as an XA resource.
   - Reentrancy (`required`): a participant shares the *owner*'s connection; only the *owner* finishes it.
 - **`JtaTransactionManager`** — static holder (`AtomicReference<jakarta.transaction.TransactionManager>`), populated by the host's JTA bootstrap.
+- **`RemoteTransactionCoordinator`** / **`RemoteTransactionCoordinatorImpl`** — server-side SPI and implementation of the client-driven remote transaction: keeps, per `txId`, a suspended `TransactionScope` that the REST requests carrying `X-Tx-Id` resume and suspend; owner check, caps, idle/lifetime reaper, idempotent `commit`/`rollback` and `status`.
+- **`RemoteTransactionOptions`** — the coordinator's timeouts, outcome retention and caps; `fromConfig` reads them from `database.remoteTransaction.*` in `application.toml`, falling back to the `DEFAULT_*` values of the implementation.
+- **`RemoteTransactionStats`** — snapshot returned by the coordinator's `stats()` (open transactions/owners and cumulative counters).
+
+Details of the remote transaction: [docs/data-layer.md → Client-Driven Remote Transactions](../../../docs/data-layer.md#client-driven-remote-transactions-over-rest).
 
 ## Usage
 

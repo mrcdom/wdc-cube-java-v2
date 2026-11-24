@@ -18,7 +18,7 @@
         Java bridge for the Host/Shell remote protocol.
         Generic client that connects to a running Host as a Shell via WebSocket:
         negotiates the session, navigates the presenter hierarchy, submits events
-        and reads ViewStates. Technology-agnostic — mirrors remote.bridge.flutter
+        and reads the scopes. Technology-agnostic — mirrors remote.bridge.flutter
         and remote.bridge.react for the Java ecosystem.
     </description>
 

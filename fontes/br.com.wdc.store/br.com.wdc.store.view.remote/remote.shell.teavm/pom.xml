@@ -14,7 +14,7 @@
     <artifactId>remote.shell.teavm</artifactId>
     <packaging>jar</packaging>
 
-    <name>WeDoCode Store View Remote - TeaVM Shell</name>
+    <name>WDC Store View Remote - TeaVM Shell</name>
     <description>TeaVM-compiled frontend shell communicating with remote.host via WebSocket (replaces React shell)</description>
 
     <properties>
@@ -36,7 +36,7 @@
             <artifactId>framework-cube-remote-bridge-teavm</artifactId>
         </dependency>
 
-        <!-- Presentation (ViewState classes only — TeaVM tree-shakes unused code) -->
+        <!-- Presentation (scope classes only — TeaVM tree-shakes unused code) -->
         <dependency>
             <groupId>${project.groupId}</groupId>
             <version>${project.version}</version>

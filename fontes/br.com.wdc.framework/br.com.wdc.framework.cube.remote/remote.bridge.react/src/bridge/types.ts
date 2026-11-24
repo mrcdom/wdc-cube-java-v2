@@ -1,6 +1,6 @@
 import React from "react"
 
-export type BrowserViewState = {
+export type BrowserScope = {
   contentViewId?: string
   submitting?: boolean
 

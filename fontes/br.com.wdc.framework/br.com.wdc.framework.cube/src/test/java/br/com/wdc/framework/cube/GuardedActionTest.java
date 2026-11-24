@@ -83,7 +83,7 @@ public class GuardedActionTest {
     static class RemotePresenter extends AbstractCubePresenter<RecordingApp> {
 
         final List<String> calls = new ArrayList<>();
-        final FormScope state = bind(new FormScope());
+        final FormScope scope = bind(new FormScope());
         String synced;
 
         final Action buy = action(1, () -> calls.add("buy"));
@@ -95,12 +95,12 @@ public class GuardedActionTest {
 
         RemotePresenter(RecordingApp app) {
             super(app);
-            state.onSync(formData -> synced = String.valueOf(formData.get("name")));
+            scope.onSync(formData -> synced = String.valueOf(formData.get("name")));
         }
 
         /** The bound scope's skeleton dispatches to the actions the presenter bound with a code. */
         CubeSkeleton skeleton() {
-            return state.skeleton(FormScope.CLASS_ID);
+            return scope.skeleton(FormScope.CLASS_ID);
         }
     }
 
@@ -114,7 +114,7 @@ public class GuardedActionTest {
         skeleton.submit(2, 1, Map.of("p.id", "7"));
         skeleton.submit(3, 1, Map.of("p.id", 7L, "p.qty", "2"));
         skeleton.submit(4, 1, Map.of("p.secret", "cba"));
-        skeleton.syncState(Map.of("name", "admin"));
+        skeleton.syncScope(Map.of("name", "admin"));
 
         assertEquals("abc123", skeleton.classId());
         assertEquals(List.of("buy", "remove 7", "modify 7=2", "secret abc"), p.calls);

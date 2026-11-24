@@ -22,7 +22,7 @@ import br.com.wdc.store.view.swt.util.SwtDom;
 
 public class CartViewSwt extends AbstractViewSwt {
 
-    public Supplier<CartScope> stateSupplier;
+    public Supplier<CartScope> scopeSupplier;
     public Runnable onOpenProducts;
     public Runnable onBuy;
     /** The rows' elements, in the cart's order: each row is a view of its own ({@link CartItemViewSwt}). */
@@ -60,7 +60,7 @@ public class CartViewSwt extends AbstractViewSwt {
             this.notRendered = false;
         }
 
-        var state = this.stateSupplier != null ? this.stateSupplier.get() : null;
+        var scope = this.scopeSupplier != null ? this.scopeSupplier.get() : null;
         var rows = this.rowElements != null ? this.rowElements.get() : List.<Composite>of();
         boolean empty = rows.isEmpty();
 
@@ -69,9 +69,9 @@ public class CartViewSwt extends AbstractViewSwt {
         setCardVisible(this.filledCard, !empty);
 
         // Sync error banner
-        boolean showError = state != null && state.errorMessage.get() != null && !state.errorMessage.get().isEmpty();
+        boolean showError = scope != null && scope.errorMessage.get() != null && !scope.errorMessage.get().isEmpty();
         if (showError) {
-            errorBanner.setMessage(state.errorMessage.get());
+            errorBanner.setMessage(scope.errorMessage.get());
         }
 
         if (showError != errorBanner.isShown()) {
@@ -82,7 +82,7 @@ public class CartViewSwt extends AbstractViewSwt {
         if (empty) {
             this.totalValueLabel.setText("?");
         } else {
-            var total = state != null && state.total.get() != null ? state.total.get() : 0.0;
+            var total = scope != null && scope.total.get() != null ? scope.total.get() : 0.0;
             var totalValueText = Theme.formatPrice(total);
             if (!Objects.equals(totalValueText, this.totalValueLabel.getText())) {
                 this.totalValueLabel.setText(totalValueText);

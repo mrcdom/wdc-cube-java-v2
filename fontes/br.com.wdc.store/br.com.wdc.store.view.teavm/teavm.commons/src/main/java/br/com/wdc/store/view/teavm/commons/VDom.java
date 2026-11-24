@@ -23,7 +23,7 @@ import org.teavm.jso.dom.xml.Node;
  * <p>
  * Model inspired by React/Preact:
  * <ol>
- *   <li>The view describes the state as a tree of VNodes (declarative render)</li>
+ *   <li>The view describes its scope as a tree of VNodes (declarative render)</li>
  *   <li>The VDom compares the new tree with the previous one</li>
  *   <li>Applies minimal patches to the real DOM</li>
  * </ol>
@@ -41,8 +41,8 @@ import org.teavm.jso.dom.xml.Node;
  *
  *     private VNode render() {
  *         return div("container").children(
- *             h5().text(state.title),
- *             el("input").attr("type","text").attr("value", state.name)
+ *             h5().text(scope.title.get()),
+ *             el("input").attr("type","text").attr("value", scope.name.get())
  *         );
  *     }
  * }

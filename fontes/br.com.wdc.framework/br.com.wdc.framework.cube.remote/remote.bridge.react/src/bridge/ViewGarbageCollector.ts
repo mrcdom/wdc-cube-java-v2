@@ -1,4 +1,4 @@
-import type { ViewStateCoordinator } from "./ViewStateCoordinator"
+import type { ScopeCoordinator } from "./ScopeCoordinator"
 
 /**
  * ViewScope GC driven by server authority.
@@ -9,10 +9,10 @@ import type { ViewStateCoordinator } from "./ViewStateCoordinator"
  *   2. is NOT mounted (no active bindView)
  */
 export class ViewGarbageCollector {
-  private readonly app: ViewStateCoordinator
+  private readonly app: ScopeCoordinator
   private readonly mountedViews = new Set<string>()
 
-  constructor(app: ViewStateCoordinator) {
+  constructor(app: ScopeCoordinator) {
     this.app = app
   }
 

@@ -277,8 +277,8 @@ public class ConcurrentThroughputScenario {
 
     private static void step_openFirstProduct(HostClient client, Metrics metrics)
             throws Exception {
-        // Read the first product id from the current products panel state.
-        // If the state is unavailable, skip gracefully (still counts as a step).
+        // Read the first product id from the current products panel scope.
+        // If the scope is unavailable, skip gracefully (still counts as a step).
         var panel = ProductsPanelPresenterClient.getFirst(client);
         if (panel.isEmpty()) return;
         var products = panel.get().products();

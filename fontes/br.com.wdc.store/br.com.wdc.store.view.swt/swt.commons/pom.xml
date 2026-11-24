@@ -14,7 +14,7 @@
     <artifactId>swt.commons</artifactId>
     <packaging>jar</packaging>
 
-    <name>WeDoCode Store View SWT Commons</name>
+    <name>WDC Store View SWT Commons</name>
     <description>Shared SWT view implementations reused by both the desktop app and the remote shell</description>
 
     <dependencies>

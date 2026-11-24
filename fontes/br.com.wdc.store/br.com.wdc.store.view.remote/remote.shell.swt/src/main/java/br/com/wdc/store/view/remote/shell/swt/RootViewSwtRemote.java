@@ -16,20 +16,20 @@ class RootViewSwtRemote extends RootViewSwt {
 		super(app);
 		this.vsid = vsid;
 		this.ctx = ctx;
-		this.stateSupplier = this::stateSupplierImpl;
+		this.scopeSupplier = this::scopeSupplierImpl;
 	}
 
-	private RootScope stateSupplierImpl() {
-		var s = this.ctx.viewState(this.vsid);
+	private RootScope scopeSupplierImpl() {
+		var s = this.ctx.scope(this.vsid);
 		if (s == null) {
 			return null;
 		}
-		var state = new RootScope();
+		var scope = new RootScope();
 		var contentId = s.getString("contentViewId");
 		if (contentId != null) {
-			state.content.set(Scope.drawnBy(this.ctx.viewLookup(contentId)));
+			scope.content.set(Scope.drawnBy(this.ctx.viewLookup(contentId)));
 		}
-		state.errorMessage.set(s.getString("errorMessage"));
-		return state;
+		scope.errorMessage.set(s.getString("errorMessage"));
+		return scope;
 	}
 }

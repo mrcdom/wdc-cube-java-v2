@@ -175,7 +175,7 @@ public class StoreCn1RemoteApp extends Lifecycle {
 
     /**
      * Receives a server push (on the EDT): discards released views, mounts the root if it changed and
-     * marks each received ViewState <b>dirty</b> — mirrors the SWT shell's {@code applyResponse}.
+     * marks the view of each received scope <b>dirty</b> — mirrors the SWT shell's {@code applyResponse}.
      * The actual render is done by the coalesced {@link #flush()}.
      */
     private void onPush(List<String> received, List<String> released) {
@@ -208,7 +208,7 @@ public class StoreCn1RemoteApp extends Lifecycle {
 
     /** Mounts the root view in the slot when the browser starts pointing to another one (slot's internal guard). */
     private void mountRootIfChanged() {
-        Map<String, Object> browser = session.state(BridgeSession.BROWSER_VSID);
+        Map<String, Object> browser = session.scope(BridgeSession.BROWSER_VSID);
         String rv = browser != null ? Json.str(browser, "contentViewId") : "";
         if (rv.isEmpty()) {
             return; // a push without contentViewId does not unmount the current root
@@ -221,7 +221,7 @@ public class StoreCn1RemoteApp extends Lifecycle {
      * notifies the host (browser event 1), whose alert action can then run.
      */
     private void showHostAlert() {
-        Map<String, Object> browser = session.state(BridgeSession.BROWSER_VSID);
+        Map<String, Object> browser = session.scope(BridgeSession.BROWSER_VSID);
         final int alertId = browser != null ? Json.intOf(browser, "alertId") : 0;
         if (alertId == 0 || alertId == shownAlertId) {
             shownAlertId = alertId;

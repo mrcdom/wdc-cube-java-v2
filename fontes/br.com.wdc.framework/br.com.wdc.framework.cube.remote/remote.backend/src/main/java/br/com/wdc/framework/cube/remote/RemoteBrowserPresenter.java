@@ -23,7 +23,7 @@ import br.com.wdc.framework.cube.Scope;
  * <p>
  * Handles: alert dialogs, navigation start, history changes, keep-alive. Its view is the client's entry point, with
  * the one instance id every client knows ({@link #BROWSER_VSID}); its scope holds the root presenter's scope, whose
- * view is made when the browser's state is written.
+ * view is made when the browser's scope is written.
  */
 public class RemoteBrowserPresenter extends AbstractPresenter<CubeApplication> {
 
@@ -50,7 +50,7 @@ public class RemoteBrowserPresenter extends AbstractPresenter<CubeApplication> {
     public static final String BROWSER_VSID = BrowserScope.CLASS_ID + ":0";
 
     public final RemoteApplication remoteApp;
-    public final BrowserScope state = bind(new BrowserScope());
+    public final BrowserScope scope = bind(new BrowserScope());
 
     private final RemoteViewImpl view;
     private ThrowingRunnable alertAction = ThrowingRunnable.noop();
@@ -60,22 +60,22 @@ public class RemoteBrowserPresenter extends AbstractPresenter<CubeApplication> {
         super((CubeApplication) app);
         this.remoteApp = app;
 
-        this.state.onAlertOk = action(1, this::alertOk);
-        this.state.onKeepAlive = action(2, app::extendLife);
-        this.state.onStart = actionOf(-1, FormParam.asString("p.path"), this::start);
-        this.state.onHistoryChanged = actionOf(-2, FormParam.asString("p.path"), this::historyChanged);
+        this.scope.onAlertOk = action(1, this::alertOk);
+        this.scope.onKeepAlive = action(2, app::extendLife);
+        this.scope.onStart = actionOf(-1, FormParam.asString("p.path"), this::start);
+        this.scope.onHistoryChanged = actionOf(-2, FormParam.asString("p.path"), this::historyChanged);
 
         // The entry point: drawn by its own view, with the fixed id, not through the catalog
-        this.view = new RemoteViewImpl(app, this.state, BrowserScope.CLASS_ID, BROWSER_VSID);
-        this.state.attachView(this.view);
-        this.state.setUpdater(this.view::update);
-        this.state.instanceId.set(this.view.instanceId());
+        this.view = new RemoteViewImpl(app, this.scope, BrowserScope.CLASS_ID, BROWSER_VSID);
+        this.scope.attachView(this.view);
+        this.scope.setUpdater(this.view::update);
+        this.scope.instanceId.set(this.view.instanceId());
     }
 
     @Override
     public void commitComputedState() {
         var rootPresenter = this.remoteApp.getRootPresenter();
-        this.state.content.set(rootPresenter instanceof AbstractCubePresenter<?> acp ? acp.scope() : null);
+        this.scope.content.set(rootPresenter instanceof AbstractCubePresenter<?> acp ? acp.scope() : null);
     }
 
     @Override
@@ -124,8 +124,8 @@ public class RemoteBrowserPresenter extends AbstractPresenter<CubeApplication> {
                 alertArgs.add(String.valueOf(arg));
             }
         }
-        this.state.alertId.set(code);
-        this.state.alertArgs.set(alertArgs);
+        this.scope.alertId.set(code);
+        this.scope.alertArgs.set(alertArgs);
         // The same alert again is still a new alert
         this.update();
     }
@@ -134,8 +134,8 @@ public class RemoteBrowserPresenter extends AbstractPresenter<CubeApplication> {
 
     private void alertOk() throws Exception {
         try {
-            this.state.alertId.set(0);
-            this.state.alertArgs.set(Collections.emptyList());
+            this.scope.alertId.set(0);
+            this.scope.alertArgs.set(Collections.emptyList());
             this.alertAction.runThrows();
         } finally {
             this.alertAction = ThrowingRunnable.noop();

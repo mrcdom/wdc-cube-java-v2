@@ -1,9 +1,9 @@
-import type { ViewStateCoordinator } from "./ViewStateCoordinator"
-import type { BrowserViewState, FormMapType } from "./types"
+import type { ScopeCoordinator } from "./ScopeCoordinator"
+import type { BrowserScope, FormMapType } from "./types"
 import { BROWSER_VSID, CAUTHED, KEEP_ALIVE_INTERVAL } from "./constants"
 
 export class FlushRequestContext {
-  private readonly app: ViewStateCoordinator
+  private readonly app: ScopeCoordinator
   private readonly onVisibilityChange = () => {
     if (!document.hidden && this.socket?.readyState === WebSocket.OPEN) {
       this.keepAliveNow()
@@ -23,7 +23,7 @@ export class FlushRequestContext {
   private pendingSecret: string | null = null
   pendingStorage: Record<string, unknown> | null = null
 
-  constructor(app: ViewStateCoordinator) {
+  constructor(app: ScopeCoordinator) {
     this.app = app
     this.socket = null
 
@@ -200,8 +200,8 @@ export class FlushRequestContext {
         }
       }
 
-      if (response.states) {
-        app.applyViewStates(response.states)
+      if (response.scopes) {
+        app.applyScopes(response.scopes)
       }
 
       if (response.storage) {
@@ -287,12 +287,12 @@ export class FlushRequestContext {
   }
 
   private applySubmitting(value: boolean) {
-    const scope = this.app.viewMap.get(BROWSER_VSID)
-    if (scope) {
-      const state = scope.getState() as BrowserViewState
-      if (state.submitting !== value) {
-        state.submitting = value
-        scope.forceUpdate()
+    const view = this.app.viewMap.get(BROWSER_VSID)
+    if (view) {
+      const scope = view.getValues() as BrowserScope
+      if (scope.submitting !== value) {
+        scope.submitting = value
+        view.forceUpdate()
       }
     }
   }

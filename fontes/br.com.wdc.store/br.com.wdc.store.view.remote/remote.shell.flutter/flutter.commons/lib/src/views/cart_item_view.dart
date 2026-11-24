@@ -22,10 +22,9 @@ class CartItemView extends BaseView {
 class _CartItemViewState extends BaseViewState<CartItemView> {
   @override
   Widget build(BuildContext context) {
-    final state = viewState;
-    final name = state['name'] as String? ?? '';
-    final price = (state['price'] as num?)?.toDouble() ?? 0.0;
-    final quantity = (state['quantity'] as num?)?.toInt() ?? 0;
+    final name = scope['name'] as String? ?? '';
+    final price = (scope['price'] as num?)?.toDouble() ?? 0.0;
+    final quantity = (scope['quantity'] as num?)?.toInt() ?? 0;
     final subtotal = price * quantity;
 
     return Container(

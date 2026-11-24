@@ -19,11 +19,11 @@ public class PurchasesPanelViewMock implements CubeView {
     }
 
     public final StoreApplicationMock app;
-    public PurchasesPanelScope state;
+    public PurchasesPanelScope scope;
 
-    public PurchasesPanelViewMock(StoreApplicationMock app, PurchasesPanelScope state) {
+    public PurchasesPanelViewMock(StoreApplicationMock app, PurchasesPanelScope scope) {
         this.app = app;
-        this.state = state;
+        this.scope = scope;
     }
 
     @Override

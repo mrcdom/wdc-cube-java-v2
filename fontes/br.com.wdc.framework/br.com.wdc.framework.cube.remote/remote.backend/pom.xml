@@ -13,7 +13,7 @@
 
 	<artifactId>framework-cube-remote-backend</artifactId>
 	<name>framework-cube-remote-backend</name>
-	<description>Host side of the Cube MVP remote protocol on Javalin: secure handshake, sessions, events and ViewState deltas over WebSocket</description>
+	<description>Host side of the Cube MVP remote protocol on Javalin: secure handshake, sessions, events and scope deltas over WebSocket</description>
 
 	<properties>
 		<javalin.version>7.2.4</javalin.version>

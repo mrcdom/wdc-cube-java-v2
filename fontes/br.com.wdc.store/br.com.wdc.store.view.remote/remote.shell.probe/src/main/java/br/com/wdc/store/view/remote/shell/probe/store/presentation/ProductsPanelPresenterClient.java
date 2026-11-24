@@ -42,10 +42,10 @@ public class ProductsPanelPresenterClient extends AbstractPresenterClient {
         return submit(1);
     }
 
-    // :: State accessors
+    // :: Scope accessors
 
     public List<Map<String, Object>> products() {
-        var s = state();
+        var s = scope();
         if (s == null)
             return Collections.emptyList();
         return s.getList("products");

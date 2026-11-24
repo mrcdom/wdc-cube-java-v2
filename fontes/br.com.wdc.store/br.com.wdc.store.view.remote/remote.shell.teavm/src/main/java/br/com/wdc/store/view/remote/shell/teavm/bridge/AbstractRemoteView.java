@@ -13,7 +13,7 @@ import org.teavm.jso.dom.html.HTMLElement;
 
 import br.com.wdc.framework.cube.remote.bridge.teavm.RemoteView;
 import br.com.wdc.framework.cube.remote.bridge.teavm.ViewScope;
-import br.com.wdc.framework.cube.remote.bridge.teavm.ViewStateCoordinator;
+import br.com.wdc.framework.cube.remote.bridge.teavm.ScopeCoordinator;
 import br.com.wdc.framework.cube.remote.bridge.teavm.interop.JsRunnable;
 import br.com.wdc.store.view.teavm.commons.VDom;
 import br.com.wdc.store.view.teavm.commons.VNode;
@@ -21,8 +21,8 @@ import br.com.wdc.store.view.teavm.commons.VNode;
 /**
  * Base class for all remote views using Virtual DOM rendering.
  * <p>
- * Unlike the local TeaVM views that read state directly from presenters,
- * remote views receive state from the server via {@link ViewScope} (JSON map).
+ * Unlike the local TeaVM views that read their scopes directly from presenters,
+ * remote views receive their scope from the server via {@link ViewScope} (JSON map).
  * The rendering uses the same VDom/Swc infrastructure.
  */
 public abstract class AbstractRemoteView implements RemoteView {
@@ -83,7 +83,7 @@ public abstract class AbstractRemoteView implements RemoteView {
     }
 
     /**
-     * Subclasses implement this to describe the view tree based on current state.
+     * Subclasses implement this to describe the view tree based on the current scope.
      */
     protected abstract VNode render();
 
@@ -103,8 +103,8 @@ public abstract class AbstractRemoteView implements RemoteView {
 
     // -- Helpers --
 
-    protected ViewScope state() {
-        ViewScope scope = ViewStateCoordinator.INSTANCE.getViewScope(vsid);
+    protected ViewScope scope() {
+        ViewScope scope = ScopeCoordinator.INSTANCE.getViewScope(vsid);
         if (scope == null) {
             scope = new ViewScope(vsid);
             scope.setForceUpdate(this::forceUpdate);
@@ -113,15 +113,15 @@ public abstract class AbstractRemoteView implements RemoteView {
     }
 
     protected void submit(int eventId) {
-        ViewStateCoordinator.INSTANCE.submit(vsid, eventId);
+        ScopeCoordinator.INSTANCE.submit(vsid, eventId);
     }
 
     protected void setFormField(String fieldName, Object value) {
-        ViewStateCoordinator.INSTANCE.setFormField(vsid, fieldName, value);
+        ScopeCoordinator.INSTANCE.setFormField(vsid, fieldName, value);
     }
 
     protected HTMLElement getChildViewElement(String childVsid) {
-        return ViewStateCoordinator.INSTANCE.getViewElement(childVsid);
+        return ScopeCoordinator.INSTANCE.getViewElement(childVsid);
     }
 
     @JSBody(params = {"callback"}, script = "requestAnimationFrame(callback);")

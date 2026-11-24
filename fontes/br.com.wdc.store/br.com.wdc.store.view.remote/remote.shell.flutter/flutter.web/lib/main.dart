@@ -35,7 +35,7 @@ void main() async {
     () => InMemoryClientStorage(),
   );
 
-  final coordinator = ViewStateCoordinator(
+  final coordinator = ScopeCoordinator(
     CoordinatorConfig(
       appId: appId,
       sessionStorage: sessionStorage,

@@ -14,10 +14,11 @@ import br.com.wdc.framework.jooq.JsonDialect;
 import br.com.wdc.store.scripts.codegen.GenerateJooqSchema;
 
 /**
- * Creates the database schema using jOOQ and runs pending migrations.
+ * Creates the tables that are missing, using jOOQ, and seeds the database ({@link DBReset}) when it created one or
+ * when asked to reset.
  *
  * <p>The DDL statements here are the single source of truth for the schema.
- * The jOOQ generated classes (in persistence.jooq) are derived from this via
+ * The jOOQ generated classes (in persistence.impl, package {@code scheme}) are derived from this via
  * {@link GenerateJooqSchema}.</p>
  */
 public class DBCreate {

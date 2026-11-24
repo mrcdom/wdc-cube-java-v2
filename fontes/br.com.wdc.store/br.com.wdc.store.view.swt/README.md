@@ -9,7 +9,7 @@ It shares the same presentation layer (Cube MVP) with the other views (TeaVM, Re
 graph TD
     Main["StoreSwtMain<br/><small>Entry point: Shell, Display, DB init, session restore</small>"]
     Main --> App["StoreSwtApplication<br/><small>View factory registration<br/>Render loop (Timer 16ms → flushDirtyViews)<br/>Dirty-view tracking (ConcurrentHashMap)<br/>History management (navigation stack)</small>"]
-    App --> Base["AbstractViewSwt&lt;P&gt;<br/><small>Base class for all views (implements CubeView)<br/>performUpdate(): doUpdate() + initial layout<br/>rebuild(): dispose children, reset state<br/>Thread safety via markDirty() → EDT timer flush</small>"]
+    App --> Base["AbstractViewSwt<br/><small>Base class for all views (implements CubeView)<br/>performUpdate(): doUpdate() + initial layout<br/>rebuild(): dispose children, reset state<br/>Thread safety via markDirty() → EDT timer flush</small>"]
     Base --> Impl["impl/<br/><small>ViewSwt implementations</small>"]
     Base --> Components["components/<br/><small>Custom widgets</small>"]
     Base --> Util["util/<br/><small>Helpers</small>"]
@@ -34,26 +34,26 @@ sequenceDiagram
 
 ### Package Structure
 
+The module is an aggregator of two Maven modules that share the package `br.com.wdc.store.view.swt`: `swt.commons` (the views, also reused by the remote shell `remote.shell.swt`) and `swt.desktop` (the local app's entry point and wiring).
+
 ```mermaid
 graph TD
-    root["br.com.wdc.store.view.swt/"]
-    main["StoreSwtMain.java<br/><small>Entry point, DB init, event loop</small>"]
-    app["StoreSwtApplication.java<br/><small>App lifecycle, view factories, render timer</small>"]
-    base["AbstractViewSwt.java<br/><small>Base view class (performUpdate/rebuild)</small>"]
-    sched["ScheduledExecutorSwtAdapter.java<br/><small>Bridge ConcurrentExecutor → SWT Display</small>"]
-    theme["theme/<br/><small>Theme.java · Surface.java</small>"]
-    components["components/<br/><small>PrimaryButton · ActionButton · IconButton<br/>CardHeader · AccentLine · Separator<br/>ShadowCard · ScrolledPage · ErrorBanner</small>"]
-    util["util/<br/><small>SwtDom · GridDataUtils · RowDataUtils<br/>FormDataUtils · SlotComposite · StackComposite<br/>ProductImageCache</small>"]
-    impl["impl/<br/><small>RootViewSwt · LoginViewSwt · HomeViewSwt<br/>CartViewSwt · ProductViewSwt · ReceiptViewSwt<br/>ProductsPanelViewSwt · PurchasesPanelViewSwt</small>"]
+    subgraph Desktop["swt.desktop"]
+        main["StoreSwtMain.java<br/><small>Entry point, DB init, event loop</small>"]
+        app["StoreSwtApplication.java<br/><small>App lifecycle, ScopeViews catalog, render timer</small>"]
+    end
 
-    root --> main
-    root --> app
-    root --> base
-    root --> sched
-    root --> theme
-    root --> components
-    root --> util
-    root --> impl
+    subgraph Commons["swt.commons"]
+        base["AbstractViewSwt.java<br/><small>Base view class (performUpdate/rebuild)</small>"]
+        swtApp["SwtApp.java<br/><small>SWT application contract</small>"]
+        sched["ScheduledExecutorSwtAdapter.java<br/><small>Bridge ConcurrentExecutor → SWT Display</small>"]
+        theme["theme/<br/><small>Theme.java · Surface.java</small>"]
+        components["components/<br/><small>PrimaryButton · ActionButton · IconButton<br/>CardHeader · AccentLine · Separator<br/>ShadowCard · ScrolledPage · ErrorBanner</small>"]
+        util["util/<br/><small>SwtDom · GridDataUtils · RowDataUtils<br/>FormDataUtils · SlotComposite · StackComposite<br/>ProductImageCache</small>"]
+        impl["impl/<br/><small>RootViewSwt · LoginViewSwt · HomeViewSwt<br/>CartViewSwt · CartItemViewSwt · ProductViewSwt<br/>ReceiptViewSwt · ProductsPanelViewSwt · PurchasesPanelViewSwt</small>"]
+    end
+
+    Desktop --> Commons
 ```
 
 ## Main Dependencies
@@ -61,27 +61,31 @@ graph TD
 | Dependency | Version | Purpose |
 |-------------|--------|-----------|
 | Eclipse SWT (Cocoa macOS aarch64) | 3.135.0 | Native GUI toolkit |
-| br.com.wdc.store.presentation | 1.0.0 | Presenters e state (Cube MVP) |
-| br.com.wdc.store.persistence | 1.0.0 | Repositories (JOOQ + H2) |
-| H2 Database | — | Embedded database |
+| br.com.wdc.store.presentation | 1.0.0 | Presenters and scopes (Cube MVP) — via `swt.commons` |
+| persistence.impl | 1.0.0 | Repositories (jOOQ) — `swt.desktop` only |
+| br.com.wdc.store.scripts | 1.0.0 | DDL and seed data (`DBCreate`/`DBReset`) — `swt.desktop` only |
+| H2 Database / PostgreSQL driver | — | Database (H2 file by default) |
 | Logback | — | Logging |
 
 ## Build
 
 ```bash
-cd fontes/br.com.wdc.store/br.com.wdc.store.view.swt
-JAVA_HOME=$JAVA25_HOME mvn clean compile -DskipTests
+cd fontes
+JAVA_HOME=$JAVA25_HOME mvn clean package -DskipTests -pl br.com.wdc.store/br.com.wdc.store.view.swt/swt.desktop -am
 ```
+
+`swt.desktop` produces a fat JAR, `target/swt.desktop-1.0.0.jar` (main class `StoreSwtMain`), with the SWT of the active platform profile.
 
 ## Running
 
 ```bash
-cd fontes/br.com.wdc.store/br.com.wdc.store.view.swt
-JAVA_HOME=$JAVA25_HOME mvn exec:java \
-  -Dexec.mainClass="br.com.wdc.store.view.swt.StoreSwtMain"
+cd fontes/br.com.wdc.store/br.com.wdc.store.view.swt/swt.desktop
+# -XstartOnFirstThread is required on macOS (SWT/Cocoa runs the UI on the main thread)
+$JAVA25_HOME/bin/java -XstartOnFirstThread -Dstore.config.file=work/config/application.toml \
+  -jar target/swt.desktop-1.0.0.jar
 ```
 
-> The application includes an embedded backend (H2 + repositories) and requires no external server.
+> The application includes an embedded backend (H2 file database in `swt.desktop/work/data` + repositories) and requires no external server. Its config is `swt.desktop/work/config/application.toml`; the config file is resolved relative to the working directory unless `store.config.file` is given.
 
 ## Screenshots
 

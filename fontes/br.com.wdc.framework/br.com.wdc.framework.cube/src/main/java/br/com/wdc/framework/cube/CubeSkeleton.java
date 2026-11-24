@@ -8,7 +8,7 @@ public interface CubeSkeleton {
 
 	void submit(int eventCode, int eventQtde, Map<String, Object> formData) throws Exception;
 
-	default void syncState(Map<String, Object> formData) {
+	default void syncScope(Map<String, Object> formData) {
 		// NOOP
 	}
 

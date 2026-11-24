@@ -15,7 +15,7 @@ public class CredentialsCheck extends ResourceCall<CredentialsCheck.Result> {
      * Result of a successful authentication.
      *
      * @param subject         data of the authenticated user
-     * @param persistentToken auto-login token (remember me); {@code null} on REST clients
+     * @param persistentToken auto-login token (remember me); {@code null} when the authentication service keeps the session itself
      */
     public record Result(Subject subject, String persistentToken) {
     }
@@ -61,12 +61,13 @@ public class CredentialsCheck extends ResourceCall<CredentialsCheck.Result> {
         }
 
         // 5. Persistent token for auto-login (remember me)
-        // REST clients manage the session through a refresh token; throws UnsupportedOperationException.
+        // An authentication service that keeps the session in a refresh token of its own (teavm.web's) throws
+        // UnsupportedOperationException; the JVM REST client answers with its refresh token.
         String persistentToken = null;
         try {
             persistentToken = authService.createPersistentToken(authResult.userId(), userName);
         } catch (UnsupportedOperationException ignored) {
-            // REST client: no persistent token
+            // the service keeps the session itself: no persistent token
         }
 
         // 6. Fetch the user's display name

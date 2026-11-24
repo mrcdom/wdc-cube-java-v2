@@ -1,7 +1,7 @@
 # remote.shell.cn1 — Codename One thin shell
 
 **Codename One (CN1)** frontend for the WDC Store *remote shell* pattern. The
-presenters and ViewStates run on the **server** (`remote.host`); this module is a
+presenters and their scopes run on the **server** (`remote.host`); this module is a
 **thin client** that speaks the *bridge* protocol over WebSocket and renders with
 Codename One's native UI — **a single Java codebase** that becomes an app for **iOS,
 Android, desktop (Mac/Windows/Linux) and web**.
@@ -27,7 +27,7 @@ rendering layer changes.
   `boxX/boxY/border/container/label/spanLabel/button`. Convention: `setUIID` is the
   **first** action of the lambda (helpers such as `FontImage.setMaterialIcon` "bake" color/
   size from the style).
-- **Slot mounting** (`bridge/ViewSlot`): single-child container with a guard
+- **Slot mounting** (`widgets/Slot`): single-child container with a guard
   ("re-mounts only on transition"). The app root and the view-swap points use slots.
 - **SCSS theme** (`common/src/main/scss` + `views/*/_*.scss`) → CSS → `theme.res`.
   **Density-independent** (`util/Px.mm` → `convertToPixels`); **responsive** by
@@ -174,9 +174,9 @@ See `./build.sh help` for the full list.
 ├─ StoreCn1RemoteApp   # Lifecycle: form, connection, re-sync on push, root slot, splash
 ├─ ServerConfig           # Backend URL per target
 ├─ Sel / *Sel             # UIIDs (theme selectors) per package
-├─ bridge/                # BridgeSession, Cn1Crypto, Cn1ClientStorage, ViewSlot, Abstract*View
+├─ bridge/                # BridgeSession, Cn1Crypto, Cn1ClientStorage, AbstractCn1View, AbstractItemCn1View
 ├─ util/                  # Cn1Dom (DSL), Px, Guard, Money, Json, Images, Decor, …
-├─ widgets/               # BackButton, CardHeader, IconButton, HtmlText
+├─ widgets/               # BackButton, CardHeader, IconButton, HtmlText, QtyStepper, Slot
 └─ views/                 # login, home, product, cart, receipt (+ RootCn1View)
 ```
 

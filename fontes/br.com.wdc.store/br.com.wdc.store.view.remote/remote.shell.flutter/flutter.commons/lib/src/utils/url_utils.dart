@@ -13,7 +13,7 @@ String resolveAssetUrl(String relativePath) {
 }
 
 String _computeBaseHttpUrl() {
-  final wsUri = Uri.parse(ViewStateCoordinator.instance.baseWebSocketUrl);
+  final wsUri = Uri.parse(ScopeCoordinator.instance.baseWebSocketUrl);
   final scheme = wsUri.scheme == 'wss' ? 'https' : 'http';
   return '$scheme://${wsUri.host}:${wsUri.port}';
 }

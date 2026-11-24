@@ -50,15 +50,15 @@ public class HomePresenterClient extends AbstractPresenterClient {
         return submit(2);
     }
 
-    // :: State accessors
+    // :: Scope accessors
 
     public String nickName() {
-        var s = state();
+        var s = scope();
         return s != null ? s.getString("nickName") : null;
     }
 
     public int cartItemCount() {
-        var s = state();
+        var s = scope();
         if (s == null) return 0;
         var v = s.getLong("cartItemCount");
         return v != null ? v.intValue() : 0;
@@ -69,37 +69,37 @@ public class HomePresenterClient extends AbstractPresenterClient {
      * or {@code null} when the home screen has no active sub-view open.
      */
     public String contentViewId() {
-        var s = state();
+        var s = scope();
         return s != null ? s.getString("contentViewId") : null;
     }
 
     /**
      * Returns the products panel sub-view as a typed presenter, using the
-     * {@code productsPanelViewId} from this presenter's ViewState.
+     * {@code productsPanelViewId} from this presenter's scope.
      */
     public ProductsPanelPresenterClient productPanel() {
-        var s = state();
-        if (s == null) throw new IllegalStateException("HomePresenter state not available");
+        var s = scope();
+        if (s == null) throw new IllegalStateException("HomePresenter scope not available");
         var id = s.getString("productsPanelViewId");
-        if (id == null) throw new IllegalStateException("productsPanelViewId not present in HomePresenter state");
+        if (id == null) throw new IllegalStateException("productsPanelViewId not present in HomePresenter scope");
         return client.presenterByInstanceId(id, ProductsPanelPresenterClient.class);
     }
 
     /**
      * Returns the purchases panel sub-view as a typed presenter, using the
-     * {@code purchasesPanelViewId} from this presenter's ViewState.
+     * {@code purchasesPanelViewId} from this presenter's scope.
      */
     public PurchasesPanelPresenterClient purchasesPanel() {
-        var s = state();
-        if (s == null) throw new IllegalStateException("HomePresenter state not available");
+        var s = scope();
+        if (s == null) throw new IllegalStateException("HomePresenter scope not available");
         var id = s.getString("purchasesPanelViewId");
-        if (id == null) throw new IllegalStateException("purchasesPanelViewId not present in HomePresenter state");
+        if (id == null) throw new IllegalStateException("purchasesPanelViewId not present in HomePresenter scope");
         return client.presenterByInstanceId(id, PurchasesPanelPresenterClient.class);
     }
 
     /**
      * Returns the currently active content sub-view as the given typed presenter,
-     * using the {@code contentViewId} from this presenter's ViewState.
+     * using the {@code contentViewId} from this presenter's scope.
      *
      * @throws IllegalStateException if no content view is currently active
      */

@@ -57,22 +57,22 @@ public final class ScopeSerializer {
         this.viewOf = viewOf;
     }
 
-    public void write(Object state, String instanceId) {
+    public void write(Object scope, String instanceId) {
         try {
             json.beginObject();
             json.name("#").value(instanceId);
 
-            for (Field field : state.getClass().getFields()) {
+            for (Field field : scope.getClass().getFields()) {
                 if (Modifier.isTransient(field.getModifiers()) || Modifier.isStatic(field.getModifiers()))
                     continue;
 
-                Object value = field.get(state);
+                Object value = field.get(scope);
                 writeField(field, value);
             }
 
             json.endObject();
         } catch (IllegalAccessException e) {
-            throw new RuntimeException("Failed to serialize Scope: " + state.getClass().getSimpleName(), e);
+            throw new RuntimeException("Failed to serialize Scope: " + scope.getClass().getSimpleName(), e);
         }
     }
 
@@ -93,7 +93,7 @@ public final class ScopeSerializer {
         if (value == null)
             return;
 
-        // Actions are the presenter's entry points, not state: the client fires them by event code
+        // Actions are the presenter's entry points, not data: the client fires them by event code
         if (value instanceof Action || value instanceof ActionOf<?> || value instanceof ActionOf2<?, ?>)
             return;
 

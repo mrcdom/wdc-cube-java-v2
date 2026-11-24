@@ -31,9 +31,8 @@ class _LoginViewState extends BaseViewState<LoginView> {
 
   @override
   Widget build(BuildContext context) {
-    final state = viewState;
-    final errorMessage = state['errorMessage'] as String?;
-    final loading = state['loading'] == true;
+    final errorMessage = scope['errorMessage'] as String?;
+    final loading = scope['loading'] == true;
 
     return LayoutBuilder(builder: (context, constraints) {
       final wide = constraints.maxWidth >= breakpointMd;
@@ -275,7 +274,7 @@ class _LoginViewState extends BaseViewState<LoginView> {
     final userName = _userController.text;
     final password = _passController.text;
     setFormField('p.userName', userName);
-    final security = ViewStateCoordinator.instance.dataSecurity;
+    final security = ScopeCoordinator.instance.dataSecurity;
     final encrypted = security.isReady ? security.b64Cipher(password) : password;
     setFormField('p.password', encrypted);
     submit(_onLogin);

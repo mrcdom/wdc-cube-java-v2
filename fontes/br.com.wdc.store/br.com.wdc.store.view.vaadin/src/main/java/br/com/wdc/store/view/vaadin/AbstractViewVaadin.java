@@ -18,13 +18,13 @@ public abstract class AbstractViewVaadin<S extends Scope> implements CubeView {
     protected final String instanceId;
     protected final StoreVaadinApplication app;
     /** The scope this view draws. */
-    protected final S state;
+    protected final S scope;
     protected Component element;
 
-    protected AbstractViewVaadin(String instanceId, StoreVaadinApplication app, S state, Component element) {
+    protected AbstractViewVaadin(String instanceId, StoreVaadinApplication app, S scope, Component element) {
         this.instanceId = instanceId;
         this.app = app;
-        this.state = state;
+        this.scope = scope;
         this.element = element;
     }
 

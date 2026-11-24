@@ -10,7 +10,7 @@ import java.util.List;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.dom.html.HTMLDocument;
 
-import br.com.wdc.framework.cube.remote.bridge.teavm.ViewStateCoordinator;
+import br.com.wdc.framework.cube.remote.bridge.teavm.ScopeCoordinator;
 import br.com.wdc.store.view.remote.shell.teavm.bridge.AbstractRemoteView;
 import br.com.wdc.store.view.teavm.commons.SelUtility;
 import br.com.wdc.store.view.teavm.commons.VNode;
@@ -21,7 +21,7 @@ import br.com.wdc.store.view.teavm.commons.VNode;
  */
 public class BrowserView extends AbstractRemoteView {
 
-    public static final String VIEW_ID = ViewStateCoordinator.BROWSER_VID;
+    public static final String VIEW_ID = ScopeCoordinator.BROWSER_VID;
 
     // :: Events (codes of the browser's actions on the host)
     private static final int ON_ALERT_OK = 1;
@@ -59,10 +59,10 @@ public class BrowserView extends AbstractRemoteView {
 
     @Override
     protected VNode render() {
-        var scope = state();
+        var scope = scope();
         var contentVsid = scope.getString("contentViewId");
         var contentEl = getChildViewElement(contentVsid);
-        boolean submitting = ViewStateCoordinator.INSTANCE.isSubmitting()
+        boolean submitting = ScopeCoordinator.INSTANCE.isSubmitting()
                 || scope.getBoolean("submitting");
 
         var errorCause = scope.getString("error.cause");
@@ -71,7 +71,7 @@ public class BrowserView extends AbstractRemoteView {
         return div(Sel.CONTAINER).children(
           div(submitting ? Sel.LOADING_BAR : Sel.HIDDEN),
           errorCause != null ? renderConnectionAlert(scope.getInt("error.delay")) : null,
-          scope.getInt("alertId") != 0 ? renderAppAlert(scope.getInt("alertId"), alertArgs(scope.getState().get("alertArgs"))) : null,
+          scope.getInt("alertId") != 0 ? renderAppAlert(scope.getInt("alertId"), alertArgs(scope.getValues().get("alertArgs"))) : null,
           slot(Sel.CONTENT, contentEl));
         // @formatter:on
     }
@@ -145,7 +145,7 @@ public class BrowserView extends AbstractRemoteView {
                     span("text-sm font-medium cursor-pointer ml-4")
                             .style("color:var(--app-accent);text-decoration:underline")
                             .text("Retry now")
-                            .on("click", e -> ViewStateCoordinator.INSTANCE.reconnectController.checkNow()));
+                            .on("click", e -> ScopeCoordinator.INSTANCE.reconnectController.checkNow()));
         }
 
         return div().style("text-align:center").children(alert);

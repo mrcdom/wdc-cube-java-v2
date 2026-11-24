@@ -24,7 +24,7 @@ import br.com.wdc.store.view.swt.util.SwtDom;
 
 public class ProductViewSwt extends AbstractViewSwt {
 
-    public Supplier<ProductScope> stateSupplier;
+    public Supplier<ProductScope> scopeSupplier;
     public Runnable onOpenProducts;
     public IntConsumer onAddToCart;
 
@@ -45,10 +45,10 @@ public class ProductViewSwt extends AbstractViewSwt {
         }
         // Update error visibility
         if (errorBanner != null && !errorBanner.isDisposed()) {
-            var state = this.stateSupplier != null ? this.stateSupplier.get() : null;
-            boolean showError = state != null && state.errorMessage.get() != null && !state.errorMessage.get().isEmpty();
+            var scope = this.scopeSupplier != null ? this.scopeSupplier.get() : null;
+            boolean showError = scope != null && scope.errorMessage.get() != null && !scope.errorMessage.get().isEmpty();
             if (showError) {
-                errorBanner.setMessage(state.errorMessage.get());
+                errorBanner.setMessage(scope.errorMessage.get());
             }
             if (showError != errorBanner.isShown()) {
                 errorBanner.setShown(showError);
@@ -63,8 +63,8 @@ public class ProductViewSwt extends AbstractViewSwt {
     }
 
     private void render() {
-        var state = this.stateSupplier != null ? this.stateSupplier.get() : null;
-        var product = state != null ? state.product.get() : null;
+        var scope = this.scopeSupplier != null ? this.scopeSupplier.get() : null;
+        var product = scope != null ? scope.product.get() : null;
         String name = product != null ? product.name : "";
         String description = product != null ? product.description : "";
         double price = product != null ? product.price : 0;

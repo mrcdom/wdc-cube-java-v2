@@ -139,7 +139,7 @@ public class StoreVaadinApplication extends StoreApplication {
         // The host draws the root presenter's scope; each view asks for the views of the scopes it holds
         var rootPresenter = this.getRootPresenter();
         if (rootPresenter != null) {
-            this.viewOf(rootPresenter.state);
+            this.viewOf(rootPresenter.scope);
         }
 
         // Mark all active views as dirty for UI refresh

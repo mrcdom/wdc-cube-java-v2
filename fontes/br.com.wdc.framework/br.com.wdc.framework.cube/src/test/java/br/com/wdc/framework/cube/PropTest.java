@@ -12,7 +12,7 @@ public class PropTest {
 
     // ── Helper ─────────────────────────────────────────────────────────
 
-    static class CounterState extends Scope {
+    static class CounterScope extends Scope {
         public final Prop<Integer> count = prop(0);
         public final Prop<String> message = prop();
         public final Prop<List<String>> lines = prop(List.of());
@@ -20,12 +20,12 @@ public class PropTest {
 
     static class CounterPresenter extends AbstractCubePresenter<CubePlaceTest.TestApp> {
 
-        final CounterState state = bind(new CounterState());
+        final CounterScope scope = bind(new CounterScope());
         int updates;
 
         CounterPresenter() {
             super(new CubePlaceTest.TestApp());
-            app.setScopeViews(new ScopeViews().register(CounterState.class, (CubeApplication a, CounterState s) -> new CubeView() {
+            app.setScopeViews(new ScopeViews().register(CounterScope.class, (CubeApplication a, CounterScope s) -> new CubeView() {
                 @Override
                 public String instanceId() {
                     return "counter:1";
@@ -41,7 +41,7 @@ public class PropTest {
                     // NOOP
                 }
             }));
-            app.viewOf(state);
+            app.viewOf(scope);
             // Not the first drawing: only the redraws a change asks for
             updates = 0;
         }
@@ -51,31 +51,31 @@ public class PropTest {
 
     @Test
     public void startsWithItsInitialValue() {
-        var state = new CounterState();
-        assertEquals(Integer.valueOf(0), state.count.get());
-        assertNull(state.message.get());
-        assertEquals(List.of(), state.lines.get());
+        var scope = new CounterScope();
+        assertEquals(Integer.valueOf(0), scope.count.get());
+        assertNull(scope.message.get());
+        assertEquals(List.of(), scope.lines.get());
     }
 
     @Test
     public void aChangeRedrawsTheScopesView() {
         var p = new CounterPresenter();
 
-        p.state.count.set(1);
-        p.state.message.set("hi");
+        p.scope.count.set(1);
+        p.scope.message.set("hi");
 
         assertEquals(2, p.updates);
-        assertEquals(Integer.valueOf(1), p.state.count.get());
-        assertEquals("hi", p.state.message.get());
+        assertEquals(Integer.valueOf(1), p.scope.count.get());
+        assertEquals("hi", p.scope.message.get());
     }
 
     @Test
     public void theSameValueAsksForNothing() {
         var p = new CounterPresenter();
 
-        p.state.count.set(0);
-        p.state.message.set(null);
-        p.state.lines.set(List.of()); // equal, though another instance
+        p.scope.count.set(0);
+        p.scope.message.set(null);
+        p.scope.lines.set(List.of()); // equal, though another instance
 
         assertEquals(0, p.updates);
     }
@@ -84,23 +84,23 @@ public class PropTest {
     public void setSilentlyChangesTheValueAndAsksForNothing() {
         var p = new CounterPresenter();
 
-        p.state.count.setSilently(3);
+        p.scope.count.setSilently(3);
 
-        assertEquals(Integer.valueOf(3), p.state.count.get());
+        assertEquals(Integer.valueOf(3), p.scope.count.get());
         assertEquals(0, p.updates);
     }
 
     @Test
-    public void aStateWithNoUpdaterJustKeepsTheValue() {
-        var state = new CounterState();
-        state.count.set(7);
-        assertEquals(Integer.valueOf(7), state.count.get());
+    public void aScopeWithNoUpdaterJustKeepsTheValue() {
+        var scope = new CounterScope();
+        scope.count.set(7);
+        assertEquals(Integer.valueOf(7), scope.count.get());
     }
 
     @Test
-    public void bindReturnsTheSameState() {
-        var state = new CounterState();
+    public void bindReturnsTheSameScope() {
+        var scope = new CounterScope();
         var p = new CounterPresenter();
-        assertSame(state, p.bind(state));
+        assertSame(scope, p.bind(scope));
     }
 }

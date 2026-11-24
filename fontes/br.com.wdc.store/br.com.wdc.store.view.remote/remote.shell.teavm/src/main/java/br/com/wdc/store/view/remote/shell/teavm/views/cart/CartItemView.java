@@ -15,13 +15,13 @@ public class CartItemView extends AbstractRemoteView {
     private static final int ON_MODIFY_QUANTITY = 2;
 
     private final CartItemSharedView shared;
-    private final CartScope.CartItemScope adaptedState = new CartScope.CartItemScope();
+    private final CartScope.CartItemScope adaptedScope = new CartScope.CartItemScope();
 
     public CartItemView(String vsid) {
         super(vsid);
 
         this.shared = new CartItemSharedView();
-        this.shared.stateSupplier = this::adaptState;
+        this.shared.scopeSupplier = this::adaptScope;
         this.shared.onModifyQuantity = qty -> {
             setFormField("p.quantity", qty);
             submit(ON_MODIFY_QUANTITY);
@@ -34,11 +34,11 @@ public class CartItemView extends AbstractRemoteView {
         return shared.renderTree();
     }
 
-    private CartScope.CartItemScope adaptState() {
-        ViewScope scope = state();
-        adaptedState.name.set(scope.getString("name"));
-        adaptedState.price.set(scope.getDouble("price"));
-        adaptedState.quantity.set(scope.getInt("quantity"));
-        return adaptedState;
+    private CartScope.CartItemScope adaptScope() {
+        ViewScope scope = scope();
+        adaptedScope.name.set(scope.getString("name"));
+        adaptedScope.price.set(scope.getDouble("price"));
+        adaptedScope.quantity.set(scope.getInt("quantity"));
+        return adaptedScope;
     }
 }

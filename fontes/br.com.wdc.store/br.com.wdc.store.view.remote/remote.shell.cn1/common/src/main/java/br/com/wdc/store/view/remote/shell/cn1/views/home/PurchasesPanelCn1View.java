@@ -184,13 +184,13 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
 
     @Override
     public void doUpdate() {
-        Map<String, Object> st = state();
-        List<Object> purchases = Json.asList(st.get("purchases"));
+        Map<String, Object> scope = scope();
+        List<Object> purchases = Json.asList(scope.get("purchases"));
         syncList(list, purchases, items, () -> new PurchaseItemCn1View(this::openReceipt));
 
-        int page = Json.intOf(st, "page");
-        int pageSize = Math.max(1, Json.intOf(st, "pageSize"));
-        int totalCount = Json.intOf(st, "totalCount");
+        int page = Json.intOf(scope, "page");
+        int pageSize = Math.max(1, Json.intOf(scope, "pageSize"));
+        int totalCount = Json.intOf(scope, "totalCount");
         totalPages = Math.max(1, (totalCount + pageSize - 1) / pageSize);
 
         pageInfo.setText((page + 1) + " / " + totalPages);
@@ -266,7 +266,7 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
     }
 
     private void changePage(int delta) {
-        int page = Json.intOf(state(), "page");
+        int page = Json.intOf(scope(), "page");
         int target = page + delta;
         if (target < 0 || target > totalPages - 1) {
             return;

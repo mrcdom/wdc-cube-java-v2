@@ -1,92 +1,72 @@
 # br.com.wdc.store.scripts
 
-The module responsible for the WDC Store application's **database scripts**. It covers both creating the schema from scratch (bootstrap) and incrementally migrating from an earlier version to the current state.
+The module that holds the WDC Store **database schema**: the DDL that creates it, the reference data (seed) that fills it, and the generator that derives the jOOQ classes of `persistence.impl` from that DDL.
 
-## Purpose
-
-| Scenario | Description |
-|---------|-----------|
-| **Bootstrap** | Creates all tables, sequences and initial data in an empty database. |
-| **Migration** | Evolves an existing database from an earlier version to the current version, applying structural and data changes in order. |
-
-## Current structure
+## Structure
 
 ```mermaid
 graph TD
-    root["scripts/sgbd/"]
-    root --> DBCreate["DBCreate.java<br/><small>Creates tables and sequences</small>"]
-    root --> DBReset["DBReset.java<br/><small>Populates with reference data (seed)</small>"]
-    root --> MigRunner["MigrationRunner.java<br/><small>Runs and records migrations</small>"]
-    root --> Mig0001["Migration_0001_AddUserRoles.java<br/><small>Adds the ROLES column</small>"]
-    root --> schema["schema/"]
-    schema --> EnMigLog["EnMigrationLog.java<br/><small>EN_MIGRATION_LOG table</small>"]
+    root["br.com.wdc.store.scripts"]
+    root --> sgbd["sgbd/"]
+    sgbd --> DBCreate["DBCreate.java<br/><small>Creates the missing tables, sequences and indexes</small>"]
+    sgbd --> DBReset["DBReset.java<br/><small>Clears the tables and inserts the seed</small>"]
+    root --> codegen["codegen/"]
+    codegen --> Gen["GenerateJooqSchema.java<br/><small>Generates the jOOQ classes from DBCreate</small>"]
 ```
 
-## Hybrid SQL + Java approach
+## DBCreate — the schema
 
-The scripts are implemented as **Java classes** that execute SQL via JDBC. This allows:
-
-- Conditional logic (checking whether a table/column already exists before altering it)
-- In-memory data transformation when the migration is complex
-- Reuse of entities and repositories from the `persistence` module
-- Explicit transaction control per step
-- Unit tests over the migration logic
-
-## Migration convention
-
-Each migration script is a Java class whose public methods prefixed with `step` represent the sequential actions. `MigrationRunner` discovers these methods automatically, sorts them by the number after the prefix, skips the ones already executed (by querying `EN_MIGRATION_LOG`) and records each completed step.
-
-### Migration class
+`DBCreate` is the **single source of truth** of the schema. It runs its DDL through jOOQ (`dsl.execute(...)`) and detects the dialect from the JDBC URL — PostgreSQL for `jdbc:postgresql:`/`jdbc:pgsql:`, H2 otherwise:
 
 ```java
-public class Migration_0001_AddPurchaseStatus {
-
-    private final Connection connection;
-
-    public Migration_0001_AddPurchaseStatus(Connection connection) {
-        this.connection = connection;
-    }
-
-    public void step1_addStatusColumn() throws SQLException {
-        try (var stmt = connection.createStatement()) {
-            stmt.execute("ALTER TABLE PURCHASE ADD COLUMN STATUS VARCHAR(20) DEFAULT 'PENDING'");
-        }
-    }
-
-    public void step2_populateDefaultValues() throws SQLException {
-        // Java + SQL logic to transform existing data
-    }
-
-    public void step3_createIndex() throws SQLException {
-        try (var stmt = connection.createStatement()) {
-            stmt.execute("CREATE INDEX IDX_PURCHASE_STATUS ON PURCHASE(STATUS)");
-        }
-    }
-}
+new DBCreate()
+        .withConnection(connection)
+        .withReset()        // optional: reseed even when every table exists
+        .run();
 ```
 
-### Running via MigrationRunner
+`run()`:
 
-```java
-new MigrationRunner(connection)
-    .run(new Migration_0001_AddPurchaseStatus(connection))
-    .run(new Migration_0002_AnotherMigration(connection));
+1. initializes the dialect's JSON support (`JsonDialect.of(dialect).initialize(connection)`);
+2. creates each table that does not exist yet — `EN_USER`, `EN_PRODUCT`, `EN_PURCHASE`, `EN_PURCHASEITEM` — with its sequence (`SQ_USER`, `SQ_PRODUCT`, `SQ_PURCHASE`, `SQ_PURCHASEITEM`) and its indexes;
+3. runs `DBReset` when it created any table or `withReset()` was requested — unless `withSkipReset()` was called.
+
+Each index sits next to its table with a comment naming the `OrderBy` of the criteria it serves (e.g. `IX_PRODUCT_PRICE` for `CHEAPEST_FIRST` and `MOST_EXPENSIVE_FIRST`): a new ordering comes in together with the index that supports it.
+
+Column types that differ between the databases are chosen per dialect: in `EN_PRODUCT`, `NAME` is `VARCHAR_IGNORECASE` on H2 and `TEXT` on PostgreSQL, and `IMAGE` is `VARBINARY` on H2 and `BYTEA` on PostgreSQL.
+
+`DBCreate` is called by the backend at startup (`BusinessContext`, after `StoreRepositoryBootstrap.initialize`, with `withReset()` when `database.reset = true`) and by the development endpoint `DevDbResetController`.
+
+## DBReset — the seed
+
+`DBReset.run()` deletes every row of the four tables and inserts the reference data through the repositories (`UserRepository.BEAN`, `ProductRepository.BEAN`, `PurchaseRepository.BEAN`) and the module's `StoreDSLContext.BEAN` — so it runs after `StoreRepositoryBootstrap.initialize`. It restarts each sequence at the next free id.
+
+| Data | Content |
+|------|---------|
+| Users | `admin` (John Smith, ADMIN), `jdoe` (John Doe, CUSTOMER), `jroe` (Jane Roe, CUSTOMER) — the password equals the user name |
+| Products | Italian Design Coffee Maker, Wilson Ball, Thread Seal Tape, 2GB Flash Drive — images read from the classpath at `/META-INF/images/*.png` (resources of `persistence.impl`) |
+| Purchases | Two purchases of `admin` |
+
+The generated ids are exposed as public static fields (`DBReset.ADMIN_ID`, `DBReset.COFFEE_MAKER_ID`, `DBReset.ADMIN_FIRST_PURCHASE_ID`, ...), which the tests use in their assertions.
+
+## GenerateJooqSchema — the jOOQ classes
+
+`GenerateJooqSchema` creates an in-memory H2 database, runs `DBCreate` on it and invokes the jOOQ code generator against its `PUBLIC` schema. The output goes to `src/main/java` of `persistence.impl`, in the package `br.com.wdc.store.persistence.impl.scheme` (`Tables`, `Sequences`, `tables.EnProduct`, ...), and each generated file gets `// @formatter:off` at the top.
+
+Run it from `fontes/` after changing the DDL:
+
+```bash
+mvn exec:java -pl br.com.wdc.store/br.com.wdc.store.scripts \
+    -Dexec.mainClass="br.com.wdc.store.scripts.codegen.GenerateJooqSchema"
 ```
-
-- Methods are sorted numerically by the number after `step` (e.g.: `step1` before `step10`)
-- Steps already executed are skipped automatically (idempotence)
-- Each successful step is recorded in the `EN_MIGRATION_LOG` table
-- If a step fails, execution stops with a `SQLException`
-
-**`XXXX`** in the class name is a sequential number (e.g.: `0001`, `0002`) that defines the order in which the scripts run.
 
 ## Dependencies
 
-- `br.com.wdc.store.persistence` — entities and repositories
-- `br.com.wdc.store.presentation` — domain constants
-- H2 Database — JDBC driver (development/test environment)
-- SLF4J + Logback — logging
-
-## Execution
-
-`DBCreate` is invoked at application startup and creates the tables (including `EN_MIGRATION_LOG`) if they do not exist. Incremental migrations run via `MigrationRunner` after the bootstrap. There is no external migration framework — control is handled directly by the Java code.
+| Artifact | Role |
+|----------|------|
+| `persistence.impl` | Generated jOOQ classes, `StoreDSLContext`, repositories used by `DBReset`, seed images |
+| `framework-jooq` | `JsonDialect` |
+| `jooq-codegen` | Code generator used by `GenerateJooqSchema` |
+| `h2` | Database driver (in-memory database of the generator, local database) |
+| `logback-classic` | Logging |
+| `br.com.wdc.store.presentation` | Declared in the pom; no class of this module imports it |

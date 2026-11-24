@@ -18,7 +18,7 @@ class HomeViewSwtRemote extends HomeViewSwt {
 		super(app);
 		this.vsid = vsid;
 		this.ctx = ctx;
-		this.stateSupplier = this::stateSupplierImpl;
+		this.scopeSupplier = this::scopeSupplierImpl;
 		this.onExit = this::callOnExit;
 		this.onOpenCart = this::callOnOpenCart;
 	}
@@ -31,35 +31,35 @@ class HomeViewSwtRemote extends HomeViewSwt {
 		this.ctx.submitEvent(this.vsid, 2, Map.of());
 	}
 
-	private HomeScope stateSupplierImpl() {
-		var s = this.ctx.viewState(this.vsid);
+	private HomeScope scopeSupplierImpl() {
+		var s = this.ctx.scope(this.vsid);
 		if (s == null) {
 			return null;
 		}
-		var state = new HomeScope();
+		var scope = new HomeScope();
 		var contentId = s.getString("contentViewId");
 		if (contentId != null) {
-			state.content.set(Scope.drawnBy(this.ctx.viewLookup(contentId)));
+			scope.content.set(Scope.drawnBy(this.ctx.viewLookup(contentId)));
 		}
 		// The panels are segments drawn by views of their own: the host refers to each by the id of its view
 		var productsPanelId = s.getString("productsPanelViewId");
 		if (productsPanelId != null) {
 			var panel = new HomeScope.ProductsPanelScope();
 			panel.attachView(this.ctx.viewLookup(productsPanelId));
-			state.productsPanel.set(panel);
+			scope.productsPanel.set(panel);
 		}
 		var purchasesPanelId = s.getString("purchasesPanelViewId");
 		if (purchasesPanelId != null) {
 			var panel = new HomeScope.PurchasesPanelScope();
 			panel.attachView(this.ctx.viewLookup(purchasesPanelId));
-			state.purchasesPanel.set(panel);
+			scope.purchasesPanel.set(panel);
 		}
-		state.nickName.set(s.getString("nickName"));
+		scope.nickName.set(s.getString("nickName"));
 		var cartCount = s.getLong("cartItemCount");
-		state.cartItemCount.set(cartCount != null ? cartCount.intValue() : 0);
-		state.errorMessage.set(s.getString("errorMessage"));
+		scope.cartItemCount.set(cartCount != null ? cartCount.intValue() : 0);
+		scope.errorMessage.set(s.getString("errorMessage"));
 		var code = s.getLong("errorCode");
-		state.errorCode.set(code != null ? code.intValue() : 0);
-		return state;
+		scope.errorCode.set(code != null ? code.intValue() : 0);
+		return scope;
 	}
 }

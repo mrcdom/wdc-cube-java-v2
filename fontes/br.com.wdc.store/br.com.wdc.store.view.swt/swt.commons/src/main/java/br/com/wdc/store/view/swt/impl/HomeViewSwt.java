@@ -34,7 +34,7 @@ public class HomeViewSwt extends AbstractViewSwt {
     private static final int CART_BADGE_MIN_WIDTH = 18;
     private static final int CART_BADGE_H_PADDING = 6;
 
-    public Supplier<HomeScope> stateSupplier;
+    public Supplier<HomeScope> scopeSupplier;
     public Runnable onExit;
     public Runnable onOpenCart;
 
@@ -62,21 +62,21 @@ public class HomeViewSwt extends AbstractViewSwt {
             this.notRendered = false;
         }
 
-        var state = this.stateSupplier != null ? this.stateSupplier.get() : null;
+        var scope = this.scopeSupplier != null ? this.scopeSupplier.get() : null;
 
         // Welcome
         String prefix = "Welcome,";
         if (!Objects.equals(this.welcomeLabel.getText(), prefix)) {
             this.welcomeLabel.setText(prefix);
         }
-        String name = (state != null && state.nickName.get() != null ? state.nickName.get() : "") + "!";
+        String name = (scope != null && scope.nickName.get() != null ? scope.nickName.get() : "") + "!";
         if (!Objects.equals(this.nickNameLabel.getText(), name)) {
             this.nickNameLabel.setText(name);
             this.nickNameLabel.getParent().layout(true);
         }
 
         // Cart badge (always visible, shows count)
-        String badge = String.valueOf(state != null ? state.cartItemCount.get() : 0);
+        String badge = String.valueOf(scope != null ? scope.cartItemCount.get() : 0);
         if (!Objects.equals(this.cartBadgeText, badge)) {
             this.cartBadgeText = badge;
             updateCartBadgeSize();
@@ -86,12 +86,12 @@ public class HomeViewSwt extends AbstractViewSwt {
         // Error
         var newErrorDisplay = false;
         var newErrorMessage = "";
-        if (state != null && state.errorCode.get() != 0) {
+        if (scope != null && scope.errorCode.get() != 0) {
             newErrorDisplay = true;
-            newErrorMessage = state.errorMessage.get();
+            newErrorMessage = scope.errorMessage.get();
             // Consumed while drawing: a redraw now would take the message away
-            state.errorCode.setSilently(0);
-            state.errorMessage.setSilently(null);
+            scope.errorCode.setSilently(0);
+            scope.errorMessage.setSilently(null);
         }
         if (!Objects.equals(this.errorMessage, newErrorMessage)) {
             this.errorMessage = newErrorMessage;
@@ -104,7 +104,7 @@ public class HomeViewSwt extends AbstractViewSwt {
         }
 
         // Content overlay
-        if (state != null && app.viewOf(state.content.get()) instanceof AbstractViewSwt overlay) {
+        if (scope != null && app.viewOf(scope.content.get()) instanceof AbstractViewSwt overlay) {
             this.contentOverlaySlot.setContent(overlay.getElement());
             this.contentStack.showControl(this.contentOverlaySlot);
             this.purchasesPanelSlot.setVisible(false);
@@ -117,14 +117,14 @@ public class HomeViewSwt extends AbstractViewSwt {
         }
 
         // Products panel
-        if (state != null && app.viewOf(state.productsPanel.get()) instanceof AbstractViewSwt productsView) {
+        if (scope != null && app.viewOf(scope.productsPanel.get()) instanceof AbstractViewSwt productsView) {
             this.productsPanelSlot.setContent(productsView.getElement());
         } else {
             this.productsPanelSlot.setContent(null);
         }
 
         // Purchases panel
-        if (state != null && app.viewOf(state.purchasesPanel.get()) instanceof AbstractViewSwt purchasesView) {
+        if (scope != null && app.viewOf(scope.purchasesPanel.get()) instanceof AbstractViewSwt purchasesView) {
             this.purchasesPanelSlot.setContent(purchasesView.getElement());
         } else {
             this.purchasesPanelSlot.setContent(null);

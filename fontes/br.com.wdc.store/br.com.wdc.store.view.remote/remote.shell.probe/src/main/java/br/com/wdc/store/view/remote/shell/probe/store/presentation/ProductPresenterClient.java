@@ -51,14 +51,14 @@ public class ProductPresenterClient extends AbstractPresenterClient {
         return submit(2);
     }
 
-    // :: State accessors
+    // :: Scope accessors
 
     /** The current product map ({@code id}, {@code name}, {@code description}, etc.). */
     public Map<String, Object> product() {
-        var s = state();
+        var s = scope();
         if (s == null)
             return null;
-        var v = s.fields().get("product");
+        var v = s.values().get("product");
         if (v instanceof Map<?, ?> m) {
             @SuppressWarnings("unchecked")
             var typed = (Map<String, Object>) m;

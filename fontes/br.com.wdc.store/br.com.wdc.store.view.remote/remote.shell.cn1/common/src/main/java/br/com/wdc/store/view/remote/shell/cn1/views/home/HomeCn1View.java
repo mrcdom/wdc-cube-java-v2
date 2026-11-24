@@ -202,8 +202,8 @@ public class HomeCn1View extends AbstractCn1View {
         refreshTabs();
         // local interaction (no server round trip): marks dirty only the panel that became visible
         // — e.g.: the history recomputes its capacity now that it has a height.
-        Map<String, Object> st = state();
-        AbstractCn1View panel = childView(Json.str(st, products ? "productsPanelViewId" : "purchasesPanelViewId"));
+        Map<String, Object> scope = scope();
+        AbstractCn1View panel = childView(Json.str(scope, products ? "productsPanelViewId" : "purchasesPanelViewId"));
         if (panel != null) {
             app.markDirty(panel);
         }
@@ -227,23 +227,23 @@ public class HomeCn1View extends AbstractCn1View {
         Guard.visible(brandSub, wide);
         cartText.accept(wide ? "Cart" : "");
 
-        Map<String, Object> st = state();
-        nick.accept(Json.str(st, "nickName"));
-        int cartCount = Json.intOf(st, "cartItemCount");
+        Map<String, Object> scope = scope();
+        nick.accept(Json.str(scope, "nickName"));
+        int cartCount = Json.intOf(scope, "cartItemCount");
         cartBadge.setText(String.valueOf(cartCount));
         Guard.visible(cartBadge, cartCount > 0); // badge hides when the cart is empty (convention)
 
-        String content = Json.str(st, "contentViewId");
+        String content = Json.str(scope, "contentViewId");
         if (!content.isEmpty()) {
             // nested screen (product/cart/receipt) fills everything — hides the tabs
             bodySlot.mount(childElement(content));
         } else {
             // products + history split (side by side when expanded, tabs when compact)
             bodySlot.mount(splitPane);
-            productsSlot.mount(childElement(Json.str(st, "productsPanelViewId")));
-            purchasesSlot.mount(childElement(Json.str(st, "purchasesPanelViewId")));
+            productsSlot.mount(childElement(Json.str(scope, "productsPanelViewId")));
+            purchasesSlot.mount(childElement(Json.str(scope, "purchasesPanelViewId")));
         }
-        // the children's doUpdate (content/panels) is dispatched by the bridge (ViewState received)
+        // the children's doUpdate (content/panels) is dispatched by the bridge (scope received)
 
     }
 }

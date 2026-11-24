@@ -3,7 +3,7 @@ import { NOOP_VOID } from "./constants"
 
 export class ViewScope {
   private readonly __svid: string
-  private readonly __viewState: Record<string, unknown> = {}
+  private readonly __values: Record<string, unknown> = {}
 
   forceUpdate = NOOP_VOID
 
@@ -15,13 +15,13 @@ export class ViewScope {
     return this.__svid
   }
 
-  getState() {
-    return this.__viewState
+  getValues() {
+    return this.__values
   }
 
-  setState(newViewState: Record<string, unknown>) {
-    LangUtils.deleteProperties(this.__viewState)
-    Object.assign(this.__viewState, newViewState)
+  setValues(values: Record<string, unknown>) {
+    LangUtils.deleteProperties(this.__values)
+    Object.assign(this.__values, values)
     this.forceUpdate()
   }
 }

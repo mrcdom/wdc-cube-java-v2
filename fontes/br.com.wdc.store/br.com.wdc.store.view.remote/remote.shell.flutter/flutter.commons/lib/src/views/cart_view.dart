@@ -24,12 +24,11 @@ class CartView extends BaseView {
 class _CartViewState extends BaseViewState<CartView> {
   @override
   Widget build(BuildContext context) {
-    final state = viewState;
     // The rows are views of their own (CartItemView), referred to by id in the cart's order
-    final rows = (state['rowsViewIds'] as List?)?.cast<String>() ?? [];
-    final errorMessage = state['errorMessage'] as String?;
+    final rows = (scope['rowsViewIds'] as List?)?.cast<String>() ?? [];
+    final errorMessage = scope['errorMessage'] as String?;
     final empty = rows.isEmpty;
-    final total = (state['total'] as num?)?.toDouble() ?? 0.0;
+    final total = (scope['total'] as num?)?.toDouble() ?? 0.0;
 
     return PageCard(
       children: [

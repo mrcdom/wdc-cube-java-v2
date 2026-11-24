@@ -85,7 +85,7 @@ public class HomeSharedView extends SharedVDomView {
 
     // -- External bindings --
 
-    public Supplier<HomeViewData> stateSupplier;
+    public Supplier<HomeViewData> scopeSupplier;
     public Runnable onExit;
     public Runnable onOpenCart;
     /** Called when tab switches while content view is showing (navigate back). */
@@ -109,7 +109,7 @@ public class HomeSharedView extends SharedVDomView {
 
     @Override
     public VNode render() {
-        var data = stateSupplier.get();
+        var data = scopeSupplier.get();
         var errorMessage = data.errorMessage;
         boolean showError = errorMessage != null && !errorMessage.isEmpty();
 
@@ -189,7 +189,7 @@ public class HomeSharedView extends SharedVDomView {
     }
 
     private void switchTab(boolean showProducts) {
-        var data = stateSupplier.get();
+        var data = scopeSupplier.get();
         if (data.contentViewEl != null) {
             onNavigateBack.run();
         }

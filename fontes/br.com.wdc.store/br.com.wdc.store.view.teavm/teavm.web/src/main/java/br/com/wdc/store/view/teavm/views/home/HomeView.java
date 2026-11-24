@@ -14,17 +14,17 @@ public class HomeView extends AbstractVDomView<HomeScope> {
     private final HomeSharedView shared;
     private final HomeViewData viewData = new HomeViewData();
 
-    public HomeView(StoreTeaVMApplication app, HomeScope state) {
-        super("home", app, state);
+    public HomeView(StoreTeaVMApplication app, HomeScope scope) {
+        super("home", app, scope);
 
         this.shared = new HomeSharedView();
-        this.shared.stateSupplier = this::buildViewData;
+        this.shared.scopeSupplier = this::buildViewData;
         this.shared.requestUpdate = this::update;
-        this.shared.onExit = () -> safeAction("Exit", state.onExit::run);
-        this.shared.onOpenCart = () -> safeAction("Open cart", state.onOpenCart::run);
+        this.shared.onExit = () -> safeAction("Exit", scope.onExit::run);
+        this.shared.onOpenCart = () -> safeAction("Open cart", scope.onOpenCart::run);
         this.shared.onNavigateBack = () -> safeAction("Back to home", () -> new HomeKeys(this.app).flip());
         this.shared.onPurchasesPanelVisible = () -> {
-            var purchasesPanel = this.app.viewOf(this.state.purchasesPanel.get());
+            var purchasesPanel = this.app.viewOf(this.scope.purchasesPanel.get());
             if (purchasesPanel != null) {
                 purchasesPanel.update();
             }
@@ -37,12 +37,12 @@ public class HomeView extends AbstractVDomView<HomeScope> {
     }
 
     private HomeViewData buildViewData() {
-        viewData.nickName = this.state.nickName.get() != null ? this.state.nickName.get() : "";
-        viewData.cartCount = String.valueOf(this.state.cartItemCount.get());
-        viewData.errorMessage = this.state.errorMessage.get();
-        viewData.productsPanelEl = this.app.viewOf(this.state.productsPanel.get()) instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
-        viewData.purchasesPanelEl = this.app.viewOf(this.state.purchasesPanel.get()) instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
-        viewData.contentViewEl = this.app.viewOf(this.state.content.get()) instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
+        viewData.nickName = this.scope.nickName.get() != null ? this.scope.nickName.get() : "";
+        viewData.cartCount = String.valueOf(this.scope.cartItemCount.get());
+        viewData.errorMessage = this.scope.errorMessage.get();
+        viewData.productsPanelEl = this.app.viewOf(this.scope.productsPanel.get()) instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
+        viewData.purchasesPanelEl = this.app.viewOf(this.scope.purchasesPanel.get()) instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
+        viewData.contentViewEl = this.app.viewOf(this.scope.content.get()) instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
         return viewData;
     }
 }

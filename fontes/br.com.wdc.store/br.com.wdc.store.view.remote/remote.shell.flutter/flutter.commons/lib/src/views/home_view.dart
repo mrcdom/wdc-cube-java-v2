@@ -23,13 +23,12 @@ class _HomeViewState extends BaseViewState<HomeView> {
 
   @override
   Widget build(BuildContext context) {
-    final state = viewState;
-    final nickName = state['nickName'] as String? ?? '';
-    final cartItemCount = (state['cartItemCount'] as num?)?.toInt() ?? 0;
-    final errorMessage = state['errorMessage'] as String?;
-    final contentViewId = state['contentViewId'] as String?;
-    final productsPanelViewId = state['productsPanelViewId'] as String?;
-    final purchasesPanelViewId = state['purchasesPanelViewId'] as String?;
+    final nickName = scope['nickName'] as String? ?? '';
+    final cartItemCount = (scope['cartItemCount'] as num?)?.toInt() ?? 0;
+    final errorMessage = scope['errorMessage'] as String?;
+    final contentViewId = scope['contentViewId'] as String?;
+    final productsPanelViewId = scope['productsPanelViewId'] as String?;
+    final purchasesPanelViewId = scope['purchasesPanelViewId'] as String?;
 
     return Column(
       children: [

@@ -17,7 +17,7 @@ public class ReceiptPresenter extends AbstractCubePresenter<StoreApplication> {
 
     // :: Public Instance Fields
 
-    public final ReceiptScope state = bind(new ReceiptScope());
+    public final ReceiptScope scope = bind(new ReceiptScope());
 
     // :: Internal Instance Fields
 
@@ -28,7 +28,7 @@ public class ReceiptPresenter extends AbstractCubePresenter<StoreApplication> {
 
     public ReceiptPresenter(StoreApplication app) {
         super(app);
-        this.state.onOpenProducts = action(1, () -> new HomeKeys(this.app).flip());
+        this.scope.onOpenProducts = action(1, () -> new HomeKeys(this.app).flip());
     }
 
     // :: Cube API
@@ -42,25 +42,25 @@ public class ReceiptPresenter extends AbstractCubePresenter<StoreApplication> {
             new HomeKeys(this.app, intent).flip();
             return false;
         }
-        this.state.notifySuccess.set(keys.purchaseMade());
+        this.scope.notifySuccess.set(keys.purchaseMade());
 
-        if (this.state.receipt.get() == null || !Objects.equals(pPurchaseId, this.purchaseId)) {
+        if (this.scope.receipt.get() == null || !Objects.equals(pPurchaseId, this.purchaseId)) {
             var receipt = this.loadReceipt(pPurchaseId);
             this.purchaseId = pPurchaseId;
-            this.state.receipt.set(receipt);
+            this.scope.receipt.set(receipt);
         }
 
         // Read on every call: a reused presenter goes where its parent puts it now, not where it was first put
         this.ownerSlot = keys.parentSlot();
         if (initialization) {
 
-            if (this.state.receipt.get() == null) {
+            if (this.scope.receipt.get() == null) {
                 throw new AssertionError("Missing receipt");
             }
             update();
         }
 
-        this.ownerSlot.setScope(this.state);
+        this.ownerSlot.setScope(this.scope);
 
         return true;
     }

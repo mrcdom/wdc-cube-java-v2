@@ -28,7 +28,7 @@ public class LoginPresenter extends AbstractCubePresenter<StoreApplication> {
 
     // :: Public Instance Fields
 
-    public final LoginScope state = bind(new LoginScope());
+    public final LoginScope scope = bind(new LoginScope());
 
     // :: Internal Instance Fields
 
@@ -38,12 +38,12 @@ public class LoginPresenter extends AbstractCubePresenter<StoreApplication> {
 
     public LoginPresenter(StoreApplication app) {
         super(app);
-        this.state.onEnter = actionOf2(1, FormParam.asString("p.userName"),
+        this.scope.onEnter = actionOf2(1, FormParam.asString("p.userName"),
                 FormParam.of("p.password", v -> app.b64Decipher(CoerceUtils.asString(v))), this::enter);
-        this.state.onSync(formData -> {
+        this.scope.onSync(formData -> {
             // The client already shows what it sends: no redraw to echo it back
             if (formData.containsKey("userName")) {
-                state.userName.setSilently(CoerceUtils.asString(formData.get("userName")));
+                scope.userName.setSilently(CoerceUtils.asString(formData.get("userName")));
             }
         });
     }
@@ -56,7 +56,7 @@ public class LoginPresenter extends AbstractCubePresenter<StoreApplication> {
             ownerSlot = new LoginKeys(app, intent).parentSlot();
         }
 
-        ownerSlot.setScope(this.state);
+        ownerSlot.setScope(this.scope);
 
         return true;
     }
@@ -64,36 +64,36 @@ public class LoginPresenter extends AbstractCubePresenter<StoreApplication> {
     // :: Messages
 
     private void alertUserOrPasswordNotRecognize() {
-        state.errorCode.set(1);
-        state.errorMessage.set("Username or password not recognized!");
+        scope.errorCode.set(1);
+        scope.errorMessage.set("Username or password not recognized!");
     }
 
     private void alertDatabaseIsOffline() {
-        state.errorCode.set(4);
-        state.errorMessage.set("The database is offline!");
+        scope.errorCode.set(4);
+        scope.errorMessage.set("The database is offline!");
     }
 
     private void alertAccessDenied(AccessDeniedException caught) {
-        state.errorCode.set(6);
-        state.errorMessage.set("Access denied: " + caught.getMessage());
+        scope.errorCode.set(6);
+        scope.errorMessage.set("Access denied: " + caught.getMessage());
 
-        LOG.warn(state.errorMessage.get());
+        LOG.warn(scope.errorMessage.get());
     }
 
     private void alertConnectionError(Throwable caught) {
-        state.errorCode.set(5);
-        state.errorMessage.set("Could not reach the server. Check your connection.");
+        scope.errorCode.set(5);
+        scope.errorMessage.set("Could not reach the server. Check your connection.");
 
-        LOG.error(state.errorMessage.get(), caught);
+        LOG.error(scope.errorMessage.get(), caught);
     }
 
     // :: User Actions
 
     private void enter(String userName, String password) {
-        state.userName.set(userName);
-        state.loading.set(true);
-        state.errorCode.set(0);
-        state.errorMessage.set(null);
+        scope.userName.set(userName);
+        scope.loading.set(true);
+        scope.errorCode.set(0);
+        scope.errorMessage.set(null);
 
         if (simulateSlowLogin) {
             try {
@@ -133,7 +133,7 @@ public class LoginPresenter extends AbstractCubePresenter<StoreApplication> {
             LOG.error("enter", caught);
             this.alertConnectionError(caught);
         } finally {
-            state.loading.set(false);
+            scope.loading.set(false);
         }
     }
 }

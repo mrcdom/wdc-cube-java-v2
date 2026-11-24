@@ -20,7 +20,7 @@ import br.com.wdc.store.view.teavm.commons.interop.JsRunnable;
  * requestAnimationFrame scheduling) without coupling to any specific application
  * framework (no presenter, no remote bridge). Subclasses implement {@link #render()}.
  * <p>
- * Each consuming project (teavm.web, remote.shell.teavm) provides the state supplier
+ * Each consuming project (teavm.web, remote.shell.teavm) provides the scope supplier
  * and action listeners externally.
  */
 public abstract class SharedVDomView {
@@ -46,7 +46,7 @@ public abstract class SharedVDomView {
     }
 
     /**
-     * Subclasses implement this to describe the view tree based on current state.
+     * Subclasses implement this to describe the view tree based on the current scope.
      */
     public abstract VNode render();
 

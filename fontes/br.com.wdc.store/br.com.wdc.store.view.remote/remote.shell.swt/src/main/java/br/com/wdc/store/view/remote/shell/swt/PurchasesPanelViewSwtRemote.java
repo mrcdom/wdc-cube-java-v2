@@ -22,7 +22,7 @@ class PurchasesPanelViewSwtRemote extends PurchasesPanelViewSwt {
 		super(app);
 		this.vsid = vsid;
 		this.ctx = ctx;
-		this.stateSupplier = this::stateSupplierImpl;
+		this.scopeSupplier = this::scopeSupplierImpl;
 		this.onOpenReceipt = this::callOnOpenReceipt;
 		this.onPageChange = this::callOnPageChange;
 		this.onItemSizeCapacityChanged = this::callOnItemSizeCapacityChanged;
@@ -40,18 +40,18 @@ class PurchasesPanelViewSwtRemote extends PurchasesPanelViewSwt {
 		this.ctx.submitEvent(this.vsid, 3, Map.of("p.capacity", cap));
 	}
 
-	private HomeScope.PurchasesPanelScope stateSupplierImpl() {
-		var s = this.ctx.viewState(this.vsid);
+	private HomeScope.PurchasesPanelScope scopeSupplierImpl() {
+		var s = this.ctx.scope(this.vsid);
 		if (s == null) {
 			return null;
 		}
-		var state = new HomeScope.PurchasesPanelScope();
+		var scope = new HomeScope.PurchasesPanelScope();
 		var pageNum = s.getLong("page");
-		state.page.set(pageNum != null ? pageNum.intValue() : 0);
+		scope.page.set(pageNum != null ? pageNum.intValue() : 0);
 		var pageSize = s.getLong("pageSize");
-		state.pageSize.set(pageSize != null ? pageSize.intValue() : -1);
+		scope.pageSize.set(pageSize != null ? pageSize.intValue() : -1);
 		var totalCount = s.getLong("totalCount");
-		state.totalCount.set(totalCount != null ? totalCount.intValue() : 0);
+		scope.totalCount.set(totalCount != null ? totalCount.intValue() : 0);
 		var rawList = s.getList("purchases");
 		if (!rawList.isEmpty()) {
 			var purchases = new ArrayList<PurchaseInfo>(rawList.size());
@@ -65,10 +65,10 @@ class PurchasesPanelViewSwtRemote extends PurchasesPanelViewSwt {
 				p.items = itemNames != null ? itemNames : Collections.emptyList();
 				purchases.add(p);
 			}
-			state.purchases.set(purchases);
+			scope.purchases.set(purchases);
 		} else {
-			state.purchases.set(Collections.emptyList());
+			scope.purchases.set(Collections.emptyList());
 		}
-		return state;
+		return scope;
 	}
 }

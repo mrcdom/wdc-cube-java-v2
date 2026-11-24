@@ -19,13 +19,13 @@ public class ProductsPanelView extends AbstractRemoteView {
     private static final int ON_OPEN_PRODUCT = 1;
 
     private final ProductsPanelSharedView shared;
-    private final HomeScope.ProductsPanelScope adaptedState = new HomeScope.ProductsPanelScope();
+    private final HomeScope.ProductsPanelScope adaptedScope = new HomeScope.ProductsPanelScope();
 
     public ProductsPanelView(String vsid) {
         super(vsid);
 
         this.shared = new ProductsPanelSharedView();
-        this.shared.stateSupplier = this::adaptState;
+        this.shared.scopeSupplier = this::adaptScope;
         this.shared.onOpenProduct = id -> {
             setFormField("p.productId", id);
             submit(ON_OPEN_PRODUCT);
@@ -37,15 +37,15 @@ public class ProductsPanelView extends AbstractRemoteView {
         return shared.renderTree();
     }
 
-    private HomeScope.ProductsPanelScope adaptState() {
-        ViewScope scope = state();
-        adaptedState.products.set(getProducts(scope));
-        return adaptedState;
+    private HomeScope.ProductsPanelScope adaptScope() {
+        ViewScope scope = scope();
+        adaptedScope.products.set(getProducts(scope));
+        return adaptedScope;
     }
 
     private List<ProductInfo> getProducts(ViewScope scope) {
         if (scope == null) return List.of();
-        var v = scope.getState().get("products");
+        var v = scope.getValues().get("products");
         if (v instanceof List<?> list) {
             var result = new ArrayList<ProductInfo>();
             for (var item : list) {

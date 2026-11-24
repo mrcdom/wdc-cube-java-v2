@@ -21,7 +21,7 @@ public class ProductPresenter extends AbstractCubePresenter<StoreApplication> {
 
     // :: Public Instance Fields
 
-    public final ProductScope state = bind(new ProductScope());
+    public final ProductScope scope = bind(new ProductScope());
 
     // :: Internal Instance Fields
 
@@ -31,8 +31,8 @@ public class ProductPresenter extends AbstractCubePresenter<StoreApplication> {
 
     public ProductPresenter(StoreApplication app) {
         super(app);
-        this.state.onOpenProducts = action(1, () -> new HomeKeys(this.app).flip());
-        this.state.onAddToCart = actionOf(2, FormParam.asInteger("p.quantity"), this::addToCart);
+        this.scope.onOpenProducts = action(1, () -> new HomeKeys(this.app).flip());
+        this.scope.onAddToCart = actionOf(2, FormParam.asInteger("p.quantity"), this::addToCart);
     }
 
     // :: Cube API
@@ -40,7 +40,7 @@ public class ProductPresenter extends AbstractCubePresenter<StoreApplication> {
     @Override
     public boolean applyParameters(CubeIntent intent, boolean initialization, boolean deepest) {
         var keys = new ProductKeys(this.app, intent);
-        var oldProductId = this.state.product.get() != null ? this.state.product.get().id : null;
+        var oldProductId = this.scope.product.get() != null ? this.scope.product.get().id : null;
 
         var newProductId = keys.productId() != null ? keys.productId() : oldProductId;
         if (newProductId == null) {
@@ -49,26 +49,26 @@ public class ProductPresenter extends AbstractCubePresenter<StoreApplication> {
             return false;
         }
 
-        if (this.state.product.get() == null || !Objects.equals(newProductId, oldProductId)) {
+        if (this.scope.product.get() == null || !Objects.equals(newProductId, oldProductId)) {
             var product = new ProductQuery()
                     .withProductId(newProductId)
                     .run();
-            this.state.product.set(product);
+            this.scope.product.set(product);
         }
 
         // Read on every call: a reused presenter goes where its parent puts it now, not where it was first put
         this.ownerSlot = keys.parentSlot();
         if (initialization) {
 
-            this.state.errorCode.set(0);
-            this.state.errorMessage.set(null);
-            if (this.state.product.get() == null) {
+            this.scope.errorCode.set(0);
+            this.scope.errorMessage.set(null);
+            if (this.scope.product.get() == null) {
                 throw new AssertionError("Missing Product");
             }
             this.update();
         }
 
-        this.ownerSlot.setScope(this.state);
+        this.ownerSlot.setScope(this.scope);
 
         return true;
     }
@@ -76,7 +76,7 @@ public class ProductPresenter extends AbstractCubePresenter<StoreApplication> {
     @Override
     public void publishParameters(CubeIntent intent) {
         new ProductKeys(this.app, intent)
-                .withProductId(this.state.product.get() != null ? this.state.product.get().id : null);
+                .withProductId(this.scope.product.get() != null ? this.scope.product.get().id : null);
     }
 
     // :: User Actions
@@ -84,41 +84,41 @@ public class ProductPresenter extends AbstractCubePresenter<StoreApplication> {
     private void addToCart(Integer quantity) {
         if (quantity == null) {
             this.errorInvalidQuantity();
-            LOG.warn("addToCart.errorInvalidQuantity: {}", this.state.errorMessage.get());
+            LOG.warn("addToCart.errorInvalidQuantity: {}", this.scope.errorMessage.get());
             return;
         }
 
         if (quantity < 1) {
             this.alertCartItemWidthLessThanOneItem();
-            LOG.warn("addToCart.alertCartItemWidthLessThanOneItem: {}", this.state.errorMessage.get());
+            LOG.warn("addToCart.alertCartItemWidthLessThanOneItem: {}", this.scope.errorMessage.get());
             return;
         }
 
         try {
-            app.getCart().addProduct(this.state.product.get(), quantity);
+            app.getCart().addProduct(this.scope.product.get(), quantity);
 
             new CartKeys(this.app).flip();
         } catch (OfflineException caught) {
             this.alertDatabaseNotAvailable();
-            LOG.error(this.state.errorMessage.get(), caught);
+            LOG.error(this.scope.errorMessage.get(), caught);
         }
     }
 
     // :: Messages
 
     private void alertDatabaseNotAvailable() {
-        this.state.errorCode.set(1);
-        this.state.errorMessage.set("Cart unavailable. Please wait a moment and try again.");
+        this.scope.errorCode.set(1);
+        this.scope.errorMessage.set("Cart unavailable. Please wait a moment and try again.");
     }
 
     private void alertCartItemWidthLessThanOneItem() {
-        this.state.errorCode.set(2);
-        this.state.errorMessage.set("The quantity of items in the cart must be at least 1 (one).");
+        this.scope.errorCode.set(2);
+        this.scope.errorMessage.set("The quantity of items in the cart must be at least 1 (one).");
     }
 
     private void errorInvalidQuantity() {
-        this.state.errorCode.set(3);
-        this.state.errorMessage.set("Invalid quantity encoding.");
+        this.scope.errorCode.set(3);
+        this.scope.errorMessage.set("Invalid quantity encoding.");
     }
 
 }

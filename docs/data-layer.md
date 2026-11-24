@@ -14,6 +14,7 @@
 [The persistence.rest Module — The HTTP Surface](#the-persistencerest-module--the-http-surface)  
 [The persistence.client Module — The HTTP Mirror](#the-persistenceclient-module--the-http-mirror)  
 [Full Symmetry — the Same Code, Two Worlds](#full-symmetry--the-same-code-two-worlds)  
+[Resource Calls — Actions on a Resource as Objects](#resource-calls--actions-on-a-resource-as-objects)  
 [Complete Flow — From the View to the Database](#complete-flow--from-the-view-to-the-database)  
 [Transactions — Atomicity and Dual JTA/JDBC Mode](#transactions--atomicity-and-dual-jtajdbc-mode)  
 [Client-Driven Remote Transactions](#client-driven-remote-transactions-over-rest)  
@@ -40,7 +41,7 @@ The answer lies in the contract: repository interfaces that the domain defines, 
 ```mermaid
 graph TD
     subgraph Consumers["Consumers (identical)"]
-        P["Presenters / Services"]
+        P["Presenters → resource calls<br/>(ProductQuery, PurchaseCreate, ...)"]
     end
 
     subgraph Contract["Contract (domain)"]
@@ -70,14 +71,14 @@ graph LR
 
     domain --> persistence
     domain --> client
-    persistence --> rest
+    domain --> rest
 ```
 
 | Module | External dependencies | Responsibility |
 |--------|-----------------------|-----------------|
-| `domain` | SLF4J, Commons IO | Models, interfaces, criteria, RBAC |
+| `domain` | framework.commons, framework.domain, Commons IO | Models, interfaces, criteria, RBAC |
 | `persistence` | jOOQ, H2, Gson, framework.jooq | SQL implementation of the repositories |
-| `persistence.rest` | Javalin, swagger-core | Exposes repositories as an HTTP API |
+| `persistence.rest` | Javalin, swagger-core, framework.persistence | Exposes repositories as an HTTP API |
 | `persistence.client` | OkHttp (JVM transport only) | Consumes the HTTP API as repositories |
 
 ---
@@ -325,23 +326,29 @@ No `@Entity`, `@Column`, `@JsonProperty`. The model is pure Java. The one that k
 Each entity has a repository interface that defines the available operations:
 
 ```java
-public interface ProductRepository {
+public interface ProductRepository extends Repository<Product, ProductCriteria, Long> {
     AtomicReference<ProductRepository> BEAN = new AtomicReference<>();
 
-    boolean insert(Product product);
-    boolean update(Product newEntity, Product oldEntity);
-    boolean insertOrUpdate(Product entity);
-    int delete(ProductCriteria criteria);
-    int count(ProductCriteria criteria);
-    List<Product> fetch(ProductCriteria criteria);
+    // Inherited from Repository<E, C, K>: insert, update, insertOrUpdate(newBean, oldBean),
+    // delete, count, fetch(criteria, offset, limit), fetchPage, ...
 
     // Lookup by key: a ProductCriteria with equality on the primary key.
+    @Override
     default Product fetchById(Long productId, Product projection) {
+        if (productId == null) {
+            return null;
+        }
+
         var found = fetch(new ProductCriteria()
                 .withProductId(productId)
                 .withProjection(projection != null ? projection : newProjection()), 0, 1);
+
         return found.isEmpty() ? null : found.get(0);
     }
+
+    byte[] fetchImage(Long productId);
+
+    boolean updateImage(Long productId, byte[] image);
 }
 ```
 
@@ -375,10 +382,10 @@ Instead of receiving filters as loose parameters or SQL strings, each repository
 
 ```java
 var criteria = new ProductCriteria()
-    .withProductId(42L)
-    .withOffset(0)
-    .withLimit(20)
-    .withOrderBy(ProductCriteria.OrderBy.NAME_ASC);
+        .withName("Coffee")
+        .withOrderBy(ProductCriteria.OrderBy.NAME_A_TO_Z);
+
+var firstPage = ProductRepository.BEAN.get().fetch(criteria, 0, 20);   // offset and limit are fetch arguments
 ```
 
 **Why is this good?**
@@ -395,11 +402,11 @@ An uncommon and very powerful feature: the caller controls which fields are load
 
 ```java
 // I only need id and name — no price, description or image
-var projection = new Product();
-projection.id = 0L;
-projection.name = "";
+var projection = new Product()
+        .withId(0L)
+        .withName("");
 
-var products = ProductRepository.BEAN.get().fetchById(42L, projection);
+var product = ProductRepository.BEAN.get().fetchById(42L, projection);
 // Generated SQL: SELECT JSON_OBJECT('id', p.ID, 'name', p.NAME) FROM EN_PRODUCT p WHERE p.ID = 42
 ```
 
@@ -422,11 +429,11 @@ public static final JsonQuery<Product, EnProduct> QUERY = new JsonQueryBuilder<P
         .setAlias("p")
         .setBeanFactory(Product::new)
         .setTableFactory(EN_PRODUCT::as)
-        .addI64("id",          p -> p.id,          (p, v) -> p.id = v,          t -> t.ID)
-        .addStr("name",        p -> p.name,        (p, v) -> p.name = v,        t -> t.NAME)
-        .addF64("price",       p -> p.price,       (p, v) -> p.price = v,       t -> t.PRICE)
-        .addStr("description", p -> p.description, (p, v) -> p.description = v, t -> t.DESCRIPTION)
-        .addBin("image",       p -> p.image,       (p, v) -> p.image = v,       t -> t.IMAGE)
+        .addI64("id",          p -> p.id(),          (p, v) -> p.withId(v),          t -> t.ID)
+        .addStr("name",        p -> p.name(),        (p, v) -> p.withName(v),        t -> t.NAME)
+        .addF64("price",       p -> p.price(),       (p, v) -> p.withPrice(v),       t -> t.PRICE)
+        .addStr("description", p -> p.description(), (p, v) -> p.withDescription(v), t -> t.DESCRIPTION)
+        .addBin("image",       p -> p.image(),       (p, v) -> p.withImage(v),       t -> t.IMAGE)
         .build();
 ```
 
@@ -465,7 +472,7 @@ public static final JsonQuery<Purchase, EnPurchase> QUERY = new JsonQueryBuilder
         // ... direct fields ...
         .lazy(qb -> {
             // 1:1 relation — Purchase → User
-            qb.addBeanField("user", p -> p.user, (p, v) -> p.user = v,
+            qb.addBeanField("user", p -> p.user(), (p, v) -> p.withUser(v),
                     UserRepositoryImpl.QUERY, cq -> {
                         var enPurchase = cq.getSuperTable();
                         var enUser = cq.getChildTable();
@@ -474,7 +481,7 @@ public static final JsonQuery<Purchase, EnPurchase> QUERY = new JsonQueryBuilder
                     });
 
             // 1:N relation — Purchase → Items
-            qb.addBeanListField("items", p -> p.items, (p, v) -> p.items = v,
+            qb.addBeanListField("items", p -> p.items(), (p, v) -> p.withItems(v),
                     PurchaseItemRepositoryImpl.QUERY, cq -> {
                         var enPurchase = cq.getSuperTable();
                         var enPurchaseItem = cq.getChildTable();
@@ -535,7 +542,7 @@ The authentication flow uses **HMAC challenge-response** so the password never t
 1. Client → GET /api/auth/challenge
    ← { nonce: "abc123", expiresAt: "..." }
 
-2. digest = HMAC-SHA256(key=sha256(password), data=userName+nonce)
+2. digest = HMAC-SHA256(key=PasswordUtil.hashPassword(password), data=userName+nonce)   // MD5 → base36
 
 3. Client → POST /api/auth/login { userName, digest, nonce }
    ← { accessToken, refreshToken, publicKey, expiresAt }
@@ -575,6 +582,7 @@ All entities follow the same endpoint pattern:
 | `POST` | `/api/repo/product/delete` | `ProductCriteria` | `int` |
 | `POST` | `/api/repo/product/count` | `ProductCriteria` | `int` |
 | `POST` | `/api/repo/product/fetch` | `ProductCriteria` | `List<Product>` |
+| `POST` | `/api/repo/product/fetch-page` | `ProductCriteria` + `page`, `pageSize` | `{ items, totalItems }` |
 | `POST` | `/api/repo/product/fetch-by-id` | `{ id, projection }` | `Product` |
 | `GET` | `/api/repo/product/{id}` | — | `Product` (404 if it does not exist) |
 
@@ -633,8 +641,8 @@ public List<E> fetch(C criteria, int offset, int limit) {
 
 | Implementation | Where | How |
 |---|---|---|
-| `OkHttpTransport` | JVM (tests, remote SWT) | OkHttp |
-| `FetchHttpTransport` | browser (`teavm.web`) | the browser's own `fetch`, via TeaVM |
+| `OkHttpTransport` | JVM (`persistence.client`; used by the tests) | OkHttp |
+| `FetchHttpTransport` | browser (`teavm.web`) | the browser's `XMLHttpRequest`, suspended through TeaVM `@Async` |
 
 That is why `persistence.client` runs compiled to JavaScript: nothing in it depends on OkHttp — that dependency lives only in the JVM transport. `OkHttpTransport` handles the Bearer token (via `setAccessTokenSupplier`) and the remote transaction's `X-Tx-Id` (via `setTransactionIdSupplier`).
 
@@ -667,31 +675,113 @@ The `CartPresenter` that fetches products to display in the cart does not have a
 
 ---
 
+## Resource Calls — Actions on a Resource as Objects
+
+The presenters do not talk to the repositories themselves. Each action they need on a resource — read a product, record a purchase, check the credentials — is a small class, a **resource call**, kept in the `calls/` package of the presenter's module. The request is gathered with fluent `withXxx(...)` setters and `run()` answers it; a new instance per use:
+
+```java
+var product = new ProductQuery()
+        .withProductId(id)
+        .run();
+```
+
+This keeps the presenter about the screen — what to show, where to go — and gives every access to the data a name, a single place in the code and a test of its own (`StoreCallTest` exercises them directly, without a view).
+
+### Named by a verb, as in HTTP
+
+The suffix of a call is a verb, in the spirit of the HTTP methods, and each verb has a base class in the framework (`br.com.wdc.framework.domain.resource`) that keeps its guarantees:
+
+| Suffix | HTTP | Safe | Idempotent | Base | The call implements |
+|--------|------|------|------------|------|---------------------|
+| `Query` | `GET` / `QUERY` | yes | yes | `ResourceQuery<R>` | `run()` |
+| `Create` | `POST` | no | no | `ResourceCreate<R>` | `create()` |
+| `Save` | `PUT` | no | yes | `ResourceSave<R>` | `save()` |
+| `Update` | `PATCH` | no | not in general | `ResourceUpdate<R>` | `update()` |
+| `Delete` | `DELETE` | no | yes | `ResourceDelete<R>` | `delete()` |
+
+What gives the HTTP verbs their value is what each one promises. *Safe* means it changes nothing; *idempotent*, that running the same request again leaves the same state — which is what tells whether a call may be repeated after a failure. A `Query` may; a `Create` never may on its own, since each run creates another record (that is why the checkout is `PurchaseCreate`: every run records one more purchase).
+
+An action that fits none of the verbs gets a verb of its own that says what it does, and extends the root `ResourceCall<R>` directly: `CredentialsCheck` checks the login credentials (and issues the auto-login token). There is no generic `XxxCall`.
+
+```mermaid
+classDiagram
+    class ResourceCall~R~ {
+        +run() R
+    }
+    class ResourceQuery~R~
+    class ResourceWrite~R~ {
+        +run() R
+    }
+    ResourceCall <|-- ResourceQuery
+    ResourceCall <|-- ResourceWrite
+    ResourceWrite <|-- ResourceCreate
+    ResourceWrite <|-- ResourceSave
+    ResourceWrite <|-- ResourceUpdate
+    ResourceWrite <|-- ResourceDelete
+    ResourceQuery <|-- ProductQuery
+    ResourceCreate <|-- PurchaseCreate
+    ResourceCall <|-- CredentialsCheck
+```
+
+### Writes always run in a transaction
+
+The four write verbs share `ResourceWrite<R>`, whose `run()` is `final`: it opens the transaction (or joins the caller's) and hands over to the verb's method, so no write is left outside one. Its constructor is package-private, which keeps the list of write verbs closed.
+
+The framework has no global `TransactionService` — each module has its own holder ([Per-module context](#per-module-context-hexagonal)). So a write call names its module's in the constructor, as a `Supplier` read only when the call runs:
+
+```java
+public class PurchaseCreate extends ResourceCreate<Long> {
+
+    public PurchaseCreate() {
+        super(StoreTransactions.BEAN::get);
+    }
+
+    @Override
+    protected Long create() {
+        // purchase + items: one insert, inside the transaction opened by run()
+    }
+}
+```
+
+A read has no transaction of its own: it reads in the caller's, if there is one.
+
+### Same call, two worlds
+
+A call reaches the repositories it uses through their `BEAN` (`ProductRepository.BEAN.get()`), and the transaction through its module's holder — both filled by the bootstrap. So the call, like the presenter, does not know which world it runs in: in the Host the `BEAN` is the jOOQ implementation and the transaction is `TransactionServiceImpl`; in teavm.web the `BEAN` is the HTTP repository and the transaction is `RestTransactionService`, which makes the REST calls of the write atomic on the server ([Client-Driven Remote Transactions](#client-driven-remote-transactions-over-rest)).
+
+The table of the app's calls, and how to write a new one, are in the [presentation README](../fontes/br.com.wdc.store/br.com.wdc.store.presentation/README.md#calls) and its [guide for a new module](../fontes/br.com.wdc.store/br.com.wdc.store.presentation/GUIDE_NEW_MODULE.md).
+
+---
+
 ## Complete Flow — From the View to the Database
 
-The diagram below shows the path of a product query started by the Presenter, in both modes:
+The diagram below shows the path of a product query started by the Presenter, through its call, in both modes:
 
 ```mermaid
 sequenceDiagram
     participant Presenter
+    participant Call as ProductQuery
     participant BEAN as ProductRepository.BEAN
     participant Impl as ProductRepositoryImpl
     participant QUERY as JsonQuery
     participant DB as H2
 
     note over Presenter,DB: Server Mode
-    Presenter->>BEAN: fetch(criteria)
+    Presenter->>Call: withProductId(id).run()
+    Call->>BEAN: fetchById(id, projection)
     BEAN->>Impl: fetch(criteria)
     Impl->>QUERY: fetchToList(projection, conditions)
     QUERY->>DB: SELECT JSON_OBJECT(...) WHERE ...
     DB-->>QUERY: JSON rows
     QUERY-->>Impl: List<Product>
-    Impl-->>Presenter: List<Product>
+    Impl-->>Call: Product
+    Call-->>Presenter: ProductInfo
 ```
 
 ```mermaid
 sequenceDiagram
     participant Presenter
+    participant Call as ProductQuery
     participant BEAN as ProductRepository.BEAN
     participant Http as HttpProductRepository
     participant Transport as HttpTransport
@@ -700,7 +790,8 @@ sequenceDiagram
     participant DB as H2
 
     note over Presenter,DB: Client Mode (TeaVM)
-    Presenter->>BEAN: fetch(criteria)
+    Presenter->>Call: withProductId(id).run()
+    Call->>BEAN: fetchById(id, projection)
     BEAN->>Http: fetch(criteria)
     Http->>Transport: POST /api/repo/product/fetch (criterion and projection via the codec)
     Transport->>API: request + Bearer token
@@ -710,10 +801,11 @@ sequenceDiagram
     Impl-->>API: List<Product>
     API-->>Transport: JSON response
     Transport-->>Http: JSON
-    Http-->>Presenter: List<Product>
+    Http-->>Call: Product
+    Call-->>Presenter: ProductInfo
 ```
 
-From the Presenter's point of view, the two sequences are indistinguishable.
+From the Presenter's point of view — and the call's — the two sequences are indistinguishable.
 
 ---
 
@@ -770,7 +862,7 @@ The result: wrapping an operation in `required(...)` makes atomic every query th
 
 The boundary sits in the **write use cases**, not in the repositories:
 
-- **Host flow** (server-side presenters): completing the purchase (`CartManager.doPurchase`) wraps the `insert` of the purchase+items. It is *null-safe* — in environments without a `TransactionService` (e.g.: TeaVM in the browser, which uses HTTP repositories) it runs directly.
+- **Presentation** (the presenters, in any host): every write is a [resource call](#resource-calls--actions-on-a-resource-as-objects) whose base, `ResourceWrite`, opens the transaction in its `run()`. Completing the purchase (`PurchaseCreate`, run by `CartManager.commit`) wraps the `insert` of the purchase+items. The transaction is the module's: `TransactionServiceImpl` where the presenters run on the server, `RestTransactionService` in teavm.web, where the presenters run in the browser over HTTP repositories — so the purchase is atomic in both.
 - **REST flow** (`persistence.rest`): a `RepositoryApiRoutes.transactional(...)` decorator wraps the write handlers (`insert`/`update`/`delete`) when the routes are registered, preserving the original exception type so that Javalin's *exception mappers* keep working. This decorator has **two behaviors**: without `X-Tx-Id`, it opens an isolated transaction per request (the case above); with `X-Tx-Id`, it joins a client-driven remote transaction (next section).
 
 ### Configuration and neutrality
@@ -796,7 +888,7 @@ Whether the backend gives two modules the same `DataSource` (shared database) or
 
 ## Client-Driven Remote Transactions (over REST)
 
-The previous section makes atomic a block that runs **inside a boundary**: a use case in the Host, or *one* REST write request (the `transactional` decorator). But what about a frontend that talks to the backend **over HTTP** (React, Flutter — using the `persistence.client` repositories) and needs **several separate REST calls** — insert the purchase, then insert each item — to be atomic? Each HTTP call is its own request, with its own connection on the server; the per-request decorator cannot span them all.
+The previous section makes atomic a block that runs **inside a boundary**: a use case in the Host, or *one* REST write request (the `transactional` decorator). But what about a frontend that talks to the backend **over HTTP** (teavm.web — using the `persistence.client` repositories) and needs **several separate REST calls** — insert the purchase, then insert each item — to be atomic? Each HTTP call is its own request, with its own connection on the server; the per-request decorator cannot span them all.
 
 The solution keeps the physical transaction **alive across requests** on the server, identified by a `txId`, while the client demarcates the boundary remotely. The key point: this reuses the **same `TransactionService` contract** — `StoreTransactions.BEAN.get().required(...)` works identically in-process (Host) or over HTTP (client). Just like the repositories, **the transaction boundary is symmetric** between the two worlds.
 

@@ -2,7 +2,7 @@ package br.com.wdc.store.view.remote.shell.teavm;
 
 import br.com.wdc.framework.cube.remote.bridge.teavm.EncryptedLocalStorage;
 import br.com.wdc.framework.cube.remote.bridge.teavm.SecurityBoot;
-import br.com.wdc.framework.cube.remote.bridge.teavm.ViewStateCoordinator;
+import br.com.wdc.framework.cube.remote.bridge.teavm.ScopeCoordinator;
 import br.com.wdc.store.view.teavm.commons.interop.Console;
 import br.com.wdc.store.view.remote.shell.teavm.views.RootView;
 import br.com.wdc.store.view.remote.shell.teavm.views.browser.BrowserView;
@@ -25,14 +25,14 @@ public class Main {
         try {
             Console.log("WDC Store Remote Shell TeaVM - Initializing...");
 
-            // Configure sync namespace — must be before ViewStateCoordinator.INSTANCE is used
-            ViewStateCoordinator.configure("~rt:");
+            // Configure sync namespace — must be before ScopeCoordinator.INSTANCE is used
+            ScopeCoordinator.configure("~rt:");
 
             // Security boot (RSA + AES key derivation) — starts async PBKDF2
             SecurityBoot.initialize();
 
             // Register view factories
-            ViewStateCoordinator app = ViewStateCoordinator.INSTANCE;
+            ScopeCoordinator app = ScopeCoordinator.INSTANCE;
             app.registerView(BrowserView.VIEW_ID, BrowserView::new);
             app.registerView(RootView.VIEW_ID, RootView::new);
             app.registerView(LoginView.VIEW_ID, LoginView::new);

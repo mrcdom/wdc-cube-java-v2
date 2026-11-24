@@ -224,9 +224,9 @@ public class LoginCn1View extends AbstractCn1View {
     @Override
     public void doUpdate() {
         layout(); // adapts the structure to the current mode (re-mounts only on a switch)
-        Map<String, Object> st = state();
-        Guard.visible(loading, Json.boolOf(st, "loading"));
-        boolean hasError = Json.intOf(st, "errorCode") != 0;
+        Map<String, Object> scope = scope();
+        Guard.visible(loading, Json.boolOf(scope, "loading"));
+        boolean hasError = Json.intOf(scope, "errorCode") != 0;
         errorText.accept(hasError ? "Invalid username or password."
  : "");
         Guard.visible(error, hasError);

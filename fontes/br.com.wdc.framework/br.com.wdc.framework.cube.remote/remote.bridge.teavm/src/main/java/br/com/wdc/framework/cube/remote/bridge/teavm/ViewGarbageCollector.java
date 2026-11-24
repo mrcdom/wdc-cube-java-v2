@@ -14,10 +14,10 @@ import java.util.Set;
  */
 public class ViewGarbageCollector {
 
-    private final ViewStateCoordinator app;
+    private final ScopeCoordinator app;
     private final Set<String> mountedViews = new HashSet<>();
 
-    public ViewGarbageCollector(ViewStateCoordinator app) {
+    public ViewGarbageCollector(ScopeCoordinator app) {
         this.app = app;
     }
 

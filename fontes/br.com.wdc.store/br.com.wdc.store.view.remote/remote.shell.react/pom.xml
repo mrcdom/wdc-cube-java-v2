@@ -14,7 +14,7 @@
     <artifactId>remote.shell.react</artifactId>
     <packaging>pom</packaging>
 
-    <name>WeDoCode Store View Remote - React Frontend</name>
+    <name>WDC Store View Remote - React Frontend</name>
     <description>React 19 + TypeScript + MUI frontend (Parcel bundler)</description>
 
     <build>

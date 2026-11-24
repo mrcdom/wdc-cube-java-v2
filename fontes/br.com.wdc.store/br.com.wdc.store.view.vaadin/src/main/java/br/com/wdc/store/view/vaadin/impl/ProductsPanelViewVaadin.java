@@ -39,7 +39,7 @@ public class ProductsPanelViewVaadin extends AbstractViewVaadin<ProductsPanelSco
             VaadinDom.render((VerticalLayout) this.element, this::initialRender);
             this.notRendered = false;
         }
-        this.contentSlot.accept(this.state.products.get(), this.itemViewList);
+        this.contentSlot.accept(this.scope.products.get(), this.itemViewList);
     }
 
     private void initialRender(VaadinDom dom, VerticalLayout pane0) {
@@ -58,7 +58,7 @@ public class ProductsPanelViewVaadin extends AbstractViewVaadin<ProductsPanelSco
     }
 
     private ProductItemViewVaadin newItemView() {
-        return new ProductItemViewVaadin(this.app, this.state, this.itemIdx++);
+        return new ProductItemViewVaadin(this.app, this.scope, this.itemIdx++);
     }
 
     private void updateItem(ProductItemViewVaadin itemView, ProductInfo item) {

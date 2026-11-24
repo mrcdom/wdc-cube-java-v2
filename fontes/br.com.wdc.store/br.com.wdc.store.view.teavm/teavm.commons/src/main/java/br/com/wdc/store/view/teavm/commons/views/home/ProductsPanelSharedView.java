@@ -35,7 +35,7 @@ public class ProductsPanelSharedView extends SharedVDomView {
 
     // -- External bindings --
 
-    public Supplier<ProductsPanelScope> stateSupplier;
+    public Supplier<ProductsPanelScope> scopeSupplier;
     public Consumer<Long> onOpenProduct;
     public UnaryOperator<String> imageResolver = path -> "/" + path;
 
@@ -47,8 +47,8 @@ public class ProductsPanelSharedView extends SharedVDomView {
 
     @Override
     public VNode render() {
-        var state = stateSupplier.get();
-        var products = state.products.get();
+        var scope = scopeSupplier.get();
+        var products = scope.products.get();
 
         // @formatter:off
         return div(Sel.PANEL).children(

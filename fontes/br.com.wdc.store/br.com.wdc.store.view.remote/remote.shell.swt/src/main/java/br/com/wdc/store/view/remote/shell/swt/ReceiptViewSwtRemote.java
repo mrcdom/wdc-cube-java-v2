@@ -22,7 +22,7 @@ class ReceiptViewSwtRemote extends ReceiptViewSwt {
 		super(app);
 		this.vsid = vsid;
 		this.ctx = ctx;
-		this.stateSupplier = this::stateSupplierImpl;
+		this.scopeSupplier = this::scopeSupplierImpl;
 		this.onOpenProducts = this::callOnOpenProducts;
 	}
 
@@ -30,13 +30,13 @@ class ReceiptViewSwtRemote extends ReceiptViewSwt {
 		this.ctx.submitEvent(this.vsid, 1, Map.of());
 	}
 
-	private ReceiptScope stateSupplierImpl() {
-		var s = this.ctx.viewState(this.vsid);
+	private ReceiptScope scopeSupplierImpl() {
+		var s = this.ctx.scope(this.vsid);
 		if (s == null) {
 			return null;
 		}
-		var state = new ReceiptScope();
-		state.notifySuccess.set(Boolean.TRUE.equals(s.getBoolean("notifySuccess")));
+		var scope = new ReceiptScope();
+		scope.notifySuccess.set(Boolean.TRUE.equals(s.getBoolean("notifySuccess")));
 		var raw = s.getMap("receipt");
 		if (raw != null) {
 			var form = new ReceiptForm();
@@ -55,8 +55,8 @@ class ReceiptViewSwtRemote extends ReceiptViewSwt {
 				}
 				form.items = items;
 			}
-			state.receipt.set(form);
+			scope.receipt.set(form);
 		}
-		return state;
+		return scope;
 	}
 }

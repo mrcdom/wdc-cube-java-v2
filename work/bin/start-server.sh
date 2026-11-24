@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Startup script for WeDoCode Store React Javalin Server
+# Startup script for the WDC Store Javalin server
 # Usage: ./start-server.sh [port]
 
 set -e
@@ -44,7 +44,7 @@ PORT="${1:-${SERVER_PORT:-8080}}"
 
 echo ""
 echo "=================================================="
-echo "WeDoCode Store React - Javalin Server"
+echo "WDC Store - Javalin Server"
 echo "=================================================="
 echo "Port: $PORT"
 echo "JAR: $JAR_FILE"

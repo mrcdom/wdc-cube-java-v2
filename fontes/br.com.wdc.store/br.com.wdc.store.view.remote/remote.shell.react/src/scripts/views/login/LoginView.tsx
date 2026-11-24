@@ -11,16 +11,16 @@ const ON_LOGIN = 1
 
 // :: View
 
-export type LoginViewState = {
+export type LoginScope = {
   errorMessage?: string
   loading?: boolean
 }
 
-class LoginViewClass extends BaseViewClass<ViewProps, LoginViewState> {
+class LoginViewClass extends BaseViewClass<ViewProps, LoginScope> {
   // :: Renderes
 
   override render({ className }: ViewProps) {
-    const { state } = this
+    const { scope } = this
 
     return (
       <div className={clsx(Sel.root, className)}>
@@ -75,12 +75,12 @@ class LoginViewClass extends BaseViewClass<ViewProps, LoginViewState> {
             </div>
 
             {/* Error message */}
-            {state.errorMessage && (
+            {scope.errorMessage && (
               <div className={clsx(Sel.alertError, Sel.mb16)}>
                 <span className={Sel.alertErrorIcon}>
                   <i className="bi bi-exclamation-circle"></i>
                 </span>
-                <span className={Sel.alertErrorText}>{state.errorMessage}</span>
+                <span className={Sel.alertErrorText}>{scope.errorMessage}</span>
               </div>
             )}
 
@@ -92,7 +92,7 @@ class LoginViewClass extends BaseViewClass<ViewProps, LoginViewState> {
               id="login-user"
               placeholder="Enter your username"
               className={Sel.field}
-              disabled={state.loading || undefined}
+              disabled={scope.loading || undefined}
               ref={this.userFieldRef}
             ></Textfield>
 
@@ -105,7 +105,7 @@ class LoginViewClass extends BaseViewClass<ViewProps, LoginViewState> {
               type="password"
               placeholder="Enter your password"
               className={Sel.fieldPassword}
-              disabled={state.loading || undefined}
+              disabled={scope.loading || undefined}
               ref={this.passFieldRef}
             ></Textfield>
 
@@ -114,11 +114,11 @@ class LoginViewClass extends BaseViewClass<ViewProps, LoginViewState> {
               variant="accent"
               size="l"
               className={Sel.enterBtn}
-              disabled={state.loading || undefined}
-              pending={state.loading || undefined}
+              disabled={scope.loading || undefined}
+              pending={scope.loading || undefined}
               ref={this.btnRef}
             >
-              {state.loading ? "Signing in..." : "Sign in"}
+              {scope.loading ? "Signing in..." : "Sign in"}
             </Button>
 
             {/* Demo hint */}

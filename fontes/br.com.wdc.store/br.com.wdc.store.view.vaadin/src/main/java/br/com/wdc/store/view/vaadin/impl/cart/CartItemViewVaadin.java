@@ -14,7 +14,7 @@ import br.com.wdc.store.view.vaadin.StoreVaadinApplication;
 import br.com.wdc.store.view.vaadin.util.ResourceCatalog;
 import br.com.wdc.store.view.vaadin.util.VaadinDom;
 
-/** The view of a cart row: a segment of the cart with its own state and actions. */
+/** The view of a cart row: a segment of the cart with its own scope and actions. */
 public class CartItemViewVaadin extends AbstractViewVaadin<CartItemScope> {
 
     private boolean notRendered = true;
@@ -49,19 +49,19 @@ public class CartItemViewVaadin extends AbstractViewVaadin<CartItemScope> {
             this.notRendered = false;
         }
 
-        if (!Objects.equals(this.nameOldValue, this.state.name.get())) {
-            this.nameElm.setText(this.state.name.get());
-            this.nameOldValue = this.state.name.get();
+        if (!Objects.equals(this.nameOldValue, this.scope.name.get())) {
+            this.nameElm.setText(this.scope.name.get());
+            this.nameOldValue = this.scope.name.get();
         }
 
-        if (this.priceOldValue != this.state.price.get().doubleValue()) {
-            this.priceElm.setText(NumberFormat.getCurrencyInstance(Locale.US).format(this.state.price.get()));
-            this.priceOldValue = this.state.price.get();
+        if (this.priceOldValue != this.scope.price.get().doubleValue()) {
+            this.priceElm.setText(NumberFormat.getCurrencyInstance(Locale.US).format(this.scope.price.get()));
+            this.priceOldValue = this.scope.price.get();
         }
 
-        if (this.quantityOldValue != this.state.quantity.get().intValue()) {
-            this.quantityElm.setText(String.valueOf(this.state.quantity.get()));
-            this.quantityOldValue = this.state.quantity.get();
+        if (this.quantityOldValue != this.scope.quantity.get().intValue()) {
+            this.quantityElm.setText(String.valueOf(this.scope.quantity.get()));
+            this.quantityOldValue = this.scope.quantity.get();
         }
     }
 
@@ -77,21 +77,21 @@ public class CartItemViewVaadin extends AbstractViewVaadin<CartItemScope> {
             dom.image(img -> {
                 img.setWidth("42px");
                 img.setHeight("40px");
-                img.setSrc(ResourceCatalog.getImageResource(this.state.image.get()));
+                img.setSrc(ResourceCatalog.getImageResource(this.scope.image.get()));
             });
 
             dom.span(label -> {
                 this.nameElm = label;
-                this.nameElm.setText(this.state.name.get());
-                this.nameOldValue = this.state.name.get();
+                this.nameElm.setText(this.scope.name.get());
+                this.nameOldValue = this.scope.name.get();
             });
         });
 
         dom.span(label -> {
             label.addClassName("cell-2");
             this.priceElm = label;
-            this.priceElm.setText(NumberFormat.getCurrencyInstance(Locale.US).format(this.state.price.get()));
-            this.priceOldValue = this.state.price.get();
+            this.priceElm.setText(NumberFormat.getCurrencyInstance(Locale.US).format(this.scope.price.get()));
+            this.priceOldValue = this.scope.price.get();
         });
 
         dom.horizontalLayout(pane1 -> {
@@ -100,8 +100,8 @@ public class CartItemViewVaadin extends AbstractViewVaadin<CartItemScope> {
 
             dom.span(label -> {
                 this.quantityElm = label;
-                this.quantityElm.setText(String.valueOf(this.state.quantity.get()));
-                this.quantityOldValue = this.state.quantity.get();
+                this.quantityElm.setText(String.valueOf(this.scope.quantity.get()));
+                this.quantityOldValue = this.scope.quantity.get();
             });
 
             dom.image(img -> {
@@ -110,7 +110,7 @@ public class CartItemViewVaadin extends AbstractViewVaadin<CartItemScope> {
                 img.setWidth("16px");
                 img.setHeight("16px");
                 img.getStyle().set("cursor", "pointer");
-                img.addClickListener(e -> safeAction("Remove product", this.state.onRemove::run));
+                img.addClickListener(e -> safeAction("Remove product", this.scope.onRemove::run));
             });
         });
     }

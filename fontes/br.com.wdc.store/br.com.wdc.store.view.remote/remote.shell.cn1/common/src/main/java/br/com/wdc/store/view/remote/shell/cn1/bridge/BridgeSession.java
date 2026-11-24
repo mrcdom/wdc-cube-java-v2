@@ -13,10 +13,10 @@ import com.codename1.io.WebSocket;
 import com.codename1.ui.CN;
 
 /**
- * Bridge protocol client (Codename One side) — connection, state and event submission.
+ * Bridge protocol client (Codename One side) — connection, scopes and event submission.
  *
  * <p>
- * The presenters run on the server (remote.host); here we only keep the map of received ViewStates
+ * The presenters run on the server (remote.host); here we only keep the map of received scopes
  * (vsid -> fields) and re-render the current screen on each push. Single-threaded like the other shells.
  * </p>
  *
@@ -46,7 +46,7 @@ public final class BridgeSession {
     private final String wsBase;   // e.g.: ws://localhost:8080
     private final Listener listener;
 
-    private final Map<String, Map<String, Object>> states = new HashMap<>();
+    private final Map<String, Map<String, Object>> scopes = new HashMap<>();
     private final Cn1ClientStorage clientStorage = new Cn1ClientStorage();
     private WebSocket ws;
     private Cn1Crypto crypto;
@@ -117,15 +117,15 @@ public final class BridgeSession {
                 persistIntent(uri);
             }
             List<String> received = new ArrayList<>();
-            Object statesObj = resp.get("states");
-            if (statesObj instanceof List) {
-                for (Object o : (List<?>) statesObj) {
+            Object scopesObj = resp.get("scopes");
+            if (scopesObj instanceof List) {
+                for (Object o : (List<?>) scopesObj) {
                     if (o instanceof Map) {
                         @SuppressWarnings("unchecked")
-                        Map<String, Object> st = (Map<String, Object>) o;
-                        Object id = st.get("#");
+                        Map<String, Object> scope = (Map<String, Object>) o;
+                        Object id = scope.get("#");
                         if (id != null) {
-                            states.put(id.toString(), st);
+                            scopes.put(id.toString(), scope);
                             received.add(id.toString());
                         }
                     }
@@ -138,7 +138,7 @@ public final class BridgeSession {
                 for (Object o : (List<?>) releasedObj) {
                     if (o != null) {
                         String id = o.toString();
-                        states.remove(id);
+                        scopes.remove(id);
                         released.add(id);
                     }
                 }
@@ -147,7 +147,7 @@ public final class BridgeSession {
             applyStorageDelta(resp.get("storage"));
             CN.callSerially(() -> listener.onPush(received, released));
         } catch (Exception ignore) {
-            // malformed message — ignored; the previous state remains
+            // malformed message — ignored; the previous scopes remain
         }
     }
 
@@ -166,26 +166,26 @@ public final class BridgeSession {
         }
         @SuppressWarnings("unchecked")
         Map<String, Object> delta = (Map<String, Object>) storageObj;
-        applyScope(Cn1ClientStorage.SESSION, delta.get(Cn1ClientStorage.SESSION));
-        applyScope(Cn1ClientStorage.PERSISTENT, delta.get(Cn1ClientStorage.PERSISTENT));
-        applyScope(Cn1ClientStorage.PERSISTENT_SECURE, delta.get(Cn1ClientStorage.PERSISTENT_SECURE));
+        applyStorageScope(Cn1ClientStorage.SESSION, delta.get(Cn1ClientStorage.SESSION));
+        applyStorageScope(Cn1ClientStorage.PERSISTENT, delta.get(Cn1ClientStorage.PERSISTENT));
+        applyStorageScope(Cn1ClientStorage.PERSISTENT_SECURE, delta.get(Cn1ClientStorage.PERSISTENT_SECURE));
     }
 
-    private void applyScope(String scope, Object scopeObj) {
-        if (!(scopeObj instanceof Map)) {
+    private void applyStorageScope(String storageScope, Object entriesObj) {
+        if (!(entriesObj instanceof Map)) {
             return;
         }
         @SuppressWarnings("unchecked")
-        Map<String, Object> m = (Map<String, Object>) scopeObj;
+        Map<String, Object> m = (Map<String, Object>) entriesObj;
         for (Map.Entry<String, Object> e : m.entrySet()) {
             Object v = e.getValue();
             if (v instanceof String && !((String) v).isEmpty()) {
                 String plain = crypto.decipher((String) v);
                 if (plain != null) {
-                    clientStorage.apply(scope, e.getKey(), plain);
+                    clientStorage.apply(storageScope, e.getKey(), plain);
                 }
             } else {
-                clientStorage.apply(scope, e.getKey(), null); // null/empty = removal
+                clientStorage.apply(storageScope, e.getKey(), null); // null/empty = removal
             }
         }
     }
@@ -196,14 +196,14 @@ public final class BridgeSession {
      * so the "current" screen is the deepest view without {@code contentViewId}.
      */
     public String currentScreenVsid() {
-        Map<String, Object> browser = states.get(BROWSER_VSID);
+        Map<String, Object> browser = scopes.get(BROWSER_VSID);
         if (browser == null) {
             return null;
         }
         String vsid = str(browser.get("contentViewId"));
         for (int depth = 0; depth < 16 && vsid != null; depth++) {
-            Map<String, Object> st = states.get(vsid);
-            String next = st != null ? str(st.get("contentViewId")) : null;
+            Map<String, Object> scope = scopes.get(vsid);
+            String next = scope != null ? str(scope.get("contentViewId")) : null;
             if (next == null) {
                 break;
             }
@@ -212,12 +212,12 @@ public final class BridgeSession {
         return vsid;
     }
 
-    public Map<String, Object> state(String vsid) {
-        return vsid != null ? states.get(vsid) : null;
+    public Map<String, Object> scope(String vsid) {
+        return vsid != null ? scopes.get(vsid) : null;
     }
 
-    public Map<String, Map<String, Object>> allStates() {
-        return states;
+    public Map<String, Map<String, Object>> allScopes() {
+        return scopes;
     }
 
     public String uri() {

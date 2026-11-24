@@ -13,7 +13,7 @@ const ON_MODIFY_QUANTITY = 2
 
 // :: View
 
-export type CartItemViewState = {
+export type CartItemScope = {
   id?: number
   name?: string
   price?: number
@@ -21,15 +21,15 @@ export type CartItemViewState = {
 }
 
 /** A row of the cart: a view of its own, whose actions are the row's — no product id goes back. */
-class CartItemViewClass extends BaseViewClass<ViewProps, CartItemViewState> {
+class CartItemViewClass extends BaseViewClass<ViewProps, CartItemScope> {
   override render() {
-    const { state } = this
-    const price = state.price ?? 0
-    const quantity = state.quantity ?? 0
+    const { scope } = this
+    const price = scope.price ?? 0
+    const quantity = scope.quantity ?? 0
     const subtotal = NumberUtils.formatCurrency(price * quantity)
     return (
       <div className={Sel.itemRow}>
-        <span className={Sel.itemName}>{state.name}</span>
+        <span className={Sel.itemName}>{scope.name}</span>
         <div className={Sel.stepperRow}>
           <ActionButton quiet size="s" ref={this.decrementBtnRef}>
             <span className={clsx("bi bi-dash", Sel.stepperIcon)}></span>
@@ -50,11 +50,11 @@ class CartItemViewClass extends BaseViewClass<ViewProps, CartItemViewState> {
   // :: Refs
 
   readonly decrementBtnRef = (el: HTMLElement | null) => {
-    if (el) el.onclick = () => this.emitModifyQuantity((this.state.quantity ?? 0) - 1)
+    if (el) el.onclick = () => this.emitModifyQuantity((this.scope.quantity ?? 0) - 1)
   }
 
   readonly incrementBtnRef = (el: HTMLElement | null) => {
-    if (el) el.onclick = () => this.emitModifyQuantity((this.state.quantity ?? 0) + 1)
+    if (el) el.onclick = () => this.emitModifyQuantity((this.scope.quantity ?? 0) + 1)
   }
 
   readonly removeBtnRef = (el: HTMLElement | null) => {

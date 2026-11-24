@@ -20,7 +20,7 @@ import br.com.wdc.store.view.swt.util.SwtDom;
 
 public class ReceiptViewSwt extends AbstractViewSwt {
 
-    public Supplier<ReceiptScope> stateSupplier;
+    public Supplier<ReceiptScope> scopeSupplier;
     public Runnable onOpenProducts;
 
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy h:mm a", Locale.US);
@@ -39,7 +39,7 @@ public class ReceiptViewSwt extends AbstractViewSwt {
     }
 
     private void render() {
-        var state = this.stateSupplier != null ? this.stateSupplier.get() : null;
+        var scope = this.scopeSupplier != null ? this.scopeSupplier.get() : null;
         SwtDom.render(this.element, (dom, root) -> {
             root.setBackground(Theme.BG_PAGE);
             var rootLayout = new GridLayout(1, false);
@@ -49,7 +49,7 @@ public class ReceiptViewSwt extends AbstractViewSwt {
             root.setLayout(rootLayout);
 
             // Success banner (conditional)
-            if (state != null && state.notifySuccess.get()) {
+            if (scope != null && scope.notifySuccess.get()) {
                 renderSuccessBanner(dom);
             }
 
@@ -59,7 +59,7 @@ public class ReceiptViewSwt extends AbstractViewSwt {
 
                 dom.cardHeader(Theme.ICON_RECEIPT, "Purchase Receipt", "WDC Store");
 
-                renderBody(dom, state);
+                renderBody(dom, scope);
                 renderBackButton(dom);
             });
 
@@ -95,7 +95,7 @@ public class ReceiptViewSwt extends AbstractViewSwt {
         });
     }
 
-    private void renderBody(SwtDom dom, ReceiptScope state) {
+    private void renderBody(SwtDom dom, ReceiptScope scope) {
         dom.col(SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND, body -> {
             body.setLayoutData(gdFillH(new GridData()));
             body.setBackground(Theme.BG_PAGE);
@@ -121,8 +121,8 @@ public class ReceiptViewSwt extends AbstractViewSwt {
                     lbl.setBackground(Theme.BG_PAGE);
                 });
 
-                var dateStr = state != null && state.receipt.get() != null && state.receipt.get().date != null
-                        ? dateFormat.format(new Date(state.receipt.get().date))
+                var dateStr = scope != null && scope.receipt.get() != null && scope.receipt.get().date != null
+                        ? dateFormat.format(new Date(scope.receipt.get().date))
                         : "--";
                 dom.label(lbl -> {
                     lbl.setText(dateStr);
@@ -193,8 +193,8 @@ public class ReceiptViewSwt extends AbstractViewSwt {
             });
 
             // Items
-            if (state != null && state.receipt.get() != null && state.receipt.get().items != null) {
-                for (var item : state.receipt.get().items) {
+            if (scope != null && scope.receipt.get() != null && scope.receipt.get().items != null) {
+                for (var item : scope.receipt.get().items) {
                     dom.row(3, row -> {
                         row.setLayoutData(gdFillH(new GridData()));
                         row.setBackground(Theme.BG_PAGE);
@@ -254,8 +254,8 @@ public class ReceiptViewSwt extends AbstractViewSwt {
                     lbl.setLayoutData(gdFillH(new GridData()));
                 });
 
-                var totalStr = state != null && state.receipt.get() != null && state.receipt.get().total != null
-                        ? Theme.formatPrice(state.receipt.get().total)
+                var totalStr = scope != null && scope.receipt.get() != null && scope.receipt.get().total != null
+                        ? Theme.formatPrice(scope.receipt.get().total)
                         : Theme.formatPrice(0);
                 dom.label(lbl -> {
                     lbl.setText(totalStr);

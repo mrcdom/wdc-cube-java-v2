@@ -14,11 +14,11 @@
     <artifactId>teavm.commons</artifactId>
     <packaging>jar</packaging>
 
-    <name>WeDoCode Store View TeaVM Commons</name>
+    <name>WDC Store View TeaVM Commons</name>
     <description>Shared code for TeaVM-based views: Virtual DOM engine, Spectrum Web Components DSL, selectors, and browser interop utilities</description>
 
     <dependencies>
-        <!-- Presentation module (ViewState classes only — TeaVM tree-shakes unused code) -->
+        <!-- Presentation module (scope classes only — TeaVM tree-shakes unused code) -->
         <dependency>
             <groupId>${project.groupId}</groupId>
             <version>${project.version}</version>

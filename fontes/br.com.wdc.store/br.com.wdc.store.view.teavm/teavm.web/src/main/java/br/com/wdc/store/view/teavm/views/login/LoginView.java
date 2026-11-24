@@ -14,13 +14,13 @@ public class LoginView extends AbstractVDomView<LoginScope> {
 
     private final LoginSharedView shared;
 
-    public LoginView(StoreTeaVMApplication app, LoginScope state) {
-        super("login", app, state);
+    public LoginView(StoreTeaVMApplication app, LoginScope scope) {
+        super("login", app, scope);
 
         this.shared = new LoginSharedView();
-        this.shared.stateSupplier = () -> state;
+        this.shared.scopeSupplier = () -> scope;
         this.shared.onEnter = (userName, password) -> safeAction("Login", () -> {
-            state.onEnter.run(userName, password);
+            scope.onEnter.run(userName, password);
         });
     }
 
