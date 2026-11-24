@@ -70,10 +70,6 @@ public class HomePresenter extends AbstractCubePresenter<StoreApplication> {
 
     @Override
     public void release() {
-        this.scope.content.set(null);
-        this.scope.productsPanel.set(null);
-        this.scope.purchasesPanel.set(null);
-
         this.app.setCart(null);
 
         this.onCartCommitListenerRemover.run();

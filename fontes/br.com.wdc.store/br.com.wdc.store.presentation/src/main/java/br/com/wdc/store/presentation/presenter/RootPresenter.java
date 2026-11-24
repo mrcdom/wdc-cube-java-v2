@@ -39,11 +39,6 @@ public class RootPresenter extends AbstractCubePresenter<StoreApplication> {
     // :: Cube API
 
     @Override
-    public void release() {
-        this.scope.content.set(null);
-    }
-
-    @Override
     public boolean applyParameters(CubeIntent intent, boolean initialization, boolean deepest) {
         if (initialization) {
             tryAutoLogin();
