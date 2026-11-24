@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>br.com.wdc</groupId>
+		<artifactId>br.com.wdc.cube.parent</artifactId>
+		<version>2.0.0</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+
+	<groupId>br.com.wdc.store</groupId>
+	<artifactId>br.com.wdc.store</artifactId>
+	<version>1.0.0</version>
+
+	<packaging>pom</packaging>
+
+	<distributionManagement>
+		<repository>
+			<id>artifactory-wedocode-release</id>
+			<name>libs-release-local</name>
+			<url>${repo.url}/libs-release-local</url>
+		</repository>
+		<snapshotRepository>
+			<id>artifactory-wedocode-snapshot</id>
+			<name>libs-snapshot-local</name>
+			<url>${repo.url}/libs-snapshot-local</url>
+		</snapshotRepository>
+	</distributionManagement>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>io.github.mrcdom.wdc.java</groupId>
+				<artifactId>framework-dependencies</artifactId>
+				<version>2.0.0</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<modules>
+		<module>br.com.wdc.store.domain</module>
+		<module>br.com.wdc.store.persistence</module>
+
+		<module>br.com.wdc.store.presentation</module>
+
+		<module>br.com.wdc.store.scripts</module>
+		<module>br.com.wdc.store.view.remote</module>
+		<module>br.com.wdc.store.view.vaadin</module>
+		<module>br.com.wdc.store.view.swt</module>
+		<module>br.com.wdc.store.view.teavm</module>
+
+		<module>br.com.wdc.store.tests</module>
+	</modules>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.16.0</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+</project>

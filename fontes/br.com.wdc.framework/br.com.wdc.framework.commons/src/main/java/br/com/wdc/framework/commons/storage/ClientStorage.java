@@ -2,62 +2,62 @@ package br.com.wdc.framework.commons.storage;
 
 
 /**
- * Abstração de armazenamento chave-valor no cliente.
+ * Client-side key-value storage abstraction.
  * <p>
- * Cada plataforma/contexto fornece duas implementações por escopo:
+ * Each platform/context provides two implementations, one per scope:
  * <ul>
- *   <li>{@code app.clientSessionStore()} — in-memory, vive enquanto a instância de app
- *       (ou conexão, no caso do {@code HostClient}) estiver ativa.</li>
- *   <li>{@code app.clientPersistentStore()} — persiste entre reinicializações.
- *       No desktop/mobile usa {@link PreferencesClientStorage};
- *       no probe/bridge usa {@link InMemoryClientStorage} por default.</li>
+ *   <li>{@code app.clientSessionStore()} — in-memory, lives while the app instance
+ *       (or the connection, in the case of {@code HostClient}) is active.</li>
+ *   <li>{@code app.clientPersistentStore()} — persists across restarts.
+ *       On desktop/mobile it uses {@link PreferencesClientStorage};
+ *       in the probe/bridge it uses {@link InMemoryClientStorage} by default.</li>
  * </ul>
- * Para armazenar valores sensíveis, use {@link #secure()} em qualquer dos escopos:
+ * To store sensitive values, use {@link #secure()} on either scope:
  * <pre>
  *   app.clientPersistentStore().secure().set("auth.token", token);
  *   app.clientSessionStore().secure().set("csrf.token", csrf);
  * </pre>
  * <p>
- * O comportamento de {@link #secure()} depende da implementação:
+ * The behavior of {@link #secure()} depends on the implementation:
  * <ul>
- *   <li>{@link PreferencesClientStorage} — retorna {@link EncryptedPreferencesClientStorage}
- *       (AES-256-GCM, chave gerada por instalação).</li>
- *   <li>{@link InMemoryClientStorage} — retorna {@code this}; dados efêmeros, criptografia
- *       não agrega valor.</li>
+ *   <li>{@link PreferencesClientStorage} — returns {@link EncryptedPreferencesClientStorage}
+ *       (AES-256-GCM, key generated per installation).</li>
+ *   <li>{@link InMemoryClientStorage} — returns {@code this}; ephemeral data, encryption
+ *       adds no value.</li>
  * </ul>
  */
 public interface ClientStorage {
 
     /**
-     * Retorna uma visão deste escopo com backing seguro para os valores em repouso.
+     * Returns a view of this scope with a secure backing for values at rest.
      * <p>
-     * {@link PreferencesClientStorage} retorna {@link EncryptedPreferencesClientStorage}
-     * (AES-256-GCM). {@link InMemoryClientStorage} retorna {@code this} — dados
-     * são efêmeros e a criptografia não agrega valor nesse contexto.
+     * {@link PreferencesClientStorage} returns {@link EncryptedPreferencesClientStorage}
+     * (AES-256-GCM). {@link InMemoryClientStorage} returns {@code this} — the data
+     * is ephemeral and encryption adds no value in this context.
      */
     ClientStorage secure();
 
     /**
-     * Retorna o valor associado à chave, ou {@code null} se não houver.
+     * Returns the value associated with the key, or {@code null} if there is none.
      */
     String get(String key);
 
     /**
-     * Armazena um valor associado à chave.
+     * Stores a value associated with the key.
      */
     void set(String key, String value);
 
     /**
-     * Remove a entrada associada à chave.
+     * Removes the entry associated with the key.
      */
     void remove(String key);
 
     /**
-     * Retorna todas as entradas deste escopo candidatas à sincronização.
-     * Por convenção, apenas chaves prefixadas com {@code ~} são incluídas.
+     * Returns every entry of this scope that is a candidate for synchronization.
+     * By convention, only keys prefixed with {@code ~} are included.
      * <p>
-     * Implementações que não suportam sincronização (ex.: in-memory, desktop)
-     * podem retornar o mapa padrão vazio.
+     * Implementations that do not support synchronization (e.g. in-memory, desktop)
+     * may return the default empty map.
      */
     default java.util.Map<String, String> all() {
         return java.util.Collections.emptyMap();

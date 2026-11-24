@@ -1,12 +1,12 @@
 /**
- * A sessão: autenticação por desafio-resposta e o transporte HTTP que a usa.
+ * The session: challenge-response authentication and the HTTP transport that uses it.
  *
- * Emite eventos (`change`) para que a interface reaja sem que esta classe conheça a tela.
+ * Emits events (`change`) so the interface can react without this class knowing about the screen.
  */
 
 import { hmacSha256, passwordDigest } from './crypto.js';
 
-/** Requisição e resposta de uma chamada, para a interface poder mostrá-las. */
+/** Request and response of a call, so the interface can show them. */
 export class Exchange {
   constructor({ method, url, requestBody, status, responseBody, elapsedMs, error = null }) {
     Object.assign(this, { method, url, requestBody, status, responseBody, elapsedMs, error });
@@ -44,19 +44,19 @@ export class Session extends EventTarget {
   }
 
   /**
-   * Desafio-resposta: pede um nonce, responde com o HMAC do resumo da senha.
+   * Challenge-response: asks for a nonce, replies with the HMAC of the password digest.
    *
-   * A senha não trafega em momento algum — nem no login, nem depois.
+   * The password never travels over the wire — not at login, not afterwards.
    */
   async login(userName, password) {
     const challenge = await this.send('GET', '/api/auth/challenge');
-    if (!challenge.ok) throw new Error(`Não foi possível obter o desafio (HTTP ${challenge.status})`);
+    if (!challenge.ok) throw new Error(`Could not get the challenge (HTTP ${challenge.status})`);
 
     const { nonce } = challenge.responseBody;
     const digest = await hmacSha256(passwordDigest(password), userName + nonce);
 
     const login = await this.send('POST', '/api/auth/login', { userName, digest, nonce });
-    if (!login.ok) throw new Error(`Falha na autenticação (HTTP ${login.status})`);
+    if (!login.ok) throw new Error(`Authentication failed (HTTP ${login.status})`);
 
     this.#accessToken = login.responseBody.accessToken;
     this.#refreshToken = login.responseBody.refreshToken;
@@ -67,7 +67,7 @@ export class Session extends EventTarget {
   }
 
   async refresh() {
-    if (!this.#refreshToken) throw new Error('Não há refresh token');
+    if (!this.#refreshToken) throw new Error('No refresh token');
     const response = await this.send('POST', '/api/auth/refresh', { refreshToken: this.#refreshToken });
     if (response.ok) {
       this.#accessToken = response.responseBody.accessToken;
@@ -87,7 +87,7 @@ export class Session extends EventTarget {
     return response;
   }
 
-  /** Uma chamada à API, devolvendo tudo o que a interface precisa mostrar — inclusive o erro. */
+  /** A call to the API, returning everything the interface needs to show — including the error. */
   async send(method, url, body = null) {
     const headers = { Accept: 'application/json' };
     if (body !== null) headers['Content-Type'] = 'application/json';
@@ -106,7 +106,7 @@ export class Session extends EventTarget {
       try {
         parsed = text ? JSON.parse(text) : null;
       } catch {
-        // Resposta que não é JSON (uma imagem, um erro de servidor em texto) fica como veio.
+        // A response that is not JSON (an image, a plain-text server error) is kept as it came.
       }
 
       return new Exchange({

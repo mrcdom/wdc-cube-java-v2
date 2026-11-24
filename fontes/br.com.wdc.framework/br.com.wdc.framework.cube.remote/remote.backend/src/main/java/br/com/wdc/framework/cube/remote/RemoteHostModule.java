@@ -16,7 +16,7 @@ import io.javalin.config.JavalinConfig;
  * <pre>
  * var security = RemoteAppSecurity.createDefault();
  * var registry = new RemoteApplicationRegistry&lt;&gt;(myFactory);
- * var module = new RemoteHostModule(security, registry, "shopping", "admin");
+ * var module = new RemoteHostModule(security, registry, "store", "admin");
  *
  * // During Javalin configuration:
  * module.configure(javalinConfig);

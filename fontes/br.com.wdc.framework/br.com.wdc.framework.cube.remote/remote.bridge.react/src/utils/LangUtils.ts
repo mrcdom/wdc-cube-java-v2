@@ -11,7 +11,7 @@ export function makeUniqueId(): string {
   if (typeof crypto.randomUUID === "function") {
     return crypto.randomUUID()
   }
-  // Fallback para contextos não-seguros (HTTP puro): UUID v4 via getRandomValues
+  // Fallback for non-secure contexts (plain HTTP): UUID v4 via getRandomValues
   const b = crypto.getRandomValues(new Uint8Array(16))
   b[6] = (b[6] & 0x0f) | 0x40 // version 4
   b[8] = (b[8] & 0x3f) | 0x80 // variant bits

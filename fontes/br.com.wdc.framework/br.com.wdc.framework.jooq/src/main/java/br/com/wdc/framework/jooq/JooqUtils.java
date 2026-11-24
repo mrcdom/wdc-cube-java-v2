@@ -9,19 +9,19 @@ import org.jooq.Field;
 import org.jooq.impl.DSL;
 
 /**
- * Extensões DSL para gerar campos JSON via SQL portável (H2 e PostgreSQL).
+ * DSL extensions that generate JSON fields through portable SQL (H2 and PostgreSQL).
  *
- * <h2>Escolha técnica: concatenação inline</h2>
+ * <h2>Technical choice: inline concatenation</h2>
  *
  * <p>
- * Em vez de depender de funções proprietárias ({@code to_json()}, {@code array_to_string()}), usamos SQL padrão
- * ({@code CAST}, {@code REPLACE}, {@code CASE}, operador {@code ||}) que funciona em ambos os bancos sem necessidade
- * de {@code CREATE ALIAS}.
+ * Instead of relying on proprietary functions ({@code to_json()}, {@code array_to_string()}), we use standard SQL
+ * ({@code CAST}, {@code REPLACE}, {@code CASE}, the {@code ||} operator) that works on both databases without the need
+ * for {@code CREATE ALIAS}.
  * </p>
  *
  * <p>
- * A única exceção é o campo BINARY (byte[]), que requer uma função custom {@code TO_JSON_BIN} para codificação Base64
- * — registrada em {@link H2Functions}.
+ * The only exception is the BINARY field (byte[]), which requires a custom {@code TO_JSON_BIN} function for Base64
+ * encoding — registered in {@link H2Functions}.
  * </p>
  */
 public final class JooqUtils {
@@ -30,10 +30,10 @@ public final class JooqUtils {
         // NOOP
     }
 
-    // ─── Métodos de campo JSON por tipo ─────────────────────────────────────────
+    // ─── JSON field methods by type ─────────────────────────────────────────────
 
     /**
-     * Campo numérico (BIGINT, INT, DOUBLE, DECIMAL) → JSON sem aspas.
+     * Numeric field (BIGINT, INT, DOUBLE, DECIMAL) → unquoted JSON.
      * <p>SQL: {@code coalesce(cast(field as varchar), 'null')}</p>
      */
     public static Pair<String, Field<String>> toJsonNum(String fn, Field<?> field) {
@@ -42,7 +42,7 @@ public final class JooqUtils {
     }
 
     /**
-     * Campo string/enum (VARCHAR) → JSON com aspas e escape de {@code \} e {@code "}.
+     * String/enum field (VARCHAR) → quoted JSON, escaping {@code \} and {@code "}.
      * <p>SQL: {@code case when field is null then 'null' else '"' || escape(field) || '"' end}</p>
      */
     public static Pair<String, Field<String>> toJsonStr(String fn, Field<?> field) {
@@ -53,7 +53,7 @@ public final class JooqUtils {
     }
 
     /**
-     * Campo booleano → JSON {@code true}/{@code false}/{@code null}.
+     * Boolean field → JSON {@code true}/{@code false}/{@code null}.
      */
     public static Pair<String, Field<String>> toJsonBool(String fn, Field<?> field) {
         return Pair.of(fn, DSL.field(
@@ -63,7 +63,7 @@ public final class JooqUtils {
     }
 
     /**
-     * Campo OffsetDateTime (TIMESTAMP WITH TIME ZONE) → JSON string com aspas.
+     * OffsetDateTime field (TIMESTAMP WITH TIME ZONE) → quoted JSON string.
      */
     public static Pair<String, Field<String>> toJsonOdt(String fn, Field<?> field) {
         return Pair.of(fn, DSL.field(
@@ -73,7 +73,7 @@ public final class JooqUtils {
     }
 
     /**
-     * Campo binário (BINARY/BLOB) → JSON string Base64. Requer alias {@code TO_JSON_BIN} registrado via
+     * Binary field (BINARY/BLOB) → Base64 JSON string. Requires the {@code TO_JSON_BIN} alias registered via
      * {@link H2Functions}.
      */
     public static Pair<String, Field<String>> toJsonBin(String fn, Field<?> field) {
@@ -81,17 +81,17 @@ public final class JooqUtils {
                 DSL.sql("coalesce(to_json_bin(" + field + "), 'null')"), String.class));
     }
 
-    // ─── Montagem do objeto JSON ────────────────────────────────────────────────
+    // ─── JSON object assembly ───────────────────────────────────────────────────
 
     /**
-     * Monta um campo SQL que produz um JSON object a partir de uma lista de entries.
+     * Builds an SQL field that produces a JSON object from a list of entries.
      *
      * <p>
-     * Resultado: {@code '{' || '"k1":' || val1 || ',' || '"k2":' || val2 || ... || '}'}
+     * Result: {@code '{' || '"k1":' || val1 || ',' || '"k2":' || val2 || ... || '}'}
      * </p>
      *
      * <p>
-     * Usa concatenação simples com {@code ||} — não depende de {@code array_to_string} nem de construtores de array.
+     * Uses plain concatenation with {@code ||} — it depends neither on {@code array_to_string} nor on array constructors.
      * </p>
      */
     public static Field<String> toJsonObjectField(List<Pair<String, Field<String>>> entries) {

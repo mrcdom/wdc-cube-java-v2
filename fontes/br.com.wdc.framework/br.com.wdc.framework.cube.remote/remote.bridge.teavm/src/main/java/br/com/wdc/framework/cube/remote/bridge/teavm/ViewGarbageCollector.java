@@ -5,12 +5,12 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * GC de ViewScopes baseado em autoridade do servidor.
+ * ViewScope GC driven by server authority.
  *
- * O servidor informa periodicamente (via resposta ao ping) quais views estão ativas.
- * O cliente remove da viewMap qualquer view que:
- *   1. NÃO conste na lista do servidor
- *   2. NÃO esteja montada (bindView ativo)
+ * The server periodically reports (via the ping response) which views are active.
+ * The client removes from the viewMap any view that:
+ *   1. is NOT in the server's list
+ *   2. is NOT mounted (no active bindView)
  */
 public class ViewGarbageCollector {
 

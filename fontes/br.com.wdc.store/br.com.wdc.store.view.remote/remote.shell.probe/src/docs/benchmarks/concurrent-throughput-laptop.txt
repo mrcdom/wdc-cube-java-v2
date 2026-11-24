@@ -1,0 +1,247 @@
+══════════════════════════════════════════════════════════════════════
+  MACHINE: MacBook Pro — Apple M4 Max (Mac16,6)
+══════════════════════════════════════════════════════════════════════
+
+  CPU
+    Chip         : Apple M4 Max
+    Total cores  : 16  (12 Performance + 4 Efficiency)
+    GPU cores    : integrated in the SoC (Apple M4 Max GPU)
+    Architecture : ARM64 (AArch64), single-die SoC
+
+  Memory
+    RAM          : 64 GB unified memory (LPDDR5X)
+    Bandwidth    : ~546 GB/s (M4 Max)
+    Swap         : NVMe SSD (transparent via macOS)
+
+  Storage
+    Type         : internal Apple NVMe SSD
+    Capacity     : 2 TB
+    Speed        : ~7.4 GB/s sequential read (M4 Max)
+
+  Reference JDK
+    Version      : Java 26 (JDK 26, 2026-03-17)
+    Default GC   : Generational ZGC
+    -Xms10g -Xmx10g -XX:+UseZGC -XX:+ZGenerational -XX:SoftMaxHeapSize=9g -XX:ZCollectionInterval=5 -XX:MaxMetaspaceSize=512m -XX:ReservedCodeCacheSize=256m
+
+  Capacity relevant to benchmarks
+    - Heap configured in the tests : 10 GB (-Xms10g -Xmx10g)
+    - Memory available to the OS   : ~54 GB free for other processes
+    - Cores available to the JVM   : 16 (virtual threads map onto all of them)
+    - Observed saturation          : ~100 simultaneous sessions when server
+                                     + client + database run on the same machine
+                                     (~25,000 req/s, p50=5ms)
+
+══════════════════════════════════════════════════════════════════════
+  JVM CONFIGURATION  (start-server.sh)
+══════════════════════════════════════════════════════════════════════
+
+  -Xms10g -Xmx10g
+  -XX:+UseZGC -XX:+ZGenerational
+  -XX:SoftMaxHeapSize=9g
+  -XX:ZCollectionInterval=5
+  -XX:MaxMetaspaceSize=512m
+  -XX:ReservedCodeCacheSize=256m
+══════════════════════════════════════════════════════════════════════
+
+══════════════════════════════════════════════════════════════════════
+  RESULT
+══════════════════════════════════════════════════════════════════════
+  Sessions       : 100
+  Hold           : 60 s
+  Mode           : fire-and-wait
+  Total requests : 1,391,856
+  Errors         : 0 (0.00%)
+
+  Throughput     : 23,197 req/s
+
+  Latency
+    p50          : 5 ms
+    p75          : 10 ms
+    p95          : 10 ms
+    p99          : 10 ms
+    max          : 33 ms
+
+  Heap peak      : 4.83 GB
+
+  Latency distribution
+  Bucket (ms)          Count  % of total
+  ──────────────  ──────────  ──────────
+  <= 5               844,350       60.7%
+  5–10               542,332       39.0%
+  10–20                4,784        0.3%
+  20–50                  390        0.0%
+  50–100                   0        0.0%
+  100–200                  0        0.0%
+  200–500                  0        0.0%
+  500–1000                 0        0.0%
+  1000–5000                0        0.0%
+  > 5000                   0        0.0%
+══════════════════════════════════════════════════════════════════════
+
+══════════════════════════════════════════════════════════════════════
+  RESULT
+══════════════════════════════════════════════════════════════════════
+  Sessions       : 200
+  Hold           : 60 s
+  Mode           : fire-and-wait
+  Total requests : 1,097,278
+  Errors         : 0 (0.00%)
+
+  Throughput     : 18,287 req/s
+
+  Latency
+    p50          : 10 ms
+    p75          : 20 ms
+    p95          : 20 ms
+    p99          : 50 ms
+    max          : 67 ms
+
+  Heap peak      : 4.29 GB
+
+  Latency distribution
+  Bucket (ms)          Count  % of total
+  ──────────────  ──────────  ──────────
+  <= 5               106,415        9.7%
+  5–10               470,290       42.9%
+  10–20              473,683       43.2%
+  20–50               46,827        4.3%
+  50–100                  63        0.0%
+  100–200                  0        0.0%
+  200–500                  0        0.0%
+  500–1000                 0        0.0%
+  1000–5000                0        0.0%
+  > 5000                   0        0.0%
+══════════════════════════════════════════════════════════════════════
+
+══════════════════════════════════════════════════════════════════════
+  RESULT
+══════════════════════════════════════════════════════════════════════
+  Sessions       : 500
+  Hold           : 60 s
+  Mode           : fire-and-wait
+  Total requests : 717,226
+  Errors         : 0 (0.00%)
+
+  Throughput     : 11,953 req/s
+
+  Latency
+    p50          : 50 ms
+    p75          : 100 ms
+    p95          : 100 ms
+    p99          : 100 ms
+    max          : 142 ms
+
+  Heap peak      : 2.68 GB
+
+  Latency distribution
+  Bucket (ms)          Count  % of total
+  ──────────────  ──────────  ──────────
+  <= 5                87,305       12.2%
+  5–10                    12        0.0%
+  10–20                  131        0.0%
+  20–50              301,321       42.0%
+  50–100             324,479       45.2%
+  100–200              3,978        0.6%
+  200–500                  0        0.0%
+  500–1000                 0        0.0%
+  1000–5000                0        0.0%
+  > 5000                   0        0.0%
+══════════════════════════════════════════════════════════════════════
+
+══════════════════════════════════════════════════════════════════════
+  RESULT
+══════════════════════════════════════════════════════════════════════
+  Sessions       : 800
+  Hold           : 60 s
+  Mode           : fire-and-wait
+  Total requests : 554,095
+  Errors         : 0 (0.00%)
+
+  Throughput     : 9,234 req/s
+
+  Latency
+    p50          : 100 ms
+    p75          : 200 ms
+    p95          : 200 ms
+    p99          : 500 ms
+    max          : 302 ms
+
+  Heap peak      : 2.41 GB
+
+  Latency distribution
+  Bucket (ms)          Count  % of total
+  ──────────────  ──────────  ──────────
+  <= 5                93,633       16.9%
+  5–10                    35        0.0%
+  10–20                   13        0.0%
+  20–50                  308        0.1%
+  50–100             222,525       40.2%
+  100–200            221,937       40.1%
+  200–500             15,644        2.8%
+  500–1000                 0        0.0%
+  1000–5000                0        0.0%
+  > 5000                   0        0.0%
+══════════════════════════════════════════════════════════════════════
+
+══════════════════════════════════════════════════════════════════════
+  RESULTS ANALYSIS
+══════════════════════════════════════════════════════════════════════
+
+  Test topology
+  ─────────────
+  Backend       : laptop (M4 Max, 16 cores — 12P + 4E)
+  PostgreSQL    : remote server (2x Xeon, Docker), local network (LAN)
+  Client        : laptop (same process/machine as the backend)
+
+  Degradation curve — the laptop CPU is the bottleneck
+  ────────────────────────────────────────────────────
+    100 sessions →  23,197 req/s   p50 =  5 ms
+    200 sessions →  18,287 req/s   p50 = 10 ms
+    500 sessions →  11,953 req/s   p50 = 50 ms
+    800 sessions →   9,234 req/s   p50 = 100 ms
+
+  With server and client on the same laptop, the two processes compete
+  for the 16 cores. Little's Law confirms the CPU saturation:
+
+    500 sessions / 11,953 req/s ≈ 42 ms mean latency  ✓ (p50 = 50 ms)
+    800 sessions /  9,234 req/s ≈ 87 ms mean latency  ✓ (p50 = 100 ms)
+
+  Comparison with a local PostgreSQL run
+  ──────────────────────────────────────
+  In the local run PostgreSQL ran on the laptop itself. With the database
+  on the remote server, the laptop CPU is fully dedicated to
+  backend + client:
+
+    500 sessions, local PG  →  7,455 req/s   (PostgreSQL competed for the 16 cores)
+    500 sessions, remote PG → 11,953 req/s   (+60%)
+
+  This shows that a local PostgreSQL took ~37% of the laptop's CPU
+  capacity under the test conditions.
+
+  Effect of the remote PostgreSQL on base latency
+  ───────────────────────────────────────────────
+  Each request's latency includes 1–2 SQL queries to PostgreSQL
+  over the LAN. The impact shows in the distribution at 100 sessions:
+
+    100 sessions, local PG  →  60.7% ≤5 ms,  39.0% 5–10 ms
+    100 sessions, remote PG →  60.7% ≤5 ms,  39.0% 5–10 ms  (identical)
+
+  The LAN adds ~1 ms per query, but since virtual threads wait on I/O
+  without blocking carrier threads, that overhead is absorbed with no
+  throughput degradation at moderate loads.
+
+  Sweet spot for this hardware
+  ────────────────────────────
+  At 100–200 sessions the laptop delivers 18,000–23,000 req/s with p50 ≤ 10 ms.
+  Above 200 sessions throughput drops in proportion to the increase in
+  sessions — CPU saturation from backend + client sharing the machine.
+
+  To scale beyond 200 sessions on this hardware, the test client
+  must run on a separate machine.
+
+  Heap
+  ────
+  The heap shrinks as sessions grow (4.83 → 2.41 GB from 100 → 800):
+  more sessions → slower requests → fewer objects created per
+  second → ZGC keeps a smaller heap. Pattern consistent with Generational ZGC.
+══════════════════════════════════════════════════════════════════════

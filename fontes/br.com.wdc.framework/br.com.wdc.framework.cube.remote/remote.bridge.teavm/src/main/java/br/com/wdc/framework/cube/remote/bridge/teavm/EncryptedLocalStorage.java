@@ -38,7 +38,7 @@ public final class EncryptedLocalStorage implements ClientStorage {
      * localStorage prefix: {@code "{syncNamespace}sec."}.
      * Set once by {@link #configure(String)} before {@link #initialize(Runnable)}.
      */
-    private static String lsPrefix = "sec.";
+    private static String lsPrefix = ClientStorage.SECURE_KEY_PREFIX;
 
     /**
      * Configures the sync namespace prefix.
@@ -47,7 +47,7 @@ public final class EncryptedLocalStorage implements ClientStorage {
      * @param syncNamespace namespace prefix for sync (e.g. {@code "~rt:"})
      */
     public static void configure(String syncNamespace) {
-        lsPrefix = syncNamespace + "sec.";
+        lsPrefix = syncNamespace + ClientStorage.SECURE_KEY_PREFIX;
     }
 
     private final Map<String, String> cache = new LinkedHashMap<>();

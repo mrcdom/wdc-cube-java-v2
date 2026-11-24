@@ -4,16 +4,16 @@ import java.time.Instant;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Serviço de autenticação compartilhado por todas as views.
+ * Authentication service shared by all views.
  * <p>
- * Gerencia o fluxo challenge-response HMAC, sessões JWT, e resolução de tokens para {@link SecurityContext}.
+ * Manages the HMAC challenge-response flow, JWT sessions, and token resolution into {@link SecurityContext}.
  */
 public interface AuthenticationService {
 
     AtomicReference<AuthenticationService> BEAN = new AtomicReference<>();
 
     /**
-     * Resultado de uma operação de login ou refresh bem-sucedida.
+     * Result of a successful login or refresh operation.
      */
     record AuthResult(
             Long userId,
@@ -23,56 +23,56 @@ public interface AuthenticationService {
             String publicKey) {}
 
     /**
-     * Resultado de um pedido de challenge (nonce para login HMAC).
+     * Result of a challenge request (nonce for HMAC login).
      */
     record ChallengeResult(String nonce, Instant expiresAt) {}
 
     /**
-     * Gera um nonce de uso único para o fluxo challenge-response.
+     * Generates a single-use nonce for the challenge-response flow.
      */
     ChallengeResult challenge();
 
     /**
-     * Autentica via HMAC challenge-response.
+     * Authenticates via HMAC challenge-response.
      *
-     * @param userName nome do usuário
+     * @param userName user name
      * @param digest   HMAC-SHA256(key=passwordHash, data=userName+nonce)
-     * @param nonce    nonce obtido via {@link #challenge()}
-     * @return resultado com tokens e chave pública, ou null se inválido
+     * @param nonce    nonce obtained via {@link #challenge()}
+     * @return result with tokens and public key, or null if invalid
      */
     AuthResult login(String userName, String digest, String nonce);
 
     /**
-     * Renova o access token usando o refresh token.
+     * Renews the access token using the refresh token.
      *
-     * @return resultado com novos tokens, ou null se refresh token inválido
+     * @return result with new tokens, or null if the refresh token is invalid
      */
     AuthResult refresh(String refreshToken);
 
     /**
-     * Encerra a sessão associada ao refresh token.
+     * Ends the session associated with the refresh token.
      */
     void logout(String refreshToken);
 
     /**
-     * Valida um JWT e retorna o {@link SecurityContext} da sessão.
+     * Validates a JWT and returns the session's {@link SecurityContext}.
      *
-     * @return contexto de segurança, ou null se token inválido/expirado
+     * @return security context, or null if the token is invalid/expired
      */
     SecurityContext resolveToken(String jwtToken);
 
     /**
-     * Cria um token persistente (longa duração) para "remember me". O token sobrevive a reinícios do servidor.
+     * Creates a persistent (long-lived) token for "remember me". The token survives server restarts.
      *
-     * @return JWT assinado com TTL longo (30 dias)
+     * @return JWT signed with a long TTL (30 days)
      */
     String createPersistentToken(Long userId, String userName);
 
     /**
-     * Valida um token persistente e cria uma sessão completa. Usado para auto-login em clientes nativos
+     * Validates a persistent token and creates a full session. Used for auto-login on native clients
      * (desktop/mobile).
      *
-     * @return resultado com tokens e sessão ativa, ou null se inválido/expirado
+     * @return result with tokens and an active session, or null if invalid/expired
      */
     AuthResult loginWithPersistentToken(String persistentToken);
 

@@ -1,42 +1,42 @@
 # remote.bridge.teavm
 
-Bridge TeaVM para o protocolo Host/Shell do **Cube MVP Remoto**. Implementa o lado cliente (shell) do protocolo em Java compilado para JavaScript via **TeaVM** — conecta ao `remote.host` via WebSocket usando a Web Crypto API do browser, sem nenhum runtime JS externo.
+TeaVM bridge for the **Remote Cube MVP** Host/Shell protocol. Implements the client (shell) side of the protocol in Java compiled to JavaScript via **TeaVM** — connects to `remote.host` over WebSocket using the browser's Web Crypto API, without any external JS runtime.
 
-É a contraparte TeaVM dos bridges React (`remote.bridge.react`) e Java (`remote.bridge.java`). Consumido por `remote.shell.teavm` (aplicação shopping) e qualquer outro shell TeaVM sobre o mesmo protocolo.
+It is the TeaVM counterpart of the React (`remote.bridge.react`) and Java (`remote.bridge.java`) bridges. Consumed by `remote.shell.teavm` (WDC Store application) and any other TeaVM shell on the same protocol.
 
-## Classes Principais
+## Main Classes
 
-### Protocolo & Estado
+### Protocol & State
 
-| Classe | Responsabilidade |
-|--------|------------------|
-| `ViewStateCoordinator` | Gerencia conexão WS, ciclo request/response, distribui ViewState updates para as views ativas |
-| `ViewScope` | Estado reativo de uma view: recebe snapshots do coordinator e notifica a view via `update()` |
-| `RemoteView` | Interface base para views remotas TeaVM: `render()` + `onViewState(ViewScope)` |
-| `FlushRequestContext` | Serializa e envia eventos ao host; gerencia fila de flushes pendentes |
-| `ReconnectController` | Backoff progressivo em reconexão WebSocket |
-| `ViewGarbageCollector` | Cleanup de views desalocadas quando o host envia sinal de remoção |
-| `DataSecurity` | Handshake RSA + AES-GCM via Web Crypto API; espelha `RemoteDataSecurity` do servidor |
-| `SecurityBoot` | Inicializa `DataSecurity` na abertura da sessão |
-| `JsonParser` | Parser JSON leve compilado para JS (sem dependência de biblioteca externa) |
+| Class | Responsibility |
+|-------|----------------|
+| `ViewStateCoordinator` | Manages the WS connection and the request/response cycle, distributes ViewState updates to the active views |
+| `ViewScope` | Reactive state of a view: receives snapshots from the coordinator and notifies the view via `update()` |
+| `RemoteView` | Base interface for TeaVM remote views: `render()` + `onViewState(ViewScope)` |
+| `FlushRequestContext` | Serializes and sends events to the host; manages the queue of pending flushes |
+| `ReconnectController` | Progressive backoff on WebSocket reconnection |
+| `ViewGarbageCollector` | Cleanup of deallocated views when the host sends a removal signal |
+| `DataSecurity` | RSA + AES-GCM handshake via Web Crypto API; mirrors the server's `RemoteDataSecurity` |
+| `SecurityBoot` | Initializes `DataSecurity` when the session opens |
+| `JsonParser` | Lightweight JSON parser compiled to JS (no external library dependency) |
 
 ### Interop (JSO bridges)
 
-| Classe | Responsabilidade |
-|--------|------------------|
+| Class | Responsibility |
+|-------|----------------|
 | `Console` | `console.log/error/warn` |
-| `Cookies` | Leitura/escrita de cookies do browser |
+| `Cookies` | Reading/writing browser cookies |
 | `Timers` | `setTimeout` / `clearTimeout` |
 | `WebCrypto` | Web Crypto API (SubtleCrypto: importKey, encrypt, decrypt, deriveBits) |
-| `JsRunnable` | Callback JS sem parâmetros |
-| `JsIntConsumer` | Callback JS com parâmetro inteiro |
-| `JsStringConsumer` | Callback JS com parâmetro string |
-| `JsBiObjectConsumer` | Callback JS com dois parâmetros objeto |
+| `JsRunnable` | JS callback with no parameters |
+| `JsIntConsumer` | JS callback with an integer parameter |
+| `JsStringConsumer` | JS callback with a string parameter |
+| `JsBiObjectConsumer` | JS callback with two object parameters |
 
-## Dependências
+## Dependencies
 
 - `org.teavm:teavm-jso` — JSO API (scope: provided)
-- `org.teavm:teavm-jso-apis` — APIs browser (WebSocket, etc.) (scope: provided)
+- `org.teavm:teavm-jso-apis` — browser APIs (WebSocket, etc.) (scope: provided)
 
 ## Build
 

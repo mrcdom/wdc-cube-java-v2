@@ -12,19 +12,19 @@ import br.com.wdc.framework.jooq.JsonDialect;
 import br.com.wdc.framework.jooq.JsonFieldEntry;
 
 /**
- * Dialeto JSON para PostgreSQL e YugabyteDB.
+ * JSON dialect for PostgreSQL and YugabyteDB.
  *
- * <h2>Escolha técnica: por que não usar {@code json_build_object()}?</h2>
+ * <h2>Technical choice: why not use {@code json_build_object()}?</h2>
  *
  * <p>
- * A função nativa {@code json_build_object('k1', v1, 'k2', v2, ...)} recebe dois argumentos por campo (chave + valor).
- * O PostgreSQL define {@code FUNC_MAX_ARGS = 100} como constante de compilação nos binários distribuídos pelas distros.
- * Isso limita {@code json_build_object} a <b>50 campos</b> por chamada — e alterar esse limite exige recompilar o
- * PostgreSQL a partir do código-fonte.
+ * The native function {@code json_build_object('k1', v1, 'k2', v2, ...)} takes two arguments per field (key + value).
+ * PostgreSQL defines {@code FUNC_MAX_ARGS = 100} as a compile-time constant in the binaries shipped by the distros.
+ * This limits {@code json_build_object} to <b>50 fields</b> per call — and changing that limit requires recompiling
+ * PostgreSQL from source.
  * </p>
  *
  * <p>
- * Usa a combinação:
+ * It uses the combination:
  * </p>
  *
  * <pre>{@code
@@ -36,17 +36,17 @@ import br.com.wdc.framework.jooq.JsonFieldEntry;
  * }</pre>
  *
  * <ul>
- * <li>{@code array[e1, e2, ..., eN]} é um construtor de array, não uma função — não sujeito a {@code FUNC_MAX_ARGS}.
+ * <li>{@code array[e1, e2, ..., eN]} is an array constructor, not a function — not subject to {@code FUNC_MAX_ARGS}.
  * </li>
- * <li>{@code array_to_string} recebe apenas 3 argumentos fixos.</li>
- * <li>{@code to_json()} serializa qualquer tipo PostgreSQL para JSON válido.</li>
+ * <li>{@code array_to_string} takes only 3 fixed arguments.</li>
+ * <li>{@code to_json()} serializes any PostgreSQL type to valid JSON.</li>
  * </ul>
  *
  * <p>
- * <b>Preservação de bind values:</b> os campos ({@link JsonFieldEntry#field()} e o elemento do array) são embutidos via
- * placeholders {@code {N}} de template do jOOQ — nunca renderizados para string crua. Isso garante que subqueries
- * correlacionadas com critérios filtrados (ex.: projeção lazy 1—N com {@code ProjectionList(prj, criteria)}) tenham
- * seus bind values rastreados e vinculados na posição correta pelo jOOQ.
+ * <b>Bind value preservation:</b> the fields ({@link JsonFieldEntry#field()} and the array element) are embedded via jOOQ
+ * template placeholders {@code {N}} — never rendered to a raw string. This ensures that correlated subqueries with
+ * filtered criteria (e.g. a lazy 1—N projection with {@code ProjectionList(prj, criteria)}) have their bind values
+ * tracked and bound at the correct position by jOOQ.
  * </p>
  */
 public final class PostgresJsonDialect implements JsonDialect {
@@ -96,8 +96,8 @@ public final class PostgresJsonDialect implements JsonDialect {
     }
 
     /**
-     * Monta a expressão de valor JSON do campo, registrando {@link JsonFieldEntry#field()} como QueryPart (placeholder
-     * {@code {N}}) na lista {@code args} — preservando eventuais bind values do campo (ex.: subqueries filtradas).
+     * Builds the field's JSON value expression, registering {@link JsonFieldEntry#field()} as a QueryPart (placeholder
+     * {@code {N}}) in the {@code args} list — preserving any bind values of the field (e.g. filtered subqueries).
      */
     private String valueExpr(JsonFieldEntry e, List<QueryPart> args) {
         int idx = args.size();

@@ -1,12 +1,12 @@
 package br.com.wdc.framework.domain.criteria;
 
 /**
- * Operador de comparação de um {@link Criterion}, com a mesma semântica do SQL.
+ * Comparison operator of a {@link Criterion}, with the same semantics as SQL.
  *
  * <p>
- * Vive no {@code domain} e é deliberadamente <b>neutro</b>: não conhece jOOQ nem SQL, apenas nomeia a comparação. Quem
- * traduz para {@code Condition} é o {@code framework.jooq}; o cliente REST serializa o mesmo enum. Fosse este enum
- * ciente de jOOQ, o critério deixaria de ser montável do lado do cliente.
+ * It lives in {@code domain} and is deliberately <b>neutral</b>: it knows neither jOOQ nor SQL, it only names the
+ * comparison. The translation to {@code Condition} belongs to {@code framework.jooq}; the REST client serializes the
+ * same enum. Were this enum aware of jOOQ, the criteria could no longer be built on the client side.
  * </p>
  */
 public enum Operator {
@@ -23,13 +23,13 @@ public enum Operator {
     LT(1),
     /** {@code <= ?} */
     LE(1),
-    /** {@code LIKE ?} — sensível a maiúsculas; os curingas fazem parte do valor. */
+    /** {@code LIKE ?} — case-sensitive; the wildcards are part of the value. */
     LIKE(1),
-    /** {@code ILIKE ?} — insensível a maiúsculas. */
+    /** {@code ILIKE ?} — case-insensitive. */
     ILIKE(1),
     /** {@code BETWEEN ? AND ?} */
     BETWEEN(2),
-    /** {@code IN (?, ?, …)} — aridade variável. */
+    /** {@code IN (?, ?, …)} — variable arity. */
     IN(-1),
     /** {@code IS NULL} */
     IS_NULL(0),
@@ -42,12 +42,12 @@ public enum Operator {
         this.arity = arity;
     }
 
-    /** Quantidade de valores que o operador exige; {@code -1} quando é variável ({@link #IN}). */
+    /** Number of values the operator requires; {@code -1} when variable ({@link #IN}). */
     public int arity() {
         return arity;
     }
 
-    /** {@code true} quando a quantidade informada satisfaz o operador. */
+    /** {@code true} when the given count satisfies the operator. */
     public boolean accepts(int count) {
         return arity < 0 ? count > 0 : count == arity;
     }

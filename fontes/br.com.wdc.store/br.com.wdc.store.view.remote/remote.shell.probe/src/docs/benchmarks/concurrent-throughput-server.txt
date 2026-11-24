@@ -1,0 +1,207 @@
+══════════════════════════════════════════════════════════════════════
+  SERVER — HARDWARE SPECIFICATIONS
+══════════════════════════════════════════════════════════════════════
+
+  CPU            : 2x Intel Xeon Platinum 8368 @ 2.40 GHz (Turbo 3.40 GHz)
+  Sockets        : 2
+  Physical cores : 76 (38 per socket)
+  Threads (vCPUs): 152 (Hyper-Threading enabled)
+  Cache L1d      : 3.6 MiB  (76 instances)
+  Cache L1i      : 2.4 MiB  (76 instances)
+  Cache L2       : 95 MiB   (76 instances)
+  Cache L3       : 114 MiB  (2 instances — 57 MiB/socket)
+
+  Total RAM      : 1.5 TiB
+  Available RAM  : ~556 GiB  (during the tests)
+  Swap           : none
+
+  Disk           : 436 GiB (overlay/container), ~136 GiB free
+
+  OS             : Ubuntu 24.04.4 LTS (Noble Numbat)
+  Kernel         : 6.8.0-101-generic x86_64 (PREEMPT_DYNAMIC)
+  Environment    : Container (overlay filesystem)
+
+══════════════════════════════════════════════════════════════════════
+  JVM CONFIGURATION  (start-server.sh)
+══════════════════════════════════════════════════════════════════════
+
+  -Xms10g -Xmx10g
+  -XX:+UseZGC -XX:+ZGenerational
+  -XX:SoftMaxHeapSize=9g
+  -XX:ZCollectionInterval=5
+  -XX:MaxMetaspaceSize=512m
+  -XX:ReservedCodeCacheSize=256m
+══════════════════════════════════════════════════════════════════════
+
+══════════════════════════════════════════════════════════════════════
+  RESULT
+══════════════════════════════════════════════════════════════════════
+  Sessions       : 100
+  Hold           : 60 s
+  Mode           : fire-and-wait
+  Total requests : 412,711
+  Errors         : 0 (0.00%)
+
+  Throughput     : 6,878 req/s
+
+  Latency
+    p50          : 20 ms
+    p75          : 50 ms
+    p95          : 50 ms
+    p99          : 50 ms
+    max          : 90 ms
+
+  Heap peak      : 2.26 GB
+
+  Latency distribution
+  Bucket (ms)          Count  % of total
+  ──────────────  ──────────  ──────────
+  <= 5                57,360       13.9%
+  5–10                43,203       10.5%
+  10–20              193,711       46.9%
+  20–50              118,230       28.6%
+  50–100                 207        0.1%
+  100–200                  0        0.0%
+  200–500                  0        0.0%
+  500–1000                 0        0.0%
+  1000–5000                0        0.0%
+  > 5000                   0        0.0%
+══════════════════════════════════════════════════════════════════════
+
+══════════════════════════════════════════════════════════════════════
+  RESULT
+══════════════════════════════════════════════════════════════════════
+  Sessions       : 500
+  Hold           : 60 s
+  Mode           : fire-and-wait
+  Total requests : 430,177
+  Errors         : 0 (0.00%)
+
+  Throughput     : 7,169 req/s
+
+  Latency
+    p50          : 100 ms
+    p75          : 200 ms
+    p95          : 200 ms
+    p99          : 200 ms
+    max          : 464 ms
+
+  Heap peak      : 1.42 GB
+
+  Latency distribution
+  Bucket (ms)          Count  % of total
+  ──────────────  ──────────  ──────────
+  <= 5                55,757       13.0%
+  5–10                    94        0.0%
+  10–20                  194        0.0%
+  20–50               35,677        8.3%
+  50–100             197,638       45.9%
+  100–200            140,203       32.6%
+  200–500                614        0.1%
+  500–1000                 0        0.0%
+  1000–5000                0        0.0%
+  > 5000                   0        0.0%
+
+══════════════════════════════════════════════════════════════════════
+  RESULT
+══════════════════════════════════════════════════════════════════════
+  Sessions       : 800
+  Hold           : 60 s
+  Mode           : fire-and-wait
+  Total requests : 443,847
+  Errors         : 0 (0.00%)
+
+  Throughput     : 7,397 req/s
+
+  Latency
+    p50          : 100 ms
+    p75          : 200 ms
+    p95          : 200 ms
+    p99          : 500 ms
+    max          : 547 ms
+
+  Heap peak      : 2.42 GB
+
+  Latency distribution
+  Bucket (ms)          Count  % of total
+  ──────────────  ──────────  ──────────
+  <= 5                55,584       12.5%
+  5–10                    41        0.0%
+  10–20                   78        0.0%
+  20–50                2,144        0.5%
+  50–100             205,344       46.3%
+  100–200            173,491       39.1%
+  200–500              7,157        1.6%
+  500–1000                 8        0.0%
+  1000–5000                0        0.0%
+  > 5000                   0        0.0%
+══════════════════════════════════════════════════════════════════════
+
+══════════════════════════════════════════════════════════════════════
+  RESULTS ANALYSIS
+══════════════════════════════════════════════════════════════════════
+
+  Test topology
+  ─────────────
+  Backend       : server (2x Xeon Platinum 8368, 152 vCPUs, 1.5 TiB)
+  PostgreSQL    : Docker container on the server itself (local access)
+  Client        : same server (local ConcurrentThroughputScenario)
+
+  The bottleneck is per-request processing speed on the Xeon
+  ────────────────────────────────────────────────────────────────────
+  Throughput stays almost constant between 100 and 800 sessions:
+
+    100 sessions →  6,878 req/s   (p50 = 20 ms)
+    500 sessions →  7,169 req/s   (p50 = 100 ms)
+    800 sessions →  7,397 req/s   (p50 = 100 ms)
+
+  The same PostgreSQL (same Docker container, same host) served
+  the laptop with p50 = 5 ms and 23,197 req/s at 100 sessions — 3×
+  faster, even reaching the database over the network. If the database
+  were the bottleneck, the server with local access would be faster,
+  not slower. PostgreSQL is not the bottleneck.
+
+  Little's Law shows that the ceiling is the per-request latency:
+
+    throughput ≈ sessions / mean_latency
+
+    server: 100 / 0.0145 s ≈  6,900 req/s  ✓  (p50 = 20 ms)
+    laptop: 100 / 0.005  s ≈ 20,000 req/s  ✓  (p50 =  5 ms)
+
+  The difference lies in the per-request processing speed of the
+  Javalin + jOOQ + JSON pipeline on each hardware:
+
+  - M4 Max (~4+ GHz effective, Apple Silicon):
+    ~5 ms per request → 20,000 req/s possible at 100 sessions
+  - Xeon Platinum 8368 (2.4 GHz base, optimized for parallel
+    throughput, not single-thread):
+    ~20 ms per request → ~5,000–7,000 req/s at 100 sessions
+
+  With fire-and-wait each virtual thread processes one request at
+  a time. Throughput depends on per-request speed, not on the core
+  count. With 100 sessions and 152 vCPUs there is no CPU
+  contention — the Xeon simply processes more slowly.
+
+  Latency distribution at 100 sessions
+  ────────────────────────────────────
+  The cluster at 10–20 ms (46.9% of requests) is the signature of
+  the processing time on the Xeon. The 13.9% at ≤ 5 ms are requests
+  that hit a warm cache (JIT-compiled code, data in the PostgreSQL
+  cache) and completed in the pipeline's minimum time.
+
+  Heap
+  ────
+  The heap stays low (1.4–2.4 GB) even with 800 sessions, because
+  PostgreSQL runs in a separate process and does not use JVM heap.
+  With 1.5 TiB of RAM available, memory is not a constraint on this server.
+
+  Real server capacity
+  ────────────────────
+  The Xeon has 152 vCPUs — huge parallel capacity. To exercise it,
+  the scenario needs enough concurrency to saturate parallel
+  processing. With fire-and-wait at 100–800 sessions, each core
+  processes sequentially; the gain comes from running more
+  simultaneous sessions. The practical ceiling is when all 152 vCPUs
+  are busy — estimated at tens of thousands of concurrent sessions
+  with a real distributed load.
+══════════════════════════════════════════════════════════════════════

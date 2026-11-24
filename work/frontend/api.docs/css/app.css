@@ -1,4 +1,4 @@
-/* Critérios e Projeções — folha única, organizada de fora para dentro. */
+/* Criteria and Projections — a single stylesheet, organized from the outside in. */
 
 :root {
   color-scheme: light dark;
@@ -54,7 +54,7 @@ body {
 
 code, pre { font-family: var(--mono); font-size: 0.86em; }
 
-/* -- Topo ---------------------------------------------------------------- */
+/* -- Top ----------------------------------------------------------------- */
 
 .top {
   display: flex;
@@ -79,7 +79,7 @@ code, pre { font-family: var(--mono); font-size: 0.86em; }
 .auth-status.yes { background: var(--on-soft); color: var(--on); }
 .auth-status.pending { background: var(--warn-soft); color: var(--warn); }
 
-/* -- Controles ----------------------------------------------------------- */
+/* -- Controls ------------------------------------------------------------ */
 
 input, select, button {
   font: inherit;
@@ -160,7 +160,7 @@ main {
 .summary .on { color: var(--on); }
 .summary .off { color: var(--off); }
 
-/* -- Campos de critério -------------------------------------------------- */
+/* -- Criteria fields ----------------------------------------------------- */
 
 .fields { display: flex; flex-direction: column; gap: 10px; }
 
@@ -219,7 +219,7 @@ main {
 .order-by { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 12px; font-size: 0.85rem; }
 .order-by label { color: var(--ink-soft); }
 
-/* -- Projeção ------------------------------------------------------------ */
+/* -- Projection ---------------------------------------------------------- */
 
 .scalar-fields { display: flex; gap: 8px 16px; flex-wrap: wrap; }
 
@@ -272,7 +272,7 @@ fieldset.ref legend { font-size: 0.8rem; color: var(--ink-soft); padding: 0 4px;
   font-size: 0.78rem;
 }
 
-/* -- Receitas ------------------------------------------------------------ */
+/* -- Recipes ------------------------------------------------------------- */
 
 .recipes { display: flex; flex-direction: column; gap: 8px; }
 
@@ -292,7 +292,7 @@ fieldset.ref legend { font-size: 0.8rem; color: var(--ink-soft); padding: 0 4px;
 .paging label { display: flex; gap: 5px; align-items: center; font-size: 0.82rem; color: var(--ink-soft); }
 .paging input { width: 90px; }
 
-/* -- Saída --------------------------------------------------------------- */
+/* -- Output -------------------------------------------------------------- */
 
 .sticky { position: sticky; top: 14px; display: flex; flex-direction: column; gap: 10px; }
 

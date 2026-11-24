@@ -1,44 +1,44 @@
 # remote.bridge.java
 
-Bridge Java para o protocolo Host/Shell do **Cube MVP Remoto**. Implementa o lado cliente (shell) do protocolo em Java puro — conecta ao `remote.host` via WebSocket, faz o handshake de segurança RSA/AES, navega a hierarquia de presenters, submete eventos e lê os ViewStates recebidos.
+Java bridge for the **Remote Cube MVP** Host/Shell protocol. Implements the client (shell) side of the protocol in plain Java — connects to `remote.host` over WebSocket, performs the RSA/AES security handshake, navigates the presenter hierarchy, submits events and reads the received ViewStates.
 
-É a contraparte Java dos bridges React (`remote.bridge.react`) e TeaVM (`remote.bridge.teavm`) — mesma semântica de protocolo, tecnologia diferente.
+It is the Java counterpart of the React (`remote.bridge.react`) and TeaVM (`remote.bridge.teavm`) bridges — same protocol semantics, different technology.
 
-## Responsabilidade
+## Responsibility
 
-Fornecer a infra de conectividade para qualquer cliente Java que precise comunicar com um host remoto sem ter interface gráfica — usado por `remote.shell.probe` (benchmarks/testes) e `remote.shell.swt` (shell desktop SWT).
+Provide the connectivity infrastructure for any Java client that needs to talk to a remote host without a graphical interface — used by `remote.shell.probe` (benchmarks/tests) and `remote.shell.swt` (SWT desktop shell).
 
-## Classes Principais
+## Main Classes
 
-| Classe | Responsabilidade |
-|--------|------------------|
-| `HostClient` | Ponto de entrada: cria sessões com o host, gerencia ciclo de vida da conexão WebSocket |
-| `HostClientSession` | Sessão ativa: submete eventos (`submit()`), recebe `HostResponse` com o delta de ViewStates |
-| `AbstractPresenterClient` | Base para clientes tipados por presenter — facilita scripting de fluxos (ex: login, compra) |
-| `ClientCrypto` | Handshake RSA + derivação AES-GCM via PBKDF2; espelha `RemoteDataSecurity` do servidor |
+| Class | Responsibility |
+|-------|----------------|
+| `HostClient` | Entry point: creates sessions with the host, manages the WebSocket connection lifecycle |
+| `HostClientSession` | Active session: submits events (`submit()`), receives a `HostResponse` with the ViewState delta |
+| `AbstractPresenterClient` | Base for presenter-typed clients — makes it easy to script flows (e.g. login, purchase) |
+| `ClientCrypto` | RSA handshake + AES-GCM derivation via PBKDF2; mirrors the server's `RemoteDataSecurity` |
 
-`HostClient` expõe dois escopos de storage por sessão:
+`HostClient` exposes two storage scopes per session:
 
-| Método | Backing | Ciclo de vida |
-|--------|---------|---------------|
-| `clientSessionStore()` | `InMemoryClientStorage` | Dura enquanto a conexão existir |
-| `clientPersistentStore()` | `InMemoryClientStorage` por default (via `connect(url)`); customizável via `connect(url, storage)` | Configurável |
+| Method | Backing | Lifecycle |
+|--------|---------|-----------|
+| `clientSessionStore()` | `InMemoryClientStorage` | Lasts as long as the connection exists |
+| `clientPersistentStore()` | `InMemoryClientStorage` by default (via `connect(url)`); customizable via `connect(url, storage)` | Configurable |
 
-O storage persistente é bootstrapped para o servidor no momento do `connect()` — permite que o servidor restaure o estado da sessão anterior (ex: auto-login via refresh token).
+The persistent storage is bootstrapped to the server at `connect()` time — it lets the server restore the previous session's state (e.g. auto-login via refresh token).
 
-### Modelos
+### Models
 
-| Classe | Responsabilidade |
-|--------|------------------|
-| `HostResponse` | Resposta do host: `requestId`, `uri`, lista de `ViewStateSnapshot` |
-| `ViewStateSnapshot` | Estado de uma view: `instanceId` + mapa de campos |
-| `ViewStateMap` | Mapa tipado de campos de um ViewState |
-| `SecretContext` | Contexto criptográfico da sessão (chave AES derivada, IV, salt) |
+| Class | Responsibility |
+|-------|----------------|
+| `HostResponse` | Host response: `requestId`, `uri`, list of `ViewStateSnapshot` |
+| `ViewStateSnapshot` | State of a view: `instanceId` + field map |
+| `ViewStateMap` | Typed map of a ViewState's fields |
+| `SecretContext` | Session cryptographic context (derived AES key, IV, salt) |
 
-## Dependências
+## Dependencies
 
 - `br.com.wdc.framework.commons` — Base62, logging
-- `com.google.code.gson` — parsing da resposta JSON do host
+- `com.google.code.gson` — parsing of the host's JSON response
 - `ch.qos.logback:logback-classic` — logging
 - `org.apache.commons:commons-lang3`
 

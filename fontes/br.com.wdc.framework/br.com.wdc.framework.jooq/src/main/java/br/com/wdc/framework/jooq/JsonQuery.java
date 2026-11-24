@@ -17,95 +17,95 @@ import org.jooq.Table;
 import com.google.gson.stream.JsonReader;
 
 /**
- * Instância construída e pronta para uso.
+ * Built instance, ready for use.
  *
- * @param <B> tipo do bean
- * @param <T> tipo da tabela-schema
+ * @param <B> bean type
+ * @param <T> schema table type
  */
 public interface JsonQuery<B, T extends Table<?>> {
 
-    /** Cria bean vazio. */
+    /** Creates an empty bean. */
     B newBean();
 
     /**
-     * Cria bean de projeção com TODOS os campos setados (non-null sentinel). Passar este bean em {@link #fetchOne} /
-     * {@link #fetchToList} seleciona todas as colunas.
+     * Creates a projection bean with ALL fields set (non-null sentinel). Passing this bean to {@link #fetchOne} /
+     * {@link #fetchToList} selects every column.
      */
     B newProjectionBean();
 
     /**
-     * Cria bean de projeção total e permite "anular" campos indesejados. Campos setados para {@code null} no callback
-     * NÃO serão incluídos no SELECT.
+     * Creates a full projection bean and lets the caller "null out" unwanted fields. Fields set to {@code null} in the
+     * callback will NOT be included in the SELECT.
      */
     B newProjectionBean(Consumer<B> adapt);
 
-    /** Cria nova instância de tabela-schema com alias. */
+    /** Creates a new schema table instance with an alias. */
     T newTable(String alias);
 
-    /** Monta a query SELECT (sem executar). */
+    /** Builds the SELECT query (without executing it). */
     SelectQuery<Record1<String>> select(B prjBean,
             BiConsumer<T, SelectJoinStep<Record1<String>>> whereClause);
 
-    /** Monta a query SELECT com contexto e flag de agregação (uso interno). */
+    /** Builds the SELECT query with a context and an aggregation flag (internal use). */
     SelectQuery<Record1<String>> select(QueryContext ctx, B prjBean,
             BiConsumer<T, SelectJoinStep<Record1<String>>> whereClause, boolean isAgg);
 
-    /** Se esta consulta sabe traduzir o {@code OrderBy} do seu critério. */
+    /** Whether this query knows how to translate the {@code OrderBy} of its criteria. */
     boolean hasOrdering();
 
-    /** Traduz o {@code OrderBy} do critério em {@code ORDER BY}, contra a tabela informada. */
+    /** Translates the criteria's {@code OrderBy} into {@code ORDER BY}, against the given table. */
     List<SortField<?>> orderingOf(T table, Object criteria);
 
     /**
-     * Monta o SELECT agregado de uma coleção filha, ordenado e/ou recortado.
+     * Builds the aggregated SELECT of a child collection, ordered and/or sliced.
      *
      * <p>
-     * <b>Ordenar e recortar não cabem na forma agregada.</b> A coleção sai de um
-     * {@code SELECT json_arrayagg(proj) FROM filha WHERE ...}; um {@code ORDER BY} ali incidiria sobre a consulta que
-     * já agregou. A saída é ordenar e cortar <b>antes</b> de agregar, numa tabela derivada.
+     * <b>Ordering and slicing do not fit the aggregated form.</b> The collection comes out of a
+     * {@code SELECT json_arrayagg(proj) FROM child WHERE ...}; an {@code ORDER BY} there would apply to the query that
+     * has already aggregated. The way out is to order and slice <b>before</b> aggregating, in a derived table.
      * </p>
      *
      * <p>
-     * <b>A ordem é função da tabela</b>, e não uma lista pronta: a instância da tabela filha — com o alias único
-     * daquela consulta — só existe aqui dentro.
+     * <b>The order is a function of the table</b>, not a ready-made list: the child table instance — with the unique
+     * alias of that query — exists only in here.
      * </p>
      *
-     * @param order  traduz o critério em {@code ORDER BY}; {@code null} deixa a ordem a cargo do banco
-     * @param limit  máximo de linhas, ou {@code null}
-     * @param offset linhas a pular, ou {@code null}
+     * @param order  translates the criteria into {@code ORDER BY}; {@code null} leaves the order to the database
+     * @param limit  maximum number of rows, or {@code null}
+     * @param offset rows to skip, or {@code null}
      */
     SelectQuery<Record1<String>> selectOrdered(QueryContext ctx, B prjBean,
             BiConsumer<T, SelectJoinStep<Record1<String>>> whereClause,
             Function<T, List<SortField<?>>> order, Integer limit, Integer offset);
 
-    /** Gera o campo de projeção JSON para a tabela. */
+    /** Generates the JSON projection field for the table. */
     Field<String> projection(QueryContext ctx, T jooqTable, B prjBean);
 
     /**
-     * Se a projeção pede algum campo fora da lista informada.
+     * Whether the projection asks for any field outside the given list.
      *
      * <p>
-     * Serve ao atalho de chave estrangeira: quando a projeção da associação não pede nada além da chave, o valor já
-     * está na coluna da linha corrente, e o subselect ao outro lado é dispensável.
+     * Serves the foreign key shortcut: when the association's projection asks for nothing beyond the key, the value is
+     * already in the current row's column, and the subselect to the other side can be skipped.
      * </p>
      */
     boolean projectsBeyond(B prjBean, Collection<String> fields);
 
-    /** Parse de JSON string para bean. */
+    /** Parses a JSON string into a bean. */
     B parseJson(String json);
 
-    /** Parse de JSON via reader para bean. */
+    /** Parses JSON from a reader into a bean. */
     B parseJson(JsonReader jsonReader);
 
-    /** Executa e retorna um único bean (ou null). */
+    /** Executes and returns a single bean (or null). */
     B fetchOne(B prjBean, BiConsumer<T, SelectJoinStep<Record1<String>>> whereClause);
 
-    /** Executa e retorna stream (lazy). */
+    /** Executes and returns a (lazy) stream. */
     Stream<B> fetch(B prjBean, BiConsumer<T, SelectJoinStep<Record1<String>>> whereClause);
 
-    /** Executa e retorna lista materializada. */
+    /** Executes and returns a materialized list. */
     List<B> fetchToList(B prjBean, BiConsumer<T, SelectJoinStep<Record1<String>>> whereClause);
 
-    /** Conta registros. */
+    /** Counts records. */
     int fetchCount(BiConsumer<T, SelectJoinStep<Record1<Integer>>> whereClause);
 }

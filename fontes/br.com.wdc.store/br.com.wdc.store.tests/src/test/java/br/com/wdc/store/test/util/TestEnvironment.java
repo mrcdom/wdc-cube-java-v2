@@ -1,0 +1,176 @@
+package br.com.wdc.store.test.util;
+
+import java.nio.file.Paths;
+import java.sql.SQLException;
+
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.junit.rules.ExternalResource;
+
+import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
+import br.com.wdc.framework.commons.util.Defer;
+import br.com.wdc.framework.domain.security.CryptoProvider;
+import br.com.wdc.framework.domain.security.JceCryptoProvider;
+import br.com.wdc.framework.persistence.transaction.RemoteTransactionCoordinatorImpl;
+import br.com.wdc.store.domain.StoreConfig;
+import br.com.wdc.store.domain.product.ProductCodec;
+import br.com.wdc.store.domain.product.ProductRepository;
+import br.com.wdc.store.domain.purchase.PurchaseCodec;
+import br.com.wdc.store.domain.purchase.PurchaseRepository;
+import br.com.wdc.store.domain.purchaseitem.PurchaseItemCodec;
+import br.com.wdc.store.domain.purchaseitem.PurchaseItemRepository;
+import br.com.wdc.store.domain.user.UserCodec;
+import br.com.wdc.store.domain.user.UserRepository;
+import br.com.wdc.store.persistence.client.HttpProductRepository;
+import br.com.wdc.store.persistence.client.HttpPurchaseItemRepository;
+import br.com.wdc.store.persistence.client.HttpPurchaseRepository;
+import br.com.wdc.store.persistence.client.HttpUserRepository;
+import br.com.wdc.store.persistence.client.OkHttpTransport;
+import br.com.wdc.store.persistence.impl.StoreRepositoryBootstrap;
+import br.com.wdc.store.persistence.rest.RemoteTransactions;
+import br.com.wdc.store.persistence.rest.RepositoryApiRoutes;
+import br.com.wdc.store.scripts.sgbd.DBCreate;
+import io.agroal.api.AgroalDataSource;
+import io.agroal.api.configuration.supplier.AgroalDataSourceConfigurationSupplier;
+import io.agroal.api.security.NamePrincipal;
+import io.agroal.api.security.SimplePassword;
+import io.javalin.Javalin;
+
+/**
+ * Reusable test environment via {@code @ClassRule}. It can run in LOCAL mode (direct persistence) or REST mode (via
+ * embedded Javalin).
+ */
+public class TestEnvironment extends ExternalResource {
+
+    public enum Mode {
+        LOCAL, REST
+    }
+
+    private final Mode mode;
+
+    private final Defer cleanUp = new Defer();
+    private AgroalDataSource datasource;
+    private ScheduledExecutorForTest executor;
+    private Javalin javalin;
+    private OkHttpTransport transport;
+
+    private UserRepository userRepo;
+    private ProductRepository productRepo;
+    private PurchaseRepository purchaseRepo;
+    private PurchaseItemRepository purchaseItemRepo;
+
+    public TestEnvironment(Mode mode) {
+        this.mode = mode;
+    }
+
+    // :: Accessors
+
+    public UserRepository userRepo() {
+        return userRepo;
+    }
+
+    public ProductRepository productRepo() {
+        return productRepo;
+    }
+
+    public PurchaseRepository purchaseRepo() {
+        return purchaseRepo;
+    }
+
+    public PurchaseItemRepository purchaseItemRepo() {
+        return purchaseItemRepo;
+    }
+
+    /** HTTP transport used by the repositories in REST mode (to create a remote TransactionService in the test). */
+    public OkHttpTransport transport() {
+        return transport;
+    }
+
+    public void resetDatabase() {
+        try (var connection = datasource.getConnection()) {
+            new DBCreate()
+                    .withConnection(connection)
+                    .withReset()
+                    .run();
+        } catch (SQLException caught) {
+            throw ExceptionUtils.asRuntimeException(caught);
+        }
+    }
+
+    // :: ExternalResource lifecycle
+
+    @Override
+    protected void before() throws Throwable {
+        executor = new ScheduledExecutorForTestAsync();
+        ScheduledExecutor.BEAN.set(executor);
+        cleanUp.push(() -> {
+            executor.shutdown();
+            executor = null;
+            ScheduledExecutor.BEAN.set(null);
+        });
+
+        var dbName = mode == Mode.LOCAL ? "wedocode-store" : "wedocode-store-rest";
+        var ds = AgroalDataSource.from(
+                new AgroalDataSourceConfigurationSupplier()
+                        .connectionPoolConfiguration(cp -> cp
+                                .maxSize(10)
+                                .minSize(1)
+                                .initialSize(1)
+                                .connectionFactoryConfiguration(cf -> cf
+                                        .jdbcUrl("jdbc:h2:mem:" + dbName + ";DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE")
+                                        .principal(new NamePrincipal("sa"))
+                                        .credential(new SimplePassword("sa"))
+                                        .connectionProviderClassName("org.h2.jdbcx.JdbcDataSource"))));
+        datasource = ds;
+        cleanUp.push(() -> {
+            ds.close();
+            datasource = null;
+        });
+
+        var basePath = Paths.get("work");
+        StoreConfig.Internals.setBaseDir(basePath);
+        StoreConfig.Internals.setConfigDir(basePath.resolve("config"));
+        StoreConfig.Internals.setDataDir(basePath.resolve("data"));
+        StoreConfig.Internals.setLogDir(basePath.resolve("log"));
+        StoreConfig.Internals.setTempDir(basePath.resolve("temp"));
+
+        // Cryptography infrastructure: the real hosts (backend, Vaadin, SWT, TeaVM) install it in their
+        // composition root, and the test environment is a host like the others. Without it, PasswordUtil refuses the
+        // operation — and login depends on it to check the password digest.
+        CryptoProvider.BEAN.set(new JceCryptoProvider());
+        cleanUp.push(() -> CryptoProvider.BEAN.set(null));
+
+        StoreRepositoryBootstrap.initialize(ds, cleanUp);
+
+        if (mode == Mode.LOCAL) {
+            userRepo = UserRepository.BEAN.get();
+            productRepo = ProductRepository.BEAN.get();
+            purchaseRepo = PurchaseRepository.BEAN.get();
+            purchaseItemRepo = PurchaseItemRepository.BEAN.get();
+        } else {
+            // Remote transaction coordinator: the test REST server is a composition root of its own
+            // (it does not go through BusinessContext), so it wires the coordinator here, as the backend does.
+            RemoteTransactions.COORDINATOR.set(new RemoteTransactionCoordinatorImpl(() -> ds));
+            cleanUp.push(() -> RemoteTransactions.COORDINATOR.set(null));
+
+            javalin = Javalin.create(config -> {
+                config.http.maxRequestSize = 10_000_000L;
+                RepositoryApiRoutes.configure(config, "");
+            }).start(0);
+            cleanUp.push(() -> {
+                javalin.stop();
+                javalin = null;
+            });
+
+            this.transport = new OkHttpTransport("http://localhost:" + javalin.port());
+            userRepo = new HttpUserRepository(transport, new UserCodec());
+            productRepo = new HttpProductRepository(transport, new ProductCodec());
+            purchaseRepo = new HttpPurchaseRepository(transport, new PurchaseCodec());
+            purchaseItemRepo = new HttpPurchaseItemRepository(transport, new PurchaseItemCodec());
+        }
+    }
+
+    @Override
+    protected void after() {
+        cleanUp.run();
+    }
+}

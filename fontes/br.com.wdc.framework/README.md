@@ -1,20 +1,20 @@
 # WDC Framework
 
-Infraestrutura reutilizável para aplicações Java 21 baseadas no padrão **Cube MVP**.
+Reusable infrastructure for Java 21 applications based on the **Cube MVP** pattern.
 
 ---
 
-## Módulos
+## Modules
 
 ```mermaid
 graph TD
     fw["br.com.wdc.framework"]
 
-    deps["dependencies<br/><small>BOM — versões centralizadas</small>"]
-    commons["commons<br/><small>Utilitários, FP, serialização, log, crypto</small>"]
-    jooq["jooq<br/><small>Query builder JOOQ + projeção JSON</small>"]
-    cube["cube<br/><small>Motor Cube MVP (presenters, views, navegação)</small>"]
-    cubeRemote["cube.remote<br/><small>Protocolo remoto (backend + bridges)</small>"]
+    deps["dependencies<br/><small>BOM — centralized versions</small>"]
+    commons["commons<br/><small>Utilities, FP, serialization, logging, crypto</small>"]
+    jooq["jooq<br/><small>JOOQ query builder + JSON projection</small>"]
+    cube["cube<br/><small>Cube MVP engine (presenters, views, navigation)</small>"]
+    cubeRemote["cube.remote<br/><small>Remote protocol (backend + bridges)</small>"]
 
     fw --> deps
     fw --> commons
@@ -26,22 +26,23 @@ graph TD
     cubeRemote --> cube
 ```
 
-| Módulo | Propósito |
-|--------|-----------|
-| [`dependencies`](br.com.wdc.framework.dependencies/) | POM BOM — centraliza versões de todas as dependências externas |
-| [`commons`](br.com.wdc.framework.commons/) | Interfaces funcionais, logging multiplataforma, serialização extensível, SQL, crypto, utilitários |
-| [`jooq`](br.com.wdc.framework.jooq/) | Query builder declarativo sobre JOOQ com projeção JSON e dialetos multi-banco |
-| [`cube`](br.com.wdc.framework.cube/) | Motor do padrão Cube MVP — presenters hierárquicos, views, slots, navegação por intents |
-| [`cube.remote`](br.com.wdc.framework.cube.remote/) | Protocolo de comunicação remota — servidor (Javalin/WebSocket) e bridges para thin-clients (React, TeaVM) |
+| Module | Purpose |
+|--------|---------|
+| [`dependencies`](br.com.wdc.framework.dependencies/) | BOM POM — centralizes the versions of all external dependencies |
+| [`commons`](br.com.wdc.framework.commons/) | Functional interfaces, cross-platform logging, extensible serialization, SQL, crypto, utilities |
+| [`domain`](br.com.wdc.framework.domain/) | Generic domain abstractions — `Repository`, `Page`, criteria, projections, `TransactionService`, security, and the resource calls (`ResourceQuery`, `ResourceCreate`/`Save`/`Update`/`Delete`: an action on a resource as an object, named by an HTTP-like verb) |
+| [`jooq`](br.com.wdc.framework.jooq/) | Declarative query builder over JOOQ with JSON projection and multi-database dialects |
+| [`cube`](br.com.wdc.framework.cube/) | Cube MVP pattern engine — hierarchical presenters, views, slots, intent-based navigation |
+| [`cube.remote`](br.com.wdc.framework.cube.remote/) | Remote communication protocol — server (Javalin/WebSocket) and bridges for thin clients (React, TeaVM) |
 
 ---
 
-## Princípios
+## Principles
 
-- **Zero DI frameworks** — injeção via `AtomicReference<T> BEAN` (service locator estático)
-- **Multiplataforma** — commons e cube compilam para JVM, Android (Kotlin/Java) e JavaScript (TeaVM)
-- **Sem dependências transitivas pesadas** — cada módulo declara apenas o mínimo necessário
-- **Java 21** — records, sealed interfaces, Virtual Threads onde aplicável. O bytecode do framework fica em 21 (`maven.compiler.release`) para não impor uma versão mais nova a quem o consome; os demos e o backend do repositório compilam em 25
+- **Zero DI frameworks** — injection via `AtomicReference<T> BEAN` (static service locator)
+- **Cross-platform** — commons and cube compile for the JVM, Android (Kotlin/Java) and JavaScript (TeaVM)
+- **No heavy transitive dependencies** — each module declares only the bare minimum
+- **Java 21** — records, sealed interfaces, Virtual Threads where applicable. The framework bytecode targets 21 (`maven.compiler.release`) so as not to force a newer version on consumers; the repository's demos and backend compile at 25
 
 ## Build
 
@@ -50,9 +51,9 @@ cd fontes/br.com.wdc.framework
 JAVA_HOME=$JAVA25_HOME mvn clean install
 ```
 
-## Publicação no Maven Central
+## Publishing to Maven Central
 
-Os módulos saem como `io.github.mrcdom.wdc.java:framework-*` (namespace `io.github.mrcdom`, verificado pela conta do GitHub). O `framework-parent` não herda do pom raiz, então quem consome o framework resolve só esta árvore, sem os demos (`br.com.wdc.shopping`, `br.com.wdc.cube.backend`).
+The modules are published as `io.github.mrcdom.wdc.java:framework-*` (namespace `io.github.mrcdom`, verified through the GitHub account). `framework-parent` does not inherit from the root pom, so framework consumers resolve only this tree, without the demos (`br.com.wdc.store`, `br.com.wdc.cube.backend`).
 
 ```xml
 <dependencyManagement>
@@ -68,7 +69,7 @@ Os módulos saem como `io.github.mrcdom.wdc.java:framework-*` (namespace `io.git
 </dependencyManagement>
 ```
 
-| Diretório | artifactId |
+| Directory | artifactId |
 |-----------|------------|
 | `br.com.wdc.framework.dependencies` | `framework-dependencies` (BOM) |
 | `br.com.wdc.framework.commons` | `framework-commons` |
@@ -80,11 +81,11 @@ Os módulos saem como `io.github.mrcdom.wdc.java:framework-*` (namespace `io.git
 | `br.com.wdc.framework.cube.remote/remote.bridge.java` | `framework-cube-remote-bridge-java` |
 | `br.com.wdc.framework.cube.remote/remote.bridge.teavm` | `framework-cube-remote-bridge-teavm` |
 
-O `remote.bridge.react` (TypeScript) e o `remote.bridge.flutter` (Dart) não são artefatos Maven e ficam de fora.
+`remote.bridge.react` (TypeScript) and `remote.bridge.flutter` (Dart) are not Maven artifacts and are left out.
 
-Pré-requisitos, uma vez por máquina:
+Prerequisites, once per machine:
 
-- token do portal (central.sonatype.com → *Generate User Token*) no `~/.m2/settings.xml`:
+- portal token (central.sonatype.com → *Generate User Token*) in `~/.m2/settings.xml`:
 
   ```xml
   <server>
@@ -94,13 +95,13 @@ Pré-requisitos, uma vez por máquina:
   </server>
   ```
 
-- chave GPG no `gpg-agent`, publicada num keyserver (a mesma da versão Kotlin serve).
+- GPG key in `gpg-agent`, published to a keyserver (the same one used for the Kotlin version works).
 
-Publicação:
+Publishing:
 
 ```bash
 cd fontes/br.com.wdc.framework
 JAVA_HOME=$JAVA25_HOME mvn -Prelease clean deploy
 ```
 
-O perfil `release` anexa fontes e javadoc, assina tudo e envia o bundle ao portal, onde ele fica como *validated*; a liberação é manual (*Publish* em central.sonatype.com → Deployments). Para conferir sem enviar: `mvn -Prelease clean verify -Dgpg.skip`. Vale a pena rodar depois de bumpar a versão, que é a do `framework-parent` e dos `<parent>` dos módulos (as referências internas usam `${project.version}`).
+The `release` profile attaches sources and javadoc, signs everything and uploads the bundle to the portal, where it sits as *validated*; the release is manual (*Publish* at central.sonatype.com → Deployments). To check without uploading: `mvn -Prelease clean verify -Dgpg.skip`. It is worth running after bumping the version, which is the one in `framework-parent` and in the modules' `<parent>` (internal references use `${project.version}`).

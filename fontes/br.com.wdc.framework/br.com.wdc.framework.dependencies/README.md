@@ -1,21 +1,21 @@
 # WDC Framework — Dependencies
 
-Módulo **POM-only** (BOM) que centraliza o gerenciamento de versões de todas as dependências externas e internas usadas pelo projeto.
+**POM-only** module (BOM) that centralizes version management for all external and internal dependencies used by the project.
 
 ---
 
-## Propósito
+## Purpose
 
-- Garantir versões consistentes em todos os módulos (single source of truth).
-- Evitar conflitos de versão entre módulos do framework e módulos da aplicação.
-- Fornecer `<pluginManagement>` com versões fixas dos plugins Maven.
+- Ensure consistent versions across all modules (single source of truth).
+- Avoid version conflicts between framework modules and application modules.
+- Provide `<pluginManagement>` with pinned Maven plugin versions.
 
-## Dependências Gerenciadas
+## Managed Dependencies
 
-### Externas
+### External
 
-| Artefato | Versão |
-|----------|--------|
+| Artifact | Version |
+|----------|---------|
 | `junit` | 4.13.2 |
 | `slf4j-api` | 2.0.20 |
 | `jcl-over-slf4j` | 2.0.20 |
@@ -40,22 +40,22 @@ Módulo **POM-only** (BOM) que centraliza o gerenciamento de versões de todas a
 | `jackson-databind` | 2.23.0 |
 | `jakarta.transaction-api` | 2.0.1 |
 
-### Internas (`io.github.mrcdom.wdc.java`)
+### Internal (`io.github.mrcdom.wdc.java`)
 
-| Artefato | Versão |
-|----------|--------|
-| `framework-commons` | 2.0.0 (a do framework) |
-| `framework-domain` | 2.0.0 (a do framework) |
-| `framework-persistence` | 2.0.0 (a do framework) |
-| `framework-jooq` | 2.0.0 (a do framework) |
-| `framework-cube` | 2.0.0 (a do framework) |
-| `framework-cube-remote-backend` | 2.0.0 (a do framework) |
-| `framework-cube-remote-bridge-java` | 2.0.0 (a do framework) |
-| `framework-cube-remote-bridge-teavm` | 2.0.0 (a do framework) |
+| Artifact | Version |
+|----------|---------|
+| `framework-commons` | 2.0.0 (the framework's) |
+| `framework-domain` | 2.0.0 (the framework's) |
+| `framework-persistence` | 2.0.0 (the framework's) |
+| `framework-jooq` | 2.0.0 (the framework's) |
+| `framework-cube` | 2.0.0 (the framework's) |
+| `framework-cube-remote-backend` | 2.0.0 (the framework's) |
+| `framework-cube-remote-bridge-java` | 2.0.0 (the framework's) |
+| `framework-cube-remote-bridge-teavm` | 2.0.0 (the framework's) |
 
 ---
 
-## Plugins Gerenciados
+## Managed Plugins
 
 - `maven-shade-plugin` 3.6.2
 - `maven-jar-plugin` 3.5.1
@@ -73,9 +73,9 @@ Módulo **POM-only** (BOM) que centraliza o gerenciamento de versões de todas a
 - `wildfly-maven-plugin` 6.2.0.Final
 - `proguard-maven-plugin` 2.7.0
 
-## Uso
+## Usage
 
-Importar como parent ou via `<dependencyManagement>` com scope `import`:
+Import as parent or via `<dependencyManagement>` with scope `import`:
 
 ```xml
 <parent>

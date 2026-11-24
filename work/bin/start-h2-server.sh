@@ -12,7 +12,7 @@
 #
 # After starting, configure application.toml:
 #   [database]
-#   url = "jdbc:h2:tcp://localhost/./wedocode-shopping;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+#   url = "jdbc:h2:tcp://localhost/./wedocode-store;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
 #
 # Stop with: Ctrl+C
 
@@ -47,21 +47,21 @@ else
 fi
 
 echo "╔══════════════════════════════════════════════════════╗"
-echo "║          H2 TCP Server — WeDoCode Shopping           ║"
+echo "║          H2 TCP Server — WeDoCode Store           ║"
 echo "╠══════════════════════════════════════════════════════╣"
 printf "║  Data dir : %-42s ║\n" "$DATA_DIR"
 printf "║  H2 JAR   : %-42s ║\n" "$(basename $H2_JAR)"
 printf "║  Port     : %-42s ║\n" "9092 (default)"
 echo "╠══════════════════════════════════════════════════════╣"
 echo "║  JDBC URL for application.toml:                      ║"
-echo "║  jdbc:h2:tcp://localhost/./wedocode-shopping         ║"
+echo "║  jdbc:h2:tcp://localhost/./wedocode-store         ║"
 echo "║  ;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE           ║"
 echo "╚══════════════════════════════════════════════════════╝"
 echo ""
 echo "Press Ctrl+C to stop the H2 server."
 echo ""
 
-# O fat JAR do backend é bytecode 25: o H2 precisa rodar num JDK 25
+# The backend fat JAR is Java 25 bytecode: H2 must run on a JDK 25
 JAVA_HOME="${JAVA25_HOME:-$JAVA_HOME}"
 JAVA="${JAVA_HOME:+$JAVA_HOME/bin/}java"
 

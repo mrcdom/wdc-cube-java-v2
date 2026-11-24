@@ -1,7 +1,7 @@
 package br.com.wdc.framework.domain.transaction;
 
 /**
- * Lançada quando uma operação exige transação ativa e não há nenhuma — em particular, por
+ * Thrown when an operation requires an active transaction and there is none — in particular, by
  * {@link TransactionService#mandatory(java.util.function.Consumer) mandatory(...)}.
  */
 public class TransactionRequiredException extends TransactionException {

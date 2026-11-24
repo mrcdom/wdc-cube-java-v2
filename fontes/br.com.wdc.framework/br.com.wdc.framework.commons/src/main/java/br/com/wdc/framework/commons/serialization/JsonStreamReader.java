@@ -1,10 +1,10 @@
 package br.com.wdc.framework.commons.serialization;
 
 /**
- * Streaming JSON reader — puro Java, sem dependências externas.
+ * Streaming JSON reader — pure Java, no external dependencies.
  * <p>
- * Implementa {@link ExtensibleObjectInput} lendo diretamente da string JSON
- * sem construir árvore intermediária (Map/List).
+ * Implements {@link ExtensibleObjectInput} reading straight from the JSON string
+ * without building an intermediate tree (Map/List).
  */
 public class JsonStreamReader implements ExtensibleObjectInput {
 

@@ -13,28 +13,28 @@ import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
 
 /**
- * Inicializa o Logback a partir de um arquivo externo {@code logback.xml}.
+ * Initializes Logback from an external {@code logback.xml} file.
  *
  * <p>
- * Resolução do diretório de trabalho (basedir):
+ * Resolution of the working directory (basedir):
  * </p>
  * <ol>
- * <li>Localiza o {@code application.toml} via system property
- * {@code shopping.config.file} ou default {@code config/application.toml}</li>
- * <li>Lê {@code app.basedir} (obrigatório) e resolve relativo à localização do arquivo</li>
+ * <li>Locates {@code application.toml} via the system property
+ * {@code store.config.file} or the default {@code config/application.toml}</li>
+ * <li>Reads {@code app.basedir} (required) and resolves it relative to the file's location</li>
  * </ol>
  *
  * <p>
- * O {@code logback.xml} é procurado em {@code {basedir}/config/logback.xml}.
- * Se o arquivo não existir, uma versão padrão é criada automaticamente.
- * Deve ser chamado antes de qualquer logging (tipicamente no início do {@code main}).
+ * {@code logback.xml} is looked up at {@code {basedir}/config/logback.xml}.
+ * If the file does not exist, a default version is created automatically.
+ * Must be called before any logging (typically at the start of {@code main}).
  * </p>
  */
 final class LogBootstrap {
 
     private static final System.Logger BOOTSTRAP_LOG = System.getLogger(LogBootstrap.class.getName());
 
-    private static final String CONFIG_FILE_PROPERTY = "shopping.config.file";
+    private static final String CONFIG_FILE_PROPERTY = "store.config.file";
     private static final String DEFAULT_CONFIG_PATH = "config/application.toml";
     private static final Pattern BASEDIR_PATTERN = Pattern.compile("^\\s*basedir\\s*=\\s*[\"']([^\"']+)[\"']");
 
@@ -42,8 +42,8 @@ final class LogBootstrap {
     }
 
     /**
-     * Configura o Logback a partir do arquivo externo.
-     * Se o arquivo não existir, cria um com conteúdo padrão.
+     * Configures Logback from the external file.
+     * If the file does not exist, creates one with default content.
      */
     static void initialize() {
         Path baseDir = resolveBaseDir();
@@ -77,7 +77,7 @@ final class LogBootstrap {
     }
 
     /**
-     * Lê apenas o valor de {@code app.basedir} do TOML, sem dependências externas.
+     * Reads only the {@code app.basedir} value from the TOML, with no external dependencies.
      */
     private static String peekBasedir(Path tomlFile) {
         if (!Files.exists(tomlFile)) {
@@ -162,7 +162,7 @@ final class LogBootstrap {
                 <!-- Jetty Logger -->
                 <logger name="org.eclipse.jetty" level="WARN" />
 
-                <!-- jOOQ SQL Logger (ativado por database.logSql=true) -->
+                <!-- jOOQ SQL Logger (enabled by database.logSql=true) -->
                 <logger name="org.jooq.tools.LoggerListener" level="DEBUG" />
 
                 <!-- WeDoCode Loggers -->

@@ -1,7 +1,7 @@
 package br.com.wdc.framework.domain.exception;
 
 /**
- * Lançada quando uma operação é negada por falta de permissão ou autenticação.
+ * Thrown when an operation is denied for lack of permission or authentication.
  */
 public class AccessDeniedException extends RuntimeException {
 

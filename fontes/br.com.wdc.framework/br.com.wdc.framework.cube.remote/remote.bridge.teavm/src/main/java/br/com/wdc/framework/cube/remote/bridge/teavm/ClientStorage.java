@@ -19,6 +19,13 @@ import org.teavm.jso.JSBody;
  */
 public interface ClientStorage {
 
+    /**
+     * Prefix, inside a shell's sync namespace, of the keys of the {@code secure()} view ({@link EncryptedLocalStorage}).
+     * The plain views leave them out of {@code all()}: they are ciphertext of the secure scope, not values of their own.
+     */
+    String SECURE_KEY_PREFIX = "sec.";
+
+
     /** Returns a view that uses secure backing (or {@code this} if already secure). */
     ClientStorage secure();
 
@@ -89,6 +96,7 @@ public interface ClientStorage {
                 String rawKey = ssKey(i);
                 if (rawKey == null || !rawKey.startsWith(syncNamespace)) continue;
                 String shortKey = rawKey.substring(syncNamespace.length());
+                if (shortKey.startsWith(SECURE_KEY_PREFIX)) continue;
                 String v = ssGetItem(rawKey);
                 if (v != null) result.put(shortKey, v);
             }
@@ -155,6 +163,7 @@ public interface ClientStorage {
                 String rawKey = lsKey(i);
                 if (rawKey == null || !rawKey.startsWith(syncNamespace)) continue;
                 String shortKey = rawKey.substring(syncNamespace.length());
+                if (shortKey.startsWith(SECURE_KEY_PREFIX)) continue;
                 String v = lsGetItem(rawKey);
                 if (v != null) result.put(shortKey, v);
             }

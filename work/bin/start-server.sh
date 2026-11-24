@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Startup script for WeDoCode Shopping React Javalin Server
+# Startup script for WeDoCode Store React Javalin Server
 # Usage: ./start-server.sh [port]
 
 set -e
@@ -13,7 +13,7 @@ PROJECT_ROOT="$( cd "$WORK_DIR/.." && pwd )"
 # config/application.toml resolves relative to it
 cd "$WORK_DIR"
 
-# JDK 25: JAVA25_HOME tem precedência sobre o JAVA_HOME da sessão
+# JDK 25: JAVA25_HOME takes precedence over the session's JAVA_HOME
 export JAVA_HOME="${JAVA25_HOME:-$JAVA_HOME}"
 if [ -z "$JAVA_HOME" ]; then
     echo "Error: set JAVA25_HOME (or JAVA_HOME) to a Java 25 JDK path."
@@ -44,7 +44,7 @@ PORT="${1:-${SERVER_PORT:-8080}}"
 
 echo ""
 echo "=================================================="
-echo "WeDoCode Shopping React - Javalin Server"
+echo "WeDoCode Store React - Javalin Server"
 echo "=================================================="
 echo "Port: $PORT"
 echo "JAR: $JAR_FILE"
@@ -57,10 +57,10 @@ echo ""
 # Run the server
 # JVM tuning for load test / production (10 GB heap, ~10000 sessions):
 #   -Xms4g -Xmx10g
-#   -XX:+UseZGC                      # geracional (único modo desde o JDK 24); pausas < 1 ms, ideal para WebSocket
-#   -XX:SoftMaxHeapSize=9g           # ZGC mantém abaixo de 9 GB; 1 GB de buffer para picos
-#   -XX:ZCollectionInterval=5        # GC preditivo: ZGC coleta a cada 5 s mesmo sem pressão
-#                                    # evita picos de memória em períodos de baixa carga
+#   -XX:+UseZGC                      # generational (the only mode since JDK 24); pauses < 1 ms, ideal for WebSocket
+#   -XX:SoftMaxHeapSize=9g           # ZGC stays below 9 GB; 1 GB of headroom for spikes
+#   -XX:ZCollectionInterval=5        # predictive GC: ZGC collects every 5 s even without pressure
+#                                    # avoids memory spikes during low-load periods
 #   -XX:MaxMetaspaceSize=512m
 #   -XX:ReservedCodeCacheSize=256m
 exec "$JAVA" -jar "$JAR_FILE" "$PORT"

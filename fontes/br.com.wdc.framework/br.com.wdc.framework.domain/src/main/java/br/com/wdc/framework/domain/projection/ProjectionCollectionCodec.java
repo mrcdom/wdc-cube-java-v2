@@ -9,59 +9,59 @@ import br.com.wdc.framework.commons.util.HasCriteria;
 import br.com.wdc.framework.commons.util.HasSlice;
 
 /**
- * Como uma <b>coleção projetada</b> de relação 1:N trafega.
+ * How a <b>projected collection</b> of a 1:N relation travels.
  *
  * <p>
- * Uma coleção de projeção não é uma lista de resultados: é <b>uma</b> forma de item mais o que fazer com a coleção —
- * o critério que a filtra ({@link HasCriteria}) e o recorte a aplicar ({@link HasSlice}). Esses três dados precisam
- * chegar ao outro lado, ou a coleção volta inteira e desordenada — foi o que faltava no transporte REST.
+ * A projection collection is not a list of results: it is <b>one</b> item shape plus what to do with the collection —
+ * the criteria that filters it ({@link HasCriteria}) and the slice to apply ({@link HasSlice}). These three pieces must
+ * reach the other side, or the collection comes back whole and unordered.
  * </p>
  *
  * <p>
- * <b>A forma no fio distingue projeção de resultado por si só.</b> A projeção é um objeto; o resultado, o array de
- * sempre:
+ * <b>The wire shape alone tells a projection from a result.</b> The projection is an object; the result is the usual
+ * array:
  * </p>
  *
  * <pre>
- * // projeção (cliente → servidor)
- * "items": { "shape": {…um item…}, "where": {…critério…}, "limit": 5, "offset": 0 }
+ * // projection (client → server)
+ * "items": { "shape": {…one item…}, "where": {…criteria…}, "limit": 5, "offset": 0 }
  *
- * // resultado (servidor → cliente) — inalterado
+ * // result (server → client) — plain array
  * "items": [ {…}, {…}, {…} ]
  * </pre>
  *
  * <p>
- * O leitor decide pelo token: objeto é projeção, array é resultado. Assim o mesmo campo {@code items} serve os dois
- * sentidos sem um segundo nome, e o resultado segue exatamente como era.
+ * The reader decides by the token: an object is a projection, an array is a result. So the same {@code items} field
+ * serves both directions without a second name, and the result keeps its plain array form.
  * </p>
  *
  * <p>
- * O critério embutido usa a mesma estrutura expressiva do critério de topo — é o codec da entidade filha quem o
- * escreve e lê, através dos callbacks. Os dois codecs colaboram: este cuida do envelope da coleção, aquele do
- * conteúdo do critério.
+ * The embedded criteria uses the same expressive structure as the top-level criteria — it is the child entity's codec
+ * that writes and reads it, through the callbacks. The two codecs cooperate: this one handles the collection envelope,
+ * that one the criteria contents.
  * </p>
  */
 public final class ProjectionCollectionCodec {
 
-    /** Escreve a forma de um item da coleção. */
+    /** Writes the shape of a collection item. */
     @FunctionalInterface
     public interface ShapeWriter<E> {
         void write(ExtensibleObjectOutput out, E item);
     }
 
-    /** Lê a forma de um item da coleção. */
+    /** Reads the shape of a collection item. */
     @FunctionalInterface
     public interface ShapeReader<E> {
         E read(ExtensibleObjectInput in);
     }
 
-    /** Escreve o critério embutido — objeto completo, {@code begin/endObject} inclusos. */
+    /** Writes the embedded criteria — complete object, {@code begin/endObject} included. */
     @FunctionalInterface
     public interface CriteriaWriter {
         void write(ExtensibleObjectOutput out, Object criteria);
     }
 
-    /** Lê o critério embutido — objeto completo, {@code begin/endObject} inclusos. */
+    /** Reads the embedded criteria — complete object, {@code begin/endObject} included. */
     @FunctionalInterface
     public interface CriteriaReader {
         Object read(ExtensibleObjectInput in);
@@ -72,11 +72,11 @@ public final class ProjectionCollectionCodec {
     }
 
     /**
-     * Escreve a coleção projetada como envelope {@code { shape, where?, limit?, offset? }}.
+     * Writes the projected collection as the envelope {@code { shape, where?, limit?, offset? }}.
      *
      * <p>
-     * Só a forma é obrigatória — é o primeiro elemento da coleção. Critério e recorte entram quando a coleção os
-     * carrega; ausentes, a chave nem aparece.
+     * Only the shape is mandatory — it is the first element of the collection. Criteria and slice are included when the
+     * collection carries them; when absent, the key does not appear at all.
      * </p>
      */
     public static <E> void write(ExtensibleObjectOutput out, String name, Collection<E> collection,
@@ -105,13 +105,13 @@ public final class ProjectionCollectionCodec {
         out.endObject();
     }
 
-    /** Se o valor corrente do campo é uma coleção projetada (objeto), e não uma lista de resultados (array). */
+    /** Whether the field's current value is a projected collection (object) rather than a list of results (array). */
     public static boolean isProjectionEnvelope(ExtensibleObjectInput in) {
         return in.peek() == br.com.wdc.framework.commons.serialization.SerializationToken.BEGIN_OBJECT;
     }
 
     /**
-     * Lê o envelope e devolve a coleção de projeção pronta — forma, critério e recorte reidratados.
+     * Reads the envelope and returns the ready projection collection — shape, criteria and slice rehydrated.
      */
     public static <E> ProjectionList<E> read(ExtensibleObjectInput in, ShapeReader<E> shapeReader,
             CriteriaReader criteriaReader) {

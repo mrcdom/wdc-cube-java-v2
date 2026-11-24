@@ -15,35 +15,35 @@ import br.com.wdc.framework.domain.exception.TransactionLimitExceededException;
 import br.com.wdc.framework.domain.transaction.TransactionSystemException;
 
 /**
- * Coordenador de transação remota (lado servidor), apoiado no {@link TransactionScope}.
+ * Remote transaction coordinator (server side), built on {@link TransactionScope}.
  *
  * <p>
- * Cada {@code txId} guarda um {@link TransactionScope} <b>suspenso</b> (transação física viva, sem dono de thread). A
- * cada requisição que carrega o {@code txId}, {@link #resume(String, String)} religa o escopo à thread corrente e
- * {@link #suspend(String)} o desliga ao final, mantendo-o vivo para a próxima. {@link #commit(String, String)}/
- * {@link #rollback(String, String)} finalizam e removem.
+ * Each {@code txId} holds a <b>suspended</b> {@link TransactionScope} (live physical transaction, with no owning
+ * thread). On each request that carries the {@code txId}, {@link #resume(String, String)} reattaches the scope to the
+ * current thread and {@link #suspend(String)} detaches it at the end, keeping it alive for the next one.
+ * {@link #commit(String, String)}/{@link #rollback(String, String)} finish and remove it.
  * </p>
  *
  * <p>
- * Vale para os dois modos do {@code TransactionScope}: JDBC (conexão única mantida aberta) e JTA (suspend/resume no
- * TransactionManager). Transações ociosas além do timeout são revertidas e removidas (varredura preguiçosa no
- * {@link #begin(String)}), evitando vazamento de conexão por clientes que abandonam a transação.
+ * Works for both {@code TransactionScope} modes: JDBC (single connection kept open) and JTA (suspend/resume on the
+ * TransactionManager). Transactions idle beyond the timeout are rolled back and removed (lazy sweep in
+ * {@link #begin(String)}), preventing connection leaks from clients that abandon the transaction.
  * </p>
  */
 public final class RemoteTransactionCoordinatorImpl implements RemoteTransactionCoordinator {
 
-    /** Tempo máximo (ms) ocioso antes de uma transação remota ser revertida e removida. */
+    /** Maximum idle time (ms) before a remote transaction is rolled back and removed. */
     public static final long DEFAULT_IDLE_TIMEOUT_MS = 60_000L;
     /**
-     * Tempo de vida <b>absoluto</b> (ms) desde a abertura: além disto a transação é revertida mesmo que ativa,
-     * impedindo um cliente que "pinga" antes de cada idle-timeout de segurar uma conexão indefinidamente.
+     * <b>Absolute</b> lifetime (ms) since opening: beyond this the transaction is rolled back even if active, keeping a
+     * client that "pings" before each idle timeout from holding a connection indefinitely.
      */
     public static final long DEFAULT_MAX_LIFETIME_MS = 600_000L; // 10 min
-    /** Janela (ms) que o desfecho de uma transação finalizada é lembrado, para tornar commit/rollback idempotentes. */
+    /** Window (ms) during which the outcome of a finished transaction is remembered, to make commit/rollback idempotent. */
     public static final long DEFAULT_OUTCOME_RETENTION_MS = 300_000L; // 5 min
-    /** Teto global de transações remotas abertas (cada uma segura uma conexão) — protege o pool. */
+    /** Global cap on open remote transactions (each one holds a connection) — protects the pool. */
     public static final int DEFAULT_MAX_OPEN = 128;
-    /** Teto de transações remotas abertas por dono — impede um cliente monopolizar o pool. */
+    /** Cap on open remote transactions per owner — keeps one client from monopolizing the pool. */
     public static final int DEFAULT_MAX_OPEN_PER_OWNER = 16;
 
     private final Supplier<DataSource> dataSourceSupplier;
@@ -53,14 +53,14 @@ public final class RemoteTransactionCoordinatorImpl implements RemoteTransaction
     private final int maxOpen;
     private final int maxOpenPerOwner;
     private final ConcurrentHashMap<String, Entry> registry = new ConcurrentHashMap<>();
-    /** Índice dono → nº de transações abertas, para {@link #hasOpenTransactionForOwner} em O(1) (donos nulos não entram). */
+    /** Index owner → number of open transactions, for {@link #hasOpenTransactionForOwner} in O(1) (null owners are left out). */
     private final ConcurrentHashMap<String, Integer> openByOwner = new ConcurrentHashMap<>();
-    /** Desfecho de transações finalizadas (txId → committed/rolledback), retido por {@code outcomeRetentionMs} para idempotência. */
+    /** Outcome of finished transactions (txId → committed/rolledback), retained for {@code outcomeRetentionMs} for idempotency. */
     private final ConcurrentHashMap<String, Finalized> outcomes = new ConcurrentHashMap<>();
 
     private static final Log LOG = Log.getLogger(RemoteTransactionCoordinatorImpl.class.getSimpleName());
 
-    // Contadores de observabilidade (totais acumulados desde o início).
+    // Observability counters (cumulative totals since startup).
     private final AtomicLong begunCount = new AtomicLong();
     private final AtomicLong committedCount = new AtomicLong();
     private final AtomicLong rolledBackCount = new AtomicLong();
@@ -82,19 +82,19 @@ public final class RemoteTransactionCoordinatorImpl implements RemoteTransaction
 
     @Override
     public String begin(String ownerKey) {
-        reapExpired(); // recupera transações expiradas antes de avaliar os tetos
+        reapExpired(); // reclaims expired transactions before checking the caps
         enforceLimits(ownerKey);
         try {
             var scope = TransactionScope.beginNew(dataSource()); // CURRENT = scope (owner)
-            TransactionScope.suspend(); // desliga da thread; o escopo segue vivo
+            TransactionScope.suspend(); // detaches from the thread; the scope stays alive
             var txId = UUID.randomUUID().toString();
             registry.put(txId, new Entry(scope, ownerKey));
             trackOwner(ownerKey);
             begunCount.incrementAndGet();
-            LOG.debug("tx remota aberta: {} (owner={}, abertas={})", txId, ownerKey, registry.size());
+            LOG.debug("remote tx opened: {} (owner={}, open={})", txId, ownerKey, registry.size());
             return txId;
         } catch (Exception e) {
-            throw new TransactionSystemException("Falha ao abrir transação remota", e);
+            throw new TransactionSystemException("Failed to open the remote transaction", e);
         }
     }
 
@@ -103,7 +103,7 @@ public final class RemoteTransactionCoordinatorImpl implements RemoteTransaction
         var entry = require(txId);
         verifyOwner(entry.owner, ownerKey);
         if (!entry.inUse.compareAndSet(false, true)) {
-            throw new TransactionSystemException("Transação remota em uso concorrente: " + txId);
+            throw new TransactionSystemException("Remote transaction in concurrent use: " + txId);
         }
         try {
             TransactionScope.resume(entry.scope);
@@ -172,32 +172,32 @@ public final class RemoteTransactionCoordinatorImpl implements RemoteTransaction
     // -------------------------------------------------------------------------
 
     /**
-     * Rejeita a abertura se um teto for atingido. Bound <b>soft</b>: sob alta concorrência pode haver leve
-     * ultrapassagem (verificação não-atômica), aceitável para proteção do pool — o objetivo é limitar, não contar exato.
+     * Rejects the opening if a cap is reached. A <b>soft</b> bound: under high concurrency it may be slightly exceeded
+     * (non-atomic check), acceptable for protecting the pool — the goal is to limit, not to count exactly.
      */
     private void enforceLimits(String ownerKey) {
         if (registry.size() >= maxOpen) {
             rejectedByLimitCount.incrementAndGet();
-            LOG.warn("teto GLOBAL de transações remotas atingido ({}) — abertura rejeitada", maxOpen);
+            LOG.warn("GLOBAL cap on remote transactions reached ({}) — opening rejected", maxOpen);
             throw new TransactionLimitExceededException(
-                    "Limite global de transações remotas abertas atingido (" + maxOpen + ")");
+                    "Global limit of open remote transactions reached (" + maxOpen + ")");
         }
         if (ownerKey != null && openByOwner.getOrDefault(ownerKey, 0) >= maxOpenPerOwner) {
             rejectedByLimitCount.incrementAndGet();
-            LOG.warn("teto POR DONO de transações remotas atingido ({}) — owner={}", maxOpenPerOwner, ownerKey);
+            LOG.warn("PER-OWNER cap on remote transactions reached ({}) — owner={}", maxOpenPerOwner, ownerKey);
             throw new TransactionLimitExceededException(
-                    "Limite de transações remotas abertas por dono atingido (" + maxOpenPerOwner + ")");
+                    "Per-owner limit of open remote transactions reached (" + maxOpenPerOwner + ")");
         }
     }
 
-    /** Registra +1 transação aberta para o dono (ignora donos nulos). */
+    /** Records +1 open transaction for the owner (ignores null owners). */
     private void trackOwner(String owner) {
         if (owner != null) {
             openByOwner.merge(owner, 1, Integer::sum);
         }
     }
 
-    /** Registra -1 transação para o dono, removendo a entrada ao chegar a zero (ignora donos nulos). */
+    /** Records -1 transaction for the owner, removing the entry when it reaches zero (ignores null owners). */
     private void untrackOwner(String owner) {
         if (owner != null) {
             openByOwner.computeIfPresent(owner, (k, count) -> count <= 1 ? null : count - 1);
@@ -213,40 +213,40 @@ public final class RemoteTransactionCoordinatorImpl implements RemoteTransaction
                 closeAndRecord(txId, entry, rollback);
                 return;
             }
-            // outra thread finalizou entre o get e o remove → trata como retry
+            // another thread finished it between the get and the remove → treat as a retry
         }
         finishAlreadyFinalized(txId, ownerKey, rollback);
     }
 
-    /** Fecha o escopo (commit/rollback) e grava o desfecho para idempotência. */
+    /** Closes the scope (commit/rollback) and records the outcome for idempotency. */
     private void closeAndRecord(String txId, Entry entry, boolean rollback) {
         try {
             if (rollback) {
                 entry.scope.setRollbackOnly();
             }
             TransactionScope.resume(entry.scope);
-            entry.scope.close(); // owner: commit (ou rollback se marcado) e fecha a conexão
+            entry.scope.close(); // owner: commit (or rollback if marked) and close the connection
         } catch (Exception e) {
-            throw new TransactionSystemException("Falha ao finalizar transação remota " + txId, e);
+            throw new TransactionSystemException("Failed to finish the remote transaction " + txId, e);
         }
         outcomes.put(txId, new Finalized(!rollback, entry.owner));
         (rollback ? rolledBackCount : committedCount).incrementAndGet();
-        LOG.debug("tx remota finalizada ({}): {} (abertas={})", rollback ? "rollback" : "commit", txId,
+        LOG.debug("remote tx finished ({}): {} (open={})", rollback ? "rollback" : "commit", txId,
                 registry.size());
     }
 
-    /** Caminho de retry: a transação não está mais aberta. Idempotente se o desfecho anterior bate com o pedido. */
+    /** Retry path: the transaction is no longer open. Idempotent if the previous outcome matches the request. */
     private void finishAlreadyFinalized(String txId, String ownerKey, boolean rollback) {
         var prior = outcomes.get(txId);
         if (prior == null) {
-            throw new TransactionSystemException("Transação remota desconhecida ou expirada: " + txId);
+            throw new TransactionSystemException("Unknown or expired remote transaction: " + txId);
         }
         verifyOwner(prior.owner, ownerKey);
         if (prior.committed != !rollback) {
-            throw new TransactionConflictException("Transação " + txId + " já finalizada como "
-                    + (prior.committed ? "committed" : "rolledback") + "; não aceita o desfecho oposto");
+            throw new TransactionConflictException("Transaction " + txId + " already finished as "
+                    + (prior.committed ? "committed" : "rolledback") + "; the opposite outcome is not accepted");
         }
-        // mesmo desfecho já aplicado → no-op de sucesso (resposta anterior perdida)
+        // same outcome already applied → successful no-op (previous response lost)
     }
 
     private void reapExpired() {
@@ -260,9 +260,9 @@ public final class RemoteTransactionCoordinatorImpl implements RemoteTransaction
                 if ((idleExpired || lifetimeExpired) && !entry.inUse.get() && registry.remove(e.getKey(), entry)) {
                     untrackOwner(entry.owner);
                     rollbackQuietly(entry);
-                    outcomes.put(e.getKey(), new Finalized(false, entry.owner)); // reaped = rolledback (desambigua o retry)
+                    outcomes.put(e.getKey(), new Finalized(false, entry.owner)); // reaped = rolledback (disambiguates the retry)
                     reapedCount.incrementAndGet();
-                    LOG.info("tx remota abandonada revertida ({}): {} owner={}",
+                    LOG.info("abandoned remote tx rolled back ({}): {} owner={}",
                             lifetimeExpired ? "lifetime" : "idle", e.getKey(), entry.owner);
                 }
             }
@@ -279,36 +279,36 @@ public final class RemoteTransactionCoordinatorImpl implements RemoteTransaction
             TransactionScope.resume(entry.scope);
             entry.scope.close();
         } catch (Exception ignore) {
-            // melhor esforço — transação abandonada
+            // best effort — abandoned transaction
         }
     }
 
     private Entry require(String txId) {
         var entry = registry.get(txId);
         if (entry == null) {
-            throw new TransactionSystemException("Transação remota desconhecida ou expirada: " + txId);
+            throw new TransactionSystemException("Unknown or expired remote transaction: " + txId);
         }
         return entry;
     }
 
-    /** Se a transação tem dono (chave não-nula no begin), exige que a operação apresente a mesma chave. */
+    /** If the transaction has an owner (non-null key at begin), requires the operation to present the same key. */
     private static void verifyOwner(String owner, String requesterKey) {
         if (owner != null && !owner.equals(requesterKey)) {
-            throw new AccessDeniedException("Transação remota não pertence ao solicitante");
+            throw new AccessDeniedException("Remote transaction does not belong to the requester");
         }
     }
 
     private DataSource dataSource() {
         var ds = dataSourceSupplier != null ? dataSourceSupplier.get() : null;
         if (ds == null) {
-            throw new TransactionSystemException("DataSource não inicializado para o coordenador remoto");
+            throw new TransactionSystemException("DataSource not initialized for the remote coordinator");
         }
         return ds;
     }
 
     private static final class Entry {
         final TransactionScope scope;
-        /** Chave opaca do dono (ex.: id do usuário). {@code null} = transação sem dono (segurança desativada). */
+        /** Opaque owner key (e.g. user id). {@code null} = transaction with no owner (security disabled). */
         final String owner;
         final AtomicBoolean inUse = new AtomicBoolean(false);
         final long createdAt = System.currentTimeMillis();
@@ -324,7 +324,7 @@ public final class RemoteTransactionCoordinatorImpl implements RemoteTransaction
         }
     }
 
-    /** Desfecho retido de uma transação finalizada, para tornar commit/rollback idempotentes. */
+    /** Retained outcome of a finished transaction, to make commit/rollback idempotent. */
     private static final class Finalized {
         final boolean committed;
         final String owner;

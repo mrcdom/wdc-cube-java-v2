@@ -48,6 +48,13 @@ export class InMemoryClientStorage implements ClientStorage {
   }
 }
 
+/**
+ * Prefix, inside a shell's sync namespace, of the keys that belong to the `.secure` view
+ * (see `EncryptedLocalStorage`). The plain views leave them out of `all()`: they are ciphertext
+ * of the secure scope, not values of their own.
+ */
+export const SECURE_KEY_PREFIX = "sec."
+
 // ---------------------------------------------------------------------------
 // sessionStorage-backed (session scope — survives F5, not tab close)
 // ---------------------------------------------------------------------------
@@ -92,6 +99,7 @@ export class SessionStorageClientStorage implements ClientStorage {
       const rawKey = sessionStorage.key(i)
       if (rawKey === null || !rawKey.startsWith(this.syncNamespace)) continue
       const key = rawKey.substring(this.syncNamespace.length)
+      if (key.startsWith(SECURE_KEY_PREFIX)) continue
       const v = sessionStorage.getItem(rawKey)
       if (v !== null) result[key] = v
     }
@@ -143,6 +151,7 @@ export class LocalStorageClientStorage implements ClientStorage {
       const rawKey = localStorage.key(i)
       if (rawKey === null || !rawKey.startsWith(this.syncNamespace)) continue
       const key = rawKey.substring(this.syncNamespace.length)
+      if (key.startsWith(SECURE_KEY_PREFIX)) continue
       const v = localStorage.getItem(rawKey)
       if (v !== null) result[key] = v
     }

@@ -8,59 +8,59 @@ import br.com.wdc.framework.commons.serialization.ExtensibleObjectInput;
 import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
 
 /**
- * Contrato de serialização/deserialização para entidades e critérios de um repositório.
+ * Serialization/deserialization contract for a repository's entities and criteria.
  * <p>
- * Usa {@link ExtensibleObjectOutput}/{@link ExtensibleObjectInput} para serialização
- * streaming, compatível com JVM e TeaVM sem dependência de Gson/reflection.
+ * Uses {@link ExtensibleObjectOutput}/{@link ExtensibleObjectInput} for streaming
+ * serialization, compatible with the JVM and TeaVM with no dependency on Gson/reflection.
  *
- * @param <E> tipo da entidade
- * @param <C> tipo do critério de pesquisa
+ * @param <E> entity type
+ * @param <C> search criteria type
  */
 public interface ModelCodec<E, C> {
 
     /**
-     * Resultado do parse de entidade para update: entidade + projeção (campos presentes no JSON).
+     * Result of parsing an entity for update: entity + projection (fields present in the JSON).
      */
     record UpdateData<T>(T entity, T projection) {
     }
 
     /**
-     * Escreve a entidade como um objeto JSON completo (beginObject + campos + endObject).
+     * Writes the entity as a complete JSON object (beginObject + fields + endObject).
      */
     void writeEntity(ExtensibleObjectOutput out, E entity);
 
     /**
-     * Escreve a entidade com rastreamento de grafo — entidades já vistas são escritas apenas com a chave.
-     * Implementações devem usar {@link EntityGraph#track(br.com.wdc.framework.commons.serialization.KeyedEntity)} para
-     * detectar repetições antes de serializar campos aninhados.
+     * Writes the entity with graph tracking — entities already seen are written with the key only.
+     * Implementations must use {@link EntityGraph#track(br.com.wdc.framework.commons.serialization.KeyedEntity)} to
+     * detect repetitions before serializing nested fields.
      */
     void writeEntity(ExtensibleObjectOutput out, E entity, EntityGraph graph);
 
     /**
-     * Escreve apenas os campos da entidade indicados pela projeção (campos não-nulos na projeção).
-     * O ID é sempre incluído.
+     * Writes only the entity fields marked by the projection (fields that are non-null in the projection).
+     * The ID is always included.
      */
     void writeEntityProjected(ExtensibleObjectOutput out, E entity, E projection);
 
     /**
-     * Computa a projeção a partir da diferença entre duas entidades.
-     * Retorna uma projeção com campos marcados (não-nulos) para cada campo que difere entre newEntity e oldEntity.
+     * Computes the projection from the difference between two entities.
+     * Returns a projection with fields marked (non-null) for each field that differs between newEntity and oldEntity.
      */
     E computeProjection(E newEntity, E oldEntity);
 
     /**
-     * Lê uma entidade a partir da posição atual (espera beginObject).
+     * Reads an entity from the current position (expects beginObject).
      */
     E readEntity(ExtensibleObjectInput in);
 
     /**
-     * Lê uma entidade para update, retornando simultaneamente a entidade e a projeção
-     * (campos presentes no JSON recebem marker não-nulo na projeção).
+     * Reads an entity for update, returning both the entity and the projection
+     * (fields present in the JSON get a non-null marker in the projection).
      */
     UpdateData<E> readEntityForUpdate(ExtensibleObjectInput in);
 
     /**
-     * Lê uma lista de entidades (espera beginArray).
+     * Reads a list of entities (expects beginArray).
      */
     default List<E> readEntityList(ExtensibleObjectInput in) {
         var list = new ArrayList<E>();
@@ -73,23 +73,23 @@ public interface ModelCodec<E, C> {
     }
 
     /**
-     * Escreve os campos do critério no objeto corrente (sem begin/endObject).
+     * Writes the criteria fields into the current object (without begin/endObject).
      */
     void writeCriteriaFields(ExtensibleObjectOutput out, C criteria);
 
     /**
-     * Lê os campos do critério a partir do nome do campo corrente (sem begin/endObject).
-     * Retorna true se o campo foi consumido, false se não é um campo de critério reconhecido.
+     * Reads the criteria fields starting at the current field name (without begin/endObject).
+     * Returns true if the field was consumed, false if it is not a recognized criteria field.
      */
     boolean readCriteriaField(ExtensibleObjectInput in, String fieldName, C criteria);
 
     /**
-     * Retorna a projeção associada ao critério (pode ser null).
+     * Returns the projection associated with the criteria (may be null).
      */
     E getProjection(C criteria);
 
     /**
-     * Define o ID gerado pelo servidor na entidade após insert.
+     * Sets the server-generated ID on the entity after insert.
      */
     void setGeneratedId(E entity, long id);
 }

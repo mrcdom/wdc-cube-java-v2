@@ -1,45 +1,45 @@
 # remote.bridge.flutter
 
-Bridge Flutter/Dart para o protocolo Host/Shell do **Cube MVP Remoto**. Implementa o lado cliente (shell) do protocolo em Dart — conecta ao `remote.host` via WebSocket, faz o handshake de segurança RSA/AES-GCM, gerencia ViewStates e provê classes base para os widgets Flutter renderizarem estados e emitirem eventos.
+Flutter/Dart bridge for the **Remote Cube MVP** Host/Shell protocol. Implements the client (shell) side of the protocol in Dart — connects to `remote.host` over WebSocket, performs the RSA/AES-GCM security handshake, manages ViewStates and provides base classes for Flutter widgets to render states and emit events.
 
-É a contraparte Flutter dos bridges React (`remote.bridge.react`), TeaVM (`remote.bridge.teavm`) e Java (`remote.bridge.java`). Consumido por `flutter_commons` (e indiretamente por todos os shells Flutter).
+It is the Flutter counterpart of the React (`remote.bridge.react`), TeaVM (`remote.bridge.teavm`) and Java (`remote.bridge.java`) bridges. Consumed by `flutter_commons` (and indirectly by all Flutter shells).
 
-## Estrutura
+## Structure
 
 ```
 lib/
-  remote_bridge_flutter.dart        # Entrypoint público — exporta toda a API
+  remote_bridge_flutter.dart        # Public entrypoint — exports the whole API
   src/
     bridge/
-      ViewStateCoordinator          # Orquestrador central: registry de views, WS lifecycle,
-                                    # submit, histórico, segurança, form data
-      ViewScope                     # Estado reativo de uma view (mapa JSON do servidor);
-                                    # notifica widget via forceUpdate()
-      DataSecurity                  # Handshake RSA + PBKDF2 + AES-GCM por sessão
-      FlushRequestContext           # Serializa e envia eventos ao host
-      ReconnectController           # Backoff progressivo para reconexão WebSocket
-      ViewGarbageCollector          # Cleanup de ViewScopes de views removidas pelo host
-      types.dart                    # Tipos compartilhados (HostResponse, ViewStateSnapshot, ...)
-      constants.dart                # Constantes de protocolo (viewId fixos, timeouts, ...)
+      ViewStateCoordinator          # Central orchestrator: view registry, WS lifecycle,
+                                    # submit, history, security, form data
+      ViewScope                     # Reactive state of a view (JSON map from the server);
+                                    # notifies the widget via forceUpdate()
+      DataSecurity                  # Per-session RSA + PBKDF2 + AES-GCM handshake
+      FlushRequestContext           # Serializes and sends events to the host
+      ReconnectController           # Progressive backoff for WebSocket reconnection
+      ViewGarbageCollector          # Cleanup of ViewScopes of views removed by the host
+      types.dart                    # Shared types (HostResponse, ViewStateSnapshot, ...)
+      constants.dart                # Protocol constants (fixed viewIds, timeouts, ...)
     views/
-      BaseView                      # StatefulWidget base para views driven pelo bridge;
-                                    # vincula ao ViewScope via vsid, reconstrói ao receber estado
-      SlotView                      # View que renderiza o filho atribuído pelo servidor ao slot
+      BaseView                      # Base StatefulWidget for bridge-driven views;
+                                    # binds to the ViewScope via vsid, rebuilds on new state
+      SlotView                      # View that renders the child the server assigned to the slot
     utils/
-      RSA                           # RSA OAEP encrypt/decrypt em Dart puro
-      BigIntUtils                   # Operações BigInt auxiliares para criptografia
+      RSA                           # RSA OAEP encrypt/decrypt in pure Dart
+      BigIntUtils                   # Helper BigInt operations for cryptography
 ```
 
-## Dependências
+## Dependencies
 
-| Package | Uso |
+| Package | Use |
 |---------|-----|
-| `web_socket_channel` ^3.0 | Comunicação WebSocket com o host |
-| `pointycastle` ^3.9 | Criptografia RSA + AES-GCM |
+| `web_socket_channel` ^3.0 | WebSocket communication with the host |
+| `pointycastle` ^3.9 | RSA + AES-GCM cryptography |
 
-## Integração num shell Flutter
+## Integration into a Flutter shell
 
-Adicionar como path dependency no `pubspec.yaml` do shell:
+Add it as a path dependency in the shell's `pubspec.yaml`:
 
 ```yaml
 dependencies:
@@ -47,7 +47,7 @@ dependencies:
     path: ../../../../../../br.com.wdc.framework/br.com.wdc.framework.cube.remote/remote.bridge.flutter
 ```
 
-Inicializar o bridge no `main.dart`:
+Initialize the bridge in `main.dart`:
 
 ```dart
 import 'package:remote_bridge_flutter/remote_bridge_flutter.dart';
@@ -57,7 +57,7 @@ final coordinator = ViewStateCoordinator(
   baseWebSocketUrl: 'ws://host:8080',
 );
 
-// Numa view:
+// In a view:
 class LoginView extends BaseView {
   const LoginView({super.key}) : super(vsid: 'login');
 
@@ -69,10 +69,10 @@ class LoginView extends BaseView {
 }
 ```
 
-## Segurança
+## Security
 
-Mesmo protocolo dos bridges Java/React/TeaVM:
+Same protocol as the Java/React/TeaVM bridges:
 
-1. **Handshake RSA-OAEP**: cifra a senha AES com a chave pública do host
-2. **AES-256-GCM**: chave derivada via PBKDF2 (250 000 iterações) por sessão
-3. **Assinatura de navegação**: parâmetro `sign` em cada intent, validado pelo host
+1. **RSA-OAEP handshake**: encrypts the AES password with the host's public key
+2. **AES-256-GCM**: per-session key derived via PBKDF2 (250,000 iterations)
+3. **Navigation signature**: `sign` parameter on each intent, validated by the host

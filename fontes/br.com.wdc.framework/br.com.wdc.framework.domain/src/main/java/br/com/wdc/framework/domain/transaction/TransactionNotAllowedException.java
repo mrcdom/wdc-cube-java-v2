@@ -1,8 +1,8 @@
 package br.com.wdc.framework.domain.transaction;
 
 /**
- * Lançada quando uma transação ativa é proibida para a operação — em particular, por
- * {@link TransactionService#never(java.util.function.Consumer) never(...)} quando já existe transação no escopo.
+ * Thrown when an active transaction is forbidden for the operation — in particular, by
+ * {@link TransactionService#never(java.util.function.Consumer) never(...)} when a transaction already exists in scope.
  */
 public class TransactionNotAllowedException extends TransactionException {
 

@@ -1,12 +1,12 @@
 /**
- * O mínimo de ajuda para montar DOM sem framework.
+ * The bare minimum of help for building DOM without a framework.
  *
- * `html` escapa o que é interpolado — um valor digitado não vira marcação — mas devolve um {@link Html}, que é marcação
- * já pronta. Assim um `html` aninhado dentro de outro não é escapado duas vezes, e listas de fragmentos entram direto,
- * sem `join`. Onde a marcação vem de fora, `raw` a assume como confiável.
+ * `html` escapes whatever is interpolated — a typed value does not become markup — but returns an {@link Html}, which
+ * is ready-made markup. That way an `html` nested inside another is not escaped twice, and lists of fragments go in
+ * directly, without `join`. Where the markup comes from outside, `raw` takes it as trusted.
  */
 
-/** Marcação pronta: o que sai de `html` e o que `raw` promete ser seguro. */
+/** Ready-made markup: what comes out of `html` and what `raw` promises is safe. */
 class Html {
   #value;
 
@@ -19,7 +19,7 @@ class Html {
   }
 }
 
-/** Assume um trecho como marcação confiável. */
+/** Takes a snippet as trusted markup. */
 export const raw = (value) => new Html(String(value));
 
 const escapeHtml = (value) => String(value)
@@ -36,12 +36,12 @@ const interpolate = (value) => {
   return escapeHtml(value);
 };
 
-/** Monta marcação, escapando os valores interpolados. */
+/** Builds markup, escaping the interpolated values. */
 export const html = (strings, ...values) => raw(
   strings.reduce((acc, str, i) => acc + str + (i < values.length ? interpolate(values[i]) : ''), ''),
 );
 
-/** Substitui o conteúdo de um elemento pela marcação informada. */
+/** Replaces an element's content with the given markup. */
 export const render = (target, markup) => {
   target.innerHTML = markup instanceof Html ? markup.toString() : interpolate(markup);
   return target;
@@ -51,12 +51,12 @@ export const $ = (selector, scope = document) => scope.querySelector(selector);
 export const $$ = (selector, scope = document) => [...scope.querySelectorAll(selector)];
 
 /**
- * Delegação de eventos: um ouvinte na raiz atende os elementos que casam com o seletor, inclusive os que ainda nem
- * existem. É o que permite redesenhar um painel inteiro sem religar ouvinte nenhum.
+ * Event delegation: one listener on the root serves the elements that match the selector, including those that do not
+ * exist yet. It is what lets a whole panel be redrawn without rewiring any listener.
  *
- * <b>O `signal` não é opcional na prática.</b> Quem monta um painel novo sobre a mesma raiz precisa descartar os
- * ouvintes do anterior: eles continuam ligados à raiz, apontando para o modelo velho, e passam a responder por dados
- * que já não existem. Um {@link AbortController} por painel resolve os dois lados — registra e descarta em bloco.
+ * <b>The `signal` is not optional in practice.</b> Whoever mounts a new panel on the same root must discard the
+ * previous one's listeners: they stay attached to the root, pointing at the old model, and end up answering for data
+ * that no longer exists. One {@link AbortController} per panel covers both sides — it registers and discards in bulk.
  */
 export const on = (root, type, selector, handler, { signal } = {}) => {
   root.addEventListener(type, (event) => {
@@ -65,5 +65,5 @@ export const on = (root, type, selector, handler, { signal } = {}) => {
   }, { signal });
 };
 
-/** JSON legível, com as chaves na ordem em que foram postas. */
+/** Readable JSON, with the keys in the order they were added. */
 export const pretty = (value) => JSON.stringify(value, null, 2);

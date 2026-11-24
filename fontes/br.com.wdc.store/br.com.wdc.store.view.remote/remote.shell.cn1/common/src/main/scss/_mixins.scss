@@ -1,0 +1,33 @@
+// =============================================================================
+// Reusable theme mixins. Each one expands to a set of
+// properties inside a per-UIID rule (compatible with CN1's CSS).
+// =============================================================================
+@use 'tokens' as *;
+
+// White card with border and rounded corners.
+@mixin card {
+    background-color: $surface;
+    border: 1px solid $border;
+    border-radius: $radius;
+}
+
+// Page (bluish-gray background + default padding).
+@mixin page {
+    background-color: $bg;
+    padding: 4mm;
+}
+
+// Blue gradient of the login hero/banner (≈ React's 160deg).
+@mixin hero-gradient {
+    background: linear-gradient(160deg, $accent 0%, $accent-2 40%, $accent-3 100%);
+}
+
+// Blue gradient of the app bar (135deg).
+@mixin appbar-gradient {
+    background: linear-gradient(135deg, $accent 0%, $accent-2 100%);
+}
+
+// Light gradient background of the product images.
+@mixin img-gradient {
+    background: linear-gradient(180deg, $img-grad-from 0%, $img-grad-to 100%);
+}

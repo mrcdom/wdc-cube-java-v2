@@ -117,7 +117,7 @@ export class ViewStateCoordinator {
     const parts = vsid.split(/:/g)
     const viewCreator = this.viewFactory.get(parts[0])
     if (!viewCreator) {
-      throw new Error(`Nenhuma view registrada para a viewId: "${parts[0]}"`)
+      throw new Error(`No view registered for viewId: "${parts[0]}"`)
     }
 
     let viewScope = this.viewMap.get(vsid)

@@ -11,20 +11,20 @@ import org.jooq.exception.DataAccessException;
 import br.com.wdc.framework.persistence.transaction.TransactionScope;
 
 /**
- * {@link ConnectionProvider} do jOOQ ciente do {@link TransactionScope} — liga o {@code DSLContext} compartilhado ao
- * controle de transação programático ({@code TransactionService}).
+ * jOOQ {@link ConnectionProvider} aware of the {@link TransactionScope} — binds the shared {@code DSLContext} to the
+ * programmatic transaction control ({@code TransactionService}).
  *
  * <ul>
- * <li><b>Dentro de uma transação</b> ({@link TransactionScope#current()} != {@code null}): entrega a conexão do escopo
- * corrente, de modo que todas as queries do bloco compartilhem a <b>mesma transação física</b>. Não fecha a conexão no
- * {@link #release(Connection)} — o {@code TransactionScope} é o dono e a finaliza ao encerrar o escopo.</li>
- * <li><b>Fora de transação</b>: empresta uma conexão avulsa do {@link DataSource} (autocommit) e a devolve ao pool no
- * {@link #release(Connection)}.</li>
+ * <li><b>Inside a transaction</b> ({@link TransactionScope#current()} != {@code null}): hands out the connection of the
+ * current scope, so that all queries of the block share the <b>same physical transaction</b>. It does not close the
+ * connection in {@link #release(Connection)} — the {@code TransactionScope} owns it and finalizes it when the scope ends.</li>
+ * <li><b>Outside a transaction</b>: borrows a standalone connection from the {@link DataSource} (autocommit) and returns it
+ * to the pool in {@link #release(Connection)}.</li>
  * </ul>
  *
  * <p>
- * Funciona nos dois modos suportados pelo {@code TransactionScope}: JDBC (conexão única do escopo) e JTA (conexão
- * enlistada no TransactionManager). Single-thread, como o próprio escopo.
+ * Works in both modes supported by the {@code TransactionScope}: JDBC (the scope's single connection) and JTA (connection
+ * enlisted in the TransactionManager). Single-threaded, like the scope itself.
  * </p>
  */
 public final class TransactionAwareConnectionProvider implements ConnectionProvider {
@@ -44,21 +44,22 @@ public final class TransactionAwareConnectionProvider implements ConnectionProvi
         try {
             return dataSource.getConnection();
         } catch (SQLException e) {
-            throw new DataAccessException("Não foi possível obter conexão do DataSource", e);
+            throw new DataAccessException("Could not obtain a connection from the DataSource", e);
         }
     }
 
     @Override
     public void release(Connection connection) {
-        // Em transação, a conexão pertence ao TransactionScope (que a finaliza no close do escopo) — não fechar aqui.
-        // acquire()/release() bracketeiam uma única execução de statement na mesma thread, então o estado é estável.
+        // In a transaction, the connection belongs to the TransactionScope (which finalizes it when the scope
+        // closes) — do not close it here.
+        // acquire()/release() bracket a single statement execution on the same thread, so the state is stable.
         if (TransactionScope.current() != null) {
             return;
         }
         try {
             connection.close();
         } catch (SQLException e) {
-            throw new DataAccessException("Falha ao liberar conexão avulsa", e);
+            throw new DataAccessException("Failed to release standalone connection", e);
         }
     }
 }

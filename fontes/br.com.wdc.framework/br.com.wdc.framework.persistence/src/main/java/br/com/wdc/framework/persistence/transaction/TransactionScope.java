@@ -11,31 +11,32 @@ import jakarta.transaction.Transaction;
 import jakarta.transaction.TransactionManager;
 
 /**
- * Frame de transação ligado à thread (via {@link ThreadLocal}), operando em dois modos:
+ * Transaction frame bound to the thread (via {@link ThreadLocal}), operating in two modes:
  *
  * <ul>
- * <li><b>JTA</b> — quando {@link JtaTransactionManager#BEAN} está inicializado. Delega begin/commit/rollback ao
- * {@link TransactionManager}; a conexão JDBC é obtida do {@link DataSource} que, sendo JTA-aware (configurado pelo
- * host), é enlistada automaticamente como recurso XA na transação corrente.</li>
- * <li><b>JDBC</b> — quando {@link JtaTransactionManager#BEAN} é {@code null} (padrão). Gerencia a transação diretamente
- * via {@link Connection#commit()}/{@link Connection#rollback()}, sem TM externo.</li>
+ * <li><b>JTA</b> — when {@link JtaTransactionManager#BEAN} is initialized. Delegates begin/commit/rollback to the
+ * {@link TransactionManager}; the JDBC connection is obtained from the {@link DataSource} which, being JTA-aware
+ * (configured by the host), is automatically enlisted as an XA resource in the current transaction.</li>
+ * <li><b>JDBC</b> — when {@link JtaTransactionManager#BEAN} is {@code null} (default). Manages the transaction directly
+ * via {@link Connection#commit()}/{@link Connection#rollback()}, with no external TM.</li>
  * </ul>
  *
  * <p>
- * <b>Reentrância (propagação REQUIRED):</b> {@link #begin(DataSource)} junta-se à transação ativa quando há uma —
- * <b>compartilhando a mesma conexão do owner</b> (uma única transação física em ambos os modos) — ou abre uma nova e
- * torna-se owner. Apenas o owner comita/reverte e fecha a conexão no {@link #close()}; participantes são no-op.
+ * <b>Reentrancy (REQUIRED propagation):</b> {@link #begin(DataSource)} joins the active transaction when there is one —
+ * <b>sharing the owner's connection</b> (a single physical transaction in both modes) — or opens a new one and becomes
+ * the owner. Only the owner commits/rolls back and closes the connection in {@link #close()}; participants are no-ops.
  * </p>
  *
  * <p>
- * <b>Suspensão (REQUIRES_NEW / NOT_SUPPORTED):</b> {@link #suspend()} desliga a transação corrente da thread (JTA:
- * {@code tm.suspend()}; JDBC: a conexão/transação fica viva, sem dono na thread) e {@link #resume(TransactionScope)}
- * religa. No modo JDBC, o novo escopo abre uma <b>segunda conexão</b> do pool, independente da suspensa.
+ * <b>Suspension (REQUIRES_NEW / NOT_SUPPORTED):</b> {@link #suspend()} detaches the current transaction from the thread
+ * (JTA: {@code tm.suspend()}; JDBC: the connection/transaction stays alive, with no owner on the thread) and
+ * {@link #resume(TransactionScope)} reattaches it. In JDBC mode, the new scope opens a <b>second connection</b> from the
+ * pool, independent of the suspended one.
  * </p>
  *
  * <p>
- * Usado pelo TransactionService (estilo CMT) e pelos repositórios, que obtêm a conexão da transação corrente via
- * {@link #connection()}. Single-thread: não compartilhe entre threads.
+ * Used by the TransactionService (CMT style) and by the repositories, which obtain the current transaction's connection
+ * via {@link #connection()}. Single-thread: do not share across threads.
  * </p>
  */
 public final class TransactionScope implements AutoCloseable {
@@ -44,9 +45,9 @@ public final class TransactionScope implements AutoCloseable {
 
     private final Connection connection;
     private final boolean owner;
-    /** Não-nulo apenas no modo JDBC owner — {@code autoCommit} original a restaurar no {@link #close()}. */
+    /** Non-null only in JDBC owner mode — original {@code autoCommit} to restore in {@link #close()}. */
     private final Boolean jdbcOldAutoCommit;
-    /** Não-nulo apenas no modo JTA owner — transação Narayana, para suspend/resume. */
+    /** Non-null only in JTA owner mode — Narayana transaction, for suspend/resume. */
     private Transaction jtaTransaction;
     private boolean rollbackOnly;
     private boolean closed;
@@ -57,23 +58,23 @@ public final class TransactionScope implements AutoCloseable {
         this.jdbcOldAutoCommit = jdbcOldAutoCommit;
     }
 
-    // :: Propagação REQUIRED
+    // :: REQUIRED propagation
 
     /**
-     * Junta-se à transação ativa (participante que compartilha a conexão do owner) ou abre uma nova (owner).
+     * Joins the active transaction (participant sharing the owner's connection) or opens a new one (owner).
      */
     public static TransactionScope begin(DataSource dataSource) throws SQLException, SystemException {
         var current = CURRENT.get();
         if (current != null && !current.closed) {
-            // Participante: compartilha a conexão (e portanto a transação) do owner. Sem ciclo de vida próprio.
+            // Participant: shares the owner's connection (and therefore transaction). No lifecycle of its own.
             return new TransactionScope(current.connection, false, null);
         }
         return beginNew(dataSource);
     }
 
     /**
-     * Abre incondicionalmente uma nova transação owner e a instala como corrente. Deve ser precedido de
-     * {@link #suspend()} se já houver transação ativa (caso REQUIRES_NEW).
+     * Unconditionally opens a new owner transaction and installs it as current. Must be preceded by
+     * {@link #suspend()} if a transaction is already active (REQUIRES_NEW case).
      */
     public static TransactionScope beginNew(DataSource dataSource) throws SQLException, SystemException {
         var tm = JtaTransactionManager.BEAN.get();
@@ -85,12 +86,12 @@ public final class TransactionScope implements AutoCloseable {
         try {
             tm.begin();
         } catch (jakarta.transaction.NotSupportedException e) {
-            throw new SystemException("Não foi possível iniciar a transação JTA: " + e.getMessage());
+            throw new SystemException("Could not start the JTA transaction: " + e.getMessage());
         }
         Connection connection;
         Transaction jtaTx;
         try {
-            connection = dataSource.getConnection(); // DataSource JTA-aware enlista a conexão no tm
+            connection = dataSource.getConnection(); // JTA-aware DataSource enlists the connection in the tm
             jtaTx = tm.getTransaction();
         } catch (SQLException | SystemException e) {
             try {
@@ -115,11 +116,12 @@ public final class TransactionScope implements AutoCloseable {
         return ctx;
     }
 
-    // :: Suspensão / Retomada (REQUIRES_NEW, NOT_SUPPORTED)
+    // :: Suspend / Resume (REQUIRES_NEW, NOT_SUPPORTED)
 
     /**
-     * Desliga a transação corrente da thread e a retorna para posterior {@link #resume(TransactionScope)}. Retorna
-     * {@code null} se não houver transação ativa. A transação suspensa permanece viva (não é comitada).
+     * Detaches the current transaction from the thread and returns it for a later {@link #resume(TransactionScope)}.
+     * Returns {@code null} if there is no active transaction. The suspended transaction stays alive (it is not
+     * committed).
      */
     public static TransactionScope suspend() {
         var current = CURRENT.get();
@@ -130,16 +132,16 @@ public final class TransactionScope implements AutoCloseable {
         var tm = JtaTransactionManager.BEAN.get();
         if (tm != null) {
             try {
-                tm.suspend(); // desenlista a tx JTA da thread; current.jtaTransaction guarda a referência
+                tm.suspend(); // delists the JTA tx from the thread; current.jtaTransaction keeps the reference
             } catch (SystemException e) {
-                throw new IllegalStateException("Falha ao suspender transação JTA", e);
+                throw new IllegalStateException("Failed to suspend the JTA transaction", e);
             }
         }
         return current;
     }
 
     /**
-     * Religa uma transação previamente suspensa por {@link #suspend()}. No-op se {@code suspended} for {@code null}.
+     * Reattaches a transaction previously suspended by {@link #suspend()}. No-op if {@code suspended} is {@code null}.
      */
     public static void resume(TransactionScope suspended) {
         if (suspended == null) {
@@ -150,29 +152,29 @@ public final class TransactionScope implements AutoCloseable {
             try {
                 tm.resume(suspended.jtaTransaction);
             } catch (Exception e) {
-                throw new IllegalStateException("Falha ao retomar transação JTA", e);
+                throw new IllegalStateException("Failed to resume the JTA transaction", e);
             }
         }
         CURRENT.set(suspended);
     }
 
-    // :: Acesso / estado
+    // :: Access / state
 
-    /** Contexto corrente da thread, ou {@code null} se não houver transação ativa. */
+    /** The thread's current context, or {@code null} if there is no active transaction. */
     public static TransactionScope current() {
         var current = CURRENT.get();
         return (current != null && !current.closed) ? current : null;
     }
 
-    /** Verifica se há uma transação ativa na thread atual. */
+    /** Checks whether there is an active transaction on the current thread. */
     public static boolean isActive() {
         return current() != null;
     }
 
     /**
-     * Obtém a conexão da transação corrente.
+     * Gets the current transaction's connection.
      *
-     * @throws IllegalStateException se o contexto já foi fechado
+     * @throws IllegalStateException if the context has already been closed
      */
     public Connection connection() {
         if (closed) {
@@ -189,7 +191,7 @@ public final class TransactionScope implements AutoCloseable {
         return cur != null && cur.rollbackOnly;
     }
 
-    /** Marca a transação corrente para rollback (one-way). O commit não será executado no close do owner. */
+    /** Marks the current transaction for rollback (one-way). The commit is not executed on the owner's close. */
     public void setRollbackOnly() {
         if (owner) {
             this.rollbackOnly = true;
@@ -201,11 +203,11 @@ public final class TransactionScope implements AutoCloseable {
         }
     }
 
-    // :: Encerramento
+    // :: Closing
 
     /**
-     * Encerra o frame. Participante: no-op (a conexão pertence ao owner). Owner: comita (ou faz rollback se marcado) e
-     * fecha a conexão.
+     * Closes the frame. Participant: no-op (the connection belongs to the owner). Owner: commits (or rolls back if
+     * marked) and closes the connection.
      */
     @Override
     public void close() throws SQLException {
@@ -215,18 +217,18 @@ public final class TransactionScope implements AutoCloseable {
         closed = true;
 
         if (!owner) {
-            // Participante: compartilha a conexão do owner — nada a fechar/finalizar.
+            // Participant: shares the owner's connection — nothing to close/finish.
             return;
         }
 
         CURRENT.remove();
 
         if (jdbcOldAutoCommit == null) {
-            // JTA: fecha o handle da conexão (o pool só a recicla ao término da transação) e finaliza pelo TM.
+            // JTA: closes the connection handle (the pool only recycles it when the transaction ends) and finishes via the TM.
             silentClose(connection);
             commitOrRollbackJta();
         } else {
-            // JDBC: comita/reverte via conexão e fecha.
+            // JDBC: commits/rolls back via the connection and closes it.
             commitOrRollbackJdbc();
         }
     }
@@ -242,7 +244,7 @@ public final class TransactionScope implements AutoCloseable {
                 tm.commit();
             }
         } catch (Exception e) {
-            throw new SQLException("Falha ao finalizar transação JTA", e);
+            throw new SQLException("Failed to finish the JTA transaction", e);
         }
     }
 
@@ -264,7 +266,7 @@ public final class TransactionScope implements AutoCloseable {
             try {
                 connection.setAutoCommit(jdbcOldAutoCommit);
             } catch (SQLException _ignore) {
-                // melhor esforço
+                // best effort
             }
             silentClose(connection);
         }
@@ -274,7 +276,7 @@ public final class TransactionScope implements AutoCloseable {
         try {
             connection.close();
         } catch (Exception __ignore) {
-            // melhor esforço
+            // best effort
         }
     }
 

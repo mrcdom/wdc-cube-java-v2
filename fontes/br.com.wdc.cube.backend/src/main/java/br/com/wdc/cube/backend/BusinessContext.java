@@ -10,21 +10,22 @@ import br.com.wdc.framework.domain.security.CryptoProvider;
 import br.com.wdc.framework.domain.security.JceCryptoProvider;
 import br.com.wdc.framework.persistence.transaction.RemoteTransactionCoordinatorImpl;
 import br.com.wdc.framework.persistence.transaction.RemoteTransactionOptions;
-import br.com.wdc.shopping.domain.ShoppingConfig;
-import br.com.wdc.shopping.persistence.impl.ShoppingRepositoryBootstrap;
-import br.com.wdc.shopping.persistence.impl.concurrent.ScheduledExecutorAdapter;
-import br.com.wdc.shopping.persistence.rest.RemoteTransactions;
-import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
-import br.com.wdc.shopping.view.remote.host.RemoteHostBootstrap;
+import br.com.wdc.store.domain.StoreConfig;
+import br.com.wdc.store.persistence.impl.StoreRepositoryBootstrap;
+import br.com.wdc.store.persistence.impl.concurrent.ScheduledExecutorAdapter;
+import br.com.wdc.store.persistence.rest.RemoteTransactions;
+import br.com.wdc.store.presentation.presenter.open.login.LoginPresenter;
+import br.com.wdc.store.scripts.sgbd.DBCreate;
+import br.com.wdc.store.view.remote.host.RemoteHostBootstrap;
 
 public class BusinessContext {
 
     public void configure(Defer cleanUp) {
         try {
-            var config = ShoppingConfig.loadConfig();
-            ShoppingConfig.Internals.configure(config);
+            var config = StoreConfig.loadConfig();
+            StoreConfig.Internals.configure(config);
 
-            // CryptoProvider é necessário para PasswordUtil (usado pela presentation layer no login)
+            // CryptoProvider is required by PasswordUtil (used by the presentation layer on login)
             CryptoProvider.BEAN.set(new JceCryptoProvider());
             cleanUp.push(() -> CryptoProvider.BEAN.set(null));
 
@@ -40,36 +41,47 @@ public class BusinessContext {
 
             var dbPrefix = "";
 
-            // Transações: inicializa o TransactionManager Narayana se application.toml pedir
-            // (database.transaction = jta). Deve preceder o DataSource para que o pool seja enlistado.
+            // Transactions: initializes the Narayana TransactionManager if application.toml asks for it
+            // (database.transaction = jta). Must come before the DataSource so the pool gets enlisted.
             var jtaSupport = new JtaSupport(dbPrefix, config);
             jtaSupport.init(cleanUp);
 
             var dsSupport = new SqlDataSourceSupport(dbPrefix, config);
             var dataSource = dsSupport.init(cleanUp);
 
-            // Avisa se pediram JTA mas o TransactionManager não subiu (rodando como JDBC direto).
+            // Warns if JTA was requested but the TransactionManager did not start (running as plain JDBC).
             jtaSupport.warnIfModeMismatch();
 
-            // O DataSource do módulo é injetado no bootstrap (sem holder global): ele liga o DSLContext e o
-            // TransactionService deste módulo a este DataSource.
-            ShoppingRepositoryBootstrap.initialize(dataSource, dsSupport.isLogEnabled(), dsSupport.getDialect(), cleanUp);
+            // The module's DataSource is injected into the bootstrap (no global holder): it binds this module's
+            // DSLContext and TransactionService to this DataSource.
+            StoreRepositoryBootstrap.initialize(dataSource, dsSupport.isLogEnabled(), dsSupport.getDialect(), cleanUp);
 
-            // Coordenador de transação remota (servidor REST): transações dirigidas pelo cliente sobre HTTP,
-            // ligado ao DataSource deste módulo. Vive no host (composition root), não no bootstrap compartilhado
-            // — só o servidor REST precisa dele (views locais/testes não).
+            // Schema: creates what is missing and seeds a new database; database.reset recreates everything.
+            // After the bootstrap, because DBReset writes through the repositories.
+            try (var connection = dataSource.getConnection()) {
+                var command = new DBCreate()
+                        .withConnection(connection);
+                if (config.getBoolean(dbPrefix + "database.reset", false)) {
+                    command.withReset();
+                }
+                command.run();
+            }
+
+            // Remote transaction coordinator (REST server): client-driven transactions over HTTP,
+            // bound to this module's DataSource. It lives in the host (composition root), not in the shared bootstrap
+            // — only the REST server needs it (local views/tests do not).
             RemoteTransactions.COORDINATOR.set(new RemoteTransactionCoordinatorImpl(() -> dataSource,
                     RemoteTransactionOptions.fromConfig(config, dbPrefix)));
             cleanUp.push(() -> RemoteTransactions.COORDINATOR.set(null));
 
-            var jwtSecret = ShoppingConfig.getJwtSecret();
+            var jwtSecret = StoreConfig.getJwtSecret();
             if (jwtSecret != null && !jwtSecret.isBlank()) {
-                ShoppingRepositoryBootstrap.initializeSecurity(jwtSecret, cleanUp);
+                StoreRepositoryBootstrap.initializeSecurity(jwtSecret, cleanUp);
             }
 
             LoginPresenter.simulateSlowLogin(config.getBoolean("simulation.slowLogin", false));
         } catch (Exception e) {
-            throw new IllegalStateException("Failed to configure shopping backend context", e);
+            throw new IllegalStateException("Failed to configure store backend context", e);
         }
     }
 

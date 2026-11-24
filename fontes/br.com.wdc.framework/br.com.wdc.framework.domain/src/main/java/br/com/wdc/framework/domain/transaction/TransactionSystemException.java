@@ -1,9 +1,9 @@
 package br.com.wdc.framework.domain.transaction;
 
 /**
- * Lançada quando uma operação de infraestrutura da transação falha de forma que afeta sua saúde — por exemplo, falha no
- * commit ou no rollback, suspensão/retomada (REQUIRES_NEW / NOT_SUPPORTED) ou obtenção de conexão. Sinaliza que a
- * consistência da transação não pôde ser garantida.
+ * Thrown when a transaction infrastructure operation fails in a way that affects its health — for example, a failure
+ * in commit or rollback, suspend/resume (REQUIRES_NEW / NOT_SUPPORTED) or obtaining a connection. Signals that the
+ * consistency of the transaction could not be guaranteed.
  */
 public class TransactionSystemException extends TransactionException {
 

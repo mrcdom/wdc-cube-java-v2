@@ -3,67 +3,67 @@ package br.com.wdc.framework.commons.http;
 import java.util.function.Supplier;
 
 /**
- * Abstração de transporte HTTP genérica.
+ * Generic HTTP transport abstraction.
  * <p>
- * Trabalha com JSON em formato String e bytes crus,
- * compatível com JVM (OkHttp) e TeaVM (XMLHttpRequest).
+ * Works with JSON as String and raw bytes,
+ * compatible with the JVM (OkHttp) and TeaVM (XMLHttpRequest).
  */
 public interface HttpTransport {
 
 	/**
-	 * Define o fornecedor de token de acesso para requisições autenticadas.
-	 * Implementações devem incluir o token como header "Authorization: Bearer {token}".
+	 * Sets the access token supplier for authenticated requests.
+	 * Implementations must include the token as the header "Authorization: Bearer {token}".
 	 */
 	default void setAccessTokenSupplier(Supplier<String> tokenSupplier) {
-		// default no-op para transports que gerenciam auth de outra forma
+		// default no-op for transports that handle auth some other way
 	}
 
 	/**
-	 * Define o fornecedor do id de transação remota. Quando retornar não-nulo, a implementação deve incluir o header
-	 * {@code X-Tx-Id: {txId}} nas requisições, propagando a transação dirigida pelo cliente para o servidor.
+	 * Sets the remote transaction id supplier. When it returns non-null, the implementation must include the header
+	 * {@code X-Tx-Id: {txId}} in the requests, propagating the client-driven transaction to the server.
 	 */
 	default void setTransactionIdSupplier(Supplier<String> txIdSupplier) {
-		// default no-op para transports que não suportam transação remota
+		// default no-op for transports that do not support remote transactions
 	}
 
 	/**
-	 * POST JSON com autenticação (se disponível).
+	 * POST JSON with authentication (if available).
 	 *
-	 * @param path caminho relativo (e.g. "/api/products/fetch")
-	 * @param body corpo JSON da requisição (String)
-	 * @return resposta JSON (String)
+	 * @param path relative path (e.g. "/api/products/fetch")
+	 * @param body JSON request body (String)
+	 * @return JSON response (String)
 	 */
 	String postJson(String path, String body);
 
 	/**
-	 * POST JSON com autenticação, retornando null para 404.
+	 * POST JSON with authentication, returning null for 404.
 	 */
 	String postJsonNullable(String path, String body);
 
 	/**
-	 * POST JSON sem autenticação (endpoints públicos).
+	 * POST JSON without authentication (public endpoints).
 	 */
 	String postJsonPublic(String path, String body);
 
 	/**
-	 * POST JSON com token de autenticação explícito.
+	 * POST JSON with an explicit authentication token.
 	 */
 	String postJsonWithAuth(String path, String body, String token);
 
 	/**
-	 * GET JSON sem autenticação.
+	 * GET JSON without authentication.
 	 */
 	String getJson(String path);
 
 	/**
-	 * GET bytes com autenticação. Retorna null para 404/204.
+	 * GET bytes with authentication. Returns null for 404/204.
 	 */
 	byte[] getBytes(String path);
 
 	/**
-	 * PUT bytes com autenticação.
+	 * PUT bytes with authentication.
 	 *
-	 * @return true se sucesso
+	 * @return true on success
 	 */
 	boolean putBytes(String path, byte[] data);
 

@@ -98,7 +98,7 @@ public class RemoteBrowserPresenter extends AbstractPresenter<CubeApplication> {
         var causeMessage = cause != null ? cause.getMessage() : null;
         String text;
         if (StringUtils.isBlank(msg)) {
-            text = StringUtils.isBlank(causeMessage) ? "Ocorreu um erro não previsto" : causeMessage;
+            text = StringUtils.isBlank(causeMessage) ? "An unexpected error occurred" : causeMessage;
         } else {
             text = StringUtils.isBlank(causeMessage) ? msg : msg + ": " + causeMessage;
         }

@@ -17,15 +17,15 @@ import br.com.wdc.framework.jooq.dialect.SQLiteJsonDialect;
 import br.com.wdc.framework.jooq.dialect.SqlServerJsonDialect;
 
 /**
- * Abstração para geração de JSON via SQL nativo por banco de dados.
+ * Abstraction for generating JSON through each database's native SQL.
  *
  * <p>
- * Cada implementação usa as funções JSON nativas do respectivo banco (ex: {@code JSON_OBJECT},
- * {@code json_build_object}, etc.), suportando qualquer quantidade de campos.
+ * Each implementation uses the native JSON functions of its database (e.g. {@code JSON_OBJECT},
+ * {@code json_build_object}, etc.), supporting any number of fields.
  * </p>
  *
  * <p>
- * Uso:
+ * Usage:
  * <pre>{@code
  * var dialect = JsonDialect.of(ctx.dsl().dialect());
  * Field<String> json = dialect.jsonObject(entries);
@@ -34,59 +34,62 @@ import br.com.wdc.framework.jooq.dialect.SqlServerJsonDialect;
 public interface JsonDialect {
 
     /**
-     * Monta um campo SQL que produz um JSON object a partir das entries fornecidas.
-     * Cada entry contém a chave, o campo raw e o tipo lógico.
+     * Builds an SQL field that produces a JSON object from the given entries.
+     * Each entry holds the key, the raw field and the logical type.
      *
-     * @param entries lista de campos a incluir no JSON object
-     * @return Field que, ao ser avaliado, produz uma string JSON
+     * @param entries list of fields to include in the JSON object
+     * @return Field that, when evaluated, produces a JSON string
      */
     Field<String> jsonObject(List<JsonFieldEntry> entries);
 
     /**
-     * Monta uma expressão de agregação que produz um JSON array a partir de múltiplas linhas.
-     * Usado para relações 1:N (subselect correlacionado).
+     * Builds an aggregation expression that produces a JSON array from multiple rows.
+     * Used for 1:N relations (correlated subselect).
      *
-     * @param jsonElement expressão que produz um JSON object por linha
-     * @return expressão que agrega em {@code '[' || elem1 || ',' || elem2 || ... || ']'}
+     * @param jsonElement expression that produces one JSON object per row
+     * @return expression that aggregates into {@code '[' || elem1 || ',' || elem2 || ... || ']'}
      */
     Field<String> jsonArrayAgg(Field<String> jsonElement);
 
     /**
-     * Idem, com ordem definida <b>dentro</b> da agregação.
+     * Same, with the order defined <b>inside</b> the aggregation.
      *
      * <p>
-     * A ordem tem de entrar aqui, e não como {@code ORDER BY} da consulta: a coleção sai de uma subconsulta
-     * correlacionada com a linha do pai, e envolvê-la numa tabela derivada — onde caberia um {@code ORDER BY} — põe a
-     * correlação fora de alcance, porque uma derivada não enxerga o escopo externo.
+     * The order has to go in here, not as the query's {@code ORDER BY}: the collection comes out of a subquery
+     * correlated with the parent row, and wrapping it in a derived table — where an {@code ORDER BY} would fit — puts the
+     * correlation out of reach, because a derived table does not see the outer scope.
      * </p>
      *
      * <p>
-     * O padrão devolve a agregação <b>sem ordem</b>: nem todo banco sabe ordenar dentro do agregado, e emitir SQL que
-     * ele recusaria seria pior do que devolver a coleção na ordem do banco. Sobrescrevem este método os dialetos em
-     * que a construção existe — hoje H2 e PostgreSQL, os dois que a aplicação usa.
+     * The default returns the aggregation <b>without order</b>: not every database can order inside the aggregate, and
+     * emitting SQL it would refuse would be worse than returning the collection in the database's order. The dialects
+     * where the construct exists override this method — H2 and PostgreSQL, the two the application uses.
      * </p>
      */
     default Field<String> jsonArrayAgg(Field<String> jsonElement, List<SortField<?>> order) {
         return jsonArrayAgg(jsonElement);
     }
 
-    /** Se este dialeto sabe ordenar dentro da agregação — ou seja, se {@link #jsonArrayAgg(Field, List)} honra a ordem. */
+    /**
+     * Whether this dialect can order inside the aggregation — that is, whether {@link #jsonArrayAgg(Field, List)} honors
+     * the order.
+     */
     default boolean supportsOrderedAggregation() {
         return false;
     }
 
     /**
-     * Hook de inicialização (ex: registrar funções SQL customizadas no H2).
-     * Chamado uma vez durante o bootstrap.
+     * Initialization hook (e.g. registering custom SQL functions in H2).
+     * Called once during bootstrap.
      *
-     * @param conn conexão JDBC aberta
+     * @param conn open JDBC connection
      */
     default void initialize(Connection conn) throws SQLException {
-        // Default: nada a fazer
+        // Default: nothing to do
     }
 
     /**
-     * Obtém a implementação de {@link JsonDialect} adequada para o dialeto jOOQ informado.
+     * Gets the {@link JsonDialect} implementation suited to the given jOOQ dialect.
      */
     static JsonDialect of(SQLDialect dialect) {
         return switch (dialect.family()) {
@@ -96,8 +99,8 @@ public interface JsonDialect {
             case SQLITE -> SQLiteJsonDialect.INSTANCE;
             case DUCKDB -> DuckDbJsonDialect.INSTANCE;
             default -> {
-                // SQL Server (SQLSERVER) só está disponível no jOOQ comercial.
-                // Detectamos pelo nome da família para não depender do enum pro.
+                // SQL Server (SQLSERVER) is available only in commercial jOOQ.
+                // We detect it by the family name so as not to depend on the pro enum.
                 String family = dialect.family().name();
                 if (family.equals("SQLSERVER")) {
                     yield SqlServerJsonDialect.INSTANCE;

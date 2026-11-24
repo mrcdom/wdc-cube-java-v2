@@ -1,60 +1,60 @@
 # WDC Framework — Commons
 
-Biblioteca de utilitários compartilhados por todos os demais módulos do framework e pela aplicação Shopping.
+Utility library shared by all the other framework modules and by the WDC Store application.
 
 ---
 
-## Pacotes
+## Packages
 
-| Pacote | Descrição |
-|--------|-----------|
-| `codec` | Codificação **Base62** |
-| `concurrent` | `ScheduledExecutor` — wrapper de execução agendada |
-| `convert` | `DateUtil` — conversão/formatação de datas |
-| `function` | Interfaces funcionais com exceções: `ThrowingConsumer`, `ThrowingFunction`, `ThrowingRunnable`, `ThrowingSupplier` |
-| `gson` | Utilitários de serialização/deserialização JSON (Gson) |
-| `http` | `HttpTransport` — abstração de transporte HTTP |
-| `lang` | `CoerceUtils` — conversão coerciva de tipos primitivos |
-| `log` | Façade de logging multiplataforma (`Log`, `JulLogFactory`, `Slf4jLogFactory`) |
-| `security` | `RSA` — operações de criptografia RSA |
-| `serialization` | Serialização binária extensível: `Externalizable`, `EntityGraph`, `ExtensibleObjectInput/Output`, `JsonStream*`, `MapOrList*`, `KeyedEntity`, `SerializationToken` |
-| `sql` | `SqlDataSource`, `SqlDataSourceDelegate` — abstração de conexão SQL |
-| `storage` | `ClientStorage`, `InMemoryClientStorage`, `PreferencesClientStorage`, `EncryptedPreferencesClientStorage` — armazenamento local key-value com suporte a criptografia AES-256-GCM |
+| Package | Description |
+|---------|-------------|
+| `codec` | **Base62** encoding |
+| `concurrent` | `ScheduledExecutor` — scheduled execution wrapper |
+| `convert` | `DateUtil` — date conversion/formatting |
+| `function` | Functional interfaces with exceptions: `ThrowingConsumer`, `ThrowingFunction`, `ThrowingRunnable`, `ThrowingSupplier` |
+| `gson` | JSON serialization/deserialization utilities (Gson) |
+| `http` | `HttpTransport` — HTTP transport abstraction |
+| `lang` | `CoerceUtils` — coercive conversion of primitive types |
+| `log` | Cross-platform logging facade (`Log`, `JulLogFactory`, `Slf4jLogFactory`) |
+| `security` | `RSA` — RSA cryptography operations |
+| `serialization` | Extensible binary serialization: `Externalizable`, `EntityGraph`, `ExtensibleObjectInput/Output`, `JsonStream*`, `MapOrList*`, `KeyedEntity`, `SerializationToken` |
+| `sql` | `SqlDataSource`, `SqlDataSourceDelegate` — SQL connection abstraction |
+| `storage` | `ClientStorage`, `InMemoryClientStorage`, `PreferencesClientStorage`, `EncryptedPreferencesClientStorage` — local key-value storage with AES-256-GCM encryption support |
 | `util` | `Defer`, `HasCriteria`, `LambdaUtils`, `Rethrow`, `TransactionContext` |
 
 ---
 
-## Destaques de Uso
+## Usage Highlights
 
-### Logging multiplataforma
+### Cross-platform logging
 
 ```java
 import br.com.wdc.framework.commons.log.Log;
 
-private static final Log LOG = Log.getLogger(MinhaClasse.class.getSimpleName());
-LOG.info("mensagem");
-LOG.error("falha: " + ex.getMessage());
+private static final Log LOG = Log.getLogger(MyClass.class.getSimpleName());
+LOG.info("message");
+LOG.error("failure: " + ex.getMessage());
 ```
 
-### Interfaces funcionais com exceção
+### Functional interfaces with exceptions
 
 ```java
 import br.com.wdc.framework.commons.function.ThrowingConsumer;
 
 ThrowingConsumer<String> action = value -> {
-    Files.writeString(path, value); // pode lançar IOException
+    Files.writeString(path, value); // may throw IOException
 };
 ```
 
 ---
 
-## Dependências
+## Dependencies
 
 - Gson
-- SLF4J (quando disponível, via `Slf4jLogFactory`)
+- SLF4J (when available, via `Slf4jLogFactory`)
 - `java.util.logging` (fallback via `JulLogFactory`)
 
-## Coordenadas Maven
+## Maven Coordinates
 
 ```xml
 <dependency>

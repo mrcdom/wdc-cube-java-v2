@@ -1,26 +1,26 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WDC Shopping — Critérios e Projeções na API REST</title>
+  <title>WDC Store — Criteria and Projections in the REST API</title>
   <link rel="stylesheet" href="css/app.css">
 </head>
 
 <body>
   <header class="top">
     <div class="title">
-      <h1>Critérios e Projeções</h1>
-      <p>Como um filtro é escrito, o que ele vira no fio e o que o banco entende dele.</p>
+      <h1>Criteria and Projections</h1>
+      <p>How a filter is written, what it becomes on the wire, and what the database makes of it.</p>
     </div>
 
     <form id="login" class="auth">
-      <label>usuário <input id="auth-user" value="admin" autocomplete="username"></label>
-      <label>senha <input id="auth-pass" type="password" value="admin" autocomplete="current-password"></label>
-      <button type="submit">entrar</button>
-      <button type="button" id="logout" hidden>sair</button>
-      <span id="auth-status" class="auth-status no">não autenticado</span>
+      <label>user <input id="auth-user" value="admin" autocomplete="username"></label>
+      <label>password <input id="auth-pass" type="password" value="admin" autocomplete="current-password"></label>
+      <button type="submit">sign in</button>
+      <button type="button" id="logout" hidden>sign out</button>
+      <span id="auth-status" class="auth-status no">not signed in</span>
     </form>
   </header>
 
@@ -29,40 +29,40 @@
   <main>
     <section class="column build">
       <div class="block">
-        <h2>1 · Critério <span id="criteria-summary" class="summary"></span></h2>
+        <h2>1 · Criteria <span id="criteria-summary" class="summary"></span></h2>
         <p class="lead">
-          Cada campo carrega <em>pedidos de comparação</em>, não um valor. Acrescente um segundo pedido no mesmo campo
-          para ver por que o padrão é <code>AND</code> — e o que muda ao marcar <code>OU</code>.
+          Each field carries <em>comparison requests</em>, not a value. Add a second request to the same field
+          to see why the default is <code>AND</code> — and what changes when you tick <code>OR</code>.
         </p>
         <div id="criteria"></div>
         <div class="block-actions">
-          <button type="button" id="clear" class="link muted">limpar o critério</button>
+          <button type="button" id="clear" class="link muted">clear the criteria</button>
         </div>
       </div>
 
       <div class="block">
-        <h2>2 · Projeção</h2>
+        <h2>2 · Projection</h2>
         <p class="lead">
-          Campo marcado entra no <code>SELECT</code>; desmarcado, nem é consultado. Na relação 1:N, a projeção leva
-          também o critério e o recorte da coleção.
+          A checked field goes into the <code>SELECT</code>; unchecked, it is not even queried. On the 1:N relation, the
+          projection also carries the collection's criteria and slice.
         </p>
         <div id="projection"></div>
       </div>
 
       <div class="block">
-        <h2>3 · Operação</h2>
+        <h2>3 · Operation</h2>
         <nav id="operations" class="operations"></nav>
         <div id="paging" class="paging">
           <label>offset <input type="number" min="0" data-name="offset" value="0"></label>
-          <label>limit <input type="number" min="0" data-name="limit" value="0" placeholder="0 = sem limite"></label>
+          <label>limit <input type="number" min="0" data-name="limit" value="0" placeholder="0 = no limit"></label>
           <label>page <input type="number" min="0" data-name="page" value="0"></label>
           <label>pageSize <input type="number" min="1" data-name="pageSize" value="10"></label>
         </div>
       </div>
 
       <div class="block recipes-block">
-        <h2>Receitas</h2>
-        <p class="lead">Cada uma mostra um ponto. Vale comparar as vizinhas.</p>
+        <h2>Recipes</h2>
+        <p class="lead">Each one makes a single point. Compare it with its neighbors.</p>
         <div id="recipes" class="recipes"></div>
       </div>
     </section>
@@ -72,9 +72,9 @@
         <div id="request-target" class="request-target"></div>
 
         <nav id="output-tabs" class="output-tabs">
-          <button type="button" data-target="json" class="active">JSON enviado</button>
-          <button type="button" data-target="explanation">em português</button>
-          <button type="button" data-target="sql">SQL aproximado</button>
+          <button type="button" data-target="json" class="active">JSON sent</button>
+          <button type="button" data-target="explanation">in plain English</button>
+          <button type="button" data-target="sql">approximate SQL</button>
         </nav>
 
         <div class="output-panel" data-output="json">
@@ -88,17 +88,17 @@
         <div class="output-panel" data-output="sql" hidden>
           <pre id="sql"></pre>
           <p class="hint">
-            Aproximado de propósito: mostra como os pedidos se combinam. Campos derivados aparecem como o
-            <code>EXISTS</code> que de fato viram.
+            Approximate on purpose: it shows how the requests combine. Derived fields appear as the
+            <code>EXISTS</code> they actually become.
           </p>
         </div>
 
         <div class="run">
-          <button type="button" id="run">executar</button>
+          <button type="button" id="run">run</button>
         </div>
 
         <div id="response" class="response">
-          <p class="empty">Nenhuma chamada ainda.</p>
+          <p class="empty">No calls yet.</p>
         </div>
       </div>
     </section>

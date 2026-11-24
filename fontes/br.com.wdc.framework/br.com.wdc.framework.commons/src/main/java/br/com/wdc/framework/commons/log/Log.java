@@ -187,7 +187,7 @@ public final class Log {
     }
 
     @SuppressWarnings({
-        "java:S106" // Indicando ao Sonar que não é problema neste ponto
+        "java:S106" // Tells Sonar this is not a problem here
     })
     private void defaultOutput(Level level, String formatted, Throwable t) {
         String line = level.name() + " [" + shortName() + "] " + formatted;

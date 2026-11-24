@@ -3,7 +3,7 @@ package br.com.wdc.framework.cube.remote.bridge.teavm;
 import br.com.wdc.framework.cube.remote.bridge.teavm.interop.Timers;
 
 /**
- * Controla reconexão com backoff exponencial.
+ * Controls reconnection with exponential backoff.
  */
 public class ReconnectController {
 

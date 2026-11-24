@@ -3,8 +3,8 @@ package br.com.wdc.framework.persistence.transaction;
 import br.com.wdc.framework.domain.config.AppConfig;
 
 /**
- * Parâmetros operacionais do {@link RemoteTransactionCoordinatorImpl} — externalizáveis via configuração. Imutável.
- * Os valores ausentes caem nos defaults definidos em {@link RemoteTransactionCoordinatorImpl} ({@code DEFAULT_*}).
+ * Operational parameters of the {@link RemoteTransactionCoordinatorImpl} — externalizable via configuration. Immutable.
+ * Missing values fall back to the defaults defined in {@link RemoteTransactionCoordinatorImpl} ({@code DEFAULT_*}).
  */
 public record RemoteTransactionOptions(
         long idleTimeoutMs,
@@ -13,7 +13,7 @@ public record RemoteTransactionOptions(
         int maxOpen,
         int maxOpenPerOwner) {
 
-    /** Todos os parâmetros nos defaults do coordenador. */
+    /** All parameters at the coordinator's defaults. */
     public static RemoteTransactionOptions defaults() {
         return new RemoteTransactionOptions(
                 RemoteTransactionCoordinatorImpl.DEFAULT_IDLE_TIMEOUT_MS,
@@ -24,8 +24,8 @@ public record RemoteTransactionOptions(
     }
 
     /**
-     * Lê de {@code application.toml} sob {@code <prefix>database.remoteTransaction.*}; durações em <b>segundos</b>
-     * (convenção do projeto, como {@code database.pool.connectionTimeoutSeconds}). Chave ausente → default do impl.
+     * Reads from {@code application.toml} under {@code <prefix>database.remoteTransaction.*}; durations in <b>seconds</b>
+     * (project convention, like {@code database.pool.connectionTimeoutSeconds}). Missing key → the impl's default.
      */
     public static RemoteTransactionOptions fromConfig(AppConfig config, String prefix) {
         var d = defaults();

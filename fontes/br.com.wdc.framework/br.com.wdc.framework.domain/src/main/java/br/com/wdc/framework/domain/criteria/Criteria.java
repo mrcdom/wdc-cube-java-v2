@@ -3,28 +3,27 @@ package br.com.wdc.framework.domain.criteria;
 import java.util.List;
 
 /**
- * Contrato comum a todo {@code XxxCriteria}: expõe os campos filtráveis como uma lista.
+ * Contract shared by every {@code XxxCriteria}: exposes the filterable fields as a list.
  *
  * <p>
- * Existe para que a tradução do critério em condição seja escrita <b>uma vez</b>. Sem ela, cada entidade precisa de um
- * {@code if} por campo, e todo operador novo significa reescrever esse bloco em todas as entidades. Com a lista, o
- * núcleo percorre os campos informados e o que resta a cada entidade é apenas dizer qual coluna corresponde a cada
- * nome.
+ * It exists so that translating the criteria into a condition is written <b>once</b>. Without it, each entity needs one
+ * {@code if} per field, and every new operator means rewriting that block in every entity. With the list, the core
+ * walks the provided fields and all that is left for each entity is to say which column matches each name.
  * </p>
  *
  * <p>
- * A ordem é a de declaração no critério, e é a ordem em que as condições entram no {@code AND} — previsível, portanto,
- * no SQL gerado.
+ * The order is the declaration order in the criteria, and it is the order in which the conditions enter the
+ * {@code AND} — hence predictable in the generated SQL.
  * </p>
  */
 public interface Criteria {
 
     /**
-     * Os campos que chegaram a ser instanciados.
+     * The fields that were actually instantiated.
      *
      * <p>
-     * Um campo só nasce quando alguém o pede, então esta lista traz os tocados — informados ou não. Distinguir
-     * "tocado" de "filtra" é com {@link Criterion#isSet()}, e é responsabilidade de quem traduz.
+     * A field is only created when someone asks for it, so this list holds the touched ones — set or not. Telling
+     * "touched" from "filters" is done with {@link Criterion#isSet()}, and is the translator's responsibility.
      * </p>
      */
     List<Criterion<?, ?>> criterions();

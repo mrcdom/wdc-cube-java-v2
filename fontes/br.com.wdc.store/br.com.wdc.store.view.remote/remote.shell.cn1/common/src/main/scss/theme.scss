@@ -1,0 +1,14 @@
+// =============================================================================
+// Entry point of the CN1 shell theme — aggregates the base and one partial per view package
+// (layout mirrored from the TeaVM shell). Compiled to src/main/css/theme.css
+// by the sass-cli-maven-plugin, which cn1:css then processes into theme.res.
+//
+// Tokens/mixins in src/main/scss; view partials co-located with the views
+// in .../cn1/views/<package>/_<package>.scss (resolved via --load-path).
+// =============================================================================
+@use 'base';
+@use 'login/login';
+@use 'home/home';
+@use 'product/product';
+@use 'cart/cart';
+@use 'receipt/receipt';

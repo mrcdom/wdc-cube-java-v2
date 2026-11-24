@@ -6,13 +6,13 @@ import br.com.wdc.framework.commons.util.HasCriteria;
 import br.com.wdc.framework.commons.util.HasSlice;
 
 /**
- * Coleção de projeção de uma relação 1:N — carrega o bean projetado, o critério da entidade filha e, opcionalmente, o
- * recorte a aplicar.
+ * Projection collection of a 1:N relation — carries the projected bean, the child entity's criteria and, optionally, the
+ * slice to apply.
  *
  * <p>
- * O critério traz também o {@code OrderBy}, e é dele que sai a ordem. <b>Pedir ordem aqui não é inútil</b>: o conjunto
- * lido da consulta é um {@code LinkedHashSet}, que preserva a ordem de inserção — é esta classe, a da projeção, que
- * guarda um elemento só e não precisa ordenar nada.
+ * The criteria also carries the {@code OrderBy}, which is where the order comes from. <b>Asking for an order here is not
+ * pointless</b>: the set read from the query is a {@code LinkedHashSet}, which preserves insertion order — it is this
+ * class, the projection one, that holds a single element and needs no ordering.
  * </p>
  */
 public class ProjectionSet<E> extends HashSet<E> implements HasCriteria, HasSlice {
@@ -41,7 +41,7 @@ public class ProjectionSet<E> extends HashSet<E> implements HasCriteria, HasSlic
         return limit;
     }
 
-    /** Máximo de linhas filhas a trazer. Ordene também, ou o corte é arbitrário. */
+    /** Maximum number of child rows to fetch. Order them too, or the cut is arbitrary. */
     public ProjectionSet<E> withLimit(Integer limit) {
         this.limit = limit;
         return this;
@@ -52,7 +52,7 @@ public class ProjectionSet<E> extends HashSet<E> implements HasCriteria, HasSlic
         return offset;
     }
 
-    /** Linhas filhas a pular antes de começar. Ordene também, ou o salto é arbitrário. */
+    /** Child rows to skip before starting. Order them too, or the skip is arbitrary. */
     public ProjectionSet<E> withOffset(Integer offset) {
         this.offset = offset;
         return this;

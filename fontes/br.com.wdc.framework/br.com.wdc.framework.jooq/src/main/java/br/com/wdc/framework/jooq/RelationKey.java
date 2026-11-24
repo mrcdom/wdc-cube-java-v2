@@ -12,20 +12,21 @@ import org.jooq.Field;
 import org.jooq.Table;
 
 /**
- * A correspondência entre a chave de uma entidade associada e a coluna que a guarda deste lado.
+ * The mapping between the key of an associated entity and the column that holds it on this side.
  *
  * <p>
- * Serve a um atalho: quando a projeção da associação pede <b>apenas a chave</b>, o valor já está na linha corrente —
- * é a coluna da chave estrangeira. Ir buscá-lo do outro lado seria um subselect para descobrir o que já se sabe.
+ * It serves a shortcut: when the association's projection asks for <b>only the key</b>, the value is already in the
+ * current row — it is the foreign key column. Fetching it from the other side would be a subselect to find out what is
+ * already known.
  * </p>
  *
  * <p>
- * <b>Os nomes dos métodos são os do {@link JsonQueryBuilder} de propósito.</b> A chave é declarada a partir do mesmo
- * tipo de coluna com que se declararia o campo escalar, e nomes iguais tornam impossível escolher um tipo aqui e
- * outro lá — o que produziria um JSON que a leitura do filho não reconhece.
+ * <b>The method names are those of {@link JsonQueryBuilder} on purpose.</b> The key is declared from the same column
+ * type with which the scalar field would be declared, and identical names make it impossible to pick one type here and
+ * another there — which would produce JSON that the child's reader does not recognize.
  * </p>
  *
- * @param <T> a tabela deste lado, onde mora a coluna da chave estrangeira
+ * @param <T> the table on this side, where the foreign key column lives
  */
 public final class RelationKey<T extends Table<?>> {
 
@@ -34,55 +35,55 @@ public final class RelationKey<T extends Table<?>> {
     private final List<JsonFieldType> types = new ArrayList<>();
 
     RelationKey() {
-        // Só o builder instancia.
+        // Only the builder instantiates it.
     }
 
-    /** Campo Long da chave do filho, guardado nesta coluna. */
+    /** Long field of the child key, stored in this column. */
     public RelationKey<T> addI64(String fn, Function<T, Field<? extends Number>> jooqField) {
         return add(fn, jooqField, JsonFieldType.NUMBER);
     }
 
-    /** Campo Integer da chave do filho, guardado nesta coluna. */
+    /** Integer field of the child key, stored in this column. */
     public RelationKey<T> addI32(String fn, Function<T, Field<? extends Number>> jooqField) {
         return add(fn, jooqField, JsonFieldType.NUMBER);
     }
 
-    /** Campo Double da chave do filho, guardado nesta coluna. */
+    /** Double field of the child key, stored in this column. */
     public RelationKey<T> addF64(String fn, Function<T, Field<? extends Number>> jooqField) {
         return add(fn, jooqField, JsonFieldType.NUMBER);
     }
 
-    /** Campo BigDecimal da chave do filho, guardado nesta coluna. */
+    /** BigDecimal field of the child key, stored in this column. */
     public RelationKey<T> addDec(String fn, Function<T, Field<BigDecimal>> jooqField) {
         return add(fn, jooqField, JsonFieldType.NUMBER);
     }
 
-    /** Campo String da chave do filho, guardado nesta coluna. */
+    /** String field of the child key, stored in this column. */
     public RelationKey<T> addStr(String fn, Function<T, Field<String>> jooqField) {
         return add(fn, jooqField, JsonFieldType.STRING);
     }
 
-    /** Campo enum da chave do filho, guardado nesta coluna como texto. */
+    /** Enum field of the child key, stored in this column as text. */
     public RelationKey<T> addEnm(String fn, Function<T, Field<String>> jooqField) {
         return add(fn, jooqField, JsonFieldType.STRING);
     }
 
-    /** Campo Boolean da chave do filho, guardado nesta coluna. */
+    /** Boolean field of the child key, stored in this column. */
     public RelationKey<T> addBit(String fn, Function<T, Field<Boolean>> jooqField) {
         return add(fn, jooqField, JsonFieldType.BOOLEAN);
     }
 
-    /** Campo OffsetDateTime da chave do filho, guardado nesta coluna. */
+    /** OffsetDateTime field of the child key, stored in this column. */
     public RelationKey<T> addOdt(String fn, Function<T, Field<OffsetDateTime>> jooqField) {
         return add(fn, jooqField, JsonFieldType.DATETIME);
     }
 
-    /** Campo de data/hora sem fuso da chave do filho, guardado nesta coluna. */
+    /** Date/time field without time zone of the child key, stored in this column. */
     public RelationKey<T> addLdt(String fn, Function<T, Field<java.time.LocalDateTime>> jooqField) {
         return add(fn, jooqField, JsonFieldType.DATETIME);
     }
 
-    /** Campo byte[] da chave do filho, guardado nesta coluna. */
+    /** byte[] field of the child key, stored in this column. */
     public RelationKey<T> addBin(String fn, Function<T, Field<byte[]>> jooqField) {
         return add(fn, jooqField, JsonFieldType.BINARY);
     }
@@ -95,7 +96,7 @@ public final class RelationKey<T extends Table<?>> {
         return this;
     }
 
-    /** Os campos que esta chave cobre — é contra eles que se pergunta se a projeção pediu mais. */
+    /** The fields this key covers — they are what is checked to tell whether the projection asked for more. */
     Set<String> names() {
         return names;
     }
@@ -104,7 +105,7 @@ public final class RelationKey<T extends Table<?>> {
         return names.isEmpty();
     }
 
-    /** O objeto da chave, montado com as colunas desta linha. */
+    /** The key object, built from the columns of this row. */
     List<JsonFieldEntry> entries(T table) {
         var entries = new ArrayList<JsonFieldEntry>(names.size());
         int i = 0;

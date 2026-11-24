@@ -156,9 +156,9 @@ export class FlushRequestContext {
 
     socket.onclose = (event: CloseEvent) => {
       if (event.code === 4001) {
-        // Sessão rejeitada pelo servidor (reload_required): descarta o app_id
-        // guardado antes de recarregar — senão o reload reconecta com o mesmo
-        // id inválido e entra em loop infinito de reload.
+        // Session rejected by the server (reload_required): discard the stored
+        // app_id before reloading — otherwise the reload reconnects with the same
+        // invalid id and enters an infinite reload loop.
         sessionStorage.removeItem("app_id")
         globalThis.location.reload()
         return

@@ -6,17 +6,17 @@ import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 /**
- * Implementação de {@link ClientStorage} usando {@link Preferences} do JDK.
+ * {@link ClientStorage} implementation backed by the JDK {@link Preferences}.
  * <p>
- * Persiste dados entre reinicializações da aplicação em plataformas JVM
- * (desktop). O armazenamento é local ao usuário do SO.
+ * Persists data across application restarts on JVM platforms
+ * (desktop). The storage is local to the OS user.
  * <p>
- * {@link #secure()} retorna um {@link EncryptedPreferencesClientStorage} que
- * compartilha o mesmo nó de {@link Preferences}, armazenando os valores
- * cifrados com AES-256-GCM. A chave AES é gerada uma vez por instalação e
- * reutilizada entre reinicializações. As entradas cifradas usam o prefixo
- * {@value EncryptedPreferencesClientStorage#KEY_PREFIX} para não colidir com
- * as entradas em texto plano deste storage.
+ * {@link #secure()} returns an {@link EncryptedPreferencesClientStorage} that
+ * shares the same {@link Preferences} node, storing the values
+ * encrypted with AES-256-GCM. The AES key is generated once per installation and
+ * reused across restarts. Encrypted entries use the prefix
+ * {@value EncryptedPreferencesClientStorage#KEY_PREFIX} so they do not collide with
+ * this storage's plaintext entries.
  */
 public class PreferencesClientStorage implements ClientStorage {
 
@@ -24,9 +24,9 @@ public class PreferencesClientStorage implements ClientStorage {
 	private final ClientStorage secureView;
 
 	/**
-	 * Cria um storage usando o nó de preferências da classe fornecida.
+	 * Creates a storage using the preferences node of the given class.
 	 *
-	 * @param appClass classe que identifica o escopo do armazenamento
+	 * @param appClass class that identifies the storage scope
 	 */
 	public PreferencesClientStorage(Class<?> appClass) {
 		this.prefs = Preferences.userNodeForPackage(appClass);

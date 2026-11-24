@@ -47,7 +47,7 @@
             <artifactId>gson</artifactId>
         </dependency>
 
-        <!-- Logging: só a API; a implementação é escolha de quem usa o bridge -->
+        <!-- Logging: API only; the implementation is chosen by whoever uses the bridge -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>

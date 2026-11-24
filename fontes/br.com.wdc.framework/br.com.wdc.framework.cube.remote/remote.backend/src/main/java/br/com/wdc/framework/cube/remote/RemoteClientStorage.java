@@ -7,14 +7,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import br.com.wdc.framework.commons.storage.ClientStorage;
 
 /**
- * Implementação server-side de {@link ClientStorage} para sessões remotas (WS).
+ * Server-side implementation of {@link ClientStorage} for remote (WS) sessions.
  * <p>
- * Mantém dois escopos em memória — SESSION e PERSISTENT — populados a partir
- * dos dados enviados pelo cliente no bootstrap. Quando a camada de apresentação
- * escreve um valor, ele é registrado como delta pendente e incluído no próximo
- * envelope de resposta WS, para que o cliente persista localmente.
+ * Keeps two in-memory scopes — SESSION and PERSISTENT — populated from the
+ * data the client sends at bootstrap. When the presentation layer writes a
+ * value, it is recorded as a pending delta and included in the next WS
+ * response envelope, so that the client persists it locally.
  * <p>
- * O protocolo usa o campo {@code "storage"} com dois sub-objetos:
+ * The protocol uses the {@code "storage"} field with these sub-objects:
  * <pre>
  * {
  *   "storage": {
@@ -24,9 +24,9 @@ import br.com.wdc.framework.commons.storage.ClientStorage;
  *   }
  * }
  * </pre>
- * Todos os valores trafegam cifrados via {@link RemoteDataSecurity#b64Cipher}.
- * O escopo {@code "persistent-secure"} instrui o cliente a usar backing seguro
- * (Keychain, FlutterSecureStorage, etc.) para armazenar o valor em repouso.
+ * All values travel ciphered via {@link RemoteDataSecurity#b64Cipher}.
+ * The {@code "persistent-secure"} scope tells the client to use a secure backing
+ * store (Keychain, FlutterSecureStorage, etc.) to keep the value at rest.
  */
 public class RemoteClientStorage {
 
@@ -144,7 +144,7 @@ public class RemoteClientStorage {
 
         private final Map<String, String> data;
         private final Map<String, String> deltas;
-        private final ClientStorage secureVariant; // null → secure() retorna this
+        private final ClientStorage secureVariant; // null → secure() returns this
 
         ScopedView(Map<String, String> data, Map<String, String> deltas, ClientStorage secureVariant) {
             this.data          = data;

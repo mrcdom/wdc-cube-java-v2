@@ -1,30 +1,30 @@
 # WDC Cube Java v2
 
-Proposta arquitetural para construção de aplicações utilizando o padrão **Cube MVP** — uma variação do Model-View-Presenter com presenters hierárquicos, navegação por intents e serialização de estado das views.
+An architectural proposal for building applications with the **Cube MVP** pattern — a variation of Model-View-Presenter with hierarchical presenters, intent-based navigation and serialization of view state.
 
-Este projeto serve como **referência arquitetural** para novos projetos, demonstrando a implementação completa de um sistema de e-commerce (Shopping) com backend Java e **cinco implementações de frontend independentes** — React (web/remoto), Flutter (mobile/desktop/web remoto), Vaadin (web/server-side), SWT (desktop nativo) e TeaVM (web/desktop/Android/iOS via Tauri) — provando que a camada de visualização é totalmente desacoplada da lógica de apresentação.
+This project serves as an **architectural reference** for new projects, demonstrating the complete implementation of an e-commerce system (WDC Store) with a Java backend and **five independent frontend implementations** — React (web/remote), Flutter (mobile/desktop/remote web), Vaadin (web/server-side), SWT (native desktop) and TeaVM (web/desktop/Android/iOS via Tauri) — proving that the view layer is fully decoupled from the presentation logic.
 
-📄 [Cube MVP — Arquitetura de Apresentação Multiplataforma em Java](docs/cube-mvp-arquitetura-multiplataforma.md)  
-📄 [Camada de Dados — Domain, Persistence e API REST](docs/camada-de-dados.md)  
-📄 [Transação Remota — Identidade do Cliente e Posse da Transação](docs/transacao-remota-identidade-e-posse.md)
+📄 [Cube MVP — Multiplatform Presentation Architecture in Java](docs/cube-mvp-multiplatform-architecture.md)  
+📄 [Data Layer — Domain, Persistence and REST API](docs/data-layer.md)  
+📄 [Remote Transaction — Client Identity and Transaction Ownership](docs/remote-transaction-identity-and-ownership.md)
 
-## Visão Geral da Arquitetura
+## Architecture Overview
 
 ```mermaid
 graph TD
-    subgraph Views["Camada de Visualização"]
+    subgraph Views["View Layer"]
         R["React 19 + MUI<br/><small>Browser / WebSocket</small>"]
         FL["Flutter 3 + Material<br/><small>iOS / Android / Desktop / Web<br/>WebSocket</small>"]
         V["Vaadin 25 + Lumo<br/><small>Browser / Server Push</small>"]
-        SW["Eclipse SWT<br/><small>Desktop Nativo / macOS</small>"]
+        SW["Eclipse SWT<br/><small>Native Desktop / macOS</small>"]
         TVM["TeaVM + Tauri<br/><small>Web / Desktop / Android / iOS</small>"]
     end
 
-    subgraph Core["Camadas Compartilhadas"]
-        P["Presentation<br/><small>Presenters + ViewStates + Navegação</small>"]
+    subgraph Core["Shared Layers"]
+        P["Presentation<br/><small>Presenters + ViewStates + Navigation</small>"]
         SEC["Security · RBAC<br/><small>HMAC + JWT + Secured Repos</small>"]
-        PER["Persistence<br/><small>Repositories + jOOQ (SQL type-safe)</small>"]
-        DOM["Domain<br/><small>Modelos + Contratos + Config</small>"]
+        PER["Persistence<br/><small>Repositories + jOOQ (type-safe SQL)</small>"]
+        DOM["Domain<br/><small>Models + Contracts + Config</small>"]
         DB[("H2 Database")]
     end
 
@@ -36,51 +36,51 @@ graph TD
     P --> SEC --> PER --> DOM --> DB
 ```
 
-| Frontend | Tecnologia | Transporte | Módulo |
+| Frontend | Technology | Transport | Module |
 |----------|-----------|------------|--------|
 | **Web (SPA)** | React 19 + TypeScript + MUI 9 | WebSocket (JSON delta) | `view.remote` |
 | **Mobile/Desktop/Web** | Flutter 3 + Material Design | WebSocket (JSON delta) | `view.remote` |
 | **Web (SSR)** | Vaadin 25 + Lumo | Server Push (Atmosphere) | `view.vaadin` |
-| **Desktop Nativo** | Eclipse SWT 3.135.0 | Direto em memória | `view.swt` |
-| **Multiplataforma (TeaVM)** | TeaVM 0.16 + Tauri 2 + Bootstrap 5 | REST (OkHttp → JS) | `view.teavm` |
+| **Native Desktop** | Eclipse SWT 3.135.0 | Direct, in memory | `view.swt` |
+| **Multiplatform (TeaVM)** | TeaVM 0.16 + Tauri 2 + Bootstrap 5 | REST (OkHttp → JS) | `view.teavm` |
 
-**Características principais:**
+**Key features:**
 
-- **Independência de visualização** — mesmos Presenters/ViewStates alimentam React (web), Flutter (mobile/desktop/web), Vaadin (web server-side), SWT (desktop nativo) e TeaVM (web/desktop/Android/iOS)
-- **Sem frameworks de DI** — injeção via `AtomicReference<T> BEAN` (service locator estático); services recebem dependências no construtor
-- **Virtual Threads** (Java 21+) — conexões WebSocket com consumo mínimo de memória
-- **Segurança RBAC** — autenticação HMAC challenge-response com JWT, controle de acesso por papéis (ADMIN, CUSTOMER, MANAGER), repositórios decorados com verificação de permissões
-- **Segurança de transporte** — RSA + PBKDF2 + AES-GCM para troca de dados entre cliente React e servidor
-- **Comunicação em tempo real** — WebSocket bidirecional com keep-alive automático
-- **Configuração externa** — TOML para todas as implementações
+- **View independence** — the same Presenters/ViewStates feed React (web), Flutter (mobile/desktop/web), Vaadin (server-side web), SWT (native desktop) and TeaVM (web/desktop/Android/iOS)
+- **No DI frameworks** — injection via `AtomicReference<T> BEAN` (static service locator); services receive their dependencies in the constructor
+- **Virtual Threads** (Java 21+) — WebSocket connections with minimal memory consumption
+- **RBAC security** — HMAC challenge-response authentication with JWT, role-based access control (ADMIN, CUSTOMER, MANAGER) enforced at the REST endpoints
+- **Transport security** — RSA + PBKDF2 + AES-GCM for data exchange between the React client and the server
+- **Real-time communication** — bidirectional WebSocket with automatic keep-alive
+- **External configuration** — TOML for every implementation
 
-## Estrutura de Módulos
+## Module Structure
 
 ```mermaid
 graph TD
     fontes["fontes/"]
 
     subgraph Framework["br.com.wdc.framework"]
-        commons["commons<br/><small>Utilitários, FP, serialização, SQL, crypto, log</small>"]
-        cube["cube<br/><small>Cube MVP: presenters, views, navegação</small>"]
-        deps["dependencies<br/><small>BOM — versões centralizadas</small>"]
+        commons["commons<br/><small>Utilities, FP, serialization, SQL, crypto, log</small>"]
+        cube["cube<br/><small>Cube MVP: presenters, views, navigation</small>"]
+        deps["dependencies<br/><small>BOM — centralized versions</small>"]
     end
 
-    subgraph Shopping["br.com.wdc.shopping"]
-        domain["domain<br/><small>Modelos, repositórios, critérios</small>"]
-        persistence["persistence<br/><small>H2 + jOOQ + classes geradas</small>"]
+    subgraph Store["br.com.wdc.store"]
+        domain["domain<br/><small>Models, repositories, criteria</small>"]
+        persistence["persistence<br/><small>H2 + jOOQ + generated classes</small>"]
         persistRest["persistence.rest<br/><small>REST controllers (Javalin)</small>"]
         persistClient["persistence.client<br/><small>REST client (OkHttp + Gson)</small>"]
-        presentation["presentation<br/><small>Presenters, ViewStates, navegação</small>"]
+        presentation["presentation<br/><small>Presenters, ViewStates, navigation</small>"]
         scripts["scripts<br/><small>DDL (DBCreate, DBReset)</small>"]
         backend["backend<br/><small>Javalin 7 + Virtual Threads (fat JAR)</small>"]
-        tests["tests<br/><small>Testes unitários e de workflow</small>"]
+        tests["tests<br/><small>Unit and workflow tests</small>"]
 
         subgraph ViewReact["view.remote"]
-            reactHost["remote.host<br/><small>Views + segurança (servidor)</small>"]
-            reactShellReact["remote.shell.react<br/><small>Frontend React/TypeScript</small>"]
-            reactShellFlutter["remote.shell.flutter<br/><small>Frontend Flutter (iOS/Android/Desktop/Web)</small>"]
-            reactShellTeavm["remote.shell.teavm<br/><small>Frontend TeaVM (WebSocket)</small>"]
+            reactHost["remote.host<br/><small>Views + security (server)</small>"]
+            reactShellReact["remote.shell.react<br/><small>React/TypeScript frontend</small>"]
+            reactShellFlutter["remote.shell.flutter<br/><small>Flutter frontend (iOS/Android/Desktop/Web)</small>"]
+            reactShellTeavm["remote.shell.teavm<br/><small>TeaVM frontend (WebSocket)</small>"]
         end
 
         viewVaadin["view.vaadin<br/><small>Vaadin 25 server-side</small>"]
@@ -89,189 +89,193 @@ graph TD
     end
 
     fontes --> Framework
-    fontes --> Shopping
+    fontes --> Store
 ```
 
 ### Framework
 
-| Módulo | Descrição |
+| Module | Description |
 |--------|-----------|
-| **framework.commons** | Interfaces funcionais com exceções checked (`ThrowingFunction`, `ThrowingConsumer`, etc.), serialização extensível, abstrações SQL (`SqlDataSource`), utilitários (`CoerceUtils`, `DateUtil`, `Defer`), criptografia (`RSA`, `Base62`), logging multiplataforma (`Log` — facade leve com backends JUL e SLF4J), concorrência (`ScheduledExecutor`) |
-| **framework.cube** | Motor do padrão Cube MVP: `CubeApplication`, `CubePresenter`, `AbstractCubePresenter`, `CubeView`, `Scope`/`ScopeSlot`/`ScopeViews`, `CubePlace`, `CubeIntent`, `CubeNavigation` |
-| **framework.dependencies** | POM do tipo BOM para gerenciamento centralizado de versões de dependências |
+| **framework.commons** | Functional interfaces with checked exceptions (`ThrowingFunction`, `ThrowingConsumer`, etc.), extensible serialization, SQL abstractions (`SqlDataSource`), utilities (`CoerceUtils`, `DateUtil`, `Defer`), cryptography (`RSA`, `Base62`), multiplatform logging (`Log` — a lightweight facade with JUL and SLF4J backends), concurrency (`ScheduledExecutor`) |
+| **framework.cube** | Engine of the Cube MVP pattern: `CubeApplication`, `CubePresenter`, `AbstractCubePresenter`, `CubeView`, `Scope`/`ScopeSlot`/`ScopeViews`, `CubePlace`, `CubeIntent`, `CubeNavigation` |
+| **framework.domain** | Generic domain abstractions: `Repository`, `Page`, `ModelCodec`, `Criteria`/`Criterion`, `Projection*`, base exceptions (`BusinessException`, `AccessDeniedException`, ...), security contracts (`SecurityContext`, `AuthenticationService`, `PermissionModel`), `AppConfig`, `TransactionService` |
+| **framework.jooq** | JSON query helpers over jOOQ (`JsonQuery`, `JsonQueryBuilder`, `JsonChildQueryBuilder`), `CriterionTranslator`, `TransactionAwareConnectionProvider` |
+| **framework.persistence** | CMT-style transactions in dual JTA/JDBC mode (`TransactionServiceImpl`, `TransactionScope`), `RemoteTransactionCoordinator` SPI |
+| **framework.cube.remote** | Remote protocol of the Cube MVP engine: WebSocket backend (`ScopeSerializer`, `RemoteViewImpl`) and client bridges (Java, TeaVM, React, Flutter) |
+| **framework.dependencies** | BOM-type POM for centralized management of dependency versions |
 
-### Shopping — Backend
+### Store — Backend
 
-| Módulo | Descrição |
+| Module | Description |
 |--------|-----------|
-| **domain** | Modelos de domínio (`User`, `Product`, `Purchase`, `PurchaseItem`), interfaces de repositório, classes de critérios para consultas, hierarquia de exceções (`BusinessException`), contratos de segurança (`SecurityContext`, `AuthenticationService`, `Role`) |
-| **persistence** | Implementação de persistência com **jOOQ** (DSL type-safe, classes geradas em `persistence.jooq.*` a partir do schema H2), `*RepositoryImpl` que obtêm o `DSLContext` via `ShoppingDSLContext.BEAN`, helpers de query JSON do framework (`JsonQuery`, `JsonQueryBuilder`, `JsonChildQueryBuilder`), `RepositoryBootstrap` para wiring. A restrição de escopo por `userId` (RBAC) é aplicada nas queries via critérios |
-| **presentation** | `ShoppingApplication` com proxy delegates de SecurityContext, hierarquia de presenters (Root → Login \| Home → Products/Purchases/Product/Cart/Receipt), ViewStates serializáveis, services com injeção via construtor, `CartManager`, sistema de rotas e navegação |
+| **domain** | One package per entity (`product`, `user`, `purchase`, `purchaseitem`), each with the fluent entity, its `Criterion`-based criteria, codec and repository interface; `InvalidCartItemException`, `Role` (RBAC permissions), `StoreConfig`, `StoreTransactions` |
+| **persistence** | Groups `persistence.impl` — **jOOQ** implementation (type-safe DSL, classes generated in `br.com.wdc.store.persistence.impl.scheme.*` from the H2 schema), `*RepositoryImpl` classes that obtain the `DSLContext` via `StoreDSLContext.BEAN`, the framework's JSON query helpers, `StoreRepositoryBootstrap` for wiring —, `persistence.rest` (Javalin API; authorization and the `userId` scope restriction via `SecurityEnforcer`) and `persistence.client` (HTTP repositories over OkHttp) |
+| **presentation** | `StoreApplication` (subject, cart, `PLACES`), presenter hierarchy (Root → Open/Restricted guards → Login \| Home → Product/Cart/Receipt, with the Products/Purchases panels as segments of Home), scopes with observed `Prop`s, calls named by verb (`XxxQuery`, `XxxCreate`/`XxxSave`/`XxxUpdate`/`XxxDelete`, or a verb of their own like `CredentialsCheck`) over the repositories, `CartManager`, places with `XxxKeys` and navigation by intents |
 
-### Shopping — Frontend (View Implementations)
+### Store — Frontend (View Implementations)
 
-> **Princípio central:** todas as implementações usam exatamente os mesmos Presenters, ViewStates e regras de negócio. Apenas a camada de renderização muda.
+> **Core principle:** every implementation uses exactly the same Presenters, ViewStates and business rules. Only the rendering layer changes.
 
-| Módulo | Descrição |
+| Module | Description |
 |--------|-----------|
-| **view.remote** | Visualização remota via browser — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/README.md) |
-| **view.remote / remote.shell.react** | SPA em React 19 + TypeScript + MUI 9, bundled via Parcel. Comunicação WebSocket bidirecional, gerenciamento de reconexão, segurança client-side |
-| **view.remote / remote.shell.flutter** | Flutter 3 + Material Design para iOS, Android, Desktop (macOS) e Web. Comunicação WebSocket bidirecional, mesmo protocolo do React — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.shell.flutter/README.md) |
-| **view.remote / remote.shell.teavm** | Frontend TeaVM para comunicação via WebSocket com o servidor |
-| **backend** | Servidor Javalin 7 com Virtual Threads, WebSocket dispatcher, controllers REST, banco H2 embarcado. Gera fat JAR (~11 MB) |
-| **view.remote / remote.host** | Implementações de view para o servidor (`GenericViewImpl`), segurança (`AppSecurity` — RSA/PBKDF2/AES-GCM, `DataSecurity`), SPI de WebSocket |
-| **view.vaadin** | Visualização web server-side com Vaadin 25 + Lumo theme + Jetty 12 embarcado — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin/README.md) |
-| **view.swt** | Visualização desktop nativa com Eclipse SWT 3.135.0 — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.swt/README.md) |
-| **view.teavm** | Multiplataforma (Web + Desktop + Android + iOS) com TeaVM 0.16 + Tauri 2 + Bootstrap 5 — Java compilado para JS — [detalhes](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.teavm/README.md) |
-| **persistence.rest** | Controllers REST (Javalin) para expor repositórios como endpoints HTTP, filtro de segurança JWT (`SecurityFilter`), endpoints de autenticação (`AuthApiController`) |
-| **persistence.client** | Client REST (OkHttp + Gson) que implementa as interfaces de repositório e `AuthenticationService` via HTTP, com Bearer token automático |
+| **view.remote** | Remote view via the browser — [details](fontes/br.com.wdc.store/br.com.wdc.store.view.remote/README.md) |
+| **view.remote / remote.shell.react** | SPA in React 19 + TypeScript + MUI 9, bundled with Parcel. Bidirectional WebSocket communication, reconnection management, client-side security |
+| **view.remote / remote.shell.flutter** | Flutter 3 + Material Design for iOS, Android, Desktop (macOS) and Web. Bidirectional WebSocket communication, same protocol as React — [details](fontes/br.com.wdc.store/br.com.wdc.store.view.remote/remote.shell.flutter/README.md) |
+| **view.remote / remote.shell.teavm** | TeaVM frontend that communicates with the server over WebSocket |
+| **backend** | Javalin 7 server with Virtual Threads, WebSocket dispatcher, REST controllers, embedded H2 database. Produces a fat JAR (~11 MB) |
+| **view.remote / remote.host** | Server-side view implementations (`GenericViewImpl`), security (`AppSecurity` — RSA/PBKDF2/AES-GCM, `DataSecurity`), WebSocket SPI |
+| **view.vaadin** | Server-side web view with Vaadin 25 + Lumo theme + embedded Jetty 12 — [details](fontes/br.com.wdc.store/br.com.wdc.store.view.vaadin/README.md) |
+| **view.swt** | Native desktop view with Eclipse SWT 3.135.0 — [details](fontes/br.com.wdc.store/br.com.wdc.store.view.swt/README.md) |
+| **view.teavm** | Multiplatform (Web + Desktop + Android + iOS) with TeaVM 0.16 + Tauri 2 + Bootstrap 5 — Java compiled to JS — [details](fontes/br.com.wdc.store/br.com.wdc.store.view.teavm/README.md) |
+| **persistence.rest** | REST controllers (Javalin) that expose repositories as HTTP endpoints, JWT security filter (`SecurityFilter`), authentication endpoints (`AuthApiController`) |
+| **persistence.client** | REST client (OkHttp + Gson) that implements the repository interfaces and `AuthenticationService` over HTTP, with an automatic Bearer token |
 
-## Pré-requisitos
+## Prerequisites
 
 - **Java 25** (LTS)
-  - **Temurin 25** ou **Microsoft JDK 25** — recomendado
+  - **Temurin 25** or **Microsoft JDK 25** — recommended
 - **Maven 3.9+**
-- **Node.js 20+** e **npm** (para o frontend React)
-- **Flutter 3.x** (para o frontend Flutter — mobile/desktop/web)
+- **Node.js 20+** and **npm** (for the React frontend)
+- **Flutter 3.x** (for the Flutter frontend — mobile/desktop/web)
 
 ## Build
 
 ### Backend (Java)
 
 ```bash
-export JAVA_HOME=<caminho-para-jdk-25>  # ex: /Library/Java/JavaVirtualMachines/temurin-25.jdk/Contents/Home
+export JAVA_HOME=<path-to-jdk-25>  # e.g. /Library/Java/JavaVirtualMachines/temurin-25.jdk/Contents/Home
 export PATH="$JAVA_HOME/bin:$PATH"
 
 cd fontes
 mvn clean package
 ```
 
-O fat JAR será gerado em:
+The fat JAR is generated at:
 ```
 fontes/br.com.wdc.cube.backend/target/br.com.wdc.cube.backend-1.0.0.jar
 ```
 
-### Frontends web (artefatos em `work/frontend/`)
+### Web frontends (artifacts in `work/frontend/`)
 
-Quatro frontends compilam para arquivos estáticos que o backend serve a partir de
-`work/frontend/`. Cada um tem o seu `build.sh`, num módulo diferente; o script
-abaixo chama os quatro na ordem certa:
+Four frontends compile to static files that the backend serves from
+`work/frontend/`. Each one has its own `build.sh`, in a different module; the script
+below calls all four in the right order:
 
 ```bash
-./work/bin/build-frontends.sh             # todos
-./work/bin/build-frontends.sh react       # um alvo só
-./work/bin/build-frontends.sh --skip-install   # não reinstala os módulos Maven antes do TeaVM
-./work/bin/build-frontends.sh --list      # alvos e pré-requisitos
+./work/bin/build-frontends.sh             # all
+./work/bin/build-frontends.sh react       # a single target
+./work/bin/build-frontends.sh --skip-install   # does not reinstall the Maven modules before TeaVM
+./work/bin/build-frontends.sh --list      # targets and prerequisites
 ```
 
-Um alvo cuja ferramenta não esteja instalada é **pulado**, não falha o conjunto —
-sem Flutter no PATH os outros três continuam sendo gerados.
+A target whose tool is not installed is **skipped** rather than failing the whole set —
+without Flutter on the PATH, the other three are still generated.
 
-> Os dois alvos TeaVM compilam contra os JARs do `~/.m2`, não contra o reator. Sem
-> reinstalar os módulos antes, eles geram **em silêncio** um app com a versão anterior
-> do domínio — que abre normalmente e só falha na chamada que mudou. Por isso o script
-> reinstala por padrão; `--skip-install` é para quando se sabe que o `~/.m2` está em dia.
+> The two TeaVM targets compile against the JARs in `~/.m2`, not against the reactor. Without
+> reinstalling the modules first, they **silently** generate an app with the previous version
+> of the domain — which opens normally and fails only on the call that changed. That is why the script
+> reinstalls by default; `--skip-install` is for when you know `~/.m2` is up to date.
 
-| Alvo | Módulo | Ferramenta | Destino |
+| Target | Module | Tool | Destination |
 |------|--------|-----------|---------|
 | `react` | `view.remote/remote.shell.react` | Node 20+ / npm | `work/frontend/remote.shell.react` |
 | `flutter` | `view.remote/remote.shell.flutter/flutter.web` | Flutter 3.x | `work/frontend/remote.shell.flutter` |
 | `teavm.shell` | `view.remote/remote.shell.teavm` | Maven + `JAVA25_HOME` | `work/frontend/remote.shell.teavm` |
 | `teavm.web` | `view.teavm/teavm.web` | Maven + `JAVA25_HOME` | `work/frontend/teavm.web` |
 
-`work/frontend/api.docs` e `work/frontend/openapi` são páginas estáticas — não têm build.
+`work/frontend/api.docs` and `work/frontend/openapi` are static pages — they have no build.
 
-Para desenvolvimento, cada módulo tem também o seu modo de observação
-(`npm run watch` no React, `watch.sh` nos dois TeaVM e no `flutter.web`), que
-recompila sem passar por este script.
+For development, each module also has its own watch mode
+(`npm run watch` in React, `watch.sh` in the two TeaVM modules and in `flutter.web`), which
+recompiles without going through this script.
 
 ### Frontend (Flutter — mobile/desktop)
 
 ```bash
-cd br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.shell.flutter/flutter.mobile
+cd br.com.wdc.store/br.com.wdc.store.view.remote/remote.shell.flutter/flutter.mobile
 
-# Listar dispositivos disponíveis
+# List available devices
 ./deploy.sh list
 
-# Rodar no simulador iOS (iPhone)
+# Run on the iOS simulator (iPhone)
 ./deploy.sh run ios-sim
 
-# Rodar no emulador Android
+# Run on the Android emulator
 ./deploy.sh run android-emu
 ```
 
-O deploy script suporta targets: `ios`, `ios-sim`, `ipad-sim`, `android`, `android-emu`, `android-tablet-emu`, `all`.
+The deploy script supports the targets: `ios`, `ios-sim`, `ipad-sim`, `android`, `android-emu`, `android-tablet-emu`, `all`.
 
-## Execução
+## Running
 
-### Versão React (Web)
+### React Version (Web)
 
 ```bash
 # Via script
 cd fontes/br.com.wdc.cube.backend
-./start-server.sh [porta]
+./start-server.sh [port]
 
-# Ou diretamente
-java -jar target/br.com.wdc.cube.backend-1.0.0.jar [porta]
+# Or directly
+java -jar target/br.com.wdc.cube.backend-1.0.0.jar [port]
 ```
 
-- **Aplicação:** http://localhost:8080
+- **Application:** http://localhost:8080
 - **Health check:** http://localhost:8080/health
-- **Porta padrão:** 8080 (configurável via `work/config/application.toml`, argumento CLI ou variável `SERVER_PORT`)
+- **Default port:** 8080 (configurable via `work/config/application.toml`, a CLI argument or the `SERVER_PORT` variable)
 
-### Versão Flutter (Mobile / Desktop / Web)
+### Flutter Version (Mobile / Desktop / Web)
 
-Requer o backend Javalin rodando (mesma porta 8080 — WebSocket):
+Requires the Javalin backend running (same port 8080 — WebSocket):
 
 ```bash
-cd br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.shell.flutter/flutter.mobile
+cd br.com.wdc.store/br.com.wdc.store.view.remote/remote.shell.flutter/flutter.mobile
 
 # iOS Simulator
 ./deploy.sh run ios-sim
 
-# Android Emulator (auto-corrige localhost → 10.0.2.2)
+# Android Emulator (auto-corrects localhost → 10.0.2.2)
 ./deploy.sh run android-emu
 
-# Desktop macOS
+# macOS Desktop
 cd ../flutter.desktop
 flutter run
 
-# Web (servido pelo backend em /remote.shell.flutter)
+# Web (served by the backend at /remote.shell.flutter)
 cd ../flutter.web
 ./build.sh
 ```
 
-### Versão Vaadin (Web — Server-Side)
+### Vaadin Version (Web — Server-Side)
 
 ```bash
-export JAVA_HOME=<caminho-para-jdk-25>
+export JAVA_HOME=<path-to-jdk-25>
 export PATH="$JAVA_HOME/bin:$PATH"
 
-cd br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin
+cd br.com.wdc.store/br.com.wdc.store.view.vaadin
 java -cp "$(mvn -q dependency:build-classpath -Dmdep.outputFile=/dev/stdout):target/classes" \
-  br.com.wdc.shopping.view.vaadin.ShoppingVaadinMain
+  br.com.wdc.store.view.vaadin.StoreVaadinMain
 ```
 
-- **Aplicação:** http://localhost:8090
-- UI inteiramente server-side — sem código JavaScript/TypeScript customizado
+- **Application:** http://localhost:8090
+- Entirely server-side UI — no custom JavaScript/TypeScript code
 
-## Testes
+## Tests
 
 ```bash
 cd fontes
 mvn test
 ```
 
-Estrutura de testes:
+Test structure:
 
-| Classe base | Finalidade |
+| Base class | Purpose |
 |-------------|------------|
-| `BaseBusinessTest` | Testes de lógica de negócio e repositórios |
-| `BasePresentationTest` | Testes de workflow completo com mocks de view |
+| `BaseBusinessTest` | Business logic and repository tests |
+| `BasePresentationTest` | Full workflow tests with view mocks |
 
-## Configuração
+## Configuration
 
-Ambas as implementações usam o arquivo `work/config/application.toml` para configuração externa:
+Both implementations use the `work/config/application.toml` file for external configuration:
 
 ```toml
 [app]
@@ -284,24 +288,24 @@ Ambas as implementações usam o arquivo `work/config/application.toml` para con
 # reset = false
 
 [server]
-# port = 8080    # apenas Javalin
+# port = 8080    # Javalin only
 
 [security]
-# jwt.secret = "sua-chave-secreta"   # habilita autenticação JWT na API REST
+# jwt.secret = "your-secret-key"   # enables JWT authentication on the REST API
 ```
 
-Resolução: system property `shopping.config.file` → fallback para `work/config/application.toml`.
+Resolution: system property `store.config.file` → fallback to `work/config/application.toml`.
 
-## Segurança (RBAC)
+## Security (RBAC)
 
-O sistema implementa autenticação e autorização em múltiplas camadas:
+The system implements authentication and authorization in multiple layers:
 
-### Autenticação — HMAC Challenge-Response
+### Authentication — HMAC Challenge-Response
 
 ```
 Client                            Server
   │                                 │
-  │──── GET /api/auth/challenge ───→│  Gera nonce com TTL
+  │──── GET /api/auth/challenge ───→│  Generates nonce with TTL
   │←─── { nonce, expiresAt } ──────│
   │                                 │
   │  passwordHash = MD5(password)   │
@@ -309,98 +313,98 @@ Client                            Server
   │    key=passwordHash,            │
   │    data=userName+nonce)         │
   │                                 │
-  │──── POST /api/auth/login ─────→│  Valida digest + nonce
-  │     { userName, digest, nonce } │  Cria sessão + JWT
+  │──── POST /api/auth/login ─────→│  Validates digest + nonce
+  │     { userName, digest, nonce } │  Creates session + JWT
   │←─── { accessToken,             │
   │       refreshToken,             │
   │       publicKey, expiresAt } ──│
   │                                 │
-  │──── Bearer token em /api/repo/* │  SecurityFilter valida JWT
+  │──── Bearer token on /api/repo/* │  SecurityFilter validates JWT
 ```
 
-A senha nunca trafega em texto plano — apenas o digest HMAC-SHA256 com nonce de uso único.
+The password never travels in plain text — only the HMAC-SHA256 digest with a single-use nonce.
 
-### Autorização — Papéis e Permissões
+### Authorization — Roles and Permissions
 
-| Papel | Permissões |
+| Role | Permissions |
 |-------|-----------|
 | **ADMIN** | `user:*`, `product:*`, `purchase:*`, `purchase-item:*`, `data:all` |
-| **CUSTOMER** | `product:read`, `purchase:read/write`, `purchase-item:read/write` |
-| **MANAGER** | `product:read/write`, `purchase:read`, `purchase-item:read` |
+| **CUSTOMER** | `user:read`, `product:read`, `purchase:read/write`, `purchase-item:read/write` |
+| **MANAGER** | `user:read`, `product:read/write`, `purchase:read`, `purchase-item:read` |
 
-Modelo **allow-wins**: permissão efetiva = união de todos os papéis do usuário.
+**Allow-wins** model: effective permission = union of all the user's roles. Without `data:all`, the REST endpoints restrict reads of users and purchases to the authenticated user's own records.
 
-### Camadas de Segurança
+### Security Layers
 
-| Camada | Componente | Responsabilidade |
+| Layer | Component | Responsibility |
 |--------|-----------|-----------------|
-| **HTTP** | `SecurityFilter` | Valida Bearer JWT, popula `SecurityContext.CURRENT` |
-| **Repositório** | `*RepositoryImpl` (jOOQ) | Restringe escopo ao `userId` via critérios para usuários non-admin |
-| **Apresentação** | `SecurityContextDelegate` (proxy) | Propaga `SecurityContext` para a thread corrente em cada chamada |
-| **Transporte** | `AppSecurity` (React) | RSA + PBKDF2 + AES-GCM para dados sensíveis via WebSocket |
+| **HTTP** | `SecurityFilter` | Validates the Bearer JWT, populates `SecurityContext.CURRENT` |
+| **Repository** | `*RepositoryImpl` (jOOQ) | Restricts the scope to the `userId` via criteria for non-admin users |
+| **Presentation** | `SecurityContextDelegate` (proxy) | Propagates the `SecurityContext` to the current thread on each call |
+| **Transport** | `AppSecurity` (React) | RSA + PBKDF2 + AES-GCM for sensitive data over WebSocket |
 
-### Configuração
+### Configuration
 
 ```toml
 [security]
-jwt.secret = "sua-chave-secreta-aqui"
+jwt.secret = "your-secret-key-here"
 ```
 
-Se `jwt.secret` não estiver configurado, a API opera sem autenticação (modo desenvolvimento/testes locais).
+If `jwt.secret` is not configured, the API runs without authentication (development/local test mode).
 
-## Padrão Cube MVP
+## Cube MVP Pattern
 
-O Cube MVP organiza a aplicação em uma **hierarquia de presenters** com navegação baseada em **intents**:
+Cube MVP organizes the application into a **presenter hierarchy** with **intent**-based navigation:
 
 ```mermaid
 graph TD
     Root["RootPresenter (container)"]
-    Root --> Login["LoginPresenter (aberto)"]
-    Root --> Home["HomePresenter (restrito/autenticado)"]
-    Home --> ProductsPanel["ProductsPanelScope (segmento)"]
-    Home --> PurchasesPanel["PurchasesPanelScope (segmento)"]
+    Root --> Login["LoginPresenter (open)"]
+    Root --> Home["HomePresenter (restricted/authenticated)"]
+    Home --> ProductsPanel["ProductsPanelScope (segment)"]
+    Home --> PurchasesPanel["PurchasesPanelScope (segment)"]
     Home --> Product["ProductPresenter"]
     Home --> Cart["CartPresenter"]
     Home --> Receipt["ReceiptPresenter"]
 ```
 
-Cada presenter possui um **Scope** serializável que é transmitido ao frontend via WebSocket. O frontend renderiza com base no estado recebido e envia eventos de volta ao presenter correspondente.
+Each presenter has a serializable **Scope** that is sent to the frontend over WebSocket. The frontend renders based on the received state and sends events back to the corresponding presenter.
 
-## Convenções de Nomenclatura
+## Naming Conventions
 
-| Tipo | Padrão | Exemplo |
+| Type | Pattern | Example |
 |------|--------|---------|
-| Tabela jOOQ (gerada) | `En` + `Entidade` | `EnProduct` / `EN_PRODUCT` |
+| jOOQ table (generated) | `En` + `Entity` | `EnProduct` / `EN_PRODUCT` |
 | View State | `*Scope` | `ProductScope` |
 | View Impl | `*ViewImpl` | `RootReactViewImpl` |
 | Presenter | `*Presenter` | `CartPresenter` |
-| Repositório | `*RepositoryImpl` | `UserRepositoryImpl` |
-| Critério | `*Criteria` | `ProductCriteria` |
-| Aplicador de critério | `Apply` + `Entidade` + `Criteria` | `ApplyProductCriteria` |
+| Repository | `*RepositoryImpl` | `UserRepositoryImpl` |
+| Criteria | `*Criteria` | `ProductCriteria` |
+| Criteria applier | `Apply` + `Entity` + `Criteria` | `ApplyProductCriteria` |
 
-## Dependências Principais
+## Main Dependencies
 
-| Categoria | Tecnologia | Versão |
+| Category | Technology | Version |
 |-----------|-----------|--------|
-| Linguagem | Java (Temurin/Microsoft) | 21 |
+| Language | Java (Temurin/Microsoft) | 21 |
 | Build | Maven | 3.9+ |
-| Servidor HTTP | Javalin | 7.2.4 |
+| HTTP server | Javalin | 7.2.4 |
 | Web UI (server-side) | Vaadin | 25.3.5 |
 | Servlet Container | Jetty | 12 |
-| Desktop UI (nativo) | Eclipse SWT (Cocoa macOS aarch64) | 3.135.0 |
+| Desktop UI (native) | Eclipse SWT (Cocoa macOS aarch64) | 3.135.0 |
 | Mobile/Desktop/Web | Flutter + Dart | 3.x |
-| Banco de dados | H2 | 2.5.252 |
-| Acesso a dados | jOOQ | 3.21.9 |
-| Serialização | Gson | 2.13.2 |
+| Database | H2 | 2.5.252 |
+| Data access | jOOQ | 3.21.9 |
+| Serialization | Gson | 2.13.2 |
 | Logging | SLF4J + Logback | 2.0.20 / 1.6.7 |
-| Testes | JUnit | 4.13.2 |
+| Tests | JUnit | 4.13.2 |
 | Frontend | React | 19 |
 | UI Components | MUI | 9 |
 | Bundler | Parcel | 2.13.3 |
-| Linguagem (frontend) | TypeScript | ES2024 |
+| Language (frontend) | TypeScript | ES2024 |
 
-## Licença
+## License
 
-Este projeto é distribuído sob a [MIT License](https://github.com/mrcdom/wdc-cube-java-v2/blob/main/LICENSE).
+This project is distributed under the [MIT License](https://github.com/mrcdom/wdc-cube-java-v2/blob/main/LICENSE).
 
 Copyright (c) 2026 Marcelo Domingos / WeDoCode Consultoria LTDA

@@ -4,10 +4,10 @@ import java.security.PrivateKey;
 import java.util.Set;
 
 /**
- * Contexto de segurança de uma sessão autenticada.
+ * Security context of an authenticated session.
  * <p>
- * Disponível via {@code SecurityContext.CURRENT} (ThreadLocal) para qualquer
- * camada que precise verificar permissões ou identidade do usuário corrente.
+ * Available via {@code SecurityContext.CURRENT} (ThreadLocal) to any
+ * layer that needs to check permissions or the identity of the current user.
  */
 public interface SecurityContext {
 

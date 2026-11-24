@@ -141,10 +141,10 @@ public abstract class CubeApplication {
 
 	public abstract void updateHistory();
 
-	/** Storage de sessão — in-memory, vive enquanto a instância de app estiver ativa. */
+	/** Session storage — in-memory, lives while the app instance is active. */
 	public abstract ClientStorage clientSessionStore();
 
-	/** Storage persistente — sobrevive a reinicializações; chame {@code .secure()} para backing seguro. */
+	/** Persistent storage — survives restarts; call {@code .secure()} for secure backing. */
 	public abstract ClientStorage clientPersistentStore();
 	
 	protected abstract Map<Integer, CubePresenter> createPresenterMap();

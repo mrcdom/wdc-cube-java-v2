@@ -1,8 +1,8 @@
 /**
- * O construtor de critérios: escolher campo, operador e valores, e ver o filtro tomar forma.
+ * The criteria builder: pick a field, an operator, and values, and watch the filter take shape.
  *
- * Cada campo é uma linha que pode receber vários pedidos. É de propósito que acrescentar um segundo pedido seja fácil:
- * é aí que se percebe que o padrão é `AND` — dois `≠` excluem os dois valores — e que `OR` é uma escolha explícita.
+ * Each field is a row that can take several requests. Adding a second request is easy on purpose: that is where you
+ * notice the default is `AND` — two `≠` exclude both values — and that `OR` is an explicit choice.
  */
 
 import { $$, html, on, render } from '../core/dom.js';
@@ -10,10 +10,10 @@ import { OPERATORS, TEXT_SHORTCUTS, operatorsOf } from '../domain/schema.js';
 
 export class CriteriaBuilder extends EventTarget {
   /**
-   * Descarta, de uma vez, todos os ouvintes deste painel.
+   * Discards all of this panel's listeners at once.
    *
-   * A delegação prende o ouvinte à raiz, que sobrevive à troca de entidade. Sem este descarte, o painel anterior
-   * continuaria atendendo cliques com o critério antigo — que não tem os campos da entidade nova.
+   * Delegation attaches the listener to the root, which survives an entity switch. Without this discard, the previous
+   * panel would keep handling clicks with the old criteria — which lack the new entity's fields.
    */
   #listeners = new AbortController();
 
@@ -26,7 +26,7 @@ export class CriteriaBuilder extends EventTarget {
     this.render();
   }
 
-  /** Desliga o painel. Obrigatório antes de montar outro sobre a mesma raiz. */
+  /** Shuts the panel down. Required before mounting another one on the same root. */
   destroy() {
     this.#listeners.abort();
   }
@@ -79,8 +79,8 @@ export class CriteriaBuilder extends EventTarget {
       this.#changed();
     }, { signal });
 
-    // `input` em vez de `change`: o JSON e a explicação acompanham a digitação, que é o que faz a relação
-    // entre o formulário e o corpo da requisição ficar evidente.
+    // `input` rather than `change`: the JSON and the explanation follow the typing, which is what makes the link
+    // between the form and the request body evident.
     on(this.root, 'input', '[data-role="value"]', (_e, el) => {
       const criterion = this.#criterionOf(el);
       const predicate = criterion.predicates.find((p) => p.id === el.dataset.predicate);
@@ -95,11 +95,11 @@ export class CriteriaBuilder extends EventTarget {
     }, { signal });
   }
 
-  /** Atualiza só os selos de estado, para não redesenhar campos enquanto se digita neles. */
+  /** Updates only the state badges, so fields are not redrawn while being typed into. */
   #refreshBadges() {
     for (const el of $$('[data-role="state"]', this.root)) {
       const criterion = this.criteria.criterion(el.closest('[data-field]').dataset.field);
-      el.textContent = criterion.isSet ? 'filtra' : 'não informado';
+      el.textContent = criterion.isSet ? 'filters' : 'not set';
       el.className = `state ${criterion.isSet ? 'on' : 'off'}`;
     }
   }
@@ -121,15 +121,15 @@ export class CriteriaBuilder extends EventTarget {
     });
 
     return html`
-      ${shortcuts.length ? html`<optgroup label="atalhos de texto">${shortcuts}</optgroup>` : ''}
-      ${shortcuts.length ? html`<optgroup label="operadores">${operators}</optgroup>` : operators}
+      ${shortcuts.length ? html`<optgroup label="text shortcuts">${shortcuts}</optgroup>` : ''}
+      ${shortcuts.length ? html`<optgroup label="operators">${operators}</optgroup>` : operators}
     `;
   }
 
   #valueInputs(criterion, predicate) {
     const { arity } = predicate;
     if (arity === 0) {
-      return html`<span class="no-value">sem valor — o operador já diz tudo</span>`;
+      return html`<span class="no-value">no value — the operator says it all</span>`;
     }
 
     const type = criterion.field.kind === 'number' && !predicate.shortcut ? 'number' : 'text';
@@ -137,26 +137,26 @@ export class CriteriaBuilder extends EventTarget {
     if (arity < 0) {
       return html`
         <input class="value" data-role="value" data-predicate="${predicate.id}" data-index="0" type="text"
-               value="${predicate.values[0] ?? ''}" placeholder="valores separados por vírgula">
+               value="${predicate.values[0] ?? ''}" placeholder="comma-separated values">
       `;
     }
 
     return Array.from({ length: arity }, (_, i) => html`
       <input class="value" data-role="value" data-predicate="${predicate.id}" data-index="${i}" type="${type}"
-             value="${predicate.values[i] ?? ''}" placeholder="${arity === 2 ? (i === 0 ? 'de' : 'até') : 'valor'}">
+             value="${predicate.values[i] ?? ''}" placeholder="${arity === 2 ? (i === 0 ? 'from' : 'to') : 'value'}">
     `);
   }
 
   #predicateRow(criterion, predicate, index) {
     return html`
       <div class="predicate">
-        <span class="joiner">${index === 0 ? '' : (criterion.disjunctive ? 'OU' : 'E')}</span>
+        <span class="joiner">${index === 0 ? '' : (criterion.disjunctive ? 'OR' : 'AND')}</span>
         <select data-role="operator" data-predicate="${predicate.id}">
           ${this.#operatorOptions(criterion, predicate)}
         </select>
         ${this.#valueInputs(criterion, predicate)}
         <button type="button" class="icon" data-action="remove-predicate" data-predicate="${predicate.id}"
-                title="remover este pedido">✕</button>
+                title="remove this request">✕</button>
       </div>
     `;
   }
@@ -174,7 +174,7 @@ export class CriteriaBuilder extends EventTarget {
             ${field.derived ? html`<span class="derived" title="${field.note ?? ''}">${field.derived}</span>` : ''}
           </div>
           <span class="state ${criterion.isSet ? 'on' : 'off'}" data-role="state">
-            ${criterion.isSet ? 'filtra' : 'não informado'}
+            ${criterion.isSet ? 'filters' : 'not set'}
           </span>
         </header>
 
@@ -183,28 +183,28 @@ export class CriteriaBuilder extends EventTarget {
         <div class="predicates">
           ${criterion.predicates.map((p, i) => this.#predicateRow(criterion, p, i))}
           ${criterion.predicates.length === 0
-            ? html`<p class="empty">Nenhum pedido. Este campo não entra no filtro.</p>`
+            ? html`<p class="empty">No requests. This field is not part of the filter.</p>`
             : ''}
         </div>
 
         <footer>
-          <button type="button" class="link" data-action="add-predicate">+ pedido</button>
+          <button type="button" class="link" data-action="add-predicate">+ request</button>
           ${many ? html`
-            <label class="or" title="Vale para o campo inteiro, não só para o pedido seguinte">
+            <label class="or" title="Applies to the whole field, not just the next request">
               <input type="checkbox" data-role="disjunctive" ${criterion.disjunctive ? 'checked' : ''}>
-              combinar com OU
+              combine with OR
             </label>` : ''}
-          ${criterion.predicates.length ? html`<button type="button" class="link muted" data-action="clear-field">limpar</button>` : ''}
+          ${criterion.predicates.length ? html`<button type="button" class="link muted" data-action="clear-field">clear</button>` : ''}
         </footer>
       </article>
     `;
   }
 
-  /** Mostra por quais colunas a ordenação escolhida se faz — é o que a distingue de "ordenar por um campo". */
+  /** Shows which columns the chosen ordering sorts by — that is what sets it apart from "sorting by a field". */
   #orderingHint() {
     const chosen = (this.criteria.meta.orderings ?? []).find((o) => o.name === this.criteria.orderBy);
     if (!chosen) {
-      return html`<span class="ordering-hint">Cada opção é uma ordenação provisionada, não um campo.</span>`;
+      return html`<span class="ordering-hint">Each option is a provisioned ordering, not a field.</span>`;
     }
     return html`<span class="ordering-hint"><code>${chosen.name}</code> → <code>ORDER BY ${chosen.sql}</code></span>`;
   }
@@ -215,9 +215,9 @@ export class CriteriaBuilder extends EventTarget {
         ${this.criteria.criterions.map((c) => this.#fieldCard(c))}
       </div>
       <div class="order-by">
-        <label>Ordenação</label>
+        <label>Ordering</label>
         <select data-role="order-by">
-          <option value="" ${!this.criteria.orderBy ? 'selected' : ''}>— a cargo do banco —</option>
+          <option value="" ${!this.criteria.orderBy ? 'selected' : ''}>— up to the database —</option>
           ${(this.criteria.meta.orderings ?? []).map((o) => html`
             <option value="${o.name}" title="ORDER BY ${o.sql}"
                     ${this.criteria.orderBy === o.name ? 'selected' : ''}>${o.label}</option>`)}

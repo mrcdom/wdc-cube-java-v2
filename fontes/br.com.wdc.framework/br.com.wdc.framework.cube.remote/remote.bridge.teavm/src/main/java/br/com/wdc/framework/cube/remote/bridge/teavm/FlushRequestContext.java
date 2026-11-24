@@ -17,7 +17,7 @@ import br.com.wdc.framework.cube.remote.bridge.teavm.interop.JsStringConsumer;
 import br.com.wdc.framework.cube.remote.bridge.teavm.interop.Timers;
 
 /**
- * Gerencia a conexão WebSocket, fila de requests, keepalive e estado de submitting.
+ * Manages the WebSocket connection, request queue, keepalive and submitting state.
  */
 public class FlushRequestContext {
 
@@ -179,8 +179,8 @@ public class FlushRequestContext {
     private void handleClose(int code) {
         Console.warn("WebSocket closed: " + code);
         if (code == 4001) {
-            // Descarta o app_id guardado antes de recarregar — senão o reload
-            // reconecta com o mesmo id inválido e entra em loop infinito.
+            // Discard the stored app_id before reloading — otherwise the reload
+            // reconnects with the same invalid id and enters an infinite loop.
             removeSessionItem("app_id");
             reload();
             return;

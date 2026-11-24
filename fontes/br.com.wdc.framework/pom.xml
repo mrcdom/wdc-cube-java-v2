@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-	Pai dos módulos do framework, publicados no Maven Central. Não herda do pom raiz
-	(br.com.wdc.cube.parent): quem consome o framework resolve só esta árvore, sem os demos.
+	Parent of the framework modules, published to Maven Central. It does not inherit from the root pom
+	(br.com.wdc.cube.parent): whoever consumes the framework resolves only this tree, without the demos.
 
-	Publicação: cd fontes/br.com.wdc.framework && mvn -Prelease clean deploy
-	(credenciais do portal no server "central" do settings.xml; assinatura pelo gpg-agent).
+	Publishing: cd fontes/br.com.wdc.framework && mvn -Prelease clean deploy
+	(portal credentials in the "central" server of settings.xml; signing through gpg-agent).
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<!-- Namespace do Central verificado pela conta do GitHub; "wdc.java" espelha o "wdc.kt" da versão Kotlin -->
+	<!-- Central namespace verified through the GitHub account; "wdc.java" mirrors the "wdc.kt" of the Kotlin version -->
 	<groupId>io.github.mrcdom.wdc.java</groupId>
 	<artifactId>framework-parent</artifactId>
 	<version>2.0.0</version>
@@ -79,7 +79,7 @@
 	</build>
 
 	<profiles>
-		<!-- O Central exige, por artefato: jar de fontes, jar de javadoc e assinatura GPG -->
+		<!-- Central requires, per artifact: a sources jar, a javadoc jar and a GPG signature -->
 		<profile>
 			<id>release</id>
 			<build>
@@ -135,10 +135,10 @@
 						<extensions>true</extensions>
 						<configuration>
 							<publishingServerId>central</publishingServerId>
-							<!-- Fica como "validated" no portal; a liberação é manual, como no Kotlin -->
+							<!-- Stays "validated" on the portal; the release is manual, as in Kotlin -->
 							<autoPublish>false</autoPublish>
 							<waitUntil>validated</waitUntil>
-							<!-- Fonte TypeScript sem jar: o bridge React não é artefato Maven -->
+							<!-- TypeScript source without a jar: the React bridge is not a Maven artifact -->
 							<excludeArtifacts>
 								<artifact>framework-cube-remote-bridge-react</artifact>
 							</excludeArtifacts>

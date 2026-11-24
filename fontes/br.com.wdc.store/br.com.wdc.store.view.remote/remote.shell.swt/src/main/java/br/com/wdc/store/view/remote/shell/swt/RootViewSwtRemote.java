@@ -1,0 +1,35 @@
+package br.com.wdc.store.view.remote.shell.swt;
+
+import br.com.wdc.framework.cube.Scope;
+import br.com.wdc.store.presentation.presenter.RootScope;
+import br.com.wdc.store.view.swt.SwtApp;
+import br.com.wdc.store.view.swt.impl.RootViewSwt;
+
+class RootViewSwtRemote extends RootViewSwt {
+
+	public static final String CID = RootScope.CLASS_ID;
+
+	final String vsid;
+	final RemoteViewContext ctx;
+
+	RootViewSwtRemote(SwtApp app, String vsid, RemoteViewContext ctx) {
+		super(app);
+		this.vsid = vsid;
+		this.ctx = ctx;
+		this.stateSupplier = this::stateSupplierImpl;
+	}
+
+	private RootScope stateSupplierImpl() {
+		var s = this.ctx.viewState(this.vsid);
+		if (s == null) {
+			return null;
+		}
+		var state = new RootScope();
+		var contentId = s.getString("contentViewId");
+		if (contentId != null) {
+			state.content.set(Scope.drawnBy(this.ctx.viewLookup(contentId)));
+		}
+		state.errorMessage.set(s.getString("errorMessage"));
+		return state;
+	}
+}

@@ -1,45 +1,45 @@
 # WDC Framework — Persistence
 
-Controle de transação **programático estilo CMT** (Container-Managed Transaction), com modo **dual JTA/JDBC** — implementação neutra de tecnologia: depende apenas de `javax.sql.DataSource` (JDBC) e `jakarta.transaction` (JTA), nunca de um pool ou TransactionManager concreto.
+**Programmatic CMT-style** (Container-Managed Transaction) transaction control, with a **dual JTA/JDBC** mode — a technology-neutral implementation: it depends only on `javax.sql.DataSource` (JDBC) and `jakarta.transaction` (JTA), never on a concrete pool or TransactionManager.
 
-> Visão arquitetural completa: [docs/camada-de-dados.md → Transações](../../../docs/camada-de-dados.md#transações-atomicidade-e-modo-dual-jtajdbc).
+> Full architectural view: [docs/data-layer.md → Transactions](../../../docs/data-layer.md#transactions--atomicity-and-dual-jtajdbc-mode).
 
-## Dependências
+## Dependencies
 
-| Artefato | Papel |
-|----------|-------|
-| `br.com.wdc.framework.domain` | Contrato `TransactionService` / `TransactionContext` e exceções |
-| `br.com.wdc.framework.commons` | `Log` (logging do coordenador remoto) |
-| `jakarta.transaction:jakarta.transaction-api` | Interfaces JTA (vendor-neutral) |
+| Artifact | Role |
+|----------|------|
+| `br.com.wdc.framework.domain` | `TransactionService` / `TransactionContext` contract and exceptions |
+| `br.com.wdc.framework.commons` | `Log` (remote coordinator logging) |
+| `jakarta.transaction:jakarta.transaction-api` | JTA interfaces (vendor-neutral) |
 
-**Não depende** de Agroal, Narayana ou drivers XA — isso vive no host (ex.: `br.com.wdc.cube.backend`).
+**Does not depend** on Agroal, Narayana or XA drivers — those live in the host (e.g. `br.com.wdc.cube.backend`).
 
-## Componentes
+## Components
 
-- **`TransactionServiceImpl`** — implementa o contrato `TransactionService` (em `framework.domain.transaction`) com as propagações `required` / `requiresNew` / `mandatory` / `supports` / `notSupported` / `never` (cada uma com a variante `…Call` que retorna valor). Commita em retorno normal; reverte em exceção (repropagada) ou `setRollbackOnly()`.
-- **`TransactionScope`** — *frame* de transação ligado à thread (`ThreadLocal`), dual-mode:
-  - **JDBC** (padrão): commit/rollback direto na `Connection`.
-  - **JTA**: delega ao `TransactionManager`; a conexão, vinda de um `DataSource` JTA-aware, enlista como recurso XA.
-  - Reentrância (`required`): participante compartilha a conexão do *owner*; só o *owner* finaliza.
-- **`JtaTransactionManager`** — holder estático (`AtomicReference<jakarta.transaction.TransactionManager>`), populado pelo bootstrap JTA do host.
+- **`TransactionServiceImpl`** — implements the `TransactionService` contract (in `framework.domain.transaction`) with the propagations `required` / `requiresNew` / `mandatory` / `supports` / `notSupported` / `never` (each with a `…Call` variant that returns a value). Commits on normal return; rolls back on exception (rethrown) or `setRollbackOnly()`.
+- **`TransactionScope`** — thread-bound transaction *frame* (`ThreadLocal`), dual-mode:
+  - **JDBC** (default): commit/rollback directly on the `Connection`.
+  - **JTA**: delegates to the `TransactionManager`; the connection, coming from a JTA-aware `DataSource`, enlists as an XA resource.
+  - Reentrancy (`required`): a participant shares the *owner*'s connection; only the *owner* finishes it.
+- **`JtaTransactionManager`** — static holder (`AtomicReference<jakarta.transaction.TransactionManager>`), populated by the host's JTA bootstrap.
 
-## Uso
+## Usage
 
-Não há holder global: cada módulo expõe o seu (ex.: `ShoppingTransactions` em `shopping.domain`), populado pelo backend com uma instância ligada ao `DataSource` do módulo.
+There is no global holder: each module exposes its own (e.g. `StoreTransactions` in `store.domain`), populated by the backend with an instance bound to the module's `DataSource`.
 
 ```java
-// Registrado pelo bootstrap do módulo, ligado ao DataSource do módulo:
-ShoppingTransactions.BEAN.set(new TransactionServiceImpl(() -> moduleDataSource));
+// Registered by the module bootstrap, bound to the module's DataSource:
+StoreTransactions.BEAN.set(new TransactionServiceImpl(() -> moduleDataSource));
 
-// No caso de uso (camada de serviço / handler / presenter):
-ShoppingTransactions.BEAN.get().required(tx -> {
+// In the use case (service layer / handler / presenter):
+StoreTransactions.BEAN.get().required(tx -> {
     repositoryA.insert(x);
-    repositoryB.update(y);   // commita junto, ou reverte tudo
+    repositoryB.update(y);   // commits together, or rolls everything back
 });
 ```
 
-Os repositórios não mudam: o `DSLContext` (jOOQ) é construído sobre o `TransactionAwareConnectionProvider` (em `framework.jooq`), que entrega a conexão do `TransactionScope` corrente quando há transação ativa.
+Repositories stay the same: the `DSLContext` (jOOQ) is built on top of the `TransactionAwareConnectionProvider` (in `framework.jooq`), which hands out the current `TransactionScope`'s connection when a transaction is active.
 
-## Modo JTA (XA)
+## JTA Mode (XA)
 
-Habilitado pelo host via `application.toml` (`database.transaction = "jta"`). O host inicializa o `TransactionManager` Narayana e configura o pool (Agroal) com integração XA; este módulo só consome as interfaces padrão. Em recurso único (apenas o banco), o commit é 1PC; com múltiplos recursos XA, 2PC.
+Enabled by the host via `application.toml` (`database.transaction = "jta"`). The host initializes the Narayana `TransactionManager` and configures the pool (Agroal) with XA integration; this module only consumes the standard interfaces. With a single resource (only the database), the commit is 1PC; with multiple XA resources, 2PC.

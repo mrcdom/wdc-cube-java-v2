@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>br.com.wdc.store</groupId>
+		<artifactId>br.com.wdc.store.persistence</artifactId>
+		<version>1.0.0</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+
+	<artifactId>persistence.impl</artifactId>
+
+	<dependencies>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<version>${project.version}</version>
+			<artifactId>br.com.wdc.store.domain</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.github.mrcdom.wdc.java</groupId>
+			<artifactId>framework-commons</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.github.mrcdom.wdc.java</groupId>
+			<artifactId>framework-jooq</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.github.mrcdom.wdc.java</groupId>
+			<artifactId>framework-persistence</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.jooq</groupId>
+			<artifactId>jooq</artifactId>
+		</dependency>
+		<!-- Only for the compiler: the jOOQ Settings is annotated with JAXB (optional in jOOQ) -->
+		<dependency>
+			<groupId>jakarta.xml.bind</groupId>
+			<artifactId>jakarta.xml.bind-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<!-- LocalDataSource drivers (local views): optional, whoever uses it declares both -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<optional>true</optional>
+		</dependency>
+	</dependencies>
+</project>

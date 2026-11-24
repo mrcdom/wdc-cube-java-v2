@@ -3,10 +3,10 @@ package br.com.wdc.framework.commons.serialization;
 import java.util.Base64;
 
 /**
- * Streaming JSON writer — puro Java, sem dependências externas.
+ * Streaming JSON writer — pure Java, no external dependencies.
  * <p>
- * Implementa {@link ExtensibleObjectOutput} escrevendo diretamente num StringBuilder
- * sem construir árvore intermediária (Map/List).
+ * Implements {@link ExtensibleObjectOutput} writing straight into a StringBuilder
+ * without building an intermediate tree (Map/List).
  */
 public class JsonStreamWriter implements ExtensibleObjectOutput {
 

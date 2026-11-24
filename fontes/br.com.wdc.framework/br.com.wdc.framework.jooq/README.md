@@ -1,63 +1,63 @@
 # WDC Framework — JOOQ
 
-Query builder declarativo sobre **JOOQ** com projeção JSON nativa e suporte a múltiplos bancos de dados.
+Declarative query builder over **JOOQ** with native JSON projection and support for multiple databases.
 
 ---
 
-## Propósito
+## Purpose
 
-Permitir consultas SELECT com mapeamento bean ↔ tabela de forma type-safe, onde o resultado é serializado em **JSON diretamente pelo banco** e desserializado via streaming (Gson `JsonReader`). Suporta projeção parcial (somente campos não-nulos do bean são incluídos no SELECT) e coleções filhas via subselect correlacionado.
-
----
-
-## Classes Principais
-
-| Classe/Interface | Responsabilidade |
-|------------------|-----------------|
-| `JsonQueryBuilder<B, T>` | Builder fluente — registra campos, projeções e coleções 1:N |
-| `JsonQuery<B, T>` | Objeto imutável gerado pelo builder — executa fetch, projeção e parsing |
-| `JsonChildQueryBuilder<B, T>` | Builder para coleções filhas (subselects correlacionados) |
-| `JsonDialect` | Interface — gera `JSON_OBJECT` / `JSON_ARRAY` nativo por banco |
-| `JooqUtils` | Utilitários auxiliares para JOOQ |
-| `QueryContext` | Contexto de execução de uma query (alias únicos + `DSLContext`); o `DSLContext` é **injetado** via `JsonQueryBuilder.setDSLContextSupplier` — o módulo não tem holder global |
-| `JsonFieldEntry` | Par (nome, Field) para projeção JSON |
-| `JsonFieldType` | Enum de tipos de campo suportados |
+Enables SELECT queries with type-safe bean ↔ table mapping, where the result is serialized to **JSON directly by the database** and deserialized via streaming (Gson `JsonReader`). Supports partial projection (only the bean's non-null fields are included in the SELECT) and child collections via correlated subselects.
 
 ---
 
-## Dialetos Suportados
+## Main Classes
 
-| Classe | Banco |
-|--------|-------|
+| Class/Interface | Responsibility |
+|-----------------|----------------|
+| `JsonQueryBuilder<B, T>` | Fluent builder — registers fields, projections and 1:N collections |
+| `JsonQuery<B, T>` | Immutable object produced by the builder — runs fetch, projection and parsing |
+| `JsonChildQueryBuilder<B, T>` | Builder for child collections (correlated subselects) |
+| `JsonDialect` | Interface — generates native `JSON_OBJECT` / `JSON_ARRAY` per database |
+| `JooqUtils` | Helper utilities for JOOQ |
+| `QueryContext` | Execution context of a query (unique aliases + `DSLContext`); the `DSLContext` is **injected** via `JsonQueryBuilder.setDSLContextSupplier` — the module has no global holder |
+| `JsonFieldEntry` | (name, Field) pair for JSON projection |
+| `JsonFieldType` | Enum of supported field types |
+
+---
+
+## Supported Dialects
+
+| Class | Database |
+|-------|----------|
 | `PostgresJsonDialect` | PostgreSQL |
 | `MySqlJsonDialect` | MySQL / MariaDB |
 | `H2JsonDialect` | H2 |
 | `SQLiteJsonDialect` | SQLite |
 | `DuckDbJsonDialect` | DuckDB |
-| `GenericJsonDialect` | Fallback genérico |
+| `GenericJsonDialect` | Generic fallback |
 
 ---
 
-## Exemplo de Uso
+## Usage Example
 
 ```java
-private static final JsonQuery<Usuario, TUsuario> QUERY =
-    new JsonQueryBuilder<Usuario, TUsuario>()
+private static final JsonQuery<User, TUser> QUERY =
+    new JsonQueryBuilder<User, TUser>()
         .setAlias("u")
-        .setBeanFactory(Usuario::new)
-        .setTableFactory(alias -> USUARIO.as(alias))
+        .setBeanFactory(User::new)
+        .setTableFactory(alias -> USER.as(alias))
         .addI64("id", u -> u.id, (u, v) -> u.id = v, t -> t.ID)
         .addStr("login", u -> u.login, (u, v) -> u.login = v, t -> t.LOGIN)
         .build();
 
-// Projeção total
-Usuario prj = QUERY.newProjectionBean();
-List<Usuario> list = QUERY.fetchToList(prj, (t, q) -> q.where(t.STATUS.eq("ATIVO")));
+// Full projection
+User prj = QUERY.newProjectionBean();
+List<User> list = QUERY.fetchToList(prj, (t, q) -> q.where(t.STATUS.eq("ACTIVE")));
 ```
 
 ---
 
-## Coordenadas Maven
+## Maven Coordinates
 
 ```xml
 <dependency>

@@ -79,7 +79,7 @@
 				<artifactId>narayana-jta</artifactId>
 				<version>7.3.4.Final</version>
 			</dependency>
-			<!-- Narayana usa jboss-logging em runtime mas não o traz transitivamente -->
+			<!-- Narayana uses jboss-logging at runtime but does not bring it transitively -->
 			<dependency>
 				<groupId>org.jboss.logging</groupId>
 				<artifactId>jboss-logging</artifactId>

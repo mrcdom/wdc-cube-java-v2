@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<name>WeDoCode Shopping :: root</name>
+	<name>WeDoCode Store :: root</name>
 	<description>Cube MVP architectural reference — Java 25 + React 19 e-commerce demo</description>
 	<url>https://github.com/mrcdom/wdc-cube-java-v2</url>
 	<inceptionYear>2026</inceptionYear>
@@ -44,7 +44,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-		<!-- Demos e backend; o framework (publicado no Central) fica em 21 no pom dele -->
+		<!-- Demos and backend; the framework (published to Central) stays at 21 in its own pom -->
 		<maven.compiler.release>25</maven.compiler.release>
 	</properties>
 
@@ -63,7 +63,7 @@
 
 	<modules>
 		<module>br.com.wdc.framework</module>
-		<module>br.com.wdc.shopping</module>
+		<module>br.com.wdc.store</module>
 		<module>br.com.wdc.cube.backend</module>
 	</modules>
 

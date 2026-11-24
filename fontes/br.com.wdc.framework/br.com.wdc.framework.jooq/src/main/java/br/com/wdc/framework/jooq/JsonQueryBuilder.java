@@ -38,43 +38,43 @@ import br.com.wdc.framework.commons.util.HasSlice;
 import br.com.wdc.framework.commons.function.ThrowingConsumer;
 
 /**
- * Query builder declarativo para mapeamento bean ↔ tabela JOOQ com projeção JSON.
+ * Declarative query builder for bean ↔ jOOQ table mapping with JSON projection.
  *
  * <p>
- * Suporte a <b>projeção</b>: bean com campos não-nulos indica quais colunas incluir no SELECT.
- * Suporte a <b>lazy</b>: registro de coleções filhas é diferido até primeira execução.
- * Coleções (1:N) via subselect correlacionado com JSON array.
- * Apenas para SELECTs — sem suporte a insert/update.
+ * <b>Projection</b> support: a bean with non-null fields indicates which columns to include in the SELECT.
+ * <b>Lazy</b> support: registration of child collections is deferred until the first execution.
+ * Collections (1:N) via correlated subselect with a JSON array.
+ * SELECTs only — no insert/update support.
  * </p>
  *
  * <p>
- * Uso típico (no repositório):
+ * Typical usage (in the repository):
  *
  * <pre>{@code
- * private static final JsonQuery<Usuario, TUsuario> QUERY =
- *     new JsonQueryBuilder<Usuario, TUsuario>()
+ * private static final JsonQuery<User, TUser> QUERY =
+ *     new JsonQueryBuilder<User, TUser>()
  *         .setAlias("u")
- *         .setBeanFactory(Usuario::new)
- *         .setTableFactory(alias -> USUARIO.as(alias))
+ *         .setBeanFactory(User::new)
+ *         .setTableFactory(alias -> USER.as(alias))
  *         .addI64("id", u -> u.id, (u, v) -> u.id = v, t -> t.ID)
  *         .addStr("login", u -> u.login, (u, v) -> u.login = v, t -> t.LOGIN)
  *         .build();
  *
- * // Projeção total:
- * Usuario prj = QUERY.newProjectionBean();
- * List<Usuario> list = QUERY.fetchToList(prj, (t, q) -> q.where(t.STATUS.eq("ATIVO")));
+ * // Full projection:
+ * User prj = QUERY.newProjectionBean();
+ * List<User> list = QUERY.fetchToList(prj, (t, q) -> q.where(t.STATUS.eq("ACTIVE")));
  *
- * // Projeção parcial (somente id e login):
- * Usuario prj = QUERY.newProjectionBean(u -> { u.nome = null; u.perfil = null; ... });
+ * // Partial projection (only id and login):
+ * User prj = QUERY.newProjectionBean(u -> { u.name = null; u.profile = null; ... });
  * }</pre>
  *
- * @param <B> tipo do bean de domínio
- * @param <T> tipo da classe-schema (ex: TUsuario)
+ * @param <B> domain bean type
+ * @param <T> schema class type (e.g. TUser)
  */
-@SuppressWarnings("java:S4276") // getters usam tipo boxed como sentinela de projeção (null = campo excluído do SELECT)
+@SuppressWarnings("java:S4276") // getters use boxed types as projection sentinels (null = field excluded from the SELECT)
 public class JsonQueryBuilder<B, T extends Table<?>> {
 
-    // :: Callback funcional para projeção (chain of responsibility)
+    // :: Functional callback for projection (chain of responsibility)
 
     @FunctionalInterface
     private interface FieldProjectionCallback<B, T> {
@@ -98,14 +98,14 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
         }
     }
 
-    // :: Callback funcional para parsing JSON
+    // :: Functional callback for JSON parsing
 
     @FunctionalInterface
     private interface FieldSetterCallback<B> {
         void accept(B bean, JsonReader reader) throws IOException;
     }
 
-    // :: Campos do builder
+    // :: Builder fields
 
     private String tableName;
     private Supplier<B> beanFactory;
@@ -115,17 +115,17 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
     private FieldProjectionCallback<B, T> fieldPrjList;
     private Map<String, FieldSetterCallback<B>> fieldSetterMap;
     /**
-     * Como perguntar, a um bean de projeção, se cada campo foi pedido.
+     * How to ask a projection bean whether each field was requested.
      *
      * <p>
-     * Existe para o atalho de chave estrangeira: é por aqui que {@code projectsBeyond} descobre se a projeção da
-     * associação pede algo além da chave. Cobre todo campo registrado — escalar ou relação.
+     * Exists for the foreign key shortcut: this is how {@code projectsBeyond} finds out whether the association's
+     * projection requests anything beyond the key. Covers every registered field — scalar or relation.
      * </p>
      */
     private final Map<String, Function<B, Object>> fieldPresenceMap = new LinkedHashMap<>();
-    /** Tradução do {@code OrderBy} do critério desta entidade; {@code null} quando a entidade não a registrou. */
+    /** Translation of this entity's criteria {@code OrderBy}; {@code null} when the entity did not register one. */
     private BiFunction<T, Object, List<SortField<?>>> ordering;
-    private Consumer<JsonQueryBuilder<B, T>> lazyInit; // guardado por lazyLock durante a inicialização
+    private Consumer<JsonQueryBuilder<B, T>> lazyInit; // guarded by lazyLock during initialization
     private final ReentrantLock lazyLock = new ReentrantLock();
     private volatile boolean lazyDone = false;
 
@@ -136,37 +136,39 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
         this.fillProjBean = ThrowingConsumer.noop();
     }
 
-    // :: Configuração
+    // :: Configuration
 
-    /** Alias base para a tabela principal (ex: "u" para usuario). */
+    /** Base alias for the main table (e.g. "u" for user). */
     public JsonQueryBuilder<B, T> setAlias(String name) {
         this.tableName = name;
         return this;
     }
 
-    /** Factory do bean de domínio (ex: {@code Usuario::new}). */
+    /** Domain bean factory (e.g. {@code User::new}). */
     public JsonQueryBuilder<B, T> setBeanFactory(Supplier<B> beanFactory) {
         this.beanFactory = beanFactory;
         return this;
     }
 
-    /** Factory da tabela-schema com alias (ex: {@code alias -> USUARIO.as(alias)}). */
+    /** Aliased schema table factory (e.g. {@code alias -> USER.as(alias)}). */
     public JsonQueryBuilder<B, T> setTableFactory(Function<String, T> tableFactory) {
         this.tableFactory = tableFactory;
         return this;
     }
 
     /**
-     * Como traduzir o {@code OrderBy} do critério desta entidade em {@code ORDER BY}.
+     * How to translate this entity's criteria {@code OrderBy} into {@code ORDER BY}.
      *
      * <p>
-     * A tradução é por entidade e mora no repositório — é ele que conhece as constantes. Registrando-a aqui, a coleção
-     * filha passa a poder ser ordenada pelo mesmo vocabulário que a consulta de raiz já usa, sem inventar um segundo.
+     * The translation is per entity and lives in the repository — it is the one that knows the constants. Registered
+     * here, it lets a child collection be ordered with the same vocabulary the root query already uses, without
+     * inventing a second one.
      * </p>
      *
      * <p>
-     * Recebe o critério como {@code Object} porque a coleção filha carrega o critério da <b>sua</b> entidade, que o
-     * chamador não conhece estaticamente; a função é que confere o tipo e devolve lista vazia quando não reconhece.
+     * Receives the criteria as {@code Object} because the child collection carries the criteria of <b>its own</b>
+     * entity, which the caller does not know statically; the function checks the type and returns an empty list when
+     * it does not recognize it.
      * </p>
      */
     public JsonQueryBuilder<B, T> setOrdering(BiFunction<T, Object, List<SortField<?>>> ordering) {
@@ -175,8 +177,8 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
     }
 
     /**
-     * Fornecedor do {@link DSLContext} usado nas queries. Cada aplicação injeta o seu (resolução lazy, por execução),
-     * mantendo o {@code framework.jooq} livre de qualquer holder global de {@code DSLContext}.
+     * Supplier of the {@link DSLContext} used by the queries. Each application injects its own (lazy resolution, per
+     * execution), keeping {@code framework.jooq} free of any global {@code DSLContext} holder.
      */
     public JsonQueryBuilder<B, T> setDSLContextSupplier(Supplier<DSLContext> dslContextSupplier) {
         this.dslContextSupplier = dslContextSupplier;
@@ -184,26 +186,26 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
     }
 
     /**
-     * A chave primária da tabela, resolvida na instância informada — que tem alias próprio dentro de um subselect.
+     * The table's primary key, resolved on the given instance — which has its own alias inside a subselect.
      *
      * <p>
-     * Vem da tabela gerada pelo jOOQ, e não de declaração: o esquema já a conhece. Serve ao recorte de coleção filha,
-     * que precisa de algo por onde dizer "estas linhas, e não as outras".
+     * Comes from the table generated by jOOQ, not from a declaration: the schema already knows it. Serves the slicing
+     * of a child collection, which needs something to say "these rows, and not the others".
      * </p>
      *
-     * @throws IllegalStateException se a tabela não declara chave primária, ou se ela é composta — o {@code IN} de
-     *         uma coluna só não a exprime, e emitir SQL aproximado devolveria a coleção errada em silêncio
+     * @throws IllegalStateException if the table declares no primary key, or if it is composite — a single-column
+     *         {@code IN} cannot express it, and emitting approximate SQL would silently return the wrong collection
      */
     @SuppressWarnings("unchecked")
     private static Field<Object> primaryKeyOf(Table<?> table) {
         var pk = table.getPrimaryKey();
         if (pk == null || pk.getFields().isEmpty()) {
-            throw new IllegalStateException("recorte de coleção exige chave primária, e " + table.getName()
-                    + " não declara nenhuma");
+            throw new IllegalStateException("collection slicing requires a primary key, and " + table.getName()
+                    + " declares none");
         }
         if (pk.getFields().size() > 1) {
-            throw new IllegalStateException("recorte de coleção não suporta chave primária composta: "
-                    + table.getName() + " tem " + pk.getFields().size() + " colunas na chave");
+            throw new IllegalStateException("collection slicing does not support a composite primary key: "
+                    + table.getName() + " has " + pk.getFields().size() + " key columns");
         }
         var column = pk.getFields().get(0);
         var resolved = table.field(column);
@@ -211,11 +213,11 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
     }
 
     /**
-     * A entrada JSON de uma coleção filha (1:N), com a ordem e o recorte que a própria coleção declara.
+     * The JSON entry of a child collection (1:N), with the ordering and slice the collection itself declares.
      *
      * <p>
-     * Comum a {@code addBeanSetField} e {@code addBeanListField}: o que muda entre os dois é o tipo da coleção, não
-     * como a subconsulta é montada. Devolve {@code null} quando não há o que projetar.
+     * Shared by {@code addBeanSetField} and {@code addBeanListField}: what differs between the two is the collection
+     * type, not how the subquery is built. Returns {@code null} when there is nothing to project.
      * </p>
      */
     private <C, U extends Table<?>> JsonFieldEntry childCollectionEntry(String fn, Collection<C> childPrjBeans,
@@ -240,9 +242,9 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
             childWhereClause.accept(childQueryBuilder);
         };
 
-        // Ordem e recorte vêm do que a própria coleção declara: o critério que ela carrega (HasCriteria) traz o
-        // OrderBy da entidade filha, e HasSlice traz o limite e o deslocamento. Sem nenhum dos dois, a consulta sai
-        // exatamente como saía.
+        // Ordering and slice come from what the collection itself declares: the criteria it carries (HasCriteria)
+        // bring the child entity's OrderBy, and HasSlice brings the limit and offset. With neither, the query is the
+        // plain aggregation.
         final var listCriteria = childQueryBuilder.criteria;
         Function<U, List<SortField<?>>> order = null;
         if (listCriteria != null && childQuery.hasOrdering()) {
@@ -262,16 +264,16 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
 
     private DSLContext requireDslContext() {
         if (dslContextSupplier == null) {
-            throw new IllegalStateException("JsonQueryBuilder: setDSLContextSupplier(...) não foi configurado");
+            throw new IllegalStateException("JsonQueryBuilder: setDSLContextSupplier(...) was not configured");
         }
         return dslContextSupplier.get();
     }
 
 
 
-    // :: Registro de campos escalares
+    // :: Scalar field registration
 
-    /** Campo Long (BIGINT). */
+    /** Long field (BIGINT). */
     public JsonQueryBuilder<B, T> addI64(String fn, Function<B, Long> getter,
             BiConsumer<B, Long> setter, Function<T, Field<? extends Number>> jooqField) {
 
@@ -295,7 +297,7 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
         return this;
     }
 
-    /** Campo Integer (INT). */
+    /** Integer field (INT). */
     public JsonQueryBuilder<B, T> addI32(String fn, Function<B, Integer> getter,
             BiConsumer<B, Integer> setter, Function<T, Field<? extends Number>> jooqField) {
 
@@ -320,14 +322,14 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
     }
 
     /**
-     * Campo Enum escalar (VARCHAR no banco, enum Java na aplicação).
+     * Scalar Enum field (VARCHAR in the database, Java enum in the application).
      *
      * <p>
-     * O {@code parser} deve ser o método de lookup do próprio enum (ex: {@code Role::parse}). Deve retornar
-     * {@code null} para valores desconhecidos ou nulos — nunca lançar exceção.
+     * The {@code parser} must be the enum's own lookup method (e.g. {@code Role::parse}). It must return
+     * {@code null} for unknown or null values — never throw.
      *
-     * @param enumClass classe do enum; usada para obter o sentinel de projeção via {@code getEnumConstants()[0]}
-     * @param parser    função de deserialização String → E (ex: {@code Role::parse})
+     * @param enumClass enum class; used to obtain the projection sentinel via {@code getEnumConstants()[0]}
+     * @param parser    deserialization function String → E (e.g. {@code Role::parse})
      */
     public <E extends Enum<E>> JsonQueryBuilder<B, T> addEnm(String fn,
             Function<B, E> getter,
@@ -358,7 +360,7 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
         return this;
     }
 
-    /** Campo String (VARCHAR). */
+    /** String field (VARCHAR). */
     public JsonQueryBuilder<B, T> addStr(String fn, Function<B, String> getter,
             BiConsumer<B, String> setter, Function<T, Field<String>> jooqField) {
 
@@ -382,7 +384,7 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
         return this;
     }
 
-    /** Campo Boolean. */
+    /** Boolean field. */
     public JsonQueryBuilder<B, T> addBit(String fn, Function<B, Boolean> getter,
             BiConsumer<B, Boolean> setter, Function<T, Field<Boolean>> jooqField) {
 
@@ -406,7 +408,7 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
         return this;
     }
 
-    /** Campo OffsetDateTime (TIMESTAMPTZ). */
+    /** OffsetDateTime field (TIMESTAMPTZ). */
     public JsonQueryBuilder<B, T> addOdt(String fn, Function<B, OffsetDateTime> getter,
             BiConsumer<B, OffsetDateTime> setter, Function<T, Field<OffsetDateTime>> jooqField) {
 
@@ -431,11 +433,11 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
     }
 
     /**
-     * Campo LocalDateTime (TIMESTAMP sem timezone) mapeado para OffsetDateTime no domínio.
+     * LocalDateTime field (TIMESTAMP without time zone) mapped to OffsetDateTime in the domain.
      *
      * <p>
-     * Útil quando o banco armazena TIMESTAMP (sem TZ) mas o domínio usa {@link OffsetDateTime}. A leitura aplica parse
-     * leniente que aceita tanto ISO-8601 completo quanto o formato H2 ({@code yyyy-MM-dd HH:mm:ss[.n]}).
+     * Useful when the database stores TIMESTAMP (without TZ) but the domain uses {@link OffsetDateTime}. Reading applies
+     * a lenient parse that accepts both full ISO-8601 and the H2 format ({@code yyyy-MM-dd HH:mm:ss[.n]}).
      * </p>
      */
     public JsonQueryBuilder<B, T> addLdt(String fn, Function<B, OffsetDateTime> getter,
@@ -462,8 +464,8 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
     }
 
     /**
-     * O valor a gravar numa coluna TIMESTAMP sem fuso lida por {@link #addLdt}: o mesmo instante, em UTC — a leitura
-     * interpreta a coluna como UTC. {@code null} para {@code null}.
+     * The value to write to a TIMESTAMP column without time zone read by {@link #addLdt}: the same instant, in UTC —
+     * reading interprets the column as UTC. {@code null} for {@code null}.
      */
     public static java.time.LocalDateTime toUtcLdt(OffsetDateTime value) {
         return value != null ? value.withOffsetSameInstant(java.time.ZoneOffset.UTC).toLocalDateTime() : null;
@@ -479,7 +481,7 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
         }
     }
 
-    /** Campo Double (DOUBLE PRECISION / NUMERIC). */
+    /** Double field (DOUBLE PRECISION / NUMERIC). */
     public JsonQueryBuilder<B, T> addF64(String fn, Function<B, Double> getter,
             BiConsumer<B, Double> setter, Function<T, Field<? extends Number>> jooqField) {
 
@@ -503,7 +505,7 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
         return this;
     }
 
-    /** Campo BigDecimal (DECIMAL / NUMERIC). */
+    /** BigDecimal field (DECIMAL / NUMERIC). */
     public JsonQueryBuilder<B, T> addDec(String fn, Function<B, java.math.BigDecimal> getter,
             BiConsumer<B, java.math.BigDecimal> setter, Function<T, Field<? extends Number>> jooqField) {
 
@@ -527,7 +529,7 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
         return this;
     }
 
-    /** Campo byte[] (BINARY / BLOB). Serializado como Base64 no JSON. */
+    /** byte[] field (BINARY / BLOB). Serialized as Base64 in the JSON. */
     public JsonQueryBuilder<B, T> addBin(String fn, Function<B, byte[]> getter,
             BiConsumer<B, byte[]> setter, Function<T, Field<byte[]>> jooqField) {
 
@@ -554,8 +556,8 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
     // :: Lazy (defer child query registration)
 
     /**
-     * Adia o registro de campos (tipicamente coleções filhas) até a primeira execução. Evita dependências circulares e
-     * inicialização cara.
+     * Defers field registration (typically child collections) until the first execution. Avoids circular dependencies
+     * and expensive initialization.
      */
     public JsonQueryBuilder<B, T> lazy(Consumer<JsonQueryBuilder<B, T>> initCallback) {
         var prev = this.lazyInit;
@@ -566,7 +568,7 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
         return this;
     }
 
-    /** Executa a inicialização lazy exatamente uma vez, thread-safe via double-checked locking com ReentrantLock. */
+    /** Runs the lazy initialization exactly once, thread-safe via double-checked locking with ReentrantLock. */
     void runLazyInit() {
         if (!lazyDone) {
             lazyLock.lock();
@@ -581,16 +583,16 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
         }
     }
 
-    // :: Coleções filhas (1:N) — subselect correlacionado
+    // :: Child collections (1:N) — correlated subselect
 
     /**
-     * Registra um campo Set&lt;ChildBean&gt; carregado via subselect correlacionado.
+     * Registers a Set&lt;ChildBean&gt; field loaded via correlated subselect.
      *
-     * @param fn         nome JSON do campo
-     * @param getter     getter do Set no bean pai
-     * @param setter     setter do Set no bean pai
-     * @param childQuery JsonQuery construído para o bean filho
-     * @param childWhere callback que define a correlação (WHERE child.fk = parent.pk)
+     * @param fn         JSON name of the field
+     * @param getter     getter of the Set on the parent bean
+     * @param setter     setter of the Set on the parent bean
+     * @param childQuery JsonQuery built for the child bean
+     * @param childWhere callback that defines the correlation (WHERE child.fk = parent.pk)
      */
     public <C, U extends Table<?>> JsonQueryBuilder<B, T> addBeanSetField(String fn,
             Function<B, Set<C>> getter,
@@ -627,7 +629,7 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
     }
 
     /**
-     * Registra um campo List&lt;ChildBean&gt; carregado via subselect correlacionado.
+     * Registers a List&lt;ChildBean&gt; field loaded via correlated subselect.
      */
     public <C, U extends Table<?>> JsonQueryBuilder<B, T> addBeanListField(String fn,
             Function<B, List<C>> getter,
@@ -664,7 +666,7 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
     }
 
     /**
-     * Registra um campo ChildBean (relação 1:1) carregado via subselect.
+     * Registers a ChildBean field (1:1 relation) loaded via subselect.
      */
     public <C, U extends Table<?>> JsonQueryBuilder<B, T> addBeanField(String fn,
             Function<B, C> getter,
@@ -676,20 +678,21 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
     }
 
     /**
-     * Idem, declarando <b>qual coluna desta tabela guarda a chave</b> da entidade associada.
+     * Same as above, declaring <b>which column of this table holds the key</b> of the associated entity.
      *
      * <p>
-     * Com a chave declarada, a projeção que não pede nada além dela é montada a partir da própria linha, e o
-     * subselect não acontece — é o caso corrente de {@code newProjection()}, que traz a associação só para carregar
-     * o id. Sem a chave, ou quando a projeção pede qualquer outro campo, a relação é resolvida como antes.
+     * With the key declared, a projection that requests nothing beyond it is built from the row itself, and the
+     * subselect does not happen — the common case of {@code newProjection()}, which brings the association only to
+     * carry the id. Without the key, or when the projection requests any other field, the relation is resolved through
+     * the subselect.
      * </p>
      *
      * <p>
-     * <b>Os nomes declarados na chave são os do JSON do filho</b>, e não os desta tabela: é assim que a leitura do
-     * outro lado reconhece o objeto que sai daqui.
+     * <b>The names declared in the key are those of the child's JSON</b>, not those of this table: that is how the
+     * reading on the other side recognizes the object that comes out of here.
      * </p>
      *
-     * @param key declara a correspondência campo-do-filho → coluna-desta-tabela; {@code null} desliga o atalho
+     * @param key declares the child-field → this-table-column mapping; {@code null} disables the shortcut
      */
     public <C, U extends Table<?>> JsonQueryBuilder<B, T> addBeanField(String fn,
             Function<B, C> getter,
@@ -714,8 +717,8 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
                 return;
             }
 
-            // A chave já está nesta linha: se a projeção do associado não pede mais nada, montá-la aqui evita um
-            // subselect que só redescobriria a coluna da chave estrangeira.
+            // The key is already in this row: if the associated projection requests nothing else, building it here
+            // avoids a subselect that would only rediscover the foreign key column.
             if (relationKey != null && !relationKey.isEmpty()
                     && !childQuery.projectsBeyond(childPrjBean, relationKey.names())) {
                 var dialect = JsonDialect.of(ctx.dsl().dialect());
@@ -749,7 +752,7 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
     // :: Build
 
     /**
-     * Constrói a instância imutável de query pronta para execução.
+     * Builds the immutable query instance, ready for execution.
      */
     public JsonQuery<B, T> build() {
         final JsonQueryBuilder<B, T> me = this;
@@ -839,8 +842,8 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
                 me.runLazyInit();
 
                 if (order == null && limit == null && offset == null) {
-                    // Sem ordem nem recorte, a forma antiga: uma consulta a menos e o mesmo SQL de sempre. Quem não
-                    // pede nada continua vendo exatamente o mesmo plano.
+                    // Without ordering or slice, the plain aggregation: one query fewer, and whoever requests
+                    // nothing gets the simplest plan.
                     return select(ctx, prjBean, whereClause, true);
                 }
 
@@ -849,15 +852,15 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
 
                 var sort = order != null ? order.apply(tbRoot) : null;
                 if (sort != null && !sort.isEmpty() && !dialect.supportsOrderedAggregation()) {
-                    // Recusa em vez de devolver a coleção fora da ordem pedida: um resultado ordenado errado passa
-                    // por certo, e o erro só aparece longe daqui.
-                    throw new UnsupportedOperationException("o dialeto " + ctx.dsl().dialect()
-                            + " não sabe ordenar dentro da agregação; ordene a coleção do lado da aplicação");
+                    // Refuses instead of returning the collection out of the requested order: a wrongly ordered
+                    // result passes for correct, and the error only shows up far from here.
+                    throw new UnsupportedOperationException("the dialect " + ctx.dsl().dialect()
+                            + " cannot order inside the aggregation; order the collection on the application side");
                 }
 
-                // A ordem entra DENTRO da agregação. Envolver esta consulta numa tabela derivada — onde caberia um
-                // ORDER BY comum — poria a correlação com a linha do pai fora de alcance: derivada não enxerga o
-                // escopo externo, e o banco responde "column pai.id not found".
+                // The ordering goes INSIDE the aggregation. Wrapping this query in a derived table — where a plain
+                // ORDER BY would fit — would put the correlation with the parent row out of reach: a derived table
+                // does not see the outer scope, and the database answers "column parent.id not found".
                 var agg = ctx.dsl()
                         .select(dialect.jsonArrayAgg(projection(ctx, tbRoot, prjBean), sort)
                                 .as(me.tableName + "_json"))
@@ -865,15 +868,15 @@ public class JsonQueryBuilder<B, T extends Table<?>> {
                 whereClause.accept(tbRoot, agg);
                 var aggQuery = agg.getQuery();
 
-                // O recorte não cabe na agregação, e pelo mesmo motivo não cabe numa derivada. Sai como um IN sobre a
-                // chave primária: uma subconsulta correlacionada — essa, sim, enxerga o pai — que repete o mesmo
-                // filtro, ordena e corta, devolvendo as chaves das linhas que ficam.
+                // The slice does not fit in the aggregation, and for the same reason it does not fit in a derived
+                // table. It comes out as an IN over the primary key: a correlated subquery — this one does see the
+                // parent — that repeats the same filter, orders and cuts, returning the keys of the rows that stay.
                 if (limit != null || offset != null) {
                     var tbSlice = me.tableFactory.apply(me.tableName + ctx.nextUniqueInt());
                     var keep = ctx.dsl().select(primaryKeyOf(tbSlice)).from(tbSlice);
 
-                    // O whereClause é tipado no Record da projeção porque é assim que o resto da API o usa; aqui ele
-                    // só acrescenta condições, e o tipo da coluna projetada não o alcança.
+                    // The whereClause is typed on the projection's Record because that is how the rest of the API
+                    // uses it; here it only adds conditions, and the projected column's type does not reach it.
                     @SuppressWarnings("unchecked")
                     var keepAsProjection = (SelectJoinStep<Record1<String>>) (SelectJoinStep<?>) keep;
                     whereClause.accept(tbSlice, keepAsProjection);

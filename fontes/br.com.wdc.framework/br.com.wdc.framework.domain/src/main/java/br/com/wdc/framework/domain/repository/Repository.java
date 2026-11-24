@@ -7,36 +7,36 @@ import java.util.function.Function;
 import br.com.wdc.framework.domain.pagination.Page;
 
 /**
- * Contrato base de leitura para repositórios do SGS.
+ * Base read contract for SGS repositories.
  *
- * @param <E> tipo da entidade
- * @param <C> tipo do critério de pesquisa
- * @param <K> tipo da chave primária
+ * @param <E> entity type
+ * @param <C> search criteria type
+ * @param <K> primary key type
  */
 public interface Repository<E, C, K> {
 
     boolean insert(E bean);
 
     /**
-     * Atualiza uma entidade.
+     * Updates an entity.
      *
-     * @param newBean    valores novos
-     * @param oldBean    valores antigos para optimistic locking (pode ser {@code null} para ignorar)
-     * @param projection indica quais campos considerar — campos não-nulos na projeção serão atualizados
+     * @param newBean    new values
+     * @param oldBean    old values for optimistic locking (may be {@code null} to skip it)
+     * @param projection tells which fields to consider — fields that are non-null in the projection are updated
      */
     boolean update(E newBean, E oldBean, E projection);
 
-    /** Atualiza considerando apenas campos não-nulos do newBean (retrocompatível). */
+    /** Updates considering only the non-null fields of newBean (backward-compatible). */
     default boolean update(E newBean) {
         return update(newBean, null, null);
     }
 
-    /** Atualiza considerando apenas campos não-nulos do newBean (retrocompatível). */
+    /** Updates considering only the non-null fields of newBean (backward-compatible). */
     default boolean update(E newBean, E oldBean) {
         return update(newBean, oldBean, null);
     }
 
-    /** Insere se {@code oldBean} for {@code null}; atualiza caso contrário. */
+    /** Inserts if {@code oldBean} is {@code null}; updates otherwise. */
     default boolean insertOrUpdate(E newBean, E oldBean) {
         return oldBean == null ? insert(newBean) : update(newBean, oldBean);
     }
@@ -47,12 +47,12 @@ public interface Repository<E, C, K> {
 
     List<E> fetch(C criteria, int offset, int limit);
 
-    /** Busca sem restrição de quantidade. */
+    /** Fetches with no limit on the number of rows. */
     default List<E> fetch(C criteria) {
         return fetch(criteria, 0, 0);
     }
 
-    /** Busca com limite, sem offset (ex.: autocomplete, "top N"). */
+    /** Fetches with a limit and no offset (e.g. autocomplete, "top N"). */
     default List<E> fetch(C criteria, int limit) {
         return fetch(criteria, 0, limit);
     }
@@ -64,24 +64,24 @@ public interface Repository<E, C, K> {
     }
 
     /**
-     * Busca pela chave. Implementada na interface de cada entidade, como um {@code default} que monta o
-     * {@code XxxCriteria} com igualdade sobre a chave e delega ao {@code fetch}.
+     * Fetches by key. Implemented in each entity's interface, as a {@code default} that builds the
+     * {@code XxxCriteria} with equality on the key and delegates to {@code fetch}.
      *
-     * @param projection {@code null} projeta {@link #newProjection()}.
-     * @return a entidade, ou {@code null} se não houver linha com essa chave.
+     * @param projection {@code null} projects {@link #newProjection()}.
+     * @return the entity, or {@code null} if there is no row with that key.
      */
     E fetchById(K id, E projection);
 
     E newProjection();
 
     /**
-     * Verifica se um campo deve ser incluído no UPDATE.
-     * Retorna {@code true} quando a projeção indica o campo (não-nulo) E o valor mudou em relação ao oldBean.
+     * Checks whether a field must be included in the UPDATE.
+     * Returns {@code true} when the projection marks the field (non-null) AND the value changed relative to oldBean.
      *
-     * @param newBean    entidade com valores novos
-     * @param oldBean    entidade com valores antigos (pode ser {@code null})
-     * @param projection projeção indicando campos a atualizar
-     * @param getter     extrai o valor do campo de interesse
+     * @param newBean    entity with the new values
+     * @param oldBean    entity with the old values (may be {@code null})
+     * @param projection projection marking the fields to update
+     * @param getter     extracts the value of the field of interest
      */
     static <E, V> boolean changed(E newBean, E oldBean, E projection, Function<E, V> getter) {
         return getter.apply(projection) != null

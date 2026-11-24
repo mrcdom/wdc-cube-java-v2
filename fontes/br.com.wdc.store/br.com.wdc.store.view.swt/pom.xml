@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>br.com.wdc.store</groupId>
+        <artifactId>br.com.wdc.store</artifactId>
+        <version>1.0.0</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>br.com.wdc.store.view.swt</artifactId>
+    <packaging>pom</packaging>
+
+    <name>WeDoCode Store View SWT</name>
+    <description>Parent module for SWT-based views (commons shared views + desktop application)</description>
+
+    <properties>
+        <swt.version>3.135.0</swt.version>
+    </properties>
+
+    <modules>
+        <module>swt.commons</module>
+        <module>swt.desktop</module>
+    </modules>
+
+</project>
