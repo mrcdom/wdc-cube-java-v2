@@ -29,6 +29,19 @@ public class CartItemViewVaadin extends AbstractViewVaadin<CartItemScope> {
         super("cart-item-" + row.id.get(), app, row, new HorizontalLayout());
     }
 
+    /** A reloaded page has a new UI: the row draws itself again with components of its own. */
+    @Override
+    public void recreate() {
+        this.element = new HorizontalLayout();
+        this.notRendered = true;
+        this.nameElm = null;
+        this.nameOldValue = null;
+        this.priceElm = null;
+        this.priceOldValue = 0;
+        this.quantityElm = null;
+        this.quantityOldValue = 0;
+    }
+
     @Override
     public void doUpdate() {
         if (this.notRendered) {
