@@ -268,6 +268,8 @@ This module uses Virtual Threads (Java 21+) for HTTP and WebSocket handlers, red
 
 ## Screenshots
 
+The Flutter shell (web build) at iPad portrait size (834×1210).
+
 | Screen | Preview |
 |------|---------|
 | Login | ![Login](docs/screenshots/01-login.png) |
