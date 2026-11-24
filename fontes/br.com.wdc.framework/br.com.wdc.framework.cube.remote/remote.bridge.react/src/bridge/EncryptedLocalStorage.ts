@@ -21,7 +21,7 @@
  * works in-memory only — data is not persisted across reloads.
  */
 
-import { ClientStorage } from "./ClientStorage"
+import { ClientStorage, SECURE_KEY_PREFIX } from "./ClientStorage"
 
 const IDB_NAME = "_sec"
 const IDB_STORE = "k"
@@ -45,7 +45,7 @@ export class EncryptedLocalStorage implements ClientStorage {
     private readonly syncNamespace = "",
     storage?: Storage,
   ) {
-    this.lsPrefix = `${syncNamespace}sec.`
+    this.lsPrefix = `${syncNamespace}${SECURE_KEY_PREFIX}`
     this.storage = storage ?? localStorage
   }
 
@@ -86,7 +86,7 @@ export class EncryptedLocalStorage implements ClientStorage {
    */
   async initialize(): Promise<void> {
     try {
-      this.cryptoKey = await openOrCreateKey()
+      this.cryptoKey = await sharedKey()
     } catch {
       // IndexedDB unavailable — in-memory only
       return
@@ -125,6 +125,21 @@ export class EncryptedLocalStorage implements ClientStorage {
 // ---------------------------------------------------------------------------
 // IndexedDB helpers
 // ---------------------------------------------------------------------------
+
+/**
+ * The origin's AES key, opened once for every instance: the local and session storages initialize together, and two
+ * concurrent opens on an empty database would each generate a key — the values encrypted with the one that was not
+ * kept could never be read again.
+ */
+let keyPromise: Promise<CryptoKey> | null = null
+
+function sharedKey(): Promise<CryptoKey> {
+  keyPromise ??= openOrCreateKey().catch((error) => {
+    keyPromise = null
+    throw error
+  })
+  return keyPromise
+}
 
 /** Opens (or creates) the `_sec` IndexedDB and returns the stored AES key,
  *  generating and persisting a new one if none exists yet. */
