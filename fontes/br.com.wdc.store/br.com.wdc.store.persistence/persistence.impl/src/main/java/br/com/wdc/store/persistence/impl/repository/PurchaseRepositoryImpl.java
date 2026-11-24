@@ -22,7 +22,6 @@ import br.com.wdc.framework.jooq.QueryContext;
 import br.com.wdc.store.domain.purchase.Purchase;
 import br.com.wdc.store.domain.purchase.PurchaseCriteria;
 import br.com.wdc.store.domain.purchase.PurchaseRepository;
-import br.com.wdc.store.domain.purchaseitem.PurchaseItem;
 import br.com.wdc.store.persistence.impl.scheme.tables.EnPurchase;
 import br.com.wdc.store.persistence.impl.scheme.tables.EnPurchaseitem;
 import br.com.wdc.store.persistence.impl.util.BaseRepositoryImpl;
