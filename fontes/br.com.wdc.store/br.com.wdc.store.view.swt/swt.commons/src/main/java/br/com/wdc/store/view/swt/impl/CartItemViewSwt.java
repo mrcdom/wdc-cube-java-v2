@@ -84,14 +84,23 @@ public class CartItemViewSwt extends AbstractViewSwt {
         // The cart may have placed this row in its list before the row drew itself (an empty row measures zero):
         // whatever changed the row's size, its ancestors lay out again
         if (changed) {
-            this.element.requestLayout();
+            this.relayoutAncestors();
         }
     }
 
     @Override
     public void release() {
-        if (!this.element.isDisposed()) {
-            this.element.dispose();
+        // The presenter releases the row from its own thread; SWT widgets are disposed on the UI thread
+        var display = this.app.getDisplay();
+        Runnable dispose = () -> {
+            if (!this.element.isDisposed()) {
+                this.element.dispose();
+            }
+        };
+        if (display.getThread() == Thread.currentThread()) {
+            dispose.run();
+        } else if (!display.isDisposed()) {
+            display.asyncExec(dispose);
         }
     }
 

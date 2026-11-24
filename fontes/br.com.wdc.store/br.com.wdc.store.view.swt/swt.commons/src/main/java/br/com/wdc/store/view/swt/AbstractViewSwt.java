@@ -6,6 +6,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.widgets.Composite;
 
 import br.com.wdc.framework.commons.log.Log;
@@ -66,6 +67,22 @@ public abstract class AbstractViewSwt implements CubeView {
         if (this.needsInitialLayout) {
             this.needsInitialLayout = false;
             this.element.layout(true, true);
+        }
+    }
+
+    /**
+     * For a view whose size changed after its owner laid it out (a row drawn after the cart placed it): lays the
+     * ancestors out again and resizes the content of the scrolled page around it, which keeps its size otherwise.
+     */
+    protected void relayoutAncestors() {
+        this.element.requestLayout();
+        for (var parent = this.element.getParent(); parent != null; parent = parent.getParent()) {
+            if (parent instanceof ScrolledComposite scrolled && scrolled.getContent() != null) {
+                var width = scrolled.getClientArea().width;
+                var content = scrolled.getContent();
+                content.setSize(content.computeSize(width > 0 ? width : SWT.DEFAULT, SWT.DEFAULT, true));
+                return;
+            }
         }
     }
 
