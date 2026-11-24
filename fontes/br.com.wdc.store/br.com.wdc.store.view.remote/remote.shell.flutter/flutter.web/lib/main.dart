@@ -23,29 +23,22 @@ void main() async {
   const syncNamespace = '~rf:';
   final secureStorage = EncryptedWebStorage(syncNamespace);
   await secureStorage.initialize();
-  final persistentStorage = DelegateClientStorage(
-    get: (key) => web.window.localStorage.getItem('$syncNamespace$key'),
-    set: (key, value) =>
-        web.window.localStorage.setItem('$syncNamespace$key', value),
-    remove: (key) => web.window.localStorage.removeItem('$syncNamespace$key'),
-    all: () {
-      final result = <String, String>{};
-      final ls = web.window.localStorage;
-      for (var i = 0; i < ls.length; i++) {
-        final rawKey = ls.key(i);
-        if (rawKey == null || !rawKey.startsWith(syncNamespace)) continue;
-        final shortKey = rawKey.substring(syncNamespace.length);
-        final v = ls.getItem(rawKey);
-        if (v != null) result[shortKey] = v;
-      }
-      return result;
-    },
-    secureFactory: () => secureStorage,
+  final persistentStorage = _webStorage(
+    web.window.localStorage,
+    syncNamespace,
+    () => secureStorage,
+  );
+  // The session scope survives a page reload (the cart lives there), not the end of the tab.
+  final sessionStorage = _webStorage(
+    web.window.sessionStorage,
+    syncNamespace,
+    () => InMemoryClientStorage(),
   );
 
   final coordinator = ViewStateCoordinator(
     CoordinatorConfig(
       appId: appId,
+      sessionStorage: sessionStorage,
       persistentStorage: persistentStorage,
       securityKey: appSKey,
       baseWebSocketUrl: baseWsUrl,
@@ -175,4 +168,34 @@ class StoreApp extends StatelessWidget {
       home: const Scaffold(body: BrowserView()),
     );
   }
+}
+
+/// A client storage scope over a browser [store]: keys live under [syncNamespace], which
+/// `all()` strips. The `sec.` keys belong to the secure view (ciphertext) and stay out of `all()`.
+DelegateClientStorage _webStorage(
+  web.Storage store,
+  String syncNamespace,
+  ClientStorage Function() secureFactory,
+) {
+  final securePrefix = '${syncNamespace}sec.';
+  return DelegateClientStorage(
+    get: (key) => store.getItem('$syncNamespace$key'),
+    set: (key, value) => store.setItem('$syncNamespace$key', value),
+    remove: (key) => store.removeItem('$syncNamespace$key'),
+    all: () {
+      final result = <String, String>{};
+      for (var i = 0; i < store.length; i++) {
+        final rawKey = store.key(i);
+        if (rawKey == null ||
+            !rawKey.startsWith(syncNamespace) ||
+            rawKey.startsWith(securePrefix)) {
+          continue;
+        }
+        final v = store.getItem(rawKey);
+        if (v != null) result[rawKey.substring(syncNamespace.length)] = v;
+      }
+      return result;
+    },
+    secureFactory: secureFactory,
+  );
 }

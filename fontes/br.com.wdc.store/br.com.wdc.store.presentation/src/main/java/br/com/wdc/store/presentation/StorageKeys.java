@@ -7,4 +7,7 @@ public interface StorageKeys {
     String AUTH_ACCESS_TOKEN = "auth.accessToken";
     String AUTH_REFRESH_TOKEN = "auth.refreshToken";
 
+    /** The cart, in the session scope: it survives a page reload, not the end of the session. */
+    String CART = "cart";
+
 }

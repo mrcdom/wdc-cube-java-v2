@@ -1,5 +1,7 @@
 package br.com.wdc.store.presentation.presenter.restricted.home;
 
+import java.util.Objects;
+
 import br.com.wdc.framework.commons.function.ThrowingRunnable;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.AbstractCubePresenter;
@@ -17,6 +19,7 @@ import br.com.wdc.store.presentation.presenter.restricted.cart.CartManager;
 import br.com.wdc.store.presentation.presenter.restricted.home.calls.PurchasesPageQuery;
 import br.com.wdc.store.presentation.presenter.restricted.products.ProductKeys;
 import br.com.wdc.store.presentation.presenter.restricted.products.calls.ProductListQuery;
+import br.com.wdc.store.presentation.presenter.restricted.products.calls.ProductQuery;
 import br.com.wdc.store.presentation.presenter.restricted.receipt.ReceiptKeys;
 
 public class HomePresenter extends AbstractCubePresenter<StoreApplication> {
@@ -102,9 +105,11 @@ public class HomePresenter extends AbstractCubePresenter<StoreApplication> {
             this.state.purchasesPanel.set(this.purchasesPanel);
 
             this.cart = new CartManager();
+            this.restoreCart();
             this.onCartCommitListenerRemover = this.cart.addCommitListener(this::onCartCommited);
             this.onCartChangeListenerRemover = this.cart.addChangeListener(this::onCartChanged);
             this.app.setCart(this.cart);
+            this.state.cartItemCount.set(this.cart.getItemCount());
             this.update();
         }
 
@@ -143,6 +148,35 @@ public class HomePresenter extends AbstractCubePresenter<StoreApplication> {
 
     private void onCartChanged() {
         this.state.cartItemCount.set(this.cart.getItemCount());
+        this.saveCart();
+    }
+
+    /** Restores the cart the session kept: a page reload starts the application again, not the session. */
+    private void restoreCart() {
+        var snapshot = CartManager.Snapshot.parse(this.app.clientSessionStore().get(StorageKeys.CART));
+        if (snapshot == null || !Objects.equals(snapshot.userId(), this.app.getSubject().getId())) {
+            return;
+        }
+        for (var entry : snapshot.quantities().entrySet()) {
+            try {
+                var product = new ProductQuery()
+                        .withProductId(entry.getKey())
+                        .run();
+                this.cart.addProduct(product, entry.getValue());
+            } catch (ProductNotFoundException caught) {
+                LOG.info("restoreCart: product {} is no longer available", entry.getKey());
+            }
+        }
+    }
+
+    private void saveCart() {
+        var store = this.app.clientSessionStore();
+        if (this.cart.getSize() == 0) {
+            store.remove(StorageKeys.CART);
+        } else {
+            var snapshot = this.cart.snapshot(this.app.getSubject().getId());
+            store.set(StorageKeys.CART, snapshot.format());
+        }
     }
 
     private void openReceipt(Long purchaseId) {
@@ -181,6 +215,7 @@ public class HomePresenter extends AbstractCubePresenter<StoreApplication> {
 
     private void exit() {
         this.cart.clear();
+        this.app.clientSessionStore().remove(StorageKeys.CART);
         this.app.setSubject(null);
         this.setContent(null);
 
