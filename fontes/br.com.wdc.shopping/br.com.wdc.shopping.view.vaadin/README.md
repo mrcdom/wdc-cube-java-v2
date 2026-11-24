@@ -56,7 +56,7 @@ The `VaadinDom` class provides a fluent DSL for building components programmatic
 VaadinDom.render(rootLayout, (dom, pane) -> {
     dom.h3(h -> h.setText("Title"));
     dom.horizontalLayout(row -> {
-        dom.image(img -> img.setSrc("images/produto.png"));
+        dom.image(img -> img.setSrc("images/product.png"));
         dom.verticalLayout(col -> {
             dom.span(label -> label.setText("Description"));
             dom.button(btn -> {

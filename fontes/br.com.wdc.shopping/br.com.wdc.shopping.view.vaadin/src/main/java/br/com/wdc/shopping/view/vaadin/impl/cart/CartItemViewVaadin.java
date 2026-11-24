@@ -92,7 +92,7 @@ public class CartItemViewVaadin extends AbstractViewVaadin<CartItemScope> {
             });
 
             dom.image(img -> {
-                img.setSrc("images/delet.png");
+                img.setSrc("images/delete.png");
                 img.setAlt("Remove");
                 img.setWidth("16px");
                 img.setHeight("16px");

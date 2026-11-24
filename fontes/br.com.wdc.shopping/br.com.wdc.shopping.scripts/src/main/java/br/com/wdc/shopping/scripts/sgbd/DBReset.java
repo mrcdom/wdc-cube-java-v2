@@ -89,19 +89,19 @@ public class DBReset {
 				+ "<li>Water reservoir with level markings</li>" + "<li>Illuminated on/off switch</li>" + "<li>Easy to clean</li>"
 				+ "<li>Parts are dishwasher-safe (except the motor base)</li>"
 				+ "<li>Power: 1000 W - equivalent to 1 kWh (kilowatt-hour).</li>" + "</ul>",
-				"images/cafeteira.png");
+				"images/coffee-maker.png");
 
 		addProduct(DBReset.WILSON_BALL_ID = id++, "Wilson Ball", 45.30, "<ul>" + "<li>Wilson ball, official size and weight.</li>"
-				+ "<li>Warranty: covers manufacturing defects.</li>" + "<li>Origin: imported.</li>" + "</ul>", "images/wilson.png");
+				+ "<li>Warranty: covers manufacturing defects.</li>" + "<li>Origin: imported.</li>" + "</ul>", "images/wilson-ball.png");
 
 		addProduct(DBReset.THREAD_SEAL_TAPE_ID = id++, "Thread Seal Tape", 2.67, "<ul>" + "<li>Brand: Tigre.</li>" + "<li>Size: 18 mm x 10 m.</li>"
-				+ "<li>Material: Teflon.</li>" + "<li>Use: sealing threaded joints.</li>" + "</ul>", "images/vedarosca.png");
+				+ "<li>Material: Teflon.</li>" + "<li>Use: sealing threaded joints.</li>" + "</ul>", "images/thread-seal-tape.png");
 
 		addProduct(DBReset.FLASH_DRIVE_2GB_ID = id++, "2GB Flash Drive", 16.0, "Ideal for carrying data files, audio, video, "
 				+ "photos and much more. The best value for storing and transferring information. Portable, "
 				+ "easy to use and super light, it keeps your data safe, has an activity LED and "
 				+ "is drop-resistant. A flash drive with 2 GB of storage: convenience " + "and quality for your files!",
-				"images/pendrive2gb.png");
+				"images/flash-drive-2gb.png");
 
 		dsl.alterSequence(SQ_PRODUCT).restartWith(id).execute();
 
