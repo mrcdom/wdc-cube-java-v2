@@ -20,7 +20,7 @@ Utility library shared by all the other framework modules and by the WDC Store a
 | `serialization` | Extensible binary serialization: `Externalizable`, `EntityGraph`, `ExtensibleObjectInput/Output`, `JsonStream*`, `MapOrList*`, `KeyedEntity`, `SerializationToken` |
 | `sql` | `SqlDataSource`, `SqlDataSourceDelegate` — SQL connection abstraction |
 | `storage` | `ClientStorage`, `InMemoryClientStorage`, `PreferencesClientStorage`, `EncryptedPreferencesClientStorage` — local key-value storage with AES-256-GCM encryption support |
-| `util` | `Defer`, `HasCriteria`, `LambdaUtils`, `Rethrow`, `TransactionContext` |
+| `util` | `Defer`, `HasCriteria`, `HasSlice`, `LambdaUtils`, `Rethrow` |
 
 ---
 

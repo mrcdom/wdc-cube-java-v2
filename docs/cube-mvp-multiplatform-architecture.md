@@ -28,7 +28,7 @@ This project is the Java realization of the Hierarchical Passive View architectu
 
 | Implementation | Technology | Platforms |
 |---|---|---|
-| `view.remote / remote.shell.react` | React 19 + TypeScript + MUI 9 | Web (browser) |
+| `view.remote / remote.shell.react` | React 19 + TypeScript + Spectrum Web Components (`@swc-react`) | Web (browser) |
 | `view.remote / remote.shell.flutter` | Flutter + Dart | Web, Desktop, Mobile |
 | `view.vaadin` | Vaadin 25 + Java | Web (server-side push) |
 | `view.swt` | Eclipse SWT + Java | Native desktop (Windows, Linux, macOS) |
@@ -57,7 +57,7 @@ The same presentation logic compiles and runs in the browser (React, TeaVM, Vaad
 The navigation system serializes the active state into the query string. The Remote Presentation protocol synchronizes the URL hash between shell and host.
 
 **Accurate state restoration after F5** ✅  
-Each implementation rebuilds the state from the URL in the `applyParameters` cycle. Remote mode uses the `sessionId` to reconnect to the server-side session.
+Each implementation rebuilds the state from the URL in the `applyParameters` cycle. Remote mode uses the `appId` (session id) to reconnect to the server-side session.
 
 **Test all navigation flows through mock views** ✅  
 Views are created by the `ScopeViews` catalog that the host hands to the application (`setScopeViews`). In tests, the mock application registers mock views for each scope class and navigation runs without any UI.
@@ -85,12 +85,12 @@ The server-side technology stack — where the logic lives — is deliberately m
 
 | Category | Technology | Version |
 |---|---|---|
-| Language | Java (Temurin/Microsoft) | 21 |
+| Language | Java (Temurin/Microsoft) | 25 (the framework modules compile with release 21) |
 | Build | Maven | 3.9+ |
 | HTTP server | Javalin | 7.2.4 |
 | Database | H2 | 2.5.252 |
 | Data access | jOOQ | 3.21.9 |
-| Serialization | Gson | 2.13.2 |
+| Serialization | Gson | 2.15.0 |
 | Logging | SLF4J + Logback | 2.0.20 / 1.6.7 |
 | Tests | JUnit | 4.13.2 |
 
@@ -111,7 +111,7 @@ Javalin is a lightweight HTTP framework for Java/Kotlin. In this project it play
 
 ## Architecture of the Reference Application
 
-The reference application is a simplified e-commerce system: **WeDoCode Store**. It is deliberately functional — it supports login, browsing a product catalog, a cart and receipt generation — but kept small enough that the architecture is the focus, not business complexity.
+The reference application is a simplified e-commerce system: **WDC Store**. It is deliberately functional — it supports login, browsing a product catalog, a cart and receipt generation — but kept small enough that the architecture is the focus, not business complexity.
 
 The modules are organized into two groups:
 
@@ -120,6 +120,8 @@ The modules are organized into two groups:
 | Module | Responsibility |
 |---|---|
 | `framework.commons` | Functional interfaces with checked exceptions, extensible serialization, SQL abstraction, cryptography (RSA, Base62), multiplatform logging |
+| `framework.domain` | Generic domain abstractions: `Repository`, `Page`, criteria, projections, `TransactionService`, security, and the resource calls (`ResourceQuery`, `ResourceCreate`/`Save`/`Update`/`Delete`) |
+| `framework.persistence` | Neutral persistence support (`javax.sql.DataSource` + `jakarta.transaction`): `TransactionServiceImpl`, `TransactionScope`, `RemoteTransactionCoordinator` |
 | `framework.cube` | Cube MVP engine: presenters, views, navigation, intents, slots |
 | `framework.cube.remote` | Remote Presentation protocol: ViewState serialization, WebSocket dispatcher, bridges for React/Flutter/TeaVM |
 | `framework.jooq` | jOOQ support: JSON query helpers (`JsonQuery`, `JsonQueryBuilder`, `JsonChildQueryBuilder`); the `DSLContext` is injected by the application (no global holder) |
@@ -157,6 +159,7 @@ graph TD
 
     subgraph Backend["Backend (Javalin + H2)"]
         rest["REST API (persistence.rest)"]
+        repos["Repositories (persistence.impl, jOOQ)"]
         db[("H2")]
     end
 
@@ -164,13 +167,14 @@ graph TD
     flutter -->|"WebSocket (JSON delta)"| presenters
     vaadin -->|"Direct in-memory access + Server Push"| presenters
     swt -->|"Direct in-memory access"| presenters
-    teavm -->|"REST (Fetch API)"| rest
+    teavm -->|"Presenters in the browser, repositories via persistence.client (REST)"| rest
     presenters --> navigation
-    presenters --> rest
-    rest --> db
+    presenters -->|"server-side hosts"| repos
+    rest --> repos
+    repos --> db
 ```
 
-The separation is structural, not just conceptual: the `store.presentation` module has no dependency on any UI technology. It depends only on `framework.cube`, `store.domain` and `slf4j-api`. Any technology capable of implementing the `CubeView` interface can be plugged in.
+The separation is structural, not just conceptual: the `store.presentation` module has no dependency on any UI technology. It depends only on `framework.cube` and `store.domain` (plus the `jsr305` annotations). Any technology capable of implementing the `CubeView` interface can be plugged in.
 
 ---
 
@@ -178,7 +182,7 @@ The separation is structural, not just conceptual: the `store.presentation` modu
 
 Cube MVP is a variation of Passive View with two core principles:
 
-1. **The View has access to the Scope, but not to the Presenter.** The Scope is a plain Java object with public fields (`Prop`s and actions) — the public state of the screen. The Presenter is responsible for feeding the Scope before signaling `update()`.
+1. **The View has access to the Scope, but not to the Presenter.** The Scope is a plain Java object with public fields (`Prop`s and actions) — the public state of the screen. The Presenter feeds the Scope's `Prop`s; setting a different value requests the redraw by itself.
 
 2. **No cross-queries between Presenter and View.** The Presenter notifies the View through the Scope: a change in a `Prop` calls `update()` on the view that draws that scope. The View notifies the Presenter by firing the Scope's actions (the `onXxx` fields). These communications return no values.
 
@@ -195,12 +199,17 @@ public class CartScope extends Scope {
     // classId of the bridge protocol: identifies the remote view that draws this scope
     public static final String CLASS_ID = "7eb485e5f843";
 
-    public final Prop<List<CartItem>> items = prop(Collections.emptyList());
+    // A row of the cart: a segment with its own view and actions (see below)
+    public static class CartItemScope extends Scope { /* ... */ }
+
+    public final Prop<List<CartItemScope>> rows = prop(Collections.emptyList());
+    public final Prop<Double> total = prop(0.0);
     public final Prop<Integer> errorCode = prop(0);
     public final Prop<String> errorMessage = prop();
 
     // Actions the view fires (the remote serializer ignores them)
-    public Action onConfirm = Action.NOOP;
+    public Action onBuy = Action.NOOP;
+    public Action onOpenProducts = Action.NOOP;
 }
 ```
 
@@ -216,13 +225,14 @@ public class CartPresenter extends AbstractCubePresenter<StoreApplication> {
         super(app);
         // Bound once; the guard sends unhandled failures to the app and republishes the address at the end
         // With an event code: the scope's skeleton dispatches event 1 from a remote client to it
-        this.state.onConfirm = action(1, this::confirm);
+        this.state.onBuy = action(1, this::buy);
+        this.state.onOpenProducts = action(3, () -> new HomeKeys(this.app).flip());
     }
 
     // Called by the navigation engine when activating this Presenter
     @Override
     public boolean applyParameters(CubeIntent intent, boolean initialization, boolean deepest) {
-        this.state.items.set(this.app.getCart().getCartItems());
+        this.syncRows();   // brings state.rows and state.total in line with the cart
 
         // The parent puts the scope into one of its Prop<Scope>; the parent's view is the one that requests this scope's view
         this.ownerSlot = new CartKeys(this.app, intent).parentSlot();
@@ -231,7 +241,7 @@ public class CartPresenter extends AbstractCubePresenter<StoreApplication> {
     }
 
     // Action body: handles only the expected failures, no generic try/catch
-    private void confirm() {
+    private void buy() {
         // business logic...
         this.state.errorCode.set(0);   // the change already requests the redraw
     }
@@ -274,14 +284,14 @@ graph TD
     ROOT["ROOT"]
     ROOT --> OPEN["OPEN<br/><small>guard: if authenticated → RESTRICTED</small>"]
     ROOT --> RESTRICTED["RESTRICTED<br/><small>guard: if not authenticated → OPEN</small>"]
-    OPEN --> LOGIN["LOGIN<br/><small>/login</small>"]
-    RESTRICTED --> HOME["HOME<br/><small>/home</small>"]
-    HOME --> PRODUCT["PRODUCT<br/><small>/home/product?pr-id=N</small>"]
-    HOME --> CART["CART<br/><small>/home/cart</small>"]
-    HOME --> RECEIPT["RECEIPT<br/><small>/home/receipt?rc-id=N</small>"]
+    OPEN --> LOGIN["LOGIN<br/><small>login</small>"]
+    RESTRICTED --> HOME["HOME<br/><small>home</small>"]
+    HOME --> PRODUCT["PRODUCT<br/><small>product?pr-id=N</small>"]
+    HOME --> CART["CART<br/><small>cart</small>"]
+    HOME --> RECEIPT["RECEIPT<br/><small>receipt?rc-id=N</small>"]
 ```
 
-States are additive. The state `/home/product?pr-id=42` implies the chained activation of `RootPresenter → RestrictedPresenter → HomePresenter → ProductPresenter`. Each Presenter in the chain receives the URL and extracts the parameters that concern it.
+An address is the name of the deepest place plus its query string (`CubeIntent.toString()`); place names are unique in the tree, so the path comes from the tree, not from the address. States are additive. The address `product?pr-id=42` implies the chained activation of `RootPresenter → RestrictedPresenter → HomePresenter → ProductPresenter`. Each Presenter in the chain receives the intent and extracts the parameters that concern it.
 
 The dynamic part of the URL — the query-string parameters — is encapsulated in `CubeIntent`, and each place reads and writes it through a typed keys class (`XxxKeys`, built on the framework's `CubeKeys`):
 
@@ -330,11 +340,12 @@ The `CubeNavigation` navigation engine performs transitions between states as fo
 1. For each `CubePlace` on the path to the destination (`place.getPath()`, from the root down), it checks whether an instance of the corresponding Presenter already exists.  
 2. If not, it instantiates one through the place's factory.  
 3. It invokes `applyParameters(intent, initialization, deepest)` on each Presenter in the chain, in hierarchy order.  
-4. It invokes `release()` on the Presenters that are no longer part of the active state, in reverse order (from deepest to shallowest).  
-5. It invokes `commitComputedState()` on all of them — an opportunity to synchronize derived state.  
-6. It propagates `update()` to the affected views.
+4. It invokes `release()` on the Presenters that are not part of the active state, in reverse order (from deepest to shallowest).  
+5. It calls `app.updateHistory()` so the host republishes the address.
 
-When navigating from `/home/product?pr-id=5` to `/home/cart`, the sequence is:
+The views are not redrawn by the engine: each `Prop` a Presenter changes requests the redraw of the view that draws its scope. `commitComputedState()` (an opportunity to synchronize derived state) is called by the remote host on all Presenters, once, before it serializes the dirty states.
+
+When navigating from `product?pr-id=5` to `cart`, the sequence is:
 
 - `applyParameters` invoked for `Root`, `Restricted`, `Home`, `Cart`  
 - `release()` invoked for `Product`  
@@ -367,9 +378,9 @@ Returning `false` interrupts the navigation chain — the deeper Presenters are 
 ```mermaid
 classDiagram
     class CubeApplication {
-        +navigate() CubeNavigation
+        +navigate(place, intent) boolean
         +newIntent() CubeIntent
-        +go(String path)
+        +go(String address) boolean
         +setScopeViews(scopeViews)
         +viewOf(scope) CubeView
         +releaseView(scope)
@@ -386,7 +397,6 @@ classDiagram
         +app: A
         #bind(scope) Scope
         +scope() Scope
-        +view() CubeView
         +update()
         +release()
     }
@@ -424,9 +434,10 @@ classDiagram
     }
 
     class CubePlace {
-        +id: int
-        +name: String
-        +parent: CubePlace
+        +root(name, factory)$ CubePlace
+        +getId() int
+        +getName() String
+        +getParent() CubePlace
         +child(name, factory) CubePlace
         +getPath() List
         +find(name) CubePlace
@@ -434,7 +445,7 @@ classDiagram
 
     class CubeIntent {
         +setParameter(key, value)
-        +getParameter(key) Object
+        +getParameterValue(key) Object
         +getSlot(name) ScopeSlot
         +setSlot(name, slot)
     }
@@ -450,7 +461,7 @@ classDiagram
     ScopeViews --> CubeView : creates
 ```
 
-The application is a graph of `AbstractCubePresenter` instances. Each instance knows only its own Scope (the `state` field, bound with `bind`). The view of each Scope is created by the view layer: the host's `ScopeViews` catalog says which factory draws each scope class, and `CubeApplication.viewOf(scope)` creates it the first time it is requested. The Presenter never references a view — at most, `view()` returns the `CubeView` that draws its scope, if there already is one.
+The application is a graph of `AbstractCubePresenter` instances. Each instance knows only its own Scope (the `state` field, bound with `bind`). The view of each Scope is created by the view layer: the host's `ScopeViews` catalog says which factory draws each scope class, and `CubeApplication.viewOf(scope)` creates it the first time it is requested. The Presenter never references a view — at most, `scope().view()` returns the `CubeView` that draws its scope, if there already is one.
 
 ---
 
@@ -521,23 +532,38 @@ public interface CubeView {
 
 ### The Implementations
 
-**view.swt** — Native desktop implementation with Eclipse SWT (Windows, Linux, macOS). Each view extends `AbstractViewSwt` and uses the declarative `SwtDom` DSL to build compositions. The update cycle uses `Display.asyncExec()` to guarantee execution on the event thread:
+**view.swt** — Native desktop implementation with Eclipse SWT (Windows, Linux, macOS). Each view extends `AbstractViewSwt` and uses the declarative `SwtDom` DSL to build compositions. `update()` only marks the view dirty (`app.markDirty(this)`); a render timer on the UI thread (`Display.timerExec`) flushes the dirty views by calling their `doUpdate()`. The view reads the scope through a supplier that the factory registered in `ScopeViews` wires, together with the actions (`StoreSwtApplication`):
+
+```java
+var cartView = app.onUiThread((CartScope s) -> {
+        var v = new CartViewSwt(app); v.stateSupplier = () -> s;
+        v.onOpenProducts = s.onOpenProducts::run; v.onBuy = s.onBuy::run;
+        v.rowElements = () -> s.rows.get().stream()
+                .map(row -> app.viewOf(row) instanceof AbstractViewSwt rv ? rv.getElement() : null)
+                .filter(Objects::nonNull).toList();
+        return v; });
+```
 
 ```java
 public class CartViewSwt extends AbstractViewSwt {
-    public Supplier<CartScope> stateSupplier;   // wired by the factory registered in ScopeViews
+
+    public Supplier<CartScope> stateSupplier;
+    public Runnable onOpenProducts;
+    public Runnable onBuy;
+    /** The rows' elements, in the cart's order: each row is a view of its own ({@link CartItemViewSwt}). */
+    public Supplier<List<Composite>> rowElements;
 
     @Override
     public void doUpdate() {
-        var state = this.stateSupplier.get();
-        this.itemList.setItems(state.items.get().stream()
-            .map(item -> item.name + " × " + item.quantity)
-            .toArray(String[]::new));
+        // ... first render ...
+        var state = this.stateSupplier != null ? this.stateSupplier.get() : null;
+        var rows = this.rowElements != null ? this.rowElements.get() : List.<Composite>of();
+        // ... toggles the empty/filled cards, syncs the error banner, the rows and the total
     }
 }
 ```
 
-**view.vaadin** — Browser implementation via Vaadin Flow (server-side push). Vaadin manages the Atmosphere transport (WebSocket/Long Polling) and the reconciliation of components in the DOM. The view uses `ui.access()` to guarantee thread safety on updates:
+**view.vaadin** — Browser implementation via Vaadin Flow (server-side push). Vaadin manages the Atmosphere transport (WebSocket/Long Polling) and the reconciliation of components in the DOM. The application flushes the dirty views inside `ui.access()` to guarantee thread safety on updates:
 
 ```java
 public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
@@ -549,68 +575,111 @@ public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
 
     @Override
     public void doUpdate() {
-        this.grid.setItems(state.items.get());
+        // ... first render ...
+        var rows = this.state.rows.get();
+        this.syncRows(rows);
+        // ... toggles the empty/filled panes and updates the total from this.state.total.get()
     }
 }
 ```
 
-**view.teavm** — The Java views are compiled to JavaScript by the TeaVM plugin. In the browser, the result is a complete SPA. For desktop, Android and iOS, the SPA is packaged in a WebView via Tauri 2 (Rust). The views extend `AbstractVDomView` and implement `render()` returning a `VNode` tree:
+**view.teavm** — The Java views are compiled to JavaScript by the TeaVM plugin. In the browser, the result is a complete SPA. For desktop, Android and iOS, the SPA is packaged in a WebView via Tauri 2 (Rust). The views extend `AbstractVDomView` and implement `render()` returning a `VNode` tree; the cart delegates the tree to a `CartSharedView` (in `teavm.commons`) and wires the scope's actions into it:
 
 ```java
-public class CartViewVDom extends AbstractVDomView<CartScope> {
+public class CartView extends AbstractVDomView<CartScope> {
 
-    public CartViewVDom(StoreTeaVMApplication app, CartScope state) {
+    private final CartSharedView shared;
+
+    public CartView(StoreTeaVMApplication app, CartScope state) {
         super("cart", app, state);
+
+        this.shared = new CartSharedView();
+        this.shared.stateSupplier = () -> state;
+        this.shared.onBack = () -> safeAction("Back", state.onOpenProducts::run);
+        this.shared.onBuy = () -> safeAction("Buy", state.onBuy::run);
+        // The rows are views of their own (CartItemView): the cart lays their elements out in its order
+        this.shared.rowElements = () -> state.rows.get().stream()
+                .map(row -> this.app.viewOf(row) instanceof AbstractViewTeaVM<?> v ? v.getElement() : null)
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     @Override
     protected VNode render() {
-        return div(Css.CART).children(
-            ul().children(state.items.get().stream()
-                .map(item -> li().text(item.name + " × " + item.quantity))
-                .toArray(VNode[]::new)),
-            spButton("accent").on("click", onConfirm).children(
-                span().text("Confirm"))
-        );
+        return shared.renderTree();
     }
-    private final JSFunction onConfirm = e -> this.state.onConfirm.run();
 }
 ```
 
-**view.remote / remote.shell.react** — React shell in TypeScript. The view is a functional component that renders the state received over WebSocket and emits events back:
+**view.remote / remote.shell.react** — React shell in TypeScript. Each view is a `BaseViewClass` registered under the scope's `CLASS_ID`; it renders the state received over WebSocket and emits events back by code (`bridge.submit(vsid, eventCode)`). A row is a view of its own, created from its vsid:
 
 ```tsx
-const CartView: React.FC<{ scope: ViewScope<CartScope> }> = ({ scope }) => {
-  const state = scope.useSnapshot();
-  return (
-    <Stack>
-      {state.items.map(item => (
-        <Typography key={item.id}>{item.name} × {item.quantity}</Typography>
-      ))}
-      <Button onClick={() => scope.submit(EventCodes.CONFIRM)}>Confirm</Button>
-    </Stack>
-  );
-};
+const ON_BUY = 1
+const ON_BACK = 3
+
+export type CartViewState = {
+  rowsViewIds?: string[]
+  total?: number
+  errorMessage?: string
+}
+
+class CartViewClass extends BaseViewClass<ViewProps, CartViewState> {
+  override render({ className }: ViewProps) {
+    const rows = this.state.rowsViewIds ?? []
+    // ... header, error banner, empty state ...
+    return (
+      <div className={className}>
+        {rows.map((rowId) => (
+          <React.Fragment key={rowId}>{bridge.createView(rowId)}</React.Fragment>
+        ))}
+        {/* ... total, "Continue shopping" (emitBack) and "Checkout" (emitBuy) buttons ... */}
+      </div>
+    )
+  }
+
+  readonly emitBack = () => {
+    bridge.submit(this.vsid, ON_BACK)
+  }
+
+  readonly emitBuy = () => {
+    bridge.submit(this.vsid, ON_BUY)
+  }
+}
+
+export default BaseViewClass.FC(CartViewClass, "7eb485e5f843")
 ```
 
-**view.remote / remote.shell.flutter** — Flutter shell in Dart. The same WebSocket protocol, but with Flutter widgets for rendering:
+**view.remote / remote.shell.flutter** — Flutter shell in Dart. The same WebSocket protocol, but with Flutter widgets for rendering; each view is a `BaseView` whose state reads the `viewState` map and submits events by code:
 
 ```dart
-class CartViewWidget extends StatelessWidget {
-  final ViewScope<CartScope> scope;
-  const CartViewWidget({required this.scope});
+const _onBuy = 1;
+const _onBack = 3;
+
+class CartView extends BaseView {
+  const CartView({super.key, required super.vsid});
+
+  static const viewId = '7eb485e5f843';
 
   @override
+  State<CartView> createState() => _CartViewState();
+}
+
+class _CartViewState extends BaseViewState<CartView> {
+  @override
   Widget build(BuildContext context) {
-    final state = scope.watch(context);
-    return Column(children: [
-      ...state.items.map((item) => Text('${item.name} × ${item.quantity}')),
-      ElevatedButton(
-        onPressed: () => scope.submit(EventCodes.confirm),
-        child: const Text('Confirm'),
-      ),
-    ]);
+    final state = viewState;
+    final rows = (state['rowsViewIds'] as List?)?.cast<String>() ?? [];
+    final total = (state['total'] as num?)?.toDouble() ?? 0.0;
+    return PageCard(
+      children: [
+        ...rows.map(slot),
+        // ... total (formatCurrency(total)), "Continue shopping" and "Checkout" buttons
+      ],
+    );
   }
+
+  void _emitBack() => submit(_onBack);
+  void _emitBuy() => submit(_onBuy);
 }
 ```
 
@@ -631,13 +700,13 @@ sequenceDiagram
     participant Host as Host (Java/Javalin)
     participant Presenters as Presenters + ViewStates
 
-    Shell->>WS: CONNECT /dispatcher/{sessionId}
+    Shell->>WS: CONNECT /dispatcher/{appId}
     WS->>Host: onConnect
     Host->>Presenters: initialize session
     Host->>WS: { initial dirty views }
     WS->>Shell: render states
 
-    Shell->>WS: { requestId, eventCode, formData }
+    Shell->>WS: { requestId, event:["<vsid>:<eventCode>"], "<vsid>": formData }
     WS->>Host: onMessage
     Host->>Presenters: syncClientToServer() → submit()
     Presenters->>Presenters: logic + navigation
@@ -649,29 +718,27 @@ sequenceDiagram
 
 The protocol implements session encryption in two layers:
 
-1. **RSA handshake**: at the start of the session, the shell generates an ephemeral AES-256 key, encrypts it with the server's RSA public key and sends it via the `app_signature` cookie. The server decrypts it and derives the session key via PBKDF2 (salt + 250,000 iterations).  
-2. **AES-GCM traffic**: after the handshake, all payloads are encrypted with the session AES-256 key.
+1. **RSA handshake**: at the start of the session, the shell generates an ephemeral password, encrypts it with the server's RSA public key (textbook RSA) and sends it, with the salt and the IV, as the `secret` — in the `app_signature` cookie or in the first WebSocket message. Both sides derive the session AES-256 key from the password via PBKDF2-HMAC-SHA256 (250,000 iterations).  
+2. **AES-GCM values**: after the handshake, the sensitive values (client storage, access token, `p.password`) travel encrypted with the session AES-256-GCM key.
 
-Additionally, the session URL is signed with HMAC-SHA256, preventing a client from forging navigations to states it was not granted.
+Additionally, the session id (`appId`) and the navigation address (the `sign` parameter) are signed with the server's RSA key (SHA256withRSA reduced by MD5, `signAsHash`), preventing a client from forging a session or navigating to states it was not granted. See [bridge-skeleton-protocol.md](bridge-skeleton-protocol.md) for the wire-level details.
 
 ### Delta Serialization of ViewStates
 
-A crucial property of the protocol is that only the ViewStates that changed (*dirty*) are sent in each cycle. This is possible because the Presenter explicitly marks its view as dirty by calling `app.markDirty(view)`. The host collects only the marked views, serializes their ViewStates to JSON and transmits the delta.
+A crucial property of the protocol is that only the ViewStates that changed (*dirty*) are sent in each cycle. This is possible because each scope drawn for a client has a `RemoteViewImpl` whose `update()` marks it dirty (`app.markDirty(this)`) — and a `Prop` change calls `update()` on the view that draws the scope. The host collects only the marked views, serializes their ViewStates to JSON and transmits the delta.
 
 The Scope is serialized by the framework's `ScopeSerializer`, which inspects the `public` fields via reflection:
 
 ```json
 {
-  "#": "cart:0",
-  "items": [
-    { "id": 1, "name": "Product A", "price": 49.90, "quantity": 2 }
-  ],
-  "errorCode": 0,
-  "errorMessage": null
+  "#": "7eb485e5f843:3",
+  "rowsViewIds": ["c8a1f0e2b7d4:4", "c8a1f0e2b7d4:5"],
+  "total": 99.8,
+  "errorCode": 0
 }
 ```
 
-The `"#"` field is the `instanceId` that binds the JSON state to the corresponding view instance in the shell.
+The `"#"` field is the `instanceId` (`"<CLASS_ID>:<n>"`) that binds the JSON state to the corresponding view instance in the shell. A `null` value (here, `errorMessage`) is omitted; each row is a view of its own, sent as its own state.
 
 ### Virtual Threads for Scalability
 
@@ -686,9 +753,10 @@ Besides being the public state read by the view for rendering, the `Scope` serve
 The `Scope` does not implement serialization: its fields are `Prop`s (and the actions, plain fields). Serialization is done exclusively by the framework's `ScopeSerializer`:
 
 - Iterates over all `public` fields of the Scope via reflection
-- Skips `static` and `transient` fields
+- Skips `static` and `transient` fields, and the actions (`Action`, `ActionOf`, `ActionOf2`)
+- Writes a `Prop` field as its value; omits `null` values and blank top-level strings
 - Injects `"#": instanceId` as the first field of the JSON object
-- Serializes `CubeView`/`Scope` fields as `"<name>Id": vsid` (reference by ID)
+- Serializes a `Scope` field as `"<name>ViewId": vsid` and a list of scopes as `"<name>ViewIds": [vsid, ...]` (reference by ID)
 - Supports primitives, `String`, collections, `Map`, `Record` and POJOs with public fields
 
 The `Scope` itself never implements serialization logic — that is the framework's responsibility, not the application code's.

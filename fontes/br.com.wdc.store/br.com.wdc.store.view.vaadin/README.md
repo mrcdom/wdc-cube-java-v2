@@ -1,10 +1,10 @@
 # br.com.wdc.store.view.vaadin
 
-Web implementation (Vaadin 25) of the **WeDoCode Store** application, demonstrating the **independence between view and presentation logic** in the **Cube MVP** pattern.
+Web implementation (Vaadin 25) of the **WDC Store** application, demonstrating the **independence between view and presentation logic** in the **Cube MVP** pattern.
 
 ## Motivation
 
-The Cube MVP architecture strictly separates the **Presenters** (which control state and navigation) from the **Views** (which render the interface). The Presenters expose **ViewStates** — simple objects with the data the view needs to display — and the view implements the `CubeView` interface to connect to the update cycle.
+The Cube MVP architecture strictly separates the **Presenters** (which control state and navigation) from the **Views** (which render the interface). The Presenters expose **Scopes** — objects whose `Prop` fields hold the data the view needs to display — and the view implements the `CubeView` interface to connect to the update cycle.
 
 This module uses **Vaadin Flow** — a server-side framework that renders native components in the browser without any custom JavaScript/TypeScript code. The UI runs entirely on the server (Java), and Vaadin handles the transport via Atmosphere (WebSocket/Push) to keep the browser in sync.
 
@@ -17,7 +17,7 @@ Unlike a typical Vaadin project that uses `@Route` for navigation, this module u
 The URLs use hash-based navigation with an HMAC-SHA256 signature:
 
 ```
-http://localhost:8080/#intent?sign=abc123
+http://localhost:8090/#intent?sign=abc123
 ```
 
 The `IntentSigner` class generates and validates signatures using Base62, ensuring that URLs cannot be forged.
@@ -36,8 +36,8 @@ When F5 is pressed, the complete application state is preserved:
 
 The UI is built programmatically using native Vaadin components:
 
-- **LoginForm** with `LoginI18n` (localized labels)
-- **Grid** for listings (cart, receipt)
+- **TextField** + **Button** for the login form
+- **Grid** for the receipt items; the cart draws one row view per `CartScope.CartItemScope` (`CartItemViewVaadin`)
 - **IntegerField** with step buttons for quantity
 - **Notification** for error/success messages
 - **Badge** for the cart counter
@@ -153,30 +153,36 @@ export PATH="$JAVA_HOME/bin:$PATH"
 cd fontes && mvn -q -DskipTests clean install
 
 # Build only the Vaadin module
-cd fontes && mvn -DskipTests compile -pl br.com.wdc.store/br.com.wdc.store.view.vaadin -am
+cd fontes && mvn -DskipTests package -pl br.com.wdc.store/br.com.wdc.store.view.vaadin -am
 ```
 
 ## Running
 
+The build produces a fat JAR (`target/br.com.wdc.store.view.vaadin-1.0.0.jar`, main class `StoreVaadinMain`). The config file is resolved relative to the working directory, so point to the module's own:
+
 ```bash
 cd fontes/br.com.wdc.store/br.com.wdc.store.view.vaadin
-mvn exec:java
+java -Dstore.config.file=work/config/application.toml \
+  -jar target/br.com.wdc.store.view.vaadin-1.0.0.jar
 ```
 
-Or via the IDE using the `StoreVaadinMain.java` class.
+Or via the IDE, running `StoreVaadinMain` with the same `-Dstore.config.file` (or with `work/` as the working directory).
 
-Open: **http://localhost:8080**
+Open: **http://localhost:8090** (default of `server.port`)
 
 ## Configuration
 
-The `work/config/application.toml` file lets you configure:
+The module's `work/config/application.toml` lets you configure:
 
 ```toml
 [app]
-# basedir = "work"
+basedir = ".."   # required; resolved relative to the config file's directory
+
+[server]
+# port = 8090
 
 [database]
-# url = "jdbc:h2:file:..."
+# url = "jdbc:h2:file:..."   # default: H2 file database in work/data
 # username = "sa"
 # password = "sa"
 # reset = false
@@ -331,7 +337,7 @@ sequenceDiagram
 The `IntentSigner` class generates hash-based URLs with a cryptographic signature:
 
 ```
-http://localhost:8080/#intent?sign=<Base62>
+http://localhost:8090/#intent?sign=<Base62>
 ```
 
 - Prevents the user from forging navigation URLs
@@ -355,7 +361,7 @@ stateDiagram-v2
 
 ## Conclusion
 
-The Vaadin module demonstrates that the Cube MVP pattern integrates naturally with a push-based server-side framework: the **Presenters control state and navigation**, the **ViewStates expose data** and the **Vaadin Views reconcile components** — all connected by the `markDirty → ui.access → doUpdate → push` cycle.
+The Vaadin module demonstrates that the Cube MVP pattern integrates naturally with a push-based server-side framework: the **Presenters control state and navigation**, the **Scopes expose data** and the **Vaadin Views reconcile components** — all connected by the `markDirty → ui.access → doUpdate → push` cycle.
 
 ## Screenshots
 

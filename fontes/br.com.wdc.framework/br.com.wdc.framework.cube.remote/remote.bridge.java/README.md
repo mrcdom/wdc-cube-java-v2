@@ -39,7 +39,7 @@ The persistent storage is bootstrapped to the server at `connect()` time — it 
 
 - `br.com.wdc.framework.commons` — Base62, logging
 - `com.google.code.gson` — parsing of the host's JSON response
-- `ch.qos.logback:logback-classic` — logging
+- `org.slf4j:slf4j-api` — logging
 - `org.apache.commons:commons-lang3`
 
 ## Build

@@ -21,29 +21,33 @@ The `build.sh` script automates the whole process: it compiles the `teavm.web` m
 # Desktop in dev mode (hot reload via devUrl)
 ./build.sh desktop --dev
 
-# Android — build + deploy to the connected device
+# Android — build + deploy to the running phone emulator (API at http://10.0.2.2:8080)
+./build.sh android --deploy
+./build.sh android --deploy --form-factor tablet         # running tablet emulator
 ./build.sh android --api-url http://192.168.1.8:8080 --deploy
 
-# iOS — build + deploy to the simulator
-./build.sh ios --api-url http://localhost:8080 --deploy
-./build.sh ios --sim-name "iPhone 16 Pro" --deploy
+# iOS — build + deploy to the booted iPhone simulator
+./build.sh ios --deploy
+./build.sh ios --deploy --form-factor tablet             # booted iPad simulator
 ```
 
 ### Options
 
 | Option | Description |
 |-------|-----------|
-| `desktop` / `android` / `ios` | Target platform (1st argument) |
+| `desktop` / `android` / `ios` | Target platform (1st argument; default `desktop`) |
 | `--dev` | Dev mode — desktop only, uses `devUrl` from `tauri.conf.json` |
-| `--deploy` | Install and open on the device/simulator after the build |
-| `--api-url <url>` | API server URL (default: `localhost:8080`; Android auto-detects the network IP) |
-| `--sim-name <name>` | iOS simulator name (default: `"iPhone 16 Pro"`) |
+| `--deploy` | Install and open on the emulator/simulator after the build |
+| `--api-url <url>` | API server URL (default: `http://10.0.2.2:8080` for Android — the emulator's alias for the host —, `http://localhost:8080` otherwise; a physical device on the LAN needs the host's LAN IP) |
+| `--form-factor <phone\|tablet>` | Which running emulator / booted simulator to deploy to (default: `phone`; `tablet` picks an iPad simulator or a tablet emulator) |
+
+The step that compiles the web module runs `mvn clean install -pl teavm.commons,teavm.web`; the `presentation`/`persistence.client` JARs come from `~/.m2`, so run `./work/bin/build-frontends.sh teavm.web` (which reinstalls them) after changing them.
 
 ## Structure
 
 ```mermaid
 graph TD
-    root["br.com.wdc.store.view.teavm.native/"]
+    root["teavm.native/"]
     buildsh["build.sh\n<small>Unified build script (desktop/android/ios)</small>"]
     pom["pom.xml\n<small>Maven declaration (no Java code)</small>"]
     srcTauri["src-tauri/"]

@@ -12,17 +12,23 @@ graph TD
 
     deps["dependencies<br/><small>BOM — centralized versions</small>"]
     commons["commons<br/><small>Utilities, FP, serialization, logging, crypto</small>"]
+    domain["domain<br/><small>Repository, criteria, transactions, resource calls</small>"]
+    persistence["persistence<br/><small>Transactions over DataSource/JTA</small>"]
     jooq["jooq<br/><small>JOOQ query builder + JSON projection</small>"]
     cube["cube<br/><small>Cube MVP engine (presenters, views, navigation)</small>"]
     cubeRemote["cube.remote<br/><small>Remote protocol (backend + bridges)</small>"]
 
     fw --> deps
     fw --> commons
+    fw --> domain
+    fw --> persistence
     fw --> jooq
     fw --> cube
     fw --> cubeRemote
+    domain --> commons
+    persistence --> domain
+    jooq --> persistence
     cube --> commons
-    jooq --> commons
     cubeRemote --> cube
 ```
 
@@ -31,9 +37,10 @@ graph TD
 | [`dependencies`](br.com.wdc.framework.dependencies/) | BOM POM — centralizes the versions of all external dependencies |
 | [`commons`](br.com.wdc.framework.commons/) | Functional interfaces, cross-platform logging, extensible serialization, SQL, crypto, utilities |
 | [`domain`](br.com.wdc.framework.domain/) | Generic domain abstractions — `Repository`, `Page`, criteria, projections, `TransactionService`, security, and the resource calls (`ResourceQuery`, `ResourceCreate`/`Save`/`Update`/`Delete`: an action on a resource as an object, named by an HTTP-like verb) |
+| [`persistence`](br.com.wdc.framework.persistence/) | Neutral persistence support (`javax.sql.DataSource` + `jakarta.transaction`): `TransactionServiceImpl`/`TransactionScope` (JTA or plain JDBC) and the server side of client-driven remote transactions (`RemoteTransactionCoordinator`) |
 | [`jooq`](br.com.wdc.framework.jooq/) | Declarative query builder over JOOQ with JSON projection and multi-database dialects |
 | [`cube`](br.com.wdc.framework.cube/) | Cube MVP pattern engine — hierarchical presenters, views, slots, intent-based navigation |
-| [`cube.remote`](br.com.wdc.framework.cube.remote/) | Remote communication protocol — server (Javalin/WebSocket) and bridges for thin clients (React, TeaVM) |
+| [`cube.remote`](br.com.wdc.framework.cube.remote/) | Remote communication protocol — server (Javalin/WebSocket) and bridges for the clients (Java, React, TeaVM, Flutter) |
 
 ---
 

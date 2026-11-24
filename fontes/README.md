@@ -1,6 +1,6 @@
 # fontes/
 
-Source code root of the **WeDoCode Store** project — a reference e-commerce application built with the **Cube MVP** architecture on Java 25.
+Source code root of the **WDC Store** project — a reference e-commerce application built with the **Cube MVP** architecture on Java 25.
 
 ---
 
@@ -67,9 +67,9 @@ graph TD
 | **persistence.client** | Infrastructure | REST client (OkHttp + the domain codecs) that implements repositories over HTTP. |
 | **presentation** | Application | Presenters that orchestrate the business logic and connect the domain to the views via Cube MVP. |
 | **scripts** | Infrastructure | Table creation DDL, seed data (`DBReset`), test and startup support. |
-| **backend** | Server | Javalin 7 + Virtual Threads, WebSocket dispatcher, embedded H2 database. Fat JAR (~11 MB). |
+| **backend** (`fontes/br.com.wdc.cube.backend`) | Server | Javalin 7 + Virtual Threads, WebSocket dispatcher; database H2 (TCP or file) or PostgreSQL. Fat JAR (~41 MB). |
 | **tests** | Test | JUnit 4 suite: repository contract tests (jOOQ and REST), presentation workflows, transactions. |
-| **view.remote** | UI (Web) | React 19 + Material UI frontend, bidirectional WebSocket communication, RSA+AES-GCM security. |
+| **view.remote** | UI (Web) | React 19 + Spectrum Web Components frontend (plus Flutter and TeaVM remote shells), bidirectional WebSocket communication, RSA+AES-GCM security. |
 | **view.vaadin** | UI (Web) | Vaadin 25 + Lumo theme frontend, embedded Jetty 12 server, purely server-side UI with automatic push. |
 | **view.swt** | UI (Desktop) | Native desktop frontend with Eclipse SWT 3.135.0 that reuses the same presenters. |
 | **view.teavm** | UI (Multiplatform) | Java frontend compiled to JavaScript via TeaVM 0.16, packaged as a native app (Desktop, Android, iOS) via Tauri 2. |

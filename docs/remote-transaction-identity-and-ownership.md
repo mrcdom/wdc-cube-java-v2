@@ -40,8 +40,8 @@ no error visible to the user.
 
 The fix (commit `9bca9322`) had two fronts:
 
-1. **Propagation** — `FetchHttpTransport`/`OkHttpTransport` attach `X-Tx-Id` to every request
-   (mirroring what the JVM transport does).
+1. **Propagation** — `FetchHttpTransport` attaches `X-Tx-Id` to every request inside the transaction,
+   mirroring what the JVM transport (`OkHttpTransport`) does.
 2. **Server-side defense** — an **atomicity guard**: if a write arrives **without** `X-Tx-Id` but the
    requester **has an open remote transaction**, the server **rejects** it (instead of autocommitting an
    orphan). It is the safety net against a future propagation failure.

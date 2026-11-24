@@ -36,6 +36,7 @@
 | `commons-codec` | 1.23.0 |
 | `commons-io` | 2.22.0 |
 | `jooq` | 3.21.9 |
+| `jakarta.xml.bind-api` | 4.0.2 |
 | `jooq-codegen` | 3.21.9 |
 | `jackson-databind` | 2.23.0 |
 | `jakarta.transaction-api` | 2.0.1 |

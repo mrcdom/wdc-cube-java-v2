@@ -1,6 +1,6 @@
 # swt.desktop
 
-Complete native desktop app for **WeDoCode Store** using SWT — a standalone version with local Presenters and persistence (no remote server).
+Complete native desktop app for **WDC Store** using SWT — a standalone version with local Presenters and persistence (no remote server).
 
 It contains only the entry point and the application wiring. All view logic lives in `swt.commons`; all business logic lives in `br.com.wdc.store.presentation` and `br.com.wdc.store.persistence`.
 

@@ -60,7 +60,7 @@ sequenceDiagram
     Host->>WS: { states:[ initial ViewStates ], uri }
     WS->>Shell: renders
 
-    Shell->>WS: { requestId, event:["cart:3:1"], "cart:3":{formData} }
+    Shell->>WS: { requestId, event:["7eb485e5f843:3:1"], "7eb485e5f843:3":{formData} }
     WS->>Host: submit → syncs state + event
     Host->>P: logic + navigation, marks dirty
     Host->>WS: { requestId, states:[ dirty only ], uri? , storage? }
@@ -75,8 +75,8 @@ sequenceDiagram
 |---|---|
 | **`appId`** | Session identifier. Signed format `part1.part2` (see §3). Goes in the WebSocket path: `/dispatcher/{appId}`. |
 | **`appSKey`** | The server's RSA public key for the handshake, as the string `"exponent:modulus"` in **base36**. |
-| **`vsid` (View State ID / instanceId)** | Identity of a view instance. Format `"<classId>:<n>"`, e.g. `cart:3`, `7b32e816a191:0`. `classId` may be a name or a hex hash. `n` is the instance number. |
-| **`classId`** | Identity of the view's *class*. It is `parts[0]` of the vsid. |
+| **`vsid` (View State ID / instanceId)** | Identity of a view instance. Format `"<classId>:<n>"`, e.g. `7eb485e5f843:3`, `7b32e816a191:0`. `n` is the instance number. |
+| **`classId`** | Identity of the view's *class*: the `CLASS_ID` (a 12-digit hex string) declared by the scope class the view draws. It is `parts[0]` of the vsid. |
 | **`secret`** | Session signature carrying the AES-GCM handshake material. Three-part format: `<rsa(pwd) base36>.<salt base64url>.<iv base64url>`. |
 | **Browser View** | Singleton root view of the shell. `classId = 7b32e816a191`, fixed vsid `7b32e816a191:0`. |
 | **`p.path`** | formData field carrying the route (the application's query path) in navigation events. |
@@ -295,20 +295,22 @@ Optionally with a bootstrap `storage`.
 {
   "requestId": 1,
   "event": ["7b32e816a191:0:-1"],
-  "7b32e816a191:0": { "p.path": "/home/product?pr-id=42&sign=AbC123" }
+  "7b32e816a191:0": { "p.path": "product?pr-id=42&sign=AbC123" }
 }
 ```
 
 **History navigation (event `-2`):** identical to the previous one with the eventCode changed to `-2`.
 
-**View event submit (e.g. confirming the cart, eventCode `1`):**
+**View event submit (e.g. changing the quantity of a cart row, eventCode `2` on a `CartItemScope` view, classId `c8a1f0e2b7d4`):**
 ```json
 {
   "requestId": 7,
-  "event": ["cart:3:1"],
-  "cart:3": { "p.quantity": 2 }
+  "event": ["c8a1f0e2b7d4:5:2"],
+  "c8a1f0e2b7d4:5": { "p.quantity": 2 }
 }
 ```
+
+An event with no parameter (e.g. the cart's checkout, eventCode `1` on the `CartScope` view, classId `7eb485e5f843`) carries only the `event` item: `{ "requestId": 8, "event": ["7eb485e5f843:3:1"] }`.
 
 **Keep-alive:**
 ```json
@@ -334,11 +336,14 @@ A JSON object. Fields (all optional). The envelope is **not sent** if it is empt
 ```json
 {
   "requestId": 7,
-  "uri": "/home/cart?sign=AbC123",
+  "uri": "cart?sign=AbC123",
   "states": [
-    { "#": "cart:3",
-      "items": [ { "id": 1, "name": "Product A", "price": 49.9, "quantity": 2 } ],
-      "errorCode": 0 }
+    { "#": "7eb485e5f843:3",
+      "rowsViewIds": [ "c8a1f0e2b7d4:5" ],
+      "total": 99.8,
+      "errorCode": 0 },
+    { "#": "c8a1f0e2b7d4:5",
+      "id": 1, "name": "Product A", "price": 49.9, "quantity": 2 }
   ],
   "storage": { "persistent": { "authToken": "k8s2...==" } }
 }
@@ -388,7 +393,7 @@ They use the range reserved for applications (`4000–4999`):
 
 | Code | Reason | Expected client action |
 |---|---|---|
-| `4001` | `reload_required` | Invalid/forged sessionId, missing/bad signature, or 1st message without `secret`. The client **must** discard the persisted `appId` and reload/restart to obtain a new `appId`. |
+| `4001` | `reload_required` | Invalid/forged `appId`, missing/bad signature, or 1st message without `secret`. The client **must** discard the persisted `appId` and reload/restart to obtain a new `appId`. |
 | `4003` | `capacity_exceeded` | Server at its session limit. Equivalent to the init endpoint's HTTP `503 {"error":"capacity_exceeded"}`. |
 
 ---
@@ -439,12 +444,12 @@ The **server is the authority** over which views exist. The client never creates
 
 Navigation is **server-driven** and the URL is **signed** to prevent the client from forcing states it was not granted.
 
-**Emission (server → client):** when updating the history, the server builds the intent (place + parameters), computes `sign = base62(signAsHash(utf8_bytes(intent.toString())))`, injects the `sign=<...>` parameter into the intent, and sends the result in the `uri` field. Example: `/home/product?pr-id=42&sign=AbC123`.
+**Emission (server → client):** when updating the history, the server builds the intent (place + parameters), computes `sign = base62(signAsHash(utf8_bytes(intent.toString())))`, injects the `sign=<...>` parameter into the intent, and sends the result in the `uri` field. The address is the name of the deepest place plus its query string (`CubeIntent.toString()`), e.g. `product?pr-id=42&sign=AbC123`.
 
 **Reception (client → server):** the client navigates by sending `p.path` (the URI with `sign`) via events `-1`/`-2` on the Browser View. The server:
 1. Parses the path and **removes** the `sign` parameter (the received signature).
 2. Recomputes `expected = base62(signAsHash(utf8_bytes(intent.toString())))`.
-3. If the received signature ≠ expected → the URL was tampered with: the client's intent is **discarded** and the server navigates to the root place, forcing a history update. This way, the client cannot forge navigation to arbitrary unsigned parameters/places.
+3. If the received signature ≠ expected → the URL was tampered with: the client's intent is **discarded** and the server navigates to its current state instead (the last place with the parameters the presenters publish; the root place when there is none), forcing a history update. This way, the client cannot forge navigation to arbitrary unsigned parameters/places.
 
 **Reflection in the history (browser):** the `uri` field is applied to the browser history as a hash (`#`): *replace* on the first URI response and on navigation coming from back/forward; *push* in all other cases. The shell derives the initial route from the URL hash at boot.
 

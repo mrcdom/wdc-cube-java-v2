@@ -15,8 +15,8 @@ graph TD
     subgraph browser["Browser (JavaScript)"]
         main["js/app.js ← Java compiled to JS by TeaVM"]
         mainClass["Main.java — Entry point: registers the view factories"]
-        bridge["bridge/ — WS communication infra + VDom base"]
-        views["views/ — 9 views (thin renderers)"]
+        bridge["remote.bridge.teavm (framework) — WS protocol, ViewScope, security"]
+        views["views/ — 10 views (adapters over the teavm.commons shared views)"]
         main --> mainClass
         main --> bridge
         main --> views
@@ -31,8 +31,9 @@ graph TD
         coordinator["ViewStateCoordinator"]
         ws["WebSocket"]
         subgraph vdom["AbstractRemoteView (VDom)"]
-            scope["ViewScope (reactive state)"]
-            render["render() → VNode tree"]
+            scope["ViewScope (state received from the host)"]
+            adapt["adapts JSON → XxxScope"]
+            shared["XxxSharedView.renderTree() → VNode tree"]
             diff["diff/patch → real DOM"]
         end
         coordinator --> ws
@@ -40,36 +41,31 @@ graph TD
     end
 
     subgraph host["remote.host"]
-        presenters["Presenters + ViewStates"]
+        presenters["Presenters + Scopes"]
     end
 
     ws <--> host
 ```
+
+The protocol infrastructure (`ViewStateCoordinator`, `ViewScope`, `FlushRequestContext`, `ReconnectController`, `DataSecurity`, `SecurityBoot`, `EncryptedLocalStorage`, `JsonParser`, `ViewGarbageCollector`) lives in the framework module `remote.bridge.teavm`; the VDom engine, the Spectrum Web Components DSL, the `Sel*` class catalogs and the shared views live in `teavm.commons` (also used by `teavm.web`).
 
 ## Project Structure
 
 ```mermaid
 graph TD
     root["remote.shell.teavm/"]
-    buildsh["build.sh<br/><small>Simplified build (TeaVM → JS)</small>"]
+    buildsh["build.sh<br/><small>Module build (TeaVM → JS)</small>"]
     watchsh["watch.sh<br/><small>Automatic rebuild on detected changes</small>"]
-    pom["pom.xml<br/><small>Maven + TeaVM plugin</small>"]
-    docs["docs/<br/><small>GUIDE_NEW_VIEW.md</small>"]
+    pom["pom.xml<br/><small>Maven + TeaVM and Sass plugins</small>"]
+    docs["docs/<br/><small>GUIDE_NEW_VIEW.md, screenshots</small>"]
     srcMain["src/main/"]
     java["java/.../shell/teavm/"]
     main["Main.java<br/><small>Entry point (registers view factories)</small>"]
     bridge["bridge/"]
-    arv["AbstractRemoteView.java<br/><small>VDom base (render/diff/useCallback)</small>"]
-    vsc["ViewStateCoordinator.java<br/><small>Manages active views + WS protocol</small>"]
-    vs["ViewScope.java<br/><small>Reactive state received from the host</small>"]
-    frc["FlushRequestContext.java<br/><small>WS communication (request/response)</small>"]
-    rc["ReconnectController.java<br/><small>Progressive backoff for reconnection</small>"]
-    ds["DataSecurity.java<br/><small>RSA + AES-GCM (session encryption)</small>"]
-    jp["JsonParser.java<br/><small>Parsing of JSON responses from the host</small>"]
-    vgc["ViewGarbageCollector.java<br/><small>Cleanup of deallocated views</small>"]
-    interop["interop/<br/><small>JSO bridges — Console · Timers · JsConsumer/Runnable</small>"]
-    views["views/<br/><small>BrowserView · RootView · LoginView · HomeView<br/>ProductsPanelView · ProductView · CartView · ReceiptView · PurchasesPanelView</small>"]
-    webapp["webapp/<br/><small>index.html + css/app.css</small>"]
+    arv["AbstractRemoteView.java<br/><small>VDom base (render/diff/useCallback, state/submit/setFormField)</small>"]
+    views["views/<br/><small>BrowserView · RootView · LoginView · HomeView · ProductsPanelView<br/>PurchasesPanelView · ProductView · CartView · CartItemView · ReceiptView</small>"]
+    scss["scss/<br/><small>app.scss (+ browser/_browser.scss)</small>"]
+    webapp["webapp/<br/><small>index.html, context.html, css/app.css (generated)</small>"]
 
     root --> buildsh
     root --> watchsh
@@ -77,35 +73,51 @@ graph TD
     root --> docs
     root --> srcMain
     srcMain --> java
+    srcMain --> scss
     srcMain --> webapp
     java --> main
     java --> bridge
-    java --> interop
     java --> views
     bridge --> arv
-    bridge --> vsc
-    bridge --> vs
-    bridge --> frc
-    bridge --> rc
-    bridge --> ds
-    bridge --> jp
-    bridge --> vgc
 ```
 
 ## Virtual DOM
 
-Views extend `AbstractRemoteView` and implement `render()`, returning a `VNode` tree:
+Views extend `AbstractRemoteView` and implement `render()`, returning a `VNode` tree. Most of them delegate to a shared view, after adapting the JSON state into the presentation scope type (`CartView`):
+
+```java
+public CartView(String vsid) {
+    super(vsid);
+
+    this.shared = new CartSharedView();
+    this.shared.stateSupplier = this::adaptState;
+    this.shared.onBack = () -> submit(ON_BACK);
+    this.shared.onBuy = () -> submit(ON_BUY);
+    this.shared.rowElements = this::rowElements;
+}
+
+@Override
+protected VNode render() {
+    return shared.renderTree();
+}
+
+private CartScope adaptState() {
+    ViewScope scope = state();
+    adaptedState.errorMessage.set(scope.getString("errorMessage"));
+    adaptedState.total.set(scope.getDouble("total"));
+    return adaptedState;
+}
+```
+
+`BrowserView` and `RootView` render directly:
 
 ```java
 @Override
 protected VNode render() {
-    var state = scope.state();
-    return div(Css.ROOT).children(
-        h5(Css.TITLE).text(state.title),
-        spButton("accent")
-            .on("click", onConfirm)
-            .children(span().text("Confirm"))
-    );
+    var scope = state();
+    var contentEl = getChildViewElement(scope.getString("contentViewId"));
+    return spTheme("light", "medium", "spectrum").cls(Sel.ROOT).children(
+      slot(contentEl).cls(Sel.CONTENT));
 }
 ```
 
@@ -115,47 +127,49 @@ The event listener diff compares by **reference identity**:
 
 1. **Stable fields** — listeners without parameters:
    ```java
-   private final EventListener<Event> onBack = evt -> flush("back");
+   private final EventListener<Event> backListener = evt -> onBack.run();
    ```
 
 2. **`useCallback(key, listener)`** — cached parametric listeners:
    ```java
-   .on("click", useCallback("remove-" + id, mkOnRemove(id)))
+   .on("click", useCallback("open-" + key, mkOnOpenProduct(product.id)))
    ```
 
-### Compact Css
+### Compact Sel
 
 ```java
 @SuppressWarnings({"java:S1214", "static-access"})
-private interface Css {
-    CssUtility u = CssUtility.INSTANCE;
-    CssComponents c = CssComponents.INSTANCE;
-    CssIcons icon = CssIcons.INSTANCE;
+private interface Sel {
+    SelUtility u = SelUtility.INSTANCE;
+    SelComponents c = SelComponents.INSTANCE;
+    SelIcons icon = SelIcons.INSTANCE;
 
     String ROOT = u.PAGE_SCROLL_ROOT;
-    String TITLE = clsx(c.CARD_TITLE, u.MB_12);
+    String ERROR_VISIBLE = clsx(c.ALERT_ERROR, u.MB_12);
 }
 ```
 
-## Difference vs. app.teavm (teavm.web)
+## Difference vs. teavm.web
 
-| Aspect | remote.shell.teavm | app.teavm (teavm.web) |
+| Aspect | remote.shell.teavm | teavm.web |
 |---------|-------------------|----------------------|
 | **Business logic** | None (thin client) | Complete (standalone SPA) |
 | **Communication** | Bidirectional WebSocket | REST (XMLHttpRequest) |
 | **State** | Received from the host (`ViewScope`) | Managed locally (Presenters) |
 | **Presenters** | Server-side (remote.host) | Client-side (compiled together) |
-| **Advantage** | Zero logic in the client | Works offline |
+| **Rendering** | `teavm.commons` shared views | `teavm.commons` shared views |
 
 ## Build
 
 ```bash
-# Simple build
-JAVA25_HOME=<path-to-jdk-25> ./build.sh
+# Recommended (from the repository root)
+./work/bin/build-frontends.sh teavm.shell
 
-# Full build (installs the framework dependencies first)
-JAVA25_HOME=<path-to-jdk-25> ./build.sh --full
+# Module script: reinstalls teavm.commons, then compiles (--full also installs the framework)
+JAVA25_HOME=<path-to-jdk-25> ./build.sh
 ```
+
+TeaVM compiles against the `presentation` JAR in `~/.m2`, not against the reactor: without `mvn install` after a presentation change, the shell silently ships the previous scopes. `build-frontends.sh` reinstalls the modules by default.
 
 ### Output
 
@@ -163,11 +177,13 @@ JAVA25_HOME=<path-to-jdk-25> ./build.sh --full
 graph TD
     root["work/frontend/remote.shell.teavm/"]
     index["index.html"]
+    context["context.html"]
     css["css/app.css"]
     js["js/"]
     appJs["app.js<br/><small>Java compiled to JavaScript</small>"]
 
     root --> index
+    root --> context
     root --> css
     root --> js
     js --> appJs
@@ -180,7 +196,7 @@ graph TD
 ./watch.sh
 ```
 
-Requires `fswatch` installed (`brew install fswatch` on macOS).
+Changes in `src/` and `teavm.commons/src/` are detected by `DevWatcher` (teavm.commons, `-Pwatch` profile); after each rebuild the script notifies the backend (`/__dev/notify`, requires `devMode = true`) so the open page reloads.
 
 ## Running
 

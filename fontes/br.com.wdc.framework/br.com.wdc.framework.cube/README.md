@@ -37,9 +37,9 @@ graph LR
 3. Calls `app.navigate(place, intent)` — or `app.go("home?x=1")`, which finds the place by name (an unknown name goes to the root). The engine walks `place.getPath()` from the root to the destination:
    - Instantiates the missing presenters through the place's factory.
    - Invokes `applyParameters(intent, initialization, deepest)` on each presenter.
-   - Removes presenters that are not part of the hierarchy anymore (calls `release()`).
-   - Invokes `commitComputedState()` on all of them.
-5. The host draws the root presenter's scope (`app.viewOf(rootPresenter.state)`); each view asks for the views of the scopes it holds (`app.viewOf(state.content.get())`). The UI is updated by `CubeView.update()`, called when a scope `Prop` changes.
+   - Releases the presenters that are not part of the hierarchy (calls `release()`, deepest first).
+   - Calls `app.updateHistory()` so the host republishes the address.
+4. The host draws the root presenter's scope (`app.viewOf(rootPresenter.state)`); each view asks for the views of the scopes it holds (`app.viewOf(state.content.get())`). The UI is updated by `CubeView.update()`, called when a scope `Prop` changes. `commitComputedState()` (derived state) is not part of the navigation: the remote host calls it on all presenters (`CubeApplication.commitComputedState()`) before writing the dirty states.
 
 ---
 
@@ -58,7 +58,7 @@ graph LR
 | `CubeIntent` | Encapsulates the destination (place) + typed parameters (query-string parsing) |
 | `CubeKeys<A>` | Base of the app's key classes: one per place, declares the place and reads/writes the intent with typed accessors; `flip()` navigates to the place |
 | `CubeNavigation<T>` | Engine that executes transitions: creates, reuses and destroys presenters |
-| `CubeSkeleton` | Interface for remote communication: `submit(eventCode, formData)`, `syncState()`. Nobody implements it by hand: `Scope.skeleton(classId)` dispatches each event to the action bound to that code, and `Scope.onSync(...)` defines `syncState` |
+| `CubeSkeleton` | Interface for remote communication: `classId()`, `submit(eventCode, eventQtde, formData)`, `syncState(formData)`. Nobody implements it by hand: `Scope.skeleton(classId)` dispatches each event to the action bound to that code, and `Scope.onSync(...)` defines `syncState` |
 | `FormParam<T>` | How an action reads a value from the event's `formData`: field name + conversion (`asLong`, `asInteger`, `asString`, `of`) |
 | `Scope`, `Prop<T>` | View state: observed fields are `Prop`s (`prop(...)`); `set` of a different value requests the redraw by itself — of the scope's view or, while it has none, of the owning scope that holds it in a `Prop`. `setSilently` is for the view that consumes a one-time display message while drawing. Each scope with a remote view declares `public static final String CLASS_ID` (the bridge protocol classId). `Scope.drawnBy(view)` is the scope that only carries an existing view — used by shells that rebuild scopes from what the remote host sends |
 | `Action`, `ActionOf<T>`, `ActionOf2<T, U>` | Actions the view fires, stored as Scope fields; `NOOP`/`noop()` mark an action not yet bound |

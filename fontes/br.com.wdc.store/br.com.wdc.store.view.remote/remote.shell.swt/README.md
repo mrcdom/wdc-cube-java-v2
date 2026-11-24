@@ -1,6 +1,6 @@
 # remote.shell.swt
 
-SWT desktop shell for the **WeDoCode Store** remote presentation protocol. It renders the application's views using native SWT widgets, communicating with `remote.host` over WebSocket — no local business logic, no database.
+SWT desktop shell for the **WDC Store** remote presentation protocol. It renders the application's views using native SWT widgets, communicating with `remote.host` over WebSocket — no local business logic, no database.
 
 It reuses the view implementations from `swt.commons`, overriding them with "remote" versions that obtain their state via `ViewStateSnapshot` (instead of local Presenters).
 
@@ -28,6 +28,7 @@ remote.host  <──WebSocket──>  remote.shell.swt
 | `ProductViewSwtRemote` | Product detail |
 | `ProductsPanelViewSwtRemote` | Product listing panel |
 | `CartViewSwtRemote` | Shopping cart |
+| `CartItemViewSwtRemote` | Cart row (a view of its own) |
 | `ReceiptViewSwtRemote` | Purchase receipt |
 | `PurchasesPanelViewSwtRemote` | Purchase history |
 
@@ -48,5 +49,7 @@ remote.host  <──WebSocket──>  remote.shell.swt
 
 ```bash
 cd fontes && mvn clean package -pl br.com.wdc.store/br.com.wdc.store.view.remote/remote.shell.swt -am
-java -jar target/remote.shell.swt-1.0.0.jar --endpoint=http://localhost:8080
+java -jar br.com.wdc.store/br.com.wdc.store.view.remote/remote.shell.swt/target/remote.shell.swt-1.0.0.jar http://localhost:8080
 ```
+
+The only argument is the server URL (default: `http://localhost:8080`).

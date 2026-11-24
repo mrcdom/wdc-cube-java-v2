@@ -1,6 +1,6 @@
 # remote.shell.flutter
 
-Flutter shells for the **WeDoCode Store** application — implementations of the Remote Presentation thin client in Dart/Flutter for multiple platforms.
+Flutter shells for the **WDC Store** application — implementations of the Remote Presentation thin client in Dart/Flutter for multiple platforms.
 
 ## Overview
 
@@ -59,8 +59,8 @@ cd flutter.mobile && ./deploy.sh run android-tablet-emu  # tablet emulator
 cd flutter.mobile && ./deploy.sh run ios
 cd flutter.mobile && ./deploy.sh run android
 
-# Web
-cd flutter.web && flutter run -d chrome --dart-define=WDC_ENDPOINT=http://localhost:8080
+# Web — built into work/frontend/remote.shell.flutter and served by the backend
+cd flutter.web && ./build.sh       # or, from the repository root: ./work/bin/build-frontends.sh flutter
 ```
 
 ## Build via Maven (desktop)

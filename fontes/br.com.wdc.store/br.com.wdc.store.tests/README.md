@@ -17,6 +17,8 @@ graph TD
     root --> CallTest["StoreCallTest.java<br/><small>Presentation calls</small>"]
     root --> WorkflowTest["StoreWorkflowTest.java<br/><small>Complete workflow (presentation)</small>"]
     root --> PlaceKeys["PlaceKeysTest.java<br/><small>Place keys and intents</small>"]
+    root --> CartRestore["CartRestoreTest.java (7)<br/><small>Cart kept in the session scope and restored on reload</small>"]
+    root --> RoleTestN["RoleTest.java (3)<br/><small>Role permissions (user read, data:all, user write)</small>"]
     root --> Wire["EntityGraphRecursionTest, RelationKeyProjectionTest,<br/>FetchByIdEndpointTest, OrderByWireCompatibilityTest,<br/>OpenApiSpecTest<br/><small>Codecs, projections, REST API</small>"]
     root --> Tx["TransactionServiceJtaTest,<br/>RemoteTransactionCoordinatorJtaTest,<br/>RemoteTransactionRestTest<br/><small>Transactions (JTA, remote)</small>"]
 

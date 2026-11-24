@@ -1,30 +1,39 @@
 # persistence.rest
 
-The **REST API** module of the WDC Store application. It exposes the domain repositories as HTTP endpoints via **Javalin**, with HMAC challenge-response authentication, JWT authorization and Jackson serialization.
+The **REST API** of the WDC Store repositories. It exposes the domain repositories as HTTP endpoints on **Javalin**, with HMAC challenge-response authentication, JWT authorization per permission, client-driven remote transactions and an OpenAPI document. The bodies are written and read by the domain's codecs (`ProductCodec`, ...) — the same ones the HTTP client (`persistence.client`) uses on the other side.
+
+> Full architectural view: [docs/data-layer.md → The persistence.rest Module](../../../../docs/data-layer.md#the-persistencerest-module--the-http-surface).
 
 ## Dependencies
 
 | Artifact | Role |
-|----------|-------|
-| `br.com.wdc.store.domain` | Domain models, repository interfaces, security contracts |
-| `io.javalin:javalin` | HTTP framework (7.2.4) |
-| `com.fasterxml.jackson` | JSON serialization |
-| `slf4j-api` | Logging |
+|----------|------|
+| `br.com.wdc.store.domain` | Repository interfaces, codecs, `StoreTransactions`, security contracts |
+| `framework-persistence` | `RemoteTransactionCoordinator` (the SPI behind `/api/tx/*`) |
+| `io.javalin:javalin` | HTTP server |
+| `io.swagger.core.v3:swagger-core` | OpenAPI model for `/openapi.json` |
+
+The module depends on the repository *interfaces* only: the backend registers the jOOQ implementations (`persistence.impl`) in the `BEAN`s.
 
 ## Package Structure
 
 ```mermaid
 graph TD
     root["br.com.wdc.store.persistence.rest"]
-    root --> Routes["RepositoryApiRoutes.java<br/><small>Routes and filters</small>"]
-    root --> Mapper["ApiObjectMapper.java<br/><small>Jackson mixins/adapters</small>"]
-    root --> AuthCtrl["AuthApiController.java<br/><small>challenge, login, refresh, logout</small>"]
-    root --> UserCtrl["UserApiController.java<br/><small>User CRUD</small>"]
-    root --> ProductCtrl["ProductApiController.java<br/><small>Product CRUD + images</small>"]
-    root --> PurchaseCtrl["PurchaseApiController.java<br/><small>Purchase CRUD</small>"]
-    root --> PurchItemCtrl["PurchaseItemApiController.java<br/><small>Item CRUD</small>"]
+    root --> Routes["RepositoryApiRoutes<br/><small>routes, filters, exception mapping, transactional()</small>"]
+    root --> AuthCtrl["AuthApiController<br/><small>challenge, login, refresh, logout</small>"]
+    root --> UserCtrl["UserApiController"]
+    root --> ProductCtrl["ProductApiController<br/><small>+ images</small>"]
+    root --> PurchaseCtrl["PurchaseApiController"]
+    root --> PurchItemCtrl["PurchaseItemApiController"]
+    root --> TxCtrl["TxApiController<br/><small>begin, commit, rollback, status</small>"]
+    root --> RemoteTx["RemoteTransactions<br/><small>holder of the RemoteTransactionCoordinator</small>"]
     root --> security["security/"]
-    security --> Filter["SecurityFilter.java<br/><small>Bearer JWT → SecurityContext.CURRENT</small>"]
+    security --> Filter["SecurityFilter<br/><small>Bearer JWT → SecurityContext.CURRENT</small>"]
+    security --> Enforcer["SecurityEnforcer<br/><small>permission check per endpoint</small>"]
+    root --> doc["doc/"]
+    doc --> Docs["RepositoryApiDocs<br/><small>assembles the OpenAPI document</small>"]
+    doc --> DocHelpers["Doc<br/><small>operation builders</small>"]
 ```
 
 ## Endpoints
@@ -32,88 +41,87 @@ graph TD
 ### Authentication (`/api/auth/`)
 
 | Method | Path | Description |
-|--------|------|-----------|
-| GET | `/api/auth/challenge` | Generates a nonce with a TTL for HMAC challenge-response |
-| POST | `/api/auth/login` | Validates the HMAC digest + nonce, returns `{accessToken, refreshToken, publicKey, expiresAt}` |
-| POST | `/api/auth/refresh` | Renews tokens via `refreshToken` |
+|--------|------|-------------|
+| GET | `/api/auth/challenge` | A single-use nonce with a TTL, for the HMAC challenge-response |
+| POST | `/api/auth/login` | Checks the HMAC digest + nonce; returns `{accessToken, refreshToken, publicKey, expiresAt}` |
+| POST | `/api/auth/refresh` | Renews the tokens with the `refreshToken` |
 | POST | `/api/auth/logout` | Invalidates the refresh token |
 
 ### Repositories (`/api/repo/`)
 
-All repository endpoints follow the same CRUD pattern:
+Every entity has the same set:
 
 | Method | Path | Description |
-|--------|------|-----------|
+|--------|------|-------------|
 | POST | `/api/repo/{entity}/insert` | Inserts an entity |
-| POST | `/api/repo/{entity}/update` | Updates an entity |
-| POST | `/api/repo/{entity}/upsert` | Insert or update |
+| POST | `/api/repo/{entity}/update` | Updates an entity (new values, old values for optimistic locking, projection) |
 | POST | `/api/repo/{entity}/delete` | Deletes by criteria |
 | POST | `/api/repo/{entity}/count` | Counts by criteria |
-| POST | `/api/repo/{entity}/fetch` | Fetches by criteria (with projection, pagination, ordering) |
-| POST | `/api/repo/{entity}/fetchById` | Fetches by ID (with projection) |
-| GET | `/api/repo/{entity}/{id}` | Fetches by ID (default projection) |
+| POST | `/api/repo/{entity}/fetch` | Fetches by criteria, with projection, ordering, offset and limit |
+| POST | `/api/repo/{entity}/fetch-page` | Fetches one page by criteria, with the total |
+| POST | `/api/repo/{entity}/fetch-by-id` | Fetches by id, with projection |
+| GET | `/api/repo/{entity}/{id}` | Fetches by id, default projection |
 
-Where `{entity}` is: `user`, `product`, `purchase`, `purchase-item`.
-
-#### Additional product endpoints
+`{entity}` is `user`, `product`, `purchase` or `purchase-item`. The product also has:
 
 | Method | Path | Description |
-|--------|------|-----------|
-| GET | `/api/repo/product/{id}/image` | Image download (PNG) — **public, no authentication** |
+|--------|------|-------------|
+| GET | `/api/repo/product/{id}/image` | Image download (PNG) — **public**, no authentication |
 | PUT | `/api/repo/product/{id}/image` | Image upload (bytes) |
+
+### Remote transactions (`/api/tx/`)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/tx/begin` | Opens a transaction owned by the requester; returns `{txId}` |
+| POST | `/api/tx/commit` | Commits the transaction named in `X-Tx-Id` |
+| POST | `/api/tx/rollback` | Rolls it back |
+| GET | `/api/tx/status` | Coordinator counters |
+
+### OpenAPI
+
+`GET /openapi.json` returns the OpenAPI 3.0 document. Each controller describes its own paths in private `*Doc()` methods next to the handlers; `RepositoryApiDocs` adds the shared schemas and assembles the whole.
+
+## Transactions
+
+The write handlers (`insert`, `update`, `delete`, the image upload) are wrapped by `RepositoryApiRoutes.transactional(...)`, which behaves in one of three ways:
+
+- **With `X-Tx-Id`**: the write joins that client-driven remote transaction (resumed and suspended around the handler); the commit belongs to the client, through `/api/tx/commit`.
+- **Without `X-Tx-Id`, while the requester has a remote transaction open**: the write is refused with 409 — the header got lost, and committing it on its own would break the block's atomicity.
+- **Otherwise**: one transaction for the request (`StoreTransactions.BEAN.get().required(...)`), so a purchase and its items commit or roll back together.
+
+The owner of a remote transaction is `user:<userId>` for an authenticated requester, or `anon:<X-Client-Id>` when security is off. `RemoteTransactions.COORDINATOR` is filled by the composition root (the backend, or the tests). Details: [docs/data-layer.md → Client-Driven Remote Transactions](../../../../docs/data-layer.md#client-driven-remote-transactions-over-rest) and [docs/remote-transaction-identity-and-ownership.md](../../../../docs/remote-transaction-identity-and-ownership.md).
 
 ## Security
 
-### SecurityFilter
+When `AuthenticationService.BEAN` is registered, `RepositoryApiRoutes` registers the authentication endpoints and puts `SecurityFilter` before `/api/repo/*` and `/api/tx/*`:
 
-Before-filter registered on `/api/repo/*` (conditional — active only when `AuthenticationService.BEAN` is configured):
+1. Reads `Authorization: Bearer <token>`.
+2. Resolves the JWT through `AuthenticationService.resolveToken()`.
+3. Sets `SecurityContext.CURRENT` (userId, roles, permissions); an `after` handler clears it.
+4. Routes ending in `/image` are public and skip it.
+5. A missing or invalid token gets 401.
 
-1. Extracts `Authorization: Bearer <token>` from the header
-2. Validates the JWT via `AuthenticationService.resolveToken()`
-3. Populates `SecurityContext.CURRENT` with the user's context (userId, roles, permissions)
-4. Public routes (ending in `/image`) skip authentication
-5. Returns 401 for missing/invalid tokens
+Each handler then asks `SecurityEnforcer` for the permission it needs — `SecurityEnforcer.require("product", "write")` — which throws `AccessDeniedException` when it is missing. Without an `AuthenticationService` (local or test mode), the checks are skipped.
 
-`SecurityContext.CURRENT` is cleared automatically in an `after` handler registered by `RepositoryApiRoutes`.
+`UserApiController` accepts a password encrypted with the session's RSA public key and decrypts it before persisting.
 
-### Error Handling
+### Error responses
 
-- `AccessDeniedException` → HTTP 403 (Forbidden)
-- Missing/invalid token → HTTP 401 (Unauthorized)
+The body is `{"error": "<message>"}`; `HttpFailure` in `persistence.client` turns it back into the same exception.
 
-### Password via RSA
+| Exception | Status |
+|-----------|--------|
+| `InvalidRequestException` (e.g. an ordering name this server does not know) | 400 |
+| Missing or invalid token | 401 |
+| `AccessDeniedException` | 403 |
+| `TransactionConflictException` | 409 |
+| `TransactionLimitExceededException` (cap of open remote transactions) | 429 |
 
-`UserApiController` supports receiving a password encrypted with RSA (`RSA/ECB/OAEPWithSHA-256AndMGF1Padding`). If a `SecurityContext` with an RSA private key is present, the password is decrypted server-side before being persisted.
-
-## Components
-
-### RepositoryApiRoutes
-
-Utility class (private constructor) that configures Javalin:
+## Usage
 
 ```java
-RepositoryApiRoutes.configure(javalinConfig);
+Javalin.create(config -> RepositoryApiRoutes.configure(config, ""));
 ```
 
-- Registers `SecurityFilter` as a before-filter (if auth is enabled)
-- Registers a handler for `AccessDeniedException` → 403
-- Registers an `after` handler to clear `SecurityContext.CURRENT`
-- Registers the authentication endpoints (`AuthApiController`)
-- Registers the CRUD endpoints for all entities
-
-### ApiObjectMapper
-
-Shared Jackson `ObjectMapper`, configured with:
-
-| Setting | Effect |
-|-------------|--------|
-| `OffsetDateTime` ↔ ISO-8601 | Serializes dates as ISO strings |
-| `PurchaseItem.purchase` → `@JsonIgnore` | Avoids a circular reference |
-| `Product.image` → `@JsonIgnore` | Images served by a dedicated endpoint |
-| `User.password` → `WRITE_ONLY` | The password is never returned in responses |
-| `NON_NULL` inclusion | Null fields omitted |
-| `FAIL_ON_UNKNOWN_PROPERTIES = false` | Tolerates unknown fields |
-
-### Projection
-
-The `fetch` and `fetchById` endpoints accept a `"projection"` field in the JSON body, indicating which of the entity's fields should be returned. `ApiObjectMapper.parseProjection()` converts the JSON into an instance of the domain model with the sentinel fields from `ProjectionValues`.
+The `prefix` puts the API under a context (`/<context>/api/repo/...`), so a single-page app served under that context reaches it without CORS.

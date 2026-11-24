@@ -7,49 +7,46 @@ Java source code of the TeaVM views and their compilation to JavaScript. This mo
 ```mermaid
 graph TD
     browser["Browser (JavaScript)"]
-    indexHtml["index.html<br/><small>Loads Spectrum WC + CSS + app.js</small>"]
+    indexHtml["index.html<br/><small>Loads Spectrum WC + Bootstrap Icons + CSS + app.js</small>"]
     appJs["js/app.js<br/><small>Java compiled to JS by TeaVM</small>"]
     main["Main.java<br/><small>Entry point</small>"]
-    app["StoreTeaVMApplication.java<br/><small>Factory wiring and render loop</small>"]
-    base["AbstractViewTeaVM.java<br/><small>Base class (legacy HtmlDom)</small>"]
-    vdom["vdom/<br/><small>AbstractVDomView.java — VDom base (render + diff + useCallback)</small>"]
-    fetch["FetchHttpTransport.java<br/><small>XMLHttpRequest (REST API calls)</small>"]
-    crypto["BrowserCryptoProvider.java<br/><small>Web Crypto API (HMAC-SHA256)</small>"]
-    sched["ScheduledExecutorBrowser.java<br/><small>setTimeout/setInterval</small>"]
-    interop["interop/<br/><small>JSO bridges (Console, Timers, Fetch)</small>"]
-    repo["repo/<br/><small>Repositories via REST API</small>"]
-    util["util/<br/><small>DateUtils</small>"]
-    views["views/<br/><small>RootViewVDom · LoginViewVDom · HomeViewVDom<br/>ProductsPanelViewVDom · ProductViewVDom · CartViewVDom<br/>ReceiptViewVDom · PurchasesPanelViewVDom</small>"]
+    app["app/StoreTeaVMApplication.java<br/><small>ScopeViews catalog, render loop, navigation</small>"]
+    views["views/<br/><small>AbstractViewTeaVM · AbstractVDomView<br/>RootView · LoginView · HomeView · ProductsPanelView · PurchasesPanelView<br/>ProductView · CartView · CartItemView · ReceiptView</small>"]
+    infra["infra/<br/><small>FetchHttpTransport · BrowserCryptoProvider · IntentSigner<br/>BrowserLocalStorage · BrowserSessionStorage · EncryptedLocalStorage<br/>ScheduledExecutorBrowser</small>"]
+    repo["repo/<br/><small>TeaVMRepositoryBootstrap · TeaVMAuthenticationService</small>"]
+    commons["teavm.commons<br/><small>VNode/VDom, Swc, Sel*, interop, XxxSharedView</small>"]
+    client["persistence.client<br/><small>Http*Repository, RestTransactionService</small>"]
 
     browser --> indexHtml
     browser --> appJs
     appJs --> main
     appJs --> app
-    appJs --> base
-    appJs --> vdom
-    appJs --> fetch
-    appJs --> crypto
-    appJs --> sched
-    appJs --> interop
-    appJs --> repo
-    appJs --> util
     appJs --> views
+    appJs --> infra
+    appJs --> repo
+    views --> commons
+    repo --> client
 ```
+
+The presenters run in the browser. Each view extends `AbstractVDomView<XxxScope>` and delegates rendering to a shared view from `teavm.commons` (`XxxSharedView`), which `remote.shell.teavm` also uses; the view supplies the scope and wraps each action in `safeAction(...)`.
 
 ## Virtual DOM
 
-The views use the `VNode` API to build virtual trees declaratively. The framework performs an efficient diff between renders, applying only the necessary mutations to the real DOM:
+The shared views use the `VNode` API (`br.com.wdc.store.view.teavm.commons`) to build virtual trees declaratively. The VDom performs a diff between renders, applying only the necessary mutations to the real DOM (from `CartSharedView`):
 
 ```java
 @Override
-protected VNode render() {
-    return div(Css.ROOT).children(
-      div(Css.WRAPPER).children(
-        h5(Css.TITLE).text(state.product.name),
-        spButton("accent")
-          .boolAttr("disabled", state.items.isEmpty())
-          .children(span(Css.ICON_ADD), span().text("Add"))
-          .on("click", onAddToCart)));
+public VNode render() {
+    var state = stateSupplier.get();
+    // ...
+    return div(Sel.ROOT).children(
+      div(Sel.WRAPPER).children(
+        div(Sel.CARD).children(
+          // ...
+          spButton("accent", "l")
+            .boolAttr("disabled", empty)
+            .children(span(Sel.ICON_FINALIZE), span().text("Checkout"))
+            .on("click", buyListener))));
 }
 ```
 
@@ -59,37 +56,39 @@ The event listener diff compares by **reference identity** — same reference = 
 
 1. **Stable fields** — parameterless listeners extracted into `final` fields:
    ```java
-   private final EventListener<Event> onBack = evt -> state.onOpenProducts.run();
+   private final EventListener<Event> backListener = evt -> onBack.run();
    ```
 
 2. **`useCallback(key, listener)`** — cache for parameterized listeners (analogous to React's `useCallback`):
    ```java
-   .on("click", useCallback("remove-" + itemId, mkOnRemove(itemId)))
+   .on("click", useCallback("open-" + key, mkOnOpenProduct(product.id)))
    ```
    Returns the cached instance if the key already exists; after each render, unused keys are discarded automatically.
 
-### Compact Css Pattern
+### Compact Sel Pattern
 
-Each view defines a private `Css` interface with compact aliases for the framework classes:
+Each shared view defines a private `Sel` interface with compact aliases for the `teavm.commons` class catalogs:
 
 ```java
 @SuppressWarnings({"java:S1214", "static-access"})
-private interface Css {
-    CssUtility u = CssUtility.INSTANCE;
-    CssComponents c = CssComponents.INSTANCE;
-    CssIcons icon = CssIcons.INSTANCE;
+private interface Sel {
+    SelUtility u = SelUtility.INSTANCE;
+    SelComponents c = SelComponents.INSTANCE;
+    SelIcons icon = SelIcons.INSTANCE;
 
     String ROOT = u.PAGE_SCROLL_ROOT;
-    String ERROR = clsx(c.ALERT_ERROR, u.MB_12);
-    String ICON_ADD = clsx(icon.BAG_PLUS, u.MR_6);
+    String ERROR_VISIBLE = clsx(c.ALERT_ERROR, u.MB_12);
+    String ICON_FINALIZE = clsx(icon.CHECK2_CIRCLE, u.MR_6);
 }
 ```
 
-This lets you write `Css.ROOT` instead of `CssUtility.PAGE_SCROLL_ROOT`, keeping the render method clean and readable.
+This lets you write `Sel.ROOT` instead of `SelUtility.PAGE_SCROLL_ROOT`, keeping the render method clean and readable.
 
 ## Communication with the Server
 
-The views communicate with the Javalin backend via REST API using `XMLHttpRequest` (implemented in `FetchHttpTransport`). Authentication uses HMAC-SHA256 via the Web Crypto API (`BrowserCryptoProvider`).
+The repositories are the HTTP clients of `persistence.client` (`HttpProductRepository`, `HttpUserRepository`, ...), registered in the domain BEANs by `TeaVMRepositoryBootstrap`, over `FetchHttpTransport` (asynchronous `XMLHttpRequest` through TeaVM coroutines). Authentication uses HMAC-SHA256 computed in pure JavaScript (`BrowserCryptoProvider`) and is handled by `TeaVMAuthenticationService`; transactions spanning several REST calls go through `RestTransactionService`.
+
+Client storage: `BrowserSessionStorage` (session scope), `BrowserLocalStorage` (persistent scope) and `EncryptedLocalStorage` (the persistent scope's `secure()` view: AES-GCM with a non-extractable key kept in IndexedDB, entries under the `<shellId>:sec.` prefix and kept out of the plain scope).
 
 ## Responsiveness
 
@@ -98,23 +97,27 @@ The layout adapts to small screens (iPhone SE) using responsive utility classes.
 ## Build
 
 ```bash
-# Via script (recommended)
-JAVA25_HOME=<path-to-jdk-25> bash build.sh
+# Recommended (from the repository root)
+./work/bin/build-frontends.sh teavm.web
 
-# Or directly with Maven
-JAVA_HOME=$JAVA25_HOME mvn process-classes -DskipTests
+# Or the module script (--full also installs the framework and the store modules it depends on)
+JAVA25_HOME=<path-to-jdk-25> ./build.sh --full
 ```
+
+TeaVM compiles against the JARs in `~/.m2`, not against the reactor: without reinstalling `presentation`/`persistence.client` first, the app silently ships the previous version of the domain. `build-frontends.sh` reinstalls them by default.
 
 ### Output
 
 ```mermaid
 graph TD
-    root["target/classes/META-INF/resources/teavm/"]
+    root["work/frontend/teavm.web/"]
     indexHtml["index.html<br/><small>HTML page (loads Spectrum WC + app.js)</small>"]
+    css["css/app.css<br/><small>Compiled from src/main/scss/app.scss</small>"]
     js["js/"]
-    appJs["app.js<br/><small>Java compiled to JavaScript (~8000 methods)</small>"]
+    appJs["app.js<br/><small>Java compiled to JavaScript</small>"]
 
     root --> indexHtml
+    root --> css
     root --> js
     js --> appJs
 ```
@@ -133,33 +136,31 @@ In the browser, the app calls the API on the same origin that served `index.html
 
 ```mermaid
 graph TD
-    root["br.com.wdc.store.view.teavm.web/"]
-    buildsh["build.sh<br/><small>Simplified build script</small>"]
-    pom["pom.xml<br/><small>Maven configuration + TeaVM plugin</small>"]
+    root["teavm.web/"]
+    buildsh["build.sh<br/><small>Module build script</small>"]
+    watchsh["watch.sh<br/><small>Rebuild on change</small>"]
+    pom["pom.xml<br/><small>Maven configuration + TeaVM and Sass plugins</small>"]
     srcMain["src/main/"]
-    java["java/.../view/teavm/"]
+    java["java/br/com/wdc/store/view/teavm/"]
     main["Main.java"]
-    appCls["StoreTeaVMApplication.java"]
-    baseCls["AbstractViewTeaVM.java<br/><small>Legacy (HtmlDom)</small>"]
-    vdom["vdom/<br/><small>AbstractVDomView.java — VDom base (render/diff/useCallback)</small>"]
-    interop["interop/<br/><small>Console, Timers, FetchApi</small>"]
-    repo["repo/<br/><small>REST repositories</small>"]
-    util["util/<br/><small>DateUtils</small>"]
-    views["views/<br/><small>8 VDom views (Login, Home, Products, etc.)</small>"]
-    webapp["webapp/<br/><small>index.html + css/app.css (Utility classes + components + icons)</small>"]
+    app["app/<br/><small>StoreTeaVMApplication</small>"]
+    infra["infra/<br/><small>HTTP transport, crypto, storage, intent signing, scheduler</small>"]
+    repo["repo/<br/><small>TeaVMRepositoryBootstrap, TeaVMAuthenticationService</small>"]
+    views["views/<br/><small>AbstractViewTeaVM, AbstractVDomView + 9 views</small>"]
+    scss["scss/app.scss<br/><small>Imports the teavm.commons partials</small>"]
+    webapp["webapp/<br/><small>index.html, context.html, favicon.ico, js/boot.js, js/crypto-compat.js, css/app.css (generated)</small>"]
 
     root --> buildsh
+    root --> watchsh
     root --> pom
     root --> srcMain
     srcMain --> java
+    srcMain --> scss
     srcMain --> webapp
     java --> main
-    java --> appCls
-    java --> baseCls
-    java --> vdom
-    java --> interop
+    java --> app
+    java --> infra
     java --> repo
-    java --> util
     java --> views
 ```
 

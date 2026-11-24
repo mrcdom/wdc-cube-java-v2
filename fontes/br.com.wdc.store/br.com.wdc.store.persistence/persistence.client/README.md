@@ -1,122 +1,74 @@
 # persistence.client
 
-The **REST client** module of the WDC Store application. It implements the domain's repository and authentication interfaces over HTTP, using **OkHttp** and **Gson**. It lets remote frontends (Android, integration tests) access the backend through the REST API with transparent JWT authentication.
+The **HTTP client** of the WDC Store repositories. It implements the domain's repository, authentication and transaction contracts over the REST API (`persistence.rest`), so code written against `XxxRepository.BEAN` — presenters, resource calls — runs unchanged when the data is on the other side of HTTP.
+
+The HTTP itself sits behind the `HttpTransport` interface (`framework.commons`): the repositories only build the request and read the answer, with the domain's codecs. On the JVM the transport is `OkHttpTransport`; in the browser, teavm.web plugs in its own (`FetchHttpTransport`).
+
+> Full architectural view: [docs/data-layer.md → The persistence.client Module](../../../../docs/data-layer.md#the-persistenceclient-module--the-http-mirror).
 
 ## Dependencies
 
 | Artifact | Role |
-|----------|-------|
-| `br.com.wdc.store.domain` | Domain models, repository interfaces, security contracts |
-| `com.squareup.okhttp3:okhttp-jvm` | HTTP client (5.5.1) |
-| `com.google.code.gson:gson` | JSON serialization/deserialization |
-| `slf4j-api` | Logging |
+|----------|------|
+| `br.com.wdc.store.domain` | Repository interfaces, codecs, `StoreTransactions`; brings `framework-domain` and `framework-commons` (`HttpTransport`, `ClientStorage`, JSON streaming) |
+| `com.squareup.okhttp3:okhttp-jvm` | HTTP client used by `OkHttpTransport` (JVM only) |
 
-## Package Structure
+There is no JSON library: the bodies are written and read by the domain's `ModelCodec`s over the framework's `JsonStreamWriter`/`JsonStreamReader`, the same code the server uses.
+
+## Classes
 
 ```mermaid
 graph TD
     pkg["br.com.wdc.store.persistence.client"]
-    pkg --> RestConfig["RestConfig.java<br/><small>HTTP infrastructure (OkHttp + Gson)</small>"]
-    pkg --> RestAuthClient["RestAuthClient.java<br/><small>Tokens + HMAC challenge-response</small>"]
-    pkg --> RestAuthSvc["RestAuthenticationService.java<br/><small>AuthenticationService over REST</small>"]
-    pkg --> Bootstrap["RestRepositoryBootstrap.java<br/><small>Registers REST impls in the BEANs</small>"]
-    pkg --> RestUser["RestUserRepository.java"]
-    pkg --> RestProduct["RestProductRepository.java"]
-    pkg --> RestPurchase["RestPurchaseRepository.java"]
-    pkg --> RestPurchaseItem["RestPurchaseItemRepository.java"]
+    pkg --> HttpRepository["HttpRepository<br/><small>generic Repository over HTTP + ModelCodec</small>"]
+    HttpRepository --> HttpUser["HttpUserRepository"]
+    HttpRepository --> HttpProduct["HttpProductRepository<br/><small>+ fetchImage / updateImage</small>"]
+    HttpRepository --> HttpPurchase["HttpPurchaseRepository"]
+    HttpRepository --> HttpPurchaseItem["HttpPurchaseItemRepository"]
+    pkg --> HttpFailure["HttpFailure<br/><small>error response → domain exception</small>"]
+    pkg --> OkHttp["OkHttpTransport<br/><small>HttpTransport on OkHttp</small>"]
+    pkg --> RestAuthSvc["RestAuthenticationService<br/><small>AuthenticationService over /api/auth/*</small>"]
+    pkg --> RestAuthClient["RestAuthClient<br/><small>tokens + HMAC challenge-response</small>"]
+    pkg --> RestTx["RestTransactionService<br/><small>TransactionService over /api/tx/*</small>"]
+    pkg --> Bootstrap["RestRepositoryBootstrap<br/><small>fills the BEANs</small>"]
 ```
 
-## Architecture
+### HttpRepository and the entity repositories
 
-The module mirrors the server-side API, implementing the same domain interfaces:
+`HttpRepository<E, C, K>` implements the generic `Repository` once; each `HttpXxxRepository` only names its base path and adds what its interface has beyond it.
 
-```mermaid
-graph TD
-    subgraph Domain["Domain (interfaces)"]
-        UserRepo["UserRepository"]
-        ProductRepo["ProductRepository"]
-        AuthSvc["AuthService"]
-    end
+| Operation | HTTP | Path |
+|-----------|------|------|
+| `insert(entity)` | POST | `/api/repo/{entity}/insert` |
+| `update(newEntity, oldEntity, projection)` | POST | `/api/repo/{entity}/update` |
+| `delete(criteria)` | POST | `/api/repo/{entity}/delete` |
+| `count(criteria)` | POST | `/api/repo/{entity}/count` |
+| `fetch(criteria, offset, limit)` | POST | `/api/repo/{entity}/fetch` |
+| `fetchPage(criteria, page, pageSize)` | POST | `/api/repo/{entity}/fetch-page` |
 
-    subgraph ApiClient["api-client"]
-        RestUser["RestUserRepo"]
-        RestProduct["RestProductRepo"]
-        RestAuth["RestAuthService"]
-        Config["RestConfig<br/><small>OkHttp + Gson + Auth</small>"]
-        AuthClient["RestAuthClient<br/><small>tokens + HMAC + RSA</small>"]
-    end
+`fetchById` and `insertOrUpdate` are defaults of the interfaces, so they go through `fetch` and `insert`/`update`. `HttpProductRepository` also has `fetchImage(id)` → `GET /api/repo/product/{id}/image` and `updateImage(id, bytes)` → `PUT` on the same path (PNG bytes).
 
-    Javalin["HTTP → Javalin API"]
+The criteria, projection and entities travel in the JSON written by the entity's codec (`ProductCodec`, ...), which the server reads back with the same codec.
 
-    UserRepo -.-> RestUser
-    ProductRepo -.-> RestProduct
-    AuthSvc -.-> RestAuth
-    RestUser --> Config
-    RestProduct --> Config
-    RestAuth --> Config
-    Config --> AuthClient
-    AuthClient --> Javalin
-```
+### HttpFailure
 
-## Components
+The inverse of the server's exception mapping: an error response becomes the exception the server threw, so the caller of a remote repository gets what it would get from the local one.
 
-### RestAuthenticationService
-
-Implements `AuthenticationService` over REST. It supports credential authentication and **auto-login via a persistent token**:
-
-| Method | Description |
+| Status | Exception |
 |--------|-----------|
-| `login(user, password)` | Authenticates by credentials; stores the refresh token in `clientPersistentStore().secure()` |
-| `tryRestore()` | Tries to restore the session using the persisted refresh token (auto-login) |
-| `loginWithPersistentToken(token)` | Renews the access token via the refresh token |
-| `createPersistentToken()` | Returns the stored refresh token (for remote session bootstrap) |
-| `resolveToken()` | Returns `null` — the token is resolved internally by `RestConfig` |
+| 400 | `InvalidRequestException` |
+| 403 | `AccessDeniedException` |
+| 409 | `TransactionConflictException` |
+| 429 | `TransactionLimitExceededException` |
+| other | `BusinessException` |
 
-### RestConfig
+### OkHttpTransport
 
-HTTP infrastructure shared by all repositories:
+`HttpTransport` on OkHttp. It adds `Authorization: Bearer <token>` from the access-token supplier the authentication service registers, `X-Tx-Id` while a remote transaction is active, and `X-Client-Id` — an id per transport instance that identifies the owner of anonymous transactions on the server.
 
-| Method | Description |
-|--------|-----------|
-| `postJson(path, body)` | Authenticated POST (automatic Bearer token) |
-| `postJsonNullable(path, body)` | Authenticated POST, returns `null` on 404 |
-| `postJsonPublic(path, body)` | Unauthenticated POST (`/api/auth/*` endpoints) |
-| `getJson(path)` | Unauthenticated GET |
-| `getBytes(path)` | Authenticated binary GET (images) |
-| `putBytes(path, data)` | Authenticated binary PUT (image upload) |
-| `addProjection(body, projection)` | Serializes the field projection into the JSON body |
+### RestAuthenticationService and RestAuthClient
 
-Gson configuration:
-- `OffsetDateTimeAdapter` — dates as ISO-8601
-- `CircularRefExclusionStrategy` — excludes `PurchaseItem.purchase` and `Product.image`
-- Timeouts: 30s (connect, read, write)
-
-### RestAuthClient
-
-Client-side authentication manager:
-
-| Method | Description |
-|--------|-----------|
-| `login(userName, passwordHash)` | Full flow: challenge → HMAC-SHA256 digest → login → stores tokens |
-| `refresh()` | Renews tokens via the refresh endpoint |
-| `logout()` | Invalidates tokens on the server and clears local state |
-| `encryptPassword(plainPassword)` | Encrypts the password with RSA (the session's public key) |
-| `accessToken()` | Returns the current token (used by `RestConfig` for auto-auth) |
-| `isAuthenticated()` | Checks whether there is an active session |
-
-**Authentication flow:**
-
-```
-1. GET /api/auth/challenge → { nonce, expiresAt }
-2. digest = HMAC-SHA256(key=passwordHash, data=userName+nonce)
-3. POST /api/auth/login { userName, digest, nonce }
-   → { accessToken, refreshToken, publicKey, expiresAt }
-4. Subsequent requests: Authorization: Bearer <accessToken>
-```
-
-### RestAuthenticationService
-
-Implements the domain's `AuthenticationService` over HTTP:
+`RestAuthenticationService` implements `AuthenticationService` over `/api/auth/*`; `RestAuthClient` holds the tokens and does the HMAC challenge-response.
 
 | Method | Delegation |
 |--------|-----------|
@@ -124,57 +76,43 @@ Implements the domain's `AuthenticationService` over HTTP:
 | `login(userName, digest, nonce)` | `POST /api/auth/login` → `AuthResult` |
 | `refresh(refreshToken)` | `POST /api/auth/refresh` → `AuthResult` |
 | `logout(refreshToken)` | `POST /api/auth/logout` |
-| `resolveToken()` | Returns `null` (server-side-only operation) |
+| `tryRestore()` | refreshes with the stored refresh token, if any (auto-login) |
+| `createPersistentToken(...)` | the stored refresh token: for a REST client it *is* the persistent token |
+| `loginWithPersistentToken(token)` | `refresh(token)` |
+| `resolveToken(jwt)` | `null` — a server-side operation |
 
-On receiving tokens from login/refresh, it automatically updates the `RestAuthClient` so that subsequent repository calls include the Bearer token.
+The tokens are kept in the secure view of the `ClientStorage` it receives (`storage.secure()`, AES-GCM).
+
+```
+1. GET  /api/auth/challenge            → { nonce, expiresAt }
+2. digest = HMAC-SHA256(key = password hash, data = userName + nonce)
+3. POST /api/auth/login { userName, digest, nonce }
+                                       → { accessToken, refreshToken, publicKey, expiresAt }
+4. next requests: Authorization: Bearer <accessToken>
+```
+
+### RestTransactionService
+
+`TransactionService` for the client side: `required(...)` opens a remote transaction (`POST /api/tx/begin` → `txId`), the transport sends the `txId` in `X-Tx-Id` on every repository call of the block — which join the same physical transaction on the server — and it ends with `/api/tx/commit` or `/api/tx/rollback`. That makes several REST writes atomic. A nested `required` joins the active transaction. Details: [docs/data-layer.md → Client-Driven Remote Transactions](../../../../docs/data-layer.md#client-driven-remote-transactions-over-rest).
 
 ### RestRepositoryBootstrap
 
-Bootstrap that registers all REST implementations in the domain's static `BEAN`s:
+Fills the domain's `BEAN`s with the HTTP implementations, for a JVM client:
 
 ```java
-var config = new RestConfig("http://localhost:8080");
-RestRepositoryBootstrap.initialize(config);
-// UserRepository.BEAN       → RestUserRepository
-// ProductRepository.BEAN    → RestProductRepository
-// PurchaseRepository.BEAN   → RestPurchaseRepository
-// PurchaseItemRepository.BEAN → RestPurchaseItemRepository
-// AuthenticationService.BEAN  → RestAuthenticationService
+var transport = new OkHttpTransport("http://localhost:8080");
+RestRepositoryBootstrap.initialize(transport, storage);
+// CryptoProvider.BEAN          → JceCryptoProvider
+// UserRepository.BEAN          → HttpUserRepository        (and Product, Purchase, PurchaseItem)
+// AuthenticationService.BEAN   → RestAuthenticationService
+// StoreTransactions.BEAN       → RestTransactionService
 
-// On shutdown:
-RestRepositoryBootstrap.release();
+RestRepositoryBootstrap.release();   // on shutdown
 ```
 
-### REST Repositories
-
-Each `RestXxxRepository` implements the corresponding domain interface, mapping operations to HTTP calls:
-
-| Operation | HTTP | Path |
-|----------|------|------|
-| `insert(entity)` | POST | `/api/repo/{entity}/insert` |
-| `update(newEntity, oldEntity)` | POST | `/api/repo/{entity}/update` |
-| `insertOrUpdate(entity)` | POST | `/api/repo/{entity}/upsert` |
-| `delete(criteria)` | POST | `/api/repo/{entity}/delete` |
-| `count(criteria)` | POST | `/api/repo/{entity}/count` |
-| `fetch(criteria)` | POST | `/api/repo/{entity}/fetch` |
-| `fetchById(id, projection)` | POST | `/api/repo/{entity}/fetchById` |
-
-`RestProductRepository` additionally has:
-- `fetchImage(id)` → `GET /api/repo/product/{id}/image` (PNG bytes)
-- `updateImage(id, data)` → `PUT /api/repo/product/{id}/image` (upload)
-
-### Handling Circular References
-
-Gson automatically excludes `PurchaseItem.purchase` and `Product.image` via `CircularRefExclusionStrategy`. To compensate:
-- `RestPurchaseItemRepository` manually injects `purchaseId` into the JSON body before sending
-- Product images are transferred through dedicated binary endpoints
-
-## Usage
-
-The module is used by:
+## Consumers
 
 | Consumer | Context |
-|-----------|---------|
-| **TeaVM Web** (`view.teavm/teavm.web`) | Client mode — compiled to JS, accesses the Javalin backend via REST |
-| **Integration tests** (`store.tests`) | `RestXxxRepositoryTest` validates the API end-to-end |
-| **Javalin** (`backend`) | Registers `RestAuthenticationService` for auth propagation |
+|----------|---------|
+| **teavm.web** (`view.teavm/teavm.web`) | The presenters run in the browser: `TeaVMRepositoryBootstrap` registers the `HttpXxxRepository`s and `RestTransactionService` over its `FetchHttpTransport`, with its own authentication service |
+| **Tests** (`store.tests`) | `RestXxxRepositoryTest` run the repository suite through `OkHttpTransport` against an embedded Javalin; `RemoteTransactionRestTest` covers the remote transaction |

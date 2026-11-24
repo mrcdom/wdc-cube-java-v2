@@ -206,7 +206,7 @@ The **hierarchical path** comes from the tree: `new WishlistKeys(app).flip()` in
 
 ### 3.1 Choose the `CLASS_ID` (classId)
 
-A 12-character hexadecimal identifier, unique among scopes (e.g. `"d1e2f3a4b5c6"`), declared in the scope itself as `public static final String CLASS_ID` (Step 1.2). It is the same one the remote shells use to find the view (`VIEW_ID` in TeaVM/SWT, `BaseViewClass.FC` in React).
+A 12-character hexadecimal identifier, unique among scopes (e.g. `"d1e2f3a4b5c6"`), declared in the scope itself as `public static final String CLASS_ID` (Step 1.2). It is the same one the remote shells use to find the view (`VIEW_ID` in TeaVM, `CID` in the remote SWT shell, `BaseViewClass.FC` in React).
 
 ### 3.2 Give each action an event code
 
@@ -242,89 +242,97 @@ Nothing to register: the view catalog of `StoreApplicationImpl` (`remote.host`) 
 
 ### 4.1 Create the view file
 
-Create `src/scripts/views/WishlistView.tsx`:
+Each view lives in the folder of its feature. Create `src/scripts/views/wishlist/WishlistView.tsx` (the components are the Spectrum Web Components re-exported by `@root/swc`):
 
 ```tsx
-import React from 'react'
-import Box from '@mui/material/Box'
-import Button from '@mui/material/Button'
-import Typography from '@mui/material/Typography'
-import app, { type ViewProps } from '@root/App'
-import { BaseViewClass } from '@root/utils/ViewUtils'
+import React from "react"
+import bridge, { type ViewProps } from "@root/bridge"
+import { BaseViewClass } from "@root/utils/ViewUtils"
+import { Button, ActionButton } from "@root/swc"
+import * as NumberUtils from "@root/utils/NumberUtils"
 
-// :: Actions — must match the event codes of the presenter's actions
+// :: Actions (must match the event codes of the presenter's actions)
+
 const ON_REMOVE_ITEM = 1
 const ON_OPEN_PRODUCTS = 2
 
-// :: View State — mirrors the fields the ScopeSerializer writes from WishlistScope
-export type WishlistScope = {
+// :: View
+
+// Mirrors the fields the ScopeSerializer writes from WishlistScope
+export type WishlistViewState = {
   items?: { id: number; name: string; price: number }[]
   errorMessage?: string
 }
 
-class WishlistViewClass extends BaseViewClass<ViewProps, WishlistScope> {
-
-  override render({ className }: ViewProps): React.ReactNode {
+class WishlistViewClass extends BaseViewClass<ViewProps, WishlistViewState> {
+  override render({ className }: ViewProps) {
     const { state } = this
 
     return (
-      <Box className={className}>
-        <Typography variant="h5">My Wishlist</Typography>
+      <div className={className}>
+        <h2>My Wishlist</h2>
 
         {state.items?.map((item) => (
-          <Box key={item.id}>
-            <Typography>{item.name} - ${item.price.toFixed(2)}</Typography>
-            <Button onClick={() => this.emitRemoveItem(item.id)}>Remove</Button>
-          </Box>
+          <div key={item.id}>
+            <span>
+              {item.name} — {NumberUtils.formatCurrency(item.price)}
+            </span>
+            <ActionButton quiet size="s" onClick={() => this.emitRemoveItem(item.id)}>
+              Remove
+            </ActionButton>
+          </div>
         ))}
 
-        <Button onClick={this.emitOpenProducts}>Back</Button>
-      </Box>
+        <Button variant="accent" onClick={this.emitOpenProducts}>
+          Back
+        </Button>
+      </div>
     )
   }
 
-  // :: Emitters — send events to the backend
+  // :: Emissors
 
   readonly emitRemoveItem = (itemId: number) => {
     const { vsid } = this
-    app.setFormField(vsid, 'itemId', itemId)  // field read in syncClientToServer/submit
-    app.submit(vsid, ON_REMOVE_ITEM)          // eventCode = 1
+    bridge.setFormField(vsid, "p.itemId", itemId) // read by FormParam.asLong("p.itemId")
+    bridge.submit(vsid, ON_REMOVE_ITEM)
   }
 
   readonly emitOpenProducts = () => {
-    app.submit(this.vsid, ON_OPEN_PRODUCTS)   // eventCode = 2
+    bridge.submit(this.vsid, ON_OPEN_PRODUCTS)
   }
 }
 
-// The VID here MUST be identical to WishlistScope.CLASS_ID
-export default BaseViewClass.FC(WishlistViewClass, 'd1e2f3a4b5c6')
+// The view id MUST be identical to WishlistScope.CLASS_ID
+export default BaseViewClass.FC(WishlistViewClass, "d1e2f3a4b5c6")
 ```
 
 **Important rules:**
-- The **event codes** (1, 2, ...) must match the codes the presenter bound the actions with (`action(1, ...)`, `actionOf(2, ...)`)
-- The **VID** in `BaseViewClass.FC()` must be identical to the scope's `CLASS_ID` in Java
+- The **event codes** (1, 2, ...) must match the codes the presenter bound the actions with (`actionOf(1, ...)`, `action(2, ...)`)
+- The **view id** in `BaseViewClass.FC()` must be identical to the scope's `CLASS_ID` in Java
 - The **state type** must mirror the fields the `ScopeSerializer` writes from the scope (Step 1.2)
-- Use `app.setFormField()` to send data before `app.submit()`
+- Send form data with `bridge.setFormField()` before `bridge.submit()`; the field name is the one the `FormParam` reads (`"p.itemId"`)
 
 ### 4.2 Register the view
 
-In the file `src/scripts/index.tsx`, import and register:
+In the file `src/scripts/index.tsx`, import it and add it to the `bridge.registerComponents(...)` call:
 
 ```tsx
-import WishlistView from './views/WishlistView'
+import WishlistView from "./views/wishlist/WishlistView"
 
-app.registerComponents(
+bridge.registerComponents(
   BrowserView,
   SlotView,
   RootView,
   LoginView,
   RestrictedView,
   CartView,
+  CartItemView,
   ReceiptView,
   ProductView,
   ProductsPanel,
   PurchasesPanel,
-  WishlistView,        // NEW
+  WishlistView, // NEW
 )
 ```
 
@@ -361,10 +369,10 @@ And in the frontend, add a button or link that emits the corresponding event.
   - [ ] In each local host, register the view in `ScopeViews` (`register(WishlistScope.class, WishlistViewVaadin::new)`); the remote host registers nothing
 
 - [ ] **React Client**
-  - [ ] Create `WishlistView.tsx` with `BaseViewClass.FC(Class, VID)`
+  - [ ] Create `views/wishlist/WishlistView.tsx` with `BaseViewClass.FC(Class, CLASS_ID)`
   - [ ] Define event codes (must match the codes of the presenter's actions)
   - [ ] Define the state type (must match the Scope's fields)
-  - [ ] Register in `index.tsx` via `app.registerComponents()`
+  - [ ] Register in `index.tsx` via `bridge.registerComponents()`
 
 ---
 

@@ -1,6 +1,6 @@
 # br.com.wdc.store.view.remote
 
-Implementation of the **Remote Presentation** technique for the **WeDoCode Store** application, based on the **Cube MVP** pattern.
+Implementation of the **Remote Presentation** technique for the **WDC Store** application, based on the **Cube MVP** pattern.
 
 ## Concept
 
@@ -49,14 +49,14 @@ graph TD
 
 ## Comparison with the other view implementations
 
-| Aspect | Remote (this module) | Vaadin (server-side) | JFX (desktop) | TeaVM (multiplatform) |
+| Aspect | Remote (this module) | Vaadin (server-side) | SWT (desktop) | TeaVM (multiplatform) |
 |---------|---------------------|----------------------|---------------|------------------------|
 | **Where the UI runs** | Remote browser (thin shell) | Browser via Server Push | Local JVM | Browser / WebView (Tauri) |
 | **Model** | Server-driven (delta states) | Server-driven (component tree) | Direct in-memory access | Client-side (SPA) |
-| **Transport** | WebSocket (JSON delta) | Atmosphere (WebSocket/Push) | N/A (in-process) | REST (OkHttp → JS) |
+| **Transport** | WebSocket (JSON delta) | Atmosphere (WebSocket/Push) | N/A (in-process) | REST (XMLHttpRequest) |
 | **Security** | RSA + AES-GCM + URL signing | HMAC-SHA256 URL signing | N/A (local process) | HMAC + JWT |
 | **Scalability** | Virtual Threads (~1K per connection) | Automatic Server Push | Single instance | Client-side (SPA) |
-| **UI code** | TypeScript (React) / Dart (Flutter) | Java | Java | Java (compiled to JS) |
+| **UI code** | TypeScript (React) / Dart (Flutter) / Java (TeaVM, SWT, Codename One) | Java | Java | Java (compiled to JS) |
 | **Presenters** | Same | Same | Same | Same |
 | **ViewStates** | Same | Same | Same | Same |
 
@@ -73,12 +73,16 @@ graph TD
     desktop["flutter.desktop/<br/><small>Desktop: macOS, Linux, Windows</small>"]
     mobile["flutter.mobile/<br/><small>Mobile: iOS, Android</small>"]
     web["flutter.web/<br/><small>Web: browser (WASM/JS)</small>"]
+    swt["remote.shell.swt/<br/><small>SWT shell: native desktop thin client (Maven/Java)</small>"]
+    cn1["remote.shell.cn1/<br/><small>Codename One shell: iOS/Android/desktop/web (own Maven build, outside the reactor)</small>"]
     probe["remote.shell.probe/<br/><small>Java probe: test and benchmark scenarios against the host (Maven/Java)</small>"]
 
     root --> host
     root --> react
     root --> teavm
     root --> flutter
+    root --> swt
+    root --> cn1
     root --> probe
     flutter --> commons
     flutter --> desktop
@@ -90,28 +94,35 @@ Future clients will follow the `remote.shell.<technology>` pattern.
 
 ### remote.host (Maven)
 
-Server of the remote presentation protocol — receives events from the shell, dispatches them to the Presenters and returns the modified ViewStates:
+Server of the remote presentation protocol — receives events from the shell, dispatches them to the Presenters and returns the modified scopes. The module wires the WDC Store application into the framework's `remote.backend`:
 
 | Class | Responsibility |
 |--------|------------------|
-| `ApplicationReactImpl` | Concrete `StoreApplication`; manages dirty views, event dispatch, JSON response generation |
-| `ApplicationReactRegistry` | Registry of per-session instances, lifecycle and cleanup |
-| `GenericViewImpl` | Abstract base: `instanceId`, `update()` (marks dirty), `syncClientToServer()`, `writeState()` |
-| `BrowserPresenter` | Coordinates navigation and intent dispatch between views |
-| `AppSecurity` | RSA + SHA256withRSA for signing navigation URLs |
-| `DataSecurity` | Per-session AES-GCM (derived via PBKDF2, 250k iterations) for sensitive data |
-| `ScopeSerializer` | Efficient serialization of ViewStates to JSON (dirty fields only) |
-| `WebSocketConnection` | SPI — interface the backend implements to communicate with the shell |
+| `StoreApplicationImpl` | Concrete `StoreApplication` + `RemoteApplication`: `ScopeViews` catalog (`fallback(RemoteViewImpl::forScope)`), delegates the protocol to `RemoteApplicationSupport` |
+| `RemoteHostBootstrap` | Registers the remote routes on the backend's Javalin configuration and starts the application registry |
+
+Generic pieces, in framework `remote.backend` (`br.com.wdc.framework.cube.remote`):
+
+| Class | Responsibility |
+|--------|------------------|
+| `RemoteApplicationSupport` | Dirty views, event dispatch, JSON response generation |
+| `RemoteApplicationRegistry` | Registry of per-session instances, lifecycle and cleanup |
+| `RemoteViewImpl` | Remote view of a scope: `syncClientToServer()`, state writing, the scope's skeleton |
+| `RemoteBrowserPresenter` | Coordinates navigation and intent dispatch |
+| `RemoteAppSecurity` | RSA (key exchange) + SHA256withRSA for signing navigation URLs |
+| `RemoteDataSecurity` | Per-session AES-GCM (derived via PBKDF2, 250k iterations) for sensitive data |
+| `ScopeSerializer` | Serialization of the scopes' `Prop` fields to JSON |
+| `javalin/DispatcherController` | WebSocket endpoint `/dispatcher/{id}` |
 
 ### remote.shell.react (Node.js — Parcel)
 
 Thin client that acts as the rendering surface in the browser:
 
-- **React 19** + **MUI 9** (Material UI) for visual components
+- **React 19** + **Spectrum Web Components** (`@swc-react`) for visual components
 - Bidirectional **WebSocket** for communication with the host
 - **No business logic** — each view renders the received ViewState and emits interaction events
 - **Independent views** — each component is self-sufficient, with no coupling between views
-- Built with **Parcel 2.13** — output copied to `remote.host/META-INF/resources/`
+- Built with **Parcel 2.13** — output in `work/frontend/remote.shell.react/`, served by the backend
 
 ### remote.shell.teavm (Maven — TeaVM)
 
@@ -119,44 +130,34 @@ Thin client in Java compiled to JavaScript via TeaVM, using a **Virtual DOM** (V
 
 - Declarative **VNode API** — `render()` returns a virtual tree, the framework does an efficient diff
 - Bidirectional **WebSocket** for communication with the host (same protocol as the React shell)
-- **No business logic** — each view renders the ViewState received via `ViewScope` and emits events
+- **No business logic** — each view adapts the state received via `ViewScope` and delegates rendering to a `teavm.commons` shared view
 - **useCallback(key, listener)** — cache of parameterized listeners for reference stability in the diff
 - **Stable fields** — parameterless listeners extracted into `final` fields (zero cost in the diff)
-- **Compact Css** — aliases (`u`/`c`/`icon`) for the design system's utility classes
-- Built with **Maven + TeaVM plugin** — output in `target/classes/META-INF/resources/`
+- **Compact Sel** — aliases (`u`/`c`/`icon`) for the `SelUtility`/`SelComponents`/`SelIcons` class catalogs
+- Built with **Maven + TeaVM plugin** — output in `work/frontend/remote.shell.teavm/`
 
 ```mermaid
 graph TD
     root["remote.shell.teavm/"]
     srcJava["src/main/java/.../shell/teavm/"]
-    bridge["bridge/"]
-    arv["AbstractRemoteView.java<br/><small>VDom base (render/diff/useCallback)</small>"]
-    vsc["ViewStateCoordinator.java<br/><small>Manages active views + WS protocol</small>"]
-    vs["ViewScope.java<br/><small>Reactive state received from the host</small>"]
-    frc["FlushRequestContext.java<br/><small>WS communication</small>"]
-    rc["ReconnectController.java<br/><small>Progressive backoff</small>"]
-    ds["DataSecurity.java<br/><small>RSA + AES-GCM</small>"]
-    vgc["ViewGarbageCollector.java<br/><small>Cleanup of deallocated views</small>"]
-    interop["interop/<br/><small>JSO bridges (Console, Timers, WS)</small>"]
-    views["views/<br/><small>9 views (Browser, Root, Login, Home, ...)</small>"]
+    main["Main.java<br/><small>Registers the view factories</small>"]
+    bridge["bridge/AbstractRemoteView.java<br/><small>VDom base (render/diff/useCallback)</small>"]
+    views["views/<br/><small>10 views (Browser, Root, Login, Home, ...)</small>"]
     webapp["src/main/webapp/"]
     index["index.html"]
-    css["css/app.css"]
+    css["css/app.css (generated from src/main/scss)"]
+    fw["remote.bridge.teavm (framework)<br/><small>ViewStateCoordinator, ViewScope, FlushRequestContext,<br/>ReconnectController, DataSecurity, ViewGarbageCollector, interop</small>"]
+    commons["teavm.commons<br/><small>VNode/VDom, Swc, Sel*, shared views</small>"]
 
     root --> srcJava
     root --> webapp
+    srcJava --> main
     srcJava --> bridge
-    srcJava --> interop
     srcJava --> views
-    bridge --> arv
-    bridge --> vsc
-    bridge --> vs
-    bridge --> frc
-    bridge --> rc
-    bridge --> ds
-    bridge --> vgc
     webapp --> index
     webapp --> css
+    bridge --> fw
+    views --> commons
 ```
 
 ### remote.shell.flutter (Maven + Flutter/Dart)
@@ -167,6 +168,14 @@ Multiplatform Flutter shells — thin clients in Dart that share code via `flutt
 - **flutter.desktop** — native macOS/Linux/Windows app; built via `build.sh` (auto-detects the platform)
 - **flutter.mobile** — iOS/Android app deployed via `deploy.sh` (supports simulators, emulators and physical devices)
 - **flutter.web** — web app via Flutter WASM/JS
+
+### remote.shell.swt (Maven/Java)
+
+Native desktop thin client with SWT widgets: reuses the views of `swt.commons`, fed from `ViewStateSnapshot`s received through `HostClient` (`remote.bridge.java`).
+
+### remote.shell.cn1 (Codename One)
+
+Thin client in Java for Codename One (iOS, Android, desktop, web), reimplementing the protocol with CN1 APIs. A complete Codename One project with its own parent; it is not in this module's `<modules>`.
 
 ### remote.shell.probe (Maven/Java)
 
@@ -218,23 +227,21 @@ Only **modified (dirty) views** are sent in each response — minimal transfer, 
 ## Build
 
 ```bash
-# 1. Build the shell (generates assets in remote.host/META-INF/resources/)
-cd fontes/br.com.wdc.store/br.com.wdc.store.view.remote/remote.shell.react
-npm install && npm run build
+# 1. Maven build (host + backend), from the repository root
+cd fontes && mvn -q -DskipTests clean install && cd ..
 
-# 2. Maven build (host + backend)
-cd fontes && mvn -q -DskipTests clean install
+# 2. Web shells (React, Flutter web, TeaVM) → work/frontend/<name>
+./work/bin/build-frontends.sh            # or: ./work/bin/build-frontends.sh react
 ```
 
 ## Running
 
 ```bash
-# Server (port 8080 by default)
-cd fontes/br.com.wdc.cube.backend
-java -jar target/br.com.wdc.cube.backend-1.0.0.jar
+# Via script, from the repository root (port 8080 by default)
+./work/bin/start-server.sh
 
-# Or via script
-./start-server.sh
+# Or directly
+java -jar fontes/br.com.wdc.cube.backend/target/br.com.wdc.cube.backend-1.0.0.jar
 ```
 
 ### Configuration
@@ -243,7 +250,7 @@ File `work/config/application.toml`:
 
 ```toml
 [app]
-# basedir = "work"
+basedir = ".."   # relative to config/, i.e. work/
 
 [database]
 # url = "jdbc:h2:file:..."
@@ -259,7 +266,7 @@ File `work/config/application.toml`:
 
 ```bash
 cd remote.shell.react
-npm run watch   # Parcel in watch mode (hot reload)
+npm run watch   # Parcel in watch mode, output in work/frontend/remote.shell.react
 ```
 
 ## Virtual Threads

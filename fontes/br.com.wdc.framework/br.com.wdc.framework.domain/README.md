@@ -8,7 +8,7 @@ The **contracts** of the domain, with no technology behind them: what a reposito
 
 | Artifact | Role |
 |----------|------|
-| `br.com.wdc.framework.commons` | Utilities, serialization, logging |
+| `framework-commons` | Utilities, serialization, logging |
 
 Nothing else: no JDBC, no jOOQ, no HTTP client. It compiles for the JVM and for JavaScript (TeaVM).
 

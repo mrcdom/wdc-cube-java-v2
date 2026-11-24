@@ -1,6 +1,6 @@
 # WDC Store — Flutter Mobile
 
-Mobile shell (iOS & Android) for the **WeDoCode Store** application, using the **Remote Presentation** protocol. The app is a thin client that renders ViewStates received from the server over WebSocket and emits user interaction events.
+Mobile shell (iOS & Android) for the **WDC Store** application, using the **Remote Presentation** protocol. The app is a thin client that renders ViewStates received from the server over WebSocket and emits user interaction events.
 
 ## Features
 
@@ -8,7 +8,7 @@ Mobile shell (iOS & Android) for the **WeDoCode Store** application, using the *
 - **Icon:** Teal with the WDC cart + "F" badge (Flutter)
 - **Platforms:** iPhone, iPad, Android phone, Android tablet
 - **Protocol:** Bidirectional WebSocket with RSA + AES-GCM encryption
-- **Session persistence:** Access token via SharedPreferences (auto-login)
+- **Session persistence:** the secure scope (access/refresh tokens, auto-login) in FlutterSecureStorage (Keychain/Keystore); the plain persistent scope in SharedPreferences
 - **Shared code:** Uses `flutter_commons` for protocol, views and widgets
 
 ## Prerequisites
@@ -87,4 +87,5 @@ graph TD
 | Package | Purpose |
 |---------|-----|
 | `flutter_commons` | WS protocol, views, widgets, security |
-| `shared_preferences` | Access token persistence |
+| `shared_preferences` | Persistent scope, app id, request sequence |
+| `flutter_secure_storage` | Secure scope (tokens) |

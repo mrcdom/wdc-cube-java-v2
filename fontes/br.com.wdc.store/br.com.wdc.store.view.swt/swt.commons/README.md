@@ -1,6 +1,6 @@
 # swt.commons
 
-Shared library of SWT views and components for **WeDoCode Store**. It contains the concrete SWT implementations of the application's screens — reused both by the local desktop app (`swt.desktop`) and by the remote shell (`remote.shell.swt`).
+Shared library of SWT views and components for **WDC Store**. It contains the concrete SWT implementations of the application's screens — reused both by the local desktop app (`swt.desktop`) and by the remote shell (`remote.shell.swt`).
 
 ## Responsibility
 
@@ -20,6 +20,7 @@ br.com.wdc.store.view.swt/
 │   ├── ProductViewSwt.java
 │   ├── ProductsPanelViewSwt.java
 │   ├── CartViewSwt.java
+│   ├── CartItemViewSwt.java
 │   ├── ReceiptViewSwt.java
 │   └── PurchasesPanelViewSwt.java
 ├── components/                       # Reusable custom widgets
@@ -48,7 +49,7 @@ br.com.wdc.store.view.swt/
 ## Dependencies
 
 - `br.com.wdc.store.presentation` — Scope classes (state reading only)
-- `org.eclipse.platform:org.eclipse.swt.*` — via Maven profile (macos-aarch64, linux-x86_64, win32-x86_64)
+- `org.eclipse.platform:org.eclipse.swt.*` — via Maven profile (macos-aarch64, macos-x86_64, linux-x86_64, win32-x86_64, win32-aarch64)
 
 ## Build
 

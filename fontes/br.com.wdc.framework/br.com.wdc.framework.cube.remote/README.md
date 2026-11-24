@@ -1,6 +1,6 @@
 # WDC Framework — Cube Remote
 
-Remote communication protocol for the Cube MVP engine, allowing **thin clients** (browser, TeaVM) to run the presenter logic on the server over WebSocket.
+Remote communication protocol for the Cube MVP engine, allowing **thin clients** (browser, desktop, mobile) to run the presenter logic on the server over WebSocket.
 
 ---
 
@@ -9,13 +9,13 @@ Remote communication protocol for the Cube MVP engine, allowing **thin clients**
 ```mermaid
 graph LR
     subgraph Server
-        Host["remote.host<br/>(Javalin + WebSocket)"]
+        Host["remote.backend<br/>(Javalin + WebSocket)"]
         App["RemoteApplication"]
         Skel["CubeSkeleton"]
     end
 
     subgraph Client
-        Bridge["Bridge<br/>(React or TeaVM)"]
+        Bridge["Bridge<br/>(React, TeaVM, Flutter or Java)"]
         Coord["ViewStateCoordinator"]
         VS["ViewScope[]"]
     end
@@ -36,6 +36,7 @@ graph LR
 | `remote.bridge.java` | Java 21 | Java bridge (fat client) — `HostClient`, `HostClientSession`, `AbstractPresenterClient`, RSA/AES-GCM handshake; used by `remote.shell.probe` and `remote.shell.swt` |
 | `remote.bridge.react` | TypeScript/React | React thin-client bridge — `ViewStateCoordinator`, reconnection, data security, view GC |
 | `remote.bridge.teavm` | Java (TeaVM) | TeaVM thin-client bridge — same logic as React, compiled to JavaScript via TeaVM |
+| `remote.bridge.flutter` | Dart/Flutter | Flutter thin-client bridge — `ViewStateCoordinator`, `BaseView`/`BaseViewState`, reconnection, data security, view GC; used by the Flutter shells |
 
 ---
 
@@ -53,7 +54,8 @@ Main server-side classes:
 | `ScopeSerializer` | Serializes the scope → JSON via reflection; a scope inside it is emitted as `"<field>ViewId"`, a list of scopes as `"<field>ViewIds"` |
 | `RemoteHostModule` | Javalin module that registers the WS and HTTP routes |
 | `DispatcherController` | WebSocket controller — receives events and dispatches them to the `CubeSkeleton` |
-| `IndexHtmlController` | Serves the thin client's HTML |
+| `IndexHtmlController` | `before` handler on `/{ctx}/index.html`: plants the `app_id` and `app_skey` session cookies |
+| `SessionInitController` | `GET /api/session/init` → `{appId, appSKey}` for clients without page cookies |
 | `RemoteAppSecurity` / `RemoteDataSecurity` | Session and data security |
 
 ---
@@ -66,10 +68,11 @@ TypeScript module that runs in the browser:
 |------|----------------|
 | `ViewStateCoordinator.ts` | Central coordinator — WebSocket, reconnect, GC, render scheduling |
 | `FlushRequestContext.ts` | Serializes forms and sends events to the server |
-| `ReconnectController.ts` | Exponential backoff for reconnection |
-| `ViewGarbageCollector.ts` | Removes orphan views from the DOM |
+| `ReconnectController.ts` | Linear backoff for reconnection (`min(2000·n, 120000)` ms) |
+| `ViewGarbageCollector.ts` | Removes from the view map the views the server released that are not mounted |
 | `ViewScope.ts` | Manages the state of an individual view |
-| `DataSecurity.ts` | Data encryption (RSA) |
+| `DataSecurity.ts` | Handshake (textbook RSA + PBKDF2) and AES-GCM encryption of values |
+| `ClientStorage.ts` / `EncryptedLocalStorage.ts` | Session, persistent and persistent-secure client storage (secure entries under the `sec.` prefix, encrypted at rest) |
 | `utils/` | Base64, BigInt, RSA, UTF8 |
 
 ---
@@ -82,12 +85,12 @@ Java/TeaVM equivalent of the React bridge:
 |-------|----------------|
 | `ViewStateCoordinator` | Same logic — WebSocket, view factory, rendering via `requestAnimationFrame` |
 | `FlushRequestContext` | Server ↔ client context exchange |
-| `ReconnectController` | Exponential backoff |
+| `ReconnectController` | Linear backoff (`min(2000·n, 120000)` ms) |
 | `ViewGarbageCollector` | View GC |
 | `ViewScope` | Local state of a view |
-| `DataSecurity` | RSA on the TeaVM side |
+| `DataSecurity` | Handshake (textbook RSA + PBKDF2) and AES-GCM on the TeaVM side |
 | `JsonParser` | Lightweight JSON parsing for TeaVM |
-| `RemoteView` | Client-side `CubeView` implementation |
+| `RemoteView` | Interface of the client-side views: `getVsid()`, `getElement()`, `forceUpdate()` |
 | `interop/` | JS bindings: `Console`, `Timers`, `JsRunnable`, etc. |
 
 ---
