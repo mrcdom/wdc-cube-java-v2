@@ -1,7 +1,9 @@
 package br.com.wdc.store.test;
 
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+
+import java.util.Set;
 
 import org.junit.Test;
 
@@ -10,24 +12,20 @@ import br.com.wdc.store.domain.security.Role;
 public class RoleTest {
 
 	@Test
-	public void everyRoleReadsItsOwnUser() {
-		// The client reads the signed-in user's name right after login (teavm.web goes through REST for it)
-		for (var role : Role.values()) {
-			assertTrue(role + " reads users", Role.hasPermission(role.permissions(), "user", "read"));
-		}
+	public void parse_readsTheCommaSeparatedRoles() {
+		assertEquals(Set.of(Role.ADMIN, Role.CUSTOMER), Role.parse(" ADMIN , CUSTOMER "));
 	}
 
 	@Test
-	public void onlyAdminSeesEveryonesData() {
-		assertTrue(Role.hasDataAll(Role.ADMIN.permissions()));
-		assertFalse("CUSTOMER reads only its own records", Role.hasDataAll(Role.CUSTOMER.permissions()));
-		assertFalse("MANAGER reads only its own records", Role.hasDataAll(Role.MANAGER.permissions()));
+	public void parse_ignoresUnknownRoles() {
+		// A role removed from the code does not lock its users out, nor grant anything
+		assertEquals(Set.of(Role.MANAGER), Role.parse("MANAGER,SUPPORT"));
+		assertTrue(Role.parse(null).isEmpty());
+		assertTrue(Role.parse(" ").isEmpty());
 	}
 
 	@Test
-	public void onlyAdminChangesUsers() {
-		assertTrue(Role.hasPermission(Role.ADMIN.permissions(), "user", "write"));
-		assertFalse(Role.hasPermission(Role.CUSTOMER.permissions(), "user", "write"));
-		assertFalse(Role.hasPermission(Role.MANAGER.permissions(), "user", "write"));
+	public void names_areWhatThePoliciesGrantBy() {
+		assertEquals(Set.of("ADMIN", "MANAGER"), Role.names(Set.of(Role.ADMIN, Role.MANAGER)));
 	}
 }

@@ -240,7 +240,8 @@ public class UserRepositoryImpl extends BaseRepositoryImpl  implements UserRepos
                     CriterionTranslator.translate(enUser.ID, criteria.userId()),
                     CriterionTranslator.translate(enUser.USERNAME, criteria.userName()),
                     CriterionTranslator.translate(enUser.NAME, criteria.name()),
-                    CriterionTranslator.translate(enUser.ROLES, criteria.roles())));
+                    CriterionTranslator.translate(enUser.ROLES, criteria.roles()),
+                    CriterionTranslator.anyOf(criteria.anyOf(), this::apply)));
         }
     }
 }

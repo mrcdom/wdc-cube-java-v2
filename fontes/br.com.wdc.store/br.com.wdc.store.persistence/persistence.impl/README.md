@@ -164,7 +164,7 @@ Relations are defined in the `lazy(...)` block and are only loaded when the corr
 
 ### ApplyConditions — Criteria Translation
 
-Each repository exposes a static `applyConditions` method that translates business criteria into a jOOQ `Condition`. This allows composition across repositories (e.g.: a userId filter propagated via subquery). The entity only maps field → column; walking the `Criterion` operators (`eq`, `in`, `between`, `containing`, `or()`, ...) and combining them with `AND` is done once, in the framework's `CriterionTranslator`:
+Each repository exposes a static `applyConditions` method that translates business criteria into a jOOQ `Condition`. This allows composition across repositories (e.g.: a userId filter propagated via subquery). The entity only maps field → column; walking the `Criterion` operators (`eq`, `in`, `between`, `containing`, `or()`, ...) and combining them with `AND` is done once, in the framework's `CriterionTranslator`, and so are the alternative groups (`CriterionTranslator.anyOf(criteria.anyOf(), this::apply)`, the last entry of each `apply`):
 
 ```java
 // Static method for use in other repositories' subqueries

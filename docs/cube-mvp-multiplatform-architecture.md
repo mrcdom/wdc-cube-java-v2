@@ -190,7 +190,7 @@ The name "Cube" reflects the third dimension of the architecture: besides the Pr
 
 ### The Presenter
 
-Every navigable Presenter extends `AbstractCubePresenter<StoreApplication>`. Its Scope lives in its own file, next to it (like the `xxx.scope.ts` of the TypeScript version):
+Every navigable Presenter extends `AbstractCubePresenter<StoreApplication>`. Its Scope lives in its own file, next to it:
 
 ```java
 // CartScope.java — the scope, read by the view for rendering. Each observed field is a Prop:
@@ -267,7 +267,7 @@ public class HomeScope extends Scope {
 }
 ```
 
-The `HomePresenter` binds the segment's actions (`actionOf(productsPanel, 1, FormParam.asLong("p.productId"), this::openProduct)`) and only puts it into the scope (`scope.productsPanel.set(productsPanel)`). The view layer chooses the view, as in the TypeScript version: each host builds a `ScopeViews` catalog (scope class → factory) and hands it to the application with `setScopeViews`; the Home view requests the panel's view with `app.viewOf(scope)`, which creates it the first time. From then on, a change in the segment redraws only its own view (until then, it redraws the owner), and the view is released together with the Presenter. The remote host registers nothing: `fallback(RemoteViewImpl::forScope)` makes a remote view for any scope, using its `CLASS_ID`. The view never knows the Presenter — it only reads the scope and fires its actions —, so one Presenter can orchestrate several segments without a class per segment.
+The `HomePresenter` binds the segment's actions (`actionOf(productsPanel, 1, FormParam.asLong("p.productId"), this::openProduct)`) and only puts it into the scope (`scope.productsPanel.set(productsPanel)`). The view layer chooses the view: each host builds a `ScopeViews` catalog (scope class → factory) and hands it to the application with `setScopeViews`; the Home view requests the panel's view with `app.viewOf(scope)`, which creates it the first time. From then on, a change in the segment redraws only its own view (until then, it redraws the owner), and the view is released together with the Presenter. The remote host registers nothing: `fallback(RemoteViewImpl::forScope)` makes a remote view for any scope, using its `CLASS_ID`. The view never knows the Presenter — it only reads the scope and fires its actions —, so one Presenter can orchestrate several segments without a class per segment.
 
 In remote mode the segment is a view like any other: it has its own `classId`, its own skeleton (the code-based dispatch of the actions bound on it), and the parent references it by the view id (`"productsPanelViewId"`).
 

@@ -47,13 +47,12 @@ public class PurchaseCreate extends ResourceCreate<Long> {
                 throw new InvalidCartItemException();
             }
 
-            var purchaseItem = new PurchaseItem()
+            // No price: the item costs what its product costs when the purchase is recorded, and the repository
+            // fills it in — the cart's price is what the screen showed, not what is charged.
+            purchase.items().add(new PurchaseItem()
                     .withProduct(new Product()
-                            .withId(srcItem.id));
-            purchaseItem.withPrice(srcItem.price)
-                    .withAmount(srcItem.quantity);
-
-            purchase.items().add(purchaseItem);
+                            .withId(srcItem.id))
+                    .withAmount(srcItem.quantity));
         }
 
         if (!PurchaseRepository.BEAN.get().insert(purchase)) {

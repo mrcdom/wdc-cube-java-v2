@@ -52,4 +52,36 @@ public class PurchaseItemRepositoryTest extends AbstractPurchaseItemRepositoryTe
 		assertEquals(DBReset.ADMIN_FIRST_PURCHASE_ID, fetched.purchase().id());
 		assertEquals(DBReset.FLASH_DRIVE_2GB_ID, fetched.product().id());
 	}
+
+	@Test
+	public void insert_withoutPrice_recordsTheProductPrice_andReturnsIt() {
+		var item = new br.com.wdc.store.domain.purchaseitem.PurchaseItem()
+				.withAmount(1)
+				.withPurchase(new br.com.wdc.store.domain.purchase.Purchase()
+						.withId(DBReset.ADMIN_FIRST_PURCHASE_ID))
+				.withProduct(new br.com.wdc.store.domain.product.Product()
+						.withId(DBReset.FLASH_DRIVE_2GB_ID));
+
+		assertTrue(repo().insert(item));
+
+		assertEquals("RETURNING puts the recorded price on the item", 16.0, item.price(), 0.001);
+		var fetched = repo().fetchById(item.id(), new br.com.wdc.store.domain.purchaseitem.PurchaseItem()
+				.withPrice(br.com.wdc.framework.domain.projection.ProjectionValues.INSTANCE.f64));
+		assertEquals(16.0, fetched.price(), 0.001);
+	}
+
+	@Test
+	public void insert_withPrice_keepsIt() {
+		var item = new br.com.wdc.store.domain.purchaseitem.PurchaseItem()
+				.withAmount(1)
+				.withPrice(12.5)
+				.withPurchase(new br.com.wdc.store.domain.purchase.Purchase()
+						.withId(DBReset.ADMIN_FIRST_PURCHASE_ID))
+				.withProduct(new br.com.wdc.store.domain.product.Product()
+						.withId(DBReset.FLASH_DRIVE_2GB_ID));
+
+		assertTrue(repo().insert(item));
+
+		assertEquals(12.5, item.price(), 0.001);
+	}
 }

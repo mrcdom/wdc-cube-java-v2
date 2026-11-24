@@ -218,8 +218,14 @@ public class StoreCallTest extends BaseBusinessTest {
 
         final ReceiptForm receipt = new ReceiptQuery()
                 .withPurchaseId(purchaseId)
+                .withUserId(userId)
                 .run();
         Assert.assertNotNull(receipt);
+
+        Assert.assertNull("another user's purchase is not found", new ReceiptQuery()
+                .withPurchaseId(purchaseId)
+                .withUserId(DBReset.JANE_ROE_ID)
+                .run());
         Assert.assertEquals(Double.valueOf(65), receipt.total);
         Assert.assertEquals(2, receipt.items.size());
 

@@ -50,7 +50,7 @@ graph TD
 | Module | Purpose |
 |--------|-----------|
 | **commons** | Functional interfaces (`ThrowingRunnable`, `ThrowingConsumer`, etc.), multiplatform logging (`Log` — a lightweight facade with JUL and SLF4J backends), extensible serialization, SQL abstractions, cryptography, general-purpose utilities. |
-| **domain** | Generic domain abstractions: `Repository`, `Page`, `ModelCodec`, `Criteria`/`Criterion`, `Projection*`, base exceptions, security contracts (`SecurityContext`, `PermissionModel`), `AppConfig`, `TransactionService`. |
+| **domain** | Generic domain abstractions: `Repository`, `Page`, `ModelCodec`, `Criteria`/`Criterion`, `Projection*`, base exceptions, security contracts (`SecurityContext`, `AuthenticationService`), the data access policy (`security.policy`), `AppConfig`, `TransactionService`. |
 | **jooq** | Query helpers over jOOQ (`JsonQuery`, `JsonQueryBuilder`, `JsonChildQueryBuilder`), `CriterionTranslator`, `TransactionAwareConnectionProvider`. |
 | **persistence** | CMT-style transaction control (`TransactionServiceImpl`, `TransactionScope`) in dual JTA/JDBC mode, remote transaction coordinator SPI. |
 | **cube** | Implementation of the Cube MVP architectural pattern — management of hierarchical scopes, presenter lifecycle and view binding. |

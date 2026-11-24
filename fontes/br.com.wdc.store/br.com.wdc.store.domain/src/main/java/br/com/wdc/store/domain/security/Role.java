@@ -1,61 +1,30 @@
 package br.com.wdc.store.domain.security;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import br.com.wdc.framework.domain.security.PermissionModel;
-
 /**
- * Access roles with permissions defined in code.
+ * The access roles of the store.
  * <p>
- * Permissions follow the {@code entity:operation} format.
- * The {@code *} wildcard grants all operations on the entity.
- * <p>
- * Allow-wins model: the effective permission is the UNION of all the user's roles.
- * <p>
- * Without {@code data:all}, the REST endpoints restrict reads of users and purchases to the authenticated user's own
- * records: {@code user:read} lets a customer read their own account (the client needs it to show who signed in), not
- * anyone else's.
+ * A role carries no permissions of its own: what each one may do with the data, through the REST API, is declared by
+ * the data access policies of the REST layer ({@code UserDataPolicy}, {@code PurchaseDataPolicy}, ...), by the role
+ * name. A user may have several roles; the model is <em>allow-wins</em>.
  */
 public enum Role {
 
-	ADMIN(Set.of(
-			"user:*",
-			"product:*",
-			"purchase:*",
-			"purchase-item:*",
-			"data:all")),
+	ADMIN,
 
-	CUSTOMER(Set.of(
-			"user:read",
-			"product:read",
-			"purchase:read", "purchase:write",
-			"purchase-item:read", "purchase-item:write")),
+	CUSTOMER,
 
-	MANAGER(Set.of(
-			"user:read",
-			"product:read", "product:write",
-			"purchase:read",
-			"purchase-item:read"));
-
-	private final Set<String> permissions;
-
-	Role(Set<String> permissions) {
-		this.permissions = Collections.unmodifiableSet(permissions);
-	}
-
-	public Set<String> permissions() {
-		return permissions;
-	}
+	MANAGER;
 
 	/**
-	 * Computes the effective permissions (allow-wins) for a set of roles.
+	 * The names of the roles, as a {@code SecurityContext} carries them.
 	 */
-	public static Set<String> effectivePermissions(Set<Role> roles) {
+	public static Set<String> names(Set<Role> roles) {
 		return roles.stream()
-				.flatMap(r -> r.permissions.stream())
+				.map(Role::name)
 				.collect(Collectors.toUnmodifiableSet());
 	}
 
@@ -78,19 +47,5 @@ public enum Role {
 					}
 				})
 				.collect(Collectors.toUnmodifiableSet());
-	}
-
-	/**
-	 * Checks whether the set of permissions grants access to the operation on the entity.
-	 */
-	public static boolean hasPermission(Set<String> permissions, String entity, String operation) {
-		return PermissionModel.grants(permissions, entity, operation);
-	}
-
-	/**
-	 * Checks whether the permissions include unrestricted access to all users' data.
-	 */
-	public static boolean hasDataAll(Set<String> permissions) {
-		return PermissionModel.hasDataAll(permissions);
 	}
 }

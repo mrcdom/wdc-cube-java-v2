@@ -1,5 +1,8 @@
 package br.com.wdc.store.domain.product;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import br.com.wdc.framework.domain.criteria.ComparableCriterion;
@@ -102,6 +105,31 @@ public class ProductCriteria implements Criteria {
     @Override
     public List<Criterion<?, ?>> criterions() {
         return List.of(productId, name, price, description);
+    }
+
+    // :: Alternative groups
+
+    private List<ProductCriteria> anyOf = List.of();
+
+    @Override
+    public List<ProductCriteria> anyOf() {
+        return anyOf;
+    }
+
+    /** Whether there are alternative groups. */
+    public boolean hasAnyOf() {
+        return !anyOf.isEmpty();
+    }
+
+    /** The alternative groups (see {@link Criteria#anyOf()}); replaces the previous ones. */
+    public ProductCriteria withAnyOf(List<ProductCriteria> groups) {
+        this.anyOf = groups == null ? List.of() : Collections.unmodifiableList(new ArrayList<>(groups));
+        return this;
+    }
+
+    /** The alternative groups (see {@link Criteria#anyOf()}); replaces the previous ones. */
+    public ProductCriteria withAnyOf(ProductCriteria... groups) {
+        return withAnyOf(Arrays.asList(groups));
     }
 
     // :: Order By

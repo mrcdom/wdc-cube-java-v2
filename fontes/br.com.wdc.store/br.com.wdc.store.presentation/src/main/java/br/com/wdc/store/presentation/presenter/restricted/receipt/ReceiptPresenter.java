@@ -76,6 +76,7 @@ public class ReceiptPresenter extends AbstractCubePresenter<StoreApplication> {
     private ReceiptForm loadReceipt(Long purchaseId) {
         var receipt = new ReceiptQuery()
                 .withPurchaseId(purchaseId)
+                .withUserId(this.app.getSubject().getId())
                 .run();
         if (receipt == null) {
             throw new PurchaseNotFoundException();

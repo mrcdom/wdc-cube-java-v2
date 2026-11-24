@@ -40,12 +40,12 @@ public final class AccessContextCache {
 	 * Earlier sessions of the same user are <em>not</em> removed —
 	 * each device has its own independent session.
 	 */
-	public AccessContext createSession(Long userId, String userName, Set<String> permissions) {
+	public AccessContext createSession(Long userId, String userName, Set<String> roles) {
 		var keyPair = generateRsaKeyPair();
 		var refreshToken = UUID.randomUUID().toString();
 		var expiresAt = Instant.now().plus(ACCESS_TOKEN_TTL);
 
-		var ctx = new AccessContext(userId, userName, permissions, keyPair, expiresAt, refreshToken);
+		var ctx = new AccessContext(userId, userName, roles, keyPair, expiresAt, refreshToken);
 		byRefreshToken.put(refreshToken, ctx);
 
 		LOG.info("Session created for user: {} ({})", userName, userId);
@@ -65,7 +65,7 @@ public final class AccessContextCache {
 		var newRefreshToken = UUID.randomUUID().toString();
 		var expiresAt = Instant.now().plus(ACCESS_TOKEN_TTL);
 
-		var ctx = new AccessContext(existing.userId(), existing.userName(), existing.permissions(),
+		var ctx = new AccessContext(existing.userId(), existing.userName(), existing.roles(),
 				generateRsaKeyPair(), expiresAt, newRefreshToken);
 		byRefreshToken.put(newRefreshToken, ctx);
 
@@ -75,7 +75,7 @@ public final class AccessContextCache {
 
 	/**
 	 * Finds any valid (unexpired) session for the userId.
-	 * Used after JWT validation to obtain the permissions and RSA key.
+	 * Used after JWT validation to obtain the roles and RSA key.
 	 */
 	public AccessContext get(Long userId) {
 		for (var ctx : byRefreshToken.values()) {

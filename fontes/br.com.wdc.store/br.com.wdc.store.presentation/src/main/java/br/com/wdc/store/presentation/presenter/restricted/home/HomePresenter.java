@@ -13,6 +13,7 @@ import br.com.wdc.framework.domain.security.AuthenticationService;
 import br.com.wdc.store.presentation.StoreApplication;
 import br.com.wdc.store.presentation.StorageKeys;
 import br.com.wdc.store.presentation.exception.ProductNotFoundException;
+import br.com.wdc.store.presentation.exception.PurchaseNotFoundException;
 import br.com.wdc.store.presentation.presenter.open.login.LoginKeys;
 import br.com.wdc.store.presentation.presenter.restricted.cart.CartKeys;
 import br.com.wdc.store.presentation.presenter.restricted.cart.CartManager;
@@ -190,7 +191,7 @@ public class HomePresenter extends AbstractCubePresenter<StoreApplication> {
             new ReceiptKeys(this.app)
                     .withPurchaseId(purchaseId)
                     .flip();
-        } catch (ProductNotFoundException caught) {
+        } catch (PurchaseNotFoundException caught) {
             this.alertPurchaseNotFound();
             LOG.warn("{}: purchaseId={}", this.scope.errorMessage.get(), purchaseId);
         }

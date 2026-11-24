@@ -18,7 +18,8 @@ graph TD
     root --> WorkflowTest["StoreWorkflowTest.java<br/><small>Complete workflow (presentation)</small>"]
     root --> PlaceKeys["PlaceKeysTest.java<br/><small>Place keys and intents</small>"]
     root --> CartRestore["CartRestoreTest.java (7)<br/><small>Cart kept in the session scope and restored on reload</small>"]
-    root --> RoleTestN["RoleTest.java (3)<br/><small>Role permissions (user read, data:all, user write)</small>"]
+    root --> RoleTestN["RoleTest.java (3)<br/><small>Parsing the roles</small>"]
+    root --> Policy["DataPolicyTest (13), UserDataPolicyRestTest (8),<br/>PurchaseDataPolicyRestTest (14)<br/><small>Data access policy: rules, and the REST API with authentication on</small>"]
     root --> Wire["EntityGraphRecursionTest, RelationKeyProjectionTest,<br/>FetchByIdEndpointTest, OrderByWireCompatibilityTest,<br/>OpenApiSpecTest<br/><small>Codecs, projections, REST API</small>"]
     root --> Tx["TransactionServiceJtaTest,<br/>RemoteTransactionCoordinatorJtaTest,<br/>RemoteTransactionRestTest<br/><small>Transactions (JTA, remote)</small>"]
 
@@ -46,7 +47,7 @@ The repository tests follow an **Abstract → Concrete** hierarchy:
 - **`*RepositoryTest`** — extends the abstract class using the jOOQ repositories (`TestEnvironment` in `LOCAL` mode, H2 in-memory)
 - **`Rest*RepositoryTest`** — extends the abstract class using the HTTP repositories (`TestEnvironment` in `REST` mode: OkHttp + domain codecs → Javalin → jOOQ → H2)
 
-This guarantees that both implementations (jOOQ and REST) pass exactly the same contract tests.
+This guarantees that both implementations (jOOQ and REST) pass exactly the same contract tests. The one difference is in the concrete classes: the alternative groups (`anyOf`) are server-side only, so `UserRepositoryTest` tests their translation and `RestUserRepositoryTest` tests that the client and the server refuse them.
 
 Covered scenarios:
 
@@ -121,7 +122,7 @@ The full test (`testBuyProduct`) navigates through **5 screens** (login → home
 
 ### `TestEnvironment` and `ResetDatabaseRule`
 
-`TestEnvironment` is a JUnit `@ClassRule` with two modes: `LOCAL` exposes the jOOQ repositories; `REST` also starts an embedded Javalin with `RepositoryApiRoutes` and the `RemoteTransactions.COORDINATOR`, and exposes `Http*Repository` clients over an `OkHttpTransport`. `ResetDatabaseRule` resets the database before each test.
+`TestEnvironment` is a JUnit `@ClassRule` with two modes: `LOCAL` exposes the jOOQ repositories; `REST` also starts an embedded Javalin with `RepositoryApiRoutes` and the `RemoteTransactions.COORDINATOR`, and exposes `Http*Repository` clients over an `OkHttpTransport`. `withSecurity()` turns authentication on, as the backend does with a JWT secret; each test then logs in with `RestSession.signIn(env, userName)`, which gives it its own transport and HTTP repositories (`UserDataPolicyRestTest`, `PurchaseDataPolicyRestTest`). `ResetDatabaseRule` resets the database before each test.
 
 ### `BasePresentationTest`
 

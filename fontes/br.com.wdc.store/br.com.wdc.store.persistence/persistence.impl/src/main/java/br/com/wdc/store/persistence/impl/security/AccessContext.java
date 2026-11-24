@@ -7,27 +7,26 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.Set;
 
-import br.com.wdc.framework.domain.security.PermissionModel;
 import br.com.wdc.framework.domain.security.SecurityContext;
 
 /**
  * {@link SecurityContext} implementation for an authenticated session.
- * Holds the userId, the effective permissions and the ephemeral RSA key pair.
+ * Holds the userId, the roles and the ephemeral RSA key pair.
  */
 public final class AccessContext implements SecurityContext {
 
 	private final Long userId;
 	private final String userName;
-	private final Set<String> permissions;
+	private final Set<String> roles;
 	private final KeyPair rsaKeyPair;
 	private final Instant expiresAt;
 	private final String refreshToken;
 
-	public AccessContext(Long userId, String userName, Set<String> permissions,
+	public AccessContext(Long userId, String userName, Set<String> roles,
 			KeyPair rsaKeyPair, Instant expiresAt, String refreshToken) {
 		this.userId = userId;
 		this.userName = userName;
-		this.permissions = permissions;
+		this.roles = roles;
 		this.rsaKeyPair = rsaKeyPair;
 		this.expiresAt = expiresAt;
 		this.refreshToken = refreshToken;
@@ -44,8 +43,8 @@ public final class AccessContext implements SecurityContext {
 	}
 
 	@Override
-	public Set<String> permissions() {
-		return permissions;
+	public Set<String> roles() {
+		return roles;
 	}
 
 	@Override
@@ -72,15 +71,5 @@ public final class AccessContext implements SecurityContext {
 
 	public boolean isExpired() {
 		return Instant.now().isAfter(expiresAt);
-	}
-
-	@Override
-	public boolean hasPermission(String entity, String operation) {
-		return PermissionModel.grants(permissions, entity, operation);
-	}
-
-	@Override
-	public boolean hasDataAll() {
-		return PermissionModel.hasDataAll(permissions);
 	}
 }

@@ -5,11 +5,13 @@ import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.framework.commons.serialization.JsonStreamReader;
 import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
+import br.com.wdc.framework.domain.security.policy.DataAccess;
 import br.com.wdc.store.domain.product.Product;
 import br.com.wdc.store.domain.product.ProductCriteria;
 import br.com.wdc.store.domain.product.ProductCodec;
 import br.com.wdc.store.domain.product.ProductRepository;
 import br.com.wdc.store.persistence.rest.doc.Doc;
+import br.com.wdc.store.persistence.rest.security.ProductDataPolicy;
 import br.com.wdc.store.persistence.rest.security.SecurityEnforcer;
 import io.javalin.config.JavalinConfig;
 import io.javalin.http.Context;
@@ -55,14 +57,6 @@ public class ProductApiController {
 
     private final ProductCodec codec = new ProductCodec();
 
-    private static Product fullProjection() {
-        var pv = ProjectionValues.INSTANCE;
-        return new Product()
-                .withId(pv.i64)
-                .withName(pv.str)
-                .withPrice(pv.f64)
-                .withDescription(pv.str);
-    }
 
     // :: Insert
 
@@ -83,9 +77,10 @@ public class ProductApiController {
     }
 
     private void insert(Context ctx) {
-        SecurityEnforcer.require("product", "write");
+        var access = access();
         var reader = new JsonStreamReader(ctx.body());
         var product = codec.readEntity(reader);
+        access.checkCreate(product);
         boolean success = repo().insert(product);
         var writer = new JsonStreamWriter();
         writer.beginObject();
@@ -114,9 +109,10 @@ public class ProductApiController {
     }
 
     private void update(Context ctx) {
-        SecurityEnforcer.require("product", "write");
+        var access = access();
         var reader = new JsonStreamReader(ctx.body());
         var data = codec.readEntityForUpdate(reader);
+        access.checkUpdate(data.entity(), data.projection(), (row, projection) -> repo().fetchById(row.id(), projection));
         boolean success = repo().update(data.entity(), null, data.projection());
         var writer = new JsonStreamWriter();
         writer.beginObject();
@@ -144,9 +140,10 @@ public class ProductApiController {
     }
 
     private void delete(Context ctx) {
-        SecurityEnforcer.require("product", "write");
+        var access = access();
         var reader = new JsonStreamReader(ctx.body());
         var criteria = readCriteria(reader);
+        access.restrictDelete(criteria);
         int count = repo().delete(criteria);
         var writer = new JsonStreamWriter();
         writer.beginObject();
@@ -173,9 +170,10 @@ public class ProductApiController {
     }
 
     private void count(Context ctx) {
-        SecurityEnforcer.require("product", "read");
+        var access = access();
         var reader = new JsonStreamReader(ctx.body());
         var criteria = readCriteria(reader);
+        access.restrictCount(criteria);
         int count = repo().count(criteria);
         var writer = new JsonStreamWriter();
         writer.beginObject();
@@ -202,7 +200,7 @@ public class ProductApiController {
     }
 
     private void fetch(Context ctx) {
-        SecurityEnforcer.require("product", "read");
+        var access = access();
         var reader = new JsonStreamReader(ctx.body());
         var criteria = new ProductCriteria();
         int offset = 0;
@@ -221,9 +219,8 @@ public class ProductApiController {
             }
         }
         reader.endObject();
-        if (criteria.projection() == null)
-            criteria.withProjection(fullProjection());
-        var items = repo().fetch(criteria, offset, limit);
+        var plan = access.prepareRead(criteria);
+        var items = plan.apply(repo().fetch(criteria, offset, limit));
         var writer = new JsonStreamWriter();
         writer.beginObject();
         writer.name("items").beginArray();
@@ -253,7 +250,7 @@ public class ProductApiController {
     }
 
     private void fetchPage(Context ctx) {
-        SecurityEnforcer.require("product", "read");
+        var access = access();
         var reader = new JsonStreamReader(ctx.body());
         var criteria = new ProductCriteria();
         int pageIx = 0;
@@ -272,13 +269,12 @@ public class ProductApiController {
             }
         }
         reader.endObject();
-        if (criteria.projection() == null)
-            criteria.withProjection(fullProjection());
+        var plan = access.prepareRead(criteria);
         var page = repo().fetchPage(criteria, pageIx, pageSz);
         var writer = new JsonStreamWriter();
         writer.beginObject();
         writer.name("items").beginArray();
-        for (var item : page.items()) {
+        for (var item : plan.apply(page.items())) {
             codec.writeEntity(writer, item);
         }
         writer.endArray();
@@ -306,9 +302,9 @@ public class ProductApiController {
     }
 
     private void fetchById(Context ctx) {
-        SecurityEnforcer.require("product", "read");
+        var access = access();
         Long id = Long.parseLong(ctx.pathParam("id"));
-        var result = repo().fetchById(id, fullProjection());
+        var result = fetchOne(access, id, null);
         if (result == null) {
             ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
             return;
@@ -337,7 +333,7 @@ public class ProductApiController {
     }
 
     private void fetchByIdPost(Context ctx) {
-        SecurityEnforcer.require("product", "read");
+        var access = access();
         var reader = new JsonStreamReader(ctx.body());
         Long id = null;
         Product projection = null;
@@ -350,7 +346,7 @@ public class ProductApiController {
             }
         }
         reader.endObject();
-        var result = repo().fetchById(id, projection != null ? projection : fullProjection());
+        var result = fetchOne(access, id, projection);
         if (result == null) {
             ctx.status(404).contentType("application/json").result("{\"error\":\"Not found\"}");
             return;
@@ -413,7 +409,7 @@ public class ProductApiController {
     }
 
     private void updateImage(Context ctx) {
-        SecurityEnforcer.require("product", "write");
+        var access = access();
         Long id;
         try {
             id = Long.parseLong(ctx.pathParam("id"));
@@ -423,14 +419,38 @@ public class ProductApiController {
             return;
         }
 
+        byte[] imageBytes = ctx.bodyAsBytes();
+        access.checkUpdate(new Product()
+                .withId(id)
+                .withImage(imageBytes), new Product()
+                        .withImage(ProjectionValues.INSTANCE.bin), (row, projection) -> repo().fetchById(row.id(), projection));
         try {
-            byte[] imageBytes = ctx.bodyAsBytes();
             boolean success = repo().updateImage(id, imageBytes);
             ctx.contentType("application/json").result("{\"success\":" + success + "}");
         } catch (Exception e) {
             LOG.error("Updating product image", e);
             ctx.status(500).contentType("application/json").result("{\"error\":\"Failed to update image\"}");
         }
+    }
+
+    // :: Security helpers
+
+    /** What the requester may do with this entity, by {@link ProductDataPolicy}; without security, everything. */
+    private static DataAccess<Product, ProductCriteria> access() {
+        return ProductDataPolicy.POLICY.accessFor(SecurityEnforcer.requireAuthenticated());
+    }
+
+    /** The row by id, through the same rules as a fetch; {@code null} when absent or out of reach. */
+    private static Product fetchOne(DataAccess<Product, ProductCriteria> access, Long id, Product projection) {
+        if (id == null) {
+            return null;
+        }
+        var criteria = new ProductCriteria()
+                .withProductId(id)
+                .withProjection(projection);
+        var plan = access.prepareRead(criteria);
+        var found = repo().fetch(criteria, 0, 1);
+        return found.isEmpty() ? null : plan.apply(found.get(0));
     }
 
     // :: Helpers

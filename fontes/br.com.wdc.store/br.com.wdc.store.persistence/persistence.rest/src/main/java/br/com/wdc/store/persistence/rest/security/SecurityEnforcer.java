@@ -5,12 +5,11 @@ import br.com.wdc.framework.domain.security.AuthenticationService;
 import br.com.wdc.framework.domain.security.SecurityContext;
 
 /**
- * Security check utility for the REST endpoints.
+ * The requester of a REST call.
  * <p>
- * Checks that there is a {@link SecurityContext} on the current thread and that it holds the requested permission.
- * <p>
- * If the {@link AuthenticationService} is not configured (test/local mode), the check is skipped and it returns
- * {@code null}.
+ * What the requester may do with the data is decided by the entity's data policy ({@code XxxDataPolicy}), which takes
+ * the context returned here. If the {@link AuthenticationService} is not configured (local or test mode), there is no
+ * requester and it returns {@code null} — the policies then let everything through.
  */
 public final class SecurityEnforcer {
 
@@ -18,17 +17,7 @@ public final class SecurityEnforcer {
     }
 
     /**
-     * Requires a SecurityContext that holds the requested permission.
-     * <p>
-     * If the {@link AuthenticationService} is not configured, returns {@code null} (no-security mode — tests or local
-     * access).
-     *
-     * @return the current SecurityContext, or {@code null} if security is not active
-     * @throws AccessDeniedException if security is active and the user is not authenticated or lacks the permission
-     */
-    /**
-     * Requires only an <b>authenticated</b> user (no specific permission). Returns {@code null} if security is not
-     * active.
+     * Requires an <b>authenticated</b> requester. Returns {@code null} if security is not active.
      *
      * @throws AccessDeniedException if security is active and there is no authenticated user
      */
@@ -42,19 +31,4 @@ public final class SecurityEnforcer {
         }
         return sc;
     }
-
-    public static SecurityContext require(String entity, String operation) {
-        if (AuthenticationService.BEAN.get() == null) {
-            return null;
-        }
-        var sc = SecurityContext.CURRENT.get();
-        if (sc == null) {
-            throw new AccessDeniedException("Authentication required");
-        }
-        if (!sc.hasPermission(entity, operation)) {
-            throw new AccessDeniedException("Requires " + entity + ":" + operation);
-        }
-        return sc;
-    }
-
 }

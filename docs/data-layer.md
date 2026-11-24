@@ -10,7 +10,7 @@
 [The Persistence Module — The Implementation](#the-persistence-module--the-implementation)  
 [JsonQuery — Declarative Bean↔Table Mapping](#jsonquery--declarative-beantable-mapping)  
 [Lazy Relations — Subqueries without N+1](#lazy-relations--subqueries-without-n1)  
-[RBAC Security — Permissions as a Domain Contract](#rbac-security--permissions-as-a-domain-contract)  
+[RBAC Security — Roles, and a Data Policy per Entity](#rbac-security--roles-and-a-data-policy-per-entity)  
 [The persistence.rest Module — The HTTP Surface](#the-persistencerest-module--the-http-surface)  
 [The persistence.client Module — The HTTP Mirror](#the-persistenceclient-module--the-http-mirror)  
 [Full Symmetry — the Same Code, Two Worlds](#full-symmetry--the-same-code-two-worlds)  
@@ -112,6 +112,18 @@ This rules out, at compile time, a `between` on a field with no useful ordering:
 criteria.userName().or().eq("admin");
 criteria.userName().eq("jdoe");       // (userName = 'admin' OR userName = 'jdoe')
 ```
+
+On the server, a disjunction **across** fields goes in **alternative groups**: each group is a criteria of the same entity, its fields in `AND`, and the criteria requires its own fields and at least one group. A group may have groups of its own; a group with no field matches every row.
+
+```java
+new UserCriteria()
+        .withAnyOf(
+                new UserCriteria()
+                        .withUserName("admin"),
+                new UserCriteria().name().containing("Roe"));   // userName = 'admin' OR name LIKE '%Roe%'
+```
+
+Each entity's `ApplyConditions` translates the groups with the same `apply`, through `CriterionTranslator.anyOf`. The data access policy relies on them to restrict rows. **They do not travel**: the codecs refuse them on both sides of the wire, so a client cannot send any tree of `OR`s over any columns. A client's search of one term in several columns is a criteria field of its own, which the repository translates with `CriterionTranslator.translateAny(columns, criterion)` — a provisioned disjunction, like the orderings ([docs/security-architecture.md](security-architecture.md#alternative-groups-in-the-criteria-server-side-only)).
 
 **A null value adds no request**, instead of erasing the previous ones — this preserves the habit of building a filter from a screen, where empty means "do not filter by this". To erase, `clear()`; to compare against null, `isNull()`. The `withXxx(value)` shortcuts exist too, and are `xxx().eq(value)`.
 
@@ -508,15 +520,15 @@ SELECT JSON_OBJECT(
 
 ---
 
-## RBAC Security — Permissions as a Domain Contract
+## RBAC Security — Roles, and a Data Policy per Entity
 
-The security architecture is defined in the `domain` module — not in the persistence layer, not in HTTP. This ensures that access rules are central and independent of where the request originated.
+The security contracts are defined in the `domain` module — not in the persistence layer, not in HTTP: who the requester is (`SecurityContext`), how they authenticate (`AuthenticationService`), and which roles exist (`Role`). What each role may do with the data is declared once per entity, by a **data access policy** applied at the REST boundary.
 
 ```mermaid
 graph TD
     subgraph Domain["domain — Contracts"]
         Role["Role<br/><small>ADMIN, CUSTOMER, MANAGER</small>"]
-        SecCtx["SecurityContext<br/><small>userId, userName, permissions, privateKey</small>"]
+        SecCtx["SecurityContext<br/><small>userId, userName, roles, privateKey</small>"]
         SecHolder["SecurityContext.CURRENT<br/><small>ThreadLocal</small>"]
         AuthSvc["AuthenticationService.BEAN"]
     end
@@ -528,12 +540,14 @@ graph TD
 
     subgraph REST["persistence.rest — HTTP Surface"]
         Filter["SecurityFilter<br/><small>Bearer JWT → SecurityContext.CURRENT</small>"]
+        Policies["XxxDataPolicy<br/><small>rows, fields and writes per role</small>"]
     end
 
     AuthSvc -->|"implemented by"| AuthImpl
     AuthImpl -->|"produces"| AccessCtx
     Filter -->|"populates"| SecHolder
     SecHolder -->|"propagates to"| Persistence
+    SecHolder -->|"roles"| Policies
 ```
 
 The authentication flow uses **HMAC challenge-response** so the password never travels in plain text:
@@ -550,20 +564,9 @@ The authentication flow uses **HMAC challenge-response** so the password never t
 4. Subsequent requests: Authorization: Bearer <accessToken>
 ```
 
-`SecurityContext.CURRENT` propagates the context through a `ThreadLocal` — any code running on the same thread (including repositories) can check permissions without receiving extra parameters.
+`SecurityContext.CURRENT` propagates the context through a `ThreadLocal` — any code running on the same thread knows who the requester is and which roles they have, without receiving extra parameters.
 
-Permissions are defined in the `entity:operation` format:
-
-```java
-public enum Role {
-    ADMIN(Set.of("user:*", "product:*", "purchase:*", "purchase-item:*", "data:all")),
-    CUSTOMER(Set.of("user:read", "product:read", "purchase:read", "purchase:write",
-            "purchase-item:read", "purchase-item:write")),
-    MANAGER(Set.of("user:read", "product:read", "product:write", "purchase:read", "purchase-item:read"));
-}
-```
-
-`*` grants every operation on the entity. Without `data:all`, the REST endpoints restrict reads of users and purchases to the authenticated user's own records.
+`Role` is only the list of roles — `ADMIN`, `CUSTOMER`, `MANAGER` —, parsed from the user's `roles` column. What each one may do is in the data access policies of `persistence.rest` (`UserDataPolicy`, `ProductDataPolicy`, `PurchaseDataPolicy`, `PurchaseItemDataPolicy`): per role, the rows reached, the fields read — as they are or masked — and the fields written, decided per row, with relations going through the policy of the related entity. Details: [docs/security-architecture.md](security-architecture.md).
 
 ---
 

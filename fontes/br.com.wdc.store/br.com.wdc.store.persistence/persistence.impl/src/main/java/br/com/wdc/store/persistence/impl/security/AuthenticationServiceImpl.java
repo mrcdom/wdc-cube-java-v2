@@ -21,8 +21,8 @@ import br.com.wdc.store.domain.user.UserRepository;
  * {@link AuthenticationService} implementation.
  * <p>
  * Manages the HMAC challenge-response flow, in-memory sessions and JWT.
- * Uses the <b>undecorated</b> (raw) user repository to fetch
- * credentials without going through permission checks.
+ * Reads the credentials, password included, from the user repository
+ * itself — the data policies guard the REST API, not the repositories.
  */
 public final class AuthenticationServiceImpl implements AuthenticationService {
 
@@ -84,8 +84,7 @@ public final class AuthenticationServiceImpl implements AuthenticationService {
 		}
 
 		var roles = Role.parse(user.roles());
-		var permissions = Role.effectivePermissions(roles);
-		var session = cache.createSession(user.id(), user.userName(), permissions);
+		var session = cache.createSession(user.id(), user.userName(), Role.names(roles));
 		var accessToken = JwtUtil.create(user.id(), user.userName(), cache.accessTokenTtl(), cache.jwtSecret());
 
 		return new AuthResult(user.id(), accessToken, session.refreshToken(), session.expiresAt(), session.publicKeyBase64());
@@ -149,8 +148,7 @@ public final class AuthenticationServiceImpl implements AuthenticationService {
 		}
 
 		var roles = Role.parse(user.roles());
-		var permissions = Role.effectivePermissions(roles);
-		var session = cache.createSession(user.id(), user.userName(), permissions);
+		var session = cache.createSession(user.id(), user.userName(), Role.names(roles));
 		var accessToken = JwtUtil.create(user.id(), user.userName(), cache.accessTokenTtl(), cache.jwtSecret());
 
 		LOG.info("Auto-login via persistent token for user: {} ({})", user.userName(), user.id());
