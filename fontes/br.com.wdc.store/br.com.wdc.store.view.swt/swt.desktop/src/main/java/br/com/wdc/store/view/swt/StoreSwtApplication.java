@@ -1,5 +1,9 @@
 package br.com.wdc.store.view.swt;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,8 +23,7 @@ import br.com.wdc.framework.commons.storage.ClientStorage;
 import br.com.wdc.framework.commons.storage.InMemoryClientStorage;
 import br.com.wdc.framework.commons.storage.PreferencesClientStorage;
 import br.com.wdc.framework.cube.CubePresenter;
-import br.com.wdc.framework.cube.CubeView;
-import br.com.wdc.framework.cube.ScopeViews;
+import br.com.wdc.framework.cube.Scope;
 import br.com.wdc.store.presentation.StoreApplication;
 import br.com.wdc.store.presentation.presenter.RootKeys;
 import br.com.wdc.store.presentation.presenter.RootScope;
@@ -57,6 +60,12 @@ public class StoreSwtApplication extends StoreApplication implements SwtApp {
 	private Composite rootPane;
 	private Composite offscreen;
 	private final Map<String, AbstractViewSwt> dirtyViewMap = new ConcurrentHashMap<>();
+	/** The view of each scope class: the presenters', the segments' and the rows'. */
+	private final Map<Class<?>, Function<Scope, AbstractViewSwt>> factories = new HashMap<>();
+	/** The view of each scope drawn, until it is released. */
+	private final Map<Scope, AbstractViewSwt> views = new IdentityHashMap<>();
+	/** The scope each view draws. */
+	private final Map<AbstractViewSwt, Scope> scopes = new IdentityHashMap<>();
 	private Runnable renderTimerRunnable;
 	private boolean devMode;
 	private volatile boolean historyDirty;
@@ -89,9 +98,10 @@ public class StoreSwtApplication extends StoreApplication implements SwtApp {
 		var cartView = app.onUiThread((CartScope s) -> {
 			var v = new CartViewSwt(app); v.scopeSupplier = () -> s;
 			v.onOpenProducts = s.onOpenProducts::run; v.onBuy = s.onBuy::run;
-			v.rowElements = () -> s.rows.get().stream()
-					.map(row -> app.viewOf(row) instanceof AbstractViewSwt rv ? rv.getElement() : null)
-					.filter(Objects::nonNull).toList();
+			v.rowViews = () -> s.rows.get().stream()
+					.map(app::viewOf)
+					.filter(Objects::nonNull)
+					.toList();
 			return v; });
 		var productView = app.onUiThread((ProductScope s) -> {
 			var v = new ProductViewSwt(app); v.scopeSupplier = () -> s;
@@ -110,22 +120,21 @@ public class StoreSwtApplication extends StoreApplication implements SwtApp {
 			var v = new PurchasesPanelViewSwt(app); v.scopeSupplier = () -> s;
 			v.onPageChange = s.onPageChange::run; v.onItemSizeCapacityChanged = s.onItemSizeCapacityChanged::run;
 			v.onOpenReceipt = s.onOpenReceipt::run; return v; });
-		app.setScopeViews(new ScopeViews()
-				.register(RootScope.class, (StoreSwtApplication a, RootScope s) -> rootView.apply(s))
-				.register(LoginScope.class, (StoreSwtApplication a, LoginScope s) -> loginView.apply(s))
-				.register(HomeScope.class, (StoreSwtApplication a, HomeScope s) -> homeView.apply(s))
-				.register(CartScope.class, (StoreSwtApplication a, CartScope s) -> cartView.apply(s))
-				.register(ProductScope.class, (StoreSwtApplication a, ProductScope s) -> productView.apply(s))
-				.register(ReceiptScope.class, (StoreSwtApplication a, ReceiptScope s) -> receiptView.apply(s))
-				.register(CartScope.CartItemScope.class, (StoreSwtApplication a, CartScope.CartItemScope row) -> cartItemView.apply(row))
-				.register(HomeScope.ProductsPanelScope.class, (StoreSwtApplication a, HomeScope.ProductsPanelScope s) -> productsPanelView.apply(s))
-				.register(HomeScope.PurchasesPanelScope.class, (StoreSwtApplication a, HomeScope.PurchasesPanelScope s) -> purchasesPanelView.apply(s)));
+		app.factories.put(RootScope.class, s -> rootView.apply((RootScope) s));
+		app.factories.put(LoginScope.class, s -> loginView.apply((LoginScope) s));
+		app.factories.put(HomeScope.class, s -> homeView.apply((HomeScope) s));
+		app.factories.put(CartScope.class, s -> cartView.apply((CartScope) s));
+		app.factories.put(ProductScope.class, s -> productView.apply((ProductScope) s));
+		app.factories.put(ReceiptScope.class, s -> receiptView.apply((ReceiptScope) s));
+		app.factories.put(CartScope.CartItemScope.class, s -> cartItemView.apply((CartScope.CartItemScope) s));
+		app.factories.put(HomeScope.ProductsPanelScope.class, s -> productsPanelView.apply((HomeScope.ProductsPanelScope) s));
+		app.factories.put(HomeScope.PurchasesPanelScope.class, s -> purchasesPanelView.apply((HomeScope.PurchasesPanelScope) s));
 	}
 
 	/**
 	 * Wraps a view factory so that it always executes on the SWT UI thread.
 	 */
-	private <P> Function<P, CubeView> onUiThread(Function<P, AbstractViewSwt> factory) {
+	private <P> Function<P, AbstractViewSwt> onUiThread(Function<P, AbstractViewSwt> factory) {
 		return presenter -> {
 			AbstractViewSwt swtView;
 			if (this.display.getThread() == Thread.currentThread()) {
@@ -258,7 +267,83 @@ public class StoreSwtApplication extends StoreApplication implements SwtApp {
 		br.com.wdc.store.view.swt.util.ProductImageCache.getInstance().dispose();
 		var rootPresenter = this.getRootPresenter();
 		if (rootPresenter != null) {
+			// The root view, and with it every view it holds
+			var rootView = this.viewIfAny(rootPresenter.scope);
+			if (rootView != null) {
+				rootView.release();
+			}
 			rootPresenter.release();
+		}
+	}
+
+	// :: Views
+
+	/**
+	 * The view that draws the scope, made (on the UI thread) the first time it is asked for: from then on, a change in
+	 * the scope redraws that view. {@code null} for no scope.
+	 */
+	@Override
+	public AbstractViewSwt viewOf(Scope scope) {
+		if (scope == null) {
+			return null;
+		}
+		var existing = this.viewIfAny(scope);
+		if (existing != null) {
+			return existing;
+		}
+		var factory = this.factories.get(scope.getClass());
+		if (factory == null) {
+			throw new IllegalStateException("No view registered for scope " + scope.getClass().getName());
+		}
+		// Made outside the lock: the factory may wait for the UI thread
+		var made = factory.apply(scope);
+		synchronized (this.views) {
+			existing = this.views.get(scope);
+			if (existing == null) {
+				this.views.put(scope, made);
+				this.scopes.put(made, scope);
+			}
+		}
+		if (existing != null) {
+			// Someone else made it first
+			made.release();
+			return existing;
+		}
+		scope.setUpdater(made.updater);
+		return made;
+	}
+
+	private AbstractViewSwt viewIfAny(Scope scope) {
+		synchronized (this.views) {
+			return this.views.get(scope);
+		}
+	}
+
+	/** No view holds this one any more: it is released. */
+	@Override
+	public void viewLeft(AbstractViewSwt view) {
+		view.release();
+	}
+
+	@Override
+	public void forgetView(AbstractViewSwt view) {
+		Scope scope;
+		synchronized (this.views) {
+			scope = this.scopes.remove(view);
+			if (scope != null) {
+				this.views.remove(scope);
+			}
+		}
+		if (scope != null) {
+			scope.clearUpdater(view.updater);
+		}
+		this.dirtyViewMap.remove(view.instanceId(), view);
+	}
+
+	/** The views drawing a scope now. */
+	public List<AbstractViewSwt> liveViews() {
+		synchronized (this.views) {
+			return new ArrayList<>(this.views.values());
 		}
 	}
 
@@ -274,9 +359,7 @@ public class StoreSwtApplication extends StoreApplication implements SwtApp {
 
 	public void markAllViewsDirty() {
 		for (var view : this.liveViews()) {
-			if (view instanceof AbstractViewSwt swtView) {
-				this.markDirty(swtView);
-			}
+			this.markDirty(view);
 		}
 	}
 
@@ -347,6 +430,9 @@ var storage = clientPersistentStore();
 	}
 
 	public void markDirty(AbstractViewSwt view) {
+		if (view.isReleased()) {
+			return;
+		}
 		if (this.dirtyViewMap.putIfAbsent(view.instanceId(), view) == null) {
 			view.dirtyTimestamp = System.nanoTime();
 		}
@@ -356,9 +442,7 @@ var storage = clientPersistentStore();
 		LOG.info("Rebuilding all SWT views...");
 		this.dirtyViewMap.clear();
 		for (var view : this.liveViews()) {
-			if (view instanceof AbstractViewSwt swtView) {
-				swtView.rebuild();
-			}
+			view.rebuild();
 		}
 		if (this.rootPane != null && !this.rootPane.isDisposed()) {
 			this.rootPane.layout(true, true);

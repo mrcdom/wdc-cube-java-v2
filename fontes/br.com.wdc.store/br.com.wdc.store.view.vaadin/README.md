@@ -4,7 +4,7 @@ Web implementation (Vaadin 25) of the **WDC Store** application, demonstrating t
 
 ## Motivation
 
-The Cube MVP architecture strictly separates the **Presenters** (which control navigation and publish the scopes) from the **Views** (which render the interface). The Presenters expose **Scopes** — objects whose `Prop` fields hold the data the view needs to display — and the view implements the `CubeView` interface to connect to the update cycle.
+The Cube MVP architecture strictly separates the **Presenters** (which control navigation and publish the scopes) from the **Views** (which render the interface). The Presenters expose **Scopes** — objects whose `Prop` fields hold the data the view needs to display — and each Vaadin view (`AbstractViewVaadin`) installs itself as its scope's updater to connect to the update cycle; the view layer, not the presenters, decides when a view goes away.
 
 This module uses **Vaadin Flow** — a server-side framework that renders native components in the browser without any custom JavaScript/TypeScript code. The UI runs entirely on the server (Java), and Vaadin handles the transport via Atmosphere (WebSocket/Push) to keep the browser in sync.
 
@@ -68,26 +68,18 @@ VaadinDom.render(rootLayout, (dom, pane) -> {
 });
 ```
 
-### View Catalog (`ScopeViews`)
+### View Catalog
 
 ```java
-private static final ScopeViews SCOPE_VIEWS = new ScopeViews()
-        .register(RootScope.class, RootViewVaadin::new)
-        .register(LoginScope.class, LoginViewVaadin::new)
-        .register(HomeScope.class, HomeViewVaadin::new)
-        .register(ProductScope.class, ProductViewVaadin::new)
-        .register(CartScope.class, CartViewVaadin::new)
-        .register(ReceiptScope.class, ReceiptViewVaadin::new)
-        // ... segments and rows (ProductsPanelScope, PurchasesPanelScope, CartItemScope)
-        ;
-
-public StoreVaadinApplication(UI ui) {
-    this.setScopeViews(SCOPE_VIEWS);
-    // ...
-}
+private static final Map<Class<?>, BiFunction<StoreVaadinApplication, Scope, AbstractViewVaadin<?>>> VIEWS = Map.of(
+        RootScope.class, (app, s) -> new RootViewVaadin(app, (RootScope) s),
+        LoginScope.class, (app, s) -> new LoginViewVaadin(app, (LoginScope) s),
+        HomeScope.class, (app, s) -> new HomeViewVaadin(app, (HomeScope) s),
+        // ... product, cart, receipt, segments and rows (ProductsPanelScope, PurchasesPanelScope, CartItemScope)
+        CartScope.CartItemScope.class, (app, s) -> new CartItemViewVaadin(app, (CartScope.CartItemScope) s));
 ```
 
-Each View constructor receives the application and the scope it draws — `public CartViewVaadin(StoreVaadinApplication app, CartScope scope)` — which allows the use of method references. The Presenter never knows which UI technology is in use: it only fills in the scope.
+Each View constructor receives the application and the scope it draws — `public CartViewVaadin(StoreVaadinApplication app, CartScope scope)`. The Presenter never knows which UI technology is in use: it only fills in the scope.
 
 ## Structure
 
@@ -97,10 +89,10 @@ graph TD
 
     subgraph Main["src/main/java/.../view/vaadin/"]
         VaadinMain["StoreVaadinMain.java<br/><small>Entry point (Jetty)</small>"]
-        VaadinApp["StoreVaadinApplication.java<br/><small>CubeApp + view catalog (ScopeViews)</small>"]
+        VaadinApp["StoreVaadinApplication.java<br/><small>CubeApp + view catalog + live views</small>"]
         MainLayout["MainLayout.java<br/><small>@Route</small>"]
         AppShell["AppShell.java<br/><small>@Push + Lumo theme</small>"]
-        AbstractV["AbstractViewVaadin.java<br/><small>Base CubeView</small>"]
+        AbstractV["AbstractViewVaadin.java<br/><small>Base view: redraw, viewOf, release</small>"]
         SchedAdapter["ScheduledExecutorVaadinAdapter.java"]
 
         subgraph Util["util/"]
@@ -208,7 +200,9 @@ The integration between Vaadin and the presentation layer (Cube MVP) solves the 
 
 ### 1. View catalog by scope
 
-`StoreVaadinApplication` builds a `ScopeViews` (scope class → view constructor) and hands it over in the constructor with `setScopeViews(...)`. The application creates each view the first time it is requested with `viewOf(scope)`: the host requests the root scope's view (`viewOf(getRootPresenter().scope)` in `updateHistory`), and each view requests those of the scopes it holds — `HomeViewVaadin`, for example, calls `app.viewOf(scope.content.get())` for the content and `app.viewOf(scope.productsPanel.get())` for the panel.
+`StoreVaadinApplication` keeps its own catalog (`VIEWS`: scope class → view factory) and the map of live views. It creates each view the first time it is requested with `viewOf(scope)`, installs it as the scope's updater (`scope.setUpdater(view.updater)`) and marks it dirty for its first drawing: the host requests the root scope's view (`viewOf(getRootPresenter().scope)` in `updateHistory`), and each view requests those of the scopes it holds with its own `viewOf(...)` while it draws — `HomeViewVaadin`, for example, calls `this.viewOf(scope.content.get())` for the content and `this.viewOf(scope.productsPanel.get())` for the panel.
+
+The flush draws each view with `redraw()`, which wraps `doUpdate()`: a view it held and did not ask for in that drawing is the view of a scope that left, and it is released once no view holds it — its updater taken back (`scope.clearUpdater`), its component removed from its parent, and the views it held released in turn. The presenters never release a view.
 
 ### 2. Flush via ui.access() (Server Push)
 
@@ -352,11 +346,11 @@ stateDiagram-v2
     Created --> FirstUpdate: app.markDirty()
     FirstUpdate --> Rendered: doUpdate() → buildUI via VaadinDom
     Rendered --> Dirty: presenter changes the scope → view.update()
-    Dirty --> Reconciled: ui.access() → doUpdate()
+    Dirty --> Reconciled: ui.access() → redraw() → doUpdate()
     Reconciled --> Dirty: new change
     Reconciled --> Recreated: F5 → reattach() → recreate()
     Recreated --> Rendered: doUpdate() rebuilds components
-    Reconciled --> [*]: presenter.release() → app.releaseView(scope)
+    Reconciled --> [*]: the holder redraws without it → release()
 ```
 
 ## Conclusion

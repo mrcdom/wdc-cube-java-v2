@@ -60,13 +60,13 @@ The navigation system serializes the active state into the query string. The Rem
 Each implementation rebuilds the state from the URL in the `applyParameters` cycle. Remote mode uses the `appId` (session id) to reconnect to the server-side session.
 
 **Test all navigation flows through mock views** ✅  
-Views are created by the `ScopeViews` catalog that the host hands to the application (`setScopeViews`). In tests, the mock application registers mock views for each scope class and navigation runs without any UI.
+Views are created by each rendering technology from its own catalog (scope class → view factory); the presenters never see it. In tests, the mock application is one more technology: its catalog has a mock view for each scope class, and navigation runs without any UI.
 
 **More than one implementation for the same view** ✅  
 This is the main validation point of the architecture: five implementations coexisting on top of the same Presenters.
 
 **Contracts and type systems for traceability** ✅  
-Java offers static compile-time checking. The registration `ScopeViews.register(CartScope.class, CartViewVaadin::new)` ensures that each view implementation receives the correct scope type (`(app, CartScope) -> CubeView`).
+Java offers static compile-time checking. Each view's constructor takes the scope type it draws (`new CartViewVaadin(app, (CartScope) s)` in the catalog), so a view reads the scope's typed fields and fires its typed actions.
 
 **Managing the scope of state propagation in compositions** ✅  
 Slots (`ScopeSlot`) are lambdas that encapsulate assigning a child's scope to a specific composition point of the parent, without exposing the parent Presenter.
@@ -174,7 +174,7 @@ graph TD
     repos --> db
 ```
 
-The separation is structural, not just conceptual: the `store.presentation` module has no dependency on any UI technology. It depends only on `framework.cube` and `store.domain` (plus the `jsr305` annotations). Any technology capable of implementing the `CubeView` interface can be plugged in.
+The separation is structural, not just conceptual: the `store.presentation` module has no dependency on any UI technology. It depends only on `framework.cube` and `store.domain` (plus the `jsr305` annotations). Any technology capable of drawing a `Scope` — installing an updater on it and firing its actions — can be plugged in.
 
 ---
 
@@ -248,7 +248,7 @@ public class CartPresenter extends AbstractCubePresenter<StoreApplication> {
 }
 ```
 
-The Presenter never creates a view: it only feeds the scope and hands it to the parent through the slot. The view belongs to the view layer — each host builds a `ScopeViews` catalog (scope class → factory `(app, scope) -> CubeView`) and hands it to the application with `setScopeViews`; `app.viewOf(scope)` creates the view the first time it is requested, without the Presenter knowing which UI technology is in use. The scope's static `CLASS_ID` is the bridge protocol classId, and the remote skeleton belongs to the scope (`scope.skeleton(CLASS_ID)`), which dispatches each event to the action bound with that code.
+The Presenter never creates nor releases a view: it only feeds the scope and hands it to the parent through the slot. `framework.cube` has no view concept at all — the view belongs to the rendering technology, which keeps its own catalog (scope class → view factory) and map of live views; its `viewOf(scope)` creates the view the first time it is requested and installs it as the scope's updater (`scope.setUpdater(...)`), without the Presenter knowing which UI technology is in use. The scope's static `CLASS_ID` is the bridge protocol classId, and the remote skeleton belongs to the scope (`scope.skeleton(CLASS_ID)`), which dispatches each event to the action bound with that code.
 
 Every Presenter is navigable (`AbstractCubePresenter<A>`, managed by the navigation engine). A piece of the screen that does not need its own navigation — such as the products and purchases panels of the Home — **does not get a Presenter**: it is a **smaller scope**, declared as a public static inner class of the scope of whoever shows it:
 
@@ -267,11 +267,11 @@ public class HomeScope extends Scope {
 }
 ```
 
-The `HomePresenter` binds the segment's actions (`actionOf(productsPanel, 1, FormParam.asLong("p.productId"), this::openProduct)`) and only puts it into the scope (`scope.productsPanel.set(productsPanel)`). The view layer chooses the view: each host builds a `ScopeViews` catalog (scope class → factory) and hands it to the application with `setScopeViews`; the Home view requests the panel's view with `app.viewOf(scope)`, which creates it the first time. From then on, a change in the segment redraws only its own view (until then, it redraws the owner), and the view is released together with the Presenter. The remote host registers nothing: `fallback(RemoteViewImpl::forScope)` makes a remote view for any scope, using its `CLASS_ID`. The view never knows the Presenter — it only reads the scope and fires its actions —, so one Presenter can orchestrate several segments without a class per segment.
+The `HomePresenter` binds the segment's actions (`actionOf(productsPanel, 1, FormParam.asLong("p.productId"), this::openProduct)`) and only puts it into the scope (`scope.productsPanel.set(productsPanel)`). The rendering technology chooses the view: the Home view requests the panel's view with its own `viewOf(scope)` while it draws, which creates it the first time from the technology's catalog. From then on, a change in the segment redraws only its own view (until then, it redraws the owner). When the Home view draws without it — the segment left the `Prop`, or the Home view itself was let go — the technology releases it. The remote host registers nothing: `RemoteViewImpl.forScope` makes a remote view for any scope, using its `CLASS_ID`. The view never knows the Presenter — it only reads the scope and fires its actions —, so one Presenter can orchestrate several segments without a class per segment.
 
 In remote mode the segment is a view like any other: it has its own `classId`, its own skeleton (the code-based dispatch of the actions bound on it), and the parent references it by the view id (`"productsPanelViewId"`).
 
-**List rows are segments too.** Each cart row is a `CartScope.CartItemScope`, with its own view and actions bound to the item itself (`onRemove`, `onModifyQuantity(quantity)` — the row does not send the product id back: it *is* the item). The `CartScope` holds `Prop<List<CartItemScope>> rows`, which the serializer writes as `"rowsViewIds": [...]`, in order. The `CartPresenter` reuses the row by product id while the item stays, creates the row for a new item (the view is born when the cart requests it), and releases (`detach`) the row of an item that left; changing a quantity redraws only that row, and the total (`CartScope.total`) comes from the server.
+**List rows are segments too.** Each cart row is a `CartScope.CartItemScope`, with its own view and actions bound to the item itself (`onRemove`, `onModifyQuantity(quantity)` — the row does not send the product id back: it *is* the item). The `CartScope` holds `Prop<List<CartItemScope>> rows`, which the serializer writes as `"rowsViewIds": [...]`, in order. The `CartPresenter` reuses the row by product id while the item stays, creates the row for a new item (the view is born when the cart requests it), and drops the row of an item that left from the list — the cart's view, drawing without it, releases its view; changing a quantity redraws only that row, and the total (`CartScope.total`) comes from the server.
 
 ---
 
@@ -381,10 +381,6 @@ classDiagram
         +navigate(place, intent) boolean
         +newIntent() CubeIntent
         +go(String address) boolean
-        +setScopeViews(scopeViews)
-        +viewOf(scope) CubeView
-        +releaseView(scope)
-        +liveViews() List
     }
 
     class CubePresenter {
@@ -398,34 +394,20 @@ classDiagram
         #bind(scope) Scope
         +scope() Scope
         +update()
-        +release()
     }
 
     class Scope {
         <<abstract>>
         #prop(initial) Prop
         +setUpdater(updater)
-        +view() CubeView
+        +clearUpdater(updater)
         +skeleton(classId) CubeSkeleton
         +onSync(syncScope)
-        +drawnBy(view)$ Scope
-    }
-
-    class ScopeViews {
-        +register(scopeClass, factory) ScopeViews
-        +fallback(factory) ScopeViews
     }
 
     class Prop {
         +get() T
         +set(value)
-    }
-
-    class CubeView {
-        <<interface>>
-        +instanceId() String
-        +update()
-        +release()
     }
 
     class ScopeSlot {
@@ -452,16 +434,13 @@ classDiagram
 
     CubePresenter <|.. AbstractCubePresenter
     AbstractCubePresenter --> Scope : scope
-    Scope --> CubeView : drawn by
     CubePlace --> CubePresenter : instantiates
     CubeIntent --> ScopeSlot
     ScopeSlot --> Scope : receives
     CubeApplication --> AbstractCubePresenter : holds
-    CubeApplication --> ScopeViews : viewOf(scope)
-    ScopeViews --> CubeView : creates
 ```
 
-The application is a graph of `AbstractCubePresenter` instances. Each instance knows only its own Scope (the `scope` field, bound with `bind`). The view of each Scope is created by the view layer: the host's `ScopeViews` catalog says which factory draws each scope class, and `CubeApplication.viewOf(scope)` creates it the first time it is requested. The Presenter never references a view — at most, `scope().view()` returns the `CubeView` that draws its scope, if there already is one.
+The application is a graph of `AbstractCubePresenter` instances. Each instance knows only its own Scope (the `scope` field, bound with `bind`). There is no view in the diagram on purpose: the view of each Scope is created by the rendering technology, from its own catalog, the first time it is requested, and it reaches the Scope only through the updater it installs (`setUpdater`, taken back with `clearUpdater`). The Presenter never references a view.
 
 ---
 
@@ -504,43 +483,36 @@ this.ownerSlot = new ProductKeys(this.app, intent).parentSlot();
 this.ownerSlot.setScope(this.scope);
 ```
 
-The parent view requests the view of whatever scope is there — `app.viewOf(scope.content.get())` — regardless of which child Presenter put it there. The host only draws the root Presenter's scope (`viewOf(getRootPresenter().scope)`); every other view is requested by the view that holds the scope. Until a scope gets a view, a change in it redraws the owner (the scope that holds it in a `Prop` adopts it); after that, only its own view. In remote mode, a `Prop<Scope>` field goes out in the JSON as `"<field>ViewId"` (`content` → `"contentViewId"`). This mechanism works identically in all five view implementations.
+The parent view requests the view of whatever scope is there — its own `viewOf(scope.content.get())`, while it draws — regardless of which child Presenter put it there. The host only draws the root Presenter's scope (`app.viewOf(getRootPresenter().scope)`); every other view is requested by the view that holds the scope, and a held view it no longer requests is released. Until a scope gets a view, a change in it redraws the owner (the scope that holds it in a `Prop` adopts it); after that, only its own view. In remote mode, a `Prop<Scope>` field goes out in the JSON as `"<field>ViewId"` (`content` → `"contentViewId"`). This mechanism works identically in all five view implementations.
 
 ---
 
 ## The View Layer — Five Independent Implementations
 
-### The CubeView Interface
+### What a View Is
 
-Every view implementation implements `CubeView`:
-
-```java
-public interface CubeView {
-    String instanceId();  // unique identifier — used by the remote protocol
-    void update();        // Presenter signals that the scope changed
-    void release();       // lifecycle ended
-}
-```
+`framework.cube` has no view type: a view is whatever a rendering technology draws a Scope with — a Vaadin component, an SWT composite, a DOM element, a remote view. Each technology has its own base class (`AbstractViewVaadin`, `AbstractViewSwt`, `AbstractViewTeaVM`, `RemoteViewImpl`), its own catalog (scope class → view factory) and its own map of live views. What it needs from the Scope is the updater hook: `scope.setUpdater(...)` when it starts drawing the scope, `scope.clearUpdater(...)` when it stops.
 
 ### The Lifecycle of a View
 
-1. Someone requests a scope's view with `app.viewOf(scope)` — the host, for the root scope, or the view that holds the scope in a `Prop`. The first time, the factory registered in `ScopeViews` instantiates the view with `(app, scope)` and it is drawn once.  
+1. Someone requests a scope's view with `viewOf(scope)` — the host, for the root scope, or the view that holds the scope in a `Prop`, while it draws. The first time, the technology's catalog instantiates the view with `(app, scope)`, installs it as the scope's updater, and it is drawn once.  
 2. The view stores a reference to the application and to the Scope — never to the Presenter.  
-3. When `update()` is called (a `Prop` of the scope changed), the view reads the Scope's fields and reconciles the interface.  
+3. When the updater is called (a `Prop` of the scope changed), the view is marked dirty; its next drawing reads the Scope's fields and reconciles the interface.  
 4. When the user interacts, the view fires the Scope's `onXxx` action, which the Presenter bound.  
-5. When the Presenter is released (`release()`), `app.releaseView(scope)` releases the scope's view and those of the segments and rows inside it.
+5. When the view that held it draws without requesting it (the scope left the `Prop` — a navigation replaced the content, a row left the list), and no other view holds it, the technology releases it: the updater is taken back, the widget goes away (component removed, composite disposed, element removed from the DOM; the remote host tells the client with `releasedViews`), and the views it held are released in turn. The Presenter takes no part.
 
 ### The Implementations
 
-**view.swt** — Native desktop implementation with Eclipse SWT (Windows, Linux, macOS). Each view extends `AbstractViewSwt` and uses the declarative `SwtDom` DSL to build compositions. `update()` only marks the view dirty (`app.markDirty(this)`); a render timer on the UI thread (`Display.timerExec`) flushes the dirty views by calling their `doUpdate()`. The view reads the scope through a supplier that the factory registered in `ScopeViews` wires, together with the actions (`StoreSwtApplication`):
+**view.swt** — Native desktop implementation with Eclipse SWT (Windows, Linux, macOS). Each view extends `AbstractViewSwt` and uses the declarative `SwtDom` DSL to build compositions. `update()` only marks the view dirty (`app.markDirty(this)`); a render timer on the UI thread (`Display.timerExec`) flushes the dirty views by calling their `doUpdate()`. The view reads the scope through a supplier that the factory in the application's catalog wires, together with the actions (`StoreSwtApplication`):
 
 ```java
 var cartView = app.onUiThread((CartScope s) -> {
         var v = new CartViewSwt(app); v.scopeSupplier = () -> s;
         v.onOpenProducts = s.onOpenProducts::run; v.onBuy = s.onBuy::run;
-        v.rowElements = () -> s.rows.get().stream()
-                .map(row -> app.viewOf(row) instanceof AbstractViewSwt rv ? rv.getElement() : null)
-                .filter(Objects::nonNull).toList();
+        v.rowViews = () -> s.rows.get().stream()
+                .map(app::viewOf)
+                .filter(Objects::nonNull)
+                .toList();
         return v; });
 ```
 
@@ -550,14 +522,18 @@ public class CartViewSwt extends AbstractViewSwt {
     public Supplier<CartScope> scopeSupplier;
     public Runnable onOpenProducts;
     public Runnable onBuy;
-    /** The rows' elements, in the cart's order: each row is a view of its own ({@link CartItemViewSwt}). */
-    public Supplier<List<Composite>> rowElements;
+    /** The rows' views, in the cart's order: each row is a view of its own ({@link CartItemViewSwt}). */
+    public Supplier<List<AbstractViewSwt>> rowViews;
 
     @Override
     public void doUpdate() {
         // ... first render ...
         var scope = this.scopeSupplier != null ? this.scopeSupplier.get() : null;
-        var rows = this.rowElements != null ? this.rowElements.get() : List.<Composite>of();
+        var rows = new ArrayList<Composite>();
+        for (var rowView : this.rowViews.get()) {
+            // Held in this drawing: a row view not held again is released after it
+            rows.add(this.hold(rowView).getElement());
+        }
         // ... toggles the empty/filled cards, syncs the error banner, the rows and the total
     }
 }
@@ -599,7 +575,7 @@ public class CartView extends AbstractVDomView<CartScope> {
         this.shared.onBuy = () -> safeAction("Buy", scope.onBuy::run);
         // The rows are views of their own (CartItemView): the cart lays their elements out in its order
         this.shared.rowElements = () -> scope.rows.get().stream()
-                .map(row -> this.app.viewOf(row) instanceof AbstractViewTeaVM<?> v ? v.getElement() : null)
+                .map(row -> this.viewOf(row) instanceof AbstractViewTeaVM<?> v ? v.getElement() : null)
                 .filter(Objects::nonNull)
                 .toList();
     }
@@ -774,7 +750,7 @@ The principles that proved most durable:
 
 **The slot as a coupling-free composition mechanism.** The slot isolates the parent Presenter from the child. The parent does not know which type of child Presenter will be in the slot — only that it will receive a `Scope`. The child does not know which part of the parent screen it will be in.
 
-**The view catalog as an extension point.** The `ScopeViews` that each host hands to the application (`setScopeViews`) is the only point of variability between view implementations. Registering other factories per scope class is enough to swap the entire UI layer — and the remote host does not even register: `fallback(RemoteViewImpl::forScope)` draws any scope by its `CLASS_ID`.
+**The view catalog as an extension point.** Each rendering technology's catalog (scope class → view factory) is the only point of variability between view implementations. Registering other factories per scope class is enough to swap the entire UI layer — and the remote host does not even register: `RemoteViewImpl.forScope` draws any scope by its `CLASS_ID`. Since the technology also decides when a view goes away, the presentation layer carries no view lifecycle at all.
 
 The **Remote Presentation mode** is the central innovation: it demonstrates that the separation between presentation logic and rendering is not just a good architectural practice — it is a physical property of the architecture. The Presenter genuinely does not know where the view runs: it may be a local process in the same JVM, a browser thousands of miles away, or a mobile device connected over WebSocket.
 

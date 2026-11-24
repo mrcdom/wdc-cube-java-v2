@@ -254,7 +254,7 @@ Host (Scope)                          Shell (View)
 └──────────────────────┘              └──────────────────────┘
 ```
 
-On the host, `RemoteViewImpl::forScope` (the `fallback` of the `StoreApplicationImpl`'s `ScopeViews`) reads the scope's `CLASS_ID` and uses it as the classId of the remote view and of the skeleton.
+On the host, `RemoteViewImpl::forScope` (used by `RemoteApplicationSupport.viewOf` for every scope) reads the scope's `CLASS_ID` and uses it as the classId of the remote view and of the skeleton.
 
 When the host sends a JSON scope with that ID, the `ScopeCoordinator` looks up the registered factory, instantiates the view (if new) and delivers its values via `ViewScope`.
 

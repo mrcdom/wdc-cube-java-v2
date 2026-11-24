@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -19,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import br.com.wdc.framework.commons.storage.ClientStorage;
 import br.com.wdc.framework.commons.storage.PreferencesClientStorage;
+import br.com.wdc.framework.cube.Scope;
 import br.com.wdc.framework.cube.remote.bridge.java.HostClient;
 import br.com.wdc.framework.cube.remote.bridge.java.model.HostResponse;
 import br.com.wdc.framework.cube.remote.bridge.java.model.ScopeSnapshot;
@@ -57,6 +59,9 @@ public class StoreSwtRemoteApp implements SwtApp, RemoteViewContext {
 
 	/** Views that need a doUpdate() call on the next render tick */
 	private final Set<AbstractViewSwt> dirtyViews = Collections.newSetFromMap(new ConcurrentHashMap<>());
+
+	/** The view each scope rebuilt from the host's scopes is drawn by (the one the host referred to). */
+	private final Map<Scope, AbstractViewSwt> drawnBy = Collections.synchronizedMap(new WeakHashMap<>());
 
 	/** classId → factory(vsid) */
 	private final Map<String, Function<String, AbstractViewSwt>> viewFactories = new ConcurrentHashMap<>();
@@ -195,15 +200,11 @@ public class StoreSwtRemoteApp implements SwtApp, RemoteViewContext {
 
 		this.showHostAlert();
 
-		// Dispose released views
+		// The views the host let go of
 		for (var vsid : resp.releasedViews()) {
 			var view = this.viewRegistry.remove(vsid);
 			if (view != null) {
-				this.display.asyncExec(() -> {
-					if (!view.getElement().isDisposed()) {
-						view.getElement().setVisible(false);
-					}
-				});
+				view.release();
 			}
 		}
 	}
@@ -313,6 +314,32 @@ public class StoreSwtRemoteApp implements SwtApp, RemoteViewContext {
 	@Override
 	public AbstractViewSwt viewLookup(String vsid) {
 		return this.viewRegistry.get(vsid);
+	}
+
+	@Override
+	public <S extends Scope> S drawnBy(S scope, String vsid) {
+		var view = this.viewLookup(vsid);
+		if (view != null) {
+			this.drawnBy.put(scope, view);
+		}
+		return scope;
+	}
+
+	@Override
+	public AbstractViewSwt viewOf(Scope scope) {
+		return scope != null ? this.drawnBy.get(scope) : null;
+	}
+
+	/** The host says which views are gone ({@code releasedViews}): a view no other view holds just waits for it. */
+	@Override
+	public void viewLeft(AbstractViewSwt view) {
+		// NOOP
+	}
+
+	@Override
+	public void forgetView(AbstractViewSwt view) {
+		this.viewRegistry.values().remove(view);
+		this.dirtyViews.remove(view);
 	}
 
 	// :: Utilities

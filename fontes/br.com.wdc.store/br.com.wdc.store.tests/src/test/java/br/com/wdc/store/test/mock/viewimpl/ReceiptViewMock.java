@@ -4,7 +4,6 @@ import java.util.Date;
 
 import org.junit.Assert;
 
-import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.store.presentation.presenter.restricted.receipt.ReceiptScope;
 import br.com.wdc.store.presentation.presenter.restricted.receipt.structs.ReceiptItem;
 import br.com.wdc.store.test.mock.StoreApplicationMock;
@@ -12,7 +11,7 @@ import br.com.wdc.store.test.mock.StoreApplicationMock;
 @SuppressWarnings({ "java:S106", "java:S1192" })
 public class ReceiptViewMock extends AbstractViewMock<ReceiptScope> {
 
-    public static ReceiptViewMock cast(CubeView view) {
+    public static ReceiptViewMock cast(Object view) {
         var cls = ReceiptViewMock.class;
         Assert.assertNotNull("Expecting " + cls.getSimpleName() + " but this view was null", view);
         Assert.assertTrue("Expecting " + cls.getSimpleName() + " but it was " + view.getClass().getSimpleName(),

@@ -12,12 +12,10 @@ import br.com.wdc.framework.commons.util.Defer;
 import br.com.wdc.framework.cube.CubeApplication;
 import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.CubePresenter;
-import br.com.wdc.framework.cube.ScopeViews;
 import br.com.wdc.framework.cube.remote.RemoteAppSecurity;
 import br.com.wdc.framework.cube.remote.RemoteApplication;
 import br.com.wdc.framework.cube.remote.RemoteApplicationRegistry;
 import br.com.wdc.framework.cube.remote.RemoteApplicationSupport;
-import br.com.wdc.framework.cube.remote.RemoteViewImpl;
 import br.com.wdc.store.presentation.StoreApplication;
 
 /**
@@ -32,13 +30,6 @@ public class StoreApplicationImpl extends StoreApplication implements RemoteAppl
 
 	private static RemoteAppSecurity appSecurity;
 	private static RemoteApplicationRegistry<StoreApplicationImpl> registry;
-
-	/**
-	 * The views of every scope (a presenter's, a segment's, a row's): a remote view, known to the client by the
-	 * CLASS_ID its scope class declares. The browser view draws the root presenter's scope; each view makes the views
-	 * of the scopes it holds as it is written.
-	 */
-	private static final ScopeViews SCOPE_VIEWS = new ScopeViews().fallback(RemoteViewImpl::forScope);
 
 	/**
 	 * Initializes module-level references. Called once during bootstrap.
@@ -60,7 +51,6 @@ public class StoreApplicationImpl extends StoreApplication implements RemoteAppl
 	// :: Constructor
 
 	public StoreApplicationImpl(String id) {
-		this.setScopeViews(SCOPE_VIEWS);
 		this.support = new RemoteApplicationSupport(id, new HostCallbacks(), appSecurity);
 		this.support.postConstruct(this);
 	}

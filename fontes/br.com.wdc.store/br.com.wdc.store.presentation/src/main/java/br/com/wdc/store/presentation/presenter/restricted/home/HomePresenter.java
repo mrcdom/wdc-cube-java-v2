@@ -81,9 +81,6 @@ public class HomePresenter extends AbstractCubePresenter<StoreApplication> {
 
         this.onCartChangeListenerRemover.run();
         this.onCartChangeListenerRemover = ThrowingRunnable.noop();
-
-        // Releases the segments' views and this presenter's
-        super.release();
     }
 
     @Override

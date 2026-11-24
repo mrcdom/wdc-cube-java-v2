@@ -41,7 +41,7 @@ public class RootViewSwt extends AbstractViewSwt {
         }
 
         var scope = this.scopeSupplier != null ? this.scopeSupplier.get() : null;
-        var newContentView = scope != null && app.viewOf(scope.content.get()) instanceof AbstractViewSwt v ? v : null;
+        var newContentView = scope != null && this.viewOf(scope.content.get()) instanceof AbstractViewSwt v ? v : null;
         if (this.currentContentView != newContentView) {
             this.contentSlot.setContent(newContentView != null ? newContentView.getElement() : null);
             this.currentContentView = newContentView;

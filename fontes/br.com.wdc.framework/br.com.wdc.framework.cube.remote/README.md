@@ -50,7 +50,7 @@ Main server-side classes:
 | `RemoteApplicationSupport` | Delegated infrastructure — manages id, WsContext, expiration |
 | `RemoteApplicationRegistry` | Registers and looks up active `RemoteApplication` instances |
 | `RemoteBrowserPresenter` | Presenter of the thin client's "browser" (alert, start, history, keep-alive): a `BrowserScope` with `CLASS_ID` and coded actions, like the others; its view has the fixed id `7b32e816a191:0` and the scope holds the root presenter's scope in `content` |
-| `RemoteViewImpl` | The remote view of a scope (`forScope`, by `CLASS_ID`): serializes the scope and forwards events to the scope's skeleton |
+| `RemoteViewImpl` | The remote view of a scope (`forScope`, by `CLASS_ID`): serializes the scope, forwards events to the scope's skeleton, and releases the views it no longer refers to when written again |
 | `ScopeSerializer` | Serializes the scope → JSON via reflection; a scope inside it is emitted as `"<field>ViewId"`, a list of scopes as `"<field>ViewIds"` |
 | `RemoteHostModule` | Javalin module that registers the WS and HTTP routes |
 | `DispatcherController` | WebSocket controller — receives events and dispatches them to the `CubeSkeleton` |

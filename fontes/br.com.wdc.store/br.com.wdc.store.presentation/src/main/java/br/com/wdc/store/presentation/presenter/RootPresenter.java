@@ -41,7 +41,6 @@ public class RootPresenter extends AbstractCubePresenter<StoreApplication> {
     @Override
     public void release() {
         this.scope.content.set(null);
-        super.release();
     }
 
     @Override

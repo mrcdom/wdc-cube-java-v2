@@ -99,7 +99,7 @@ graph TD
 | Module | Description |
 |--------|-----------|
 | **framework.commons** | Functional interfaces with checked exceptions (`ThrowingFunction`, `ThrowingConsumer`, etc.), extensible serialization, SQL abstractions (`SqlDataSource`), utilities (`CoerceUtils`, `DateUtil`, `Defer`), cryptography (`RSA`, `Base62`), multiplatform logging (`Log` — a lightweight facade with JUL and SLF4J backends), concurrency (`ScheduledExecutor`) |
-| **framework.cube** | Engine of the Cube MVP pattern: `CubeApplication`, `CubePresenter`, `AbstractCubePresenter`, `CubeView`, `Scope`/`ScopeSlot`/`ScopeViews`, `CubePlace`, `CubeIntent`, `CubeNavigation` |
+| **framework.cube** | Engine of the Cube MVP pattern: `CubeApplication`, `CubePresenter`, `AbstractCubePresenter`, `Scope`/`Prop`/`ScopeSlot`, `CubePlace`, `CubeIntent`, `CubeNavigation` — no view concept: drawing a scope is up to each rendering technology |
 | **framework.domain** | Generic domain abstractions: `Repository`, `Page`, `ModelCodec`, `Criteria`/`Criterion`, `Projection*`, base exceptions (`BusinessException`, `AccessDeniedException`, ...), security contracts (`SecurityContext`, `AuthenticationService`), the data access policy (`security.policy`: `DataPolicy`, `DataGrant`, `RowScope`, `Mask`), `AppConfig`, `TransactionService` |
 | **framework.jooq** | JSON query helpers over jOOQ (`JsonQuery`, `JsonQueryBuilder`, `JsonChildQueryBuilder`), `CriterionTranslator`, `TransactionAwareConnectionProvider` |
 | **framework.persistence** | CMT-style transactions in dual JTA/JDBC mode (`TransactionServiceImpl`, `TransactionScope`), `RemoteTransactionCoordinator` SPI |
@@ -125,7 +125,7 @@ graph TD
 | **view.remote / remote.shell.flutter** | Flutter 3 + Material Design for iOS, Android, Desktop (macOS) and Web. Bidirectional WebSocket communication, same protocol as React — [details](fontes/br.com.wdc.store/br.com.wdc.store.view.remote/remote.shell.flutter/README.md) |
 | **view.remote / remote.shell.teavm** | TeaVM frontend that communicates with the server over WebSocket |
 | **backend** | Javalin 7 server with Virtual Threads, WebSocket dispatcher, REST controllers; database H2 (TCP or file) or PostgreSQL. Produces a fat JAR (~41 MB) |
-| **view.remote / remote.host** | `StoreApplicationImpl`, whose view catalog is `new ScopeViews().fallback(RemoteViewImpl::forScope)` (a remote view for any scope, found by its `CLASS_ID`), and `RemoteHostBootstrap`, which writes development RSA keys into `application.local.toml` when absent. Transport security (`RemoteAppSecurity`, `RemoteDataSecurity` — RSA/PBKDF2/AES-GCM) comes from `framework.cube.remote` |
+| **view.remote / remote.host** | `StoreApplicationImpl`, whose views come from `framework.cube.remote` (a `RemoteViewImpl` for any scope, found by its `CLASS_ID`), and `RemoteHostBootstrap`, which writes development RSA keys into `application.local.toml` when absent. Transport security (`RemoteAppSecurity`, `RemoteDataSecurity` — RSA/PBKDF2/AES-GCM) comes from `framework.cube.remote` |
 | **view.vaadin** | Server-side web view with Vaadin 25 + Lumo theme + embedded Jetty 12 — [details](fontes/br.com.wdc.store/br.com.wdc.store.view.vaadin/README.md) |
 | **view.swt** | Native desktop view with Eclipse SWT 3.135.0 — [details](fontes/br.com.wdc.store/br.com.wdc.store.view.swt/README.md) |
 | **view.teavm** | Multiplatform (Web + Desktop + Android + iOS) with TeaVM 0.16 + Tauri 2 + Bootstrap 5 — Java compiled to JS — [details](fontes/br.com.wdc.store/br.com.wdc.store.view.teavm/README.md) |

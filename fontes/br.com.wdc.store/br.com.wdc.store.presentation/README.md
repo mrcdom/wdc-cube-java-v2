@@ -123,7 +123,7 @@ graph TD
 | What | How | Use |
 |------|------|-----|
 | **Presenter** | `AbstractCubePresenter<StoreApplication>`, managed by navigation via `applyParameters` | Places with their keys class (`XxxKeys`) |
-| **Segment** | inner scope (`HomeScope.ProductsPanelScope`), actions bound by the presenter, view from the host's catalog (`ScopeViews`, requested with `app.viewOf(scope)`) | Panels embedded in Home: no presenter of their own |
+| **Segment** | inner scope (`HomeScope.ProductsPanelScope`), actions bound by the presenter, view from each rendering technology's catalog, requested by the parent's view while it draws | Panels embedded in Home: no presenter of their own |
 
 ## Module Components
 
@@ -143,7 +143,7 @@ Each call reaches the repositories it needs through the domain's service locator
 
 ### Scope
 
-Each presenter has its `Scope` in **its own file**, next to it (`XxxScope.java`). A scope that only exists inside it — a Home panel, the cart row — is a public static inner class of it (`HomeScope.ProductsPanelScope`, `CartScope.CartItemScope`). Each observed field is a `Prop`, created with `prop(...)`; the presenter binds the scope to itself with `bind(...)`, and then `set` with a different value (`equals`) requests the redraw on its own — the presenter does not call `this.update()` afterwards. The view reads with `get()`. The scope declares its `CLASS_ID` (the bridge protocol classId); the presenter does not create a view — each host draws the scope with the view its `ScopeViews` catalog registers for the class. Remote serialization is automatic (`ScopeSerializer`, via reflection over the public fields, writing the value of each `Prop`; a `Prop<Scope>`, like the `content` of Root and Home, is written as `"<field>ViewId"`):
+Each presenter has its `Scope` in **its own file**, next to it (`XxxScope.java`). A scope that only exists inside it — a Home panel, the cart row — is a public static inner class of it (`HomeScope.ProductsPanelScope`, `CartScope.CartItemScope`). Each observed field is a `Prop`, created with `prop(...)`; the presenter binds the scope to itself with `bind(...)`, and then `set` with a different value (`equals`) requests the redraw on its own — the presenter does not call `this.update()` afterwards. The view reads with `get()`. The scope declares its `CLASS_ID` (the bridge protocol classId); the presenter neither creates nor releases a view — each rendering technology draws the scope with the view its own catalog registers for the class, and lets go of it when the scope leaves the screen. Remote serialization is automatic (`ScopeSerializer`, via reflection over the public fields, writing the value of each `Prop`; a `Prop<Scope>`, like the `content` of Root and Home, is written as `"<field>ViewId"`):
 
 ```java
 public class ProductScope extends Scope {
@@ -258,7 +258,7 @@ public class XxxPresenter extends AbstractCubePresenter<StoreApplication> {
     // 1. Logger
     private static final Log LOG = Log.getLogger(XxxPresenter.class);
 
-    // 2. Public scope — XxxScope lives in XxxScope.java, alongside (observed fields are Props; serialization via reflection) (bind: the scope shares the presenter's events and is released with it)
+    // 2. Public scope — XxxScope lives in XxxScope.java, alongside (observed fields are Props; serialization via reflection) (bind: the scope shares the presenter's events)
     public final XxxScope scope = bind(new XxxScope());
 
     // 3. Internal fields

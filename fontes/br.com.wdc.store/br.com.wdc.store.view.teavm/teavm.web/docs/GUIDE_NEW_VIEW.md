@@ -65,7 +65,7 @@ public class WishlistView extends AbstractVDomView<WishlistScope> {
 
     private final WishlistSharedView shared;
 
-    // Constructor — receives the application and the scope (the factory registered in ScopeViews)
+    // Constructor — receives the application and the scope (the factory registered in the application's VIEWS catalog)
     public WishlistView(StoreTeaVMApplication app, WishlistScope scope) {
         super("wishlist", app, scope);
 
@@ -85,15 +85,16 @@ public class WishlistView extends AbstractVDomView<WishlistScope> {
 
 ### Step 3 — Register the view in the catalog
 
-In `StoreTeaVMApplication.java`, add the view to `SCOPE_VIEWS` (handed to the application with `setScopeViews` in the constructor):
+In `StoreTeaVMApplication.java`, add the view to the `VIEWS` catalog (scope class → view factory):
 
 ```java
-private static final ScopeViews SCOPE_VIEWS = new ScopeViews()
-        // ... existing views ...
-        .register(WishlistScope.class, WishlistView::new);
+static {
+    // ... existing views ...
+    VIEWS.put(WishlistScope.class, (app, s) -> new WishlistView(app, (WishlistScope) s));
+}
 ```
 
-This connects the scope to the view: the presenter only hands the scope to its parent (`ownerSlot.setScope(this.scope)`), and the parent's view asks for this scope's view with `app.viewOf(scope.content.get())` — the application creates it the first time, using the registered factory.
+This connects the scope to the view: the presenter only hands the scope to its parent (`ownerSlot.setScope(this.scope)`), and the parent's view asks for this scope's view with its own `viewOf(scope.content.get())` while it draws — the application creates it the first time, using the registered factory, and installs it as the scope's updater. When the parent draws without it, the view is released (its element leaves the DOM); the presenter takes no part.
 
 ### Step 4 — Styles
 
@@ -141,7 +142,7 @@ this.shared.onBuy = () -> safeAction("Buy", scope.onBuy::run);
 
 ### Child views
 
-A segment or list row with a scope of its own has its own view. The parent gets its element with `app.viewOf(scope)` and mounts it with `VNode.slot(element)` — see `HomeView` (panels) and `CartView` (rows).
+A segment or list row with a scope of its own has its own view. The parent gets it with its own `viewOf(scope)` while it draws and mounts its element with `VNode.slot(element)` — see `HomeView` (panels) and `CartView` (rows). A child view the parent did not ask for in a drawing (a row removed from the list) is released once no view holds it, with the views it held in turn.
 
 ### Direct Access to the Scope
 

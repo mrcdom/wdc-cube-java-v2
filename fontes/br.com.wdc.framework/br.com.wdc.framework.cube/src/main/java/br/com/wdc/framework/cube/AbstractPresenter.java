@@ -9,8 +9,8 @@ import br.com.wdc.framework.commons.function.ThrowingConsumer;
 import br.com.wdc.framework.commons.function.ThrowingRunnable;
 
 /**
- * What every presenter has: the application, the bound scope and the guarded actions. The presenter never makes a
- * view: the view layer draws its scope with the view its catalog pairs with the scope class ({@link ScopeViews}).
+ * What every presenter has: the application, the bound scope and the guarded actions. The presenter only makes scopes:
+ * drawing them, and letting go of what drew them once they leave, is up to the rendering technology.
  * <p>
  * An action is bound once, usually in the constructor, into a field of the scope
  * ({@code scope.onBuy = action(this::buy)}). The guard catches whatever the body did not handle and hands it to
@@ -29,7 +29,7 @@ public abstract class AbstractPresenter<A extends CubeApplication> implements Pr
     /** The actions a remote client fires, by event code. */
     private final Map<Integer, Consumer<Map<String, Object>>> events = new HashMap<>();
 
-    /** The scope bound to this presenter ({@link #bind}): the segments and rows inside it are released with it. */
+    /** The scope bound to this presenter ({@link #bind}). */
     private Scope scope;
 
     protected AbstractPresenter(A app) {
@@ -38,7 +38,7 @@ public abstract class AbstractPresenter<A extends CubeApplication> implements Pr
 
     /**
      * Ties the scope to this presenter: the actions it binds with an event code are dispatched by the scope's
-     * skeleton, and the scope's view (and those inside it) are released with it. Used on the field:
+     * skeleton. Used on the field:
      * {@code public final CartScope scope = bind(new CartScope());}
      */
     protected final <S extends Scope> S bind(S scope) {
@@ -56,14 +56,6 @@ public abstract class AbstractPresenter<A extends CubeApplication> implements Pr
     public void update() {
         if (scope != null) {
             scope.update();
-        }
-    }
-
-    @Override
-    public void release() {
-        // The views the view layer made for this presenter's scope and for the segments and rows inside it
-        if (scope != null) {
-            app.releaseView(scope);
         }
     }
 
@@ -147,11 +139,6 @@ public abstract class AbstractPresenter<A extends CubeApplication> implements Pr
         target.onEvent(eventCode, formData -> action.run(first.read(formData), second.read(formData)),
                 target.getClass().getSimpleName());
         return action;
-    }
-
-    /** Releases the view of a segment that left the screen (a row removed from a list). */
-    protected final void detach(Scope segment) {
-        app.releaseView(segment);
     }
 
     /** A failure the action did not handle. */

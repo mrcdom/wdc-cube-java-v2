@@ -4,7 +4,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
-import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.Scope;
 
 /**
@@ -58,10 +57,17 @@ public interface SwtApp {
     }
 
     /**
-     * The view that draws a scope. The local application makes it through its catalog
-     * ({@code CubeApplication.viewOf}); the remote shell already attached it while rebuilding the scope.
+     * The view that draws a scope; {@code null} for none. The local application makes it from its catalog the first
+     * time; the remote shell looks up the view the host referred to when the scope was rebuilt.
      */
-    default CubeView viewOf(Scope scope) {
-        return scope != null ? scope.view() : null;
-    }
+    AbstractViewSwt viewOf(Scope scope);
+
+    /**
+     * No view holds this one any more. The local application releases it; the remote shell waits for the host, which
+     * says which views are gone.
+     */
+    void viewLeft(AbstractViewSwt view);
+
+    /** The view was released: it no longer draws a scope. */
+    void forgetView(AbstractViewSwt view);
 }

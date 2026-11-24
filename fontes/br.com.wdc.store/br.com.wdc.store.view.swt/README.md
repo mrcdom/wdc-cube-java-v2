@@ -9,7 +9,7 @@ It shares the same presentation layer (Cube MVP) with the other views (TeaVM, Re
 graph TD
     Main["StoreSwtMain<br/><small>Entry point: Shell, Display, DB init, session restore</small>"]
     Main --> App["StoreSwtApplication<br/><small>View factory registration<br/>Render loop (Timer 16ms → flushDirtyViews)<br/>Dirty-view tracking (ConcurrentHashMap)<br/>History management (navigation stack)</small>"]
-    App --> Base["AbstractViewSwt<br/><small>Base class for all views (implements CubeView)<br/>performUpdate(): doUpdate() + initial layout<br/>rebuild(): dispose children, reset state<br/>Thread safety via markDirty() → EDT timer flush</small>"]
+    App --> Base["AbstractViewSwt<br/><small>Base class for all views<br/>performUpdate(): doUpdate() + initial layout; releases the held views not asked for<br/>viewOf()/hold(): the views of the scopes it holds<br/>release(): dispose the composite, cascade<br/>rebuild(): dispose children, reset state<br/>Thread safety via markDirty() → EDT timer flush</small>"]
     Base --> Impl["impl/<br/><small>ViewSwt implementations</small>"]
     Base --> Components["components/<br/><small>Custom widgets</small>"]
     Base --> Util["util/<br/><small>Helpers</small>"]
@@ -40,7 +40,7 @@ The module is an aggregator of two Maven modules that share the package `br.com.
 graph TD
     subgraph Desktop["swt.desktop"]
         main["StoreSwtMain.java<br/><small>Entry point, DB init, event loop</small>"]
-        app["StoreSwtApplication.java<br/><small>App lifecycle, ScopeViews catalog, render timer</small>"]
+        app["StoreSwtApplication.java<br/><small>App lifecycle, view catalog and live views, render timer</small>"]
     end
 
     subgraph Commons["swt.commons"]
@@ -55,6 +55,10 @@ graph TD
 
     Desktop --> Commons
 ```
+
+### Views of the held scopes
+
+`SwtApp` is the contract the views share with the two applications that run them: `viewOf(scope)` gives the view that draws a scope, `viewLeft(view)` is told when no view holds a view any more, and `forgetView(view)` when one is released. A view asks for the views of the scopes it holds with its own `viewOf(...)` (or takes one it already has with `hold(...)`, like the cart's `rowViews`) while it draws; after `performUpdate()`, the held views it did not ask for are let go. `StoreSwtApplication` (local) releases a view no one holds: its updater is taken back (`scope.clearUpdater`) and its composite is disposed on the UI thread, with the views it held in turn. The remote shell waits for the host instead, which says which views are gone (`releasedViews`). The presenters never release a view.
 
 ## Main Dependencies
 
