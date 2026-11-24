@@ -9,27 +9,27 @@ import br.com.wdc.store.domain.product.Product;
 import br.com.wdc.store.domain.purchase.Purchase;
 import br.com.wdc.store.domain.purchaseitem.PurchaseItem;
 import br.com.wdc.store.domain.user.User;
-import br.com.wdc.store.presentation.StoreSave;
+import br.com.wdc.store.presentation.StoreCreate;
 import br.com.wdc.store.presentation.presenter.restricted.cart.structs.CartItem;
 
 /** Records the purchase of the items; answers its id. */
-public class PurchaseSave extends StoreSave<Long> {
+public class PurchaseCreate extends StoreCreate<Long> {
 
     private Long userId;
     private List<CartItem> items = List.of();
 
-    public PurchaseSave withUserId(Long userId) {
+    public PurchaseCreate withUserId(Long userId) {
         this.userId = userId;
         return this;
     }
 
-    public PurchaseSave withItems(List<CartItem> items) {
+    public PurchaseCreate withItems(List<CartItem> items) {
         this.items = items;
         return this;
     }
 
     @Override
-    protected Long save() {
+    protected Long create() {
         var purchase = new Purchase()
                 .withUser(new User()
                         .withId(userId))

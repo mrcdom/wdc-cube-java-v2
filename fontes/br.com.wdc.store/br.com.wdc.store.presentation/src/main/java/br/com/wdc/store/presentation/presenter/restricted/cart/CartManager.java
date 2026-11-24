@@ -10,7 +10,7 @@ import java.util.Map;
 import br.com.wdc.framework.commons.function.ThrowingRunnable;
 import br.com.wdc.store.domain.exception.InvalidCartItemException;
 import br.com.wdc.store.presentation.presenter.open.login.structs.Subject;
-import br.com.wdc.store.presentation.presenter.restricted.cart.calls.PurchaseSave;
+import br.com.wdc.store.presentation.presenter.restricted.cart.calls.PurchaseCreate;
 import br.com.wdc.store.presentation.presenter.restricted.cart.structs.CartItem;
 import br.com.wdc.store.presentation.presenter.restricted.products.structs.ProductInfo;
 
@@ -144,7 +144,7 @@ public class CartManager {
     }
 
     public Long commit(Subject subject) throws InvalidCartItemException {
-        var purchaseId = new PurchaseSave()
+        var purchaseId = new PurchaseCreate()
                 .withUserId(subject.getId())
                 .withItems(this.cart)
                 .run();

@@ -110,7 +110,7 @@ graph TD
 |--------|-----------|
 | **domain** | One package per entity (`product`, `user`, `purchase`, `purchaseitem`), each with the fluent entity, its `Criterion`-based criteria, codec and repository interface; `InvalidCartItemException`, `Role` (RBAC permissions), `StoreConfig`, `StoreTransactions` |
 | **persistence** | Groups `persistence.impl` — **jOOQ** implementation (type-safe DSL, classes generated in `br.com.wdc.store.persistence.impl.scheme.*` from the H2 schema), `*RepositoryImpl` classes that obtain the `DSLContext` via `StoreDSLContext.BEAN`, the framework's JSON query helpers, `StoreRepositoryBootstrap` for wiring —, `persistence.rest` (Javalin API; authorization and the `userId` scope restriction via `SecurityEnforcer`) and `persistence.client` (HTTP repositories over OkHttp) |
-| **presentation** | `StoreApplication` (subject, cart, `PLACES`), presenter hierarchy (Root → Open/Restricted guards → Login \| Home → Product/Cart/Receipt, with the Products/Purchases panels as segments of Home), scopes with observed `Prop`s, calls (`XxxQuery`/`XxxSave`, `CredentialsCheck`) over the repositories, `CartManager`, places with `XxxKeys` and navigation by intents |
+| **presentation** | `StoreApplication` (subject, cart, `PLACES`), presenter hierarchy (Root → Open/Restricted guards → Login \| Home → Product/Cart/Receipt, with the Products/Purchases panels as segments of Home), scopes with observed `Prop`s, calls named by verb (`XxxQuery`, `XxxCreate`/`XxxSave`/`XxxUpdate`/`XxxDelete`, or a verb of their own like `CredentialsCheck`) over the repositories, `CartManager`, places with `XxxKeys` and navigation by intents |
 
 ### Store — Frontend (View Implementations)
 

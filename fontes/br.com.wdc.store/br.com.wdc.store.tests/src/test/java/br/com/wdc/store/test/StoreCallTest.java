@@ -22,7 +22,7 @@ import br.com.wdc.store.domain.purchaseitem.PurchaseItem;
 import br.com.wdc.store.domain.purchaseitem.PurchaseItemCriteria;
 import br.com.wdc.store.domain.purchaseitem.PurchaseItemRepository;
 import br.com.wdc.store.domain.user.User;
-import br.com.wdc.store.presentation.StoreSave;
+import br.com.wdc.store.presentation.StoreCreate;
 import br.com.wdc.store.presentation.presenter.open.login.calls.CredentialsCheck;
 import br.com.wdc.store.presentation.presenter.restricted.home.calls.PurchasesPageQuery;
 import br.com.wdc.store.presentation.presenter.restricted.home.structs.PurchaseInfo;
@@ -234,13 +234,13 @@ public class StoreCallTest extends BaseBusinessTest {
     }
 
     @Test
-    public void aSaveThatFails_leavesNothingBehind() {
+    public void aWriteThatFails_leavesNothingBehind() {
         var before = PurchaseRepository.BEAN.get().count(new PurchaseCriteria());
 
-        // Writes and only then fails: the transaction the StoreSave opened is rolled back
-        var failingSave = new StoreSave<Long>() {
+        // Writes and only then fails: the transaction the StoreCreate opened is rolled back
+        var failingCreate = new StoreCreate<Long>() {
             @Override
-            protected Long save() {
+            protected Long create() {
                 purchaseRepository().insert(new Purchase()
                         .withUser(new User()
                                 .withId(DBReset.ADMIN_ID))
@@ -250,7 +250,7 @@ public class StoreCallTest extends BaseBusinessTest {
             }
         };
 
-        Assert.assertThrows(IllegalStateException.class, failingSave::run);
+        Assert.assertThrows(IllegalStateException.class, failingCreate::run);
         Assert.assertEquals("nothing written", before, PurchaseRepository.BEAN.get().count(new PurchaseCriteria()));
     }
 

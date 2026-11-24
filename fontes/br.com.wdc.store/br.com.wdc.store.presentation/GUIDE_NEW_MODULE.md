@@ -126,7 +126,7 @@ public class WishlistPresenter extends AbstractCubePresenter<StoreApplication> {
 
 ### 1.4 Create the calls (optional)
 
-Each operation on the repositories is a class in `calls/`: the request accumulates in fluent `withXxx(...)` setters and `run()` answers it. A read is `XxxQuery extends StoreQuery<R>`; a write is `XxxSave extends StoreSave<R>`, which implements `save()` — the base class's `run()` opens the transaction. The root `StoreCall<R>` provides the protected accessors to the repositories (add the one for a new repository there, such as `wishlistRepository()`).
+Each operation on the repositories is a class in `calls/`: the request accumulates in fluent `withXxx(...)` setters and `run()` answers it. The suffix is a verb, as in the HTTP methods: a read is `XxxQuery extends StoreQuery<R>`; a write extends the verb that fits it — `StoreCreate` (`create()`, a new record), `StoreSave` (`save()`, the record whole), `StoreUpdate` (`update()`, some fields) or `StoreDelete` (`delete()`) — and the base class's `run()` opens the transaction. The verbs and their guarantees are in the [presentation README](README.md#calls). The root `StoreCall<R>` provides the protected accessors to the repositories (add the one for a new repository there, such as `wishlistRepository()`).
 
 ```java
 package br.com.wdc.store.presentation.presenter.restricted.wishlist.calls;
@@ -349,7 +349,7 @@ And in the frontend, add a button or link that emits the corresponding event.
 - [ ] **Presentation**
   - [ ] Create `WishlistScope extends Scope` (`Prop` fields, created with `prop(...)`)
   - [ ] Create `WishlistPresenter extends AbstractCubePresenter<StoreApplication>`
-  - [ ] Create the calls in `calls/` (`XxxQuery extends StoreQuery<R>`, `XxxSave extends StoreSave<R>`) if you need data
+  - [ ] Create the calls in `calls/` (`XxxQuery extends StoreQuery<R>`, or the write verb: `XxxCreate`/`XxxSave`/`XxxUpdate`/`XxxDelete`) if you need data
   - [ ] Create DTOs in `structs/` with `projection()` + `create()`
   - [ ] Create `WishlistKeys extends HomeKeys` (unique prefix, `PLACE = HomeKeys.PLACE.child(...)`)
   - [ ] Register `WishlistKeys.PLACE` in `StoreApplication.PLACES`

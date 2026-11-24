@@ -1,26 +1,21 @@
 package br.com.wdc.store.presentation;
 
-import br.com.wdc.framework.domain.transaction.TransactionService;
-import br.com.wdc.store.domain.StoreTransactions;
-
 /**
- * A write: {@link #run()} opens the transaction (or joins the caller's) and does the work in {@link #save()}, so no
- * write goes out of one.
+ * Writes a record whole, creating it or replacing it: idempotent, the same request twice leaves the same state.
+ * <p>
+ * The {@code PUT} of the calls. {@link #run()} opens the transaction (or joins the caller's) and calls
+ * {@link #save()}.
  *
  * @param <R> the answer of {@link #run()}
  */
-public abstract class StoreSave<R> extends StoreCall<R> {
+public abstract class StoreSave<R> extends StoreWrite<R> {
 
     @Override
-    public final R run() {
-        return tx().requiredCall(tx -> save());
+    final R write() {
+        return save();
     }
 
-    /** The write itself, inside the transaction. */
+    /** Writes the record whole, inside the transaction. */
     protected abstract R save();
-
-    private static TransactionService tx() {
-        return StoreTransactions.BEAN.get();
-    }
 
 }
