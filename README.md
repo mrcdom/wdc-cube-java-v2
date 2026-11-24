@@ -1,6 +1,6 @@
 # WDC Cube Java v2
 
-An architectural proposal for building applications with the **Cube MVP** pattern — a variation of Model-View-Presenter with hierarchical presenters, intent-based navigation and serialization of view state.
+An architectural proposal for building applications with the **Cube MVP** pattern — a variation of Model-View-Presenter with hierarchical presenters, intent-based navigation and serializable scopes (the view state each presenter publishes).
 
 This project serves as an **architectural reference** for new projects, demonstrating the complete implementation of an e-commerce system (WDC Store) with a Java backend and **five independent frontend implementations** — React (web/remote), Flutter (mobile/desktop/remote web), Vaadin (web/server-side), SWT (native desktop) and TeaVM (web/desktop/Android/iOS via Tauri) — proving that the view layer is fully decoupled from the presentation logic.
 
@@ -373,7 +373,7 @@ graph TD
     Home --> Receipt["ReceiptPresenter"]
 ```
 
-Each presenter has a serializable **Scope** that is sent to the frontend over WebSocket. The frontend renders based on the received state and sends events back to the corresponding presenter.
+Each presenter has a serializable **Scope** that is sent to the frontend over WebSocket. The frontend renders the received scope and sends events back to the corresponding presenter.
 
 ## Naming Conventions
 

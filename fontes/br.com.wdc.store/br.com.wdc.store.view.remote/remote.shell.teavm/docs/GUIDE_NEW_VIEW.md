@@ -172,7 +172,7 @@ public class WishlistView extends AbstractRemoteView {
     private final WishlistSharedView shared;
     private final WishlistScope adaptedScope = new WishlistScope();
 
-    // 3. Constructor — receives the vsid (view-state ID) and binds the shared view
+    // 3. Constructor — receives the vsid (the view's instanceId) and binds the shared view
     public WishlistView(String vsid) {
         super(vsid);
 
