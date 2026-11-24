@@ -10,10 +10,10 @@ import br.com.wdc.store.domain.user.UserRepository;
  * and {@link #run()} answers it. A new instance per use: {@code new ProductQuery().withProductId(id).run()}.
  * <p>
  * What it does names it: a read is an {@code XxxQuery} ({@link StoreQuery}), a write an {@code XxxSave}
- * ({@link StoreSave}), and what is neither stays an {@code XxxCall} (the login, which authenticates). Each module
- * keeps them in a {@code calls} package, sibling of {@code structs}. The answer is a type that already exists; or a
- * struct of the module, when others use it too; or an inner class of the call, when it only carries this call's answer
- * back to the caller.
+ * ({@link StoreSave}), and what is neither gets a suffix of its own that says what it does and extends this class
+ * directly ({@code CredentialsCheck}, which authenticates the login). Each module keeps them in a {@code calls}
+ * package, sibling of {@code structs}. The answer is a type that already exists; or a struct of the module, when
+ * others use it too; or an inner class of the call, when it only carries this call's answer back to the caller.
  *
  * @param <R> the answer of {@link #run()}
  */

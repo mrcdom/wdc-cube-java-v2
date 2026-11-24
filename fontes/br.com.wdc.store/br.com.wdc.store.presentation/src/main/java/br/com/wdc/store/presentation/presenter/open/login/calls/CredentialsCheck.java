@@ -8,7 +8,7 @@ import br.com.wdc.store.presentation.StoreCall;
 import br.com.wdc.store.presentation.presenter.open.login.structs.Subject;
 
 /** Authenticates the user; {@code null} if the credentials are invalid. */
-public class LoginCall extends StoreCall<LoginCall.Result> {
+public class CredentialsCheck extends StoreCall<CredentialsCheck.Result> {
 
     /**
      * Result of a successful authentication.
@@ -22,12 +22,12 @@ public class LoginCall extends StoreCall<LoginCall.Result> {
     private String userName;
     private String password;
 
-    public LoginCall withUserName(String userName) {
+    public CredentialsCheck withUserName(String userName) {
         this.userName = userName;
         return this;
     }
 
-    public LoginCall withPassword(String password) {
+    public CredentialsCheck withPassword(String password) {
         this.password = password;
         return this;
     }

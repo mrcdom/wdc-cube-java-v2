@@ -23,7 +23,7 @@ import br.com.wdc.store.domain.purchaseitem.PurchaseItemCriteria;
 import br.com.wdc.store.domain.purchaseitem.PurchaseItemRepository;
 import br.com.wdc.store.domain.user.User;
 import br.com.wdc.store.presentation.StoreSave;
-import br.com.wdc.store.presentation.presenter.open.login.calls.LoginCall;
+import br.com.wdc.store.presentation.presenter.open.login.calls.CredentialsCheck;
 import br.com.wdc.store.presentation.presenter.restricted.home.calls.PurchasesPageQuery;
 import br.com.wdc.store.presentation.presenter.restricted.home.structs.PurchaseInfo;
 import br.com.wdc.store.presentation.presenter.restricted.products.calls.ProductQuery;
@@ -105,7 +105,7 @@ public class StoreCallTest extends BaseBusinessTest {
     public void login_wrongPassword_isRejected() {
         // The password is not a criteria field: the login checks it, and this is the level where the pair
         // "accepts the right one / rejects the wrong one" must be guaranteed.
-        var result = new LoginCall()
+        var result = new CredentialsCheck()
                 .withUserName("admin")
                 .withPassword("wrong-password")
                 .run();
@@ -115,7 +115,7 @@ public class StoreCallTest extends BaseBusinessTest {
 
     @Test
     public void login_unknownUser_isRejected() {
-        var result = new LoginCall()
+        var result = new CredentialsCheck()
                 .withUserName("nobody")
                 .withPassword("admin")
                 .run();
@@ -125,7 +125,7 @@ public class StoreCallTest extends BaseBusinessTest {
 
     @Test
     public void test() {
-        var result = new LoginCall()
+        var result = new CredentialsCheck()
                 .withUserName("admin")
                 .withPassword("admin")
                 .run();

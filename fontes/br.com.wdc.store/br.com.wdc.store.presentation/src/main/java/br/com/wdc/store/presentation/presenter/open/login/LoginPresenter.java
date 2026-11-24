@@ -10,7 +10,7 @@ import br.com.wdc.framework.domain.exception.AccessDeniedException;
 import br.com.wdc.framework.domain.exception.OfflineException;
 import br.com.wdc.store.presentation.StoreApplication;
 import br.com.wdc.store.presentation.StorageKeys;
-import br.com.wdc.store.presentation.presenter.open.login.calls.LoginCall;
+import br.com.wdc.store.presentation.presenter.open.login.calls.CredentialsCheck;
 import br.com.wdc.store.presentation.presenter.restricted.home.HomeKeys;
 
 public class LoginPresenter extends AbstractCubePresenter<StoreApplication> {
@@ -104,7 +104,7 @@ public class LoginPresenter extends AbstractCubePresenter<StoreApplication> {
         }
 
         try {
-            var result = new LoginCall()
+            var result = new CredentialsCheck()
                     .withUserName(userName)
                     .withPassword(password)
                     .run();
