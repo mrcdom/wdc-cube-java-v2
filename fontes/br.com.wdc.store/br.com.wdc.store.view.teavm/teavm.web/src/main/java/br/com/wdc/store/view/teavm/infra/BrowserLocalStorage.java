@@ -61,6 +61,8 @@ public class BrowserLocalStorage implements ClientStorage {
             String rawKey = jsKey(i);
             if (rawKey == null || !rawKey.startsWith(keyPrefix)) continue;
             String shortKey = rawKey.substring(keyPrefix.length());
+            // The sec.* keys are the encrypted secure view's (EncryptedLocalStorage), not plain values
+            if (shortKey.startsWith("sec.")) continue;
             String v = jsGet(rawKey);
             if (v != null) result.put(shortKey, v);
         }
