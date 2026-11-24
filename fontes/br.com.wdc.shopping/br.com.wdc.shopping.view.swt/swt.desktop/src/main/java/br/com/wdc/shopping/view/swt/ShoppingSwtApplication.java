@@ -22,6 +22,7 @@ import br.com.wdc.framework.cube.CubePresenter;
 import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.ScopeViews;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
+import br.com.wdc.shopping.presentation.presenter.RootKeys;
 import br.com.wdc.shopping.presentation.presenter.RootScope;
 import br.com.wdc.shopping.presentation.presenter.open.login.LoginScope;
 import br.com.wdc.shopping.presentation.presenter.open.login.structs.Subject;
@@ -218,14 +219,24 @@ public class ShoppingSwtApplication extends ShoppingApplication implements SwtAp
 			this.presenterLock.lock();
 			try {
 				action.run();
+			} catch (RuntimeException caught) {
+				this.onActionError("presenter action", caught);
 			} finally {
 				this.presenterLock.unlock();
 			}
 		});
 	}
 	
+	/** Goes to the address; one that no longer opens (a receipt from a reset database) falls back to the root. */
 	public void safeGo(String intent) {
-		this.runPresenterAction(() -> this.go(intent));
+		this.runPresenterAction(() -> {
+			try {
+				this.go(intent);
+			} catch (RuntimeException caught) {
+				LOG.warn("Could not open " + intent + ": " + caught + "; going to the root");
+				new RootKeys(this).flip();
+			}
+		});
 	}
 
 	public void start() {

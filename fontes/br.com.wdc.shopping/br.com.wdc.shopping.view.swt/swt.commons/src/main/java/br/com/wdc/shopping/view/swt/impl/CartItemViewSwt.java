@@ -52,31 +52,39 @@ public class CartItemViewSwt extends AbstractViewSwt {
 
     @Override
     public void doUpdate() {
+        var changed = false;
         if (this.notRendered) {
             initialRender();
             this.notRendered = false;
+            changed = true;
         }
 
         var row = this.stateSupplier != null ? this.stateSupplier.get() : null;
-        if (row == null) {
-            return;
+        if (row != null) {
+            var name = row.name.get() != null ? row.name.get() : "";
+            if (!name.equals(this.nameToDraw)) {
+                this.nameToDraw = name;
+                this.nameCanvas.redraw();
+            }
+
+            var qtyText = String.valueOf(quantity());
+            if (!qtyText.equals(this.qtyLabel.getText())) {
+                this.qtyLabel.setText(qtyText);
+                changed = true;
+            }
+
+            var price = row.price.get() != null ? row.price.get() : 0.0;
+            var priceText = Theme.formatPrice(price * quantity());
+            if (!priceText.equals(this.priceLabel.getText())) {
+                this.priceLabel.setText(priceText);
+                changed = true;
+            }
         }
 
-        var name = row.name.get() != null ? row.name.get() : "";
-        if (!name.equals(this.nameToDraw)) {
-            this.nameToDraw = name;
-            this.nameCanvas.redraw();
-        }
-
-        var qtyText = String.valueOf(quantity());
-        if (!qtyText.equals(this.qtyLabel.getText())) {
-            this.qtyLabel.setText(qtyText);
-        }
-
-        var price = row.price.get() != null ? row.price.get() : 0.0;
-        var priceText = Theme.formatPrice(price * quantity());
-        if (!priceText.equals(this.priceLabel.getText())) {
-            this.priceLabel.setText(priceText);
+        // The cart may have placed this row in its list before the row drew itself (an empty row measures zero):
+        // whatever changed the row's size, its ancestors lay out again
+        if (changed) {
+            this.element.requestLayout();
         }
     }
 
@@ -101,7 +109,10 @@ public class CartItemViewSwt extends AbstractViewSwt {
                 rowLayout.horizontalSpacing = 8;
 
                 this.nameCanvas = dom.canvas(SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND, canvas -> {
-                    canvas.setLayoutData(gdFillH(new GridData()));
+                    // A canvas has no natural height (it would measure 64): the row is as tall as its buttons
+                    var nameGd = gdFillH(new GridData());
+                    nameGd.heightHint = 30;
+                    canvas.setLayoutData(nameGd);
                     canvas.addPaintListener(e -> {
                         var gc = e.gc;
                         var bounds = canvas.getClientArea();

@@ -1,6 +1,7 @@
 package br.com.wdc.shopping.view.swt;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
@@ -14,6 +15,9 @@ public abstract class AbstractViewSwt implements CubeView {
 
     private static final Log LOG = Log.getLogger(AbstractViewSwt.class);
 
+    /** Numbers every view: a scope type can have many views at once (the cart's rows). */
+    private static final AtomicLong SEQUENCE = new AtomicLong();
+
     protected final String instanceId;
     protected final SwtApp app;
     protected final Composite element;
@@ -21,12 +25,13 @@ public abstract class AbstractViewSwt implements CubeView {
     long dirtyTimestamp;
     private boolean needsInitialLayout = true;
 
-    protected AbstractViewSwt(String instanceId, SwtApp app) {
-        this(instanceId, app, new Composite(app.getOffscreen(), SWT.NONE));
+    /** @param name the view's kind (e.g. {@code "cart-item"}); the instance id adds a number unique to this view */
+    protected AbstractViewSwt(String name, SwtApp app) {
+        this(name, app, new Composite(app.getOffscreen(), SWT.NONE));
     }
 
-    protected AbstractViewSwt(String instanceId, SwtApp app, Composite element) {
-        this.instanceId = instanceId;
+    protected AbstractViewSwt(String name, SwtApp app, Composite element) {
+        this.instanceId = name + ":" + SEQUENCE.incrementAndGet();
         this.app = app;
         this.element = element;
     }
