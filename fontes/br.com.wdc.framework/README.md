@@ -52,7 +52,7 @@ JAVA_HOME=$JAVA25_HOME mvn clean install
 
 ## Publishing to Maven Central
 
-The modules are published as `io.github.mrcdom.wdc.java:framework-*` (namespace `io.github.mrcdom`, verified through the GitHub account). `framework-parent` does not inherit from the root pom, so framework consumers resolve only this tree, without the demos (`br.com.wdc.shopping`, `br.com.wdc.cube.backend`).
+The modules are published as `io.github.mrcdom.wdc.java:framework-*` (namespace `io.github.mrcdom`, verified through the GitHub account). `framework-parent` does not inherit from the root pom, so framework consumers resolve only this tree, without the demos (`br.com.wdc.store`, `br.com.wdc.cube.backend`).
 
 ```xml
 <dependencyManagement>

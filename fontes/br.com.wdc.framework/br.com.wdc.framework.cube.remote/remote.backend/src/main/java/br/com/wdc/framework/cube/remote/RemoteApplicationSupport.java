@@ -32,7 +32,7 @@ import io.javalin.websocket.WsContext;
 /**
  * Reusable implementation of the {@link RemoteApplication} contract.
  * <p>
- * Concrete application classes (e.g., ShoppingApplicationImpl) delegate
+ * Concrete application classes (e.g., StoreApplicationImpl) delegate
  * all remote infrastructure to an instance of this class.
  * <p>
  * This class manages: WebSocket session, dirty view tracking, flush logic,

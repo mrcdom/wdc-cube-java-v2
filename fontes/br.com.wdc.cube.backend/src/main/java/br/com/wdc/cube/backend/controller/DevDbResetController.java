@@ -3,8 +3,8 @@ package br.com.wdc.cube.backend.controller;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.log.Log;
-import br.com.wdc.shopping.persistence.impl.ShoppingDSLContext;
-import br.com.wdc.shopping.scripts.sgbd.DBCreate;
+import br.com.wdc.store.persistence.impl.StoreDSLContext;
+import br.com.wdc.store.scripts.sgbd.DBCreate;
 import io.javalin.config.JavalinConfig;
 
 /**
@@ -30,7 +30,7 @@ public class DevDbResetController {
         config.routes.post("/__dev/db-reset", ctx -> {
             LOG.info("[DevDbReset] Resetting database...");
             // Connection obtained from the module's DSLContext (no global DataSource holder).
-            ShoppingDSLContext.BEAN.get().connection(connection ->
+            StoreDSLContext.BEAN.get().connection(connection ->
                     new DBCreate()
                             .withConnection(connection)
                             .withReset()

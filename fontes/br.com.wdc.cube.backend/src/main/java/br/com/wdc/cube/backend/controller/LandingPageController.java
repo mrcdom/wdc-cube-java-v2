@@ -6,7 +6,7 @@ import java.nio.file.Path;
 import java.util.stream.Stream;
 
 import br.com.wdc.framework.commons.log.Log;
-import br.com.wdc.shopping.domain.ShoppingConfig;
+import br.com.wdc.store.domain.StoreConfig;
 import io.javalin.config.JavalinConfig;
 import io.javalin.http.Context;
 
@@ -26,7 +26,7 @@ public class LandingPageController {
     }
 
     private void handle(Context ctx) {
-        Path frontendBase = ShoppingConfig.getBaseDir().resolve("frontend");
+        Path frontendBase = StoreConfig.getBaseDir().resolve("frontend");
         var html = new StringBuilder();
 
         html.append("""

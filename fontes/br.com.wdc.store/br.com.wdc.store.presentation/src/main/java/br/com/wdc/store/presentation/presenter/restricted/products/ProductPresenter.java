@@ -1,0 +1,124 @@
+package br.com.wdc.store.presentation.presenter.restricted.products;
+
+import java.util.Objects;
+
+import br.com.wdc.framework.commons.log.Log;
+import br.com.wdc.framework.cube.AbstractCubePresenter;
+import br.com.wdc.framework.cube.CubeIntent;
+import br.com.wdc.framework.cube.FormParam;
+import br.com.wdc.framework.cube.ScopeSlot;
+import br.com.wdc.framework.domain.exception.OfflineException;
+import br.com.wdc.store.presentation.StoreApplication;
+import br.com.wdc.store.presentation.presenter.restricted.cart.CartKeys;
+import br.com.wdc.store.presentation.presenter.restricted.home.HomeKeys;
+import br.com.wdc.store.presentation.presenter.restricted.products.calls.ProductQuery;
+
+public class ProductPresenter extends AbstractCubePresenter<StoreApplication> {
+
+    // :: Private Class Fields
+
+    private static final Log LOG = Log.getLogger(ProductPresenter.class);
+
+    // :: Public Instance Fields
+
+    public final ProductScope state = bind(new ProductScope());
+
+    // :: Internal Instance Fields
+
+    private ScopeSlot ownerSlot;
+
+    // Constructor
+
+    public ProductPresenter(StoreApplication app) {
+        super(app);
+        this.state.onOpenProducts = action(1, () -> new HomeKeys(this.app).flip());
+        this.state.onAddToCart = actionOf(2, FormParam.asInteger("p.quantity"), this::addToCart);
+    }
+
+    // :: Cube API
+
+    @Override
+    public boolean applyParameters(CubeIntent intent, boolean initialization, boolean deepest) {
+        var keys = new ProductKeys(this.app, intent);
+        var oldProductId = this.state.product.get() != null ? this.state.product.get().id : null;
+
+        var newProductId = keys.productId() != null ? keys.productId() : oldProductId;
+        if (newProductId == null) {
+            // No usable id in the address: nothing to show; go to the home, with the intent in transit
+            new HomeKeys(this.app, intent).flip();
+            return false;
+        }
+
+        if (this.state.product.get() == null || !Objects.equals(newProductId, oldProductId)) {
+            var product = new ProductQuery()
+                    .withProductId(newProductId)
+                    .run();
+            this.state.product.set(product);
+        }
+
+        // Read on every call: a reused presenter goes where its parent puts it now, not where it was first put
+        this.ownerSlot = keys.parentSlot();
+        if (initialization) {
+
+            this.state.errorCode.set(0);
+            this.state.errorMessage.set(null);
+            if (this.state.product.get() == null) {
+                throw new AssertionError("Missing Product");
+            }
+            this.update();
+        }
+
+        this.ownerSlot.setScope(this.state);
+
+        return true;
+    }
+
+    @Override
+    public void publishParameters(CubeIntent intent) {
+        new ProductKeys(this.app, intent)
+                .withProductId(this.state.product.get() != null ? this.state.product.get().id : null);
+    }
+
+    // :: User Actions
+
+    private void addToCart(Integer quantity) {
+        if (quantity == null) {
+            this.errorInvalidQuantity();
+            LOG.warn("addToCart.errorInvalidQuantity: {}", this.state.errorMessage.get());
+            return;
+        }
+
+        if (quantity < 1) {
+            this.alertCartItemWidthLessThanOneItem();
+            LOG.warn("addToCart.alertCartItemWidthLessThanOneItem: {}", this.state.errorMessage.get());
+            return;
+        }
+
+        try {
+            app.getCart().addProduct(this.state.product.get(), quantity);
+
+            new CartKeys(this.app).flip();
+        } catch (OfflineException caught) {
+            this.alertDatabaseNotAvailable();
+            LOG.error(this.state.errorMessage.get(), caught);
+        }
+    }
+
+    // :: Messages
+
+    private void alertDatabaseNotAvailable() {
+        this.state.errorCode.set(1);
+        this.state.errorMessage.set("Cart unavailable. Please wait a moment and try again.");
+    }
+
+    private void alertCartItemWidthLessThanOneItem() {
+        this.state.errorCode.set(2);
+        this.state.errorMessage.set("The quantity of items in the cart must be at least 1 (one).");
+    }
+
+    private void errorInvalidQuantity() {
+        this.state.errorCode.set(3);
+        this.state.errorMessage.set("Invalid quantity encoding.");
+    }
+
+}

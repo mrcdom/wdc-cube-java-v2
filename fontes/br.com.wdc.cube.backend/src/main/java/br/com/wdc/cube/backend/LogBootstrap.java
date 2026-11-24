@@ -20,7 +20,7 @@ import ch.qos.logback.core.joran.spi.JoranException;
  * </p>
  * <ol>
  * <li>Locates {@code application.toml} via the system property
- * {@code shopping.config.file} or the default {@code config/application.toml}</li>
+ * {@code store.config.file} or the default {@code config/application.toml}</li>
  * <li>Reads {@code app.basedir} (required) and resolves it relative to the file's location</li>
  * </ol>
  *
@@ -34,7 +34,7 @@ final class LogBootstrap {
 
     private static final System.Logger BOOTSTRAP_LOG = System.getLogger(LogBootstrap.class.getName());
 
-    private static final String CONFIG_FILE_PROPERTY = "shopping.config.file";
+    private static final String CONFIG_FILE_PROPERTY = "store.config.file";
     private static final String DEFAULT_CONFIG_PATH = "config/application.toml";
     private static final Pattern BASEDIR_PATTERN = Pattern.compile("^\\s*basedir\\s*=\\s*[\"']([^\"']+)[\"']");
 

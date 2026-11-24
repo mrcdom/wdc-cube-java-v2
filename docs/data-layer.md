@@ -63,10 +63,10 @@ graph TD
 
 ```mermaid
 graph LR
-    domain["shopping.domain<br/><small>Contracts, models, criteria, RBAC</small>"]
-    persistence["shopping.persistence<br/><small>jOOQ + H2 + JsonQuery</small>"]
-    rest["shopping.persistence.rest<br/><small>HTTP endpoints (Javalin)</small>"]
-    client["shopping.persistence.client<br/><small>REST client (HttpTransport)</small>"]
+    domain["store.domain<br/><small>Contracts, models, criteria, RBAC</small>"]
+    persistence["store.persistence<br/><small>jOOQ + H2 + JsonQuery</small>"]
+    rest["store.persistence.rest<br/><small>HTTP endpoints (Javalin)</small>"]
+    client["store.persistence.client<br/><small>REST client (HttpTransport)</small>"]
 
     domain --> persistence
     domain --> client
@@ -276,7 +276,7 @@ domain/
 
   exception/    InvalidCartItemException
   security/     Role
-  ShoppingConfig, ShoppingTransactions
+  StoreConfig, StoreTransactions
 ```
 
 This way, touching an entity means touching a single folder, and a new entity is born as a complete package — instead of four files scattered across four technical packages.
@@ -646,7 +646,7 @@ RestRepositoryBootstrap.initialize(transport, storage);
 ```
 
 Besides the four repositories, it registers the `AuthenticationService` (HMAC challenge-response login
-against the API) and `ShoppingTransactions.BEAN` (`RestTransactionService`, the client-driven remote
+against the API) and `StoreTransactions.BEAN` (`RestTransactionService`, the client-driven remote
 transaction).
 
 ---
@@ -728,8 +728,8 @@ The project solves this with a **programmatic transaction layer in the style of 
 The abstraction lives in `framework.domain.transaction` (pure contract, no technology). The transaction boundary is always the supplied work (a lambda): on normal return it **commits**, on any exception it **rolls back** and rethrows. The `TransactionContext` handed to the work serves to mark rollback and for introspection.
 
 ```java
-// per-module holder, populated by the backend (e.g.: ShoppingTransactions.BEAN.get())
-ShoppingTransactions.BEAN.get().required(tx -> {
+// per-module holder, populated by the backend (e.g.: StoreTransactions.BEAN.get())
+StoreTransactions.BEAN.get().required(tx -> {
     purchaseRepository.insert(purchase);   // purchase + items
     if (businessRuleFailed) {
         tx.setRollbackOnly();              // aborts without throwing an exception
@@ -788,7 +788,7 @@ One principle guides the separation: **the concrete technology (Agroal, Narayana
 
 ### Per-module context (hexagonal)
 
-There is no global holder for `DataSource` or `TransactionService`. Each **module** exposes its holders as an SPI — `ShoppingDSLContext` (DSLContext) and `ShoppingTransactions` (TransactionService) — populated by the **backend (composition root)**, which knows all modules. `TransactionServiceImpl` receives the module's `DataSource` at construction (`Supplier<DataSource>`), so each module has its transaction bound to **its own** database.
+There is no global holder for `DataSource` or `TransactionService`. Each **module** exposes its holders as an SPI — `StoreDSLContext` (DSLContext) and `StoreTransactions` (TransactionService) — populated by the **backend (composition root)**, which knows all modules. `TransactionServiceImpl` receives the module's `DataSource` at construction (`Supplier<DataSource>`), so each module has its transaction bound to **its own** database.
 
 Whether the backend gives two modules the same `DataSource` (shared database) or distinct databases is its decision — **transparent to the module**, which only uses its own holder. The JTA `TransactionManager` remains **single per JVM** (coordinator): it is what lets a transaction span several modules/datasources in XA — that is why it is *not* contextualized per module.
 
@@ -798,11 +798,11 @@ Whether the backend gives two modules the same `DataSource` (shared database) or
 
 The previous section makes atomic a block that runs **inside a boundary**: a use case in the Host, or *one* REST write request (the `transactional` decorator). But what about a frontend that talks to the backend **over HTTP** (React, Flutter — using the `persistence.client` repositories) and needs **several separate REST calls** — insert the purchase, then insert each item — to be atomic? Each HTTP call is its own request, with its own connection on the server; the per-request decorator cannot span them all.
 
-The solution keeps the physical transaction **alive across requests** on the server, identified by a `txId`, while the client demarcates the boundary remotely. The key point: this reuses the **same `TransactionService` contract** — `ShoppingTransactions.BEAN.get().required(...)` works identically in-process (Host) or over HTTP (client). Just like the repositories, **the transaction boundary is symmetric** between the two worlds.
+The solution keeps the physical transaction **alive across requests** on the server, identified by a `txId`, while the client demarcates the boundary remotely. The key point: this reuses the **same `TransactionService` contract** — `StoreTransactions.BEAN.get().required(...)` works identically in-process (Host) or over HTTP (client). Just like the repositories, **the transaction boundary is symmetric** between the two worlds.
 
 ### The client — `RestTransactionService`
 
-On the client, `ShoppingTransactions.BEAN` resolves to `RestTransactionService` (an implementation of `TransactionService` over HTTP, in `persistence.client`). A `required(...)`:
+On the client, `StoreTransactions.BEAN` resolves to `RestTransactionService` (an implementation of `TransactionService` over HTTP, in `persistence.client`). A `required(...)`:
 
 1. does `POST /api/tx/begin` → receives the `txId` and binds it to the thread (`ThreadLocal`);
 2. propagates the `txId` in the **`X-Tx-Id`** header on every repository call in the block (via `HttpTransport.setTransactionIdSupplier`) — the server joins them into the same physical transaction;
@@ -836,7 +836,7 @@ It works in **both modes** of `TransactionScope`: JDBC (keeps a single connectio
 
 The coordinator is a **purely server-side persistence** SPI — that is why it lives in `framework.persistence.transaction`, **not** in `framework.domain`. The presentation layer (the frontends) depends transitively on the domain; exposing a server mechanism there would be a leak. The domain holds only the **demarcation** contract (`TransactionService`/`TransactionContext`), which the use cases do use.
 
-The `RemoteTransactions.COORDINATOR` holder lives in `persistence.rest` (server side), populated by the **composition roots** — `BusinessContext` (backend) and `TestEnvironment` (tests) — bound to the module's `DataSource`. `ShoppingTransactions` (domain) holds only the application's `TransactionService`. It is the same hexagonal principle as the previous section: the neutral contract in the domain, the technology and server-side holders outside it.
+The `RemoteTransactions.COORDINATOR` holder lives in `persistence.rest` (server side), populated by the **composition roots** — `BusinessContext` (backend) and `TestEnvironment` (tests) — bound to the module's `DataSource`. `StoreTransactions` (domain) holds only the application's `TransactionService`. It is the same hexagonal principle as the previous section: the neutral contract in the domain, the technology and server-side holders outside it.
 
 ### Security and lifecycle
 

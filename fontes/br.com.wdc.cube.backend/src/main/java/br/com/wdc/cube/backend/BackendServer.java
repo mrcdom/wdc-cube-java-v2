@@ -23,9 +23,9 @@ import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.log.Slf4jLogFactory;
 import br.com.wdc.framework.commons.util.Defer;
 import br.com.wdc.framework.domain.config.AppConfig;
-import br.com.wdc.shopping.domain.ShoppingConfig;
-import br.com.wdc.shopping.persistence.rest.RepositoryApiRoutes;
-import br.com.wdc.shopping.view.remote.host.RemoteHostBootstrap;
+import br.com.wdc.store.domain.StoreConfig;
+import br.com.wdc.store.persistence.rest.RepositoryApiRoutes;
+import br.com.wdc.store.view.remote.host.RemoteHostBootstrap;
 import io.javalin.Javalin;
 import io.javalin.config.JavalinConfig;
 import io.javalin.http.staticfiles.Location;
@@ -57,7 +57,7 @@ public class BackendServer {
      */
     private static final List<String> DEFAULT_ALLOWED_HOSTS = List.of(
             "tauri://localhost", "https://tauri.localhost", "http://tauri.localhost",
-            "http://localhost:8080", "http://shopping-wdc.localhost:8080");
+            "http://localhost:8080", "http://store-wdc.localhost:8080");
 
     /**
      * Resolved CORS policy. When {@code allowAll} is {@code true} any origin is reflected
@@ -245,7 +245,7 @@ public class BackendServer {
      * access the API without cross-origin issues.
      */
     private void configureFrontendStaticFiles(JavalinConfig config) {
-        Path frontendBase = ShoppingConfig.getBaseDir().resolve("frontend");
+        Path frontendBase = StoreConfig.getBaseDir().resolve("frontend");
         if (!Files.isDirectory(frontendBase)) {
             LOG.info("Frontend directory not found: {} — skipping external static files", frontendBase);
             return;
@@ -307,7 +307,7 @@ public class BackendServer {
      * Entry point for the application.
      */
     public static void doMain(String[] args) {
-        var config = ShoppingConfig.loadConfig();
+        var config = StoreConfig.loadConfig();
         int port = config.getInt("server.port", DEFAULT_PORT);
 
         // Parse port from command line arguments if provided (overrides config)

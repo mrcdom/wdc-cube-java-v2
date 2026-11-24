@@ -10,20 +10,20 @@ import br.com.wdc.framework.domain.security.CryptoProvider;
 import br.com.wdc.framework.domain.security.JceCryptoProvider;
 import br.com.wdc.framework.persistence.transaction.RemoteTransactionCoordinatorImpl;
 import br.com.wdc.framework.persistence.transaction.RemoteTransactionOptions;
-import br.com.wdc.shopping.domain.ShoppingConfig;
-import br.com.wdc.shopping.persistence.impl.ShoppingRepositoryBootstrap;
-import br.com.wdc.shopping.persistence.impl.concurrent.ScheduledExecutorAdapter;
-import br.com.wdc.shopping.persistence.rest.RemoteTransactions;
-import br.com.wdc.shopping.presentation.presenter.open.login.LoginPresenter;
-import br.com.wdc.shopping.scripts.sgbd.DBCreate;
-import br.com.wdc.shopping.view.remote.host.RemoteHostBootstrap;
+import br.com.wdc.store.domain.StoreConfig;
+import br.com.wdc.store.persistence.impl.StoreRepositoryBootstrap;
+import br.com.wdc.store.persistence.impl.concurrent.ScheduledExecutorAdapter;
+import br.com.wdc.store.persistence.rest.RemoteTransactions;
+import br.com.wdc.store.presentation.presenter.open.login.LoginPresenter;
+import br.com.wdc.store.scripts.sgbd.DBCreate;
+import br.com.wdc.store.view.remote.host.RemoteHostBootstrap;
 
 public class BusinessContext {
 
     public void configure(Defer cleanUp) {
         try {
-            var config = ShoppingConfig.loadConfig();
-            ShoppingConfig.Internals.configure(config);
+            var config = StoreConfig.loadConfig();
+            StoreConfig.Internals.configure(config);
 
             // CryptoProvider is required by PasswordUtil (used by the presentation layer on login)
             CryptoProvider.BEAN.set(new JceCryptoProvider());
@@ -54,7 +54,7 @@ public class BusinessContext {
 
             // The module's DataSource is injected into the bootstrap (no global holder): it binds this module's
             // DSLContext and TransactionService to this DataSource.
-            ShoppingRepositoryBootstrap.initialize(dataSource, dsSupport.isLogEnabled(), dsSupport.getDialect(), cleanUp);
+            StoreRepositoryBootstrap.initialize(dataSource, dsSupport.isLogEnabled(), dsSupport.getDialect(), cleanUp);
 
             // Schema: creates what is missing and seeds a new database; database.reset recreates everything.
             // After the bootstrap, because DBReset writes through the repositories.
@@ -74,14 +74,14 @@ public class BusinessContext {
                     RemoteTransactionOptions.fromConfig(config, dbPrefix)));
             cleanUp.push(() -> RemoteTransactions.COORDINATOR.set(null));
 
-            var jwtSecret = ShoppingConfig.getJwtSecret();
+            var jwtSecret = StoreConfig.getJwtSecret();
             if (jwtSecret != null && !jwtSecret.isBlank()) {
-                ShoppingRepositoryBootstrap.initializeSecurity(jwtSecret, cleanUp);
+                StoreRepositoryBootstrap.initializeSecurity(jwtSecret, cleanUp);
             }
 
             LoginPresenter.simulateSlowLogin(config.getBoolean("simulation.slowLogin", false));
         } catch (Exception e) {
-            throw new IllegalStateException("Failed to configure shopping backend context", e);
+            throw new IllegalStateException("Failed to configure store backend context", e);
         }
     }
 

@@ -125,16 +125,16 @@ The modules are organized into two groups:
 | `framework.jooq` | jOOQ support: JSON query helpers (`JsonQuery`, `JsonQueryBuilder`, `JsonChildQueryBuilder`); the `DSLContext` is injected by the application (no global holder) |
 | `framework.dependencies` | Maven BOM for centralized versions |
 
-**WDC Store** (`br.com.wdc.shopping`) — the application itself:
+**WDC Store** (`br.com.wdc.store`) — the application itself:
 
 | Module | Responsibility |
 |---|---|
-| `shopping.domain` | Domain models, repositories, query criteria |
-| `shopping.persistence` | H2 + jOOQ (generated classes) |
-| `shopping.persistence.rest` | REST controllers (Javalin) |
-| `shopping.persistence.client` | REST client (OkHttp + Gson) |
-| `shopping.presentation` | Presenters, ViewStates, navigation — **technology-agnostic** |
-| `shopping.view.*` | Five frontend implementations |
+| `store.domain` | Domain models, repositories, query criteria |
+| `store.persistence` | H2 + jOOQ (generated classes) |
+| `store.persistence.rest` | REST controllers (Javalin) |
+| `store.persistence.client` | REST client (OkHttp + Gson) |
+| `store.presentation` | Presenters, ViewStates, navigation — **technology-agnostic** |
+| `store.view.*` | Five frontend implementations |
 
 ---
 
@@ -170,7 +170,7 @@ graph TD
     rest --> db
 ```
 
-The separation is structural, not just conceptual: the `shopping.presentation` module has no dependency on any UI technology. It depends only on `framework.cube`, `shopping.domain` and `slf4j-api`. Any technology capable of implementing the `CubeView` interface can be plugged in.
+The separation is structural, not just conceptual: the `store.presentation` module has no dependency on any UI technology. It depends only on `framework.cube`, `store.domain` and `slf4j-api`. Any technology capable of implementing the `CubeView` interface can be plugged in.
 
 ---
 
@@ -186,7 +186,7 @@ The name "Cube" reflects the third dimension of the architecture: besides the Pr
 
 ### The Presenter
 
-Every navigable Presenter extends `AbstractCubePresenter<ShoppingApplication>`. Its Scope lives in its own file, next to it (like the `xxx.scope.ts` of the TypeScript version):
+Every navigable Presenter extends `AbstractCubePresenter<StoreApplication>`. Its Scope lives in its own file, next to it (like the `xxx.scope.ts` of the TypeScript version):
 
 ```java
 // CartScope.java — public state, read by the view for rendering. Each observed field is a Prop:
@@ -205,14 +205,14 @@ public class CartScope extends Scope {
 ```
 
 ```java
-public class CartPresenter extends AbstractCubePresenter<ShoppingApplication> {
+public class CartPresenter extends AbstractCubePresenter<StoreApplication> {
 
     // bind: the presenter is notified when a state prop changes
     public final CartScope state = bind(new CartScope());
 
     private ScopeSlot ownerSlot;
 
-    public CartPresenter(ShoppingApplication app) {
+    public CartPresenter(StoreApplication app) {
         super(app);
         // Bound once; the guard sends unhandled failures to the app and republishes the address at the end
         // With an event code: the scope's skeleton dispatches event 1 from a remote client to it
@@ -317,7 +317,7 @@ public final class ProductKeys extends HomeKeys {
 - **Two-letter prefix per class**, unique within the application; every name it declares starts with it (`pr-id`). `PlaceKeysTest` checks this.
 - **A child place inherits the parent's getters** to read what the upper levels passed down; the only name deliberately reused is the composition slot (`parentSlot()`).
 - **Without an intent, the keys start from the current state** (`app.newIntent()`); inside `applyParameters`, a redirect uses the in-flight intent: `new HomeKeys(app, intent).flip()`.
-- A place declared in a static field only enters the tree when its class loads; that is why `ShoppingApplication.PLACES` lists them all.
+- A place declared in a static field only enters the tree when its class loads; that is why `StoreApplication.PLACES` lists them all.
 
 ---
 
@@ -543,7 +543,7 @@ public class CartViewSwt extends AbstractViewSwt {
 public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
 
     // The drawn scope lives in the base class's state field
-    public CartViewVaadin(ShoppingVaadinApplication app, CartScope state) {
+    public CartViewVaadin(StoreVaadinApplication app, CartScope state) {
         super("cart", app, state, new VerticalLayout());
     }
 
@@ -559,7 +559,7 @@ public class CartViewVaadin extends AbstractViewVaadin<CartScope> {
 ```java
 public class CartViewVDom extends AbstractVDomView<CartScope> {
 
-    public CartViewVDom(ShoppingTeaVMApplication app, CartScope state) {
+    public CartViewVDom(StoreTeaVMApplication app, CartScope state) {
         super("cart", app, state);
     }
 
@@ -701,7 +701,7 @@ The architectural model has proven robust over a decade of significant technolog
 
 The principles that proved most durable:
 
-**The Presenter hierarchy as the unit of modularity.** Dividing the application state into hierarchical Presenters keeps complexity localized. Adding a new module means creating a new Presenter and its keys class (which declares the place), listing it in `ShoppingApplication.PLACES` and implementing a view in each technology of interest — without touching the rest of the application.
+**The Presenter hierarchy as the unit of modularity.** Dividing the application state into hierarchical Presenters keeps complexity localized. Adding a new module means creating a new Presenter and its keys class (which declares the place), listing it in `StoreApplication.PLACES` and implementing a view in each technology of interest — without touching the rest of the application.
 
 **The Scope as the boundary between logic and presentation.** The Scope is at once simple (public Java fields) and powerful (automatic serialization, incremental diff in remote mode). It solves the data transfer problem without creating separate value transfer objects — the same object serves the Presenter to feed the view and the remote protocol to transmit the state.
 

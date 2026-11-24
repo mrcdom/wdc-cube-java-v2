@@ -2,7 +2,7 @@
 
 TypeScript/React bridge for the **Remote Cube MVP** Host/Shell protocol. Implements the client (shell) side of the protocol in the browser — connects to `remote.host` over WebSocket, performs the RSA/AES-GCM security handshake, manages ViewStates and provides React hooks for UI components to render states and emit events.
 
-It is the React counterpart of the Java (`remote.bridge.java`) and TeaVM (`remote.bridge.teavm`) bridges. Consumed by `remote.shell.react` (shopping application) and any other React shell on the same protocol.
+It is the React counterpart of the Java (`remote.bridge.java`) and TeaVM (`remote.bridge.teavm`) bridges. Consumed by `remote.shell.react` (WDC Store application) and any other React shell on the same protocol.
 
 > `packaging=pom` module — contains only TypeScript/React source code; it produces no JAR.
 

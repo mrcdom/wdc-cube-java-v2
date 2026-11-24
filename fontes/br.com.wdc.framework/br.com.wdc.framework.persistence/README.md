@@ -25,14 +25,14 @@
 
 ## Usage
 
-There is no global holder: each module exposes its own (e.g. `ShoppingTransactions` in `shopping.domain`), populated by the backend with an instance bound to the module's `DataSource`.
+There is no global holder: each module exposes its own (e.g. `StoreTransactions` in `store.domain`), populated by the backend with an instance bound to the module's `DataSource`.
 
 ```java
 // Registered by the module bootstrap, bound to the module's DataSource:
-ShoppingTransactions.BEAN.set(new TransactionServiceImpl(() -> moduleDataSource));
+StoreTransactions.BEAN.set(new TransactionServiceImpl(() -> moduleDataSource));
 
 // In the use case (service layer / handler / presenter):
-ShoppingTransactions.BEAN.get().required(tx -> {
+StoreTransactions.BEAN.get().required(tx -> {
     repositoryA.insert(x);
     repositoryB.update(y);   // commits together, or rolls everything back
 });

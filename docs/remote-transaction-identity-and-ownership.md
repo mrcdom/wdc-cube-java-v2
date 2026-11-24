@@ -137,7 +137,7 @@ On the client side, **in the browser it is already practically per tab**: each t
 
 | Context | How it gets the id | Notes |
 |---|---|---|
-| **Server-side worker** (inside the backend) | — | **Does not use** the remote tx: it uses `ShoppingTransactions.BEAN.required(...)` (local JTA/JDBC transaction). The remote machinery is only for clients over REST. |
+| **Server-side worker** (inside the backend) | — | **Does not use** the remote tx: it uses `StoreTransactions.BEAN.required(...)` (local JTA/JDBC transaction). The remote machinery is only for clients over REST. |
 | **Browser tab** | local per-tab id | Single-threaded; its own *realm*. |
 | **Web Worker (browser)** | `self.crypto.randomUUID()` in memory | Single-threaded, separate *realm* → equivalent to a tab. Has **no** `sessionStorage`/`localStorage` (Web Storage is not exposed to Workers); it keeps the id in memory. XHR/`fetch` work in *dedicated workers*. |
 | **Independent JVM process** (CLI, importer) | UUID per transport instance | Isolated by construction. |

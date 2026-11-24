@@ -14,7 +14,7 @@ import br.com.wdc.framework.commons.sql.SqlDataSourceDelegate;
 import br.com.wdc.framework.commons.util.Defer;
 import br.com.wdc.framework.domain.config.AppConfig;
 import br.com.wdc.framework.persistence.transaction.JtaTransactionManager;
-import br.com.wdc.shopping.domain.ShoppingConfig;
+import br.com.wdc.store.domain.StoreConfig;
 import io.agroal.api.AgroalDataSource;
 import io.agroal.api.configuration.AgroalConnectionPoolConfiguration.ConnectionValidator;
 import io.agroal.api.configuration.AgroalConnectionPoolConfiguration.ExceptionSorter;
@@ -44,7 +44,7 @@ public class SqlDataSourceSupport {
 
     private static final Log LOG = Log.getLogger(SqlDataSourceSupport.class);
 
-    private static final String DEFAULT_DB_NAME = "wedocode-shopping";
+    private static final String DEFAULT_DB_NAME = "wedocode-store";
 
     private AppConfig config;
     private String prefixDot;
@@ -64,7 +64,7 @@ public class SqlDataSourceSupport {
     }
 
     public SqlDataSourceDelegate init(Defer cleanUp) throws SQLException {
-        String jdbcUrl = resolveJdbcUrl(config, ShoppingConfig.getDataDir());
+        String jdbcUrl = resolveJdbcUrl(config, StoreConfig.getDataDir());
         String username = config.get(this.prefixDot + "database.username", "sa");
         String password = config.get(this.prefixDot + "database.password", "sa");
         String schema = config.get(this.prefixDot + "database.schema", null);

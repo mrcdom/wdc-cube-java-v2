@@ -30,19 +30,19 @@ import java.util.function.Function;
  * Examples:
  * </p>
  * <pre>{@code
- * shoppingTransactions.required(tx -> {     // per-module holder (e.g. ShoppingTransactions.BEAN.get())
+ * storeTransactions.required(tx -> {     // per-module holder (e.g. StoreTransactions.BEAN.get())
  *     systemRepository.insert(system);
  *     if (businessRuleFailed) {
  *         tx.setRollbackOnly();          // aborts without throwing
  *     }
  * });
  *
- * var list = shoppingTransactions.requiredCall(tx -> systemRepository.fetch(criteria));
+ * var list = storeTransactions.requiredCall(tx -> systemRepository.fetch(criteria));
  * }</pre>
  *
  * <p>
  * <b>No global holder:</b> there is no {@code TransactionService.BEAN}. Each module exposes its own holder (e.g.
- * {@code ShoppingTransactions} in {@code shopping.domain}), populated by the backend with an instance bound to that
+ * {@code StoreTransactions} in {@code store.domain}), populated by the backend with an instance bound to that
  * module's {@code DataSource}. This way modules with distinct databases have independent transactions.
  * </p>
  *

@@ -66,7 +66,7 @@ graph TD
         deps["dependencies<br/><small>BOM — centralized versions</small>"]
     end
 
-    subgraph Shopping["br.com.wdc.shopping"]
+    subgraph Store["br.com.wdc.store"]
         domain["domain<br/><small>Models, repositories, criteria</small>"]
         persistence["persistence<br/><small>H2 + jOOQ + generated classes</small>"]
         persistRest["persistence.rest<br/><small>REST controllers (Javalin)</small>"]
@@ -89,7 +89,7 @@ graph TD
     end
 
     fontes --> Framework
-    fontes --> Shopping
+    fontes --> Store
 ```
 
 ### Framework
@@ -104,29 +104,29 @@ graph TD
 | **framework.cube.remote** | Remote protocol of the Cube MVP engine: WebSocket backend (`ScopeSerializer`, `RemoteViewImpl`) and client bridges (Java, TeaVM, React, Flutter) |
 | **framework.dependencies** | BOM-type POM for centralized management of dependency versions |
 
-### Shopping — Backend
+### Store — Backend
 
 | Module | Description |
 |--------|-----------|
-| **domain** | One package per entity (`product`, `user`, `purchase`, `purchaseitem`), each with the fluent entity, its `Criterion`-based criteria, codec and repository interface; `InvalidCartItemException`, `Role` (RBAC permissions), `ShoppingConfig`, `ShoppingTransactions` |
-| **persistence** | Groups `persistence.impl` — **jOOQ** implementation (type-safe DSL, classes generated in `br.com.wdc.shopping.persistence.impl.scheme.*` from the H2 schema), `*RepositoryImpl` classes that obtain the `DSLContext` via `ShoppingDSLContext.BEAN`, the framework's JSON query helpers, `ShoppingRepositoryBootstrap` for wiring —, `persistence.rest` (Javalin API; authorization and the `userId` scope restriction via `SecurityEnforcer`) and `persistence.client` (HTTP repositories over OkHttp) |
-| **presentation** | `ShoppingApplication` (subject, cart, `PLACES`), presenter hierarchy (Root → Open/Restricted guards → Login \| Home → Product/Cart/Receipt, with the Products/Purchases panels as segments of Home), scopes with observed `Prop`s, calls (`XxxQuery`/`XxxSave`/`XxxCall`) over the repositories, `CartManager`, places with `XxxKeys` and navigation by intents |
+| **domain** | One package per entity (`product`, `user`, `purchase`, `purchaseitem`), each with the fluent entity, its `Criterion`-based criteria, codec and repository interface; `InvalidCartItemException`, `Role` (RBAC permissions), `StoreConfig`, `StoreTransactions` |
+| **persistence** | Groups `persistence.impl` — **jOOQ** implementation (type-safe DSL, classes generated in `br.com.wdc.store.persistence.impl.scheme.*` from the H2 schema), `*RepositoryImpl` classes that obtain the `DSLContext` via `StoreDSLContext.BEAN`, the framework's JSON query helpers, `StoreRepositoryBootstrap` for wiring —, `persistence.rest` (Javalin API; authorization and the `userId` scope restriction via `SecurityEnforcer`) and `persistence.client` (HTTP repositories over OkHttp) |
+| **presentation** | `StoreApplication` (subject, cart, `PLACES`), presenter hierarchy (Root → Open/Restricted guards → Login \| Home → Product/Cart/Receipt, with the Products/Purchases panels as segments of Home), scopes with observed `Prop`s, calls (`XxxQuery`/`XxxSave`/`XxxCall`) over the repositories, `CartManager`, places with `XxxKeys` and navigation by intents |
 
-### Shopping — Frontend (View Implementations)
+### Store — Frontend (View Implementations)
 
 > **Core principle:** every implementation uses exactly the same Presenters, ViewStates and business rules. Only the rendering layer changes.
 
 | Module | Description |
 |--------|-----------|
-| **view.remote** | Remote view via the browser — [details](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/README.md) |
+| **view.remote** | Remote view via the browser — [details](fontes/br.com.wdc.store/br.com.wdc.store.view.remote/README.md) |
 | **view.remote / remote.shell.react** | SPA in React 19 + TypeScript + MUI 9, bundled with Parcel. Bidirectional WebSocket communication, reconnection management, client-side security |
-| **view.remote / remote.shell.flutter** | Flutter 3 + Material Design for iOS, Android, Desktop (macOS) and Web. Bidirectional WebSocket communication, same protocol as React — [details](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.shell.flutter/README.md) |
+| **view.remote / remote.shell.flutter** | Flutter 3 + Material Design for iOS, Android, Desktop (macOS) and Web. Bidirectional WebSocket communication, same protocol as React — [details](fontes/br.com.wdc.store/br.com.wdc.store.view.remote/remote.shell.flutter/README.md) |
 | **view.remote / remote.shell.teavm** | TeaVM frontend that communicates with the server over WebSocket |
 | **backend** | Javalin 7 server with Virtual Threads, WebSocket dispatcher, REST controllers, embedded H2 database. Produces a fat JAR (~11 MB) |
 | **view.remote / remote.host** | Server-side view implementations (`GenericViewImpl`), security (`AppSecurity` — RSA/PBKDF2/AES-GCM, `DataSecurity`), WebSocket SPI |
-| **view.vaadin** | Server-side web view with Vaadin 25 + Lumo theme + embedded Jetty 12 — [details](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin/README.md) |
-| **view.swt** | Native desktop view with Eclipse SWT 3.135.0 — [details](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.swt/README.md) |
-| **view.teavm** | Multiplatform (Web + Desktop + Android + iOS) with TeaVM 0.16 + Tauri 2 + Bootstrap 5 — Java compiled to JS — [details](fontes/br.com.wdc.shopping/br.com.wdc.shopping.view.teavm/README.md) |
+| **view.vaadin** | Server-side web view with Vaadin 25 + Lumo theme + embedded Jetty 12 — [details](fontes/br.com.wdc.store/br.com.wdc.store.view.vaadin/README.md) |
+| **view.swt** | Native desktop view with Eclipse SWT 3.135.0 — [details](fontes/br.com.wdc.store/br.com.wdc.store.view.swt/README.md) |
+| **view.teavm** | Multiplatform (Web + Desktop + Android + iOS) with TeaVM 0.16 + Tauri 2 + Bootstrap 5 — Java compiled to JS — [details](fontes/br.com.wdc.store/br.com.wdc.store.view.teavm/README.md) |
 | **persistence.rest** | REST controllers (Javalin) that expose repositories as HTTP endpoints, JWT security filter (`SecurityFilter`), authentication endpoints (`AuthApiController`) |
 | **persistence.client** | REST client (OkHttp + Gson) that implements the repository interfaces and `AuthenticationService` over HTTP, with an automatic Bearer token |
 
@@ -192,7 +192,7 @@ recompiles without going through this script.
 ### Frontend (Flutter — mobile/desktop)
 
 ```bash
-cd br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.shell.flutter/flutter.mobile
+cd br.com.wdc.store/br.com.wdc.store.view.remote/remote.shell.flutter/flutter.mobile
 
 # List available devices
 ./deploy.sh list
@@ -228,7 +228,7 @@ java -jar target/br.com.wdc.cube.backend-1.0.0.jar [port]
 Requires the Javalin backend running (same port 8080 — WebSocket):
 
 ```bash
-cd br.com.wdc.shopping/br.com.wdc.shopping.view.remote/remote.shell.flutter/flutter.mobile
+cd br.com.wdc.store/br.com.wdc.store.view.remote/remote.shell.flutter/flutter.mobile
 
 # iOS Simulator
 ./deploy.sh run ios-sim
@@ -251,9 +251,9 @@ cd ../flutter.web
 export JAVA_HOME=<path-to-jdk-25>
 export PATH="$JAVA_HOME/bin:$PATH"
 
-cd br.com.wdc.shopping/br.com.wdc.shopping.view.vaadin
+cd br.com.wdc.store/br.com.wdc.store.view.vaadin
 java -cp "$(mvn -q dependency:build-classpath -Dmdep.outputFile=/dev/stdout):target/classes" \
-  br.com.wdc.shopping.view.vaadin.ShoppingVaadinMain
+  br.com.wdc.store.view.vaadin.StoreVaadinMain
 ```
 
 - **Application:** http://localhost:8090
@@ -294,7 +294,7 @@ Both implementations use the `work/config/application.toml` file for external co
 # jwt.secret = "your-secret-key"   # enables JWT authentication on the REST API
 ```
 
-Resolution: system property `shopping.config.file` → fallback to `work/config/application.toml`.
+Resolution: system property `store.config.file` → fallback to `work/config/application.toml`.
 
 ## Security (RBAC)
 

@@ -12,7 +12,7 @@ import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.util.Defer;
 import br.com.wdc.framework.domain.config.AppConfig;
 import br.com.wdc.framework.persistence.transaction.JtaTransactionManager;
-import br.com.wdc.shopping.domain.ShoppingConfig;
+import br.com.wdc.store.domain.StoreConfig;
 
 /**
  * Bootstrap support for <b>JTA transactions</b> (Narayana).
@@ -80,7 +80,7 @@ public final class JtaSupport {
         // Points the ObjectStore (Narayana's transaction log) at work/data/tx-logs,
         // avoiding the creation of ./ObjectStore in the process's working directory.
         var txFolderName = (StringUtils.isBlank(prefix) ? "" : prefix + "-") + "tx-logs";
-        var objectStoreDir = ShoppingConfig.getDataDir().resolve(txFolderName).toAbsolutePath().toString();
+        var objectStoreDir = StoreConfig.getDataDir().resolve(txFolderName).toAbsolutePath().toString();
         arjPropertyManager.getObjectStoreEnvironmentBean().setObjectStoreDir(objectStoreDir);
         arjPropertyManager.getObjectStoreEnvironmentBean().setLocalOSRoot("defaultStore");
 

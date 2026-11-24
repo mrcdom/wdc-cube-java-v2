@@ -48,14 +48,14 @@ hs_err_pid*
 fontes/br.com.wdc.cube.backend/work/
 
 # Vaadin generated files
-**/frontend/generated/
-**/vite.generated.ts
-**/vite.config.ts
-**/tsconfig.json
-**/types.d.ts
-**/pnpmfile.cjs
-**/pnpm-lock.yaml
-**/package.json
+fontes/br.com.wdc.store/br.com.wdc.store.view.vaadin/src/main/frontend/generated/
+fontes/br.com.wdc.store/br.com.wdc.store.view.vaadin/vite.generated.ts
+fontes/br.com.wdc.store/br.com.wdc.store.view.vaadin/vite.config.ts
+fontes/br.com.wdc.store/br.com.wdc.store.view.vaadin/tsconfig.json
+fontes/br.com.wdc.store/br.com.wdc.store.view.vaadin/types.d.ts
+fontes/br.com.wdc.store/br.com.wdc.store.view.vaadin/pnpmfile.cjs
+fontes/br.com.wdc.store/br.com.wdc.store.view.vaadin/pnpm-lock.yaml
+fontes/br.com.wdc.store/br.com.wdc.store.view.vaadin/package.json
 **/package-lock.json
 
 # Flutter/Dart generated
@@ -64,6 +64,6 @@ fontes/br.com.wdc.cube.backend/work/
 # Local Maven CLI overrides (machine/platform specific)
 **/.mvn/maven.config
 
-# MCP server config (ferramenta pessoal — ex.: Playwright para inspeção de navegador)
+# MCP server config (personal tooling, e.g. Playwright for browser inspection)
 .mcp.json
 .playwright-mcp/page-*.yml

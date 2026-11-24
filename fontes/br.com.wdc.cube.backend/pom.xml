@@ -20,8 +20,8 @@
 
     <properties>
         <javalin.version>7.2.4</javalin.version>
-        <!-- Version of the Shopping application modules packaged by this backend -->
-        <shopping.version>1.0.0</shopping.version>
+        <!-- Version of the WDC Store application modules packaged by this backend -->
+        <store.version>1.0.0</store.version>
         <!-- Working directory for exec:java (must contain config/application.toml) -->
         <workdir>${project.basedir}/../../work</workdir>
     </properties>
@@ -40,23 +40,23 @@
     </dependencyManagement>
 
     <dependencies>
-        <!-- Shopping application: repository REST API -->
+        <!-- WDC Store application: repository REST API -->
         <dependency>
-            <groupId>br.com.wdc.shopping</groupId>
+            <groupId>br.com.wdc.store</groupId>
             <artifactId>persistence.rest</artifactId>
-            <version>${shopping.version}</version>
+            <version>${store.version}</version>
         </dependency>
 
-        <!-- Shopping application: remote host (REST endpoints + business logic) -->
+        <!-- WDC Store application: remote host (REST endpoints + business logic) -->
         <dependency>
-            <groupId>br.com.wdc.shopping</groupId>
+            <groupId>br.com.wdc.store</groupId>
             <artifactId>remote.host</artifactId>
-            <version>${shopping.version}</version>
+            <version>${store.version}</version>
         </dependency>
         <dependency>
-            <groupId>br.com.wdc.shopping</groupId>
-            <artifactId>br.com.wdc.shopping.scripts</artifactId>
-            <version>${shopping.version}</version>
+            <groupId>br.com.wdc.store</groupId>
+            <artifactId>br.com.wdc.store.scripts</artifactId>
+            <version>${store.version}</version>
         </dependency>
         
         <dependency>

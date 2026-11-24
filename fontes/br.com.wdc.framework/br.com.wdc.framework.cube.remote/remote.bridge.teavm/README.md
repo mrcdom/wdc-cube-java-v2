@@ -2,7 +2,7 @@
 
 TeaVM bridge for the **Remote Cube MVP** Host/Shell protocol. Implements the client (shell) side of the protocol in Java compiled to JavaScript via **TeaVM** — connects to `remote.host` over WebSocket using the browser's Web Crypto API, without any external JS runtime.
 
-It is the TeaVM counterpart of the React (`remote.bridge.react`) and Java (`remote.bridge.java`) bridges. Consumed by `remote.shell.teavm` (shopping application) and any other TeaVM shell on the same protocol.
+It is the TeaVM counterpart of the React (`remote.bridge.react`) and Java (`remote.bridge.java`) bridges. Consumed by `remote.shell.teavm` (WDC Store application) and any other TeaVM shell on the same protocol.
 
 ## Main Classes
 

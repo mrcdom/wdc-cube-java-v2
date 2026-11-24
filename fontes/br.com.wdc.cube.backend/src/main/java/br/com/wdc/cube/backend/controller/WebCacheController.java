@@ -13,7 +13,7 @@ import java.time.Duration;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.log.Log;
-import br.com.wdc.shopping.domain.ShoppingConfig;
+import br.com.wdc.store.domain.StoreConfig;
 import io.javalin.config.JavalinConfig;
 import io.javalin.http.Context;
 
@@ -51,7 +51,7 @@ public class WebCacheController {
     private final HttpClient httpClient;
 
     public WebCacheController() {
-        this.cacheDir = ShoppingConfig.getDataDir().resolve("web-cache");
+        this.cacheDir = StoreConfig.getDataDir().resolve("web-cache");
         this.httpClient = HttpClient.newBuilder()
                 .followRedirects(HttpClient.Redirect.NORMAL)
                 .connectTimeout(Duration.ofSeconds(15))

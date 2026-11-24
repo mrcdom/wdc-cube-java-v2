@@ -10,24 +10,24 @@ basedir = ".."
 
 [database]
 # JDBC URL. Default: H2 file database in the data directory
-# url = "jdbc:h2:file:/path/to/wedocode-shopping;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+# url = "jdbc:h2:file:/path/to/wedocode-store;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
 
 # H2 TCP server mode (for memory measurements — isolates DB heap from app heap):
 # 1. Start: ./work/bin/start-h2-server.sh
 # 2. Uncomment the line below, comment out the file URL above
-# url = "jdbc:h2:tcp://localhost/./wedocode-shopping;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+# url = "jdbc:h2:tcp://localhost/./wedocode-store;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
 # Database credentials (H2 defaults)
 # username = "sa"
 # password = "sa"
 
 # PostgreSQL (recommended for production and load testing beyond H2 limits):
-# url = "jdbc:h2:tcp://localhost/./wedocode-shopping;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
-# url = "jdbc:postgresql://localhost:5432/wedocode-shopping"
+# url = "jdbc:h2:tcp://localhost/./wedocode-store;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+# url = "jdbc:postgresql://localhost:5432/wedocode-store"
 # username = "postgres"
 # password = "admin"
 
-url = "jdbc:h2:tcp://localhost/./wedocode-shopping;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
-# url = "jdbc:postgresql://localhost:5432/wedocode-shopping"
+url = "jdbc:h2:tcp://localhost/./wedocode-store;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+# url = "jdbc:postgresql://localhost:5432/wedocode-store"
 # username = "postgres"
 # password = "changeme"
 
@@ -84,7 +84,7 @@ devMode = true
 cors.allowAll = true
 # Allowlist used when allowAll = false (comma-separated).
 # If absent/empty, uses the built-in default (Tauri desktop, Android WebView, local dev).
-# cors.allowedHosts = "http://localhost:8080, http://shopping-wdc.localhost:8080, tauri://localhost, https://tauri.localhost, http://tauri.localhost"
+# cors.allowedHosts = "http://localhost:8080, http://store-wdc.localhost:8080, tauri://localhost, https://tauri.localhost, http://tauri.localhost"
 # Allows cross-origin cookies/authentication headers (default: true).
 cors.allowCredentials = true
 
@@ -105,7 +105,7 @@ sessionTtlSeconds = 0
 [security]
 # JWT secret for API authentication (RepositoryApiRoutes)
 # If not set, API endpoints are served without authentication
-jwt.secret = "wdc-shopping-jwt-s3cr3t-k3y-ch4ng3-1n-pr0duct10n"
+jwt.secret = "wdc-store-jwt-s3cr3t-k3y-ch4ng3-1n-pr0duct10n"
 
 [remote]
 # RSA key pair for client↔server handshake (cipher keys).

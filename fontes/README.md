@@ -22,7 +22,7 @@ graph TD
         fwDeps["dependencies — Version BOM"]
     end
 
-    subgraph Shopping["br.com.wdc.shopping — E-commerce"]
+    subgraph Store["br.com.wdc.store — E-commerce"]
         domain["domain — Entities, criteria, codecs, repositories"]
         persistence["persistence.impl — jOOQ repositories (H2, PostgreSQL)"]
         persistRest["persistence.rest — REST controllers"]
@@ -39,7 +39,7 @@ graph TD
     fontes --> pom
     fontes --> formatter
     fontes --> Framework
-    fontes --> Shopping
+    fontes --> Store
     fontes --> backend["br.com.wdc.cube.backend — Javalin 7 + Virtual Threads (fat JAR)"]
 ```
 
@@ -57,7 +57,7 @@ graph TD
 | **cube.remote** | Remote protocol of the Cube MVP engine: WebSocket backend and the client bridges (Java, TeaVM, React, Flutter). |
 | **dependencies** | BOM-type POM that centralizes the versions of the framework modules and of external dependencies (jOOQ, Agroal, Narayana, H2, PostgreSQL, Gson, SLF4J, Logback, Commons, etc.). |
 
-## Application Modules (`br.com.wdc.shopping`)
+## Application Modules (`br.com.wdc.store`)
 
 | Module | Layer | Purpose |
 |--------|--------|-----------|

@@ -28,8 +28,8 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 WORK_DIR="$( cd "$SCRIPT_DIR/.." && pwd )"
 ROOT_DIR="$( cd "$WORK_DIR/.." && pwd )"
 FONTES="$ROOT_DIR/fontes"
-REMOTE="$FONTES/br.com.wdc.shopping/br.com.wdc.shopping.view.remote"
-TEAVM="$FONTES/br.com.wdc.shopping/br.com.wdc.shopping.view.teavm"
+REMOTE="$FONTES/br.com.wdc.store/br.com.wdc.store.view.remote"
+TEAVM="$FONTES/br.com.wdc.store/br.com.wdc.store.view.teavm"
 
 # target | build script | required tool | destination folder in work/frontend
 TARGETS=(
@@ -127,11 +127,11 @@ if $needs_maven_modules && ! $SKIP_INSTALL; then
     if reason=$(missing_tool mvn); then
         echo "Maven module installation skipped: $reason"
     else
-        echo "=== Installing Maven modules (framework + shopping) ==="
+        echo "=== Installing Maven modules (framework + store) ==="
         echo "    Without this TeaVM would compile against the previous ~/.m2 — use --skip-install if you know it is up to date."
         JAVA_HOME=$JAVA25_HOME mvn -f "$FONTES/br.com.wdc.framework/pom.xml" install -DskipTests -q || exit 1
-        JAVA_HOME=$JAVA25_HOME mvn -f "$FONTES/br.com.wdc.shopping/pom.xml" install \
-            -pl br.com.wdc.shopping.domain,br.com.wdc.shopping.persistence,:persistence.client,br.com.wdc.shopping.presentation \
+        JAVA_HOME=$JAVA25_HOME mvn -f "$FONTES/br.com.wdc.store/pom.xml" install \
+            -pl br.com.wdc.store.domain,br.com.wdc.store.persistence,:persistence.client,br.com.wdc.store.presentation \
             -DskipTests -q || exit 1
     fi
 elif $needs_maven_modules; then
