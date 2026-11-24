@@ -549,11 +549,14 @@ Permissions are defined in the `entity:operation` format:
 
 ```java
 public enum Role {
-    ADMIN("user:read", "user:write", "product:read", "product:write", "purchase:read", "purchase:write"),
-    CUSTOMER("product:read", "purchase:read", "purchase:write"),
-    MANAGER("product:read", "product:write", "purchase:read");
+    ADMIN(Set.of("user:*", "product:*", "purchase:*", "purchase-item:*", "data:all")),
+    CUSTOMER(Set.of("user:read", "product:read", "purchase:read", "purchase:write",
+            "purchase-item:read", "purchase-item:write")),
+    MANAGER(Set.of("user:read", "product:read", "product:write", "purchase:read", "purchase-item:read"));
 }
 ```
+
+`*` grants every operation on the entity. Without `data:all`, the REST endpoints restrict reads of users and purchases to the authenticated user's own records.
 
 ---
 

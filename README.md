@@ -49,7 +49,7 @@ graph TD
 - **View independence** — the same Presenters/ViewStates feed React (web), Flutter (mobile/desktop/web), Vaadin (server-side web), SWT (native desktop) and TeaVM (web/desktop/Android/iOS)
 - **No DI frameworks** — injection via `AtomicReference<T> BEAN` (static service locator); services receive their dependencies in the constructor
 - **Virtual Threads** (Java 21+) — WebSocket connections with minimal memory consumption
-- **RBAC security** — HMAC challenge-response authentication with JWT, role-based access control (ADMIN, CUSTOMER, MANAGER), repositories decorated with permission checks
+- **RBAC security** — HMAC challenge-response authentication with JWT, role-based access control (ADMIN, CUSTOMER, MANAGER) enforced at the REST endpoints
 - **Transport security** — RSA + PBKDF2 + AES-GCM for data exchange between the React client and the server
 - **Real-time communication** — bidirectional WebSocket with automatic keep-alive
 - **External configuration** — TOML for every implementation
@@ -329,10 +329,10 @@ The password never travels in plain text — only the HMAC-SHA256 digest with a 
 | Role | Permissions |
 |-------|-----------|
 | **ADMIN** | `user:*`, `product:*`, `purchase:*`, `purchase-item:*`, `data:all` |
-| **CUSTOMER** | `product:read`, `purchase:read/write`, `purchase-item:read/write` |
-| **MANAGER** | `product:read/write`, `purchase:read`, `purchase-item:read` |
+| **CUSTOMER** | `user:read`, `product:read`, `purchase:read/write`, `purchase-item:read/write` |
+| **MANAGER** | `user:read`, `product:read/write`, `purchase:read`, `purchase-item:read` |
 
-**Allow-wins** model: effective permission = union of all the user's roles.
+**Allow-wins** model: effective permission = union of all the user's roles. Without `data:all`, the REST endpoints restrict reads of users and purchases to the authenticated user's own records.
 
 ### Security Layers
 

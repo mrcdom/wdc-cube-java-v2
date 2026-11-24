@@ -14,6 +14,10 @@ import br.com.wdc.framework.domain.security.PermissionModel;
  * The {@code *} wildcard grants all operations on the entity.
  * <p>
  * Allow-wins model: the effective permission is the UNION of all the user's roles.
+ * <p>
+ * Without {@code data:all}, the REST endpoints restrict reads of users and purchases to the authenticated user's own
+ * records: {@code user:read} lets a customer read their own account (the client needs it to show who signed in), not
+ * anyone else's.
  */
 public enum Role {
 
@@ -25,11 +29,13 @@ public enum Role {
 			"data:all")),
 
 	CUSTOMER(Set.of(
+			"user:read",
 			"product:read",
 			"purchase:read", "purchase:write",
 			"purchase-item:read", "purchase-item:write")),
 
 	MANAGER(Set.of(
+			"user:read",
 			"product:read", "product:write",
 			"purchase:read",
 			"purchase-item:read"));

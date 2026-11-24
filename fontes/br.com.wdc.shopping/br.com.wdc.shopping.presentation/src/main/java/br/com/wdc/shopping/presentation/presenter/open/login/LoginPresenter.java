@@ -6,6 +6,7 @@ import br.com.wdc.framework.cube.AbstractCubePresenter;
 import br.com.wdc.framework.cube.CubeIntent;
 import br.com.wdc.framework.cube.FormParam;
 import br.com.wdc.framework.cube.ScopeSlot;
+import br.com.wdc.framework.domain.exception.AccessDeniedException;
 import br.com.wdc.framework.domain.exception.OfflineException;
 import br.com.wdc.shopping.presentation.ShoppingApplication;
 import br.com.wdc.shopping.presentation.StorageKeys;
@@ -72,6 +73,13 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
         state.errorMessage.set("The database is offline!");
     }
 
+    private void alertAccessDenied(AccessDeniedException caught) {
+        state.errorCode.set(6);
+        state.errorMessage.set("Access denied: " + caught.getMessage());
+
+        LOG.warn(state.errorMessage.get());
+    }
+
     private void alertConnectionError(Throwable caught) {
         state.errorCode.set(5);
         state.errorMessage.set("Could not reach the server. Check your connection.");
@@ -114,6 +122,11 @@ public class LoginPresenter extends AbstractCubePresenter<ShoppingApplication> {
         } catch (Exception caught) {
             if (caught instanceof OfflineException) {
                 this.alertDatabaseIsOffline();
+                return;
+            }
+            if (caught instanceof AccessDeniedException ade) {
+                app.setSubject(null);
+                this.alertAccessDenied(ade);
                 return;
             }
 
