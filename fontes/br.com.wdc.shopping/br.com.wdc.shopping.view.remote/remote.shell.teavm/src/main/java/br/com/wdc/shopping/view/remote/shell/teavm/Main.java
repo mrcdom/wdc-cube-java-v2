@@ -23,7 +23,7 @@ public class Main {
 
     public static void main(String[] args) {
         try {
-            Console.log("WDC Shopping Remote Shell TeaVM - Initializing...");
+            Console.log("WDC Store Remote Shell TeaVM - Initializing...");
 
             // Configure sync namespace — must be before ViewStateCoordinator.INSTANCE is used
             ViewStateCoordinator.configure("~rt:");
@@ -51,7 +51,7 @@ public class Main {
             EncryptedLocalStorage.initialize(() -> {
                 app.start();
                 // Loading screen is removed by BrowserView on first render
-                Console.log("WDC Shopping Remote Shell TeaVM - Started.");
+                Console.log("WDC Store Remote Shell TeaVM - Started.");
             });
 
         } catch (Exception e) {

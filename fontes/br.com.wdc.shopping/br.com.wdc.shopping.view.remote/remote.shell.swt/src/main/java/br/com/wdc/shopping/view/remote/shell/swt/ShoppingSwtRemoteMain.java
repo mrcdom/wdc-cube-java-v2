@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Entry point for the SWT Remote Shell.
  * <p>
- * Connects to the WDC Shopping Host server and renders the application using SWT widgets from {@code swt.commons}, driven by remote state.
+ * Connects to the WDC Store Host server and renders the application using SWT widgets from {@code swt.commons}, driven by remote state.
  *
  * <h3>Usage</h3>
  *
@@ -43,7 +43,7 @@ public class ShoppingSwtRemoteMain {
 			// icon set via -Xdock:icon or apple.awt.application.icon.
 			setDockIcon(display);
 			var shell = new Shell(display, SWT.SHELL_TRIM);
-			shell.setText("WDC Shopping (Remote)");
+			shell.setText("WDC Store (Remote)");
 			shell.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 			shell.setLayout(new StackLayout());
 			applyAppIcons(display, shell);

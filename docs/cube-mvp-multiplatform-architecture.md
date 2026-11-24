@@ -111,7 +111,7 @@ Javalin is a lightweight HTTP framework for Java/Kotlin. In this project it play
 
 ## Architecture of the Reference Application
 
-The reference application is a simplified e-commerce system: **WeDoCode Shopping**. It is deliberately functional — it supports login, browsing a product catalog, a cart and receipt generation — but kept small enough that the architecture is the focus, not business complexity.
+The reference application is a simplified e-commerce system: **WeDoCode Store**. It is deliberately functional — it supports login, browsing a product catalog, a cart and receipt generation — but kept small enough that the architecture is the focus, not business complexity.
 
 The modules are organized into two groups:
 
@@ -125,7 +125,7 @@ The modules are organized into two groups:
 | `framework.jooq` | jOOQ support: JSON query helpers (`JsonQuery`, `JsonQueryBuilder`, `JsonChildQueryBuilder`); the `DSLContext` is injected by the application (no global holder) |
 | `framework.dependencies` | Maven BOM for centralized versions |
 
-**Shopping** — the application itself:
+**WDC Store** (`br.com.wdc.shopping`) — the application itself:
 
 | Module | Responsibility |
 |---|---|

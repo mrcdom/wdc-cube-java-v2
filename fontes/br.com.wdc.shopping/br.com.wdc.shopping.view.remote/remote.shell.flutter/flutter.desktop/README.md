@@ -1,6 +1,6 @@
 # Shopping Native — Flutter Desktop
 
-Desktop shell (macOS, Linux, Windows) for the **WeDoCode Shopping** application, using the **Remote Presentation** protocol. The app is a thin client that renders ViewStates received from the server over WebSocket.
+Desktop shell (macOS, Linux, Windows) for the **WeDoCode Store** application, using the **Remote Presentation** protocol. The app is a thin client that renders ViewStates received from the server over WebSocket.
 
 ## Features
 

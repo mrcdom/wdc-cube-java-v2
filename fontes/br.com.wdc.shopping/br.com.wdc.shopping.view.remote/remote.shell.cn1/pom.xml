@@ -4,8 +4,8 @@
   <artifactId>remote.shell.cn1</artifactId>
   <version>1.0.0</version>
   <packaging>pom</packaging>
-  <name>WDC Shopping CN1 Remote Shell</name>
-  <description>WDC Shopping CN1 Remote Shell</description>
+  <name>WDC Store CN1 Remote Shell</name>
+  <description>WDC Store CN1 Remote Shell</description>
   <url>https://www.codenameone.com</url>
   <licenses>
     <license>

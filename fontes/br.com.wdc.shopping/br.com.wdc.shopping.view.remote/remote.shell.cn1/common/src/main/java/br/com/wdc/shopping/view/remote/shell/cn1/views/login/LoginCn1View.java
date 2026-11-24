@@ -105,7 +105,7 @@ public class LoginCn1View extends AbstractCn1View {
                 });
                 dom.label(l -> {
                     l.setUIID(sel.BANNER_TITLE);
-                    l.setText("WDC Shopping");
+                    l.setText("WDC Store");
                 });
                 dom.spanLabel(l -> {
                     l.setTextUIID(sel.BANNER_SUBTITLE);
@@ -188,7 +188,7 @@ public class LoginCn1View extends AbstractCn1View {
                 });
                 dom.label(l -> {
                     l.setUIID(sel.HERO_TITLE);
-                    l.setText("WDC Shopping");
+                    l.setText("WDC Store");
                 });
                 dom.spanLabel(l -> {
                     l.setTextUIID(sel.HERO_SUBTITLE);

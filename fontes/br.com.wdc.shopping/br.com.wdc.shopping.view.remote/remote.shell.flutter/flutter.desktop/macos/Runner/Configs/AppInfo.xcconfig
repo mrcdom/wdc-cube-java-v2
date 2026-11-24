@@ -5,7 +5,7 @@
 // 'flutter create' template.
 
 // The application's name. By default this is also the title of the Flutter window.
-PRODUCT_NAME = WDC Shopping
+PRODUCT_NAME = WDC Store
 
 // The application's bundle identifier
 PRODUCT_BUNDLE_IDENTIFIER = br.com.wdc.shopping.desktop

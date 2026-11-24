@@ -1,6 +1,6 @@
 # remote.shell.swt
 
-SWT desktop shell for the **WeDoCode Shopping** remote presentation protocol. It renders the application's views using native SWT widgets, communicating with `remote.host` over WebSocket — no local business logic, no database.
+SWT desktop shell for the **WeDoCode Store** remote presentation protocol. It renders the application's views using native SWT widgets, communicating with `remote.host` over WebSocket — no local business logic, no database.
 
 It reuses the view implementations from `swt.commons`, overriding them with "remote" versions that obtain their state via `ViewStateSnapshot` (instead of local Presenters).
 

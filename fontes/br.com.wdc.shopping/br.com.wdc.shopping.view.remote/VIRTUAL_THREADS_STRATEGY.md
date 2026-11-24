@@ -1,4 +1,4 @@
-# Virtual Threads Strategy - WeDoCode Shopping View React
+# Virtual Threads Strategy - WeDoCode Store View React
 
 ## Overview
 

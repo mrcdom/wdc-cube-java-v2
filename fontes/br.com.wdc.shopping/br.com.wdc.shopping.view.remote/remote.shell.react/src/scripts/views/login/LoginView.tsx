@@ -33,7 +33,7 @@ class LoginViewClass extends BaseViewClass<ViewProps, LoginViewState> {
             <div className={clsx(Sel.logoBoxLg, Sel.mb16)}>
               <i className={clsx("bi bi-bag-check", Sel.logoIconLg)}></i>
             </div>
-            <h1 className={Sel.titleLg}>WDC Shopping</h1>
+            <h1 className={Sel.titleLg}>WDC Store</h1>
             <p className={Sel.subtitleLg}>Your trusted online store.</p>
             <div className={Sel.featuresList}>
               <div className={Sel.featureRow}>
@@ -63,7 +63,7 @@ class LoginViewClass extends BaseViewClass<ViewProps, LoginViewState> {
                 <div className={Sel.logoBoxSm}>
                   <i className={clsx("bi bi-bag-check", Sel.iconSm)}></i>
                 </div>
-                <div className={Sel.mobileTitle}>WDC Shopping</div>
+                <div className={Sel.mobileTitle}>WDC Store</div>
                 <div className={Sel.mobileSubtitle}>Your trusted online store.</div>
               </div>
             </div>

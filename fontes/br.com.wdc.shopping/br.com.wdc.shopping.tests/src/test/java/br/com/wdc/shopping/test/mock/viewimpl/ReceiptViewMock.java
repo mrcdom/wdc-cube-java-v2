@@ -33,7 +33,7 @@ public class ReceiptViewMock extends AbstractViewMock<ReceiptScope> {
         System.out.println("Print your receipt:");
 
         System.out.println("------------------------------------------------------------");
-        System.out.println("WeDoCode Shopping - THE RIGHT WAY TO SHOP ONLINE");
+        System.out.println("WeDoCode Store - THE RIGHT WAY TO SHOP ONLINE");
         System.out.println("Purchase receipt");
         System.out.println("Date: " + new Date(this.state.receipt.get().date));
         System.out.println("------------------------------------------------------------");

@@ -16,7 +16,7 @@
     <description>
         Java shell for the Host/Shell remote protocol.
         Performance benchmarking, behavioral testing, and scenario runners
-        for the WeDoCode Shopping application over the remote protocol.
+        for the WeDoCode Store application over the remote protocol.
         Generic bridge code lives in remote.bridge.java (br.com.wdc.framework).
     </description>
 

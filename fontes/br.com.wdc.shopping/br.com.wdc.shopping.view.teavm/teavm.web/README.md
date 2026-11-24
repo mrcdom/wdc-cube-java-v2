@@ -1,4 +1,4 @@
-# WDC Shopping — TeaVM Web
+# WDC Store — TeaVM Web
 
 Java source code of the TeaVM views and their compilation to JavaScript. This module contains the complete UI implementation using a **Virtual DOM** (VNode API) with Spectrum Web Components, which TeaVM compiles into an SPA that runs in the browser.
 

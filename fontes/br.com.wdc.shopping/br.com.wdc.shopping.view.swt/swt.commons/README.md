@@ -1,6 +1,6 @@
 # swt.commons
 
-Shared library of SWT views and components for **WeDoCode Shopping**. It contains the concrete SWT implementations of the application's screens — reused both by the local desktop app (`swt.desktop`) and by the remote shell (`remote.shell.swt`).
+Shared library of SWT views and components for **WeDoCode Store**. It contains the concrete SWT implementations of the application's screens — reused both by the local desktop app (`swt.desktop`) and by the remote shell (`remote.shell.swt`).
 
 ## Responsibility
 

@@ -1,6 +1,6 @@
 # remote.shell.probe
 
-Java probe for running scenarios against the **remote.host** of the **WeDoCode Shopping** application.
+Java probe for running scenarios against the **remote.host** of the **WeDoCode Store** application.
 
 ## Purpose
 

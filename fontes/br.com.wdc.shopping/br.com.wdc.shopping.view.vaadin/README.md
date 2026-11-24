@@ -1,6 +1,6 @@
 # br.com.wdc.shopping.view.vaadin
 
-Web implementation (Vaadin 25) of the **WeDoCode Shopping** application, demonstrating the **independence between view and presentation logic** in the **Cube MVP** pattern.
+Web implementation (Vaadin 25) of the **WeDoCode Store** application, demonstrating the **independence between view and presentation logic** in the **Cube MVP** pattern.
 
 ## Motivation
 

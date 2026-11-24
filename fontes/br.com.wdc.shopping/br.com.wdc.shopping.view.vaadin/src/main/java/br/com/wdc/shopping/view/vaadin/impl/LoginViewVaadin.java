@@ -68,7 +68,7 @@ public class LoginViewVaadin extends AbstractViewVaadin<LoginScope> {
             dom.div(header -> {
                 header.addClassName("login-header");
 
-                var logo = new Image("images/shopping-logo.svg", "WDC Shopping");
+                var logo = new Image("images/shopping-logo.svg", "WDC Store");
                 logo.setHeight("48px");
                 header.add(logo);
             });

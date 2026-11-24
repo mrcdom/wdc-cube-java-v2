@@ -1,4 +1,4 @@
-# 🛒 WeDoCode Shopping
+# 🛒 WeDoCode Store
 
 A **complete e-commerce system** built on the **Cube MVP** architecture, showing how the same business logic can power entirely different interfaces — **React (web)**, **Vaadin (server-side web)**, **SWT (native desktop)** and **TeaVM (web/desktop/Android/iOS)** — without duplicating a single line of presentation code.
 

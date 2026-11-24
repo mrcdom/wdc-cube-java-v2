@@ -27,7 +27,7 @@ import br.com.wdc.shopping.view.swt.util.SwtDom;
 
 /**
  * Login view matching the TeaVM web design:
- * - Left panel: blue gradient with branding (WDC Shopping logo + features)
+ * - Left panel: blue gradient with branding (WDC Store logo + features)
  * - Right panel: white card with login form
  */
 public class LoginViewSwt extends AbstractViewSwt {
@@ -294,7 +294,7 @@ public class LoginViewSwt extends AbstractViewSwt {
 
         // Title text
         gc.setFont(Theme.FONT_TITLE);
-        String title = "WDC Shopping";
+        String title = "WDC Store";
         Point titleSize = gc.textExtent(title);
         int titleY = iconY + iconSize.y + 16;
         gc.drawText(title, (bounds.width - titleSize.x) / 2, titleY, true);
@@ -360,9 +360,9 @@ public class LoginViewSwt extends AbstractViewSwt {
         Point iconSize = gc.textExtent(Theme.ICON_BAG_CHECK);
         gc.drawText(Theme.ICON_BAG_CHECK, boxX + (boxSize - iconSize.x) / 2, boxY + (boxSize - iconSize.y) / 2, true);
 
-        // Title "WDC Shopping"
+        // Title "WDC Store"
         gc.setFont(Theme.FONT_BANNER_TITLE);
-        String title = "WDC Shopping";
+        String title = "WDC Store";
         Point titleSize = gc.textExtent(title);
         int titleY = boxY + boxSize + 10;
         gc.drawText(title, (bounds.width - titleSize.x) / 2, titleY, true);

@@ -47,7 +47,7 @@ else
 fi
 
 echo "╔══════════════════════════════════════════════════════╗"
-echo "║          H2 TCP Server — WeDoCode Shopping           ║"
+echo "║          H2 TCP Server — WeDoCode Store           ║"
 echo "╠══════════════════════════════════════════════════════╣"
 printf "║  Data dir : %-42s ║\n" "$DATA_DIR"
 printf "║  H2 JAR   : %-42s ║\n" "$(basename $H2_JAR)"

@@ -57,7 +57,7 @@ public class ReceiptViewSwt extends AbstractViewSwt {
             dom.card(32, 32, 20, card -> {
                 card.setLayoutData(gdFillH(new GridData()));
 
-                dom.cardHeader(Theme.ICON_RECEIPT, "Purchase Receipt", "WDC Shopping");
+                dom.cardHeader(Theme.ICON_RECEIPT, "Purchase Receipt", "WDC Store");
 
                 renderBody(dom, state);
                 renderBackButton(dom);

@@ -3,7 +3,7 @@ set -e
 cd "$(dirname "$0")"
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Shopping Remote - Deploy Script
+# WDC Store - Deploy Script
 # Builds and/or runs the Flutter mobile app on supported device types.
 #
 # Usage:
@@ -367,7 +367,7 @@ install_on_target() {
 # ──────────────────────────────────────────────────────────────────────────────
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "  Shopping Remote - Deploy"
+echo "  WDC Store - Deploy"
 echo "  Command: $COMMAND | Target: ${TARGET:-auto} | Endpoint: $ENDPOINT"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""

@@ -1,6 +1,6 @@
-# WDC Shopping — View TeaVM
+# WDC Store — View TeaVM
 
-**Cross-platform** implementation of the **WeDoCode Shopping** application using [TeaVM](https://teavm.org/) — an ahead-of-time compiler that converts Java to JavaScript. The Java code (views, presenters, domain, api-client) is compiled into an SPA that runs directly in the browser, and from it can be packaged as a native application for **desktop**, **Android** and **iOS** via [Tauri 2](https://tauri.app/).
+**Cross-platform** implementation of the **WeDoCode Store** application using [TeaVM](https://teavm.org/) — an ahead-of-time compiler that converts Java to JavaScript. The Java code (views, presenters, domain, api-client) is compiled into an SPA that runs directly in the browser, and from it can be packaged as a native application for **desktop**, **Android** and **iOS** via [Tauri 2](https://tauri.app/).
 
 ## Motivation
 

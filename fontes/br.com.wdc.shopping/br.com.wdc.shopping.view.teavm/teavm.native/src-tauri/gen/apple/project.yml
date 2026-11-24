@@ -10,7 +10,7 @@ configs:
 settingGroups:
   app:
     base:
-      PRODUCT_NAME: WDC Shopping
+      PRODUCT_NAME: WDC Store
       PRODUCT_BUNDLE_IDENTIFIER: br.com.wdc.shopping.desktop
 targetTemplates:
   app:

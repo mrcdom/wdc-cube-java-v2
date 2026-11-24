@@ -62,7 +62,7 @@ public final class SplashCn1View extends AbstractItemCn1View<SplashCn1View.State
 
                 dom.label(l -> {
                     l.setUIID(sel.HERO_TITLE);
-                    l.setText("WDC Shopping");
+                    l.setText("WDC Store");
                 });
                 dom.spanLabel(s -> {
                     s.setTextUIID(sel.HERO_SUBTITLE);

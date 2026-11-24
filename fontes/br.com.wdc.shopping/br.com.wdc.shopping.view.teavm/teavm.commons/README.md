@@ -1,6 +1,6 @@
 # teavm.commons
 
-Shared library for the TeaVM views of the **WeDoCode Shopping** application. It contains the Virtual DOM engine, the Spectrum Web Components DSL, interop with browser APIs and utilities shared among the views compiled via **TeaVM**.
+Shared library for the TeaVM views of the **WeDoCode Store** application. It contains the Virtual DOM engine, the Spectrum Web Components DSL, interop with browser APIs and utilities shared among the views compiled via **TeaVM**.
 
 ## Responsibility
 

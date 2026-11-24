@@ -1,6 +1,6 @@
-# Shopping Remote — Flutter Web
+# WDC Store — Flutter Web
 
-Web shell for the **WeDoCode Shopping** application, using the **Remote Presentation** protocol via Flutter compiled to WebAssembly/JS. A thin client that renders ViewStates received from the server over WebSocket.
+Web shell for the **WeDoCode Store** application, using the **Remote Presentation** protocol via Flutter compiled to WebAssembly/JS. A thin client that renders ViewStates received from the server over WebSocket.
 
 ## Features
 

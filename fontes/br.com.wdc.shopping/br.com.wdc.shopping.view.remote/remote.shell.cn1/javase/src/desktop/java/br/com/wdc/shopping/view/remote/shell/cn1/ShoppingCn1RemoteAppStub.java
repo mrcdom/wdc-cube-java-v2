@@ -43,7 +43,7 @@ import javax.swing.SwingUtilities;
  * @author Shai Almog
  */
 public class ShoppingCn1RemoteAppStub implements Runnable, WindowListener {
-    private static final String APP_TITLE = "WDC Shopping (CN1)";
+    private static final String APP_TITLE = "WDC Store (CN1)";
     private static final String APP_NAME = "ShoppingCn1RemoteApp";
     private static final String APP_VERSION = "1.0";
     private static final int APP_WIDTH = 800;

@@ -1,10 +1,10 @@
-# Shopping Remote — Flutter Mobile
+# WDC Store — Flutter Mobile
 
-Mobile shell (iOS & Android) for the **WeDoCode Shopping** application, using the **Remote Presentation** protocol. The app is a thin client that renders ViewStates received from the server over WebSocket and emits user interaction events.
+Mobile shell (iOS & Android) for the **WeDoCode Store** application, using the **Remote Presentation** protocol. The app is a thin client that renders ViewStates received from the server over WebSocket and emits user interaction events.
 
 ## Features
 
-- **App name:** Shopping Remote
+- **App name:** WDC Store
 - **Icon:** Teal with the WDC cart + "F" badge (Flutter)
 - **Platforms:** iPhone, iPad, Android phone, Android tablet
 - **Protocol:** Bidirectional WebSocket with RSA + AES-GCM encryption

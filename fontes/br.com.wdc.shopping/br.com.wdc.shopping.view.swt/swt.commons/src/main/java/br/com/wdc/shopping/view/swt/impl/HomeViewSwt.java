@@ -253,7 +253,7 @@ public class HomeViewSwt extends AbstractViewSwt {
 
                 dom.label(lbl -> {
                     lbl.setFont(Theme.FONT_NAV_TITLE);
-                    lbl.setText("Shopping");
+                    lbl.setText("Store");
                     lbl.setForeground(Theme.FG_TEXT_WHITE);
                     lbl.setBackground(null);
                     lbl.setLayoutData(new GridData(SWT.LEFT, SWT.BOTTOM, false, false));

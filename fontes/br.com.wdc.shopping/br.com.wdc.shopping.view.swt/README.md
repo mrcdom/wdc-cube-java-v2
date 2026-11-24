@@ -1,6 +1,6 @@
-# WDC Shopping — SWT Desktop View
+# WDC Store — SWT Desktop View
 
-Native desktop implementation of WDC Shopping using **Eclipse SWT 3.135.0** (Cocoa/macOS aarch64).
+Native desktop implementation of WDC Store using **Eclipse SWT 3.135.0** (Cocoa/macOS aarch64).
 It shares the same presentation layer (Cube MVP) with the other views (TeaVM, React, Flutter, Vaadin).
 
 ## Architecture

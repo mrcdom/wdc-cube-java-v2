@@ -1,4 +1,4 @@
-# WDC Shopping — TeaVM Native (Tauri)
+# WDC Store — TeaVM Native (Tauri)
 
 A [Tauri 2](https://tauri.app/) project that packages the TeaVM SPA as a native application for **macOS**, **Android** and **iOS**. Tauri uses the operating system's native WebView (WKWebView on macOS/iOS, System WebView on Android), resulting in lightweight binaries — no embedded Chromium.
 

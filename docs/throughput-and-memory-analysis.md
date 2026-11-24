@@ -1,6 +1,6 @@
 # Throughput and Memory per Session Analysis
 
-This document records the load and memory experiments run on the WeDoCode Shopping backend, focused on two axes: **sustained throughput** and **memory footprint per WebSocket session**.
+This document records the load and memory experiments run on the WeDoCode Store backend, focused on two axes: **sustained throughput** and **memory footprint per WebSocket session**.
 
 ---
 

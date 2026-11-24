@@ -25,7 +25,7 @@
 
 Every system that deals with data faces the same dilemma: where does the SQL go? How do you isolate the domain from the database technology? What do you do when part of the views runs on the server and another part runs on the client (browser, mobile)?
 
-This document describes how the WDC Shopping project solves these problems through a four-module architecture with a sharp separation of responsibilities — and how that separation lets **the same domain code run both with direct database access and over HTTP**, without any modification.
+This document describes how the WDC Store project solves these problems through a four-module architecture with a sharp separation of responsibilities — and how that separation lets **the same domain code run both with direct database access and over HTTP**, without any modification.
 
 ---
 
@@ -855,7 +855,7 @@ The `RemoteTransactions.COORDINATOR` holder lives in `persistence.rest` (server 
 
 ## Conclusions
 
-The WDC Shopping data layer shows that it is possible to have **zero duplication of business logic** between a server frontend and a client frontend, as long as the boundary is defined in the right place — in the repository interfaces.
+The WDC Store data layer shows that it is possible to have **zero duplication of business logic** between a server frontend and a client frontend, as long as the boundary is defined in the right place — in the repository interfaces.
 
 The points that make this architecture robust:
 

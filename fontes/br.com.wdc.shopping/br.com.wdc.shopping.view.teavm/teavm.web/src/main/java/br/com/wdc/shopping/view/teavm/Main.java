@@ -13,7 +13,7 @@ public class Main {
 
     public static void main(String[] args) {
         try {
-            Console.log("WDC Shopping TeaVM - Initializing...");
+            Console.log("WDC Store TeaVM - Initializing...");
 
             // API base URL - can be set through an attribute in the HTML
             String apiBaseUrl = getApiBaseUrl();
@@ -33,15 +33,15 @@ public class Main {
             // Creates the application and initializes the secure storage (IndexedDB + AES-GCM)
             // before starting the app, so tryRestore() finds the encrypted tokens.
             ShoppingTeaVMApplication app = new ShoppingTeaVMApplication(apiBaseUrl, shellId);
-            Console.log("WDC Shopping TeaVM - App created, initializing secure storage...");
+            Console.log("WDC Store TeaVM - App created, initializing secure storage...");
             EncryptedLocalStorage.initialize(() -> {
                 app.start();
                 removeLoadingScreen();
                 LoginPresenter.simulateSlowLogin(false);
-                Console.log("WDC Shopping TeaVM - Started.");
+                Console.log("WDC Store TeaVM - Started.");
             });
         } catch (Exception e) {
-            Console.error("WDC Shopping TeaVM - FATAL: " + e.getClass().getName() + ": " + e.getMessage());
+            Console.error("WDC Store TeaVM - FATAL: " + e.getClass().getName() + ": " + e.getMessage());
             showError(e.getClass().getName() + ": " + e.getMessage());
         }
     }

@@ -4,7 +4,7 @@ Guide for working in this repository. For the full architectural view, see [READ
 
 ## What it is
 
-**WDC Cube Java v2** — architectural reference for the **Cube MVP** pattern (an MVP variation with hierarchical presenters, intent-based navigation and serializable ViewStates). It demonstrates an e-commerce application (Shopping) with a Java 25 backend and **five independent frontends** (React, Flutter, Vaadin, SWT, TeaVM) that share the same presenters/ViewStates — only the rendering layer changes.
+**WDC Cube Java v2** — architectural reference for the **Cube MVP** pattern (an MVP variation with hierarchical presenters, intent-based navigation and serializable ViewStates). It demonstrates an e-commerce application (WDC Store, in the `br.com.wdc.shopping` modules) with a Java 25 backend and **five independent frontends** (React, Flutter, Vaadin, SWT, TeaVM) that share the same presenters/ViewStates — only the rendering layer changes.
 
 Project language: **US English** — docs, READMEs, code comments, strings, identifiers, database seed content and commit messages. The UI uses US dollars and en-US formats (e.g. `$16.00`, dates as MM/DD/YYYY).
 

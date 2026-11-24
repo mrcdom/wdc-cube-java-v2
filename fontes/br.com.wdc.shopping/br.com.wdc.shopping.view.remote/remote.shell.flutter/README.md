@@ -1,6 +1,6 @@
 # remote.shell.flutter
 
-Flutter shells for the **WeDoCode Shopping** application — implementations of the Remote Presentation thin client in Dart/Flutter for multiple platforms.
+Flutter shells for the **WeDoCode Store** application — implementations of the Remote Presentation thin client in Dart/Flutter for multiple platforms.
 
 ## Overview
 
@@ -11,8 +11,8 @@ All Flutter shells share the same codebase (`flutter_commons`) and differ only i
 | Module | Platforms | Description |
 |--------|-------------|-----------|
 | `flutter.commons` | — | Shared library: WS protocol, security, views, widgets |
-| `flutter.desktop` | macOS, Linux, Windows | Native desktop app ("Shopping Native") |
-| `flutter.mobile` | iOS, Android | Mobile app ("Shopping Remote") with an F badge |
+| `flutter.desktop` | macOS, Linux, Windows | Native desktop app ("WDC Store") |
+| `flutter.mobile` | iOS, Android | Mobile app ("WDC Store") with an F badge |
 | `flutter.web` | Browser (WASM/JS) | Web app (Flutter alternative to the React shell) |
 
 ## Architecture

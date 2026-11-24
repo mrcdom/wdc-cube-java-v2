@@ -14,7 +14,7 @@
     <artifactId>br.com.wdc.shopping.view.teavm</artifactId>
     <packaging>pom</packaging>
 
-    <name>WeDoCode Shopping View TeaVM</name>
+    <name>WeDoCode Store View TeaVM</name>
     <description>TeaVM-based views — web (browser) and native (Tauri: desktop, Android, iOS)</description>
 
     <properties>

@@ -113,7 +113,7 @@ public class HomeCn1View extends AbstractCn1View {
                             dom.boxY(t -> {
                                 dom.label(l -> {
                                     l.setUIID(sel.APP_BAR_BRAND);
-                                    l.setText("Shopping");
+                                    l.setText("Store");
                                 });
                                 brandSub = dom.label(l -> {
                                     l.setUIID(sel.APP_BAR_BRAND_SUB);

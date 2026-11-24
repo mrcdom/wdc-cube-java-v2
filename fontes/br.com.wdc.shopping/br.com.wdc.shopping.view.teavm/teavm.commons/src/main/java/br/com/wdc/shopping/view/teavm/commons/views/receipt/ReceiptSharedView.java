@@ -106,7 +106,7 @@ public class ReceiptSharedView extends SharedVDomView {
                   .children(span(Sel.HEADER_ICON)),
                 div().children(
                   h5(Sel.HEADER_TITLE).text("Purchase Receipt"),
-                  span(Sel.HEADER_SUBTITLE).text("WDC Shopping"))),
+                  span(Sel.HEADER_SUBTITLE).text("WDC Store"))),
               // Receipt content
               div(Sel.RECEIPT_BODY).children(
                 div(Sel.DATE_ROW).children(

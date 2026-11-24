@@ -31,7 +31,7 @@ import io.javalin.config.JavalinConfig;
 import io.javalin.http.staticfiles.Location;
 
 /**
- * Standalone Javalin-based HTTP server for WeDoCode Shopping React frontend.
+ * Standalone Javalin-based HTTP server for WeDoCode Store React frontend.
  * 
  * This server: - Serves React static assets (HTML, CSS, JS) from classpath - Manages ApplicationReactImpl instances for
  * session state - Cleans up expired sessions periodically
@@ -329,7 +329,7 @@ public class BackendServer {
             }
         }
 
-        LOG.info("Starting WeDoCode Shopping React Server on port {}", port);
+        LOG.info("Starting WeDoCode Store React Server on port {}", port);
 
         boolean devMode = config.getBoolean("server.devMode", false);
         CorsSettings corsSettings = resolveCorsSettings(config);

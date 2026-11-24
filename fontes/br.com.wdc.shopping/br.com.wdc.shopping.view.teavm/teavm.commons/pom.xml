@@ -14,7 +14,7 @@
     <artifactId>teavm.commons</artifactId>
     <packaging>jar</packaging>
 
-    <name>WeDoCode Shopping View TeaVM Commons</name>
+    <name>WeDoCode Store View TeaVM Commons</name>
     <description>Shared code for TeaVM-based views: Virtual DOM engine, Spectrum Web Components DSL, selectors, and browser interop utilities</description>
 
     <dependencies>

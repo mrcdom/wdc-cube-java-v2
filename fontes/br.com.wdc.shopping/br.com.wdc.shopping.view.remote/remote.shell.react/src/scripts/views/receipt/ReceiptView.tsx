@@ -61,7 +61,7 @@ class ReceiptViewClass extends BaseViewClass<ViewProps, ReceiptViewState> {
               </div>
               <div>
                 <h5 className={Sel.cardHeaderTitle}>Purchase Receipt</h5>
-                <span className={Sel.cardHeaderSubtitle}>WDC Shopping</span>
+                <span className={Sel.cardHeaderSubtitle}>WDC Store</span>
               </div>
             </div>
 

@@ -1,5 +1,5 @@
 /**
- * Global CSS selectors — typed wrappers for the WDC Shopping utility classes.
+ * Global CSS selectors — typed wrappers for the WDC Store utility classes.
  *
  * Autocomplete, compile errors instead of silent bugs, safe refactoring.
  *

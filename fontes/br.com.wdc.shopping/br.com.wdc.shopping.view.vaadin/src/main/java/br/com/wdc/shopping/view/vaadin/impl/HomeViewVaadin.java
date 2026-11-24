@@ -157,7 +157,7 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomeScope> {
                 center.setPadding(false);
                 center.setSpacing(false);
 
-                var logo = new Image("images/shopping-logo.svg", "WDC Shopping");
+                var logo = new Image("images/shopping-logo.svg", "WDC Store");
                 logo.setHeight("32px");
                 center.add(logo);
             });

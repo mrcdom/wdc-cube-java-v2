@@ -57,7 +57,7 @@ class _ReceiptViewState extends BaseViewState<ReceiptView> {
                       const ViewHeader(
                         icon: Icons.receipt_long,
                         title: 'Purchase Receipt',
-                        subtitle: 'WDC Shopping',
+                        subtitle: 'WDC Store',
                       ),
                       const SizedBox(height: 20),
                       // Receipt body (gray bg)

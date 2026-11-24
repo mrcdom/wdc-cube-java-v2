@@ -1,6 +1,6 @@
 # fontes/
 
-Source code root of the **WeDoCode Shopping** project — a reference e-commerce application built with the **Cube MVP** architecture on Java 25.
+Source code root of the **WeDoCode Store** project — a reference e-commerce application built with the **Cube MVP** architecture on Java 25.
 
 ---
 

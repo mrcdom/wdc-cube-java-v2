@@ -14,7 +14,7 @@
     <artifactId>teavm.web</artifactId>
     <packaging>jar</packaging>
 
-    <name>WeDoCode Shopping View TeaVM Web</name>
+    <name>WeDoCode Store View TeaVM Web</name>
     <description>Browser-based view compiled from Java to JavaScript via TeaVM, using Bootstrap 5</description>
 
     <dependencies>

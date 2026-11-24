@@ -1,6 +1,6 @@
 # flutter_commons
 
-Shared library for the Flutter shells (desktop, mobile, web) of the **WeDoCode Shopping** application.
+Shared library for the Flutter shells (desktop, mobile, web) of the **WeDoCode Store** application.
 
 It contains all the infrastructure any Flutter shell needs to work as a thin client of the Remote Presentation protocol — no business logic, only protocol, rendering and interaction.
 

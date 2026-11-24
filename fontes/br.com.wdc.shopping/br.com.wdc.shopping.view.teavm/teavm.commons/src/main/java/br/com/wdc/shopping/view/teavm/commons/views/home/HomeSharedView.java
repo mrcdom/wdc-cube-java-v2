@@ -139,7 +139,7 @@ public class HomeSharedView extends SharedVDomView {
             div(Sel.LOGO_BOX)
               .children(span(Sel.LOGO_ICON)),
             div(Sel.LOGO_TEXT_WRAP).children(
-              span(Sel.LOGO_TITLE).text("Shopping"),
+              span(Sel.LOGO_TITLE).text("Store"),
               span(Sel.LOGO_SUBTITLE).text("By WeDoCode"))),
           // Right: cart button
           div(Sel.NAV_RIGHT).children(

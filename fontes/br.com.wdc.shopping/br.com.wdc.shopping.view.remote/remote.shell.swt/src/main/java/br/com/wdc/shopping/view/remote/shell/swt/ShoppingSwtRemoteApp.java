@@ -28,7 +28,7 @@ import br.com.wdc.shopping.view.swt.SwtApp;
 import br.com.wdc.shopping.view.swt.util.ProductImageCache;
 
 /**
- * SWT shell application that renders WDC Shopping using remote state from the Host server.
+ * SWT shell application that renders WDC Store using remote state from the Host server.
  * <p>
  * The app:
  * <ol>

@@ -1,4 +1,4 @@
-# WDC Shopping — Presentation
+# WDC Store — Presentation
 
 Presentation layer of the Shopping system, implemented with the **Cube MVP** pattern. It contains the presenters, scopes, calls, DTOs and the navigation system. This layer is view-technology agnostic — it does not depend on React, Javalin or any UI framework.
 

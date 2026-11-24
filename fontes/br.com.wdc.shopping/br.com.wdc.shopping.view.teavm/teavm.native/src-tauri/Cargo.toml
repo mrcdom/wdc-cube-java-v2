@@ -1,7 +1,7 @@
 [package]
 name = "wdc-shopping-desktop"
 version = "1.0.0"
-description = "WDC Shopping Desktop App (Tauri)"
+description = "WDC Store Desktop App (Tauri)"
 authors = ["WeDoCode"]
 license = ""
 repository = ""

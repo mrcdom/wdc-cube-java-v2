@@ -1,4 +1,4 @@
-# WDC Shopping — React Client
+# WDC Store — React Client
 
 SPA frontend for the Shopping system, built with **React 19**, **TypeScript** and **MUI 9**. It communicates with the Java backend over a **bidirectional WebSocket**, receiving serialized states from the presenters and sending events back.
 

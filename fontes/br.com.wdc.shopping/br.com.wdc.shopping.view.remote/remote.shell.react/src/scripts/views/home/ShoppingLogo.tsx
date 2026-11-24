@@ -13,7 +13,7 @@ export default function ShoppingLogo({ height = 36 }: ShoppingLogoProps) {
       width={w}
       height={height}
       role="img"
-      aria-label="WDC Shopping"
+      aria-label="WDC Store"
     >
       {/* Price tag icon */}
       <g transform="translate(-2, -2) scale(1.3)">
@@ -30,7 +30,7 @@ export default function ShoppingLogo({ height = 36 }: ShoppingLogoProps) {
         </text>
       </g>
 
-      {/* "Shopping" main text */}
+      {/* "Store" main text */}
       <text
         x="40"
         y="20"
@@ -40,10 +40,10 @@ export default function ShoppingLogo({ height = 36 }: ShoppingLogoProps) {
         fill="#ffffff"
         letterSpacing="1"
       >
-        Shopping
+        Store
       </text>
 
-      {/* "by WeDoCode" subtle branding - below Shopping */}
+      {/* "by WeDoCode" subtle branding - below Store */}
       <text
         x="40"
         y="34"

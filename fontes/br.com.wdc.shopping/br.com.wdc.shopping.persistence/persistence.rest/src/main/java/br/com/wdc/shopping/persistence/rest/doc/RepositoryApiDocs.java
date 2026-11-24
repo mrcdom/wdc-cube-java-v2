@@ -78,9 +78,9 @@ public final class RepositoryApiDocs {
 
     private static Info info() {
         return new Info()
-                .title("WDC Shopping — Repository API")
+                .title("WDC Store — Repository API")
                 .description("""
-                        CRUD and query endpoints for the WDC Shopping data model.
+                        CRUD and query endpoints for the WDC Store data model.
 
                         **Authentication**: write operations require a Bearer JWT.
                         Obtain tokens via `POST /api/auth/login` after requesting a

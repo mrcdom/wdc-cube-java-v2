@@ -1,4 +1,4 @@
-# WDC Shopping — Persistence
+# WDC Store — Persistence
 
 The persistence layer of the Shopping system. It implements the repositories defined in the `domain` module using **jOOQ** and the **JsonQueryBuilder** framework for declarative bean↔table mapping with JSON projection and lazy relations. The database is **H2** or **PostgreSQL** (chosen by the dialect passed to the bootstrap).
 

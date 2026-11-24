@@ -1,6 +1,6 @@
 # WDC Framework — Commons
 
-Utility library shared by all the other framework modules and by the Shopping application.
+Utility library shared by all the other framework modules and by the WDC Store application.
 
 ---
 

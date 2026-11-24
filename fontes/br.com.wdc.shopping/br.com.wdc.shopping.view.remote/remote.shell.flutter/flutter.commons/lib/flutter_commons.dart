@@ -1,4 +1,4 @@
-/// WDC Shopping - Shared logic for remote shell Flutter clients.
+/// WDC Store - Shared logic for remote shell Flutter clients.
 ///
 /// Contains: Shopping-specific views, widgets, design tokens, and utilities.
 /// Re-exports the bridge infrastructure from remote_bridge_flutter.

@@ -119,7 +119,7 @@ public class LoginSharedView extends SharedVDomView {
         var errorMessage = state.errorMessage.get();
         var showError = errorMessage != null && !errorMessage.isEmpty();
         
-        var title = "WDC Shopping";
+        var title = "WDC Store";
         var subtitle = "Your trusted online store.";
 
         // @formatter:off

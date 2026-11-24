@@ -43,7 +43,7 @@ class HeaderPanelClass extends BasePanelClass<HeaderPanelProps> {
             <span className={clsx("bi bi-bag-check", Sel.textXl, Sel.textWhite)}></span>
           </div>
           <div className={clsx(Sel.flexCol, Sel.leadingTight)}>
-            <span className={clsx(Sel.textBase, Sel.fontBold, Sel.textWhite, Sel.trackingTight)}>Shopping</span>
+            <span className={clsx(Sel.textBase, Sel.fontBold, Sel.textWhite, Sel.trackingTight)}>Store</span>
             <span className={clsx(Sel.smShow, Sel.textXs, Sel.textWhite65, Sel.fontNormal, Sel.trackingWide)}>
               By WeDoCode
             </span>

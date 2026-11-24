@@ -1,6 +1,6 @@
 # br.com.wdc.shopping.view.remote
 
-Implementation of the **Remote Presentation** technique for the **WeDoCode Shopping** application, based on the **Cube MVP** pattern.
+Implementation of the **Remote Presentation** technique for the **WeDoCode Store** application, based on the **Cube MVP** pattern.
 
 ## Concept
 

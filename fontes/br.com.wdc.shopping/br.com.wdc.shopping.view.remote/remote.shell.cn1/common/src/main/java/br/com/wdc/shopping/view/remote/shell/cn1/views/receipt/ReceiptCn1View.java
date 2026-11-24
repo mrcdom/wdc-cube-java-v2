@@ -79,7 +79,7 @@ public class ReceiptCn1View extends AbstractCn1View {
                 dom.cardHeader(null, h -> {
                     h.setIcon(FontImage.MATERIAL_RECEIPT);
                     h.setTitle("Purchase Receipt");
-                    h.setSubtitle("WDC Shopping");
+                    h.setSubtitle("WDC Store");
                 });
 
                 // body (monospaced)

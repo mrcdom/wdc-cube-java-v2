@@ -1,6 +1,6 @@
 # remote.host
 
-Concrete instance of the remote presentation protocol host for the **WeDoCode Shopping** application. It is the WebSocket server that receives events from the shells (React, TeaVM, Flutter, SWT), dispatches them to the Presenters and returns the modified ViewStates.
+Concrete instance of the remote presentation protocol host for the **WeDoCode Store** application. It is the WebSocket server that receives events from the shells (React, TeaVM, Flutter, SWT), dispatches them to the Presenters and returns the modified ViewStates.
 
 ## Responsibility
 

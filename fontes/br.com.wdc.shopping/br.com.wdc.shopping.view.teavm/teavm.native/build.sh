@@ -1,5 +1,5 @@
 #!/bin/bash
-# Build the WDC Shopping app using Tauri for desktop, Android or iOS
+# Build the WDC Store app using Tauri for desktop, Android or iOS
 # Prerequisites:
 #   - Java 25 (set JAVA25_HOME or JAVA_HOME)
 #   - Maven
@@ -93,7 +93,7 @@ case "$TARGET" in
 esac
 
 echo "============================================"
-echo "  WDC Shopping - Build"
+echo "  WDC Store - Build"
 echo "============================================"
 echo "  Target:       $TARGET"
 echo "  API URL:      $API_URL"
@@ -159,7 +159,7 @@ case "$TARGET" in
             cargo tauri build
             echo ""
             echo ">>> Build complete!"
-            echo "    App: $SCRIPT_DIR/src-tauri/target/release/bundle/macos/WDC Shopping.app"
+            echo "    App: $SCRIPT_DIR/src-tauri/target/release/bundle/macos/WDC Store.app"
         fi
         ;;
 
@@ -248,7 +248,7 @@ case "$TARGET" in
         cargo tauri ios build --debug --target aarch64-sim 2>&1 | tail -10
 
         # The .app built by cargo tauri is always in APPLE_BUILD_DIR/arm64-sim/
-        IOS_APP="$APPLE_BUILD_DIR/arm64-sim/WDC Shopping.app"
+        IOS_APP="$APPLE_BUILD_DIR/arm64-sim/WDC Store.app"
         if [ ! -d "$IOS_APP" ]; then
             # Fallback: search DerivedData (older Tauri versions)
             IOS_APP=$(find ~/Library/Developer/Xcode/DerivedData/wdc-shopping-desktop-*/Build/Products/debug-iphonesimulator -name "*.app" -type d 2>/dev/null | head -1)

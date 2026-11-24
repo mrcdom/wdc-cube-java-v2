@@ -175,7 +175,7 @@ class _HeaderPanel extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Shopping',
+                    'Store',
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
