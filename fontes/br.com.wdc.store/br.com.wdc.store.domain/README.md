@@ -140,7 +140,7 @@ A projection is an entity instance whose non-null fields mark the columns to loa
 
 ## Security (RBAC)
 
-`Role` is the list of roles (ADMIN, CUSTOMER, MANAGER). `Role.parse(...)` reads the user's `roles` column, ignoring unknown names, and `Role.names(...)` is what the security context carries. A role has no permissions of its own: what each one may do with the data is declared by the data access policies of the REST layer (`XxxDataPolicy`), by role name — the model is **allow-wins** ([docs/data-access-policy.md](../../../docs/data-access-policy.md)).
+`Role` is the list of roles (ADMIN, CUSTOMER, MANAGER). `Role.parse(...)` reads the user's `roles` column, ignoring unknown names, and `Role.names(...)` is what the security context carries. A role has no permissions of its own: what each one may do with the data is declared by the data access policies of the REST layer (`XxxDataPolicy`), by role name — the model is **allow-wins** ([docs/security-architecture.md](../../../docs/security-architecture.md)).
 
 The authentication and context contracts (`AuthenticationService`, `SecurityContext` with its `CURRENT` ThreadLocal, `PasswordUtil`, `AccessDeniedException`) are in `br.com.wdc.framework.domain`.
 

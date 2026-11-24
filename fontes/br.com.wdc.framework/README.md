@@ -51,6 +51,10 @@ graph TD
 - **No heavy transitive dependencies** — each module declares only the bare minimum
 - **Java 21** — records, sealed interfaces, Virtual Threads where applicable. The framework bytecode targets 21 (`maven.compiler.release`) so as not to force a newer version on consumers; the repository's demos and backend compile at 25
 
+## Security
+
+[Securing an Application with the WDC Framework](docs/security-guide.md) — authenticating users, deciding per role what your REST API returns and accepts (data access policies), and what to take care of where the presenters run on the server.
+
 ## Build
 
 ```bash

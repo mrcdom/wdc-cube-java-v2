@@ -10,7 +10,7 @@
 [The Persistence Module — The Implementation](#the-persistence-module--the-implementation)  
 [JsonQuery — Declarative Bean↔Table Mapping](#jsonquery--declarative-beantable-mapping)  
 [Lazy Relations — Subqueries without N+1](#lazy-relations--subqueries-without-n1)  
-[RBAC Security — Permissions as a Domain Contract](#rbac-security--permissions-as-a-domain-contract)  
+[RBAC Security — Roles, and a Data Policy per Entity](#rbac-security--roles-and-a-data-policy-per-entity)  
 [The persistence.rest Module — The HTTP Surface](#the-persistencerest-module--the-http-surface)  
 [The persistence.client Module — The HTTP Mirror](#the-persistenceclient-module--the-http-mirror)  
 [Full Symmetry — the Same Code, Two Worlds](#full-symmetry--the-same-code-two-worlds)  
@@ -123,7 +123,7 @@ new UserCriteria()
                 new UserCriteria().name().containing("Roe"));   // userName = 'admin' OR name LIKE '%Roe%'
 ```
 
-Each entity's `ApplyConditions` translates the groups with the same `apply`, through `CriterionTranslator.anyOf`. The data access policy relies on them to restrict rows. **They do not travel**: the codecs refuse them on both sides of the wire, so a client cannot send any tree of `OR`s over any columns. A client's search of one term in several columns is a criteria field of its own, which the repository translates with `CriterionTranslator.translateAny(columns, criterion)` — a provisioned disjunction, like the orderings ([docs/data-access-policy.md](data-access-policy.md#server-side-only)).
+Each entity's `ApplyConditions` translates the groups with the same `apply`, through `CriterionTranslator.anyOf`. The data access policy relies on them to restrict rows. **They do not travel**: the codecs refuse them on both sides of the wire, so a client cannot send any tree of `OR`s over any columns. A client's search of one term in several columns is a criteria field of its own, which the repository translates with `CriterionTranslator.translateAny(columns, criterion)` — a provisioned disjunction, like the orderings ([docs/security-architecture.md](security-architecture.md#alternative-groups-in-the-criteria-server-side-only)).
 
 **A null value adds no request**, instead of erasing the previous ones — this preserves the habit of building a filter from a screen, where empty means "do not filter by this". To erase, `clear()`; to compare against null, `isNull()`. The `withXxx(value)` shortcuts exist too, and are `xxx().eq(value)`.
 
@@ -566,7 +566,7 @@ The authentication flow uses **HMAC challenge-response** so the password never t
 
 `SecurityContext.CURRENT` propagates the context through a `ThreadLocal` — any code running on the same thread knows who the requester is and which roles they have, without receiving extra parameters.
 
-`Role` is only the list of roles — `ADMIN`, `CUSTOMER`, `MANAGER` —, parsed from the user's `roles` column. What each one may do is in the data access policies of `persistence.rest` (`UserDataPolicy`, `ProductDataPolicy`, `PurchaseDataPolicy`, `PurchaseItemDataPolicy`): per role, the rows reached, the fields read — as they are or masked — and the fields written, decided per row, with relations going through the policy of the related entity. Details: [docs/data-access-policy.md](data-access-policy.md).
+`Role` is only the list of roles — `ADMIN`, `CUSTOMER`, `MANAGER` —, parsed from the user's `roles` column. What each one may do is in the data access policies of `persistence.rest` (`UserDataPolicy`, `ProductDataPolicy`, `PurchaseDataPolicy`, `PurchaseItemDataPolicy`): per role, the rows reached, the fields read — as they are or masked — and the fields written, decided per row, with relations going through the policy of the related entity. Details: [docs/security-architecture.md](security-architecture.md).
 
 ---
 

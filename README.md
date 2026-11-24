@@ -7,7 +7,8 @@ This project serves as an **architectural reference** for new projects, demonstr
 📄 [Cube MVP — Multiplatform Presentation Architecture in Java](docs/cube-mvp-multiplatform-architecture.md)  
 📄 [Data Layer — Domain, Persistence and REST API](docs/data-layer.md)  
 📄 [Remote Transaction — Client Identity and Transaction Ownership](docs/remote-transaction-identity-and-ownership.md)  
-📄 [Data Access Policy — Who Reads and Writes What Through the REST API](docs/data-access-policy.md)
+📄 [Security Architecture — Trust Boundaries, Authentication and Data Access Policies](docs/security-architecture.md)  
+📄 [Securing an Application with the WDC Framework — Guide](fontes/br.com.wdc.framework/docs/security-guide.md)
 
 ## Architecture Overview
 
@@ -339,7 +340,7 @@ Each entity has a **data access policy** (`persistence.rest`, `XxxDataPolicy`): 
 | **CUSTOMER** | Its own user | Reads | Its own: reads and creates — a purchase is a receipt; the price of an item comes from its product |
 | **MANAGER** | Its own user in full; the others by name, with the login masked (`j***`) | Reads and writes | Its own: reads |
 
-**Allow-wins** model: a user gets everything each of its roles allows, with the fields decided per row, by the grants that reach that row; what a request asks inside a relation (`purchase.user`, `purchase.items`) goes through the policy of that entity. Details: [docs/data-access-policy.md](docs/data-access-policy.md).
+**Allow-wins** model: a user gets everything each of its roles allows, with the fields decided per row, by the grants that reach that row; what a request asks inside a relation (`purchase.user`, `purchase.items`) goes through the policy of that entity. Details: [docs/security-architecture.md](docs/security-architecture.md).
 
 ### Security Layers
 
