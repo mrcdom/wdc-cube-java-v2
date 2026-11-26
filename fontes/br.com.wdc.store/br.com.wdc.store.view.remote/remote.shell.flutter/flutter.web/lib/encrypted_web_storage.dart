@@ -72,7 +72,7 @@ class EncryptedWebStorage implements ClientStorage {
     try {
       _cryptoKey = await _openOrCreateKey();
     } catch (_) {
-      // IndexedDB unavailable — in-memory only
+      // IndexedDB or Web Crypto unavailable — in-memory only
       return;
     }
 
@@ -119,6 +119,11 @@ class EncryptedWebStorage implements ClientStorage {
 // ---------------------------------------------------------------------------
 
 Future<web.CryptoKey?> _openOrCreateKey() {
+  // Web Crypto exists only in a secure context (HTTPS or localhost); over plain
+  // HTTP the storage keeps its values in memory.
+  if (!web.window.isSecureContext) {
+    return Future.error('Web Crypto is not available (not a secure context)');
+  }
   final completer = Completer<web.CryptoKey?>();
 
   final req = web.window.indexedDB.open('_sec', 1);
