@@ -343,7 +343,9 @@ The `CubeNavigation` navigation engine performs transitions between states as fo
 4. It invokes `release()` on the Presenters that are not part of the active state, in reverse order (from deepest to shallowest).  
 5. It calls `app.updateHistory()` so the host republishes the address.
 
-The views are not redrawn by the engine: each `Prop` a Presenter changes requests the redraw of the view that draws its scope. `commitComputedState()` (an opportunity to synchronize derived state) is called by the remote host on all Presenters, once, before it serializes the dirty scopes.
+The views are not redrawn by the engine: each `Prop` a Presenter changes requests the redraw of the view that draws its scope. `commitComputedState()` (an opportunity to synchronize derived state) is called on all Presenters once per paint cycle, before the dirty views are drawn: by each technology's flush of dirty views (Vaadin, SWT, teavm.web) and by the remote host before it serializes the dirty scopes. What it changes is painted in the same cycle.
+
+The actions of one application run **one at a time**: every guarded action runs inside `CubeApplication.runExclusively`, so an action that starts while another waits on I/O waits for it, and an action that runs another on the same thread runs it at once.
 
 When navigating from `product?pr-id=5` to `cart`, the sequence is:
 

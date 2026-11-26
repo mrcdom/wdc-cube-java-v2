@@ -1,7 +1,7 @@
 # 0015. The server decides the price of an item
 
 - **Date:** 2026-11-24
-- **Status:** Accepted
+- **Status:** Superseded by [0020](0020-the-price-of-an-item-is-its-products.md)
 
 ## Context
 

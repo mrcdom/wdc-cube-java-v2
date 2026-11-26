@@ -1,7 +1,7 @@
 # 0004. Actions are guarded fields of the scope
 
 - **Date:** 2026-11-23
-- **Status:** Accepted
+- **Status:** Accepted; its paragraph on serialization is superseded by [0021](0021-actions-run-one-at-a-time.md)
 
 ## Context
 

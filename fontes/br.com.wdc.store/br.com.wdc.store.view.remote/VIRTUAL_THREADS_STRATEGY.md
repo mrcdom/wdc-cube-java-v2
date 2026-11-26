@@ -68,7 +68,7 @@ The session limits come from `application.toml` (`RemoteHostBootstrap`): `server
 ## Synchronization
 
 - `RemoteApplicationSupport` guards a session's client→server state sync, navigation (`safeGo`), alerts and the `commitComputedState` pass with a `ReentrantLock`.
-- `CubeApplication` guards its live views with short `synchronized` blocks.
+- `CubeApplication` runs the actions of a session one at a time, in a `synchronized` block (`runExclusively`).
 - On Java 25, a virtual thread that blocks inside `synchronized` releases its carrier thread (JEP 491), so neither form pins a carrier thread.
 
 ## Cryptography
