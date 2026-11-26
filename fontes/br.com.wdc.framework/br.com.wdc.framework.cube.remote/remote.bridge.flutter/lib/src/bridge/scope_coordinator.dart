@@ -19,7 +19,11 @@ class ScopeCoordinator {
   /// The active coordinator instance (set after construction).
   static late ScopeCoordinator instance;
 
-  final String id;
+  String _id;
+
+  /// The session id (appId) the connections open on.
+  String get id => _id;
+
   final String baseWebSocketUrl;
 
   final Map<String, ViewFactory> viewFactoryMap = {};
@@ -67,7 +71,7 @@ class ScopeCoordinator {
   final ChannelConnector connectChannel;
 
   ScopeCoordinator(CoordinatorConfig config)
-    : id = config.appId,
+    : _id = config.appId,
       baseWebSocketUrl = config.baseWebSocketUrl,
       connectChannel = config.connectChannel ?? _connectWebSocket {
     instance = this;
@@ -137,6 +141,14 @@ class ScopeCoordinator {
   void onStop() {
     contextExchanger.close();
     reconnectController.close();
+  }
+
+  /// Moves to another session id — after the host closed with 4001 and the
+  /// shell got a new one: the next connection opens on it. Call [onStop] and
+  /// [onStart] afterwards to connect.
+  void useSession(String appId) {
+    _id = appId;
+    reconnectController.url = '$baseWebSocketUrl/dispatcher/$appId';
   }
 
   // :: State Management
