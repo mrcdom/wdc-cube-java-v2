@@ -303,7 +303,12 @@ public class StoreVaadinApplication extends StoreApplication {
         });
     }
 
+    /** One paint cycle: the presenters commit their computed state, then the dirty views redraw. */
     private void flushDirtyViews() {
+        if (this.dirtyViewMap.isEmpty()) {
+            return;
+        }
+        this.commitComputedState();
         var iterator = this.dirtyViewMap.values().iterator();
         while (iterator.hasNext()) {
             var view = iterator.next();
