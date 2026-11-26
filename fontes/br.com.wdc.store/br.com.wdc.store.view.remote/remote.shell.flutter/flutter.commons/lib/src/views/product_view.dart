@@ -44,109 +44,135 @@ class _ProductViewState extends BaseViewState<ProductView> {
     return PageCard(
       useCardDecoration: false,
       children: [
-                // Title
-                Text(name, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
-                const Divider(color: appAccent, thickness: 2),
-                const SizedBox(height: 16),
-                // Description card
-                if (description.isNotEmpty)
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    margin: const EdgeInsets.only(bottom: 20),
-                    decoration: BoxDecoration(
-                      color: appSurface,
-                      borderRadius: BorderRadius.circular(radiusLg),
-                      border: Border.all(color: appBorder),
-                    ),
-                    child: HtmlText(html: description),
+        // Title
+        Text(
+          name,
+          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+        ),
+        const Divider(color: appAccent, thickness: 2),
+        const SizedBox(height: 16),
+        // Description card
+        if (description.isNotEmpty)
+          Container(
+            padding: const EdgeInsets.all(20),
+            margin: const EdgeInsets.only(bottom: 20),
+            decoration: BoxDecoration(
+              color: appSurface,
+              borderRadius: BorderRadius.circular(radiusLg),
+              border: Border.all(color: appBorder),
+            ),
+            child: HtmlText(html: description),
+          ),
+        // Price + Image
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Price + quantity
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
                   ),
-                // Price + Image
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Price + quantity
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: appAccentLight,
-                            borderRadius: BorderRadius.circular(radiusSm),
-                          ),
-                          child: Text(formatCurrency(price),
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: appAccent)),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Text('Qty:', style: TextStyle(fontSize: 14, color: appTextSecondary)),
-                            const SizedBox(width: 10),
-                            IconButton(
-                              icon: const Icon(Icons.remove, size: 18),
-                              onPressed: _localQuantity > 1 ? _emitDecrement : null,
-                            ),
-                            Text('$_localQuantity',
-                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-                            IconButton(
-                              icon: const Icon(Icons.add, size: 18),
-                              onPressed: _emitIncrement,
-                            ),
-                          ],
-                        ),
-                      ],
+                  decoration: BoxDecoration(
+                    color: appAccentLight,
+                    borderRadius: BorderRadius.circular(radiusSm),
+                  ),
+                  child: Text(
+                    formatCurrency(price),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: appAccent,
                     ),
-                    const SizedBox(width: 16),
-                    // Image
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 200, maxHeight: 200),
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(radiusSm),
-                          gradient: imageGradient,
-                        ),
-                        child: AspectRatio(
-                          aspectRatio: 1,
-                          child: productId != null
-                              ? Image.network(
-                                  resolveAssetUrl('./image/product/$productId.png'),
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (_, __, ___) => imageErrorPlaceholder(),
-                                )
-                              : imageErrorPlaceholder(),
-                        ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Qty:',
+                      style: TextStyle(fontSize: 14, color: appTextSecondary),
+                    ),
+                    const SizedBox(width: 10),
+                    IconButton(
+                      icon: const Icon(Icons.remove, size: 18),
+                      onPressed: _localQuantity > 1 ? _emitDecrement : null,
+                    ),
+                    Text(
+                      '$_localQuantity',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                // Actions
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    TextButton.icon(
-                      onPressed: _emitGoHome,
-                      icon: const Icon(Icons.arrow_back, size: 18),
-                      label: const Text('Back'),
-                    ),
-                    const SizedBox(width: 12),
-                    FilledButton.icon(
-                      onPressed: _emitAddToCart,
-                      style: accentButtonStyle,
-                      icon: const Icon(Icons.add_shopping_cart, size: 18),
-                      label: const Text('Add to Cart'),
+                    IconButton(
+                      icon: const Icon(Icons.add, size: 18),
+                      onPressed: _emitIncrement,
                     ),
                   ],
                 ),
-                // Error
-                if (errorMessage != null) ...[
-                  const SizedBox(height: 16),
-                  ErrorBanner(message: errorMessage),
-                ],
+              ],
+            ),
+            const SizedBox(width: 16),
+            // Image: up to 200 px, smaller when the screen is too narrow for it next to the price
+            Flexible(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: 200,
+                  maxHeight: 200,
+                ),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(radiusSm),
+                    gradient: imageGradient,
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: productId != null
+                        ? Image.network(
+                            resolveAssetUrl('./image/product/$productId.png'),
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, __, ___) =>
+                                imageErrorPlaceholder(),
+                          )
+                        : imageErrorPlaceholder(),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+        // Actions
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TextButton.icon(
+              onPressed: _emitGoHome,
+              icon: const Icon(Icons.arrow_back, size: 18),
+              label: const Text('Back'),
+            ),
+            const SizedBox(width: 12),
+            FilledButton.icon(
+              onPressed: _emitAddToCart,
+              style: accentButtonStyle,
+              icon: const Icon(Icons.add_shopping_cart, size: 18),
+              label: const Text('Add to Cart'),
+            ),
+          ],
+        ),
+        // Error
+        if (errorMessage != null) ...[
+          const SizedBox(height: 16),
+          ErrorBanner(message: errorMessage),
+        ],
       ],
     );
   }
