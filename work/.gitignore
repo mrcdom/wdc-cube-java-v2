@@ -6,6 +6,7 @@ frontend/*
 
 # Track version-controlled frontend contexts
 !frontend/api.docs/
+!frontend/openapi/
 
 # Track config files
 !config/

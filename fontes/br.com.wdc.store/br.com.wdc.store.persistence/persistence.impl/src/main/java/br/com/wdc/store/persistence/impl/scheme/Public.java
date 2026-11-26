@@ -5,6 +5,7 @@
 package br.com.wdc.store.persistence.impl.scheme;
 
 
+import br.com.wdc.store.persistence.impl.scheme.tables.EnLoginFailure;
 import br.com.wdc.store.persistence.impl.scheme.tables.EnProduct;
 import br.com.wdc.store.persistence.impl.scheme.tables.EnPurchase;
 import br.com.wdc.store.persistence.impl.scheme.tables.EnPurchaseitem;
@@ -26,6 +27,8 @@ public class Public extends SchemaImpl {
     private static final long serialVersionUID = 1L;
 
     public static final Public PUBLIC = new Public();
+
+    public final EnLoginFailure EN_LOGIN_FAILURE = EnLoginFailure.EN_LOGIN_FAILURE;
 
     public final EnProduct EN_PRODUCT = EnProduct.EN_PRODUCT;
 
@@ -58,6 +61,7 @@ public class Public extends SchemaImpl {
     @Override
     public final List<Table<?>> getTables() {
         return Arrays.asList(
+            EnLoginFailure.EN_LOGIN_FAILURE,
             EnProduct.EN_PRODUCT,
             EnPurchase.EN_PURCHASE,
             EnPurchaseitem.EN_PURCHASEITEM,

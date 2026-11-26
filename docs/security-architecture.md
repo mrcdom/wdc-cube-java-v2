@@ -75,35 +75,55 @@ Hence the two authorization mechanisms below: **data access policies** where the
 
 ## Authentication
 
-### Login by challenge-response
+### Sign-in with SCRAM-SHA-256
 
-The password never travels, not even hashed:
+The password never travels, and the database holds nothing that signs anyone in. The sign-in is **SCRAM-SHA-256** (RFC 5802 and 7677), the scheme PostgreSQL uses ([ADR 0024](adr/0024-scram-sign-in.md)):
 
 ```
-1. GET  /api/auth/challenge                → { nonce, expiresAt }          single-use, 60 s
-2. digest = HMAC-SHA256(key = stored password hash, data = userName + nonce)
-3. POST /api/auth/login { userName, digest, nonce }
-                                           → { accessToken, refreshToken, publicKey, expiresAt }
-4. Authorization: Bearer <accessToken>     on every repository call
+1. POST /api/auth/challenge { userName }   → { nonce, salt, iterations, expiresAt }   nonce single-use, 60 s, for this user
+2. digest         = MD5(password) as a signed integer in base 36          (PasswordUtil.hashPassword)
+   SaltedPassword = PBKDF2-HMAC-SHA256(digest, salt, iterations)
+   ClientKey      = HMAC(SaltedPassword, "Client Key")
+   AuthMessage    = "n=<userName>,r=<nonce>"
+   proof          = ClientKey XOR HMAC(SHA-256(ClientKey), AuthMessage)
+3. POST /api/auth/login { userName, proof, nonce }
+                                           → { userId, accessToken, refreshToken, publicKey, expiresAt, serverSignature }
+4. the client checks serverSignature = HMAC(HMAC(SaltedPassword, "Server Key"), AuthMessage)
+5. Authorization: Bearer <accessToken>     on every repository call
 ```
 
-The server recomputes the HMAC with the hash it stores and compares in constant time (`MessageDigest.isEqual`). A nonce is consumed on use and expires in 60 seconds, so a captured digest cannot be replayed.
+`Scram` and `ScramVerifier` (`framework.domain.security`) compute both sides through the `CryptoProvider`, so the server, the JVM clients and the browser run the same code; they are tested against the RFC 7677 vector.
+
+- **What the server stores** is a verifier, `SCRAM-SHA-256$<iterations>:<salt>$<StoredKey>:<ServerKey>` in `EN_USER.PASSWORD`, with a random 16-byte salt and 4096 iterations kept per verifier. `PasswordVerifiers` is the only place that makes one. The StoredKey checks a proof and the ServerKey signs the answer; neither signs anyone in, and guessing a password from them costs one PBKDF2 run per guess.
+- **The server checks** that the proof, XORed with `HMAC(StoredKey, AuthMessage)`, hashes to the StoredKey, in constant time. The nonce is consumed on use, expires in 60 seconds and is good only for the user it was made for, so a captured proof cannot be replayed.
+- **The client checks** the server's signature before keeping the session: a server that does not hold the user's verifier cannot compute it.
+- **An unknown user** gets a made-up salt, the same for the same name, and its proof is checked against a decoy verifier: the answers and the work do not tell whether a login exists. Every refusal is the same 401.
+- **Older databases** stored the MD5 digest itself. Since the digest is the input of the key derivation, `DBCreate` converts each one to the verifier of the same password on the first start (H2 and PostgreSQL), without knowing any password.
+
+### Limits on guessing
+
+| Limit | Where | Rule | Answer |
+|-------|-------|------|--------|
+| Failed sign-ins per account | `LoginThrottle`, in the database (`EN_LOGIN_FAILURE`) | 5 free failures in a row, then a wait of 30 s doubling up to 15 min; a success clears the count; failures older than 1 h are forgotten | 429 |
+| `/api/auth` requests per client address | `AuthRateLimit`, in each instance's memory | `[security] auth.requestsPerMinute` (default 60, `0` = none), fixed window per minute | 429 |
+
+Both answer **429** with the wait in `Retry-After` and in the body (`retryAfter`); the REST client throws `TooManyRequestsException` back, and the login screen says how long to wait. The per-account count holds whichever way the sign-in comes in — the REST API or a view whose presenters run on the server — and across instances, since it is in the database. It is a wait, not a lock: someone who knows a login can make its owner wait, never lock them out.
 
 ### Sessions and tokens
 
 | Token | Form | Lifetime | Where it lives |
 |-------|------|----------|----------------|
-| Access token | JWT (HS256; claims `sub`, `usr`, `exp`) | 30 minutes | Client memory / secure client storage |
+| Access token | JWT (HS256; claims `sid`, `sub`, `usr`, `exp`) | 30 minutes | Client memory / secure client storage |
 | Refresh token | Random UUID, one per device | 7 days; **rotated** on each refresh | Server session cache; secure client storage |
-| Persistent token ("remember me", remote hosts) | JWT, same format | 30 days | The client's `persistent-secure` storage |
+| Persistent token ("remember me", remote hosts) | JWT without `sid` | 30 days | The client's `persistent-secure` storage |
 
-A JWT is accepted only while the user has a **live session** in the server's in-memory cache (`AccessContextCache`); the session holds the user's role names and an ephemeral RSA-2048 key pair. Each device has its own session; logout removes the session of its refresh token.
+An access token names its session (`sid`) and is accepted only while **that session** is live in the server's in-memory cache (`AccessContextCache`); the session holds the user's role names and an ephemeral RSA-2048 key pair. Each device has its own session, with its own key; logout removes the session of its refresh token, and that device's access token stops working with it. The persistent token has no session, so it does not open the API; it only starts a new session (`loginWithPersistentToken`), which an access token cannot do.
 
 On the server side the requester is a `SecurityContext` — user id, user name, **role names**, the session's private key — set by `SecurityFilter` in a `ThreadLocal` for each request and cleared afterwards. The authentication contracts (`AuthenticationService`, `SecurityContext`) are in the framework; the implementation (`AuthenticationServiceImpl`) is the application's.
 
 ### Passwords sent by clients
 
-When a client creates or changes a user, the password goes encrypted with the session's RSA public key (RSA-OAEP, SHA-256), returned at login; `UserApiController` decrypts it with the session's private key before storing it.
+When a client creates or changes a user, the password goes encrypted with the session's RSA public key (RSA-OAEP, SHA-256), returned at login; `UserApiController` decrypts it with the session's private key and stores its verifier (`PasswordVerifiers.fromPassword`). A password that does not decrypt with the session's key is refused (400), never stored as it came.
 
 ---
 
@@ -267,10 +287,8 @@ The reference implementation favors clarity over a hardened deployment. Before p
 
 | Area | As implemented | Consequence | Hardening |
 |------|----------------|-------------|-----------|
-| Password storage | Unsalted MD5, base36; the stored hash is the HMAC key of the login | A database leak allows logging in as any user, without cracking anything | A salted, slow hash (Argon2, bcrypt) with a challenge protocol that does not make the stored value a credential (e.g. SCRAM, OPAQUE) |
-| Login attempts | No rate limiting | Online guessing is not slowed down | Rate limiting per user and per address |
-| Token types | Access and persistent tokens are JWTs with the same claims and secret | A persistent token (30 days) is accepted as an access token while its user has a live session | A token-type claim, checked by `resolveToken` |
-| Token binding | A JWT is checked against *any* live session of its user | After logout on one device, that device's access token works until it expires (≤ 30 min) while another session of the user is alive | A session id claim in the JWT |
+| Password storage | SCRAM-SHA-256 verifiers, 4096 PBKDF2 iterations | A database leak costs one PBKDF2 run per guessed password | More iterations as clients allow (each verifier keeps its count); a server-side pepper |
+| Per-address limit | In each instance's memory; the address is the connection's | With N instances, up to N times the limit; behind a proxy every client is the proxy | Limit per address at the proxy |
 | Persistent token revocation | Removed from the client on logout; not revocable on the server | A copied token is valid for 30 days | A server-side list of persistent tokens |
 | Sessions | In memory, one server | A restart ends every session; no horizontal scaling | A shared session store |
 | Remote channel cryptography | Sensitive values are ciphered per connection (ECDH P-256, HKDF, AES-GCM); scopes and events are not encrypted by the protocol | Their confidentiality rests on TLS | Run only over HTTPS/WSS; keep `[remote] signingKey` secret, and share it only among instances that must accept each other's sessions |

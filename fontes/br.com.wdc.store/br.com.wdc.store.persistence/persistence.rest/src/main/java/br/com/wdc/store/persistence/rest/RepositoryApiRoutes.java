@@ -3,7 +3,7 @@ package br.com.wdc.store.persistence.rest;
 import br.com.wdc.framework.domain.exception.AccessDeniedException;
 import br.com.wdc.framework.domain.exception.InvalidRequestException;
 import br.com.wdc.framework.domain.exception.TransactionConflictException;
-import br.com.wdc.framework.domain.exception.TransactionLimitExceededException;
+import br.com.wdc.framework.domain.exception.TooManyRequestsException;
 import br.com.wdc.framework.domain.security.AuthenticationService;
 import br.com.wdc.framework.domain.security.SecurityContext;
 import br.com.wdc.store.domain.StoreTransactions;
@@ -65,10 +65,17 @@ public final class RepositoryApiRoutes {
             ctx.json(java.util.Map.of("error", e.getMessage()));
         });
 
-        // Cap on open remote transactions reached (global or per owner) → 429
-        config.routes.exception(TransactionLimitExceededException.class, (e, ctx) -> {
+        // Must wait before trying again (the cap on open remote transactions, the sign-in limits) → 429, with the wait
+        // in Retry-After and in the body when known
+        config.routes.exception(TooManyRequestsException.class, (e, ctx) -> {
             ctx.status(429);
-            ctx.json(java.util.Map.of("error", e.getMessage()));
+            var seconds = e.retryAfterSeconds();
+            if (seconds == null) {
+                ctx.json(java.util.Map.of("error", e.getMessage()));
+            } else {
+                ctx.header("Retry-After", Long.toString(seconds));
+                ctx.json(java.util.Map.of("error", e.getMessage(), "retryAfter", seconds));
+            }
         });
 
         // Entity controllers

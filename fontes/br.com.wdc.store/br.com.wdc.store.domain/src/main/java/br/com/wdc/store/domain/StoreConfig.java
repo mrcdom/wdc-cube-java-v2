@@ -27,6 +27,8 @@ public class StoreConfig {
 
     private static String jwtSecret;
 
+    private static int authRequestsPerMinute = 60;
+
     private StoreConfig() {
         super();
     }
@@ -63,6 +65,11 @@ public class StoreConfig {
         return jwtSecret;
     }
 
+    /** Requests to {@code /api/auth} (challenge, login, refresh) per client address and minute; {@code 0} = no limit. */
+    public static final int getAuthRequestsPerMinute() {
+        return authRequestsPerMinute;
+    }
+
     public static class Internals {
 
         private Internals() {
@@ -93,6 +100,10 @@ public class StoreConfig {
             StoreConfig.jwtSecret = secret;
         }
 
+        public static void setAuthRequestsPerMinute(int limit) {
+            StoreConfig.authRequestsPerMinute = limit;
+        }
+
         public static void configure(AppConfig config) {
             try {
                 Path baseDir = resolveRuntimeBaseDir(config);
@@ -109,6 +120,7 @@ public class StoreConfig {
 
                 var jwt = config.get("security.jwt.secret");
                 StoreConfig.Internals.setJwtSecret(jwt);
+                StoreConfig.Internals.setAuthRequestsPerMinute(config.getInt("security.auth.requestsPerMinute", 60));
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }

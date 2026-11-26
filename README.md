@@ -25,7 +25,7 @@ graph TD
 
     subgraph Core["Shared Layers"]
         P["Presentation<br/><small>Presenters + Scopes + Navigation</small>"]
-        SEC["Security · RBAC<br/><small>HMAC + JWT + Data Policies</small>"]
+        SEC["Security · RBAC<br/><small>SCRAM + JWT + Data Policies</small>"]
         PER["Persistence<br/><small>Repositories + jOOQ (type-safe SQL)</small>"]
         DOM["Domain<br/><small>Models + Contracts + Config</small>"]
         DB[("H2 Database")]
@@ -52,7 +52,7 @@ graph TD
 - **View independence** — the same Presenters/Scopes feed React (web), Flutter (mobile/desktop/web), Vaadin (server-side web), SWT (native desktop) and TeaVM (web/desktop/Android/iOS)
 - **No DI frameworks** — injection via `AtomicReference<T> BEAN` (static service locator); services receive their dependencies in the constructor
 - **Virtual Threads** (Java 21+) — WebSocket connections with minimal memory consumption
-- **RBAC security** — HMAC challenge-response authentication with JWT, role-based access control (ADMIN, CUSTOMER, MANAGER) enforced at the REST endpoints
+- **RBAC security** — SCRAM-SHA-256 sign-in with JWT, failed sign-ins slowed down per account, role-based access control (ADMIN, CUSTOMER, MANAGER) enforced at the REST endpoints
 - **Remote channel security** — each connection agrees on its own key (ECDH P-256 + HKDF-SHA256); sensitive values travel AES-256-GCM encrypted with an IV of their own; session ids and addresses are signed with HMAC-SHA256
 - **Real-time communication** — bidirectional WebSocket with automatic keep-alive
 - **External configuration** — TOML for every implementation
@@ -307,29 +307,32 @@ Resolution: system property `store.config.file` → fallback to `config/applicat
 
 The system implements authentication and authorization in multiple layers:
 
-### Authentication — HMAC Challenge-Response
+### Authentication — SCRAM-SHA-256
 
 ```
-Client                            Server
-  │                                 │
-  │──── GET /api/auth/challenge ───→│  Generates nonce with TTL
-  │←─── { nonce, expiresAt } ──────│
-  │                                 │
-  │  passwordHash = MD5(password)   │
-  │  digest = HMAC-SHA256(          │
-  │    key=passwordHash,            │
-  │    data=userName+nonce)         │
-  │                                 │
-  │──── POST /api/auth/login ─────→│  Validates digest + nonce
-  │     { userName, digest, nonce } │  Creates session + JWT
-  │←─── { accessToken,             │
-  │       refreshToken,             │
-  │       publicKey, expiresAt } ──│
-  │                                 │
-  │──── Bearer token on /api/repo/* │  SecurityFilter validates JWT
+Client                                     Server
+  │                                          │
+  │──── POST /api/auth/challenge ──────────→│  Nonce for this user (single-use, 60 s)
+  │     { userName }                         │  + the salt and iterations of its verifier
+  │←─── { nonce, salt, iterations } ────────│
+  │                                          │
+  │  SaltedPassword = PBKDF2(MD5(password),  │
+  │                          salt, iterations)
+  │  proof = ClientKey XOR                   │
+  │          HMAC(StoredKey, "n=user,r=nonce")
+  │                                          │
+  │──── POST /api/auth/login ──────────────→│  Checks the proof against the stored
+  │     { userName, proof, nonce }           │  SCRAM verifier; creates session + JWT
+  │←─── { accessToken, refreshToken,        │
+  │       publicKey, serverSignature } ─────│
+  │                                          │
+  │  checks serverSignature: the server      │
+  │  holds the user's verifier               │
+  │                                          │
+  │──── Bearer token on /api/repo/* ───────→│  SecurityFilter resolves the JWT's session
 ```
 
-The password never travels in plain text — only the HMAC-SHA256 digest with a single-use nonce.
+The password never travels, and the database holds only SCRAM-SHA-256 verifiers, from which no one can sign in. Five failed sign-ins in a row make the account wait (30 s, doubling up to 15 min), and `/api/auth` is limited per client address; both answer 429 with `Retry-After`. Details: [security-architecture.md](docs/security-architecture.md#sign-in-with-scram-sha-256).
 
 ### Authorization — Roles and Permissions
 

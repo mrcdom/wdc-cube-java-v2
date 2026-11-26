@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WDC Store — OpenAPI</title>
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
+  <style>
+    body { margin: 0; font-family: sans-serif; }
+    .topbar { display: none; }
+    #login-bar {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      padding: 10px 20px; background: #f7f7f7; border-bottom: 1px solid #ddd;
+      font-size: 0.88em;
+    }
+    #login-bar label { color: #555; }
+    #login-bar input {
+      padding: 5px 9px; border: 1px solid #ccc; border-radius: 4px;
+      width: 140px; font-size: 0.95em;
+    }
+    #login-bar button {
+      padding: 6px 18px; border: none; border-radius: 4px;
+      cursor: pointer; font-weight: bold; font-size: 0.9em;
+    }
+    #btn-login  { background: #49cc90; color: #fff; }
+    #btn-login:hover { background: #3aaf78; }
+    #btn-logout { background: #e74c3c; color: #fff; display: none; }
+    #btn-logout:hover { background: #c0392b; }
+    #auth-status { margin-left: auto; font-size: 0.85em; color: #888; }
+    #auth-status.ok  { color: #27ae60; font-weight: bold; }
+    #auth-status.err { color: #e74c3c; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <div id="login-bar">
+    <label>User</label>
+    <input id="inp-user" value="admin" autocomplete="username" />
+    <label>Password</label>
+    <input id="inp-pass" type="password" value="admin" autocomplete="current-password" />
+    <button id="btn-login">Sign in</button>
+    <button id="btn-logout">Sign out</button>
+    <span   id="auth-status">Not signed in</span>
+  </div>
+
+  <div id="swagger-ui"></div>
+
+  <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+  <script type="module">
+    // The sign-in's cryptography is the API explorer's (SCRAM-SHA-256 over Web Crypto)
+    import { scramResponse } from '../api.docs/js/core/crypto.js';
+
+    // ── Swagger UI ─────────────────────────────────────────────────────────
+    const ui = SwaggerUIBundle({
+      url: "/openapi.json",
+      dom_id: "#swagger-ui",
+      presets: [SwaggerUIBundle.presets.apis, SwaggerUIBundle.SwaggerUIStandalonePreset],
+      layout: "BaseLayout",
+      deepLinking: true,
+      tryItOutEnabled: true,
+      persistAuthorization: true
+    });
+
+    // ── Session state ───────────────────────────────────────────────────────
+    let refreshTokenStr = null;
+
+    // ── Sign-in ─────────────────────────────────────────────────────────────
+    function setStatus(state, msg) {
+      const el = document.getElementById('auth-status');
+      el.textContent = msg;
+      el.className = state;
+      const signedIn = state === 'ok';
+      document.getElementById('btn-login').style.display  = signedIn ? 'none' : '';
+      document.getElementById('btn-logout').style.display = signedIn ? ''     : 'none';
+    }
+
+    async function postJson(path, body) {
+      const response = await fetch(path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await response.json().catch(() => ({}));
+      return { response, data };
+    }
+
+    async function doLogin() {
+      const userName = document.getElementById('inp-user').value.trim();
+      const password = document.getElementById('inp-pass').value;
+      setStatus('', 'Signing in…');
+      try {
+        // 1. The user's challenge: a nonce, the salt and the iterations of its verifier
+        const challenge = await postJson('/api/auth/challenge', { userName });
+        if (!challenge.response.ok) throw new Error('challenge HTTP ' + challenge.response.status);
+
+        // 2. The proof that we know the password, and the signature the server must answer with
+        const { proof, expectedServerSignature } = await scramResponse(userName, password, challenge.data);
+
+        // 3. Sign in
+        const login = await postJson('/api/auth/login', { userName, proof, nonce: challenge.data.nonce });
+        if (login.response.status === 429) {
+          setStatus('err', 'Too many failed sign-ins: try again in ' + (login.data.retryAfter ?? 'a few') + ' s');
+          return;
+        }
+        if (!login.response.ok) { setStatus('err', 'Invalid credentials'); return; }
+        if (login.data.serverSignature !== expectedServerSignature) {
+          setStatus('err', 'The server could not prove it holds the credentials');
+          return;
+        }
+        refreshTokenStr = login.data.refreshToken;
+
+        // 4. The bearer token for Swagger UI's calls
+        ui.preauthorizeApiKey('bearerAuth', login.data.accessToken);
+
+        setStatus('ok', 'Signed in as ' + userName);
+      } catch (e) {
+        setStatus('err', 'Error: ' + e.message);
+      }
+    }
+
+    async function doLogout() {
+      if (refreshTokenStr) {
+        await postJson('/api/auth/logout', { refreshToken: refreshTokenStr }).catch(() => {});
+        refreshTokenStr = null;
+      }
+      ui.preauthorizeApiKey('bearerAuth', '');
+      setStatus('', 'Not signed in');
+    }
+
+    document.getElementById('btn-login').addEventListener('click', doLogin);
+    document.getElementById('btn-logout').addEventListener('click', doLogout);
+    // Enter in the password field signs in
+    document.getElementById('inp-pass').addEventListener('keydown', e => {
+      if (e.key === 'Enter') doLogin();
+    });
+  </script>
+</body>
+</html>
+

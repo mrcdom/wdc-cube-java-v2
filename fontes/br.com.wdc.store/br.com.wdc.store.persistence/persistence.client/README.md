@@ -28,7 +28,7 @@ graph TD
     pkg --> HttpFailure["HttpFailure<br/><small>error response → domain exception</small>"]
     pkg --> OkHttp["OkHttpTransport<br/><small>HttpTransport on OkHttp</small>"]
     pkg --> RestAuthSvc["RestAuthenticationService<br/><small>AuthenticationService over /api/auth/*</small>"]
-    pkg --> RestAuthClient["RestAuthClient<br/><small>tokens + HMAC challenge-response</small>"]
+    pkg --> RestAuthClient["RestAuthClient<br/><small>tokens + SCRAM-SHA-256 sign-in</small>"]
     pkg --> RestTx["RestTransactionService<br/><small>TransactionService over /api/tx/*</small>"]
     pkg --> Bootstrap["RestRepositoryBootstrap<br/><small>fills the BEANs</small>"]
 ```
@@ -59,7 +59,7 @@ The inverse of the server's exception mapping: an error response becomes the exc
 | 400 | `InvalidRequestException` |
 | 403 | `AccessDeniedException` |
 | 409 | `TransactionConflictException` |
-| 429 | `TransactionLimitExceededException` |
+| 429 | `TooManyRequestsException`, with the wait of `retryAfter` (the cap of open remote transactions, the sign-in limits) |
 | other | `BusinessException` |
 
 ### OkHttpTransport
@@ -68,12 +68,12 @@ The inverse of the server's exception mapping: an error response becomes the exc
 
 ### RestAuthenticationService and RestAuthClient
 
-`RestAuthenticationService` implements `AuthenticationService` over `/api/auth/*`; `RestAuthClient` holds the tokens and does the HMAC challenge-response.
+`RestAuthenticationService` implements `AuthenticationService` over `/api/auth/*`; `RestAuthClient` holds the tokens and does the whole SCRAM-SHA-256 sign-in; `AuthJson` writes and reads the bodies of `/api/auth`, for these and for teavm.web.
 
 | Method | Delegation |
 |--------|-----------|
-| `challenge()` | `GET /api/auth/challenge` → `ChallengeResult` |
-| `login(userName, digest, nonce)` | `POST /api/auth/login` → `AuthResult` |
+| `challenge(userName)` | `POST /api/auth/challenge` → `ChallengeResult` |
+| `login(userName, proof, nonce)` | `POST /api/auth/login` → `AuthResult` (with the server's signature) |
 | `refresh(refreshToken)` | `POST /api/auth/refresh` → `AuthResult` |
 | `logout(refreshToken)` | `POST /api/auth/logout` |
 | `tryRestore()` | refreshes with the stored refresh token, if any (auto-login) |
@@ -84,11 +84,12 @@ The inverse of the server's exception mapping: an error response becomes the exc
 The tokens are kept in the secure view of the `ClientStorage` it receives (`storage.secure()`, AES-GCM).
 
 ```
-1. GET  /api/auth/challenge            → { nonce, expiresAt }
-2. digest = HMAC-SHA256(key = password hash, data = userName + nonce)
-3. POST /api/auth/login { userName, digest, nonce }
-                                       → { accessToken, refreshToken, publicKey, expiresAt }
-4. next requests: Authorization: Bearer <accessToken>
+1. POST /api/auth/challenge { userName }   → { nonce, salt, iterations, expiresAt }
+2. response = Scram.respond(userName, password, challenge)
+3. POST /api/auth/login { userName, proof, nonce }
+                                          → { userId, accessToken, refreshToken, publicKey, expiresAt, serverSignature }
+4. response.serverIsAuthentic(serverSignature), or the session is dropped
+5. next requests: Authorization: Bearer <accessToken>
 ```
 
 ### RestTransactionService

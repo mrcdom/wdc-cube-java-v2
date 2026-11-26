@@ -1,14 +1,24 @@
 package br.com.wdc.store.presentation.presenter.open.login.calls;
 
+import br.com.wdc.framework.domain.exception.BusinessException;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
 import br.com.wdc.framework.domain.resource.ResourceCall;
 import br.com.wdc.framework.domain.security.AuthenticationService;
-import br.com.wdc.framework.domain.security.PasswordUtil;
+import br.com.wdc.framework.domain.security.Scram;
+import br.com.wdc.framework.domain.security.ScramVerifier;
 import br.com.wdc.store.domain.user.UserCriteria;
 import br.com.wdc.store.domain.user.UserRepository;
 import br.com.wdc.store.presentation.presenter.open.login.structs.Subject;
 
-/** Authenticates the user; {@code null} if the credentials are invalid. */
+/**
+ * Checks a user name and password, and gives who it is: the login. Not a read nor a write of a resource, so a verb of
+ * its own on {@link ResourceCall}.
+ * <p>
+ * With the authentication service (security on) it is a SCRAM-SHA-256 exchange ({@link Scram}): the password never
+ * leaves this process, and the server must prove it holds the user's verifier. Without it, the password is checked
+ * against the stored verifier here. {@code null} when the credentials are wrong; too many failures for the user make it
+ * wait ({@link br.com.wdc.framework.domain.exception.TooManyRequestsException}).
+ */
 public class CredentialsCheck extends ResourceCall<CredentialsCheck.Result> {
 
     /**
@@ -45,22 +55,19 @@ public class CredentialsCheck extends ResourceCall<CredentialsCheck.Result> {
     // :: Internal
 
     private Result authenticateViaAuthService(AuthenticationService authService) {
-        // 1. Password hash (MD5 → base36, same format as the database)
-        var passwordHash = PasswordUtil.hashPassword(password);
-
-        // 2. Get the challenge (single-use nonce)
-        var challenge = authService.challenge();
-
-        // 3. Compute HMAC-SHA256(key=passwordHash, data=userName+nonce)
-        var digest = PasswordUtil.computeHmac(passwordHash, userName + challenge.nonce());
-
-        // 4. Authenticate
-        var authResult = authService.login(userName, digest, challenge.nonce());
+        var challenge = authService.challenge(userName);
+        var response = Scram.current().respond(userName, password, challenge);
+        var authResult = authService.login(userName, response.proof(), challenge.nonce());
         if (authResult == null) {
             return null;
         }
 
-        // 5. Persistent token for auto-login (remember me)
+        if (!response.serverIsAuthentic(authResult.serverSignature())) {
+            authService.logout(authResult.refreshToken());
+            throw new BusinessException("The server could not prove it holds the user's credentials");
+        }
+
+        // Persistent token for auto-login (remember me)
         // An authentication service that keeps the session in a refresh token of its own (teavm.web's) throws
         // UnsupportedOperationException; the JVM REST client answers with its refresh token.
         String persistentToken = null;
@@ -70,7 +77,7 @@ public class CredentialsCheck extends ResourceCall<CredentialsCheck.Result> {
             // the service keeps the session itself: no persistent token
         }
 
-        // 6. Fetch the user's display name
+        // The user's display name
         var users = UserRepository.BEAN.get().fetch(new UserCriteria()
                 .withUserId(authResult.userId())
                 .withProjection(Subject.projection()), 0, 1);
@@ -80,14 +87,9 @@ public class CredentialsCheck extends ResourceCall<CredentialsCheck.Result> {
     }
 
     /**
-     * Fallback for environments without security (unit tests without initializeSecurity).
-     *
-     * <p>
-     * Looks up by login and <b>compares the digest here</b>, instead of sending it as a criterion. The password is not
-     * a searchable field: leaving it on the criteria surface would also expose it on the REST API, where filtering users
-     * by password serves no one. It is the same path {@code AuthenticationServiceImpl} follows in the real flow — it
-     * projects the digest and checks it — only without the challenge, which does not exist here.
-     * </p>
+     * Without an authentication service (tests and local use without security): the password is not a criteria field,
+     * so it searches by login only, projecting the stored verifier, and checks the password against it — the same check
+     * the authentication service makes on the server, only without the exchange.
      */
     private Result authenticateViaRepository() {
         var projection = Subject.projection()
@@ -102,9 +104,8 @@ public class CredentialsCheck extends ResourceCall<CredentialsCheck.Result> {
         }
 
         var user = users.get(0);
-        // The column is CHAR and comes right-padded with spaces; without the trim the comparison would never match.
-        var stored = user.password() == null ? null : user.password().trim();
-        if (stored == null || !stored.equals(PasswordUtil.hashPassword(password))) {
+        var verifier = ScramVerifier.parse(user.password());
+        if (verifier == null || !Scram.current().matches(verifier, password)) {
             return null;
         }
 

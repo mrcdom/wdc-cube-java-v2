@@ -5,6 +5,7 @@
 package br.com.wdc.store.persistence.impl.scheme;
 
 
+import br.com.wdc.store.persistence.impl.scheme.tables.EnLoginFailure;
 import br.com.wdc.store.persistence.impl.scheme.tables.EnProduct;
 import br.com.wdc.store.persistence.impl.scheme.tables.EnPurchase;
 import br.com.wdc.store.persistence.impl.scheme.tables.EnPurchaseitem;
@@ -13,6 +14,8 @@ import br.com.wdc.store.persistence.impl.scheme.tables.EnUser;
 
 @SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class Tables {
+
+    public static final EnLoginFailure EN_LOGIN_FAILURE = EnLoginFailure.EN_LOGIN_FAILURE;
 
     public static final EnProduct EN_PRODUCT = EnProduct.EN_PRODUCT;
 

@@ -45,7 +45,8 @@ public final class AccessContextCache {
 		var refreshToken = UUID.randomUUID().toString();
 		var expiresAt = Instant.now().plus(ACCESS_TOKEN_TTL);
 
-		var ctx = new AccessContext(userId, userName, roles, keyPair, expiresAt, refreshToken);
+		var ctx = new AccessContext(UUID.randomUUID().toString(), userId, userName, roles, keyPair, expiresAt,
+				refreshToken);
 		byRefreshToken.put(refreshToken, ctx);
 
 		LOG.info("Session created for user: {} ({})", userName, userId);
@@ -65,7 +66,7 @@ public final class AccessContextCache {
 		var newRefreshToken = UUID.randomUUID().toString();
 		var expiresAt = Instant.now().plus(ACCESS_TOKEN_TTL);
 
-		var ctx = new AccessContext(existing.userId(), existing.userName(), existing.roles(),
+		var ctx = new AccessContext(existing.sessionId(), existing.userId(), existing.userName(), existing.roles(),
 				generateRsaKeyPair(), expiresAt, newRefreshToken);
 		byRefreshToken.put(newRefreshToken, ctx);
 
@@ -74,12 +75,12 @@ public final class AccessContextCache {
 	}
 
 	/**
-	 * Finds any valid (unexpired) session for the userId.
-	 * Used after JWT validation to obtain the roles and RSA key.
+	 * The live (unexpired) session of the id an access token carries: its roles and its RSA key. Each session is
+	 * looked up by its own id — a user with sessions on several devices has a key on each.
 	 */
-	public AccessContext get(Long userId) {
+	public AccessContext getBySessionId(String sessionId) {
 		for (var ctx : byRefreshToken.values()) {
-			if (userId.equals(ctx.userId()) && !ctx.isExpired()) {
+			if (sessionId.equals(ctx.sessionId()) && !ctx.isExpired()) {
 				return ctx;
 			}
 		}

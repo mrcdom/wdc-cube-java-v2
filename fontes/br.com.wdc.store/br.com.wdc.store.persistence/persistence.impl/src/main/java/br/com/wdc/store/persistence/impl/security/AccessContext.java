@@ -11,10 +11,11 @@ import br.com.wdc.framework.domain.security.SecurityContext;
 
 /**
  * {@link SecurityContext} implementation for an authenticated session.
- * Holds the userId, the roles and the ephemeral RSA key pair.
+ * Holds the session id, the userId, the roles and the ephemeral RSA key pair.
  */
 public final class AccessContext implements SecurityContext {
 
+	private final String sessionId;
 	private final Long userId;
 	private final String userName;
 	private final Set<String> roles;
@@ -22,14 +23,20 @@ public final class AccessContext implements SecurityContext {
 	private final Instant expiresAt;
 	private final String refreshToken;
 
-	public AccessContext(Long userId, String userName, Set<String> roles,
+	public AccessContext(String sessionId, Long userId, String userName, Set<String> roles,
 			KeyPair rsaKeyPair, Instant expiresAt, String refreshToken) {
+		this.sessionId = sessionId;
 		this.userId = userId;
 		this.userName = userName;
 		this.roles = roles;
 		this.rsaKeyPair = rsaKeyPair;
 		this.expiresAt = expiresAt;
 		this.refreshToken = refreshToken;
+	}
+
+	/** The session's id: what its access tokens carry ({@code sid}), the same across refreshes. */
+	public String sessionId() {
+		return sessionId;
 	}
 
 	@Override

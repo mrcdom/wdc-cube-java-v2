@@ -1,6 +1,6 @@
 # persistence.rest
 
-The **REST API** of the WDC Store repositories. It exposes the domain repositories as HTTP endpoints on **Javalin**, with HMAC challenge-response authentication, JWT authorization per permission, client-driven remote transactions and an OpenAPI document. The bodies are written and read by the domain's codecs (`ProductCodec`, ...) — the same ones the HTTP client (`persistence.client`) uses on the other side.
+The **REST API** of the WDC Store repositories. It exposes the domain repositories as HTTP endpoints on **Javalin**, with SCRAM-SHA-256 sign-in, JWT authorization through per-entity data policies, client-driven remote transactions and an OpenAPI document. The bodies are written and read by the domain's codecs (`ProductCodec`, ...) — the same ones the HTTP client (`persistence.client`) uses on the other side.
 
 > Full architectural view: [docs/data-layer.md → The persistence.rest Module](../../../../docs/data-layer.md#the-persistencerest-module--the-http-surface).
 
@@ -22,6 +22,7 @@ graph TD
     root["br.com.wdc.store.persistence.rest"]
     root --> Routes["RepositoryApiRoutes<br/><small>routes, filters, exception mapping, transactional()</small>"]
     root --> AuthCtrl["AuthApiController<br/><small>challenge, login, refresh, logout</small>"]
+    root --> AuthLimit["AuthRateLimit<br/><small>/api/auth requests per address and minute</small>"]
     root --> UserCtrl["UserApiController"]
     root --> ProductCtrl["ProductApiController<br/><small>+ images</small>"]
     root --> PurchaseCtrl["PurchaseApiController"]
@@ -43,10 +44,12 @@ graph TD
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/auth/challenge` | A single-use nonce with a TTL, for the HMAC challenge-response |
-| POST | `/api/auth/login` | Checks the HMAC digest + nonce; returns `{accessToken, refreshToken, publicKey, expiresAt}` |
+| POST | `/api/auth/challenge` | `{userName}` → a single-use nonce for that user, and the `salt` and `iterations` of its SCRAM verifier |
+| POST | `/api/auth/login` | `{userName, proof, nonce}`: checks the SCRAM proof; returns `{userId, accessToken, refreshToken, publicKey, expiresAt, serverSignature}` |
 | POST | `/api/auth/refresh` | Renews the tokens with the `refreshToken` |
 | POST | `/api/auth/logout` | Invalidates the refresh token |
+
+Challenge, login and refresh count against the per-address limit (`AuthRateLimit`, `[security] auth.requestsPerMinute`, default 60); five failed sign-ins in a row make the account wait (`LoginThrottle`). Both answer 429 with `Retry-After`. Details: [security-architecture.md](../../../../docs/security-architecture.md#sign-in-with-scram-sha-256).
 
 ### Repositories (`/api/repo/`)
 
@@ -119,7 +122,7 @@ The body is `{"error": "<message>"}`; `HttpFailure` in `persistence.client` turn
 | Missing or invalid token | 401 |
 | `AccessDeniedException` | 403 |
 | `TransactionConflictException` | 409 |
-| `TransactionLimitExceededException` (cap of open remote transactions) | 429 |
+| `TooManyRequestsException` (cap of open remote transactions, sign-in limits) | 429, with `Retry-After` and `retryAfter` when the wait is known |
 
 ## Usage
 
