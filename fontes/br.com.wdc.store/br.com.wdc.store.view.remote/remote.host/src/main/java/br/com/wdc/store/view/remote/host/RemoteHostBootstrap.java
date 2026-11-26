@@ -48,16 +48,21 @@ public final class RemoteHostBootstrap {
     /**
      * Starts the application registry (flush loop, expiry checker).
      */
+    /** The remote view sessions, once {@link #configure} ran; {@code null} before. */
+    public static RemoteApplicationRegistry<?> registry() {
+        return module == null ? null : module.getRegistry();
+    }
+
     public static void start(Defer cleanUp) {
         module.start(cleanUp);
     }
 
     /**
      * Registers all remote.host routes on the given Javalin configuration.
-     * Context paths are discovered from the frontend directory (work/frontend/).
+     * Context paths are discovered from the work directory's {@code frontend/}.
      */
     public static void configure(JavalinConfig config) {
-        var appConfig = StoreConfig.loadConfig();
+        var appConfig = StoreConfig.getConfig();
 
         // The key that signs session ids and addresses: from [remote] signingKey, generated on the first start
         System.setProperty(RemoteAppSecurity.SIGNING_KEY_PROPERTY, ensureSigningKey(appConfig));
@@ -121,7 +126,7 @@ public final class RemoteHostBootstrap {
     }
 
     private static String[] discoverFrontendContextPaths() {
-        Path frontendBase = StoreConfig.getBaseDir().resolve("frontend");
+        Path frontendBase = StoreConfig.getFrontendDir();
         if (!Files.isDirectory(frontendBase)) {
             LOG.warn("Frontend directory not found: {} — no context paths registered", frontendBase);
             return new String[0];

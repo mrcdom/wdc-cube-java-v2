@@ -3,22 +3,14 @@ package br.com.wdc.framework.domain.config;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import br.com.wdc.framework.commons.log.Log;
 
 /**
- * Application configuration loaded from a TOML file.
- * <p>
- * Resolution order for the config file (see {@link #load(String, String)}):
- * <ol>
- * <li>System property whose key is provided by the application</li>
- * <li>Default path provided by the application, relative to the working directory</li>
- * </ol>
- * <p>
- * If the file does not exist, the application fails to start.
+ * Application configuration loaded from a TOML file, at the path the application gives ({@link #load(Path)}): the
+ * framework does not guess where it is. If the file does not exist, the application fails to start.
  * <p>
  * After loading the main file, {@code application.local.toml} in the same directory is
  * loaded if present and its keys override the main config. Use this file for secrets
@@ -55,18 +47,14 @@ public final class AppConfig {
     }
 
     /**
-     * Loads configuration from a TOML file.
+     * Loads the configuration from a TOML file, then the {@code application.local.toml} next to it, if present.
      *
-     * @param configFilePropertyKey system property consulted first for the config file path
-     * @param defaultConfigPath     fallback path (relative to the working directory) when the
-     *                              system property is absent
+     * @param configFile the configuration file; it must exist
      */
-    public static AppConfig load(String configFilePropertyKey, String defaultConfigPath) {
-        var configPath = resolveConfigPath(configFilePropertyKey, defaultConfigPath).toAbsolutePath().normalize();
+    public static AppConfig load(Path configFile) {
+        var configPath = configFile.toAbsolutePath().normalize();
         if (!Files.exists(configPath)) {
-            throw new IllegalStateException(
-                    "Configuration file not found: " + configPath
-                            + ". Create the file or set system property -D" + configFilePropertyKey + "=<path>");
+            throw new IllegalStateException("Configuration file not found: " + configPath);
         }
         LOG.info("Loading configuration from {}", configPath);
         try {
@@ -120,14 +108,6 @@ public final class AppConfig {
             return defaultValue;
         }
         return "true".equalsIgnoreCase(value);
-    }
-
-    private static Path resolveConfigPath(String configFilePropertyKey, String defaultConfigPath) {
-        var configured = System.getProperty(configFilePropertyKey);
-        if (configured != null && !configured.isBlank()) {
-            return Paths.get(configured);
-        }
-        return Paths.get(defaultConfigPath);
     }
 
     /**

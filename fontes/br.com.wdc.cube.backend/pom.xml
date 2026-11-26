@@ -36,10 +36,30 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- Micrometer: metrics in Prometheus format at /metrics -->
+            <dependency>
+                <groupId>io.micrometer</groupId>
+                <artifactId>micrometer-bom</artifactId>
+                <version>1.17.2</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
     <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Metrics in Prometheus format (Observability) -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+
         <!-- WDC Store application: repository REST API -->
         <dependency>
             <groupId>br.com.wdc.store</groupId>
@@ -132,14 +152,16 @@
                 </executions>
             </plugin>
 
-            <!-- exec:java launcher — usage: mvn exec:java -Dworkdir=../../work -->
+            <!-- exec:java launcher — usage: mvn exec:java (the repository's work/), or -Dworkdir=<folder> -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.7.0</version>
                 <configuration>
                     <mainClass>br.com.wdc.cube.backend.BackendServer</mainClass>
-                    <workingDirectory>${workdir}</workingDirectory>
+                    <arguments>
+                        <argument>--workdir=${workdir}</argument>
+                    </arguments>
                 </configuration>
             </plugin>
         </plugins>

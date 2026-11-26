@@ -31,11 +31,19 @@ public class StoreVaadinMain {
         LOG = Log.getLogger(StoreVaadinMain.class);
     }
 
+    /** Entry point: {@code [--workdir=<folder>]}, or {@code STORE_WORKDIR} ({@link StoreConfig}). */
     public static void main(String[] args) throws Exception {
+        Path workDir;
+        try {
+            workDir = StoreConfig.resolveWorkDir(args, System.getenv());
+        } catch (IllegalStateException e) {
+            System.err.println(e.getMessage());
+            System.exit(2);
+            return;
+        }
         try (var cleanUp = new Defer()) {
 
-            var config = StoreConfig.loadConfig();
-            StoreConfig.Internals.configure(config);
+            var config = StoreConfig.Internals.load(workDir);
 
             CryptoProvider.BEAN.set(new JceCryptoProvider());
             cleanUp.push(() -> CryptoProvider.BEAN.set(null));

@@ -118,6 +118,11 @@ public final class AccessContextCache {
 		});
 	}
 
+	/** The sessions held now. */
+	public int size() {
+		return byRefreshToken.size();
+	}
+
 	public String jwtSecret() {
 		return jwtSecret;
 	}

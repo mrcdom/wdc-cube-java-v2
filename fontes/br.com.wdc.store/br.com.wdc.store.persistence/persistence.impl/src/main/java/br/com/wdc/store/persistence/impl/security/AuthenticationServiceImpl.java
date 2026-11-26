@@ -10,6 +10,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.commons.log.Log;
+import br.com.wdc.framework.domain.exception.TooManyRequestsException;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
 import br.com.wdc.framework.domain.security.AuthenticationService;
 import br.com.wdc.framework.domain.security.JceCryptoProvider;
@@ -84,7 +85,12 @@ public final class AuthenticationServiceImpl implements AuthenticationService {
 			return null;
 		}
 
-		throttle.check(userName);
+		try {
+			throttle.check(userName);
+		} catch (TooManyRequestsException e) {
+			SecurityMeters.THROTTLED.increment();
+			throw e;
+		}
 
 		var user = findUser(userName);
 		var verifier = ScramVerifier.parse(passwordOf(user));
@@ -101,10 +107,12 @@ public final class AuthenticationServiceImpl implements AuthenticationService {
 
 		if (user == null || verifier == null || !nonceOk || !proofOk) {
 			throttle.failed(userName);
+			SecurityMeters.REFUSED.increment();
 			LOG.warn("Login refused: {}", nonceOk ? "wrong credentials" : "invalid, expired or foreign nonce");
 			return null;
 		}
 		throttle.succeeded(userName);
+		SecurityMeters.SIGNED_IN.increment();
 
 		var roles = Role.parse(user.roles());
 		var session = cache.createSession(user.id(), user.userName(), Role.names(roles));
@@ -126,6 +134,7 @@ public final class AuthenticationServiceImpl implements AuthenticationService {
 		if (session == null) {
 			return null;
 		}
+		SecurityMeters.RENEWED.increment();
 
 		var accessToken = JwtUtil.create(session.sessionId(), session.userId(), session.userName(),
 				cache.accessTokenTtl(), cache.jwtSecret());
@@ -188,6 +197,11 @@ public final class AuthenticationServiceImpl implements AuthenticationService {
 	}
 
 	// :: Internal
+
+	/** The sessions this instance holds in memory now. */
+	public int liveSessions() {
+		return cache.size();
+	}
 
 	/** Drops the expired sessions, the challenges nobody answered and the forgotten failures. */
 	public void evictExpired() {

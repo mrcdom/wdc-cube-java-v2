@@ -4,18 +4,36 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.Map;
 
 import br.com.wdc.framework.domain.config.AppConfig;
 
-public class StoreConfig {
+/**
+ * Where a WDC Store host (the backend, Vaadin, SWT) finds everything it uses: an explicit <b>work directory</b>, given
+ * by {@code --workdir=<folder>} or the {@value #WORKDIR_ENV} variable. The folder must exist; there is no default
+ * relative to the process, so the same binary behaves the same wherever it is started from. Its subfolders are fixed:
+ *
+ * <ul>
+ * <li>{@code config/} — {@code application.toml}, {@code application.local.toml} and {@code logback.xml}</li>
+ * <li>{@code data/} — the local database and other data kept between runs</li>
+ * <li>{@code log/} — the log files</li>
+ * <li>{@code temp/} — temporary files</li>
+ * <li>{@code frontend/} — one subfolder per context of static files served (the web clients)</li>
+ * </ul>
+ *
+ * In development the work directory is the repository's {@code work/}. Code refers to the folders through this class,
+ * never to a fixed {@code work/...} path.
+ */
+public final class StoreConfig {
 
-    /** System property consulted first for the config file location. */
-    private static final String CONFIG_FILE_PROPERTY = "store.config.file";
+    /** The argument that gives the work directory: {@code --workdir=<folder>}. */
+    public static final String WORKDIR_ARG = "--workdir=";
 
-    /** Default config path, relative to the working directory. */
-    private static final String DEFAULT_CONFIG_PATH = "config/application.toml";
+    /** The environment variable that gives the work directory, when the argument is absent. */
+    public static final String WORKDIR_ENV = "STORE_WORKDIR";
 
-    private static Path baseDir;
+    private static Path workDir;
 
     private static Path configDir;
 
@@ -24,6 +42,10 @@ public class StoreConfig {
     private static Path logDir;
 
     private static Path tempDir;
+
+    private static Path frontendDir;
+
+    private static AppConfig config;
 
     private static String jwtSecret;
 
@@ -34,39 +56,74 @@ public class StoreConfig {
     }
 
     /**
-     * Loads the application configuration applying the WDC Store conventions
-     * (system property {@code store.config.file} → {@code config/application.toml}).
+     * The work directory given by {@code args} ({@value #WORKDIR_ARG}) or, without it, by {@code env}
+     * ({@value #WORKDIR_ENV}).
+     *
+     * @throws IllegalStateException when neither gives one, or the folder does not exist
      */
-    public static AppConfig loadConfig() {
-        return AppConfig.load(CONFIG_FILE_PROPERTY, DEFAULT_CONFIG_PATH);
+    public static Path resolveWorkDir(String[] args, Map<String, String> env) {
+        String given = null;
+        for (var arg : args) {
+            if (arg.startsWith(WORKDIR_ARG)) {
+                given = arg.substring(WORKDIR_ARG.length());
+            }
+        }
+        if (given == null || given.isBlank()) {
+            given = env.get(WORKDIR_ENV);
+        }
+        if (given == null || given.isBlank()) {
+            throw new IllegalStateException("No work directory: start with " + WORKDIR_ARG + "<folder> or set "
+                    + WORKDIR_ENV + " (in development, the repository's work/ folder)");
+        }
+        var dir = Path.of(given).toAbsolutePath().normalize();
+        if (!Files.isDirectory(dir)) {
+            throw new IllegalStateException("The work directory does not exist: " + dir);
+        }
+        return dir;
     }
 
-    public static final Path getBaseDir() {
-        return baseDir;
+    /** The arguments without {@value #WORKDIR_ARG}: what the host reads itself (the port, for the backend). */
+    public static String[] withoutWorkDir(String[] args) {
+        return Arrays.stream(args)
+                .filter(arg -> !arg.startsWith(WORKDIR_ARG))
+                .toArray(String[]::new);
     }
 
-    public static final Path getConfigDir() {
+    /** The configuration loaded from the work directory ({@link Internals#load}). */
+    public static AppConfig getConfig() {
+        return config;
+    }
+
+    public static Path getWorkDir() {
+        return workDir;
+    }
+
+    public static Path getConfigDir() {
         return configDir;
     }
 
-    public static final Path getDataDir() {
+    public static Path getDataDir() {
         return dataDir;
     }
 
-    public static final Path getLogDir() {
+    public static Path getLogDir() {
         return logDir;
     }
 
-    public static final Path getTempDir() {
+    public static Path getTempDir() {
         return tempDir;
     }
 
-    public static final String getJwtSecret() {
+    public static Path getFrontendDir() {
+        return frontendDir;
+    }
+
+    public static String getJwtSecret() {
         return jwtSecret;
     }
 
     /** Requests to {@code /api/auth} (challenge, login, refresh) per client address and minute; {@code 0} = no limit. */
-    public static final int getAuthRequestsPerMinute() {
+    public static int getAuthRequestsPerMinute() {
         return authRequestsPerMinute;
     }
 
@@ -76,24 +133,14 @@ public class StoreConfig {
             super();
         }
 
-        public static void setBaseDir(Path path) {
-            StoreConfig.baseDir = path;
-        }
-
-        public static void setConfigDir(Path path) {
-            StoreConfig.configDir = path;
-        }
-
-        public static void setDataDir(Path path) {
-            StoreConfig.dataDir = path;
-        }
-
-        public static void setLogDir(Path path) {
-            StoreConfig.logDir = path;
-        }
-
-        public static void setTempDir(Path path) {
-            StoreConfig.tempDir = path;
+        /** Points every folder at the subfolders of {@code dir}, without reading any configuration. */
+        public static void setWorkDir(Path dir) {
+            StoreConfig.workDir = dir;
+            StoreConfig.configDir = dir.resolve("config");
+            StoreConfig.dataDir = dir.resolve("data");
+            StoreConfig.logDir = dir.resolve("log");
+            StoreConfig.tempDir = dir.resolve("temp");
+            StoreConfig.frontendDir = dir.resolve("frontend");
         }
 
         public static void setJwtSecret(String secret) {
@@ -104,46 +151,25 @@ public class StoreConfig {
             StoreConfig.authRequestsPerMinute = limit;
         }
 
-        public static void configure(AppConfig config) {
+        /**
+         * Loads {@code config/application.toml} of {@code dir} and points every folder at it; {@code data/},
+         * {@code log/} and {@code temp/} are created when missing.
+         */
+        public static AppConfig load(Path dir) {
+            setWorkDir(dir);
+            var loaded = AppConfig.load(configDir.resolve("application.toml"));
             try {
-                Path baseDir = resolveRuntimeBaseDir(config);
-                Path configDir = createDirectory(baseDir.resolve("config"));
-                Path dataDir = createDirectory(baseDir.resolve("data"));
-                Path logDir = createDirectory(baseDir.resolve("log"));
-                Path tempDir = createDirectory(baseDir.resolve("temp"));
-
-                StoreConfig.Internals.setBaseDir(baseDir);
-                StoreConfig.Internals.setConfigDir(configDir);
-                StoreConfig.Internals.setDataDir(dataDir);
-                StoreConfig.Internals.setLogDir(logDir);
-                StoreConfig.Internals.setTempDir(tempDir);
-
-                var jwt = config.get("security.jwt.secret");
-                StoreConfig.Internals.setJwtSecret(jwt);
-                StoreConfig.Internals.setAuthRequestsPerMinute(config.getInt("security.auth.requestsPerMinute", 60));
+                Files.createDirectories(dataDir);
+                Files.createDirectories(logDir);
+                Files.createDirectories(tempDir);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
+            StoreConfig.config = loaded;
+            setJwtSecret(loaded.get("security.jwt.secret"));
+            setAuthRequestsPerMinute(loaded.getInt("security.auth.requestsPerMinute", 60));
+            return loaded;
         }
-
-        private static Path createDirectory(Path dir) throws IOException {
-            if (!Files.exists(dir)) {
-                Files.createDirectories(dir);
-            }
-            return dir;
-        }
-
-        private static Path resolveRuntimeBaseDir(AppConfig config) throws IOException {
-            String configuredDir = config.get("app.basedir");
-            if (configuredDir == null || configuredDir.isBlank()) {
-                throw new IllegalStateException(
-                        "Property 'app.basedir' is required in " + config.getConfigFilePath());
-            }
-            // Resolve relative to the config file's directory
-            Path resolved = config.getConfigFileDir().resolve(configuredDir).normalize();
-            return createDirectory(resolved);
-        }
-
     }
 
 }

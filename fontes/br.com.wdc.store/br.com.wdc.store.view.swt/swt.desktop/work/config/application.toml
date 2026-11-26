@@ -1,11 +1,8 @@
 # =============================================================================
 # WDC Store - Application Configuration
 # =============================================================================
-
-# ---------------------------------------------------------------------------
-# Application
-# ---------------------------------------------------------------------------
-app.basedir = ".."
+# Lives at <work directory>/config/application.toml; the module's work/ folder is its work directory in development:
+# start with --workdir=work (or STORE_WORKDIR). Its subfolders: config/, data/, log/, temp/.
 
 # ---------------------------------------------------------------------------
 # Database (H2)

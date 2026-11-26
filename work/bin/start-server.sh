@@ -9,8 +9,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 WORK_DIR="$( cd "$SCRIPT_DIR/.." && pwd )"
 PROJECT_ROOT="$( cd "$WORK_DIR/.." && pwd )"
 
-# Work dir is the parent of this script (work/) —
-# config/application.toml resolves relative to it
+# The work directory is the parent of this script (work/): config/, data/, log/, temp/ and frontend/
 cd "$WORK_DIR"
 
 # JDK 25: JAVA25_HOME takes precedence over the session's JAVA_HOME
@@ -47,6 +46,7 @@ echo "=================================================="
 echo "WDC Store - Javalin Server"
 echo "=================================================="
 echo "Port: $PORT"
+echo "Work directory: $WORK_DIR"
 echo "JAR: $JAR_FILE"
 echo ""
 echo "Server will be available at: http://localhost:$PORT"
@@ -63,4 +63,4 @@ echo ""
 #                                    # avoids memory spikes during low-load periods
 #   -XX:MaxMetaspaceSize=512m
 #   -XX:ReservedCodeCacheSize=256m
-exec "$JAVA" -jar "$JAR_FILE" "$PORT"
+exec "$JAVA" -jar "$JAR_FILE" --workdir="$WORK_DIR" "$PORT"

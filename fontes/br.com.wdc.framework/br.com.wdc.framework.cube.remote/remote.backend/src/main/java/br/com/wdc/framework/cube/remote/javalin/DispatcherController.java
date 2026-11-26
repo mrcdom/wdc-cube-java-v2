@@ -209,8 +209,15 @@ public final class DispatcherController {
                     return;
                 }
 
-                RemoteApplication app = getOrCreateApp(request);
-                processRequest(app, request);
+                long started = System.nanoTime();
+                boolean failed = true;
+                try {
+                    RemoteApplication app = getOrCreateApp(request);
+                    processRequest(app, request);
+                    failed = false;
+                } finally {
+                    registry.messageHandled(System.nanoTime() - started, failed);
+                }
 
             } catch (CapacityExceededException e) {
                 LOG.warn("WebSocket rejected (capacity exceeded) for session: {}", this.appId);

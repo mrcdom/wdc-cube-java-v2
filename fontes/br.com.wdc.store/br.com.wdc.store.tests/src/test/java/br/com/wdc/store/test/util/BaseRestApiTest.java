@@ -81,11 +81,7 @@ public class BaseRestApiTest {
 		});
 
 		var basePath = Paths.get("work");
-		StoreConfig.Internals.setBaseDir(basePath);
-		StoreConfig.Internals.setConfigDir(basePath.resolve("config"));
-		StoreConfig.Internals.setDataDir(basePath.resolve("data"));
-		StoreConfig.Internals.setLogDir(basePath.resolve("log"));
-		StoreConfig.Internals.setTempDir(basePath.resolve("temp"));
+		StoreConfig.Internals.setWorkDir(basePath);
 
 		// Initializes the local repositories (persistence) — they stay in the BEANs for the server to use
 		StoreRepositoryBootstrap.initialize(ds, cleanUp);

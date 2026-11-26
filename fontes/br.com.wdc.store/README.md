@@ -46,11 +46,10 @@ Open **http://localhost:8080** and sign in with `admin` / `admin`.
 ```bash
 export JAVA_HOME=<path-to-jdk-25>
 cd fontes/br.com.wdc.store/br.com.wdc.store.view.vaadin
-java -Dstore.config.file=work/config/application.toml \
-  -jar target/br.com.wdc.store.view.vaadin-1.0.0.jar
+java -jar target/br.com.wdc.store.view.vaadin-1.0.0.jar --workdir=work
 ```
 
-Open **http://localhost:8090**. The module has its own config (`work/config/application.toml`) and its own H2 file database. A fully server-side UI with Vaadin 25 + Lumo theme. Same presenters, same domain.
+Open **http://localhost:8090**. The module has its own work directory (`work/`, with `config/application.toml`) and its own H2 file database. A fully server-side UI with Vaadin 25 + Lumo theme. Same presenters, same domain.
 
 ---
 
@@ -60,11 +59,10 @@ Open **http://localhost:8090**. The module has its own config (`work/config/appl
 export JAVA_HOME=<path-to-jdk-25>
 cd fontes/br.com.wdc.store/br.com.wdc.store.view.swt/swt.desktop
 # -XstartOnFirstThread is required on macOS (SWT/Cocoa runs the UI on the main thread)
-java -XstartOnFirstThread -Dstore.config.file=work/config/application.toml \
-  -jar target/swt.desktop-1.0.0.jar
+java -XstartOnFirstThread -jar target/swt.desktop-1.0.0.jar --workdir=work
 ```
 
-A native desktop application with Eclipse SWT. Same presenters, same domain, embedded H2 file database (config in `swt.desktop/work/config/application.toml`).
+A native desktop application with Eclipse SWT. Same presenters, same domain, embedded H2 file database (its work directory is `swt.desktop/work/`).
 
 ---
 

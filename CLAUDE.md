@@ -43,7 +43,7 @@ The four web frontends drop their artifacts in `work/frontend/<name>`; each one 
 
 **Publishing the framework to Maven Central**: only `br.com.wdc.framework`, as `io.github.mrcdom.wdc.java:framework-*` — `cd fontes/br.com.wdc.framework && mvn -Prelease clean deploy` (details in the [framework README](fontes/br.com.wdc.framework/README.md#publishing-to-maven-central)). `framework-parent` does not inherit from the root pom, on purpose: that keeps the demos out of consumers' dependency resolution.
 
-External config: `work/config/application.toml` (resolution: system property `store.config.file` → fallback to `config/application.toml` relative to the working directory, which is `work/` when started by `work/bin/start-server.sh`). `application.local.toml` for local overrides.
+Work directory: every host (backend, Vaadin, SWT) requires `--workdir=<folder>` or `STORE_WORKDIR` (no fallback); config in `<workdir>/config/application.toml` (+ `application.local.toml` for local overrides), and fixed `data/`, `log/`, `temp/`, `frontend/` subfolders, always reached through `StoreConfig`. The backend's is the repository's `work/` (`work/bin/start-server.sh` passes it); Vaadin and SWT have their own `work/` in their module. Operations: `/health/live`, `/health/ready` (database) and `/metrics` (Micrometer/Prometheus, only with `[management] token`, as a Bearer) in the backend's `Observability`; the framework takes no metrics library (it exposes hooks/stats).
 
 ## Persistence: jOOQ
 
