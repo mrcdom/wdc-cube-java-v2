@@ -28,6 +28,10 @@ rendering layer changes.
   Storage values and the password travel as `Base64(IV ‖ AES-256-GCM ciphertext ‖ tag)`, a random
   12-byte IV per value. A refusal (`{"error":"unsupported-protocol"}` / close `4002`) shows "out of
   date" on the splash, without retry or reconnection.
+- **Reconnection** (`BridgeSession`): a connection that drops is opened again after
+  `min(2000·n, 120000)` ms for the n-th attempt in a row, on the same session (the host resends every
+  scope); the splash says "Reconnecting" meanwhile. A close `4001` (the host no longer accepts the
+  session id) first asks `/api/session/init` for a new one, and the app drops the old session's views.
 - **Own P-256** (`bridge/P256`): Codename One has AES-GCM (`Cipher`), `Hmac` and `SecureRandom`, but
   no ECDH or HKDF. `P256` does key generation, scalar multiplication (Jacobian coordinates,
   fixed 256-step Montgomery ladder), SPKI encoding/decoding with point validation and ECDH on CN1's

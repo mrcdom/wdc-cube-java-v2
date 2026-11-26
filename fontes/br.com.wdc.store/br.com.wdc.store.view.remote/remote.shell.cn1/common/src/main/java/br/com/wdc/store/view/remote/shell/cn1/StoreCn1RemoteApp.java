@@ -121,7 +121,21 @@ public class StoreCn1RemoteApp extends Lifecycle {
     private void startConnect() {
         showSplash(false, "Connecting to server...", null);
         session = new BridgeSession(baseUrl, this::onPush,
-                () -> showSplash(true, "This app is out of date. Please update it to connect to the server.", null));
+                () -> showSplash(true, "This app is out of date. Please update it to connect to the server.", null),
+                new BridgeSession.ConnectionListener() {
+                    @Override
+                    public void onDisconnected(int attempt, long delayMs) {
+                        showSplash(false, "Connection lost. Reconnecting...", null);
+                    }
+
+                    @Override
+                    public void onSessionReplaced() {
+                        // The views of the old session: the new one pushes its own
+                        for (String vsid : new ArrayList<>(views.keySet())) {
+                            evict(vsid);
+                        }
+                    }
+                });
         new Thread(() -> {
             try {
                 session.connect();
