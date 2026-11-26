@@ -11,6 +11,7 @@ import static br.com.wdc.store.persistence.impl.scheme.tables.EnUser.EN_USER;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -185,7 +186,21 @@ public class DBReset {
 						.withId(userId));
 		purchase.withBuyDate(buyDate)
 				.withItems(List.of(items));
+		var paid = new double[items.length];
+		for (int i = 0; i < items.length; i++) {
+			paid[i] = items[i].price();
+		}
 		purchaseRepo.insert(purchase);
+
+		// The seed's purchases are history, paid at prices the catalog no longer has. The repository records the
+		// product's current price, as for any new item; the price paid back then is written here, as data.
+		var dsl = StoreDSLContext.BEAN.get();
+		for (int i = 0; i < items.length; i++) {
+			dsl.update(EN_PURCHASEITEM)
+					.set(EN_PURCHASEITEM.PRICE, BigDecimal.valueOf(paid[i]))
+					.where(EN_PURCHASEITEM.ID.eq(items[i].id()))
+					.execute();
+		}
 	}
 
 	private static MessageDigest md5() {

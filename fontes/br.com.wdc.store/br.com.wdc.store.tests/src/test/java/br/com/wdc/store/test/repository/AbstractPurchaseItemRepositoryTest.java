@@ -172,7 +172,6 @@ public abstract class AbstractPurchaseItemRepositoryTest {
 	public void insert_newPurchaseItem() {
 		var item = new PurchaseItem()
 				.withAmount(5)
-				.withPrice(15.50)
 				.withPurchase(new Purchase()
 						.withId(DBReset.ADMIN_FIRST_PURCHASE_ID))
 				.withProduct(new Product()
@@ -185,14 +184,14 @@ public abstract class AbstractPurchaseItemRepositoryTest {
 		var fetched = repo().fetchById(item.id(), projectionWithRelations());
 		assertNotNull(fetched);
 		assertEquals(Integer.valueOf(5), fetched.amount());
-		assertEquals(15.50, fetched.price(), 0.001);
+		assertEquals("the product's price", 16.0, fetched.price(), 0.001);
 		assertEquals(DBReset.FLASH_DRIVE_2GB_ID, fetched.product().id());
 	}
 
 	// :: update
 
 	@Test
-	public void update_existingPurchaseItem() {
+	public void update_existingPurchaseItem_recomputesThePriceFromTheProduct() {
 		var original = repo().fetchById(DBReset.ADMIN_FIRST_PURCHASE_ITEM0_ID, null);
 		assertNotNull(original);
 
@@ -208,7 +207,41 @@ public abstract class AbstractPurchaseItemRepositoryTest {
 
 		var fetched = repo().fetchById(DBReset.ADMIN_FIRST_PURCHASE_ITEM0_ID, null);
 		assertEquals(Integer.valueOf(99), fetched.amount());
-		assertEquals(999.99, fetched.price(), 0.001);
+		assertEquals("the product's price, not the one sent", 199.99, fetched.price(), 0.001);
+	}
+
+	@Test
+	public void update_changingTheProduct_takesTheNewProductsPrice() {
+		var original = repo().fetchById(DBReset.ADMIN_FIRST_PURCHASE_ITEM0_ID, projectionWithRelations());
+
+		var updated = new PurchaseItem()
+				.withId(original.id())
+				.withAmount(original.amount())
+				.withPurchase(original.purchase())
+				.withProduct(new Product()
+						.withId(DBReset.FLASH_DRIVE_2GB_ID));
+		assertTrue(repo().update(updated, original));
+
+		var fetched = repo().fetchById(original.id(), projectionWithRelations());
+		assertEquals(DBReset.FLASH_DRIVE_2GB_ID, fetched.product().id());
+		assertEquals(16.0, fetched.price(), 0.001);
+	}
+
+	@Test
+	public void update_movingToAnotherPurchase_keepsTheProduct() {
+		var original = repo().fetchById(DBReset.ADMIN_FIRST_PURCHASE_ITEM0_ID, projectionWithRelations());
+
+		var updated = new PurchaseItem()
+				.withId(original.id())
+				.withAmount(original.amount())
+				.withPurchase(new Purchase()
+						.withId(DBReset.ADMIN_SECOND_PURCHASE_ID))
+				.withProduct(original.product());
+		assertTrue(repo().update(updated, original));
+
+		var fetched = repo().fetchById(original.id(), projectionWithRelations());
+		assertEquals(DBReset.ADMIN_SECOND_PURCHASE_ID, fetched.purchase().id());
+		assertEquals(DBReset.COFFEE_MAKER_ID, fetched.product().id());
 	}
 
 	// :: delete
