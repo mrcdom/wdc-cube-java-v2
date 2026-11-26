@@ -142,6 +142,7 @@ void main() async {
     final newAppId = await _fetchSessionInit(baseHttpUrl);
     if (newAppId != null) {
       _prefs.setString('app_id', newAppId);
+      coordinator.useSession(newAppId);
     }
     _prefs.remove('req_seq');
     _prefs.remove('last_path');

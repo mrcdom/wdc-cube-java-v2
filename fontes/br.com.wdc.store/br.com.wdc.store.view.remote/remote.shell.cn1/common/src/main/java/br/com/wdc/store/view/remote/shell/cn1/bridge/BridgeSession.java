@@ -32,6 +32,12 @@ import com.codename1.ui.CN;
  * </p>
  *
  * <p>
+ * A connection that drops is opened again, after {@code min(2000·n, 120000)} ms for the n-th attempt in a row, on
+ * the same session: the host resends every scope. A close {@value #CLOSE_SESSION_INVALID} (the session is gone)
+ * first asks for a new session id, and the shell drops the views of the old one ({@link ConnectionListener}).
+ * </p>
+ *
+ * <p>
  * Once the handshake is done, the keep-alive ({@code {"ping":true}}) goes every {@link #PING_INTERVAL_MS}: the server
  * extends the session's life and answers with the views it released ({@code releasedViews}), which the push
  * discards.
@@ -54,6 +60,18 @@ public final class BridgeSession {
     /** Close code of a host that does not speak {@link #PROTOCOL}. */
     public static final int CLOSE_UNSUPPORTED_PROTOCOL = 4002;
 
+    /** Close code of a session id the host does not accept (forged, or the session is gone). */
+    public static final int CLOSE_SESSION_INVALID = 4001;
+
+    /** What the shell is told about the connection, on the EDT. */
+    public interface ConnectionListener {
+        /** The connection dropped; the next attempt is in {@code delayMs}. */
+        void onDisconnected(int attempt, long delayMs);
+
+        /** The host no longer has the session: a new one starts, and the views of the old one are gone. */
+        void onSessionReplaced();
+    }
+
     /**
      * Push notification — on the EDT, with the vsids of the views <b>received</b> (dirty on the server) and
      * <b>released</b> in this push. Each push passes its own lists (no shared state),
@@ -68,6 +86,10 @@ public final class BridgeSession {
     private final Listener listener;
     /** Runs on the EDT, once, when the host refuses this client's protocol version. */
     private final Runnable onOutdated;
+    private final ConnectionListener connectionListener;
+    /** Consecutive failed attempts; back to 0 when a handshake is answered. */
+    private int attempts;
+    private Timer retry;
 
     private final Map<String, Map<String, Object>> scopes = new HashMap<>();
     private final Cn1ClientStorage clientStorage = new Cn1ClientStorage();
@@ -85,15 +107,22 @@ public final class BridgeSession {
     private long requestCounter = 0;
     private Timer pinger;
 
-    public BridgeSession(String base, Listener listener, Runnable onOutdated) {
+    public BridgeSession(String base, Listener listener, Runnable onOutdated, ConnectionListener connectionListener) {
         this.base = base;
         this.wsBase = "ws" + base.substring(4); // http:// -> ws:// (local environment)
         this.listener = listener;
         this.onOutdated = onOutdated;
+        this.connectionListener = connectionListener;
     }
 
     /** Blocking (call off the EDT): performs session/init and opens the WebSocket. */
     public void connect() {
+        appId = newSessionId();
+        openSocket();
+    }
+
+    /** Asks the host for a new session id ({@code GET /api/session/init}); blocking. */
+    private String newSessionId() {
         ConnectionRequest req = new ConnectionRequest();
         req.setUrl(base + "/api/session/init");
         req.setPost(false);
@@ -104,14 +133,21 @@ public final class BridgeSession {
             throw new RuntimeException("session/init without body (HTTP " + req.getResponseCode() + ")");
         }
         Map<String, Object> init = parse(new String(data));
-        appId = str(init.get("appId"));
-        if (appId == null) {
+        String id = str(init.get("appId"));
+        if (id == null) {
             throw new RuntimeException("session/init without appId");
         }
+        return id;
+    }
 
-        ws = WebSocket.build(wsBase + "/dispatcher/" + appId)
+    /** Opens a connection on the current session id; its handshake comes first. */
+    private void openSocket() {
+        WebSocket socket = WebSocket.build(wsBase + "/dispatcher/" + appId)
                 .onConnect(w -> sendHandshake(w))
                 .onTextMessage((w, msg) -> {
+                    if (w != ws) {
+                        return; // a connection a newer one replaced
+                    }
                     if (crypto == null) {
                         handleHandshakeAnswer(w, msg);
                     } else {
@@ -119,13 +155,63 @@ public final class BridgeSession {
                     }
                 })
                 .onClose((w, code, reason) -> {
+                    if (w != ws) {
+                        return;
+                    }
                     stopPinging();
                     if (code == CLOSE_UNSUPPORTED_PROTOCOL) {
                         markOutdated();
+                    } else {
+                        scheduleReconnect(code == CLOSE_SESSION_INVALID);
                     }
                 })
-                .onError((w, ex) -> stopPinging())
-                .connect();
+                .onError((w, ex) -> {
+                    if (w != ws) {
+                        return;
+                    }
+                    stopPinging();
+                    scheduleReconnect(false);
+                });
+        ws = socket; // before connecting: the callbacks only listen to the current connection
+        socket.connect();
+    }
+
+    /**
+     * After a dropped connection: waits {@code min(2000·n, 120000)} ms and opens another, with a new session id
+     * first when the host no longer has this one. Once per dropped connection.
+     */
+    private synchronized void scheduleReconnect(final boolean newSession) {
+        if (outdated || retry != null) {
+            return;
+        }
+        ws = null;
+        ready = false;
+        crypto = null;
+        attempts++;
+        final int attempt = attempts;
+        final long delay = Math.min(2000L * attempt, 120000L);
+        CN.callSerially(() -> connectionListener.onDisconnected(attempt, delay));
+        retry = new Timer();
+        retry.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                synchronized (BridgeSession.this) {
+                    retry = null;
+                }
+                try {
+                    if (newSession) {
+                        appId = newSessionId();
+                        CN.callSerially(() -> {
+                            scopes.clear();
+                            connectionListener.onSessionReplaced();
+                        });
+                    }
+                    openSocket();
+                } catch (RuntimeException failed) {
+                    scheduleReconnect(newSession);
+                }
+            }
+        }, delay);
     }
 
     /** The first message of the connection: this client's version and ephemeral key, and nothing else. */
@@ -168,6 +254,7 @@ public final class BridgeSession {
         } finally {
             handshake = null;
         }
+        attempts = 0;
         CN.callSerially(() -> {
             if (outdated) {
                 return;

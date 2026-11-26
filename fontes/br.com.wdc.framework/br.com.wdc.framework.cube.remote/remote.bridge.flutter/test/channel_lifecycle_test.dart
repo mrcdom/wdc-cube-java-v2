@@ -13,6 +13,7 @@ const _timeout = Duration(seconds: 2);
 
 class _Host {
   final List<FakeChannel> channels = [];
+  final List<Uri> uris = [];
   late final ScopeCoordinator coordinator;
   final InMemoryClientStorage persistent = InMemoryClientStorage();
   Uint8List? key;
@@ -24,6 +25,7 @@ class _Host {
         baseWebSocketUrl: 'ws://lifecycle.invalid',
         persistentStorage: persistent,
         connectChannel: (uri, protocols) {
+          uris.add(uri);
           final channel = FakeChannel();
           channels.add(channel);
           return channel;
@@ -142,6 +144,28 @@ void main() {
       host.coordinator.onStop();
     },
   );
+
+  test('after close 4001, the shell moves to a new session id and the next connection opens on it', () async {
+    final host = _Host();
+    host.coordinator.onSessionInvalid = () {
+      host.coordinator.useSession('second.session');
+      host.coordinator.onStop();
+      host.coordinator.onStart();
+    };
+    host.coordinator.onStart();
+    await pumpEventQueue();
+    await host.nextSent();
+
+    host.channel.serverClose(closeReloadRequired);
+    await pumpEventQueue();
+
+    expect(host.coordinator.id, 'second.session');
+    expect(host.uris.last.path, '/dispatcher/second.session');
+    expect(host.uris.first.path, '/dispatcher/$_appId');
+    final hello = await host.nextSent();
+    expect(hello.keys.toSet(), {'protocol', 'clientKey'});
+    host.coordinator.onStop();
+  });
 
   test('a server key that is not a P-256 point drops the connection', () async {
     final host = _Host();

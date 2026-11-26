@@ -35,6 +35,22 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <!--
+                  The root pom gives Surefire Codename One's provider, which only runs Codename One's own tests.
+                  The JUnit Platform provider makes Surefire also run the JUnit 5 tests under common/src/test/java
+                  (mounted here by testSourceDirectory), such as the channel cryptography's.
+                -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.surefire</groupId>
+                        <artifactId>surefire-junit-platform</artifactId>
+                        <version>3.0.0-M5</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
         </plugins>
     </build>
 
