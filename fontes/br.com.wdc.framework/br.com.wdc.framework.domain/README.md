@@ -16,12 +16,12 @@ Nothing else: no JDBC, no jOOQ, no HTTP client. It compiles for the JVM and for 
 
 | Package | Contents |
 |---------|----------|
-| `repository` | `Repository<E, C, K>` — the generic repository contract (insert, update, delete, count, fetch) |
+| `repository` | `ReadOnlyRepository<E, C, K>` — the reads (count, fetch, fetchPage, fetchById); `Repository<E, C, K>` — extends it with insert, update and delete |
 | `criteria` | `Criteria` — the fields, and the alternative groups (`anyOf`, server-side only) for a disjunction across fields —, and the field types of a criteria: `Criterion` (eq/ne/in/isNull), `ComparableCriterion` (gt/ge/lt/le/between), `TextCriterion` (like/ilike/containing/startingWith) |
 | `projection` | `ProjectionValues`, `ProjectionList`, `ProjectionSet` — which fields (and which slice of a collection) a query loads |
 | `pagination` | `Page` |
 | `codec` | `ModelCodec` — entity ↔ JSON, shared by the REST server and client |
-| `transaction` | `TransactionService` / `TransactionContext` — CMT-style programmatic transactions (`required`, `requiresNew`, ...) |
+| `transaction` | `TransactionService` / `TransactionContext` — CMT-style programmatic transactions (`required`, `requiresNew`, ...) and `afterCommit`; `AfterCommitTasks` — the queue and runner its implementations share |
 | `resource` | The resource calls: an action on a resource as an object, named by an HTTP-like verb (below) |
 | `security` | `SecurityContext` (who the requester is, and their roles), `AuthenticationService`, password and crypto helpers |
 | `security.policy` | The data access policy of an API open to external clients: `DataPolicy` (grants per role), `DataGrant` (rows, fields read, masked, written), `DataAccess` (applies them to a request and to each returned row), `RowScope`, `Mask`, `EntityDescriptor` — how to use it: [Security Guide](../docs/security-guide.md); design: [Security Architecture](../../../docs/security-architecture.md) |
