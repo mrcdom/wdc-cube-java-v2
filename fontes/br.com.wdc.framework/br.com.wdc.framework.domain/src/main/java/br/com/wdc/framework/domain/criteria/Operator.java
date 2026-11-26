@@ -29,7 +29,7 @@ public enum Operator {
     ILIKE(1),
     /** {@code BETWEEN ? AND ?} */
     BETWEEN(2),
-    /** {@code IN (?, ?, …)} — variable arity. */
+    /** {@code IN (?, ?, …)} — any number of values; none matches no row. */
     IN(-1),
     /** {@code IS NULL} */
     IS_NULL(0),
@@ -42,13 +42,13 @@ public enum Operator {
         this.arity = arity;
     }
 
-    /** Number of values the operator requires; {@code -1} when variable ({@link #IN}). */
+    /** Number of values the operator requires; {@code -1} when any number, none included ({@link #IN}). */
     public int arity() {
         return arity;
     }
 
     /** {@code true} when the given count satisfies the operator. */
     public boolean accepts(int count) {
-        return arity < 0 ? count > 0 : count == arity;
+        return arity < 0 ? count >= 0 : count == arity;
     }
 }
