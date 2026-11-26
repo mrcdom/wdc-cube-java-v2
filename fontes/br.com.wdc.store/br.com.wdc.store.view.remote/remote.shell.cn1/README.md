@@ -212,9 +212,8 @@ JVM's own cryptography (JCA): ECDH both ways, SPKI read by each side, invalid po
 RFC 5869 test case 1, AES-GCM values deciphered across. `Cn1CryptoTest` installs the JavaSE port
 headless (no simulator) for `Cipher`, `SecureRandom` and `Base64`.
 
-They compile with `./mvnw -o -q test-compile -pl common,javase`, but `mvn test` does not run them:
-the Codename One plugin swaps Surefire's provider for one that runs only `com.codename1.testing.UnitTest`
-classes. Run them with a JUnit Platform launcher (`junit-platform-launcher` 1.9.x) on the `javase`
-test classpath, selecting the package `br.com.wdc.store.view.remote.shell.cn1.bridge`.
+They run with `./mvnw test -pl common,javase`, from the `javase` module, which mounts
+`common/src/test/java`: next to Codename One's own provider (which runs only `com.codename1.testing.UnitTest`
+classes), its Surefire has the JUnit Platform provider.
 
 > For the project's complete architectural overview, see the root README.md and the `docs/` folder.
