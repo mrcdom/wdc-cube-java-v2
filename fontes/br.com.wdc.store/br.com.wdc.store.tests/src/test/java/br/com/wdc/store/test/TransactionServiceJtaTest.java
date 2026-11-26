@@ -119,6 +119,19 @@ public class TransactionServiceJtaTest {
     }
 
     @Test
+    public void afterCommit_runsAfterTheJtaCommit_andNotAfterARollback() {
+        var ran = new java.util.ArrayList<String>();
+
+        tx().required(t -> tx().afterCommit(() -> ran.add("committed")));
+        tx().required(t -> {
+            tx().afterCommit(() -> ran.add("rolled back"));
+            t.setRollbackOnly();
+        });
+
+        assertEquals(java.util.List.of("committed"), ran);
+    }
+
+    @Test
     public void required_normalReturn_commits() {
         tx().required(t -> insert(1));
         assertEquals("REQUIRED should commit on normal return", 1, count(1));

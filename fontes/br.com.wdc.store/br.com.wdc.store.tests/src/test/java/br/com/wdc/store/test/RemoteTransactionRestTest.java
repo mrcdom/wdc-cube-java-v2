@@ -1,8 +1,13 @@
 package br.com.wdc.store.test;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -11,6 +16,7 @@ import org.junit.rules.ExternalResource;
 
 import br.com.wdc.framework.domain.exception.TransactionConflictException;
 import br.com.wdc.store.domain.product.Product;
+import br.com.wdc.store.scripts.sgbd.DBReset;
 import br.com.wdc.store.persistence.client.RestTransactionService;
 import br.com.wdc.store.test.util.ResetDatabaseRule;
 import br.com.wdc.store.test.util.TestEnvironment;
@@ -106,5 +112,47 @@ public class RemoteTransactionRestTest {
 
         assertNull("p1 should have been rolled back too", env.productRepo().fetchById(p1.id(), null));
         assertNull("p2 should have been rolled back too", env.productRepo().fetchById(p2.id(), null));
+    }
+
+    @Test
+    public void afterCommit_runsAfterTheRemoteCommit_andNotAfterARollback() {
+        var ran = new ArrayList<String>();
+
+        tx().required(t -> {
+            env.productRepo().insert(product("rtx-after-commit"));
+            tx().afterCommit(() -> ran.add("committed"));
+            assertEquals(List.of(), ran);
+        });
+        tx().required(t -> {
+            tx().afterCommit(() -> ran.add("rolled back"));
+            t.setRollbackOnly();
+        });
+
+        assertEquals(List.of("committed"), ran);
+    }
+
+    @Test
+    public void imageChangedInARemoteTransaction_isServedAfterTheCommit() {
+        var id = DBReset.COFFEE_MAKER_ID;
+        var before = env.productRepo().fetchImage(id); // the server now holds it in its cache
+        var changed = new byte[] { 1, 2, 3 };
+
+        tx().required(t -> env.productRepo().updateImage(id, changed));
+
+        assertArrayEquals(changed, env.productRepo().fetchImage(id));
+        assertNotNull(before);
+    }
+
+    @Test
+    public void imageChangedInARolledBackTransaction_keepsTheOldOne() {
+        var id = DBReset.COFFEE_MAKER_ID;
+        var before = env.productRepo().fetchImage(id);
+
+        tx().required(t -> {
+            env.productRepo().updateImage(id, new byte[] { 1, 2, 3 });
+            t.setRollbackOnly();
+        });
+
+        assertArrayEquals(before, env.productRepo().fetchImage(id));
     }
 }

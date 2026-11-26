@@ -12,6 +12,7 @@ import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.domain.exception.AccessDeniedException;
 import br.com.wdc.framework.domain.exception.TransactionConflictException;
 import br.com.wdc.framework.domain.exception.TransactionLimitExceededException;
+import br.com.wdc.framework.domain.transaction.AfterCommitTasks;
 import br.com.wdc.framework.domain.transaction.TransactionSystemException;
 
 /**
@@ -26,7 +27,8 @@ import br.com.wdc.framework.domain.transaction.TransactionSystemException;
  *
  * <p>
  * Works for both {@code TransactionScope} modes: JDBC (single connection kept open) and JTA (suspend/resume on the
- * TransactionManager). Transactions idle beyond the timeout are rolled back and removed (lazy sweep in
+ * TransactionManager). The {@code afterCommit} tasks scheduled by the requests of a remote transaction run when its
+ * commit succeeds, after the connection is returned. Transactions idle beyond the timeout are rolled back and removed (lazy sweep in
  * {@link #begin(String)}), preventing connection leaks from clients that abandon the transaction.
  * </p>
  */
@@ -231,6 +233,7 @@ public final class RemoteTransactionCoordinatorImpl implements RemoteTransaction
         }
         outcomes.put(txId, new Finalized(!rollback, entry.owner));
         (rollback ? rolledBackCount : committedCount).incrementAndGet();
+        AfterCommitTasks.runAll(entry.scope.takeAfterCommit());
         LOG.debug("remote tx finished ({}): {} (open={})", rollback ? "rollback" : "commit", txId,
                 registry.size());
     }

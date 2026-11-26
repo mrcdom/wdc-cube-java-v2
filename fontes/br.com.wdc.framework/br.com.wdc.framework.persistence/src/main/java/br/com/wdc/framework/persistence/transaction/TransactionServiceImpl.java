@@ -1,11 +1,13 @@
 package br.com.wdc.framework.persistence.transaction;
 
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 import javax.sql.DataSource;
 
+import br.com.wdc.framework.domain.transaction.AfterCommitTasks;
 import br.com.wdc.framework.domain.transaction.TransactionContext;
 import br.com.wdc.framework.domain.transaction.TransactionNotAllowedException;
 import br.com.wdc.framework.domain.transaction.TransactionRequiredException;
@@ -25,6 +27,11 @@ import br.com.wdc.framework.domain.transaction.TransactionSystemException;
  * {@code work} semantics: COMMIT on normal return (only the owner commits), ROLLBACK on any exception (rethrown intact)
  * or if {@link TransactionContext#setRollbackOnly()} was called. Failures while finishing the transaction become
  * {@link TransactionSystemException}.
+ * </p>
+ *
+ * <p>
+ * {@link #afterCommit} stores the task in the owner of the physical transaction ({@link TransactionScope}); the owner's
+ * frame runs the tasks after its commit, once the connection is returned and with no transaction current.
  * </p>
  *
  * <p>
@@ -135,12 +142,25 @@ public final class TransactionServiceImpl implements TransactionService {
         return work.apply(HANDLE);
     }
 
+    // :: After commit
+
+    @Override
+    public void afterCommit(Runnable task) {
+        var current = TransactionScope.current();
+        if (current != null) {
+            current.afterCommit(task);
+        } else {
+            AfterCommitTasks.runAll(List.of(task));
+        }
+    }
+
     // -------------------------------------------------------------------------
     // :: Core (jdbcTx frame)
 
     /**
      * Runs {@code work} in the transaction frame: commits on success (only the owner commits; a participant is a
-     * no-op), rolls back on exception (rethrown) and closes the frame.
+     * no-op), rolls back on exception (rethrown) and closes the frame. After the owner's commit, runs the tasks
+     * scheduled with {@link #afterCommit}.
      */
     private static <T> T finish(TransactionScope jdbcTx,
             Function<TransactionContext, T> work) {
@@ -157,6 +177,7 @@ public final class TransactionServiceImpl implements TransactionService {
         } catch (Exception e) {
             throw new TransactionSystemException("Failed to finish the transaction", e);
         }
+        AfterCommitTasks.runAll(jdbcTx.takeAfterCommit());
         return result;
     }
 
