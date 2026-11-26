@@ -250,8 +250,10 @@ class FlushRequestContext {
     _stopKeepAliveChecks();
     _cancelPendingKeepAlive();
     _stopSubmitting();
-    _channel?.sink.close();
+    // Forgotten before closing: the close callback that follows sees no current channel, and does not reconnect
+    final channel = _channel;
     _channel = null;
+    channel?.sink.close();
   }
 
   void _handleDisconnect(Object? cause) {
