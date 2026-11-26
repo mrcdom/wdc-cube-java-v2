@@ -108,17 +108,10 @@ sessionTtlSeconds = 0
 jwt.secret = "wdc-store-jwt-s3cr3t-k3y-ch4ng3-1n-pr0duct10n"
 
 [remote]
-# RSA key pair for client↔server handshake (cipher keys).
-# Format: "exponent:modulus" (exponent and modulus encoded in base36).
-# Dev-default keys are auto-written to application.local.toml on first run.
-# REPLACE BOTH KEY PAIRS before deploying to production.
-# cipherPublicKey = "<exponent>:<modulus>"
-# cipherPrivateKey = "<modulus inverse>"
-
-# RSA key pair for URL/intent signing (URL-safe Base64 DER — PKCS#8 / X.509).
-# cipherPublicKey / cipherPrivateKey generated with: openssl genrsa 512 | ...
-# signPublicKey  = "<base64url>"
-# signPrivateKey = "<base64url>"
+# HMAC-SHA256 key that signs the remote session ids and the addresses of the history (Base64 URL-safe, >= 32 bytes).
+# When absent, a random one is generated on the first start and written to application.local.toml.
+# Instances that must accept each other's sessions share the same key. The channel keys are agreed per connection.
+# signingKey = "<base64url>"
 
 [simulation]
 # Simulate slow login (adds 3s delay in LoginPresenter)

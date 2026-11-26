@@ -3,17 +3,12 @@ package br.com.wdc.store.view.remote.host;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.util.Base64;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import br.com.wdc.framework.commons.security.RSA;
 import br.com.wdc.framework.commons.util.Defer;
 import br.com.wdc.framework.cube.remote.RemoteAppSecurity;
 import br.com.wdc.framework.cube.remote.RemoteApplicationRegistry;
@@ -64,18 +59,12 @@ public final class RemoteHostBootstrap {
     public static void configure(JavalinConfig config) {
         var appConfig = StoreConfig.loadConfig();
 
-        // Ensure [remote] keys exist in application.local.toml; if absent, write dev defaults and warn
-        ensureRemoteSecurityKeys(appConfig);
-
-        // Bridge AppConfig [remote] → System properties consumed by RemoteAppSecurity
-        propagateRemoteKey(appConfig, "remote.rsaPublicKey",  "wdc.web.public_key");
-        propagateRemoteKey(appConfig, "remote.rsaPrivateKey", "wdc.web.private_key");
-        propagateRemoteKey(appConfig, "remote.signPublicKey",    "wdc.sign.wdc.web.public_key");
-        propagateRemoteKey(appConfig, "remote.signPrivateKey",   "wdc.sign.wdc.web.private_key");
+        // The key that signs session ids and addresses: from [remote] signingKey, generated on the first start
+        System.setProperty(RemoteAppSecurity.SIGNING_KEY_PROPERTY, ensureSigningKey(appConfig));
 
         int maxSessions = appConfig.getInt("server.maxSessions", -1);
 
-        var security = RemoteAppSecurity.createDefault();
+        var security = RemoteAppSecurity.fromSystemProperty();
         var registry = new RemoteApplicationRegistry<>(StoreApplicationImpl::createApp);
 
         if (maxSessions > 0) {
@@ -99,68 +88,36 @@ public final class RemoteHostBootstrap {
         module.configure(config);
     }
 
-    private static void propagateRemoteKey(AppConfig config, String configKey, String sysProp) {
-        var value = config.get(configKey);
-        if (value != null && !value.isBlank()) {
-            System.setProperty(sysProp, value);
-        }
-    }
-
     /**
-     * Generates fresh RSA key pairs and writes them into {@code application.local.toml} when absent.
-     * Keys are randomly generated on each fresh checkout — no hardcoded values exist in the source.
-     * The log warning reminds operators to replace these keys before production deployment.
+     * The {@code [remote] signingKey} of the configuration. When there is none, a new random key is written into
+     * {@code application.local.toml} (inside its {@code [remote]} table, or in a new one), so that a restart keeps
+     * accepting the session ids and addresses signed before.
      */
-    private static void ensureRemoteSecurityKeys(AppConfig appConfig) {
-        if (appConfig.get("remote.rsaPublicKey") != null) {
-            return; // already configured
+    private static String ensureSigningKey(AppConfig appConfig) {
+        var configured = appConfig.get("remote.signingKey");
+        if (configured != null && !configured.isBlank()) {
+            return configured.trim();
         }
 
-        var rnd = new SecureRandom();
-
-        // RSA key pair for client handshake (custom RSA class, base36 format)
-        var handshakeRsa = new RSA(512, rnd);
-        String rsaPublicKey = handshakeRsa.getPublicExponent().toString(36) + ":" + handshakeRsa.getPublicKey().toString(36);
-        String rsaPrivateKey = handshakeRsa.getPrivateKey().toString(36);
-
-        // RSA key pair for URL/intent signing (standard JCA, DER URL-safe Base64 format)
-        String signPublicKey;
-        String signPrivateKey;
-        try {
-            var keyGen = KeyPairGenerator.getInstance("RSA");
-            keyGen.initialize(512, rnd);
-            var keyPair = keyGen.generateKeyPair();
-            var b64 = Base64.getUrlEncoder().withoutPadding();
-            signPublicKey = b64.encodeToString(keyPair.getPublic().getEncoded());
-            signPrivateKey = b64.encodeToString(keyPair.getPrivate().getEncoded());
-        } catch (NoSuchAlgorithmException e) {
-            throw new AssertionError("RSA not available", e);
-        }
-
-        // Propagate to System properties immediately — AppConfig was already loaded before
-        // this method ran, so appConfig.get() won't see the values we're about to write.
-        System.setProperty("wdc.web.public_key",          rsaPublicKey);
-        System.setProperty("wdc.web.private_key",         rsaPrivateKey);
-        System.setProperty("wdc.sign.wdc.web.public_key", signPublicKey);
-        System.setProperty("wdc.sign.wdc.web.private_key",signPrivateKey);
-
+        var key = RemoteAppSecurity.newEncodedKey();
+        var line = "# HMAC-SHA256 key that signs the remote sessions and addresses — generated on the first start; "
+                + "instances that accept each other's sessions share it\nsigningKey = \"" + key + "\"\n";
         Path localToml = appConfig.getConfigFilePath().resolveSibling("application.local.toml");
-        String block = "\n[remote]\n"
-                + "# RSA key pair for client handshake (format: exponent:modulus in base36)\n"
-                + "# Generated automatically — REPLACE THESE KEYS IN PRODUCTION\n"
-                + "rsaPublicKey = \"" + rsaPublicKey + "\"\n"
-                + "rsaPrivateKey = \"" + rsaPrivateKey + "\"\n"
-                + "# RSA key pair for URL/intent signing (URL-safe Base64 DER)\n"
-                + "# Generated automatically — REPLACE THESE KEYS IN PRODUCTION\n"
-                + "signPublicKey = \"" + signPublicKey + "\"\n"
-                + "signPrivateKey = \"" + signPrivateKey + "\"\n";
         try {
-            Files.writeString(localToml, block, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-            LOG.warn("Remote security keys were absent — fresh keys generated and written to {}", localToml);
-            LOG.warn("IMPORTANT: replace [remote] keys in application.local.toml before production deployment.");
+            var text = Files.exists(localToml) ? Files.readString(localToml) : "";
+            var table = Pattern.compile("(?m)^\\[remote\\][ \\t]*$").matcher(text);
+            if (table.find()) {
+                var rest = table.end() < text.length() ? text.substring(table.end() + 1) : "";
+                text = text.substring(0, table.end()) + "\n" + line + rest;
+            } else {
+                text = text + (text.isEmpty() || text.endsWith("\n") ? "" : "\n") + "\n[remote]\n" + line;
+            }
+            Files.writeString(localToml, text);
+            LOG.warn("The remote signing key was absent; a new one was written to {}", localToml);
         } catch (IOException e) {
-            LOG.error("Failed to bootstrap remote security keys into {}", localToml, e);
+            LOG.error("Failed to write the remote signing key into {}; it lasts until the server stops", localToml, e);
         }
+        return key;
     }
 
     private static String[] discoverFrontendContextPaths() {

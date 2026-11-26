@@ -8,11 +8,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +61,8 @@ final class HostClientSession implements AutoCloseable {
     private final HttpClient http;
     private WebSocket ws;
     private final LinkedBlockingQueue<HostResponse> inbound = new LinkedBlockingQueue<>();
+    /** The host's answer to the handshake: the first message of the connection. */
+    private final CompletableFuture<Map<String, Object>> handshake = new CompletableFuture<>();
     private final ScopeMap scopeMap;
     private volatile boolean closed = false;
     private final ScheduledExecutorService pinger = Executors.newSingleThreadScheduledExecutor(r -> {
@@ -78,6 +83,24 @@ final class HostClientSession implements AutoCloseable {
                 .buildAsync(URI.create(wsUrl), new MessageListener())
                 .join();
         LOG.debug("WebSocket connected");
+    }
+
+    /**
+     * Sends the handshake and waits for the host's answer, the connection's first message.
+     *
+     * @return the answer: {@code {"protocol", "serverKey"}}, or {@code {"error": "unsupported-protocol", ...}}
+     */
+    Map<String, Object> handshake(String message, Duration timeout) throws InterruptedException, TimeoutException {
+        send(message);
+        try {
+            return handshake.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
+        } catch (ExecutionException closed) {
+            throw new IllegalStateException("The connection closed during the handshake", closed.getCause());
+        }
+    }
+
+    /** Starts the keep-alive, once the handshake is done (a ping is not a handshake). */
+    void startPinging() {
         long interval = PING_INTERVAL.toMillis();
         pinger.scheduleAtFixedRate(this::ping, interval, interval, TimeUnit.MILLISECONDS);
     }
@@ -154,7 +177,12 @@ final class HostClientSession implements AutoCloseable {
                 String text = buf.toString();
                 buf.setLength(0);
                 try {
-                    inbound.add(parse(text));
+                    if (!handshake.isDone()) {
+                        LOG.debug("← {}", text);
+                        handshake.complete(GSON.fromJson(text, MAP_TYPE.getType()));
+                    } else {
+                        inbound.add(parse(text));
+                    }
                 } catch (Exception e) {
                     LOG.warn("Failed to parse server message: {}", text, e);
                 }
@@ -173,7 +201,6 @@ final class HostClientSession implements AutoCloseable {
             if (rid instanceof Number n) requestId = n.longValue();
 
             String uri = (String) msg.get("uri");
-            String accessToken = (String) msg.get("accessToken");
 
             // Parse storage delta (if present)
             Map<String, Object> storageDelta = null;
@@ -213,13 +240,14 @@ final class HostClientSession implements AutoCloseable {
                 scopeMap.applyReleased(released);
             }
 
-            return new HostResponse(requestId, uri, snapshots, released, accessToken, storageDelta);
+            return new HostResponse(requestId, uri, snapshots, released, storageDelta);
         }
 
         @Override
         public CompletionStage<?> onClose(WebSocket ws, int statusCode, String reason) {
             LOG.debug("WebSocket closed: {} {}", statusCode, reason);
             closed = true;
+            handshake.completeExceptionally(new IllegalStateException("closed: " + statusCode + " " + reason));
             pinger.shutdownNow();
             return null;
         }
@@ -228,6 +256,7 @@ final class HostClientSession implements AutoCloseable {
         public void onError(WebSocket ws, Throwable error) {
             LOG.warn("WebSocket error", error);
             closed = true;
+            handshake.completeExceptionally(error);
             pinger.shutdownNow();
         }
     }

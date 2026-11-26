@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/widgets.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'client_storage.dart';
 import 'constants.dart';
@@ -11,8 +12,9 @@ import 'types.dart';
 import 'view_garbage_collector.dart';
 import 'view_scope.dart';
 
-/// Central orchestrator: view registry, form data, history, security init,
-/// submit routing, and WebSocket lifecycle.
+/// Central orchestrator: view registry, form data, history, submit routing,
+/// and WebSocket lifecycle (each connection agrees on its own key, see
+/// [DataSecurity]).
 class ScopeCoordinator {
   /// The active coordinator instance (set after construction).
   static late ScopeCoordinator instance;
@@ -26,6 +28,11 @@ class ScopeCoordinator {
   FormMapType formMap = {};
 
   bool isConnected = false;
+
+  /// Whether the host refused this client's protocol version: the app is out
+  /// of date and does not reconnect.
+  bool isOutdated = false;
+
   String path = '/';
 
   final DataSecurity dataSecurity = DataSecurity();
@@ -35,6 +42,11 @@ class ScopeCoordinator {
 
   /// Callback for when the server signals session invalid (code 4001).
   void Function() onSessionInvalid = () {};
+
+  /// Callback for when the host refuses this client's protocol version
+  /// (`unsupported-protocol`, close 4002). The browser view also gets the
+  /// field `outdated: true`.
+  void Function() onOutdated = _noopSync;
 
   /// Callback for when the server changes the URI.
   void Function(String uri) onUriChanged = _defaultOnUriChanged;
@@ -51,12 +63,13 @@ class ScopeCoordinator {
   /// Persistent-scoped storage: survives app restarts, synced on bootstrap.
   late final ClientStorage persistentStorage;
 
-  /// Sync initialization (security key derivation) — called once on start.
-  void Function() readyToStart = _noopSync;
+  /// Opens the WebSocket channel.
+  final ChannelConnector connectChannel;
 
   ScopeCoordinator(CoordinatorConfig config)
     : id = config.appId,
-      baseWebSocketUrl = config.baseWebSocketUrl {
+      baseWebSocketUrl = config.baseWebSocketUrl,
+      connectChannel = config.connectChannel ?? _connectWebSocket {
     instance = this;
     viewMap[browserVsid] = ViewScope(browserVsid);
 
@@ -65,35 +78,16 @@ class ScopeCoordinator {
     sessionStorage = config.sessionStorage ?? InMemoryClientStorage();
     persistentStorage = config.persistentStorage ?? InMemoryClientStorage();
 
-    if (config.securityKey != null && config.securityKey!.isNotEmpty) {
-      dataSecurity.updateSecurityKey(config.securityKey!);
-
-      readyToStart = () {
-        dataSecurity.updateSecretWithRandomPassword();
-        config.onSetCookie?.call('app_signature', dataSecurity.getSignature());
-        readyToStart = _noopSync;
-      };
-    }
-
     contextExchanger = FlushRequestContext(this);
     reconnectController = ReconnectController(this);
     viewGarbageCollector = ViewGarbageCollector(this);
   }
 
   /// Convenience factory that generates a random appId.
-  factory ScopeCoordinator.withRandomId({
-    required String baseWebSocketUrl,
-    String? securityKey,
-    void Function(String name, String value)? onSetCookie,
-  }) {
+  factory ScopeCoordinator.withRandomId({required String baseWebSocketUrl}) {
     final appId = _makeUniqueId();
     return ScopeCoordinator(
-      CoordinatorConfig(
-        appId: appId,
-        securityKey: securityKey,
-        baseWebSocketUrl: baseWebSocketUrl,
-        onSetCookie: onSetCookie,
-      ),
+      CoordinatorConfig(appId: appId, baseWebSocketUrl: baseWebSocketUrl),
     );
   }
 
@@ -123,17 +117,18 @@ class ScopeCoordinator {
   // :: Connection
 
   void connect() {
+    if (isOutdated) return;
     reconnectController.checkNow();
   }
 
   void assureContextExchangerIsConnected() {
+    if (isOutdated) return;
     contextExchanger.open(reconnectController.url);
   }
 
   // :: Lifecycle
 
   void onStart() {
-    readyToStart();
     assureContextExchangerIsConnected();
     setFormField(browserVsid, 'p.path', path);
     submit(browserVsid, -1);
@@ -184,7 +179,13 @@ class ScopeCoordinator {
       if (ciphered == null) {
         target.remove(entry.key);
       } else if (ciphered.isNotEmpty) {
-        target.set(entry.key, dataSecurity.b64Decipher(ciphered));
+        final String value;
+        try {
+          value = dataSecurity.b64Decipher(ciphered);
+        } on ArgumentError {
+          continue; // A value that does not authenticate is refused.
+        }
+        target.set(entry.key, value);
       }
     }
   }
@@ -211,9 +212,25 @@ class ScopeCoordinator {
     formData[fieldName] = fieldValue;
   }
 
-  /// Encrypts a value using the AES-GCM cipher.
-  String cipher(String value) {
-    return dataSecurity.b64Cipher(value);
+  /// Sets a form field that travels ciphered with the connection key (e.g.
+  /// `p.password`); it is ciphered when its request goes out.
+  void setSecretFormField(String vsid, String fieldName, String fieldValue) {
+    setFormField(vsid, fieldName, SecretValue(fieldValue));
+  }
+
+  /// Called by the channel when the host refused this client's protocol
+  /// version: no reconnection, and the browser view learns it is out of date.
+  void markOutdated() {
+    if (isOutdated) return;
+    isOutdated = true;
+    isConnected = false;
+    reconnectController.close();
+    final browserView = viewMap[browserVsid];
+    if (browserView != null) {
+      browserView.removeField('error');
+      browserView.patchField('outdated', true);
+    }
+    onOutdated();
   }
 
   // :: Private helpers
@@ -221,6 +238,11 @@ class ScopeCoordinator {
   static void _noopSync() {}
 
   static void _defaultOnUriChanged(String uri) {}
+
+  static WebSocketChannel _connectWebSocket(
+    Uri uri,
+    Iterable<String> protocols,
+  ) => WebSocketChannel.connect(uri, protocols: protocols);
 
   static String _makeUniqueId() {
     final random = Random.secure();

@@ -119,7 +119,7 @@ The modules are organized into two groups:
 
 | Module | Responsibility |
 |---|---|
-| `framework.commons` | Functional interfaces with checked exceptions, extensible serialization, SQL abstraction, cryptography (RSA, Base62), multiplatform logging |
+| `framework.commons` | Functional interfaces with checked exceptions, extensible serialization, SQL abstraction, cryptography (`ChannelCrypto`: the remote channel's ECDH, HKDF and AES-GCM), Base62, multiplatform logging |
 | `framework.domain` | Generic domain abstractions: `Repository`, `Page`, criteria, projections, `TransactionService`, security, and the resource calls (`ResourceQuery`, `ResourceCreate`/`Save`/`Update`/`Delete`) |
 | `framework.persistence` | Neutral persistence support (`javax.sql.DataSource` + `jakarta.transaction`): `TransactionServiceImpl`, `TransactionScope`, `RemoteTransactionCoordinator` |
 | `framework.cube` | Cube MVP engine: presenters, views, navigation, intents, slots |
@@ -695,10 +695,10 @@ sequenceDiagram
 
 The protocol implements session encryption in two layers:
 
-1. **RSA handshake**: at the start of the session, the shell generates an ephemeral password, encrypts it with the server's RSA public key (textbook RSA) and sends it, with the salt and the IV, as the `secret` — in the `app_signature` cookie or in the first WebSocket message. Both sides derive the session AES-256 key from the password via PBKDF2-HMAC-SHA256 (250,000 iterations).  
-2. **AES-GCM values**: after the handshake, the sensitive values (client storage, access token, `p.password`) travel encrypted with the session AES-256-GCM key.
+1. **A key per connection**: every WebSocket connection starts with a handshake in which the shell and the host exchange ephemeral ECDH P-256 public keys, with the protocol version; both derive the connection's AES-256 key with HKDF-SHA256, salted with the session id. No long-lived ciphering key exists, so a recorded connection cannot be deciphered later. A shell the host does not speak is refused and told it is out of date.
+2. **AES-GCM values**: after the handshake, the sensitive values (client storage, `p.password`) travel encrypted with the connection key, each with a random IV of its own.
 
-Additionally, the session id (`appId`) and the navigation address (the `sign` parameter) are signed with the server's RSA key (SHA256withRSA reduced by MD5, `signAsHash`), preventing a client from forging a session or navigating to places it was not granted. See [bridge-skeleton-protocol.md](bridge-skeleton-protocol.md) for the wire-level details.
+Additionally, the session id (`appId`) and the navigation address (the `sign` parameter) are signed with HMAC-SHA256 under a key only the server has (`[remote] signingKey`), preventing a client from forging a session or navigating to places it was not granted. See [bridge-skeleton-protocol.md](bridge-skeleton-protocol.md) for the wire-level details.
 
 ### Delta Serialization of Scopes
 

@@ -54,7 +54,7 @@ graph TD
 | **Where the UI runs** | Remote browser (thin shell) | Browser via Server Push | Local JVM | Browser / WebView (Tauri) |
 | **Model** | Server-driven (delta scopes) | Server-driven (component tree) | Direct in-memory access | Client-side (SPA) |
 | **Transport** | WebSocket (JSON delta) | Atmosphere (WebSocket/Push) | N/A (in-process) | REST (XMLHttpRequest) |
-| **Security** | RSA + AES-GCM + URL signing | HMAC-SHA256 URL signing | N/A (local process) | HMAC + JWT |
+| **Security** | Key per connection (ECDH + AES-GCM) + URL signing | HMAC-SHA256 URL signing | N/A (local process) | HMAC + JWT |
 | **Scalability** | Virtual Threads (~1K per connection) | Automatic Server Push | Single instance | Client-side (SPA) |
 | **UI code** | TypeScript (React) / Dart (Flutter) / Java (TeaVM, SWT, Codename One) | Java | Java | Java (compiled to JS) |
 | **Presenters** | Same | Same | Same | Same |
@@ -109,8 +109,8 @@ Generic pieces, in framework `remote.backend` (`br.com.wdc.framework.cube.remote
 | `RemoteApplicationRegistry` | Registry of per-session instances, lifecycle and cleanup |
 | `RemoteViewImpl` | Remote view of a scope: `syncClientToServer()`, scope writing (`writeScope()`), the scope's skeleton |
 | `RemoteBrowserPresenter` | Coordinates navigation and intent dispatch |
-| `RemoteAppSecurity` | RSA (key exchange) + SHA256withRSA for signing navigation URLs |
-| `RemoteDataSecurity` | Per-session AES-GCM (derived via PBKDF2, 250k iterations) for sensitive data |
+| `RemoteAppSecurity` | HMAC-SHA256 signing of session ids and navigation URLs |
+| `RemoteDataSecurity` | The connection's key (agreed by ECDH P-256 + HKDF) and AES-GCM for sensitive data, an IV per value |
 | `ScopeSerializer` | Serialization of the scopes' `Prop` fields to JSON |
 | `javalin/DispatcherController` | WebSocket endpoint `/dispatcher/{id}` |
 
@@ -164,7 +164,7 @@ graph TD
 
 Multiplatform Flutter shells — thin clients in Dart that share code via `flutter.commons`:
 
-- **flutter.commons** — shared library: WebSocket protocol, RSA+AES-GCM security, views, widgets and design tokens
+- **flutter.commons** — shared library: WebSocket protocol, the channel security (ECDH + AES-GCM), views, widgets and design tokens
 - **flutter.desktop** — native macOS/Linux/Windows app; built via `build.sh` (auto-detects the platform)
 - **flutter.mobile** — iOS/Android app deployed via `deploy.sh` (supports simulators, emulators and physical devices)
 - **flutter.web** — web app via Flutter WASM/JS
@@ -190,9 +190,9 @@ Runs programmatic scenarios against the remote host — used for throughput benc
 
 ```
 1. Shell connects: ws://host/dispatcher/{sessionId}
-2. Security handshake:
-   - Shell sends the app_signature cookie (RSA-encrypted AES password)
-   - Host derives an AES-256 key via PBKDF2 (salt + 250k iterations)
+2. Security handshake (protocol 1), on every connection:
+   - Shell → Host: { protocol: 1, clientKey }   (ephemeral P-256 public key)
+   - Host → Shell: { protocol: 1, serverKey }   (both derive the AES-256 key: ECDH + HKDF-SHA256)
 3. Request/response cycle:
    - Shell → Host: { requestId, eventCode, formData }
    - Host:
@@ -210,13 +210,13 @@ Only **modified (dirty) views** are sent in each response — minimal transfer, 
 ## Security
 
 ### Layer 1: Navigation signing
-- Each URL/intent includes a `sign` parameter = `Base62(MD5(SHA256withRSA(intent)))`
+- Each URL/intent includes a `sign` parameter = Base62 of the first 16 bytes of `HMAC-SHA256(signingKey, intent)`
 - The server validates it before navigating — prevents URL tampering
 
 ### Layer 2: Encryption of sensitive data
-- AES-256 key derived per session via PBKDF2 (250,000 iterations)
-- Sensitive fields (passwords, tokens) are AES-GCM encrypted in transit
-- Each session has a unique key — compromising one does not affect the others
+- AES-256 key agreed per connection by ephemeral ECDH P-256 and HKDF-SHA256 — no long-lived ciphering key, so a recorded connection cannot be deciphered later
+- Sensitive fields (passwords, stored tokens) are AES-GCM encrypted in transit, each with an IV of its own
+- Each connection has its own key — compromising one does not affect the others
 
 ## Prerequisites
 

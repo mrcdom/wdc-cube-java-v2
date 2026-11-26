@@ -16,6 +16,7 @@ import br.com.wdc.framework.cube.remote.RemoteAppSecurity;
 import br.com.wdc.framework.cube.remote.RemoteApplication;
 import br.com.wdc.framework.cube.remote.RemoteApplicationRegistry;
 import br.com.wdc.framework.cube.remote.RemoteApplicationSupport;
+import br.com.wdc.framework.cube.remote.RemoteDataSecurity;
 import br.com.wdc.store.presentation.StoreApplication;
 
 /**
@@ -134,11 +135,8 @@ public class StoreApplicationImpl extends StoreApplication implements RemoteAppl
 			app.cleanUp.push(() -> registry.remove(appId));
 			app.support.setTimeSpan(registry.getSessionTimeSpan());
 
-			// Initialize data security before auto-login (needed for decipher)
-			var secret = (String) request.get("secret");
-			if (StringUtils.isNotBlank(secret)) {
-				app.support.getDataSecurity().updateSecret(secret);
-			}
+			// The connection's key, before the bootstrap storage, which comes ciphered with it
+			app.support.getDataSecurity().useKey((byte[]) request.get(RemoteDataSecurity.CHANNEL_KEY));
 
 			// Populate client storage from bootstrap payload (both scopes)
 			app.support.getClientStorage().loadFromBootstrap(request.get("storage"));

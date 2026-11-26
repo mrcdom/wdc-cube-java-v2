@@ -1,0 +1,13 @@
+{
+  "description": "The first message of a connection carries the client's key and version; the host answers with its own key and version, and nothing else. After it, the bootstrap message makes the initial push, which carries the browser view.",
+  "steps": [
+    {
+      "send": { "protocol": 1, "clientKey": "$clientKey" },
+      "expect": { "protocol": 1, "serverKey": "$string", "error": "$absent", "scopes": "$absent" }
+    },
+    {
+      "send": { "event": [] },
+      "expect": { "scopes": { "$contains": { "#": "7b32e816a191:0" } } }
+    }
+  ]
+}

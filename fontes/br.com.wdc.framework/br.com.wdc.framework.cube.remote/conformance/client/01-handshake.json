@@ -1,0 +1,10 @@
+{
+  "description": "A client starts every connection with the handshake — its key and version, and nothing else — and sends nothing more before the host answers it. Then the bootstrap message goes out.",
+  "steps": [
+    { "start": {} },
+    { "expectSent": { "protocol": 1, "clientKey": "$string", "event": "$absent", "ping": "$absent", "storage": "$absent" } },
+    { "expectNothingSent": true },
+    { "receive": { "protocol": 1, "serverKey": "$serverKey" } },
+    { "expectSent": { "event": "$any", "protocol": "$absent", "clientKey": "$absent" } }
+  ]
+}

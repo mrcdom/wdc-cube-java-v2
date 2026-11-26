@@ -1,0 +1,10 @@
+{
+  "description": "A handshake with a version the host does not speak is refused the same way.",
+  "steps": [
+    {
+      "send": { "protocol": 2, "clientKey": "$clientKey" },
+      "expect": { "error": "unsupported-protocol", "protocols": [1], "serverKey": "$absent" }
+    },
+    { "expectClosed": 4002 }
+  ]
+}

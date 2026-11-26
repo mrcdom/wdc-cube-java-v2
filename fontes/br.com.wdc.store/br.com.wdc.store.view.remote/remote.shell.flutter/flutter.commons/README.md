@@ -26,7 +26,7 @@ graph TD
     entry --> bridge
 ```
 
-The protocol client (WebSocket, RSA key exchange + per-session AES-GCM, reconnection backoff, client storage) is the framework package `remote_bridge_flutter`; this package holds the WDC Store views and widgets.
+The protocol client (WebSocket, protocol version 1 handshake with a key agreed per connection — ECDH P-256 + HKDF-SHA256 + AES-256-GCM —, reconnection backoff, client storage) is the framework package `remote_bridge_flutter`; this package holds the WDC Store views and widgets.
 
 ## Usage
 
@@ -44,4 +44,4 @@ dependencies:
 |---------|-----|
 | `remote_bridge_flutter` | Remote protocol client (framework, path dependency) |
 | `web_socket_channel` | WebSocket communication with the host |
-| `pointycastle` | RSA + AES-GCM cryptography |
+| `pointycastle` | ECDH P-256, HKDF-SHA256 and AES-256-GCM (used through the bridge) |

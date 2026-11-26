@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BooleanSupplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,10 +25,11 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.ToNumberPolicy;
 import com.google.gson.reflect.TypeToken;
 
+import br.com.wdc.framework.commons.security.ChannelCrypto;
 import br.com.wdc.framework.commons.storage.ClientStorage;
 import br.com.wdc.framework.commons.storage.InMemoryClientStorage;
+import br.com.wdc.framework.cube.remote.bridge.java.model.ChannelKey;
 import br.com.wdc.framework.cube.remote.bridge.java.model.HostResponse;
-import br.com.wdc.framework.cube.remote.bridge.java.model.SecretContext;
 import br.com.wdc.framework.cube.remote.bridge.java.model.ScopeMap;
 import br.com.wdc.framework.cube.remote.bridge.java.model.ScopeSnapshot;
 
@@ -48,10 +50,11 @@ import br.com.wdc.framework.cube.remote.bridge.java.model.ScopeSnapshot;
  *
  * <h3>Protocol flow</h3>
  * <ol>
- *   <li>{@code GET /api/session/init} -> {@code {appId, appSKey}}</li>
- *   <li>Build secret from {@code appSKey} (RSA + PBKDF2 key derivation)</li>
+ *   <li>{@code GET /api/session/init} -> {@code {appId}}</li>
  *   <li>WS connect {@code ws://host/dispatcher/{appId}} (sub-protocol {@code wdc})</li>
- *   <li>Send: {@code {"secret": "...", "event": []}} -- no requestId</li>
+ *   <li>Handshake: {@code {"protocol": 1, "clientKey": "..."}} -> {@code {"protocol": 1, "serverKey": "..."}}; both
+ *       ends derive the connection's key (ECDH P-256, HKDF-SHA256)</li>
+ *   <li>Send: {@code {"event": []}} (with the ciphered storage) -- no requestId</li>
  *   <li>Server responds asynchronously with the initial scopes push</li>
  *   <li>Navigate: {@code {"requestId": N, "event": ["7b32e816a191:0:-1"], "7b32e816a191:0": {"p.path": uri}}}</li>
  *   <li>Submit: {@code {"requestId": N, "event": ["instanceId:eventCode"], "instanceId": {formData}}}</li>
@@ -71,6 +74,9 @@ public final class HostClient implements AutoCloseable {
     private static final String SESSION_INIT_PATH = "/api/session/init";
     private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(10);
 
+    /** The version of the remote protocol this client speaks. */
+    public static final int PROTOCOL = 1;
+
     private static final Gson GSON = new GsonBuilder()
             .setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
             .create();
@@ -78,17 +84,17 @@ public final class HostClient implements AutoCloseable {
     private static final TypeToken<Map<String, Object>> MAP_TYPE = new TypeToken<>() {};
 
     private final String serverUrl;
-    private final SecretContext secret;
+    private final ChannelKey channelKey;
     private final HostClientSession session;
     private final ScopeMap scopes;
     private final ClientStorage sessionStorage;
     private final ClientStorage persistentStorage;
     private final AtomicLong requestCounter = new AtomicLong(0);
 
-    private HostClient(String serverUrl, SecretContext secret, HostClientSession session,
+    private HostClient(String serverUrl, ChannelKey channelKey, HostClientSession session,
                        ScopeMap scopes, ClientStorage sessionStorage, ClientStorage persistentStorage) {
         this.serverUrl = serverUrl;
-        this.secret = secret;
+        this.channelKey = channelKey;
         this.session = session;
         this.scopes = scopes;
         this.sessionStorage = sessionStorage;
@@ -103,8 +109,8 @@ public final class HostClient implements AutoCloseable {
      * This method:
      * <ol>
      *   <li>Calls {@code GET /api/session/init}</li>
-     *   <li>Derives session keys via {@link ClientCrypto}</li>
      *   <li>Opens a WebSocket to {@code ws://host/dispatcher/{appId}}</li>
+     *   <li>Agrees on the connection's key with the host (the handshake of protocol {@value #PROTOCOL})</li>
      *   <li>Sends the init message, triggering the async scope push</li>
      * </ol>
      *
@@ -141,13 +147,9 @@ public final class HostClient implements AutoCloseable {
         }
         Map<String, Object> initData = GSON.fromJson(resp.body(), MAP_TYPE.getType());
         String appId = (String) initData.get("appId");
-        String appSKey = (String) initData.get("appSKey");
         LOG.debug("Session init: appId={}", appId);
 
-        // 2. Build secret (RSA + PBKDF2)
-        SecretContext secret = ClientCrypto.generateSecret(appSKey);
-
-        // 3. Open WebSocket
+        // 2. Open WebSocket
         var sharedScopes = new ScopeMap();
         var wsBase = serverUrl.replaceFirst("^http", "ws");
         var wsUrl = wsBase + "/dispatcher/" + appId;
@@ -155,14 +157,17 @@ public final class HostClient implements AutoCloseable {
         var clientSession = new HostClientSession(sharedScopes);
         clientSession.connect(wsUrl);
 
+        // 3. Handshake: the connection's key
+        var channelKey = handshake(clientSession, appId);
+        clientSession.startPinging();
+
         // 4. Send init message (no requestId -- triggers the async scope push)
         Map<String, Object> initMsg = new HashMap<>();
-        initMsg.put("secret", secret.signature());
         initMsg.put("event", List.of());
 
         // Bootstrap storage: send persistent + secure entries ciphered
         if (persistentStorage != null) {
-            var storageMap = buildBootstrapStorage(persistentStorage, secret);
+            var storageMap = buildBootstrapStorage(persistentStorage, channelKey);
             if (!storageMap.isEmpty()) {
                 initMsg.put("storage", storageMap);
             }
@@ -171,7 +176,33 @@ public final class HostClient implements AutoCloseable {
         clientSession.send(GSON.toJson(initMsg));
 
         LOG.info("Connected and init message sent");
-        return new HostClient(serverUrl, secret, clientSession, sharedScopes, new InMemoryClientStorage(), persistentStorage);
+        return new HostClient(serverUrl, channelKey, clientSession, sharedScopes, new InMemoryClientStorage(), persistentStorage);
+    }
+
+    /**
+     * The handshake of protocol {@value #PROTOCOL}: sends this client's ephemeral P-256 key and derives the
+     * connection's key from the host's.
+     *
+     * @throws IOException if the host does not speak this version, or does not answer in time
+     */
+    private static ChannelKey handshake(HostClientSession session, String appId)
+            throws IOException, InterruptedException {
+        var own = ChannelCrypto.newKeyPair();
+        Map<String, Object> hello = new HashMap<>();
+        hello.put("protocol", PROTOCOL);
+        hello.put("clientKey", ChannelCrypto.encodePublicKey(own.getPublic()));
+
+        Map<String, Object> answer;
+        try {
+            answer = session.handshake(GSON.toJson(hello), DEFAULT_TIMEOUT);
+        } catch (TimeoutException | IllegalStateException failed) {
+            throw new IOException("The host did not answer the handshake", failed);
+        }
+        if (answer.get("error") != null || !(answer.get("serverKey") instanceof String serverKey)) {
+            throw new IOException("The host does not speak protocol " + PROTOCOL + ": " + answer);
+        }
+        var key = ChannelCrypto.deriveKey(own.getPrivate(), ChannelCrypto.decodePublicKey(serverKey), appId);
+        return new ChannelKey(key);
     }
 
     // :: Navigation
@@ -283,6 +314,31 @@ public final class HostClient implements AutoCloseable {
                     "No response for requestId=" + requestId + " from Host within " + timeout.toMillis() + "ms");
         }
         return response;
+    }
+
+    /**
+     * Blocks until {@code condition} holds over the scopes received, reading the messages as they arrive (default
+     * 10-second timeout). For work the host finishes after answering the request that started it, such as a sign-in
+     * that answers at once and navigates when the credentials are checked.
+     *
+     * @throws TimeoutException if the condition does not hold within the timeout
+     */
+    public void awaitUntil(BooleanSupplier condition) throws InterruptedException, TimeoutException {
+        awaitUntil(condition, DEFAULT_TIMEOUT);
+    }
+
+    /** {@link #awaitUntil(BooleanSupplier)} with a timeout of its own. */
+    public void awaitUntil(BooleanSupplier condition, Duration timeout) throws InterruptedException, TimeoutException {
+        long deadline = System.currentTimeMillis() + timeout.toMillis();
+        while (!condition.getAsBoolean()) {
+            long remaining = deadline - System.currentTimeMillis();
+            if (remaining <= 0 || session.receive(Duration.ofMillis(remaining)) == null) {
+                if (condition.getAsBoolean()) {
+                    return;
+                }
+                throw new TimeoutException("Condition not met within " + timeout.toMillis() + "ms");
+            }
+        }
     }
 
     // :: Scope access
@@ -410,10 +466,10 @@ public final class HostClient implements AutoCloseable {
     }
 
     /**
-     * Returns the {@link SecretContext} for this session (e.g., for deciphering access tokens).
+     * The key of the current connection, to cipher sensitive values (e.g., {@code p.password}) for the host.
      */
-    public SecretContext secretContext() {
-        return secret;
+    public ChannelKey channelKey() {
+        return channelKey;
     }
 
     /**
@@ -483,12 +539,12 @@ public final class HostClient implements AutoCloseable {
             if (!(ciphered instanceof String s) || s.isEmpty()) {
                 storage.remove(key);
             } else {
-                storage.set(key, secret.decipher(s));
+                storage.set(key, channelKey.decipher(s));
             }
         }
     }
 
-    private static Map<String, Object> buildBootstrapStorage(ClientStorage storage, SecretContext secret) {
+    private static Map<String, Object> buildBootstrapStorage(ClientStorage storage, ChannelKey secret) {
         var result = new LinkedHashMap<String, Object>();
 
         var persistentEntries = storage.all();

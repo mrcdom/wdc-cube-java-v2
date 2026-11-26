@@ -32,6 +32,10 @@
 </head>
 <body>
     <div id="loading">Carregando...</div>
+    <!-- Crypto fallback for non-secure contexts (plain HTTP outside localhost): P-256 ECDH, HKDF-SHA256 and
+         AES-256-GCM via @noble, used by the bridge when crypto.subtle does not exist.
+         Regenerate: npm install && npm run build:crypto-compat (source: src/main/js/crypto-compat.mjs) -->
+    <script src="js/crypto-compat.js"></script>
     <script src="js/app.js"></script>
     <script>main();</script>
 </body>

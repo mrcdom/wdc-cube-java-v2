@@ -5,19 +5,32 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'client_storage.dart';
 import 'constants.dart';
+import 'data_security.dart';
 import 'types.dart';
 import 'scope_coordinator.dart';
 
 /// Manages the WebSocket connection and request queue.
 ///
-/// Responsible for: flushing pending requests, keepalive pings,
-/// processing server responses, and tracking the "submitting" state.
+/// Responsible for: the handshake that opens every connection (protocol
+/// version 1), flushing pending requests, keepalive pings, processing server
+/// responses, and tracking the "submitting" state.
+///
+/// On each connection the first and only message is the handshake
+/// `{"protocol": 1, "clientKey": ...}`; nothing else (no request, no ping)
+/// goes out before the host answers with its `serverKey`. Requests made
+/// meanwhile wait and go out, in order, after the bootstrap message.
 class FlushRequestContext {
   final ScopeCoordinator app;
 
   WebSocketChannel? _channel;
   bool _isOpen = false;
   bool _isConnecting = false;
+
+  /// Whether the connection's key is agreed (the host answered the handshake).
+  bool _isReady = false;
+
+  /// Whether the bootstrap message of the connection is still to go out.
+  bool _bootstrapPending = false;
   final Map<int, FormMapType> _requestMap = {};
   int _lastSentRequestId = -1;
   int _requestCount = 0;
@@ -27,8 +40,6 @@ class FlushRequestContext {
   Timer? _submittingTimer;
   Timer? _submittingTimeout;
   final Set<int> _userRequestIds = {};
-  String? _pendingSecret;
-  Map<String, dynamic>? _pendingBootstrapStorage;
 
   FlushRequestContext(this.app) {
     // Restore request counter from platform storage (survives F5)
@@ -65,7 +76,7 @@ class FlushRequestContext {
   }
 
   void flush() {
-    if (!_isOpen) return;
+    if (!_isReady) return;
 
     final requestObj = <String, dynamic>{'event': <String>[]};
     var hasData = false;
@@ -84,7 +95,12 @@ class FlushRequestContext {
             final formData =
                 requestObj.putIfAbsent(key, () => <String, dynamic>{})
                     as Map<String, dynamic>;
-            formData.addAll(Map<String, dynamic>.from(value));
+            for (final field in value.entries) {
+              final fieldValue = field.value;
+              formData[field.key as String] = fieldValue is SecretValue
+                  ? app.dataSecurity.b64Cipher(fieldValue.text)
+                  : fieldValue;
+            }
           } else {
             requestObj[key] = value;
           }
@@ -95,14 +111,14 @@ class FlushRequestContext {
       hasData = true;
     }
 
-    if (hasData || _pendingSecret != null || _pendingBootstrapStorage != null) {
-      if (_pendingSecret != null) {
-        requestObj['secret'] = _pendingSecret;
-        _pendingSecret = null;
-      }
-      if (_pendingBootstrapStorage != null) {
-        requestObj['storage'] = _pendingBootstrapStorage;
-        _pendingBootstrapStorage = null;
+    if (hasData || _bootstrapPending) {
+      if (_bootstrapPending) {
+        _bootstrapPending = false;
+        // Every stored value, ciphered with this connection's key.
+        final storage = _buildBootstrapStorage();
+        if (storage.isNotEmpty) {
+          requestObj['storage'] = storage;
+        }
       }
       _channel?.sink.add(jsonEncode(requestObj));
       if (_userRequestIds.isNotEmpty) {
@@ -112,46 +128,57 @@ class FlushRequestContext {
   }
 
   void open(String url) {
-    if (_isOpen || _isConnecting) return;
+    if (_isOpen || _isConnecting || app.isOutdated) return;
     _isConnecting = true;
+    _isReady = false;
+    app.dataSecurity.reset();
 
-    final channel = WebSocketChannel.connect(
-      Uri.parse(url),
-      protocols: ['wdc'],
-    );
+    final channel = app.connectChannel(Uri.parse(url), const ['wdc']);
     _channel = channel;
 
     channel.ready
         .then((_) {
+          if (!identical(_channel, channel)) return;
           _isConnecting = false;
           _isOpen = true;
-          app.isConnected = true;
-          _pendingSecret = app.dataSecurity.getSignature();
-          // Snapshot all syncable storage entries for the bootstrap payload;
-          // will be included in the first flush() after open.
-          _pendingBootstrapStorage = _buildBootstrapStorage();
-          if (_pendingBootstrapStorage!.isEmpty)
-            _pendingBootstrapStorage = null;
-          _initKeepAliveChecks();
-          flush();
+          // The handshake: the first and only message until the host answers.
+          channel.sink.add(
+            jsonEncode({
+              'protocol': DataSecurity.protocol,
+              'clientKey': app.dataSecurity.beginHandshake(),
+            }),
+          );
         })
         .catchError((Object error) {
+          if (!identical(_channel, channel)) return;
           _isConnecting = false;
           _handleDisconnect(error);
         });
 
     channel.stream.listen(
       (dynamic message) {
-        _onMessage(message as String);
+        if (!identical(_channel, channel)) return;
+        if (_isReady) {
+          _onMessage(message as String);
+        } else {
+          _onHandshakeAnswer(channel, message as String);
+        }
       },
       onError: (Object error) {
+        if (!identical(_channel, channel)) return;
         _handleDisconnect(error);
       },
       onDone: () {
+        if (!identical(_channel, channel)) return;
         final closeCode = channel.closeCode;
-        if (closeCode == 4001) {
+        if (closeCode == closeReloadRequired) {
           // Server says session invalid — notify app to reload
+          _dropChannel();
           app.onSessionInvalid();
+          return;
+        }
+        if (closeCode == closeUnsupportedProtocol) {
+          _refusedProtocol();
           return;
         }
         _handleDisconnect('WebSocket closed (code: $closeCode)');
@@ -159,9 +186,67 @@ class FlushRequestContext {
     );
   }
 
+  /// The host's answer to the handshake: its key, or the refusal of this
+  /// client's protocol version.
+  void _onHandshakeAnswer(WebSocketChannel channel, String rawMessage) {
+    final answer = jsonDecode(rawMessage) as Map<String, dynamic>;
+    if (answer['error'] == 'unsupported-protocol') {
+      _refusedProtocol();
+      return;
+    }
+    final serverKey = answer['serverKey'];
+    if (answer['protocol'] != DataSecurity.protocol || serverKey is! String) {
+      _refusedProtocol();
+      return;
+    }
+    try {
+      app.dataSecurity.completeHandshake(serverKey, app.id);
+    } on ArgumentError catch (caught) {
+      _handleDisconnect(caught);
+      channel.sink.close();
+      return;
+    }
+
+    _isReady = true;
+    _bootstrapPending = true;
+    app.isConnected = true;
+    if (app.reconnectController.count > 0) {
+      app.reconnectController.reset();
+    }
+    _initKeepAliveChecks();
+    flush();
+  }
+
+  /// The host does not speak this client's protocol version: the app is out
+  /// of date and does not reconnect.
+  void _refusedProtocol() {
+    final channel = _channel;
+    _dropChannel();
+    channel?.sink.close();
+    app.markOutdated();
+  }
+
+  /// Forgets the channel without reconnecting.
+  void _dropChannel() {
+    _isOpen = false;
+    _isConnecting = false;
+    _isReady = false;
+    _bootstrapPending = false;
+    _channel = null;
+    app.isConnected = false;
+    app.dataSecurity.reset();
+    _stopKeepAliveChecks();
+    _cancelPendingKeepAlive();
+    _userRequestIds.clear();
+    _stopSubmitting();
+  }
+
   void close() {
     _isOpen = false;
     _isConnecting = false;
+    _isReady = false;
+    _bootstrapPending = false;
+    app.dataSecurity.reset();
     _stopKeepAliveChecks();
     _cancelPendingKeepAlive();
     _stopSubmitting();
@@ -172,9 +257,14 @@ class FlushRequestContext {
   void _handleDisconnect(Object? cause) {
     if (_channel == null) return; // Intentional close — don't reconnect
     _isOpen = false;
+    _isConnecting = false;
+    _isReady = false;
+    _bootstrapPending = false;
     _channel = null;
+    app.dataSecurity.reset();
     app.isConnected = false;
     _stopKeepAliveChecks();
+    _cancelPendingKeepAlive();
     // Clean up sent-but-unacknowledged requests (won't be retried)
     for (var i = _lastProcessedId + 1; i <= _lastSentRequestId; i++) {
       _requestMap.remove(i);
@@ -243,10 +333,10 @@ class FlushRequestContext {
 
   void _keepAliveNow() {
     _cancelPendingKeepAlive();
-    if (_isOpen) {
+    if (_isReady) {
       _pendingKeepAliveTimer = Timer(const Duration(milliseconds: 80), () {
         _pendingKeepAliveTimer = null;
-        if (_isOpen) {
+        if (_isReady) {
           _channel?.sink.add(jsonEncode({'ping': true}));
         }
       });
@@ -301,8 +391,8 @@ class FlushRequestContext {
 
   // :: Storage helpers
 
-  /// Builds the bootstrap `storage` map sent on WebSocket open.
-  /// All values are ciphered. Null values are never included (nothing to remove
+  /// Builds the bootstrap `storage` map sent after the handshake.
+  /// All values are ciphered with the connection key. Null values are never included (nothing to remove
   /// on a fresh connection).
   Map<String, dynamic> _buildBootstrapStorage() {
     final result = <String, dynamic>{};

@@ -88,6 +88,13 @@
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
+		<!-- The remote host, for the conformance fixtures of the remote protocol -->
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>remote.host</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>io.javalin</groupId>
 			<artifactId>javalin</artifactId>

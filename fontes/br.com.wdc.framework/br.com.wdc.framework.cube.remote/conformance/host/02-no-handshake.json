@@ -1,0 +1,10 @@
+{
+  "description": "A connection whose first message is not a handshake is refused: the host names the versions it speaks, reads nothing in the message, and closes with 4002.",
+  "steps": [
+    {
+      "send": { "event": [] },
+      "expect": { "error": "unsupported-protocol", "protocols": [1] }
+    },
+    { "expectClosed": 4002 }
+  ]
+}

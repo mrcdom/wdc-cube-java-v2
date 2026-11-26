@@ -17,7 +17,8 @@
  *    (cache-backed). Writes persist asynchronously (fire-and-forget).
  *
  * ### Fallback
- * If IndexedDB is unavailable (e.g. some private-browsing modes), the storage
+ * If IndexedDB or Web Crypto is unavailable (some private-browsing modes; a
+ * page served over plain HTTP, which is not a secure context), the storage
  * works in-memory only — data is not persisted across reloads.
  */
 
@@ -144,6 +145,9 @@ function sharedKey(): Promise<CryptoKey> {
 /** Opens (or creates) the `_sec` IndexedDB and returns the stored AES key,
  *  generating and persisting a new one if none exists yet. */
 function openOrCreateKey(): Promise<CryptoKey> {
+  if (typeof crypto === "undefined" || !crypto.subtle) {
+    return Promise.reject(new Error("Web Crypto is not available (not a secure context)"))
+  }
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(IDB_NAME, 1)
 

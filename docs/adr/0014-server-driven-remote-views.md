@@ -1,7 +1,7 @@
 # 0014. Server-driven remote views over the bridge/skeleton protocol
 
 - **Date:** 2026-04-28 (remote React view); 2026-05-26 (generic skeleton and scope serializer); 2026-07-05 (protocol specification)
-- **Status:** Accepted
+- **Status:** Accepted; its paragraph on the security of the channel is superseded by [0023](0023-remote-channel-key-per-connection.md)
 
 ## Context
 

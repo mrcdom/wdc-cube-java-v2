@@ -1,7 +1,6 @@
 package br.com.wdc.framework.cube.remote;
 
 import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
@@ -9,7 +8,6 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -20,7 +18,6 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import com.google.gson.stream.JsonWriter;
 
-import br.com.wdc.framework.commons.codec.Base62;
 import br.com.wdc.framework.commons.gson.JsonExtensibleObjectOutput;
 import br.com.wdc.framework.commons.lang.CoerceUtils;
 import br.com.wdc.framework.commons.log.Log;
@@ -110,7 +107,7 @@ public class RemoteApplicationSupport {
      */
     public void postConstruct(RemoteApplication owner) {
         this.expireMoment = System.currentTimeMillis() + timeSpan.toMillis();
-        this.dataSecurity = new RemoteDataSecurity(security);
+        this.dataSecurity = new RemoteDataSecurity();
         this.clientStorage.init(this.dataSecurity);
         this.browserPresenter = new RemoteBrowserPresenter(owner);
         this.putView(this.browserPresenter.getView());
@@ -258,9 +255,7 @@ public class RemoteApplicationSupport {
             intent.setPlace(lastPlace != null ? lastPlace : cubeApp.getRootPlace());
             cubeApp.publishParameters(intent);
 
-            var b62 = Base62.BEAN;
-            var signature = b62.encodeToString(security.signAsHash(intent.toString().getBytes(StandardCharsets.UTF_8)));
-            intent.setParameter("sign", signature);
+            intent.setParameter("sign", security.sign(intent.toString()));
 
             cubeApp.setFragment(intent.toString());
             this.historyDirty = false;
@@ -276,13 +271,8 @@ public class RemoteApplicationSupport {
             intent.setPlace(host.getCubeApp().getRootPlace());
         }
 
-        var b62 = Base62.BEAN;
-
-        var actualSignature = String.valueOf(intent.removeParameter("sign"));
-        var expectedSignature = b62
-                .encodeToString(security.signAsHash(intent.toString().getBytes(StandardCharsets.UTF_8)));
-
-        if (!Objects.equals(actualSignature, expectedSignature)) {
+        var actualSignature = intent.removeParameter("sign");
+        if (!security.verify(intent.toString(), actualSignature == null ? null : String.valueOf(actualSignature))) {
             this.updateHistory();
             var cubeApp = host.getCubeApp();
             intent = cubeApp.newIntent();
@@ -316,10 +306,6 @@ public class RemoteApplicationSupport {
         var isPing = CoerceUtils.asBoolean(request.get("ping"), false).booleanValue();
         if (isPing) {
             this.extendLife();
-            var signature = CoerceUtils.asString(request.get("secret"));
-            if (StringUtils.isNotBlank(signature)) {
-                this.dataSecurity.updateSecret(signature);
-            }
             this.sendPingResponseIfNeeded();
             return;
         }
@@ -456,7 +442,6 @@ public class RemoteApplicationSupport {
     // :: Dispatch Phase
 
     private void runDispatchPhase(Map<String, Object> request) throws Exception {
-        this.updateSecret(request);
         this.syncScopes(request);
 
         @SuppressWarnings("unchecked")
@@ -517,13 +502,6 @@ public class RemoteApplicationSupport {
             }
         } finally {
             this.lock.unlock();
-        }
-    }
-
-    private void updateSecret(Map<String, Object> request) {
-        var signature = CoerceUtils.asString(request.get("secret"));
-        if (StringUtils.isNotBlank(signature)) {
-            this.dataSecurity.updateSecret(signature);
         }
     }
 

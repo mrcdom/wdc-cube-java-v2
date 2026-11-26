@@ -16,8 +16,8 @@ Manages the lifecycle of remote sessions (security handshake, event reception, s
 | `RemoteViewImpl` | The remote view of a scope (made by `forScope`, by `CLASS_ID`): installs itself as the scope's updater; `update()` marks it dirty; `syncClientToServer()` and `submit()` go to the scope's skeleton; `writeScope()` serializes the scope and releases the views it referred to the last time and no longer does (a view is released once no view refers to it, with the views it referred to in turn); `release()` takes the updater back and puts the id in `releasedViews` for the client |
 | `RemoteBrowserPresenter` | Presenter of the client's root "browser" view (fixed vsid `7b32e816a191:0`): start (`-1`) and history (`-2`) navigation, alerts (`1`), keep-alive (`2`); its `BrowserScope` holds the root presenter's scope in `content` |
 | `ScopeSerializer` | Serializes a whole scope to JSON via reflection (sent for each dirty view); a scope inside it goes out as `"<field>ViewId"`, a list of scopes as `"<field>ViewIds"` |
-| `RemoteAppSecurity` | Handshake RSA key pair (textbook RSA) and SHA256withRSA signing (`signAsHash`) of the `appId` and of the navigation address |
-| `RemoteDataSecurity` | Per-session AES-GCM, key derived via PBKDF2 (250,000 iterations) for sensitive data |
+| `RemoteAppSecurity` | HMAC-SHA256 signing (`[remote] signingKey`) of the `appId` (`newSessionId`, `isSessionId`) and of the navigation address (`sign`, `verify`, constant-time) |
+| `RemoteDataSecurity` | The key the current connection agreed on (ECDH P-256 + HKDF, in `DispatcherController`'s handshake), and the AES-GCM ciphering of sensitive values with an IV per value |
 | `RemoteHostModule` | Configures the module in the container (wiring) |
 | `CapacityExceededException` | Thrown when the maximum number of concurrent sessions is reached |
 
@@ -26,8 +26,8 @@ Manages the lifecycle of remote sessions (security handshake, event reception, s
 | Class | Responsibility |
 |-------|----------------|
 | `DispatcherController` | WebSocket `ws://.../dispatcher/{appId}` — validates the `appId`, receives shell events, runs dispatch, returns the scope delta |
-| `SessionInitController` | `GET /api/session/init` (and `/{ctx}/api/session/init`) — returns `{appId, appSKey}` to clients without page cookies; HTTP 503 when the server is at capacity |
-| `IndexHtmlController` | `before` handler on `/{ctx}/index.html` — plants the `app_id` and `app_skey` session cookies |
+| `SessionInitController` | `GET /api/session/init` (and `/{ctx}/api/session/init`) — returns `{appId}` to clients without page cookies; HTTP 503 when the server is at capacity |
+| `IndexHtmlController` | `before` handler on `/{ctx}/index.html` — plants the `app_id` session cookie |
 
 ## Dependencies
 

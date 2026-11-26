@@ -73,7 +73,7 @@ The session limits come from `application.toml` (`RemoteHostBootstrap`): `server
 
 ## Cryptography
 
-The handshake work runs on the same virtual threads as the request that needs it: the RSA decryption and the PBKDF2 derivation (250,000 iterations, `RemoteDataSecurity.updateSecret`) when a session receives its `secret`, and the AES-GCM operations on the storage values and access tokens. There is no separate executor for them.
+The handshake work runs on the same virtual thread as the message that carries it: an ECDH P-256 agreement and an HKDF derivation per connection (`DispatcherController`), and the AES-GCM operations on the storage values and sensitive parameters. There is no separate executor for them.
 
 ## Monitoring
 

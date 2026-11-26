@@ -16,9 +16,9 @@ import com.codename1.io.Preferences;
  * </ul>
  *
  * <p>
- * Values are kept in <b>plaintext at rest</b> and enciphered only on the wire: {@link #bootstrap}
- * enciphers everything for the 1st WS message; received deltas are deciphered and stored via {@link #apply}.
- * Each session uses a new AES key, which is why the ciphertext cannot be stored.
+ * Values are kept in <b>plaintext at rest</b> and ciphered only on the wire: {@link #bootstrap}
+ * ciphers everything for the bootstrap message (the first after the handshake); received deltas are deciphered and
+ * stored via {@link #apply}. Each connection agrees on a new key, which is why the ciphertext cannot be stored.
  * </p>
  */
 public final class Cn1ClientStorage {
@@ -59,7 +59,7 @@ public final class Cn1ClientStorage {
         persist(scopeName);
     }
 
-    /** Bootstrap payload: each non-empty scope, with the values enciphered by the session. */
+    /** Bootstrap payload: each non-empty scope, with each value ciphered with the connection key (own IV). */
     public Map<String, Object> bootstrap(Cn1Crypto crypto) {
         Map<String, Object> out = new HashMap<>();
         putScope(out, SESSION, sessionMap, crypto);

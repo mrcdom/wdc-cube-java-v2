@@ -1,17 +1,18 @@
 import React from "react"
-import { ScopeCoordinator } from "./ScopeCoordinator"
+import { type BridgeOptions, ScopeCoordinator } from "./ScopeCoordinator"
 import { BROWSER_VSID } from "./constants"
 import type { IViewFactory, ViewComponent } from "./types"
 
-export { BROWSER_VID } from "./constants"
+export { BROWSER_VID, OUTDATED_MESSAGE } from "./constants"
+export type { BridgeOptions } from "./ScopeCoordinator"
 export type { BrowserScope, ViewComponent, ViewProps } from "./types"
 export { ViewScope } from "./ViewScope"
 
 let privateApp: ScopeCoordinator
 
 const publicApp = new (class {
-  configure(syncNamespace: string) {
-    privateApp = new ScopeCoordinator(syncNamespace)
+  configure(syncNamespace: string, options?: BridgeOptions) {
+    privateApp = new ScopeCoordinator(syncNamespace, options)
   }
 
   getBaseUrl() {
@@ -35,6 +36,7 @@ const publicApp = new (class {
     privateApp.submitSilent(vsid, eventId)
   }
 
+  /** Ciphers a sensitive value with the connection key; waits for the connection's handshake if needed. */
   async cipher(value: string) {
     return privateApp.dataSecurity.b64Cipher(value)
   }

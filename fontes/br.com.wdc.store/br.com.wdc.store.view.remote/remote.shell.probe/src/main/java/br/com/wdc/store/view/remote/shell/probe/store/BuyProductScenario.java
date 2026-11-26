@@ -79,6 +79,13 @@ public class BuyProductScenario {
         var login = root.pageAs(LoginPresenterClient.class);
         login.onEnter("admin", "admin");
 
+        // The sign-in answers at once and navigates once the credentials are checked: wait for the Home
+        client.awaitUntil(() -> {
+            var pageId = root.contentViewId();
+            var page = pageId != null && pageId.startsWith(HomePresenterClient.CLASS_ID) ? client.scope(pageId) : null;
+            return page != null && page.getString("productsPanelViewId") != null;
+        });
+
         // -- [2] Open product 2GB Flash Drive --
         LOG.info("[2] Open 2GB Flash Drive (id={})", FLASH_DRIVE_2GB_ID);
 
@@ -143,6 +150,11 @@ public class BuyProductScenario {
         LOG.info("[9] Add Thread Seal Tape to the cart");
         product.onAddToCart(1);
 
+        // The new row's own scope can come in the message after the cart's
+        client.awaitUntil(() -> {
+            var rows = home.contentViewAs(CartPresenterClient.class).rows();
+            return rows.size() == 2 && client.scope(rows.get(1).instanceId()) != null;
+        });
         cart = home.contentViewAs(CartPresenterClient.class);
         ScenarioAssert.assertEquals("Two items in the cart", 2, cart.itemCount());
         ScenarioAssert.assertEquals("Second item with quantity 1", 1L, cart.rows().get(1).quantity());

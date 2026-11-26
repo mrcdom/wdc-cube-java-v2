@@ -2,8 +2,9 @@ import React from "react"
 import * as LangUtils from "../utils/LangUtils"
 import CookieConstructor from "universal-cookie"
 
-import type { FormMapType, IViewFactory } from "./types"
-import { NOOP_PROMISE_VOID, CAUTHED, BROWSER_VSID } from "./constants"
+import type { BrowserScope, FormMapType, IViewFactory } from "./types"
+import { CAUTHED, BROWSER_VSID, ON_ALERT_OK, OUTDATED_MESSAGE } from "./constants"
+import type { ChannelCrypto } from "./ChannelCrypto"
 import { ViewScope } from "./ViewScope"
 import { DataSecurity } from "./DataSecurity"
 import { FlushRequestContext } from "./FlushRequestContext"
@@ -13,6 +14,13 @@ import { ClientStorage, LocalStorageClientStorage, SessionStorageClientStorage }
 import { EncryptedLocalStorage } from "./EncryptedLocalStorage"
 
 const Cookie = new CookieConstructor()
+
+export type BridgeOptions = {
+  /** The alert shown when the host refuses this bridge's protocol version; its OK reloads the page. */
+  outdatedMessage?: string
+  /** The channel cryptography; by default Web Crypto when the context has it, otherwise a pure JS one. */
+  channelCrypto?: ChannelCrypto
+}
 
 export class ScopeCoordinator {
   readonly id: string
@@ -34,14 +42,17 @@ export class ScopeCoordinator {
   navigatingFromPopState = false
   firstUriResponse = true
 
-  readonly dataSecurity = new DataSecurity()
+  readonly dataSecurity: DataSecurity
   readonly contextExchanger: FlushRequestContext
   readonly reconnectController: ReconnectController
   readonly viewGarbageCollector: ViewGarbageCollector
+  private readonly outdatedMessage: string
+  private readonly storagesReady: Promise<void>
 
-  readyToStart = NOOP_PROMISE_VOID
+  constructor(syncNamespace: string, options: BridgeOptions = {}) {
+    this.dataSecurity = new DataSecurity(options.channelCrypto)
+    this.outdatedMessage = options.outdatedMessage ?? OUTDATED_MESSAGE
 
-  constructor(syncNamespace: string) {
     this.viewMap.set(BROWSER_VSID, new ViewScope(BROWSER_VSID))
 
     // syncNamespace (e.g. '~rr:') qualifies keys for WebSocket sync and isolates
@@ -69,23 +80,10 @@ export class ScopeCoordinator {
 
     this.id = appId
 
-    const appSKey = Cookie.get("app_skey")
-    if (appSKey) {
-      this.dataSecurity.updateSecurityKey(appSKey)
-      Cookie.remove("app_skey", { path: "/" })
-
-      this.readyToStart = async () => {
-        try {
-          await Promise.all([encryptedStorage.initialize(), encryptedSession.initialize()])
-          await this.dataSecurity.updateSecretWithRandomPassword()
-
-          Cookie.set("app_signature", this.dataSecurity.getSignature(), { path: "/" })
-          this.readyToStart = NOOP_PROMISE_VOID
-        } catch (error) {
-          CAUTHED(error)
-        }
-      }
-    }
+    this.storagesReady = Promise.all([encryptedStorage.initialize(), encryptedSession.initialize()]).then(
+      () => undefined,
+      CAUTHED,
+    )
 
     const contextPath = location.pathname.split("/")[1]
 
@@ -158,8 +156,8 @@ export class ScopeCoordinator {
 
   onStart() {
     const action = async () => {
-      // Wait construction async initialization
-      await this.readyToStart()
+      // The secure storages are read before the bootstrap ciphers them
+      await this.storagesReady
 
       this.assureContextExchangerIsConnected()
 
@@ -218,6 +216,12 @@ export class ScopeCoordinator {
   }
 
   submit(vsid: string, eventId: number) {
+    if (this.contextExchanger.outdated) {
+      if (vsid === BROWSER_VSID && eventId === ON_ALERT_OK) {
+        globalThis.location.reload()
+      }
+      return
+    }
     const oldFormMap = this.formMap
     this.formMap = {}
     const silent = vsid === BROWSER_VSID
@@ -225,6 +229,9 @@ export class ScopeCoordinator {
   }
 
   submitSilent(vsid: string, eventId: number) {
+    if (this.contextExchanger.outdated) {
+      return
+    }
     const oldFormMap = this.formMap
     this.formMap = {}
     this.contextExchanger.submit(oldFormMap, vsid, eventId, true)
@@ -243,13 +250,26 @@ export class ScopeCoordinator {
     this.contextExchanger.open(this.reconnectController.url)
   }
 
+  /** The host refused this bridge's protocol version: the browser view alerts that the page is out of date. */
+  showOutdated() {
+    const view = this.viewMap.get(BROWSER_VSID)
+    if (!view) {
+      return
+    }
+    const scope = view.getValues() as BrowserScope
+    scope.outdated = true
+    scope.error = undefined
+    scope.submitting = false
+    scope.alertId = -1
+    scope.alertArgs = [this.outdatedMessage]
+    view.forceUpdate()
+  }
+
   /**
-   * Builds the bootstrap `storage` map sent on WebSocket open.
-   * All values are ciphered. Returns `null` if the cipher key is not ready.
+   * Builds the bootstrap `storage` map, the first message after the handshake answer.
+   * All values are ciphered with the connection key.
    */
   async buildBootstrapStorage(): Promise<Record<string, unknown> | null> {
-    if (!this.dataSecurity.getSignature()) return null
-
     const result: Record<string, unknown> = {}
 
     const addScope = async (scopeName: string, storage: ClientStorage) => {
@@ -272,18 +292,21 @@ export class ScopeCoordinator {
 
   /**
    * Applies a storage delta received from the server.
-   * Values are deciphered; a `null`/empty value means removal.
+   * Values are deciphered; a `null`/empty value means removal. A value that does not
+   * authenticate is refused (the key keeps what it had).
    */
   async applyStorageDelta(delta: Record<string, unknown>): Promise<void> {
-    if (!this.dataSecurity.getSignature()) return
-
     const applyScope = async (scope: Record<string, string> | undefined, storage: ClientStorage) => {
       if (!scope) return
       for (const [key, ciphered] of Object.entries(scope)) {
         if (!ciphered) {
           storage.remove(key)
-        } else {
+          continue
+        }
+        try {
           storage.set(key, await this.dataSecurity.b64Decipher(ciphered))
+        } catch (error) {
+          CAUTHED(error)
         }
       }
     }

@@ -55,6 +55,12 @@ abstract class BaseViewState<T extends BaseView> extends State<T> {
     coordinator.setFormField(widget.vsid, fieldName, value);
   }
 
+  /// Sets a form field that travels ciphered with the connection key (e.g.
+  /// `p.password`).
+  void setSecretFormField(String fieldName, String value) {
+    coordinator.setSecretFormField(widget.vsid, fieldName, value);
+  }
+
   /// Creates the widget for a child view slot.
   Widget slot(String viewId) {
     return coordinator.createViewWidget(viewId);

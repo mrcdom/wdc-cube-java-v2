@@ -6,7 +6,7 @@ Desktop shell (macOS, Linux, Windows) for the **WDC Store** application, using t
 
 - **App name:** WDC Store
 - **Platforms:** macOS, Linux, Windows
-- **Protocol:** Bidirectional WebSocket with RSA + AES-GCM encryption
+- **Protocol:** Bidirectional WebSocket, protocol version 1: each connection agrees on its own key (ECDH P-256 + HKDF-SHA256) and ciphers sensitive values with AES-256-GCM
 - **Session persistence:** SharedPreferences for the persistent scope and, under a `sec.` key prefix, the secure scope (tokens, auto-login) — kept in SharedPreferences because the Keychain needs an entitlement the macOS sandbox build does not have
 - **Shared code:** Uses `flutter_commons` for protocol, views and widgets
 

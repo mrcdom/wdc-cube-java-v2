@@ -12,7 +12,7 @@ A **complete e-commerce system** built on the **Cube MVP** architecture, showing
 ✅ Shopping cart with adding, removing and total calculation  
 ✅ Complete purchase flow with receipt  
 ✅ Paginated purchase history  
-✅ Secure authentication (RSA + AES-GCM in the web version)  
+✅ Secure remote channel (a key per connection: ECDH + AES-GCM)  
 ✅ H2 database (embedded file or TCP server) or PostgreSQL, chosen in the TOML config  
 ✅ Virtual Threads (Java 21+) — ultra-light web server  
 ✅ Fat JAR (~41 MB) — trivial deployment
@@ -109,7 +109,7 @@ Java compiled to JavaScript via TeaVM, packaged as a native app with Tauri 2. Sa
 - **Solid patterns** — Repository, Presenter, Scope
 - **Modern technology** — Java 25, Virtual Threads, React 19, Vaadin 25, TypeScript
 - **Clean code** — ~3.5s full build, zero warnings
-- **Real security** — RSA + PBKDF2 + AES-GCM (not just for show)
+- **Real security** — ECDH P-256 + HKDF + AES-GCM per connection, HMAC-signed sessions and addresses (not just for show)
 
 ---
 

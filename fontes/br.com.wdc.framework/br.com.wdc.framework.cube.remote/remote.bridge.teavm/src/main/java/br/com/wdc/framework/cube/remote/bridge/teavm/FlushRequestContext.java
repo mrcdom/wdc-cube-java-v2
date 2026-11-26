@@ -15,13 +15,37 @@ import br.com.wdc.framework.cube.remote.bridge.teavm.interop.JsIntConsumer;
 import br.com.wdc.framework.cube.remote.bridge.teavm.interop.JsRunnable;
 import br.com.wdc.framework.cube.remote.bridge.teavm.interop.JsStringConsumer;
 import br.com.wdc.framework.cube.remote.bridge.teavm.interop.Timers;
+import br.com.wdc.framework.cube.remote.bridge.teavm.interop.WebCrypto;
 
 /**
  * Manages the WebSocket connection, request queue, keepalive and submitting state.
+ * <p>
+ * Every connection, the first one and each reconnection, starts with the handshake of protocol version
+ * {@value Handshake#PROTOCOL} (docs/bridge-skeleton-protocol.md §6): the first and only message is the client's
+ * ephemeral P-256 key; once the host answers with its own, both derive the connection key ({@link DataSecurity}), and
+ * only then go out the bootstrap message (with the client storage ciphered with that key), the requests that waited,
+ * and the keep-alive pings. A host that refuses the version leaves the page out of date: no reconnection follows.
  */
 public class FlushRequestContext {
 
     private static final int KEEP_ALIVE_INTERVAL = 15_000;
+
+    private static final int CLOSE_RELOAD_REQUIRED = 4001;
+    private static final int CLOSE_UNSUPPORTED_PROTOCOL = 4002;
+
+    /** Where the current connection is (docs/bridge-skeleton-protocol.md §7.3). */
+    private enum Phase {
+        /** No connection. */
+        CLOSED,
+        /** The client's key went out (or is being made); waiting for the host's. */
+        HANDSHAKE,
+        /** The host answered: deriving the connection key and ciphering the bootstrap storage. */
+        KEYING,
+        /** The bootstrap message went out; requests flow. */
+        CONNECTED,
+        /** The host refused the protocol version: the page is out of date, and it does not reconnect. */
+        OUTDATED
+    }
 
     private final ScopeCoordinator app;
 
@@ -36,7 +60,10 @@ public class FlushRequestContext {
     private int pendingKeepAlive = 0;
     private int submittingTimer = 0;
     private int submittingTimeout = 0;
-    private String pendingSecret;
+    private Phase phase = Phase.CLOSED;
+    private JSObject keyPair;
+    private final List<String> heldMessages = new ArrayList<>();
+    private boolean bootstrapPending;
     Map<String, Object> pendingStorage;
 
     public FlushRequestContext(ScopeCoordinator app) {
@@ -80,7 +107,7 @@ public class FlushRequestContext {
 
     @SuppressWarnings("unchecked")
     public void flush() {
-        if (socket == null || !isSocketOpen(socket)) {
+        if (phase != Phase.CONNECTED || socket == null || !isSocketOpen(socket)) {
             return;
         }
 
@@ -123,12 +150,9 @@ public class FlushRequestContext {
             hasData = true;
         }
 
-        if (hasData || pendingSecret != null || pendingStorage != null) {
+        if (hasData || bootstrapPending || pendingStorage != null) {
             requestObj.put("event", allEvents);
-            if (pendingSecret != null) {
-                requestObj.put("secret", pendingSecret);
-                pendingSecret = null;
-            }
+            bootstrapPending = false;
             if (pendingStorage != null) {
                 requestObj.put("storage", pendingStorage);
                 pendingStorage = null;
@@ -142,7 +166,7 @@ public class FlushRequestContext {
     }
 
     public void open(String url) {
-        if (socket != null && isSocketOpenOrConnecting(socket)) {
+        if (phase == Phase.OUTDATED || socket != null && isSocketOpenOrConnecting(socket)) {
             return;
         }
 
@@ -163,22 +187,116 @@ public class FlushRequestContext {
         }
     }
 
+    /** Whether the host refused this client's protocol version (the page is out of date). */
+    public boolean isOutdated() {
+        return phase == Phase.OUTDATED;
+    }
+
     // -- WebSocket event handlers --
 
     private void handleOpen() {
-        Console.log("WebSocket connected");
-        app.isConnected = true;
-        pendingSecret = SecurityBoot.getSignature();
-        initKeepAliveChecks();
-        // Build bootstrap storage only after AES key is ready.
-        // SecurityBoot.onReady() fires immediately if already ready (reconnects),
-        // or defers until PBKDF2 derivation completes (first load after F5).
-        SecurityBoot.onReady(() -> app.buildBootstrapStorage(this::flush));
+        Console.log("WebSocket connected; handshake (protocol " + Handshake.PROTOCOL + ")");
+        var opened = socket;
+        phase = Phase.HANDSHAKE;
+        DataSecurity.forgetKey();
+        WebCrypto.newKeyPair((pair, clientKey) -> {
+            if (opened != socket || phase != Phase.HANDSHAKE) {
+                return;
+            }
+            keyPair = pair;
+            sendToSocket(opened, JsonParser.stringify(Handshake.hello(clientKey)));
+        }, reason -> failHandshake(opened, reason));
+    }
+
+    /** The first message from the host on a connection: the answer to the handshake. */
+    private void handleHandshakeAnswer(String data) {
+        var opened = socket;
+        var answer = JsonParser.parseObject(data);
+        switch (Handshake.read(answer)) {
+            case REFUSED -> outdated();
+            case ACCEPTED -> {
+                var pair = keyPair;
+                keyPair = null;
+                if (pair == null) {
+                    failHandshake(opened, "an answer before the handshake");
+                    return;
+                }
+                phase = Phase.KEYING;
+                WebCrypto.deriveKey(pair, Handshake.serverKey(answer), app.id,
+                        key -> handleConnectionKey(opened, key),
+                        reason -> failHandshake(opened, reason));
+            }
+            case UNEXPECTED -> failHandshake(opened, "not an answer to the handshake: " + data);
+        }
+    }
+
+    /** The connection agreed on its key: the bootstrap message goes out, then the requests that waited. */
+    private void handleConnectionKey(JSObject opened, JSObject key) {
+        if (opened != socket || phase != Phase.KEYING) {
+            return;
+        }
+        DataSecurity.useKey(key);
+        app.buildBootstrapStorage(() -> {
+            if (opened != socket || phase != Phase.KEYING) {
+                return;
+            }
+            phase = Phase.CONNECTED;
+            app.isConnected = true;
+            if (app.reconnectController.count > 0) {
+                app.reconnectController.reset();
+            }
+            initKeepAliveChecks();
+            bootstrapPending = true;
+            flush();
+
+            var held = new ArrayList<>(heldMessages);
+            heldMessages.clear();
+            for (var message : held) {
+                handleMessage(message);
+            }
+        });
+    }
+
+    private void failHandshake(JSObject opened, String reason) {
+        Console.error("[FlushRequestContext] handshake failed: " + reason);
+        if (opened == socket && opened != null) {
+            closeSocket(opened);
+        }
+    }
+
+    /** The host does not speak this client's protocol version: no reconnection; the user is told to reload. */
+    private void outdated() {
+        Console.warn("[FlushRequestContext] the host refused protocol " + Handshake.PROTOCOL + ": the page is out of date");
+        phase = Phase.OUTDATED;
+        var closing = socket;
+        socket = null;
+        if (closing != null) {
+            closeSocket(closing);
+        }
+        keyPair = null;
+        heldMessages.clear();
+        pendingStorage = null;
+        bootstrapPending = false;
+        DataSecurity.forgetKey();
+        app.isConnected = false;
+        stopKeepAliveChecks();
+        cancelPendingKeepAlive();
+        userRequestIds.clear();
+        setSubmitting(false);
+        app.reconnectController.close();
+        app.showOutdated();
     }
 
     private void handleClose(int code) {
         Console.warn("WebSocket closed: " + code);
-        if (code == 4001) {
+        if (phase == Phase.OUTDATED) {
+            return;
+        }
+        if (code == CLOSE_UNSUPPORTED_PROTOCOL) {
+            outdated();
+            return;
+        }
+        if (code == CLOSE_RELOAD_REQUIRED) {
             // Discard the stored app_id before reloading — otherwise the reload
             // reconnects with the same invalid id and enters an infinite loop.
             removeSessionItem("app_id");
@@ -190,11 +308,20 @@ public class FlushRequestContext {
 
     private void handleError() {
         Console.error("WebSocket error");
+        if (phase == Phase.OUTDATED) {
+            return;
+        }
         handleDisconnect("WebSocket error");
     }
 
     private void handleDisconnect(String cause) {
         socket = null;
+        phase = Phase.CLOSED;
+        keyPair = null;
+        heldMessages.clear();
+        pendingStorage = null;
+        bootstrapPending = false;
+        DataSecurity.forgetKey();
         app.isConnected = false;
         stopKeepAliveChecks();
         userRequestIds.clear();
@@ -204,8 +331,21 @@ public class FlushRequestContext {
 
     @SuppressWarnings("unchecked")
     private void handleMessage(String data) {
-        if (app.reconnectController.count > 0) {
-            app.reconnectController.reset();
+        switch (phase) {
+            case HANDSHAKE -> {
+                handleHandshakeAnswer(data);
+                return;
+            }
+            case KEYING -> {
+                heldMessages.add(data);
+                return;
+            }
+            case CLOSED, OUTDATED -> {
+                return;
+            }
+            case CONNECTED -> {
+                // handled below
+            }
         }
 
         Map<String, Object> response = JsonParser.parseObject(data);
@@ -268,11 +408,13 @@ public class FlushRequestContext {
 
     private void keepAliveNow() {
         cancelPendingKeepAlive();
-        if (socket != null && isSocketOpen(socket)) {
+        if (phase == Phase.CONNECTED && socket != null && isSocketOpen(socket)) {
             pendingKeepAlive = Timers.setTimeout((Timers.TimerCallback) () -> {
                 pendingKeepAlive = 0;
                 persistState();
-                sendToSocket(socket, "{\"ping\":true}");
+                if (phase == Phase.CONNECTED && socket != null && isSocketOpen(socket)) {
+                    sendToSocket(socket, "{\"ping\":true}");
+                }
             }, 80);
         }
     }

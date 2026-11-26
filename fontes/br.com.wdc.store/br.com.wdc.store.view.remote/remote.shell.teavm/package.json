@@ -1,0 +1,16 @@
+{
+  "name": "remote.shell.teavm-crypto-compat",
+  "private": true,
+  "description": "Builds js/crypto-compat.js, the crypto fallback the TeaVM remote bridge uses where crypto.subtle does not exist",
+  "type": "module",
+  "scripts": {
+    "build:crypto-compat": "esbuild src/main/js/crypto-compat.mjs --bundle --format=iife --minify --outfile=src/main/webapp/js/crypto-compat.js",
+    "test:crypto-compat": "node src/test/js/crypto-compat.test.mjs"
+  },
+  "devDependencies": {
+    "@noble/ciphers": "1.3.0",
+    "@noble/curves": "1.9.7",
+    "@noble/hashes": "1.8.0",
+    "esbuild": "0.25.9"
+  }
+}

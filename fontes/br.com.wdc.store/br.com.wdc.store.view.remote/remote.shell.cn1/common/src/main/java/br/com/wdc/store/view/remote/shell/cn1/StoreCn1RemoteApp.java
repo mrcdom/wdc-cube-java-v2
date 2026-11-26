@@ -120,7 +120,8 @@ public class StoreCn1RemoteApp extends Lifecycle {
     /** Shows the "connecting" screen and opens the bridge on a thread; on failure, shows error + retry. */
     private void startConnect() {
         showSplash(false, "Connecting to server...", null);
-        session = new BridgeSession(baseUrl, this::onPush);
+        session = new BridgeSession(baseUrl, this::onPush,
+                () -> showSplash(true, "This app is out of date. Please update it to connect to the server.", null));
         new Thread(() -> {
             try {
                 session.connect();

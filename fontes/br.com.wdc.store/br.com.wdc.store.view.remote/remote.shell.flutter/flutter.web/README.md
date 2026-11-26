@@ -5,14 +5,14 @@ Web shell for the **WDC Store** application, using the **Remote Presentation** p
 ## Features
 
 - **Platform:** Browser (WebAssembly or JS)
-- **Protocol:** Bidirectional WebSocket with RSA + AES-GCM encryption
+- **Protocol:** Bidirectional WebSocket, protocol version 1: each connection agrees on its own key (ECDH P-256 + HKDF-SHA256) and ciphers sensitive values with AES-256-GCM
 - **Shared code:** Uses `flutter_commons` for protocol, views and widgets
 - **Alternative to the React shell** — same functionality, implemented in Dart/Flutter
 
 ## Prerequisites
 
 - **Flutter 3.44+** (`flutter --version`)
-- **Backend running** on port 8080 — it serves the app and issues the session cookies (`app_id`, `app_skey`)
+- **Backend running** on port 8080 — it serves the app and plants the session cookie (`app_id`)
 
 ## Running
 

@@ -7,7 +7,7 @@ Mobile shell (iOS & Android) for the **WDC Store** application, using the **Remo
 - **App name:** WDC Store
 - **Icon:** Teal with the WDC cart + "F" badge (Flutter)
 - **Platforms:** iPhone, iPad, Android phone, Android tablet
-- **Protocol:** Bidirectional WebSocket with RSA + AES-GCM encryption
+- **Protocol:** Bidirectional WebSocket, protocol version 1: each connection agrees on its own key (ECDH P-256 + HKDF-SHA256) and ciphers sensitive values with AES-256-GCM
 - **Session persistence:** the secure scope (access/refresh tokens, auto-login) in FlutterSecureStorage (Keychain/Keystore); the plain persistent scope in SharedPreferences
 - **Shared code:** Uses `flutter_commons` for protocol, views and widgets
 
