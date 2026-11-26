@@ -31,6 +31,7 @@ public class ReceiptItemCn1View extends AbstractItemCn1View<Object> {
             dom.label(BorderLayout.CENTER, l -> {
                 l.setUIID(sel.RECEIPT_ITEM_DESC);
                 l.getAllStyles().setFont(Fonts.MONO);
+                l.setEndsWith3Points(true); // a name wider than the column ends in "…", not cut mid-letter
                 desc = Guard.text(l);
             });
             dom.boxX(BorderLayout.EAST, cols -> {
