@@ -89,4 +89,23 @@ public interface TransactionService {
     /** NEVER — forbids an active transaction; throws {@link TransactionNotAllowedException} if there is one. */
     <T> T neverCall(Function<TransactionContext, T> work);
 
+    /**
+     * Schedules {@code task} for after the commit of the current transaction: it runs only if the transaction commits,
+     * in scheduling order, already outside it (the connection returned). Rolled back (exception or
+     * {@link TransactionContext#setRollbackOnly()}), the task is discarded. Without a current transaction, it runs right
+     * away. A task failure goes to the log and affects neither the transaction's result nor the following tasks.
+     *
+     * <p>
+     * The task belongs to the <b>physical</b> transaction: inside a {@link #required} or {@link #supports} that joins
+     * another, it waits for the outer one's commit; inside a {@link #requiresNew}, it runs when that one commits, even
+     * if the outer one is rolled back later. In {@link #notSupported} and {@link #never} there is no transaction: it
+     * runs right away. When it runs, the task is in no transaction at all; if it needs one, it opens its own.
+     * </p>
+     *
+     * <p>
+     * {@link AfterCommitTasks} is the common executor for the implementations.
+     * </p>
+     */
+    void afterCommit(Runnable task);
+
 }

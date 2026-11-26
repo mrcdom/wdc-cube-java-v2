@@ -2,9 +2,11 @@ package br.com.wdc.framework.persistence.transaction;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
 
 import javax.sql.DataSource;
 
+import br.com.wdc.framework.domain.transaction.AfterCommitTasks;
 import jakarta.transaction.Status;
 import jakarta.transaction.SystemException;
 import jakarta.transaction.Transaction;
@@ -45,16 +47,23 @@ public final class TransactionScope implements AutoCloseable {
 
     private final Connection connection;
     private final boolean owner;
+    /** The frame that owns the physical transaction: itself, or the one a participant joined. */
+    private final TransactionScope root;
     /** Non-null only in JDBC owner mode — original {@code autoCommit} to restore in {@link #close()}. */
     private final Boolean jdbcOldAutoCommit;
     /** Non-null only in JTA owner mode — Narayana transaction, for suspend/resume. */
     private Transaction jtaTransaction;
     private boolean rollbackOnly;
     private boolean closed;
+    /** Tasks for after the commit; only the owner's queue counts (participants hand them to it). */
+    private final AfterCommitTasks afterCommitTasks = new AfterCommitTasks();
+    /** Whether the owner finished with a commit that succeeded. */
+    private boolean committed;
 
-    private TransactionScope(Connection connection, boolean owner, Boolean jdbcOldAutoCommit) {
+    private TransactionScope(Connection connection, TransactionScope root, Boolean jdbcOldAutoCommit) {
         this.connection = connection;
-        this.owner = owner;
+        this.owner = root == null;
+        this.root = root == null ? this : root;
         this.jdbcOldAutoCommit = jdbcOldAutoCommit;
     }
 
@@ -67,7 +76,7 @@ public final class TransactionScope implements AutoCloseable {
         var current = CURRENT.get();
         if (current != null && !current.closed) {
             // Participant: shares the owner's connection (and therefore transaction). No lifecycle of its own.
-            return new TransactionScope(current.connection, false, null);
+            return new TransactionScope(current.connection, current.root, null);
         }
         return beginNew(dataSource);
     }
@@ -101,7 +110,7 @@ public final class TransactionScope implements AutoCloseable {
             }
             throw e;
         }
-        var ctx = new TransactionScope(connection, true, null);
+        var ctx = new TransactionScope(connection, null, null);
         ctx.jtaTransaction = jtaTx;
         CURRENT.set(ctx);
         return ctx;
@@ -111,7 +120,7 @@ public final class TransactionScope implements AutoCloseable {
         var connection = dataSource.getConnection();
         var oldAutoCommit = connection.getAutoCommit();
         connection.setAutoCommit(false);
-        var ctx = new TransactionScope(connection, true, oldAutoCommit);
+        var ctx = new TransactionScope(connection, null, oldAutoCommit);
         CURRENT.set(ctx);
         return ctx;
     }
@@ -203,6 +212,36 @@ public final class TransactionScope implements AutoCloseable {
         }
     }
 
+    /** Whether this frame owns the physical transaction (commits or rolls back in {@link #close()}). */
+    public boolean ownsTransaction() {
+        return owner;
+    }
+
+    /**
+     * Schedules {@code task} for after the commit of this physical transaction (the owner's, also when called on a
+     * participant). Whoever closes the owner runs it, through {@link #takeAfterCommit()}.
+     *
+     * @throws IllegalStateException if the transaction is already closed
+     */
+    public void afterCommit(Runnable task) {
+        if (root.closed) {
+            throw new IllegalStateException("TransactionScope already closed");
+        }
+        root.afterCommitTasks.add(task);
+    }
+
+    /**
+     * The scheduled tasks, if the owner was closed with a commit; empty if it was rolled back, is still open, or this
+     * is a participant. Drains the queue: each task is delivered only once.
+     */
+    public List<Runnable> takeAfterCommit() {
+        if (!owner || !closed) {
+            return List.of();
+        }
+        var tasks = afterCommitTasks.drain();
+        return committed ? tasks : List.of();
+    }
+
     // :: Closing
 
     /**
@@ -242,6 +281,7 @@ public final class TransactionScope implements AutoCloseable {
                 tm.rollback();
             } else {
                 tm.commit();
+                committed = true;
             }
         } catch (Exception e) {
             throw new SQLException("Failed to finish the JTA transaction", e);
@@ -254,6 +294,7 @@ public final class TransactionScope implements AutoCloseable {
                 connection.rollback();
             } else {
                 connection.commit();
+                committed = true;
             }
         } catch (SQLException ex) {
             try {

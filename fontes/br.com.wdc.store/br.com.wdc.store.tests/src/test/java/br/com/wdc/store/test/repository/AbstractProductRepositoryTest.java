@@ -248,6 +248,25 @@ public abstract class AbstractProductRepositoryTest {
 	}
 
 	@Test
+	public void inEmpty_matchesNoRow() {
+		var criteria = new ProductCriteria()
+				.productId().in(List.of());
+
+		assertEquals(0, repo().fetch(criteria).size());
+		assertEquals(0, repo().count(criteria));
+		assertEquals(0, repo().delete(criteria));
+		assertEquals(4, repo().count(new ProductCriteria()));
+	}
+
+	@Test
+	public void inNull_addsNoRequest() {
+		var criteria = new ProductCriteria()
+				.productId().in((List<Long>) null);
+
+		assertEquals(4, repo().fetch(criteria).size());
+	}
+
+	@Test
 	public void between_isInclusiveOnBothEnds() {
 		// ids 1..3 of the four products
 		var products = repo().fetch(new ProductCriteria()

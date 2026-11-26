@@ -75,6 +75,7 @@ public class OkHttpTransport implements HttpTransport {
                 .url(baseUrl + path)
                 .post(RequestBody.create(body, JSON_MEDIA_TYPE));
         addAuthHeader(requestBuilder);
+        addTxHeader(requestBuilder);
         addClientHeader(requestBuilder);
 
         try (var response = client.newCall(requestBuilder.build()).execute()) {
@@ -163,6 +164,7 @@ public class OkHttpTransport implements HttpTransport {
                 .url(baseUrl + path)
                 .get();
         addAuthHeader(requestBuilder);
+        addTxHeader(requestBuilder);
         addClientHeader(requestBuilder);
 
         try (var response = client.newCall(requestBuilder.build()).execute()) {
@@ -186,6 +188,7 @@ public class OkHttpTransport implements HttpTransport {
                 .url(baseUrl + path)
                 .put(RequestBody.create(data, MediaType.parse("application/octet-stream")));
         addAuthHeader(requestBuilder);
+        addTxHeader(requestBuilder);
         addClientHeader(requestBuilder);
 
         try (var response = client.newCall(requestBuilder.build()).execute()) {

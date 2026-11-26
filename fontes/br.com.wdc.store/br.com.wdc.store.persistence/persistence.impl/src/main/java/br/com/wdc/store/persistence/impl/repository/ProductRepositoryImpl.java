@@ -19,6 +19,8 @@ import br.com.wdc.framework.jooq.JsonChildQueryBuilder;
 import br.com.wdc.framework.jooq.JsonQuery;
 import br.com.wdc.framework.jooq.JsonQueryBuilder;
 import br.com.wdc.framework.jooq.QueryContext;
+import br.com.wdc.framework.persistence.transaction.TransactionScope;
+import br.com.wdc.store.domain.StoreTransactions;
 import br.com.wdc.store.domain.product.Product;
 import br.com.wdc.store.domain.product.ProductCriteria;
 import br.com.wdc.store.domain.product.ProductRepository;
@@ -142,7 +144,8 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
             step.set(EN_PRODUCT.DESCRIPTION, newBean.description());
             hasChanges = true;
         }
-        if (changed(newBean, oldBean, projection, p -> p.image())) {
+        var imageChanged = changed(newBean, oldBean, projection, p -> p.image());
+        if (imageChanged) {
             step.set(EN_PRODUCT.IMAGE, newBean.image());
             hasChanges = true;
         }
@@ -151,7 +154,11 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
             return false;
         }
 
-        return step.where(EN_PRODUCT.ID.eq(newBean.id())).execute() > 0;
+        var updated = step.where(EN_PRODUCT.ID.eq(newBean.id())).execute() > 0;
+        if (imageChanged) {
+            afterCommit(() -> ProductImageCache.evict(newBean.id()));
+        }
+        return updated;
     }
 
     @Override
@@ -162,10 +169,12 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
             throw new InvalidRequestException("delete of Product without the key (id)");
         }
 
-        return dsl()
+        var deleted = dsl()
                 .deleteFrom(EN_PRODUCT)
                 .where(applyConditions(EN_PRODUCT, criteria))
                 .execute();
+        afterCommit(ProductImageCache::clear);
+        return deleted;
     }
 
     @Override
@@ -199,6 +208,14 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
 
     @Override
     public byte[] fetchImage(Long productId) {
+        var inTransaction = TransactionScope.isActive();
+        if (!inTransaction) {
+            var cached = ProductImageCache.get(productId);
+            if (cached != null) {
+                return cached;
+            }
+        }
+
         var prjBean = new Product()
                 .withId(0L)
                 .withImage(new byte[0]);
@@ -207,16 +224,40 @@ public class ProductRepositoryImpl extends BaseRepositoryImpl implements Product
         if (product == null) {
             throw new BusinessException("Product not found: " + productId);
         }
+        if (!inTransaction) {
+            ProductImageCache.put(productId, product.image());
+        }
         return product.image();
     }
 
+    /** The cached image is dropped after the commit of the transaction that changed it (see {@link ProductImageCache}). */
     @Override
     public boolean updateImage(Long productId, byte[] image) {
-        return dsl()
+        var updated = dsl()
                 .update(EN_PRODUCT)
                 .set(EN_PRODUCT.IMAGE, image)
                 .where(EN_PRODUCT.ID.eq(productId))
                 .execute() > 0;
+        afterCommit(() -> ProductImageCache.evict(productId));
+        return updated;
+    }
+
+    /**
+     * Drops every cached image. For whoever writes the product table without this repository, such as the database
+     * reset.
+     */
+    public static void clearImageCache() {
+        ProductImageCache.clear();
+    }
+
+    /** Runs {@code task} after the commit of the current transaction, or at once without one. */
+    private static void afterCommit(Runnable task) {
+        var transactions = StoreTransactions.BEAN.get();
+        if (transactions != null) {
+            transactions.afterCommit(task);
+        } else {
+            task.run();
+        }
     }
 
     // :: Internal

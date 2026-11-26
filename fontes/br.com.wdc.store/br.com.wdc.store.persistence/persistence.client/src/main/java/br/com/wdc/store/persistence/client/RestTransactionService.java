@@ -1,10 +1,12 @@
 package br.com.wdc.store.persistence.client;
 
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 import br.com.wdc.framework.commons.http.HttpTransport;
 import br.com.wdc.framework.commons.serialization.JsonStreamReader;
+import br.com.wdc.framework.domain.transaction.AfterCommitTasks;
 import br.com.wdc.framework.domain.transaction.TransactionContext;
 import br.com.wdc.framework.domain.transaction.TransactionNotAllowedException;
 import br.com.wdc.framework.domain.transaction.TransactionRequiredException;
@@ -24,6 +26,11 @@ import br.com.wdc.framework.domain.transaction.TransactionSystemException;
  * <p>
  * The current {@code txId} is bound to the thread ({@link ThreadLocal}); nesting {@code required} reuses the active
  * transaction (participates). Single-threaded, like the server coordinator.
+ * </p>
+ *
+ * <p>
+ * {@link #afterCommit} stores the task in the current remote transaction; it runs after the remote commit answered
+ * successfully, with no remote transaction current.
  * </p>
  */
 public final class RestTransactionService implements TransactionService {
@@ -156,25 +163,41 @@ public final class RestTransactionService implements TransactionService {
         return work.apply(NO_TX);
     }
 
+    // :: After commit
+
+    @Override
+    public void afterCommit(Runnable task) {
+        var state = CURRENT.get();
+        if (state != null) {
+            state.afterCommit.add(task);
+        } else {
+            AfterCommitTasks.runAll(List.of(task));
+        }
+    }
+
     // -------------------------------------------------------------------------
 
     private <T> T runInNewTx(Function<TransactionContext, T> work) {
         var state = new TxState(remoteBegin());
         CURRENT.set(state);
+        T result;
+        List<Runnable> afterCommit = List.of();
         try {
-            T result = work.apply(state);
+            result = work.apply(state);
             if (state.rollbackOnly) {
                 remoteRollback();
             } else {
                 remoteCommit();
+                afterCommit = state.afterCommit.drain();
             }
-            return result;
         } catch (RuntimeException e) {
             remoteRollbackQuietly();
             throw e;
         } finally {
             CURRENT.remove();
         }
+        AfterCommitTasks.runAll(afterCommit);
+        return result;
     }
 
     private String remoteBegin() {
@@ -223,6 +246,7 @@ public final class RestTransactionService implements TransactionService {
     /** Handle of an active remote transaction. */
     private static final class TxState implements TransactionContext {
         final String txId;
+        final AfterCommitTasks afterCommit = new AfterCommitTasks();
         boolean rollbackOnly;
 
         TxState(String txId) {

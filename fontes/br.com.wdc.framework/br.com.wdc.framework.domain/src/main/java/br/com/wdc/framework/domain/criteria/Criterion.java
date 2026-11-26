@@ -178,9 +178,12 @@ public class Criterion<C, T> {
         return value == null ? owner : add(Operator.NE, value);
     }
 
-    /** Belongs to the set. A null or empty set adds no request — filtering by "none" would be pointless. */
+    /**
+     * Belongs to the set. {@code null} adds no request; an empty set matches no row, so a search finds nothing, a count
+     * is 0 and a delete deletes nothing.
+     */
     public C in(Collection<? extends T> values) {
-        if (values == null || values.isEmpty()) {
+        if (values == null) {
             return owner;
         }
         predicates.add(new Predicate<>(Operator.IN, new ArrayList<>(values)));

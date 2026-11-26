@@ -127,6 +127,8 @@ Each entity's `ApplyConditions` translates the groups with the same `apply`, thr
 
 **A null value adds no request**, instead of erasing the previous ones — this preserves the habit of building a filter from a screen, where empty means "do not filter by this". To erase, `clear()`; to compare against null, `isNull()`. The `withXxx(value)` shortcuts exist too, and are `xxx().eq(value)`.
 
+**An empty set in `in` matches no row**: a search finds nothing, a count is 0 and a delete deletes nothing. A list of ids that came out empty (no item selected, nothing left to process) is a filter by none, never a filter by all; only `null` leaves the field out. Read the other way round, `delete(criteria.productId().in(selected))` with nothing selected would wipe the table.
+
 The translation to jOOQ is written **once**, in `CriterionTranslator`. What remains for each entity is to say which column corresponds to each field and, when the domain type differs from the column type, how to convert the value:
 
 ```java
@@ -368,6 +370,8 @@ The `default` lives in the entity's interface because that is what knows which c
 key; the generic `Repository` only knows the type `C`. With that, looking up by key is the
 same query as the others, with the same handling of projection, security and transaction.
 
+`Repository` extends **`ReadOnlyRepository<E, C, K>`**, which holds only the reads: `count`, `fetch`, `fetchPage`, `fetchById` and `newProjection`. An entity the application only reads (a report, a database view, a dashboard) extends the read-only contract and has no writes to refuse; the HTTP side mirrors the two levels with `HttpReadOnlyRepository` and `HttpRepository`. The four entities of the WDC Store are written, so they all extend `Repository`.
+
 The static `BEAN` field is the injection point — a lightweight Service Locator based on `AtomicReference`. The concrete implementation is registered during application bootstrap:
 
 ```java
@@ -570,6 +574,19 @@ The authentication flow uses **HMAC challenge-response** so the password never t
 
 ---
 
+### After the commit — `afterCommit`
+
+Some effects of a write must wait for the commit: if they happen inside the transaction and it rolls back, they announced something that never happened. `TransactionService.afterCommit(task)` schedules a task for after the commit of the current **physical** transaction:
+
+- it runs only if the transaction commits, in scheduling order, after the connection is returned and with no transaction current; a rollback (exception or `setRollbackOnly`) discards it;
+- inside a `required` that joined another transaction, it waits for the outer commit; inside a `requiresNew`, it runs at that one's commit;
+- without a transaction, it runs at once;
+- a task that fails goes to the log and stops neither the next tasks nor the caller, since the commit already happened.
+
+It works the same in the three implementations: `TransactionServiceImpl` (JDBC and JTA), the server's `RemoteTransactionCoordinator` (the tasks of a remote transaction run at its commit, requested by the client), and the client's `RestTransactionService` (after the remote commit answered).
+
+The WDC Store uses it for the **product image cache**. `ProductRepositoryImpl` keeps each image it read outside a transaction in memory (`ProductImageCache`), and drops it in an `afterCommit` of the write that changed it (`updateImage`, an `update` of the image, a `delete`). Dropping it inside the transaction would let a read in between, which still sees the committed old image, put it back.
+
 ## The persistence.rest Module — The HTTP Surface
 
 The `persistence.rest` module exposes the repositories as a uniform HTTP API via Javalin. There is no business logic here — only serialization, authentication and delegation.
@@ -594,6 +611,20 @@ All entities follow the same endpoint pattern:
 > through `/fetch`. They are covered by `FetchByIdEndpointTest`.
 
 The criterion and the projection travel as JSON in the body — a structure identical to the Java object. There is no manual mapping between HTTP parameters and domain objects.
+
+### Response headers
+
+Every answer under `/api/*`, errors and refusals included, carries:
+
+| Header | Value | Why |
+|---|---|---|
+| `X-Content-Type-Options` | `nosniff` | the browser does not guess a type other than the one declared |
+| `X-Frame-Options` | `DENY` | no page frames the API |
+| `Referrer-Policy` | `no-referrer` | addresses of the API do not leak to other sites |
+| `Cache-Control` | `no-store`, unless the route set its own | the answers carry user data |
+| `Server-Timing` | `total;dur=<ms>` | the time the server spent, shown by the browser's developer tools next to the network time |
+
+They are set in one place, `ApiResponseHeaders`, registered by `RepositoryApiRoutes`.
 
 ### SecurityFilter
 

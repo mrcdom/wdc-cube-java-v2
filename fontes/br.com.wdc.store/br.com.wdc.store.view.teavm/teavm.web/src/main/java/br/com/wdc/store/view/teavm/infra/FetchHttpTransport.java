@@ -84,7 +84,7 @@ public class FetchHttpTransport implements HttpTransport {
 	@Override
 	public byte[] getBytes(String path) {
 		String token = getToken();
-		HttpResult result = asyncXhr(baseUrl + path, "GET", null, token, "application/json", null);
+		HttpResult result = asyncXhr(baseUrl + path, "GET", null, token, "application/json", getTxId());
 		if (result.status == 0) {
 			handleConnectionRefused();
 		}
@@ -104,7 +104,7 @@ public class FetchHttpTransport implements HttpTransport {
 	public boolean putBytes(String path, byte[] data) {
 		String token = getToken();
 		String bodyStr = data != null ? new String(data, StandardCharsets.UTF_8) : null;
-		HttpResult result = asyncXhr(baseUrl + path, "PUT", bodyStr, token, "application/octet-stream", null);
+		HttpResult result = asyncXhr(baseUrl + path, "PUT", bodyStr, token, "application/octet-stream", getTxId());
 		if (result.status == 0) {
 			handleConnectionRefused();
 		}

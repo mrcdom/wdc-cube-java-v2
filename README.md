@@ -8,7 +8,8 @@ This project serves as an **architectural reference** for new projects, demonstr
 📄 [Data Layer — Domain, Persistence and REST API](docs/data-layer.md)  
 📄 [Remote Transaction — Client Identity and Transaction Ownership](docs/remote-transaction-identity-and-ownership.md)  
 📄 [Security Architecture — Trust Boundaries, Authentication and Data Access Policies](docs/security-architecture.md)  
-📄 [Securing an Application with the WDC Framework — Guide](fontes/br.com.wdc.framework/docs/security-guide.md)
+📄 [Securing an Application with the WDC Framework — Guide](fontes/br.com.wdc.framework/docs/security-guide.md)  
+📄 [Architecture Decision Records — why the code is the way it is](docs/adr/README.md)
 
 ## Architecture Overview
 
@@ -24,7 +25,7 @@ graph TD
 
     subgraph Core["Shared Layers"]
         P["Presentation<br/><small>Presenters + Scopes + Navigation</small>"]
-        SEC["Security · RBAC<br/><small>HMAC + JWT + Secured Repos</small>"]
+        SEC["Security · RBAC<br/><small>HMAC + JWT + Data Policies</small>"]
         PER["Persistence<br/><small>Repositories + jOOQ (type-safe SQL)</small>"]
         DOM["Domain<br/><small>Models + Contracts + Config</small>"]
         DB[("H2 Database")]
@@ -110,7 +111,7 @@ graph TD
 
 | Module | Description |
 |--------|-----------|
-| **domain** | One package per entity (`product`, `user`, `purchase`, `purchaseitem`), each with the fluent entity, its `Criterion`-based criteria, codec and repository interface; `InvalidCartItemException`, `Role` (RBAC permissions), `StoreConfig`, `StoreTransactions` |
+| **domain** | One package per entity (`product`, `user`, `purchase`, `purchaseitem`), each with the fluent entity, its `Criterion`-based criteria, codec and repository interface; `InvalidCartItemException`, `Role` (the list of roles), `StoreConfig`, `StoreTransactions` |
 | **persistence** | Groups `persistence.impl` — **jOOQ** implementation (type-safe DSL, classes generated in `br.com.wdc.store.persistence.impl.scheme.*` from the H2 schema), `*RepositoryImpl` classes that obtain the `DSLContext` via `StoreDSLContext.BEAN`, the framework's JSON query helpers, `StoreRepositoryBootstrap` for wiring —, `persistence.rest` (Javalin API; authorization by a data policy per entity — `UserDataPolicy`, `ProductDataPolicy`, `PurchaseDataPolicy`, `PurchaseItemDataPolicy`) and `persistence.client` (HTTP repositories over OkHttp) |
 | **presentation** | `StoreApplication` (subject, cart, `PLACES`), presenter hierarchy (Root → Open/Restricted guards → Login \| Home → Product/Cart/Receipt, with the Products/Purchases panels as segments of Home), scopes with observed `Prop`s, calls named by verb (`XxxQuery`, `XxxCreate`/`XxxSave`/`XxxUpdate`/`XxxDelete`, or a verb of their own like `CredentialsCheck`) over the repositories, `CartManager`, places with `XxxKeys` and navigation by intents |
 

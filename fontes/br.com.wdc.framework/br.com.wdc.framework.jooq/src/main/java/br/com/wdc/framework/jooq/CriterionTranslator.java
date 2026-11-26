@@ -204,7 +204,7 @@ public final class CriterionTranslator {
         case LIKE -> textual(column).like((String) values.get(0));
         case ILIKE -> textual(column).likeIgnoreCase((String) values.get(0));
         case BETWEEN -> column.between(values.get(0), values.get(1));
-        case IN -> column.in(values);
+        case IN -> values.isEmpty() ? DSL.falseCondition() : column.in(values);
         default -> null;
         };
     }

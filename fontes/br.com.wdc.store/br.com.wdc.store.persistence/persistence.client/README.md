@@ -35,7 +35,7 @@ graph TD
 
 ### HttpRepository and the entity repositories
 
-`HttpRepository<E, C, K>` implements the generic `Repository` once; each `HttpXxxRepository` only names its base path and adds what its interface has beyond it.
+`HttpReadOnlyRepository<E, C, K>` implements the reads of `ReadOnlyRepository` once, and `HttpRepository<E, C, K>` extends it with the writes of `Repository`; each `HttpXxxRepository` only names its base path and adds what its interface has beyond it.
 
 | Operation | HTTP | Path |
 |-----------|------|------|
@@ -64,7 +64,7 @@ The inverse of the server's exception mapping: an error response becomes the exc
 
 ### OkHttpTransport
 
-`HttpTransport` on OkHttp. It adds `Authorization: Bearer <token>` from the access-token supplier the authentication service registers, `X-Tx-Id` while a remote transaction is active, and `X-Client-Id` — an id per transport instance that identifies the owner of anonymous transactions on the server.
+`HttpTransport` on OkHttp. It adds `Authorization: Bearer <token>` from the access-token supplier the authentication service registers, `X-Tx-Id` while a remote transaction is active (on every authenticated call: JSON, image reads and image writes), and `X-Client-Id` — an id per transport instance that identifies the owner of anonymous transactions on the server.
 
 ### RestAuthenticationService and RestAuthClient
 

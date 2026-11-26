@@ -31,6 +31,7 @@ import br.com.wdc.store.domain.purchaseitem.PurchaseItem;
 import br.com.wdc.store.domain.user.User;
 import br.com.wdc.store.domain.user.UserRepository;
 import br.com.wdc.store.persistence.impl.StoreDSLContext;
+import br.com.wdc.store.persistence.impl.repository.ProductRepositoryImpl;
 
 @SuppressWarnings("java:S3008")
 public class DBReset {
@@ -66,6 +67,7 @@ public class DBReset {
 		dsl.deleteFrom(EN_PURCHASE).execute();
 		dsl.deleteFrom(EN_PRODUCT).execute();
 		dsl.deleteFrom(EN_USER).execute();
+		ProductRepositoryImpl.clearImageCache();
 
 		long id;
 
