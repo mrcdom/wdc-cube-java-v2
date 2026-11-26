@@ -1,11 +1,6 @@
 package br.com.wdc.store.persistence.client;
 
-import java.time.Instant;
-
 import br.com.wdc.framework.commons.http.HttpTransport;
-import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
-import br.com.wdc.framework.commons.serialization.JsonStreamReader;
-import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
 import br.com.wdc.framework.commons.storage.ClientStorage;
 import br.com.wdc.framework.domain.exception.BusinessException;
 import br.com.wdc.framework.domain.security.AuthenticationService;
@@ -58,38 +53,15 @@ public class RestAuthenticationService implements AuthenticationService {
 	}
 
 	@Override
-	public ChallengeResult challenge() {
-		var responseJson = transport.getJson("/api/auth/challenge");
-		var reader = new JsonStreamReader(responseJson);
-		reader.beginObject();
-		String nonce = null;
-		Instant expiresAt = null;
-		while (reader.hasNext()) {
-			switch (reader.nextName()) {
-				case "nonce" -> nonce = InputCoerceUtils.asString(reader);
-				case "expiresAt" -> {
-					var s = InputCoerceUtils.asString(reader);
-					if (s != null) expiresAt = Instant.parse(s);
-				}
-				default -> reader.skipValue();
-			}
-		}
-		reader.endObject();
-		return new ChallengeResult(nonce, expiresAt);
+	public ChallengeResult challenge(String userName) {
+		return AuthJson.readChallenge(transport.postJsonPublic("/api/auth/challenge", AuthJson.challengeRequest(userName)));
 	}
 
 	@Override
-	public AuthResult login(String userName, String digest, String nonce) {
-		var writer = new JsonStreamWriter();
-		writer.beginObject();
-		writer.name("userName").value(userName);
-		writer.name("digest").value(digest);
-		writer.name("nonce").value(nonce);
-		writer.endObject();
-
+	public AuthResult login(String userName, String proof, String nonce) {
 		String responseJson;
 		try {
-			responseJson = transport.postJsonPublic("/api/auth/login", writer.result());
+			responseJson = transport.postJsonPublic("/api/auth/login", AuthJson.loginRequest(userName, proof, nonce));
 		} catch (BusinessException e) {
 			if (e.getMessage() != null && e.getMessage().contains("401")) {
 				return null;
@@ -97,7 +69,7 @@ public class RestAuthenticationService implements AuthenticationService {
 			throw e;
 		}
 
-		var result = parseAuthResult(responseJson);
+		var result = AuthJson.readAuthResult(responseJson);
 
 		// Updates the RestAuthClient so the REST repos include the Bearer token
 		authClient.setTokens(
@@ -119,14 +91,9 @@ public class RestAuthenticationService implements AuthenticationService {
 			return null;
 		}
 
-		var writer = new JsonStreamWriter();
-		writer.beginObject();
-		writer.name("refreshToken").value(refreshToken);
-		writer.endObject();
-
 		String responseJson;
 		try {
-			responseJson = transport.postJsonPublic("/api/auth/refresh", writer.result());
+			responseJson = transport.postJsonPublic("/api/auth/refresh", AuthJson.refreshRequest(refreshToken));
 		} catch (BusinessException e) {
 			if (e.getMessage() != null && e.getMessage().contains("401")) {
 				return null;
@@ -134,7 +101,7 @@ public class RestAuthenticationService implements AuthenticationService {
 			throw e;
 		}
 
-		var result = parseAuthResult(responseJson);
+		var result = AuthJson.readAuthResult(responseJson);
 
 		authClient.setTokens(
 				result.accessToken(),
@@ -153,11 +120,7 @@ public class RestAuthenticationService implements AuthenticationService {
 	public void logout(String refreshToken) {
 		if (refreshToken != null) {
 			try {
-				var writer = new JsonStreamWriter();
-				writer.beginObject();
-				writer.name("refreshToken").value(refreshToken);
-				writer.endObject();
-				transport.postJsonPublic("/api/auth/logout", writer.result());
+				transport.postJsonPublic("/api/auth/logout", AuthJson.refreshRequest(refreshToken));
 			} catch (Exception ignored) {
 				// Ignores network errors on logout
 			}
@@ -195,30 +158,5 @@ public class RestAuthenticationService implements AuthenticationService {
 			storage.secure().set("auth.token", storage.secure().get(KEY_REFRESH_TOKEN));
 		}
 		return result;
-	}
-
-	private static AuthResult parseAuthResult(String responseJson) {
-		var reader = new JsonStreamReader(responseJson);
-		reader.beginObject();
-		Long userId = null;
-		String accessToken = null;
-		String refreshToken = null;
-		Instant expiresAt = null;
-		String publicKey = null;
-		while (reader.hasNext()) {
-			switch (reader.nextName()) {
-				case "userId" -> userId = InputCoerceUtils.asLong(reader);
-				case "accessToken" -> accessToken = InputCoerceUtils.asString(reader);
-				case "refreshToken" -> refreshToken = InputCoerceUtils.asString(reader);
-				case "expiresAt" -> {
-					var s = InputCoerceUtils.asString(reader);
-					if (s != null) expiresAt = Instant.parse(s);
-				}
-				case "publicKey" -> publicKey = InputCoerceUtils.asString(reader);
-				default -> reader.skipValue();
-			}
-		}
-		reader.endObject();
-		return new AuthResult(userId, accessToken, refreshToken, expiresAt, publicKey);
 	}
 }

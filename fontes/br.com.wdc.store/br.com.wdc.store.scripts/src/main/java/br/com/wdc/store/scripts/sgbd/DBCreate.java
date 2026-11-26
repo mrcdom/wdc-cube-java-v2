@@ -2,20 +2,24 @@ package br.com.wdc.store.scripts.sgbd;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.jooq.DSLContext;
+import org.jooq.Field;
 import org.jooq.SQLDialect;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 
+import br.com.wdc.framework.domain.security.PasswordVerifiers;
+import br.com.wdc.framework.domain.security.ScramVerifier;
 import br.com.wdc.framework.jooq.JsonDialect;
 import br.com.wdc.store.scripts.codegen.GenerateJooqSchema;
 
 /**
- * Creates the tables that are missing, using jOOQ, and seeds the database ({@link DBReset}) when it created one or
- * when asked to reset.
+ * Creates the tables that are missing, using jOOQ, brings older databases up to the current schema, and seeds the
+ * database ({@link DBReset}) when it created one or when asked to reset.
  *
  * <p>The DDL statements here are the single source of truth for the schema.
  * The jOOQ generated classes (in persistence.impl, package {@code scheme}) are derived from this via
@@ -85,6 +89,12 @@ public class DBCreate {
 			this.mustResetDb = true;
 		}
 
+		if (!existingTables.contains("EN_LOGIN_FAILURE")) {
+			createTableLoginFailure();
+		}
+
+		upgradePasswordsToVerifiers();
+
 		if (this.mustResetDb && !this.skipReset) {
 			DBReset.run();
 		}
@@ -106,7 +116,7 @@ public class DBCreate {
 				CREATE TABLE EN_USER (
 				    ID BIGINT NOT NULL,
 				    USERNAME VARCHAR(255) NOT NULL,
-				    PASSWORD CHAR(32) NOT NULL,
+				    PASSWORD VARCHAR(255) NOT NULL,
 				    NAME VARCHAR(255) NOT NULL,
 				    ROLES VARCHAR(255),
 				    CONSTRAINT PK_USER PRIMARY KEY (ID)
@@ -115,6 +125,62 @@ public class DBCreate {
 		// Support the NAME_A_TO_Z and LOGIN_A_TO_Z orderings of UserCriteria.
 		dsl.execute("CREATE INDEX IX_USER_NAME ON EN_USER (NAME)");
 		dsl.execute("CREATE INDEX IX_USER_USERNAME ON EN_USER (USERNAME)");
+	}
+
+	/** The failed sign-ins of each login ({@code LoginThrottle}): the count in a row and the last one, in UTC. */
+	private void createTableLoginFailure() {
+		dsl.execute("""
+				CREATE TABLE EN_LOGIN_FAILURE (
+				    USERNAME VARCHAR(100) NOT NULL,
+				    FAILURES INT NOT NULL,
+				    LAST_FAILURE TIMESTAMP NOT NULL,
+				    CONSTRAINT PK_LOGIN_FAILURE PRIMARY KEY (USERNAME)
+				)""");
+		dsl.execute("CREATE INDEX IX_LOGIN_FAILURE_LAST ON EN_LOGIN_FAILURE (LAST_FAILURE)");
+	}
+
+	// -- Upgrades of older databases --
+
+	/**
+	 * A database from before the SCRAM sign-in stores each password as its MD5 digest (base 36) in a {@code CHAR(32)}:
+	 * the column is widened to hold a verifier, and each digest becomes the verifier of the same password
+	 * ({@link PasswordVerifiers#fromDigest}) — the conversion needs no password, and every user keeps signing in with
+	 * the same one.
+	 */
+	private void upgradePasswordsToVerifiers() {
+		if (passwordColumnTooNarrow()) {
+			dsl.execute("ALTER TABLE EN_USER ALTER COLUMN PASSWORD SET DATA TYPE VARCHAR(255)");
+		}
+		var digests = dsl.fetch("SELECT ID, PASSWORD FROM EN_USER WHERE PASSWORD NOT LIKE ?", ScramVerifier.MECHANISM + "$%");
+		for (var row : digests) {
+			var stored = row.get(1, String.class);
+			if (stored == null || stored.isBlank() || ScramVerifier.parse(stored) != null) {
+				continue;
+			}
+			dsl.execute("UPDATE EN_USER SET PASSWORD = ? WHERE ID = ?", PasswordVerifiers.fromDigest(stored.trim()),
+					row.get(0, Long.class));
+		}
+	}
+
+	/** Whether {@code EN_USER.PASSWORD} is still the old fixed-width column, or narrower than a verifier needs. */
+	private boolean passwordColumnTooNarrow() {
+		var table = dsl.meta().getTables().stream()
+				.filter(t -> "EN_USER".equalsIgnoreCase(t.getName()))
+				.findFirst()
+				.orElseThrow();
+		Field<?> password = null;
+		for (var field : table.fields()) {
+			if ("PASSWORD".equalsIgnoreCase(field.getName())) {
+				password = field;
+			}
+		}
+		if (password == null) {
+			throw new IllegalStateException("EN_USER has no PASSWORD column");
+		}
+		var type = password.getDataType();
+		var typeName = type.getTypeName().toLowerCase(Locale.ROOT);
+		boolean varying = typeName.contains("varying") || typeName.contains("varchar");
+		return !varying || (type.hasLength() && type.length() < 255);
 	}
 
 	private void createTableProduct() {

@@ -32,13 +32,17 @@ public final class JwtUtil {
 	}
 
 	/**
-	 * Creates a JWT with the claims sub (userId), usr (userName) and exp (expiration).
+	 * Creates a JWT with the claims sid (the session; {@code null} for a token of no session, the persistent one),
+	 * sub (userId), usr (userName) and exp (expiration).
 	 */
-	public static String create(Long userId, String userName, Duration ttl, String secret) {
+	public static String create(String sessionId, Long userId, String userName, Duration ttl, String secret) {
 		var now = Instant.now();
 		var exp = now.plus(ttl);
 
 		var payload = new JsonObject();
+		if (sessionId != null) {
+			payload.addProperty("sid", sessionId);
+		}
 		payload.addProperty("sub", userId);
 		payload.addProperty("usr", userName);
 		payload.addProperty("iat", now.getEpochSecond());
@@ -84,6 +88,7 @@ public final class JwtUtil {
 			}
 
 			return new Claims(
+					payload.has("sid") ? payload.get("sid").getAsString() : null,
 					payload.get("sub").getAsLong(),
 					payload.has("usr") ? payload.get("usr").getAsString() : null,
 					Instant.ofEpochSecond(exp));
@@ -103,8 +108,8 @@ public final class JwtUtil {
 	}
 
 	/**
-	 * Claims extracted from a valid JWT.
+	 * Claims extracted from a valid JWT; {@code sessionId} is {@code null} for a token of no session.
 	 */
-	public record Claims(Long userId, String userName, Instant expiresAt) {
+	public record Claims(String sessionId, Long userId, String userName, Instant expiresAt) {
 	}
 }

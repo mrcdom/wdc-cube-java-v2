@@ -45,7 +45,7 @@ public class EnUser extends TableImpl<Record> {
 
     public final TableField<Record, String> USERNAME = createField(DSL.name("USERNAME"), SQLDataType.VARCHAR(255).nullable(false), this, "");
 
-    public final TableField<Record, String> PASSWORD = createField(DSL.name("PASSWORD"), SQLDataType.CHAR(32).nullable(false), this, "");
+    public final TableField<Record, String> PASSWORD = createField(DSL.name("PASSWORD"), SQLDataType.VARCHAR(255).nullable(false), this, "");
 
     public final TableField<Record, String> NAME = createField(DSL.name("NAME"), SQLDataType.VARCHAR(255).nullable(false), this, "");
 

@@ -2,56 +2,47 @@ package br.com.wdc.store.persistence.impl.security;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Stores disposable nonces for the challenge-response login flow.
- * <p>
- * Each nonce is single-use and expires after a short TTL.
+ * The nonces of the sign-in challenges: each one is for one user, single-use, and expires after a short TTL.
  */
 public final class NonceStore {
 
 	private static final Duration NONCE_TTL = Duration.ofSeconds(60);
 
-	private final ConcurrentHashMap<String, Instant> nonces = new ConcurrentHashMap<>();
+	private record Entry(String userName, Instant expiresAt) {
+	}
 
-	/**
-	 * Generates and stores a new nonce.
-	 */
-	public String generate() {
+	private final ConcurrentHashMap<String, Entry> nonces = new ConcurrentHashMap<>();
+
+	/** Generates and stores a new nonce for {@code userName}'s sign-in. */
+	public String generate(String userName) {
 		var nonce = UUID.randomUUID().toString();
-		nonces.put(nonce, Instant.now().plus(NONCE_TTL));
+		nonces.put(nonce, new Entry(userName, Instant.now().plus(NONCE_TTL)));
 		return nonce;
 	}
 
-	/**
-	 * Returns the nonce's expiration time without removing it.
-	 */
+	/** The nonce's expiration time, without consuming it; {@code null} for an unknown nonce. */
 	public Instant expiresAt(String nonce) {
-		return nonces.get(nonce);
+		var entry = nonces.get(nonce);
+		return entry == null ? null : entry.expiresAt();
 	}
 
 	/**
-	 * Consumes the nonce (single use). Returns true if valid and not expired.
+	 * Consumes the nonce (single use, even when refused): {@code true} when it exists, has not expired and was made for
+	 * {@code userName}.
 	 */
-	public boolean consume(String nonce) {
-		var expiresAt = nonces.remove(nonce);
-		return expiresAt != null && Instant.now().isBefore(expiresAt);
+	public boolean consume(String nonce, String userName) {
+		var entry = nonce == null ? null : nonces.remove(nonce);
+		return entry != null && Instant.now().isBefore(entry.expiresAt()) && Objects.equals(entry.userName(), userName);
 	}
 
-	/**
-	 * Removes expired nonces. Called periodically.
-	 */
+	/** Removes expired nonces. Called periodically. */
 	public void evictExpired() {
 		var now = Instant.now();
-		Iterator<Map.Entry<String, Instant>> it = nonces.entrySet().iterator();
-		while (it.hasNext()) {
-			if (now.isAfter(it.next().getValue())) {
-				it.remove();
-			}
-		}
+		nonces.values().removeIf(entry -> now.isAfter(entry.expiresAt()));
 	}
 }

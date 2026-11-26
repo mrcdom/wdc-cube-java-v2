@@ -9,6 +9,8 @@ import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.framework.commons.serialization.JsonStreamReader;
 import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
+import br.com.wdc.framework.domain.exception.InvalidRequestException;
+import br.com.wdc.framework.domain.security.PasswordVerifiers;
 import br.com.wdc.framework.domain.security.SecurityContext;
 import br.com.wdc.framework.domain.security.policy.DataAccess;
 import br.com.wdc.store.domain.user.User;
@@ -82,7 +84,7 @@ public class UserApiController {
         var reader = new JsonStreamReader(ctx.body());
         var user = codec.readEntity(reader);
         access.checkCreate(user);
-        decryptPasswordIfPresent(user);
+        storablePassword(user);
         boolean success = repo().insert(user);
         var writer = new JsonStreamWriter();
         writer.beginObject();
@@ -115,7 +117,7 @@ public class UserApiController {
         var reader = new JsonStreamReader(ctx.body());
         var data = codec.readEntityForUpdate(reader);
         access.checkUpdate(data.entity(), data.projection(), (row, projection) -> repo().fetchById(row.id(), projection));
-        decryptPasswordIfPresent(data.entity());
+        storablePassword(data.entity());
         boolean success = repo().update(data.entity(), null, data.projection());
         var writer = new JsonStreamWriter();
         writer.beginObject();
@@ -404,20 +406,25 @@ public class UserApiController {
     }
 
     /**
-     * Decrypts the password if present and RSA-encrypted (session key).
+     * Turns the password that came into the one stored: its verifier ({@link PasswordVerifiers}). With a session, the
+     * password must come encrypted with the session's RSA key; one that does not decrypt is refused, never stored as it
+     * came.
      */
-    private static void decryptPasswordIfPresent(User user) {
-        if (user == null) {
+    private static void storablePassword(User user) {
+        if (user == null || user.password() == null || user.password().isBlank()) {
             return;
         }
         var sc = SecurityContext.CURRENT.get();
-        if (sc != null && user.password() != null && !user.password().isBlank()) {
+        var plain = user.password();
+        if (sc != null) {
             try {
-                user.withPassword(rsaDecrypt(user.password(), sc.privateKey()));
+                plain = rsaDecrypt(user.password(), sc.privateKey());
             } catch (Exception e) {
-                LOG.debug("Password not RSA-encrypted or decryption failed, using as-is");
+                LOG.debug("Password not encrypted with the session key: {}", e.getMessage());
+                throw new InvalidRequestException("The password must come encrypted with the session key");
             }
         }
+        user.withPassword(PasswordVerifiers.fromPassword(plain));
     }
 
     private static String rsaDecrypt(String encryptedBase64, PrivateKey privateKey) throws Exception {

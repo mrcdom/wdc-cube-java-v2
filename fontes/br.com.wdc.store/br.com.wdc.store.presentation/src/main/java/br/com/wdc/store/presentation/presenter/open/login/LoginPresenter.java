@@ -8,6 +8,7 @@ import br.com.wdc.framework.cube.FormParam;
 import br.com.wdc.framework.cube.ScopeSlot;
 import br.com.wdc.framework.domain.exception.AccessDeniedException;
 import br.com.wdc.framework.domain.exception.OfflineException;
+import br.com.wdc.framework.domain.exception.TooManyRequestsException;
 import br.com.wdc.store.presentation.StoreApplication;
 import br.com.wdc.store.presentation.StorageKeys;
 import br.com.wdc.store.presentation.presenter.open.login.calls.CredentialsCheck;
@@ -80,6 +81,14 @@ public class LoginPresenter extends AbstractCubePresenter<StoreApplication> {
         LOG.warn(scope.errorMessage.get());
     }
 
+    private void alertTooManySignIns(TooManyRequestsException caught) {
+        scope.errorCode.set(7);
+        var seconds = caught.retryAfterSeconds();
+        scope.errorMessage.set(seconds != null
+                ? "Too many failed sign-ins. Try again in " + seconds + (seconds == 1 ? " second." : " seconds.")
+                : "Too many failed sign-ins. Try again later.");
+    }
+
     private void alertConnectionError(Throwable caught) {
         scope.errorCode.set(5);
         scope.errorMessage.set("Could not reach the server. Check your connection.");
@@ -122,6 +131,11 @@ public class LoginPresenter extends AbstractCubePresenter<StoreApplication> {
         } catch (Exception caught) {
             if (caught instanceof OfflineException) {
                 this.alertDatabaseIsOffline();
+                return;
+            }
+            if (caught instanceof TooManyRequestsException tmr) {
+                app.setSubject(null);
+                this.alertTooManySignIns(tmr);
                 return;
             }
             if (caught instanceof AccessDeniedException ade) {

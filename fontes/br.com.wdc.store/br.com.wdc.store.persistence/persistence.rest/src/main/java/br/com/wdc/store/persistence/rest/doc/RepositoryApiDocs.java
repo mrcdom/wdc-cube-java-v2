@@ -157,6 +157,7 @@ public final class RepositoryApiDocs {
                 .addSchemas("PurchaseItemFetchRequest", requestOf("FetchRequest", "PurchaseItemCriteria"))
                 .addSchemas("PurchaseItemPageRequest", requestOf("PageRequest", "PurchaseItemCriteria"))
                 // Auth shapes
+                .addSchemas("ChallengeRequest", challengeRequest())
                 .addSchemas("ChallengeResponse", challengeResponse())
                 .addSchemas("LoginRequest", loginRequest())
                 .addSchemas("TokenResponse", tokenResponse())
@@ -183,6 +184,8 @@ public final class RepositoryApiDocs {
         return new ObjectSchema()
                 .description("Error response body")
                 .addProperty("error", new StringSchema().description("Human-readable error message"))
+                .addProperty("retryAfter", new IntegerSchema().format("int64")
+                        .description("On a 429: the seconds to wait before trying again, as in the Retry-After header"))
                 .addRequiredItem("error");
     }
 
@@ -390,34 +393,46 @@ public final class RepositoryApiDocs {
 
     // -- Auth shapes --
 
+    private static Schema<?> challengeRequest() {
+        return new ObjectSchema()
+                .description("Starts a user's SCRAM-SHA-256 sign-in")
+                .addProperty("userName", new StringSchema())
+                .addRequiredItem("userName");
+    }
+
     private static Schema<?> challengeResponse() {
         return new ObjectSchema()
-                .description("HMAC challenge — use the nonce when building the login digest")
-                .addProperty("nonce", new StringSchema().description("One-time nonce"))
+                .description("SCRAM-SHA-256 challenge. An unknown user gets made-up parameters, the same every time.")
+                .addProperty("nonce", new StringSchema().description("Single-use nonce, good for this user only"))
+                .addProperty("salt", new StringSchema().format("byte").description("Salt of the user's verifier (Base64)"))
+                .addProperty("iterations", new IntegerSchema().format("int32").description("PBKDF2 iterations of the verifier"))
                 .addProperty("expiresAt", new StringSchema().format("date-time").description("Nonce expiry"))
-                .addRequiredItem("nonce").addRequiredItem("expiresAt");
+                .addRequiredItem("nonce").addRequiredItem("salt").addRequiredItem("iterations").addRequiredItem("expiresAt");
     }
 
     private static Schema<?> loginRequest() {
         return new ObjectSchema()
-                .description("Challenge-response login. Digest = HMAC-SHA256(nonce, password).")
+                .description("SCRAM-SHA-256 sign-in. SaltedPassword = PBKDF2-HMAC-SHA256(digest, salt, iterations), where digest"
+                        + " is MD5(password) as a signed integer in base 36; ClientKey = HMAC(SaltedPassword, \"Client Key\");"
+                        + " proof = ClientKey XOR HMAC(SHA-256(ClientKey), \"n=<userName>,r=<nonce>\").")
                 .addProperty("userName", new StringSchema())
-                .addProperty("digest", new StringSchema().description("HMAC-SHA256 hex digest of nonce + password"))
-                .addProperty("nonce", new StringSchema().description("Nonce from GET /api/auth/challenge"))
-                .addRequiredItem("userName").addRequiredItem("digest").addRequiredItem("nonce");
+                .addProperty("proof", new StringSchema().format("byte").description("The client's SCRAM proof (Base64)"))
+                .addProperty("nonce", new StringSchema().description("Nonce from POST /api/auth/challenge for this userName"))
+                .addRequiredItem("userName").addRequiredItem("proof").addRequiredItem("nonce");
     }
 
     private static Schema<?> tokenResponse() {
         return new ObjectSchema()
                 .description("Issued or refreshed JWT token pair")
+                .addProperty("userId", new IntegerSchema().format("int64"))
                 .addProperty("accessToken", new StringSchema())
                 .addProperty("refreshToken", new StringSchema())
                 .addProperty("expiresAt", new StringSchema().format("date-time"))
-                .addProperty("user", new ObjectSchema()
-                        .addProperty("id", new IntegerSchema().format("int64"))
-                        .addProperty("name", new StringSchema())
-                        .addProperty("roles", new StringSchema()))
-                .addRequiredItem("accessToken").addRequiredItem("refreshToken").addRequiredItem("expiresAt");
+                .addProperty("publicKey", new StringSchema().description("The session's RSA public key (Base64 SPKI): encrypts a password sent to the user API"))
+                .addProperty("serverSignature", new StringSchema().format("byte").description(
+                        "Sign-in only: HMAC(HMAC(SaltedPassword, \"Server Key\"), \"n=<userName>,r=<nonce>\") (Base64); the client"
+                                + " checks it to know the server holds the verifier"))
+                .addRequiredItem("userId").addRequiredItem("accessToken").addRequiredItem("refreshToken").addRequiredItem("expiresAt");
     }
 
     private static Schema<?> refreshRequest() {

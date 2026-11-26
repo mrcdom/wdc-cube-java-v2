@@ -19,8 +19,9 @@ import org.junit.Test;
 import org.junit.rules.ExternalResource;
 
 import br.com.wdc.framework.domain.exception.AccessDeniedException;
+import br.com.wdc.framework.domain.exception.InvalidRequestException;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
-import br.com.wdc.framework.domain.security.PasswordUtil;
+import br.com.wdc.framework.domain.security.PasswordVerifiers;
 import br.com.wdc.store.domain.user.User;
 import br.com.wdc.store.domain.user.UserCriteria;
 import br.com.wdc.store.domain.user.UserRepository;
@@ -53,7 +54,7 @@ public class UserDataPolicyRestTest {
 	public void addManager() {
 		var manager = new User()
 				.withUserName("mmajor")
-				.withPassword(PasswordUtil.hashPassword("mmajor"))
+				.withPassword(PasswordVerifiers.fromPassword("mmajor"))
 				.withName("Mary Major")
 				.withRoles("MANAGER");
 		UserRepository.BEAN.get().insert(manager);
@@ -161,10 +162,23 @@ public class UserDataPolicyRestTest {
 
 		var created = new User()
 				.withUserName("newbie")
-				.withPassword(PasswordUtil.hashPassword("newbie"))
+				.withPassword(admin.auth().encryptPassword("first-secret"))
 				.withName("New Customer")
 				.withRoles("CUSTOMER");
 		assertTrue(admin.users().insert(created));
+
+		// the server stored the password's verifier: the new user signs in with it
+		assertNotNull(RestSession.signIn(env, "newbie", "first-secret").auth().accessToken());
+		var stored = UserRepository.BEAN.get().fetchById(created.id(), new User()
+				.withPassword(PV.str)).password();
+		assertTrue(stored, stored.startsWith("SCRAM-SHA-256$4096:"));
+
+		// and a new password replaces it
+		assertTrue(admin.users().update(new User()
+				.withId(created.id())
+				.withPassword(admin.auth().encryptPassword("second-secret")), new User()
+						.withId(created.id())));
+		assertNotNull(RestSession.signIn(env, "newbie", "second-secret").auth().accessToken());
 
 		var renamed = new User()
 				.withId(created.id())
@@ -175,6 +189,18 @@ public class UserDataPolicyRestTest {
 
 		assertEquals(1, admin.users().delete(new UserCriteria()
 				.withUserId(created.id())));
+	}
+
+	@Test
+	public void aPasswordNotEncryptedWithTheSessionKey_isRefused() {
+		var admin = signIn("admin");
+
+		var e = assertThrows(InvalidRequestException.class, () -> admin.users().insert(new User()
+				.withUserName("plain")
+				.withPassword("in-the-clear")
+				.withName("Plain Text")
+				.withRoles("CUSTOMER")));
+		assertTrue(e.getMessage(), e.getMessage().contains("encrypted"));
 	}
 
 	@Test

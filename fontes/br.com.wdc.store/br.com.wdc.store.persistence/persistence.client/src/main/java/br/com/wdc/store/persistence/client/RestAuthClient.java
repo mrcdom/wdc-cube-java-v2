@@ -7,23 +7,21 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 import javax.crypto.Cipher;
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 
 import br.com.wdc.framework.commons.http.HttpTransport;
-import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
-import br.com.wdc.framework.commons.serialization.JsonStreamReader;
 import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
 import br.com.wdc.framework.domain.exception.BusinessException;
+import br.com.wdc.framework.domain.security.JceCryptoProvider;
+import br.com.wdc.framework.domain.security.Scram;
 
 /**
  * REST client for authentication through the API.
  * <p>
- * Implements the challenge-response (HMAC) flow and manages tokens.
+ * Signs in with SCRAM-SHA-256 and manages the session's tokens.
  */
 public class RestAuthClient {
 
-	private static final String HMAC_ALGORITHM = "HmacSHA256";
+	private static final Scram SCRAM = new Scram(new JceCryptoProvider());
 
 	private final HttpTransport transport;
 
@@ -37,52 +35,20 @@ public class RestAuthClient {
 	}
 
 	/**
-	 * Performs the full login: challenge + HMAC + token.
+	 * Signs in: the SCRAM-SHA-256 exchange ({@link Scram}), checking that the server holds the user's verifier.
 	 *
-	 * @param userName     user name
-	 * @param passwordHash MD5-base36 hash of the password (as stored in the database)
+	 * @param userName user name
+	 * @param password the password as the user typed it; it does not leave this process
 	 */
-	public void login(String userName, String passwordHash) {
-		// 1. Get the challenge (nonce)
-		var challengeJson = transport.getJson("/api/auth/challenge");
-		var challengeReader = new JsonStreamReader(challengeJson);
-		challengeReader.beginObject();
-		String nonce = null;
-		while (challengeReader.hasNext()) {
-			switch (challengeReader.nextName()) {
-				case "nonce" -> nonce = InputCoerceUtils.asString(challengeReader);
-				default -> challengeReader.skipValue();
-			}
+	public void login(String userName, String password) {
+		var challenge = AuthJson.readChallenge(transport.postJsonPublic("/api/auth/challenge", AuthJson.challengeRequest(userName)));
+		var response = SCRAM.respond(userName, password, challenge);
+		var result = AuthJson.readAuthResult(transport.postJsonPublic("/api/auth/login",
+				AuthJson.loginRequest(userName, response.proof(), challenge.nonce())));
+		if (!response.serverIsAuthentic(result.serverSignature())) {
+			throw new BusinessException("The server could not prove it holds the user's credentials");
 		}
-		challengeReader.endObject();
-
-		// 2. Compute the HMAC: key=passwordHash, data=userName+nonce
-		var digest = computeHmac(passwordHash, userName + nonce);
-
-		// 3. Send the login
-		var writer = new JsonStreamWriter();
-		writer.beginObject();
-		writer.name("userName").value(userName);
-		writer.name("digest").value(digest);
-		writer.name("nonce").value(nonce);
-		writer.endObject();
-
-		var loginJson = transport.postJsonPublic("/api/auth/login", writer.result());
-		var loginReader = new JsonStreamReader(loginJson);
-		loginReader.beginObject();
-		while (loginReader.hasNext()) {
-			switch (loginReader.nextName()) {
-				case "accessToken" -> this.accessToken = InputCoerceUtils.asString(loginReader);
-				case "refreshToken" -> this.refreshToken = InputCoerceUtils.asString(loginReader);
-				case "publicKey" -> this.publicKeyBase64 = InputCoerceUtils.asString(loginReader);
-				case "expiresAt" -> {
-					var s = InputCoerceUtils.asString(loginReader);
-					if (s != null) this.expiresAtEpochSecond = java.time.Instant.parse(s).getEpochSecond();
-				}
-				default -> loginReader.skipValue();
-			}
-		}
-		loginReader.endObject();
+		setTokens(result.accessToken(), result.refreshToken(), result.publicKey(), result.expiresAt().getEpochSecond());
 	}
 
 	/**
@@ -93,27 +59,8 @@ public class RestAuthClient {
 			throw new BusinessException("No refresh token available — login first");
 		}
 
-		var writer = new JsonStreamWriter();
-		writer.beginObject();
-		writer.name("refreshToken").value(refreshToken);
-		writer.endObject();
-
-		var responseJson = transport.postJsonPublic("/api/auth/refresh", writer.result());
-		var reader = new JsonStreamReader(responseJson);
-		reader.beginObject();
-		while (reader.hasNext()) {
-			switch (reader.nextName()) {
-				case "accessToken" -> this.accessToken = InputCoerceUtils.asString(reader);
-				case "refreshToken" -> this.refreshToken = InputCoerceUtils.asString(reader);
-				case "publicKey" -> this.publicKeyBase64 = InputCoerceUtils.asString(reader);
-				case "expiresAt" -> {
-					var s = InputCoerceUtils.asString(reader);
-					if (s != null) this.expiresAtEpochSecond = java.time.Instant.parse(s).getEpochSecond();
-				}
-				default -> reader.skipValue();
-			}
-		}
-		reader.endObject();
+		var result = AuthJson.readAuthResult(transport.postJsonPublic("/api/auth/refresh", AuthJson.refreshRequest(refreshToken)));
+		setTokens(result.accessToken(), result.refreshToken(), result.publicKey(), result.expiresAt().getEpochSecond());
 	}
 
 	/**
@@ -190,24 +137,5 @@ public class RestAuthClient {
 		} catch (Exception e) {
 			throw BusinessException.wrap("RSA encryption failed", e);
 		}
-	}
-
-	private static String computeHmac(String key, String data) {
-		try {
-			var mac = Mac.getInstance(HMAC_ALGORITHM);
-			mac.init(new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), HMAC_ALGORITHM));
-			var hash = mac.doFinal(data.getBytes(StandardCharsets.UTF_8));
-			return bytesToHex(hash);
-		} catch (Exception e) {
-			throw new AssertionError("HMAC-SHA256 failed", e);
-		}
-	}
-
-	private static String bytesToHex(byte[] bytes) {
-		var sb = new StringBuilder(bytes.length * 2);
-		for (byte b : bytes) {
-			sb.append(String.format("%02x", b));
-		}
-		return sb.toString();
 	}
 }

@@ -36,6 +36,13 @@
             <artifactId>br.com.wdc.store.presentation</artifactId>
         </dependency>
 
+        <!-- Tests of the pure-Java parts on the JVM -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- TeaVM Commons (VDom, Swc, interop) -->
         <dependency>
             <groupId>${project.groupId}</groupId>

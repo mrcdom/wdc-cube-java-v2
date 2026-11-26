@@ -194,7 +194,7 @@ The response is an existing type; or a module struct (`structs/`), when other ca
 
 | Call | Request | Response |
 |---------|------------|----------|
-| `CredentialsCheck` | `withUserName`, `withPassword` | `CredentialsCheck.Result` (HMAC challenge-response via `AuthenticationService`) |
+| `CredentialsCheck` | `withUserName`, `withPassword` | `CredentialsCheck.Result` (SCRAM-SHA-256 exchange via `AuthenticationService`, checking the server's signature; without it, the password against the stored verifier) |
 | `ProductQuery` | `withProductId` | `ProductInfo` |
 | `ProductListQuery` | `withLimit` | `List<ProductInfo>` (without description) |
 | `PurchasesPageQuery` | `withUserId`, `withPage`, `withPageSize` | `Page<PurchaseInfo>` (most recent first) |

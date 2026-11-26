@@ -1,10 +1,10 @@
 /**
- * The session: challenge-response authentication and the HTTP transport that uses it.
+ * The session: the SCRAM-SHA-256 sign-in and the HTTP transport that uses it.
  *
  * Emits events (`change`) so the interface can react without this class knowing about the screen.
  */
 
-import { hmacSha256, passwordDigest } from './crypto.js';
+import { scramResponse } from './crypto.js';
 
 /** Request and response of a call, so the interface can show them. */
 export class Exchange {
@@ -44,19 +44,26 @@ export class Session extends EventTarget {
   }
 
   /**
-   * Challenge-response: asks for a nonce, replies with the HMAC of the password digest.
+   * SCRAM-SHA-256: asks for the user's challenge, answers with a proof of the password, and checks the server's
+   * signature before keeping the session.
    *
-   * The password never travels over the wire — not at login, not afterwards.
+   * The password never travels over the wire — not at sign-in, not afterwards.
    */
   async login(userName, password) {
-    const challenge = await this.send('GET', '/api/auth/challenge');
+    const challenge = await this.send('POST', '/api/auth/challenge', { userName });
     if (!challenge.ok) throw new Error(`Could not get the challenge (HTTP ${challenge.status})`);
 
     const { nonce } = challenge.responseBody;
-    const digest = await hmacSha256(passwordDigest(password), userName + nonce);
+    const { proof, expectedServerSignature } = await scramResponse(userName, password, challenge.responseBody);
 
-    const login = await this.send('POST', '/api/auth/login', { userName, digest, nonce });
+    const login = await this.send('POST', '/api/auth/login', { userName, proof, nonce });
+    if (login.status === 429) {
+      throw new Error(`Too many failed sign-ins: try again in ${login.responseBody?.retryAfter ?? 'a few'} seconds`);
+    }
     if (!login.ok) throw new Error(`Authentication failed (HTTP ${login.status})`);
+    if (login.responseBody.serverSignature !== expectedServerSignature) {
+      throw new Error('The server could not prove it holds the user\'s credentials');
+    }
 
     this.#accessToken = login.responseBody.accessToken;
     this.#refreshToken = login.responseBody.refreshToken;
@@ -78,7 +85,9 @@ export class Session extends EventTarget {
   }
 
   async logout() {
-    const response = this.#accessToken ? await this.send('POST', '/api/auth/logout', {}) : null;
+    const response = this.#refreshToken
+      ? await this.send('POST', '/api/auth/logout', { refreshToken: this.#refreshToken })
+      : null;
     this.#accessToken = null;
     this.#refreshToken = null;
     this.#userName = null;

@@ -29,5 +29,6 @@ A record is not edited once accepted, except to fix a mistake or a link. A decis
 | [0021](0021-actions-run-one-at-a-time.md) | The actions of one application run one at a time | Accepted |
 | [0022](0022-computed-state-in-every-host.md) | Computed state is committed once per paint cycle, in every host | Accepted |
 | [0023](0023-remote-channel-key-per-connection.md) | The remote channel: a key agreed per connection, HMAC signatures, a versioned protocol | Accepted |
+| [0024](0024-scram-sign-in.md) | Sign-in with SCRAM-SHA-256; failed sign-ins slow the account down | Accepted |
 
 New record: copy the shape of an existing one (`# NNNN. <decision as a sentence>`, Date, Status, Context, Decision, Consequences, and Alternatives considered when there were real ones), take the next number, and add it to this table.

@@ -19,7 +19,7 @@ import org.junit.rules.ExternalResource;
 
 import br.com.wdc.framework.domain.exception.AccessDeniedException;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
-import br.com.wdc.framework.domain.security.PasswordUtil;
+import br.com.wdc.framework.domain.security.PasswordVerifiers;
 import br.com.wdc.store.domain.product.Product;
 import br.com.wdc.store.domain.product.ProductCriteria;
 import br.com.wdc.store.domain.purchase.Purchase;
@@ -60,7 +60,7 @@ public class PurchaseDataPolicyRestTest {
 	public void jdoeBuysACoffeeMaker() {
 		UserRepository.BEAN.get().insert(new User()
 				.withUserName("mmajor")
-				.withPassword(PasswordUtil.hashPassword("mmajor"))
+				.withPassword(PasswordVerifiers.fromPassword("mmajor"))
 				.withName("Mary Major")
 				.withRoles("MANAGER"));
 

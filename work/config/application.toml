@@ -106,6 +106,9 @@ sessionTtlSeconds = 0
 # JWT secret for API authentication (RepositoryApiRoutes)
 # If not set, API endpoints are served without authentication
 jwt.secret = "wdc-store-jwt-s3cr3t-k3y-ch4ng3-1n-pr0duct10n"
+# Requests to /api/auth (challenge, login, refresh) per client address and minute; 0 = no limit (default: 60).
+# Behind a proxy every client is the proxy's address: limit per address at the proxy instead.
+# auth.requestsPerMinute = 60
 
 [remote]
 # HMAC-SHA256 key that signs the remote session ids and the addresses of the history (Base64 URL-safe, >= 32 bytes).

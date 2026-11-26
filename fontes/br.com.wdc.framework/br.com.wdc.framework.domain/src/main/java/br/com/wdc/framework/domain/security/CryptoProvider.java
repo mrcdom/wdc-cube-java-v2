@@ -21,6 +21,11 @@ public interface CryptoProvider {
     byte[] md5(byte[] input);
 
     /**
+     * SHA-256 hash of bytes, returning the digest bytes.
+     */
+    byte[] sha256(byte[] input);
+
+    /**
      * HMAC-SHA256.
      *
      * @param key  key bytes

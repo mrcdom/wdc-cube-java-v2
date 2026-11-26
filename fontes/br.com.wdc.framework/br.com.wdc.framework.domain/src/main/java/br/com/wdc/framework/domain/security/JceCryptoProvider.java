@@ -24,6 +24,15 @@ public class JceCryptoProvider implements CryptoProvider {
     }
 
     @Override
+    public byte[] sha256(byte[] input) {
+        try {
+            return MessageDigest.getInstance("SHA-256").digest(input);
+        } catch (NoSuchAlgorithmException e) {
+            throw new AssertionError("SHA-256 not available", e);
+        }
+    }
+
+    @Override
     public byte[] hmacSha256(byte[] key, byte[] data) {
         try {
             var mac = Mac.getInstance(HMAC_ALGORITHM);

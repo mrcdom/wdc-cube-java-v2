@@ -538,7 +538,7 @@ graph TD
     end
 
     subgraph Persistence["persistence — Implementations"]
-        AuthImpl["AuthenticationServiceImpl<br/><small>HMAC-SHA256 + JWT</small>"]
+        AuthImpl["AuthenticationServiceImpl<br/><small>SCRAM-SHA-256 + JWT</small>"]
         AccessCtx["AccessContext<br/><small>Concrete SecurityContext with an ephemeral RSA pair</small>"]
     end
 
@@ -554,16 +554,16 @@ graph TD
     SecHolder -->|"roles"| Policies
 ```
 
-The authentication flow uses **HMAC challenge-response** so the password never travels in plain text:
+The sign-in is **SCRAM-SHA-256**: the password never travels, and the database stores only verifiers ([security-architecture.md](security-architecture.md#sign-in-with-scram-sha-256)):
 
 ```
-1. Client → GET /api/auth/challenge
-   ← { nonce: "abc123", expiresAt: "..." }
+1. Client → POST /api/auth/challenge { userName }
+   ← { nonce, salt, iterations, expiresAt }
 
-2. digest = HMAC-SHA256(key=PasswordUtil.hashPassword(password), data=userName+nonce)   // MD5 → base36
+2. proof = Scram.respond(userName, password, challenge)   // PBKDF2 over the password's MD5 digest
 
-3. Client → POST /api/auth/login { userName, digest, nonce }
-   ← { accessToken, refreshToken, publicKey, expiresAt }
+3. Client → POST /api/auth/login { userName, proof, nonce }
+   ← { userId, accessToken, refreshToken, publicKey, expiresAt, serverSignature }   // the client checks the signature
 
 4. Subsequent requests: Authorization: Bearer <accessToken>
 ```

@@ -20,7 +20,7 @@ A practical guide for developers who build on the framework: how to authenticate
 | Concern | The framework gives you (`framework-domain`, `framework-jooq`, `framework-cube-remote`) | You write |
 |---------|--------------------------------------------------------------------------------------|-----------|
 | Who the requester is | `SecurityContext` (user id, name, **role names**) and its per-thread holder `SecurityContext.CURRENT` | The filter of your HTTP layer that sets it for each request |
-| Logging in | The `AuthenticationService` contract, `PasswordUtil` (hash, HMAC), `CryptoProvider` | The implementation: users, sessions, tokens |
+| Logging in | The `AuthenticationService` contract, `Scram`/`ScramVerifier` (SCRAM-SHA-256), `PasswordVerifiers`, `PasswordUtil`, `CryptoProvider` | The implementation: users, sessions, tokens, limits on guessing |
 | What each role may do with the data | `DataPolicy`, `DataGrant`, `RowScope`, `Mask`, `EntityDescriptor`, `DataAccess` | One policy per entity your REST API exposes, and one call to it per endpoint |
 | Disjunctions in queries | `Criteria.anyOf`, `CriterionTranslator.anyOf` / `translateAny`, `CriterionCodec.refuseAnyOf` | One line in each repository and each codec |
 | Remote presentation channel | Signed session ids, handshake, encryption of sensitive values, signed navigation | Production keys, TLS, and scoping the ids your presenters receive |
@@ -46,16 +46,18 @@ public interface SecurityContext {
 
 ### The authentication service
 
-Implement `AuthenticationService` and register it in `AuthenticationService.BEAN` at startup. Its contract is a **challenge-response** login, so the password never travels:
+Implement `AuthenticationService` and register it in `AuthenticationService.BEAN` at startup. Its contract is a **SCRAM-SHA-256** sign-in (RFC 5802/7677): the password never travels, and what the server stores — a `ScramVerifier` — signs no one in:
 
 | Method | Does |
 |--------|------|
-| `challenge()` | Issues a single-use nonce with a short expiry |
-| `login(userName, digest, nonce)` | Checks `digest = HMAC-SHA256(key = password hash, data = userName + nonce)` (`PasswordUtil.computeHmac`) and opens a session: access token, refresh token, the session's public key |
+| `challenge(userName)` | A single-use nonce for that user, and the salt and iterations of its verifier (made-up but stable for an unknown user) |
+| `login(userName, proof, nonce)` | Checks the client's proof against the verifier (`Scram.verifyProof`) and opens a session: access token, refresh token, the session's public key and the server's signature, which the client checks (`Scram.ClientResponse.serverIsAuthentic`). May throw `TooManyRequestsException` when the account must wait |
 | `refresh(refreshToken)` | Renews the tokens |
 | `logout(refreshToken)` | Ends the session of that device |
 | `resolveToken(jwt)` | The `SecurityContext` of a bearer token, or `null` |
 | `createPersistentToken(...)` / `loginWithPersistentToken(...)` | "Remember me" for the remote hosts |
+
+The client's side is `Scram.respond(userName, password, challenge)`: the proof to send and the signature to expect. `PasswordVerifiers.fromPassword` makes the verifier to store, with a fresh salt and `ScramVerifier.DEFAULT_ITERATIONS` (4096); `PasswordVerifiers.fromDigest` converts a stored `PasswordUtil.hashPassword` digest into the verifier of the same password.
 
 When no `AuthenticationService` is registered, there is no requester, and the data policies let everything through — that is what local and test modes do. WDC Store's implementation, `AuthenticationServiceImpl`, is a complete example.
 

@@ -1,8 +1,9 @@
 package br.com.wdc.store.persistence.impl.security;
 
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.time.Duration;
+import java.util.Base64;
+import java.util.Locale;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -11,6 +12,9 @@ import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.domain.projection.ProjectionValues;
 import br.com.wdc.framework.domain.security.AuthenticationService;
+import br.com.wdc.framework.domain.security.JceCryptoProvider;
+import br.com.wdc.framework.domain.security.Scram;
+import br.com.wdc.framework.domain.security.ScramVerifier;
 import br.com.wdc.framework.domain.security.SecurityContext;
 import br.com.wdc.store.domain.security.Role;
 import br.com.wdc.store.domain.user.User;
@@ -18,11 +22,13 @@ import br.com.wdc.store.domain.user.UserCriteria;
 import br.com.wdc.store.domain.user.UserRepository;
 
 /**
- * {@link AuthenticationService} implementation.
+ * Signs users in with SCRAM-SHA-256 ({@link Scram}) against the verifier each user has in the database, and keeps the
+ * sessions ({@link AccessContextCache}) and their JWTs. Reads the credentials, the verifier included, from the user
+ * repository itself — the data policies guard the REST API, not the repositories.
  * <p>
- * Manages the HMAC challenge-response flow, in-memory sessions and JWT.
- * Reads the credentials, password included, from the user repository
- * itself — the data policies guard the REST API, not the repositories.
+ * The answers do not tell whether a user exists: an unknown user gets a challenge with made-up parameters, the same
+ * for the same name, and a refusal costs the same work. Failed sign-ins on one account are slowed down
+ * ({@link LoginThrottle}), whichever way they come in.
  */
 public final class AuthenticationServiceImpl implements AuthenticationService {
 
@@ -33,61 +39,81 @@ public final class AuthenticationServiceImpl implements AuthenticationService {
 	private final UserRepository rawUserRepo;
 	private final AccessContextCache cache;
 	private final NonceStore nonceStore;
+	private final LoginThrottle throttle;
+	private final Scram scram = new Scram(new JceCryptoProvider());
+
+	/** The key of the made-up salts: derived from the JWT secret, so they stay the same across restarts. */
+	private final byte[] decoySaltKey;
+
+	/** What an unknown user's proof is checked against, so a refusal takes the same work either way. */
+	private final ScramVerifier decoyVerifier = scram.verifier("decoy", new byte[ScramVerifier.SALT_SIZE], 1);
 
 	public AuthenticationServiceImpl(UserRepository rawUserRepo, String jwtSecret) {
+		this(rawUserRepo, jwtSecret, new LoginThrottle());
+	}
+
+	public AuthenticationServiceImpl(UserRepository rawUserRepo, String jwtSecret, LoginThrottle throttle) {
 		this.rawUserRepo = rawUserRepo;
 		this.cache = new AccessContextCache(jwtSecret);
 		this.nonceStore = new NonceStore();
+		this.throttle = throttle;
+		this.decoySaltKey = hmac("wdc-store-scram-decoy".getBytes(StandardCharsets.UTF_8),
+				jwtSecret.getBytes(StandardCharsets.UTF_8));
 
-		// Schedules periodic cleanup of expired sessions and nonces.
-		// A 1h interval is enough: refresh TTL is 7 days, nonce TTL is 5 min.
+		// Schedules periodic cleanup of expired sessions, nonces and forgotten sign-in failures.
+		// A 1h interval is enough: refresh TTL is 7 days, nonce TTL is 1 min, failures are forgotten after 1 h.
 		var scheduler = ScheduledExecutor.BEAN.get();
 		if (scheduler != null) {
-			scheduler.scheduleAtFixedRate(() -> {
-				cache.evictExpired();
-				nonceStore.evictExpired();
-			}, Duration.ofMinutes(10), Duration.ofHours(1));
+			scheduler.scheduleAtFixedRate(this::evictExpired, Duration.ofMinutes(10), Duration.ofHours(1));
 		}
 	}
 
 	@Override
-	public ChallengeResult challenge() {
-		var nonce = nonceStore.generate();
-		var expiresAt = nonceStore.expiresAt(nonce);
-		return new ChallengeResult(nonce, expiresAt);
+	public ChallengeResult challenge(String userName) {
+		var verifier = userName == null ? null : ScramVerifier.parse(passwordOf(findUser(userName)));
+		var salt = verifier != null ? verifier.salt() : decoySalt(userName == null ? "" : userName);
+		var iterations = verifier != null ? verifier.iterations() : ScramVerifier.DEFAULT_ITERATIONS;
+		var nonce = nonceStore.generate(userName);
+		return new ChallengeResult(nonce, Base64.getEncoder().encodeToString(salt), iterations,
+				nonceStore.expiresAt(nonce));
 	}
 
 	@Override
-	public AuthResult login(String userName, String digest, String nonce) {
-		if (userName == null || digest == null || nonce == null) {
+	public AuthResult login(String userName, String proof, String nonce) {
+		if (userName == null || proof == null || nonce == null) {
 			return null;
 		}
 
-		if (!nonceStore.consume(nonce)) {
-			LOG.warn("Login failed: invalid or expired nonce");
+		throttle.check(userName);
+
+		var user = findUser(userName);
+		var verifier = ScramVerifier.parse(passwordOf(user));
+		var authMessage = Scram.authMessage(userName, nonce);
+		byte[] proofBytes;
+		try {
+			proofBytes = Base64.getDecoder().decode(proof);
+		} catch (IllegalArgumentException notBase64) {
+			proofBytes = new byte[0];
+		}
+		// the nonce and the proof are both checked, and the proof even without a user: the same work for every refusal
+		var nonceOk = nonceStore.consume(nonce, userName);
+		var proofOk = scram.verifyProof(verifier != null ? verifier : decoyVerifier, authMessage, proofBytes);
+
+		if (user == null || verifier == null || !nonceOk || !proofOk) {
+			throttle.failed(userName);
+			LOG.warn("Login refused: {}", nonceOk ? "wrong credentials" : "invalid, expired or foreign nonce");
 			return null;
 		}
-
-		var user = fetchUserForAuth(userName);
-		if (user == null) {
-			LOG.warn("Login failed: user not found: {}", userName);
-			return null;
-		}
-
-		var expectedDigest = computeHmac(user.password(), userName + nonce);
-
-		if (!MessageDigest.isEqual(
-				expectedDigest.getBytes(StandardCharsets.UTF_8),
-				digest.getBytes(StandardCharsets.UTF_8))) {
-			LOG.warn("Login failed: HMAC mismatch for user: {}", userName);
-			return null;
-		}
+		throttle.succeeded(userName);
 
 		var roles = Role.parse(user.roles());
 		var session = cache.createSession(user.id(), user.userName(), Role.names(roles));
-		var accessToken = JwtUtil.create(user.id(), user.userName(), cache.accessTokenTtl(), cache.jwtSecret());
+		var accessToken = JwtUtil.create(session.sessionId(), user.id(), user.userName(), cache.accessTokenTtl(),
+				cache.jwtSecret());
+		var serverSignature = Base64.getEncoder().encodeToString(scram.serverSignature(verifier.serverKey(), authMessage));
 
-		return new AuthResult(user.id(), accessToken, session.refreshToken(), session.expiresAt(), session.publicKeyBase64());
+		return new AuthResult(user.id(), accessToken, session.refreshToken(), session.expiresAt(), session.publicKeyBase64(),
+				serverSignature);
 	}
 
 	@Override
@@ -101,10 +127,12 @@ public final class AuthenticationServiceImpl implements AuthenticationService {
 			return null;
 		}
 
-		var accessToken = JwtUtil.create(session.userId(), session.userName(),
+		var accessToken = JwtUtil.create(session.sessionId(), session.userId(), session.userName(),
 				cache.accessTokenTtl(), cache.jwtSecret());
 
-		return new AuthResult(session.userId(), accessToken, session.refreshToken(), session.expiresAt(), session.publicKeyBase64());
+		// a refresh proves nothing about the password: no server signature
+		return new AuthResult(session.userId(), accessToken, session.refreshToken(), session.expiresAt(),
+				session.publicKeyBase64(), null);
 	}
 
 	@Override
@@ -120,12 +148,13 @@ public final class AuthenticationServiceImpl implements AuthenticationService {
 		if (claims == null) {
 			return null;
 		}
-		return cache.get(claims.userId());
+		// only an access token carries a session: the persistent one does not open the API
+		return claims.sessionId() == null ? null : cache.getBySessionId(claims.sessionId());
 	}
 
 	@Override
 	public String createPersistentToken(Long userId, String userName) {
-		return JwtUtil.create(userId, userName, PERSISTENT_TOKEN_TTL, cache.jwtSecret());
+		return JwtUtil.create(null, userId, userName, PERSISTENT_TOKEN_TTL, cache.jwtSecret());
 	}
 
 	@Override
@@ -135,7 +164,8 @@ public final class AuthenticationServiceImpl implements AuthenticationService {
 		}
 
 		var claims = JwtUtil.validate(persistentToken, cache.jwtSecret());
-		if (claims == null) {
+		// an access token (it has a session) is not a persistent token
+		if (claims == null || claims.sessionId() != null) {
 			LOG.debug("Persistent token validation failed");
 			return null;
 		}
@@ -149,15 +179,29 @@ public final class AuthenticationServiceImpl implements AuthenticationService {
 
 		var roles = Role.parse(user.roles());
 		var session = cache.createSession(user.id(), user.userName(), Role.names(roles));
-		var accessToken = JwtUtil.create(user.id(), user.userName(), cache.accessTokenTtl(), cache.jwtSecret());
+		var accessToken = JwtUtil.create(session.sessionId(), user.id(), user.userName(), cache.accessTokenTtl(),
+				cache.jwtSecret());
 
 		LOG.info("Auto-login via persistent token for user: {} ({})", user.userName(), user.id());
-		return new AuthResult(user.id(), accessToken, session.refreshToken(), session.expiresAt(), session.publicKeyBase64());
+		return new AuthResult(user.id(), accessToken, session.refreshToken(), session.expiresAt(), session.publicKeyBase64(),
+				null);
 	}
 
 	// :: Internal
 
-	private User fetchUserForAuth(String userName) {
+	/** Drops the expired sessions, the challenges nobody answered and the forgotten failures. */
+	public void evictExpired() {
+		try {
+			cache.evictExpired();
+			nonceStore.evictExpired();
+			throttle.evictExpired();
+		} catch (RuntimeException e) {
+			LOG.error("Evicting expired sessions", e);
+		}
+	}
+
+	/** The user's id, login, verifier and roles; {@code null} when there is no such user. */
+	private User findUser(String userName) {
 		var pv = ProjectionValues.INSTANCE;
 		var prj = new User()
 				.withId(pv.i64)
@@ -169,16 +213,19 @@ public final class AuthenticationServiceImpl implements AuthenticationService {
 				.withUserName(userName)
 				.withProjection(prj), 0, 1);
 
-		if (users.isEmpty()) {
-			return null;
-		}
+		return users.isEmpty() ? null : users.get(0);
+	}
 
-		var user = users.get(0);
-		// CHAR(32) column pads with trailing spaces; trim for exact HMAC comparison
-		if (user.password() != null) {
-			user.withPassword(user.password().trim());
-		}
-		return user;
+	private static String passwordOf(User user) {
+		return user == null ? null : user.password();
+	}
+
+	/** A made-up salt for a user that does not exist: the same for the same name, unrelated to any real one. */
+	private byte[] decoySalt(String userName) {
+		var mac = hmac(decoySaltKey, userName.trim().toLowerCase(Locale.ROOT).getBytes(StandardCharsets.UTF_8));
+		var salt = new byte[ScramVerifier.SALT_SIZE];
+		System.arraycopy(mac, 0, salt, 0, salt.length);
+		return salt;
 	}
 
 	private User fetchUserById(Long userId) {
@@ -195,22 +242,13 @@ public final class AuthenticationServiceImpl implements AuthenticationService {
 		return users.isEmpty() ? null : users.get(0);
 	}
 
-	private static String computeHmac(String key, String data) {
+	private static byte[] hmac(byte[] key, byte[] data) {
 		try {
 			var mac = Mac.getInstance(HMAC_ALGORITHM);
-			mac.init(new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), HMAC_ALGORITHM));
-			var hash = mac.doFinal(data.getBytes(StandardCharsets.UTF_8));
-			return bytesToHex(hash);
+			mac.init(new SecretKeySpec(key, HMAC_ALGORITHM));
+			return mac.doFinal(data);
 		} catch (Exception e) {
 			throw new AssertionError("HMAC-SHA256 failed", e);
 		}
-	}
-
-	private static String bytesToHex(byte[] bytes) {
-		var sb = new StringBuilder(bytes.length * 2);
-		for (byte b : bytes) {
-			sb.append(String.format("%02x", b));
-		}
-		return sb.toString();
 	}
 }

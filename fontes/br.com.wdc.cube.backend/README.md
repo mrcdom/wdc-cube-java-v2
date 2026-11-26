@@ -47,7 +47,7 @@ After starting the server:
 
 - **Landing page**: http://localhost:8080/ — links to each frontend context
 - **Health Check**: http://localhost:8080/health
-- **Auth Challenge**: http://localhost:8080/api/auth/challenge (GET)
+- **Auth Challenge**: http://localhost:8080/api/auth/challenge (POST `{userName}`)
 - **Auth Login**: http://localhost:8080/api/auth/login (POST)
 - **Repository API**: http://localhost:8080/api/repo/* (Bearer JWT required)
 - **Remote transactions**: http://localhost:8080/api/tx/* (Bearer JWT required)
@@ -115,11 +115,15 @@ When `jwt.secret` is set in the `[security]` section of `application.toml`, the 
 
 ### Authentication Flow
 
-1. Client requests a challenge nonce via `GET /api/auth/challenge`
-2. Client computes `HMAC-SHA256(key=PasswordUtil.hashPassword(password), data=userName+nonce)` — the password hash is MD5 → base36
-3. Client sends `POST /api/auth/login` with `{userName, digest, nonce}`
-4. Server validates and returns `{accessToken, refreshToken, publicKey, expiresAt}`
+The sign-in is SCRAM-SHA-256 ([security-architecture.md](../../docs/security-architecture.md#sign-in-with-scram-sha-256)):
+
+1. Client sends `POST /api/auth/challenge` with `{userName}` and gets a single-use nonce, the salt and the iterations of the user's verifier
+2. Client derives the key (`Scram`: PBKDF2-HMAC-SHA256 over the password's MD5 digest) and computes its proof
+3. Client sends `POST /api/auth/login` with `{userName, proof, nonce}`
+4. Server checks the proof against the stored verifier and returns `{userId, accessToken, refreshToken, publicKey, expiresAt, serverSignature}`; the client checks the server's signature
 5. All subsequent `/api/repo/*` and `/api/tx/*` requests must include `Authorization: Bearer <accessToken>`
+
+Five failed sign-ins in a row make the account wait (30 s, doubling up to 15 min), counted in `EN_LOGIN_FAILURE`; `/api/auth` takes at most `[security] auth.requestsPerMinute` requests (default 60) per client address. Both answer 429 with `Retry-After`.
 
 ### SecurityFilter
 

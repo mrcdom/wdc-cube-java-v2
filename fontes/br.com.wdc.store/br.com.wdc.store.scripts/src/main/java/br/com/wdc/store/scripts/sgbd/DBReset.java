@@ -4,6 +4,7 @@ import static br.com.wdc.store.persistence.impl.scheme.Sequences.SQ_PRODUCT;
 import static br.com.wdc.store.persistence.impl.scheme.Sequences.SQ_PURCHASE;
 import static br.com.wdc.store.persistence.impl.scheme.Sequences.SQ_PURCHASEITEM;
 import static br.com.wdc.store.persistence.impl.scheme.Sequences.SQ_USER;
+import static br.com.wdc.store.persistence.impl.scheme.tables.EnLoginFailure.EN_LOGIN_FAILURE;
 import static br.com.wdc.store.persistence.impl.scheme.tables.EnProduct.EN_PRODUCT;
 import static br.com.wdc.store.persistence.impl.scheme.tables.EnPurchase.EN_PURCHASE;
 import static br.com.wdc.store.persistence.impl.scheme.tables.EnPurchaseitem.EN_PURCHASEITEM;
@@ -12,10 +13,6 @@ import static br.com.wdc.store.persistence.impl.scheme.tables.EnUser.EN_USER;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -24,6 +21,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
+import br.com.wdc.framework.domain.security.PasswordVerifiers;
 import br.com.wdc.store.domain.product.Product;
 import br.com.wdc.store.domain.product.ProductRepository;
 import br.com.wdc.store.domain.purchase.Purchase;
@@ -68,6 +66,7 @@ public class DBReset {
 		dsl.deleteFrom(EN_PURCHASE).execute();
 		dsl.deleteFrom(EN_PRODUCT).execute();
 		dsl.deleteFrom(EN_USER).execute();
+		dsl.deleteFrom(EN_LOGIN_FAILURE).execute();
 		ProductRepositoryImpl.clearImageCache();
 
 		long id;
@@ -139,7 +138,7 @@ public class DBReset {
 				.withName(name)
 				.withRoles(roles);
 		if (StringUtils.isNotBlank(password)) {
-			user.withPassword(new BigInteger(md5().digest(password.getBytes(StandardCharsets.UTF_8))).toString(36));
+			user.withPassword(PasswordVerifiers.fromPassword(password));
 		}
 		userRepo.insert(user);
 	}
@@ -200,14 +199,6 @@ public class DBReset {
 					.set(EN_PURCHASEITEM.PRICE, BigDecimal.valueOf(paid[i]))
 					.where(EN_PURCHASEITEM.ID.eq(items[i].id()))
 					.execute();
-		}
-	}
-
-	private static MessageDigest md5() {
-		try {
-			return MessageDigest.getInstance("MD5");
-		} catch (NoSuchAlgorithmException caught) {
-			throw ExceptionUtils.asRuntimeException(caught);
 		}
 	}
 

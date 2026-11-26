@@ -1,10 +1,10 @@
 /**
- * The cryptography the login requires: the password's MD5 in the same format the server uses, and HMAC-SHA256 of the
- * challenge.
+ * The cryptography of the sign-in: SCRAM-SHA-256 (RFC 5802, RFC 7677), over the password's MD5 digest in the format
+ * the server's `PasswordUtil.hashPassword` gives.
  *
- * The server never receives the password. It stores the password's MD5 digest and, at login, sends a nonce; the client
- * replies with `HMAC-SHA256(digest, user + nonce)`. Whoever intercepts the reply cannot reuse it — the nonce is valid
- * only once.
+ * The server never receives the password, and stores only a verifier. At sign-in it sends a nonce, the salt and the
+ * iteration count; the client derives the key with PBKDF2, sends a proof that it knows the password, and checks the
+ * server's signature — only who holds the user's verifier can compute it. A proof is good for one nonce, used once.
  */
 
 const MD5_K = Int32Array.from({ length: 64 }, (_, i) => Math.floor(Math.abs(Math.sin(i + 1)) * 2 ** 32));
@@ -92,16 +92,37 @@ export function bytesToSignedBase36(bytes) {
 /** The password digest in the format the server stores. */
 export const passwordDigest = (password) => bytesToSignedBase36(md5(password));
 
-/** HMAC-SHA256 in hexadecimal, via Web Crypto. */
-export async function hmacSha256(key, data) {
-  const encoder = new TextEncoder();
-  const cryptoKey = await crypto.subtle.importKey(
-    'raw',
-    encoder.encode(key),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign'],
+const encoder = new TextEncoder();
+
+const fromBase64 = (text) => Uint8Array.from(atob(text), (c) => c.charCodeAt(0));
+const toBase64 = (bytes) => btoa(String.fromCharCode(...bytes));
+
+/** HMAC-SHA256 of bytes, via Web Crypto. */
+async function hmac(key, data) {
+  const cryptoKey = await crypto.subtle.importKey('raw', key, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  return new Uint8Array(await crypto.subtle.sign('HMAC', cryptoKey, data));
+}
+
+/**
+ * The client's side of the SCRAM-SHA-256 exchange, for the challenge the server sent: the `proof` to send and the
+ * server signature to expect back (`expectedServerSignature`), both in Base64.
+ */
+export async function scramResponse(userName, password, { nonce, salt, iterations }) {
+  const base = await crypto.subtle.importKey('raw', encoder.encode(passwordDigest(password)), 'PBKDF2', false, [
+    'deriveBits',
+  ]);
+  const salted = new Uint8Array(
+    await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: fromBase64(salt), iterations }, base, 256),
   );
-  const signature = await crypto.subtle.sign('HMAC', cryptoKey, encoder.encode(data));
-  return Array.from(new Uint8Array(signature), (b) => b.toString(16).padStart(2, '0')).join('');
+  const authMessage = encoder.encode(`n=${userName},r=${nonce}`);
+
+  const clientKey = await hmac(salted, encoder.encode('Client Key'));
+  const storedKey = new Uint8Array(await crypto.subtle.digest('SHA-256', clientKey));
+  const signature = await hmac(storedKey, authMessage);
+  const proof = clientKey.map((b, i) => b ^ signature[i]);
+
+  const serverKey = await hmac(salted, encoder.encode('Server Key'));
+  const expectedServerSignature = await hmac(serverKey, authMessage);
+
+  return { proof: toBase64(proof), expectedServerSignature: toBase64(expectedServerSignature) };
 }

@@ -90,6 +90,13 @@ public final class Doc {
                 .content(jsonContent(new Schema<>().$ref("#/components/schemas/ErrorResponse")));
     }
 
+    /** 429 Too Many Requests. */
+    public static ApiResponse tooManyRequests() {
+        return new ApiResponse()
+                .description("Too Many Requests — wait the seconds in the Retry-After header (and in retryAfter) before trying again")
+                .content(jsonContent(new Schema<>().$ref("#/components/schemas/ErrorResponse")));
+    }
+
     /** 404 Not Found. */
     public static ApiResponse notFound() {
         return new ApiResponse()
