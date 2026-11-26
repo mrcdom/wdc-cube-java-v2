@@ -31,6 +31,8 @@ public final class RepositoryApiRoutes {
      * without CORS.
      */
     public static void configure(JavalinConfig config, String prefix) {
+        ApiResponseHeaders.configure(config, prefix);
+
         var authService = AuthenticationService.BEAN.get();
         if (authService != null) {
             // Public authentication endpoints
