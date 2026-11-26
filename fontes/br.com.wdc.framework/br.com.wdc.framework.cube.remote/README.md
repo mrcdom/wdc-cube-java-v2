@@ -71,9 +71,9 @@ TypeScript module that runs in the browser:
 | `ReconnectController.ts` | Linear backoff for reconnection (`min(2000·n, 120000)` ms) |
 | `ViewGarbageCollector.ts` | Removes from the view map the views the server released that are not mounted |
 | `ViewScope.ts` | Holds the scope of an individual view (its `values`) |
-| `DataSecurity.ts` | Handshake (textbook RSA + PBKDF2) and AES-GCM encryption of values |
+| `DataSecurity.ts` / `ChannelCrypto.ts` | The connection key (protocol 1 handshake: ECDH P-256 + HKDF-SHA256) and AES-GCM per value; Web Crypto, or noble on plain HTTP |
 | `ClientStorage.ts` / `EncryptedLocalStorage.ts` | Session, persistent and persistent-secure client storage (secure entries under the `sec.` prefix, encrypted at rest) |
-| `utils/` | Base64, BigInt, RSA, UTF8 |
+| `utils/` | Base64, UTF8, LangUtils |
 
 ---
 
@@ -88,7 +88,7 @@ Java/TeaVM equivalent of the React bridge:
 | `ReconnectController` | Linear backoff (`min(2000·n, 120000)` ms) |
 | `ViewGarbageCollector` | View GC |
 | `ViewScope` | Local copy of a view's scope (its `values`) |
-| `DataSecurity` | Handshake (textbook RSA + PBKDF2) and AES-GCM on the TeaVM side |
+| `DataSecurity` / `Handshake` | The connection key (protocol 1 handshake, Web Crypto ECDH + HKDF, or the shell's `crypto-compat.js` on plain HTTP) and AES-GCM per value |
 | `JsonParser` | Lightweight JSON parsing for TeaVM |
 | `RemoteView` | Interface of the client-side views: `getVsid()`, `getElement()`, `forceUpdate()` |
 | `interop/` | JS bindings: `Console`, `Timers`, `JsRunnable`, etc. |
