@@ -628,7 +628,7 @@ They are set in one place, `ApiResponseHeaders`, registered by `RepositoryApiRou
 
 ### SecurityFilter
 
-A before-filter registered on `/api/repo/*` extracts the JWT from the `Authorization: Bearer` header, validates it via `AuthenticationService`, and populates `SecurityContext.CURRENT`. The after-handler clears the context at the end of each request. The image endpoints (`/product/{id}/image`) are public — no authentication.
+A before-filter registered on `/api/repo/*` extracts the JWT from the `Authorization: Bearer` header, validates it via `AuthenticationService`, and populates `SecurityContext.CURRENT`. The after-handler clears the context at the end of each request. Reading a product image (`GET /product/{id}/image`) is public — the catalog's pictures; changing one (`PUT`) needs a signed-in user, and the product's data policy decides whether that user may write the image.
 
 ---
 

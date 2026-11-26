@@ -19,7 +19,7 @@ public final class SecurityFilter {
     /**
      * Handler to be registered as {@code before("/api/repo/*")}.
      * <p>
-     * Product image routes are public (catalog) and do not require authentication.
+     * Reading a product image is public (the catalog's pictures); changing one is not, and goes through the policy.
      */
     public void handle(Context ctx) {
         // Skip CORS preflight requests (OPTIONS) — handled by CORS plugin
@@ -27,7 +27,7 @@ public final class SecurityFilter {
             return;
         }
 
-        if (isPublicRoute(ctx.path())) {
+        if (isPublicRoute(ctx)) {
             return;
         }
 
@@ -53,7 +53,7 @@ public final class SecurityFilter {
         LOG.debug("Authenticated request: user={} path={}", securityContext.userName(), ctx.path());
     }
 
-    private static boolean isPublicRoute(String path) {
-        return path.endsWith("/image");
+    private static boolean isPublicRoute(Context ctx) {
+        return "GET".equalsIgnoreCase(ctx.method().name()) && ctx.path().endsWith("/image");
     }
 }

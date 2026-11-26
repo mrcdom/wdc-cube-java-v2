@@ -37,9 +37,12 @@ public class ReceiptCn1View extends AbstractCn1View {
     public static final String CLASS_ID = "e8d0bd8ae3bc";
     private static final int EVT_BACK = 1;
 
-    /** Widths (mm) of the QTY and PRICE columns — shared with {@link ReceiptItemCn1View}. */
-    static final float COL_QTY_W_MM = 12f;
-    static final float COL_VALUE_W_MM = 22f;
+    /**
+     * Widths (mm) of the QTY and PRICE columns — shared with {@link ReceiptItemCn1View}. Kept narrow: on a phone the
+     * card is about 37 mm wide inside, and the ITEM column takes what is left.
+     */
+    static final float COL_QTY_W_MM = 8f;
+    static final float COL_VALUE_W_MM = 16f;
 
     private Container successAlert;
     private Consumer<String> dateValue;
@@ -108,6 +111,7 @@ public class ReceiptCn1View extends AbstractCn1View {
                             l.setUIID(sel.RECEIPT_COL_HEAD);
                             l.setText("ITEM");
                             l.getAllStyles().setFont(Fonts.MONO);
+                            l.setEndsWith3Points(true);
                         });
                         dom.boxX(BorderLayout.EAST, cols -> {
                             dom.label(l -> {

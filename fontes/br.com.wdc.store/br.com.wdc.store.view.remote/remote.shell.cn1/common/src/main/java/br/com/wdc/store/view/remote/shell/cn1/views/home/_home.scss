@@ -10,14 +10,17 @@
 
 HomProductsPanel {
     background-color: transparent;
-    padding: 3mm;
+    // 2 mm more on the left: the cards have no left margin (see HomProductCard)
+    padding: 3mm 3mm 3mm 5mm;
 }
 
 // hover/click: selected/pressed states set in Java (Clickable) — CN1's CSS
 // does not support pseudo-classes.
+// No left margin: CN1's FlowLayout counts the first card's left margin twice on the first row, which then
+// starts indented relative to the others. The right margin keeps the 4 mm gap between columns.
 HomProductCard {
     @include card;
-    margin: 2mm;
+    margin: 2mm 4mm 2mm 0;
 }
 
 HomProductCardImage {
