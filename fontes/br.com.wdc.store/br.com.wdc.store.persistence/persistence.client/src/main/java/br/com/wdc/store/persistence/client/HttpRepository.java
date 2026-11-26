@@ -1,50 +1,31 @@
 package br.com.wdc.store.persistence.client;
 
-import java.util.List;
-
 import br.com.wdc.framework.commons.http.HttpTransport;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.framework.commons.serialization.JsonStreamReader;
 import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
 import br.com.wdc.framework.domain.codec.ModelCodec;
-import br.com.wdc.framework.domain.pagination.Page;
 import br.com.wdc.framework.domain.repository.Repository;
 
 /**
- * Generic HTTP repository implementation that delegates serialization to the {@link ModelCodec}.
- * <p>
- * Uses {@link JsonStreamWriter}/{@link JsonStreamReader} for streaming serialization
- * with no Gson dependency, compatible with the JVM and TeaVM.
+ * Generic HTTP implementation of a repository that reads and writes: the reads of {@link HttpReadOnlyRepository},
+ * plus {@code insert}, {@code update} and {@code delete}.
  *
  * @param <E> entity type
  * @param <C> search criteria type
  * @param <K> primary key type
  */
-public abstract class HttpRepository<E, C, K> implements Repository<E, C, K> {
-
-    private final HttpTransport transport;
-    private final ModelCodec<E, C> codec;
-    private final String basePath;
+public abstract class HttpRepository<E, C, K> extends HttpReadOnlyRepository<E, C, K> implements Repository<E, C, K> {
 
     protected HttpRepository(HttpTransport transport, ModelCodec<E, C> codec, String basePath) {
-        this.transport = transport;
-        this.codec = codec;
-        this.basePath = basePath;
-    }
-
-    protected HttpTransport transport() {
-        return transport;
-    }
-
-    protected String basePath() {
-        return basePath;
+        super(transport, codec, basePath);
     }
 
     @Override
     public boolean insert(E entity) {
         var writer = new JsonStreamWriter();
-        codec.writeEntity(writer, entity);
-        var responseJson = transport.postJson(basePath + "/insert", writer.result());
+        codec().writeEntity(writer, entity);
+        var responseJson = transport().postJson(basePath() + "/insert", writer.result());
 
         var reader = new JsonStreamReader(responseJson);
         reader.beginObject();
@@ -63,7 +44,7 @@ public abstract class HttpRepository<E, C, K> implements Repository<E, C, K> {
         reader.endObject();
 
         if (success && id >= 0) {
-            codec.setGeneratedId(entity, id);
+            codec().setGeneratedId(entity, id);
         }
         return success;
     }
@@ -74,15 +55,15 @@ public abstract class HttpRepository<E, C, K> implements Repository<E, C, K> {
         if (projection != null) {
             effectiveProjection = projection;
         } else if (oldEntity != null) {
-            effectiveProjection = codec.computeProjection(newEntity, oldEntity);
+            effectiveProjection = codec().computeProjection(newEntity, oldEntity);
         } else {
             effectiveProjection = newProjection();
         }
 
         var writer = new JsonStreamWriter();
-        codec.writeEntityProjected(writer, newEntity, effectiveProjection);
+        codec().writeEntityProjected(writer, newEntity, effectiveProjection);
 
-        var responseJson = transport.postJson(basePath + "/update", writer.result());
+        var responseJson = transport().postJson(basePath() + "/update", writer.result());
         return readSuccess(responseJson);
     }
 
@@ -90,85 +71,14 @@ public abstract class HttpRepository<E, C, K> implements Repository<E, C, K> {
     public int delete(C criteria) {
         var writer = new JsonStreamWriter();
         writer.beginObject();
-        codec.writeCriteriaFields(writer, criteria);
+        codec().writeCriteriaFields(writer, criteria);
         writer.endObject();
 
-        var responseJson = transport.postJson(basePath + "/delete", writer.result());
+        var responseJson = transport().postJson(basePath() + "/delete", writer.result());
         return readCount(responseJson);
     }
-
-    @Override
-    public int count(C criteria) {
-        var writer = new JsonStreamWriter();
-        writer.beginObject();
-        codec.writeCriteriaFields(writer, criteria);
-        writer.endObject();
-
-        var responseJson = transport.postJson(basePath + "/count", writer.result());
-        return readCount(responseJson);
-    }
-
-    @Override
-    public List<E> fetch(C criteria, int offset, int limit) {
-        var writer = new JsonStreamWriter();
-        writer.beginObject();
-        codec.writeCriteriaFields(writer, criteria);
-        writeProjection(writer, codec.getProjection(criteria));
-        if (offset > 0) writer.name("offset").value(offset);
-        if (limit > 0) writer.name("limit").value(limit);
-        writer.endObject();
-
-        var responseJson = transport.postJson(basePath + "/fetch", writer.result());
-
-        var reader = new JsonStreamReader(responseJson);
-        reader.beginObject();
-        List<E> items = List.of();
-        while (reader.hasNext()) {
-            switch (reader.nextName()) {
-                case "items" -> items = codec.readEntityList(reader);
-                default -> reader.skipValue();
-            }
-        }
-        reader.endObject();
-        return items;
-    }
-
-    @Override
-    public Page<E> fetchPage(C criteria, int page, int pageSize) {
-        var writer = new JsonStreamWriter();
-        writer.beginObject();
-        codec.writeCriteriaFields(writer, criteria);
-        writeProjection(writer, codec.getProjection(criteria));
-        if (page > 0) writer.name("page").value(page);
-        if (pageSize > 0) writer.name("pageSize").value(pageSize);
-        writer.endObject();
-
-        var responseJson = transport.postJson(basePath + "/fetch-page", writer.result());
-
-        var reader = new JsonStreamReader(responseJson);
-        reader.beginObject();
-        List<E> items = List.of();
-        int totalItems = 0;
-        while (reader.hasNext()) {
-            switch (reader.nextName()) {
-                case "items" -> items = codec.readEntityList(reader);
-                case "totalItems" -> totalItems = InputCoerceUtils.asInteger(reader, 0);
-                default -> reader.skipValue();
-            }
-        }
-        reader.endObject();
-        return Page.of(items, page, pageSize, totalItems);
-    }
-
 
     // ── Helpers ──
-
-    private void writeProjection(JsonStreamWriter writer, E projection) {
-        if (projection != null) {
-            writer.name("projection");
-            codec.writeEntity(writer, projection);
-        }
-    }
 
     private boolean readSuccess(String responseJson) {
         var reader = new JsonStreamReader(responseJson);
@@ -182,19 +92,5 @@ public abstract class HttpRepository<E, C, K> implements Repository<E, C, K> {
         }
         reader.endObject();
         return success;
-    }
-
-    private int readCount(String responseJson) {
-        var reader = new JsonStreamReader(responseJson);
-        reader.beginObject();
-        int count = 0;
-        while (reader.hasNext()) {
-            switch (reader.nextName()) {
-                case "count" -> count = InputCoerceUtils.asInteger(reader, 0);
-                default -> reader.skipValue();
-            }
-        }
-        reader.endObject();
-        return count;
     }
 }
