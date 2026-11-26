@@ -244,9 +244,10 @@ Between a remote shell and the host (full specification: [bridge-skeleton-protoc
 
 | Mechanism | What it gives |
 |-----------|---------------|
-| **Signed session id** (`appId`, §3) | A client cannot forge a session id; a forged one closes the socket |
-| **Handshake** (§6) | The client draws a password, derives an AES-256 key with PBKDF2-HMAC-SHA256 (250,000 iterations), and sends the password RSA-encrypted with the server's key |
-| **Encryption of sensitive values** (§6.3) | The client storage values and the access token are AES-GCM encrypted with the session key; the scopes and the events themselves are not — they rely on TLS |
+| **Signed session id** (`appId`, §3) | HMAC-SHA256 with a key only the server has; a client cannot forge a session id, and a forged one closes the socket |
+| **Handshake** (§6) | Each connection agrees on its own AES-256 key: ephemeral ECDH P-256, then HKDF-SHA256 salted with the session id. No long-lived ciphering key exists, so a recorded connection cannot be deciphered later |
+| **Versioned protocol** (§6.1) | The handshake carries the protocol version; a client the host does not speak is refused with `unsupported-protocol` and told it is out of date, instead of failing in no clear way |
+| **Encryption of sensitive values** (§6.3) | The client storage values and sensitive parameters (the typed password) are AES-256-GCM encrypted with the connection key, each with an IV of its own; the scopes and the events themselves are not — they rely on TLS |
 | **Signed navigation** (§13) | A client cannot navigate to a place or parameters the server did not grant |
 | **Client storage scopes** (§14) | `session`, `persistent`, `persistent-secure`; the secure one is also encrypted at rest (or kept in the platform's vault) |
 
@@ -272,7 +273,7 @@ The reference implementation favors clarity over a hardened deployment. Before p
 | Token binding | A JWT is checked against *any* live session of its user | After logout on one device, that device's access token works until it expires (≤ 30 min) while another session of the user is alive | A session id claim in the JWT |
 | Persistent token revocation | Removed from the client on logout; not revocable on the server | A copied token is valid for 30 days | A server-side list of persistent tokens |
 | Sessions | In memory, one server | A restart ends every session; no horizontal scaling | A shared session store |
-| Remote channel cryptography | Textbook RSA (no padding) for the handshake; 512-bit keys in the development defaults; constant AES-GCM IV per session; scopes and events not encrypted by the protocol | Confidentiality rests on TLS | Run only over HTTPS/WSS; production keys of adequate size; see the protocol's portability warnings |
+| Remote channel cryptography | Sensitive values are ciphered per connection (ECDH P-256, HKDF, AES-GCM); scopes and events are not encrypted by the protocol | Their confidentiality rests on TLS | Run only over HTTPS/WSS; keep `[remote] signingKey` secret, and share it only among instances that must accept each other's sessions |
 | Data policies | Apply only at the REST API | Server-side presenters must scope client-provided ids themselves | Review each query that takes an id from an event |
 
 ---

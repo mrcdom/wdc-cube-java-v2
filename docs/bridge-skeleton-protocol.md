@@ -461,7 +461,7 @@ This is the most subtle point of the specification. The model has **two scopes**
 **Invariant rules:**
 
 1. **Every value traveling over the WebSocket is encrypted** with the session AES-GCM key (`b64Cipher`), **regardless of scope**. The `secure` variant does **not** change in-transit encryption — it is only a **hint** for the client to use a better-protected backing store **at rest**.
-2. In the browser, a `persistent-secure` value ends up encrypted **twice** with different keys: at rest (dedicated local storage key) and in transit (PBKDF2-derived session key). They are orthogonal. At-rest encryption is a client detail, outside the wire contract.
+2. In the browser, a `persistent-secure` value ends up encrypted **twice** with different keys: at rest (dedicated local storage key) and in transit (the connection key, §6). They are orthogonal. At-rest encryption is a client detail, outside the wire contract.
 3. There is no `session-secure` in the protocol — only `session`, `persistent`, `persistent-secure`.
 
 **Isolation (synchronization namespace):** every key is prefixed by a `syncNamespace` in the format `~<shellId>:` (e.g. `~rr:`). The `~` marks the key as synchronizable; `<shellId>:` isolates one shell's data from the others in the same origin/installation. The prefix is **removed** when building the map sent in the bootstrap, and only keys with that prefix go into the bootstrap.

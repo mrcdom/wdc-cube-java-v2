@@ -33,7 +33,7 @@ graph LR
 | Submodule | Language | Description |
 |-----------|----------|-------------|
 | `remote.backend` | Java 21 | Server — `RemoteApplication`, `RemoteApplicationSupport`, `ScopeSerializer`, Javalin controllers (WebSocket + HTTP index) |
-| `remote.bridge.java` | Java 21 | Java bridge (fat client) — `HostClient`, `HostClientSession`, `AbstractPresenterClient`, RSA/AES-GCM handshake; used by `remote.shell.probe` and `remote.shell.swt` |
+| `remote.bridge.java` | Java 21 | Java bridge (fat client) — `HostClient`, `HostClientSession`, `AbstractPresenterClient`, protocol 1 handshake (ECDH P-256, AES-GCM); used by `remote.shell.probe` and `remote.shell.swt` |
 | `remote.bridge.react` | TypeScript/React | React thin-client bridge — `ScopeCoordinator`, reconnection, data security, view GC |
 | `remote.bridge.teavm` | Java (TeaVM) | TeaVM thin-client bridge — same logic as React, compiled to JavaScript via TeaVM |
 | `remote.bridge.flutter` | Dart/Flutter | Flutter thin-client bridge — `ScopeCoordinator`, `BaseView`/`BaseViewState`, reconnection, data security, view GC; used by the Flutter shells |
@@ -54,8 +54,8 @@ Main server-side classes:
 | `ScopeSerializer` | Serializes the scope → JSON via reflection; a scope inside it is emitted as `"<field>ViewId"`, a list of scopes as `"<field>ViewIds"` |
 | `RemoteHostModule` | Javalin module that registers the WS and HTTP routes |
 | `DispatcherController` | WebSocket controller — receives events and dispatches them to the `CubeSkeleton` |
-| `IndexHtmlController` | `before` handler on `/{ctx}/index.html`: plants the `app_id` and `app_skey` session cookies |
-| `SessionInitController` | `GET /api/session/init` → `{appId, appSKey}` for clients without page cookies |
+| `IndexHtmlController` | `before` handler on `/{ctx}/index.html`: plants the `app_id` session cookie |
+| `SessionInitController` | `GET /api/session/init` → `{appId}` for clients without page cookies |
 | `RemoteAppSecurity` / `RemoteDataSecurity` | Session and data security |
 
 ---

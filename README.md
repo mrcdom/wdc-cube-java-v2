@@ -53,7 +53,7 @@ graph TD
 - **No DI frameworks** — injection via `AtomicReference<T> BEAN` (static service locator); services receive their dependencies in the constructor
 - **Virtual Threads** (Java 21+) — WebSocket connections with minimal memory consumption
 - **RBAC security** — HMAC challenge-response authentication with JWT, role-based access control (ADMIN, CUSTOMER, MANAGER) enforced at the REST endpoints
-- **Transport security** — RSA + PBKDF2 + AES-GCM for data exchange between the React client and the server
+- **Remote channel security** — each connection agrees on its own key (ECDH P-256 + HKDF-SHA256); sensitive values travel AES-256-GCM encrypted with an IV of their own; session ids and addresses are signed with HMAC-SHA256
 - **Real-time communication** — bidirectional WebSocket with automatic keep-alive
 - **External configuration** — TOML for every implementation
 
@@ -99,7 +99,7 @@ graph TD
 
 | Module | Description |
 |--------|-----------|
-| **framework.commons** | Functional interfaces with checked exceptions (`ThrowingFunction`, `ThrowingConsumer`, etc.), extensible serialization, SQL abstractions (`SqlDataSource`), utilities (`CoerceUtils`, `DateUtil`, `Defer`), cryptography (`RSA`, `Base62`), multiplatform logging (`Log` — a lightweight facade with JUL and SLF4J backends), concurrency (`ScheduledExecutor`) |
+| **framework.commons** | Functional interfaces with checked exceptions (`ThrowingFunction`, `ThrowingConsumer`, etc.), extensible serialization, SQL abstractions (`SqlDataSource`), utilities (`CoerceUtils`, `DateUtil`, `Defer`), cryptography (`ChannelCrypto` for the remote channel, `Base62`), multiplatform logging (`Log` — a lightweight facade with JUL and SLF4J backends), concurrency (`ScheduledExecutor`) |
 | **framework.cube** | Engine of the Cube MVP pattern: `CubeApplication`, `CubePresenter`, `AbstractCubePresenter`, `Scope`/`Prop`/`ScopeSlot`, `CubePlace`, `CubeIntent`, `CubeNavigation` — no view concept: drawing a scope is up to each rendering technology |
 | **framework.domain** | Generic domain abstractions: `Repository`, `Page`, `ModelCodec`, `Criteria`/`Criterion`, `Projection*`, base exceptions (`BusinessException`, `AccessDeniedException`, ...), security contracts (`SecurityContext`, `AuthenticationService`), the data access policy (`security.policy`: `DataPolicy`, `DataGrant`, `RowScope`, `Mask`), `AppConfig`, `TransactionService` |
 | **framework.jooq** | JSON query helpers over jOOQ (`JsonQuery`, `JsonQueryBuilder`, `JsonChildQueryBuilder`), `CriterionTranslator`, `TransactionAwareConnectionProvider` |
@@ -126,7 +126,7 @@ graph TD
 | **view.remote / remote.shell.flutter** | Flutter 3 + Material Design for iOS, Android, Desktop (macOS) and Web. Bidirectional WebSocket communication, same protocol as React — [details](fontes/br.com.wdc.store/br.com.wdc.store.view.remote/remote.shell.flutter/README.md) |
 | **view.remote / remote.shell.teavm** | TeaVM frontend that communicates with the server over WebSocket |
 | **backend** | Javalin 7 server with Virtual Threads, WebSocket dispatcher, REST controllers; database H2 (TCP or file) or PostgreSQL. Produces a fat JAR (~41 MB) |
-| **view.remote / remote.host** | `StoreApplicationImpl`, whose views come from `framework.cube.remote` (a `RemoteViewImpl` for any scope, found by its `CLASS_ID`), and `RemoteHostBootstrap`, which writes development RSA keys into `application.local.toml` when absent. Transport security (`RemoteAppSecurity`, `RemoteDataSecurity` — RSA/PBKDF2/AES-GCM) comes from `framework.cube.remote` |
+| **view.remote / remote.host** | `StoreApplicationImpl`, whose views come from `framework.cube.remote` (a `RemoteViewImpl` for any scope, found by its `CLASS_ID`), and `RemoteHostBootstrap`, which writes the signing key (`[remote] signingKey`) into `application.local.toml` when absent. The channel security (`RemoteAppSecurity`, `RemoteDataSecurity` — HMAC signatures, a key per connection by ECDH + HKDF, AES-GCM) comes from `framework.cube.remote` |
 | **view.vaadin** | Server-side web view with Vaadin 25 + Lumo theme + embedded Jetty 12 — [details](fontes/br.com.wdc.store/br.com.wdc.store.view.vaadin/README.md) |
 | **view.swt** | Native desktop view with Eclipse SWT 3.135.0 — [details](fontes/br.com.wdc.store/br.com.wdc.store.view.swt/README.md) |
 | **view.teavm** | Multiplatform (Web + Desktop + Android + iOS) with TeaVM 0.16 + Tauri 2 + Bootstrap 5 — Java compiled to JS — [details](fontes/br.com.wdc.store/br.com.wdc.store.view.teavm/README.md) |
@@ -349,7 +349,7 @@ Each entity has a **data access policy** (`persistence.rest`, `XxxDataPolicy`): 
 |--------|-----------|-----------------|
 | **HTTP** | `SecurityFilter` | Validates the Bearer JWT, populates `SecurityContext.CURRENT` |
 | **REST endpoint** | `XxxDataPolicy` + `*ApiController` | The entity's data policy checks each request (projected, filtered and written fields, rows reached) and shapes each returned row; `SecurityEnforcer.requireAuthenticated()` gives it the requester |
-| **Transport** | `RemoteAppSecurity` / `RemoteDataSecurity` (`framework.cube.remote`) | RSA + PBKDF2 + AES-GCM for sensitive data over WebSocket |
+| **Transport** | `RemoteAppSecurity` / `RemoteDataSecurity` (`framework.cube.remote`), `ChannelCrypto` (`framework.commons`) | A key per connection (ECDH P-256, HKDF), AES-256-GCM per value; HMAC-SHA256 signatures |
 
 In the hosts where the presenters run on the server (Vaadin, local SWT, remote host), the client only triggers actions and the presenter decides each query; the repositories are used directly.
 

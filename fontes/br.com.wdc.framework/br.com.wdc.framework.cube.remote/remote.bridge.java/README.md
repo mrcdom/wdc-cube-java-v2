@@ -1,6 +1,6 @@
 # remote.bridge.java
 
-Java bridge for the **Remote Cube MVP** Host/Shell protocol. Implements the client (shell) side of the protocol in plain Java — connects to `remote.host` over WebSocket, performs the RSA/AES security handshake, navigates the presenter hierarchy, submits events and reads the received scopes (the view state each presenter publishes).
+Java bridge for the **Remote Cube MVP** Host/Shell protocol. Implements the client (shell) side of the protocol in plain Java — connects to `remote.host` over WebSocket, agrees on each connection's key with the host (the handshake of protocol 1: ECDH P-256, HKDF-SHA256), navigates the presenter hierarchy, submits events and reads the received scopes (the view state each presenter publishes).
 
 It is the Java counterpart of the React (`remote.bridge.react`) and TeaVM (`remote.bridge.teavm`) bridges — same protocol semantics, different technology.
 
@@ -15,7 +15,6 @@ Provide the connectivity infrastructure for any Java client that needs to talk t
 | `HostClient` | Entry point: creates sessions with the host, manages the WebSocket connection lifecycle |
 | `HostClientSession` | Active session: submits events (`submit()`), receives a `HostResponse` with the scope delta |
 | `AbstractPresenterClient` | Base for presenter-typed clients — makes it easy to script flows (e.g. login, purchase) |
-| `ClientCrypto` | RSA handshake + AES-GCM derivation via PBKDF2; mirrors the server's `RemoteDataSecurity` |
 
 `HostClient` exposes two storage scopes per session:
 
@@ -33,7 +32,7 @@ The persistent storage is bootstrapped to the server at `connect()` time — it 
 | `HostResponse` | Host response: `requestId`, `uri`, list of `ScopeSnapshot` |
 | `ScopeSnapshot` | Scope of a view: `instanceId` + its `values` map |
 | `ScopeMap` | Registry of the active scopes, by `instanceId` |
-| `SecretContext` | Session cryptographic context (derived AES key, IV, salt) |
+| `ChannelKey` | The connection's key: ciphers sensitive values for the host (`encipher`) and deciphers what it sends (`decipher`), with `ChannelCrypto` |
 
 ## Dependencies
 

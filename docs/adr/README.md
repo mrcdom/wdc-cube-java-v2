@@ -19,7 +19,7 @@ A record is not edited once accepted, except to fix a mistake or a link. A decis
 | [0011](0011-persistence-with-jooq.md) | Persistence with jOOQ's type-safe DSL, no SQL strings | Accepted |
 | [0012](0012-criteria-are-fields-of-criterion.md) | Criteria are fields of `Criterion`; requests accumulate with AND; alternative groups are server-side only; an empty `in` matches no row | Accepted |
 | [0013](0013-dependency-injection-without-a-framework.md) | Dependency injection without a framework: `BEAN` holders filled by composition roots | Accepted |
-| [0014](0014-server-driven-remote-views.md) | Server-driven remote views over the bridge/skeleton protocol | Accepted |
+| [0014](0014-server-driven-remote-views.md) | Server-driven remote views over the bridge/skeleton protocol | Accepted; amended by 0023 |
 | [0015](0015-the-server-prices-items.md) | The server decides the price of an item | Superseded by 0020 |
 | [0016](0016-framework-published-apart-from-the-demo.md) | The framework is published apart from the demo | Accepted |
 | [0017](0017-fluent-entities-public-structs.md) | Entities have a fluent API; presentation structs keep public fields | Accepted |
@@ -28,5 +28,6 @@ A record is not edited once accepted, except to fix a mistake or a link. A decis
 | [0020](0020-the-price-of-an-item-is-its-products.md) | The price of an item is always its product's, for every role | Accepted |
 | [0021](0021-actions-run-one-at-a-time.md) | The actions of one application run one at a time | Accepted |
 | [0022](0022-computed-state-in-every-host.md) | Computed state is committed once per paint cycle, in every host | Accepted |
+| [0023](0023-remote-channel-key-per-connection.md) | The remote channel: a key agreed per connection, HMAC signatures, a versioned protocol | Accepted |
 
 New record: copy the shape of an existing one (`# NNNN. <decision as a sentence>`, Date, Status, Context, Decision, Consequences, and Alternatives considered when there were real ones), take the next number, and add it to this table.
