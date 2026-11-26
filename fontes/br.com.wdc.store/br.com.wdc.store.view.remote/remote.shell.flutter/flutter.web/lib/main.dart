@@ -13,7 +13,6 @@ void main() async {
   setUrlStrategy(null);
 
   final appId = _resolveAppId();
-  final appSKey = _consumeCookie('app_skey');
   final protocol = web.window.location.protocol == 'http:' ? 'ws://' : 'wss://';
   final baseWsUrl = '$protocol${web.window.location.host}';
 
@@ -40,11 +39,7 @@ void main() async {
       appId: appId,
       sessionStorage: sessionStorage,
       persistentStorage: persistentStorage,
-      securityKey: appSKey,
       baseWebSocketUrl: baseWsUrl,
-      onSetCookie: (name, value) {
-        web.document.cookie = '$name=$value; path=/';
-      },
       onPersistRequestSeq: (count) {
         web.window.sessionStorage.setItem('req_seq', count.toString());
       },

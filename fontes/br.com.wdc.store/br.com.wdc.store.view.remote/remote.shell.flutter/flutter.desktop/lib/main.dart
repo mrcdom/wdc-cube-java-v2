@@ -30,9 +30,8 @@ String _toWsUrl(String httpUrl) {
 
 late SharedPreferences _prefs;
 
-/// Fetches session credentials from the backend.
-/// Returns {appId, appSKey} or null on failure.
-Future<Map<String, String>?> _fetchSessionInit(String baseHttpUrl) async {
+/// Fetches a session id (appId) from the backend; null on failure.
+Future<String?> _fetchSessionInit(String baseHttpUrl) async {
   try {
     final client = HttpClient();
     final uri = Uri.parse('$baseHttpUrl/api/session/init');
@@ -41,10 +40,7 @@ Future<Map<String, String>?> _fetchSessionInit(String baseHttpUrl) async {
     if (response.statusCode == 200) {
       final body = await response.transform(utf8.decoder).join();
       final json = jsonDecode(body) as Map<String, dynamic>;
-      return {
-        'appId': json['appId'] as String,
-        'appSKey': json['appSKey'] as String,
-      };
+      return json['appId'] as String;
     }
   } catch (e) {
     debugPrint('Failed to fetch session init: $e');
@@ -59,19 +55,15 @@ void main() async {
   final baseHttpUrl = _resolveBaseHttpUrl();
   final baseWsUrl = _toWsUrl(baseHttpUrl);
 
-  // Fetch fresh credentials from the server
-  final session = await _fetchSessionInit(baseHttpUrl);
-  if (session == null) {
+  // Fetch a fresh session id from the server
+  final appId = await _fetchSessionInit(baseHttpUrl);
+  if (appId == null) {
     runApp(const ConnectionErrorApp());
     return;
   }
 
-  final appId = session['appId']!;
-  final appSKey = session['appSKey']!;
-
   // Persist for potential reconnection
   _prefs.setString('app_id', appId);
-  _prefs.setString('app_skey', appSKey);
 
   // Build ClientStorage instances backed by SharedPreferences / FlutterSecureStorage.
   //
@@ -121,13 +113,9 @@ void main() async {
   final coordinator = ScopeCoordinator(
     CoordinatorConfig(
       appId: appId,
-      securityKey: appSKey,
       baseWebSocketUrl: baseWsUrl,
       sessionStorage: sessionStorage,
       persistentStorage: persistentStorage,
-      onSetCookie: (name, value) {
-        _prefs.setString(name, value);
-      },
       onPersistRequestSeq: (count) {
         _prefs.setInt('req_seq', count);
       },
@@ -150,11 +138,10 @@ void main() async {
   };
 
   coordinator.onSessionInvalid = () async {
-    // Fetch new credentials and restart
-    final newSession = await _fetchSessionInit(baseHttpUrl);
-    if (newSession != null) {
-      _prefs.setString('app_id', newSession['appId']!);
-      _prefs.setString('app_skey', newSession['appSKey']!);
+    // Fetch a new session id and restart
+    final newAppId = await _fetchSessionInit(baseHttpUrl);
+    if (newAppId != null) {
+      _prefs.setString('app_id', newAppId);
     }
     _prefs.remove('req_seq');
     _prefs.remove('last_path');

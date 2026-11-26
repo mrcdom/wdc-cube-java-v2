@@ -274,9 +274,8 @@ class _LoginViewState extends BaseViewState<LoginView> {
     final userName = _userController.text;
     final password = _passController.text;
     setFormField('p.userName', userName);
-    final security = ScopeCoordinator.instance.dataSecurity;
-    final encrypted = security.isReady ? security.b64Cipher(password) : password;
-    setFormField('p.password', encrypted);
+    // Ciphered with the connection key when the request goes out.
+    setSecretFormField('p.password', password);
     submit(_onLogin);
   }
 }

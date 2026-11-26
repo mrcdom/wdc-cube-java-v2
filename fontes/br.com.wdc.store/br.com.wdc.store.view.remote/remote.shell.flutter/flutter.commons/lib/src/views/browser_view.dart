@@ -38,6 +38,7 @@ class _BrowserViewState extends BaseViewState<BrowserView> {
   Widget build(BuildContext context) {
     final submitting = scope['submitting'] == true;
     final error = scope['error'] as Map<String, dynamic>?;
+    final outdated = scope['outdated'] == true;
     final alertId = (scope['alertId'] as num?)?.toInt() ?? 0;
     final alertArgs = (scope['alertArgs'] as List?)?.cast<String>() ?? const <String>[];
     final contentViewId = scope['contentViewId'] as String?;
@@ -45,7 +46,8 @@ class _BrowserViewState extends BaseViewState<BrowserView> {
     return Column(
       children: [
         if (submitting) const LinearProgressIndicator(),
-        if (error != null) _ConnectionAlert(error: error, onRetry: coordinator.connect),
+        if (outdated) const _OutdatedAlert(),
+        if (error != null && !outdated) _ConnectionAlert(error: error, onRetry: coordinator.connect),
         if (alertId != 0)
           _AppAlert(
             code: alertId,
@@ -105,6 +107,26 @@ class _AppAlert extends StatelessWidget {
         detail: detail,
         onDismiss: onDismiss,
         severity: StatusSeverity.error,
+      ),
+    );
+  }
+}
+
+// :: Internal - OutdatedAlert
+
+/// The host does not speak this client's protocol version: the page (or app)
+/// is out of date, and the client does not reconnect.
+class _OutdatedAlert extends StatelessWidget {
+  const _OutdatedAlert();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.all(16),
+      child: StatusBanner(
+        title: 'This version is out of date.',
+        message: 'The server no longer speaks this version of the app. Reload the page, or update the app, to continue.',
+        severity: StatusSeverity.warning,
       ),
     );
   }
