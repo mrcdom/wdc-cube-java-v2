@@ -19,6 +19,9 @@ public abstract class CubeApplication {
 
 	protected String fragment;
 
+	/** The monitor that makes the actions of this application run one at a time ({@link #runExclusively}). */
+	private final Object actionMonitor = new Object();
+
 	protected CubeApplication() {
 		this.presenterMap = this.createPresenterMap();
 		this.attributeMap = this.createAttributeMap();
@@ -42,6 +45,23 @@ public abstract class CubeApplication {
 		}
 
 		this.presenterMap.clear();
+	}
+
+	/**
+	 * Runs the body of an action, one at a time per application: an action that starts while another one runs (two
+	 * clicks on "Buy" while the first waits on the network) waits for it. No action sees another one's state halfway,
+	 * and a double click makes two purchases one after the other, never interleaved. An action that runs another one,
+	 * on the same thread, runs it at once.
+	 *
+	 * <p>
+	 * It is a {@code synchronized} block, not a {@code java.util.concurrent} lock, because the same presenters run in
+	 * the browser under TeaVM, whose threads support monitors and nothing else.
+	 * </p>
+	 */
+	public final void runExclusively(Runnable body) {
+		synchronized (this.actionMonitor) {
+			body.run();
+		}
 	}
 
 	public CubePlace getLastPlace() {
