@@ -150,11 +150,6 @@ public class BuyProductScenario {
         LOG.info("[9] Add Thread Seal Tape to the cart");
         product.onAddToCart(1);
 
-        // The new row's own scope can come in the message after the cart's
-        client.awaitUntil(() -> {
-            var rows = home.contentViewAs(CartPresenterClient.class).rows();
-            return rows.size() == 2 && client.scope(rows.get(1).instanceId()) != null;
-        });
         cart = home.contentViewAs(CartPresenterClient.class);
         ScenarioAssert.assertEquals("Two items in the cart", 2, cart.itemCount());
         ScenarioAssert.assertEquals("Second item with quantity 1", 1L, cart.rows().get(1).quantity());

@@ -87,6 +87,13 @@ public class RemoteApplicationSupport {
     private int instanceIdGen = 1;
 
     private final ReentrantLock lock = new ReentrantLock();
+
+    /**
+     * One message is written at a time: the answer to a request and the background flush both take the dirty views
+     * and write them. A view born while a scope is being written goes in the message that refers to it, instead of
+     * in the other writer's, which a client could read before the reference.
+     */
+    private final ReentrantLock writeLock = new ReentrantLock();
     private final AtomicBoolean dirtyQueued = new AtomicBoolean(false);
     private volatile long lastWakeupNanos;
     private volatile boolean processingSubmit;
@@ -325,7 +332,7 @@ public class RemoteApplicationSupport {
             this.processingSubmit = true;
             this.lastRequestId = incomingRequestId;
             this.runDispatchPhase(request);
-            this.writeAndSendResponse(incomingRequestId, this.drainDirtyViews());
+            this.drainAndSend(incomingRequestId);
         } catch (Exception e) {
             var exn = new java.io.IOException("Sending response");
             exn.addSuppressed(e);
@@ -344,13 +351,8 @@ public class RemoteApplicationSupport {
             return;
         }
 
-        var dirtyViews = drainDirtyViews();
-        if (dirtyViews.isEmpty()) {
-            return;
-        }
-
         try {
-            this.writeAndSendResponse(null, dirtyViews);
+            this.drainAndSend(null);
         } catch (Exception e) {
             LOG.error("Error during background flush", e);
         }
@@ -419,7 +421,26 @@ public class RemoteApplicationSupport {
         }
         json.endObject();
 
-        this.sendTextToClient(json.result());
+        this.writeLock.lock();
+        try {
+            this.sendTextToClient(json.result());
+        } finally {
+            this.writeLock.unlock();
+        }
+    }
+
+    /** Takes the dirty views and writes them, with the request's id when it answers one; one writer at a time. */
+    private void drainAndSend(Long requestId) {
+        this.writeLock.lock();
+        try {
+            var dirtyViews = this.drainDirtyViews();
+            if (requestId == null && dirtyViews.isEmpty()) {
+                return;
+            }
+            this.writeAndSendResponse(requestId, dirtyViews);
+        } finally {
+            this.writeLock.unlock();
+        }
     }
 
     private List<RemoteViewImpl> drainDirtyViews() {
