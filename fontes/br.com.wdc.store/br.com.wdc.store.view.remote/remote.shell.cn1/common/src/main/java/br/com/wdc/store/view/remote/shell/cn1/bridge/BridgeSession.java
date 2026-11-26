@@ -23,13 +23,18 @@ import com.codename1.ui.CN;
  * </p>
  *
  * <p>
- * The handshake is RSA + PBKDF2 + AES-GCM ({@link Cn1Crypto}): the {@code secret} of the 1st WS
- * message carries the session key, and sensitive values (e.g. the password) are enciphered with it.
+ * Each connection starts with the handshake of protocol {@value #PROTOCOL} ({@link Cn1Crypto}): the first message
+ * is {@code {"protocol":1,"clientKey":…}} and nothing else goes out until the host answers with its
+ * {@code serverKey}; both ends then hold the connection's AES-256 key, which ciphers the storage values and
+ * sensitive parameters (e.g. the password). Messages submitted meanwhile wait, and go out after the bootstrap
+ * message. A host that refuses the version ({@code unsupported-protocol}, close {@value #CLOSE_UNSUPPORTED_PROTOCOL})
+ * leaves the session out of date: nothing more is sent and the shell is told ({@code onOutdated}).
  * </p>
  *
  * <p>
- * While connected, the keep-alive ({@code {"ping":true}}) goes every {@link #PING_INTERVAL_MS}: the server extends the
- * session's life and answers with the views it released ({@code releasedViews}), which the push discards.
+ * Once the handshake is done, the keep-alive ({@code {"ping":true}}) goes every {@link #PING_INTERVAL_MS}: the server
+ * extends the session's life and answers with the views it released ({@code releasedViews}), which the push
+ * discards.
  * </p>
  */
 public final class BridgeSession {
@@ -43,6 +48,12 @@ public final class BridgeSession {
     /** How often the keep-alive goes to the server. */
     private static final long PING_INTERVAL_MS = 15000L;
 
+    /** The version of the remote protocol this client speaks. */
+    public static final int PROTOCOL = 1;
+
+    /** Close code of a host that does not speak {@link #PROTOCOL}. */
+    public static final int CLOSE_UNSUPPORTED_PROTOCOL = 4002;
+
     /**
      * Push notification — on the EDT, with the vsids of the views <b>received</b> (dirty on the server) and
      * <b>released</b> in this push. Each push passes its own lists (no shared state),
@@ -55,19 +66,30 @@ public final class BridgeSession {
     private final String base;     // e.g.: http://localhost:8080
     private final String wsBase;   // e.g.: ws://localhost:8080
     private final Listener listener;
+    /** Runs on the EDT, once, when the host refuses this client's protocol version. */
+    private final Runnable onOutdated;
 
     private final Map<String, Map<String, Object>> scopes = new HashMap<>();
     private final Cn1ClientStorage clientStorage = new Cn1ClientStorage();
     private WebSocket ws;
-    private Cn1Crypto crypto;
+    private String appId;
+    /** This connection's key agreement, until the host answers it. */
+    private Cn1Crypto.Handshake handshake;
+    /** The connection key; {@code null} until the handshake is answered. */
+    private volatile Cn1Crypto crypto;
+    /** Whether the bootstrap message went out (EDT): until then, submitted messages wait in {@link #pending}. */
+    private volatile boolean ready;
+    private final List<Map<String, Object>> pending = new ArrayList<>();
+    private volatile boolean outdated;
     private String uri = "";
     private long requestCounter = 0;
     private Timer pinger;
 
-    public BridgeSession(String base, Listener listener) {
+    public BridgeSession(String base, Listener listener, Runnable onOutdated) {
         this.base = base;
         this.wsBase = "ws" + base.substring(4); // http:// -> ws:// (local environment)
         this.listener = listener;
+        this.onOutdated = onOutdated;
     }
 
     /** Blocking (call off the EDT): performs session/init and opens the WebSocket. */
@@ -82,25 +104,103 @@ public final class BridgeSession {
             throw new RuntimeException("session/init without body (HTTP " + req.getResponseCode() + ")");
         }
         Map<String, Object> init = parse(new String(data));
-        String appId = str(init.get("appId"));
-        String appSKey = str(init.get("appSKey"));
-        if (appId == null || appSKey == null) {
-            throw new RuntimeException("session/init without appId/appSKey");
+        appId = str(init.get("appId"));
+        if (appId == null) {
+            throw new RuntimeException("session/init without appId");
         }
 
-        // Real handshake (RSA + PBKDF2 + AES-GCM): enables secure login.
-        crypto = Cn1Crypto.generate(appSKey);
-        final String secret = crypto.signature();
-
         ws = WebSocket.build(wsBase + "/dispatcher/" + appId)
-                .onConnect(w -> {
-                    w.send(bootstrapMessage(secret));
-                    startPinging();
+                .onConnect(w -> sendHandshake(w))
+                .onTextMessage((w, msg) -> {
+                    if (crypto == null) {
+                        handleHandshakeAnswer(w, msg);
+                    } else {
+                        handleMessage(msg);
+                    }
                 })
-                .onTextMessage((w, msg) -> handleMessage(msg))
-                .onClose((w, code, reason) -> stopPinging())
+                .onClose((w, code, reason) -> {
+                    stopPinging();
+                    if (code == CLOSE_UNSUPPORTED_PROTOCOL) {
+                        markOutdated();
+                    }
+                })
                 .onError((w, ex) -> stopPinging())
                 .connect();
+    }
+
+    /** The first message of the connection: this client's version and ephemeral key, and nothing else. */
+    private void sendHandshake(WebSocket w) {
+        stopPinging();
+        ready = false;
+        crypto = null;
+        handshake = Cn1Crypto.newHandshake();
+        Map<String, Object> hello = new HashMap<>();
+        hello.put("protocol", PROTOCOL);
+        hello.put("clientKey", handshake.clientKey());
+        w.send(JSONParser.mapToJson(hello));
+    }
+
+    /**
+     * The host's answer to the handshake: its key, from which the connection key is derived; then (on the EDT) the
+     * bootstrap message, the messages that waited, and the keep-alive. A refusal of the version leaves the session
+     * out of date; any other answer closes the connection.
+     */
+    private void handleHandshakeAnswer(WebSocket w, String msg) {
+        Map<String, Object> answer;
+        try {
+            answer = parse(msg);
+        } catch (Exception e) {
+            answer = new HashMap<>();
+        }
+        if ("unsupported-protocol".equals(str(answer.get("error")))) {
+            markOutdated();
+            return;
+        }
+        Object serverKey = answer.get("serverKey");
+        try {
+            if (!(serverKey instanceof String) || handshake == null) {
+                throw new IllegalArgumentException("not a handshake answer");
+            }
+            crypto = handshake.agree((String) serverKey, appId);
+        } catch (Exception e) {
+            w.close();
+            return;
+        } finally {
+            handshake = null;
+        }
+        CN.callSerially(() -> {
+            if (outdated) {
+                return;
+            }
+            ws = w;
+            w.send(bootstrapMessage());
+            ready = true;
+            for (Map<String, Object> m : pending) {
+                w.send(JSONParser.mapToJson(m));
+            }
+            pending.clear();
+            startPinging();
+        });
+    }
+
+    /** The host does not speak this client's protocol: nothing more goes out, and the shell is told once. */
+    private void markOutdated() {
+        if (outdated) {
+            return;
+        }
+        outdated = true;
+        stopPinging();
+        CN.callSerially(() -> {
+            pending.clear();
+            if (onOutdated != null) {
+                onOutdated.run();
+            }
+        });
+    }
+
+    /** Whether the host refused this client's protocol version: the app is out of date and does not reconnect. */
+    public boolean isOutdated() {
+        return outdated;
     }
 
     /** Sends the keep-alive on the EDT, like every other message, while the socket is open. */
@@ -111,7 +211,7 @@ public final class BridgeSession {
             @Override
             public void run() {
                 CN.callSerially(() -> {
-                    if (ws != null) {
+                    if (ws != null && ready && !outdated) {
                         ws.send("{\"ping\":true}");
                     }
                 });
@@ -126,10 +226,12 @@ public final class BridgeSession {
         }
     }
 
-    /** 1st WS message: secret + the client storage (enciphered) for the server to populate the scopes. */
-    private String bootstrapMessage(String secret) {
+    /**
+     * The bootstrap message, the first after the handshake: the client storage (ciphered with the connection key)
+     * for the server to populate the scopes.
+     */
+    private String bootstrapMessage() {
         Map<String, Object> boot = new HashMap<>();
-        boot.put("secret", secret);
         boot.put("event", new ArrayList<>());
         Map<String, Object> storage = clientStorage.bootstrap(crypto);
         if (!storage.isEmpty()) {
@@ -270,13 +372,24 @@ public final class BridgeSession {
         return i > 0 ? vsid.substring(0, i) : vsid;
     }
 
-    /** Enciphers a sensitive value (e.g.: password) with the session AES key, to send to the server. */
+    /**
+     * Ciphers a sensitive value (e.g.: password) with the connection key, to send to the server.
+     *
+     * @throws IllegalStateException before the handshake is answered (no view is drawn before it)
+     */
     public String cipher(String plaintext) {
-        return crypto.encipher(plaintext);
+        Cn1Crypto c = crypto;
+        if (c == null) {
+            throw new IllegalStateException("No connection key: the handshake is not done");
+        }
+        return c.encipher(plaintext);
     }
 
-    /** Submits an event to the server. */
+    /** Submits an event to the server (on the EDT); before the bootstrap message went out, it waits. */
     public void submit(String vsid, int eventCode, Map<String, Object> form) {
+        if (outdated) {
+            return;
+        }
         long id = ++requestCounter;
         Map<String, Object> msg = new HashMap<>();
         msg.put("requestId", id);
@@ -284,6 +397,10 @@ public final class BridgeSession {
         ev.add(vsid + ":" + eventCode);
         msg.put("event", ev);
         msg.put(vsid, form != null ? form : new HashMap<>());
+        if (!ready) {
+            pending.add(msg);
+            return;
+        }
         ws.send(JSONParser.mapToJson(msg));
     }
 

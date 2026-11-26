@@ -18,8 +18,21 @@ rendering layer changes.
   `java.net.http`/reflection — the CN1 VM is restricted): `ConnectionRequest`
   (`GET /api/session/init`), `com.codename1.io.WebSocket`
   (`ws://host/dispatcher/{appId}`), `JSONParser`. See `bridge/BridgeSession`.
-- **Session crypto** (`bridge/Cn1Crypto`, `bridge/Cn1ClientStorage`): RSA public key
-  obtained from `/api/session/init`, per-session AES + HMAC (secure login).
+- **Channel crypto, remote protocol 1** (`bridge/Cn1Crypto`, `bridge/P256`, spec in
+  `docs/bridge-skeleton-protocol.md` §6): `/api/session/init` gives only the `appId`. On every
+  WebSocket open, the first and only message is `{"protocol":1,"clientKey":…}` (Base64
+  SubjectPublicKeyInfo of an ephemeral P-256 key); nothing else goes out — no ping, no request —
+  until the host answers `{"protocol":1,"serverKey":…}`. Both ends derive the connection key with
+  HKDF-SHA256 (ECDH x-coordinate, salt = `appId`, info = `wdc-cube-remote/aes-256-gcm/v1`). Then the
+  bootstrap message (`{"event":[]}` + storage), the requests that waited, and the 15 s keep-alive.
+  Storage values and the password travel as `Base64(IV ‖ AES-256-GCM ciphertext ‖ tag)`, a random
+  12-byte IV per value. A refusal (`{"error":"unsupported-protocol"}` / close `4002`) shows "out of
+  date" on the splash, without retry or reconnection.
+- **Own P-256** (`bridge/P256`): Codename One has AES-GCM (`Cipher`), `Hmac` and `SecureRandom`, but
+  no ECDH or HKDF. `P256` does key generation, scalar multiplication (Jacobian coordinates,
+  fixed 256-step Montgomery ladder), SPKI encoding/decoding with point validation and ECDH on CN1's
+  `BigInteger`; HKDF is in `Cn1Crypto` on `Hmac`. CN1's `BigInteger.modInverse` gives wrong results
+  for the P-256 prime, so inverses are `z^(p-2) mod p`.
 - **Non-reactive (Vaadin style)**: each view is **one class** that builds its widgets
   **once** in `build()` and **mutates** them in `doUpdate()`. Nothing is rebuilt on push;
   a coalesced `markDirty` + `flush()` re-renders only what changed.
@@ -174,7 +187,7 @@ See `./build.sh help` for the full list.
 ├─ StoreCn1RemoteApp   # Lifecycle: form, connection, re-sync on push, root slot, splash
 ├─ ServerConfig           # Backend URL per target
 ├─ Sel / *Sel             # UIIDs (theme selectors) per package
-├─ bridge/                # BridgeSession, Cn1Crypto, Cn1ClientStorage, AbstractCn1View, AbstractItemCn1View
+├─ bridge/                # BridgeSession, Cn1Crypto, P256, Cn1ClientStorage, AbstractCn1View, AbstractItemCn1View
 ├─ util/                  # Cn1Dom (DSL), Px, Guard, Money, Json, Images, Decor, …
 ├─ widgets/               # BackButton, CardHeader, IconButton, HtmlText, QtyStepper, Slot
 └─ views/                 # login, home, product, cart, receipt (+ RootCn1View)
@@ -191,5 +204,17 @@ Entry class: `StoreCn1RemoteApp` (extends `com.codename1.system.Lifecycle`);
 # compiles common (Java + SCSS→CSS→theme.res); always use 'clean' (the IDE leaves stale .class files)
 ./mvnw -q -pl common -DskipTests clean process-classes
 ```
+
+### Crypto tests
+
+`common/src/test/java/…/bridge` has JUnit 5 tests that check `P256` and `Cn1Crypto` against the
+JVM's own cryptography (JCA): ECDH both ways, SPKI read by each side, invalid points refused, HKDF on
+RFC 5869 test case 1, AES-GCM values deciphered across. `Cn1CryptoTest` installs the JavaSE port
+headless (no simulator) for `Cipher`, `SecureRandom` and `Base64`.
+
+They compile with `./mvnw -o -q test-compile -pl common,javase`, but `mvn test` does not run them:
+the Codename One plugin swaps Surefire's provider for one that runs only `com.codename1.testing.UnitTest`
+classes. Run them with a JUnit Platform launcher (`junit-platform-launcher` 1.9.x) on the `javase`
+test classpath, selecting the package `br.com.wdc.store.view.remote.shell.cn1.bridge`.
 
 > For the project's complete architectural overview, see the root README.md and the `docs/` folder.

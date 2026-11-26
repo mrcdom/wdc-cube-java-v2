@@ -217,7 +217,7 @@ public class LoginCn1View extends AbstractCn1View {
     private void doLogin() {
         Map<String, Object> form = new HashMap<>();
         form.put("p.userName", user.getText());
-        form.put("p.password", session.cipher(pass.getText()));
+        form.put("p.password", session.cipher(pass.getText())); // ciphered with the connection key
         submit(EVT_LOGIN, form);
     }
 

@@ -1,6 +1,7 @@
 package br.com.wdc.store.view.remote.shell.cn1.bridge;
 
 import com.codename1.security.Cipher;
+import com.codename1.security.Hash;
 import com.codename1.security.Hmac;
 import com.codename1.security.SecretKey;
 import com.codename1.security.SecureRandom;
@@ -8,127 +9,143 @@ import com.codename1.util.Base64;
 import com.codename1.util.BigInteger;
 
 /**
- * Bridge handshake on Codename One — RSA (textbook, base36) + PBKDF2-HMAC-SHA256 + AES-256-GCM.
- *
- * <p>
- * Reproduces, with native CN1 APIs, exactly the Java bridge's {@code ClientCrypto}/{@code SecretContext}
- * (and Flutter's {@code DataSecurity}). Recipe validated end to end by a plain Java probe with a real
- * login (admin/admin) against the server.
- * </p>
+ * The cryptography of the remote channel, protocol version 1, on Codename One (specification:
+ * {@code docs/bridge-skeleton-protocol.md}, section 6).
  *
  * <ul>
- * <li>{@link #signature()} — value of the {@code "secret"} field of the 1st WS message;</li>
- * <li>{@link #encipher(String)} — enciphers a value (e.g.: {@code p.password}) with the session AES key.</li>
+ * <li><b>Key agreement</b>, per connection: {@link #newHandshake()} makes an ephemeral P-256 key pair
+ * ({@link P256}); its {@link Handshake#clientKey()} is the Base64 SubjectPublicKeyInfo the client sends, and
+ * {@link Handshake#agree(String, String)} takes the host's {@code serverKey} and derives the key.</li>
+ * <li><b>Connection key</b>: HKDF-SHA256 (RFC 5869) over the ECDH x-coordinate, with the {@code appId} (UTF-8) as
+ * salt and {@value #KEY_INFO} as info, 32 bytes, used as an AES-256 key.</li>
+ * <li><b>A ciphered value</b>: AES-256-GCM with a 128-bit tag and a random 12-byte IV of its own, written as
+ * {@code Base64(IV ‖ ciphertext ‖ tag)} ({@link #encipher}, {@link #decipher}).</li>
  * </ul>
  */
 public final class Cn1Crypto {
 
-    private static final int PBKDF2_ITERATIONS = 250000;
-    private static final int AES_KEY_BYTES = 32; // 256 bits
+    /** The HKDF info that names what the derived key is for. */
+    public static final String KEY_INFO = "wdc-cube-remote/aes-256-gcm/v1";
 
-    private final String signature;
-    private final byte[] aesKey;
-    private final byte[] iv;
+    private static final int IV_LENGTH = 12;
+    private static final int TAG_LENGTH = 16;
+    private static final int KEY_LENGTH = 32;
+    private static final int SHA256_LENGTH = 32;
 
-    private Cn1Crypto(String signature, byte[] aesKey, byte[] iv) {
-        this.signature = signature;
-        this.aesKey = aesKey;
-        this.iv = iv;
+    private final SecretKey key;
+
+    Cn1Crypto(byte[] key) {
+        if (key == null || key.length != KEY_LENGTH) {
+            throw new IllegalArgumentException("An AES-256 key has 32 bytes");
+        }
+        this.key = new SecretKey("AES", key);
     }
 
-    public String signature() {
-        return signature;
+    /** The client's half of a connection's handshake: a new ephemeral P-256 key pair. */
+    public static Handshake newHandshake() {
+        return new Handshake(P256.newPrivateKey());
     }
 
-    /**
-     * Generates the session secret from the server's RSA public key
-     * ({@code appSKey} = {@code "exponent:modulus"} in base36, from {@code /api/session/init}).
-     */
-    public static Cn1Crypto generate(String appSKey) {
-        int colon = appSKey.indexOf(':');
-        BigInteger publicExponent = new BigInteger(appSKey.substring(0, colon), 36);
-        BigInteger publicModulus = new BigInteger(appSKey.substring(colon + 1), 36);
+    /** One connection's key agreement: sends {@link #clientKey()}, then {@link #agree} with the answer. */
+    public static final class Handshake {
 
-        // random password: 12 bytes -> base64url without padding
-        byte[] randomBytes = SecureRandom.bytes(12);
-        String pwd = stripPadding(Base64.encodeUrlSafe(randomBytes));
-        byte[] pwdBytes = utf8(pwd);
+        private final BigInteger privateKey;
+        private final String clientKey;
 
-        byte[] salt = SecureRandom.bytes(16);
-        byte[] iv = SecureRandom.bytes(12);
+        Handshake(BigInteger privateKey) {
+            this.privateKey = privateKey;
+            this.clientKey = Base64.encodeNoNewline(P256.publicKey(privateKey));
+        }
 
-        // AES-256 via PBKDF2-HMAC-SHA256
-        byte[] aesKey = pbkdf2(pwdBytes, salt, PBKDF2_ITERATIONS, AES_KEY_BYTES);
+        /** This end's public key, Base64 of its X.509 SubjectPublicKeyInfo. */
+        public String clientKey() {
+            return clientKey;
+        }
 
-        // textbook RSA: encrypts the bytes of base64(pwdBytes); base36
-        String pwdBase64 = Base64.encodeNoNewline(pwdBytes); // standard base64 (with padding)
-        BigInteger message = new BigInteger(1, utf8(pwdBase64)); // positive (unsigned)
-        BigInteger encrypted = message.modPow(publicExponent, publicModulus);
-
-        String signature = encrypted.toString(36)
-                + "." + stripPadding(Base64.encodeUrlSafe(salt))
-                + "." + stripPadding(Base64.encodeUrlSafe(iv));
-
-        return new Cn1Crypto(signature, aesKey, iv);
+        /**
+         * The connection key, from the host's public key and the session id.
+         *
+         * @throws IllegalArgumentException if {@code serverKey} is not a P-256 public key in Base64
+         *                                  SubjectPublicKeyInfo
+         */
+        public Cn1Crypto agree(String serverKey, String appId) {
+            byte[] spki = serverKey != null ? Base64.decode(utf8(serverKey)) : null;
+            if (spki == null) {
+                throw new IllegalArgumentException("The server key is not Base64");
+            }
+            byte[] shared = P256.sharedSecret(privateKey, spki);
+            try {
+                return new Cn1Crypto(hkdfSha256(shared, utf8(appId), utf8(KEY_INFO), KEY_LENGTH));
+            } finally {
+                fill(shared);
+            }
+        }
     }
 
-    /** Enciphers a text with the session's AES-256-GCM (128-bit tag) and returns standard base64. */
+    /** Ciphers a text with the connection key: {@code Base64(IV ‖ ciphertext ‖ tag)}, with a random IV. */
     public String encipher(String plaintext) {
-        byte[] out = Cipher.aesEncrypt(Cipher.AES_GCM, new SecretKey("AES", aesKey), iv, new byte[0], utf8(plaintext));
+        byte[] iv = SecureRandom.bytes(IV_LENGTH);
+        byte[] sealed = Cipher.aesEncrypt(Cipher.AES_GCM, key, iv, null, utf8(plaintext));
+        byte[] out = new byte[IV_LENGTH + sealed.length];
+        System.arraycopy(iv, 0, out, 0, IV_LENGTH);
+        System.arraycopy(sealed, 0, out, IV_LENGTH, sealed.length);
         return Base64.encodeNoNewline(out);
     }
 
-    /** Deciphers a base64 enciphered by the session (inverse of {@link #encipher}); {@code null} if invalid. */
-    public String decipher(String b64) {
+    /**
+     * Deciphers a value made with this connection's key (by either end); {@code null} when it is not Base64, is
+     * too short, or does not authenticate (tampered, or ciphered with another key).
+     */
+    public String decipher(String value) {
+        byte[] in = value != null ? Base64.decode(utf8(value)) : null;
+        if (in == null || in.length < IV_LENGTH + TAG_LENGTH) {
+            return null;
+        }
+        byte[] iv = new byte[IV_LENGTH];
+        byte[] sealed = new byte[in.length - IV_LENGTH];
+        System.arraycopy(in, 0, iv, 0, IV_LENGTH);
+        System.arraycopy(in, IV_LENGTH, sealed, 0, sealed.length);
         try {
-            byte[] in = Base64.decode(utf8(b64));
-            byte[] out = Cipher.aesDecrypt(Cipher.AES_GCM, new SecretKey("AES", aesKey), iv, new byte[0], in);
-            return new String(out, "UTF-8");
+            return new String(Cipher.aesDecrypt(Cipher.AES_GCM, key, iv, null, sealed), "UTF-8");
         } catch (Exception e) {
             return null;
         }
     }
 
-    // -- PBKDF2-HMAC-SHA256 (dkLen == 32 == 1 HMAC-SHA256 block) --
-
-
-    private static byte[] pbkdf2(byte[] password, byte[] salt, int iterations, int dkLen) {
-        byte[] block = new byte[salt.length + 4];
-        System.arraycopy(salt, 0, block, 0, salt.length);
-        block[salt.length + 3] = 1; // INT_32_BE(1)
-
-        byte[] u = Hmac.sha256(password, block);
-        byte[] t = new byte[u.length];
-        System.arraycopy(u, 0, t, 0, u.length);
-
-        for (int i = 1; i < iterations; i++) {
-            u = Hmac.sha256(password, u);
-            for (int j = 0; j < t.length; j++) {
-                t[j] = (byte) (t[j] ^ u[j]);
-            }
+    /** HKDF with HMAC-SHA256 (RFC 5869): extract, then expand to {@code length} bytes. */
+    static byte[] hkdfSha256(byte[] ikm, byte[] salt, byte[] info, int length) {
+        if (length < 0 || length > 255 * SHA256_LENGTH) {
+            throw new IllegalArgumentException("HKDF-SHA256 length out of range");
         }
-
-        if (dkLen == t.length) {
-            return t;
+        byte[] prk = Hmac.sha256(salt == null || salt.length == 0 ? new byte[SHA256_LENGTH] : salt, ikm);
+        byte[] out = new byte[length];
+        byte[] block = new byte[0];
+        int written = 0;
+        for (int counter = 1; written < length; counter++) {
+            Hmac mac = Hmac.create(Hash.SHA256, prk);
+            mac.update(block);
+            mac.update(info);
+            mac.update(new byte[] { (byte) counter });
+            block = mac.doFinal();
+            int n = Math.min(block.length, length - written);
+            System.arraycopy(block, 0, out, written, n);
+            written += n;
         }
-        byte[] dk = new byte[dkLen];
-        System.arraycopy(t, 0, dk, 0, dkLen);
-        return dk;
+        fill(prk);
+        return out;
     }
 
-    private static String stripPadding(String s) {
-        int end = s.length();
-        while (end > 0 && s.charAt(end - 1) == '=') {
-            end--;
+    private static void fill(byte[] bytes) {
+        for (int i = 0; i < bytes.length; i++) {
+            bytes[i] = 0;
         }
-        return s.substring(0, end);
     }
 
-    private static byte[] utf8(String s) {
+    static byte[] utf8(String s) {
         try {
             return s.getBytes("UTF-8");
-        } catch (Exception e) {
-            return s.getBytes();
+        } catch (java.io.UnsupportedEncodingException e) {
+            throw new IllegalStateException("UTF-8 is not available", e);
         }
     }
 }
