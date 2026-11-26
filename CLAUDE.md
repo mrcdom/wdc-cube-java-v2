@@ -15,7 +15,7 @@ Project language: **US English** — docs, READMEs, code comments, strings, iden
   - `br.com.wdc.store/` — sample app: `domain`, `persistence` (aggregator of `persistence.impl` (jOOQ), `persistence.client` (HTTP/okhttp), `persistence.rest` (Javalin API)), `presentation`, `backend`, `scripts`, `tests`, `view.*`
     - **`domain` is organized by entity, not by class type**: `domain.product`, `domain.user`, `domain.purchase`, `domain.purchaseitem` — each package gathers the four classes of that entity (`Xxx`, `XxxCriteria`, `XxxCodec`, `XxxRepository`). When creating a new entity, create its package with the complete set; there are no `model`/`criteria`/`codec`/`repositories` packages. Beyond that, `domain` holds `exception`, `security` and the root holders (`StoreConfig`, `StoreTransactions`).
 - `work/` — runtime directory: `config/` (TOML), `bin/` (start scripts), `data/`, `log/`, `frontend/`
-- `docs/` — detailed architectural documentation
+- `docs/` — detailed architectural documentation; `docs/adr/` — the architecture decision records (a change that goes against one supersedes it with a new record)
 
 ## Build & Run
 
@@ -86,4 +86,4 @@ Pattern: **emoji + `[TYPE]` in uppercase + description in English**.
 🧹 [CHORE] clean up / minor refactor
 ```
 
-Main branch: `main`. Current working branch: `evolucoes-estruturais`.
+Main branch: `main`. Each line of work gets its own branch from `main`, and its PR goes back to `main`.
