@@ -214,8 +214,10 @@ public class StoreTeaVMApplication extends StoreApplication {
         }
     }
 
+    /** One paint cycle: the presenters commit their computed state, then the dirty views redraw. */
     private void flushDirtyViews() {
         renderScheduled = false;
+        this.commitComputedState();
         List<AbstractViewTeaVM<?>> snapshot = new ArrayList<>(dirtyViews);
         dirtyViews.clear();
         for (AbstractViewTeaVM<?> view : snapshot) {

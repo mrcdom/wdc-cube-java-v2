@@ -16,7 +16,8 @@ import br.com.wdc.framework.commons.function.ThrowingRunnable;
  * ({@code scope.onBuy = action(this::buy)}). The guard catches whatever the body did not handle and hands it to
  * {@link CubeApplication#alertUnexpectedError}; at the end, failing or not, the application republishes the address,
  * since the action may have changed what the presenters publish. Expected failures (an invalid item, an offline
- * database) stay in the body, which turns them into messages in the scope.
+ * database) stay in the body, which turns them into messages in the scope. The actions of one application run one at
+ * a time ({@link CubeApplication#runExclusively}).
  * <p>
  * An action a remote client fires is bound with its <b>event code</b>, and with how to read its values from the form
  * data ({@link FormParam}): {@code actionOf(2, FormParam.asLong("p.productId"), this::removeProduct)}. The code is the
@@ -62,36 +63,36 @@ public abstract class AbstractPresenter<A extends CubeApplication> implements Pr
     // :: Actions
 
     protected final Action action(ThrowingRunnable fn) {
-        return () -> {
+        return () -> app.runExclusively(() -> {
             try {
                 fn.runThrows();
             } catch (Exception caught) {
                 this.onActionFailure(caught);
             }
             this.afterAction();
-        };
+        });
     }
 
     protected final <T> ActionOf<T> actionOf(ThrowingConsumer<T> fn) {
-        return value -> {
+        return value -> app.runExclusively(() -> {
             try {
                 fn.acceptThrows(value);
             } catch (Exception caught) {
                 this.onActionFailure(caught);
             }
             this.afterAction();
-        };
+        });
     }
 
     protected final <T, U> ActionOf2<T, U> actionOf2(ThrowingBiConsumer<T, U> fn) {
-        return (first, second) -> {
+        return (first, second) -> app.runExclusively(() -> {
             try {
                 fn.acceptThrows(first, second);
             } catch (Exception caught) {
                 this.onActionFailure(caught);
             }
             this.afterAction();
-        };
+        });
     }
 
     // :: Actions a remote client fires, by event code

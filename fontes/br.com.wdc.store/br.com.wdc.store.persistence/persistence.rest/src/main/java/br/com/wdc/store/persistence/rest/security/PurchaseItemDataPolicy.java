@@ -19,7 +19,8 @@ import br.com.wdc.store.domain.user.User;
  * Who may do what with the purchase items through the REST API.
  *
  * <ul>
- * <li><b>ADMIN</b> reads every item, creates, updates and deletes them.</li>
+ * <li><b>ADMIN</b> reads every item, creates, updates and deletes them. A price it sends is replaced by the product's
+ * price, by the repository.</li>
  * <li><b>CUSTOMER</b> reads the items of its own purchases, and creates items in them — without a price: the price
  * of an item is the price of its product when it is created, filled in by the repository.</li>
  * <li><b>MANAGER</b> reads the items of its own purchases.</li>

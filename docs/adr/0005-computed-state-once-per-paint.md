@@ -1,7 +1,7 @@
 # 0005. Computed state is committed once per paint cycle
 
 - **Date:** 2026-04-28
-- **Status:** Accepted
+- **Status:** Superseded by [0022](0022-computed-state-in-every-host.md)
 
 ## Context
 

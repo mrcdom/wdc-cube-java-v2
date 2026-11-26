@@ -460,6 +460,8 @@ var storage = clientPersistentStore();
 			return;
 		}
 		try {
+			// One paint cycle: the presenters commit their computed state, then the dirty views redraw
+			this.commitComputedState();
 			var threshold = System.nanoTime() - (FRAME_INTERVAL_MS * 1_000_000L);
 			var iterator = this.dirtyViewMap.values().iterator();
 			while (iterator.hasNext()) {

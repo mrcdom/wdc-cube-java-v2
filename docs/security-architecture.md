@@ -155,7 +155,7 @@ Each `RowScope` is written twice, and both must agree: `restrict(group, sc)` as 
 - Delete: only the rows of grants that delete, filtered by fields those grants read.
 - A grant that masks a field cannot write it (refused when the policy is built), so a masked value echoed back is a 403, never an overwrite.
 - A relation is written by its key only.
-- What the server decides is not writable: the price of an item a customer buys is the price of its product, read by a subquery in the `INSERT` itself.
+- What the server decides is not writable: the price of an item is the price of its product, read by a subquery in the `INSERT` itself, and recomputed by an update that touches the price or the product. A price sent by anyone, the ADMIN included, is not used.
 
 **Refusing, not trimming.** A forbidden request is a **403 naming the fields** (`not allowed to read user fields [password]`). Quietly trimming would make a screen show blanks with nobody knowing why. The client is not sent the policy: a correct client never asks for what its roles do not allow, so a 403 is an unexpected error, and the field list serves whoever reads the log.
 
@@ -209,7 +209,7 @@ The controller calls one `DataAccess` method per operation — `prepareRead`, `r
 | `Criteria.anyOf`, `CriterionCodec.refuseAnyOf` | `framework.domain` (`criteria`) | Every criteria has them on the server; the wire refuses them |
 | `CriterionTranslator.anyOf`, `translateAny` | `framework.jooq` | The single translation to SQL |
 | `UserDataPolicy`, `ProductDataPolicy`, `PurchaseDataPolicy`, `PurchaseItemDataPolicy` | `persistence.rest` (`security`) | The policies apply only at the REST boundary |
-| Price of a new item | `persistence.impl` (`PurchaseItemRepositoryImpl.insertRow`) | The server decides it, in every host |
+| Price of an item | `persistence.impl` (`PurchaseItemRepositoryImpl`, `insertRow` and `update`) | The server decides it, in every host, for every role |
 
 ### What the policies refuse (tested)
 
@@ -292,5 +292,5 @@ The reference implementation favors clarity over a hardened deployment. Before p
 | Masks | Textual fields only |
 | Relations | Each entity follows its own policy wherever it appears |
 | Purchases | A receipt: customers read and create their own; only an ADMIN changes or deletes |
-| Price of an item | Decided by the server, from the product, in the `INSERT` |
+| Price of an item | Decided by the server, from the product, in the `INSERT` and in an update of the price or the product |
 | Disjunction of row scopes | Alternative groups (`anyOf`) in every criteria, server-side only; a client's search over columns is a provisioned field (`translateAny`) |

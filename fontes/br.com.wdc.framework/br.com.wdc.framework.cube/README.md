@@ -56,8 +56,8 @@ graph LR
 | `CubeSkeleton` | Interface for remote communication: `classId()`, `submit(eventCode, eventQtde, formData)`, `syncScope(formData)`. Nobody implements it by hand: `Scope.skeleton(classId)` dispatches each event to the action bound to that code, and `Scope.onSync(...)` defines `syncScope` |
 | `FormParam<T>` | How an action reads a value from the event's `formData`: field name + conversion (`asLong`, `asInteger`, `asString`, `of`) |
 | `Scope`, `Prop<T>` | The state of a piece of screen that a presenter publishes: observed fields are `Prop`s (`prop(...)`); `set` of a different value requests the redraw by itself — through the updater the rendering technology installed (`setUpdater`, taken back with `clearUpdater`, which only clears it if it is still the same) or, while nothing draws the scope, through the owning scope that holds it in a `Prop`. `setSilently` is for the view that consumes a one-time display message while drawing. Each scope drawn remotely declares `public static final String CLASS_ID` (the bridge protocol classId) |
-| `Action`, `ActionOf<T>`, `ActionOf2<T, U>` | Actions the view fires, stored as Scope fields; `NOOP`/`noop()` mark an action not yet bound |
-| `PresenterBase` | Root interface: `commitComputedState()` + `release()` |
+| `Action`, `ActionOf<T>`, `ActionOf2<T, U>` | Actions the view fires, stored as Scope fields; `NOOP`/`noop()` mark an action not yet bound. The actions of one application run one at a time (`CubeApplication.runExclusively`) |
+| `PresenterBase` | Root interface: `commitComputedState()` (run by every rendering technology once per paint cycle) + `release()` |
 
 ---
 

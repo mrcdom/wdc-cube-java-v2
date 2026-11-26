@@ -71,7 +71,7 @@ public class PurchaseItemRepositoryTest extends AbstractPurchaseItemRepositoryTe
 	}
 
 	@Test
-	public void insert_withPrice_keepsIt() {
+	public void insert_withPrice_recordsTheProductsPrice() {
 		var item = new br.com.wdc.store.domain.purchaseitem.PurchaseItem()
 				.withAmount(1)
 				.withPrice(12.5)
@@ -82,6 +82,6 @@ public class PurchaseItemRepositoryTest extends AbstractPurchaseItemRepositoryTe
 
 		assertTrue(repo().insert(item));
 
-		assertEquals(12.5, item.price(), 0.001);
+		assertEquals(16.0, item.price(), 0.001);
 	}
 }

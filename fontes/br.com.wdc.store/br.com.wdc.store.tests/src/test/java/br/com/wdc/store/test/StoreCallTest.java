@@ -189,16 +189,14 @@ public class StoreCallTest extends BaseBusinessTest {
             var item = new PurchaseItem()
                     .withProduct(new Product()
                             .withId(DBReset.FLASH_DRIVE_2GB_ID));
-            item.withPrice(55.0)
-                    .withAmount(1);
+            item.withAmount(1);
             return item;
         }));
         purchase.items().add(LambdaUtils.supply(() -> {
             var item = new PurchaseItem()
                     .withProduct(new Product()
                             .withId(DBReset.THREAD_SEAL_TAPE_ID));
-            item.withPrice(5.0)
-                    .withAmount(2);
+            item.withAmount(2);
             return item;
         }));
 
@@ -214,7 +212,8 @@ public class StoreCallTest extends BaseBusinessTest {
         var latestPurchase = purchases.get(0);
         Assert.assertEquals(Long.valueOf(purchaseId), Long.valueOf(latestPurchase.id));
         Assert.assertEquals(2, latestPurchase.items.size());
-        Assert.assertEquals(Double.valueOf(65.0), Double.valueOf(latestPurchase.total));
+        // The catalog's prices: one flash drive at 16.00 and two tapes at 2.67
+        Assert.assertEquals(21.34, latestPurchase.total, 0.001);
 
         final ReceiptForm receipt = new ReceiptQuery()
                 .withPurchaseId(purchaseId)
@@ -226,7 +225,7 @@ public class StoreCallTest extends BaseBusinessTest {
                 .withPurchaseId(purchaseId)
                 .withUserId(DBReset.JANE_ROE_ID)
                 .run());
-        Assert.assertEquals(Double.valueOf(65), receipt.total);
+        Assert.assertEquals(21.34, receipt.total, 0.001);
         Assert.assertEquals(2, receipt.items.size());
 
         var item0 = purchase.items().get(0);

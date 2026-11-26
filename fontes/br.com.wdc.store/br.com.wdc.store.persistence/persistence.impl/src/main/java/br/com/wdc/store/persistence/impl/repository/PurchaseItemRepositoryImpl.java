@@ -113,10 +113,10 @@ public class PurchaseItemRepositoryImpl extends BaseRepositoryImpl  implements P
      * Inserts the item — on its own, or as part of a new purchase ({@code PurchaseRepositoryImpl.insert}).
      *
      * <p>
-     * <b>The price is decided here, on the server.</b> An item without one is recorded with the price of its product,
-     * read by a subquery in the same {@code INSERT}, so it is the price at the moment the row is written. Whoever sends
-     * a purchase from the browser sends what it wants; the REST data policy does not let a customer send a price. The
-     * price recorded comes back through {@code RETURNING} and is put on the item.
+     * <b>The price is decided here, on the server.</b> The item is recorded with the price of its product, read by a
+     * subquery in the same {@code INSERT}, so it is the price at the moment the row is written; a price the item
+     * carries is not used, whoever sent it. The REST data policy does not let a customer send one at all. The price
+     * recorded comes back through {@code RETURNING} and is put on the item.
      * </p>
      */
     static boolean insertRow(DSLContext dsl, PurchaseItem item) {
@@ -151,17 +151,18 @@ public class PurchaseItemRepositoryImpl extends BaseRepositoryImpl  implements P
         return true;
     }
 
-    /** The price of a new item: the one it carries, or else its product's, as a subquery; {@code null} with neither. */
+    /** The price of a new item: its product's, as a subquery; {@code null} without a product. */
     private static Field<BigDecimal> priceOf(PurchaseItem item) {
-        if (item.price() != null) {
-            return DSL.val(BigDecimal.valueOf(item.price()));
-        }
         if (item.product() == null || item.product().id() == null) {
             return null;
         }
+        return productPrice(DSL.val(item.product().id()));
+    }
+
+    private static Field<BigDecimal> productPrice(Field<Long> productId) {
         return DSL.field(DSL.select(EN_PRODUCT.PRICE)
                 .from(EN_PRODUCT)
-                .where(EN_PRODUCT.ID.eq(item.product().id())));
+                .where(EN_PRODUCT.ID.eq(productId)));
     }
 
     @Override
@@ -184,10 +185,11 @@ public class PurchaseItemRepositoryImpl extends BaseRepositoryImpl  implements P
         boolean hasChanges = false;
 
         if (changed(newBean, oldBean, projection, PurchaseItem::purchaseId)) {
-            step.set(EN_PURCHASEITEM.PURCHASEID, newBean.productId());
+            step.set(EN_PURCHASEITEM.PURCHASEID, newBean.purchaseId());
             hasChanges = true;
         }
-        if (changed(newBean, oldBean, projection, PurchaseItem::productId)) {
+        var productChanged = changed(newBean, oldBean, projection, PurchaseItem::productId);
+        if (productChanged) {
             step.set(EN_PURCHASEITEM.PRODUCTID, newBean.productId());
             hasChanges = true;
         }
@@ -195,8 +197,12 @@ public class PurchaseItemRepositoryImpl extends BaseRepositoryImpl  implements P
             step.set(EN_PURCHASEITEM.AMOUNT, newBean.amount());
             hasChanges = true;
         }
-        if (changed(newBean, oldBean, projection, pi -> pi.price())) {
-            step.set(EN_PURCHASEITEM.PRICE, newBean.price() != null ? BigDecimal.valueOf(newBean.price()) : null);
+        // The price is the product's, here too: an update that touches the price or the product recomputes it from
+        // the product the row ends up with, and the value sent is not used.
+        if (productChanged || changed(newBean, oldBean, projection, pi -> pi.price())) {
+            step.set(EN_PURCHASEITEM.PRICE, productPrice(productChanged
+                    ? DSL.val(newBean.productId())
+                    : EN_PURCHASEITEM.PRODUCTID));
             hasChanges = true;
         }
 
