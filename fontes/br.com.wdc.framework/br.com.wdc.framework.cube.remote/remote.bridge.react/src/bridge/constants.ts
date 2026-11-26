@@ -11,3 +11,9 @@ export const BROWSER_VSID = `${BROWSER_VID}:0`
 // Keepalive interval to prevent "Idle Timeout" errors
 // Reduced to 15 seconds to ensure WebSocket stays active while page is open
 export const KEEP_ALIVE_INTERVAL = 15 * 1000
+
+/** Event code of the browser view's alert OK. */
+export const ON_ALERT_OK = 1
+
+/** The default alert when the host refuses this bridge's protocol version. */
+export const OUTDATED_MESSAGE = "This page is out of date. Reload it to continue."

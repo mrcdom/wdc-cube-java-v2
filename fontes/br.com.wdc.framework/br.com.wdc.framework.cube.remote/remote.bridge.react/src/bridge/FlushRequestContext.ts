@@ -1,11 +1,12 @@
 import type { ScopeCoordinator } from "./ScopeCoordinator"
 import type { BrowserScope, FormMapType } from "./types"
 import { BROWSER_VSID, CAUTHED, KEEP_ALIVE_INTERVAL } from "./constants"
+import { PROTOCOL } from "./ChannelCrypto"
 
 export class FlushRequestContext {
   private readonly app: ScopeCoordinator
   private readonly onVisibilityChange = () => {
-    if (!document.hidden && this.socket?.readyState === WebSocket.OPEN) {
+    if (!document.hidden && this.isReady()) {
       this.keepAliveNow()
     }
   }
@@ -20,8 +21,15 @@ export class FlushRequestContext {
   private submittingTimer = 0
   private submittingTimeout = 0
   private readonly userRequestIds = new Set<number>()
-  private pendingSecret: string | null = null
+  /** The connection is open and waits for the host's answer to its handshake: nothing else may go out. */
+  private handshaking = false
+  /** The first message after the handshake answer (the bootstrap) has not gone out yet. */
+  private bootstrapPending = false
+  /** The host refused this bridge's protocol version: no message goes out, no reconnection is tried. */
+  outdated = false
   pendingStorage: Record<string, unknown> | null = null
+  /** Incoming messages, handled one at a time, in order (the handshake answer is asynchronous). */
+  private inbox: Promise<void> = Promise.resolve()
 
   constructor(app: ScopeCoordinator) {
     this.app = app
@@ -63,7 +71,7 @@ export class FlushRequestContext {
     // NOSONAR: complexity is inherent to the WebSocket protocol handling
     const { socket, lastSentRequestId, requestCount, requestMap } = this
 
-    if (socket?.readyState !== WebSocket.OPEN) {
+    if (!socket || !this.isReady()) {
       return
     }
 
@@ -98,11 +106,8 @@ export class FlushRequestContext {
       hasData = true
     }
 
-    if (hasData || this.pendingSecret || this.pendingStorage) {
-      if (this.pendingSecret) {
-        requestObj.secret = this.pendingSecret
-        this.pendingSecret = null
-      }
+    if (hasData || this.bootstrapPending) {
+      this.bootstrapPending = false
       if (this.pendingStorage) {
         requestObj.storage = this.pendingStorage
         this.pendingStorage = null
@@ -114,7 +119,15 @@ export class FlushRequestContext {
     }
   }
 
+  /** The connection is open and its handshake is done. */
+  private isReady() {
+    return this.socket?.readyState === WebSocket.OPEN && !this.handshaking && !this.outdated
+  }
+
   open(url: string) {
+    if (this.outdated) {
+      return
+    }
     if (this.socket && (this.socket.readyState === WebSocket.OPEN || this.socket.readyState === WebSocket.CONNECTING)) {
       return
     }
@@ -122,31 +135,38 @@ export class FlushRequestContext {
     const app = this.app
 
     const socket = (this.socket = new WebSocket(url, ["wdc"]))
-    ;(socket as Record<string, unknown>).withCredentials = true
+    ;(socket as unknown as Record<string, unknown>).withCredentials = true
 
     const handleDisconnect = (cause: unknown) => {
+      if (this.socket !== socket) {
+        return
+      }
       this.socket = null
+      this.handshaking = false
       app.isConnected = false
       this.stopKeepAliveChecks()
       this.userRequestIds.clear()
       this.stopSubmitting()
-      app.reconnectController.reconnect(cause)
+      if (!this.outdated) {
+        app.reconnectController.reconnect(cause)
+      }
     }
 
     socket.onopen = () => {
       app.isConnected = true
-      this.pendingSecret = app.dataSecurity.getSignature()
-      this.initKeepAliveChecks()
-      // Build bootstrap storage payload (async: cipher key may have just been set)
-      // then flush. Nothing is sent until the promise resolves.
-      app
-        .buildBootstrapStorage()
-        .then((storage) => {
-          this.pendingStorage = storage
-          this.flush()
+      this.handshaking = true
+      this.bootstrapPending = false
+      this.pendingStorage = null
+      app.dataSecurity
+        .beginHandshake()
+        .then((hello) => {
+          if (this.socket === socket && socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify(hello))
+          }
         })
-        .catch(() => {
-          this.flush() // send even if storage build fails
+        .catch((error) => {
+          CAUTHED(error)
+          socket.close()
         })
     }
 
@@ -163,58 +183,123 @@ export class FlushRequestContext {
         globalThis.location.reload()
         return
       }
+      if (event.code === 4002) {
+        this.markOutdated()
+      }
       handleDisconnect(event)
     }
 
-    // Log messages from the server
     socket.onmessage = (e) => {
-      if (app.reconnectController.count > 0) {
-        app.reconnectController.reset()
-      }
-      const response = JSON.parse(e.data)
+      const data = e.data as string
+      this.inbox = this.inbox
+        .then(() => (this.socket === socket ? this.handleMessage(socket, data) : undefined))
+        .catch(CAUTHED)
+    }
+  }
 
-      if (response.releasedViews) {
-        app.viewGarbageCollector.release(response.releasedViews)
-      }
-      if (response.activeViews) {
-        app.viewGarbageCollector.sweep(response.activeViews)
-      }
+  /** The answer to the handshake: the connection's key, then the bootstrap; or the refusal of the version. */
+  private async handleHandshakeAnswer(socket: WebSocket, answer: Record<string, unknown>) {
+    if (answer.error === "unsupported-protocol") {
+      this.markOutdated()
+      return
+    }
+    if (answer.protocol !== PROTOCOL || typeof answer.serverKey !== "string") {
+      throw new Error("Unexpected handshake answer: " + JSON.stringify(answer))
+    }
 
-      if (response.requestId != null) {
-        for (let i = this.lastProcessedId + 1; i <= response.requestId; i++) {
-          this.requestMap.delete(i)
-          this.userRequestIds.delete(i)
-          this.lastProcessedId = i
-        }
-      }
+    const app = this.app
+    await app.dataSecurity.completeHandshake(answer.serverKey, app.id)
 
-      if (response.uri) {
-        app.path = response.uri
-        const hashValue = `#${response.uri}`
-        if (app.firstUriResponse || app.navigatingFromPopState) {
-          app.firstUriResponse = false
-          app.navigatingFromPopState = false
-          globalThis.history.replaceState(null, "", hashValue)
-        } else {
-          globalThis.history.pushState(null, "", hashValue)
-        }
-      }
+    let storage: Record<string, unknown> | null = null
+    try {
+      storage = await app.buildBootstrapStorage()
+    } catch (error) {
+      CAUTHED(error) // the bootstrap goes out without the storage
+    }
+    if (this.socket !== socket) {
+      return
+    }
+    this.handshaking = false
+    this.bootstrapPending = true
+    this.pendingStorage = storage
+    this.initKeepAliveChecks()
+    this.flush()
+  }
 
-      if (response.scopes) {
-        app.applyScopes(response.scopes)
-      }
+  private async handleMessage(socket: WebSocket, data: string) {
+    const app = this.app
+    const response = JSON.parse(data)
 
-      if (response.storage) {
-        app.applyStorageDelta(response.storage as Record<string, unknown>).catch(CAUTHED)
+    if (this.handshaking) {
+      try {
+        await this.handleHandshakeAnswer(socket, response)
+      } catch (error) {
+        CAUTHED(error)
+        socket.close()
       }
+      return
+    }
 
-      this.flush()
-      if (this.userRequestIds.size > 0) {
-        this.startSubmitting()
-      } else {
-        this.stopSubmitting()
+    if (app.reconnectController.count > 0) {
+      app.reconnectController.reset()
+    }
+
+    if (response.releasedViews) {
+      app.viewGarbageCollector.release(response.releasedViews)
+    }
+    if (response.activeViews) {
+      app.viewGarbageCollector.sweep(response.activeViews)
+    }
+
+    if (response.requestId != null) {
+      for (let i = this.lastProcessedId + 1; i <= response.requestId; i++) {
+        this.requestMap.delete(i)
+        this.userRequestIds.delete(i)
+        this.lastProcessedId = i
       }
     }
+
+    if (response.uri) {
+      app.path = response.uri
+      const hashValue = `#${response.uri}`
+      if (app.firstUriResponse || app.navigatingFromPopState) {
+        app.firstUriResponse = false
+        app.navigatingFromPopState = false
+        globalThis.history.replaceState(null, "", hashValue)
+      } else {
+        globalThis.history.pushState(null, "", hashValue)
+      }
+    }
+
+    if (response.scopes) {
+      app.applyScopes(response.scopes)
+    }
+
+    if (response.storage) {
+      await app.applyStorageDelta(response.storage as Record<string, unknown>)
+    }
+
+    this.flush()
+    if (this.userRequestIds.size > 0) {
+      this.startSubmitting()
+    } else {
+      this.stopSubmitting()
+    }
+  }
+
+  /** The host refused this bridge's protocol version: stop, never reconnect, and tell the user. */
+  private markOutdated() {
+    if (this.outdated) {
+      return
+    }
+    this.outdated = true
+    this.handshaking = false
+    this.stopKeepAliveChecks()
+    this.cancelPendingKeepAlive()
+    this.userRequestIds.clear()
+    this.stopSubmitting()
+    this.app.reconnectController.close()
+    this.app.showOutdated()
   }
 
   close() {
@@ -236,11 +321,13 @@ export class FlushRequestContext {
 
   private keepAliveNow() {
     this.cancelPendingKeepAlive()
-    if (this.socket?.readyState === WebSocket.OPEN) {
+    if (this.isReady()) {
       this.pendingKeepAlive = globalThis.setTimeout(() => {
         this.pendingKeepAlive = 0
         this.persistState()
-        this.socket?.send(JSON.stringify({ ping: true }))
+        if (this.isReady()) {
+          this.socket?.send(JSON.stringify({ ping: true }))
+        }
       }, 80)
     }
   }

@@ -47,6 +47,10 @@ export class ReconnectController {
 
   check() {
     const app = this.app
+    if (app.contextExchanger.outdated) {
+      this.close()
+      return
+    }
     const bvView = app.viewMap.get(BROWSER_VSID)
     if (!bvView) {
       this.reset()

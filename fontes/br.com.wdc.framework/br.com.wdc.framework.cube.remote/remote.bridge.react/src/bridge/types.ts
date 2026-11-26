@@ -4,6 +4,9 @@ export type BrowserScope = {
   contentViewId?: string
   submitting?: boolean
 
+  /** The host refused this bridge's protocol version: the alert's OK reloads the page. */
+  outdated?: boolean
+
   /** Server alert: 0 = none, -1 = unexpected error */
   alertId?: number
   alertArgs?: string[]
