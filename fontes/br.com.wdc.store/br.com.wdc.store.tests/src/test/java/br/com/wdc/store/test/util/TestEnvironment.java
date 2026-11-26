@@ -142,11 +142,7 @@ public class TestEnvironment extends ExternalResource {
         });
 
         var basePath = Paths.get("work");
-        StoreConfig.Internals.setBaseDir(basePath);
-        StoreConfig.Internals.setConfigDir(basePath.resolve("config"));
-        StoreConfig.Internals.setDataDir(basePath.resolve("data"));
-        StoreConfig.Internals.setLogDir(basePath.resolve("log"));
-        StoreConfig.Internals.setTempDir(basePath.resolve("temp"));
+        StoreConfig.Internals.setWorkDir(basePath);
 
         // Cryptography infrastructure: the real hosts (backend, Vaadin, SWT, TeaVM) install it in their
         // composition root, and the test environment is a host like the others. Without it, PasswordUtil refuses the

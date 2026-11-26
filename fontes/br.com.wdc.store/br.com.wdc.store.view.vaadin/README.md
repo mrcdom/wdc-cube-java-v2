@@ -150,15 +150,14 @@ cd fontes && mvn -DskipTests package -pl br.com.wdc.store/br.com.wdc.store.view.
 
 ## Running
 
-The build produces a fat JAR (`target/br.com.wdc.store.view.vaadin-1.0.0.jar`, main class `StoreVaadinMain`). The config file is resolved relative to the working directory, so point to the module's own:
+The build produces a fat JAR (`target/br.com.wdc.store.view.vaadin-1.0.0.jar`, main class `StoreVaadinMain`). It does not start without a work directory, given by `--workdir=<folder>` or `STORE_WORKDIR`; the module's own is `work/` (`config/application.toml`, `data/`, `log/`, `temp/`):
 
 ```bash
 cd fontes/br.com.wdc.store/br.com.wdc.store.view.vaadin
-java -Dstore.config.file=work/config/application.toml \
-  -jar target/br.com.wdc.store.view.vaadin-1.0.0.jar
+java -jar target/br.com.wdc.store.view.vaadin-1.0.0.jar --workdir=work
 ```
 
-Or via the IDE, running `StoreVaadinMain` with the same `-Dstore.config.file` (or with `work/` as the working directory).
+Or via the IDE, running `StoreVaadinMain` with the program argument `--workdir=work` (relative to the module).
 
 Open: **http://localhost:8090** (default of `server.port`)
 

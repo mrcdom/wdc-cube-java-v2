@@ -12,8 +12,8 @@ import io.javalin.http.Context;
 
 /**
  * Generates a dynamic landing page listing all available frontend contexts
- * found under {@code {basedir}/frontend/}. Each context's description is loaded
- * from {@code {basedir}/frontend/<context>/context.html}.
+ * found under the work directory's {@code frontend/}. Each context's description is loaded
+ * from {@code frontend/<context>/context.html}.
  */
 public class LandingPageController {
 
@@ -26,7 +26,7 @@ public class LandingPageController {
     }
 
     private void handle(Context ctx) {
-        Path frontendBase = StoreConfig.getBaseDir().resolve("frontend");
+        Path frontendBase = StoreConfig.getFrontendDir();
         var html = new StringBuilder();
 
         html.append("""

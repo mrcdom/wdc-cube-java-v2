@@ -32,6 +32,11 @@
 			<artifactId>framework-persistence</artifactId>
 		</dependency>
 		<dependency>
+			<!-- sign-in and session meters, in Micrometer's global registry -->
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-core</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 		</dependency>

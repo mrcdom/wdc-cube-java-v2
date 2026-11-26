@@ -1,18 +1,12 @@
 # WDC Store - Vaadin Application Configuration
-# Place this file at: {CWD}/config/application.toml
-# (start the app with CWD set to the work/ directory)
+# Lives at <work directory>/config/application.toml; the module's work/ folder is its work directory in development:
+# start with --workdir=work (or STORE_WORKDIR). Its subfolders: config/, data/, log/, temp/.
 #
 # NOTE: This file is for the Vaadin view module only.
 # It uses an embedded Jetty server and a direct JdbcDataSource — there is no
 # Agroal connection pool, no CORS layer, no backend Host/Shell session protocol,
 # and no live-reload dev server. Those parameters are backend-only and have no
 # effect here.
-
-[app]
-# Base directory for runtime data (data, log, temp).
-# Resolved relative to the location of THIS file.
-# ".." means one folder above config/ (i.e., the work/ directory itself).
-basedir = ".."
 
 [database]
 # JDBC URL. Default (when omitted): H2 file database under the data/ directory.

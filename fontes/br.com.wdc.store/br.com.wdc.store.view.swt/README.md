@@ -85,11 +85,10 @@ JAVA_HOME=$JAVA25_HOME mvn clean package -DskipTests -pl br.com.wdc.store/br.com
 ```bash
 cd fontes/br.com.wdc.store/br.com.wdc.store.view.swt/swt.desktop
 # -XstartOnFirstThread is required on macOS (SWT/Cocoa runs the UI on the main thread)
-$JAVA25_HOME/bin/java -XstartOnFirstThread -Dstore.config.file=work/config/application.toml \
-  -jar target/swt.desktop-1.0.0.jar
+$JAVA25_HOME/bin/java -XstartOnFirstThread -jar target/swt.desktop-1.0.0.jar --workdir=work
 ```
 
-> The application includes an embedded backend (H2 file database in `swt.desktop/work/data` + repositories) and requires no external server. Its config is `swt.desktop/work/config/application.toml`; the config file is resolved relative to the working directory unless `store.config.file` is given.
+> The application includes an embedded backend (H2 file database in `swt.desktop/work/data` + repositories) and requires no external server. It does not start without a work directory (`--workdir=<folder>` or `STORE_WORKDIR`); the module's own is `swt.desktop/work/`, with `config/application.toml`.
 
 ## Screenshots
 

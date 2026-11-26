@@ -226,7 +226,7 @@ java -jar ../fontes/br.com.wdc.cube.backend/target/br.com.wdc.cube.backend-1.0.0
 ```
 
 - **Application:** http://localhost:8080
-- **Health check:** http://localhost:8080/health
+- **Health checks:** http://localhost:8080/health/live and http://localhost:8080/health/ready (see [Operations](#operations))
 - **Default port:** 8080 (configurable via `work/config/application.toml`, a CLI argument or the `SERVER_PORT` variable)
 
 ### Flutter Version (Mobile / Desktop / Web)
@@ -257,10 +257,9 @@ cd ../flutter.web
 export JAVA_HOME=<path-to-jdk-25>
 export PATH="$JAVA_HOME/bin:$PATH"
 
-# Fat JAR produced by the build (cd fontes && mvn clean package); the module has its own config in work/config/
+# Fat JAR produced by the build (cd fontes && mvn clean package); the module's work/ is its work directory
 cd fontes/br.com.wdc.store/br.com.wdc.store.view.vaadin
-java -Dstore.config.file=work/config/application.toml \
-  -jar target/br.com.wdc.store.view.vaadin-1.0.0.jar
+java -jar target/br.com.wdc.store.view.vaadin-1.0.0.jar --workdir=work
 ```
 
 - **Application:** http://localhost:8090 (default of `server.port`; the Vaadin config has its own H2 file database)
@@ -282,12 +281,9 @@ Test structure:
 
 ## Configuration
 
-Every Java host reads a TOML file: the backend uses `work/config/application.toml`; the Vaadin and local SWT hosts each have their own `work/config/application.toml` inside their module. `application.local.toml`, next to it, overrides its keys.
+Every Java host starts from an explicit **work directory**, given by `--workdir=<folder>` or `STORE_WORKDIR`; without one, or with a folder that does not exist, it refuses to start. Its subfolders are fixed: `config/` (`application.toml`; `application.local.toml`, next to it, overrides its keys), `data/`, `log/`, `temp/` and `frontend/`. The backend's is the repository's `work/` (`start-server.sh` passes it); the Vaadin and local SWT hosts each have their own `work/` inside their module.
 
 ```toml
-[app]
-basedir = ".."   # required; resolved relative to the config file's directory
-
 [database]
 # url = "jdbc:h2:file:..."   # default: H2 file database in the data directory
 # username = "sa"
@@ -299,9 +295,15 @@ basedir = ".."   # required; resolved relative to the config file's directory
 
 [security]
 # jwt.secret = "your-secret-key"   # enables JWT authentication on the REST API
+
+[management]
+# token = "..."   # enables GET /metrics (Prometheus format), with Authorization: Bearer <token>
 ```
 
-Resolution: system property `store.config.file` → fallback to `config/application.toml` relative to the working directory (`start-server.sh` runs from `work/`). A missing file stops the startup.
+## Operations
+
+- **Health:** `GET /health/live` (the process answers; `/health` is the same) and `GET /health/ready` (the database answers too; 503 when it does not, so a load balancer takes the instance out). Both open.
+- **Metrics:** `GET /metrics`, Prometheus format, only when `[management] token` is set and with `Authorization: Bearer <token>`: the JVM, every HTTP request by route as declared, sign-ins by outcome, sessions, remote view sessions and messages, remote transactions. Details in the [backend README](fontes/br.com.wdc.cube.backend/README.md#observability).
 
 ## Security (RBAC)
 

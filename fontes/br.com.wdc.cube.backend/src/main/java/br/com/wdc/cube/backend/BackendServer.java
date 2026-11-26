@@ -17,13 +17,14 @@ import br.com.wdc.cube.backend.controller.DevHeapController;
 import br.com.wdc.cube.backend.controller.DevReloadController;
 import br.com.wdc.cube.backend.controller.ImageController;
 import br.com.wdc.cube.backend.controller.LandingPageController;
-import br.com.wdc.cube.backend.controller.StatusController;
 import br.com.wdc.cube.backend.controller.WebCacheController;
+import br.com.wdc.cube.backend.observability.Observability;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.log.Slf4jLogFactory;
 import br.com.wdc.framework.commons.util.Defer;
 import br.com.wdc.framework.domain.config.AppConfig;
 import br.com.wdc.store.domain.StoreConfig;
+import br.com.wdc.store.persistence.rest.RemoteTransactions;
 import br.com.wdc.store.persistence.rest.RepositoryApiRoutes;
 import br.com.wdc.store.view.remote.host.RemoteHostBootstrap;
 import io.javalin.Javalin;
@@ -41,7 +42,7 @@ public class BackendServer {
         BackendServer.doMain(args);
     }
 
-    private static final Log LOG;
+    private static Log LOG = Log.getLogger(BackendServer.class);
 
     private static final String STATIC_FILES_DIR = "/META-INF/resources";
     private static final String STATIC_IMAGES_FILES_DIR = STATIC_FILES_DIR + "/images";
@@ -67,17 +68,12 @@ public class BackendServer {
         }
     }
 
-    static {
-        LogBootstrap.initialize();
-        Log.setFactory(new Slf4jLogFactory());
-        LOG = Log.getLogger(BackendServer.class);
-    }
-
     private final Defer cleanUp = new Defer();
     private final int port;
     private final boolean devMode;
     private final CorsSettings corsSettings;
     private final BusinessContext businessContext = new BusinessContext();
+    private final Observability observability;
     private Javalin app;
 
     public BackendServer(int port, boolean devMode) {
@@ -88,6 +84,9 @@ public class BackendServer {
         this.port = port;
         this.devMode = devMode;
         this.corsSettings = corsSettings;
+        var config = StoreConfig.getConfig();
+        this.observability = new Observability(config == null ? null : config.get("management.token"),
+                businessContext::dataSource, RemoteHostBootstrap::registry, RemoteTransactions.COORDINATOR::get);
     }
 
     public BackendServer() {
@@ -164,8 +163,8 @@ public class BackendServer {
 
         config.routes.before(ctx -> LOG.debug("HTTP {} {}", ctx.method(), ctx.path()));
 
-        // Health check endpoint
-        StatusController.configure(config);
+        // Request timing, /metrics (with management.token) and the health checks
+        observability.configure(config);
         ImageController.configure(config);
         WebCacheController.configure(config);
 
@@ -238,12 +237,12 @@ public class BackendServer {
     }
 
     /**
-     * Scans subdirectories under {@code {basedir}/frontend/} and registers each one as an external static file source
+     * Scans subdirectories under the work directory's {@code frontend/} and registers each one as an external static file source
      * served at its own context path ({@code /<dirname>/}). Also registers API routes under each context so SPAs can
      * access the API without cross-origin issues.
      */
     private void configureFrontendStaticFiles(JavalinConfig config) {
-        Path frontendBase = StoreConfig.getBaseDir().resolve("frontend");
+        Path frontendBase = StoreConfig.getFrontendDir();
         if (!Files.isDirectory(frontendBase)) {
             LOG.info("Frontend directory not found: {} — skipping external static files", frontendBase);
             return;
@@ -278,6 +277,7 @@ public class BackendServer {
             this.businessContext.configure(cleanUp);
             this.app = createJavalinApp();
             cleanUp.push(this.app::stop);
+            this.observability.start(cleanUp);
 
             this.businessContext.start(cleanUp);
 
@@ -302,18 +302,34 @@ public class BackendServer {
     }
 
     /**
-     * Entry point for the application.
+     * Entry point: {@code [--workdir=<folder>] [port]}. The work directory comes from the argument or
+     * {@code STORE_WORKDIR} ({@link StoreConfig}); the port from {@code SERVER_PORT}, the argument or
+     * {@code server.port}, in that order.
      */
     public static void doMain(String[] args) {
-        var config = StoreConfig.loadConfig();
+        Path workDir;
+        try {
+            workDir = StoreConfig.resolveWorkDir(args, System.getenv());
+        } catch (IllegalStateException e) {
+            System.err.println(e.getMessage());
+            System.exit(2);
+            return;
+        }
+        LogBootstrap.initialize(workDir);
+        Log.setFactory(new Slf4jLogFactory());
+        LOG = Log.getLogger(BackendServer.class);
+
+        var config = StoreConfig.Internals.load(workDir);
+        LOG.info("Work directory: {}", workDir);
         int port = config.getInt("server.port", DEFAULT_PORT);
 
         // Parse port from command line arguments if provided (overrides config)
-        if (args.length > 0) {
+        var rest = StoreConfig.withoutWorkDir(args);
+        if (rest.length > 0) {
             try {
-                port = Integer.parseInt(args[0]);
+                port = Integer.parseInt(rest[0]);
             } catch (NumberFormatException ignored) {
-                LOG.warn("Invalid port number: {}, using default {}", args[0], DEFAULT_PORT);
+                LOG.warn("Invalid port number: {}, using {}", rest[0], port);
             }
         }
 
@@ -323,7 +339,7 @@ public class BackendServer {
             try {
                 port = Integer.parseInt(portEnv);
             } catch (NumberFormatException ignored) {
-                LOG.warn("Invalid SERVER_PORT environment variable: {}, using default {}", portEnv, DEFAULT_PORT);
+                LOG.warn("Invalid SERVER_PORT environment variable: {}, using {}", portEnv, port);
             }
         }
 

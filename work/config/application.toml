@@ -1,12 +1,7 @@
 # WDC Store - Application Configuration
-# Place this file at: {CWD}/config/application.toml
-# (start-server.sh sets CWD to the work/ directory)
-
-[app]
-# Base directory for runtime data (data, log, temp, frontend)
-# Resolved relative to the location of THIS file.
-# ".." means one folder above config/ (i.e., the work/ directory itself)
-basedir = ".."
+# Lives at <work directory>/config/application.toml. The hosts (backend, Vaadin, SWT) take the work directory from
+# --workdir=<folder> or STORE_WORKDIR; work/bin/start-server.sh passes the repository's work/ folder.
+# Its subfolders: config/, data/, log/, temp/ and frontend/.
 
 [database]
 # JDBC URL. Default: H2 file database in the data directory
@@ -109,6 +104,11 @@ jwt.secret = "wdc-store-jwt-s3cr3t-k3y-ch4ng3-1n-pr0duct10n"
 # Requests to /api/auth (challenge, login, refresh) per client address and minute; 0 = no limit (default: 60).
 # Behind a proxy every client is the proxy's address: limit per address at the proxy instead.
 # auth.requestsPerMinute = 60
+
+[management]
+# Token that GET /metrics (Prometheus format) asks for, as "Authorization: Bearer <token>". Without it, the route does
+# not exist. Keep it in application.local.toml; over a network that is not private, serve behind TLS.
+# token = "<random secret>"
 
 [remote]
 # HMAC-SHA256 key that signs the remote session ids and the addresses of the history (Base64 URL-safe, >= 32 bytes).

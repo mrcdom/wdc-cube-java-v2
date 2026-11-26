@@ -5,7 +5,7 @@ Standalone HTTP server built with [Javalin 7.2.4](https://javalin.io). It is the
 ## Overview
 
 The server:
-- Serves each web frontend found under `{basedir}/frontend/<name>` at its own context (`/<name>/...`), with a landing page at `/` listing them
+- Serves each web frontend found under the work directory's `frontend/<name>` at its own context (`/<name>/...`), with a landing page at `/` listing them
 - Redirects in-context paths that are not static files to the context's `index.html` (SPA routing)
 - Hosts the application sessions of the remote frontends (React, Flutter) through `remote.host`
 - Exposes the REST API (`/api/auth/*`, `/api/repo/*`, `/api/tx/*`) at the root and under each frontend context
@@ -26,27 +26,30 @@ fontes/br.com.wdc.cube.backend/target/br.com.wdc.cube.backend-1.0.0.jar
 
 ## Running
 
-The usual way is `./work/bin/start-server.sh [port]`, which runs from `work/` (where `config/application.toml` lives) and builds the JAR if it is missing.
+The usual way is `./work/bin/start-server.sh [port]`, which passes the repository's `work/` as the work directory and builds the JAR if it is missing.
+
+The server does not start without a **work directory**, given by `--workdir=<folder>` or the `STORE_WORKDIR` variable; the folder must exist. Everything comes from its fixed subfolders: `config/` (`application.toml`, `application.local.toml`, `logback.xml`), `data/`, `log/`, `temp/` and `frontend/`. A second backend with another configuration is just another folder.
 
 The port is resolved in this order, each one overriding the previous:
 
 1. `server.port` in `application.toml` (default 8080)
-2. the first command-line argument
+2. the first command-line argument other than `--workdir=`
 3. the `SERVER_PORT` environment variable
 
 ```bash
-cd work
-java -jar ../fontes/br.com.wdc.cube.backend/target/br.com.wdc.cube.backend-1.0.0.jar 9090
+java -jar fontes/br.com.wdc.cube.backend/target/br.com.wdc.cube.backend-1.0.0.jar --workdir=work 9090
+# or: STORE_WORKDIR=work java -jar ... 9090
 ```
 
-The configuration file is `config/application.toml` relative to the working directory, or the path in the system property `store.config.file`.
+From Maven: `cd fontes/br.com.wdc.cube.backend && mvn exec:java` (the repository's `work/`; `-Dworkdir=<folder>` for another).
 
 ## URLs
 
 After starting the server:
 
 - **Landing page**: http://localhost:8080/ — links to each frontend context
-- **Health Check**: http://localhost:8080/health
+- **Health**: http://localhost:8080/health/live (the process answers; `/health` is the same) and http://localhost:8080/health/ready (the database answers too; 503 when it does not)
+- **Metrics**: http://localhost:8080/metrics — Prometheus format, only when `[management] token` is set, with `Authorization: Bearer <token>` (see [Observability](#observability))
 - **Auth Challenge**: http://localhost:8080/api/auth/challenge (POST `{userName}`)
 - **Auth Login**: http://localhost:8080/api/auth/login (POST)
 - **Repository API**: http://localhost:8080/api/repo/* (Bearer JWT required)
@@ -57,7 +60,7 @@ After starting the server:
 ## Features
 
 ### Static Asset Serving
-Each subdirectory of `{basedir}/frontend/` (filled by `./work/bin/build-frontends.sh`) is registered as an external static file source at `/<subdir>`, together with the REST routes under `/<subdir>/api/...`. Images packaged in the classpath (`/META-INF/resources/images`) are served at `/images`.
+Each subdirectory of the work directory's `frontend/` (filled by `./work/bin/build-frontends.sh`) is registered as an external static file source at `/<subdir>`, together with the REST routes under `/<subdir>/api/...`. Images packaged in the classpath (`/META-INF/resources/images`) are served at `/images`.
 
 ### SPA Routing
 A before-handler redirects a request at `/<context>/...` to `/<context>/index.html` when its path is not a static file (judged by the extension), does not contain `/api/` and does not start with `/ws/`, `/health`, `/dispatcher`, `/web-cache/` or `/__dev/`.
@@ -72,7 +75,22 @@ Configured in `[server]`: `cors.allowAll` reflects any origin (development); oth
 With `server.devMode = true`, the server registers the development endpoints: live reload (`/__dev/ws`, `/__dev/notify`), database reset, heap and GC.
 
 ### Logging
-SLF4J + Logback. `LogBootstrap` loads `{basedir}/config/logback.xml` (`work/config/logback.xml`), creating a default one if it does not exist.
+SLF4J + Logback. `LogBootstrap` loads the work directory's `config/logback.xml`, creating a default one, which writes to its `log/`, if it does not exist.
+
+### Observability
+
+`Observability` (package `observability`) keeps a Micrometer `PrometheusMeterRegistry`, added to Micrometer's global registry, and serves it at `GET /metrics` when `[management] token` is set (401 without the right `Authorization: Bearer`, no route without the setting). What it records:
+
+| Meter | What |
+|-------|------|
+| `jvm_*`, `process_*`, `system_*` | memory, GC, threads, classes, CPU, uptime |
+| `http_server_requests_seconds{method,route,status}` | every HTTP request, labeled by the route **as declared** (`/api/repo/product/{id}/image`); requests that match no route (static files, redirects, 404s) share `unmatched` |
+| `store_signins_total{outcome}` | sign-ins: `ok`; `refused` (wrong password, unknown user, bad nonce); `throttled` (refused while the account must wait) |
+| `store_sessions_live`, `store_sessions_renewed_total` | user sessions held in memory; sessions renewed by refresh token |
+| `store_remote_sessions`, `store_remote_messages_seconds{outcome}` | remote view sessions alive; each client message the host handled, `ok` or `failed` |
+| `store_remote_transactions_open`, `store_remote_transactions_total{event}` | the REST API's remote transactions: open now; `begun`, `committed`, `rolledback`, `reaped`, `refused` |
+
+The framework modules take no metrics library: the backend reads what they expose (`RemoteTransactionCoordinator.stats()`, `RemoteApplicationRegistry.onMessage`), and `persistence.impl` counts the sign-ins in the global registry. The health checks are open: `/health/live` and `/health/ready`.
 
 ## Technical Details
 
@@ -91,12 +109,13 @@ Core dependencies:
 - Agroal + Narayana - Connection pool and JTA transaction manager (in `supports/`)
 - H2 and PostgreSQL - JDBC drivers
 - Logback - Logging
+- Micrometer (Prometheus registry) - Metrics at `/metrics`
 
 Versions are managed by the `framework-dependencies` BOM.
 
 ## Deployment
 
-The fat JAR runs on any environment with Java 25+. Run it from a directory that holds `config/application.toml`, or point `store.config.file` to it:
+The fat JAR runs on any environment with Java 25+. Give it a work directory that holds `config/application.toml`:
 
 ```bash
 # Copy JAR to server
@@ -104,8 +123,8 @@ scp br.com.wdc.cube.backend-1.0.0.jar user@server:/opt/app/
 
 # Run with systemd (example)
 [Service]
-WorkingDirectory=/opt/app
 ExecStart=/usr/bin/java -jar /opt/app/br.com.wdc.cube.backend-1.0.0.jar
+Environment="STORE_WORKDIR=/var/lib/wdc-store"
 Environment="SERVER_PORT=8080"
 ```
 

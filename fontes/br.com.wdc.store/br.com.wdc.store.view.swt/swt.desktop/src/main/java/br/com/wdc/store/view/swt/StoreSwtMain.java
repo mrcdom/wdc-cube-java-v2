@@ -38,14 +38,28 @@ public class StoreSwtMain {
     private static Image dockIconImage;
 
     private final Defer cleanUp = new Defer();
+    private final Path workDir;
     private ScheduledExecutorService executorService;
     private StoreSwtApplication app;
     private boolean devMode;
 
+    /** Entry point: {@code [--workdir=<folder>]}, or {@code STORE_WORKDIR} ({@link StoreConfig}). */
     public static void main(String[] args) {
+        Path workDir;
+        try {
+            workDir = StoreConfig.resolveWorkDir(args, System.getenv());
+        } catch (IllegalStateException e) {
+            System.err.println(e.getMessage());
+            System.exit(2);
+            return;
+        }
         Log.setFactory(new Slf4jLogFactory());
         installGtkFonts();
-        new StoreSwtMain().run();
+        new StoreSwtMain(workDir).run();
+    }
+
+    public StoreSwtMain(Path workDir) {
+        this.workDir = workDir;
     }
 
     /**
@@ -138,8 +152,7 @@ public class StoreSwtMain {
     }
 
     private void init(Defer cleanUp) throws Exception {
-        var config = StoreConfig.loadConfig();
-        StoreConfig.Internals.configure(config);
+        var config = StoreConfig.Internals.load(workDir);
         this.devMode = config.getBoolean("dev.mode", false);
 
         CryptoProvider.BEAN.set(new JceCryptoProvider());

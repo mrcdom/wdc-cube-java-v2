@@ -2,6 +2,8 @@ package br.com.wdc.cube.backend;
 
 import java.util.concurrent.ScheduledExecutorService;
 
+import javax.sql.DataSource;
+
 import br.com.wdc.cube.backend.supports.JtaSupport;
 import br.com.wdc.cube.backend.supports.SqlDataSourceSupport;
 import br.com.wdc.framework.commons.concurrent.ScheduledExecutor;
@@ -20,10 +22,17 @@ import br.com.wdc.store.view.remote.host.RemoteHostBootstrap;
 
 public class BusinessContext {
 
+    private DataSource dataSource;
+
+    /** The module's DataSource, once {@link #configure} ran; {@code null} before. */
+    public DataSource dataSource() {
+        return dataSource;
+    }
+
     public void configure(Defer cleanUp) {
         try {
-            var config = StoreConfig.loadConfig();
-            StoreConfig.Internals.configure(config);
+            // loaded from the work directory by BackendServer.main
+            var config = StoreConfig.getConfig();
 
             // CryptoProvider is required by PasswordUtil (used by the presentation layer on login)
             CryptoProvider.BEAN.set(new JceCryptoProvider());
@@ -48,6 +57,8 @@ public class BusinessContext {
 
             var dsSupport = new SqlDataSourceSupport(dbPrefix, config);
             var dataSource = dsSupport.init(cleanUp);
+            this.dataSource = dataSource;
+            cleanUp.push(() -> this.dataSource = null);
 
             // Warns if JTA was requested but the TransactionManager did not start (running as plain JDBC).
             jtaSupport.warnIfModeMismatch();

@@ -30,5 +30,7 @@ A record is not edited once accepted, except to fix a mistake or a link. A decis
 | [0022](0022-computed-state-in-every-host.md) | Computed state is committed once per paint cycle, in every host | Accepted |
 | [0023](0023-remote-channel-key-per-connection.md) | The remote channel: a key agreed per connection, HMAC signatures, a versioned protocol | Accepted |
 | [0024](0024-scram-sign-in.md) | Sign-in with SCRAM-SHA-256; failed sign-ins slow the account down | Accepted |
+| [0025](0025-explicit-work-directory.md) | Every host runs from an explicit work directory | Accepted |
+| [0026](0026-metrics-and-health.md) | Metrics with Micrometer in Prometheus format, behind a token; live and ready health checks | Accepted |
 
 New record: copy the shape of an existing one (`# NNNN. <decision as a sentence>`, Date, Status, Context, Decision, Consequences, and Alternatives considered when there were real ones), take the next number, and add it to this table.

@@ -11,7 +11,7 @@ The module is organized **by entity**: each entity package holds the four classe
 ```mermaid
 graph TD
     root["domain/"]
-    root --> StoreConfig["StoreConfig.java<br/><small>Loads AppConfig, application directories, JWT secret</small>"]
+    root --> StoreConfig["StoreConfig.java<br/><small>Work directory, AppConfig, its folders, JWT secret</small>"]
     root --> StoreTx["StoreTransactions.java<br/><small>BEAN holder of the module's TransactionService</small>"]
 
     root --> product["product/"]
@@ -134,7 +134,7 @@ A projection is an entity instance whose non-null fields mark the columns to loa
 
 ## Configuration and transactions
 
-`StoreConfig.loadConfig()` loads the framework's `AppConfig` from the path set via `-Dstore.config.file`, falling back to `config/application.toml`. `StoreConfig.Internals.configure(config)` resolves the application directories (`config/`, `data/`, `log/`, `temp/`) under `app.basedir` and the JWT secret.
+Every host (backend, Vaadin, SWT) starts from an explicit work directory: `StoreConfig.resolveWorkDir(args, env)` takes it from `--workdir=<folder>` or `STORE_WORKDIR`, and refuses to start without one or with a folder that does not exist. `StoreConfig.Internals.load(workDir)` loads `config/application.toml` with the framework's `AppConfig` and points the fixed subfolders (`config/`, `data/`, `log/`, `temp/`, `frontend/`) at it, along with the JWT secret and the `/api/auth` limit. Code refers to the folders through `StoreConfig`, never to a fixed path.
 
 `StoreTransactions.BEAN` holds the module's `TransactionService`, populated by the composition root.
 

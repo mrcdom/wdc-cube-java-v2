@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
@@ -39,6 +40,15 @@ public final class RemoteApplicationRegistry<T extends RemoteApplication> {
 
     private final BiFunction<String, Map<String, Object>, T> factory;
 
+    private final CopyOnWriteArrayList<MessageListener> messageListeners = new CopyOnWriteArrayList<>();
+
+    /** Told after each client message the host handled: how long it took, and whether it failed. */
+    @FunctionalInterface
+    public interface MessageListener {
+
+        void onMessage(long nanos, boolean failed);
+    }
+
     /**
      * Maximum number of concurrent application sessions. {@code -1} (default) means unlimited.
      */
@@ -64,6 +74,27 @@ public final class RemoteApplicationRegistry<T extends RemoteApplication> {
         this.maxInstances = maxInstances;
     }
 
+    /**
+     * Asks to be told after each client message the host handles (the transport calls {@link #messageHandled}): what
+     * an application measures, without the framework taking a metrics library.
+     */
+    public Registration onMessage(MessageListener listener) {
+        messageListeners.add(listener);
+        return () -> messageListeners.remove(listener);
+    }
+
+    /** Called by the transport after handling a client message of a session. */
+    public void messageHandled(long nanos, boolean failed) {
+        for (var listener : messageListeners) {
+            try {
+                listener.onMessage(nanos, failed);
+            } catch (RuntimeException e) {
+                LOG.warn("A message listener failed", e);
+            }
+        }
+    }
+
+    /** The sessions alive now. */
     public int size() {
         return instanceMap.size();
     }
