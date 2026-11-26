@@ -1,165 +1,105 @@
 package br.com.wdc.framework.cube.remote;
 
-import java.math.BigInteger;
-import java.security.KeyFactory;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.Signature;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
+import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.Base64;
 
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-
-import br.com.wdc.framework.commons.log.Log;
-import br.com.wdc.framework.commons.security.RSA;
+import br.com.wdc.framework.commons.codec.Base62;
+import br.com.wdc.framework.commons.security.ChannelCrypto;
 
 /**
- * Security configuration for a remote application module.
+ * What the remote host signs: session ids and the addresses it returns for the history.
+ *
+ * <p>
+ * The signature is HMAC-SHA256 with a key only the server has, cut to 16 bytes and written in Base62. A client cannot
+ * make a session id or an address of its own that the host accepts. The key comes from the configuration, so that a
+ * restart, or another instance with the same key, accepts what was signed before.
+ * </p>
+ *
  * <p>
  * Each application module has its own instance — no shared global state.
- * Provides RSA cipher (for client↔server key exchange) and RSA signing
- * (for session ID and history fragment validation).
+ * </p>
  */
 public final class RemoteAppSecurity {
 
-    private static final String SHA256_WITH_RSA = "SHA256withRSA";
-    private static final Log LOG = Log.getLogger(RemoteAppSecurity.class);
+    /** The system property that carries the key, Base64 URL-safe, at least 32 bytes. */
+    public static final String SIGNING_KEY_PROPERTY = "wdc.remote.signing_key";
 
-    private final RSA rsa;
-    private final String webKey;
+    private static final int SIGNATURE_LENGTH = 16;
+    private static final SecureRandom RANDOM = new SecureRandom();
 
-    private PublicKey signPublicKey;
-    private PrivateKey signPrivateKey;
+    private final byte[] signingKey;
 
-    private RemoteAppSecurity(RSA rsa, String webKey, String signPublicKeyB64, String signPrivateKeyB64) {
-        this.rsa = rsa;
-        this.webKey = webKey;
-        try {
-            prepareSignKeys(signPublicKeyB64, signPrivateKeyB64);
-        } catch (Exception e) {
-            LOG.error("Sign keys not initialized", e);
+    private RemoteAppSecurity(byte[] signingKey) {
+        if (signingKey == null || signingKey.length < 32) {
+            throw new IllegalArgumentException("The remote signing key must have at least 32 bytes");
         }
+        this.signingKey = signingKey.clone();
+    }
+
+    /** With the given key (at least 32 bytes). */
+    public static RemoteAppSecurity withKey(byte[] signingKey) {
+        return new RemoteAppSecurity(signingKey);
     }
 
     /**
-     * Creates a security instance from system properties.
+     * With the key in the system property {@value #SIGNING_KEY_PROPERTY}.
      *
-     * @param rsaPublicKeyProp     property name for RSA public key (format: "exponent:modulus" in base36)
-     * @param rsaPrivateKeyProp    property name for RSA private key (base36)
-     * @param signPublicKeyProp    property name for RSA sign public key (URL-safe Base64)
-     * @param signPrivateKeyProp   property name for RSA sign private key (URL-safe Base64)
+     * @throws IllegalStateException if it is not set
      */
-    public static RemoteAppSecurity fromSystemProperties(
-            String rsaPublicKeyProp,
-            String rsaPrivateKeyProp,
-            String signPublicKeyProp,
-            String signPrivateKeyProp) {
-
-        String sPublicExponent;
-        String sPublicKey;
-        String sPrivateKey;
-
-        var wdcPublicKey = System.getProperty(rsaPublicKeyProp);
-        var wdcPrivateKey = System.getProperty(rsaPrivateKeyProp);
-        if (StringUtils.isBlank(wdcPublicKey) || StringUtils.isBlank(wdcPrivateKey)) {
-            throw new IllegalStateException(
-                    "Remote security keys not configured. Set '" + rsaPublicKeyProp + "' and '"
-                    + rsaPrivateKeyProp + "' (via system properties or application.local.toml [remote] section).");
+    public static RemoteAppSecurity fromSystemProperty() {
+        var encoded = System.getProperty(SIGNING_KEY_PROPERTY);
+        if (encoded == null || encoded.isBlank()) {
+            throw new IllegalStateException("The remote signing key is not configured (" + SIGNING_KEY_PROPERTY + ")");
         }
-        var parts = StringUtils.split(wdcPublicKey, ":");
-        sPublicExponent = parts[0];
-        sPublicKey = parts[1];
-        sPrivateKey = wdcPrivateKey;
+        return new RemoteAppSecurity(Base64.getUrlDecoder().decode(encoded.trim()));
+    }
 
-        var publicExponent = new BigInteger(sPublicExponent, 36);
-        var publicKey = new BigInteger(sPublicKey, 36);
-        var privateKey = new BigInteger(sPrivateKey, 36);
-        var rsa = new RSA(publicExponent, privateKey, publicKey);
+    /** A new random key, Base64 URL-safe, for the configuration. */
+    public static String newEncodedKey() {
+        var key = new byte[32];
+        RANDOM.nextBytes(key);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(key);
+    }
 
-        var signPub = System.getProperty(signPublicKeyProp);
-        var signPrv = System.getProperty(signPrivateKeyProp);
-        if (StringUtils.isBlank(signPub) || StringUtils.isBlank(signPrv)) {
-            throw new IllegalStateException(
-                    "Remote sign keys not configured. Set '" + signPublicKeyProp + "' and '"
-                    + signPrivateKeyProp + "' (via system properties or application.local.toml [remote] section).");
+    // :: Session ids
+
+    /** A new session id: 32 random bytes and their signature, {@code base62(random) + "." + signature}. */
+    public String newSessionId() {
+        var random = new byte[32];
+        RANDOM.nextBytes(random);
+        var part1 = Base62.BEAN.encodeToString(random);
+        return part1 + "." + sign(part1);
+    }
+
+    /** Whether the text is a session id this host (or one with the same key) made. */
+    public boolean isSessionId(String sessionId) {
+        if (sessionId == null) {
+            return false;
         }
-
-        return new RemoteAppSecurity(rsa, wdcPublicKey, signPub, signPrv);
-    }
-
-    /**
-     * Creates a security instance with development-mode default keys.
-     */
-    public static RemoteAppSecurity createDefault() {
-        return fromSystemProperties(
-                "wdc.web.public_key",
-                "wdc.web.private_key",
-                "wdc.sign.wdc.web.public_key",
-                "wdc.sign.wdc.web.private_key");
-    }
-
-    public String getWebKey() {
-        return webKey;
-    }
-
-    public RSA getRsa() {
-        return rsa;
-    }
-
-    public byte[] sign(byte[] contentBytes) {
-        try {
-            var sign = Signature.getInstance(SHA256_WITH_RSA);
-            sign.initSign(signPrivateKey);
-            sign.update(contentBytes);
-            return sign.sign();
-        } catch (Exception e) {
-            throw ExceptionUtils.asRuntimeException(e);
+        var dot = sessionId.indexOf('.');
+        if (dot <= 0 || dot != sessionId.lastIndexOf('.')) {
+            return false;
         }
+        return verify(sessionId.substring(0, dot), sessionId.substring(dot + 1));
     }
 
-    public byte[] signAsHash(byte[] contentBytes) {
-        try {
-            var sign = Signature.getInstance(SHA256_WITH_RSA);
-            sign.initSign(signPrivateKey);
-            sign.update(contentBytes);
-            var signature = sign.sign();
+    // :: Signatures
 
-            MessageDigest md5 = DigestUtils.getMd5Digest();
-            return md5.digest(signature);
-        } catch (Exception e) {
-            throw ExceptionUtils.asRuntimeException(e);
+    /** The signature of a text: HMAC-SHA256, its first 16 bytes, in Base62. */
+    public String sign(String content) {
+        var mac = ChannelCrypto.hmacSha256(signingKey, content.getBytes(StandardCharsets.UTF_8));
+        return Base62.BEAN.encodeToString(Arrays.copyOf(mac, SIGNATURE_LENGTH));
+    }
+
+    /** Whether {@code signature} is the signature of {@code content}, compared in constant time. */
+    public boolean verify(String content, String signature) {
+        if (content == null || signature == null) {
+            return false;
         }
-    }
-
-    public boolean isSignatureValid(byte[] contentBytes, byte[] signature) {
-        try {
-            var verify = Signature.getInstance(SHA256_WITH_RSA);
-            verify.initVerify(signPublicKey);
-            verify.update(contentBytes);
-            return verify.verify(signature);
-        } catch (Exception e) {
-            throw ExceptionUtils.asRuntimeException(e);
-        }
-    }
-
-    private void prepareSignKeys(String publicKeyInBase64, String privateKeyInBase64)
-            throws NoSuchAlgorithmException, InvalidKeySpecException {
-        var b64Dec = Base64.getUrlDecoder();
-
-        byte[] publicBytes = b64Dec.decode(publicKeyInBase64);
-        var keySpecPublic = new X509EncodedKeySpec(publicBytes);
-        var keyFactoryPublic = KeyFactory.getInstance("RSA");
-        this.signPublicKey = keyFactoryPublic.generatePublic(keySpecPublic);
-
-        byte[] privateBytes = b64Dec.decode(privateKeyInBase64);
-        var keySpecPrivate = new PKCS8EncodedKeySpec(privateBytes);
-        var keyFactoryPrivate = KeyFactory.getInstance("RSA");
-        this.signPrivateKey = keyFactoryPrivate.generatePrivate(keySpecPrivate);
+        var expected = sign(content).getBytes(StandardCharsets.UTF_8);
+        return MessageDigest.isEqual(expected, signature.getBytes(StandardCharsets.UTF_8));
     }
 }

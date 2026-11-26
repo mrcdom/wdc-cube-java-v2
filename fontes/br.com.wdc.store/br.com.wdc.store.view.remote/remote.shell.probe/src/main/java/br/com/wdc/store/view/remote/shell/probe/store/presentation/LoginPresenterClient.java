@@ -41,7 +41,7 @@ public class LoginPresenterClient extends AbstractPresenterClient {
     public HostResponse onEnter(String userName, String password)
             throws InterruptedException, TimeoutException {
         param("userName", userName);
-        param("password", client.secretContext().encipher(password));
+        param("password", client.channelKey().encipher(password));
         return submit(1);
     }
 

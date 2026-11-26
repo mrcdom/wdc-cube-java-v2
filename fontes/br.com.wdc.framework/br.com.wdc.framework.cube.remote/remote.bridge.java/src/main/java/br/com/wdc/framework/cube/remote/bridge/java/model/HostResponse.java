@@ -17,7 +17,6 @@ import java.util.Map;
 public record HostResponse(Long requestId, String uri,
                            List<ScopeSnapshot> scopes,
                            List<String> releasedViews,
-                           String cipheredAccessToken,
                            Map<String, Object> storageDelta) {
 
     public HostResponse {

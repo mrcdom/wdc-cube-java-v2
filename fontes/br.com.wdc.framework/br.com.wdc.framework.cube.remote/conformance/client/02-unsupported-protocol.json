@@ -1,0 +1,10 @@
+{
+  "description": "When the host refuses the client's version, the client sends nothing more, does not reconnect, and knows its page (or app) is out of date.",
+  "steps": [
+    { "start": {} },
+    { "expectSent": { "protocol": 1, "clientKey": "$string" } },
+    { "receive": { "error": "unsupported-protocol", "protocols": [1] } },
+    { "expectOutdated": true },
+    { "expectNothingSent": true }
+  ]
+}

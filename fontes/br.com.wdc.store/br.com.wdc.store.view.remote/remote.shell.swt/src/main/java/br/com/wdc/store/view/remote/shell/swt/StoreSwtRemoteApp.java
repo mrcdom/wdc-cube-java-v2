@@ -301,7 +301,7 @@ public class StoreSwtRemoteApp implements SwtApp, RemoteViewContext {
 	@Override
 	public void submitLogin(String vsid, String userName, String password) {
 		if (this.hostClient != null) {
-			String ciphered = this.hostClient.secretContext().encipher(password);
+			String ciphered = this.hostClient.channelKey().encipher(password);
 			this.hostClient.submit(vsid, 1, Map.of("p.userName", userName, "p.password", ciphered));
 		}
 	}

@@ -1,0 +1,7 @@
+{
+  "description": "A handshake whose key is not a P-256 public key closes the connection with 4001: the client starts over with a new session.",
+  "steps": [
+    { "send": { "protocol": 1, "clientKey": "bm90IGEga2V5" }, "expectNothing": true },
+    { "expectClosed": 4001 }
+  ]
+}

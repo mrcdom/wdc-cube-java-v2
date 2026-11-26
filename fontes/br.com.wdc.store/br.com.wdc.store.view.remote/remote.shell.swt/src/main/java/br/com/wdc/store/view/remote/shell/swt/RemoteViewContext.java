@@ -27,7 +27,7 @@ interface RemoteViewContext {
 	/** Submits an event to the Host for the given vsid. */
 	void submitEvent(String vsid, int eventCode, Map<String, Object> form);
 
-	/** Submits a login event with the password ciphered via SecretContext. */
+	/** Submits a login event with the password ciphered with the connection's key. */
 	void submitLogin(String vsid, String userName, String password);
 
 }

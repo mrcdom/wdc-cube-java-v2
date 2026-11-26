@@ -1,0 +1,11 @@
+{
+  "description": "A storage value the host sends is ciphered with the connection key, with an IV of its own; the client deciphers and keeps it.",
+  "steps": [
+    { "start": {} },
+    { "expectSent": { "protocol": 1, "clientKey": "$string" } },
+    { "receive": { "protocol": 1, "serverKey": "$serverKey" } },
+    { "expectSent": { "event": "$any" } },
+    { "receive": { "storage": { "persistent": { "conformance.key": "$cipher:a value with ç and 🙂" } } } },
+    { "expectStorage": { "scope": "persistent", "key": "conformance.key", "value": "a value with ç and 🙂" } }
+  ]
+}

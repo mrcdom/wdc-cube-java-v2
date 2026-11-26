@@ -13,7 +13,7 @@
 3. [Session Identity — the `appId`](#3-session-identity--the-appid)
 4. [Server Cryptographic Material](#4-server-cryptographic-material)
 5. [Entry Modes (Session Bootstrap)](#5-entry-modes-session-bootstrap)
-6. [Security Handshake — Deriving the `secret`](#6-security-handshake--deriving-the-secret)
+6. [Security Handshake — the Connection Key (Protocol Version 1)](#6-security-handshake--the-connection-key-protocol-version-1)
 7. [WebSocket Channel — Lifecycle](#7-websocket-channel--lifecycle)
 8. [Message Format — Client → Server](#8-message-format--client--server)
 9. [Message Format — Server → Client](#9-message-format--server--client)
@@ -53,9 +53,11 @@ sequenceDiagram
     participant Host
     participant P as Presenters + Scopes
 
-    Note over Shell,Host: bootstrap → handshake → connection
-    Shell->>WS: 1st message { secret, event:[] }  (+ storage bootstrap)
-    WS->>Host: onMessage (validates secret, creates/retrieves app)
+    Note over Shell,Host: bootstrap → connection → handshake
+    Shell->>WS: 1st message { protocol: 1, clientKey }
+    WS->>Shell: { protocol: 1, serverKey }  (both derive the connection key)
+    Shell->>WS: { event:[] }  (+ storage bootstrap, ciphered)
+    WS->>Host: onMessage (creates/retrieves app)
     Host->>P: initializes/retrieves session
     Host->>WS: { scopes:[ initial scopes ], uri }
     WS->>Shell: renders
@@ -74,10 +76,9 @@ sequenceDiagram
 | Term | Definition |
 |---|---|
 | **`appId`** | Session identifier. Signed format `part1.part2` (see §3). Goes in the WebSocket path: `/dispatcher/{appId}`. |
-| **`appSKey`** | The server's RSA public key for the handshake, as the string `"exponent:modulus"` in **base36**. |
 | **`vsid` (ViewScope ID / instanceId)** | Identity of a view instance. Format `"<classId>:<n>"`, e.g. `7eb485e5f843:3`, `7b32e816a191:0`. `n` is the instance number. |
 | **`classId`** | Identity of the view's *class*: the `CLASS_ID` (a 12-digit hex string) declared by the scope class the view draws. It is `parts[0]` of the vsid. |
-| **`secret`** | Session signature carrying the AES-GCM handshake material. Three-part format: `<rsa(pwd) base36>.<salt base64url>.<iv base64url>`. |
+| **Connection key** | The AES-256 key each WebSocket connection agrees on in its handshake (§6), with which sensitive values travel. |
 | **Browser View** | Singleton root view of the shell. `classId = 7b32e816a191`, fixed vsid `7b32e816a191:0`. |
 | **`p.path`** | formData field carrying the route (the application's query path) in navigation events. |
 | **`"#"`** | Reserved field inside each serialized scope object, whose value is that scope's vsid. |
@@ -88,65 +89,51 @@ sequenceDiagram
 
 ## 3. Session Identity — the `appId`
 
-The `appId` is self-verifying (it contains a signed checksum), so the server detects forgery without consulting any storage.
+The `appId` is self-verifying (it carries its own signature), so the server detects forgery without consulting any storage.
 
 **Formation (server):**
 
 ```
 part1 = base62( 32 random bytes from a cryptographic generator )
-part2 = base62( signAsHash( utf8_bytes(part1) ) )
+part2 = sign( part1 )
 appId = part1 + "." + part2
 ```
 
-Where `signAsHash(bytes)` = `MD5( RSA-SHA256-signature( bytes, privateSigningKey ) )` — the signature is reduced by MD5 to a short hash (see §4).
+Where `sign(text)` = `base62( first 16 bytes of HMAC-SHA256( signingKey, utf8_bytes(text) ) )` (see §4).
 
-**Validation (server, in the WebSocket `onConnect`):**
+**Validation (server, in the WebSocket `onConnect`):** the path's `appId` must be non-empty, have exactly one `.`, and `part2` must equal `sign(part1)`, compared in constant time. Otherwise → close with code `4001 reload_required`.
 
-1. The path's `appId` must be non-empty.
-2. Split on `.` (Base62 codec) → must yield **exactly 2** parts; otherwise → close with code `4001 reload_required`.
-3. Recompute `expected = base62(signAsHash(utf8_bytes(part1)))` and compare it with `part2`. Mismatch → `4001 reload_required`.
-
-This prevents a client from forging an arbitrary `appId`: without the server's private signing key, it is impossible to produce a valid `part2` for a chosen `part1`.
+Without the server's signing key, it is impossible to produce a valid `part2` for a chosen `part1`.
 
 ---
 
 ## 4. Server Cryptographic Material
 
-The server keeps **two distinct RSA key pairs**, with separate purposes. Both are generated on first boot (512 bits in the development defaults) and persisted in a local configuration; **they must be replaced in production**.
+The server keeps **one** secret: the **signing key**, at least 32 random bytes, used with HMAC-SHA256 to sign the `appId` (§3) and the navigation addresses (§13).
 
-| Pair | Format | Use |
-|---|---|---|
-| **Handshake RSA** | `"exponent:modulus"` in **base36** | The client encrypts the ephemeral AES password with the **public** key; the server decrypts it with the **private** key. *Textbook* RSA via modular exponentiation (`m^e mod n`), **without** OAEP/PKCS#1 padding. |
-| **Signing RSA** | **URL-safe Base64** DER (X.509 *SubjectPublicKeyInfo* for the public key, PKCS#8 for the private key) | Signing/verifying the `appId` (part2) and the URL fragment (navigation). |
-
-Signing constants:
-- Algorithm: **RSA over SHA-256** signature (RSASSA-PKCS1-v1_5).
-- `sign(bytes)` → raw RSA signature.
-- `signAsHash(bytes)` → `MD5( RSA-SHA256-signature(bytes) )` — short hash used for `appId.part2` and for the URL fragment signature.
-- `isSignatureValid(bytes, sig)` → verification with the public signing key.
-
-The **public handshake key** (`appSKey` = `"exponent:modulus"` base36) is delivered to the client (via the `app_skey` cookie or the `appSKey` field of the init endpoint) so it can encrypt the AES password during the handshake.
+- It comes from the configuration (`[remote] signingKey`, Base64 URL-safe). When it is absent, the server generates one on its first start and writes it into the local configuration, so that a restart keeps accepting the ids and addresses signed before.
+- Instances that must accept each other's sessions share the same key.
+- The server keeps **no** long-lived key for ciphering: each WebSocket connection agrees on its own key (§6).
 
 ---
 
 ## 5. Entry Modes (Session Bootstrap)
 
-There are **two modes** for obtaining `appId` + `appSKey`. Both converge on the same WebSocket protocol. A client must support at least one of them.
+There are **two modes** for obtaining the `appId`. Both converge on the same WebSocket protocol. A client must support at least one of them.
 
-### 5.1 Browser Mode (Cookies Planted by the Page)
+### 5.1 Browser Mode (Cookie Planted by the Page)
 
-For clients that load an HTML page served by the Host. Before serving `/{ctx}/index.html`, the server (`before` handler) plants cookies:
+For clients that load an HTML page served by the Host. Before serving `/{ctx}/index.html`, the server (`before` handler) plants one cookie:
 
 | Cookie | Value | MaxAge | Notes |
 |---|---|---|---|
 | `app_id` | `appId` (§3) | `10` (seconds) | Session identity, short-lived. |
-| `app_skey` | `appSKey` (`"exponent:modulus"` base36) | `-1` (session cookie) | Public handshake key. |
 
 Anti-cache headers: `Cache-Control: no-cache, no-store`, `Pragma: no-cache`, `Expires: 0`.
 
-The cookie's `Secure` attribute is only set when the request is HTTPS (header `X-Forwarded-Proto == "https"` behind a proxy, or the `https` scheme). **Platform requirement:** over plain HTTP, browsers (e.g. Firefox) reject `Secure` cookies, which would throw the session into a `4001`/reload loop (without `app_id`, the WebSocket handshake does not validate). That is why `Secure` is conditional on the actual transport being HTTPS.
+The cookie's `Secure` attribute is only set when the request is HTTPS (header `X-Forwarded-Proto == "https"` behind a proxy, or the `https` scheme). **Platform requirement:** over plain HTTP, browsers (e.g. Firefox) reject `Secure` cookies, which would throw the session into a `4001`/reload loop. That is why `Secure` is conditional on the actual transport being HTTPS.
 
-The client reads the cookies, **removes them** (path `/`), and writes back the `app_signature` cookie (the handshake signature — §6) so that it accompanies the WebSocket handshake (the WS connection is opened with credentials/cookies sending enabled).
+The client reads the cookie and **removes it** (path `/`).
 
 ### 5.2 Explicit Init Mode (`GET /api/session/init`)
 
@@ -162,63 +149,66 @@ Identical anti-cache headers. Responses:
 - **OK:** HTTP `200`, `Content-Type: application/json`, body:
 
 ```json
-{ "appId": "<appId>", "appSKey": "<exponent:modulus in base36>" }
+{ "appId": "<appId>" }
 ```
 
-No cookie or authentication header is required for this call. The client then opens the WebSocket and sends the `secret` in the **first message** (see §6/§8), since there is no `app_signature` cookie.
+No cookie or authentication header is required for this call.
 
 ---
 
-## 6. Security Handshake — Deriving the `secret`
+## 6. Security Handshake — the Connection Key (Protocol Version 1)
 
-The handshake establishes a session AES-256-GCM key. It runs **entirely on the client**; the server rebuilds the same key from the `secret`.
+Every WebSocket connection — the first one and each reconnection — starts with a handshake that agrees on a **key of its own**, by ephemeral ECDH. No long-lived ciphering key exists on either side, so a recorded connection cannot be deciphered later (forward secrecy).
 
-### 6.1 Client Steps
+### 6.1 The Messages
 
-1. **Ephemeral password:** 12 random bytes → **URL-safe Base64 without padding** → string `pwd`.
-2. **Salt:** 16 random bytes. **IV:** 12 random bytes (GCM nonce).
-3. **AES-256 key derivation:**
+1. **Client → server**, the first message on the connection, with nothing else in it:
+   ```json
+   { "protocol": 1, "clientKey": "<Base64 of the X.509 SubjectPublicKeyInfo of an ephemeral P-256 public key>" }
    ```
-   aesKey = PBKDF2( PRF=HMAC-SHA256, password=utf8_bytes(pwd), salt=salt,
-                    iterations=250000, length=256 bits )
+2. **Server → client**, the answer:
+   ```json
+   { "protocol": 1, "serverKey": "<Base64 of the X.509 SubjectPublicKeyInfo of the server's ephemeral P-256 public key>" }
    ```
-   > Note: the PBKDF2 input is the sequence of **UTF-8 bytes** of the string `pwd` (which is base64url ASCII). Implementations that derive from characters must ensure the equivalent encoding.
-4. **RSA encryption of the password** (*textbook* RSA):
-   ```
-   m           = positive integer from  utf8_bytes( standard_Base64( utf8_bytes(pwd) ) )
-   encrypted   = m ^ publicExponent  mod  publicModulus
-   encBase36   = base36(encrypted)
-   ```
-   That is, the password is **re-encoded in standard Base64** (with padding), turned into UTF-8 bytes, interpreted as a positive integer, and encrypted by modular exponentiation. The result is in **base36**.
-5. **Assembling the `secret`:**
-   ```
-   secret = encBase36 + "." + base64url_noPad(salt) + "." + base64url_noPad(iv)
-   ```
+   If the server already holds the session (a reconnection), it then reattaches it to the connection (§15).
+3. Only after that answer does the client send anything else: the bootstrap message (§8) and any request that waited. Pings too (§16): a ping is not a handshake.
 
-This string is the `app_signature` cookie (browser mode) **and/or** the `secret` field of the first WebSocket message (both modes).
+**Version refusal:** a first message without `"protocol": 1`, or without `clientKey`, is answered with
 
-### 6.2 Server Reconstruction
+```json
+{ "error": "unsupported-protocol", "protocols": [1] }
+```
 
-On receiving the `secret`, the server splits it on `.`:
-1. `part0` (base36) → integer → RSA decryption (with the private handshake key) → bytes → Base64 decoding → password bytes.
-2. `part1` → salt (URL-safe Base64).
-3. `part2` → IV (URL-safe Base64).
+and the connection is closed with `4002 unsupported_protocol` (§10.3). The client must not reconnect: it tells the user that the page (or the app) is out of date. A `clientKey` that is not a P-256 public key closes the connection with `4001 reload_required`.
 
-It derives the same `aesKey` via PBKDF2-HMAC-SHA256, 250000 iterations, 256 bits.
+The version goes up only when the wire changes in a way the other side cannot read.
 
-### 6.3 Symmetric Payload Encryption (AES-GCM)
+### 6.2 The Key
 
-After the handshake, sensitive protocol values (storage values and `accessToken`) travel encrypted:
+Both ends compute the same 32-byte key:
 
-- Transform: **AES-256-GCM**, **128-bit authentication tag**.
-- **IV fixed per security session** (the handshake IV is reused in every operation of the session — there is no per-message IV in the protocol payload).
-- Wire encoding: **standard Base64** (with padding). Conceptual functions: `b64Cipher(text)` / `b64Decipher(b64)`.
+```
+shared = ECDH-P256( own private key, peer public key )        -- the 32-byte x-coordinate
+key    = HKDF-SHA256( ikm    = shared,
+                      salt   = utf8_bytes(appId),
+                      info   = utf8_bytes("wdc-cube-remote/aes-256-gcm/v1"),
+                      length = 32 )
+```
 
-> **Portability warning:** the IV is constant per session. Reusing `(key, IV)` in GCM for multiple distinct plaintexts is a known weakness of GCM mode; the design accepts it because the primary confidentiality comes from the transport (TLS). A reimplementation **must** replicate the behavior (same IV) to interoperate, but should ideally always run over `wss://`/HTTPS.
+HKDF is that of RFC 5869 (extract, then expand). The key is an AES-256 key for the rest of the connection; a reconnection agrees on a new one.
+
+### 6.3 Ciphered Values (AES-GCM)
+
+Sensitive values travel ciphered: storage values (§14), in both directions, and sensitive event parameters (e.g. `p.password`, §8).
+
+- Transform: **AES-256-GCM**, **128-bit tag**, no additional data.
+- **Every value has its own random 12-byte IV**, sent in front of it.
+- Wire encoding: `Base64( IV(12) ‖ ciphertext ‖ tag(16) )`, standard Base64 with padding.
+- A value that does not authenticate — tampered, or ciphered with another connection's key — is refused.
 
 ### 6.4 Cryptography in the Browser (Secure Context)
 
-**Platform requirement (browser):** browsers' native cryptography API is usually only available in a **secure context** (HTTPS or `localhost`). Over plain HTTP, the client must provide its own implementation of the primitives (PBKDF2-SHA256 250k → AES-256-GCM tag 128), with **identical** parameters, to remain interoperable with the server. Outside the browser (desktop/mobile apps), the platform's own cryptographic library is used.
+**Platform requirement (browser):** the browser's native cryptography (Web Crypto) is only available in a **secure context** (HTTPS or `localhost`). Over plain HTTP, the client provides its own implementation of the primitives (P-256 ECDH, HKDF-SHA256, AES-256-GCM), with **identical** parameters. Outside the browser, the client uses the platform's cryptographic library, or its own implementation of a primitive the platform lacks.
 
 ---
 
@@ -231,22 +221,21 @@ ws(s)://<host>/dispatcher/{appId}          (and /{ctx}/dispatcher/{appId})
 ```
 
 - The scheme derives from the originating transport: `http→ws`, `https→wss`.
-- The `appId` travels **only in the path**. No custom header/cookie is mandatory besides the `app_signature` cookie (browser mode).
+- The `appId` travels **only in the path**. No custom header or cookie is needed.
 - **Subprotocol:** the client may open with the `"wdc"` subprotocol; the server does not require it. Recommended, not mandatory.
-- In browser mode, the connection is opened with credentials/cookies sending enabled, so that the `app_signature` cookie accompanies the handshake.
 
 ### 7.2 Server Side — Behavior
 
-The server keeps a map of active handlers per `appId`. Each handler holds `appId`, `appSignature`, pending signature/token flags, the current connection, and that connection's internal identifier.
+The server keeps a map of active handlers per `appId`. Each handler holds `appId`, the current connection, that connection's internal identifier, and the key the connection agreed on (none until its handshake).
 
 - **onConnect:**
   1. Finds or creates the session handler.
   2. Validates the `appId` (non-empty, matches the path, signature checksum — §3). Failure → close with `4001 reload_required`.
-  3. Reads the `app_signature` cookie: if present → stores it as `appSignature`; if absent → marks the signature as **pending** (validation is deferred to the 1st message, `secret` field).
+  3. Forgets any key of a previous connection: this one agrees on its own.
   4. Enables automatic pings every 15 s.
-  5. Registers the connection as active. If the session's application already exists → reattaches the connection and **reinitializes the session for reconnection** (§15).
+  5. Registers the connection as active.
 
-- **onMessage:** parses the JSON. If the signature is pending, extracts `secret` (mandatory; absent → close `4001`) and `accessToken` (optional). Creates/retrieves the session's application (injecting `secret`/`accessToken` on creation), reattaches the connection, extends the session's life, and processes the request (§8).
+- **onMessage:** ignores a message from a connection a newer one replaced. On a connection without a key, the message is the handshake (§6): it is answered, the key is derived, and if the session's application already exists it gets the new key, is reattached, and is **reinitialized for reconnection** (§15). Afterwards, it creates/retrieves the session's application (handing it the connection key on creation), reattaches the connection, extends the session's life, and processes the request (§8).
 
 - **onClose:** disables pings. If the closing connection is **not** the active one (the typical F5 case, in which a new connection replaced the old one), the close is **ignored**, so as not to bring down the freshly reconnected session. Otherwise, it detaches the connection; if the session is **not** authenticated **or** the server is in immediate-release mode → releases the session. Removes the handler.
 
@@ -256,10 +245,10 @@ The server keeps a map of active handlers per `appId`. Each handler holds `appId
 
 Phases:
 
-1. **Bootstrap** — obtains `appId` + `appSKey` (§5).
-2. **Handshake** — derives `secret` (§6).
-3. **Connecting** — opens the WebSocket.
-4. **Connected** — sends the 1st message, receives the initial push, operates.
+1. **Bootstrap** — obtains the `appId` (§5).
+2. **Connecting** — opens the WebSocket.
+3. **Handshake** — sends its key, waits for the server's, derives the connection key (§6). Requests made meanwhile wait.
+4. **Connected** — sends the bootstrap message, receives the initial push, operates.
 5. **Reconnecting** — on a drop, applies backoff and reconnects (§15).
 
 A reusable client core must offer, at a minimum: waiting for the next message, or waiting for the response correlated with a specific `requestId` — discarding intermediate messages (whose scopes **have already been applied** to the local scope map before enqueueing, which makes discarding safe). Recommended response and connection timeout: **10 seconds**.
@@ -273,22 +262,26 @@ Every message is **one JSON object**. Recognized fields (all optional, combinabl
 | Field | Type | Meaning |
 |---|---|---|
 | `ping` | `boolean` | Keep-alive. If `true`, the server extends the session's life and answers the ping (§9.2); it does **not** process events. |
-| `secret` | `string` | Handshake signature (§6). Mandatory in the 1st message when there is no `app_signature` cookie. Also used to update the secret. |
-| `accessToken` | `string` | (Optional) auto-login token for clients without cookies. |
+| `protocol`, `clientKey` | `number`, `string` | Only in the handshake, the 1st message of a connection (§6). |
 | `requestId` | 64-bit integer | Monotonically increasing id. Requests with `requestId <= lastRequestId` or null are **discarded** (idempotency/dedup). |
 | `event` | `string[]` | List of events, each item `"<vsid>:<eventCode>"`. Repeated items are counted. |
 | `"<vsid>"` | `object` | For each vsid present as a top-level key, the value is that view's **formData** (client→server synchronization). |
 | `storage` | `object` | Client storage bootstrap (§14), with `session` / `persistent` / `persistent-secure` sub-objects. |
 
-**formData convention:** presenter method parameter fields are prefixed with `p.` (e.g. `p.path`, `p.productId`, `p.password`); direct fields carry no prefix. Sensitive parameters (e.g. `p.password`) may be encrypted with `b64Cipher` before sending; the server decrypts them.
+**formData convention:** presenter method parameter fields are prefixed with `p.` (e.g. `p.path`, `p.productId`, `p.password`); direct fields carry no prefix. Sensitive parameters (e.g. `p.password`) are ciphered with the connection key (§6.3) before sending; the presenter deciphers them (`b64Decipher`).
 
 ### 8.1 Examples
 
-**First message (explicit init mode) — triggers the initial push:**
+**Handshake — the first message of every connection (§6):**
 ```json
-{ "secret": "3f9x...z.AbC-.Xy12", "event": [] }
+{ "protocol": 1, "clientKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE..." }
 ```
-Optionally with a bootstrap `storage`.
+
+**Bootstrap — the first message after the handshake answer, which triggers the initial push:**
+```json
+{ "event": [] }
+```
+Optionally with a bootstrap `storage`, ciphered with the connection key.
 
 **Start / initial route (event `-1` on the Browser View):**
 ```json
@@ -353,7 +346,6 @@ Notes:
 - Before serializing the scopes, the server consolidates the derived state of all presenters once (`commitComputedState`), under a lock.
 - A view born while another's scope is being written (the scope of a child presenter, a segment, a row, requested for the first time) goes in the **same** response: the already-written scope references it.
 - Error fields (`errorCode`, `errorMessage`) live **inside** the fields of each scope, not in the envelope.
-- `accessToken` may also appear in the server→client flow (AES-GCM-encrypted token) as an auto-login mechanism; the client decrypts it with `b64Decipher`.
 
 ### 9.2 Ping/Control Envelope
 
@@ -393,7 +385,8 @@ They use the range reserved for applications (`4000–4999`):
 
 | Code | Reason | Expected client action |
 |---|---|---|
-| `4001` | `reload_required` | Invalid/forged `appId`, missing/bad signature, or 1st message without `secret`. The client **must** discard the persisted `appId` and reload/restart to obtain a new `appId`. |
+| `4001` | `reload_required` | Invalid/forged `appId`, or a handshake with an invalid `clientKey`. The client **must** discard the persisted `appId` and reload/restart to obtain a new `appId`. |
+| `4002` | `unsupported_protocol` | The handshake did not carry a protocol version the server speaks; it was answered with `{"error": "unsupported-protocol", "protocols": [...]}` (§6.1). The client **must not** reconnect: it tells the user the page (or app) is out of date. |
 | `4003` | `capacity_exceeded` | Server at its session limit. Equivalent to the init endpoint's HTTP `503 {"error":"capacity_exceeded"}`. |
 
 ---
@@ -444,11 +437,11 @@ The **server is the authority** over which views exist. The client never creates
 
 Navigation is **server-driven** and the URL is **signed** to prevent the client from forcing places it was not granted.
 
-**Emission (server → client):** when updating the history, the server builds the intent (place + parameters), computes `sign = base62(signAsHash(utf8_bytes(intent.toString())))`, injects the `sign=<...>` parameter into the intent, and sends the result in the `uri` field. The address is the name of the deepest place plus its query string (`CubeIntent.toString()`), e.g. `product?pr-id=42&sign=AbC123`.
+**Emission (server → client):** when updating the history, the server builds the intent (place + parameters), computes `sign = sign(intent.toString())` (§3: HMAC-SHA256 with the signing key, 16 bytes, Base62), injects the `sign=<...>` parameter into the intent, and sends the result in the `uri` field. The address is the name of the deepest place plus its query string (`CubeIntent.toString()`), e.g. `product?pr-id=42&sign=AbC123`.
 
 **Reception (client → server):** the client navigates by sending `p.path` (the URI with `sign`) via events `-1`/`-2` on the Browser View. The server:
 1. Parses the path and **removes** the `sign` parameter (the received signature).
-2. Recomputes `expected = base62(signAsHash(utf8_bytes(intent.toString())))`.
+2. Recomputes `expected = sign(intent.toString())` and compares it in constant time.
 3. If the received signature ≠ expected → the URL was tampered with: the client's intent is **discarded** and the server navigates to its current state instead (the last place with the parameters the presenters publish; the root place when there is none), forcing a history update. This way, the client cannot forge navigation to arbitrary unsigned parameters/places.
 
 **Reflection in the history (browser):** the `uri` field is applied to the browser history as a hash (`#`): *replace* on the first URI response and on navigation coming from back/forward; *push* in all other cases. The shell derives the initial route from the URL hash at boot.
@@ -481,7 +474,7 @@ This is the most subtle point of the specification. The model has **two scopes**
   "persistent-secure":  { "key": "<encrypted value>" }
 }
 ```
-Empty scopes are omitted; if everything is empty (or there is no `secret`), the `storage` field is omitted. Purpose: to allow the server to **restore the user's session** (e.g. auto-login via a persistent token).
+Empty scopes are omitted; if everything is empty, the `storage` field is omitted. Purpose: to allow the server to **restore the user's session** (e.g. auto-login via a persistent token).
 
 > Server note: when loading the bootstrap, the `persistent` and `persistent-secure` scopes are both read into the **same** in-memory persistent storage on the server (asymmetry: on write/delta they are kept separate). Tampered values that fail to decrypt are silently ignored.
 
@@ -514,8 +507,8 @@ The goal is that, for the user, an F5 (or a reconnection) is imperceptible: same
 1. The page reloads; the client is rebuilt.
 2. **Retrieves `appId`:** reads the `app_id` cookie (if the server planted a new one) and removes it; then **prioritizes** the value in session storage. Since that storage survives F5, the **same `appId`** is reused. If there is neither a cookie nor a persisted value, it generates a local id marked as "fake".
 3. **Retrieves the request counter** → restores the `requestId` sequence.
-4. **Security:** if a new `app_skey` arrived, it redoes the handshake (new AES password, new `app_signature`). The secure storage is decrypted again using the at-rest encryption key persisted locally (which survives F5).
-5. **Reconnects the WebSocket** to `/dispatcher/{appId}`; on open, resends `secret` + bootstrap `storage` and flushes pending requests.
+4. **Security:** the secure storage is decrypted again using the at-rest encryption key persisted locally (which survives F5).
+5. **Reconnects the WebSocket** to `/dispatcher/{appId}`; on open, does the handshake (§6), then sends the bootstrap `storage`, ciphered with the new connection key, and flushes pending requests.
 6. **Restores the route:** derives the `path` from the URL hash and submits `p.path` with event `-1`. The server responds with `uri` (applied as a *replace* in the history).
 
 ### 15.3 Sequence (Server Side)
@@ -527,7 +520,7 @@ The goal is that, for the user, an F5 (or a reconnection) is imperceptible: same
    - clears the `releasedViews` queue;
    - marks **all** views as dirty → the next flush resends **every scope**.
 3. **Old (superseded) connection:** the previous connection's `onClose` is ignored if it is no longer the active one, avoiding bringing down the freshly reconnected session.
-4. **If the session expired** (removed by TTL without a connection): the application is **recreated** on the first message from `secret` + `storage` (bootstrap) + `event -1` (`p.path`), reconstituting the state. If the server is full → `4003 capacity_exceeded`.
+4. **If the session expired** (removed by TTL without a connection): the application is **recreated**, after the handshake, from the bootstrap `storage` + `event -1` (`p.path`), reconstituting the state. If the server is full → `4003 capacity_exceeded`.
 5. **Dedup:** the per-session `lastRequestId` discards requests with an id `<=` the one already processed. In a recreated session, it restarts at `-1`.
 
 ### 15.4 Reconnection Backoff (Client)
@@ -543,7 +536,7 @@ On receiving close `4001 reload_required`, the client **removes** the persisted 
 
 ### 15.6 Reconnection in Non-Browser Clients
 
-A minimal client core may not implement automatic reconnection — in that case, it exposes a hook to clear the scope map and leaves the reconnection policy to each shell. A desktop/mobile shell that wants parity with the browser must: persist the `appId` and the request counter, and on reconnecting redo `init → handshake → WS → bootstrap(storage) → event -1`. Alternatively, it rebuilds the session from scratch via a new init.
+A minimal client core may not implement automatic reconnection — in that case, it exposes a hook to clear the scope map and leaves the reconnection policy to each shell. A desktop/mobile shell that wants parity with the browser must: persist the `appId` and the request counter, and on reconnecting redo `init → WS → handshake → bootstrap(storage) → event -1`. Alternatively, it rebuilds the session from scratch via a new init.
 
 ---
 
@@ -581,16 +574,16 @@ This protocol was designed for multiple client platforms: **web browser, desktop
 
 **What is immutable (the wire contract):**
 - `appId` formation and validation (§3).
-- `secret` format = `<rsa(pwd) base36>.<salt b64url>.<iv b64url>` (§6).
-- Cryptographic primitives: *textbook* RSA via modular exponentiation with the public key `"exponent:modulus"` base36; PBKDF2-HMAC-SHA256, **250000 iterations**, **256-bit** output; AES-256-GCM, **128-bit tag**, **IV fixed per session** in the protocol payload; Base64 encodings (standard for payload, URL-safe without padding for salt/IV).
+- The handshake of protocol version 1 (§6.1), and its refusal.
+- Cryptographic primitives: ECDH P-256 with keys as Base64 X.509 SubjectPublicKeyInfo; HKDF-SHA256 with the `appId` as salt and `wdc-cube-remote/aes-256-gcm/v1` as info; AES-256-GCM, **128-bit tag**, a **random 12-byte IV per value**, written `Base64(IV ‖ ciphertext ‖ tag)`.
 - WebSocket path `/dispatcher/{appId}` and (optional) `wdc` subprotocol.
 - Message fields in both directions (§8, §9), including `"#"` in the scope and `"<vsid>:<eventCode>"` in `event`, parsed on the **last** `:`.
-- Reserved event codes (`-1`, `-2`, `1`, `2`) and close codes (`4001`, `4003`).
+- Reserved event codes (`-1`, `-2`, `1`, `2`) and close codes (`4001`, `4002`, `4003`).
 - Three storage scopes (`session`, `persistent`, `persistent-secure`), with in-transit encryption for **all** of them and `secure` as an at-rest hint.
 - URL fragment signature (`sign`) — the client must **never** try to navigate to unsigned paths; it only echoes the `p.path` it received.
 
 **What is free per platform:**
-- How to obtain `appId`/`appSKey`: cookies (browser mode) **or** the init endpoint (explicit mode). A desktop/mobile client typically uses the **explicit init mode**.
+- How to obtain the `appId`: the cookie (browser mode) **or** the init endpoint (explicit mode). A desktop/mobile client typically uses the **explicit init mode**.
 - Backing of the storage scopes: on desktop/mobile, `session` = memory; `persistent` = file/preferences; `persistent-secure` = the platform's secret vault (Keychain on macOS/iOS, KeyStore on Android, an equivalent secret store on desktop).
 - Reconnection: implement backoff and `appId` reuse (parity with the browser) **or** recreate the session via a new init.
 - Rendering: the view reads its scope (indexed by vsid) and emits events via `submit(vsid, eventCode, formData)`; the UI technology is irrelevant to the protocol.
@@ -600,9 +593,9 @@ This protocol was designed for multiple client platforms: **web browser, desktop
 - **Desktop/mobile:** with no page cookies, use the init endpoint; use the platform's secret vault for `persistent-secure`; persist `appId`/request counter for transparent reconnection.
 
 **Known pitfalls:**
-- The payload IV is **fixed per session** — replicate this to interoperate, but require `wss://`/HTTPS in production.
-- PBKDF2 receives the password as the UTF-8 bytes of the base64url string (not the 12 raw bytes).
-- The password is RSA-encrypted **after** being re-wrapped in standard Base64 (not the raw password bytes).
+- Nothing but the handshake may go out before the handshake answer: not a ping, not a request. Queue them.
+- The ECDH shared secret is the raw 32-byte x-coordinate (what Web Crypto's `deriveBits(…, 256)` and JCA's `KeyAgreement` give), not a hash of it.
+- The HKDF salt is the full `appId`, both parts and the dot, as UTF-8.
 - `event` parsing uses the **last** `:` (the vsid contains `:`).
 - The client-side scope is a **total replace** per vsid, not a merge.
 - The client is subordinate: it never invents vsids, never navigates without `sign`, and only garbage-collects views the server no longer lists **and** that are not mounted.
@@ -618,25 +611,24 @@ This protocol was designed for multiple client platforms: **web browser, desktop
 | vsid field in the scope | `#` |
 | Route field in the formData | `p.path` |
 | Method parameter prefix | `p.` |
-| Init endpoint | `GET /api/session/init` → `{appId, appSKey}` |
+| Init endpoint | `GET /api/session/init` → `{appId}` |
 | WebSocket endpoint | `ws(s)://host/dispatcher/{appId}` |
 | WS subprotocol | `wdc` (optional) |
-| Cookies (browser mode) | `app_id` (MaxAge 10s), `app_skey` (MaxAge -1), `app_signature` (written by the client) |
+| Cookie (browser mode) | `app_id` (MaxAge 10s) |
 | Keys persisted on the client (browser) | `app_id`, `req_seq` (in session storage) |
 | Storage scopes on the wire | `session`, `persistent`, `persistent-secure` |
 | Storage namespace prefix | `~<shellId>:` (e.g. `~rr:`) |
 | Reserved eventCodes | `-1` start, `-2` historyChanged, `1` alertOk, `2` keepAlive |
-| Close codes | `4001 reload_required`, `4003 capacity_exceeded` |
+| Close codes | `4001 reload_required`, `4002 unsupported_protocol`, `4003 capacity_exceeded` |
 | Capacity response (init) | HTTP `503 {"error":"capacity_exceeded"}` |
-| Handshake RSA | `"exponent:modulus"` base36; textbook RSA (modular exponentiation) |
-| Signing RSA | URL-safe Base64 DER (X.509 / PKCS#8); RSA signature over SHA-256 |
-| `signAsHash` | `MD5( RSA-SHA256-signature(bytes) )` |
-| `appId` | `base62(32 rnd bytes) + "." + base62(signAsHash(part1))` |
-| PBKDF2 | HMAC-SHA256, 250000 iterations, 256 bits |
-| Ephemeral password | 12 random bytes → base64url without padding |
-| Salt / IV | 16 bytes / 12 random bytes |
-| Payload encryption | AES-256-GCM, 128-bit tag, IV fixed per session, standard Base64 |
-| `secret` format | `<rsa(pwd) base36>.<salt b64url>.<iv b64url>` |
+| Protocol version | `1` (handshake field `protocol`) |
+| Handshake | `{"protocol": 1, "clientKey"}` → `{"protocol": 1, "serverKey"}`; refusal `{"error": "unsupported-protocol", "protocols": [1]}` |
+| Key agreement | ECDH P-256, keys as Base64 X.509 SubjectPublicKeyInfo, ephemeral per connection |
+| Key derivation | HKDF-SHA256, salt = UTF-8 `appId`, info = `wdc-cube-remote/aes-256-gcm/v1`, 32 bytes |
+| Ciphered value | AES-256-GCM, 128-bit tag, random 12-byte IV per value, `Base64(IV ‖ ciphertext ‖ tag)` |
+| `sign(text)` | `base62( first 16 bytes of HMAC-SHA256(signingKey, utf8(text)) )` |
+| `appId` | `base62(32 rnd bytes) + "." + sign(part1)` |
+| Signing key | `[remote] signingKey`, Base64 URL-safe, ≥ 32 bytes, generated on the first start |
 | Automatic WS pings | 15 s |
 | Client keep-alive | 15 s (80 ms debounce) |
 | Background flush | 50 ms |

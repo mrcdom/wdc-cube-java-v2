@@ -13,12 +13,13 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.ToNumberPolicy;
 import com.google.gson.reflect.TypeToken;
 
-import br.com.wdc.framework.commons.codec.Base62;
 import br.com.wdc.framework.commons.log.Log;
+import br.com.wdc.framework.commons.security.ChannelCrypto;
 import br.com.wdc.framework.cube.remote.CapacityExceededException;
 import br.com.wdc.framework.cube.remote.RemoteAppSecurity;
 import br.com.wdc.framework.cube.remote.RemoteApplication;
 import br.com.wdc.framework.cube.remote.RemoteApplicationRegistry;
+import br.com.wdc.framework.cube.remote.RemoteDataSecurity;
 import io.javalin.config.JavalinConfig;
 import io.javalin.websocket.WsCloseContext;
 import io.javalin.websocket.WsConnectContext;
@@ -37,7 +38,11 @@ public final class DispatcherController {
     private static final Log LOG = Log.getLogger(DispatcherController.class);
 
     private static final int CLOSE_SESSION_INVALID = 4001;
+    private static final int CLOSE_UNSUPPORTED_PROTOCOL = 4002;
     private static final int CLOSE_CAPACITY_EXCEEDED = 4003;
+
+    /** The versions of the remote protocol this host speaks. */
+    public static final int PROTOCOL = 1;
 
     private static final Gson GSON = new GsonBuilder()
             .serializeNulls()
@@ -140,9 +145,8 @@ public final class DispatcherController {
         private final RemoteAppSecurity security;
         private final RemoteApplicationRegistry<? extends RemoteApplication> registry;
 
-        private String appSignature;
-        private boolean pendingSignature;
-        private String pendingAccessToken;
+        /** The key the current connection agreed on; {@code null} until its handshake. */
+        private byte[] channelKey;
         private WsContext wsSession;
         private String activeWsSessionId;
 
@@ -162,48 +166,20 @@ public final class DispatcherController {
                     return;
                 }
 
-                var b62 = Base62.BEAN;
-
-                String[] appIdParts = StringUtils.split(this.appId, '.');
-                if (appIdParts.length != 2) {
-                    LOG.warn("WebSocket connection rejected: invalid session ID format");
-                    ctx.closeSession(CLOSE_SESSION_INVALID, "reload_required");
-                    return;
-                }
-
-                String appIdPart1 = appIdParts[0];
-                String appIdPart2 = appIdParts[1];
-
-                String expectedAppIdPart2 = b62.encodeToString(
-                        security.signAsHash(appIdPart1.getBytes()));
-
-                if (!appIdPart2.equals(expectedAppIdPart2)) {
+                if (!security.isSessionId(this.appId)) {
                     LOG.warn("WebSocket connection rejected: invalid session ID signature");
                     ctx.closeSession(CLOSE_SESSION_INVALID, "reload_required");
                     return;
                 }
 
-                String signature = ctx.cookie("app_signature");
-                if (StringUtils.isEmpty(signature)) {
-                    // No cookie — defer validation to first message (desktop/mobile clients
-                    // send the signature in the "secret" field of the first JSON message).
-                    this.pendingSignature = true;
-                } else {
-                    this.appSignature = signature;
-                    this.pendingSignature = false;
-                }
+                // A new connection agrees on its own key in its first message
+                this.channelKey = null;
 
                 ctx.enableAutomaticPings(15, TimeUnit.SECONDS);
                 this.activeWsSessionId = ctx.sessionId();
                 this.wsSession = ctx;
 
                 LOG.debug("WebSocket connection established for session: {} (wsId: {})", appId, this.activeWsSessionId);
-
-                RemoteApplication app = registry.get(appId);
-                if (app != null) {
-                    app.setWsSession(this.wsSession);
-                    app.resetForReconnect();
-                }
 
             } catch (Exception e) {
                 LOG.error("Error during WebSocket connection open", e);
@@ -219,27 +195,18 @@ public final class DispatcherController {
             try {
                 String jsonRequest = ctx.message();
 
+                if (!ctx.sessionId().equals(this.activeWsSessionId)) {
+                    return; // a connection a newer one replaced
+                }
+
                 Map<String, Object> request = parseRequest(jsonRequest);
                 if (request.isEmpty()) {
                     return;
                 }
 
-                // Desktop/mobile clients send the signature in the first message
-                if (this.pendingSignature) {
-                    Object secret = request.get("secret");
-                    if (secret instanceof String s && !s.isEmpty()) {
-                        this.appSignature = s;
-                        this.pendingSignature = false;
-                    } else {
-                        LOG.warn("WebSocket rejected: first message missing 'secret' for session: {}", this.appId);
-                        ctx.closeSession(CLOSE_SESSION_INVALID, "reload_required");
-                        return;
-                    }
-                    // Extract access token for auto-login (optional)
-                    Object token = request.get("accessToken");
-                    if (token instanceof String t && !t.isEmpty()) {
-                        this.pendingAccessToken = t;
-                    }
+                if (this.channelKey == null) {
+                    handshake(ctx, request);
+                    return;
                 }
 
                 RemoteApplication app = getOrCreateApp(request);
@@ -324,16 +291,52 @@ public final class DispatcherController {
             }
         }
 
+        /**
+         * The first message of a connection (protocol 1): {@code {"protocol": 1, "clientKey": "<P-256 key>"}}. The
+         * answer carries the host's key, and both ends derive the connection's key. A message with another version,
+         * or none, is answered with {@code unsupported-protocol}, and the connection is closed.
+         */
+        private void handshake(WsMessageContext ctx, Map<String, Object> request) {
+            var protocol = request.get("protocol") instanceof Number n ? n.intValue() : null;
+            var clientKey = request.get("clientKey") instanceof String k ? k : null;
+            if (protocol == null || protocol != PROTOCOL || clientKey == null) {
+                LOG.warn("WebSocket refused: unsupported protocol {} for session: {}", protocol, this.appId);
+                ctx.send("{\"error\":\"unsupported-protocol\",\"protocols\":[" + PROTOCOL + "]}");
+                ctx.closeSession(CLOSE_UNSUPPORTED_PROTOCOL, "unsupported_protocol");
+                return;
+            }
+
+            byte[] key;
+            String serverKey;
+            try {
+                var peer = ChannelCrypto.decodePublicKey(clientKey);
+                var own = ChannelCrypto.newKeyPair();
+                key = ChannelCrypto.deriveKey(own.getPrivate(), peer, this.appId);
+                serverKey = ChannelCrypto.encodePublicKey(own.getPublic());
+            } catch (IllegalArgumentException invalidKey) {
+                LOG.warn("WebSocket refused: invalid client key for session: {}", this.appId);
+                ctx.closeSession(CLOSE_SESSION_INVALID, "reload_required");
+                return;
+            }
+
+            this.channelKey = key;
+            ctx.send("{\"protocol\":" + PROTOCOL + ",\"serverKey\":\"" + serverKey + "\"}");
+
+            RemoteApplication app = registry.get(appId);
+            if (app != null) {
+                app.getDataSecurity().useKey(key);
+                app.setWsSession(this.wsSession);
+                app.resetForReconnect();
+            }
+        }
+
         private RemoteApplication getOrCreateApp(Map<String, Object> request) {
             RemoteApplication app = registry.get(appId);
 
             if (app == null) {
-                request.put("secret", this.appSignature);
-                if (this.pendingAccessToken != null) {
-                    request.put("accessToken", this.pendingAccessToken);
-                    this.pendingAccessToken = null;
-                }
+                request.put(RemoteDataSecurity.CHANNEL_KEY, this.channelKey);
                 app = registry.getOrCreate(appId, request);
+                app.getDataSecurity().useKey(this.channelKey);
             }
 
             app.setWsSession(wsSession);
