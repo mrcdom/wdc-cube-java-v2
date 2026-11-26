@@ -39,20 +39,17 @@ class HomeViewSwtRemote extends HomeViewSwt {
 		var scope = new HomeScope();
 		var contentId = s.getString("contentViewId");
 		if (contentId != null) {
-			scope.content.set(Scope.drawnBy(this.ctx.viewLookup(contentId)));
+			scope.content.set(this.ctx.drawnBy(new Scope() {
+			}, contentId));
 		}
 		// The panels are segments drawn by views of their own: the host refers to each by the id of its view
 		var productsPanelId = s.getString("productsPanelViewId");
 		if (productsPanelId != null) {
-			var panel = new HomeScope.ProductsPanelScope();
-			panel.attachView(this.ctx.viewLookup(productsPanelId));
-			scope.productsPanel.set(panel);
+			scope.productsPanel.set(this.ctx.drawnBy(new HomeScope.ProductsPanelScope(), productsPanelId));
 		}
 		var purchasesPanelId = s.getString("purchasesPanelViewId");
 		if (purchasesPanelId != null) {
-			var panel = new HomeScope.PurchasesPanelScope();
-			panel.attachView(this.ctx.viewLookup(purchasesPanelId));
-			scope.purchasesPanel.set(panel);
+			scope.purchasesPanel.set(this.ctx.drawnBy(new HomeScope.PurchasesPanelScope(), purchasesPanelId));
 		}
 		scope.nickName.set(s.getString("nickName"));
 		var cartCount = s.getLong("cartItemCount");

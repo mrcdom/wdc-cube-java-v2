@@ -10,7 +10,7 @@ graph TD
     indexHtml["index.html<br/><small>Loads Spectrum WC + Bootstrap Icons + CSS + app.js</small>"]
     appJs["js/app.js<br/><small>Java compiled to JS by TeaVM</small>"]
     main["Main.java<br/><small>Entry point</small>"]
-    app["app/StoreTeaVMApplication.java<br/><small>ScopeViews catalog, render loop, navigation</small>"]
+    app["app/StoreTeaVMApplication.java<br/><small>view catalog, live views, render loop, navigation</small>"]
     views["views/<br/><small>AbstractViewTeaVM · AbstractVDomView<br/>RootView · LoginView · HomeView · ProductsPanelView · PurchasesPanelView<br/>ProductView · CartView · CartItemView · ReceiptView</small>"]
     infra["infra/<br/><small>FetchHttpTransport · BrowserCryptoProvider · IntentSigner<br/>BrowserLocalStorage · BrowserSessionStorage · EncryptedLocalStorage<br/>ScheduledExecutorBrowser</small>"]
     repo["repo/<br/><small>TeaVMRepositoryBootstrap · TeaVMAuthenticationService</small>"]

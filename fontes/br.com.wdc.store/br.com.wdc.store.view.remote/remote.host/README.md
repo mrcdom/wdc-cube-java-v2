@@ -11,7 +11,7 @@ Wire the WDC Store application into the framework's `remote.backend` infrastruct
 | Class | Responsibility |
 |--------|------------------|
 | `RemoteHostBootstrap` | `configure(JavalinConfig)`: ensures the `[remote]` keys, then registers the HTTP/WS routes via `remote.backend`; `start(Defer)`: starts the application registry (flush loop, expiry checker) |
-| `StoreApplicationImpl` | Concrete `StoreApplication` + `RemoteApplication`: `ScopeViews` catalog with `fallback(RemoteViewImpl::forScope)`, delegates the protocol to `RemoteApplicationSupport` |
+| `StoreApplicationImpl` | Concrete `StoreApplication` + `RemoteApplication`: delegates the protocol to `RemoteApplicationSupport`, which draws every scope with a `RemoteViewImpl` found by its `CLASS_ID` |
 
 ## Dependencies
 

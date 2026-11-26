@@ -4,7 +4,6 @@ import java.util.Date;
 
 import org.junit.Assert;
 
-import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.store.presentation.presenter.restricted.home.HomeScope;
 import br.com.wdc.store.presentation.presenter.restricted.home.HomeScope.ProductsPanelScope;
 import br.com.wdc.store.presentation.presenter.restricted.home.HomeScope.PurchasesPanelScope;
@@ -15,7 +14,7 @@ import br.com.wdc.store.test.mock.StoreApplicationMock;
 @SuppressWarnings("java:S106")
 public class HomeViewMock extends AbstractViewMock<HomeScope> {
 
-    public static HomeViewMock cast(CubeView view) {
+    public static HomeViewMock cast(Object view) {
         var cls = HomeViewMock.class;
         Assert.assertNotNull("Expecting " + cls.getSimpleName() + " but this view was null", view);
         Assert.assertTrue("Expecting " + cls.getSimpleName() + " but it was " + view.getClass().getSimpleName(),

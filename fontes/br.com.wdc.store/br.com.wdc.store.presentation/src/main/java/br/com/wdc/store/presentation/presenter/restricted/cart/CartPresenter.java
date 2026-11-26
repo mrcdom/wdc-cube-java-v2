@@ -105,7 +105,7 @@ public class CartPresenter extends AbstractCubePresenter<StoreApplication> {
 
     /**
      * Brings the rows in line with the cart: a new item gets a row (the view layer draws it), a row whose item stays
-     * is reused and only its changed props redraw it, a row whose item left is detached (its view released).
+     * is reused and only its changed props redraw it, a row whose item left is dropped from the list.
      */
     private void syncRows() {
         var items = this.cart.getCartItems();
@@ -129,14 +129,7 @@ public class CartPresenter extends AbstractCubePresenter<StoreApplication> {
             total += item.price * item.quantity;
         }
 
-        var it = this.rowsById.entrySet().iterator();
-        while (it.hasNext()) {
-            var entry = it.next();
-            if (!present.contains(entry.getKey())) {
-                detach(entry.getValue());
-                it.remove();
-            }
-        }
+        this.rowsById.keySet().retainAll(present);
 
         this.scope.rows.set(next);
         this.scope.total.set(total);

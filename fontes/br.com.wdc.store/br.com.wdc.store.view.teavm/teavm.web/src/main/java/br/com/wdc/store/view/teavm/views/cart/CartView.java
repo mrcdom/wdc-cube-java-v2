@@ -22,7 +22,7 @@ public class CartView extends AbstractVDomView<CartScope> {
         this.shared.onBuy = () -> safeAction("Buy", scope.onBuy::run);
         // The rows are views of their own (CartItemView): the cart lays their elements out in its order
         this.shared.rowElements = () -> scope.rows.get().stream()
-                .map(row -> this.app.viewOf(row) instanceof AbstractViewTeaVM<?> v ? v.getElement() : null)
+                .map(row -> this.viewOf(row) instanceof AbstractViewTeaVM<?> v ? v.getElement() : null)
                 .filter(Objects::nonNull)
                 .toList();
     }

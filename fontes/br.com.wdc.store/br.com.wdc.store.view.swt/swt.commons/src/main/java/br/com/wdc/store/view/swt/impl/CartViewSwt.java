@@ -2,6 +2,7 @@ package br.com.wdc.store.view.swt.impl;
 
 import static br.com.wdc.store.view.swt.util.GridDataUtils.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -25,8 +26,8 @@ public class CartViewSwt extends AbstractViewSwt {
     public Supplier<CartScope> scopeSupplier;
     public Runnable onOpenProducts;
     public Runnable onBuy;
-    /** The rows' elements, in the cart's order: each row is a view of its own ({@link CartItemViewSwt}). */
-    public Supplier<List<Composite>> rowElements;
+    /** The rows' views, in the cart's order: each row is a view of its own ({@link CartItemViewSwt}). */
+    public Supplier<List<AbstractViewSwt>> rowViews;
 
     private boolean notRendered = true;
 
@@ -61,7 +62,14 @@ public class CartViewSwt extends AbstractViewSwt {
         }
 
         var scope = this.scopeSupplier != null ? this.scopeSupplier.get() : null;
-        var rows = this.rowElements != null ? this.rowElements.get() : List.<Composite>of();
+        var rows = new ArrayList<Composite>();
+        if (this.rowViews != null) {
+            for (var rowView : this.rowViews.get()) {
+                if (this.hold(rowView) != null) {
+                    rows.add(rowView.getElement());
+                }
+            }
+        }
         boolean empty = rows.isEmpty();
 
         // Toggle empty/filled visibility

@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -27,6 +28,7 @@ import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
 import br.com.wdc.framework.commons.serialization.JsonStreamWriter;
 import br.com.wdc.framework.cube.CubeApplication;
 import br.com.wdc.framework.cube.CubeIntent;
+import br.com.wdc.framework.cube.Scope;
 import io.javalin.websocket.WsContext;
 
 /**
@@ -77,6 +79,8 @@ public class RemoteApplicationSupport {
     private RemoteBrowserPresenter browserPresenter;
     private final Map<String, RemoteViewImpl> dirtyViewMap = new ConcurrentHashMap<>();
     private final Map<String, RemoteViewImpl> viewMap = new ConcurrentHashMap<>();
+    /** The view of each scope drawn for the client. */
+    private final Map<Scope, RemoteViewImpl> scopeViewMap = Collections.synchronizedMap(new IdentityHashMap<>());
     private final ConcurrentLinkedQueue<String> releasedViews = new ConcurrentLinkedQueue<>();
     private long lastRequestId = -1;
     private long lastActiveViewsSentAt;
@@ -189,6 +193,23 @@ public class RemoteApplicationSupport {
 
     public Map<String, RemoteViewImpl> getViewMap() {
         return viewMap;
+    }
+
+    /** The view that draws the scope for the client, made the first time a scope that holds it is written. */
+    public RemoteViewImpl viewOf(Scope scope) {
+        synchronized (this.scopeViewMap) {
+            var view = this.scopeViewMap.get(scope);
+            if (view == null) {
+                view = RemoteViewImpl.forScope(this.getOwnerAsRemoteApp(), scope);
+                this.scopeViewMap.put(scope, view);
+            }
+            return view;
+        }
+    }
+
+    /** The view no longer draws its scope. */
+    public void forgetView(RemoteViewImpl view) {
+        this.scopeViewMap.remove(view.scope(), view);
     }
 
     public void putView(RemoteViewImpl view) {
@@ -597,7 +618,7 @@ public class RemoteApplicationSupport {
                 var written = new java.util.HashSet<String>();
                 while (!queue.isEmpty()) {
                     var view = queue.poll();
-                    if (!written.add(view.instanceId())) {
+                    if (view.isReleased() || !written.add(view.instanceId())) {
                         continue;
                     }
                     view.writeScope(json);

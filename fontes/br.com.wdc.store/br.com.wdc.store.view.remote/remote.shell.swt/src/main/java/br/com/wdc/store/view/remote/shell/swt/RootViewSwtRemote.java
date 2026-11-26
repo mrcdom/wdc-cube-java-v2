@@ -27,7 +27,8 @@ class RootViewSwtRemote extends RootViewSwt {
 		var scope = new RootScope();
 		var contentId = s.getString("contentViewId");
 		if (contentId != null) {
-			scope.content.set(Scope.drawnBy(this.ctx.viewLookup(contentId)));
+			scope.content.set(this.ctx.drawnBy(new Scope() {
+			}, contentId));
 		}
 		scope.errorMessage.set(s.getString("errorMessage"));
 		return scope;

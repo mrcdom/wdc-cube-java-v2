@@ -2,8 +2,10 @@ package br.com.wdc.store.view.teavm.app;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 
 import org.teavm.jso.JSBody;
 import org.teavm.jso.browser.Window;
@@ -13,7 +15,7 @@ import br.com.wdc.framework.commons.http.HttpTransport;
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.storage.ClientStorage;
 import br.com.wdc.framework.cube.CubePresenter;
-import br.com.wdc.framework.cube.ScopeViews;
+import br.com.wdc.framework.cube.Scope;
 import br.com.wdc.framework.domain.security.AuthenticationService;
 import br.com.wdc.framework.domain.security.AuthenticationService.AuthResult;
 import br.com.wdc.framework.domain.security.CryptoProvider;
@@ -62,20 +64,25 @@ public class StoreTeaVMApplication extends StoreApplication {
     private boolean renderScheduled;
     private boolean navigatingFromBrowser;
 
-    /** The view of each scope: the presenters', the segments' and the rows'. */
-    private static final ScopeViews SCOPE_VIEWS = new ScopeViews()
-            .register(RootScope.class, RootView::new)
-            .register(LoginScope.class, LoginView::new)
-            .register(HomeScope.class, HomeView::new)
-            .register(ProductScope.class, ProductView::new)
-            .register(CartScope.class, CartView::new)
-            .register(ReceiptScope.class, ReceiptView::new)
-            .register(CartScope.CartItemScope.class, (StoreTeaVMApplication app, CartScope.CartItemScope row) -> new CartItemView(app, row))
-            .register(HomeScope.ProductsPanelScope.class, (StoreTeaVMApplication app, HomeScope.ProductsPanelScope s) -> new ProductsPanelView(app, s))
-            .register(HomeScope.PurchasesPanelScope.class, (StoreTeaVMApplication app, HomeScope.PurchasesPanelScope s) -> new PurchasesPanelView(app, s));
+    /** The view of each scope class: the presenters', the segments' and the rows'. */
+    private static final Map<Class<?>, BiFunction<StoreTeaVMApplication, Scope, AbstractViewTeaVM<?>>> VIEWS = new HashMap<>();
+
+    static {
+        VIEWS.put(RootScope.class, (app, s) -> new RootView(app, (RootScope) s));
+        VIEWS.put(LoginScope.class, (app, s) -> new LoginView(app, (LoginScope) s));
+        VIEWS.put(HomeScope.class, (app, s) -> new HomeView(app, (HomeScope) s));
+        VIEWS.put(ProductScope.class, (app, s) -> new ProductView(app, (ProductScope) s));
+        VIEWS.put(CartScope.class, (app, s) -> new CartView(app, (CartScope) s));
+        VIEWS.put(ReceiptScope.class, (app, s) -> new ReceiptView(app, (ReceiptScope) s));
+        VIEWS.put(CartScope.CartItemScope.class, (app, s) -> new CartItemView(app, (CartScope.CartItemScope) s));
+        VIEWS.put(HomeScope.ProductsPanelScope.class, (app, s) -> new ProductsPanelView(app, (HomeScope.ProductsPanelScope) s));
+        VIEWS.put(HomeScope.PurchasesPanelScope.class, (app, s) -> new PurchasesPanelView(app, (HomeScope.PurchasesPanelScope) s));
+    }
+
+    /** The view of each scope drawn, until it is released. */
+    private final Map<Scope, AbstractViewTeaVM<?>> views = new IdentityHashMap<>();
 
     public StoreTeaVMApplication(String apiBaseUrl, String shellId) {
-        this.setScopeViews(SCOPE_VIEWS);
         this.apiBaseUrl = apiBaseUrl;
         this.persistentStore = new BrowserLocalStorage(shellId);
 
@@ -157,12 +164,47 @@ public class StoreTeaVMApplication extends StoreApplication {
      * Marks a view as dirty to re-render on the next frame.
      */
     public void markDirty(AbstractViewTeaVM<?> view) {
+        if (view.isReleased()) {
+            return;
+        }
         long now = System.currentTimeMillis();
         if (view.dirtyTimestamp < now) {
             view.dirtyTimestamp = now;
             dirtyViews.add(view);
         }
         scheduleRender();
+    }
+
+    // :: Views
+
+    /**
+     * The view that draws the scope, made the first time it is asked for: from then on, a change in the scope redraws
+     * that view. {@code null} for no scope.
+     */
+    public AbstractViewTeaVM<?> viewOf(Scope scope) {
+        if (scope == null) {
+            return null;
+        }
+        var existing = this.views.get(scope);
+        if (existing != null) {
+            return existing;
+        }
+        var factory = VIEWS.get(scope.getClass());
+        if (factory == null) {
+            throw new IllegalStateException("No view registered for scope " + scope.getClass().getName());
+        }
+        var made = factory.apply(this, scope);
+        this.views.put(scope, made);
+        scope.setUpdater(made.updater);
+        // The first drawing
+        made.update();
+        return made;
+    }
+
+    /** The view was released: it no longer draws its scope. */
+    public void forgetView(AbstractViewTeaVM<?> view) {
+        this.views.remove(view.scope(), view);
+        this.dirtyViews.remove(view);
     }
 
     private void scheduleRender() {
@@ -178,7 +220,7 @@ public class StoreTeaVMApplication extends StoreApplication {
         dirtyViews.clear();
         for (AbstractViewTeaVM<?> view : snapshot) {
             try {
-                view.doUpdate();
+                view.redraw();
             } catch (Exception e) {
                 Console.error("Render error in " + view.instanceId() + ": " + e.getMessage());
             }
@@ -246,10 +288,8 @@ public class StoreTeaVMApplication extends StoreApplication {
         }
 
         // Mark all active views as dirty for UI refresh
-        for (var view : this.liveViews()) {
-            if (view instanceof AbstractViewTeaVM<?> teavmView) {
-                this.markDirty(teavmView);
-            }
+        for (var view : new ArrayList<>(this.views.values())) {
+            this.markDirty(view);
         }
 
         // Sync browser URL hash with signed intent

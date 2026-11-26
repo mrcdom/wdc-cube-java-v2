@@ -1,9 +1,14 @@
 package br.com.wdc.store.view.vaadin;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiFunction;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Div;
@@ -14,7 +19,7 @@ import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.commons.storage.ClientStorage;
 import br.com.wdc.framework.commons.storage.InMemoryClientStorage;
 import br.com.wdc.framework.cube.CubePresenter;
-import br.com.wdc.framework.cube.ScopeViews;
+import br.com.wdc.framework.cube.Scope;
 import br.com.wdc.store.presentation.StoreApplication;
 import br.com.wdc.store.presentation.presenter.RootScope;
 import br.com.wdc.store.presentation.presenter.open.login.LoginScope;
@@ -39,17 +44,20 @@ public class StoreVaadinApplication extends StoreApplication {
 
     private static final Map<String, StoreVaadinApplication> APP_CACHE = new ConcurrentHashMap<>();
 
-    /** The view of each scope: the presenters', the segments' and the rows'. */
-    private static final ScopeViews SCOPE_VIEWS = new ScopeViews()
-            .register(RootScope.class, RootViewVaadin::new)
-            .register(LoginScope.class, LoginViewVaadin::new)
-            .register(HomeScope.class, HomeViewVaadin::new)
-            .register(ProductScope.class, ProductViewVaadin::new)
-            .register(CartScope.class, CartViewVaadin::new)
-            .register(ReceiptScope.class, ReceiptViewVaadin::new)
-            .register(CartScope.CartItemScope.class, (StoreVaadinApplication app, CartScope.CartItemScope row) -> new CartItemViewVaadin(app, row))
-            .register(HomeScope.ProductsPanelScope.class, (StoreVaadinApplication app, HomeScope.ProductsPanelScope s) -> new ProductsPanelViewVaadin(app, s))
-            .register(HomeScope.PurchasesPanelScope.class, (StoreVaadinApplication app, HomeScope.PurchasesPanelScope s) -> new PurchasesPanelViewVaadin(app, s));
+    /** The view of each scope class: the presenters', the segments' and the rows'. */
+    private static final Map<Class<?>, BiFunction<StoreVaadinApplication, Scope, AbstractViewVaadin<?>>> VIEWS = Map.of(
+            RootScope.class, (app, s) -> new RootViewVaadin(app, (RootScope) s),
+            LoginScope.class, (app, s) -> new LoginViewVaadin(app, (LoginScope) s),
+            HomeScope.class, (app, s) -> new HomeViewVaadin(app, (HomeScope) s),
+            ProductScope.class, (app, s) -> new ProductViewVaadin(app, (ProductScope) s),
+            CartScope.class, (app, s) -> new CartViewVaadin(app, (CartScope) s),
+            ReceiptScope.class, (app, s) -> new ReceiptViewVaadin(app, (ReceiptScope) s),
+            CartScope.CartItemScope.class, (app, s) -> new CartItemViewVaadin(app, (CartScope.CartItemScope) s),
+            HomeScope.ProductsPanelScope.class, (app, s) -> new ProductsPanelViewVaadin(app, (HomeScope.ProductsPanelScope) s),
+            HomeScope.PurchasesPanelScope.class, (app, s) -> new PurchasesPanelViewVaadin(app, (HomeScope.PurchasesPanelScope) s));
+
+    /** The view of each scope drawn, until it is released. */
+    private final Map<Scope, AbstractViewVaadin<?>> views = Collections.synchronizedMap(new IdentityHashMap<>());
 
     private UI ui;
     private Div rootContainer;
@@ -69,7 +77,6 @@ public class StoreVaadinApplication extends StoreApplication {
     }
 
     public StoreVaadinApplication(UI ui) {
-        this.setScopeViews(SCOPE_VIEWS);
         this.ui = ui;
     }
 
@@ -116,7 +123,54 @@ public class StoreVaadinApplication extends StoreApplication {
         this.dirtyViewMap.clear();
         var rootPresenter = this.getRootPresenter();
         if (rootPresenter != null) {
+            // The root view, and with it every view it holds
+            var rootView = this.views.get(rootPresenter.scope);
+            if (rootView != null) {
+                rootView.release();
+            }
             rootPresenter.release();
+        }
+    }
+
+    // :: Views
+
+    /**
+     * The view that draws the scope, made the first time it is asked for: from then on, a change in the scope redraws
+     * that view. {@code null} for no scope.
+     */
+    public AbstractViewVaadin<?> viewOf(Scope scope) {
+        if (scope == null) {
+            return null;
+        }
+        AbstractViewVaadin<?> made;
+        synchronized (this.views) {
+            var existing = this.views.get(scope);
+            if (existing != null) {
+                return existing;
+            }
+            var factory = VIEWS.get(scope.getClass());
+            if (factory == null) {
+                throw new IllegalStateException("No view registered for scope " + scope.getClass().getName());
+            }
+            made = factory.apply(this, scope);
+            this.views.put(scope, made);
+        }
+        scope.setUpdater(made.updater);
+        // The first drawing
+        made.update();
+        return made;
+    }
+
+    /** The view was released: it no longer draws its scope. */
+    void forgetView(AbstractViewVaadin<?> view) {
+        this.views.remove(view.scope, view);
+        this.dirtyViewMap.remove(view.instanceId(), view);
+    }
+
+    /** The views drawing a scope now. */
+    public List<AbstractViewVaadin<?>> liveViews() {
+        synchronized (this.views) {
+            return new ArrayList<>(this.views.values());
         }
     }
 
@@ -128,9 +182,7 @@ public class StoreVaadinApplication extends StoreApplication {
         // Recreate Vaadin components in all views (old components are tied to destroyed UI)
         // Presenters and application state (subject, securityContext, cart) are preserved
         for (var view : this.liveViews()) {
-            if (view instanceof AbstractViewVaadin<?> vaadinView) {
-                vaadinView.recreate();
-            }
+            view.recreate();
         }
     }
 
@@ -144,9 +196,7 @@ public class StoreVaadinApplication extends StoreApplication {
 
         // Mark all active views as dirty for UI refresh
         for (var view : this.liveViews()) {
-            if (view instanceof AbstractViewVaadin<?> vaadinView) {
-                this.markDirty(vaadinView);
-            }
+            this.markDirty(view);
         }
 
         // Sync browser URL hash with current MVP intent (signed)
@@ -239,6 +289,9 @@ public class StoreVaadinApplication extends StoreApplication {
     public ClientStorage clientPersistentStore() { return persistentStore; }
 
     public void markDirty(AbstractViewVaadin<?> view) {
+        if (view.isReleased()) {
+            return;
+        }
         if (this.dirtyViewMap.putIfAbsent(view.instanceId(), view) == null) {
             this.scheduleFlush();
         }
@@ -255,7 +308,7 @@ public class StoreVaadinApplication extends StoreApplication {
         while (iterator.hasNext()) {
             var view = iterator.next();
             iterator.remove();
-            view.doUpdate();
+            view.redraw();
         }
     }
 }

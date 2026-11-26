@@ -25,25 +25,8 @@ public class PropTest {
 
         CounterPresenter() {
             super(new CubePlaceTest.TestApp());
-            app.setScopeViews(new ScopeViews().register(CounterScope.class, (CubeApplication a, CounterScope s) -> new CubeView() {
-                @Override
-                public String instanceId() {
-                    return "counter:1";
-                }
-
-                @Override
-                public void update() {
-                    updates++;
-                }
-
-                @Override
-                public void release() {
-                    // NOOP
-                }
-            }));
-            app.viewOf(scope);
-            // Not the first drawing: only the redraws a change asks for
-            updates = 0;
+            // What a rendering technology does when it starts drawing the scope
+            scope.setUpdater(() -> updates++);
         }
     }
 
@@ -58,7 +41,7 @@ public class PropTest {
     }
 
     @Test
-    public void aChangeRedrawsTheScopesView() {
+    public void aChangeRedrawsWhatDrawsTheScope() {
         var p = new CounterPresenter();
 
         p.scope.count.set(1);

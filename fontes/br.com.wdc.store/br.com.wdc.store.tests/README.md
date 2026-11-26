@@ -126,14 +126,14 @@ The full test (`testBuyProduct`) navigates through **5 screens** (login → home
 
 ### `BasePresentationTest`
 
-Extends `BaseBusinessTest` and instantiates `StoreApplicationMock`, which hands the application a `ScopeViews` catalog with one view mock per scope class (`register(CartScope.class, CartViewMock::new)`). `getRootView()` returns the root scope's view (`viewOf(getRootPresenter().scope)`); the others are obtained with `app.viewOf(...)` on the scope the parent holds (`scope.content.get()`).
+Extends `BaseBusinessTest` and instantiates `StoreApplicationMock`, the tests' rendering technology: its own catalog with one view mock per scope class (`CartScope.class, (app, s) -> new CartViewMock(app, (CartScope) s)`) and `viewOf(scope)`, which makes the mock the first time it is asked for and keeps it while the scope is alive (weakly, by scope). `getRootView()` returns the root scope's view (`viewOf(getRootPresenter().scope)`); the others are obtained with `app.viewOf(...)` on the scope the parent holds (`scope.content.get()`).
 
 ### View mocks
 
-Each mock (`LoginViewMock`, `CartViewMock`, etc.) extends `AbstractViewMock<S extends Scope>`, is constructed with `(app, scope)` (`new CartViewMock(app, scope)`) and exposes:
+Each mock (`LoginViewMock`, `CartViewMock`, `CartItemViewMock`, etc.) extends `AbstractViewMock<S extends Scope>`, is constructed with `(app, scope)` (`new CartViewMock(app, scope)`) and exposes:
 - `scope` — the scope the view draws (reading its values and firing the actions, as the user would)
 - `app` — the `StoreApplicationMock`, for requesting the views of inner scopes (`app.viewOf(...)`)
-- `cast(CubeView)` — static method to get the mock with a type assertion
+- `cast(Object)` — static method to get the mock with a type assertion
 
 ## Dependencies
 

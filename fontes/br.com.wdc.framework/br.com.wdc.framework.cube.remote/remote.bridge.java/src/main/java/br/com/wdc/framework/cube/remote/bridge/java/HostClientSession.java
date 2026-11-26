@@ -9,7 +9,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -30,12 +32,21 @@ import br.com.wdc.framework.cube.remote.bridge.java.model.ScopeSnapshot;
  * Manages the WebSocket connection, message framing, JSON parsing, and an
  * inbound queue. Consumers call {@link #receive(Duration)} to block until
  * the next server message arrives.
+ * <p>
+ * While connected, it sends the keep-alive ({@code {"ping":true}}) every {@link #PING_INTERVAL}: the server extends
+ * the session's life and answers with the views it released ({@code releasedViews}), which arrive in the inbound
+ * queue as a message with no request id.
  */
 final class HostClientSession implements AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(HostClientSession.class);
 
     static final String BROWSER_VSID = "7b32e816a191:0";
+
+    /** How often the keep-alive goes to the server. */
+    static final Duration PING_INTERVAL = Duration.ofSeconds(15);
+
+    private static final String PING = "{\"ping\":true}";
 
     private static final Gson GSON = new GsonBuilder()
             .serializeNulls()
@@ -49,6 +60,11 @@ final class HostClientSession implements AutoCloseable {
     private final LinkedBlockingQueue<HostResponse> inbound = new LinkedBlockingQueue<>();
     private final ScopeMap scopeMap;
     private volatile boolean closed = false;
+    private final ScheduledExecutorService pinger = Executors.newSingleThreadScheduledExecutor(r -> {
+        var t = new Thread(r, "host-client-ping");
+        t.setDaemon(true);
+        return t;
+    });
 
     HostClientSession(ScopeMap scopeMap) {
         this.http = HttpClient.newHttpClient();
@@ -62,11 +78,25 @@ final class HostClientSession implements AutoCloseable {
                 .buildAsync(URI.create(wsUrl), new MessageListener())
                 .join();
         LOG.debug("WebSocket connected");
+        long interval = PING_INTERVAL.toMillis();
+        pinger.scheduleAtFixedRate(this::ping, interval, interval, TimeUnit.MILLISECONDS);
     }
 
-    void send(String json) {
+    /** One message at a time: the WebSocket takes a new one only after the previous was sent. */
+    synchronized void send(String json) {
         LOG.debug("→ {}", json);
-        ws.sendText(json, true);
+        ws.sendText(json, true).join();
+    }
+
+    private void ping() {
+        if (closed) {
+            return;
+        }
+        try {
+            send(PING);
+        } catch (Exception caught) {
+            LOG.debug("Keep-alive not sent: {}", caught.getMessage());
+        }
     }
 
     /**
@@ -104,6 +134,7 @@ final class HostClientSession implements AutoCloseable {
     @Override
     public void close() {
         closed = true;
+        pinger.shutdownNow();
         if (ws != null) {
             ws.sendClose(WebSocket.NORMAL_CLOSURE, "bye");
         }
@@ -189,6 +220,7 @@ final class HostClientSession implements AutoCloseable {
         public CompletionStage<?> onClose(WebSocket ws, int statusCode, String reason) {
             LOG.debug("WebSocket closed: {} {}", statusCode, reason);
             closed = true;
+            pinger.shutdownNow();
             return null;
         }
 
@@ -196,6 +228,7 @@ final class HostClientSession implements AutoCloseable {
         public void onError(WebSocket ws, Throwable error) {
             LOG.warn("WebSocket error", error);
             closed = true;
+            pinger.shutdownNow();
         }
     }
 }

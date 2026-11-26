@@ -1,10 +1,7 @@
 package br.com.wdc.framework.cube;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
 
 import java.util.Map;
 
@@ -14,23 +11,13 @@ public class SegmentTest {
 
     // ── Helper ─────────────────────────────────────────────────────────
 
-    static class CountingView implements CubeView {
+    /** What a rendering technology hands a scope it draws: counts the redraws asked of it. */
+    static class Drawing implements Runnable {
         int updates;
-        boolean released;
 
         @Override
-        public String instanceId() {
-            return "panel:1";
-        }
-
-        @Override
-        public void update() {
+        public void run() {
             updates++;
-        }
-
-        @Override
-        public void release() {
-            released = true;
         }
     }
 
@@ -48,60 +35,62 @@ public class SegmentTest {
 
         final PageScope scope = bind(new PageScope());
         final PageScope.PanelScope panel = new PageScope.PanelScope();
-        final CountingView pageView = new CountingView();
-        final CountingView panelView = new CountingView();
+        final Drawing pageDrawing = new Drawing();
+        final Drawing panelDrawing = new Drawing();
 
         PagePresenter() {
             super(new GuardedActionTest.RecordingApp());
-            app.setScopeViews(new ScopeViews()
-                    .register(PageScope.class, (CubeApplication a, PageScope s) -> pageView)
-                    .register(PageScope.PanelScope.class, (CubeApplication a, PageScope.PanelScope s) -> panelView));
             panel.onPageChange = actionOf(panel, 2, FormParam.asInteger("p.page"), panel.page::set);
             scope.panel.set(panel);
-            // The host draws the presenter's scope; the page's view then asks for the panel's when it needs it
-            app.viewOf(scope);
-        }
-
-        void dropPanel() {
-            scope.panel.set(null);
-            detach(panel);
+            // The rendering technology draws the presenter's scope; the panel only when the page's drawing asks
+            scope.setUpdater(pageDrawing);
         }
     }
 
     // ── Tests ──────────────────────────────────────────────────────────
 
     @Test
-    public void theViewIsMadeWhenTheViewLayerAsksAndDrawsOnce() {
+    public void untilSomethingDrawsItTheSegmentRedrawsItsOwner() {
         var p = new PagePresenter();
-        assertNull("No view before someone asks for it", p.panel.view());
-
-        var view = p.app.viewOf(p.panel);
-
-        assertSame(p.panelView, view);
-        assertSame(view, p.app.viewOf(p.panel));
-        assertEquals(1, p.panelView.updates);
-    }
-
-    @Test
-    public void beforeItHasAViewTheSegmentRedrawsItsOwner() {
-        var p = new PagePresenter();
-        var ownBefore = p.pageView.updates;
 
         p.panel.page.set(3);
 
-        assertEquals("The owner draws the segment it holds", ownBefore + 1, p.pageView.updates);
+        assertEquals("The owner draws the segment it holds", 1, p.pageDrawing.updates);
     }
 
     @Test
-    public void withAViewAChangeInTheSegmentRedrawsOnlyItsView() {
+    public void onceDrawnAChangeInTheSegmentRedrawsOnlyWhatDrawsIt() {
         var p = new PagePresenter();
-        p.app.viewOf(p.panel);
-        var ownBefore = p.pageView.updates;
+        p.panel.setUpdater(p.panelDrawing);
 
         p.panel.page.set(3);
 
-        assertEquals(2, p.panelView.updates);
-        assertEquals("The presenter's own view is not redrawn", ownBefore, p.pageView.updates);
+        assertEquals(1, p.panelDrawing.updates);
+        assertEquals("The owner is not redrawn", 0, p.pageDrawing.updates);
+    }
+
+    @Test
+    public void whenNothingDrawsItAnyMoreTheOwnerIsRedrawnAgain() {
+        var p = new PagePresenter();
+        p.panel.setUpdater(p.panelDrawing);
+
+        p.panel.clearUpdater(p.panelDrawing);
+        p.panel.page.set(3);
+
+        assertEquals(0, p.panelDrawing.updates);
+        assertEquals(1, p.pageDrawing.updates);
+    }
+
+    @Test
+    public void clearingSomeoneElsesUpdaterKeepsTheCurrentOne() {
+        var p = new PagePresenter();
+        var stale = new Drawing();
+        p.panel.setUpdater(p.panelDrawing);
+
+        p.panel.clearUpdater(stale);
+        p.panel.page.set(3);
+
+        assertEquals("A drawing that already went does not take the new one's place", 1, p.panelDrawing.updates);
     }
 
     @Test
@@ -114,45 +103,5 @@ public class SegmentTest {
         assertEquals("abcdef123456", skeleton.classId());
         assertEquals(Integer.valueOf(4), p.panel.page.get());
         assertThrows(IllegalArgumentException.class, () -> skeleton.submit(9, 1, Map.of()));
-    }
-
-    @Test
-    public void releasingThePresenterReleasesTheSegmentsView() {
-        var p = new PagePresenter();
-        p.app.viewOf(p.panel);
-
-        p.release();
-        p.panel.page.set(5);
-
-        assertTrue(p.panelView.released);
-        assertTrue("The presenter's scope view goes too", p.pageView.released);
-        assertEquals("A released segment no longer redraws its view", 1, p.panelView.updates);
-    }
-
-    @Test
-    public void detachReleasesOneSegment() {
-        var p = new PagePresenter();
-        p.app.viewOf(p.panel);
-
-        p.dropPanel();
-
-        assertTrue(p.panelView.released);
-        assertNull(p.panel.view());
-    }
-
-    @Test
-    public void aScopeWithNoViewRegisteredIsAnError() {
-        var app = new GuardedActionTest.RecordingApp();
-        app.setScopeViews(new ScopeViews());
-        assertThrows(IllegalStateException.class, () -> app.viewOf(new PageScope.PanelScope()));
-    }
-
-    @Test
-    public void theFallbackDrawsWhatNobodyRegistered() {
-        var app = new GuardedActionTest.RecordingApp();
-        var view = new CountingView();
-        app.setScopeViews(new ScopeViews().fallback((CubeApplication a, Scope s) -> view));
-
-        assertSame(view, app.viewOf(new PageScope.PanelScope()));
     }
 }

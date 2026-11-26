@@ -34,7 +34,7 @@ public class RootViewVaadin extends AbstractViewVaadin<RootScope> {
             this.notRendered = false;
         }
 
-        var newContentView = this.app.viewOf(this.scope.content.get()) instanceof AbstractViewVaadin<?> v ? v : null;
+        var newContentView = this.viewOf(this.scope.content.get()) instanceof AbstractViewVaadin<?> v ? v : null;
         if (this.currentContentView != newContentView) {
             this.contentPane.removeAll();
             if (newContentView != null) {

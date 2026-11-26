@@ -47,10 +47,10 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomeScope> {
         this.purchasesPanelSlot = null;
         this.currentContentView = null;
         // Recreate sub-panel views
-        if (this.app.viewOf(this.scope.productsPanel.get()) instanceof AbstractViewVaadin<?> v) {
+        if (this.viewOf(this.scope.productsPanel.get()) instanceof AbstractViewVaadin<?> v) {
             v.recreate();
         }
-        if (this.app.viewOf(this.scope.purchasesPanel.get()) instanceof AbstractViewVaadin<?> v) {
+        if (this.viewOf(this.scope.purchasesPanel.get()) instanceof AbstractViewVaadin<?> v) {
             v.recreate();
         }
     }
@@ -73,23 +73,23 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomeScope> {
             this.cartCountOldValue = this.scope.cartItemCount.get();
         }
 
-        if (this.app.viewOf(this.scope.productsPanel.get()) instanceof AbstractViewVaadin<?> ppv) {
+        if (this.viewOf(this.scope.productsPanel.get()) instanceof AbstractViewVaadin<?> ppv) {
             if (!this.productsPanelSlot.getChildren().toList().contains(ppv.getElement())) {
                 this.productsPanelSlot.removeAll();
                 this.productsPanelSlot.add(ppv.getElement());
             }
-            ppv.doUpdate();
+            ppv.redraw();
         }
 
-        if (this.app.viewOf(this.scope.purchasesPanel.get()) instanceof AbstractViewVaadin<?> ppv) {
+        if (this.viewOf(this.scope.purchasesPanel.get()) instanceof AbstractViewVaadin<?> ppv) {
             if (!this.purchasesPanelSlot.getChildren().toList().contains(ppv.getElement())) {
                 this.purchasesPanelSlot.removeAll();
                 this.purchasesPanelSlot.add(ppv.getElement());
             }
-            ppv.doUpdate();
+            ppv.redraw();
         }
 
-        var newContentView = this.app.viewOf(this.scope.content.get()) instanceof AbstractViewVaadin<?> v ? v : null;
+        var newContentView = this.viewOf(this.scope.content.get()) instanceof AbstractViewVaadin<?> v ? v : null;
         if (this.currentContentView != newContentView) {
             this.contentPane.removeAll();
             if (newContentView != null) {

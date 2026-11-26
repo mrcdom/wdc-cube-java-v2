@@ -88,22 +88,6 @@ public class CartItemViewSwt extends AbstractViewSwt {
         }
     }
 
-    @Override
-    public void release() {
-        // The presenter releases the row from its own thread; SWT widgets are disposed on the UI thread
-        var display = this.app.getDisplay();
-        Runnable dispose = () -> {
-            if (!this.element.isDisposed()) {
-                this.element.dispose();
-            }
-        };
-        if (display.getThread() == Thread.currentThread()) {
-            dispose.run();
-        } else if (!display.isDisposed()) {
-            display.asyncExec(dispose);
-        }
-    }
-
     private void initialRender() {
         SwtDom.render(this.element, (dom, _self) -> {
             dom.separator(16);

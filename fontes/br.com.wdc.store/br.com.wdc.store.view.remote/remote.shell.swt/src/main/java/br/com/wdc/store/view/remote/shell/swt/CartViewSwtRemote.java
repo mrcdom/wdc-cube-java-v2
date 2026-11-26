@@ -4,9 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.swt.widgets.Composite;
-
 import br.com.wdc.store.presentation.presenter.restricted.cart.CartScope;
+import br.com.wdc.store.view.swt.AbstractViewSwt;
 import br.com.wdc.store.view.swt.SwtApp;
 import br.com.wdc.store.view.swt.impl.CartViewSwt;
 
@@ -25,7 +24,7 @@ class CartViewSwtRemote extends CartViewSwt {
 		this.onBuy = this::callOnBuy;
 		this.onOpenProducts = this::callOnOpenProducts;
 		// The rows are views of their own (CartItemViewSwtRemote), referred to by id in the cart's order
-		this.rowElements = this::rowElementsImpl;
+		this.rowViews = this::rowViewsImpl;
 	}
 
 	private void callOnBuy() {
@@ -50,14 +49,14 @@ class CartViewSwtRemote extends CartViewSwt {
 		return scope;
 	}
 
-	private List<Composite> rowElementsImpl() {
+	private List<AbstractViewSwt> rowViewsImpl() {
 		var s = this.ctx.scope(this.vsid);
-		var result = new ArrayList<Composite>();
+		var result = new ArrayList<AbstractViewSwt>();
 		if (s != null && s.values().get("rowsViewIds") instanceof List<?> ids) {
 			for (var id : ids) {
 				var row = this.ctx.viewLookup(String.valueOf(id));
 				if (row != null) {
-					result.add(row.getElement());
+					result.add(row);
 				}
 			}
 		}

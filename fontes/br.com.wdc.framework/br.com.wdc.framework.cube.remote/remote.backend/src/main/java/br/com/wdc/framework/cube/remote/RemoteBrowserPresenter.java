@@ -67,8 +67,6 @@ public class RemoteBrowserPresenter extends AbstractPresenter<CubeApplication> {
 
         // The entry point: drawn by its own view, with the fixed id, not through the catalog
         this.view = new RemoteViewImpl(app, this.scope, BrowserScope.CLASS_ID, BROWSER_VSID);
-        this.scope.attachView(this.view);
-        this.scope.setUpdater(this.view::update);
         this.scope.instanceId.set(this.view.instanceId());
     }
 
@@ -78,9 +76,9 @@ public class RemoteBrowserPresenter extends AbstractPresenter<CubeApplication> {
         this.scope.content.set(rootPresenter instanceof AbstractCubePresenter<?> acp ? acp.scope() : null);
     }
 
+    /** Lets go of the client's views: the browser's, and with it every view it refers to. */
     @Override
     public void release() {
-        super.release();
         this.view.release();
     }
 

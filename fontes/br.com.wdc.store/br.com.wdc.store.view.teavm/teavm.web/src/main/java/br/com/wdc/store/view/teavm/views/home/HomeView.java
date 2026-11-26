@@ -24,7 +24,7 @@ public class HomeView extends AbstractVDomView<HomeScope> {
         this.shared.onOpenCart = () -> safeAction("Open cart", scope.onOpenCart::run);
         this.shared.onNavigateBack = () -> safeAction("Back to home", () -> new HomeKeys(this.app).flip());
         this.shared.onPurchasesPanelVisible = () -> {
-            var purchasesPanel = this.app.viewOf(this.scope.purchasesPanel.get());
+            var purchasesPanel = this.viewOf(this.scope.purchasesPanel.get());
             if (purchasesPanel != null) {
                 purchasesPanel.update();
             }
@@ -40,9 +40,9 @@ public class HomeView extends AbstractVDomView<HomeScope> {
         viewData.nickName = this.scope.nickName.get() != null ? this.scope.nickName.get() : "";
         viewData.cartCount = String.valueOf(this.scope.cartItemCount.get());
         viewData.errorMessage = this.scope.errorMessage.get();
-        viewData.productsPanelEl = this.app.viewOf(this.scope.productsPanel.get()) instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
-        viewData.purchasesPanelEl = this.app.viewOf(this.scope.purchasesPanel.get()) instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
-        viewData.contentViewEl = this.app.viewOf(this.scope.content.get()) instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
+        viewData.productsPanelEl = this.viewOf(this.scope.productsPanel.get()) instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
+        viewData.purchasesPanelEl = this.viewOf(this.scope.purchasesPanel.get()) instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
+        viewData.contentViewEl = this.viewOf(this.scope.content.get()) instanceof AbstractViewTeaVM<?> v ? v.getElement() : null;
         return viewData;
     }
 }

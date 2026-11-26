@@ -98,7 +98,7 @@ Server of the remote presentation protocol — receives events from the shell, d
 
 | Class | Responsibility |
 |--------|------------------|
-| `StoreApplicationImpl` | Concrete `StoreApplication` + `RemoteApplication`: `ScopeViews` catalog (`fallback(RemoteViewImpl::forScope)`), delegates the protocol to `RemoteApplicationSupport` |
+| `StoreApplicationImpl` | Concrete `StoreApplication` + `RemoteApplication`: delegates the protocol to `RemoteApplicationSupport`, which draws every scope with a `RemoteViewImpl` found by its `CLASS_ID` |
 | `RemoteHostBootstrap` | Registers the remote routes on the backend's Javalin configuration and starts the application registry |
 
 Generic pieces, in framework `remote.backend` (`br.com.wdc.framework.cube.remote`):

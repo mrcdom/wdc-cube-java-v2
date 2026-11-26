@@ -118,7 +118,7 @@ public class WishlistPresenter extends AbstractCubePresenter<StoreApplication> {
 ```
 
 **Key points:**
-- The presenter **does not create a view**: it hands the scope to its parent (`ownerSlot.setScope(this.scope)`), and each host's view layer chooses who draws it (`ScopeViews`)
+- The presenter **does not create a view**: it hands the scope to its parent (`ownerSlot.setScope(this.scope)`), and each rendering technology chooses who draws it (its own view catalog); the presenter never releases a view either
 - `applyParameters()` is called by the navigation system
 - The scope is created with `bind(new WishlistScope())`: `set` with a different value on a `Prop` marks the view as "dirty" to be sent to the frontend, without `this.update()`. That is only needed when you change something *inside* an already-assigned value (an item of a list)
 - Actions are scope fields (`Action`, `ActionOf<T>`, `ActionOf2<T, U>`) bound in the constructor with `action(...)`/`actionOf(...)`/`actionOf2(...)`. The guard sends any unhandled failure to `app.alertUnexpectedError()` and, at the end, republishes the address — the body has no generic `try/catch`, it only handles the expected failures
@@ -232,9 +232,9 @@ this.scope.onSync(formData -> {
 
 ### 3.4 The remote host
 
-Nothing to register: the view catalog of `StoreApplicationImpl` (`remote.host`) is `new ScopeViews().fallback(RemoteViewImpl::forScope)`, which creates a remote view for any scope by reading its `CLASS_ID` via reflection.
+Nothing to register: the remote host (`RemoteApplicationSupport.viewOf`) draws any scope with `RemoteViewImpl.forScope`, which reads its `CLASS_ID` via reflection.
 
-`RemoteViewImpl` serializes the scope (the value of each `Prop`; actions are left out; a `Prop<Scope>` is written as `"<field>ViewId"`) and forwards events to the scope's skeleton.
+`RemoteViewImpl` serializes the scope (the value of each `Prop`; actions are left out; a `Prop<Scope>` is written as `"<field>ViewId"`) and forwards events to the scope's skeleton. When it is written again, the views it no longer refers to are released and the client is told (`releasedViews`).
 
 ---
 
@@ -366,7 +366,7 @@ And in the frontend, add a button or link that emits the corresponding event.
   - [ ] Declare a unique `public static final String CLASS_ID` (12 hex chars) in `WishlistScope`
   - [ ] Give each action an event code (`action(1, ...)`, `actionOf(2, FormParam..., ...)`)
   - [ ] `scope.onSync(...)` in the constructor, if the client syncs fields
-  - [ ] In each local host, register the view in `ScopeViews` (`register(WishlistScope.class, WishlistViewVaadin::new)`); the remote host registers nothing
+  - [ ] In each local host, add the view to the host's view catalog (in `StoreVaadinApplication.VIEWS`: `WishlistScope.class, (app, s) -> new WishlistViewVaadin(app, (WishlistScope) s)`); the remote host registers nothing
 
 - [ ] **React Client**
   - [ ] Create `views/wishlist/WishlistView.tsx` with `BaseViewClass.FC(Class, CLASS_ID)`
@@ -399,13 +399,12 @@ wishlistPanel.onRemoveItem = actionOf(wishlistPanel, 1, FormParam.asLong("p.item
 // On initialization: just put it in the Home scope
 this.scope.wishlistPanel.set(this.wishlistPanel);
 
-// In each local host: the view catalog (passed to the app with setScopeViews)
-new ScopeViews()
-        .register(HomeScope.WishlistPanelScope.class,
-                (StoreVaadinApplication app, HomeScope.WishlistPanelScope s) -> new WishlistPanelViewVaadin(app, s));
+// In each local host: the host's own view catalog (here, StoreVaadinApplication.VIEWS)
+HomeScope.WishlistPanelScope.class,
+        (app, s) -> new WishlistPanelViewVaadin(app, (HomeScope.WishlistPanelScope) s)
 ```
 
 The segment:
 - Has **no** presenter, keys class, or place
-- Its view is created when the parent's view requests it (`app.viewOf(scope.wishlistPanel.get())`); from then on, a change in the segment redraws only that view (until then, it redraws the owner). It is released along with the owning presenter, or with `detach(segment)`
-- On the remote host the catalog falls through to `fallback(RemoteViewImpl::forScope)`, which reads the `CLASS_ID`: nothing to register; the parent references it as `"wishlistPanelViewId"`
+- Its view is created when the parent's view requests it while drawing (`this.viewOf(scope.wishlistPanel.get())`); from then on, a change in the segment redraws only that view (until then, it redraws the owner). The presenter never releases it: when the parent's view draws without it (the segment left the `Prop`, or the parent itself was let go), the rendering technology releases it
+- On the remote host `RemoteViewImpl.forScope` reads the `CLASS_ID`: nothing to register; the parent references it as `"wishlistPanelViewId"`

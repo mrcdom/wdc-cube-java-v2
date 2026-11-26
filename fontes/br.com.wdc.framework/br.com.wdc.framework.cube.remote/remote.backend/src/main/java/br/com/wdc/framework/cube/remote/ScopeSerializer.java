@@ -14,7 +14,6 @@ import br.com.wdc.framework.commons.serialization.ExtensibleObjectOutput;
 import br.com.wdc.framework.cube.Action;
 import br.com.wdc.framework.cube.ActionOf;
 import br.com.wdc.framework.cube.ActionOf2;
-import br.com.wdc.framework.cube.CubeView;
 import br.com.wdc.framework.cube.Prop;
 import br.com.wdc.framework.cube.Scope;
 
@@ -47,14 +46,15 @@ public final class ScopeSerializer {
 
     private final ExtensibleObjectOutput json;
 
-    private final Function<Scope, CubeView> viewOf;
+    private final Function<Scope, String> viewIdOf;
 
     /**
-     * @param viewOf the view of a scope inside the one written (a segment, a row); the remote host makes it on demand
+     * @param viewIdOf the instance id of the view of a scope inside the one written (a segment, a row); the remote host
+     *            makes the view on demand
      */
-    public ScopeSerializer(ExtensibleObjectOutput json, Function<Scope, CubeView> viewOf) {
+    public ScopeSerializer(ExtensibleObjectOutput json, Function<Scope, String> viewIdOf) {
         this.json = json;
-        this.viewOf = viewOf;
+        this.viewIdOf = viewIdOf;
     }
 
     public void write(Object scope, String instanceId) {
@@ -102,9 +102,9 @@ public final class ScopeSerializer {
             json.name(field.getName() + "ViewIds");
             json.beginArray();
             for (Object item : (Collection<?>) value) {
-                var rowView = item instanceof Scope row ? viewOf.apply(row) : null;
-                if (rowView != null) {
-                    json.value(rowView.instanceId());
+                var rowViewId = item instanceof Scope row ? viewIdOf.apply(row) : null;
+                if (rowViewId != null) {
+                    json.value(rowViewId);
                 }
             }
             json.endArray();
@@ -113,9 +113,9 @@ public final class ScopeSerializer {
 
         // A segment (a scope inside this one) is a view of its own: referred to by the id of that view
         if (value instanceof Scope segment) {
-            var segmentView = viewOf.apply(segment);
-            if (segmentView != null) {
-                json.name(field.getName() + "ViewId").value(segmentView.instanceId());
+            var segmentViewId = viewIdOf.apply(segment);
+            if (segmentViewId != null) {
+                json.name(field.getName() + "ViewId").value(segmentViewId);
             }
             return;
         }

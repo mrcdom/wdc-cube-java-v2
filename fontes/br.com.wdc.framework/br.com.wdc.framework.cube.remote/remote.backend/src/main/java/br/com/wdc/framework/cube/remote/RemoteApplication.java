@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.PresenterBase;
+import br.com.wdc.framework.cube.Scope;
 import io.javalin.websocket.WsContext;
 
 /**
@@ -73,6 +74,15 @@ public interface RemoteApplication {
 
     default int nextInstanceId() {
         return getSupport().nextInstanceId();
+    }
+
+    /** The view that draws the scope for the client, made the first time a scope that holds it is written. */
+    default RemoteViewImpl viewOf(Scope scope) {
+        return getSupport().viewOf(scope);
+    }
+
+    default void forgetView(RemoteViewImpl view) {
+        getSupport().forgetView(view);
     }
 
     default void putView(RemoteViewImpl view) {
