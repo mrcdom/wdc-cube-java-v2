@@ -47,7 +47,7 @@ graph TD
     ws <--> host
 ```
 
-The protocol infrastructure (`ScopeCoordinator`, `ViewScope`, `FlushRequestContext`, `ReconnectController`, `DataSecurity`, `SecurityBoot`, `EncryptedLocalStorage`, `JsonParser`, `ViewGarbageCollector`) lives in the framework module `remote.bridge.teavm`; the VDom engine, the Spectrum Web Components DSL, the `Sel*` class catalogs and the shared views live in `teavm.commons` (also used by `teavm.web`).
+The protocol infrastructure (`ScopeCoordinator`, `ViewScope`, `FlushRequestContext`, `ReconnectController`, `DataSecurity`, `Handshake`, `EncryptedLocalStorage`, `JsonParser`, `ViewGarbageCollector`) lives in the framework module `remote.bridge.teavm`; the VDom engine, the Spectrum Web Components DSL, the `Sel*` class catalogs and the shared views live in `teavm.commons` (also used by `teavm.web`).
 
 ## Project Structure
 
@@ -57,6 +57,7 @@ graph TD
     buildsh["build.sh<br/><small>Module build (TeaVM → JS)</small>"]
     watchsh["watch.sh<br/><small>Automatic rebuild on detected changes</small>"]
     pom["pom.xml<br/><small>Maven + TeaVM and Sass plugins</small>"]
+    pkg["package.json<br/><small>Builds and tests js/crypto-compat.js (npm)</small>"]
     docs["docs/<br/><small>GUIDE_NEW_VIEW.md, screenshots</small>"]
     srcMain["src/main/"]
     java["java/.../shell/teavm/"]
@@ -65,15 +66,20 @@ graph TD
     arv["AbstractRemoteView.java<br/><small>VDom base (render/diff/useCallback, scope/submit/setFormField)</small>"]
     views["views/<br/><small>BrowserView · RootView · LoginView · HomeView · ProductsPanelView<br/>PurchasesPanelView · ProductView · CartView · CartItemView · ReceiptView</small>"]
     scss["scss/<br/><small>app.scss (+ browser/_browser.scss)</small>"]
-    webapp["webapp/<br/><small>index.html, context.html, css/app.css (generated)</small>"]
+    jsSrc["js/<br/><small>crypto-compat.mjs (crypto fallback source)</small>"]
+    webapp["webapp/<br/><small>index.html, context.html, css/app.css (generated), js/crypto-compat.js (built, committed)</small>"]
+    srcTest["src/test/js/<br/><small>crypto-compat.test.mjs</small>"]
 
     root --> buildsh
     root --> watchsh
     root --> pom
+    root --> pkg
     root --> docs
     root --> srcMain
+    root --> srcTest
     srcMain --> java
     srcMain --> scss
+    srcMain --> jsSrc
     srcMain --> webapp
     java --> main
     java --> bridge
@@ -181,13 +187,27 @@ graph TD
     css["css/app.css"]
     js["js/"]
     appJs["app.js<br/><small>Java compiled to JavaScript</small>"]
+    compatJs["crypto-compat.js<br/><small>Crypto fallback for plain HTTP</small>"]
 
     root --> index
     root --> context
     root --> css
     root --> js
     js --> appJs
+    js --> compatJs
 ```
+
+### Crypto fallback (plain HTTP)
+
+Each connection agrees on its own key with the host (remote protocol version 1: P-256 ECDH, HKDF-SHA256, AES-256-GCM; see the [bridge README](../../../br.com.wdc.framework/br.com.wdc.framework.cube.remote/remote.bridge.teavm/README.md#protocol-version-1)). Over plain HTTP outside `localhost` the browser has no `crypto.subtle`, so `index.html` loads `js/crypto-compat.js`, which defines `wdcCryptoFallback` with the same primitives from @noble. The bundle is committed; the Maven build only copies it. To rebuild or check it (Node, from this module):
+
+```bash
+npm install
+npm run build:crypto-compat   # src/main/js/crypto-compat.mjs → src/main/webapp/js/crypto-compat.js
+npm run test:crypto-compat    # RFC 5869 HKDF vector, ECDH agreement and AES-GCM against Web Crypto, tamper refusal
+```
+
+If the host refuses the protocol version (`unsupported-protocol`, close `4002`), the page does not reconnect: `BrowserView` shows "This page is out of date. Reload it to continue.", and its OK reloads the page.
 
 ## Development
 

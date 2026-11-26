@@ -41,6 +41,15 @@ public class ScopeCoordinator {
     public static final String BROWSER_VID = "7b32e816a191";
     public static final String BROWSER_VSID = BROWSER_VID + ":0";
 
+    /**
+     * Browser View field, set by this client, that holds when the host refused the protocol version: the shell then
+     * tells the user the page is out of date ({@link #OUTDATED_MESSAGE}), and its OK reloads the page.
+     */
+    public static final String OUTDATED_FIELD = "error.outdated";
+
+    /** What the user is told when the host refused the protocol version. */
+    public static final String OUTDATED_MESSAGE = "This page is out of date. Reload it to continue.";
+
     /** localStorage key used to persist the last visited path for native shell restore. */
     private static final String STORAGE_KEY_INTENT = "session.intent";
 
@@ -142,13 +151,13 @@ public class ScopeCoordinator {
     // -- Storage --
 
     /**
-     * Builds the bootstrap {@code storage} map sent on WebSocket open.
-     * All values are ciphered asynchronously. Calls {@code onDone} when complete
-     * (whether or not any storage was produced). If the cipher key is not ready,
+     * Builds the bootstrap {@code storage} map sent once the connection agreed on its key.
+     * All values are ciphered asynchronously with that key. Calls {@code onDone} when complete
+     * (whether or not any storage was produced). If there is no connection key,
      * or all scopes are empty, calls {@code onDone} immediately.
      */
     public void buildBootstrapStorage(Runnable onDone) {
-        if (!SecurityBoot.isReady()) {
+        if (!DataSecurity.hasKey()) {
             onDone.run();
             return;
         }
@@ -189,7 +198,7 @@ public class ScopeCoordinator {
         for (var entry : entries.entrySet()) {
             var key   = entry.getKey();
             var value = entry.getValue();
-            SecurityBoot.cipher(value, ciphered -> {
+            DataSecurity.cipher(value, ciphered -> {
                 if (!ciphered.isEmpty()) {
                     out.put(key, ciphered);
                 }
@@ -217,7 +226,7 @@ public class ScopeCoordinator {
             if (!(ciphered instanceof String s) || s.isEmpty()) {
                 storage.remove(key);
             } else {
-                SecurityBoot.decipher(s, plaintext -> {
+                DataSecurity.decipher(s, plaintext -> {
                     if (!plaintext.isEmpty()) {
                         storage.set(key, plaintext);
                     }
@@ -236,6 +245,28 @@ public class ScopeCoordinator {
     void persistUri(String u) {
         if (u == null || u.isEmpty() || u.startsWith("/login")) return;
         persistentStorage.set(STORAGE_KEY_INTENT, u);
+    }
+
+    // -- Protocol version --
+
+    /** Whether the host refused this client's protocol version (the page is out of date). */
+    public boolean isOutdated() {
+        return contextExchanger.isOutdated();
+    }
+
+    /**
+     * Shows that the page is out of date: sets {@link #OUTDATED_FIELD} on the Browser View, whose view is created if
+     * the host never sent its scope (a refusal comes before any scope).
+     */
+    void showOutdated() {
+        var scope = viewMap.get(BROWSER_VSID);
+        var values = scope.getValues();
+        values.remove("error.cause");
+        values.remove("error.numAttempt");
+        values.remove("error.delay");
+        values.put(OUTDATED_FIELD, true);
+        ensureViewInstance(BROWSER_VSID);
+        scope.forceUpdate();
     }
 
     // -- Scope application --

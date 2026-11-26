@@ -26,8 +26,9 @@ import br.com.wdc.framework.cube.remote.bridge.teavm.interop.JsStringConsumer;
  * {@code app.start()}). After the callback fires the cache is fully populated
  * and all read/write operations are synchronous (cache-backed).
  * <p>
- * Fallback: if IndexedDB is unavailable (some private-browsing modes), the
- * storage works in-memory only — data is not persisted across reloads.
+ * Fallback: if IndexedDB is unavailable (some private-browsing modes), or
+ * {@code crypto.subtle} is (a non-secure context), the storage works in-memory
+ * only — data is not persisted across reloads.
  */
 public final class EncryptedLocalStorage implements ClientStorage {
 
@@ -157,6 +158,11 @@ public final class EncryptedLocalStorage implements ClientStorage {
     // -----------------------------------------------------------------------
 
     @JSBody(params = {"callback"}, script = """
+            if (!crypto.subtle) {
+                console.warn('[EncryptedLocalStorage] crypto.subtle unavailable (non-secure context)');
+                callback({_idbFailed: true});
+                return;
+            }
             var req = indexedDB.open('_sec', 1);
             req.onupgradeneeded = function(e) {
                 e.target.result.createObjectStore('k');

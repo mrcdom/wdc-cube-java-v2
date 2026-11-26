@@ -66,10 +66,12 @@ public class BrowserView extends AbstractRemoteView {
                 || scope.getBoolean("submitting");
 
         var errorCause = scope.getString("error.cause");
+        boolean outdated = scope.getBoolean(ScopeCoordinator.OUTDATED_FIELD);
 
         // @formatter:off
         return div(Sel.CONTAINER).children(
           div(submitting ? Sel.LOADING_BAR : Sel.HIDDEN),
+          outdated ? renderOutdatedAlert() : null,
           errorCause != null ? renderConnectionAlert(scope.getInt("error.delay")) : null,
           scope.getInt("alertId") != 0 ? renderAppAlert(scope.getInt("alertId"), alertArgs(scope.getValues().get("alertArgs"))) : null,
           slot(Sel.CONTENT, contentEl));
@@ -104,6 +106,23 @@ public class BrowserView extends AbstractRemoteView {
             .on("click", useCallback("alertOk", e -> submit(ON_ALERT_OK))));
         // @formatter:on
     }
+
+    /** The host refused this page's protocol version: it does not reconnect, and its OK reloads the page. */
+    private VNode renderOutdatedAlert() {
+        // @formatter:off
+        return div("alert-error").style("margin:16px").children(
+          div().style("flex:1").children(
+            div("font-bold text-sm").style("color:var(--app-error-text)").text("Warning!"),
+            span("text-sm").style("color:var(--app-error-text)").text(ScopeCoordinator.OUTDATED_MESSAGE)),
+          span("text-sm font-medium cursor-pointer ml-4")
+            .style("color:var(--app-accent)")
+            .text("OK")
+            .on("click", useCallback("outdatedOk", e -> reload())));
+        // @formatter:on
+    }
+
+    @JSBody(params = {}, script = "location.reload();")
+    private static native void reload();
 
     private static List<String> alertArgs(Object value) {
         var args = new ArrayList<String>();

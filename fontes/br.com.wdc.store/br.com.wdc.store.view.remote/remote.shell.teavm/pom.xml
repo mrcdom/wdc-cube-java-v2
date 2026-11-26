@@ -159,6 +159,7 @@
                                         <include>context.html</include>
                                         <include>favicon.ico</include>
                                         <include>css/**</include>
+                                        <include>js/crypto-compat.js</include>
                                     </includes>
                                 </resource>
                             </resources>

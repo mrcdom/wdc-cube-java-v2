@@ -1,7 +1,6 @@
 package br.com.wdc.store.view.remote.shell.teavm;
 
 import br.com.wdc.framework.cube.remote.bridge.teavm.EncryptedLocalStorage;
-import br.com.wdc.framework.cube.remote.bridge.teavm.SecurityBoot;
 import br.com.wdc.framework.cube.remote.bridge.teavm.ScopeCoordinator;
 import br.com.wdc.store.view.teavm.commons.interop.Console;
 import br.com.wdc.store.view.remote.shell.teavm.views.RootView;
@@ -28,9 +27,6 @@ public class Main {
             // Configure sync namespace — must be before ScopeCoordinator.INSTANCE is used
             ScopeCoordinator.configure("~rt:");
 
-            // Security boot (RSA + AES key derivation) — starts async PBKDF2
-            SecurityBoot.initialize();
-
             // Register view factories
             ScopeCoordinator app = ScopeCoordinator.INSTANCE;
             app.registerView(BrowserView.VIEW_ID, BrowserView::new);
@@ -45,9 +41,8 @@ public class Main {
             app.registerView(PurchasesPanelView.VIEW_ID, PurchasesPanelView::new);
 
             // Open IndexedDB key + decrypt sec.* cache, then start WebSocket.
-            // SecurityBoot PBKDF2 runs in parallel; FlushRequestContext.open()
-            // already waits for SecurityBoot.onReady() before sending the first
-            // message, so the two async paths are correctly sequenced.
+            // Each connection starts with the protocol handshake, which agrees on
+            // the connection key; requests made before it wait for it.
             EncryptedLocalStorage.initialize(() -> {
                 app.start();
                 // Loading screen is removed by BrowserView on first render
