@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
@@ -95,4 +96,23 @@ public class RemoteApplicationRegistryTest {
         assertFalse("not here: nothing to release", registry.releaseIdle("tab-1"));
         assertFalse(registry.releaseIdle("unknown"));
     }
+
+    @Test
+    public void aSessionThatFailsWhileMade_letsItsFailureThrough() {
+        var failing = new RemoteApplicationRegistry<FakeApp>((id, request) -> {
+            var app = new FakeApp(id);
+            app.registry = null;
+            // what an application does when making a session fails: it releases it, which takes it out of the registry
+            failingRegistry[0].remove(id);
+            throw new IllegalStateException("the session could not start");
+        });
+        failingRegistry[0] = failing;
+
+        var thrown = assertThrows(IllegalStateException.class, () -> failing.getOrCreate("tab-1", Map.of()));
+        assertEquals("the session could not start", thrown.getMessage());
+        assertNull(failing.get("tab-1"));
+    }
+
+    @SuppressWarnings("unchecked")
+    private final RemoteApplicationRegistry<FakeApp>[] failingRegistry = new RemoteApplicationRegistry[1];
 }
