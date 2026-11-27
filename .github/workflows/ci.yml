@@ -31,9 +31,8 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
+          # no npm cache: the repository keeps no package-lock.json
           node-version: "24"
-          cache: npm
-          cache-dependency-path: fontes/br.com.wdc.store/br.com.wdc.store.view.remote/remote.shell.react/package-lock.json
 
       - uses: subosito/flutter-action@v2
         with:
