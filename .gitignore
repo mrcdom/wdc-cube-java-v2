@@ -56,7 +56,6 @@ fontes/br.com.wdc.store/br.com.wdc.store.view.vaadin/types.d.ts
 fontes/br.com.wdc.store/br.com.wdc.store.view.vaadin/pnpmfile.cjs
 fontes/br.com.wdc.store/br.com.wdc.store.view.vaadin/pnpm-lock.yaml
 fontes/br.com.wdc.store/br.com.wdc.store.view.vaadin/package.json
-**/package-lock.json
 
 # Flutter/Dart generated
 .dart_tool/

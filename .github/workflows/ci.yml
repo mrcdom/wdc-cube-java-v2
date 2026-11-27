@@ -31,8 +31,9 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          # no npm cache: the repository keeps no package-lock.json
           node-version: "24"
+          cache: npm
+          cache-dependency-path: "**/package-lock.json"
 
       - uses: subosito/flutter-action@v2
         with:
@@ -121,7 +122,7 @@ jobs:
       - name: Browser checks
         working-directory: fontes/br.com.wdc.store/br.com.wdc.store.docker/browser
         run: |
-          npm install --no-audit --no-fund
+          npm ci --no-audit --no-fund
           npx playwright install --with-deps chromium
           npx playwright test
 

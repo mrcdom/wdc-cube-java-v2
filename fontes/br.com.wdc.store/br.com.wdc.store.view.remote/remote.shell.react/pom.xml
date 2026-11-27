@@ -36,11 +36,11 @@
                             <executable>npm</executable>
                             <workingDirectory>${project.basedir}/../../../br.com.wdc.framework/br.com.wdc.framework.cube.remote/remote.bridge.react</workingDirectory>
                             <arguments>
-                                <argument>install</argument>
+                                <argument>ci</argument>
                             </arguments>
                         </configuration>
                     </execution>
-                    <!-- npm install -->
+                    <!-- npm ci: exactly what package-lock.json locks -->
                     <execution>
                         <id>npm-install</id>
                         <phase>initialize</phase>
@@ -50,7 +50,7 @@
                         <configuration>
                             <executable>npm</executable>
                             <arguments>
-                                <argument>install</argument>
+                                <argument>ci</argument>
                             </arguments>
                         </configuration>
                     </execution>
