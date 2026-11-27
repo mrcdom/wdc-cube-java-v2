@@ -30,9 +30,9 @@ public final class TxApiController {
     public static final String TX_HEADER = "X-Tx-Id";
 
     /**
-     * Opaque identifier of the <b>client session</b> (generated per client app instance). Used as the owner of the
-     * remote transaction when there is no authenticated user (security disabled) — so every transaction has a
-     * distinguishable owner, even an anonymous one.
+     * Opaque identifier of the client context that demarcates transactions — a browser tab, an app instance — generated
+     * by the client and sent on every call. With the user, it is the owner of the remote transactions: two tabs of one
+     * user each own theirs.
      */
     public static final String CLIENT_HEADER = "X-Client-Id";
 
@@ -69,22 +69,26 @@ public final class TxApiController {
     }
 
     /**
-     * Opaque transaction owner key for the current requester. In separate namespaces to keep an anonymous client from
-     * impersonating (or colliding with) a real user:
+     * Opaque transaction owner key for the current requester: the client context ({@value #CLIENT_HEADER}) that
+     * demarcates, within the user's namespace.
      * <ul>
-     * <li>authenticated → {@code "user:" + userId} (any {@value #CLIENT_HEADER} is <b>ignored</b>, not spoofable);</li>
-     * <li>no user (security disabled) → {@code "anon:" + }{@value #CLIENT_HEADER}, or {@code null} if the header is
-     * absent (legacy client — falls back to per-request transactions).</li>
+     * <li>authenticated → {@code "user:<id>:<client>"}, or {@code "user:<id>"} from a client that sends no
+     * {@value #CLIENT_HEADER} — another user's transaction stays out of reach even with its ids;</li>
+     * <li>no user (security disabled) → {@code "anon:<client>"}, or {@code null} without the header (each write its
+     * own transaction).</li>
      * </ul>
-     * Used by begin/commit/rollback and by the {@code transactional} decorator (rebind/guard).
+     * The key correlates requests with a transaction, and keeps one client from finishing another's; what each
+     * request may do is the security's to decide, per request. Used by begin/commit/rollback/status and by the
+     * {@code transactional} decorator (resume, and the guard against a write outside the client's open transaction).
      */
     static String currentOwnerKey(Context ctx) {
+        var clientId = ctx.header(CLIENT_HEADER);
+        var client = clientId != null && !clientId.isBlank() ? clientId.trim() : null;
         var sc = SecurityContext.CURRENT.get();
         if (sc != null) {
-            return "user:" + sc.userId();
+            return client != null ? "user:" + sc.userId() + ":" + client : "user:" + sc.userId();
         }
-        var clientId = ctx.header(CLIENT_HEADER);
-        return (clientId != null && !clientId.isBlank()) ? "anon:" + clientId : null;
+        return client != null ? "anon:" + client : null;
     }
 
     private static String txIdHeader(Context ctx) {

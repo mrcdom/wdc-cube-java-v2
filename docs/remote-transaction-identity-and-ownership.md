@@ -9,7 +9,7 @@
 
 - [Context — the incident that started the discussion](#context--the-incident-that-started-the-discussion)
 - [Current state (implemented)](#current-state-implemented)
-- [Proposed evolution — ownership by context, not by user](#proposed-evolution--ownership-by-context-not-by-user)
+- [Ownership by context, not by user (implemented)](#ownership-by-context-not-by-user-implemented)
 - [Generalization — what is the unit of ownership](#generalization--what-is-the-unit-of-ownership)
 - [Identifier uniqueness](#identifier-uniqueness)
 - [Server-issued identifiers](#server-issued-identifiers)
@@ -53,79 +53,74 @@ question of this document comes in: **how the owner of a transaction is identifi
 
 ## Current state (implemented)
 
-The owner (`ownerKey`) is derived in `TxApiController.currentOwnerKey(Context)`:
+The owner (`ownerKey`) is derived in `TxApiController.currentOwnerKey(Context)`: the client context that
+demarcates, within the user's namespace ([ADR 0031](adr/0031-remote-transaction-owned-by-user-and-client.md)).
 
 | Situation | `ownerKey` |
 |---|---|
-| Authenticated | `user:<userId>` |
-| No login (security disabled) | `anon:<X-Client-Id>` |
+| Authenticated, with `X-Client-Id` | `user:<userId>:<X-Client-Id>` |
+| Authenticated, without the header | `user:<userId>` |
+| No login (security disabled), with `X-Client-Id` | `anon:<X-Client-Id>` |
+| No login, without the header | none — each write is its own transaction |
 
-- **`X-Client-Id`** is a client session identifier generated **per app instance** in the transports
-  (`OkHttpTransport`: `UUID.randomUUID()` per instance; `FetchHttpTransport`/TeaVM: a static
-  `crypto.randomUUID()` per page load). It is sent on every request.
-- The separate `user:`/`anon:` namespaces keep an anonymous client from colliding with (or impersonating)
-  a real user; in authenticated mode `X-Client-Id` is **ignored** (not spoofable).
+- **`X-Client-Id`** identifies the client context and is sent on every request: `OkHttpTransport` makes a
+  `UUID.randomUUID()` per instance; teavm.web (`FetchHttpTransport`) makes one per **tab**, with
+  `crypto.getRandomValues` (which works outside a secure context), kept in the tab's `sessionStorage` so
+  it survives a reload.
+- The `user:` prefix keeps the user in the key: another user's transaction stays out of reach even with
+  its `txId` and its client id (the [composite key](#composite-key) below). The `anon:` namespace keeps an
+  anonymous client from colliding with a real user.
 - The guard uses `RemoteTransactionCoordinator.hasOpenTransactionForOwner(ownerKey)`, implemented in
-  **O(1)** with an `owner → open transaction count` index, maintained in `begin`/`finish`/`reap`.
+  **O(1)** with an `owner → open transaction count` index, maintained in `begin`/`finish`/`reap`. Its
+  granularity is the client: another tab of the same user writes on its own.
 
 This state closes the atomicity bug. On top of it, an adversarial review hardened the transaction
 **lifecycle** (caps, absolute lifetime, idempotency, status, 409, metrics) — see
 [Operational robustness](#operational-robustness-implemented), **also implemented and configurable via
-`application.toml`**. The intermediate sections (ownership by context, uniqueness, server-issued
-identifiers, trust model) are a **proposed evolution**.
+`application.toml`**. The sections below record the reasoning behind the owner: ownership by context and
+the composite key are implemented; server-issued identifiers remain a proposal.
 
 ---
 
-## Proposed evolution — ownership by context, not by user
+## Ownership by context, not by user (implemented)
 
 ### The residual problem
 
-In authenticated mode the guard's granularity is **per user**. That carries a false positive:
+With the user as the owner, the guard's granularity was **per user**. That carried a false positive:
 
 ```
 Tab A (John)  begin ─▶ tx opened (owner user:John)
 Tab B (John)  insert(profile) [no X-Tx-Id] ─▶ guard sees "user:John has an open tx" → REJECTS ❌
 ```
 
-Tab B's **legitimate** single-shot write is blocked because the guard confuses **user** with
+Tab B's **legitimate** single-shot write was blocked because the guard confused **user** with
 **workflow**. Rare in the current model (single-threaded UI, sequential checkout), but it is a contract
 trap.
 
-### The proposal
+### The decision
 
-Key the transaction **always by client context** (the tab), **not** by identity:
-
-> The `ownerKey` stops being a security identity and becomes a **pure correlation label**.
-
-The key to the simplification is that **authorization** and **transaction ownership** are **orthogonal**:
+Key the transaction **by client context** (the tab), **not** by the user alone. The key to it is that
+**authorization** and **transaction ownership** are **orthogonal**:
 
 - **Authorization** ("may this request perform this operation?") → `SecurityFilter` + `SecurityContext`,
   per request, independent. It applies whether authenticated or not — without login, the user can only
   do what the security context allows.
 - **Transaction ownership** ("which logical transaction does this request belong to?") → the context id
-  (the tab).
+  (the tab), within the user's namespace ([composite key](#composite-key)).
 
-With this, the guard automatically becomes **per tab**, and the two-tab false positive disappears.
-`verifyOwner` remains valid, comparing tab ids (one tab cannot finish another tab's transaction).
-
-### Concrete change (small)
-
-The infrastructure for sending the id **is already committed**; what is essentially missing is the
-derivation on the server:
+The guard is **per tab**, and the two-tab false positive is gone. `verifyOwner` compares the composite
+keys: one tab cannot finish another tab's transaction, and one user cannot reach another's.
 
 ```java
-// current: user:<id> if authenticated, anon:<clientId> otherwise
-// proposal: always the tab id (pure correlation), regardless of auth
-var tabId = ctx.header(CLIENT_HEADER);
-return (tabId != null && !tabId.isBlank()) ? tabId : null;
+var client = ctx.header(CLIENT_HEADER);   // the tab
+if (authenticated) return client != null ? "user:" + userId + ":" + client : "user:" + userId;
+return client != null ? "anon:" + client : null;
 ```
 
-On the client side, **in the browser it is already practically per tab**: each tab loads its own JS
-*realm* / TeaVM instance, so the static id is already independent per tab. Optional adjustments:
-
-- read the id from `sessionStorage` (which is **per tab**, unlike `localStorage`) so it survives a
-  *reload* within the same tab;
-- rename `X-Client-Id` → `X-Tab-Id`/`X-Session-Id` (cosmetic; makes the semantics explicit).
+In the browser, teavm.web keeps the tab's id in `sessionStorage` (which is **per tab**, unlike
+`localStorage`), so it survives a *reload* within the same tab. A tab the browser duplicates, or a window the
+page opens with `window.open`, starts with a copy of the `sessionStorage`, and with the same id as the
+original.
 
 ---
 
@@ -165,23 +160,22 @@ UUIDv4 = **122** random **bits**. By the birthday bound, **~26 trillion** simult
 be needed for a ~1 in 1 billion chance of collision. For any realistic load, collision is irrelevant —
 **as long as the RNG is strong**. The risk is at the edges:
 
-1. **Weak RNG in the fallback.** TeaVM's `generateClientId` falls back to `Math.random()` if
-   `crypto.randomUUID` does not exist — and `crypto.randomUUID()` **requires a secure context**; in a
-   **plain HTTP** deployment (non-localhost) it would fall back to the weak `Math.random()`.
-   **Fix:** use `crypto.getRandomValues()` (which does **not** require a secure context and works in
-   Workers) to build the UUID, dropping to `Math.random()` only if `crypto` does not exist.
+1. **A weak RNG.** `crypto.randomUUID()` **requires a secure context**: in a **plain HTTP** deployment
+   (non-localhost) it does not exist. teavm.web builds its UUID with `crypto.getRandomValues()`, which
+   does **not** require a secure context and works in Workers, and drops to `Math.random()` only if
+   `crypto` does not exist at all.
 2. **Cloning a live process** (fork / container cloned after generating the id) → two processes with the
    same id. Rule: generate **lazily at runtime**, never bake it into the build.
 3. **The server blindly trusts the client's id** — with no global uniqueness check.
 
 ### Composite key
 
-The robust variant proposed dropping the `user:` prefix, but that prefix is a **collision isolation**.
-You can have both — **compose** them:
+Keying by the tab alone would drop the `user:` prefix, but that prefix is a **collision isolation**.
+The owner has both — it **composes** them:
 
 ```
-ownerKey = "<userId>:<tabId>"   (authenticated)
-ownerKey = "anon:<tabId>"       (no login)
+ownerKey = "user:<userId>:<tabId>"   (authenticated)
+ownerKey = "anon:<tabId>"            (no login)
 ```
 
 - **Per-tab granularity:** the `tabId` distinguishes the same user's two tabs → solves the false positive.
@@ -428,6 +422,8 @@ would break the isolation).
 |---|---|
 | `X-Tx-Id` propagation in TeaVM + atomicity guard + O(1) index | ✅ Implemented (commit `9bca9322`) |
 | `user:`/`anon:` owner namespace + sending `X-Client-Id` | ✅ Implemented |
+| Per-client ownership, composite key `user:<id>:<clientId>` (ADR 0031) | ✅ Implemented |
+| Per-tab id in teavm.web: `crypto.getRandomValues`, kept in `sessionStorage` | ✅ Implemented |
 | Cap on open txs (global + per owner) → 429 | ✅ Implemented |
 | Absolute lifetime in addition to idle | ✅ Implemented |
 | Idempotent `commit`/`rollback` + `GET /api/tx/status` | ✅ Implemented |
@@ -436,9 +432,6 @@ would break the isolation).
 | Parameters (timeouts, retention, caps) configurable via `application.toml` | ✅ Implemented |
 | `ThreadLocal` re-entrancy in the asynchronous client | ✅ Investigated — not a bug (documented invariant) |
 | Serialization contract within the tx / anonymous begin policy | ✅ Documented |
-| Per-tab ownership (pure correlation, orthogonal security) | 🔭 Proposed |
-| Composite key `userId:tabId` | 🔭 Proposed (reconciles granularity + uniqueness) |
-| Harden the `generateClientId` fallback (`crypto.getRandomValues`) | 🔭 Proposed (isolated improvement, worth doing now) |
 | Per-thread id (multi-threaded worker) via `ThreadLocal` | 🔭 Proposed |
 | `POST /api/client/id` endpoint with a monotonic source (tier-2) | 🔭 Proposed |
 | Signed id (HMAC/JWT) to detect forgery | 🔭 Optional, only if "accept only issued ids" is a requirement |

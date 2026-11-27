@@ -136,20 +136,38 @@ public class FetchHttpTransport implements HttpTransport {
 		return supplier != null ? supplier.get() : null;
 	}
 
-	/** Client session id, generated once per app instance (browser) and sent in X-Client-Id. */
+	/**
+	 * This tab's id, sent in X-Client-Id: the owner, with the user, of the tab's remote transactions. Kept in the tab's
+	 * sessionStorage, so a reload keeps it and another tab has its own.
+	 */
 	private static String clientId;
 
 	private static String clientId() {
 		if (clientId == null) {
-			clientId = generateClientId();
+			clientId = tabClientId();
 		}
 		return clientId;
 	}
 
-	@JSBody(params = {}, script = "return (self.crypto && self.crypto.randomUUID) ? self.crypto.randomUUID() "
-			+ ": 'xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx'.replace(/[xy]/g, function(c){var r=Math.random()*16|0;"
-			+ "return (c==='x'?r:(r&0x3|0x8)).toString(16);});")
-	private static native String generateClientId();
+	/**
+	 * The tab's id from sessionStorage, or a new random UUID (v4) stored there. crypto.getRandomValues works outside a
+	 * secure context, unlike crypto.randomUUID (plain HTTP away from localhost); Math.random only without crypto at all.
+	 * Without sessionStorage (blocked), the id lasts as long as the page.
+	 */
+	@JSBody(params = {}, script = ""
+			+ "var key = 'wdc.clientId', id = null;"
+			+ "try { id = sessionStorage.getItem(key); } catch (e) {}"
+			+ "if (id) { return id; }"
+			+ "var b = new Uint8Array(16);"
+			+ "if (self.crypto && self.crypto.getRandomValues) { self.crypto.getRandomValues(b); }"
+			+ "else { for (var i = 0; i < 16; i++) { b[i] = Math.random() * 256 | 0; } }"
+			+ "b[6] = (b[6] & 0x0f) | 0x40; b[8] = (b[8] & 0x3f) | 0x80;"
+			+ "var h = []; for (var j = 0; j < 16; j++) { h.push((b[j] + 0x100).toString(16).substring(1)); }"
+			+ "id = h.slice(0, 4).join('') + '-' + h.slice(4, 6).join('') + '-' + h.slice(6, 8).join('') + '-'"
+			+ "    + h.slice(8, 10).join('') + '-' + h.slice(10, 16).join('');"
+			+ "try { sessionStorage.setItem(key, id); } catch (e) {}"
+			+ "return id;")
+	private static native String tabClientId();
 
 	private String getTxId() {
 		var supplier = txIdSupplier.get();
