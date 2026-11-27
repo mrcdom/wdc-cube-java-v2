@@ -192,7 +192,9 @@ See `./build.sh help` for the full list.
 ├─ ServerConfig           # Backend URL per target
 ├─ Sel / *Sel             # UIIDs (theme selectors) per package
 ├─ bridge/                # BridgeSession, Cn1Crypto, P256, Cn1ClientStorage, AbstractCn1View, AbstractItemCn1View
-├─ util/                  # Cn1Dom (DSL), Px, Guard, Money, Json, Images, Decor, …
+├─ i18n/                  # StoreMessages (generated catalog), Texts (device language, presenter messages)
+├─ theme/                 # StoreTokens (generated design tokens), Colors, Fonts
+├─ util/                  # Cn1Dom (DSL), Px, Guard, Money, Dates, Json, Images, Decor, …
 ├─ widgets/               # BackButton, CardHeader, IconButton, HtmlText, QtyStepper, Slot
 └─ views/                 # login, home, product, cart, receipt (+ RootCn1View)
 ```

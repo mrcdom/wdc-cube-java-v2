@@ -16,7 +16,9 @@ import org.teavm.jso.dom.html.HTMLElement;
 
 import br.com.wdc.store.presentation.presenter.restricted.home.HomeScope.PurchasesPanelScope;
 import br.com.wdc.store.presentation.presenter.restricted.home.structs.PurchaseInfo;
+import br.com.wdc.store.i18n.StoreMessages;
 import br.com.wdc.store.view.teavm.commons.DateUtils;
+import br.com.wdc.store.view.teavm.commons.I18n;
 import br.com.wdc.store.view.teavm.commons.SelIcons;
 import br.com.wdc.store.view.teavm.commons.SharedVDomView;
 import br.com.wdc.store.view.teavm.commons.VNode;
@@ -109,8 +111,8 @@ public class PurchasesPanelSharedView extends SharedVDomView {
         return div(Sel.ROOT).children(
           div(Sel.HEADER_ROW).children(
             span(Sel.HEADER_ICON),
-            span(Sel.HEADER_TITLE).text("History")),
-          span(Sel.HINT).text("Tap for details"),
+            span(Sel.HEADER_TITLE).text(I18n.text(StoreMessages.HOME_HISTORY))),
+          span(Sel.HINT).text(I18n.text(StoreMessages.HOME_HISTORY_HINT)),
           div(Sel.LIST_CONTAINER)
             .ref(el -> this.listContainer = el)
             .children(purchases != null ? purchases.stream().map(this::renderItem).toList() : List.of()),
@@ -131,7 +133,7 @@ public class PurchasesPanelSharedView extends SharedVDomView {
         var idStr = "#" + purchase.id;
         var date = purchase.date > 0 ? formatDate(purchase.date) : "";
         var items = purchase.items != null ? String.join(", ", purchase.items) : "";
-        var total = purchase.total > 0 ? "$" + String.format("%.2f", purchase.total) : "";
+        var total = purchase.total > 0 ? I18n.price(purchase.total) : "";
 
         // @formatter:off
         return div(Sel.ITEM_CARD).key(key)

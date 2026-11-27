@@ -41,7 +41,7 @@ class CartViewSwtRemote extends CartViewSwt {
 			return null;
 		}
 		var scope = new CartScope();
-		scope.errorMessage.set(s.getString("errorMessage"));
+		scope.errorMessage.set(WireMessages.messageOf(s, "errorMessage"));
 		var code = s.getLong("errorCode");
 		scope.errorCode.set(code != null ? code.intValue() : 0);
 		var total = s.getDouble("total");

@@ -4,6 +4,7 @@ import br.com.wdc.framework.cube.Action;
 import br.com.wdc.framework.cube.ActionOf;
 import br.com.wdc.framework.cube.Prop;
 import br.com.wdc.framework.cube.Scope;
+import br.com.wdc.store.i18n.Message;
 import br.com.wdc.store.presentation.presenter.restricted.products.structs.ProductInfo;
 
 /** What the product page draws ({@link ProductPresenter}): the product and the add-to-cart action. */
@@ -13,7 +14,7 @@ public class ProductScope extends Scope {
 
     public final Prop<ProductInfo> product = prop();
     public final Prop<Integer> errorCode = prop(0);
-    public final Prop<String> errorMessage = prop();
+    public final Prop<Message> errorMessage = prop();
 
     public ActionOf<Integer> onAddToCart = ActionOf.noop();
     public Action onOpenProducts = Action.NOOP;

@@ -8,6 +8,9 @@ library;
 export 'package:remote_bridge_flutter/remote_bridge_flutter.dart';
 
 export 'src/design_tokens.dart';
+export 'src/generated/messages.dart' show MessageKeys, languageOf, languages, defaultLanguage;
+export 'src/generated/store_tokens.dart';
+export 'src/i18n.dart';
 export 'src/utils/format_utils.dart';
 export 'src/utils/url_utils.dart';
 

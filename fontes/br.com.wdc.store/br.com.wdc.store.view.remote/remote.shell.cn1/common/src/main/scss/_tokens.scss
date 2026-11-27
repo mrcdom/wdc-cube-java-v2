@@ -1,38 +1,40 @@
 // =============================================================================
-// Theme tokens — palette/fonts/radii (extracted from the React design).
+// Theme tokens — palette/fonts/radii. The colors come from the store's design tokens
+// (generated/_tokens.scss, written by GenerateDesignTokens); sizes stay in mm.
 // Sass variables (not `var()`: CN1's CSS does not support custom properties);
 // they become literal values in the generated theme.css.
 // =============================================================================
+@use 'generated/tokens' as t;
 
-// -- Colors --
-$accent:         #0d66d0;
-$accent-2:       #1a8cff;
-$accent-3:       #4da6ff;
-$accent-light:   #e8f1fc;
-$logo-box:       #2f86f0;
+// -- Colors (from the generated design tokens) --
+$accent:         t.$color-primary;
+$accent-2:       t.$color-accent;
+$accent-3:       t.$color-accent-soft;
+$accent-light:   t.$color-primary-light;
+$logo-box:       #2f86f0;  // logo box on the blue banners (off the token palette)
 
-$bg:             #f4f6f9;
-$surface:        #ffffff;
-$text:           #1d1d1f;
-$text-secondary: #6e6e73;
-$text-slate:     #4b5563;
-$border:         #e5e5ea;
-$border-faint:   #eeeeef;
+$bg:             t.$color-background;
+$surface:        t.$color-surface;
+$text:           t.$color-text;
+$text-secondary: t.$color-text-secondary;
+$text-slate:     #4b5563;  // the "back" button (off the token palette)
+$border:         t.$color-border;
+$border-faint:   #eeeeef;  // receipt row dividers (off the token palette)
 
 $ice:            #f0f6ff;  // ice white (text on blue)
 $greeting:       #dbe9ff;
 
 // Product image (gradient background)
-$img-grad-from:  #f8fafc;
-$img-grad-to:    #eef2f7;
+$img-grad-from:  t.$color-surface-muted;
+$img-grad-to:    t.$color-surface-subtle;
 
 // Success alert (receipt)
-$success-bg:     #f0fdf4;
-$success-border: #bbf7d0;
-$success-icon:   #16a34a;
-$success-text:   #166534;
+$success-bg:     t.$color-success-background;
+$success-border: t.$color-success-border;
+$success-icon:   t.$color-success;
+$success-text:   t.$color-success-text;
 
-$danger:         #dc3545;
+$danger:         t.$color-error;
 
 // -- Native fonts --
 $f-bold:    "native:MainBold";

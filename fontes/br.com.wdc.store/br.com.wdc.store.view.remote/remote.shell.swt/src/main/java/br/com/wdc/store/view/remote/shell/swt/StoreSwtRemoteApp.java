@@ -25,8 +25,10 @@ import br.com.wdc.framework.cube.remote.bridge.java.HostClient;
 import br.com.wdc.framework.cube.remote.bridge.java.model.HostResponse;
 import br.com.wdc.framework.cube.remote.bridge.java.model.ScopeSnapshot;
 import br.com.wdc.store.domain.product.ProductRepository;
+import br.com.wdc.store.i18n.StoreMessages;
 import br.com.wdc.store.view.swt.AbstractViewSwt;
 import br.com.wdc.store.view.swt.SwtApp;
+import br.com.wdc.store.view.swt.util.I18n;
 import br.com.wdc.store.view.swt.util.ProductImageCache;
 
 /**
@@ -229,8 +231,8 @@ public class StoreSwtRemoteApp implements SwtApp, RemoteViewContext {
 			}
 		}
 		var message = switch (alertId) {
-			case -2 -> "The URI " + (args.isEmpty() ? "" : args.get(0)) + " is not accessible";
-			default -> args.isEmpty() ? "An unexpected error occurred" : args.get(0);
+			case -2 -> I18n.format(StoreMessages.ALERT_URI_NOT_ACCESSIBLE, Map.of("uri", args.isEmpty() ? "" : args.get(0)));
+			default -> args.isEmpty() ? I18n.text(StoreMessages.ERROR_UNEXPECTED) : args.get(0);
 		};
 		var detail = args.size() > 1 ? args.get(1) : null;
 
@@ -239,7 +241,7 @@ public class StoreSwtRemoteApp implements SwtApp, RemoteViewContext {
 				return;
 			}
 			var box = new MessageBox(this.shell, SWT.ICON_WARNING | SWT.OK);
-			box.setText("Warning!");
+			box.setText(I18n.text(StoreMessages.ALERT_TITLE));
 			box.setMessage(detail != null ? message + "\n\n" + detail : message);
 			box.open();
 			this.shownAlertId = 0;

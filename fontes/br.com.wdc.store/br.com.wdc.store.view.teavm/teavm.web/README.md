@@ -45,7 +45,7 @@ public VNode render() {
           // ...
           spButton("accent", "l")
             .boolAttr("disabled", empty)
-            .children(span(Sel.ICON_FINALIZE), span().text("Checkout"))
+            .children(span(Sel.ICON_FINALIZE), span().text(I18n.text(StoreMessages.CART_CHECKOUT)))
             .on("click", buyListener))));
 }
 ```

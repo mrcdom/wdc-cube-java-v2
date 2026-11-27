@@ -5,6 +5,7 @@ import { BaseViewClass } from "@root/utils/ViewUtils"
 import { Button, ActionButton } from "@root/swc"
 import * as NumberUtils from "@root/utils/NumberUtils"
 import Sel from "./cart-sel"
+import { type Message, t, tm } from "@root/utils/I18n"
 
 // :: Actions (must match server-side presenter)
 
@@ -17,7 +18,7 @@ export type CartScope = {
   /** The rows: each one a view of its own (CartItemView), in the cart's order. */
   rowsViewIds?: string[]
   total?: number
-  errorMessage?: string
+  errorMessage?: Message
 }
 
 class CartViewClass extends BaseViewClass<ViewProps, CartScope> {
@@ -39,8 +40,8 @@ class CartViewClass extends BaseViewClass<ViewProps, CartScope> {
                 <span className={clsx("bi bi-bag", Sel.cardHeaderIcon)}></span>
               </div>
               <div>
-                <h5 className={Sel.cardHeaderTitle}>Cart</h5>
-                <span className={Sel.cardHeaderSubtitle}>Your selected products</span>
+                <h5 className={Sel.cardHeaderTitle}>{t("cart.title")}</h5>
+                <span className={Sel.cardHeaderSubtitle}>{t("cart.subtitle")}</span>
               </div>
             </div>
 
@@ -48,7 +49,7 @@ class CartViewClass extends BaseViewClass<ViewProps, CartScope> {
             {scope.errorMessage && (
               <div className={clsx(Sel.alertError, Sel.mb16)}>
                 <span className={clsx("bi bi-exclamation-circle", Sel.alertErrorIcon)}></span>
-                <span className={Sel.alertErrorText}>{scope.errorMessage}</span>
+                <span className={Sel.alertErrorText}>{tm(scope.errorMessage)}</span>
               </div>
             )}
 
@@ -58,11 +59,11 @@ class CartViewClass extends BaseViewClass<ViewProps, CartScope> {
                 <div className={Sel.emptyIconBox}>
                   <span className={clsx("bi bi-bag", Sel.emptyIcon)}></span>
                 </div>
-                <p className={Sel.emptyTitle}>Your cart is empty</p>
-                <p className={Sel.emptySubtitle}>Add products to get started</p>
+                <p className={Sel.emptyTitle}>{t("cart.empty")}</p>
+                <p className={Sel.emptySubtitle}>{t("cart.emptyHint")}</p>
                 <Button variant="accent" ref={this.viewProductsBtnRef}>
                   <span className={clsx("bi bi-grid-3x3-gap", Sel.mr6)}></span>
-                  <span>View products</span>
+                  <span>{t("cart.viewProducts")}</span>
                 </Button>
               </div>
             ) : (
@@ -76,7 +77,7 @@ class CartViewClass extends BaseViewClass<ViewProps, CartScope> {
 
                 {/* Footer total */}
                 <div className={Sel.footer}>
-                  <span className={Sel.footerLabel}>Total: </span>
+                  <span className={Sel.footerLabel}>{t("cart.total")} </span>
                   <span className={Sel.footerTotal}>{totalText}</span>
                 </div>
 
@@ -84,11 +85,11 @@ class CartViewClass extends BaseViewClass<ViewProps, CartScope> {
                 <div className={Sel.actionsRow}>
                   <ActionButton quiet ref={this.backBtnRef}>
                     <span className="bi bi-arrow-left"></span>
-                    <span> Continue shopping</span>
+                    <span> {t("cart.continueShopping")}</span>
                   </ActionButton>
                   <Button variant="accent" size="l" ref={this.buyBtnRef}>
                     <span className={clsx("bi bi-check2-circle", Sel.mr6)}></span>
-                    <span>Checkout</span>
+                    <span>{t("cart.checkout")}</span>
                   </Button>
                 </div>
               </div>

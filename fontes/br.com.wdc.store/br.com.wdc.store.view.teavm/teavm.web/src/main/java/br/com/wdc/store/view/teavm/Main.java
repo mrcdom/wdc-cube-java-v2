@@ -2,6 +2,7 @@ package br.com.wdc.store.view.teavm;
 
 import br.com.wdc.store.presentation.presenter.open.login.LoginPresenter;
 import br.com.wdc.store.view.teavm.app.StoreTeaVMApplication;
+import br.com.wdc.store.view.teavm.commons.I18n;
 import br.com.wdc.store.view.teavm.commons.interop.Console;
 import br.com.wdc.store.view.teavm.infra.EncryptedLocalStorage;
 
@@ -14,6 +15,9 @@ public class Main {
     public static void main(String[] args) {
         try {
             Console.log("WDC Store TeaVM - Initializing...");
+
+            // The language of the texts, picked once from the browser's
+            I18n.init();
 
             // API base URL - can be set through an attribute in the HTML
             String apiBaseUrl = getApiBaseUrl();

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../design_tokens.dart';
+import '../generated/messages.dart' show MessageKeys;
+import '../generated/store_tokens.dart';
+import '../i18n.dart';
 
 enum StatusSeverity { error, success, warning }
 
@@ -25,9 +28,9 @@ class StatusBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (bgColor, borderColor, fgColor, icon) = switch (severity) {
-      StatusSeverity.error => (Colors.red.shade50, Colors.red.shade200, Colors.red.shade700, Icons.error_outline),
-      StatusSeverity.success => (Colors.green.shade50, Colors.green.shade200, Colors.green.shade700, Icons.check_circle),
-      StatusSeverity.warning => (Colors.orange.shade50, Colors.orange.shade200, Colors.orange.shade700, Icons.warning_amber),
+      StatusSeverity.error => (StoreTokens.errorBackground, StoreTokens.errorBorder, StoreTokens.errorText, Icons.error_outline),
+      StatusSeverity.success => (StoreTokens.successBackground, StoreTokens.successBorder, StoreTokens.successText, Icons.check_circle),
+      StatusSeverity.warning => (StoreTokens.warningBackground, StoreTokens.warningBorder, StoreTokens.warningText, Icons.warning_amber),
     };
 
     return Container(
@@ -39,7 +42,7 @@ class StatusBanner extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, color: fgColor, size: 18),
+          Icon(icon, color: severity == StatusSeverity.warning ? StoreTokens.warning : fgColor, size: 18),
           const SizedBox(width: 8),
           Expanded(
             child: Column(
@@ -58,7 +61,7 @@ class StatusBanner extends StatelessWidget {
             ),
           ),
           if (onDismiss != null)
-            TextButton(onPressed: onDismiss, child: const Text('OK')),
+            TextButton(onPressed: onDismiss, child: Text(StoreI18n.text(MessageKeys.alertOk))),
         ],
       ),
     );

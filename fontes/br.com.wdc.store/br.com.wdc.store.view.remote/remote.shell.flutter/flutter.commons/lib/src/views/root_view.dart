@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../generated/messages.dart' show MessageKeys;
+import '../i18n.dart';
 import '../widgets/error_banner.dart';
 import 'package:remote_bridge_flutter/remote_bridge_flutter.dart';
 
@@ -17,10 +19,10 @@ class RootView extends BaseView {
 class _RootViewState extends BaseViewState<RootView> {
   @override
   Widget build(BuildContext context) {
-    final errorMessage = scope['errorMessage'] as String?;
+    final errorMessage = StoreI18n.message(scope['errorMessage']);
     final contentViewId = scope['contentViewId'] as String?;
 
-    if (errorMessage != null) {
+    if (errorMessage.isNotEmpty) {
       return Padding(
         padding: const EdgeInsets.all(16),
         child: ErrorBanner(message: errorMessage),
@@ -31,9 +33,9 @@ class _RootViewState extends BaseViewState<RootView> {
       return slot(contentViewId);
     }
 
-    return const Padding(
-      padding: EdgeInsets.all(16),
-      child: ErrorBanner(message: 'Missing content for the home page'),
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: ErrorBanner(message: StoreI18n.text(MessageKeys.homeMissingContent)),
     );
   }
 }

@@ -10,6 +10,7 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 
+import br.com.wdc.store.i18n.StoreMessages;
 import br.com.wdc.store.presentation.presenter.open.login.LoginScope;
 import br.com.wdc.store.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.store.view.vaadin.StoreVaadinApplication;
@@ -43,7 +44,7 @@ public class LoginViewVaadin extends AbstractViewVaadin<LoginScope> {
         }
 
         if (this.scope.errorCode.get() != 0) {
-            this.errorDiv.setText("Invalid username or password. Please try again.");
+            this.errorDiv.setText(text(this.scope.errorMessage.get()));
             this.errorDiv.setVisible(true);
             // Consumed while drawing: a redraw now would take the message away
             this.scope.errorCode.setSilently(0);
@@ -68,7 +69,7 @@ public class LoginViewVaadin extends AbstractViewVaadin<LoginScope> {
             dom.div(header -> {
                 header.addClassName("login-header");
 
-                var logo = new Image("images/store-logo.svg", "WDC Store");
+                var logo = new Image("images/store-logo.svg", text(StoreMessages.APP_NAME));
                 logo.setHeight("48px");
                 header.add(logo);
             });
@@ -84,18 +85,18 @@ public class LoginViewVaadin extends AbstractViewVaadin<LoginScope> {
                 iconCircle.addClassName("login-icon-circle");
                 var lockIcon = VaadinIcon.LOCK.create();
                 lockIcon.setSize("22px");
-                lockIcon.setColor("white");
+                lockIcon.setColor("var(--store-color-on-primary)");
                 iconCircle.add(lockIcon);
                 body.add(iconCircle);
 
                 // Title
                 var title = new Div();
                 title.addClassName("login-title");
-                title.setText("Account access");
+                title.setText(text(StoreMessages.VAADIN_ACCOUNT_ACCESS));
                 body.add(title);
 
                 // User field
-                this.userField = new TextField("Username");
+                this.userField = new TextField(text(StoreMessages.LOGIN_USERNAME));
                 this.userField.setWidthFull();
                 this.userField.setAutocomplete(com.vaadin.flow.component.textfield.Autocomplete.OFF);
                 this.userField.getElement()
@@ -105,7 +106,7 @@ public class LoginViewVaadin extends AbstractViewVaadin<LoginScope> {
                 // Password field — uses TextField with CSS masking to prevent
                 // Chrome from detecting it as a password field and triggering
                 // the password manager (which causes page reloads via Vaadin Push)
-                this.passwordField = new TextField("Password");
+                this.passwordField = new TextField(text(StoreMessages.LOGIN_PASSWORD));
                 this.passwordField.setWidthFull();
                 this.passwordField.setAutocomplete(com.vaadin.flow.component.textfield.Autocomplete.OFF);
                 this.passwordField.getElement().executeJs(
@@ -123,7 +124,7 @@ public class LoginViewVaadin extends AbstractViewVaadin<LoginScope> {
                 body.add(this.errorDiv);
 
                 // Login button
-                var loginButton = new Button("Sign in", e -> doLogin());
+                var loginButton = new Button(text(StoreMessages.LOGIN_SIGN_IN), e -> doLogin());
                 loginButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
                 loginButton.setWidthFull();
                 loginButton.getStyle()
@@ -137,7 +138,7 @@ public class LoginViewVaadin extends AbstractViewVaadin<LoginScope> {
                 var demoHint = new Div();
                 demoHint.addClassName("login-demo-hint");
                 demoHint.getElement().setProperty("innerHTML",
-                        "Demo access: username <strong>admin</strong> / password <strong>admin</strong>");
+                        text(StoreMessages.LOGIN_DEMO_ACCESS) + " <strong>admin</strong> / <strong>admin</strong>");
                 body.add(demoHint);
             });
         });

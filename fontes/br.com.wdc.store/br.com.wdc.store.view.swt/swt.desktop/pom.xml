@@ -24,6 +24,11 @@
             <artifactId>swt.commons</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>br.com.wdc.store.i18n</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- Backend modules (only needed by the local desktop app) -->
         <dependency>

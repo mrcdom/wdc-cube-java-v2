@@ -41,7 +41,7 @@ public class ProductView extends AbstractRemoteView {
 
     private ProductScope adaptScope() {
         ViewScope scope = scope();
-        adaptedScope.errorMessage.set(scope.getString("errorMessage"));
+        adaptedScope.errorMessage.set(getMessage("errorMessage"));
         adaptedScope.product.set(adaptProduct(scope));
         return adaptedScope;
     }

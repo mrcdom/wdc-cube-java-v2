@@ -1,11 +1,13 @@
+@use "generated/tokens" as t;
+
 /* SWC customization via --mod-* API (no external box-model overrides) */
 sp-button[variant="accent"] {
     --mod-button-background-color-default: var(--app-accent);
     --mod-button-background-color-hover: var(--app-accent-dark);
-    --mod-button-background-color-active: #083d7a;
-    --mod-button-content-color-default: #fff;
-    --mod-button-content-color-hover: #fff;
-    --mod-button-content-color-active: #fff;
+    --mod-button-background-color-active: #{t.$color-primary-darker};
+    --mod-button-content-color-default: #{t.$color-on-primary};
+    --mod-button-content-color-hover: #{t.$color-on-primary};
+    --mod-button-content-color-active: #{t.$color-on-primary};
     --mod-button-border-color-default: transparent;
     --mod-button-border-color-hover: transparent;
     --mod-button-border-color-active: transparent;

@@ -1,39 +1,42 @@
 import 'package:flutter/material.dart';
 
-/// Design tokens aligned with the React app's CSS custom properties.
-/// Single source of truth for colors, shadows, radii, and common styles.
+import 'generated/store_tokens.dart';
+
+/// The shell's theme: colors and radii come from the store's design tokens ([StoreTokens]);
+/// shadows, breakpoints and the shared styles are built on them.
 
 // -- Colors -------------------------------------------------------------------
 
-const Color appAccent = Color(0xFF0D66D0);
-const Color appAccentLight = Color(0xFFE8F1FC);
-const Color appAccentDark = Color(0xFF0A4F9E);
-const Color appBg = Color(0xFFF4F6F9);
-const Color appSurface = Color(0xFFFFFFFF);
-const Color appText = Color(0xFF1D1D1F);
-const Color appTextSecondary = Color(0xFF6E6E73);
-const Color appBorder = Color(0xFFE5E5EA);
-const Color appTextDisabled = Color(0xFFBBBBC0);
-const Color appDanger = Color(0xFFEF5350);
+const Color appAccent = StoreTokens.primary;
+const Color appAccentLight = StoreTokens.primaryLight;
+const Color appAccentDark = StoreTokens.primaryDark;
+const Color appOnPrimary = StoreTokens.onPrimary;
+const Color appBg = StoreTokens.background;
+const Color appSurface = StoreTokens.surface;
+const Color appText = StoreTokens.text;
+const Color appTextSecondary = StoreTokens.textSecondary;
+const Color appBorder = StoreTokens.border;
+const Color appTextDisabled = StoreTokens.textMuted;
+const Color appDanger = StoreTokens.error;
 
 // -- Gradients ----------------------------------------------------------------
 
 const LinearGradient imageGradient = LinearGradient(
   begin: Alignment.topCenter,
   end: Alignment.bottomCenter,
-  colors: [Color(0xFFF8FAFC), Color(0xFFEEF2F7)],
+  colors: [StoreTokens.surfaceMuted, StoreTokens.surfaceSubtle],
 );
 
 const LinearGradient headerGradient = LinearGradient(
   begin: Alignment.topLeft,
   end: Alignment.bottomRight,
-  colors: [Color(0xFF0D66D0), Color(0xFF1A8CFF)],
+  colors: [StoreTokens.primary, StoreTokens.accent],
 );
 
 const LinearGradient loginGradient = LinearGradient(
   begin: Alignment.topLeft,
   end: Alignment.bottomRight,
-  colors: [Color(0xFF0D66D0), Color(0xFF1A8CFF), Color(0xFF4DA6FF)],
+  colors: [StoreTokens.primary, StoreTokens.accent, StoreTokens.accentSoft],
   stops: [0.0, 0.4, 1.0],
 );
 
@@ -49,8 +52,9 @@ const List<BoxShadow> cardShadowLg = [
   BoxShadow(color: Color(0x0D000000), blurRadius: 4, offset: Offset(0, 2)),
 ];
 
-const List<BoxShadow> headerShadow = [
-  BoxShadow(color: Color(0x4D0D66D0), blurRadius: 8, offset: Offset(0, 2)),
+/// The primary color at 30% opacity under the header.
+final List<BoxShadow> headerShadow = [
+  BoxShadow(color: StoreTokens.primary.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 2)),
 ];
 
 // -- Breakpoints --------------------------------------------------------------
@@ -61,9 +65,14 @@ const double breakpointLg = 900.0;
 
 // -- Radii --------------------------------------------------------------------
 
-const double radiusLg = 12.0;
-const double radiusSm = 8.0;
-const double radiusRound = 20.0;
+/// Cards, panels.
+const double radiusLg = StoreTokens.radiusMd;
+
+/// Inputs, small buttons.
+const double radiusSm = StoreTokens.radiusSm;
+
+/// Pill buttons, large panels.
+const double radiusRound = StoreTokens.radiusLg;
 
 // -- Card decoration ----------------------------------------------------------
 
@@ -80,10 +89,10 @@ final BoxDecoration cardDecoration = BoxDecoration(
 /// Accent-colored pill button style used across views.
 final ButtonStyle accentButtonStyle = FilledButton.styleFrom(
   backgroundColor: appAccent,
-  foregroundColor: Colors.white,
-  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-  textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+  foregroundColor: appOnPrimary,
+  padding: const EdgeInsets.symmetric(horizontal: StoreTokens.spaceXl, vertical: 14),
+  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radiusRound)),
+  textStyle: const TextStyle(fontSize: 15, fontWeight: StoreTokens.fontWeightSemibold),
 );
 
 // -- Shared widgets -----------------------------------------------------------

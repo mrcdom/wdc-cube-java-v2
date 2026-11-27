@@ -74,6 +74,7 @@ public class RemoteApplicationSupport {
     private String clientIp;
 
     private RemoteBrowserPresenter browserPresenter;
+    private RemoteApplication owner;
     private final Map<String, RemoteViewImpl> dirtyViewMap = new ConcurrentHashMap<>();
     private final Map<String, RemoteViewImpl> viewMap = new ConcurrentHashMap<>();
     /** The view of each scope drawn for the client. */
@@ -116,6 +117,7 @@ public class RemoteApplicationSupport {
         this.expireMoment = System.currentTimeMillis() + timeSpan.toMillis();
         this.dataSecurity = new RemoteDataSecurity();
         this.clientStorage.init(this.dataSecurity);
+        this.owner = owner;
         this.browserPresenter = new RemoteBrowserPresenter(owner);
         this.putView(this.browserPresenter.getView());
         this.browserPresenter.update();
@@ -298,6 +300,7 @@ public class RemoteApplicationSupport {
 
     // :: Error handling
 
+    /** The host's alert for an unexpected error: what failed and the cause's message, in English (alert {@code -1}). */
     public void alertUnexpectedError(Log logger, String message, Throwable e) {
         this.lock.lock();
         try {
@@ -501,7 +504,8 @@ public class RemoteApplicationSupport {
 
                     view.submit(eventCode, eventQtde, formData);
                 } catch (@SuppressWarnings("java:S1181") Throwable e) {
-                    this.alertUnexpectedError(LOG, "submitting event", e);
+                    // through the application, which may show it its own way
+                    this.owner.alertUnexpectedError(LOG, "submitting event", e);
                     view.update();
                 }
             } else {

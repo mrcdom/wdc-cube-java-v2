@@ -60,6 +60,18 @@
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
 
+        <!-- WDC Store design tokens and UI texts (the landing page) -->
+        <dependency>
+            <groupId>br.com.wdc.store</groupId>
+            <artifactId>br.com.wdc.store.design</artifactId>
+            <version>${store.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>br.com.wdc.store</groupId>
+            <artifactId>br.com.wdc.store.i18n</artifactId>
+            <version>${store.version}</version>
+        </dependency>
+
         <!-- WDC Store application: repository REST API -->
         <dependency>
             <groupId>br.com.wdc.store</groupId>

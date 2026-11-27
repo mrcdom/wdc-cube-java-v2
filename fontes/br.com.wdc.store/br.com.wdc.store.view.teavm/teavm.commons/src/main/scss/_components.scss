@@ -1,3 +1,5 @@
+@use "generated/tokens" as t;
+
 // =============================================================================
 // COMPONENT CLASSES (SelComponents)
 // Shared component selectors used by both teavm.web and remote.shell.teavm
@@ -15,7 +17,7 @@
     padding-bottom: 10px;
     padding-left: max(16px, calc(16px + env(safe-area-inset-left)));
     padding-right: max(16px, calc(16px + env(safe-area-inset-right)));
-    background: linear-gradient(135deg, #0d66d0 0%, #1a8cff 100%);
+    background: linear-gradient(135deg, t.$color-primary 0%, t.$color-accent 100%);
     flex-shrink: 0;
     box-shadow: 0 2px 8px rgba(13,102,208,0.3);
 }
@@ -101,7 +103,7 @@
 // CART BADGE
 // -----------------------------------------------------------------------------
 .cart-badge {
-    background: #fff;
+    background: t.$color-on-primary;
     color: var(--app-accent);
     font-size: 0.65rem;
     font-weight: 700;
@@ -172,10 +174,10 @@
 // ALERT ERROR
 // -----------------------------------------------------------------------------
 :root {
-    --app-error-bg: #fef2f2;
-    --app-error-border: #fecaca;
-    --app-error-text: #991b1b;
-    --app-error-icon: #dc2626;
+    --app-error-bg: #{t.$color-error-background};
+    --app-error-border: #{t.$color-error-border};
+    --app-error-text: #{t.$color-error-text};
+    --app-error-icon: #{t.$color-error};
 }
 
 .alert-error {
@@ -209,21 +211,21 @@
     align-items: center;
     gap: 10px;
     padding: 14px 18px;
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
+    background: t.$color-success-background;
+    border: 1px solid t.$color-success-border;
     border-radius: var(--app-radius-sm);
     margin-bottom: 16px;
 }
 
 .alert-success-icon {
-    color: #16a34a;
+    color: t.$color-success;
     font-size: 1.2rem;
     flex-shrink: 0;
 }
 
 .alert-success-text {
     font-size: 0.9rem;
-    color: #166534;
+    color: t.$color-success-text;
     font-weight: 600;
 }
 

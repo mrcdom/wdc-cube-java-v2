@@ -1,7 +1,11 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 import 'package:remote_bridge_flutter/remote_bridge_flutter.dart';
 import '../design_tokens.dart';
+import '../generated/messages.dart' show MessageKeys;
+import '../i18n.dart';
+import '../generated/store_tokens.dart';
 import '../widgets/status_banner.dart';
 
 
@@ -90,19 +94,19 @@ class _AppAlert extends StatelessWidget {
     String? detail;
     switch (code) {
       case -1:
-        message = args.isNotEmpty ? args[0] : 'Unexpected error';
+        message = args.isNotEmpty ? args[0] : StoreI18n.text(MessageKeys.errorUnexpected);
         detail = args.length > 1 ? args[1] : null;
       case -2:
-        message = 'The URI ${args.isNotEmpty ? args[0] : ""} is not accessible';
+        message = StoreI18n.text(MessageKeys.alertUriNotAccessible, {'uri': args.isNotEmpty ? args[0] : ''});
         detail = args.length > 1 ? args[1] : null;
       default:
-        message = args.isNotEmpty ? args[0] : 'An unexpected error occurred';
+        message = args.isNotEmpty ? args[0] : StoreI18n.text(MessageKeys.errorUnexpected);
     }
 
     return Padding(
       padding: const EdgeInsets.all(16),
       child: StatusBanner(
-        title: 'Warning!',
+        title: StoreI18n.text(MessageKeys.alertTitle),
         message: message,
         detail: detail,
         onDismiss: onDismiss,
@@ -121,11 +125,10 @@ class _OutdatedAlert extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.all(16),
+    return Padding(
+      padding: const EdgeInsets.all(16),
       child: StatusBanner(
-        title: 'This version is out of date.',
-        message: 'The server no longer speaks this version of the app. Reload the page, or update the app, to continue.',
+        message: StoreI18n.text(kIsWeb ? MessageKeys.connectionOutdatedPage : MessageKeys.connectionOutdatedApp),
         severity: StatusSeverity.warning,
       ),
     );
@@ -153,16 +156,18 @@ class _ConnectionAlert extends StatelessWidget {
         minutes = seconds ~/ 60;
         seconds = seconds - minutes * 60;
       }
-      timeText = minutes > 0 ? 'Reconnecting in ${minutes}m ${seconds}s...' : 'Reconnecting in ${seconds}s...';
+      timeText = minutes > 0
+          ? StoreI18n.text(MessageKeys.connectionReconnectingInMinutes, {'minutes': '$minutes', 'seconds': '$seconds'})
+          : StoreI18n.text(MessageKeys.connectionReconnectingInSeconds, {'seconds': '$seconds'});
       showRetry = true;
     } else {
-      timeText = 'Reconnecting now...';
+      timeText = StoreI18n.text(MessageKeys.connectionReconnectingNow);
     }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.red.shade50,
+        color: StoreTokens.errorBackground,
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(radiusSm),
           bottomRight: Radius.circular(radiusSm),
@@ -172,15 +177,16 @@ class _ConnectionAlert extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text('Not connected. ', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red.shade700, fontSize: 13)),
-          Text(timeText, style: TextStyle(color: Colors.red.shade700, fontSize: 13)),
+          Text('${StoreI18n.text(MessageKeys.connectionNotConnected)} ',
+              style: const TextStyle(fontWeight: FontWeight.bold, color: StoreTokens.errorText, fontSize: 13)),
+          Text(timeText, style: const TextStyle(color: StoreTokens.errorText, fontSize: 13)),
           if (showRetry)
             Padding(
               padding: const EdgeInsets.only(left: 8),
               child: GestureDetector(
                 onTap: onRetry,
-                child: Text('Retry now',
-                    style: TextStyle(
+                child: Text(StoreI18n.text(MessageKeys.connectionRetryNow),
+                    style: const TextStyle(
                         color: appAccent, decoration: TextDecoration.underline, fontSize: 13)),
               ),
             ),

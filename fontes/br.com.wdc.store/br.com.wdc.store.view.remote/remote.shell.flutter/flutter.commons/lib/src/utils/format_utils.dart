@@ -1,24 +1,62 @@
-/// Date/time and currency formatting utilities (en-US).
+/// Date/time formatting in the current language's patterns, and currency in US dollars (en-US).
 library;
 
-String _two(int n) => n.toString().padLeft(2, '0');
+import '../generated/messages.dart' show MessageKeys;
+import '../i18n.dart';
 
-/// Formats milliseconds-since-epoch as "MM/dd/yyyy h:mm AM|PM" (12-hour clock).
+/// Formats [date] with a catalog pattern: `yyyy` year, `MM` month, `dd` day, `HH` hour (0-23),
+/// `h` hour (1-12), `mm` minute, `ss` second, `a` AM/PM; a run of a letter pads to its length,
+/// any other character is copied.
+String formatDatePattern(DateTime date, String pattern) {
+  final out = StringBuffer();
+  var i = 0;
+  while (i < pattern.length) {
+    final c = pattern[i];
+    var j = i;
+    while (j < pattern.length && pattern[j] == c) {
+      j++;
+    }
+    final width = j - i;
+    String pad(int n) => n.toString().padLeft(width, '0');
+    switch (c) {
+      case 'y':
+        out.write(pad(date.year));
+      case 'M':
+        out.write(pad(date.month));
+      case 'd':
+        out.write(pad(date.day));
+      case 'H':
+        out.write(pad(date.hour));
+      case 'h':
+        out.write(pad(date.hour % 12 == 0 ? 12 : date.hour % 12));
+      case 'm':
+        out.write(pad(date.minute));
+      case 's':
+        out.write(pad(date.second));
+      case 'a':
+        out.write(date.hour < 12 ? 'AM' : 'PM');
+      default:
+        out.write(pattern.substring(i, j));
+    }
+    i = j;
+  }
+  return out.toString();
+}
+
+/// Formats milliseconds-since-epoch with the language's `format.dateTime`.
 /// Returns empty string for 0.
 String formatDateTime(int millis) {
   if (millis == 0) return '';
   final d = DateTime.fromMillisecondsSinceEpoch(millis);
-  final hour12 = d.hour % 12 == 0 ? 12 : d.hour % 12;
-  final period = d.hour < 12 ? 'AM' : 'PM';
-  return '${_two(d.month)}/${_two(d.day)}/${d.year} $hour12:${_two(d.minute)} $period';
+  return formatDatePattern(d, StoreI18n.text(MessageKeys.formatDateTime));
 }
 
-/// Formats milliseconds-since-epoch as "MM/dd/yyyy".
-/// Returns a fallback message for 0.
-String formatDate(int millis, {String fallback = 'Date unavailable'}) {
-  if (millis == 0) return fallback;
+/// Formats milliseconds-since-epoch with the language's `format.date`.
+/// Returns the language's `format.dateUnavailable` (or [fallback]) for 0.
+String formatDate(int millis, {String? fallback}) {
+  if (millis == 0) return fallback ?? StoreI18n.text(MessageKeys.formatDateUnavailable);
   final d = DateTime.fromMillisecondsSinceEpoch(millis);
-  return '${_two(d.month)}/${_two(d.day)}/${d.year}';
+  return formatDatePattern(d, StoreI18n.text(MessageKeys.formatDate));
 }
 
 /// Formats a double as US dollars: "$1,234.56" (negative: "-$1,234.56").

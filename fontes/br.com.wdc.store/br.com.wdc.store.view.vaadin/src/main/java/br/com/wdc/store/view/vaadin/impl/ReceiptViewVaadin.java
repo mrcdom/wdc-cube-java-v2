@@ -1,10 +1,5 @@
 package br.com.wdc.store.view.vaadin.impl;
 
-import java.text.NumberFormat;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.Locale;
 import java.util.Objects;
 
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -16,16 +11,15 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
+import br.com.wdc.store.i18n.StoreMessages;
 import br.com.wdc.store.presentation.presenter.restricted.receipt.ReceiptScope;
 import br.com.wdc.store.presentation.presenter.restricted.receipt.structs.ReceiptItem;
 import br.com.wdc.store.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.store.view.vaadin.StoreVaadinApplication;
+import br.com.wdc.store.view.vaadin.util.I18n;
 import br.com.wdc.store.view.vaadin.util.VaadinDom;
 
 public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptScope> {
-
-    private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("MM/dd/yyyy h:mm a",
-            Locale.US);
 
     private boolean notRendered = true;
     private Span dateElm;
@@ -57,7 +51,7 @@ public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptScope> {
         }
 
         if (this.scope.notifySuccess.get()) {
-            Notification.show("PURCHASE COMPLETED SUCCESSFULLY!", 5000, Notification.Position.TOP_CENTER)
+            Notification.show(text(StoreMessages.RECEIPT_COMPLETED), 5000, Notification.Position.TOP_CENTER)
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             // Consumed while drawing: a one-shot notice needs no redraw
             this.scope.notifySuccess.setSilently(false);
@@ -69,7 +63,7 @@ public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptScope> {
         }
 
         if (this.totalOldValue != this.scope.receipt.get().total) {
-            this.totalElm.setText(NumberFormat.getCurrencyInstance(Locale.US).format(this.scope.receipt.get().total));
+            this.totalElm.setText(I18n.price(this.scope.receipt.get().total));
             this.totalOldValue = this.scope.receipt.get().total;
         }
 
@@ -81,7 +75,7 @@ public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptScope> {
         pane0.setMaxWidth("900px");
 
         dom.h3(h -> {
-            h.setText("PRINT YOUR RECEIPT:");
+            h.setText(text(StoreMessages.VAADIN_PRINT_RECEIPT));
             h.getStyle().set("color", "var(--lumo-secondary-text-color)");
         });
 
@@ -90,17 +84,18 @@ public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptScope> {
 
             dom.span(label -> {
                 label.addClassName("caption-1");
-                label.setText("WEDOCODE STORE - YOUR TRUSTED ONLINE STORE");
+                label.setText((text(StoreMessages.APP_NAME) + " - " + text(StoreMessages.APP_TAGLINE))
+                        .toUpperCase(this.app.i18n().locale()));
             });
             dom.span(label -> {
                 label.addClassName("caption-2");
-                label.setText("Purchase Receipt");
+                label.setText(text(StoreMessages.RECEIPT_TITLE));
             });
 
             dom.horizontalLayout(dateRow -> {
                 dateRow.addClassName("receipt-date");
                 dom.span(label -> {
-                    label.setText("Date:");
+                    label.setText(text(StoreMessages.RECEIPT_DATE));
                     label.getStyle().set("font-weight", "bold");
                 });
                 dom.span(label -> {
@@ -113,10 +108,10 @@ public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptScope> {
             // Grid
             this.grid = new Grid<>();
             this.grid.setAllRowsVisible(true);
-            this.grid.addColumn(item -> item.description).setHeader("ITEM").setFlexGrow(3);
-            this.grid.addColumn(item -> NumberFormat.getCurrencyInstance(Locale.US).format(item.value))
-                    .setHeader("PRICE").setFlexGrow(1);
-            this.grid.addColumn(item -> item.quantity).setHeader("QUANTITY").setFlexGrow(1);
+            this.grid.addColumn(item -> item.description).setHeader(text(StoreMessages.RECEIPT_ITEM)).setFlexGrow(3);
+            this.grid.addColumn(item -> I18n.price(item.value))
+                    .setHeader(text(StoreMessages.RECEIPT_PRICE)).setFlexGrow(1);
+            this.grid.addColumn(item -> item.quantity).setHeader(text(StoreMessages.RECEIPT_QUANTITY)).setFlexGrow(1);
             pane1.add(this.grid);
 
             dom.horizontalLayout(footer -> {
@@ -125,13 +120,13 @@ public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptScope> {
                 footer.getStyle().set("padding-top", "12px");
 
                 dom.span(label -> {
-                    label.setText("TOTAL: ");
+                    label.setText(text(StoreMessages.RECEIPT_TOTAL) + " ");
                     label.getStyle().set("font-weight", "bold");
                 });
 
                 dom.span(label -> {
                     this.totalElm = label;
-                    this.totalElm.setText(NumberFormat.getCurrencyInstance(Locale.US).format(this.scope.receipt.get().total));
+                    this.totalElm.setText(I18n.price(this.scope.receipt.get().total));
                     this.totalElm.getStyle().set("font-size", "18px")
                             .set("font-weight", "bold")
                             .set("color", "var(--lumo-primary-color)");
@@ -141,7 +136,7 @@ public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptScope> {
         });
 
         dom.button(button -> {
-            button.setText("Back to products");
+            button.setText(text(StoreMessages.RECEIPT_BACK_TO_PRODUCTS));
             button.setIcon(VaadinIcon.ARROW_LEFT.create());
             button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
             button.addClassName("back-button");
@@ -151,7 +146,7 @@ public class ReceiptViewVaadin extends AbstractViewVaadin<ReceiptScope> {
     }
 
     /** The purchase's date and time, in the server's zone (as the other hosts show it). */
-    private static String formatDate(Long millis) {
-        return millis == null ? "" : DATE_TIME_FORMAT.format(Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()));
+    private String formatDate(Long millis) {
+        return millis == null ? text(StoreMessages.FORMAT_DATE_UNAVAILABLE) : this.app.i18n().dateTime(millis);
     }
 }

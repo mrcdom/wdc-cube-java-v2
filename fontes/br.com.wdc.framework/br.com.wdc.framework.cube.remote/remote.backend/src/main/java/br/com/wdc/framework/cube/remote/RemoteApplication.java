@@ -113,6 +113,11 @@ public interface RemoteApplication {
 
     // :: Error handling
 
+    /**
+     * Shows the client an unexpected error, whatever raised it: the application's code or the host (a client message it
+     * could not handle). By default the host's alert ({@link RemoteApplicationSupport#alertUnexpectedError}), a text in
+     * English; an application overrides it to say it its own way, in the user's language.
+     */
     default void alertUnexpectedError(Log log, String msg, Throwable e) {
         getSupport().alertUnexpectedError(log, msg, e);
     }

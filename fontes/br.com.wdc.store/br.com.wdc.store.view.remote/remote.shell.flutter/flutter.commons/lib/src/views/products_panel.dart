@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../design_tokens.dart';
+import '../generated/messages.dart' show MessageKeys;
+import '../i18n.dart';
 import '../utils/format_utils.dart';
 import '../utils/url_utils.dart';
 import '../widgets/hover_card.dart';
@@ -25,7 +27,7 @@ class _ProductsPanelState extends BaseViewState<ProductsPanel> {
     final products = (scope['products'] as List?)?.cast<Map<String, dynamic>>() ?? [];
 
     if (products.isEmpty) {
-      return const Center(child: Text('No products available'));
+      return Center(child: Text(StoreI18n.text(MessageKeys.homeNoProducts)));
     }
 
     return LayoutBuilder(builder: (context, constraints) {

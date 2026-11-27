@@ -19,6 +19,7 @@ Before creating the view in the shell, the Presenter and its Scope must already 
 - The classId declared in the scope: `public static final String CLASS_ID = "5f1e2d3c4b6a";` (12 hex characters, unique among the scopes)
 - The observed fields as public `Prop`s of the scope (the `ScopeSerializer` writes them to JSON)
 - The event codes, given when binding each action (`action(2, ...)`, `actionOf(1, FormParam.asLong("p.itemId"), ...)`)
+- The view's texts in the catalog of every language ([`br.com.wdc.store.i18n`](../../../br.com.wdc.store.i18n/README.md); here `wishlist.title`, `wishlist.back`), with `StoreMessages` generated again
 
 For the example, assume this scope (hypothetical, following `HomeScope.ProductsPanelScope`):
 
@@ -28,7 +29,7 @@ public class WishlistScope extends Scope {
     public static final String CLASS_ID = "5f1e2d3c4b6a";
 
     public final Prop<List<WishlistItem>> items = prop();   // WishlistItem: public long id; public String name;
-    public final Prop<String> errorMessage = prop();
+    public final Prop<Message> errorMessage = prop();        // br.com.wdc.store.i18n.Message: a catalog key and its arguments
 
     public ActionOf<Long> onRemoveItem = ActionOf.noop();     // bound with actionOf(1, FormParam.asLong("p.itemId"), ...)
     public Action onBack = Action.NOOP;                       // bound with action(2, ...)
@@ -57,8 +58,10 @@ import java.util.function.Supplier;
 import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
 
+import br.com.wdc.store.i18n.StoreMessages;
 import br.com.wdc.store.presentation.presenter.restricted.wishlist.WishlistScope;
 import br.com.wdc.store.presentation.presenter.restricted.wishlist.structs.WishlistItem;
+import br.com.wdc.store.view.teavm.commons.I18n;
 import br.com.wdc.store.view.teavm.commons.SelComponents;
 import br.com.wdc.store.view.teavm.commons.SelIcons;
 import br.com.wdc.store.view.teavm.commons.SelUtility;
@@ -103,23 +106,23 @@ public class WishlistSharedView extends SharedVDomView {
     @Override
     public VNode render() {
         var scope = scopeSupplier.get();
-        var errorMessage = scope.errorMessage.get();
-        var showError = errorMessage != null && !errorMessage.isEmpty();
+        var errorMessage = I18n.text(scope.errorMessage.get());   // in the browser's language; empty for none
+        var showError = !errorMessage.isEmpty();
         var items = scope.items.get();
 
         // @formatter:off
         return div(Sel.ROOT).children(
           div(Sel.WRAPPER).children(
-            h5(Sel.TITLE).text("My Wishlist"),
+            h5(Sel.TITLE).text(I18n.text(StoreMessages.WISHLIST_TITLE)),
             // Error
             div(showError ? Sel.ERROR_VISIBLE : Sel.HIDDEN).children(
               span(Sel.ERROR_ICON),
-              span(Sel.ERROR_TEXT).text(errorMessage != null ? errorMessage : "")),
+              span(Sel.ERROR_TEXT).text(errorMessage)),
             // Items
             div().children(items != null ? items.stream().map(this::renderItem).toList() : List.of()),
             // Back button
             spActionButton()
-              .children(span(SelIcons.ARROW_LEFT), span().text(" Back"))
+              .children(span(SelIcons.ARROW_LEFT), span().text(" " + I18n.text(StoreMessages.WISHLIST_BACK)))
               .on("click", backListener)));
         // @formatter:on
     }
@@ -139,7 +142,7 @@ public class WishlistSharedView extends SharedVDomView {
 }
 ```
 
-Add its styles as a partial next to it, `views/wishlist/_wishlist.scss`.
+Every text comes from the catalog (`I18n.text(StoreMessages.XXX)` for the view's own, `I18n.text(message)` for the presenter's). Add its styles as a partial next to it, `views/wishlist/_wishlist.scss`, taking its colors and spacing from the design tokens (`@use "generated/tokens" as t;`, then `t.$color-primary`, `t.$space-md`, ...; [`br.com.wdc.store.design`](../../../br.com.wdc.store.design/README.md)) instead of literals.
 
 ## Step 2 — The adapter (remote.shell.teavm)
 
@@ -194,7 +197,7 @@ public class WishlistView extends AbstractRemoteView {
     // 5. JSON → scope adaptation
     private WishlistScope adaptScope() {
         ViewScope scope = scope();
-        adaptedScope.errorMessage.set(scope.getString("errorMessage"));
+        adaptedScope.errorMessage.set(getMessage("errorMessage"));   // {"key": ..., "args": {...}} → Message
         adaptedScope.items.set(getItems(scope));
         return adaptedScope;
     }
@@ -271,6 +274,8 @@ When the host sends a JSON scope with that ID, the `ScopeCoordinator` looks up t
 | `getBoolean(key)` | `boolean` | Flags |
 | `getMap(key)` | `Map<String, Object>` (empty if absent) | Nested objects |
 | `getValues()` | `Map<String, Object>` | Raw access, e.g. lists (`getValues().get("items") instanceof List<?> list`) |
+
+A message of the presenter (`{"key": ..., "args": {...}}` on the wire) is read with `AbstractRemoteView.getMessage(field)`, which gives the `Message` (or `null`) that the shared view translates with `I18n.text(message)`.
 
 ### Child views
 
@@ -420,5 +425,6 @@ spDivider("s")                // <sp-divider size="s">
 - [ ] `Sel` interface with aliases and suppressions
 - [ ] Stable listeners as `final` fields; parametric ones via `useCallback(key, factory)`
 - [ ] `.key()` on items of dynamic lists
+- [ ] Texts from the catalog (keys in every language), the presenter's message read with `getMessage(field)`; colors from the design tokens
 - [ ] `_x.scss` partial added to `src/main/scss/app.scss`
 - [ ] `./work/bin/build-frontends.sh teavm.shell` builds without errors

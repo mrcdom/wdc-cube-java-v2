@@ -5,6 +5,7 @@ import { BaseViewClass, BasePanelClass } from "@root/utils/ViewUtils"
 import * as NumberUtils from "@root/utils/NumberUtils"
 import * as DateUtils from "@root/utils/DateUtils"
 import Sel from "./home-sel"
+import { t } from "@root/utils/I18n"
 
 const ITEM_HEIGHT_PX = 56
 
@@ -85,9 +86,9 @@ class PurchasesPanelClass extends BaseViewClass<ViewProps, PurchasesPanelScope> 
       <div className={clsx(Sel.purchasesPanel, Sel.purchasesSlot, className)}>
         <div className={Sel.purchasesHeaderRow}>
           <i className={clsx("bi bi-clock-history", Sel.purchasesHeaderIcon)}></i>
-          <span className={Sel.purchasesHeaderTitle}>History</span>
+          <span className={Sel.purchasesHeaderTitle}>{t("home.history")}</span>
         </div>
-        <span className={Sel.purchasesHint}>Tap for details</span>
+        <span className={Sel.purchasesHint}>{t("home.historyHint")}</span>
         <div ref={this.listRef} className={Sel.purchasesListContainer}>
           {this.#renderCompras()}
         </div>

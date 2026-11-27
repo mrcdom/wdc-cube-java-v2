@@ -15,7 +15,9 @@ import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
 import org.teavm.jso.dom.html.HTMLElement;
 
+import br.com.wdc.store.i18n.StoreMessages;
 import br.com.wdc.store.presentation.presenter.restricted.cart.CartScope;
+import br.com.wdc.store.view.teavm.commons.I18n;
 import br.com.wdc.store.view.teavm.commons.SelComponents;
 import br.com.wdc.store.view.teavm.commons.SelIcons;
 import br.com.wdc.store.view.teavm.commons.SelUtility;
@@ -76,12 +78,12 @@ public class CartSharedView extends SharedVDomView {
     @Override
     public VNode render() {
         var scope = scopeSupplier.get();
-        var errorMessage = scope.errorMessage.get();
-        var showError = errorMessage != null && !errorMessage.isEmpty();
+        var errorMessage = I18n.text(scope.errorMessage.get());
+        var showError = !errorMessage.isEmpty();
         var rows = rowElements != null ? rowElements.get() : List.<HTMLElement>of();
         var empty = rows.isEmpty();
         var totalCost = scope.total.get() != null ? scope.total.get() : 0.0;
-        var totalText = "$" + String.format("%.2f", totalCost);
+        var totalText = I18n.price(totalCost);
 
         // @formatter:off
         return div(Sel.ROOT).children(
@@ -91,12 +93,12 @@ public class CartSharedView extends SharedVDomView {
                 div(Sel.HEADER_ICON_BOX)
                   .children(span(Sel.HEADER_ICON)),
                 div().children(
-                  h5(Sel.HEADER_TITLE).text("Cart"),
-                  span(Sel.HEADER_SUBTITLE).text("Your selected products"))),
+                  h5(Sel.HEADER_TITLE).text(I18n.text(StoreMessages.CART_TITLE)),
+                  span(Sel.HEADER_SUBTITLE).text(I18n.text(StoreMessages.CART_SUBTITLE)))),
               // Error
               div(showError ? Sel.ERROR_VISIBLE : Sel.HIDDEN).children(
                 span(Sel.ERROR_ICON),
-                span(Sel.ERROR_TEXT).text(errorMessage != null ? errorMessage : "")),
+                span(Sel.ERROR_TEXT).text(errorMessage)),
               // Empty cart state
               renderEmptyState(empty),
               // Cart content
@@ -109,10 +111,10 @@ public class CartSharedView extends SharedVDomView {
         return div(empty ? Sel.EMPTY_STATE : Sel.HIDDEN).children(
           div(Sel.EMPTY_ICON_BOX)
             .children(span(Sel.EMPTY_ICON)),
-          p(Sel.EMPTY_TITLE).text("Your cart is empty"),
-          p(Sel.EMPTY_SUBTITLE).text("Add products to get started"),
+          p(Sel.EMPTY_TITLE).text(I18n.text(StoreMessages.CART_EMPTY)),
+          p(Sel.EMPTY_SUBTITLE).text(I18n.text(StoreMessages.CART_EMPTY_HINT)),
           spButton("accent")
-            .children(span(Sel.ICON_VIEW_PRODUCTS), span().text("Browse products"))
+            .children(span(Sel.ICON_VIEW_PRODUCTS), span().text(I18n.text(StoreMessages.CART_VIEW_PRODUCTS)))
             .on("click", backListener));
         // @formatter:on
     }
@@ -122,15 +124,15 @@ public class CartSharedView extends SharedVDomView {
         return div(empty ? Sel.HIDDEN : "").children(
           div().children(rows.stream().map(VNode::slot).toList()),
           div(Sel.FOOTER).children(
-            span(Sel.FOOTER_LABEL).text("Total: "),
+            span(Sel.FOOTER_LABEL).text(I18n.text(StoreMessages.CART_TOTAL) + " "),
             span(Sel.FOOTER_TOTAL).text(totalText)),
           div(Sel.ACTIONS_ROW).children(
             spActionButton()
-              .children(span(SelIcons.ARROW_LEFT), span().text(" Continue shopping"))
+              .children(span(SelIcons.ARROW_LEFT), span().text(" " + I18n.text(StoreMessages.CART_CONTINUE_SHOPPING)))
               .on("click", backListener),
             spButton("accent", "l")
               .boolAttr("disabled", empty)
-              .children(span(Sel.ICON_FINALIZE), span().text("Checkout"))
+              .children(span(Sel.ICON_FINALIZE), span().text(I18n.text(StoreMessages.CART_CHECKOUT)))
               .on("click", buyListener)));
         // @formatter:on
     }

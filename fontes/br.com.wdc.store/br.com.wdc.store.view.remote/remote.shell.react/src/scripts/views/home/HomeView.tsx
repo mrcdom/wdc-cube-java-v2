@@ -4,6 +4,7 @@ import bridge, { type ViewProps } from "@root/bridge"
 import { BaseViewClass } from "@root/utils/ViewUtils"
 import HeaderPanel from "./HeaderPanel"
 import Sel from "./home-sel"
+import { type Message, t, tm } from "@root/utils/I18n"
 
 // :: View
 
@@ -13,7 +14,7 @@ export type HomeScope = {
   productsPanelViewId?: string
   purchasesPanelViewId?: string
   contentViewId?: string
-  errorMessage: string
+  errorMessage?: Message
 }
 
 class HomeViewClass extends BaseViewClass<ViewProps, HomeScope> {
@@ -31,7 +32,7 @@ class HomeViewClass extends BaseViewClass<ViewProps, HomeScope> {
         {scope.errorMessage ? (
           <div className={Sel.alertError}>
             <span className={clsx("bi bi-exclamation-circle", Sel.alertErrorIcon)}></span>
-            <span className={Sel.alertErrorText}>{scope.errorMessage}</span>
+            <span className={Sel.alertErrorText}>{tm(scope.errorMessage)}</span>
           </div>
         ) : null}
         {this.renderContentPane()}
@@ -64,7 +65,7 @@ class HomeViewClass extends BaseViewClass<ViewProps, HomeScope> {
             onClick={this.onTabProducts}
           >
             <span className="bi bi-grid-3x3-gap text-base"></span>
-            <span>Products</span>
+            <span>{t("home.products")}</span>
             {this.showingProducts ? <span className={Sel.tabIndicator}></span> : <span className={Sel.hidden}></span>}
           </button>
           <button
@@ -72,7 +73,7 @@ class HomeViewClass extends BaseViewClass<ViewProps, HomeScope> {
             onClick={this.onTabHistory}
           >
             <span className="bi bi-clock-history text-base"></span>
-            <span>History</span>
+            <span>{t("home.history")}</span>
             {!this.showingProducts ? <span className={Sel.tabIndicator}></span> : <span className={Sel.hidden}></span>}
           </button>
         </nav>

@@ -3,6 +3,7 @@ import clsx from "clsx"
 import bridge, { type ViewProps } from "@root/bridge"
 import { BaseViewClass } from "@root/utils/ViewUtils"
 import { Button, FieldLabel, Textfield } from "@root/swc"
+import { type Message, t, tm } from "@root/utils/I18n"
 import Sel from "./login-sel"
 
 // :: Actions
@@ -12,7 +13,7 @@ const ON_LOGIN = 1
 // :: View
 
 export type LoginScope = {
-  errorMessage?: string
+  errorMessage?: Message
   loading?: boolean
 }
 
@@ -33,20 +34,20 @@ class LoginViewClass extends BaseViewClass<ViewProps, LoginScope> {
             <div className={clsx(Sel.logoBoxLg, Sel.mb16)}>
               <i className={clsx("bi bi-bag-check", Sel.logoIconLg)}></i>
             </div>
-            <h1 className={Sel.titleLg}>WDC Store</h1>
-            <p className={Sel.subtitleLg}>Your trusted online store.</p>
+            <h1 className={Sel.titleLg}>{t("app.name")}</h1>
+            <p className={Sel.subtitleLg}>{t("app.tagline")}</p>
             <div className={Sel.featuresList}>
               <div className={Sel.featureRow}>
                 <i className={clsx("bi bi-shield-check", Sel.featureIcon)}></i>
-                <span className={Sel.featureText}>Secure checkout</span>
+                <span className={Sel.featureText}>{t("login.featureSecureCheckout")}</span>
               </div>
               <div className={Sel.featureRow}>
                 <i className={clsx("bi bi-truck", Sel.featureIcon)}></i>
-                <span className={Sel.featureText}>Fast delivery</span>
+                <span className={Sel.featureText}>{t("login.featureFastDelivery")}</span>
               </div>
               <div className={Sel.featureRow}>
                 <i className={clsx("bi bi-arrow-repeat", Sel.featureIcon)}></i>
-                <span className={Sel.featureText}>Hassle-free returns</span>
+                <span className={Sel.featureText}>{t("login.featureReturns")}</span>
               </div>
             </div>
           </div>
@@ -63,15 +64,15 @@ class LoginViewClass extends BaseViewClass<ViewProps, LoginScope> {
                 <div className={Sel.logoBoxSm}>
                   <i className={clsx("bi bi-bag-check", Sel.iconSm)}></i>
                 </div>
-                <div className={Sel.mobileTitle}>WDC Store</div>
-                <div className={Sel.mobileSubtitle}>Your trusted online store.</div>
+                <div className={Sel.mobileTitle}>{t("app.name")}</div>
+                <div className={Sel.mobileSubtitle}>{t("app.tagline")}</div>
               </div>
             </div>
 
             {/* Welcome text */}
             <div className={Sel.welcomeWrap}>
-              <h2 className={Sel.welcomeTitle}>Welcome</h2>
-              <p className={Sel.welcomeSubtitle}>Sign in with your credentials to continue</p>
+              <h2 className={Sel.welcomeTitle}>{t("login.welcome")}</h2>
+              <p className={Sel.welcomeSubtitle}>{t("login.subtitle")}</p>
             </div>
 
             {/* Error message */}
@@ -80,17 +81,17 @@ class LoginViewClass extends BaseViewClass<ViewProps, LoginScope> {
                 <span className={Sel.alertErrorIcon}>
                   <i className="bi bi-exclamation-circle"></i>
                 </span>
-                <span className={Sel.alertErrorText}>{scope.errorMessage}</span>
+                <span className={Sel.alertErrorText}>{tm(scope.errorMessage)}</span>
               </div>
             )}
 
             {/* User field */}
             <FieldLabel for="login-user" className={Sel.fieldLabel}>
-              Username
+              {t("login.username")}
             </FieldLabel>
             <Textfield
               id="login-user"
-              placeholder="Enter your username"
+              placeholder={t("login.usernamePlaceholder")}
               className={Sel.field}
               disabled={scope.loading || undefined}
               ref={this.userFieldRef}
@@ -98,12 +99,12 @@ class LoginViewClass extends BaseViewClass<ViewProps, LoginScope> {
 
             {/* Password field */}
             <FieldLabel for="login-password" className={Sel.fieldLabel}>
-              Password
+              {t("login.password")}
             </FieldLabel>
             <Textfield
               id="login-password"
               type="password"
-              placeholder="Enter your password"
+              placeholder={t("login.passwordPlaceholder")}
               className={Sel.fieldPassword}
               disabled={scope.loading || undefined}
               ref={this.passFieldRef}
@@ -118,12 +119,12 @@ class LoginViewClass extends BaseViewClass<ViewProps, LoginScope> {
               pending={scope.loading || undefined}
               ref={this.btnRef}
             >
-              {scope.loading ? "Signing in..." : "Sign in"}
+              {scope.loading ? t("login.signingIn") : t("login.signIn")}
             </Button>
 
             {/* Demo hint */}
             <div className={Sel.demoHint}>
-              <span className={Sel.demoText}>Demo access: </span>
+              <span className={Sel.demoText}>{t("login.demoAccess")} </span>
               <span className={Sel.demoHighlight}>admin</span>
               <span className={Sel.demoText}> / </span>
               <span className={Sel.demoHighlight}>admin</span>

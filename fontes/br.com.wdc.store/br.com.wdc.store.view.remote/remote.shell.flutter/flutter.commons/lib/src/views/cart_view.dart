@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../design_tokens.dart';
+import '../generated/messages.dart' show MessageKeys;
+import '../i18n.dart';
 import '../utils/format_utils.dart';
 import '../widgets/error_banner.dart';
 import '../widgets/page_card.dart';
@@ -26,17 +28,18 @@ class _CartViewState extends BaseViewState<CartView> {
   Widget build(BuildContext context) {
     // The rows are views of their own (CartItemView), referred to by id in the cart's order
     final rows = (scope['rowsViewIds'] as List?)?.cast<String>() ?? [];
-    final errorMessage = scope['errorMessage'] as String?;
+    final message = StoreI18n.message(scope['errorMessage']);
+    final errorMessage = message.isEmpty ? null : message;
     final empty = rows.isEmpty;
     final total = (scope['total'] as num?)?.toDouble() ?? 0.0;
 
     return PageCard(
       children: [
         // Header
-        const ViewHeader(
+        ViewHeader(
           icon: Icons.shopping_bag_outlined,
-          title: 'Cart',
-          subtitle: 'Your selected products',
+          title: StoreI18n.text(MessageKeys.cartTitle),
+          subtitle: StoreI18n.text(MessageKeys.cartSubtitle),
         ),
         const SizedBox(height: 20),
         // Error
@@ -56,16 +59,16 @@ class _CartViewState extends BaseViewState<CartView> {
             ),
           ),
           const SizedBox(height: 20),
-          const Center(child: Text('Your cart is empty', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500))),
+          Center(child: Text(StoreI18n.text(MessageKeys.cartEmpty), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500))),
           const SizedBox(height: 8),
-          const Center(child: Text('Add products to get started', style: TextStyle(fontSize: 13, color: appTextSecondary))),
+          Center(child: Text(StoreI18n.text(MessageKeys.cartEmptyHint), style: const TextStyle(fontSize: 13, color: appTextSecondary))),
           const SizedBox(height: 16),
           Center(
             child: FilledButton.icon(
               onPressed: _emitBack,
               style: accentButtonStyle,
               icon: const Icon(Icons.grid_view, size: 18),
-              label: const Text('View products'),
+              label: Text(StoreI18n.text(MessageKeys.cartViewProducts)),
             ),
           ),
           const SizedBox(height: 40),
@@ -83,7 +86,7 @@ class _CartViewState extends BaseViewState<CartView> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                const Text('Total: ', style: TextStyle(fontSize: 14, color: appTextSecondary)),
+                Text('${StoreI18n.text(MessageKeys.cartTotal)} ', style: const TextStyle(fontSize: 14, color: appTextSecondary)),
                 Text(formatCurrency(total),
                     style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: appAccent)),
               ],
@@ -99,13 +102,13 @@ class _CartViewState extends BaseViewState<CartView> {
               TextButton.icon(
                 onPressed: _emitBack,
                 icon: const Icon(Icons.arrow_back, size: 18),
-                label: const Text('Continue shopping'),
+                label: Text(StoreI18n.text(MessageKeys.cartContinueShopping)),
               ),
               FilledButton.icon(
                 onPressed: _emitBuy,
                 style: accentButtonStyle,
                 icon: const Icon(Icons.check_circle_outline, size: 18),
-                label: const Text('Checkout'),
+                label: Text(StoreI18n.text(MessageKeys.cartCheckout)),
               ),
             ],
           ),

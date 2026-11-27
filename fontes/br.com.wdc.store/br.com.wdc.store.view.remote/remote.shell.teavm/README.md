@@ -109,7 +109,7 @@ protected VNode render() {
 
 private CartScope adaptScope() {
     ViewScope scope = scope();
-    adaptedScope.errorMessage.set(scope.getString("errorMessage"));
+    adaptedScope.errorMessage.set(getMessage("errorMessage")); // {"key", "args"} → Message
     adaptedScope.total.set(scope.getDouble("total"));
     return adaptedScope;
 }

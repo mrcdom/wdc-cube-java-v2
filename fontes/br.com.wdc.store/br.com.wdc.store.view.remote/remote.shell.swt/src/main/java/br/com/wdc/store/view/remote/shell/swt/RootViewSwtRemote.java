@@ -30,7 +30,7 @@ class RootViewSwtRemote extends RootViewSwt {
 			scope.content.set(this.ctx.drawnBy(new Scope() {
 			}, contentId));
 		}
-		scope.errorMessage.set(s.getString("errorMessage"));
+		scope.errorMessage.set(WireMessages.messageOf(s, "errorMessage"));
 		return scope;
 	}
 }

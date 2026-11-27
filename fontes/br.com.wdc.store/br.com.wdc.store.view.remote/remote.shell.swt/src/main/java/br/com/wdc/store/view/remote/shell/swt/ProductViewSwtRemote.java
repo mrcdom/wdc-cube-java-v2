@@ -38,7 +38,7 @@ class ProductViewSwtRemote extends ProductViewSwt {
 			return null;
 		}
 		var scope = new ProductScope();
-		scope.errorMessage.set(s.getString("errorMessage"));
+		scope.errorMessage.set(WireMessages.messageOf(s, "errorMessage"));
 		var code = s.getLong("errorCode");
 		scope.errorCode.set(code != null ? code.intValue() : 0);
 		var raw = s.getMap("product");

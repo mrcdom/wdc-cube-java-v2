@@ -14,11 +14,13 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
+import br.com.wdc.store.i18n.StoreMessages;
 import br.com.wdc.store.presentation.presenter.restricted.cart.CartScope;
 import br.com.wdc.store.view.swt.AbstractViewSwt;
 import br.com.wdc.store.view.swt.SwtApp;
 import br.com.wdc.store.view.swt.components.ErrorBanner;
 import br.com.wdc.store.view.swt.theme.Theme;
+import br.com.wdc.store.view.swt.util.I18n;
 import br.com.wdc.store.view.swt.util.SwtDom;
 
 public class CartViewSwt extends AbstractViewSwt {
@@ -77,9 +79,10 @@ public class CartViewSwt extends AbstractViewSwt {
         setCardVisible(this.filledCard, !empty);
 
         // Sync error banner
-        boolean showError = scope != null && scope.errorMessage.get() != null && !scope.errorMessage.get().isEmpty();
+        var message = scope != null ? scope.errorMessage.get() : null;
+        boolean showError = message != null;
         if (showError) {
-            errorBanner.setMessage(scope.errorMessage.get());
+            errorBanner.setMessage(I18n.text(message));
         }
 
         if (showError != errorBanner.isShown()) {
@@ -148,7 +151,7 @@ public class CartViewSwt extends AbstractViewSwt {
         this.emptyCard = dom.card(card -> {
             card.setLayoutData(gdFill(new GridData()));
 
-            dom.cardHeader(Theme.ICON_BAG, "Cart", "Your selected products");
+            dom.cardHeader(Theme.ICON_BAG, I18n.text(StoreMessages.CART_TITLE), I18n.text(StoreMessages.CART_SUBTITLE));
             dom.spacer(40);
 
             int circleSize = 120;
@@ -163,7 +166,7 @@ public class CartViewSwt extends AbstractViewSwt {
             });
 
             dom.label(SWT.CENTER, lbl -> {
-                lbl.setText("Your cart is empty");
+                lbl.setText(I18n.text(StoreMessages.CART_EMPTY));
                 lbl.setFont(Theme.FONT_NAV_TITLE);
                 lbl.setForeground(Theme.FG_TEXT_DARK);
                 lbl.setBackground(Theme.BG_WHITE);
@@ -175,7 +178,7 @@ public class CartViewSwt extends AbstractViewSwt {
             });
 
             dom.label(SWT.CENTER, lbl -> {
-                lbl.setText("Add products to get started");
+                lbl.setText(I18n.text(StoreMessages.CART_EMPTY_HINT));
                 lbl.setFont(Theme.FONT_BODY);
                 lbl.setForeground(Theme.FG_TEXT_SUBTLE);
                 lbl.setBackground(Theme.BG_WHITE);
@@ -186,7 +189,7 @@ public class CartViewSwt extends AbstractViewSwt {
                 lbl.setLayoutData(lblGd);
             });
 
-            dom.primaryButton(Theme.ICON_GRID_3X3_GAP, "Browse products", btn -> {
+            dom.primaryButton(Theme.ICON_GRID_3X3_GAP, I18n.text(StoreMessages.CART_VIEW_PRODUCTS), btn -> {
                 var gd = new GridData(SWT.CENTER, SWT.CENTER, false, false);
                 gd.verticalIndent = 20;
                 btn.setLayoutData(gd);
@@ -206,7 +209,7 @@ public class CartViewSwt extends AbstractViewSwt {
             gdTop(cardGd);
             card.setLayoutData(cardGd);
 
-            dom.cardHeader(Theme.ICON_BAG, "Cart", "Your selected products");
+            dom.cardHeader(Theme.ICON_BAG, I18n.text(StoreMessages.CART_TITLE), I18n.text(StoreMessages.CART_SUBTITLE));
 
             // Items container — slots will be synced here
             this.itemsContainer = dom.col(col -> {
@@ -226,7 +229,7 @@ public class CartViewSwt extends AbstractViewSwt {
                 rowLayout.horizontalSpacing = 12;
 
                 dom.label(lbl -> {
-                    lbl.setText("Total:");
+                    lbl.setText(I18n.text(StoreMessages.CART_TOTAL));
                     lbl.setFont(Theme.FONT_BODY);
                     lbl.setForeground(Theme.FG_TEXT_DARK);
                     lbl.setBackground(Theme.BG_WHITE);
@@ -249,12 +252,12 @@ public class CartViewSwt extends AbstractViewSwt {
                 actionsRow.setLayoutData(actionsRowGd);
                 actionsRow.setBackground(Theme.BG_WHITE);
 
-                dom.actionButton(Theme.ICON_ARROW_LEFT, "Continue shopping", Theme.BG_WHITE, btn -> {
+                dom.actionButton(Theme.ICON_ARROW_LEFT, I18n.text(StoreMessages.CART_CONTINUE_SHOPPING), Theme.BG_WHITE, btn -> {
                     btn.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
                     btn.addListener(SWT.MouseUp, evt -> safeAction("onOpenProducts", () -> { if (onOpenProducts != null) onOpenProducts.run(); }));
                 });
 
-                dom.primaryButton(Theme.ICON_CHECK2_SQUARE, "Checkout", btn -> {
+                dom.primaryButton(Theme.ICON_CHECK2_SQUARE, I18n.text(StoreMessages.CART_CHECKOUT), btn -> {
                     btn.addListener(SWT.MouseUp, evt -> safeAction("onBuy", () -> { if (onBuy != null) onBuy.run(); }));
                 });
             });

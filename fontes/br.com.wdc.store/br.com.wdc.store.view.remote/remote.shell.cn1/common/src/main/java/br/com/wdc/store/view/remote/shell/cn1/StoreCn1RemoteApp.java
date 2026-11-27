@@ -17,6 +17,8 @@ import com.codename1.ui.layouts.BorderLayout;
 
 import br.com.wdc.store.view.remote.shell.cn1.bridge.AbstractCn1View;
 import br.com.wdc.store.view.remote.shell.cn1.bridge.BridgeSession;
+import br.com.wdc.store.view.remote.shell.cn1.i18n.StoreMessages;
+import br.com.wdc.store.view.remote.shell.cn1.i18n.Texts;
 import br.com.wdc.store.view.remote.shell.cn1.util.Images;
 import br.com.wdc.store.view.remote.shell.cn1.util.Json;
 import br.com.wdc.store.view.remote.shell.cn1.views.RootCn1View;
@@ -97,6 +99,7 @@ public class StoreCn1RemoteApp extends Lifecycle {
 
     @Override
     public void runApp() {
+        Texts.useDeviceLanguage();
         baseUrl = ServerConfig.baseUrl();
         Images.setBaseUrl(baseUrl);
         wasExpanded = isExpanded();
@@ -119,13 +122,13 @@ public class StoreCn1RemoteApp extends Lifecycle {
 
     /** Shows the "connecting" screen and opens the bridge on a thread; on failure, shows error + retry. */
     private void startConnect() {
-        showSplash(false, "Connecting to server...", null);
+        showSplash(false, Texts.text(StoreMessages.CN1_CONNECTING), null);
         session = new BridgeSession(baseUrl, this::onPush,
-                () -> showSplash(true, "This app is out of date. Please update it to connect to the server.", null),
+                () -> showSplash(true, Texts.text(StoreMessages.CONNECTION_OUTDATED_APP), null),
                 new BridgeSession.ConnectionListener() {
                     @Override
                     public void onDisconnected(int attempt, long delayMs) {
-                        showSplash(false, "Connection lost. Reconnecting...", null);
+                        showSplash(false, Texts.text(StoreMessages.CN1_CONNECTION_LOST), null);
                     }
 
                     @Override
@@ -140,7 +143,7 @@ public class StoreCn1RemoteApp extends Lifecycle {
             try {
                 session.connect();
             } catch (Exception e) {
-                CN.callSerially(() -> showSplash(true, "Could not connect to the server.", this::startConnect));
+                CN.callSerially(() -> showSplash(true, Texts.text(StoreMessages.ERROR_CONNECTION), this::startConnect));
             }
         }).start();
     }
@@ -250,14 +253,15 @@ public class StoreCn1RemoteApp extends Lifecycle {
         }
         final String message;
         if (alertId == -2) {
-            message = "The URI " + (args.isEmpty() ? "" : args.get(0)) + " is not accessible";
+            message = Texts.format(StoreMessages.ALERT_URI_NOT_ACCESSIBLE, "uri", args.isEmpty() ? "" : args.get(0));
         } else {
-            message = args.isEmpty() ? "An unexpected error occurred" : args.get(0);
+            message = args.isEmpty() ? Texts.text(StoreMessages.ERROR_UNEXPECTED) : args.get(0);
         }
         final String detail = args.size() > 1 ? args.get(1) : null;
 
         CN.callSerially(() -> {
-            Dialog.show("Warning!", detail != null ? message + "\n\n" + detail : message, "OK", null);
+            Dialog.show(Texts.text(StoreMessages.ALERT_TITLE), detail != null ? message + "\n\n" + detail : message,
+                    Texts.text(StoreMessages.ALERT_OK), null);
             shownAlertId = 0;
             session.submit(BridgeSession.BROWSER_VSID, 1, new HashMap<String, Object>());
         });
@@ -301,7 +305,7 @@ public class StoreCn1RemoteApp extends Lifecycle {
             form.revalidate();
         } catch (Exception e) {
             com.codename1.io.Log.e(e);
-            showSplash(true, "Error rendering the screen.", null);
+            showSplash(true, Texts.text(StoreMessages.CN1_RENDER_ERROR), null);
         }
     }
 
@@ -325,13 +329,13 @@ public class StoreCn1RemoteApp extends Lifecycle {
             form.revalidate();
         } catch (Exception e) {
             com.codename1.io.Log.e(e);
-            showSplash(true, "Error rendering the screen.", null);
+            showSplash(true, Texts.text(StoreMessages.CN1_RENDER_ERROR), null);
         }
     }
 
     /**
      * "Brand" screen shown before receiving the backend state (and on failure): blue gradient
-     * + logo + title, with a <b>spinner</b> (connecting) or an error icon + "Try again".
+     * + logo + title, with a <b>spinner</b> (connecting) or an error icon + "Retry now".
      */
     private void showSplash(boolean error, String status, Runnable onRetry) {
         if (splash == null) {

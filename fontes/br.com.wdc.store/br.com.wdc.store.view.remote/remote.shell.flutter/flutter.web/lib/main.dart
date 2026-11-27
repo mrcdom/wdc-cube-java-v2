@@ -12,6 +12,9 @@ void main() async {
   // Disable Flutter's internal URL management — we handle navigation ourselves
   setUrlStrategy(null);
 
+  // The language of the texts: the browser's, once
+  StoreI18n.init();
+
   final appId = _resolveAppId();
   final protocol = web.window.location.protocol == 'http:' ? 'ws://' : 'wss://';
   final baseWsUrl = '$protocol${web.window.location.host}';
@@ -154,10 +157,10 @@ class StoreApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'WDC Store',
+      title: StoreI18n.text(MessageKeys.appName),
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0D66D0)),
+        colorScheme: ColorScheme.fromSeed(seedColor: StoreTokens.primary),
         useMaterial3: true,
       ),
       home: const Scaffold(body: BrowserView()),

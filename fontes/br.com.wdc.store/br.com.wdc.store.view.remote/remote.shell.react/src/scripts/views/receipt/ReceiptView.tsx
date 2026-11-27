@@ -6,6 +6,7 @@ import { ActionButton } from "@root/swc"
 import * as NumberUtils from "@root/utils/NumberUtils"
 import * as DateUtils from "@root/utils/DateUtils"
 import Sel from "./receipt-sel"
+import { t } from "@root/utils/I18n"
 
 // :: Actions
 
@@ -48,7 +49,7 @@ class ReceiptViewClass extends BaseViewClass<ViewProps, ReceiptScope> {
               <span className={Sel.alertSuccessIcon}>
                 <i className="bi bi-check-circle-fill"></i>
               </span>
-              <span className={Sel.alertSuccessText}>Purchase completed successfully!</span>
+              <span className={Sel.alertSuccessText}>{t("receipt.completed")}</span>
             </div>
           )}
 
@@ -60,8 +61,8 @@ class ReceiptViewClass extends BaseViewClass<ViewProps, ReceiptScope> {
                 <i className={clsx("bi bi-receipt", Sel.cardHeaderIcon)}></i>
               </div>
               <div>
-                <h5 className={Sel.cardHeaderTitle}>Purchase Receipt</h5>
-                <span className={Sel.cardHeaderSubtitle}>WDC Store</span>
+                <h5 className={Sel.cardHeaderTitle}>{t("receipt.title")}</h5>
+                <span className={Sel.cardHeaderSubtitle}>{t("app.name")}</span>
               </div>
             </div>
 
@@ -69,7 +70,7 @@ class ReceiptViewClass extends BaseViewClass<ViewProps, ReceiptScope> {
             <div className={Sel.body}>
               {/* Date */}
               <div className={Sel.dateRow}>
-                <span className={Sel.dateLabel}>Date:</span>
+                <span className={Sel.dateLabel}>{t("receipt.date")}</span>
                 <span className={Sel.dateValue}>
                   {scope.receipt?.date ? DateUtils.formatDateTime(scope.receipt.date) : ""}
                 </span>
@@ -77,9 +78,9 @@ class ReceiptViewClass extends BaseViewClass<ViewProps, ReceiptScope> {
 
               {/* Items table */}
               <div className={Sel.tableHeader}>
-                <span className={Sel.colItem}>ITEM</span>
-                <span className={Sel.colQty}>QTY</span>
-                <span className={Sel.colValue}>PRICE</span>
+                <span className={Sel.colItem}>{t("receipt.item")}</span>
+                <span className={Sel.colQty}>{t("receipt.quantity")}</span>
+                <span className={Sel.colValue}>{t("receipt.price")}</span>
               </div>
               <div>
                 {receiptItems.map((item, idx) => (
@@ -93,7 +94,7 @@ class ReceiptViewClass extends BaseViewClass<ViewProps, ReceiptScope> {
 
               {/* Total */}
               <div className={Sel.totalRow}>
-                <span className={Sel.totalLabel}>TOTAL:</span>
+                <span className={Sel.totalLabel}>{t("receipt.total")}</span>
                 <span className={Sel.totalValue}>{NumberUtils.formatCurrency(scope.receipt?.total ?? 0)}</span>
               </div>
             </div>
@@ -101,7 +102,7 @@ class ReceiptViewClass extends BaseViewClass<ViewProps, ReceiptScope> {
             {/* Back button */}
             <ActionButton quiet className={Sel.backBtn} onClick={this.emitOpenProducts}>
               <i className={clsx("bi bi-arrow-left", Sel.mr4)}></i>
-              Back to products
+              {t("receipt.backToProducts")}
             </ActionButton>
           </div>
         </div>

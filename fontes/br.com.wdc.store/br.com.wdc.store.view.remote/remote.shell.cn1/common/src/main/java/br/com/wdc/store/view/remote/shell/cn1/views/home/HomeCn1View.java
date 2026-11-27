@@ -17,6 +17,8 @@ import com.codename1.ui.plaf.RoundBorder;
 import br.com.wdc.store.view.remote.shell.cn1.StoreCn1RemoteApp;
 import br.com.wdc.store.view.remote.shell.cn1.bridge.AbstractCn1View;
 import br.com.wdc.store.view.remote.shell.cn1.bridge.BridgeSession;
+import br.com.wdc.store.view.remote.shell.cn1.i18n.StoreMessages;
+import br.com.wdc.store.view.remote.shell.cn1.i18n.Texts;
 import br.com.wdc.store.view.remote.shell.cn1.theme.Colors;
 import br.com.wdc.store.view.remote.shell.cn1.util.Cn1Dom;
 import br.com.wdc.store.view.remote.shell.cn1.util.Guard;
@@ -89,7 +91,7 @@ public class HomeCn1View extends AbstractCn1View {
                     greetBox = dom.boxY(greet -> {
                         dom.label(l -> {
                             l.setUIID(sel.GREETING_SMALL);
-                            l.setText("Welcome,");
+                            l.setText(Texts.text(StoreMessages.HOME_WELCOME));
                         });
                         dom.label(l -> {
                             l.setUIID(sel.GREETING_NAME);
@@ -113,11 +115,11 @@ public class HomeCn1View extends AbstractCn1View {
                             dom.boxY(t -> {
                                 dom.label(l -> {
                                     l.setUIID(sel.APP_BAR_BRAND);
-                                    l.setText("Store");
+                                    l.setText(Texts.text(StoreMessages.APP_STORE));
                                 });
                                 brandSub = dom.label(l -> {
                                     l.setUIID(sel.APP_BAR_BRAND_SUB);
-                                    l.setText("By WeDoCode");
+                                    l.setText(Texts.text(StoreMessages.APP_BY_WEDOCODE));
                                 });
                             });
                         });
@@ -166,8 +168,8 @@ public class HomeCn1View extends AbstractCn1View {
             splitPane = Cn1Dom.render(new BorderLayout(), (dom, pane) -> {
                 dom.container(new GridLayout(2), BorderLayout.NORTH, tabs -> {
                     tabs.setUIID(sel.TAB_NAV);
-                    tabProducts = tabButton(dom, "Products", FontImage.MATERIAL_VIEW_MODULE, true);
-                    tabHistory = tabButton(dom, "History", FontImage.MATERIAL_HISTORY, false);
+                    tabProducts = tabButton(dom, Texts.text(StoreMessages.HOME_PRODUCTS), FontImage.MATERIAL_VIEW_MODULE, true);
+                    tabHistory = tabButton(dom, Texts.text(StoreMessages.HOME_HISTORY), FontImage.MATERIAL_HISTORY, false);
                 });
                 activeHolder = dom.slot(BorderLayout.CENTER);
             });
@@ -221,11 +223,12 @@ public class HomeCn1View extends AbstractCn1View {
 
     @Override
     public void doUpdate() {
+        showError(); // the presenter's error, if any, as a toast
         boolean wide = app.isExpanded();
         layoutSplit();                       // rebuilds the split if the mode changed
         Guard.visible(greetBox, wide);       // greeting / "By WeDoCode" / cart text: only when expanded
         Guard.visible(brandSub, wide);
-        cartText.accept(wide ? "Cart" : "");
+        cartText.accept(wide ? Texts.text(StoreMessages.CART_TITLE) : "");
 
         Map<String, Object> scope = scope();
         nick.accept(Json.str(scope, "nickName"));

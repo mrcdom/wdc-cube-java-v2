@@ -16,9 +16,11 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.widgets.Display;
 
+import br.com.wdc.store.design.StoreTokens;
+
 /**
- * Centralized design tokens for the SWT WDC Store application.
- * All colors, fonts, icons and dimensions are defined here.
+ * The theme of the SWT WDC Store application: its colors, fonts, icons and dimensions. The colors come from the
+ * store's design tokens ({@link StoreTokens}); font sizes are points calibrated on macOS.
  */
 public final class Theme {
 
@@ -52,42 +54,42 @@ public final class Theme {
 
     // ========== COLORS — Primary Palette ==========
 
-    public static final Color PRIMARY_BLUE = color(0x0D, 0x66, 0xD0);
-    public static final Color PRIMARY_BLUE_DARK = color(0x0B, 0x5A, 0xBA);
-    public static final Color PRIMARY_BLUE_LIGHT = color(0x1A, 0x8C, 0xFF);
+    public static final Color PRIMARY_BLUE = color(StoreTokens.COLOR_PRIMARY);
+    public static final Color PRIMARY_BLUE_DARK = color(StoreTokens.COLOR_PRIMARY_DARK);
+    public static final Color PRIMARY_BLUE_LIGHT = color(StoreTokens.COLOR_ACCENT);
 
     // ========== COLORS — Backgrounds ==========
 
-    public static final Color BG_PAGE = color(0xF4, 0xF6, 0xF9);
-    public static final Color BG_WHITE = color(0xFF, 0xFF, 0xFF);
+    public static final Color BG_PAGE = color(StoreTokens.COLOR_BACKGROUND);
+    public static final Color BG_WHITE = color(StoreTokens.COLOR_SURFACE);
     public static final Color BG_HEADER = PRIMARY_BLUE;
-    public static final Color BG_LOGIN_LEFT = color(0x4D, 0xA6, 0xFF);
+    public static final Color BG_LOGIN_LEFT = color(StoreTokens.COLOR_ACCENT_SOFT);
     public static final Color BG_CARD = BG_WHITE;
-    public static final Color BG_SUCCESS = color(0xE8, 0xF5, 0xE9);
-    public static final Color BG_ICON_BOX = color(0xE8, 0xF1, 0xFC);
-    public static final Color BG_BTN_HOVER = color(0xEE, 0xEE, 0xEE);
-    public static final Color BG_ERROR = color(0xFD, 0xED, 0xED);
-    public static final Color BG_IMAGE_PLACEHOLDER = color(0xEE, 0xF2, 0xF7);
+    public static final Color BG_SUCCESS = color(StoreTokens.COLOR_SUCCESS_BACKGROUND);
+    public static final Color BG_ICON_BOX = color(StoreTokens.COLOR_PRIMARY_LIGHT);
+    public static final Color BG_BTN_HOVER = color(StoreTokens.COLOR_SURFACE_SUBTLE);
+    public static final Color BG_ERROR = color(StoreTokens.COLOR_ERROR_BACKGROUND);
+    public static final Color BG_IMAGE_PLACEHOLDER = color(StoreTokens.COLOR_SURFACE_SUBTLE);
 
     // ========== COLORS — Text ==========
 
-    public static final Color FG_TEXT_DARK = color(0x1D, 0x1D, 0x1F);
-    public static final Color FG_TEXT_SUBTLE = color(0x75, 0x75, 0x75);
-    public static final Color FG_TEXT_WHITE = color(0xFF, 0xFF, 0xFF);
-    public static final Color FG_TEXT_WHITE_70 = color(0xFF, 0xFF, 0xFF, 0xB3);
-    public static final Color FG_TEXT_WHITE_65 = color(0xFF, 0xFF, 0xFF, 0xA6);
-    public static final Color FG_PRICE = color(0xC6, 0x28, 0x28);
+    public static final Color FG_TEXT_DARK = color(StoreTokens.COLOR_TEXT);
+    public static final Color FG_TEXT_SUBTLE = color(StoreTokens.COLOR_TEXT_SECONDARY);
+    public static final Color FG_TEXT_WHITE = color(StoreTokens.COLOR_ON_PRIMARY);
+    public static final Color FG_TEXT_WHITE_70 = color(StoreTokens.COLOR_ON_PRIMARY, 0xB3);
+    public static final Color FG_TEXT_WHITE_65 = color(StoreTokens.COLOR_ON_PRIMARY, 0xA6);
+    public static final Color FG_PRICE = PRIMARY_BLUE;
     public static final Color FG_LINK = PRIMARY_BLUE;
-    public static final Color FG_ERROR = color(0xD3, 0x2F, 0x2F);
-    public static final Color FG_SUCCESS = color(0x2E, 0x7D, 0x32);
+    public static final Color FG_ERROR = color(StoreTokens.COLOR_ERROR);
+    public static final Color FG_SUCCESS = color(StoreTokens.COLOR_SUCCESS);
 
     // ========== COLORS — Borders ==========
 
-    public static final Color BORDER_LIGHT = color(0xE5, 0xE5, 0xEA);
-    public static final Color BORDER_FIELD = color(0xCC, 0xCC, 0xCC);
+    public static final Color BORDER_LIGHT = color(StoreTokens.COLOR_BORDER);
+    public static final Color BORDER_FIELD = color(StoreTokens.COLOR_BORDER_STRONG);
     public static final Color BORDER_FIELD_FOCUS = PRIMARY_BLUE;
-    public static final Color BORDER_ERROR = color(0xD3, 0x2F, 0x2F);
-    public static final Color BORDER_ERROR_BOX = color(0xF5, 0xC6, 0xC6);
+    public static final Color BORDER_ERROR = FG_ERROR;
+    public static final Color BORDER_ERROR_BOX = color(StoreTokens.COLOR_ERROR_BORDER);
 
     // ========== FONTS ==========
 
@@ -145,14 +147,14 @@ public final class Theme {
     // ========== DIMENSIONS ==========
 
     public static final int HEADER_HEIGHT = 56;
-    public static final int CARD_RADIUS = 12;
+    public static final int CARD_RADIUS = StoreTokens.RADIUS_MD;
     public static final int CARD_RADIUS_LARGE = 24;
     public static final int FIELD_HEIGHT = 40;
     public static final int BUTTON_HEIGHT = 44;
-    public static final int SPACING_SM = 8;
-    public static final int SPACING_MD = 16;
-    public static final int SPACING_LG = 24;
-    public static final int SPACING_XL = 32;
+    public static final int SPACING_SM = StoreTokens.SPACE_XS;
+    public static final int SPACING_MD = StoreTokens.SPACE_MD;
+    public static final int SPACING_LG = StoreTokens.SPACE_XL;
+    public static final int SPACING_XL = StoreTokens.SPACE_XXL;
 
     // ========== INITIALIZATION ==========
 
@@ -244,12 +246,14 @@ public final class Theme {
         return PRICE_FORMAT.format(value);
     }
 
-    private static Color color(int r, int g, int b) {
-        return new Color(Display.getDefault(), r, g, b);
+    /** The color of a token ({@code 0xRRGGBB}). */
+    private static Color color(int rgb) {
+        return new Color(Display.getDefault(), (rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF);
     }
 
-    private static Color color(int r, int g, int b, int a) {
-        return new Color(r, g, b, a);
+    /** The color of a token ({@code 0xRRGGBB}) with an alpha. */
+    private static Color color(int rgb, int alpha) {
+        return new Color((rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF, alpha);
     }
 
     /**

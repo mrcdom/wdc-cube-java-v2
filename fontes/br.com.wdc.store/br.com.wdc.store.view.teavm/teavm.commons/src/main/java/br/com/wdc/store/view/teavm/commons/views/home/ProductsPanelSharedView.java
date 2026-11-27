@@ -15,6 +15,7 @@ import org.teavm.jso.dom.events.EventListener;
 
 import br.com.wdc.store.presentation.presenter.restricted.home.HomeScope.ProductsPanelScope;
 import br.com.wdc.store.presentation.presenter.restricted.products.structs.ProductInfo;
+import br.com.wdc.store.view.teavm.commons.I18n;
 import br.com.wdc.store.view.teavm.commons.SharedVDomView;
 import br.com.wdc.store.view.teavm.commons.VNode;
 
@@ -60,7 +61,7 @@ public class ProductsPanelSharedView extends SharedVDomView {
     private VNode renderCard(ProductInfo product) {
         var imageUrl = product.image != null ? imageResolver.apply(product.image) : "";
         var name = product.name != null ? product.name : "";
-        var price = product.price > 0 ? "$" + String.format("%.2f", product.price) : "";
+        var price = product.price > 0 ? I18n.price(product.price) : "";
         var key = String.valueOf(product.id);
 
         // @formatter:off

@@ -4,6 +4,7 @@ import bridge from "@root/bridge"
 import { BasePanelClass } from "@root/utils/ViewUtils"
 import { Theme, ActionButton } from "@root/swc"
 import Sel from "./home-sel"
+import { t } from "@root/utils/I18n"
 
 // :: Actions
 
@@ -32,7 +33,7 @@ class HeaderPanelClass extends BasePanelClass<HeaderPanelProps> {
             <span className={clsx("bi bi-box-arrow-left", Sel.textLg, Sel.textWhite)}></span>
           </ActionButton>
           <div className={clsx(Sel.smShow, Sel.flexCol, Sel.leadingTight)}>
-            <span className={clsx(Sel.textXs, Sel.textWhite70, Sel.fontNormal)}>Welcome,</span>
+            <span className={clsx(Sel.textXs, Sel.textWhite70, Sel.fontNormal)}>{t("home.welcome")}</span>
             <span className={clsx(Sel.textSm, Sel.fontSemibold, Sel.textWhite)}>{nickName}</span>
           </div>
         </div>
@@ -43,9 +44,9 @@ class HeaderPanelClass extends BasePanelClass<HeaderPanelProps> {
             <span className={clsx("bi bi-bag-check", Sel.textXl, Sel.textWhite)}></span>
           </div>
           <div className={clsx(Sel.flexCol, Sel.leadingTight)}>
-            <span className={clsx(Sel.textBase, Sel.fontBold, Sel.textWhite, Sel.trackingTight)}>Store</span>
+            <span className={clsx(Sel.textBase, Sel.fontBold, Sel.textWhite, Sel.trackingTight)}>{t("app.store")}</span>
             <span className={clsx(Sel.smShow, Sel.textXs, Sel.textWhite65, Sel.fontNormal, Sel.trackingWide)}>
-              By WeDoCode
+              {t("app.byWedocode")}
             </span>
           </div>
         </div>
@@ -54,7 +55,9 @@ class HeaderPanelClass extends BasePanelClass<HeaderPanelProps> {
         <div className={Sel.flexItemsCenter}>
           <ActionButton quiet className={Sel.relative} ref={this.cartBtnRef}>
             <span className={clsx("bi bi-bag", Sel.textXl, Sel.textWhite)}></span>
-            <span className={clsx(Sel.smShow, Sel.textSm, Sel.textWhite, Sel.fontMedium, Sel.ml6)}>Cart</span>
+            <span className={clsx(Sel.smShow, Sel.textSm, Sel.textWhite, Sel.fontMedium, Sel.ml6)}>
+              {t("cart.title")}
+            </span>
             <span className={Sel.cartBadge}>{cartItemCount}</span>
           </ActionButton>
         </div>

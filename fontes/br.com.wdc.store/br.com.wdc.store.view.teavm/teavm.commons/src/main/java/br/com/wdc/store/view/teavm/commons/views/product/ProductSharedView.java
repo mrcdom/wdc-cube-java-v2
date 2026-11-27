@@ -16,7 +16,9 @@ import java.util.function.UnaryOperator;
 import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.events.EventListener;
 
+import br.com.wdc.store.i18n.StoreMessages;
 import br.com.wdc.store.presentation.presenter.restricted.products.ProductScope;
+import br.com.wdc.store.view.teavm.commons.I18n;
 import br.com.wdc.store.view.teavm.commons.SelComponents;
 import br.com.wdc.store.view.teavm.commons.SelIcons;
 import br.com.wdc.store.view.teavm.commons.SelUtility;
@@ -89,8 +91,8 @@ public class ProductSharedView extends SharedVDomView {
     @Override
     public VNode render() {
         var scope = scopeSupplier.get();
-        var errorMessage = scope.errorMessage.get();
-        var showError = errorMessage != null && !errorMessage.isEmpty();
+        var errorMessage = I18n.text(scope.errorMessage.get());
+        var showError = !errorMessage.isEmpty();
 
         String name = "";
         String image = "";
@@ -100,7 +102,7 @@ public class ProductSharedView extends SharedVDomView {
             var p = scope.product.get();
             name = p.name != null ? p.name : "";
             image = p.image != null ? imageResolver.apply(p.image) : "";
-            price = p.price > 0 ? "$" + String.format("%.2f", p.price) : "";
+            price = p.price > 0 ? I18n.price(p.price) : "";
             description = p.description != null ? p.description : "";
         }
 
@@ -125,7 +127,7 @@ public class ProductSharedView extends SharedVDomView {
               div(Sel.PRICE_COL).children(
                 span(Sel.PRICE_BADGE).text(price),
                 div(Sel.QTY_ROW).children(
-                  span(Sel.QTY_LABEL).text("Qty:"),
+                  span(Sel.QTY_LABEL).text(I18n.text(StoreMessages.CART_QUANTITY)),
                   spActionButton("s")
                     .children(span(SelIcons.DASH))
                     .on("click", onDecrement),
@@ -138,15 +140,15 @@ public class ProductSharedView extends SharedVDomView {
             // Action buttons row
             div(Sel.ACTIONS_ROW).children(
               spActionButton()
-                .children(span(SelIcons.ARROW_LEFT), span().text(" Back"))
+                .children(span(SelIcons.ARROW_LEFT), span().text(" " + I18n.text(StoreMessages.PRODUCT_BACK)))
                 .on("click", backListener),
               spButton("accent", "l")
-                .children(span(Sel.ICON_ADD_CART), span().text("Add to Cart"))
+                .children(span(Sel.ICON_ADD_CART), span().text(I18n.text(StoreMessages.PRODUCT_ADD_TO_CART)))
                 .on("click", addToCartListener))),
           // Error
           div(showError ? Sel.ERROR_VISIBLE : Sel.HIDDEN).children(
             span(Sel.ERROR_ICON),
-            span(Sel.ERROR_TEXT).text(errorMessage != null ? errorMessage : "")));
+            span(Sel.ERROR_TEXT).text(errorMessage)));
         // @formatter:on
     }
 }

@@ -19,6 +19,8 @@ import com.codename1.ui.util.UITimer;
 import br.com.wdc.store.view.remote.shell.cn1.StoreCn1RemoteApp;
 import br.com.wdc.store.view.remote.shell.cn1.bridge.AbstractCn1View;
 import br.com.wdc.store.view.remote.shell.cn1.bridge.BridgeSession;
+import br.com.wdc.store.view.remote.shell.cn1.i18n.StoreMessages;
+import br.com.wdc.store.view.remote.shell.cn1.i18n.Texts;
 import br.com.wdc.store.view.remote.shell.cn1.theme.Colors;
 import br.com.wdc.store.view.remote.shell.cn1.util.Cn1Dom;
 import br.com.wdc.store.view.remote.shell.cn1.util.Guard;
@@ -86,12 +88,12 @@ public class PurchasesPanelCn1View extends AbstractCn1View {
                     });
                     dom.label(l -> {
                         l.setUIID(sel.PURCHASES_TITLE);
-                        l.setText("History");
+                        l.setText(Texts.text(StoreMessages.HOME_HISTORY));
                     });
                 });
                 dom.label(l -> {
                     l.setUIID(sel.PURCHASES_HINT);
-                    l.setText("Tap for details");
+                    l.setText(Texts.text(StoreMessages.HOME_HISTORY_HINT));
                 });
             });
 

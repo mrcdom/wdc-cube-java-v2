@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../design_tokens.dart';
+import '../generated/messages.dart' show MessageKeys;
+import '../i18n.dart';
 import '../utils/format_utils.dart';
 import 'package:remote_bridge_flutter/remote_bridge_flutter.dart';
 
@@ -84,13 +86,13 @@ class _PurchasesPanelState extends BaseViewState<PurchasesPanel> {
               children: [
                 const Icon(Icons.history, size: 18, color: appAccent),
                 const SizedBox(width: 8),
-                const Text('History', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                Text(StoreI18n.text(MessageKeys.homeHistory), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
               ],
             ),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text('Tap for details', style: TextStyle(fontSize: 12, color: appTextSecondary)),
+            child: Text(StoreI18n.text(MessageKeys.homeHistoryHint), style: const TextStyle(fontSize: 12, color: appTextSecondary)),
           ),
           const SizedBox(height: 12),
           // List

@@ -1,31 +1,23 @@
-function pad2(value: number) {
-  return value < 10 ? "0" + value : String(value)
-}
+import { t } from "@root/utils/I18n"
+import { formatPattern } from "@root/utils/DatePattern"
 
 function toDate(dateOrMillis: number | Date) {
   return typeof dateOrMillis === "number" ? new Date(dateOrMillis) : dateOrMillis
 }
 
-/** Formats a date as `MM/DD/YYYY`. */
+/** Formats a date with the catalog's `format.date` pattern of the shell's language. */
 export function formatDate(dateOrMillis: number | Date | null | undefined) {
   if (dateOrMillis === undefined || dateOrMillis == null) {
     console.error("Date missing or invalid!")
-    return "Date unavailable"
+    return t("format.dateUnavailable")
   }
-
-  const date = toDate(dateOrMillis)
-  // getMonth() is zero-based
-  return pad2(date.getMonth() + 1) + "/" + pad2(date.getDate()) + "/" + date.getFullYear()
+  return formatPattern(toDate(dateOrMillis), t("format.date"))
 }
 
-/** Formats a date-time as `MM/DD/YYYY h:mm AM|PM` (12-hour clock). */
+/** Formats a date-time with the catalog's `format.dateTime` pattern of the shell's language. */
 export function formatDateTime(dateOrMillis: number | Date | null | undefined) {
   if (dateOrMillis === undefined || dateOrMillis == null) {
     return ""
   }
-
-  const date = toDate(dateOrMillis)
-  const hours = date.getHours()
-  const hour12 = hours % 12 === 0 ? 12 : hours % 12
-  return formatDate(date) + " " + hour12 + ":" + pad2(date.getMinutes()) + (hours < 12 ? " AM" : " PM")
+  return formatPattern(toDate(dateOrMillis), t("format.dateTime"))
 }

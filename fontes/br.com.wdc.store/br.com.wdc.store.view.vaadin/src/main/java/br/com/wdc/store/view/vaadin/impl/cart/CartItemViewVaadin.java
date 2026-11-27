@@ -1,16 +1,16 @@
 package br.com.wdc.store.view.vaadin.impl.cart;
 
-import java.text.NumberFormat;
-import java.util.Locale;
 import java.util.Objects;
 
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 
+import br.com.wdc.store.i18n.StoreMessages;
 import br.com.wdc.store.presentation.presenter.restricted.cart.CartScope.CartItemScope;
 import br.com.wdc.store.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.store.view.vaadin.StoreVaadinApplication;
+import br.com.wdc.store.view.vaadin.util.I18n;
 import br.com.wdc.store.view.vaadin.util.ResourceCatalog;
 import br.com.wdc.store.view.vaadin.util.VaadinDom;
 
@@ -55,7 +55,7 @@ public class CartItemViewVaadin extends AbstractViewVaadin<CartItemScope> {
         }
 
         if (this.priceOldValue != this.scope.price.get().doubleValue()) {
-            this.priceElm.setText(NumberFormat.getCurrencyInstance(Locale.US).format(this.scope.price.get()));
+            this.priceElm.setText(I18n.price(this.scope.price.get()));
             this.priceOldValue = this.scope.price.get();
         }
 
@@ -90,7 +90,7 @@ public class CartItemViewVaadin extends AbstractViewVaadin<CartItemScope> {
         dom.span(label -> {
             label.addClassName("cell-2");
             this.priceElm = label;
-            this.priceElm.setText(NumberFormat.getCurrencyInstance(Locale.US).format(this.scope.price.get()));
+            this.priceElm.setText(I18n.price(this.scope.price.get()));
             this.priceOldValue = this.scope.price.get();
         });
 
@@ -106,7 +106,7 @@ public class CartItemViewVaadin extends AbstractViewVaadin<CartItemScope> {
 
             dom.image(img -> {
                 img.setSrc("images/delete.png");
-                img.setAlt("Remove");
+                img.setAlt(text(StoreMessages.VAADIN_REMOVE));
                 img.setWidth("16px");
                 img.setHeight("16px");
                 img.getStyle().set("cursor", "pointer");

@@ -36,6 +36,13 @@
             <artifactId>br.com.wdc.store.presentation</artifactId>
         </dependency>
 
+        <!-- UI text catalog (StoreMessages, Message) compiled to JS -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <version>${project.version}</version>
+            <artifactId>br.com.wdc.store.i18n</artifactId>
+        </dependency>
+
         <!-- Tests of the pure-Java parts on the JVM -->
         <dependency>
             <groupId>junit</groupId>

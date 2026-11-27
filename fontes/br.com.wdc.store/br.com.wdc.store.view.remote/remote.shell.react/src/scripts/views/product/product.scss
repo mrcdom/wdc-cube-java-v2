@@ -1,6 +1,8 @@
 // Styles of the product (detail) module.
 // Imported by product-sel.ts; do not reference this file directly from the views.
 
+@use "../../../scss/generated/tokens" as *;
+
 .wdc-product {
   &__title {
     font-weight: 700;
@@ -72,7 +74,7 @@
   }
 
   &__image-box {
-    background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+    background: linear-gradient(180deg, $color-surface-muted 0%, $color-surface-subtle 100%);
     border-radius: var(--app-radius-sm);
     padding: 16px;
     display: flex;

@@ -13,7 +13,9 @@ import br.com.wdc.framework.commons.http.HttpTransport;
 import br.com.wdc.framework.commons.serialization.InputCoerceUtils;
 import br.com.wdc.framework.commons.serialization.JsonStreamReader;
 import br.com.wdc.framework.domain.exception.BusinessException;
+import br.com.wdc.store.i18n.StoreMessages;
 import br.com.wdc.store.persistence.client.HttpFailure;
+import br.com.wdc.store.view.teavm.commons.I18n;
 
 /**
  * {@link HttpTransport} implementation using asynchronous XMLHttpRequest through TeaVM coroutines.
@@ -208,21 +210,18 @@ public class FetchHttpTransport implements HttpTransport {
 	// ── Session expired handling ─────────────────────────────────────────────
 
 	private static void handleConnectionRefused() {
-		showConnectionRefusedDialog();
+		showDialog(I18n.text(StoreMessages.ERROR_CONNECTION));
 		throw new BusinessException("Server unavailable");
 	}
 
-	@JSBody(params = {}, script = "alert('Could not connect to the server.\\nCheck that the server is running.');")
-	private static native void showConnectionRefusedDialog();
-
 	private static void handleSessionExpired() {
-		showSessionExpiredDialog();
+		showDialog(I18n.text(StoreMessages.TEAVM_SESSION_ENDED));
 		reloadPage();
 		throw new BusinessException("Session expired");
 	}
 
-	@JSBody(params = {}, script = "alert('Your server session has ended.\\nYou will be redirected to sign in.');")
-	private static native void showSessionExpiredDialog();
+	@JSBody(params = { "message" }, script = "alert(message);")
+	private static native void showDialog(String message);
 
 	@JSBody(params = {}, script = "window.location.reload();")
 	private static native void reloadPage();

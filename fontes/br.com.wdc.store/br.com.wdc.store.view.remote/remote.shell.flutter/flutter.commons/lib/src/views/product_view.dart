@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../design_tokens.dart';
+import '../generated/messages.dart' show MessageKeys;
+import '../i18n.dart';
 import '../utils/format_utils.dart';
 import '../utils/url_utils.dart';
 import '../widgets/error_banner.dart';
@@ -33,7 +35,8 @@ class _ProductViewState extends BaseViewState<ProductView> {
     final description = product['description'] as String? ?? '';
     final price = (product['price'] as num?)?.toDouble() ?? 0.0;
     final productId = product['id'];
-    final errorMessage = scope['errorMessage'] as String?;
+    final message = StoreI18n.message(scope['errorMessage']);
+    final errorMessage = message.isEmpty ? null : message;
 
     // Re-sync quantity when product changes
     if (productId != _lastProductId) {
@@ -95,9 +98,9 @@ class _ProductViewState extends BaseViewState<ProductView> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
-                      'Qty:',
-                      style: TextStyle(fontSize: 14, color: appTextSecondary),
+                    Text(
+                      StoreI18n.text(MessageKeys.cartQuantity),
+                      style: const TextStyle(fontSize: 14, color: appTextSecondary),
                     ),
                     const SizedBox(width: 10),
                     IconButton(
@@ -157,14 +160,14 @@ class _ProductViewState extends BaseViewState<ProductView> {
             TextButton.icon(
               onPressed: _emitGoHome,
               icon: const Icon(Icons.arrow_back, size: 18),
-              label: const Text('Back'),
+              label: Text(StoreI18n.text(MessageKeys.productBack)),
             ),
             const SizedBox(width: 12),
             FilledButton.icon(
               onPressed: _emitAddToCart,
               style: accentButtonStyle,
               icon: const Icon(Icons.add_shopping_cart, size: 18),
-              label: const Text('Add to Cart'),
+              label: Text(StoreI18n.text(MessageKeys.productAddToCart)),
             ),
           ],
         ),

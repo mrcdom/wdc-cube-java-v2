@@ -1,6 +1,8 @@
 // Styles of the login module — split layout, decorative panel, form.
 // Imported by login-sel.ts; do not reference this file directly from the views.
 
+@use "../../../scss/generated/tokens" as *;
+
 .wdc-login {
   display: flex;
   flex: 1;
@@ -12,7 +14,7 @@
 
   &__left-panel {
     flex: 1;
-    background: linear-gradient(160deg, #0d66d0 0%, #1a8cff 40%, #4da6ff 100%);
+    background: linear-gradient(160deg, $color-primary 0%, $color-accent 40%, $color-accent-soft 100%);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -30,13 +32,13 @@
 
   &__logo-icon-lg {
     font-size: 2.2rem;
-    color: #fff;
+    color: $color-on-primary;
   }
 
   &__title-lg {
     font-size: 2rem;
     font-weight: 800;
-    color: #fff;
+    color: $color-on-primary;
     letter-spacing: -0.5px;
     margin-bottom: 8px;
   }
@@ -97,7 +99,7 @@
     text-align: center;
     padding: 24px 16px;
     margin: -32px -32px 24px -32px;
-    background: linear-gradient(160deg, #0d66d0 0%, #1a8cff 40%, #4da6ff 100%);
+    background: linear-gradient(160deg, $color-primary 0%, $color-accent 40%, $color-accent-soft 100%);
     position: relative;
     overflow: hidden;
   }
@@ -142,13 +144,13 @@
 
   &__icon-sm {
     font-size: 1.4rem;
-    color: #fff;
+    color: $color-on-primary;
   }
 
   &__mobile-title {
     font-size: 1.2rem;
     font-weight: 700;
-    color: #fff;
+    color: $color-on-primary;
   }
 
   &__mobile-subtitle {

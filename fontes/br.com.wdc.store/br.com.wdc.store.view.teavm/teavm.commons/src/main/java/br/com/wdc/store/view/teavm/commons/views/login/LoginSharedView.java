@@ -18,7 +18,9 @@ import org.teavm.jso.dom.events.KeyboardEvent;
 import org.teavm.jso.dom.html.HTMLElement;
 import org.teavm.jso.dom.html.HTMLInputElement;
 
+import br.com.wdc.store.i18n.StoreMessages;
 import br.com.wdc.store.presentation.presenter.open.login.LoginScope;
+import br.com.wdc.store.view.teavm.commons.I18n;
 import br.com.wdc.store.view.teavm.commons.SelComponents;
 import br.com.wdc.store.view.teavm.commons.SelIcons;
 import br.com.wdc.store.view.teavm.commons.SelUtility;
@@ -116,11 +118,11 @@ public class LoginSharedView extends SharedVDomView {
     public VNode render() {
         var scope = scopeSupplier.get();
         var loading = scope.loading.get();
-        var errorMessage = scope.errorMessage.get();
-        var showError = errorMessage != null && !errorMessage.isEmpty();
-        
-        var title = "WDC Store";
-        var subtitle = "Your trusted online store.";
+        var errorMessage = I18n.text(scope.errorMessage.get());
+        var showError = !errorMessage.isEmpty();
+
+        var title = I18n.text(StoreMessages.APP_NAME);
+        var subtitle = I18n.text(StoreMessages.APP_TAGLINE);
 
         // @formatter:off
         return div(Sel.LOGIN_ROOT).children(
@@ -135,9 +137,9 @@ public class LoginSharedView extends SharedVDomView {
               div(Sel.TITLE_LG).children(textNode(title)),
               div(Sel.SUBTITLE_LG).children(textNode(subtitle)),
               div(Sel.FEATURES_LIST).children(
-                renderFeature(SelIcons.SHIELD_CHECK, "Secure checkout"),
-                renderFeature(SelIcons.TRUCK, "Fast delivery"),
-                renderFeature(SelIcons.ARROW_REPEAT, "Hassle-free returns")))),
+                renderFeature(SelIcons.SHIELD_CHECK, I18n.text(StoreMessages.LOGIN_FEATURE_SECURE_CHECKOUT)),
+                renderFeature(SelIcons.TRUCK, I18n.text(StoreMessages.LOGIN_FEATURE_FAST_DELIVERY)),
+                renderFeature(SelIcons.ARROW_REPEAT, I18n.text(StoreMessages.LOGIN_FEATURE_RETURNS))))),
           // Right: form panel
           div(Sel.FORM_PANEL).children(
             div(Sel.FORM_CONTENT).children(
@@ -152,15 +154,15 @@ public class LoginSharedView extends SharedVDomView {
                   div(Sel.MOBILE_SUBTITLE).children(textNode(subtitle)))),
               // Welcome text
               div(Sel.WELCOME_WRAP).children(
-                div(Sel.WELCOME_TITLE).children(textNode("Welcome")),
-                div(Sel.WELCOME_SUBTITLE).children(textNode("Enter your credentials to continue"))),
+                div(Sel.WELCOME_TITLE).children(textNode(I18n.text(StoreMessages.LOGIN_WELCOME))),
+                div(Sel.WELCOME_SUBTITLE).children(textNode(I18n.text(StoreMessages.LOGIN_SUBTITLE)))),
               // Error alert
               div(showError ? Sel.ERROR_VISIBLE : Sel.HIDDEN).children(
                 span(Sel.ERROR_ICON),
-                span(Sel.ERROR_TEXT).text(errorMessage != null ? errorMessage : "")),
+                span(Sel.ERROR_TEXT).text(errorMessage)),
               // User field
-              spFieldLabel("login-user", "Username").cls(Sel.FIELD_LABEL),
-              spTextField("Enter your username")
+              spFieldLabel("login-user", I18n.text(StoreMessages.LOGIN_USERNAME)).cls(Sel.FIELD_LABEL),
+              spTextField(I18n.text(StoreMessages.LOGIN_USERNAME_PLACEHOLDER))
                 .attr("id", "login-user")
                 .attr("autocomplete", "off")
                 .attr("autocapitalize", "off")
@@ -172,8 +174,8 @@ public class LoginSharedView extends SharedVDomView {
                     patchInputAttrs(el);
                 }),
               // Password field
-              spFieldLabel("login-pass", "Password").cls(Sel.FIELD_LABEL),
-              spTextField("Enter your password", "password")
+              spFieldLabel("login-pass", I18n.text(StoreMessages.LOGIN_PASSWORD)).cls(Sel.FIELD_LABEL),
+              spTextField(I18n.text(StoreMessages.LOGIN_PASSWORD_PLACEHOLDER), "password")
                 .attr("id", "login-pass")
                 .attr("autocomplete", "off")
                 .attr("autocapitalize", "off")
@@ -191,10 +193,10 @@ public class LoginSharedView extends SharedVDomView {
                 .boolAttr("pending", loading)
                 .cls(Sel.ENTER_BUTTON)
                 .on("click", onClickEnter)
-                .children(textNode(loading ? "Signing in..." : "Sign in")),
+                .children(textNode(I18n.text(loading ? StoreMessages.LOGIN_SIGNING_IN : StoreMessages.LOGIN_SIGN_IN))),
               // Demo hint
               div(Sel.DEMO_HINT).children(
-                span(Sel.DEMO_TEXT).text("Demo access: "),
+                span(Sel.DEMO_TEXT).text(I18n.text(StoreMessages.LOGIN_DEMO_ACCESS) + " "),
                 span(Sel.DEMO_HIGHLIGHT).text("admin"),
                 span(Sel.DEMO_TEXT).text(" / "),
                 span(Sel.DEMO_HIGHLIGHT).text("admin")))));

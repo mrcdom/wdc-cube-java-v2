@@ -13,12 +13,14 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Label;
 
+import br.com.wdc.store.i18n.StoreMessages;
 import br.com.wdc.store.presentation.presenter.restricted.products.ProductScope;
 import br.com.wdc.store.view.swt.AbstractViewSwt;
 import br.com.wdc.store.view.swt.SwtApp;
 import br.com.wdc.store.view.swt.components.ErrorBanner;
 import br.com.wdc.store.view.swt.theme.Surface;
 import br.com.wdc.store.view.swt.theme.Theme;
+import br.com.wdc.store.view.swt.util.I18n;
 import br.com.wdc.store.view.swt.util.ProductImageCache;
 import br.com.wdc.store.view.swt.util.SwtDom;
 
@@ -46,9 +48,10 @@ public class ProductViewSwt extends AbstractViewSwt {
         // Update error visibility
         if (errorBanner != null && !errorBanner.isDisposed()) {
             var scope = this.scopeSupplier != null ? this.scopeSupplier.get() : null;
-            boolean showError = scope != null && scope.errorMessage.get() != null && !scope.errorMessage.get().isEmpty();
+            var message = scope != null ? scope.errorMessage.get() : null;
+            boolean showError = message != null;
             if (showError) {
-                errorBanner.setMessage(scope.errorMessage.get());
+                errorBanner.setMessage(I18n.text(message));
             }
             if (showError != errorBanner.isShown()) {
                 errorBanner.setShown(showError);
@@ -152,7 +155,7 @@ public class ProductViewSwt extends AbstractViewSwt {
                             qtyLayout.horizontalSpacing = 10;
 
                             page.label(lbl -> {
-                                lbl.setText("Qty:");
+                                lbl.setText(I18n.text(StoreMessages.CART_QUANTITY));
                                 lbl.setFont(Theme.FONT_QTY);
                                 lbl.setForeground(Theme.FG_TEXT_SUBTLE);
                                 lbl.setBackground(Theme.BG_PAGE);
@@ -210,12 +213,12 @@ public class ProductViewSwt extends AbstractViewSwt {
                     var actionsLayout = (GridLayout) actionsRow.getLayout();
                     actionsLayout.horizontalSpacing = 20;
 
-                    page.actionButton(Theme.ICON_ARROW_LEFT, "Back", Theme.BG_PAGE, btn -> {
+                    page.actionButton(Theme.ICON_ARROW_LEFT, I18n.text(StoreMessages.PRODUCT_BACK), Theme.BG_PAGE, btn -> {
                         btn.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
                         btn.addListener(SWT.MouseUp, evt -> safeAction("product.onOpenProducts", () -> { if (onOpenProducts != null) onOpenProducts.run(); }));
                     });
 
-                    page.primaryButton(Theme.ICON_BAG_PLUS, "Add to Cart", Theme.BG_PAGE, btn -> {
+                    page.primaryButton(Theme.ICON_BAG_PLUS, I18n.text(StoreMessages.PRODUCT_ADD_TO_CART), Theme.BG_PAGE, btn -> {
                         btn.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
                         btn.addListener(SWT.MouseUp, evt -> {
                             safeAction("product.onAddToCart", () -> { if (onAddToCart != null) onAddToCart.accept(this.quantity); });
@@ -230,7 +233,7 @@ public class ProductViewSwt extends AbstractViewSwt {
     }
 
     private String[] parseDescription(String desc) {
-        if (desc == null || desc.isBlank()) return new String[]{"No description."};
+        if (desc == null || desc.isBlank()) return new String[]{I18n.text(StoreMessages.PRODUCT_NO_DESCRIPTION)};
         desc = desc.replaceAll("</?ul>|</?ol>", "");
         desc = desc.replaceAll("<br\\s*/?>", "\n");
         if (desc.contains("<li>")) {

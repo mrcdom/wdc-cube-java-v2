@@ -42,8 +42,15 @@
             <version>${project.version}</version>
             <artifactId>br.com.wdc.store.presentation</artifactId>
         </dependency>
-        
-        <!-- TeaVM Commons (VDom, Swc, interop) -->
+
+        <!-- UI text catalog (StoreMessages, Message): translates the scopes' messages -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <version>${project.version}</version>
+            <artifactId>br.com.wdc.store.i18n</artifactId>
+        </dependency>
+
+        <!-- TeaVM Commons) (VDom, Swc, interop) -->
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>teavm.commons</artifactId>

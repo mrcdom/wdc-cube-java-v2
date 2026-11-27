@@ -13,6 +13,7 @@ import com.vaadin.flow.component.HasComponents;
 
 import br.com.wdc.framework.commons.log.Log;
 import br.com.wdc.framework.cube.Scope;
+import br.com.wdc.store.i18n.Message;
 
 /**
  * A Vaadin view: draws a scope into a component.
@@ -50,6 +51,16 @@ public abstract class AbstractViewVaadin<S extends Scope> {
         this.app = app;
         this.scope = scope;
         this.element = element;
+    }
+
+    /** The text of {@code key} in the user's language. */
+    protected String text(String key) {
+        return this.app.i18n().text(key);
+    }
+
+    /** The text of {@code message} in the user's language; an empty text when there is no message. */
+    protected String text(Message message) {
+        return this.app.i18n().text(message);
     }
 
     public String instanceId() {

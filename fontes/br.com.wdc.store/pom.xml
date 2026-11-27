@@ -49,6 +49,8 @@
 	</dependencyManagement>
 
 	<modules>
+		<module>br.com.wdc.store.design</module>
+		<module>br.com.wdc.store.i18n</module>
 		<module>br.com.wdc.store.domain</module>
 		<module>br.com.wdc.store.persistence</module>
 

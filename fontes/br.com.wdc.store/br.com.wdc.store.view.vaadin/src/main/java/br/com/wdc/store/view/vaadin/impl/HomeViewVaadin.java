@@ -13,6 +13,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
+import br.com.wdc.store.i18n.StoreMessages;
 import br.com.wdc.store.presentation.presenter.restricted.home.HomeScope;
 import br.com.wdc.store.view.vaadin.AbstractViewVaadin;
 import br.com.wdc.store.view.vaadin.StoreVaadinApplication;
@@ -63,7 +64,7 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomeScope> {
         }
 
         if (this.nickNameOldValue == null || !this.nickNameOldValue.equals(this.scope.nickName.get())) {
-            this.nickNameElm.setText("Hello, " + this.scope.nickName.get());
+            this.nickNameElm.setText(text(StoreMessages.HOME_WELCOME) + " " + this.scope.nickName.get());
             this.nickNameOldValue = this.scope.nickName.get();
         }
 
@@ -103,7 +104,7 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomeScope> {
         }
 
         if (this.scope.errorCode.get() != 0) {
-            Notification.show(this.scope.errorMessage.get(), 5000, Notification.Position.TOP_CENTER)
+            Notification.show(text(this.scope.errorMessage.get()), 5000, Notification.Position.TOP_CENTER)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
             // Consumed while drawing: a redraw now would take the message away
             this.scope.errorCode.setSilently(0);
@@ -138,14 +139,14 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomeScope> {
                     button.addClassName("exit-button");
                     button.setIcon(exitIcon);
                     button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
-                    button.getElement().setAttribute("title", "Sign out");
+                    button.getElement().setAttribute("title", text(StoreMessages.HOME_SIGN_OUT));
                     button.addClickListener(e -> safeAction("Exit", this.scope.onExit::run));
                 });
 
                 dom.span(label -> {
                     this.nickNameElm = label;
                     label.addClassName("welcome-label");
-                    label.setText("Hello, " + this.scope.nickName.get());
+                    label.setText(text(StoreMessages.HOME_WELCOME) + " " + this.scope.nickName.get());
                     this.nickNameOldValue = this.scope.nickName.get();
                 });
             });
@@ -157,7 +158,7 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomeScope> {
                 center.setPadding(false);
                 center.setSpacing(false);
 
-                var logo = new Image("images/store-logo.svg", "WDC Store");
+                var logo = new Image("images/store-logo.svg", text(StoreMessages.APP_NAME));
                 logo.setHeight("32px");
                 center.add(logo);
             });
@@ -172,7 +173,7 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomeScope> {
                 // Cart button with icon + badge
                 var cartIcon = VaadinIcon.CART.create();
                 cartIcon.setSize("24px");
-                cartIcon.setColor("white");
+                cartIcon.setColor("var(--store-color-on-primary)");
 
                 this.cartBadge = new Span(String.valueOf(this.scope.cartItemCount.get()));
                 this.cartBadge.getElement().getThemeList().add("badge pill small");
@@ -180,16 +181,16 @@ public class HomeViewVaadin extends AbstractViewVaadin<HomeScope> {
                         .set("top", "-4px").set("right", "-8px")
                         .set("font-size", "10px").set("min-width", "18px")
                         .set("text-align", "center")
-                        .set("background-color", "#ff9800")
-                        .set("color", "white");
+                        .set("background-color", "var(--store-color-warning)")
+                        .set("color", "var(--store-color-on-primary)");
                 this.cartBadge.setVisible(this.scope.cartItemCount.get() > 0);
                 this.cartCountOldValue = this.scope.cartItemCount.get();
 
-                var cartButton = new Button("Cart", cartIcon,
+                var cartButton = new Button(text(StoreMessages.CART_TITLE), cartIcon,
                         e -> safeAction("Open cart", this.scope.onOpenCart::run));
                 cartButton.addClassName("cart-button");
                 cartButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-                cartButton.getStyle().set("color", "white").set("position", "relative");
+                cartButton.getStyle().set("color", "var(--store-color-on-primary)").set("position", "relative");
                 cartButton.getElement().appendChild(this.cartBadge.getElement());
                 right.add(cartButton);
             });

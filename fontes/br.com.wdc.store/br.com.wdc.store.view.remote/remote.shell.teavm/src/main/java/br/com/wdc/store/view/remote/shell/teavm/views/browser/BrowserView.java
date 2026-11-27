@@ -11,7 +11,9 @@ import org.teavm.jso.JSBody;
 import org.teavm.jso.dom.html.HTMLDocument;
 
 import br.com.wdc.framework.cube.remote.bridge.teavm.ScopeCoordinator;
+import br.com.wdc.store.i18n.StoreMessages;
 import br.com.wdc.store.view.remote.shell.teavm.bridge.AbstractRemoteView;
+import br.com.wdc.store.view.teavm.commons.I18n;
 import br.com.wdc.store.view.teavm.commons.SelUtility;
 import br.com.wdc.store.view.teavm.commons.VNode;
 
@@ -84,25 +86,25 @@ public class BrowserView extends AbstractRemoteView {
         String detail = null;
         switch (code) {
             case -1 -> {
-                message = args.isEmpty() ? "An unexpected error occurred" : args.get(0);
+                message = args.isEmpty() ? I18n.text(StoreMessages.ERROR_UNEXPECTED) : args.get(0);
                 detail = args.size() > 1 ? args.get(1) : null;
             }
             case -2 -> {
-                message = "The URI " + (args.isEmpty() ? "" : args.get(0)) + " is not accessible";
+                message = I18n.text(StoreMessages.ALERT_URI_NOT_ACCESSIBLE, "uri", args.isEmpty() ? "" : args.get(0));
                 detail = args.size() > 1 ? args.get(1) : null;
             }
-            default -> message = args.isEmpty() ? "An unexpected error occurred" : args.get(0);
+            default -> message = args.isEmpty() ? I18n.text(StoreMessages.ERROR_UNEXPECTED) : args.get(0);
         }
 
         // @formatter:off
         return div("alert-error").style("margin:16px").children(
           div().style("flex:1").children(
-            div("font-bold text-sm").style("color:var(--app-error-text)").text("Warning!"),
+            div("font-bold text-sm").style("color:var(--app-error-text)").text(I18n.text(StoreMessages.ALERT_TITLE)),
             span("text-sm").style("color:var(--app-error-text)").text(message),
             detail != null ? div("text-xs mt-4").style("color:var(--app-error-text)").text(detail) : null),
           span("text-sm font-medium cursor-pointer ml-4")
             .style("color:var(--app-accent)")
-            .text("OK")
+            .text(I18n.text(StoreMessages.ALERT_OK))
             .on("click", useCallback("alertOk", e -> submit(ON_ALERT_OK))));
         // @formatter:on
     }
@@ -112,11 +114,11 @@ public class BrowserView extends AbstractRemoteView {
         // @formatter:off
         return div("alert-error").style("margin:16px").children(
           div().style("flex:1").children(
-            div("font-bold text-sm").style("color:var(--app-error-text)").text("Warning!"),
-            span("text-sm").style("color:var(--app-error-text)").text(ScopeCoordinator.OUTDATED_MESSAGE)),
+            div("font-bold text-sm").style("color:var(--app-error-text)").text(I18n.text(StoreMessages.ALERT_TITLE)),
+            span("text-sm").style("color:var(--app-error-text)").text(I18n.text(StoreMessages.CONNECTION_OUTDATED_PAGE))),
           span("text-sm font-medium cursor-pointer ml-4")
             .style("color:var(--app-accent)")
-            .text("OK")
+            .text(I18n.text(StoreMessages.ALERT_OK))
             .on("click", useCallback("outdatedOk", e -> reload())));
         // @formatter:on
     }
@@ -145,25 +147,26 @@ public class BrowserView extends AbstractRemoteView {
                 seconds = seconds - minutes * 60;
             }
             timeText = minutes > 0
-                    ? "Reconnecting in " + minutes + "m " + seconds + "s..."
-                    : "Reconnecting in " + seconds + "s...";
+                    ? I18n.text(StoreMessages.CONNECTION_RECONNECTING_IN_MINUTES, "minutes", String.valueOf(minutes), "seconds",
+                            String.valueOf(seconds))
+                    : I18n.text(StoreMessages.CONNECTION_RECONNECTING_IN_SECONDS, "seconds", String.valueOf(seconds));
             showRetry = true;
         } else {
-            timeText = "Reconnecting now...";
+            timeText = I18n.text(StoreMessages.CONNECTION_RECONNECTING_NOW);
             showRetry = false;
         }
 
         var alert = div("alert-error")
                 .style("display:inline-flex;border-radius:0 0 8px 8px;padding:6px 12px;margin:0")
                 .children(
-                        span("font-bold text-sm").style("color:var(--app-error-text)").text("Not connected. "),
+                        span("font-bold text-sm").style("color:var(--app-error-text)").text(I18n.text(StoreMessages.CONNECTION_NOT_CONNECTED) + " "),
                         span("text-sm").style("color:var(--app-error-text)").text(timeText));
 
         if (showRetry) {
             alert.children(
                     span("text-sm font-medium cursor-pointer ml-4")
                             .style("color:var(--app-accent);text-decoration:underline")
-                            .text("Retry now")
+                            .text(I18n.text(StoreMessages.CONNECTION_RETRY_NOW))
                             .on("click", e -> ScopeCoordinator.INSTANCE.reconnectController.checkNow()));
         }
 

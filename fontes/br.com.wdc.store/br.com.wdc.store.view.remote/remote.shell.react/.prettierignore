@@ -5,3 +5,5 @@ build
 work
 *.min.js
 package-lock.json
+src/scripts/generated
+src/scss/generated
